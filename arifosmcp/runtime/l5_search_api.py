@@ -61,10 +61,12 @@ app = FastAPI(title="L5 Search API", version="1.0.0")
 # FALKORDB CONNECTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _get_graph():
     """Get FalkorDB graph handle. Returns None if unavailable."""
     try:
         from falkordb import FalkorDB
+
         db = FalkorDB(host=FALKOR_HOST, port=FALKOR_PORT)
         return db.select_graph(FALKOR_GRAPH)
     except Exception as e:
@@ -88,6 +90,7 @@ def _safe_query(cypher: str, params: dict | None = None) -> list[list[Any]]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # REQUEST MODELS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class SearchRequest(BaseModel):
     query: str = ""
@@ -136,6 +139,7 @@ class EpisodeCreateRequest(BaseModel):
 # HEALTH
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @app.get("/health")
 async def health():
     """Liveness probe."""
@@ -151,6 +155,7 @@ async def health():
 # ═══════════════════════════════════════════════════════════════════════════════
 # EPISODE SEARCH
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @app.post("/search/episodes")
 async def search_episodes(req: SearchRequest):
@@ -178,9 +183,11 @@ async def search_episodes(req: SearchRequest):
     if where_clauses:
         cypher_parts.append("WHERE " + " AND ".join(where_clauses))
 
-    cypher_parts.append("RETURN e.uuid, e.name, e.episode_body, e.domain, "
-                        "e.total_steps, e.plan_status, e.epistemic_band, "
-                        "e.created_at, e.source, e.source_description")
+    cypher_parts.append(
+        "RETURN e.uuid, e.name, e.episode_body, e.domain, "
+        "e.total_steps, e.plan_status, e.epistemic_band, "
+        "e.created_at, e.source, e.source_description"
+    )
     cypher_parts.append(f"LIMIT {req.max_results}")
 
     cypher = " ".join(cypher_parts)
@@ -189,18 +196,20 @@ async def search_episodes(req: SearchRequest):
     results = []
     for row in rows:
         if len(row) >= 1:
-            results.append({
-                "uuid": row[0] if len(row) > 0 else "",
-                "name": row[1] if len(row) > 1 else "",
-                "summary": _safe_get(row, 2, ""),
-                "domain": row[3] if len(row) > 3 else "unknown",
-                "total_steps": row[4] if len(row) > 4 else 0,
-                "plan_status": row[5] if len(row) > 5 else "unknown",
-                "epistemic_band": row[6] if len(row) > 6 else 0.5,
-                "created_at": row[7] if len(row) > 7 else "",
-                "source": row[8] if len(row) > 8 else "unknown",
-                "source_description": row[9] if len(row) > 9 else "",
-            })
+            results.append(
+                {
+                    "uuid": row[0] if len(row) > 0 else "",
+                    "name": row[1] if len(row) > 1 else "",
+                    "summary": _safe_get(row, 2, ""),
+                    "domain": row[3] if len(row) > 3 else "unknown",
+                    "total_steps": row[4] if len(row) > 4 else 0,
+                    "plan_status": row[5] if len(row) > 5 else "unknown",
+                    "epistemic_band": row[6] if len(row) > 6 else 0.5,
+                    "created_at": row[7] if len(row) > 7 else "",
+                    "source": row[8] if len(row) > 8 else "unknown",
+                    "source_description": row[9] if len(row) > 9 else "",
+                }
+            )
 
     return {"results": results, "total": len(results)}
 
@@ -251,17 +260,19 @@ async def search_semantic(req: SemanticSearchRequest):
         score = min(0.95, 0.3 + (hits / max(len(terms), 1)) * 0.65)
 
         if score >= req.min_score:
-            results.append({
-                "uuid": _safe_get(row, 0, ""),
-                "name": name,
-                "summary": body[:300] if body else "",
-                "source_description": desc[:300],
-                "source": _safe_get(row, 5, ""),
-                "score": round(score, 3),
-                "hits": hits,
-                "total_terms": len(terms),
-                "created_at": _safe_get(row, 4, ""),
-            })
+            results.append(
+                {
+                    "uuid": _safe_get(row, 0, ""),
+                    "name": name,
+                    "summary": body[:300] if body else "",
+                    "source_description": desc[:300],
+                    "source": _safe_get(row, 5, ""),
+                    "score": round(score, 3),
+                    "hits": hits,
+                    "total_terms": len(terms),
+                    "created_at": _safe_get(row, 4, ""),
+                }
+            )
 
     # Sort by score descending
     results.sort(key=lambda r: r["score"], reverse=True)
@@ -272,6 +283,7 @@ async def search_semantic(req: SemanticSearchRequest):
 # ═══════════════════════════════════════════════════════════════════════════════
 # CAPABILITY GRAPH
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @app.post("/graph/capability")
 async def get_capability(req: CapabilityRequest):
@@ -300,21 +312,25 @@ async def get_capability(req: CapabilityRequest):
 
     nodes = []
     for row in node_rows:
-        nodes.append({
-            "name": _safe_get(row, 0, ""),
-            "type": _safe_get(row, 1, "tool"),
-            "domain": _safe_get(row, 2, req.domain),
-            "description": _safe_get(row, 3, ""),
-        })
+        nodes.append(
+            {
+                "name": _safe_get(row, 0, ""),
+                "type": _safe_get(row, 1, "tool"),
+                "domain": _safe_get(row, 2, req.domain),
+                "description": _safe_get(row, 3, ""),
+            }
+        )
 
     edges = []
     for row in edge_rows:
-        edges.append({
-            "source": _safe_get(row, 0, ""),
-            "relation": _safe_get(row, 1, ""),
-            "target": _safe_get(row, 2, ""),
-            "weight": _safe_get(row, 3, 0.5),
-        })
+        edges.append(
+            {
+                "source": _safe_get(row, 0, ""),
+                "relation": _safe_get(row, 1, ""),
+                "target": _safe_get(row, 2, ""),
+                "weight": _safe_get(row, 3, 0.5),
+            }
+        )
 
     return {
         "nodes": nodes,
@@ -338,13 +354,16 @@ async def update_edge_weight(req: EdgeWeightRequest):
             r.last_reason = $reason
         RETURN r.weight
     """
-    rows = _safe_query(cypher, {
-        "source": req.source,
-        "target": req.target,
-        "delta": req.delta,
-        "ts": datetime.now(UTC).isoformat(),
-        "reason": req.reason,
-    })
+    rows = _safe_query(
+        cypher,
+        {
+            "source": req.source,
+            "target": req.target,
+            "delta": req.delta,
+            "ts": datetime.now(UTC).isoformat(),
+            "reason": req.reason,
+        },
+    )
     return {"success": len(rows) > 0, "new_weight": rows[0][0] if rows else None}
 
 
@@ -360,12 +379,15 @@ async def annotate_path(req: PathAnnotateRequest):
                 r.annotated_at = $ts
             RETURN r
         """
-        rows = _safe_query(cypher, {
-            "source": req.nodes[i],
-            "target": req.nodes[i + 1],
-            "annotation": json.dumps(req.annotation),
-            "ts": datetime.now(UTC).isoformat(),
-        })
+        rows = _safe_query(
+            cypher,
+            {
+                "source": req.nodes[i],
+                "target": req.nodes[i + 1],
+                "annotation": json.dumps(req.annotation),
+                "ts": datetime.now(UTC).isoformat(),
+            },
+        )
         if rows:
             count += 1
     return {"success": count > 0, "edges_annotated": count}
@@ -374,6 +396,7 @@ async def annotate_path(req: PathAnnotateRequest):
 # ═══════════════════════════════════════════════════════════════════════════════
 # EPISODE PATH & CHECKPOINT
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @app.get("/episodes/path")
 async def get_prior_path(
@@ -445,9 +468,7 @@ async def create_episode(req: EpisodeCreateRequest):
     except json.JSONDecodeError:
         body = {"raw": req.episode_body}
 
-    episode_id = hashlib.sha256(
-        f"{req.name}:{time.time()}".encode()
-    ).hexdigest()[:16]
+    episode_id = hashlib.sha256(f"{req.name}:{time.time()}".encode()).hexdigest()[:16]
 
     cypher = """
         CREATE (e:Episode {
@@ -460,14 +481,17 @@ async def create_episode(req: EpisodeCreateRequest):
         })
         RETURN e.uuid
     """
-    rows = _safe_query(cypher, {
-        "uuid": episode_id,
-        "name": req.name,
-        "body": req.episode_body,
-        "source": req.source,
-        "desc": req.source_description,
-        "ts": datetime.now(UTC).isoformat(),
-    })
+    rows = _safe_query(
+        cypher,
+        {
+            "uuid": episode_id,
+            "name": req.name,
+            "body": req.episode_body,
+            "source": req.source,
+            "desc": req.source_description,
+            "ts": datetime.now(UTC).isoformat(),
+        },
+    )
 
     return {
         "uuid": episode_id,
@@ -478,6 +502,7 @@ async def create_episode(req: EpisodeCreateRequest):
 # ═══════════════════════════════════════════════════════════════════════════════
 # UTILITIES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _safe_get(row: list, idx: int, default: Any = "") -> Any:
     """Safely get an element from a result row."""
@@ -493,6 +518,7 @@ def _safe_get(row: list, idx: int, default: Any = "") -> Any:
 
 if __name__ == "__main__":
     import uvicorn
+
     logging.basicConfig(level=logging.INFO)
     logger.info("Starting L5 Search API on port %d", SERVICE_PORT)
     uvicorn.run(app, host="127.0.0.1", port=SERVICE_PORT, log_level="info")

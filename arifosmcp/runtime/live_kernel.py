@@ -185,6 +185,7 @@ def compute_constitution_hash() -> str:
     # report the SAME hash — eliminating the hash schism.
     try:
         from arifosmcp.runtime.policy_hash import KERNEL_POLICY_HASH as _KPH
+
         if _KPH:
             _CONSTITUTION_HASH_CACHE = f"sha256:{_KPH}"
             return _CONSTITUTION_HASH_CACHE
@@ -207,7 +208,9 @@ def compute_constitution_hash() -> str:
     # Last-resort fallback — should only be reached in development without
     # a running kernel. In production, KERNEL_POLICY_HASH is always set at
     # startup by server.py before any tool is called.
-    _CONSTITUTION_HASH_CACHE = "sha256:8bea28833523c652dd4f41e75f55ed3895e638efc92823a3528b7e237305943b"
+    _CONSTITUTION_HASH_CACHE = (
+        "sha256:8bea28833523c652dd4f41e75f55ed3895e638efc92823a3528b7e237305943b"
+    )
     return _CONSTITUTION_HASH_CACHE
 
 
@@ -279,6 +282,7 @@ def build_kernel_envelope(
         try:
             store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
             import json
+
             for p in (store_path, "/tmp/arifos/sessions.json"):
                 if os.path.exists(p):
                     with open(p, encoding="utf-8") as f:
@@ -286,7 +290,9 @@ def build_kernel_envelope(
                         sessions = data.get("sessions", {})
                         sess = sessions.get(session_id) or data.get(session_id)
                         if isinstance(sess, dict):
-                            actor_verified = bool(sess.get("actor_verified") or sess.get("signature_verified"))
+                            actor_verified = bool(
+                                sess.get("actor_verified") or sess.get("signature_verified")
+                            )
                             break
         except Exception:
             pass
@@ -406,7 +412,9 @@ def arif_os_attest(
         schema_hash=envelope_schema_hash,
         constitution_hash=constitution_hash,
         identity_anchor_type="constitution_hash",
-        identity_anchor_hash=constitution_hash if constitution_hash != "sha256:missing" else "sha256:pending",
+        identity_anchor_hash=constitution_hash
+        if constitution_hash != "sha256:missing"
+        else "sha256:pending",
         tool_count=tool_count,
         heartbeat_at=now,
         last_vault_seal="sha256:pending",  # Filled by vault organ

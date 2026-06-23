@@ -597,6 +597,7 @@ async def judge(
     _kernel_called = False
     try:
         from arifosmcp.runtime.kernel_state import kernel_transition
+
         _kt_available = True
     except ImportError:
         _kt_available = False

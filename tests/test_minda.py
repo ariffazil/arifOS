@@ -23,7 +23,6 @@ from arifosmcp.core.art_mind import (
     BeliefState,
     BeliefEngine,
     Plan,
-    ToolAction,
     CandidateGenerator,
     RolloutEngine,
     UtilityEngine,
@@ -36,6 +35,7 @@ from arifosmcp.core.art_mind import (
 # ═══════════════════════════════════════════════════════════════════════════
 # BeliefEngine
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestBeliefEngine:
     def test_empty_prior_observation_creates_new_var(self):
@@ -89,6 +89,7 @@ class TestBeliefEngine:
 # CandidateGenerator
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestCandidateGenerator:
     def test_generates_three_canonical_plans(self):
         gen = CandidateGenerator()
@@ -132,6 +133,7 @@ class TestCandidateGenerator:
 # RolloutEngine
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestRolloutEngine:
     def test_simulate_returns_expected_keys(self):
         engine = RolloutEngine()
@@ -169,6 +171,7 @@ class TestRolloutEngine:
 # UtilityEngine
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestUtilityEngine:
     def _engine(self, **overrides):
         return UtilityEngine(MindConfig(**overrides))
@@ -176,8 +179,12 @@ class TestUtilityEngine:
     def test_positive_score_for_good_outcome(self):
         engine = self._engine()
         outcome = {
-            "goal_progress": 0.7, "info_gain": 0.5, "maruah": 1.0,
-            "reversibility": 1.0, "cost": 0.2, "risk": 0.1,
+            "goal_progress": 0.7,
+            "info_gain": 0.5,
+            "maruah": 1.0,
+            "reversibility": 1.0,
+            "cost": 0.2,
+            "risk": 0.1,
         }
         score = engine.score(outcome)
         assert score > 0
@@ -186,8 +193,12 @@ class TestUtilityEngine:
         # F6: hard floor, not soft penalty
         engine = self._engine()
         outcome = {
-            "goal_progress": 1.0, "info_gain": 1.0, "maruah": 0.1,
-            "reversibility": 1.0, "cost": 0.0, "risk": 0.0,
+            "goal_progress": 1.0,
+            "info_gain": 1.0,
+            "maruah": 0.1,
+            "reversibility": 1.0,
+            "cost": 0.0,
+            "risk": 0.0,
         }
         assert engine.score(outcome) == UtilityEngine.NEG_INF
 
@@ -195,24 +206,38 @@ class TestUtilityEngine:
         # At the floor (not below), the plan is allowed but penalized
         engine = self._engine()
         outcome = {
-            "goal_progress": 0.5, "info_gain": 0.5, "maruah": MARUAH_HARD_FLOOR,
-            "reversibility": 1.0, "cost": 0.0, "risk": 0.0,
+            "goal_progress": 0.5,
+            "info_gain": 0.5,
+            "maruah": MARUAH_HARD_FLOOR,
+            "reversibility": 1.0,
+            "cost": 0.0,
+            "risk": 0.0,
         }
         score = engine.score(outcome)
         assert score > UtilityEngine.NEG_INF
 
     def test_higher_risk_lowers_score(self):
         engine = self._engine()
-        base = {"goal_progress": 0.5, "info_gain": 0.5, "maruah": 1.0,
-                "reversibility": 1.0, "cost": 0.0}
+        base = {
+            "goal_progress": 0.5,
+            "info_gain": 0.5,
+            "maruah": 1.0,
+            "reversibility": 1.0,
+            "cost": 0.0,
+        }
         score_low = engine.score({**base, "risk": 0.1})
         score_high = engine.score({**base, "risk": 0.9})
         assert score_low > score_high
 
     def test_higher_cost_lowers_score(self):
         engine = self._engine()
-        base = {"goal_progress": 0.5, "info_gain": 0.5, "maruah": 1.0,
-                "reversibility": 1.0, "risk": 0.0}
+        base = {
+            "goal_progress": 0.5,
+            "info_gain": 0.5,
+            "maruah": 1.0,
+            "reversibility": 1.0,
+            "risk": 0.0,
+        }
         score_cheap = engine.score({**base, "cost": 0.1})
         score_expensive = engine.score({**base, "cost": 0.9})
         assert score_cheap > score_expensive
@@ -221,6 +246,7 @@ class TestUtilityEngine:
 # ═══════════════════════════════════════════════════════════════════════════
 # MindaService — full think() loop
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestMindaService:
     def test_think_returns_think_response(self):
@@ -314,12 +340,14 @@ class TestMindaService:
         req1 = ThinkRequest(intent="step 1", observations={"a": 1})
         resp1 = service.think(req1)
         # Use resp1 as prior for next call
-        prior = BeliefState(**{
-            "facts": dict(resp1.ranked[0].outcome),  # use the outcome as facts
-            "confidence": {"x": 0.7},
-            "uncertainty": resp1.posterior_uncertainty,
-            "provenance": resp1.provenance,
-        })
+        prior = BeliefState(
+            **{
+                "facts": dict(resp1.ranked[0].outcome),  # use the outcome as facts
+                "confidence": {"x": 0.7},
+                "uncertainty": resp1.posterior_uncertainty,
+                "provenance": resp1.provenance,
+            }
+        )
         req2 = ThinkRequest(
             intent="step 2",
             observations={"b": 2},
@@ -333,12 +361,24 @@ class TestMindaService:
 # Constraints
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestConstraints:
     def test_all_thirteen_floors_documented(self):
         floors = {c.floor for c in F_CONSTRAINTS}
         assert floors == {
-            "F1", "F2", "F3", "F4", "F5", "F6",
-            "F7", "F8", "F9", "F10", "F11", "F12", "F13",
+            "F1",
+            "F2",
+            "F3",
+            "F4",
+            "F5",
+            "F6",
+            "F7",
+            "F8",
+            "F9",
+            "F10",
+            "F11",
+            "F12",
+            "F13",
         }
 
     def test_hard_constraints_are_subset(self):
@@ -358,6 +398,7 @@ class TestConstraints:
 # Schemas
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestSchemas:
     def test_think_request_validation(self):
         req = ThinkRequest(intent="test")
@@ -372,8 +413,6 @@ class TestSchemas:
             ThinkRequest(intent="test", horizon=100)
 
     def test_scored_plan_default_hold(self):
-        p = ScoredPlan(
-            plan_id="x", score=0.5, actions=["a"], outcome={"x": 0.5}
-        )
+        p = ScoredPlan(plan_id="x", score=0.5, actions=["a"], outcome={"x": 0.5})
         assert p.hold_888 is False
         assert p.reason is None

@@ -301,7 +301,7 @@ class TestNoToolSprawl:
 
     def test_tool_surface_unchanged(self):
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
- 
+
         # arifOS has 21 canonical tools (13 legacy + 8 newer/Rule-14)
         expected = {
             "arif_session_init",

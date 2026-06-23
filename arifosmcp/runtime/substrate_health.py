@@ -22,15 +22,14 @@ DITEMPA BUKAN DIBERI — The substrate is forged, not given.
 from __future__ import annotations
 
 import os
-from typing import Any
 
 
 # Critical subsystems that block SEAL when degraded
 # If any of these is False/MISSING/EMPTY, we suppress positive verdicts.
 CRITICAL_SUBSYSTEMS = (
-    "vault_chain",       # VAULT999 has seals we can read
-    "constitution_hash", # The constitution identity is resolvable
-    "federation_health", # Federation organs are reachable (best-effort)
+    "vault_chain",  # VAULT999 has seals we can read
+    "constitution_hash",  # The constitution identity is resolvable
+    "federation_health",  # Federation organs are reachable (best-effort)
 )
 
 
@@ -51,21 +50,17 @@ def substrate_health_check() -> dict[str, str]:
 
     # ── vault_chain ────────────────────────────────────────────────────
     vault_dir = (
-        os.environ.get("VAULT999_PATH")
-        or os.environ.get("ARIFOS_VAULT_DIR")
-        or "/agent/vault999"
+        os.environ.get("VAULT999_PATH") or os.environ.get("ARIFOS_VAULT_DIR") or "/agent/vault999"
     )
     if not os.path.exists(vault_dir):
         health["vault_chain"] = "MISSING"
     elif os.path.isdir(vault_dir):
         jsonl_files = [
-            f for f in os.listdir(vault_dir)
+            f
+            for f in os.listdir(vault_dir)
             if f.endswith(".jsonl") and os.path.isfile(os.path.join(vault_dir, f))
         ]
-        non_empty = [
-            f for f in jsonl_files
-            if os.path.getsize(os.path.join(vault_dir, f)) > 0
-        ]
+        non_empty = [f for f in jsonl_files if os.path.getsize(os.path.join(vault_dir, f)) > 0]
         if not jsonl_files:
             health["vault_chain"] = "EMPTY"
         elif not non_empty:
@@ -106,9 +101,9 @@ def _probe_federation_health() -> str:
     import socket
 
     organ_ports = [
-        (8088, "arifOS"),    # constitutional kernel
-        (18082, "WEALTH"),    # capital
-        (18083, "WELL"),      # vitality
+        (8088, "arifOS"),  # constitutional kernel
+        (18082, "WEALTH"),  # capital
+        (18083, "WELL"),  # vitality
     ]
     reachable = 0
     for port, _name in organ_ports:
@@ -140,15 +135,11 @@ def degraded_dominance_gate() -> tuple[bool, str, dict[str, str]]:
             return {"verdict": "HOLD", "reason": reason, "health": health}
     """
     health = substrate_health_check()
-    degraded_subsystems = [
-        name for name in CRITICAL_SUBSYSTEMS
-        if health.get(name) != "OK"
-    ]
+    degraded_subsystems = [name for name in CRITICAL_SUBSYSTEMS if health.get(name) != "OK"]
     degraded = len(degraded_subsystems) > 0
     if degraded:
-        reason = (
-            "degraded-dominance gate fired: critical subsystems not OK — "
-            + ", ".join(f"{s}={health.get(s)}" for s in degraded_subsystems)
+        reason = "degraded-dominance gate fired: critical subsystems not OK — " + ", ".join(
+            f"{s}={health.get(s)}" for s in degraded_subsystems
         )
     else:
         reason = "substrate aligned — all critical subsystems OK"
@@ -157,8 +148,6 @@ def degraded_dominance_gate() -> tuple[bool, str, dict[str, str]]:
 
 # ── Test surface ──────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    import json
-
     print("=" * 80)
     print("Substrate Health Check — degraded-dominance gate")
     print("=" * 80)

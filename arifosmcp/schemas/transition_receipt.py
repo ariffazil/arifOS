@@ -40,7 +40,7 @@ import json
 import time
 import uuid
 from enum import Enum
-from typing import Any, Literal
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -84,12 +84,12 @@ class TransitionEventType(str, Enum):
 class AuthoritySource(str, Enum):
     """Who or what authorized this transition."""
 
-    KSR = "KSR"                  # Kernel-internal (transition() call)
-    JUDGE = "JUDGE"              # 888_JUDGE deliberation
-    SOVEREIGN = "SOVEREIGN"      # F13 Arif direct
-    ORGAN = "ORGAN"              # Federation organ (GEOX, WEALTH, WELL)
-    EXTERNAL = "EXTERNAL"        # External agent (Phase 5 via mark_transition)
-    SYSTEM = "SYSTEM"            # System/cron/daemon
+    KSR = "KSR"  # Kernel-internal (transition() call)
+    JUDGE = "JUDGE"  # 888_JUDGE deliberation
+    SOVEREIGN = "SOVEREIGN"  # F13 Arif direct
+    ORGAN = "ORGAN"  # Federation organ (GEOX, WEALTH, WELL)
+    EXTERNAL = "EXTERNAL"  # External agent (Phase 5 via mark_transition)
+    SYSTEM = "SYSTEM"  # System/cron/daemon
 
 
 class ProofLevel(str, Enum):

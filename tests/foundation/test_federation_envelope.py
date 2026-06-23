@@ -150,7 +150,9 @@ class TestWrapLegacyCall:
 
     def test_wrap_mutate_is_conservative(self):
         env = wrap_legacy_call(
-            actor_id="a1", session_id="s1", tool_name="arif_forge_execute",
+            actor_id="a1",
+            session_id="s1",
+            tool_name="arif_forge_execute",
             action_class=ActionClass.MUTATE,
         )
         assert env.legacy_wrap is True
@@ -188,6 +190,7 @@ class TestRiskPassport:
 class TestAuthorityEnvelope:
     def test_delegation_expired(self):
         from datetime import UTC, datetime, timedelta
+
         auth = AuthorityEnvelope(
             source=AuthoritySource.DELEGATED,
             delegator="arif",
@@ -198,6 +201,7 @@ class TestAuthorityEnvelope:
 
     def test_delegation_valid(self):
         from datetime import UTC, datetime, timedelta
+
         auth = AuthorityEnvelope(
             source=AuthoritySource.DELEGATED,
             delegator="arif",

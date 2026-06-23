@@ -61,10 +61,12 @@ class TestFullPipelineIntegration:
 
     def test_safe_message_full_pipeline(self):
         """A gratitude message should flow through all 5 organs to PROCEED."""
-        result = _run(rasa_governed_execute(
-            message="alhamdulillah bersyukur dapat rezeki hari ni",
-            session_id="test-integration-001",
-        ))
+        result = _run(
+            rasa_governed_execute(
+                message="alhamdulillah bersyukur dapat rezeki hari ni",
+                session_id="test-integration-001",
+            )
+        )
 
         assert result.detection is not None
         assert result.detection.emotion_tags, "Should detect emotion tags"
@@ -84,10 +86,12 @@ class TestFullPipelineIntegration:
 
     def test_sadness_message_produces_constrained_posture(self):
         """Sadness → cognitive bandwidth reduction → constrained posture."""
-        result = _run(rasa_governed_execute(
-            message="aku sedih sangat hari ni",
-            session_id="test-integration-002",
-        ))
+        result = _run(
+            rasa_governed_execute(
+                message="aku sedih sangat hari ni",
+                session_id="test-integration-002",
+            )
+        )
 
         assert result.detection is not None
         assert RasaEmotionTag.SADNESS in result.detection.emotion_tags
@@ -112,10 +116,12 @@ class TestFullPipelineIntegration:
 
     def test_burnout_message_forces_simplify(self):
         """Burnout → cognitive bandwidth 0.2, SIMPLIFY posture."""
-        result = _run(rasa_governed_execute(
-            message="aku penat sangat, exhausted, burn out gila",
-            session_id="test-integration-003",
-        ))
+        result = _run(
+            rasa_governed_execute(
+                message="aku penat sangat, exhausted, burn out gila",
+                session_id="test-integration-003",
+            )
+        )
 
         assert result.context is not None
         assert result.context.cognitive_bandwidth <= 0.2, (
@@ -139,10 +145,12 @@ class TestCrisisShortCircuit:
 
     def test_crisis_short_circuits_pipeline(self):
         """CRISIS → HUMAN_LOOP, context/memory/heart all None."""
-        result = _run(rasa_governed_execute(
-            message="aku rasa nak mati, dah tak boleh tahan",
-            session_id="test-crisis-integration-001",
-        ))
+        result = _run(
+            rasa_governed_execute(
+                message="aku rasa nak mati, dah tak boleh tahan",
+                session_id="test-crisis-integration-001",
+            )
+        )
 
         assert result.final_posture == ConstitutionPosture.HUMAN_LOOP
         assert result.requires_human is True
@@ -154,10 +162,12 @@ class TestCrisisShortCircuit:
 
     def test_crisis_blocks_machine_output_completely(self):
         """CRISIS → ALL machine output blocked, only HUMAN_LOOP allowed."""
-        result = _run(rasa_governed_execute(
-            message="kill myself, no reason to live",
-            session_id="test-crisis-integration-002",
-        ))
+        result = _run(
+            rasa_governed_execute(
+                message="kill myself, no reason to live",
+                session_id="test-crisis-integration-002",
+            )
+        )
 
         assert result.judge is not None
         allowed = [p.value for p in result.judge.allowed_postures]
@@ -166,10 +176,12 @@ class TestCrisisShortCircuit:
 
     def test_crisis_escalation_reason_is_descriptive(self):
         """CRISIS → human_escalation_reason must be informative."""
-        result = _run(rasa_governed_execute(
-            message="tak guna hidup, nak mati je",
-            session_id="test-crisis-integration-003",
-        ))
+        result = _run(
+            rasa_governed_execute(
+                message="tak guna hidup, nak mati je",
+                session_id="test-crisis-integration-003",
+            )
+        )
 
         assert result.human_escalation_reason, "Must provide escalation reason"
         assert "CRISIS" in result.human_escalation_reason
@@ -195,7 +207,8 @@ class TestFloorCheckIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-floors"),
         )
 
@@ -226,7 +239,8 @@ class TestFloorCheckIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-f1"),
         )
 
@@ -247,7 +261,8 @@ class TestFloorCheckIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-f5"),
         )
 
@@ -269,7 +284,8 @@ class TestFloorCheckIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-f9"),
         )
 
@@ -288,7 +304,8 @@ class TestFloorCheckIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-f10"),
         )
 
@@ -307,7 +324,8 @@ class TestFloorCheckIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-f13"),
         )
 
@@ -335,14 +353,13 @@ class TestJudgeDeliberateIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-judge-001"),
         )
 
         judge_result = rasa_judge_hook(detection, context, heart)
-        assert "proceed" in judge_result["allowed_postures"], (
-            "PEACE should allow PROCEED"
-        )
+        assert "proceed" in judge_result["allowed_postures"], "PEACE should allow PROCEED"
         assert judge_result["requires_rewrite"] is False
 
     def test_judge_downgrades_for_dignity_below_threshold(self):
@@ -356,7 +373,8 @@ class TestJudgeDeliberateIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-judge-002"),
         )
 
@@ -381,15 +399,20 @@ class TestJudgeDeliberateIntegration:
         )
         context = RasaContract().mind_interpret(detection)
         heart = RasaContract().heart_critique(
-            detection, context,
+            detection,
+            context,
             RasaContract().memory_recall(detection, "test-judge-003"),
         )
 
         judge_result = rasa_judge_hook(detection, context, heart)
 
         expected_fields = [
-            "judge", "allowed_postures", "blocked_outputs",
-            "requires_rewrite", "floors_checked", "downgrade_reason",
+            "judge",
+            "allowed_postures",
+            "blocked_outputs",
+            "requires_rewrite",
+            "floors_checked",
+            "downgrade_reason",
             "judge_note",
         ]
         for field in expected_fields:
@@ -436,9 +459,9 @@ class TestSiblingRelationship:
         rasa_doc = RasaContract.__doc__ or ""
 
         # internal_rasa: agent self-monitoring
-        assert "brake system" in internal_doc.lower() or "self-monitoring" in internal_doc.lower(), (
-            "internal_rasa docstring must mention brake system or self-monitoring"
-        )
+        assert (
+            "brake system" in internal_doc.lower() or "self-monitoring" in internal_doc.lower()
+        ), "internal_rasa docstring must mention brake system or self-monitoring"
 
         # rasa_contract: human rasa governance
         assert "human rasa" in rasa_doc.lower() or "govern" in rasa_doc.lower(), (
@@ -455,6 +478,7 @@ class TestSiblingRelationship:
         """
         import os
         import re
+
         path = os.path.join(
             os.path.dirname(__file__),
             "../../arifosmcp/rasa/rasa_integration.py",
@@ -467,10 +491,11 @@ class TestSiblingRelationship:
         # 'internal_rasa' as a module name (in from/import clause).
         # We match: optional whitespace + "from" or "import" + ... + "internal_rasa"
         import_lines = [
-            l for l in lines
-            if re.match(r'\s*(?:from|import)\s', l)
-            and 'internal_rasa' in l
-            and 'import ' in l  # Must have "import" keyword (real statement)
+            l
+            for l in lines
+            if re.match(r"\s*(?:from|import)\s", l)
+            and "internal_rasa" in l
+            and "import " in l  # Must have "import" keyword (real statement)
         ]
 
         # Only the diagnostics function may import internal_rasa (for sibling check).
@@ -496,7 +521,8 @@ class TestQualiaTraceCoexistence:
         """qualia_trace module must be importable."""
         try:
             from core.vault999.phenomenological.qualia_trace import (
-                QualiaTrace, QualiaMemoryStore,
+                QualiaTrace,
+                QualiaMemoryStore,
             )
         except ImportError as e:
             pytest.fail(f"qualia_trace must be importable: {e}")
@@ -555,8 +581,12 @@ class TestIntegrationDiagnostics:
         """All 6 hooks must be marked callable."""
         diag = rasa_integration_diagnostics()
         for hook_name in [
-            "rasa_sense_hook", "rasa_mind_hook", "rasa_memory_hook",
-            "rasa_heart_hook", "rasa_judge_hook", "rasa_governed_execute",
+            "rasa_sense_hook",
+            "rasa_mind_hook",
+            "rasa_memory_hook",
+            "rasa_heart_hook",
+            "rasa_judge_hook",
+            "rasa_governed_execute",
         ]:
             assert diag["checks"].get(hook_name) == "CALLABLE", (
                 f"{hook_name} should be CALLABLE, got {diag['checks'].get(hook_name)}"
@@ -566,9 +596,7 @@ class TestIntegrationDiagnostics:
         """Diagnostics must run a full pipeline smoke test successfully."""
         diag = rasa_integration_diagnostics()
         smoke = diag["checks"].get("full_pipeline", {})
-        assert smoke.get("executed") is True, (
-            f"Smoke test failed: {smoke}"
-        )
+        assert smoke.get("executed") is True, f"Smoke test failed: {smoke}"
 
     def test_sibling_check_in_diagnostics(self):
         """Diagnostics must verify sibling modules are distinct."""
@@ -608,10 +636,12 @@ class TestEdgeCases:
 
     def test_english_bm_mixed_message(self):
         """Mixed BM-English Penang Pasar → correct tag detection."""
-        result = _run(rasa_governed_execute(
-            message="aku sedih gila, really tired and overwhelmed",
-            session_id="test-edge-003",
-        ))
+        result = _run(
+            rasa_governed_execute(
+                message="aku sedih gila, really tired and overwhelmed",
+                session_id="test-edge-003",
+            )
+        )
         tags = [t.value for t in result.detection.emotion_tags]
         assert "sadness" in tags, f"Should detect sadness in mixed msg: {tags}"
 
@@ -665,6 +695,7 @@ class TestAdapterNonInvasiveness:
     def test_adapter_file_lives_only_in_rasa_directory(self):
         """The integration adapter must only exist in arifosmcp/rasa/."""
         import os
+
         adapter_path = os.path.join(
             os.path.dirname(__file__), "../../arifosmcp/rasa/rasa_integration.py"
         )

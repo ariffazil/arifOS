@@ -117,7 +117,11 @@ def test_no_stale_port_8080_in_docs():
     if readme.exists():
         text = readme.read_text()
         # Allow 8080 in historical or Docker-internal contexts, but not as live port
-        lines_with_8080 = [l for l in text.splitlines() if "8080" in l and "Docker" not in l and "container" not in l.lower()]
+        lines_with_8080 = [
+            l
+            for l in text.splitlines()
+            if "8080" in l and "Docker" not in l and "container" not in l.lower()
+        ]
         # This is a soft check — we just note it, not fail hard
         assert len(lines_with_8080) <= 3, (
             f"README has {len(lines_with_8080)} lines mentioning 8080 without Docker context. "

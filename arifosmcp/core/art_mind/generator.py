@@ -25,6 +25,7 @@ class ToolAction:
         cost:         rough cost proxy [0.0, 1.0+]
         blast_radius: "low" | "medium" | "high" | "unknown"
     """
+
     name: str
     params: dict = field(default_factory=dict)
     reversible: bool = True
@@ -40,6 +41,7 @@ class Plan:
     They are used by RolloutEngine to simulate outcomes and by UtilityEngine
     to score them.
     """
+
     id: str
     actions: list[ToolAction] = field(default_factory=list)
     expected_info_gain: float = 0.0

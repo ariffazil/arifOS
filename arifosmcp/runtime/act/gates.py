@@ -13,17 +13,19 @@ from enum import StrEnum
 
 class ActVerdict(StrEnum):
     """What ACT decides for this program."""
-    PROCEED = "proceed"                    # Pattern is safe — execute as planned
-    HOLD = "hold"                          # Pattern needs change — pause
-    BLOCK = "block"                        # Cannot execute safely — redesign
+
+    PROCEED = "proceed"  # Pattern is safe — execute as planned
+    HOLD = "hold"  # Pattern needs change — pause
+    BLOCK = "block"  # Cannot execute safely — redesign
     DRY_RUN_REQUIRED = "dry_run_required"  # Must simulate first
-    CANARY_REQUIRED = "canary_required"    # Must canary first
+    CANARY_REQUIRED = "canary_required"  # Must canary first
     COMPENSATION_REQUIRED = "compensation_required"  # Needs rollback plan
-    HUMAN_REQUIRED = "human_required"      # Human must be in loop
+    HUMAN_REQUIRED = "human_required"  # Human must be in loop
 
 
 class ActReason(StrEnum):
     """Why ACT reached this verdict."""
+
     # State
     NO_PREVIOUS_STAGE = "no previous stage — starting fresh"
     PREVIOUS_STAGE_UNVERIFIED = "previous stage not verified — cannot proceed"
@@ -63,6 +65,7 @@ class ActReason(StrEnum):
 
 class StageStatus(StrEnum):
     """Status of a single stage in a multi-stage program."""
+
     PENDING = "pending"
     RUNNING = "running"
     VERIFIED = "verified"
@@ -74,6 +77,7 @@ class StageStatus(StrEnum):
 @dataclass
 class StageResult:
     """Result of a single execution stage."""
+
     stage_number: int
     total_stages: int
     status: StageStatus

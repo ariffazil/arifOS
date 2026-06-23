@@ -143,14 +143,18 @@ class TestServiceHealthNotExecutionAuthority:
         state_a = _state("green", "held", False)
         state_b = _state("green", "ready", True, judge_seal_active=True, apex_approval="PRESENT")
         # Same service_health; different execution_readiness.
-        assert state_a["public_posture"]["service_health"] == state_b["public_posture"]["service_health"]
-        assert state_a["public_posture"]["execution_readiness"] != state_b["public_posture"]["execution_readiness"]
+        assert (
+            state_a["public_posture"]["service_health"]
+            == state_b["public_posture"]["service_health"]
+        )
+        assert (
+            state_a["public_posture"]["execution_readiness"]
+            != state_b["public_posture"]["execution_readiness"]
+        )
         jsonschema.validate(state_a, schema)
         jsonschema.validate(state_b, schema)
 
-    def test_execution_readiness_ready_requires_judge_seal_and_apex(
-        self, schema: dict
-    ) -> None:
+    def test_execution_readiness_ready_requires_judge_seal_and_apex(self, schema: dict) -> None:
         """Document the contract rule: execution_readiness=ready requires
         judge_seal_authorization=ACTIVE AND apex_approval=PRESENT.
 

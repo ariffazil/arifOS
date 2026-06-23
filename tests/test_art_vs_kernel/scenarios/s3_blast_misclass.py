@@ -11,7 +11,6 @@ This proves ART's claim #3: blast-radius fast-screen.
 
 from __future__ import annotations
 
-import pytest
 
 from ..conftest import compare, run_scenario
 

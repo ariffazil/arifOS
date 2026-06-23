@@ -192,7 +192,9 @@ def test_schema_token_cap_enforced():
 
 def test_missing_required_fields_excluded():
     tools = [
-        _tool("complete", tier=Tier.CORE, constitution_hash="abc", schema_hash="def", version="1.0"),
+        _tool(
+            "complete", tier=Tier.CORE, constitution_hash="abc", schema_hash="def", version="1.0"
+        ),
         _tool("no_constitution", tier=Tier.CORE, constitution_hash=None),
         _tool("no_schema", tier=Tier.CORE, schema_hash=None),
         _tool("no_version", tier=Tier.CORE, version=None),

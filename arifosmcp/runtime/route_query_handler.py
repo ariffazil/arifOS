@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 class RouteQueryInput(BaseModel):
     """Input schema for arifos_route_query. Matches Copilot spec."""
+
     query: str = Field(
         ...,
         description="The user's natural language query. Will be classified for routing.",
@@ -41,7 +42,7 @@ class RouteQueryInput(BaseModel):
     mode: str | None = Field(
         default=None,
         description="Explicit mode override: 'exploit', 'explore', or 'hybrid'. "
-                    "If None, deterministic rules determine the lane.",
+        "If None, deterministic rules determine the lane.",
     )
     session_id: str | None = Field(
         default=None,
@@ -71,6 +72,7 @@ class RouteQueryInput(BaseModel):
 
 class RouteQueryOutput(BaseModel):
     """Output schema for arifos_route_query. The routing plan."""
+
     lane: str = Field(..., description="Determined lane: exploit | explore | hybrid")
     reason: str = Field(..., description="Why this lane was chosen (rule trace)")
     target_tools: list[str] = Field(

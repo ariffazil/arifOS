@@ -97,9 +97,7 @@ def _render_block(b: dict) -> str:
                     if v is not None
                 }
             )
-        body = _table(
-            rows, ["column", "n", "mean", "sd", "median", "min", "max", "skew", "kurt"]
-        )
+        body = _table(rows, ["column", "n", "mean", "sd", "median", "min", "max", "skew", "kurt"])
     elif tool == "stat_compare_groups":
         body = (
             f"**Method:** {data.get('method')}  \n"
@@ -134,8 +132,7 @@ def _render_block(b: dict) -> str:
             f"**Adj R²:** {data.get('adj_r_squared')}  \n"
             f"**F:** {data.get('f_stat')} (p={data.get('f_pvalue')})  \n"
             f"**AIC:** {data.get('aic')}  **BIC:** {data.get('bic')}  \n\n"
-            f"### Coefficients\n"
-            + _table(rows, ["var", "coef", "se", "t", "p", "ci_lo", "ci_hi"])
+            f"### Coefficients\n" + _table(rows, ["var", "coef", "se", "t", "p", "ci_lo", "ci_hi"])
         )
         if data.get("vif"):
             body += "\n### VIF\n" + _table(

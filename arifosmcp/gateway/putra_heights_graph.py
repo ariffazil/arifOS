@@ -273,8 +273,13 @@ def putra_heights_belief_graph() -> BeliefGraph:
             actors_involved=["agent_arifos_reasoner"],
             used_refs=["ev_kosmo_2026_06_12"],
             produced_refs=[
-                "ptn_ph_t1", "ptn_ph_t2", "ptn_ph_t3", "ptn_ph_t4",
-                "ptn_ph_t5", "ptn_ph_t6", "ptn_ph_t7",
+                "ptn_ph_t1",
+                "ptn_ph_t2",
+                "ptn_ph_t3",
+                "ptn_ph_t4",
+                "ptn_ph_t5",
+                "ptn_ph_t6",
+                "ptn_ph_t7",
             ],
         ),
     ]
@@ -292,7 +297,12 @@ def putra_heights_belief_graph() -> BeliefGraph:
             summary=summary,
             claim_refs=claims,
             evidence_refs=["ev_kosmo_2026_06_12"],
-            actor_refs=["actor_mb_selangor", "actor_petronas", "actor_residents", "actor_kerajaan_persekutuan"],
+            actor_refs=[
+                "actor_mb_selangor",
+                "actor_petronas",
+                "actor_residents",
+                "actor_kerajaan_persekutuan",
+            ],
             provenance=Provenance(
                 generated_by_activity="activity_tension_detect",
                 generated_by_agent="agent_arifos_reasoner",
@@ -303,73 +313,136 @@ def putra_heights_belief_graph() -> BeliefGraph:
 
     g.tensions = [
         _tension(  # PH-T1: PROMISE_VS_OUTCOME
-            "ptn_ph_t1", "Disclosure Promise vs Report Withheld",
-            TensionClass.INSTITUTIONAL_PARADOX, Severity.HIGH,
+            "ptn_ph_t1",
+            "Disclosure Promise vs Report Withheld",
+            TensionClass.INSTITUTIONAL_PARADOX,
+            Severity.HIGH,
             "3 minggu dari 'bersedia dedah' (22 Mei) ke 'tak boleh dedah' (12 Jun). Niat deklaratif bercanggah dengan outcome sebenar.",
             ["claim_bersedia_dedah", "claim_kekangan_undang"],
-            TensionScores(confidence=0.80, credibility=0.75, coherence_strain=0.85,
-                         public_interest=0.95, harm_potential=0.75, shadow_score=0.60,
-                         meaning_leak_intensity=0.65, maruah_impact=-0.55),
+            TensionScores(
+                confidence=0.80,
+                credibility=0.75,
+                coherence_strain=0.85,
+                public_interest=0.95,
+                harm_potential=0.75,
+                shadow_score=0.60,
+                meaning_leak_intensity=0.65,
+                maruah_impact=-0.55,
+            ),
             "escalate_review_timeout",
         ),
         _tension(  # PH-T2: PASSIVE_OBSTACLE
-            "ptn_ph_t2", "Passive Obstacle Construction",
-            TensionClass.MEANING_LEAK, Severity.MEDIUM,
+            "ptn_ph_t2",
+            "Passive Obstacle Construction",
+            TensionClass.MEANING_LEAK,
+            Severity.MEDIUM,
             "MB kata 'tiada halangan' untuk dedah — tapi ayat berikutnya menyenaraikan halangan. Passive voice menyembunyikan agency. Siapa yang SEBENARNYA menahan?",
             ["claim_negeri_tiada_halangan", "claim_kekangan_undang"],
-            TensionScores(confidence=0.75, credibility=0.70, coherence_strain=0.75,
-                         public_interest=0.65, harm_potential=0.45, shadow_score=0.70,
-                         meaning_leak_intensity=0.88, maruah_impact=-0.30),
+            TensionScores(
+                confidence=0.75,
+                credibility=0.70,
+                coherence_strain=0.75,
+                public_interest=0.65,
+                harm_potential=0.45,
+                shadow_score=0.70,
+                meaning_leak_intensity=0.88,
+                maruah_impact=-0.30,
+            ),
             "audit_passive_obstacle",
         ),
         _tension(  # PH-T3: SLIP_PHRASE — THE SMOKING GUN
-            "ptn_ph_t3", "Named Actor Slip: 'Seperti Petronas'",
-            TensionClass.MEANING_LEAK, Severity.CRITICAL,
+            "ptn_ph_t3",
+            "Named Actor Slip: 'Seperti Petronas'",
+            TensionClass.MEANING_LEAK,
+            Severity.CRITICAL,
             "Ayat paling jujur dalam artikel: 'melibatkan agensi persekutuan seperti Petronas'. Petronas disebut NAMA — bukan 'agensi persekutuan' generik. Reporter sengaja letak nama. Ini bendera merah untuk seksyen laporan yang paling sensitif.",
             ["claim_agensi_persekutuan_generik", "claim_perlu_teliti_petronas"],
-            TensionScores(confidence=0.95, credibility=0.90, coherence_strain=0.85,
-                         public_interest=0.98, harm_potential=0.90, shadow_score=0.91,
-                         meaning_leak_intensity=0.97, maruah_impact=-0.80),
+            TensionScores(
+                confidence=0.95,
+                credibility=0.90,
+                coherence_strain=0.85,
+                public_interest=0.98,
+                harm_potential=0.90,
+                shadow_score=0.91,
+                meaning_leak_intensity=0.97,
+                maruah_impact=-0.80,
+            ),
             "activate_ACCIDENT_REPORT_LITIGATION_HOLD",
         ),
         _tension(  # PH-T4: VOICE_ASYMMETRY
-            "ptn_ph_t4", "Voice Asymmetry: MB Dominates, Residents Silent",
-            TensionClass.PUBLIC_PRIVATE_DIVERGENCE, Severity.MEDIUM,
+            "ptn_ph_t4",
+            "Voice Asymmetry: MB Dominates, Residents Silent",
+            TensionClass.PUBLIC_PRIVATE_DIVERGENCE,
+            Severity.MEDIUM,
             "MB mendapat 4 petikan langsung. Penduduk: sifar petikan. Artikel melaporkan mangsa melalui naratif MB — bukan suara mereka sendiri. Geometry = power.",
             ["claim_bersedia_dedah", "claim_kekangan_undang", "claim_penduduk_saman"],
-            TensionScores(confidence=0.70, credibility=0.65, coherence_strain=0.55,
-                         public_interest=0.75, harm_potential=0.55, shadow_score=0.55,
-                         meaning_leak_intensity=0.72, maruah_impact=-0.65),
+            TensionScores(
+                confidence=0.70,
+                credibility=0.65,
+                coherence_strain=0.55,
+                public_interest=0.75,
+                harm_potential=0.55,
+                shadow_score=0.55,
+                meaning_leak_intensity=0.72,
+                maruah_impact=-0.65,
+            ),
             "audit_voice_balance",
         ),
         _tension(  # PH-T5: EXPLICIT_VS_IMPLICIT
-            "ptn_ph_t5", "Explicit vs Implicit: No Negligence vs Preventable",
-            TensionClass.HARD_CONTRADICTION, Severity.HIGH,
+            "ptn_ph_t5",
+            "Explicit vs Implicit: No Negligence vs Preventable",
+            TensionClass.HARD_CONTRADICTION,
+            Severity.HIGH,
             "Laporan siasatan kata 'tiada kecuaian' (naratif rasmi). Mangsa dakwa 'boleh dicegah' (naratif komuniti). Dua naratif bertembung — tapi hanya satu dapat ruang dalam artikel.",
             ["claim_perlu_teliti_petronas", "claim_penduduk_saman"],
-            TensionScores(confidence=0.80, credibility=0.72, coherence_strain=0.90,
-                         public_interest=0.92, harm_potential=0.85, shadow_score=0.68,
-                         meaning_leak_intensity=0.60, maruah_impact=-0.72),
+            TensionScores(
+                confidence=0.80,
+                credibility=0.72,
+                coherence_strain=0.90,
+                public_interest=0.92,
+                harm_potential=0.85,
+                shadow_score=0.68,
+                meaning_leak_intensity=0.60,
+                maruah_impact=-0.72,
+            ),
             "escalate_to_contradiction_audit",
         ),
         _tension(  # PH-T6: DEADLINE_VOID
-            "ptn_ph_t6", "Deadline Void: Indefinite Review",
-            TensionClass.TIMELINE_INCOHERENCE, Severity.HIGH,
+            "ptn_ph_t6",
+            "Deadline Void: Indefinite Review",
+            TensionClass.TIMELINE_INCOHERENCE,
+            Severity.HIGH,
             "Laporan diserah April. Jun masih 'diteliti semula'. Tiada tarikh tamat disebut. 'Penelitian semula' tanpa deadline = indefinite hold dressed as due diligence.",
             ["claim_laporan_diserah_april", "claim_akan_didedah_sebaik_selesai"],
-            TensionScores(confidence=0.90, credibility=0.85, coherence_strain=0.92,
-                         public_interest=0.90, harm_potential=0.78, shadow_score=0.82,
-                         meaning_leak_intensity=0.55, maruah_impact=-0.70),
+            TensionScores(
+                confidence=0.90,
+                credibility=0.85,
+                coherence_strain=0.92,
+                public_interest=0.90,
+                harm_potential=0.78,
+                shadow_score=0.82,
+                meaning_leak_intensity=0.55,
+                maruah_impact=-0.70,
+            ),
             "escalate_deadline_breach",
         ),
         _tension(  # PH-T7: JURISDICTION_TRAP
-            "ptn_ph_t7", "Jurisdiction Trap: Negeri vs Persekutuan",
-            TensionClass.ROLE_RESPONSIBILITY_GAP, Severity.MEDIUM,
+            "ptn_ph_t7",
+            "Jurisdiction Trap: Negeri vs Persekutuan",
+            TensionClass.ROLE_RESPONSIBILITY_GAP,
+            Severity.MEDIUM,
             "MB Selangor kata 'tiada halangan' — tapi proses libatkan 'bidang kuasa persekutuan'. Negeri nak dedah tapi tak pegang kunci. Siapa yang sekat sebenarnya?",
             ["claim_negeri_tiada_halangan", "claim_ikut_proses"],
-            TensionScores(confidence=0.75, credibility=0.70, coherence_strain=0.65,
-                         public_interest=0.78, harm_potential=0.60, shadow_score=0.73,
-                         meaning_leak_intensity=0.68, maruah_impact=-0.45),
+            TensionScores(
+                confidence=0.75,
+                credibility=0.70,
+                coherence_strain=0.65,
+                public_interest=0.78,
+                harm_potential=0.60,
+                shadow_score=0.73,
+                meaning_leak_intensity=0.68,
+                maruah_impact=-0.45,
+            ),
             "audit_jurisdiction_choke",
         ),
     ]
@@ -379,15 +452,17 @@ def putra_heights_belief_graph() -> BeliefGraph:
     # ══════════════════════════════════════════════════════════════════════
 
     for i, t in enumerate(g.tensions, 1):
-        g.receipts.append(ReceiptNode(
-            receipt_id=f"rcpt_ph_t{i}_detect_01",
-            action_type="TENSION_DETECTED",
-            object_ref=t.tension_id,
-            actor_ref="agent_arifos_reasoner",
-            timestamp="2026-06-13T04:00:00+08:00",
-            reason_code="FRAME_GRAPH_DETECTION",
-            hash=f"sha256:tension-detect-{t.tension_id}",
-        ))
+        g.receipts.append(
+            ReceiptNode(
+                receipt_id=f"rcpt_ph_t{i}_detect_01",
+                action_type="TENSION_DETECTED",
+                object_ref=t.tension_id,
+                actor_ref="agent_arifos_reasoner",
+                timestamp="2026-06-13T04:00:00+08:00",
+                reason_code="FRAME_GRAPH_DETECTION",
+                hash=f"sha256:tension-detect-{t.tension_id}",
+            )
+        )
 
     return g
 
@@ -432,13 +507,13 @@ def seal_belief_graph_to_merkle(g: BeliefGraph, merkle: MerkleTree) -> dict:
         "leaves": {k: {"index": v, "hash": merkle.leaves[v].hex()} for k, v in leaves.items()},
         "checkpoint": checkpoint,
         "inclusion_proofs": {
-            t.tension_id: merkle.inclusion_proof(leaves[t.tension_id])
-            for t in g.tensions
+            t.tension_id: merkle.inclusion_proof(leaves[t.tension_id]) for t in g.tensions
         },
         "consistency_proofs": {
             f"{merkle.tree_size - 20}-{merkle.tree_size}": (
                 merkle.consistency_proof(merkle.tree_size - 20, merkle.tree_size)
-                if merkle.tree_size > 20 else None
+                if merkle.tree_size > 20
+                else None
             ),
         },
     }

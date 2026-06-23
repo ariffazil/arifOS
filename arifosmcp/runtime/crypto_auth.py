@@ -3,6 +3,7 @@ arifosmcp/runtime/crypto_auth.py
 ════════════════════════════════
 Cryptographic identity verification for Sovereign actors.
 """
+
 import base64
 import logging
 import os

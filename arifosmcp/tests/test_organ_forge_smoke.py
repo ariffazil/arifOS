@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
 
 # Make arifOS importable. We import the SUBMODULES directly to avoid
 # pulling the package __init__ chain (which requires fastmcp at runtime).
@@ -27,16 +26,13 @@ from arifosmcp.evidence import (  # noqa: E402
     emit_geox,
     emit_wealth,
     emit_well,
-    emit_aforge,
     run_pipeline,
-    wrap_envelope,
     EpistemicTag,
     Reversibility,
     JudgeVerdict,
 )
 from arifosmcp.evidence.law_evidence import (
     WellState,
-    VaultLineage,
 )
 from arifosmcp.core.transitions import (
     ActionState,
@@ -52,7 +48,6 @@ from arifosmcp.experiments.loop import (
 from arifosmcp.memory import (  # noqa: E402
     ContradictionEntry,
     MemoryLayer,
-    WriteAction,
     WriteRequest,
     get_contradiction_store,
     get_lesson_store,
@@ -98,8 +93,10 @@ def test_scenario_1_clean_geox_seal() -> None:
         ActionState.EXECUTED,
         ActionState.APPROVED,
     ), f"Got {result.action_record.state.value}"
-    print(f"  ✓ scenario_1: SEAL → action {result.action_record.state.value}, "
-          f"memory {result.memory_decisions}")
+    print(
+        f"  ✓ scenario_1: SEAL → action {result.action_record.state.value}, "
+        f"memory {result.memory_decisions}"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -134,8 +131,10 @@ def test_scenario_2_irreversible_voids() -> None:
     assert result.recommended_verdict in (JudgeVerdict.VOID, JudgeVerdict.HOLD), (
         f"Expected VOID/HOLD for irreversible without ack, got {result.recommended_verdict}"
     )
-    print(f"  ✓ scenario_2: {result.recommended_verdict.value} → "
-          f"action {result.action_record.state.value} (L01/L13 enforced)")
+    print(
+        f"  ✓ scenario_2: {result.recommended_verdict.value} → "
+        f"action {result.action_record.state.value} (L01/L13 enforced)"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -174,7 +173,7 @@ def test_scenario_3_well_critical_holds() -> None:
     assert result.recommended_verdict == JudgeVerdict.HOLD, (
         f"Expected HOLD for CRITICAL substrate, got {result.recommended_verdict}"
     )
-    print(f"  ✓ scenario_3: HOLD → L05 PEACE enforced (substrate CRITICAL)")
+    print("  ✓ scenario_3: HOLD → L05 PEACE enforced (substrate CRITICAL)")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -232,9 +231,11 @@ def test_scenario_4_contradiction_threshold() -> None:
         f"Expected at least 1 hold after 3 contradictions, got {len(pending)} "
         f"(stats: {ctr_store.stats()})"
     )
-    print(f"  ✓ scenario_4: 3 contradictions → hold_triggered, "
-          f"pending={len(pending)}, "
-          f"lessons={get_lesson_store().stats()['lessons_total']}")
+    print(
+        f"  ✓ scenario_4: 3 contradictions → hold_triggered, "
+        f"pending={len(pending)}, "
+        f"lessons={get_lesson_store().stats()['lessons_total']}"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -275,9 +276,11 @@ def test_scenario_5_transition_guards() -> None:
     rec4 = StateMachine.transition(rec3, ActionState.SEALED, actor_id="agent:tester")
     assert rec4.state == ActionState.SEALED
     assert len(rec4.history) == 3
-    print(f"  ✓ scenario_5: illegal PENDING→SEALED rejected, "
-          f"legal PENDING→APPROVED→EXECUTED→SEALED works "
-          f"({len(rec4.history)} history entries)")
+    print(
+        f"  ✓ scenario_5: illegal PENDING→SEALED rejected, "
+        f"legal PENDING→APPROVED→EXECUTED→SEALED works "
+        f"({len(rec4.history)} history entries)"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -318,8 +321,10 @@ def test_scenario_6_experiment_confirm() -> None:
         __import__("arifosmcp").experiments.loop.ExperimentVerdict.BELIEF_CONFIRMED,
         __import__("arifosmcp").experiments.loop.ExperimentVerdict.BELIEF_REVISED,
     ), f"Got {card.verdict}"
-    print(f"  ✓ scenario_6: experiment {card.experiment_id} closed "
-          f"verdict={card.verdict.value} Δ={card.compare.delta_belief:+.3f}")
+    print(
+        f"  ✓ scenario_6: experiment {card.experiment_id} closed "
+        f"verdict={card.verdict.value} Δ={card.compare.delta_belief:+.3f}"
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -346,11 +351,8 @@ def test_scenario_7_lesson_promotion() -> None:
     delta_total = stats["lessons_total"] - initial_total
     delta_promoted = stats["promoted"] - initial_promoted
     assert delta_total == 3, f"Expected 3 new lessons, got {delta_total}"
-    assert delta_promoted >= 1, (
-        f"Expected at least 1 promoted rule, got {delta_promoted}"
-    )
-    print(f"  ✓ scenario_7: 3 'timeout' failures → "
-          f"{delta_promoted} routing rule(s) promoted")
+    assert delta_promoted >= 1, f"Expected at least 1 promoted rule, got {delta_promoted}"
+    print(f"  ✓ scenario_7: 3 'timeout' failures → {delta_promoted} routing rule(s) promoted")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -372,16 +374,19 @@ def test_scenario_8_memory_policy_holds_fact() -> None:
         epistemic_tag=EpistemicTag.FACT,  # FACT requires ≥ 0.99
         session_id="sess-mem",
     )
-    decision = engine.decide(WriteRequest(
-        actor_id="agent:geox",
-        actor_type="agent",
-        layer=MemoryLayer.L4_STRUCTURED,
-        key="fact:test",
-        payload={"x": 1},
-        source_envelope=env,
-        session_id="sess-mem",
-    ))
+    decision = engine.decide(
+        WriteRequest(
+            actor_id="agent:geox",
+            actor_type="agent",
+            layer=MemoryLayer.L4_STRUCTURED,
+            key="fact:test",
+            payload={"x": 1},
+            source_envelope=env,
+            session_id="sess-mem",
+        )
+    )
     from arifosmcp.memory.policies import WriteAction as _WA
+
     assert decision.action == _WA.HOLD, (
         f"Expected HOLD for FACT < 0.99, got {decision.action.value}: {decision.reason}"
     )

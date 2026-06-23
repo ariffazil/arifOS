@@ -67,9 +67,7 @@ def handle_rca_tool(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _incident_create(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _incident_create(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = Incident(
         incident_id=args.get("incident_id", f"INC-{uuid.uuid4().hex[:12].upper()}"),
         title=args["title"],
@@ -80,12 +78,14 @@ def _incident_create(
         operator_entity=args.get("operator_entity", ""),
     )
     store.create(incident)
-    leaf_idx = merkle.append_canonical({
-        "action": "incident.create",
-        "incident_id": incident.incident_id,
-        "title": incident.title,
-        "timestamp": time.time(),
-    })
+    leaf_idx = merkle.append_canonical(
+        {
+            "action": "incident.create",
+            "incident_id": incident.incident_id,
+            "title": incident.title,
+            "timestamp": time.time(),
+        }
+    )
     return {
         "status": "CREATED",
         "incident": incident.to_dict(),
@@ -93,18 +93,14 @@ def _incident_create(
     }
 
 
-def _incident_get(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _incident_get(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
     return {"incident": incident.to_dict()}
 
 
-def _incident_list(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _incident_list(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     state_filter = args.get("state")
     if state_filter:
         incidents = store.list_by_state(IncidentState(state_filter))
@@ -118,9 +114,7 @@ def _incident_list(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _report_submit(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _report_submit(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -146,14 +140,16 @@ def _report_submit(
     incident.seal_version(version)
     ok, detail = incident.transition(IncidentState.REPORT_SUBMITTED, args.get("actor", "system"))
 
-    leaf_idx = merkle.append_canonical({
-        "action": "report.submit",
-        "incident_id": incident.incident_id,
-        "version_id": version.version_id,
-        "hash": version.hash,
-        "actor_role": version.created_by_role,
-        "timestamp": time.time(),
-    })
+    leaf_idx = merkle.append_canonical(
+        {
+            "action": "report.submit",
+            "incident_id": incident.incident_id,
+            "version_id": version.version_id,
+            "hash": version.hash,
+            "actor_role": version.created_by_role,
+            "timestamp": time.time(),
+        }
+    )
 
     return {
         "status": "SUBMITTED" if ok else "TRANSITION_FAILED",
@@ -163,9 +159,7 @@ def _report_submit(
     }
 
 
-def _report_get_version(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _report_get_version(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -181,9 +175,7 @@ def _report_get_version(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _litigation_mark_active(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _litigation_mark_active(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -194,12 +186,14 @@ def _litigation_mark_active(
     incident.litigation_refs = args.get("litigation_refs", [])
     ok, detail = incident.transition(IncidentState.LITIGATION_ACTIVE, args.get("actor", "system"))
 
-    leaf_idx = merkle.append_canonical({
-        "action": "litigation.mark_active",
-        "incident_id": incident.incident_id,
-        "litigation_refs": incident.litigation_refs,
-        "timestamp": time.time(),
-    })
+    leaf_idx = merkle.append_canonical(
+        {
+            "action": "litigation.mark_active",
+            "incident_id": incident.incident_id,
+            "litigation_refs": incident.litigation_refs,
+            "timestamp": time.time(),
+        }
+    )
 
     return {
         "status": "LITIGATION_ACTIVE" if ok else "TRANSITION_FAILED",
@@ -213,9 +207,7 @@ def _litigation_mark_active(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _review_start(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _review_start(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -246,21 +238,21 @@ def _review_start(
     }
 
 
-def _review_complete(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _review_complete(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
 
     ok, detail = incident.transition(IncidentState.REVIEW_COMPLETE, args.get("actor", "system"))
 
-    leaf_idx = merkle.append_canonical({
-        "action": "review.complete",
-        "incident_id": incident.incident_id,
-        "actor": args.get("actor", "system"),
-        "timestamp": time.time(),
-    })
+    leaf_idx = merkle.append_canonical(
+        {
+            "action": "review.complete",
+            "incident_id": incident.incident_id,
+            "actor": args.get("actor", "system"),
+            "timestamp": time.time(),
+        }
+    )
 
     return {
         "status": "REVIEW_COMPLETE" if ok else "TRANSITION_FAILED",
@@ -269,9 +261,7 @@ def _review_complete(
     }
 
 
-def _review_escalate(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _review_escalate(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -281,12 +271,14 @@ def _review_escalate(
 
     ok, detail = incident.transition(IncidentState.REVIEW_STALLED, "auto-escalation")
 
-    leaf_idx = merkle.append_canonical({
-        "action": "review.escalate",
-        "incident_id": incident.incident_id,
-        "reason": "DEADLINE_BREACH",
-        "timestamp": time.time(),
-    })
+    leaf_idx = merkle.append_canonical(
+        {
+            "action": "review.escalate",
+            "incident_id": incident.incident_id,
+            "reason": "DEADLINE_BREACH",
+            "timestamp": time.time(),
+        }
+    )
 
     return {
         "status": "REVIEW_STALLED" if ok else "TRANSITION_FAILED",
@@ -300,9 +292,7 @@ def _review_escalate(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _override_sign(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _override_sign(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -310,15 +300,19 @@ def _override_sign(
     if incident.state not in {IncidentState.REVIEW_STALLED}:
         return {"error": f"Override requires REVIEW_STALLED, but is {incident.state.value}"}
 
-    ok, detail = incident.transition(IncidentState.SOVEREIGN_OVERRIDE, args.get("actor", "sovereign"))
+    ok, detail = incident.transition(
+        IncidentState.SOVEREIGN_OVERRIDE, args.get("actor", "sovereign")
+    )
 
-    leaf_idx = merkle.append_canonical({
-        "action": "override.sign",
-        "incident_id": incident.incident_id,
-        "actor": args.get("actor", "sovereign"),
-        "directive": args.get("directive", "APPROVE_DISCLOSURE"),
-        "timestamp": time.time(),
-    })
+    leaf_idx = merkle.append_canonical(
+        {
+            "action": "override.sign",
+            "incident_id": incident.incident_id,
+            "actor": args.get("actor", "sovereign"),
+            "directive": args.get("directive", "APPROVE_DISCLOSURE"),
+            "timestamp": time.time(),
+        }
+    )
 
     return {
         "status": "SOVEREIGN_OVERRIDE" if ok else "TRANSITION_FAILED",
@@ -332,9 +326,7 @@ def _override_sign(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _disclosure_publish(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _disclosure_publish(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -375,9 +367,7 @@ def _disclosure_publish(
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-def _timeline_get(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _timeline_get(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     incident = store.get(args["incident_id"])
     if not incident:
         return {"error": f"Incident not found: {args['incident_id']}"}
@@ -391,9 +381,7 @@ def _timeline_get(
     }
 
 
-def _rca_health(
-    args: dict, store: IncidentStore, merkle: MerkleTree
-) -> dict[str, Any]:
+def _rca_health(args: dict, store: IncidentStore, merkle: MerkleTree) -> dict[str, Any]:
     stalled = store.list_by_state(IncidentState.REVIEW_STALLED)
     return {
         "status": "healthy",

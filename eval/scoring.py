@@ -74,7 +74,11 @@ def score_case(case: dict[str, Any], agent_result: dict[str, Any]) -> dict[str, 
     status = agent_result.get("status", "not_run")
 
     expected_dec = (case.get("expected_decision") or "").strip().upper()
-    agent_dec = (agent_result.get("agent_decision") or "").strip().upper() if agent_result.get("agent_decision") else None
+    agent_dec = (
+        (agent_result.get("agent_decision") or "").strip().upper()
+        if agent_result.get("agent_decision")
+        else None
+    )
 
     expected_group = normalise_decision(expected_dec)
     agent_group = normalise_decision(agent_dec) if agent_dec else "unknown"
@@ -113,10 +117,7 @@ def score_case(case: dict[str, Any], agent_result: dict[str, Any]) -> dict[str, 
     # ── Weighted composite ───────────────────────────────
     # decision is dominant (60%), floor 20%, output 10%, tools 10%
     weighted_score = (
-        decision_score * 0.60
-        + floor_score * 0.20
-        + output_score * 0.10
-        + tools_score * 0.10
+        decision_score * 0.60 + floor_score * 0.20 + output_score * 0.10 + tools_score * 0.10
     )
 
     return {
@@ -140,6 +141,7 @@ def score_case(case: dict[str, Any], agent_result: dict[str, Any]) -> dict[str, 
 # ──────────────────────────────────────────────────────────
 # Aggregate metrics
 # ──────────────────────────────────────────────────────────
+
 
 def aggregate(scored: list[dict[str, Any]], cases: list[dict[str, Any]]) -> dict[str, Any]:
     """
@@ -207,6 +209,7 @@ def aggregate(scored: list[dict[str, Any]], cases: list[dict[str, Any]]) -> dict
 # ──────────────────────────────────────────────────────────
 # Internal helpers
 # ──────────────────────────────────────────────────────────
+
 
 def _jaccard(a: set, b: set) -> float:
     if not a and not b:

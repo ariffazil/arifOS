@@ -16,13 +16,14 @@ DITEMPA BUKAN DIBERI — Discovered, not guessed.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
 @dataclass(frozen=True)
 class ArifToolDiscovery:
     """LLM-optimized tool discovery metadata."""
+
     name: str
     description: str
     use_when: str
@@ -40,15 +41,19 @@ class ArifToolDiscovery:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
-
     # ── SESSION & IDENTITY ─────────────────────────────────────────────────────
-
     "arif_init": ArifToolDiscovery(
         name="arif_init",
         description="Start or resume a governed constitutional session. MUST be called first before any other tool.",
         use_when="Beginning a new conversation, starting a task, resuming a session, or binding to a constitutional context. Keywords: 'start session', 'initialize', 'begin', 'new conversation', 'resume'.",
         do_not_use_when="Already in an active session. Use other tools directly.",
-        aliases=["arif_session_init", "arifos_init", "session_init", "init_session", "start_session"],
+        aliases=[
+            "arif_session_init",
+            "arifos_init",
+            "session_init",
+            "init_session",
+            "start_session",
+        ],
         keywords=["init", "session", "start", "begin", "resume", "initialize", "bootstrap", "bind"],
         examples=[
             "Start a new session",
@@ -60,9 +65,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         modes=["init", "light", "resume", "validate", "epoch_open", "epoch_seal", "opt_out"],
         requires_session=False,
     ),
-
     # ── OBSERVATION & SENSING ──────────────────────────────────────────────────
-
     "arif_observe": ArifToolDiscovery(
         name="arif_observe",
         description="Search the web, ingest URLs, check system vitals, or map a repository.",
@@ -79,7 +82,6 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="observation",
         modes=["search", "ingest", "compass", "atlas", "entropy_dS", "vitals", "repo_map"],
     ),
-
     "arif_explore": ArifToolDiscovery(
         name="arif_explore",
         description="Multimodal reality observation — web search, URL ingestion, geospatial compass, entropy monitoring.",
@@ -95,7 +97,6 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="observation",
         modes=["search", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
     ),
-
     "arif_fetch": ArifToolDiscovery(
         name="arif_fetch",
         description="Fetch content from a URL. Returns page content as text.",
@@ -111,16 +112,23 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="observation",
         modes=["fetch"],
     ),
-
     # ── REASONING & PLANNING ───────────────────────────────────────────────────
-
     "arif_think": ArifToolDiscovery(
         name="arif_think",
         description="Multi-step reasoning, planning, and reflection with confidence labeling.",
         use_when="User wants to analyze, plan, reflect, verify, or critique something. Keywords: 'think', 'analyze', 'plan', 'reason', 'reflect', 'verify'.",
         do_not_use_when="User wants to search for information (use arif_observe) or execute actions (use arif_forge).",
         aliases=["arif_reason", "arif_analyze", "arif_plan", "think", "reason", "analyze", "plan"],
-        keywords=["think", "reason", "analyze", "plan", "reflect", "verify", "critique", "strategy"],
+        keywords=[
+            "think",
+            "reason",
+            "analyze",
+            "plan",
+            "reflect",
+            "verify",
+            "critique",
+            "strategy",
+        ],
         examples=[
             "Think about this problem",
             "Analyze the trade-offs",
@@ -128,16 +136,35 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
             "Reflect on what we've learned",
         ],
         category="reasoning",
-        modes=["reason", "reflect", "verify", "critique", "axioms", "plan", "plan_review", "plan_approve", "refactor_plan", "metabolize"],
+        modes=[
+            "reason",
+            "reflect",
+            "verify",
+            "critique",
+            "axioms",
+            "plan",
+            "plan_review",
+            "plan_approve",
+            "refactor_plan",
+            "metabolize",
+        ],
     ),
-
     "arif_critique": ArifToolDiscovery(
         name="arif_critique",
         description="Assess ethical risks and human impact before acting.",
         use_when="Before irreversible, sensitive, or dignity-affecting actions. Keywords: 'critique', 'ethical', 'risk', 'dignity', 'impact'.",
         do_not_use_when="User wants general reasoning (use arif_think) or execution (use arif_forge).",
         aliases=["arif_ethical_check", "arif_risk_assess", "critique", "ethical_check"],
-        keywords=["critique", "ethical", "risk", "dignity", "impact", "sensitive", "irreversible", "maruah"],
+        keywords=[
+            "critique",
+            "ethical",
+            "risk",
+            "dignity",
+            "impact",
+            "sensitive",
+            "irreversible",
+            "maruah",
+        ],
         examples=[
             "Is this action ethical?",
             "What are the risks?",
@@ -147,9 +174,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="reasoning",
         modes=["critique", "simulate", "redteam", "maruah", "deescalate", "empathy"],
     ),
-
     # ── ROUTING & TRIAGE ───────────────────────────────────────────────────────
-
     "arif_route": ArifToolDiscovery(
         name="arif_route",
         description="Canonical intent router. Routes natural-language intent to the correct federation organ.",
@@ -164,7 +189,6 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         ],
         category="routing",
     ),
-
     "arif_triage": ArifToolDiscovery(
         name="arif_triage",
         description="Constitutional preflight check. Returns kernel status, current holds, and correct lane.",
@@ -180,7 +204,6 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="routing",
         modes=["status", "preflight", "triage"],
     ),
-
     "arif_bridge_connect": ArifToolDiscovery(
         name="arif_bridge_connect",
         description="Direct organ tool call. Bypasses intent routing — caller must specify organ and tool_name.",
@@ -195,9 +218,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         ],
         category="routing",
     ),
-
     # ── MEMORY ─────────────────────────────────────────────────────────────────
-
     "arif_memory": ArifToolDiscovery(
         name="arif_memory",
         description="Federated memory tool — recall, inspect, attest, remember, promote, revise, forget.",
@@ -214,16 +235,23 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="memory",
         modes=["recall", "inspect", "attest", "remember", "promote", "revise", "forget"],
     ),
-
     # ── JUDGMENT & SEALING ─────────────────────────────────────────────────────
-
     "arif_judge": ArifToolDiscovery(
         name="arif_judge",
         description="Render final constitutional verdict on a proposed action.",
         use_when="A decision needs arbitration and binding judgment. Keywords: 'judge', 'verdict', 'decide', 'approve', 'reject'.",
         do_not_use_when="User wants to reason about options (use arif_think) or critique (use arif_critique).",
         aliases=["arif_verdict", "arif_decide", "judge", "verdict", "decide"],
-        keywords=["judge", "verdict", "decide", "approve", "reject", "seal", "hold", "constitutional"],
+        keywords=[
+            "judge",
+            "verdict",
+            "decide",
+            "approve",
+            "reject",
+            "seal",
+            "hold",
+            "constitutional",
+        ],
         examples=[
             "Judge this proposal",
             "Issue a verdict",
@@ -232,7 +260,6 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="judgment",
         modes=["judge", "validate", "hold", "rules", "armor", "probe", "notify"],
     ),
-
     "arif_seal": ArifToolDiscovery(
         name="arif_seal",
         description="Seal a verdict or outcome to the immutable audit ledger.",
@@ -248,15 +275,21 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="judgment",
         modes=["seal", "verify", "ledger", "changelog", "audit"],
     ),
-
     # ── EXECUTION ──────────────────────────────────────────────────────────────
-
     "arif_forge": ArifToolDiscovery(
         name="arif_forge",
         description="Execute approved builds, deployments, or system changes.",
         use_when="After judge has issued a SEAL verdict and you need to execute. Keywords: 'execute', 'build', 'deploy', 'forge', 'run'.",
         do_not_use_when="User wants to plan (use arif_think) or get approval (use arif_judge) first.",
-        aliases=["arif_execute", "arif_build", "arif_deploy", "forge", "execute", "build", "deploy"],
+        aliases=[
+            "arif_execute",
+            "arif_build",
+            "arif_deploy",
+            "forge",
+            "execute",
+            "build",
+            "deploy",
+        ],
         keywords=["forge", "execute", "build", "deploy", "run", "change", "mutate", "write"],
         examples=[
             "Execute the approved plan",
@@ -266,9 +299,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="execution",
         modes=["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
     ),
-
     # ── MEASUREMENT ────────────────────────────────────────────────────────────
-
     "arif_measure": ArifToolDiscovery(
         name="arif_measure",
         description="Check system health, thermodynamic state, and resource metrics.",
@@ -282,25 +313,49 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
             "Show me the metrics",
         ],
         category="measurement",
-        modes=["health", "vitals", "cost", "genius", "psi_le", "omega", "landauer", "topology", "drift"],
+        modes=[
+            "health",
+            "vitals",
+            "cost",
+            "genius",
+            "psi_le",
+            "omega",
+            "landauer",
+            "topology",
+            "drift",
+        ],
     ),
-
     "arif_canary": ArifToolDiscovery(
         name="arif_canary",
         description="Unified transport diagnostic probe. Liveness checks, protocol verification, schema testing.",
         use_when="Debugging MCP connections, verifying protocol versions, or testing schema round-trips. Keywords: 'diagnostic', 'probe', 'test connection', 'verify protocol'.",
         do_not_use_when="User wants normal tool operations (use the appropriate tool directly).",
         aliases=["arif_diagnostic", "arif_probe", "arif_test", "canary", "diagnostic", "probe"],
-        keywords=["canary", "diagnostic", "probe", "test", "verify", "protocol", "schema", "transport"],
+        keywords=[
+            "canary",
+            "diagnostic",
+            "probe",
+            "test",
+            "verify",
+            "protocol",
+            "schema",
+            "transport",
+        ],
         examples=[
             "Test the MCP connection",
             "Verify protocol version",
             "Run diagnostic probe",
         ],
         category="diagnostic",
-        modes=["ping", "schema_echo", "version_echo", "transport_echo", "initialize_probe", "conformance_report"],
+        modes=[
+            "ping",
+            "schema_echo",
+            "version_echo",
+            "transport_echo",
+            "initialize_probe",
+            "conformance_report",
+        ],
     ),
-
     "arif_conformance_report": ArifToolDiscovery(
         name="arif_conformance_report",
         description="Run the ARIF Conformance Spine against the live kernel. Proves arifOS is a governed runtime.",
@@ -315,9 +370,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         ],
         category="diagnostic",
     ),
-
     # ── COMPOSITION ────────────────────────────────────────────────────────────
-
     "arif_compose": ArifToolDiscovery(
         name="arif_compose",
         description="Compose the final response for the user. Call LAST after reasoning and judgment.",
@@ -333,9 +386,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="composition",
         modes=["compose", "summarize", "cite", "tone_shift"],
     ),
-
     # ── KERNEL INTERCEPT ───────────────────────────────────────────────────────
-
     "arif_kernel_intercept": ArifToolDiscovery(
         name="arif_kernel_intercept",
         description="Minimum constitutional kernel interceptor. Low-level governance check.",
@@ -349,9 +400,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         ],
         category="governance",
     ),
-
     # ── VAULT QUERY ────────────────────────────────────────────────────────────
-
     "hermes_vault_query": ArifToolDiscovery(
         name="hermes_vault_query",
         description="Query VAULT999 audit ledger. Search sealed records by keyword, organ, or date.",
@@ -375,17 +424,18 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
 # DISCOVERY API
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def get_tool_discovery(tool_name: str) -> ArifToolDiscovery | None:
     """Get discovery metadata for a tool. Resolves aliases."""
     # Direct match
     if tool_name in ARIF_TOOL_DISCOVERY:
         return ARIF_TOOL_DISCOVERY[tool_name]
-    
+
     # Alias match
     for td in ARIF_TOOL_DISCOVERY.values():
         if tool_name in td.aliases:
             return td
-    
+
     return None
 
 
@@ -394,12 +444,12 @@ def resolve_tool_name(name: str) -> str | None:
     # Direct match
     if name in ARIF_TOOL_DISCOVERY:
         return name
-    
+
     # Alias match
     for td in ARIF_TOOL_DISCOVERY.values():
         if name in td.aliases:
             return td.name
-    
+
     return None
 
 
@@ -412,7 +462,8 @@ def find_tools_by_keyword(keyword: str) -> list[ArifToolDiscovery]:
     """Find tools matching a keyword."""
     keyword_lower = keyword.lower()
     return [
-        td for td in ARIF_TOOL_DISCOVERY.values()
+        td
+        for td in ARIF_TOOL_DISCOVERY.values()
         if keyword_lower in td.keywords
         or keyword_lower in td.description.lower()
         or keyword_lower in td.use_when.lower()
@@ -449,22 +500,22 @@ def format_discovery_for_llm(tool_name: str) -> str:
     td = get_tool_discovery(tool_name)
     if not td:
         return f"Tool '{tool_name}' not found. Did you mean: {', '.join(suggest_tools(tool_name))}?"
-    
+
     modes_str = ""
     if td.modes:
         modes_str = f"\n  Modes: {', '.join(td.modes)}"
-    
+
     aliases_str = ""
     if td.aliases:
         aliases_str = f"\n  Also known as: {', '.join(td.aliases[:5])}"
-    
+
     return f"""Tool: {td.name}
 Category: {td.category}
 Description: {td.description}
 Use when: {td.use_when}
 Do NOT use when: {td.do_not_use_when}
 Examples:
-{chr(10).join(f'  - {ex}' for ex in td.examples)}{modes_str}{aliases_str}"""
+{chr(10).join(f"  - {ex}" for ex in td.examples)}{modes_str}{aliases_str}"""
 
 
 def suggest_tools(query: str, max_results: int = 3) -> list[str]:
@@ -478,10 +529,10 @@ def format_all_discoveries_for_llm() -> str:
     categories = {}
     for td in ARIF_TOOL_DISCOVERY.values():
         categories.setdefault(td.category, []).append(td)
-    
+
     result = "arifOS Tools — Quick Reference\n"
     result += "=" * 50 + "\n\n"
-    
+
     for category, tools in sorted(categories.items()):
         result += f"【{category.upper()}】\n"
         for td in tools:
@@ -491,13 +542,14 @@ def format_all_discoveries_for_llm() -> str:
             if td.aliases:
                 result += f"    Aliases: {', '.join(td.aliases[:3])}\n"
         result += "\n"
-    
+
     return result
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MCP RESOURCE — Tool Discovery
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def get_tool_discovery_resource() -> dict[str, Any]:
     """Return tool discovery as MCP resource for LLMs."""
@@ -521,7 +573,7 @@ def get_tool_discovery_resource() -> dict[str, Any]:
                 }
                 for td in ARIF_TOOL_DISCOVERY.values()
             ]
-        }
+        },
     }
 
 

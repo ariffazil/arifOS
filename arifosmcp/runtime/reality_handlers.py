@@ -374,15 +374,18 @@ class RealityHandler:
             # 1. Tavily (High quality)
             if TAVILY_API_KEY:
                 t_res = await self.search_tavily(query, top_k)
-                if t_res.results: return t_res
+                if t_res.results:
+                    return t_res
             # 2. Exa (Neural search)
             if EXA_API_KEY:
                 e_res = await self.search_exa(query, top_k)
-                if e_res.results: return e_res
+                if e_res.results:
+                    return e_res
             # 3. DDGS (Privacy-first)
             if DDGS_AVAILABLE:
                 d_res = await self.search_ddgs(query, top_k)
-                if d_res.results: return d_res
+                if d_res.results:
+                    return d_res
             # 4. Meyhem (Meta-search)
             return await self.search_meyhem(query, top_k)
 

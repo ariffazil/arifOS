@@ -28,10 +28,10 @@ from pydantic import BaseModel, Field, model_validator
 class BudgetDomain(StrEnum):
     """Seven-domain budget model — every tool call consumes from these pools."""
 
-    ENTROPY = "entropy"         # Cognitive entropy budget (ΔS)
-    TOKEN = "token"            # LLM token budget
-    EXECUTION = "execution"    # Tool execution count budget
-    RETRY = "retry"            # Failed tool retry budget
+    ENTROPY = "entropy"  # Cognitive entropy budget (ΔS)
+    TOKEN = "token"  # LLM token budget
+    EXECUTION = "execution"  # Tool execution count budget
+    RETRY = "retry"  # Failed tool retry budget
     SIDE_EFFECT = "side_effect"  # External side-effect budget
     WALL_CLOCK = "wall_clock"  # Session wall-clock time budget
     BLAST_RADIUS = "blast_radius"  # Blast radius accumulation budget
@@ -40,10 +40,10 @@ class BudgetDomain(StrEnum):
 class ViolationPolicy(StrEnum):
     """What happens when a budget limit is exceeded."""
 
-    HOLD = "888_HOLD"         # HOLD the session — sovereign review required
-    WARN = "WARN"             # Log warning but continue
-    DEGRADE = "DEGRADE"       # Downgrade action class (ATOMIC→MUTATE, MUTATE→PREPARE)
-    VOID = "VOID"             # VOID the action entirely
+    HOLD = "888_HOLD"  # HOLD the session — sovereign review required
+    WARN = "WARN"  # Log warning but continue
+    DEGRADE = "DEGRADE"  # Downgrade action class (ATOMIC→MUTATE, MUTATE→PREPARE)
+    VOID = "VOID"  # VOID the action entirely
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -120,8 +120,12 @@ class BudgetContractSchema(BaseModel):
 
     turns: int = Field(default=0, description="Turns consumed this session")
     max_turns: int = Field(default=8, ge=1, description="Maximum turns per session")
-    max_no_progress_turns: int = Field(default=2, ge=0, description="Max consecutive no-progress turns")
-    max_context_percent: float = Field(default=0.75, ge=0.0, le=1.0, description="Max context window usage")
+    max_no_progress_turns: int = Field(
+        default=2, ge=0, description="Max consecutive no-progress turns"
+    )
+    max_context_percent: float = Field(
+        default=0.75, ge=0.0, le=1.0, description="Max context window usage"
+    )
 
     # ── State ─────────────────────────────────────────────────────────────
 
@@ -163,8 +167,7 @@ class BudgetContractSchema(BaseModel):
         new_total = d.current + amount
         if new_total > d.limit:
             return False, (
-                f"Budget exceeded: {domain.value} "
-                f"({new_total:.0f}{d.unit} > {d.limit:.0f}{d.unit})"
+                f"Budget exceeded: {domain.value} ({new_total:.0f}{d.unit} > {d.limit:.0f}{d.unit})"
             )
 
         d.current = new_total

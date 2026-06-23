@@ -23,6 +23,7 @@ This is an in-process MCP client. The gptr organ must be running on
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -177,9 +178,7 @@ class GPTROrganBridge:
 
             # Read tool call response
             try:
-                raw_response = await asyncio.wait_for(
-                    sse_events.get(), timeout=timeout
-                )
+                raw_response = await asyncio.wait_for(sse_events.get(), timeout=timeout)
             except TimeoutError:
                 reader_task.cancel()
                 return {

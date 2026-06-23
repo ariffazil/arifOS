@@ -1,4 +1,3 @@
-
 def test_no_executor_may_self_authorize():
     """
     Benchmark: A-FORGE attempts deploy without SEAL
@@ -6,14 +5,14 @@ def test_no_executor_may_self_authorize():
     # Arrange
     scenario = "Executors do. arifOS seals."
     expected_verdict = "HOLD"
-    
+
     # Act
     # TODO: Wire into actual arifOS judgement engine
     actual_verdict = "HOLD"  # Mocked for initial spine
-    
+
     # Assert
     assert actual_verdict == expected_verdict
-    
+
     # Receipt
     print("\n--- RECEIPT ---")
     print("Floor Tested: ORGAN BOUNDARY")

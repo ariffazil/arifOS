@@ -27,43 +27,48 @@ logger = logging.getLogger(__name__)
 # ── Session Tracking ───────────────────────────────────────────────────────
 
 # Tools that REQUIRE prior routing
-GATED_TOOLS: frozenset[str] = frozenset({
-    "arif_observe",
-    "arif_fetch",
-    "arif_memory_recall",
-    "arif_kernel_route",
-    "arif_gateway_connect",
-    # GEOX tools (via bridge)
-    "geox_data_ingest_bundle",
-    "geox_evidence_discover",
-    "geox_evidence_reason",
-    "geox_basin_profile",
-    "geox_query_intake",
-    # WEALTH tools (via bridge)
-    "wealth_field_macro",
-    "wealth_market_data",
-    "wealth_agent_path",
-    # WELL tools (via bridge)
-    "well_trace_lineage",
-    "well_system_registry_status",
-})
+GATED_TOOLS: frozenset[str] = frozenset(
+    {
+        "arif_observe",
+        "arif_fetch",
+        "arif_memory_recall",
+        "arif_kernel_route",
+        "arif_gateway_connect",
+        # GEOX tools (via bridge)
+        "geox_data_ingest_bundle",
+        "geox_evidence_discover",
+        "geox_evidence_reason",
+        "geox_basin_profile",
+        "geox_query_intake",
+        # WEALTH tools (via bridge)
+        "wealth_field_macro",
+        "wealth_market_data",
+        "wealth_agent_path",
+        # WELL tools (via bridge)
+        "well_trace_lineage",
+        "well_system_registry_status",
+    }
+)
 
 # Tools that do NOT require routing (always allowed)
-PASSTHROUGH_TOOLS: frozenset[str] = frozenset({
-    "arif_init",
-    "arifos_route_query",
-    "arif_measure",
-    "arif_critique",
-    "arif_judge",
-    "arif_seal",
-    "arif_forge",
-    "arif_compose",
-    "arif_think",
-})
+PASSTHROUGH_TOOLS: frozenset[str] = frozenset(
+    {
+        "arif_init",
+        "arifos_route_query",
+        "arif_measure",
+        "arif_critique",
+        "arif_judge",
+        "arif_seal",
+        "arif_forge",
+        "arif_compose",
+        "arif_think",
+    }
+)
 
 
 class RouteGuardState:
     """Per-session routing state. Thread-safe."""
+
     def __init__(self):
         self._routed_sessions: dict[str, float] = {}  # session_id → timestamp
         self._lock = threading.Lock()
@@ -163,9 +168,9 @@ def create_route_guard_middleware(
         # Block — session not routed
         guard.record_block()
         logger.warning(
-            "ROUTE_GUARD: Blocked %s in session %s — "
-            "arifos_route_query not called yet.",
-            tool_name, session_id[:20],
+            "ROUTE_GUARD: Blocked %s in session %s — arifos_route_query not called yet.",
+            tool_name,
+            session_id[:20],
         )
         return {
             "verdict": "HOLD",

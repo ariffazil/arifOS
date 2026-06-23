@@ -62,9 +62,7 @@ class MindaService:
         # 3. Simulate + score + 888_HOLD check
         scored: list[ScoredPlan] = []
         for plan in plans:
-            outcome = self.rollout_engine.simulate(
-                posterior.uncertainty, plan, req.horizon
-            )
+            outcome = self.rollout_engine.simulate(posterior.uncertainty, plan, req.horizon)
             score = self.utility_engine.score(outcome)
 
             # F1 AMANAH + F13 SOVEREIGN: 888_HOLD on irreversible
@@ -72,9 +70,7 @@ class MindaService:
             hold_888 = has_irreversible and self.config.irreversible_hold
             hold_reason: Optional[str] = None
             if hold_888:
-                hold_reason = (
-                    f"F1+F13: irreversible action in plan {plan.id}"
-                )
+                hold_reason = f"F1+F13: irreversible action in plan {plan.id}"
 
             scored.append(
                 ScoredPlan(
@@ -112,7 +108,9 @@ class MindaService:
         # unbounded) utility score. When the score is far outside [0, 1], the
         # band collapses to the nearest endpoint — we can't represent confidence
         # in a utility value that's outside the confidence scale.
-        score_centered_low = max(self.CONFIDENCE_BAND_FLOOR, min(self.CONFIDENCE_BAND_CEILING, best.score))
+        score_centered_low = max(
+            self.CONFIDENCE_BAND_FLOOR, min(self.CONFIDENCE_BAND_CEILING, best.score)
+        )
         confidence_low = max(
             self.CONFIDENCE_BAND_FLOOR,
             score_centered_low - posterior.uncertainty,

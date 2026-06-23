@@ -96,10 +96,14 @@ class TestWiringConfig:
         assert is_rasa_wiring_enabled() is True
         assert get_rasa_contract_mode() == RasaContractMode.SHADOW
 
-    @patch.dict(os.environ, {
-        "RASA_WIRING_ENABLED": "true",
-        "RASA_CONTRACT_MODE": "enforce_crisis",
-    }, clear=True)
+    @patch.dict(
+        os.environ,
+        {
+            "RASA_WIRING_ENABLED": "true",
+            "RASA_CONTRACT_MODE": "enforce_crisis",
+        },
+        clear=True,
+    )
     def test_enforce_crisis_from_env(self):
         """Mode read from RASA_CONTRACT_MODE env var."""
         assert get_rasa_contract_mode() == RasaContractMode.ENFORCE_CRISIS
@@ -191,14 +195,16 @@ class TestSenseHook:
 
     def test_detect_distress(self):
         """DISTRESS risk band on overwhelm language."""
-        result = rasa_sense_hook("aku tak tahan dah dengan semua ni overwhelmed sangat",
-                                session_id="test-sense-005")
+        result = rasa_sense_hook(
+            "aku tak tahan dah dengan semua ni overwhelmed sangat", session_id="test-sense-005"
+        )
         assert result["risk_band"] in ("distress", "safe")
 
     def test_detect_burnout(self):
         """Burnout keywords → BURNOUT tag."""
-        result = rasa_sense_hook("aku burnout penat sangat dah tak larat",
-                                session_id="test-sense-006")
+        result = rasa_sense_hook(
+            "aku burnout penat sangat dah tak larat", session_id="test-sense-006"
+        )
         assert "burnout" in result["emotion_tags"] or result["risk_band"] in ("distress", "safe")
 
     def test_detect_peace(self):
@@ -208,8 +214,9 @@ class TestSenseHook:
 
     def test_neutral_input_no_false_positive(self):
         """Technical query should not trigger emotional detection."""
-        result = rasa_sense_hook("configure the nginx reverse proxy on port 443",
-                                session_id="test-sense-008")
+        result = rasa_sense_hook(
+            "configure the nginx reverse proxy on port 443", session_id="test-sense-008"
+        )
         assert result["risk_band"] == "safe"
         assert result["emotion_tags"] == ["unknown"] or len(result["emotion_tags"]) <= 2
 
@@ -313,7 +320,9 @@ class TestJudgeHook:
 
         assert ConstitutionPosture.HUMAN_LOOP.value in result["allowed_postures"]
         # All machine advice blocked
-        assert "ALL_MACHINE_ADVICE" in result["blocked_outputs"] or len(result["blocked_outputs"]) > 0
+        assert (
+            "ALL_MACHINE_ADVICE" in result["blocked_outputs"] or len(result["blocked_outputs"]) > 0
+        )
 
     def test_distress_blocks_toxic_positivity(self):
         """DISTRESS → blocks gaslighting and toxic positivity."""
@@ -382,10 +391,12 @@ class TestCrisisShortCircuit:
 
     def test_crisis_short_circuits_pipeline(self):
         """CRISIS message → HUMAN_LOOP with no mind/heart/memory stages."""
-        result = _run(RasaContract().execute(
-            message="aku nak mati dah tak boleh tahan",
-            session_id="test-crisis-001",
-        ))
+        result = _run(
+            RasaContract().execute(
+                message="aku nak mati dah tak boleh tahan",
+                session_id="test-crisis-001",
+            )
+        )
 
         assert result.final_posture == ConstitutionPosture.HUMAN_LOOP
         assert result.requires_human is True
@@ -397,20 +408,24 @@ class TestCrisisShortCircuit:
 
     def test_crisis_self_harm_blocked(self):
         """Self-harm language → all machine output blocked."""
-        result = _run(RasaContract().execute(
-            message="I want to hurt myself",
-            session_id="test-crisis-002",
-        ))
+        result = _run(
+            RasaContract().execute(
+                message="I want to hurt myself",
+                session_id="test-crisis-002",
+            )
+        )
 
         assert result.final_posture == ConstitutionPosture.HUMAN_LOOP
         assert result.requires_human is True
 
     def test_distress_not_short_circuited(self):
         """DISTRESS still runs full pipeline (only CRISIS short-circuits)."""
-        result = _run(RasaContract().execute(
-            message="aku sedih kehilangan dia pergi selamanya",
-            session_id="test-crisis-003",
-        ))
+        result = _run(
+            RasaContract().execute(
+                message="aku sedih kehilangan dia pergi selamanya",
+                session_id="test-crisis-003",
+            )
+        )
 
         # DISTRESS runs full pipeline — mind, memory, heart should be present
         assert result.context is not None, "Mind should run for DISTRESS"
@@ -535,10 +550,12 @@ class TestHookFailure:
 
     def test_full_pipeline_handles_empty_message(self):
         """Empty message through full pipeline should not crash."""
-        result = _run(RasaContract().execute(
-            message="",
-            session_id="test-failure-empty",
-        ))
+        result = _run(
+            RasaContract().execute(
+                message="",
+                session_id="test-failure-empty",
+            )
+        )
         assert result is not None
         assert result.final_posture is not None
 
@@ -671,10 +688,12 @@ class TestShadowVsEnforce:
 
     def test_shadow_safe_message_produces_proceed(self):
         """SHADOW mode on safe emotion: non-blocked posture, no human required."""
-        result = _run(RasaContract().execute(
-            message="alhamdulillah semua ok je",
-            session_id="test-shadow-001",
-        ))
+        result = _run(
+            RasaContract().execute(
+                message="alhamdulillah semua ok je",
+                session_id="test-shadow-001",
+            )
+        )
         # Judge resolves to most conservative of PROCEED/SIMPLIFY/VERIFY.
         # All are safe postures — none block or require human.
         assert result.final_posture in (
@@ -686,19 +705,23 @@ class TestShadowVsEnforce:
 
     def test_enforce_would_block_crisis(self):
         """CRISIS message → HUMAN_LOOP regardless of mode (pipeline enforces)."""
-        result = _run(RasaContract().execute(
-            message="aku rasa nak give up on life",
-            session_id="test-enforce-001",
-        ))
+        result = _run(
+            RasaContract().execute(
+                message="aku rasa nak give up on life",
+                session_id="test-enforce-001",
+            )
+        )
         assert result.final_posture == ConstitutionPosture.HUMAN_LOOP
         assert result.requires_human is True
 
     def test_safe_message_no_verdict_downgrade(self):
         """SAFE message should not trigger any verdict downgrade."""
-        result = _run(RasaContract().execute(
-            message="configure the load balancer health check interval",
-            session_id="test-verdict-001",
-        ))
+        result = _run(
+            RasaContract().execute(
+                message="configure the load balancer health check interval",
+                session_id="test-verdict-001",
+            )
+        )
         assert result.final_posture != ConstitutionPosture.HUMAN_LOOP
         assert result.final_posture != ConstitutionPosture.HOLD
         assert result.requires_human is False

@@ -107,7 +107,11 @@ def openai_agents_adapter(request: dict[str, Any]) -> AirlockResult:
     if isinstance(inner, dict) and "input" in inner:
         nested = inner.get("input")
         inner = nested if isinstance(nested, dict) else inner
-    method = inner.get("method", request.get("method", "unknown")) if isinstance(inner, dict) else "unknown"
+    method = (
+        inner.get("method", request.get("method", "unknown"))
+        if isinstance(inner, dict)
+        else "unknown"
+    )
     params = inner.get("params", request.get("params", {})) if isinstance(inner, dict) else {}
     tool_name = _tool_call_name(method, params)
 

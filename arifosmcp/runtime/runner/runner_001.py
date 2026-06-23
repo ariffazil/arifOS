@@ -532,8 +532,7 @@ def _self_check() -> dict[str, Any]:
 
     # 7. USER_INSTRUCTION is in the included segments (F10)
     r = any(
-        seg.get("id") == "USER-INSTR-1"
-        for seg in receipt.context_packet.get("_included_refs", [])
+        seg.get("id") == "USER-INSTR-1" for seg in receipt.context_packet.get("_included_refs", [])
     )
     # The receipt exposes only counts, so verify by re-running prepare
     packet2 = runner.prepare(

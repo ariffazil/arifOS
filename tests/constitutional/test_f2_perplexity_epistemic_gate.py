@@ -101,6 +101,7 @@ try:
         enforce_sense_evidence_epistemic_gate,
         apply_sense_evidence_epistemic_stamp,
     )
+
     GATE_IMPORTED = True
     _IMPORT_ERROR: str | None = None
 except ImportError as e:
@@ -202,17 +203,13 @@ def test_gate_rejects_missing_epistemic_tag(perplexity_ask_response):
     _require_gate()
     result = perplexity_ask_response  # no epistemic_tag key
 
-    ok, violations = enforce_sense_evidence_epistemic_gate(
-        result, provider="perplexity"
-    )
+    ok, violations = enforce_sense_evidence_epistemic_gate(result, provider="perplexity")
 
     assert ok is False, (
-        f"F2 VIOLATION: Perplexity output passed without epistemic tag. "
-        f"violations={violations!r}"
+        f"F2 VIOLATION: Perplexity output passed without epistemic tag. violations={violations!r}"
     )
     assert any("epistemic_tag" in v.lower() for v in violations), (
-        f"Gate must specifically report missing epistemic_tag. "
-        f"Got: {violations!r}"
+        f"Gate must specifically report missing epistemic_tag. Got: {violations!r}"
     )
 
 
@@ -227,17 +224,14 @@ def test_gate_rejects_observed_tag_on_ai_summarized_content(perplexity_ask_respo
     _require_gate()
     result = {**perplexity_ask_response, "epistemic_tag": EpistemicTag.OBSERVED.value}
 
-    ok, violations = enforce_sense_evidence_epistemic_gate(
-        result, provider="perplexity"
-    )
+    ok, violations = enforce_sense_evidence_epistemic_gate(result, provider="perplexity")
 
     assert ok is False, (
         f"F2 VIOLATION: Perplexity (AI summary) was tagged OBSERVED. "
         f"This is false certainty (F2 + F7). violations={violations!r}"
     )
     assert any("observed" in v.lower() or "false certainty" in v.lower() for v in violations), (
-        f"Gate must specifically report OBSERVED-not-allowed-for-AI-summary. "
-        f"Got: {violations!r}"
+        f"Gate must specifically report OBSERVED-not-allowed-for-AI-summary. Got: {violations!r}"
     )
 
 
@@ -256,9 +250,7 @@ def test_gate_accepts_claim_with_source(perplexity_ask_response):
         "source": perplexity_ask_response["citations"][0],
     }
 
-    ok, violations = enforce_sense_evidence_epistemic_gate(
-        result, provider="perplexity"
-    )
+    ok, violations = enforce_sense_evidence_epistemic_gate(result, provider="perplexity")
 
     assert ok is True, (
         f"F2 FALSE NEGATIVE: Properly stamped CLAIM-with-source was rejected. "
@@ -281,9 +273,7 @@ def test_gate_accepts_estimate_with_uncertainty_band(perplexity_research_respons
         "uncertainty": "±0.15 (CI 0.85)",  # required for ESTIMATE
     }
 
-    ok, violations = enforce_sense_evidence_epistemic_gate(
-        result, provider="perplexity"
-    )
+    ok, violations = enforce_sense_evidence_epistemic_gate(result, provider="perplexity")
 
     assert ok is True, (
         f"F2 FALSE NEGATIVE: Properly stamped ESTIMATE-with-uncertainty was "
@@ -306,13 +296,10 @@ def test_gate_accepts_plausible_for_sonar_pro(perplexity_ask_response):
         "epistemic_tag": EpistemicTag.PLAUSIBLE.value,
     }
 
-    ok, violations = enforce_sense_evidence_epistemic_gate(
-        result, provider="perplexity"
-    )
+    ok, violations = enforce_sense_evidence_epistemic_gate(result, provider="perplexity")
 
     assert ok is True, (
-        f"F2 FALSE NEGATIVE: Properly stamped PLAUSIBLE was rejected. "
-        f"violations={violations!r}"
+        f"F2 FALSE NEGATIVE: Properly stamped PLAUSIBLE was rejected. violations={violations!r}"
     )
 
 
@@ -324,17 +311,15 @@ def test_gate_accepts_plausible_for_sonar_pro(perplexity_ask_response):
 @pytest.mark.parametrize(
     "provider",
     [
-        "perplexity",       # sonar / sonar-pro / sonar-reasoning / sonar-deep-research
-        "brave",            # Brave Search (results are raw, but search snippets are AI-curated)
-        "firecrawl",        # AI-extracted structured content
-        "tavily",           # AI-curated search results
-        "exa",              # neural search results
-        "ddgs",             # DDGS — raw search snippets
+        "perplexity",  # sonar / sonar-pro / sonar-reasoning / sonar-deep-research
+        "brave",  # Brave Search (results are raw, but search snippets are AI-curated)
+        "firecrawl",  # AI-extracted structured content
+        "tavily",  # AI-curated search results
+        "exa",  # neural search results
+        "ddgs",  # DDGS — raw search snippets
     ],
 )
-def test_gate_rejects_observed_for_all_ai_summarizing_providers(
-    provider, perplexity_ask_response
-):
+def test_gate_rejects_observed_for_all_ai_summarizing_providers(provider, perplexity_ask_response):
     """
     The OBSERVED-rejection rule must apply UNIFORMLY across every
     AI-summarizing grounding provider. No provider is exempt.
@@ -348,9 +333,7 @@ def test_gate_rejects_observed_for_all_ai_summarizing_providers(
         "epistemic_tag": EpistemicTag.OBSERVED.value,
     }
 
-    ok, violations = enforce_sense_evidence_epistemic_gate(
-        result, provider=provider
-    )
+    ok, violations = enforce_sense_evidence_epistemic_gate(result, provider=provider)
 
     assert ok is False, (
         f"F2 VIOLATION: Provider {provider!r} was allowed to tag AI summary "
@@ -377,13 +360,10 @@ def test_gate_rejects_claim_with_empty_source(perplexity_ask_response):
         "source": "",  # empty — invalid
     }
 
-    ok, violations = enforce_sense_evidence_epistemic_gate(
-        result, provider="perplexity"
-    )
+    ok, violations = enforce_sense_evidence_epistemic_gate(result, provider="perplexity")
 
     assert ok is False, (
-        f"F2 VIOLATION: CLAIM with empty source was accepted. "
-        f"violations={violations!r}"
+        f"F2 VIOLATION: CLAIM with empty source was accepted. violations={violations!r}"
     )
     assert any("source" in v.lower() for v in violations)
 
@@ -428,8 +408,7 @@ def test_capital_only_gate_remains_unchanged():
     )
     violations = require_epistemic_tags([valid_claim])
     assert violations == [], (
-        f"Capital gate falsely rejected valid OBSERVED-with-source. "
-        f"violations={violations!r}"
+        f"Capital gate falsely rejected valid OBSERVED-with-source. violations={violations!r}"
     )
 
 
@@ -493,8 +472,7 @@ def test_stamper_passes_through_valid_input_unchanged(perplexity_ask_response):
     result = apply_sense_evidence_epistemic_stamp(valid, provider="perplexity")
 
     assert result == valid, (
-        f"F2 VIOLATION: stamper modified a valid result. "
-        f"result={result!r} expected={valid!r}"
+        f"F2 VIOLATION: stamper modified a valid result. result={result!r} expected={valid!r}"
     )
     # No surprise metadata added.
     assert "_f2_auto_stamp_violations" not in result
@@ -515,9 +493,7 @@ def test_stamper_respects_foreign_tag(perplexity_ask_response):
         "epistemic_tag": "INTERPRETATION",  # bridge-layer regime
     }
 
-    result = apply_sense_evidence_epistemic_stamp(
-        bridge_stamped, provider="tavily"
-    )
+    result = apply_sense_evidence_epistemic_stamp(bridge_stamped, provider="tavily")
 
     assert result == bridge_stamped, (
         f"F2 VIOLATION: stamper clobbered foreign bridge stamp. "
@@ -543,8 +519,7 @@ def test_stamper_auto_tags_unstamped_perplexity_as_plausible(perplexity_ask_resp
     )
     # First citation should be promoted to source.
     assert result.get("source") == perplexity_ask_response["citations"][0], (
-        f"Stamper failed to set source from first citation. "
-        f"got source={result.get('source')!r}"
+        f"Stamper failed to set source from first citation. got source={result.get('source')!r}"
     )
     # Original payload preserved.
     assert result.get("content") == perplexity_ask_response["content"]
@@ -567,13 +542,10 @@ def test_stamper_downcasts_observed_to_plausible_for_ai_summarizer(
         "epistemic_tag": EpistemicTag.OBSERVED.value,
     }
 
-    result = apply_sense_evidence_epistemic_stamp(
-        falsely_observed, provider="perplexity"
-    )
+    result = apply_sense_evidence_epistemic_stamp(falsely_observed, provider="perplexity")
 
     assert result.get("epistemic_tag") == EpistemicTag.PLAUSIBLE.value, (
-        f"Stamper failed to downcast OBSERVED → PLAUSIBLE. "
-        f"got={result.get('epistemic_tag')!r}"
+        f"Stamper failed to downcast OBSERVED → PLAUSIBLE. got={result.get('epistemic_tag')!r}"
     )
     # Citations preserved.
     assert result.get("citations") == perplexity_ask_response["citations"]
@@ -589,16 +561,15 @@ def test_stamper_fail_open_for_unknown_provider(perplexity_ask_response):
     _require_stamper()
     unstamped = dict(perplexity_ask_response)
 
-    result = apply_sense_evidence_epistemic_stamp(
-        unstamped, provider="some_custom_provider"
-    )
+    result = apply_sense_evidence_epistemic_stamp(unstamped, provider="some_custom_provider")
 
     # No epistemic stamp added (we don't know if this is an AI summarizer).
-    assert "epistemic_tag" not in result or result["epistemic_tag"] == unstamped.get("epistemic_tag")
+    assert "epistemic_tag" not in result or result["epistemic_tag"] == unstamped.get(
+        "epistemic_tag"
+    )
     # But a warning is attached for transparency.
     assert "_f2_gate_warnings" in result, (
-        f"F2 VIOLATION: unknown-provider fail-open should attach warning. "
-        f"result={result!r}"
+        f"F2 VIOLATION: unknown-provider fail-open should attach warning. result={result!r}"
     )
     assert any("epistemic_tag" in w.lower() for w in result["_f2_gate_warnings"])
 
@@ -615,9 +586,7 @@ def test_stamper_never_mutates_input(perplexity_ask_response):
 
     original = copy.deepcopy(perplexity_ask_response)
 
-    _ = apply_sense_evidence_epistemic_stamp(
-        perplexity_ask_response, provider="perplexity"
-    )
+    _ = apply_sense_evidence_epistemic_stamp(perplexity_ask_response, provider="perplexity")
 
     assert perplexity_ask_response == original, (
         f"F2 VIOLATION: stamper mutated caller's dict. "
@@ -636,6 +605,4 @@ def test_stamper_handles_non_dict_input():
 
     for weird in [None, "string", 42, ["list"], True]:
         result = apply_sense_evidence_epistemic_stamp(weird, provider="perplexity")
-        assert result == weird, (
-            f"Stamper modified non-dict input {weird!r} → {result!r}"
-        )
+        assert result == weird, f"Stamper modified non-dict input {weird!r} → {result!r}"

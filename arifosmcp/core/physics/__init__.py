@@ -30,16 +30,18 @@ except ImportError as _exc:  # pragma: no cover - guarded for optional symbols
     get_budget_ledger = None  # type: ignore[misc,assignment]
     record_budget_operation = None  # type: ignore[misc,assignment]
 
-__all__.extend([
-    "ThermodynamicError",
-    "ThermodynamicBudgetLedger",
-    "MaintenanceScaling",
-    "compute_exergy_ratio",
-    "apply_maintenance_decay",
-    "init_budget_ledger",
-    "get_budget_ledger",
-    "record_budget_operation",
-])
+__all__.extend(
+    [
+        "ThermodynamicError",
+        "ThermodynamicBudgetLedger",
+        "MaintenanceScaling",
+        "compute_exergy_ratio",
+        "apply_maintenance_decay",
+        "init_budget_ledger",
+        "get_budget_ledger",
+        "record_budget_operation",
+    ]
+)
 
 # ═══════════════════════════════════════════════════════
 # Economic invariants
@@ -57,12 +59,14 @@ except ImportError as _exc:  # pragma: no cover - guarded for optional symbols
     check_maintenance_scaling = None  # type: ignore[misc,assignment]
     run_all_invariants = None  # type: ignore[misc,assignment]
 
-__all__.extend([
-    "EconomicInvariantError",
-    "MaintenanceScalingError",
-    "check_maintenance_scaling",
-    "run_all_invariants",
-])
+__all__.extend(
+    [
+        "EconomicInvariantError",
+        "MaintenanceScalingError",
+        "check_maintenance_scaling",
+        "run_all_invariants",
+    ]
+)
 
 # ═══════════════════════════════════════════════════════
 # Institutional evolution
@@ -99,17 +103,19 @@ except ImportError as _exc:  # pragma: no cover - guarded for optional symbols
     check_institutional_evolution = None  # type: ignore[misc,assignment]
     InstitutionalEvolutionGuard = None  # type: ignore[misc,assignment]
 
-__all__.extend([
-    "SuccessionError",
-    "InstitutionalEvolutionError",
-    "AttentionBudgetExceededError",
-    "PopulationAbsorptionError",
-    "SuccessionContinuityError",
-    "AIAdaptationRateExceededError",
-    "check_human_attention_budget",
-    "check_institutional_succession",
-    "check_ai_adaptation_rate",
-    "check_population_absorption",
-    "check_institutional_evolution",
-    "InstitutionalEvolutionGuard",
-])
+__all__.extend(
+    [
+        "SuccessionError",
+        "InstitutionalEvolutionError",
+        "AttentionBudgetExceededError",
+        "PopulationAbsorptionError",
+        "SuccessionContinuityError",
+        "AIAdaptationRateExceededError",
+        "check_human_attention_budget",
+        "check_institutional_succession",
+        "check_ai_adaptation_rate",
+        "check_population_absorption",
+        "check_institutional_evolution",
+        "InstitutionalEvolutionGuard",
+    ]
+)

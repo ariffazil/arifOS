@@ -36,12 +36,14 @@ from arifosmcp.geometry.mind_axioms import HOLE_TERRITORY
 
 class ExecutionVerdict(str, Enum):
     """Did the tool run successfully? Pure execution, zero semantic judgment."""
+
     SEAL = "SEAL"
     FAILED = "FAILED"
 
 
 class ReasoningVerdict(str, Enum):
     """Is the thought coherent? Separate from truth (a coherent thought can be wrong)."""
+
     COHERENT = "COHERENT"
     INCOHERENT = "INCOHERENT"
     NEEDS_EVIDENCE = "NEEDS_EVIDENCE"
@@ -49,6 +51,7 @@ class ReasoningVerdict(str, Enum):
 
 class TruthVerdict(str, Enum):
     """Is the claim supported by evidence? Not the same as coherence or confidence."""
+
     SUPPORTED = "SUPPORTED"
     UNSUPPORTED = "UNSUPPORTED"
     CONTRADICTED = "CONTRADICTED"
@@ -57,6 +60,7 @@ class TruthVerdict(str, Enum):
 
 class EvidenceVerdict(str, Enum):
     """What backs the claim? Confidence scores ≠ evidence."""
+
     STRONG = "STRONG"
     WEAK = "WEAK"
     NONE = "NONE"
@@ -65,6 +69,7 @@ class EvidenceVerdict(str, Enum):
 
 class AuthorityVerdict(str, Enum):
     """Who has permission to act? Provenance is admissibility, authority is permission."""
+
     GRANTED = "GRANTED"
     DENIED = "DENIED"
     PENDING = "PENDING"
@@ -73,6 +78,7 @@ class AuthorityVerdict(str, Enum):
 
 class RiskVerdict(str, Enum):
     """What can go wrong? Blast radius, reversibility, and sovereign proximity."""
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
@@ -91,6 +97,7 @@ class FinalKernelVerdict(str, Enum):
     Rule: if ANY inner verdict is HOLD, DEGRADED, VOID, UNSUPPORTED,
     INCOHERENT, DENIED, CRITICAL, or FAILED → final must NOT be SEAL.
     """
+
     SEAL = "SEAL"
     HOLD = "HOLD"
     DEGRADED = "DEGRADED"
@@ -116,39 +123,31 @@ class VerdictPlanes(BaseModel):
     Level 1 is admissibility, NEVER authority. Provenance cannot
     jump to action — the authority ladder must be climbed in order.
     """
+
     model_config = ConfigDict(extra="forbid", frozen=False)
 
     execution: ExecutionVerdict = Field(
-        default=ExecutionVerdict.SEAL,
-        description="Did the tool run successfully?"
+        default=ExecutionVerdict.SEAL, description="Did the tool run successfully?"
     )
     reasoning: ReasoningVerdict = Field(
-        default=ReasoningVerdict.COHERENT,
-        description="Is the thought internally coherent?"
+        default=ReasoningVerdict.COHERENT, description="Is the thought internally coherent?"
     )
     truth: TruthVerdict = Field(
-        default=TruthVerdict.UNKNOWN,
-        description="Is the claim supported by evidence?"
+        default=TruthVerdict.UNKNOWN, description="Is the claim supported by evidence?"
     )
     evidence: EvidenceVerdict = Field(
-        default=EvidenceVerdict.NONE,
-        description="What backs this claim?"
+        default=EvidenceVerdict.NONE, description="What backs this claim?"
     )
     authority: AuthorityVerdict = Field(
-        default=AuthorityVerdict.PENDING,
-        description="Who has permission to act on this?"
+        default=AuthorityVerdict.PENDING, description="Who has permission to act on this?"
     )
-    risk: RiskVerdict = Field(
-        default=RiskVerdict.MEDIUM,
-        description="What is the blast radius?"
-    )
+    risk: RiskVerdict = Field(default=RiskVerdict.MEDIUM, description="What is the blast radius?")
     final: FinalKernelVerdict = Field(
-        default=FinalKernelVerdict.HOLD,
-        description="Strictest-safe verdict across all 6 planes"
+        default=FinalKernelVerdict.HOLD, description="Strictest-safe verdict across all 6 planes"
     )
     provenance: str = Field(
         default="code_derived_governance_wrapper",
-        description="Where the verdict planes were computed (not the LLM output)"
+        description="Where the verdict planes were computed (not the LLM output)",
     )
 
 
@@ -187,7 +186,8 @@ class TensionEntry(BaseModel):
     axes_involved: tuple[str, ...] = Field(..., min_length=2, max_length=8)
     explanation: str = Field(..., min_length=1, max_length=1000)
     required_next_tool: str = Field(
-        ..., description="One of: arif_critique, arif_think, arif_fetch, arif_seal, arif_judge, HOLD"
+        ...,
+        description="One of: arif_critique, arif_think, arif_fetch, arif_seal, arif_judge, HOLD",
     )
     blocked_actions: tuple[str, ...] = Field(
         default_factory=tuple,

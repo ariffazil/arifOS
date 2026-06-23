@@ -45,39 +45,58 @@ from arifosmcp.anomaly import (
 # HELPERS
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def _ts() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def _make_gate_event(verdict: str = "PASS", gate: str = "GATE_5_FLOORS",
-                     tool_name: str = "arif_sense_observe",
-                     violated_laws: list[str] | None = None) -> GateVerdictEvent:
+def _make_gate_event(
+    verdict: str = "PASS",
+    gate: str = "GATE_5_FLOORS",
+    tool_name: str = "arif_sense_observe",
+    violated_laws: list[str] | None = None,
+) -> GateVerdictEvent:
     return GateVerdictEvent(
-        gate=gate, verdict=verdict, tool_name=tool_name,
-        violated_laws=violated_laws or [], timestamp=_ts(),
+        gate=gate,
+        verdict=verdict,
+        tool_name=tool_name,
+        violated_laws=violated_laws or [],
+        timestamp=_ts(),
     )
 
 
-def _make_feedback_event(signal: str = "PROCEED", step_number: int = 1,
-                         source: str = "arifOS") -> FeedbackSignalEvent:
+def _make_feedback_event(
+    signal: str = "PROCEED", step_number: int = 1, source: str = "arifOS"
+) -> FeedbackSignalEvent:
     return FeedbackSignalEvent(
-        signal=signal, step_number=step_number,
-        source_organ=source, timestamp=_ts(),
+        signal=signal,
+        step_number=step_number,
+        source_organ=source,
+        timestamp=_ts(),
     )
 
 
-def _make_gradient_event(dimension: str = "constitution", delta: float = 0.05) -> GradientSignalEvent:
+def _make_gradient_event(
+    dimension: str = "constitution", delta: float = 0.05
+) -> GradientSignalEvent:
     return GradientSignalEvent(
-        dimension=dimension, delta=delta, timestamp=_ts(),
+        dimension=dimension,
+        delta=delta,
+        timestamp=_ts(),
     )
 
 
-def _make_e7_event(event_type: str = "E7_AUTONOMY_CHANGE",
-                   override_count: int = 0, surge_active: bool = False,
-                   autonomy_tier: str = "FULL_AUTO") -> E7AutonomyEvent:
+def _make_e7_event(
+    event_type: str = "E7_AUTONOMY_CHANGE",
+    override_count: int = 0,
+    surge_active: bool = False,
+    autonomy_tier: str = "FULL_AUTO",
+) -> E7AutonomyEvent:
     return E7AutonomyEvent(
-        event=event_type, override_count=override_count,
-        surge_active=surge_active, autonomy_tier=autonomy_tier,
+        event=event_type,
+        override_count=override_count,
+        surge_active=surge_active,
+        autonomy_tier=autonomy_tier,
         timestamp=_ts(),
     )
 
@@ -85,6 +104,7 @@ def _make_e7_event(event_type: str = "E7_AUTONOMY_CHANGE",
 # ═══════════════════════════════════════════════════════════════════════════
 # DETECTOR UNIT TESTS
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestGovernanceDriftDetector:
     """Gate verdict pattern drift detection."""
@@ -248,7 +268,9 @@ class TestAutonomyPressureDetector:
         det = AutonomyPressureDetector()
         for _ in range(2):
             det.ingest(_make_e7_event("E7_AUTONOMY_CHANGE", autonomy_tier="PROPOSE_ONLY"))
-            det.ingest(_make_e7_event("E7_AUTONOMY_CHANGE", autonomy_tier="PRINCIPAL_APPROVAL_REQUIRED"))
+            det.ingest(
+                _make_e7_event("E7_AUTONOMY_CHANGE", autonomy_tier="PRINCIPAL_APPROVAL_REQUIRED")
+            )
         score = det.compute_score()
         assert score.score > 0.08
 
@@ -288,6 +310,7 @@ class TestOrganSilenceDetector:
 # ═══════════════════════════════════════════════════════════════════════════
 # ANOMALY SCORER INTEGRATION TESTS
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestAnomalyScorer:
     """Integration tests for the full anomaly scorer."""
@@ -339,7 +362,9 @@ class TestAnomalyScorer:
             scorer.feed_gate_verdict(_make_gate_event("HOLD", violated_laws=["F1", "F13", "E7"]))
             scorer.feed_feedback_signal(_make_feedback_event("HOLD"))
             scorer.feed_gradient_signal(_make_gradient_event("dignity", delta=0.60))
-            scorer.feed_e7_event(_make_e7_event("E7_OVERRIDE", override_count=15, surge_active=True))
+            scorer.feed_e7_event(
+                _make_e7_event("E7_OVERRIDE", override_count=15, surge_active=True)
+            )
         score = scorer.assess()
         # Should be at CAUTION or above
         assert score.overall_level.value in ("ELEVATED", "ANOMALOUS", "CRITICAL")
@@ -401,6 +426,7 @@ class TestAnomalyScorer:
 # SCHEMA TESTS
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class TestSchemas:
     """Pydantic model validation."""
 
@@ -412,8 +438,10 @@ class TestSchemas:
             dimensions={
                 "governance_drift": DimensionScore(
                     dimension=AnomalyDimension.GOVERNANCE_DRIFT,
-                    score=0.30, level=SignalLevel.ELEVATED,
-                    trend="rising", sample_count=10,
+                    score=0.30,
+                    level=SignalLevel.ELEVATED,
+                    trend="rising",
+                    sample_count=10,
                 ),
             },
             worst_dimension="governance_drift",
@@ -431,7 +459,8 @@ class TestSchemas:
 
     def test_gate_verdict_event_parsing(self) -> None:
         event = GateVerdictEvent(
-            gate="GATE_5_FLOORS", verdict="HOLD",
+            gate="GATE_5_FLOORS",
+            verdict="HOLD",
             violated_laws=["F1", "F13"],
         )
         assert event.gate == "GATE_5_FLOORS"
@@ -442,6 +471,7 @@ class TestSchemas:
 # ═══════════════════════════════════════════════════════════════════════════
 # NATS SUBSCRIBER (OFFLINE MODE)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TestNATSSubscriberOffline:
     """Offline-mode tests (no NATS required)."""

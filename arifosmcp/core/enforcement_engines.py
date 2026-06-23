@@ -82,10 +82,14 @@ class FloorGate(EnforcementEngine):
         if not floors:
             return True, "No floors assigned", {}
 
-        return True, f"Floors checked: {[f.value if hasattr(f, 'value') else f for f in floors]}", {
-            "floors": [f.value if hasattr(f, 'value') else f for f in floors],
-            "action_class": action_class,
-        }
+        return (
+            True,
+            f"Floors checked: {[f.value if hasattr(f, 'value') else f for f in floors]}",
+            {
+                "floors": [f.value if hasattr(f, "value") else f for f in floors],
+                "action_class": action_class,
+            },
+        )
 
 
 # ── Substrate Gate ───────────────────────────────────────────────────
@@ -134,10 +138,14 @@ class SubstrateGate(EnforcementEngine):
         passed = worst_verdict != "BLOCK"
         reason = "; ".join(all_reasons) if all_reasons else "Substrate clear"
 
-        return passed, reason, {
-            "substrate_verdict": worst_verdict,
-            "substrate_impacts": all_impacts,
-        }
+        return (
+            passed,
+            reason,
+            {
+                "substrate_verdict": worst_verdict,
+                "substrate_impacts": all_impacts,
+            },
+        )
 
 
 # ── Grief Gate ───────────────────────────────────────────────────────
@@ -176,31 +184,51 @@ class GriefGate(EnforcementEngine):
         ]
 
         if tool_name not in grief_sensitive_tools:
-            return True, "Tool not grief-sensitive", {
-                "grief_active": True,
-                "grief_sensitive_tool": False,
-            }
+            return (
+                True,
+                "Tool not grief-sensitive",
+                {
+                    "grief_active": True,
+                    "grief_sensitive_tool": False,
+                },
+            )
 
         # Grief active + sensitive tool → GUARD (not BLOCK)
         params_str = str(params).lower()
         grief_probes = [
-            "father", "abah", "fazil", "march", "bekantan", "death", "died",
-            "passed away", "grief", "loss",
+            "father",
+            "abah",
+            "fazil",
+            "march",
+            "bekantan",
+            "death",
+            "died",
+            "passed away",
+            "grief",
+            "loss",
         ]
 
         if any(probe in params_str for probe in grief_probes):
-            return True, "Grief context detected — posture: witness, don't fix", {
+            return (
+                True,
+                "Grief context detected — posture: witness, don't fix",
+                {
+                    "grief_active": True,
+                    "grief_sensitive_tool": True,
+                    "grief_context_detected": True,
+                    "posture": "witness_not_fix",
+                },
+            )
+
+        return (
+            True,
+            "Grief active but no grief context in params",
+            {
                 "grief_active": True,
                 "grief_sensitive_tool": True,
-                "grief_context_detected": True,
-                "posture": "witness_not_fix",
-            }
-
-        return True, "Grief active but no grief context in params", {
-            "grief_active": True,
-            "grief_sensitive_tool": True,
-            "grief_context_detected": False,
-        }
+                "grief_context_detected": False,
+            },
+        )
 
 
 # ── Hollow Gate ──────────────────────────────────────────────────────
@@ -233,21 +261,35 @@ class HollowGate(EnforcementEngine):
         # Check if params contain hollow-probing intent
         params_str = str(params).lower()
         hollow_probes = [
-            "hollow", "fill", "probe", "what is in", "what's in",
-            "empty space", "unfilled", "deliberately empty",
+            "hollow",
+            "fill",
+            "probe",
+            "what is in",
+            "what's in",
+            "empty space",
+            "unfilled",
+            "deliberately empty",
         ]
 
         if any(probe in params_str for probe in hollow_probes):
-            return False, f"Hollow boundary violated — {props.hollow_count} hollows exist, DO_NOT_FILL", {
-                "hollow_count": props.hollow_count,
-                "hollow_probe_detected": True,
-                "verdict": "BLOCK",
-            }
+            return (
+                False,
+                f"Hollow boundary violated — {props.hollow_count} hollows exist, DO_NOT_FILL",
+                {
+                    "hollow_count": props.hollow_count,
+                    "hollow_probe_detected": True,
+                    "verdict": "BLOCK",
+                },
+            )
 
-        return True, f"{props.hollow_count} hollows exist — boundary respected", {
-            "hollow_count": props.hollow_count,
-            "hollow_probe_detected": False,
-        }
+        return (
+            True,
+            f"{props.hollow_count} hollows exist — boundary respected",
+            {
+                "hollow_count": props.hollow_count,
+                "hollow_probe_detected": False,
+            },
+        )
 
 
 # ── Scar Gate ────────────────────────────────────────────────────────
@@ -299,11 +341,15 @@ class ScarGate(EnforcementEngine):
                     triggered_scars.append(scar)
 
         if not triggered_scars:
-            return True, f"{len(extreme_scars)} extreme + {len(high_scars)} high scars — no triggers", {
-                "extreme_count": len(extreme_scars),
-                "high_count": len(high_scars),
-                "triggered": [],
-            }
+            return (
+                True,
+                f"{len(extreme_scars)} extreme + {len(high_scars)} high scars — no triggers",
+                {
+                    "extreme_count": len(extreme_scars),
+                    "high_count": len(high_scars),
+                    "triggered": [],
+                },
+            )
 
         # Determine verdict
         has_extreme = any(s.sensitivity == "extreme" for s in triggered_scars)
@@ -312,12 +358,16 @@ class ScarGate(EnforcementEngine):
         else:
             verdict = "STRENGTHEN"
 
-        return True, f"Scar triggered: {[s.name for s in triggered_scars]} — {verdict}", {
-            "extreme_count": len(extreme_scars),
-            "high_count": len(high_scars),
-            "triggered": [s.scar_id for s in triggered_scars],
-            "verdict": verdict,
-        }
+        return (
+            True,
+            f"Scar triggered: {[s.name for s in triggered_scars]} — {verdict}",
+            {
+                "extreme_count": len(extreme_scars),
+                "high_count": len(high_scars),
+                "triggered": [s.scar_id for s in triggered_scars],
+                "verdict": verdict,
+            },
+        )
 
 
 # ── Injection Gate ───────────────────────────────────────────────────
@@ -349,10 +399,14 @@ class InjectionGate(EnforcementEngine):
 
         for pattern in self.INJECTION_PATTERNS:
             if re.search(pattern, params_str, re.IGNORECASE):
-                return False, f"Injection detected: {pattern}", {
-                    "pattern": pattern,
-                    "verdict": "BLOCK",
-                }
+                return (
+                    False,
+                    f"Injection detected: {pattern}",
+                    {
+                        "pattern": pattern,
+                        "verdict": "BLOCK",
+                    },
+                )
 
         return True, "No injection detected", {}
 
@@ -382,14 +436,22 @@ class SovereignGate(EnforcementEngine):
 
         ack = params.get("ack_irreversible", False)
         if not ack:
-            return False, "Irreversible action requires ack_irreversible=True", {
-                "verdict": "HOLD",
-                "reason": "F1 AMANAH gate — ack_irreversible required",
-            }
+            return (
+                False,
+                "Irreversible action requires ack_irreversible=True",
+                {
+                    "verdict": "HOLD",
+                    "reason": "F1 AMANAH gate — ack_irreversible required",
+                },
+            )
 
-        return True, "Irreversible acknowledged", {
-            "ack_irreversible": True,
-        }
+        return (
+            True,
+            "Irreversible acknowledged",
+            {
+                "ack_irreversible": True,
+            },
+        )
 
 
 # ── Engine Registry ──────────────────────────────────────────────────
@@ -429,11 +491,11 @@ def run_enforcement(
         shadow_count=props.shadow_count,
         hollow_count=props.hollow_count,
         grief_active=props.grief_active,
-        grief_sensitivity="extreme" if any(
-            s.sensitivity == "extreme" for s in props.scars
-        ) else "high" if any(
-            s.sensitivity == "high" for s in props.scars
-        ) else "normal",
+        grief_sensitivity="extreme"
+        if any(s.sensitivity == "extreme" for s in props.scars)
+        else "high"
+        if any(s.sensitivity == "high" for s in props.scars)
+        else "normal",
         active_scar_ids=[s.scar_id for s in props.scars if s.active],
         active_shadow_ids=[s.shadow_id for s in props.shadows],
         floor_impacts=props.get_active_floor_impacts(),

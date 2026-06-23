@@ -53,9 +53,10 @@ class PolicyInput:
         }
 
     def input_hash(self) -> str:
-        return "sha256:" + hashlib.sha256(
-            json.dumps(self.to_opa(), sort_keys=True).encode()
-        ).hexdigest()
+        return (
+            "sha256:"
+            + hashlib.sha256(json.dumps(self.to_opa(), sort_keys=True).encode()).hexdigest()
+        )
 
 
 @dataclass
@@ -161,7 +162,9 @@ class OPABridge:
         client = await self._ensure_client()
         url = f"{self.endpoint}/v1/policies/{policy_path}"
         try:
-            resp = await client.put(url, content=rego_source, headers={"Content-Type": "text/plain"})
+            resp = await client.put(
+                url, content=rego_source, headers={"Content-Type": "text/plain"}
+            )
             resp.raise_for_status()
             return {"status": "loaded", "policy_path": policy_path}
         except httpx.HTTPError as e:

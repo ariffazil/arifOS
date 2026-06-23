@@ -135,7 +135,9 @@ class TestStrangeLoopLock:
         assert strange.verdict == LockVerdict.HOLD
         assert "STALE" in strange.reason
 
-    def test_loop_with_contradicted_provenance_voids(self, engine: RecursiveGovernanceEngine) -> None:
+    def test_loop_with_contradicted_provenance_voids(
+        self, engine: RecursiveGovernanceEngine
+    ) -> None:
         prov = MemoryProvenance(
             source="test",
             confidence=0.9,
@@ -211,7 +213,9 @@ class TestAntiBeautifulOne:
         )
         ab1 = next(r for r in receipt.lock_receipts if r.lock_type == LockType.ANTI_BEAUTIFUL_ONE)
         assert ab1.verdict == LockVerdict.HOLD
-        assert " Beauty-to-consequence" in ab1.reason or "Elegance without consequence" in ab1.reason
+        assert (
+            " Beauty-to-consequence" in ab1.reason or "Elegance without consequence" in ab1.reason
+        )
 
     def test_low_operational_contact_holds(self, engine: RecursiveGovernanceEngine) -> None:
         receipt = engine.apply_locks(

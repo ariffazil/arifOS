@@ -205,6 +205,7 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
 # MOBA PATTERN — Block-Gated Memory Retrieval
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _memory_block_gate(
     query: str,
     available_blocks: list[dict] | None = None,
@@ -292,7 +293,10 @@ def _compute_memory_bloat(
 MEMORY_PARADOX_ANCHORS: list[dict] = [
     # ── TRUTH ROW ──────────────────────────────────────────────────────────────
     {
-        "id": "M_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "id": "M_TxC",
+        "matrix_cell": "truth_care",
+        "matrix_row": "TRUTH",
+        "matrix_col": "CARE",
         "motto_binding": "DIKAJI, BUKAN DISUAPI",
         "quote": {
             "text": "All enquiry and all learning is but recollection.",
@@ -314,7 +318,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "M_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "id": "M_TxP",
+        "matrix_cell": "truth_peace",
+        "matrix_row": "TRUTH",
+        "matrix_col": "PEACE",
         "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
         "quote": {
             "text": "Knowledge differs from correct opinion in being tied down.",
@@ -336,7 +343,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "M_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "id": "M_TxJ",
+        "matrix_cell": "truth_justice",
+        "matrix_row": "TRUTH",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
         "quote": {
             "text": "Knowledge is power.",
@@ -359,7 +369,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
     },
     # ── CLARITY ROW ────────────────────────────────────────────────────────────
     {
-        "id": "M_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "id": "M_CxC",
+        "matrix_cell": "clarity_care",
+        "matrix_row": "CLARITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
         "quote": {
             "text": "Great is this power of memory, exceedingly great — a vast and boundless inner chamber. Who has plumbed its depths?",
@@ -381,7 +394,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
         "norm": "SUNAT",
     },
     {
-        "id": "M_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "id": "M_CxP",
+        "matrix_cell": "clarity_peace",
+        "matrix_row": "CLARITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
         "quote": {
             "text": "By the word 'unhistorical' I mean the power, the art of forgetting, and of drawing a limited horizon round one's self.",
@@ -403,7 +419,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
         "norm": "HARUS",
     },
     {
-        "id": "M_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "id": "M_CxJ",
+        "matrix_cell": "clarity_justice",
+        "matrix_row": "CLARITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
         "quote": {
             "text": "If true belief and knowledge were the same thing, the best of jurymen could never have a correct belief without knowledge. They must be two different things.",
@@ -426,7 +445,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
     },
     # ── HUMILITY ROW ───────────────────────────────────────────────────────────
     {
-        "id": "M_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "id": "M_HxC",
+        "matrix_cell": "humility_care",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
         "quote": {
             "text": "To think is to forget differences, to generalize, to abstract.",
@@ -448,7 +470,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "M_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "id": "M_HxP",
+        "matrix_cell": "humility_peace",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
         "quote": {
             "text": "Memory, then, is neither perception nor conception, but a state or affection of one of these, when time has elapsed.",
@@ -470,7 +495,10 @@ MEMORY_PARADOX_ANCHORS: list[dict] = [
         "norm": "HARUS",
     },
     {
-        "id": "M_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "id": "M_HxJ",
+        "matrix_cell": "humility_justice",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DITEMPA, BUKAN DIBERI",
         "quote": {
             "text": "I am wiser than this man: for neither of us really knows anything fine and good, but he thinks he knows something when he does not, whereas I, as I do not know, do not think I know.",
@@ -510,9 +538,7 @@ def _memory_paradox_for_cell(matrix_cell: str) -> dict | None:
     return _MEMORY_BY_CELL.get(matrix_cell)
 
 
-def _memory_provenance_gate(
-    evidence: dict, target_tool_class: str = "OBSERVE"
-) -> dict:
+def _memory_provenance_gate(evidence: dict, target_tool_class: str = "OBSERVE") -> dict:
     """
     M_TxJ Bacon: Knowledge is power — provenance gate before serving evidence
     to high-authority tools. Bound to truth_justice matrix cell.
@@ -643,15 +669,15 @@ def arif_memory_recall(
     # ── Seal ──
     ack_irreversible: bool = False,
     # ── 666_MEMORY v2: Cognitive / Graph params ──
-    plan_object: dict | None = None,         # plan dict for graph_store
-    task_type: str | None = None,            # task_type filter for graph_query
-    include_plans: bool = True,              # include plans in cognitive_recall
-    include_contradictions: bool = True,     # include contradictions in cognitive_recall
-    max_age_days: int = 90,                  # max age for cognitive_recall
-    max_sessions: int = 5,                   # max sessions for cognitive_cross_session
-    outcome: str | None = None,              # SEAL|HOLD|VOID for cognitive_learn
-    lessons: str | None = None,              # lessons text for cognitive_learn
-    resolution: str | None = None,           # OVERRIDE|MERGE|VOID_A|VOID_B|ACKNOWLEDGE
+    plan_object: dict | None = None,  # plan dict for graph_store
+    task_type: str | None = None,  # task_type filter for graph_query
+    include_plans: bool = True,  # include plans in cognitive_recall
+    include_contradictions: bool = True,  # include contradictions in cognitive_recall
+    max_age_days: int = 90,  # max age for cognitive_recall
+    max_sessions: int = 5,  # max sessions for cognitive_cross_session
+    outcome: str | None = None,  # SEAL|HOLD|VOID for cognitive_learn
+    lessons: str | None = None,  # lessons text for cognitive_learn
+    resolution: str | None = None,  # OVERRIDE|MERGE|VOID_A|VOID_B|ACKNOWLEDGE
 ) -> dict[str, Any]:
     """
     555_MEMORY v2: Governed persistent memory — ONE GATE, MANY MODES.
@@ -754,15 +780,24 @@ def arif_memory_recall(
         # ── init_recall (legacy alias — sacred constitutional context) ──
         if _original_mode in ("init_recall",):
             from arifosmcp.constitutional_map import CANONICAL_TOOLS
+
             sacred_resources = [
                 {"uri": "arifos://doctrine", "label": "Immutable Law (Ψ)", "tier": "sacred"},
                 {"uri": "arifos://vitals", "label": "Living Pulse (Ω)", "tier": "sacred"},
                 {"uri": "arifos://schema", "label": "Complete Blueprint (Δ)", "tier": "sacred"},
-                {"uri": "arifos://session/" + (session_id or "new"), "label": "Ephemeral Instance", "tier": "ephemeral"},
+                {
+                    "uri": "arifos://session/" + (session_id or "new"),
+                    "label": "Ephemeral Instance",
+                    "tier": "ephemeral",
+                },
                 {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
             ]
             floor_summary = [
-                {"floor": "L01", "name": "AMANAH", "purpose": "Trustworthiness — every action accountable"},
+                {
+                    "floor": "L01",
+                    "name": "AMANAH",
+                    "purpose": "Trustworthiness — every action accountable",
+                },
                 {"floor": "L02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
                 {"floor": "L03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
                 {"floor": "L04", "name": "CLARITY", "purpose": "Transparent intent"},
@@ -776,27 +811,41 @@ def arif_memory_recall(
                 {"floor": "L12", "name": "INJECTION", "purpose": "Sanitize inputs"},
                 {"floor": "L13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
             ]
-            return _ok("arif_memory_recall", {
-                "init_recall": True, "session_id": session_id,
-                "sacred_resources": sacred_resources, "floor_summary": floor_summary,
-                "tool_surface": list(CANONICAL_TOOLS.keys()),
-                "tool_count": len(CANONICAL_TOOLS),
-                "memory_contract_version": "v4",
-            })
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "init_recall": True,
+                    "session_id": session_id,
+                    "sacred_resources": sacred_resources,
+                    "floor_summary": floor_summary,
+                    "tool_surface": list(CANONICAL_TOOLS.keys()),
+                    "tool_count": len(CANONICAL_TOOLS),
+                    "memory_contract_version": "v4",
+                },
+            )
 
         # ── context (legacy alias — load all memories for session) ──
         if _original_mode in ("context",) and session_id:
             entries = context_for_session(session_id, limit=limit)
-            return _ok("arif_memory_recall", {
-                "session_id": session_id, "entries": entries, "count": len(entries),
-            })
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "session_id": session_id,
+                    "entries": entries,
+                    "count": len(entries),
+                },
+            )
 
         # ── 666_MEMORY v2: cognitive recall (unified Qdrant + FalkorDB + contradictions) ──
         if _original_mode in ("cognitive_recall",):
             from arifosmcp.memory.cognitive_memory import cognitive_recall as _cog_recall
+
             result = _cog_recall(
-                query=query, session_id=session_id, limit=limit,
-                include_plans=include_plans, include_contradictions=include_contradictions,
+                query=query,
+                session_id=session_id,
+                limit=limit,
+                include_plans=include_plans,
+                include_contradictions=include_contradictions,
                 max_age_days=max_age_days,
             )
             return _ok("arif_memory_recall", result)
@@ -804,8 +853,11 @@ def arif_memory_recall(
         # ── 666_MEMORY v2: cross-session recall ──
         if _original_mode in ("cognitive_cross_session",):
             from arifosmcp.memory.cognitive_memory import cognitive_cross_session as _cog_xsession
+
             result = _cog_xsession(
-                query=query, session_id=session_id, limit=limit,
+                query=query,
+                session_id=session_id,
+                limit=limit,
                 max_sessions=max_sessions,
             )
             return _ok("arif_memory_recall", result)
@@ -813,8 +865,11 @@ def arif_memory_recall(
         # ── 666_MEMORY v2: graph query ──
         if _original_mode in ("graph_query",):
             from arifosmcp.memory.cognitive_memory import graph_query as _gq
+
             result = _gq(
-                query=query, limit=limit, task_type=task_type,
+                query=query,
+                limit=limit,
+                task_type=task_type,
                 session_id=session_id,
             )
             return _ok("arif_memory_recall", result)
@@ -822,6 +877,7 @@ def arif_memory_recall(
         # ── 666_MEMORY v2: graph get ──
         if _original_mode in ("graph_get",):
             from arifosmcp.memory.cognitive_memory import graph_get as _gg
+
             result = _gg(plan_id=query or memory_id, memory_id=memory_id)
             return _ok("arif_memory_recall", result)
 
@@ -936,8 +992,10 @@ def arif_memory_recall(
                         "quarantine_reason": "null_content" if quarantined_hits else None,
                         "memory_bloat_ratio": memory_bloat,
                         "bloat_assessment": (
-                            "tight" if memory_bloat < 2.0
-                            else "acceptable" if memory_bloat < 5.0
+                            "tight"
+                            if memory_bloat < 2.0
+                            else "acceptable"
+                            if memory_bloat < 5.0
                             else "bloated"
                         ),
                     },
@@ -953,9 +1011,13 @@ def arif_memory_recall(
         # ── 666_MEMORY v2: graph store (plan → FalkorDB + Qdrant) ──
         if _original_mode in ("graph_store",) or plan_object:
             from arifosmcp.memory.cognitive_memory import graph_store as _gs
+
             result = _gs(
-                plan_object=plan_object, content=str(content) if content else None,
-                memory_id=memory_id, session_id=session_id, actor_id=actor_id,
+                plan_object=plan_object,
+                content=str(content) if content else None,
+                memory_id=memory_id,
+                session_id=session_id,
+                actor_id=actor_id,
                 tags=tags,
             )
             if result.get("ok"):
@@ -1261,14 +1323,18 @@ def arif_memory_recall(
         # ── 666_MEMORY v2: contradiction scan ──
         if _original_mode in ("contradict_scan",) or (checks and "contradiction" in checks):
             from arifosmcp.memory.cognitive_memory import contradict_scan as _cs
+
             result = _cs(
-                claim_text=query, claim_id=memory_id, content=str(content) if content else None,
+                claim_text=query,
+                claim_id=memory_id,
+                content=str(content) if content else None,
             )
             return _ok("arif_memory_recall", result)
 
         # ── 666_MEMORY v2: contradiction status ──
         if _original_mode in ("contradict_status",):
             from arifosmcp.memory.cognitive_memory import contradict_status as _cstat
+
             result = _cstat()
             return _ok("arif_memory_recall", result)
 
@@ -1372,9 +1438,12 @@ def arif_memory_recall(
         # ── Contradiction resolution (aliased from contradict_resolve) ──
         if _original_mode in ("contradict_resolve",) or resolution:
             from arifosmcp.memory.cognitive_memory import contradict_resolve as _cr
+
             result = _cr(
-                contradiction_id=memory_id, resolution=resolution or "ACKNOWLEDGE",
-                reason=reason, actor_id=actor_id,
+                contradiction_id=memory_id,
+                resolution=resolution or "ACKNOWLEDGE",
+                reason=reason,
+                actor_id=actor_id,
             )
             if result.get("ok"):
                 return _ok("arif_memory_recall", result)
@@ -1382,10 +1451,14 @@ def arif_memory_recall(
 
         # ── Cognitive learn (close the learning loop) ──
         from arifosmcp.memory.cognitive_memory import cognitive_learn as _cl
+
         result = _cl(
-            plan_id=memory_id, outcome=outcome or "SEAL",
-            lessons=lessons, content=str(content) if content else None,
-            session_id=session_id, actor_id=actor_id,
+            plan_id=memory_id,
+            outcome=outcome or "SEAL",
+            lessons=lessons,
+            content=str(content) if content else None,
+            session_id=session_id,
+            actor_id=actor_id,
         )
         if result.get("ok"):
             return _ok("arif_memory_recall", result)

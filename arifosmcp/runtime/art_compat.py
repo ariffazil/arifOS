@@ -27,6 +27,7 @@ from typing import Any
 
 class DecisionClass(str, Enum):
     """C0-C5 decision classes (the 6 levels of consequence)."""
+
     C0 = "C0"  # pure observation, no side effect
     C1 = "C1"  # analysis, read-only reasoning
     C2 = "C2"  # draft, proposal only
@@ -37,6 +38,7 @@ class DecisionClass(str, Enum):
 
 class GatewayVerdict(str, Enum):
     """The 5 verdicts the legacy 6-check order can emit."""
+
     PROCEED = "PROCEED"
     SABAR = "SABAR"
     HOLD = "HOLD"
@@ -46,6 +48,7 @@ class GatewayVerdict(str, Enum):
 
 class ReversibilityTier(str, Enum):
     """4-tier reversibility (REVERSIBLE → COMPENSABLE → IRREVERSIBLE → VOID)."""
+
     REVERSIBLE = "reversible"
     COMPENSABLE = "compensable"
     IRREVERSIBLE = "irreversible"
@@ -60,6 +63,7 @@ class ReversibilityTier(str, Enum):
 @dataclass(frozen=True)
 class EntropySnapshot:
     """A snapshot of system entropy at a point in time."""
+
     omega: float
     psi_vitality: float
     timestamp: float
@@ -92,6 +96,7 @@ class EntropySnapshot:
 @dataclass(frozen=True)
 class ReversibilityAssessment:
     """The output of a 4-tier reversibility check."""
+
     tier: ReversibilityTier
     rationale: str
     can_rollback: bool
@@ -102,6 +107,7 @@ class ReversibilityAssessment:
 @dataclass(frozen=True)
 class GatewayDecision:
     """The full decision record of a 6-check order gateway pass."""
+
     verdict: GatewayVerdict
     decision_class: DecisionClass
     reversibility: ReversibilityAssessment
@@ -110,9 +116,13 @@ class GatewayDecision:
     tool_name: str
     rationale: str
     next_action: str
-    witness: dict[str, float] = field(default_factory=lambda: {
-        "human": 0.42, "ai": 0.32, "earth": 0.26,
-    })
+    witness: dict[str, float] = field(
+        default_factory=lambda: {
+            "human": 0.42,
+            "ai": 0.32,
+            "earth": 0.26,
+        }
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -141,26 +151,37 @@ class GatewayDecision:
 AUTHORITY_ORDER: list[str] = ["readonly", "contributor", "operator", "sovereign", "f13"]
 
 DEFAULT_AUTHORITY: dict[str, str] = {
-    "arif": "f13", "sovereign": "f13",
-    "openclaw": "operator", "forge": "operator",
+    "arif": "f13",
+    "sovereign": "f13",
+    "openclaw": "operator",
+    "forge": "operator",
     "hermes": "readonly",
 }
 
 DEFAULT_TOOL_AUTHORITY: dict[str, str] = {
-    "arif_judge": "f13", "arif_seal": "f13",
-    "arif_forge": "operator", "arif_kernel_route": "operator",
-    "arif_think": "readonly", "arif_critique": "readonly",
-    "arif_memory_recall": "readonly", "arif_observe": "readonly",
-    "arif_fetch": "readonly", "arif_kernel_status": "readonly",
-    "arif_kernel_attest": "readonly", "arif_init": "readonly",
+    "arif_judge": "f13",
+    "arif_seal": "f13",
+    "arif_forge": "operator",
+    "arif_kernel_route": "operator",
+    "arif_think": "readonly",
+    "arif_critique": "readonly",
+    "arif_memory_recall": "readonly",
+    "arif_observe": "readonly",
+    "arif_fetch": "readonly",
+    "arif_kernel_status": "readonly",
+    "arif_kernel_attest": "readonly",
+    "arif_init": "readonly",
 }
 
 
 def _classify_decision(action_class: str) -> DecisionClass:
     mapping = {
-        "OBSERVE": DecisionClass.C0, "ANALYZE": DecisionClass.C1,
-        "DRAFT": DecisionClass.C2, "MUTATE": DecisionClass.C3,
-        "EXECUTE": DecisionClass.C4, "EXTERNAL_SIDE_EFFECT": DecisionClass.C4,
+        "OBSERVE": DecisionClass.C0,
+        "ANALYZE": DecisionClass.C1,
+        "DRAFT": DecisionClass.C2,
+        "MUTATE": DecisionClass.C3,
+        "EXECUTE": DecisionClass.C4,
+        "EXTERNAL_SIDE_EFFECT": DecisionClass.C4,
         "IRREVERSIBLE": DecisionClass.C5,
     }
     return mapping.get(action_class.upper(), DecisionClass.C3)
@@ -210,8 +231,7 @@ class EntropyWatcher:
         except Exception:
             omega, psi = 0.0, 1.0
             source = "fallback"
-        snap = EntropySnapshot(omega=omega, psi_vitality=psi,
-                               timestamp=time.time(), source=source)
+        snap = EntropySnapshot(omega=omega, psi_vitality=psi, timestamp=time.time(), source=source)
         self._last_snapshot = snap
         return snap
 
@@ -248,7 +268,10 @@ def classify_reversibility(
     """Classify a tool call's reversibility tier (4-tier)."""
     params = params or {}
     base_tier = DEFAULT_BY_ACTION_CLASS.get(action_class.upper(), ReversibilityTier.COMPENSABLE)
-    if declared_reversible is True and base_tier in (ReversibilityTier.IRREVERSIBLE, ReversibilityTier.VOID):
+    if declared_reversible is True and base_tier in (
+        ReversibilityTier.IRREVERSIBLE,
+        ReversibilityTier.VOID,
+    ):
         base_tier = ReversibilityTier.COMPENSABLE
     elif declared_reversible is False and base_tier == ReversibilityTier.REVERSIBLE:
         base_tier = ReversibilityTier.COMPENSABLE
@@ -259,16 +282,31 @@ def classify_reversibility(
     if action_class.upper() == "VOID":
         base_tier = ReversibilityTier.VOID
     if base_tier == ReversibilityTier.REVERSIBLE:
-        can_rollback, undo_steps, rationale = True, 1, f"{action_class} is reversible; one-step undo"
+        can_rollback, undo_steps, rationale = (
+            True,
+            1,
+            f"{action_class} is reversible; one-step undo",
+        )
     elif base_tier == ReversibilityTier.COMPENSABLE:
-        can_rollback, undo_steps, rationale = True, 2, f"{action_class} is compensable; refund/rollback path"
+        can_rollback, undo_steps, rationale = (
+            True,
+            2,
+            f"{action_class} is compensable; refund/rollback path",
+        )
     elif base_tier == ReversibilityTier.IRREVERSIBLE:
-        can_rollback, undo_steps, rationale = False, -1, f"{action_class} is irreversible; 888_HOLD required"
+        can_rollback, undo_steps, rationale = (
+            False,
+            -1,
+            f"{action_class} is irreversible; 888_HOLD required",
+        )
     else:
         can_rollback, undo_steps, rationale = False, -1, f"{action_class} is void; no recovery"
     return ReversibilityAssessment(
-        tier=base_tier, rationale=rationale, can_rollback=can_rollback,
-        blast_radius=blast_radius, estimated_undo_steps=undo_steps,
+        tier=base_tier,
+        rationale=rationale,
+        can_rollback=can_rollback,
+        blast_radius=blast_radius,
+        estimated_undo_steps=undo_steps,
     )
 
 
@@ -297,15 +335,22 @@ def guarded_tool_call(
     watcher = entropy_watcher or EntropyWatcher()
     entropy_snap = watcher.snapshot()
     reversibility = classify_reversibility(
-        action_class=action_class, tool_name=tool_name, params=params,
-        declared_reversible=declared_reversible, blast_radius=blast_radius,
+        action_class=action_class,
+        tool_name=tool_name,
+        params=params,
+        declared_reversible=declared_reversible,
+        blast_radius=blast_radius,
     )
 
     # 1. Entropy
     if entropy_snap.is_overload:
         return GatewayDecision(
-            verdict=GatewayVerdict.HOLD, decision_class=_classify_decision(action_class),
-            reversibility=reversibility, entropy=entropy_snap, actor_id=actor_id, tool_name=tool_name,
+            verdict=GatewayVerdict.HOLD,
+            decision_class=_classify_decision(action_class),
+            reversibility=reversibility,
+            entropy=entropy_snap,
+            actor_id=actor_id,
+            tool_name=tool_name,
             rationale=f"AGENT_PAUSE: entropy Ω={entropy_snap.omega:.2f} >= 0.85",
             next_action="halt",
         )
@@ -314,23 +359,36 @@ def guarded_tool_call(
     authorized, auth_rationale = _check_authority(actor_id, tool_name)
     if not authorized:
         return GatewayDecision(
-            verdict=GatewayVerdict.BLOCK, decision_class=_classify_decision(action_class),
-            reversibility=reversibility, entropy=entropy_snap, actor_id=actor_id, tool_name=tool_name,
-            rationale=f"AUTHORITY: {auth_rationale}", next_action="halt",
+            verdict=GatewayVerdict.BLOCK,
+            decision_class=_classify_decision(action_class),
+            reversibility=reversibility,
+            entropy=entropy_snap,
+            actor_id=actor_id,
+            tool_name=tool_name,
+            rationale=f"AUTHORITY: {auth_rationale}",
+            next_action="halt",
         )
 
     # 3+4. Reversibility / Irreversibility
     if reversibility.tier == ReversibilityTier.VOID:
         return GatewayDecision(
-            verdict=GatewayVerdict.BLOCK, decision_class=DecisionClass.C5,
-            reversibility=reversibility, entropy=entropy_snap, actor_id=actor_id, tool_name=tool_name,
+            verdict=GatewayVerdict.BLOCK,
+            decision_class=DecisionClass.C5,
+            reversibility=reversibility,
+            entropy=entropy_snap,
+            actor_id=actor_id,
+            tool_name=tool_name,
             rationale=f"VOID: action is irrecoverable: {reversibility.rationale}",
             next_action="halt",
         )
     if reversibility.tier == ReversibilityTier.IRREVERSIBLE and not ack_irreversible:
         return GatewayDecision(
-            verdict=GatewayVerdict.HOLD, decision_class=DecisionClass.C4,
-            reversibility=reversibility, entropy=entropy_snap, actor_id=actor_id, tool_name=tool_name,
+            verdict=GatewayVerdict.HOLD,
+            decision_class=DecisionClass.C4,
+            reversibility=reversibility,
+            entropy=entropy_snap,
+            actor_id=actor_id,
+            tool_name=tool_name,
             rationale=f"888_HOLD: irreversible without ack: {reversibility.rationale}",
             next_action="escalate",
         )
@@ -338,24 +396,40 @@ def guarded_tool_call(
     # 5. Drift / failure
     if drift_count >= 3 or failure_rate > 0.3:
         return GatewayDecision(
-            verdict=GatewayVerdict.SABAR, decision_class=_classify_decision(action_class),
-            reversibility=reversibility, entropy=entropy_snap, actor_id=actor_id, tool_name=tool_name,
+            verdict=GatewayVerdict.SABAR,
+            decision_class=_classify_decision(action_class),
+            reversibility=reversibility,
+            entropy=entropy_snap,
+            actor_id=actor_id,
+            tool_name=tool_name,
             rationale=f"DEGRADED_TOOL: drift={drift_count}, failure_rate={failure_rate:.2f} — FALLBACK",
             next_action="downgrade",
         )
 
     # 6. All passed
     return GatewayDecision(
-        verdict=GatewayVerdict.PROCEED, decision_class=_classify_decision(action_class),
-        reversibility=reversibility, entropy=entropy_snap, actor_id=actor_id, tool_name=tool_name,
+        verdict=GatewayVerdict.PROCEED,
+        decision_class=_classify_decision(action_class),
+        reversibility=reversibility,
+        entropy=entropy_snap,
+        actor_id=actor_id,
+        tool_name=tool_name,
         rationale=f"All 6 checks passed. Reversibility={reversibility.tier.value}, entropy={entropy_snap.omega:.2f}, authority=OK.",
         next_action="execute",
     )
 
 
 __all__ = [
-    "DecisionClass", "GatewayVerdict", "ReversibilityTier",
-    "EntropySnapshot", "ReversibilityAssessment", "GatewayDecision",
-    "AUTHORITY_ORDER", "DEFAULT_AUTHORITY", "DEFAULT_TOOL_AUTHORITY",
-    "EntropyWatcher", "classify_reversibility", "guarded_tool_call",
+    "DecisionClass",
+    "GatewayVerdict",
+    "ReversibilityTier",
+    "EntropySnapshot",
+    "ReversibilityAssessment",
+    "GatewayDecision",
+    "AUTHORITY_ORDER",
+    "DEFAULT_AUTHORITY",
+    "DEFAULT_TOOL_AUTHORITY",
+    "EntropyWatcher",
+    "classify_reversibility",
+    "guarded_tool_call",
 ]

@@ -32,6 +32,7 @@ class ExecutionState(StrEnum):
 
 class RiskClass(StrEnum):
     """Constitutional risk classification for tool actions."""
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"

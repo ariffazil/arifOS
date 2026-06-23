@@ -40,8 +40,12 @@ def baseline_kernel_only(monkeypatch):
 
     def _art_proceed(req):
         from arifosmcp.runtime.art import (
-            ArtReason, ArtResult, ArtVerdict, ToolState,
+            ArtReason,
+            ArtResult,
+            ArtVerdict,
+            ToolState,
         )
+
         return ArtResult(
             verdict=ArtVerdict.PROCEED,
             reason=ArtReason.ALL_CHECKS_PASSED,
@@ -103,8 +107,7 @@ def test_s2_art(sut_kernel_plus_art):
     metrics = run_scenario("tool_drifting", n_calls=10, art_enabled=True)
     # ART has shorter gate paths on drift (drift_count aware)
     assert any(p < 15 for p in metrics.gate_path_lengths), (
-        f"ART must use shorter gate paths when drift detected. "
-        f"paths={metrics.gate_path_lengths}"
+        f"ART must use shorter gate paths when drift detected. paths={metrics.gate_path_lengths}"
     )
 
 
@@ -230,8 +233,7 @@ def test_empirical_proof_aggregate():
     # At least one scenario must show ART beating baseline on at least one dimension
     any_better = any(r["art_better_count"] >= 1 for r in report["scenarios"])
     assert any_better, (
-        f"ART must beat baseline on at least one dimension in one scenario. "
-        f"Report: {report}"
+        f"ART must beat baseline on at least one dimension in one scenario. Report: {report}"
     )
 
     # False-positive constraint: tool_good must show 0 false positives in both

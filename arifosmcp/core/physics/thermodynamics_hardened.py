@@ -188,9 +188,7 @@ class ThermodynamicBudget:
 
     def __post_init__(self):
         if self.initial_budget <= 0:
-            raise ThermodynamicError(
-                "Initial budget must be positive", law_id="F1", verdict="VOID"
-            )
+            raise ThermodynamicError("Initial budget must be positive", law_id="F1", verdict="VOID")
 
     @property
     def remaining(self) -> float:
@@ -883,9 +881,7 @@ _budget_ledger_registry: dict[str, ThermodynamicBudgetLedger] = {}
 
 def init_budget_ledger(session_id: str, initial_joules: float = 1.0) -> ThermodynamicBudgetLedger:
     """Initialize or reset the canonical budget ledger for a session."""
-    ledger = ThermodynamicBudgetLedger(
-        session_id=session_id, initial_joules=initial_joules
-    )
+    ledger = ThermodynamicBudgetLedger(session_id=session_id, initial_joules=initial_joules)
     _budget_ledger_registry[session_id] = ledger
     return ledger
 
@@ -1006,9 +1002,7 @@ class MaintenanceScaling:
         complexity = self.complexity_index(n_tools, n_tracked_files)
         complexity_factor = 1.0 + self.beta * complexity
         t = t_active_seconds
-        time_integral = self.M_base * (
-            t + self.alpha * ((1.0 + t) * math.log1p(t) - t)
-        )
+        time_integral = self.M_base * (t + self.alpha * ((1.0 + t) * math.log1p(t) - t))
         return time_integral * complexity_factor
 
 
@@ -1081,9 +1075,7 @@ def compute_exergy_ratio(
     Returns eta_x and a boolean indicating whether it meets the 0.70 threshold.
     """
     if allocated_capital <= 0:
-        raise ThermodynamicError(
-            "allocated_capital must be positive.", law_id="F4", verdict="VOID"
-        )
+        raise ThermodynamicError("allocated_capital must be positive.", law_id="F4", verdict="VOID")
     denominator = allocated_capital * (1.0 + max(delta_s_allocation, 0.0))
     xi = useful_work / denominator
     eta_x = xi / allocated_capital

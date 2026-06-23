@@ -25,7 +25,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import IntEnum
 from typing import Any
 
@@ -45,10 +45,10 @@ class CognitiveLevel(IntEnum):
       level >= CognitiveLevel.EXPLORATION means "at least L3 capability"
     """
 
-    PERCEPTION = 1     # Look — stateless, cheap, fire-and-forget
-    EVIDENCE = 2       # Look + Prove — verified, receipted, cited
-    EXPLORATION = 3    # Look + Think + Discover — multi-hop, governed, graph-building
-    INTERVENTION = 4   # Governed Action — mutation under seal, lease-gated
+    PERCEPTION = 1  # Look — stateless, cheap, fire-and-forget
+    EVIDENCE = 2  # Look + Prove — verified, receipted, cited
+    EXPLORATION = 3  # Look + Think + Discover — multi-hop, governed, graph-building
+    INTERVENTION = 4  # Governed Action — mutation under seal, lease-gated
 
     @property
     def label(self) -> str:
@@ -134,15 +134,16 @@ _LEVEL_COST: dict[CognitiveLevel, str] = {
 # TOOL → LEVEL MAPPING (the canonical gradient registry)
 # ═══════════════════════════════════════════════════════════════
 
+
 @dataclass(frozen=True)
 class GradientEntry:
     """One tool's position on the cognitive gradient."""
 
     tool_name: str
     level: CognitiveLevel
-    stage_code: str           # 000–999 metabolic stage
-    cognitive_axis: str        # identity | observe | verify | explore | execute
-    expose: bool = True        # False = internal organ, hidden from agents
+    stage_code: str  # 000–999 metabolic stage
+    cognitive_axis: str  # identity | observe | verify | explore | execute
+    expose: bool = True  # False = internal organ, hidden from agents
     description_short: str = ""  # One sentence agents use to decide
 
 
@@ -158,7 +159,6 @@ CANONICAL_GRADIENT: dict[str, GradientEntry] = {
         expose=True,
         description_short="Look — search the web, scan the repo, check system state. Stateless, cheap, fire-and-forget.",
     ),
-
     # LEVEL 2 — EVIDENCE (222)
     "arif_fetch": GradientEntry(
         tool_name="arif_fetch",
@@ -168,7 +168,6 @@ CANONICAL_GRADIENT: dict[str, GradientEntry] = {
         expose=True,
         description_short="Look + Prove — fetch external evidence with citations. Every claim has a source. Verified, receipted.",
     ),
-
     # LEVEL 3 — EXPLORATION (111x)
     "arif_explore": GradientEntry(
         tool_name="arif_explore",
@@ -190,7 +189,6 @@ CANONICAL_GRADIENT: dict[str, GradientEntry] = {
         expose=True,
         description_short="Think — multi-step reasoning, planning, reflection. Epistemically honest, confidence-labeled.",
     ),
-
     # LEVEL 4 — INTERVENTION (010)
     "arif_forge": GradientEntry(
         tool_name="arif_forge",
@@ -203,9 +201,7 @@ CANONICAL_GRADIENT: dict[str, GradientEntry] = {
             "SEAL verdict REQUIRED. Lease REQUIRED for mutation. F13 human veto FINAL."
         ),
     ),
-
     # ── GOVERNANCE TOOLS (span levels — classified by primary function) ──
-
     "arif_init": GradientEntry(
         tool_name="arif_init",
         level=CognitiveLevel.PERCEPTION,
@@ -238,9 +234,7 @@ CANONICAL_GRADIENT: dict[str, GradientEntry] = {
         expose=True,
         description_short="Seal — write to the immutable audit ledger. Irreversible. Terminal stage.",
     ),
-
     # ── ROUTING / OPERATIONAL (cross-cutting) ──
-
     "arif_route": GradientEntry(
         tool_name="arif_route",
         level=CognitiveLevel.PERCEPTION,
@@ -281,7 +275,6 @@ CANONICAL_GRADIENT: dict[str, GradientEntry] = {
         expose=True,
         description_short="Gateway — bridge to federation organs (GEOX, WEALTH, WELL, A-FORGE, AAA).",
     ),
-
     # ── KERNEL / OPERATIONAL (internal sensing + routing) ──
     "arif_kernel_route": GradientEntry(
         tool_name="arif_kernel_route",
@@ -453,18 +446,20 @@ def gradient_ladder() -> list[dict[str, Any]]:
     ladder: list[dict[str, Any]] = []
     for level in CognitiveLevel:
         tools = tools_at_level(level, exposed_only=True)
-        ladder.append({
-            "level": int(level),
-            "label": level.label,
-            "verbs": level.verbs,
-            "primary_verb": level.verbs[0] if level.verbs else "",
-            "contract": level.contract,
-            "governance_mode": level.governance_mode,
-            "cost_profile": level.cost_profile,
-            "tools": tools,
-            "tool_count": len(tools),
-            "escalate_when": ESCALATION_RULES.get(level, ""),
-        })
+        ladder.append(
+            {
+                "level": int(level),
+                "label": level.label,
+                "verbs": level.verbs,
+                "primary_verb": level.verbs[0] if level.verbs else "",
+                "contract": level.contract,
+                "governance_mode": level.governance_mode,
+                "cost_profile": level.cost_profile,
+                "tools": tools,
+                "tool_count": len(tools),
+                "escalate_when": ESCALATION_RULES.get(level, ""),
+            }
+        )
     return ladder
 
 
@@ -505,16 +500,19 @@ def packaging_law_check() -> dict[str, Any]:
 
     # Check 1: every exposed canonical tool must have a gradient entry
     from arifosmcp.constitutional_map import CANONICAL_TOOLS as CT
+
     for tool_name, spec in CT.items():
         if not spec.get("expose", True):
             continue  # internal tools are exempt
         if tool_name not in CANONICAL_GRADIENT:
-            violations.append({
-                "tool": tool_name,
-                "violation": "MISSING_GRADIENT_ENTRY",
-                "detail": f"Canonical tool '{tool_name}' is exposed but has no gradient entry. "
-                          f"Every exposed tool must declare its cognitive level.",
-            })
+            violations.append(
+                {
+                    "tool": tool_name,
+                    "violation": "MISSING_GRADIENT_ENTRY",
+                    "detail": f"Canonical tool '{tool_name}' is exposed but has no gradient entry. "
+                    f"Every exposed tool must declare its cognitive level.",
+                }
+            )
 
     # Check 2: no tool exposes its internal organs at the wrong level
     for tool_name, entry in CANONICAL_GRADIENT.items():
@@ -523,36 +521,46 @@ def packaging_law_check() -> dict[str, Any]:
 
         # Level 4 (Intervention) tools must not be described as cheap/stateless
         if entry.level == CognitiveLevel.INTERVENTION:
-            if "cheap" in entry.description_short.lower() or \
-               "fire-and-forget" in entry.description_short.lower():
-                violations.append({
-                    "tool": tool_name,
-                    "violation": "LEVEL_MISREPRESENTATION",
-                    "detail": f"Level 4 tool '{tool_name}' described as cheap/fire-and-forget. "
-                              f"Intervention tools are governed, not cheap.",
-                })
+            if (
+                "cheap" in entry.description_short.lower()
+                or "fire-and-forget" in entry.description_short.lower()
+            ):
+                violations.append(
+                    {
+                        "tool": tool_name,
+                        "violation": "LEVEL_MISREPRESENTATION",
+                        "detail": f"Level 4 tool '{tool_name}' described as cheap/fire-and-forget. "
+                        f"Intervention tools are governed, not cheap.",
+                    }
+                )
 
         # Level 1 (Perception) tools must not claim governance
         if entry.level == CognitiveLevel.PERCEPTION:
-            if "governed" in entry.description_short.lower() or \
-               "seal" in entry.description_short.lower():
-                violations.append({
-                    "tool": tool_name,
-                    "violation": "LEVEL_MISREPRESENTATION",
-                    "detail": f"Level 1 tool '{tool_name}' claims governance. "
-                              f"Perception tools are stateless and cheap.",
-                })
+            if (
+                "governed" in entry.description_short.lower()
+                or "seal" in entry.description_short.lower()
+            ):
+                violations.append(
+                    {
+                        "tool": tool_name,
+                        "violation": "LEVEL_MISREPRESENTATION",
+                        "detail": f"Level 1 tool '{tool_name}' claims governance. "
+                        f"Perception tools are stateless and cheap.",
+                    }
+                )
 
     # Check 3: the gradient must have all four levels populated
     for level in CognitiveLevel:
         exposed = tools_at_level(level, exposed_only=True)
         if not exposed:
-            violations.append({
-                "tool": f"LEVEL_{int(level)}",
-                "violation": "EMPTY_LEVEL",
-                "detail": f"Level {int(level)} ({level.label}) has no exposed tools. "
-                          f"The cognitive gradient must have all levels populated.",
-            })
+            violations.append(
+                {
+                    "tool": f"LEVEL_{int(level)}",
+                    "violation": "EMPTY_LEVEL",
+                    "detail": f"Level {int(level)} ({level.label}) has no exposed tools. "
+                    f"The cognitive gradient must have all levels populated.",
+                }
+            )
 
     verdict = "PASS" if not violations else "FAIL"
     return {
@@ -562,8 +570,8 @@ def packaging_law_check() -> dict[str, Any]:
         "summary": (
             f"Packaging Law Check: {verdict}. "
             f"{len(violations)} violation(s) found across {len(CANONICAL_GRADIENT)} gradient entries."
-            if violations else
-            f"Packaging Law Check: PASS. "
+            if violations
+            else f"Packaging Law Check: PASS. "
             f"All {len(CANONICAL_GRADIENT)} gradient entries compliant. "
             f"The gradient is clean. Organs stay hidden."
         ),
@@ -590,21 +598,53 @@ def recommend_level(intent: str) -> CognitiveLevel:
     intent_lower = intent.lower()
 
     # Level 4 signal words
-    l4_signals = ["deploy", "execute", "mutate", "write to", "production",
-                  "force push", "drop database", "delete data", "seal"]
+    l4_signals = [
+        "deploy",
+        "execute",
+        "mutate",
+        "write to",
+        "production",
+        "force push",
+        "drop database",
+        "delete data",
+        "seal",
+    ]
     if any(s in intent_lower for s in l4_signals):
         return CognitiveLevel.INTERVENTION
 
     # Level 3 signal words
-    l3_signals = ["explore", "discover", "traverse", "map out", "understand how",
-                  "multi-step", "research", "investigate", "codebase", "architecture",
-                  "across", "synthesize", "compare", "analyze"]
+    l3_signals = [
+        "explore",
+        "discover",
+        "traverse",
+        "map out",
+        "understand how",
+        "multi-step",
+        "research",
+        "investigate",
+        "codebase",
+        "architecture",
+        "across",
+        "synthesize",
+        "compare",
+        "analyze",
+    ]
     if any(s in intent_lower for s in l3_signals):
         return CognitiveLevel.EXPLORATION
 
     # Level 2 signal words
-    l2_signals = ["verify", "prove", "cite", "evidence", "fact-check",
-                  "source", "receipt", "confirm", "validate", "ground"]
+    l2_signals = [
+        "verify",
+        "prove",
+        "cite",
+        "evidence",
+        "fact-check",
+        "source",
+        "receipt",
+        "confirm",
+        "validate",
+        "ground",
+    ]
     if any(s in intent_lower for s in l2_signals):
         return CognitiveLevel.EVIDENCE
 

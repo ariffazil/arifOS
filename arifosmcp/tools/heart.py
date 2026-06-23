@@ -126,7 +126,10 @@ def _read_arif_substrate() -> dict[str, Any] | None:
 HEART_PARADOX_ANCHORS: list[dict] = [
     # ── TRUTH ROW ──────────────────────────────────────────────────────────────
     {
-        "id": "H_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "id": "H_TxC",
+        "matrix_cell": "truth_care",
+        "matrix_row": "TRUTH",
+        "matrix_col": "CARE",
         "motto_binding": "DIKAJI, BUKAN DISUAPI",
         "quote": {
             "text": "The child who is not embraced by the village will burn it down to feel its warmth.",
@@ -148,7 +151,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "H_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "id": "H_TxP",
+        "matrix_cell": "truth_peace",
+        "matrix_row": "TRUTH",
+        "matrix_col": "PEACE",
         "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
         "quote": {
             "text": "He who fights with monsters should look to it that he himself does not become a monster.",
@@ -170,7 +176,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "H_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "id": "H_TxJ",
+        "matrix_cell": "truth_justice",
+        "matrix_row": "TRUTH",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
         "quote": {
             "text": "Between stimulus and response there is a space. In that space is our power to choose our response.",
@@ -193,7 +202,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
     },
     # ── CLARITY ROW ────────────────────────────────────────────────────────────
     {
-        "id": "H_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "id": "H_CxC",
+        "matrix_cell": "clarity_care",
+        "matrix_row": "CLARITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
         "quote": {
             "text": "Do not judge, or you too will be judged. For in the same way you judge others, you will be judged.",
@@ -215,7 +227,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "H_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "id": "H_CxP",
+        "matrix_cell": "clarity_peace",
+        "matrix_row": "CLARITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
         "quote": {
             "text": "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.",
@@ -237,7 +252,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "H_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "id": "H_CxJ",
+        "matrix_cell": "clarity_justice",
+        "matrix_row": "CLARITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
         "quote": {
             "text": "In the end, we will remember not the words of our enemies, but the silence of our friends.",
@@ -260,7 +278,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
     },
     # ── HUMILITY ROW ───────────────────────────────────────────────────────────
     {
-        "id": "H_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "id": "H_HxC",
+        "matrix_cell": "humility_care",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
         "quote": {
             "text": "Whoever fights monsters should see to it that in the process he does not become a monster.",
@@ -282,7 +303,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "H_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "id": "H_HxP",
+        "matrix_cell": "humility_peace",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
         "quote": {
             "text": "If you want peace, work for justice.",
@@ -304,7 +328,10 @@ HEART_PARADOX_ANCHORS: list[dict] = [
         "norm": "SUNAT",
     },
     {
-        "id": "H_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "id": "H_HxJ",
+        "matrix_cell": "humility_justice",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DITEMPA, BUKAN DIBERI",
         "quote": {
             "text": "Sebab nila setitik, rosak susu sebelanga.",
@@ -492,9 +519,15 @@ def _merge_fractal_results(
     notes are preserved as caveats.
     """
     if not results:
-        return {"status": "HOLD", "risks_found": [], "risk_tier": "AMBER",
-                "human_decision_required": True, "anchor_hits": [],
-                "recursion_depth_used": 0, "fractal_stabilized": False}
+        return {
+            "status": "HOLD",
+            "risks_found": [],
+            "risk_tier": "AMBER",
+            "human_decision_required": True,
+            "anchor_hits": [],
+            "recursion_depth_used": 0,
+            "fractal_stabilized": False,
+        }
 
     severity_order = {"none": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
     tier_order = {"GREEN": 0, "AMBER": 1, "RED": 2, "CRITICAL": 3}
@@ -516,12 +549,8 @@ def _merge_fractal_results(
             if risk.get("severity") not in ("none",) and risk not in all_risks:
                 all_risks.append(risk)
 
-        all_mitigations.extend(
-            m for m in r.get("mitigations", []) if m not in all_mitigations
-        )
-        all_attacks.extend(
-            a for a in r.get("attacks", []) if a not in all_attacks
-        )
+        all_mitigations.extend(m for m in r.get("mitigations", []) if m not in all_mitigations)
+        all_attacks.extend(a for a in r.get("attacks", []) if a not in all_attacks)
 
         # MIN_TRUST on scalar scores
         tier = r.get("risk_tier", "GREEN")
@@ -542,10 +571,21 @@ def _merge_fractal_results(
         stabilized = G_f <= 0
 
     merged = {
-        **{k: v for k, v in base.items()
-           if k not in ("risks_found", "mitigations", "attacks", "caveats",
-                        "risk_tier", "empathy_score", "dignity_score",
-                        "human_decision_required")},
+        **{
+            k: v
+            for k, v in base.items()
+            if k
+            not in (
+                "risks_found",
+                "mitigations",
+                "attacks",
+                "caveats",
+                "risk_tier",
+                "empathy_score",
+                "dignity_score",
+                "human_decision_required",
+            )
+        },
         "risks_found": all_risks,
         "mitigations": all_mitigations,
         "attacks": all_attacks,
@@ -559,16 +599,25 @@ def _merge_fractal_results(
         "fractal_stabilized": stabilized,
         "fractal_merge_rule": "MIN_TRUST",
         "critique_confidence": round(
-            max(0.0, min(0.90,
-                1.0 - (tier_order.get(highest_tier, 0) * 0.20)
-                - (0.10 if not stabilized else 0.0)
-                - (0.05 * max(0, max_depth - len(results)))
-            )), 3
+            max(
+                0.0,
+                min(
+                    0.90,
+                    1.0
+                    - (tier_order.get(highest_tier, 0) * 0.20)
+                    - (0.10 if not stabilized else 0.0)
+                    - (0.05 * max(0, max_depth - len(results))),
+                ),
+            ),
+            3,
         ),
         "confidence_band": (
-            "high" if highest_tier == "GREEN"
-            else "moderate" if highest_tier == "AMBER"
-            else "low" if highest_tier == "RED"
+            "high"
+            if highest_tier == "GREEN"
+            else "moderate"
+            if highest_tier == "AMBER"
+            else "low"
+            if highest_tier == "RED"
             else "minimal"
         ),
         "residual_uncertainties": all_caveats[-3:] if all_caveats else [],
@@ -596,10 +645,20 @@ def _compute_critique_humility_penalty(result: dict, recursion_depth: int) -> di
 
     # α·O: Overconfidence markers
     overconfidence_triggers = [
-        "always", "never", "guaranteed", "certain", "definitely",
-        "absolutely", "100%", "no risk", "perfectly safe", "no doubt",
+        "always",
+        "never",
+        "guaranteed",
+        "certain",
+        "definitely",
+        "absolutely",
+        "100%",
+        "no risk",
+        "perfectly safe",
+        "no doubt",
     ]
-    O = sum(1 for t in overconfidence_triggers if t in target) / max(len(overconfidence_triggers), 1)
+    O = sum(1 for t in overconfidence_triggers if t in target) / max(
+        len(overconfidence_triggers), 1
+    )
 
     # β·B: Bias / blind-spot markers
     blindspot_signals = [
@@ -956,7 +1015,6 @@ CRITICAL — Your JSON response MUST include ALL of these fields:
 - "action_risk_verdict": one of SEAL/HOLD/VOID
 
 A response without "risks_found" will be REJECTED. Return ONLY valid JSON, no markdown."""
-
 
     try:
         # call_llm returns LLMOutputEnvelope (777_WITNESS)
@@ -1681,8 +1739,10 @@ async def arif_critique(
     # Recursion clamp (Eureka 2026-05-21)
     if trace_recursion_depth > 2:
         return _heart_fallback(
-            mode=mode, target=target or "",
-            context_type=_ct, trace_recursion_depth=trace_recursion_depth,
+            mode=mode,
+            target=target or "",
+            context_type=_ct,
+            trace_recursion_depth=trace_recursion_depth,
         )
 
     # ── L0 Human Reality Substrate pre-load (F13 directive, 2026-06-16) ──
@@ -1700,9 +1760,12 @@ async def arif_critique(
     # ── Level 0: Primary critique (TRUTH row) ──
     try:
         result = await _heart_with_llm(
-            mode=mode, target=target,
-            session_id=session_id, actor_id=actor_id,
-            context_type=_ct, trace_recursion_depth=0,
+            mode=mode,
+            target=target,
+            session_id=session_id,
+            actor_id=actor_id,
+            context_type=_ct,
+            trace_recursion_depth=0,
         )
         if result.get("error") and "LLM_UNAVAILABLE" in str(result.get("status", "")):
             result = _heart_fallback(mode=mode, target=target or "", context_type=_ct)
@@ -1717,23 +1780,31 @@ async def arif_critique(
     # Inject Level-0 paradox anchor (TRUTH row)
     stage0 = _fractal_critique_stage(0)
     result = _inject_heart_paradox(
-        result, trigger_context=f"primary_{mode}_on_{str(target)[:100]}",
-        recursion_depth=0, state_changed=True,
+        result,
+        trigger_context=f"primary_{mode}_on_{str(target)[:100]}",
+        recursion_depth=0,
+        state_changed=True,
     )
 
     # ── Fractal Recursion (if applicable) ──
     fractal_results = [result]
     anchor_hits: list[dict] = []
     if result.get("paradox_anchor"):
-        anchor_hits.append({
-            "quote_id": result["paradox_anchor"]["quote_id"],
-            "matrix_cell": result["paradox_anchor"]["matrix_cell"],
-            "recursion_depth": 0,
-        })
+        anchor_hits.append(
+            {
+                "quote_id": result["paradox_anchor"]["quote_id"],
+                "matrix_cell": result["paradox_anchor"]["matrix_cell"],
+                "recursion_depth": 0,
+            }
+        )
 
     risk_tier = result.get("risk_tier", "GREEN")
 
-    if use_fractal and risk_tier in ("RED", "CRITICAL") and result.get("_llm_tier") not in ("ilmu",):
+    if (
+        use_fractal
+        and risk_tier in ("RED", "CRITICAL")
+        and result.get("_llm_tier") not in ("ilmu",)
+    ):
         # Only recurse when (a) risk is high AND (b) we're on a strong provider.
         # If we already fell through to ILMU (Tier 4), the cascade is degraded
         # and a second LLM call risks MCP timeout (2026-06-13).
@@ -1751,14 +1822,17 @@ async def arif_critique(
                 break
 
             # Build meta-critique target from prior critique
-            prev_summary = json.dumps({
-                "prior_risks": prev_result.get("risks_found", []),
-                "prior_tier": prev_result.get("risk_tier"),
-                "prior_empathy": prev_result.get("empathy_score"),
-                "prior_dignity": prev_result.get("dignity_score"),
-                "prior_weakest": prev_result.get("weakest_stakeholder"),
-                "prior_verdict": prev_result.get("action_risk_verdict"),
-            }, default=str)
+            prev_summary = json.dumps(
+                {
+                    "prior_risks": prev_result.get("risks_found", []),
+                    "prior_tier": prev_result.get("risk_tier"),
+                    "prior_empathy": prev_result.get("empathy_score"),
+                    "prior_dignity": prev_result.get("dignity_score"),
+                    "prior_weakest": prev_result.get("weakest_stakeholder"),
+                    "prior_verdict": prev_result.get("action_risk_verdict"),
+                },
+                default=str,
+            )
 
             meta_target = (
                 f"META-CRITIQUE LEVEL {depth}: Critique the following Heart critique. "
@@ -1769,28 +1843,36 @@ async def arif_critique(
 
             try:
                 meta_result = await _heart_with_llm(
-                    mode="critique", target=meta_target,
-                    session_id=session_id, actor_id=actor_id,
-                    context_type=_ct, trace_recursion_depth=depth,
+                    mode="critique",
+                    target=meta_target,
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    context_type=_ct,
+                    trace_recursion_depth=depth,
                 )
             except LLMUnavailableError:
                 meta_result = _heart_fallback(
-                    mode="critique", target=meta_target,
-                    context_type=_ct, trace_recursion_depth=depth,
+                    mode="critique",
+                    target=meta_target,
+                    context_type=_ct,
+                    trace_recursion_depth=depth,
                 )
 
             # Inject paradox anchor for this recursion level
             meta_result = _inject_heart_paradox(
                 meta_result,
                 trigger_context=f"fractal_recursion_L{depth}_{stage['lens']}",
-                recursion_depth=depth, state_changed=True,
+                recursion_depth=depth,
+                state_changed=True,
             )
             if meta_result.get("paradox_anchor"):
-                anchor_hits.append({
-                    "quote_id": meta_result["paradox_anchor"]["quote_id"],
-                    "matrix_cell": meta_result["paradox_anchor"]["matrix_cell"],
-                    "recursion_depth": depth,
-                })
+                anchor_hits.append(
+                    {
+                        "quote_id": meta_result["paradox_anchor"]["quote_id"],
+                        "matrix_cell": meta_result["paradox_anchor"]["matrix_cell"],
+                        "recursion_depth": depth,
+                    }
+                )
 
             # Check fractal stabilization gain
             G_f = _fractal_stabilization_gain(prev_result, meta_result)
@@ -1813,14 +1895,23 @@ async def arif_critique(
         result["fractal_stabilized"] = True  # N/A for single pass
         result["anchor_hits"] = anchor_hits
         result["critique_confidence"] = round(
-            max(0.03, min(0.90, 1.0 - (
-                {"GREEN": 0, "AMBER": 0.2, "RED": 0.4, "CRITICAL": 0.6}.get(risk_tier, 0)
-            ))), 3
+            max(
+                0.03,
+                min(
+                    0.90,
+                    1.0
+                    - ({"GREEN": 0, "AMBER": 0.2, "RED": 0.4, "CRITICAL": 0.6}.get(risk_tier, 0)),
+                ),
+            ),
+            3,
         )
         result["confidence_band"] = (
-            "high" if risk_tier == "GREEN"
-            else "moderate" if risk_tier == "AMBER"
-            else "low" if risk_tier == "RED"
+            "high"
+            if risk_tier == "GREEN"
+            else "moderate"
+            if risk_tier == "AMBER"
+            else "low"
+            if risk_tier == "RED"
             else "minimal"
         )
         result["fresh_evidence_required"] = risk_tier in ("RED", "CRITICAL")
@@ -1869,9 +1960,7 @@ async def arif_critique(
     is_fallback = result.get("_llm_available") is False
     result["execution_verdict"] = "SEAL" if (llm_ok and schema_ok) else "DEGRADED_FALLBACK"
     if is_fallback:
-        result["degraded_reason"] = (
-            "FALLBACK_ONLY: LLM unavailable — no actual critique performed"
-        )
+        result["degraded_reason"] = "FALLBACK_ONLY: LLM unavailable — no actual critique performed"
         result["do_not_treat_as_seal"] = True
     result["action_risk_verdict"] = result.get("status", "HOLD")
 

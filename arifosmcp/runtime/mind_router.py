@@ -31,9 +31,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # ── Feature Flag ──────────────────────────────────────────────────────────────
-MIND_USE_SEQUENTIAL = os.getenv("MIND_USE_SEQUENTIAL", "true").lower() in (
-    "true", "1", "yes", "on"
-)
+MIND_USE_SEQUENTIAL = os.getenv("MIND_USE_SEQUENTIAL", "true").lower() in ("true", "1", "yes", "on")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -42,36 +40,80 @@ MIND_USE_SEQUENTIAL = os.getenv("MIND_USE_SEQUENTIAL", "true").lower() in (
 
 # Keywords that signal multi-step reasoning is needed
 MULTI_DEPENDENCY_SIGNALS: list[str] = [
-    "compare", "versus", "vs", "trade-off", "tradeoff",
-    "if.*then.*else", "depends on", "conditional",
-    "before.*after", "first.*then", "step",
+    "compare",
+    "versus",
+    "vs",
+    "trade-off",
+    "tradeoff",
+    "if.*then.*else",
+    "depends on",
+    "conditional",
+    "before.*after",
+    "first.*then",
+    "step",
 ]
 
 BRANCHING_SIGNALS: list[str] = [
-    "alternative", "options", "approaches", "strategies",
-    "either.*or", "whether", "pros.*cons", "advantages.*disadvantages",
+    "alternative",
+    "options",
+    "approaches",
+    "strategies",
+    "either.*or",
+    "whether",
+    "pros.*cons",
+    "advantages.*disadvantages",
 ]
 
 REVISION_SIGNALS: list[str] = [
-    "debug", "diagnose", "troubleshoot", "root cause",
-    "why.*not working", "fix", "repair", "investigate",
+    "debug",
+    "diagnose",
+    "troubleshoot",
+    "root cause",
+    "why.*not working",
+    "fix",
+    "repair",
+    "investigate",
 ]
 
 PLANNING_SIGNALS: list[str] = [
-    "plan", "design", "architecture", "implement",
-    "build", "create", "migrate", "refactor", "deploy",
-    "pipeline", "workflow", "orchestrate",
+    "plan",
+    "design",
+    "architecture",
+    "implement",
+    "build",
+    "create",
+    "migrate",
+    "refactor",
+    "deploy",
+    "pipeline",
+    "workflow",
+    "orchestrate",
 ]
 
 MEMORY_SIGNALS: list[str] = [
-    "previous", "prior", "earlier", "history", "before",
-    "remember", "recall", "past", "context",
+    "previous",
+    "prior",
+    "earlier",
+    "history",
+    "before",
+    "remember",
+    "recall",
+    "past",
+    "context",
 ]
 
 JUDGMENT_SIGNALS: list[str] = [
-    "decide", "verdict", "approve", "reject", "seal",
-    "irreversible", "deploy.*production", "delete", "drop",
-    "force push", "constitutional",
+    "decide",
+    "verdict",
+    "approve",
+    "reject",
+    "seal",
+    "irreversible",
+    "deploy.*production",
+    "delete",
+    "drop",
+    "force push",
+    "constitutional",
 ]
 
 
@@ -119,10 +161,10 @@ def _compute_complexity_score(
     revision_hits = _count_signal_matches(query, REVISION_SIGNALS)
     planning_hits = _count_signal_matches(query, PLANNING_SIGNALS)
 
-    score += min(multi_hits * 0.08, 0.16)       # multi-dependency
-    score += min(branch_hits * 0.06, 0.12)       # branching
-    score += min(revision_hits * 0.08, 0.16)     # revision/debug
-    score += min(planning_hits * 0.05, 0.10)     # planning/design
+    score += min(multi_hits * 0.08, 0.16)  # multi-dependency
+    score += min(branch_hits * 0.06, 0.12)  # branching
+    score += min(revision_hits * 0.08, 0.16)  # revision/debug
+    score += min(planning_hits * 0.05, 0.10)  # planning/design
 
     # ── Context depth (0.0–0.15) ──
     if context:

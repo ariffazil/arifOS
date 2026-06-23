@@ -65,7 +65,10 @@ class AirlockError(Exception):
         self.jsonrpc_code = jsonrpc_code
         self.transport = transport
         self.protocol_version_received = protocol_version_received
-        self.protocol_versions_supported = protocol_versions_supported or ["2025-11-25", "2025-03-26"]
+        self.protocol_versions_supported = protocol_versions_supported or [
+            "2025-11-25",
+            "2025-03-26",
+        ]
         self.expected_shape = expected_shape
         self.received_shape = received_shape
         self.retryable = retryable
@@ -253,7 +256,8 @@ def build_transport_error_envelope(
                 "stage": stage,
                 "transport": transport,
                 "protocol_version_received": protocol_version_received,
-                "protocol_versions_supported": protocol_versions_supported or ["2025-11-25", "2025-03-26"],
+                "protocol_versions_supported": protocol_versions_supported
+                or ["2025-11-25", "2025-03-26"],
                 "expected_shape": expected_shape,
                 "received_shape": received_shape,
                 "retryable": retryable,
@@ -261,8 +265,8 @@ def build_transport_error_envelope(
                 "session_id": session_id or "",
                 "trace_id": trace_id or "",
                 "detail": detail or {},
-            }
-        }
+            },
+        },
     }
 
 

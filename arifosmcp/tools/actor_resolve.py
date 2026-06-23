@@ -24,11 +24,11 @@ AUTHORITY_TIERS = ("SOVEREIGN", "HIGH", "MEDIUM", "LOW", "UNKNOWN")
 
 # Authority sources — how the caller obtained authority
 AUTHORITY_SOURCES = (
-    "local_identity",     # Loaded from identity.toml on af-forge
-    "oauth",              # Verified via OAuth token (Supabase, etc.)
-    "signed_token",       # JWT with verified signature
-    "manual_888",         # Explicit human approval via 888_JUDGE
-    "fallback",           # Legacy / env fallback (transition mode)
+    "local_identity",  # Loaded from identity.toml on af-forge
+    "oauth",  # Verified via OAuth token (Supabase, etc.)
+    "signed_token",  # JWT with verified signature
+    "manual_888",  # Explicit human approval via 888_JUDGE
+    "fallback",  # Legacy / env fallback (transition mode)
 )
 
 # SOVEREIGN actor patterns — actors who can authorize ATOMIC actions
@@ -42,9 +42,7 @@ def _authority_tier_for_actor(actor_id: str) -> str:
     if not actor_id or actor_id in ("anonymous", "openclaw-anon", "unknown"):
         return "UNKNOWN"
     actor_lower = actor_id.lower().strip()
-    if actor_lower in SOVEREIGN_ACTORS or any(
-        s in actor_lower for s in SOVEREIGN_ACTORS
-    ):
+    if actor_lower in SOVEREIGN_ACTORS or any(s in actor_lower for s in SOVEREIGN_ACTORS):
         return "SOVEREIGN"
     if actor_lower.startswith(("hermes", "forge", "root")):
         return "HIGH"
@@ -156,7 +154,7 @@ def arif_actor_resolve(
             "requested_authority": requested_authority,
             "verdict": "UNRESOLVED",
             "reason": f"tier={tier} cannot authorize {requested_authority}; "
-                     f"scope allows only {scope}",
+            f"scope allows only {scope}",
             "sovereign_ack_required": tier in ("LOW", "UNKNOWN"),
         }
 
@@ -184,17 +182,15 @@ def arif_actor_resolve(
 
 # ── Test surface ────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    import json
-
     test_cases = [
         ("arifbfazil", "SEAL"),
         ("arifbfazil", "MUTATE"),
         ("hermes", "BRIDGE"),
         ("mcp_client_xyz", "OBSERVE"),
         ("mcp_client_xyz", "MUTATE"),  # should UNRESOLVE
-        ("anonymous", "OBSERVE"),       # should UNRESOLVE
-        ("openclaw-anon", "JUDGE"),     # should UNRESOLVE
-        ("", "OBSERVE"),                # should UNRESOLVE
+        ("anonymous", "OBSERVE"),  # should UNRESOLVE
+        ("openclaw-anon", "JUDGE"),  # should UNRESOLVE
+        ("", "OBSERVE"),  # should UNRESOLVE
     ]
 
     print("=" * 80)

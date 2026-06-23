@@ -65,6 +65,7 @@ V2_PROMPT_SPECS = (
 
 def register_v2_prompts(mcp):
     from arifosmcp.prompts import register_prompts
+
     return register_prompts(mcp)
 
 

@@ -1,5 +1,7 @@
 # FEDERATION_STATUS.md — arifOS Federation Live Status
 
+> **DEPRECATED TOOL COUNTS (2026-06-23 7-tool facade freeze)**: Many "X tools", "13/15/20 canonical" numbers in this file predate the public collapse to exactly 7 verbs (arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal). See arifosmcp/runtime/public_surface.py:CANONICAL_7 and scripts/check_reality.py for current truth. Status/organ health data may still be useful.
+
 > **Canonical Source of Truth:** `ariffazil/arifOS`
 > **Authority:** arifOS F13 SOVEREIGN (Muhammad Arif bin Fazil)
 > **Last Verified:** 2026-06-21

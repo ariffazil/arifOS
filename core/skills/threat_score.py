@@ -63,7 +63,9 @@ class ThreatAssessment:
     events_analyzed: int = 0
 
 
-def detect_frequency_spike(tool: str, current_rate: float, baseline_rate: float) -> Optional[Anomaly]:
+def detect_frequency_spike(
+    tool: str, current_rate: float, baseline_rate: float
+) -> Optional[Anomaly]:
     """Detect if a tool is being called unusually often."""
     if baseline_rate <= 0:
         return None
@@ -96,7 +98,9 @@ def detect_hold_cluster(holds: list, window_seconds: int = 300) -> Optional[Anom
     """Detect multiple HOLDs in a short time window."""
     if len(holds) < 3:
         return None
-    time_span = (holds[-1]["timestamp"] - holds[0]["timestamp"]).total_seconds() if len(holds) > 1 else 0
+    time_span = (
+        (holds[-1]["timestamp"] - holds[0]["timestamp"]).total_seconds() if len(holds) > 1 else 0
+    )
     if len(holds) >= 5 and time_span < window_seconds:
         return Anomaly(
             type=AnomalyType.HOLD_CLUSTER,
@@ -111,9 +115,9 @@ def compute_risk_score(anomalies: list[Anomaly], organ_status: dict) -> float:
     """Composite risk score: 40% organ health + 60% anomaly severity."""
     degraded_count = sum(1 for s in organ_status.values() if s != "HEALTHY")
     organ_risk = degraded_count / max(len(organ_status), 1) if organ_status else 0.0
-    
+
     anomaly_risk = sum(a.severity for a in anomalies) / max(len(anomalies), 1) if anomalies else 0.0
-    
+
     return 0.4 * organ_risk + 0.6 * anomaly_risk
 
 
@@ -144,22 +148,22 @@ def recommended_action(level: RiskLevel) -> str:
 def assess(events: list, organ_status: dict, baseline_window_days: int = 7) -> ThreatAssessment:
     """
     Main entry point. Takes governance events + organ health → ThreatAssessment.
-    
+
     STUB: Currently implements frequency spike and hold cluster detection.
           Novel path, override surge, cross-organ cascade pending NATS integration.
     """
     anomalies = []
     known_paths = set()
-    
+
     # Frequency spike check (stub)
     # Real implementation: compute rate from events, compare to baseline
-    
+
     # Hold cluster check
     holds = [e for e in events if e.get("verdict") == "HOLD" or e.get("type") == "hold"]
     cluster = detect_hold_cluster(holds)
     if cluster:
         anomalies.append(cluster)
-    
+
     # Novel path check
     for evt in events:
         tool = evt.get("tool", "unknown")
@@ -168,10 +172,10 @@ def assess(events: list, organ_status: dict, baseline_window_days: int = 7) -> T
         anomaly = detect_novel_path(path, known_paths)
         if anomaly:
             anomalies.append(anomaly)
-    
+
     score = compute_risk_score(anomalies, organ_status)
     level = risk_level(score)
-    
+
     now = datetime.utcnow()
     return ThreatAssessment(
         timestamp=now,
@@ -193,7 +197,7 @@ if __name__ == "__main__":
     result = assess([], {"arifOS": "HEALTHY", "GEOX": "HEALTHY"}, 7)
     assert result.risk_level == RiskLevel.GREEN, f"Expected GREEN, got {result.risk_level}"
     print(f"✅ Normal ops: {result.risk_level.value} (score: {result.risk_score:.2f})")
-    
+
     # Hold cluster
     now = datetime.utcnow()
     hold_events = [
@@ -204,6 +208,8 @@ if __name__ == "__main__":
         {"tool": "forge_execute", "verdict": "HOLD", "timestamp": now, "action_class": "MUTATE"},
     ]
     result2 = assess(hold_events, {"arifOS": "HEALTHY"}, 7)
-    print(f"✅ Hold cluster: {result2.risk_level.value} (score: {result2.risk_score:.2f}, {len(result2.anomalies)} anomalies)")
-    
+    print(
+        f"✅ Hold cluster: {result2.risk_level.value} (score: {result2.risk_score:.2f}, {len(result2.anomalies)} anomalies)"
+    )
+
     print("DITEMPA BUKAN DIBERI — threat_score stub verified.")

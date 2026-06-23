@@ -34,11 +34,11 @@ class AutonomyBand(StrEnum):
     Black:        VOID — default denial
     """
 
-    GREEN = "green"    # Read, inspect, draft, classify
+    GREEN = "green"  # Read, inspect, draft, classify
     YELLOW = "yellow"  # Prepare, diff, stage plan
     ORANGE = "orange"  # Local reversible write, config with backup
-    RED = "red"        # Secrets, money, public external, infra, deletion
-    BLACK = "black"    # Irreversible destructive — default VOID
+    RED = "red"  # Secrets, money, public external, infra, deletion
+    BLACK = "black"  # Irreversible destructive — default VOID
 
 
 class RiskClass(StrEnum):
@@ -106,8 +106,8 @@ class JurisdictionEnvelope(BaseModel):
     risk_class: RiskClass = Field(default=RiskClass.OBSERVE)
     rollback_plan: str | None = Field(default=None, description="Required for ORANGE+")
     observe_receipt_id: str | None = Field(
-        default=None,
-        description="Receipt proving prior observation (required for MUTATE+)")
+        default=None, description="Receipt proving prior observation (required for MUTATE+)"
+    )
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 

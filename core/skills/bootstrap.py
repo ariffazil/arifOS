@@ -8,10 +8,9 @@ Purpose: Given a role name, returns the canonical reading pack and tool list
 
 Usage:
     context = bootstrap_agent_context("kernel-scribe")
-    # Returns: { canonical_files: [...], summaries: {...}, tools: [...], 
+    # Returns: { canonical_files: [...], summaries: {...}, tools: [...],
     #            autonomy: "PROPOSE_ONLY", risk_band: "APPROVE_ONLY" }
 """
-
 
 # ─── AGENT REGISTRY ────────────────────────────────────────────────
 # Maps role_name → (config_dir, role_card_path, description)
@@ -79,22 +78,39 @@ ORGAN_FILES = {
 # Tool lists per role
 ROLE_TOOLS = {
     "kernel-scribe": [
-        "arif_memory_recall", "arif_sense_observe", "arif_threat_score",
-        "arif_autonomy_calibrate", "arif_scenario_policy_eval",
-        "arif_judge_deliberate", "arif_reply_compose", "arif_organ_attest_all",
+        "arif_memory_recall",
+        "arif_sense_observe",
+        "arif_threat_score",
+        "arif_autonomy_calibrate",
+        "arif_scenario_policy_eval",
+        "arif_judge_deliberate",
+        "arif_reply_compose",
+        "arif_organ_attest_all",
     ],
     "ops-planner": [
-        "well_assess_homeostasis", "well_validate_vitality",
-        "wealth_conservation_capital", "wealth_flow_liquidity",
-        "arif_mind_reason", "arif_organ_attest_all", "forge_plan",
+        "well_assess_homeostasis",
+        "well_validate_vitality",
+        "wealth_conservation_capital",
+        "wealth_flow_liquidity",
+        "arif_mind_reason",
+        "arif_organ_attest_all",
+        "forge_plan",
     ],
     "self-forge-advisor": [
-        "arif_sense_observe", "arif_memory_recall", "arif_threat_score",
-        "forge_plan", "forge_dry_run", "forge_approve", "forge_execute",
-        "arif_vault_seal", "arif_organ_attest_all",
+        "arif_sense_observe",
+        "arif_memory_recall",
+        "arif_threat_score",
+        "forge_plan",
+        "forge_dry_run",
+        "forge_approve",
+        "forge_execute",
+        "arif_vault_seal",
+        "arif_organ_attest_all",
     ],
     "external-watcher": [
-        "arif_sense_observe", "arif_evidence_fetch", "arif_memory_recall",
+        "arif_sense_observe",
+        "arif_evidence_fetch",
+        "arif_memory_recall",
         "arif_reply_compose",
     ],
 }
@@ -103,7 +119,11 @@ ROLE_TOOLS = {
 ROLE_FORBIDDEN = {
     "kernel-scribe": ["forge_execute", "arif_vault_seal", "systemctl restart", "docker stop"],
     "ops-planner": ["forge_execute", "arif_vault_seal"],
-    "self-forge-advisor": ["direct git commit", "direct git push", "constitutional floor modification"],
+    "self-forge-advisor": [
+        "direct git commit",
+        "direct git push",
+        "constitutional floor modification",
+    ],
     "external-watcher": ["any forge tool", "any organ write", "PROPOSE", "MUTATE", "ATOMIC"],
 }
 
@@ -117,10 +137,10 @@ def bootstrap_agent_context(role_name: str) -> dict:
     - forbidden actions
     - autonomy mode and risk band
     - role description
-    
+
     Args:
         role_name: One of: kernel-scribe, ops-planner, self-forge-advisor, external-watcher
-    
+
     Returns:
         dict with keys: role, config_dir, description, class, autonomy, risk_band,
                         canonical_files, files_by_organ, tools, forbidden, summary
@@ -129,15 +149,15 @@ def bootstrap_agent_context(role_name: str) -> dict:
         return {
             "error": f"Unknown role: {role_name}",
             "available_roles": list(AGENT_MAP.keys()),
-            "hint": "Try: kernel-scribe, ops-planner, self-forge-advisor, external-watcher"
+            "hint": "Try: kernel-scribe, ops-planner, self-forge-advisor, external-watcher",
         }
-    
+
     agent = AGENT_MAP[role_name]
-    
+
     # Build canonical file list
     canonical_files = list(CANONICAL_BASE)
     canonical_files.append(agent["role_card"])
-    
+
     # Add per-organ files based on role
     if role_name in ("kernel-scribe", "self-forge-advisor"):
         canonical_files.extend(ORGAN_FILES["arifOS"])
@@ -145,22 +165,32 @@ def bootstrap_agent_context(role_name: str) -> dict:
         canonical_files.extend(ORGAN_FILES["A-FORGE"])
     if role_name in ("kernel-scribe", "ops-planner", "external-watcher"):
         canonical_files.extend(ORGAN_FILES["AAA"])
-    
+
     # Generate summaries
     summaries = {
         "INDEX.md": "Quick-lookup index for the AGI Kernel Forge Pack — 20+ external resources in 6 capability bands",
         "AGI_KERNEL_FORGE_PACK.md": "Full forge pack: 6-band reference library, tiered reading order, per-organ pattern map",
         "AGENTS.md (/root)": "Federation landing protocol — identity, constitutional floors, organ topology",
         "AGENTS.md (/root/AAA)": "AAA control plane rules — build/test/deploy, A2A gateway, HEXAGON agents",
-        agent["role_card"]: f"Full role definition for {role_name}: identity, workflow, boundaries, self-assessment",
+        agent[
+            "role_card"
+        ]: f"Full role definition for {role_name}: identity, workflow, boundaries, self-assessment",
     }
-    
+
     if role_name in ("kernel-scribe", "self-forge-advisor"):
-        summaries["arifOS_KERNEL_PATTERNS.md"] = "arifOS-specific pattern extraction: durability, middleware, memory, delegation"
-        summaries["THREAT_SCORE_SPEC.md"] = "Threat & anomaly scoring skill spec: data model, algorithm, risk levels"
-        summaries["SCENARIO_POLICY_SPEC.md"] = "Scenario policy engine: multi-organ DSL, 3 starter policies"
-        summaries["AUTONOMY_CALIBRATION_SPEC.md"] = "Autonomy calibration: re-evaluate tool risk bands from observed behavior"
-    
+        summaries["arifOS_KERNEL_PATTERNS.md"] = (
+            "arifOS-specific pattern extraction: durability, middleware, memory, delegation"
+        )
+        summaries["THREAT_SCORE_SPEC.md"] = (
+            "Threat & anomaly scoring skill spec: data model, algorithm, risk levels"
+        )
+        summaries["SCENARIO_POLICY_SPEC.md"] = (
+            "Scenario policy engine: multi-organ DSL, 3 starter policies"
+        )
+        summaries["AUTONOMY_CALIBRATION_SPEC.md"] = (
+            "Autonomy calibration: re-evaluate tool risk bands from observed behavior"
+        )
+
     # Build context
     context = {
         "role": role_name,
@@ -182,7 +212,7 @@ def bootstrap_agent_context(role_name: str) -> dict:
             "Extract patterns, don't import frameworks. Forge under arifOS law."
         ),
     }
-    
+
     return context
 
 
@@ -206,5 +236,7 @@ if __name__ == "__main__":
         assert "error" not in ctx, f"Failed for {role}: {ctx}"
         assert len(ctx["canonical_files"]) > 3, f"Too few files for {role}"
         assert len(ctx["tools"]) > 2, f"Too few tools for {role}"
-        print(f"✅ {role}: {len(ctx['canonical_files'])} files, {len(ctx['tools'])} tools, {ctx['autonomy_mode']}")
+        print(
+            f"✅ {role}: {len(ctx['canonical_files'])} files, {len(ctx['tools'])} tools, {ctx['autonomy_mode']}"
+        )
     print(f"\n{len(AGENT_MAP)} roles bootstrapped. DITEMPA BUKAN DIBERI.")

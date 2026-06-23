@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 # Re-export for backward compat
 class _CognitionLane:
     """Placeholder; real enum defined below."""
+
     pass
 
 

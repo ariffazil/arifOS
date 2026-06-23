@@ -27,6 +27,7 @@ from typing import Any
 @dataclass
 class ToolSchema:
     """Cached tool schema with drift detection."""
+
     tool_name: str
     upstream_id: str
     description: str = ""
@@ -46,6 +47,7 @@ class ToolSchema:
 @dataclass
 class ValidationResult:
     """Result of schema validation."""
+
     valid: bool
     reason: str = ""
     missing_params: list[str] = field(default_factory=list)
@@ -89,9 +91,7 @@ class SchemaValidator:
             name = tool.get("name", "")
 
             # Namespace: prefix with upstream_id if not already
-            if not name.startswith(f"{upstream_id}_") and not name.startswith(
-                f"{upstream_id}."
-            ):
+            if not name.startswith(f"{upstream_id}_") and not name.startswith(f"{upstream_id}."):
                 namespaced = f"{upstream_id}.{name}"
             else:
                 namespaced = name
@@ -109,13 +109,15 @@ class SchemaValidator:
             if namespaced in self._schemas:
                 existing = self._schemas[namespaced]
                 if existing.schema_hash and existing.schema_hash != new_schema.schema_hash:
-                    self._drift_log.append({
-                        "tool": namespaced,
-                        "upstream": upstream_id,
-                        "old_hash": existing.schema_hash,
-                        "new_hash": new_schema.schema_hash,
-                        "detected_at": time.time(),
-                    })
+                    self._drift_log.append(
+                        {
+                            "tool": namespaced,
+                            "upstream": upstream_id,
+                            "old_hash": existing.schema_hash,
+                            "new_hash": new_schema.schema_hash,
+                            "detected_at": time.time(),
+                        }
+                    )
 
             self._schemas[namespaced] = new_schema
             count += 1

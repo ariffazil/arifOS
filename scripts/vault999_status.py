@@ -155,9 +155,7 @@ def verify_service_health() -> dict:
 
     result = {"status": "unknown", "reachable": False}
     try:
-        with urllib.request.urlopen(
-            "http://localhost:8100/health", timeout=2
-        ) as resp:
+        with urllib.request.urlopen("http://localhost:8100/health", timeout=2) as resp:
             data = json.loads(resp.read().decode())
             result["status"] = data.get("status", "unknown")
             result["reachable"] = True
@@ -192,7 +190,9 @@ def main() -> int:
     live = verify_live_vault()
     print(f"   Status:       {live['status']}")
     print(f"   Entries:      {live['entries']}")
-    print(f"   Last hash:    {live['last_entry_hash'][:16] if live['last_entry_hash'] else 'N/A'}...")
+    print(
+        f"   Last hash:    {live['last_entry_hash'][:16] if live['last_entry_hash'] else 'N/A'}..."
+    )
 
     print("\n🌐 Vault Service (port 8100)")
     svc = verify_service_health()

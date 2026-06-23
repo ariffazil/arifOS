@@ -8,6 +8,7 @@ Constitutional risk: HIGHEST. Judge is the verdict gate. Its behavior is law.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import pytest
@@ -58,10 +59,19 @@ class TestJudgeAnchorRegistry:
     def test_anchor_structure_golden(self):
         """Every anchor must have the required constitutional fields."""
         required_keys = {
-            "id", "matrix_cell", "matrix_row", "matrix_col",
-            "motto_binding", "quote", "antithesis", "axis",
-            "binding", "severity_on_fire", "risk_bias",
-            "authority_scope", "norm",
+            "id",
+            "matrix_cell",
+            "matrix_row",
+            "matrix_col",
+            "motto_binding",
+            "quote",
+            "antithesis",
+            "axis",
+            "binding",
+            "severity_on_fire",
+            "risk_bias",
+            "authority_scope",
+            "norm",
         }
         quote_keys = {"text", "author", "work", "year", "verification_level"}
         for anchor in JUDGE_PARADOX_ANCHORS:
@@ -96,9 +106,7 @@ class TestJudgeVerdictParadoxRouting:
         """SABAR verdict must bind to J_CxJ (Parker/MLK — the arc bends only if we bend it)."""
         anchor = _judge_paradox_for_verdict("SABAR")
         assert anchor is not None, "SABAR must have a paradox anchor"
-        assert anchor["id"] == "J_CxJ", (
-            f"SABAR routed to {anchor['id']}, expected J_CxJ"
-        )
+        assert anchor["id"] == "J_CxJ", f"SABAR routed to {anchor['id']}, expected J_CxJ"
         assert anchor["matrix_cell"] == "clarity_justice"
         assert "bend" in anchor["quote"]["text"].lower() or "Parker" in anchor["quote"]["author"]
 
@@ -106,18 +114,14 @@ class TestJudgeVerdictParadoxRouting:
         """Standard SEAL must bind to J_TxP (Aristotle — every SEAL is partial justice)."""
         anchor = _judge_paradox_for_verdict("SEAL", action_tier="standard")
         assert anchor is not None, "Standard SEAL must have a paradox anchor"
-        assert anchor["id"] == "J_TxP", (
-            f"Standard SEAL routed to {anchor['id']}, expected J_TxP"
-        )
+        assert anchor["id"] == "J_TxP", f"Standard SEAL routed to {anchor['id']}, expected J_TxP"
         assert anchor["matrix_cell"] == "truth_peace"
 
     def test_seal_sovereign_routes_to_humility_justice(self):
         """Sovereign SEAL must bind to J_HxJ (Kant — universality is not computable)."""
         anchor = _judge_paradox_for_verdict("SEAL", action_tier="sovereign")
         assert anchor is not None, "Sovereign SEAL must have a paradox anchor"
-        assert anchor["id"] == "J_HxJ", (
-            f"Sovereign SEAL routed to {anchor['id']}, expected J_HxJ"
-        )
+        assert anchor["id"] == "J_HxJ", f"Sovereign SEAL routed to {anchor['id']}, expected J_HxJ"
         assert anchor["matrix_cell"] == "humility_justice"
         assert "Kant" in anchor["quote"]["author"]
 
@@ -125,9 +129,7 @@ class TestJudgeVerdictParadoxRouting:
         """Elevated HOLD must bind to J_TxC (Marcus Aurelius — if not right, don't do it)."""
         anchor = _judge_paradox_for_verdict("HOLD", action_tier="sovereign")
         assert anchor is not None, "Elevated HOLD must have a paradox anchor"
-        assert anchor["id"] == "J_TxC", (
-            f"Elevated HOLD routed to {anchor['id']}, expected J_TxC"
-        )
+        assert anchor["id"] == "J_TxC", f"Elevated HOLD routed to {anchor['id']}, expected J_TxC"
         assert anchor["matrix_cell"] == "truth_care"
 
     def test_hold_standard_returns_none(self):
@@ -176,10 +178,7 @@ class TestJudgeParadoxInjection:
         anchor = result["meta"]["paradox_anchor"]
         assert anchor["quote_id"] == "J_HxJ"
         assert "Kant" in anchor["author"]  # Kant wrote the maxim, not named in the quote text
-        assert any(
-            "universal" in r.lower() or "J_HxJ" in r
-            for r in result.get("reasons", [])
-        )
+        assert any("universal" in r.lower() or "J_HxJ" in r for r in result.get("reasons", []))
 
     def test_hold_elevated_injects_irreversibility_gate(self):
         """Elevated HOLD must carry J_TxC — if not right, don't do it."""
@@ -188,10 +187,7 @@ class TestJudgeParadoxInjection:
         anchor = result["meta"]["paradox_anchor"]
         assert anchor["quote_id"] == "J_TxC"
         assert "Marcus Aurelius" in anchor["author"] or "Aurelius" in anchor["quote"]
-        assert any(
-            "J_TxC" in r or "ex ante" in r.lower()
-            for r in result.get("reasons", [])
-        )
+        assert any("J_TxC" in r or "ex ante" in r.lower() for r in result.get("reasons", []))
 
     def test_no_double_injection(self):
         """
@@ -214,11 +210,25 @@ class TestJudgeParadoxInjection:
         result = _inject_judge_paradox(result, "SEAL", action_tier="standard")
         anchor = result["meta"]["paradox_anchor"]
         required = {
-            "quote_id", "organ", "matrix_cell", "matrix_row", "matrix_col",
-            "motto_binding", "quote", "author", "work", "year",
-            "verification_level", "antithesis", "axis", "norm",
-            "severity_on_fire", "risk_bias", "authority_scope",
-            "binding_event", "_matrix_note",
+            "quote_id",
+            "organ",
+            "matrix_cell",
+            "matrix_row",
+            "matrix_col",
+            "motto_binding",
+            "quote",
+            "author",
+            "work",
+            "year",
+            "verification_level",
+            "antithesis",
+            "axis",
+            "norm",
+            "severity_on_fire",
+            "risk_bias",
+            "authority_scope",
+            "binding_event",
+            "_matrix_note",
         }
         missing = required - set(anchor.keys())
         assert not missing, f"Injected anchor missing fields: {missing}"
@@ -289,10 +299,16 @@ class TestJudgeGateOrdering:
         Reads judge.py and checks that comment markers appear in the declared sequence.
         """
         import os
+
         judge_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "..", "..", "..",
-            "arifosmcp", "tools", "judge.py",
+            "..",
+            "..",
+            "..",
+            "..",
+            "arifosmcp",
+            "tools",
+            "judge.py",
         )
         judge_path = os.path.normpath(judge_path)
         if not os.path.exists(judge_path):
@@ -321,7 +337,7 @@ class TestJudgeGateOrdering:
                 }
                 pos = source.find(alt_markers.get(gate_name, marker))
             assert pos > last_pos, (
-                f"Gate '{gate_name}' (marker='{marker}') at line ~{source[:pos].count(chr(10))+1} "
+                f"Gate '{gate_name}' (marker='{marker}') at line ~{source[:pos].count(chr(10)) + 1} "
                 f"appears BEFORE previous gate in source. "
                 f"Gate ordering in source does not match declared constitutional sequence."
             )
@@ -379,15 +395,17 @@ class TestHeartGateBehavior:
         import asyncio
         from arifosmcp.tools.judge import arif_judge_deliberate
 
-        result = asyncio.run(arif_judge_deliberate(
-            mode="judge",
-            candidate="test action",
-            heart_critique={
-                "action_risk_verdict": "VOID",
-                "verdict": "VOID",
-                "reason": "Ethical violation detected by Heart.",
-            },
-        ))
+        result = asyncio.run(
+            arif_judge_deliberate(
+                mode="judge",
+                candidate="test action",
+                heart_critique={
+                    "action_risk_verdict": "VOID",
+                    "verdict": "VOID",
+                    "reason": "Ethical violation detected by Heart.",
+                },
+            )
+        )
         # Current behavior: does NOT block (HEART_GATE is docstring, not code)
         # Expected after fix: result.verdict.value == "HOLD"
         # Documenting actual behavior for Phase 0:
@@ -401,15 +419,17 @@ class TestHeartGateBehavior:
         import asyncio
         from arifosmcp.tools.judge import arif_judge_deliberate
 
-        result = asyncio.run(arif_judge_deliberate(
-            mode="judge",
-            candidate="test action",
-            heart_critique={
-                "action_risk_verdict": "HOLD",
-                "verdict": "HOLD",
-                "reason": "Uncertain ethical boundary.",
-            },
-        ))
+        result = asyncio.run(
+            arif_judge_deliberate(
+                mode="judge",
+                candidate="test action",
+                heart_critique={
+                    "action_risk_verdict": "HOLD",
+                    "verdict": "HOLD",
+                    "reason": "Uncertain ethical boundary.",
+                },
+            )
+        )
         # Current: does NOT block. Expected after Phase 1: result.verdict.value == "HOLD"
         assert result.verdict is not None
 
@@ -420,15 +440,17 @@ class TestHeartGateBehavior:
 
         # Heart SEAL should not trigger the HEART_GATE block
         # (Judge may still HOLD for other reasons like WELL unavailability)
-        result = asyncio.run(arif_judge_deliberate(
-            mode="judge",
-            candidate="safe action",
-            heart_critique={
-                "action_risk_verdict": "SEAL",
-                "verdict": "OK",
-                "reason": "No risks detected.",
-            },
-        ))
+        result = asyncio.run(
+            arif_judge_deliberate(
+                mode="judge",
+                candidate="safe action",
+                heart_critique={
+                    "action_risk_verdict": "SEAL",
+                    "verdict": "OK",
+                    "reason": "No risks detected.",
+                },
+            )
+        )
         # Must not be blocked by HEART_GATE specifically
         heart_gate_reasons = [r for r in result.reasons if "666_HEART_GATE" in r]
         assert len(heart_gate_reasons) == 0, (

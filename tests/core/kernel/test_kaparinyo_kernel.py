@@ -454,7 +454,6 @@ def test_sha256_receipt() -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-
     # Run all tests
     tests = [
         test_imports,

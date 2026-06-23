@@ -15,8 +15,12 @@ from typing import Optional
 # Import the core scoring engine
 from .threat_score import (
     ThreatAssessment,
-    detect_frequency_spike, detect_novel_path, detect_hold_cluster,
-    compute_risk_score, risk_level, recommended_action
+    detect_frequency_spike,
+    detect_novel_path,
+    detect_hold_cluster,
+    compute_risk_score,
+    risk_level,
+    recommended_action,
 )
 
 # ─── NATS CONFIG ───────────────────────────────────────────────────
@@ -31,6 +35,7 @@ DEFAULT_BASELINE_DAYS = 7
 @dataclass
 class GovernanceEvent:
     """Parsed governance event from NATS."""
+
     event_id: str
     timestamp: datetime
     tool: str
@@ -48,7 +53,9 @@ def parse_nats_message(msg_data: bytes) -> Optional[GovernanceEvent]:
         data = json.loads(msg_data)
         return GovernanceEvent(
             event_id=data.get("event_id", data.get("id", "")),
-            timestamp=datetime.fromisoformat(data.get("timestamp", datetime.now(timezone.utc).isoformat())),
+            timestamp=datetime.fromisoformat(
+                data.get("timestamp", datetime.now(timezone.utc).isoformat())
+            ),
             tool=data.get("tool", data.get("event", "unknown")),
             action_class=data.get("action_class", "OBSERVE"),
             verdict=data.get("verdict", data.get("status", "UNKNOWN")),
@@ -63,6 +70,7 @@ def parse_nats_message(msg_data: bytes) -> Optional[GovernanceEvent]:
 
 # ─── NATS CONSUMER ─────────────────────────────────────────────────
 
+
 async def fetch_recent_events(
     nats_client,
     subject: str = GOVERNANCE_SUBJECT,
@@ -71,18 +79,18 @@ async def fetch_recent_events(
 ) -> list[GovernanceEvent]:
     """
     Fetch recent governance events from NATS JetStream.
-    
+
     Uses JetStream consumer to replay recent messages.
     Falls back to empty list if NATS unavailable.
     """
     events = []
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
-    
+
     try:
         # Attempt JetStream pull consumer
         js = nats_client.jetstream()
         sub = await js.pull_subscribe(GOVERNANCE_SUBJECT, "threat_score_consumer")
-        
+
         for _ in range(max_events // 10):  # fetch in batches
             msgs = await sub.fetch(10, timeout=5)
             for msg in msgs:
@@ -92,16 +100,17 @@ async def fetch_recent_events(
                 await msg.ack()
             if len(events) >= max_events:
                 break
-        
+
         await sub.unsubscribe()
     except Exception:
         # NATS unavailable — return empty, caller handles gracefully
         pass
-    
+
     return events
 
 
 # ─── LIVE THREAT ASSESSMENT ────────────────────────────────────────
+
 
 async def assess_live(
     nats_client,
@@ -111,21 +120,21 @@ async def assess_live(
 ) -> ThreatAssessment:
     """
     Live threat assessment using recent NATS governance events.
-    
+
     Args:
         nats_client: Connected NATS client
         organ_status: dict of organ_id → HEALTHY|DEGRADED|OFFLINE
         window_minutes: How far back to look for events
         baseline_days: How far back for baseline calculations
-    
+
     Returns:
         ThreatAssessment with live data
     """
     events = await fetch_recent_events(nats_client, window_minutes=window_minutes)
-    
+
     anomalies = []
     known_paths = set()
-    
+
     # Convert to dict form for core engine
     event_dicts = [
         {
@@ -138,21 +147,21 @@ async def assess_live(
         }
         for e in events
     ]
-    
+
     # Hold cluster detection
     holds = [e for e in event_dicts if e["verdict"] in ("HOLD", "BLOCK")]
     if holds:
         cluster = detect_hold_cluster(holds)
         if cluster:
             anomalies.append(cluster)
-    
+
     # Novel path detection
     for evt in event_dicts:
         path = f"{evt['tool']}→{evt['action_class']}"
         anomaly = detect_novel_path(path, known_paths)
         if anomaly:
             anomalies.append(anomaly)
-    
+
     # Frequency spike detection
     tool_counts = {}
     for evt in event_dicts:
@@ -162,10 +171,10 @@ async def assess_live(
         anomaly = detect_frequency_spike(tool, rate, baseline_rate=1.0)  # baseline TBD
         if anomaly:
             anomalies.append(anomaly)
-    
+
     score = compute_risk_score(anomalies, organ_status)
     level = risk_level(score)
-    
+
     now = datetime.now(timezone.utc)
     return ThreatAssessment(
         timestamp=now,
@@ -182,6 +191,7 @@ async def assess_live(
 
 
 # ─── HEALTH CHECK ─────────────────────────────────────────────────
+
 
 async def nats_governance_health(nats_client) -> dict:
     """Check if NATS governance stream is accessible."""

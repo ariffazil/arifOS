@@ -23,6 +23,7 @@ Input:
   "top_k": 3
 }
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -119,7 +120,9 @@ def _generate_candidates(
     return raw
 
 
-def _filter_by_floors(candidates: list[Candidate], floor_receipt: dict) -> tuple[list[Candidate], int]:
+def _filter_by_floors(
+    candidates: list[Candidate], floor_receipt: dict
+) -> tuple[list[Candidate], int]:
     """Drop candidates that would cause attested floors to fail."""
     fail = set(floor_receipt.get("floors_fail", []))
     if not fail:
@@ -141,12 +144,7 @@ def _score(c: Candidate, floor_receipt: dict, max_evidence: int) -> float:
     evidence_support = min(1.0, len(c.evidence_basis) / max(1, max_evidence))
     occam = 1.0 / (1 + c.complexity * 0.1)
     uncertainty_penalty = c.uncertainty
-    score = (
-        0.4 * floor_alignment
-        + 0.3 * evidence_support
-        + 0.2 * occam
-        - 0.1 * uncertainty_penalty
-    )
+    score = 0.4 * floor_alignment + 0.3 * evidence_support + 0.2 * occam - 0.1 * uncertainty_penalty
     return round(max(0.0, min(0.99, score)), 3)
 
 
@@ -186,7 +184,7 @@ def bounded_explain(
         refinement = Candidate(
             id="c_refine",
             claim=f"Refined version of {prior_best} for '{request[:60]}'",
-            evidence_basis=list(evidence_refs[: 3]),
+            evidence_basis=list(evidence_refs[:3]),
             falsifier=f"Disprove by re-running with prior_best != {prior_best}",
             score=0.85,
             uncertainty=0.15,

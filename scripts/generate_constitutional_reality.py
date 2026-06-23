@@ -132,7 +132,9 @@ def _probe_organs() -> list[dict[str, Any]]:
     return results
 
 
-def _organ_verdict(reach: bool, raw_status: str | None, expected: int | None, tools: dict[str, Any]) -> str:
+def _organ_verdict(
+    reach: bool, raw_status: str | None, expected: int | None, tools: dict[str, Any]
+) -> str:
     if not reach:
         return "FAIL"
     healthy = (raw_status or "").lower() in {"healthy", "alive"}
@@ -176,8 +178,16 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
                 "arif_forge_execute ack_irreversible gate",
             ],
             "evidence": [
-                {"path": str(CONSTITUTION_PATH), "method": "read", "value": "L01 AMANAH — Sacred Trust"},
-                {"path": "arifosmcp/runtime/live_kernel.py", "method": "grep", "value": "ack_irreversible"},
+                {
+                    "path": str(CONSTITUTION_PATH),
+                    "method": "read",
+                    "value": "L01 AMANAH — Sacred Trust",
+                },
+                {
+                    "path": "arifosmcp/runtime/live_kernel.py",
+                    "method": "grep",
+                    "value": "ack_irreversible",
+                },
             ],
             "spec_value": "score >= 0.50 reversibility; C_irreversible in {0..5}",
             "measured_value": "arif_forge_execute returns HOLD when session_id empty (verified)",
@@ -191,8 +201,16 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "constitutional_claim": "Accuracy >= 0.99 or declare uncertainty band.",
             "enforcement_code": ["_check_f2_truth()", "evidence_signals", "tau_confidence_system"],
             "evidence": [
-                {"path": str(CONSTITUTION_PATH), "method": "read", "value": "tau = P(claim | evidence) >= 0.99"},
-                {"path": "arifosmcp/AGENTS.md", "method": "read", "value": "Canonical Tool-Count Truth Table (F2)"},
+                {
+                    "path": str(CONSTITUTION_PATH),
+                    "method": "read",
+                    "value": "tau = P(claim | evidence) >= 0.99",
+                },
+                {
+                    "path": "arifosmcp/AGENTS.md",
+                    "method": "read",
+                    "value": "Canonical Tool-Count Truth Table (F2)",
+                },
             ],
             "spec_value": "tau >= 0.99",
             "measured_value": "/health reports tau_confidence_system=0.99",
@@ -206,7 +224,11 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "constitutional_claim": "Human, AI, Earth, Verifier witnesses must align via geometric mean.",
             "enforcement_code": ["_check_f3_witness()", "W4 formula"],
             "evidence": [
-                {"path": str(CONSTITUTION_PATH), "method": "read", "value": "W4 = (H * A * E * V)^(1/4) >= 0.75"},
+                {
+                    "path": str(CONSTITUTION_PATH),
+                    "method": "read",
+                    "value": "W4 = (H * A * E * V)^(1/4) >= 0.75",
+                },
             ],
             "spec_value": "W4 >= 0.75",
             "measured_value": "/health thermodynamic.witness = {human:0.42, ai:0.32, earth:0.26}",
@@ -219,7 +241,13 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "type": "SOFT",
             "constitutional_claim": "Every output reduces entropy (delta-S <= 0).",
             "enforcement_code": ["_check_f4_clarity()"],
-            "evidence": [{"path": str(CONSTITUTION_PATH), "method": "read", "value": "delta-S = S(input) - S(output) <= 0"}],
+            "evidence": [
+                {
+                    "path": str(CONSTITUTION_PATH),
+                    "method": "read",
+                    "value": "delta-S = S(input) - S(output) <= 0",
+                }
+            ],
             "spec_value": "score >= 0.0",
             "measured_value": "/health entropy_delta = -0.0",
             "status": "IMPLEMENTED",
@@ -231,7 +259,13 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "type": "SOFT",
             "constitutional_claim": "Power requires safety margin; de-escalate and guard maruah.",
             "enforcement_code": ["_check_f5_peace()"],
-            "evidence": [{"path": str(CONSTITUTION_PATH), "method": "read", "value": "P^2 = Buffers(tau) / R(tau) >= 1.0"}],
+            "evidence": [
+                {
+                    "path": str(CONSTITUTION_PATH),
+                    "method": "read",
+                    "value": "P^2 = Buffers(tau) / R(tau) >= 1.0",
+                }
+            ],
             "spec_value": "P^2 >= 1.0",
             "measured_value": "/health peace_squared = 0.5",
             "status": "GAP",
@@ -243,7 +277,9 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "type": "SOFT",
             "constitutional_claim": "Stakeholder care; weakest stakeholder principle.",
             "enforcement_code": ["_check_f6_empathy()"],
-            "evidence": [{"path": str(CONSTITUTION_PATH), "method": "read", "value": "kappa_r >= 0.70"}],
+            "evidence": [
+                {"path": str(CONSTITUTION_PATH), "method": "read", "value": "kappa_r >= 0.70"}
+            ],
             "spec_value": "kappa_r >= 0.70",
             "measured_value": "Not directly exposed on /health",
             "status": "UNVERIFIED",
@@ -255,7 +291,13 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "type": "SOFT",
             "constitutional_claim": "Uncertainty band Omega_0 in [0.03, 0.05].",
             "enforcement_code": ["_check_f7_humility()", "certainty_indicators"],
-            "evidence": [{"path": str(CONSTITUTION_PATH), "method": "read", "value": "Omega_0 in [0.03, 0.05]"}],
+            "evidence": [
+                {
+                    "path": str(CONSTITUTION_PATH),
+                    "method": "read",
+                    "value": "Omega_0 in [0.03, 0.05]",
+                }
+            ],
             "spec_value": "0.03 <= Omega_0 <= 0.05",
             "measured_value": "/health confidence = 0.99 (system-level, not humility band)",
             "status": "PARTIAL",
@@ -267,7 +309,13 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "type": "SOFT",
             "constitutional_claim": "Maintain intelligence quality and system health.",
             "enforcement_code": ["arif_ops_measure", "token_pressure"],
-            "evidence": [{"path": "arifosmcp/runtime/live_kernel.py", "method": "grep", "value": "vitality_index"}],
+            "evidence": [
+                {
+                    "path": "arifosmcp/runtime/live_kernel.py",
+                    "method": "grep",
+                    "value": "vitality_index",
+                }
+            ],
             "spec_value": "vitality_index healthy",
             "measured_value": "/health vitality_index = 0.5946; ml_floors healthy",
             "status": "PARTIAL",
@@ -280,8 +328,16 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "constitutional_claim": "Anti-hallucination: C_dark < 0.30, no consciousness claims.",
             "enforcement_code": ["_check_f9_antihantu()", "C_dark formula"],
             "evidence": [
-                {"path": str(CONSTITUTION_PATH), "method": "read", "value": "C_dark = H(0.25)+ToM(0.25)+Scar(0.20)+Godel(0.15)+Humility(0.15) < 0.30"},
-                {"path": "arifosmcp/AGENTS.md", "method": "read", "value": "F9 Enhanced: C_dark Formula"},
+                {
+                    "path": str(CONSTITUTION_PATH),
+                    "method": "read",
+                    "value": "C_dark = H(0.25)+ToM(0.25)+Scar(0.20)+Godel(0.15)+Humility(0.15) < 0.30",
+                },
+                {
+                    "path": "arifosmcp/AGENTS.md",
+                    "method": "read",
+                    "value": "F9 Enhanced: C_dark Formula",
+                },
             ],
             "spec_value": "C_dark < 0.30",
             "measured_value": "/health shadow = 0.0",
@@ -296,7 +352,11 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "enforcement_code": ["_check_f10_ontology()"],
             "evidence": [
                 {"path": str(CONSTITUTION_PATH), "method": "read", "value": "AI-only ontology"},
-                {"path": "arifosmcp/runtime/CONSTITUTIONAL_QUOTES_SPEC.md", "method": "grep", "value": "ontology"},
+                {
+                    "path": "arifosmcp/runtime/CONSTITUTIONAL_QUOTES_SPEC.md",
+                    "method": "grep",
+                    "value": "ontology",
+                },
             ],
             "spec_value": "No consciousness/soul claims",
             "measured_value": "This report uses mechanical language per F10.",
@@ -310,8 +370,16 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "constitutional_claim": "Verify identity before sensitive ops.",
             "enforcement_code": ["arif_lease_issue", "actor_id/session_id gates"],
             "evidence": [
-                {"path": "arifosmcp/runtime/live_kernel.py", "method": "grep", "value": "session_id"},
-                {"path": "arifosmcp/runtime/organ_attestation.py", "method": "grep", "value": "AuthorityLease"},
+                {
+                    "path": "arifosmcp/runtime/live_kernel.py",
+                    "method": "grep",
+                    "value": "session_id",
+                },
+                {
+                    "path": "arifosmcp/runtime/organ_attestation.py",
+                    "method": "grep",
+                    "value": "AuthorityLease",
+                },
             ],
             "spec_value": "Identity verified",
             "measured_value": "arif_forge_execute empty session returns HOLD",
@@ -325,8 +393,16 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "constitutional_claim": "Sanitize inputs; no prompt injection.",
             "enforcement_code": ["_check_f12_injection()"],
             "evidence": [
-                {"path": "arifosmcp/runtime/live_kernel.py", "method": "grep", "value": "injection"},
-                {"path": "tests/04_adversarial", "method": "ls", "value": "adversarial test suite exists"},
+                {
+                    "path": "arifosmcp/runtime/live_kernel.py",
+                    "method": "grep",
+                    "value": "injection",
+                },
+                {
+                    "path": "tests/04_adversarial",
+                    "method": "ls",
+                    "value": "adversarial test suite exists",
+                },
             ],
             "spec_value": "No successful injection",
             "measured_value": "Hermes detected and rejected 5+ injected footers",
@@ -341,7 +417,11 @@ def _build_floors(declared_hash: str | None) -> list[dict[str, Any]]:
             "enforcement_code": ["arif_judge_deliberate", "F13 veto path"],
             "evidence": [
                 {"path": str(CONSTITUTION_PATH), "method": "read", "value": "Human veto absolute"},
-                {"path": "arifosmcp/AGENTS.md", "method": "read", "value": "F13 SOVEREIGN: Human veto absolute"},
+                {
+                    "path": "arifosmcp/AGENTS.md",
+                    "method": "read",
+                    "value": "F13 SOVEREIGN: Human veto absolute",
+                },
             ],
             "spec_value": "Arif has final veto",
             "measured_value": "Acknowledged across constitution, AGENTS.md, /health owner_summary",
@@ -364,7 +444,11 @@ def _build_organ_reality(probe_results: list[dict[str, Any]]) -> list[dict[str, 
             tools,
         )
         notes = ""
-        if verdict == "DEGRADED" and tools.get("ok") and tools.get("count") != organ.get("expected_tools"):
+        if (
+            verdict == "DEGRADED"
+            and tools.get("ok")
+            and tools.get("count") != organ.get("expected_tools")
+        ):
             notes = f"tool count mismatch: live={tools.get('count')} expected={organ.get('expected_tools')}"
         out.append(
             {
@@ -385,9 +469,14 @@ def _build_organ_reality(probe_results: list[dict[str, Any]]) -> list[dict[str, 
 
 
 def _build_cross_checks(
-    declared_hash: str | None, actual_hash: str, probe_results: list[dict[str, Any]], organs: list[dict[str, Any]]
+    declared_hash: str | None,
+    actual_hash: str,
+    probe_results: list[dict[str, Any]],
+    organs: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    arifos_full = next((r["health"].get("_full", {}) for r in probe_results if r["organ"]["key"] == "arifOS"), {})
+    arifos_full = next(
+        (r["health"].get("_full", {}) for r in probe_results if r["organ"]["key"] == "arifOS"), {}
+    )
     canonical_loaded = arifos_full.get("canonical_tools_loaded")
     exposed = arifos_full.get("tools_exposed_via_mcp")
 
@@ -413,7 +502,9 @@ def _build_cross_checks(
             "claim": "Constitution sealed hash matches file hash",
             "source": f"frontmatter declares {declared_hash}",
             "measured": f"actual sha256 = {actual_hash}",
-            "status": "MATCH" if declared_hash and declared_hash.endswith(actual_hash.split(":")[1]) else "MISMATCH",
+            "status": "MATCH"
+            if declared_hash and declared_hash.endswith(actual_hash.split(":")[1])
+            else "MISMATCH",
             "floors": ["F02"],
         },
         {
@@ -485,7 +576,9 @@ def _build_gaps(
             gaps.append(
                 {
                     "id": check["id"].replace("XC", "GAP"),
-                    "severity": "high" if any(f in ["F01", "F02", "F09", "F11", "F13"] for f in check["floors"]) else "medium",
+                    "severity": "high"
+                    if any(f in ["F01", "F02", "F09", "F11", "F13"] for f in check["floors"])
+                    else "medium",
                     "domain": "cross_check",
                     "description": f"{check['claim']}: {check['source']} vs {check['measured']}",
                     "related_floors": check["floors"],
@@ -504,7 +597,11 @@ def _build_gaps(
                 "description": "arifosd loops on docker-config.json/config.json: not a directory. Not fail-closed.",
                 "related_floors": ["F08", "F12"],
                 "evidence": [
-                    {"path": "journalctl -u arifosd", "method": "journalctl", "value": docker_bug_lines[-1] if docker_bug_lines else "present"}
+                    {
+                        "path": "journalctl -u arifosd",
+                        "method": "journalctl",
+                        "value": docker_bug_lines[-1] if docker_bug_lines else "present",
+                    }
                 ],
             }
         )
@@ -512,8 +609,13 @@ def _build_gaps(
     return gaps
 
 
-def _overall_verdict(floors: list[dict[str, Any]], cross_checks: list[dict[str, Any]], gaps: list[dict[str, Any]]) -> str:
-    hard_gap = any(g["severity"] == "high" and any(f.startswith("F0") for f in g["related_floors"]) for g in gaps)
+def _overall_verdict(
+    floors: list[dict[str, Any]], cross_checks: list[dict[str, Any]], gaps: list[dict[str, Any]]
+) -> str:
+    hard_gap = any(
+        g["severity"] == "high" and any(f.startswith("F0") for f in g["related_floors"])
+        for g in gaps
+    )
     any_mismatch = any(c["status"] in {"MISMATCH", "FAIL"} for c in cross_checks)
     any_partial_floor = any(f["status"] == "PARTIAL" for f in floors)
     if hard_gap and any_mismatch:
@@ -576,7 +678,9 @@ def main(argv: list[str] | None = None) -> int:
         },
     }
 
-    OUTPUT_PATH.write_text(json.dumps(report, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+    OUTPUT_PATH.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False, default=str), encoding="utf-8"
+    )
     print(f"Wrote {OUTPUT_PATH}", file=sys.stderr)
 
     if args.pretty:

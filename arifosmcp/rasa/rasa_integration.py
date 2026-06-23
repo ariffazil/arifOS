@@ -448,6 +448,7 @@ def rasa_integration_diagnostics() -> dict[str, Any]:
     sibling_check = {}
     try:
         from arifosmcp.boot.internal_rasa import InternalRasaEngine  # noqa: F401
+
         sibling_check["internal_rasa_importable"] = True
         sibling_check["internal_rasa_purpose"] = "AGENT self-monitoring telemetry"
     except ImportError:
@@ -455,6 +456,7 @@ def rasa_integration_diagnostics() -> dict[str, Any]:
 
     try:
         from core.vault999.phenomenological.qualia_trace import QualiaTrace  # noqa: F401
+
         sibling_check["qualia_trace_importable"] = True
         sibling_check["qualia_trace_purpose"] = "Phenomenological memory marking"
     except ImportError:

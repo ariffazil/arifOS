@@ -347,12 +347,16 @@ class FederationEnvelope(BaseModel):
       - sovereignty_checkpoint: required for dignity/memory/mutation/vault/identity tools
     """
 
-    envelope_version: str = Field(default="2.0", description="Envelope spec version — Chapter 6 Upgrade")
+    envelope_version: str = Field(
+        default="2.0", description="Envelope spec version — Chapter 6 Upgrade"
+    )
     trace_id: str = Field(description="Unique trace ID for this call chain")
     parent_trace_id: str | None = Field(default=None, description="Parent trace for nested calls")
 
     # Identity
-    actor_id: str = Field(description="Who triggered this call (the human sovereign, after delegation chain)")
+    actor_id: str = Field(
+        description="Who triggered this call (the human sovereign, after delegation chain)"
+    )
     actor_verification: str = Field(
         default="claimed",
         description="claimed | verified | delegated — how the actor was verified",
@@ -617,6 +621,7 @@ def wrap_legacy_call(
     effective_actor = actor_id or "openclaw-anon"
     if coerced:
         import logging as _logging
+
         _logging.getLogger("arifosmcp.federation_envelope").warning(
             f"wrap_legacy_call: null actor_id coerced to 'openclaw-anon' "
             f"(tool={tool_name}, organ={organ.value}, action_class={action_class.value})"

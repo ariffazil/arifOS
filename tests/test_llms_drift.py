@@ -23,10 +23,7 @@ REPO_ROOT = Path(__file__).parents[1]
 def _normalized_llms_hash(path: Path) -> str:
     """Hash with timestamp line stripped so generator re-runs are idempotent."""
     lines = path.read_text().splitlines(keepends=True)
-    filtered = [
-        line for line in lines
-        if not line.startswith("--- Auto-generated")
-    ]
+    filtered = [line for line in lines if not line.startswith("--- Auto-generated")]
     return hashlib.sha256("".join(filtered).encode()).hexdigest()
 
 
@@ -45,9 +42,7 @@ def test_llms_txt_matches_generator():
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, (
-        f"generate_tool_manifest.py failed: {result.stderr}"
-    )
+    assert result.returncode == 0, f"generate_tool_manifest.py failed: {result.stderr}"
     after_hash = _normalized_llms_hash(current)
 
     assert before_hash == after_hash, (
@@ -95,6 +90,4 @@ def test_constitutional_llms_lists_all_canonical_tools():
     sot = REPO_ROOT / "constitutional.llms.txt"
     content = sot.read_text()
     missing = [name for name in CANONICAL_TOOLS if f"tool: {name}" not in content]
-    assert not missing, (
-        f"constitutional.llms.txt missing canonical tools: {missing}"
-    )
+    assert not missing, f"constitutional.llms.txt missing canonical tools: {missing}"

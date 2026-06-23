@@ -71,7 +71,11 @@ class SBOMScanner:
             metadata={
                 "timestamp": ts,
                 "tools": [{"name": "arifos-sbom-scanner", "version": "0.1.0"}],
-                "component": {"type": "application", "name": project_name, "version": project_version},
+                "component": {
+                    "type": "application",
+                    "name": project_name,
+                    "version": project_version,
+                },
             },
             components=components,
             generated_at=ts,

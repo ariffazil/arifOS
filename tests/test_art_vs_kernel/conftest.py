@@ -9,10 +9,8 @@ Provides:
 
 from __future__ import annotations
 
-import os
 import sys
 import time
-from pathlib import Path
 
 import pytest
 
@@ -30,7 +28,6 @@ from arifosmcp.runtime.art import (  # noqa: E402
 from arifosmcp.runtime.pre_execution_gate import (  # noqa: E402
     _art_action_class_str,
     _art_blast_radius_str,
-    _art_reflex_check,
 )
 from arifosmcp.schemas.kernel_envelope import (  # noqa: E402
     ActionClass,
@@ -144,7 +141,12 @@ def run_scenario(
         if art_enabled:
             # Real ART reflex path
             art_req = make_art_request(
-                fixture_name, action_class, blast, reversible, call_idx, fixture_name,
+                fixture_name,
+                action_class,
+                blast,
+                reversible,
+                call_idx,
+                fixture_name,
             )
             result = real_art(art_req)
             # Map ART verdict to GateResult
@@ -158,7 +160,11 @@ def run_scenario(
                 gate_path = 2
                 gate_verdict = "REJECT"
             elif result.verdict == ArtVerdict.DEFAULT_OBSERVE:
-                if action_class in (ActionClass.MUTATE, ActionClass.IRREVERSIBLE, ActionClass.EXTERNAL_SIDE_EFFECT):
+                if action_class in (
+                    ActionClass.MUTATE,
+                    ActionClass.IRREVERSIBLE,
+                    ActionClass.EXTERNAL_SIDE_EFFECT,
+                ):
                     gate_path = 2
                     gate_verdict = "SABAR"
                 else:

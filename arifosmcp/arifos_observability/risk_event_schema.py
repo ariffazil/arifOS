@@ -42,5 +42,7 @@ class RiskEvent(BaseModel):
     reversible: bool
     human_ack_required: bool
     blast_radius: str  # LOW | MEDIUM | HIGH | CRITICAL
-    timestamp: str = Field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+    timestamp: str = Field(
+        default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    )
     evidence: dict = Field(default_factory=dict)

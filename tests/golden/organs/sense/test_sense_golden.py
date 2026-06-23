@@ -11,6 +11,7 @@ results whether routed through check_laws() or the kernel bridge.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 
@@ -175,9 +176,11 @@ class TestGovernancePathwayParity:
         assert isinstance(laws_result, dict), "check_laws must return dict"
         assert isinstance(kernel_result, dict), "kernel_bridge must return dict"
         # Document the divergence explicitly
-        print(f"GOVERNANCE PATHWAY DIVERGENCE (known): "
-              f"check_laws={laws_result.get('verdict')}, "
-              f"kernel_bridge={kernel_result.get('verdict')}")
+        print(
+            f"GOVERNANCE PATHWAY DIVERGENCE (known): "
+            f"check_laws={laws_result.get('verdict')}, "
+            f"kernel_bridge={kernel_result.get('verdict')}"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

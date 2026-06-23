@@ -22,13 +22,11 @@ DITEMPA BUKAN DIBERI — Library is forged, not configured.
 """
 
 from __future__ import annotations
-import json
 import logging
 import os
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("arifosmcp.act_library")
 
@@ -53,20 +51,22 @@ ACT_LIBRARY_ENABLED: bool = os.getenv("ARIFOS_ACT_LIBRARY", "1") != "0"
 # PROGRAM RECORD — one entry per execution program
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ProgramRecord:
     """Record of one execution program (may have multiple stages)."""
-    ts: str = ""                                      # ISO timestamp
+
+    ts: str = ""  # ISO timestamp
     session_id: str = "unknown"
-    program_id: str = ""                              # unique id for this program
-    action_class: str = "unknown"                     # from action classifier
-    execution_pattern: str = "single_shot"             # from ACT
+    program_id: str = ""  # unique id for this program
+    action_class: str = "unknown"  # from action classifier
+    execution_pattern: str = "single_shot"  # from ACT
     blast_radius: str = "unknown"
     is_reversible: bool = False
     stage_count: int = 1
     stages_completed: int = 0
     stages_failed: int = 0
-    verdict: str = "unknown"                          # what ACT decided
+    verdict: str = "unknown"  # what ACT decided
     human_acknowledged: bool = False
     had_compensation: bool = False
     had_dry_run: bool = False
@@ -78,8 +78,10 @@ class ProgramRecord:
 # IN-MEMORY STORE (fallback when no DB)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class InMemoryStore:
     """Thread-safe in-memory store for stateless agents / tests."""
+
     def __init__(self) -> None:
         self._records: list[ProgramRecord] = []
         self._programs: dict[str, list[ProgramRecord]] = {}  # session_id → records
@@ -105,6 +107,7 @@ class InMemoryStore:
 # ═══════════════════════════════════════════════════════════════════════════
 # LIBRARY CLASS
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class ActLibrary:
     """Persistent library of ACT verdicts and execution programs.
@@ -259,7 +262,8 @@ class ActLibrary:
                 async with self._pool.acquire() as conn:  # type: ignore
                     rows = await conn.fetch(
                         "SELECT * FROM act_library WHERE session_id = $1 ORDER BY ts DESC LIMIT $2",
-                        session_id, limit,
+                        session_id,
+                        limit,
                     )
                     return [
                         ProgramRecord(

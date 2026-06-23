@@ -13,10 +13,10 @@ from typing import Any
 
 # ── Axis weight defaults (per Reality Engineering §16) ──
 AXIS_WEIGHTS = {
-    "quality": 0.30,       # Q: Reasoning soundness, evidence grounding
-    "originality": 0.15,   # O: Novel insight, non-obvious solution
-    "craft": 0.25,         # C: Implementation quality, structural integrity
-    "functionality": 0.30, # F: Does it work? Does it satisfy the intent?
+    "quality": 0.30,  # Q: Reasoning soundness, evidence grounding
+    "originality": 0.15,  # O: Novel insight, non-obvious solution
+    "craft": 0.25,  # C: Implementation quality, structural integrity
+    "functionality": 0.30,  # F: Does it work? Does it satisfy the intent?
 }
 
 # ── Floor thresholds (all axes must meet this to SEAL) ──
@@ -75,10 +75,7 @@ def score_originality(
     shift_score = 1.0 if domain_shift else 0.5
 
     return (
-        0.35 * insight_score
-        + 0.25 * obviousness_score
-        + 0.15 * reuse_penalty
-        + 0.25 * shift_score
+        0.35 * insight_score + 0.25 * obviousness_score + 0.15 * reuse_penalty + 0.25 * shift_score
     )
 
 
@@ -103,12 +100,7 @@ def score_craft(
     structure_score = max(0.0, min(1.0, structural_integrity))
     doc_score = 1.0 if documentation else 0.5
 
-    return (
-        0.30 * test_score
-        + 0.20 * error_score
-        + 0.30 * structure_score
-        + 0.20 * doc_score
-    )
+    return 0.30 * test_score + 0.20 * error_score + 0.30 * structure_score + 0.20 * doc_score
 
 
 def score_functionality(

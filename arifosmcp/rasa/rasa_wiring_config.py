@@ -88,6 +88,7 @@ def get_rasa_contract_mode() -> RasaContractMode:
     config_path = "/root/arifOS/config/rasa_contract.yaml"
     try:
         import yaml
+
         with open(config_path) as f:
             config = yaml.safe_load(f) or {}
         mode_val = config.get("mode", "").strip().lower()

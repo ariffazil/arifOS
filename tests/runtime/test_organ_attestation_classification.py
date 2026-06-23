@@ -28,15 +28,15 @@ class TestIsHealthyAccepts:
     @pytest.mark.parametrize(
         "status",
         [
-            "healthy",   # arifOS, A-FORGE, AAA
-            "HEALTHY",   # case-insensitive
-            "alive",     # WEALTH canonical
-            "ALIVE",     # case-insensitive
-            "ok",        # legacy / informal
-            "OK",        # case-insensitive
-            "pass",      # arifOS /ready
-            "ready",     # generic
-            "serving",   # gRPC-style
+            "healthy",  # arifOS, A-FORGE, AAA
+            "HEALTHY",  # case-insensitive
+            "alive",  # WEALTH canonical
+            "ALIVE",  # case-insensitive
+            "ok",  # legacy / informal
+            "OK",  # case-insensitive
+            "pass",  # arifOS /ready
+            "ready",  # generic
+            "serving",  # gRPC-style
         ],
     )
     def test_accepts_healthy_status(self, status):
@@ -61,7 +61,7 @@ class TestIsHealthyRejects:
     @pytest.mark.parametrize(
         "status",
         [
-            "unhealthy",     # the false-positive string from #509
+            "unhealthy",  # the false-positive string from #509
             "degraded",
             "DEGRADED_CLAIM",
             "fail",
@@ -71,7 +71,7 @@ class TestIsHealthyRejects:
             "error",
             "404",
             "502",
-            "unknown",       # F2: conservative-fail
+            "unknown",  # F2: conservative-fail
         ],
     )
     def test_rejects_unhealthy_status(self, status):
@@ -130,9 +130,9 @@ class TestCrossOrganConsistency:
             ("A-FORGE", "healthy", True),
             ("AAA", "healthy", True),
             ("GEOX", "ok", True),
-            ("WEALTH", "ALIVE", True),       # the bug case
+            ("WEALTH", "ALIVE", True),  # the bug case
             ("WELL", "healthy", True),
-            ("arifOS", "pass", True),         # /ready result
+            ("arifOS", "pass", True),  # /ready result
             ("WEALTH", "unhealthy", False),
             ("GEOX", "down", False),
         ],

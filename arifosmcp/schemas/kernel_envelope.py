@@ -248,9 +248,7 @@ class KernelIdentity(BaseModel):
     caller_actor_id: str | None = Field(
         default=None, description="Upstream caller in delegation chain"
     )
-    executor_actor_id: str | None = Field(
-        default=None, description="Actual executing agent/model"
-    )
+    executor_actor_id: str | None = Field(default=None, description="Actual executing agent/model")
     declared_model_key: str | None = Field(
         default=None, description="Declared model identifier (e.g. 'deepseek', 'minimax')"
     )
@@ -775,9 +773,7 @@ class DriftReport(BaseModel):
     build_hash: str = Field(..., description="Declared build hash")
     runtime_hash: str = Field(..., description="Actual runtime hash")
     git_commit: str | None = Field(default=None, description="Git commit SHA")
-    container_image_digest: str | None = Field(
-        default=None, description="Container image digest"
-    )
+    container_image_digest: str | None = Field(default=None, description="Container image digest")
     tool_manifest_hash: str = Field(default="", description="SHA-256 of tool manifest")
     schema_hash: str = Field(default="", description="SHA-256 of schemas")
     constitution_hash: str = Field(default="", description="SHA-256 of constitution")

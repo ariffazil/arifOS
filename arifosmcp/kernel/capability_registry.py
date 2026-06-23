@@ -94,7 +94,6 @@ def _build_default_graph() -> CapabilityGraph:
             trust_state=TrustState.PROBATION,
             allow_python_fallback=False,
         ),
-
         # ── Filesystem ────────────────────────────────────────────────────
         CapabilityNode(
             capability_id="fs.read",
@@ -165,7 +164,6 @@ def _build_default_graph() -> CapabilityGraph:
             trust_state=TrustState.TRUSTED_READ,
             allow_python_fallback=False,
         ),
-
         # ── Web / Network ─────────────────────────────────────────────────
         CapabilityNode(
             capability_id="web.search",
@@ -193,7 +191,6 @@ def _build_default_graph() -> CapabilityGraph:
             trust_state=TrustState.TRUSTED_READ,
             allow_python_fallback=False,
         ),
-
         # ── Kernel tools (arifOS MCP) ─────────────────────────────────────
         CapabilityNode(
             capability_id="kernel.init",
@@ -256,9 +253,15 @@ def _build_default_graph() -> CapabilityGraph:
             allowed_actors=["arifbfazil", "arif"],
             witness_types=[WitnessType.HUMAN, WitnessType.EXTERNAL_SYSTEM],
             modes=[
-                "reason", "reflect", "verify", "critique",
-                "plan", "plan_review", "plan_approve",
-                "refactor_plan", "metabolize",
+                "reason",
+                "reflect",
+                "verify",
+                "critique",
+                "plan",
+                "plan_review",
+                "plan_approve",
+                "refactor_plan",
+                "metabolize",
             ],
         ),
         CapabilityNode(
@@ -547,7 +550,6 @@ def _build_default_graph() -> CapabilityGraph:
             max_simulations_before_action=10,
             requires_action_or_refusal_log=True,
         ),
-
         # ── GEOX organ ────────────────────────────────────────────────────
         CapabilityNode(
             capability_id="organ.geox.*",
@@ -562,7 +564,6 @@ def _build_default_graph() -> CapabilityGraph:
             organ_id="GEOX",
             trust_state=TrustState.TRUSTED_READ,
         ),
-
         # ── WEALTH organ ──────────────────────────────────────────────────
         CapabilityNode(
             capability_id="organ.wealth.*",
@@ -577,7 +578,6 @@ def _build_default_graph() -> CapabilityGraph:
             organ_id="WEALTH",
             trust_state=TrustState.TRUSTED_READ,
         ),
-
         # ── WELL organ ────────────────────────────────────────────────────
         CapabilityNode(
             capability_id="organ.well.*",

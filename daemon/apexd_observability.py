@@ -39,10 +39,12 @@ from typing import Optional
 # If systemd is not running, this silently degrades to no-op.
 # =============================================================================
 
+
 def _send_watchdog_pulse() -> bool:
     """Send WATCHDOG=1 to systemd. Returns True if successful, False if not."""
     try:
         import ctypes
+
         libc = ctypes.CDLL("libsystemd.so.0", use_errno=True)
         sd_notify = libc.sd_notify
         sd_notify.argtypes = [ctypes.c_int, ctypes.c_char_p]
@@ -409,9 +411,7 @@ shutdown_requested = False
 def request_shutdown(signum, frame):
     global shutdown_requested
     shutdown_requested = True
-    print(
-        f"\n[apexd] SIGTERM received — graceful shutdown (tick {daemon_state.get('tick', '?')})"
-    )
+    print(f"\n[apexd] SIGTERM received — graceful shutdown (tick {daemon_state.get('tick', '?')})")
 
 
 # =============================================================================

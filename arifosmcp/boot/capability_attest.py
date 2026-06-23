@@ -112,12 +112,12 @@ def read_capability_attestations() -> dict[str, dict[str, Any]]:
     # Organ probe map — hostname, port, expected canonical count
     _PROBES: dict[str, tuple[str, int, int]] = {
         "arifOS": ("127.0.0.1", 8088, _ARIFOS_CANONICAL_COUNT),
-        "GEOX":   ("127.0.0.1", 8081, 31),
+        "GEOX": ("127.0.0.1", 8081, 31),
         "WEALTH": ("127.0.0.1", 18082, 20),
-        "WELL":   ("127.0.0.1", 18083, 18),
-        "FORGE":  ("127.0.0.1", 7071, 15),
-        "GATEWAY":("127.0.0.1", 18789, 0),
-        "VAULT999":("127.0.0.1", 8100, 2),  # vault999-api
+        "WELL": ("127.0.0.1", 18083, 18),
+        "FORGE": ("127.0.0.1", 7071, 15),
+        "GATEWAY": ("127.0.0.1", 18789, 0),
+        "VAULT999": ("127.0.0.1", 8100, 2),  # vault999-api
     }
 
     out: dict[str, dict[str, Any]] = dict(_STATIC_CAPABILITIES)

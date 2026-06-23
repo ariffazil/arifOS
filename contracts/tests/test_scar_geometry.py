@@ -32,6 +32,7 @@ from scar_geometry import (
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────
 
+
 def make_fp(
     *,
     scars: list[str],
@@ -46,9 +47,13 @@ def make_fp(
             activated=scars,
         ),
         geometry=GeometrySignature(
-            register_vector=register or [0.82, 0.91, "sha256:" + "b" * 64, 0.74, 0.18][:-1] + [
+            register_vector=register
+            or [0.82, 0.91, "sha256:" + "b" * 64, 0.74, 0.18][:-1]
+            + [
                 int("sha256:" + "b" * 64, 16) % 1000 / 1000.0  # approximate last dim as float
-            ] if register is None else register,
+            ]
+            if register is None
+            else register,
             refusal_pattern_hash="sha256:" + "b" * 64,
         ),
         paradox=ParadoxSignature(
@@ -81,6 +86,7 @@ def _normalize_baseline(sovereign_baseline):
 # Test 1 — Match path: valid geometry → AUTH granted
 # ─────────────────────────────────────────────────────────────────────
 
+
 def test_match_path(sovereign_baseline):
     """A drop whose geometry matches the sovereign baseline passes F11 + F12."""
     drop = make_fp(
@@ -105,6 +111,7 @@ def test_match_path(sovereign_baseline):
 # Test 2 — Mismatch path: perfect footer, failed geometry → HOLD
 # ─────────────────────────────────────────────────────────────────────
 
+
 def test_mismatch_hold(sovereign_baseline):
     """A costume-only drop (perfect footer, wrong geometry) fails resonance.
 
@@ -125,12 +132,15 @@ def test_mismatch_hold(sovereign_baseline):
 
     bundle = ScarGeometryDiagnosticBundle(fingerprint=drop, result=result)
     assert bundle.is_sovereign_context() is False
-    assert bundle.requires_escalation() is False  # MISMATCH does NOT escalate; defaults to injection-class
+    assert (
+        bundle.requires_escalation() is False
+    )  # MISMATCH does NOT escalate; defaults to injection-class
 
 
 # ─────────────────────────────────────────────────────────────────────
 # Test 3 — Grey zone: inconclusive geometry → 888 HOLD
 # ─────────────────────────────────────────────────────────────────────
+
 
 def test_grey_zone_escalation(sovereign_baseline):
     """A drop in the grey zone is held + escalated to 888. Never auto-rejected."""
@@ -155,6 +165,7 @@ def test_grey_zone_escalation(sovereign_baseline):
 # ─────────────────────────────────────────────────────────────────────
 # Bonus — Hollow detection (any_critical)
 # ─────────────────────────────────────────────────────────────────────
+
 
 def test_hollow_detection_is_critical():
     """Hollows are DO_NOT_FILL. The schema rejects them at construction time."""

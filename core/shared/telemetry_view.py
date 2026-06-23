@@ -23,7 +23,9 @@ TELEMETRY_MAPPING = {
         "label": "Humility Level",
         "floor": "F7",
         "meaning": "Honest about uncertainty — not overconfident, not paralyzed",
-        "eval": lambda v: ("OPTIMAL" if 0.03 <= v <= 0.05 else ("FAILED" if v < 0.03 else "DEGRADED")),
+        "eval": lambda v: (
+            "OPTIMAL" if 0.03 <= v <= 0.05 else ("FAILED" if v < 0.03 else "DEGRADED")
+        ),
         "format": lambda v: f"{v * 100:.0f}%",
         "ui_note": "Target band: 3-5%. Value in healthy range.",
     },

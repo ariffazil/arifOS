@@ -819,6 +819,7 @@ class HashCommitmentReceipt(BaseModel):
     program_id: str | None = None
     output_commitment: str | None = None
 
+
 # Backward-compat alias
 ZKPCReceipt = HashCommitmentReceipt
 

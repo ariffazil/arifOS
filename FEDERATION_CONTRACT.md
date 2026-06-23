@@ -220,3 +220,23 @@ Every organ must:
 
 **DITEMPA BUKAN DIBERI — 999 SEAL ALIVE**
 **Canonical hash will be appended upon F13 ed25519 signature.**
+
+---
+
+## 12. MCP Cognitive Standard (Adopted 2026-06)
+
+All federation MCP tools (arifOS primary + organ surfaces) shall follow **constitutional affordance design** for metacognitive agents:
+
+- Declare `purpose`, `use_when`, `do_not_use_when`, `agency_level` (L0_OBSERVE … L5_EXECUTE_IRREVERSIBLE), `blast_radius`, `requires_human_confirmation`.
+- Every response MUST carry the standard envelope containing at minimum:
+  `facts`, `inferences`, `recommendations`, `unknowns`, `do_not_conclude`,
+  `confidence`, `metacognition`, `risk`, `constitutional_check`, `next_safe_action`.
+- L5 tools MUST trigger `888_HOLD` + explicit human confirmation. No autonomous execution.
+- Pre-call: agents SHOULD retrieve `arif://tools/affordance` (or call `arif_get_affordance`) and emit internal `why_this_tool` reasoning.
+- Post-call: inspect `metacognition` + `next_safe_action` before further action.
+
+Reference: `/root/arifOS/arifosmcp/AGENTIC_AFFORDANCE_GUIDE.md`
+Canonical implementation: `arifosmcp/runtime/tools.py` (get_full_affordance, build_standard_mcp_result, ensure_standard_mcp_output + wrapper enforcement).
+
+Organs (GEOX/WEALTH/WELL/A-FORGE) should align their public tool surfaces to this grammar in subsequent forges.
+

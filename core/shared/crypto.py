@@ -432,6 +432,7 @@ def generate_hash_commitment_receipt(
         output_commitment=blake3.blake3(f"out-{hash_commitment}".encode()).hexdigest(),
     )
 
+
 # Backward-compat alias
 generate_zkpc_receipt = generate_hash_commitment_receipt
 

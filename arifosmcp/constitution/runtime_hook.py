@@ -7,6 +7,7 @@ and the appropriate verdict is returned.
 
 This is the anti-Beautiful-One invariant in machine form.
 """
+
 from typing import Any
 
 from . import (
@@ -27,12 +28,12 @@ class GodelLockViolation(Exception):
 
 
 def check_godel_lock(
-    action_class: str,        # "OBSERVE" | "RETRIEVE" | "DECIDE" | "MUTATE"
-    actor_id: str,            # who is doing the action
-    actor_signature: str,     # their cryptographic signature
-    has_judge_hash: bool,     # does the action carry a judge_state_hash?
-    has_plan_id: bool,        # does the action carry an approved plan_id?
-    has_vaul_entry: bool,     # does the action carry a vault_entry_id?
+    action_class: str,  # "OBSERVE" | "RETRIEVE" | "DECIDE" | "MUTATE"
+    actor_id: str,  # who is doing the action
+    actor_signature: str,  # their cryptographic signature
+    has_judge_hash: bool,  # does the action carry a judge_state_hash?
+    has_plan_id: bool,  # does the action carry an approved plan_id?
+    has_vaul_entry: bool,  # does the action carry a vault_entry_id?
     has_vaul999_connection: bool,  # is VAULT999 connected?
     failure_cause: str = None,  # explicit cause if known
 ) -> dict[str, Any]:

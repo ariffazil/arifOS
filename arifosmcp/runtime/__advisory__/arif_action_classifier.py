@@ -51,8 +51,8 @@ class Action:
     description: str
     action_class: ActionClass
     reversibility: float  # 0.0 irreversible, 1.0 fully reversible
-    blast_radius: float   # 0.0 local, 1.0 civilization-scale
-    uncertainty: float    # 0.0 known, 1.0 unknown
+    blast_radius: float  # 0.0 local, 1.0 civilization-scale
+    uncertainty: float  # 0.0 known, 1.0 unknown
     external_side_effect: bool = False
     touches_secret: bool = False
     disables_safeguard: bool = False
@@ -167,14 +167,16 @@ class ArifOSMetabolism:
         )
 
     def record(self, action: Action, verdict: Verdict) -> None:
-        self.audit_log.append({
-            "action": action.name,
-            "class": action.action_class.value,
-            "gate": verdict.gate.value,
-            "may_execute": verdict.may_execute,
-            "requires_human_judge": verdict.required_human_judge,
-            "reasons": verdict.reasons,
-        })
+        self.audit_log.append(
+            {
+                "action": action.name,
+                "class": action.action_class.value,
+                "gate": verdict.gate.value,
+                "may_execute": verdict.may_execute,
+                "requires_human_judge": verdict.required_human_judge,
+                "reasons": verdict.reasons,
+            }
+        )
 
 
 def hang_ingat_balik() -> dict[str, str]:

@@ -475,6 +475,7 @@ class TestFullE2EFlow:
 
         # ── 111 Rasa Sense ────────────────────────────────────────────
         from arifosmcp.rasa.rasa_integration import rasa_sense_hook
+
         rasa_result = rasa_sense_hook(
             "alhamdulillah tenang je nak tanya sikit",
             session_id=e2e_session_id,
@@ -539,6 +540,7 @@ class TestFullE2EFlow:
         # ── 999 VAULT ─────────────────────────────────────────────────
         try:
             from arifosmcp.tools.vault import arif_vault_seal
+
             vault_result = arif_vault_seal(
                 data={
                     "summary": "E2E flow verification complete",
@@ -582,8 +584,7 @@ class TestParadoxAndRasaIntegration:
         for organ in ("sense", "mind", "memory", "heart", "judge"):
             registry = get_registry(organ=organ)
             assert registry is not None, f"No registry for organ '{organ}'"
-            assert len(registry) == 9, \
-                f"Organ '{organ}' has {len(registry)} anchors, expected 9"
+            assert len(registry) == 9, f"Organ '{organ}' has {len(registry)} anchors, expected 9"
 
     def test_paradox_anchors_importable(self):
         """All 5 organ paradox anchors must be importable."""

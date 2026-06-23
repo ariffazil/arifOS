@@ -70,10 +70,10 @@ except ImportError:  # pragma: no cover
 # CONSTANTS — the 90-day window matches ART's days_since_use → ABANDONED.
 # ═══════════════════════════════════════════════════════════════════════════
 
-DEFAULT_RETENTION_DAYS: int = 90    # prune older rows
-DEFAULT_LOOKBACK_DAYS: int = 30     # recent reads default window
-DEFAULT_INTENT_LIMIT: int = 5       # top-K similar intents for RAG
-DEFAULT_TOOL_LIMIT: int = 50        # top-K verdicts per tool
+DEFAULT_RETENTION_DAYS: int = 90  # prune older rows
+DEFAULT_LOOKBACK_DAYS: int = 30  # recent reads default window
+DEFAULT_INTENT_LIMIT: int = 5  # top-K similar intents for RAG
+DEFAULT_TOOL_LIMIT: int = 50  # top-K verdicts per tool
 ART_LIBRARY_ENABLED: bool = os.getenv("ARIFOS_ART_LIBRARY", "1") != "0"
 
 
@@ -81,8 +81,10 @@ ART_LIBRARY_ENABLED: bool = os.getenv("ARIFOS_ART_LIBRARY", "1") != "0"
 # DATA MODEL — local mirrors of ArtVerdict / ToolState to avoid hot-path coupling.
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class VerdictLabel(str, Enum):
     """Local mirror of ArtVerdict (art.py). Decoupled — no cross-import."""
+
     PROCEED = "PROCEED"
     HOLD = "HOLD"
     BLOCK = "BLOCK"
@@ -91,6 +93,7 @@ class VerdictLabel(str, Enum):
 
 class StateLabel(str, Enum):
     """Local mirror of ToolState (art.py). Decoupled — no cross-import."""
+
     UNTRUSTED = "UNTRUSTED"
     OBSERVED = "OBSERVED"
     TRUSTED = "TRUSTED"
@@ -101,6 +104,7 @@ class StateLabel(str, Enum):
 @dataclass
 class ArtVerdictRow:
     """One persisted ART verdict. Written by mesh_subscriber; read by registry/propose."""
+
     ts: datetime
     session_id: str
     tool_name: str
@@ -158,6 +162,7 @@ CREATE INDEX IF NOT EXISTS art_library_intent_idx ON art_library
 # ═══════════════════════════════════════════════════════════════════════════
 # LIBRARY — the only public class. Postgres-backed, optional, cold-path.
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class ArtLibrary:
     """Cold-path persistent memory of ART verdicts.
@@ -228,10 +233,21 @@ class ArtLibrary:
                         verdict, witness, blast_radius, reversible, failure_rate,
                         drift_count, days_since_use, intent, extras)
                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)""",
-                    row.ts, row.session_id, row.actor_id, row.tool_name,
-                    row.action_class, row.tool_state, row.verdict, row.witness,
-                    row.blast_radius, row.reversible, row.failure_rate,
-                    row.drift_count, row.days_since_use, row.intent, extras_json,
+                    row.ts,
+                    row.session_id,
+                    row.actor_id,
+                    row.tool_name,
+                    row.action_class,
+                    row.tool_state,
+                    row.verdict,
+                    row.witness,
+                    row.blast_radius,
+                    row.reversible,
+                    row.failure_rate,
+                    row.drift_count,
+                    row.days_since_use,
+                    row.intent,
+                    extras_json,
                 )
             return True
         except Exception as exc:
@@ -254,7 +270,9 @@ class ArtLibrary:
                     """SELECT * FROM art_library
                        WHERE tool_name = $1 AND ts >= $2
                        ORDER BY ts DESC LIMIT $3""",
-                    tool, since, limit,
+                    tool,
+                    since,
+                    limit,
                 )
             return [_row_to_art_verdict(r) for r in rows]
         except Exception as exc:
@@ -276,7 +294,8 @@ class ArtLibrary:
                        WHERE to_tsvector('english', COALESCE(intent, ''))
                              @@ plainto_tsquery('english', $1)
                        ORDER BY ts DESC LIMIT $2""",
-                    intent, limit,
+                    intent,
+                    limit,
                 )
             return [_row_to_art_verdict(r) for r in rows]
         except Exception as exc:
@@ -303,9 +322,7 @@ class ArtLibrary:
         try:
             cutoff = datetime.now(timezone.utc) - timedelta(days=retention)
             async with self._pool.acquire() as conn:
-                result = await conn.execute(
-                    "DELETE FROM art_library WHERE ts < $1", cutoff
-                )
+                result = await conn.execute("DELETE FROM art_library WHERE ts < $1", cutoff)
             # asyncpg returns e.g. "DELETE 42"
             try:
                 return int(result.split()[1])
@@ -330,6 +347,7 @@ class ArtLibrary:
 # INTERNAL HELPERS — row conversion + singleton accessor
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def _row_to_art_verdict(row: Any) -> ArtVerdictRow:
     """Convert asyncpg.Record / namedtuple / dict → ArtVerdictRow.
 
@@ -338,6 +356,7 @@ def _row_to_art_verdict(row: Any) -> ArtVerdictRow:
       - namedtuple (attribute access + integer index)
       - dict (key access)
     """
+
     def _get(key: str, default: Any = None) -> Any:
         # Try dict-like access first (catches asyncpg.Record + dict)
         if hasattr(row, "keys"):

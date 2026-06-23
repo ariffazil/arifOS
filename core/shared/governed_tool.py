@@ -13,12 +13,15 @@ except ImportError:
 try:
     from arifosmcp.models.verdicts import VerdictState as Verdict
 except ImportError:
+
     class Verdict:
         SEAL = "SEAL"
         HOLD = "HOLD"
         VOID = "VOID"
 
+
 if evaluate_tool_call is None:
+
     def evaluate_tool_call(**kwargs):
         class MockGov:
             verdict = Verdict.SEAL

@@ -62,12 +62,12 @@ logger = logging.getLogger("arifosmcp.organ_attestation")
 
 _HEALTHY_STATUSES = frozenset(
     {
-        "healthy",   # arifOS, A-FORGE, AAA, GEOX
-        "alive",     # WEALTH (canonical)
-        "ok",        # legacy / informal
-        "pass",      # arifOS /ready selftest
-        "ready",     # generic health endpoints
-        "serving",   # gRPC-style health
+        "healthy",  # arifOS, A-FORGE, AAA, GEOX
+        "alive",  # WEALTH (canonical)
+        "ok",  # legacy / informal
+        "pass",  # arifOS /ready selftest
+        "ready",  # generic health endpoints
+        "serving",  # gRPC-style health
     }
 )
 
@@ -468,6 +468,7 @@ async def attest_organ(
     _canonical_tc = 0
     try:
         from arifosmcp.runtime.federation_registry import FEDERATION_ORGANS
+
         _canonical_tc = FEDERATION_ORGANS.get(organ_id, {}).get("canonical_tools", 0)
     except Exception:
         pass
@@ -512,6 +513,7 @@ def revoke_organ_attestation(organ_id: str, reason: str = "sovereign_revoke") ->
 
 def _load_arifos_constitution_hash() -> str:
     from arifosmcp.runtime.live_kernel import compute_constitution_hash
+
     return compute_constitution_hash()
 
 
@@ -531,7 +533,7 @@ async def attest_all_organs(
     session_id: str | None = None,
 ) -> dict[str, Any]:
     """Attest every known federation organ plus arifOS itself.
-    
+
     Also broadcasts organ heartbeats to the NATS intelligence mesh
     so every organ is aware of every other organ's liveness.
     """

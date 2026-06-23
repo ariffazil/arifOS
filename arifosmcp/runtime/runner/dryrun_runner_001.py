@@ -95,8 +95,15 @@ def main() -> int:
     d = receipt.to_dict()
     # The doctrine expects exactly these top-level keys
     doctrine_keys = {
-        "run_id", "agent_id", "session_id", "model_key",
-        "preflight", "context_packet", "model_call", "postflight", "verdict",
+        "run_id",
+        "agent_id",
+        "session_id",
+        "model_key",
+        "preflight",
+        "context_packet",
+        "model_call",
+        "postflight",
+        "verdict",
     }
     out = {k: d.get(k) for k in doctrine_keys if k in d}
     out["_runner_extra"] = {

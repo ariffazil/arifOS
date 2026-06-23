@@ -20,9 +20,7 @@ from typing import Any, Optional
 
 F1_AMANAH = "F1-AMANAH"  # Trust as lockable contract; seal every outcome
 F2_TRUTH = "F2-TRUTH"  # Cite or say UNKNOWN
-F3_REVERSIBILITY = (
-    "F3-REVERSIBILITY"  # Original input preserved; outputs are new artifacts
-)
+F3_REVERSIBILITY = "F3-REVERSIBILITY"  # Original input preserved; outputs are new artifacts
 F4_EVIDENCE = "F4-EVIDENCE"  # Method + assumption + effect size + CI
 F5_HUMAN = "F5-HUMAN"  # Human-in-the-loop for material choices
 F6_PRIVACY = "F6-PRIVACY"  # Sandbox, no exfil
@@ -153,11 +151,7 @@ def govern(
         )
 
     # F4 EVIDENCE — input must be hashed
-    if (
-        input_data_hash is None
-        and not tool.startswith("list_")
-        and not tool.endswith("_report")
-    ):
+    if input_data_hash is None and not tool.startswith("list_") and not tool.endswith("_report"):
         checks.append(
             ConstitutionalCheck(
                 floor=F4_EVIDENCE,

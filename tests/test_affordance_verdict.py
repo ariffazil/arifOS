@@ -9,7 +9,6 @@ Verifies that the verdict engine respects the affordance_contract:
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.runtime.tools import _derive_affordance_verdict
 

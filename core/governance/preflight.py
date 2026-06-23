@@ -32,13 +32,11 @@ DANGEROUS_PATTERNS = [
     (r"git\s+push\s+.*--delete", "git delete remote branch"),
     (r"git\s+reset\s+--hard", "git hard reset"),
     (r"git\s+clean\s+-[fdx]+", "git clean"),
-
     # Docker — container/data destruction
     (r"docker\s+rm\s+-f", "docker force remove"),
     (r"docker\s+system\s+prune", "docker system prune"),
     (r"docker\s+volume\s+(rm|prune)", "docker volume remove"),
     (r"docker\s+compose\s+down\s+-v", "docker compose down with volumes"),
-
     # Filesystem — mass deletion (only exact rm -rf /, not /tmp etc.)
     (r"rm\s+-rf\s+/[^t]", "rm -rf dangerous path"),
     (r"rm\s+-rf\s+\$HOME", "rm -rf home"),
@@ -46,16 +44,13 @@ DANGEROUS_PATTERNS = [
     (r"rm\s+-rf\s+\.\s*$", "rm -rf current dir"),
     (r"find\s+.*\s+-delete\s+/", "find with delete on root"),
     (r">\s*/etc/", "redirect to /etc/"),
-
     # System — service/file mutations
     (r"systemctl\s+(stop|disable|mask)", "systemctl stop/disable"),
     (r"chmod\s+777", "chmod 777"),
     (r"chown\s+-R\s+", "recursive chown"),
-
     # Secrets
     (r"curl.*Authorization.*Bearer", "curl with auth bearer"),
     (r"gpg\s+--delete-secret", "gpg delete secret"),
-
     # Deployments
     (r"rsync\s+.*/var/www", "rsync to /var/www"),
     (r"rsync\s+.*/etc/", "rsync to /etc/"),
@@ -81,20 +76,22 @@ def judge(command: str, description: str) -> int:
     import json
     import urllib.request
 
-    body = json.dumps({
-        "jsonrpc": "2.0",
-        "method": "tools/call",
-        "params": {
-            "name": "arif_judge_deliberate",
-            "arguments": {
-                "mode": "judge",
-                "candidate": command,
-                "session_id": "preflight-auto",
-                "evidence_receipt": {"source": "preflight-sidecar", "pattern": description}
-            }
-        },
-        "id": 1,
-    }).encode()
+    body = json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {
+                "name": "arif_judge_deliberate",
+                "arguments": {
+                    "mode": "judge",
+                    "candidate": command,
+                    "session_id": "preflight-auto",
+                    "evidence_receipt": {"source": "preflight-sidecar", "pattern": description},
+                },
+            },
+            "id": 1,
+        }
+    ).encode()
 
     try:
         req = urllib.request.Request(

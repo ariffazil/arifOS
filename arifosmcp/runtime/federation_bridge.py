@@ -172,9 +172,7 @@ async def call_organ(
                 logger.debug(f"Mesh call to {organ}.{tool_name} succeeded")
                 return result
             # result is None → timeout, fall through to HTTP
-            logger.info(
-                f"Mesh call to {organ}.{tool_name} timed out — falling back to HTTP"
-            )
+            logger.info(f"Mesh call to {organ}.{tool_name} timed out — falling back to HTTP")
         except Exception as e:
             logger.warning(f"Mesh call to {organ}.{tool_name} failed: {e}")
 

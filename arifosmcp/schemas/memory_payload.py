@@ -26,7 +26,7 @@ from typing import Annotated, Any, Literal, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .memory_modes import MemoryMode, MemoryModeName
+from .memory_modes import MemoryMode
 from .memory_object import EpistemicsBlock, PolicyBlock, ProvenanceBlock, SourceReceipt
 from .memory_truth import MemoryClassName, TierCode, TruthClassName
 
@@ -41,6 +41,7 @@ def _new_id(prefix: str) -> str:
 
 # ── RecallPayload (OBSERVE) ───────────────────────────────────────────────
 
+
 class RecallPayload(BaseModel):
     """OBSERVE-class. Retrieve memories across vector, graph, vault.
 
@@ -54,6 +55,7 @@ class RecallPayload(BaseModel):
       stale organ data (e.g., GEOX/WEALTH/WELL last known DEGRADED).
       If unset, dispatcher uses kernel-arifos_health probe.
     """
+
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["recall"] = "recall"
@@ -65,34 +67,46 @@ class RecallPayload(BaseModel):
     truth_class: list[TruthClassName] | None = None
     top_k: int = Field(default=10, ge=1, le=100)
     progressive_level: Literal["L0", "L1", "L2", "L3"] = "L1"
-    hybrid: bool = True                          # vector → graph → vault cascade
-    graph_first: bool = True                     # C1: graph before vector (default ON)
+    hybrid: bool = True  # vector → graph → vault cascade
+    graph_first: bool = True  # C1: graph before vector (default ON)
     include_contested: bool = False
-    time_window_hours: int | None = None         # C2: temporal window (recency filter)
-    temporal_as_of: datetime | None = None       # C2: "what was true at this time?"
+    time_window_hours: int | None = None  # C2: temporal window (recency filter)
+    temporal_as_of: datetime | None = None  # C2: "what was true at this time?"
     organ_staleness_band: Literal["strict", "tolerant", "ignore"] = "strict"  # A3
 
 
 # ── InspectPayload (OBSERVE) ──────────────────────────────────────────────
 
+
 class InspectPayload(BaseModel):
     """OBSERVE-class. Read a memory object's full state."""
+
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["inspect"] = "inspect"
 
     memory_id: str
-    include: list[Literal[
-        "payload", "provenance", "epistemics", "policy",
-        "lineage", "contradictions", "vault_ref", "receipts"
-    ]] = Field(default_factory=lambda: ["payload", "provenance", "epistemics"])
+    include: list[
+        Literal[
+            "payload",
+            "provenance",
+            "epistemics",
+            "policy",
+            "lineage",
+            "contradictions",
+            "vault_ref",
+            "receipts",
+        ]
+    ] = Field(default_factory=lambda: ["payload", "provenance", "epistemics"])
     redact_pii: bool = True
 
 
 # ── AttestPayload (OBSERVE) ───────────────────────────────────────────────
 
+
 class AttestPayload(BaseModel):
     """OBSERVE-class. Verify a memory_id against vault seal chain."""
+
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["attest"] = "attest"
@@ -101,10 +115,11 @@ class AttestPayload(BaseModel):
     run_id: str | None = None
     seal_id: str | None = None
     aspect: Literal["integrity", "lineage", "contradictions", "tier_consistency"] = "integrity"
-    include_proof: bool = False                  # return Merkle path
+    include_proof: bool = False  # return Merkle path
 
 
 # ── RememberPayload (MUTATE) ──────────────────────────────────────────────
+
 
 class RememberPayload(BaseModel):
     """MUTATE-class. Write a candidate memory. Default-deny until validated.
@@ -119,27 +134,28 @@ class RememberPayload(BaseModel):
     separate explicit `promote` call (§12.4 verdict) — never implicit
     via `remember`.
     """
+
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["remember"] = "remember"
 
     content: str | None = None
-    structured: dict[str, Any] | None = None    # alternative to free text
+    structured: dict[str, Any] | None = None  # alternative to free text
     memory_class: MemoryClassName = "episodic"
-    truth_class: EpistemicsBlock = Field(
-        default_factory=lambda: EpistemicsBlock(confidence=0.5)
-    )
+    truth_class: EpistemicsBlock = Field(default_factory=lambda: EpistemicsBlock(confidence=0.5))
     provenance: ProvenanceBlock
     source_receipts: list[SourceReceipt] = Field(default_factory=list)
     policy: PolicyBlock = Field(default_factory=PolicyBlock)
-    tier_hint: TierCode = "L3"                   # requested; floors may downgrade
+    tier_hint: TierCode = "L3"  # requested; floors may downgrade
     idempotency_key: str | None = None
 
 
 # ── PromotePayload (MUTATE) ───────────────────────────────────────────────
 
+
 class PromotePayload(BaseModel):
     """MUTATE-class. Move candidate from lower tier to higher."""
+
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["promote"] = "promote"
@@ -148,11 +164,12 @@ class PromotePayload(BaseModel):
     from_tier: TierCode
     to_tier: TierCode
     promotion_reason: str
-    required_floors_satisfied: list[str]         # operator must attest
-    human_approval: bool = False                 # required for L4+
+    required_floors_satisfied: list[str]  # operator must attest
+    human_approval: bool = False  # required for L4+
 
 
 # ── RevisePayload (MUTATE) ────────────────────────────────────────────────
+
 
 class RevisePayload(BaseModel):
     """MUTATE-class. Supersede prior memory with corrected version.
@@ -163,22 +180,22 @@ class RevisePayload(BaseModel):
       time — a revise without supersession is a write-without-trace,
       which is exactly how drift accumulates.
     """
+
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["revise"] = "revise"
 
-    memory_id: str                               # the prior memory to revise
-    supersedes_memory_id: str | None = None      # B2: required for supersede/merge
+    memory_id: str  # the prior memory to revise
+    supersedes_memory_id: str | None = None  # B2: required for supersede/merge
     correction_event: str | None = None
     new_content: str | None = None
     new_structured: dict[str, Any] | None = None
     new_truth_class: EpistemicsBlock | None = None
-    resolution_kind: Literal[
-        "supersede", "merge", "void", "acknowledge"
-    ] = "supersede"
+    resolution_kind: Literal["supersede", "merge", "void", "acknowledge"] = "supersede"
 
 
 # ── ForgetPayload (ATOMIC) ────────────────────────────────────────────────
+
 
 class ForgetPayload(BaseModel):
     """ATOMIC-class. Soft-delete or revoke.
@@ -199,19 +216,24 @@ class ForgetPayload(BaseModel):
     `require_human_ack=True` is the default for ATOMIC class per
     L13 SOVEREIGN.
     """
+
     model_config = ConfigDict(extra="forbid")
 
     mode: Literal["forget"] = "forget"
 
     memory_id: str
     policy_basis: Literal[
-        "ttl_expired", "scope_revoked", "consent_withdrawn",
-        "floor_violation", "superseded", "human_veto"
+        "ttl_expired",
+        "scope_revoked",
+        "consent_withdrawn",
+        "floor_violation",
+        "superseded",
+        "human_veto",
     ] = "ttl_expired"
     cascade: bool = False
     tombstone_text: str | None = None
-    require_human_ack: bool = True               # default True for ATOMIC class
-    minimised_vault_record: bool = False        # PDPA/GDPR mode: salt + reason only
+    require_human_ack: bool = True  # default True for ATOMIC class
+    minimised_vault_record: bool = False  # PDPA/GDPR mode: salt + reason only
 
 
 # ── Discriminated Union ───────────────────────────────────────────────────
@@ -219,14 +241,20 @@ class ForgetPayload(BaseModel):
 
 MemoryPayload = Annotated[
     Union[
-        RecallPayload, InspectPayload, AttestPayload,
-        RememberPayload, PromotePayload, RevisePayload, ForgetPayload,
+        RecallPayload,
+        InspectPayload,
+        AttestPayload,
+        RememberPayload,
+        PromotePayload,
+        RevisePayload,
+        ForgetPayload,
     ],
     Field(discriminator="mode"),
 ]
 
 
 # ── The Full Tool Request Envelope ────────────────────────────────────────
+
 
 class MemoryToolRequest(BaseModel):
     """The full arif_memory request envelope.
@@ -242,17 +270,18 @@ class MemoryToolRequest(BaseModel):
             actor_id="arif",
         )
     """
+
     model_config = ConfigDict(extra="forbid")
 
     mode: MemoryMode
     payload: MemoryPayload
     session_id: str | None = None
     actor_id: str
-    lease_id: str | None = None                  # required for MUTATE/ATOMIC
-    human_approval: bool = False                 # required for ATOMIC + L4+
+    lease_id: str | None = None  # required for MUTATE/ATOMIC
+    human_approval: bool = False  # required for ATOMIC + L4+
     idempotency_key: str | None = None
-    trace_id: str | None = None                  # shadow-detection forge
-    caller_chain: list[str] = Field(default_factory=list)   # origin audit
+    trace_id: str | None = None  # shadow-detection forge
+    caller_chain: list[str] = Field(default_factory=list)  # origin audit
     timestamp: datetime | None = None
 
 

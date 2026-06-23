@@ -79,7 +79,7 @@ class AnomalyNATSSubscriber:
 
     @property
     def connected(self) -> bool:
-        return self._nc is not None and hasattr(self._nc, 'is_connected') and self._nc.is_connected
+        return self._nc is not None and hasattr(self._nc, "is_connected") and self._nc.is_connected
 
     async def start(self, publish_assessments: bool = True) -> bool:
         """Connect to NATS and subscribe to all 5 anomaly streams.

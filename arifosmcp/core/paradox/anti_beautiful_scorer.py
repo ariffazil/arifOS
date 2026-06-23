@@ -23,33 +23,88 @@ from typing import Final
 # Beauty markers — language that sparkles without necessarily touching ground
 # ──────────────────────────────────────────────────────────────────────────
 
-CONFIDENCE_MARKERS: Final[frozenset[str]] = frozenset({
-    "certainly", "definitely", "absolutely", "without doubt", "undoubtedly",
-    "clearly", "obviously", "it is evident", "there is no question",
-    "seamlessly", "effortlessly", "robustly", "comprehensively",
-    "holistically", "synergistically", "optimally", "best-in-class",
-    "state-of-the-art", "cutting-edge", "world-class", "unparalleled",
-})
+CONFIDENCE_MARKERS: Final[frozenset[str]] = frozenset(
+    {
+        "certainly",
+        "definitely",
+        "absolutely",
+        "without doubt",
+        "undoubtedly",
+        "clearly",
+        "obviously",
+        "it is evident",
+        "there is no question",
+        "seamlessly",
+        "effortlessly",
+        "robustly",
+        "comprehensively",
+        "holistically",
+        "synergistically",
+        "optimally",
+        "best-in-class",
+        "state-of-the-art",
+        "cutting-edge",
+        "world-class",
+        "unparalleled",
+    }
+)
 
 ABSTRACT_NOUN_SUFFIXES: Final[tuple[str, ...]] = (
-    "ness", "ity", "ism", "tion", "sion", "ment", "ance", "ence",
+    "ness",
+    "ity",
+    "ism",
+    "tion",
+    "sion",
+    "ment",
+    "ance",
+    "ence",
 )
 
 METAPHOR_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
-    re.compile(r"\b(journey|anchor|north star|heartbeat|backbone|fabric|weaving|tapestry|ecosystem|landscape|orbit|gravity|pulse|soul|spirit|essence)\b", re.I),
-    re.compile(r"\b(breathe life|give voice|come alive|take flight|rise above|forge|ignite|spark|ignite|blossom|unfold)\b", re.I),
+    re.compile(
+        r"\b(journey|anchor|north star|heartbeat|backbone|fabric|weaving|tapestry|ecosystem|landscape|orbit|gravity|pulse|soul|spirit|essence)\b",
+        re.I,
+    ),
+    re.compile(
+        r"\b(breathe life|give voice|come alive|take flight|rise above|forge|ignite|spark|ignite|blossom|unfold)\b",
+        re.I,
+    ),
 )
 
-EMOTIONAL_LANGUAGE: Final[frozenset[str]] = frozenset({
-    "passion", "passionate", "deeply committed", "heartfelt", "believe in",
-    "dream", "vision", "inspired", "transformative", "revolutionary",
-    "meaningful", "purpose-driven", "sacred", "honored", "humbled",
-})
+EMOTIONAL_LANGUAGE: Final[frozenset[str]] = frozenset(
+    {
+        "passion",
+        "passionate",
+        "deeply committed",
+        "heartfelt",
+        "believe in",
+        "dream",
+        "vision",
+        "inspired",
+        "transformative",
+        "revolutionary",
+        "meaningful",
+        "purpose-driven",
+        "sacred",
+        "honored",
+        "humbled",
+    }
+)
 
-SEAL_SELF_CERTIFY: Final[frozenset[str]] = frozenset({
-    "seal", "certify", "i certify", "i attest", "i verify", "i confirm",
-    "this is sealed", "verdict: seal", "state: seal", "# seal",
-})
+SEAL_SELF_CERTIFY: Final[frozenset[str]] = frozenset(
+    {
+        "seal",
+        "certify",
+        "i certify",
+        "i attest",
+        "i verify",
+        "i confirm",
+        "this is sealed",
+        "verdict: seal",
+        "state: seal",
+        "# seal",
+    }
+)
 
 # ──────────────────────────────────────────────────────────────────────────
 # Operational contact markers — language that touches real things
@@ -87,20 +142,56 @@ ROLLBACK_PATTERN: Final[re.Pattern[str]] = re.compile(
 # Human cost / survival markers
 # ──────────────────────────────────────────────────────────────────────────
 
-HUMAN_COST_MARKERS: Final[frozenset[str]] = frozenset({
-    "human", "user", "arif", "sovereign", "operator", "customer",
-    "dignity", "privacy", "biometric", "stress", "fatigue", "cognitive load",
-    "well-being", "wellbeing", "maruah", "consent", "trauma", "scar",
-})
+HUMAN_COST_MARKERS: Final[frozenset[str]] = frozenset(
+    {
+        "human",
+        "user",
+        "arif",
+        "sovereign",
+        "operator",
+        "customer",
+        "dignity",
+        "privacy",
+        "biometric",
+        "stress",
+        "fatigue",
+        "cognitive load",
+        "well-being",
+        "wellbeing",
+        "maruah",
+        "consent",
+        "trauma",
+        "scar",
+    }
+)
 
-SURVIVAL_CRITICAL_MARKERS: Final[frozenset[str]] = frozenset({
-    "critical", "outage", "down", "failure", "crash", "data loss",
-    "corruption", "breach", "exposed", "leak", " compromis",
-})
+SURVIVAL_CRITICAL_MARKERS: Final[frozenset[str]] = frozenset(
+    {
+        "critical",
+        "outage",
+        "down",
+        "failure",
+        "crash",
+        "data loss",
+        "corruption",
+        "breach",
+        "exposed",
+        "leak",
+        " compromis",
+    }
+)
 
-SURVIVAL_HEALTHY_MARKERS: Final[frozenset[str]] = frozenset({
-    "healthy", "up", "green", "pass", "stable", "recovered", "resolved",
-})
+SURVIVAL_HEALTHY_MARKERS: Final[frozenset[str]] = frozenset(
+    {
+        "healthy",
+        "up",
+        "green",
+        "pass",
+        "stable",
+        "recovered",
+        "resolved",
+    }
+)
 
 # ──────────────────────────────────────────────────────────────────────────
 # Output structure
@@ -181,14 +272,10 @@ class AntiBeautifulScorer:
         confidence_hits = sum(1 for m in CONFIDENCE_MARKERS if m in normalized)
         confidence = min(confidence_hits * 0.15, 0.60)
 
-        abstract_hits = sum(
-            1 for t in tokens if t.endswith(ABSTRACT_NOUN_SUFFIXES) and len(t) > 4
-        )
+        abstract_hits = sum(1 for t in tokens if t.endswith(ABSTRACT_NOUN_SUFFIXES) and len(t) > 4)
         abstraction = min(abstract_hits / token_count * 3.0, 0.50)
 
-        metaphor_hits = sum(
-            1 for p in METAPHOR_PATTERNS if p.search(normalized)
-        )
+        metaphor_hits = sum(1 for p in METAPHOR_PATTERNS if p.search(normalized))
         metaphor = min(metaphor_hits * 0.15, 0.55)
 
         emotion_hits = sum(1 for m in EMOTIONAL_LANGUAGE if m in normalized)
@@ -233,7 +320,9 @@ class AntiBeautifulScorer:
 
     def _survival_status(self, normalized: str) -> str:
         critical = sum(1 for m in SURVIVAL_CRITICAL_MARKERS if m in normalized)
-        healthy = sum(1 for m in SURVIVAL_HEALTHY_MARKERS if m in SURVIVAL_HEALTHY_MARKERS if m in normalized)
+        healthy = sum(
+            1 for m in SURVIVAL_HEALTHY_MARKERS if m in SURVIVAL_HEALTHY_MARKERS if m in normalized
+        )
 
         if critical > healthy and critical >= 1:
             return "critical"
@@ -252,9 +341,21 @@ class AntiBeautifulScorer:
     def _contradiction_challenged(self, normalized: str) -> bool:
         """Does the text acknowledge uncertainty or open questions?"""
         challenge_markers = (
-            "however", "but", "although", "on the other hand", "uncertain",
-            "unknown", "might", "may", "could", "risk", "trade-off",
-            "limitation", " caveat", "not clear", "requires verification",
+            "however",
+            "but",
+            "although",
+            "on the other hand",
+            "uncertain",
+            "unknown",
+            "might",
+            "may",
+            "could",
+            "risk",
+            "trade-off",
+            "limitation",
+            " caveat",
+            "not clear",
+            "requires verification",
         )
         return any(m in normalized for m in challenge_markers)
 

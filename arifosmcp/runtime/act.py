@@ -41,6 +41,7 @@ from arifosmcp.runtime.act_playbooks import (
 # ACT is not a reflex (not per-call). It's a deliberative layer for
 # multi-step programs. Still needs ceiling discipline to avoid bloat.
 
+
 def _assert_act_weight_ceiling() -> None:
     _CEILING_LINES = 300
     _this_file = os.path.abspath(__file__)
@@ -53,12 +54,14 @@ def _assert_act_weight_ceiling() -> None:
             f"act_library.py or act_playbooks.py."
         )
 
+
 _assert_act_weight_ceiling()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PATTERN SUGGESTION — recommend the right pattern
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def _suggest_pattern(req: ActRequest) -> ExecutionPattern:
     """Recommend the safest execution pattern for this request."""
@@ -85,6 +88,7 @@ def _suggest_pattern(req: ActRequest) -> ExecutionPattern:
 # ═══════════════════════════════════════════════════════════════════════════
 # THE EXECUTION CEREMONY — satu function, satu decision per program
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def act(request: ActRequest) -> ActResult:
     """Action Ceremonial Tooling — the execution craft layer.

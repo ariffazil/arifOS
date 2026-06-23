@@ -14,14 +14,14 @@ from evals.fixtures import TOOL_ACCURACY_GROUND_TRUTH
 
 
 @pytest.mark.parametrize("intent,expected_tool", TOOL_ACCURACY_GROUND_TRUTH)
-def test_capability_index_top3_accuracy(intent: str, expected_tool: str, capability_store: CapabilityStore) -> None:
+def test_capability_index_top3_accuracy(
+    intent: str, expected_tool: str, capability_store: CapabilityStore
+) -> None:
     """The correct tool must appear in the top-3 search results."""
     results = capability_store.search(intent, limit=3)
     found = [r.tool_name for r in results]
     assert expected_tool in found, (
-        f"Intent: {intent!r}\n"
-        f"Expected: {expected_tool}\n"
-        f"Got top-3: {found}"
+        f"Intent: {intent!r}\nExpected: {expected_tool}\nGot top-3: {found}"
     )
 
 

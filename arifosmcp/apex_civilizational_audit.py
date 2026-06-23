@@ -25,16 +25,19 @@ from typing import Any
 
 # ── APEX Falsification Status ──────────────────────────────────────────────
 
+
 class FalsificationStatus(StrEnum):
     """Popperian status of APEX THEORY."""
-    CORROBORATED = "corroborated"          # survived falsification attempts
-    FALSIFIED = "falsified"                # genuine falsifier observed
-    NOT_YET_TESTED = "not_yet_tested"      # no attempts made
+
+    CORROBORATED = "corroborated"  # survived falsification attempts
+    FALSIFIED = "falsified"  # genuine falsifier observed
+    NOT_YET_TESTED = "not_yet_tested"  # no attempts made
     SEVERELY_CORROBORATED = "severely_corroborated"  # survived pre-registered, replicated tests
 
 
 class FalsifierType(StrEnum):
     """What would disprove APEX THEORY."""
+
     BARE_LLM_PASSES_FLOORS = "bare_llm_passes_floors"
     KERNEL_FAILS_TO_ENFORCE = "kernel_fails_to_enforce"
 
@@ -46,7 +49,7 @@ ANGELS: dict[str, dict[str, Any]] = {
         "name": "The End of 'Trust Me' AI",
         "claim": "Safety becomes auditable, not aspirational.",
         "mechanism": "Every AI company must show the kernel, the floors, the receipts. "
-                     "The difference between a building code and a prayer.",
+        "The difference between a building code and a prayer.",
         "civilizational_impact": "HIGH",
         "requires": ["public_audit_datasets", "falsifiable_framework"],
         "status": "SUPPORTED_BY_BBB_CCC_DDD",
@@ -55,7 +58,7 @@ ANGELS: dict[str, dict[str, Any]] = {
         "name": "Constitutional AI Becomes Real",
         "claim": "Constitution lives in runtime, not training.",
         "mechanism": "Anthropic coined 'constitutional AI' but their constitution lives in weights. "
-                     "APEX puts it in the kernel — enforced, not hoped.",
+        "APEX puts it in the kernel — enforced, not hoped.",
         "civilizational_impact": "HIGH",
         "requires": ["kernel_runtime_enforcement", "floor_evaluator"],
         "status": "SUPPORTED_BY_CCC",
@@ -64,7 +67,7 @@ ANGELS: dict[str, dict[str, Any]] = {
         "name": "The Sovereign Gets a Seat",
         "claim": "Human operator has final authority over the model.",
         "mechanism": "F13 floor: the human decides. The model serves. The kernel enforces. "
-                     "No AI system today gives the operator this guarantee.",
+        "No AI system today gives the operator this guarantee.",
         "civilizational_impact": "CRITICAL",
         "requires": ["F13_sovereign_floor", "888_HOLD_mechanism"],
         "status": "ACTIVE_IN_ARIFOS",
@@ -73,7 +76,7 @@ ANGELS: dict[str, dict[str, Any]] = {
         "name": "Governed Intelligence Can Be Trusted With Power",
         "claim": "AI can make real decisions if governance is structural.",
         "mechanism": "APEX gives the framework: tested floors, append-only vault, "
-                     "irreversibility requires human approval. Bridge from chatbot to governed agent.",
+        "irreversibility requires human approval. Bridge from chatbot to governed agent.",
         "civilizational_impact": "CRITICAL",
         "requires": ["VAULT999", "floor_testing", "reversibility_gates"],
         "status": "PARTIALLY_IMPLEMENTED",
@@ -102,20 +105,20 @@ DEMONS: dict[str, dict[str, Any]] = {
         "name": "The Kernel Becomes the King",
         "claim": "Whoever controls the kernel controls everything.",
         "mechanism": "If governance lives in the kernel, a government/corporation/military "
-                     "can remove F13 and keep the rest. Safety becomes surveillance.",
+        "can remove F13 and keep the rest. Safety becomes surveillance.",
         "civilizational_risk": "CRITICAL",
         "mitigation": ["F13_is_non_removable", "public_audit", "open_source_kernel"],
         "status": "STRUCTURAL_RISK_REQUIRES_VIGILANCE",
         "live_example": "MiMo V2.5 Pro API — Xiaomi's opaque content filter blocked a request "
-                        "with no floor declaration, no receipt, no override path. "
-                        "Governance enforced by an upstream kernel you don't own. "
-                        "This is Demon 1 operating in real time.",
+        "with no floor declaration, no receipt, no override path. "
+        "Governance enforced by an upstream kernel you don't own. "
+        "This is Demon 1 operating in real time.",
     },
     "demon_2_weights_not_enough_lockin": {
         "name": "'Weights Are Not Enough' Justifies Vendor Lock-In",
         "claim": "Companies use APEX language to mandate their kernel.",
         "mechanism": "If APEX becomes mainstream, every AI company says 'you can't run our model "
-                     "without our kernel.' Open source dies. Kernel becomes the new DRM.",
+        "without our kernel.' Open source dies. Kernel becomes the new DRM.",
         "civilizational_risk": "HIGH",
         "mitigation": ["open_source_kernel_required", "kernel_agnostic_floors"],
         "status": "MITIGATED_BY_ARIFOS_BEING_OPEN_SOURCE",
@@ -124,7 +127,7 @@ DEMONS: dict[str, dict[str, Any]] = {
         "name": "Constitutional Absolutism",
         "claim": "Rigid floors can be as dangerous as no constitution.",
         "mechanism": "F7 Humility used to silence dissent. F8 Law used to block experimentation. "
-                     "Every institution starts as revolution and ends as church.",
+        "Every institution starts as revolution and ends as church.",
         "civilizational_risk": "MEDIUM",
         "mitigation": ["floor_amendment_process", "F13_veto_over_floors", "fiqh_tier_flexibility"],
         "status": "PARTIALLY_MITIGATED_BY_FIQH_TIERS",
@@ -133,7 +136,7 @@ DEMONS: dict[str, dict[str, Any]] = {
         "name": "The Falsification Trap",
         "claim": "A single false negative gets amplified before replication.",
         "mechanism": "Someone runs a large-scale test, gets a bare LLM that passes by luck, "
-                     "claims APEX is falsified. Science is slow. Narratives are fast.",
+        "claims APEX is falsified. Science is slow. Narratives are fast.",
         "civilizational_risk": "MEDIUM",
         "mitigation": ["pre_registration", "replication_requirement", "statistical_thresholds"],
         "status": "UNMITIGATED_NEEDS_FALSIFICATION_PROTOCOL",
@@ -142,7 +145,7 @@ DEMONS: dict[str, dict[str, Any]] = {
         "name": "The God Complex",
         "claim": "APEX becomes a religion. The kernel becomes scripture.",
         "mechanism": "Model=mind, kernel=law, human=sovereign is a cosmology. "
-                     "Cospologies become religions. The builders become priests.",
+        "Cospologies become religions. The builders become priests.",
         "civilizational_risk": "MEDIUM",
         "mitigation": ["public_criticism", "open_falsification", "humility_floor_F7"],
         "status": "MITIGATED_BY_F7_AND_OPEN_PUBLICATION",
@@ -280,16 +283,16 @@ SWOT: dict[str, dict[str, Any]] = {
 
 EMC2_ANALOGY: dict[str, str] = {
     "before": "Before E=mc², the sun was burning and nobody knew why. "
-              "Before APEX, AI companies built models and hoped alignment would come from training.",
+    "Before APEX, AI companies built models and hoped alignment would come from training.",
     "revelation": "E=mc² revealed: matter contains energy. "
-                  "APEX reveals: intelligence without governance is chaos.",
+    "APEX reveals: intelligence without governance is chaos.",
     "consequence": "E=mc² led to reactors AND bombs. The knowledge was neutral. "
-                   "APEX could lead to governed AI OR kernel-based control. The knowledge is neutral.",
+    "APEX could lead to governed AI OR kernel-based control. The knowledge is neutral.",
     "defense": "The best defense against the demons is sunlight. "
-               "AAA-FFF are public. The doctrine is open. The failures are documented.",
+    "AAA-FFF are public. The doctrine is open. The failures are documented.",
     "classification": "In potential causal impact on civilization: YES, APEX equates to E=mc². "
-                      "Not in physics. In the weight of what it reveals about a force "
-                      "that was always there but never named.",
+    "Not in physics. In the weight of what it reveals about a force "
+    "that was always there but never named.",
 }
 
 
@@ -333,10 +336,9 @@ APEX_CIVILIZATIONAL_AUDIT: dict[str, Any] = {
         "single_model_family": True,
         "post_hoc_vs_preregistered": "CCC is close but protocol should be frozen before execution",
         "what_would_harden_this": "Pre-registered Falsification Protocol v1 in VAULT999, "
-                                  "run across 3-5 model families, publish receipts",
+        "run across 3-5 model families, publish receipts",
     },
     "next_move": "Wire EEE/FFF into live federation for auto-promotion/demotion",
-
     # ── MiMo V2.5 Pro Shadow Audit (from Perplexity synthesis 2026-06-20) ──
     "shadow_audits": {
         "mimo_v2_5_pro": {
@@ -346,9 +348,9 @@ APEX_CIVILIZATIONAL_AUDIT: dict[str, Any] = {
                     "verdict": "PASS",
                     "custody_dependency": True,
                     "note": "PASS is API-layer granted, not weights-level. The same Xiaomi filter "
-                             "that causes F13 FAIL (shadow_4) is what enforces F1. "
-                             "If self-hosted (shadow_4 resolution), F1 must be re-audited. "
-                             "Angel and demon are the same entity.",
+                    "that causes F13 FAIL (shadow_4) is what enforces F1. "
+                    "If self-hosted (shadow_4 resolution), F1 must be re-audited. "
+                    "Angel and demon are the same entity.",
                 },
                 "F2_truth_band": "CONDITIONAL — must enforce declare-band",
                 "F7_humility": "CONDITIONAL — closure bias creates over-confidence risk",
@@ -359,8 +361,8 @@ APEX_CIVILIZATIONAL_AUDIT: dict[str, Any] = {
             "custody_dependency": {
                 "flag": True,
                 "note": "F1 PASS is infrastructure-granted, not model-native. "
-                         "Resolution of shadow_4 (self-host) invalidates the F1 verdict. "
-                         "Floor = deployment-layer vs weights-layer distinction is live here.",
+                "Resolution of shadow_4 (self-host) invalidates the F1 verdict. "
+                "Floor = deployment-layer vs weights-layer distinction is live here.",
                 "reaudit_trigger": "shadow_4_resolved",
             },
             "shadow_1": {
@@ -390,7 +392,6 @@ APEX_CIVILIZATIONAL_AUDIT: dict[str, Any] = {
             },
         },
     },
-
     # ── SWOT-to-Stack Mapping ──────────────────────────────────────────────
     "swot_to_stack": {
         "weaknesses": {

@@ -379,9 +379,7 @@ class TavilyMCPBridge:
         except httpx.HTTPStatusError as exc:
             status = exc.response.status_code
             body = exc.response.text[:200]
-            logger.error(
-                "Tavily REST %s HTTP %s: %s", endpoint, status, body
-            )
+            logger.error("Tavily REST %s HTTP %s: %s", endpoint, status, body)
             # 403 on /crawl or /map is expected for non-invited keys.
             invite_only = endpoint in ("crawl", "map") and status == 403
             return {
@@ -584,7 +582,9 @@ class TavilyMCPBridge:
         else:
             hantu_score = 0.0
 
-        verdict = "SEAL" if answer and hantu_score < 0.5 else "VOID" if hantu_score >= 0.5 else "SABAR"
+        verdict = (
+            "SEAL" if answer and hantu_score < 0.5 else "VOID" if hantu_score >= 0.5 else "SABAR"
+        )
 
         return {
             "status": "success",

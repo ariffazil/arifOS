@@ -74,16 +74,23 @@ class GraphWriter(Protocol):
     """
 
     def update_edge_weight(
-        self, source_node: str, target_node: str,
-        delta: float, reason: str = "",
+        self,
+        source_node: str,
+        target_node: str,
+        delta: float,
+        reason: str = "",
     ) -> bool: ...
 
     def annotate_path(
-        self, path_nodes: list[str], annotation: dict[str, Any],
+        self,
+        path_nodes: list[str],
+        annotation: dict[str, Any],
     ) -> bool: ...
 
     def record_episode(
-        self, state: MINDState, signal: FeedbackSignal,
+        self,
+        state: MINDState,
+        signal: FeedbackSignal,
         metadata: dict[str, Any] | None = None,
     ) -> str | None: ...
 
@@ -96,15 +103,20 @@ class GraphReader(Protocol):
     """
 
     def find_similar_tasks(
-        self, goal: str, top_k: int = 5,
+        self,
+        goal: str,
+        top_k: int = 5,
     ) -> list[dict[str, Any]]: ...
 
     def get_capability_subgraph(
-        self, domain: str, tools: list[str] | None = None,
+        self,
+        domain: str,
+        tools: list[str] | None = None,
     ) -> dict[str, Any]: ...
 
     def get_prior_path(
-        self, task_signature: str,
+        self,
+        task_signature: str,
     ) -> list[dict[str, Any]] | None: ...
 
 
@@ -227,7 +239,9 @@ class FeedbackLoop:
         return self._handle_failure(step, outcome)
 
     def _handle_success(
-        self, step: ReasoningStep, outcome: dict[str, Any],
+        self,
+        step: ReasoningStep,
+        outcome: dict[str, Any],
     ) -> FeedbackSignal:
         """Step succeeded — check quality, decide PROCEED or refine."""
         confidence = outcome.get("confidence", step.confidence)
@@ -239,22 +253,21 @@ class FeedbackLoop:
         if confidence < 0.70:
             logger.info(
                 "FeedbackLoop: step %d confidence %.2f < 0.70 — REVISE_LOCAL",
-                step.step_number, confidence,
+                step.step_number,
+                confidence,
             )
             step.epistemic_tag = EpistemicTag.PLAUSIBLE
             self.state.update_epistemic(confidence)
             self.state.mark_step(
-                step.step_number, StepStatus.FAILED,
+                step.step_number,
+                StepStatus.FAILED,
                 error_message=f"Low confidence: {confidence:.2f} < 0.70",
                 feedback=FeedbackSignal.REVISE_LOCAL,
             )
             return FeedbackSignal.REVISE_LOCAL
 
         # Success — mark and proceed
-        step.epistemic_tag = (
-            EpistemicTag.VERIFIED if confidence >= 0.95
-            else EpistemicTag.PLAUSIBLE
-        )
+        step.epistemic_tag = EpistemicTag.VERIFIED if confidence >= 0.95 else EpistemicTag.PLAUSIBLE
         step.confidence = confidence
         self.state.mark_step(step.step_number, StepStatus.COMPLETED)
         self.state.update_epistemic(confidence)
@@ -265,7 +278,9 @@ class FeedbackLoop:
         return FeedbackSignal.PROCEED
 
     def _handle_failure(
-        self, step: ReasoningStep, outcome: dict[str, Any],
+        self,
+        step: ReasoningStep,
+        outcome: dict[str, Any],
     ) -> FeedbackSignal:
         """Step failed — classify failure type and decide response."""
         error = outcome.get("error", "Unknown failure")
@@ -279,10 +294,12 @@ class FeedbackLoop:
         if is_fatal:
             logger.error(
                 "FeedbackLoop: step %d FATAL — REVISE_GLOBAL: %s",
-                step.step_number, error,
+                step.step_number,
+                error,
             )
             self.state.mark_step(
-                step.step_number, StepStatus.FAILED,
+                step.step_number,
+                StepStatus.FAILED,
                 error_message=error,
                 feedback=FeedbackSignal.REVISE_GLOBAL,
             )
@@ -294,10 +311,12 @@ class FeedbackLoop:
         if is_contradiction:
             logger.warning(
                 "FeedbackLoop: step %d CONTRADICTION — BACKTRACK: %s",
-                step.step_number, error,
+                step.step_number,
+                error,
             )
             self.state.mark_step(
-                step.step_number, StepStatus.FAILED,
+                step.step_number,
+                StepStatus.FAILED,
                 error_message=error,
                 feedback=FeedbackSignal.BACKTRACK,
             )
@@ -309,10 +328,12 @@ class FeedbackLoop:
         if is_timeout:
             logger.info(
                 "FeedbackLoop: step %d TIMEOUT — REVISE_LOCAL (attempt %d)",
-                step.step_number, step.attempt_count,
+                step.step_number,
+                step.attempt_count,
             )
             self.state.mark_step(
-                step.step_number, StepStatus.FAILED,
+                step.step_number,
+                StepStatus.FAILED,
                 error_message=error,
                 feedback=FeedbackSignal.REVISE_LOCAL,
             )
@@ -324,10 +345,12 @@ class FeedbackLoop:
         if step.attempt_count + 1 >= self.max_revisions_per_step:
             logger.warning(
                 "FeedbackLoop: step %d max local revisions (%d) reached → REVISE_GLOBAL",
-                step.step_number, self.max_revisions_per_step,
+                step.step_number,
+                self.max_revisions_per_step,
             )
             self.state.mark_step(
-                step.step_number, StepStatus.FAILED,
+                step.step_number,
+                StepStatus.FAILED,
                 error_message=f"Max revisions: {error}",
                 feedback=FeedbackSignal.REVISE_GLOBAL,
             )
@@ -338,11 +361,14 @@ class FeedbackLoop:
         # Local revision still within budget
         logger.info(
             "FeedbackLoop: step %d FAILED — REVISE_LOCAL (attempt %d/%d): %s",
-            step.step_number, step.attempt_count,
-            self.max_revisions_per_step, error,
+            step.step_number,
+            step.attempt_count,
+            self.max_revisions_per_step,
+            error,
         )
         self.state.mark_step(
-            step.step_number, StepStatus.FAILED,
+            step.step_number,
+            StepStatus.FAILED,
             error_message=error,
             feedback=FeedbackSignal.REVISE_LOCAL,
         )
@@ -418,7 +444,8 @@ class FeedbackLoop:
         # Loop if: same step, same signature, no real change
         # (simplified: if we've seen any signature for this step 5+ times)
         total_attempts_for_step = sum(
-            1 for s in self.state.plan_steps
+            1
+            for s in self.state.plan_steps
             if s.step_number == step.step_number
             or (s.is_revision and s.revises_step == step.step_number)
         )
@@ -445,8 +472,7 @@ class FeedbackLoop:
             },
         )
         logger.info(
-            "FeedbackLoop: plan %s COMPLETED — %d steps, %d revisions, "
-            "epistemic=%.2f, malu=%.2f",
+            "FeedbackLoop: plan %s COMPLETED — %d steps, %d revisions, epistemic=%.2f, malu=%.2f",
             self.state.context_id,
             len(self.state.plan_steps),
             self.state.total_revisions,
@@ -464,6 +490,7 @@ class FeedbackLoop:
 def _content_signature(content: str, length: int = 8) -> str:
     """Generate a short content signature for loop detection."""
     import hashlib
+
     return hashlib.sha256(content.encode()).hexdigest()[:length]
 
 

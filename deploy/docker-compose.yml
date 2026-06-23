@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
     container_name: arifosmcp
     ports:
-      - "8080:8080"
+      - "8088:8088"  # arifOS MCP (was stale 8080)
     restart: unless-stopped
     env_file:
       - .env
@@ -29,7 +29,7 @@ services:
     networks:
       - arifos_core
     healthcheck:
-      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/sse', timeout=5)\""]
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:8088/mcp', timeout=5)\""]  # updated to current MCP endpoint
       interval: 30s
       timeout: 10s
       start_period: 15s

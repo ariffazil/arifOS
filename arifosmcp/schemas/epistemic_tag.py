@@ -306,7 +306,11 @@ def validate_halal_haram(epistemic: EpistemicTag) -> list[str]:
                 "HARAM: EXECUTIVE authority requires NONE AI involvement. "
                 f"Got {epistemic.ai_involvement}."
             )
-        if epistemic.evidence_source not in (EvidenceSource.COMPUTED, EvidenceSource.MEASURED, EvidenceSource.RETRIEVED):
+        if epistemic.evidence_source not in (
+            EvidenceSource.COMPUTED,
+            EvidenceSource.MEASURED,
+            EvidenceSource.RETRIEVED,
+        ):
             violations.append(
                 "HARAM: EXECUTIVE authority requires COMPUTED or MEASURED evidence source. "
                 f"Got {epistemic.evidence_source}."
@@ -320,6 +324,6 @@ def assert_tag_valid(epistemic: EpistemicTag) -> None:
     violations = validate_halal_haram(epistemic)
     if violations:
         raise ValueError(
-            f"Epistemic tag violates halal/haram boundary:\n"
+            "Epistemic tag violates halal/haram boundary:\n"
             + "\n".join(f"  - {v}" for v in violations)
         )

@@ -7,6 +7,7 @@ as callable policy that agents can query at search-time.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -29,12 +30,13 @@ class Lifetime(str, Enum):
 @dataclass
 class CorpusProfile:
     """Describes a corpus that an agent might search over."""
+
     name: str
-    n_docs: int              # number of documents/rows
-    q_total: int             # expected queries over corpus lifetime
+    n_docs: int  # number of documents/rows
+    q_total: int  # expected queries over corpus lifetime
     lifetime: Lifetime
     data_type: DataType
-    shared: bool = False     # shared across multiple users/agents
+    shared: bool = False  # shared across multiple users/agents
     has_hybrid_engine: bool = False  # already have ES/OS/Meilisearch
 
 
@@ -50,6 +52,7 @@ class VectorDBDecision:
 # ═══════════════════════════════════════════════════════════════════════════════
 # THE 7 DECISION RULES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def should_use_vector_db(profile: CorpusProfile) -> VectorDBDecision:
     """
@@ -204,6 +207,7 @@ DECISION_TABLE = [
 # ═══════════════════════════════════════════════════════════════════════════════
 # AGENTIC SEARCH HOOK
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def decide_for_agentic_search(
     corpus_name: str,

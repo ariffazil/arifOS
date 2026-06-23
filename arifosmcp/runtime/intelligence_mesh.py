@@ -134,7 +134,9 @@ async def probe_organ(
                 "alive": health_status in ("healthy", True, "ok", "OK"),
                 "status": health_status,
                 "role": config["role"],
-                "identity": data.get(config["identity_field"]) if config.get("identity_field") else None,
+                "identity": data.get(config["identity_field"])
+                if config.get("identity_field")
+                else None,
                 "health_data": data,
                 "elapsed_s": round(elapsed, 3),
                 "probed_at": t0.isoformat(),

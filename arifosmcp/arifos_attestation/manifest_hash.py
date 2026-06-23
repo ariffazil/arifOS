@@ -25,6 +25,7 @@ class ManifestHasher:
     def hash_bytes(data: bytes) -> str:
         """Return b3:<hex> hash."""
         import blake3
+
         return "b3:" + blake3.blake3(data).hexdigest()
 
     @staticmethod
@@ -38,14 +39,13 @@ class ManifestHasher:
     @staticmethod
     def hash_obj(obj: Any) -> str:
         """Hash a JSON-serializable object deterministically."""
-        return ManifestHasher.hash_bytes(
-            json.dumps(obj, sort_keys=True, default=str).encode()
-        )
+        return ManifestHasher.hash_bytes(json.dumps(obj, sort_keys=True, default=str).encode())
 
     @staticmethod
     def dual_hash_bytes(data: bytes) -> dict[str, str]:
         """Return both b3 and sha256 for forensic audit."""
         import blake3
+
         return {
             "b3": "b3:" + blake3.blake3(data).hexdigest(),
             "sha256": "sha256:" + hashlib.sha256(data).hexdigest(),

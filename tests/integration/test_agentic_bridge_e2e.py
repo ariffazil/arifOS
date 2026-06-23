@@ -13,10 +13,8 @@ DITEMPA BUKAN DIBERI — The bridge is tested, not assumed.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.runtime.agentic_bridge import (
-    BridgeResult,
     classify_and_bridge,
     run_agentic_bridge,
 )
@@ -222,6 +220,7 @@ class TestBridgeFingerprint:
 
         # Verify JSON serializable
         import json
+
         serialized = json.dumps(fingerprint)
         assert serialized
         assert "bridge_version" in serialized

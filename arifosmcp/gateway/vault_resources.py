@@ -34,59 +34,71 @@ class VaultResources:
         resources: list[dict[str, Any]] = []
 
         # Checkpoint
-        resources.append({
-            "uri": "vault://log/checkpoint/latest",
-            "name": "Latest checkpoint",
-            "description": "Most recent signed tree head for VAULT999 Merkle log",
-            "mimeType": "application/json",
-        })
+        resources.append(
+            {
+                "uri": "vault://log/checkpoint/latest",
+                "name": "Latest checkpoint",
+                "description": "Most recent signed tree head for VAULT999 Merkle log",
+                "mimeType": "application/json",
+            }
+        )
 
         # Entries
         for i in range(self.merkle.tree_size):
-            resources.append({
-                "uri": f"vault://entry/{i}",
-                "name": f"Log entry {i}",
-                "description": f"VAULT999 Merkle log entry at leaf index {i}",
-                "mimeType": "application/json",
-            })
+            resources.append(
+                {
+                    "uri": f"vault://entry/{i}",
+                    "name": f"Log entry {i}",
+                    "description": f"VAULT999 Merkle log entry at leaf index {i}",
+                    "mimeType": "application/json",
+                }
+            )
 
         # Inclusion proofs
         tree_size = self.merkle.tree_size
         for i in range(tree_size):
-            resources.append({
-                "uri": f"vault://proof/inclusion/{i}@{tree_size}",
-                "name": f"Inclusion proof for leaf {i}",
-                "description": f"RFC 9162 inclusion proof for leaf {i} at tree size {tree_size}",
-                "mimeType": "application/json",
-            })
+            resources.append(
+                {
+                    "uri": f"vault://proof/inclusion/{i}@{tree_size}",
+                    "name": f"Inclusion proof for leaf {i}",
+                    "description": f"RFC 9162 inclusion proof for leaf {i} at tree size {tree_size}",
+                    "mimeType": "application/json",
+                }
+            )
 
         # Consistency proof
         if tree_size > 1:
-            resources.append({
-                "uri": f"vault://proof/consistency/{tree_size - 1}-{tree_size}",
-                "name": f"Consistency proof {tree_size - 1}→{tree_size}",
-                "description": f"RFC 9162 consistency proof from size {tree_size - 1} to {tree_size}",
-                "mimeType": "application/json",
-            })
+            resources.append(
+                {
+                    "uri": f"vault://proof/consistency/{tree_size - 1}-{tree_size}",
+                    "name": f"Consistency proof {tree_size - 1}→{tree_size}",
+                    "description": f"RFC 9162 consistency proof from size {tree_size - 1} to {tree_size}",
+                    "mimeType": "application/json",
+                }
+            )
 
         # Report versions
         for incident in self.store.list_all():
             for version in incident.versions:
-                resources.append({
-                    "uri": f"vault://report/{incident.incident_id}/version/{version.version_id}",
-                    "name": f"Report {version.version_id}",
-                    "description": f"Sealed report version for {incident.title}",
-                    "mimeType": "application/json",
-                })
+                resources.append(
+                    {
+                        "uri": f"vault://report/{incident.incident_id}/version/{version.version_id}",
+                        "name": f"Report {version.version_id}",
+                        "description": f"Sealed report version for {incident.title}",
+                        "mimeType": "application/json",
+                    }
+                )
 
         # Timelines
         for incident in self.store.list_all():
-            resources.append({
-                "uri": f"vault://timeline/{incident.incident_id}",
-                "name": f"Timeline: {incident.title}",
-                "description": f"State transition timeline for {incident.incident_id}",
-                "mimeType": "application/json",
-            })
+            resources.append(
+                {
+                    "uri": f"vault://timeline/{incident.incident_id}",
+                    "name": f"Timeline: {incident.title}",
+                    "description": f"State transition timeline for {incident.incident_id}",
+                    "mimeType": "application/json",
+                }
+            )
 
         return resources
 
@@ -113,11 +125,14 @@ class VaultResources:
             return {
                 "uri": uri,
                 "mimeType": "application/json",
-                "text": json.dumps({
-                    "leaf_index": leaf_index,
-                    "leaf_hash": leaf_hex,
-                    "tree_size": self.merkle.tree_size,
-                }, indent=2),
+                "text": json.dumps(
+                    {
+                        "leaf_index": leaf_index,
+                        "leaf_hash": leaf_hex,
+                        "tree_size": self.merkle.tree_size,
+                    },
+                    indent=2,
+                ),
             }
 
         # ── Inclusion proofs ──

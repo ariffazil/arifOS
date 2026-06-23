@@ -51,6 +51,7 @@ EXAMPLE_GEOMETRIES: Dict[str, Dict[str, Any]] = {
     },
 }
 
+
 def register_agent_geometry(mcp: FastMCP) -> list[str]:
     """Register arifos://agent_geometry (scar & soul geometry for model agents in AAA)."""
 
@@ -80,15 +81,22 @@ def register_agent_geometry(mcp: FastMCP) -> list[str]:
                 "metabolizer": "think / critique / memory (processing + self-attention)",
                 "decoder": "compose / forge (output generation)",
                 "fractal": "orthogonal multi-scale (drift, topology, sovereign_proximity)",
-                "thordial": "toroidal loops for session continuity + radial scar propagation"
+                "thordial": "toroidal loops for session continuity + radial scar propagation",
             },
             "scar": {
                 "definition": "Accumulated interaction history, failed trajectories, contradiction wounds, evidence drift.",
-                "fields": ["drift", "wounds", "failed_paths", "contradiction_score", "last_seal"]
+                "fields": ["drift", "wounds", "failed_paths", "contradiction_score", "last_seal"],
             },
             "soul": {
                 "definition": "Core identity and preferred position in the manifold. Essence that persists across geometries.",
-                "fields": ["harness", "parallelism", "transport", "agent_type", "preferred_lane", "sovereign_proximity"]
+                "fields": [
+                    "harness",
+                    "parallelism",
+                    "transport",
+                    "agent_type",
+                    "preferred_lane",
+                    "sovereign_proximity",
+                ],
             },
             "declared_examples": EXAMPLE_GEOMETRIES,
             "guidance": {
@@ -103,11 +111,12 @@ def register_agent_geometry(mcp: FastMCP) -> list[str]:
                 "3_geometry_not_fused_with_scar_soul": "Runtime geometry was separate from AAA scar/soul and arifOS mind_geometry - now fused: agent_geometry IS scar (history/wounds) + soul (essence) in transformer terms.",
                 "4_no_enforced_handoff": "Agents could stay in narrow surfaces for irreversible - resolved by explicit flow in responses, AGENTS.md, gb router, and geometry declaration at init.",
                 "5_transport_dynamics": "stdio vs http created inconsistent 'intelligence' - mapped in geometry (transport field) and thordial/encoder notes; stdio for tight loops, http for supervisory.",
-                "resolution": "All narrow surfaces now declare geometry at start and surface canonical handoff. Canonical arifOS MCP (arif_* 000-999) is the single source of truth for law and irreversible."
-            }
+                "resolution": "All narrow surfaces now declare geometry at start and surface canonical handoff. Canonical arifOS MCP (arif_* 000-999) is the single source of truth for law and irreversible.",
+            },
         }
 
     return ["arifos://agent_geometry"]
+
 
 # Back-compat alias for any legacy registration
 register_agent_geometries = register_agent_geometry

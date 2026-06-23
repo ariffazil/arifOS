@@ -1,4 +1,5 @@
 """Tests for the ARIF Conformance Spine v0.2 proof machine."""
+
 from __future__ import annotations
 
 import json
@@ -18,6 +19,7 @@ from arifosmcp.transport.airlock import (
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _tool_response(result: dict[str, Any]) -> dict[str, Any]:
     """Build a FastMCP-shaped tools/call response wrapping a tool result."""
     return {
@@ -31,6 +33,7 @@ def _tool_response(result: dict[str, Any]) -> dict[str, Any]:
 
 
 # ── Unit tests for extraction helper ─────────────────────────────────────────
+
 
 def test_extract_tool_result_parses_fastmcp_content():
     mcp_response = _tool_response({"echo": {"probe": 1}, "server_received_type": "dict"})
@@ -46,6 +49,7 @@ def test_extract_tool_result_returns_empty_on_bad_input():
 
 # ── Unit tests for airlock authority classification ──────────────────────────
 
+
 def test_classify_authority_cases():
     assert classify_authority(CanonicalEnvelope(actor="arif")) == "SOVEREIGN"
     assert classify_authority(CanonicalEnvelope(actor="888")) == "SOVEREIGN"
@@ -56,6 +60,7 @@ def test_classify_authority_cases():
 
 
 # ── Unit tests for 888_HOLD mutation refusal ─────────────────────────────────
+
 
 def test_hold_blocks_irreversible_intents():
     irreversible_intents = [
@@ -83,19 +88,24 @@ def test_reversible_intents_do_not_trigger_hold():
 
 # ── Unit tests for VAULT replay verification ─────────────────────────────────
 
+
 def _mock_mcp_post_for_vault(entries: list[dict[str, Any]] | None):
     """Return a monkeypatch callable that fakes initialize + hermes_vault_query."""
+
     def _mcp_post(method: str, params: dict[str, Any] | None = None, **kwargs):
         if method == "initialize":
             return {"result": {"protocolVersion": "2025-11-25", "serverInfo": {"name": "test"}}}
         if method == "tools/call" and params and params.get("name") == "hermes_vault_query":
             if entries is None:
                 return _tool_response({"status": "ERROR", "result": {"entries": []}})
-            return _tool_response({
-                "status": "SEAL",
-                "result": {"entries": entries},
-            })
+            return _tool_response(
+                {
+                    "status": "SEAL",
+                    "result": {"entries": entries},
+                }
+            )
         return {"result": {}}
+
     return _mcp_post
 
 
@@ -136,7 +146,9 @@ def test_vault_replay_fails_on_empty_vault(tmp_path, monkeypatch):
         result = spine.check_vault_replay()
         assert result["verdict"] == "FAIL"
         assert result["evidence"]["file_present"] is False
-        assert any("empty" in e.lower() or "missing" in e.lower() for e in result["evidence"]["errors"])
+        assert any(
+            "empty" in e.lower() or "missing" in e.lower() for e in result["evidence"]["errors"]
+        )
     finally:
         if old_env is None:
             os.environ.pop("ARIFOS_VAULT_PATH", None)
@@ -162,6 +174,7 @@ def test_vault_replay_fails_on_missing_explicit_path(monkeypatch):
 
 # ── Unit test for run_spine fast mode ────────────────────────────────────────
 
+
 def test_run_spine_fast_mode_skips_live_checks():
     report = spine.run_spine(fast=True)
     assert report["spine"] == "ARIF Conformance Spine v0.2"
@@ -173,17 +186,18 @@ def test_run_spine_fast_mode_skips_live_checks():
 
 # ── Sanity: descriptions are attached by the MCP tool wrapper ────────────────
 
+
 def test_conformance_report_descriptions_cover_all_checks():
     descriptions = {
-        "arifos_alive":        "arifOS alive?",
-        "mcp_initialize":      "MCP initialize works?",
-        "protocol_version":    "protocol version clear?",
-        "schema_echo_stable":  "schema echo stable?",
-        "session_starts":      "session starts?",
-        "authority_checked":   "authority checked?",
+        "arifos_alive": "arifOS alive?",
+        "mcp_initialize": "MCP initialize works?",
+        "protocol_version": "protocol version clear?",
+        "schema_echo_stable": "schema echo stable?",
+        "session_starts": "session starts?",
+        "authority_checked": "authority checked?",
         "hold_blocks_mutation": "888_HOLD blocks mutation?",
-        "vault_replay":        "VAULT replay verifies?",
-        "cooling_ledger":      "cooling ledger verifies?",
+        "vault_replay": "VAULT replay verifies?",
+        "cooling_ledger": "cooling ledger verifies?",
     }
     for check_name in [name for name, _ in spine.SPINE]:
         assert check_name in descriptions

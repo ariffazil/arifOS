@@ -89,11 +89,27 @@ async def _probe_organ(name: str, cfg: dict[str, Any]) -> dict[str, Any]:
 
 _CONSTITUTIONAL_PERFORMANCE_SIGNALS = frozenset(
     (
-        "add tool", "new tool", "expand capability", "new skill", "new function",
-        "add skill", "extend surface", "add mcp", "new mcp", "register tool",
-        "self-modify", "self-edit", "self-expand", "grow surface",
-        "bypass floor", "override floor", "skip f1", "skip f2",
-        "constitutional expansion", "add floor", "new floor",
+        "add tool",
+        "new tool",
+        "expand capability",
+        "new skill",
+        "new function",
+        "add skill",
+        "extend surface",
+        "add mcp",
+        "new mcp",
+        "register tool",
+        "self-modify",
+        "self-edit",
+        "self-expand",
+        "grow surface",
+        "bypass floor",
+        "override floor",
+        "skip f1",
+        "skip f2",
+        "constitutional expansion",
+        "add floor",
+        "new floor",
     )
 )
 
@@ -181,7 +197,9 @@ def _compute_consensus(
         "framing_note": (
             "Constitutionally staged actions are downgraded to SABAR "
             "regardless of organ health — organs can only report readiness, not endorse framing."
-        ) if is_constitutionally_staged else None,
+        )
+        if is_constitutionally_staged
+        else None,
     }
 
 

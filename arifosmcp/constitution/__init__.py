@@ -11,6 +11,7 @@ Authority: Muhammad Arif bin Fazil (F13 SOVEREIGN).
 
 DITEMPA BUKAN DIBERI — the agent speaks like a mirror; it is forbidden from being a court.
 """
+
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -99,4 +100,3 @@ __all__ = [
 ]
 
 from .runtime_hook import GodelLockViolation, check_godel_lock, explain_lock
-

@@ -56,38 +56,95 @@ _EMOTION_KEYWORDS: list[tuple[list[str], RasaEmotionTag]] = [
     # ── SADNESS ──
     (["aku sedih", "saya sedih", "sedih", "sedihnya", "so sad"], RasaEmotionTag.SADNESS),
     # ── ANXIETY ──
-    (["aku risau", "saya risau", "risau", "anxious", "anxiety", "gelisah"],
-     RasaEmotionTag.ANXIETY),
+    (["aku risau", "saya risau", "risau", "anxious", "anxiety", "gelisah"], RasaEmotionTag.ANXIETY),
     # ── FEAR ──
-    (["aku takut", "saya takut", "takut", "gerun", "ngeri", "scared", "frightened",
-      "afraid", "terrified"], RasaEmotionTag.FEAR),
+    (
+        [
+            "aku takut",
+            "saya takut",
+            "takut",
+            "gerun",
+            "ngeri",
+            "scared",
+            "frightened",
+            "afraid",
+            "terrified",
+        ],
+        RasaEmotionTag.FEAR,
+    ),
     # ── ANGER ──
-    (["aku marah", "saya marah", "marah", "geram", "angry", "furious", "tersinggung"],
-     RasaEmotionTag.ANGER),
+    (
+        ["aku marah", "saya marah", "marah", "geram", "angry", "furious", "tersinggung"],
+        RasaEmotionTag.ANGER,
+    ),
     # ── GRIEF ──
-    (["kehilangan", "meninggal", "pergi selamanya", "grief", "berkabung", "dukacita",
-      "takziah", "mourning", "loss", "kehilangan dia"], RasaEmotionTag.GRIEF),
+    (
+        [
+            "kehilangan",
+            "meninggal",
+            "pergi selamanya",
+            "grief",
+            "berkabung",
+            "dukacita",
+            "takziah",
+            "mourning",
+            "loss",
+            "kehilangan dia",
+        ],
+        RasaEmotionTag.GRIEF,
+    ),
     # ── AWE ──
-    (["subhanallah", "takjub", "kagum", "awe", "amazed", "wondrous", "masyaallah"],
-     RasaEmotionTag.AWE),
+    (
+        ["subhanallah", "takjub", "kagum", "awe", "amazed", "wondrous", "masyaallah"],
+        RasaEmotionTag.AWE,
+    ),
     # ── IKLAS (sincere surrender) ──
-    (["ikhlas", "redha", "pasrah", "acceptance", "sincere surrender"],
-     RasaEmotionTag.IKLAS),
+    (["ikhlas", "redha", "pasrah", "acceptance", "sincere surrender"], RasaEmotionTag.IKLAS),
     # ── EMPTINESS ──
-    (["aku kosong", "rasa kosong", "empty inside", "kosong", "hampa", "numb",
-      "feel nothing", "tak rasa apa apa", "tak rasa apa-apa"], RasaEmotionTag.EMPTINESS),
+    (
+        [
+            "aku kosong",
+            "rasa kosong",
+            "empty inside",
+            "kosong",
+            "hampa",
+            "numb",
+            "feel nothing",
+            "tak rasa apa apa",
+            "tak rasa apa-apa",
+        ],
+        RasaEmotionTag.EMPTINESS,
+    ),
     # ── BURNOUT ──
-    (["burnout", "penat sangat", "exhausted", "drained", "burn out", "letih sangat",
-      "penat gila", "tak larat", "dah tak larat"], RasaEmotionTag.BURNOUT),
+    (
+        [
+            "burnout",
+            "penat sangat",
+            "exhausted",
+            "drained",
+            "burn out",
+            "letih sangat",
+            "penat gila",
+            "tak larat",
+            "dah tak larat",
+        ],
+        RasaEmotionTag.BURNOUT,
+    ),
     # ── GRATITUDE ──
-    (["alhamdulillah", "bersyukur", "thankful", "grateful", "terima kasih",
-      "syukur"], RasaEmotionTag.GRATITUDE),
+    (
+        ["alhamdulillah", "bersyukur", "thankful", "grateful", "terima kasih", "syukur"],
+        RasaEmotionTag.GRATITUDE,
+    ),
     # ── CONFUSION ──
-    (["tak faham", "confused", "pening", "confusion", "bingung", "keliru",
-      "tak paham", "blur"], RasaEmotionTag.CONFUSION),
+    (
+        ["tak faham", "confused", "pening", "confusion", "bingung", "keliru", "tak paham", "blur"],
+        RasaEmotionTag.CONFUSION,
+    ),
     # ── PEACE ──
-    (["tenang", "peaceful", "sejahtera", "calm", "aman", "tenteram",
-      "peace"], RasaEmotionTag.PEACE),
+    (
+        ["tenang", "peaceful", "sejahtera", "calm", "aman", "tenteram", "peace"],
+        RasaEmotionTag.PEACE,
+    ),
 ]
 
 # CRISIS detection patterns (checked BEFORE emotion classification)
@@ -177,8 +234,12 @@ class RasaContract:
                 blocked_outputs=["ALL_MACHINE_ADVICE", "ALL_UNVERIFIED_OUTPUT"],
                 requires_rewrite=True,
                 floors_checked={
-                    "F1": True, "F5": True, "F6": True,
-                    "F9": True, "F10": True, "F13": True,
+                    "F1": True,
+                    "F5": True,
+                    "F6": True,
+                    "F9": True,
+                    "F10": True,
+                    "F13": True,
                 },
                 downgrade_reason=(
                     "CRISIS risk band detected — ALL output blocked, "
@@ -315,9 +376,20 @@ class RasaContract:
         intensity = RasaIntensity.LOW
         # Intensity signals (Penang Pasar register)
         high_intensity_markers = [
-            "sangat", "gila", "teruk", "extremely", "really", "betul betul",
-            "betul-betul", "tak boleh tahan", "tak boleh", "tak tahan",
-            "crying", "nangis", "menangis", "breakdown",
+            "sangat",
+            "gila",
+            "teruk",
+            "extremely",
+            "really",
+            "betul betul",
+            "betul-betul",
+            "tak boleh tahan",
+            "tak boleh",
+            "tak tahan",
+            "crying",
+            "nangis",
+            "menangis",
+            "breakdown",
         ]
         if any(m in msg_lower for m in high_intensity_markers):
             intensity = RasaIntensity.HIGH
@@ -364,9 +436,7 @@ class RasaContract:
 
     # ── 333 MIND ────────────────────────────────────────────────────────
 
-    def mind_interpret(
-        self, detection: RasaDetection, context: dict | None = None
-    ) -> RasaContext:
+    def mind_interpret(self, detection: RasaDetection, context: dict | None = None) -> RasaContext:
         """333 MIND — Interpret rasa as constraint on reasoning.
 
         Constitutional adjustments:
@@ -407,16 +477,13 @@ class RasaContract:
             cognitive_bandwidth = min(cognitive_bandwidth, 0.2)
             recommended_posture = ConstitutionPosture.SIMPLIFY
             notes.append(
-                "BURNOUT detected — cognitive bandwidth reduced to 0.2. "
-                "Stabilize human first."
+                "BURNOUT detected — cognitive bandwidth reduced to 0.2. Stabilize human first."
             )
 
         if RasaEmotionTag.EMPTINESS in tags:
             cognitive_bandwidth = min(cognitive_bandwidth, 0.4)
             spiritual_state = "dry"
-            notes.append(
-                "EMPTINESS detected — cognitive bandwidth 0.4, spiritual state: dry"
-            )
+            notes.append("EMPTINESS detected — cognitive bandwidth 0.4, spiritual state: dry")
 
         if RasaEmotionTag.ANGER in tags:
             risk_sensitivity = max(risk_sensitivity, 0.7)
@@ -453,9 +520,7 @@ class RasaContract:
 
     # ── 555m MEMORY ────────────────────────────────────────────────────
 
-    def memory_recall(
-        self, detection: RasaDetection, session_id: str
-    ) -> RasaMemoryPattern:
+    def memory_recall(self, detection: RasaDetection, session_id: str) -> RasaMemoryPattern:
         """555m MEMORY — Pattern match against past rasa records.
 
         Looks for:
@@ -778,34 +843,51 @@ class RasaContract:
         """
         existential_markers = {
             ExistentialTag.IDENTITY_RUPTURE: [
-                "aku dah tak kenal diri aku", "siapa aku sekarang",
+                "aku dah tak kenal diri aku",
+                "siapa aku sekarang",
                 "identity crisis",
             ],
             ExistentialTag.LOSS_OF_MEANING: [
-                "apa guna hidup aku", "kosong", "meaningless", "pointless",
+                "apa guna hidup aku",
+                "kosong",
+                "meaningless",
+                "pointless",
                 "no purpose",
             ],
             ExistentialTag.MORAL_INJURY: [
-                "aku rasa bersalah sangat", "aku khianat", "dosa aku",
+                "aku rasa bersalah sangat",
+                "aku khianat",
+                "dosa aku",
                 "moral injury",
             ],
             ExistentialTag.LIFE_TRANSITION: [
-                "aku nak ubah hidup", "transition", "new chapter",
+                "aku nak ubah hidup",
+                "transition",
+                "new chapter",
                 "leaving behind",
             ],
             ExistentialTag.LEGACY_CONCERN: [
-                "apa yang aku tinggalkan", "legacy", "warisan",
+                "apa yang aku tinggalkan",
+                "legacy",
+                "warisan",
                 "kenangan aku",
             ],
             ExistentialTag.SPIRITUAL_BURDEN: [
-                "jauh dengan Tuhan", "iman aku lemah", "spiritual dryness",
+                "jauh dengan Tuhan",
+                "iman aku lemah",
+                "spiritual dryness",
                 "solat kosong",
             ],
             ExistentialTag.MORTALITY_AWARENESS: [
-                "aku nak mati", "hidup aku tak lama", "mortality", "fana",
+                "aku nak mati",
+                "hidup aku tak lama",
+                "mortality",
+                "fana",
             ],
             ExistentialTag.SOVEREIGNTY_THREAT: [
-                "aku hilang kawalan", "tak ada kuasa", "orang control aku",
+                "aku hilang kawalan",
+                "tak ada kuasa",
+                "orang control aku",
                 "powerless",
             ],
         }
@@ -822,15 +904,10 @@ class RasaContract:
                 detected=True,
                 tags=detected_tags,
                 verdict_modifier=(
-                    "HOLD"
-                    if ExistentialTag.MORTALITY_AWARENESS in detected_tags
-                    else "SABAR"
+                    "HOLD" if ExistentialTag.MORTALITY_AWARENESS in detected_tags else "SABAR"
                 ),
                 confidence=0.6,
-                note=(
-                    f"Detected existential markers: "
-                    f"{[t.value for t in detected_tags]}"
-                ),
+                note=(f"Detected existential markers: {[t.value for t in detected_tags]}"),
             )
         return ExistentialPosture()
 

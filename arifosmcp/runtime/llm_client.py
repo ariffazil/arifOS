@@ -181,7 +181,9 @@ def _strip_markdown(content: str) -> str:
     return content.strip()
 
 
-def _repair_truncated_json(raw: str, min_viable_keys: set[str] | None = None) -> dict[str, Any] | None:
+def _repair_truncated_json(
+    raw: str, min_viable_keys: set[str] | None = None
+) -> dict[str, Any] | None:
     """Attempt to repair truncated/incomplete JSON from LLM output.
 
     LLMs (especially via slower tiers like SEA-LION) often truncate complex
@@ -297,8 +299,7 @@ def _repair_truncated_json(raw: str, min_viable_keys: set[str] | None = None) ->
                 if not missing:
                     parsed["_json_repaired"] = True
                     logger.info(
-                        "Repaired truncated JSON (strategy %d chars added). "
-                        "Keys recovered: %s",
+                        "Repaired truncated JSON (strategy %d chars added). Keys recovered: %s",
                         len(attempt) - len(raw),
                         list(parsed.keys()),
                     )
@@ -393,7 +394,9 @@ async def _call_sea_lion(
             parsed = repaired
             raw_output = json.dumps(repaired)  # Align raw with repaired for hash integrity
         else:
-            logger.warning("SEA-LION returned invalid JSON, wrapping plain text: %s", raw_output[:200])
+            logger.warning(
+                "SEA-LION returned invalid JSON, wrapping plain text: %s", raw_output[:200]
+            )
             parsed = {"reasoning": raw_output, "answer": raw_output}
 
     if not isinstance(parsed, dict):
@@ -537,7 +540,9 @@ async def _call_minimax(
         # Attempt to repair truncated JSON before giving up
         repaired = _repair_truncated_json(raw_output)
         if repaired is not None:
-            logger.info("MiniMax M3 JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+            logger.info(
+                "MiniMax M3 JSON repaired after truncation (keys: %s)", list(repaired.keys())
+            )
             parsed = repaired
             raw_output = json.dumps(repaired)
         else:
@@ -552,7 +557,9 @@ async def _call_minimax(
             # visible to the operator via reasoning/answer rather than thrown
             # away. F1 AMANAH reversible: only the invalid-JSON path is
             # affected; valid JSON paths are untouched.
-            logger.warning("MiniMax M3 returned invalid JSON (first 100 chars): %s", raw_output[:100])
+            logger.warning(
+                "MiniMax M3 returned invalid JSON (first 100 chars): %s", raw_output[:100]
+            )
             parsed = {
                 "status": "HOLD",
                 "verdict": "HOLD",
@@ -635,11 +642,15 @@ async def _call_azure(
     try:
         parsed = json.loads(raw_output)
     except json.JSONDecodeError:
-        logger.warning("Azure OpenAI returned invalid JSON, wrapping plain text: %s", raw_output[:200])
+        logger.warning(
+            "Azure OpenAI returned invalid JSON, wrapping plain text: %s", raw_output[:200]
+        )
         parsed = {"reasoning": raw_output, "answer": raw_output}
 
     if not isinstance(parsed, dict):
-        raise LLMUnavailableError(f"Azure OpenAI output must be a JSON object, got {type(parsed).__name__}")
+        raise LLMUnavailableError(
+            f"Azure OpenAI output must be a JSON object, got {type(parsed).__name__}"
+        )
 
     if not parsed:
         raise LLMUnavailableError("Azure OpenAI returned empty JSON object")
@@ -703,7 +714,9 @@ async def _call_ollama(
             except json.JSONDecodeError:
                 repaired = _repair_truncated_json(raw_output)
                 if repaired is not None:
-                    logger.info("Ollama JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+                    logger.info(
+                        "Ollama JSON repaired after truncation (keys: %s)", list(repaired.keys())
+                    )
                     parsed = repaired
                     raw_output = json.dumps(repaired)
                 else:
@@ -718,7 +731,9 @@ async def _call_ollama(
             except json.JSONDecodeError:
                 repaired = _repair_truncated_json(raw_output)
                 if repaired is not None:
-                    logger.info("Ollama JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+                    logger.info(
+                        "Ollama JSON repaired after truncation (keys: %s)", list(repaired.keys())
+                    )
                     parsed = repaired
                     raw_output = json.dumps(repaired)
                 else:

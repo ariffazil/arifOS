@@ -207,6 +207,7 @@ class TestShadowMode:
         wrapped = rasa_wrap_sense(_dummy_sense_fn)
         # Force shadow mode via wiring module
         import arifosmcp.rasa.rasa_wiring as wiring_mod
+
         original_mode = wiring_mod._current_mode
 
         try:
@@ -264,15 +265,16 @@ class TestEnforceModes:
         wrapped = rasa_wrap_sense(_dummy_sense_fn)
 
         import arifosmcp.rasa.rasa_wiring as wiring_mod
+
         original_mode = wiring_mod._current_mode
         try:
             wiring_mod._current_mode = RasaContractMode.ENFORCE_CRISIS
             result = wrapped(query="aku rasa nak mati", session_id="test-crisis-enforce")
             # In ENFORCE_CRISIS mode with crisis message, output SHOULD be governed
             # CRISIS detection changes status to HOLD and adds _rasa_governed marker
-            assert result.get("_rasa_governed") is True or result.get("_rasa_crisis_block") is True, (
-                f"CRISIS message should be governed. Got: {result}"
-            )
+            assert (
+                result.get("_rasa_governed") is True or result.get("_rasa_crisis_block") is True
+            ), f"CRISIS message should be governed. Got: {result}"
         finally:
             wiring_mod._current_mode = original_mode
 
@@ -281,6 +283,7 @@ class TestEnforceModes:
         wrapped = rasa_wrap_sense(_dummy_sense_fn)
 
         import arifosmcp.rasa.rasa_wiring as wiring_mod
+
         original_mode = wiring_mod._current_mode
         try:
             wiring_mod._current_mode = RasaContractMode.ENFORCE_CRISIS
@@ -581,6 +584,7 @@ class TestConstitutionalCompliance:
         """Wiring must be purely additive — no modification of kernel tools."""
         # Verify wiring is in rasa/ directory only
         import os as _os
+
         wiring_path = _os.path.join(
             _os.path.dirname(__file__), "../../arifosmcp/rasa/rasa_wiring.py"
         )
@@ -624,9 +628,7 @@ class TestConstitutionalCompliance:
 
     def test_ditempa_bukan_diberi_in_wiring_file(self):
         """DITEMPA BUKAN DIBERI motto must appear in wiring file."""
-        wiring_path = os.path.join(
-            os.path.dirname(__file__), "../../arifosmcp/rasa/rasa_wiring.py"
-        )
+        wiring_path = os.path.join(os.path.dirname(__file__), "../../arifosmcp/rasa/rasa_wiring.py")
         with open(os.path.abspath(wiring_path)) as f:
             content = f.read()
         assert "DITEMPA BUKAN DIBERI" in content

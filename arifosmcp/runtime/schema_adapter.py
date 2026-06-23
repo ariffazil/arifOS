@@ -106,8 +106,10 @@ def normalize_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
 
 # ── Session Auto-Injection ──────────────────────────────────────────────────
 
+
 class SessionState:
     """Tracks session status for the adapter layer."""
+
     def __init__(self):
         self.active_session_id: str | None = None
         self.active_actor_id: str | None = None
@@ -133,8 +135,10 @@ def get_session_state() -> SessionState:
 
 # ── Adapter Entry Point ─────────────────────────────────────────────────────
 
+
 class SchemaAdapterError(Exception):
     """Raised when the adapter cannot normalize the request."""
+
     def __init__(self, message: str, original_kwargs: dict | None = None):
         self.message = message
         self.original_kwargs = original_kwargs
@@ -189,6 +193,7 @@ def prepare_call(
 
 
 # ── Error Formatting ────────────────────────────────────────────────────────
+
 
 def format_error(error: SchemaAdapterError) -> str:
     """Return a human-readable error message."""

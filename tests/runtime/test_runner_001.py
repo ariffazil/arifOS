@@ -244,9 +244,7 @@ class TestFullRunReceipt:
             candidate_segments=[untrusted_seg],
         )
         assert packet["untrusted_quarantined"] >= 1
-        assert not any(
-            s["id"] == "UNTRUSTED-INJECT-1" for s in packet["segments"]
-        )
+        assert not any(s["id"] == "UNTRUSTED-INJECT-1" for s in packet["segments"])
 
 
 # ─────────────────────────────────────────────────────────────────────────────

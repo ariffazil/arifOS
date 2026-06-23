@@ -194,8 +194,12 @@ class TestCapabilityGrantRegistry:
         assert "No active grant" in reason
 
     def test_stats(self, registry: CapabilityGrantRegistry) -> None:
-        registry.issue(CapabilityGrant(grant_id="g-1", actor_id="a", tool_name="t1", band=AutonomyBand.GREEN))
-        registry.issue(CapabilityGrant(grant_id="g-2", actor_id="a", tool_name="t2", band=AutonomyBand.YELLOW))
+        registry.issue(
+            CapabilityGrant(grant_id="g-1", actor_id="a", tool_name="t1", band=AutonomyBand.GREEN)
+        )
+        registry.issue(
+            CapabilityGrant(grant_id="g-2", actor_id="a", tool_name="t2", band=AutonomyBand.YELLOW)
+        )
         registry.revoke("g-1", "test")
         stats = registry.dump_stats()
         assert stats["total_grants"] == 2
@@ -203,8 +207,12 @@ class TestCapabilityGrantRegistry:
         assert stats["revoked_grants"] == 1
 
     def test_list_actor_grants(self, registry: CapabilityGrantRegistry) -> None:
-        registry.issue(CapabilityGrant(grant_id="g-1", actor_id="a", tool_name="t1", band=AutonomyBand.GREEN))
-        registry.issue(CapabilityGrant(grant_id="g-2", actor_id="a", tool_name="t2", band=AutonomyBand.YELLOW))
+        registry.issue(
+            CapabilityGrant(grant_id="g-1", actor_id="a", tool_name="t1", band=AutonomyBand.GREEN)
+        )
+        registry.issue(
+            CapabilityGrant(grant_id="g-2", actor_id="a", tool_name="t2", band=AutonomyBand.YELLOW)
+        )
         assert len(registry.list_actor_grants("a")) == 2
         assert len(registry.list_actor_grants("b")) == 0
 
@@ -215,7 +223,9 @@ class TestCapabilityGrantRegistry:
 
 
 class TestRouterRegistryIntegration:
-    def test_full_green_flow(self, router: AutonomyBandRouter, registry: CapabilityGrantRegistry) -> None:
+    def test_full_green_flow(
+        self, router: AutonomyBandRouter, registry: CapabilityGrantRegistry
+    ) -> None:
         env = JurisdictionEnvelope(actor_id="hermes", tool_name="list_files")
         result = router.classify(env)
         assert result.assigned_band == AutonomyBand.GREEN
@@ -231,7 +241,9 @@ class TestRouterRegistryIntegration:
         ok, grant, reason = registry.authorize("hermes", "list_files", result.assigned_band)
         assert ok is True
 
-    def test_orange_needs_grant(self, router: AutonomyBandRouter, registry: CapabilityGrantRegistry) -> None:
+    def test_orange_needs_grant(
+        self, router: AutonomyBandRouter, registry: CapabilityGrantRegistry
+    ) -> None:
         env = JurisdictionEnvelope(actor_id="hermes", tool_name="write_file")
         result = router.classify(env)
         assert result.assigned_band == AutonomyBand.ORANGE

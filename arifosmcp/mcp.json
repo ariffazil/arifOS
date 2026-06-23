@@ -1,71 +1,22 @@
 {
   "schema": "mcp",
-  "version": "2026.5.11-v1.1",
-  "protocolVersion": "2025-03-26",
+  "version": "2026.6.23-7tool",
+  "protocolVersion": "2025-11-25",
   "name": "arifOS MCP",
-  "description": "Constitutional MCP gateway \u2014 arifOS AAA. 13 canonical tools (arif_<noun>_<verb>), 13 floors, human veto. DITEMPA BUKAN DIBERI.",
+  "description": "Constitutional kernel. Public surface: exactly 7 tools (cognition exposed, plumbing hidden). 13 floors, F13 sovereign veto. DITEMPA BUKAN DIBERI.",
   "tools": [
-    {
-      "name": "arif_init",
-      "description": "Initialize constitutional session with identity anchor and telemetry seed."
-    },
-    {
-      "name": "arif_observe",
-      "description": "Ground query in physical reality via 8-stage constitutional sensing protocol."
-    },
-    {
-      "name": "arif_fetch",
-      "description": "Fetch and verify external evidence under F2 truth threshold."
-    },
-    {
-      "name": "arif_think",
-      "description": "Multi-source synthesis and structured first-principles reasoning with uncertainty bands."
-    },
-    {
-      "name": "arif_critique",
-      "description": "Red-team proposal for ethical risks. Evaluate against F5, F6, F9."
-    },
-    {
-      "name": "arif_kernel_route",
-      "description": "Route request to correct metabolic lane or tool family based on risk and task type."
-    },
-    {
-      "name": "arif_compose",
-      "description": "Compose dual-axis reply: technical answer + constitutional commentary."
-    },
-    {
-      "name": "arif_memory_recall",
-      "description": "Retrieve governed memory and engineering context from vector store."
-    },
-    {
-      "name": "arif_gateway_connect",
-      "description": "A2A federation routing \u2014 connect to peer agents via Agent Card protocol."
-    },
-    {
-      "name": "arif_judge",
-      "description": "Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD."
-    },
-    {
-      "name": "arif_seal",
-      "description": "Append immutable verdict record to Merkle-hashed VAULT999 ledger."
-    },
-    {
-      "name": "arif_forge",
-      "description": "Issue signed execution manifest to A-FORGE substrate. Requires SEAL."
-    },
-    {
-      "name": "arif_measure",
-      "description": "Calculate operational costs, thermodynamics, capacity, and timing with entropy analysis."
-    }
+    { "name": "arif_init", "description": "000 Bootstrap governed session and bind actor identity." },
+    { "name": "arif_observe", "description": "111 Ground in current reality (absorbs fetch)." },
+    { "name": "arif_think", "description": "333 Reason, plan, reflect, critique." },
+    { "name": "arif_route", "description": "444 Route intent to correct organ." },
+    { "name": "arif_judge", "description": "888 Constitutional verdict (SEAL/HOLD/VOID)." },
+    { "name": "arif_act", "description": "900 Execute approved action. Requires seal_verdict_id." },
+    { "name": "arif_seal", "description": "999 Seal to immutable ledger." }
   ],
-  "public_tool_count": 13,
-  "constitutional_floors": true,
-  "floors_count": 13,
-  "organs": [
-    "arifOS",
-    "GEOX",
-    "WEALTH"
-  ],
-  "namespace_version": "v1.1",
-  "namespace": "arif_<noun>_<verb>"
+  "public_tool_count": 7,
+  "constitution_hash": "c65465c98bc2cfa0",
+  "floors_active": 13,
+  "irreversible_gate": "arif_act REQUIRES seal_verdict_id from prior arif_judge + arif_seal",
+  "endpoint": "https://mcp.arif-fazil.com/mcp",
+  "note": "Only these 7 are public. All other tools (memory, measure, compose, kernel_intercept, aliases, diagnostics) are internal and filtered from tools/list in canonical mode."
 }

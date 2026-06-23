@@ -53,24 +53,16 @@ def validate_forge_dispatch(plan: SealedForgePlan) -> SealedForgePlan:
         )
 
     if not plan.vault_receipt_required:
-        raise PermissionError(
-            "A-FORGE dispatch rejected: VAULT999 receipt is required"
-        )
+        raise PermissionError("A-FORGE dispatch rejected: VAULT999 receipt is required")
 
     if not plan.act_pattern:
-        raise PermissionError(
-            "A-FORGE dispatch rejected: ACT pattern is required"
-        )
+        raise PermissionError("A-FORGE dispatch rejected: ACT pattern is required")
 
     if not plan.stage_graph:
-        raise PermissionError(
-            "A-FORGE dispatch rejected: stage_graph is required"
-        )
+        raise PermissionError("A-FORGE dispatch rejected: stage_graph is required")
 
     if not plan.art_precheck:
-        raise PermissionError(
-            "A-FORGE dispatch rejected: ART precheck result is required"
-        )
+        raise PermissionError("A-FORGE dispatch rejected: ART precheck result is required")
 
     return plan
 

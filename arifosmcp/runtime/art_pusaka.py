@@ -35,15 +35,15 @@ from enum import Enum
 # If any of these drift, ART must be re-sealed by Arif (F13 SOVEREIGN).
 
 PUSAKA: dict[str, str] = {
-    "apex_canon":          "/root/arifOS/docs/APEX_CANON.md",
-    "apex_kernel_voice":   "/root/arifOS/GENESIS/015_APEX_THEORY_KERNEL_VOICE.md",
-    "kernel_canon":        "/root/arifOS/GENESIS/000_KERNEL_CANON.md",
-    "estate_manifest":     "/root/AAA/contracts/ESTATE_MANIFEST.yaml",
-    "vault999":            "/root/VAULT999/",
-    "openclaw_spec":       "OpenClaw gateway spec 2026-06-21",
-    "art_skill":           "/root/.agents/skills/ART/SKILL.md",
-    "art_cross_domain":    "/root/.agents/skills/ART/references/v3-cross-domain-hardening.md",
-    "seal":                "DITEMPA BUKAN DIBERI",
+    "apex_canon": "/root/arifOS/docs/APEX_CANON.md",
+    "apex_kernel_voice": "/root/arifOS/GENESIS/015_APEX_THEORY_KERNEL_VOICE.md",
+    "kernel_canon": "/root/arifOS/GENESIS/000_KERNEL_CANON.md",
+    "estate_manifest": "/root/AAA/contracts/ESTATE_MANIFEST.yaml",
+    "vault999": "/root/VAULT999/",
+    "openclaw_spec": "OpenClaw gateway spec 2026-06-21",
+    "art_skill": "/root/.agents/skills/ART/SKILL.md",
+    "art_cross_domain": "/root/.agents/skills/ART/references/v3-cross-domain-hardening.md",
+    "seal": "DITEMPA BUKAN DIBERI",
 }
 
 
@@ -54,46 +54,46 @@ PUSAKA: dict[str, str] = {
 
 KAMUS: dict[str, str] = {
     # ── 6 APEX dials (per APEX_CANON.md) ─────────────────────────────────
-    "AKAL":         "A — reasoning lawfulness (F2/F4/F7/F10)",
-    "PRESENT":      "P — state truth (F1/F5/F11)",
-    "AUTHORITY":    "H — legitimacy (F13 + identity)",
-    "ENTROPY":      "S — uncertainty integrity (F4 + ΔS)",
-    "EXPLORATION":  "U — risk × custody (F3/F6/F8/F9)",
-    "ENERGY":       "E — thermodynamic adequacy (F12/F13 + compute)",
+    "AKAL": "A — reasoning lawfulness (F2/F4/F7/F10)",
+    "PRESENT": "P — state truth (F1/F5/F11)",
+    "AUTHORITY": "H — legitimacy (F13 + identity)",
+    "ENTROPY": "S — uncertainty integrity (F4 + ΔS)",
+    "EXPLORATION": "U — risk × custody (F3/F6/F8/F9)",
+    "ENERGY": "E — thermodynamic adequacy (F12/F13 + compute)",
     # ── 8 APEX dials (per GENESIS/015 mapping table) ─────────────────────
-    "amanah":         "F1 — reversible-first",
-    "presence":       "F2/F7 — truth band",
-    "humility":       "F7 — uncertainty 0.03-0.05",
-    "signal":         "F2/F3 — VOID if violated",
-    "understanding":  "F4 — HOLD/SABAR if violated",
-    "custody":        "F1/F9 — 888_HOLD if violated",
+    "amanah": "F1 — reversible-first",
+    "presence": "F2/F7 — truth band",
+    "humility": "F7 — uncertainty 0.03-0.05",
+    "signal": "F2/F3 — VOID if violated",
+    "understanding": "F4 — HOLD/SABAR if violated",
+    "custody": "F1/F9 — 888_HOLD if violated",
     # ── 7 federation organs (per ESTATE_MANIFEST.yaml) ──────────────────
-    "arifOS":   "Constitutional Kernel, :8088",
-    "A-FORGE":  "Execution Shell, :7071",
-    "AAA":      "Control Plane, :3001",
-    "GEOX":     "Earth Intelligence, :8081",
-    "WEALTH":   "Capital Intelligence, :18082",
-    "WELL":     "Vitality Intelligence, :18083",
-    "APEX":     "Verdict Engine (Legacy), :3002",
+    "arifOS": "Constitutional Kernel, :8088",
+    "A-FORGE": "Execution Shell, :7071",
+    "AAA": "Control Plane, :3001",
+    "GEOX": "Earth Intelligence, :8081",
+    "WEALTH": "Capital Intelligence, :18082",
+    "WELL": "Vitality Intelligence, :18083",
+    "APEX": "Verdict Engine (Legacy), :3002",
     # ── Verdict lattice (per APEX_CANON.md §2.4) ────────────────────────
-    "G≥0.80":           "PROCEED (SEAL-grade)",
-    "0.50≤G<0.80":      "SABAR (gather evidence)",
-    "G<0.50":           "HOLD (888 escalation)",
-    "axiom_violated":   "BLOCK (VOID)",
+    "G≥0.80": "PROCEED (SEAL-grade)",
+    "0.50≤G<0.80": "SABAR (gather evidence)",
+    "G<0.50": "HOLD (888 escalation)",
+    "axiom_violated": "BLOCK (VOID)",
     # ── Floor codes (F1-F13) ─────────────────────────────────────────────
-    "F1_AMANAH":    "Reversible-first; irreversible → 888_HOLD",
-    "F2_TRUTH":     "≥0.99 accuracy or declare uncertainty band",
-    "F3_WITNESS":   "Theory · constitution · intent must align",
-    "F4_CLARITY":   "Every output reduces entropy (ΔS ≤ 0)",
-    "F5_PEACE":     "Peace ≥ 1.0; de-escalate, guard maruah",
-    "F6_EMPATHY":   "Dignity-first; ASEAN/MY context",
-    "F7_HUMILITY":  "Uncertainty band 0.03–0.05; no fake certainty",
-    "F8_GENIUS":    "Maintain intelligence quality, system health",
+    "F1_AMANAH": "Reversible-first; irreversible → 888_HOLD",
+    "F2_TRUTH": "≥0.99 accuracy or declare uncertainty band",
+    "F3_WITNESS": "Theory · constitution · intent must align",
+    "F4_CLARITY": "Every output reduces entropy (ΔS ≤ 0)",
+    "F5_PEACE": "Peace ≥ 1.0; de-escalate, guard maruah",
+    "F6_EMPATHY": "Dignity-first; ASEAN/MY context",
+    "F7_HUMILITY": "Uncertainty band 0.03–0.05; no fake certainty",
+    "F8_GENIUS": "Maintain intelligence quality, system health",
     "F9_ANTIHANTU": "Anti-hallucination; C_dark < 0.30",
     "F10_ONTOLOGY": "AI-only ontology; no soul/feelings claims",
-    "F11_AUTH":     "Verify identity before sensitive ops",
-    "F12_INJECTION":"Sanitize inputs; no prompt injection",
-    "F13_SOVEREIGN":"Human veto absolute",
+    "F11_AUTH": "Verify identity before sensitive ops",
+    "F12_INJECTION": "Sanitize inputs; no prompt injection",
+    "F13_SOVEREIGN": "Human veto absolute",
     # ── Pipeline stages (000-999) ───────────────────────────────────────
     "STAGE_000": "INIT    — session bootstrap",
     "STAGE_111": "OBSERVE — multimodal reality observation",
@@ -114,14 +114,16 @@ KAMUS: dict[str, str] = {
 # for the LEGACY 6-check order (art_compat.guarded_tool_call). The v3
 # light reflex (art.art) collapses to 3 checks: POWER, TRUST, STATE.
 
+
 class DewanMember(str, Enum):
     """The 6 members of the DEWAN (council) that deliberate on every tool call."""
-    ENTROPY = "ENTROPY"                 # 1. Ω >= 0.85 → AGENT_PAUSE
-    AUTHORITY = "AUTHORITY"             # 2. tier mismatch → BLOCK
-    REVERSIBILITY = "REVERSIBILITY"     # 3. 4-tier classification
-    IRREVERSIBILITY = "IRREVERSIBILITY" # 4. IRREVERSIBLE + no ack → 888_HOLD
-    DRIFT = "DRIFT"                     # 5. drift >= 3 or failure > 0.3 → SABAR
-    VERDICT = "VERDICT"                 # 6. most restrictive wins
+
+    ENTROPY = "ENTROPY"  # 1. Ω >= 0.85 → AGENT_PAUSE
+    AUTHORITY = "AUTHORITY"  # 2. tier mismatch → BLOCK
+    REVERSIBILITY = "REVERSIBILITY"  # 3. 4-tier classification
+    IRREVERSIBILITY = "IRREVERSIBILITY"  # 4. IRREVERSIBLE + no ack → 888_HOLD
+    DRIFT = "DRIFT"  # 5. drift >= 3 or failure > 0.3 → SABAR
+    VERDICT = "VERDICT"  # 6. most restrictive wins
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -131,6 +133,7 @@ class DewanMember(str, Enum):
 
 class ApexDial(str, Enum):
     """The 6 APEX dials — variables of the Grand Equation."""
+
     AKAL = "AKAL"
     PRESENT = "PRESENT"
     AUTHORITY = "AUTHORITY"

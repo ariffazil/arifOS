@@ -82,9 +82,7 @@ def _enforce_constitutional_constraints(
 
     # F13 SOVEREIGN: only arifOS may hold judge authority.
     if contract.authority_class == AuthorityClass.JUDGE and organ != "arifOS":
-        errors.append(
-            f"authority_class 'judge' is exclusive to arifOS; found organ '{organ}'"
-        )
+        errors.append(f"authority_class 'judge' is exclusive to arifOS; found organ '{organ}'")
 
     # F1 AMANAH: non-judge peers must require a lease.
     if contract.authority_class != AuthorityClass.JUDGE and not contract.lease_required:

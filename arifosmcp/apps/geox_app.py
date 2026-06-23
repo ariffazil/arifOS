@@ -42,7 +42,7 @@ from pydantic import Field
 
 geox_app = FastMCP("GeoxApp")
 if not hasattr(geox_app, "ui"):  # fastmcp 3.2.0 compat: ui() removed — no-op passthrough
-    geox_app.ui = lambda *args, **kwargs: (lambda fn: fn)
+    geox_app.ui = lambda *args, **kwargs: lambda fn: fn
 
 
 @geox_app.tool(name="arifos_verify_location", tags={"hold", "internal", "geox"})

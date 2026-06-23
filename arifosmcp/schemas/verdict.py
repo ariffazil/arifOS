@@ -75,22 +75,30 @@ class AnomalousContrast(BaseModel):
 
     # ── ToAC component factors ───────────────────────────────────────
     u_phys: float = Field(
-        default=0.5, ge=0.0, le=1.0,
-        description="AC_Risk factor: Physical model uncertainty (0=perfect model, 1=no model)"
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="AC_Risk factor: Physical model uncertainty (0=perfect model, 1=no model)",
     )
     d_transform: float = Field(
-        default=1.0, ge=1.0, le=3.0,
-        description="AC_Risk factor: Processing chain distortion (1=direct, 3=highly transformed)"
+        default=1.0,
+        ge=1.0,
+        le=3.0,
+        description="AC_Risk factor: Processing chain distortion (1=direct, 3=highly transformed)",
     )
     b_cog: float = Field(
-        default=0.5, ge=0.0, le=1.0,
-        description="AC_Risk factor: Cognitive bias exposure (0=none, 1=max bias)"
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="AC_Risk factor: Cognitive bias exposure (0=none, 1=max bias)",
     )
 
     # ── Computed AC_Risk (via model_validator) ──────────────────────
     magnitude: float = Field(
-        default=0.25, ge=0.0, le=1.0,
-        description="AC_Risk = U_phys × D_transform × B_cog (computed via model_validator)"
+        default=0.25,
+        ge=0.0,
+        le=1.0,
+        description="AC_Risk = U_phys × D_transform × B_cog (computed via model_validator)",
     )
 
     # Confidence in detection
@@ -100,8 +108,10 @@ class AnomalousContrast(BaseModel):
 
     # Contrast type classification
     contrast_type: Literal[
-        "expected_vs_observed", "claimed_vs_verified",
-        "shortterm_vs_entropy", "local_vs_civilizational",
+        "expected_vs_observed",
+        "claimed_vs_verified",
+        "shortterm_vs_entropy",
+        "local_vs_civilizational",
     ] = Field(description="Canonical contrast classification")
 
     # ── model_validator: compute AC_Risk = U_phys × D_transform × B_cog ──
@@ -552,13 +562,11 @@ class CircuitBreaker(BaseModel):
 
     open: bool = Field(default=False, description="Is the circuit open?")
     reason: str | None = Field(default=None, description="Why the circuit opened")
-    half_open_attempts: int = Field(
-        default=0, ge=0, description="Attempts made in half-open state"
+    half_open_attempts: int = Field(default=0, ge=0, description="Attempts made in half-open state")
+    last_failure: str | None = Field(
+        default=None, description="Timestamp or reason of last failure"
     )
-    last_failure: str | None = Field(default=None, description="Timestamp or reason of last failure")
-    consecutive_failures: int = Field(
-        default=0, ge=0, description="Failures before circuit opened"
-    )
+    consecutive_failures: int = Field(default=0, ge=0, description="Failures before circuit opened")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -989,13 +997,17 @@ class SealOutput(BaseModel):
         default=None,
         description="WEALTH constitutional score: multi-axis reward/risk/verifiability composite",
     )
-    wealth_recommendation: Literal["SEAL_CANDIDATE", "HOLD_CANDIDATE", "VOID_CANDIDATE"] | None = Field(
-        default=None,
-        description="WEALTH score recommendation",
+    wealth_recommendation: Literal["SEAL_CANDIDATE", "HOLD_CANDIDATE", "VOID_CANDIDATE"] | None = (
+        Field(
+            default=None,
+            description="WEALTH score recommendation",
+        )
     )
-    truth_band: Literal["CERTAIN", "HIGH_CONF", "PLAUSIBLE", "SPECULATIVE", "UNKNOWN"] | None = Field(
-        default=None,
-        description="F2 truth band at seal time",
+    truth_band: Literal["CERTAIN", "HIGH_CONF", "PLAUSIBLE", "SPECULATIVE", "UNKNOWN"] | None = (
+        Field(
+            default=None,
+            description="F2 truth band at seal time",
+        )
     )
     confidence_note: str | None = Field(
         default=None,

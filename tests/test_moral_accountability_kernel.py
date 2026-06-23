@@ -4,8 +4,6 @@ Tests for the Moral Accountability Kernel — all 6 primitives.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-
-
 from arifosmcp.core.moral_accountability_kernel import (
     BurdenTransferDetector,
     EuphemismDecoder,
@@ -109,13 +107,15 @@ class TestBurdenTransferDetector:
     def test_analyze_decision_returns_structured_result(self):
         """analyze_decision should return a dict with required fields."""
         detector = BurdenTransferDetector()
-        result = detector.analyze_decision({
-            "decision_id": "tt_layoffs_2025",
-            "beneficiary": "PETRONAS_CEO",
-            "burden_bearer": "PETRONAS_workers",
-            "benefit_value": 10,
-            "burden_value": 90,
-        })
+        result = detector.analyze_decision(
+            {
+                "decision_id": "tt_layoffs_2025",
+                "beneficiary": "PETRONAS_CEO",
+                "burden_bearer": "PETRONAS_workers",
+                "benefit_value": 10,
+                "burden_value": 90,
+            }
+        )
 
         assert result["decision_id"] == "tt_layoffs_2025"
         assert result["beneficiary"] == "PETRONAS_CEO"
@@ -126,13 +126,15 @@ class TestBurdenTransferDetector:
     def test_infinite_ratio_when_no_benefit(self):
         """Transfer ratio should be infinity when benefit is zero."""
         detector = BurdenTransferDetector()
-        result = detector.analyze_decision({
-            "decision_id": "zero_benefit",
-            "beneficiary": "Executive",
-            "burden_bearer": "Workers",
-            "benefit_value": 0,
-            "burden_value": 50,
-        })
+        result = detector.analyze_decision(
+            {
+                "decision_id": "zero_benefit",
+                "beneficiary": "Executive",
+                "burden_bearer": "Workers",
+                "benefit_value": 0,
+                "burden_value": 50,
+            }
+        )
 
         assert result["transfer_ratio"] == float("inf")
         assert result["is_asymmetric"] is True
@@ -141,13 +143,15 @@ class TestBurdenTransferDetector:
     def test_get_transfer_ratio_existing(self):
         """get_transfer_ratio should return ratio for an existing decision."""
         detector = BurdenTransferDetector()
-        detector.analyze_decision({
-            "decision_id": "test_id",
-            "beneficiary": "A",
-            "burden_bearer": "B",
-            "benefit_value": 20,
-            "burden_value": 80,
-        })
+        detector.analyze_decision(
+            {
+                "decision_id": "test_id",
+                "beneficiary": "A",
+                "burden_bearer": "B",
+                "benefit_value": 20,
+                "burden_value": 80,
+            }
+        )
 
         result = detector.get_transfer_ratio("test_id")
         assert result["found"] is True
@@ -162,20 +166,24 @@ class TestBurdenTransferDetector:
     def test_flag_asymmetric_returns_only_asymmetric(self):
         """flag_asymmetric should return only asymmetric transfers."""
         detector = BurdenTransferDetector()
-        detector.analyze_decision({
-            "decision_id": "fair",
-            "beneficiary": "A",
-            "burden_bearer": "B",
-            "benefit_value": 50,
-            "burden_value": 50,
-        })
-        detector.analyze_decision({
-            "decision_id": "unfair",
-            "beneficiary": "A",
-            "burden_bearer": "C",
-            "benefit_value": 10,
-            "burden_value": 90,
-        })
+        detector.analyze_decision(
+            {
+                "decision_id": "fair",
+                "beneficiary": "A",
+                "burden_bearer": "B",
+                "benefit_value": 50,
+                "burden_value": 50,
+            }
+        )
+        detector.analyze_decision(
+            {
+                "decision_id": "unfair",
+                "beneficiary": "A",
+                "burden_bearer": "C",
+                "benefit_value": 10,
+                "burden_value": 90,
+            }
+        )
 
         flags = detector.flag_asymmetric()
         assert len(flags) == 1
@@ -184,27 +192,33 @@ class TestBurdenTransferDetector:
     def test_get_systemic_burden_pattern(self):
         """get_systemic_burden_pattern should aggregate patterns."""
         detector = BurdenTransferDetector()
-        detector.analyze_decision({
-            "decision_id": "d1",
-            "beneficiary": "CEO",
-            "burden_bearer": "Workers",
-            "benefit_value": 10,
-            "burden_value": 80,
-        })
-        detector.analyze_decision({
-            "decision_id": "d2",
-            "beneficiary": "CEO",
-            "burden_bearer": "Contractors",
-            "benefit_value": 5,
-            "burden_value": 60,
-        })
-        detector.analyze_decision({
-            "decision_id": "d3",
-            "beneficiary": "CEO",
-            "burden_bearer": "Suppliers",
-            "benefit_value": 8,
-            "burden_value": 70,
-        })
+        detector.analyze_decision(
+            {
+                "decision_id": "d1",
+                "beneficiary": "CEO",
+                "burden_bearer": "Workers",
+                "benefit_value": 10,
+                "burden_value": 80,
+            }
+        )
+        detector.analyze_decision(
+            {
+                "decision_id": "d2",
+                "beneficiary": "CEO",
+                "burden_bearer": "Contractors",
+                "benefit_value": 5,
+                "burden_value": 60,
+            }
+        )
+        detector.analyze_decision(
+            {
+                "decision_id": "d3",
+                "beneficiary": "CEO",
+                "burden_bearer": "Suppliers",
+                "benefit_value": 8,
+                "burden_value": 70,
+            }
+        )
 
         pattern = detector.get_systemic_burden_pattern()
         assert pattern["systemic_flag"] is True  # CEO appears 3 times
@@ -295,9 +309,7 @@ class TestNoSoulClaimRule:
     def test_validate_claim_pattern_only_pass(self):
         """Pattern-based claims should pass validation."""
         rule = NoSoulClaimRule()
-        result = rule.validate_claim(
-            "TT repeatedly chose burden transfer across 7 decision points"
-        )
+        result = rule.validate_claim("TT repeatedly chose burden transfer across 7 decision points")
 
         assert isinstance(result, ValidationResult)
         assert result.is_pattern_claim is True
@@ -307,9 +319,7 @@ class TestNoSoulClaimRule:
     def test_validate_claim_intent_attribution_fails(self):
         """Claims attributing intent should fail validation."""
         rule = NoSoulClaimRule()
-        result = rule.validate_claim(
-            "TT knew what he was doing when he fired 5,000 workers"
-        )
+        result = rule.validate_claim("TT knew what he was doing when he fired 5,000 workers")
 
         assert result.has_intent_attribute is True
         assert result.f2_compliant is False
@@ -318,9 +328,7 @@ class TestNoSoulClaimRule:
     def test_validate_claim_evil_attribution_fails(self):
         """Calling an actor 'evil' should be flagged."""
         rule = NoSoulClaimRule()
-        result = rule.validate_claim(
-            "The CEO is an evil man who deliberately harms people"
-        )
+        result = rule.validate_claim("The CEO is an evil man who deliberately harms people")
 
         assert result.has_intent_attribute is True
         assert result.f2_compliant is False
@@ -344,9 +352,7 @@ class TestNoSoulClaimRule:
     def test_explain_violation_detailed(self):
         """explain_violation should return match details."""
         rule = NoSoulClaimRule()
-        result = rule.explain_violation(
-            "He knew exactly what he was doing"
-        )
+        result = rule.explain_violation("He knew exactly what he was doing")
 
         assert result["has_intent_attribution"] is True
         assert result["violates_no_soul_rule"] is True
@@ -390,35 +396,53 @@ class TestWeakestStakeholderRegister:
     def test_vulnerability_index_high_for_low_power(self):
         """Low scores should yield high vulnerability index."""
         register = WeakestStakeholderRegister()
-        register.register_stakeholder("Worker", power_score=0.0, optionality_score=0.0, voice_score=0.0)
+        register.register_stakeholder(
+            "Worker", power_score=0.0, optionality_score=0.0, voice_score=0.0
+        )
         result = register.identify_weakest()
         assert result[0]["vulnerability_index"] == 1.0
 
     def test_vulnerability_index_low_for_high_power(self):
         """High scores should yield low vulnerability index."""
         register = WeakestStakeholderRegister()
-        register.register_stakeholder("CEO", power_score=1.0, optionality_score=1.0, voice_score=1.0)
+        register.register_stakeholder(
+            "CEO", power_score=1.0, optionality_score=1.0, voice_score=1.0
+        )
         result = register.identify_weakest()
         assert result[0]["vulnerability_index"] == 0.0
 
     def test_identify_weakest_sorts_by_vulnerability(self):
         """identify_weakest should return sorted list with weakest first."""
         register = WeakestStakeholderRegister()
-        register.register_stakeholder("CEO", power_score=0.9, optionality_score=0.8, voice_score=0.9)
-        register.register_stakeholder("Manager", power_score=0.5, optionality_score=0.4, voice_score=0.3)
-        register.register_stakeholder("Worker", power_score=0.1, optionality_score=0.15, voice_score=0.05)
+        register.register_stakeholder(
+            "CEO", power_score=0.9, optionality_score=0.8, voice_score=0.9
+        )
+        register.register_stakeholder(
+            "Manager", power_score=0.5, optionality_score=0.4, voice_score=0.3
+        )
+        register.register_stakeholder(
+            "Worker", power_score=0.1, optionality_score=0.15, voice_score=0.05
+        )
 
         result = register.identify_weakest()
         assert result[0]["name"] == "Worker"
         assert result[1]["name"] == "Manager"
         assert result[2]["name"] == "CEO"
-        assert result[0]["vulnerability_index"] > result[1]["vulnerability_index"] > result[2]["vulnerability_index"]
+        assert (
+            result[0]["vulnerability_index"]
+            > result[1]["vulnerability_index"]
+            > result[2]["vulnerability_index"]
+        )
 
     def test_get_protected_stakeholders(self):
         """get_protected_stakeholders should return those with low vulnerability."""
         register = WeakestStakeholderRegister()
-        register.register_stakeholder("CEO", power_score=0.9, optionality_score=0.9, voice_score=0.9)
-        register.register_stakeholder("Worker", power_score=0.1, optionality_score=0.1, voice_score=0.1)
+        register.register_stakeholder(
+            "CEO", power_score=0.9, optionality_score=0.9, voice_score=0.9
+        )
+        register.register_stakeholder(
+            "Worker", power_score=0.1, optionality_score=0.1, voice_score=0.1
+        )
 
         protected = register.get_protected_stakeholders()
         assert len(protected) == 1
@@ -427,8 +451,12 @@ class TestWeakestStakeholderRegister:
     def test_get_decision_impact_returns_both_sides(self):
         """get_decision_impact should show impacted and protected."""
         register = WeakestStakeholderRegister()
-        register.register_stakeholder("CEO", power_score=0.9, optionality_score=0.9, voice_score=0.9)
-        register.register_stakeholder("Worker", power_score=0.1, optionality_score=0.1, voice_score=0.1)
+        register.register_stakeholder(
+            "CEO", power_score=0.9, optionality_score=0.9, voice_score=0.9
+        )
+        register.register_stakeholder(
+            "Worker", power_score=0.1, optionality_score=0.1, voice_score=0.1
+        )
 
         impact = register.get_decision_impact("layoff_decision")
         assert impact["decision_context"] == "layoff_decision"
@@ -577,13 +605,25 @@ class TestMoralAccountabilityKernel:
         no_soul = kernel.no_soul_rule
 
         # 1. Register TT's decisions
-        tracker.register_decision("TT", "burden_transfer", "EnQuest $833M deal - give assets to British firm")
-        tracker.register_decision("TT", "burden_transfer", "Eni $15B JV - give assets to Italian firm")
+        tracker.register_decision(
+            "TT", "burden_transfer", "EnQuest $833M deal - give assets to British firm"
+        )
+        tracker.register_decision(
+            "TT", "burden_transfer", "Eni $15B JV - give assets to Italian firm"
+        )
         tracker.register_decision("TT", "rightsizing", "Fire 5,000 workers - keep F1 sponsorship")
-        tracker.register_decision("TT", "euphemistic_justification", "Call it 'rightsizing' and 'energy security'")
-        tracker.register_decision("TT", "burden_transfer", "Sue Sarawak in Federal Court for gas rights")
-        tracker.register_decision("TT", "accountability_avoidance", "Say 'awaiting clarity' on MA63")
-        tracker.register_decision("TT", "burden_transfer", "F1 sponsorship RM340M kept while workers fired")
+        tracker.register_decision(
+            "TT", "euphemistic_justification", "Call it 'rightsizing' and 'energy security'"
+        )
+        tracker.register_decision(
+            "TT", "burden_transfer", "Sue Sarawak in Federal Court for gas rights"
+        )
+        tracker.register_decision(
+            "TT", "accountability_avoidance", "Say 'awaiting clarity' on MA63"
+        )
+        tracker.register_decision(
+            "TT", "burden_transfer", "F1 sponsorship RM340M kept while workers fired"
+        )
 
         # 2. Verify alert triggers
         score = tracker.get_invariant_score("TT")
@@ -592,13 +632,15 @@ class TestMoralAccountabilityKernel:
         assert score["assessment"] == "high_invariant_risk"
 
         # 3. Analyze burden transfers
-        detector.analyze_decision({
-            "decision_id": "workers_vs_f1",
-            "beneficiary": "TT_and_executives",
-            "burden_bearer": "5,000_workers_and_families",
-            "benefit_value": 5,
-            "burden_value": 95,
-        })
+        detector.analyze_decision(
+            {
+                "decision_id": "workers_vs_f1",
+                "beneficiary": "TT_and_executives",
+                "burden_bearer": "5,000_workers_and_families",
+                "benefit_value": 5,
+                "burden_value": 95,
+            }
+        )
         flags = detector.flag_asymmetric()
         assert len(flags) >= 1
 
@@ -630,7 +672,9 @@ class TestMoralAccountabilityKernel:
         kernel.recursion_tracker.record_decision("TT", "layoffs", 0.6, "First round layoffs")
         kernel.recursion_tracker.record_decision("TT", "layoffs", 0.7, "Second round")
         kernel.recursion_tracker.record_decision("TT", "layoffs", 0.8, "Third round")
-        kernel.recursion_tracker.record_decision("TT", "rights_violation", 0.9, "Federal Court against Sarawak")
+        kernel.recursion_tracker.record_decision(
+            "TT", "rights_violation", 0.9, "Federal Court against Sarawak"
+        )
         kernel.recursion_tracker.record_decision("TT", "layoffs", 0.6, "Fourth round")
         kernel.recursion_tracker.record_decision("TT", "layoffs", 0.6, "Fifth round")
         kernel.recursion_tracker.record_decision("TT", "layoffs", 0.7, "Sixth round")

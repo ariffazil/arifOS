@@ -54,12 +54,10 @@ class CapabilityCard(BaseModel):
         default=None,
         description="Hash of the constitutional canon the peer binds to",
     )
-    tool_manifest_url: HttpUrl = Field(
-        description="URL of the peer's canonical tool manifest"
+    tool_manifest_url: HttpUrl = Field(description="URL of the peer's canonical tool manifest")
+    allowed_action_classes: list[Literal["OBSERVE", "PREPARE", "MUTATE", "ATOMIC"]] = Field(
+        min_length=1, description="Action classes the peer may accept"
     )
-    allowed_action_classes: list[
-        Literal["OBSERVE", "PREPARE", "MUTATE", "ATOMIC"]
-    ] = Field(min_length=1, description="Action classes the peer may accept")
     max_risk_tier: Literal["T0", "T1", "T2", "T3", "T4", "T5"] = Field(
         description="Maximum risk tier this peer may operate under"
     )
@@ -111,9 +109,7 @@ class HumanVeto(BaseModel):
 class SignedAttestation(BaseModel):
     """Attestation issued by arifOS 888 JUDGE."""
 
-    issuer: Literal["arifOS-888-JUDGE"] = Field(
-        description="Only arifOS 888 JUDGE may issue"
-    )
+    issuer: Literal["arifOS-888-JUDGE"] = Field(description="Only arifOS 888 JUDGE may issue")
     signature: str = Field(description="Ed25519 signature stub pending F13 ratification")
     issued_at: datetime = Field(description="ISO 8601 issuance timestamp")
     expires_at: datetime = Field(description="ISO 8601 expiry timestamp")
@@ -131,9 +127,7 @@ class PeerFederationContract(BaseModel):
         description="Constitutional authority class of this peer"
     )
     capability_card: CapabilityCard = Field(description="Capability card")
-    lease_required: bool = Field(
-        description="Whether the peer requires a bounded lease to operate"
-    )
+    lease_required: bool = Field(description="Whether the peer requires a bounded lease to operate")
     reversibility_score: float = Field(
         ge=0.0,
         le=1.0,

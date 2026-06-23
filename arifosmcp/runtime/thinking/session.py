@@ -125,6 +125,7 @@ class ThinkingSessionManager:
                         fcntl.flock(f, fcntl.LOCK_UN)
         except Exception as e:
             import sys
+
             sys.stderr.write(f"Error loading mind sessions: {e}\n")
 
     def _save_sessions(self):
@@ -172,7 +173,7 @@ class ThinkingSessionManager:
             steps.append(ThinkingStep(**s_dict))
 
         now_str = datetime.now().isoformat()
-        
+
         status_val = d.get("status")
         if not status_val:
             status_enum = SessionStatus.ACTIVE

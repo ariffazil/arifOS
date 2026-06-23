@@ -2,7 +2,7 @@
 arifOS Resources — Canonical URI Surface
 ════════════════════════════════════════
 
-15 Canonical + Supplemental Resources (intelligence, not chaos).
+Core 7 public + supplemental resources (intelligence, not chaos).
 
 TRUTH HIERARCHY (all resources carry a truth_level):
   1 SOVEREIGN_CANON  — Immutable constitution, seals, sovereign directives

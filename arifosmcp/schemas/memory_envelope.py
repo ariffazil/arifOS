@@ -135,17 +135,25 @@ class MemorySource(BaseModel):
 
     type: SourceType = Field(description="Who or what asserted this memory")
     uri: str | None = Field(default=None, description="Canonical source URI or reference")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC), description="When the source event occurred")
-    confidence: float = Field(ge=0.0, le=1.0, default=0.8, description="Confidence in the source (0.0–1.0)")
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(UTC), description="When the source event occurred"
+    )
+    confidence: float = Field(
+        ge=0.0, le=1.0, default=0.8, description="Confidence in the source (0.0–1.0)"
+    )
 
 
 class MemoryRisk(BaseModel):
     """Risk passport for a memory event — blast radius of remembering this."""
 
     durability: Durability = Field(default=Durability.SESSION, description="Memory lifetime")
-    authority_effect: AuthorityEffect = Field(default=AuthorityEffect.NONE, description="Decision influence level")
+    authority_effect: AuthorityEffect = Field(
+        default=AuthorityEffect.NONE, description="Decision influence level"
+    )
     privacy: PrivacyLevel = Field(default=PrivacyLevel.INTERNAL, description="Visibility boundary")
-    reversibility: Reversibility = Field(default=Reversibility.HIGH, description="How easily this can be undone")
+    reversibility: Reversibility = Field(
+        default=Reversibility.HIGH, description="How easily this can be undone"
+    )
 
 
 class MemoryGovernance(BaseModel):
@@ -180,7 +188,9 @@ class MemoryVirtueReceipt(BaseModel):
         default=MemoryStoreStatus.STORED_ADVISORY,
         description="Final disposition",
     )
-    reasons: list[str] = Field(default_factory=list, description="Why each gate passed/failed/deferred")
+    reasons: list[str] = Field(
+        default_factory=list, description="Why each gate passed/failed/deferred"
+    )
 
     def all_pass(self) -> bool:
         """True only if all four virtues pass."""
@@ -217,7 +227,9 @@ class MemoryEventEnvelope(BaseModel):
     content: str = Field(description="The memory content itself")
     source: MemorySource = Field(description="Where this memory came from")
     risk: MemoryRisk = Field(default_factory=MemoryRisk, description="Risk passport")
-    governance: MemoryGovernance = Field(default_factory=MemoryGovernance, description="Constitutional bindings")
+    governance: MemoryGovernance = Field(
+        default_factory=MemoryGovernance, description="Constitutional bindings"
+    )
     tags: list[str] = Field(default_factory=list, description="Cross-organ search tags")
 
     # Virtue receipt is computed at storage time, not provided by caller
@@ -229,7 +241,9 @@ class MemoryEventEnvelope(BaseModel):
     # Internal routing
     m_tier: MemoryRiskTier = Field(default=MemoryRiskTier.M1, description="Computed M-tier")
     memory_status: MemoryStatus = Field(default=MemoryStatus.ACTIVE, description="Lifecycle state")
-    supersedes_id: str | None = Field(default=None, description="Previous version for update chaining")
+    supersedes_id: str | None = Field(
+        default=None, description="Previous version for update chaining"
+    )
 
     # Capability abstraction (never store raw secrets)
     capability_ref: dict[str, Any] | None = Field(
@@ -312,12 +326,18 @@ def compute_m_tier(envelope: MemoryEventEnvelope) -> MemoryRiskTier:
 
     # M3: identity / authority memory
     if envelope.memory_intent in (MemoryIntent.IDENTITY, MemoryIntent.AUTHORITY):
-        if envelope.governance.requires_888 or envelope.risk.authority_effect == AuthorityEffect.OPERATIONAL:
+        if (
+            envelope.governance.requires_888
+            or envelope.risk.authority_effect == AuthorityEffect.OPERATIONAL
+        ):
             return MemoryRiskTier.M3
 
     # M2: operational project memory
     if envelope.memory_intent in (MemoryIntent.OPERATIONAL, MemoryIntent.PROJECT):
-        if envelope.risk.authority_effect in (AuthorityEffect.ADVISORY, AuthorityEffect.OPERATIONAL):
+        if envelope.risk.authority_effect in (
+            AuthorityEffect.ADVISORY,
+            AuthorityEffect.OPERATIONAL,
+        ):
             return MemoryRiskTier.M2
 
     # M1: user preference

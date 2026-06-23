@@ -18,7 +18,6 @@ Coverage (25 cases):
 """
 
 from __future__ import annotations
-import asyncio
 import json
 import os
 from collections import namedtuple
@@ -51,10 +50,22 @@ from arifosmcp.runtime.art_library import (
 Record = namedtuple(
     "Record",
     [
-        "id", "ts", "session_id", "actor_id", "tool_name",
-        "action_class", "tool_state", "verdict", "witness",
-        "blast_radius", "reversible", "failure_rate", "drift_count",
-        "days_since_use", "intent", "extras",
+        "id",
+        "ts",
+        "session_id",
+        "actor_id",
+        "tool_name",
+        "action_class",
+        "tool_state",
+        "verdict",
+        "witness",
+        "blast_radius",
+        "reversible",
+        "failure_rate",
+        "drift_count",
+        "days_since_use",
+        "intent",
+        "extras",
     ],
 )
 
@@ -139,6 +150,7 @@ def _env_without_pg_dsn():
 # SCHEMA TESTS
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_schema_ddl_is_multiline_string():
     assert isinstance(SCHEMA_DDL, str)
     assert "CREATE TABLE IF NOT EXISTS art_library" in SCHEMA_DDL
@@ -163,6 +175,7 @@ def test_schema_ddl_has_required_indexes():
 # ═══════════════════════════════════════════════════════════════════════════
 # DATA MODEL TESTS
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def test_art_verdict_row_to_dict_serializes_ts(sample_row):
     d = sample_row.to_dict()
@@ -190,6 +203,7 @@ def test_art_verdict_row_minimal_construction():
 # ═══════════════════════════════════════════════════════════════════════════
 # DRY MODE (no DSN)
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @pytest.mark.asyncio
 async def test_record_without_dsn_returns_false(sample_row):
@@ -244,6 +258,7 @@ async def test_prune_without_dsn_returns_zero():
 # ═══════════════════════════════════════════════════════════════════════════
 # WITH MOCK POOL — happy path
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @pytest.mark.asyncio
 async def test_ensure_schema_succeeds_with_pool():
@@ -335,10 +350,9 @@ async def test_recent_for_tool_respects_window_filter():
 @pytest.mark.asyncio
 async def test_success_rate_calculates_correctly():
     """7 PROCEED + 3 HOLD out of 10 = 0.7."""
-    rows = (
-        [_make_record(verdict="PROCEED") for _ in range(7)]
-        + [_make_record(verdict="HOLD") for _ in range(3)]
-    )
+    rows = [_make_record(verdict="PROCEED") for _ in range(7)] + [
+        _make_record(verdict="HOLD") for _ in range(3)
+    ]
     pool, conn = _make_mock_pool(fetch_return=rows)
     lib = ArtLibrary(dsn="postgresql://fake")
     with patch("arifosmcp.runtime.art_library.asyncpg") as mock_asyncpg:
@@ -371,6 +385,7 @@ async def test_prune_handles_unparseable_response():
 # POOL INITIALIZATION FAILURE MODES
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @pytest.mark.asyncio
 async def test_pool_init_asyncpg_missing_returns_false():
     """When asyncpg isn't installed, library returns False, never raises."""
@@ -379,9 +394,11 @@ async def test_pool_init_asyncpg_missing_returns_false():
         # Simulate ImportError by making the import fail
         with patch(
             "builtins.__import__",
-            side_effect=lambda name, *a, **kw: (_ for _ in ()).throw(ImportError(name))
-            if name == "asyncpg"
-            else __import__(name, *a, **kw),
+            side_effect=lambda name, *a, **kw: (
+                (_ for _ in ()).throw(ImportError(name))
+                if name == "asyncpg"
+                else __import__(name, *a, **kw)
+            ),
         ):
             ok = await lib._ensure_pool()
     assert ok is False
@@ -401,6 +418,7 @@ async def test_pool_init_connection_failure_returns_false():
 # SINGLETON
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_get_library_returns_singleton():
     a = get_library()
     b = get_library()
@@ -418,9 +436,11 @@ def test_reset_default_library_yields_new_instance():
 # MODULE-LEVEL IMPORT SAFETY
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 def test_module_imports_without_asyncpg():
     """Importing the module must not require asyncpg to be installed."""
     import arifosmcp.runtime.art_library as mod
+
     assert hasattr(mod, "ArtLibrary")
     assert hasattr(mod, "ArtVerdictRow")
     assert hasattr(mod, "get_library")
@@ -451,6 +471,7 @@ def test_row_to_art_verdict_roundtrip():
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTANTS — the binding windows
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def test_default_retention_is_90_days():
     """Matches ART's days_since_use → ABANDONED transition threshold."""
@@ -484,6 +505,7 @@ def test_art_library_enabled_by_default():
 # ═══════════════════════════════════════════════════════════════════════════
 # LIFECYCLE — close() is idempotent and safe
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @pytest.mark.asyncio
 async def test_close_idempotent():

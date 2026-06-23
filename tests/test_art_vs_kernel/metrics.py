@@ -39,13 +39,9 @@ class ArtVsKernelMetrics:
                 self.cutoff_n is not None
                 and (other.cutoff_n is None or self.cutoff_n < other.cutoff_n)
             ),
-            "no_false_positive_increase": (
-                self.false_positives <= other.false_positives
-            ),
+            "no_false_positive_increase": (self.false_positives <= other.false_positives),
             "faster_p50": self.latency_p50_ms <= other.latency_p50_ms,
-            "shorter_gate_paths": (
-                sum(self.gate_path_lengths) <= sum(other.gate_path_lengths)
-            ),
+            "shorter_gate_paths": (sum(self.gate_path_lengths) <= sum(other.gate_path_lengths)),
         }
 
 

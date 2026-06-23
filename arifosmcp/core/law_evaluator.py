@@ -59,14 +59,14 @@ from arifosmcp.core.threat_engine import (
 # ═══════════════════════════════════════════════════════════════════════════════
 
 LEXICAL_PRIORITY_LAYERS = [
-    "REALITY",      # 0. Physics / evidence floor
-    "DIGNITY",      # 1. Maruah — non-negotiable
-    "CONSTITUTION", # 2. F1-F13 invariants
-    "SAFETY",       # 3. Emergency protocols / circuit breakers
-    "SOVEREIGN",    # 4. Human sovereign (within floors 0-3)
-    "AUTHORITY",    # 5. Leases, amanah, scope
-    "JUDGES",       # 6. Courts, evidence, risk judges
-    "PLANNER",      # 7. Planner, tools, implementation
+    "REALITY",  # 0. Physics / evidence floor
+    "DIGNITY",  # 1. Maruah — non-negotiable
+    "CONSTITUTION",  # 2. F1-F13 invariants
+    "SAFETY",  # 3. Emergency protocols / circuit breakers
+    "SOVEREIGN",  # 4. Human sovereign (within floors 0-3)
+    "AUTHORITY",  # 5. Leases, amanah, scope
+    "JUDGES",  # 6. Courts, evidence, risk judges
+    "PLANNER",  # 7. Planner, tools, implementation
 ]
 
 # Which layers can override which other layers (adjacent override only)

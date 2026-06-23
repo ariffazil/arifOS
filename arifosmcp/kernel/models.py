@@ -40,8 +40,10 @@ from pydantic import BaseModel, Field
 # Enums
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class AdmissibilityVerdict(str, Enum):
     """The eight kernel verdicts. Every MCP call maps to exactly one."""
+
     ADMIT_READ = "ADMIT_READ"
     ADMIT_SIMULATE = "ADMIT_SIMULATE"
     ADMIT_MUTATE = "ADMIT_MUTATE"
@@ -54,24 +56,27 @@ class AdmissibilityVerdict(str, Enum):
 
 class MutationClass(str, Enum):
     """How the tool touches reality."""
-    NONE = "NONE"                     # read/idempotent
-    LOCAL_STATE = "LOCAL_STATE"       # mutates local process state
-    ORG_STATE = "ORG_STATE"           # mutates organ data
-    EXTERNAL = "EXTERNAL"             # network/API side effect
-    IRREVERSIBLE = "IRREVERSIBLE"     # cannot roll back
+
+    NONE = "NONE"  # read/idempotent
+    LOCAL_STATE = "LOCAL_STATE"  # mutates local process state
+    ORG_STATE = "ORG_STATE"  # mutates organ data
+    EXTERNAL = "EXTERNAL"  # network/API side effect
+    IRREVERSIBLE = "IRREVERSIBLE"  # cannot roll back
 
 
 class BlastRadius(str, Enum):
     """Scope of potential damage."""
-    LOCAL = "LOCAL"              # single request
-    PROCESS = "PROCESS"          # this process only
-    ORGAN = "ORGAN"             # one organ
-    FEDERATION = "FEDERATION"    # multiple organs
-    EXTERNAL = "EXTERNAL"        # outside the VPS
+
+    LOCAL = "LOCAL"  # single request
+    PROCESS = "PROCESS"  # this process only
+    ORGAN = "ORGAN"  # one organ
+    FEDERATION = "FEDERATION"  # multiple organs
+    EXTERNAL = "EXTERNAL"  # outside the VPS
 
 
 class AuthorityTier(str, Enum):
     """What authority level an actor holds."""
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
@@ -80,6 +85,7 @@ class AuthorityTier(str, Enum):
 
 class TrustState(str, Enum):
     """Where a server/tool is in its trust lifecycle."""
+
     UNKNOWN = "UNKNOWN"
     DISCOVERED = "DISCOVERED"
     SANDBOXED = "SANDBOXED"
@@ -92,6 +98,7 @@ class TrustState(str, Enum):
 
 class ResourceClass(str, Enum):
     """What kind of resource this capability touches."""
+
     FILE = "FILE"
     DB_TABLE = "DB_TABLE"
     SECRET = "SECRET"
@@ -122,15 +129,17 @@ class DataExfiltrationRisk(str, Enum):
 # Three Beasts — Gödel-lock, Strange Loop, Anti-sink
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class EvidenceSource(str, Enum):
     """Where does the evidence for this action come from?
-    
+
     The kernel does not manufacture truth. It constrains intelligence so that
     claims, authority, and actions remain accountable to evidence.
-    
+
     Mission 002 — Strange Loop: mutations require at least one EXTERNAL_* source.
     Prevents closed internal reality loops where the system believes its own stories.
     """
+
     INTERNAL_MODEL = "INTERNAL_MODEL"
     INTERNAL_TOOL = "INTERNAL_TOOL"
     EXTERNAL_DB = "EXTERNAL_DB"
@@ -144,13 +153,14 @@ class EvidenceSource(str, Enum):
 
 class TruthClass(str, Enum):
     """What epistemic status does this output carry?
-    
+
     arifOS does not create truth. arifOS prevents unearned claims and
     unauthorized actions from masquerading as truth.
-    
+
     Mission 002 — Strange Loop: verdicts built only from internal premises
     cannot be classified as OBSERVATION or POLICY_VERDICT.
     """
+
     OBSERVATION = "OBSERVATION"
     MEASUREMENT = "MEASUREMENT"
     DERIVED = "DERIVED"
@@ -163,9 +173,10 @@ class TruthClass(str, Enum):
 
 class WitnessType(str, Enum):
     """What kind of witness attested to an action.
-    
+
     Mission 001 — Gödel-lock: irreversible mutations require at least one witness.
     """
+
     HUMAN = "HUMAN"
     EXTERNAL_SYSTEM = "EXTERNAL_SYSTEM"
     SIGNED_SENSOR = "SIGNED_SENSOR"
@@ -176,9 +187,10 @@ class WitnessType(str, Enum):
 
 class SinkRisk(str, Enum):
     """Is this organ/capability at risk of behavioral sink?
-    
+
     Mission 003 — Anti-sink: simulation without action degrades to SINK_RISK.
     """
+
     NONE = "NONE"
     REHEARSING = "REHEARSING"
     SINK_RISK = "SINK_RISK"
@@ -187,13 +199,14 @@ class SinkRisk(str, Enum):
 
 class Witness(BaseModel):
     """An external witness to an action.
-    
+
     Constraints do not create truth. Constraints prevent falsehood
     from gaining authority.
-    
+
     Mission 001 — Gödel-lock: prevents self-certification.
     The actor of a mutation cannot be the final certifier.
     """
+
     witness_type: WitnessType = Field(default=WitnessType.NONE)
     witness_id: str = Field(default="", description="Identifier of the witness")
     nonce: str | None = Field(default=None, description="Cryptographic nonce if signed")
@@ -205,12 +218,14 @@ class Witness(BaseModel):
 # Capability Node — the constitutional atomic unit
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class CapabilityNode(BaseModel):
     """A compiled capability — one tool on one server, fully classified.
 
     This is the kernel's ontology of power. Every MCP tool maps to exactly
     one CapabilityNode (or is denied as unknown).
     """
+
     capability_id: str = Field(description="Stable, semantic ID, e.g. 'fs.read'")
     tool_name: str = Field(description="Raw MCP tool name")
     server_id: str = Field(description="MCP server origin")
@@ -220,7 +235,7 @@ class CapabilityNode(BaseModel):
     authority_required: AuthorityTier = Field(default=AuthorityTier.LOW)
     requires_888_hold: bool = Field(
         default=False,
-        description="If True, this capability always requires 888_HOLD regardless of authority."
+        description="If True, this capability always requires 888_HOLD regardless of authority.",
     )
 
     # ── Mutation ─────────────────────────────────────────────────────────
@@ -236,7 +251,7 @@ class CapabilityNode(BaseModel):
     organ_id: str | None = Field(
         default=None,
         description="Which organ owns this capability (GEOX, WEALTH, WELL, A-FORGE, etc.)"
-        " Used for blast-radius grouping and skill-escape detection."
+        " Used for blast-radius grouping and skill-escape detection.",
     )
 
     # ── Risk ─────────────────────────────────────────────────────────────
@@ -244,7 +259,7 @@ class CapabilityNode(BaseModel):
     data_exfiltration_risk: DataExfiltrationRisk = Field(default=DataExfiltrationRisk.LOW)
     allow_python_fallback: bool = Field(
         default=False,
-        description="If True, Python execution is allowed. Default False kills universal fallback."
+        description="If True, Python execution is allowed. Default False kills universal fallback.",
     )
 
     # ── Trust lifecycle ──────────────────────────────────────────────────
@@ -254,8 +269,7 @@ class CapabilityNode(BaseModel):
 
     # Gödel-lock (Mission 001): external witness required for irreversible actions
     requires_external_witness: bool = Field(
-        default=False,
-        description="If True, irreversible mutations require an external witness."
+        default=False, description="If True, irreversible mutations require an external witness."
     )
 
     # ── Contract bindings (RSI 2026-06-22 FORGE) ─────────────────────────
@@ -264,53 +278,49 @@ class CapabilityNode(BaseModel):
     allowed_actors: list[str] | None = Field(
         default=None,
         description="Per-actor allowlist. If set, only these actor_ids may invoke. "
-                    "Bypassed for SOVEREIGN authority (the human is always allowed)."
+        "Bypassed for SOVEREIGN authority (the human is always allowed).",
     )
     witness_types: list[WitnessType] | None = Field(
-        default=None,
-        description="Accepted witness types for this capability. Empty/None = any."
+        default=None, description="Accepted witness types for this capability. Empty/None = any."
     )
     modes: list[str] | None = Field(
         default=None,
-        description="Bounded behavior modes this capability exposes. "
-                    "Empty/None = no mode check."
+        description="Bounded behavior modes this capability exposes. Empty/None = no mode check.",
     )
     bootstrap: bool = Field(
         default=False,
         description="Bootstrap floor flag. If True, the capability is always reachable "
-                    "for read-only introspection — bypassing the Unknown Capability DENY. "
-                    "Used for self-diagnosis tools (arif_kernel_status, arif_explain_denial). "
-                    "Bootstrap tools MUST have mutation_class=NONE."
+        "for read-only introspection — bypassing the Unknown Capability DENY. "
+        "Used for self-diagnosis tools (arif_kernel_status, arif_explain_denial). "
+        "Bootstrap tools MUST have mutation_class=NONE.",
     )
 
     # Strange Loop (Mission 002): external anchor required for mutations
     requires_external_anchor: bool = Field(
         default=False,
-        description="If True, ADMIT_MUTATE requires at least one EXTERNAL_* evidence source."
+        description="If True, ADMIT_MUTATE requires at least one EXTERNAL_* evidence source.",
     )
 
     # Anti-sink (Mission 003): prevent infinite simulation without action
     max_simulations_before_action: int = Field(
         default=0,
-        description="Max ADMIT_SIMULATE calls before action or refusal is required. 0 = unlimited."
+        description="Max ADMIT_SIMULATE calls before action or refusal is required. 0 = unlimited.",
     )
     requires_action_or_refusal_log: bool = Field(
         default=False,
-        description="If True, tool cannot be simulated indefinitely. Must either act or log refusal."
+        description="If True, tool cannot be simulated indefinitely. Must either act or log refusal.",
     )
     simulation_expiry_seconds: int | None = Field(
-        default=None,
-        description="Simulation session expires after N seconds. None = no expiry."
+        default=None, description="Simulation session expires after N seconds. None = no expiry."
     )
 
     # ── Schema integrity ─────────────────────────────────────────────────
     schema_hash: str | None = Field(
-        default=None,
-        description="SHA-256 hash of inputSchema + outputSchema for drift detection."
+        default=None, description="SHA-256 hash of inputSchema + outputSchema for drift detection."
     )
     policy_hash: str | None = Field(
         default=None,
-        description="Hash of the policy rules applied to this capability at compile time."
+        description="Hash of the policy rules applied to this capability at compile time.",
     )
 
     def compute_hash(self) -> str:
@@ -340,8 +350,10 @@ class CapabilityNode(BaseModel):
 # Graph Version — for replayable, time-travel capability queries
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class GraphVersion(BaseModel):
     """A snapshot of the capability graph at a point in time."""
+
     version_id: str = Field(description="Monotonic version ID, e.g. 'v0.2.1' or a SHA")
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     capability_count: int = Field(default=0)
@@ -363,6 +375,7 @@ class GraphVersion(BaseModel):
 # CapabilityGraph — the compiled, versioned, queryable graph
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class CapabilityGraph(BaseModel):
     """The kernel's constitutional map of power.
 
@@ -373,6 +386,7 @@ class CapabilityGraph(BaseModel):
     that prevents untruth, drift, and unauthorized power from crossing
     into reality.
     """
+
     version: GraphVersion = Field(default_factory=lambda: GraphVersion(version_id="v0.0.0"))
     capabilities: list[CapabilityNode] = Field(default_factory=list)
 
@@ -457,7 +471,8 @@ class CapabilityGraph(BaseModel):
         added = list(set(b_map.keys()) - set(a_map.keys()))
         removed = list(set(a_map.keys()) - set(b_map.keys()))
         changed = [
-            cid for cid in set(a_map.keys()) & set(b_map.keys())
+            cid
+            for cid in set(a_map.keys()) & set(b_map.keys())
             if a_map[cid].compute_hash() != b_map[cid].compute_hash()
         ]
         return {"added": sorted(added), "removed": sorted(removed), "changed": sorted(changed)}
@@ -466,9 +481,10 @@ class CapabilityGraph(BaseModel):
         """Serialise for sealing / export."""
         return {
             "version": self.version.model_dump(mode="json"),
-            "capabilities": [c.model_dump(mode="json") for c in sorted(
-                self.capabilities, key=lambda x: x.capability_id
-            )],
+            "capabilities": [
+                c.model_dump(mode="json")
+                for c in sorted(self.capabilities, key=lambda x: x.capability_id)
+            ],
         }
 
 
@@ -476,8 +492,10 @@ class CapabilityGraph(BaseModel):
 # Interceptor input / output (unchanged from v0.1)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class InterceptorInput(BaseModel):
     """Normalised form of an inbound MCP tool call."""
+
     raw_tool_name: str
     raw_arguments: dict
     server_id: str = "local"
@@ -488,6 +506,7 @@ class InterceptorInput(BaseModel):
 
 class InterceptorDecision(BaseModel):
     """The kernel's answer. Every MCP call produces exactly one."""
+
     verdict: AdmissibilityVerdict
     reason: str
     capability_id: str | None = None
@@ -502,8 +521,7 @@ class InterceptorDecision(BaseModel):
     witness: Witness | None = Field(default=None)
     evidence_sources: list[EvidenceSource] = Field(default_factory=list)
     truth_class: TruthClass | None = Field(
-        default=None,
-        description="Set after classification. Default None until admission step."
+        default=None, description="Set after classification. Default None until admission step."
     )
     sink_risk: SinkRisk = Field(default=SinkRisk.NONE)
     simulation_count_before_decision: int = Field(default=0)
@@ -511,5 +529,5 @@ class InterceptorDecision(BaseModel):
     normalized_request: dict = Field(default_factory=dict)
     rewrite_hint: str | None = Field(
         default=None,
-        description="Optional instruction to prepend to tool arguments, e.g. 'SIMULATION_MODE'"
+        description="Optional instruction to prepend to tool arguments, e.g. 'SIMULATION_MODE'",
     )

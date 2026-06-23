@@ -47,7 +47,10 @@ class TelemetryPublisher:
             )
             logger.info("Created JetStream stream: %s", STREAM_NAME)
         except Exception as exc:
-            if "already in use" in str(exc).lower() or "stream name already in use" in str(exc).lower():
+            if (
+                "already in use" in str(exc).lower()
+                or "stream name already in use" in str(exc).lower()
+            ):
                 logger.debug("Stream %s already exists", STREAM_NAME)
             else:
                 raise

@@ -13,6 +13,7 @@ import hashlib
 # ──────────────────────────────────────────────
 from arifosmcp.runtime.sovereign_anchor import verify_sovereign_anchor
 
+
 class TestSovereignAnchor:
     """Eureka 1: Session → /000 sovereign anchor enforcement."""
 
@@ -264,6 +265,7 @@ class TestVaultChain:
 # ──────────────────────────────────────────────
 # Cross-Module: Loop Closure Integration
 # ──────────────────────────────────────────────
+
 
 class TestLoopClosure:
     """Integration test: /000 → E1→E5→E2→E4→E3→E6 → /999 loop."""

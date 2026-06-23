@@ -73,7 +73,10 @@ logger = logging.getLogger(__name__)
 SENSE_PARADOX_ANCHORS: list[dict] = [
     # ── TRUTH ROW ──────────────────────────────────────────────────────────────
     {
-        "id": "S_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "id": "S_TxC",
+        "matrix_cell": "truth_care",
+        "matrix_row": "TRUTH",
+        "matrix_col": "CARE",
         "motto_binding": "DIKAJI, BUKAN DISUAPI",
         "quote": {
             "text": "In God we trust; all others bring data.",
@@ -95,7 +98,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "S_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "id": "S_TxP",
+        "matrix_cell": "truth_peace",
+        "matrix_row": "TRUTH",
+        "matrix_col": "PEACE",
         "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
         "quote": {
             "text": "The first principle is that you must not fool yourself — and you are the easiest person to fool.",
@@ -117,7 +123,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "S_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "id": "S_TxJ",
+        "matrix_cell": "truth_justice",
+        "matrix_row": "TRUTH",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
         "quote": {
             "text": "What I cannot create, I do not understand.",
@@ -140,7 +149,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
     },
     # ── CLARITY ROW ────────────────────────────────────────────────────────────
     {
-        "id": "S_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "id": "S_CxC",
+        "matrix_cell": "clarity_care",
+        "matrix_row": "CLARITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
         "quote": {
             "text": "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
@@ -162,7 +174,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
         "norm": "HARUS",
     },
     {
-        "id": "S_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "id": "S_CxP",
+        "matrix_cell": "clarity_peace",
+        "matrix_row": "CLARITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIHADAPI, BUKAN DITANGGUHI",
         "quote": {
             "text": "We don't see things as they are, we see them as we are.",
@@ -184,7 +199,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "S_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "id": "S_CxJ",
+        "matrix_cell": "clarity_justice",
+        "matrix_row": "CLARITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
         "quote": {
             "text": "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
@@ -208,7 +226,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
     },
     # ── HUMILITY ROW ───────────────────────────────────────────────────────────
     {
-        "id": "S_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "id": "S_HxC",
+        "matrix_cell": "humility_care",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
         "quote": {
             "text": "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
@@ -230,7 +251,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "S_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "id": "S_HxP",
+        "matrix_cell": "humility_peace",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
         "quote": {
             "text": "It is better to know some of the questions than all of the answers.",
@@ -252,7 +276,10 @@ SENSE_PARADOX_ANCHORS: list[dict] = [
         "norm": "SUNAT",
     },
     {
-        "id": "S_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "id": "S_HxJ",
+        "matrix_cell": "humility_justice",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DITEMPA, BUKAN DIBERI",
         "quote": {
             "text": "Measure what is measurable, and make measurable what is not so.",
@@ -316,10 +343,16 @@ def _agentic_search_plan(
     # ── Decompose query into subquestions ──
     subquestions = []
     if query:
-        subquestions.append({"id": "sq1", "text": f"What is the ground truth about: {query[:120]}?"})
-        subquestions.append({"id": "sq2", "text": f"What sources are authoritative for: {query[:120]}?"})
+        subquestions.append(
+            {"id": "sq1", "text": f"What is the ground truth about: {query[:120]}?"}
+        )
+        subquestions.append(
+            {"id": "sq2", "text": f"What sources are authoritative for: {query[:120]}?"}
+        )
         if urgency == "HIGH":
-            subquestions.append({"id": "sq3", "text": "Are there contradictory claims that need triangulation?"})
+            subquestions.append(
+                {"id": "sq3", "text": "Are there contradictory claims that need triangulation?"}
+            )
 
     # ── VOI estimate: is sensing worth it? ──
     coverage_gap = max(0.0, required_quality - prior_coverage)
@@ -398,7 +431,9 @@ def _grade_sensing_sufficiency(
     # Compute post-sensing metrics
     trust_scores = [o.get("trust", 0.5) for o in observations if isinstance(o, dict)]
     avg_trust = sum(trust_scores) / len(trust_scores) if trust_scores else 0.5
-    source_count = len(set(o.get("source_type", "unknown") for o in observations if isinstance(o, dict)))
+    source_count = len(
+        set(o.get("source_type", "unknown") for o in observations if isinstance(o, dict))
+    )
 
     # Coverage: simple heuristic — more sources = broader coverage
     coverage_gain = min(source_count * 0.15, 0.4)
@@ -535,8 +570,6 @@ def _calculate_discovery_physics(
 
 
 def arif_observe(
-
-
     mode: str = "search",
     query: str | None = None,
     url: str | None = None,
@@ -565,8 +598,17 @@ def arif_observe(
       entropy_dS → Random entropy delta (physics stub)
       vitals   → System vitals stub
     """
-    if mode in ("geox_quantum_scope", "geox_molecular_target_scan", "geox_seismic_quantum_lint", "geox_pvt_quantum_opportunity", "geox_ccus_geochem_scan"):
-        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+    if mode in (
+        "geox_quantum_scope",
+        "geox_molecular_target_scan",
+        "geox_seismic_quantum_lint",
+        "geox_pvt_quantum_opportunity",
+        "geox_ccus_geochem_scan",
+    ):
+        return {
+            "status": "readonly",
+            "message": f"{mode} activated based on GEOX quantum scale classifier.",
+        }
 
     # ── L11 AUTH: Session Validation (Hardened) ───────────────────────────────
     auth = validate_session(session_id, actor_id)
@@ -881,7 +923,7 @@ def arif_observe(
                 "Verify critical claims with primary sources before proceeding."
             )
 
-# ── STEP 1 KERNEL BRIDGE ────────────────────────────────────────────────
+        # ── STEP 1 KERNEL BRIDGE ────────────────────────────────────────────────
         # arifOS core/ kernel call — wrapped in compatibility guard.
         # If import or call fails, tool still returns normally (kernel_bridge = "MISS"/"ERROR").
         kernel_bridge: str = "MISS"
@@ -889,28 +931,38 @@ def arif_observe(
         try:
             import sys as _sys
             from pathlib import Path as _Path
+
             _WORK = _Path(__file__).resolve().parents[3]  # /workspace/arifOS
             if str(_WORK) not in _sys.path:
                 _sys.path.insert(0, str(_WORK))
             from core.governance_kernel import get_governance_kernel
+
             _gk = get_governance_kernel(session_id or "global")
-            _gk.record_event("action", {
-                "tool": "arif_observe",
-                "mode": "hybrid_discovery",
-                "query": q,
-                "actor_id": actor_id,
-            })
-            kernel_result = _gk.evaluate_floors(query=q, options={
-                "session_id": session_id,
-                "actor_id": actor_id,
-                "human_witness": 0.5,
-                "ai_witness": 0.5,
-                "earth_witness": 0.5,
-            })
+            _gk.record_event(
+                "action",
+                {
+                    "tool": "arif_observe",
+                    "mode": "hybrid_discovery",
+                    "query": q,
+                    "actor_id": actor_id,
+                },
+            )
+            kernel_result = _gk.evaluate_floors(
+                query=q,
+                options={
+                    "session_id": session_id,
+                    "actor_id": actor_id,
+                    "human_witness": 0.5,
+                    "ai_witness": 0.5,
+                    "earth_witness": 0.5,
+                },
+            )
             kernel_bridge = "HIT"
             # Log the kernel function invoked and payload shape
             print("[KERNEL-BRIDGE] arif_observe → core.governance_kernel.evaluate_floors")
-            print(f"[KERNEL-BRIDGE]   query={repr(q[:80])}, payload_keys={list(kernel_result.keys())}")
+            print(
+                f"[KERNEL-BRIDGE]   query={repr(q[:80])}, payload_keys={list(kernel_result.keys())}"
+            )
             kernel_metrics = {
                 "qdf": kernel_result.get("qdf"),
                 "verdict": kernel_result.get("verdict"),
@@ -925,44 +977,46 @@ def arif_observe(
 
         return _ok(
             "arif_observe",
-            _inject_rasa({
-                "status": "OK",
-                "tool": "arif_observe",
-                "mode": "hybrid_discovery",
-                "query": q,
-                "kernel_bridge": kernel_bridge,  # "HIT" | "MISS" | "ERROR"
-                "kernel_metrics": kernel_metrics,  # full metrics if HIT, None if MISS/ERROR
-                "evidence_state": evidence_state,
-                "verdict": verdict,
-                "facts": facts,
-                "knowledge_layers": {
-                    "local_wiki": {
-                        "status": local_wiki_status,
-                        "matches": local_wiki_matches,
+            _inject_rasa(
+                {
+                    "status": "OK",
+                    "tool": "arif_observe",
+                    "mode": "hybrid_discovery",
+                    "query": q,
+                    "kernel_bridge": kernel_bridge,  # "HIT" | "MISS" | "ERROR"
+                    "kernel_metrics": kernel_metrics,  # full metrics if HIT, None if MISS/ERROR
+                    "evidence_state": evidence_state,
+                    "verdict": verdict,
+                    "facts": facts,
+                    "knowledge_layers": {
+                        "local_wiki": {
+                            "status": local_wiki_status,
+                            "matches": local_wiki_matches,
+                        },
+                        "repo_index": {
+                            "status": repo_index_status,
+                            "matches": repo_index_matches,
+                        },
+                        "web_reality": {
+                            "status": web_status,
+                            "source": web_engine,
+                            "error": web_error,
+                            "matches": web_matches,
+                        },
                     },
-                    "repo_index": {
-                        "status": repo_index_status,
-                        "matches": repo_index_matches,
+                    "physics_kernel": physics,
+                    "physics": physics,
+                    "reconciliation": {
+                        "state": "NOT_EVALUATED",
+                        "contradictions": contradictions,
+                        "unknowns": unknowns,
                     },
-                    "web_reality": {
-                        "status": web_status,
-                        "source": web_engine,
-                        "error": web_error,
-                        "matches": web_matches,
-                    },
-                },
-                "physics_kernel": physics,
-                "physics": physics,
-                "reconciliation": {
-                    "state": "NOT_EVALUATED",
+                    "confidence": confidence,
+                    "next_safe_action": next_safe_action,
                     "contradictions": contradictions,
                     "unknowns": unknowns,
-                },
-                "confidence": confidence,
-                "next_safe_action": next_safe_action,
-                "contradictions": contradictions,
-                "unknowns": unknowns,
-            }),
+                }
+            ),
         )
 
     if mode == "search":
@@ -984,30 +1038,34 @@ def arif_observe(
             omega_0 = 0.05 + min(len(results) * 0.02, 0.20)
             return _ok(
                 "arif_observe",
-                _inject_rasa({
-                    "query": query,
-                    "results": results,
-                    "source": s_res.engine,
-                    "verdict": "SEAL" if results else "SABAR",
-                    "omega_0": round(omega_0, 3),
-                    "partition": "ONLINE",
-                    "latency_ms": round(s_res.latency_ms, 1),
-                    "note": None if results else "No results — check query or API keys",
-                }),
+                _inject_rasa(
+                    {
+                        "query": query,
+                        "results": results,
+                        "source": s_res.engine,
+                        "verdict": "SEAL" if results else "SABAR",
+                        "omega_0": round(omega_0, 3),
+                        "partition": "ONLINE",
+                        "latency_ms": round(s_res.latency_ms, 1),
+                        "note": None if results else "No results — check query or API keys",
+                    }
+                ),
             )
         except Exception as e:
             logger.warning(f"RealityHandler failure in arif_observe ({mode}): {e}")
             return _ok(
                 "arif_observe",
-                _inject_rasa({
-                    "query": query,
-                    "results": [],
-                    "source": "fallback_stub",
-                    "verdict": "SABAR",
-                    "omega_0": 0.04,
-                    "partition": "ONLINE",
-                    "note": f"RealityHandler fallback failed: {e}",
-                }),
+                _inject_rasa(
+                    {
+                        "query": query,
+                        "results": [],
+                        "source": "fallback_stub",
+                        "verdict": "SABAR",
+                        "omega_0": 0.04,
+                        "partition": "ONLINE",
+                        "note": f"RealityHandler fallback failed: {e}",
+                    }
+                ),
             )
 
     if mode == "ingest" and url:
@@ -1023,28 +1081,34 @@ def arif_observe(
             )
             return _ok(
                 "arif_observe",
-                _inject_rasa({
-                    "url": url,
-                    "ingested": bundle.status.state == "SUCCESS",
-                    "bundle_id": bundle.id,
-                    "status": bundle.status.state,
-                    "verdict": bundle.status.verdict,
-                    "results_count": len(bundle.results),
-                    "partition": "ONLINE",
-                    "errors": [{"code": e.code, "detail": e.detail} for e in bundle.status.errors],
-                }),
+                _inject_rasa(
+                    {
+                        "url": url,
+                        "ingested": bundle.status.state == "SUCCESS",
+                        "bundle_id": bundle.id,
+                        "status": bundle.status.state,
+                        "verdict": bundle.status.verdict,
+                        "results_count": len(bundle.results),
+                        "partition": "ONLINE",
+                        "errors": [
+                            {"code": e.code, "detail": e.detail} for e in bundle.status.errors
+                        ],
+                    }
+                ),
             )
         except Exception as e:
             logger.warning(f"RealityHandler failure in arif_observe ({mode}): {e}")
             return _ok(
                 "arif_observe",
-                _inject_rasa({
-                    "url": url,
-                    "ingested": False,
-                    "verdict": "SABAR",
-                    "partition": "ONLINE",
-                    "note": f"RealityHandler fallback failed: {e}",
-                }),
+                _inject_rasa(
+                    {
+                        "url": url,
+                        "ingested": False,
+                        "verdict": "SABAR",
+                        "partition": "ONLINE",
+                        "note": f"RealityHandler fallback failed: {e}",
+                    }
+                ),
             )
 
     if mode == "compass":
@@ -1126,6 +1190,7 @@ def arif_observe(
         import re
 
         import yaml
+
         try:
             with open("/root/arifOS/config/crypto_patterns.yaml") as f:
                 patterns = yaml.safe_load(f).get("crypto_patterns", {})
@@ -1144,35 +1209,38 @@ def arif_observe(
                                 matched = False
                                 for regex in data.get("regex", []):
                                     if re.search(regex, c, re.IGNORECASE):
-                                        findings.append({
-                                            "path": file_path.replace("/root/arifOS/", ""),
-                                            "algorithm": algo.upper(),
-                                            "usage": "auth_or_encryption",
-                                            "quantum_vulnerable": algo.lower() in ["rsa", "ecdsa", "dh"],
-                                            "confidence": 0.85
-                                        })
+                                        findings.append(
+                                            {
+                                                "path": file_path.replace("/root/arifOS/", ""),
+                                                "algorithm": algo.upper(),
+                                                "usage": "auth_or_encryption",
+                                                "quantum_vulnerable": algo.lower()
+                                                in ["rsa", "ecdsa", "dh"],
+                                                "confidence": 0.85,
+                                            }
+                                        )
                                         matched = True
                                         break
-                                if matched: continue
+                                if matched:
+                                    continue
                                 for fpat in data.get("files", []):
                                     if fpat in file:
-                                        findings.append({
-                                            "path": file_path.replace("/root/arifOS/", ""),
-                                            "algorithm": algo.upper(),
-                                            "usage": "config",
-                                            "quantum_vulnerable": True,
-                                            "confidence": 0.90
-                                        })
+                                        findings.append(
+                                            {
+                                                "path": file_path.replace("/root/arifOS/", ""),
+                                                "algorithm": algo.upper(),
+                                                "usage": "config",
+                                                "quantum_vulnerable": True,
+                                                "confidence": 0.90,
+                                            }
+                                        )
                                         break
                     except Exception:
                         pass
-        return {
-            "mode": mode,
-            "mutation": False,
-            "findings": findings
-        }
+        return {"mode": mode, "mutation": False, "findings": findings}
 
     return _hold("arif_observe", f"Unknown mode: {mode}")
+
 
 # Backward compatibility alias
 arif_sense_observe = arif_observe

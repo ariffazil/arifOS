@@ -31,7 +31,9 @@ class EvidenceReceipt(BaseModel):
     witnesses: list[Witness]
     source_refs: list[str] = Field(default_factory=list)
     session_id: str | None = None
-    created_at: str = Field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+    created_at: str = Field(
+        default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    )
 
     def is_tri_witnessed(self) -> bool:
         types = {w.witness_type for w in self.witnesses}

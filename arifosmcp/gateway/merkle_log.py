@@ -160,7 +160,9 @@ class MerkleTree:
             return {
                 "old_tree_size": old_size,
                 "new_tree_size": new_size,
-                "old_root": self._root_for_size(old_size).hex() if old_size > 0 else hashlib.sha256(b"").hexdigest(),
+                "old_root": self._root_for_size(old_size).hex()
+                if old_size > 0
+                else hashlib.sha256(b"").hexdigest(),
                 "new_root": self._root_for_size(new_size).hex(),
                 "consistency_path": [],
             }
@@ -347,9 +349,7 @@ def verify_checkpoint(
     if checkpoint_history:
         prev = checkpoint_history[-1]
         if checkpoint["tree_size"] < prev["tree_size"]:
-            issues.append(
-                f"Tree size decreased: {prev['tree_size']} → {checkpoint['tree_size']}"
-            )
+            issues.append(f"Tree size decreased: {prev['tree_size']} → {checkpoint['tree_size']}")
 
     # Valid root hash format
     try:

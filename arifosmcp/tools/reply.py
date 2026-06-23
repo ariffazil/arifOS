@@ -262,5 +262,6 @@ def arif_compose(
 
     return _hold("arif_compose", f"Unknown mode: {mode}")
 
+
 # Backward compatibility alias
 arif_reply_compose = arif_compose

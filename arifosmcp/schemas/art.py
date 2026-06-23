@@ -61,7 +61,7 @@ class ToolLifecycle(StrEnum):
     UNTRUSTED = "UNTRUSTED"
     OBSERVED = "OBSERVED"
     TRUSTED = "TRUSTED"
-    DEGRADED = "DEGRADED"       # TARGET — not yet in runtime/art.py ToolState
+    DEGRADED = "DEGRADED"  # TARGET — not yet in runtime/art.py ToolState
     FALLBACK = "FALLBACK"
     ABANDONED = "ABANDONED"
 

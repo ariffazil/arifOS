@@ -226,7 +226,7 @@ F13 is absolute and cannot be bypassed by any agent.
 | Source | Count | Status |
 |--------|-------|--------|
 | 13-Tool Manifest (2026-04-19) | 13 | SUPERSEDED |
-| **Current canonical** | **15 canonical + 1 canary** | **THIS DOCUMENT** |
+| **Current canonical** | **7 public verbs (see public_surface.py)** | **THIS DOCUMENT (historical count notes)** |
 | Health: canonical_tools_loaded | 15 | ✅ VERIFIED |
 | Health: tools_exposed_via_mcp | 18 | ✅ VERIFIED |
 | Health: total_declared (canonical+diagnostic) | 55 | ✅ VERIFIED |
@@ -242,7 +242,7 @@ F13 is absolute and cannot be bypassed by any agent.
 | 2026-06-23 | F7 band 0.15 upper bound in Space | RETIRED. Locked to [0.03, 0.05]. |
 | 2026-06-23 | F6 κᵣ 0.95 tier (non-existent) | CLARIFIED. No 0.95 tier. Ops tier at 0.10, human at 0.70. |
 | 2026-06-23 | W₃ vs W₄ formula | RESOLVED. W₄ (4 witnesses) canonical. Vault required. |
-| 2026-06-23 | Tool count 13 vs 15 | RESOLVED. 15 canonical + 1 canary current. |
+| 2026-06-23 | Tool count 13 vs 15 | RESOLVED — now 7 public verbs only (see facade). Legacy note only. |
 
 ---
 

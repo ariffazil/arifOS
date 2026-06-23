@@ -19,8 +19,6 @@ from arifosmcp.schemas.register_integrity import (
     COLLOQUIAL_LEXICON,
     FORMAL_LEXICON,
     HALLUCINATION_MARKERS,
-    RegisterLevel,
-    RegisterStabilityReport,
     assess_register_stability,
 )
 

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from ..conftest import compare, run_scenario
+from ..conftest import run_scenario
 
 
 def test_s4_replay_skeleton():

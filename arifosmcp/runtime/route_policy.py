@@ -28,17 +28,17 @@ logger = logging.getLogger(__name__)
 
 
 class QueryLane(str, Enum):
-    EXPLOIT = "exploit"       # Relevance-first: known docs, activity signals
-    EXPLORE = "explore"       # Discovery-first: orphans, contradictions, old docs
-    HYBRID = "hybrid"         # Both lanes, with explicit ratio
+    EXPLOIT = "exploit"  # Relevance-first: known docs, activity signals
+    EXPLORE = "explore"  # Discovery-first: orphans, contradictions, old docs
+    HYBRID = "hybrid"  # Both lanes, with explicit ratio
 
 
 class RouteReason(str, Enum):
-    EXPLICIT_MODE = "explicit_mode"             # User specified mode
-    QUERY_TYPE_EXPLORATORY = "query_exploratory" # "find evidence against X"
-    QUERY_TYPE_LOOKUP = "query_lookup"          # "open file X"
+    EXPLICIT_MODE = "explicit_mode"  # User specified mode
+    QUERY_TYPE_EXPLORATORY = "query_exploratory"  # "find evidence against X"
+    QUERY_TYPE_LOOKUP = "query_lookup"  # "open file X"
     EXPLORE_QUOTA_UNMET = "explore_quota_unmet"  # Session hasn't hit min explore
-    DEFAULT_FALLBACK = "default_fallback"        # No signal — exploit default
+    DEFAULT_FALLBACK = "default_fallback"  # No signal — exploit default
 
 
 # ── Budget ─────────────────────────────────────────────────────────────────
@@ -51,6 +51,7 @@ class BudgetExceededError(Exception):
 @dataclass
 class LaneBudget:
     """Per-lane token/result budget with enforcement."""
+
     max_results: int = 10
     max_tokens: int = 8000
     _consumed_results: int = 0
@@ -76,11 +77,12 @@ class LaneBudget:
 @dataclass
 class DualLaneBudget:
     """Budget across both lanes with hard floors."""
+
     exploit: LaneBudget = field(default_factory=LaneBudget)
     explore: LaneBudget = field(default_factory=LaneBudget)
     # Hard floors
-    min_explore_ratio: float = 0.20   # Minimum 20% of results from explore lane
-    min_contradiction_docs: int = 1   # Minimum contradiction documents per session
+    min_explore_ratio: float = 0.20  # Minimum 20% of results from explore lane
+    min_contradiction_docs: int = 1  # Minimum contradiction documents per session
     _session_contradiction_count: int = 0
 
     @property
@@ -110,14 +112,15 @@ class DualLaneBudget:
 @dataclass
 class RouteDecision:
     """Deterministic output of the route policy engine."""
+
     lane: QueryLane
     reason: RouteReason
     exploit_budget: LaneBudget
     explore_budget: LaneBudget
-    target_tools: list[str]          # Tools to use for this query
-    constraints: dict[str, Any]      # Additional constraints for tool calls
-    auth_context: dict[str, Any]     # Identity + entitlement propagation
-    audit: RouteAuditEntry         # Full audit trail
+    target_tools: list[str]  # Tools to use for this query
+    constraints: dict[str, Any]  # Additional constraints for tool calls
+    auth_context: dict[str, Any]  # Identity + entitlement propagation
+    audit: RouteAuditEntry  # Full audit trail
 
 
 # ── Policy Config ──────────────────────────────────────────────────────────
@@ -126,6 +129,7 @@ class RouteDecision:
 @dataclass
 class RoutePolicyConfig:
     """Configuration for the route policy engine."""
+
     # Lane defaults
     default_lane: QueryLane = QueryLane.EXPLOIT
     exploit_tools: tuple[str, ...] = (
@@ -134,9 +138,9 @@ class RoutePolicyConfig:
         "arif_fetch",
     )
     explore_tools: tuple[str, ...] = (
-        "arif_observe",   # with contrast query
-        "arif_memory_recall",   # with orphan mode
-        "arif_gateway_connect", # cross-organ discovery
+        "arif_observe",  # with contrast query
+        "arif_memory_recall",  # with orphan mode
+        "arif_gateway_connect",  # cross-organ discovery
     )
     # Budget floors (L0 governance)
     min_explore_ratio: float = 0.20
@@ -145,16 +149,30 @@ class RoutePolicyConfig:
     max_explore_results: int = 5
     # Query classification triggers
     exploration_triggers: tuple[str, ...] = (
-        "contradict", "challenge", "anomal",
-        "unknown", "discover", "novel",
-        "what if", "alternative", "opposing",
-        "evidence against", "argue against",
-        "orphan", "forgotten", "historical",
-        "different from", "unlike",
+        "contradict",
+        "challenge",
+        "anomal",
+        "unknown",
+        "discover",
+        "novel",
+        "what if",
+        "alternative",
+        "opposing",
+        "evidence against",
+        "argue against",
+        "orphan",
+        "forgotten",
+        "historical",
+        "different from",
+        "unlike",
     )
     lookup_triggers: tuple[str, ...] = (
-        "open", "read", "show", "get",
-        "find file", "where is",
+        "open",
+        "read",
+        "show",
+        "get",
+        "find file",
+        "where is",
     )
     # Session tracking
     session_explore_target: int = 3  # Min explore queries per session
@@ -166,12 +184,13 @@ class RoutePolicyConfig:
 @dataclass
 class RouteAuditEntry:
     """Structured audit fields for every route decision."""
+
     session_id: str
     actor_id: str
-    query_hash: str          # SHA256 of query (truncated)
+    query_hash: str  # SHA256 of query (truncated)
     lane: str
     reason: str
-    mode: str                # "exploit" | "explore" | "hybrid"
+    mode: str  # "exploit" | "explore" | "hybrid"
     exploit_tools: list[str]
     explore_tools: list[str]
     budget_exploit_results: int

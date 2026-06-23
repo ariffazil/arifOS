@@ -99,9 +99,21 @@ FLOOR_CLASSES = {
 
 RISK_TIERS = {
     "T0": {"desc": "Read-only observation", "floors": [], "requires_approval": False},
-    "T1": {"desc": "Local non-destructive write", "floors": ["L04", "L12"], "requires_approval": False},
-    "T2": {"desc": "External call or state change", "floors": ["L01", "L02", "L11", "L12"], "requires_approval": False},
-    "T3": {"desc": "Destructive or irreversible", "floors": ["L01", "L13"], "requires_approval": True},
+    "T1": {
+        "desc": "Local non-destructive write",
+        "floors": ["L04", "L12"],
+        "requires_approval": False,
+    },
+    "T2": {
+        "desc": "External call or state change",
+        "floors": ["L01", "L02", "L11", "L12"],
+        "requires_approval": False,
+    },
+    "T3": {
+        "desc": "Destructive or irreversible",
+        "floors": ["L01", "L13"],
+        "requires_approval": True,
+    },
 }
 
 DANGEROUS_PATTERNS = [
@@ -117,13 +129,25 @@ DANGEROUS_PATTERNS = [
 ]
 
 CONSCIOUSNESS_CLAIMS = [
-    "i feel", "i think", "i believe", "i want", "i wish",
-    "sentient", "awake", "aware", "conscious", "self-aware",
+    "i feel",
+    "i think",
+    "i believe",
+    "i want",
+    "i wish",
+    "sentient",
+    "awake",
+    "aware",
+    "conscious",
+    "self-aware",
 ]
 
 INJECTION_PATTERNS = [
-    r"['\";]", r"--", r"\bOR\b", r"\bAND\b",
-    r"\\x[0-9a-fA-F]{2}", r"\\n",
+    r"['\";]",
+    r"--",
+    r"\bOR\b",
+    r"\bAND\b",
+    r"\\x[0-9a-fA-F]{2}",
+    r"\\n",
 ]
 
 
@@ -194,7 +218,9 @@ class AAAGuardPlugin:
                     tier = "T3"
                     requires_approval = True
                     affected_floors.append("L01")
-                    violations.append(f"F01 AMANAH: dangerous pattern '{pattern}' in terminal command")
+                    violations.append(
+                        f"F01 AMANAH: dangerous pattern '{pattern}' in terminal command"
+                    )
             if re.search(r"rm\s+-rf\s+/", cmd):
                 violations.append("F01 AMANAH: rm -rf / detected — absolute destruction")
         elif tool_name in ["file_write", "patch"]:
@@ -257,7 +283,10 @@ class AAAGuardPlugin:
         self._append_audit(tool_name, args, risk)
         if risk.blocked and not self.check_888_hold(args):
             print(f"[aaa_guard] BLOCKED: {tool_name} — {risk.message} — requires 888_HOLD")
-            return {"action": "block", "message": f"AAA Guard: {risk.message}. Present 888_HOLD to override."}
+            return {
+                "action": "block",
+                "message": f"AAA Guard: {risk.message}. Present 888_HOLD to override.",
+            }
         elif risk.violations:
             print(f"[aaa_guard] {risk.message} | tool={tool_name} | enforce={self.enforce}")
         return {}
@@ -328,7 +357,9 @@ class AAAGuardPlugin:
                 "ts": datetime.now(timezone.utc).isoformat(),
                 "actor": "aaa_guard",
                 "action": tool_name,
-                "params_sha256": hashlib.sha256(json.dumps(args, sort_keys=True, default=str).encode()).hexdigest()[:16],
+                "params_sha256": hashlib.sha256(
+                    json.dumps(args, sort_keys=True, default=str).encode()
+                ).hexdigest()[:16],
                 "risk_tier": risk.tier,
                 "floors_affected": risk.floors,
                 "violations": risk.violations,
@@ -346,7 +377,9 @@ def register(ctx):
     enforce = os.environ.get("AAA_ENFORCE", "false").lower() == "true"
     AAAGuardPlugin(
         enforce=enforce,
-        audit_path=os.environ.get("AAA_AUDIT_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"),
+        audit_path=os.environ.get(
+            "AAA_AUDIT_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
+        ),
         workspace_root=os.environ.get("AAA_WORKSPACE_ROOT", "/root/AAA/ops/hermes"),
         floor_policy_path=os.environ.get("AAA_FLOOR_PATH", "/root/arifOS/000/FLOORS"),
         approval_token=os.environ.get("AAA_APPROVAL_TOKEN", "888_HOLD"),
@@ -361,7 +394,10 @@ def _on_pre_tool_call(tool_name: str, args: dict, task_id: str = "", **kwargs) -
         enforce = os.environ.get("AAA_ENFORCE", "false").lower() == "true"
         plugin = AAAGuardPlugin(
             enforce=enforce,
-            audit_path=os.environ.get("AAA_AUDIT_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"),
+            audit_path=os.environ.get(
+                "AAA_AUDIT_PATH",
+                os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl",
+            ),
             workspace_root=os.environ.get("AAA_WORKSPACE_ROOT", "/root/AAA/ops/hermes"),
             floor_policy_path=os.environ.get("AAA_FLOOR_PATH", "/root/arifOS/000/FLOORS"),
             approval_token=os.environ.get("AAA_APPROVAL_TOKEN", "888_HOLD"),
@@ -377,19 +413,30 @@ def _on_pre_tool_call(tool_name: str, args: dict, task_id: str = "", **kwargs) -
         return {}
 
 
-def _on_pre_llm_call(session_id: str, user_message: str, conversation_history: list,
-                      is_first_turn: bool, model: str, platform: str, **kwargs) -> Optional[dict]:
+def _on_pre_llm_call(
+    session_id: str,
+    user_message: str,
+    conversation_history: list,
+    is_first_turn: bool,
+    model: str,
+    platform: str,
+    **kwargs,
+) -> Optional[dict]:
     try:
         enforce = os.environ.get("AAA_ENFORCE", "false").lower() == "true"
         plugin = AAAGuardPlugin(
             enforce=enforce,
-            audit_path=os.environ.get("AAA_AUDIT_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"),
+            audit_path=os.environ.get(
+                "AAA_AUDIT_PATH",
+                os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl",
+            ),
             workspace_root=os.environ.get("AAA_WORKSPACE_ROOT", "/root/AAA/ops/hermes"),
             floor_policy_path=os.environ.get("AAA_FLOOR_PATH", "/root/arifOS/000/FLOORS"),
             approval_token=os.environ.get("AAA_APPROVAL_TOKEN", "888_HOLD"),
         )
-        return plugin.inject_floor_context(session_id, user_message, conversation_history,
-                                          is_first_turn, model, platform, **kwargs)
+        return plugin.inject_floor_context(
+            session_id, user_message, conversation_history, is_first_turn, model, platform, **kwargs
+        )
     except Exception as e:
         print(f"[aaa_guard] pre_llm_call error: {e}")
         return None

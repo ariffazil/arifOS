@@ -77,8 +77,7 @@ class CapabilityGrantRegistry:
 
         # Find matching active grants
         matches = [
-            g for g in grants
-            if g.tool_name == tool_name and g.is_active() and not g.revoked
+            g for g in grants if g.tool_name == tool_name and g.is_active() and not g.revoked
         ]
 
         if not matches:
@@ -105,9 +104,7 @@ class CapabilityGrantRegistry:
     def dump_stats(self) -> dict[str, Any]:
         """Registry telemetry."""
         total = sum(len(g) for g in self._grants.values())
-        active = sum(
-            1 for grants in self._grants.values() for g in grants if g.is_active()
-        )
+        active = sum(1 for grants in self._grants.values() for g in grants if g.is_active())
         return {
             "total_grants": total,
             "active_grants": active,

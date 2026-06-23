@@ -23,6 +23,7 @@ DIM = 1024
 
 INDEX_PATH = Path("/root/AAA/registries/CAPABILITY_INDEX.json")
 
+
 def embed_batch(texts: list[str]) -> list[list[float]]:
     embeddings = []
     for i, t in enumerate(texts):
@@ -41,23 +42,28 @@ def embed_batch(texts: list[str]) -> list[list[float]]:
             embeddings.append([0.0] * DIM)
     return embeddings
 
+
 def tool_descriptor(t: dict) -> str:
     tid = t.get("id") or t.get("name", "unknown")
-    return "; ".join([
-        f"Tool: {tid}",
-        f"Server: {t['server']}",
-        f"Description: {t.get('description', '')}",
-        f"Tags: {', '.join(t.get('tags', []))}",
-        f"Risk: {t.get('risk_tier', 'unknown')}",
-        f"Epistemic: {t.get('epistemic_tag', 'unknown')}",
-        f"Kind: {t.get('execution_kind', 'unknown')}",
-        f"Approval: {t.get('approval_policy', 'unknown')}",
-    ])
+    return "; ".join(
+        [
+            f"Tool: {tid}",
+            f"Server: {t['server']}",
+            f"Description: {t.get('description', '')}",
+            f"Tags: {', '.join(t.get('tags', []))}",
+            f"Risk: {t.get('risk_tier', 'unknown')}",
+            f"Epistemic: {t.get('epistemic_tag', 'unknown')}",
+            f"Kind: {t.get('execution_kind', 'unknown')}",
+            f"Approval: {t.get('approval_policy', 'unknown')}",
+        ]
+    )
+
 
 def tool_uuid(t: dict) -> str:
     tid = t.get("id") or t.get("name", "unknown")
     h = hashlib.sha256(f"{tid}::{t['server']}".encode()).hexdigest()
     return f"{h[:8]}-{h[8:12]}-{h[12:16]}-{h[16:20]}-{h[20:32]}"
+
 
 def main():
     if not INDEX_PATH.exists():
@@ -71,9 +77,10 @@ def main():
     # Recreate collection with correct dims
     print(f"Recreating Qdrant collection: {COLLECTION} ({DIM}-dim, Cosine)")
     requests.delete(f"{QDRANT_URL}/collections/{COLLECTION}")
-    r = requests.put(f"{QDRANT_URL}/collections/{COLLECTION}", json={
-        "vectors": {"size": DIM, "distance": "Cosine"}
-    })
+    r = requests.put(
+        f"{QDRANT_URL}/collections/{COLLECTION}",
+        json={"vectors": {"size": DIM, "distance": "Cosine"}},
+    )
     if r.status_code != 200:
         print(f"ERROR creating collection: {r.text}")
         sys.exit(1)
@@ -91,28 +98,30 @@ def main():
     points = []
     for tool, emb in zip(tools, embeddings):
         tid = tool.get("id") or tool.get("name", "unknown")
-        points.append({
-            "id": tool_uuid(tool),
-            "vector": emb,
-            "payload": {
-                "tool_id": tid,
-                "name": tool.get("name", tid),
-                "server": tool["server"],
-                "description": tool.get("description", ""),
-                "tags": tool.get("tags", []),
-                "risk_tier": tool.get("risk_tier", "medium"),
-                "epistemic_tag": tool.get("epistemic_tag", "ESTIMATE"),
-                "execution_kind": tool.get("execution_kind", "read"),
-                "approval_policy": tool.get("approval_policy", "auto"),
-                "requires_888": tool.get("requires_888", False),
-            },
-        })
+        points.append(
+            {
+                "id": tool_uuid(tool),
+                "vector": emb,
+                "payload": {
+                    "tool_id": tid,
+                    "name": tool.get("name", tid),
+                    "server": tool["server"],
+                    "description": tool.get("description", ""),
+                    "tags": tool.get("tags", []),
+                    "risk_tier": tool.get("risk_tier", "medium"),
+                    "epistemic_tag": tool.get("epistemic_tag", "ESTIMATE"),
+                    "execution_kind": tool.get("execution_kind", "read"),
+                    "approval_policy": tool.get("approval_policy", "auto"),
+                    "requires_888": tool.get("requires_888", False),
+                },
+            }
+        )
 
     # Batch upsert in chunks of 50
     print(f"Upserting {len(points)} vectors to Qdrant...")
     chunk_size = 50
     for i in range(0, len(points), chunk_size):
-        chunk = points[i:i + chunk_size]
+        chunk = points[i : i + chunk_size]
         r = requests.put(
             f"{QDRANT_URL}/collections/{COLLECTION}/points?wait=true",
             json={"points": chunk},
@@ -121,14 +130,13 @@ def main():
         if r.status_code != 200:
             print(f"  ERROR chunk {i}: {r.text[:200]}")
         else:
-            print(f"  chunk {i}-{i+len(chunk)-1}: OK")
+            print(f"  chunk {i}-{i + len(chunk) - 1}: OK")
 
     # Verify
     time.sleep(1)
     r = requests.get(f"{QDRANT_URL}/collections/{COLLECTION}")
     info = r.json()
-    count = info["result"].get("points_count",
-                               info["result"].get("vectors_count", 0))
+    count = info["result"].get("points_count", info["result"].get("vectors_count", 0))
     print(f"\nQdrant collection: {count} points")
     if count == len(tools):
         print("PASS — all 106 tools indexed")
@@ -153,7 +161,9 @@ def main():
     results = r.json().get("result", [])
     for i, hit in enumerate(results):
         p = hit.get("payload", {})
-        print(f"  {i+1}. {p.get('name','?')} ({p.get('server','?')}) — score: {hit.get('score',0):.4f}")
+        print(
+            f"  {i + 1}. {p.get('name', '?')} ({p.get('server', '?')}) — score: {hit.get('score', 0):.4f}"
+        )
 
 
 if __name__ == "__main__":

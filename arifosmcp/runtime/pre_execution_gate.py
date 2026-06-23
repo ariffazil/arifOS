@@ -60,6 +60,7 @@ logger = logging.getLogger("arifosmcp.pre_execution_gate")
 # ART REFLEX BRIDGE — maps envelope/manifest → ArtRequest → ArtVerdict → gate
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _art_action_class_str(action_class: ActionClass) -> str:
     """Map ActionClass enum → art.py action_class string."""
     return {
@@ -116,6 +117,7 @@ def _art_reflex_check(
     # through proven reliability. Unknown tools → UNTRUSTED (fail-conservative).
     try:
         from arifosmcp.runtime.art_registry import get_default_tool_state
+
         _state_str = get_default_tool_state(envelope.organ.tool_name)
         _tool_state = ToolState(_state_str)
     except (ImportError, Exception):
@@ -133,9 +135,7 @@ def _art_reflex_check(
         schema_locked=True,  # manifest entry = schema is known
         degraded=False,
         reversible=manifest_entry.is_reversible if manifest_entry else False,
-        external_surface=(
-            requested_action == ActionClass.EXTERNAL_SIDE_EFFECT
-        ),
+        external_surface=(requested_action == ActionClass.EXTERNAL_SIDE_EFFECT),
         acknowledged_remote=(
             envelope.authority.external_side_effect_allowed
             if requested_action == ActionClass.EXTERNAL_SIDE_EFFECT
@@ -151,12 +151,13 @@ def _art_reflex_check(
     # (ACT gate, AAA cockpit, etc.). Non-blocking — prediction never holds.
     try:
         from arifosmcp.runtime.art_predict import get_predictive_assessment
+
         _pred = get_predictive_assessment(
             tool_name=manifest_entry.tool_name if manifest_entry else "unknown",
             action_class=requested_action.value,
-            failure_rate=getattr(art_req, 'failure_rate', 0.0),
-            drift_count=getattr(art_req, 'drift_count', 0),
-            days_since_use=getattr(art_req, 'days_since_use', 0),
+            failure_rate=getattr(art_req, "failure_rate", 0.0),
+            drift_count=getattr(art_req, "drift_count", 0),
+            days_since_use=getattr(art_req, "days_since_use", 0),
             blast_str=art_req.blast_radius,
         )
         art_result.trust_score = _pred.trust_score
@@ -194,7 +195,9 @@ def _art_reflex_check(
         return GateResult(
             envelope=envelope,
             verdict=GateVerdict.HOLD,
-            reasons=[f"ART reflex: {art_result.reason.value} — cannot downgrade {requested_action.value}"],
+            reasons=[
+                f"ART reflex: {art_result.reason.value} — cannot downgrade {requested_action.value}"
+            ],
             violations=["ART_REFLEX_HOLD"],
             blocked_action_class=requested_action,
             required_human_ack=(requested_action == ActionClass.IRREVERSIBLE),
@@ -246,8 +249,11 @@ def _act_reflex_check(
     """
     try:
         from arifosmcp.runtime.act import (
-            act, ActRequest, ActResult,
-            ActVerdict, ExecutionPattern,
+            act,
+            ActRequest,
+            ActResult,
+            ActVerdict,
+            ExecutionPattern,
         )
     except ImportError:
         logger.debug("ACT module unavailable — skipping execution craft check")
@@ -311,7 +317,9 @@ def _act_reflex_check(
         return GateResult(
             envelope=envelope,
             verdict=GateVerdict.HOLD,
-            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            reasons=[
+                f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"
+            ],
             violations=["ACT_REFLEX_HOLD"],
             blocked_action_class=requested_action,
             required_human_ack=True,
@@ -322,7 +330,9 @@ def _act_reflex_check(
         return GateResult(
             envelope=envelope,
             verdict=GateVerdict.HOLD,
-            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            reasons=[
+                f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"
+            ],
             violations=["ACT_REFLEX_HOLD"],
             blocked_action_class=requested_action,
             required_human_ack=True,
@@ -333,7 +343,9 @@ def _act_reflex_check(
         return GateResult(
             envelope=envelope,
             verdict=GateVerdict.HOLD,
-            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            reasons=[
+                f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"
+            ],
             violations=["ACT_REFLEX_HOLD"],
             blocked_action_class=requested_action,
         )
@@ -346,7 +358,9 @@ def _act_reflex_check(
         return GateResult(
             envelope=envelope,
             verdict=GateVerdict.HOLD,
-            reasons=[f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"],
+            reasons=[
+                f"ACT: {act_result.reason.value} — recommended: {act_result.recommended_pattern.value}"
+            ],
             violations=["ACT_REFLEX_HOLD"],
             blocked_action_class=requested_action,
         )
@@ -1004,7 +1018,7 @@ def pre_execution_gate(
                         envelope=envelope,
                         verdict=GateVerdict.HOLD,
                         reasons=[
-                            f"Maintenance cost {maintenance_joules:.2e} J ({maintenance_ratio*100:.1f}% "
+                            f"Maintenance cost {maintenance_joules:.2e} J ({maintenance_ratio * 100:.1f}% "
                             f"of session budget) — complexity-time degradation at risk threshold"
                         ],
                         violations=["F12_RESILIENCE — maintenance cost scaling"],
@@ -1013,7 +1027,9 @@ def pre_execution_gate(
         except ImportError:
             pass  # Maintenance scaling unavailable — proceed with warning
         except Exception:
-            logger.warning("Maintenance cost gate failed — proceeding (fail-open for non-critical gate)")
+            logger.warning(
+                "Maintenance cost gate failed — proceeding (fail-open for non-critical gate)"
+            )
 
     # ── Gate 15: Institutional Evolution Guard ─────────────────────────
     # Invariant #15: Prevent AI-driven institutional change from outrunning
@@ -1035,6 +1051,7 @@ def pre_execution_gate(
 
             # Forge 3: MUTATE/IRREVERSIBLE actions require live organ attestation
             import os
+
             check_liveness = "PYTEST_CURRENT_TEST" not in os.environ
 
             evolution_payload = {
@@ -1043,7 +1060,9 @@ def pre_execution_gate(
                 "affected_communities": getattr(envelope.state, "affected_communities", []),
                 "consent_coverage": getattr(envelope.state, "consent_coverage", 1.0),
                 "role_changes": getattr(envelope.state, "role_changes", []),
-                "unacknowledged_obligations": getattr(envelope.state, "unacknowledged_obligations", []),
+                "unacknowledged_obligations": getattr(
+                    envelope.state, "unacknowledged_obligations", []
+                ),
                 "changes_last_30d": getattr(envelope.state, "changes_last_30d", 0),
                 "human_reviews_last_30d": getattr(envelope.state, "human_reviews_last_30d", 0),
                 "check_federation_liveness": check_liveness,
@@ -1053,7 +1072,13 @@ def pre_execution_gate(
 
             # Check if there are explicit overrides in envelope metadata
             if hasattr(envelope, "metadata") and envelope.metadata:
-                for key in ["session_duration_s", "operator_interventions", "consent_coverage", "changes_last_30d", "human_reviews_last_30d"]:
+                for key in [
+                    "session_duration_s",
+                    "operator_interventions",
+                    "consent_coverage",
+                    "changes_last_30d",
+                    "human_reviews_last_30d",
+                ]:
                     if key in envelope.metadata:
                         evolution_payload[key] = envelope.metadata[key]
                 for key in ["affected_communities", "role_changes", "unacknowledged_obligations"]:

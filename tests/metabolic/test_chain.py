@@ -217,15 +217,11 @@ class TestMetabolicChain:
         chain_timing["steps"]["qc"] = elapsed
 
         # QC must return structured data (not an error explosion)
-        assert isinstance(inner, dict), (
-            f"GEOX QC returned non-dict: {type(inner)}"
-        )
+        assert isinstance(inner, dict), f"GEOX QC returned non-dict: {type(inner)}"
 
         # QC should have some form of status
         status = inner.get("status") or inner.get("qc_status") or inner.get("execution_status")
-        assert status is not None, (
-            f"GEOX QC returned no status field. Keys: {list(inner.keys())}"
-        )
+        assert status is not None, f"GEOX QC returned no status field. Keys: {list(inner.keys())}"
 
     # ──────────────────────────────────────────────────────────────────────
     # Stage 3: GEOX Claim — Generate a geological interpretation
@@ -258,9 +254,7 @@ class TestMetabolicChain:
 
         # Extract claim_id
         _CHAIN["claim_id"] = (
-            inner.get("claim_id")
-            or inner.get("id")
-            or inner.get("claim", {}).get("claim_id")
+            inner.get("claim_id") or inner.get("id") or inner.get("claim", {}).get("claim_id")
         )
 
         elapsed = time.time() - t0
@@ -273,9 +267,7 @@ class TestMetabolicChain:
             f"Full: {json.dumps(inner, indent=2)[:500]}"
         )
 
-        assert _CHAIN["claim_id"], (
-            f"No claim_id in response. Keys: {list(inner.keys())}"
-        )
+        assert _CHAIN["claim_id"], f"No claim_id in response. Keys: {list(inner.keys())}"
 
         assert inner.get("truth_class") == "INTERPRETATION", (
             f"Truth class mismatch: {inner.get('truth_class')}"
@@ -329,9 +321,7 @@ class TestMetabolicChain:
 
         # Epistemic tag must be present
         epistemic = inner.get("epistemic_tag") or data.get("epistemic_tag")
-        assert epistemic, (
-            f"WEALTH returned no epistemic_tag. Keys: {list(inner.keys())}"
-        )
+        assert epistemic, f"WEALTH returned no epistemic_tag. Keys: {list(inner.keys())}"
 
     # ──────────────────────────────────────────────────────────────────────
     # Stage 5: arifOS JUDGE — Constitutional deliberation
@@ -356,10 +346,16 @@ class TestMetabolicChain:
             "geox_artifact_ref": _CHAIN["artifact_ref"],
             "geox_claim_summary": {
                 "claim_id": _CHAIN["claim_id"],
-                "truth_class": _CHAIN["claim_result"].get("truth_class") if _CHAIN["claim_result"] else None,
-                "claim_type": _CHAIN["claim_result"].get("claim_type") if _CHAIN["claim_result"] else None,
+                "truth_class": _CHAIN["claim_result"].get("truth_class")
+                if _CHAIN["claim_result"]
+                else None,
+                "claim_type": _CHAIN["claim_result"].get("claim_type")
+                if _CHAIN["claim_result"]
+                else None,
             },
-            "wealth_verdict": _CHAIN["wealth_result"].get("wisdom_verdict") if _CHAIN["wealth_result"] else None,
+            "wealth_verdict": _CHAIN["wealth_result"].get("wisdom_verdict")
+            if _CHAIN["wealth_result"]
+            else None,
             "steps_completed": list(_CHAIN["step_times"].keys()),
             "query_sent": f"Metabolic chain test for {BOKOR_WELL_NAME}",
             "results_returned": 3,
@@ -394,8 +390,7 @@ class TestMetabolicChain:
 
         # The judge must return a recognizable verdict
         assert verdict in ("SEAL", "SABAR", "VOID"), (
-            f"JUDGE returned unexpected verdict: {verdict}. "
-            f"Status: {result.get('status')}"
+            f"JUDGE returned unexpected verdict: {verdict}. Status: {result.get('status')}"
         )
 
         # For a valid metabolic chain with evidence, VOID is a governance failure
@@ -429,35 +424,30 @@ class TestMetabolicChain:
 
         # No individual step should take > 30s
         for step_name, step_time in _CHAIN["step_times"].items():
-            assert step_time < 30, (
-                f"Step '{step_name}' took {step_time:.1f}s (>30s threshold)"
-            )
+            assert step_time < 30, f"Step '{step_name}' took {step_time:.1f}s (>30s threshold)"
 
         # ── Step completion ───────────────────────────────────────────────
         expected_steps = {"ingest", "qc", "claim", "wealth", "judge"}
         actual_steps = set(_CHAIN["step_times"].keys())
         missing = expected_steps - actual_steps
-        assert not missing, (
-            f"Metabolic chain missing steps: {missing}. "
-            f"Completed: {actual_steps}"
-        )
+        assert not missing, f"Metabolic chain missing steps: {missing}. Completed: {actual_steps}"
 
         # ── Meaning survival ──────────────────────────────────────────────
         assert _CHAIN["artifact_ref"], "artifact_ref was lost during chain"
 
         if _CHAIN["claim_result"]:
             assert _CHAIN["claim_id"], "claim_id was lost during chain"
-            assert _CHAIN["claim_result"].get("truth_class"), (
-                "truth_class was lost during chain"
-            )
+            assert _CHAIN["claim_result"].get("truth_class"), "truth_class was lost during chain"
 
         if _CHAIN["wealth_result"]:
-            assert _CHAIN["wealth_result"].get("wisdom_verdict") or _CHAIN["wealth_result"].get("verdict"), (
-                "WEALTH verdict was lost during chain"
-            )
+            assert _CHAIN["wealth_result"].get("wisdom_verdict") or _CHAIN["wealth_result"].get(
+                "verdict"
+            ), "WEALTH verdict was lost during chain"
 
         if _CHAIN["judge_result"]:
-            jv = _CHAIN["judge_result"].get("result", {}).get("verdict") or _CHAIN["judge_result"].get("verdict")
+            jv = _CHAIN["judge_result"].get("result", {}).get("verdict") or _CHAIN[
+                "judge_result"
+            ].get("verdict")
             assert jv, "JUDGE verdict was lost during chain"
 
         # ── Final receipt ─────────────────────────────────────────────────
@@ -469,24 +459,36 @@ class TestMetabolicChain:
             "geox": {
                 "artifact_ref": _CHAIN["artifact_ref"],
                 "claim_id": _CHAIN["claim_id"],
-                "truth_class": _CHAIN["claim_result"].get("truth_class") if _CHAIN["claim_result"] else None,
-                "claim_state": _CHAIN["ingest_result"].get("primary_artifact", {}).get("claim_state") if _CHAIN["ingest_result"] else None,
+                "truth_class": _CHAIN["claim_result"].get("truth_class")
+                if _CHAIN["claim_result"]
+                else None,
+                "claim_state": _CHAIN["ingest_result"]
+                .get("primary_artifact", {})
+                .get("claim_state")
+                if _CHAIN["ingest_result"]
+                else None,
             },
             "wealth": {
-                "verdict": _CHAIN["wealth_result"].get("wisdom_verdict") if _CHAIN["wealth_result"] else None,
-                "epistemic_tag": _CHAIN["wealth_result"].get("epistemic_tag") if _CHAIN["wealth_result"] else None,
+                "verdict": _CHAIN["wealth_result"].get("wisdom_verdict")
+                if _CHAIN["wealth_result"]
+                else None,
+                "epistemic_tag": _CHAIN["wealth_result"].get("epistemic_tag")
+                if _CHAIN["wealth_result"]
+                else None,
             },
             "judge": {
-                "verdict": _CHAIN["judge_result"].get("result", {}).get("verdict") if _CHAIN["judge_result"] else None,
+                "verdict": _CHAIN["judge_result"].get("result", {}).get("verdict")
+                if _CHAIN["judge_result"]
+                else None,
             },
             "alive": True,
         }
 
         # Print the receipt for human inspection
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("METABOLIC CHAIN RECEIPT")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(json.dumps(receipt, indent=2))
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"CHAIN {'ALIVE' if receipt['alive'] else 'DEAD'}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")

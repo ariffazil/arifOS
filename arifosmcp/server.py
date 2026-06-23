@@ -368,15 +368,15 @@ def arif_conformance_report(
 
     # Annotate each check with a plain-English description
     descriptions = {
-        "arifos_alive":        "arifOS alive?               kernel /health returns healthy",
-        "mcp_initialize":      "MCP initialize works?       protocol handshake returns serverInfo",
-        "protocol_version":    "protocol version clear?     2025-11-25 or supported variant present",
-        "schema_echo_stable":  "schema echo stable?         arif_schema_echo returns what was sent",
-        "session_starts":      "session starts?             arif_init returns READY",
-        "authority_checked":   "authority checked?          classify_authority fires SOVEREIGN/HIGH/MEDIUM/LOW",
-        "hold_blocks_mutation":"888_HOLD blocks mutation?   irreversible intents return 888_HOLD_REQUIRED",
-        "vault_replay":        "VAULT replay verifies?      vault file readable, last entry valid JSON",
-        "cooling_ledger":      "cooling ledger attests?     VAULT999 healthy + WELL entropy sealed",
+        "arifos_alive": "arifOS alive?               kernel /health returns healthy",
+        "mcp_initialize": "MCP initialize works?       protocol handshake returns serverInfo",
+        "protocol_version": "protocol version clear?     2025-11-25 or supported variant present",
+        "schema_echo_stable": "schema echo stable?         arif_schema_echo returns what was sent",
+        "session_starts": "session starts?             arif_init returns READY",
+        "authority_checked": "authority checked?          classify_authority fires SOVEREIGN/HIGH/MEDIUM/LOW",
+        "hold_blocks_mutation": "888_HOLD blocks mutation?   irreversible intents return 888_HOLD_REQUIRED",
+        "vault_replay": "VAULT replay verifies?      vault file readable, last entry valid JSON",
+        "cooling_ledger": "cooling ledger attests?     VAULT999 healthy + WELL entropy sealed",
     }
     for check in report["checks"]:
         check["description"] = descriptions.get(check["check"], "")
@@ -400,28 +400,27 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface contains at minimum the 15 canonical tools.
+    """Assert the registered surface contains exactly the 7 public canonical verbs.
 
-    Canonical13 enforcement: the default public wire surface is 15 kernel + 1 canary
-    probe = 16 tools. All other diagnostics (hermes, lease, attest, etc.) are gated
-    behind ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+    7-Tool MCP Facade (F13 ratified 2026-06-23): the default public wire surface is
+    exactly 7 tools. Canary probes and diagnostics are internal helpers, gated behind
+    ARIFOS_MCP_EXPOSE_DEV_TOOLS=true for expanded45 mode.
     """
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, DIAGNOSTIC_TOOLS
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_7, DIAGNOSTIC_TOOLS
 
-    expected_set = set(CANONICAL_TOOLS)
-    # Subtract ALL non-canonical tools (canary probes + gated diagnostics) from the
-    # registered set. What remains must be exactly the canonical 15.
+    expected_set = set(CANONICAL_7)
+    # Subtract ALL non-public tools (canary probes + gated diagnostics) from the
+    # registered set. What remains must be exactly the public 7.
     registered_set = set(registered_names) - set(DIAGNOSTIC_TOOLS)
-    # Also discard canary probes (belt-and-suspenders — they're in DIAGNOSTIC_TOOLS)
     for probe in CANARY_PROBES:
         registered_set.discard(probe)
-    if not expected_set.issubset(registered_set):
+    if registered_set != expected_set:
         missing = expected_set - registered_set
         unexpected = registered_set - expected_set
         raise RuntimeError(
             f"Surface drift detected: missing={sorted(missing)}, "
             f"unexpected={sorted(unexpected)}. "
-            f"Expected canonical tools={sorted(expected_set)}."
+            f"Expected public 7 tools={sorted(expected_set)}."
         )
     if any(name.startswith("arifos_") for name in registered_names):
         raise RuntimeError("Legacy surface detected in registered MCP tools")
@@ -497,9 +496,12 @@ try:
     # Only canonical names on the wire. Legacy callers use kernel interceptor.
     from arifosmcp.runtime.alias_shim import register_new_canonical_tools
     from arifosmcp.runtime.tools import _RUNTIME_DIAGNOSTIC_HANDLERS
+
     try:
         v2_new_canonical_registered = register_new_canonical_tools(
-            mcp, _CANONICAL_HANDLERS, _RUNTIME_DIAGNOSTIC_HANDLERS,
+            mcp,
+            _CANONICAL_HANDLERS,
+            _RUNTIME_DIAGNOSTIC_HANDLERS,
         )
         if v2_new_canonical_registered:
             logger.info(
@@ -569,26 +571,64 @@ try:
         def _make_forge_deprecated_proxy(tool_name: str) -> Callable:
             """Return a handler that returns deprecation metadata (no **kwargs, FastMCP compat)."""
             if tool_name == "forge_query":
-                def _h1(manifest: str = "", query: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+
+                def _h1(
+                    manifest: str = "",
+                    query: str = "",
+                    cwd: str = ".",
+                    session_id: str | None = None,
+                    actor_id: str | None = None,
+                    _envelope: dict | None = None,
+                ) -> dict[str, Any]:
                     return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+
                 return _h1
             elif tool_name == "forge_plan":
-                def _h2(goal: str = "", workspace: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+
+                def _h2(
+                    goal: str = "",
+                    workspace: str = ".",
+                    session_id: str | None = None,
+                    actor_id: str | None = None,
+                    _envelope: dict | None = None,
+                ) -> dict[str, Any]:
                     return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+
                 return _h2
             elif tool_name == "forge_dry_run":
-                def _h3(plan_id: str = "", manifest: str = "", cwd: str = ".", session_id: str | None = None, actor_id: str | None = None, _envelope: dict | None = None) -> dict[str, Any]:
+
+                def _h3(
+                    plan_id: str = "",
+                    manifest: str = "",
+                    cwd: str = ".",
+                    session_id: str | None = None,
+                    actor_id: str | None = None,
+                    _envelope: dict | None = None,
+                ) -> dict[str, Any]:
                     return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+
                 return _h3
             else:
-                def _h4(intent: str = "", context: dict | None = None, risk_tier: str = "medium", force_simulation: bool = True, _envelope: dict | None = None) -> dict[str, Any]:
+
+                def _h4(
+                    intent: str = "",
+                    context: dict | None = None,
+                    risk_tier: str = "medium",
+                    force_simulation: bool = True,
+                    _envelope: dict | None = None,
+                ) -> dict[str, Any]:
                     return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
+
                 return _h4
 
         for _fn in ("forge_query", "forge_plan", "forge_dry_run", "forge_plan_and_simulate"):
-            mcp.tool(name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"})(_make_forge_deprecated_proxy(_fn))
+            mcp.tool(
+                name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"}
+            )(_make_forge_deprecated_proxy(_fn))
     else:
-        logger.info("Forge deprecated proxies gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
+        logger.info(
+            "Forge deprecated proxies gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
+        )
 
     # ── ChatGPT Compatibility Facade (ADR-012) ──────────────────────────────
     # GATED: only registered when ARIFOS_CHATGPT_COMPAT=true.
@@ -658,7 +698,9 @@ try:
                 tags={"perception-kernel", "narrative-tension", "frame-geometry", "shadow-drift"},
             )(_nt)
     else:
-        logger.info("Shadow drift + narrative tension tools gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
+        logger.info(
+            "Shadow drift + narrative tension tools gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
+        )
 
     # ── Live Kernel Attestation + Federation Organ Attest + Leases + Heartbeat + Peer Contract ──
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
@@ -782,9 +824,12 @@ try:
     # NOTE (2026-06-21): hermes_vault_query is required by the conformance spine (vault_replay check)
     # and must be exposed always.
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
-    _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {
-        "hermes_vault_query": HERMES_TOOL_HANDLERS["hermes_vault_query"]
-    }
+
+    _hermes_to_register = (
+        HERMES_TOOL_HANDLERS
+        if _EXPOSE_DEV_TOOLS
+        else {"hermes_vault_query": HERMES_TOOL_HANDLERS["hermes_vault_query"]}
+    )
     for _hermes_name, _hermes_handler in _hermes_to_register.items():
         _hw = _wrap_handler(_hermes_handler, _hermes_name)
         if _hw is not None:
@@ -803,6 +848,7 @@ try:
 
     # ── Inject JSON Schema enums for Hermes tools ──────────────────────────
     from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS as _DIAG_TOOLS
+
     for _hn in _hermes_to_register:
         _spec = _DIAG_TOOLS.get(_hn)
         _modes = _spec.get("modes", []) if _spec else []
@@ -819,7 +865,9 @@ try:
             except Exception:
                 logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
     if not _EXPOSE_DEV_TOOLS:
-        logger.info("Hermes tools gated (except hermes_vault_query for conformance check) — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose all.")
+        logger.info(
+            "Hermes tools gated (except hermes_vault_query for conformance check) — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose all."
+        )
 
     # Refresh the public registry cache after all canonical tools are registered
     from arifosmcp.runtime.public_registry import _runtime_contracts
@@ -1193,28 +1241,32 @@ async def horizon_health(request: Request) -> JSONResponse:
     else:
         aggregate = "degraded"
 
-    return JSONResponse({
-        "status": aggregate,
-        "version": _DEPLOY_VERSION,
-        "timestamp": now,
-        "signals": {
-            "transport": transport,
-            "kernel": kernel,
-            "floors": floors,
-        },
-        "_honesty_note": (
-            "Top-level status is the WORST of transport/kernel/floors. "
-            "Inspect `signals.*` for per-layer truth. "
-            "A green transport over a degraded kernel is reported as degraded."
-        ),
-    })
+    return JSONResponse(
+        {
+            "status": aggregate,
+            "version": _DEPLOY_VERSION,
+            "timestamp": now,
+            "signals": {
+                "transport": transport,
+                "kernel": kernel,
+                "floors": floors,
+            },
+            "_honesty_note": (
+                "Top-level status is the WORST of transport/kernel/floors. "
+                "Inspect `signals.*` for per-layer truth. "
+                "A green transport over a degraded kernel is reported as degraded."
+            ),
+        }
+    )
 
 
 async def horizon_ready(request: Request) -> JSONResponse:
     from arifosmcp.runtime.tools import _runtime_selftest
 
     readiness = _runtime_selftest()
-    verdict = str(readiness.get("verdict", "FAIL"))  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
+    verdict = str(
+        readiness.get("verdict", "FAIL")
+    )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
     payload = {
         "status": verdict.lower(),  # human-readable alias: pass | partial | fail
         "machine_status": verdict,  # machine health, not constitutional verdict
@@ -1232,7 +1284,7 @@ async def horizon_metadata(request: Request) -> JSONResponse:
 
 
 async def webmcp_discovery(request: Request) -> JSONResponse:
-    """MCP Server Card — SEP-2127 HTTP discovery document."""
+    """MCP Server Card — SEP-2127 HTTP discovery document (7-tool facade)."""
     return JSONResponse(
         {
             "name": "arifos",
@@ -1240,7 +1292,18 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
             "url": "https://arifos.arif-fazil.com/mcp",
             "version": _DEPLOY_VERSION.lstrip("v"),
             "capabilities": {"tools": True, "resources": True, "prompts": True},
-            "authentication": {"type": "none"},
+            "authentication": {"type": "bearer"},
+            "tools": [
+                "arif_init",
+                "arif_observe",
+                "arif_think",
+                "arif_route",
+                "arif_judge",
+                "arif_act",
+                "arif_seal",
+            ],
+            "floors_active": 13,
+            "irreversible_gate": "arif_act requires seal_verdict_id + approved_action_hash from prior arif_judge + arif_seal",
         }
     )
 
@@ -1324,6 +1387,7 @@ if app:
     app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
     from arifosmcp.runtime.governance_pipeline import get_pipeline
+
     app.add_middleware(get_pipeline().as_middleware())
     # Starlette executes later-added middleware first. Airlock must run before
     # governance so enforce mode sees scope["airlock_envelope"].
@@ -1356,25 +1420,31 @@ if app:
 
     async def _airlock_ping(request):
         from starlette.responses import JSONResponse
+
         return JSONResponse({"status": "ok", "ts": _time.time(), "service": "arifOS-airlock"})
 
     async def _airlock_schema(request):
         from starlette.responses import JSONResponse
 
         from arifosmcp.transport.airlock import DIALECT_REGISTRY
-        return JSONResponse({
-            "protocol_versions_supported": ["2025-11-25", "2024-11-05"],
-            "tools_count": 13,
-            "dialect_registry": list(DIALECT_REGISTRY.keys()),
-            "airlock": "v0.1",
-        })
+
+        return JSONResponse(
+            {
+                "protocol_versions_supported": ["2025-11-25", "2024-11-05"],
+                "tools_count": 13,
+                "dialect_registry": list(DIALECT_REGISTRY.keys()),
+                "airlock": "v0.1",
+            }
+        )
 
     async def _airlock_version(request):
         from starlette.responses import JSONResponse
+
         return JSONResponse({"version": "v2026.05.05-SSCT", "airlock": "v0.1", "kernel": "arifOS"})
 
     async def _airlock_probe(request):
         from starlette.responses import JSONResponse
+
         try:
             body = await request.json()
         except Exception:
@@ -1398,6 +1468,7 @@ if app:
         Output: verdict (ALLOW | ALLOW_WITH_LOG | REQUIRE_APPROVAL | SIMULATE_FIRST | BLOCK | HOLD_888)
         """
         from starlette.responses import JSONResponse
+
         try:
             body = await request.json()
         except Exception:
@@ -1521,9 +1592,7 @@ if app:
         # know the count is unknown rather than falsely zero.
         try:
             _components = mcp._local_provider._components  # pyright: ignore[reportAttributeAccessIssue]
-            checks["prompts_loaded"] = sum(
-                1 for k in _components.keys() if k.startswith("prompt:")
-            )
+            checks["prompts_loaded"] = sum(1 for k in _components.keys() if k.startswith("prompt:"))
             checks["resources_loaded"] = sum(
                 1 for k in _components.keys() if k.startswith("resource:")
             )
@@ -1632,6 +1701,7 @@ if app:
 
         def _n(k: str) -> int:
             return int(checks.get(k, 0) or 0)
+
         has_registry = _n("model_souls_registered") >= 3
         has_shadows = _n("model_shadows_registered") >= 3
         has_reality = _n("reality_stack_modules") >= 7
@@ -2027,7 +2097,6 @@ def _wire_nats_to_app(_app: Any) -> None:
         logger.debug("add_event_handler not available for NATS wiring", exc_info=True)
 
 
-
 async def _startup_nats_event_bus() -> None:
     """Connect the NATS event bus at server startup (non-blocking).
 
@@ -2168,6 +2237,7 @@ def _init_rasa_wiring() -> None:
     except Exception:
         # Rasa wiring failure must never prevent kernel startup
         import logging
+
         logging.getLogger(__name__).debug(
             "Rasa wiring initialization skipped (non-fatal)", exc_info=True
         )

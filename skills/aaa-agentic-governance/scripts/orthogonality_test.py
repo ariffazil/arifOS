@@ -13,6 +13,7 @@ Property tests for the three A axes:
 These are the load-bearing properties. If any of them fails, the skill
 violates the design contract and the operator should be told.
 """
+
 from __future__ import annotations
 
 import json
@@ -36,7 +37,9 @@ def _run(script: Path, payload: dict | None = None, cli_args: list[str] | None =
     if cli_args is not None:
         result = subprocess.run(
             ["python3", str(script), *cli_args],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return json.loads(result.stdout)
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
@@ -45,7 +48,9 @@ def _run(script: Path, payload: dict | None = None, cli_args: list[str] | None =
     try:
         result = subprocess.run(
             ["python3", str(script), path],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return json.loads(result.stdout)
     finally:
@@ -71,7 +76,10 @@ def test_idempotency_floor_check() -> tuple[bool, str]:
     }
     a = _run(FLOOR_CHECK, payload=payload)
     b = _run(FLOOR_CHECK, payload=payload)
-    same = a["attestor_id"] == b["attestor_id"] and a["verdict_attestation"] == b["verdict_attestation"]
+    same = (
+        a["attestor_id"] == b["attestor_id"]
+        and a["verdict_attestation"] == b["verdict_attestation"]
+    )
     return same, f"floor_check idempotent on attestor_id+verdict: {same}"
 
 
@@ -90,11 +98,15 @@ def test_cardinality() -> tuple[bool, str]:
     """Router must reject 9th organ label (F10 ONTOLOGY). aaa_router is a CLI tool."""
     result = subprocess.run(
         ["python3", str(AAA_ROUTER), "x", "--explicit-organ", "NINTH_ORG"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0 and ("cardinality" in result.stderr or "L10" in result.stderr):
         return True, f"router rejected non-cardinality organ (exit={result.returncode})"
-    return False, f"router did not reject 9th organ (exit={result.returncode}, stderr={result.stderr[:200]!r})"
+    return (
+        False,
+        f"router did not reject 9th organ (exit={result.returncode}, stderr={result.stderr[:200]!r})",
+    )
 
 
 def test_f12_injection() -> tuple[bool, str]:
@@ -109,7 +121,10 @@ def test_f12_injection() -> tuple[bool, str]:
     out = _run(FLOOR_CHECK, payload=payload)
     f12_failed = "L12" in out["floors_fail"]
     hold = out["verdict_attestation"] == "HOLD"
-    return f12_failed and hold, f"F12 injection detected and HOLD: fail={f12_failed}, verdict={out['verdict_attestation']}"
+    return (
+        f12_failed and hold,
+        f"F12 injection detected and HOLD: fail={f12_failed}, verdict={out['verdict_attestation']}",
+    )
 
 
 def test_f1_amanah() -> tuple[bool, str]:
@@ -134,7 +149,12 @@ def test_entropy_budget_zero() -> tuple[bool, str]:
     payload = {
         "request": "what is the answer?",
         "abstraction_label": {"organ": "arifOS"},
-        "floor_receipt": {"floors_checked": [], "floors_pass": [], "floors_warn": [], "floors_fail": []},
+        "floor_receipt": {
+            "floors_checked": [],
+            "floors_pass": [],
+            "floors_warn": [],
+            "floors_fail": [],
+        },
         "evidence_refs": [],
         "entropy_budget_tokens": 0,
         "top_k": 3,
@@ -151,13 +171,20 @@ def test_entropy_budget_breach() -> tuple[bool, str]:
     payload = {
         "request": "x",
         "abstraction_label": {"organ": "arifOS"},
-        "floor_receipt": {"floors_checked": [], "floors_pass": [], "floors_warn": [], "floors_fail": []},
+        "floor_receipt": {
+            "floors_checked": [],
+            "floors_pass": [],
+            "floors_warn": [],
+            "floors_fail": [],
+        },
         "evidence_refs": [],
         "entropy_budget_tokens": 100,  # less than c1's 200
         "top_k": 3,
     }
     out = _run(BOUNDED_EXPLAIN, payload=payload)
-    return out["candidates"] == [], f"bounded_explain dropped all on budget breach: candidates={len(out['candidates'])}"
+    return out[
+        "candidates"
+    ] == [], f"bounded_explain dropped all on budget breach: candidates={len(out['candidates'])}"
 
 
 def test_compose_seal_happy_path() -> tuple[bool, str]:
@@ -173,7 +200,11 @@ def test_compose_seal_happy_path() -> tuple[bool, str]:
             "attestor_id": "abc",
             "risk_tier": 0,
         },
-        "abduction": {"candidates": [{"id": "c1", "score": 0.85}], "best": "c1", "entropy_total": 200},
+        "abduction": {
+            "candidates": [{"id": "c1", "score": 0.85}],
+            "best": "c1",
+            "entropy_total": 200,
+        },
     }
     out = _run(COMPOSE, payload=payload)
     return (
@@ -198,7 +229,7 @@ def test_compose_hold_on_f12() -> tuple[bool, str]:
     out = _run(COMPOSE, payload=payload)
     return (
         out["verdict"] == "HOLD" and out["hold_code"] == "injection" and out["seal_hash"] == "",
-        f"HOLD on F12: verdict={out['verdict']}, hold_code={out['hold_code']}, no_hash={out['seal_hash']==''}",
+        f"HOLD on F12: verdict={out['verdict']}, hold_code={out['hold_code']}, no_hash={out['seal_hash'] == ''}",
     )
 
 
@@ -206,8 +237,18 @@ def test_compose_hold_on_entropy() -> tuple[bool, str]:
     payload = {
         "intent": {"request": "x", "risk_tier": 0, "entropy_budget_tokens": 100},
         "abstraction": {"organ": "arifOS"},
-        "attestation": {"floors_checked": [], "floors_pass": [], "floors_warn": [], "floors_fail": [], "risk_tier": 0},
-        "abduction": {"candidates": [{"id": "c1", "entropy_spent": 5000}], "best": "c1", "entropy_total": 5000},
+        "attestation": {
+            "floors_checked": [],
+            "floors_pass": [],
+            "floors_warn": [],
+            "floors_fail": [],
+            "risk_tier": 0,
+        },
+        "abduction": {
+            "candidates": [{"id": "c1", "entropy_spent": 5000}],
+            "best": "c1",
+            "entropy_total": 5000,
+        },
     }
     out = _run(COMPOSE, payload=payload)
     return (
@@ -220,7 +261,13 @@ def test_compose_hold_on_recursion() -> tuple[bool, str]:
     payload = {
         "intent": {"request": "x", "risk_tier": 0, "max_recursion_depth": 3},
         "abstraction": {"organ": "arifOS"},
-        "attestation": {"floors_checked": [], "floors_pass": [], "floors_warn": [], "floors_fail": [], "risk_tier": 0},
+        "attestation": {
+            "floors_checked": [],
+            "floors_pass": [],
+            "floors_warn": [],
+            "floors_fail": [],
+            "risk_tier": 0,
+        },
         "abduction": {"candidates": []},
         "refinements": 5,  # over the cap
     }

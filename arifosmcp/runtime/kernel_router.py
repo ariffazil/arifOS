@@ -266,15 +266,24 @@ class HardenedKernelRouter:
             canonical_name = self.LEGACY_TO_CANONICAL.get(tool_name, tool_name)
             # Determine action class: init/session = observe; forge/vault = mutate
             if tool_name in (
-                "arifos.init", "arifos_init",
-                "arifos.sense", "arifos_sense",
-                "arifos.mind", "arifos_mind",
-                "arifos.memory", "arifos_memory",
-                "arifos.heart", "arifos_heart",
-                "arifos.ops", "arifos_ops",
-                "arifos.judge", "arifos_judge",
-                "arifos.kernel", "arifos_kernel",
-                "arifos.route", "arifos_route",
+                "arifos.init",
+                "arifos_init",
+                "arifos.sense",
+                "arifos_sense",
+                "arifos.mind",
+                "arifos_mind",
+                "arifos.memory",
+                "arifos_memory",
+                "arifos.heart",
+                "arifos_heart",
+                "arifos.ops",
+                "arifos_ops",
+                "arifos.judge",
+                "arifos_judge",
+                "arifos.kernel",
+                "arifos_kernel",
+                "arifos.route",
+                "arifos_route",
             ):
                 action_class = ActionClass.OBSERVE
             elif tool_name in ("arifos.forge", "arifos_forge"):
@@ -293,7 +302,10 @@ class HardenedKernelRouter:
             if gate_result.is_blocked:
                 logger.warning(
                     "kernel_router gate BLOCKED: tool=%s canonical=%s action=%s reasons=%s",
-                    tool_name, canonical_name, action_class.value, gate_result.reasons,
+                    tool_name,
+                    canonical_name,
+                    action_class.value,
+                    gate_result.reasons,
                 )
                 return RuntimeEnvelope(
                     tool=tool_name,

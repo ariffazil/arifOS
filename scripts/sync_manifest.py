@@ -37,11 +37,7 @@ WEALTH_BRIDGE_PORT_ENV = "WEALTH_BRIDGE_PORT"
 MANIFEST_FILES = {
     "federation_registry": PROJECT_ROOT / "registry" / "federation_registry.json",
     "federation_charter": (
-        PROJECT_ROOT
-        / "arifosmcp"
-        / "sites"
-        / "apex-dashboard"
-        / "federation.charter.json"
+        PROJECT_ROOT / "arifosmcp" / "sites" / "apex-dashboard" / "federation.charter.json"
     ),
     "mcp_discovery": PROJECT_ROOT / "static" / "mcp-discovery-index.json",
 }
@@ -100,9 +96,7 @@ def _update_federation_registry(path: Path, live_count: int, dry_run: bool) -> N
 
     data["tool_count"]["WEALTH"] = live_count
     # Recalculate total from all organ counts
-    data["tool_count"]["total"] = sum(
-        v for k, v in data["tool_count"].items() if k != "total"
-    )
+    data["tool_count"]["total"] = sum(v for k, v in data["tool_count"].items() if k != "total")
 
     for server in data.get("servers", []):
         if server.get("organ") == "WEALTH":
@@ -113,9 +107,7 @@ def _update_federation_registry(path: Path, live_count: int, dry_run: bool) -> N
             server.pop("hidden_aliases", None)
 
     if not dry_run:
-        path.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     prefix = "[dry-run] " if dry_run else ""
     total = data["tool_count"]["total"]
     print(f"  {prefix}federation_registry.json → WEALTH tools={live_count}, total={total}")
@@ -143,9 +135,7 @@ def _update_federation_charter(path: Path, live_count: int, dry_run: bool) -> No
         wealth["discovery_note"] = note.replace(str(old), str(live_count), 1)
 
     if not dry_run:
-        path.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     prefix = "[dry-run] " if dry_run else ""
     print(f"  {prefix}federation.charter.json → WEALTH tool_count={live_count}")
 
@@ -166,17 +156,19 @@ def _update_mcp_discovery(path: Path, live_count: int, dry_run: bool) -> None:
     wealth_organ["rest_registry_tool_count"] = live_count
 
     if not dry_run:
-        path.write_text(
-            json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
+        path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     prefix = "[dry-run] " if dry_run else ""
     print(f"  {prefix}mcp-discovery-index.json → WEALTH verified_mcp_tool_count={live_count}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dry-run", action="store_true", help="Print changes without writing files")
-    parser.add_argument("--wealth-url", default=None, help=f"WEALTH MCP endpoint (default: {WEALTH_DEFAULT_URL})")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print changes without writing files"
+    )
+    parser.add_argument(
+        "--wealth-url", default=None, help=f"WEALTH MCP endpoint (default: {WEALTH_DEFAULT_URL})"
+    )
     args = parser.parse_args()
 
     wealth_url = args.wealth_url or _build_url(WEALTH_DEFAULT_URL)
@@ -198,7 +190,9 @@ def main() -> None:
     _update_federation_charter(MANIFEST_FILES["federation_charter"], live_count, args.dry_run)
     _update_mcp_discovery(MANIFEST_FILES["mcp_discovery"], live_count, args.dry_run)
 
-    print(f"sync_manifest: {'dry-run complete' if args.dry_run else 'done'} — WEALTH={live_count} tools")
+    print(
+        f"sync_manifest: {'dry-run complete' if args.dry_run else 'done'} — WEALTH={live_count} tools"
+    )
 
 
 if __name__ == "__main__":

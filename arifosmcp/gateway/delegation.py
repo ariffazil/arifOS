@@ -45,35 +45,124 @@ FORGE_AUTHORITY = "F13_SOVEREIGN_888"
 # TASK CLASSIFICATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TaskCategory(str, Enum):
     """Quantum task categories — each triggers a different reasoning path."""
-    COGNITIVE = "COGNITIVE"   # Analysis, synthesis, deliberation, judgment
-    FORGE = "FORGE"           # Build, code, test, fix, deploy
-    INFRA = "INFRA"           # Ops, health, topology, network, restart
-    MIXED = "MIXED"           # Multi-domain — fan-out to 2+ agents
+
+    COGNITIVE = "COGNITIVE"  # Analysis, synthesis, deliberation, judgment
+    FORGE = "FORGE"  # Build, code, test, fix, deploy
+    INFRA = "INFRA"  # Ops, health, topology, network, restart
+    MIXED = "MIXED"  # Multi-domain — fan-out to 2+ agents
 
 
 TASK_CLASSIFIER_PATTERNS: list[tuple[list[str], TaskCategory]] = [
     # COGNITIVE: reasoning, analysis, deliberation, planning
-    (["analyze", "reason", "think", "deliberate", "judge", "interpret",
-      "synthesize", "evaluate", "assess", "critique", "reflect", "plan",
-      "review", "audit", "compare", "contrast", "explain", "summarize",
-      "decide", "recommend", "advise", "recall", "search",
-      "research", "hypothesize", "conclude", "design pattern",
-      "architecture", "strategy"], TaskCategory.COGNITIVE),
+    (
+        [
+            "analyze",
+            "reason",
+            "think",
+            "deliberate",
+            "judge",
+            "interpret",
+            "synthesize",
+            "evaluate",
+            "assess",
+            "critique",
+            "reflect",
+            "plan",
+            "review",
+            "audit",
+            "compare",
+            "contrast",
+            "explain",
+            "summarize",
+            "decide",
+            "recommend",
+            "advise",
+            "recall",
+            "search",
+            "research",
+            "hypothesize",
+            "conclude",
+            "design pattern",
+            "architecture",
+            "strategy",
+        ],
+        TaskCategory.COGNITIVE,
+    ),
     # FORGE: building, coding, fixing, deploying
-    (["build", "code", "implement", "write", "create", "develop", "fix",
-      "debug", "refactor", "test", "deploy", "commit", "push", "merge",
-      "compile", "install", "configure", "setup", "scaffold",
-      "migrate", "upgrade", "patch", "script", "scaffold",
-      "dependencies", "package", "module", "library", "framework"], TaskCategory.FORGE),
+    (
+        [
+            "build",
+            "code",
+            "implement",
+            "write",
+            "create",
+            "develop",
+            "fix",
+            "debug",
+            "refactor",
+            "test",
+            "deploy",
+            "commit",
+            "push",
+            "merge",
+            "compile",
+            "install",
+            "configure",
+            "setup",
+            "scaffold",
+            "migrate",
+            "upgrade",
+            "patch",
+            "script",
+            "scaffold",
+            "dependencies",
+            "package",
+            "module",
+            "library",
+            "framework",
+        ],
+        TaskCategory.FORGE,
+    ),
     # INFRA: ops, health, topology, network
-    (["restart", "stop", "start", "health check", "monitor", "observe",
-      "topology", "network", "dns", "firewall", "port", "disk space",
-      "disk usage", "cpu usage", "load average", "docker", "container",
-      "systemctl", "service", "log file", "cleanup", "kill", "zombie",
-      "backup", "restore", "memory usage", "df ", "free ", "ss ",
-      "journalctl", "systemd"], TaskCategory.INFRA),
+    (
+        [
+            "restart",
+            "stop",
+            "start",
+            "health check",
+            "monitor",
+            "observe",
+            "topology",
+            "network",
+            "dns",
+            "firewall",
+            "port",
+            "disk space",
+            "disk usage",
+            "cpu usage",
+            "load average",
+            "docker",
+            "container",
+            "systemctl",
+            "service",
+            "log file",
+            "cleanup",
+            "kill",
+            "zombie",
+            "backup",
+            "restore",
+            "memory usage",
+            "df ",
+            "free ",
+            "ss ",
+            "journalctl",
+            "systemd",
+        ],
+        TaskCategory.INFRA,
+    ),
 ]
 
 import re as _re
@@ -95,7 +184,7 @@ def classify_task(intent: str) -> TaskCategory:
         for kw in keywords:
             # Word-boundary match for multi-word phrases and single words
             pattern = _re.escape(kw)
-            if _re.search(r'\b' + pattern + r'\b', intent_lower):
+            if _re.search(r"\b" + pattern + r"\b", intent_lower):
                 matched.add(category)
                 break
 
@@ -110,17 +199,19 @@ def classify_task(intent: str) -> TaskCategory:
 # FEDERATED AGENT REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class FederatedAgent:
     """A registered agent in the arifOS federation with its capabilities."""
+
     agent_id: str
-    name: str                          # Human-readable name
-    lane: str                          # ASI / AGI / APEX
-    primary_category: TaskCategory     # What this agent is best at
+    name: str  # Human-readable name
+    lane: str  # ASI / AGI / APEX
+    primary_category: TaskCategory  # What this agent is best at
     capabilities: list[str] = field(default_factory=list)
-    endpoint: str = ""                 # MCP/A2A endpoint URL
-    model: str = ""                    # Preferred model
-    floor_clearance: int = 2           # Max action class (C2 default)
+    endpoint: str = ""  # MCP/A2A endpoint URL
+    model: str = ""  # Preferred model
+    floor_clearance: int = 2  # Max action class (C2 default)
     requires_lease: bool = True
 
 
@@ -132,9 +223,13 @@ FEDERATED_AGENTS: dict[str, FederatedAgent] = {
         lane="ASI",
         primary_category=TaskCategory.COGNITIVE,
         capabilities=[
-            "constitutional_deliberation", "ethical_judgment",
-            "memory_synthesis", "life_orientation", "plan_decomposition",
-            "human_interface", "telegram_operations",
+            "constitutional_deliberation",
+            "ethical_judgment",
+            "memory_synthesis",
+            "life_orientation",
+            "plan_decomposition",
+            "human_interface",
+            "telegram_operations",
         ],
         endpoint="http://localhost:18001/tasks",
         model="minimax/MiniMax-M3",
@@ -146,9 +241,13 @@ FEDERATED_AGENTS: dict[str, FederatedAgent] = {
         lane="AGI",
         primary_category=TaskCategory.FORGE,
         capabilities=[
-            "code_generation", "testing", "refactoring",
-            "build_verification", "dependency_analysis",
-            "security_audit", "ci_cd_pipeline",
+            "code_generation",
+            "testing",
+            "refactoring",
+            "build_verification",
+            "dependency_analysis",
+            "security_audit",
+            "ci_cd_pipeline",
         ],
         endpoint="http://localhost:8090/mcp",  # Through gateway
         model="kimi-for-coding/kimi-k2-thinking",
@@ -160,10 +259,14 @@ FEDERATED_AGENTS: dict[str, FederatedAgent] = {
         lane="AGI",
         primary_category=TaskCategory.INFRA,
         capabilities=[
-            "infrastructure_ops", "system_health",
-            "docker_management", "service_orchestration",
-            "topology_guardian", "web_search",
-            "browser_automation", "cloudflare_management",
+            "infrastructure_ops",
+            "system_health",
+            "docker_management",
+            "service_orchestration",
+            "topology_guardian",
+            "web_search",
+            "browser_automation",
+            "cloudflare_management",
         ],
         endpoint="http://localhost:18789",
         model="minimax/MiniMax-M2.7-highspeed",
@@ -187,9 +290,9 @@ CATEGORY_TO_AGENT: dict[TaskCategory, list[str]] = {
 
 # For F2+ CLAIM tasks: who verifies?
 CROSS_VERIFY_AGENTS = {
-    "hermes": "opencode",    # Hermes's claims → OpenCode verifies
+    "hermes": "opencode",  # Hermes's claims → OpenCode verifies
     "opencode": "openclaw",  # OpenCode's claims → OpenClaw verifies
-    "openclaw": "hermes",    # OpenClaw's claims → Hermes verifies
+    "openclaw": "hermes",  # OpenClaw's claims → Hermes verifies
 }
 
 
@@ -280,10 +383,11 @@ def _summarize_context(context: dict[str, Any] | None) -> dict[str, Any]:
         return {"provided": False}
     safe_keys = {"session_id", "source", "domain", "description", "priority"}
     return {
-        k: v for k, v in context.items()
-        if k in safe_keys or not any(
-            secret in k.lower()
-            for secret in ("key", "token", "secret", "password", "credential")
+        k: v
+        for k, v in context.items()
+        if k in safe_keys
+        or not any(
+            secret in k.lower() for secret in ("key", "token", "secret", "password", "credential")
         )
     }
 
@@ -291,6 +395,7 @@ def _summarize_context(context: dict[str, Any] | None) -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # VAULT999 DELEGATION AUDIT
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def emit_delegation_receipt(
     delegation_plan: dict[str, Any],
@@ -318,12 +423,8 @@ def emit_delegation_receipt(
         "gateway_decision": decision,
         "delegation": {
             "category": delegation_plan.get("category"),
-            "primary_agents": [
-                a["agent_id"] for a in delegation_plan.get("primary_agents", [])
-            ],
-            "verify_agents": [
-                a["agent_id"] for a in delegation_plan.get("verify_agents", [])
-            ],
+            "primary_agents": [a["agent_id"] for a in delegation_plan.get("primary_agents", [])],
+            "verify_agents": [a["agent_id"] for a in delegation_plan.get("verify_agents", [])],
             "cross_verify_triggered": delegation_plan.get("cross_verify_triggered", False),
         },
         "constitutional": {
@@ -412,7 +513,7 @@ ARIF_DELEGATE_TOOL_DEF = {
         "properties": {
             "intent": {
                 "type": "string",
-                "description": "Natural language description of the task to delegate"
+                "description": "Natural language description of the task to delegate",
             },
             "target_agent": {
                 "type": "string",
@@ -425,11 +526,11 @@ ARIF_DELEGATE_TOOL_DEF = {
             },
             "context": {
                 "type": "object",
-                "description": "Additional context: session_id, domain, priority, description"
+                "description": "Additional context: session_id, domain, priority, description",
             },
             "expected_output_schema": {
                 "type": "object",
-                "description": "Optional schema describing expected output format"
+                "description": "Optional schema describing expected output format",
             },
             "is_claim": {
                 "type": "boolean",

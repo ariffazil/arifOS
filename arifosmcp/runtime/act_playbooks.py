@@ -28,6 +28,7 @@ from enum import Enum
 # EXECUTION PATTERNS — the "cara manusia buat"
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class ExecutionPattern(str, Enum):
     """The ceremonial pattern for executing a program of actions.
 
@@ -38,6 +39,7 @@ class ExecutionPattern(str, Enum):
     HUMAN_CHECKPOINT   — Execute step, pause for human verification, continue.
     COMPENSATION_READY — Execute with pre-planned rollback on failure.
     """
+
     SINGLE_SHOT = "single_shot"
     DRY_RUN_THEN_LIVE = "dry_run_then_live"
     CANARY_THEN_ALL = "canary_then_all"
@@ -48,17 +50,19 @@ class ExecutionPattern(str, Enum):
 
 class ActVerdict(str, Enum):
     """What ACT decides for this program."""
-    PROCEED = "proceed"                    # Pattern is safe — execute as planned
-    HOLD = "hold"                          # Pattern needs change — pause
-    BLOCK = "block"                        # Cannot execute safely — redesign
+
+    PROCEED = "proceed"  # Pattern is safe — execute as planned
+    HOLD = "hold"  # Pattern needs change — pause
+    BLOCK = "block"  # Cannot execute safely — redesign
     DRY_RUN_REQUIRED = "dry_run_required"  # Must simulate first
-    CANARY_REQUIRED = "canary_required"    # Must canary first
+    CANARY_REQUIRED = "canary_required"  # Must canary first
     COMPENSATION_REQUIRED = "compensation_required"  # Needs rollback plan
-    HUMAN_REQUIRED = "human_required"      # Human must be in loop
+    HUMAN_REQUIRED = "human_required"  # Human must be in loop
 
 
 class ActReason(str, Enum):
     """Why ACT reached this verdict."""
+
     # State
     NO_PREVIOUS_STAGE = "no previous stage — starting fresh"
     PREVIOUS_STAGE_UNVERIFIED = "previous stage not verified — cannot proceed"
@@ -100,8 +104,10 @@ class ActReason(str, Enum):
 # STAGE TRACKING
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class StageStatus(str, Enum):
     """Status of a single stage in a multi-stage program."""
+
     PENDING = "pending"
     RUNNING = "running"
     VERIFIED = "verified"
@@ -113,6 +119,7 @@ class StageStatus(str, Enum):
 @dataclass
 class StageResult:
     """Result of a single execution stage."""
+
     stage_number: int
     total_stages: int
     status: StageStatus
@@ -122,6 +129,7 @@ class StageResult:
 # ═══════════════════════════════════════════════════════════════════════════
 # REQUEST
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 @dataclass
 class ActRequest:
@@ -141,6 +149,7 @@ class ActRequest:
         total_stages:       How many stages total
         previous_stage_status: Status of the previous stage
     """
+
     program_stage: str = "single"
     execution_pattern: str = ExecutionPattern.SINGLE_SHOT.value
     blast_radius: str = "unknown"
@@ -159,9 +168,11 @@ class ActRequest:
 # RESULT
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class ActResult:
     """What ACT returns."""
+
     verdict: ActVerdict
     reason: ActReason
     recommended_pattern: ExecutionPattern | None = None

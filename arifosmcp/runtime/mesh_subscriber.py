@@ -161,8 +161,7 @@ class MeshSubscriber:
 
         except Exception as e:
             logger.warning(
-                f"[{self.organ_id}] NATS connection failed: {e}. "
-                "Degraded to polling mode."
+                f"[{self.organ_id}] NATS connection failed: {e}. Degraded to polling mode."
             )
             self._polling = True
             return False
@@ -179,13 +178,9 @@ class MeshSubscriber:
                 queue=f"mesh-{self.organ_id}",
             )
             self._subscriptions[subject] = sub
-            logger.info(
-                f"[{self.organ_id}] Subscribed to {subject}"
-            )
+            logger.info(f"[{self.organ_id}] Subscribed to {subject}")
         except Exception as e:
-            logger.error(
-                f"[{self.organ_id}] Failed to subscribe to {subject}: {e}"
-            )
+            logger.error(f"[{self.organ_id}] Failed to subscribe to {subject}: {e}")
 
     async def _on_message(self, msg: Any) -> None:
         """Handle incoming NATS message."""
@@ -210,18 +205,12 @@ class MeshSubscriber:
                 try:
                     cb(data)
                 except Exception as e:
-                    logger.error(
-                        f"[{self.organ_id}] Intelligence callback error: {e}"
-                    )
+                    logger.error(f"[{self.organ_id}] Intelligence callback error: {e}")
 
         except json.JSONDecodeError:
-            logger.warning(
-                f"[{self.organ_id}] Received non-JSON message on {msg.subject}"
-            )
+            logger.warning(f"[{self.organ_id}] Received non-JSON message on {msg.subject}")
         except Exception as e:
-            logger.error(
-                f"[{self.organ_id}] Mesh message handler error: {e}"
-            )
+            logger.error(f"[{self.organ_id}] Mesh message handler error: {e}")
 
     async def disconnect(self) -> None:
         """Disconnect from NATS gracefully."""
@@ -250,9 +239,7 @@ class MeshSubscriber:
             "connected": self._connected,
             "polling": self._polling,
             "subscriptions": list(self._subscriptions.keys()),
-            "last_update": (
-                self.last_update.isoformat() if self.last_update else None
-            ),
+            "last_update": (self.last_update.isoformat() if self.last_update else None),
             "has_floors": self.last_floors is not None,
             "has_entropy": self.last_entropy is not None,
             "has_verdict": self.last_verdict is not None,
@@ -284,11 +271,11 @@ def organ_intelligence_printer(organ_id: str) -> IntelligenceCallback:
 
         parts = [f"[{organ_id}] mesh intelligence received"]
         if floors:
-            parts.append(f"floors_active={len(floors.get('active',[]))}")
+            parts.append(f"floors_active={len(floors.get('active', []))}")
         if entropy is not None:
             parts.append(f"entropy_delta={entropy:.4f}")
         if verdict:
-            parts.append(f"verdict={verdict.get('verdict','?')}")
+            parts.append(f"verdict={verdict.get('verdict', '?')}")
         if leases:
             parts.append(f"leases={len(leases)}")
         if heartbeats:

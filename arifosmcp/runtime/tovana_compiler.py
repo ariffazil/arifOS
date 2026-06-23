@@ -22,6 +22,7 @@ LLM provider: minimax (OpenAI-compatible, base_url=https://api.minimax.io/v1)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 import json
@@ -33,12 +34,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-_TOVANA_VENV_PYTHON = os.getenv(
-    "TOVANA_VENV_PYTHON", "/root/tovana-venv/bin/python3"
-)
-_TOVANA_MEMORY_DIR = Path(
-    os.getenv("TOVANA_MEMORY_DIR", "/root/.arifos/memory/tovana")
-)
+_TOVANA_VENV_PYTHON = os.getenv("TOVANA_VENV_PYTHON", "/root/tovana-venv/bin/python3")
+_TOVANA_MEMORY_DIR = Path(os.getenv("TOVANA_MEMORY_DIR", "/root/.arifos/memory/tovana"))
 _BELIEF_TTL_DAYS = int(os.getenv("TOVANA_BELIEF_TTL_DAYS", "90"))
 
 
@@ -169,7 +166,7 @@ def _run_in_tovana_venv(callable_path: str, *args: Any, **kwargs: Any) -> Any:
     # Extract __RESULT__ line
     for line in proc.stdout.split("\n"):
         if line.startswith("__RESULT__:"):
-            return json.loads(line[len("__RESULT__:"):])
+            return json.loads(line[len("__RESULT__:") :])
     return {"stdout": proc.stdout, "stderr": proc.stderr}
 
 

@@ -21,13 +21,26 @@ from pathlib import Path
 
 # Services whose control always requires elevated scrutiny
 CRITICAL_SERVICES = {
-    "ssh", "sshd", "systemd", "network", "firewalld",
-    "docker", "docker.socket", "containerd",
-    "nginx", "apache2", "httpd",
-    "mysql", "mariadb", "postgresql", "redis",
-    "caddy", "traefik",
+    "ssh",
+    "sshd",
+    "systemd",
+    "network",
+    "firewalld",
+    "docker",
+    "docker.socket",
+    "containerd",
+    "nginx",
+    "apache2",
+    "httpd",
+    "mysql",
+    "mariadb",
+    "postgresql",
+    "redis",
+    "caddy",
+    "traefik",
     # arifOS itself
-    "arifos", "arifos.socket",
+    "arifos",
+    "arifos.socket",
 }
 
 # Services where stop/restart = HIGH risk
@@ -43,14 +56,15 @@ def classify(service: str, action: str) -> tuple:
     # Any action on a critical service
     if svc_key in CRITICAL_SERVICES or svc_key_base in CRITICAL_SERVICES:
         if action in RISKY_ACTIONS:
-            return ("ATOMIC", "HOLD",
-                    f"F13 ATOMIC: critical service '{service}' {action} — requires 888_HOLD")
+            return (
+                "ATOMIC",
+                "HOLD",
+                f"F13 ATOMIC: critical service '{service}' {action} — requires 888_HOLD",
+            )
         elif action == "mask":
-            return ("HIGH", "HOLD",
-                    f"F13 HIGH: masking critical service '{service}'")
+            return ("HIGH", "HOLD", f"F13 HIGH: masking critical service '{service}'")
         else:
-            return ("MEDIUM", "CAUTION",
-                    f"F13 CAUTION: critical service '{service}' {action}")
+            return ("MEDIUM", "CAUTION", f"F13 CAUTION: critical service '{service}' {action}")
 
     # Any mask operation on any service
     if action == "mask":
@@ -66,11 +80,11 @@ def classify(service: str, action: str) -> tuple:
 def execute_systemctl(action: str, service: str) -> dict:
     """Execute actual systemctl command. Returns result dict."""
     import time
+
     start = time.time()
     try:
         result = subprocess.run(
-            ["systemctl", action, service],
-            capture_output=True, text=True, timeout=60
+            ["systemctl", action, service], capture_output=True, text=True, timeout=60
         )
         return {
             "success": result.returncode == 0,
@@ -80,9 +94,21 @@ def execute_systemctl(action: str, service: str) -> dict:
             "duration_ms": round((time.time() - start) * 1000),
         }
     except subprocess.TimeoutExpired:
-        return {"success": False, "exit_code": -1, "stdout": "", "stderr": "Timeout (60s)", "duration_ms": 60000}
+        return {
+            "success": False,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": "Timeout (60s)",
+            "duration_ms": 60000,
+        }
     except FileNotFoundError:
-        return {"success": False, "exit_code": -1, "stdout": "", "stderr": "systemctl not found", "duration_ms": 0}
+        return {
+            "success": False,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": "systemctl not found",
+            "duration_ms": 0,
+        }
     except Exception as e:
         return {"success": False, "exit_code": -1, "stdout": "", "stderr": str(e), "duration_ms": 0}
 
@@ -92,7 +118,9 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Classify only")
     parser.add_argument("--intent", "-i", default="", help="Intent description")
     parser.add_argument("--json", action="store_true", help="JSON output")
-    parser.add_argument("--force", action="store_true", help="Skip HOLD — 888_HOLD already confirmed")
+    parser.add_argument(
+        "--force", action="store_true", help="Skip HOLD — 888_HOLD already confirmed"
+    )
     parser.add_argument("action", nargs="?", help="systemctl action")
     parser.add_argument("service", nargs="?", help="Service name")
     args = parser.parse_args()
@@ -113,8 +141,11 @@ def main():
     tier, verdict, rationale = classify(service, action)
 
     result = {
-        "verdict": verdict, "tier": tier,
-        "intent": intent, "action": action, "service": service,
+        "verdict": verdict,
+        "tier": tier,
+        "intent": intent,
+        "action": action,
+        "service": service,
         "rationale": rationale,
         "critical_service": service in CRITICAL_SERVICES,
         "action_blocked": verdict in ("HOLD", "VOID"),
@@ -159,14 +190,18 @@ def main():
         audit = Path("/var/log/arifos/audit.log")
         audit.parent.mkdir(parents=True, exist_ok=True)
         import datetime
-        entry = json.dumps({
-            "epoch": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "actor": "arif-systemctl",
-            "verdict": verdict,
-            "tier": tier,
-            "action": action, "service": service,
-            "intent": intent,
-        })
+
+        entry = json.dumps(
+            {
+                "epoch": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "actor": "arif-systemctl",
+                "verdict": verdict,
+                "tier": tier,
+                "action": action,
+                "service": service,
+                "intent": intent,
+            }
+        )
         with open(audit, "a") as f:
             f.write(entry + "\n")
     except Exception:

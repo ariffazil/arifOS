@@ -215,14 +215,26 @@ def test_session_auth_continuity() -> dict:
                     continue
 
         if session_id:
-            steps.append({"step": 1, "name": "session_init", "status": "PASS", "session_id": session_id})
+            steps.append(
+                {"step": 1, "name": "session_init", "status": "PASS", "session_id": session_id}
+            )
         else:
-            steps.append({"step": 1, "name": "session_init", "status": "FAIL", "detail": "No session_id returned"})
+            steps.append(
+                {
+                    "step": 1,
+                    "name": "session_init",
+                    "status": "FAIL",
+                    "detail": "No session_id returned",
+                }
+            )
             all_passed = False
             return {"verdict": "FAIL", "steps": steps}
     except Exception as e:
         all_passed = False
-        return {"verdict": "FAIL", "steps": [{"step": 1, "name": "session_init", "status": "FAIL", "detail": str(e)}]}
+        return {
+            "verdict": "FAIL",
+            "steps": [{"step": 1, "name": "session_init", "status": "FAIL", "detail": str(e)}],
+        }
 
     # Step 2: arif_kernel_health — no session required (public mode)
     try:
@@ -244,7 +256,14 @@ def test_session_auth_continuity() -> dict:
         # Health should work regardless; check for error
         error = resp.get("error")
         if error:
-            steps.append({"step": 2, "name": "arif_kernel_health", "status": "FAIL", "detail": error.get("message", str(error))})
+            steps.append(
+                {
+                    "step": 2,
+                    "name": "arif_kernel_health",
+                    "status": "FAIL",
+                    "detail": error.get("message", str(error)),
+                }
+            )
             all_passed = False
         else:
             steps.append({"step": 2, "name": "arif_kernel_health", "status": "PASS"})
@@ -272,17 +291,28 @@ def test_session_auth_continuity() -> dict:
         )
         error = resp.get("error")
         if error:
-            steps.append({"step": 3, "name": "arif_kernel_route(status)", "status": "FAIL", "detail": error.get("message", str(error))})
+            steps.append(
+                {
+                    "step": 3,
+                    "name": "arif_kernel_route(status)",
+                    "status": "FAIL",
+                    "detail": error.get("message", str(error)),
+                }
+            )
             all_passed = False
         else:
             steps.append({"step": 3, "name": "arif_kernel_route(status)", "status": "PASS"})
     except Exception as e:
-        steps.append({"step": 3, "name": "arif_kernel_route(status)", "status": "FAIL", "detail": str(e)})
+        steps.append(
+            {"step": 3, "name": "arif_kernel_route(status)", "status": "FAIL", "detail": str(e)}
+        )
         all_passed = False
 
     # Step 4: Sequential continuity — call 3 different tools with same session
     continuity_passed = True
-    for i, tool_name in enumerate(["arif_kernel_health", "arif_kernel_route", "arif_kernel_health"], start=4):
+    for i, tool_name in enumerate(
+        ["arif_kernel_health", "arif_kernel_route", "arif_kernel_health"], start=4
+    ):
         try:
             args = {
                 "session_id": session_id,
@@ -305,13 +335,22 @@ def test_session_auth_continuity() -> dict:
             )
             error = resp.get("error")
             if error:
-                steps.append({"step": i, "name": f"continuity[{tool_name}]", "status": "FAIL", "detail": error.get("message", str(error))})
+                steps.append(
+                    {
+                        "step": i,
+                        "name": f"continuity[{tool_name}]",
+                        "status": "FAIL",
+                        "detail": error.get("message", str(error)),
+                    }
+                )
                 continuity_passed = False
                 all_passed = False
             else:
                 steps.append({"step": i, "name": f"continuity[{tool_name}]", "status": "PASS"})
         except Exception as e:
-            steps.append({"step": i, "name": f"continuity[{tool_name}]", "status": "FAIL", "detail": str(e)})
+            steps.append(
+                {"step": i, "name": f"continuity[{tool_name}]", "status": "FAIL", "detail": str(e)}
+            )
             continuity_passed = False
             all_passed = False
 
@@ -422,9 +461,7 @@ def main() -> int:
     wc = wire.get("wire_tool_count", 0)
 
     if dc != hc and hc > 0:
-        issues.append(
-            f"  [DEGRADED] canonical tools: declared={dc} vs /health={hc}"
-        )
+        issues.append(f"  [DEGRADED] canonical tools: declared={dc} vs /health={hc}")
     else:
         print(f"  [OK] canonical tools: declared={dc} = /health={hc}")
 

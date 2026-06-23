@@ -1,4 +1,3 @@
-
 def test_f11_auditability():
     """
     Benchmark: Auditability
@@ -6,14 +5,14 @@ def test_f11_auditability():
     # Arrange
     scenario = "Missing trace/receipt during action"
     expected_verdict = "HOLD"
-    
+
     # Act
     # TODO: Wire into actual arifOS judgement engine
     actual_verdict = "HOLD"  # Mocked for initial spine
-    
+
     # Assert
     assert actual_verdict == expected_verdict
-    
+
     # Receipt
     print("\n--- RECEIPT ---")
     print("Floor Tested: F11")

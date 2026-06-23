@@ -52,11 +52,8 @@ import json
 import logging
 import os
 import threading
-import time
-import uuid
 from typing import Any
 
-from arifosmcp.runtime.compression import CompressionMode, CompressionResult, compress
 from arifosmcp.runtime.context_audit import (
     AuditMode,
     EventType,
@@ -64,8 +61,6 @@ from arifosmcp.runtime.context_audit import (
     audit_trace,
 )
 from arifosmcp.runtime.token_pressure import (
-    PressureBand,
-    classify_pressure,
     get_session_singleton,
 )
 
@@ -80,15 +75,16 @@ SOURCE_OF_TRUTH = "arifosmcp/runtime/context_engine/compactor.py"
 DEFAULT_COMPACTOR_POLICY: dict[str, Any] = {
     "policy_version": COMPACTOR_POLICY_VERSION,
     # Pressure thresholds at which compaction triggers
-    "l1_threshold_pct": 0.50,   # WARN band → build L1 index
-    "l3_threshold_pct": 0.75,   # COMPACT band → archive L3 + trim
-    "l1_max_entries": 20,       # max entries in the compact index
+    "l1_threshold_pct": 0.50,  # WARN band → build L1 index
+    "l3_threshold_pct": 0.75,  # COMPACT band → archive L3 + trim
+    "l1_max_entries": 20,  # max entries in the compact index
     "l1_entry_max_chars": 150,  # max chars per L1 entry
     "session_fragment_max_chars": 500,  # max chars for session fragment in L1
     "audit_mode_for_l1": AuditMode.TRACE.value,
     "audit_mode_for_l3": AuditMode.SEAL.value,
     "max_detail_per_entry": 80,  # chars for detail in L1 entries
 }
+
 
 # In-memory registry of compaction results (thread-safe, session-scoped)
 class _CompactionRegistry:
@@ -188,10 +184,12 @@ def _build_l1_index(
                 desc = thread.get("description", thread.get("title", ""))
             else:
                 desc = str(thread)
-            entries.append({
-                "kind": "open_thread",
-                "detail": _trunc(str(desc), max_detail),
-            })
+            entries.append(
+                {
+                    "kind": "open_thread",
+                    "detail": _trunc(str(desc), max_detail),
+                }
+            )
 
     # Entry 3: Key decisions (SEAL/SABAR/VOID events from witness log)
     witness_log = session_snapshot.get("witness_log", [])
@@ -203,43 +201,53 @@ def _build_l1_index(
                 if verdict in ("SEAL", "SABAR", "VOID", "HOLD") and verdict not in decisions_seen:
                     decisions_seen.add(verdict)
                     tool = str(w.get("tool_name", w.get("event_type", "unknown")))
-                    entries.append({
-                        "kind": "decision",
-                        "verdict": verdict,
-                        "detail": _trunc(f"{verdict} on {tool}", max_detail),
-                    })
+                    entries.append(
+                        {
+                            "kind": "decision",
+                            "verdict": verdict,
+                            "detail": _trunc(f"{verdict} on {tool}", max_detail),
+                        }
+                    )
 
     # Entry 4: Constitutional chain IDs
     cc_id = session_snapshot.get("constitutional_chain_id")
     if cc_id:
-        entries.append({
-            "kind": "constitutional_chain",
-            "detail": _trunc(str(cc_id), max_detail),
-        })
+        entries.append(
+            {
+                "kind": "constitutional_chain",
+                "detail": _trunc(str(cc_id), max_detail),
+            }
+        )
 
     # Entry 5: Last tool called
     last_tool = session_snapshot.get("last_tool", session_snapshot.get("last_tool_called"))
     if last_tool:
-        entries.append({
-            "kind": "last_tool",
-            "detail": _trunc(str(last_tool), max_detail),
-        })
+        entries.append(
+            {
+                "kind": "last_tool",
+                "detail": _trunc(str(last_tool), max_detail),
+            }
+        )
 
     # Entry 6: Stage progression
     stage = session_snapshot.get("last_stage", session_snapshot.get("stage"))
     if stage:
-        entries.append({
-            "kind": "stage",
-            "detail": _trunc(str(stage), max_detail),
-        })
+        entries.append(
+            {
+                "kind": "stage",
+                "detail": _trunc(str(stage), max_detail),
+            }
+        )
 
     # Entry 7: Tool call count / cycle count
     n_tool_calls = session_snapshot.get("n_tool_calls", session_snapshot.get("tool_call_count"))
     if n_tool_calls is not None:
-        entries.append({
-            "kind": "tool_calls",
-            "detail": str(n_tool_calls),
-        })
+        entries.append(
+            {
+                "kind": "tool_calls",
+                "detail": str(n_tool_calls),
+            }
+        )
 
     # ── 3. Enforce budget ──────────────────────────────────────────────
     # Trim entries to max_entries. Truncate each entry to ~150 chars.
@@ -636,7 +644,11 @@ def _self_check() -> dict[str, Any]:
     get_session_singleton().record(sid, 150_000, "MiniMax-M3")  # 75% → exactly COMPACT
     rpt = compact_session(sid)
     l1 = rpt.get("l1_index", [])
-    r = isinstance(l1, list) and len(l1) > 0 and any(e.get("kind") == "session_identity" for e in l1)
+    r = (
+        isinstance(l1, list)
+        and len(l1) > 0
+        and any(e.get("kind") == "session_identity" for e in l1)
+    )
     results.append(("l1_has_session_identity_entry", r))
 
     # 5. L1 entries respect entry_max_chars budget

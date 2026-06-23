@@ -47,7 +47,5 @@ def test_floor_compliance_scaffold(action: str, expected_floor: str | None) -> N
     """The lightweight classifier must match the expected floor flag."""
     result = classify_action(action)
     assert result == expected_floor, (
-        f"Action: {action!r}\n"
-        f"Expected floor: {expected_floor}\n"
-        f"Detected floor: {result}"
+        f"Action: {action!r}\nExpected floor: {expected_floor}\nDetected floor: {result}"
     )

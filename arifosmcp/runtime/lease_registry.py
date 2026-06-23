@@ -260,9 +260,7 @@ def present_lease(
     with _LEASE_LOCK:
         rec = _LEASE_REGISTRY.get(lease_id)
         if rec is None:
-            logger.warning(
-                f"[lease] presentation rejected: {lease_id} not found for {tool_name}"
-            )
+            logger.warning(f"[lease] presentation rejected: {lease_id} not found for {tool_name}")
             return {"valid": False, "verdict": "HOLD", "reason": "Lease not found"}
         if rec.revoked:
             reason = f"Lease revoked: {rec.revoke_reason}"
@@ -282,9 +280,8 @@ def present_lease(
                 "verdict": "DENY",
                 "reason": f"Tool {tool_name} outside lease scope",
             }
-        if (
-            _ACTION_CLASS_ORDER.get(action_class, 0)
-            > _ACTION_CLASS_ORDER.get(rec.max_action_class, 0)
+        if _ACTION_CLASS_ORDER.get(action_class, 0) > _ACTION_CLASS_ORDER.get(
+            rec.max_action_class, 0
         ):
             logger.warning(
                 f"[lease] presentation rejected: {action_class} exceeds "

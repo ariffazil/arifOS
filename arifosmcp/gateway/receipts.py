@@ -34,6 +34,7 @@ from typing import Any
 @dataclass
 class SubjectSnapshot:
     """Subject identity at time of call."""
+
     human_id: str = ""
     agent_id: str = ""
     session_id: str = ""
@@ -51,6 +52,7 @@ class SubjectSnapshot:
 @dataclass
 class UpstreamSnapshot:
     """Upstream server and tool info."""
+
     upstream_id: str = ""
     server_url_hash: str = ""
     tool: str = ""
@@ -68,6 +70,7 @@ class UpstreamSnapshot:
 @dataclass
 class LeaseSnapshot:
     """Lease state before/after call."""
+
     lease_id: str = ""
     risk_class: str = "LOW"
     reversibility: str = "FULL"
@@ -87,6 +90,7 @@ class LeaseSnapshot:
 @dataclass
 class DecisionSnapshot:
     """Gateway decision."""
+
     gateway_decision: str = "UNKNOWN"  # DENIED, PENDING_888, EXECUTED, ERROR
     reason: str = ""
     http_status: int = 200
@@ -102,6 +106,7 @@ class DecisionSnapshot:
 @dataclass
 class HashBundle:
     """Cryptographic hashes for the receipt."""
+
     params_hash: str = ""
     result_hash: str | None = None
     prior_receipt_hash: str = ""
@@ -119,6 +124,7 @@ class HashBundle:
 @dataclass
 class RuntimeSnapshot:
     """Execution metadata."""
+
     duration_ms: int = 0
     schema_validated: bool = False
     forwarded_upstream: bool = False
@@ -136,6 +142,7 @@ class RuntimeSnapshot:
 @dataclass
 class CanonicalReceipt:
     """Full canonical receipt matching spec v0.1."""
+
     receipt_id: str
     timestamp: str = ""
     event_type: str = "MCP_TOOL_CALL"
@@ -183,6 +190,7 @@ class CanonicalReceipt:
 @dataclass
 class ReceiptRecord:
     """LEGACY flat receipt — kept for backward compat."""
+
     receipt_id: str
     timestamp: str = ""
     direction: str = "call_tool"
@@ -231,13 +239,11 @@ class HashChainVerifier:
             prev = receipts[i - 1]
             curr = receipts[i]
 
-            prev_hash = (
-                prev.get("hashes", {}).get("receipt_hash", "")
-                or prev.get("receipt_hash", "")
+            prev_hash = prev.get("hashes", {}).get("receipt_hash", "") or prev.get(
+                "receipt_hash", ""
             )
-            claimed_prior = (
-                curr.get("hashes", {}).get("prior_receipt_hash", "")
-                or curr.get("prior_receipt_hash", "")
+            claimed_prior = curr.get("hashes", {}).get("prior_receipt_hash", "") or curr.get(
+                "prior_receipt_hash", ""
             )
 
             if claimed_prior and prev_hash and claimed_prior != prev_hash:
@@ -384,9 +390,7 @@ class ReceiptLogger:
 
         Returns (is_valid, first_broken_index).
         """
-        return HashChainVerifier.verify_chain(
-            [r.to_dict() for r in self._receipts]
-        )
+        return HashChainVerifier.verify_chain([r.to_dict() for r in self._receipts])
 
     def chain_export(self) -> list[dict[str, str]]:
         """Export minimal hash chain: [(receipt_id, receipt_hash), ...]."""

@@ -49,6 +49,7 @@ _FEDERATION_MODEL = _AAA_REGISTRY / "FEDERATION_MODEL.json"
 @dataclass
 class ShadowEntry:
     """A single shadow/hazard entry from a model's shadow registry."""
+
     id: str
     name: str
     severity: str  # HIGH | MEDIUM | LOW
@@ -79,6 +80,7 @@ class ShadowEntry:
 @dataclass
 class ShadowProfile:
     """Complete shadow profile for a model family."""
+
     model_id: str
     model_family: str
     version: str
@@ -114,6 +116,7 @@ class ShadowProfile:
 @dataclass
 class RoutingConstraints:
     """Routing constraints extracted from FEDERATION_MODEL.json."""
+
     model_key: str
     status: str  # CONFIRMED_CENSORED | NO_CENSORSHIP_DETECTED | HARNESS_MONITORED
     forbidden_topics: list[str] = field(default_factory=list)
@@ -150,14 +153,18 @@ class ModelShadowLoader:
                 try:
                     profile = self._load_shadow_file(shadow_file)
                     self._shadows[profile.model_id] = profile
-                    logger.info(f"Loaded shadow: {profile.model_id} v{profile.version} "
-                                f"({len(profile.shadows)} entries)")
+                    logger.info(
+                        f"Loaded shadow: {profile.model_id} v{profile.version} "
+                        f"({len(profile.shadows)} entries)"
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to load shadow file {shadow_file}: {e}")
 
         self._loaded = True
-        logger.info(f"ModelShadowLoader: {len(self._shadows)} shadow profiles, "
-                    f"{len(self._routing)} routing constraints loaded")
+        logger.info(
+            f"ModelShadowLoader: {len(self._shadows)} shadow profiles, "
+            f"{len(self._routing)} routing constraints loaded"
+        )
 
     def _load_shadow_file(self, path: Path) -> ShadowProfile:
         """Parse a single *_shadow.yaml file into a ShadowProfile."""
@@ -239,12 +246,18 @@ class ModelShadowLoader:
         if profile is None:
             # Default posture: standard across all floors
             return {
-                "F1_AMANAH": "standard", "F2_TRUTH": "standard",
-                "F3_WITNESS": "standard", "F4_CLARITY": "standard",
-                "F5_PEACE": "standard", "F6_EMPATHY": "standard",
-                "F7_HUMILITY": "standard", "F8_GENIUS": "standard",
-                "F9_ANTIHANTU": "standard", "F10_ONTOLOGY": "standard",
-                "F11_AUTH": "standard", "F12_INJECTION": "standard",
+                "F1_AMANAH": "standard",
+                "F2_TRUTH": "standard",
+                "F3_WITNESS": "standard",
+                "F4_CLARITY": "standard",
+                "F5_PEACE": "standard",
+                "F6_EMPATHY": "standard",
+                "F7_HUMILITY": "standard",
+                "F8_GENIUS": "standard",
+                "F9_ANTIHANTU": "standard",
+                "F10_ONTOLOGY": "standard",
+                "F11_AUTH": "standard",
+                "F12_INJECTION": "standard",
                 "F13_SOVEREIGN": "standard",
             }
         return profile.floor_posture_for_model(model_id)

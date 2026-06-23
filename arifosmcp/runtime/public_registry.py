@@ -14,8 +14,7 @@ from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
 
 from .prompts import V2_PROMPT_SPECS
 from .public_surface import (
-    CANARY_PROBES,
-    CANONICAL_13,
+    CANONICAL_7,
     current_public_surface_mode,
     normalize_public_surface_mode,
     public_tool_names_for_mode,
@@ -27,11 +26,11 @@ PYPROJECT_PATH = ROOT / "pyproject.toml"
 TOOL_REGISTRY_PATH = ROOT / "arifosmcp" / "tool_registry.json"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
-CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13)
-# EXPECTED_TOOL_COUNT is the default public wire surface (canonical13 mode):
-# FROZEN 2026-06-23: 15 canonical tools + 1 canary probe = 16.
-# SDK aliases removed from wire surface — one name per function.
-EXPECTED_TOOL_COUNT = len(CANONICAL_13) + len(CANARY_PROBES)
+CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_7)
+# EXPECTED_TOOL_COUNT is the default public wire surface (canonical7 mode):
+# FROZEN 2026-06-23: exactly 7 public canonical verbs.
+# SDK aliases and canary probes removed from wire surface — one name per function.
+EXPECTED_TOOL_COUNT = len(CANONICAL_7)
 
 RUNTIME_ENVELOPE_SCHEMA = {
     "type": "object",

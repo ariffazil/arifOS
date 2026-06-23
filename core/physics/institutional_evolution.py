@@ -142,9 +142,7 @@ def check_institutional_succession(
     role_changes entries should be dicts like:
         {"role": "vault_admin", "action": "revoked", "successor": "...", "handoff_doc": "..."}
     """
-    orphan_changes = [
-        c for c in role_changes if not c.get("successor") or not c.get("handoff_doc")
-    ]
+    orphan_changes = [c for c in role_changes if not c.get("successor") or not c.get("handoff_doc")]
     succession_score = 1.0
     if orphan_changes:
         succession_score -= min(1.0, len(orphan_changes) / max(len(role_changes), 1))
@@ -191,9 +189,7 @@ def check_ai_adaptation_rate(
     Returns 888_HOLD if unreviewed changes exceed the ratio threshold.
     """
     unreviewed = max(0, changes_last_30d - human_reviews_last_30d)
-    unreviewed_ratio = (
-        unreviewed / max(changes_last_30d, 1) if changes_last_30d > 0 else 0.0
-    )
+    unreviewed_ratio = unreviewed / max(changes_last_30d, 1) if changes_last_30d > 0 else 0.0
     passed = unreviewed_ratio <= max_unreviewed_ratio
     adaptation_score = 1.0 - min(1.0, unreviewed_ratio / max(max_unreviewed_ratio, 1e-9))
 
@@ -392,7 +388,7 @@ class InstitutionalEvolutionGuard:
 
         if affected_communities and consent_coverage < min_consent:
             raise PopulationAbsorptionError(
-                f"Community consent ({consent_coverage*100:.1f}%) below required threshold ({min_consent*100:.1f}%) "
+                f"Community consent ({consent_coverage * 100:.1f}%) below required threshold ({min_consent * 100:.1f}%) "
                 f"for affected communities: {affected_communities}. SABAR."
             )
 
@@ -454,7 +450,7 @@ class InstitutionalEvolutionGuard:
             if unreviewed_ratio > max_unreviewed_ratio:
                 raise AIAdaptationRateExceededError(
                     f"AI-driven adaptation rate too high: {unreviewed} of {changes_last_30d} changes "
-                    f"({unreviewed_ratio*100:.1f}%) remain unreviewed, exceeding limit ({max_unreviewed_ratio*100:.1f}%). HOLD_888."
+                    f"({unreviewed_ratio * 100:.1f}%) remain unreviewed, exceeding limit ({max_unreviewed_ratio * 100:.1f}%). HOLD_888."
                 )
 
         return {
@@ -514,7 +510,11 @@ class InstitutionalEvolutionGuard:
                     payload.get("max_interventions", 200),
                 )
             except InstitutionalEvolutionError as e:
-                results["attention_budget"] = {"passed": False, "verdict": e.verdict, "error": str(e)}
+                results["attention_budget"] = {
+                    "passed": False,
+                    "verdict": e.verdict,
+                    "error": str(e),
+                }
                 if not first_failure:
                     first_failure = e
 
@@ -526,7 +526,11 @@ class InstitutionalEvolutionGuard:
                     payload.get("min_consent", 0.67),
                 )
             except InstitutionalEvolutionError as e:
-                results["population_absorption"] = {"passed": False, "verdict": e.verdict, "error": str(e)}
+                results["population_absorption"] = {
+                    "passed": False,
+                    "verdict": e.verdict,
+                    "error": str(e),
+                }
                 if not first_failure:
                     first_failure = e
 
@@ -537,7 +541,11 @@ class InstitutionalEvolutionGuard:
                     payload.get("unacknowledged_obligations", []),
                 )
             except InstitutionalEvolutionError as e:
-                results["succession_continuity"] = {"passed": False, "verdict": e.verdict, "error": str(e)}
+                results["succession_continuity"] = {
+                    "passed": False,
+                    "verdict": e.verdict,
+                    "error": str(e),
+                }
                 if not first_failure:
                     first_failure = e
 
@@ -549,7 +557,11 @@ class InstitutionalEvolutionGuard:
                     payload.get("max_unreviewed_ratio", 0.10),
                 )
             except InstitutionalEvolutionError as e:
-                results["ai_adaptation_rate"] = {"passed": False, "verdict": e.verdict, "error": str(e)}
+                results["ai_adaptation_rate"] = {
+                    "passed": False,
+                    "verdict": e.verdict,
+                    "error": str(e),
+                }
                 if not first_failure:
                     first_failure = e
 
@@ -561,7 +573,11 @@ class InstitutionalEvolutionGuard:
                     max_stale_seconds=payload.get("max_stale_seconds", 120.0),
                 )
             except InstitutionalEvolutionError as e:
-                results["federation_liveness"] = {"passed": False, "verdict": e.verdict, "error": str(e)}
+                results["federation_liveness"] = {
+                    "passed": False,
+                    "verdict": e.verdict,
+                    "error": str(e),
+                }
                 if not first_failure:
                     first_failure = e
 

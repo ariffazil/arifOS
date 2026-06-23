@@ -194,7 +194,6 @@ def build_canonical_claims(
     # Claim 5: Contract schemas are importable
     def _claim_contracts_importable() -> bool:
         try:
-
             return True
         except Exception:
             return False

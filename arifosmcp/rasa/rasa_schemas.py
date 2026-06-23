@@ -83,14 +83,16 @@ class ConstitutionPosture(str, Enum):
 
 class BiologicalSource(str, Enum):
     """Source of biological signal — NONE by default. NEVER fake."""
+
     NONE = "none"
-    MANUAL = "manual"        # Human self-reported
-    WEARABLE = "wearable"    # Future: smartwatch etc
-    CLINICAL = "clinical"    # Future: medical device
+    MANUAL = "manual"  # Human self-reported
+    WEARABLE = "wearable"  # Future: smartwatch etc
+    CLINICAL = "clinical"  # Future: medical device
 
 
 class BiologicalClaimLevel(str, Enum):
     """Trust level of biological claim — ABSENT by default."""
+
     ABSENT = "absent"
     SELF_REPORTED = "self_reported"
     SENSOR_VERIFIED = "sensor_verified"
@@ -98,6 +100,7 @@ class BiologicalClaimLevel(str, Enum):
 
 class RelationshipType(str, Enum):
     """Relational context type — UNKNOWN by default."""
+
     UNKNOWN = "unknown"
     FAMILY = "family"
     FRIEND = "friend"
@@ -111,6 +114,7 @@ class RelationshipType(str, Enum):
 
 class ExistentialTag(str, Enum):
     """Existential/identity-level disturbance tags — detected via keyword classifier."""
+
     IDENTITY_RUPTURE = "identity_rupture"
     LOSS_OF_MEANING = "loss_of_meaning"
     MORAL_INJURY = "moral_injury"
@@ -123,6 +127,7 @@ class ExistentialTag(str, Enum):
 
 class OrganHealthStatus(str, Enum):
     """Honest organ health — never cosmetic green."""
+
     SEAL = "SEAL"
     DEGRADED_FALLBACK = "DEGRADED_FALLBACK"
     CONSTITUTIONAL_HOLD = "CONSTITUTIONAL_HOLD"
@@ -151,9 +156,7 @@ class RasaDetection(BaseModel):
 class RasaContext(BaseModel):
     """333 MIND output — what rasa means in governance context."""
 
-    cognitive_bandwidth: float = Field(
-        default=1.0, ge=0.0, le=1.0
-    )  # 1.0 = full, 0.0 = depleted
+    cognitive_bandwidth: float = Field(default=1.0, ge=0.0, le=1.0)  # 1.0 = full, 0.0 = depleted
     risk_sensitivity: float = Field(
         default=0.5, ge=0.0, le=1.0
     )  # Higher = more risk-averse planning needed
@@ -177,12 +180,8 @@ class RasaMemoryPattern(BaseModel):
 class RasaHeartVerdict(BaseModel):
     """444 HEART output — risk calculus for dignity, peace, boundary."""
 
-    deescalation_score: float = Field(
-        default=1.0, ge=0.0, le=1.0
-    )  # Higher = response de-escalates
-    dignity_preservation: float = Field(
-        default=1.0, ge=0.0, le=1.0
-    )  # Higher = protects maruah
+    deescalation_score: float = Field(default=1.0, ge=0.0, le=1.0)  # Higher = response de-escalates
+    dignity_preservation: float = Field(default=1.0, ge=0.0, le=1.0)  # Higher = protects maruah
     boundary_honored: bool = True  # True = human-machine boundary preserved
     boundary_risk: str = "none"  # none / blurred / violated
     requires_human_professional: bool = False
@@ -190,9 +189,7 @@ class RasaHeartVerdict(BaseModel):
     f9_violation_risk: float = Field(
         default=0.0, ge=0.0, le=1.0
     )  # Risk of making consciousness claims
-    f10_violation_risk: float = Field(
-        default=0.0, ge=0.0, le=1.0
-    )  # Risk of soul/feelings claims
+    f10_violation_risk: float = Field(default=0.0, ge=0.0, le=1.0)  # Risk of soul/feelings claims
     heart_note: str = ""  # MUST NEVER say "I understand how you feel"
 
 
@@ -200,9 +197,7 @@ class RasaJudgeVerdict(BaseModel):
     """888 JUDGE output — constitutional enforcement verdict."""
 
     allowed_postures: list[ConstitutionPosture] = Field(default_factory=list)
-    blocked_outputs: list[str] = Field(
-        default_factory=list
-    )  # Output patterns to block
+    blocked_outputs: list[str] = Field(default_factory=list)  # Output patterns to block
     requires_rewrite: bool = False  # Output needs F9/F10 sanitization
     floors_checked: dict[str, bool] = Field(default_factory=dict)
     downgrade_reason: str = ""  # Why SEAL was downgraded if applicable

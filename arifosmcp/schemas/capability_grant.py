@@ -65,7 +65,9 @@ class CapabilityGrant(BaseModel):
     capability: str = Field(description="Capability name, e.g. 'gmail.fetch_emails'")
     provider: CapabilityProvider = Field(description="Which provider holds the secret")
     scope: list[str] = Field(default_factory=list, description="Allowed scopes")
-    secret_location: str = Field(description="Gateway-internal secret path, e.g. 'gateway://composio/gmail/arif'")
+    secret_location: str = Field(
+        description="Gateway-internal secret path, e.g. 'gateway://composio/gmail/arif'"
+    )
     agent_visible_secret: bool = Field(
         default=False,
         description="HARD DEFAULT FALSE. Agent must never see raw secrets.",

@@ -24,7 +24,9 @@ WEALTH_HOST = "http://localhost:18082"
 GEOX_HOST = "http://localhost:8081"
 WELL_HOST = "http://localhost:18083"
 
-REGISTRY_PATH = Path(__file__).parent.parent / "registry_DEPRECATED_2026-06-05" / "federation_registry.json"
+REGISTRY_PATH = (
+    Path(__file__).parent.parent / "registry_DEPRECATED_2026-06-05" / "federation_registry.json"
+)
 KERNEL_CONSTITUTION_PATH = Path(__file__).parent.parent / "blueprints" / "kernel_constitution.yaml"
 ROUTING_ENGINE_PATH = Path(__file__).parent.parent / "blueprints" / "routing_engine.yaml"
 VERDICT_CONTRACT_PATH = Path(__file__).parent.parent / "contracts" / "verdict_contract.json"
@@ -556,13 +558,12 @@ def test_live_health(result: AuditResult):
 # ─────────────────────────────────────────────────────────────────
 
 
-
-
 @pytest.fixture
 def result():
     res = AuditResult()
     yield res
     assert res.failed == 0, f"Test failed {res.failed} checks."
+
 
 def main():
     print("=" * 60)

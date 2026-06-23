@@ -16,22 +16,17 @@ DITEMPA BUKAN DIBERI — compat exists for tests, not for the reflex.
 """
 
 import sys
-from pathlib import Path
 
-import pytest
 
 sys.path.insert(0, "/opt/arifos/app")
 
 from arifosmcp.runtime.art_compat import (
     guarded_tool_call,
     GatewayVerdict,
-    DecisionClass,
     classify_reversibility,
     ReversibilityTier,
     EntropyWatcher,
     EntropySnapshot,
-    ReversibilityAssessment,
-    GatewayDecision,
 )
 
 
@@ -84,9 +79,7 @@ def test_entropy_watcher_starts_at_zero():
 
 def test_entropy_watcher_overload_detection():
     w = EntropyWatcher()
-    w._last_snapshot = EntropySnapshot(
-        omega=0.90, psi_vitality=0.10, timestamp=0.0, source="test"
-    )
+    w._last_snapshot = EntropySnapshot(omega=0.90, psi_vitality=0.10, timestamp=0.0, source="test")
     assert w.should_pause() is True
 
 
@@ -197,8 +190,10 @@ def test_sovereign_can_judge():
 def test_decision_record_is_witnessed():
     """Every decision carries the witness triad (F13)."""
     d = guarded_tool_call(
-        intent="x", tool_name="arif_mind_reason",
-        actor_id="arif", action_class="OBSERVE",
+        intent="x",
+        tool_name="arif_mind_reason",
+        actor_id="arif",
+        action_class="OBSERVE",
     )
     assert "human" in d.witness
     assert "ai" in d.witness
@@ -210,8 +205,10 @@ def test_decision_record_is_witnessed():
 
 def test_decision_to_dict_roundtrip():
     d = guarded_tool_call(
-        intent="x", tool_name="arif_mind_reason",
-        actor_id="arif", action_class="OBSERVE",
+        intent="x",
+        tool_name="arif_mind_reason",
+        actor_id="arif",
+        action_class="OBSERVE",
     )
     rec = d.to_dict()
     assert rec["verdict"] == "PROCEED"

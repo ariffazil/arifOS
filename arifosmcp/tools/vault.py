@@ -1,4 +1,3 @@
-
 """
 arifosmcp/tools/vault_seal.py — 999_VAULT
 ═════════════════════════════════════════
@@ -194,6 +193,7 @@ def _build_seal_card(
         mode=mode,
         seal_data=seal_data,
     )
+
 
 # Backward compatibility alias
 arif_vault_seal = arif_seal

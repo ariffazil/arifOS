@@ -432,7 +432,7 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
             tier=RiskTier.T5,
             action_class=ActionClass.ATOMIC,
             tool_class=ToolClass.MUTATE,
-        blast_radius=BlastRadius.INFRASTRUCTURE,
+            blast_radius=BlastRadius.INFRASTRUCTURE,
             reversibility=ReversibilityLevel.IRREVERSIBLE,
         )
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.runtime import explore as explore_runtime
 from arifosmcp.runtime.explore import (
     NavigatorMode,
     ProspectorMode,
@@ -44,9 +43,7 @@ async def test_prospector_plan_respects_request_seed_path():
 @pytest.mark.asyncio
 async def test_navigator_plan_seeds_from_request_url():
     graph = ExplorationGraph()
-    mode = NavigatorMode(
-        request_seed=Seed(url=SeedURL(url="https://example.com/docs"))
-    )
+    mode = NavigatorMode(request_seed=Seed(url=SeedURL(url="https://example.com/docs")))
 
     nodes = await mode.plan("inspect docs", graph, Limits(max_steps=4))
 
@@ -129,9 +126,7 @@ async def test_navigator_step_delegates_url_to_evidence_fetch(monkeypatch: pytes
             },
         }
 
-    monkeypatch.setitem(
-        rt_tools._CANONICAL_HANDLERS, "arif_evidence_fetch", fake_evidence_fetch
-    )
+    monkeypatch.setitem(rt_tools._CANONICAL_HANDLERS, "arif_evidence_fetch", fake_evidence_fetch)
 
     mode = NavigatorMode(
         request_seed=Seed(url=SeedURL(url="https://example.com/federated")),
@@ -181,17 +176,13 @@ async def test_navigator_step_delegates_query_to_sense_observe(monkeypatch: pyte
             "session_id": "sess-forge-test",
             "result": {
                 "results": [
-                    {"title": "Result A", "url": "https://example.com/a",
-                     "snippet": "snippet A"},
-                    {"title": "Result B", "url": "https://example.com/b",
-                     "snippet": "snippet B"},
+                    {"title": "Result A", "url": "https://example.com/a", "snippet": "snippet A"},
+                    {"title": "Result B", "url": "https://example.com/b", "snippet": "snippet B"},
                 ],
             },
         }
 
-    monkeypatch.setitem(
-        rt_tools._CANONICAL_HANDLERS, "arif_sense_observe", fake_sense_observe
-    )
+    monkeypatch.setitem(rt_tools._CANONICAL_HANDLERS, "arif_sense_observe", fake_sense_observe)
 
     mode = NavigatorMode(
         request_seed=None,
@@ -254,14 +245,24 @@ async def test_arif_explore_auto_driller_falls_back_to_prospector(
 
     async def fake_step(self: ProspectorMode, node, seed):
         return StepResult(
-            nodes=[GraphNode(
-                node_id="stub", mode=ExploreMode.PROSPECTOR, label=str(node.label),
-                content_hash="h", evidence="",
-                meta={"type": "python", "symbols": [], "symbol_count": 0},
-            )],
-            edges=[], findings=[], gaps=[],
-            coverage_delta=0.5, confidence=0.9, terminal=True,
+            nodes=[
+                GraphNode(
+                    node_id="stub",
+                    mode=ExploreMode.PROSPECTOR,
+                    label=str(node.label),
+                    content_hash="h",
+                    evidence="",
+                    meta={"type": "python", "symbols": [], "symbol_count": 0},
+                )
+            ],
+            edges=[],
+            findings=[],
+            gaps=[],
+            coverage_delta=0.5,
+            confidence=0.9,
+            terminal=True,
         )
+
     monkeypatch.setattr(ProspectorMode, "step", fake_step)
 
     result = await arif_explore(

@@ -72,7 +72,9 @@ def arif_kernel_health() -> Dict[str, Any]:
     # Always include entropy summary pointer
     er = ROOT / "arifOS" / "entropy-report.json"
     info["entropy_report"] = str(er) if er.exists() else "missing"
-    info["note"] = "Full surfaces: arif_judge / arif_seal via main MCP. Use narrow mcp-arifos-kernel for Grok Build."
+    info["note"] = (
+        "Full surfaces: arif_judge / arif_seal via main MCP. Use narrow mcp-arifos-kernel for Grok Build."
+    )
     return info
 
 
@@ -89,6 +91,7 @@ def arif_kernel_check(action: str) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     import sys as _sys
+
     if "--http" in _sys.argv:
         mcp.run(transport="streamable-http", host="127.0.0.1", port=18793)
     else:

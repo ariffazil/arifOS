@@ -128,7 +128,8 @@ if __name__ == "__main__":
     import sys
 
     result = subprocess.run(
-        ["python", "-m", "pytest", __file__, "-v", "--tb=short"], cwd=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS"
+        ["python", "-m", "pytest", __file__, "-v", "--tb=short"],
+        cwd=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS",
     )
     print(f"\nG4 Tests: {'PASS' if result.returncode == 0 else 'FAIL'}")
     sys.exit(result.returncode)

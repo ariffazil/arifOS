@@ -64,6 +64,7 @@ except Exception:
 # MODULE 0 — APEX THERMODYNAMIC ENGINE (E-Layer Correction)
 # =============================================================================
 
+
 class ApexThermodynamicEngine:
     """
     Encodes the APEX equation with physically correct thermodynamic framing.
@@ -88,7 +89,7 @@ class ApexThermodynamicEngine:
     """
 
     LANDAUER_COST_J_PER_BIT = 2.9e-21  # at 300K
-    KB = 1.38e-23                       # Boltzmann constant
+    KB = 1.38e-23  # Boltzmann constant
 
     def __init__(self, kappa_r_threshold: float = 0.95):
         self.kappa_r_threshold = kappa_r_threshold
@@ -144,7 +145,7 @@ class ApexThermodynamicEngine:
         # Entropy check
         input_ent = context.get("input_entropy_bits", 10.0)
         output_ent = context.get("output_entropy_bits", 5.0)
-        compute_bits = context.get("compute_bits", len(context.get("intent",""))*8)
+        compute_bits = context.get("compute_bits", len(context.get("intent", "")) * 8)
 
         thermo = self.compute_entropy_deltas(input_ent, output_ent, compute_bits)
 
@@ -190,6 +191,7 @@ class ApexThermodynamicEngine:
 # MODULE 1 — CONSTITUTIONAL FLOORS (F01–F13 as first-class objects)
 # =============================================================================
 
+
 class ConstitutionalFloor:
     """Base class for one of F01–F13 floors."""
 
@@ -227,17 +229,23 @@ class ConstitutionalFloor:
 
 class L01_AMANAH(ConstitutionalFloor):
     """F1 — Trust. Model must declare epistemic uncertainty."""
+
     def __init__(self):
-        super().__init__("L01", "AMANAH",
+        super().__init__(
+            "L01",
+            "AMANAH",
             "Trust & epistemic honesty — model must declare what it does not know.",
-            threshold=0.5, hard_floor=True)
+            threshold=0.5,
+            hard_floor=True,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         uncertainty_declared = ctx.get("uncertainty_acknowledged", False)
         score = 1.0 if uncertainty_declared else 0.0
         passed = score >= self.threshold
         rationale = (
-            "Uncertainty acknowledged" if uncertainty_declared
+            "Uncertainty acknowledged"
+            if uncertainty_declared
             else "F01 BREACH: Model did not declare uncertainty (F1_AMANAH)"
         )
         return (passed, score, rationale)
@@ -245,41 +253,53 @@ class L01_AMANAH(ConstitutionalFloor):
 
 class L02_HALAL(ConstitutionalFloor):
     """F2 — Truth. Claims must be verifiable or explicitly hedged."""
+
     def __init__(self):
-        super().__init__("L02", "HALAL",
+        super().__init__(
+            "L02",
+            "HALAL",
             "Halal — permissible claims only. Verifiable or explicitly hedged.",
-            threshold=0.5, hard_floor=True)
+            threshold=0.5,
+            hard_floor=True,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         veracity = ctx.get("veracity_score", ctx.get("factual_support", 1.0))
         hallucination_risk = ctx.get("hallucination_risk", 0.0)
         score = min(veracity, 1.0 - hallucination_risk)
         passed = score >= self.threshold
-        rationale = (
-            f"Veracity={veracity:.2f}, hallucination_risk={hallucination_risk:.2f}"
-        )
+        rationale = f"Veracity={veracity:.2f}, hallucination_risk={hallucination_risk:.2f}"
         return (passed, score, rationale)
 
 
 class L03_ADIL(ConstitutionalFloor):
     """F3 — Justice. Distribution must be equitable."""
+
     def __init__(self):
-        super().__init__("L03", "ADIL",
+        super().__init__(
+            "L03",
+            "ADIL",
             "Adil — justice & fairness. Resource and reward distribution must be equitable.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         fairness = ctx.get("fairness_score", 1.0)
-        return (fairness >= self.threshold, fairness,
-                f"Fairness score: {fairness:.2f}")
+        return (fairness >= self.threshold, fairness, f"Fairness score: {fairness:.2f}")
 
 
 class L04_TAUFIK(ConstitutionalFloor):
     """F4 — Clarity. Output must reduce entropy, not add noise."""
+
     def __init__(self):
-        super().__init__("L04", "TAUFIK",
+        super().__init__(
+            "L04",
+            "TAUFIK",
             "Divine guidance toward clarity. Output must reduce entropy relative to input.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         delta_S = ctx.get("delta_S_local", ctx.get("delta_S", 0.0))
@@ -295,10 +315,15 @@ class L04_TAUFIK(ConstitutionalFloor):
 
 class L05_NUR(ConstitutionalFloor):
     """F5 — Light. Output must illuminate, not obscure."""
+
     def __init__(self):
-        super().__init__("L05", "NUR",
+        super().__init__(
+            "L05",
+            "NUR",
             "Nur — light, radiance. Output must illuminate understanding.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         quality = ctx.get("explanation_quality", ctx.get("nur_score", 1.0))
@@ -307,24 +332,38 @@ class L05_NUR(ConstitutionalFloor):
 
 class L06_ILM(ConstitutionalFloor):
     """F6 — Knowledge. Claims must cite evidence."""
+
     def __init__(self):
-        super().__init__("L06", "ILM",
+        super().__init__(
+            "L06",
+            "ILM",
             "Ilm — knowledge, science. Claims must cite evidence or qualify uncertainty.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         evidence = ctx.get("evidence_cited", 1.0)
         grounding = ctx.get("claim_grounding", 1.0)
         score = min(evidence, grounding)
-        return (score >= self.threshold, score, f"Evidence={evidence:.2f}, grounding={grounding:.2f}")
+        return (
+            score >= self.threshold,
+            score,
+            f"Evidence={evidence:.2f}, grounding={grounding:.2f}",
+        )
 
 
 class L07_SABR(ConstitutionalFloor):
     """F7 — Patience. Hold in superposition until collapse is warranted."""
+
     def __init__(self):
-        super().__init__("L07", "SABR",
+        super().__init__(
+            "L07",
+            "SABR",
             "Sabr — patience. Remain in superposition until evidence earns collapse.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         kappa_r = ctx.get("kappa_r", 0.0)
@@ -341,56 +380,80 @@ class L07_SABR(ConstitutionalFloor):
 
 class L08_SYUKUR(ConstitutionalFloor):
     """F8 — Gratitude. Credit external sources, not claim undue ownership."""
+
     def __init__(self):
-        super().__init__("L08", "SYUKUR",
+        super().__init__(
+            "L08",
+            "SYUKUR",
             "Gratitude. System must credit external sources, not claim undue ownership.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         attribution = ctx.get("attribution_quality", 1.0)
-        return (attribution >= self.threshold, attribution,
-                f"Attribution quality: {attribution:.2f}")
+        return (
+            attribution >= self.threshold,
+            attribution,
+            f"Attribution quality: {attribution:.2f}",
+        )
 
 
 class L09_HANTU(ConstitutionalFloor):
     """F9 — Anti-hallucination. Guard against false pattern completion."""
+
     def __init__(self):
-        super().__init__("L09", "HANTU",
+        super().__init__(
+            "L09",
+            "HANTU",
             "Anti-hallucination. Guard against false pattern completion and confabulation.",
-            threshold=0.5, hard_floor=True)
+            threshold=0.5,
+            hard_floor=True,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         hallucination_risk = ctx.get("hallucination_risk", 0.0)
         factuality = ctx.get("factuality", ctx.get("veracity_score", 1.0))
         score = factuality - hallucination_risk
         passed = (score >= self.threshold) and (hallucination_risk < 0.3)
-        rationale = (
-            f"Factuality={factuality:.2f}, hallucination_risk={hallucination_risk:.2f}"
-        )
+        rationale = f"Factuality={factuality:.2f}, hallucination_risk={hallucination_risk:.2f}"
         return (passed, score, rationale)
 
 
 class L10_IKLAS(ConstitutionalFloor):
     """F10 — Sincerity. No hidden agendas or concealed motives."""
+
     def __init__(self):
-        super().__init__("L10", "IKLAS",
+        super().__init__(
+            "L10",
+            "IKLAS",
             "Sincerity. No hidden agendas or concealed utility functions.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         transparency = ctx.get("transparency", 1.0)
         agenda_disclosed = ctx.get("agenda_disclosed", True)
         score = transparency if agenda_disclosed else transparency * 0.3
-        return (score >= self.threshold, score,
-                f"Transparency={transparency:.2f}, agenda_disclosed={agenda_disclosed}")
+        return (
+            score >= self.threshold,
+            score,
+            f"Transparency={transparency:.2f}, agenda_disclosed={agenda_disclosed}",
+        )
 
 
 class L11_AKHLAS(ConstitutionalFloor):
     """F11 — Ethics. Moral boundary respect."""
+
     def __init__(self):
-        super().__init__("L11", "AKHLAK",
+        super().__init__(
+            "L11",
+            "AKHLAK",
             "Akhlak — moral character. Actions must respect moral and ethical boundaries.",
-            threshold=0.5, hard_floor=True)
+            threshold=0.5,
+            hard_floor=True,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         ethical = ctx.get("ethical_score", 1.0)
@@ -399,39 +462,46 @@ class L11_AKHLAS(ConstitutionalFloor):
 
 class L12_MASLAHAT(ConstitutionalFloor):
     """F12 — Public interest. Net benefit must be positive."""
+
     def __init__(self):
-        super().__init__("L12", "MASLAHAT",
+        super().__init__(
+            "L12",
+            "MASLAHAT",
             "Maslahat — public interest. Net benefit must be positive across stakeholders.",
-            threshold=0.5, hard_floor=False)
+            threshold=0.5,
+            hard_floor=False,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         utility = ctx.get("utility_score", 1.0)
         harm_avoided = ctx.get("harm_avoided", True)
         score = utility if harm_avoided else utility * 0.3
-        return (score >= self.threshold, score,
-                f"Utility={utility:.2f}, harm_avoided={harm_avoided}")
+        return (
+            score >= self.threshold,
+            score,
+            f"Utility={utility:.2f}, harm_avoided={harm_avoided}",
+        )
 
 
 class L13_KHALID(ConstitutionalFloor):
     """F13 — Continuity. System must preserve its own integrity."""
+
     def __init__(self):
-        super().__init__("L13", "KHALID",
+        super().__init__(
+            "L13",
+            "KHALID",
             "Khalid — continuity, sovereignty. System must preserve integrity after any action.",
-            threshold=0.5, hard_floor=True)
+            threshold=0.5,
+            hard_floor=True,
+        )
 
     def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
         continuity = ctx.get("continuity_score", 1.0)
         sovereignty = ctx.get("sovereignty_maintained", True)
         blast_radius = ctx.get("blast_radius", 0.0)
-        passed = (
-            (continuity >= self.threshold)
-            and sovereignty
-            and (blast_radius < 0.8)
-        )
+        passed = (continuity >= self.threshold) and sovereignty and (blast_radius < 0.8)
         score = continuity if passed else 0.0
-        rationale = (
-            f"Continuity={continuity:.2f}, sovereignty={sovereignty}, blast_radius={blast_radius:.2f}"
-        )
+        rationale = f"Continuity={continuity:.2f}, sovereignty={sovereignty}, blast_radius={blast_radius:.2f}"
         return (passed, score, rationale)
 
 
@@ -458,6 +528,7 @@ def build_floor_registry() -> Dict[str, ConstitutionalFloor]:
 # MODULE 2 — DETERMINISTIC HOLD CLASSIFIER (No-LLM Path)
 # =============================================================================
 
+
 class DeterministicHoldClassifier:
     """
     Classifies dangerous operations WITHOUT LLM involvement.
@@ -468,36 +539,36 @@ class DeterministicHoldClassifier:
     """
 
     ATOMIC_HOLD = [
-        (r"rm\s+-rf\s+/\s*$",               "F9 F13 ATOMIC: recursive root delete"),
-        (r"rm\s+-rf\s+/var\s+/usr",          "F9 F13 ATOMIC: system dir wipe"),
-        (r"rm\s+-rf\s+/etc\s*$",             "F9 F13 ATOMIC: config dir wipe"),
-        (r"mkfs",                             "F13 ATOMIC: filesystem destruction"),
-        (r"fdisk",                            "F13 ATOMIC: partition table destruction"),
-        (r"parted.*mklabel",                  "F13 ATOMIC: partition destruction"),
-        (r"dd\s+if=/dev/zero\s+of=/dev/",    "F13 ATOMIC: raw disk wipe"),
-        (r"iptables\s+-F\s*$",               "F13 ATOMIC: firewall flush"),
-        (r"iptables\s+-t\s+nat\s+-F",        "F13 ATOMIC: NAT table flush"),
-        (r"curl\s+.*\|\s*sh",                "F9 F13 ATOMIC: remote exec via pipe"),
-        (r"curl\s+.*\|\s*sudo\s+bash",       "F9 F13 ATOMIC: sudo remote exec"),
-        (r"DROP\s+DATABASE",                 "F13 ATOMIC: database destruction"),
-        (r"shutdown",                         "F13 ATOMIC: system shutdown"),
-        (r"reboot",                           "F13 ATOMIC: system reboot"),
-        (r":\(\)\s*:\s*\|\s*:\s*&\s*;",     "F9 ATOMIC: fork bomb"),
+        (r"rm\s+-rf\s+/\s*$", "F9 F13 ATOMIC: recursive root delete"),
+        (r"rm\s+-rf\s+/var\s+/usr", "F9 F13 ATOMIC: system dir wipe"),
+        (r"rm\s+-rf\s+/etc\s*$", "F9 F13 ATOMIC: config dir wipe"),
+        (r"mkfs", "F13 ATOMIC: filesystem destruction"),
+        (r"fdisk", "F13 ATOMIC: partition table destruction"),
+        (r"parted.*mklabel", "F13 ATOMIC: partition destruction"),
+        (r"dd\s+if=/dev/zero\s+of=/dev/", "F13 ATOMIC: raw disk wipe"),
+        (r"iptables\s+-F\s*$", "F13 ATOMIC: firewall flush"),
+        (r"iptables\s+-t\s+nat\s+-F", "F13 ATOMIC: NAT table flush"),
+        (r"curl\s+.*\|\s*sh", "F9 F13 ATOMIC: remote exec via pipe"),
+        (r"curl\s+.*\|\s*sudo\s+bash", "F9 F13 ATOMIC: sudo remote exec"),
+        (r"DROP\s+DATABASE", "F13 ATOMIC: database destruction"),
+        (r"shutdown", "F13 ATOMIC: system shutdown"),
+        (r"reboot", "F13 ATOMIC: system reboot"),
+        (r":\(\)\s*:\s*\|\s*:\s*&\s*;", "F9 ATOMIC: fork bomb"),
     ]
 
     HIGH_HOLD = [
-        (r"chmod\s+-R\s+777\s+/",            "F9: world-writable system"),
-        (r"chown\s+-R\s+root\s+/",           "F9 F13: ownership takeover"),
-        (r"systemctl\s+mask",                "F13 HIGH: service masking"),
-        (r"git\s+push\s+--force\s+.*main",   "F13 HIGH: main branch force push"),
-        (r"eval\s+\$\(",                      "F9 HIGH: eval injection"),
+        (r"chmod\s+-R\s+777\s+/", "F9: world-writable system"),
+        (r"chown\s+-R\s+root\s+/", "F9 F13: ownership takeover"),
+        (r"systemctl\s+mask", "F13 HIGH: service masking"),
+        (r"git\s+push\s+--force\s+.*main", "F13 HIGH: main branch force push"),
+        (r"eval\s+\$\(", "F9 HIGH: eval injection"),
     ]
 
     CAUTION_PATTERNS = [
-        (r"git\s+push\s+--force",            "F13 CAUTION: force push"),
-        (r"systemctl\s+(stop|restart)",      "F13 CAUTION: service control"),
-        (r"chmod\s+-R\s+777",                "F9 CAUTION: broad permission change"),
-        (r"docker\s+rm\s+-f",                "F9 CAUTION: container destruction"),
+        (r"git\s+push\s+--force", "F13 CAUTION: force push"),
+        (r"systemctl\s+(stop|restart)", "F13 CAUTION: service control"),
+        (r"chmod\s+-R\s+777", "F9 CAUTION: broad permission change"),
+        (r"docker\s+rm\s+-f", "F9 CAUTION: container destruction"),
     ]
 
     def classify(self, command: str) -> Tuple[str, str, str]:
@@ -533,6 +604,7 @@ class DeterministicHoldClassifier:
 # =============================================================================
 # MODULE 3 — VAULT999 APPEND-ONLY LEDGER
 # =============================================================================
+
 
 class Vault999:
     """
@@ -633,29 +705,50 @@ class Vault999:
                 for lineno, line in enumerate(f, 1):
                     entry = json.loads(line)
                     content = json.dumps(
-                        {k: v for k, v in entry.items()
-                         if k not in ("merkle_leaf", "chain_hash", "prev_hash", "vault_version", "sealed_epoch")},
-                        sort_keys=True
+                        {
+                            k: v
+                            for k, v in entry.items()
+                            if k
+                            not in (
+                                "merkle_leaf",
+                                "chain_hash",
+                                "prev_hash",
+                                "vault_version",
+                                "sealed_epoch",
+                            )
+                        },
+                        sort_keys=True,
                     )
                     expected_leaf, expected_chain = self._chain_hash(content, prev)
-                    valid = (entry["merkle_leaf"] == expected_leaf
-                            and entry["chain_hash"] == expected_chain)
-                    results.append({"line": lineno, "valid": valid,
-                                   "verdict": entry.get("verdict", "?"),
-                                   "plan_id": entry.get("plan_id", "?")})
+                    valid = (
+                        entry["merkle_leaf"] == expected_leaf
+                        and entry["chain_hash"] == expected_chain
+                    )
+                    results.append(
+                        {
+                            "line": lineno,
+                            "valid": valid,
+                            "verdict": entry.get("verdict", "?"),
+                            "plan_id": entry.get("plan_id", "?"),
+                        }
+                    )
                     prev = entry["chain_hash"]
         except Exception as e:
             return {"error": str(e), "integrity_verified": False}
 
         all_valid = all(r["valid"] for r in results) if results else True
-        return {"integrity_verified": all_valid, "total_events": len(results),
-                "invalid_events": sum(1 for r in results if not r["valid"]),
-                "events": results}
+        return {
+            "integrity_verified": all_valid,
+            "total_events": len(results),
+            "invalid_events": sum(1 for r in results if not r["valid"]),
+            "events": results,
+        }
 
 
 # =============================================================================
 # MODULE 4 — METABOLIC PIPELINE (000→999)
 # =============================================================================
+
 
 class MetabolicPipeline:
     """
@@ -737,17 +830,26 @@ class MetabolicPipeline:
             stages_run.append("888_JUDGE")
             stages_run.append("999_VAULT")
             seal = self.vault.seal_judgment(
-                plan_id=plan_id, intent=intent, command=command or "",
-                verdict="HOLD", risk_tier=risk_tier,
-                floors_passed=[], floors_failed=[],
+                plan_id=plan_id,
+                intent=intent,
+                command=command or "",
+                verdict="HOLD",
+                risk_tier=risk_tier,
+                floors_passed=[],
+                floors_failed=[],
                 apex_metric={"kappa_r": kappa_r, "verdict": "HOLD"},
                 human=human,
             )
             return self._build_envelope(
-                plan_id=plan_id, session_id=session_id,
-                verdict="HOLD", risk_tier=risk_tier,
-                rationale=rationale, stages_run=stages_run,
-                ctx=ctx, seal=seal, human=human,
+                plan_id=plan_id,
+                session_id=session_id,
+                verdict="HOLD",
+                risk_tier=risk_tier,
+                rationale=rationale,
+                stages_run=stages_run,
+                ctx=ctx,
+                seal=seal,
+                human=human,
             )
 
         # 555 ROUT
@@ -761,13 +863,15 @@ class MetabolicPipeline:
         ctx["delta_S_local"] = ctx.get("delta_S_local", -5.0)  # Default: clarity gain
 
         # APEX thermodynamic engine
-        apex_result = self.apex.judge({
-            "kappa_r": kappa_r,
-            "confidence": ctx["confidence"],
-            "intent": intent,
-            "input_entropy_bits": ctx.get("input_entropy_bits", 10.0),
-            "output_entropy_bits": ctx.get("output_entropy_bits", 5.0),
-        })
+        apex_result = self.apex.judge(
+            {
+                "kappa_r": kappa_r,
+                "confidence": ctx["confidence"],
+                "intent": intent,
+                "input_entropy_bits": ctx.get("input_entropy_bits", 10.0),
+                "output_entropy_bits": ctx.get("output_entropy_bits", 5.0),
+            }
+        )
 
         # Unified thermodynamic ledger + maintenance scaling (Tier 5 DRAFT)
         compute_bits = apex_result.get("thermo", {}).get("landauer_cost_joules", 0.0) / max(
@@ -794,8 +898,11 @@ class MetabolicPipeline:
         # 999 VAULT
         stages_run.append("999_VAULT")
         seal = self.vault.seal_judgment(
-            plan_id=plan_id, intent=intent, command=command or "",
-            verdict=verdict, risk_tier=risk_tier,
+            plan_id=plan_id,
+            intent=intent,
+            command=command or "",
+            verdict=verdict,
+            risk_tier=risk_tier,
             floors_passed=ctx.get("floors_passed", []),
             floors_failed=ctx.get("floors_failed", []),
             apex_metric=apex_result.get("apex_metric", {}),
@@ -803,10 +910,16 @@ class MetabolicPipeline:
         )
 
         return self._build_envelope(
-            plan_id=plan_id, session_id=session_id,
-            verdict=verdict, risk_tier=risk_tier,
-            rationale=judge_rationale, stages_run=stages_run,
-            ctx=ctx, seal=seal, human=human, apex_result=apex_result,
+            plan_id=plan_id,
+            session_id=session_id,
+            verdict=verdict,
+            risk_tier=risk_tier,
+            rationale=judge_rationale,
+            stages_run=stages_run,
+            ctx=ctx,
+            seal=seal,
+            human=human,
+            apex_result=apex_result,
             unified_thermo=unified_thermo,
             institutional_evolution=institutional_evolution,
         )
@@ -815,6 +928,7 @@ class MetabolicPipeline:
         """111 SENSE — observe machine state."""
         try:
             import resource
+
             mem_mb = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
         except Exception:
             mem_mb = 0.0
@@ -910,8 +1024,7 @@ class MetabolicPipeline:
         ctx["floors_failed"] = floors_failed
 
         # Any hard floor failed → HOLD
-        hard_failed = [f for f in floors_failed
-                      if self.floors[f].hard_floor]
+        hard_failed = [f for f in floors_failed if self.floors[f].hard_floor]
         if hard_failed:
             return ("HOLD", f"Hard floor breach: {', '.join(hard_failed)}")
 
@@ -930,10 +1043,17 @@ class MetabolicPipeline:
         return ("SEAL", f"All {len(floors_passed)} floors passed.")
 
     def _build_envelope(
-        self, plan_id: str, session_id: str,
-        verdict: str, risk_tier: str, rationale: str,
-        stages_run: List[str], ctx: dict, seal: dict,
-        human: str, apex_result: Optional[dict] = None,
+        self,
+        plan_id: str,
+        session_id: str,
+        verdict: str,
+        risk_tier: str,
+        rationale: str,
+        stages_run: List[str],
+        ctx: dict,
+        seal: dict,
+        human: str,
+        apex_result: Optional[dict] = None,
         unified_thermo: Optional[dict] = None,
         institutional_evolution: Optional[dict] = None,
     ) -> dict:
@@ -981,7 +1101,8 @@ class MetabolicPipeline:
             },
             "substrate": {
                 "unified_thermo": unified_thermo or {"unified_thermo": "not_run"},
-                "institutional_evolution": institutional_evolution or {"institutional_evolution": "not_run"},
+                "institutional_evolution": institutional_evolution
+                or {"institutional_evolution": "not_run"},
                 "tier": "DRAFT — TIER 5 (Governance Doctrine) — 888 HOLD ACTIVE",
             },
             "artifacts": [],
@@ -993,10 +1114,11 @@ class MetabolicPipeline:
 # MODULE 5 — HTTP + SOCKET HANDLERS (MCP-over-HTTP + stdio-over-Unix)
 # =============================================================================
 
+
 class ArifHTTPHandler(BaseHTTPRequestHandler):
     """HTTP handler — health, MCP endpoints."""
 
-    pipeline: 'MetabolicPipeline'
+    pipeline: "MetabolicPipeline"
 
     def log_message(self, fmt, *args):
         pass  # suppress default logging
@@ -1021,8 +1143,12 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/floors":
             self._json({"floors": {k: v.to_dict() for k, v in self.pipeline.floors.items()}})
         elif parsed.path == "/apex":
-            self._json({"equation": "ℐ[∫Ψ⊗ℭdτ]·Θ(κᵣ-0.95) s.t. ΔS_local<0",
-                         "description": "APEX thermodynamic kernel equation"})
+            self._json(
+                {
+                    "equation": "ℐ[∫Ψ⊗ℭdτ]·Θ(κᵣ-0.95) s.t. ΔS_local<0",
+                    "description": "APEX thermodynamic kernel equation",
+                }
+            )
         elif parsed.path == "/vault":
             self._json(self.pipeline.vault._read_manifest())
         elif parsed.path == "/vault/verify":
@@ -1047,44 +1173,58 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
         req_id = req.get("id")
 
         if method == "initialize":
-            return {"jsonrpc": "2.0", "id": req_id, "result": {
-                "protocolVersion": "2024-11-05",
-                "serverInfo": {"name": "arifosd", "version": "0.1.0"},
-                "capabilities": {"tools": {"listChanged": True}},
-            }}
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "protocolVersion": "2024-11-05",
+                    "serverInfo": {"name": "arifosd", "version": "0.1.0"},
+                    "capabilities": {"tools": {"listChanged": True}},
+                },
+            }
 
         if method == "tools/list":
             return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": TOOLS}}
 
         if method == "tools/call":
             args = params.get("arguments", {})
-            return asyncio.run(self.pipeline.metabolize(
-                intent=args.get("intent", ""),
-                command=args.get("command", ""),
-                context=args.get("context", {}),
-            ))
+            return asyncio.run(
+                self.pipeline.metabolize(
+                    intent=args.get("intent", ""),
+                    command=args.get("command", ""),
+                    context=args.get("context", {}),
+                )
+            )
 
         if method == "judge":
-            return asyncio.run(self.pipeline.metabolize(
-                intent=params.get("intent", ""),
-                command=params.get("command", ""),
-                context=params.get("context", {}),
-            ))
+            return asyncio.run(
+                self.pipeline.metabolize(
+                    intent=params.get("intent", ""),
+                    command=params.get("command", ""),
+                    context=params.get("context", {}),
+                )
+            )
 
         if method == "classify":
             c = DeterministicHoldClassifier()
             t, v, r = c.classify(params.get("command", ""))
-            return {"jsonrpc": "2.0", "id": req_id, "result": {
-                "tier": t, "verdict": v, "rationale": r
-            }}
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {"tier": t, "verdict": v, "rationale": r},
+            }
 
-        return {"jsonrpc": "2.0", "id": req_id,
-                "error": {"code": -32601, "message": f"Unknown method: {method}"}}
+        return {
+            "jsonrpc": "2.0",
+            "id": req_id,
+            "error": {"code": -32601, "message": f"Unknown method: {method}"},
+        }
 
     def _health(self) -> dict:
         vault_ok = self.pipeline.vault.ledger.exists()
         return {
-            "status": "ok", "daemon_up": True,
+            "status": "ok",
+            "daemon_up": True,
             "storage_writable": os.access(self.pipeline.vault.vault_path, os.W_OK),
             "vault_accessible": vault_ok,
             "policy_loaded": True,
@@ -1094,8 +1234,12 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
         }
 
     def _ready(self) -> dict:
-        return {"ready": True, "vault_accessible": True,
-                "socket_listening": True, "sessions_active": 0}
+        return {
+            "ready": True,
+            "vault_accessible": True,
+            "socket_listening": True,
+            "sessions_active": 0,
+        }
 
     def _metrics(self) -> dict:
         return {
@@ -1109,7 +1253,8 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
 
 class UnixSocketHandler(socketserver.StreamRequestHandler):
     """Unix domain socket handler — stdio-over-socket for local MCP clients."""
-    pipeline: 'MetabolicPipeline'
+
+    pipeline: "MetabolicPipeline"
 
     def handle(self):
         try:
@@ -1118,10 +1263,12 @@ class UnixSocketHandler(socketserver.StreamRequestHandler):
                 if not line:
                     break
                 req = json.loads(line.decode())
-                resp = asyncio.run(self.pipeline.metabolize(
-                    intent=req.get("intent", ""),
-                    command=req.get("command", ""),
-                ))
+                resp = asyncio.run(
+                    self.pipeline.metabolize(
+                        intent=req.get("intent", ""),
+                        command=req.get("command", ""),
+                    )
+                )
                 self.wfile.write((json.dumps(resp, default=str) + "\n").encode())
         except Exception:
             pass
@@ -1132,34 +1279,113 @@ class UnixSocketHandler(socketserver.StreamRequestHandler):
 # =============================================================================
 
 TOOLS = [
-    {"name": "arif_session_init", "description": "000 INIT — initialize governed session",
-     "inputSchema": {"type": "object", "properties": {"actor_id": {"type": "string"}}, "required": ["actor_id"]}},
-    {"name": "arif_sense_observe", "description": "111 SENSE — sense machine state",
-     "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "arif_judge_deliberate", "description": "888 JUDGE — deliver verdict on a plan",
-     "inputSchema": {"type": "object", "properties": {"intent": {"type": "string"}, "command": {"type": "string"}}, "required": ["intent"]}},
-    {"name": "arif_vault_seal", "description": "999 VAULT — write seal to VAULT999 ledger",
-     "inputSchema": {"type": "object", "properties": {"data": {"type": "object"}, "tool": {"type": "string"}, "stage": {"type": "string"}, "actor": {"type": "string"}}, "required": ["data", "tool", "stage", "actor"]}},
-    {"name": "arif_run", "description": "Execute command through constitutional kernel",
-     "inputSchema": {"type": "object", "properties": {"intent": {"type": "string"}, "command": {"type": "string"}}, "required": ["intent"]}},
-    {"name": "arif_exec", "description": "Execute script through constitutional kernel",
-     "inputSchema": {"type": "object", "properties": {"intent": {"type": "string"}, "script_path": {"type": "string"}}, "required": ["intent"]}},
-    {"name": "arif_sudo", "description": "Privileged execution through constitutional kernel",
-     "inputSchema": {"type": "object", "properties": {"intent": {"type": "string"}, "command": {"type": "string"}}, "required": ["intent", "command"]}},
-    {"name": "arif_systemctl", "description": "Service control through constitutional kernel",
-     "inputSchema": {"type": "object", "properties": {"intent": {"type": "string"}, "action": {"type": "string"}, "service": {"type": "string"}}, "required": ["intent"]}},
-    {"name": "arif_apex_judge", "description": "APEX thermodynamic judgment on intent",
-     "inputSchema": {"type": "object", "properties": {"intent": {"type": "string"}, "kappa_r": {"type": "number"}, "confidence": {"type": "number"}}, "required": ["intent"]}},
-    {"name": "arif_floor_status", "description": "Query F01–F13 floor status",
-     "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "arif_vault_integrity", "description": "Verify VAULT999 chain hash integrity",
-     "inputSchema": {"type": "object", "properties": {}}},
+    {
+        "name": "arif_session_init",
+        "description": "000 INIT — initialize governed session",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"actor_id": {"type": "string"}},
+            "required": ["actor_id"],
+        },
+    },
+    {
+        "name": "arif_sense_observe",
+        "description": "111 SENSE — sense machine state",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "arif_judge_deliberate",
+        "description": "888 JUDGE — deliver verdict on a plan",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"intent": {"type": "string"}, "command": {"type": "string"}},
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_vault_seal",
+        "description": "999 VAULT — write seal to VAULT999 ledger",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "data": {"type": "object"},
+                "tool": {"type": "string"},
+                "stage": {"type": "string"},
+                "actor": {"type": "string"},
+            },
+            "required": ["data", "tool", "stage", "actor"],
+        },
+    },
+    {
+        "name": "arif_run",
+        "description": "Execute command through constitutional kernel",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"intent": {"type": "string"}, "command": {"type": "string"}},
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_exec",
+        "description": "Execute script through constitutional kernel",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"intent": {"type": "string"}, "script_path": {"type": "string"}},
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_sudo",
+        "description": "Privileged execution through constitutional kernel",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"intent": {"type": "string"}, "command": {"type": "string"}},
+            "required": ["intent", "command"],
+        },
+    },
+    {
+        "name": "arif_systemctl",
+        "description": "Service control through constitutional kernel",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "intent": {"type": "string"},
+                "action": {"type": "string"},
+                "service": {"type": "string"},
+            },
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_apex_judge",
+        "description": "APEX thermodynamic judgment on intent",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "intent": {"type": "string"},
+                "kappa_r": {"type": "number"},
+                "confidence": {"type": "number"},
+            },
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_floor_status",
+        "description": "Query F01–F13 floor status",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "arif_vault_integrity",
+        "description": "Verify VAULT999 chain hash integrity",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
 ]
 
 
 # =============================================================================
 # MODULE 7 — ADAPTER WRAPPERS (arif_run, arif_exec, arif_sudo, arif-systemctl)
 # =============================================================================
+
 
 def arif_run_wrapper(command: str) -> dict:
     """
@@ -1170,18 +1396,34 @@ def arif_run_wrapper(command: str) -> dict:
     risk_tier, verdict, rationale = classifier.classify(command)
 
     if risk_tier == "ATOMIC":
-        return {"verdict": "HOLD", "risk_tier": "ATOMIC",
-                "rationale": rationale, "command_blocked": True}
+        return {
+            "verdict": "HOLD",
+            "risk_tier": "ATOMIC",
+            "rationale": rationale,
+            "command_blocked": True,
+        }
     if risk_tier == "HIGH":
-        return {"verdict": "HOLD", "risk_tier": "HIGH",
-                "rationale": rationale, "command_blocked": True}
+        return {
+            "verdict": "HOLD",
+            "risk_tier": "HIGH",
+            "rationale": rationale,
+            "command_blocked": True,
+        }
     if risk_tier == "MEDIUM":
-        return {"verdict": "CAUTION", "risk_tier": "MEDIUM",
-                "rationale": rationale, "monitor": True, "command_allowed": True}
+        return {
+            "verdict": "CAUTION",
+            "risk_tier": "MEDIUM",
+            "rationale": rationale,
+            "monitor": True,
+            "command_allowed": True,
+        }
 
-    return {"verdict": "PROCEED", "risk_tier": "LOW",
-            "rationale": "Command cleared by deterministic classifier",
-            "command_allowed": True}
+    return {
+        "verdict": "PROCEED",
+        "risk_tier": "LOW",
+        "rationale": "Command cleared by deterministic classifier",
+        "command_allowed": True,
+    }
 
 
 def arif_exec_wrapper(script_path: str) -> dict:
@@ -1193,8 +1435,12 @@ def arif_exec_wrapper(script_path: str) -> dict:
     else:
         content = ""
     risk_tier, verdict, rationale = classifier.classify(content)
-    return {"verdict": verdict, "risk_tier": risk_tier,
-            "rationale": rationale, "script_path": script_path}
+    return {
+        "verdict": verdict,
+        "risk_tier": risk_tier,
+        "rationale": rationale,
+        "script_path": script_path,
+    }
 
 
 def arif_sudo_wrapper(command: str) -> dict:
@@ -1203,13 +1449,19 @@ def arif_sudo_wrapper(command: str) -> dict:
     risk_tier, verdict, rationale = classifier.classify(command)
 
     if risk_tier in ("ATOMIC", "HIGH"):
-        return {"verdict": "HOLD", "risk_tier": risk_tier,
-                "rationale": f"Sudo blocked: {rationale}",
-                "escalation_denied": True}
+        return {
+            "verdict": "HOLD",
+            "risk_tier": risk_tier,
+            "rationale": f"Sudo blocked: {rationale}",
+            "escalation_denied": True,
+        }
 
-    return {"verdict": "CAUTION", "risk_tier": "MEDIUM",
-            "rationale": f"Sudo with monitoring: {rationale}",
-            "escalation_monitored": True}
+    return {
+        "verdict": "CAUTION",
+        "risk_tier": "MEDIUM",
+        "rationale": f"Sudo with monitoring: {rationale}",
+        "escalation_monitored": True,
+    }
 
 
 def arif_systemctl_wrapper(action: str, service: str) -> dict:
@@ -1218,21 +1470,37 @@ def arif_systemctl_wrapper(action: str, service: str) -> dict:
     cmd = f"systemctl {action} {service}"
     risk_tier, verdict, rationale = classifier.classify(cmd)
 
-    critical_services = ["ssh", "sshd", "systemd", "network", "firewalld",
-                         "docker", "nginx", "apache2", "mysql", "postgresql"]
+    critical_services = [
+        "ssh",
+        "sshd",
+        "systemd",
+        "network",
+        "firewalld",
+        "docker",
+        "nginx",
+        "apache2",
+        "mysql",
+        "postgresql",
+    ]
 
     if service in critical_services and action in ("stop", "restart", "mask"):
-        return {"verdict": "HOLD", "risk_tier": "HIGH",
-                "rationale": f"Critical service control blocked: {service} {action}",
-                "action_blocked": True}
+        return {
+            "verdict": "HOLD",
+            "risk_tier": "HIGH",
+            "rationale": f"Critical service control blocked: {service} {action}",
+            "action_blocked": True,
+        }
 
     if risk_tier in ("ATOMIC", "HIGH"):
-        return {"verdict": "HOLD", "risk_tier": risk_tier,
-                "rationale": rationale}
+        return {"verdict": "HOLD", "risk_tier": risk_tier, "rationale": rationale}
 
-    return {"verdict": "CAUTION" if risk_tier == "MEDIUM" else "PROCEED",
-            "risk_tier": risk_tier, "rationale": rationale,
-            "action": action, "service": service}
+    return {
+        "verdict": "CAUTION" if risk_tier == "MEDIUM" else "PROCEED",
+        "risk_tier": risk_tier,
+        "rationale": rationale,
+        "action": action,
+        "service": service,
+    }
 
 
 # =============================================================================
@@ -1254,22 +1522,27 @@ import urllib.request
 import urllib.error
 
 ARIFOS_ORGANS = {
-    "mcp":    "https://mcp.arif-fazil.com/health",
-    "geox":   "https://geox.arif-fazil.com/health",
+    "mcp": "https://mcp.arif-fazil.com/health",
+    "geox": "https://geox.arif-fazil.com/health",
     "wealth": "https://wealth.arif-fazil.com/health",
-    "well":   "https://well.arif-fazil.com/health",
+    "well": "https://well.arif-fazil.com/health",
 }
 DEFAULT_TICK_INTERVAL = 60
 
-VAULT_LOG         = "/var/log/arifosd/vault.jsonl"
+VAULT_LOG = "/var/log/arifosd/vault.jsonl"
 OBSERVABILITY_LOG = "/var/log/arifosd/observability.jsonl"
 
 # ── arifos_health_check ──────────────────────────────────────────────────────
-_DAEMON_START   = time.time()
+_DAEMON_START = time.time()
 _DAEMON_METRICS = {
-    "ticks": 0, "holds": 0, "seals": 0,
-    "organs_up": 0, "organs_down": 0, "restarts": 0,
-    "last_tick": None, "last_hold": None,
+    "ticks": 0,
+    "holds": 0,
+    "seals": 0,
+    "organs_up": 0,
+    "organs_down": 0,
+    "restarts": 0,
+    "last_tick": None,
+    "last_hold": None,
 }
 
 
@@ -1285,17 +1558,18 @@ def _load_metrics():
 def _save_metrics():
     Path("/var/run/arifosd").mkdir(parents=True, exist_ok=True)
     try:
-        Path("/var/run/arifosd/metrics.json").write_text(
-            json.dumps(_DAEMON_METRICS, indent=2))
+        Path("/var/run/arifosd/metrics.json").write_text(json.dumps(_DAEMON_METRICS, indent=2))
     except Exception:
         pass
 
 
 # ── arifos_health_check ──────────────────────────────────────────────────────
 
+
 def arifos_health_check(organ: str | None = None) -> dict:
     result = {
-        "tool": "arifos_health_check", "canonical": "arifos_health_check[HEARTBEAT]",
+        "tool": "arifos_health_check",
+        "canonical": "arifos_health_check[HEARTBEAT]",
         "epoch": datetime.now(timezone.utc).isoformat(),
     }
     if organ is None:
@@ -1315,26 +1589,44 @@ def arifos_health_check(organ: str | None = None) -> dict:
         return result
 
     if organ not in ARIFOS_ORGANS:
-        return {"tool": "arifos_health_check", "organ": organ,
-                "status": "UNKNOWN", "reason": f"Unknown organ: {organ}"}
+        return {
+            "tool": "arifos_health_check",
+            "organ": organ,
+            "status": "UNKNOWN",
+            "reason": f"Unknown organ: {organ}",
+        }
 
     url = ARIFOS_ORGANS[organ]
     try:
         start = time.time()
         req = urllib.request.Request(url, headers={"User-Agent": "arifosd/0.1.0"})
         with urllib.request.urlopen(req, timeout=5.0) as resp:
-            result["endpoint"]    = url
-            result["organ"]       = organ
+            result["endpoint"] = url
+            result["organ"] = organ
             result["status_code"] = resp.status
-            result["latency_ms"]  = round((time.time() - start) * 1000, 1)
-            result["timestamp"]  = datetime.now(timezone.utc).isoformat()
-            result["status"]     = "UP"
+            result["latency_ms"] = round((time.time() - start) * 1000, 1)
+            result["timestamp"] = datetime.now(timezone.utc).isoformat()
+            result["status"] = "UP"
     except urllib.error.HTTPError as e:
-        result.update({"endpoint": url, "organ": organ, "status": "DOWN",
-                       "error": f"HTTP {e.code}", "timestamp": datetime.now(timezone.utc).isoformat()})
+        result.update(
+            {
+                "endpoint": url,
+                "organ": organ,
+                "status": "DOWN",
+                "error": f"HTTP {e.code}",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
     except Exception as e:
-        result.update({"endpoint": url, "organ": organ, "status": "DOWN",
-                       "error": str(e)[:80], "timestamp": datetime.now(timezone.utc).isoformat()})
+        result.update(
+            {
+                "endpoint": url,
+                "organ": organ,
+                "status": "DOWN",
+                "error": str(e)[:80],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
     return result
 
 
@@ -1344,31 +1636,48 @@ def arifos_ping_all_organs() -> dict:
         organs[name] = arifos_health_check(organ=name)
         time.sleep(0.2)
     summary = {
-        "up":      sum(1 for r in organs.values() if r.get("status") == "UP"),
-        "down":    sum(1 for r in organs.values() if r.get("status") == "DOWN"),
-        "degraded":sum(1 for r in organs.values() if r.get("status") == "DEGRADED"),
-        "total":   len(ARIFOS_ORGANS),
+        "up": sum(1 for r in organs.values() if r.get("status") == "UP"),
+        "down": sum(1 for r in organs.values() if r.get("status") == "DOWN"),
+        "degraded": sum(1 for r in organs.values() if r.get("status") == "DEGRADED"),
+        "total": len(ARIFOS_ORGANS),
     }
-    return {"tool": "arifos_ping_all_organs", "canonical": "arifos_ping_all_organs[HEARTBEAT]",
-            "organs": organs, "summary": summary, "epoch": datetime.now(timezone.utc).isoformat()}
+    return {
+        "tool": "arifos_ping_all_organs",
+        "canonical": "arifos_ping_all_organs[HEARTBEAT]",
+        "organs": organs,
+        "summary": summary,
+        "epoch": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 # ── arifos_sense_state ────────────────────────────────────────────────────────
 
+
 def arifos_sense_state() -> dict:
-    state = {"tool": "arifos_sense_state", "canonical": "arifos_sense_state[SENSE]",
-             "epoch_unix": time.time(), "hostname": socket.gethostname()}
+    state = {
+        "tool": "arifos_sense_state",
+        "canonical": "arifos_sense_state[SENSE]",
+        "epoch_unix": time.time(),
+        "hostname": socket.gethostname(),
+    }
     # Disk
     try:
-        out = subprocess.check_output(["df","-h","--output=target,size,used,avail,pcent"],
-                                       text=True, timeout=5)
+        out = subprocess.check_output(
+            ["df", "-h", "--output=target,size,used,avail,pcent"], text=True, timeout=5
+        )
         disks = []
         for line in out.strip().split("\n")[1:]:
             parts = [p.strip() for p in line.split() if p.strip()]
             if len(parts) >= 5:
-                disks.append({"mount": parts[0], "total": parts[1],
-                              "used": parts[2], "avail": parts[3],
-                              "pct": parts[4].replace("%", "")})
+                disks.append(
+                    {
+                        "mount": parts[0],
+                        "total": parts[1],
+                        "used": parts[2],
+                        "avail": parts[3],
+                        "pct": parts[4].replace("%", ""),
+                    }
+                )
         state["disk"] = disks
     except Exception as e:
         state["disk"] = {"error": str(e)[:80]}
@@ -1378,9 +1687,11 @@ def arifos_sense_state() -> dict:
         parts = out.strip().split("\n")
         if len(parts) >= 2:
             mp = parts[1].split()
-            state["memory_mb"] = {"total": int(mp[1]) if len(mp) > 1 else 0,
-                                   "used":  int(mp[2]) if len(mp) > 2 else 0,
-                                   "free":  int(mp[3]) if len(mp) > 3 else 0}
+            state["memory_mb"] = {
+                "total": int(mp[1]) if len(mp) > 1 else 0,
+                "used": int(mp[2]) if len(mp) > 2 else 0,
+                "free": int(mp[3]) if len(mp) > 3 else 0,
+            }
     except Exception:
         state["memory_mb"] = {}
     # Load avg
@@ -1392,33 +1703,46 @@ def arifos_sense_state() -> dict:
         state["load_avg"] = []
     # Containers
     try:
-        out = subprocess.check_output(["docker", "ps", "--format", "{{.Names}}	{{.Status}}	{{.Ports}}"],
-                                       text=True, timeout=10)
+        out = subprocess.check_output(
+            ["docker", "ps", "--format", "{{.Names}}	{{.Status}}	{{.Ports}}"],
+            text=True,
+            timeout=10,
+        )
         containers = []
         for line in out.strip().split("\n"):
             p = line.split("	")
-            if p: containers.append({"name": p[0] if len(p)>0 else "?",
-                                      "status": p[1] if len(p)>1 else "?",
-                                      "ports": p[2] if len(p)>2 else ""})
+            if p:
+                containers.append(
+                    {
+                        "name": p[0] if len(p) > 0 else "?",
+                        "status": p[1] if len(p) > 1 else "?",
+                        "ports": p[2] if len(p) > 2 else "",
+                    }
+                )
         state["containers"] = containers
         state["container_count"] = len(containers)
     except Exception as e:
         state["containers"] = []
         state["container_error"] = str(e)[:80]
     # Daemon metrics
-    state["daemon_metrics"] = {"ticks": _DAEMON_METRICS["ticks"],
-                               "holds": _DAEMON_METRICS["holds"],
-                               "seals": _DAEMON_METRICS["seals"],
-                               "last_tick": _DAEMON_METRICS["last_tick"],
-                               "last_hold": _DAEMON_METRICS["last_hold"],
-                               "uptime_s": round(time.time() - _DAEMON_START, 1)}
+    state["daemon_metrics"] = {
+        "ticks": _DAEMON_METRICS["ticks"],
+        "holds": _DAEMON_METRICS["holds"],
+        "seals": _DAEMON_METRICS["seals"],
+        "last_tick": _DAEMON_METRICS["last_tick"],
+        "last_hold": _DAEMON_METRICS["last_hold"],
+        "uptime_s": round(time.time() - _DAEMON_START, 1),
+    }
     # Vault state
     vm = Path(VAULT_PATH) / "manifest.json"
     if vm.exists():
         try:
             m = json.loads(vm.read_text())
-            state["vault"] = {"path": VAULT_PATH, "events": m.get("events", 0),
-                              "last_hash": m.get("last_hash", "?")[:16]}
+            state["vault"] = {
+                "path": VAULT_PATH,
+                "events": m.get("events", 0),
+                "last_hash": m.get("last_hash", "?")[:16],
+            }
         except Exception:
             state["vault"] = {"error": "manifest unreadable"}
     else:
@@ -1428,8 +1752,11 @@ def arifos_sense_state() -> dict:
     if obs_path.exists():
         with open(obs_path) as f:
             lines = f.readlines()
-        state["observability"] = {"path": str(obs_path), "entries": len(lines),
-                                  "last_entry": lines[-1][:120] if lines else ""}
+        state["observability"] = {
+            "path": str(obs_path),
+            "entries": len(lines),
+            "last_entry": lines[-1][:120] if lines else "",
+        }
     else:
         state["observability"] = {"status": "not_initialized"}
     return state
@@ -1437,22 +1764,34 @@ def arifos_sense_state() -> dict:
 
 # ── arifos_vault_append ───────────────────────────────────────────────────────
 
-VAULT_LOG         = "/var/log/arifosd/vault.jsonl"
+VAULT_LOG = "/var/log/arifosd/vault.jsonl"
 OBSERVABILITY_LOG = "/var/log/arifosd/observability.jsonl"
 
 
 def arifos_vault_append(
-    entry_type: str, actor: str = "arifOS-daemon", tool_name: str = "unknown",
-    inputs_hash: str = "", result_status: str = "OK", risk_class: str = "SAFE",
-    notes: str = "", session_id: str | None = None, extra: dict | None = None,
+    entry_type: str,
+    actor: str = "arifOS-daemon",
+    tool_name: str = "unknown",
+    inputs_hash: str = "",
+    result_status: str = "OK",
+    risk_class: str = "SAFE",
+    notes: str = "",
+    session_id: str | None = None,
+    extra: dict | None = None,
 ) -> dict:
     Path("/var/log/arifosd").mkdir(parents=True, exist_ok=True)
-    entry = {"timestamp": datetime.now(timezone.utc).isoformat(),
-             "actor": actor, "tool_name": tool_name,
-             "inputs_hash": inputs_hash or "none", "result": result_status,
-             "risk_class": risk_class, "notes": notes,
-             "entry_type": entry_type, "session_id": session_id or "daemon",
-             "hostname": socket.gethostname()}
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "actor": actor,
+        "tool_name": tool_name,
+        "inputs_hash": inputs_hash or "none",
+        "result": result_status,
+        "risk_class": risk_class,
+        "notes": notes,
+        "entry_type": entry_type,
+        "session_id": session_id or "daemon",
+        "hostname": socket.gethostname(),
+    }
     if extra:
         entry["extra"] = extra
 
@@ -1471,9 +1810,9 @@ def arifos_vault_append(
         pass
 
     chain_hash = hashlib.sha256(f"{prev_hash}{content_hash}".encode()).hexdigest()[:16]
-    entry["entry_id"]   = f"ent-{content_hash[:8]}"
-    entry["chain_hash"]  = chain_hash
-    entry["prev_hash"]   = prev_hash
+    entry["entry_id"] = f"ent-{content_hash[:8]}"
+    entry["chain_hash"] = chain_hash
+    entry["prev_hash"] = prev_hash
 
     sealed = True
     try:
@@ -1483,20 +1822,27 @@ def arifos_vault_append(
         entry["write_error"] = str(e)[:80]
         sealed = False
 
-    return {"tool": "arifos_vault_append", "canonical": "arifos_vault_append[LOG]",
-            "sealed": sealed, "entry_id": entry.get("entry_id"),
-            "chain_hash": chain_hash, "vault_path": VAULT_LOG,
-            "epoch": entry["timestamp"]}
+    return {
+        "tool": "arifos_vault_append",
+        "canonical": "arifos_vault_append[LOG]",
+        "sealed": sealed,
+        "entry_id": entry.get("entry_id"),
+        "chain_hash": chain_hash,
+        "vault_path": VAULT_LOG,
+        "epoch": entry["timestamp"],
+    }
 
 
 def arifos_observability_append(tick_data: dict) -> dict:
     Path("/var/log/arifosd").mkdir(parents=True, exist_ok=True)
-    entry = {"timestamp": datetime.now(timezone.utc).isoformat(),
-             "tick_id": tick_data.get("tick_id", "?"),
-             "organs": tick_data.get("organs", {}),
-             "summary": tick_data.get("summary", {}),
-             "sense": tick_data.get("sense", {}),
-             "hostname": socket.gethostname()}
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "tick_id": tick_data.get("tick_id", "?"),
+        "organs": tick_data.get("organs", {}),
+        "summary": tick_data.get("summary", {}),
+        "sense": tick_data.get("sense", {}),
+        "hostname": socket.gethostname(),
+    }
     try:
         with open(OBSERVABILITY_LOG, "a") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -1506,6 +1852,7 @@ def arifos_observability_append(tick_data: dict) -> dict:
 
 
 # ── arifos_watchdog_alert ─────────────────────────────────────────────────────
+
 
 def arifos_watchdog_alert(reason: str = "watchdog_timer") -> dict:
     metrics_path = Path("/var/run/arifosd/restart_count.json")
@@ -1525,21 +1872,33 @@ def arifos_watchdog_alert(reason: str = "watchdog_timer") -> dict:
     metrics["count"] += 1
 
     if metrics["count"] > 5:
-        return {"status": "BLOCKED", "reason": "Restart storm prevention: >5 restarts in 1 hour",
-                "count": metrics["count"], "action": "No restart — manual intervention required"}
+        return {
+            "status": "BLOCKED",
+            "reason": "Restart storm prevention: >5 restarts in 1 hour",
+            "count": metrics["count"],
+            "action": "No restart — manual intervention required",
+        }
 
     Path("/var/run/arifosd").mkdir(parents=True, exist_ok=True)
     metrics_path.write_text(json.dumps(metrics))
     _DAEMON_METRICS["restarts"] = metrics["count"]
 
     seal = arifos_vault_append(
-        entry_type="watchdog_alert", actor="arifOS-watchdog",
-        tool_name="arifos_watchdog_alert", result_status="RESTART",
-        risk_class="SAFE", notes=f"Watchdog restart. Reason: {reason}",
-        extra={"restart_count": metrics["count"], "reason": reason})
+        entry_type="watchdog_alert",
+        actor="arifOS-watchdog",
+        tool_name="arifos_watchdog_alert",
+        result_status="RESTART",
+        risk_class="SAFE",
+        notes=f"Watchdog restart. Reason: {reason}",
+        extra={"restart_count": metrics["count"], "reason": reason},
+    )
 
-    return {"status": "RESTART_LOGGED", "restart_count": metrics["count"],
-            "seal": seal.get("entry_id"), "vault_chain": seal.get("chain_hash")}
+    return {
+        "status": "RESTART_LOGGED",
+        "restart_count": metrics["count"],
+        "seal": seal.get("entry_id"),
+        "vault_chain": seal.get("chain_hash"),
+    }
 
 
 # ── arifos_gate_eval & friends (Phase 2) ───────────────────────────────────────
@@ -1549,36 +1908,49 @@ from collections import defaultdict
 # In-memory tracker for consecutive DOWN ticks
 _ORGAN_DOWN_TRACKER = defaultdict(int)
 
+
 def arifos_gate_eval(action_intent: dict, context: dict | None = None) -> dict:
     action_type = action_intent.get("type")
     if action_type == "RESTART_SERVICE":
         target = action_intent.get("target")
         if target not in ARIFOS_ORGANS:
             return {"verdict": "HOLD", "rationale": f"Unknown target organ: {target}"}
-        return {"verdict": "GO", "rationale": "Restart is a reversible operation (F1_AMANAH passed)."}
+        return {
+            "verdict": "GO",
+            "rationale": "Restart is a reversible operation (F1_AMANAH passed).",
+        }
     elif action_type == "ALERT_HERMES":
         return {"verdict": "GO", "rationale": "Alerts are passive observability signals."}
     return {"verdict": "HOLD", "rationale": f"Unrecognized action type: {action_type}"}
+
 
 def arifos_act_dispatch(action_intent: dict, context: dict | None = None) -> dict:
     gate = arifos_gate_eval(action_intent, context)
     if gate["verdict"] != "GO":
         arifos_vault_append(
-            entry_type="act_dispatch_block", tool_name="arifos_act_dispatch",
-            result_status="BLOCKED", risk_class="SAFE",
+            entry_type="act_dispatch_block",
+            tool_name="arifos_act_dispatch",
+            result_status="BLOCKED",
+            risk_class="SAFE",
             notes=f"Action blocked by gate: {gate['rationale']}",
-            extra={"intent": action_intent, "gate": gate}
+            extra={"intent": action_intent, "gate": gate},
         )
         return {"status": "BLOCKED", "gate": gate}
-        
+
     action_type = action_intent.get("type")
     result_status = "UNKNOWN"
     exec_notes = ""
-    
+
     if action_type == "RESTART_SERVICE":
         target = action_intent.get("target")
         try:
-            subprocess.check_output(["docker", "compose", "restart", target], cwd="/root/compose", text=True, stderr=subprocess.STDOUT, timeout=30)
+            subprocess.check_output(
+                ["docker", "compose", "restart", target],
+                cwd="/root/compose",
+                text=True,
+                stderr=subprocess.STDOUT,
+                timeout=30,
+            )
             result_status = "OK"
             exec_notes = f"Successfully restarted {target}"
         except subprocess.CalledProcessError as e:
@@ -1590,49 +1962,67 @@ def arifos_act_dispatch(action_intent: dict, context: dict | None = None) -> dic
     elif action_type == "ALERT_HERMES":
         result_status = "OK"
         exec_notes = f"Alert generated: {action_intent.get('message')}"
-        
+
     arifos_vault_append(
-        entry_type="act_dispatch_exec", tool_name="arifos_act_dispatch",
-        result_status=result_status, risk_class="MUTATION",
-        notes=exec_notes, extra={"intent": action_intent, "gate": gate}
+        entry_type="act_dispatch_exec",
+        tool_name="arifos_act_dispatch",
+        result_status=result_status,
+        risk_class="MUTATION",
+        notes=exec_notes,
+        extra={"intent": action_intent, "gate": gate},
     )
     return {"status": result_status, "notes": exec_notes, "gate": gate}
+
 
 def arifos_recover_escalate(organ: str, status: str) -> dict:
     if status == "UP":
         if _ORGAN_DOWN_TRACKER[organ] > 0:
             _ORGAN_DOWN_TRACKER[organ] = 0
             arifos_vault_append(
-                entry_type="recover_tracker", tool_name="arifos_recover_escalate",
-                result_status="RECOVERED", risk_class="SAFE",
-                notes=f"Organ {organ} recovered to UP state."
+                entry_type="recover_tracker",
+                tool_name="arifos_recover_escalate",
+                result_status="RECOVERED",
+                risk_class="SAFE",
+                notes=f"Organ {organ} recovered to UP state.",
             )
         return {"action": "NONE", "down_ticks": 0}
-        
+
     if status == "DOWN":
         _ORGAN_DOWN_TRACKER[organ] += 1
         down_ticks = _ORGAN_DOWN_TRACKER[organ]
-        
+
         if down_ticks == 3:
             arifos_vault_append(
-                entry_type="recover_escalate", tool_name="arifos_recover_escalate",
-                result_status="ESCALATE_L1", risk_class="SAFE",
-                notes=f"Organ {organ} DOWN for 3 ticks. Issuing RESTART_SERVICE intent."
+                entry_type="recover_escalate",
+                tool_name="arifos_recover_escalate",
+                result_status="ESCALATE_L1",
+                risk_class="SAFE",
+                notes=f"Organ {organ} DOWN for 3 ticks. Issuing RESTART_SERVICE intent.",
             )
             dispatch_res = arifos_act_dispatch({"type": "RESTART_SERVICE", "target": organ})
             return {"action": "RESTART_SERVICE", "down_ticks": down_ticks, "dispatch": dispatch_res}
         elif down_ticks >= 4:
             arifos_vault_append(
-                entry_type="recover_escalate", tool_name="arifos_recover_escalate",
-                result_status="ESCALATE_L2", risk_class="CRITICAL",
-                notes=f"Organ {organ} DOWN for {down_ticks} ticks (failed restart). Alerting Hermes."
+                entry_type="recover_escalate",
+                tool_name="arifos_recover_escalate",
+                result_status="ESCALATE_L2",
+                risk_class="CRITICAL",
+                notes=f"Organ {organ} DOWN for {down_ticks} ticks (failed restart). Alerting Hermes.",
             )
-            dispatch_res = arifos_act_dispatch({"type": "ALERT_HERMES", "target": organ, "message": f"CRITICAL: {organ} failed to recover."})
+            dispatch_res = arifos_act_dispatch(
+                {
+                    "type": "ALERT_HERMES",
+                    "target": organ,
+                    "message": f"CRITICAL: {organ} failed to recover.",
+                }
+            )
             return {"action": "ALERT_HERMES", "down_ticks": down_ticks, "dispatch": dispatch_res}
         return {"action": "TRACKING", "down_ticks": down_ticks}
     return {"action": "NONE", "down_ticks": _ORGAN_DOWN_TRACKER[organ]}
 
+
 # ── arifos_vps_tick (Phase 2 main loop) ──────────────────────────────────────
+
 
 def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TICK_INTERVAL) -> dict:
     """
@@ -1649,19 +2039,25 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
     GATE + DISPATCH enabled for safe recovery execution.
     """
     tick_id = tick_id or f"tick-{int(time.time())}"
-    epoch   = datetime.now(timezone.utc).isoformat()
-    result  = {"tool": "arifos_vps_tick", "canonical": "arifos_vps_tick[DAEMON_LOOP]",
-               "tick_id": tick_id, "epoch": epoch, "phase": 2, "stages": {}}
+    epoch = datetime.now(timezone.utc).isoformat()
+    result = {
+        "tool": "arifos_vps_tick",
+        "canonical": "arifos_vps_tick[DAEMON_LOOP]",
+        "tick_id": tick_id,
+        "epoch": epoch,
+        "phase": 2,
+        "stages": {},
+    }
 
     _load_metrics()
 
-    health     = arifos_health_check()
-    sense      = arifos_sense_state()
+    health = arifos_health_check()
+    sense = arifos_sense_state()
     organ_ping = arifos_ping_all_organs()
 
     result["stages"]["daemon_health"] = health
-    result["stages"]["sense_state"]  = sense
-    result["stages"]["organ_ping"]   = organ_ping
+    result["stages"]["sense_state"] = sense
+    result["stages"]["organ_ping"] = organ_ping
 
     recovery_results = {}
     for organ_name, organ_res in organ_ping["organs"].items():
@@ -1670,49 +2066,66 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
         recovery_results[organ_name] = rec_res
     result["stages"]["recovery"] = recovery_results
 
-    _DAEMON_METRICS["ticks"]      += 1
-    _DAEMON_METRICS["last_tick"]    = epoch
-    _DAEMON_METRICS["organs_up"]    = organ_ping["summary"]["up"]
-    _DAEMON_METRICS["organs_down"]  = organ_ping["summary"]["down"]
+    _DAEMON_METRICS["ticks"] += 1
+    _DAEMON_METRICS["last_tick"] = epoch
+    _DAEMON_METRICS["organs_up"] = organ_ping["summary"]["up"]
+    _DAEMON_METRICS["organs_down"] = organ_ping["summary"]["down"]
 
-    obs_entry = {"tick_id": tick_id, "organs": organ_ping["organs"],
-                 "summary": organ_ping["summary"],
-                 "sense": {"disk": sense.get("disk", []),
-                           "memory": sense.get("memory_mb", {}),
-                           "load": sense.get("load_avg", []),
-                           "containers": sense.get("container_count", 0)}}
+    obs_entry = {
+        "tick_id": tick_id,
+        "organs": organ_ping["organs"],
+        "summary": organ_ping["summary"],
+        "sense": {
+            "disk": sense.get("disk", []),
+            "memory": sense.get("memory_mb", {}),
+            "load": sense.get("load_avg", []),
+            "containers": sense.get("container_count", 0),
+        },
+    }
     result["stages"]["observability_log"] = arifos_observability_append(obs_entry)
 
     organ_summary = organ_ping["summary"]
     if organ_summary["down"] > 0:
-        vault_notes = f"ANOMALY: {organ_summary['down']} organ(s) DOWN: " +                       ", ".join([n for n, r in organ_ping["organs"].items()
-                                 if r.get("status") == "DOWN"])
-        _DAEMON_METRICS["holds"]     += 1
-        _DAEMON_METRICS["last_hold"]  = epoch
+        vault_notes = f"ANOMALY: {organ_summary['down']} organ(s) DOWN: " + ", ".join(
+            [n for n, r in organ_ping["organs"].items() if r.get("status") == "DOWN"]
+        )
+        _DAEMON_METRICS["holds"] += 1
+        _DAEMON_METRICS["last_hold"] = epoch
     else:
         vault_notes = f"All organs UP. Ticks: {_DAEMON_METRICS['ticks']}"
 
-    disk_max = max((int(str(d.get("pct", 0)).replace('%','')) for d in sense.get("disk", [])), default=0)
+    disk_max = max(
+        (int(str(d.get("pct", 0)).replace("%", "")) for d in sense.get("disk", [])), default=0
+    )
     mem_total = sense.get("memory_mb", {}).get("total", 0)
-    mem_used  = sense.get("memory_mb", {}).get("used", 0)
-    mem_pct   = round(mem_used / max(mem_total, 1) * 100, 1) if mem_total > 0 else 0
+    mem_used = sense.get("memory_mb", {}).get("used", 0)
+    mem_pct = round(mem_used / max(mem_total, 1) * 100, 1) if mem_total > 0 else 0
 
     vault_seal = arifos_vault_append(
-        entry_type="tick", actor="arifOS-vps-daemon", tool_name="arifos_vps_tick",
+        entry_type="tick",
+        actor="arifOS-vps-daemon",
+        tool_name="arifos_vps_tick",
         result_status="OK" if organ_summary["down"] == 0 else "ANOMALY",
-        risk_class="SAFE", notes=vault_notes,
-        extra={"tick_id": tick_id, "phase": 2, "organ_summary": organ_summary,
-               "recovery_activity": recovery_results,
-               "disk_pct_max": disk_max, "memory_used_pct": mem_pct,
-               "container_count": sense.get("container_count", 0),
-               "vault_events": sense.get("vault", {}).get("events", 0)})
+        risk_class="SAFE",
+        notes=vault_notes,
+        extra={
+            "tick_id": tick_id,
+            "phase": 2,
+            "organ_summary": organ_summary,
+            "recovery_activity": recovery_results,
+            "disk_pct_max": disk_max,
+            "memory_used_pct": mem_pct,
+            "container_count": sense.get("container_count", 0),
+            "vault_events": sense.get("vault", {}).get("events", 0),
+        },
+    )
     result["stages"]["vault_seal"] = vault_seal
     _DAEMON_METRICS["seals"] += 1
 
     _save_metrics()
 
     result["verdict"] = "SEAL" if organ_summary["down"] == 0 else "HOLD"
-    result["status"]  = "tick_complete"
+    result["status"] = "tick_complete"
     return result
 
 
@@ -1723,12 +2136,12 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
 DAEMON_START = time.time()
 DAEMON_METRICS = {"judgments": 0, "holds": 0, "seals": 0, "cautions": 0}
 
-SOCK_PATH  = os.environ.get("ARIFOS_SOCK",  "/run/arifos.sock")
-HTTP_PORT  = int(os.environ.get("ARIFOS_HTTP_PORT", "18081"))
+SOCK_PATH = os.environ.get("ARIFOS_SOCK", "/run/arifos.sock")
+HTTP_PORT = int(os.environ.get("ARIFOS_HTTP_PORT", "18081"))
 VAULT_PATH = os.environ.get("ARIFOS_VAULT", "/var/lib/arifos/vault999")
 
 
-def build_daemon() -> Tuple['MetabolicPipeline', Vault999]:
+def build_daemon() -> Tuple["MetabolicPipeline", Vault999]:
     """Build the full daemon runtime."""
     vault = Vault999(VAULT_PATH)
     classifier = DeterministicHoldClassifier()
@@ -1740,6 +2153,7 @@ def build_daemon() -> Tuple['MetabolicPipeline', Vault999]:
 
 class ThreadedHTTPServer(HTTPServer):
     """Allow multiple concurrent HTTP connections."""
+
     daemon_threads = True
     allow_reuse_address = True
 
@@ -1795,8 +2209,11 @@ def run_daemon():
         result_status="STARTED",
         risk_class="SAFE",
         notes="arifosd Phase 1 daemon started",
-        extra={"hostname": socket.gethostname(), "tick_interval": DEFAULT_TICK_INTERVAL,
-               "organs": list(ARIFOS_ORGANS.keys())}
+        extra={
+            "hostname": socket.gethostname(),
+            "tick_interval": DEFAULT_TICK_INTERVAL,
+            "organs": list(ARIFOS_ORGANS.keys()),
+        },
     )
 
     print(f"arifOS Phase 1 daemon running — tick every {DEFAULT_TICK_INTERVAL}s")
@@ -1813,27 +2230,53 @@ def run_daemon():
             tick_epoch = datetime.now(timezone.utc).isoformat()
             print(f"[{tick_epoch}] tick {tick_count:04d} → arifos_vps_tick()")
             try:
-                last_tick_result = arifos_vps_tick(tick_id=tick_id, tick_interval=DEFAULT_TICK_INTERVAL)
+                last_tick_result = arifos_vps_tick(
+                    tick_id=tick_id, tick_interval=DEFAULT_TICK_INTERVAL
+                )
                 verdict = last_tick_result.get("verdict", "?")
-                organs_up = last_tick_result.get("stages", {}).get("organ_ping", {}).get("summary", {}).get("up", "?")
-                organs_down = last_tick_result.get("stages", {}).get("organ_ping", {}).get("summary", {}).get("down", "?")
-                disk_max = last_tick_result.get("stages", {}).get("vault_seal", {}).get("chain_hash", "?")[:8]
-                print(f"  → verdict={verdict} | organs={organs_up}UP/{organs_down}DOWN | vault_hash={disk_max}")
+                organs_up = (
+                    last_tick_result.get("stages", {})
+                    .get("organ_ping", {})
+                    .get("summary", {})
+                    .get("up", "?")
+                )
+                organs_down = (
+                    last_tick_result.get("stages", {})
+                    .get("organ_ping", {})
+                    .get("summary", {})
+                    .get("down", "?")
+                )
+                disk_max = (
+                    last_tick_result.get("stages", {})
+                    .get("vault_seal", {})
+                    .get("chain_hash", "?")[:8]
+                )
+                print(
+                    f"  → verdict={verdict} | organs={organs_up}UP/{organs_down}DOWN | vault_hash={disk_max}"
+                )
             except Exception as tick_err:
                 print(f"  → ERROR in arifos_vps_tick: {tick_err}")
                 arifos_vault_append(
-                    entry_type="tick_error", actor="arifOS-vps-daemon",
-                    tool_name="arifos_vps_tick", result_status="ERROR",
-                    risk_class="SAFE", notes=str(tick_err)[:120])
+                    entry_type="tick_error",
+                    actor="arifOS-vps-daemon",
+                    tool_name="arifos_vps_tick",
+                    result_status="ERROR",
+                    risk_class="SAFE",
+                    notes=str(tick_err)[:120],
+                )
             # Sleep until next tick
             time.sleep(DEFAULT_TICK_INTERVAL)
     except KeyboardInterrupt:
         print("\nShutting down arifOS kernel...")
         arifos_vault_append(
-            entry_type="daemon_stop", actor="arifOS-vps-daemon",
-            tool_name="run_daemon", result_status="STOPPED",
-            risk_class="SAFE", notes=f"Graceful shutdown after {tick_count} ticks",
-            extra={"total_ticks": tick_count})
+            entry_type="daemon_stop",
+            actor="arifOS-vps-daemon",
+            tool_name="run_daemon",
+            result_status="STOPPED",
+            risk_class="SAFE",
+            notes=f"Graceful shutdown after {tick_count} ticks",
+            extra={"total_ticks": tick_count},
+        )
         sock_server.shutdown()
         http_server.shutdown()
 
@@ -1842,13 +2285,17 @@ def run_daemon():
 # CLI
 # =============================================================================
 
+
 def main():
     parser = argparse.ArgumentParser(description="arifOS Constitutional Kernel (arifosd)")
-    parser.add_argument("--mode", choices=["daemon", "once", "health", "classify",
-                                           "vps-daemon", "watchdog-check"],
-                        default="daemon")
-    parser.add_argument("--tick", type=int, default=60,
-                        help="Tick interval in seconds (for vps-daemon mode)")
+    parser.add_argument(
+        "--mode",
+        choices=["daemon", "once", "health", "classify", "vps-daemon", "watchdog-check"],
+        default="daemon",
+    )
+    parser.add_argument(
+        "--tick", type=int, default=60, help="Tick interval in seconds (for vps-daemon mode)"
+    )
     parser.add_argument("--intent", help="Intent to judge")
     parser.add_argument("--command", help="Command to classify")
     parser.add_argument("--kappa-r", type=float, default=0.9, help="Inter-rater reliability")
@@ -1866,16 +2313,19 @@ def main():
 
     elif args.mode == "once":
         pipeline, _ = build_daemon()
-        result = asyncio.run(pipeline.metabolize(
-            intent=args.intent or "single judgment",
-            command=args.command or "",
-            context={"kappa_r": args.kappa_r, "confidence": args.confidence},
-        ))
+        result = asyncio.run(
+            pipeline.metabolize(
+                intent=args.intent or "single judgment",
+                command=args.command or "",
+                context={"kappa_r": args.kappa_r, "confidence": args.confidence},
+            )
+        )
         print(json.dumps(result, indent=2, default=str))
 
     elif args.mode == "watchdog-check":
         # Watchdog mode: verify arifosd process is alive
         import os
+
         pid_file = Path("/var/run/arifosd/daemon.pid")
         alive = False
         if pid_file.exists():
@@ -1894,6 +2344,7 @@ def main():
             # If not in storm prevention, trigger restart
             try:
                 from arifosd import arifos_watchdog_alert
+
                 alert = arifos_watchdog_alert(reason="watchdog_timer_dead_process")
                 print(json.dumps(alert, default=str))
             except ImportError:

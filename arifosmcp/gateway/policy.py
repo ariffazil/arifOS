@@ -56,6 +56,7 @@ def _match_tool(tool_name: str, pattern: str) -> bool:
         return tool_name.endswith(suffix)
     if "*" in pattern:
         import fnmatch
+
         return fnmatch.fnmatch(tool_name, pattern)
     return tool_name == pattern
 

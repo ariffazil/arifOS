@@ -129,7 +129,9 @@ def _build_report() -> dict:
         phoenix_reasons.append("mcp_drift_check not registered")
     if resource_estimate < 18:
         phoenix_ready = False
-        phoenix_reasons.append(f"resources count not proven (estimated={resource_estimate}, target=18)")
+        phoenix_reasons.append(
+            f"resources count not proven (estimated={resource_estimate}, target=18)"
+        )
     if prompt_estimate < 9:
         phoenix_ready = False
         phoenix_reasons.append(f"prompts count not proven (estimated={prompt_estimate}, target=9)")
@@ -161,7 +163,9 @@ def _build_report() -> dict:
             "ready": phoenix_ready,
             "manifest_exists": _manifest_exists(),
             "drift_check_exists": _drift_check_exists(),
-            "reasons": phoenix_reasons if phoenix_reasons else ["All gates pass — verify live registry counts"],
+            "reasons": phoenix_reasons
+            if phoenix_reasons
+            else ["All gates pass — verify live registry counts"],
         },
         "notes": [
             "Resource/prompt counts are static estimates from source decorators.",
@@ -186,8 +190,12 @@ def _print_text(report: dict) -> None:
         print(f"  Aliases w/o handlers: {len(report['tools']['aliases_without_handlers'])}")
     print()
     print("SURFACES")
-    print(f"  Resources (est): {report['resources']['estimated_count']} / {report['resources']['target']}")
-    print(f"  Prompts   (est): {report['prompts']['estimated_count']} / {report['prompts']['target']}")
+    print(
+        f"  Resources (est): {report['resources']['estimated_count']} / {report['resources']['target']}"
+    )
+    print(
+        f"  Prompts   (est): {report['prompts']['estimated_count']} / {report['prompts']['target']}"
+    )
     print()
     print("PHOENIX-72")
     print(f"  Ready:          {report['phoenix72']['ready']}")

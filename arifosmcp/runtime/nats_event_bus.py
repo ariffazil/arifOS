@@ -333,9 +333,7 @@ class NATSEventBus:
                         )
                         logger.info(f"JetStream stream '{stream_name}' updated")
                     except Exception as e2:
-                        logger.warning(
-                            f"JetStream stream '{stream_name}' init error: {e2}"
-                        )
+                        logger.warning(f"JetStream stream '{stream_name}' init error: {e2}")
 
             self._streams_initialized = True
             return True
@@ -509,9 +507,7 @@ class NATSEventBus:
             )
             data = json.loads(msg.data.decode())
             if data.get("error"):
-                logger.warning(
-                    f"NATS request to {organ} returned error: {data['error']}"
-                )
+                logger.warning(f"NATS request to {organ} returned error: {data['error']}")
             return data.get("result", data)
         except TimeoutError:
             logger.warning(f"NATS request to {organ} timed out after {timeout}s")
@@ -603,9 +599,7 @@ class NATSEventBus:
             except Exception as e:
                 logger.error(f"Request handler error for {organ}: {e}")
                 if msg.reply:
-                    await self.respond_to(
-                        msg.reply, {}, {"code": -1, "message": str(e)}
-                    )
+                    await self.respond_to(msg.reply, {}, {"code": -1, "message": str(e)})
 
         try:
             sub = await self._nc.subscribe(subject, cb=_handler)
@@ -688,9 +682,7 @@ class NATSEventBus:
             return False
 
         subject = (
-            f"{SUBJECT_FEEDBACK_PREFIX}.{signal_filter}"
-            if signal_filter
-            else SUBJECT_FEEDBACK_ALL
+            f"{SUBJECT_FEEDBACK_PREFIX}.{signal_filter}" if signal_filter else SUBJECT_FEEDBACK_ALL
         )
 
         async def _handler(msg):
@@ -757,11 +749,7 @@ class NATSEventBus:
         if not self._nc:
             return False
 
-        subject = (
-            f"{SUBJECT_GRADIENT_PREFIX}.{dimension}"
-            if dimension
-            else SUBJECT_GRADIENT_ALL
-        )
+        subject = f"{SUBJECT_GRADIENT_PREFIX}.{dimension}" if dimension else SUBJECT_GRADIENT_ALL
 
         async def _handler(msg):
             try:
@@ -857,9 +845,7 @@ class NATSEventBus:
             "timestamp": datetime.now(UTC).isoformat(),
         }
         try:
-            await self._nc.publish(
-                SUBJECT_E7_ATTESTATION, json.dumps(event).encode()
-            )
+            await self._nc.publish(SUBJECT_E7_ATTESTATION, json.dumps(event).encode())
         except Exception as e:
             logger.error(f"Failed to publish E7 attestation: {e}")
 

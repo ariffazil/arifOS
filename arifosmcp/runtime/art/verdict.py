@@ -12,14 +12,16 @@ from enum import StrEnum
 
 class ArtVerdict(StrEnum):
     """What ART decides."""
-    PROCEED = "proceed"                # green — call tool
-    HOLD = "hold"                      # yellow — ask Arif or delay
-    BLOCK = "block"                    # red — cannot call
-    DEFAULT_OBSERVE = "observe_only"   # not enough info — observe only
+
+    PROCEED = "proceed"  # green — call tool
+    HOLD = "hold"  # yellow — ask Arif or delay
+    BLOCK = "block"  # red — cannot call
+    DEFAULT_OBSERVE = "observe_only"  # not enough info — observe only
 
 
 class ArtReason(StrEnum):
     """Why ART reached this verdict."""
+
     # State-based
     TOOL_ABANDONED = "tool abandoned — blocked"
     TOOL_FALLBACK = "tool in fallback — hold until re-verified"

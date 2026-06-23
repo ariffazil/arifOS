@@ -27,13 +27,13 @@ Stable response envelope:
 
 DITEMPA BUKAN DIBERI — Kernel can prove what it is.
 """
+
 from __future__ import annotations
 
 import json
 import sys
 from collections import Counter
 from pathlib import Path
-from typing import Any
 
 try:
     import yaml
@@ -50,20 +50,33 @@ FIXTURES_PATH = GENERATED_DIR / "conformance_fixtures.json"
 AUDIT_SCHEMAS_PATH = GENERATED_DIR / "audit_schemas.json"
 
 DECLARED_MODES = {
-    "discover", "list_capabilities", "show_contract", "show_audit_map",
-    "find_orphans", "find_contract_drift", "explain_denial",
-    "show_channel_matrix", "show_floor_coverage",
+    "discover",
+    "list_capabilities",
+    "show_contract",
+    "show_audit_map",
+    "find_orphans",
+    "find_contract_drift",
+    "explain_denial",
+    "show_channel_matrix",
+    "show_floor_coverage",
 }
 IMPLEMENTED_MODES = {
-    "discover", "list_capabilities", "show_contract", "find_orphans",
-    "show_audit_map", "find_contract_drift", "explain_denial",
-    "show_channel_matrix", "show_floor_coverage",
+    "discover",
+    "list_capabilities",
+    "show_contract",
+    "find_orphans",
+    "show_audit_map",
+    "find_contract_drift",
+    "explain_denial",
+    "show_channel_matrix",
+    "show_floor_coverage",
 }
 
 
 # ════════════════════════════════════════════════════════════════════════════════
 # Loaders
 # ════════════════════════════════════════════════════════════════════════════════
+
 
 def _load_graph() -> dict:
     if not GRAPH_PATH.exists():
@@ -97,6 +110,7 @@ def _envelope(mode: str, **kwargs) -> dict:
 # Mode: discover
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def mode_discover(args: dict) -> dict:
     """Return contract family version, counts, stages, channels, taxonomies."""
     graph = _load_graph()
@@ -128,6 +142,7 @@ def mode_discover(args: dict) -> dict:
 # ════════════════════════════════════════════════════════════════════════════════
 # Mode: list_capabilities
 # ════════════════════════════════════════════════════════════════════════════════
+
 
 def mode_list_capabilities(args: dict) -> dict:
     """Return normalized list of tools with stage, axis, modes, channel, authority, reversibility."""
@@ -161,12 +176,12 @@ def mode_list_capabilities(args: dict) -> dict:
 # Mode: show_contract
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def mode_show_contract(args: dict) -> dict:
     """Return the full contract object plus derived audit and denial metadata."""
     tool_name = args.get("tool_name")
     if not tool_name:
-        return _envelope("show_contract", ok=False,
-                         denials=["missing required arg: tool_name"])
+        return _envelope("show_contract", ok=False, denials=["missing required arg: tool_name"])
 
     graph = _load_graph()
     # Resolve via alias map
@@ -175,39 +190,42 @@ def mode_show_contract(args: dict) -> dict:
     node = next((n for n in graph["nodes"] if n["tool_name"] == resolved), None)
     if not node:
         return _envelope(
-            "show_contract", ok=False,
+            "show_contract",
+            ok=False,
             denials=[f"tool '{tool_name}' not in capability graph (resolved: {resolved})"],
             orphans=[{"queried": tool_name, "resolved_to": resolved}],
         )
 
     # Find denial codes referenced by this tool
     tool_denial_codes = [
-        d for d in graph.get("denial_codes", [])
-        if d["code"] in node.get("denial_codes", [])
+        d for d in graph.get("denial_codes", []) if d["code"] in node.get("denial_codes", [])
     ]
     # Find audit events referenced by this tool
     referenced_events = node.get("audit_events", [])
 
     return _envelope(
         "show_contract",
-        counts={"denial_codes": len(tool_denial_codes),
-                "audit_events": len(referenced_events)},
-        items=[{
-            "tool_name": node["tool_name"],
-            "contract": node,
-            "denial_codes": tool_denial_codes,
-            "referenced_audit_events": referenced_events,
-            "deprecated_aliases": [
-                alias for alias, canon in graph.get("alias_map", {}).items()
-                if canon == resolved
-            ],
-        }],
+        counts={"denial_codes": len(tool_denial_codes), "audit_events": len(referenced_events)},
+        items=[
+            {
+                "tool_name": node["tool_name"],
+                "contract": node,
+                "denial_codes": tool_denial_codes,
+                "referenced_audit_events": referenced_events,
+                "deprecated_aliases": [
+                    alias
+                    for alias, canon in graph.get("alias_map", {}).items()
+                    if canon == resolved
+                ],
+            }
+        ],
     )
 
 
 # ════════════════════════════════════════════════════════════════════════════════
 # Mode: find_orphans
 # ════════════════════════════════════════════════════════════════════════════════
+
 
 def mode_find_orphans(args: dict) -> dict:
     """Compare SSOT, generated graph, and (optionally) live MCP registry.
@@ -245,12 +263,16 @@ def mode_find_orphans(args: dict) -> dict:
     live_err: str | None = None
     try:
         import urllib.request
+
         with urllib.request.urlopen("http://127.0.0.1:8088/mcp", timeout=2) as r:
             # Quick tools/list probe
             req = urllib.request.Request(
                 "http://127.0.0.1:8088/mcp",
                 data=b'{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}',
-                headers={"Content-Type": "application/json", "Accept": "application/json,text/event-stream"},
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json,text/event-stream",
+                },
                 method="POST",
             )
             with urllib.request.urlopen(req, timeout=3) as rr:
@@ -279,7 +301,9 @@ def mode_find_orphans(args: dict) -> dict:
     if orphans["graph_only"]:
         warnings.append(f"Generated graph has {len(orphans['graph_only'])} tools not in SSOT")
     if orphans["live_only"]:
-        warnings.append(f"Live MCP exposes {len(orphans['live_only'])} tools not in SSOT (MCP drift)")
+        warnings.append(
+            f"Live MCP exposes {len(orphans['live_only'])} tools not in SSOT (MCP drift)"
+        )
 
     return _envelope(
         "find_orphans",
@@ -299,6 +323,7 @@ def mode_find_orphans(args: dict) -> dict:
 # ════════════════════════════════════════════════════════════════════════════════
 # Mode: show_audit_map
 # ════════════════════════════════════════════════════════════════════════════════
+
 
 def mode_show_audit_map(args: dict) -> dict:
     """Return audit event → tool mapping (who emits what)."""
@@ -332,7 +357,9 @@ def mode_show_audit_map(args: dict) -> dict:
     warnings = []
     orphan_events = ssot_events - graph_events
     if orphan_events:
-        warnings.append(f"SSOT defines {len(orphan_events)} events not used by any tool: {sorted(orphan_events)}")
+        warnings.append(
+            f"SSOT defines {len(orphan_events)} events not used by any tool: {sorted(orphan_events)}"
+        )
 
     return _envelope(
         "show_audit_map",
@@ -354,6 +381,7 @@ def mode_show_audit_map(args: dict) -> dict:
 # Mode: find_contract_drift
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def mode_find_contract_drift(args: dict) -> dict:
     """Field-level drift detection between SSOT and generated graph.
 
@@ -371,9 +399,7 @@ def mode_find_contract_drift(args: dict) -> dict:
             ssot_tools[t["canonical_name"]] = t
 
     # Build graph tool lookup
-    graph_tools: dict[str, dict] = {
-        n["tool_name"]: n for n in graph["nodes"]
-    }
+    graph_tools: dict[str, dict] = {n["tool_name"]: n for n in graph["nodes"]}
 
     drift_items = []
     warnings = []
@@ -383,27 +409,36 @@ def mode_find_contract_drift(args: dict) -> dict:
     if ssot_only:
         warnings.append(f"{len(ssot_only)} tools in SSOT but not in graph")
         for tool in ssot_only:
-            drift_items.append({
-                "tool": tool,
-                "drift_type": "ssot_only",
-                "detail": "Tool defined in SSOT but missing from generated graph",
-            })
+            drift_items.append(
+                {
+                    "tool": tool,
+                    "drift_type": "ssot_only",
+                    "detail": "Tool defined in SSOT but missing from generated graph",
+                }
+            )
 
     # Check tools in graph but not in SSOT
     graph_only = sorted(set(graph_tools.keys()) - set(ssot_tools.keys()))
     if graph_only:
         warnings.append(f"{len(graph_only)} tools in graph but not in SSOT")
         for tool in graph_only:
-            drift_items.append({
-                "tool": tool,
-                "drift_type": "graph_only",
-                "detail": "Tool in generated graph but not defined in SSOT",
-            })
+            drift_items.append(
+                {
+                    "tool": tool,
+                    "drift_type": "graph_only",
+                    "detail": "Tool in generated graph but not defined in SSOT",
+                }
+            )
 
     # Field-level comparison for tools in both
     comparable_fields = [
-        "axis", "pipeline_stage", "channel", "reversibility",
-        "blast_radius", "authority_required", "irreversible",
+        "axis",
+        "pipeline_stage",
+        "channel",
+        "reversibility",
+        "blast_radius",
+        "authority_required",
+        "irreversible",
     ]
 
     for tool_name in sorted(set(ssot_tools.keys()) & set(graph_tools.keys())):
@@ -418,24 +453,28 @@ def mode_find_contract_drift(args: dict) -> dict:
                 ssot_norm = str(ssot_val).lower()
                 graph_norm = str(graph_val).lower()
                 if ssot_norm != graph_norm:
-                    drift_items.append({
-                        "tool": tool_name,
-                        "drift_type": "field_mismatch",
-                        "field": field,
-                        "ssot_value": ssot_val,
-                        "graph_value": graph_val,
-                    })
+                    drift_items.append(
+                        {
+                            "tool": tool_name,
+                            "drift_type": "field_mismatch",
+                            "field": field,
+                            "ssot_value": ssot_val,
+                            "graph_value": graph_val,
+                        }
+                    )
 
         # Check modes
         ssot_modes = set(ssot_t.get("modes", []))
         graph_modes = set(graph_t.get("modes", []))
         if ssot_modes and graph_modes and ssot_modes != graph_modes:
-            drift_items.append({
-                "tool": tool_name,
-                "drift_type": "modes_mismatch",
-                "ssot_modes": sorted(ssot_modes),
-                "graph_modes": sorted(graph_modes),
-            })
+            drift_items.append(
+                {
+                    "tool": tool_name,
+                    "drift_type": "modes_mismatch",
+                    "ssot_modes": sorted(ssot_modes),
+                    "graph_modes": sorted(graph_modes),
+                }
+            )
 
     return _envelope(
         "find_contract_drift",
@@ -457,6 +496,7 @@ def mode_find_contract_drift(args: dict) -> dict:
 # Mode: explain_denial
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def mode_explain_denial(args: dict) -> dict:
     """Return human-readable explanation of a denial code.
 
@@ -465,8 +505,7 @@ def mode_explain_denial(args: dict) -> dict:
     """
     code = args.get("code")
     if not code:
-        return _envelope("explain_denial", ok=False,
-                         denials=["missing required arg: code"])
+        return _envelope("explain_denial", ok=False, denials=["missing required arg: code"])
 
     ssot = _load_ssot()
     graph = _load_graph()
@@ -487,7 +526,8 @@ def mode_explain_denial(args: dict) -> dict:
 
     if not ssot_denial and not graph_denial:
         return _envelope(
-            "explain_denial", ok=False,
+            "explain_denial",
+            ok=False,
             denials=[f"denial code '{code}' not found in SSOT or generated graph"],
         )
 
@@ -496,27 +536,30 @@ def mode_explain_denial(args: dict) -> dict:
 
     # Find tools that reference this denial code
     referencing_tools = [
-        n["tool_name"] for n in graph["nodes"]
-        if code in n.get("denial_codes", [])
+        n["tool_name"] for n in graph["nodes"] if code in n.get("denial_codes", [])
     ]
 
-    items = [{
-        "code": code,
-        "floor": denial.get("floor", "unknown"),
-        "severity": denial.get("severity", "unknown"),
-        "retryability": denial.get("retryability", "unknown"),
-        "description": denial.get("description", ""),
-        "remediation": denial.get("remediation", ""),
-        "referencing_tools": sorted(referencing_tools),
-        "referencing_tool_count": len(referencing_tools),
-    }]
+    items = [
+        {
+            "code": code,
+            "floor": denial.get("floor", "unknown"),
+            "severity": denial.get("severity", "unknown"),
+            "retryability": denial.get("retryability", "unknown"),
+            "description": denial.get("description", ""),
+            "remediation": denial.get("remediation", ""),
+            "referencing_tools": sorted(referencing_tools),
+            "referencing_tool_count": len(referencing_tools),
+        }
+    ]
 
     warnings = []
     if ssot_denial and graph_denial:
         # Check for drift between SSOT and graph
         for field in ("floor", "severity", "retryability", "description", "remediation"):
             if ssot_denial.get(field) != graph_denial.get(field):
-                warnings.append(f"Drift detected in {field}: SSOT={ssot_denial.get(field)}, graph={graph_denial.get(field)}")
+                warnings.append(
+                    f"Drift detected in {field}: SSOT={ssot_denial.get(field)}, graph={graph_denial.get(field)}"
+                )
 
     return _envelope(
         "explain_denial",
@@ -529,6 +572,7 @@ def mode_explain_denial(args: dict) -> dict:
 # ════════════════════════════════════════════════════════════════════════════════
 # Mode: show_channel_matrix
 # ════════════════════════════════════════════════════════════════════════════════
+
 
 def mode_show_channel_matrix(args: dict) -> dict:
     """Return channel policy enforcement matrix.
@@ -565,24 +609,28 @@ def mode_show_channel_matrix(args: dict) -> dict:
     channel_tools: dict[str, list[dict]] = {}
     for node in graph["nodes"]:
         channel = node.get("channel", "unknown")
-        channel_tools.setdefault(channel, []).append({
-            "tool_name": node["tool_name"],
-            "authority_required": node.get("authority_required", "unknown"),
-            "blast_radius": node.get("blast_radius", "unknown"),
-            "irreversible": node.get("irreversible", False),
-            "requires_plan": node.get("requires_plan", False),
-        })
+        channel_tools.setdefault(channel, []).append(
+            {
+                "tool_name": node["tool_name"],
+                "authority_required": node.get("authority_required", "unknown"),
+                "blast_radius": node.get("blast_radius", "unknown"),
+                "irreversible": node.get("irreversible", False),
+                "requires_plan": node.get("requires_plan", False),
+            }
+        )
 
     items = []
     for channel in sorted(channel_tools.keys()):
         tools = channel_tools[channel]
         policy = channel_policies.get(channel, {})
-        items.append({
-            "channel": channel,
-            "policy": policy,
-            "tool_count": len(tools),
-            "tools": sorted(tools, key=lambda t: t["tool_name"]),
-        })
+        items.append(
+            {
+                "channel": channel,
+                "policy": policy,
+                "tool_count": len(tools),
+                "tools": sorted(tools, key=lambda t: t["tool_name"]),
+            }
+        )
 
     # Validation warnings
     warnings = []
@@ -590,10 +638,14 @@ def mode_show_channel_matrix(args: dict) -> dict:
         channel = node.get("channel", "unknown")
         if channel == "beta":
             if node.get("authority_required") != "sovereign" and not node.get("hold_conditions"):
-                warnings.append(f"Beta tool '{node['tool_name']}' lacks sovereign authority or hold_conditions")
+                warnings.append(
+                    f"Beta tool '{node['tool_name']}' lacks sovereign authority or hold_conditions"
+                )
         if channel == "sandbox":
             if node.get("irreversible"):
-                warnings.append(f"Sandbox tool '{node['tool_name']}' is irreversible (violates sandbox policy)")
+                warnings.append(
+                    f"Sandbox tool '{node['tool_name']}' is irreversible (violates sandbox policy)"
+                )
 
     return _envelope(
         "show_channel_matrix",
@@ -611,6 +663,7 @@ def mode_show_channel_matrix(args: dict) -> dict:
 # ════════════════════════════════════════════════════════════════════════════════
 # Mode: show_floor_coverage
 # ════════════════════════════════════════════════════════════════════════════════
+
 
 def mode_show_floor_coverage(args: dict) -> dict:
     """Return constitutional floor coverage analysis.
@@ -655,13 +708,15 @@ def mode_show_floor_coverage(args: dict) -> dict:
 
     items = []
     for floor in sorted(floor_tools.keys()):
-        items.append({
-            "floor": floor,
-            "tool_count": len(floor_tools[floor]),
-            "tools": floor_tools[floor],
-            "denial_codes": floor_denial_codes[floor],
-            "denial_code_count": len(floor_denial_codes[floor]),
-        })
+        items.append(
+            {
+                "floor": floor,
+                "tool_count": len(floor_tools[floor]),
+                "tools": floor_tools[floor],
+                "denial_codes": floor_denial_codes[floor],
+                "denial_code_count": len(floor_denial_codes[floor]),
+            }
+        )
 
     warnings = []
     if uncovered_floors:
@@ -673,7 +728,9 @@ def mode_show_floor_coverage(args: dict) -> dict:
             "total_floors": len(all_floors),
             "covered_floors": len(covered_floors),
             "uncovered_floors": len(uncovered_floors),
-            "total_tools_with_floor_refs": len(set().union(*floor_tools.values())) if floor_tools else 0,
+            "total_tools_with_floor_refs": len(set().union(*floor_tools.values()))
+            if floor_tools
+            else 0,
         },
         items=items,
         warnings=warnings,
@@ -685,18 +742,31 @@ def mode_show_floor_coverage(args: dict) -> dict:
 # Dispatch
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def kernel_status(args: dict) -> dict:
     """The arif_kernel_status entry point — dispatch by mode."""
     mode = args.get("mode")
     if not mode:
-        return _envelope("unknown", ok=False,
-                         denials=["missing required arg: mode"],
-                         items=[{"implemented_modes": sorted(IMPLEMENTED_MODES),
-                                 "declared_modes": sorted(DECLARED_MODES)}])
+        return _envelope(
+            "unknown",
+            ok=False,
+            denials=["missing required arg: mode"],
+            items=[
+                {
+                    "implemented_modes": sorted(IMPLEMENTED_MODES),
+                    "declared_modes": sorted(DECLARED_MODES),
+                }
+            ],
+        )
     if mode not in DECLARED_MODES:
-        return _envelope(mode, ok=False,
-                         denials=[f"mode '{mode}' not in declared modes",
-                                  f"available: {sorted(DECLARED_MODES)}"])
+        return _envelope(
+            mode,
+            ok=False,
+            denials=[
+                f"mode '{mode}' not in declared modes",
+                f"available: {sorted(DECLARED_MODES)}",
+            ],
+        )
     handlers = {
         "discover": mode_discover,
         "list_capabilities": mode_list_capabilities,
@@ -717,11 +787,12 @@ def kernel_status(args: dict) -> dict:
 # CLI
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def main():
     import argparse
+
     p = argparse.ArgumentParser(description="arif_kernel_status — 4 modes implemented")
-    p.add_argument("mode", choices=sorted(IMPLEMENTED_MODES),
-                   help="Kernel status mode to invoke")
+    p.add_argument("mode", choices=sorted(IMPLEMENTED_MODES), help="Kernel status mode to invoke")
     p.add_argument("--tool-name", help="For show_contract")
     p.add_argument("--json", action="store_true", help="Output raw JSON")
     args = p.parse_args()
@@ -738,7 +809,7 @@ def main():
         print(f"=== kernel_status(mode={mode}) ===")
         print(f"  ok: {out['ok']}")
         if out.get("counts"):
-            print(f"  counts:")
+            print("  counts:")
             for k, v in out["counts"].items():
                 print(f"    {k}: {v}")
         if out.get("items"):
@@ -746,7 +817,7 @@ def main():
         if out.get("orphans"):
             orphans = out["orphans"]
             if any(orphans):
-                print(f"  orphans:")
+                print("  orphans:")
                 for i, o in enumerate(orphans):
                     if o:
                         print(f"    [{i}] {o[:5]}{'...' if len(o) > 5 else ''}")

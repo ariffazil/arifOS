@@ -14,6 +14,7 @@ class ArifosMCPLinter:
         # Lazy import the linter
         try:
             from .arifos_registry.mcp_tool_registry import MCPToolRegistry
+
             self.registry_cls = MCPToolRegistry
         except ImportError:
             self.registry_cls = None
@@ -23,6 +24,7 @@ class ArifosMCPLinter:
         # Import the linter from WEALTH (cross-organ)
         try:
             from WEALTH.internal.wealth_security.mcp_description_linter import MCPDescriptionLinter
+
             linter = MCPDescriptionLinter()
             result = linter.lint(tool_name, description)
             return {
@@ -45,5 +47,7 @@ class ArifosMCPLinter:
         """Lint all tools in a registry dict."""
         results = []
         for tool in registry_dict.get("tools", []):
-            results.append(self.lint_tool_description(tool["tool_name"], tool.get("description", "")))
+            results.append(
+                self.lint_tool_description(tool["tool_name"], tool.get("description", ""))
+            )
         return results

@@ -24,6 +24,7 @@ from typing import Literal
 
 # ── The 7 truth-classes ────────────────────────────────────────────────────
 
+
 class TruthClass(str, Enum):
     """
     Epistemic status of a memory object across its lifecycle.
@@ -43,6 +44,7 @@ class TruthClass(str, Enum):
     CONTESTED:   Contradiction unresolved. Excluded from default recall.
     DEPRECATED:  Superseded by later fact. Tombstoned, never deleted.
     """
+
     OBSERVED = "observed"
     CLAIMED = "claimed"
     DERIVED = "derived"
@@ -59,13 +61,13 @@ class TruthClass(str, Enum):
 # promotion time (promote).
 
 _TRUTH_TIER_ALLOWANCE: dict[TruthClass, frozenset[str]] = {
-    TruthClass.OBSERVED:   frozenset({"L1", "L2", "L3", "L4"}),
-    TruthClass.CLAIMED:    frozenset({"L3"}),                          # vector only w/ receipts
-    TruthClass.DERIVED:    frozenset({"L3", "L4"}),
-    TruthClass.APPROVED:   frozenset({"L3", "L4", "L5"}),
-    TruthClass.SEALED:     frozenset({"L6"}),                          # vault only
-    TruthClass.CONTESTED:  frozenset({"L3", "L4"}),                    # both sides retained
-    TruthClass.DEPRECATED: frozenset({"L4", "L5", "L6"}),              # tombstone lineage
+    TruthClass.OBSERVED: frozenset({"L1", "L2", "L3", "L4"}),
+    TruthClass.CLAIMED: frozenset({"L3"}),  # vector only w/ receipts
+    TruthClass.DERIVED: frozenset({"L3", "L4"}),
+    TruthClass.APPROVED: frozenset({"L3", "L4", "L5"}),
+    TruthClass.SEALED: frozenset({"L6"}),  # vault only
+    TruthClass.CONTESTED: frozenset({"L3", "L4"}),  # both sides retained
+    TruthClass.DEPRECATED: frozenset({"L4", "L5", "L6"}),  # tombstone lineage
 }
 
 
@@ -83,13 +85,13 @@ def allowed_tiers(truth: TruthClass) -> frozenset[str]:
 # Used when PolicyBlock.ttl is not explicitly set.
 
 _TRUTH_DEFAULT_TTL_HOURS: dict[TruthClass, int | None] = {
-    TruthClass.OBSERVED:   24,        # one working day; promote or lose
-    TruthClass.CLAIMED:    72,        # 3 days to verify or claim decays
-    TruthClass.DERIVED:    2160,      # 90 days; revisit periodically
-    TruthClass.APPROVED:   8760,      # 1 year
-    TruthClass.SEALED:     None,      # forever — vault retains
-    TruthClass.CONTESTED:  168,       # 1 week to resolve or escalate
-    TruthClass.DEPRECATED: 8760,      # 1 year tombstone, then retire
+    TruthClass.OBSERVED: 24,  # one working day; promote or lose
+    TruthClass.CLAIMED: 72,  # 3 days to verify or claim decays
+    TruthClass.DERIVED: 2160,  # 90 days; revisit periodically
+    TruthClass.APPROVED: 8760,  # 1 year
+    TruthClass.SEALED: None,  # forever — vault retains
+    TruthClass.CONTESTED: 168,  # 1 week to resolve or escalate
+    TruthClass.DEPRECATED: 8760,  # 1 year tombstone, then retire
 }
 
 
@@ -102,12 +104,12 @@ def default_ttl_hours(truth: TruthClass) -> int | None:
 # CONTESTED is excluded by default; DEPRECATED is excluded; the rest pass.
 
 _TRUTH_DEFAULT_RECALL: dict[TruthClass, bool] = {
-    TruthClass.OBSERVED:   True,
-    TruthClass.CLAIMED:    True,
-    TruthClass.DERIVED:    True,
-    TruthClass.APPROVED:   True,
-    TruthClass.SEALED:     True,
-    TruthClass.CONTESTED:  False,
+    TruthClass.OBSERVED: True,
+    TruthClass.CLAIMED: True,
+    TruthClass.DERIVED: True,
+    TruthClass.APPROVED: True,
+    TruthClass.SEALED: True,
+    TruthClass.CONTESTED: False,
     TruthClass.DEPRECATED: False,
 }
 
@@ -122,18 +124,23 @@ def default_recall_eligible(truth: TruthClass) -> bool:
 # Backward transitions require a `revise` operation with audit.
 
 _LEGAL_TRANSITIONS: dict[TruthClass, frozenset[TruthClass]] = {
-    TruthClass.OBSERVED:   frozenset({TruthClass.CLAIMED, TruthClass.DERIVED,
-                                       TruthClass.APPROVED, TruthClass.SEALED}),
-    TruthClass.CLAIMED:    frozenset({TruthClass.DERIVED, TruthClass.APPROVED,
-                                       TruthClass.CONTESTED, TruthClass.DEPRECATED}),
-    TruthClass.DERIVED:    frozenset({TruthClass.APPROVED, TruthClass.CONTESTED,
-                                       TruthClass.DEPRECATED}),
-    TruthClass.APPROVED:   frozenset({TruthClass.SEALED, TruthClass.CONTESTED,
-                                       TruthClass.DEPRECATED}),
-    TruthClass.SEALED:     frozenset({TruthClass.CONTESTED}),          # vault can be contested
-    TruthClass.CONTESTED:  frozenset({TruthClass.APPROVED, TruthClass.DEPRECATED,
-                                       TruthClass.SEALED}),
-    TruthClass.DEPRECATED: frozenset(),                                  # terminal
+    TruthClass.OBSERVED: frozenset(
+        {TruthClass.CLAIMED, TruthClass.DERIVED, TruthClass.APPROVED, TruthClass.SEALED}
+    ),
+    TruthClass.CLAIMED: frozenset(
+        {TruthClass.DERIVED, TruthClass.APPROVED, TruthClass.CONTESTED, TruthClass.DEPRECATED}
+    ),
+    TruthClass.DERIVED: frozenset(
+        {TruthClass.APPROVED, TruthClass.CONTESTED, TruthClass.DEPRECATED}
+    ),
+    TruthClass.APPROVED: frozenset(
+        {TruthClass.SEALED, TruthClass.CONTESTED, TruthClass.DEPRECATED}
+    ),
+    TruthClass.SEALED: frozenset({TruthClass.CONTESTED}),  # vault can be contested
+    TruthClass.CONTESTED: frozenset(
+        {TruthClass.APPROVED, TruthClass.DEPRECATED, TruthClass.SEALED}
+    ),
+    TruthClass.DEPRECATED: frozenset(),  # terminal
 }
 
 
@@ -151,6 +158,7 @@ def legal_next(from_cls: TruthClass) -> frozenset[TruthClass]:
 # Distinct from truth-class: memory-class is WHAT the memory IS, while
 # truth-class is HOW CONFIDENT we are in it.
 
+
 class MemoryClass(str, Enum):
     """
     Cognitive class of a memory object.
@@ -162,6 +170,7 @@ class MemoryClass(str, Enum):
     PROCEDURAL:  How to do recurring workflows (L3/L4/L5).
     GOVERNANCE:  Holds, vetoes, exceptions, floor violations, approvals (L4/L6).
     """
+
     WORKING = "working"
     SESSION = "session"
     EPISODIC = "episodic"
@@ -174,12 +183,12 @@ class MemoryClass(str, Enum):
 # Which floors must be satisfied before a memory of this class is written.
 
 _TRUTH_FLOORS_REQUIRED: dict[TruthClass, frozenset[str]] = {
-    TruthClass.OBSERVED:   frozenset({"L01", "L02", "L12"}),
-    TruthClass.CLAIMED:    frozenset({"L01", "L02", "L11", "L12"}),
-    TruthClass.DERIVED:    frozenset({"L01", "L02", "L04", "L12"}),
-    TruthClass.APPROVED:   frozenset({"L01", "L02", "L11", "L13"}),   # human ack
-    TruthClass.SEALED:     frozenset({"L01", "L02", "L09", "L11", "L13"}),
-    TruthClass.CONTESTED:  frozenset({"L01", "L02", "L04", "L09", "L12"}),
+    TruthClass.OBSERVED: frozenset({"L01", "L02", "L12"}),
+    TruthClass.CLAIMED: frozenset({"L01", "L02", "L11", "L12"}),
+    TruthClass.DERIVED: frozenset({"L01", "L02", "L04", "L12"}),
+    TruthClass.APPROVED: frozenset({"L01", "L02", "L11", "L13"}),  # human ack
+    TruthClass.SEALED: frozenset({"L01", "L02", "L09", "L11", "L13"}),
+    TruthClass.CONTESTED: frozenset({"L01", "L02", "L04", "L09", "L12"}),
     TruthClass.DEPRECATED: frozenset({"L01", "L04", "L11"}),
 }
 
@@ -192,12 +201,22 @@ def floors_required(truth: TruthClass) -> frozenset[str]:
 # ── Convenience type aliases ───────────────────────────────────────────────
 
 TruthClassName = Literal[
-    "observed", "claimed", "derived", "approved",
-    "sealed", "contested", "deprecated",
+    "observed",
+    "claimed",
+    "derived",
+    "approved",
+    "sealed",
+    "contested",
+    "deprecated",
 ]
 
 MemoryClassName = Literal[
-    "working", "session", "episodic", "semantic", "procedural", "governance",
+    "working",
+    "session",
+    "episodic",
+    "semantic",
+    "procedural",
+    "governance",
 ]
 
 TierCode = Literal["L1", "L2", "L3", "L4", "L5", "L6"]

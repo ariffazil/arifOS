@@ -48,7 +48,9 @@ class LawExtension(StrEnum):
     """
 
     L00_PRIME = "L00"  # The nine-word intelligence definition: what/where/why
-    L14_REGISTER = "L14"  # DEAD — reborn as F2+F3 cross-verify protocol (SOVEREIGN RULING 2026-06-13)
+    L14_REGISTER = (
+        "L14"  # DEAD — reborn as F2+F3 cross-verify protocol (SOVEREIGN RULING 2026-06-13)
+    )
     L15_EPISTEMIC = "L15"  # Recording doctrine — Malaysian epistemic intuition is valid substrate
     L16_GEOMETRIC = "L16"  # Post-transformer warning — governance must reach latent space
     L17_IGNITION = "L17"  # Self-igniting loop — kernel develops by auditing

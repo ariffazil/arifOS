@@ -15,6 +15,7 @@ Thresholds:
 One detector, shared across all 5 organs.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 import time
@@ -61,6 +62,7 @@ def _clear_fire_log(anchor_id: str | None = None) -> None:
 @dataclass
 class DesensitizationResult:
     """Result of a desensitization check on a paradox anchor."""
+
     anchor_id: str
     total_fires: int
     desensitization_score: float

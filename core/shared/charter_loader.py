@@ -11,7 +11,9 @@ from pathlib import Path
 _DEFAULT_MIND_ROOT = (
     Path("C:/arifOS")
     if os.name == "nt"
-    else Path(os.environ.get("ARIFOS_MIND_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/arifOS"))
+    else Path(
+        os.environ.get("ARIFOS_MIND_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/arifOS")
+    )
 )
 
 

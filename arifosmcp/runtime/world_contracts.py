@@ -74,18 +74,18 @@ from arifosmcp.runtime.world_model.geometric_memory import (
 class KernelEventKind(StrEnum):
     """F13-ratified event vocabulary."""
 
-    OBSERVATION = "observation"        # 111 — multimodal reality observation
-    EVIDENCE = "evidence"              # 222 — verified external evidence
-    REASON = "reason"                  # 333 — symbolic reasoning output
-    CRITIQUE = "critique"              # 444 — ethical/consequence critique
-    MEMORY_WRITE = "memory_write"      # 555m — write to memory
-    MEMORY_QUERY = "memory_query"      # 555m — query memory
-    EXECUTION = "execution"            # 666 — forge / execute
-    MEASURE = "measure"                # 777 — ops/measure
-    JUDGE = "judge"                    # 888 — judge deliberates
-    SEAL = "seal"                      # 999 — vault seal
-    WORLD_UPDATE = "world_update"      # custom: world-model state change
-    DRIFT_ALERT = "drift_alert"        # custom: drift detector triggered
+    OBSERVATION = "observation"  # 111 — multimodal reality observation
+    EVIDENCE = "evidence"  # 222 — verified external evidence
+    REASON = "reason"  # 333 — symbolic reasoning output
+    CRITIQUE = "critique"  # 444 — ethical/consequence critique
+    MEMORY_WRITE = "memory_write"  # 555m — write to memory
+    MEMORY_QUERY = "memory_query"  # 555m — query memory
+    EXECUTION = "execution"  # 666 — forge / execute
+    MEASURE = "measure"  # 777 — ops/measure
+    JUDGE = "judge"  # 888 — judge deliberates
+    SEAL = "seal"  # 999 — vault seal
+    WORLD_UPDATE = "world_update"  # custom: world-model state change
+    DRIFT_ALERT = "drift_alert"  # custom: drift detector triggered
     EUREKA_CANDIDATE = "eureka_candidate"  # custom: candidate eureka flagged
 
 
@@ -119,8 +119,7 @@ class KernelEvent:
             raise ValueError("KernelEvent.provenance_sha required (F11)")
         if self.self_geometry is not None and self.self_geometry.coords.shape != (13,):
             raise ValueError(
-                f"self_geometry.coords must be shape (13,), "
-                f"got {self.self_geometry.coords.shape}"
+                f"self_geometry.coords must be shape (13,), got {self.self_geometry.coords.shape}"
             )
 
 
@@ -205,9 +204,7 @@ class WorldModelSnapshot:
 
     def __post_init__(self) -> None:
         if not self.sovereign_session_id:
-            raise ValueError(
-                "WorldModelSnapshot.sovereign_session_id required (F13)"
-            )
+            raise ValueError("WorldModelSnapshot.sovereign_session_id required (F13)")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -216,9 +213,7 @@ class WorldModelSnapshot:
             "actor": self.actor,
             "ts": self.ts,
             "self_geometry": (
-                self.self_geometry.coords.tolist()
-                if self.self_geometry is not None
-                else None
+                self.self_geometry.coords.tolist() if self.self_geometry is not None else None
             ),
             "actors": {
                 aid: {
@@ -368,15 +363,25 @@ def _self_check() -> None:
 
     # 8. GeometricMemoryStore and Constraint from geometric_memory.py
     store = GeometryMemoryStore()
-    store.add(MemoryEntry(
-        actor="arif", task_id="T", task_class="brief",
-        geometry_snapshot=np.array([0.7, 0.9, 0.5, 0.6, 0.7, 0.6, 0.5, 0.7, 0.8, 0.7, 0.8, 0.8, 0.2]),
-        text_payload="t", ts=0.0, provenance_sha="p",
-    ))
-    q = AndConstraint([
-        GeometryConstraint(Floor.F13_SOVEREIGN, ConstraintOp("lt"), value=0.3),
-        GeometryConstraint(Floor.F02_TRUTH, ConstraintOp("gt"), value=0.8),
-    ])
+    store.add(
+        MemoryEntry(
+            actor="arif",
+            task_id="T",
+            task_class="brief",
+            geometry_snapshot=np.array(
+                [0.7, 0.9, 0.5, 0.6, 0.7, 0.6, 0.5, 0.7, 0.8, 0.7, 0.8, 0.8, 0.2]
+            ),
+            text_payload="t",
+            ts=0.0,
+            provenance_sha="p",
+        )
+    )
+    q = AndConstraint(
+        [
+            GeometryConstraint(Floor.F13_SOVEREIGN, ConstraintOp("lt"), value=0.3),
+            GeometryConstraint(Floor.F02_TRUTH, ConstraintOp("gt"), value=0.8),
+        ]
+    )
     hits = store.query_by_constraint(q)
     assert len(hits) == 1
 

@@ -44,10 +44,10 @@ class ConstraintOp(StrEnum):
     LTE = "lte"
     EQ = "eq"
     NEAR = "near"  # within epsilon of value
-    FAR = "far"    # more than epsilon from value
+    FAR = "far"  # more than epsilon from value
     IN_RANGE = "in_range"  # in [low, high]
     VIOLATES = "violates"  # coord < 0 (hard floor)
-    PASSES = "passes"      # coord >= 0 (hard floor)
+    PASSES = "passes"  # coord >= 0 (hard floor)
 
 
 @dataclass
@@ -163,9 +163,7 @@ class GeometryMemoryStore:
     def add(self, entry: MemoryEntry) -> None:
         self.entries.append(entry)
 
-    def query_by_constraint(
-        self, constraint: Any, *, limit: int = 100
-    ) -> list[MemoryEntry]:
+    def query_by_constraint(self, constraint: Any, *, limit: int = 100) -> list[MemoryEntry]:
         """Return entries whose geometry matches the constraint."""
         out: list[MemoryEntry] = []
         for e in self.entries:
@@ -187,9 +185,7 @@ class GeometryMemoryStore:
         "Give me episodes where we were far from where we are now" — a
         self-curiosity query.
         """
-        weights = np.array(
-            [load_floor_weights()[int(f)] for f in Floor], dtype=np.float64
-        )
+        weights = np.array([load_floor_weights()[int(f)] for f in Floor], dtype=np.float64)
         out: list[tuple[MemoryEntry, float]] = []
         for e in self.entries:
             d = float(np.sqrt(np.sum(weights * (current - e.geometry_snapshot) ** 2)))
@@ -219,7 +215,7 @@ class GeometryMemoryStore:
         rows: list[tuple[MemoryEntry, list[str]]] = []
         for e in self.entries:
             violating: list[str] = []
-            for f in (HARD_FLOORS if hard_floor_only else Floor):
+            for f in HARD_FLOORS if hard_floor_only else Floor:
                 if e.geometry_snapshot[int(f)] < 0.0:
                     violating.append(f.name)
             if violating:
@@ -264,7 +260,9 @@ def _self_check() -> None:
         actor="arif",
         task_id="PAGI-2026-06-10",
         task_class="pagi-brief",
-        geometry_snapshot=np.array([0.7, 0.9, 0.5, 0.6, 0.7, 0.6, 0.5, 0.7, 0.8, 0.7, 0.8, 0.8, 0.2]),
+        geometry_snapshot=np.array(
+            [0.7, 0.9, 0.5, 0.6, 0.7, 0.6, 0.5, 0.7, 0.8, 0.7, 0.8, 0.8, 0.2]
+        ),
         text_payload="Pagi brief, F13 low because no 888 ack needed for non-sovereign action",
         ts=time.time(),
         provenance_sha="pagi-2026-06-10",
@@ -276,7 +274,9 @@ def _self_check() -> None:
         actor="arif",
         task_id="PUBLISH-2026-06-10",
         task_class="wealth-publish",
-        geometry_snapshot=np.array([0.8, 0.5, 0.6, 0.5, 0.6, 0.5, 0.4, 0.6, 0.7, 0.6, 0.7, 0.7, 0.95]),
+        geometry_snapshot=np.array(
+            [0.8, 0.5, 0.6, 0.5, 0.6, 0.5, 0.4, 0.6, 0.7, 0.6, 0.7, 0.7, 0.95]
+        ),
         text_payload="Wealth publish, F2 low because market data was uncertain",
         ts=time.time(),
         provenance_sha="publish-2026-06-10",
@@ -291,17 +291,17 @@ def _self_check() -> None:
     assert low_sovereign[0].entry_id == e1.entry_id
 
     # Query: episodes where F2 < 0.7
-    low_truth = store.query_by_floor_collapse(
-        Floor.F02_TRUTH, op=ConstraintOp("lt"), value=0.7
-    )
+    low_truth = store.query_by_floor_collapse(Floor.F02_TRUTH, op=ConstraintOp("lt"), value=0.7)
     assert len(low_truth) == 1
     assert low_truth[0].entry_id == e2.entry_id
 
     # Query: AND (F13 < 0.3 AND F2 > 0.8)
-    complex_q = AndConstraint([
-        GeometryConstraint(Floor.F13_SOVEREIGN, ConstraintOp.LT, value=0.3),
-        GeometryConstraint(Floor.F02_TRUTH, ConstraintOp.GT, value=0.8),
-    ])
+    complex_q = AndConstraint(
+        [
+            GeometryConstraint(Floor.F13_SOVEREIGN, ConstraintOp.LT, value=0.3),
+            GeometryConstraint(Floor.F02_TRUTH, ConstraintOp.GT, value=0.8),
+        ]
+    )
     matches = store.query_by_constraint(complex_q)
     assert len(matches) == 1
     assert matches[0].entry_id == e1.entry_id
@@ -322,7 +322,9 @@ def _self_check() -> None:
         actor="arif",
         task_id="BAD-2026-06-10",
         task_class="bad-action",
-        geometry_snapshot=np.array([-0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+        geometry_snapshot=np.array(
+            [-0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ),
         text_payload="F1 AMANAH violated",
         ts=time.time(),
         provenance_sha="bad-2026-06-10",

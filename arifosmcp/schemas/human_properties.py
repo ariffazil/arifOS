@@ -163,9 +163,7 @@ class BiologicalState(BaseModel):
     sleep_pattern: str | None = Field(
         default=None, description="e.g. 'irregular', 'night_owl', 'early_riser'"
     )
-    fatigue_risk: str = Field(
-        default="unknown", description="low / medium / high / critical"
-    )
+    fatigue_risk: str = Field(default="unknown", description="low / medium / high / critical")
     known_conditions: list[str] = Field(
         default_factory=list, description="Known health conditions (if shared)"
     )
@@ -193,12 +191,8 @@ class HumanProperties(BaseModel):
     Every property is reversible (human can update/remove).
     """
 
-    human_id: str = Field(
-        default="arif-fazil", description="Canonical human identifier"
-    )
-    sovereign: bool = Field(
-        default=True, description="Is this human the F13 sovereign?"
-    )
+    human_id: str = Field(default="arif-fazil", description="Canonical human identifier")
+    sovereign: bool = Field(default=True, description="Is this human the F13 sovereign?")
 
     # The six layers
     scars: list[Scar] = Field(default_factory=list)
@@ -212,13 +206,9 @@ class HumanProperties(BaseModel):
     biological: BiologicalState = Field(default_factory=BiologicalState)
 
     # Composite properties
-    scar_density: int = Field(
-        default=0, description="Total scar count — affects F6 sensitivity"
-    )
+    scar_density: int = Field(default=0, description="Total scar count — affects F6 sensitivity")
     shadow_count: int = Field(default=0, description="Active shadows")
-    hollow_count: int = Field(
-        default=0, description="Deliberately unfilled spaces — DO_NOT_FILL"
-    )
+    hollow_count: int = Field(default=0, description="Deliberately unfilled spaces — DO_NOT_FILL")
     grief_active: bool = Field(
         default=False, description="Is there active grief? Affects F5/F6 posture"
     )
@@ -242,21 +232,15 @@ class HumanProperties(BaseModel):
 
         for shadow in self.shadows:
             for floor, impact in shadow.floor_impact.items():
-                impacts.setdefault(floor, []).append(
-                    f"shadow:{shadow.shadow_id}:{impact}"
-                )
+                impacts.setdefault(floor, []).append(f"shadow:{shadow.shadow_id}:{impact}")
 
         for paradox in self.paradoxes:
             for floor, impact in paradox.floor_impact.items():
-                impacts.setdefault(floor, []).append(
-                    f"paradox:{paradox.paradox_id}:{impact}"
-                )
+                impacts.setdefault(floor, []).append(f"paradox:{paradox.paradox_id}:{impact}")
 
         for limit in self.limits:
             for floor, impact in limit.floor_impact.items():
-                impacts.setdefault(floor, []).append(
-                    f"limit:{limit.limit_id}:{impact}"
-                )
+                impacts.setdefault(floor, []).append(f"limit:{limit.limit_id}:{impact}")
 
         for constraint in self.constraints:
             for floor, impact in constraint.floor_impact.items():
@@ -280,8 +264,7 @@ class HumanProperties(BaseModel):
     def is_hollow(self, name: str) -> bool:
         """Check if a name corresponds to a hollow (DO_NOT_FILL)."""
         return any(
-            l.limit_id.startswith("hollow") and name.lower() in l.name.lower()
-            for l in self.limits
+            l.limit_id.startswith("hollow") and name.lower() in l.name.lower() for l in self.limits
         )
 
 

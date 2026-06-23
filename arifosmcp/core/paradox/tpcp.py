@@ -10,7 +10,7 @@ Implements the 4-phase paradox resolution pipeline from APEX Unified Theory:
 
 Core equation:
   Φ_P = (∫ΨP dt) / (ΔP × Ω₀)
-  
+
   Φ_P ≥ 0.80 → SEAL
   Φ_P 0.40–0.79 → SABAR
   Φ_P 0.10–0.39 → HOLD
@@ -29,15 +29,18 @@ from enum import Enum
 
 # ── Phase Enum ───────────────────────────────────────────────────────────────
 
+
 class TPCPPhase(Enum):
     """The 4 phases of the Paradox Containment Protocol."""
-    DELTA_P = "delta_P"       # Phase 1: Paradox Pressure
-    OMEGA_P = "omega_P"       # Phase 2: Uncertainty Expansion
-    PSI_P = "psi_P"           # Phase 3: Equilibrium Validation
-    PHI_P = "phi_P"           # Phase 4: Resolution Convergence
+
+    DELTA_P = "delta_P"  # Phase 1: Paradox Pressure
+    OMEGA_P = "omega_P"  # Phase 2: Uncertainty Expansion
+    PSI_P = "psi_P"  # Phase 3: Equilibrium Validation
+    PHI_P = "phi_P"  # Phase 4: Resolution Convergence
 
 
 # ── State Dataclass ──────────────────────────────────────────────────────────
+
 
 @dataclass
 class TPCPState:
@@ -46,23 +49,24 @@ class TPCPState:
 
     All fields are typed, ranged, and mathematically meaningful.
     """
+
     # Phase 1: Paradox Pressure
-    delta_P: float = 0.0         # ΔP = H_contradictory - H_coherent
+    delta_P: float = 0.0  # ΔP = H_contradictory - H_coherent
     h_contradictory: float = 0.0  # Shannon entropy of contradictory frame
-    h_coherent: float = 0.0       # Shannon entropy of coherent frame
+    h_coherent: float = 0.0  # Shannon entropy of coherent frame
 
     # Phase 2: Uncertainty Expansion
-    omega_0: float = 0.05         # Ω₀ baseline epistemic humility [0.03, 0.05]
-    omega_P: float = 0.0          # ΩP expanded uncertainty
-    alpha: float = 0.15            # Expansion rate constant [0.0, 1.0]
+    omega_0: float = 0.05  # Ω₀ baseline epistemic humility [0.03, 0.05]
+    omega_P: float = 0.0  # ΩP expanded uncertainty
+    alpha: float = 0.15  # Expansion rate constant [0.0, 1.0]
 
     # Phase 3: Equilibrium Validation
-    psi_P: float = 0.0            # ΨP equilibrium stability [-1.0, 1.0]
-    delta_s: float = 0.0          # ∂S/∂t — entropy change rate
+    psi_P: float = 0.0  # ΨP equilibrium stability [-1.0, 1.0]
+    delta_s: float = 0.0  # ∂S/∂t — entropy change rate
     floors_compliance: float = 1.0  # Σ_floors_compliance — fraction of floors passed [0, 1]
 
     # Phase 4: Resolution Convergence
-    phi_P: float = 0.0            # Φ_P crown metric [0.0, 1.0]
+    phi_P: float = 0.0  # Φ_P crown metric [0.0, 1.0]
     integration_window: float = 1.0  # ∫ dt — integration window in arbitrary units
 
     # Metadata
@@ -216,7 +220,9 @@ class TPCPState:
 
     # ── Internal: Record phase in history ────────────────────────────
     def _record_phase(self) -> None:
-        self.history.append({
-            "phase": self.phase.value,
-            "timestamp_au": len(self.history),
-        })
+        self.history.append(
+            {
+                "phase": self.phase.value,
+                "timestamp_au": len(self.history),
+            }
+        )

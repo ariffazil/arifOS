@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 @dataclass
 class CompensationPath:
     """A compensation plan for a single stage."""
+
     stage_name: str
     description: str
     steps: list[str] = field(default_factory=list)

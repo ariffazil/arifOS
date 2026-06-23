@@ -19,16 +19,18 @@ def _canonical_tool_list() -> list[dict[str, Any]]:
 
     tools = []
     for name, spec in CANONICAL_TOOLS.items():
-        tools.append({
-            "name": name,
-            "stage": spec.get("stage", "unknown"),
-            "lane": spec.get("lane", "AGI"),
-            "access": spec.get("access", "public"),
-            "description": spec.get("description", "").split(".")[0].strip(),
-            "floors": [str(f) for f in spec.get("floors", [])],
-            "modes": spec.get("modes", []),
-            "irreversible": spec.get("irreversible", False),
-        })
+        tools.append(
+            {
+                "name": name,
+                "stage": spec.get("stage", "unknown"),
+                "lane": spec.get("lane", "AGI"),
+                "access": spec.get("access", "public"),
+                "description": spec.get("description", "").split(".")[0].strip(),
+                "floors": [str(f) for f in spec.get("floors", [])],
+                "modes": spec.get("modes", []),
+                "irreversible": spec.get("irreversible", False),
+            }
+        )
     return tools
 
 
@@ -39,15 +41,17 @@ def _operational_tool_list() -> list[dict[str, Any]]:
 
     tools = []
     for name, spec in DIAGNOSTIC_TOOLS.items():
-        tools.append({
-            "name": name,
-            "tier": spec.get("tier", "unknown"),
-            "namespace": spec.get("namespace", "").split("(")[0].strip(),
-            "risk_tier": spec.get("risk_tier", "low"),
-            "description": spec.get("description", "").split(".")[0].strip(),
-            "modes": spec.get("modes", []),
-            "irreversible": spec.get("irreversible", False),
-        })
+        tools.append(
+            {
+                "name": name,
+                "tier": spec.get("tier", "unknown"),
+                "namespace": spec.get("namespace", "").split("(")[0].strip(),
+                "risk_tier": spec.get("risk_tier", "low"),
+                "description": spec.get("description", "").split(".")[0].strip(),
+                "modes": spec.get("modes", []),
+                "irreversible": spec.get("irreversible", False),
+            }
+        )
     return tools
 
 
@@ -77,20 +81,24 @@ def generate_llms_txt() -> str:
     lines: list[str] = []
     lines.append("# arifOS — Constitutional AI Governance Kernel")
     lines.append(f"> Auto-generated from live tool registry. Hash: {mhash}")
-    lines.append(f"> Total MCP tools: {total} | Canonical: {len(canonical)} | Operational: {len(operational)}")
+    lines.append(
+        f"> Total MCP tools: {total} | Canonical: {len(canonical)} | Operational: {len(operational)}"
+    )
     lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
     lines.append("")
     lines.append("## MCP Tools — Complete Surface")
-    lines.append(f"arifOS exposes {total} MCP tools: {len(canonical)} canonical constitutional tools")
+    lines.append(
+        f"arifOS exposes {total} MCP tools: {len(canonical)} canonical constitutional tools"
+    )
     lines.append(f"and {len(operational)} operational support tools.")
     lines.append("")
-    
+
     # Category breakdown
     tiers: dict[str, int] = {}
     for t in operational:
         tier = t["tier"]
         tiers[tier] = tiers.get(tier, 0) + 1
-    
+
     lines.append("### Operational Categories")
     for tier, count in sorted(tiers.items()):
         lines.append(f"- {tier}: {count} tools")
@@ -104,7 +112,7 @@ def generate_llms_txt() -> str:
         rev = chr(10003) if not t["irreversible"] else chr(10007) + " HOLD"
         modes = ", ".join(t["modes"][:6])
         if len(t["modes"]) > 6:
-            modes += f" +{len(t['modes'])-6} more"
+            modes += f" +{len(t['modes']) - 6} more"
         lines.append(f"| `{t['name']}` | {t['stage']} | {t['access']} | {rev} | {modes} |")
     lines.append("")
 
@@ -116,7 +124,7 @@ def generate_llms_txt() -> str:
         irr = chr(10007) + " HOLD" if t["irreversible"] else "no"
         modes = ", ".join(t["modes"][:4])
         if len(t["modes"]) > 4:
-            modes += f" +{len(t['modes'])-4} more"
+            modes += f" +{len(t['modes']) - 4} more"
         lines.append(f"| `{t['name']}` | {t['tier']} | {t['risk_tier']} | {irr} | {modes} |")
     lines.append("")
 
@@ -129,12 +137,22 @@ def generate_llms_txt() -> str:
     lines.append("")
     lines.append("| Organ | MCP Endpoint | Role | Tools |")
     lines.append("|------|-------------|------|-------|")
-    lines.append(f"| **arifOS** (8088) | `arifos.arif-fazil.com/mcp` | Governance kernel | {len(_canonical_tool_list())} canonical + {len(_operational_tool_list())} operational |")
-    lines.append("| **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |")
-    lines.append("| **GEOX** (8081) | `geox.arif-fazil.com/mcp` | Earth intelligence | 33 canonical tools |")
-    lines.append("| **WEALTH** (18082) | `wealth.arif-fazil.com/mcp` | Capital intelligence | 20+ tools |")
+    lines.append(
+        f"| **arifOS** (8088) | `arifos.arif-fazil.com/mcp` | Governance kernel | {len(_canonical_tool_list())} canonical + {len(_operational_tool_list())} operational |"
+    )
+    lines.append(
+        "| **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |"
+    )
+    lines.append(
+        "| **GEOX** (8081) | `geox.arif-fazil.com/mcp` | Earth intelligence | 33 canonical tools |"
+    )
+    lines.append(
+        "| **WEALTH** (18082) | `wealth.arif-fazil.com/mcp` | Capital intelligence | 20+ tools |"
+    )
     lines.append("| **WELL** (18083) | `well.arif-fazil.com/mcp` | Human readiness | 18+ tools |")
-    lines.append("| **AAA** (3001) | `aaa.arif-fazil.com` | Control plane cockpit | A2A server, React SPA |")
+    lines.append(
+        "| **AAA** (3001) | `aaa.arif-fazil.com` | Control plane cockpit | A2A server, React SPA |"
+    )
     lines.append("")
     lines.append("## Agent Rules (mandatory)")
     lines.append("1. Never skip the 000-999 pipeline")
@@ -144,8 +162,12 @@ def generate_llms_txt() -> str:
     lines.append("5. Reversible-first: commit before big changes (F1 AMANAH)")
     lines.append("")
     lines.append("### Tool Location Rules")
-    lines.append("- arifOS (8088) = governance only (judge, seal, reason, critique, hermes, lease, attest)")
-    lines.append("- A-FORGE (7071) = engineering only (forge_*, filesystem, git, docker, postgres, shell, job)")
+    lines.append(
+        "- arifOS (8088) = governance only (judge, seal, reason, critique, hermes, lease, attest)"
+    )
+    lines.append(
+        "- A-FORGE (7071) = engineering only (forge_*, filesystem, git, docker, postgres, shell, job)"
+    )
     lines.append("- forge_* on arifOS = DEPRECATED PROXY (calls forwarded to A-FORGE)")
     lines.append("- GEOX/WEALTH/WELL = domain evidence organs")
     lines.append("")
@@ -167,7 +189,9 @@ def main() -> None:
     with open(path, "w") as f:
         f.write(txt)
     print(f"[MANIFEST] Wrote {path} ({len(txt)} chars)")
-    print(f"[MANIFEST] Canonical: {len(_canonical_tool_list())} | Operational: {len(_operational_tool_list())}")
+    print(
+        f"[MANIFEST] Canonical: {len(_canonical_tool_list())} | Operational: {len(_operational_tool_list())}"
+    )
     print(f"[MANIFEST] Total MCP tools: {len(_all_mcp_tools())}")
     print(f"[MANIFEST] Hash: {manifest_hash()}")
 

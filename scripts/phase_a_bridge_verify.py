@@ -85,7 +85,9 @@ def step1_initialize() -> str | None:
     status, resp, sid = _post_json(ARIFOS_URL, body)
     print(f"  status: {status}")
     print(f"  session_id: {sid}")
-    print(f"  result keys: {list(resp.get('result', {}).keys()) if 'result' in resp else 'ERROR: ' + str(resp)[:200]}")
+    print(
+        f"  result keys: {list(resp.get('result', {}).keys()) if 'result' in resp else 'ERROR: ' + str(resp)[:200]}"
+    )
     return sid
 
 
@@ -99,7 +101,11 @@ def step2_tools_list(session_id: str) -> int:
     print(f"  tools count: {len(tools)}")
     if tools:
         # Find vault_seal or related
-        seal_tools = [t for t in tools if "seal" in t.get("name", "").lower() or "vault" in t.get("name", "").lower()]
+        seal_tools = [
+            t
+            for t in tools
+            if "seal" in t.get("name", "").lower() or "vault" in t.get("name", "").lower()
+        ]
         print(f"  seal/vault tools: {[t['name'] for t in seal_tools]}")
     return len(tools)
 
@@ -161,7 +167,9 @@ def main() -> int:
     # Step 4 first — reproduce the bug so we know we're comparing apples to apples
     old_status, _ = step4_old_bug_repro()
     if old_status != 404:
-        print(f"\n[!] /vault/seal no longer 404 (got {old_status}) — bug may already be fixed elsewhere")
+        print(
+            f"\n[!] /vault/seal no longer 404 (got {old_status}) — bug may already be fixed elsewhere"
+        )
     else:
         print("\n[✓] Confirmed: /vault/seal still 404s — bug is real")
 
@@ -181,7 +189,9 @@ def main() -> int:
     seal_resp = step3_dry_seal(sid)
     if "error" in seal_resp:
         # L13 halt or similar — error is expected if kernel guards against this intent
-        print(f"\n[!] tools/call returned error (may be F1 AMANAH gate): {seal_resp.get('error', {})}")
+        print(
+            f"\n[!] tools/call returned error (may be F1 AMANAH gate): {seal_resp.get('error', {})}"
+        )
     elif "result" in seal_resp:
         print("\n[✓] tools/call returned result — bridge works end-to-end")
 

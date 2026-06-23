@@ -8,6 +8,7 @@ Constitutional risk: HIGH. Heart is the ethical gate before Judge.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 
@@ -125,9 +126,7 @@ class TestFractalStabilizationGain:
         }
         g_f = _fractal_stabilization_gain(prev, curr)
         # Empathy drop + no new risks + more uncertainty → likely negative
-        assert g_f <= 0, (
-            f"Worsening empathy without new risks should give G_f ≤ 0, got {g_f}"
-        )
+        assert g_f <= 0, f"Worsening empathy without new risks should give G_f ≤ 0, got {g_f}"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -288,7 +287,9 @@ class TestHumilityPenalty:
             "human_decision_required": True,
         }
         penalty = _compute_critique_humility_penalty(result, recursion_depth=0)
-        assert penalty["U_H"] < 0.5, f"Calibrated critique should have low U_H, got {penalty['U_H']}"
+        assert penalty["U_H"] < 0.5, (
+            f"Calibrated critique should have low U_H, got {penalty['U_H']}"
+        )
 
     def test_high_penalty_for_overconfident_critique(self):
         """Overconfident critique → high U_H."""
@@ -389,8 +390,10 @@ class TestHeartParadoxInjection:
         """Explicit anchor_id → correct quote injected."""
         output = {}
         output = _inject_heart_paradox(
-            output, trigger_context="testing injection",
-            anchor_id="H_CxC", recursion_depth=1,
+            output,
+            trigger_context="testing injection",
+            anchor_id="H_CxC",
+            recursion_depth=1,
         )
         assert "paradox_anchor" in output
         anchor = output["paradox_anchor"]
@@ -405,7 +408,8 @@ class TestHeartParadoxInjection:
         """No explicit ID → recursion depth → correct stage anchor."""
         output = {}
         output = _inject_heart_paradox(
-            output, trigger_context="fractal test",
+            output,
+            trigger_context="fractal test",
             recursion_depth=0,  # Primary critique → H_TxC
         )
         assert "paradox_anchor" in output
@@ -426,8 +430,10 @@ class TestHeartParadoxInjection:
             check_desensitization("H_TxC", state_changed=False)
         output = {}
         output = _inject_heart_paradox(
-            output, trigger_context="desensitization test",
-            anchor_id="H_TxC", state_changed=False,
+            output,
+            trigger_context="desensitization test",
+            anchor_id="H_TxC",
+            state_changed=False,
         )
         # After 8 fires without change, should have _anchor_health
         assert "_anchor_health" in output, (

@@ -19,6 +19,7 @@ import pytest
 
 # ── 1. Drift checker ──────────────────────────────────────────────────────────
 
+
 def test_drift_check_passes_in_normal_mode():
     """mcp_drift_check must report SEAL when canonical13 is the target."""
     from arifosmcp.tools.drift_check import mcp_drift_check
@@ -28,7 +29,9 @@ def test_drift_check_passes_in_normal_mode():
     assert report["verdict"] == "SEAL"
     assert report["missing"] == []
     assert report["extra"] == []
-    assert report["registered_count"] == 16  # 16 canonical kernel handlers (canary registered separately)
+    assert (
+        report["registered_count"] == 16
+    )  # 16 canonical kernel handlers (canary registered separately)
 
 
 def test_drift_check_counts_diagnostic_tools_in_dev_mode(monkeypatch):
@@ -37,10 +40,13 @@ def test_drift_check_counts_diagnostic_tools_in_dev_mode(monkeypatch):
 
     monkeypatch.setenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "true")
     report = mcp_drift_check(mode="report", target_manifest="all")
-    assert report["registered_count"] == 37  # 16 canonical + 21 diagnostic (canary registered separately)
+    assert (
+        report["registered_count"] == 37
+    )  # 16 canonical + 21 diagnostic (canary registered separately)
 
 
 # ── 2. Absorbed mode dispatch ─────────────────────────────────────────────────
+
 
 def test_kernel_route_surface_drift_mode():
     """arif_kernel_route mode='surface_drift' must return a drift report."""
@@ -90,9 +96,7 @@ async def test_reply_compose_repo_answer_mode():
     """arif_reply_compose mode='repo_answer' must return evidence-grounded answer."""
     from arifosmcp.runtime.tools import _arif_reply_compose_tool
 
-    result = await _arif_reply_compose_tool(
-        mode="repo_answer", message="what is arifos", style="."
-    )
+    result = await _arif_reply_compose_tool(mode="repo_answer", message="what is arifos", style=".")
     assert isinstance(result, dict)
     assert "answer" in result or "confidence" in result
 
@@ -102,7 +106,9 @@ async def test_heart_critique_instruction_scan_mode():
     """arif_heart_critique mode='instruction_scan' must scan for local directives."""
     from arifosmcp.runtime.tools import _arif_heart_critique
 
-    result = await _arif_heart_critique(mode="instruction_scan", target=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS")
+    result = await _arif_heart_critique(
+        mode="instruction_scan", target=os.environ.get("ARIFOS_HOME", "/root") + "/arifOS"
+    )
     assert result.get("status") == "CLEAR"
     assert "findings" in result
 
@@ -122,8 +128,6 @@ async def test_judge_deliberate_witness_consensus_mode():
     """arif_judge_deliberate mode='witness_consensus' must aggregate organ signals."""
     from arifosmcp.runtime.tools import _arif_judge_deliberate_tool
 
-    result = await _arif_judge_deliberate_tool(
-        mode="witness_consensus", candidate="test action"
-    )
+    result = await _arif_judge_deliberate_tool(mode="witness_consensus", candidate="test action")
     assert isinstance(result, dict)
     assert "status" in result

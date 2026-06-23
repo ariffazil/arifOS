@@ -150,12 +150,14 @@ class TestGuardAttentionBudget:
 
     def test_normal_session_passes(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         result = InstitutionalEvolutionGuard.check_human_attention_budget(3600.0, 50)
         assert result["passed"] is True
         assert result["verdict"] == "PASS"
 
     def test_fatigue_warning_sabar(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         result = InstitutionalEvolutionGuard.check_human_attention_budget(13000.0, 180)
         assert result["passed"] is True
         assert result["verdict"] == "SABAR"
@@ -165,6 +167,7 @@ class TestGuardAttentionBudget:
             InstitutionalEvolutionGuard,
             AttentionBudgetExceededError,
         )
+
         with pytest.raises(AttentionBudgetExceededError):
             InstitutionalEvolutionGuard.check_human_attention_budget(20000.0, 10)
 
@@ -173,6 +176,7 @@ class TestGuardAttentionBudget:
             InstitutionalEvolutionGuard,
             AttentionBudgetExceededError,
         )
+
         with pytest.raises(AttentionBudgetExceededError):
             InstitutionalEvolutionGuard.check_human_attention_budget(1000.0, 300)
 
@@ -181,6 +185,7 @@ class TestGuardAttentionBudget:
             InstitutionalEvolutionGuard,
             InstitutionalEvolutionError,
         )
+
         with pytest.raises(InstitutionalEvolutionError) as exc_info:
             InstitutionalEvolutionGuard.check_human_attention_budget(-1.0, -5)
         assert exc_info.value.verdict == "VOID"
@@ -191,6 +196,7 @@ class TestGuardPopulationAbsorption:
 
     def test_adequate_consent_passes(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         result = InstitutionalEvolutionGuard.check_population_absorption(
             ["community_a", "community_b"], 0.8
         )
@@ -202,13 +208,13 @@ class TestGuardPopulationAbsorption:
             InstitutionalEvolutionGuard,
             PopulationAbsorptionError,
         )
+
         with pytest.raises(PopulationAbsorptionError):
-            InstitutionalEvolutionGuard.check_population_absorption(
-                ["community_a"], 0.4
-            )
+            InstitutionalEvolutionGuard.check_population_absorption(["community_a"], 0.4)
 
     def test_empty_communities_allowed(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         result = InstitutionalEvolutionGuard.check_population_absorption([], 0.5)
         assert result["passed"] is True
 
@@ -217,6 +223,7 @@ class TestGuardPopulationAbsorption:
             InstitutionalEvolutionGuard,
             InstitutionalEvolutionError,
         )
+
         with pytest.raises(InstitutionalEvolutionError) as exc_info:
             InstitutionalEvolutionGuard.check_population_absorption(["c"], -0.1)
         assert exc_info.value.verdict == "VOID"
@@ -227,6 +234,7 @@ class TestGuardSuccession:
 
     def test_valid_succession_passes(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         changes = [
             {
                 "role": "vault_admin",
@@ -244,6 +252,7 @@ class TestGuardSuccession:
             InstitutionalEvolutionGuard,
             SuccessionContinuityError,
         )
+
         with pytest.raises(SuccessionContinuityError):
             InstitutionalEvolutionGuard.check_institutional_succession(
                 [{"role": "vault_admin", "action": "revoked"}], []
@@ -254,6 +263,7 @@ class TestGuardSuccession:
             InstitutionalEvolutionGuard,
             SuccessionContinuityError,
         )
+
         with pytest.raises(SuccessionContinuityError):
             InstitutionalEvolutionGuard.check_institutional_succession(
                 [], ["unresolved audit obligation"]
@@ -265,6 +275,7 @@ class TestGuardAIAdaptation:
 
     def test_reviewed_changes_pass(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         result = InstitutionalEvolutionGuard.check_ai_adaptation_rate(100, 95)
         assert result["passed"] is True
         assert result["verdict"] == "PASS"
@@ -274,6 +285,7 @@ class TestGuardAIAdaptation:
             InstitutionalEvolutionGuard,
             AIAdaptationRateExceededError,
         )
+
         with pytest.raises(AIAdaptationRateExceededError):
             InstitutionalEvolutionGuard.check_ai_adaptation_rate(100, 50)
 
@@ -282,6 +294,7 @@ class TestGuardAIAdaptation:
             InstitutionalEvolutionGuard,
             InstitutionalEvolutionError,
         )
+
         with pytest.raises(InstitutionalEvolutionError) as exc_info:
             InstitutionalEvolutionGuard.check_ai_adaptation_rate(-1, 0)
         assert exc_info.value.verdict == "VOID"
@@ -292,6 +305,7 @@ class TestGuardEvaluateAll:
 
     def test_all_pass_returns_pass(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         payload = {
             "session_duration_s": 3600,
             "operator_interventions": 50,
@@ -311,6 +325,7 @@ class TestGuardEvaluateAll:
 
     def test_attention_breach_yields_hold(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         payload = {
             "session_duration_s": 20000,
             "operator_interventions": 50,
@@ -321,6 +336,7 @@ class TestGuardEvaluateAll:
 
     def test_absorption_breach_yields_sabar(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         payload = {
             "affected_communities": ["comm_a", "comm_b"],
             "consent_coverage": 0.3,
@@ -331,6 +347,7 @@ class TestGuardEvaluateAll:
 
     def test_succession_breach_yields_hold(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         payload = {
             "role_changes": [{"role": "admin", "action": "revoked"}],
         }
@@ -340,6 +357,7 @@ class TestGuardEvaluateAll:
 
     def test_void_input_yields_void(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         payload = {
             "session_duration_s": -1,
             "operator_interventions": -5,
@@ -350,6 +368,7 @@ class TestGuardEvaluateAll:
 
     def test_doctrine_string_present(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         payload = {}
         result = InstitutionalEvolutionGuard.evaluate_evolution_invariants(payload)
         assert "final_doctrine_canonical" in result
@@ -358,6 +377,7 @@ class TestGuardEvaluateAll:
 
     def test_empty_payload_passes(self):
         from core.physics.institutional_evolution import InstitutionalEvolutionGuard
+
         result = InstitutionalEvolutionGuard.evaluate_evolution_invariants({})
         assert result["passed"] is True
         assert result["verdict"] == "PASS"

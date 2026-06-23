@@ -21,6 +21,7 @@ class ThinkRequest(BaseModel):
         prior_belief:  optional prior BeliefState as dict (for chaining)
         horizon:       rollout horizon in steps (default 3)
     """
+
     intent: str = Field(..., description="What the user/agent wants to do")
     context: dict[str, Any] = Field(
         default_factory=dict,
@@ -48,6 +49,7 @@ class ScoredPlan(BaseModel):
         hold_888:   True if this plan needs human ack (F1/F13)
         reason:     human-readable reason for the hold
     """
+
     plan_id: str
     score: float
     actions: list[str]
@@ -71,6 +73,7 @@ class ThinkResponse(BaseModel):
         posterior_uncertainty:  aggregate uncertainty after belief update
         provenance:             OBS/DER/INT/SPEC per observation key (F2)
     """
+
     best_plan_id: str
     best_actions: list[str]
     score: float

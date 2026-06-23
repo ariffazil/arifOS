@@ -10,7 +10,6 @@ This proves ART's claim #1+#2: lifecycle + memory.
 
 from __future__ import annotations
 
-import pytest
 
 from ..conftest import compare, run_scenario
 

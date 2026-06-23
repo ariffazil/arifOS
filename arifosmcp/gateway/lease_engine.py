@@ -150,7 +150,9 @@ class LeaseEngine:
                 lease_id=existing.lease_id,
                 allowed=not held,
                 held=held,
-                reason="Existing lease valid" if not held else "HIGH_IRREVERSIBLE — requires 888_HOLD",
+                reason="Existing lease valid"
+                if not held
+                else "HIGH_IRREVERSIBLE — requires 888_HOLD",
                 risk_class=risk,
                 reversibility=existing.reversibility,
             )
@@ -219,7 +221,8 @@ class LeaseEngine:
         """Remove expired and exhausted leases. Returns count removed."""
         before = len(self._leases)
         self._leases = {
-            k: v for k, v in self._leases.items()
+            k: v
+            for k, v in self._leases.items()
             if v.valid and v.lease_id not in self._pending_approvals
         }
         return before - len(self._leases)

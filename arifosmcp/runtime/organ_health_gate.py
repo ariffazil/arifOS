@@ -70,7 +70,9 @@ _HEALTH_CACHE: dict[str, HealthCacheEntry] = {}
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _probe_http(url: str, timeout: float = 2.0) -> tuple[OrganHealth, dict[str, Any] | None, str | None]:
+def _probe_http(
+    url: str, timeout: float = 2.0
+) -> tuple[OrganHealth, dict[str, Any] | None, str | None]:
     """Synchronous HTTP GET to an organ's /health endpoint.
 
     Returns (health, raw_response_dict, error_message).

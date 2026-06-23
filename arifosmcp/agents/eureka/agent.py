@@ -124,9 +124,7 @@ class EngineeringEurekaAgent:
             floor_compliance=["F1_AMANAH", "F2_TRUTH", "F11_AUDIT"],
         )
 
-    def scan_for_signals(
-        self, text: str, context: dict | None = None
-    ) -> EurekaResult:
+    def scan_for_signals(self, text: str, context: dict | None = None) -> EurekaResult:
         """Scan text for eureka signals."""
         self._ensure_bootstrapped()
         signals = self.signals.detect(text, context=context)
@@ -141,9 +139,7 @@ class EngineeringEurekaAgent:
             floor_compliance=["F2_TRUTH", "F11_AUDIT"],
         )
 
-    def validate_claim(
-        self, claim: EngineeringClaim
-    ) -> EurekaResult:
+    def validate_claim(self, claim: EngineeringClaim) -> EurekaResult:
         """Validate an engineering claim against constitutional floors."""
         self._ensure_bootstrapped()
         verdict, issues = self.validator.validate(claim)

@@ -6,6 +6,7 @@ Provides O(1) lookup by ID, matrix cell, and organ.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,6 +20,7 @@ from typing import Any
 @dataclass(frozen=False)
 class AnchorQuote:
     """A verified quote that stabilizes the paradox anchor."""
+
     text: str
     author: str
     work: str
@@ -31,6 +33,7 @@ class AnchorQuote:
 @dataclass(frozen=False)
 class AnchorBinding:
     """What happens when the paradox anchor fires."""
+
     event: str
     trigger: str
     effect: str
@@ -44,6 +47,7 @@ class ParadoxAnchor:
     Each anchor connects a verified philosophical quote to a specific
     firing policy (binding). The quote is canon; the binding evolves.
     """
+
     anchor_id: str
     organ: str
     matrix_cell: str
@@ -159,13 +163,9 @@ class AnchorRegistry:
 
         for anchor in anchors:
             if anchor.anchor_id in self._by_id:
-                raise ValueError(
-                    f"Duplicate anchor ID '{anchor.anchor_id}' in organ '{organ}'"
-                )
+                raise ValueError(f"Duplicate anchor ID '{anchor.anchor_id}' in organ '{organ}'")
             if anchor.matrix_cell in self._by_cell:
-                raise ValueError(
-                    f"Duplicate matrix cell '{anchor.matrix_cell}' in organ '{organ}'"
-                )
+                raise ValueError(f"Duplicate matrix cell '{anchor.matrix_cell}' in organ '{organ}'")
             self._by_id[anchor.anchor_id] = anchor
             self._by_cell[anchor.matrix_cell] = anchor
             legacy = anchor.to_dict()

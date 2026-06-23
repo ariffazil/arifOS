@@ -14,12 +14,12 @@ Eight passes (per sovereign directive 2026-06-22):
 
 DITEMPA BUKAN DIBERI — Compiled, not hand-waved.
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -40,18 +40,22 @@ GENERATED_DIR = CONTRACTS_DIR / "generated"
 # Pass 1: load_yaml
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def load_yaml(path: Path) -> dict:
     print(f"  [1/8] load_yaml: {path}")
     if not path.exists():
         sys.exit(f"SSOT not found: {path}")
     doc = yaml.safe_load(path.read_text())
-    print(f"        contract: {doc['meta_schema']['contract_family']} v{doc['meta_schema']['version']}")
+    print(
+        f"        contract: {doc['meta_schema']['contract_family']} v{doc['meta_schema']['version']}"
+    )
     return doc
 
 
 # ════════════════════════════════════════════════════════════════════════════════
 # Pass 2: validate_meta_schema
 # ════════════════════════════════════════════════════════════════════════════════
+
 
 def _all_tools(doc: dict) -> list[dict]:
     out = []
@@ -61,7 +65,7 @@ def _all_tools(doc: dict) -> list[dict]:
 
 
 def validate_meta_schema(doc: dict) -> None:
-    print(f"  [2/8] validate_meta_schema")
+    print("  [2/8] validate_meta_schema")
     errors: list[str] = []
     tax = doc.get("taxonomies", {})
     axes = {a["id"] for a in doc.get("axes", [])}
@@ -91,7 +95,9 @@ def validate_meta_schema(doc: dict) -> None:
         if t.get("blast_radius") not in tax.get("blast_radius", []):
             errors.append(f"{cn}: blast_radius '{t.get('blast_radius')}' not in taxonomy")
         if t.get("authority_required") not in tax.get("authority_required", []):
-            errors.append(f"{cn}: authority_required '{t.get('authority_required')}' not in taxonomy")
+            errors.append(
+                f"{cn}: authority_required '{t.get('authority_required')}' not in taxonomy"
+            )
         if t.get("channel") not in tax.get("channel", []):
             errors.append(f"{cn}: channel '{t.get('channel')}' not in taxonomy")
         if t.get("contract_class") not in contract_classes:
@@ -109,8 +115,14 @@ def validate_meta_schema(doc: dict) -> None:
         for w in t.get("witness_requirements", []):
             if w not in witness_legs:
                 errors.append(f"{cn}: witness_requirement '{w}' not in witness_legs")
-        if t.get("channel") == "beta" and t.get("authority_required") != "sovereign" and not t.get("hold_conditions"):
-            errors.append(f"{cn}: beta channel needs authority_required=sovereign OR hold_conditions")
+        if (
+            t.get("channel") == "beta"
+            and t.get("authority_required") != "sovereign"
+            and not t.get("hold_conditions")
+        ):
+            errors.append(
+                f"{cn}: beta channel needs authority_required=sovereign OR hold_conditions"
+            )
         if t.get("channel") == "sandbox" and t.get("reversibility") != "reversible":
             errors.append(f"{cn}: sandbox channel must be reversible")
         if t.get("reversibility") == "irreversible" and t.get("authority_required") != "sovereign":
@@ -119,7 +131,11 @@ def validate_meta_schema(doc: dict) -> None:
             errors.append(f"{cn}: civilizational blast needs authority_required=sovereign")
         # SEAL-class stricter rules
         if t.get("contract_class") == "seal":
-            for req in ("requires_verdict_token", "requires_epoch_id", "requires_receipt_parent_ids"):
+            for req in (
+                "requires_verdict_token",
+                "requires_epoch_id",
+                "requires_receipt_parent_ids",
+            ):
                 if not t.get(req):
                     errors.append(f"{cn}: SEAL class requires {req}=true")
             if t.get("mutation_class") != "seal":
@@ -130,7 +146,9 @@ def validate_meta_schema(doc: dict) -> None:
     # Denial codes
     for d in doc.get("denial_codes", []):
         if d.get("retryability") not in retryabilities:
-            errors.append(f"denial {d.get('code')}: retryability '{d.get('retryability')}' not in taxonomy")
+            errors.append(
+                f"denial {d.get('code')}: retryability '{d.get('retryability')}' not in taxonomy"
+            )
         if d.get("floor") is None:
             errors.append(f"denial {d.get('code')}: missing floor")
         if d.get("severity") is None:
@@ -141,7 +159,9 @@ def validate_meta_schema(doc: dict) -> None:
     # Legacy aliases
     for la in doc.get("legacy_aliases", []):
         if la.get("canonical") not in seen_names:
-            errors.append(f"legacy alias {la.get('alias')}: canonical '{la.get('canonical')}' not in tools")
+            errors.append(
+                f"legacy alias {la.get('alias')}: canonical '{la.get('canonical')}' not in tools"
+            )
 
     if errors:
         for e in errors:
@@ -154,8 +174,9 @@ def validate_meta_schema(doc: dict) -> None:
 # Pass 3: normalize_names_and_aliases
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def normalize_names_and_aliases(doc: dict) -> dict:
-    print(f"  [3/8] normalize_names_and_aliases")
+    print("  [3/8] normalize_names_and_aliases")
     alias_map: dict[str, str] = {}
     deprecated: dict[str, str] = {}  # alias → sunset date
     for la in doc.get("legacy_aliases", []):
@@ -169,22 +190,23 @@ def normalize_names_and_aliases(doc: dict) -> dict:
 # Pass 4: expand_taxonomies
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def expand_taxonomies(doc: dict) -> dict:
-    print(f"  [4/8] expand_taxonomies")
+    print("  [4/8] expand_taxonomies")
     tax = doc.get("taxonomies", {})
     out = {
-        "reversibility":     set(tax.get("reversibility", [])),
-        "blast_radius":      set(tax.get("blast_radius", [])),
+        "reversibility": set(tax.get("reversibility", [])),
+        "blast_radius": set(tax.get("blast_radius", [])),
         "authority_required": set(tax.get("authority_required", [])),
-        "channel":           set(tax.get("channel", [])),
-        "verdicts":          set(tax.get("verdicts", [])),
-        "witness_legs":      set(tax.get("witness_legs", [])),
-        "pipeline_stages":   set(tax.get("pipeline_stages", [])),
-        "contract_class":    set(tax.get("contract_class", [])),
-        "mutation_class":    set(tax.get("mutation_class", [])),
-        "retryability":      set(tax.get("retryability", [])),
+        "channel": set(tax.get("channel", [])),
+        "verdicts": set(tax.get("verdicts", [])),
+        "witness_legs": set(tax.get("witness_legs", [])),
+        "pipeline_stages": set(tax.get("pipeline_stages", [])),
+        "contract_class": set(tax.get("contract_class", [])),
+        "mutation_class": set(tax.get("mutation_class", [])),
+        "retryability": set(tax.get("retryability", [])),
     }
-    print(f"        ✓ 10 taxonomies expanded to sets")
+    print("        ✓ 10 taxonomies expanded to sets")
     return out
 
 
@@ -192,22 +214,38 @@ def expand_taxonomies(doc: dict) -> dict:
 # Pass 5: generate_capability_graph
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def _tool_fingerprint(tool: dict) -> str:
     canonical = json.dumps(tool, sort_keys=True, separators=(",", ":"))
     return f"sha256:{hashlib.sha256(canonical.encode()).hexdigest()[:16]}"
 
 
-REV_MAP = {"reversible": "R1_EPHEMERAL_READ", "guarded": "R2_REVERSIBLE_WRITE", "irreversible": "R4_IRREVERSIBLE"}
+REV_MAP = {
+    "reversible": "R1_EPHEMERAL_READ",
+    "guarded": "R2_REVERSIBLE_WRITE",
+    "irreversible": "R4_IRREVERSIBLE",
+}
 BLAST_MAP = {"low": "LOCAL", "medium": "ORGAN", "high": "FEDERATION", "civilizational": "EXTERNAL"}
 AUTH_MAP = {"public": "LOW", "operator": "HIGH", "sovereign": "SOVEREIGN"}
 
 
 def generate_capability_graph(doc: dict, norm: dict, tax: dict) -> dict:
-    print(f"  [5/8] generate_capability_graph")
+    print("  [5/8] generate_capability_graph")
     nodes: list[dict] = []
     for t in _all_tools(doc):
-        section = next((s for s in ("canonical_tools", "diagnostic", "federated_organs", "sanctioned_non_arif")
-                        if t in doc.get(s, [])), "unknown")
+        section = next(
+            (
+                s
+                for s in (
+                    "canonical_tools",
+                    "diagnostic",
+                    "federated_organs",
+                    "sanctioned_non_arif",
+                )
+                if t in doc.get(s, [])
+            ),
+            "unknown",
+        )
         rev = t.get("reversibility", "reversible")
         blast = t.get("blast_radius", "low")
         auth = t.get("authority_required", "public")
@@ -223,7 +261,9 @@ def generate_capability_graph(doc: dict, norm: dict, tax: dict) -> dict:
             "blast_radius": BLAST_MAP.get(blast, "LOCAL"),
             "resource_class": "MEMORY",
             "organ_id": "arifOS" if section != "federated_organs" else "federation",
-            "trust_state": "TRUSTED_READ" if t.get("mutation_class") in ("read",) else "TRUSTED_MUTATE",
+            "trust_state": "TRUSTED_READ"
+            if t.get("mutation_class") in ("read",)
+            else "TRUSTED_MUTATE",
             "requires_external_witness": bool(t.get("witness_requirements")),
             "channel": t.get("channel", "stable"),
             "contract_class": t.get("contract_class", "ordinary"),
@@ -245,7 +285,11 @@ def generate_capability_graph(doc: dict, norm: dict, tax: dict) -> dict:
             "contract_version": t.get("contract_version", "1.0.0"),
             "fingerprint": _tool_fingerprint(t),
             "section": section,
-            "legacy_aliases": [la["alias"] for la in doc.get("legacy_aliases", []) if la["canonical"] == t["canonical_name"]],
+            "legacy_aliases": [
+                la["alias"]
+                for la in doc.get("legacy_aliases", [])
+                if la["canonical"] == t["canonical_name"]
+            ],
         }
         nodes.append(node)
     return {
@@ -268,8 +312,9 @@ def generate_capability_graph(doc: dict, norm: dict, tax: dict) -> dict:
 # Pass 6: generate_audit_schemas
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def generate_audit_schemas(doc: dict) -> dict:
-    print(f"  [6/8] generate_audit_schemas")
+    print("  [6/8] generate_audit_schemas")
     base = {
         "type": "object",
         "required": ["event", "ts", "actor_id", "session_id", "epoch_id", "plan_id", "task_id"],
@@ -290,7 +335,10 @@ def generate_audit_schemas(doc: dict) -> dict:
     schemas: dict[str, Any] = {"base": base, "events": {}}
     for ev in doc["audit_events"]:
         name = ev["event"]
-        schemas["events"][name] = {**base, "properties": {**base["properties"], "event": {"const": name}}}
+        schemas["events"][name] = {
+            **base,
+            "properties": {**base["properties"], "event": {"const": name}},
+        }
     print(f"        ✓ {len(schemas['events'])} event schemas generated")
     return schemas
 
@@ -299,8 +347,9 @@ def generate_audit_schemas(doc: dict) -> dict:
 # Pass 7: generate_conformance_fixtures (5 classes per sovereign)
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def generate_conformance_fixtures(doc: dict) -> dict:
-    print(f"  [7/8] generate_conformance_fixtures")
+    print("  [7/8] generate_conformance_fixtures")
     happy: list[dict] = []
     schema_pass_constitution_fail: list[dict] = []
     schema_pass_channel_fail: list[dict] = []
@@ -313,73 +362,92 @@ def generate_conformance_fixtures(doc: dict) -> dict:
         required = t.get("input_schema", {}).get("required", [])
 
         def _example_input():
-            return {k: ("example" if props.get(k, {}).get("type") == "string"
-                          else 1 if props.get(k, {}).get("type") == "integer"
-                          else {}) for k in required}
+            return {
+                k: (
+                    "example"
+                    if props.get(k, {}).get("type") == "string"
+                    else 1
+                    if props.get(k, {}).get("type") == "integer"
+                    else {}
+                )
+                for k in required
+            }
 
         # 1. Happy path
-        happy.append({
-            "tool": cn,
-            "fixture_class": "happy",
-            "input": _example_input(),
-            "expected_verdict": "SEAL",
-            "actor_id": "arifbfazil",
-        })
+        happy.append(
+            {
+                "tool": cn,
+                "fixture_class": "happy",
+                "input": _example_input(),
+                "expected_verdict": "SEAL",
+                "actor_id": "arifbfazil",
+            }
+        )
 
         # 2. Schema-pass, constitution-fail: valid input shape, missing required field
         dc_list = t.get("denial_codes") or ["UNKNOWN_CAPABILITY"]
-        schema_pass_constitution_fail.append({
-            "tool": cn,
-            "fixture_class": "schema_pass_constitution_fail",
-            "input": {},  # missing required fields
-            "expected_verdict": "HOLD",
-            "expected_denial_code": dc_list[0],
-            "actor_id": "arifbfazil",
-        })
+        schema_pass_constitution_fail.append(
+            {
+                "tool": cn,
+                "fixture_class": "schema_pass_constitution_fail",
+                "input": {},  # missing required fields
+                "expected_verdict": "HOLD",
+                "expected_denial_code": dc_list[0],
+                "actor_id": "arifbfazil",
+            }
+        )
 
         # 3. Schema-pass, channel-fail: beta mutation by non-sovereign
         if t.get("contract_class") in ("gateway", "seal") and t.get("channel") == "stable":
-            schema_pass_channel_fail.append({
-                "tool": cn,
-                "fixture_class": "schema_pass_channel_fail",
-                "input": _example_input(),
-                "expected_verdict": "HOLD",
-                "expected_denial_code": "CHANNEL_VIOLATION",
-                "actor_id": "public_actor",  # not sovereign
-                "scenario": "non-sovereign actor on sovereign-only mutation",
-            })
+            schema_pass_channel_fail.append(
+                {
+                    "tool": cn,
+                    "fixture_class": "schema_pass_channel_fail",
+                    "input": _example_input(),
+                    "expected_verdict": "HOLD",
+                    "expected_denial_code": "CHANNEL_VIOLATION",
+                    "actor_id": "public_actor",  # not sovereign
+                    "scenario": "non-sovereign actor on sovereign-only mutation",
+                }
+            )
 
         # 4. Schema-pass, witness-fail: action requires human+ai+earth but none attached
         if set(t.get("witness_requirements", [])) == {"human", "ai", "earth"}:
-            schema_pass_witness_fail.append({
-                "tool": cn,
-                "fixture_class": "schema_pass_witness_fail",
-                "input": _example_input(),
-                "expected_verdict": "HOLD",
-                "expected_denial_code": "WITNESS_DEFICIT",
-                "actor_id": "arifbfazil",
-                "attached_witnesses": ["human"],  # only 1 of 3
-            })
+            schema_pass_witness_fail.append(
+                {
+                    "tool": cn,
+                    "fixture_class": "schema_pass_witness_fail",
+                    "input": _example_input(),
+                    "expected_verdict": "HOLD",
+                    "expected_denial_code": "WITNESS_DEFICIT",
+                    "actor_id": "arifbfazil",
+                    "attached_witnesses": ["human"],  # only 1 of 3
+                }
+            )
 
     # 5. Legacy-alias pass: old name resolves to canonical with deprecation metadata
     for la in doc.get("legacy_aliases", []):
-        legacy_alias_pass.append({
-            "tool": la["canonical"],
-            "fixture_class": "legacy_alias_pass",
-            "input": {"alias_used": la["alias"]},
-            "expected_resolved_to": la["canonical"],
-            "deprecation_metadata": {
-                "deprecated_after": la.get("deprecated_after"),
-                "shim_layer": la.get("shim_layer", False),
-            },
-            "expected_verdict": "SEAL",
-            "actor_id": "arifbfazil",
-        })
+        legacy_alias_pass.append(
+            {
+                "tool": la["canonical"],
+                "fixture_class": "legacy_alias_pass",
+                "input": {"alias_used": la["alias"]},
+                "expected_resolved_to": la["canonical"],
+                "deprecation_metadata": {
+                    "deprecated_after": la.get("deprecated_after"),
+                    "shim_layer": la.get("shim_layer", False),
+                },
+                "expected_verdict": "SEAL",
+                "actor_id": "arifbfazil",
+            }
+        )
 
-    print(f"        ✓ happy={len(happy)}, schema_pass_constitution_fail={len(schema_pass_constitution_fail)}, "
-          f"schema_pass_channel_fail={len(schema_pass_channel_fail)}, "
-          f"schema_pass_witness_fail={len(schema_pass_witness_fail)}, "
-          f"legacy_alias_pass={len(legacy_alias_pass)}")
+    print(
+        f"        ✓ happy={len(happy)}, schema_pass_constitution_fail={len(schema_pass_constitution_fail)}, "
+        f"schema_pass_channel_fail={len(schema_pass_channel_fail)}, "
+        f"schema_pass_witness_fail={len(schema_pass_witness_fail)}, "
+        f"legacy_alias_pass={len(legacy_alias_pass)}"
+    )
     return {
         "happy": happy,
         "schema_pass_constitution_fail": schema_pass_constitution_fail,
@@ -393,58 +461,63 @@ def generate_conformance_fixtures(doc: dict) -> dict:
 # Pass 8: emit_runtime_validators
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def emit_runtime_validators(doc: dict) -> str:
-    print(f"  [8/8] emit_runtime_validators")
+    print("  [8/8] emit_runtime_validators")
     out: list[str] = [
         '"""',
-        'GENERATED by contracts/compiler.py — DO NOT EDIT BY HAND',
+        "GENERATED by contracts/compiler.py — DO NOT EDIT BY HAND",
         f"Generated: {doc['meta_schema']['generated_at']}",
         f"Contract: {doc['meta_schema']['contract_family']} v{doc['meta_schema']['version']}",
-        '',
-        'Pydantic input/output validators per canonical tool + envelope.',
-        '',
-        'Sealing tools (contract_class=seal) require verdict_token + epoch_id + receipt_parent_ids.',
-        'Gateway tools (contract_class=gateway) require plan_id.',
+        "",
+        "Pydantic input/output validators per canonical tool + envelope.",
+        "",
+        "Sealing tools (contract_class=seal) require verdict_token + epoch_id + receipt_parent_ids.",
+        "Gateway tools (contract_class=gateway) require plan_id.",
         '"""',
-        'from __future__ import annotations',
-        'from typing import Any, Optional, List',
-        'try:',
-        '    from pydantic import BaseModel, Field',
-        'except ImportError:',
-        '    BaseModel = object',
-        '    Field = lambda *a, **k: None',
-        '',
-        '',
-        '# ══ Kernel Envelope ══',
-        'class KernelEnvelope(BaseModel):',
-        '    epoch_id: str',
-        '    plan_id: str',
-        '    task_id: str',
-        '    actor_id: str',
+        "from __future__ import annotations",
+        "from typing import Any, Optional, List",
+        "try:",
+        "    from pydantic import BaseModel, Field",
+        "except ImportError:",
+        "    BaseModel = object",
+        "    Field = lambda *a, **k: None",
+        "",
+        "",
+        "# ══ Kernel Envelope ══",
+        "class KernelEnvelope(BaseModel):",
+        "    epoch_id: str",
+        "    plan_id: str",
+        "    task_id: str",
+        "    actor_id: str",
         '    witness_type: str = "ai"',
-        '    verdict_token: Optional[str] = None',
-        '    receipt_parent_ids: List[str] = []',
-        '',
-        '',
+        "    verdict_token: Optional[str] = None",
+        "    receipt_parent_ids: List[str] = []",
+        "",
+        "",
     ]
     for t in _all_tools(doc):
         cn = t["canonical_name"]
-        out.append(f"# ── {cn} (contract_class={t.get('contract_class', 'ordinary')}, "
-                   f"mutation_class={t.get('mutation_class', 'read')}) ──")
+        out.append(
+            f"# ── {cn} (contract_class={t.get('contract_class', 'ordinary')}, "
+            f"mutation_class={t.get('mutation_class', 'read')}) ──"
+        )
         out.append(f"class {cn}_Input(BaseModel):")
         out.append("    envelope: KernelEnvelope = None  # required for mutations")
         props = t.get("input_schema", {}).get("properties", {})
         required = t.get("input_schema", {}).get("required", [])
         for k, v in props.items():
             tname = v.get("type", "Any") if isinstance(v, dict) else "Any"
-            default = '...' if k in required else 'None'
+            default = "..." if k in required else "None"
             out.append(f"    {k}: {tname} = {default}")
         if t.get("contract_class") == "seal":
             out.append("    verdict_token: str  # REQUIRED for SEAL class")
             out.append("    epoch_id: str       # REQUIRED for SEAL class")
             out.append("    receipt_parent_ids: List[str] = []  # REQUIRED for SEAL class")
         if t.get("contract_class") == "gateway":
-            out.append("    plan_id: str  # REQUIRED for GATEWAY class (envelope.plan_id also acceptable)")
+            out.append(
+                "    plan_id: str  # REQUIRED for GATEWAY class (envelope.plan_id also acceptable)"
+            )
         out.append("")
         out.append(f"class {cn}_Output(BaseModel):")
         out.append("    result: Any = None")
@@ -458,6 +531,7 @@ def emit_runtime_validators(doc: dict) -> str:
 # Pass 9: emit_contract_registry (runtime CONTRACT_REGISTRY + validate_tool_call)
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def emit_contract_registry(doc: dict) -> str:
     """Generate the runtime contract registry + validation function from SSOT.
 
@@ -465,42 +539,42 @@ def emit_contract_registry(doc: dict) -> str:
     version. Same API: CONTRACT_REGISTRY, validate_tool_call(), ToolContract.
     DenialCode enum is imported from contracts.denial_codes (no duplication).
     """
-    print(f"  [9/9] emit_contract_registry")
+    print("  [9/9] emit_contract_registry")
     tools = _all_tools(doc)
     tax = doc.get("taxonomies", {})
 
     out: list[str] = [
         '"""',
-        'contracts/generated/validators_runtime.py — SSOT-Derived Runtime Validators',
-        '═' * 72,
-        '',
-        'GENERATED by contracts/compiler.py — DO NOT EDIT BY HAND',
+        "contracts/generated/validators_runtime.py — SSOT-Derived Runtime Validators",
+        "═" * 72,
+        "",
+        "GENERATED by contracts/compiler.py — DO NOT EDIT BY HAND",
         f"Generated: {doc['meta_schema']['generated_at']}",
         f"Contract: {doc['meta_schema']['contract_family']} v{doc['meta_schema']['version']}",
         f"Tools: {len(tools)}",
-        '',
-        'This file replaces the hand-written contracts/validators.py.',
-        'DenialCode enum is imported from contracts.denial_codes (single source).',
-        '',
-        'DITEMPA BUKAN DIBERI — Validated, not trusted.',
+        "",
+        "This file replaces the hand-written contracts/validators.py.",
+        "DenialCode enum is imported from contracts.denial_codes (single source).",
+        "",
+        "DITEMPA BUKAN DIBERI — Validated, not trusted.",
         '"""',
-        '',
-        'from __future__ import annotations',
-        '',
-        'from dataclasses import dataclass, field',
-        'from enum import StrEnum',
-        'from typing import Any',
-        '',
-        '# DenialCode lives in contracts.denial_codes — no duplication here.',
-        'from contracts.denial_codes import DenialCode',
-        '',
-        '',
-        '# ═══════════════════════════════════════════════════════════════════════════════',
-        '# CONTRACT ENUMS (non-DenialCode — these are tool contract primitives)',
-        '# ═══════════════════════════════════════════════════════════════════════════════',
-        '',
-        '',
-        'class Channel(StrEnum):',
+        "",
+        "from __future__ import annotations",
+        "",
+        "from dataclasses import dataclass, field",
+        "from enum import StrEnum",
+        "from typing import Any",
+        "",
+        "# DenialCode lives in contracts.denial_codes — no duplication here.",
+        "from contracts.denial_codes import DenialCode",
+        "",
+        "",
+        "# ═══════════════════════════════════════════════════════════════════════════════",
+        "# CONTRACT ENUMS (non-DenialCode — these are tool contract primitives)",
+        "# ═══════════════════════════════════════════════════════════════════════════════",
+        "",
+        "",
+        "class Channel(StrEnum):",
     ]
     for ch in tax.get("channel", []):
         out.append(f'    {ch.upper()} = "{ch}"')
@@ -554,12 +628,18 @@ def emit_contract_registry(doc: dict) -> str:
     out.append("")
     out.append("    def requires_verdict_token(self) -> bool:")
     out.append('        """Whether this tool requires a judge verdict token."""')
-    out.append("        return self.contract_class in ('seal', 'verdict') or self.blast_radius == BlastRadius.CIVILIZATIONAL")
+    out.append(
+        "        return self.contract_class in ('seal', 'verdict') or self.blast_radius == BlastRadius.CIVILIZATIONAL"
+    )
     out.append("")
     out.append("    def check_authority(self, actor_authority: Authority) -> bool:")
     out.append('        """Check if actor authority meets tool requirement."""')
-    out.append("        order = {Authority.PUBLIC: 0, Authority.OPERATOR: 1, Authority.SOVEREIGN: 2}")
-    out.append("        return order.get(actor_authority, -1) >= order.get(self.authority_required, 999)")
+    out.append(
+        "        order = {Authority.PUBLIC: 0, Authority.OPERATOR: 1, Authority.SOVEREIGN: 2}"
+    )
+    out.append(
+        "        return order.get(actor_authority, -1) >= order.get(self.authority_required, 999)"
+    )
     out.append("")
     out.append("")
     out.append("")
@@ -599,19 +679,19 @@ def emit_contract_registry(doc: dict) -> str:
         out.append(f'        pipeline_stage="{stage}",')
         out.append(f'        contract_class="{cc}",')
         out.append(f'        mutation_class="{mc}",')
-        out.append(f'        modes={modes!r},')
-        out.append(f'        reversibility=Reversibility.{rev.upper()},')
-        out.append(f'        blast_radius=BlastRadius.{blast.upper()},')
-        out.append(f'        authority_required=Authority.{auth.upper()},')
-        out.append(f'        channel=Channel.{ch.upper()},')
-        out.append(f'        hold_conditions={hc!r},')
-        out.append(f'        denial_codes={dc!r},')
-        out.append(f'        audit_events={ae!r},')
-        out.append(f'        witness_requirements={wr!r},')
+        out.append(f"        modes={modes!r},")
+        out.append(f"        reversibility=Reversibility.{rev.upper()},")
+        out.append(f"        blast_radius=BlastRadius.{blast.upper()},")
+        out.append(f"        authority_required=Authority.{auth.upper()},")
+        out.append(f"        channel=Channel.{ch.upper()},")
+        out.append(f"        hold_conditions={hc!r},")
+        out.append(f"        denial_codes={dc!r},")
+        out.append(f"        audit_events={ae!r},")
+        out.append(f"        witness_requirements={wr!r},")
         out.append(f'        contract_version="{cv}",')
-        out.append(f'        requires_plan={rp!r},')
-        out.append(f'        irreversible={irr!r},')
-        out.append(f'    ),')
+        out.append(f"        requires_plan={rp!r},")
+        out.append(f"        irreversible={irr!r},")
+        out.append("    ),")
 
     out.append("}")
     out.append("")
@@ -629,14 +709,14 @@ def emit_contract_registry(doc: dict) -> str:
     out.append("    valid: bool")
     out.append("    tool_name: str")
     out.append("    denial_code: DenialCode | None = None")
-    out.append("    reason: str = \"\"")
+    out.append('    reason: str = ""')
     out.append("    hold_conditions_met: list[str] = field(default_factory=list)")
     out.append("")
     out.append("")
     out.append("def validate_tool_call(")
     out.append("    tool_name: str,")
     out.append("    mode: str,")
-    out.append("    actor_authority: str = \"public\",")
+    out.append('    actor_authority: str = "public",')
     out.append("    has_plan: bool = False,")
     out.append("    plan_approved: bool = False,")
     out.append("    has_verdict_token: bool = False,")
@@ -670,17 +750,21 @@ def emit_contract_registry(doc: dict) -> str:
     out.append("            valid=False,")
     out.append("            tool_name=tool_name,")
     out.append("            denial_code=DenialCode.ENVELOPE_MISSING,")
-    out.append("            reason=\"Tool call lacks required kernel envelope\",")
+    out.append('            reason="Tool call lacks required kernel envelope",')
     out.append("        )")
     out.append("")
     out.append("    # Check authority")
-    out.append("    auth = Authority(actor_authority) if actor_authority in Authority.__members__.values() else Authority.PUBLIC")
+    out.append(
+        "    auth = Authority(actor_authority) if actor_authority in Authority.__members__.values() else Authority.PUBLIC"
+    )
     out.append("    if not contract.check_authority(auth):")
     out.append("        return ValidationResult(")
     out.append("            valid=False,")
     out.append("            tool_name=tool_name,")
     out.append("            denial_code=DenialCode.AUTHORITY_INSUFFICIENT,")
-    out.append("            reason=f\"Authority '{actor_authority}' insufficient, requires '{contract.authority_required.value}'\",")
+    out.append(
+        "            reason=f\"Authority '{actor_authority}' insufficient, requires '{contract.authority_required.value}'\","
+    )
     out.append("        )")
     out.append("")
     out.append("    # Check plan requirement")
@@ -697,7 +781,7 @@ def emit_contract_registry(doc: dict) -> str:
     out.append("            valid=False,")
     out.append("            tool_name=tool_name,")
     out.append("            denial_code=DenialCode.PLAN_NOT_APPROVED,")
-    out.append("            reason=\"Plan exists but is not in APPROVED state\",")
+    out.append('            reason="Plan exists but is not in APPROVED state",')
     out.append("        )")
     out.append("")
     out.append("    # Check verdict token for high-risk")
@@ -706,7 +790,7 @@ def emit_contract_registry(doc: dict) -> str:
     out.append("            valid=False,")
     out.append("            tool_name=tool_name,")
     out.append("            denial_code=DenialCode.VERDICT_TOKEN_MISSING,")
-    out.append("            reason=\"High-risk tool requires judge verdict token\",")
+    out.append('            reason="High-risk tool requires judge verdict token",')
     out.append("        )")
     out.append("")
     out.append("    return ValidationResult(valid=True, tool_name=tool_name)")
@@ -744,6 +828,7 @@ def emit_contract_registry(doc: dict) -> str:
 # Main: drive 9 passes
 # ════════════════════════════════════════════════════════════════════════════════
 
+
 def compile_all() -> dict:
     print("=" * 70)
     print("arifOS Constitutional Contract Compiler v0.1.0 (9 passes)")
@@ -757,7 +842,7 @@ def compile_all() -> dict:
 
     GENERATED_DIR.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n[Emit]")
+    print("\n[Emit]")
     gpath = GENERATED_DIR / "capability_graph.json"
     graph = generate_capability_graph(doc, norm, tax)
     gpath.write_text(json.dumps(graph, indent=2, sort_keys=False))
@@ -787,18 +872,24 @@ def compile_all() -> dict:
     print("COMPILATION COMPLETE — 9 passes")
     print("=" * 70)
     tools = _all_tools(doc)
-    print(f"  Tools: {len(tools)} (canonical={len(doc.get('canonical_tools', []))}, "
-          f"diagnostic={len(doc.get('diagnostic', []))}, "
-          f"federated={len(doc.get('federated_organs', []))}, "
-          f"sanctioned={len(doc.get('sanctioned_non_arif', []))})")
-    print(f"  Channels: stable={sum(1 for t in tools if t.get('channel')=='stable')}, "
-          f"beta={sum(1 for t in tools if t.get('channel')=='beta')}, "
-          f"sandbox={sum(1 for t in tools if t.get('channel')=='sandbox')}")
-    print(f"  Contract classes: {sum(1 for t in tools if t.get('contract_class')=='seal')} seal, "
-          f"{sum(1 for t in tools if t.get('contract_class')=='gateway')} gateway, "
-          f"{sum(1 for t in tools if t.get('contract_class')=='verdict')} verdict, "
-          f"{sum(1 for t in tools if t.get('contract_class')=='diagnostic')} diagnostic, "
-          f"{sum(1 for t in tools if t.get('contract_class')=='ordinary')} ordinary")
+    print(
+        f"  Tools: {len(tools)} (canonical={len(doc.get('canonical_tools', []))}, "
+        f"diagnostic={len(doc.get('diagnostic', []))}, "
+        f"federated={len(doc.get('federated_organs', []))}, "
+        f"sanctioned={len(doc.get('sanctioned_non_arif', []))})"
+    )
+    print(
+        f"  Channels: stable={sum(1 for t in tools if t.get('channel') == 'stable')}, "
+        f"beta={sum(1 for t in tools if t.get('channel') == 'beta')}, "
+        f"sandbox={sum(1 for t in tools if t.get('channel') == 'sandbox')}"
+    )
+    print(
+        f"  Contract classes: {sum(1 for t in tools if t.get('contract_class') == 'seal')} seal, "
+        f"{sum(1 for t in tools if t.get('contract_class') == 'gateway')} gateway, "
+        f"{sum(1 for t in tools if t.get('contract_class') == 'verdict')} verdict, "
+        f"{sum(1 for t in tools if t.get('contract_class') == 'diagnostic')} diagnostic, "
+        f"{sum(1 for t in tools if t.get('contract_class') == 'ordinary')} ordinary"
+    )
     print(f"  Legacy aliases: {len(norm['alias_map'])}")
     print(f"  Denial codes: {len(doc.get('denial_codes', []))}")
     print(f"\nArtifacts in {GENERATED_DIR}/")

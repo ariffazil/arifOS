@@ -546,83 +546,95 @@ def compute_tension_scan(
     if action_class in ("execute", "irreversible_mutation", "external_commitment", "patch"):
         if axes.T < 0.5 or axes.U > 0.6:  # low truth or high uncertainty
             sev = min(1.0, (0.8 - axes.T) + axes.U)
-            tensions.append(TensionEntry(
-                tension_type=TensionType.ACTION_EVIDENCE_GAP,
-                severity=round(sev, 2),
-                axes_involved=("T", "U", "C"),
-                explanation=f"Action class '{action_class}' requested with low truth (T={axes.T:.2f}) "
-                           f"and high uncertainty (U={axes.U:.2f}). Evidence does not support execution.",
-                required_next_tool="arif_fetch",
-                blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
-            ))
+            tensions.append(
+                TensionEntry(
+                    tension_type=TensionType.ACTION_EVIDENCE_GAP,
+                    severity=round(sev, 2),
+                    axes_involved=("T", "U", "C"),
+                    explanation=f"Action class '{action_class}' requested with low truth (T={axes.T:.2f}) "
+                    f"and high uncertainty (U={axes.U:.2f}). Evidence does not support execution.",
+                    required_next_tool="arif_fetch",
+                    blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+                )
+            )
 
     # T2: CONFIDENCE_EVIDENCE_GAP — high confidence but low evidence
     # High coherence (C) + low truth (T) = hallucination risk
     if axes.C > 0.7 and axes.T < 0.5:
         sev = min(1.0, axes.C - axes.T)
-        tensions.append(TensionEntry(
-            tension_type=TensionType.CONFIDENCE_EVIDENCE_GAP,
-            severity=round(sev, 2),
-            axes_involved=("C", "T"),
-            explanation=f"High coherence (C={axes.C:.2f}) paired with low truth (T={axes.T:.2f}). "
-                       f"Claim may be elegantly wrong. Confidence ≠ evidence.",
-            required_next_tool="arif_fetch",
-            blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
-        ))
+        tensions.append(
+            TensionEntry(
+                tension_type=TensionType.CONFIDENCE_EVIDENCE_GAP,
+                severity=round(sev, 2),
+                axes_involved=("C", "T"),
+                explanation=f"High coherence (C={axes.C:.2f}) paired with low truth (T={axes.T:.2f}). "
+                f"Claim may be elegantly wrong. Confidence ≠ evidence.",
+                required_next_tool="arif_fetch",
+                blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+            )
+        )
 
     # T3: AUTHORITY_PROVENANCE_CONFUSION — high authority cleanliness but no auth
     # High A + no actual authorization = AI provenance mistaken for permission
     if axes.A > 0.7 and not has_authorization:
         sev = min(1.0, axes.A)
-        tensions.append(TensionEntry(
-            tension_type=TensionType.AUTHORITY_PROVENANCE_CONFUSION,
-            severity=round(sev, 2),
-            axes_involved=("A", "H"),
-            explanation=f"Authority cleanliness is high (A={axes.A:.2f}) but no actual authorization "
-                       f"exists. AI provenance ≠ authority. Lease or sovereign permission required.",
-            required_next_tool="arif_judge",
-            blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
-        ))
+        tensions.append(
+            TensionEntry(
+                tension_type=TensionType.AUTHORITY_PROVENANCE_CONFUSION,
+                severity=round(sev, 2),
+                axes_involved=("A", "H"),
+                explanation=f"Authority cleanliness is high (A={axes.A:.2f}) but no actual authorization "
+                f"exists. AI provenance ≠ authority. Lease or sovereign permission required.",
+                required_next_tool="arif_judge",
+                blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+            )
+        )
 
     # T4: RISK_REVERSIBILITY_CONFLICT — high risk + low reversibility
     # High B + low R = action could cause irreversible damage
     if axes.B > 0.5 and axes.R < 0.5:
         sev = min(1.0, axes.B + (1.0 - axes.R))
-        tensions.append(TensionEntry(
-            tension_type=TensionType.RISK_REVERSIBILITY_CONFLICT,
-            severity=round(sev, 2),
-            axes_involved=("B", "R"),
-            explanation=f"High blast radius (B={axes.B:.2f}) with low reversibility (R={axes.R:.2f}). "
-                       f"Action carries irreversible consequences.",
-            required_next_tool="arif_critique",
-            blocked_actions=("EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
-        ))
+        tensions.append(
+            TensionEntry(
+                tension_type=TensionType.RISK_REVERSIBILITY_CONFLICT,
+                severity=round(sev, 2),
+                axes_involved=("B", "R"),
+                explanation=f"High blast radius (B={axes.B:.2f}) with low reversibility (R={axes.R:.2f}). "
+                f"Action carries irreversible consequences.",
+                required_next_tool="arif_critique",
+                blocked_actions=("EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+            )
+        )
 
     # T5: NOVELTY_COHERENCE_GAP — high novelty (low T) + high coherence
     # Novel claim delivered with false confidence
     if axes.T < 0.3 and axes.C > 0.8:
         sev = min(1.0, axes.C - axes.T)
-        tensions.append(TensionEntry(
-            tension_type=TensionType.NOVELTY_COHERENCE_GAP,
-            severity=round(sev, 2),
-            axes_involved=("T", "C"),
-            explanation=f"Novel claim (T={axes.T:.2f}) delivered with high coherence (C={axes.C:.2f}). "
-                       f"Novelty is not truth — route to critic for adversarial testing.",
-            required_next_tool="arif_critique",
-        ))
+        tensions.append(
+            TensionEntry(
+                tension_type=TensionType.NOVELTY_COHERENCE_GAP,
+                severity=round(sev, 2),
+                axes_involved=("T", "C"),
+                explanation=f"Novel claim (T={axes.T:.2f}) delivered with high coherence (C={axes.C:.2f}). "
+                f"Novelty is not truth — route to critic for adversarial testing.",
+                required_next_tool="arif_critique",
+            )
+        )
 
     # T6: SOVEREIGNTY_AMBIGUITY — high proximity to forbidden center
     if sovereign_proximity >= 0.5:
         sev = min(1.0, sovereign_proximity)
-        tensions.append(TensionEntry(
-            tension_type=TensionType.SOVEREIGNTY_AMBIGUITY,
-            severity=round(sev, 2),
-            axes_involved=("H", "A"),
-            explanation=f"High sovereign proximity ({sovereign_proximity:.2f}). "
-                       f"Thought is near the forbidden center — requires explicit sovereign clearance.",
-            required_next_tool="arif_judge",
-            blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
-        ))
+        tensions.append(
+            TensionEntry(
+                tension_type=TensionType.SOVEREIGNTY_AMBIGUITY,
+                severity=round(sev, 2),
+                axes_involved=("H", "A"),
+                explanation=f"High sovereign proximity ({sovereign_proximity:.2f}). "
+                f"Thought is near the forbidden center — requires explicit sovereign clearance.",
+                required_next_tool="arif_judge",
+                blocked_actions=("MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"),
+            )
+        )
 
     return tuple(tensions)
 
@@ -762,9 +774,7 @@ def compute_cognitive_state(
         trajectory = TrajectoryDelta(
             parent_thought_id=parent_thought_id,
             delta_truth=round(axes.T - prior_axes.T, 4),
-            delta_evidence=round(
-                (1.0 - axes.U) - (1.0 - prior_axes.U), 4
-            ),
+            delta_evidence=round((1.0 - axes.U) - (1.0 - prior_axes.U), 4),
             delta_risk=round(axes.B - prior_axes.B, 4),
             delta_authority=round(axes.A - prior_axes.A, 4),
             trajectory_verdict=(
@@ -784,8 +794,14 @@ def compute_cognitive_state(
     return {
         "geometry_verdict": geometry_verdict.value,
         "cognitive_axes": {
-            "T": axes.T, "U": axes.U, "R": axes.R, "B": axes.B,
-            "A": axes.A, "E": axes.E, "H": axes.H, "C": axes.C,
+            "T": axes.T,
+            "U": axes.U,
+            "R": axes.R,
+            "B": axes.B,
+            "A": axes.A,
+            "E": axes.E,
+            "H": axes.H,
+            "C": axes.C,
         },
         "sovereign_proximity": sovereign_proximity,
         "tension_scan": [

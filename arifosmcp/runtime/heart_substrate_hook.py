@@ -34,6 +34,7 @@ def _get_substrate():
     if _substrate is None:
         try:
             from arifOS.arifosmcp.runtime import substrate_loader
+
             _substrate = substrate_loader
         except Exception as e:  # pragma: no cover
             logger.warning("substrate_loader import failed: %s", e)
@@ -45,10 +46,10 @@ def _get_substrate():
 # When arif_critique is called in any of these modes, preload substrate.
 # Also triggered if target text references sovereign-specific keywords.
 _F5_F6_F13_TRIGGERS = {
-    "empathize",        # F6 EMPATHY
-    "maruah",           # F5 PEACE (dignity)
-    "deescalate",       # F5 PEACE
-    "redteam",          # F5/F6 (worst-case human impact)
+    "empathize",  # F6 EMPATHY
+    "maruah",  # F5 PEACE (dignity)
+    "deescalate",  # F5 PEACE
+    "redteam",  # F5/F6 (worst-case human impact)
     "sovereign",
     "arif",
     "fazil",
@@ -56,8 +57,16 @@ _F5_F6_F13_TRIGGERS = {
 }
 
 _SOVEREIGN_KEYWORDS = (
-    "arif", "fazil", "sovereign", "888", "arifos", "substrate",
-    "human reality", "scars", "wound", "scar",
+    "arif",
+    "fazil",
+    "sovereign",
+    "888",
+    "arifos",
+    "substrate",
+    "human reality",
+    "scars",
+    "wound",
+    "scar",
 )
 
 

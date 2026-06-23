@@ -242,9 +242,7 @@ async def seal_transition(
         "agent_id": agent_id or "arifOS-kernel",
         "action": f"ksr_transition:{event_type}",
         "payload": payload,
-        "payload_hash": _sha256_of_text(
-            json.dumps(payload, sort_keys=True, default=str)
-        ),
+        "payload_hash": _sha256_of_text(json.dumps(payload, sort_keys=True, default=str)),
         "payload_summary": json.dumps(
             {
                 "receipt_id": payload.get("receipt_id"),
@@ -296,9 +294,7 @@ async def seal_transition(
                 "chain_hash": data.get("chain_hash"),
             }
     except Exception as e:
-        logger.warning(
-            f"[seal_transition] failed to seal transition {receipt_id}: {e}"
-        )
+        logger.warning(f"[seal_transition] failed to seal transition {receipt_id}: {e}")
         return {"sealed": False, "error": str(e)}
 
 

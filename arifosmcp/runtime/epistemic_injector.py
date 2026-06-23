@@ -44,7 +44,6 @@ from arifosmcp.schemas.epistemic_tag import (
     EPISTEMIC_DETERMINISTIC,
     EPISTEMIC_DOMAIN_COMPUTATION,
     EPISTEMIC_GOVERNANCE_TEMPLATE,
-    EPISTEMIC_MEASURED,
     EPISTEMIC_RETRIEVED,
     assert_tag_valid,
 )

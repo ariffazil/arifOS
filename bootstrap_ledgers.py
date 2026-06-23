@@ -15,39 +15,39 @@ os.makedirs(tests_dir, exist_ok=True)
 
 # 2. Add schemas/cooling_ledger.schema.json
 cooling_schema = {
-  "cooling_id": "string",
-  "timestamp": "datetime",
-  "trigger": "string",
-  "source": "arifOS | WELL | AAA | A-FORGE | human | external",
-  "related_intent": "string",
-  "reason_for_cooling": "string",
-  "temperature": "LOW | MEDIUM | HIGH | CRITICAL",
-  "cooldown_until": "datetime",
-  "recheck_condition": "string",
-  "required_witnesses": ["GEOX", "WEALTH", "WELL", "arifOS"],
-  "human_review_required": True,
-  "status": "COOLING | EXPIRED | ESCALATED | RELEASED"
+    "cooling_id": "string",
+    "timestamp": "datetime",
+    "trigger": "string",
+    "source": "arifOS | WELL | AAA | A-FORGE | human | external",
+    "related_intent": "string",
+    "reason_for_cooling": "string",
+    "temperature": "LOW | MEDIUM | HIGH | CRITICAL",
+    "cooldown_until": "datetime",
+    "recheck_condition": "string",
+    "required_witnesses": ["GEOX", "WEALTH", "WELL", "arifOS"],
+    "human_review_required": True,
+    "status": "COOLING | EXPIRED | ESCALATED | RELEASED",
 }
 with open(os.path.join(schemas_dir, "cooling_ledger.schema.json"), "w") as f:
     json.dump(cooling_schema, f, indent=2)
 
 # 3. Confirm or add schemas/vault999_event.schema.json
 vault_schema = {
-  "event_id": "string",
-  "timestamp": "datetime",
-  "actor": "string",
-  "intent": "string",
-  "verdict": "SEAL | SABAR | HOLD | VOID",
-  "floors_triggered": ["string"],
-  "lease_id": "string",
-  "action_scope": ["string"],
-  "risk": {
-    "reversibility": "number",
-    "blast_radius": "LOW | MEDIUM | HIGH",
-    "secret_touching": "boolean"
-  },
-  "previous_hash": "string",
-  "event_hash": "string"
+    "event_id": "string",
+    "timestamp": "datetime",
+    "actor": "string",
+    "intent": "string",
+    "verdict": "SEAL | SABAR | HOLD | VOID",
+    "floors_triggered": ["string"],
+    "lease_id": "string",
+    "action_scope": ["string"],
+    "risk": {
+        "reversibility": "number",
+        "blast_radius": "LOW | MEDIUM | HIGH",
+        "secret_touching": "boolean",
+    },
+    "previous_hash": "string",
+    "event_hash": "string",
 }
 with open(os.path.join(schemas_dir, "vault999_event.schema.json"), "w") as f:
     json.dump(vault_schema, f, indent=2)

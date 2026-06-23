@@ -58,18 +58,18 @@ DIMENSION_WEIGHTS: dict[AnomalyDimension, float] = {
 }
 
 # ── Thresholds for anomaly level classification ──
-NOMINAL_THRESHOLD = 0.30   # below this: NOMINAL
+NOMINAL_THRESHOLD = 0.30  # below this: NOMINAL
 ELEVATED_THRESHOLD = 0.55  # below this: ELEVATED
 ANOMALOUS_THRESHOLD = 0.80  # below this: ANOMALOUS, above: CRITICAL
 
 # ── Recommendation thresholds ──
-PROCEED_THRESHOLD = 0.25     # below this: PROCEED (full autonomy)
-CAUTION_THRESHOLD = 0.50     # below this: CAUTION (reduced autonomy)
-HOLD_THRESHOLD = 0.70        # below this: HOLD, above: SABAR (escalate)
+PROCEED_THRESHOLD = 0.25  # below this: PROCEED (full autonomy)
+CAUTION_THRESHOLD = 0.50  # below this: CAUTION (reduced autonomy)
+HOLD_THRESHOLD = 0.70  # below this: HOLD, above: SABAR (escalate)
 
 # ── Window sizes ──
-SPIKE_WINDOW_S = 3600        # 1 hour
-SIGNAL_WINDOW_S = 300        # 5 minutes — signals older than this are stale
+SPIKE_WINDOW_S = 3600  # 1 hour
+SIGNAL_WINDOW_S = 300  # 5 minutes — signals older than this are stale
 
 
 def _classify_level(score: float) -> SignalLevel:
@@ -132,7 +132,7 @@ class AnomalyScorer:
 
         # Federation organ liveness tracking
         self._organ_last_seen: dict[str, str] = {}  # organ → ISO timestamp
-        self._organ_status: dict[str, str] = {}     # organ → status
+        self._organ_status: dict[str, str] = {}  # organ → status
 
     # ── Feed methods — ingest events from NATS streams ────────────────────
 
@@ -169,9 +169,7 @@ class AnomalyScorer:
 
         # Signal: track large gradient deltas
         if abs(event.delta) > 0.30:
-            self._signals.append(
-                f"Gradient spike: {event.dimension} Δ={event.delta:+.3f}"
-            )
+            self._signals.append(f"Gradient spike: {event.dimension} Δ={event.delta:+.3f}")
             if len(self._signals) > 100:
                 self._signals = self._signals[-50:]
 
@@ -278,8 +276,7 @@ class AnomalyScorer:
         """Return a snapshot of all internal state (for cockpit / debug)."""
         return {
             "detector_states": {
-                dim.value: det.state.model_dump()
-                for dim, det in self._detectors.items()
+                dim.value: det.state.model_dump() for dim, det in self._detectors.items()
             },
             "organ_liveness": self.organ_liveness,
             "signal_count_1h": self._signal_count_1h,
@@ -301,6 +298,7 @@ class AnomalyScorer:
 
 
 # ── Singleton accessor ───────────────────────────────────────────────────
+
 
 def get_scorer() -> AnomalyScorer:
     """Get or create the federation anomaly scorer (singleton)."""

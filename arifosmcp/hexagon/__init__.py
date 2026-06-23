@@ -38,7 +38,7 @@ __all__ = [
     "APEXAgent",
     "AGIAgent",
     "ValidatorAgent",  # backward-compat alias
-    "EngineerAgent",   # backward-compat alias
+    "EngineerAgent",  # backward-compat alias
     "PromptArmor",
     "HoldStateManager",
     "ConstitutionalMemoryStore",

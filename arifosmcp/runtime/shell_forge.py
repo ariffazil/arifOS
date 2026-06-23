@@ -137,7 +137,9 @@ class HardenedShellForge:
             if _gate_result.is_blocked:
                 logger.warning(
                     "shell_forge gate BLOCKED: cmd=%s action=%s reasons=%s",
-                    command[:80], _shell_action.value, _gate_result.reasons,
+                    command[:80],
+                    _shell_action.value,
+                    _gate_result.reasons,
                 )
                 result = {
                     "ok": False,

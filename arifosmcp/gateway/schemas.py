@@ -29,6 +29,7 @@ from pydantic import BaseModel, Field
 # ENUMS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class EpistemicTag(str, Enum):
     CLAIM = "CLAIM"
     PLAUSIBLE = "PLAUSIBLE"
@@ -88,8 +89,10 @@ class ActionClass(str, Enum):
 # BASE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class KernelNode(BaseModel):
     """Base for all constitutional kernel objects."""
+
     node_id: str = Field(default_factory=lambda: f"NODE-{uuid.uuid4().hex[:12]}")
     node_type: str
     created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -114,8 +117,10 @@ class KernelNode(BaseModel):
 # KERNEL PRIMITIVES
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ArticleNode(KernelNode):
     """A news article or institutional document ingested into the kernel."""
+
     node_type: Literal["ArticleNode"] = "ArticleNode"
     title: str
     source: str  # e.g., "Kosmo", "The Edge", "BERNAMA"
@@ -130,6 +135,7 @@ class ArticleNode(KernelNode):
 
 class ActorNode(KernelNode):
     """An actor (person, institution, group) in the frame graph."""
+
     node_type: Literal["ActorNode"] = "ActorNode"
     name: str
     actor_type: str  # "individual", "institution", "group", "government", "corporation"
@@ -141,6 +147,7 @@ class ActorNode(KernelNode):
 
 class ClaimNode(KernelNode):
     """A single claim extracted from the article."""
+
     node_type: Literal["ClaimNode"] = "ClaimNode"
     claim_text: str
     claimer: str
@@ -154,6 +161,7 @@ class ClaimNode(KernelNode):
 
 class ParadoxTensionNode(KernelNode):
     """The core kernel primitive — a detected tension/paradox in narrative."""
+
     node_type: Literal["ParadoxTensionNode"] = "ParadoxTensionNode"
     tension_id: str  # e.g., "PH-T1"
     tension_class: TensionClass
@@ -173,6 +181,7 @@ class ParadoxTensionNode(KernelNode):
 
 class TensionActivity(KernelNode):
     """Records an action taken on a tension node (detect, review, score, escalate)."""
+
     node_type: Literal["TensionActivity"] = "TensionActivity"
     activity_id: str = Field(default_factory=lambda: f"ACT-{uuid.uuid4().hex[:8]}")
     tension_ref: str  # ParadoxTensionNode.node_id
@@ -185,6 +194,7 @@ class TensionActivity(KernelNode):
 
 class ReceiptNode(KernelNode):
     """Immutable audit receipt for any kernel action."""
+
     node_type: Literal["ReceiptNode"] = "ReceiptNode"
     receipt_id: str = Field(default_factory=lambda: f"RCPT-{uuid.uuid4().hex[:12]}")
     activity_ref: str = ""
@@ -199,6 +209,7 @@ class ReceiptNode(KernelNode):
 
 class MerkleLeaf(KernelNode):
     """A leaf in the Merkle tree audit log."""
+
     node_type: Literal["MerkleLeaf"] = "MerkleLeaf"
     leaf_index: int
     tree_id: str
@@ -211,8 +222,10 @@ class MerkleLeaf(KernelNode):
 # AGGREGATE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ArticleFrameGraph(KernelNode):
     """Complete frame graph for one article."""
+
     node_type: Literal["ArticleFrameGraph"] = "ArticleFrameGraph"
     article: ArticleNode
     actors: list[ActorNode] = Field(default_factory=list)
@@ -229,6 +242,7 @@ class ArticleFrameGraph(KernelNode):
 # ═══════════════════════════════════════════════════════════════════════════════
 # SERIALIZATION HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def serialize_graph(graph: ArticleFrameGraph) -> str:
     """Serialize the full frame graph to canonical JSON."""

@@ -2,6 +2,7 @@
 Tests for SovereignVault999 (unified_vault999.py).
 Exercises the integration layer across all 4 vault security layers.
 """
+
 import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -18,9 +19,7 @@ mock_arch_result.hash_chain.entry_hash = "merkle_root_hash" + "0" * 48
 mock_seal_fn = AsyncMock(return_value=mock_arch_result)
 
 # Patch core organs before importing unified module
-with patch.dict(sys.modules, {
-    "core.organs._4_vault": MagicMock(seal=mock_seal_fn)
-}):
+with patch.dict(sys.modules, {"core.organs._4_vault": MagicMock(seal=mock_seal_fn)}):
     from core.vault999.unified_vault999 import (
         SovereignVault999,
         PhenomenologicalVaultRecord,
@@ -32,7 +31,7 @@ with patch.dict(sys.modules, {
 def vault(tmp_path, monkeypatch):
     """Create a SovereignVault999 with mocked architectural seal."""
     monkeypatch.setenv("ARIFOS_VAULT_DIR", str(tmp_path))
-    
+
     with patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
         v = SovereignVault999(vault_path=tmp_path / "vault")
     return v
@@ -41,9 +40,10 @@ def vault(tmp_path, monkeypatch):
 @pytest.mark.asyncio
 async def test_seal_with_phenomenology_basic(vault):
     """Test the main sealing path without execution envelope."""
-    with patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor, \
-         patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
-
+    with (
+        patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor,
+        patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn),
+    ):
         mock_anchor.return_value = MagicMock()
 
         record = await vault.seal_with_phenomenology(
@@ -67,10 +67,11 @@ async def test_seal_with_phenomenology_basic(vault):
 @pytest.mark.asyncio
 async def test_seal_with_execution_envelope(vault):
     """Test sealing with requires_execution=True generates an envelope."""
-    with patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor, \
-         patch.object(vault.attestor, "sign_envelope", new_callable=AsyncMock) as mock_sign, \
-         patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
-
+    with (
+        patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor,
+        patch.object(vault.attestor, "sign_envelope", new_callable=AsyncMock) as mock_sign,
+        patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn),
+    ):
         mock_anchor.return_value = MagicMock()
         mock_sign.side_effect = lambda e: e  # return envelope unchanged
 
@@ -88,9 +89,10 @@ async def test_seal_with_execution_envelope(vault):
 @pytest.mark.asyncio
 async def test_seal_anchor_failure_doesnt_crash(vault):
     """Blockchain anchoring failure must be non-fatal."""
-    with patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor, \
-         patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn):
-
+    with (
+        patch.object(vault.anchor_client, "anchor_seal", new_callable=AsyncMock) as mock_anchor,
+        patch("core.vault999.unified_vault999.architectural_seal", new=mock_seal_fn),
+    ):
         mock_anchor.side_effect = Exception("Polygon down")
 
         record = await vault.seal_with_phenomenology(
@@ -106,8 +108,9 @@ async def test_seal_anchor_failure_doesnt_crash(vault):
 @pytest.mark.asyncio
 async def test_verify_integrity(vault):
     """verify_integrity should return a structured report."""
-    with patch.object(vault.autonoetic_system, "assess_identity_continuity",
-                      return_value={"score": 0.95}):
+    with patch.object(
+        vault.autonoetic_system, "assess_identity_continuity", return_value={"score": 0.95}
+    ):
         report = await vault.verify_integrity()
 
     assert "layers" in report
@@ -124,9 +127,14 @@ async def test_verify_integrity_with_mirrors(vault, tmp_path):
     mirrors = [{"region": "us-east"}, {"region": "eu-west"}]
     vault.mirror_sync = MirrorSynchronizer(mirrors)
 
-    with patch.object(vault.mirror_sync, "verify_mirror_integrity", new_callable=AsyncMock) as mock_mir, \
-         patch.object(vault.autonoetic_system, "assess_identity_continuity",
-                      return_value={"score": 0.9}):
+    with (
+        patch.object(
+            vault.mirror_sync, "verify_mirror_integrity", new_callable=AsyncMock
+        ) as mock_mir,
+        patch.object(
+            vault.autonoetic_system, "assess_identity_continuity", return_value={"score": 0.9}
+        ),
+    ):
         mock_mir.return_value = {"us-east": True, "eu-west": True}
         report = await vault.verify_integrity()
 
@@ -137,7 +145,9 @@ async def test_verify_integrity_with_mirrors(vault, tmp_path):
 @pytest.mark.asyncio
 async def test_emergency_backup(vault):
     """emergency_backup should call cold storage."""
-    with patch.object(vault.cold_storage, "create_encrypted_backup", new_callable=AsyncMock) as mock_bak:
+    with patch.object(
+        vault.cold_storage, "create_encrypted_backup", new_callable=AsyncMock
+    ) as mock_bak:
         mock_bak_result = MagicMock()
         mock_bak_result.integrity_proof = "proof_hash_123"
         mock_bak_result.timestamp = datetime.utcnow()
@@ -202,6 +212,7 @@ def test_phenomenological_record_to_dict(vault):
 def test_get_sovereign_vault_singleton(tmp_path, monkeypatch):
     """get_sovereign_vault returns same singleton each call."""
     import core.vault999.unified_vault999 as uv
+
     # Reset singleton
     uv._vault999_instance = None
 

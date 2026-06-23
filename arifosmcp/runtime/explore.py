@@ -58,6 +58,7 @@ logger = logging.getLogger("arifos.explore")
 # STATE MACHINE
 # ═══════════════════════════════════════════════════════════════
 
+
 class ExploreState(Enum):
     INIT = auto()
     PLAN = auto()
@@ -71,14 +72,14 @@ class ExploreState(Enum):
 
 # Transition matrix — exhaustive, no surprise paths
 TRANSITIONS: dict[ExploreState, set[ExploreState]] = {
-    ExploreState.INIT:    {ExploreState.PLAN, ExploreState.ABORT},
-    ExploreState.PLAN:    {ExploreState.STEP, ExploreState.ABORT},
-    ExploreState.STEP:    {ExploreState.UPDATE, ExploreState.ABORT},
-    ExploreState.UPDATE:  {ExploreState.CHECK, ExploreState.ABORT},
-    ExploreState.CHECK:   {ExploreState.PLAN, ExploreState.REFLECT, ExploreState.ABORT},
+    ExploreState.INIT: {ExploreState.PLAN, ExploreState.ABORT},
+    ExploreState.PLAN: {ExploreState.STEP, ExploreState.ABORT},
+    ExploreState.STEP: {ExploreState.UPDATE, ExploreState.ABORT},
+    ExploreState.UPDATE: {ExploreState.CHECK, ExploreState.ABORT},
+    ExploreState.CHECK: {ExploreState.PLAN, ExploreState.REFLECT, ExploreState.ABORT},
     ExploreState.REFLECT: {ExploreState.SEAL, ExploreState.ABORT},
-    ExploreState.SEAL:    set(),
-    ExploreState.ABORT:   set(),
+    ExploreState.SEAL: set(),
+    ExploreState.ABORT: set(),
 }
 
 
@@ -86,21 +87,24 @@ TRANSITIONS: dict[ExploreState, set[ExploreState]] = {
 # STEP RESULT — mode-agnostic output of one exploration step
 # ═══════════════════════════════════════════════════════════════
 
+
 @dataclass
 class StepResult:
     """One exploration step's output. Mode-agnostic."""
+
     nodes: list[GraphNode]
     edges: list[GraphEdge]
     findings: list[Finding]
     gaps: list[str]
-    coverage_delta: float       # 0.0–1.0
-    confidence: float           # 0.0–1.0
-    terminal: bool = False      # True → no more branches from this node
+    coverage_delta: float  # 0.0–1.0
+    confidence: float  # 0.0–1.0
+    terminal: bool = False  # True → no more branches from this node
 
 
 # ═══════════════════════════════════════════════════════════════
 # MODE CONTRACT (Protocol)
 # ═══════════════════════════════════════════════════════════════
+
 
 class ExplorerMode(Protocol):
     """Every exploration mode must satisfy this contract."""
@@ -128,6 +132,7 @@ class ExplorerMode(Protocol):
 # HELPER: content hashing
 # ═══════════════════════════════════════════════════════════════
 
+
 def _hash(s: str) -> str:
     """Deterministic content hash for node IDs."""
     return hashlib.blake2b(s.encode("utf-8"), digest_size=16).hexdigest()
@@ -139,11 +144,16 @@ def _hash(s: str) -> str:
 
 _SYMBOL_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("function", re.compile(r"(?:def|fn|func|function)\s+(\w+)", re.MULTILINE)),
-    ("class",    re.compile(r"class\s+(\w+)", re.MULTILINE)),
-    ("const",    re.compile(r"(?:const|export const|val)\s+(\w+)", re.MULTILINE)),
-    ("var",      re.compile(r"(?:let|var|export let)\s+(\w+)", re.MULTILINE)),
+    ("class", re.compile(r"class\s+(\w+)", re.MULTILINE)),
+    ("const", re.compile(r"(?:const|export const|val)\s+(\w+)", re.MULTILINE)),
+    ("var", re.compile(r"(?:let|var|export let)\s+(\w+)", re.MULTILINE)),
     ("interface", re.compile(r"(?:interface|type)\s+(\w+)", re.MULTILINE)),
-    ("export",   re.compile(r"export\s+(?:default\s+)?(?:function|class|const|let|var)\s+(\w+)", re.MULTILINE)),
+    (
+        "export",
+        re.compile(
+            r"export\s+(?:default\s+)?(?:function|class|const|let|var)\s+(\w+)", re.MULTILINE
+        ),
+    ),
 ]
 
 
@@ -151,7 +161,24 @@ def _extract_symbols(content: str, path: str) -> list[str]:
     """Extract code symbols (def, class, const, etc.) from file content."""
     symbols: list[str] = []
     ext = path.rsplit(".", 1)[-1].lower() if "." in path else ""
-    if ext not in {"py", "js", "ts", "jsx", "tsx", "rs", "go", "java", "rb", "sh", "bash", "yaml", "yml", "toml", "json", "md"}:
+    if ext not in {
+        "py",
+        "js",
+        "ts",
+        "jsx",
+        "tsx",
+        "rs",
+        "go",
+        "java",
+        "rb",
+        "sh",
+        "bash",
+        "yaml",
+        "yml",
+        "toml",
+        "json",
+        "md",
+    }:
         return symbols
     for _kind, pattern in _SYMBOL_PATTERNS:
         for match in pattern.finditer(content):
@@ -194,25 +221,40 @@ def _extract_imports(content: str, path: str) -> list[str]:
 # ═══════════════════════════════════════════════════════════════
 
 _TYPE_MAP: dict[str, str] = {
-    "py": "python", "pyi": "python-stub",
-    "js": "javascript", "jsx": "javascript-react",
-    "ts": "typescript", "tsx": "typescript-react",
+    "py": "python",
+    "pyi": "python-stub",
+    "js": "javascript",
+    "jsx": "javascript-react",
+    "ts": "typescript",
+    "tsx": "typescript-react",
     "rs": "rust",
     "go": "go",
-    "java": "java", "kt": "kotlin",
+    "java": "java",
+    "kt": "kotlin",
     "rb": "ruby",
-    "sh": "shell", "bash": "shell", "zsh": "shell",
-    "yaml": "yaml", "yml": "yaml",
+    "sh": "shell",
+    "bash": "shell",
+    "zsh": "shell",
+    "yaml": "yaml",
+    "yml": "yaml",
     "toml": "toml",
     "json": "json",
-    "md": "markdown", "mdx": "markdown-jsx",
-    "css": "css", "scss": "scss", "less": "less",
-    "html": "html", "htm": "html",
+    "md": "markdown",
+    "mdx": "markdown-jsx",
+    "css": "css",
+    "scss": "scss",
+    "less": "less",
+    "html": "html",
+    "htm": "html",
     "svg": "svg",
     "sql": "sql",
     "dockerfile": "dockerfile",
-    "txt": "text", "log": "log",
-    "pdf": "pdf", "png": "image", "jpg": "image", "jpeg": "image",
+    "txt": "text",
+    "log": "log",
+    "pdf": "pdf",
+    "png": "image",
+    "jpg": "image",
+    "jpeg": "image",
 }
 
 
@@ -229,6 +271,7 @@ def _guess_type(path: str) -> str:
 # ═══════════════════════════════════════════════════════════════
 # EXPLORATION KERNEL — state machine shared by all modes
 # ═══════════════════════════════════════════════════════════════
+
 
 class ExplorationKernel:
     """One exploration run. Mode-agnostic constitutional state machine.
@@ -279,7 +322,8 @@ class ExplorationKernel:
         limits = self.request.limits
         logger.info(
             "L2_EXPLORE start | mode=%s goal=%.80s",
-            self.request.mode.value, self.request.goal,
+            self.request.mode.value,
+            self.request.goal,
         )
 
         try:
@@ -344,9 +388,7 @@ class ExplorationKernel:
 
     async def _transition(self, target: ExploreState):
         if target not in TRANSITIONS.get(self.state, set()):
-            raise ValueError(
-                f"Illegal transition: {self.state.name} → {target.name}"
-            )
+            raise ValueError(f"Illegal transition: {self.state.name} → {target.name}")
         self.state = target
         await self._execute_state()
 
@@ -363,15 +405,14 @@ class ExplorationKernel:
                     ok = await self._art(self.request)
                     if not ok:
                         raise PermissionError("ART gate rejected exploration request")
-                seed_nodes = await self.mode.plan(
-                    self.request.goal, self.graph, limits
-                )
+                seed_nodes = await self.mode.plan(self.request.goal, self.graph, limits)
                 self._step_stack = list(seed_nodes)
                 self.metrics.depth = 0
                 for n in seed_nodes:
                     self._depth_map[n.node_id] = 0
                 logger.info(
-                    "L2_EXPLORE plan | queued=%d nodes", len(self._step_stack),
+                    "L2_EXPLORE plan | queued=%d nodes",
+                    len(self._step_stack),
                 )
 
             case ExploreState.STEP:
@@ -383,10 +424,13 @@ class ExplorationKernel:
 
                 # ACT gate — per-step
                 if self._act:
-                    ok = await self._act("step", {
-                        "node_id": node_id,
-                        "mode": self.request.mode.value,
-                    })
+                    ok = await self._act(
+                        "step",
+                        {
+                            "node_id": node_id,
+                            "mode": self.request.mode.value,
+                        },
+                    )
                     if not ok:
                         raise PermissionError(f"ACT gate blocked step on {node_id}")
 
@@ -426,15 +470,18 @@ class ExplorationKernel:
                 logger.info(
                     "L2_EXPLORE sealed | steps=%d depth=%d coverage=%.2f "
                     "confidence=%.2f elapsed=%.1fs",
-                    self.metrics.steps, self.metrics.depth,
-                    self.metrics.coverage, self.metrics.confidence,
+                    self.metrics.steps,
+                    self.metrics.depth,
+                    self.metrics.coverage,
+                    self.metrics.confidence,
                     elapsed,
                 )
 
             case ExploreState.ABORT:
                 logger.warning(
                     "L2_EXPLORE aborted | steps=%d state=%s",
-                    self.metrics.steps, self.state.name,
+                    self.metrics.steps,
+                    self.state.name,
                 )
 
     # ── Internal helpers ────────────────────────────────────
@@ -474,8 +521,7 @@ class ExplorationKernel:
         # Add edges
         for edge in result.edges:
             if not any(
-                e.from_id == edge.from_id and e.to_id == edge.to_id
-                for e in self.graph.edges
+                e.from_id == edge.from_id and e.to_id == edge.to_id for e in self.graph.edges
             ):
                 self.graph.edges.append(edge)
 
@@ -491,8 +537,7 @@ class ExplorationKernel:
         if total == 0:
             return 0.0
         resolved = sum(
-            1 for n in self.graph.nodes
-            if not n.meta.get("unresolved") and n.content_hash
+            1 for n in self.graph.nodes if not n.meta.get("unresolved") and n.content_hash
         )
         return resolved / total
 
@@ -517,25 +562,29 @@ class ExplorationKernel:
         # Next moves: where are the gaps?
         next_moves: list[NextMove] = []
         for gap in self._gaps[:5]:
-            next_moves.append(NextMove(
-                mode=self.request.mode,
-                goal=f"Resolve: {gap[:120]}",
-                reason=gap[:200],
-            ))
+            next_moves.append(
+                NextMove(
+                    mode=self.request.mode,
+                    goal=f"Resolve: {gap[:120]}",
+                    reason=gap[:200],
+                )
+            )
 
         # If high saturation but unresolved nodes remain, suggest Scout
         unresolved = [
-            n for n in self.graph.nodes
-            if n.meta.get("unresolved") and not any(
-                e.from_id == n.node_id for e in self.graph.edges
-            )
+            n
+            for n in self.graph.nodes
+            if n.meta.get("unresolved")
+            and not any(e.from_id == n.node_id for e in self.graph.edges)
         ]
         if unresolved and saturation != Saturation.LOW:
-            next_moves.append(NextMove(
-                mode=ExploreMode.SCOUT,
-                goal=f"Resolve {len(unresolved)} remaining nodes",
-                reason=f"Unresolved nodes: {', '.join(n.label for n in unresolved[:3])}",
-            ))
+            next_moves.append(
+                NextMove(
+                    mode=ExploreMode.SCOUT,
+                    goal=f"Resolve {len(unresolved)} remaining nodes",
+                    reason=f"Unresolved nodes: {', '.join(n.label for n in unresolved[:3])}",
+                )
+            )
 
         return Verdict(saturation=saturation, next_moves=next_moves)
 
@@ -586,6 +635,7 @@ class ExplorationKernel:
 # Glob (pattern matching), git log. No new primitives needed.
 # Pure orchestration — read-only, constitutional, deterministic.
 # ═══════════════════════════════════════════════════════════════
+
 
 @dataclass
 class ProspectorMode:
@@ -663,7 +713,7 @@ class ProspectorMode:
             scored.append((s, node))
 
         scored.sort(key=lambda x: x[0], reverse=True)
-        selected = [n for _, n in scored[:limits.max_steps]]
+        selected = [n for _, n in scored[: limits.max_steps]]
         return selected
 
     async def step(self, node: GraphNode, seed: Seed) -> StepResult:
@@ -685,14 +735,24 @@ class ProspectorMode:
                 content = await self.fs_read(path)
             except Exception:
                 return StepResult(
-                    nodes=[], edges=[], findings=[], gaps=[f"cannot read: {path}"],
-                    coverage_delta=0.0, confidence=0.0, terminal=True,
+                    nodes=[],
+                    edges=[],
+                    findings=[],
+                    gaps=[f"cannot read: {path}"],
+                    coverage_delta=0.0,
+                    confidence=0.0,
+                    terminal=True,
                 )
 
         if not content:
             return StepResult(
-                nodes=[], edges=[], findings=[], gaps=[],
-                coverage_delta=0.0, confidence=0.0, terminal=True,
+                nodes=[],
+                edges=[],
+                findings=[],
+                gaps=[],
+                coverage_delta=0.0,
+                confidence=0.0,
+                terminal=True,
             )
 
         content_hash = _hash(content)
@@ -720,20 +780,24 @@ class ProspectorMode:
         child_nodes: list[GraphNode] = []
         for imp in imports[:20]:  # cap per file
             child_id = _hash(imp)
-            edges.append(GraphEdge(
-                from_id=file_node.node_id,
-                to_id=child_id,
-                relation="imports" if "import" in imp.lower() else "references",
-                confidence=0.9,
-            ))
-            child_nodes.append(GraphNode(
-                node_id=child_id,
-                mode=self.mode,
-                label=imp,
-                content_hash="",
-                evidence="",
-                meta={"unresolved": True, "parent": path},
-            ))
+            edges.append(
+                GraphEdge(
+                    from_id=file_node.node_id,
+                    to_id=child_id,
+                    relation="imports" if "import" in imp.lower() else "references",
+                    confidence=0.9,
+                )
+            )
+            child_nodes.append(
+                GraphNode(
+                    node_id=child_id,
+                    mode=self.mode,
+                    label=imp,
+                    content_hash="",
+                    evidence="",
+                    meta={"unresolved": True, "parent": path},
+                )
+            )
 
         # Coverage and confidence estimation
         coverage = min(1.0, len(symbols) / 100) if symbols else 0.1
@@ -742,19 +806,23 @@ class ProspectorMode:
         # Findings
         findings: list[Finding] = []
         if symbols:
-            findings.append(Finding(
-                id=_hash(f"sym:{path}"),
-                summary=f"{len(symbols)} symbols found in {path} ({_guess_type(path)})",
-                confidence=0.9,
-                sources=[path],
-            ))
+            findings.append(
+                Finding(
+                    id=_hash(f"sym:{path}"),
+                    summary=f"{len(symbols)} symbols found in {path} ({_guess_type(path)})",
+                    confidence=0.9,
+                    sources=[path],
+                )
+            )
         if imports:
-            findings.append(Finding(
-                id=_hash(f"imp:{path}"),
-                summary=f"{len(imports)} imports discovered in {path}",
-                confidence=0.85,
-                sources=[path],
-            ))
+            findings.append(
+                Finding(
+                    id=_hash(f"imp:{path}"),
+                    summary=f"{len(imports)} imports discovered in {path}",
+                    confidence=0.85,
+                    sources=[path],
+                )
+            )
 
         gaps: list[str] = []
         if imports:
@@ -783,9 +851,13 @@ class ProspectorMode:
         terms = [t.lower() for t in question.split() if len(t) > 2]
         if not terms:
             return StepResult(
-                nodes=[], edges=[], findings=[],
+                nodes=[],
+                edges=[],
+                findings=[],
                 gaps=[f"no searchable terms in question: {question[:80]}"],
-                coverage_delta=0.0, confidence=0.0, terminal=True,
+                coverage_delta=0.0,
+                confidence=0.0,
+                terminal=True,
             )
 
         # Search current directory for files matching question terms
@@ -814,9 +886,13 @@ class ProspectorMode:
 
         if not matched_files:
             return StepResult(
-                nodes=[], edges=[], findings=[],
+                nodes=[],
+                edges=[],
+                findings=[],
                 gaps=[f"no files matching: {', '.join(terms[:8])}"],
-                coverage_delta=0.0, confidence=0.0, terminal=True,
+                coverage_delta=0.0,
+                confidence=0.0,
+                terminal=True,
             )
 
         # Sort by score and read top files
@@ -840,34 +916,39 @@ class ProspectorMode:
             symbols = _extract_symbols(content, fpath)
             evidence_snippet = content[:2000]
 
-            result_nodes.append(GraphNode(
-                node_id=content_hash,
-                mode=self.mode,
-                label=fpath,
-                content_hash=content_hash,
-                evidence=evidence_snippet,
-                meta={
-                    "type": _guess_type(fpath),
-                    "symbols": symbols[:50],
-                    "symbol_count": len(symbols),
-                    "search_score": score,
-                    "original_question": question[:120],
-                },
-            ))
+            result_nodes.append(
+                GraphNode(
+                    node_id=content_hash,
+                    mode=self.mode,
+                    label=fpath,
+                    content_hash=content_hash,
+                    evidence=evidence_snippet,
+                    meta={
+                        "type": _guess_type(fpath),
+                        "symbols": symbols[:50],
+                        "symbol_count": len(symbols),
+                        "search_score": score,
+                        "original_question": question[:120],
+                    },
+                )
+            )
 
             # Extract key lines containing search terms
             matching_lines = [
-                line.strip()[:200] for line in content.split("\n")
+                line.strip()[:200]
+                for line in content.split("\n")
                 if any(t in line.lower() for t in terms[:5])
             ][:5]
 
-            result_findings.append(Finding(
-                id=_hash(f"prospector:{fpath}:{question[:60]}"),
-                summary=f"File: {fpath} — {len(symbols)} symbols, "
-                        f"{len(matching_lines)} matching lines: {'; '.join(matching_lines[:3])}",
-                confidence=min(0.85, 0.4 + 0.1 * score),
-                sources=[fpath],
-            ))
+            result_findings.append(
+                Finding(
+                    id=_hash(f"prospector:{fpath}:{question[:60]}"),
+                    summary=f"File: {fpath} — {len(symbols)} symbols, "
+                    f"{len(matching_lines)} matching lines: {'; '.join(matching_lines[:3])}",
+                    confidence=min(0.85, 0.4 + 0.1 * score),
+                    sources=[fpath],
+                )
+            )
 
         coverage = min(1.0, len(matched_files) / 50)
         confidence = 0.5 if result_findings else 0.0
@@ -891,14 +972,14 @@ class ProspectorMode:
             return 0.5  # uninformative prior
 
         node_text = (
-            f"{node.label} "
-            f"{' '.join(node.meta.get('symbols', []))} "
-            f"{node.meta.get('type', '')}"
+            f"{node.label} {' '.join(node.meta.get('symbols', []))} {node.meta.get('type', '')}"
         ).lower()
 
         overlap = sum(1 for t in goal_terms if t in node_text)
         # Bonus for exact path-segment match
-        path_segments = node.label.lower().replace("/", " ").replace("-", " ").replace("_", " ").split()
+        path_segments = (
+            node.label.lower().replace("/", " ").replace("-", " ").replace("_", " ").split()
+        )
         segment_overlap = sum(1 for t in goal_terms if any(t in seg for seg in path_segments))
         total = overlap + 0.5 * segment_overlap
         return min(1.0, total / max(1, len(goal_terms)))
@@ -923,11 +1004,20 @@ def _normalize_signal(raw: dict, organ: str) -> dict:
         "location": raw.get("location", raw.get("lat_lon", raw.get("coordinates", None))),
         "confidence": float(raw.get("confidence", raw.get("score", 0.5))),
         "metadata": {
-            k: v for k, v in raw.items()
-            if k not in {
-                "value", "result", "data", "timestamp", "ts",
-                "location", "lat_lon", "coordinates",
-                "confidence", "score",
+            k: v
+            for k, v in raw.items()
+            if k
+            not in {
+                "value",
+                "result",
+                "data",
+                "timestamp",
+                "ts",
+                "location",
+                "lat_lon",
+                "coordinates",
+                "confidence",
+                "score",
             }
         },
     }
@@ -960,6 +1050,7 @@ def _correlate(a: dict, b: dict) -> float:
     if a_ts and b_ts:
         try:
             from datetime import datetime
+
             t_a = datetime.fromisoformat(str(a_ts).replace("Z", "+00:00"))
             t_b = datetime.fromisoformat(str(b_ts).replace("Z", "+00:00"))
             delta_hours = abs((t_a - t_b).total_seconds()) / 3600
@@ -990,6 +1081,7 @@ def laglead(a: dict, b: dict) -> str:
         return "unknown"
     try:
         from datetime import datetime
+
         t_a = datetime.fromisoformat(str(a_ts).replace("Z", "+00:00"))
         t_b = datetime.fromisoformat(str(b_ts).replace("Z", "+00:00"))
         delta = (t_b - t_a).total_seconds()
@@ -1074,31 +1166,35 @@ class SurveyorMode:
                     ts = signal.get("timestamp", "")
                     val = str(signal.get("value", ""))[:64]
                     node_id = _hash(f"{organ_name}:{ts}:{val}")
-                    nodes.append(GraphNode(
-                        node_id=node_id,
-                        mode=self.mode,
-                        label=f"{organ_name}:{str(signal.get('value', ''))[:60]}",
-                        content_hash=_hash(str(signal)),
-                        evidence=str(signal.get("value", ""))[:500],
-                        meta={
-                            "organ": organ_name,
-                            "timestamp": signal.get("timestamp", ""),
-                            "location": signal.get("location"),
-                            "confidence": signal.get("confidence", 0.5),
-                            "raw_value": signal.get("value"),
-                            "unresolved": True,
-                        },
-                    ))
+                    nodes.append(
+                        GraphNode(
+                            node_id=node_id,
+                            mode=self.mode,
+                            label=f"{organ_name}:{str(signal.get('value', ''))[:60]}",
+                            content_hash=_hash(str(signal)),
+                            evidence=str(signal.get("value", ""))[:500],
+                            meta={
+                                "organ": organ_name,
+                                "timestamp": signal.get("timestamp", ""),
+                                "location": signal.get("location"),
+                                "confidence": signal.get("confidence", 0.5),
+                                "raw_value": signal.get("value"),
+                                "unresolved": True,
+                            },
+                        )
+                    )
             except Exception as exc:
                 logger.warning("SURVEYOR sense | %s query failed: %s", organ_name, exc)
-                nodes.append(GraphNode(
-                    node_id=_hash(f"{organ_name}:error:{question[:32]}"),
-                    mode=self.mode,
-                    label=f"{organ_name}:QUERY_FAILED",
-                    content_hash="",
-                    evidence=str(exc)[:200],
-                    meta={"organ": organ_name, "error": True, "unresolved": False},
-                ))
+                nodes.append(
+                    GraphNode(
+                        node_id=_hash(f"{organ_name}:error:{question[:32]}"),
+                        mode=self.mode,
+                        label=f"{organ_name}:QUERY_FAILED",
+                        content_hash="",
+                        evidence=str(exc)[:200],
+                        meta={"organ": organ_name, "error": True, "unresolved": False},
+                    )
+                )
 
         return nodes
 
@@ -1129,7 +1225,7 @@ class SurveyorMode:
             scored.append((s, node))
 
         scored.sort(key=lambda x: x[0], reverse=True)
-        return [n for _, n in scored[:limits.max_steps]]
+        return [n for _, n in scored[: limits.max_steps]]
 
     async def step(self, node: GraphNode, seed: Seed) -> StepResult:
         """Refined query for one signal — discover correlations."""
@@ -1188,28 +1284,32 @@ class SurveyorMode:
             ts = neighbor.get("timestamp", "")
             val = str(neighbor.get("value", ""))[:64]
             n_id = _hash(f"{organ}:{ts}:{val}")
-            new_nodes.append(GraphNode(
-                node_id=n_id,
-                mode=self.mode,
-                label=f"{organ}:{str(neighbor.get('value', ''))[:60]}",
-                content_hash=_hash(str(neighbor)),
-                evidence=str(neighbor.get("value", ""))[:500],
-                meta={
-                    "organ": organ,
-                    "timestamp": neighbor.get("timestamp"),
-                    "location": neighbor.get("location"),
-                    "confidence": neighbor.get("confidence", 0.5),
-                    "raw_value": neighbor.get("value"),
-                },
-            ))
+            new_nodes.append(
+                GraphNode(
+                    node_id=n_id,
+                    mode=self.mode,
+                    label=f"{organ}:{str(neighbor.get('value', ''))[:60]}",
+                    content_hash=_hash(str(neighbor)),
+                    evidence=str(neighbor.get("value", ""))[:500],
+                    meta={
+                        "organ": organ,
+                        "timestamp": neighbor.get("timestamp"),
+                        "location": neighbor.get("location"),
+                        "confidence": neighbor.get("confidence", 0.5),
+                        "raw_value": neighbor.get("value"),
+                    },
+                )
+            )
             corr = _correlate(current_signal, neighbor)
             if corr > 0.1:
-                new_edges.append(GraphEdge(
-                    from_id=node.node_id,
-                    to_id=n_id,
-                    relation=f"{organ}_neighbor",
-                    confidence=corr,
-                ))
+                new_edges.append(
+                    GraphEdge(
+                        from_id=node.node_id,
+                        to_id=n_id,
+                        relation=f"{organ}_neighbor",
+                        confidence=corr,
+                    )
+                )
 
         # Build nodes + edges for cross-organ signals
         strongest_cross = None
@@ -1218,32 +1318,36 @@ class SurveyorMode:
             cs_ts = cross_signal.get("timestamp", "")
             cs_val = str(cross_signal.get("value", ""))[:64]
             c_id = _hash(f"{cross_name}:{cs_ts}:{cs_val}")
-            new_nodes.append(GraphNode(
-                node_id=c_id,
-                mode=self.mode,
-                label=f"{cross_name}:{str(cross_signal.get('value', ''))[:60]}",
-                content_hash=_hash(str(cross_signal)),
-                evidence=str(cross_signal.get("value", ""))[:500],
-                meta={
-                    "organ": cross_name,
-                    "timestamp": cross_signal.get("timestamp"),
-                    "location": cross_signal.get("location"),
-                    "confidence": cross_signal.get("confidence", 0.5),
-                    "raw_value": cross_signal.get("value"),
-                },
-            ))
+            new_nodes.append(
+                GraphNode(
+                    node_id=c_id,
+                    mode=self.mode,
+                    label=f"{cross_name}:{str(cross_signal.get('value', ''))[:60]}",
+                    content_hash=_hash(str(cross_signal)),
+                    evidence=str(cross_signal.get("value", ""))[:500],
+                    meta={
+                        "organ": cross_name,
+                        "timestamp": cross_signal.get("timestamp"),
+                        "location": cross_signal.get("location"),
+                        "confidence": cross_signal.get("confidence", 0.5),
+                        "raw_value": cross_signal.get("value"),
+                    },
+                )
+            )
             corr = _correlate(current_signal, cross_signal)
             if corr > 0.1:
                 relation = f"{organ}_to_{cross_name}"
                 ll = laglead(current_signal, cross_signal)
                 if ll != "unknown":
                     relation += f":{ll}"
-                new_edges.append(GraphEdge(
-                    from_id=node.node_id,
-                    to_id=c_id,
-                    relation=relation,
-                    confidence=corr,
-                ))
+                new_edges.append(
+                    GraphEdge(
+                        from_id=node.node_id,
+                        to_id=c_id,
+                        relation=relation,
+                        confidence=corr,
+                    )
+                )
                 if corr > strongest_corr:
                     strongest_corr = corr
                     strongest_cross = (cross_name, cross_signal, corr)
@@ -1251,26 +1355,30 @@ class SurveyorMode:
         # Findings
         if strongest_cross:
             cross_name, cross_signal, corr = strongest_cross
-            findings.append(Finding(
-                id=_hash(f"cross:{node.node_id}:{cross_name}"),
-                summary=(
-                    f"Cross-organ correlation: {organ} ↔ {cross_name} "
-                    f"(r={corr:.2f}, {laglead(current_signal, cross_signal)})"
-                ),
-                confidence=corr,
-                sources=[
-                    f"{organ}:{node.label}",
-                    f"{cross_name}:{str(cross_signal.get('value', ''))[:40]}",
-                ],
-            ))
+            findings.append(
+                Finding(
+                    id=_hash(f"cross:{node.node_id}:{cross_name}"),
+                    summary=(
+                        f"Cross-organ correlation: {organ} ↔ {cross_name} "
+                        f"(r={corr:.2f}, {laglead(current_signal, cross_signal)})"
+                    ),
+                    confidence=corr,
+                    sources=[
+                        f"{organ}:{node.label}",
+                        f"{cross_name}:{str(cross_signal.get('value', ''))[:40]}",
+                    ],
+                )
+            )
 
         if neighbor_signals:
-            findings.append(Finding(
-                id=_hash(f"neighbors:{node.node_id}"),
-                summary=f"{len(neighbor_signals)} {organ} signals near current signal",
-                confidence=0.8,
-                sources=[f"{organ}:{node.label}"],
-            ))
+            findings.append(
+                Finding(
+                    id=_hash(f"neighbors:{node.node_id}"),
+                    summary=f"{len(neighbor_signals)} {organ} signals near current signal",
+                    confidence=0.8,
+                    sources=[f"{organ}:{node.label}"],
+                )
+            )
 
         # Gaps
         if not neighbor_signals:
@@ -1278,7 +1386,8 @@ class SurveyorMode:
         if not cross_signals:
             gaps.append(f"No cross-organ signals found for {node.label}")
         missing_conf = [
-            s for s in neighbor_signals + [cs for _, cs in cross_signals]
+            s
+            for s in neighbor_signals + [cs for _, cs in cross_signals]
             if s.get("confidence", 0) < 0.3
         ]
         if missing_conf:
@@ -1307,9 +1416,7 @@ class SurveyorMode:
             return 0.5
 
         node_text = (
-            f"{node.label} "
-            f"{node.meta.get('organ', '')} "
-            f"{str(node.meta.get('raw_value', ''))}"
+            f"{node.label} {node.meta.get('organ', '')} {str(node.meta.get('raw_value', ''))}"
         ).lower()
 
         overlap = sum(1 for t in goal_terms if t in node_text)
@@ -1385,16 +1492,22 @@ class NavigatorMode:
             url = self._resolve_seed_url()
         if not url:
             return []
-        return [GraphNode(
-            node_id=_hash(url),
-            mode=self.mode,
-            label=url,
-            content_hash="",
-            evidence="",
-            meta={"unresolved": True, "url": url, "seed": True,
-                  "federated_via": "arif_fetch",
-                  "target_mode": self.mode.value},
-        )]
+        return [
+            GraphNode(
+                node_id=_hash(url),
+                mode=self.mode,
+                label=url,
+                content_hash="",
+                evidence="",
+                meta={
+                    "unresolved": True,
+                    "url": url,
+                    "seed": True,
+                    "federated_via": "arif_fetch",
+                    "target_mode": self.mode.value,
+                },
+            )
+        ]
 
     async def plan(self, goal: str, graph: ExplorationGraph, limits: Limits) -> list[GraphNode]:
         """Cold start: seed from request URL. Otherwise rank unresolved URL nodes."""
@@ -1424,7 +1537,7 @@ class NavigatorMode:
                 continue
             scored.append((self.heuristic(node, goal), node))
         scored.sort(key=lambda x: x[0], reverse=True)
-        return [n for _, n in scored[:limits.max_steps]]
+        return [n for _, n in scored[: limits.max_steps]]
 
     async def step(self, node: GraphNode, seed: Seed) -> StepResult:
         """Delegate to arif_fetch (URL) or arif_observe (query).
@@ -1450,8 +1563,10 @@ class NavigatorMode:
                     gaps.append("arif_fetch handler not available")
                 else:
                     result = handler(
-                        mode="fetch", url=label,
-                        actor_id=self.actor_id, session_id=self.session_id,
+                        mode="fetch",
+                        url=label,
+                        actor_id=self.actor_id,
+                        session_id=self.session_id,
                     )
                     inner = result.get("result", {}) if isinstance(result, dict) else {}
                     content = inner.get("content", "") if isinstance(inner, dict) else ""
@@ -1468,20 +1583,26 @@ class NavigatorMode:
                         meta={
                             "url": label,
                             "federated_via": "arif_fetch",
-                            "actor_verified": result.get("actor_verified") if isinstance(result, dict) else None,
-                            "session_id": result.get("session_id") if isinstance(result, dict) else None,
+                            "actor_verified": result.get("actor_verified")
+                            if isinstance(result, dict)
+                            else None,
+                            "session_id": result.get("session_id")
+                            if isinstance(result, dict)
+                            else None,
                         },
                     )
                     new_nodes.append(page_node)
 
                     if content:
                         snippet = content[:300].replace("\n", " ").strip()
-                        findings.append(Finding(
-                            id=_hash(f"nav:{label}"),
-                            summary=f"Fetched {label}: {snippet[:200]}",
-                            confidence=0.9,
-                            sources=[label],
-                        ))
+                        findings.append(
+                            Finding(
+                                id=_hash(f"nav:{label}"),
+                                summary=f"Fetched {label}: {snippet[:200]}",
+                                confidence=0.9,
+                                sources=[label],
+                            )
+                        )
                     else:
                         gaps.append(f"empty content from arif_fetch: {label}")
             else:
@@ -1491,8 +1612,10 @@ class NavigatorMode:
                     gaps.append("arif_observe handler not available")
                 else:
                     result = handler(
-                        mode="search", query=label[:200],
-                        actor_id=self.actor_id, session_id=self.session_id,
+                        mode="search",
+                        query=label[:200],
+                        actor_id=self.actor_id,
+                        session_id=self.session_id,
                     )
                     inner = result.get("result", {}) if isinstance(result, dict) else {}
                     hits = inner.get("results", []) if isinstance(inner, dict) else []
@@ -1505,27 +1628,31 @@ class NavigatorMode:
                         hit_snippet = hit.get("snippet", "") or hit.get("description", "")
                         if not hit_url:
                             continue
-                        new_nodes.append(GraphNode(
-                            node_id=_hash(hit_url),
-                            mode=self.mode,
-                            label=hit_url,
-                            content_hash="",
-                            evidence=hit_snippet[:500],
-                            meta={
-                                "unresolved": True,
-                                "title": hit_title,
-                                "url": hit_url,
-                                "federated_via": "arif_observe",
-                            },
-                        ))
+                        new_nodes.append(
+                            GraphNode(
+                                node_id=_hash(hit_url),
+                                mode=self.mode,
+                                label=hit_url,
+                                content_hash="",
+                                evidence=hit_snippet[:500],
+                                meta={
+                                    "unresolved": True,
+                                    "title": hit_title,
+                                    "url": hit_url,
+                                    "federated_via": "arif_observe",
+                                },
+                            )
+                        )
 
                     if new_nodes:
-                        findings.append(Finding(
-                            id=_hash(f"search:{label}"),
-                            summary=f"{len(new_nodes)} results from federated search: {label[:80]}",
-                            confidence=0.85,
-                            sources=[n.label for n in new_nodes[:3]],
-                        ))
+                        findings.append(
+                            Finding(
+                                id=_hash(f"search:{label}"),
+                                summary=f"{len(new_nodes)} results from federated search: {label[:80]}",
+                                confidence=0.85,
+                                sources=[n.label for n in new_nodes[:3]],
+                            )
+                        )
                     else:
                         gaps.append(f"no results from federated search: {label[:80]}")
         except Exception as exc:
@@ -1553,9 +1680,7 @@ class NavigatorMode:
             return 0.3
 
         node_text = (
-            f"{node.label} "
-            f"{node.meta.get('title', '')} "
-            f"{node.meta.get('url', '')}"
+            f"{node.label} {node.meta.get('title', '')} {node.meta.get('url', '')}"
         ).lower()
 
         overlap = sum(1 for t in goal_terms if t in node_text)
@@ -1609,16 +1734,54 @@ class NavigatorMode:
 # Domain classification for auto-dispatch — expanded with geoscience + physics terms
 _DOMAIN_PATTERNS: list[tuple[re.Pattern, ExploreMode]] = [
     (re.compile(r"https?://", re.IGNORECASE), ExploreMode.NAVIGATOR),
-    (re.compile(r"\b(api|endpoint|rest|graphql|openapi|swagger)\b", re.IGNORECASE), ExploreMode.DRILLER),
-    (re.compile(r"\b(code|repo|github|gitlab|source|file|directory|path|package|module|class|function)\b", re.IGNORECASE), ExploreMode.PROSPECTOR),
-    (re.compile(r"\b(telemetry|signal|sensor|log|metric|health|vital|organ|geox|wealth|well)\b", re.IGNORECASE), ExploreMode.SURVEYOR),
-    (re.compile(r"\b(graph|relation|entity|knowledge|ontology|schema|triple|node|edge)\b", re.IGNORECASE), ExploreMode.MAPPER),
+    (
+        re.compile(r"\b(api|endpoint|rest|graphql|openapi|swagger)\b", re.IGNORECASE),
+        ExploreMode.DRILLER,
+    ),
+    (
+        re.compile(
+            r"\b(code|repo|github|gitlab|source|file|directory|path|package|module|class|function)\b",
+            re.IGNORECASE,
+        ),
+        ExploreMode.PROSPECTOR,
+    ),
+    (
+        re.compile(
+            r"\b(telemetry|signal|sensor|log|metric|health|vital|organ|geox|wealth|well)\b",
+            re.IGNORECASE,
+        ),
+        ExploreMode.SURVEYOR,
+    ),
+    (
+        re.compile(
+            r"\b(graph|relation|entity|knowledge|ontology|schema|triple|node|edge)\b", re.IGNORECASE
+        ),
+        ExploreMode.MAPPER,
+    ),
     # Geoscience terms — route to Navigator (web research) primarily
-    (re.compile(r"\b(seismic|well\s*log|petrophysic|basin|formation|reservoir|geology|geophysic|earth\s*model|lem|subsurface)\b", re.IGNORECASE), ExploreMode.NAVIGATOR),
+    (
+        re.compile(
+            r"\b(seismic|well\s*log|petrophysic|basin|formation|reservoir|geology|geophysic|earth\s*model|lem|subsurface)\b",
+            re.IGNORECASE,
+        ),
+        ExploreMode.NAVIGATOR,
+    ),
     # Mathematics / physics / equations
-    (re.compile(r"\b(pde|neural\s*operator|fourier|equation|physics|wavelet|transform|gradient|loss|convergence)\b", re.IGNORECASE), ExploreMode.NAVIGATOR),
+    (
+        re.compile(
+            r"\b(pde|neural\s*operator|fourier|equation|physics|wavelet|transform|gradient|loss|convergence)\b",
+            re.IGNORECASE,
+        ),
+        ExploreMode.NAVIGATOR,
+    ),
     # Foundation model / ML architecture terms
-    (re.compile(r"\b(transformer|attention|encoder|decoder|embedding|pretrain|fine.?tune|foundation\s*model|moe|vit|mae|vision\s*transformer)\b", re.IGNORECASE), ExploreMode.NAVIGATOR),
+    (
+        re.compile(
+            r"\b(transformer|attention|encoder|decoder|embedding|pretrain|fine.?tune|foundation\s*model|moe|vit|mae|vision\s*transformer)\b",
+            re.IGNORECASE,
+        ),
+        ExploreMode.NAVIGATOR,
+    ),
 ]
 
 
@@ -1705,7 +1868,9 @@ class EurekaMode:
     _cycle_count: int = field(default=0, init=False)
     _dry_cycles: int = field(default=0, init=False)  # consecutive cycles with no novelty
     _best_findings: list[Finding] = field(default_factory=list, init=False)
-    _cross_domain_links: list[dict] = field(default_factory=list, init=False)  # cross-organ patterns detected
+    _cross_domain_links: list[dict] = field(
+        default_factory=list, init=False
+    )  # cross-organ patterns detected
 
     # Saturation: adaptive threshold based on discovery velocity
     MAX_DRY_CYCLES: int = 3  # base: saturate after 3 dry cycles
@@ -1749,25 +1914,28 @@ class EurekaMode:
         modes = _classify_question(question)
         logger.info(
             "EUREKA sense | question=%.80s modes=%s",
-            question, [m.value for m in modes],
+            question,
+            [m.value for m in modes],
         )
 
         seed_nodes: list[GraphNode] = []
         for mode in modes:
             node_id = _hash(f"eureka:{mode.value}:{question[:120]}")
-            seed_nodes.append(GraphNode(
-                node_id=node_id,
-                mode=self.mode,
-                label=question[:200],
-                content_hash=_hash(question),
-                evidence=question[:2000],
-                meta={
-                    "target_mode": mode.value,
-                    "unresolved": True,
-                    "cycle": 0,
-                    "priority": 1.0 if mode == modes[0] else 0.5,
-                },
-            ))
+            seed_nodes.append(
+                GraphNode(
+                    node_id=node_id,
+                    mode=self.mode,
+                    label=question[:200],
+                    content_hash=_hash(question),
+                    evidence=question[:2000],
+                    meta={
+                        "target_mode": mode.value,
+                        "unresolved": True,
+                        "cycle": 0,
+                        "priority": 1.0 if mode == modes[0] else 0.5,
+                    },
+                )
+            )
 
         return seed_nodes
 
@@ -1796,8 +1964,7 @@ class EurekaMode:
         for node in graph.nodes:
             # Skip if already explored — check BOTH directions
             has_resolve_edge = any(
-                (e.from_id == node.node_id or e.to_id == node.node_id)
-                and e.relation == "resolves"
+                (e.from_id == node.node_id or e.to_id == node.node_id) and e.relation == "resolves"
                 for e in graph.edges
             )
             if has_resolve_edge:
@@ -1811,14 +1978,12 @@ class EurekaMode:
 
             # Composite score: relevance + priority bonus - depth penalty
             score = (
-                relevance * 0.5 +
-                priority * 0.3 -
-                min(cycle_depth / (limits.max_depth + 1), 0.2)
+                relevance * 0.5 + priority * 0.3 - min(cycle_depth / (limits.max_depth + 1), 0.2)
             )
             scored.append((score, node))
 
         scored.sort(key=lambda x: x[0], reverse=True)
-        selected = [n for _, n in scored[:limits.max_steps]]
+        selected = [n for _, n in scored[: limits.max_steps]]
         return selected
 
     async def step(self, node: GraphNode, seed: Seed) -> StepResult:
@@ -1842,14 +2007,20 @@ class EurekaMode:
             # Mode not forged — skip this cycle, try a different mode
             logger.info("EUREKA step | mode %s not forged, skipping cycle", target_mode_str)
             return StepResult(
-                nodes=[], edges=[], findings=[],
+                nodes=[],
+                edges=[],
+                findings=[],
                 gaps=[f"target mode not yet forged: {target_mode_str}"],
-                coverage_delta=0.0, confidence=0.0, terminal=False,
+                coverage_delta=0.0,
+                confidence=0.0,
+                terminal=False,
             )
 
         logger.info(
             "EUREKA step | cycle=%d mode=%s question=%.80s",
-            self._cycle_count, target_mode_str, node.label[:80],
+            self._cycle_count,
+            target_mode_str,
+            node.label[:80],
         )
 
         # ── 1. Dispatch sub-exploration ──────────────────────
@@ -1862,15 +2033,20 @@ class EurekaMode:
                 # browsers. Return a gap; EurekaMode will breed a new seed
                 # for another mode in the next cycle.
                 logger.info(
-                    "EUREKA dispatch | navigator skipped (no URL seed) "
-                    "for: %.80s",
+                    "EUREKA dispatch | navigator skipped (no URL seed) for: %.80s",
                     node.label[:80],
                 )
                 return StepResult(
-                    nodes=[], edges=[], findings=[],
-                    gaps=[f"navigator needs URL seed — re-dispatch with "
-                          f"prospector or surveyor for: {node.label[:120]}"],
-                    coverage_delta=0.05, confidence=0.3, terminal=False,
+                    nodes=[],
+                    edges=[],
+                    findings=[],
+                    gaps=[
+                        f"navigator needs URL seed — re-dispatch with "
+                        f"prospector or surveyor for: {node.label[:120]}"
+                    ],
+                    coverage_delta=0.05,
+                    confidence=0.3,
+                    terminal=False,
                 )
         elif target_mode == ExploreMode.PROSPECTOR and seed.path:
             sub_seed = seed
@@ -1881,9 +2057,13 @@ class EurekaMode:
         except Exception as exc:
             logger.error("EUREKA step | sub-exploration failed: %s", exc)
             return StepResult(
-                nodes=[], edges=[], findings=[],
+                nodes=[],
+                edges=[],
+                findings=[],
                 gaps=[f"sub-{target_mode_str} error: {exc!s:.120}"],
-                coverage_delta=0.0, confidence=0.0, terminal=True,
+                coverage_delta=0.0,
+                confidence=0.0,
+                terminal=True,
             )
 
         # ── 2. Collect findings ──────────────────────────────
@@ -1903,12 +2083,14 @@ class EurekaMode:
                 e_terms = set(existing.summary.lower().split())
                 overlap = len(f_terms & e_terms)
                 if overlap >= 3 and len(f_terms) > 0 and len(e_terms) > 0:
-                    cross_edges.append(GraphEdge(
-                        from_id=f.id,
-                        to_id=existing.id,
-                        relation="corroborates",
-                        confidence=min(0.9, overlap / max(len(f_terms), len(e_terms))),
-                    ))
+                    cross_edges.append(
+                        GraphEdge(
+                            from_id=f.id,
+                            to_id=existing.id,
+                            relation="corroborates",
+                            confidence=min(0.9, overlap / max(len(f_terms), len(e_terms))),
+                        )
+                    )
             # Track which domain this finding came from
             if target_mode_str not in domain_map:
                 domain_map[target_mode_str] = set()
@@ -1926,13 +2108,15 @@ class EurekaMode:
             src_domain = all_domain_findings.get(edge.from_id, "unknown")
             tgt_domain = all_domain_findings.get(edge.to_id, "unknown")
             if src_domain != tgt_domain and src_domain != "unknown" and tgt_domain != "unknown":
-                self._cross_domain_links.append({
-                    "cycle": self._cycle_count,
-                    "from_domain": src_domain,
-                    "to_domain": tgt_domain,
-                    "finding_id": edge.from_id,
-                    "corroborates_id": edge.to_id,
-                })
+                self._cross_domain_links.append(
+                    {
+                        "cycle": self._cycle_count,
+                        "from_domain": src_domain,
+                        "to_domain": tgt_domain,
+                        "finding_id": edge.from_id,
+                        "corroborates_id": edge.to_id,
+                    }
+                )
 
         # ── 4. Score novelty ─────────────────────────────────
         novel_findings: list[Finding] = []
@@ -1950,7 +2134,8 @@ class EurekaMode:
             self._dry_cycles += 1
             logger.info(
                 "EUREKA step | dry cycle %d/%d — no novel findings",
-                self._dry_cycles, self.MAX_DRY_CYCLES,
+                self._dry_cycles,
+                self.MAX_DRY_CYCLES,
             )
 
         # ── 5. Breed new seeds from gaps ────────────────────
@@ -1963,39 +2148,42 @@ class EurekaMode:
             # next best mode instead of re-dispatching to the failed mode.
             next_mode = target_mode_str
             gap_lower = gap.lower()
-            if "navigator needs url seed" in gap_lower or \
-               "sub-navigator" in gap_lower:
+            if "navigator needs url seed" in gap_lower or "sub-navigator" in gap_lower:
                 next_mode = "prospector"
             elif "prospector" in gap_lower and "no files" in gap_lower:
                 next_mode = "surveyor"
 
-            child_nodes.append(GraphNode(
-                node_id=child_id,
-                mode=self.mode,
-                # Use the parent question as label so Prospector can search it.
-                # The gap text goes in evidence for provenance.
-                label=node.label[:200],
-                # Content hash = question + target mode. This lets the
-                # visited-check in STEP deduplicate re-bred seeds — without
-                # it, every gap breeds a new copy and the loop never converges.
-                content_hash=_hash(node.label[:200] + next_mode),
-                evidence=gap[:2000],
-                meta={
-                    "target_mode": next_mode,
-                    "unresolved": True,
-                    "cycle": self._cycle_count,
-                    "priority": 0.7,
-                    "parent_finding": node.node_id,
-                    "original_target": target_mode_str,
-                    "gap_source": gap[:200],
-                },
-            ))
-            all_edges.append(GraphEdge(
-                from_id=node.node_id,
-                to_id=child_id,
-                relation="breeds",
-                confidence=0.6,
-            ))
+            child_nodes.append(
+                GraphNode(
+                    node_id=child_id,
+                    mode=self.mode,
+                    # Use the parent question as label so Prospector can search it.
+                    # The gap text goes in evidence for provenance.
+                    label=node.label[:200],
+                    # Content hash = question + target mode. This lets the
+                    # visited-check in STEP deduplicate re-bred seeds — without
+                    # it, every gap breeds a new copy and the loop never converges.
+                    content_hash=_hash(node.label[:200] + next_mode),
+                    evidence=gap[:2000],
+                    meta={
+                        "target_mode": next_mode,
+                        "unresolved": True,
+                        "cycle": self._cycle_count,
+                        "priority": 0.7,
+                        "parent_finding": node.node_id,
+                        "original_target": target_mode_str,
+                        "gap_source": gap[:200],
+                    },
+                )
+            )
+            all_edges.append(
+                GraphEdge(
+                    from_id=node.node_id,
+                    to_id=child_id,
+                    relation="breeds",
+                    confidence=0.6,
+                )
+            )
 
         # Mark explored node
         explored_node = GraphNode(
@@ -2004,7 +2192,7 @@ class EurekaMode:
             label=f"[cycle {self._cycle_count}] {node.label[:150]}",
             content_hash=node.content_hash or _hash(node.label),
             evidence=f"Dispatched to {target_mode_str}. "
-                     f"{len(novel_findings)} novel findings, {len(gaps)} gaps.",
+            f"{len(novel_findings)} novel findings, {len(gaps)} gaps.",
             meta={
                 "cycle": self._cycle_count,
                 "target_mode": target_mode_str,
@@ -2015,12 +2203,14 @@ class EurekaMode:
         )
 
         all_nodes.append(explored_node)
-        all_edges.append(GraphEdge(
-            from_id=explored_node.node_id,
-            to_id=node.node_id,
-            relation="resolves",
-            confidence=0.9 if novel_findings else 0.5,
-        ))
+        all_edges.append(
+            GraphEdge(
+                from_id=explored_node.node_id,
+                to_id=node.node_id,
+                relation="resolves",
+                confidence=0.9 if novel_findings else 0.5,
+            )
+        )
 
         # Coverage: fraction of the question space explored
         coverage = min(1.0, self._cycle_count / 10)
@@ -2033,7 +2223,9 @@ class EurekaMode:
         # If cross-domain links are active, extend dry cycles (multi-domain questions
         # naturally have more exploration value)
         has_cross_domain_activity = bool(self._cross_domain_links)
-        max_dry = self.MAX_DRY_CYCLES_MULTI_DOMAIN if has_cross_domain_activity else self.MAX_DRY_CYCLES
+        max_dry = (
+            self.MAX_DRY_CYCLES_MULTI_DOMAIN if has_cross_domain_activity else self.MAX_DRY_CYCLES
+        )
         if self._cycle_count < self.MIN_CYCLES:
             # Never saturate before minimum cycles
             terminal = False
@@ -2044,8 +2236,10 @@ class EurekaMode:
             logger.info(
                 "EUREKA step | SATURATED after %d cycles, %d total findings, "
                 "%d cross-domain links (multi_domain=%s)",
-                self._cycle_count, len(self._best_findings),
-                len(self._cross_domain_links), has_cross_domain_activity,
+                self._cycle_count,
+                len(self._best_findings),
+                len(self._cross_domain_links),
+                has_cross_domain_activity,
             )
 
         return StepResult(
@@ -2072,9 +2266,7 @@ class EurekaMode:
             return 0.5
 
         node_text = (
-            f"{node.label} "
-            f"{node.meta.get('target_mode', '')} "
-            f"{str(node.meta.get('priority', ''))}"
+            f"{node.label} {node.meta.get('target_mode', '')} {str(node.meta.get('priority', ''))}"
         ).lower()
 
         relevance = sum(1 for t in goal_terms if t in node_text) / max(1, len(goal_terms))
@@ -2091,17 +2283,15 @@ class EurekaMode:
         # Cross-domain bonus: Surveyor mode links across organs
         cross_domain_bonus = 0.1 if target_mode == "surveyor" else 0.0
 
-        return min(1.0,
-            relevance * 0.5 +
-            novelty_potential * 0.3 +
-            diversity_bonus +
-            cross_domain_bonus
+        return min(
+            1.0, relevance * 0.5 + novelty_potential * 0.3 + diversity_bonus + cross_domain_bonus
         )
 
 
 # ═══════════════════════════════════════════════════════════════
 # PUBLIC TOOL HANDLER — arif_explore
 # ═══════════════════════════════════════════════════════════════
+
 
 async def arif_explore(
     goal: str,
@@ -2214,7 +2404,7 @@ async def arif_explore(
                 "status": "not_implemented",
                 "mode": "driller",
                 "message": "Driller mode (API exploration) is not yet forged. "
-                           "Use mode='prospector' for filesystem exploration.",
+                "Use mode='prospector' for filesystem exploration.",
             }
     elif explore_mode == ExploreMode.MAPPER:
         if was_auto:
@@ -2229,7 +2419,7 @@ async def arif_explore(
                 "status": "not_implemented",
                 "mode": "mapper",
                 "message": "Mapper mode (knowledge graph traversal) is not yet forged. "
-                           "Use mode='prospector' for filesystem exploration.",
+                "Use mode='prospector' for filesystem exploration.",
             }
     elif explore_mode == ExploreMode.SURVEYOR:
         mode_impl = SurveyorMode(request_seed=request.seed)
@@ -2246,7 +2436,7 @@ async def arif_explore(
                 "status": "not_implemented",
                 "mode": "scout",
                 "message": "Scout mode (recursive meta-explorer) has been subsumed by EurekaMode. "
-                           "Use mode='eureka' for evolutionary discovery with governance.",
+                "Use mode='eureka' for evolutionary discovery with governance.",
             }
     elif explore_mode == ExploreMode.EUREKA:
         mode_impl = EurekaMode()
@@ -2275,9 +2465,11 @@ async def arif_explore(
 # Eureka defaults — injected tool handles for sub-modes
 # ═══════════════════════════════════════════════════════════════
 
+
 async def _default_glob(pattern: str) -> list[str]:
     """Default glob implementation — uses OS glob via asyncio."""
     import glob as _g
+
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, _g.glob, pattern)
 
@@ -2285,24 +2477,29 @@ async def _default_glob(pattern: str) -> list[str]:
 async def _default_read(path: str) -> str:
     """Default read implementation — uses OS open via asyncio."""
     loop = asyncio.get_event_loop()
+
     def _read():
         try:
-            with open(path, 'r', errors='replace') as f:
+            with open(path, "r", errors="replace") as f:
                 return f.read(65536)
         except (FileNotFoundError, IsADirectoryError, PermissionError):
             return ""
+
     return await loop.run_in_executor(None, _read)
 
 
 async def _default_list(path: str) -> list[str]:
     """Default list implementation — uses OS listdir via asyncio."""
     import os as _os
+
     loop = asyncio.get_event_loop()
+
     def _list():
         try:
             return _os.listdir(path)
         except (FileNotFoundError, PermissionError, NotADirectoryError):
             return []
+
     return await loop.run_in_executor(None, _list)
 
 

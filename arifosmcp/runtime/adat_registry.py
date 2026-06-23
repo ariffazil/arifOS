@@ -343,7 +343,6 @@ def validate_registry() -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-
     print("=== ADAT ARIF REGISTRY ===\n")
     status = validate_registry()
     print(f"Total adat: {status['total']}")

@@ -1573,9 +1573,15 @@ def _rest_action_class(canonical_name: str, body: dict[str, Any]) -> Any:
 
     # OBSERVE-class tools
     if canonical_name in (
-        "arif_init", "arif_observe", "arif_fetch",
-        "arif_kernel_route", "arif_route", "arif_measure",
-        "arif_kernel_health", "arif_kernel_attest", "arif_kernel_status",
+        "arif_init",
+        "arif_observe",
+        "arif_fetch",
+        "arif_kernel_route",
+        "arif_route",
+        "arif_measure",
+        "arif_kernel_health",
+        "arif_kernel_attest",
+        "arif_kernel_status",
         "arif_triage",
     ):
         return ActionClass.OBSERVE
@@ -1966,6 +1972,7 @@ def _get_diagnostic_tool_count(mcp: Any) -> int:
     # Fall back to the live source of truth
     try:
         from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS
+
         return len(DIAGNOSTIC_TOOLS)
     except Exception:
         return 0
@@ -2570,8 +2577,7 @@ def register_rest_routes(
             # No hardcoded fallbacks. No attribute roulette. Single source of truth.
             "diagnostic_tools": _get_diagnostic_tool_count(mcp),
             "total_declared_tools": (
-                getattr(mcp, "_tool_count", len(tool_registry))
-                + _get_diagnostic_tool_count(mcp)
+                getattr(mcp, "_tool_count", len(tool_registry)) + _get_diagnostic_tool_count(mcp)
             ),
             "operational_tools": max(
                 0,
@@ -3688,7 +3694,10 @@ def register_rest_routes(
                 if _gate_result.is_blocked:
                     logger.warning(
                         "rest_routes gate BLOCKED: tool=%s canonical=%s action=%s reasons=%s",
-                        incoming_name, canonical_name, _rest_action.value, _gate_result.reasons,
+                        incoming_name,
+                        canonical_name,
+                        _rest_action.value,
+                        _gate_result.reasons,
                     )
                     return JSONResponse(
                         {
@@ -4214,7 +4223,9 @@ def register_rest_routes(
         from arifosmcp.runtime.tools import _runtime_selftest
 
         readiness = _runtime_selftest()
-        verdict = str(readiness.get("verdict", "FAIL"))  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
+        verdict = str(
+            readiness.get("verdict", "FAIL")
+        )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
         payload = {
             "status": verdict.lower(),  # human-readable alias: pass | partial | fail
             "machine_status": verdict,  # machine health, not constitutional verdict

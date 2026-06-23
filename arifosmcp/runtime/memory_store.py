@@ -118,7 +118,9 @@ def _normalise_tier(tier: str | None) -> str:
     logger.warning(
         "F2 TRUTH: tier '%s' is not a known tier. Downgrading to '%s' "
         "to prevent silent canon pollution. Known tiers: %s",
-        tier, TIER_EPHEMERAL, sorted(_TIER_MAP.keys()),
+        tier,
+        TIER_EPHEMERAL,
+        sorted(_TIER_MAP.keys()),
     )
     return TIER_EPHEMERAL
 
@@ -346,7 +348,9 @@ def _generate_embedding(text: str) -> list[float]:
         except Exception:
             pass
 
-    raise RuntimeError("All embedding backends exhausted (Ollama bge-m3 + Azure text-embedding-3-small)")
+    raise RuntimeError(
+        "All embedding backends exhausted (Ollama bge-m3 + Azure text-embedding-3-small)"
+    )
 
 
 def _summarize(content: Any) -> str:
@@ -999,7 +1003,9 @@ def recall(memory_id: str) -> dict[str, Any] | None:
                 "session_id": pg_row.get("session_id"),
                 "summary": _summarize(pg_row["text"]),
                 "content_hash": _content_hash(pg_row["text"]),
-                "created_at": pg_row["created_at"].isoformat() if pg_row.get("created_at") else None,
+                "created_at": pg_row["created_at"].isoformat()
+                if pg_row.get("created_at")
+                else None,
                 "tier": pg_row.get("tier", "L4"),
                 "point_id": None,
                 "version": "v5-pg-direct",
@@ -1918,7 +1924,14 @@ def audit_governance(
     # Filter by target
     if target:
         if target == "authority_memories":
-            memories = [m for m in memories if any(t.startswith("m_tier:M3") or t.startswith("m_tier:M4") for t in m.get("tags", []))]
+            memories = [
+                m
+                for m in memories
+                if any(
+                    t.startswith("m_tier:M3") or t.startswith("m_tier:M4")
+                    for t in m.get("tags", [])
+                )
+            ]
         elif target.startswith("memory_"):
             memories = [m for m in memories if m.get("memory_id") == target]
         else:
@@ -1955,53 +1968,62 @@ def audit_governance(
             stale_threshold_days = 90 if tier == "canon" else 30
             age_days = (now - created_at).days
             if age_days > stale_threshold_days:
-                findings["stale"].append({
-                    "memory_id": mem.get("memory_id"),
-                    "tier": tier,
-                    "age_days": age_days,
-                    "threshold": stale_threshold_days,
-                    "reason": f"Memory untouched for {age_days} days (threshold: {stale_threshold_days})",
-                })
+                findings["stale"].append(
+                    {
+                        "memory_id": mem.get("memory_id"),
+                        "tier": tier,
+                        "age_days": age_days,
+                        "threshold": stale_threshold_days,
+                        "reason": f"Memory untouched for {age_days} days (threshold: {stale_threshold_days})",
+                    }
+                )
 
         # Check missing_provenance: no source_type or actor_id
         if "missing_provenance" in checks:
             has_source = any(t.startswith("source:") for t in tags)
             has_actor = bool(mem.get("actor_id"))
             if not has_source or not has_actor:
-                findings["missing_provenance"].append({
-                    "memory_id": mem.get("memory_id"),
-                    "has_source": has_source,
-                    "has_actor": has_actor,
-                    "reason": "Missing source_type or actor_id provenance",
-                })
+                findings["missing_provenance"].append(
+                    {
+                        "memory_id": mem.get("memory_id"),
+                        "has_source": has_source,
+                        "has_actor": has_actor,
+                        "reason": "Missing source_type or actor_id provenance",
+                    }
+                )
 
         # Check over_authorized: can_authorize=true without M3/M4
         if "over_authorized" in checks:
             has_authorize = "can_authorize:true" in tags
             is_high_tier = any(t.startswith("m_tier:M3") or t.startswith("m_tier:M4") for t in tags)
             if has_authorize and not is_high_tier:
-                findings["over_authorized"].append({
-                    "memory_id": mem.get("memory_id"),
-                    "reason": "Memory claims can_authorize=true but is not M3/M4",
-                })
+                findings["over_authorized"].append(
+                    {
+                        "memory_id": mem.get("memory_id"),
+                        "reason": "Memory claims can_authorize=true but is not M3/M4",
+                    }
+                )
 
     # Contradiction check: use existing F4 results from metadata
     if "contradiction" in checks:
         for mem in memories:
             meta = mem.get("metadata", {})
-            if meta.get("f4_conflicts_count", 0) > 0 or meta.get("phoenix_state") == "contradiction_hold":
-                findings["contradiction"].append({
-                    "memory_id": mem.get("memory_id"),
-                    "phoenix_state": meta.get("phoenix_state"),
-                    "f4_conflicts_count": meta.get("f4_conflicts_count", 0),
-                    "reason": "Contradiction detected by F4 or Phoenix-72",
-                })
+            if (
+                meta.get("f4_conflicts_count", 0) > 0
+                or meta.get("phoenix_state") == "contradiction_hold"
+            ):
+                findings["contradiction"].append(
+                    {
+                        "memory_id": mem.get("memory_id"),
+                        "phoenix_state": meta.get("phoenix_state"),
+                        "f4_conflicts_count": meta.get("f4_conflicts_count", 0),
+                        "reason": "Contradiction detected by F4 or Phoenix-72",
+                    }
+                )
 
     # Build escalation queue (anything that needs sovereign attention)
     escalation_queue = (
-        findings["contradiction"]
-        + findings["over_authorized"]
-        + findings["missing_provenance"]
+        findings["contradiction"] + findings["over_authorized"] + findings["missing_provenance"]
     )
 
     return {

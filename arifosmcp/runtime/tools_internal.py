@@ -26,7 +26,6 @@ from core.shared.mottos import (
 from fastmcp.server.context import Context
 
 from arifosmcp.runtime.model import (
-    ArifOSError,
     CallerContext,
     RuntimeEnvelope,
     RuntimeStatus,
@@ -242,6 +241,7 @@ def _create_error_envelope(
     not ArifOSError. RuntimeEnvelope.errors: list[CanonicalError].
     """
     from arifosmcp.runtime.model import CanonicalError
+
     return RuntimeEnvelope(
         ok=False,
         tool=tool_name,
@@ -1603,9 +1603,13 @@ async def engineering_memory_dispatch_impl(
             except Exception as e:
                 # Postgres fallback: if query looks like a UUID, try direct lookup
                 import re
-                if re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', query, re.I):
+
+                if re.match(
+                    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", query, re.I
+                ):
                     try:
                         from arifosmcp.runtime.memory_store import recall as pg_recall
+
                         result = pg_recall(query)
                         if result:
                             return RuntimeEnvelope(

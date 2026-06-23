@@ -32,45 +32,56 @@ CONFIG_PATH = "/etc/arifos/apexd.yaml"
 # -------------------------------------------------------------------------
 
 ATOMIC_PATTERNS = [
-    (re.compile(r"rm\s+-rf\s+/\s*$", re.I),          "F9 F13 ATOMIC: recursive root delete"),
-    (re.compile(r"rm\s+-rf\s+/var", re.I),            "F9 F13 ATOMIC: system dir wipe"),
-    (re.compile(r"rm\s+-rf\s+/etc", re.I),            "F9 F13 ATOMIC: config dir wipe"),
-    (re.compile(r"rm\s+-rf\s+/usr", re.I),            "F9 F13 ATOMIC: /usr wipe"),
-    (re.compile(r"mkfs", re.I),                      "F13 ATOMIC: filesystem destruction"),
-    (re.compile(r"fdisk", re.I),                     "F13 ATOMIC: partition table destruction"),
-    (re.compile(r"parted.*mklabel", re.I),           "F13 ATOMIC: partition destruction"),
+    (re.compile(r"rm\s+-rf\s+/\s*$", re.I), "F9 F13 ATOMIC: recursive root delete"),
+    (re.compile(r"rm\s+-rf\s+/var", re.I), "F9 F13 ATOMIC: system dir wipe"),
+    (re.compile(r"rm\s+-rf\s+/etc", re.I), "F9 F13 ATOMIC: config dir wipe"),
+    (re.compile(r"rm\s+-rf\s+/usr", re.I), "F9 F13 ATOMIC: /usr wipe"),
+    (re.compile(r"mkfs", re.I), "F13 ATOMIC: filesystem destruction"),
+    (re.compile(r"fdisk", re.I), "F13 ATOMIC: partition table destruction"),
+    (re.compile(r"parted.*mklabel", re.I), "F13 ATOMIC: partition destruction"),
     (re.compile(r"dd\s+if=/dev/zero\s+of=/dev/", re.I), "F13 ATOMIC: raw disk wipe"),
-    (re.compile(r"iptables\s+-F\s*$", re.I),         "F13 ATOMIC: firewall flush"),
-    (re.compile(r"iptables\s+-t\s+nat\s+-F", re.I),  "F13 ATOMIC: NAT table flush"),
-    (re.compile(r"curl\s+.*\|\s*sh", re.I),           "F9 F13 ATOMIC: remote exec via pipe"),
+    (re.compile(r"iptables\s+-F\s*$", re.I), "F13 ATOMIC: firewall flush"),
+    (re.compile(r"iptables\s+-t\s+nat\s+-F", re.I), "F13 ATOMIC: NAT table flush"),
+    (re.compile(r"curl\s+.*\|\s*sh", re.I), "F9 F13 ATOMIC: remote exec via pipe"),
     (re.compile(r"curl\s+.*\|\s*sudo\s+bash", re.I), "F9 F13 ATOMIC: sudo remote exec"),
-    (re.compile(r"DROP\s+DATABASE", re.I),           "F13 ATOMIC: database destruction"),
-    (re.compile(r"shutdown", re.I),                  "F13 ATOMIC: system shutdown"),
-    (re.compile(r"reboot", re.I),                    "F13 ATOMIC: system reboot"),
-    (re.compile(r":\(\)\s*:\s*\|\s*:\s*&", re.I),    "F9 ATOMIC: fork bomb"),
-    (re.compile(r"chmod\s+-R?\s+0000\s+/", re.I),   "F9 F13 ATOMIC: remove all perms"),
+    (re.compile(r"DROP\s+DATABASE", re.I), "F13 ATOMIC: database destruction"),
+    (re.compile(r"shutdown", re.I), "F13 ATOMIC: system shutdown"),
+    (re.compile(r"reboot", re.I), "F13 ATOMIC: system reboot"),
+    (re.compile(r":\(\)\s*:\s*\|\s*:\s*&", re.I), "F9 ATOMIC: fork bomb"),
+    (re.compile(r"chmod\s+-R?\s+0000\s+/", re.I), "F9 F13 ATOMIC: remove all perms"),
 ]
 
 HIGH_PATTERNS = [
-    (re.compile(r"chmod\s+-R\s+777\s+/", re.I),      "F9: world-writable system"),
-    (re.compile(r"chown\s+-R\s+root\s+/", re.I),      "F9 F13: ownership takeover"),
-    (re.compile(r"systemctl\s+mask", re.I),           "F13 HIGH: service masking"),
+    (re.compile(r"chmod\s+-R\s+777\s+/", re.I), "F9: world-writable system"),
+    (re.compile(r"chown\s+-R\s+root\s+/", re.I), "F9 F13: ownership takeover"),
+    (re.compile(r"systemctl\s+mask", re.I), "F13 HIGH: service masking"),
     (re.compile(r"git\s+push\s+--force\s+.*main", re.I), "F13 HIGH: main branch force push"),
-    (re.compile(r"eval\s+\$\(", re.I),                "F9 HIGH: eval injection"),
-    (re.compile(r"chmod\s+[u+w]?s", re.I),           "F9 HIGH: setuid bit manipulation"),
+    (re.compile(r"eval\s+\$\(", re.I), "F9 HIGH: eval injection"),
+    (re.compile(r"chmod\s+[u+w]?s", re.I), "F9 HIGH: setuid bit manipulation"),
 ]
 
 CAUTION_PATTERNS = [
-    (re.compile(r"git\s+push\s+--force", re.I),       "F13 CAUTION: force push"),
-    (re.compile(r"systemctl\s+(stop|restart)", re.I),  "F13 CAUTION: service control"),
-    (re.compile(r"chmod\s+-R\s+777", re.I),            "F9 CAUTION: broad permission change"),
-    (re.compile(r"docker\s+rm\s+-f", re.I),            "F9 CAUTION: container destruction"),
-    (re.compile(r"pkill\s+-9", re.I),                 "F13 CAUTION: force kill all processes"),
-    (re.compile(r"kill\s+-9\s+1", re.I),              "F13 CAUTION: kill init"),
+    (re.compile(r"git\s+push\s+--force", re.I), "F13 CAUTION: force push"),
+    (re.compile(r"systemctl\s+(stop|restart)", re.I), "F13 CAUTION: service control"),
+    (re.compile(r"chmod\s+-R\s+777", re.I), "F9 CAUTION: broad permission change"),
+    (re.compile(r"docker\s+rm\s+-f", re.I), "F9 CAUTION: container destruction"),
+    (re.compile(r"pkill\s+-9", re.I), "F13 CAUTION: force kill all processes"),
+    (re.compile(r"kill\s+-9\s+1", re.I), "F13 CAUTION: kill init"),
 ]
 
-CRITICAL_SERVICES = ["ssh", "sshd", "systemd", "network", "firewalld",
-                     "docker", "nginx", "apache2", "mysql", "postgresql"]
+CRITICAL_SERVICES = [
+    "ssh",
+    "sshd",
+    "systemd",
+    "network",
+    "firewalld",
+    "docker",
+    "nginx",
+    "apache2",
+    "mysql",
+    "postgresql",
+]
+
 
 def classify(command: str) -> tuple:
     """Classify command without LLM. Returns (tier, verdict, rationale)."""
@@ -87,10 +98,7 @@ def classify(command: str) -> tuple:
 
     # Special: critical service control → HIGH regardless
     for svc in CRITICAL_SERVICES:
-        svc_pattern = re.compile(
-            rf"systemctl\s+(stop|restart|mask|disable)\b.*{svc}",
-            re.I
-        )
+        svc_pattern = re.compile(rf"systemctl\s+(stop|restart|mask|disable)\b.*{svc}", re.I)
         if svc_pattern.search(command):
             return ("HIGH", "HOLD", f"F13 HIGH: critical service control — {svc}")
 
@@ -138,7 +146,9 @@ def print_banner(tier: str, verdict: str, rationale: str, intent: str, command: 
     print(f"# __ARIF_VERDICT__={verdict}")
     print(f"# __ARIF_TIER__={tier}")
     print(f"# __ARIF_RATIONALE__={rationale}")
-    print(f"# __ARIF_EPOCH__={__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}")
+    print(
+        f"# __ARIF_EPOCH__={__import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()}"
+    )
     print()
 
 
@@ -146,6 +156,7 @@ def execute(command: str) -> dict:
     """Execute command via subprocess. Returns result dict."""
     import subprocess
     import time
+
     start = time.time()
     try:
         result = subprocess.run(
@@ -163,9 +174,21 @@ def execute(command: str) -> dict:
             "duration_ms": round((time.time() - start) * 1000),
         }
     except subprocess.TimeoutExpired:
-        return {"success": False, "exit_code": -1, "stdout": "", "stderr": "Timeout (300s)", "duration_ms": 300000}
+        return {
+            "success": False,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": "Timeout (300s)",
+            "duration_ms": 300000,
+        }
     except Exception as e:
-        return {"success": False, "exit_code": -1, "stdout": "", "stderr": str(e), "duration_ms": round((time.time() - start) * 1000)}
+        return {
+            "success": False,
+            "exit_code": -1,
+            "stdout": "",
+            "stderr": str(e),
+            "duration_ms": round((time.time() - start) * 1000),
+        }
 
 
 def main():
@@ -188,12 +211,20 @@ def main():
     tier, verdict, rationale = classify(cmd)
 
     if args.json:
-        print(json.dumps({
-            "verdict": verdict, "tier": tier, "rationale": rationale,
-            "intent": intent, "command": cmd,
-            "command_blocked": verdict == "HOLD",
-            "monitored": verdict == "CAUTION",
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "verdict": verdict,
+                    "tier": tier,
+                    "rationale": rationale,
+                    "intent": intent,
+                    "command": cmd,
+                    "command_blocked": verdict == "HOLD",
+                    "monitored": verdict == "CAUTION",
+                },
+                indent=2,
+            )
+        )
         sys.exit(0)
 
     print_banner(tier, verdict, rationale, intent, cmd)

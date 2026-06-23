@@ -50,9 +50,7 @@ def verify_surface_consistency() -> dict[str, Any]:
     def _hash_names(names: list[str]) -> str:
         return hashlib.blake2b("|".join(sorted(names)).encode()).hexdigest()[:16]
 
-    def _add_vantage(
-        source: str, names: list[str], extra: dict[str, Any] | None = None
-    ) -> None:
+    def _add_vantage(source: str, names: list[str], extra: dict[str, Any] | None = None) -> None:
         count = len(names)
         h = _hash_names(list(names))
         matches = (h == canonical_hash) and (count == canonical_count)
@@ -150,9 +148,7 @@ def verify_surface_consistency() -> dict[str, Any]:
     active = [v for v in vantages if v.get("hash") not in ("UNAVAILABLE", "MISSING", "ERROR")]
     all_match = all(v["matches_canonical"] for v in active)
     any_divergence = len(divergences) > 0
-    any_missing = any(
-        v.get("hash") in ("MISSING", "ERROR") or v.get("error") for v in vantages
-    )
+    any_missing = any(v.get("hash") in ("MISSING", "ERROR") or v.get("error") for v in vantages)
 
     if any_missing:
         verdict = "BROKEN"

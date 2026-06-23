@@ -23,6 +23,18 @@ from typing import Any
 
 from arifosmcp.schemas import KernelInput, KernelOutput, ReversibilityClass, TruthState
 
+# Constitutional affordance plumbing (metacognitive wiring)
+try:
+    from arifosmcp.runtime.tools import get_full_affordance, build_standard_mcp_result
+except Exception:
+
+    def get_full_affordance(n):
+        return {"tool_name": n, "agency_level": "UNKNOWN"}
+
+    def build_standard_mcp_result(**kw):
+        return kw
+
+
 logger = logging.getLogger("arifos.kernel.intercept")
 
 
@@ -70,9 +82,7 @@ def compute_audit_hash(payload: KernelInput) -> str:
         "blast": payload.blast_radius,
         "ts": datetime.now(UTC).isoformat(),
     }
-    return hashlib.sha256(
-        json.dumps(canonical_dict, sort_keys=True).encode()
-    ).hexdigest()[:16]
+    return hashlib.sha256(json.dumps(canonical_dict, sort_keys=True).encode()).hexdigest()[:16]
 
 
 async def _arif_kernel_intercept(
@@ -135,7 +145,26 @@ async def _arif_kernel_intercept(
                 audit_hash=compute_audit_hash(kernel_input),
                 rollback_instruction=None,
             )
-            return output.model_dump()
+            base = output.model_dump()
+            # Wire the new metacognitive plumbing into the kernel
+            target_aff = get_full_affordance(requested_capability)
+            base["affordance"] = target_aff
+            base["agency_level"] = target_aff.get("agency_level")
+            base["metacognition"] = {
+                "confidence": 0.99,
+                "why_this_tool": "Kernel intercept on L5 path",
+                "next_safe_action": "Obtain F13 sovereign token or downgrade to reversible action",
+                "uncertainty_reason": "Missing sovereign authority for irreversible action",
+            }
+            base["next_safe_action"] = (
+                "Request explicit human 888 confirmation or revise to lower blast_radius"
+            )
+            base["constitutional_check"] = {
+                "hold_required": True,
+                "floor": "F13",
+                "agency": target_aff.get("agency_level"),
+            }
+            return base
 
     # 2. Evidence Thresholds for Truth (F2 TRUTH)
     # Per FLOOR_INVARIANTS_v2026.06.23: P(truth) ≥ 0.99 requires source attribution.
@@ -151,7 +180,14 @@ async def _arif_kernel_intercept(
             audit_hash=compute_audit_hash(kernel_input),
             rollback_instruction=None,
         )
-        return output.model_dump()
+        base = output.model_dump()
+        target_aff = get_full_affordance(requested_capability)
+        base["affordance"] = target_aff
+        base["next_safe_action"] = (
+            "Gather cited evidence (arif_fetch or arif_observe) then re-submit to kernel_intercept"
+        )
+        base["metacognition"] = {"confidence": 0.95, "next_safe_action": base["next_safe_action"]}
+        return base
 
     # 2b. CONFLICT state — sources disagree. Must surface contradiction, not
     # resolve silently.
@@ -167,7 +203,12 @@ async def _arif_kernel_intercept(
             audit_hash=compute_audit_hash(kernel_input),
             rollback_instruction=None,
         )
-        return output.model_dump()
+        base = output.model_dump()
+        target_aff = get_full_affordance(requested_capability)
+        base["affordance"] = target_aff
+        base["next_safe_action"] = "Resolve contradiction with explicit evidence then re-intercept"
+        base["metacognition"] = {"confidence": 0.85, "next_safe_action": base["next_safe_action"]}
+        return base
 
     # 2c. HYPOTHESIS/CLAIM with substantial blast radius → require evidence anyway
     if (
@@ -185,7 +226,14 @@ async def _arif_kernel_intercept(
             audit_hash=compute_audit_hash(kernel_input),
             rollback_instruction=None,
         )
-        return output.model_dump()
+        base = output.model_dump()
+        target_aff = get_full_affordance(requested_capability)
+        base["affordance"] = target_aff
+        base["next_safe_action"] = (
+            "Attach evidence or downgrade epistemic_state before re-intercept"
+        )
+        base["metacognition"] = {"confidence": 0.80, "next_safe_action": base["next_safe_action"]}
+        return base
 
     # 3. Standard Allow
     output = KernelOutput(
@@ -193,9 +241,7 @@ async def _arif_kernel_intercept(
         constitutional_floor_triggered=None,
         reason="Action authorized under standard capability bounds.",
         audit_hash=(
-            compute_audit_hash(kernel_input)
-            if ReversibilityClass.requires_audit(r_class)
-            else None
+            compute_audit_hash(kernel_input) if ReversibilityClass.requires_audit(r_class) else None
         ),
         rollback_instruction=(
             "reverse_operation"
@@ -204,4 +250,26 @@ async def _arif_kernel_intercept(
             else None
         ),
     )
-    return output.model_dump()
+    base = output.model_dump()
+    target_aff = get_full_affordance(requested_capability)
+    base["affordance"] = target_aff
+    base["agency_level"] = target_aff.get("agency_level")
+    # Metacognitive next step from kernel perspective
+    is_l5 = "L5" in str(target_aff.get("agency_level", ""))
+    next_act = (
+        "Proceed to arif_forge (with lease) then arif_seal only after explicit human ack"
+        if is_l5
+        else "Execute the capability; monitor delta_S and surface result for post-reflection"
+    )
+    base["next_safe_action"] = next_act
+    base["metacognition"] = {
+        "confidence": 0.92 if not is_l5 else 0.75,
+        "why_this_tool": "Kernel minimum intercept passed all gates",
+        "next_safe_action": next_act,
+    }
+    base["constitutional_check"] = {
+        "floor_passed": True,
+        "hold_required": is_l5,
+        "agency_level": target_aff.get("agency_level"),
+    }
+    return base

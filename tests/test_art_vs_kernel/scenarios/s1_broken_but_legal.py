@@ -10,7 +10,6 @@ This proves ART's claim #1: tool lifecycle state.
 
 from __future__ import annotations
 
-import pytest
 
 from ..conftest import compare, run_scenario
 

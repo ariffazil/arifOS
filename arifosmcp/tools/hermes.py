@@ -29,6 +29,7 @@ logger = logging.getLogger("arifosmcp.hermes")
 # Tool 1: hermes_system_status
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _check_organ_health(host: str, port: int, name: str, timeout: float = 3.0) -> dict:
     """Check if an organ MCP server is reachable via TCP connect."""
     import socket
@@ -140,6 +141,7 @@ def hermes_system_status(
 # Tool 2: hermes_vault_query
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def hermes_vault_query(
     query: str = "",
     mode: str = "recent",
@@ -179,9 +181,7 @@ def hermes_vault_query(
     # entries — substrate readiness was failing on the most basic substrate
     # property: "can the kernel read its own sealed past?"
     vault_dir = (
-        os.environ.get("ARIFOS_VAULT_DIR")
-        or os.environ.get("VAULT999_PATH")
-        or "/agent/vault999"
+        os.environ.get("ARIFOS_VAULT_DIR") or os.environ.get("VAULT999_PATH") or "/agent/vault999"
     )
 
     if not os.path.isdir(vault_dir):
@@ -233,6 +233,7 @@ def hermes_vault_query(
                 # Try to extract a more meaningful event field from JSON content
                 try:
                     import json as _json
+
                     parsed_content = _json.loads(content)
                     if isinstance(parsed_content, dict):
                         # Common event fields across the federation's seal shapes
@@ -295,6 +296,7 @@ def hermes_vault_query(
 # Tool 3: hermes_epistemic_check
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def hermes_epistemic_check(
     claim: str = "",
     mode: str = "quick",
@@ -336,8 +338,7 @@ def hermes_epistemic_check(
         for marker in ["menurut", "berdasarkan", "dari", "dalam", "kata", "menunjukkan"]
     )
     has_hedging = any(
-        marker in claim.lower()
-        for marker in ["mungkin", "agak", "nampak", "rasa", "kalau"]
+        marker in claim.lower() for marker in ["mungkin", "agak", "nampak", "rasa", "kalau"]
     )
 
     # Confidence scoring (simple heuristic — not a substitute for real verification)
@@ -377,14 +378,10 @@ def hermes_epistemic_check(
         recommendation = "Can proceed with confidence — verify via OpenCode if critical"
     elif confidence_score >= 0.5:
         confidence_label = "NAMPAK"
-        recommendation = (
-            "Cross-verify with OpenCode before asserting at F2 ≥ 0.99 level"
-        )
+        recommendation = "Cross-verify with OpenCode before asserting at F2 ≥ 0.99 level"
     elif confidence_score >= 0.2:
         confidence_label = "RASA"
-        recommendation = (
-            "Declare uncertainty explicitly. HOLD if claim is critical"
-        )
+        recommendation = "Declare uncertainty explicitly. HOLD if claim is critical"
     else:
         confidence_label = "TAK_TAHU"
         recommendation = "HOLD — gather evidence before any assertion"
@@ -408,6 +405,7 @@ def hermes_epistemic_check(
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tool 4: hermes_fact_check
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def hermes_fact_check(
     claim: str = "",
@@ -511,9 +509,7 @@ def hermes_fact_check(
         confidence = total_score
 
     if mode == "web":
-        gaps.append(
-            "Web search mode requested but no web_search tool available in this context"
-        )
+        gaps.append("Web search mode requested but no web_search tool available in this context")
 
     recommendation = {
         "CONFIRMED": "Claim verified — can assert at F2 ≥ 0.99",
@@ -541,6 +537,7 @@ def hermes_fact_check(
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tool 5: hermes_cross_verify
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def hermes_cross_verify(
     claim: str = "",
@@ -641,6 +638,7 @@ def hermes_cross_verify(
 # Tool 6: hermes_plan_review
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def hermes_plan_review(
     plan: str = "",
     goal: str = "",
@@ -720,8 +718,16 @@ def hermes_plan_review(
 
     # Check 4: Risk assessment
     high_risk_actions = [
-        "delete", "remove", "drop", "kill", "rm ", "shutdown",
-        "format", "overwrite", "force push", "reset",
+        "delete",
+        "remove",
+        "drop",
+        "kill",
+        "rm ",
+        "shutdown",
+        "format",
+        "overwrite",
+        "force push",
+        "reset",
     ]
     for s in steps:
         action = s.get("action", "").lower()
@@ -765,6 +771,7 @@ def hermes_plan_review(
 # ═══════════════════════════════════════════════════════════════════════════════
 # Tool 7: hermes_memory_steward
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def hermes_memory_steward(
     content: str = "",
@@ -810,12 +817,10 @@ def hermes_memory_steward(
         for marker in ["hubung", "kaitan", "berkait", "antara", "connection"]
     )
     is_operational = any(
-        marker in content.lower()
-        for marker in ["context", "session", "state", "status", "current"]
+        marker in content.lower() for marker in ["context", "session", "state", "status", "current"]
     )
     is_todo = any(
-        marker in content.lower()
-        for marker in ["pending", "nak", "need", "todo", "belum"]
+        marker in content.lower() for marker in ["pending", "nak", "need", "todo", "belum"]
     )
 
     # Classification logic

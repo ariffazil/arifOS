@@ -37,7 +37,6 @@ from enum import StrEnum
 from typing import Any
 
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # DAULAT VERDICT — Constitutional Test Output
 # ═══════════════════════════════════════════════════════════════════════════════

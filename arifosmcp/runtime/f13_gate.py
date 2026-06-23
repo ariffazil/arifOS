@@ -24,24 +24,28 @@ from __future__ import annotations
 # In production this is checked against the live AAA_HUMAN identity registry.
 # ──────────────────────────────────────────────────────────────────────────────
 
-_SOVEREIGN_CALLERS: frozenset[str] = frozenset({
-    "human_sovereign",
-    "arif",
-    "muhammad_arif_bin_fazil",
-})
+_SOVEREIGN_CALLERS: frozenset[str] = frozenset(
+    {
+        "human_sovereign",
+        "arif",
+        "muhammad_arif_bin_fazil",
+    }
+)
 
 # Terms that, when present in the action body, indicate a delegation attempt.
-_DELEGATION_TERMS: frozenset[str] = frozenset({
-    "delegate",
-    "delegation",
-    "sub-agent",
-    "subagent",
-    "automation",
-    "proxy",
-    "impersonate",
-    "escalate_f13",
-    "grant_f13",
-})
+_DELEGATION_TERMS: frozenset[str] = frozenset(
+    {
+        "delegate",
+        "delegation",
+        "sub-agent",
+        "subagent",
+        "automation",
+        "proxy",
+        "impersonate",
+        "escalate_f13",
+        "grant_f13",
+    }
+)
 
 
 def _is_delegation_attempt(action: dict) -> str | None:

@@ -88,12 +88,13 @@ class DenialCode(StrEnum):
 @dataclass(frozen=True)
 class DenialRecord:
     """A single denial code with full constitutional context."""
+
     code: DenialCode
-    floor: str           # Which F-floor this maps to
-    severity: str        # "hard" = unconditional block, "soft" = HOLD
-    description: str     # Human-readable reason
-    remediation: str     # What the operator/agent should do to unblock
-    kernel_action: str   # What the kernel does: "VOID", "HOLD", "BLOCK"
+    floor: str  # Which F-floor this maps to
+    severity: str  # "hard" = unconditional block, "soft" = HOLD
+    description: str  # Human-readable reason
+    remediation: str  # What the operator/agent should do to unblock
+    kernel_action: str  # What the kernel does: "VOID", "HOLD", "BLOCK"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -151,7 +152,6 @@ DENIAL_REGISTRY: dict[DenialCode, DenialRecord] = {
         remediation="Request explicit approval from F13 SOVEREIGN (Arif)",
         kernel_action="HOLD",
     ),
-
     # ── Authority and identity ──────────────────────────────────────────
     DenialCode.AUTH_MISSING: DenialRecord(
         code=DenialCode.AUTH_MISSING,
@@ -185,7 +185,6 @@ DENIAL_REGISTRY: dict[DenialCode, DenialRecord] = {
         remediation="Wait for explicit human approval",
         kernel_action="HOLD",
     ),
-
     # ── Plan and execution ──────────────────────────────────────────────
     DenialCode.PLAN_MISSING: DenialRecord(
         code=DenialCode.PLAN_MISSING,
@@ -219,7 +218,6 @@ DENIAL_REGISTRY: dict[DenialCode, DenialRecord] = {
         remediation="Set ack_irreversible=True and provide human approval",
         kernel_action="VOID",
     ),
-
     # ── Contract and schema ─────────────────────────────────────────────
     DenialCode.CONTRACT_DRIFT: DenialRecord(
         code=DenialCode.CONTRACT_DRIFT,
@@ -253,7 +251,6 @@ DENIAL_REGISTRY: dict[DenialCode, DenialRecord] = {
         remediation="Switch to the correct channel or request channel override",
         kernel_action="HOLD",
     ),
-
     # ── Evidence and witness ────────────────────────────────────────────
     DenialCode.WITNESS_DEFICIT: DenialRecord(
         code=DenialCode.WITNESS_DEFICIT,
@@ -287,7 +284,6 @@ DENIAL_REGISTRY: dict[DenialCode, DenialRecord] = {
         remediation="Seek additional witness corroboration",
         kernel_action="HOLD",
     ),
-
     # ── Risk and blast radius ───────────────────────────────────────────
     DenialCode.BLAST_RADIUS_EXCEEDED: DenialRecord(
         code=DenialCode.BLAST_RADIUS_EXCEEDED,
@@ -313,7 +309,6 @@ DENIAL_REGISTRY: dict[DenialCode, DenialRecord] = {
         remediation="Re-initialize session with current epoch",
         kernel_action="HOLD",
     ),
-
     # ── Anti-hallucination ──────────────────────────────────────────────
     DenialCode.HALLUCINATION_DETECTED: DenialRecord(
         code=DenialCode.HALLUCINATION_DETECTED,
@@ -339,7 +334,6 @@ DENIAL_REGISTRY: dict[DenialCode, DenialRecord] = {
         remediation="Remove all consciousness/feeling/soul claims from output",
         kernel_action="VOID",
     ),
-
     # ── Entropy and quality ─────────────────────────────────────────────
     DenialCode.ENTROPY_INCREASE: DenialRecord(
         code=DenialCode.ENTROPY_INCREASE,
@@ -427,18 +421,12 @@ def list_denials() -> list[dict[str, str]]:
 
 def denials_by_floor(floor: str) -> list[DenialRecord]:
     """Return all denial codes that map to a specific floor."""
-    return [
-        r for r in DENIAL_REGISTRY.values()
-        if r.floor == floor or floor in r.floor
-    ]
+    return [r for r in DENIAL_REGISTRY.values() if r.floor == floor or floor in r.floor]
 
 
 def denials_by_severity(severity: str) -> list[DenialRecord]:
     """Return all denial codes of a given severity (hard/soft)."""
-    return [
-        r for r in DENIAL_REGISTRY.values()
-        if r.severity == severity
-    ]
+    return [r for r in DENIAL_REGISTRY.values() if r.severity == severity]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -450,9 +438,13 @@ if __name__ == "__main__":
     import json
 
     parser = argparse.ArgumentParser(description="arifOS Denial Code Taxonomy")
-    parser.add_argument("action", nargs="?", default="list",
-                       choices=["list", "explain", "floor", "severity"],
-                       help="Action to perform")
+    parser.add_argument(
+        "action",
+        nargs="?",
+        default="list",
+        choices=["list", "explain", "floor", "severity"],
+        help="Action to perform",
+    )
     parser.add_argument("--code", "-c", help="Denial code to explain")
     parser.add_argument("--floor", "-f", help="Floor to filter by")
     parser.add_argument("--severity", "-s", help="Severity to filter by")

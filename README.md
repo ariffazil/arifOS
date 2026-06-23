@@ -11,6 +11,8 @@
   Constitutional AI Governance Kernel
   ─────────────────────────────────────────
   Not a chatbot. Not a model wrapper. The LAW.
+
+**2026-06-23 Update**: Public surface frozen to exactly 7 verbs (arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal). All prior "13/15/16 tool" references below are historical.
 ```
 
 </div>
@@ -24,7 +26,7 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![MCP Tools](https://img.shields.io/badge/MCP-16%20tools%20%7C%2015%20canonical%20%2B%201%20canary-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
+[![MCP Tools](https://img.shields.io/badge/MCP-7%20public%20verbs%20%7C%20plumbing%20hidden-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
@@ -69,7 +71,7 @@
 - ✅ **The law layer** — decides what must NOT be done, so agents can be trusted with what they CAN do
 - ✅ **A constitutional engine** — 13 enforceable floors (F1–F13) with mathematical invariants
 - ✅ **A federation hub** — 7 organs (GEOX, WEALTH, WELL, AAA, A-FORGE, APEX legacy) governed under one contract; plus MIND:51001 and MEMORY:51002 federated intelligence services hosted by A-FORGE
-- ✅ **An MCP server** — 15 canonical tools + 1 multimode canary exposed via Model Context Protocol on port 8088
+- ✅ **An MCP server** — 7 public verbs (clean facade) + internal tools (see public_surface.py). 2026-06-23 freeze.
 - ✅ **An immutable ledger** — VAULT999: append-only, hash-chained, every decision sealed forever
 - ✅ **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute. No algorithm overrides.
 
@@ -266,7 +268,7 @@ ruff check . && ruff format .
 ```bash
 # Health probe
 curl -s http://127.0.0.1:8088/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'tools={d[\"tools_loaded\"]} floors={d[\"floors_active\"]} drift={d[\"runtime_drift\"]}')"
-# Expected: canonical_tools_loaded=13 floors=13 tools_exposed_via_mcp=48 runtime_drift=True
+# Expected: 7 public verbs, floors=13, internals hidden. (legacy example)
 ```
 
 ### Install as Python Package
@@ -319,7 +321,7 @@ Every governed action follows this numbered sequence. No step can be skipped. 88
 arifOS/
 │
 ├── arifosmcp/               ← Canonical MCP runtime (the active engine)
-│   ├── server.py            ← FastMCP entry point — 13 tools, streamable-http
+│   ├── server.py            ← FastMCP entry point — 7 public verbs (facade), streamable-http
 │   ├── tools/               ← 13 canonical tool implementations
 │   │   ├── session.py       ← 000 — arif_session_init
 │   │   ├── sense.py         ← 100 — arif_sense_observe
@@ -447,7 +449,7 @@ Unverified identity produces `SEAL_OBSERVE_ONLY` — you may observe, not author
 }
 ```
 
-**Available tools:** 16 MCP tools (15 canonical constitutional + 1 multimode canary). See `llms.txt` for the complete surface or `/health` for live counts. All return structured Pydantic v2 output with `outputSchema` published.
+**Available tools (public):** 7 verbs only. Internals (memory, compose, forge, diagnostics, aliases) are not exposed on the public MCP surface. See the 7-tool facade. (This sentence updated 2026-06-23.)
 
 ### Adat Agentik Binding
 
@@ -818,7 +820,7 @@ arifOS distinguishes between canonical constitutional tools and operational supp
 }
 ```
 
-The **15 canonical tools** are the constitutional core. The **1 multimode canary** (`arif_canary`) provides 6 transport diagnostic modes in one tool. The remaining tools support leases, attestation, diagnostics, verification, routing, and organ coordination.
+The public surface is the **7 canonical verbs**. Legacy 15/16 counts and old names are no longer public. All other tools are internal or demoted. See runtime/public_surface.py.
 
 ### ChatGPT Compatibility (ADR-012)
 

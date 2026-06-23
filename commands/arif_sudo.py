@@ -17,8 +17,18 @@ import json
 import argparse
 from pathlib import Path
 
-CRITICAL_SERVICES = ["ssh", "sshd", "systemd", "network", "firewalld",
-                     "docker", "nginx", "apache2", "mysql", "postgresql"]
+CRITICAL_SERVICES = [
+    "ssh",
+    "sshd",
+    "systemd",
+    "network",
+    "firewalld",
+    "docker",
+    "nginx",
+    "apache2",
+    "mysql",
+    "postgresql",
+]
 
 ATOMIC_PATTERNS = [
     (re.compile(r"rm\s+-rf\s+/\s*$", re.I), "F9 F13: root recursive delete"),
@@ -37,7 +47,10 @@ ATOMIC_PATTERNS = [
 HIGH_PATTERNS = [
     (re.compile(r"chmod\s+-R\s+777\s+/", re.I), "F9: world-writable system"),
     (re.compile(r"chown\s+-R\s+root\s+/", re.I), "F9 F13: ownership takeover"),
-    (re.compile(r"systemctl\s+(stop|restart|mask)\s+(ssh|sshd|systemd|network|docker)", re.I), "F13: critical service control"),
+    (
+        re.compile(r"systemctl\s+(stop|restart|mask)\s+(ssh|sshd|systemd|network|docker)", re.I),
+        "F13: critical service control",
+    ),
     (re.compile(r"systemctl\s+mask", re.I), "F13: service masking"),
     (re.compile(r"git\s+push\s+--force", re.I), "F13: force push"),
     (re.compile(r"eval\s+\$\(", re.I), "F9: eval injection"),
@@ -48,6 +61,7 @@ CAUTION_PATTERNS = [
     (re.compile(r"chmod\s+-R\s+777", re.I), "F9: permission change"),
     (re.compile(r"docker\s+(rm|stop)\s+-f", re.I), "F9: container destruction"),
 ]
+
 
 def classify(command: str):
     for pat, rationale in ATOMIC_PATTERNS:
@@ -80,8 +94,10 @@ def main():
     tier, verdict, rationale = classify(cmd)
 
     result = {
-        "verdict": verdict, "tier": tier,
-        "intent": intent, "command": cmd,
+        "verdict": verdict,
+        "tier": tier,
+        "intent": intent,
+        "command": cmd,
         "rationale": rationale,
         "escalation_denied": verdict == "HOLD",
         "escalation_monitored": verdict == "CAUTION",
@@ -115,15 +131,18 @@ def main():
             audit = Path("/var/log/arifos/audit.log")
             audit.parent.mkdir(parents=True, exist_ok=True)
             import datetime
-            entry = json.dumps({
-                "epoch": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "actor": "arif_sudo",
-                "verdict": "CAUTION",
-                "tier": "MEDIUM",
-                "intent": intent,
-                "command": cmd,
-                "rationale": rationale,
-            })
+
+            entry = json.dumps(
+                {
+                    "epoch": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "actor": "arif_sudo",
+                    "verdict": "CAUTION",
+                    "tier": "MEDIUM",
+                    "intent": intent,
+                    "command": cmd,
+                    "rationale": rationale,
+                }
+            )
             with open(audit, "a") as f:
                 f.write(entry + "\n")
         except Exception:
@@ -131,10 +150,13 @@ def main():
 
     # Execute actual sudo
     import subprocess
+
     print(f"\nExecuting via sudo: {cmd}")
     r = subprocess.run(f"sudo {cmd}", shell=True, capture_output=True, text=True)
-    if r.stdout: print(r.stdout)
-    if r.stderr: print(r.stderr, file=sys.stderr)
+    if r.stdout:
+        print(r.stdout)
+    if r.stderr:
+        print(r.stderr, file=sys.stderr)
     sys.exit(r.returncode)
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+
 root_dir = Path(__file__).parents[1].resolve()
 if str(root_dir) not in sys.path:
     sys.path.insert(0, str(root_dir))
@@ -132,12 +133,16 @@ class TestIndexer:
         (repo / "nested" / "ignored.py").write_text("print('nested ignored')", encoding="utf-8")
         (repo / "test.tmp").write_text("temp", encoding="utf-8")
         (repo / "anchored.py").write_text("print('anchored')", encoding="utf-8")
-        (repo / "nested" / "anchored.py").write_text("print('not anchored at root')", encoding="utf-8")
+        (repo / "nested" / "anchored.py").write_text(
+            "print('not anchored at root')", encoding="utf-8"
+        )
 
         manifest = ingest_repo(repo, write_wiki=False)
 
         # Files indexed should not include ignored files
-        assert manifest["files_indexed"] == 2  # normal.py and nested/anchored.py (anchored.py is ignored only at root)
+        assert (
+            manifest["files_indexed"] == 2
+        )  # normal.py and nested/anchored.py (anchored.py is ignored only at root)
 
         # Check that normal.py and nested/anchored.py are indexed, others are not
         hits = search_index(repo, "print", top_k=10)

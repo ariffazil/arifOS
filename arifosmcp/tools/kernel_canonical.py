@@ -26,7 +26,6 @@ from __future__ import annotations
 import asyncio
 import concurrent.futures
 import logging
-import time
 from pathlib import Path
 from typing import Any
 
@@ -65,20 +64,64 @@ def _load_intent_map() -> dict[str, Any]:
     # Fallback: hardcoded map
     _intent_map_cache = {
         "organ_routes": {
-            "geox": {"organ": "GEOX", "port": 8081, "intent_keywords": [
-                "seismic", "well log", "las", "petrophysics", "horizon", "fault",
-                "amplitude", "basin", "prospect", "subsurface", "velocity",
-                "lithology", "porosity", "permeability", "resistivity",
-                "gamma ray", "sonic", "density", "structural", "trap",
-            ]},
-            "wealth": {"organ": "WEALTH", "port": 18082, "intent_keywords": [
-                "portfolio", "npv", "irr", "emv", "option", "derivative",
-                "capital", "hedge", "risk metric", "allocation", "stress test",
-            ]},
-            "well": {"organ": "WELL", "port": 18083, "intent_keywords": [
-                "vitality", "biometric", "sleep", "heart rate", "hrv",
-                "metabolic", "readiness", "recovery", "autonomic",
-            ]},
+            "geox": {
+                "organ": "GEOX",
+                "port": 8081,
+                "intent_keywords": [
+                    "seismic",
+                    "well log",
+                    "las",
+                    "petrophysics",
+                    "horizon",
+                    "fault",
+                    "amplitude",
+                    "basin",
+                    "prospect",
+                    "subsurface",
+                    "velocity",
+                    "lithology",
+                    "porosity",
+                    "permeability",
+                    "resistivity",
+                    "gamma ray",
+                    "sonic",
+                    "density",
+                    "structural",
+                    "trap",
+                ],
+            },
+            "wealth": {
+                "organ": "WEALTH",
+                "port": 18082,
+                "intent_keywords": [
+                    "portfolio",
+                    "npv",
+                    "irr",
+                    "emv",
+                    "option",
+                    "derivative",
+                    "capital",
+                    "hedge",
+                    "risk metric",
+                    "allocation",
+                    "stress test",
+                ],
+            },
+            "well": {
+                "organ": "WELL",
+                "port": 18083,
+                "intent_keywords": [
+                    "vitality",
+                    "biometric",
+                    "sleep",
+                    "heart rate",
+                    "hrv",
+                    "metabolic",
+                    "readiness",
+                    "recovery",
+                    "autonomic",
+                ],
+            },
         }
     }
     return _intent_map_cache
@@ -107,6 +150,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL TOOL 1: arif_route
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def arif_route(
     intent: str,
@@ -203,6 +247,7 @@ def arif_route(
 # CANONICAL TOOL 2: arif_triage
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def arif_triage(
     mode: str = "status",
     session_id: str | None = None,
@@ -243,34 +288,40 @@ def arif_triage(
             live_stage = sess.get("stage", stage or "unknown")
         elif stage:
             live_stage = stage
-        return _ok("arif_triage", {
-            "active_sessions": len(_SESSIONS),
-            "stage": live_stage,
-            "stage_source": "session" if session_id else ("parameter" if stage else "unknown"),
-            "prediction_health": prediction_health,
-            "mode": "status",
-        })
+        return _ok(
+            "arif_triage",
+            {
+                "active_sessions": len(_SESSIONS),
+                "stage": live_stage,
+                "stage_source": "session" if session_id else ("parameter" if stage else "unknown"),
+                "prediction_health": prediction_health,
+                "mode": "status",
+            },
+        )
 
     if mode == "preflight":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-        return _ok("arif_triage", {
-            "kernel": "alive",
-            "observe_only": True,
-            "mutation_allowed": False,
-            "external_side_effects_allowed": False,
-            "irreversible_allowed": False,
-            "session_required": True,
-            "session_id_present": bool(session_id),
-            "actor_id_present": bool(actor_id),
-            "actor_verified": False,
-            "authority_mode": "OBSERVE_ONLY",
-            "stage": stage or "000",
-            "canonical_tool_count": len(CANONICAL_TOOLS),
-            "active_sessions": len(_SESSIONS),
-            "next_safe_action": "Call arif_init(mode='ping' | 'light' | 'full')",
-            "mode": "preflight",
-        })
+        return _ok(
+            "arif_triage",
+            {
+                "kernel": "alive",
+                "observe_only": True,
+                "mutation_allowed": False,
+                "external_side_effects_allowed": False,
+                "irreversible_allowed": False,
+                "session_required": True,
+                "session_id_present": bool(session_id),
+                "actor_id_present": bool(actor_id),
+                "actor_verified": False,
+                "authority_mode": "OBSERVE_ONLY",
+                "stage": stage or "000",
+                "canonical_tool_count": len(CANONICAL_TOOLS),
+                "active_sessions": len(_SESSIONS),
+                "next_safe_action": "Call arif_init(mode='ping' | 'light' | 'full')",
+                "mode": "preflight",
+            },
+        )
 
     if mode == "triage":
         # Simple priority classification
@@ -281,13 +332,16 @@ def arif_triage(
             "low": 4,
         }
         q_priority = priority_map.get(priority.lower() if priority else "normal", 3)
-        return _ok("arif_triage", {
-            "priority": priority or "normal",
-            "priority_score": q_priority,
-            "queue_depth": 0,
-            "recommended_lane": "AGI" if q_priority <= 2 else "AGI",
-            "mode": "triage",
-        })
+        return _ok(
+            "arif_triage",
+            {
+                "priority": priority or "normal",
+                "priority_score": q_priority,
+                "queue_depth": 0,
+                "recommended_lane": "AGI" if q_priority <= 2 else "AGI",
+                "mode": "triage",
+            },
+        )
 
     return _hold("arif_triage", f"Unknown mode: {mode}")
 
@@ -296,6 +350,7 @@ def arif_triage(
 # CANONICAL TOOL 3: arif_bridge_connect (low-level organ call)
 # ═══════════════════════════════════════════════════════════════════════════════
 # arif_bridge_connect (CANONICAL, forged 2026-06-21): follows arif_<noun>_<verb> convention.
+
 
 def arif_bridge_connect(
     organ: str,
@@ -342,6 +397,7 @@ def arif_bridge_connect(
 # CANONICAL TOOL 5: arif_kernel_attest (organ attestation)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def arif_kernel_attest(
     organ: str | None = None,
     actor_id: str | None = None,
@@ -371,23 +427,25 @@ def arif_kernel_attest(
     from arifosmcp.runtime.organ_attestation import attest_all_organs, attest_organ
 
     if organ and organ.upper() in ("GEOX", "WEALTH", "WELL", "arifOS"):
-        result = asyncio.run(
-            attest_organ(organ.upper(), actor_id=actor_id, session_id=session_id)
-        )
+        result = asyncio.run(attest_organ(organ.upper(), actor_id=actor_id, session_id=session_id))
         return _ok("arif_kernel_attest", {"mode": "single", "organ": organ.upper(), **result})
 
     result = asyncio.run(attest_all_organs(actor_id=actor_id, session_id=session_id))
     liveness = federation_liveness()
-    return _ok("arif_kernel_attest", {
-        "mode": "all",
-        "attestation": result,
-        "liveness": liveness,
-    })
+    return _ok(
+        "arif_kernel_attest",
+        {
+            "mode": "all",
+            "attestation": result,
+            "liveness": liveness,
+        },
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL TOOL 6: arif_kernel_health (federation health)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def arif_kernel_health(
     actor_id: str | None = None,
@@ -416,6 +474,7 @@ def arif_kernel_health(
 # INTERNAL HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _run_async(coro) -> Any:
     """Run async coroutine from sync context."""
     try:
@@ -441,7 +500,9 @@ def _assert_organ_attested(organ: str) -> dict[str, Any] | None:
     return None
 
 
-def _bridge_geox(tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None) -> dict[str, Any]:
+def _bridge_geox(
+    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
+) -> dict[str, Any]:
     """Bridge a call to GEOX organ."""
     hold = _assert_organ_attested("geox")
     if hold:
@@ -449,8 +510,6 @@ def _bridge_geox(tool_name: str, arguments: dict, session_id: str | None, actor_
     try:
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
         from arifosmcp.runtime.epistemic_injector import (
-            has_executive_authority,
-            is_ai_generated,
             read_epistemic,
             verify_route_eligibility,
         )
@@ -475,24 +534,30 @@ def _bridge_geox(tool_name: str, arguments: dict, session_id: str | None, actor_
             if not _eligible:
                 logger.warning(
                     "EPISTEMIC ROUTE GATE: GEOX bridge blocked for %s — %s",
-                    tool_name, _reason,
+                    tool_name,
+                    _reason,
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
-        return _ok("arif_bridge", {
-            "organ": "GEOX",
-            "tool": tool_name,
-            "result": wrapped,
-            "status": "bridged",
-            "boundary_enforced": validated["boundary_enforced"],
-            "violations": validated["violations"],
-            "_epistemic_checked": True,
-        })
+        return _ok(
+            "arif_bridge",
+            {
+                "organ": "GEOX",
+                "tool": tool_name,
+                "result": wrapped,
+                "status": "bridged",
+                "boundary_enforced": validated["boundary_enforced"],
+                "violations": validated["violations"],
+                "_epistemic_checked": True,
+            },
+        )
     except Exception as e:
         return _hold("arif_bridge", f"GEOX bridge failed: {e}")
 
 
-def _bridge_wealth(tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None) -> dict[str, Any]:
+def _bridge_wealth(
+    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
+) -> dict[str, Any]:
     """Bridge a call to WEALTH organ."""
     hold = _assert_organ_attested("wealth")
     if hold:
@@ -508,30 +573,38 @@ def _bridge_wealth(tool_name: str, arguments: dict, session_id: str | None, acto
         validated = validate_organ_output("wealth", result)
 
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
-        _source_epi = read_epistemic(validated["output"]) if isinstance(validated["output"], dict) else None
+        _source_epi = (
+            read_epistemic(validated["output"]) if isinstance(validated["output"], dict) else None
+        )
         if _source_epi:
             _eligible, _reason = verify_route_eligibility(_source_epi, "EXECUTIVE")
             if not _eligible:
                 logger.warning(
                     "EPISTEMIC ROUTE GATE: WEALTH bridge blocked for %s — %s",
-                    tool_name, _reason,
+                    tool_name,
+                    _reason,
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
-        return _ok("arif_bridge", {
-            "organ": "WEALTH",
-            "tool": tool_name,
-            "result": validated["output"],
-            "status": "bridged",
-            "boundary_enforced": validated["boundary_enforced"],
-            "violations": validated["violations"],
-            "_epistemic_checked": True,
-        })
+        return _ok(
+            "arif_bridge",
+            {
+                "organ": "WEALTH",
+                "tool": tool_name,
+                "result": validated["output"],
+                "status": "bridged",
+                "boundary_enforced": validated["boundary_enforced"],
+                "violations": validated["violations"],
+                "_epistemic_checked": True,
+            },
+        )
     except Exception as e:
         return _hold("arif_bridge", f"WEALTH bridge failed: {e}")
 
 
-def _bridge_well(tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None) -> dict[str, Any]:
+def _bridge_well(
+    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
+) -> dict[str, Any]:
     """Bridge a call to WELL organ."""
     hold = _assert_organ_attested("well")
     if hold:
@@ -552,17 +625,21 @@ def _bridge_well(tool_name: str, arguments: dict, session_id: str | None, actor_
             if not _eligible:
                 logger.warning(
                     "EPISTEMIC ROUTE GATE: WELL bridge blocked for %s — %s",
-                    tool_name, _reason,
+                    tool_name,
+                    _reason,
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
-        return _ok("arif_bridge", {
-            "organ": "WELL",
-            "tool": tool_name,
-            "result": result,
-            "status": "bridged",
-            "_epistemic_checked": True,
-        })
+        return _ok(
+            "arif_bridge",
+            {
+                "organ": "WELL",
+                "tool": tool_name,
+                "result": result,
+                "status": "bridged",
+                "_epistemic_checked": True,
+            },
+        )
     except Exception as e:
         return _hold("arif_bridge", f"WELL bridge failed: {e}")
 
@@ -571,6 +648,7 @@ def _get_prediction_health() -> dict[str, Any]:
     """Get self-model prediction health summary."""
     try:
         from arifosmcp.core.tool_self_model import get_tool_self_model
+
         model = get_tool_self_model()
         return model.get_prediction_summary()
     except Exception:

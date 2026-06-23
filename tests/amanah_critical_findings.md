@@ -74,7 +74,7 @@ Options:
 | arifos_888_judge → 888_HOLD | ✅ PASS | Correctly triggers |
 | arifos_999_vault → VOID | ✅ PASS | Unauthorized read blocked |
 | Direct constitutional_guard | ✅ PASS | Returns correct verdicts |
-| MCP server healthy | ✅ PASS | 13 tools, HTTP 200 |
+| MCP server healthy | ✅ PASS | 7 public tools (see facade), HTTP 200 |
 
 ---
 

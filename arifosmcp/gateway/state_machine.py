@@ -24,6 +24,7 @@ from typing import Any
 
 class IncidentState(StrEnum):
     """States for a post-disaster investigation report under litigation hold."""
+
     INCIDENT = "INCIDENT"
     INVESTIGATING = "INVESTIGATING"
     REPORT_DRAFTED = "REPORT_DRAFTED"
@@ -39,6 +40,7 @@ class IncidentState(StrEnum):
 
 class ReasonCode(StrEnum):
     """Legal/constitutional reason codes for review actions."""
+
     LITIGATION_RISK = "LITIGATION_RISK"
     PERSONAL_DATA = "PERSONAL_DATA"
     NATIONAL_SECURITY = "NATIONAL_SECURITY"
@@ -114,7 +116,9 @@ def _guards_for_transition(
             TransitionGuard(
                 condition="Original version v1.0 must be sealed with SHA-256 hash",
                 satisfied=has_version,
-                detail="Seal the original report hash before submission" if not has_version else "v1.0 sealed",
+                detail="Seal the original report hash before submission"
+                if not has_version
+                else "v1.0 sealed",
             )
         )
 
@@ -125,18 +129,24 @@ def _guards_for_transition(
             TransitionGuard(
                 condition="Litigation reference must be recorded (case number, court, parties)",
                 satisfied=has_litigation,
-                detail="Record litigation details before entering LITIGATION_ACTIVE" if not has_litigation else "Litigation recorded",
+                detail="Record litigation details before entering LITIGATION_ACTIVE"
+                if not has_litigation
+                else "Litigation recorded",
             )
         )
 
     # LEGAL_REVIEW → REVIEW_STALLED: auto-fire when deadline breached
     if from_state == IncidentState.LEGAL_REVIEW and to_state == IncidentState.REVIEW_STALLED:
-        deadline_passed = incident.review_deadline_at is not None and time.time() > incident.review_deadline_at
+        deadline_passed = (
+            incident.review_deadline_at is not None and time.time() > incident.review_deadline_at
+        )
         guards.append(
             TransitionGuard(
                 condition="Review deadline must have passed without completion",
                 satisfied=deadline_passed,
-                detail="Deadline not yet breached" if not deadline_passed else "Deadline breached — auto-escalation",
+                detail="Deadline not yet breached"
+                if not deadline_passed
+                else "Deadline breached — auto-escalation",
             )
         )
 
@@ -147,7 +157,9 @@ def _guards_for_transition(
             TransitionGuard(
                 condition="At least one disclosure receipt must be emitted",
                 satisfied=has_disclosed_version,
-                detail="Emit disclosure receipt before entering DISCLOSED" if not has_disclosed_version else "Receipt emitted",
+                detail="Emit disclosure receipt before entering DISCLOSED"
+                if not has_disclosed_version
+                else "Receipt emitted",
             )
         )
 
@@ -280,13 +292,15 @@ class Incident:
 
         from_state = self.state
         self.state = to_state
-        self.transitions.append({
-            "from": from_state.value,
-            "to": to_state.value,
-            "actor": actor,
-            "timestamp": time.time(),
-            "guards_passed": [g.condition for g in guards],
-        })
+        self.transitions.append(
+            {
+                "from": from_state.value,
+                "to": to_state.value,
+                "actor": actor,
+                "timestamp": time.time(),
+                "guards_passed": [g.condition for g in guards],
+            }
+        )
         return True, f"{from_state.value} → {to_state.value}"
 
     def seal_version(self, version: ReportVersion) -> None:
@@ -363,6 +377,7 @@ class IncidentStore:
 # ═══════════════════════════════════════════════════════════════════════════
 # PUTRA HEIGHTS — CANONICAL INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def putra_heights_incident() -> Incident:
     """Factory for the canonical Putra Heights incident record."""

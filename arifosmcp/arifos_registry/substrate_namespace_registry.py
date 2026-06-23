@@ -217,9 +217,8 @@ class SubstrateNamespaceRegistry:
             "legacy_aliases": sorted(LEGACY_ALIASES.items()),
         }
         import json
-        return "b3:" + hashlib.sha256(
-            json.dumps(canonical, sort_keys=True).encode()
-        ).hexdigest()
+
+        return "b3:" + hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
 
     def export(self) -> dict:
         return {

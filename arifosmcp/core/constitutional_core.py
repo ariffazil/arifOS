@@ -552,9 +552,7 @@ class FloorEvaluator:
                 },
             )
 
-        return LawResult(
-            verdict="SEAL", metadata={"irreversibility": threat.irreversibility.name}
-        )
+        return LawResult(verdict="SEAL", metadata={"irreversibility": threat.irreversibility.name})
 
     @staticmethod
     def _requires_human_witness(context: ActionContext, threat: ThreatAssessment) -> bool:

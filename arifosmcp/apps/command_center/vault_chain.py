@@ -18,7 +18,9 @@ from pathlib import Path
 from threading import RLock
 from typing import Any
 
-_VAULT_PATH = os.getenv("VAULT999_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl")
+_VAULT_PATH = os.getenv(
+    "VAULT999_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
+)
 _VAULT_DIR = str(Path(_VAULT_PATH).parent)
 _ledger_lock = RLock()
 

@@ -245,21 +245,24 @@ async def _write_harness_telemetry_in_thread(
     elapsed_ms: int,
 ) -> None:
     """Write tool execution trace to the local HarnessTelemetry SQLModel table in a worker thread."""
+
     def _run_sync():
         try:
             import sys
+
             pilot_src = "/root/pydantic-ai-pilot/src"
             if pilot_src not in sys.path:
                 sys.path.append(pilot_src)
-            
+
             from datetime import datetime
 
             from harness_telemetry import HarnessTelemetry
             from sqlmodel import Session, create_engine
-            
+
             model_psi = tool_name
             try:
                 from arifosmcp.runtime.tools import get_session
+
                 sess = get_session(session_id)
                 if sess and isinstance(sess, dict):
                     card = sess.get("model_governance_card")
@@ -269,9 +272,9 @@ async def _write_harness_telemetry_in_thread(
                             model_psi = anchor.get("verified_model_key") or tool_name
             except Exception:
                 pass
-                
+
             provider = agent_id or "mcp"
-            
+
             # Map verdict to valid set: SEAL, HOLD, VOID, PARTIAL, SABAR
             v_upper = verdict.upper()
             if "VOID" in v_upper:
@@ -294,10 +297,10 @@ async def _write_harness_telemetry_in_thread(
                 token_usage_total=0,
                 execution_latency_ms=float(elapsed_ms),
                 epsilon_variance=1e-6,
-                timestamp=datetime.now(UTC)
+                timestamp=datetime.now(UTC),
             )
             telemetry.model_validate(telemetry.model_dump())
-            
+
             db_url = "postgresql://arifos_admin:ArifPostgres2026!@127.0.0.1:5432/vault999"
             engine = create_engine(db_url, echo=False)
             with Session(engine) as db_session:
@@ -533,7 +536,9 @@ def _try_promote_local_service(
     # Set ack_id for any action that might later upgrade to ATOMIC
     # (tool risk classification upgrades happen AFTER promotion)
     if not envelope.receipts.arif_ack_id:
-        envelope.receipts.arif_ack_id = f"hermes-local-trust-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}"
+        envelope.receipts.arif_ack_id = (
+            f"hermes-local-trust-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}"
+        )
 
     # ── SOVEREIGNTY CHECKPOINT BYPASS (2026-06-12) ──────────────────
     # Trusted local services (Hermes bridge) auto-receive a WAIVED
@@ -544,6 +549,7 @@ def _try_promote_local_service(
         CheckpointStatus,
         SovereigntyCheckpoint,
     )
+
     if envelope.sovereignty_checkpoint is None:
         envelope.sovereignty_checkpoint = SovereigntyCheckpoint(
             status=CheckpointStatus.WAIVED,
@@ -564,6 +570,7 @@ def _is_localhost_caller() -> bool:
     try:
         # Lazy import — get_http_request requires FastMCP 3.x context
         from fastmcp.server.dependencies import get_http_request
+
         request = get_http_request()
         client = request.client
         if client is not None:
@@ -699,6 +706,7 @@ def _validate_envelope_for_tool(
         # Lazy import to avoid circular dependency at module load time
         try:
             from arifosmcp.runtime.tools import _validate_ack_id
+
             ack_ok, ack_reason = _validate_ack_id(
                 ack_id,
                 tool_name,
@@ -748,6 +756,7 @@ if IS_FASTMCP_3:
                 self._sink_counters: dict[str, dict] = {}
                 # Register global instance for conformance spine anti-sink A3 check
                 import arifosmcp.runtime.ingress_middleware as _im
+
                 _im._ARIFOS_INGRESS_INSTANCE = self
 
             def register_tool_params(self, tool_name: str, param_names: set[str]) -> None:
@@ -778,7 +787,9 @@ if IS_FASTMCP_3:
 
                 try:
                     # ── FEDERATION ENVELOPE EXTRACTION & VALIDATION ───────────────
-                    envelope = _extract_envelope_from_arguments(dict(msg.arguments or {}), tool_name)
+                    envelope = _extract_envelope_from_arguments(
+                        dict(msg.arguments or {}), tool_name
+                    )
                     if envelope is None:
                         # Legacy call: wrap with conservative defaults
                         envelope = wrap_legacy_call(
@@ -803,6 +814,7 @@ if IS_FASTMCP_3:
                                 f"(scope={envelope.forge_scope})"
                             )
                             from mcp.types import TextContent
+
                             return ToolResult(
                                 content=[
                                     TextContent(
@@ -845,7 +857,9 @@ if IS_FASTMCP_3:
                         envelope.risk.tier = _tool_risk.tier
 
                     # ── LOCAL SERVICE TRUST (Hermes bridge) ────────────────────────
-                    _trusted = _try_promote_local_service(envelope, dict(msg.arguments or {}), tool_name)
+                    _trusted = _try_promote_local_service(
+                        envelope, dict(msg.arguments or {}), tool_name
+                    )
                     if _trusted:
                         logger.info(
                             f"Ingress: local service trust promoted for {tool_name} "
@@ -856,6 +870,7 @@ if IS_FASTMCP_3:
                     if not envelope_ok:
                         logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
                         from mcp.types import TextContent
+
                         verdict = "HOLD"
                         return ToolResult(
                             content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
@@ -894,6 +909,7 @@ if IS_FASTMCP_3:
                                 f"sovereignty_checkpoint required"
                             )
                             from mcp.types import TextContent
+
                             verdict = "HOLD"
                             return ToolResult(
                                 content=[
@@ -937,6 +953,7 @@ if IS_FASTMCP_3:
                                     f"Ingress checkpoint invalid for {tool_name}: {chk_reason}"
                                 )
                                 from mcp.types import TextContent
+
                                 verdict = "HOLD"
                                 return ToolResult(
                                     content=[
@@ -979,7 +996,9 @@ if IS_FASTMCP_3:
                         sid = envelope.session_id or "anonymous"
                         if sid not in self._sink_counters:
                             self._sink_counters[sid] = {
-                                "sim_count": 0, "action_count": 0, "refusals": []
+                                "sim_count": 0,
+                                "action_count": 0,
+                                "refusals": [],
                             }
 
                         args = dict(msg.arguments or {})
@@ -1004,6 +1023,7 @@ if IS_FASTMCP_3:
                                 f"KERNEL INTERCEPTOR: {decision.verdict.value} for {tool_name}: {decision.reason}"
                             )
                             from mcp.types import TextContent
+
                             return ToolResult(
                                 content=[
                                     TextContent(
@@ -1023,6 +1043,7 @@ if IS_FASTMCP_3:
                                 f"KERNEL INTERCEPTOR: 888_HOLD for {tool_name}: {decision.reason}"
                             )
                             from mcp.types import TextContent
+
                             verdict = "HOLD"
                             return ToolResult(
                                 content=[
@@ -1065,6 +1086,7 @@ if IS_FASTMCP_3:
                         # Fail-closed: on interceptor error, deny mutation-capable tools
                         if tool_name in ("bash", "py", "python_repl", "write", "edit"):
                             from mcp.types import TextContent
+
                             logger.warning(
                                 f"KERNEL INTERCEPTOR FAIL_CLOSED: DENY for {tool_name} due to error"
                             )
@@ -1120,18 +1142,23 @@ if IS_FASTMCP_3:
                                     msg.arguments.pop(k)
 
                     from arifosmcp.runtime.tools import _RESPONSE_CONTEXT
+
                     if hasattr(envelope, "actor_id") and envelope.actor_id:
                         _RESPONSE_CONTEXT.set(
                             {
                                 "actor_id": str(envelope.actor_id),
-                                "session_id": str(envelope.session_id) if envelope.session_id else None,
+                                "session_id": str(envelope.session_id)
+                                if envelope.session_id
+                                else None,
                             }
                         )
 
                     result = await call_next(context)
-                    
+
                     if result:
-                        if hasattr(result, "structured_content") and isinstance(result.structured_content, dict):
+                        if hasattr(result, "structured_content") and isinstance(
+                            result.structured_content, dict
+                        ):
                             sc = result.structured_content
                             verdict = sc.get("verdict") or sc.get("status") or "SEAL"
                         elif isinstance(result, dict):
@@ -1177,7 +1204,9 @@ if IS_FASTMCP_3:
 
                     if _METRICS_AVAILABLE and tool_name in MEGA_TOOLS:
                         try:
-                            REQUESTS_TOTAL.labels(method=tool_name, status="ok" if verdict == "SEAL" else "fail").inc()
+                            REQUESTS_TOTAL.labels(
+                                method=tool_name, status="ok" if verdict == "SEAL" else "fail"
+                            ).inc()
                             METABOLIC_LOOP_DURATION.observe(elapsed_ms / 1000.0)
                         except Exception:
                             pass

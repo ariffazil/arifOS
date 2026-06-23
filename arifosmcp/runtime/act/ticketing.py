@@ -23,6 +23,7 @@ class ApprovalTicket:
 
     Constructed when ART issues HOLD or ACT requires a human gate.
     """
+
     ticket_id: str
     plan_id: str
     task_ids: list[str] = field(default_factory=list)

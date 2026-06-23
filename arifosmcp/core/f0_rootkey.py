@@ -80,9 +80,9 @@ class ConstitutionalLayer(StrEnum):
       SANCTUARY — Protected territory. The word must not become metric.
     """
 
-    NAMING = "NAMING"          # Layer 0: exists as named concept
-    PHYSICS = "PHYSICS"        # Layer 1: has schema + equation + enforcement
-    SANCTUARY = "SANCTUARY"    # Layer 2: declared uncodifiable
+    NAMING = "NAMING"  # Layer 0: exists as named concept
+    PHYSICS = "PHYSICS"  # Layer 1: has schema + equation + enforcement
+    SANCTUARY = "SANCTUARY"  # Layer 2: declared uncodifiable
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -331,9 +331,9 @@ def verify_rootkey_signature(
 class F0GateVerdict(StrEnum):
     """Verdicts from the F0_ROOTKEY gate."""
 
-    PASS = "PASS"                 # Rootkey anchored, sovereign verified
-    HOLD = "HOLD"                 # Rootkey exists but not verified for this session
-    FAIL = "FAIL"                 # Rootkey not anchored — system cannot proceed
+    PASS = "PASS"  # Rootkey anchored, sovereign verified
+    HOLD = "HOLD"  # Rootkey exists but not verified for this session
+    FAIL = "FAIL"  # Rootkey not anchored — system cannot proceed
     SANCTUARY_TRESPASS = "SANCTUARY_TRESPASS"  # Sanctuary term used as metric
 
 
@@ -602,9 +602,6 @@ def create_rootkey_anchor_seal_payload() -> dict[str, Any]:
             "The root anchor is sealed. "
             "No machine authority precedes this seal."
         ),
-        "loop_closure": (
-            "/000 → F0_ROOTKEY → F1–F13 → /999. "
-            "The loop is closed at the root."
-        ),
+        "loop_closure": ("/000 → F0_ROOTKEY → F1–F13 → /999. The loop is closed at the root."),
         "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given.",
     }

@@ -63,9 +63,9 @@ class SLSAVerifier:
             raise FileNotFoundError(f"Artifact not found: {artifact_path}")
 
         sha = hashlib.sha256(path.read_bytes()).hexdigest()
-        invocation_id = "build-" + hashlib.sha256(
-            (str(path) + str(time.time())).encode()
-        ).hexdigest()[:16]
+        invocation_id = (
+            "build-" + hashlib.sha256((str(path) + str(time.time())).encode()).hexdigest()[:16]
+        )
 
         return SLSAProvenance(
             artifact=str(path),
@@ -73,7 +73,9 @@ class SLSAVerifier:
             builder_id=builder_id,
             build_type=build_type,
             invocation_id=invocation_id,
-            materials=[{"uri": "git+https://github.com/ariffazil/arifOS", "sha256": "see-git-commit"}],
+            materials=[
+                {"uri": "git+https://github.com/ariffazil/arifOS", "sha256": "see-git-commit"}
+            ],
             slsa_level=self.target_level if self._meets_level(path) else 0,
         )
 

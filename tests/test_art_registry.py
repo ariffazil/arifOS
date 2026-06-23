@@ -8,13 +8,9 @@ DITEMPA BUKAN DIBERI — chaos compressor forged, 26 → 5 buckets.
 
 from __future__ import annotations
 
-import pytest
 
 from arifosmcp.runtime.art_registry import (
-    ArtRegistry,
-    DEFAULT_TOOL_STATE,
     PER_BUCKET_BLAST,
-    PER_BUCKET_REFLEX_RULES,
     TOOL_BUCKET,
     get_bucket,
     get_default_blast,
@@ -31,13 +27,25 @@ class TestAllCanonicalClassified:
     """All 21 canonical arif_* tools must have a bucket."""
 
     CANONICAL_19 = [
-        "arif_session_init", "arif_forge_execute", "arif_sense_observe",
-        "arif_evidence_fetch", "arif_mind_reason", "arif_reply_compose",
-        "arif_kernel_route", "arif_route", "arif_triage",
-        "arif_kernel_status", "arif_kernel_attest", "arif_kernel_health",
-        "arif_bridge", "arif_memory_recall", "arif_ops_measure",
-        "arif_heart_critique", "arif_gateway_connect",
-        "arif_judge_deliberate", "arif_vault_seal",
+        "arif_session_init",
+        "arif_forge_execute",
+        "arif_sense_observe",
+        "arif_evidence_fetch",
+        "arif_mind_reason",
+        "arif_reply_compose",
+        "arif_kernel_route",
+        "arif_route",
+        "arif_triage",
+        "arif_kernel_status",
+        "arif_kernel_attest",
+        "arif_kernel_health",
+        "arif_bridge",
+        "arif_memory_recall",
+        "arif_ops_measure",
+        "arif_heart_critique",
+        "arif_gateway_connect",
+        "arif_judge_deliberate",
+        "arif_vault_seal",
     ]
 
     def test_all_19_canonical_in_registry(self):
@@ -61,14 +69,31 @@ class TestAllRegisteredToolsClassified:
     """All 26 tools exposed via MCP must be classified (canary probes too)."""
 
     REGISTERED_26 = [
-        "arif_bridge", "arif_bridge_connect", "arif_conformance_report",
-        "arif_evidence_fetch", "arif_forge_execute", "arif_gateway_connect",
-        "arif_heart_critique", "arif_initialize_probe", "arif_judge_deliberate",
-        "arif_kernel_attest", "arif_kernel_health", "arif_kernel_route",
-        "arif_kernel_status", "arif_memory_recall", "arif_mind_reason",
-        "arif_ops_measure", "arif_ping", "arif_reply_compose", "arif_route",
-        "arif_schema_echo", "arif_sense_observe", "arif_session_init",
-        "arif_transport_echo", "arif_triage", "arif_vault_seal",
+        "arif_bridge",
+        "arif_bridge_connect",
+        "arif_conformance_report",
+        "arif_evidence_fetch",
+        "arif_forge_execute",
+        "arif_gateway_connect",
+        "arif_heart_critique",
+        "arif_initialize_probe",
+        "arif_judge_deliberate",
+        "arif_kernel_attest",
+        "arif_kernel_health",
+        "arif_kernel_route",
+        "arif_kernel_status",
+        "arif_memory_recall",
+        "arif_mind_reason",
+        "arif_ops_measure",
+        "arif_ping",
+        "arif_reply_compose",
+        "arif_route",
+        "arif_schema_echo",
+        "arif_sense_observe",
+        "arif_session_init",
+        "arif_transport_echo",
+        "arif_triage",
+        "arif_vault_seal",
         "arif_version_echo",
     ]
 

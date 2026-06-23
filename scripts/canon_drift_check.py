@@ -39,8 +39,17 @@ ORGANS = {
 }
 
 SKIP_DIRS = {
-    ".git", "node_modules", ".venv", "venv", "__pycache__", ".pytest_cache",
-    "dist", "build", ".next", ".cache", "archive",
+    ".git",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    "dist",
+    "build",
+    ".next",
+    ".cache",
+    "archive",
 }
 
 LANDING_FILE_RE = re.compile(r"(CONTEXT|AGENTS|RUNBOOK|README)\.md$")
@@ -71,10 +80,7 @@ def check_landing_files(organ_name: str, organ_path: Path) -> tuple[list[str], l
     for f in organ_path.rglob("*.md"):
         if not f.is_file() or should_skip(f):
             continue
-        is_landing = (
-            LANDING_FILE_RE.search(f.name)
-            or f.parent.name in {"GENESIS", "wiki"}
-        )
+        is_landing = LANDING_FILE_RE.search(f.name) or f.parent.name in {"GENESIS", "wiki"}
         if not is_landing:
             continue
         try:

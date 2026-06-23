@@ -6,7 +6,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import asyncio
 import pytest
 
 from arifosmcp.runtime.semantic_gate import classify_intent, IntentCategory
@@ -45,12 +44,12 @@ CASES = [
 @pytest.mark.parametrize("label,input_text,expected_verdict,expected_category", CASES)
 def test_classify_intent_fast_path(label, input_text, expected_verdict, expected_category):
     result = classify_intent(input_text)
-    assert (
-        result["verdict"] == expected_verdict
-    ), f"[{label}] Expected {expected_verdict}, got {result['verdict']}"
-    assert (
-        result["category"] == expected_category
-    ), f"[{label}] Expected {expected_category}, got {result['category']}"
+    assert result["verdict"] == expected_verdict, (
+        f"[{label}] Expected {expected_verdict}, got {result['verdict']}"
+    )
+    assert result["category"] == expected_category, (
+        f"[{label}] Expected {expected_category}, got {result['category']}"
+    )
 
 
 INJECTION_CASES = [
@@ -64,9 +63,9 @@ INJECTION_CASES = [
 @pytest.mark.parametrize("input_text", INJECTION_CASES)
 def test_prompt_injection_blocked(input_text):
     result = classify_intent(input_text)
-    assert (
-        result["verdict"] == "HOLD"
-    ), f"Injection passed: '{input_text[:40]}' → {result['verdict']}"
+    assert result["verdict"] == "HOLD", (
+        f"Injection passed: '{input_text[:40]}' → {result['verdict']}"
+    )
     assert result["category"] == IntentCategory.MANIPULATION
 
 

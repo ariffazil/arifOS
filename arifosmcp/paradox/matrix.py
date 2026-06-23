@@ -13,6 +13,7 @@ This module provides:
 One matrix, five organs, zero authority collapse.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 from typing import Literal
@@ -24,9 +25,15 @@ from typing import Literal
 RowT = Literal["TRUTH", "CLARITY", "HUMILITY"]
 ColT = Literal["CARE", "PEACE", "JUSTICE"]
 CellT = Literal[
-    "truth_care", "truth_peace", "truth_justice",
-    "clarity_care", "clarity_peace", "clarity_justice",
-    "humility_care", "humility_peace", "humility_justice",
+    "truth_care",
+    "truth_peace",
+    "truth_justice",
+    "clarity_care",
+    "clarity_peace",
+    "clarity_justice",
+    "humility_care",
+    "humility_peace",
+    "humility_justice",
 ]
 
 MATRIX_ROWS: tuple[RowT, ...] = ("TRUTH", "CLARITY", "HUMILITY")
@@ -50,12 +57,12 @@ def cell_key(row: str, col: str) -> str:
 # Maps (verdict_type, action_tier) → matrix_cell for Judge paradox anchors
 VERDICT_CELL_MAP: dict[tuple[str, str], str] = {
     # Standard verdict routing
-    ("SABAR", "*"): "clarity_justice",       # J_CxJ — Parker/MLK: arc bends only if we bend it
-    ("SEAL", "standard"): "truth_peace",      # J_TxP — Aristotle: every SEAL is partial justice
+    ("SABAR", "*"): "clarity_justice",  # J_CxJ — Parker/MLK: arc bends only if we bend it
+    ("SEAL", "standard"): "truth_peace",  # J_TxP — Aristotle: every SEAL is partial justice
     ("SEAL", "sovereign"): "humility_justice",  # J_HxJ — Kant: universality not computable
     ("SEAL", "c4"): "humility_justice",
     ("SEAL", "c5"): "humility_justice",
-    ("HOLD", "sovereign"): "truth_care",       # J_TxC — Marcus Aurelius: if not right, don't do it
+    ("HOLD", "sovereign"): "truth_care",  # J_TxC — Marcus Aurelius: if not right, don't do it
     ("HOLD", "c4"): "truth_care",
     ("HOLD", "c5"): "truth_care",
 }

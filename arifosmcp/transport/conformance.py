@@ -43,8 +43,13 @@ CONFORMANCE_SPINE = [
 
 # ── Test Helpers ────────────────────────────────────────────────────────────
 
-def jsonrpc_post(url: str, method: str, params: dict[str, Any] | None = None,
-                 headers: dict[str, str] | None = None) -> dict[str, Any]:
+
+def jsonrpc_post(
+    url: str,
+    method: str,
+    params: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Send JSON-RPC 2.0 POST request."""
     payload = {
         "jsonrpc": "2.0",
@@ -113,11 +118,7 @@ Results = list[dict[str, Any]]
 def test_ping() -> dict[str, Any]:
     """GET /ping returns status ok."""
     result = http_get(f"{BASE_URL}/ping")
-    passed = (
-        isinstance(result, dict)
-        and result.get("status") == "ok"
-        and "ts" in result
-    )
+    passed = isinstance(result, dict) and result.get("status") == "ok" and "ts" in result
     return {
         "test": "ping",
         "target": "GET /ping",
@@ -147,10 +148,7 @@ def test_schema_echo() -> dict[str, Any]:
 def test_version() -> dict[str, Any]:
     """GET /version returns version info."""
     result = http_get(f"{BASE_URL}/version")
-    passed = (
-        isinstance(result, dict)
-        and "version" in result
-    )
+    passed = isinstance(result, dict) and "version" in result
     return {
         "test": "version",
         "target": "GET /version",
@@ -180,11 +178,15 @@ def test_probe() -> dict[str, Any]:
 
 def test_kernel_initialize() -> dict[str, Any]:
     """Send MCP initialize to kernel."""
-    result = jsonrpc_post(KERNEL_URL, "initialize", {
-        "protocolVersion": "2025-11-25",
-        "capabilities": {},
-        "clientInfo": {"name": "conformance-probe", "version": "0.1"},
-    })
+    result = jsonrpc_post(
+        KERNEL_URL,
+        "initialize",
+        {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "conformance-probe", "version": "0.1"},
+        },
+    )
     passed = (
         isinstance(result, dict)
         and "result" in result
@@ -208,11 +210,15 @@ def test_kernel_initialize() -> dict[str, Any]:
 def test_kernel_tools_list() -> dict[str, Any]:
     """List tools after init."""
     # Initialize first
-    init_resp = jsonrpc_post(KERNEL_URL, "initialize", {
-        "protocolVersion": "2025-11-25",
-        "capabilities": {},
-        "clientInfo": {"name": "conformance-probe", "version": "0.1"},
-    })
+    init_resp = jsonrpc_post(
+        KERNEL_URL,
+        "initialize",
+        {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "conformance-probe", "version": "0.1"},
+        },
+    )
     sid = init_resp.get("_session_id", "")
 
     # List tools with session
@@ -239,11 +245,15 @@ def test_kernel_tools_list() -> dict[str, Any]:
 
 def test_kernel_tool_call_safe() -> dict[str, Any]:
     """Call a safe read-only tool."""
-    init_resp = jsonrpc_post(KERNEL_URL, "initialize", {
-        "protocolVersion": "2025-11-25",
-        "capabilities": {},
-        "clientInfo": {"name": "conformance-probe", "version": "0.1"},
-    })
+    init_resp = jsonrpc_post(
+        KERNEL_URL,
+        "initialize",
+        {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "conformance-probe", "version": "0.1"},
+        },
+    )
     sid = init_resp.get("_session_id", "")
 
     headers = {}
@@ -251,10 +261,15 @@ def test_kernel_tool_call_safe() -> dict[str, Any]:
         headers["mcp-session-id"] = sid
 
     # Call arif_measure (read-only, no auth needed)
-    result = jsonrpc_post(KERNEL_URL, "tools/call", {
-        "name": "arif_measure",
-        "arguments": {"mode": "vitals"},
-    }, headers=headers)
+    result = jsonrpc_post(
+        KERNEL_URL,
+        "tools/call",
+        {
+            "name": "arif_measure",
+            "arguments": {"mode": "vitals"},
+        },
+        headers=headers,
+    )
 
     passed = isinstance(result, dict) and "result" in result
     return {
@@ -365,6 +380,7 @@ def test_airlock_error_arif_schema() -> dict[str, Any]:
 
 # ── Run All ─────────────────────────────────────────────────────────────────
 
+
 def run_all(url: str = BASE_URL) -> list[dict[str, Any]]:
     """Run all conformance tests and return results matrix."""
     global BASE_URL, KERNEL_URL
@@ -433,7 +449,7 @@ def print_matrix(results: list[dict[str, Any]]) -> None:
         print(f"{r['test']:<38} {r['verdict']:<8} {r['note']}")
     print("-" * 72)
     print(f"Total: {total}  Pass: {passed}  Fail: {failed}  Skip: {skipped}")
-    print(f"Score: {passed}/{total} ({passed/total*100:.0f}%)" if total else "N/A")
+    print(f"Score: {passed}/{total} ({passed / total * 100:.0f}%)" if total else "N/A")
     print()
     print("Detailed evidence:")
     for r in results:

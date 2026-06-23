@@ -9,6 +9,7 @@ One injection engine, five organ contexts, zero authority collapse.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,6 +22,7 @@ from arifosmcp.paradox.registry import AnchorRegistry
 @dataclass
 class InjectedAnchor:
     """The payload injected into an organ's output at a decision point."""
+
     quote_id: str
     organ: str
     matrix_cell: str

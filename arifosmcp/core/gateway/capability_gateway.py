@@ -207,13 +207,15 @@ class CapabilityGateway:
         detail: str,
     ) -> None:
         """Log resolution attempts (no secrets, ever)."""
-        self._resolve_log.append({
-            "timestamp": datetime.now(UTC).isoformat(),
-            "actor_id": actor_id,
-            "capability": capability,
-            "success": success,
-            "detail": detail,
-        })
+        self._resolve_log.append(
+            {
+                "timestamp": datetime.now(UTC).isoformat(),
+                "actor_id": actor_id,
+                "capability": capability,
+                "success": success,
+                "detail": detail,
+            }
+        )
 
     # ═══════════════════════════════════════════════════════════════════════════
     # QUERIES

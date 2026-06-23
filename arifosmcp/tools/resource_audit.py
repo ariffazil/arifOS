@@ -30,7 +30,7 @@ import hashlib
 import json
 import re
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.runtime.law import check_laws
@@ -109,6 +109,7 @@ LINT_RULES: list[dict[str, Any]] = [
 # ═══════════════════════════════════════════════════════════════════════════════
 # Resource descriptor extraction
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _parse_arifos_meta(text: str) -> dict[str, Any]:
     """Parse ---arifos_meta ... ---end_arifos_meta preamble from resource text."""
@@ -250,16 +251,24 @@ def _get_resource_metadata(uri: str, text: str | None = None) -> dict[str, Any]:
         "uri": uri,
         "resource_class": resource_class,
         "authority_level": authority_level,
-        "owner": parsed_meta.get("owner", "ARIF_FAZIL" if authority_level == "SOVEREIGN_CANON" else "UNKNOWN"),
+        "owner": parsed_meta.get(
+            "owner", "ARIF_FAZIL" if authority_level == "SOVEREIGN_CANON" else "UNKNOWN"
+        ),
         "hash": content_hash or parsed_meta.get("hash", ""),
         "version": parsed_meta.get("version", "unknown"),
-        "mutation_allowed": parsed_meta.get("mutation_allowed", authority_level != "SOVEREIGN_CANON"),
-        "requires_actor_verified": parsed_meta.get("requires_actor_verified", blast_radius == "HIGH"),
+        "mutation_allowed": parsed_meta.get(
+            "mutation_allowed", authority_level != "SOVEREIGN_CANON"
+        ),
+        "requires_actor_verified": parsed_meta.get(
+            "requires_actor_verified", blast_radius == "HIGH"
+        ),
         "requires_session": parsed_meta.get("requires_session", True),
         "lease_required": parsed_meta.get("lease_required", False),
         "blast_radius": blast_radius,
         "evidence_level": evidence_level,
-        "staleness_policy": parsed_meta.get("staleness_policy", "fail_closed" if authority_level == "SOVEREIGN_CANON" else "warn"),
+        "staleness_policy": parsed_meta.get(
+            "staleness_policy", "fail_closed" if authority_level == "SOVEREIGN_CANON" else "warn"
+        ),
         "last_attested": parsed_meta.get("last_attested", "unknown"),
         "content_length": len(text) if text else 0,
     }
@@ -268,6 +277,7 @@ def _get_resource_metadata(uri: str, text: str | None = None) -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Lint engine
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _lint_resource(uri: str, meta: dict[str, Any]) -> list[dict[str, Any]]:
     """Run all 10 P0 lint rules against a single resource descriptor.
@@ -280,83 +290,161 @@ def _lint_resource(uri: str, meta: dict[str, Any]) -> list[dict[str, Any]]:
     unstable_patterns = ["{session_id}", "{run_id}", "{actor_id}", "{hash}", "{id}"]
     is_template = any(p in uri for p in unstable_patterns)
     if meta["authority_level"] == "SOVEREIGN_CANON" and is_template:
-        findings.append({"rule_id": "R01_STABLE_URI", "status": "FAIL",
-                         "detail": f"Canonical resource has templated URI: {uri}"})
+        findings.append(
+            {
+                "rule_id": "R01_STABLE_URI",
+                "status": "FAIL",
+                "detail": f"Canonical resource has templated URI: {uri}",
+            }
+        )
     elif is_template:
-        findings.append({"rule_id": "R01_STABLE_URI", "status": "PASS",
-                         "detail": "Templated URI acceptable for non-canonical resource"})
+        findings.append(
+            {
+                "rule_id": "R01_STABLE_URI",
+                "status": "PASS",
+                "detail": "Templated URI acceptable for non-canonical resource",
+            }
+        )
     else:
-        findings.append({"rule_id": "R01_STABLE_URI", "status": "PASS",
-                         "detail": "Stable URI"})
+        findings.append({"rule_id": "R01_STABLE_URI", "status": "PASS", "detail": "Stable URI"})
 
     # R02: Content hash present
     if meta.get("hash"):
-        findings.append({"rule_id": "R02_CONTENT_HASH", "status": "PASS",
-                         "detail": f"sha256:{meta['hash'][:16]}..."})
+        findings.append(
+            {
+                "rule_id": "R02_CONTENT_HASH",
+                "status": "PASS",
+                "detail": f"sha256:{meta['hash'][:16]}...",
+            }
+        )
     else:
-        findings.append({"rule_id": "R02_CONTENT_HASH", "status": "FAIL",
-                         "detail": "No content hash"})
+        findings.append(
+            {"rule_id": "R02_CONTENT_HASH", "status": "FAIL", "detail": "No content hash"}
+        )
 
     # R03: Owner declared
     if meta.get("owner") and meta["owner"] != "UNKNOWN":
-        findings.append({"rule_id": "R03_OWNER_DECLARED", "status": "PASS",
-                         "detail": f"Owner: {meta['owner']}"})
+        findings.append(
+            {"rule_id": "R03_OWNER_DECLARED", "status": "PASS", "detail": f"Owner: {meta['owner']}"}
+        )
     else:
-        findings.append({"rule_id": "R03_OWNER_DECLARED", "status": "FAIL",
-                         "detail": "No owner declared"})
+        findings.append(
+            {"rule_id": "R03_OWNER_DECLARED", "status": "FAIL", "detail": "No owner declared"}
+        )
 
     # R04: Canonical → fail_closed
     if meta["authority_level"] == "SOVEREIGN_CANON":
         if meta.get("staleness_policy") == "fail_closed":
-            findings.append({"rule_id": "R04_CANONICAL_FAIL_CLOSED", "status": "PASS",
-                             "detail": "fail_closed"})
+            findings.append(
+                {"rule_id": "R04_CANONICAL_FAIL_CLOSED", "status": "PASS", "detail": "fail_closed"}
+            )
         else:
-            findings.append({"rule_id": "R04_CANONICAL_FAIL_CLOSED", "status": "FAIL",
-                             "detail": f"Expected fail_closed, got {meta.get('staleness_policy', 'none')}"})
+            findings.append(
+                {
+                    "rule_id": "R04_CANONICAL_FAIL_CLOSED",
+                    "status": "FAIL",
+                    "detail": f"Expected fail_closed, got {meta.get('staleness_policy', 'none')}",
+                }
+            )
     else:
-        findings.append({"rule_id": "R04_CANONICAL_FAIL_CLOSED", "status": "PASS",
-                         "detail": "N/A — not canonical"})
+        findings.append(
+            {
+                "rule_id": "R04_CANONICAL_FAIL_CLOSED",
+                "status": "PASS",
+                "detail": "N/A — not canonical",
+            }
+        )
 
     # R05: Sensitive → actor verified
     if meta["blast_radius"] == "HIGH":
         if meta.get("requires_actor_verified"):
-            findings.append({"rule_id": "R05_SENSITIVE_REQUIRES_AUTH", "status": "PASS",
-                             "detail": "Actor verification required"})
+            findings.append(
+                {
+                    "rule_id": "R05_SENSITIVE_REQUIRES_AUTH",
+                    "status": "PASS",
+                    "detail": "Actor verification required",
+                }
+            )
         else:
-            findings.append({"rule_id": "R05_SENSITIVE_REQUIRES_AUTH", "status": "FAIL",
-                             "detail": "HIGH blast radius but actor verification not required"})
+            findings.append(
+                {
+                    "rule_id": "R05_SENSITIVE_REQUIRES_AUTH",
+                    "status": "FAIL",
+                    "detail": "HIGH blast radius but actor verification not required",
+                }
+            )
     else:
-        findings.append({"rule_id": "R05_SENSITIVE_REQUIRES_AUTH", "status": "PASS",
-                         "detail": f"N/A — blast radius: {meta['blast_radius']}"})
+        findings.append(
+            {
+                "rule_id": "R05_SENSITIVE_REQUIRES_AUTH",
+                "status": "PASS",
+                "detail": f"N/A — blast radius: {meta['blast_radius']}",
+            }
+        )
 
     # R06: Binary → MIME declared (WARN)
     # All current resources are text/plain; this is a future-proof check
-    findings.append({"rule_id": "R06_BINARY_DECLARE_MIME", "status": "PASS",
-                     "detail": "text/plain — non-binary"})
+    findings.append(
+        {
+            "rule_id": "R06_BINARY_DECLARE_MIME",
+            "status": "PASS",
+            "detail": "text/plain — non-binary",
+        }
+    )
 
     # R07: Read permission gate
     if meta.get("requires_session"):
-        findings.append({"rule_id": "R07_READ_PERMISSION_CHECK", "status": "PASS",
-                         "detail": "Session required before read"})
+        findings.append(
+            {
+                "rule_id": "R07_READ_PERMISSION_CHECK",
+                "status": "PASS",
+                "detail": "Session required before read",
+            }
+        )
     else:
-        findings.append({"rule_id": "R07_READ_PERMISSION_CHECK", "status": "FAIL",
-                         "detail": "No session requirement on sensitive read"})
+        findings.append(
+            {
+                "rule_id": "R07_READ_PERMISSION_CHECK",
+                "status": "FAIL",
+                "detail": "No session requirement on sensitive read",
+            }
+        )
 
     # R08: List change auditable (WARN)
-    findings.append({"rule_id": "R08_LIST_CHANGE_AUDITABLE", "status": "PASS",
-                     "detail": "Resource list derived from code — git-auditable"})
+    findings.append(
+        {
+            "rule_id": "R08_LIST_CHANGE_AUDITABLE",
+            "status": "PASS",
+            "detail": "Resource list derived from code — git-auditable",
+        }
+    )
 
     # R09: Subscribe hash pair (WARN)
-    findings.append({"rule_id": "R09_SUBSCRIBE_HASH_PAIR", "status": "PASS",
-                     "detail": "Capability declared; runtime verification via subscribe_probe mode"})
+    findings.append(
+        {
+            "rule_id": "R09_SUBSCRIBE_HASH_PAIR",
+            "status": "PASS",
+            "detail": "Capability declared; runtime verification via subscribe_probe mode",
+        }
+    )
 
     # R10: Evidence citation format (WARN)
     if meta["evidence_level"] == "CANONICAL":
-        findings.append({"rule_id": "R10_EVIDENCE_CITATION_FORMAT", "status": "PASS",
-                         "detail": "URI + hash + version available for citation"})
+        findings.append(
+            {
+                "rule_id": "R10_EVIDENCE_CITATION_FORMAT",
+                "status": "PASS",
+                "detail": "URI + hash + version available for citation",
+            }
+        )
     else:
-        findings.append({"rule_id": "R10_EVIDENCE_CITATION_FORMAT", "status": "PASS",
-                         "detail": "Non-canonical — relaxed citation requirements"})
+        findings.append(
+            {
+                "rule_id": "R10_EVIDENCE_CITATION_FORMAT",
+                "status": "PASS",
+                "detail": "Non-canonical — relaxed citation requirements",
+            }
+        )
 
     return findings
 
@@ -365,8 +453,6 @@ def _lint_all_resources() -> dict[str, Any]:
     """Run lint rules against all registered resources."""
     from arifosmcp.resources import (
         CANONICAL_RESOURCES,
-        EMBODIED_RESOURCES,
-        EVIDENCE_RESOURCES,
         RUNNER_RESOURCES,
         SUPPLEMENTAL_RESOURCES,
         TREE777_RESOURCES,
@@ -400,15 +486,17 @@ def _lint_all_resources() -> dict[str, Any]:
         fail_count += resource_fail
         warn_count += resource_warn
 
-        results.append({
-            "uri": uri,
-            "class": meta["resource_class"],
-            "authority_level": meta["authority_level"],
-            "hash": meta.get("hash", "")[:24] + "..." if meta.get("hash") else "MISSING",
-            "findings": findings,
-            "score": f"{resource_pass}P/{resource_fail}F/{resource_warn}W",
-            "verdict": "PASS" if resource_fail == 0 else "FAIL",
-        })
+        results.append(
+            {
+                "uri": uri,
+                "class": meta["resource_class"],
+                "authority_level": meta["authority_level"],
+                "hash": meta.get("hash", "")[:24] + "..." if meta.get("hash") else "MISSING",
+                "findings": findings,
+                "score": f"{resource_pass}P/{resource_fail}F/{resource_warn}W",
+                "verdict": "PASS" if resource_fail == 0 else "FAIL",
+            }
+        )
 
     total = pass_count + fail_count + warn_count
     return {
@@ -430,6 +518,7 @@ def _lint_all_resources() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Main tool handler
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def arif_resource_audit(
     mode: str = "list",
@@ -468,8 +557,12 @@ def arif_resource_audit(
 
     floor_check = check_laws("arif_resource_audit", {"mode": mode, "uri": uri or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_resource_audit", floor_check["reason"],
-                     floor_check["violated_laws"], session_id=session_id)
+        return _hold(
+            "arif_resource_audit",
+            floor_check["reason"],
+            floor_check["violated_laws"],
+            session_id=session_id,
+        )
 
     # ── Import resource families ──────────────────────────────────────────
     from arifosmcp.resources import (  # noqa: PLC0415
@@ -525,16 +618,18 @@ def arif_resource_audit(
 
     if mode == "read":
         if not uri:
-            return _hold("arif_resource_audit", "mode=read requires uri parameter",
-                         session_id=session_id)
+            return _hold(
+                "arif_resource_audit", "mode=read requires uri parameter", session_id=session_id
+            )
         text = _load_resource_content(uri)
         if text is None:
-            return _hold("arif_resource_audit", f"Resource not found: {uri}",
-                         session_id=session_id)
+            return _hold("arif_resource_audit", f"Resource not found: {uri}", session_id=session_id)
         meta = _get_resource_metadata(uri, text)
         parsed = _parse_arifos_meta(text)
         # Strip metadata preamble for clean content
-        clean_text = re.sub(r"---arifos_meta\s*\n.*?\n---end_arifos_meta\n?", "", text, flags=re.DOTALL)
+        clean_text = re.sub(
+            r"---arifos_meta\s*\n.*?\n---end_arifos_meta\n?", "", text, flags=re.DOTALL
+        )
         return _ok(
             "arif_resource_audit",
             {
@@ -556,16 +651,16 @@ def arif_resource_audit(
             h = _compute_hash(text) if text else "UNAVAILABLE"
             hashes[u] = {"sha256": h, "length": len(text) if text else 0}
 
-        aggregate = hashlib.sha256(
-            json.dumps(hashes, sort_keys=True).encode()
-        ).hexdigest()
+        aggregate = hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest()
 
         elapsed_ms = (time.perf_counter() - t0) * 1000
         return _ok(
             "arif_resource_audit",
             {
                 "resources_hashed": len(hashes),
-                "resources_unavailable": sum(1 for v in hashes.values() if v["sha256"] == "UNAVAILABLE"),
+                "resources_unavailable": sum(
+                    1 for v in hashes.values() if v["sha256"] == "UNAVAILABLE"
+                ),
                 "hashes": hashes,
                 "aggregate_hash": aggregate,
                 "query_ms": round(elapsed_ms, 2),
@@ -583,6 +678,7 @@ def arif_resource_audit(
         # This checks the declared capability and attempts a basic verification.
         try:
             import urllib.request
+
             req = urllib.request.Request(
                 "http://127.0.0.1:8088/health",
                 headers={"Accept": "application/json"},
@@ -599,6 +695,7 @@ def arif_resource_audit(
 
         # Count how many resources would benefit from subscriptions
         from arifosmcp.resources import CANONICAL_RESOURCES as _CR
+
         dynamic_count = 1  # resources/index is dynamic
         static_count = len(_CR) - dynamic_count
 
@@ -639,9 +736,12 @@ def arif_resource_audit(
             staleness = "unknown"
             if date_match:
                 try:
-                    ver_date = datetime(int(date_match.group(1)),
-                                       int(date_match.group(2)),
-                                       int(date_match.group(3)), tzinfo=UTC)
+                    ver_date = datetime(
+                        int(date_match.group(1)),
+                        int(date_match.group(2)),
+                        int(date_match.group(3)),
+                        tzinfo=UTC,
+                    )
                     age_days = (now - ver_date).days
                     if age_days > stale_threshold_days:
                         staleness = "stale"
@@ -655,14 +755,17 @@ def arif_resource_audit(
             else:
                 unknown_count += 1
 
-            stale_findings.append({
-                "uri": u,
-                "version": version,
-                "last_attested": last_attested,
-                "staleness": staleness,
-                "policy": meta.get("staleness_policy", "unknown"),
-                "action_required": staleness == "stale" and meta.get("staleness_policy") == "fail_closed",
-            })
+            stale_findings.append(
+                {
+                    "uri": u,
+                    "version": version,
+                    "last_attested": last_attested,
+                    "staleness": staleness,
+                    "policy": meta.get("staleness_policy", "unknown"),
+                    "action_required": staleness == "stale"
+                    and meta.get("staleness_policy") == "fail_closed",
+                }
+            )
 
         return _ok(
             "arif_resource_audit",
@@ -686,16 +789,18 @@ def arif_resource_audit(
         all_uris = list(CANONICAL_RESOURCES) + list(SUPPLEMENTAL_RESOURCES)
         for u in all_uris:
             meta = _get_resource_metadata(u)
-            access_entries.append({
-                "uri": u,
-                "authority_level": meta["authority_level"],
-                "requires_session": meta["requires_session"],
-                "requires_actor_verified": meta["requires_actor_verified"],
-                "lease_required": meta["lease_required"],
-                "blast_radius": meta["blast_radius"],
-                "read_allowed": True,  # All current resources are public-read
-                "mutation_allowed": meta["mutation_allowed"],
-            })
+            access_entries.append(
+                {
+                    "uri": u,
+                    "authority_level": meta["authority_level"],
+                    "requires_session": meta["requires_session"],
+                    "requires_actor_verified": meta["requires_actor_verified"],
+                    "lease_required": meta["lease_required"],
+                    "blast_radius": meta["blast_radius"],
+                    "read_allowed": True,  # All current resources are public-read
+                    "mutation_allowed": meta["mutation_allowed"],
+                }
+            )
 
         return _ok(
             "arif_resource_audit",
@@ -703,10 +808,16 @@ def arif_resource_audit(
                 "resources_mapped": len(access_entries),
                 "access_matrix": access_entries,
                 "summary": {
-                    "public_read": len([e for e in access_entries if not e["requires_actor_verified"]]),
-                    "auth_required": len([e for e in access_entries if e["requires_actor_verified"]]),
+                    "public_read": len(
+                        [e for e in access_entries if not e["requires_actor_verified"]]
+                    ),
+                    "auth_required": len(
+                        [e for e in access_entries if e["requires_actor_verified"]]
+                    ),
                     "mutation_allowed": len([e for e in access_entries if e["mutation_allowed"]]),
-                    "high_blast_radius": len([e for e in access_entries if e["blast_radius"] == "HIGH"]),
+                    "high_blast_radius": len(
+                        [e for e in access_entries if e["blast_radius"] == "HIGH"]
+                    ),
                 },
             },
             session_id=session_id,
@@ -714,16 +825,16 @@ def arif_resource_audit(
 
     if mode == "diff":
         if not baseline_file:
-            return _hold("arif_resource_audit",
-                         "mode=diff requires baseline_file parameter",
-                         session_id=session_id)
+            return _hold(
+                "arif_resource_audit",
+                "mode=diff requires baseline_file parameter",
+                session_id=session_id,
+            )
         try:
             with open(baseline_file) as f:
                 baseline = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            return _hold("arif_resource_audit",
-                         f"Cannot read baseline: {e}",
-                         session_id=session_id)
+            return _hold("arif_resource_audit", f"Cannot read baseline: {e}", session_id=session_id)
 
         current_hashes: dict[str, str] = {}
         for u in list(CANONICAL_RESOURCES) + list(SUPPLEMENTAL_RESOURCES):
@@ -733,10 +844,16 @@ def arif_resource_audit(
         baseline_hashes = baseline.get("hashes", {})
         added = [u for u in current_hashes if u not in baseline_hashes]
         removed = [u for u in baseline_hashes if u not in current_hashes]
-        changed = [u for u in current_hashes if u in baseline_hashes
-                   and current_hashes[u] != baseline_hashes[u]]
-        unchanged = [u for u in current_hashes if u in baseline_hashes
-                     and current_hashes[u] == baseline_hashes[u]]
+        changed = [
+            u
+            for u in current_hashes
+            if u in baseline_hashes and current_hashes[u] != baseline_hashes[u]
+        ]
+        unchanged = [
+            u
+            for u in current_hashes
+            if u in baseline_hashes and current_hashes[u] == baseline_hashes[u]
+        ]
 
         return _ok(
             "arif_resource_audit",

@@ -1,5 +1,10 @@
 """Live EurekaMode GEOX LEM test — v4 with all state-machine fixes."""
-import asyncio, json, sys, time
+
+import asyncio
+import json
+import sys
+import time
+
 sys.path.insert(0, "/root/arifOS")
 from arifosmcp.runtime.explore import arif_explore
 
@@ -29,16 +34,22 @@ async def main():
 
     print(f"Status: {result.get('status')} | {elapsed:.1f}s")
     print(f"Steps: {metrics.get('steps')} | Depth: {metrics.get('depth')}")
-    print(f"Nodes: {len(nodes)} | Edges: {len(edges)} | Findings: {len(findings)} | Gaps: {len(gaps)}")
-    print(f"Coverage: {metrics.get('coverage',0):.2f} | Confidence: {metrics.get('confidence',0):.2f}")
-    print(f"Saturation: {verdict.get('saturation')} | NextMoves: {len(verdict.get('next_moves',[]))}")
+    print(
+        f"Nodes: {len(nodes)} | Edges: {len(edges)} | Findings: {len(findings)} | Gaps: {len(gaps)}"
+    )
+    print(
+        f"Coverage: {metrics.get('coverage', 0):.2f} | Confidence: {metrics.get('confidence', 0):.2f}"
+    )
+    print(
+        f"Saturation: {verdict.get('saturation')} | NextMoves: {len(verdict.get('next_moves', []))}"
+    )
 
     if findings:
         print("\n─── FINDINGS ───")
         for f in findings[:15]:
             conf = f.get("confidence", 0)
             bar = "▓" * int(conf * 10) + "░" * (10 - int(conf * 10))
-            print(f"  [{bar}] {f.get('summary','')[:200]}")
+            print(f"  [{bar}] {f.get('summary', '')[:200]}")
             for s in (f.get("sources") or [])[:2]:
                 print(f"       ← {s[:120]}")
 
@@ -56,14 +67,19 @@ async def main():
         sym = meta.get("symbol_count", "")
         label = n.get("label", "")[:100]
         extras = []
-        if novel: extras.append(f"novel={novel}")
-        if sym: extras.append(f"symbols={sym}")
-        if target: extras.append(f"target={target}")
-        if meta.get("cycle"): extras.append(f"cycle={meta['cycle']}")
+        if novel:
+            extras.append(f"novel={novel}")
+        if sym:
+            extras.append(f"symbols={sym}")
+        if target:
+            extras.append(f"target={target}")
+        if meta.get("cycle"):
+            extras.append(f"cycle={meta['cycle']}")
         if meta.get("unresolved") is not None and not meta["unresolved"]:
             extras.append("RESOLVED")
         print(f"  [{mode}] {label}")
-        if extras: print(f"       {' | '.join(extras)}")
+        if extras:
+            print(f"       {' | '.join(extras)}")
 
     print("\n─── EDGES ───")
     rel_counts = {}

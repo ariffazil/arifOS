@@ -26,6 +26,7 @@ log = structlog.get_logger("arifos.attestation.sigstore")
 # Defer sigstore import to avoid hard dep if not used
 try:
     from sigstore.verify import Verifier as _SigstoreNativeVerifier
+
     SIGSTORE_AVAILABLE = True
 except ImportError:
     SIGSTORE_AVAILABLE = False

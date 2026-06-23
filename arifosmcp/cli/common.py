@@ -18,7 +18,9 @@ class CliError(Exception):
         self.code = code
 
 
-def http_post_json(url: str, payload: dict[str, Any], headers: dict[str, str] | None = None) -> dict[str, Any]:
+def http_post_json(
+    url: str, payload: dict[str, Any], headers: dict[str, str] | None = None
+) -> dict[str, Any]:
     """POST JSON and return parsed JSON response."""
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(

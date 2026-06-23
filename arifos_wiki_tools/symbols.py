@@ -53,8 +53,6 @@ _JS_SYMBOL_RE = re.compile(
 )
 
 
-
-
 def detect_language(rel_path: str) -> str:
     """Infer language from file path suffix."""
     suffix = rel_path.lower().rsplit(".", 1)[-1] if "." in rel_path else ""

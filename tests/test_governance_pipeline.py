@@ -46,8 +46,9 @@ class TestSessionGate:
             # Discovery tools bypass session gate. They may fail at F0_ROOTKEY if
             # a sovereign key exists, but session gate itself must pass (or be skipped)
             session_gate = next(r for r in result.gate_results if r.gate == Gate.SESSION)
-            assert session_gate.passed is True or "bypass" in str(session_gate.reason).lower(), \
+            assert session_gate.passed is True or "bypass" in str(session_gate.reason).lower(), (
                 f"{tool}: session gate should pass or bypass"
+            )
 
     def test_non_discovery_tool_requires_session(self):
         p = GovernancePipeline()

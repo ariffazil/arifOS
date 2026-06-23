@@ -146,11 +146,14 @@ def _check_wakefulness_gate(tool_name: str) -> dict[str, Any]:
         # Import WELL gate dynamically to avoid hard dependency at startup
         import importlib.util
 
-        spec = importlib.util.spec_from_file_location(
-            "well_gate", "/root/WELL/gate/well_gate.py"
-        )
+        spec = importlib.util.spec_from_file_location("well_gate", "/root/WELL/gate/well_gate.py")
         if spec is None or spec.loader is None:
-            return {"ok": True, "downgrade": False, "reason": "WELL gate unavailable", "well_score": 100}
+            return {
+                "ok": True,
+                "downgrade": False,
+                "reason": "WELL gate unavailable",
+                "well_score": 100,
+            }
         well_gate = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(well_gate)
 

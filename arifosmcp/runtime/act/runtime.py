@@ -47,6 +47,7 @@ class ActRequest:
         total_stages:       How many stages total
         previous_stage_status: Status of the previous stage
     """
+
     program_stage: str = "single"
     execution_pattern: str = ExecutionPattern.SINGLE_SHOT.value
     blast_radius: str = "unknown"
@@ -67,6 +68,7 @@ class ActRequest:
 @dataclass
 class ActResult:
     """What ACT returns."""
+
     verdict: ActVerdict
     reason: ActReason
     recommended_pattern: ExecutionPattern | None = None
@@ -89,12 +91,16 @@ def act(request: ActRequest) -> ActResult:
     """
 
     pattern = ExecutionPattern(request.execution_pattern)
-    suggested = suggest_pattern(
-        blast_radius=request.blast_radius,
-        is_reversible=request.is_reversible,
-        is_multi_step=request.is_multi_step,
-        total_stages=request.total_stages,
-    ) if request.blast_radius != "low" else pattern
+    suggested = (
+        suggest_pattern(
+            blast_radius=request.blast_radius,
+            is_reversible=request.is_reversible,
+            is_multi_step=request.is_multi_step,
+            total_stages=request.total_stages,
+        )
+        if request.blast_radius != "low"
+        else pattern
+    )
 
     stage_result = StageResult(
         stage_number=request.stage_number,

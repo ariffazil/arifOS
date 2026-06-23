@@ -224,14 +224,10 @@ class StateMachine:
         )
         # CHALLENGED carries the new evidence_ref forward
         if target == ActionState.CHALLENGED and evidence_ref:
-            new_record = new_record.model_copy(
-                update={"challenge_evidence_ref": evidence_ref}
-            )
+            new_record = new_record.model_copy(update={"challenge_evidence_ref": evidence_ref})
         # CHALLENGED → PENDING carries lineage
         if current == ActionState.CHALLENGED and target == ActionState.PENDING:
-            new_record = new_record.model_copy(
-                update={"parent_action_id": record.action_id}
-            )
+            new_record = new_record.model_copy(update={"parent_action_id": record.action_id})
         return new_record
 
     @staticmethod

@@ -92,8 +92,6 @@ def _nine_signal(status: str) -> dict:
     }
 
 
-
-
 async def hexagon_apex_validate(
     input_to_validate: str,
     validation_type: str = "code",
@@ -343,25 +341,31 @@ async def hexagon_psi_armor(
 # Old tool names still work — removed in future forge.
 # ════════════════════════════════════════════════════════════════
 
+
 async def agentzero_validate(*args, **kwargs):
     """DEPRECATED: use hexagon_apex_validate (Ψ APEX → ΦΙ APEX)."""
     return await hexagon_apex_validate(*args, **kwargs)
+
 
 async def agentzero_engineer(*args, **kwargs):
     """DEPRECATED: use hexagon_agi_execute (was Ω HEART engineer, reclassified to Δ MIND)."""
     return await hexagon_agi_execute(*args, **kwargs)
 
+
 async def agentzero_hold_check(*args, **kwargs):
     """DEPRECATED: use hexagon_hold_status."""
     return await hexagon_hold_status(*args, **kwargs)
+
 
 async def agentzero_memory_query(*args, **kwargs):
     """DEPRECATED: use hexagon_asi_recall."""
     return await hexagon_asi_recall(*args, **kwargs)
 
+
 async def agentzero_armor_scan(*args, **kwargs):
     """DEPRECATED: use hexagon_psi_armor."""
     return await hexagon_psi_armor(*args, **kwargs)
+
 
 # Export all tools
 __all__ = [

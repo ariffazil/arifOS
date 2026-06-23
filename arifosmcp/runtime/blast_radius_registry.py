@@ -38,8 +38,8 @@ from arifosmcp.schemas.federation_envelope import (
 
 class EnforcementMode(StrEnum):
     SIMULATE = "SIMULATE"  # Log shadow verdict, never block
-    ENFORCE = "ENFORCE"    # Real blocking enforcement
-    PROPOSE = "PROPOSE"    # Agent proposes, human approves
+    ENFORCE = "ENFORCE"  # Real blocking enforcement
+    PROPOSE = "PROPOSE"  # Agent proposes, human approves
 
 
 @dataclass(frozen=True)
@@ -47,13 +47,13 @@ class ToolRiskProfile:
     """Canonical risk profile for a single MCP tool."""
 
     tool_name: str
-    risk_tier: RiskTier               # T0-T5
-    action_class: ActionClass          # OBSERVE / PREPARE / MUTATE / ATOMIC
-    blast_radius: BlastRadius         # LOCAL / ACCOUNT / ORG / PUBLIC / FINANCIAL / INFRA
+    risk_tier: RiskTier  # T0-T5
+    action_class: ActionClass  # OBSERVE / PREPARE / MUTATE / ATOMIC
+    blast_radius: BlastRadius  # LOCAL / ACCOUNT / ORG / PUBLIC / FINANCIAL / INFRA
     reversibility: ReversibilityLevel  # FULLY / PARTIALLY / IRREVERSIBLE
-    enforcement: EnforcementMode      # SIMULATE / ENFORCE / PROPOSE
+    enforcement: EnforcementMode  # SIMULATE / ENFORCE / PROPOSE
     description: str = ""
-    requires_human_ack: bool = False   # Must get F13 sign-off
+    requires_human_ack: bool = False  # Must get F13 sign-off
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -137,7 +137,6 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="Intent routing — read-only direction",
     ),
-
     # ── T1: Account-Scoped Observation ─────────────────────────────────────
     "arif_fetch": ToolRiskProfile(
         tool_name="arif_fetch",
@@ -202,7 +201,6 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="Institutional shadow analysis — analysis only",
     ),
-
     # ── T2: Org-Scoped Preparation ─────────────────────────────────────────
     "arif_gateway_connect": ToolRiskProfile(
         tool_name="arif_gateway_connect",
@@ -258,7 +256,6 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.SIMULATE,
         description="Dry-run simulation — no mutation",
     ),
-
     # ── T3: Org-Scoped Mutation ────────────────────────────────────────────
     "arif_lease_revoke": ToolRiskProfile(
         tool_name="arif_lease_revoke",
@@ -269,7 +266,6 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         enforcement=EnforcementMode.ENFORCE,
         description="Revoke authority lease — state mutation, reversible",
     ),
-
     # ── T4: Public-Scoped Mutation ─────────────────────────────────────────
     "arif_seal": ToolRiskProfile(
         tool_name="arif_seal",
@@ -281,7 +277,6 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         requires_human_ack=True,
         description="Seal to immutable ledger — IRREVERSIBLE, requires F13 ack",
     ),
-
     # ── T5: Infrastructure Atomic ──────────────────────────────────────────
     "arif_forge": ToolRiskProfile(
         tool_name="arif_forge",
@@ -310,6 +305,7 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
 # QUERY API
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def get_risk_profile(tool_name: str) -> ToolRiskProfile | None:
     """Get the risk profile for a tool. Returns None if not registered."""
     return BLAST_RADIUS_REGISTRY.get(tool_name)
@@ -323,10 +319,7 @@ def get_enforcement_mode(tool_name: str) -> EnforcementMode:
 
 def list_tools_by_mode(mode: EnforcementMode) -> list[str]:
     """List all tools with a given enforcement mode."""
-    return [
-        name for name, p in BLAST_RADIUS_REGISTRY.items()
-        if p.enforcement == mode
-    ]
+    return [name for name, p in BLAST_RADIUS_REGISTRY.items() if p.enforcement == mode]
 
 
 def list_enforced_tools() -> list[str]:
@@ -349,10 +342,7 @@ def get_registry_summary() -> dict[str, Any]:
         "enforced": list_enforced_tools(),
         "simulated": list_simulated_tools(),
         "by_tier": {
-            tier.value: [
-                name for name, p in BLAST_RADIUS_REGISTRY.items()
-                if p.risk_tier == tier
-            ]
+            tier.value: [name for name, p in BLAST_RADIUS_REGISTRY.items() if p.risk_tier == tier]
             for tier in RiskTier
         },
     }

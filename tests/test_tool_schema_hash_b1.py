@@ -47,9 +47,7 @@ def test_b1_diagnostic_canary_tools_now_hash():
     """The 6 canary tools must now produce real SHA256, not the sentinel."""
     for name in DIAGNOSTIC_CANARY_TOOLS:
         # Sanity: the tool must be in DIAGNOSTIC_TOOLS (else the test is moot)
-        assert name in DIAGNOSTIC_TOOLS, (
-            f"test setup error: {name} missing from DIAGNOSTIC_TOOLS"
-        )
+        assert name in DIAGNOSTIC_TOOLS, f"test setup error: {name} missing from DIAGNOSTIC_TOOLS"
         h = compute_tool_schema_hash(name)
         assert h.startswith("sha256:"), f"{name}: bad prefix {h!r}"
         assert h != "sha256:unknown_tool", (
@@ -61,9 +59,7 @@ def test_b1_diagnostic_canary_tools_now_hash():
 def test_b1_unknown_tool_returns_sentinel():
     """Fabrication defense must be preserved for genuinely unknown tools."""
     h = compute_tool_schema_hash("arif_definitely_does_not_exist_xyz")
-    assert h == "sha256:unknown_tool", (
-        f"fabrication defense broken: got {h!r}"
-    )
+    assert h == "sha256:unknown_tool", f"fabrication defense broken: got {h!r}"
 
 
 def test_b1_canonical_priority_preserved():
@@ -73,7 +69,8 @@ def test_b1_canonical_priority_preserved():
     h_canonical = compute_tool_schema_hash(canonical_name)
     assert h_canonical.startswith("sha256:"), f"{canonical_name} should hash"
     # The hash should match the CANONICAL_TOOLS spec, not DIAGNOSTIC_TOOLS
-    import hashlib, json
+    import hashlib
+    import json
 
     payload = json.dumps(CANONICAL_TOOLS[canonical_name], sort_keys=True, default=str)
     expected = f"sha256:{hashlib.sha256(payload.encode()).hexdigest()}"
@@ -88,13 +85,12 @@ def test_b1_diagnostic_hash_differs_from_canonical_for_same_name():
     assert name not in CANONICAL_TOOLS
     assert name in DIAGNOSTIC_TOOLS
     h = compute_tool_schema_hash(name)
-    import hashlib, json
+    import hashlib
+    import json
 
     payload = json.dumps(DIAGNOSTIC_TOOLS[name], sort_keys=True, default=str)
     expected = f"sha256:{hashlib.sha256(payload.encode()).hexdigest()}"
-    assert h == expected, (
-        f"diagnostic lookup broken: got {h}, expected {expected}"
-    )
+    assert h == expected, f"diagnostic lookup broken: got {h}, expected {expected}"
 
 
 def test_b1_hash_is_deterministic():

@@ -756,11 +756,11 @@ def require_epistemic_tags(claims: list[EpistemicClaim]) -> list[str]:
 AI_SUMMARIZING_GROUNDING_PROVIDERS: frozenset[str] = frozenset(
     {
         "perplexity",  # sonar / sonar-pro / sonar-reasoning / sonar-deep-research
-        "brave",       # search snippets are AI-curated rankings
-        "firecrawl",   # AI-extracted structured content
-        "tavily",      # AI-curated search results
-        "exa",         # neural search results
-        "ddgs",        # DDGS — search snippets
+        "brave",  # search snippets are AI-curated rankings
+        "firecrawl",  # AI-extracted structured content
+        "tavily",  # AI-curated search results
+        "exa",  # neural search results
+        "ddgs",  # DDGS — search snippets
     }
 )
 
@@ -976,9 +976,7 @@ def apply_sense_evidence_epistemic_stamp(
                     if isinstance(first, str):
                         stamped["source"] = first
                     elif isinstance(first, dict):
-                        stamped["source"] = (
-                            first.get("url") or first.get("link") or ""
-                        )
+                        stamped["source"] = first.get("url") or first.get("link") or ""
             return stamped
 
         # Unknown / non-AI provider without a tag — fail-open with warning.
@@ -1012,10 +1010,7 @@ def apply_sense_evidence_epistemic_stamp(
         return stamped
 
     # F2: ESTIMATE needs uncertainty band.
-    if (
-        existing_tag == EpistemicTag.ESTIMATE.value
-        and not stamped.get("uncertainty")
-    ):
+    if existing_tag == EpistemicTag.ESTIMATE.value and not stamped.get("uncertainty"):
         stamped["uncertainty"] = "unspecified"
         return stamped
 

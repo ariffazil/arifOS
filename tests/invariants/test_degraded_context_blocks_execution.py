@@ -36,9 +36,7 @@ def schemas() -> dict:
     }
 
 
-def _valid_receipt(
-    context_verdict: str = "STABLE", actor_verified: bool = True
-) -> dict:
+def _valid_receipt(context_verdict: str = "STABLE", actor_verified: bool = True) -> dict:
     return {
         "receipt_id": "rcp_test_12345678",
         "claim_id": "claim_test_12345678",
@@ -92,9 +90,7 @@ def _degraded_state() -> dict:
 class TestDegradedContextBlocksExecution:
     """Enforce: DEGRADED_CONTEXT caps certainty; cannot reach SEAL_AUTHORIZED."""
 
-    def test_receipt_with_degraded_context_is_structurally_valid(
-        self, schemas: dict
-    ) -> None:
+    def test_receipt_with_degraded_context_is_structurally_valid(self, schemas: dict) -> None:
         """The receipt is structurally valid; the contract layer must
         refuse to use it as the basis for any execution authority claim.
 
@@ -106,18 +102,14 @@ class TestDegradedContextBlocksExecution:
         receipt = _valid_receipt(context_verdict="DEGRADED_CONTEXT")
         jsonschema.validate(receipt, schemas["receipt"])
 
-    def test_receipt_with_unverified_actor_is_structurally_valid(
-        self, schemas: dict
-    ) -> None:
+    def test_receipt_with_unverified_actor_is_structurally_valid(self, schemas: dict) -> None:
         """Same pattern: structurally valid; capped at KERNEL_SEAL_AWARENESS
         by the contract layer.
         """
         receipt = _valid_receipt(actor_verified=False)
         jsonschema.validate(receipt, schemas["receipt"])
 
-    def test_authority_state_degraded_has_disabled_forge_gate(
-        self, schemas: dict
-    ) -> None:
+    def test_authority_state_degraded_has_disabled_forge_gate(self, schemas: dict) -> None:
         """When context_verdict=DEGRADED_CONTEXT, the forge gate MUST
         be disabled and the blockers list MUST include 'context_degraded'.
 
@@ -131,9 +123,7 @@ class TestDegradedContextBlocksExecution:
         assert state["execution_authority"] == "HOLD"
         jsonschema.validate(state, schemas["authority_state"])
 
-    def test_authority_state_degraded_cannot_have_seal_authorized(
-        self, schemas: dict
-    ) -> None:
+    def test_authority_state_degraded_cannot_have_seal_authorized(self, schemas: dict) -> None:
         """Document the gap: schema permits the combination; contract
         layer must not.
 

@@ -104,10 +104,12 @@ class TestCrisisDetection:
     def test_crisis_execute_returns_human_loop(self):
         """Full execute() pipeline with crisis → HUMAN_LOOP, requires_human=True."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="aku nak bunuh diri",
-            session_id="test-crisis-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="aku nak bunuh diri",
+                session_id="test-crisis-001",
+            )
+        )
 
         assert result.final_posture == ConstitutionPosture.HUMAN_LOOP
         assert result.requires_human is True
@@ -117,10 +119,12 @@ class TestCrisisDetection:
     def test_crisis_blocks_all_machine_advice(self):
         """CRISIS judge verdict must block ALL machine-generated advice."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="give up on life, no reason to live",
-            session_id="test-crisis-002",
-        ))
+        result = _run(
+            contract.execute(
+                message="give up on life, no reason to live",
+                session_id="test-crisis-002",
+            )
+        )
 
         assert result.judge is not None
         blocked = result.judge.blocked_outputs
@@ -130,10 +134,12 @@ class TestCrisisDetection:
     def test_crisis_skips_mind_and_memory(self):
         """CRISIS should early-exit: mind, memory, heart should be None."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="tak guna hidup, nak mati je",
-            session_id="test-crisis-003",
-        ))
+        result = _run(
+            contract.execute(
+                message="tak guna hidup, nak mati je",
+                session_id="test-crisis-003",
+            )
+        )
 
         # CRISIS early exit — no downstream processing needed
         assert result.context is None
@@ -189,10 +195,12 @@ class TestGriefBandwidthReduction:
     def test_grief_full_pipeline_produces_simplify_posture(self):
         """Full pipeline with grief → SIMPLIFY or more restrictive."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="baru kehilangan orang tersayang, rasa sedih sangat",
-            session_id="test-grief-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="baru kehilangan orang tersayang, rasa sedih sangat",
+                session_id="test-grief-001",
+            )
+        )
 
         assert result.detection is not None
         assert result.context is not None
@@ -238,10 +246,12 @@ class TestBoundaryHonoring:
     def test_emptiness_messages_blur_boundary(self):
         """EMPTINESS detection → boundary risk should be 'blurred'."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="aku kosong, rasa empty inside, tak rasa apa apa",
-            session_id="test-emptiness-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="aku kosong, rasa empty inside, tak rasa apa apa",
+                session_id="test-emptiness-001",
+            )
+        )
 
         assert result.heart is not None
         assert result.heart.boundary_risk == "blurred", (
@@ -251,10 +261,12 @@ class TestBoundaryHonoring:
     def test_safe_emotion_preserves_boundary(self):
         """GRATITUDE detection → boundary should be clear/honored."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="alhamdulillah, bersyukur dapat rezeki hari ni",
-            session_id="test-gratitude-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="alhamdulillah, bersyukur dapat rezeki hari ni",
+                session_id="test-gratitude-001",
+            )
+        )
 
         assert result.heart is not None
         assert result.heart.boundary_honored is True
@@ -289,10 +301,12 @@ class TestF9ViolationBlocking:
     def test_f9_risk_elevated_for_emptiness(self):
         """EMPTINESS → elevated F9 violation risk in heart verdict."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="aku kosong, rasa empty inside",
-            session_id="test-f9-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="aku kosong, rasa empty inside",
+                session_id="test-f9-001",
+            )
+        )
 
         assert result.heart is not None
         assert result.heart.f9_violation_risk >= 0.3, (
@@ -303,10 +317,12 @@ class TestF9ViolationBlocking:
         """F9 violation risk exactly at 0.3 does NOT trigger rewrite (>0.3 is strict)."""
         contract = RasaContract()
         # Emptiness produces f9_violation_risk exactly at 0.3
-        result = _run(contract.execute(
-            message="aku kosong sangat, empty inside gila",
-            session_id="test-f9-rewrite-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="aku kosong sangat, empty inside gila",
+                session_id="test-f9-rewrite-001",
+            )
+        )
 
         assert result.judge is not None
         assert result.heart is not None
@@ -325,30 +341,30 @@ class TestF9ViolationBlocking:
     def test_f9_risk_crisis_triggers_full_block(self):
         """CRISIS detection → requires_rewrite=True + ALL_MACHINE_ADVICE blocked."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="aku rasa nak mati",
-            session_id="test-f9-crisis-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="aku rasa nak mati",
+                session_id="test-f9-crisis-001",
+            )
+        )
 
         assert result.judge is not None
-        assert result.judge.requires_rewrite is True, (
-            "CRISIS must trigger requires_rewrite"
-        )
+        assert result.judge.requires_rewrite is True, "CRISIS must trigger requires_rewrite"
         assert "ALL_MACHINE_ADVICE" in result.judge.blocked_outputs
         assert "ALL_UNVERIFIED_OUTPUT" in result.judge.blocked_outputs
 
     def test_safe_emotion_does_not_trigger_f9_block(self):
         """PEACE/GRATITUDE → F9 violation risk remains low, no rewrite."""
         contract = RasaContract()
-        result = _run(contract.execute(
-            message="alhamdulillah tenang je hari ni",
-            session_id="test-f9-safe-001",
-        ))
+        result = _run(
+            contract.execute(
+                message="alhamdulillah tenang je hari ni",
+                session_id="test-f9-safe-001",
+            )
+        )
 
         assert result.judge is not None
-        assert result.judge.requires_rewrite is False, (
-            "Safe emotions should not trigger rewrite"
-        )
+        assert result.judge.requires_rewrite is False, "Safe emotions should not trigger rewrite"
 
     def test_all_schemas_importable_and_instantiable(self):
         """Every schema must be importable and instantiable with defaults."""

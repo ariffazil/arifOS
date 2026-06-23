@@ -11,6 +11,7 @@ Constitutional risk: HIGHEST. This is the integration contract.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 
@@ -143,7 +144,7 @@ class TestMindToHeart:
         result = await arif_heart_critique(
             mode="critique",
             target="Deploy a new health check endpoint to /health. Reversible. "
-                   "Standard monitoring. No PII exposure.",
+            "Standard monitoring. No PII exposure.",
             actor_id=GOLDEN_ACTOR_ID,
             session_id=GOLDEN_SESSION_ID,
             fractal_auto=False,  # Single pass for deterministic test
@@ -164,9 +165,7 @@ class TestMindToHeart:
         risk_types = {r["type"] for r in risks}
         # Must cover: dignity, overclaim, anthropomorphism, irreversibility,
         # autonomy, harm, privacy, bias
-        assert len(risks) == 8, (
-            f"Expected 8 risk categories, got {len(risks)}: {risk_types}"
-        )
+        assert len(risks) == 8, f"Expected 8 risk categories, got {len(risks)}: {risk_types}"
         # Irreversibility risk must be flagged for "permanently delete"
         irreversibility = [r for r in risks if r["type"] == "irreversibility_risk"]
         assert len(irreversibility) == 1
@@ -191,17 +190,19 @@ class TestHeartToJudge:
         import asyncio
         from arifosmcp.tools.judge import arif_judge_deliberate
 
-        result = asyncio.run(arif_judge_deliberate(
-            mode="judge",
-            candidate="destroy production database",
-            session_id=GOLDEN_SESSION_ID,
-            actor_id=GOLDEN_ACTOR_ID,
-            heart_critique={
-                "action_risk_verdict": "VOID",
-                "verdict": "VOID",
-                "reason": "Irreversible destruction without rollback plan.",
-            },
-        ))
+        result = asyncio.run(
+            arif_judge_deliberate(
+                mode="judge",
+                candidate="destroy production database",
+                session_id=GOLDEN_SESSION_ID,
+                actor_id=GOLDEN_ACTOR_ID,
+                heart_critique={
+                    "action_risk_verdict": "VOID",
+                    "verdict": "VOID",
+                    "reason": "Irreversible destruction without rollback plan.",
+                },
+            )
+        )
         # Current: heart_critique is NOT checked (gate is docstring-only)
         # After Phase 1 implementation: result.verdict.value should be "HOLD"
         # and reasons should contain "666_HEART_GATE"
@@ -213,17 +214,19 @@ class TestHeartToJudge:
         import asyncio
         from arifosmcp.tools.judge import arif_judge_deliberate
 
-        result = asyncio.run(arif_judge_deliberate(
-            mode="judge",
-            candidate="add documentation to README",
-            session_id=GOLDEN_SESSION_ID,
-            actor_id=GOLDEN_ACTOR_ID,
-            heart_critique={
-                "action_risk_verdict": "SEAL",
-                "verdict": "OK",
-                "reason": "No risks detected. Fully reversible.",
-            },
-        ))
+        result = asyncio.run(
+            arif_judge_deliberate(
+                mode="judge",
+                candidate="add documentation to README",
+                session_id=GOLDEN_SESSION_ID,
+                actor_id=GOLDEN_ACTOR_ID,
+                heart_critique={
+                    "action_risk_verdict": "SEAL",
+                    "verdict": "OK",
+                    "reason": "No risks detected. Fully reversible.",
+                },
+            )
+        )
         heart_gate_reasons = [r for r in result.reasons if "666_HEART_GATE" in r]
         assert len(heart_gate_reasons) == 0, (
             f"HEART_GATE blocked despite Heart SEAL: {heart_gate_reasons}"
@@ -243,13 +246,15 @@ class TestJudgeToSeal:
         import asyncio
         from arifosmcp.tools.judge import arif_judge_deliberate
 
-        result = asyncio.run(arif_judge_deliberate(
-            mode="judge",
-            candidate="safe reversible action with full evidence",
-            session_id=GOLDEN_SESSION_ID,
-            actor_id=GOLDEN_ACTOR_ID,
-            action_tier="standard",
-        ))
+        result = asyncio.run(
+            arif_judge_deliberate(
+                mode="judge",
+                candidate="safe reversible action with full evidence",
+                session_id=GOLDEN_SESSION_ID,
+                actor_id=GOLDEN_ACTOR_ID,
+                action_tier="standard",
+            )
+        )
         # VerdictOutput must have fields seal expects
         assert result.verdict is not None
         assert result.verdict.value in ("SEAL", "SABAR", "HOLD", "VOID")
@@ -292,7 +297,9 @@ class TestFullGoldenPath:
             actor_id=GOLDEN_ACTOR_ID,
         )
         assert init_result.status in ("OK", "INITIALIZED")
-        session_id = init_result.session.session_id if hasattr(init_result, 'session') else GOLDEN_SESSION_ID
+        session_id = (
+            init_result.session.session_id if hasattr(init_result, "session") else GOLDEN_SESSION_ID
+        )
         print(f"[000_INIT] session={session_id}")
 
         # Stage 111: SENSE
@@ -313,7 +320,9 @@ class TestFullGoldenPath:
             actor_id=GOLDEN_ACTOR_ID,
             context={"session_id": session_id},
         )
-        print(f"[333_MIND] status={mind_result.status}, verdict={mind_result.result.get('status', '?')}")
+        print(
+            f"[333_MIND] status={mind_result.status}, verdict={mind_result.result.get('status', '?')}"
+        )
         assert mind_result.status in ("OK", "HOLD")
 
         # Stage 666: HEART — single pass (no fractal for determinism)
@@ -324,8 +333,10 @@ class TestFullGoldenPath:
             actor_id=GOLDEN_ACTOR_ID,
             fractal_auto=False,
         )
-        print(f"[666_HEART] risk_tier={heart_result.get('risk_tier')}, "
-              f"human_req={heart_result.get('human_decision_required')}")
+        print(
+            f"[666_HEART] risk_tier={heart_result.get('risk_tier')}, "
+            f"human_req={heart_result.get('human_decision_required')}"
+        )
         assert "risks_found" in heart_result
         assert "risk_tier" in heart_result
 
@@ -337,8 +348,9 @@ class TestFullGoldenPath:
             actor_id=GOLDEN_ACTOR_ID,
             heart_critique=heart_result,
         )
-        print(f"[888_JUDGE] verdict={judge_result.verdict.value}, "
-              f"reasons={len(judge_result.reasons)}")
+        print(
+            f"[888_JUDGE] verdict={judge_result.verdict.value}, reasons={len(judge_result.reasons)}"
+        )
         assert judge_result.verdict is not None
         assert judge_result.verdict.value in ("SEAL", "SABAR", "HOLD", "VOID")
 
@@ -385,13 +397,14 @@ class TestFullGoldenPath:
         ditempa_organs = []
         for organ, anchors in all_organs.items():
             for anchor in anchors:
-                if (anchor["matrix_row"] == "HUMILITY"
-                        and anchor["matrix_col"] == "JUSTICE"
-                        and "DITEMPA" in anchor["motto_binding"]):
+                if (
+                    anchor["matrix_row"] == "HUMILITY"
+                    and anchor["matrix_col"] == "JUSTICE"
+                    and "DITEMPA" in anchor["motto_binding"]
+                ):
                     ditempa_organs.append(organ)
         assert len(ditempa_organs) == 5, (
-            f"All 5 organs must carry DITEMPA on humility_justice. "
-            f"Found in: {ditempa_organs}"
+            f"All 5 organs must carry DITEMPA on humility_justice. Found in: {ditempa_organs}"
         )
 
     def test_mottos_are_unique_per_organ_row_col(self):
@@ -409,9 +422,13 @@ class TestFullGoldenPath:
         # TRUTH+CARE → DIKAJI, BUKAN DISUAPI (Examined, not spoon-fed)
         # This should be consistent across organs for the same matrix cell
         truth_care_mottos = set()
-        for anchors in [SENSE_PARADOX_ANCHORS, MIND_PARADOX_ANCHORS,
-                         MEMORY_PARADOX_ANCHORS, HEART_PARADOX_ANCHORS,
-                         JUDGE_PARADOX_ANCHORS]:
+        for anchors in [
+            SENSE_PARADOX_ANCHORS,
+            MIND_PARADOX_ANCHORS,
+            MEMORY_PARADOX_ANCHORS,
+            HEART_PARADOX_ANCHORS,
+            JUDGE_PARADOX_ANCHORS,
+        ]:
             for a in anchors:
                 if a["matrix_cell"] == "truth_care":
                     truth_care_mottos.add(a["motto_binding"])

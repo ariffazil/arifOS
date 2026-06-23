@@ -2,6 +2,7 @@
 Test for Bug 1: tier='test' silently becoming tier='canon'
 Test for Bug 2: store operations running under OBSERVE authority
 """
+
 from __future__ import annotations
 
 
@@ -137,9 +138,7 @@ class TestStoreMutationGate:
             # Result should NOT be a HOLD on the gate
             inner = result.get("result", result)
             stored = inner.get("stored") if isinstance(inner, dict) else False
-            assert stored, (
-                f"Store with mutation_allowed=True should proceed. Got: {result}"
-            )
+            assert stored, f"Store with mutation_allowed=True should proceed. Got: {result}"
         finally:
             _SESSIONS.pop(test_sid, None)
 
@@ -165,8 +164,8 @@ class TestStoreMutationGate:
             assert isinstance(result, dict)
             assert result.get("tool") == "arif_memory_recall"
             # Recall is read-only — should not be blocked by the gate
-            assert "HOLD" not in str(result.get("result", "")) or "mutation_not_allowed" not in str(result.get("result", "")), (
-                f"Recall (read-only) must NOT be blocked. Got: {result}"
-            )
+            assert "HOLD" not in str(result.get("result", "")) or "mutation_not_allowed" not in str(
+                result.get("result", "")
+            ), f"Recall (read-only) must NOT be blocked. Got: {result}"
         finally:
             _SESSIONS.pop(test_sid, None)

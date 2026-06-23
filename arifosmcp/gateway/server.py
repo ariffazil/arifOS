@@ -190,6 +190,7 @@ DEFAULT_POLICIES: list[dict] = [
 # LEASE ENGINE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _match_policy(tool_name: str, subject_roles: list[str]) -> dict | None:
     """Find the best-matching policy for a given tool and subject roles."""
     best = None
@@ -284,8 +285,13 @@ def issue_lease(
     }
 
     LEASE_STORE[lease_id] = lease
-    log.info("LEASE ISSUED | %s | tool=%s risk=%s 888=%s",
-             lease_id, tool_name, risk_class, lease["require_888_hold"])
+    log.info(
+        "LEASE ISSUED | %s | tool=%s risk=%s 888=%s",
+        lease_id,
+        tool_name,
+        risk_class,
+        lease["require_888_hold"],
+    )
     return {"status": "ISSUED", "lease_id": lease_id, "lease": lease}
 
 
@@ -294,23 +300,48 @@ def validate_lease(lease_id: str, tool_name: str) -> dict:
     lease = LEASE_STORE.get(lease_id)
 
     if lease is None:
-        return {"status": "DENIED", "reason": "LEASE_NOT_FOUND", "lease_id": lease_id, "decision": "DENIED"}
+        return {
+            "status": "DENIED",
+            "reason": "LEASE_NOT_FOUND",
+            "lease_id": lease_id,
+            "decision": "DENIED",
+        }
 
     now = datetime.now(UTC).timestamp()
 
     if now > lease["expires_at"]:
-        return {"status": "DENIED", "reason": "LEASE_EXPIRED", "lease_id": lease_id, "decision": "DENIED"}
+        return {
+            "status": "DENIED",
+            "reason": "LEASE_EXPIRED",
+            "lease_id": lease_id,
+            "decision": "DENIED",
+        }
 
     if lease["invocations_used"] >= lease["max_invocations"]:
-        return {"status": "DENIED", "reason": "LEASE_EXHAUSTED", "lease_id": lease_id, "decision": "DENIED"}
+        return {
+            "status": "DENIED",
+            "reason": "LEASE_EXHAUSTED",
+            "lease_id": lease_id,
+            "decision": "DENIED",
+        }
 
     if lease["tool"] != tool_name:
-        return {"status": "DENIED", "reason": "LEASE_TOOL_MISMATCH",
-                "lease_id": lease_id, "expected": lease["tool"], "got": tool_name, "decision": "DENIED"}
+        return {
+            "status": "DENIED",
+            "reason": "LEASE_TOOL_MISMATCH",
+            "lease_id": lease_id,
+            "expected": lease["tool"],
+            "got": tool_name,
+            "decision": "DENIED",
+        }
 
     if lease["require_888_hold"]:
-        return {"status": "PENDING_888", "reason": "888_HOLD_REQUIRED",
-                "lease_id": lease_id, "decision": "PENDING_888"}
+        return {
+            "status": "PENDING_888",
+            "reason": "888_HOLD_REQUIRED",
+            "lease_id": lease_id,
+            "decision": "PENDING_888",
+        }
 
     lease["invocations_used"] += 1
     return {"status": "VALID", "lease_id": lease_id, "decision": "EXECUTED", "lease": lease}
@@ -319,6 +350,7 @@ def validate_lease(lease_id: str, tool_name: str) -> dict:
 # ═══════════════════════════════════════════════════════════════════════════════
 # AUDIT ENGINE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def emit_receipt(
     direction: str,
@@ -335,9 +367,7 @@ def emit_receipt(
     """Emit an audit receipt to the append-only JSONL ledger."""
     # Normalize subject to dict
     subj_dict = subject.to_dict() if isinstance(subject, Subject) else subject
-    params_hash = hashlib.sha256(
-        json.dumps(params or {}, sort_keys=True).encode()
-    ).hexdigest()[:16]
+    params_hash = hashlib.sha256(json.dumps(params or {}, sort_keys=True).encode()).hexdigest()[:16]
 
     receipt = {
         "receipt_id": f"RCPT-{uuid.uuid4().hex[:12]}",
@@ -373,21 +403,21 @@ UPSTREAM_SESSIONS: dict[str, dict] = {}
 
 async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -> str | None:
     """Ensure a valid MCP session exists with an upstream organ.
-    
+
     Some organs (FastMCP 3.4.2 streamable-http) require session IDs.
     This pool maintains one session per organ, auto-refreshing as needed.
     """
     organ = UPSTREAM_ORGANS.get(organ_name)
     if not organ:
         return None
-    
+
     now = time.time()
     cached = UPSTREAM_SESSIONS.get(organ_name)
-    
+
     # Return cached session if still valid (TTL: 5 min)
     if cached and cached.get("expires_at", 0) > now:
         return cached["session_id"]
-    
+
     init_body = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -398,7 +428,7 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
             "clientInfo": {"name": "arifos-gateway", "version": "v0.1.0"},
         },
     }
-    
+
     # A-FORGE uses a stable localhost session ID so the gateway can survive
     # restarts without re-initialization races against the single-session
     # StreamableHTTP transport.
@@ -426,7 +456,7 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
         except Exception as e:
             log.warning("A-FORGE session handshake failed: %s", e)
         return None
-    
+
     try:
         # StreamableHTTP transport (FastMCP 3.4.2): initialize first,
         # server returns mcp-session-id in response headers.
@@ -445,9 +475,13 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
                 "expires_at": now + 300,
                 "url": organ["url"],
             }
-            log.info("Upstream session established (streamable-http): %s -> %s", organ_name, session_id[:12])
+            log.info(
+                "Upstream session established (streamable-http): %s -> %s",
+                organ_name,
+                session_id[:12],
+            )
             return session_id
-        
+
         # Fallback: legacy SSE handshake (some organs expose session ID via GET)
         sse_resp = await client.get(
             organ["url"],
@@ -456,7 +490,7 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
         session_id = sse_resp.headers.get("mcp-session-id")
         if not session_id:
             return None
-        
+
         init_resp = await client.post(
             organ["url"],
             json=init_body,
@@ -466,10 +500,10 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
                 "mcp-session-id": session_id,
             },
         )
-        
+
         if init_resp.status_code >= 400:
             return None
-        
+
         UPSTREAM_SESSIONS[organ_name] = {
             "session_id": session_id,
             "expires_at": now + 300,
@@ -477,7 +511,7 @@ async def _ensure_upstream_session(organ_name: str, client: httpx.AsyncClient) -
         }
         log.info("Upstream session established (sse): %s -> %s", organ_name, session_id[:12])
         return session_id
-        
+
     except Exception as e:
         log.warning("Failed to establish upstream session for %s: %s", organ_name, e)
         return None
@@ -496,18 +530,18 @@ async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
                 "Accept": "application/json, text/event-stream",
                 "MCP-Protocol-Version": "2025-11-25",
             }
-            
+
             # Try to attach upstream session for organs that need it
             session_id = await _ensure_upstream_session(organ_name, client)
             if session_id:
                 headers["mcp-session-id"] = session_id
-            
+
             resp = await client.post(
                 organ["url"],
                 json=body,
                 headers=headers,
             )
-            
+
             # If session rejected, clear cache and retry once
             if resp.status_code == 400 and session_id:
                 body_str = resp.content.decode() if resp.content else ""
@@ -517,7 +551,7 @@ async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
                     if session_id:
                         headers["mcp-session-id"] = session_id
                         resp = await client.post(organ["url"], json=body, headers=headers)
-            
+
             # Parse response body — handle both raw JSON and SSE-wrapped
             body_data = {}
             if resp.content:
@@ -536,7 +570,7 @@ async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
                         body_data = json.loads(raw)
                     except json.JSONDecodeError:
                         pass
-            
+
             return {"status_code": resp.status_code, "body": body_data}
         except httpx.TimeoutException:
             return {"status_code": 504, "error": f"Upstream {organ_name} timeout"}
@@ -586,6 +620,7 @@ def _route_tool_to_organ(tool_name: str) -> str | None:
 
 # ─── Auth Helper ────────────────────────────────────────────────────────────
 
+
 def _extract_subject(request: Request) -> tuple[Subject | None, str | None]:
     """Extract and validate subject identity using the canonical identity module."""
     # Collect all headers
@@ -606,6 +641,7 @@ def _extract_subject(request: Request) -> tuple[Subject | None, str | None]:
 
 # ─── /health ────────────────────────────────────────────────────────────────
 
+
 async def _health_handler(request: Request):
     """Federation parity probe — checks all upstream organs."""
     results = {}
@@ -615,26 +651,31 @@ async def _health_handler(request: Request):
             async with httpx.AsyncClient(timeout=5.0) as client:
                 health_url = organ["url"].replace("/mcp", "/health")
                 resp = await client.get(health_url)
-                results[organ_name] = "healthy" if resp.status_code == 200 else f"HTTP {resp.status_code}"
+                results[organ_name] = (
+                    "healthy" if resp.status_code == 200 else f"HTTP {resp.status_code}"
+                )
                 if resp.status_code != 200:
                     all_healthy = False
         except Exception as e:
             results[organ_name] = f"unreachable: {e}"
             all_healthy = False
 
-    return JSONResponse({
-        "status": "healthy" if all_healthy else "degraded",
-        "service": "arifos-gateway",
-        "version": "v0.1.0",
-        "upstream_organs": results,
-        "lease_count": len(LEASE_STORE),
-        "receipt_count": _count_receipts(),
-        "timestamp": datetime.now(UTC).isoformat(),
-        "final_authority": "ARIF",
-    })
+    return JSONResponse(
+        {
+            "status": "healthy" if all_healthy else "degraded",
+            "service": "arifos-gateway",
+            "version": "v0.1.0",
+            "upstream_organs": results,
+            "lease_count": len(LEASE_STORE),
+            "receipt_count": _count_receipts(),
+            "timestamp": datetime.now(UTC).isoformat(),
+            "final_authority": "ARIF",
+        }
+    )
 
 
 # ─── /mcp ───────────────────────────────────────────────────────────────────
+
 
 async def _mcp_handler(request: Request):
     """MCP Streamable HTTP endpoint — proxies to upstream organs with lease enforcement."""
@@ -654,12 +695,14 @@ async def _mcp_handler(request: Request):
                 media_type="text/event-stream",
                 headers={"X-ArifOS-Decision": "OBSERVE_ONLY"},
             )
-        return JSONResponse({
-            "endpoint": "/mcp",
-            "gateway": "arifOS MCP Gateway v0.1.0",
-            "supported_protocols": ["2024-11-05", "2025-03-26", "2025-11-25"],
-            "auth": "X-ArifOS-API-Key + X-ArifOS-Subject",
-        })
+        return JSONResponse(
+            {
+                "endpoint": "/mcp",
+                "gateway": "arifOS MCP Gateway v0.1.0",
+                "supported_protocols": ["2024-11-05", "2025-03-26", "2025-11-25"],
+                "auth": "X-ArifOS-API-Key + X-ArifOS-Subject",
+            }
+        )
 
     # Handle POST — JSON-RPC over Streamable HTTP
     try:
@@ -675,32 +718,35 @@ async def _mcp_handler(request: Request):
 
     # ── initialize ──
     if method == "initialize":
-        return JSONResponse({
-            "jsonrpc": "2.0",
-            "id": call_id,
-            "result": {
-                "protocolVersion": "2025-11-25",
-                "capabilities": {
-                    "tools": {"listChanged": True},
-                    "prompts": {"listChanged": True},
-                    "resources": {"subscribe": False, "listChanged": True},
-                    "experimental": {},
-                    "logging": {},
+        return JSONResponse(
+            {
+                "jsonrpc": "2.0",
+                "id": call_id,
+                "result": {
+                    "protocolVersion": "2025-11-25",
+                    "capabilities": {
+                        "tools": {"listChanged": True},
+                        "prompts": {"listChanged": True},
+                        "resources": {"subscribe": False, "listChanged": True},
+                        "experimental": {},
+                        "logging": {},
+                    },
+                    "serverInfo": {
+                        "name": "ARIFOS MCP GATEWAY",
+                        "version": "v0.1.0",
+                        "websiteUrl": "https://arifos.arif-fazil.com",
+                    },
+                    "instructions": (
+                        "arifOS Constitutional MCP Gateway — governed AI agent access.\n"
+                        "Every tools/call passes: identity → lease → risk → 888 check → forward/deny/hold → audit receipt.\n"
+                        f"Upstream organs: {', '.join(UPSTREAM_ORGANS.keys())}\n"
+                        "Auth: X-ArifOS-API-Key + X-ArifOS-Subject header\n"
+                        "DITEMPA BUKAN DIBERI"
+                    ),
                 },
-                "serverInfo": {
-                    "name": "ARIFOS MCP GATEWAY",
-                    "version": "v0.1.0",
-                    "websiteUrl": "https://arifos.arif-fazil.com",
-                },
-                "instructions": (
-                    "arifOS Constitutional MCP Gateway — governed AI agent access.\n"
-                    "Every tools/call passes: identity → lease → risk → 888 check → forward/deny/hold → audit receipt.\n"
-                    f"Upstream organs: {', '.join(UPSTREAM_ORGANS.keys())}\n"
-                    "Auth: X-ArifOS-API-Key + X-ArifOS-Subject header\n"
-                    "DITEMPA BUKAN DIBERI"
-                ),
             },
-        }, headers={"mcp-session-id": f"gateway-{uuid.uuid4().hex[:16]}"})
+            headers={"mcp-session-id": f"gateway-{uuid.uuid4().hex[:16]}"},
+        )
 
     # ── tools/list ──
     if method == "tools/list":
@@ -718,8 +764,15 @@ async def _mcp_handler(request: Request):
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "tool_name": {"type": "string", "description": "MCP tool name to request lease for"},
-                        "roles": {"type": "array", "items": {"type": "string"}, "description": "Subject roles (viewer, geologist, sovereign, etc.)"},
+                        "tool_name": {
+                            "type": "string",
+                            "description": "MCP tool name to request lease for",
+                        },
+                        "roles": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Subject roles (viewer, geologist, sovereign, etc.)",
+                        },
                     },
                     "required": ["tool_name"],
                 },
@@ -742,7 +795,10 @@ async def _mcp_handler(request: Request):
                     "type": "object",
                     "properties": {
                         "limit": {"type": "integer", "default": 20},
-                        "decision": {"type": "string", "description": "Filter by decision: EXECUTED, DENIED, PENDING_888"},
+                        "decision": {
+                            "type": "string",
+                            "description": "Filter by decision: EXECUTED, DENIED, PENDING_888",
+                        },
                     },
                 },
             },
@@ -757,9 +813,10 @@ async def _mcp_handler(request: Request):
         # Try to fetch from upstream organs
         for organ_name, organ in UPSTREAM_ORGANS.items():
             try:
-                result = await _proxy_mcp_to_organ(organ_name, {
-                    "jsonrpc": "2.0", "id": call_id or 1, "method": "tools/list", "params": {}
-                })
+                result = await _proxy_mcp_to_organ(
+                    organ_name,
+                    {"jsonrpc": "2.0", "id": call_id or 1, "method": "tools/list", "params": {}},
+                )
                 if result.get("status_code") == 200:
                     upstream_tools = result.get("body", {}).get("result", {}).get("tools", [])
                     # Tag each tool with its organ
@@ -770,11 +827,13 @@ async def _mcp_handler(request: Request):
             except Exception as e:
                 log.warning("Failed to fetch tools from %s: %s", organ_name, e)
 
-        return JSONResponse({
-            "jsonrpc": "2.0",
-            "id": call_id,
-            "result": {"tools": all_tools},
-        })
+        return JSONResponse(
+            {
+                "jsonrpc": "2.0",
+                "id": call_id,
+                "result": {"tools": all_tools},
+            }
+        )
 
     # ── tools/call ──
     if method == "tools/call":
@@ -790,16 +849,36 @@ async def _mcp_handler(request: Request):
 
         # Handle gateway-native tools
         if tool_name == "gateway_health":
-            receipt = emit_receipt("call_tool", subject, tool_name, "EXECUTED",
-                                   upstream="gateway", duration_ms=(time.time() - t0) * 1000)
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "result": {"content": [{"type": "text", "text": json.dumps({
-                    "status": "healthy", "organs": list(UPSTREAM_ORGANS.keys()),
-                    "lease_count": len(LEASE_STORE), "receipt_count": _count_receipts(),
-                    "receipt_id": receipt["receipt_id"],
-                })}]},
-            })
+            receipt = emit_receipt(
+                "call_tool",
+                subject,
+                tool_name,
+                "EXECUTED",
+                upstream="gateway",
+                duration_ms=(time.time() - t0) * 1000,
+            )
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "id": call_id,
+                    "result": {
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": json.dumps(
+                                    {
+                                        "status": "healthy",
+                                        "organs": list(UPSTREAM_ORGANS.keys()),
+                                        "lease_count": len(LEASE_STORE),
+                                        "receipt_count": _count_receipts(),
+                                        "receipt_id": receipt["receipt_id"],
+                                    }
+                                ),
+                            }
+                        ]
+                    },
+                }
+            )
 
         if tool_name == "gateway_lease_issue":
             lease_result = issue_lease(
@@ -809,32 +888,51 @@ async def _mcp_handler(request: Request):
                 tool_name=arguments.get("tool_name", ""),
                 roles=arguments.get("roles", ["viewer"]),
             )
-            receipt = emit_receipt("lease_issue", subject, tool_name,
-                                   lease_result["status"], lease_id=lease_result.get("lease_id"),
-                                   upstream="gateway", duration_ms=(time.time() - t0) * 1000)
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "result": {"content": [{"type": "text", "text": json.dumps(lease_result)}]},
-                "headers": {"X-ArifOS-Lease-Id": lease_result.get("lease_id", "")},
-            })
+            receipt = emit_receipt(
+                "lease_issue",
+                subject,
+                tool_name,
+                lease_result["status"],
+                lease_id=lease_result.get("lease_id"),
+                upstream="gateway",
+                duration_ms=(time.time() - t0) * 1000,
+            )
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "id": call_id,
+                    "result": {"content": [{"type": "text", "text": json.dumps(lease_result)}]},
+                    "headers": {"X-ArifOS-Lease-Id": lease_result.get("lease_id", "")},
+                }
+            )
 
         if tool_name == "gateway_lease_inspect":
             lid = arguments.get("lease_id", "")
             lease = LEASE_STORE.get(lid)
-            result = {"status": "FOUND", "lease": lease} if lease else {"status": "NOT_FOUND", "lease_id": lid}
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "result": {"content": [{"type": "text", "text": json.dumps(result)}]},
-            })
+            result = (
+                {"status": "FOUND", "lease": lease}
+                if lease
+                else {"status": "NOT_FOUND", "lease_id": lid}
+            )
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "id": call_id,
+                    "result": {"content": [{"type": "text", "text": json.dumps(result)}]},
+                }
+            )
 
         if tool_name == "gateway_receipts":
             limit = arguments.get("limit", 20)
             decision_filter = arguments.get("decision")
             receipts = _read_receipts(limit=limit, decision_filter=decision_filter)
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "result": {"content": [{"type": "text", "text": json.dumps(receipts)}]},
-            })
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "id": call_id,
+                    "result": {"content": [{"type": "text", "text": json.dumps(receipts)}]},
+                }
+            )
 
         # ── arif_delegate — delegation intelligence ──
         if tool_name == "arif_delegate":
@@ -877,12 +975,14 @@ async def _mcp_handler(request: Request):
             except Exception:
                 vault_seal_result = "VAULT999_UNAVAILABLE"
 
-            log.info("DELEGATION | %s | intent=%s category=%s agents=%s verify=%s",
-                     delegation_plan["trace_id"],
-                     intent[:80],
-                     delegation_plan["category"],
-                     [a["agent_id"] for a in delegation_plan["primary_agents"]],
-                     [a["agent_id"] for a in delegation_plan["verify_agents"]])
+            log.info(
+                "DELEGATION | %s | intent=%s category=%s agents=%s verify=%s",
+                delegation_plan["trace_id"],
+                intent[:80],
+                delegation_plan["category"],
+                [a["agent_id"] for a in delegation_plan["primary_agents"]],
+                [a["agent_id"] for a in delegation_plan["verify_agents"]],
+            )
 
             result_payload = {
                 "status": "DELEGATED",
@@ -893,29 +993,50 @@ async def _mcp_handler(request: Request):
                 "vault_seal": vault_seal_result if vault_seal_attempted else "not_attempted",
             }
 
-            receipt = emit_receipt("call_tool", subject, tool_name, "DELEGATED",
-                                    params=arguments, upstream="gateway",
-                                    duration_ms=(time.time() - t0) * 1000)
+            receipt = emit_receipt(
+                "call_tool",
+                subject,
+                tool_name,
+                "DELEGATED",
+                params=arguments,
+                upstream="gateway",
+                duration_ms=(time.time() - t0) * 1000,
+            )
 
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "result": {"content": [{"type": "text", "text": json.dumps(result_payload)}]},
-                "headers": {
-                    "X-ArifOS-Decision": "DELEGATED",
-                    "X-ArifOS-Delegation-Trace": delegation_plan["trace_id"],
-                    "X-ArifOS-Receipt-Id": receipt["receipt_id"],
-                },
-            })
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "id": call_id,
+                    "result": {"content": [{"type": "text", "text": json.dumps(result_payload)}]},
+                    "headers": {
+                        "X-ArifOS-Decision": "DELEGATED",
+                        "X-ArifOS-Delegation-Trace": delegation_plan["trace_id"],
+                        "X-ArifOS-Receipt-Id": receipt["receipt_id"],
+                    },
+                }
+            )
 
         # For upstream tools: enforce lease
         if not organ_name:
-            receipt = emit_receipt("call_tool", subject, tool_name, "DENIED",
-                                   error="UNKNOWN_TOOL", upstream="gateway",
-                                   duration_ms=(time.time() - t0) * 1000)
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "error": {"code": -32601, "message": f"Tool not found in any organ: {tool_name}"},
-            })
+            receipt = emit_receipt(
+                "call_tool",
+                subject,
+                tool_name,
+                "DENIED",
+                error="UNKNOWN_TOOL",
+                upstream="gateway",
+                duration_ms=(time.time() - t0) * 1000,
+            )
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "id": call_id,
+                    "error": {
+                        "code": -32601,
+                        "message": f"Tool not found in any organ: {tool_name}",
+                    },
+                }
+            )
 
         # Issue/validate lease (gateway-local lease store). A-FORGE is a
         # self-governing execution shell: it issues its own leases via
@@ -933,40 +1054,74 @@ async def _mcp_handler(request: Request):
                     roles=arguments.get("_roles", ["viewer"]),
                 )
                 if lease_result["status"] == "DENIED":
-                    receipt = emit_receipt("call_tool", subject, tool_name, "DENIED",
-                                           error=lease_result.get("reason"), upstream=organ_name,
-                                           duration_ms=(time.time() - t0) * 1000)
-                    return JSONResponse({
-                        "jsonrpc": "2.0", "id": call_id,
-                        "error": {"code": -32002, "message": f"Lease denied: {lease_result.get('reason')}"},
-                    })
+                    receipt = emit_receipt(
+                        "call_tool",
+                        subject,
+                        tool_name,
+                        "DENIED",
+                        error=lease_result.get("reason"),
+                        upstream=organ_name,
+                        duration_ms=(time.time() - t0) * 1000,
+                    )
+                    return JSONResponse(
+                        {
+                            "jsonrpc": "2.0",
+                            "id": call_id,
+                            "error": {
+                                "code": -32002,
+                                "message": f"Lease denied: {lease_result.get('reason')}",
+                            },
+                        }
+                    )
                 lease_id = lease_result["lease_id"]
 
             # Validate the lease
             validation = validate_lease(lease_id, tool_name)
             if validation["decision"] == "DENIED":
-                receipt = emit_receipt("call_tool", subject, tool_name, validation["decision"],
-                                       lease_id=lease_id, risk_class="LOW",
-                                       error=validation.get("reason"), upstream=organ_name,
-                                       duration_ms=(time.time() - t0) * 1000)
-                return JSONResponse({
-                    "jsonrpc": "2.0", "id": call_id,
-                    "error": {"code": -32003, "message": f"Lease invalid: {validation.get('reason')}"},
-                })
+                receipt = emit_receipt(
+                    "call_tool",
+                    subject,
+                    tool_name,
+                    validation["decision"],
+                    lease_id=lease_id,
+                    risk_class="LOW",
+                    error=validation.get("reason"),
+                    upstream=organ_name,
+                    duration_ms=(time.time() - t0) * 1000,
+                )
+                return JSONResponse(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": call_id,
+                        "error": {
+                            "code": -32003,
+                            "message": f"Lease invalid: {validation.get('reason')}",
+                        },
+                    }
+                )
 
             if validation["decision"] == "PENDING_888":
-                receipt = emit_receipt("call_tool", subject, tool_name, "PENDING_888",
-                                       lease_id=lease_id,
-                                       risk_class=validation.get("lease", {}).get("risk_class", "HIGH_IRREVERSIBLE"),
-                                       upstream=organ_name, duration_ms=(time.time() - t0) * 1000)
-                return JSONResponse({
-                    "jsonrpc": "2.0", "id": call_id,
-                    "error": {
-                        "code": -32004,
-                        "message": "888_HOLD required — this action requires human sovereign approval",
-                        "data": {"lease_id": lease_id, "receipt_id": receipt["receipt_id"]},
-                    },
-                })
+                receipt = emit_receipt(
+                    "call_tool",
+                    subject,
+                    tool_name,
+                    "PENDING_888",
+                    lease_id=lease_id,
+                    risk_class=validation.get("lease", {}).get("risk_class", "HIGH_IRREVERSIBLE"),
+                    upstream=organ_name,
+                    duration_ms=(time.time() - t0) * 1000,
+                )
+                return JSONResponse(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": call_id,
+                        "error": {
+                            "code": -32004,
+                            "message": "888_HOLD required — this action requires human sovereign approval",
+                            "data": {"lease_id": lease_id, "receipt_id": receipt["receipt_id"]},
+                        },
+                    }
+                )
 
             lease = validation.get("lease", {})
             risk_class = lease.get("risk_class", "LOW")
@@ -981,7 +1136,8 @@ async def _mcp_handler(request: Request):
         # lease_id so the upstream organ cannot be confused by a caller-supplied
         # fake lease.
         upstream_args = {
-            k: v for k, v in arguments.items()
+            k: v
+            for k, v in arguments.items()
             if not k.startswith("_") or k in ("session_id", "actor_id", "lease_id")
         }
         if organ_name == "A-FORGE":
@@ -1006,20 +1162,37 @@ async def _mcp_handler(request: Request):
         duration_ms = (time.time() - t0) * 1000
 
         if result.get("error"):
-            receipt = emit_receipt("call_tool", subject, tool_name, "ERROR",
-                                   lease_id=lease_id, risk_class=risk_class,
-                                   error=result["error"], upstream=organ_name,
-                                   duration_ms=duration_ms)
-            return JSONResponse({
-                "jsonrpc": "2.0", "id": call_id,
-                "error": {"code": -32603, "message": result["error"]},
-            })
+            receipt = emit_receipt(
+                "call_tool",
+                subject,
+                tool_name,
+                "ERROR",
+                lease_id=lease_id,
+                risk_class=risk_class,
+                error=result["error"],
+                upstream=organ_name,
+                duration_ms=duration_ms,
+            )
+            return JSONResponse(
+                {
+                    "jsonrpc": "2.0",
+                    "id": call_id,
+                    "error": {"code": -32603, "message": result["error"]},
+                }
+            )
 
         # Success
-        receipt = emit_receipt("call_tool", subject, tool_name, "EXECUTED",
-                               lease_id=lease_id, risk_class=risk_class,
-                               params=arguments, upstream=organ_name,
-                               duration_ms=duration_ms)
+        receipt = emit_receipt(
+            "call_tool",
+            subject,
+            tool_name,
+            "EXECUTED",
+            lease_id=lease_id,
+            risk_class=risk_class,
+            params=arguments,
+            upstream=organ_name,
+            duration_ms=duration_ms,
+        )
 
         # Add constitutional headers to response
         response_body = result.get("body", {})
@@ -1044,13 +1217,17 @@ async def _mcp_handler(request: Request):
         )
 
     # ── Unknown method ──
-    return JSONResponse({
-        "jsonrpc": "2.0", "id": call_id,
-        "error": {"code": -32601, "message": f"Method not found: {method}"},
-    })
+    return JSONResponse(
+        {
+            "jsonrpc": "2.0",
+            "id": call_id,
+            "error": {"code": -32601, "message": f"Method not found: {method}"},
+        }
+    )
 
 
 # ─── /receipts ──────────────────────────────────────────────────────────────
+
 
 async def _receipts_handler(request: Request):
     """Query audit receipts."""
@@ -1066,6 +1243,7 @@ async def _receipts_handler(request: Request):
 
 # ─── /leases ────────────────────────────────────────────────────────────────
 
+
 async def _leases_handler(request: Request):
     """List active leases."""
     subject, auth_error = _extract_subject(request)
@@ -1074,11 +1252,15 @@ async def _leases_handler(request: Request):
 
     now = datetime.now(UTC).timestamp()
     active = [
-        {"lease_id": lid, "tool": l["tool"], "risk_class": l["risk_class"],
-         "invocations": f"{l['invocations_used']}/{l['max_invocations']}",
-         "expires_in_s": max(0, int(l["expires_at"] - now)),
-         "require_888_hold": l["require_888_hold"],
-         "subject": l["subject"]}
+        {
+            "lease_id": lid,
+            "tool": l["tool"],
+            "risk_class": l["risk_class"],
+            "invocations": f"{l['invocations_used']}/{l['max_invocations']}",
+            "expires_in_s": max(0, int(l["expires_at"] - now)),
+            "require_888_hold": l["require_888_hold"],
+            "subject": l["subject"],
+        }
         for lid, l in LEASE_STORE.items()
         if l["expires_at"] > now
     ]
@@ -1086,6 +1268,7 @@ async def _leases_handler(request: Request):
 
 
 # ─── Receipt Helpers ────────────────────────────────────────────────────────
+
 
 def _count_receipts() -> int:
     if not RECEIPTS_FILE.exists():
@@ -1116,29 +1299,36 @@ def _read_receipts(limit: int = 50, decision_filter: str | None = None) -> list[
 
 # ─── Canary / Airlock routes ────────────────────────────────────────────────
 
+
 async def _ping_handler(request: Request):
     """Dumb liveness check. No auth, no floors, no envelope."""
-    return JSONResponse({"status": "ok", "ts": datetime.now(UTC).isoformat(), "service": "arifos-airlock"})
+    return JSONResponse(
+        {"status": "ok", "ts": datetime.now(UTC).isoformat(), "service": "arifos-airlock"}
+    )
 
 
 async def _schema_handler(request: Request):
     """Protocol and capability advertisement."""
-    return JSONResponse({
-        "protocol_versions_supported": ["2025-11-25", "2025-03-26"],
-        "tools_count": 19,
-        "organs": list(UPSTREAM_ORGANS.keys()),
-        "DITEMPA_BUKAN_DIBERI": True,
-    })
+    return JSONResponse(
+        {
+            "protocol_versions_supported": ["2025-11-25", "2025-03-26"],
+            "tools_count": 19,
+            "organs": list(UPSTREAM_ORGANS.keys()),
+            "DITEMPA_BUKAN_DIBERI": True,
+        }
+    )
 
 
 async def _version_handler(request: Request):
     """Version info for client compatibility."""
-    return JSONResponse({
-        "version": "v2026.06.11-FIQHGEOM",
-        "gateway": "v0.1.0",
-        "python": sys.version.split()[0],
-        "protocol": "MCP 2025-11-25",
-    })
+    return JSONResponse(
+        {
+            "version": "v2026.06.11-FIQHGEOM",
+            "gateway": "v0.1.0",
+            "python": sys.version.split()[0],
+            "protocol": "MCP 2025-11-25",
+        }
+    )
 
 
 async def _probe_handler(request: Request):
@@ -1147,12 +1337,14 @@ async def _probe_handler(request: Request):
         body = await request.json()
     except Exception:
         body = {"raw": "non-json body"}
-    return JSONResponse({
-        "probe_ok": True,
-        "echoed": body,
-        "ts": datetime.now(UTC).isoformat(),
-        "DITEMPA_BUKAN_DIBERI": True,
-    })
+    return JSONResponse(
+        {
+            "probe_ok": True,
+            "echoed": body,
+            "ts": datetime.now(UTC).isoformat(),
+            "DITEMPA_BUKAN_DIBERI": True,
+        }
+    )
 
 
 # ─── Routes ─────────────────────────────────────────────────────────────────

@@ -280,20 +280,23 @@ def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
     if record is None and session_id.startswith("SEAL-"):
         try:
             from arifosmcp.runtime.tools import _SESSIONS
+
             sess = _SESSIONS.get(session_id)
             if sess:
                 record = {
                     "session_id": session_id,
                     "actor_id": sess.get("actor_id", "anonymous"),
-                    "authority_level": "operator" if sess.get("actor_id") == "arif" else "anonymous",
+                    "authority_level": "operator"
+                    if sess.get("actor_id") == "arif"
+                    else "anonymous",
                     "verified": False,
                     "recovered_from_file_store": True,
                     "expires_at": datetime.fromtimestamp(
                         sess.get("expires_at_unix", 0.0),
                         tz=UTC,
-                    ).isoformat() if sess.get("expires_at_unix") else (
-                        (datetime.now(UTC) + timedelta(hours=1)).isoformat()
-                    ),
+                    ).isoformat()
+                    if sess.get("expires_at_unix")
+                    else ((datetime.now(UTC) + timedelta(hours=1)).isoformat()),
                     "stage": sess.get("stage", "000"),
                     "lane": sess.get("lane", "AGI"),
                 }

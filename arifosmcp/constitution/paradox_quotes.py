@@ -42,6 +42,7 @@ from typing import Any
 
 class Organ(str, Enum):
     """Target organ for quote binding."""
+
     MEMORY = "memory"
     MIND = "mind"
     JUDGE = "judge"
@@ -49,6 +50,7 @@ class Organ(str, Enum):
 
 class ParadoxAxis(str, Enum):
     """The tension dimension a quote operates on."""
+
     # Memory axes
     RECOLLECTION_VS_DISCOVERY = "recollection_vs_discovery"
     FORGETTING_VS_REMEMBERING = "forgetting_vs_remembering"
@@ -89,22 +91,25 @@ class ParadoxAxis(str, Enum):
 
 class Norm(str, Enum):
     """Governance norm classification."""
-    WAJIB = "wajib"    # Structurally mandatory — must fire
-    HARUS = "harus"    # Permitted — fires conditionally
-    SUNAT = "sunat"    # Recommended — fires for audit quality
+
+    WAJIB = "wajib"  # Structurally mandatory — must fire
+    HARUS = "harus"  # Permitted — fires conditionally
+    SUNAT = "sunat"  # Recommended — fires for audit quality
 
 
 class AttributionStatus(str, Enum):
     """Verification status of quote provenance."""
-    EXACT = "exact"                        # Word-perfect from primary source
+
+    EXACT = "exact"  # Word-perfect from primary source
     TRADITIONAL = "traditional_attribution"  # Cultural convention
-    PARAPHRASE = "paraphrase"              # Rephrased meaning
+    PARAPHRASE = "paraphrase"  # Rephrased meaning
 
 
 class EmbedLevel(str, Enum):
     """Embedding depth for the quote."""
-    CODE = "code"          # String constant in tool handler
-    PROMPT = "prompt"      # System prompt CANON block
+
+    CODE = "code"  # String constant in tool handler
+    PROMPT = "prompt"  # System prompt CANON block
     TELEMETRY = "telemetry"  # Audit trail logging
 
 
@@ -117,33 +122,33 @@ class EmbedLevel(str, Enum):
 class ParadoxQuote:
     """A verified philosophical quote with full paradox tension geometry."""
 
-    quote_id: str               # e.g. "M1", "R4", "J7"
-    organ: Organ                # memory | mind | judge
-    index: int                  # 1-11 within organ
+    quote_id: str  # e.g. "M1", "R4", "J7"
+    organ: Organ  # memory | mind | judge
+    index: int  # 1-11 within organ
 
     # The quote itself
-    quote_text: str             # Exact wording
-    author: str                 # Full name
-    work: str                   # Title of work
-    year: str                   # Year or date range
-    language_note: str          # Original language text if non-English
+    quote_text: str  # Exact wording
+    author: str  # Full name
+    work: str  # Title of work
+    year: str  # Year or date range
+    language_note: str  # Original language text if non-English
     attribution: AttributionStatus
 
     # Paradox geometry
-    antithesis: str             # Q′ — what Q must be balanced against
-    axis: ParadoxAxis           # The tension dimension
-    axis_label: str             # Human-readable axis label: "X vs Y"
+    antithesis: str  # Q′ — what Q must be balanced against
+    axis: ParadoxAxis  # The tension dimension
+    axis_label: str  # Human-readable axis label: "X vs Y"
 
     # Constitutional binding
-    norm: Norm                  # wajib | harus | sunat
-    trigger_condition: str      # When this quote fires
-    output_field: str           # Which output field carries the quote
+    norm: Norm  # wajib | harus | sunat
+    trigger_condition: str  # When this quote fires
+    output_field: str  # Which output field carries the quote
     floor_bindings: list[str] = field(default_factory=list)  # F1-F13 bindings
 
     # Embedding instructions
-    embed_levels: list[EmbedLevel] = field(default_factory=lambda: [
-        EmbedLevel.CODE, EmbedLevel.PROMPT, EmbedLevel.TELEMETRY
-    ])
+    embed_levels: list[EmbedLevel] = field(
+        default_factory=lambda: [EmbedLevel.CODE, EmbedLevel.PROMPT, EmbedLevel.TELEMETRY]
+    )
     use_modes: list[str] = field(default_factory=lambda: ["reason", "forge"])
 
     def to_dict(self) -> dict[str, Any]:
@@ -214,15 +219,12 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="coverage_warning",
         floor_bindings=["F2", "F7"],
     ),
-
     # M2 — Borges: Forgetting as the Engine of Thought
     ParadoxQuote(
         quote_id="M2",
         organ=Organ.MEMORY,
         index=2,
-        quote_text=(
-            "To think is to forget differences, to generalize, to abstract."
-        ),
+        quote_text=("To think is to forget differences, to generalize, to abstract."),
         author="Jorge Luis Borges",
         work="Funes the Memorious, Ficciones",
         year="1944",
@@ -239,7 +241,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="consolidation_rationale",
         floor_bindings=["F2", "F4"],
     ),
-
     # M3 — Nietzsche: The Horizon of Forgetting
     ParadoxQuote(
         quote_id="M3",
@@ -265,7 +266,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="budget_rationale",
         floor_bindings=["F4", "F11"],
     ),
-
     # M4 — Augustine: The Vastness of Memory
     ParadoxQuote(
         quote_id="M4",
@@ -283,9 +283,7 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
             "penetrale amplum et infinitum. Quis ad fundum eius pervenit?"
         ),
         attribution=AttributionStatus.EXACT,
-        antithesis=(
-            "A vast chamber is also a dark one — and depth unplumbed is depth ungoverned."
-        ),
+        antithesis=("A vast chamber is also a dark one — and depth unplumbed is depth ungoverned."),
         axis=ParadoxAxis.VASTNESS_VS_OPACITY,
         axis_label="vastness vs. opacity",
         norm=Norm.SUNAT,
@@ -293,7 +291,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="memory_health_header",
         floor_bindings=["F7"],
     ),
-
     # M5 — Aristotle: The Desire to Know
     ParadoxQuote(
         quote_id="M5",
@@ -316,7 +313,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="volume_warning",
         floor_bindings=["F2", "F7"],
     ),
-
     # M6 — Plato: Knowledge Tied Down
     ParadoxQuote(
         quote_id="M6",
@@ -339,7 +335,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="contradiction_report",
         floor_bindings=["F2", "F3"],
     ),
-
     # M7 — Bacon: Knowledge Is Power
     ParadoxQuote(
         quote_id="M7",
@@ -362,7 +357,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="provenance_gate",
         floor_bindings=["F1", "F5", "F13"],
     ),
-
     # M8 — Aristotle: Memory and Time
     ParadoxQuote(
         quote_id="M8",
@@ -389,7 +383,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="freshness_classification",
         floor_bindings=["F2", "F4"],
     ),
-
     # M9 — Plato: Knowledge vs. True Belief
     ParadoxQuote(
         quote_id="M9",
@@ -416,7 +409,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="gap_report_header",
         floor_bindings=["F2", "F4"],
     ),
-
     # M10 — Socrates: Knowing Your Ignorance
     ParadoxQuote(
         quote_id="M10",
@@ -443,7 +435,6 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         output_field="coverage_report_footer",
         floor_bindings=["F7", "F4"],
     ),
-
     # M11 — Nietzsche: Happiness Through Forgetting
     ParadoxQuote(
         quote_id="M11",
@@ -504,15 +495,12 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="confidence_mismatch_warning",
         floor_bindings=["F7", "F2"],
     ),
-
     # R2 — Voltaire: The Absurdity of Certainty
     ParadoxQuote(
         quote_id="R2",
         organ=Organ.MIND,
         index=2,
-        quote_text=(
-            "Doubt is not a pleasant condition, but certainty is an absurd one."
-        ),
+        quote_text=("Doubt is not a pleasant condition, but certainty is an absurd one."),
         author="Voltaire",
         work="Letter to Frederick the Great, 28 November 1770",
         year="1770",
@@ -530,7 +518,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="claim_tag_annotation",
         floor_bindings=["F7"],
     ),
-
     # R3 — Descartes: The Deceived Senses
     ParadoxQuote(
         quote_id="R3",
@@ -560,7 +547,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="scrutiny_level",
         floor_bindings=["F2", "F7"],
     ),
-
     # R4 — Socrates: The Unexamined Life
     ParadoxQuote(
         quote_id="R4",
@@ -583,7 +569,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="exhaustion_warning",
         floor_bindings=["F4", "F8"],
     ),
-
     # R5 — Descartes: The Cogito
     ParadoxQuote(
         quote_id="R5",
@@ -607,7 +592,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="coherence_warning",
         floor_bindings=["F2", "F7", "F10"],
     ),
-
     # R6 — David Hume: Proportioning Belief to Evidence
     ParadoxQuote(
         quote_id="R6",
@@ -631,7 +615,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="confidence_band_metadata",
         floor_bindings=["F2", "F7"],
     ),
-
     # R7 — William James: Doubt as Decision
     ParadoxQuote(
         quote_id="R7",
@@ -659,15 +642,13 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="doubt_proceed_threshold",
         floor_bindings=["F1", "F5"],
     ),
-
     # R8 — Confucius: Knowing What You Know
     ParadoxQuote(
         quote_id="R8",
         organ=Organ.MIND,
         index=8,
         quote_text=(
-            "To know what you know and to know what you do not know — that is true "
-            "knowledge."
+            "To know what you know and to know what you do not know — that is true knowledge."
         ),
         author="Confucius",
         work="Analects 2.17",
@@ -686,7 +667,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="unknown_tag_annotation",
         floor_bindings=["F2", "F4", "F7"],
     ),
-
     # R9 — Sextus Empiricus: Suspension of Judgment
     ParadoxQuote(
         quote_id="R9",
@@ -715,7 +695,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="equipollence_handling",
         floor_bindings=["F1", "F3"],
     ),
-
     # R10 — Wittgenstein: Hinges Must Stay Put
     ParadoxQuote(
         quote_id="R10",
@@ -743,7 +722,6 @@ MIND_QUOTES: list[ParadoxQuote] = [
         output_field="floor_proximity_warning",
         floor_bindings=["F2", "F7", "F13"],
     ),
-
     # R11 — Wittgenstein: Whereof One Cannot Speak
     ParadoxQuote(
         quote_id="R11",
@@ -805,7 +783,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="sabar_deadline",
         floor_bindings=["F1", "F13"],
     ),
-
     # J2 — Plato: Justice as One's Own Work
     ParadoxQuote(
         quote_id="J2",
@@ -832,7 +809,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="boundary_enforcement",
         floor_bindings=["F13"],
     ),
-
     # J3 — Aristotle: Man Without Justice
     ParadoxQuote(
         quote_id="J3",
@@ -858,7 +834,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="policy_engine_metadata",
         floor_bindings=["F1", "F2", "F13"],
     ),
-
     # J4 — Aristotle: In Justice Every Virtue
     ParadoxQuote(
         quote_id="J4",
@@ -881,7 +856,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="seal_audit_bundle",
         floor_bindings=["F2", "F7"],
     ),
-
     # J5 — Socrates: Never Repay Injustice with Injustice
     ParadoxQuote(
         quote_id="J5",
@@ -908,7 +882,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="coercion_analysis",
         floor_bindings=["F5", "F12"],
     ),
-
     # J6 — Marcus Aurelius: Right Action, True Speech
     ParadoxQuote(
         quote_id="J6",
@@ -932,7 +905,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="irreversible_gate",
         floor_bindings=["F1", "F2"],
     ),
-
     # J7 — Glaucon (via Plato): The Temptation of Injustice
     ParadoxQuote(
         quote_id="J7",
@@ -964,7 +936,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="power_asymmetry_analysis",
         floor_bindings=["F5", "F6", "F12"],
     ),
-
     # J8 — Aristotle: The Lawful and the Fair
     ParadoxQuote(
         quote_id="J8",
@@ -988,7 +959,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="policy_fairness_conflict",
         floor_bindings=["F2", "F12", "F13"],
     ),
-
     # J9 — Kant: The Moral Law
     ParadoxQuote(
         quote_id="J9",
@@ -1017,7 +987,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="floor_tension_resolution",
         floor_bindings=["F12"],
     ),
-
     # J10 — Kant: The Categorical Imperative
     ParadoxQuote(
         quote_id="J10",
@@ -1044,7 +1013,6 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
         output_field="universalizability_check",
         floor_bindings=["F1", "F2", "F10"],
     ),
-
     # J11 — Socrates (via Plato): The Single Man and the Truth
     ParadoxQuote(
         quote_id="J11",
@@ -1155,9 +1123,7 @@ def format_paradox_tension(quote_id: str) -> str:
         return ""
     tension = q.tension_vector()
     return (
-        f"[{quote_id}] {tension['axis']}\n"
-        f"  Q:  {tension['positive']}\n"
-        f"  Q′: {tension['negative']}"
+        f"[{quote_id}] {tension['axis']}\n  Q:  {tension['positive']}\n  Q′: {tension['negative']}"
     )
 
 

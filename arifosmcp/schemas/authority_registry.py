@@ -19,7 +19,6 @@ DITEMPA BUKAN DIBERI.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -27,13 +26,13 @@ from pydantic import BaseModel, Field
 class AuthorityLevel(str, Enum):
     """Canonical authority levels. Lower = less authority."""
 
-    OBSERVER = "OBSERVER"                # Read-only, no mutations
+    OBSERVER = "OBSERVER"  # Read-only, no mutations
     OPERATOR_CLAIMED = "OPERATOR_CLAIMED"  # Claimed identity, not verified
-    HMAC_VERIFIED = "HMAC_VERIFIED"      # Telegram HMAC verification
-    SOVEREIGN = "SOVEREIGN"              # Ed25519 sovereign signature
-    SYSTEM = "SYSTEM"                    # System/cron/daemon
-    JUDGE = "JUDGE"                      # 888_JUDGE deliberation
-    ORGAN = "ORGAN"                      # Federation organ attestation
+    HMAC_VERIFIED = "HMAC_VERIFIED"  # Telegram HMAC verification
+    SOVEREIGN = "SOVEREIGN"  # Ed25519 sovereign signature
+    SYSTEM = "SYSTEM"  # System/cron/daemon
+    JUDGE = "JUDGE"  # 888_JUDGE deliberation
+    ORGAN = "ORGAN"  # Federation organ attestation
 
 
 # Authority level hierarchy (higher index = more authority)
@@ -185,9 +184,7 @@ def check_authority(
         ActionClass.EXECUTE_HIGH_IMPACT: "Requires JUDGE authority (888 deliberation)",
         ActionClass.IRREVERSIBLE: "Requires SOVEREIGN authority (F13 human approval)",
     }
-    escalation_reason = _escalation_map.get(
-        ActionClass(action), f"{auth} cannot perform {action}"
-    )
+    escalation_reason = _escalation_map.get(ActionClass(action), f"{auth} cannot perform {action}")
 
     return AuthorityCheckResult(
         allowed=False,

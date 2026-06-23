@@ -32,7 +32,7 @@ Allow: /
 #   LAYER 1 — HUMAN (Identity, Scars, Authority)
 #   https://arif-fazil.com/llms.txt
 #
-#   LAYER 2 — THEORY (Constitutional Canon, 13 Floors, 13 Tools — this layer)
+#   LAYER 2 — THEORY (Constitutional Canon, 13 Floors, **7 public verbs** — 2026-06-23 facade)
 #   https://arifos.arif-fazil.com/llms.txt
 #
 #   LAYER 3 — APPS (Runtime, API, MCP Operations)

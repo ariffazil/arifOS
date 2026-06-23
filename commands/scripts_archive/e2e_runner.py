@@ -16,7 +16,9 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-MCP_URL = os.environ.get("ARIFOS_MCP_URL", "http://localhost:8088") + "/mcp"  # set ARIFOS_MCP_URL=http://localhost:8080 for local dev
+MCP_URL = (
+    os.environ.get("ARIFOS_MCP_URL", "http://localhost:8088") + "/mcp"
+)  # set ARIFOS_MCP_URL=http://localhost:8080 for local dev
 TIMEOUT = 30
 LOG_DIR = Path("logs")
 

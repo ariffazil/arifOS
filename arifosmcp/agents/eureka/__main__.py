@@ -52,7 +52,9 @@ def main():
     elif cmd == "substrate":
         agent.bootstrap()
         summary = agent.substrate_summary()
-        print(f"Total: {summary['total']} | Available: {summary['available']} | Missing: {summary['missing']}")
+        print(
+            f"Total: {summary['total']} | Available: {summary['available']} | Missing: {summary['missing']}"
+        )
         if summary["missing_names"]:
             print("Missing:", ", ".join(summary["missing_names"]))
 

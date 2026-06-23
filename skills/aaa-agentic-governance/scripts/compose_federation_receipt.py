@@ -12,6 +12,7 @@ Run: python3 compose_federation_receipt.py <input.json>
 Input: {"abstraction": {...}, "attestation": {...}, "abduction": {...}}
 Output: FederationReceipt as JSON.
 """
+
 from __future__ import annotations
 
 import hashlib

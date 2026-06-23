@@ -41,7 +41,8 @@ def _probe_physical() -> dict[str, Any]:
     Returns machine vitals and earth status.
     All values are live-probed — no hardcoded numbers.
     """
-    import os, shutil
+    import os
+    import shutil
 
     result: dict[str, Any] = {
         "layer": "physical",
@@ -222,7 +223,9 @@ def _probe_biological() -> dict[str, Any]:
         "epistemic": "CANONICAL",
         "guard": "F6 MARUAH — human dignity is not measured, it is protected",
         "never": [
-            "diagnose", "prescribe", "replace clinician judgment",
+            "diagnose",
+            "prescribe",
+            "replace clinician judgment",
             "claim certainty about health",
         ],
     }
@@ -293,21 +296,15 @@ def register_reality_state(mcp: FastMCP) -> list[str]:
 
         # ── Dynamic summary — computed, not hardcoded ────────────────────
         layers_with_data = sum(
-            1 for l in layers.values()
-            if l.get("epistemic", "UNKNOWN") != "UNKNOWN"
+            1 for l in layers.values() if l.get("epistemic", "UNKNOWN") != "UNKNOWN"
         )
-        layers_degraded = sum(
-            1 for l in layers.values()
-            if l.get("degraded", False)
-        )
+        layers_degraded = sum(1 for l in layers.values() if l.get("degraded", False))
 
         return {
             "resource": "arifos://reality/state",
             "version": "v2026.06.22",
             "snapshot_timestamp": snapshot_timestamp,
-            "snapshot_iso": time.strftime(
-                "%Y-%m-%dT%H:%M:%SZ", time.gmtime(snapshot_timestamp)
-            ),
+            "snapshot_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(snapshot_timestamp)),
             "authority_level": "DYNAMIC",
             "truth_level": 4,
             "causality": {
@@ -319,9 +316,7 @@ def register_reality_state(mcp: FastMCP) -> list[str]:
                 "layers_present": len(layers),
                 "layers_with_data": layers_with_data,
                 "layers_degraded": layers_degraded,
-                "verdict": (
-                    "DEGRADED" if layers_degraded > 0 else "NOMINAL"
-                ),
+                "verdict": ("DEGRADED" if layers_degraded > 0 else "NOMINAL"),
             },
             "governance": {
                 "f2_truth": "All values labeled with epistemic status",

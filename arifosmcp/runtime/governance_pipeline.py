@@ -515,14 +515,13 @@ class GovernancePipeline:
             gate = self._gate_f0_rootkey(ctx)
             result.gate_results.append(gate)
             result.f0_rootkey_verdict = gate.metadata.get("f0_verdict", "UNKNOWN")
-            result.f0_rootkey_public_key_loaded = gate.metadata.get(
-                "public_key_loaded", False
-            )
+            result.f0_rootkey_public_key_loaded = gate.metadata.get("public_key_loaded", False)
             if not gate.passed:
                 if self.enforcement_mode == "simulate":
                     logger.warning(
                         "F0 SIMULATE: would have blocked %s — %s",
-                        ctx.tool_name, gate.reason,
+                        ctx.tool_name,
+                        gate.reason,
                     )
                     # Override: mark passed in simulation mode
                     gate = GateResult(
@@ -589,9 +588,7 @@ class GovernancePipeline:
             result.blocked_at = gate.gate
             result.reasons.append(gate.reason)
             result.violated_laws.extend(gate.metadata.get("violated_laws", ["L11"]))
-            result.next_safe_action = (
-                "Verify identity with arif_init(mode='init', actor_id='...')"
-            )
+            result.next_safe_action = "Verify identity with arif_init(mode='init', actor_id='...')"
             result.total_latency_ms = (time.perf_counter() - t0) * 1000
             self._publish_to_mesh(ctx, result)
             return result
@@ -605,7 +602,8 @@ class GovernancePipeline:
                 if self.enforcement_mode == "simulate":
                     logger.warning(
                         "F13 SIMULATE: would have blocked %s — %s",
-                        ctx.tool_name, gate.reason,
+                        ctx.tool_name,
+                        gate.reason,
                     )
                     gate = GateResult(
                         gate=gate.gate,
@@ -643,7 +641,9 @@ class GovernancePipeline:
                 if self.enforcement_mode == "simulate":
                     logger.warning(
                         "E7 SIMULATE: would have issued %s for %s — %s",
-                        e7_verdict, ctx.tool_name, gate.reason,
+                        e7_verdict,
+                        ctx.tool_name,
+                        gate.reason,
                     )
                     # Override gate result — mark passed but carry WARN annotation
                     gate = GateResult(
@@ -811,18 +811,20 @@ class GovernancePipeline:
             gate_num = result.blocked_at.value.split("_")[1] if result.blocked_at else "unknown"
             subject = f"arifos.gate.{gate_num}.hold"
 
-        payload = _json.dumps({
-            "event": "PIPELINE_VERDICT",
-            "verdict": result.verdict.value,
-            "session_id": _ensure_session_id(ctx),
-            "tool_name": ctx.tool_name,
-            "action_class": getattr(ctx, "action_class", "OBSERVE"),
-            "blocked_at": result.blocked_at.value if result.blocked_at else None,
-            "reasons": result.reasons,
-            "violated_laws": result.violated_laws,
-            "total_latency_ms": result.total_latency_ms,
-            "timestamp": _dt.now(UTC).isoformat(),
-        }).encode()
+        payload = _json.dumps(
+            {
+                "event": "PIPELINE_VERDICT",
+                "verdict": result.verdict.value,
+                "session_id": _ensure_session_id(ctx),
+                "tool_name": ctx.tool_name,
+                "action_class": getattr(ctx, "action_class", "OBSERVE"),
+                "blocked_at": result.blocked_at.value if result.blocked_at else None,
+                "reasons": result.reasons,
+                "violated_laws": result.violated_laws,
+                "total_latency_ms": result.total_latency_ms,
+                "timestamp": _dt.now(UTC).isoformat(),
+            }
+        ).encode()
 
         def _publish_sync() -> None:
             """Thread worker: connect, publish, disconnect."""
@@ -848,7 +850,9 @@ class GovernancePipeline:
             finally:
                 loop.close()
 
-        t = _thr.Thread(target=_publish_sync, daemon=True, name=f"gov-publish-{result.verdict.value}")
+        t = _thr.Thread(
+            target=_publish_sync, daemon=True, name=f"gov-publish-{result.verdict.value}"
+        )
         t.start()
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -1351,9 +1355,17 @@ class GovernancePipeline:
 
         # Map named risk tiers to numeric for comparison
         _RISK_TIER_NUMERIC = {
-            "LOW": 0, "MEDIUM": 1, "HIGH": 2, "ATOMIC": 3,
+            "LOW": 0,
+            "MEDIUM": 1,
+            "HIGH": 2,
+            "ATOMIC": 3,
             # Legacy T0-T5 format
-            "T0": 0, "T1": 1, "T2": 2, "T3": 3, "T4": 4, "T5": 5,
+            "T0": 0,
+            "T1": 1,
+            "T2": 2,
+            "T3": 3,
+            "T4": 4,
+            "T5": 5,
         }
         tier_num = _RISK_TIER_NUMERIC.get(ctx.risk_tier.upper(), 0)
 
@@ -1722,11 +1734,16 @@ class GovernancePipeline:
                 # Parse JSON-RPC to extract tool name and args
                 try:
                     import json as _json
+
                     rpc = _json.loads(body)
                     method = rpc.get("method", "")
                     params = rpc.get("params", {}) if isinstance(rpc.get("params"), dict) else {}
                     tool_name = params.get("name", "")
-                    arguments = params.get("arguments", {}) if isinstance(params.get("arguments"), dict) else {}
+                    arguments = (
+                        params.get("arguments", {})
+                        if isinstance(params.get("arguments"), dict)
+                        else {}
+                    )
                 except Exception:
                     method = ""
                     tool_name = ""
@@ -1735,11 +1752,13 @@ class GovernancePipeline:
                 # ── Run governance pipeline for tools/call ─────────────────
                 if method == "tools/call" and tool_name and tool_name != "arif_ping":
                     import os as _os
+
                     _airlock_mode = _os.getenv("ARIF_AIRLOCK_MODE", "shadow").lower().strip()
                     _envelope = scope.get("airlock_envelope")
                     if _airlock_mode == "enforce":
                         if _envelope is None:
                             from arifosmcp.transport.errors import arif_error
+
                             error_body = _json.dumps(
                                 arif_error(
                                     "ARIF_ENVELOPE_INCOMPLETE",
@@ -1748,29 +1767,40 @@ class GovernancePipeline:
                                     jsonrpc_code=-32602,
                                 )
                             ).encode()
-                            await send({
-                                "type": "http.response.start",
-                                "status": 200,
-                                "headers": [
-                                    (b"content-type", b"application/json"),
-                                    (b"x-arifos-airlock-bypass", b"reject"),
-                                ],
-                            })
-                            await send({
-                                "type": "http.response.body",
-                                "body": error_body,
-                            })
+                            await send(
+                                {
+                                    "type": "http.response.start",
+                                    "status": 200,
+                                    "headers": [
+                                        (b"content-type", b"application/json"),
+                                        (b"x-arifos-airlock-bypass", b"reject"),
+                                    ],
+                                }
+                            )
+                            await send(
+                                {
+                                    "type": "http.response.body",
+                                    "body": error_body,
+                                }
+                            )
                             return
 
                         # Validate CanonicalEnvelope required fields
                         _required_fields = [
-                            "trace_id", "transport", "intent", "normalized_input",
-                            "action_class", "reversibility", "risk_level", "requires_hold"
+                            "trace_id",
+                            "transport",
+                            "intent",
+                            "normalized_input",
+                            "action_class",
+                            "reversibility",
+                            "risk_level",
+                            "requires_hold",
                         ]
                         for _field in _required_fields:
                             _val = getattr(_envelope, _field, None)
                             if _val is None or _val == "":
                                 from arifosmcp.transport.errors import arif_error
+
                                 error_body = _json.dumps(
                                     arif_error(
                                         "ARIF_ENVELOPE_INCOMPLETE",
@@ -1779,18 +1809,22 @@ class GovernancePipeline:
                                         jsonrpc_code=-32602,
                                     )
                                 ).encode()
-                                await send({
-                                    "type": "http.response.start",
-                                    "status": 200,
-                                    "headers": [
-                                        (b"content-type", b"application/json"),
-                                        (b"x-arifos-envelope-validation", b"fail"),
-                                    ],
-                                })
-                                await send({
-                                    "type": "http.response.body",
-                                    "body": error_body,
-                                })
+                                await send(
+                                    {
+                                        "type": "http.response.start",
+                                        "status": 200,
+                                        "headers": [
+                                            (b"content-type", b"application/json"),
+                                            (b"x-arifos-envelope-validation", b"fail"),
+                                        ],
+                                    }
+                                )
+                                await send(
+                                    {
+                                        "type": "http.response.body",
+                                        "body": error_body,
+                                    }
+                                )
                                 return
 
                     from arifosmcp.runtime.blast_radius_registry import (
@@ -1819,9 +1853,7 @@ class GovernancePipeline:
                         or "claimed"
                     )
                     blast_radius = (
-                        risk.blast_radius.value
-                        if risk
-                        else arguments.get("blast_radius", "LOCAL")
+                        risk.blast_radius.value if risk else arguments.get("blast_radius", "LOCAL")
                     )
                     reversibility = (
                         _reversibility_to_float(risk.reversibility)
@@ -1845,11 +1877,13 @@ class GovernancePipeline:
 
                     ctx = ToolCallContext(
                         tool_name=tool_name,
-                        session_id=arguments.get("session_id") or getattr(_envelope, "session_id", None),
+                        session_id=arguments.get("session_id")
+                        or getattr(_envelope, "session_id", None),
                         actor_id=actor_id,
                         actor_verification=actor_verification,
                         action_class=(
-                            risk.action_class.value if risk
+                            risk.action_class.value
+                            if risk
                             else arguments.get("action_class", "OBSERVE")
                         ),
                         risk_tier=risk.risk_tier.value if risk else "T1",
@@ -1866,24 +1900,36 @@ class GovernancePipeline:
                     if enf_mode == EnforcementMode.SIMULATE:
                         # Log the shadow verdict to NATS with a shadow marker
                         import json as _json
-                        shadow_event = _json.dumps({
-                            "event": "SHADOW_VERDICT",
-                            "mode": "SIMULATE",
-                            "would_have_been": result.verdict.value,
-                            "blocked_at": result.blocked_at.value if result.blocked_at else None,
-                            "tool_name": tool_name,
-                            "reasons": result.reasons,
-                            "session_id": arguments.get("session_id", "?")[:16],
-                            "timestamp": __import__('datetime').datetime.now(__import__('datetime').UTC).isoformat(),
-                        }).encode()
+
+                        shadow_event = _json.dumps(
+                            {
+                                "event": "SHADOW_VERDICT",
+                                "mode": "SIMULATE",
+                                "would_have_been": result.verdict.value,
+                                "blocked_at": result.blocked_at.value
+                                if result.blocked_at
+                                else None,
+                                "tool_name": tool_name,
+                                "reasons": result.reasons,
+                                "session_id": arguments.get("session_id", "?")[:16],
+                                "timestamp": __import__("datetime")
+                                .datetime.now(__import__("datetime").UTC)
+                                .isoformat(),
+                            }
+                        ).encode()
                         try:
                             import nats as _nats_shadow
+
                             async def _shadow_publish():
-                                nc = await _nats_shadow.connect("nats://127.0.0.1:4222", connect_timeout=3)
+                                nc = await _nats_shadow.connect(
+                                    "nats://127.0.0.1:4222", connect_timeout=3
+                                )
                                 await nc.publish("arifos.governance.shadow", shadow_event)
                                 await nc.flush(timeout=2)
                                 await nc.close()
+
                             import asyncio as _aio_shadow
+
                             loop = _aio_shadow.get_running_loop()
                             loop.create_task(_shadow_publish())
                         except Exception:
@@ -1893,29 +1939,35 @@ class GovernancePipeline:
 
                     # ── ENFORCE / PROPOSE mode: real blocking ─────────────
                     elif result.verdict != PipelineVerdict.PASS:
-                        error_body = _json.dumps({
-                            "jsonrpc": "2.0",
-                            "id": rpc.get("id"),
-                            "error": {
-                                "code": -32001,
-                                "message": f"Governance HOLD [{enf_mode.value}]",
-                                "data": result.hold_receipt(),
-                            },
-                        }).encode()
+                        error_body = _json.dumps(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": rpc.get("id"),
+                                "error": {
+                                    "code": -32001,
+                                    "message": f"Governance HOLD [{enf_mode.value}]",
+                                    "data": result.hold_receipt(),
+                                },
+                            }
+                        ).encode()
 
-                        await send({
-                            "type": "http.response.start",
-                            "status": 200,
-                            "headers": [
-                                (b"content-type", b"application/json"),
-                                (b"x-arifos-governance", b"hold"),
-                                (b"x-arifos-enforcement", enf_mode.value.encode()),
-                            ],
-                        })
-                        await send({
-                            "type": "http.response.body",
-                            "body": error_body,
-                        })
+                        await send(
+                            {
+                                "type": "http.response.start",
+                                "status": 200,
+                                "headers": [
+                                    (b"content-type", b"application/json"),
+                                    (b"x-arifos-governance", b"hold"),
+                                    (b"x-arifos-enforcement", enf_mode.value.encode()),
+                                ],
+                            }
+                        )
+                        await send(
+                            {
+                                "type": "http.response.body",
+                                "body": error_body,
+                            }
+                        )
                         return  # Blocked — do not forward
 
                 # ── Forward the original request body ──────────────────────

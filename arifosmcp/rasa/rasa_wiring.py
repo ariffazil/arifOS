@@ -122,9 +122,7 @@ def rasa_wrap_sense(original_sense_fn):
 
             # Run full governed pipeline
             try:
-                governed = asyncio.run(
-                    rasa_governed_execute(message, session_id)
-                )
+                governed = asyncio.run(rasa_governed_execute(message, session_id))
             except Exception:
                 governed = None
 
@@ -142,7 +140,9 @@ def rasa_wrap_sense(original_sense_fn):
                 session_id=session_id,
                 message=message,
                 ungoverned_result=result,
-                governed_result=governed.model_dump() if hasattr(governed, 'model_dump') else governed,
+                governed_result=governed.model_dump()
+                if hasattr(governed, "model_dump")
+                else governed,
                 enforcement_mode=mode_str,
                 enforced=enforced,
             )
@@ -164,8 +164,10 @@ def rasa_wrap_mind(original_mind_fn):
     @functools.wraps(original_mind_fn)
     def wrapper(*args, **kwargs):
         context = kwargs.get("context") or {}
-        session_id = context.get("session_id") if isinstance(context, dict) else kwargs.get(
-            "session_id", "unknown"
+        session_id = (
+            context.get("session_id")
+            if isinstance(context, dict)
+            else kwargs.get("session_id", "unknown")
         )
 
         # Retrieve prior rasa detection for this session
@@ -206,9 +208,11 @@ def rasa_wrap_heart(original_heart_fn):
     Auto-detects sync vs async original and adapts wrapper accordingly.
     """
     import inspect as _inspect
+
     _is_async = _inspect.iscoroutinefunction(original_heart_fn)
 
     if _is_async:
+
         @functools.wraps(original_heart_fn)
         async def wrapper(*args, **kwargs):
             session_id = kwargs.get("session_id", "unknown")
@@ -217,8 +221,10 @@ def rasa_wrap_heart(original_heart_fn):
             except Exception:
                 result = {"error": "heart_failed"}
             return _attach_rasa_heart(result, session_id)
+
         return wrapper
     else:
+
         @functools.wraps(original_heart_fn)
         def wrapper(*args, **kwargs):
             session_id = kwargs.get("session_id", "unknown")
@@ -227,6 +233,7 @@ def rasa_wrap_heart(original_heart_fn):
             except Exception:
                 result = {"error": "heart_failed"}
             return _attach_rasa_heart(result, session_id)
+
         return wrapper
 
 
@@ -238,6 +245,7 @@ def _attach_rasa_heart(result, session_id: str):
 
     try:
         from arifosmcp.rasa.rasa_contract import RasaContract
+
         contract = RasaContract()
         context = contract.mind_interpret(rasa_detection)
         memory = contract.memory_recall(rasa_detection, session_id)
@@ -314,9 +322,11 @@ def rasa_wrap_judge(original_judge_fn):
     Handles both dict and non-dict (VerdictOutput) return types.
     """
     import inspect as _inspect
+
     _is_async = _inspect.iscoroutinefunction(original_judge_fn)
 
     if _is_async:
+
         @functools.wraps(original_judge_fn)
         async def wrapper(*args, **kwargs):
             session_id = kwargs.get("session_id", "unknown")
@@ -325,8 +335,10 @@ def rasa_wrap_judge(original_judge_fn):
             except Exception:
                 result = {"error": "judge_failed"}
             return _attach_rasa_judge(result, session_id)
+
         return wrapper
     else:
+
         @functools.wraps(original_judge_fn)
         def wrapper(*args, **kwargs):
             session_id = kwargs.get("session_id", "unknown")
@@ -335,6 +347,7 @@ def rasa_wrap_judge(original_judge_fn):
             except Exception:
                 result = {"error": "judge_failed"}
             return _attach_rasa_judge(result, session_id)
+
         return wrapper
 
 
@@ -349,6 +362,7 @@ def _attach_rasa_judge(result, session_id: str):
 
     try:
         from arifosmcp.rasa.rasa_contract import RasaContract
+
         contract = RasaContract()
         context = contract.mind_interpret(rasa_detection)
         memory = contract.memory_recall(rasa_detection, session_id)
@@ -398,6 +412,7 @@ def _apply_verdict_downgrade(result, blocked_outputs: list) -> None:
     # Handle VerdictOutput objects
     elif hasattr(result, "verdict"):
         from arifosmcp.schemas.verdict import VerdictCode
+
         if result.verdict == VerdictCode.SEAL:
             result.verdict = VerdictCode.HOLD
             result._rasa_verdict_shift = True
@@ -490,9 +505,7 @@ def _apply_rasa_governance(
         if hasattr(governed, "judge") and governed.judge is not None:
             result["_rasa_blocked_outputs"] = governed.judge.blocked_outputs
             result["_rasa_requires_rewrite"] = governed.judge.requires_rewrite
-            result["_rasa_allowed_postures"] = [
-                p.value for p in governed.judge.allowed_postures
-            ]
+            result["_rasa_allowed_postures"] = [p.value for p in governed.judge.allowed_postures]
 
         if hasattr(governed, "human_escalation_reason"):
             result["_rasa_escalation_reason"] = governed.human_escalation_reason
@@ -588,8 +601,10 @@ def activate_rasa_wiring(mode: RasaContractMode | None = None) -> None:
         return
 
     _activated = True
-    logger.info(f"Rasa wiring ACTIVATED in mode: {_current_mode.value} "
-                f"(patched {len(_originals)} runtime tools)")
+    logger.info(
+        f"Rasa wiring ACTIVATED in mode: {_current_mode.value} "
+        f"(patched {len(_originals)} runtime tools)"
+    )
 
 
 def deactivate_rasa_wiring() -> None:

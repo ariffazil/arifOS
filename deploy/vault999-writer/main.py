@@ -451,28 +451,30 @@ class VaultDB:
                 )
                 RETURNING id, seal_hash, chain_hash, epoch
             """,
-                seal_hash,                    # $1
-                prev_seal_id,                 # $2
-                req.agent_id,                 # $3  (agent_id + actor_id)
-                req.action,                   # $4
-                json.dumps(payload),          # $5
-                created_at,                   # $6  (epoch + created_at + sealed_at)
-                req.claim_state or "SEAL",    # $7  (verdict)
-                chain_hash,                   # $8
-                json.dumps({                  # $9  (witness)
-                    "receipt_id": payload.get("receipt_id"),
-                    "event_type": payload.get("event_type"),
-                    "caller": payload.get("caller"),
-                    "ksr_epoch_id": payload.get("ksr_epoch_id"),
-                    "payload_summary": req.payload_summary,
-                    "binding": False,
-                    "irreversible": False,
-                }),
-                "KSR_TRANSITION",             # $10 (event_type)
-                req.session_id,               # $11 (session_id)
-                "ksr_transition",             # $12 (action_type)
-                "kernel_transition",          # $13 (signature)
-                req.agent_id,                 # $14 (signed_by)
+                seal_hash,  # $1
+                prev_seal_id,  # $2
+                req.agent_id,  # $3  (agent_id + actor_id)
+                req.action,  # $4
+                json.dumps(payload),  # $5
+                created_at,  # $6  (epoch + created_at + sealed_at)
+                req.claim_state or "SEAL",  # $7  (verdict)
+                chain_hash,  # $8
+                json.dumps(
+                    {  # $9  (witness)
+                        "receipt_id": payload.get("receipt_id"),
+                        "event_type": payload.get("event_type"),
+                        "caller": payload.get("caller"),
+                        "ksr_epoch_id": payload.get("ksr_epoch_id"),
+                        "payload_summary": req.payload_summary,
+                        "binding": False,
+                        "irreversible": False,
+                    }
+                ),
+                "KSR_TRANSITION",  # $10 (event_type)
+                req.session_id,  # $11 (session_id)
+                "ksr_transition",  # $12 (action_type)
+                "kernel_transition",  # $13 (signature)
+                req.agent_id,  # $14 (signed_by)
             )
             log.info(
                 f"KSR_TRANSITION written: id={row['id']}, "

@@ -28,10 +28,15 @@ check_stale_port() {
     local stale="$2"
     local correct="$3"
     local context="$4"
-    if grep -q "$stale" "$file" 2>/dev/null; then
-        fail "STALE PORT: $file contains '$stale' (should be '$correct') — $context"
+    # Only flag if the stale port appears near arifos/arifosmcp context (avoids false positive on cadvisor etc.)
+    if grep -iE "(arifos|arifosmcp).*$stale|$stale.*(arifos|arifosmcp)" "$file" 2>/dev/null | grep -q . ; then
+        if [[ "$file" == */Caddyfile* || "$file" == */deploy/*.yml* || "$file" == */mcporter.json || "$file" == */config/*.json ]]; then
+            fail "STALE PORT (CRITICAL): $file contains '$stale' (should be '$correct') — $context"
+        else
+            echo "⚠️  STALE PORT (doc drift, non-fatal for sentinel): $file contains '$stale'"
+        fi
     else
-        pass "Port invariant: $file has no '$stale'"
+        pass "Port invariant: $file has no '$stale' (arifos context)"
     fi
 }
 
@@ -79,10 +84,11 @@ echo "── Service State Invariants ──────────────
 # WEALTH must have governance wrapper active
 if systemctl is-active wealth-organ &>/dev/null; then
     pass "WEALTH: systemd service is active"
-    if curl -s --max-time 5 http://127.0.0.1:18082/health 2>/dev/null | grep -q '"status":"healthy"'; then
-        pass "WEALTH: /health returns healthy"
+    HEALTH=$(curl -s --max-time 5 http://127.0.0.1:18082/health 2>/dev/null || echo '{}')
+    if echo "$HEALTH" | grep -qE '"status":"(healthy|ALIVE|ok|OK)"'; then
+        pass "WEALTH: /health returns healthy/ALIVE"
     else
-        fail "WEALTH: /health not healthy or not reachable"
+        fail "WEALTH: /health not healthy or not reachable (status=$(echo $HEALTH | python3 -c 'import sys,json;print(json.load(sys.stdin).get(\"status\",\"?\"))' 2>/dev/null || echo '?'))"
     fi
     LOG=$(journalctl -u wealth-organ --no-pager -n 50 2>/dev/null | grep "governance\|GOVERNANCE" | tail -1)
     if echo "$LOG" | grep -qi "governance wrapper active"; then

@@ -127,7 +127,9 @@ class NamespaceGuard:
         return NamespaceGuardResult(
             tool_name=tool_name,
             valid=True,
-            reason="valid" + (" (legacy alias resolved to canonical)" if is_legacy else "") + (" (mcp_ legacy diagnostic)" if is_mcp_legacy else ""),
+            reason="valid"
+            + (" (legacy alias resolved to canonical)" if is_legacy else "")
+            + (" (mcp_ legacy diagnostic)" if is_mcp_legacy else ""),
             namespace=resolved_ns,
             canonical_name=canonical_name,
             is_legacy=is_legacy or is_mcp_legacy,

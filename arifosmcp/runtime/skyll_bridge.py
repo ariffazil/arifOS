@@ -19,6 +19,7 @@ documentation, not ground truth).
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 import json

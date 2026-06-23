@@ -25,21 +25,23 @@ import pytest
 # If a resource is added or removed from the canonical surface, edit THIS
 # constant AND the resource file AND ratify via 888.
 
-EXPECTED_CANONICAL_RESOURCES: frozenset[str] = frozenset({
-    "arifos://doctrine",
-    "arifos://trinity",
-    "arifos://schema",
-    "arifos://civilization",
-    "arifos://seal-readiness",
-    "arifos://jurisdiction",
-    "arifos://identity",
-    "arifos://memory",
-    "arifos://vitals",
-    "arifos://bootstrap",
-    "arifos://human/metabolized",
-    "tree777://index",
-    "runner://policy/v1",
-})
+EXPECTED_CANONICAL_RESOURCES: frozenset[str] = frozenset(
+    {
+        "arifos://doctrine",
+        "arifos://trinity",
+        "arifos://schema",
+        "arifos://civilization",
+        "arifos://seal-readiness",
+        "arifos://jurisdiction",
+        "arifos://identity",
+        "arifos://memory",
+        "arifos://vitals",
+        "arifos://bootstrap",
+        "arifos://human/metabolized",
+        "tree777://index",
+        "runner://policy/v1",
+    }
+)
 
 # Source file mapping — every canonical URI maps to its generator file
 CANONICAL_RESOURCE_FILES: dict[str, str] = {
@@ -113,21 +115,23 @@ def test_canonical_resources_match_resource_init():
 # Test 2: Every text-based resource has an ---arifos_meta preamble.
 # ─────────────────────────────────────────────────────────────────────────────
 
-META_FIELDS = frozenset({
-    "resource_class",
-    "authority_level",
-    "owner",
-    "version",
-    "blast_radius",
-    "staleness_policy",
-    "requires_actor_verified",
-    "mutation_allowed",
-    "requires_session",
-    "lease_required",
-    "evidence_level",
-    "last_attested",
-    "truth_level",
-})
+META_FIELDS = frozenset(
+    {
+        "resource_class",
+        "authority_level",
+        "owner",
+        "version",
+        "blast_radius",
+        "staleness_policy",
+        "requires_actor_verified",
+        "mutation_allowed",
+        "requires_session",
+        "lease_required",
+        "evidence_level",
+        "last_attested",
+        "truth_level",
+    }
+)
 
 TRUTH_LEVEL_RANGE = range(1, 8)  # 1=SOVEREIGN_CANON → 7=UNTRUSTED
 
@@ -148,9 +152,7 @@ def test_resource_has_arifos_meta_preamble(uri):
         re.DOTALL,
     )
     match = pattern.search(content)
-    assert match, (
-        f"Could not find {var_name} in {filepath.name}"
-    )
+    assert match, f"Could not find {var_name} in {filepath.name}"
 
     text_body = match.group(2).strip()
 
@@ -162,9 +164,7 @@ def test_resource_has_arifos_meta_preamble(uri):
 
     # Extract the meta block (between the first --- and second ---)
     meta_match = re.match(r"^---arifos_meta\n(.+?)\n---", text_body, re.DOTALL)
-    assert meta_match, (
-        f"{uri} ({filepath.name}): ---arifos_meta block not terminated with ---"
-    )
+    assert meta_match, f"{uri} ({filepath.name}): ---arifos_meta block not terminated with ---"
 
     meta_content = meta_match.group(1)
     meta_lines = meta_content.strip().split("\n")
@@ -172,38 +172,27 @@ def test_resource_has_arifos_meta_preamble(uri):
 
     for line in meta_lines:
         field_match = re.match(r"^(\w+):\s(.+)$", line.strip())
-        assert field_match, (
-            f"{uri}: Malformed meta line: '{line}'. Expected format 'field: value'."
-        )
+        assert field_match, f"{uri}: Malformed meta line: '{line}'. Expected format 'field: value'."
         field_name = field_match.group(1)
         meta_fields_found.add(field_name)
 
     missing_fields = META_FIELDS - meta_fields_found
     extra_fields = meta_fields_found - META_FIELDS
 
-    assert not missing_fields, (
-        f"{uri}: Missing required meta fields: {sorted(missing_fields)}"
-    )
-    assert not extra_fields, (
-        f"{uri}: Unknown meta fields (typo?): {sorted(extra_fields)}"
-    )
+    assert not missing_fields, f"{uri}: Missing required meta fields: {sorted(missing_fields)}"
+    assert not extra_fields, f"{uri}: Unknown meta fields (typo?): {sorted(extra_fields)}"
 
     # Validate truth_level is a valid integer 1-7
     truth_level_line = next(
         (l for l in meta_lines if l.strip().startswith("truth_level:")),
         None,
     )
-    assert truth_level_line is not None, (
-        f"{uri}: truth_level field missing after field set check"
-    )
+    assert truth_level_line is not None, f"{uri}: truth_level field missing after field set check"
     truth_value = truth_level_line.split(":", 1)[1].strip()
-    assert truth_value.isdigit(), (
-        f"{uri}: truth_level must be an integer, got '{truth_value}'"
-    )
+    assert truth_value.isdigit(), f"{uri}: truth_level must be an integer, got '{truth_value}'"
     tl = int(truth_value)
     assert tl in TRUTH_LEVEL_RANGE, (
-        f"{uri}: truth_level {tl} outside valid range 1-7 "
-        f"(1=SOVEREIGN_CANON, 7=UNTRUSTED)"
+        f"{uri}: truth_level {tl} outside valid range 1-7 (1=SOVEREIGN_CANON, 7=UNTRUSTED)"
     )
 
 
@@ -215,9 +204,7 @@ def test_resource_has_arifos_meta_preamble(uri):
 @pytest.mark.parametrize("uri", sorted(EXPECTED_CANONICAL_RESOURCES))
 def test_resource_uri_is_valid(uri):
     """Every canonical resource URI must follow arifos:// scheme conventions."""
-    assert "://" in uri, (
-        f"Resource URI '{uri}' must contain '://' (scheme separator)"
-    )
+    assert "://" in uri, f"Resource URI '{uri}' must contain '://' (scheme separator)"
 
     scheme = uri.split("://")[0]
     assert scheme in ("arifos", "tree777", "runner"), (
@@ -237,12 +224,12 @@ def test_resource_uri_is_valid(uri):
 def test_all_resource_source_files_exist():
     """Every canonical resource must have a corresponding source file."""
     for uri, rel_path in CANONICAL_RESOURCE_FILES.items():
-        abspath = RESOURCE_DIR / rel_path.name if hasattr(rel_path, 'name') else RESOURCE_DIR / rel_path
+        abspath = (
+            RESOURCE_DIR / rel_path.name if hasattr(rel_path, "name") else RESOURCE_DIR / rel_path
+        )
         # Re-derive proper path
         fp = RESOURCE_DIR / rel_path
-        assert fp.exists(), (
-            f"Resource source file not found: {fp} (for URI: {uri})"
-        )
+        assert fp.exists(), f"Resource source file not found: {fp} (for URI: {uri})"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -273,14 +260,10 @@ def test_resources_do_not_overlap_with_tools():
 
 def test_resource_content_hashes_are_stable():
     """Content hashes of all text-based resources must be deterministic.
-    
+
     Fails if a resource's content changes unexpectedly. Update this test
     when a resource is intentionally modified.
     """
-    from arifosmcp.resources import CANONICAL_RESOURCES  # noqa: PLC0415
-    from arifosmcp.resources import (  # noqa: PLC0415
-        CANONICAL_RESOURCES as _,
-    )
 
     hashes: dict[str, str] = {}
     for uri, rel_path in CANONICAL_RESOURCE_FILES.items():

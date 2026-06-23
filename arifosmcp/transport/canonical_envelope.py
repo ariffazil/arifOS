@@ -21,6 +21,7 @@ from typing import Any
 
 # ── Classification ──────────────────────────────────────────────────────────
 
+
 class ActionClass(str, Enum):
     READ = "read"
     WRITE = "write"
@@ -51,6 +52,7 @@ class AuthLevel(str, Enum):
 
 # ── Envelope ────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class CanonicalEnvelope:
     """
@@ -72,6 +74,7 @@ class CanonicalEnvelope:
         client_info:      Client name + version for audit
         ts:               Timestamp of envelope creation
     """
+
     trace_id: str = field(default_factory=lambda: uuid.uuid4().hex[:16])
     actor: str = "anonymous"
     intent: str = ""
@@ -107,7 +110,11 @@ class CanonicalEnvelope:
         """True if the action requires a sovereign confirmation hold."""
         if self.reversibility in ("IRREVERSIBLE", False):
             return True
-        return self.action_class in (ActionClass.IRREVERSIBLE, ActionClass.FORGE, ActionClass.GOVERN)
+        return self.action_class in (
+            ActionClass.IRREVERSIBLE,
+            ActionClass.FORGE,
+            ActionClass.GOVERN,
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -116,7 +123,9 @@ class CanonicalEnvelope:
             "intent": self.intent,
             "evidence": self.evidence,
             "authority": self.authority,
-            "action_class": self.action_class.value if hasattr(self.action_class, "value") else str(self.action_class),
+            "action_class": self.action_class.value
+            if hasattr(self.action_class, "value")
+            else str(self.action_class),
             "reversibility": self.reversibility,
             "session_state": self.session_state,
             "protocol_version": self.protocol_version,
@@ -134,8 +143,8 @@ class CanonicalEnvelope:
         }
 
 
-
 # ── Airlock Result ──────────────────────────────────────────────────────────
+
 
 @dataclass
 class AirlockResult:
@@ -146,6 +155,7 @@ class AirlockResult:
     dialect_used: Which dialect adapter processed this
     trace_id: Correlation ID even on error (for debugging)
     """
+
     transport_error: dict[str, Any] | None
     envelope: CanonicalEnvelope | None
     dialect_used: str
@@ -154,6 +164,7 @@ class AirlockResult:
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
+
 
 def new_envelope(
     actor: str = "anonymous",

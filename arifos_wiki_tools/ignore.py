@@ -171,16 +171,16 @@ def matches_gitignore(rel_path: str, gitignore_patterns: set[str]) -> bool:
     """Return True if rel_path matches any .gitignore pattern with git-style anchoring."""
     rel_path = rel_path.replace("\\", "/").strip("/")
     basename = rel_path.split("/")[-1]
-    
+
     for pat in gitignore_patterns:
         is_negated = False
         if pat.startswith("\\!"):
             is_negated = True
             pat = pat[2:]
-            
+
         pat_clean = pat.replace("\\", "/").strip("/")
         is_anchored = ("/" in pat_clean) or pat.startswith("/")
-        
+
         if is_anchored:
             if fnmatch.fnmatch(rel_path, pat_clean):
                 if is_negated:
@@ -191,7 +191,7 @@ def matches_gitignore(rel_path: str, gitignore_patterns: set[str]) -> bool:
                 if is_negated:
                     return False
                 return True
-                
+
     return False
 
 

@@ -147,7 +147,10 @@ class TestEvidenceStubWiring:
     def test_search_mode_returns_results(self, mock_search_brave, mock_floors, mock_get_store):
         """Search mode falls back to evidence store when reality_handler returns empty."""
         from arifosmcp.runtime.reality_handlers import SearchResult
-        mock_search_brave.return_value = SearchResult(engine="mock", query="python", results=[], status="mocked_empty")
+
+        mock_search_brave.return_value = SearchResult(
+            engine="mock", query="python", results=[], status="mocked_empty"
+        )
         mock_floors.return_value = {"verdict": "SEAL", "reason": "", "violated_laws": []}
         mock_store = MagicMock()
         mock_store.search_sources.return_value = [

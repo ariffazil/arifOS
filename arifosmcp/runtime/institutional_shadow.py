@@ -45,7 +45,9 @@ _SHADOW_ESCAPE_KEYWORDS: frozenset[str] = frozenset(
 )
 
 
-def _compute_drift_score(declared_function: str, observed_functions: list[ObservedFunction]) -> float:
+def _compute_drift_score(
+    declared_function: str, observed_functions: list[ObservedFunction]
+) -> float:
     """
     Drift score = fraction of observed function mass that is NOT covered by
     the declared function's semantic field.
@@ -131,16 +133,14 @@ def compute_institutional_shadow_drift(
 
     hold_reasons: list[str] = []
     if drift_score >= 0.7:
-        hold_reasons.append(
-            "Institutional function has substantially outgrown its declared name."
-        )
+        hold_reasons.append("Institutional function has substantially outgrown its declared name.")
     if sovereignty_score < 0.5:
         hold_reasons.append(
             "Observed functions show low sovereign control / high foreign dependency."
         )
     if capital_exposure >= 100e9:
         hold_reasons.append(
-            f"High capital exposure ({capital_exposure/1e9:.1f}B MYR) requires 888 review."
+            f"High capital exposure ({capital_exposure / 1e9:.1f}B MYR) requires 888 review."
         )
 
     if hold_reasons:
@@ -174,7 +174,9 @@ def compute_institutional_shadow_drift(
     routing: dict[str, str] = {
         "arifOS": verdict,
         "WEALTH": "score_sovereignty_risk" if capital_exposure > 0 else "noop",
-        "GEOX": "verify_physical_substrate" if any(fn.domain in ("geology", "ccs", "reservoir") for fn in observed) else "noop",
+        "GEOX": "verify_physical_substrate"
+        if any(fn.domain in ("geology", "ccs", "reservoir") for fn in observed)
+        else "noop",
         "AAA": "display_shadow_drift_card",
         "APEX": "888_JUDGE" if verdict == "HOLD" else "noop",
     }

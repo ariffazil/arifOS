@@ -6,7 +6,9 @@
 >
 > **Source‑of‑truth for doctrine and kernel:** [arifOS repository](https://github.com/ariffazil/arifOS)
 >
-> **Runtime truth (what's running now):** Live `/health` and `/tools` on the deployed server
+> **Runtime truth (what's running now):** Live `/health` and `/tools` on the deployed server (7 public verbs only per 2026-06-23 facade — see public_surface.py). Old references to 13/15 tools are historical.
+
+> **DEPRECATED SURFACE NOTE (2026-06-23 7-tool freeze)**: References to 13/15/16 tools, arif_compose, arif_memory_recall, arif_forge, arif_ops_measure etc. are historical. Public surface is now strictly 7 verbs (see runtime/public_surface.py). Old names are internal dispatch only.
 
 ---
 

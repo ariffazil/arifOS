@@ -83,18 +83,18 @@ def compute_mcp_annotations(
     # arifOS rule: MUTATE or IRREVERSIBLE action with low/IRREVERSIBLE reversibility.
     if reversibility is None:
         reversibility = ReversibilityLevel.HIGH
-    destructive = (
-        action_class in (ActionClass.MUTATE, ActionClass.IRREVERSIBLE)
-        and reversibility in (ReversibilityLevel.LOW, ReversibilityLevel.IRREVERSIBLE)
-    )
+    destructive = action_class in (
+        ActionClass.MUTATE,
+        ActionClass.IRREVERSIBLE,
+    ) and reversibility in (ReversibilityLevel.LOW, ReversibilityLevel.IRREVERSIBLE)
 
     # ── idempotentHint ──────────────────────────────────────────────────
     # Per spec: "If true, calling the tool repeatedly with the same arguments
     # will have no additional effect."
     # arifOS rule: HIGH reversibility means re-running produces same end state.
-    idempotent = (
-        reversibility == ReversibilityLevel.HIGH
-        and action_class in (ActionClass.OBSERVE, ActionClass.MUTATE)
+    idempotent = reversibility == ReversibilityLevel.HIGH and action_class in (
+        ActionClass.OBSERVE,
+        ActionClass.MUTATE,
     )
 
     # ── openWorldHint ───────────────────────────────────────────────────

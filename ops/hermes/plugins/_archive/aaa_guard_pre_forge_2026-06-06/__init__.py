@@ -12,8 +12,10 @@ Architecture:
 
 from aaa_guard.aaa_guard import AAAGuardPlugin, FLOOR_CLASSES, RISK_TIERS
 
+
 def register():
     """Placeholder for hermes plugin registration."""
     pass
+
 
 __all__ = ["AAAGuardPlugin", "register", "FLOOR_CLASSES", "RISK_TIERS"]

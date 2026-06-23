@@ -160,16 +160,12 @@ async def tiered_call(
             # Execute tier call with timeout
             result = await asyncio.wait_for(tier.call(request), timeout=tier.timeout)
 
-            logger.info(
-                f"[Cascade] Tier {tier_num} ({tier.name}) succeeded in <{tier.timeout}s"
-            )
+            logger.info(f"[Cascade] Tier {tier_num} ({tier.name}) succeeded in <{tier.timeout}s")
             return result
 
         except TimeoutError as e:
             reason = TierFailureReason.TIMEOUT
-            logger.warning(
-                f"[Cascade] Tier {tier_num} ({tier.name}) timeout after {tier.timeout}s"
-            )
+            logger.warning(f"[Cascade] Tier {tier_num} ({tier.name}) timeout after {tier.timeout}s")
 
             # Instrument failure
             if METRICS_AVAILABLE:
@@ -224,9 +220,7 @@ async def tiered_call(
                 if "json" in str(e).lower() or "schema" in str(e).lower()
                 else TierFailureReason.UNKNOWN
             )
-            logger.error(
-                f"[Cascade] Tier {tier_num} ({tier.name}) failed: {type(e).__name__}: {e}"
-            )
+            logger.error(f"[Cascade] Tier {tier_num} ({tier.name}) failed: {type(e).__name__}: {e}")
 
             if METRICS_AVAILABLE:
                 TIER_FAILURES.labels(

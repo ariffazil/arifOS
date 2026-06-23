@@ -41,6 +41,7 @@ class ToolState(StrEnum):
     ABANDONED — Tool removed from active set.
         Allowed: block all.
     """
+
     UNTRUSTED = "untrusted"
     OBSERVED = "observed"
     TRUSTED = "trusted"
@@ -92,13 +93,11 @@ def suggest_transition(
             return ToolState.FALLBACK, ArtReason.DEGRADED_MUTATION
 
     # FALLBACK → TRUSTED: recovered
-    if current == ToolState.FALLBACK and failure_rate < 0.05 \
-       and schema_locked and not degraded:
+    if current == ToolState.FALLBACK and failure_rate < 0.05 and schema_locked and not degraded:
         return ToolState.TRUSTED, None
 
     # FALLBACK → ABANDONED: unrecoverable
-    if current == ToolState.FALLBACK and failure_rate > 0.5 \
-       and drift_count >= 5:
+    if current == ToolState.FALLBACK and failure_rate > 0.5 and drift_count >= 5:
         return ToolState.ABANDONED, None
 
     # Any → ABANDONED: stale

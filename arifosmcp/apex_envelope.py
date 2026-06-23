@@ -40,6 +40,7 @@ _VERDICT_ORDER = {VERDICT_VOID: 0, VERDICT_HOLD: 1, VERDICT_SABAR: 2, VERDICT_SE
 
 # ── Gate Verdict Factory ───────────────────────────────────────────────────
 
+
 def gate(
     passed: bool,
     score: float,
@@ -57,6 +58,7 @@ def gate(
 
 
 # ── Individual Gate Builders ───────────────────────────────────────────────
+
 
 def amanah_gate(
     confidence: float = 0.88,
@@ -265,6 +267,7 @@ def sovereign_gate(
 
 # ── Gate → Dial Computation ───────────────────────────────────────────────
 
+
 def _geometric_mean(values: list[float]) -> float:
     positive = [v for v in values if v > 0]
     if not positive:
@@ -313,7 +316,7 @@ def compute_G(dials: dict[str, float]) -> float:
     S = dials.get("S", 0.0)
     U = dials.get("U", 0.0)
     E = dials.get("E", 0.0)
-    G = A * P * H * math.sqrt(S * U) * (E ** 2)
+    G = A * P * H * math.sqrt(S * U) * (E**2)
     return round(G, 4)
 
 
@@ -344,6 +347,7 @@ def weakest_gate(gates: dict[str, dict[str, Any]]) -> str:
 
 
 # ── Main Envelope Builder ─────────────────────────────────────────────────
+
 
 def apex_envelope(
     *,
@@ -378,14 +382,22 @@ def apex_envelope(
     gates = {
         "amanah": amanah_gate(confidence=confidence, evidence_strength=evidence_strength),
         "presence": presence_gate(boundary=boundary),
-        "humility": humility_gate(uncertainty_declared=uncertainty_declared, uncertainty_band=uncertainty_band),
+        "humility": humility_gate(
+            uncertainty_declared=uncertainty_declared, uncertainty_band=uncertainty_band
+        ),
         "signal": signal_gate(evidence_refs=evidence_refs, evidence_quality=evidence_quality),
-        "understanding": understanding_gate(coherent=coherent, reasoning_chain_length=reasoning_chain_length),
-        "energy": energy_gate(cost_used=cost_used, cost_budget=cost_budget, landauer_ratio=landauer_ratio),
+        "understanding": understanding_gate(
+            coherent=coherent, reasoning_chain_length=reasoning_chain_length
+        ),
+        "energy": energy_gate(
+            cost_used=cost_used, cost_budget=cost_budget, landauer_ratio=landauer_ratio
+        ),
         "authority": authority_gate(actor_id=actor_id, registry=registry),
         "reversibility": reversibility_gate(action_class=action_class),
         "proof": proof_gate(proof_level=proof_level, action_class=action_class),
-        "sovereign": sovereign_gate(f13_halt=f13_halt, human_present=human_present, action_class=action_class),
+        "sovereign": sovereign_gate(
+            f13_halt=f13_halt, human_present=human_present, action_class=action_class
+        ),
     }
 
     # Compute dials and G
@@ -408,6 +420,7 @@ def apex_envelope(
 
 
 # ── Convenience: Minimal Envelope (for organs with limited signals) ───────
+
 
 def apex_envelope_minimal(
     *,
@@ -437,6 +450,7 @@ def apex_envelope_minimal(
 
 
 # ── APEX Resource Annotation ──────────────────────────────────────────────
+
 
 def apex_resource_annotation() -> dict[str, Any]:
     """APEX canon metadata for MCP resource annotations."""

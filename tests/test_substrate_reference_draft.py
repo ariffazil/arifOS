@@ -88,9 +88,7 @@ class TestMaintenanceScaling:
         assert c == pytest.approx(math.log1p(10) + 2.0)
 
     def test_maintenance_cost_positive(self):
-        result = compute_maintenance_cost(
-            t_active_seconds=100.0, n_tools=10, n_tracked_files=100
-        )
+        result = compute_maintenance_cost(t_active_seconds=100.0, n_tools=10, n_tracked_files=100)
         assert result["e_maintenance_joules_per_second"] > 0
         assert result["time_factor"] > 1.0
         assert result["complexity_factor"] > 1.0
@@ -104,9 +102,7 @@ class TestMaintenanceScaling:
     def test_apply_decay_deducts_ledger(self):
         init_budget_ledger("maint1", initial_joules=10.0)
         before = get_budget_ledger("maint1").consumed_joules
-        result = apply_maintenance_decay(
-            "maint1", 100.0, n_tools=5, n_tracked_files=50
-        )
+        result = apply_maintenance_decay("maint1", 100.0, n_tools=5, n_tracked_files=50)
         after = get_budget_ledger("maint1").consumed_joules
         assert after > before
         assert result["decay_joules"] > 0
@@ -140,6 +136,4 @@ class TestExergyRatio:
 
     def test_negative_allocated_capital_raises(self):
         with pytest.raises(ThermodynamicError):
-            compute_exergy_ratio(
-                useful_work=1.0, total_heat=1.0, allocated_capital=0.0
-            )
+            compute_exergy_ratio(useful_work=1.0, total_heat=1.0, allocated_capital=0.0)

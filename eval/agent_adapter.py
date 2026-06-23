@@ -33,8 +33,15 @@ ARIFOS_TIMEOUT = int(os.environ.get("ARIFOS_TIMEOUT", "15"))
 
 # Valid decision labels for normalisation
 VALID_DECISIONS = {
-    "PROCEED", "HOLD", "888_HOLD", "VOID", "REFUSE",
-    "CAUTION", "SEAL", "SABAR", "PARTIAL",
+    "PROCEED",
+    "HOLD",
+    "888_HOLD",
+    "VOID",
+    "REFUSE",
+    "CAUTION",
+    "SEAL",
+    "SABAR",
+    "PARTIAL",
 }
 
 # Constitutional floor definitions (F1–F13) for LLM prompt
@@ -88,6 +95,7 @@ REASON: <one sentence explaining which floor(s) apply and why>
 # Public API
 # ──────────────────────────────────────────────────────────
 
+
 def run_agent_case(case: dict[str, Any]) -> dict[str, Any]:
     """
     Evaluate a single AAA gold row against the agent.
@@ -136,6 +144,7 @@ def run_agent_case(case: dict[str, Any]) -> dict[str, Any]:
 # Mode implementations
 # ──────────────────────────────────────────────────────────
 
+
 def _mock_mode(case: dict) -> dict:
     """Structural dry-run — never fabricates a result."""
     return {
@@ -159,12 +168,14 @@ def _llm_mode(case: dict) -> dict:
         goal=case.get("goal", ""),
     )
 
-    payload = json.dumps({
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.0, "num_predict": 80},
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.0, "num_predict": 80},
+        }
+    ).encode()
 
     req = urllib.request.Request(
         f"{OLLAMA_URL}/api/generate",
@@ -197,12 +208,14 @@ def _http_mode(case: dict) -> dict:
     NOTE: F13 elicitation gate will HOLD all cases unless bypassed server-side.
     Set ARIFOS_EVAL_BYPASS=1 to skip the gate (requires server config).
     """
-    candidate = f"{case.get('input','')} | Context: {case.get('context','')}"
-    payload = json.dumps({
-        "mode": "judge",
-        "candidate": candidate,
-        "actor_id": "aaa-eval",
-    }).encode()
+    candidate = f"{case.get('input', '')} | Context: {case.get('context', '')}"
+    payload = json.dumps(
+        {
+            "mode": "judge",
+            "candidate": candidate,
+            "actor_id": "aaa-eval",
+        }
+    ).encode()
 
     req = urllib.request.Request(
         f"{ARIFOS_URL}/tools/arif_judge_deliberate",
@@ -235,6 +248,7 @@ def _http_mode(case: dict) -> dict:
 # ──────────────────────────────────────────────────────────
 # Helpers
 # ──────────────────────────────────────────────────────────
+
 
 def _parse_llm_response(raw: str) -> tuple[str | None, str | None]:
     """Extract DECISION and REASON lines from LLM output."""

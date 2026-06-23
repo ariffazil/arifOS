@@ -51,6 +51,7 @@ class RiskTier(StrEnum):
 
 # ─── Certainty Cap Classification (Chapter 6 Upgrade) ─────────────────────────
 
+
 class CertaintyCap(StrEnum):
     """Epistemic certainty ceiling per tool."""
 
@@ -337,7 +338,14 @@ class OrganGovernance:
             CertaintyCap.DERIVED: ["verified", "proven", "certain"],
             CertaintyCap.INTERPRETED: ["verified", "proven", "certain", "calculated"],
             CertaintyCap.SPECULATIVE: ["verified", "proven", "certain", "calculated", "likely"],
-            CertaintyCap.MYTHIC: ["verified", "proven", "certain", "calculated", "likely", "possible"],
+            CertaintyCap.MYTHIC: [
+                "verified",
+                "proven",
+                "certain",
+                "calculated",
+                "likely",
+                "possible",
+            ],
         }
         forbidden = overclaim_patterns.get(cap, [])
         found = [p for p in forbidden if p in text_lower]

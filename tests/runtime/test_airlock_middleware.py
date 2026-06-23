@@ -16,12 +16,14 @@ def test_transport_package_reexports_real_middleware():
 
 
 def test_streamable_http_canary_tools_do_not_require_session():
-    result = streamable_http_adapter({
-        "jsonrpc": "2.0",
-        "id": 11,
-        "method": "tools/call",
-        "params": {"name": "arif_ping", "arguments": {}},
-    })
+    result = streamable_http_adapter(
+        {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "tools/call",
+            "params": {"name": "arif_ping", "arguments": {}},
+        }
+    )
     assert result.transport_error is None
     assert result.envelope is not None
     assert result.envelope.tool_name == "arif_ping"
@@ -37,6 +39,7 @@ def test_transport_error_preserves_jsonrpc_id():
     assert error["jsonrpc"] == "2.0"
     assert error["id"] == "rpc-123"
 
+
 class MockASGIApp:
     def __init__(self):
         self.scope = None
@@ -45,15 +48,20 @@ class MockASGIApp:
         self.scope = scope
         # Consume receive
         await receive()
-        await send({
-            "type": "http.response.start",
-            "status": 200,
-            "headers": [(b"content-type", b"application/json")],
-        })
-        await send({
-            "type": "http.response.body",
-            "body": b'{"jsonrpc": "2.0", "result": {"ok": true}, "id": 1}',
-        })
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [(b"content-type", b"application/json")],
+            }
+        )
+        await send(
+            {
+                "type": "http.response.body",
+                "body": b'{"jsonrpc": "2.0", "result": {"ok": true}, "id": 1}',
+            }
+        )
+
 
 @pytest.mark.anyio
 async def test_airlock_middleware_off(monkeypatch):
@@ -76,12 +84,14 @@ async def test_airlock_middleware_off(monkeypatch):
         }
 
     responses = []
+
     async def mock_send(message):
         responses.append(message)
 
     await middleware(scope, mock_receive, mock_send)
     assert app.scope is not None
     assert "airlock_envelope" not in app.scope
+
 
 @pytest.mark.anyio
 async def test_airlock_middleware_shadow(monkeypatch):
@@ -108,6 +118,7 @@ async def test_airlock_middleware_shadow(monkeypatch):
         }
 
     responses = []
+
     async def mock_send(message):
         responses.append(message)
 
@@ -121,6 +132,7 @@ async def test_airlock_middleware_shadow(monkeypatch):
     metrics = get_airlock_metrics()
     assert metrics["total_requests"] == 1
     assert metrics["normalized_ok"] == 1
+
 
 @pytest.mark.anyio
 async def test_airlock_middleware_enforce_success(monkeypatch):
@@ -146,6 +158,7 @@ async def test_airlock_middleware_enforce_success(monkeypatch):
         }
 
     responses = []
+
     async def mock_send(message):
         responses.append(message)
 
@@ -155,6 +168,7 @@ async def test_airlock_middleware_enforce_success(monkeypatch):
     env = app.scope["airlock_envelope"]
     assert env.tool_name == "arif_ping"
     assert env.session_state["transport"]["mcp_session_id"] == "enforce-sess"
+
 
 @pytest.mark.anyio
 async def test_airlock_middleware_enforce_block(monkeypatch):
@@ -177,6 +191,7 @@ async def test_airlock_middleware_enforce_block(monkeypatch):
         }
 
     responses = []
+
     async def mock_send(message):
         responses.append(message)
 
@@ -185,7 +200,7 @@ async def test_airlock_middleware_enforce_block(monkeypatch):
     assert len(responses) == 2
     assert responses[0]["type"] == "http.response.start"
     assert responses[0]["status"] == 200
-    
+
     body = json.loads(responses[1]["body"].decode())
     assert "error" in body
     assert body["error"]["data"]["code"] == "ARIF_TRANSPORT_MISMATCH"
@@ -214,6 +229,7 @@ async def test_airlock_middleware_partial_blocks_read_like_errors(monkeypatch):
         }
 
     responses = []
+
     async def mock_send(message):
         responses.append(message)
 

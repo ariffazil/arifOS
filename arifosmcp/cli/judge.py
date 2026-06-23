@@ -11,12 +11,31 @@ def run_judge(args: list[str]) -> int:
     """Entry point for `arifos judge`."""
     import argparse
 
-    parser = argparse.ArgumentParser(prog="arifos judge", description="888 constitutional deliberation.")
+    parser = argparse.ArgumentParser(
+        prog="arifos judge", description="888 constitutional deliberation."
+    )
     parser.add_argument("--goal", required=True, help="Candidate action to judge.")
-    parser.add_argument("--class", dest="action_class", choices=["observer", "interpreter", "maker", "messenger", "mutator", "destroyer", "sovereign"], help="Action class.")
+    parser.add_argument(
+        "--class",
+        dest="action_class",
+        choices=[
+            "observer",
+            "interpreter",
+            "maker",
+            "messenger",
+            "mutator",
+            "destroyer",
+            "sovereign",
+        ],
+        help="Action class.",
+    )
     parser.add_argument("--blast-radius", choices=["low", "medium", "high"], help="Blast radius.")
     parser.add_argument("--json", action="store_true", help="Output JSON.")
-    parser.add_argument("--url", default=os.getenv("AAA_JUDGE_URL", "http://127.0.0.1:3001/judge"), help="AAA deliberation endpoint.")
+    parser.add_argument(
+        "--url",
+        default=os.getenv("AAA_JUDGE_URL", "http://127.0.0.1:3001/judge"),
+        help="AAA deliberation endpoint.",
+    )
     parsed = parser.parse_args(args)
 
     candidate = {
@@ -31,6 +50,7 @@ def run_judge(args: list[str]) -> int:
     except CliError as exc:
         if parsed.json:
             import json
+
             print(json.dumps({"verdict": "HOLD", "error": exc.message}))
         else:
             print("verdict: HOLD")
@@ -39,6 +59,7 @@ def run_judge(args: list[str]) -> int:
 
     if parsed.json:
         import json
+
         print(json.dumps(result, indent=2, default=str))
     else:
         verdict = result.get("verdict", "HOLD")

@@ -18,51 +18,59 @@ from dataclasses import dataclass, field
 
 # ── Action Classes (7-tier, replacing OBSERVE/MUTATE/ATOMIC) ────────────────
 
+
 class ActionClass(str, enum.Enum):
     """7-tier action taxonomy for MCP tool calls.
 
     Lets agents move fast where safe, stop only where necessary.
     """
-    OBSERVE = "OBSERVE"                   # Read-only, no side effects
-    SUGGEST = "SUGGEST"                   # Recommend, draft, propose — no commit
-    SIMULATE = "SIMULATE"                 # Dry run, forward model, preview
-    DRAFT = "DRAFT"                       # Write unsent/composed content
-    QUEUE = "QUEUE"                       # Schedule, defer, enqueue
+
+    OBSERVE = "OBSERVE"  # Read-only, no side effects
+    SUGGEST = "SUGGEST"  # Recommend, draft, propose — no commit
+    SIMULATE = "SIMULATE"  # Dry run, forward model, preview
+    DRAFT = "DRAFT"  # Write unsent/composed content
+    QUEUE = "QUEUE"  # Schedule, defer, enqueue
     EXECUTE_REVERSIBLE = "EXECUTE_REVERSIBLE"  # Git commit, create file, restart service
     EXECUTE_HIGH_IMPACT = "EXECUTE_HIGH_IMPACT"  # Deploy, billing, data mutation
-    IRREVERSIBLE = "IRREVERSIBLE"         # rm -rf, DROP TABLE, vault seal, physical actuation
+    IRREVERSIBLE = "IRREVERSIBLE"  # rm -rf, DROP TABLE, vault seal, physical actuation
 
 
 # ── Action Risk Assessment ──────────────────────────────────────────────────
 
+
 @dataclass
 class ActionRisk:
     """Risk dimensions for an MCP tool call."""
+
     reversible: bool = True
     data_sensitivity: str = "public"  # public | internal | confidential | restricted
-    physical_impact: bool = False     # Touches machines, sensors, actuators?
-    financial_impact: bool = False    # Moves money, billing, allocation?
-    dignity_impact: bool = False      # Affects human dignity, privacy, autonomy?
-    blast_radius: str = "low"         # low | medium | high | critical
+    physical_impact: bool = False  # Touches machines, sensors, actuators?
+    financial_impact: bool = False  # Moves money, billing, allocation?
+    dignity_impact: bool = False  # Affects human dignity, privacy, autonomy?
+    blast_radius: str = "low"  # low | medium | high | critical
 
 
 # ── Gate Verdicts ───────────────────────────────────────────────────────────
 
+
 class GateVerdict(str, enum.Enum):
     """The 6 possible constitutional gates."""
-    ALLOW = "ALLOW"                     # Safe, proceed
-    ALLOW_WITH_LOG = "ALLOW_WITH_LOG"   # Safe, but log everything
+
+    ALLOW = "ALLOW"  # Safe, proceed
+    ALLOW_WITH_LOG = "ALLOW_WITH_LOG"  # Safe, but log everything
     REQUIRE_APPROVAL = "REQUIRE_APPROVAL"  # Needs human confirmation
-    SIMULATE_FIRST = "SIMULATE_FIRST"   # Must dry-run before real execution
-    BLOCK = "BLOCK"                     # Constitutionally blocked
-    HOLD_888 = "HOLD_888"               # Irreversible, needs 888_HOLD
+    SIMULATE_FIRST = "SIMULATE_FIRST"  # Must dry-run before real execution
+    BLOCK = "BLOCK"  # Constitutionally blocked
+    HOLD_888 = "HOLD_888"  # Irreversible, needs 888_HOLD
 
 
 # ── Gate Request/Response ───────────────────────────────────────────────────
 
+
 @dataclass
 class MCPGateRequest:
     """What the gate needs to make a decision."""
+
     tool_name: str
     actor_id: str
     action_class: ActionClass
@@ -75,15 +83,17 @@ class MCPGateRequest:
 @dataclass
 class MCPGateResponse:
     """What the gate returns."""
+
     verdict: GateVerdict
-    reason: str                          # One-line for Lapisan 1
-    explanation: str                     # Five-line for Lapisan 2
+    reason: str  # One-line for Lapisan 1
+    explanation: str  # Five-line for Lapisan 2
     action_class: ActionClass
     floors_triggered: list[str] = field(default_factory=list)
     constitutional_chain_id: str | None = None
 
 
 # ── The Gate ────────────────────────────────────────────────────────────────
+
 
 class MCPGateV0:
     """Constitutional MCP Gate v0.
@@ -141,7 +151,8 @@ class MCPGateV0:
 
         # ── Phase 1: Session gate ──────────────────────────────────────
         if not request.session_active and request.action_class not in (
-            ActionClass.OBSERVE, ActionClass.SUGGEST
+            ActionClass.OBSERVE,
+            ActionClass.SUGGEST,
         ):
             return MCPGateResponse(
                 verdict=GateVerdict.BLOCK,
@@ -187,7 +198,8 @@ class MCPGateV0:
 
         # ── Phase 4: SIMULATE_FIRST gate ───────────────────────────────
         if request.tool_name in self.SIMULATE_REQUIRED_TOOLS and request.action_class not in (
-            ActionClass.SIMULATE, ActionClass.OBSERVE
+            ActionClass.SIMULATE,
+            ActionClass.OBSERVE,
         ):
             return MCPGateResponse(
                 verdict=GateVerdict.SIMULATE_FIRST,
@@ -205,7 +217,8 @@ class MCPGateV0:
         # ── Phase 5: Risk-based gating ─────────────────────────────────
         # Physical impact → REQUIRE_APPROVAL
         if request.risk.physical_impact and request.action_class in (
-            ActionClass.EXECUTE_REVERSIBLE, ActionClass.EXECUTE_HIGH_IMPACT
+            ActionClass.EXECUTE_REVERSIBLE,
+            ActionClass.EXECUTE_HIGH_IMPACT,
         ):
             return MCPGateResponse(
                 verdict=GateVerdict.REQUIRE_APPROVAL,
@@ -221,7 +234,8 @@ class MCPGateV0:
 
         # Financial impact (high) → REQUIRE_APPROVAL
         if request.risk.financial_impact and request.action_class in (
-            ActionClass.EXECUTE_HIGH_IMPACT, ActionClass.IRREVERSIBLE
+            ActionClass.EXECUTE_HIGH_IMPACT,
+            ActionClass.IRREVERSIBLE,
         ):
             return MCPGateResponse(
                 verdict=GateVerdict.REQUIRE_APPROVAL,
@@ -251,7 +265,9 @@ class MCPGateV0:
 
         # High blast radius + non-OBSERVE → REQUIRE_APPROVAL
         if request.risk.blast_radius in ("high", "critical") and request.action_class not in (
-            ActionClass.OBSERVE, ActionClass.SUGGEST, ActionClass.SIMULATE
+            ActionClass.OBSERVE,
+            ActionClass.SUGGEST,
+            ActionClass.SIMULATE,
         ):
             return MCPGateResponse(
                 verdict=GateVerdict.REQUIRE_APPROVAL,
@@ -316,11 +332,14 @@ class MCPGateV0:
                 f"Blast radius: {request.risk.blast_radius}."
             ),
             action_class=request.action_class,
-            floors_triggered=["F1", "F4", "F8", "F11", "F13"] if verdict != GateVerdict.ALLOW else [],
+            floors_triggered=["F1", "F4", "F8", "F11", "F13"]
+            if verdict != GateVerdict.ALLOW
+            else [],
         )
 
 
 # ── Standalone judge function ───────────────────────────────────────────────
+
 
 def judge_action(
     tool_name: str,

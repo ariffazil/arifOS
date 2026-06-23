@@ -27,7 +27,9 @@ class LineageReceipt(BaseModel):
     artifact: str
     source: str
     as_of_date: str | None = None
-    retrieved_at: str = Field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+    retrieved_at: str = Field(
+        default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    )
     license: str = "AGPL-3.0"
     lineage_id: str
     parent_lineage_ids: list[str] = Field(default_factory=list)

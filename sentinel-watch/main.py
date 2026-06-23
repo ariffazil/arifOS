@@ -25,7 +25,9 @@ from alert_dispatcher import AlertDispatcher
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-VAULT999_PATH = os.getenv("SENTINEL_VAULT999", os.environ.get("ARIFOS_HOME", "/root") + "/.agent-workbench/vault999.jsonl")
+VAULT999_PATH = os.getenv(
+    "SENTINEL_VAULT999", os.environ.get("ARIFOS_HOME", "/root") + "/.agent-workbench/vault999.jsonl"
+)
 POLL_INTERVAL_SECONDS = int(os.getenv("SENTINEL_POLL_INTERVAL", "60"))  # poll every 60s
 REMINDER_INTERVAL_SECONDS = int(
     os.getenv("SENTINEL_REMINDER_INTERVAL", "14400")

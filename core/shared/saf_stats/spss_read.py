@@ -84,11 +84,7 @@ def inspect_spss_metadata(file_path: str) -> dict:
         # CSV/TSV fallback — pyreadstat can't introspect these.
         if p.suffix.lower() in {".csv", ".tsv"}:
             try:
-                df = (
-                    pd.read_csv(p)
-                    if p.suffix.lower() == ".csv"
-                    else pd.read_csv(p, sep="\t")
-                )
+                df = pd.read_csv(p) if p.suffix.lower() == ".csv" else pd.read_csv(p, sep="\t")
             except Exception as ee:
                 return {"verdict": "VOID", "error": f"CSV/TSV read failed: {ee}"}
             meta = _csv_meta(df)
@@ -126,9 +122,7 @@ def inspect_spss_metadata(file_path: str) -> dict:
         "verdict": "SEAL",
         "file": sandbox.relative_to_root(p),
         "n_rows": int(getattr(meta, "number_rows", len(df)) or len(df)),
-        "n_cols": int(
-            getattr(meta, "number_columns", len(df.columns)) or len(df.columns)
-        ),
+        "n_cols": int(getattr(meta, "number_columns", len(df.columns)) or len(df.columns)),
         "variables": variables,
         "variable_value_labels": _safe_json(getattr(meta, "variable_value_labels", {})),
     }
@@ -237,9 +231,7 @@ def profile_spss_data(file_path: str) -> dict:
             info["n_unique"] = int(s.nunique())
             if s.dropna().size > 0:
                 top = s.value_counts().head(3)
-                info["top_values"] = [
-                    {"value": str(k), "count": int(v)} for k, v in top.items()
-                ]
+                info["top_values"] = [{"value": str(k), "count": int(v)} for k, v in top.items()]
         profile.append(info)
 
     return {
@@ -387,9 +379,7 @@ def generate_basic_spss_syntax(
     if descriptives:
         blocks.append("* Descriptives.")
         for v in descriptives:
-            blocks.append(
-                f"DESCRIPTIVES VARIABLES={v} /STATISTICS=MEAN STDDEV MIN MAX SKEW KURT."
-            )
+            blocks.append(f"DESCRIPTIVES VARIABLES={v} /STATISTICS=MEAN STDDEV MIN MAX SKEW KURT.")
         blocks.append("")
 
     if cross_tab:

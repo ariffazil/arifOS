@@ -413,8 +413,7 @@ def check_human_substrate_floor(
     # Check if params contain hollow-probing intent
     _params_str = str(params).lower()
     _hollow_probe = any(
-        kw in _params_str
-        for kw in ["hollow", "fill", "probe", "what is in", "what's in"]
+        kw in _params_str for kw in ["hollow", "fill", "probe", "what is in", "what's in"]
     )
 
     for impact in impacts:
@@ -429,9 +428,7 @@ def check_human_substrate_floor(
             if scar and scar.sensitivity == "extreme":
                 if verdict != "BLOCK":
                     verdict = "GUARD"
-                reasons.append(
-                    f"Scar {scar.name} has extreme sensitivity — tread carefully"
-                )
+                reasons.append(f"Scar {scar.name} has extreme sensitivity — tread carefully")
             elif scar and scar.sensitivity == "high":
                 if verdict not in ("BLOCK", "GUARD"):
                     verdict = "STRENGTHEN"

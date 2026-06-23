@@ -8,6 +8,7 @@ canonical copy and this re-export will pick up changes automatically.
 
 If this import fails, the federation cannot enforce Invariant #15.
 """
+
 from __future__ import annotations
 
 # Re-export everything from the canonical module

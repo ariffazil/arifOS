@@ -47,6 +47,7 @@ from typing import Any
 @dataclass
 class AccountabilityDecision:
     """A single recorded decision by an actor in a moral context."""
+
     # F2 OBS: Each decision is a verifiable external event.
     actor_id: str
     pattern: str
@@ -58,6 +59,7 @@ class AccountabilityDecision:
 @dataclass
 class DecodedEuphemism:
     """Result of decoding a euphemistic phrase into human impact."""
+
     # F2 OBS: Euphemism translations are corpus-derived, not introspective.
     original: str
     translation: str
@@ -69,6 +71,7 @@ class DecodedEuphemism:
 @dataclass
 class ValidationResult:
     """Result of validating a moral claim against NoSoulClaimRule."""
+
     # F2 OBS: Validation is structural, not evaluative of truth.
     # F10 ONTOLOGY: This is a text-structure analysis, not a moral judgment.
     is_pattern_claim: bool
@@ -80,6 +83,7 @@ class ValidationResult:
 @dataclass
 class MoralEscalation:
     """A step along the exception → normalised → irreversible path."""
+
     # F2 OBS: Each escalation step is anchored to a recorded decision.
     decision_type: str
     severity: float
@@ -90,6 +94,7 @@ class MoralEscalation:
 @dataclass
 class BurdenTransfer:
     """Result of analyzing a decision for burden transfer."""
+
     # F2 OBS: Transfer detection is based on observable cost allocation.
     decision_id: str
     beneficiary: str
@@ -297,7 +302,9 @@ class BurdenTransferDetector:
 
         F2 OBS: Analysis uses provided values — quality depends on input accuracy.
         """
-        decision_id = decision.get("decision_id", hashlib.md5(str(decision).encode()).hexdigest()[:8])
+        decision_id = decision.get(
+            "decision_id", hashlib.md5(str(decision).encode()).hexdigest()[:8]
+        )
         beneficiary = decision.get("beneficiary", "unknown")
         burden_bearer = decision.get("burden_bearer", "unknown")
         benefit_value = float(decision.get("benefit_value", 0))
@@ -332,7 +339,9 @@ class BurdenTransferDetector:
             "assessment": (
                 "EXTREME_ASYMMETRY"
                 if ratio == float("inf")
-                else "ASYMMETRIC" if is_asymmetric else "SYMMETRIC"
+                else "ASYMMETRIC"
+                if is_asymmetric
+                else "SYMMETRIC"
             ),
         }
 
@@ -396,8 +405,7 @@ class BurdenTransferDetector:
             "beneficiary_frequency": dict(beneficiary_counts),
             "burden_bearer_frequency": dict(bearer_counts),
             "average_transfer_by_bearer": {
-                k: round(v / bearer_counts[k], 4)
-                for k, v in bearer_transfer_sum.items()
+                k: round(v / bearer_counts[k], 4) for k, v in bearer_transfer_sum.items()
             },
             "systemic_flag": any(c >= 3 for c in beneficiary_counts.values()),
         }
@@ -542,13 +550,15 @@ class EuphemismDecoder:
 
         for idx, (euphemism, entry) in enumerate(self._dictionary.items()):
             if euphemism in lower_text:
-                results.append({
-                    "original": euphemism,
-                    "translation": entry["translation"],
-                    "impact_category": entry["impact_category"],
-                    "confidence": entry["confidence"],
-                    "index": idx,
-                })
+                results.append(
+                    {
+                        "original": euphemism,
+                        "translation": entry["translation"],
+                        "impact_category": entry["impact_category"],
+                        "confidence": entry["confidence"],
+                        "index": idx,
+                    }
+                )
 
         return results
 
@@ -598,10 +608,18 @@ class NoSoulClaimRule:
     # Patterns that signal intent attribution (forbidden by NoSoulClaimRule)
     # F2 OBS: These are regex patterns matched against claim text.
     INTENT_CLAIM_PATTERNS: list[re.Pattern] = [
-        re.compile(r"\b(he|she|they|tt)\s+(knew|intended|wanted|meant|deliberately|consciously)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(he|she|they|tt)\s+(knew|intended|wanted|meant|deliberately|consciously)\b",
+            re.IGNORECASE,
+        ),
         re.compile(r"\b(he|she|they|tt)\s+did\s+it\s+because\b", re.IGNORECASE),
-        re.compile(r"\b(evil|malicious|malevolent|sinister)\s+(man|person|soul|heart|mind)\b", re.IGNORECASE),
-        re.compile(r"\b(in\s+his|in\s+her|in\s+their)\s+(heart|soul|mind|intention)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(evil|malicious|malevolent|sinister)\s+(man|person|soul|heart|mind)\b",
+            re.IGNORECASE,
+        ),
+        re.compile(
+            r"\b(in\s+his|in\s+her|in\s+their)\s+(heart|soul|mind|intention)\b", re.IGNORECASE
+        ),
         re.compile(r"\b(actor|agent|person|ceo)\s+(is|was)\s+(evil|bad|wicked)\b", re.IGNORECASE),
         re.compile(r"\bconscious(ly)?\s+(decision|choice|act)\b", re.IGNORECASE),
         re.compile(r"\bknew\s+(better|what|exactly|full\s+well)\b", re.IGNORECASE),
@@ -692,21 +710,25 @@ class NoSoulClaimRule:
         for p in self.INTENT_CLAIM_PATTERNS:
             m = p.search(claim)
             if m:
-                intent_matches.append({
-                    "pattern": p.pattern,
-                    "matched": m.group(),
-                    "position": m.start(),
-                })
+                intent_matches.append(
+                    {
+                        "pattern": p.pattern,
+                        "matched": m.group(),
+                        "position": m.start(),
+                    }
+                )
 
         pattern_matches = []
         for p in self.PATTERN_CLAIM_PATTERNS:
             m = p.search(claim)
             if m:
-                pattern_matches.append({
-                    "pattern": p.pattern,
-                    "matched": m.group(),
-                    "position": m.start(),
-                })
+                pattern_matches.append(
+                    {
+                        "pattern": p.pattern,
+                        "matched": m.group(),
+                        "position": m.start(),
+                    }
+                )
 
         return {
             "claim": claim,
@@ -823,7 +845,9 @@ class WeakestStakeholderRegister:
             for s in sorted_stakeholders
         ]
 
-    def get_protected_stakeholders(self, decision_context: str | None = None) -> list[dict[str, Any]]:
+    def get_protected_stakeholders(
+        self, decision_context: str | None = None
+    ) -> list[dict[str, Any]]:
         """
         Identify stakeholders who are protected (low vulnerability).
 
@@ -831,10 +855,7 @@ class WeakestStakeholderRegister:
 
         F2 OBS: Threshold-based classification of registered data.
         """
-        protected = [
-            s for s in self._stakeholders.values()
-            if s["vulnerability_index"] < 0.3
-        ]
+        protected = [s for s in self._stakeholders.values() if s["vulnerability_index"] < 0.3]
         return [
             {
                 "name": s["name"],
@@ -942,10 +963,7 @@ class MoralRecursionTracker:
         self._decisions[actor].append(decision_entry)
 
         # Count occurrences of this decision type for this actor
-        type_count = sum(
-            1 for d in self._decisions[actor]
-            if d["decision_type"] == decision_type
-        )
+        type_count = sum(1 for d in self._decisions[actor] if d["decision_type"] == decision_type)
         total_count = len(self._decisions[actor])
 
         # Determine stage
@@ -1023,9 +1041,7 @@ class MoralRecursionTracker:
         return {
             "actor": actor,
             "at_irreversible_risk": is_irreversible,
-            "reason": (
-                f"Stage is '{current_stage}' with {len(decisions)} total decisions"
-            ),
+            "reason": (f"Stage is '{current_stage}' with {len(decisions)} total decisions"),
             "total_decisions": len(decisions),
             "current_stage": current_stage,
             "decision_types": list({d["decision_type"] for d in decisions}),
@@ -1043,24 +1059,19 @@ class MoralRecursionTracker:
         for a in actors_to_check:
             risk = self.is_at_irreversible_risk(a)
             path = self._escalations.get(a, [])
-            summaries.append({
-                "actor": a,
-                "total_decisions": risk["total_decisions"],
-                "current_stage": risk.get("current_stage"),
-                "at_irreversible_risk": risk["at_irreversible_risk"],
-                "stage_transitions": len(
-                    set(
-                        (e.stage, e.decision_type)
-                        for e in path
-                    )
-                ),
-            })
+            summaries.append(
+                {
+                    "actor": a,
+                    "total_decisions": risk["total_decisions"],
+                    "current_stage": risk.get("current_stage"),
+                    "at_irreversible_risk": risk["at_irreversible_risk"],
+                    "stage_transitions": len(set((e.stage, e.decision_type) for e in path)),
+                }
+            )
 
         return {
             "total_actors_tracked": len(actors_to_check),
-            "actors_at_irreversible_risk": sum(
-                1 for s in summaries if s["at_irreversible_risk"]
-            ),
+            "actors_at_irreversible_risk": sum(1 for s in summaries if s["at_irreversible_risk"]),
             "actors_at_normalised_risk": sum(
                 1 for s in summaries if s.get("current_stage") == "normalised"
             ),

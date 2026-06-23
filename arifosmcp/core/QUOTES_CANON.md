@@ -2,6 +2,8 @@
 
 **DITEMPA BUKAN DIBERI — Forged, Not Given**
 
+> **LEGACY (2026-06-23)**: This document references pre-7-tool facade stage/tool names (e.g. arif_compose, arif_forge, arif_memory_recall). These are now internal aliases. Public surface = 7 verbs only.
+
 ## Δ Machine & Observation (000, 111, 222)
 
 ### 000 — arif_init (Niat / Identity)

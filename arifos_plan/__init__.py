@@ -9,7 +9,6 @@ All calls emit CLAIM_ONLY. 888_JUDGE must ratify before EXECUTION.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
-
 import uuid
 import hashlib
 import time
@@ -19,22 +18,26 @@ from typing import Optional, Dict, Any, List
 
 # ─── Enums ────────────────────────────────────────────────────────────────────
 
+
 class PlanStatus(Enum):
-    DRAFT             = "DRAFT"
-    PENDING_APPROVAL  = "PENDING_APPROVAL"
-    APPROVED          = "APPROVED"
-    IN_EXECUTION      = "IN_EXECUTION"
-    COMPLETED         = "COMPLETED"
-    ABORTED           = "ABORTED"
-    FAILED            = "FAILED"
+    DRAFT = "DRAFT"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
+    APPROVED = "APPROVED"
+    IN_EXECUTION = "IN_EXECUTION"
+    COMPLETED = "COMPLETED"
+    ABORTED = "ABORTED"
+    FAILED = "FAILED"
+
 
 class RiskBand(Enum):
-    LOW      = "LOW"
-    MEDIUM   = "MEDIUM"
-    HIGH     = "HIGH"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
     CRITICAL = "CRITICAL"
 
+
 # ─── Schemas ───────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class SovereignIntent:
@@ -50,6 +53,7 @@ class SovereignIntent:
 
     def to_json(self) -> dict:
         return asdict(self)
+
 
 @dataclass
 class Task:
@@ -67,6 +71,7 @@ class Task:
 
     def to_json(self) -> dict:
         return asdict(self)
+
 
 @dataclass
 class Plan:
@@ -88,15 +93,16 @@ class Plan:
 
     def to_json(self) -> dict:
         d = asdict(self)
-        d['requires_888_hold'] = self.requires_888_hold()
+        d["requires_888_hold"] = self.requires_888_hold()
         return d
+
 
 @dataclass
 class PlanReceipt:
     receipt_id: str
     plan_id: str
-    decision: str   # APPROVED | REJECTED | HOLD | MODIFIED
-    verdict: str    # SEAL | VOID | HOLD — constitutional verdict
+    decision: str  # APPROVED | REJECTED | HOLD | MODIFIED
+    verdict: str  # SEAL | VOID | HOLD — constitutional verdict
     decided_by: str
     decided_at: str
     notes: str
@@ -105,13 +111,14 @@ class PlanReceipt:
     def to_json(self) -> dict:
         return asdict(self)
 
+
 @dataclass
 class ExecutionReceipt:
     receipt_id: str
     epoch_id: str
     plan_id: str
     task_id: str
-    status: str   # COMPLETED | FAILED | SKIPPED
+    status: str  # COMPLETED | FAILED | SKIPPED
     started_at: str
     finished_at: str
     logs_ref: Optional[str] = None
@@ -120,9 +127,11 @@ class ExecutionReceipt:
     def to_json(self) -> dict:
         return asdict(self)
 
+
 # ─── Floor Checker ─────────────────────────────────────────────────────────────
 
 FLOORS_TO_CHECK = ["F1", "F2", "F3", "F5", "F6"]
+
 
 def _check_floors(tasks: List[Task], risk_band: str, irreversible: bool) -> Dict[str, Any]:
     """Return analysis block for propose_plan output."""
@@ -132,17 +141,21 @@ def _check_floors(tasks: List[Task], risk_band: str, irreversible: bool) -> Dict
     for task in tasks:
         if not task.reversible:
             tasks_irreversible.append(task.task_id)
-            holds.append({
-                "task_id": task.task_id,
-                "reason": f"{task.tool} on {task.target_surface} — irreversible",
-                "requires_888_hold": True,
-            })
+            holds.append(
+                {
+                    "task_id": task.task_id,
+                    "reason": f"{task.tool} on {task.target_surface} — irreversible",
+                    "requires_888_hold": True,
+                }
+            )
         elif task.risk_band in ("HIGH", "CRITICAL"):
-            holds.append({
-                "task_id": task.task_id,
-                "reason": f"risk_band={task.risk_band}",
-                "requires_888_hold": True,
-            })
+            holds.append(
+                {
+                    "task_id": task.task_id,
+                    "reason": f"risk_band={task.risk_band}",
+                    "requires_888_hold": True,
+                }
+            )
 
     plan_irreversible = irreversible or len(tasks_irreversible) > 0
 
@@ -155,13 +168,15 @@ def _check_floors(tasks: List[Task], risk_band: str, irreversible: bool) -> Dict
         "holds": holds,
     }
 
+
 # ─── In-Memory Store (MVP — swap for Postgres in production) ──────────────────
+
 
 class PlanStore:
     def __init__(self):
         self.intents: Dict[str, SovereignIntent] = {}
         self.plans: Dict[str, Plan] = {}
-        self.receipts: Dict[str, List[PlanReceipt]] = {}   # plan_id → receipts
+        self.receipts: Dict[str, List[PlanReceipt]] = {}  # plan_id → receipts
         self.exec_receipts: Dict[str, ExecutionReceipt] = {}
 
     def add_intent(self, intent: SovereignIntent):
@@ -182,16 +197,14 @@ class PlanStore:
         return self.plans.get(plan_id)
 
     def get_receipts(self, plan_id: str) -> List[PlanReceipt]:
-        return sorted(
-            self.receipts.get(plan_id, []),
-            key=lambda r: r.decided_at
-        )
+        return sorted(self.receipts.get(plan_id, []), key=lambda r: r.decided_at)
 
     def get_plans_by_status(self, status: PlanStatus) -> List[Plan]:
         return [p for p in self.plans.values() if p.status == status.value]
 
-    def get_pending(self, epoch_id: str = "", risk_band: str = "",
-                    contains_irreversible: bool = False) -> List[Plan]:
+    def get_pending(
+        self, epoch_id: str = "", risk_band: str = "", contains_irreversible: bool = False
+    ) -> List[Plan]:
         statuses = ["PENDING_APPROVAL", "IN_EXECUTION", "HOLD"]
         results = [p for p in self.plans.values() if p.status in statuses]
         if epoch_id:
@@ -202,9 +215,11 @@ class PlanStore:
             results = [p for p in results if p.irreversible]
         return results
 
+
 _store = PlanStore()
 
 # ─── Tool Modes ────────────────────────────────────────────────────────────────
+
 
 def propose_plan(
     intent: Dict[str, Any],
@@ -214,7 +229,7 @@ def propose_plan(
     epoch_id: str = "",
     risk_band: str = "MEDIUM",
     irreversible: bool = False,
-    metadata: Optional[Dict] = None
+    metadata: Optional[Dict] = None,
 ) -> dict:
     """
     Create SovereignIntent + Plan from intent.
@@ -241,7 +256,7 @@ def propose_plan(
 
     # Build tasks
     task_objects = []
-    for t in (tasks or []):
+    for t in tasks or []:
         task = Task(
             task_id=f"task-{uuid.uuid4().hex[:8]}",
             description=t.get("description", ""),
@@ -291,6 +306,7 @@ def propose_plan(
         "analysis": plan.analysis,
     }
 
+
 def get_plan(plan_id: str) -> dict:
     """Fetch plan + all receipts."""
     plan = _store.get_plan(plan_id)
@@ -303,11 +319,9 @@ def get_plan(plan_id: str) -> dict:
         "receipts": [r.to_json() for r in receipts],
     }
 
+
 def list_pending(
-    epoch_id: str = "",
-    actor_id: str = "",
-    risk_band: str = "",
-    contains_irreversible: bool = False
+    epoch_id: str = "", actor_id: str = "", risk_band: str = "", contains_irreversible: bool = False
 ) -> dict:
     """List plans awaiting sovereign action."""
     plans = _store.get_pending(epoch_id, risk_band, contains_irreversible)
@@ -326,13 +340,14 @@ def list_pending(
         ],
     }
 
+
 def update_status(
     plan_id: str,
     new_status: str,
     verdict: str,
     floors: Optional[Dict[str, str]] = None,
     comment: str = "",
-    actor_id: str = "arifOS_bot"
+    actor_id: str = "arifOS_bot",
 ) -> dict:
     """
     Transition plan with sovereign decision.
@@ -359,16 +374,32 @@ def update_status(
     # FSM transition
     if verdict.upper() == "APPROVED":
         plan.status = "APPROVED"
-        return {"CLAIM_ONLY": True, "verdict": "SEAL", "plan": plan.to_json(), "receipt": receipt.to_json()}
+        return {
+            "CLAIM_ONLY": True,
+            "verdict": "SEAL",
+            "plan": plan.to_json(),
+            "receipt": receipt.to_json(),
+        }
     elif verdict.upper() == "REJECTED":
         plan.status = "ABORTED"
-        return {"CLAIM_ONLY": True, "verdict": "VOID", "plan": plan.to_json(), "receipt": receipt.to_json()}
+        return {
+            "CLAIM_ONLY": True,
+            "verdict": "VOID",
+            "plan": plan.to_json(),
+            "receipt": receipt.to_json(),
+        }
     elif verdict.upper() == "HOLD":
         plan.status = "PENDING_APPROVAL"
         plan.hold_reason = comment or "888_HOLD active"
-        return {"CLAIM_ONLY": True, "verdict": "HOLD", "plan": plan.to_json(), "receipt": receipt.to_json()}
+        return {
+            "CLAIM_ONLY": True,
+            "verdict": "HOLD",
+            "plan": plan.to_json(),
+            "receipt": receipt.to_json(),
+        }
 
     return {"CLAIM_ONLY": True, "verdict": "VOID", "reason": f"Unknown verdict: {verdict}"}
+
 
 def abort_plan(plan_id: str, reason: str, actor_id: str = "arifOS_bot") -> dict:
     """Soft-kill: transition to ABORTED. Forge must respect and stop remaining tasks."""
@@ -390,7 +421,13 @@ def abort_plan(plan_id: str, reason: str, actor_id: str = "arifOS_bot") -> dict:
     _store.add_receipt(receipt)
     plan.status = "ABORTED"
 
-    return {"CLAIM_ONLY": True, "verdict": "SEAL", "plan": plan.to_json(), "receipt": receipt.to_json()}
+    return {
+        "CLAIM_ONLY": True,
+        "verdict": "SEAL",
+        "plan": plan.to_json(),
+        "receipt": receipt.to_json(),
+    }
+
 
 def write_execution_receipt(
     plan_id: str,
@@ -400,7 +437,7 @@ def write_execution_receipt(
     finished_at: str,
     logs_ref: str = "",
     error: str = "",
-    epoch_id: str = ""
+    epoch_id: str = "",
 ) -> dict:
     """Write ExecutionReceipt after a task completes. Links to Vault999."""
     time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -428,7 +465,9 @@ def write_execution_receipt(
 
     return {"CLAIM_ONLY": True, "verdict": "SEAL", "execution_receipt": er.to_json()}
 
+
 # ─── GK Runtime Check ─────────────────────────────────────────────────────────
+
 
 def gk_can_execute(plan_id: str, task_id: str) -> dict:
     """
@@ -451,10 +490,7 @@ def gk_can_execute(plan_id: str, task_id: str) -> dict:
         return {"can_execute": False, "reason": "Plan ABORTED — Forge must refuse"}
 
     # Check 888_HOLD
-    needs_hold = (
-        task.risk_band in ("HIGH", "CRITICAL") or
-        not task.reversible
-    )
+    needs_hold = task.risk_band in ("HIGH", "CRITICAL") or not task.reversible
     if needs_hold:
         receipts = _store.get_receipts(plan_id)
         has_approval = any(r.decision == "APPROVED" for r in receipts)
@@ -468,7 +504,9 @@ def gk_can_execute(plan_id: str, task_id: str) -> dict:
 
     return {"can_execute": True, "plan_id": plan_id, "task_id": task_id}
 
+
 # ─── MCP Shim ─────────────────────────────────────────────────────────────────
+
 
 def arifos_plan(mode: str, payload: dict) -> dict:
     """

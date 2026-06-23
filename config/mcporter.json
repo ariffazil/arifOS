@@ -17,7 +17,7 @@
     },
     "arifos": {
       "_comment": "arifOS MCP kernel — internal Docker service on the OpenClaw network.",
-      "url": "http://arifosmcp:8080/mcp",
+      "url": "http://arifosmcp:8088/mcp",  # fixed stale port (was 8080)
       "transport": "streamable-http"
     },
     "geox": {

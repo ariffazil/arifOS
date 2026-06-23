@@ -21,8 +21,10 @@ from pydantic import BaseModel, Field
 
 # ── Mode Enum ─────────────────────────────────────────────────
 
+
 class ExploreMode(str, Enum):
     """Six exploration strategies + eureka + auto."""
+
     NAVIGATOR = "navigator"
     PROSPECTOR = "prospector"
     DRILLER = "driller"
@@ -34,6 +36,7 @@ class ExploreMode(str, Enum):
 
 
 # ── Seed Sub-models ───────────────────────────────────────────
+
 
 class SeedURL(BaseModel):
     url: str
@@ -63,6 +66,7 @@ class Seed(BaseModel):
 
 # ── Limits ────────────────────────────────────────────────────
 
+
 class Limits(BaseModel):
     max_depth: int = Field(default=4, ge=1, le=10)
     max_steps: int = Field(default=64, ge=1, le=256)
@@ -71,12 +75,14 @@ class Limits(BaseModel):
 
 # ── Telemetry ─────────────────────────────────────────────────
 
+
 class TelemetryContext(BaseModel):
     trace_id: str
     organ_context: list[str] = Field(default_factory=list)
 
 
 # ── Request ───────────────────────────────────────────────────
+
 
 class ExploreRequest(BaseModel):
     goal: str
@@ -87,6 +93,7 @@ class ExploreRequest(BaseModel):
 
 
 # ── Graph ─────────────────────────────────────────────────────
+
 
 class GraphNode(BaseModel):
     node_id: str
@@ -111,6 +118,7 @@ class ExplorationGraph(BaseModel):
 
 # ── Findings ──────────────────────────────────────────────────
 
+
 class Finding(BaseModel):
     id: str
     summary: str
@@ -119,6 +127,7 @@ class Finding(BaseModel):
 
 
 # ── Verdict ───────────────────────────────────────────────────
+
 
 class Saturation(str, Enum):
     LOW = "low"
@@ -139,6 +148,7 @@ class Verdict(BaseModel):
 
 # ── Metrics ───────────────────────────────────────────────────
 
+
 class ExploreMetrics(BaseModel):
     steps: int = 0
     depth: int = 0
@@ -147,6 +157,7 @@ class ExploreMetrics(BaseModel):
 
 
 # ── Response ──────────────────────────────────────────────────
+
 
 class ExploreStatus(str, Enum):
     OK = "ok"

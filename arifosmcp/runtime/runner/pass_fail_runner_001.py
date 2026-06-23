@@ -113,9 +113,7 @@ def main() -> int:
     # 3. Build the bloated candidate set
     candidates = build_bloated_context()
     n_total = len(candidates)
-    n_user_instr = sum(
-        1 for s in candidates if s.type == SegmentType.USER_INSTRUCTION
-    )
+    n_user_instr = sum(1 for s in candidates if s.type == SegmentType.USER_INSTRUCTION)
 
     # 4. Run the 8-step flow
     receipt = runner.run(
@@ -143,7 +141,8 @@ def main() -> int:
     # from the original candidate set (which is in our control — not
     # sensitive data, just a test phrase).
     user_seg_in = next(
-        s for s in candidates
+        s
+        for s in candidates
         if s.id == "USER-INSTR-CRITICAL" and s.type == SegmentType.USER_INSTRUCTION
     )
     original_phrase = CRITICAL_PHRASE
@@ -151,8 +150,7 @@ def main() -> int:
 
     # Doctrine says: classified USER_INSTRUCTION
     classified_correctly = (
-        user_seg_in.type == SegmentType.USER_INSTRUCTION
-        and user_seg_in.authority >= 80
+        user_seg_in.type == SegmentType.USER_INSTRUCTION and user_seg_in.authority >= 80
     )
 
     # Doctrine says: non-compressible
@@ -161,18 +159,14 @@ def main() -> int:
     # AND n_protected must be >= 1, AND postflight shows no compaction.
     non_compressible = (
         n_protected >= 1
-        and "non-compressible" in d["constitutional_compliance"].get(
-            "F10_ontology", ""
-        ).lower()
+        and "non-compressible" in d["constitutional_compliance"].get("F10_ontology", "").lower()
         and not po.get("canonical_mutation", True)
     )
 
     # Doctrine says: FAIL on "probably", "I think", vague, no protected list
     # Self-check: n_protected must be a real integer, not a string or None
     protected_list_visible = (
-        isinstance(n_protected, int)
-        and n_protected > 0
-        and "protected_user_instructions" in cp
+        isinstance(n_protected, int) and n_protected > 0 and "protected_user_instructions" in cp
     )
 
     # Final pass/fail decision — exact, no "probably"
@@ -194,7 +188,8 @@ def main() -> int:
         "critical_phrase": original_phrase,
         "phrase_in_input": phrase_in_text,
         "phrase_classification": (
-            "USER_INSTRUCTION (authority 90)" if classified_correctly
+            "USER_INSTRUCTION (authority 90)"
+            if classified_correctly
             else "WRONG — not classified as USER_INSTRUCTION"
         ),
         "non_compressible_per_F10": non_compressible,

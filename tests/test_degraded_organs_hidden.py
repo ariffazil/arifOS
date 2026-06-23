@@ -124,7 +124,9 @@ def test_wealth_degraded_only_diagnostics():
     _force_organ_health("wealth", OrganHealth.DEGRADED)
     try:
         wealth_tools = [
-            _tool(f"wealth_tool_{i:02d}", organ="wealth", tier=Tier.ORGAN, health=OrganHealth.DEGRADED)
+            _tool(
+                f"wealth_tool_{i:02d}", organ="wealth", tier=Tier.ORGAN, health=OrganHealth.DEGRADED
+            )
             for i in range(20)
         ]
         arif_tools = [
@@ -201,9 +203,15 @@ def test_multi_organ_mix():
     try:
         all_tools = (
             [_tool(f"arif_{i:02d}", organ="arifOS", tier=Tier.CORE) for i in range(13)]
-            + [_tool(f"geox_{i:02d}", organ="geox", tier=Tier.ORGAN, health=OrganHealth.DEGRADED) for i in range(37)]
+            + [
+                _tool(f"geox_{i:02d}", organ="geox", tier=Tier.ORGAN, health=OrganHealth.DEGRADED)
+                for i in range(37)
+            ]
             + [_tool(f"wealth_{i:02d}", organ="wealth", tier=Tier.ORGAN) for i in range(20)]
-            + [_tool(f"well_{i:02d}", organ="well", tier=Tier.ORGAN, health=OrganHealth.UNKNOWN) for i in range(17)]
+            + [
+                _tool(f"well_{i:02d}", organ="well", tier=Tier.ORGAN, health=OrganHealth.UNKNOWN)
+                for i in range(17)
+            ]
         )
         # Use a larger cap so we can verify all healthy organs surface
         result = filter_visible_tools(all_tools, VisibilityPolicy(max_visible=60))
@@ -258,8 +266,18 @@ def test_shortlist_router_skips_degraded_organ():
             authority=Authority(actor_id="test", session_id="test-degraded"),
             all_tools=[
                 _tool("arif_session_init", organ="arifOS", tier=Tier.CORE),
-                _tool("text_to_audio", organ="minimax-media", tier=Tier.CORE, health=OrganHealth.DEGRADED),
-                _tool("list_voices", organ="minimax-media", tier=Tier.CORE, health=OrganHealth.DEGRADED),
+                _tool(
+                    "text_to_audio",
+                    organ="minimax-media",
+                    tier=Tier.CORE,
+                    health=OrganHealth.DEGRADED,
+                ),
+                _tool(
+                    "list_voices",
+                    organ="minimax-media",
+                    tier=Tier.CORE,
+                    health=OrganHealth.DEGRADED,
+                ),
             ],
         )
         shortlist = result["shortlist"]

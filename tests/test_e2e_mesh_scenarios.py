@@ -160,22 +160,31 @@ def test_autonomy_contracts_as_risk_expands():
     """Verify the core E7 thesis: autonomy shrinks as risk grows."""
     # Low risk, local blast, fully reversible → FULL_AUTO
     tier, _, _ = evaluate_autonomy_ceiling(
-        action_class="OBSERVE", risk_tier="LOW", blast_radius="LOCAL",
-        reversibility=1.0, caller_has_lease=True,
+        action_class="OBSERVE",
+        risk_tier="LOW",
+        blast_radius="LOCAL",
+        reversibility=1.0,
+        caller_has_lease=True,
     )
     assert tier == "FULL_AUTO"
 
     # Medium risk, federation blast, 0.5 reversible → PRINCIPAL_APPROVAL_REQUIRED
     tier2, _, _ = evaluate_autonomy_ceiling(
-        action_class="MUTATE", risk_tier="MEDIUM", blast_radius="PUBLIC",
-        reversibility=0.5, caller_has_lease=True,
+        action_class="MUTATE",
+        risk_tier="MEDIUM",
+        blast_radius="PUBLIC",
+        reversibility=0.5,
+        caller_has_lease=True,
     )
     assert tier2 == "PRINCIPAL_APPROVAL_REQUIRED"
 
     # High risk, external blast, 0.3 reversible → HOLD
     tier3, _, _ = evaluate_autonomy_ceiling(
-        action_class="IRREVERSIBLE", risk_tier="HIGH", blast_radius="CIVILIZATIONAL",
-        reversibility=0.3, caller_has_lease=True,
+        action_class="IRREVERSIBLE",
+        risk_tier="HIGH",
+        blast_radius="CIVILIZATIONAL",
+        reversibility=0.3,
+        caller_has_lease=True,
     )
     assert tier3 == "HOLD"
 
@@ -207,18 +216,41 @@ def test_autonomy_full_contraction_table():
 def test_all_13_canonical_tools_classified():
     """Every canonical tool has at least a base risk profile."""
     canonical = [
-        "arif_session_init", "arif_sense_observe", "arif_evidence_fetch",
-        "arif_mind_reason", "arif_heart_critique", "arif_kernel_route",
-        "arif_reply_compose", "arif_memory_recall", "arif_gateway_connect",
-        "arif_judge_deliberate", "arif_vault_seal", "arif_forge_execute",
+        "arif_session_init",
+        "arif_sense_observe",
+        "arif_evidence_fetch",
+        "arif_mind_reason",
+        "arif_heart_critique",
+        "arif_kernel_route",
+        "arif_reply_compose",
+        "arif_memory_recall",
+        "arif_gateway_connect",
+        "arif_judge_deliberate",
+        "arif_vault_seal",
+        "arif_forge_execute",
         "arif_ops_measure",
     ]
     for tool in canonical:
         profile = classify_tool(tool, {})
         assert profile.tool_name == tool
-        assert profile.action_class in ("OBSERVE", "ANALYZE", "DRAFT", "MUTATE", "IRREVERSIBLE", "PREPARE")
+        assert profile.action_class in (
+            "OBSERVE",
+            "ANALYZE",
+            "DRAFT",
+            "MUTATE",
+            "IRREVERSIBLE",
+            "PREPARE",
+        )
         assert profile.risk_tier in ("LOW", "MEDIUM", "HIGH", "ATOMIC")
-        assert profile.blast_radius in ("LOCAL", "ACCOUNT", "ORG", "PUBLIC", "MARKET", "INFRASTRUCTURE", "CIVILIZATIONAL")
+        assert profile.blast_radius in (
+            "LOCAL",
+            "ACCOUNT",
+            "ORG",
+            "PUBLIC",
+            "MARKET",
+            "INFRASTRUCTURE",
+            "CIVILIZATIONAL",
+        )
         assert 0.0 <= profile.reversibility <= 1.0
 
 
@@ -259,7 +291,9 @@ def test_dangerous_mode_aliases():
     }
     for alias, expected_class in aliases.items():
         p = classify_tool("arif_forge_execute", {"mode": alias})
-        assert p.action_class == expected_class, f"Alias '{alias}' → {p.action_class}, expected {expected_class}"
+        assert p.action_class == expected_class, (
+            f"Alias '{alias}' → {p.action_class}, expected {expected_class}"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -331,8 +365,11 @@ def test_principal_direct_always_full_auto():
     """Principal (F13) always gets FULL_AUTO regardless of risk."""
     # Even IRREVERSIBLE + CIVILIZATIONAL + irreversible → FULL_AUTO for principal
     tier, rationale, envelope = evaluate_autonomy_ceiling(
-        action_class="IRREVERSIBLE", risk_tier="ATOMIC", blast_radius="CIVILIZATIONAL",
-        reversibility=0.0, caller_is_principal=True,
+        action_class="IRREVERSIBLE",
+        risk_tier="ATOMIC",
+        blast_radius="CIVILIZATIONAL",
+        reversibility=0.0,
+        caller_is_principal=True,
     )
     assert tier == "FULL_AUTO"
     assert envelope.get("principal_direct") == True
@@ -341,8 +378,11 @@ def test_principal_direct_always_full_auto():
 def test_no_lease_always_hold():
     """Without an active lease, even LOW risk is HOLD."""
     tier, rationale, envelope = evaluate_autonomy_ceiling(
-        action_class="OBSERVE", risk_tier="LOW", blast_radius="LOCAL",
-        reversibility=1.0, caller_has_lease=False,
+        action_class="OBSERVE",
+        risk_tier="LOW",
+        blast_radius="LOCAL",
+        reversibility=1.0,
+        caller_has_lease=False,
     )
     assert tier == "HOLD"
     assert envelope.get("violation") == "NO_LEASE"
@@ -351,8 +391,11 @@ def test_no_lease_always_hold():
 def test_surge_protection_downgrades():
     """When override count exceeds max, autonomy downgrades."""
     tier, rationale, envelope = evaluate_autonomy_ceiling(
-        action_class="MUTATE", risk_tier="MEDIUM", blast_radius="ORG",
-        reversibility=0.7, caller_has_lease=True,
+        action_class="MUTATE",
+        risk_tier="MEDIUM",
+        blast_radius="ORG",
+        reversibility=0.7,
+        caller_has_lease=True,
         prior_override_count=MAX_OVERRIDES_PER_HOUR,  # at limit
     )
     # Should be downgraded one tier from FULL_AUTO → PROPOSE_ONLY
@@ -378,7 +421,9 @@ def test_scope_enforcement_glob_patterns():
     assert ok
 
     # Multiple globs
-    ok, _ = enforce_scope({"tool_name": "arif_mind_reason"}, ["arif_sense_*", "arif_mind_*", "arif_heart_*"])
+    ok, _ = enforce_scope(
+        {"tool_name": "arif_mind_reason"}, ["arif_sense_*", "arif_mind_*", "arif_heart_*"]
+    )
     assert ok
 
     # Out of scope

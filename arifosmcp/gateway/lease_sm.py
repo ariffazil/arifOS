@@ -30,6 +30,7 @@ log = logging.getLogger("arifos-gateway.lease_sm")
 
 # ── States ───────────────────────────────────────────────────────────────────
 
+
 class LeaseState(Enum):
     REQUESTED = auto()
     ACTIVE = auto()
@@ -56,10 +57,16 @@ TRANSITIONS: dict[LeaseState, set[LeaseState]] = {
 }
 
 TERMINAL_STATES = {LeaseState.EXHAUSTED, LeaseState.REVOKED}
-ACTIVE_STATES = {LeaseState.ACTIVE, LeaseState.EXECUTING, LeaseState.PENDING_888, LeaseState.APPROVED_888}
+ACTIVE_STATES = {
+    LeaseState.ACTIVE,
+    LeaseState.EXECUTING,
+    LeaseState.PENDING_888,
+    LeaseState.APPROVED_888,
+}
 
 
 # ── Risk classes ─────────────────────────────────────────────────────────────
+
 
 class RiskClass(Enum):
     LOW = "LOW"
@@ -84,6 +91,7 @@ REQUIRES_888: set[RiskClass] = {
 
 # ── Lease object (spec §3) ───────────────────────────────────────────────────
 
+
 @dataclass
 class LeaseScope:
     resources: list[str] = field(default_factory=list)
@@ -95,7 +103,7 @@ class LeaseScope:
 class LeaseRisk:
     risk_class: RiskClass = RiskClass.LOW
     reversibility: str = "FULL"  # FULL | PARTIAL | NONE
-    blast_radius: str = "LOW"    # LOW | MEDIUM | HIGH | SOVEREIGN
+    blast_radius: str = "LOW"  # LOW | MEDIUM | HIGH | SOVEREIGN
     require_888_hold: bool = False
 
 
@@ -125,6 +133,7 @@ class LeaseTool:
 @dataclass
 class LeaseRecord:
     """Canonical v0.1 lease object matching sprint spec §3."""
+
     lease_id: str = ""
     state: LeaseState = LeaseState.REQUESTED
     state_history: list[dict] = field(default_factory=list)
@@ -206,6 +215,7 @@ class LeaseRecord:
 
 # ── State machine engine ─────────────────────────────────────────────────────
 
+
 class LeaseStateMachine:
     """Governed lease state machine with invariant checks."""
 
@@ -220,7 +230,10 @@ class LeaseStateMachine:
             return "INVARIANT_VIOLATION: ACTIVE requires remaining_invocations > 0"
 
         # Invariant: EXECUTING requires ACTIVE or APPROVED_888
-        if to_state == LeaseState.EXECUTING and lease.state not in {LeaseState.ACTIVE, LeaseState.APPROVED_888}:
+        if to_state == LeaseState.EXECUTING and lease.state not in {
+            LeaseState.ACTIVE,
+            LeaseState.APPROVED_888,
+        }:
             return f"INVARIANT_VIOLATION: EXECUTING requires ACTIVE or APPROVED_888 (was {lease.state.name})"
 
         # Invariant: PENDING_888 requires require_888_hold == True
@@ -229,7 +242,9 @@ class LeaseStateMachine:
 
         # Invariant: APPROVED_888 must come from PENDING_888
         if to_state == LeaseState.APPROVED_888 and lease.state != LeaseState.PENDING_888:
-            return f"INVARIANT_VIOLATION: APPROVED_888 requires PENDING_888 (was {lease.state.name})"
+            return (
+                f"INVARIANT_VIOLATION: APPROVED_888 requires PENDING_888 (was {lease.state.name})"
+            )
 
         # Record transition
         old_state = lease.state
@@ -242,7 +257,9 @@ class LeaseStateMachine:
         }
         lease.state_history.append(entry)
 
-        log.info("LEASE_SM | %s: %s → %s | %s", lease.lease_id, old_state.name, to_state.name, reason)
+        log.info(
+            "LEASE_SM | %s: %s → %s | %s", lease.lease_id, old_state.name, to_state.name, reason
+        )
         return None
 
     @staticmethod
@@ -263,7 +280,9 @@ class LeaseStateMachine:
     def complete_execution(lease: LeaseRecord) -> str | None:
         """EXECUTING → ACTIVE (if invocations remain) or EXHAUSTED"""
         if lease.limits.remaining_invocations <= 0:
-            return LeaseStateMachine.transition(lease, LeaseState.EXHAUSTED, "invocations_exhausted")
+            return LeaseStateMachine.transition(
+                lease, LeaseState.EXHAUSTED, "invocations_exhausted"
+            )
         return LeaseStateMachine.transition(lease, LeaseState.ACTIVE, "tool_call_complete")
 
     @staticmethod
@@ -274,7 +293,9 @@ class LeaseStateMachine:
     @staticmethod
     def approve_888(lease: LeaseRecord, approver: str) -> str | None:
         """PENDING_888 → APPROVED_888"""
-        return LeaseStateMachine.transition(lease, LeaseState.APPROVED_888, f"approved_by:{approver}")
+        return LeaseStateMachine.transition(
+            lease, LeaseState.APPROVED_888, f"approved_by:{approver}"
+        )
 
     @staticmethod
     def deny_888(lease: LeaseRecord, denier: str) -> str | None:
@@ -295,6 +316,7 @@ class LeaseStateMachine:
 
 
 # ── Factory ──────────────────────────────────────────────────────────────────
+
 
 def create_lease(
     subject: dict[str, Any],
@@ -340,12 +362,14 @@ def create_lease(
     lease = LeaseRecord(
         lease_id=lease_id,
         state=LeaseState.REQUESTED,
-        state_history=[{
-            "from": "NONE",
-            "to": "REQUESTED",
-            "timestamp": now.isoformat(),
-            "reason": "lease_created",
-        }],
+        state_history=[
+            {
+                "from": "NONE",
+                "to": "REQUESTED",
+                "timestamp": now.isoformat(),
+                "reason": "lease_created",
+            }
+        ],
         subject=subject,
         tool=LeaseTool(upstream_id=upstream_id, name=tool_name),
         scope=LeaseScope(resources=scope_resources or []),
@@ -362,6 +386,11 @@ def create_lease(
         if err:
             log.warning("Lease %s auto-activation failed: %s", lease_id, err)
 
-    log.info("LEASE CREATED | %s | tool=%s risk=%s 888=%s",
-             lease_id, tool_name, risk_class.value, lease.requires_888())
+    log.info(
+        "LEASE CREATED | %s | tool=%s risk=%s 888=%s",
+        lease_id,
+        tool_name,
+        risk_class.value,
+        lease.requires_888(),
+    )
     return lease

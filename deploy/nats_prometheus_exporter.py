@@ -4,6 +4,7 @@
 Binds 127.0.0.1:9222 (no external exposure).
 Polls NATS HTTP monitoring on 127.0.0.1:8222.
 """
+
 from __future__ import annotations
 
 import json
@@ -69,7 +70,12 @@ def _collect() -> str:
 
     lines.append("# HELP nats_server_uptime_seconds Server uptime in seconds\n")
     lines.append("# TYPE nats_server_uptime_seconds gauge\n")
-    lines.append(_gauge("nats_server_uptime_seconds", varz.get("uptime_ns", 0) / 1e9 if varz.get("uptime_ns") else None))
+    lines.append(
+        _gauge(
+            "nats_server_uptime_seconds",
+            varz.get("uptime_ns", 0) / 1e9 if varz.get("uptime_ns") else None,
+        )
+    )
 
     lines.append("# HELP nats_jetstream_streams Number of JetStream streams\n")
     lines.append("# TYPE nats_jetstream_streams gauge\n")

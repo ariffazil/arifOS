@@ -9,4 +9,3 @@ __all__ = [
     "streamable_http_adapter",
     "stdio_adapter",
 ]
-

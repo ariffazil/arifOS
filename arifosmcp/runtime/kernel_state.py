@@ -85,7 +85,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from arifosmcp.schemas.transition_receipt import (
     AuthoritySource,
-    ProofLevel,
     TransitionEventType,
     TransitionReceipt,
     VerdictCode,
@@ -108,6 +107,7 @@ except ImportError:
 
         def to_dict(self) -> dict[str, float]:
             return {"A": self.A, "P": self.P, "X": self.X, "E": self.E}
+
 
 logger = logging.getLogger(__name__)
 
@@ -487,7 +487,9 @@ def kernel_transition(
     # ── 1. Resolve types ────────────────────────────────────────────────
     _actor = actor or caller
     _session_id = session_id or state.session_id
-    _event_type_str = event_type.value if isinstance(event_type, TransitionEventType) else event_type
+    _event_type_str = (
+        event_type.value if isinstance(event_type, TransitionEventType) else event_type
+    )
     _authority = (
         authority_source.value
         if isinstance(authority_source, AuthoritySource)

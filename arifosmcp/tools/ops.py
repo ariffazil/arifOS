@@ -26,9 +26,7 @@ def arif_measure(
     auth = validate_session(session_id, actor_id)
     if not auth["valid"]:
         if auth.get("expired"):
-            return TelemetryBlock(
-                **_sabar("arif_measure", auth["reason"], session_id=session_id)
-            )
+            return TelemetryBlock(**_sabar("arif_measure", auth["reason"], session_id=session_id))
         return TelemetryBlock(
             **_hold("arif_measure", auth["reason"], ["L11"], session_id=session_id)
         )
@@ -231,7 +229,15 @@ def arif_measure(
     if mode == "constitutional_health":
         from arifosmcp.runtime.rest_routes import _build_governance_status_payload
 
-        _VALID_CONSTITUTIONAL_VERDICTS = {"SEAL", "HOLD", "VOID", "SABAR", "OBSERVE_ONLY", "OBSERVE", "CAUTION"}
+        _VALID_CONSTITUTIONAL_VERDICTS = {
+            "SEAL",
+            "HOLD",
+            "VOID",
+            "SABAR",
+            "OBSERVE_ONLY",
+            "OBSERVE",
+            "CAUTION",
+        }
         payload = _build_governance_status_payload()
         raw_verdict = payload.get("telemetry", {}).get("verdict", "UNKNOWN")
         verdict = raw_verdict if raw_verdict in _VALID_CONSTITUTIONAL_VERDICTS else "UNKNOWN"
@@ -282,7 +288,8 @@ def arif_measure(
                 "drift_total": drift_metrics.get("drift_total", 0),
                 "floor_violations": len(gov.get("violated_laws", [])),
                 "session_verdict": gov.get("telemetry", {}).get("verdict", "SEAL")
-                if gov.get("telemetry", {}).get("verdict", "SEAL") in {"SEAL", "HOLD", "VOID", "SABAR", "OBSERVE_ONLY", "CAUTION"}
+                if gov.get("telemetry", {}).get("verdict", "SEAL")
+                in {"SEAL", "HOLD", "VOID", "SABAR", "OBSERVE_ONLY", "CAUTION"}
                 else "SEAL",
             },
         }
@@ -760,6 +767,4 @@ def arif_measure(
                 )
             )
 
-    return TelemetryBlock(
-        **_hold("arif_measure", f"Unknown mode: {mode}", session_id=session_id)
-    )
+    return TelemetryBlock(**_hold("arif_measure", f"Unknown mode: {mode}", session_id=session_id))

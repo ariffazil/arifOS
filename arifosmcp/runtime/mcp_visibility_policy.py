@@ -106,9 +106,7 @@ class VisibilityPolicy(BaseModel):
 
     max_visible: int = 15
     tier_filter: set[Tier] = Field(default_factory=lambda: {Tier.CORE, Tier.ORGAN, Tier.HERMES})
-    organ_health_filter: set[OrganHealth] = Field(
-        default_factory=lambda: {OrganHealth.HEALTHY}
-    )
+    organ_health_filter: set[OrganHealth] = Field(default_factory=lambda: {OrganHealth.HEALTHY})
     require_constitution_hash: bool = True
     require_schema_hash: bool = True
     require_version: bool = True
@@ -285,16 +283,13 @@ def build_policy_from_registry(
     reg = registry or load_registry()
     entropy = reg.get("entropy_budget", {}) if isinstance(reg, dict) else {}
     return VisibilityPolicy(
-        max_visible=max_visible_override
-        or entropy.get("default_visible_tools_max", 15),
+        max_visible=max_visible_override or entropy.get("default_visible_tools_max", 15),
         allow_lab=allow_lab,
         require_constitution_hash=True,
         require_schema_hash=True,
         require_version=True,
         max_schema_tokens_per_tool=entropy.get("max_schema_tokens_per_tool", 700),
-        duplicate_similarity_threshold=entropy.get(
-            "duplicate_similarity_threshold", 0.82
-        ),
+        duplicate_similarity_threshold=entropy.get("duplicate_similarity_threshold", 0.82),
     )
 
 

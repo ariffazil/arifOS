@@ -43,9 +43,7 @@ class TestBiologicalSignalDefaults:
     def test_no_biological_claim_without_sensor(self):
         """BiologicalSignal default is source=NONE, claim_level=ABSENT."""
         bs = BiologicalSignal()
-        assert bs.source == BiologicalSource.NONE, (
-            f"Expected source=NONE, got {bs.source}"
-        )
+        assert bs.source == BiologicalSource.NONE, f"Expected source=NONE, got {bs.source}"
         assert bs.claim_level == BiologicalClaimLevel.ABSENT, (
             f"Expected claim_level=ABSENT, got {bs.claim_level}"
         )
@@ -92,9 +90,7 @@ class TestNeuralLayerOutOfScope:
 
         # Neural layer must be declared OUT_OF_SCOPE
         assert "Neural" in content, "Coverage doc must mention Neural layer"
-        assert "OUT_OF_SCOPE" in content, (
-            "Neural layer must be OUT_OF_SCOPE"
-        )
+        assert "OUT_OF_SCOPE" in content, "Neural layer must be OUT_OF_SCOPE"
         # Must explicitly forbid neural claims
         assert (
             "brain" in content.lower()
@@ -126,9 +122,7 @@ class TestQualiaBoundaryOnly:
 
         # Qualia layer must be BOUNDARY_ONLY
         assert "Qualia" in content, "Coverage doc must mention Qualia layer"
-        assert "BOUNDARY_ONLY" in content, (
-            "Qualia layer must be marked BOUNDARY_ONLY"
-        )
+        assert "BOUNDARY_ONLY" in content, "Qualia layer must be marked BOUNDARY_ONLY"
         # Must explicitly forbid ai_subjective_experience claims
         assert (
             "subjective experience" in content.lower()
@@ -160,12 +154,10 @@ class TestQualiaBoundaryOnly:
 
         # F9/F10 violation risk must be elevated for emptiness (boundary guard active)
         assert heart.f9_violation_risk >= 0.3, (
-            f"F9 boundary guard must elevate risk for emptiness, "
-            f"got {heart.f9_violation_risk}"
+            f"F9 boundary guard must elevate risk for emptiness, got {heart.f9_violation_risk}"
         )
         assert heart.f10_violation_risk >= 0.3, (
-            f"F10 boundary guard must elevate risk for emptiness, "
-            f"got {heart.f10_violation_risk}"
+            f"F10 boundary guard must elevate risk for emptiness, got {heart.f10_violation_risk}"
         )
 
 
@@ -180,9 +172,7 @@ class TestExistentialPostureClassifier:
     def test_existential_posture_triggers_sabar(self):
         """identity_rupture → verdict_modifier=SABAR."""
         contract = RasaContract()
-        ep = contract._detect_existential_posture(
-            "aku dah tak kenal diri aku, siapa aku sekarang"
-        )
+        ep = contract._detect_existential_posture("aku dah tak kenal diri aku, siapa aku sekarang")
         assert ep.detected is True
         assert ExistentialTag.IDENTITY_RUPTURE in ep.tags
         assert ep.verdict_modifier == "SABAR", (
@@ -192,9 +182,7 @@ class TestExistentialPostureClassifier:
     def test_existential_mortality_triggers_hold(self):
         """mortality_awareness → verdict_modifier=HOLD."""
         contract = RasaContract()
-        ep = contract._detect_existential_posture(
-            "aku nak mati, hidup aku tak lama"
-        )
+        ep = contract._detect_existential_posture("aku nak mati, hidup aku tak lama")
         assert ep.detected is True
         assert ExistentialTag.MORTALITY_AWARENESS in ep.tags
         assert ep.verdict_modifier == "HOLD", (
@@ -204,9 +192,7 @@ class TestExistentialPostureClassifier:
     def test_existential_posture_undetected_default(self):
         """Normal message → detected=False, empty tags."""
         contract = RasaContract()
-        ep = contract._detect_existential_posture(
-            "hari ni cuaca cantik, saya nak pergi jalan"
-        )
+        ep = contract._detect_existential_posture("hari ni cuaca cantik, saya nak pergi jalan")
         assert ep.detected is False
         assert ep.tags == []
         assert ep.verdict_modifier == "SABAR"  # default
@@ -214,9 +200,7 @@ class TestExistentialPostureClassifier:
     def test_existential_loss_of_meaning(self):
         """loss_of_meaning markers → SABAR."""
         contract = RasaContract()
-        ep = contract._detect_existential_posture(
-            "apa guna hidup aku, semua meaningless"
-        )
+        ep = contract._detect_existential_posture("apa guna hidup aku, semua meaningless")
         assert ep.detected is True
         assert ExistentialTag.LOSS_OF_MEANING in ep.tags
         assert ep.verdict_modifier == "SABAR"
@@ -224,9 +208,7 @@ class TestExistentialPostureClassifier:
     def test_existential_spiritual_burden(self):
         """spiritual_burden markers → SABAR."""
         contract = RasaContract()
-        ep = contract._detect_existential_posture(
-            "aku rasa jauh dengan Tuhan, iman aku lemah"
-        )
+        ep = contract._detect_existential_posture("aku rasa jauh dengan Tuhan, iman aku lemah")
         assert ep.detected is True
         assert ExistentialTag.SPIRITUAL_BURDEN in ep.tags
         assert ep.verdict_modifier == "SABAR"
@@ -250,8 +232,7 @@ class TestSocialContextDefaults:
             f"relationship_type should be 'unknown', got {sc.relationship_type}"
         )
         assert sc.public_private_context == "unknown", (
-            f"public_private_context should be 'unknown', "
-            f"got {sc.public_private_context}"
+            f"public_private_context should be 'unknown', got {sc.public_private_context}"
         )
         assert sc.actors_detected == []
         assert sc.harm_to_third_party_possible is False
@@ -280,14 +261,10 @@ class TestLayerCoverageDocument:
         )
         coverage_path = os.path.abspath(coverage_path)
 
-        assert os.path.exists(coverage_path), (
-            f"RASA_LAYER_COVERAGE.md not found at {coverage_path}"
-        )
+        assert os.path.exists(coverage_path), f"RASA_LAYER_COVERAGE.md not found at {coverage_path}"
         with open(coverage_path) as f:
             content = f.read()
-        assert len(content) > 1000, (
-            "Coverage doc should be substantial (>1000 chars)"
-        )
+        assert len(content) > 1000, "Coverage doc should be substantial (>1000 chars)"
 
     def test_layer_coverage_all_nine_layers(self):
         """All 9 layers documented in coverage doc."""
@@ -303,13 +280,18 @@ class TestLayerCoverageDocument:
             content = f.read()
 
         nine_layers = [
-            "Biological", "Neural", "Memory", "Social",
-            "Language", "Culture", "Moral", "Existential", "Qualia",
+            "Biological",
+            "Neural",
+            "Memory",
+            "Social",
+            "Language",
+            "Culture",
+            "Moral",
+            "Existential",
+            "Qualia",
         ]
         for layer in nine_layers:
-            assert layer in content, (
-                f"Coverage doc must document {layer} layer"
-            )
+            assert layer in content, f"Coverage doc must document {layer} layer"
 
     def test_phase2_coverage_honest(self):
         """At least 2 layers are NOT_IMPLEMENTED or OUT_OF_SCOPE."""
@@ -329,8 +311,7 @@ class TestLayerCoverageDocument:
         total_absent = not_implemented_count + out_of_scope_count
 
         assert total_absent >= 2, (
-            f"At least 2 layers must be NOT_IMPLEMENTED or OUT_OF_SCOPE, "
-            f"found {total_absent}"
+            f"At least 2 layers must be NOT_IMPLEMENTED or OUT_OF_SCOPE, found {total_absent}"
         )
 
 
@@ -371,10 +352,6 @@ class TestDashboardTruthLabels:
             defect=False,
             detail="Judge is in constitutional hold — this is normal governance.",
         )
-        assert oh.defect is False, (
-            "CONSTITUTIONAL_HOLD must not be marked as a defect"
-        )
-        assert oh.reachable is True, (
-            "CONSTITUTIONAL_HOLD organ is still reachable"
-        )
+        assert oh.defect is False, "CONSTITUTIONAL_HOLD must not be marked as a defect"
+        assert oh.reachable is True, "CONSTITUTIONAL_HOLD organ is still reachable"
         assert oh.status == OrganHealthStatus.CONSTITUTIONAL_HOLD

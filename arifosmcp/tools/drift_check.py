@@ -190,9 +190,7 @@ def check_tool_exists(tool_name: str) -> dict[str, Any]:
         deprecated_map = {
             "arif_os_attest": "arif_kernel_attest (renamed in RULE-14)",
             "arif_organ_attest_all": "arif_organ_attest (single organ, not all)",
-            "arif_lease_issue": (
-                "leases are internal-only; use arif_init for authority bootstrap"
-            ),
+            "arif_lease_issue": ("leases are internal-only; use arif_init for authority bootstrap"),
             "arif_daily_intelligence_brief": "not yet registered (planned)",
         }
         if tool_name in deprecated_map:
@@ -256,10 +254,7 @@ def mcp_drift_check(
     drift_detected = bool(missing or extra)
 
     surface_hash = compute_surface_hash()
-    tool_schema_hashes = {
-        name: compute_tool_schema_hash(name)
-        for name in sorted(live)
-    }
+    tool_schema_hashes = {name: compute_tool_schema_hash(name) for name in sorted(live)}
 
     report = {
         "mode": mode,
@@ -367,7 +362,9 @@ async def arif_cross_attest(
     result: dict[str, Any] = {
         "mode": mode,
         "claim_received": {
-            "call_hash": claim_call_hash[:24] + "..." if len(claim_call_hash) > 24 else claim_call_hash,
+            "call_hash": claim_call_hash[:24] + "..."
+            if len(claim_call_hash) > 24
+            else claim_call_hash,
             "trace_id": claim_trace_id,
             "session_id": claim_session_id,
             "tool_name": claim_tool_name,
@@ -380,6 +377,7 @@ async def arif_cross_attest(
         expected_hash = ""
         if claim_tool_name and claim_timestamp:
             from arifosmcp.runtime.tools import _compute_call_hash
+
             expected_hash = _compute_call_hash(
                 claim_tool_name,
                 {"result_summary": claim_result_summary} if claim_result_summary else {},
@@ -396,7 +394,9 @@ async def arif_cross_attest(
             result["detail"] = "claim_tool_name + claim_timestamp required to re-compute hash."
         elif match:
             result["verdict"] = "SEAL"
-            result["detail"] = "Claim hash matches re-computed hash. Claim is internally consistent."
+            result["detail"] = (
+                "Claim hash matches re-computed hash. Claim is internally consistent."
+            )
             result["confidence"] = "HIGH"
         else:
             result["verdict"] = "HOLD"
@@ -414,9 +414,12 @@ async def arif_cross_attest(
         else:
             # Check all active sessions for matching trace_id
             from arifosmcp.runtime.tools import _SESSIONS
+
             found = False
             session_ref = ""
-            for sid, sess in (getattr(_SESSIONS, "_data", {}) if hasattr(_SESSIONS, "_data") else {}).items():
+            for sid, sess in (
+                getattr(_SESSIONS, "_data", {}) if hasattr(_SESSIONS, "_data") else {}
+            ).items():
                 trace_packet = sess.get("trace_packet", {})
                 if trace_packet.get("trace_id") == claim_trace_id:
                     found = True
@@ -449,9 +452,11 @@ async def arif_cross_attest(
             result["detail"] = "No session_id provided."
         else:
             from arifosmcp.runtime.tools import _SESSIONS
+
             sess = dict(_SESSIONS).get(claim_session_id)
             if sess:
                 import time
+
                 now = time.time()
                 created = sess.get("created_at_unix", 0)
                 age_secs = now - created
@@ -488,7 +493,12 @@ async def arif_cross_attest(
     else:
         result["verdict"] = "VOID"
         result["detail"] = f"Unknown mode: {mode}"
-        result["supported_modes"] = ["verify_call_hash", "verify_trace_id", "verify_session", "tool_in_surface"]
+        result["supported_modes"] = [
+            "verify_call_hash",
+            "verify_trace_id",
+            "verify_session",
+            "tool_in_surface",
+        ]
 
     return result
 

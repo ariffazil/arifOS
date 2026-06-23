@@ -73,11 +73,19 @@ ARIFOS_PRETHINK_TOOL: dict[str, Any] = {
                 "action_class": {
                     "type": "string",
                     "enum": [
-                        "OBSERVE", "COMPUTE", "PROPOSE",
-                        "MUTATE_LOCAL", "MUTATE_EXTERNAL",
-                        "DEPLOY", "SPEND", "PUBLISH", "DELETE",
-                        "SIGN", "GRANT_ACCESS",
-                        "CREDENTIAL_CHANGE", "CONSTITUTION_CHANGE",
+                        "OBSERVE",
+                        "COMPUTE",
+                        "PROPOSE",
+                        "MUTATE_LOCAL",
+                        "MUTATE_EXTERNAL",
+                        "DEPLOY",
+                        "SPEND",
+                        "PUBLISH",
+                        "DELETE",
+                        "SIGN",
+                        "GRANT_ACCESS",
+                        "CREDENTIAL_CHANGE",
+                        "CONSTITUTION_CHANGE",
                     ],
                     "description": "Action class for F1-F13 floor checks.",
                 },
@@ -151,9 +159,8 @@ class ArifKernel:
         agent.tools = [ARIFOS_PRETHINK_TOOL] + original_tools
 
         # 2. Wrap tool execution
-        original_execute = (
-            getattr(agent, "_execute_tool_call", None)
-            or getattr(agent, "execute_tool_call", None)
+        original_execute = getattr(agent, "_execute_tool_call", None) or getattr(
+            agent, "execute_tool_call", None
         )
         if original_execute is not None:
             agent._execute_tool_call = self._wrap_execute(original_execute, history)
@@ -214,9 +221,9 @@ class ArifKernel:
                 post_decision = await posttool(
                     tool_name=tool_name,
                     tool_result=result,
-                    prior_decision=last if last else Decision(
-                        verdict="ALLOW", cognition_lane=CognitionLane.OBSERVE
-                    ),
+                    prior_decision=last
+                    if last
+                    else Decision(verdict="ALLOW", cognition_lane=CognitionLane.OBSERVE),
                     confidence=confidence,
                     source=source,
                     client=self.client,

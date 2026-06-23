@@ -127,6 +127,7 @@ def _now() -> datetime:
 def _constitution_hash() -> str:
     """Best-effort constitution hash (INV-4)."""
     from arifosmcp.runtime.live_kernel import compute_constitution_hash
+
     return compute_constitution_hash()
 
 
@@ -267,7 +268,7 @@ def _extract_claims(text: str, actors: list[ActorNode]) -> list[ClaimNode]:
         claims.append(
             ClaimNode(
                 node_type="ClaimNode",
-                node_id=f"NODE-CLAIM-{idx+1:03d}",
+                node_id=f"NODE-CLAIM-{idx + 1:03d}",
                 claim_text=sentence[:300],
                 claimer=claimer,
                 claimer_type="unknown",
@@ -376,7 +377,10 @@ def _detect_tensions(
                 claim_refs=list({pair[0] for pair in contradiction_pairs})[:4],
                 description="Two claims in the text collide without resolution.",
                 what_reporter_couldnt_say="The official account and the affected account cannot both be true.",
-                evidence_snippets=[claims[int(pair[0].split("-")[-1]) - 1].claim_text[:120] for pair in contradiction_pairs[:2]],
+                evidence_snippets=[
+                    claims[int(pair[0].split("-")[-1]) - 1].claim_text[:120]
+                    for pair in contradiction_pairs[:2]
+                ],
                 recommended_action="HOLD",
                 governance_pattern="CONTRADICTORY_NARRATIVE_HOLD",
                 auto_tags=["CONTRADICTORY_NARRATIVE", "PUBLIC_INTEREST_HIGH"],
@@ -545,7 +549,9 @@ def _analyze_request(request: NarrativeTensionRequest) -> NarrativeTensionRespon
 
     next_action = "No significant tension detected."
     if kernel_verdict.overall_verdict == "ESCALATE":
-        next_action = f"Escalate {kernel_verdict.smoking_gun or 'highest-severity tension'} to 888_JUDGE."
+        next_action = (
+            f"Escalate {kernel_verdict.smoking_gun or 'highest-severity tension'} to 888_JUDGE."
+        )
     elif kernel_verdict.overall_verdict == "HOLD":
         next_action = "Apply CONTRADICTORY_NARRATIVE_HOLD; do not treat claims as settled."
     elif kernel_verdict.overall_verdict == "REPORT":

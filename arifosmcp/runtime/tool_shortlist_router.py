@@ -57,21 +57,36 @@ INTENT_KEYWORDS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b(basin|well|seismic|prospect|reservoir|geology|geophys)\b", re.I), "geox"),
     (re.compile(r"\b(stratigraphy|facies|stratum|tops|segy|las)\b", re.I), "geox"),
     # WEALTH
-    (re.compile(r"\b(wealth|capital|npv|nps|irr|emv|portfolio|trade|stock|equity)\b", re.I), "wealth"),
+    (
+        re.compile(r"\b(wealth|capital|npv|nps|irr|emv|portfolio|trade|stock|equity)\b", re.I),
+        "wealth",
+    ),
     (re.compile(r"\b(money|cashflow|burn|runway|survival)\b", re.I), "wealth"),
     (re.compile(r"\b(wealth_(omni_wisdom|signal|inequality|game))\b", re.I), "wealth"),
     # WELL
-    (re.compile(r"\b(wellness|fatigue|stress|sleep|homeostasis|vitality|biometric)\b", re.I), "well"),
+    (
+        re.compile(r"\b(wellness|fatigue|stress|sleep|homeostasis|vitality|biometric)\b", re.I),
+        "well",
+    ),
     (re.compile(r"\b(dignity|consent|sovereign_entropy|reflect_only)\b", re.I), "well"),
     # minimax-media (use substring match — "voiceover" should match "voice")
     (re.compile(r"(audio|voice|tts|speech|music|video|image|media)", re.I), "minimax-media"),
-    (re.compile(r"(text_to_audio|list_voices|voice_clone|play_audio|generate_video|text_to_image|music_generation|voice_design)", re.I), "minimax-media"),
+    (
+        re.compile(
+            r"(text_to_audio|list_voices|voice_clone|play_audio|generate_video|text_to_image|music_generation|voice_design)",
+            re.I,
+        ),
+        "minimax-media",
+    ),
     # minimax-code
     (re.compile(r"\b(web_search|understand_image|coding)\b", re.I), "minimax-code"),
     # minimax-search
     (re.compile(r"\b(search|browse|google|serper|jina)\b", re.I), "minimax-search"),
     # AAA / A-FORGE
-    (re.compile(r"\b(aaa|cockpit|control[ _-]?plane|a2a)\b", re.I), "arifOS"),  # route to arifOS (cockpit is read-only, arifOS routes)
+    (
+        re.compile(r"\b(aaa|cockpit|control[ _-]?plane|a2a)\b", re.I),
+        "arifOS",
+    ),  # route to arifOS (cockpit is read-only, arifOS routes)
     (re.compile(r"\b(a-forge|aforge|forge[ _-]?plan)\b", re.I), "arifOS"),
 ]
 
@@ -105,7 +120,9 @@ class Authority:
 
     actor_id: str
     session_id: str
-    roles: list[str] = field(default_factory=lambda: ["agent"])  # "agent" | "operator" | "sovereign"
+    roles: list[str] = field(
+        default_factory=lambda: ["agent"]
+    )  # "agent" | "operator" | "sovereign"
 
     def allows(self, tool: ToolEntry) -> bool:
         """F11: who can call what.

@@ -45,7 +45,8 @@ def init_tracer(
             "service.version": service_version,
             "arifos.floors_active": 13,
             "arifos.constitution_hash": os.environ.get(
-                "ARIFOS_CONSTITUTION_HASH", "sha256:dd4f41e75f55ed38df759a1c8db1fc4680ef0307a6b0e2793bccf6540bb21506"
+                "ARIFOS_CONSTITUTION_HASH",
+                "sha256:dd4f41e75f55ed38df759a1c8db1fc4680ef0307a6b0e2793bccf6540bb21506",
             ),
         }
     )
@@ -54,6 +55,7 @@ def init_tracer(
 
     if otlp_endpoint:
         from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
         provider.add_span_processor(
             BatchSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True))
         )
@@ -78,7 +80,9 @@ class OTelTracer:
         with self.tracer.start_as_current_span(name) as span:
             if attributes:
                 for k, v in attributes.items():
-                    span.set_attribute(k, str(v) if not isinstance(v, (str, int, float, bool)) else v)
+                    span.set_attribute(
+                        k, str(v) if not isinstance(v, (str, int, float, bool)) else v
+                    )
             span.set_attribute("arifos.floor_compliance", "F11_AUDIT")
             span.set_attribute("arifos.epoch", time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
             try:

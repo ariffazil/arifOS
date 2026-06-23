@@ -75,7 +75,9 @@ class SignalDetector:
 
         # Signal: constitutional violation (floor named with negative finding)
         for floor in ["F1", "F2", "F4", "F7", "F8", "F9", "F11", "F13"]:
-            if floor in text and ("violation" in text.lower() or "breach" in text.lower() or "unbound" in text.lower()):
+            if floor in text and (
+                "violation" in text.lower() or "breach" in text.lower() or "unbound" in text.lower()
+            ):
                 signals.append(
                     EngineeringSignal(
                         signal_id=f"sig-constitutional-{floor}",

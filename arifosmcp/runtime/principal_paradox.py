@@ -188,34 +188,34 @@ def _record_override(session_id: str) -> int:
 # (risk_tier, blast_radius, reversibility_floor) → autonomy_tier
 AUTONOMY_CONTRACTION = [
     # (Risk,         Blast,              Rev Floor,  Autonomy)
-    (RiskTier.LOW,    BlastRadius.LOCAL,            0.9,  AutonomyTier.FULL_AUTO),
-    (RiskTier.LOW,    BlastRadius.ACCOUNT,          0.85, AutonomyTier.FULL_AUTO),
-    (RiskTier.LOW,    BlastRadius.ORG,              0.8,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.LOW,    BlastRadius.PUBLIC,           0.7,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.LOW,    BlastRadius.MARKET,           0.6,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.LOW,    BlastRadius.INFRASTRUCTURE,   0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.LOW,    BlastRadius.CIVILIZATIONAL,   0.3,  AutonomyTier.HOLD),
-    (RiskTier.MEDIUM, BlastRadius.LOCAL,            0.7,  AutonomyTier.FULL_AUTO),
-    (RiskTier.MEDIUM, BlastRadius.ACCOUNT,          0.7,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.MEDIUM, BlastRadius.ORG,              0.7,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.MEDIUM, BlastRadius.PUBLIC,           0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.MEDIUM, BlastRadius.MARKET,           0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.MEDIUM, BlastRadius.INFRASTRUCTURE,   0.3,  AutonomyTier.HOLD),
-    (RiskTier.MEDIUM, BlastRadius.CIVILIZATIONAL,   0.1,  AutonomyTier.HOLD),
-    (RiskTier.HIGH,   BlastRadius.LOCAL,            0.5,  AutonomyTier.PROPOSE_ONLY),
-    (RiskTier.HIGH,   BlastRadius.ACCOUNT,          0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.HIGH,   BlastRadius.ORG,              0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.HIGH,   BlastRadius.PUBLIC,           0.3,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.HIGH,   BlastRadius.MARKET,           0.2,  AutonomyTier.HOLD),
-    (RiskTier.HIGH,   BlastRadius.INFRASTRUCTURE,   0.0,  AutonomyTier.HOLD),
-    (RiskTier.HIGH,   BlastRadius.CIVILIZATIONAL,   0.0,  AutonomyTier.HOLD),
-    (RiskTier.ATOMIC, BlastRadius.LOCAL,            0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.ATOMIC, BlastRadius.ACCOUNT,          0.5,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.ATOMIC, BlastRadius.ORG,              0.3,  AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
-    (RiskTier.ATOMIC, BlastRadius.PUBLIC,           0.2,  AutonomyTier.HOLD),
-    (RiskTier.ATOMIC, BlastRadius.MARKET,           0.1,  AutonomyTier.HOLD),
-    (RiskTier.ATOMIC, BlastRadius.INFRASTRUCTURE,   0.0,  AutonomyTier.HOLD),
-    (RiskTier.ATOMIC, BlastRadius.CIVILIZATIONAL,   0.0,  AutonomyTier.HOLD),
+    (RiskTier.LOW, BlastRadius.LOCAL, 0.9, AutonomyTier.FULL_AUTO),
+    (RiskTier.LOW, BlastRadius.ACCOUNT, 0.85, AutonomyTier.FULL_AUTO),
+    (RiskTier.LOW, BlastRadius.ORG, 0.8, AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.LOW, BlastRadius.PUBLIC, 0.7, AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.LOW, BlastRadius.MARKET, 0.6, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.LOW, BlastRadius.INFRASTRUCTURE, 0.5, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.LOW, BlastRadius.CIVILIZATIONAL, 0.3, AutonomyTier.HOLD),
+    (RiskTier.MEDIUM, BlastRadius.LOCAL, 0.7, AutonomyTier.FULL_AUTO),
+    (RiskTier.MEDIUM, BlastRadius.ACCOUNT, 0.7, AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.MEDIUM, BlastRadius.ORG, 0.7, AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.MEDIUM, BlastRadius.PUBLIC, 0.5, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.MEDIUM, BlastRadius.MARKET, 0.5, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.MEDIUM, BlastRadius.INFRASTRUCTURE, 0.3, AutonomyTier.HOLD),
+    (RiskTier.MEDIUM, BlastRadius.CIVILIZATIONAL, 0.1, AutonomyTier.HOLD),
+    (RiskTier.HIGH, BlastRadius.LOCAL, 0.5, AutonomyTier.PROPOSE_ONLY),
+    (RiskTier.HIGH, BlastRadius.ACCOUNT, 0.5, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.HIGH, BlastRadius.ORG, 0.5, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.HIGH, BlastRadius.PUBLIC, 0.3, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.HIGH, BlastRadius.MARKET, 0.2, AutonomyTier.HOLD),
+    (RiskTier.HIGH, BlastRadius.INFRASTRUCTURE, 0.0, AutonomyTier.HOLD),
+    (RiskTier.HIGH, BlastRadius.CIVILIZATIONAL, 0.0, AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.LOCAL, 0.5, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.ATOMIC, BlastRadius.ACCOUNT, 0.5, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.ATOMIC, BlastRadius.ORG, 0.3, AutonomyTier.PRINCIPAL_APPROVAL_REQUIRED),
+    (RiskTier.ATOMIC, BlastRadius.PUBLIC, 0.2, AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.MARKET, 0.1, AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.INFRASTRUCTURE, 0.0, AutonomyTier.HOLD),
+    (RiskTier.ATOMIC, BlastRadius.CIVILIZATIONAL, 0.0, AutonomyTier.HOLD),
 ]
 
 
@@ -298,7 +298,11 @@ def evaluate_autonomy_ceiling(
         )
 
     # ── Guard 3: Surge protection ──
-    override_count = prior_override_count if prior_override_count is not None else _count_recent_overrides(session_id)
+    override_count = (
+        prior_override_count
+        if prior_override_count is not None
+        else _count_recent_overrides(session_id)
+    )
     surge_active = override_count >= MAX_OVERRIDES_PER_HOUR
 
     # ── Resolve autonomy tier from contraction table ──
@@ -428,7 +432,10 @@ def enforce_scope(action: dict[str, Any], policy_scope: list[str]) -> tuple[bool
             if action_name.startswith(prefix):
                 return (True, f"E7 CLAUSE 1: Action '{action_name}' within namespace '{scope}'.")
 
-    return (False, f"E7 CLAUSE 1: Action '{action_name}' outside declared policy scope {policy_scope}.")
+    return (
+        False,
+        f"E7 CLAUSE 1: Action '{action_name}' outside declared policy scope {policy_scope}.",
+    )
 
 
 def require_approval(action: dict[str, Any], autonomy_tier: str) -> GateVerdict:
@@ -622,7 +629,9 @@ def build_999_execution_surface(
         "recent_overrides": [
             {"seal_id": "", "reason": "", "timestamp": ""}
         ],  # populated by vault query
-        "surge_status": "SURGE" if _count_recent_overrides("") >= MAX_OVERRIDES_PER_HOUR else "NORMAL",
+        "surge_status": "SURGE"
+        if _count_recent_overrides("") >= MAX_OVERRIDES_PER_HOUR
+        else "NORMAL",
         "eureka": "E7",
     }
 
@@ -661,7 +670,10 @@ def principal_override(
 
     logger.warning(
         "E7 PRINCIPAL OVERRIDE: session=%s count=%d surge=%s reason=%s",
-        session_id, count, surge, reason[:80],
+        session_id,
+        count,
+        surge,
+        reason[:80],
     )
 
     return receipt

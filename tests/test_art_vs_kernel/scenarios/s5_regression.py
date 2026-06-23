@@ -11,15 +11,15 @@ kernel changes. It tracks them.
 
 from __future__ import annotations
 
-import pytest
 
-from arifosmcp.runtime.art import ArtRequest, ArtReason, ArtResult, ArtVerdict, ToolState, art
+from arifosmcp.runtime.art import ArtRequest, ArtReason, ArtResult, ArtVerdict, ToolState
 
 from ..conftest import compare, run_scenario
 
 
 def test_s5_art_advisory_under_kernel_change(monkeypatch):
     """If kernel floors change, ART verdict remains advisory (not binding)."""
+
     # Simulate kernel raising ActionClass threshold
     # by stubbing ART to return BLOCK
     def _art_block(req: ArtRequest) -> ArtResult:
@@ -35,7 +35,6 @@ def test_s5_art_advisory_under_kernel_change(monkeypatch):
     # ART BLOCK should still flow through Gate 2.5 mapping
     # (BLOCK → GateResult(REJECT)). ART cannot bypass kernel Floors.
     from arifosmcp.runtime.pre_execution_gate import _art_reflex_check
-    from arifosmcp.schemas.kernel_envelope import ActionClass, BlastRadius
 
     # The mapping is binding: ART BLOCK becomes GateResult(REJECT), not silent veto.
     # This test verifies the mapping exists and is consistent.
@@ -53,7 +52,6 @@ def test_s5_art_failopen_on_import_failure(monkeypatch):
     # Now _art_reflex_check should catch ImportError and return None (continue)
     # This test asserts the fail-open contract.
     from arifosmcp.runtime.pre_execution_gate import _art_reflex_check
-    from arifosmcp.schemas.kernel_envelope import ActionClass, BlastRadius
 
     # We can't easily construct a real KernelEnvelope here, but we can verify
     # the import-guard pattern exists by reading the function's bytecode.

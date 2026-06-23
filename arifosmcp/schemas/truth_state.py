@@ -10,6 +10,7 @@ This absorbs and replaces the previous ad-hoc 'epistemic_tag' implementations.
 
 from enum import StrEnum
 
+
 class TruthState(StrEnum):
     """The canonical epistemic status of any claim, metric, or statement."""
 
@@ -38,11 +39,11 @@ class TruthState(StrEnum):
     # Meaning: Normative principle (e.g., dignity guardrail, human sovereign veto).
 
     @classmethod
-    def is_objective(cls, state: 'TruthState') -> bool:
+    def is_objective(cls, state: "TruthState") -> bool:
         """Is the state strictly objective (Fact, Estimate)?"""
         return state in {cls.FACT, cls.ESTIMATE}
 
     @classmethod
-    def is_subjective(cls, state: 'TruthState') -> bool:
+    def is_subjective(cls, state: "TruthState") -> bool:
         """Is the state inherently subjective or derived (Claim, Hypothesis)?"""
         return state in {cls.CLAIM, cls.HYPOTHESIS, cls.VALUE}

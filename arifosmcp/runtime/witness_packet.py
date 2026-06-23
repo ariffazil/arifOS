@@ -90,7 +90,7 @@ class WitnessPacket:
     schema_valid: bool = False
     # L02 split (added 2026-06-15 per CCC ariffazil/CCC substrate finding)
     # — see module docstring for rationale
-    l02a_parseability: str = "FAIL"   # PASS | FAIL
+    l02a_parseability: str = "FAIL"  # PASS | FAIL
     l02b_truth_veracity: str = "NOT_EVALUATED"  # PASS | FAIL | NOT_EVALUATED
     confidence_claimed: float | None = None  # 0.0–1.0 from LLM self-report
 

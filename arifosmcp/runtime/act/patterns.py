@@ -24,6 +24,7 @@ class ExecutionPattern(StrEnum):
     HUMAN_CHECKPOINT   — Execute step, pause for human verification, continue.
     COMPENSATION_READY — Execute with pre-planned rollback on failure.
     """
+
     SINGLE_SHOT = "single_shot"
     DRY_RUN_THEN_LIVE = "dry_run_then_live"
     CANARY_THEN_ALL = "canary_then_all"

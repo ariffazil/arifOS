@@ -37,9 +37,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import hashlib
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from arifosmcp.runtime.model import RuntimeEnvelope
@@ -61,46 +59,46 @@ ARIF_MEMORY_MODES = (
 
 # Mode → action class
 MODE_ACTION_CLASS = {
-    "recall":   "OBSERVE",
-    "inspect":  "OBSERVE",
-    "attest":   "OBSERVE",
+    "recall": "OBSERVE",
+    "inspect": "OBSERVE",
+    "attest": "OBSERVE",
     "remember": "EXECUTE_REVERSIBLE",
-    "promote":  "EXECUTE_HIGH_IMPACT",
-    "revise":   "EXECUTE_HIGH_IMPACT",
-    "forget":   "IRREVERSIBLE",
+    "promote": "EXECUTE_HIGH_IMPACT",
+    "revise": "EXECUTE_HIGH_IMPACT",
+    "forget": "IRREVERSIBLE",
 }
 
 # Mode → required pre-floors (must all pass before mode executes)
 MODE_PRE_FLOORS = {
-    "recall":   ("L02", "L12"),
-    "inspect":  ("L02", "L12"),
-    "attest":   ("L02", "L11", "L12"),
+    "recall": ("L02", "L12"),
+    "inspect": ("L02", "L12"),
+    "attest": ("L02", "L11", "L12"),
     "remember": ("L01", "L02", "L08", "L11", "L12"),
-    "promote":  ("L01", "L02", "L04", "L07", "L11", "L12"),
-    "revise":   ("L01", "L02", "L04", "L09", "L11", "L12"),
-    "forget":   ("L01", "L02", "L04", "L09", "L11", "L12", "L13"),
+    "promote": ("L01", "L02", "L04", "L07", "L11", "L12"),
+    "revise": ("L01", "L02", "L04", "L09", "L11", "L12"),
+    "forget": ("L01", "L02", "L04", "L09", "L11", "L12", "L13"),
 }
 
 # Mode → required lease?
 MODE_REQUIRES_LEASE = {
-    "recall":   False,
-    "inspect":  False,
-    "attest":   False,
+    "recall": False,
+    "inspect": False,
+    "attest": False,
     "remember": True,
-    "promote":  True,
-    "revise":   True,
-    "forget":   True,
+    "promote": True,
+    "revise": True,
+    "forget": True,
 }
 
 # Mode → required human ack?
 MODE_REQUIRES_HUMAN_ACK = {
-    "recall":   False,
-    "inspect":  False,
-    "attest":   False,
+    "recall": False,
+    "inspect": False,
+    "attest": False,
     "remember": False,
-    "promote":  False,
-    "revise":   False,
-    "forget":   True,        # L13 SOVEREIGN mandatory
+    "promote": False,
+    "revise": False,
+    "forget": True,  # L13 SOVEREIGN mandatory
 }
 
 
@@ -109,35 +107,35 @@ MODE_REQUIRES_HUMAN_ACK = {
 LEGACY_MODE_ALIASES = {
     # Direct 1:1
     "cognitive_recall": "recall",
-    "cognitive_learn":  "remember",
-    "graph_get":        "inspect",
+    "cognitive_learn": "remember",
+    "graph_get": "inspect",
     # Sub-modes fold into v5 with class= or scope= hints
-    "graph_store":      "remember",
-    "graph_query":      "recall",
+    "graph_store": "remember",
+    "graph_query": "recall",
     "cognitive_cross_session": "recall",
-    "contradict_scan":  "inspect",
+    "contradict_scan": "inspect",
     "contradict_status": "attest",
     "contradict_resolve": "revise",
     # Engineering memory
-    "engineer":         "remember",
-    "vector_query":     "recall",
-    "vector_store":     "remember",
-    "vector_forget":    "forget",
-    "generate":         "remember",
-    "query":            "recall",
+    "engineer": "remember",
+    "vector_query": "recall",
+    "vector_store": "remember",
+    "vector_forget": "forget",
+    "generate": "remember",
+    "query": "recall",
     # Legacy v4 (from existing description in constitutional_map.py)
-    "store":            "remember",
-    "seal":             "attest",
-    "forget":           "forget",
-    "update":           "revise",
-    "audit":            "attest",
-    "stats":            "inspect",
-    "learn":            "remember",
-    "init_recall":      "recall",
-    "search":           "recall",
-    "context":          "recall",
-    "quarantine":       "remember",
-    "import":           "remember",
+    "store": "remember",
+    "seal": "attest",
+    "forget": "forget",
+    "update": "revise",
+    "audit": "attest",
+    "stats": "inspect",
+    "learn": "remember",
+    "init_recall": "recall",
+    "search": "recall",
+    "context": "recall",
+    "quarantine": "remember",
+    "import": "remember",
 }
 
 
@@ -147,6 +145,7 @@ def resolve_legacy_mode(legacy: str) -> str | None:
 
 
 # ── The dispatcher entry point ─────────────────────────────────────────────
+
 
 async def arif_memory(
     mode: str | None = None,
@@ -167,7 +166,6 @@ async def arif_memory(
 
     Returns RuntimeEnvelope with verdict SEAL/SABAR/VOID/HOLD.
     """
-    from arifosmcp.runtime.dispatcher import HARDENED_DISPATCH_MAP
     from arifosmcp.runtime.model import VerdictCode
     from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
@@ -238,8 +236,11 @@ async def arif_memory(
                     tool_id="arif_memory",
                     canonical_tool_name="arif_memory",
                     stage="555m",
-                    payload={"mode": mode, "confidence": confidence,
-                             "note": "B3: confidence<0.3 requires human_ack"},
+                    payload={
+                        "mode": mode,
+                        "confidence": confidence,
+                        "note": "B3: confidence<0.3 requires human_ack",
+                    },
                     session_id=session_id,
                     override_code=VerdictCode.SABAR,
                     message=f"arif_memory: B3 violation — confidence={confidence} < 0.3 and no human_ack",
@@ -254,8 +255,11 @@ async def arif_memory(
                     tool_id="arif_memory",
                     canonical_tool_name="arif_memory",
                     stage="555m",
-                    payload={"mode": mode, "resolution_kind": resolution_kind,
-                             "note": "B5: supersedes_memory_id required for supersede/merge"},
+                    payload={
+                        "mode": mode,
+                        "resolution_kind": resolution_kind,
+                        "note": "B5: supersedes_memory_id required for supersede/merge",
+                    },
                     session_id=session_id,
                     override_code=VerdictCode.SABAR,
                     message=f"arif_memory: B5 violation — {resolution_kind} requires supersedes_memory_id",
@@ -269,8 +273,11 @@ async def arif_memory(
                 tool_id="arif_memory",
                 canonical_tool_name="arif_memory",
                 stage="555m",
-                payload={"mode": mode, "vault_version": "v1",
-                         "note": "A4: v1 vault FROZEN per sovereign ruling 2026-06-05"},
+                payload={
+                    "mode": mode,
+                    "vault_version": "v1",
+                    "note": "A4: v1 vault FROZEN per sovereign ruling 2026-06-05",
+                },
                 session_id=session_id,
                 override_code=VerdictCode.SABAR,
                 message="arif_memory: A4 violation — v1 vault is FROZEN, no new seals or attestations",
@@ -282,8 +289,13 @@ async def arif_memory(
     # Day 4 polish: inspect (direct Postgres lookup for UUID queries)
     if mode in ("remember", "promote", "forget", "attest", "inspect"):
         from arifosmcp.runtime.memory_handlers_v5 import (
-            _handle_remember, _handle_promote, _handle_forget, _handle_attest, _handle_inspect,
+            _handle_remember,
+            _handle_promote,
+            _handle_forget,
+            _handle_attest,
+            _handle_inspect,
         )
+
         handler = {
             "remember": _handle_remember,
             "promote": _handle_promote,
@@ -342,13 +354,13 @@ def _map_mode_to_engineering(mode: str, payload: dict) -> str:
     this mapping and are handled directly.
     """
     bridge = {
-        "recall":   "query",           # engineering_memory.query
-        "remember": "vector_store",    # engineering_memory.vector_store
-        "inspect":  "query",           # no direct equivalent → query
-        "revise":   "vector_store",    # supersede via store + tombstone prior
-        "promote":  "vector_store",    # placeholder — NEW handler needed
-        "forget":   "vector_forget",
-        "attest":   "query",           # placeholder — NEW handler needed
+        "recall": "query",  # engineering_memory.query
+        "remember": "vector_store",  # engineering_memory.vector_store
+        "inspect": "query",  # no direct equivalent → query
+        "revise": "vector_store",  # supersede via store + tombstone prior
+        "promote": "vector_store",  # placeholder — NEW handler needed
+        "forget": "vector_forget",
+        "attest": "query",  # placeholder — NEW handler needed
     }
     return bridge.get(mode, "query")
 
@@ -356,10 +368,10 @@ def _map_mode_to_engineering(mode: str, payload: dict) -> str:
 def _risk_tier_for_mode(mode: str) -> str:
     """Map action class → risk_tier for engineering_memory_dispatch_impl."""
     return {
-        "OBSERVE":              "low",
-        "EXECUTE_REVERSIBLE":   "medium",
-        "EXECUTE_HIGH_IMPACT":  "high",
-        "IRREVERSIBLE":         "critical",
+        "OBSERVE": "low",
+        "EXECUTE_REVERSIBLE": "medium",
+        "EXECUTE_HIGH_IMPACT": "high",
+        "IRREVERSIBLE": "critical",
     }.get(MODE_ACTION_CLASS.get(mode, "OBSERVE"), "medium")
 
 
@@ -394,6 +406,7 @@ def _wrap_result(res_dict: dict, mode: str, session_id: str | None) -> RuntimeEn
 # ── NEW handlers: promote, attest, forget (Day 3 work) ────────────────────
 # These are stubs for Phase 2 Day 3. The schema-level contracts are in
 # schemas/memory_payload.py; the runtime logic lands in Day 3.
+
 
 async def _handle_promote(payload: dict, ctx: Any) -> dict:
     """NEW — promote a memory from L3 (Qdrant) to L4 (Postgres canonical).

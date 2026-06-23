@@ -511,6 +511,7 @@ def validate_registry() -> dict[str, Any]:
         # Fallback: derive from tool_registry.json
         import json
         import os
+
         _reg_path = os.path.join(os.path.dirname(__file__), "..", "tool_registry.json")
         with open(_reg_path) as f:
             _reg = json.load(f)

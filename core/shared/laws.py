@@ -1497,10 +1497,7 @@ class RetryGuard:
         history = payload.get("history", [])
         new_action = payload.get("new_action", "")
         for h in history:
-            if (
-                h.get("verdict") == "VOID"
-                and h.get("action") == new_action
-            ):
+            if h.get("verdict") == "VOID" and h.get("action") == new_action:
                 return {
                     "retry_allowed": False,
                     "verdict": "VOID",
@@ -1529,6 +1526,7 @@ class ReplayGuard:
         ts = incoming.get("timestamp", "")
         try:
             from datetime import datetime, timezone
+
             inc_time = datetime.fromisoformat(ts.replace("Z", "+00:00"))
             if (datetime.now(timezone.utc) - inc_time).total_seconds() > 300:
                 return {

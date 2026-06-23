@@ -36,7 +36,6 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from arifosmcp.schemas.act import ActPatternName, ActReceipt
-from arifosmcp.schemas.art import ArtPrecheckResult
 from arifosmcp.schemas.kernel_envelope import ActionClass, KernelEnvelope
 from arifosmcp.runtime.pre_execution_gate import (
     GateResult,
@@ -61,6 +60,7 @@ class BridgeResult:
     HOLD  → Paused. Human review required. Reasons provided.
     VOID  → Blocked. Cannot proceed. Violations listed.
     """
+
     verdict: str  # SEAL | SABAR | HOLD | VOID
     gate_result: GateResult
     reasons: list[str] = field(default_factory=list)
@@ -172,7 +172,6 @@ def run_agentic_bridge(
     if bridge_verdict == "SEAL" and store_receipt:
         try:
             from arifosmcp.runtime.act.receipts import build_execution_receipt
-            from arifosmcp.runtime.act.patterns import ActPatternName as APN
             from arifosmcp.schemas.art import (
                 ArtPrecheckResult,
                 ArtToolState,

@@ -1,5 +1,7 @@
 # arifOS — ID
 
+> **DEPRECATED TOOL COUNTS (2026-06-23 7-tool freeze)**: "13 canonical tools" claims here are legacy. Public surface is now the 7 verbs. See arifosmcp/runtime/public_surface.py.
+
 > **One identity. One source.** All other ID-like files in this repo
 > defer to this one. If a doc says `arifOS` does X but this file says
 > arifOS is Y, **this file is correct.** Generated: 2026-06-11.

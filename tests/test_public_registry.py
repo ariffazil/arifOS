@@ -11,29 +11,30 @@ from arifosmcp.runtime.public_registry import (
     tool_names_for_profile,
     verify_no_drift,
 )
-from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES, CANARY_PROBES
+from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES
 
 
-def test_server_json_matches_canonical13_registry() -> None:
+def test_server_json_matches_canonical7_registry() -> None:
     server_json = build_server_json()
     tool_names = {tool["name"] for tool in server_json["tools"]}
 
-    assert tool_names == CANONICAL_PUBLIC_TOOLS | set(CANARY_PROBES)
+    assert tool_names == CANONICAL_PUBLIC_TOOLS
+    # Mode name "canonical13" is the historical profile key; the facade is 7 verbs.
     assert server_json["capabilities"]["public_surface"] == "canonical13"
 
 
-def test_mcp_manifest_matches_canonical13_registry() -> None:
+def test_mcp_manifest_matches_canonical7_registry() -> None:
     manifest_json = build_mcp_manifest()
     tool_names = {tool["name"] for tool in manifest_json["tools"]}
 
-    assert tool_names == CANONICAL_PUBLIC_TOOLS | set(CANARY_PROBES)
+    assert tool_names == CANONICAL_PUBLIC_TOOLS
 
 
-def test_public_profile_stays_canonical13() -> None:
+def test_public_profile_stays_canonical7() -> None:
     public_names = tool_names_for_profile("public")
 
     assert len(public_names) == EXPECTED_TOOL_COUNT
-    assert set(public_names) == CANONICAL_PUBLIC_TOOLS | set(CANARY_PROBES)
+    assert set(public_names) == CANONICAL_PUBLIC_TOOLS
     assert not [name for name in public_names if name.startswith(BLOCKED_PUBLIC_PREFIXES)]
 
 
@@ -56,8 +57,9 @@ def test_public_registry_publishes_input_and_output_schemas() -> None:
     server_json = build_server_json()
     tools = {tool["name"]: tool for tool in server_json["tools"]}
 
+    assert set(tools) == CANONICAL_PUBLIC_TOOLS
     assert contract_status_summary()["schemas_complete"] is True
     assert all("properties" in tool["inputSchema"] for tool in tools.values())
     assert all(tool.get("outputSchema", {}).get("properties") for tool in tools.values())
-    assert "preserve" in tools["arif_evidence_fetch"]["description"]
-    assert "health" in tools["arif_ops_measure"]["description"]
+    assert "ground" in tools["arif_observe"]["description"].lower()
+    assert "verdict" in tools["arif_judge"]["description"].lower()

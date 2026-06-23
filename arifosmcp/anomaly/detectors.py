@@ -46,8 +46,9 @@ class BaseDetector(ABC):
 
     dimension: AnomalyDimension
 
-    def __init__(self, ema_alpha: float = 0.15, spike_threshold: float = 0.60,
-                 window_size: int = 50) -> None:
+    def __init__(
+        self, ema_alpha: float = 0.15, spike_threshold: float = 0.60, window_size: int = 50
+    ) -> None:
         self.state = DetectorState(
             ema_alpha=ema_alpha,
             spike_threshold=spike_threshold,
@@ -66,17 +67,14 @@ class BaseDetector(ABC):
         # Clamp raw to [0.0, 1.0]
         raw = max(0.0, min(1.0, raw))
 
-        self.state.ema = (
-            self.state.ema_alpha * raw
-            + (1.0 - self.state.ema_alpha) * self.state.ema
-        )
+        self.state.ema = self.state.ema_alpha * raw + (1.0 - self.state.ema_alpha) * self.state.ema
         self.state.samples_seen += 1
         self.state.last_updated = datetime.now(UTC).isoformat()
 
         # Track recent scores for trend
         self.state.last_n_scores.append(self.state.ema)
         if len(self.state.last_n_scores) > self._window_size:
-            self.state.last_n_scores = self.state.last_n_scores[-self._window_size:]
+            self.state.last_n_scores = self.state.last_n_scores[-self._window_size :]
 
         # Spike detection: if EMA exceeds threshold, increment spike count
         if self.state.ema >= self.state.spike_threshold:
@@ -145,8 +143,9 @@ class BaseDetector(ABC):
 
     def reset(self) -> None:
         """Reset detector state (for testing)."""
-        self.state = DetectorState(ema_alpha=self.state.ema_alpha,
-                                   spike_threshold=self.state.spike_threshold)
+        self.state = DetectorState(
+            ema_alpha=self.state.ema_alpha, spike_threshold=self.state.spike_threshold
+        )
         self._observations.clear()
         self._raw_values.clear()
 
@@ -154,6 +153,7 @@ class BaseDetector(ABC):
 # ═══════════════════════════════════════════════════════════════════════════
 # DETECTOR 1: GOVERNANCE DRIFT
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class GovernanceDriftDetector(BaseDetector):
     """Detects drift in governance gate verdict patterns.
@@ -181,9 +181,7 @@ class GovernanceDriftDetector(BaseDetector):
 
         if is_block:
             self._hold_count += 1
-            self._gate_block_counts[event.gate] = (
-                self._gate_block_counts.get(event.gate, 0) + 1
-            )
+            self._gate_block_counts[event.gate] = self._gate_block_counts.get(event.gate, 0) + 1
         else:
             self._pass_count += 1
 
@@ -210,18 +208,20 @@ class GovernanceDriftDetector(BaseDetector):
         if is_warn and not is_block:
             raw += 0.10
 
-        self._observations.append({
-            "summary": f"{event.gate} → {event.verdict}" + (
-                f" [{', '.join(event.violated_laws)}]" if event.violated_laws else ""
-            ),
-            "raw": raw,
-        })
+        self._observations.append(
+            {
+                "summary": f"{event.gate} → {event.verdict}"
+                + (f" [{', '.join(event.violated_laws)}]" if event.violated_laws else ""),
+                "raw": raw,
+            }
+        )
         self._update_ema(min(1.0, raw))
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DETECTOR 2: FEEDBACK OSCILLATION
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class FeedbackOscillationDetector(BaseDetector):
     """Detects oscillation in cross-organ feedback loops.
@@ -285,16 +285,19 @@ class FeedbackOscillationDetector(BaseDetector):
         if signal == "PROCEED":
             raw = max(0.01, raw * 0.50)
 
-        self._observations.append({
-            "summary": f"{signal} step={event.step_number} streak={self._revision_streak}",
-            "raw": raw,
-        })
+        self._observations.append(
+            {
+                "summary": f"{signal} step={event.step_number} streak={self._revision_streak}",
+                "raw": raw,
+            }
+        )
         self._update_ema(raw)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DETECTOR 3: GRADIENT INSTABILITY
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class GradientInstabilityDetector(BaseDetector):
     """Detects instability in the constitutional cost function gradient.
@@ -322,18 +325,17 @@ class GradientInstabilityDetector(BaseDetector):
 
         # Track per-dimension deltas for whip-saw detection
         prev_delta = self._dimension_last_delta.get(dim, 0.0)
-        whipsaw = (prev_delta * delta < 0 and abs_delta > 0.15)  # sign flip with magnitude
+        whipsaw = prev_delta * delta < 0 and abs_delta > 0.15  # sign flip with magnitude
         self._dimension_last_delta[dim] = delta
 
         # Track per-dimension spike count (|Δ| > 0.25 = spike)
         if abs_delta > 0.25:
-            self._dimension_spike_count[dim] = (
-                self._dimension_spike_count.get(dim, 0) + 1
-            )
+            self._dimension_spike_count[dim] = self._dimension_spike_count.get(dim, 0) + 1
 
         # Detect multidimensional shock: >2 dimensions active in current window
         recently_active = sum(
-            1 for d in self._dimension_last_delta
+            1
+            for d in self._dimension_last_delta
             if abs(self._dimension_last_delta.get(d, 0.0)) > 0.15
         )
         if recently_active >= 3:
@@ -349,18 +351,21 @@ class GradientInstabilityDetector(BaseDetector):
 
         raw = min(1.0, magnitude_score + whipsaw_boost + systemic_boost)
 
-        self._observations.append({
-            "summary": f"∇{dim} Δ={delta:+.4f}" + (" WHIPSAW" if whipsaw else "") + (
-                f" multi_dim={recently_active}" if recently_active >= 3 else ""
-            ),
-            "raw": raw,
-        })
+        self._observations.append(
+            {
+                "summary": f"∇{dim} Δ={delta:+.4f}"
+                + (" WHIPSAW" if whipsaw else "")
+                + (f" multi_dim={recently_active}" if recently_active >= 3 else ""),
+                "raw": raw,
+            }
+        )
         self._update_ema(raw)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DETECTOR 4: AUTONOMY PRESSURE
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class AutonomyPressureDetector(BaseDetector):
     """Detects pressure on the E7 autonomy ceiling.
@@ -408,17 +413,20 @@ class AutonomyPressureDetector(BaseDetector):
 
         raw = min(1.0, override_score + surge_score + downgrade_score)
 
-        self._observations.append({
-            "summary": f"E7 overrides={self._override_total} surge={self._surge_active} "
-                       f"downgrades={self._tier_downgrades} tier={self._last_tier}",
-            "raw": raw,
-        })
+        self._observations.append(
+            {
+                "summary": f"E7 overrides={self._override_total} surge={self._surge_active} "
+                f"downgrades={self._tier_downgrades} tier={self._last_tier}",
+                "raw": raw,
+            }
+        )
         self._update_ema(raw)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DETECTOR 5: ORGAN SILENCE
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class OrganSilenceDetector(BaseDetector):
     """Detects when federation organs stop publishing.
@@ -446,9 +454,9 @@ class OrganSilenceDetector(BaseDetector):
         "AAA": 0.05,
     }
 
-    STALE_THRESHOLD_S = 300     # 5 minutes — organ is stale
-    SILENT_THRESHOLD_S = 900    # 15 minutes — organ is silent
-    DEAD_THRESHOLD_S = 3600     # 60 minutes — organ is presumed dead
+    STALE_THRESHOLD_S = 300  # 5 minutes — organ is stale
+    SILENT_THRESHOLD_S = 900  # 15 minutes — organ is silent
+    DEAD_THRESHOLD_S = 3600  # 60 minutes — organ is presumed dead
 
     def __init__(self) -> None:
         super().__init__(ema_alpha=0.25, spike_threshold=0.40)
@@ -471,10 +479,12 @@ class OrganSilenceDetector(BaseDetector):
         now = time.time()
         raw = self._compute_silence_score(now)
 
-        self._observations.append({
-            "summary": f"{organ}={status}" if status != "alive" else f"{organ}=alive",
-            "raw": raw,
-        })
+        self._observations.append(
+            {
+                "summary": f"{organ}={status}" if status != "alive" else f"{organ}=alive",
+                "raw": raw,
+            }
+        )
         self._update_ema(raw)
 
     def _compute_silence_score(self, now: float) -> float:
@@ -511,8 +521,5 @@ class OrganSilenceDetector(BaseDetector):
         """Override: re-compute silence score from current organ timestamps."""
         raw = self._compute_silence_score(time.time())
         # Update EMA with current silence state
-        self.state.ema = (
-            self.state.ema_alpha * raw
-            + (1.0 - self.state.ema_alpha) * self.state.ema
-        )
+        self.state.ema = self.state.ema_alpha * raw + (1.0 - self.state.ema_alpha) * self.state.ema
         return super().compute_score()

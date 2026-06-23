@@ -442,6 +442,7 @@ class TestFourStageLoopWiring:
         mode dispatch. Verified by code search."""
         import inspect
         from arifosmcp.runtime.tools import _arif_kernel_route
+
         src = inspect.getsource(_arif_kernel_route)
         assert 'mode == "context_runner"' in src, (
             "arif_kernel_route missing context_runner mode dispatch"
@@ -454,6 +455,7 @@ class TestFourStageLoopWiring:
             BRIDGE_POLICY_VERSION,
             BRIDGE_SOURCE_OF_TRUTH,
         )
+
         assert BRIDGE_POLICY_VERSION.startswith("context_runner_bridge.")
         assert BRIDGE_SOURCE_OF_TRUTH.endswith("context_runner_bridge.py")
         assert len(BRIDGE_POLICY_VERSION) > 0
@@ -507,9 +509,7 @@ class TestFourStageLoopWiring:
             ActionClass.MUTATE,
             ActionClass.ATOMIC,
         )
-        assert not gate_triggers, (
-            "OBSERVE actions should bypass LEGACY_WRAP gate (F1 read-only)"
-        )
+        assert not gate_triggers, "OBSERVE actions should bypass LEGACY_WRAP gate (F1 read-only)"
 
     def test_context_runner_bridge_four_intents_wired(self):
         """The bridge must wire all 4 intent types: preflight, prepare,

@@ -212,9 +212,7 @@ def _check_stop_rules(
     # ── Rule 2: Branch entropy exceeding budget ──
     active_branches = branch_count
     if active_branches > max_branches:
-        triggers.append(
-            f"Branch entropy B_e = {active_branches} exceeds budget {max_branches}"
-        )
+        triggers.append(f"Branch entropy B_e = {active_branches} exceeds budget {max_branches}")
         paradox_id = paradox_id or "R_CxJ"  # Sextus [clarity_justice]: suspension isn't governance
 
     # ── Rule 3: Confidence rising while support density falling (hallucinated certainty) ──
@@ -266,7 +264,10 @@ def _check_stop_rules(
 MIND_PARADOX_ANCHORS: list[dict] = [
     # ── TRUTH ROW ──────────────────────────────────────────────────────────────
     {
-        "id": "R_TxC", "matrix_cell": "truth_care", "matrix_row": "TRUTH", "matrix_col": "CARE",
+        "id": "R_TxC",
+        "matrix_cell": "truth_care",
+        "matrix_row": "TRUTH",
+        "matrix_col": "CARE",
         "motto_binding": "DIKAJI, BUKAN DISUAPI",
         "quote": {
             "text": "A wise man, therefore, proportions his belief to the evidence.",
@@ -288,7 +289,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "R_TxP", "matrix_cell": "truth_peace", "matrix_row": "TRUTH", "matrix_col": "PEACE",
+        "id": "R_TxP",
+        "matrix_cell": "truth_peace",
+        "matrix_row": "TRUTH",
+        "matrix_col": "PEACE",
         "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
         "quote": {
             "text": "Doubt is not a pleasant condition, but certainty is an absurd one.",
@@ -310,7 +314,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "R_TxJ", "matrix_cell": "truth_justice", "matrix_row": "TRUTH", "matrix_col": "JUSTICE",
+        "id": "R_TxJ",
+        "matrix_cell": "truth_justice",
+        "matrix_row": "TRUTH",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DISEDARKAN, BUKAN DIYAKINKAN",
         "quote": {
             "text": "To know what you know and to know what you do not know — that is true knowledge.",
@@ -333,7 +340,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
     },
     # ── CLARITY ROW ────────────────────────────────────────────────────────────
     {
-        "id": "R_CxC", "matrix_cell": "clarity_care", "matrix_row": "CLARITY", "matrix_col": "CARE",
+        "id": "R_CxC",
+        "matrix_cell": "clarity_care",
+        "matrix_row": "CLARITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJELAJAH, BUKAN DISEKATI",
         "quote": {
             "text": "The unexamined life is not worth living.",
@@ -355,7 +365,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "R_CxP", "matrix_cell": "clarity_peace", "matrix_row": "CLARITY", "matrix_col": "PEACE",
+        "id": "R_CxP",
+        "matrix_cell": "clarity_peace",
+        "matrix_row": "CLARITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIJELASKAN, BUKAN DIKABURKAN",
         "quote": {
             "text": "I think, therefore I am.",
@@ -377,7 +390,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "R_CxJ", "matrix_cell": "clarity_justice", "matrix_row": "CLARITY", "matrix_col": "JUSTICE",
+        "id": "R_CxJ",
+        "matrix_cell": "clarity_justice",
+        "matrix_row": "CLARITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DIUSAHAKAN, BUKAN DIHARAPI",
         "quote": {
             "text": "Skepticism is an ability to set out oppositions among things which appear and are thought of in any way at all, an ability by which, because of the equipollence in the opposed objects and accounts, we come first to suspension of judgment and afterwards to tranquillity.",
@@ -400,7 +416,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
     },
     # ── HUMILITY ROW ───────────────────────────────────────────────────────────
     {
-        "id": "R_HxC", "matrix_cell": "humility_care", "matrix_row": "HUMILITY", "matrix_col": "CARE",
+        "id": "R_HxC",
+        "matrix_cell": "humility_care",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "CARE",
         "motto_binding": "DIJAGA, BUKAN DIABAIKAN",
         "quote": {
             "text": "The fundamental cause of the trouble is that in the modern world the stupid are cocksure while the intelligent are full of doubt.",
@@ -422,7 +441,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "R_HxP", "matrix_cell": "humility_peace", "matrix_row": "HUMILITY", "matrix_col": "PEACE",
+        "id": "R_HxP",
+        "matrix_cell": "humility_peace",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "PEACE",
         "motto_binding": "DIDAMAIKAN, BUKAN DIPANASKAN",
         "quote": {
             "text": "Whereof one cannot speak, thereof one must be silent.",
@@ -444,7 +466,10 @@ MIND_PARADOX_ANCHORS: list[dict] = [
         "norm": "WAJIB",
     },
     {
-        "id": "R_HxJ", "matrix_cell": "humility_justice", "matrix_row": "HUMILITY", "matrix_col": "JUSTICE",
+        "id": "R_HxJ",
+        "matrix_cell": "humility_justice",
+        "matrix_row": "HUMILITY",
+        "matrix_col": "JUSTICE",
         "motto_binding": "DITEMPA, BUKAN DIBERI",
         "quote": {
             "text": "If I want the door to turn, the hinges must stay put.",
@@ -480,8 +505,11 @@ _MIND_BY_ID = _mind_registry._legacy_by_id
 
 
 def _inject_paradox_anchor(
-    output: dict, trigger_context: str, anchor_id: str | None = None,
-    matrix_cell: str | None = None, state_changed: bool = True,
+    output: dict,
+    trigger_context: str,
+    anchor_id: str | None = None,
+    matrix_cell: str | None = None,
+    state_changed: bool = True,
 ) -> dict:
     """
     Inject a paradox anchor into reasoning output at a decision point.
@@ -518,17 +546,23 @@ def _sanitize_observed_inputs(inputs: list[str]) -> list[str]:
         if "<think>" in item or "</think>" in item:
             # Extract a safe abstraction if possible
             if "theory of mind" in item.lower() or "tom" in item.lower():
-                sanitized.append("Evidence: operator asked about theory-of-mind scaffolding in init tool.")
+                sanitized.append(
+                    "Evidence: operator asked about theory-of-mind scaffolding in init tool."
+                )
             elif "identity" in item.lower() or "verification" in item.lower():
                 sanitized.append("Evidence: operator identity verification state was discussed.")
             elif "consent" in item.lower() or "privacy" in item.lower():
                 sanitized.append("Evidence: consent boundaries and privacy were discussed.")
             else:
-                sanitized.append("Evidence: reasoning trace contained structured constitutional analysis.")
+                sanitized.append(
+                    "Evidence: reasoning trace contained structured constitutional analysis."
+                )
             continue
         # Strip obvious raw model artifacts
         if item.startswith("[think]") or item.startswith("<thinking>"):
-            sanitized.append("Evidence: structured reasoning trace available (raw thinking sanitized).")
+            sanitized.append(
+                "Evidence: structured reasoning trace available (raw thinking sanitized)."
+            )
             continue
         sanitized.append(item)
     return sanitized
@@ -557,7 +591,9 @@ def _ensure_confidence(conf: dict | None) -> dict:
         else:
             conf["label"] = "low"
     if "reason" not in conf:
-        conf["reason"] = f"Overall confidence {conf['overall_confidence']:.2f} — self-assessed, not verified."
+        conf["reason"] = (
+            f"Overall confidence {conf['overall_confidence']:.2f} — self-assessed, not verified."
+        )
     return conf
 
 
@@ -650,13 +686,13 @@ def _build_delta_bundle(
     attestations = reasoning.get("attestations", []) if isinstance(reasoning, dict) else []
     missing_evidence = reasoning.get("missing_evidence", []) if isinstance(reasoning, dict) else []
     if claim_state in ("VERIFIED_FACT",) and attestations:
-        evidence_verdict = "SEAL"          # strong evidence with attestations
+        evidence_verdict = "SEAL"  # strong evidence with attestations
     elif claim_state in ("SUPPORTED_CLAIM",) or (attestations and not missing_evidence):
-        evidence_verdict = "HYPOTHESIS"    # partial — some support but not verified fact
+        evidence_verdict = "HYPOTHESIS"  # partial — some support but not verified fact
     elif claim_state in ("SPECULATION", "UNSUPPORTED") or missing_evidence:
-        evidence_verdict = "HOLD"          # unsupported or contradicted by missing evidence
+        evidence_verdict = "HOLD"  # unsupported or contradicted by missing evidence
     else:
-        evidence_verdict = "HOLD"          # default to unsupported
+        evidence_verdict = "HOLD"  # default to unsupported
 
     # ── Paradox anchor: R_HxC Russell — confidence/evidence mismatch ──
     _paradox_anchor = None
@@ -671,23 +707,27 @@ def _build_delta_bundle(
     # Note: authority is about WHO acts, not WHERE the claim came from.
     # AI provenance is metadata, not authority (see core invariant).
     if actor_id and actor_id.lower() in ("arif", "888", "f13"):
-        authority_verdict = "SEAL"         # sovereign or named actor
+        authority_verdict = "SEAL"  # sovereign or named actor
     elif actor_id:
-        authority_verdict = "HYPOTHESIS"   # identified but unverified actor
+        authority_verdict = "HYPOTHESIS"  # identified but unverified actor
     else:
-        authority_verdict = "HOLD"         # anonymous — no authority at all
+        authority_verdict = "HOLD"  # anonymous — no authority at all
 
     # ── Risk verdict ─────────────────────────────────────────
     # What is the blast radius of acting on this claim?
     # Determined by reversibility + claim sensitivity + actor authority.
-    if reasoning_verdict in ("SEAL", "REASONED", "REFLECTED") and evidence_verdict in ("SEAL",) and authority_verdict == "SEAL":
-        risk_verdict = "SEAL"              # low risk: well-supported, high authority
+    if (
+        reasoning_verdict in ("SEAL", "REASONED", "REFLECTED")
+        and evidence_verdict in ("SEAL",)
+        and authority_verdict == "SEAL"
+    ):
+        risk_verdict = "SEAL"  # low risk: well-supported, high authority
     elif reasoning_verdict in ("SEAL", "REASONED") and evidence_verdict in ("SEAL", "HYPOTHESIS"):
-        risk_verdict = "HYPOTHESIS"        # medium risk: coherent reasoning but evidence is partial
+        risk_verdict = "HYPOTHESIS"  # medium risk: coherent reasoning but evidence is partial
     elif evidence_verdict == "HOLD":
-        risk_verdict = "HOLD"              # high risk: unsupported claims used for action
+        risk_verdict = "HOLD"  # high risk: unsupported claims used for action
     else:
-        risk_verdict = "HOLD"              # default to high risk
+        risk_verdict = "HOLD"  # default to high risk
 
     # Final: most conservative across all planes
     final_verdict = _reduce_verdict(
@@ -776,7 +816,8 @@ def _build_delta_bundle(
         "_block_state": {
             "thought_count": len(reasoning.get("observed_inputs", [])),
             "evidence_bound_claims": sum(
-                1 for c in reasoning.get("claims", [])
+                1
+                for c in reasoning.get("claims", [])
                 if isinstance(c, dict) and c.get("evidence_ids")
             ),
             "stop_check": None,  # populated by handler
@@ -789,7 +830,8 @@ def _build_delta_bundle(
             bundle,
             trigger_context=(
                 f"confidence={overall_conf:.2f} vs evidence={evidence_conf:.2f}"
-                if _paradox_anchor == "R1" else "epistemic tag boundary"
+                if _paradox_anchor == "R1"
+                else "epistemic tag boundary"
             ),
             anchor_id=_paradox_anchor,
         )
@@ -834,7 +876,6 @@ def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> dict[str, Any]:
 
 
 def arif_think(
-
     mode: str = "reason",
     query: str | None = None,
     actor_id: str | None = None,
@@ -843,39 +884,54 @@ def arif_think(
     """
     333_MIND: Constitutional reasoning and synthesis (Structured Witness).
     """
-    if mode in ("geox_quantum_suitability", "geox_scale_classifier", "geox_molecular_vs_macroscopic", "geox_hamiltonian_candidate"):
-        return {"status": "readonly", "message": f"{mode} activated based on GEOX quantum scale classifier."}
+    if mode in (
+        "geox_quantum_suitability",
+        "geox_scale_classifier",
+        "geox_molecular_vs_macroscopic",
+        "geox_hamiltonian_candidate",
+    ):
+        return {
+            "status": "readonly",
+            "message": f"{mode} activated based on GEOX quantum scale classifier.",
+        }
 
-    if mode in ("hndl_score", "pqc_gap_analysis", "migration_strategy", "qday_physics_assess", "claim_lint_quantum"):
+    if mode in (
+        "hndl_score",
+        "pqc_gap_analysis",
+        "migration_strategy",
+        "qday_physics_assess",
+        "claim_lint_quantum",
+    ):
         import yaml
+
         try:
             with open("/root/arifOS/config/qday_policy.yaml") as f:
                 policy = yaml.safe_load(f).get("qday_policy", {})
         except Exception:
             policy = {}
-            
+
         risk = "MEDIUM"
         reason_text = "Standard crypto usage detected."
         recommended_action = "Monitor CRQC horizon."
-        
+
         has_vulnerable = True
         data_lifetime = 10
         hndl_crit = policy.get("hndl_critical_if", {})
         crit_lifetime = hndl_crit.get("data_lifetime_years_gte", 10)
-        
+
         if data_lifetime >= crit_lifetime and has_vulnerable:
             risk = "CRITICAL"
             reason_text = "Long-lived data protected by quantum-vulnerable public-key cryptography."
             recommended_action = "Prioritize hybrid/PQC migration planning."
-            
+
         return {
             "mode": mode,
             "risk": risk,
             "reason": reason_text,
             "recommended_action": recommended_action,
-            "mutation": False
+            "mutation": False,
         }
-        
+
     from arifosmcp.runtime.mind_reason import (
         arif_think_structured as run_reasoning,
     )
@@ -899,19 +955,35 @@ def arif_think(
         synthesis_v2 = packet.get("synthesis", {})
 
         # ── AGI KERNEL READINESS GATE 001 FIELDS ──
-        raw_conf_v2 = synthesis_v2.get("confidence", {}) if isinstance(synthesis_v2.get("confidence"), dict) else {}
+        raw_conf_v2 = (
+            synthesis_v2.get("confidence", {})
+            if isinstance(synthesis_v2.get("confidence"), dict)
+            else {}
+        )
         bundle = {
             "claim_state": str(packet.get("claim_state", "UNKNOWN")).upper(),
             "reasoning_verdict": str(reason_result.get("status", "OK")).upper(),
-            "evidence_used": packet.get("attestations", []) if isinstance(packet.get("attestations"), list) else [],
-            "inferences": packet.get("abductions", []) if isinstance(packet.get("abductions"), list) else [],
-            "counterarguments": packet.get("counterarguments", []) if isinstance(packet.get("counterarguments"), list) else [],
-            "missing_evidence": packet.get("missing_evidence", []) if isinstance(packet.get("missing_evidence"), list) else [],
+            "evidence_used": packet.get("attestations", [])
+            if isinstance(packet.get("attestations"), list)
+            else [],
+            "inferences": packet.get("abductions", [])
+            if isinstance(packet.get("abductions"), list)
+            else [],
+            "counterarguments": packet.get("counterarguments", [])
+            if isinstance(packet.get("counterarguments"), list)
+            else [],
+            "missing_evidence": packet.get("missing_evidence", [])
+            if isinstance(packet.get("missing_evidence"), list)
+            else [],
             "confidence": {
-                "overall": float(raw_conf_v2.get("overall_confidence", raw_conf_v2.get("overall", 0.0))),
-                "label": str(raw_conf_v2.get("label", "low"))
+                "overall": float(
+                    raw_conf_v2.get("overall_confidence", raw_conf_v2.get("overall", 0.0))
+                ),
+                "label": str(raw_conf_v2.get("label", "low")),
             },
-            "next_safe_action": [a.get("tool") for a in packet.get("next_actions", [])] if isinstance(packet.get("next_actions"), list) else [],
+            "next_safe_action": [a.get("tool") for a in packet.get("next_actions", [])]
+            if isinstance(packet.get("next_actions"), list)
+            else [],
             "_mind_routing": _routing["_mind_routing"],
         }
         return Synthesis(**_ok("arif_think", bundle))
@@ -925,22 +997,42 @@ def arif_think(
     if floor_verdict != "SEAL":
         uncertainty.append({"type": "FLOOR_BREACH", "detail": floor_reason})
 
-    raw_conf = reason_result.get("confidence", {}) if isinstance(reason_result.get("confidence"), dict) else {}
-    reasoning_data = reason_result.get("reasoning", {}) if isinstance(reason_result.get("reasoning"), dict) else {}
-    
+    raw_conf = (
+        reason_result.get("confidence", {})
+        if isinstance(reason_result.get("confidence"), dict)
+        else {}
+    )
+    reasoning_data = (
+        reason_result.get("reasoning", {})
+        if isinstance(reason_result.get("reasoning"), dict)
+        else {}
+    )
+
     # ── AGI KERNEL READINESS GATE 001 FIELDS ──
     bundle = {
         "claim_state": str(reason_result.get("claim_state", "UNKNOWN")).upper(),
-        "reasoning_verdict": "HOLD" if floor_verdict != "SEAL" else str(reason_result.get("status", "HOLD")).upper(),
-        "evidence_used": reasoning_data.get("attestations", []) if isinstance(reasoning_data.get("attestations"), list) else [],
-        "inferences": reasoning_data.get("abductions", []) if isinstance(reasoning_data.get("abductions"), list) else [],
-        "counterarguments": reasoning_data.get("counterarguments", []) if isinstance(reasoning_data.get("counterarguments"), list) else [],
-        "missing_evidence": reasoning_data.get("missing_evidence", []) if isinstance(reasoning_data.get("missing_evidence"), list) else [],
+        "reasoning_verdict": "HOLD"
+        if floor_verdict != "SEAL"
+        else str(reason_result.get("status", "HOLD")).upper(),
+        "evidence_used": reasoning_data.get("attestations", [])
+        if isinstance(reasoning_data.get("attestations"), list)
+        else [],
+        "inferences": reasoning_data.get("abductions", [])
+        if isinstance(reasoning_data.get("abductions"), list)
+        else [],
+        "counterarguments": reasoning_data.get("counterarguments", [])
+        if isinstance(reasoning_data.get("counterarguments"), list)
+        else [],
+        "missing_evidence": reasoning_data.get("missing_evidence", [])
+        if isinstance(reasoning_data.get("missing_evidence"), list)
+        else [],
         "confidence": {
             "overall": float(raw_conf.get("overall_confidence", raw_conf.get("overall", 0.0))),
-            "label": str(raw_conf.get("label", "low"))
+            "label": str(raw_conf.get("label", "low")),
         },
-        "next_safe_action": reason_result.get("next_safe_action", []) if isinstance(reason_result.get("next_safe_action"), list) else [],
+        "next_safe_action": reason_result.get("next_safe_action", [])
+        if isinstance(reason_result.get("next_safe_action"), list)
+        else [],
         "_mind_routing": _routing["_mind_routing"],
     }
 

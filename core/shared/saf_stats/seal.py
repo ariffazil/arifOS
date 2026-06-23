@@ -123,9 +123,7 @@ def seal(
     """Append a seal record. Thread-safe. Returns the record written."""
     ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     epoch = int(time.time() * 1000)
-    record_id = (
-        f"SAF-{epoch}-{hashlib.sha256((tool + action + ts).encode()).hexdigest()[:8]}"
-    )
+    record_id = f"SAF-{epoch}-{hashlib.sha256((tool + action + ts).encode()).hexdigest()[:8]}"
 
     payload = {
         "actor": actor,

@@ -154,13 +154,67 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
     "555m": {"next": "666", "tool": "arif_critique", "prompt": "666_critique"},
     # 666 critique pre-forge ethical check — heart before hammer
     "666": {"next": "010", "tool": "arif_forge", "prompt": "010_dry_run"},
-    "010": {"next": "777", "tool": "arif_measure", "prompt": None},
     "666g": {"next": "010", "tool": "arif_forge", "prompt": "010_dry_run"},
     # 010 forge → 777 measure (verify before judge)
     "010": {"next": "777", "tool": "arif_measure", "prompt": None},
     "777": {"next": "888", "tool": "arif_judge", "prompt": "888_apex"},
     "888": {"next": "999", "tool": "arif_seal", "prompt": "999_seal"},
     "999": {"next": None, "tool": None, "prompt": None},
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CORE 7 — The Kernel's Primary 7-Tool Metabolic Pipeline
+# ═══════════════════════════════════════════════════════════════════════════════
+# These are the 7 essential tools that form the governed agentic loop.
+# "Properly" means:
+#   - Complete affordance contracts (purpose, use_when, do_not_use, L0-L5, risk, thresholds)
+#   - Every response carries facts | inferences | unknowns | metacognition | next_safe_action
+#   - arif_kernel_intercept is the enforcement brain for the 888 slot
+#   - This loop is what metacognitive agents should primarily reason about.
+#
+# This is the expressive core. There are more tools (internals + diagnostics), but these 7 are public.
+# but these 7 are the ones that must be cognitively perfect.
+
+CORE_SEVEN: list[str] = [
+    "arif_init",  # 000 INIT — bootstrap + identity binding (must be first)
+    "arif_observe",  # 111 OBSERVE — ground in reality (absorbs fetch)
+    "arif_think",  # 333 THINK — reasoning + plans + critique (absorbs critique)
+    "arif_route",  # 444/555 ROUTE — intent routing
+    "arif_judge",  # 888 JUDGE — verdict (enforced by arif_kernel_intercept)
+    "arif_act",  # 900 ACT — gated execution (hard seal requirement)
+    "arif_seal",  # 999 SEAL — immutable record
+]
+
+CORE_SEVEN_WITH_ENGINE = {
+    "arif_init": "arif_init",
+    "arif_observe": "arif_observe",
+    "arif_think": "arif_think",
+    "arif_route": "arif_route",
+    "arif_judge": "arif_judge (kernel: arif_kernel_intercept)",
+    "arif_act": "arif_act (gated execution)",
+    "arif_seal": "arif_seal",
+}
+
+CORE_SEVEN_LABELS: dict[str, str] = {
+    "arif_init": "Bootstrap (000)",
+    "arif_observe": "Ground Reality (111)",
+    "arif_think": "Reason (333)",
+    "arif_route": "Route (444/555)",
+    "arif_judge": "Verdict (888)",
+    "arif_act": "Act (900, gated)",
+    "arif_seal": "Permanent Record (999)",
+}
+
+# Map stage to the canonical tool in the clean 7-loop (for docs / agents)
+CORE_SEVEN_STAGE_MAP: dict[str, str] = {
+    "000": "arif_init",
+    "111": "arif_observe",
+    "333": "arif_think",
+    "444": "arif_route",
+    "888": "arif_judge",
+    "900": "arif_act",
+    "999": "arif_seal",
 }
 
 
@@ -769,26 +823,44 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_judge": {
         "name": "arif_judge",
         "description": (
-            "Render final constitutional verdict on a proposed action. "
-            "Use when a decision is ready for arbitration and binding judgment. "
-            "Provide candidate (the action/decision to judge). "
-            "Returns verdict: SEAL (approved), HOLD (needs more info), or VOID (rejected). "
-            "Must be preceded by arif_critique for ethical assessment."
+            "888 constitutional verdict on a proposed action. Floor check, authority check, "
+            "and HOLD/SEAL/VOID/ESCALATE arbitration. This is the minimum constitutional kernel — "
+            "every mutating or external action must pass through it. "
+            "Provide candidate action with intent, actor, authority, evidence, and reversibility. "
+            "Returns verdict + next_safe_action."
         ),
         "access": "authenticated",
+        "stage": ToolStage.JUDGE,
+        "lane": TrinityLane.ASI,
+        "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "risk_tier": "critical",
+        "irreversible": False,
+        "modes": ["intercept", "judge", "validate", "hold", "escalate"],
+        "eureka_insight": (
+            "F13 SOVEREIGN: human veto absolute. "
+            "F01 AMANAH: reversibility required unless explicitly acked. "
+            "F02 TRUTH: evidence threshold τ ≥ 0.99 for claims."
+        ),
+        "cognitive_axis": "judge",
+        "expose": True,
+    },
+    "arif_judge_deliberate": {
+        "name": "arif_judge_deliberate",
+        "description": (
+            "Internal AAA a2a-server deliberation tool. Render a nuanced constitutional verdict "
+            "with multi-floor reasoning. Not part of the public 7-tool facade; use arif_judge for "
+            "public constitutional arbitration."
+        ),
+        "access": "internal_only",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": False,
         "modes": ["judge", "validate", "hold", "rules", "armor", "probe", "notify"],
-        "eureka_insight": (
-            "L01: irreversible downstream — judge verdicts authorize forge/vault actions. "
-            "L11: identity must be verified before judgment. "
-            "L13: human veto is absolute — no algorithm overrides sovereign."
-        ),
+        "eureka_insight": "Internal deliberation surface for AAA a2a-server.",
         "cognitive_axis": "judge",
-        "expose": True,
+        "expose": False,
     },
     "arif_seal": {
         "name": "arif_seal",
@@ -813,15 +885,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "seal",
         "expose": True,
     },
-    "arif_forge": {
-        "name": "arif_forge",
-        "description": (
-            "Execute approved builds, deployments, or system changes. "
-            "Use ONLY after arif_judge has issued a SEAL verdict. "
-            "Provide manifest with build instructions or query for code generation. "
-            "Use mode='dry_run' to preview without executing. "
-            "Requires ack_irreversible=True for live execution."
-        ),
+    "arif_act": {
+        "name": "arif_act",
+        "description": "Execute approved action. Requires seal_verdict_id.",
         "access": "sovereign",
         "stage": ToolStage.FORGE_EXECUTE,
         "lane": TrinityLane.AGI,
@@ -844,6 +910,23 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ),
         "cognitive_axis": "execute",
         "expose": True,
+    },
+    "arif_forge": {
+        "name": "arif_forge",
+        "description": (
+            "Internal alias for arif_act. Retained for backward compatibility "
+            "but no longer advertised on the public MCP surface."
+        ),
+        "access": "internal_only",
+        "stage": ToolStage.FORGE_EXECUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "risk_tier": "critical",
+        "irreversible": True,
+        "modes": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
+        "eureka_insight": "Internal alias for arif_act.",
+        "cognitive_axis": "execute",
+        "expose": False,
     },
     "arif_measure": {
         "name": "arif_measure",
@@ -881,6 +964,26 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "expose": True,
     },
 }
+
+
+# ═─ 7-Tool MCP Facade enforcement ─══════════════════════════════════════════
+# F13 SOVEREIGN ratification 2026-06-23: public surface is exactly 7 verbs.
+# All other canonical tools are demoted to internal_only aliases.
+_PUBLIC_7: frozenset[str] = frozenset(
+    {
+        "arif_init",
+        "arif_observe",
+        "arif_think",
+        "arif_route",
+        "arif_judge",
+        "arif_act",
+        "arif_seal",
+    }
+)
+for _name, _spec in CANONICAL_TOOLS.items():
+    if _name not in _PUBLIC_7:
+        _spec["access"] = "internal_only"
+        _spec["expose"] = False
 
 
 PROBE_TOOLS: tuple[str, ...] = ()
@@ -1750,10 +1853,6 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
         "OBSERVE",
         title="Search (ChatGPT Compat)",
     ),
-    "arif_fetch": derive_mcp_annotations(
-        "OBSERVE",
-        title="Fetch (ChatGPT Compat)",
-    ),
     # ═══════════════════════════════════════════════════════════════════
     # HERMES TOOLS (7) — all OBSERVE/ANALYZE (read-only cross-verification)
     # ═══════════════════════════════════════════════════════════════════
@@ -2021,7 +2120,10 @@ def _list_tools_by_access(access: str) -> list[str]:
 
 
 def list_public_tools() -> list[str]:
-    return _list_tools_by_access("public")
+    # The canonical public surface is the Core 7.
+    # Everything else (memory, measure, compose, kernel internals, aliases)
+    # is internal or demoted.
+    return list(CORE_SEVEN)
 
 
 def list_authenticated_tools() -> list[str]:
@@ -2839,7 +2941,6 @@ def recommend_gradient_level(intent: str) -> dict:
     """Given a natural-language intent, recommend which cognitive level to use."""
     try:
         from arifosmcp.core.cognitive_gradient import (  # noqa: PLC0415
-            CognitiveLevel,
             recommend_level,
             tools_at_level,
         )

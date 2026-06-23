@@ -40,7 +40,7 @@ DITEMPA BUKAN DIBERI — Prediction is forged, not guessed.
 from __future__ import annotations
 import math
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 logger = logging.getLogger("arifosmcp.art_predict")
@@ -93,11 +93,13 @@ def dequantize_blast(weight: float) -> str:
 # TRUST BANDS — not binary, continuous
 # ═══════════════════════════════════════════════════════════════════════
 
+
 class TrustBand(str, Enum):
     """Continuous trust expressed as discrete bands for ACT pattern selection."""
-    TRUST_HIGH = "trust_high"          # [0.80, 1.00] — full autonomy
-    TRUST_MEDIUM = "trust_medium"      # [0.50, 0.80) — canary recommended
-    TRUST_LOW = "trust_low"            # [0.20, 0.50) — strict gating required
+
+    TRUST_HIGH = "trust_high"  # [0.80, 1.00] — full autonomy
+    TRUST_MEDIUM = "trust_medium"  # [0.50, 0.80) — canary recommended
+    TRUST_LOW = "trust_low"  # [0.20, 0.50) — strict gating required
     TRUST_CRITICAL = "trust_critical"  # [0.00, 0.20) — human required
 
 
@@ -146,7 +148,9 @@ def compute_trust_decay(
         Current trust score [0.0, 1.0]
     """
     # Decay constant: higher failure rate + higher blast = faster decay
-    decay_lambda = BASE_DECAY_RATE * (1.0 + failure_rate * 10.0) * (1.0 + math.log2(blast_weight + 1) * 0.1)
+    decay_lambda = (
+        BASE_DECAY_RATE * (1.0 + failure_rate * 10.0) * (1.0 + math.log2(blast_weight + 1) * 0.1)
+    )
 
     # Exponential decay
     trust = initial_trust * math.exp(-decay_lambda * days_elapsed)
@@ -188,14 +192,18 @@ def compute_trust_from_signals(
 
     # 3. Staleness penalty (Ebbinghaus)
     if days_since_use > 0:
-        decay_lambda = BASE_DECAY_RATE * (1.0 + failure_rate * 10.0) * (1.0 + math.log2(blast_weight + 1) * 0.1)
+        decay_lambda = (
+            BASE_DECAY_RATE
+            * (1.0 + failure_rate * 10.0)
+            * (1.0 + math.log2(blast_weight + 1) * 0.1)
+        )
         trust *= math.exp(-decay_lambda * days_since_use)
 
     # 4. Recent trajectory boost/penalty
     total_recent = recent_successes + recent_failures
     if total_recent > 0:
         recent_ratio = recent_successes / total_recent
-        trust *= (0.5 + recent_ratio * 0.5)
+        trust *= 0.5 + recent_ratio * 0.5
 
     # Clamp
     trust = max(0.0, min(1.0, trust))
@@ -206,6 +214,7 @@ def compute_trust_from_signals(
 # ═══════════════════════════════════════════════════════════════════════
 # PREDICTIVE FAILURE — forecast before it happens
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class FailureRisk(str, Enum):
     LOW = "low"
@@ -271,14 +280,16 @@ def predict_failure(
 #   - Human HOLD overrides → Q decreases (human distrust is a signal)
 #   - Human SEAL overrides of ART HOLD → Q increases (tool was vindicated)
 
+
 @dataclass
 class QEntry:
     """One entry in the tool Q-table."""
+
     tool_name: str
     task_class: str
     expected_success_rate: float  # [0.0, 1.0]
-    sample_count: int = 0         # how many observations
-    last_updated: str = ""        # ISO timestamp
+    sample_count: int = 0  # how many observations
+    last_updated: str = ""  # ISO timestamp
 
 
 class ToolQTable:
@@ -348,8 +359,8 @@ class ToolQTable:
             reward -= 0.2  # human distrust is a negative signal
 
         # Update
-        entry.expected_success_rate = (
-            entry.expected_success_rate + alpha * (reward - entry.expected_success_rate)
+        entry.expected_success_rate = entry.expected_success_rate + alpha * (
+            reward - entry.expected_success_rate
         )
         entry.sample_count += 1
         entry.last_updated = datetime.now(timezone.utc).isoformat()
@@ -396,9 +407,11 @@ class ToolQTable:
 # Called from art.py after the reflex verdict.
 # Returns recommended ACT pattern and predictive risk assessment.
 
+
 @dataclass
 class ArtPredictiveResult:
     """Predictive extension to ART's reflex verdict."""
+
     trust_score: float
     trust_band: TrustBand
     failure_risk: FailureRisk
@@ -449,9 +462,7 @@ def get_predictive_assessment(
     # Query Q-table for pattern suggestion
     recommended = None
     if qtable is not None:
-        recommended = qtable.suggest_act_pattern(
-            tool_name, action_class
-        )
+        recommended = qtable.suggest_act_pattern(tool_name, action_class)
 
     return ArtPredictiveResult(
         trust_score=trust_score,

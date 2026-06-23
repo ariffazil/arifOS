@@ -34,7 +34,9 @@ def _inject_lease_for_plan(plan_id: str) -> None:
     )
 
 
-@pytest.mark.skip(reason="H3 epoch tests hang on vault seal path — needs async event loop fix in vault writer")
+@pytest.mark.skip(
+    reason="H3 epoch tests hang on vault seal path — needs async event loop fix in vault writer"
+)
 class TestH3EpochLifecycle:
     """H3: arif_session_init epoch_open / epoch_seal modes."""
 
@@ -279,9 +281,7 @@ class TestH2PlanningOrgan:
         )
         assert result["status"] == "HOLD"
         reason = result.get("meta", {}).get("reason", "")
-        assert "LEASE GATE" in reason, (
-            f"Expected LEASE GATE in reason, got: {reason}"
-        )
+        assert "LEASE GATE" in reason, f"Expected LEASE GATE in reason, got: {reason}"
         # Plan should NOT have transitioned — lease gate stops before
         # constitution kernel evaluation.
         assert _PLAN_REGISTRY[pid]["status"] == "approved", (
@@ -300,8 +300,11 @@ class TestH2PlanningOrgan:
             witness_type="human",
         )
         result = _arif_forge_execute(
-            mode="write", manifest="test", plan_id=pid,
-            actor_id="test_actor", judge_state_hash="abc123",
+            mode="write",
+            manifest="test",
+            plan_id=pid,
+            actor_id="test_actor",
+            judge_state_hash="abc123",
         )
         assert result["status"] == "HOLD"
         reason = result.get("meta", {}).get("reason", "")

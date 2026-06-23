@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RouteAuditRecord:
     """Full F11 audit entry for a single route_query call."""
+
     # Identity
     session_id: str
     actor_id: str
@@ -38,8 +39,8 @@ class RouteAuditRecord:
     query_length: int = 0
 
     # Routing decision
-    lane: str           # exploit | explore | hybrid
-    reason: str         # Why this lane was chosen
+    lane: str  # exploit | explore | hybrid
+    reason: str  # Why this lane was chosen
     explicit_mode: str | None = None
     exploration_triggered: bool = False
 
@@ -112,12 +113,15 @@ class RouteAuditLogger:
 
         # Chain hash for integrity (like VAULT999)
         record.audit_record_hash = hashlib.sha256(
-            json.dumps({
-                "query_hash": record.query_hash,
-                "lane": record.lane,
-                "timestamp": record.timestamp,
-                "previous": self._previous_hash or "GENESIS",
-            }, sort_keys=True).encode()
+            json.dumps(
+                {
+                    "query_hash": record.query_hash,
+                    "lane": record.lane,
+                    "timestamp": record.timestamp,
+                    "previous": self._previous_hash or "GENESIS",
+                },
+                sort_keys=True,
+            ).encode()
         ).hexdigest()[:16]
         record.previous_audit_hash = self._previous_hash
         self._previous_hash = record.audit_record_hash
@@ -126,7 +130,7 @@ class RouteAuditLogger:
             # Memory ring buffer
             self._records.append(record)
             if len(self._records) > self._max_memory:
-                self._records = self._records[-self._max_memory:]
+                self._records = self._records[-self._max_memory :]
 
             self._total_queries += 1
             if record.fallback_used:
@@ -149,7 +153,10 @@ class RouteAuditLogger:
 
         logger.debug(
             "route_query audit | lane=%s reason=%s latency=%.1fms fallback=%s",
-            record.lane, record.reason, record.latency_ms, record.fallback_used,
+            record.lane,
+            record.reason,
+            record.latency_ms,
+            record.fallback_used,
         )
 
     def get_summary(self) -> dict[str, Any]:
@@ -159,14 +166,11 @@ class RouteAuditLogger:
                 "total_queries": self._total_queries,
                 "total_fallbacks": self._total_fallbacks,
                 "fallback_rate": (
-                    self._total_fallbacks / self._total_queries
-                    if self._total_queries > 0 else 0.0
+                    self._total_fallbacks / self._total_queries if self._total_queries > 0 else 0.0
                 ),
                 "memory_buffer_size": len(self._records),
                 "last_query_hash": self._previous_hash,
-                "last_query_at": (
-                    self._records[-1].timestamp if self._records else None
-                ),
+                "last_query_at": (self._records[-1].timestamp if self._records else None),
                 "floors": ["F2", "F4", "F11"],
             }
 

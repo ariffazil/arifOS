@@ -19,7 +19,7 @@ class RolloutEngine:
     """
 
     DEFAULT_HORIZON = 3
-    UNCERTAINTY_RISK_AMP = 0.3      # risk amplifier per unit uncertainty
+    UNCERTAINTY_RISK_AMP = 0.3  # risk amplifier per unit uncertainty
     UNCERTAINTY_PROGRESS_AMP = 0.1  # progress penalty per unit uncertainty
 
     def simulate(
@@ -36,7 +36,8 @@ class RolloutEngine:
         uncertainty_penalty = self.UNCERTAINTY_RISK_AMP * prior_uncertainty
 
         return {
-            "goal_progress": plan.expected_goal_progress * (1.0 - self.UNCERTAINTY_PROGRESS_AMP * prior_uncertainty),
+            "goal_progress": plan.expected_goal_progress
+            * (1.0 - self.UNCERTAINTY_PROGRESS_AMP * prior_uncertainty),
             "info_gain": plan.expected_info_gain * (1.0 - damp),
             "risk": plan.expected_risk + uncertainty_penalty,
             "cost": plan.expected_cost,

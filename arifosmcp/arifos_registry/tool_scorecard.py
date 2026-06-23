@@ -89,6 +89,7 @@ class ToolScorecard:
             },
             "composite": self.composite,
             "tier": self.tier,
-            "last_evaluated": self.last_evaluated or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "last_evaluated": self.last_evaluated
+            or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "notes": self.notes,
         }

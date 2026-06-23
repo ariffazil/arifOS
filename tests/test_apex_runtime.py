@@ -732,13 +732,12 @@ def test_live_system(result: AuditResult):
 # ─────────────────────────────────────────────────────────────────
 
 
-
-
 @pytest.fixture
 def result():
     res = AuditResult()
     yield res
     assert res.failed == 0, f"Test failed {res.failed} checks."
+
 
 def main():
     print("=" * 60)
@@ -772,5 +771,6 @@ def main():
 
 if __name__ == "__main__":
     import sys
+
     success = main()
     sys.exit(0 if success else 1)

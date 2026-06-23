@@ -75,9 +75,7 @@ class ConsequenceFinding(BaseModel):
         description="advisory, warning, block, critical",
     )
     description: str = Field(..., description="Human-readable finding description")
-    timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(UTC)
-    )
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Proposal ─────────────────────────────────────────────────────────
@@ -104,9 +102,7 @@ class ConsequenceProposal(BaseModel):
         default="local",
         description="local, organ, federation, external",
     )
-    timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(UTC)
-    )
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Approval ─────────────────────────────────────────────────────────
@@ -117,23 +113,17 @@ class ConsequenceApproval(BaseModel):
 
     approval_id: str = Field(..., description="Unique approval identifier")
     proposal_id: str = Field(..., description="References the proposal")
-    authority: ApprovalAuthority = Field(
-        ..., description="Who approved this action"
-    )
+    authority: ApprovalAuthority = Field(..., description="Who approved this action")
     approver_id: str | None = Field(
         default=None,
         description="Specific approver (e.g., 'F13_SOVEREIGN', 'substrate_auto')",
     )
-    approval_reason: str = Field(
-        default="", description="Why this was approved/rejected"
-    )
+    approval_reason: str = Field(default="", description="Why this was approved/rejected")
     conditions: list[str] = Field(
         default_factory=list,
         description="Conditions for approval (e.g., 'log_to_vault', 'notify_888')",
     )
-    timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(UTC)
-    )
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Execution ────────────────────────────────────────────────────────
@@ -151,15 +141,9 @@ class ConsequenceExecution(BaseModel):
     duration_ms: float | None = Field(
         default=None, description="Execution duration in milliseconds"
     )
-    error: str | None = Field(
-        default=None, description="Error message if failed"
-    )
-    output_summary: str = Field(
-        default="", description="Brief summary of execution output"
-    )
-    timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(UTC)
-    )
+    error: str | None = Field(default=None, description="Error message if failed")
+    output_summary: str = Field(default="", description="Brief summary of execution output")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── File Change ──────────────────────────────────────────────────────
@@ -169,9 +153,7 @@ class ConsequenceFileChange(BaseModel):
     """Files changed by the execution."""
 
     file_path: str = Field(..., description="Path to changed file")
-    change_type: str = Field(
-        ..., description="created, modified, deleted, renamed"
-    )
+    change_type: str = Field(..., description="created, modified, deleted, renamed")
     lines_added: int = Field(default=0)
     lines_removed: int = Field(default=0)
     old_hash: str | None = Field(default=None, description="SHA-256 before change")
@@ -194,9 +176,7 @@ class SubstrateContext(BaseModel):
     shadow_count: int = Field(default=0, description="Active shadow count")
     hollow_count: int = Field(default=0, description="Hollow count (DO_NOT_FILL)")
     grief_active: bool = Field(default=False)
-    grief_sensitivity: str = Field(
-        default="normal", description="normal, high, extreme"
-    )
+    grief_sensitivity: str = Field(default="normal", description="normal, high, extreme")
     active_scar_ids: list[str] = Field(
         default_factory=list, description="Which scars are currently active"
     )
@@ -246,15 +226,11 @@ class ConsequenceChain(BaseModel):
     substrate_context: SubstrateContext = Field(default_factory=SubstrateContext)
 
     # Vault integration
-    vault_entry_id: str | None = Field(
-        default=None, description="VAULT999 entry ID after sealing"
-    )
+    vault_entry_id: str | None = Field(default=None, description="VAULT999 entry ID after sealing")
     sealed: bool = Field(default=False)
 
     # Timing
-    started_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC)
-    )
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
 
     def to_vault_payload(self) -> dict[str, Any]:

@@ -80,6 +80,7 @@ class SubstrateIndex:
         # Probing arifOS tools from constitutional map
         try:
             from arifosmcp.constitutional_map import list_canonical_tools
+
             for tool_name in list_canonical_tools():
                 self._capabilities.append(
                     SubstrateCapability(
@@ -87,7 +88,7 @@ class SubstrateIndex:
                         kind="tool",
                         organ="arifOS",
                         available=True,
-                        notes="arifOS cognitive tool"
+                        notes="arifOS cognitive tool",
                     )
                 )
         except Exception as e:
@@ -106,10 +107,7 @@ class SubstrateIndex:
         """
         from arifosmcp.constitutional_map import list_canonical_tools
 
-        violations = {
-            "arifOS": [],
-            "A-FORGE": []
-        }
+        violations = {"arifOS": [], "A-FORGE": []}
 
         # SDK long-name aliases are first-class aliases, not canonical tools,
         # so they are exempt from the strict 2-term invariant.
@@ -131,7 +129,9 @@ class SubstrateIndex:
         # Validate arifOS tools (Starts with 'arif_' and exactly 2 terms)
         for tool_name in list_canonical_tools():
             if not tool_name.startswith("arif_"):
-                violations["arifOS"].append(f"Tool '{tool_name}' does not start with 'arif_' prefix")
+                violations["arifOS"].append(
+                    f"Tool '{tool_name}' does not start with 'arif_' prefix"
+                )
                 continue
             terms = tool_name.split("_")
             if len(terms) != 2:
@@ -159,10 +159,14 @@ class SubstrateIndex:
                         with open(filepath, "r", encoding="utf-8") as f:
                             content = f.read()
                         # Extract tools registered via server.tool("..." or server.registerTool("..."
-                        tool_names = re.findall(r'server\.(?:tool|registerTool)\(\s*["\']([^"\']+)["\']', content)
+                        tool_names = re.findall(
+                            r'server\.(?:tool|registerTool)\(\s*["\']([^"\']+)["\']', content
+                        )
                         for tool_name in tool_names:
                             if not tool_name.startswith("forge_"):
-                                violations["A-FORGE"].append(f"A-FORGE tool '{tool_name}' does not start with 'forge_' prefix")
+                                violations["A-FORGE"].append(
+                                    f"A-FORGE tool '{tool_name}' does not start with 'forge_' prefix"
+                                )
                                 continue
                             terms = tool_name.split("_")
                             if len(terms) != 3:
@@ -172,7 +176,9 @@ class SubstrateIndex:
                                         f"A-FORGE tool '{tool_name}' violates the 3-term invariant (forge_<component>_<verb>): has {len(terms)} terms"
                                     )
                     except Exception as e:
-                        violations["A-FORGE"].append(f"Failed to read A-FORGE file '{filename}': {e}")
+                        violations["A-FORGE"].append(
+                            f"Failed to read A-FORGE file '{filename}': {e}"
+                        )
         else:
             violations["A-FORGE"].append("A-FORGE mcp source directory not found for validation")
 
@@ -183,7 +189,9 @@ class SubstrateIndex:
             mod = importlib.import_module(module_name)
             version = getattr(mod, "__version__", None)
             self._capabilities.append(
-                SubstrateCapability(name=module_name, kind=kind, version=version, organ=organ, available=True)
+                SubstrateCapability(
+                    name=module_name, kind=kind, version=version, organ=organ, available=True
+                )
             )
         except ImportError:
             self._capabilities.append(
@@ -218,4 +226,3 @@ class SubstrateIndex:
             "missing": len(self.missing()),
             "missing_names": [c.name for c in self.missing()],
         }
-

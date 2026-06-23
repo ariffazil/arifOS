@@ -32,7 +32,6 @@ from .capability_registry import get_capability_graph
 from .models import (
     AdmissibilityVerdict,
     AuthorityTier,
-    BlastRadius,
     CapabilityNode,
     EvidenceSource,
     InterceptorDecision,
@@ -49,6 +48,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── Normaliser ─────────────────────────────────────────────────────────────────
+
 
 def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
     """Extract structured fields from a raw MCP tools/call payload."""
@@ -68,8 +68,11 @@ def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
     # Infer server_id from tool name prefix if not set in envelope
     if server_id == "local":
         known_organs = {
-            "geox_": "geox", "wealth_": "wealth", "well_": "well",
-            "aforge_": "a-forge", "aaa_": "aaa",
+            "geox_": "geox",
+            "wealth_": "wealth",
+            "well_": "well",
+            "aforge_": "a-forge",
+            "aaa_": "aaa",
         }
         for prefix, organ in known_organs.items():
             if name.lower().startswith(prefix):
@@ -150,6 +153,7 @@ def _resolve_tool_alias(tool_name: str) -> str:
 
 # ── Authority resolver ─────────────────────────────────────────────────────────
 
+
 def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
     """Resolve the actor's authority tier.
 
@@ -176,6 +180,7 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
 
 # ── Policy floors ──────────────────────────────────────────────────────────────
 
+
 def _check_policy_floors(
     req: InterceptorInput,
     capability: CapabilityNode | None,
@@ -197,9 +202,14 @@ def _check_policy_floors(
         # (arif_kernel_status, arif_explain_denial, etc.) is itself unknown,
         # this is a kernel self-diagnosis failure — a deadlock. Surface it
         # distinctly so it cannot be mistaken for an ordinary unknown-cap.
-        if requested_lower in {"arif_kernel_status", "arif_explain_denial",
-                              "arif_capability_list", "arif_contracts_tools",
-                              "status", "kernel_status"}:
+        if requested_lower in {
+            "arif_kernel_status",
+            "arif_explain_denial",
+            "arif_capability_list",
+            "arif_contracts_tools",
+            "status",
+            "kernel_status",
+        }:
             return InterceptorDecision(
                 verdict=AdmissibilityVerdict.DENY,
                 reason=(
@@ -227,8 +237,10 @@ def _check_policy_floors(
         # Find close matches by string containment
         close_matches = []
         for cap in graph.capabilities:
-            if (requested_lower in cap.tool_name.lower()
-                or requested_lower in cap.capability_id.lower()):
+            if (
+                requested_lower in cap.tool_name.lower()
+                or requested_lower in cap.capability_id.lower()
+            ):
                 close_matches.append(cap.tool_name)
         close_hint = ""
         if close_matches and not hint:
@@ -319,7 +331,10 @@ def _check_policy_floors(
     # FLOOR 4: .py mutation without allow_python_fallback → DENY
     # THE KEY INVARIANT that kills the universal Python fallback.
     tool_lower = req.raw_tool_name.lower()
-    if tool_lower in ("py", "python_repl", "python") and capability.mutation_class != MutationClass.NONE:
+    if (
+        tool_lower in ("py", "python_repl", "python")
+        and capability.mutation_class != MutationClass.NONE
+    ):
         if not capability.allow_python_fallback:
             return InterceptorDecision(
                 verdict=AdmissibilityVerdict.DENY,
@@ -379,7 +394,9 @@ def _check_policy_floors(
 
     # FLOOR 7: Authority too low for the capability → DENY
     authority_rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "SOVEREIGN": 3}
-    if authority_rank.get(authority.value, 0) < authority_rank.get(capability.authority_required.value, 0):
+    if authority_rank.get(authority.value, 0) < authority_rank.get(
+        capability.authority_required.value, 0
+    ):
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.DENY,
             reason=(
@@ -406,9 +423,7 @@ def _check_policy_floors(
         actor_norm = (req.actor_id or "").lower().strip()
         allowed_norm = {a.lower().strip() for a in capability.allowed_actors}
         # Substring match: "arifbfazil" matches "arif" in allowed_actors
-        is_allowed = actor_norm in allowed_norm or any(
-            sub in actor_norm for sub in allowed_norm
-        )
+        is_allowed = actor_norm in allowed_norm or any(sub in actor_norm for sub in allowed_norm)
         if not is_allowed:
             return InterceptorDecision(
                 verdict=AdmissibilityVerdict.DENY,
@@ -455,7 +470,9 @@ def _check_policy_floors(
     # External anchor required for mutations.
     # If capability.requires_external_anchor, ADMIT_MUTATE requires at least
     # one EXTERNAL_* evidence source. Prevents closed internal reality loops.
-    if capability.requires_external_anchor and capability.mutation_class not in (MutationClass.NONE,):
+    if capability.requires_external_anchor and capability.mutation_class not in (
+        MutationClass.NONE,
+    ):
         evidence_sources_raw = req.raw_arguments.get("evidence_sources", [])
         if not isinstance(evidence_sources_raw, list):
             evidence_sources_raw = []
@@ -559,6 +576,7 @@ def _check_policy_floors(
 
 
 # ── Main interceptor ──────────────────────────────────────────────────────────
+
 
 def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
     """THE INTERCEPTOR. Every MCP call passes through here.

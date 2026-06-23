@@ -76,9 +76,17 @@ All core organs run as systemd services. **No Docker compose for core services.*
 | Port | 8088 |
 | Runtime version | `kanon-5be8851` (dynamic, from `git describe`) |
 
-#### Restart
+#### Mandatory Post-Change Reality Gate (7-tool facade — 2026-06-23)
+**After ANY edit to the public facade:**
+1. Commit/push (HEAD must match origin/main for make deploy-local).
+2. `make deploy-local` **or** manual rsync + `systemctl restart arifos.service`.
+3. `./deploy/check_reality.sh` — **must exit 0** (code + live == exactly 7).
+4. **Only after PASS** may you edit docs, manifests, or run generators.
+
+#### Restart + Gate (the flow)
 ```bash
 systemctl restart arifos
+./deploy/check_reality.sh
 ```
 
 #### Verify (all of these)
@@ -86,18 +94,14 @@ systemctl restart arifos
 # 1. Health + identity
 curl -s http://localhost:8088/health | python3 -m json.tool
 
-# 2. Tool registry (13 tools)
+# 2. Tool registry (exactly the 7 public verbs)
 curl -s http://localhost:8088/tools | python3 -m json.tool
 
-# 3. SOT drift detector
-curl -s http://localhost:8088/inspector/sot | python3 -m json.tool
-# Expected: {"verdict":"SEAL","live_count":13,"main_count":13}
+# 3. Reality gate (the one that matters)
+./deploy/check_reality.sh || echo "REALITY FAIL — restart or filter not effective"
 
-# 4. MCP discovery
-curl -s http://localhost:8088/.well-known/mcp/server.json | python3 -m json.tool
-
-# 5. Build SHA
-curl -s http://localhost:8088/api/build-info | python3 -m json.tool
+# 4. MCP discovery (should list only the 7)
+curl -s http://localhost:8088/.well-known/mcp/server.json | python3 -m json.tool | grep -E '"name":|count'
 ```
 
 #### Rollback

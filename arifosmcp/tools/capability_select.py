@@ -89,10 +89,12 @@ async def arif_capability_select(
                 "must": [{"key": "server", "match": {"value": server_filter}}]
             }
         if risk_filter and risk_filter != "all":
-            search_payload.setdefault("filter", {}).setdefault("must", []).append({
-                "key": "risk_tier",
-                "match": {"value": risk_filter},
-            })
+            search_payload.setdefault("filter", {}).setdefault("must", []).append(
+                {
+                    "key": "risk_tier",
+                    "match": {"value": risk_filter},
+                }
+            )
 
         srch_r = await client.post(
             f"{QDRANT_URL}/collections/{COLLECTION}/points/search",
@@ -112,18 +114,20 @@ async def arif_capability_select(
     cards = []
     for hit in hits:
         p = hit.get("payload", {})
-        cards.append({
-            "name": p.get("name", "?"),
-            "server": p.get("server", "?"),
-            "description": p.get("description", ""),
-            "tags": p.get("tags", []),
-            "risk_tier": p.get("risk_tier", "medium"),
-            "epistemic_tag": p.get("epistemic_tag", "ESTIMATE"),
-            "execution_kind": p.get("execution_kind", "read"),
-            "approval_policy": p.get("approval_policy", "auto"),
-            "requires_888": p.get("requires_888", False),
-            "relevance_score": round(hit.get("score", 0), 4),
-        })
+        cards.append(
+            {
+                "name": p.get("name", "?"),
+                "server": p.get("server", "?"),
+                "description": p.get("description", ""),
+                "tags": p.get("tags", []),
+                "risk_tier": p.get("risk_tier", "medium"),
+                "epistemic_tag": p.get("epistemic_tag", "ESTIMATE"),
+                "execution_kind": p.get("execution_kind", "read"),
+                "approval_policy": p.get("approval_policy", "auto"),
+                "requires_888": p.get("requires_888", False),
+                "relevance_score": round(hit.get("score", 0), 4),
+            }
+        )
 
     return {
         "verdict": "SEAL",
@@ -143,13 +147,18 @@ async def arif_capability_select(
     }
 
 
-def _arif_capability_select_tool(query: str, limit: int = 5,
-                                 risk_filter: str = "all",
-                                 server_filter: str = "") -> str:
+def _arif_capability_select_tool(
+    query: str, limit: int = 5, risk_filter: str = "all", server_filter: str = ""
+) -> str:
     """Sync wrapper for FastMCP tool registration. Returns JSON string."""
     import asyncio
-    result = asyncio.run(arif_capability_select(
-        query=query, limit=limit, risk_filter=risk_filter,
-        server_filter=server_filter,
-    ))
+
+    result = asyncio.run(
+        arif_capability_select(
+            query=query,
+            limit=limit,
+            risk_filter=risk_filter,
+            server_filter=server_filter,
+        )
+    )
     return json.dumps(result, indent=2)

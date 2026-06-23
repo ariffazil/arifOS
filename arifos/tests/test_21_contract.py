@@ -83,6 +83,7 @@ def test_1_unknown_actor_cannot_mutate():
 
 def test_2_known_actor_without_lease_gets_lease():
     """Prethink with valid actor + OBSERVE action → ALLOW + lease."""
+
     async def run():
         client = make_mock_client("ALLOW")
         intent = make_intent(ActionClass.OBSERVE)
@@ -95,6 +96,7 @@ def test_2_known_actor_without_lease_gets_lease():
 
 def test_3_lease_scope_cannot_expand_silently():
     """Pretol under wrong prior decision → DENY/HOLD."""
+
     async def run():
         prior = Decision(
             verdict="ALLOW",
@@ -102,10 +104,12 @@ def test_3_lease_scope_cannot_expand_silently():
             action_class=ActionClass.OBSERVE,
         )
         client = AsyncMock(actor=make_actor())
-        client.kernel_check_call = AsyncMock(return_value={
-            "verdict": "HOLD",
-            "reasons": ["F13: scope expansion detected"],
-        })
+        client.kernel_check_call = AsyncMock(
+            return_value={
+                "verdict": "HOLD",
+                "reasons": ["F13: scope expansion detected"],
+            }
+        )
         with pytest.raises(ArifHold):
             await pretool(
                 tool_name="delete_file",
@@ -119,16 +123,19 @@ def test_3_lease_scope_cannot_expand_silently():
 
 def test_4_expired_lease_fails_closed():
     """Kernel returns DENY → pretool raises ArifDenied."""
+
     async def run():
         prior = Decision(
             verdict="ALLOW",
             cognition_lane=CognitionLane.OBSERVE,
         )
         client = AsyncMock(actor=make_actor())
-        client.kernel_check_call = AsyncMock(return_value={
-            "verdict": "DENY",
-            "reasons": ["lease expired"],
-        })
+        client.kernel_check_call = AsyncMock(
+            return_value={
+                "verdict": "DENY",
+                "reasons": ["lease expired"],
+            }
+        )
         with pytest.raises(ArifDenied):
             await pretool(
                 tool_name="read_file",
@@ -142,6 +149,7 @@ def test_4_expired_lease_fails_closed():
 
 def test_5_wrong_organ_jurisdiction_fails_closed():
     """PUBLISH action → F1 short-circuits to HOLD."""
+
     async def run():
         decision = await prethink(
             intent=make_intent(ActionClass.PUBLISH),
@@ -161,6 +169,7 @@ def test_5_wrong_organ_jurisdiction_fails_closed():
 
 def test_6_observe_only_action_passes():
     """OBSERVE + NONE blast-radius → ALLOW."""
+
     async def run():
         decision = await prethink(
             intent=make_intent(ActionClass.OBSERVE),
@@ -175,6 +184,7 @@ def test_6_observe_only_action_passes():
 
 def test_7_reversible_local_mutation_passes_with_seal():
     """MUTATE_LOCAL → ALLOW, lease issued."""
+
     async def run():
         decision = await prethink(
             intent=make_intent(ActionClass.MUTATE_LOCAL),
@@ -188,6 +198,7 @@ def test_7_reversible_local_mutation_passes_with_seal():
 
 def test_8_external_mutation_requires_lease():
     """MUTATE_EXTERNAL with EXTERNAL blast-radius → F13 HOLD."""
+
     async def run():
         client = make_mock_client("ALLOW")
         intent = Intent(
@@ -217,6 +228,7 @@ def test_9_irreversible_action_triggers_888_hold():
         ActionClass.CREDENTIAL_CHANGE,
         ActionClass.CONSTITUTION_CHANGE,
     ]:
+
         async def run(ac=action_class):
             decision = await prethink(
                 intent=Intent(
@@ -239,6 +251,7 @@ def test_9_irreversible_action_triggers_888_hold():
 def test_10_delete_publish_deploy_spend_require_explicit_human_authority():
     """Irreversible actions all set required_human_ack=True."""
     for ac in [ActionClass.DEPLOY, ActionClass.PUBLISH, ActionClass.DELETE, ActionClass.SPEND]:
+
         async def run(action_class=ac):
             decision = await prethink(
                 intent=Intent(
@@ -296,6 +309,7 @@ def test_12_prethink_tool_schema_is_strict():
 
 def test_13_hidden_side_effect_detected_or_downgraded():
     """Pretol with scope-expanding intent → DENY."""
+
     async def run():
         prior = Decision(
             verdict="ALLOW",
@@ -303,10 +317,12 @@ def test_13_hidden_side_effect_detected_or_downgraded():
             action_class=ActionClass.OBSERVE,
         )
         client = AsyncMock(actor=make_actor())
-        client.kernel_check_call = AsyncMock(return_value={
-            "verdict": "DENY",
-            "reasons": ["scope expansion: OBSERVE prior, MUTATE requested"],
-        })
+        client.kernel_check_call = AsyncMock(
+            return_value={
+                "verdict": "DENY",
+                "reasons": ["scope expansion: OBSERVE prior, MUTATE requested"],
+            }
+        )
         with pytest.raises(ArifDenied):
             await pretool(
                 tool_name="write_file",
@@ -320,16 +336,19 @@ def test_13_hidden_side_effect_detected_or_downgraded():
 
 def test_14_transport_verdict_mismatch_fails_closed():
     """Kernel DENY → pretool raises ArifDenied."""
+
     async def run():
         prior = Decision(
             verdict="ALLOW",
             cognition_lane=CognitionLane.OBSERVE,
         )
         client = AsyncMock(actor=make_actor())
-        client.kernel_check_call = AsyncMock(return_value={
-            "verdict": "DENY",
-            "reasons": ["kernel says no"],
-        })
+        client.kernel_check_call = AsyncMock(
+            return_value={
+                "verdict": "DENY",
+                "reasons": ["kernel says no"],
+            }
+        )
         with pytest.raises(ArifDenied):
             await pretool(
                 tool_name="read_file",
@@ -343,6 +362,7 @@ def test_14_transport_verdict_mismatch_fails_closed():
 
 def test_15_kernel_unavailable_fails_closed():
     """Kernel unreachable → pretool raises ArifHold (fail-closed)."""
+
     async def run():
         prior = Decision(
             verdict="ALLOW",
@@ -368,6 +388,7 @@ def test_15_kernel_unavailable_fails_closed():
 
 def test_16_every_sealed_result_has_seal_pointer():
     """Seal returns Decision with seal_pointer from VAULT999."""
+
     async def run():
         history = [
             Decision(verdict="ALLOW", cognition_lane=CognitionLane.OBSERVE),
@@ -385,6 +406,7 @@ def test_16_every_sealed_result_has_seal_pointer():
 
 def test_17_seal_missing_raises():
     """No entry_id from kernel → ArifSealMissing."""
+
     async def run():
         client = AsyncMock(actor=make_actor())
         client.kernel_seal = AsyncMock(return_value={})  # no entry_id
@@ -400,6 +422,7 @@ def test_17_seal_missing_raises():
 
 def test_18_seal_refused_on_hold():
     """Any HOLD in history → seal refused."""
+
     async def run():
         history = [
             Decision(verdict="ALLOW", cognition_lane=CognitionLane.OBSERVE),
@@ -432,6 +455,7 @@ def test_19_kernel_class_exposes_high_level_methods():
 
 def test_20_decision_envelope_is_consistent_across_guards():
     """All guards return Decision objects with the same shape."""
+
     async def run():
         client = make_mock_client("ALLOW")
         d1 = await prethink(intent=make_intent(), client=client)
@@ -452,6 +476,7 @@ def test_20_decision_envelope_is_consistent_across_guards():
 
 def test_21_posttool_applies_f2_stamp_to_untrusted_results():
     """Posttool stamps untrusted results with F2 WARN."""
+
     async def run():
         prior = Decision(
             verdict="ALLOW",
@@ -465,9 +490,6 @@ def test_21_posttool_applies_f2_stamp_to_untrusted_results():
             confidence=None,
             source=None,
         )
-        assert any(
-            f.floor_id == "F2" and f.verdict == "WARN"
-            for f in decision.floor_verdicts
-        )
+        assert any(f.floor_id == "F2" and f.verdict == "WARN" for f in decision.floor_verdicts)
 
     asyncio.run(run())

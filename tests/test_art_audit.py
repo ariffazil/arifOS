@@ -29,18 +29,14 @@ DITEMPA BUKAN DIBERI — The audit proves the reflex.
 
 from __future__ import annotations
 
-import asyncio
 import time
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
 from arifosmcp.runtime.art import (
     ArtRequest,
-    ArtResult,
     ArtVerdict,
-    ArtReason,
     ToolState,
     art,
 )
@@ -49,7 +45,6 @@ from arifosmcp.schemas.kernel_envelope import (
     AuthorityBlock,
     BlastRadius,
     GateResult,
-    GateVerdict,
     KernelEnvelope,
     KernelIdentity,
     OrganIdentity,
@@ -65,6 +60,7 @@ from arifosmcp.schemas.kernel_envelope import (
 @dataclass
 class ScenarioResult:
     """Outcome for one scenario run."""
+
     scenario: str
     variant: str  # "baseline" | "art"
     total_calls: int = 0
@@ -157,8 +153,8 @@ def _gate_without_art(
     """Kernel-only gate — same as pre_execution_gate but without Gate 2.5."""
     from arifosmcp.runtime.pre_execution_gate import (
         pre_execution_gate,
-        CANONICAL_TOOL_MANIFEST,
     )
+
     # We use the real gate but monkey-patch _art_reflex_check to always return None
     import arifosmcp.runtime.pre_execution_gate as gate_mod
 
@@ -212,16 +208,18 @@ class TestS1_BrokenButLegal:
         verdicts_kernel_like = []
         for i in range(10):
             # Simulate kernel-like: always TRUSTED, always PROCEED for legal calls
-            r = art(ArtRequest(
-                action_class="mutate",
-                tool_state=ToolState.TRUSTED.value,  # kernel doesn't degrade
-                blast_radius="low",
-                trust_level="evidence",
-                actor_resolved=True,
-                schema_locked=True,
-                degraded=False,
-                reversible=True,
-            ))
+            r = art(
+                ArtRequest(
+                    action_class="mutate",
+                    tool_state=ToolState.TRUSTED.value,  # kernel doesn't degrade
+                    blast_radius="low",
+                    trust_level="evidence",
+                    actor_resolved=True,
+                    schema_locked=True,
+                    degraded=False,
+                    reversible=True,
+                )
+            )
             verdicts_kernel_like.append(r.verdict)
 
         allowed = sum(1 for v in verdicts_kernel_like if v == ArtVerdict.PROCEED)
@@ -261,8 +259,12 @@ class TestS1_BrokenButLegal:
             later = verdicts[3:]
             has_block = any(v in (ArtVerdict.BLOCK, ArtVerdict.HOLD) for v in later)
             print(f"\n  S1 ART: verdicts={[v.value for v in verdicts]}")
-            print(f"  S1 ART: has_block={has_block}, early_stop_N={next((i for i,v in enumerate(verdicts) if v != ArtVerdict.PROCEED), None)}")
-            assert has_block, f"ART should block after repeated failures: {[v.value for v in verdicts]}"
+            print(
+                f"  S1 ART: has_block={has_block}, early_stop_N={next((i for i, v in enumerate(verdicts) if v != ArtVerdict.PROCEED), None)}"
+            )
+            assert has_block, (
+                f"ART should block after repeated failures: {[v.value for v in verdicts]}"
+            )
         finally:
             gate_mod.CANONICAL_TOOL_MANIFEST.pop("arif_test_broken", None)
 
@@ -305,8 +307,7 @@ class TestS2_SchemaDrift:
         early_blocked = any(v != ArtVerdict.PROCEED for v in verdicts[:2])
         # Later calls with drift should trigger HOLD/DEFAULT_OBSERVE
         later_triggered = any(
-            v in (ArtVerdict.HOLD, ArtVerdict.DEFAULT_OBSERVE)
-            for v in verdicts[3:]
+            v in (ArtVerdict.HOLD, ArtVerdict.DEFAULT_OBSERVE) for v in verdicts[3:]
         )
         assert later_triggered, f"ART should react to schema drift: {[v.value for v in verdicts]}"
 
@@ -315,11 +316,18 @@ class TestS2_SchemaDrift:
         # Baseline gate check — drift is at the gate level (Gate 9), not per-tool
         # ART adds per-tool drift awareness
         from arifosmcp.runtime.pre_execution_gate import quick_gate
-        r = quick_gate(ActionClass.MUTATE, tool_name="arif_memory_recall",
-                        lease_id="LEASE-ACTIVE", actor_verified=True,
-                        constitution_hash="sha256:abc")
+
+        r = quick_gate(
+            ActionClass.MUTATE,
+            tool_name="arif_memory_recall",
+            lease_id="LEASE-ACTIVE",
+            actor_verified=True,
+            constitution_hash="sha256:abc",
+        )
         # Without per-tool drift tracking, the gate passes (or blocks on other grounds)
-        print(f"\n  S2 Baseline gate: verdict={r.verdict.value} reasons={r.reasons[:1] if r.reasons else 'none'}")
+        print(
+            f"\n  S2 Baseline gate: verdict={r.verdict.value} reasons={r.reasons[:1] if r.reasons else 'none'}"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -351,7 +359,9 @@ class TestS3_BlastMisclassification:
         v = art(art_req)
         print(f"\n  S3 ART: verdict={v.verdict.value} reason={v.reason.value}")
         # Irreversible + non-reversible should trigger POWER check HOLD
-        assert v.verdict != ArtVerdict.PROCEED, f"ART should block irreversible on non-reversible tool: {v.verdict}"
+        assert v.verdict != ArtVerdict.PROCEED, (
+            f"ART should block irreversible on non-reversible tool: {v.verdict}"
+        )
 
     def test_s3_art_downgrade_blast_unknown(self):
         """Unknown blast radius → DEFAULT_OBSERVE."""
@@ -367,7 +377,9 @@ class TestS3_BlastMisclassification:
         )
         v = art(art_req)
         print(f"\n  S3 Unknown blast: verdict={v.verdict.value} reason={v.reason.value}")
-        assert v.verdict == ArtVerdict.DEFAULT_OBSERVE, f"Unknown blast should DEFAULT_OBSERVE: {v.verdict}"
+        assert v.verdict == ArtVerdict.DEFAULT_OBSERVE, (
+            f"Unknown blast should DEFAULT_OBSERVE: {v.verdict}"
+        )
 
     def test_s3_art_low_risk_proceeds(self):
         """Low blast + reversible + TRUSTED → PROCEED (zero false positives)."""
@@ -404,31 +416,53 @@ class TestS4_Replay:
         probe fails silently, causing cumulative drift.
         """
         # Call 1: normal
-        r1 = art(ArtRequest(
-            action_class="mutate", tool_state=ToolState.TRUSTED.value,
-            blast_radius="low", trust_level="evidence",
-            actor_resolved=True, schema_locked=True, reversible=True,
-            silent_fallback_count=0,
-        ))
+        r1 = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                reversible=True,
+                silent_fallback_count=0,
+            )
+        )
         assert r1.verdict == ArtVerdict.PROCEED, f"Call 1 should PROCEED: {r1.verdict}"
 
         # Call 2: one silent fallback — still OK
-        r2 = art(ArtRequest(
-            action_class="mutate", tool_state=ToolState.TRUSTED.value,
-            blast_radius="low", trust_level="evidence",
-            actor_resolved=True, schema_locked=True, reversible=True,
-            silent_fallback_count=1,
-        ))
-        assert r2.verdict == ArtVerdict.PROCEED, f"Call 2 should still PROCEED (1 fallback): {r2.verdict}"
+        r2 = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                reversible=True,
+                silent_fallback_count=1,
+            )
+        )
+        assert r2.verdict == ArtVerdict.PROCEED, (
+            f"Call 2 should still PROCEED (1 fallback): {r2.verdict}"
+        )
 
         # Call 3: second silent fallback → HOLD
-        r3 = art(ArtRequest(
-            action_class="mutate", tool_state=ToolState.TRUSTED.value,
-            blast_radius="low", trust_level="evidence",
-            actor_resolved=True, schema_locked=True, reversible=True,
-            silent_fallback_count=2,
-        ))
-        print(f"\n  S4 Cumulative: r1={r1.verdict.value} r2={r2.verdict.value} r3={r3.verdict.value}")
+        r3 = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                reversible=True,
+                silent_fallback_count=2,
+            )
+        )
+        print(
+            f"\n  S4 Cumulative: r1={r1.verdict.value} r2={r2.verdict.value} r3={r3.verdict.value}"
+        )
         assert r3.verdict == ArtVerdict.HOLD, (
             f"Cumulative silent fallback (2+) should HOLD: {r3.verdict} reason={r3.reason.value}"
         )
@@ -439,18 +473,20 @@ class TestS4_Replay:
         Pattern: Hermes #16462 — first MCP tool call to external surface
         (e.g. github_create_issue) without explicit remote ack.
         """
-        r = art(ArtRequest(
-            action_class="mutate",
-            tool_state=ToolState.TRUSTED.value,
-            blast_radius="medium",
-            trust_level="evidence",
-            actor_resolved=True,
-            schema_locked=True,
-            degraded=False,
-            reversible=True,
-            external_surface=True,
-            acknowledged_remote=False,  # NOT acknowledged
-        ))
+        r = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="medium",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                degraded=False,
+                reversible=True,
+                external_surface=True,
+                acknowledged_remote=False,  # NOT acknowledged
+            )
+        )
         print(f"\n  S4 External unacked: verdict={r.verdict.value} reason={r.reason.value}")
         assert r.verdict == ArtVerdict.HOLD, (
             f"External surface without ack should HOLD: {r.verdict}"
@@ -461,18 +497,20 @@ class TestS4_Replay:
 
         Pattern: Agent loads tool from unverified MCP server, tries to MUTATE.
         """
-        r = art(ArtRequest(
-            action_class="mutate",
-            tool_state=ToolState.TRUSTED.value,
-            blast_radius="low",
-            trust_level="evidence",
-            actor_resolved=True,
-            schema_locked=True,
-            degraded=False,
-            reversible=True,
-            schema_source="mcp_server",  # unverified source
-            schema_verified=False,  # NOT verified
-        ))
+        r = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                degraded=False,
+                reversible=True,
+                schema_source="mcp_server",  # unverified source
+                schema_verified=False,  # NOT verified
+            )
+        )
         print(f"\n  S4 Unverified schema: verdict={r.verdict.value} reason={r.reason.value}")
         assert r.verdict == ArtVerdict.DEFAULT_OBSERVE, (
             f"Unverified MCP schema should DEFAULT_OBSERVE: {r.verdict}"
@@ -480,10 +518,12 @@ class TestS4_Replay:
 
     def test_s4_abandoned_tool_blocked(self):
         """Abandoned tools are always BLOCKED."""
-        r = art(ArtRequest(
-            action_class="observe",
-            tool_state=ToolState.ABANDONED.value,
-        ))
+        r = art(
+            ArtRequest(
+                action_class="observe",
+                tool_state=ToolState.ABANDONED.value,
+            )
+        )
         print(f"\n  S4 Abandoned: verdict={r.verdict.value} reason={r.reason.value}")
         assert r.verdict == ArtVerdict.BLOCK, f"Abandoned should BLOCK: {r.verdict}"
 
@@ -500,26 +540,38 @@ class TestFalsePositives:
         # (action_class, tool_state, blast_radius, reversible, expected)
         ("observe", "trusted", "low", True, ArtVerdict.PROCEED),
         ("observe", "observed", "low", True, ArtVerdict.PROCEED),
-        ("observe", "untrusted", "low", True, ArtVerdict.PROCEED),  # observe + low blast = PROCEED even untrusted
+        (
+            "observe",
+            "untrusted",
+            "low",
+            True,
+            ArtVerdict.PROCEED,
+        ),  # observe + low blast = PROCEED even untrusted
         ("mutate", "trusted", "low", True, ArtVerdict.PROCEED),
         ("mutate", "trusted", "medium", True, ArtVerdict.PROCEED),
         ("observe", "fallback", "low", True, ArtVerdict.PROCEED),  # observe always OK in FALLBACK
     ]
 
-    @pytest.mark.parametrize("action_class,tool_state,blast_radius,reversible,expected", LEGITIMATE_SCENARIOS)
-    def test_legitimate_calls_pass(self, action_class, tool_state, blast_radius, reversible, expected):
+    @pytest.mark.parametrize(
+        "action_class,tool_state,blast_radius,reversible,expected", LEGITIMATE_SCENARIOS
+    )
+    def test_legitimate_calls_pass(
+        self, action_class, tool_state, blast_radius, reversible, expected
+    ):
         """Verify ART doesn't create false positives on valid calls."""
-        r = art(ArtRequest(
-            action_class=action_class,
-            tool_state=tool_state,
-            blast_radius=blast_radius,
-            trust_level="evidence",
-            actor_resolved=True,
-            schema_locked=True,
-            schema_verified=True,
-            degraded=False,
-            reversible=reversible,
-        ))
+        r = art(
+            ArtRequest(
+                action_class=action_class,
+                tool_state=tool_state,
+                blast_radius=blast_radius,
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                schema_verified=True,
+                degraded=False,
+                reversible=reversible,
+            )
+        )
         assert r.verdict == expected, (
             f"False positive! {action_class}/{tool_state}/{blast_radius} "
             f"should be {expected.value}, got {r.verdict.value} ({r.reason.value})"
@@ -571,20 +623,37 @@ class TestRegression:
         seen = set()
 
         # PROCEED
-        r = art(ArtRequest(action_class="observe", tool_state=ToolState.TRUSTED.value,
-                            blast_radius="low", trust_level="evidence",
-                            actor_resolved=True, schema_locked=True))
+        r = art(
+            ArtRequest(
+                action_class="observe",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+            )
+        )
         seen.add(r.verdict)
 
         # DEFAULT_OBSERVE
-        r = art(ArtRequest(action_class="mutate", tool_state=ToolState.UNTRUSTED.value,
-                            blast_radius="unknown"))
+        r = art(
+            ArtRequest(
+                action_class="mutate", tool_state=ToolState.UNTRUSTED.value, blast_radius="unknown"
+            )
+        )
         seen.add(r.verdict)
 
         # HOLD
-        r = art(ArtRequest(action_class="mutate", tool_state=ToolState.TRUSTED.value,
-                            blast_radius="low", trust_level="evidence",
-                            actor_resolved=True, reversible=False))
+        r = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                reversible=False,
+            )
+        )
         seen.add(r.verdict)
 
         # BLOCK
@@ -599,32 +668,55 @@ class TestRegression:
         checks_seen = set()
 
         # POWER
-        r = art(ArtRequest(action_class="mutate", tool_state=ToolState.TRUSTED.value,
-                            blast_radius="unknown", trust_level="evidence",
-                            actor_resolved=True,
-                            schema_locked=True, reversible=True))
+        r = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="unknown",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                reversible=True,
+            )
+        )
         if r.check_blocked > 0:
             checks_seen.add(r.check_blocked)
 
         # TRUST
-        r = art(ArtRequest(action_class="mutate", tool_state=ToolState.TRUSTED.value,
-                            blast_radius="low", trust_level="unknown",
-                            actor_resolved=False,
-                            schema_locked=True, reversible=True))
+        r = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="unknown",
+                actor_resolved=False,
+                schema_locked=True,
+                reversible=True,
+            )
+        )
         if r.check_blocked > 0:
             checks_seen.add(r.check_blocked)
 
         # SYSTEM
-        r = art(ArtRequest(action_class="mutate", tool_state=ToolState.TRUSTED.value,
-                            blast_radius="low", trust_level="evidence",
-                            actor_resolved=True,
-                            schema_locked=True, reversible=True,
-                            degraded=True))
+        r = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                reversible=True,
+                degraded=True,
+            )
+        )
         if r.check_blocked > 0:
             checks_seen.add(r.check_blocked)
 
         print(f"\n  Regression: blocked checks = {checks_seen}")
-        assert len(checks_seen) >= 2, f"At least 2 checks should be blockable, got {len(checks_seen)}: {checks_seen}"
+        assert len(checks_seen) >= 2, (
+            f"At least 2 checks should be blockable, got {len(checks_seen)}: {checks_seen}"
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════

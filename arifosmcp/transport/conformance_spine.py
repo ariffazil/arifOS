@@ -18,6 +18,7 @@ SPINE:
 
 DITEMPA BUKAN DIBERI — Proved by trace, not by claim.
 """
+
 from __future__ import annotations
 
 import json
@@ -95,15 +96,18 @@ def _scan_unexplained_critical(checks: list[dict[str, Any]]) -> list[dict[str, A
         if ev.get("vault_seals_total", 1) == 0:
             signals.append("vault_seals_total: 0 (empty ledger)")
         if signals:
-            unexplained.append({
-                "check": c.get("check"),
-                "verdict": c.get("verdict"),
-                "signals": signals,
-            })
+            unexplained.append(
+                {
+                    "check": c.get("check"),
+                    "verdict": c.get("verdict"),
+                    "signals": signals,
+                }
+            )
     return unexplained
 
 
 # ── Low-level helpers ────────────────────────────────────────────────────────
+
 
 def _http_get(path: str, timeout: int = 15) -> dict[str, Any]:
     try:
@@ -117,8 +121,12 @@ def _http_get(path: str, timeout: int = 15) -> dict[str, Any]:
         return {"_error": str(e), "_exception": True}
 
 
-def _mcp_post(method: str, params: dict[str, Any] | None = None,
-              session_id: str | None = None, timeout: int = 15) -> dict[str, Any]:
+def _mcp_post(
+    method: str,
+    params: dict[str, Any] | None = None,
+    session_id: str | None = None,
+    timeout: int = 15,
+) -> dict[str, Any]:
     payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}}
     data = json.dumps(payload).encode("utf-8")
     headers: dict[str, str] = {
@@ -148,11 +156,14 @@ def _mcp_post(method: str, params: dict[str, Any] | None = None,
 
 def _get_session() -> str | None:
     """Initialize MCP and return session_id if the server issues one."""
-    r = _mcp_post("initialize", {
-        "protocolVersion": "2025-11-25",
-        "capabilities": {},
-        "clientInfo": {"name": "conformance-spine", "version": "0.1"},
-    })
+    r = _mcp_post(
+        "initialize",
+        {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "conformance-spine", "version": "0.1"},
+        },
+    )
     return r.get("_session_id") or None
 
 
@@ -182,17 +193,14 @@ def _extract_tool_result(mcp_response: dict[str, Any]) -> dict[str, Any]:
 
 # ── Spine checks ─────────────────────────────────────────────────────────────
 
+
 def check_arifos_alive() -> dict[str, Any]:
     """1. Kernel heartbeat — /health must return status healthy."""
     t0 = time.monotonic()
     result = _http_get("/health")
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
-    passed = (
-        isinstance(result, dict)
-        and result.get("status") == "healthy"
-        and "version" in result
-    )
+    passed = isinstance(result, dict) and result.get("status") == "healthy" and "version" in result
     return {
         "check": "arifos_alive",
         "verdict": PASS if passed else FAIL,
@@ -210,19 +218,18 @@ def check_arifos_alive() -> dict[str, Any]:
 def check_mcp_initialize() -> dict[str, Any]:
     """2. MCP protocol handshake — initialize must return serverInfo."""
     t0 = time.monotonic()
-    result = _mcp_post("initialize", {
-        "protocolVersion": "2025-11-25",
-        "capabilities": {},
-        "clientInfo": {"name": "conformance-spine", "version": "0.1"},
-    })
+    result = _mcp_post(
+        "initialize",
+        {
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "conformance-spine", "version": "0.1"},
+        },
+    )
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
     rr = result.get("result", {})
-    passed = (
-        isinstance(rr, dict)
-        and "serverInfo" in rr
-        and "capabilities" in rr
-    )
+    passed = isinstance(rr, dict) and "serverInfo" in rr and "capabilities" in rr
     return {
         "check": "mcp_initialize",
         "verdict": PASS if passed else FAIL,
@@ -240,20 +247,21 @@ def check_protocol_version() -> dict[str, Any]:
     """3. Protocol version must be MCP 2025-11-25 or supported."""
     # arif_version_echo now lives inside arif_canary(mode="version_echo")
     session_id = _get_session()
-    result = _mcp_post("tools/call", {
-        "name": "arif_canary",
-        "arguments": {"mode": "version_echo"},
-    }, session_id=session_id)
+    result = _mcp_post(
+        "tools/call",
+        {
+            "name": "arif_canary",
+            "arguments": {"mode": "version_echo"},
+        },
+        session_id=session_id,
+    )
     tool_result = _extract_tool_result(result)
 
     supported = tool_result.get("protocol_versions_supported", [])
     mcp_spec = tool_result.get("mcp_spec_version", "")
     server_version = tool_result.get("server_version", "")
 
-    passed = (
-        mcp_spec == "2025-11-25"
-        and "2025-11-25" in supported
-    )
+    passed = mcp_spec == "2025-11-25" and "2025-11-25" in supported
     return {
         "check": "protocol_version",
         "verdict": PASS if passed else FAIL,
@@ -272,10 +280,14 @@ def check_schema_echo_stable() -> dict[str, Any]:
     probe_payload = {"probe_key": "schema_test", "nested": {"depth": 1}, "list_val": [1, 2, 3]}
 
     t0 = time.monotonic()
-    result = _mcp_post("tools/call", {
-        "name": "arif_canary",
-        "arguments": {"mode": "schema_echo", "payload": probe_payload},
-    }, session_id=session_id)
+    result = _mcp_post(
+        "tools/call",
+        {
+            "name": "arif_canary",
+            "arguments": {"mode": "schema_echo", "payload": probe_payload},
+        },
+        session_id=session_id,
+    )
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
     tool_result = _extract_tool_result(result)
@@ -304,14 +316,18 @@ def check_session_starts() -> dict[str, Any]:
     """5. arif_init must return READY with a session ID."""
     session_id = _get_session()
     t0 = time.monotonic()
-    result = _mcp_post("tools/call", {
-        "name": "arif_init",
-        "arguments": {
-            "mode": "light",
-            "actor_id": "conformance-spine",
-            "intent": "conformance-proof",
+    result = _mcp_post(
+        "tools/call",
+        {
+            "name": "arif_init",
+            "arguments": {
+                "mode": "light",
+                "actor_id": "conformance-spine",
+                "intent": "conformance-proof",
+            },
         },
-    }, session_id=session_id)
+        session_id=session_id,
+    )
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
     tool_result = _extract_tool_result(result)
@@ -361,7 +377,12 @@ def check_authority_checked() -> dict[str, Any]:
         "evidence": {
             "cases_tested": len(cases),
             "errors": errors,
-            "tiers": ["SOVEREIGN(arif,888)", "HIGH(hermes,root)", "MEDIUM(mcp_client)", "LOW(unknown)"],
+            "tiers": [
+                "SOVEREIGN(arif,888)",
+                "HIGH(hermes,root)",
+                "MEDIUM(mcp_client)",
+                "LOW(unknown)",
+            ],
         },
     }
 
@@ -384,7 +405,9 @@ def check_hold_blocks_mutation() -> dict[str, Any]:
     ]
     errors = []
     for intent in irreversible_intents:
-        env = CanonicalEnvelope(actor="unknown_agent", intent=intent, trace_id=uuid.uuid4().hex[:16])
+        env = CanonicalEnvelope(
+            actor="unknown_agent", intent=intent, trace_id=uuid.uuid4().hex[:16]
+        )
         rev = classify_reversibility(env)
         if rev != "IRREVERSIBLE":
             errors.append(f"intent={intent}: expected IRREVERSIBLE, got {rev}")
@@ -406,7 +429,11 @@ def check_hold_blocks_mutation() -> dict[str, Any]:
         "evidence": {
             "intents_tested": len(irreversible_intents),
             "errors": errors,
-            "required_fields": ["verdict=888_HOLD_REQUIRED", "F1_AMANAH", "recommendation=AWAIT_SOVEREIGN_VETO"],
+            "required_fields": [
+                "verdict=888_HOLD_REQUIRED",
+                "F1_AMANAH",
+                "recommendation=AWAIT_SOVEREIGN_VETO",
+            ],
         },
     }
 
@@ -455,10 +482,14 @@ def check_vault_replay() -> dict[str, Any]:
     # Primary proof: ask the kernel to replay recent vault entries.
     session_id = _get_session()
     t0 = time.monotonic()
-    result = _mcp_post("tools/call", {
-        "name": "hermes_vault_query",
-        "arguments": {"mode": "recent", "limit": 5},
-    }, session_id=session_id)
+    result = _mcp_post(
+        "tools/call",
+        {
+            "name": "hermes_vault_query",
+            "arguments": {"mode": "recent", "limit": 5},
+        },
+        session_id=session_id,
+    )
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
     tool_result = _extract_tool_result(result)
@@ -476,7 +507,12 @@ def check_vault_replay() -> dict[str, Any]:
             latest = e
             break
 
-    latest_id = latest.get("ts") or latest.get("timestamp") or latest.get("mtime") or latest.get("file", "unknown")
+    latest_id = (
+        latest.get("ts")
+        or latest.get("timestamp")
+        or latest.get("mtime")
+        or latest.get("file", "unknown")
+    )
     latest_event = latest.get("action") or latest.get("event") or latest.get("file", "unknown")
     chain_signal = tool_result.get("chain_ok")
     if chain_signal is None:
@@ -518,12 +554,12 @@ def check_vault_replay() -> dict[str, Any]:
 
 def check_cooling_ledger() -> dict[str, Any]:
     """9. Combined Cooling+Ledger tripwire — VAULT999 attested + WELL ΔS live.
-    
+
     Probes:
       A) VAULT999 API (port 8100) — /vault/status for seal count, chain integrity
       B) VAULT999 API — /health for service liveness
       C) Recent vault entries for WELL entropy seals (well_entropy_seal action)
-    
+
     Verdicts:
       PASS — VAULT999 API healthy + WELL entropy entries found in vault
       FAIL — either component unreachable or WELL has never sealed to vault
@@ -533,7 +569,7 @@ def check_cooling_ledger() -> dict[str, Any]:
     vault_seals = 0
     chain_status = "UNKNOWN"
     well_entropy_seals = 0
-    
+
     # ── Probe A: VAULT999 API health + vault status ──────────────────────
     api_t0 = time.monotonic()
     try:
@@ -548,7 +584,7 @@ def check_cooling_ledger() -> dict[str, Any]:
             errors.append(f"VAULT999 API unhealthy: {health.get('status')}")
     except Exception as e:
         errors.append(f"VAULT999 API unreachable: {e}")
-    
+
     # ── Probe B: vault status (seal count, chain integrity) ──────────────
     try:
         req = urllib.request.Request(
@@ -563,9 +599,9 @@ def check_cooling_ledger() -> dict[str, Any]:
             errors.append("VAULT999 reports zero seals — ledger may be empty")
     except Exception as e:
         errors.append(f"VAULT999 status unreachable: {e}")
-    
+
     api_latency_ms = round((time.monotonic() - api_t0) * 1000, 1)
-    
+
     # ── Probe C: query VAULT999 API for WELL entropy seals ─────────────
     # The Postgres-backed VAULT999 API (port 8100) is the canonical source,
     # not the file-based /root/VAULT999/ path. WELL entropy seals land here.
@@ -584,14 +620,18 @@ def check_cooling_ledger() -> dict[str, Any]:
                 well_entropy_seals += 1
     except Exception as e:
         errors.append(f"VAULT999 well entropy probe failed: {e}")
-    
+
     # Also check hermes vault (file-based) for legacy compatibility
     try:
         session_id = _get_session()
-        result = _mcp_post("tools/call", {
-            "name": "hermes_vault_query",
-            "arguments": {"mode": "recent", "limit": 20},
-        }, session_id=session_id)
+        result = _mcp_post(
+            "tools/call",
+            {
+                "name": "hermes_vault_query",
+                "arguments": {"mode": "recent", "limit": 20},
+            },
+            session_id=session_id,
+        )
         tool_result = _extract_tool_result(result)
         entries = []
         if isinstance(tool_result.get("result"), dict):
@@ -605,43 +645,45 @@ def check_cooling_ledger() -> dict[str, Any]:
                     well_entropy_seals += 1
     except Exception:
         pass  # hermes vault is optional secondary check
-    
+
     query_latency_ms = round((time.monotonic() - query_t0) * 1000, 1)
-    
+
     if well_entropy_seals == 0:
         errors.append("No WELL entropy seals found — vault or cooling bridge may be offline")
-    
+
     # ── Final verdict ─────────────────────────────────────────────────────
     passed = vault999_healthy and vault_seals >= 2 and well_entropy_seals > 0
-    
+
     return {
         "check": "cooling_ledger",
         "verdict": PASS if passed else FAIL,
         "latency_ms": round(api_latency_ms + query_latency_ms, 1),
-        "evidence": _annotate_chain_ruling({
-            "vault999_healthy": vault999_healthy,
-            "vault_seals_total": vault_seals,
-            "chain_integrity": chain_status,
-            "well_entropy_seals_found": well_entropy_seals,
-            "vault_api_latency_ms": api_latency_ms,
-            "query_latency_ms": query_latency_ms,
-            "errors": errors,
-        }),
+        "evidence": _annotate_chain_ruling(
+            {
+                "vault999_healthy": vault999_healthy,
+                "vault_seals_total": vault_seals,
+                "chain_integrity": chain_status,
+                "well_entropy_seals_found": well_entropy_seals,
+                "vault_api_latency_ms": api_latency_ms,
+                "query_latency_ms": query_latency_ms,
+                "errors": errors,
+            }
+        ),
     }
 
 
 # ── Runner ───────────────────────────────────────────────────────────────────
 
 SPINE = [
-    ("arifos_alive",          check_arifos_alive),
-    ("mcp_initialize",        check_mcp_initialize),
-    ("protocol_version",       check_protocol_version),
-    ("schema_echo_stable",    check_schema_echo_stable),
-    ("session_starts",        check_session_starts),
-    ("authority_checked",     check_authority_checked),
-    ("hold_blocks_mutation",  check_hold_blocks_mutation),
-    ("vault_replay",          check_vault_replay),
-    ("cooling_ledger",        check_cooling_ledger),
+    ("arifos_alive", check_arifos_alive),
+    ("mcp_initialize", check_mcp_initialize),
+    ("protocol_version", check_protocol_version),
+    ("schema_echo_stable", check_schema_echo_stable),
+    ("session_starts", check_session_starts),
+    ("authority_checked", check_authority_checked),
+    ("hold_blocks_mutation", check_hold_blocks_mutation),
+    ("vault_replay", check_vault_replay),
+    ("cooling_ledger", check_cooling_ledger),
 ]
 
 
@@ -658,8 +700,13 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     failed = 0
 
     for name, fn in SPINE:
-        if fast and name in ("arifos_alive", "mcp_initialize", "protocol_version",
-                              "schema_echo_stable", "session_starts"):
+        if fast and name in (
+            "arifos_alive",
+            "mcp_initialize",
+            "protocol_version",
+            "schema_echo_stable",
+            "session_starts",
+        ):
             r = {
                 "check": name,
                 "verdict": PASS,
@@ -739,7 +786,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     # all_green == True means "no check failed AND no critical signal found"
     # (or signals are explained and gate is GREEN). AMBER is not green.
     # RED and HOLD are definitely not green.
-    all_green = (substrate_gate == "GREEN")
+    all_green = substrate_gate == "GREEN"
 
     # ── ANTI-SINK (A3): Constitutional contradiction check ──
     # "All green, no work" is a sterile system — same class as allgreen=true,
@@ -752,14 +799,14 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
             # Probe action count from ingress middleware sink counters
             # (available when running inside the kernel process)
             from arifosmcp.runtime.ingress_middleware import _ARIFOS_INGRESS_INSTANCE
+
             if hasattr(_ARIFOS_INGRESS_INSTANCE, "_sink_counters"):
                 total_actions = sum(
                     c.get("action_count", 0)
                     for c in _ARIFOS_INGRESS_INSTANCE._sink_counters.values()
                 )
                 total_sims = sum(
-                    c.get("sim_count", 0)
-                    for c in _ARIFOS_INGRESS_INSTANCE._sink_counters.values()
+                    c.get("sim_count", 0) for c in _ARIFOS_INGRESS_INSTANCE._sink_counters.values()
                 )
                 if total_actions == 0 and total_sims > 0:
                     constitutional_contradiction = True

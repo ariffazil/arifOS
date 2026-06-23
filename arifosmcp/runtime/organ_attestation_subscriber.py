@@ -116,7 +116,8 @@ class OrganAttestationSubscriber:
                             organ_id=record.organ,
                             status=record.verdict,
                             tool_count=record.tool_count,
-                            degraded=record.verdict.upper() not in {"ALIVE", "HEALTHY", "OK", "PASS", "READY", "SERVING"},
+                            degraded=record.verdict.upper()
+                            not in {"ALIVE", "HEALTHY", "OK", "PASS", "READY", "SERVING"},
                             reason=f"registry_truth={record.registry_truth}",
                             load=record.raw,
                         )

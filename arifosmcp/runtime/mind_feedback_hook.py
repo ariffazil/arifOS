@@ -134,6 +134,7 @@ class MindFeedbackTracker:
         reader = NoOpGraphReader()
         try:
             from arifosmcp.runtime.l5_graph_read import L5GraphReader, L5GraphWriter
+
             writer = L5GraphWriter()
             reader = L5GraphReader()
         except ImportError:
@@ -154,14 +155,16 @@ class MindFeedbackTracker:
                 state.similar_task_refs = [s["task_id"] for s in similar]
                 logger.info(
                     "MindFeedbackTracker: found %d similar prior tasks for '%s'",
-                    len(similar), query[:80],
+                    len(similar),
+                    query[:80],
                 )
         except Exception as e:
             logger.debug("MindFeedbackTracker: similar task search failed — %s", e)
 
         logger.info(
             "MindFeedbackTracker: started session %s for query '%s'",
-            state.context_id, query[:80],
+            state.context_id,
+            query[:80],
         )
         return cls(state=state, feedback_loop=feedback, session_id=session_id or "")
 
@@ -185,8 +188,7 @@ class MindFeedbackTracker:
         step = self.state.add_step(
             content=f"[{layer_name}] {content[:200]}",
             step_type="analysis",
-            epistemic_tag=EpistemicTag.PLAUSIBLE if confidence < 0.90
-            else EpistemicTag.VERIFIED,
+            epistemic_tag=EpistemicTag.PLAUSIBLE if confidence < 0.90 else EpistemicTag.VERIFIED,
             confidence=confidence,
         )
         self.state.current_step = step.step_number
@@ -198,12 +200,14 @@ class MindFeedbackTracker:
         }
 
         signal = self.feedback.evaluate(step, outcome)
-        self.layers_completed.append({
-            "layer": layer_name,
-            "step_number": step.step_number,
-            "signal": signal.value if hasattr(signal, 'value') else str(signal),
-            "confidence": confidence,
-        })
+        self.layers_completed.append(
+            {
+                "layer": layer_name,
+                "step_number": step.step_number,
+                "signal": signal.value if hasattr(signal, "value") else str(signal),
+                "confidence": confidence,
+            }
+        )
 
         # Checkpoint after each layer
         if _CHECKPOINT_ENABLED and signal != FeedbackSignal.HOLD:
@@ -213,7 +217,8 @@ class MindFeedbackTracker:
         if signal != FeedbackSignal.PROCEED:
             logger.warning(
                 "MindFeedbackTracker: layer '%s' returned %s (not PROCEED)",
-                layer_name, signal.value,
+                layer_name,
+                signal.value,
             )
 
         return signal
@@ -267,6 +272,7 @@ class MindFeedbackTracker:
             import asyncio
 
             from arifosmcp.runtime.memory_store import store
+
             checkpoint_data = {
                 "type": "mind_checkpoint",
                 "tier": _CHECKPOINT_TIER,
@@ -325,7 +331,7 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
     tracker = MindFeedbackTracker.start(
         query=request.query,
         intent=request.task.intent.value
-        if hasattr(request.task.intent, 'value')
+        if hasattr(request.task.intent, "value")
         else str(request.task.intent),
         domain=request.task.domain,
         session_id=request.session_id,
@@ -335,20 +341,20 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
     response = await arif_think_v2(request)
 
     # Record layers from the response's mind_packet
-    if hasattr(response, 'mind_packet') and response.mind_packet:
+    if hasattr(response, "mind_packet") and response.mind_packet:
         packet = response.mind_packet
 
         # Layer 1: Metabolize
-        if hasattr(packet, 'metabolized_context') and packet.metabolized_context:
+        if hasattr(packet, "metabolized_context") and packet.metabolized_context:
             mc = packet.metabolized_context
             tracker.after_layer(
                 "metabolize",
-                getattr(mc, 'input_summary', str(mc)[:200]),
+                getattr(mc, "input_summary", str(mc)[:200]),
                 confidence=0.85,
             )
 
         # Layer 2: Abstract
-        if hasattr(packet, 'abstractions') and packet.abstractions:
+        if hasattr(packet, "abstractions") and packet.abstractions:
             tracker.after_layer(
                 "abstract",
                 f"{len(packet.abstractions)} abstractions",
@@ -356,7 +362,7 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
             )
 
         # Layer 3: Attest
-        if hasattr(packet, 'attestations') and packet.attestations:
+        if hasattr(packet, "attestations") and packet.attestations:
             tracker.after_layer(
                 "attest",
                 f"{len(packet.attestations)} attestations",
@@ -364,7 +370,7 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
             )
 
         # Layer 4: Abduct
-        if hasattr(packet, 'abductions') and packet.abductions:
+        if hasattr(packet, "abductions") and packet.abductions:
             tracker.after_layer(
                 "abduct",
                 f"{len(packet.abductions)} hypotheses",
@@ -372,24 +378,27 @@ async def mind_reason_with_feedback(request) -> tuple[Any, dict[str, Any]]:
             )
 
         # Layer 5: Synthesize
-        if hasattr(packet, 'synthesis') and packet.synthesis:
+        if hasattr(packet, "synthesis") and packet.synthesis:
             syn = packet.synthesis
-            conf = getattr(syn, 'confidence', {})
-            overall = conf.get('overall_confidence', 0.5) if isinstance(conf, dict) else 0.5
+            conf = getattr(syn, "confidence", {})
+            overall = conf.get("overall_confidence", 0.5) if isinstance(conf, dict) else 0.5
             tracker.after_layer(
                 "synthesize",
-                getattr(syn, 'bounded_answer', str(syn)[:200]),
+                getattr(syn, "bounded_answer", str(syn)[:200]),
                 confidence=overall,
             )
 
     # Finalize
     overall_conf = 0.5
-    if (hasattr(response, 'mind_packet') and response.mind_packet
-            and hasattr(response.mind_packet, 'synthesis')
-            and response.mind_packet.synthesis):
+    if (
+        hasattr(response, "mind_packet")
+        and response.mind_packet
+        and hasattr(response.mind_packet, "synthesis")
+        and response.mind_packet.synthesis
+    ):
         syn = response.mind_packet.synthesis
-        conf = getattr(syn, 'confidence', {})
-        overall_conf = conf.get('overall_confidence', 0.5) if isinstance(conf, dict) else 0.5
+        conf = getattr(syn, "confidence", {})
+        overall_conf = conf.get("overall_confidence", 0.5) if isinstance(conf, dict) else 0.5
 
     summary = tracker.finalize(response, overall_confidence=overall_conf)
 
@@ -413,6 +422,7 @@ def _auto_patch():
 
     try:
         import arifosmcp.runtime.mind_reason as mr
+
         _original = mr.arif_think_v2
 
         async def _wrapped(request):

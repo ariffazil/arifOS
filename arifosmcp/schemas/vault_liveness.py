@@ -30,11 +30,11 @@ from pydantic import BaseModel, Field, model_validator
 class VaultLivenessState(StrEnum):
     """Liveness verdict for the VAULT999 audit trail."""
 
-    FRESH = "FRESH"          # Last seal within freshness window, chain intact
-    STALE = "STALE"          # Last seal too old, but chain is intact
-    DEGRADED = "DEGRADED"    # Chain has gaps within tolerance
+    FRESH = "FRESH"  # Last seal within freshness window, chain intact
+    STALE = "STALE"  # Last seal too old, but chain is intact
+    DEGRADED = "DEGRADED"  # Chain has gaps within tolerance
     COMPROMISED = "COMPROMISED"  # Chain broken beyond tolerance
-    UNKNOWN = "UNKNOWN"      # Cannot determine (e.g., vault unreachable)
+    UNKNOWN = "UNKNOWN"  # Cannot determine (e.g., vault unreachable)
 
 
 class LivenessCheckResult(BaseModel):
@@ -301,10 +301,10 @@ class VaultLivenessContract(BaseModel):
 class ContractStatus(StrEnum):
     """Status of a production contract."""
 
-    SEALED = "SEALED"       # Contract is signed, tested, and enforced
-    PARTIAL = "PARTIAL"     # Contract exists but has gaps (tests missing, etc.)
-    DRAFT = "DRAFT"         # Contract spec exists but no enforcement yet
-    ABSENT = "ABSENT"       # Contract does not exist yet
+    SEALED = "SEALED"  # Contract is signed, tested, and enforced
+    PARTIAL = "PARTIAL"  # Contract exists but has gaps (tests missing, etc.)
+    DRAFT = "DRAFT"  # Contract spec exists but no enforcement yet
+    ABSENT = "ABSENT"  # Contract does not exist yet
 
 
 class ContractEntry(BaseModel):

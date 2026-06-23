@@ -27,7 +27,6 @@ from pathlib import Path
 from typing import Any
 
 from arifosmcp.core.enforcement.maruah_critic import (
-    is_maruah_sensitive,
     maruah_critic_check,
     MaruahVerdict,
 )
@@ -1245,6 +1244,7 @@ def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> No
             "status": "unavailable",
             "note": "cooldown engine not reachable — proceeding without verification",
         }
+
 
 # Backward compatibility alias
 arif_judge_deliberate = arif_judge

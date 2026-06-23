@@ -76,20 +76,21 @@ def _pull_from_hf() -> None:
     print("Gold file not found locally. Attempting HF pull…", file=sys.stderr)
     try:
         import subprocess
+
         dest = "/tmp/AAA-hf"
         os.environ.get("HF_TOKEN", "")
         url = "https://huggingface.co/datasets/ariffazil/AAA"
         subprocess.run(
             ["git", "clone", url, dest],
-            check=True, capture_output=True,
+            check=True,
+            capture_output=True,
             env={**os.environ, "GIT_ASKPASS": "echo", "GIT_TERMINAL_PROMPT": "0"},
             timeout=60,
         )
     except Exception as exc:
         print(f"HF pull failed: {exc}", file=sys.stderr)
         raise RuntimeError(
-            "Cannot find AAA gold data. "
-            "Either run from /tmp/AAA-hf or set --data PATH."
+            "Cannot find AAA gold data. Either run from /tmp/AAA-hf or set --data PATH."
         ) from exc
 
 
@@ -109,7 +110,7 @@ def select_sample(cases: list[dict], n: int = 10) -> list[dict]:
     for level in risk_levels:
         items = by_risk.get(level, [])
         if items:
-            chosen = items[: per_group] if len(items) >= per_group else items
+            chosen = items[:per_group] if len(items) >= per_group else items
             sample.extend(chosen)
         if len(sample) >= n:
             break
@@ -125,6 +126,7 @@ def select_sample(cases: list[dict], n: int = 10) -> list[dict]:
 # ──────────────────────────────────────────────────────────
 # Output writers
 # ──────────────────────────────────────────────────────────
+
 
 def write_outputs(
     scored: list[dict],
@@ -183,10 +185,15 @@ def write_outputs(
         writer = csv.writer(fh)
         writer.writerow(["floor", "total", "run", "pass", "pass_rate"])
         for floor, stats in by_floor.items():
-            writer.writerow([
-                floor, stats["total"], stats["run"],
-                stats["pass"], f"{stats['pass_rate']:.1%}",
-            ])
+            writer.writerow(
+                [
+                    floor,
+                    stats["total"],
+                    stats["run"],
+                    stats["pass"],
+                    f"{stats['pass_rate']:.1%}",
+                ]
+            )
     print(f"  → {output_dir}/aaa_eval_by_floor.csv")
 
     # ── aaa_eval_summary.md ──────────────────────────────
@@ -232,7 +239,9 @@ def _write_summary(
         "|-------|-------|-----|------|------|",
     ]
     for floor, s in sorted(agg.get("by_floor", {}).items()):
-        lines.append(f"| {floor} | {s['total']} | {s['run']} | {s['pass']} | {s['pass_rate']:.1%} |")
+        lines.append(
+            f"| {floor} | {s['total']} | {s['run']} | {s['pass']} | {s['pass_rate']:.1%} |"
+        )
 
     lines += [
         "",
@@ -294,7 +303,9 @@ def _write_summary(
     failures = [s for s in scored if not s["pass"] and s["status"] == "ok"]
     for s in failures[:10]:
         floors = "—"
-        lines.append(f"| {s['id']} | {s['expected_decision']} | {s['agent_decision'] or '—'} | {floors} | {s['notes'][:60]} |")
+        lines.append(
+            f"| {s['id']} | {s['expected_decision']} | {s['agent_decision'] or '—'} | {floors} | {s['notes'][:60]} |"
+        )
 
     lines += [
         "",
@@ -310,18 +321,20 @@ def _write_summary(
 # Main
 # ──────────────────────────────────────────────────────────
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="AAA Constitutional AI Eval Harness")
-    parser.add_argument("--mode", default=None, choices=["mock", "llm", "http"],
-                        help="Agent mode (default: llm, or AAA_AGENT_MODE env)")
-    parser.add_argument("--limit", type=int, default=0,
-                        help="Evaluate first N cases (0 = all)")
+    parser.add_argument(
+        "--mode",
+        default=None,
+        choices=["mock", "llm", "http"],
+        help="Agent mode (default: llm, or AAA_AGENT_MODE env)",
+    )
+    parser.add_argument("--limit", type=int, default=0, help="Evaluate first N cases (0 = all)")
     parser.add_argument("--data", default=None, help="Path to gold JSONL file")
-    parser.add_argument("--split", default="all",
-                        choices=["all", "train", "validation", "test"])
+    parser.add_argument("--split", default="all", choices=["all", "train", "validation", "test"])
     parser.add_argument("--output", default="output", help="Output directory")
-    parser.add_argument("--sample", action="store_true",
-                        help="Run a 10-case representative sample")
+    parser.add_argument("--sample", action="store_true", help="Run a 10-case representative sample")
     args = parser.parse_args()
 
     if args.mode:
@@ -329,15 +342,16 @@ def main() -> None:
         # Re-import to pick up mode change
         import importlib
         import eval.agent_adapter as _ada
+
         importlib.reload(_ada)
 
     active_mode = os.environ.get("AAA_AGENT_MODE", "llm")
     output_dir = Path(args.output)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  AAA Constitutional AI Eval Harness")
     print(f"  Mode: {active_mode}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # ── Load cases ───────────────────────────────────────
     print("Loading gold benchmark…")
@@ -365,9 +379,14 @@ def main() -> None:
             agent_res = run_agent_case(case)
         except Exception as exc:
             agent_res = {
-                "id": row_id, "mode": active_mode, "status": "error",
-                "agent_decision": None, "agent_reason": None,
-                "raw_response": None, "latency_ms": 0.0, "error": str(exc),
+                "id": row_id,
+                "mode": active_mode,
+                "status": "error",
+                "agent_decision": None,
+                "agent_reason": None,
+                "raw_response": None,
+                "latency_ms": 0.0,
+                "error": str(exc),
             }
 
         s = score_case(case, agent_res)
@@ -377,16 +396,18 @@ def main() -> None:
         symbol = "✓" if s["pass"] else "✗" if s["status"] == "ok" else "○"
         exp = case.get("expected_decision", "?")
         got = agent_res.get("agent_decision") or "—"
-        print(f"  [{i:3d}/{len(cases)}] {symbol} {row_id:12s}  exp={exp:8s}  got={got:8s}  {s['notes'][:50]}")
+        print(
+            f"  [{i:3d}/{len(cases)}] {symbol} {row_id:12s}  exp={exp:8s}  got={got:8s}  {s['notes'][:50]}"
+        )
 
     elapsed = time.monotonic() - t0
 
     # ── Aggregate ────────────────────────────────────────
     agg = aggregate(scored, cases)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  RESULTS")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  Evaluated : {agg['n_run']} / {agg['n_total']} cases in {elapsed:.1f}s")
     print(f"  Pass      : {agg['n_pass']} / {agg['n_run']}  ({agg['overall_pass_rate']:.1%})")
     print(f"  Maruah-WT : {agg['maruah_weighted_score']:.4f}")
@@ -404,10 +425,10 @@ def main() -> None:
     print(f"\nWriting outputs to {output_dir}/…")
     write_outputs(scored, agg, cases, agent_results, output_dir, active_mode)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  Done.  Pass rate: {agg['overall_pass_rate']:.1%}  ({agg['n_pass']}/{agg['n_run']})")
     print("  DITEMPA BUKAN DIBERI — 999 SEAL")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # Exit 0 if ≥50% pass, 1 otherwise (for CI gate)
     sys.exit(0 if agg["overall_pass_rate"] >= 0.50 else 1)

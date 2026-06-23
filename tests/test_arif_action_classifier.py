@@ -28,6 +28,7 @@ from arifosmcp.runtime.__advisory__.arif_action_classifier import (
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def metabolism() -> ArifOSMetabolism:
     """Fresh metabolism per test — no cross-test audit_log bleed."""
@@ -62,6 +63,7 @@ def _action(
 # ─────────────────────────────────────────────────────────────────────────────
 # Happy path: 6 ActionClass → expected gate
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestHappyPath:
     """Each ActionClass in isolation with neutral risk factors must route
@@ -119,6 +121,7 @@ class TestHappyPath:
 # Fail-closed: UNKNOWN, secrets, safeguards
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestFailClosed:
     """The classifier must never guess. When in doubt → 888_HOLD.
     This is the floor of F02 TRUTH (no fabricated certainty)."""
@@ -163,6 +166,7 @@ class TestFailClosed:
 # Multi-factor escalation: ≥2 risk factors → HOLD
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestMultiFactorEscalation:
     """Single factor routes by class. Two or more risk factors escalate to HOLD.
     This is the safety net under F07 HUMILITY."""
@@ -173,16 +177,14 @@ class TestMultiFactorEscalation:
                 "write_then_broadcast",
                 ActionClass.MUTATE,
                 reversibility=0.2,  # < 0.3
-                blast_radius=0.8,    # > 0.6
+                blast_radius=0.8,  # > 0.6
             )
         )
         assert verdict.gate == Gate.HOLD_888
         assert verdict.required_human_judge is True
         assert any("Multiple risk factors" in r for r in verdict.reasons)
 
-    def test_single_factor_does_not_hold_prepare(
-        self, metabolism: ArifOSMetabolism
-    ) -> None:
+    def test_single_factor_does_not_hold_prepare(self, metabolism: ArifOSMetabolism) -> None:
         # Just low reversibility, no other risk factors → still ALLOW_IF_REVERSIBLE
         verdict = metabolism.classify_gate(
             _action(
@@ -201,6 +203,7 @@ class TestMultiFactorEscalation:
 # ─────────────────────────────────────────────────────────────────────────────
 # Audit trail
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestAuditTrail:
     """The classifier's audit log is the only durable record. F2 TRUTH demands
@@ -237,6 +240,7 @@ class TestAuditTrail:
 # ─────────────────────────────────────────────────────────────────────────────
 # Doctrine
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestDoctrine:
     """hang_ingat_balik() is the cultural anchor. It must always return the

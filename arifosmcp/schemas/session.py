@@ -212,7 +212,8 @@ class OperatorIdentity(BaseModel):
         description="none | signature | token | delegation | biometric",
     )
     verification_provider: str | None = Field(
-        default=None, description="Who performed the verification (e.g. 'arifOS_crypto_auth', 'delegated_from_apex')"
+        default=None,
+        description="Who performed the verification (e.g. 'arifOS_crypto_auth', 'delegated_from_apex')",
     )
     trust_level: str = Field(
         default="claimed",
@@ -240,11 +241,16 @@ class IntentModel(BaseModel):
     and "what they are trying to achieve."
     """
 
-    declared_purpose: str | None = Field(default=None, description="Operator-stated purpose for this session")
-    inferred_purpose: str | None = Field(
-        default=None, description="System-inferred purpose from context (HYPOTHESIS — never treated as fact)"
+    declared_purpose: str | None = Field(
+        default=None, description="Operator-stated purpose for this session"
     )
-    session_objective: str | None = Field(default=None, description="Concrete objective bound to this session")
+    inferred_purpose: str | None = Field(
+        default=None,
+        description="System-inferred purpose from context (HYPOTHESIS — never treated as fact)",
+    )
+    session_objective: str | None = Field(
+        default=None, description="Concrete objective bound to this session"
+    )
     intent_history: list[str] = Field(
         default_factory=list, description="Prior intents from continuous sessions"
     )
@@ -252,7 +258,8 @@ class IntentModel(BaseModel):
         default=False, description="Are active commitments being tracked?"
     )
     commitments: list[str] = Field(
-        default_factory=list, description="Active commitments made by operator in this or prior sessions"
+        default_factory=list,
+        description="Active commitments made by operator in this or prior sessions",
     )
     intent_drift_detected: bool = Field(
         default=False, description="Has operator intent drifted from declared purpose?"
@@ -340,13 +347,18 @@ class WellMirrorEnhanced(BaseModel):
         default=None, description="WELL cognitive load: LOW | MEDIUM | HIGH | OVERLOAD"
     )
     dignity_preservation_score: float | None = Field(
-        default=None, ge=0.0, le=1.0, description="WELL dignity score (0=violated, 1=fully preserved)"
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="WELL dignity score (0=violated, 1=fully preserved)",
     )
     coercion_signal_detected: bool = Field(
         default=False, description="WELL coercion detection flag"
     )
     well_informed: bool = Field(default=False, description="Did WELL provide data this session?")
-    well_status: str = Field(default="unavailable", description="available | degraded | unavailable")
+    well_status: str = Field(
+        default="unavailable", description="available | degraded | unavailable"
+    )
     well_timestamp: str | None = Field(default=None, description="When WELL data was sampled")
 
 
@@ -359,12 +371,24 @@ class SessionContinuity(BaseModel):
     """
 
     prior_session_id: str | None = Field(default=None, description="Linked prior session")
-    continuity_established: bool = Field(default=False, description="Was continuity successfully established?")
-    prior_commitments: list[str] = Field(default_factory=list, description="Commitments inherited from prior sessions")
-    commitments_honored: list[str] = Field(default_factory=list, description="Commitments honored since last session")
-    commitments_breached: list[str] = Field(default_factory=list, description="Commitments breached (with reason)")
-    drift_detected: bool = Field(default=False, description="Has intent drifted from prior sessions?")
-    drift_flags: list[str] = Field(default_factory=list, description="Specific drift detection signals")
+    continuity_established: bool = Field(
+        default=False, description="Was continuity successfully established?"
+    )
+    prior_commitments: list[str] = Field(
+        default_factory=list, description="Commitments inherited from prior sessions"
+    )
+    commitments_honored: list[str] = Field(
+        default_factory=list, description="Commitments honored since last session"
+    )
+    commitments_breached: list[str] = Field(
+        default_factory=list, description="Commitments breached (with reason)"
+    )
+    drift_detected: bool = Field(
+        default=False, description="Has intent drifted from prior sessions?"
+    )
+    drift_flags: list[str] = Field(
+        default_factory=list, description="Specific drift detection signals"
+    )
 
 
 class ConsentBoundaries(BaseModel):
@@ -385,7 +409,8 @@ class ConsentBoundaries(BaseModel):
         default=False, description="Operator consented to inference about their mental state"
     )
     theory_of_mind_consent: bool = Field(
-        default=False, description="Operator consented to ToM-1 modeling (beliefs, preferences, intent)"
+        default=False,
+        description="Operator consented to ToM-1 modeling (beliefs, preferences, intent)",
     )
     surveillance_warning: str = Field(
         default=(
@@ -411,13 +436,21 @@ class ContextCompletenessReceipt(BaseModel):
     """
 
     timezone: str = Field(default="missing", description="timezone | missing | inferred")
-    spatial_context: str = Field(default="missing", description="spatial_context | missing | inferred")
+    spatial_context: str = Field(
+        default="missing", description="spatial_context | missing | inferred"
+    )
     host_id: str = Field(default="missing", description="host_id | missing | attested")
-    identity: str = Field(default="claimed_not_verified", description="claimed_not_verified | verified_operator | anonymous")
+    identity: str = Field(
+        default="claimed_not_verified",
+        description="claimed_not_verified | verified_operator | anonymous",
+    )
     memory: str = Field(default="not_loaded", description="not_loaded | partial | full")
     session_provenance: str = Field(default="fresh", description="fresh | resumed | handover")
     score: float = Field(default=0.0, ge=0.0, le=1.0, description="0.0 = empty, 1.0 = complete")
-    verdict: str = Field(default="DEGRADED_CONTEXT", description="COMPLETE_CONTEXT | DEGRADED_CONTEXT | MINIMAL_CONTEXT")
+    verdict: str = Field(
+        default="DEGRADED_CONTEXT",
+        description="COMPLETE_CONTEXT | DEGRADED_CONTEXT | MINIMAL_CONTEXT",
+    )
 
 
 class SessionState(BaseModel):
@@ -476,7 +509,9 @@ class SessionManifest(BaseModel):
     timestamp: str | None = None
     actor_signature: str | None = None
     nonce: str | None = None
-    actor_verified: bool = Field(default=False, description="Whether the actor_id was cryptographically verified")
+    actor_verified: bool = Field(
+        default=False, description="Whether the actor_id was cryptographically verified"
+    )
     signature_verified: bool = False
     constitution_bound: bool = False
     invariants_checked: list[str] = Field(default_factory=list)

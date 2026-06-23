@@ -48,10 +48,14 @@ class MemoryJanitor:
                 janitor._task = loop.create_task(janitor.run_loop())
             else:
                 # Loop exists but not running yet — defer to next tick
-                loop.call_soon(lambda: setattr(janitor, "_task", asyncio.ensure_future(janitor.run_loop())))
+                loop.call_soon(
+                    lambda: setattr(janitor, "_task", asyncio.ensure_future(janitor.run_loop()))
+                )
         except RuntimeError:
             # No event loop at all — caller must invoke ``start_async`` later
-            logger.warning("MemoryJanitor.start: no event loop; call start_async() inside an async context")
+            logger.warning(
+                "MemoryJanitor.start: no event loop; call start_async() inside an async context"
+            )
         cls._global = janitor
         return janitor
 

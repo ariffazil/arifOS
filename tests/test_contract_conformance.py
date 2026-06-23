@@ -41,17 +41,26 @@ def test_all_contracts_have_required_fields():
     from contracts.generated.validators_runtime import CONTRACT_REGISTRY
 
     required_fields = [
-        "canonical_name", "role", "axis", "pipeline_stage",
-        "contract_class", "mutation_class", "modes",
-        "reversibility", "blast_radius", "authority_required",
-        "channel", "hold_conditions", "denial_codes", "audit_events",
-        "witness_requirements", "contract_version",
+        "canonical_name",
+        "role",
+        "axis",
+        "pipeline_stage",
+        "contract_class",
+        "mutation_class",
+        "modes",
+        "reversibility",
+        "blast_radius",
+        "authority_required",
+        "channel",
+        "hold_conditions",
+        "denial_codes",
+        "audit_events",
+        "witness_requirements",
+        "contract_version",
     ]
     for name, contract in CONTRACT_REGISTRY.items():
         for field in required_fields:
-            assert hasattr(contract, field), (
-                f"Contract '{name}' missing required field '{field}'"
-            )
+            assert hasattr(contract, field), f"Contract '{name}' missing required field '{field}'"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -101,9 +110,7 @@ def test_all_tools_have_audit_events():
     from contracts.generated.validators_runtime import CONTRACT_REGISTRY
 
     for name, contract in CONTRACT_REGISTRY.items():
-        assert len(contract.audit_events) > 0, (
-            f"Tool '{name}' has no audit events"
-        )
+        assert len(contract.audit_events) > 0, f"Tool '{name}' has no audit events"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -180,13 +187,14 @@ def test_validate_tool_call_rejects_insufficient_authority():
 
 def test_validate_tool_call_rejects_missing_plan_for_gateway():
     """Gateway tool without plan should be rejected."""
-    from contracts.generated.validators_runtime import validate_tool_call, DenialCode, CONTRACT_REGISTRY
+    from contracts.generated.validators_runtime import (
+        validate_tool_call,
+        DenialCode,
+        CONTRACT_REGISTRY,
+    )
 
     # Find a gateway-class tool
-    gateway_tools = [
-        name for name, c in CONTRACT_REGISTRY.items()
-        if c.contract_class == "gateway"
-    ]
+    gateway_tools = [name for name, c in CONTRACT_REGISTRY.items() if c.contract_class == "gateway"]
     if gateway_tools:
         gw = gateway_tools[0]
         result = validate_tool_call(
@@ -239,9 +247,7 @@ def test_all_axes_covered_by_at_least_one_tool():
     # Critical axes that must be covered
     critical_axes = {"000_KERNEL", "111_SENSE", "333_THINK", "888_JUDGE", "999_SEAL"}
     covered = critical_axes.intersection(all_axes)
-    assert covered == critical_axes, (
-        f"Critical axes not covered: {critical_axes - covered}"
-    )
+    assert covered == critical_axes, f"Critical axes not covered: {critical_axes - covered}"
 
 
 if __name__ == "__main__":

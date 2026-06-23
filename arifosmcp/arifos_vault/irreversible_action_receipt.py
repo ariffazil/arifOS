@@ -27,7 +27,9 @@ class IrreversibleActionReceipt(BaseModel):
     reversible: bool = False
     human_ack: bool = False  # Must be True to proceed
     human_ack_signature: str | None = None
-    proposed_at: str = Field(default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+    proposed_at: str = Field(
+        default_factory=lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    )
     authorized_at: str | None = None
     executed_at: str | None = None
     vault_seal_id: int | None = None

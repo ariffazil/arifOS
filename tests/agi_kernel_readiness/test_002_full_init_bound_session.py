@@ -75,7 +75,9 @@ def test_full_mutation_allowed():
         )
         inner = r.get("result", {})
         sb = inner.get("session_birth", {})
-        assert inner.get("mutation_allowed", sb.get("mutation_allowed")) is False, "Dangerous actions remain gated (mutation_allowed=False)"
+        assert inner.get("mutation_allowed", sb.get("mutation_allowed")) is False, (
+            "Dangerous actions remain gated (mutation_allowed=False)"
+        )
     finally:
         c.close()
 

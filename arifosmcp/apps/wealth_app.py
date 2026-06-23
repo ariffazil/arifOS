@@ -71,7 +71,7 @@ from skills.wealth.invariant_surface import (
 
 wealth_app = FastMCP("WealthApp")
 if not hasattr(wealth_app, "ui"):
-    wealth_app.ui = lambda *args, **kwargs: (lambda fn: fn)
+    wealth_app.ui = lambda *args, **kwargs: lambda fn: fn
 
 
 # ═══════════════════════════════════════════════════════

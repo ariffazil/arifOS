@@ -9,6 +9,10 @@ generated_from: arifosmcp.constitutional_map.CANONICAL_TOOLS
 
 # arifOS MCP Runtime — Canonical Agent Skills
 
+> **DEPRECATED SURFACE (2026-06-23)**: This doc reflects pre-freeze surface. Public MCP is now exactly 7 verbs only.
+> See runtime/public_surface.py CANONICAL_7 and constitutional_map.py _PUBLIC_7.
+> Old names (arif_compose, arif_forge, arif_memory_*, etc.) are internal.
+
 > **Constitutional Intelligence Kernel + Agent Runtime**
 >
 > **Machine is substrate. Governance is constraint. Intelligence is interpretation. Judgment remains Arif.**

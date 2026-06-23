@@ -62,7 +62,7 @@ gh pr create \
 
 ## Test plan
 - [ ] pytest tests/ -v passes
-- [ ] arifos health returns 13 tools
+- [ ] arifos health returns 7 public tools (2026-06-23 facade)
 
 🤖 Opened by arifOS_bot
 PRBODY

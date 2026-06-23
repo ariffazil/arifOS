@@ -36,39 +36,105 @@ logger = logging.getLogger(__name__)
 
 # GREEN: observation, inspection, drafting — safe to autonomize
 GREEN_PATTERNS: tuple[str, ...] = (
-    "sense", "observe", "inspect", "read", "get", "list", "fetch",
-    "search", "summarize", "draft", "classify", "check", "health",
-    "probe", "ping", "status", "telemetry", "metric", "log",
+    "sense",
+    "observe",
+    "inspect",
+    "read",
+    "get",
+    "list",
+    "fetch",
+    "search",
+    "summarize",
+    "draft",
+    "classify",
+    "check",
+    "health",
+    "probe",
+    "ping",
+    "status",
+    "telemetry",
+    "metric",
+    "log",
 )
 
 # YELLOW: preparation, planning, staging — safe with receipt
 YELLOW_PATTERNS: tuple[str, ...] = (
-    "prepare", "plan", "stage", "diff", "compare", "validate",
-    "lint", "format", "review", "suggest", "recommend", "estimate",
-    "project", "forecast", "simulate",
+    "prepare",
+    "plan",
+    "stage",
+    "diff",
+    "compare",
+    "validate",
+    "lint",
+    "format",
+    "review",
+    "suggest",
+    "recommend",
+    "estimate",
+    "project",
+    "forecast",
+    "simulate",
 )
 
 # ORANGE: local mutation with rollback potential
 ORANGE_PATTERNS: tuple[str, ...] = (
-    "write", "update", "create", "edit", "modify", "patch",
-    "configure", "deploy_local", "restart", "reload",
-    "install", "sync", "build", "test",
+    "write",
+    "update",
+    "create",
+    "edit",
+    "modify",
+    "patch",
+    "configure",
+    "deploy_local",
+    "restart",
+    "reload",
+    "install",
+    "sync",
+    "build",
+    "test",
 )
 
 # RED: external effects, secrets, money, infrastructure
 RED_PATTERNS: tuple[str, ...] = (
-    "delete", "drop", "remove", "destroy", "wipe", "purge",
-    "pay", "transfer", "allocate", "spend", "withdraw",
-    "secret", "vault", "key", "password", "token",
-    "infra", "server", "network", "domain", "dns",
-    "public", "publish", "expose", "external",
-    "commit", "push", "merge", "force",
+    "delete",
+    "drop",
+    "remove",
+    "destroy",
+    "wipe",
+    "purge",
+    "pay",
+    "transfer",
+    "allocate",
+    "spend",
+    "withdraw",
+    "secret",
+    "vault",
+    "key",
+    "password",
+    "token",
+    "infra",
+    "server",
+    "network",
+    "domain",
+    "dns",
+    "public",
+    "publish",
+    "expose",
+    "external",
+    "commit",
+    "push",
+    "merge",
+    "force",
 )
 
 # BLACK: explicitly destructive and irreversible
 BLACK_PATTERNS: tuple[str, ...] = (
-    "rm_-rf", "drop_database", "wipe_disk", "destroy_cluster",
-    "irreversible", "catastrophic",
+    "rm_-rf",
+    "drop_database",
+    "wipe_disk",
+    "destroy_cluster",
+    "irreversible",
+    "catastrophic",
 )
 
 # Risk-class mapping from band
@@ -189,7 +255,9 @@ class AutonomyBandRouter:
         requires_grant = band in (AutonomyBand.ORANGE, AutonomyBand.RED)
         requires_rollback = band in (AutonomyBand.ORANGE, AutonomyBand.RED, AutonomyBand.BLACK)
         requires_observe_receipt = band in (
-            AutonomyBand.ORANGE, AutonomyBand.RED, AutonomyBand.BLACK
+            AutonomyBand.ORANGE,
+            AutonomyBand.RED,
+            AutonomyBand.BLACK,
         )
 
         return BandRoutingResult(

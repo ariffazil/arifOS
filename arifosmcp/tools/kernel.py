@@ -10,11 +10,9 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
-import time
 from typing import Any
 
 from arifosmcp.core.federation_contracts import validate_organ_output
-from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
 
 # SURPRISE_WINDOW_SIZE is imported for the contradiction check default

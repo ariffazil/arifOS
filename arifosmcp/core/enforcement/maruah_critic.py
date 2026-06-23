@@ -45,9 +45,8 @@ Usage pattern (future, not wired):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional
 import re as _re
+
 # --- Policy line (the only "code" that matters) -------------------------
 # F6 EMPATHY enforcement extension. v0.1 wording:
 #   - kritik_sistem: ALLOWED (kasar or halus, your call)

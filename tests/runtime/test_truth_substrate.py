@@ -94,6 +94,7 @@ def test_evidence_fetch_injection_quarantine(mock_floors, mock_store):
 
     # Mocking RealityHandler directly here for the specific bad content
     with patch("arifosmcp.runtime.reality_handlers.handler.fetch_url") as mock_bad_fetch:
+
         async def _mock_fetch(*args, **kwargs):
             return FetchResult(
                 url="https://example.com/evil",
@@ -111,7 +112,12 @@ def test_evidence_fetch_injection_quarantine(mock_floors, mock_store):
         data = result["result"]
         if data is None:
             # Post-observe gate scrubbed the result due to F12 injection
-            data = result.get("meta", {}).get("post_observe_gate", {}).get("scrubbed", {}).get("result", {})
+            data = (
+                result.get("meta", {})
+                .get("post_observe_gate", {})
+                .get("scrubbed", {})
+                .get("result", {})
+            )
         # Security: Risk flags catch injection
         assert "PROMPT_INJECTION_DETECTED" in data.get("risk_flags", [])
 
@@ -519,4 +525,3 @@ def test_substrate_tool_naming_invariants():
     # Log violations for visibility in test outputs
     print("arifOS Naming Violations:", violations["arifOS"])
     print("A-FORGE Naming Violations:", violations["A-FORGE"])
-

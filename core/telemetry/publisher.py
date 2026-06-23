@@ -14,7 +14,9 @@ from datetime import datetime, timezone
 SUBJECT_PREFIX = "agent.memory"
 
 
-def emit(agent: str, event_type: str, payload: str, confidence: float = 1.0, metadata: dict | None = None):
+def emit(
+    agent: str, event_type: str, payload: str, confidence: float = 1.0, metadata: dict | None = None
+):
     """Emit a telemetry event to NATS agent_memory stream via nats CLI.
 
     Args:
@@ -24,15 +26,17 @@ def emit(agent: str, event_type: str, payload: str, confidence: float = 1.0, met
         confidence: 0.0–1.0
         metadata: Optional dict with extra context
     """
-    event = json.dumps({
-        "agent": agent,
-        "event": event_type,
-        "payload": payload,
-        "confidence": confidence,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "metadata": metadata or {},
-        "schema": "cross-agent-event/v1",
-    })
+    event = json.dumps(
+        {
+            "agent": agent,
+            "event": event_type,
+            "payload": payload,
+            "confidence": confidence,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "metadata": metadata or {},
+            "schema": "cross-agent-event/v1",
+        }
+    )
 
     subject = f"{SUBJECT_PREFIX}.{agent}.{event_type}"
     result = subprocess.run(

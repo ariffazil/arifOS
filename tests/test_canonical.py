@@ -16,7 +16,6 @@ from arifosmcp.constitutional_map import (
     list_constitutional_tools,
     list_probe_tools,
 )
-from arifosmcp.runtime.public_surface import CANARY_PROBES
 from arifosmcp.prompts import CANONICAL_PROMPTS, register_prompts
 from arifosmcp.resources import (
     CANONICAL_RESOURCES,
@@ -85,12 +84,21 @@ def test_register_resources_matches_canonical_resource_surface():
     mcp = FastMCP("test-arifos-resources")
     registered = register_resources(mcp)
     registered_set = set(registered)
-    expected_set = set(CANONICAL_RESOURCES) | set(EVIDENCE_RESOURCES) | set(EMBODIED_RESOURCES) | set(TREE777_RESOURCES) | set(RUNNER_RESOURCES) | {"sovereign://{file}"}
+    expected_set = (
+        set(CANONICAL_RESOURCES)
+        | set(EVIDENCE_RESOURCES)
+        | set(EMBODIED_RESOURCES)
+        | set(TREE777_RESOURCES)
+        | set(RUNNER_RESOURCES)
+        | {"sovereign://{file}"}
+    )
     # Verify all expected resources are registered (order-independent, allows for
     # extra bootstrap resources like arifos://human/metabolized)
     missing = expected_set - registered_set
     assert not missing, f"Missing registered resources: {missing}"
-    assert len(registered) >= len(expected_set), f"Expected >= {len(expected_set)} resources, got {len(registered)}"
+    assert len(registered) >= len(expected_set), (
+        f"Expected >= {len(expected_set)} resources, got {len(registered)}"
+    )
 
 
 def test_init_creates_session():

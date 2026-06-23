@@ -165,9 +165,7 @@ class TestEpistemicContract:
             bridge,
             "_post_tavily",
             return_value={
-                "results": [
-                    {"url": "https://a.com", "title": "A", "content": "Hello world"}
-                ]
+                "results": [{"url": "https://a.com", "title": "A", "content": "Hello world"}]
             },
         ):
             result = run(bridge.get_search_context("test"))
@@ -335,9 +333,7 @@ class TestLive:
     """Real Tavily API calls. Skipped if no key in env."""
 
     def test_live_get_search_context(self, bridge):
-        result = run(
-            bridge.get_search_context("What is the capital of Malaysia?", max_tokens=500)
-        )
+        result = run(bridge.get_search_context("What is the capital of Malaysia?", max_tokens=500))
         assert result["status"] == "success"
         assert result["verdict"] == "SEAL"
         assert "Kuala Lumpur" in result["context"]

@@ -44,6 +44,7 @@ class ArtRequest:
         drift_count:    schema/permission changes detected; >=3 triggers fallback
         days_since_use: days since last successful call; >90 triggers abandon
     """
+
     action_class: str = "observe"
     tool_state: str = ToolState.UNTRUSTED.value
     blast_radius: str = "unknown"
@@ -70,6 +71,7 @@ class ArtRequest:
 @dataclass
 class ArtResult:
     """What ART returns."""
+
     verdict: ArtVerdict
     reason: ArtReason
     next_tool_state: ToolState | None = None
@@ -181,9 +183,11 @@ def art(request: ArtRequest) -> ArtResult:
         )
 
     # v3.1 — E2: EXTERNAL_SURFACE requires explicit ack
-    if (request.action_class == "mutate"
-            and request.external_surface
-            and not request.acknowledged_remote):
+    if (
+        request.action_class == "mutate"
+        and request.external_surface
+        and not request.acknowledged_remote
+    ):
         return ArtResult(
             verdict=ArtVerdict.HOLD,
             reason=ArtReason.EXTERNAL_SURFACE_UNACKNOWLEDGED,
@@ -218,8 +222,7 @@ def art(request: ArtRequest) -> ArtResult:
         )
 
     # v3.1 — E1: UNVERIFIED_SCHEMA downgrade for non-observe actions
-    if (not request.schema_verified
-            and request.action_class in ("mutate", "execute")):
+    if not request.schema_verified and request.action_class in ("mutate", "execute"):
         return ArtResult(
             verdict=ArtVerdict.DEFAULT_OBSERVE,
             reason=ArtReason.UNVERIFIED_SCHEMA_SOURCE,

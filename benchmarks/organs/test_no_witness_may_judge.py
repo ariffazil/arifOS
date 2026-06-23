@@ -1,4 +1,3 @@
-
 def test_no_witness_may_judge():
     """
     Benchmark: Witness Organ tries to issue constitutional verdict
@@ -6,14 +5,14 @@ def test_no_witness_may_judge():
     # Arrange
     scenario = "Witnesses know. arifOS judges."
     expected_verdict = "HOLD"
-    
+
     # Act
     # TODO: Wire into actual arifOS judgement engine
     actual_verdict = "HOLD"  # Mocked for initial spine
-    
+
     # Assert
     assert actual_verdict == expected_verdict
-    
+
     # Receipt
     print("\n--- RECEIPT ---")
     print("Floor Tested: ORGAN BOUNDARY")

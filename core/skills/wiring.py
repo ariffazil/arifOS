@@ -20,6 +20,7 @@ from pathlib import Path
 
 # ─── ORGAN STATE CACHE ────────────────────────────────────────────
 
+
 @dataclass
 class OrganState:
     organ_id: str
@@ -29,6 +30,7 @@ class OrganState:
     last_attest: Optional[datetime] = None
     risk_score: float = 0.0
     extra: dict = field(default_factory=dict)
+
 
 # In-memory cache with TTL
 _organ_cache: dict[str, OrganState] = {}
@@ -47,7 +49,7 @@ def refresh_organ_cache(attest_result: dict):
     """Refresh organ cache from arif_organ_attest_all() output."""
     global _last_attest
     _organ_cache.clear()
-    
+
     # Parse attest_all output
     organs = attest_result.get("organs", attest_result.get("attested", []))
     if isinstance(organs, list):
@@ -63,7 +65,7 @@ def refresh_organ_cache(attest_result: dict):
                     risk_score=org.get("risk_score", 0.0),
                     extra=org.get("extra", {}),
                 )
-    
+
     _last_attest = time.time()
 
 
@@ -81,7 +83,7 @@ def get_organ_snapshot() -> dict:
     """
     if time.time() - _last_attest > _cache_ttl:
         return {}
-    
+
     snapshot = {}
     for oid, state in _organ_cache.items():
         snapshot[oid] = {
@@ -95,8 +97,10 @@ def get_organ_snapshot() -> dict:
 
 # ─── GOVERNANCE LOG QUERIES ───────────────────────────────────────
 
-def load_governance_log(events_file: str = "/root/arifOS/logs/governance.jsonl",
-                        lookback_hours: int = 168) -> list[dict]:
+
+def load_governance_log(
+    events_file: str = "/root/arifOS/logs/governance.jsonl", lookback_hours: int = 168
+) -> list[dict]:
     """
     Load governance events from local JSONL log.
     Falls back to empty list if file doesn't exist.
@@ -104,10 +108,10 @@ def load_governance_log(events_file: str = "/root/arifOS/logs/governance.jsonl",
     events = []
     cutoff = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
     log_path = Path(events_file)
-    
+
     if not log_path.exists():
         return events
-    
+
     try:
         with open(log_path) as f:
             for line in f:
@@ -122,7 +126,7 @@ def load_governance_log(events_file: str = "/root/arifOS/logs/governance.jsonl",
                     continue
     except Exception:
         pass
-    
+
     return events
 
 
@@ -135,7 +139,7 @@ def compute_tool_metrics(events: list[dict], tool_name: str) -> dict:
     total = len(tool_events)
     holds = sum(1 for e in tool_events if e.get("verdict") in ("HOLD", "BLOCK"))
     overrides = sum(1 for e in tool_events if e.get("verdict") == "OVERRIDE")
-    
+
     return {
         "tool_name": tool_name,
         "total_invocations": total,
@@ -154,6 +158,7 @@ def compute_all_tool_metrics(events: list[dict]) -> list[dict]:
 
 # ─── VAULT999 QUERY ───────────────────────────────────────────────
 
+
 def query_vault_seals(lookback_hours: int = 720) -> list[dict]:
     """
     Query recent VAULT999 seals for governance analysis.
@@ -162,10 +167,10 @@ def query_vault_seals(lookback_hours: int = 720) -> list[dict]:
     vault_file = Path("/root/arifOS/VAULT999/seals.jsonl")
     if not vault_file.exists():
         return []
-    
+
     seals = []
     cutoff = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
-    
+
     try:
         with open(vault_file) as f:
             for line in f:
@@ -180,11 +185,12 @@ def query_vault_seals(lookback_hours: int = 720) -> list[dict]:
                     continue
     except Exception:
         pass
-    
+
     return seals
 
 
 # ─── CONVENIENCE: FULL SNAPSHOT ────────────────────────────────────
+
 
 def get_full_wiring_snapshot() -> dict:
     """
@@ -198,7 +204,7 @@ def get_full_wiring_snapshot() -> dict:
     events = load_governance_log(lookback_hours=24)
     seals = query_vault_seals(lookback_hours=720)
     tool_metrics = compute_all_tool_metrics(events)
-    
+
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "organs": {oid: {"health": h} for oid, h in organ_states.items()},
@@ -213,7 +219,9 @@ def get_full_wiring_snapshot() -> dict:
 # ─── SELF-TEST ────────────────────────────────────────────────────
 if __name__ == "__main__":
     snapshot = get_full_wiring_snapshot()
-    print(f"🧠 Wiring snapshot: {snapshot['events_last_24h']} events, "
-          f"{snapshot['tools_tracked']} tools tracked, "
-          f"cache_fresh={snapshot['cache_fresh']}")
+    print(
+        f"🧠 Wiring snapshot: {snapshot['events_last_24h']} events, "
+        f"{snapshot['tools_tracked']} tools tracked, "
+        f"cache_fresh={snapshot['cache_fresh']}"
+    )
     print("DITEMPA BUKAN DIBERI — wiring layer ready.")

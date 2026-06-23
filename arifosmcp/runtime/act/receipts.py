@@ -8,7 +8,6 @@ DITEMPA BUKAN DIBERI — Receipts are forged, not sealed.
 """
 
 from __future__ import annotations
-from datetime import datetime, timezone
 
 from arifosmcp.schemas.act import ActPatternName, ActReceipt
 from arifosmcp.schemas.art import ArtPrecheckResult

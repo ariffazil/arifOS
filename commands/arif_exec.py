@@ -18,6 +18,7 @@ import json
 import argparse
 from pathlib import Path
 
+
 def classify_patterns_in_content(content: str) -> list:
     """Scan script content for dangerous patterns."""
     findings = []
@@ -75,7 +76,7 @@ def main():
 
     # Determine overall verdict
     atomic_found = [f for f in findings if f["tier"] == "ATOMIC"]
-    high_found   = [f for f in findings if f["tier"] == "HIGH"]
+    high_found = [f for f in findings if f["tier"] == "HIGH"]
 
     if atomic_found:
         verdict = "HOLD"
@@ -91,12 +92,14 @@ def main():
         tier = "LOW"
 
     result = {
-        "verdict": verdict, "tier": tier,
-        "intent": intent, "script": str(path),
+        "verdict": verdict,
+        "tier": tier,
+        "intent": intent,
+        "script": str(path),
         "rationale": rationale,
         "findings": findings,
         "script_size_bytes": len(content),
-        "lines": content.count('\n') + 1,
+        "lines": content.count("\n") + 1,
         "command_blocked": verdict == "HOLD",
     }
 
@@ -133,10 +136,13 @@ def main():
 
     # Execute
     import subprocess
+
     print("\nExecuting script...")
     r = subprocess.run(["bash", str(path)], capture_output=True, text=True)
-    if r.stdout: print(r.stdout)
-    if r.stderr: print(r.stderr, file=sys.stderr)
+    if r.stdout:
+        print(r.stdout)
+    if r.stderr:
+        print(r.stderr, file=sys.stderr)
     sys.exit(r.returncode)
 
 

@@ -82,7 +82,8 @@ class TestMINDState:
     def test_revise_step(self):
         """Create a revision of a failed step."""
         from arifosmcp.runtime.mind_state import (
-            create_mind_state, StepStatus,
+            create_mind_state,
+            StepStatus,
         )
 
         state = create_mind_state("test")
@@ -98,7 +99,9 @@ class TestMINDState:
     def test_max_revisions_hold(self):
         """F08 guard: max revisions triggers HOLD."""
         from arifosmcp.runtime.mind_state import (
-            create_mind_state, StepStatus, PlanStatus,
+            create_mind_state,
+            StepStatus,
+            PlanStatus,
         )
 
         state = create_mind_state("test")
@@ -165,7 +168,9 @@ class TestMINDState:
     def test_can_continue(self):
         """can_continue returns False when plan is HOLD."""
         from arifosmcp.runtime.mind_state import (
-            create_mind_state, PlanStatus, can_continue,
+            create_mind_state,
+            PlanStatus,
+            can_continue,
         )
 
         state = create_mind_state("test")
@@ -234,7 +239,8 @@ class TestFeedbackLoop:
         """Successful step returns PROCEED."""
         from arifosmcp.runtime.mind_state import create_mind_state
         from arifosmcp.runtime.feedback_loop import (
-            FeedbackLoop, FeedbackSignal,
+            FeedbackLoop,
+            FeedbackSignal,
         )
 
         state = create_mind_state("test")
@@ -300,22 +306,20 @@ class TestFeedbackLoop:
         loop.max_revisions_per_step = 2
 
         # First failure → REVISE_LOCAL (attempt 1)
-        s1 = loop.evaluate(
-            step, {"success": False, "error": "fail 1"}
-        )
+        s1 = loop.evaluate(step, {"success": False, "error": "fail 1"})
         assert s1 == FeedbackSignal.REVISE_LOCAL
 
         # Second failure → REVISE_GLOBAL (attempt 2 == max)
-        s2 = loop.evaluate(
-            step, {"success": False, "error": "fail 2"}
-        )
+        s2 = loop.evaluate(step, {"success": False, "error": "fail 2"})
         assert s2 == FeedbackSignal.REVISE_GLOBAL
 
     def test_finalize(self):
         """Finalize completes the plan and records episode."""
         from arifosmcp.runtime.mind_state import create_mind_state
         from arifosmcp.runtime.feedback_loop import (
-            FeedbackLoop, FeedbackSignal, PlanStatus,
+            FeedbackLoop,
+            FeedbackSignal,
+            PlanStatus,
         )
 
         state = create_mind_state("test")
@@ -433,6 +437,7 @@ class TestMindFeedbackHook:
         monkeypatch.setenv("MIND_CHECKPOINT_ENABLED", "false")
 
         import arifosmcp.runtime.mind_feedback_hook as hook
+
         hook._FEEDBACK_ENABLED = True
 
         from arifosmcp.runtime.mind_feedback_hook import MindFeedbackTracker
@@ -453,6 +458,7 @@ class TestMindFeedbackHook:
         monkeypatch.setenv("MIND_CHECKPOINT_ENABLED", "false")
 
         import arifosmcp.runtime.mind_feedback_hook as hook
+
         hook._FEEDBACK_ENABLED = True
 
         from arifosmcp.runtime.mind_feedback_hook import MindFeedbackTracker
@@ -490,12 +496,13 @@ class TestMindFeedbackHook:
         # Re-import to trigger auto-patch logic
         import importlib
         import arifosmcp.runtime.mind_feedback_hook as hook
+
         importlib.reload(hook)
 
         # The original function should still be the original
         # Can't easily test this without mocking, but the import should not
         # have replaced the function. We test that the hook exists at least.
-        assert hasattr(hook, 'mind_reason_with_feedback')
+        assert hasattr(hook, "mind_reason_with_feedback")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -513,7 +520,11 @@ class TestIntegration:
         monkeypatch.setenv("MIND_CHECKPOINT_ENABLED", "false")
 
         from arifosmcp.runtime.mind_state import create_mind_state
-        from arifosmcp.runtime.feedback_loop import create_feedback_loop, NoOpGraphWriter, NoOpGraphReader
+        from arifosmcp.runtime.feedback_loop import (
+            create_feedback_loop,
+            NoOpGraphWriter,
+            NoOpGraphReader,
+        )
 
         state = create_mind_state("e2e test", intent="plan")
         loop = create_feedback_loop(
@@ -524,11 +535,13 @@ class TestIntegration:
 
         # Simulate 3 reasoning steps
         steps_signals = []
-        for i, (content, outcome) in enumerate([
-            ("parse input", {"success": True, "confidence": 0.90}),
-            ("analyze", {"success": True, "confidence": 0.85}),
-            ("synthesize", {"success": True, "confidence": 0.92}),
-        ]):
+        for i, (content, outcome) in enumerate(
+            [
+                ("parse input", {"success": True, "confidence": 0.90}),
+                ("analyze", {"success": True, "confidence": 0.85}),
+                ("synthesize", {"success": True, "confidence": 0.92}),
+            ]
+        ):
             step = state.add_step(content, confidence=outcome.get("confidence", 0.5))
             signal = loop.evaluate(step, outcome)
             steps_signals.append(signal.value)

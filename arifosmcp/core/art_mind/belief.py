@@ -23,6 +23,7 @@ class BeliefState:
         uncertainty:  aggregate uncertainty [0.0, 1.0] derived from confidence mean
         provenance:   key -> OBS/DER/INT/SPEC label (per F2 TRUTH)
     """
+
     facts: dict[str, Any] = field(default_factory=dict)
     confidence: dict[str, float] = field(default_factory=dict)
     uncertainty: float = 0.2
@@ -52,11 +53,11 @@ class BeliefEngine:
     """
 
     # F2/F7 thresholds
-    NEW_VAR_CONFIDENCE = 0.7          # confidence for a brand-new observation
-    EVIDENCE_FLOOR = 0.5             # minimum confidence after update
-    EVIDENCE_CEILING = 0.99          # F7: never reach 1.0 (humility)
-    UNCERTAINTY_MIN = 0.01           # never fully certain
-    EVIDENCE_SUPPORTED = 0.9         # confidence when obs is present and non-null
+    NEW_VAR_CONFIDENCE = 0.7  # confidence for a brand-new observation
+    EVIDENCE_FLOOR = 0.5  # minimum confidence after update
+    EVIDENCE_CEILING = 0.99  # F7: never reach 1.0 (humility)
+    UNCERTAINTY_MIN = 0.01  # never fully certain
+    EVIDENCE_SUPPORTED = 0.9  # confidence when obs is present and non-null
 
     def update(
         self,

@@ -8,6 +8,7 @@ Usage:
 Outputs a structured health snapshot of all federation organs.
 If --save is passed, appends a receipt to VAULT999 local ledger.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -92,7 +93,11 @@ async def run_snapshot() -> dict[str, Any]:
         "organs_total": len(ORGANS),
         "organs_healthy": healthy,
         "organs_unhealthy": len(ORGANS) - healthy,
-        "overall_status": "healthy" if healthy == len(ORGANS) else "degraded" if healthy > len(ORGANS) // 2 else "critical",
+        "overall_status": "healthy"
+        if healthy == len(ORGANS)
+        else "degraded"
+        if healthy > len(ORGANS) // 2
+        else "critical",
         "organs": [asdict(p) for p in probes],
     }
     return snapshot

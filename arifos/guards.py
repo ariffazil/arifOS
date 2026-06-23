@@ -96,7 +96,9 @@ async def prethink(
             ),
             required_human_ack=any(f.verdict == "HOLD" for f in failed),
             reasons=[f.reason for f in failed],
-            next_safe_action="Request 888 HOLD from sovereign" if any(f.verdict == "HOLD" for f in failed) else "Refuse action; revise intent",
+            next_safe_action="Request 888 HOLD from sovereign"
+            if any(f.verdict == "HOLD" for f in failed)
+            else "Refuse action; revise intent",
             taint="UNTRUSTED",
         )
 
@@ -109,7 +111,8 @@ async def prethink(
             verdict="HOLD",
             cognition_lane=CognitionLane(intent.lane),
             action_class=action_class,
-            floor_verdicts=floor_verdicts + [
+            floor_verdicts=floor_verdicts
+            + [
                 FloorVerdict(
                     floor_id="F8",
                     verdict="FAIL",
@@ -318,9 +321,7 @@ async def seal(
 
     # Issue the seal
     try:
-        last_envelope = (
-            decision_history[-1].to_envelope() if decision_history else {}
-        )
+        last_envelope = decision_history[-1].to_envelope() if decision_history else {}
         result = await client.kernel_seal(
             decision=last_envelope,
             output={"final_output": str(final_output)[:1000]},

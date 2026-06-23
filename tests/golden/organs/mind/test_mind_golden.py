@@ -10,6 +10,7 @@ is foundational to all downstream cognition.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from __future__ import annotations
 
 
@@ -105,17 +106,21 @@ class TestReduceVerdict:
     def test_known_verdict_order_is_canonical(self):
         """The ordered list of verdicts must match canonical conservative ordering."""
         canonical_order = [
-            "VOID", "HOLD", "HYPOTHESIS", "PARTIAL", "PASS",
-            "REASONED", "REFLECTED", "SEAL",
+            "VOID",
+            "HOLD",
+            "HYPOTHESIS",
+            "PARTIAL",
+            "PASS",
+            "REASONED",
+            "REFLECTED",
+            "SEAL",
         ]
         # Verify each pair is correctly ordered
         for i in range(len(canonical_order) - 1):
             stricter = canonical_order[i]
             looser = canonical_order[i + 1]
             result = _reduce_verdict(stricter, looser)
-            assert result == stricter, (
-                f"{stricter} should beat {looser}, got {result}"
-            )
+            assert result == stricter, f"{stricter} should beat {looser}, got {result}"
 
     def test_unknown_verdict_passes_through(self):
         """
@@ -175,13 +180,26 @@ class TestStopRules:
     def test_circular_reasoning_detected(self):
         """Identical evidence on consecutive thoughts without revision → stop."""
         history = [
-            {"confidence": 0.7, "evidence_ids": ["e1", "e2"], "thought_id": 4, "is_revision": False},
-            {"confidence": 0.71, "evidence_ids": ["e1", "e2"], "thought_id": 5, "is_revision": False},
+            {
+                "confidence": 0.7,
+                "evidence_ids": ["e1", "e2"],
+                "thought_id": 4,
+                "is_revision": False,
+            },
+            {
+                "confidence": 0.71,
+                "evidence_ids": ["e1", "e2"],
+                "thought_id": 5,
+                "is_revision": False,
+            },
         ]
         result = _check_stop_rules(history)
         assert result["should_stop"] is True
         # Current message: "Identical evidence hash on consecutive thoughts with no declared revision"
-        assert "identical evidence" in result["stop_reason"].lower() or "no declared revision" in result["stop_reason"].lower()
+        assert (
+            "identical evidence" in result["stop_reason"].lower()
+            or "no declared revision" in result["stop_reason"].lower()
+        )
 
     def test_healthy_reasoning_does_not_stop(self):
         """New evidence, changing confidence → continue."""
@@ -222,6 +240,7 @@ class TestMindDesensitization:
         for _ in range(30):
             check_desensitization("R_CxC", state_changed=True)
         from arifosmcp.paradox.desensitization import _ANCHOR_FIRE_LOG
+
         assert len(_ANCHOR_FIRE_LOG.get("R_CxC", [])) <= 20
 
 
@@ -317,11 +336,26 @@ class TestMindParadoxInjection:
         )
         anchor = output["paradox_anchor"]
         required = {
-            "quote_id", "organ", "matrix_cell", "matrix_row", "matrix_col",
-            "motto_binding", "quote", "author", "work", "year",
-            "verification_level", "antithesis", "axis", "norm",
-            "severity_on_fire", "risk_bias", "authority_scope",
-            "binding_event", "trigger_context", "_matrix_note",
+            "quote_id",
+            "organ",
+            "matrix_cell",
+            "matrix_row",
+            "matrix_col",
+            "motto_binding",
+            "quote",
+            "author",
+            "work",
+            "year",
+            "verification_level",
+            "antithesis",
+            "axis",
+            "norm",
+            "severity_on_fire",
+            "risk_bias",
+            "authority_scope",
+            "binding_event",
+            "trigger_context",
+            "_matrix_note",
         }
         missing = required - set(anchor.keys())
         assert not missing, f"Injected anchor missing fields: {missing}"
@@ -422,7 +456,9 @@ class TestAttnResPatterns:
             },
         ]
         weights = _compute_thought_relevance(
-            thoughts, "constitutional floors", evidence_ids=["e1", "e2"],
+            thoughts,
+            "constitutional floors",
+            evidence_ids=["e1", "e2"],
         )
         assert len(weights) == 1
         assert weights[0] > 0.5  # Evidence overlap + word overlap
@@ -437,8 +473,20 @@ class TestAttnResPatterns:
     def test_block_summary_computes_averages(self):
         """Block summary correctly computes confidence average and evidence union."""
         thoughts = [
-            {"evidence_ids": ["e1"], "text": "Claim A", "confidence": 0.8, "thought_id": "t1", "epistemic_tag": "CLAIM"},
-            {"evidence_ids": ["e2"], "text": "Claim B", "confidence": 0.6, "thought_id": "t2", "epistemic_tag": "PLAUSIBLE"},
+            {
+                "evidence_ids": ["e1"],
+                "text": "Claim A",
+                "confidence": 0.8,
+                "thought_id": "t1",
+                "epistemic_tag": "CLAIM",
+            },
+            {
+                "evidence_ids": ["e2"],
+                "text": "Claim B",
+                "confidence": 0.6,
+                "thought_id": "t2",
+                "epistemic_tag": "PLAUSIBLE",
+            },
         ]
         summary = _compute_block_summary(thoughts, "block_B")
         assert summary["thought_count"] == 2

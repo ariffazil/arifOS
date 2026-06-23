@@ -260,18 +260,20 @@ class FederationRegistry:
         now_utc = datetime.now(UTC).isoformat()
         tools: list[dict[str, Any]] = []
         for i in range(count):
-            tools.append({
-                "name": f"{organ_name}_tool_{i:03d}",
-                "description": f"Static placeholder for {organ_name} tool #{i} — MCP endpoint unreachable",
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {
-                        "mode": {"type": "string", "description": "Operation mode"},
+            tools.append(
+                {
+                    "name": f"{organ_name}_tool_{i:03d}",
+                    "description": f"Static placeholder for {organ_name} tool #{i} — MCP endpoint unreachable",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "mode": {"type": "string", "description": "Operation mode"},
+                        },
                     },
-                },
-                "_static": True,
-                "_indexed_at": now_utc,
-            })
+                    "_static": True,
+                    "_indexed_at": now_utc,
+                }
+            )
         return tools
 
     def _grade_organ(self, organ_name: str) -> str:

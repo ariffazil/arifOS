@@ -10,7 +10,6 @@ Usage:
 from __future__ import annotations
 
 import json
-import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -18,10 +17,10 @@ from .conftest import compare, run_scenario
 
 
 SCENARIOS = [
-    "tool_broken",       # S1: broken-but-legal
-    "tool_drifting",     # S2: schema drift
-    "tool_oversized",    # S3: blast-radius misclass
-    "tool_good",         # S4 control: legitimate
+    "tool_broken",  # S1: broken-but-legal
+    "tool_drifting",  # S2: schema drift
+    "tool_oversized",  # S3: blast-radius misclass
+    "tool_good",  # S4 control: legitimate
 ]
 
 
@@ -76,11 +75,13 @@ def render_markdown(report: dict) -> str:
             f"{r['baseline']['cutoff_n']} | {r['art']['cutoff_n']} | "
             f"{r['art_better_count']} |"
         )
-    lines.extend([
-        "",
-        "## ART-better dimensions",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## ART-better dimensions",
+            "",
+        ]
+    )
     for r in report["scenarios"]:
         lines.append(f"### {r['scenario']}")
         for dim, val in r["art_better"].items():

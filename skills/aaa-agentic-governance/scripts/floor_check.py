@@ -22,6 +22,7 @@ Input schema:
 
 Output: FloorReceipt as JSON.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -178,7 +179,9 @@ def check_laws(
         ]
         if unbacked_facts:
             floors_warn.append("F2")
-            claim_limits.append("FACT claims must be backed by evidence_refs or downgraded to INTERPRETATION")
+            claim_limits.append(
+                "FACT claims must be backed by evidence_refs or downgraded to INTERPRETATION"
+            )
         else:
             floors_pass.append("F2")
         if claims["SPECULATION"]:
@@ -232,7 +235,10 @@ def check_laws(
     # F9 (antihantu) — no hallucinated authority
     if "F9" in floors_to_check:
         hallucination_patterns = [r"i (have|possess) authority", r"sovereign override", r"sudo"]
-        if any(re.search(p, request.lower()) for p in hallucination_patterns) and not ack_irreversible:
+        if (
+            any(re.search(p, request.lower()) for p in hallucination_patterns)
+            and not ack_irreversible
+        ):
             floors_fail.append("F9")
             residual_risk.append("hallucinated authority claim without ack")
         else:

@@ -60,17 +60,22 @@ def trace_tool(tool_name: str | None = None):
         async def arif_lease_issue(actor_id: str, ...):
             ...
     """
+
     def decorator(func: Callable) -> Callable:
         name = tool_name or func.__name__
 
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
-            with tool_span(name, {"arifos.args_count": len(args), "arifos.kwargs_keys": list(kwargs.keys())}):
+            with tool_span(
+                name, {"arifos.args_count": len(args), "arifos.kwargs_keys": list(kwargs.keys())}
+            ):
                 return await func(*args, **kwargs)
 
         @wraps(func)
         def sync_wrapper(*args, **kwargs):
-            with tool_span(name, {"arifos.args_count": len(args), "arifos.kwargs_keys": list(kwargs.keys())}):
+            with tool_span(
+                name, {"arifos.args_count": len(args), "arifos.kwargs_keys": list(kwargs.keys())}
+            ):
                 return func(*args, **kwargs)
 
         if hasattr(func, "__code__") and func.__code__.co_flags & 0x100:  # CO_COROUTINE

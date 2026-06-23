@@ -113,6 +113,7 @@ class TestFileLevel:
         monkeypatch.setenv("TOVANA_BELIEF_TTL_DAYS", "0")
         import importlib
         import arifosmcp.runtime.tovana_compiler as tc2
+
         importlib.reload(tc2)
 
         tmp_path = Path(os.getenv("TOVANA_MEMORY_DIR", "/tmp"))
@@ -146,9 +147,7 @@ class TestFileLevel:
     def test_user_id_sanitization_blocks_traversal(self, temp_memory_dir):
         tmp_path, tc = temp_memory_dir
         # ../../etc/passwd should be neutralized to a safe path under tmp_path
-        result = run(
-            tc.tovana_compiler.list(user_id="../../etc/passwd")
-        )
+        result = run(tc.tovana_compiler.list(user_id="../../etc/passwd"))
         # Should not raise, just return empty (no file at the sanitized path)
         assert result["status"] == "success"
         assert result["verdict"] == "SABAR"
@@ -163,9 +162,7 @@ class TestUserIdSanitization:
     def test_special_chars_become_underscore(self, temp_memory_dir):
         tmp_path, tc = temp_memory_dir
         # Special chars in user_id should be neutralized
-        result = run(
-            tc.tovana_compiler.list(user_id="arif!@#$%^&*()")
-        )
+        result = run(tc.tovana_compiler.list(user_id="arif!@#$%^&*()"))
         # The resulting path should be under tmp_path
         assert result["status"] == "success"
         if result.get("memory_path"):
@@ -196,6 +193,5 @@ class TestLivePropose:
         assert result["memories"]
         # At least one of location, previous_location should be present
         assert any(
-            k in result["memories"]
-            for k in ("location", "previous_location", "pets", "work")
+            k in result["memories"] for k in ("location", "previous_location", "pets", "work")
         )

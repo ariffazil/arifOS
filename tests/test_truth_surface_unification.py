@@ -146,12 +146,8 @@ def test_hermes_never_reports_tool_count():
     assert result["probe_type"] == "tcp_connect", (
         f"Expected tcp_connect, got {result.get('probe_type')}"
     )
-    assert result["tool_count"] is None, (
-        "Hermes must never report tool_count — it only does TCP"
-    )
-    assert "TCP reachability" in result.get("note", ""), (
-        "Hermes must note that it only does TCP"
-    )
+    assert result["tool_count"] is None, "Hermes must never report tool_count — it only does TCP"
+    assert "TCP reachability" in result.get("note", ""), "Hermes must note that it only does TCP"
 
 
 # ── Test 4: kernel_state single row ─────────────────────────────────────
@@ -166,9 +162,7 @@ def test_kernel_state_single_row(mock_supabase_client):
 
     row = read_kernel_state(mock_supabase_client)
     assert row is not None
-    assert row.tool_count_canonical > 0, (
-        "Canonical tool count must be positive"
-    )
+    assert row.tool_count_canonical > 0, "Canonical tool count must be positive"
     assert row.kernel_status.value in ("ALIVE", "DEGRADED", "HALTED", "BOOTSTRAPPING"), (
         f"Invalid kernel status: {row.kernel_status}"
     )

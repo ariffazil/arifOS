@@ -34,7 +34,10 @@ class ObservedFunction(BaseModel):
         description="Where the observation came from: annual_report, sensor, contract, audit, etc.",
     )
     confidence: float = Field(
-        ..., ge=0.0, le=1.0, description="Confidence that the institution actually performs this function."
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Confidence that the institution actually performs this function.",
     )
     capital_exposure_myr: float = Field(
         default=0.0, ge=0.0, description="MYR capital exposure tied to this function."

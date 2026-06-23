@@ -82,7 +82,7 @@
       "well": {
         "name": "WELL",
         "type": "vitality_engine",
-        "role": "Biological substrate. Operator cognitive pressure. Thermodynamic wellness. 13 tools. WELL_HOLD active.",
+        "role": "Biological substrate. Operator cognitive pressure. Thermodynamic wellness. 7 public verbs (7-tool facade 2026-06-23). WELL_HOLD active.",
         "port": 18083,
         "mcp": true,
         "tools": 13,

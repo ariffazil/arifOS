@@ -59,6 +59,7 @@ _MAX_RESULTS = int(os.getenv("GRAPHITI_READ_MAX_RESULTS", "10"))
 # HTTP CLIENT (zero external deps — urllib only)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _graphiti_get(path: str, params: dict[str, str] | None = None) -> dict[str, Any]:
     """GET from Graphiti MCP, with timeout and error handling."""
     if not _GRAPHITI_ENABLED:
@@ -150,8 +151,7 @@ def find_similar_tasks(
     resp = _graphiti_post("/search/episodes", query)
 
     if "error" in resp:
-        logger.info("l5_graph_read: find_similar_tasks returned error — %s",
-                     resp["error"])
+        logger.info("l5_graph_read: find_similar_tasks returned error — %s", resp["error"])
         return []
 
     results = resp.get("results", resp.get("episodes", []))
@@ -202,8 +202,7 @@ def get_capability_subgraph(
     resp = _graphiti_post("/graph/capability", query)
 
     if "error" in resp:
-        logger.info("l5_graph_read: get_capability_subgraph error — %s",
-                     resp["error"])
+        logger.info("l5_graph_read: get_capability_subgraph error — %s", resp["error"])
         return {
             "nodes": [],
             "edges": [],
@@ -347,17 +346,22 @@ class L5GraphReader:
     """
 
     def find_similar_tasks(
-        self, goal: str, top_k: int = 5,
+        self,
+        goal: str,
+        top_k: int = 5,
     ) -> list[dict[str, Any]]:
         return find_similar_tasks(goal=goal, top_k=top_k)
 
     def get_capability_subgraph(
-        self, domain: str, tools: list[str] | None = None,
+        self,
+        domain: str,
+        tools: list[str] | None = None,
     ) -> dict[str, Any]:
         return get_capability_subgraph(domain=domain, tools=tools)
 
     def get_prior_path(
-        self, task_signature: str,
+        self,
+        task_signature: str,
     ) -> list[dict[str, Any]] | None:
         return get_prior_path(task_signature=task_signature)
 
@@ -375,8 +379,11 @@ class L5GraphWriter:
     """
 
     def update_edge_weight(
-        self, source_node: str, target_node: str,
-        delta: float, reason: str = "",
+        self,
+        source_node: str,
+        target_node: str,
+        delta: float,
+        reason: str = "",
     ) -> bool:
         """Update an edge weight in the capability graph."""
         if not _GRAPHITI_ENABLED:
@@ -394,7 +401,9 @@ class L5GraphWriter:
         return "error" not in resp
 
     def annotate_path(
-        self, path_nodes: list[str], annotation: dict[str, Any],
+        self,
+        path_nodes: list[str],
+        annotation: dict[str, Any],
     ) -> bool:
         """Annotate a path in the capability graph."""
         if not _GRAPHITI_ENABLED:
@@ -410,12 +419,16 @@ class L5GraphWriter:
         return "error" not in resp
 
     def record_episode(
-        self, state, signal, metadata=None,
+        self,
+        state,
+        signal,
+        metadata=None,
     ) -> str | None:
         """Record a completed reasoning episode in Graphiti."""
         if not _GRAPHITI_ENABLED:
             return None
         from arifosmcp.runtime.mind_state import MINDState
+
         if not isinstance(state, MINDState):
             return None
 
@@ -429,7 +442,7 @@ class L5GraphWriter:
             "plan_status": state.plan_status.value,
             "epistemic_band": state.epistemic_band,
             "malu_index": state.malu_index,
-            "final_signal": signal.value if hasattr(signal, 'value') else str(signal),
+            "final_signal": signal.value if hasattr(signal, "value") else str(signal),
             "metadata": metadata or {},
             "timestamp": datetime.now(UTC).isoformat(),
         }

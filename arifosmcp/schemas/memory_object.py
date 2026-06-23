@@ -20,20 +20,19 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from typing import Annotated, Any, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from .memory_truth import (
-    MemoryClass,
     MemoryClassName,
     TierCode,
-    TruthClass,
     TruthClassName,
 )
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────
+
 
 def _utc_now() -> datetime:
     """Timezone-aware UTC now. Centralised so all timestamps align."""
@@ -86,48 +85,56 @@ def compute_call_hash(
         return _json.dumps(obj, sort_keys=True, separators=(",", ":"), default=str)
 
     ts = (timestamp or _utc_now()).isoformat()
-    concat = "|".join([
-        _canon(input_payload),
-        _canon(output_payload),
-        mode,
-        tool_name,
-        ts,
-    ])
+    concat = "|".join(
+        [
+            _canon(input_payload),
+            _canon(output_payload),
+            mode,
+            tool_name,
+            ts,
+        ]
+    )
     return "sha256:" + hashlib.sha256(concat.encode("utf-8")).hexdigest()
 
 
 # ── Source Receipt ─────────────────────────────────────────────────────────
 
+
 class SourceReceipt(BaseModel):
     """Cryptographic receipt for a memory's upstream source."""
+
     model_config = ConfigDict(extra="forbid")
 
     receipt_id: str
     receipt_kind: Literal["read", "write", "promotion", "revision", "seal", "execution"]
-    source_ref: str                              # URI, run_id, or memory_id
+    source_ref: str  # URI, run_id, or memory_id
     timestamp: datetime
-    digest_hash: str                             # sha256:...
-    actor_id: str | None = None                  # who created this receipt
+    digest_hash: str  # sha256:...
+    actor_id: str | None = None  # who created this receipt
 
 
 # ── Provenance Block ───────────────────────────────────────────────────────
 
+
 class ProvenanceBlock(BaseModel):
     """Where did this memory come from?"""
+
     model_config = ConfigDict(extra="forbid")
 
     origin: Literal["tool", "human", "web", "system", "agent", "vault"]
     source_uri: str | None = None
     run_id: str | None = None
     actor_id: str
-    actor_signature: str | None = None           # human or service signature
+    actor_signature: str | None = None  # human or service signature
     captured_at: datetime
 
 
 # ── Epistemics Block ───────────────────────────────────────────────────────
 
+
 class EpistemicsBlock(BaseModel):
     """How confident are we, and what is its current epistemic status?"""
+
     model_config = ConfigDict(extra="forbid")
 
     confidence: float = Field(ge=0.0, le=1.0)
@@ -137,18 +144,21 @@ class EpistemicsBlock(BaseModel):
 
 # ── Policy Block ───────────────────────────────────────────────────────────
 
+
 class PolicyBlock(BaseModel):
     """How is this memory scoped, who can see it, and when does it expire?"""
+
     model_config = ConfigDict(extra="forbid")
 
     scope: Literal["private", "shared", "public", "sovereign"] = "private"
-    ttl: str | None = None                       # ISO 8601 duration, e.g. P30D
+    ttl: str | None = None  # ISO 8601 duration, e.g. P30D
     deletable: bool = True
     requires_human_ack: bool = False
     floors_required: list[str] = Field(default_factory=list)
 
 
 # ── The MemoryObject ──────────────────────────────────────────────────────
+
 
 class MemoryObject(BaseModel):
     """Canonical memory object. Lives across L1-L5 substrates, sealed into L6.
@@ -158,6 +168,7 @@ class MemoryObject(BaseModel):
       graph_node_ids[] → FalkorDB / Graphiti     (L5)
       vault_ref        → VAULT999 v2 chain entry (L6)
     """
+
     model_config = ConfigDict(extra="forbid")
 
     # ── Identity ──
@@ -165,7 +176,7 @@ class MemoryObject(BaseModel):
     schema_version: int = 5
 
     # ── Identity & lineage ──
-    actor_id: str                                # who created
+    actor_id: str  # who created
     session_id: str | None = None
     task_id: str | None = None
     run_id: str | None = None
@@ -176,10 +187,10 @@ class MemoryObject(BaseModel):
     tier: TierCode
 
     # ── Content ──
-    content: str                                 # canonicalised text
-    structured: dict[str, Any] | None = None     # structured form
-    embedding_ref: str | None = None             # vec_<uuid> → Qdrant point id
-    graph_node_ids: list[str] = Field(default_factory=list)   # L5 refs
+    content: str  # canonicalised text
+    structured: dict[str, Any] | None = None  # structured form
+    embedding_ref: str | None = None  # vec_<uuid> → Qdrant point id
+    graph_node_ids: list[str] = Field(default_factory=list)  # L5 refs
 
     # ── Entities & relations ──
     entities: list[str] = Field(default_factory=list)
@@ -197,14 +208,14 @@ class MemoryObject(BaseModel):
     policy: PolicyBlock = Field(default_factory=PolicyBlock)
 
     # ── Lineage ──
-    supersedes: list[str] = Field(default_factory=list)         # prior memory_ids
+    supersedes: list[str] = Field(default_factory=list)  # prior memory_ids
     superseded_by: str | None = None
-    contested_by: list[str] = Field(default_factory=list)      # contradiction links
+    contested_by: list[str] = Field(default_factory=list)  # contradiction links
 
     # ── Vault binding ──
-    vault_ref: str | None = None                 # vlt_<uuid>
-    vault_seal_id: str | None = None             # explicit seal linkage
-    vault_version: Literal["v1", "v2"] | None = None   # §12.6 — never write new seals to v1
+    vault_ref: str | None = None  # vlt_<uuid>
+    vault_seal_id: str | None = None  # explicit seal linkage
+    vault_version: Literal["v1", "v2"] | None = None  # §12.6 — never write new seals to v1
 
     # ── Telemetry ──
     recall_count: int = 0
@@ -222,6 +233,7 @@ class MemoryObject(BaseModel):
 # Phase 2 implementation: each receipt is appended to vault999-writer
 # for hashes that need hash-chain binding (promote, revise, forget).
 
+
 class ReceiptEnvelope(BaseModel):
     """Universal receipt for any arif_memory operation.
 
@@ -237,24 +249,25 @@ class ReceiptEnvelope(BaseModel):
       binds to. Defaults to "v2". v1 receipts are LEGACY/HISTORICAL
       only — no new memory writes may seal against v1.
     """
+
     model_config = ConfigDict(extra="forbid")
 
     receipt_id: str = Field(default_factory=lambda: _new_id("rcp"))
     receipt_kind: Literal[
         "read", "write", "promotion", "revision", "seal", "execution", "tombstone"
     ]
-    mode: str                                    # MemoryMode value
+    mode: str  # MemoryMode value
     actor_id: str
     session_id: str | None = None
     run_id: str | None = None
     memory_id: str | None = None
     operation_at: datetime = Field(default_factory=_utc_now)
-    input_digest: str                            # sha256 of input payload
-    output_digest: str                           # sha256 of output
-    policy_snapshot: dict[str, bool]             # {floor_code: passed}
+    input_digest: str  # sha256 of input payload
+    output_digest: str  # sha256 of output
+    policy_snapshot: dict[str, bool]  # {floor_code: passed}
     idempotency_key: str | None = None
     trace_id: str | None = None
-    call_hash: str | None = None                 # §12.5 — vault-sealed receipts MUST include
+    call_hash: str | None = None  # §12.5 — vault-sealed receipts MUST include
 
     # MUTATE/ATOMIC fields
     lease_id: str | None = None
@@ -262,8 +275,8 @@ class ReceiptEnvelope(BaseModel):
 
     # Vault-bound fields
     vault_seal_id: str | None = None
-    vault_version: Literal["v1", "v2"] | None = None   # §12.6 — never write new seals to v1
-    vault_head: Literal["v1", "v2"] = "v2"             # A2 burn-down: canonical head this receipt binds to
+    vault_version: Literal["v1", "v2"] | None = None  # §12.6 — never write new seals to v1
+    vault_head: Literal["v1", "v2"] = "v2"  # A2 burn-down: canonical head this receipt binds to
     prev_hash: str | None = None
 
     # Per-mode extra (see design doc §3.4.2)
@@ -273,6 +286,7 @@ class ReceiptEnvelope(BaseModel):
 # ── Memory Result Envelope ─────────────────────────────────────────────────
 # The envelope returned from every arif_memory call.
 # Mandatory fields: verdict, call_hash, receipt, floor_snapshot, delta_S.
+
 
 class MemoryResultEnvelope(BaseModel):
     """Returned by every arif_memory call. Mandatory fields, no exceptions.
@@ -288,24 +302,25 @@ class MemoryResultEnvelope(BaseModel):
       show the operator "this recall ran graph-first" or "fell back to
       L4 only because graph returned empty".
     """
+
     model_config = ConfigDict(extra="forbid")
 
-    mode: str                                    # MemoryMode value
+    mode: str  # MemoryMode value
     verdict: Literal["SEAL", "SABAR", "VOID", "HOLD"]
-    call_hash: str                               # sha256 of the entire call
+    call_hash: str  # sha256 of the entire call
     trace_id: str | None = None
     receipt: ReceiptEnvelope
-    delta_S: float                               # entropy delta (≤0 = success)
-    floor_snapshot: dict[str, bool]              # L01..L13
-    payload_result: dict[str, Any]               # mode-specific body
-    next_tool_hint: str | None = None            # e.g. "arif_judge"
+    delta_S: float  # entropy delta (≤0 = success)
+    floor_snapshot: dict[str, bool]  # L01..L13
+    payload_result: dict[str, Any]  # mode-specific body
+    next_tool_hint: str | None = None  # e.g. "arif_judge"
     timestamp: datetime = Field(default_factory=_utc_now)
 
     # Burn-down observability fields
     organ_staleness_snapshot: dict[str, str] = Field(default_factory=dict)
-    sources_consulted: list[Literal["vector", "graph", "vault", "l4_record", "ksr", "organ_cache"]] = Field(
-        default_factory=list
-    )
+    sources_consulted: list[
+        Literal["vector", "graph", "vault", "l4_record", "ksr", "organ_cache"]
+    ] = Field(default_factory=list)
 
 
 __all__ = [

@@ -40,40 +40,36 @@ from typing import Any
 
 TOOL_BUCKET: dict[str, str] = {
     # ── SENSE / EVIDENCE — read-only, low blast, frequent use ──────────────
-    "arif_observe":       "sense",
-    "arif_fetch":      "sense",
-    "arif_schema_echo":         "sense",
-    "arif_ping":                "sense",
-    "arif_transport_echo":      "sense",
-    "arif_version_echo":        "sense",
-    "arif_initialize_probe":    "sense",
-    "arif_conformance_report":  "sense",
-
+    "arif_observe": "sense",
+    "arif_fetch": "sense",
+    "arif_schema_echo": "sense",
+    "arif_ping": "sense",
+    "arif_transport_echo": "sense",
+    "arif_version_echo": "sense",
+    "arif_initialize_probe": "sense",
+    "arif_conformance_report": "sense",
     # ── MIND / ROUTE — mutate belief/routing, not external reality ─────────
-    "arif_think":         "mind",
-    "arif_compose":       "mind",
-    "arif_kernel_route":        "mind",
-    "arif_route":               "mind",
-    "arif_triage":              "mind",
-    "arif_memory_recall":       "mind",
-    "arif_kernel_status":       "mind",
-    "arif_kernel_attest":       "mind",
-    "arif_kernel_health":       "mind",
-
+    "arif_think": "mind",
+    "arif_compose": "mind",
+    "arif_kernel_route": "mind",
+    "arif_route": "mind",
+    "arif_triage": "mind",
+    "arif_memory_recall": "mind",
+    "arif_kernel_status": "mind",
+    "arif_kernel_attest": "mind",
+    "arif_kernel_health": "mind",
     # ── HEART — ethical critique, can shape agent behavior ────────────────
-    "arif_critique":      "heart",
-
+    "arif_critique": "heart",
     # ── GATEWAY / BRIDGE — cross-agent, high-blast control plane ───────────
-    "arif_gateway_connect":     "gateway",
-    "arif_bridge":              "bridge",
-    "arif_bridge_connect":      "bridge",
-
+    "arif_gateway_connect": "gateway",
+    "arif_bridge": "bridge",
+    "arif_bridge_connect": "bridge",
     # ── AUTHORITY — IRREVERSIBLE / APEX lane, sovereign-grade ──────────────
-    "arif_init":        "authority",
-    "arif_measure":         "authority",
-    "arif_forge":       "authority",
-    "arif_judge":    "authority",
-    "arif_seal":          "authority",
+    "arif_init": "authority",
+    "arif_measure": "authority",
+    "arif_forge": "authority",
+    "arif_judge": "authority",
+    "arif_seal": "authority",
 }
 
 
@@ -83,12 +79,12 @@ TOOL_BUCKET: dict[str, str] = {
 
 
 PER_BUCKET_BLAST: dict[str, str] = {
-    "sense":     "low",      # read-only, no external side effects
-    "mind":      "low",      # mutates internal belief/routing only
-    "heart":     "medium",   # ethical critique shapes downstream behavior
-    "gateway":   "high",     # cross-agent calls — federation scope
-    "bridge":    "high",     # direct organ tool calls — out-of-process
-    "authority": "high",     # IRREVERSIBLE/APEX — sovereign lane
+    "sense": "low",  # read-only, no external side effects
+    "mind": "low",  # mutates internal belief/routing only
+    "heart": "medium",  # ethical critique shapes downstream behavior
+    "gateway": "high",  # cross-agent calls — federation scope
+    "bridge": "high",  # direct organ tool calls — out-of-process
+    "authority": "high",  # IRREVERSIBLE/APEX — sovereign lane
 }
 
 
@@ -100,33 +96,33 @@ PER_BUCKET_BLAST: dict[str, str] = {
 PER_BUCKET_REFLEX_RULES: dict[str, dict[str, Any]] = {
     "sense": {
         "allow_action_class_above_observe": False,  # OBSERVE only
-        "downgrade_to": None,                       # already at floor
-        "trust_state_required": "OBSERVED",        # even OBSERVED is fine for read-only
+        "downgrade_to": None,  # already at floor
+        "trust_state_required": "OBSERVED",  # even OBSERVED is fine for read-only
     },
     "mind": {
-        "allow_action_class_above_observe": True,   # can mutate internal state
-        "downgrade_to": "observe",                  # can downgrade MUTATE to OBSERVE
+        "allow_action_class_above_observe": True,  # can mutate internal state
+        "downgrade_to": "observe",  # can downgrade MUTATE to OBSERVE
         "trust_state_required": "OBSERVED",
     },
     "heart": {
         "allow_action_class_above_observe": True,
         "downgrade_to": "observe",
-        "trust_state_required": "TRUSTED",          # ethical critique needs trust
+        "trust_state_required": "TRUSTED",  # ethical critique needs trust
     },
     "gateway": {
         "allow_action_class_above_observe": True,
         "downgrade_to": "observe",
-        "trust_state_required": "TRUSTED",          # cross-agent requires trust
+        "trust_state_required": "TRUSTED",  # cross-agent requires trust
     },
     "bridge": {
         "allow_action_class_above_observe": True,
         "downgrade_to": "observe",
-        "trust_state_required": "TRUSTED",          # direct organ call requires trust
+        "trust_state_required": "TRUSTED",  # direct organ call requires trust
     },
     "authority": {
         "allow_action_class_above_observe": True,
-        "downgrade_to": None,                       # IRREVERSIBLE cannot safely downgrade
-        "trust_state_required": "TRUSTED",          # sovereign lane
+        "downgrade_to": None,  # IRREVERSIBLE cannot safely downgrade
+        "trust_state_required": "TRUSTED",  # sovereign lane
     },
 }
 

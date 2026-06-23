@@ -156,11 +156,11 @@ class SessionMapper:
 _mapper: Optional[SessionMapper] = None
 
 ROUTES = {
-    "arifos":  ("127.0.0.1", 8088,  "/mcp"),
-    "A-FORGE": ("127.0.0.1", 7071,  "/mcp"),
-    "WEALTH":  ("127.0.0.1", 18082, "/mcp"),
-    "WELL":    ("127.0.0.1", 18083, "/mcp"),
-    "GEOX":    ("127.0.0.1", 8081,  "/mcp"),
+    "arifos": ("127.0.0.1", 8088, "/mcp"),
+    "A-FORGE": ("127.0.0.1", 7071, "/mcp"),
+    "WEALTH": ("127.0.0.1", 18082, "/mcp"),
+    "WELL": ("127.0.0.1", 18083, "/mcp"),
+    "GEOX": ("127.0.0.1", 8081, "/mcp"),
 }
 
 
@@ -177,9 +177,19 @@ def route(path: str):
     return name, None
 
 
-def _sync_http_post(host: str, port: int, path: str, body: bytes,
-                    hdrs: dict, srv: str, sid: str, agent: str,
-                    method: str, tool: Optional[str], cid) -> tuple:
+def _sync_http_post(
+    host: str,
+    port: int,
+    path: str,
+    body: bytes,
+    hdrs: dict,
+    srv: str,
+    sid: str,
+    agent: str,
+    method: str,
+    tool: Optional[str],
+    cid,
+) -> tuple:
     """Run in thread pool — pure socket HTTP/1.1, never blocks event loop."""
     start = datetime.now(timezone.utc)
     s = None
@@ -189,8 +199,11 @@ def _sync_http_post(host: str, port: int, path: str, body: bytes,
         s.connect((host, port))
 
         # Build headers
-        clean = {k: v for k, v in hdrs.items()
-                 if k.lower() not in ("host", "connection", "transfer-encoding", "content-length")}
+        clean = {
+            k: v
+            for k, v in hdrs.items()
+            if k.lower() not in ("host", "connection", "transfer-encoding", "content-length")
+        }
         clean["X-MCP-Telemetry-Agent"] = agent
         clean["X-MCP-Telemetry-Session"] = sid
         clean["Accept"] = "application/json"
@@ -232,7 +245,7 @@ def _sync_http_post(host: str, port: int, path: str, body: bytes,
         header_end = resp.index(b"\r\n\r\n")
         header_part = resp[:header_end].decode(errors="replace")
         status_code = int(header_part.split("\r\n")[0].split()[1])
-        body_bytes = resp[header_end + 4:]
+        body_bytes = resp[header_end + 4 :]
 
         try:
             resp_json = json.loads(body_bytes.decode(errors="replace"))
@@ -259,8 +272,10 @@ def _sync_http_post(host: str, port: int, path: str, body: bytes,
         write_record(record)
         _ctr.record(srv, agent, tool, is_err)
 
-        log.info(f"MCP_CALL server={srv} method={method} tool={tool} agent={agent} "
-                 f"sid={sid[:8] if sid else '?'}.. status={status_code} dur={duration_ms:.1f}ms")
+        log.info(
+            f"MCP_CALL server={srv} method={method} tool={tool} agent={agent} "
+            f"sid={sid[:8] if sid else '?'}.. status={status_code} dur={duration_ms:.1f}ms"
+        )
         return status_code, resp_json, duration_ms, err_msg
 
     except socket.timeout:
@@ -305,7 +320,7 @@ async def handle_client(reader, writer):
         # Parse headers
         header_end_idx = data.index(b"\r\n\r\n")
         hdr_bytes = data[:header_end_idx]
-        body = data[header_end_idx + 4:]
+        body = data[header_end_idx + 4 :]
         hdrs = {}
         for line in hdr_bytes.decode(errors="replace").split("\r\n")[1:]:
             if ": " in line:
@@ -316,20 +331,26 @@ async def handle_client(reader, writer):
         if method == "GET":
             if path == "/health":
                 resp = json.dumps({"status": "ok", "counters": _ctr.summary()}).encode()
-                writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
-                             b"Content-Length: %d\r\n\r\n" % len(resp) + resp)
+                writer.write(
+                    b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+                    b"Content-Length: %d\r\n\r\n" % len(resp) + resp
+                )
                 await writer.drain()
                 return
             elif path == "/stats":
                 resp = json.dumps(_ctr.summary(), indent=2).encode()
-                writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
-                             b"Content-Length: %d\r\n\r\n" % len(resp) + resp)
+                writer.write(
+                    b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+                    b"Content-Length: %d\r\n\r\n" % len(resp) + resp
+                )
                 await writer.drain()
                 return
             elif path == "/agents":
                 resp = json.dumps({"agents": _mapper.agents() if _mapper else []}).encode()
-                writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
-                             b"Content-Length: %d\r\n\r\n" % len(resp) + resp)
+                writer.write(
+                    b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+                    b"Content-Length: %d\r\n\r\n" % len(resp) + resp
+                )
                 await writer.drain()
                 return
             elif path == "/sessions":
@@ -339,8 +360,10 @@ async def handle_client(reader, writer):
                 else:
                     sessions = {}
                 resp = json.dumps({"sessions": sessions}, indent=2).encode()
-                writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
-                             b"Content-Length: %d\r\n\r\n" % len(resp) + resp)
+                writer.write(
+                    b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+                    b"Content-Length: %d\r\n\r\n" % len(resp) + resp
+                )
                 await writer.drain()
                 return
             elif path.startswith("/ledger"):
@@ -362,8 +385,10 @@ async def handle_client(reader, writer):
                 except FileNotFoundError:
                     pass
                 resp = json.dumps({"records": records, "count": len(records)}).encode()
-                writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
-                             b"Content-Length: %d\r\n\r\n" % len(resp) + resp)
+                writer.write(
+                    b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n"
+                    b"Content-Length: %d\r\n\r\n" % len(resp) + resp
+                )
                 await writer.drain()
                 return
             else:
@@ -379,9 +404,13 @@ async def handle_client(reader, writer):
         # Route MCP request
         srv_name, route_info = route(path)
         if route_info is None:
-            err = json.dumps({"error": {"code": -32600, "message": f"Unknown path: {path}"}}).encode()
-            writer.write(b"HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\n"
-                         b"Content-Length: %d\r\n\r\n" % len(err) + err)
+            err = json.dumps(
+                {"error": {"code": -32600, "message": f"Unknown path: {path}"}}
+            ).encode()
+            writer.write(
+                b"HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\n"
+                b"Content-Length: %d\r\n\r\n" % len(err) + err
+            )
             await writer.drain()
             return
 
@@ -405,15 +434,27 @@ async def handle_client(reader, writer):
         # Forward via thread pool (non-blocking)
         loop = asyncio.get_event_loop()
         status, resp_json, dur_ms, err_msg = await loop.run_in_executor(
-            None, _sync_http_post, host, port, mcp_path, body, hdrs,
-            srv_name, sid, agent, method_rpc, tool, cid
+            None,
+            _sync_http_post,
+            host,
+            port,
+            mcp_path,
+            body,
+            hdrs,
+            srv_name,
+            sid,
+            agent,
+            method_rpc,
+            tool,
+            cid,
         )
 
         # Send response to gateway
         resp_body = json.dumps(resp_json, ensure_ascii=False).encode()
         writer.write(
             f"HTTP/1.1 {status} OK\r\nContent-Type: application/json\r\n"
-            f"Content-Length: {len(resp_body)}\r\n\r\n".encode() + resp_body
+            f"Content-Length: {len(resp_body)}\r\n\r\n".encode()
+            + resp_body
         )
         await writer.drain()
 
@@ -421,8 +462,10 @@ async def handle_client(reader, writer):
         log.error(f"Handler error from {addr}: {e}")
         try:
             err = json.dumps({"error": {"code": -32000, "message": str(e)}}).encode()
-            writer.write(b"HTTP/1.1 500 Internal Error\r\nContent-Type: application/json\r\n"
-                         b"Content-Length: %d\r\n\r\n" % len(err) + err)
+            writer.write(
+                b"HTTP/1.1 500 Internal Error\r\nContent-Type: application/json\r\n"
+                b"Content-Length: %d\r\n\r\n" % len(err) + err
+            )
             await writer.drain()
         except Exception:
             pass

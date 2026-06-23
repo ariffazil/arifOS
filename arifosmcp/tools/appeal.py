@@ -32,7 +32,9 @@ class AppealRequest(BaseModel):
 
     contested_verdict_id: str = Field(description="VAULT999 entry ID or verdict being contested")
     grounds: str = Field(description="Human-readable grounds for the appeal")
-    evidence_refs: list[str] = Field(default_factory=list, description="Evidence IDs supporting the appeal")
+    evidence_refs: list[str] = Field(
+        default_factory=list, description="Evidence IDs supporting the appeal"
+    )
     requester_actor_id: str = Field(description="Who is raising the appeal")
     requested_relief: str = Field(
         default="reconsideration",
@@ -45,14 +47,18 @@ class AppealReview(BaseModel):
 
     reviewer: str = Field(description="Assigned reviewer: human_888 | arif_critique | arif_judge")
     review_deadline: datetime = Field(description="When the review must complete")
-    review_method: str = Field(default="redteam", description="redteam | rehearing | evidence_recheck")
+    review_method: str = Field(
+        default="redteam", description="redteam | rehearing | evidence_recheck"
+    )
 
 
 class AppealResult(BaseModel):
     """Result of raising an appeal."""
 
     appeal_id: str
-    status: str = Field(default="PENDING", description="PENDING | UNDER_REVIEW | RESOLVED | REJECTED")
+    status: str = Field(
+        default="PENDING", description="PENDING | UNDER_REVIEW | RESOLVED | REJECTED"
+    )
     contested_verdict_id: str
     grounds: str
     review: AppealReview
@@ -154,7 +160,9 @@ def arif_appeal_raise(
         f"Review must complete by {review_deadline.isoformat()}",
     ]
     if reviewer == "human_888":
-        next_steps.append("L13 SOVEREIGN notification sent — human review required for irreversible action appeal")
+        next_steps.append(
+            "L13 SOVEREIGN notification sent — human review required for irreversible action appeal"
+        )
 
     # In production: write to VAULT999 appeal stream, trigger heart critique redteam mode
     # For now: log and return receipt

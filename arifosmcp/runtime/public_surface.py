@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from arifosmcp.constitutional_map import CANONICAL_TOOLS, list_constitutional_tools
+from arifosmcp.constitutional_map import CANONICAL_TOOLS
 from arifosmcp.prompts import CANONICAL_PROMPTS
 from arifosmcp.resources import (
     CANONICAL_RESOURCES,
@@ -13,19 +13,28 @@ from arifosmcp.resources import (
 )
 from arifosmcp.runtime.build import get_build_info
 
-CANONICAL_13: tuple[str, ...] = tuple(
-    name
-    for name in list_constitutional_tools()
-    if not (
-        CANONICAL_TOOLS.get(name, {}).get("_deprecated", False)
-        or CANONICAL_TOOLS.get(name, {}).get("deprecated", False)
-    )
+# ═─ 7-Tool MCP Facade (F4 CLARITY: one intent = one public tool) ─═══════════
+# Public agents see only these 7 verbs. Everything else is an internal alias,
+# diagnostic probe, or hidden helper. See /root/AAA/skills/arifos-recursive-audit
+# and AGENTIC_AFFORDANCE_GUIDE.md for doctrine.
+CANONICAL_7: tuple[str, ...] = (
+    "arif_init",  # 000 — Bootstrap governed session and bind actor identity.
+    "arif_observe",  # 111 — Ground in current reality (absorbs fetch).
+    "arif_think",  # 333 — Reason, plan, reflect, critique.
+    "arif_route",  # 444 — Route intent to correct organ.
+    "arif_judge",  # 888 — Constitutional verdict (SEAL/HOLD/VOID).
+    "arif_act",  # 900 — Execute approved action. Requires seal_verdict_id.
+    "arif_seal",  # 999 — Seal to immutable ledger.
 )
-# CANONICAL_13 is the single canonical set — deprecated aliases excluded.
 
-# ── Canary Probe — always-on transport diagnostic (Canonical13 enforcement) ──
-# This zero-floor probe is ALWAYS registered on the public wire surface.
-# It requires no session, no actor, no governance — pure transport diagnostics.
+# Deprecated alias for internal code that still imports CANONICAL_13.
+CANONICAL_13: tuple[str, ...] = CANONICAL_7
+# CANONICAL_7 is the single public canonical set.
+
+# ── Canary Probe — transport diagnostic, now internal-only ─────────────────
+# The canary is a pure transport probe. In the 7-tool facade it is no longer
+# advertised on the public wire surface; it remains available as a diagnostic
+# helper for federation operators and health checks.
 CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
 
 # ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────
@@ -49,12 +58,10 @@ CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = (
     "arif_forge_execute",
 )
 
-# ── Canonical13 Public Surface (= canonical kernel + canary) ─────────────────
-# FROZEN 2026-06-23: 15 canonical tools + 1 canary probe = 16 tools.
-# SDK aliases removed from wire surface — one name per function, full stop.
-CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES]))
-)
+# ── Canonical7 Public Surface (= exactly 7 canonical verbs) ─────────────────
+# F13 ratified 2026-06-23: exactly 7 public verbs.
+# Everything else (plumbing, aliases, diagnostics) is internal and filtered.
+CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_7
 
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
     # "arifos_" is blocked from tools/list but NOT from dispatch.
@@ -101,13 +108,47 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ──
     "arif_self_evaluate",
     "arif_model_compare",
+    # ── Internal aliases and helpers (demoted 2026-06-23 7-tool facade) ──
+    # SDK long-name aliases and internal-only handlers remain callable but are
+    # NOT advertised on the public wire surface. Public agents see only CANONICAL_7.
+    "arif_bridge_connect",
+    "arif_compose",
+    "arif_critique",
+    "arif_cross_attest",
+    "arif_evidence_fetch",
+    "arif_explore",
+    "arif_fetch",
+    "arif_forge",
+    "arif_forge_execute",
+    "arif_gate_judge",
+    "arif_gateway_connect",
+    "arif_heart_critique",
+    "arif_judge_deliberate",
+    "arif_kernel_attest",
+    "arif_kernel_health",
+    "arif_kernel_intercept",
+    "arif_measure",
+    "arif_memory",
+    "arif_memory_recall",
+    "arif_mind_reason",
+    "arif_ops_measure",
+    "arif_paradox_status",
+    "arif_reply_compose",
+    "arif_selftest",
+    "arif_sense_observe",
+    "arif_session_init",
+    "arif_tool_exists",
+    "arif_triage",
+    "arif_vault_seal",
 )
 
 # EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).
-# SDK aliases removed — canonical names only + diagnostics.
-# Canonical 15 + Canary 1 + Diagnostic 19 = 35 tools.
+# SDK aliases removed — canonical 7 verbs + diagnostics.
+# CANARY_PROBES (arif_canary dispatcher) is internal-only and not surfaced here;
+# the individual probe modes (arif_conformance_report, arif_schema_echo, etc.)
+# are already included in DIAGNOSTIC_TOOLS.
 EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES, *DIAGNOSTIC_TOOLS]))
+    list(dict.fromkeys([*CANONICAL_7, *DIAGNOSTIC_TOOLS]))
 )
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
@@ -142,10 +183,10 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     """
     Return the public tool names for a given surface mode.
 
-    canonical13 (default): CANONICAL_13 + CANARY_PROBES (16 tools).
-        FROZEN 2026-06-23: 15 canonical tools + 1 canary probe.
-        One name per function. No SDK aliases on the wire.
-    expanded45: CANONICAL_13 + DIAGNOSTIC_TOOLS (gated tools included).
+    canonical13 (default): CANONICAL_7 (7 tools).
+        F13 ratified 2026-06-23: exactly 7 canonical verbs.
+        One intent = one public tool. No SDK aliases on the wire.
+    expanded45: CANONICAL_7 + DIAGNOSTIC_TOOLS (gated tools included).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
 
     INTERNAL_ONLY filter: tools registered in CANONICAL_TOOLS with
@@ -155,8 +196,8 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     if resolved == "expanded45":
         candidates = EXPANDED_45
     else:
-        # canonical13: 15 canonical tools + 1 canary probe = 16 tools on the default wire.
-        # FROZEN 2026-06-23: SDK aliases removed from wire surface.
+        # canonical13: exactly the 7 canonical verbs (F13-ratified 2026-06-23).
+        # SDK aliases and plumbing hidden. Canaries/diagnostics not on public wire by default.
         candidates = CANONICAL13_PUBLIC_SURFACE
     # Filter out internal_only tools regardless of mode.
     return tuple(
@@ -180,10 +221,10 @@ def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     return {
         "mode": resolved,
         "tools_registered": len(tool_names),
-        "kernel_tools": len(CANONICAL_13),
+        "kernel_tools": len(CANONICAL_7),
         "diagnostic_tools": diagnostic_tools,
         "tool_names": tool_names,
-        "canonical13_count": len(CANONICAL_13),
+        "canonical13_count": len(CANONICAL_7),
         "blocked_public_prefixes": list(BLOCKED_PUBLIC_PREFIXES),
     }
 

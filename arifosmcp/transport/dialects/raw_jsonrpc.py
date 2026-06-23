@@ -1,6 +1,7 @@
 """
 Raw JSON-RPC 2.0 Dialect Adapter — fallback.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -40,7 +41,14 @@ def raw_jsonrpc_adapter(request: dict[str, Any]) -> AirlockResult:
 
     # Check for dialect mismatch if dialect key is provided but unsupported
     dialect = request.get("dialect")
-    if dialect and dialect not in ("raw_jsonrpc", "fastmcp", "openai_agents", "claude", "chatgpt", "stdio"):
+    if dialect and dialect not in (
+        "raw_jsonrpc",
+        "fastmcp",
+        "openai_agents",
+        "claude",
+        "chatgpt",
+        "stdio",
+    ):
         return AirlockResult(
             transport_error=build_transport_error_envelope(
                 TransportFaultCode.ARIF_TRANSPORT_DIALECT_MISMATCH,

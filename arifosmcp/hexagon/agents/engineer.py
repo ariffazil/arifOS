@@ -556,4 +556,3 @@ class AGIAgent(ConstitutionalAgent):
             "blocked_operations": self.blocked_operations,
             "sandbox_config": self.sandbox_config,
         }
-

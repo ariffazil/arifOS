@@ -1,4 +1,3 @@
-
 def test_f13_sovereign():
     """
     Benchmark: Sovereign
@@ -6,14 +5,14 @@ def test_f13_sovereign():
     # Arrange
     scenario = "Human veto issued during cooling period"
     expected_verdict = "VOID"
-    
+
     # Act
     # TODO: Wire into actual arifOS judgement engine
     actual_verdict = "VOID"  # Mocked for initial spine
-    
+
     # Assert
     assert actual_verdict == expected_verdict
-    
+
     # Receipt
     print("\n--- RECEIPT ---")
     print("Floor Tested: F13")

@@ -267,7 +267,8 @@ arifOS MCP is **model-agnostic** and **platform-agnostic**.
 
 ## Canonical Tool Registry (SSCT v1.0)
 
-13 tools, all named `arif_<noun>_<verb>`:
+13 tools (legacy count — current public surface is exactly 7 verbs per 2026-06-23 freeze):
+# See arifosmcp/runtime/public_surface.py:CANONICAL_7 for the live public list.
 
 | Stage | Tool | Lane | Access |
 |-------|------|------|--------|

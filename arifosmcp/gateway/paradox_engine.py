@@ -59,43 +59,111 @@ from .tension_node import (
 
 # Passive voice markers in BM (di- prefix verbs = disembunyikan agency)
 PASSIVE_MARKERS_BM: list[str] = [
-    "didedahkan", "diteliti", "diserahkan", "dilaporkan", "dinyatakan",
-    "diputuskan", "ditangguhkan", "disekat", "diberitahu", "dimaklumkan",
-    "dijelaskan", "dikongsi", "diproses", "diluluskan", "disemak",
-    "ditahan", "dikemukakan", "diadakan", "dibuat", "dilakukan",
-    "diperlu", "dipatuhi", "dipertimbangkan", "disiasat", "dikenal pasti",
-    "ditetapkan", "diselesaikan", "dibentangkan", "diterima",
+    "didedahkan",
+    "diteliti",
+    "diserahkan",
+    "dilaporkan",
+    "dinyatakan",
+    "diputuskan",
+    "ditangguhkan",
+    "disekat",
+    "diberitahu",
+    "dimaklumkan",
+    "dijelaskan",
+    "dikongsi",
+    "diproses",
+    "diluluskan",
+    "disemak",
+    "ditahan",
+    "dikemukakan",
+    "diadakan",
+    "dibuat",
+    "dilakukan",
+    "diperlu",
+    "dipatuhi",
+    "dipertimbangkan",
+    "disiasat",
+    "dikenal pasti",
+    "ditetapkan",
+    "diselesaikan",
+    "dibentangkan",
+    "diterima",
 ]
 
 # Hedging/qualification language — signals that soften or evade commitment
 HEDGING_MARKERS_BM: list[str] = [
-    "perlu", "mungkin", "tertakluk", "terutama", "bagaimanapun",
-    "walau bagaimanapun", "namun", "tetapi", "sebaik", "sekiranya",
-    "jika", "akan", "belum", "masih", "dalam proses", "sedang",
-    "terpulang", "bergantung", "tertakluk kepada", "mengikut",
-    "selaras", "mempertimbangkan", "implikasi", "aspek",
-    "beberapa", "antara", "pihak terlibat", "pihak berkaitan",
+    "perlu",
+    "mungkin",
+    "tertakluk",
+    "terutama",
+    "bagaimanapun",
+    "walau bagaimanapun",
+    "namun",
+    "tetapi",
+    "sebaik",
+    "sekiranya",
+    "jika",
+    "akan",
+    "belum",
+    "masih",
+    "dalam proses",
+    "sedang",
+    "terpulang",
+    "bergantung",
+    "tertakluk kepada",
+    "mengikut",
+    "selaras",
+    "mempertimbangkan",
+    "implikasi",
+    "aspek",
+    "beberapa",
+    "antara",
+    "pihak terlibat",
+    "pihak berkaitan",
 ]
 
 # Promise/commitment language — signals of intent that create expectation
 PROMISE_MARKERS_BM: list[str] = [
-    "bersedia", "akan mendedahkan", "akan dikongsi", "komited",
-    "janji", "dijamin", "pasti", "insya-Allah", "secepat mungkin",
-    "dalam masa terdekat", "sebaik selesai", "sedang diusahakan",
+    "bersedia",
+    "akan mendedahkan",
+    "akan dikongsi",
+    "komited",
+    "janji",
+    "dijamin",
+    "pasti",
+    "insya-Allah",
+    "secepat mungkin",
+    "dalam masa terdekat",
+    "sebaik selesai",
+    "sedang diusahakan",
 ]
 
 # Deadline/void markers — absence or vagueness of timeline
 DEADLINE_VOID_MARKERS_BM: list[str] = [
-    "sebaik selesai", "apabila siap", "dalam masa terdekat",
-    "sedang diteliti", "masih menunggu", "belum ada tarikh",
-    "tiada tempoh", "tertakluk kepada", "bergantung kepada",
+    "sebaik selesai",
+    "apabila siap",
+    "dalam masa terdekat",
+    "sedang diteliti",
+    "masih menunggu",
+    "belum ada tarikh",
+    "tiada tempoh",
+    "tertakluk kepada",
+    "bergantung kepada",
 ]
 
 # Jurisdiction/choke markers
 JURISDICTION_MARKERS_BM: list[str] = [
-    "bidang kuasa", "perundangan", "persekutuan", "negeri",
-    "agensi persekutuan", "kerajaan persekutuan", "kerajaan negeri",
-    "mahkamah", "akta", "undang-undang", "perlembagaan",
+    "bidang kuasa",
+    "perundangan",
+    "persekutuan",
+    "negeri",
+    "agensi persekutuan",
+    "kerajaan persekutuan",
+    "kerajaan negeri",
+    "mahkamah",
+    "akta",
+    "undang-undang",
+    "perlembagaan",
 ]
 
 # Named entity patterns (proper nouns that indicate specific actors)
@@ -109,6 +177,7 @@ NAMED_ENTITY_PATTERNS: list[str] = [
 # FRAME EXTRACTOR
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class FrameExtractor:
     """Extract actors, claims, and framing signals from BM article text."""
 
@@ -121,7 +190,7 @@ class FrameExtractor:
     def _split_sentences(text: str) -> list[str]:
         """Split BM text into sentences."""
         # BM sentence boundaries
-        parts = re.split(r'(?<=[.!?])\s+', text)
+        parts = re.split(r"(?<=[.!?])\s+", text)
         return [p.strip() for p in parts if len(p.strip()) > 20]
 
     def detect_passive_voice_ratio(self) -> float:
@@ -129,8 +198,7 @@ class FrameExtractor:
         if not self.sentences:
             return 0.0
         passive_count = sum(
-            1 for s in self.sentences
-            if any(m in s.lower() for m in PASSIVE_MARKERS_BM)
+            1 for s in self.sentences if any(m in s.lower() for m in PASSIVE_MARKERS_BM)
         )
         return passive_count / len(self.sentences)
 
@@ -139,15 +207,22 @@ class FrameExtractor:
         if not self.sentences:
             return 0.0
         total_hedging = sum(
-            sum(1 for m in HEDGING_MARKERS_BM if m in s.lower())
-            for s in self.sentences
+            sum(1 for m in HEDGING_MARKERS_BM if m in s.lower()) for s in self.sentences
         )
         return min(total_hedging / (len(self.sentences) * 3), 1.0)
 
     def detect_quote_asymmetry(self) -> dict[str, int]:
         """Count direct vs indirect quotes."""
-        direct_markers = ["katanya", "ujarnya", "jelasnya", "tambahnya",
-                          "katanya lagi", "ujar", "kata", "jelas"]
+        direct_markers = [
+            "katanya",
+            "ujarnya",
+            "jelasnya",
+            "tambahnya",
+            "katanya lagi",
+            "ujar",
+            "kata",
+            "jelas",
+        ]
         indirect_markers = ["menurut", "melaporkan", "memetik", "berkata"]
 
         direct_count = sum(1 for m in direct_markers if m in self.text.lower())
@@ -156,22 +231,17 @@ class FrameExtractor:
 
     def detect_promise_markers(self) -> list[str]:
         """Extract sentences containing promise/commitment language."""
-        return [
-            s for s in self.sentences
-            if any(m in s.lower() for m in PROMISE_MARKERS_BM)
-        ]
+        return [s for s in self.sentences if any(m in s.lower() for m in PROMISE_MARKERS_BM)]
 
     def detect_deadline_void(self) -> bool:
         """Check if article contains deadline-void patterns."""
-        return any(
-            m in self.text.lower() for m in DEADLINE_VOID_MARKERS_BM
-        ) and not re.search(r'(?:pada|sebelum|menjelang)\s+\d{1,2}\s+\w+\s+\d{4}', self.text)
+        return any(m in self.text.lower() for m in DEADLINE_VOID_MARKERS_BM) and not re.search(
+            r"(?:pada|sebelum|menjelang)\s+\d{1,2}\s+\w+\s+\d{4}", self.text
+        )
 
     def detect_jurisdiction_language(self) -> float:
         """Ratio of jurisdiction-related terms."""
-        count = sum(
-            1 for m in JURISDICTION_MARKERS_BM if m in self.text.lower()
-        )
+        count = sum(1 for m in JURISDICTION_MARKERS_BM if m in self.text.lower())
         return min(count / len(JURISDICTION_MARKERS_BM), 1.0)
 
     def extract_named_entities(self) -> list[str]:
@@ -184,8 +254,18 @@ class FrameExtractor:
                 entity = entity.strip()
                 # Filter out generic terms
                 if len(entity) > 4 and entity.lower() not in {
-                    "yang", "dalam", "untuk", "pada", "dengan", "akan",
-                    "telah", "bagi", "dari", "oleh", "ini", "itu",
+                    "yang",
+                    "dalam",
+                    "untuk",
+                    "pada",
+                    "dengan",
+                    "akan",
+                    "telah",
+                    "bagi",
+                    "dari",
+                    "oleh",
+                    "ini",
+                    "itu",
                 }:
                     entities.append(entity)
         return list(dict.fromkeys(entities))  # deduplicate
@@ -196,22 +276,26 @@ class FrameExtractor:
 
         # Known actor patterns for MY governance context
         known_patterns: list[tuple[str, str, ActorRole]] = [
-            ("Amirudin|Amiruddin|MB Selangor|Menteri Besar Selangor",
-             "actor_mb_selangor", ActorRole.GATEKEEPER),
-            ("Petronas|Petronas Gas|PGB", "actor_petronas",
-             ActorRole.OPERATOR),
-            ("kerajaan persekutuan|kerajaan Persekutuan|Persekutuan",
-             "actor_kerajaan_persekutuan", ActorRole.GATEKEEPER),
-            ("kerajaan negeri|kerajaan Negeri", "actor_kerajaan_negeri",
-             ActorRole.INSTITUTION),
-            ("mahkamah|Mahkamah Tinggi|Mahkamah", "actor_mahkamah",
-             ActorRole.LEGAL),
-            ("penduduk|mangsa|penghuni|komuniti", "actor_residents",
-             ActorRole.VICTIM),
-            ("jawatankuasa|Jawatankuasa Bebas|AGC|Peguam Negara",
-             "actor_agc", ActorRole.LEGAL),
-            ("wartawan|pemberita|media|Kosmo|BH|Utusan|Malaysiakini|FMT|The Edge",
-             "actor_media", ActorRole.MEDIA),
+            (
+                "Amirudin|Amiruddin|MB Selangor|Menteri Besar Selangor",
+                "actor_mb_selangor",
+                ActorRole.GATEKEEPER,
+            ),
+            ("Petronas|Petronas Gas|PGB", "actor_petronas", ActorRole.OPERATOR),
+            (
+                "kerajaan persekutuan|kerajaan Persekutuan|Persekutuan",
+                "actor_kerajaan_persekutuan",
+                ActorRole.GATEKEEPER,
+            ),
+            ("kerajaan negeri|kerajaan Negeri", "actor_kerajaan_negeri", ActorRole.INSTITUTION),
+            ("mahkamah|Mahkamah Tinggi|Mahkamah", "actor_mahkamah", ActorRole.LEGAL),
+            ("penduduk|mangsa|penghuni|komuniti", "actor_residents", ActorRole.VICTIM),
+            ("jawatankuasa|Jawatankuasa Bebas|AGC|Peguam Negara", "actor_agc", ActorRole.LEGAL),
+            (
+                "wartawan|pemberita|media|Kosmo|BH|Utusan|Malaysiakini|FMT|The Edge",
+                "actor_media",
+                ActorRole.MEDIA,
+            ),
         ]
 
         for pattern, actor_id, role in known_patterns:
@@ -219,23 +303,31 @@ class FrameExtractor:
                 # Count mentions
                 mentions = len(re.findall(pattern, self.text, re.IGNORECASE))
                 # Detect if directly quoted
-                quoted = bool(re.search(
-                    rf'(?:katanya|ujarnya|jelasnya|katanya lagi|kata|jelas|ujar).*?(?:{pattern})',
-                    self.text, re.IGNORECASE
-                )) or bool(re.search(
-                    rf'(?:{pattern}).*?(?:berkata|menegaskan|menjelaskan|memaklumkan)',
-                    self.text, re.IGNORECASE
-                ))
+                quoted = bool(
+                    re.search(
+                        rf"(?:katanya|ujarnya|jelasnya|katanya lagi|kata|jelas|ujar).*?(?:{pattern})",
+                        self.text,
+                        re.IGNORECASE,
+                    )
+                ) or bool(
+                    re.search(
+                        rf"(?:{pattern}).*?(?:berkata|menegaskan|menjelaskan|memaklumkan)",
+                        self.text,
+                        re.IGNORECASE,
+                    )
+                )
 
-                actors.append({
-                    "actor_id": actor_id,
-                    "name": pattern.split("|")[0].replace("\\", ""),
-                    "role": role,
-                    "mentions": mentions,
-                    "quoted": quoted,
-                    "visibility": min(mentions / 10, 1.0),
-                    "power": 0.5,  # default, to be refined
-                })
+                actors.append(
+                    {
+                        "actor_id": actor_id,
+                        "name": pattern.split("|")[0].replace("\\", ""),
+                        "role": role,
+                        "mentions": mentions,
+                        "quoted": quoted,
+                        "visibility": min(mentions / 10, 1.0),
+                        "power": 0.5,  # default, to be refined
+                    }
+                )
 
         return actors
 
@@ -271,9 +363,7 @@ class FrameExtractor:
                     break
 
             # Score hedging
-            hedging_score = sum(
-                0.15 for m in HEDGING_MARKERS_BM if m in sent.lower()
-            )
+            hedging_score = sum(0.15 for m in HEDGING_MARKERS_BM if m in sent.lower())
             hedging_score = min(hedging_score, 1.0)
 
             # Epistemic tag
@@ -284,15 +374,17 @@ class FrameExtractor:
             else:
                 epistemic = EpistemicTag.CLAIM
 
-            claims.append({
-                "claim_id": f"claim_extracted_{claim_idx:03d}",
-                "text": sent[:200],
-                "claim_type": claim_type,
-                "speaker": speaker,
-                "epistemic_tag": epistemic,
-                "hedging_score": hedging_score,
-                "verifiable": epistemic == EpistemicTag.FACT,
-            })
+            claims.append(
+                {
+                    "claim_id": f"claim_extracted_{claim_idx:03d}",
+                    "text": sent[:200],
+                    "claim_type": claim_type,
+                    "speaker": speaker,
+                    "epistemic_tag": epistemic,
+                    "hedging_score": hedging_score,
+                    "verifiable": epistemic == EpistemicTag.FACT,
+                }
+            )
 
         return claims
 
@@ -300,6 +392,7 @@ class FrameExtractor:
 # ═══════════════════════════════════════════════════════════════════════════
 # TENSION CLASSIFIER
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 class TensionClassifier:
     """Classify detected tensions from frame analysis signals."""
@@ -316,114 +409,143 @@ class TensionClassifier:
         promise_sents = self.ext.detect_promise_markers()
         hedging_ratio = self.ext.detect_hedging_ratio()
         if promise_sents and hedging_ratio > 0.3:
-            tensions.append({
-                "tension_id": "auto-t1",
-                "title": "Promise vs Outcome Discrepancy",
-                "tension_class": TensionClass.INSTITUTIONAL_PARADOX,
-                "summary": f"{len(promise_sents)} promise/commitment sentences detected "
-                           f"with hedging ratio {hedging_ratio:.2f}. "
-                           f"Declarative intent may conflict with actual outcome.",
-                "severity": Severity.HIGH if hedging_ratio > 0.5 else Severity.MEDIUM,
-                "claim_refs": [],
-                "scores": self._compute_scores(0.80, 0.75, 0.85, hedging_ratio),
-            })
+            tensions.append(
+                {
+                    "tension_id": "auto-t1",
+                    "title": "Promise vs Outcome Discrepancy",
+                    "tension_class": TensionClass.INSTITUTIONAL_PARADOX,
+                    "summary": f"{len(promise_sents)} promise/commitment sentences detected "
+                    f"with hedging ratio {hedging_ratio:.2f}. "
+                    f"Declarative intent may conflict with actual outcome.",
+                    "severity": Severity.HIGH if hedging_ratio > 0.5 else Severity.MEDIUM,
+                    "claim_refs": [],
+                    "scores": self._compute_scores(0.80, 0.75, 0.85, hedging_ratio),
+                }
+            )
 
         # T2: PASSIVE_OBSTACLE — passive voice masks agency
         passive_ratio = self.ext.detect_passive_voice_ratio()
         if passive_ratio > 0.4:
-            tensions.append({
-                "tension_id": "auto-t2",
-                "title": "Passive Obstacle Construction",
-                "tension_class": TensionClass.MEANING_LEAK,
-                "summary": f"Passive voice ratio {passive_ratio:.2f}. "
-                           f"Agency is grammatically obscured — who acts is hidden.",
-                "severity": Severity.MEDIUM,
-                "claim_refs": [],
-                "scores": self._compute_scores(0.75, 0.70, 0.75, passive_ratio),
-            })
+            tensions.append(
+                {
+                    "tension_id": "auto-t2",
+                    "title": "Passive Obstacle Construction",
+                    "tension_class": TensionClass.MEANING_LEAK,
+                    "summary": f"Passive voice ratio {passive_ratio:.2f}. "
+                    f"Agency is grammatically obscured — who acts is hidden.",
+                    "severity": Severity.MEDIUM,
+                    "claim_refs": [],
+                    "scores": self._compute_scores(0.75, 0.70, 0.75, passive_ratio),
+                }
+            )
 
         # T3: SLIP_PHRASE — named entity appears under hedged/qualified context
         named_entities = self.ext.extract_named_entities()
         if named_entities and hedging_ratio > 0.25:
-            tensions.append({
-                "tension_id": "auto-t3",
-                "title": "Named Entity Under Hedge",
-                "tension_class": TensionClass.MEANING_LEAK,
-                "summary": f"Named entities ({', '.join(named_entities[:3])}) "
-                           f"appear under hedging/qualification language (ratio {hedging_ratio:.2f}). "
-                           f"Specific actors named within otherwise generalized/hedged frame.",
-                "severity": Severity.CRITICAL if any(
-                    e.lower() in ["petronas", "petronas gas", "tnb", "khazanah",
-                                   "kwap", "epf", "pnb", "ltat"]
-                    for e in named_entities
-                ) else Severity.HIGH,
-                "claim_refs": [],
-                "scores": self._compute_scores(0.95, 0.90, 0.85, hedging_ratio),
-            })
+            tensions.append(
+                {
+                    "tension_id": "auto-t3",
+                    "title": "Named Entity Under Hedge",
+                    "tension_class": TensionClass.MEANING_LEAK,
+                    "summary": f"Named entities ({', '.join(named_entities[:3])}) "
+                    f"appear under hedging/qualification language (ratio {hedging_ratio:.2f}). "
+                    f"Specific actors named within otherwise generalized/hedged frame.",
+                    "severity": Severity.CRITICAL
+                    if any(
+                        e.lower()
+                        in [
+                            "petronas",
+                            "petronas gas",
+                            "tnb",
+                            "khazanah",
+                            "kwap",
+                            "epf",
+                            "pnb",
+                            "ltat",
+                        ]
+                        for e in named_entities
+                    )
+                    else Severity.HIGH,
+                    "claim_refs": [],
+                    "scores": self._compute_scores(0.95, 0.90, 0.85, hedging_ratio),
+                }
+            )
 
         # T4: VOICE_ASYMMETRY — quote asymmetry between powerful and powerless
         quote_asym = self.ext.detect_quote_asymmetry()
         if quote_asym["direct"] > 3 and quote_asym["indirect"] < quote_asym["direct"]:
-            tensions.append({
-                "tension_id": "auto-t4",
-                "title": "Voice Asymmetry Detected",
-                "tension_class": TensionClass.PUBLIC_PRIVATE_DIVERGENCE,
-                "summary": f"Direct quotes: {quote_asym['direct']}, "
-                           f"indirect: {quote_asym['indirect']}. "
-                           f"Narrative dominated by institutional speakers; "
-                           f"affected parties may lack direct voice.",
-                "severity": Severity.MEDIUM,
-                "claim_refs": [],
-                "scores": self._compute_scores(0.70, 0.65, 0.55, 0.72),
-            })
+            tensions.append(
+                {
+                    "tension_id": "auto-t4",
+                    "title": "Voice Asymmetry Detected",
+                    "tension_class": TensionClass.PUBLIC_PRIVATE_DIVERGENCE,
+                    "summary": f"Direct quotes: {quote_asym['direct']}, "
+                    f"indirect: {quote_asym['indirect']}. "
+                    f"Narrative dominated by institutional speakers; "
+                    f"affected parties may lack direct voice.",
+                    "severity": Severity.MEDIUM,
+                    "claim_refs": [],
+                    "scores": self._compute_scores(0.70, 0.65, 0.55, 0.72),
+                }
+            )
 
         # T5: EXPLICIT_VS_IMPLICIT — article presents two conflicting narratives
         if passive_ratio > 0.3 and hedging_ratio > 0.25:
-            tensions.append({
-                "tension_id": "auto-t5",
-                "title": "Explicit vs Implicit Narrative Conflict",
-                "tension_class": TensionClass.HARD_CONTRADICTION,
-                "summary": "Article structure suggests competing narratives: "
-                           "one explicit (official/attributed), one implicit (between lines). "
-                           "Passive voice and hedging language together create cognitive dissonance.",
-                "severity": Severity.HIGH,
-                "claim_refs": [],
-                "scores": self._compute_scores(0.80, 0.72, 0.90, max(passive_ratio, hedging_ratio)),
-            })
+            tensions.append(
+                {
+                    "tension_id": "auto-t5",
+                    "title": "Explicit vs Implicit Narrative Conflict",
+                    "tension_class": TensionClass.HARD_CONTRADICTION,
+                    "summary": "Article structure suggests competing narratives: "
+                    "one explicit (official/attributed), one implicit (between lines). "
+                    "Passive voice and hedging language together create cognitive dissonance.",
+                    "severity": Severity.HIGH,
+                    "claim_refs": [],
+                    "scores": self._compute_scores(
+                        0.80, 0.72, 0.90, max(passive_ratio, hedging_ratio)
+                    ),
+                }
+            )
 
         # T6: DEADLINE_VOID — commitment without timeline
         if self.ext.detect_deadline_void() and promise_sents:
-            tensions.append({
-                "tension_id": "auto-t6",
-                "title": "Deadline Void — Commitment Without Timeline",
-                "tension_class": TensionClass.TIMELINE_INCOHERENCE,
-                "summary": "Promise/commitment language present but no specific "
-                           "deadline or completion date. Indefinite review dressed as due diligence.",
-                "severity": Severity.HIGH,
-                "claim_refs": [],
-                "scores": self._compute_scores(0.90, 0.85, 0.92, 0.82),
-            })
+            tensions.append(
+                {
+                    "tension_id": "auto-t6",
+                    "title": "Deadline Void — Commitment Without Timeline",
+                    "tension_class": TensionClass.TIMELINE_INCOHERENCE,
+                    "summary": "Promise/commitment language present but no specific "
+                    "deadline or completion date. Indefinite review dressed as due diligence.",
+                    "severity": Severity.HIGH,
+                    "claim_refs": [],
+                    "scores": self._compute_scores(0.90, 0.85, 0.92, 0.82),
+                }
+            )
 
         # T7: JURISDICTION_TRAP — responsibility split across jurisdictions
         jurisdiction_ratio = self.ext.detect_jurisdiction_language()
         if jurisdiction_ratio > 0.3:
-            tensions.append({
-                "tension_id": "auto-t7",
-                "title": "Jurisdiction Trap — Split Authority",
-                "tension_class": TensionClass.ROLE_RESPONSIBILITY_GAP,
-                "summary": f"Jurisdiction/legal language density: {jurisdiction_ratio:.2f}. "
-                           f"Responsibility appears fragmented across multiple authorities — "
-                           f"no single actor holds both accountability and capability.",
-                "severity": Severity.MEDIUM,
-                "claim_refs": [],
-                "scores": self._compute_scores(0.75, 0.70, 0.65, jurisdiction_ratio),
-            })
+            tensions.append(
+                {
+                    "tension_id": "auto-t7",
+                    "title": "Jurisdiction Trap — Split Authority",
+                    "tension_class": TensionClass.ROLE_RESPONSIBILITY_GAP,
+                    "summary": f"Jurisdiction/legal language density: {jurisdiction_ratio:.2f}. "
+                    f"Responsibility appears fragmented across multiple authorities — "
+                    f"no single actor holds both accountability and capability.",
+                    "severity": Severity.MEDIUM,
+                    "claim_refs": [],
+                    "scores": self._compute_scores(0.75, 0.70, 0.65, jurisdiction_ratio),
+                }
+            )
 
         return tensions
 
     @staticmethod
     def _compute_scores(
-        confidence: float, credibility: float, coherence_strain: float,
+        confidence: float,
+        credibility: float,
+        coherence_strain: float,
         shadow_driver: float,
     ) -> dict[str, float]:
         """Compute TensionScores fields from classifier outputs."""
@@ -466,6 +588,7 @@ class TensionClassifier:
 # PARADOX ENGINE (main)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class ParadoxEngine:
     """Constitutional perception engine.
 
@@ -482,9 +605,7 @@ class ParadoxEngine:
     def __init__(self, merkle: MerkleTree | None = None):
         self.merkle = merkle or MerkleTree()
         self.engine_version = "0.2.0"
-        self.engine_hash = hashlib.sha256(
-            self.engine_version.encode()
-        ).hexdigest()[:12]
+        self.engine_hash = hashlib.sha256(self.engine_version.encode()).hexdigest()[:12]
 
     def ingest(
         self,
@@ -519,16 +640,18 @@ class ParadoxEngine:
         # Actors
         raw_actors = extractor.extract_actors()
         for ra in raw_actors:
-            graph.actors.append(ActorNode(
-                actor_id=ra["actor_id"],
-                name=ra["name"],
-                role=ra["role"],
-                entity_type=self._entity_type_for(ra["actor_id"]),
-                jurisdiction=self._jurisdiction_for(ra["actor_id"]),
-                power_score=ra["power"],
-                visibility_score=ra["visibility"],
-                accountability_score=0.5,
-            ))
+            graph.actors.append(
+                ActorNode(
+                    actor_id=ra["actor_id"],
+                    name=ra["name"],
+                    role=ra["role"],
+                    entity_type=self._entity_type_for(ra["actor_id"]),
+                    jurisdiction=self._jurisdiction_for(ra["actor_id"]),
+                    power_score=ra["power"],
+                    visibility_score=ra["visibility"],
+                    accountability_score=0.5,
+                )
+            )
 
         # Evidence
         evidence_node = EvidenceNode(
@@ -563,7 +686,8 @@ class ParadoxEngine:
         for i, rt in enumerate(raw_tensions, 1):
             # Map claim refs to actual claim IDs
             claim_refs = rt.get("claim_refs", []) or [
-                c.claim_id for c in graph.claims[:2]  # default: first 2 claims
+                c.claim_id
+                for c in graph.claims[:2]  # default: first 2 claims
             ]
 
             # Actor refs
@@ -583,9 +707,7 @@ class ParadoxEngine:
             )
 
             # Required action
-            action = TensionClassifier.required_action(
-                rt["tension_class"], rt["severity"]
-            )
+            action = TensionClassifier.required_action(rt["tension_class"], rt["severity"])
 
             tension = ParadoxTensionNode(
                 tension_id=rt["tension_id"],
@@ -605,9 +727,15 @@ class ParadoxEngine:
                 ),
                 scores=scores,
                 relations={
-                    "supports": [], "attacks": [], "refines": [],
-                    "undercuts": [], "depends_on": [], "triggered_by": [],
-                    "resolved_by": [], "masked_by": [], "witnessed_by": [],
+                    "supports": [],
+                    "attacks": [],
+                    "refines": [],
+                    "undercuts": [],
+                    "depends_on": [],
+                    "triggered_by": [],
+                    "resolved_by": [],
+                    "masked_by": [],
+                    "witnessed_by": [],
                 },
                 governance=GovernanceBinding(
                     floor_bindings=["F1", "F2", "F5", "F13"],
@@ -615,9 +743,7 @@ class ParadoxEngine:
                     hold_code="888_REVIEW_REQUIRED",
                     escalate_after_s=0,  # DO NOT auto-escalate
                     epistemic_tag=EpistemicTag.PLAUSIBLE,
-                    requires_888_hold=(
-                        rt["severity"] in {Severity.CRITICAL, Severity.HIGH}
-                    ),
+                    requires_888_hold=(rt["severity"] in {Severity.CRITICAL, Severity.HIGH}),
                 ),
             )
             graph.tensions.append(tension)
@@ -635,22 +761,24 @@ class ParadoxEngine:
             graph.receipts.append(receipt)
 
         # ── Step 4: Activity provenance ──
-        graph.activities.append(ActivityNode(
-            activity_id=f"activity_ingest_{article_id}",
-            activity_type="constitutional_perception",
-            description=f"Paradox engine v{self.engine_version}: ingested article, "
-                        f"extracted {len(graph.actors)} actors, {len(graph.claims)} claims, "
-                        f"detected {len(graph.tensions)} tensions",
-            started_at=ts,
-            actors_involved=[f"paradox_engine_v{self.engine_version}"],
-            produced_refs=(
-                [t.tension_id for t in graph.tensions] +
-                [r.receipt_id for r in graph.receipts] +
-                [f"ev_{article_id}"]
-            ),
-            used_refs=[],
-            status="completed",
-        ))
+        graph.activities.append(
+            ActivityNode(
+                activity_id=f"activity_ingest_{article_id}",
+                activity_type="constitutional_perception",
+                description=f"Paradox engine v{self.engine_version}: ingested article, "
+                f"extracted {len(graph.actors)} actors, {len(graph.claims)} claims, "
+                f"detected {len(graph.tensions)} tensions",
+                started_at=ts,
+                actors_involved=[f"paradox_engine_v{self.engine_version}"],
+                produced_refs=(
+                    [t.tension_id for t in graph.tensions]
+                    + [r.receipt_id for r in graph.receipts]
+                    + [f"ev_{article_id}"]
+                ),
+                used_refs=[],
+                status="completed",
+            )
+        )
 
         return graph
 
@@ -662,43 +790,33 @@ class ParadoxEngine:
         leaves: dict[str, int] = {}
 
         for ev in graph.evidence:
-            leaves[f"ev_{ev.evidence_id}"] = self.merkle.append_canonical(
-                ev.model_dump()
-            )
+            leaves[f"ev_{ev.evidence_id}"] = self.merkle.append_canonical(ev.model_dump())
         for c in graph.claims:
-            leaves[f"claim_{c.claim_id}"] = self.merkle.append_canonical(
-                c.model_dump()
-            )
+            leaves[f"claim_{c.claim_id}"] = self.merkle.append_canonical(c.model_dump())
         for a in graph.actors:
-            leaves[f"actor_{a.actor_id}"] = self.merkle.append_canonical(
-                a.model_dump()
-            )
+            leaves[f"actor_{a.actor_id}"] = self.merkle.append_canonical(a.model_dump())
         for t in graph.tensions:
-            leaves[f"tension_{t.tension_id}"] = self.merkle.append_canonical(
-                t.model_dump()
-            )
+            leaves[f"tension_{t.tension_id}"] = self.merkle.append_canonical(t.model_dump())
         for r in graph.receipts:
-            leaves[f"receipt_{r.receipt_id}"] = self.merkle.append_canonical(
-                r.model_dump()
-            )
+            leaves[f"receipt_{r.receipt_id}"] = self.merkle.append_canonical(r.model_dump())
         for act in graph.activities:
-            leaves[f"activity_{act.activity_id}"] = self.merkle.append_canonical(
-                act.model_dump()
-            )
+            leaves[f"activity_{act.activity_id}"] = self.merkle.append_canonical(act.model_dump())
 
         # Graph root object
-        graph_leaf_idx = self.merkle.append_canonical({
-            "object_type": "BELIEF_GRAPH",
-            "graph_id": graph.graph_id,
-            "title": graph.title,
-            "actor_count": len(graph.actors),
-            "claim_count": len(graph.claims),
-            "tension_count": len(graph.tensions),
-            "receipt_count": len(graph.receipts),
-            "engine_version": self.engine_version,
-            "engine_hash": self.engine_hash,
-            "created_at": graph.created_at,
-        })
+        graph_leaf_idx = self.merkle.append_canonical(
+            {
+                "object_type": "BELIEF_GRAPH",
+                "graph_id": graph.graph_id,
+                "title": graph.title,
+                "actor_count": len(graph.actors),
+                "claim_count": len(graph.claims),
+                "tension_count": len(graph.tensions),
+                "receipt_count": len(graph.receipts),
+                "engine_version": self.engine_version,
+                "engine_hash": self.engine_hash,
+                "created_at": graph.created_at,
+            }
+        )
         leaves["belief_graph_root"] = graph_leaf_idx
 
         checkpoint = self.merkle.checkpoint()
@@ -708,9 +826,7 @@ class ParadoxEngine:
         for t in graph.tensions:
             key = f"tension_{t.tension_id}"
             if key in leaves:
-                inclusion_proofs[t.tension_id] = self.merkle.inclusion_proof(
-                    leaves[key]
-                )
+                inclusion_proofs[t.tension_id] = self.merkle.inclusion_proof(leaves[key])
 
         return {
             "graph_id": graph.graph_id,
@@ -719,8 +835,7 @@ class ParadoxEngine:
             "tree_size": self.merkle.tree_size,
             "root_hash": checkpoint["root_hash"],
             "leaves": {
-                k: {"index": v, "hash": self.merkle.leaves[v].hex()}
-                for k, v in leaves.items()
+                k: {"index": v, "hash": self.merkle.leaves[v].hex()} for k, v in leaves.items()
             },
             "checkpoint": checkpoint,
             "inclusion_proofs": inclusion_proofs,
@@ -761,6 +876,7 @@ class ParadoxEngine:
 # ═══════════════════════════════════════════════════════════════════════════
 # CONVENIENCE FACTORY
 # ═══════════════════════════════════════════════════════════════════════════
+
 
 def ingest_article(
     text: str,

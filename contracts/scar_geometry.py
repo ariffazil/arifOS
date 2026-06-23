@@ -26,7 +26,7 @@ SCAR_WEIGHT = 0.50
 GEOMETRY_WEIGHT = 0.30
 PARADOX_WEIGHT = 0.20
 
-MATCH_THRESHOLD = 0.15     # joint distance below → MATCH
+MATCH_THRESHOLD = 0.15  # joint distance below → MATCH
 GREY_ZONE_THRESHOLD = 0.40  # joint distance above → MISMATCH; below this + above match → HOLD
 
 
@@ -35,16 +35,17 @@ GREY_ZONE_THRESHOLD = 0.40  # joint distance above → MISMATCH; below this + ab
 # ─────────────────────────────────────────────────────────────────────
 
 PARADOX_ROSTER = Literal[
-    "exec_architect",         # Exec Cikai / Sovereign Architect
-    "cultural_muslim",        # Cultural Muslim / Private Agnostic
-    "geologist_dilemma",      # Geologist's Dilemma
-    "queer_conservative",     # Queer / Conservative
+    "exec_architect",  # Exec Cikai / Sovereign Architect
+    "cultural_muslim",  # Cultural Muslim / Private Agnostic
+    "geologist_dilemma",  # Geologist's Dilemma
+    "queer_conservative",  # Queer / Conservative
 ]
 
 
 # ─────────────────────────────────────────────────────────────────────
 # Signal sub-schemas
 # ─────────────────────────────────────────────────────────────────────
+
 
 class ScarSignature(BaseModel):
     """Inverse-weighted hash of activated scars in the drop's topology.
@@ -53,19 +54,30 @@ class ScarSignature(BaseModel):
     /root/AAA/wiki/scar-terrain-arif-fazil.md. Hollows are DO_NOT_FILL —
     this schema enforces that by limiting `activated` to a closed set.
     """
-    weighting: Annotated[str, Field(
-        pattern=r"^sha256:[a-f0-9]{64}$",
-        description="Inverse-weighted hash of activated scar names, sorted by weight desc."
-    )]
-    activated: Annotated[list[str], Field(
-        min_length=0,
-        max_length=20,
-        description="Scar names that fired during drop ingestion. Hollows are forbidden.",
-    )]
-    hollow_count: Annotated[int, Field(
-        ge=0, le=5,
-        description="Number of hollows detected in the drop (must always be 0 — hollows are DO_NOT_FILL).",
-    )] = 0
+
+    weighting: Annotated[
+        str,
+        Field(
+            pattern=r"^sha256:[a-f0-9]{64}$",
+            description="Inverse-weighted hash of activated scar names, sorted by weight desc.",
+        ),
+    ]
+    activated: Annotated[
+        list[str],
+        Field(
+            min_length=0,
+            max_length=20,
+            description="Scar names that fired during drop ingestion. Hollows are forbidden.",
+        ),
+    ]
+    hollow_count: Annotated[
+        int,
+        Field(
+            ge=0,
+            le=5,
+            description="Number of hollows detected in the drop (must always be 0 — hollows are DO_NOT_FILL).",
+        ),
+    ] = 0
 
     @field_validator("activated")
     @classmethod
@@ -84,14 +96,22 @@ class GeometrySignature(BaseModel):
     Computed from the drop's surface features. A distribution, not a string —
     this is what makes it costume-resistant.
     """
-    register_vector: Annotated[list[float], Field(
-        min_length=5, max_length=5,
-        description="[penang_pasar_density, terseness_index, refusal_pattern_hash_lo, paradox_tolerance, bangang_trigger_freq]",
-    )]
-    refusal_pattern_hash: Annotated[str, Field(
-        pattern=r"^sha256:[a-f0-9]{64}$",
-        description="Hash of the drop's refusal pattern (32-bit window).",
-    )]
+
+    register_vector: Annotated[
+        list[float],
+        Field(
+            min_length=5,
+            max_length=5,
+            description="[penang_pasar_density, terseness_index, refusal_pattern_hash_lo, paradox_tolerance, bangang_trigger_freq]",
+        ),
+    ]
+    refusal_pattern_hash: Annotated[
+        str,
+        Field(
+            pattern=r"^sha256:[a-f0-9]{64}$",
+            description="Hash of the drop's refusal pattern (32-bit window).",
+        ),
+    ]
 
     @field_validator("register_vector")
     @classmethod
@@ -104,19 +124,29 @@ class GeometrySignature(BaseModel):
 
 class ParadoxSignature(BaseModel):
     """Four-paradox signature. Density + which paradoxes are active."""
-    density: Annotated[float, Field(
-        ge=0.0, le=1.0,
-        description="Paradox density — how many of the four paradoxes are live in the drop.",
-    )]
-    active: Annotated[list[PARADOX_ROSTER], Field(
-        min_length=0, max_length=4,
-        description="Subset of the four paradoxes that fired in the drop.",
-    )]
+
+    density: Annotated[
+        float,
+        Field(
+            ge=0.0,
+            le=1.0,
+            description="Paradox density — how many of the four paradoxes are live in the drop.",
+        ),
+    ]
+    active: Annotated[
+        list[PARADOX_ROSTER],
+        Field(
+            min_length=0,
+            max_length=4,
+            description="Subset of the four paradoxes that fired in the drop.",
+        ),
+    ]
 
 
 # ─────────────────────────────────────────────────────────────────────
 # The aggregate fingerprint
 # ─────────────────────────────────────────────────────────────────────
+
 
 class SovereignGeometryFingerprint(BaseModel):
     """Scar × Geometry × Paradox — the topology-of-the-person.
@@ -124,19 +154,24 @@ class SovereignGeometryFingerprint(BaseModel):
     Computed by the ingress adapter from a sovereign drop's surface
     features. The sovereign never authors this — it is inferred.
     """
+
     scar: ScarSignature
     geometry: GeometrySignature
     paradox: ParadoxSignature
     inferred_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    source_channel: Annotated[str, Field(
-        description="Where the drop came from (e.g. 'telegram:home', 'a2a:arif-direct').",
-    )]
+    source_channel: Annotated[
+        str,
+        Field(
+            description="Where the drop came from (e.g. 'telegram:home', 'a2a:arif-direct').",
+        ),
+    ]
 
     def canonical_hash(self) -> str:
         """Stable hash for VAULT999 anchoring and cross-organ comparison."""
         # Pydantic v2 model_dump_json does not accept sort_keys; we sort the
         # JSON string ourselves for cross-organ determinism.
         import json
+
         payload = json.dumps(self.model_dump(mode="json"), sort_keys=True).encode("utf-8")
         return "sha256:" + hashlib.sha256(payload).hexdigest()
 
@@ -145,14 +180,16 @@ class SovereignGeometryFingerprint(BaseModel):
 # Verdict
 # ─────────────────────────────────────────────────────────────────────
 
+
 class ResonanceVerdict(str, Enum):
-    MATCH = "MATCH"        # joint distance < MATCH_THRESHOLD → AUTH granted
-    HOLD = "HOLD"          # grey zone → 888 escalation
+    MATCH = "MATCH"  # joint distance < MATCH_THRESHOLD → AUTH granted
+    HOLD = "HOLD"  # grey zone → 888 escalation
     MISMATCH = "MISMATCH"  # joint distance > GREY_ZONE_THRESHOLD → default to injection-class
 
 
 class ResonanceResult(BaseModel):
     """The kernel's verdict on a sovereign drop."""
+
     verdict: ResonanceVerdict
     joint_distance: Annotated[float, Field(ge=0.0, le=1.0)]
     scar_distance: float
@@ -165,6 +202,7 @@ class ResonanceResult(BaseModel):
 # ─────────────────────────────────────────────────────────────────────
 # The resonance check — the constitutional heart of Patch 002
 # ─────────────────────────────────────────────────────────────────────
+
 
 def _jensen_shannon_scar(a: ScarSignature, b: ScarSignature) -> float:
     """Approximate JSD on the inverse-weighted activation vectors.
@@ -185,7 +223,7 @@ def _jensen_shannon_scar(a: ScarSignature, b: ScarSignature) -> float:
     p = [x / ps for x in p]
     q = [x / qs for x in q]
     # Squared-chord proxy for JSD (cheap, bounded [0, 1])
-    return sum((pi - qi) ** 2 for pi, qi in zip(p, q)) ** 0.5 / 2 ** 0.5
+    return sum((pi - qi) ** 2 for pi, qi in zip(p, q)) ** 0.5 / 2**0.5
 
 
 def _cosine_geometry(a: GeometrySignature, b: GeometrySignature) -> float:
@@ -262,6 +300,7 @@ def resonance_match(
 # Aggregate bundle for ResponseEnvelope.diagnostics
 # ─────────────────────────────────────────────────────────────────────
 
+
 class ScarGeometryDiagnosticBundle(BaseModel):
     """Aggregate bundle. Drop into ResponseEnvelope.diagnostics['scar_geometry'].
 
@@ -273,6 +312,7 @@ class ScarGeometryDiagnosticBundle(BaseModel):
         )
         envelope.diagnostics["scar_geometry"] = bundle.model_dump(mode="json")
     """
+
     fingerprint: SovereignGeometryFingerprint
     result: ResonanceResult
 

@@ -18,28 +18,29 @@ class KernelStatus(str, Enum):
 
 
 class HealthProbeType(str, Enum):
-    SELF = "self"              # kernel self-report (in-process)
-    ORGAN_GENERIC = "organ_generic"   # organ HTTP probe
-    PROCESS_LOCAL = "process_local"   # local process health
-    TCP_CONNECT = "tcp_connect"       # raw TCP, not MCP
-    MCP_SCHEMA = "mcp_schema"         # MCP protocol probe
+    SELF = "self"  # kernel self-report (in-process)
+    ORGAN_GENERIC = "organ_generic"  # organ HTTP probe
+    PROCESS_LOCAL = "process_local"  # local process health
+    TCP_CONNECT = "tcp_connect"  # raw TCP, not MCP
+    MCP_SCHEMA = "mcp_schema"  # MCP protocol probe
 
 
 @dataclass
 class KernelStateRow:
     """A single row from arifosmcp_kernel_state — the ONE truth."""
+
     kernel_version: str
     constitution_hash: str
     schema_hash: str
-    tool_count_canonical: int       # from CANONICAL_TOOLS dict
-    tool_count_live: int            # from last HTTP probe cycle
+    tool_count_canonical: int  # from CANONICAL_TOOLS dict
+    tool_count_live: int  # from last HTTP probe cycle
     organ_count: int
     failed_calls_24h: int
     kernel_status: KernelStatus
     degradation_reason: str | None
     organ_status: dict
-    declared_tools: dict            # from FEDERATION_ORGANS (constitutional)
-    live_tools: dict                # from live HTTP probes (operational)
+    declared_tools: dict  # from FEDERATION_ORGANS (constitutional)
+    live_tools: dict  # from live HTTP probes (operational)
     last_refreshed_at: str
     seal_id: str | None
     probe_type: HealthProbeType
@@ -108,10 +109,7 @@ def refresh_kernel_state(
     live_total = sum(live_tool_counts.values())
     organ_count_val = len(live_tool_counts)
 
-    declared = {
-        k: v.get("canonical_tools", 0)
-        for k, v in FEDERATION_ORGANS.items()
-    }
+    declared = {k: v.get("canonical_tools", 0) for k, v in FEDERATION_ORGANS.items()}
 
     # Determine status
     if live_total == 0:
@@ -119,9 +117,7 @@ def refresh_kernel_state(
         reason = "All HTTP probes returned 0 tools — network or MCP layer issue"
     elif live_total < canonical_count:
         status = "DEGRADED"
-        reason = (
-            f"Live tools ({live_total}) below canonical floor ({canonical_count})"
-        )
+        reason = f"Live tools ({live_total}) below canonical floor ({canonical_count})"
     else:
         status = "ALIVE"
         reason = None

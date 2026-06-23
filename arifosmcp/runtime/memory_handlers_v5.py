@@ -82,6 +82,7 @@ def _utc_now() -> datetime:
 #     - L4 write exception
 # ────────────────────────────────────────────────────────────────────────
 
+
 async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Write a candidate memory to L4 (memory_store table). Day 3.5 NEW handler.
 
@@ -168,7 +169,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
             tier=tier_hint,
             text=content,
             metadata=metadata,
-            qdrant_id=None,           # skip Qdrant — embedding_status='pending' for backfill
+            qdrant_id=None,  # skip Qdrant — embedding_status='pending' for backfill
             session_id=session_id,
             entity_tags=[],
             distillation_status="pending",
@@ -265,6 +266,7 @@ async def _check_idempotency(idempotency_key: str) -> str | None:
     try:
         import asyncpg
         from arifosmcp.runtime.memory_store import _PG_URL
+
         conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
         try:
             row = await conn.fetchrow(
@@ -324,6 +326,7 @@ async def _check_idempotency(idempotency_key: str) -> str | None:
 #     - L4 record already exists (use revise instead)
 # ────────────────────────────────────────────────────────────────────────
 
+
 async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Promote a memory from lower tier to higher tier (L3 → L4 default)."""
     from arifosmcp.runtime.memory_store import _pg_ping, _content_hash
@@ -346,10 +349,7 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         )
 
     if from_tier != "L3":
-        return _sabar(
-            f"promote: from_tier='{from_tier}' not supported "
-            f"(Day 3 supports L3→L4 only)"
-        )
+        return _sabar(f"promote: from_tier='{from_tier}' not supported (Day 3 supports L3→L4 only)")
 
     # ── F1+F2+F11 floor check ──
     required_floors = {"L01_AMANAH", "L02_TRUTH", "L11_AUDIT"}
@@ -384,6 +384,7 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 
     # ── Validate truth_class is allowed at L4 ──
     from arifosmcp.schemas import TruthClass, tier_allowed
+
     try:
         truth_enum = TruthClass(truth_class)
     except ValueError:
@@ -398,7 +399,6 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     # ── INSERT INTO L4 memory_records ──
     try:
         from arifosmcp.runtime.memory_store import _pg_run
-        from arifosmcp.runtime.memory_store import _pg_write
 
         # Map MemoryClass to L4 type enum (5 types: working/episodic/semantic/procedural/policy)
         l4_type = _map_memory_class_to_l4_type(memory_class)
@@ -408,6 +408,7 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 
         async def _do_insert():
             from arifosmcp.runtime.memory_store import get_memory_store
+
             store = get_memory_store()
             return await store.upsert_memory_record(
                 memory_id=memory_id,
@@ -505,6 +506,7 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 #     - L13 SOVEREIGN not honoured (caller's job)
 # ────────────────────────────────────────────────────────────────────────
 
+
 async def _handle_forget(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Tombstone an L4 record + emit vault tombstone seal."""
     from arifosmcp.runtime.memory_store import _pg_soft_delete, _content_hash
@@ -519,8 +521,12 @@ async def _handle_forget(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         return _sabar("forget: memory_id required")
 
     if policy_basis not in (
-        "ttl_expired", "scope_revoked", "consent_withdrawn",
-        "floor_violation", "superseded", "human_veto",
+        "ttl_expired",
+        "scope_revoked",
+        "consent_withdrawn",
+        "floor_violation",
+        "superseded",
+        "human_veto",
     ):
         return _sabar(f"forget: invalid policy_basis='{policy_basis}'")
 
@@ -627,9 +633,9 @@ async def _handle_forget(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 #     - seal not found in mirror
 # ────────────────────────────────────────────────────────────────────────
 
+
 async def _handle_attest(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Verify a memory_id against the vault seal chain."""
-    from arifosmcp.runtime.memory_store import _pg_run, _pg_load_canonical
 
     memory_id = payload.get("memory_id")
     run_id = payload.get("run_id")
@@ -717,6 +723,7 @@ async def _handle_attest(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 # Helpers
 # ────────────────────────────────────────────────────────────────────────
 
+
 def _sabar(note: str) -> dict[str, Any]:
     """Standard SABAR response for handler-level refusals."""
     return {
@@ -733,7 +740,7 @@ def _map_memory_class_to_l4_type(memory_class: str) -> str:
     """
     mapping = {
         "working": "working",
-        "session": "episodic",   # session → episodic
+        "session": "episodic",  # session → episodic
         "episodic": "episodic",
         "semantic": "semantic",
         "procedural": "procedural",
@@ -765,6 +772,7 @@ async def _fetch_l3_by_memory_id(memory_id: str) -> dict[str, Any] | None:
     """
     try:
         from arifosmcp.runtime.memory_store import _get_qdrant_client
+
         client = _get_qdrant_client()
         # Qdrant point ID convention: memory_id is stored as a string
         point = client.retrieve(
@@ -787,6 +795,7 @@ async def _fetch_l4_record(memory_id: str) -> dict[str, Any] | None:
 
         async def _do_fetch():
             from arifosmcp.runtime.memory_store import get_memory_store
+
             store = get_memory_store()
             return await store.load_memory_by_id(memory_id)
 
@@ -800,6 +809,7 @@ async def _update_qdrant_tier(memory_id: str, to_tier: str, vault_ref: str | Non
     """Mirror tier promotion back to Qdrant payload."""
     try:
         from arifosmcp.runtime.memory_store import _get_qdrant_client
+
         client = _get_qdrant_client()
         client.set_payload(
             collection_name="arifos_memory",
@@ -820,7 +830,9 @@ async def _cascade_tombstone_graph(memory_id: str) -> list[str]:
 
 
 def _evaluate_aspect(
-    record: dict[str, Any], aspect: str, include_proof: bool,
+    record: dict[str, Any],
+    aspect: str,
+    include_proof: bool,
 ) -> tuple[bool, int, list[str] | None]:
     """Evaluate a memory record against the requested aspect.
 
@@ -862,6 +874,7 @@ def _evaluate_aspect(
 # query instead. ADR-010: Postgres is L4 canonical store.
 # ────────────────────────────────────────────────────────────────────────
 
+
 async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Inspect a memory by memory_id — direct Postgres lookup.
 
@@ -876,7 +889,7 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     query = payload.get("query") or payload.get("memory_id") or ""
 
     # Check if query looks like a UUID
-    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     if re.match(uuid_pattern, query, re.I):
         # Direct Postgres lookup
         try:
@@ -919,7 +932,9 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                         "session_id": pg_row.get("session_id"),
                         "summary": _summarize(pg_row["text"]),
                         "content_hash": _content_hash(pg_row["text"]),
-                        "created_at": pg_row["created_at"].isoformat() if pg_row.get("created_at") else None,
+                        "created_at": pg_row["created_at"].isoformat()
+                        if pg_row.get("created_at")
+                        else None,
                         "tier": pg_row.get("tier", "L4"),
                         "truth_class": meta.get("truth_class"),
                         "provenance": meta.get("provenance"),

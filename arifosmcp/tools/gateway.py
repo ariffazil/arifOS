@@ -27,9 +27,7 @@ def arif_gateway_connect(
     contract_url: str | None = None,
     contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    floor_check = check_laws(
-        "arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id
-    )
+    floor_check = check_laws("arif_gateway_connect", {"target_agent": target_agent or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_gateway_connect", floor_check["reason"], floor_check["violated_laws"])
 
@@ -122,7 +120,9 @@ def arif_gateway_connect(
 
                     with urllib.request.urlopen(contract_url, timeout=10) as resp:
                         contract = json.loads(resp.read().decode("utf-8"))
-                validated = PeerFederationContract.model_validate(contract if contract is not None else {})
+                validated = PeerFederationContract.model_validate(
+                    contract if contract is not None else {}
+                )
                 return _ok(
                     "arif_gateway_connect",
                     {

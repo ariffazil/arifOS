@@ -88,6 +88,7 @@ def get_lane_for_tool(organ_id: str, tool_name: str) -> str:
     if organ_id == "GEOX":
         try:
             import yaml
+
             contract_path = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
                 "federation",
@@ -104,19 +105,33 @@ def get_lane_for_tool(organ_id: str, tool_name: str) -> str:
 
         # Fallback heuristics based on tool name patterns
         judgment_tools = {
-            "geox_claim_create", "geox_claim_validate", "geox_claim_challenge",
-            "geox_claim_seal", "geox_segy_export_tool",
+            "geox_claim_create",
+            "geox_claim_validate",
+            "geox_claim_challenge",
+            "geox_claim_seal",
+            "geox_segy_export_tool",
         }
         discovery_tools = {
-            "geox_system_registry_status", "geox_attribute_registry_list_tool",
-            "geox_basin_resolve", "geox_query_intake", "geox_query_macrostrat",
+            "geox_system_registry_status",
+            "geox_attribute_registry_list_tool",
+            "geox_basin_resolve",
+            "geox_query_intake",
+            "geox_query_macrostrat",
         }
         evidence_tools = {
-            "geox_data_ingest_bundle", "geox_data_qc_bundle", "geox_dst_ingest_test",
-            "geox_header_inspect", "geox_las_inspect", "geox_seismic_segy_inspect",
-            "geox_evidence_discover", "geox_evidence_attach", "geox_literature_ingest",
-            "geox_fault_stick_ingest_tool", "geox_volume_frame_tool",
-            "geox_vision_perceptual_inventory", "geox_vision_calibrate",
+            "geox_data_ingest_bundle",
+            "geox_data_qc_bundle",
+            "geox_dst_ingest_test",
+            "geox_header_inspect",
+            "geox_las_inspect",
+            "geox_seismic_segy_inspect",
+            "geox_evidence_discover",
+            "geox_evidence_attach",
+            "geox_literature_ingest",
+            "geox_fault_stick_ingest_tool",
+            "geox_volume_frame_tool",
+            "geox_vision_perceptual_inventory",
+            "geox_vision_calibrate",
         }
 
         if tool_name in judgment_tools:
@@ -250,7 +265,9 @@ def wrap_geox_output(
 
     Auto-detects action_class from the tool's lane classification.
     """
-    lane = get_lane_for_tool("GEOX", tool_name or geox_envelope.get("provenance", {}).get("tool_name", "unknown"))
+    lane = get_lane_for_tool(
+        "GEOX", tool_name or geox_envelope.get("provenance", {}).get("tool_name", "unknown")
+    )
     action_class = LANE_MAX_ACTION_CLASS.get(lane, "OBSERVE")
 
     claim_state = geox_envelope.get("claim_state", "INGESTED")
@@ -319,6 +336,8 @@ if __name__ == "__main__":
 
     print("✅ Kernel envelope tests pass")
     print(f"   Lane detection: {get_lane_for_tool('GEOX', 'geox_claim_seal')} → judgment")
-    print(f"   Lane detection: {get_lane_for_tool('GEOX', 'geox_system_registry_status')} → discovery")
+    print(
+        f"   Lane detection: {get_lane_for_tool('GEOX', 'geox_system_registry_status')} → discovery"
+    )
     print(f"   Lane detection: {get_lane_for_tool('GEOX', 'geox_data_ingest_bundle')} → evidence")
     print(f"   Lane detection: {get_lane_for_tool('GEOX', 'geox_seismic_compute')} → reasoning")

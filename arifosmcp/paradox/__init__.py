@@ -21,6 +21,7 @@ This package provides SHARED:
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
+
 from arifosmcp.paradox.desensitization import (
     DESENSITIZATION_CRITICAL_THRESHOLD,
     DESENSITIZATION_WARNING_THRESHOLD,

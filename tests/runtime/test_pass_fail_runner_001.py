@@ -211,8 +211,15 @@ class TestPassFailContract:
         )
         d = receipt.to_dict()
         required = {
-            "run_id", "agent_id", "session_id", "model_key",
-            "preflight", "context_packet", "model_call", "postflight", "verdict",
+            "run_id",
+            "agent_id",
+            "session_id",
+            "model_key",
+            "preflight",
+            "context_packet",
+            "model_call",
+            "postflight",
+            "verdict",
         }
         assert required.issubset(d.keys())
         assert d["receipt_hash"].startswith("sha256:")

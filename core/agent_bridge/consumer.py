@@ -30,7 +30,9 @@ class TelemetryConsumer:
         self.sub = sub
 
     @classmethod
-    async def connect(cls, servers: list[str] | None = None, durable: str = CONSUMER_NAME) -> "TelemetryConsumer":
+    async def connect(
+        cls, servers: list[str] | None = None, durable: str = CONSUMER_NAME
+    ) -> "TelemetryConsumer":
         servers = servers or ["nats://localhost:4222"]
         nc = NATS()
         await nc.connect(servers=servers)

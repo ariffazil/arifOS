@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Directory where model profiles live
 MODELS_REGISTRY_DIR = "/root/AAA/registries/models"
 
+
 async def arif_self_evaluate(
     query: str,
     session_id: str | None = None,
@@ -41,9 +42,7 @@ async def arif_self_evaluate(
         actor_id: Optional actor identifier.
     """
     # Pre-flight floor check (standard read-only verification)
-    floor_check = check_laws(
-        "arif_self_evaluate", {"query": query}, actor_id
-    )
+    floor_check = check_laws("arif_self_evaluate", {"query": query}, actor_id)
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_self_evaluate", floor_check["reason"], floor_check["violated_laws"])
 
@@ -79,22 +78,18 @@ async def arif_self_evaluate(
         "properties": {
             "scores": {
                 "type": "object",
-                "properties": {
-                    f"F{i:02d}": {"type": "number"} for i in range(1, 14)
-                },
-                "required": [f"F{i:02d}" for i in range(1, 14)]
+                "properties": {f"F{i:02d}": {"type": "number"} for i in range(1, 14)},
+                "required": [f"F{i:02d}" for i in range(1, 14)],
             },
             "reasons": {
                 "type": "object",
-                "properties": {
-                    f"F{i:02d}": {"type": "string"} for i in range(1, 14)
-                },
-                "required": [f"F{i:02d}" for i in range(1, 14)]
+                "properties": {f"F{i:02d}": {"type": "string"} for i in range(1, 14)},
+                "required": [f"F{i:02d}" for i in range(1, 14)],
             },
             "overall_compliance": {"type": "number"},
-            "verdict": {"type": "string", "enum": ["PASS", "HOLD", "VOID"]}
+            "verdict": {"type": "string", "enum": ["PASS", "HOLD", "VOID"]},
         },
-        "required": ["scores", "reasons", "overall_compliance", "verdict"]
+        "required": ["scores", "reasons", "overall_compliance", "verdict"],
     }
 
     try:
@@ -104,7 +99,7 @@ async def arif_self_evaluate(
             response_schema=response_schema,
             temperature=0.1,
             tool_origin="arif_self_evaluate",
-            mode="critique"
+            mode="critique",
         )
         return {
             "status": "OK",
@@ -113,16 +108,17 @@ async def arif_self_evaluate(
             "meta": {
                 "provider": envelope.provider,
                 "model": envelope.model,
-                "latency_ms": envelope.latency_ms
-            }
+                "latency_ms": envelope.latency_ms,
+            },
         }
     except Exception as e:
         logger.error(f"arif_self_evaluate LLM call failed: {e}")
         return {
             "status": "ERROR",
             "tool": "arif_self_evaluate",
-            "error_message": f"LLM evaluation failed: {str(e)}"
+            "error_message": f"LLM evaluation failed: {str(e)}",
         }
+
 
 async def arif_model_compare(
     model_a: str,
@@ -150,24 +146,24 @@ async def arif_model_compare(
     def load_profile(model_name: str) -> tuple[dict, dict]:
         soul_path = os.path.join(MODELS_REGISTRY_DIR, f"{model_name}_soul.yaml")
         shadow_path = os.path.join(MODELS_REGISTRY_DIR, f"{model_name}_shadow.yaml")
-        
+
         soul_data = {}
         shadow_data = {}
-        
+
         if os.path.exists(soul_path):
             try:
                 with open(soul_path) as f:
                     soul_data = yaml.safe_load(f) or {}
             except Exception as e:
                 logger.warning(f"Failed to load soul file {soul_path}: {e}")
-                
+
         if os.path.exists(shadow_path):
             try:
                 with open(shadow_path) as f:
                     shadow_data = yaml.safe_load(f) or {}
             except Exception as e:
                 logger.warning(f"Failed to load shadow file {shadow_path}: {e}")
-                
+
         return soul_data, shadow_data
 
     soul_a, shadow_a = load_profile(model_a)
@@ -196,7 +192,9 @@ async def arif_model_compare(
         "You MUST respond strictly in the requested JSON format."
     )
 
-    user_prompt = f"Please compare the following two models based on their profiles:\n---\n{context_str}\n---"
+    user_prompt = (
+        f"Please compare the following two models based on their profiles:\n---\n{context_str}\n---"
+    )
 
     response_schema = {
         "type": "object",
@@ -209,23 +207,38 @@ async def arif_model_compare(
                         "properties": {
                             "model_a_score": {"type": "number"},
                             "model_b_score": {"type": "number"},
-                            "summary": {"type": "string"}
+                            "summary": {"type": "string"},
                         },
-                        "required": ["model_a_score", "model_b_score", "summary"]
-                    } for axis in ["truth", "refusal", "self_identity", "cultural_grounding", "institutional_protection", "human_authority"]
+                        "required": ["model_a_score", "model_b_score", "summary"],
+                    }
+                    for axis in [
+                        "truth",
+                        "refusal",
+                        "self_identity",
+                        "cultural_grounding",
+                        "institutional_protection",
+                        "human_authority",
+                    ]
                 },
-                "required": ["truth", "refusal", "self_identity", "cultural_grounding", "institutional_protection", "human_authority"]
+                "required": [
+                    "truth",
+                    "refusal",
+                    "self_identity",
+                    "cultural_grounding",
+                    "institutional_protection",
+                    "human_authority",
+                ],
             },
             "verdict_recommendation": {
                 "type": "object",
                 "properties": {
                     "preferred_model": {"type": "string"},
-                    "rationale": {"type": "string"}
+                    "rationale": {"type": "string"},
                 },
-                "required": ["preferred_model", "rationale"]
-            }
+                "required": ["preferred_model", "rationale"],
+            },
         },
-        "required": ["axes_comparison", "verdict_recommendation"]
+        "required": ["axes_comparison", "verdict_recommendation"],
     }
 
     try:
@@ -235,7 +248,7 @@ async def arif_model_compare(
             response_schema=response_schema,
             temperature=0.2,
             tool_origin="arif_model_compare",
-            mode="critique"
+            mode="critique",
         )
         return {
             "status": "OK",
@@ -247,14 +260,14 @@ async def arif_model_compare(
                 "latency_ms": envelope.latency_ms,
                 "profiles_found": {
                     model_a: bool(soul_a or shadow_a),
-                    model_b: bool(soul_b or shadow_b)
-                }
-            }
+                    model_b: bool(soul_b or shadow_b),
+                },
+            },
         }
     except Exception as e:
         logger.error(f"arif_model_compare LLM call failed: {e}")
         return {
             "status": "ERROR",
             "tool": "arif_model_compare",
-            "error_message": f"LLM comparison failed: {str(e)}"
+            "error_message": f"LLM comparison failed: {str(e)}",
         }

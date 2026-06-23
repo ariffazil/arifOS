@@ -58,9 +58,11 @@ _REPLAY_TTL_S = 300
 # CANONICAL SUBJECT
 # ═══════════════════════════════════════════════════════
 
+
 @dataclass
 class StructuredSubject:
     """Resolved identity matching spec v0.1 canonical subject."""
+
     human_id: str = ""
     agent_id: str = ""
     session_id: str = ""
@@ -101,9 +103,13 @@ class VerificationError(Exception):
 # CRYPTO
 # ═══════════════════════════════════════════════════════
 
+
 def canonical_signature_base(
-    human_id: str, agent_id: str, session_id: str,
-    org_id: str, timestamp: str,
+    human_id: str,
+    agent_id: str,
+    session_id: str,
+    org_id: str,
+    timestamp: str,
 ) -> bytes:
     return (
         f"human_id={human_id}|"
@@ -147,6 +153,7 @@ def _replay_ok(nonce: str) -> bool:
 # API KEY STORE
 # ═══════════════════════════════════════════════════════
 
+
 class ApiKeyStore:
     """Key registry. Keys stored in-memory for v0.1 dev mode."""
 
@@ -166,11 +173,19 @@ class ApiKeyStore:
     def lookup(self, api_key: str) -> dict[str, Any] | None:
         return self._entries.get(api_key)
 
-    def add(self, key: str, key_id: str, human_id: str = "",
-            org_id: str = "", roles: list[str] | None = None) -> None:
+    def add(
+        self,
+        key: str,
+        key_id: str,
+        human_id: str = "",
+        org_id: str = "",
+        roles: list[str] | None = None,
+    ) -> None:
         self._entries[key] = {
-            "key_id": key_id, "human_id": human_id,
-            "org_id": org_id, "roles": roles or [],
+            "key_id": key_id,
+            "human_id": human_id,
+            "org_id": org_id,
+            "roles": roles or [],
         }
 
     def revoke(self, key: str) -> bool:
@@ -180,6 +195,7 @@ class ApiKeyStore:
 # ═══════════════════════════════════════════════════════
 # IDENTITY RESOLVER
 # ═══════════════════════════════════════════════════════
+
 
 class SignedHeaderIdentity:
     """Resolve identity from signed subject headers.
@@ -205,8 +221,10 @@ class SignedHeaderIdentity:
 
         if not api_key:
             return StructuredSubject(
-                human_id=human_id, agent_id=agent_id,
-                session_id=session_id, org_id=org_id,
+                human_id=human_id,
+                agent_id=agent_id,
+                session_id=session_id,
+                org_id=org_id,
             )
 
         entry = self.store.lookup(api_key)
@@ -232,8 +250,11 @@ class SignedHeaderIdentity:
 
         # Signature (BEFORE replay — correct error order)
         base = canonical_signature_base(
-            subj.human_id, subj.agent_id,
-            subj.session_id, subj.org_id, timestamp,
+            subj.human_id,
+            subj.agent_id,
+            subj.session_id,
+            subj.org_id,
+            timestamp,
         )
         if not verify_hmac(api_key, base, signature):
             raise VerificationError("Invalid HMAC signature", "BAD_SIGNATURE")
@@ -258,6 +279,7 @@ class SignedHeaderIdentity:
 # ═══════════════════════════════════════════════════════
 # CONVENIENCE: BUILD SIGNED HEADERS
 # ═══════════════════════════════════════════════════════
+
 
 def sign_request(
     api_key: str,
@@ -286,8 +308,10 @@ def sign_request(
 # OIDC STUB — v0.2
 # ═══════════════════════════════════════════════════════
 
+
 class OidcAdapterStub:
     """Placeholder for v0.2 OAuth 2.1 / OIDC."""
+
     configured: bool = False
 
     def resolve(self, token: str) -> StructuredSubject:
@@ -314,25 +338,28 @@ def _ensure_resolver():
         legacy_key = "arifos-dev-key-2026"
         keys = []
         if env_key and env_key != legacy_key:
-            keys.append({
-                "key": env_key,
-                "key_id": "env-arif-001",
+            keys.append(
+                {
+                    "key": env_key,
+                    "key_id": "env-arif-001",
+                    "human_id": "ARIF_FAZIL",
+                    "agent_id": "arifOS-federation",
+                    "org_id": "arifos-core",
+                    "roles": ["sovereign", "operator"],
+                }
+            )
+        keys.append(
+            {
+                "key": legacy_key,
+                "key_id": "dev-arif-001",
                 "human_id": "ARIF_FAZIL",
                 "agent_id": "arifOS-federation",
                 "org_id": "arifos-core",
                 "roles": ["sovereign", "operator"],
-            })
-        keys.append({
-            "key": legacy_key,
-            "key_id": "dev-arif-001",
-            "human_id": "ARIF_FAZIL",
-            "agent_id": "arifOS-federation",
-            "org_id": "arifos-core",
-            "roles": ["sovereign", "operator"],
-        })
+            }
+        )
         _GLOBAL_KEY_STORE = ApiKeyStore(keys)
         _GLOBAL_RESOLVER = SignedHeaderIdentity(_GLOBAL_KEY_STORE)
-
 
 
 def _to_caller_dict(s: StructuredSubject) -> dict[str, Any]:

@@ -23,8 +23,7 @@ from arifosmcp.schemas.narrative_tension import NarrativeTensionResponse
 
 
 PUTRA_TITLE = (
-    "Laporan kebakaran paip gas Putra Heights: MB Selangor nafi sorok, "
-    "dedah kekangan undang-undang"
+    "Laporan kebakaran paip gas Putra Heights: MB Selangor nafi sorok, dedah kekangan undang-undang"
 )
 PUTRA_TEXT = (
     "MB Selangor menjelaskan kerajaan negeri bersedia mendedahkan laporan "

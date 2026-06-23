@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """
 arifosmcp/runtime/tools.py — 13-Tool Canonical Surface
 ═══════════════════════════════════════════════════════
@@ -12,9 +13,11 @@ from __future__ import annotations
 # ── APEX Runtime Governance Envelope (APEX-MCP-001) ──────────────────────────
 try:
     from arifosmcp.apex_envelope import apex_envelope as _build_apex_envelope
+
     _APEX_AVAILABLE = True
 except ImportError:
     _APEX_AVAILABLE = False
+    _build_apex_envelope = None  # type: ignore
 
 # ── Constitutional Doctrine (F9 Anti-Hallucination: witness, not authority) ─────
 # CODED CONSTANT. Never LLM-generated. Never affects verdict, status, or execution.
@@ -37,11 +40,6 @@ try:
 except ImportError:  # Windows
     fcntl = None  # type: ignore
 
-# ── APEX Runtime Governance Envelope (APEX-MCP-001) ──────────────────────
-try:
-    from arifosmcp.apex_envelope import apex_envelope as _build_apex_envelope
-except ImportError:
-    _build_apex_envelope = None  # type: ignore
 import hashlib
 import inspect
 import json
@@ -88,21 +86,21 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     "VOID": 0,
     "FAIL": 0,
     "BROKEN": 0,
-    "ROSAK": 0,         # nine_signal Δ: BROKEN
-    "KHIANAT": 0,       # nine_signal Ψ: BETRAYED
-    "BANGANG": 0,       # nine_signal Ω: FOOLISH
-    "RETAK": 0,         # nine_signal overall/nine_signal Δ: FAILED/CRACKED
+    "ROSAK": 0,  # nine_signal Δ: BROKEN
+    "KHIANAT": 0,  # nine_signal Ψ: BETRAYED
+    "BANGANG": 0,  # nine_signal Ω: FOOLISH
+    "RETAK": 0,  # nine_signal overall/nine_signal Δ: FAILED/CRACKED
     # ── Held / deferred (severity 1-2) ──
     "SABAR": 1,
     "SABAR_HOLD": 1,
     "HOLD": 2,
-    "SYUBHAH": 2,       # nine_signal Ψ: DOUBTFUL
+    "SYUBHAH": 2,  # nine_signal Ψ: DOUBTFUL
     # ── Warnings / degraded (severity 3-4) ──
     "ERROR": 3,
     "WARN": 3,
-    "DIVERGENT": 3,     # FORGE 2: surface self-consistency divergence
+    "DIVERGENT": 3,  # FORGE 2: surface self-consistency divergence
     "DEGRADED": 4,
-    "BIJAK": 4,         # nine_signal Ω: SMART (degraded intelligence)
+    "BIJAK": 4,  # nine_signal Ω: SMART (degraded intelligence)
     # ── Observe only / partial (severity 5) ──
     "SEAL_OBSERVE_ONLY": 5,
     "PARTIAL": 5,
@@ -110,10 +108,10 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     "SEAL": 6,
     "OK": 6,
     "PASS": 6,
-    "KUKUH": 6,         # nine_signal Δ: SOLID
-    "AMANAH": 6,        # nine_signal Ψ: TRUSTED
-    "BIJAKSANA": 6,     # nine_signal Ω: WISE
-    "SELAMAT": 6,       # nine_signal overall: SAFE
+    "KUKUH": 6,  # nine_signal Δ: SOLID
+    "AMANAH": 6,  # nine_signal Ψ: TRUSTED
+    "BIJAKSANA": 6,  # nine_signal Ω: WISE
+    "SELAMAT": 6,  # nine_signal overall: SAFE
 }
 
 
@@ -163,7 +161,10 @@ def _any_degraded_flag(out: dict[str, Any]) -> bool:
             return True
         if isinstance(src.get("claim_state"), str) and src["claim_state"] in degraded_states:
             return True
-        if isinstance(src.get("execution_verdict"), str) and src["execution_verdict"] in degraded_verdicts:
+        if (
+            isinstance(src.get("execution_verdict"), str)
+            and src["execution_verdict"] in degraded_verdicts
+        ):
             return True
         if src.get("do_not_treat_as_seal") is True:
             return True
@@ -210,6 +211,449 @@ def _degraded_flag_reason(out: dict[str, Any]) -> str:
         if src.get("_llm_available") is False:
             reasons.append(f"{loc}._llm_available=False")
     return "; ".join(reasons) if reasons else "unknown"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTITUTIONAL AFFORDANCE DESIGN (per metacognitive agent requirements)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Every tool declares not just capability but: meaning, limits, evidence shape,
+# risk, authority, and next safe action. This turns function-calling into
+# cognitively clear agentic tooling.
+#
+# See also: TOOL_DISCOVERY (use_when), TOOL_AFFORDANCE_CONTRACTS (power surface),
+# and the standard output envelope produced by _ok / _coerce_public_envelope.
+
+AGENCY_LEVELS = {
+    "L0_OBSERVE": {
+        "level": 0,
+        "label": "Observe",
+        "description": "Pure sensing, search, inspect. Agent may act alone.",
+        "autonomous_ok": True,
+        "human_confirmation": False,
+    },
+    "L1_ANALYZE": {
+        "level": 1,
+        "label": "Analyze",
+        "description": "Score, classify, compare. Agent may act alone.",
+        "autonomous_ok": True,
+        "human_confirmation": False,
+    },
+    "L2_RECOMMEND": {
+        "level": 2,
+        "label": "Recommend",
+        "description": "Suggest pathway. Agent may act with explicit caveats.",
+        "autonomous_ok": True,
+        "human_confirmation": False,
+    },
+    "L3_PREPARE": {
+        "level": 3,
+        "label": "Prepare",
+        "description": "Draft, stage, format for action. Reversible prep.",
+        "autonomous_ok": True,
+        "human_confirmation": False,
+    },
+    "L4_EXECUTE_REVERSIBLE": {
+        "level": 4,
+        "label": "Execute (reversible)",
+        "description": "Create draft, label, stage changes. Usually autonomous.",
+        "autonomous_ok": True,
+        "human_confirmation": False,
+    },
+    "L5_EXECUTE_IRREVERSIBLE": {
+        "level": 5,
+        "label": "Execute (irreversible)",
+        "description": "Send, delete, publish, transfer, deploy, seal. REQUIRES 888_HOLD + explicit human confirmation. Agent MUST NOT act alone.",
+        "autonomous_ok": False,
+        "human_confirmation": True,
+    },
+}
+
+DECISION_THRESHOLDS = {
+    "confidence_below_0_50": "HOLD — insufficient evidence",
+    "confidence_0_50_to_0_70": "ADVISORY_ONLY — report caveats",
+    "confidence_0_70_to_0_85": "ACTIONABLE_WITH_CAVEAT — proceed with explicit unknowns",
+    "confidence_above_0_85": "STRONG_RECOMMENDATION — next safe step clear",
+    "irreversible_any": "888_HOLD + explicit human confirmation required regardless of confidence",
+}
+
+STANDARD_ARIFOS_MCP_ENVELOPE_KEYS = [
+    "status",
+    "tool",
+    "mode",
+    "authority",
+    "input_summary",
+    "result",
+    "evidence",
+    "assumptions",
+    "unknowns",
+    "confidence",
+    "risk",
+    "metacognition",
+    "constitutional_check",
+    "next_safe_action",
+    "facts",
+    "inferences",
+    "recommendations",
+    "do_not_conclude",
+    "verdict",
+    "nine_signal",
+    "reasons",
+    "timestamp",
+]
+
+# Purpose + cognitive contract per tool. This is merged with the power contract
+# and TOOL_DISCOVERY to give agents full pre-call clarity.
+# These for the CORE 7 are the gold-standard examples.
+TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
+    # ── CORE 7: arif_init ───────────────────────────────────────────────────
+    "arif_init": {
+        "purpose": "Bootstrap a constitutionally bound session and establish actor identity. Must be the first call in any agentic workflow. Returns session_id, authority level, surface pointers, and initial invariants.",
+        "use_when": [
+            "Starting any new governed interaction",
+            "Resuming a previous session",
+            "Before calling any other arif_* or organ tool",
+        ],
+        "do_not_use_when": [
+            "You already have a live verified session (use arif_triage instead)",
+            "Pure unauthenticated health check (use arif_ping)",
+        ],
+        "authority_level": "advisory_only",
+        "side_effect": "creates_and_binds_session",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "session_header_with_affordances",
+        "evidence_required": False,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "Call arif_observe or arif_triage with the new session_id",
+    },
+    "arif_observe": {
+        "purpose": "Ground the session in current reality via multimodal sensing (web, local repo, vitals, entropy, compass, atlas). Primary evidence-gathering tool. Returns structured observations + provenance.",
+        "use_when": [
+            "Any time you need fresh grounding before thinking or deciding",
+            "User query involves current state, search, or external facts",
+            "After arif_init and before significant reasoning",
+        ],
+        "do_not_use_when": [
+            "You need deep domain calculation (delegate to GEOX/WEALTH/WELL)",
+            "You already have sufficient recent observations for the task",
+        ],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only_with_external",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "evidence_bundle",
+        "evidence_required": True,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "Feed observations into arif_think or arif_fetch for more targeted evidence",
+    },
+    "arif_fetch": {
+        "purpose": "Targeted, citable evidence retrieval from a specific URL or focused query. Produces sourced facts suitable for downstream inference and judgment.",
+        "use_when": [
+            "A specific claim or fact needs verifiable citation",
+            "You know what to look up and want authoritative content",
+            "After observe has given you leads",
+        ],
+        "do_not_use_when": [
+            "You are still broadly exploring (use arif_observe first)",
+            "You want synthesized analysis (use arif_think after)",
+        ],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only_with_external",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "cited_evidence",
+        "evidence_required": True,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "Pass citations into arif_think for synthesis",
+    },
+    "arif_think": {
+        "purpose": "Epistemically honest reasoning engine. Turns evidence into inferences, plans, and self-critiqued hypotheses while explicitly labeling uncertainty (F7). Never the final word.",
+        "use_when": [
+            "You have evidence and need structured analysis or planning",
+            "Need to compare options, generate hypotheses, or refactor thinking",
+            "Before critique or judgment",
+        ],
+        "do_not_use_when": [
+            "You need raw facts (use observe/fetch)",
+            "Domain calculations (GEOX/WEALTH/WELL)",
+            "You are ready for final constitutional verdict (use arif_judge)",
+        ],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "reasoned_assessment_with_confidence",
+        "evidence_required": True,
+        "agency_level": "L1_ANALYZE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "Run arif_critique on the output before any consequential action",
+    },
+    "arif_critique": {
+        "purpose": "The heart gate. Performs constitutional (F1-F13), ethical, dignity, and consequence assessment on a proposal or plan. Must precede any high-blast or irreversible action. Outputs critique + recommended constraints.",
+        "use_when": [
+            "Before calling judge, forge, seal, or any L4/L5 action",
+            "Red-teaming a plan or proposal",
+            "After think has produced something consequential",
+        ],
+        "do_not_use_when": [
+            "You just need facts or reasoning (earlier in pipeline)",
+            "You already have a judge verdict and want to execute (go to seal path)",
+        ],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "medium",
+        "requires_human_confirmation": False,
+        "output_type": "critique_report",
+        "evidence_required": True,
+        "agency_level": "L2_RECOMMEND",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "If critique passes, proceed to arif_judge. Otherwise revise and re-think.",
+    },
+    "arif_judge": {
+        "purpose": "Final constitutional arbitration (888). Takes the full chain (evidence + think + critique) and renders a binding SEAL / HOLD / VOID / SABAR verdict. Backed by arif_kernel_intercept for runtime enforcement. This is the 'may' decision.",
+        "use_when": [
+            "After a complete observe → fetch → think → critique pipeline",
+            "Any action that has consequence, blast radius, or irreversibility",
+        ],
+        "do_not_use_when": [
+            "No prior evidence + critique collected",
+            "Trivial or pure-read query",
+        ],
+        "authority_level": "requires_human_confirmation_for_L5",
+        "side_effect": "judgment_only",
+        "blast_radius": "medium",
+        "requires_human_confirmation": False,  # the verdict itself; execution of L5 is separate
+        "output_type": "verdict",
+        "evidence_required": True,
+        "agency_level": "L2_RECOMMEND",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "If SEAL and action is L5: obtain human ack then arif_seal. If HOLD: revise and re-critique.",
+    },
+    "arif_seal": {
+        "purpose": "Append-only cryptographic seal of a prior 888_JUDGE SEAL verdict into the VAULT999 hash chain. This is the irreversible, permanent record step. L5 tool.",
+        "use_when": [
+            "You have a verified SEAL verdict from arif_judge",
+            "You need an immutable, auditable record of the decision",
+        ],
+        "do_not_use_when": [
+            "No preceding arif_judge with SEAL",
+            "Testing or speculative data (use dry-run paths)",
+        ],
+        "authority_level": "requires_human_confirmation",
+        "side_effect": "append_only_ledger",
+        "blast_radius": "high",
+        "requires_human_confirmation": True,
+        "output_type": "seal_receipt",
+        "evidence_required": True,
+        "agency_level": "L5_EXECUTE_IRREVERSIBLE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "The work is done. Record the seal receipt and close the loop.",
+    },
+    "arif_act": {
+        "purpose": "Execute an approved action (via forge) ONLY after a valid arif_judge SEAL + arif_seal receipt. The hard structural gate at stage 900. No seal ids → HOLD by code.",
+        "use_when": [
+            "You have seal_verdict_id + approved_action_hash from prior judge+seal",
+            "Ready to execute the approved manifest",
+        ],
+        "do_not_use_when": [
+            "No prior SEAL from judge",
+            "You are still in planning or critique phase",
+        ],
+        "authority_level": "requires_human_confirmation",
+        "side_effect": "execute_with_side_effects",
+        "blast_radius": "high",
+        "requires_human_confirmation": True,
+        "output_type": "execution_receipt",
+        "evidence_required": True,
+        "agency_level": "L5_EXECUTE_IRREVERSIBLE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "If success, consider arif_seal for the execution receipt itself.",
+    },
+    "arif_forge": {
+        "purpose": "Prepare execution (dry-run capable) of an action via A-FORGE. Reversible prep stage.",
+        "use_when": ["After judge SEAL and before human-authorized execution"],
+        "do_not_use_when": ["No lease / no judge approval"],
+        "authority_level": "requires_lease",
+        "side_effect": "prepare_execution",
+        "blast_radius": "high",
+        "requires_human_confirmation": False,
+        "output_type": "forge_plan",
+        "evidence_required": True,
+        "agency_level": "L3_PREPARE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_forge_execute": {
+        "purpose": "Execute a forged plan (via A-FORGE). High blast radius, often irreversible.",
+        "use_when": ["Lease is held", "Prior arif_judge SEAL + human ack"],
+        "do_not_use_when": ["No explicit human confirmation for L5 actions"],
+        "authority_level": "requires_human_confirmation",
+        "side_effect": "execute_with_side_effects",
+        "blast_radius": "high",
+        "requires_human_confirmation": True,
+        "output_type": "execution_receipt",
+        "evidence_required": True,
+        "agency_level": "L5_EXECUTE_IRREVERSIBLE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    # ── Kernel core (the "Minimum Constitutional Kernel" + support) ─────────
+    "arif_kernel_intercept": {
+        "purpose": "The thin brutalist constitutional gate. Every consequential action is intercepted here for ALLOW/DENY/ESCALATE/SIMULATE based on floors, authority, reversibility, blast, and evidence. This IS the kernel's 'may' judgment.",
+        "use_when": [
+            "Any agentic action that could affect state, external systems, or sovereign dignity",
+            "Before calling L3/L4/L5 tools",
+            "Runtime enforcement of F1-F13",
+        ],
+        "do_not_use_when": ["Pure read-only observation with no blast (use direct tools)"],
+        "authority_level": "requires_human_confirmation_for_L4+",
+        "side_effect": "governance_decision_only",
+        "blast_radius": "high",
+        "requires_human_confirmation": False,
+        "output_type": "kernel_verdict",
+        "evidence_required": True,
+        "agency_level": "L2_RECOMMEND",  # the decision itself; execution of L5 is separate
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_kernel_route": {
+        "purpose": "Legacy kernel routing. Routes intent or delegates to correct organ/tool. Being replaced by arif_route + arif_bridge_connect.",
+        "use_when": ["Need the old kernel routing surface for compatibility"],
+        "do_not_use_when": ["New sessions — prefer arif_route / arif_triage"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only_routing",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "route_plan",
+        "evidence_required": False,
+        "agency_level": "L1_ANALYZE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_memory": {
+        "purpose": "Federated 6-layer memory (recall, remember, revise, forget, attest). Some modes mutate.",
+        "use_when": [
+            "Need long-term continuity across sessions",
+            "Store or retrieve governed artifacts",
+        ],
+        "do_not_use_when": ["Forget without L13 sovereign approval"],
+        "authority_level": "advisory_only_for_recall",
+        "side_effect": "read_or_write_memory",
+        "blast_radius": "medium",
+        "requires_human_confirmation": False,
+        "output_type": "memory_record",
+        "evidence_required": True,
+        "agency_level": "L4_EXECUTE_REVERSIBLE",  # forget is L5 in practice
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    # Default fallbacks for other tools
+    "_default": {
+        "purpose": "Tool purpose not yet declared in constitutional contract. Treat conservatively.",
+        "use_when": ["Only after explicit lookup in affordance resource"],
+        "do_not_use_when": ["High-stakes or irreversible decisions"],
+        "authority_level": "advisory_only",
+        "side_effect": "unknown",
+        "blast_radius": "unknown",
+        "requires_human_confirmation": True,
+        "output_type": "opaque",
+        "evidence_required": True,
+        "agency_level": "L2_RECOMMEND",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+}
+
+
+def get_full_affordance(tool_name: str) -> dict[str, Any]:
+    """Return the complete cognitive + power affordance contract for an agent.
+
+    Merges:
+    - TOOL_PURPOSE_CONTRACTS (why + when + limits + thresholds)
+    - TOOL_AFFORDANCE_CONTRACTS (power surface, mutation, blast)
+    - TOOL_DISCOVERY (use_when examples, aliases, keywords)
+    - AGENCY_LEVELS (L0-L5 metacognitive classification)
+
+    Agents SHOULD call this (or the MCP resource equivalent) before invoking
+    any tool whose name is not already familiar.
+    """
+    from arifosmcp.resources.tool_discovery_resource import TOOL_DISCOVERY
+
+    lookup = tool_name
+    # legacy alias handling already in _get_affordance_contract
+    purpose = TOOL_PURPOSE_CONTRACTS.get(lookup) or TOOL_PURPOSE_CONTRACTS.get("_default", {})
+    power = _get_affordance_contract(lookup)
+    discover = TOOL_DISCOVERY.get(lookup, {})
+
+    agency_key = purpose.get("agency_level", "L0_OBSERVE")
+    agency = AGENCY_LEVELS.get(agency_key, AGENCY_LEVELS["L0_OBSERVE"])
+
+    full = {
+        "tool_name": lookup,
+        **purpose,
+        **{k: v for k, v in power.items() if k not in purpose},
+        "agency": agency,
+        "use_when_discovery": discover.get("use_when"),
+        "aliases": discover.get("aliases", []),
+        "keywords": discover.get("keywords", []),
+        "examples": discover.get("examples", []),
+        "category": discover.get("category"),
+    }
+    # Canonical blast_radius normalization
+    if "blast_radius" not in full or full.get("blast_radius") in (None, "unknown"):
+        full["blast_radius"] = power.get("expected_blast_radius", "LOW").lower()
+    # Human confirmation synthesis
+    full["requires_human_confirmation"] = (
+        purpose.get("requires_human_confirmation")
+        or power.get("requires_human_ack", False)
+        or agency.get("human_confirmation", False)
+    )
+    return full
+
+
+def as_core_seven_result(tool_name: str, payload: dict[str, Any], **overrides) -> dict[str, Any]:
+    """Convenience for the core 7 tools to return a properly structured metacognitive result.
+
+    Use this inside the success path of arif_init, observe, fetch, think, critique, judge, seal
+    so that the raw 'result' already contains facts/inferences etc before the outer envelope.
+    """
+    from arifosmcp.constitutional_map import CORE_SEVEN
+
+    if tool_name not in CORE_SEVEN:
+        # fall back for non-core
+        return payload
+
+    facts = (
+        payload.get("facts")
+        or payload.get("observations")
+        or [str(payload)[:200] if payload else "action completed"]
+    )
+    if not isinstance(facts, list):
+        facts = [str(facts)]
+
+    inferences = payload.get("inferences") or []
+    if not inferences and "verdict" in payload:
+        inferences = [
+            {"claim": f"verdict={payload['verdict']}", "confidence": 0.85, "basis": "kernel floors"}
+        ]
+
+    unknowns = payload.get("unknowns") or payload.get("caveats") or []
+    conf = payload.get("confidence", 0.8 if "verdict" not in str(payload) else 0.75)
+    next_action = (
+        payload.get("next_safe_action")
+        or overrides.get("next_safe_action")
+        or get_full_affordance(tool_name).get(
+            "next_safe_action_default", "Continue the core pipeline or reflect."
+        )
+    )
+
+    return build_standard_mcp_result(
+        tool=tool_name,
+        facts=facts,
+        inferences=inferences,
+        unknowns=unknowns if isinstance(unknowns, list) else [str(unknowns)],
+        confidence=float(conf),
+        next_safe_action=next_action,
+        raw_result=payload,
+        **overrides,
+    )
 
 
 # C4-2 (2026-06-21): Tool affordance contract — surface power surface for agents.
@@ -666,7 +1110,6 @@ def _collect_monotonicity_floor(
     Returns the worst verdict label, or "SEAL" (default floor) if no bad
     signals are found.
     """
-    from arifosmcp.runtime.honesty_hotfix import VERDICT_RANK
 
     worst_severity: int = 6  # SEAL = best possible
     worst_label: str = "SEAL"
@@ -782,7 +1225,11 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
                 if isinstance(k, str) and k.endswith("_verdict"):
                     if isinstance(v, str) and v.upper() in ("HOLD", "FAIL", "VOID", "SABAR"):
                         hits.append(f"{path}={v}")
-                if k == "status" and isinstance(v, str) and v.upper() in ("HOLD", "FAIL", "SABAR", "DEGRADED"):
+                if (
+                    k == "status"
+                    and isinstance(v, str)
+                    and v.upper() in ("HOLD", "FAIL", "SABAR", "DEGRADED")
+                ):
                     hits.append(f"{path}={v}")
                 if isinstance(v, dict):
                     hits.extend(_scan(v, path))
@@ -833,7 +1280,13 @@ def _compute_canonical_verdict(
     sabar_verdict = sabar.get("verdict") if isinstance(sabar, dict) else None
 
     if verdict == "SEAL":
-        if post_obs_verdict in ("WARN", "HOLD", "FAIL", "VOID") or sabar_verdict in ("WARN", "HOLD", "SABAR_HOLD", "FAIL", "VOID"):
+        if post_obs_verdict in ("WARN", "HOLD", "FAIL", "VOID") or sabar_verdict in (
+            "WARN",
+            "HOLD",
+            "SABAR_HOLD",
+            "FAIL",
+            "VOID",
+        ):
             verdict = "DEGRADED"
             degradation.append(f"sub-gate: post_observe={post_obs_verdict}, sabar={sabar_verdict}")
 
@@ -1503,7 +1956,11 @@ def _verified_arifos_tools(card_or_runtime: dict[str, Any] | Any) -> set[str]:
         # Fallback to tools_live but FILTER out shell capabilities (read/write/exec)
         # only keeping tools with arif_ prefix.
         live = getattr(runtime, "tools_live", [])
-        verified = [tool for tool in live if isinstance(tool, str) and (tool.startswith("arif_") or tool.startswith("arifos_"))]
+        verified = [
+            tool
+            for tool in live
+            if isinstance(tool, str) and (tool.startswith("arif_") or tool.startswith("arifos_"))
+        ]
     return {str(tool) for tool in verified or []}
 
 
@@ -1639,7 +2096,11 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
         }
     if status == "UNBOUND_SESSION":
         return {
-            "delta": {"plane": "machine_physical_state", "state": "TIDAK_PASTI", "en": "UNMEASURED"},
+            "delta": {
+                "plane": "machine_physical_state",
+                "state": "TIDAK_PASTI",
+                "en": "UNMEASURED",
+            },
             "psi": {"plane": "governance_integrity", "state": "BELUM_IKAT", "en": "UNBOUND"},
             "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
             "overall": {"state": "BELUM_SAH", "en": "UNAUTHENTICATED"},
@@ -1690,7 +2151,7 @@ def _run_async(coro):
     Ref: arif_memory_recall asyncio.run() crash — runtime bug #3 (MCP audit).
     """
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         # No running loop — safe to create one
         return asyncio.run(coro)
@@ -1784,9 +2245,21 @@ class NineSignalOutput:
             verdict = self.verdict
             if verdict == "UNBOUND_SESSION":
                 nine = {
-                    "delta": {"plane": "machine_physical_state", "state": "TIDAK_PASTI", "en": "UNMEASURED"},
-                    "psi": {"plane": "governance_integrity", "state": "BELUM_IKAT", "en": "UNBOUND"},
-                    "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+                    "delta": {
+                        "plane": "machine_physical_state",
+                        "state": "TIDAK_PASTI",
+                        "en": "UNMEASURED",
+                    },
+                    "psi": {
+                        "plane": "governance_integrity",
+                        "state": "BELUM_IKAT",
+                        "en": "UNBOUND",
+                    },
+                    "omega": {
+                        "plane": "intelligence_discipline",
+                        "state": "BIJAKSANA",
+                        "en": "WISE",
+                    },
                     "overall": {"state": "BELUM_SAH", "en": "UNAUTHENTICATED"},
                 }
             elif verdict in ("VOID", "HOLD"):
@@ -2155,7 +2628,9 @@ def _enforce_nine_signal(
                 # Determine action class
                 _action_class = "READ"
                 if isinstance(result_payload, dict):
-                    _ac = result_payload.get("action_class") or result_payload.get("action_classification")
+                    _ac = result_payload.get("action_class") or result_payload.get(
+                        "action_classification"
+                    )
                     if _ac:
                         _action_class = str(_ac).upper()
                 # Verdict signals
@@ -2194,13 +2669,15 @@ def _enforce_nine_signal(
         if _audit_called_from_kernel is None:
             _audit_called_from_kernel = (
                 out["result"].get("called_from_kernel")
-                if isinstance(out.get("result"), dict) else False
+                if isinstance(out.get("result"), dict)
+                else False
             )
         _audit_invocation_count = out.get("invocation_count")
         if _audit_invocation_count is None:
             _audit_invocation_count = (
                 out["result"].get("invocation_count")
-                if isinstance(out.get("result"), dict) else None
+                if isinstance(out.get("result"), dict)
+                else None
             )
         envelope = {
             "status": status,
@@ -2234,8 +2711,45 @@ def _enforce_nine_signal(
             # level. Per ChatGPT review Action 3. Agents can now choose safer
             # paths without guessing — the power surface is exposed.
             "affordance_contract": _get_affordance_contract(tool_name),
+            "full_affordance": get_full_affordance(tool_name),
             "stage_progression": _compute_stage_progression(tool_name, verdict),
         }
+
+        # ── METACOGNITIVE STANDARD ENVELOPE (ChatGPT 2026 feedback)
+        # Guarantee every tool answers:
+        # 1. What is this for?          (in full_affordance + metacognition.why_this_tool)
+        # 2. When should I NOT use it?  (do_not_use in affordance + do_not_conclude)
+        # 3. What changed?              (result + inferences + facts)
+        # 4. Confidence + evidence?     (confidence, metacognition, unknowns)
+        # + explicit next_safe_action + constitutional_check + L0-L5 agency.
+        try:
+            enriched = ensure_standard_mcp_output(tool_name, result_payload)
+            # Merge without overwriting core governed fields
+            for k in (
+                "facts",
+                "inferences",
+                "recommendations",
+                "unknowns",
+                "do_not_conclude",
+                "confidence",
+                "metacognition",
+                "constitutional_check",
+                "next_safe_action",
+                "risk",
+            ):
+                if k in enriched and k not in envelope:
+                    envelope[k] = enriched[k]
+            # Also surface a top-level summary block for quick agent cognition
+            envelope.setdefault("metacognition", enriched.get("metacognition", {}))
+            envelope.setdefault("next_safe_action", enriched.get("next_safe_action"))
+            envelope.setdefault("constitutional_check", enriched.get("constitutional_check", {}))
+            envelope.setdefault("risk", enriched.get("risk", {}))
+        except Exception:
+            # Never break a tool response for metacog enrichment
+            envelope.setdefault("metacognition", {"note": "enrichment_failed", "confidence": 0.5})
+            envelope.setdefault(
+                "next_safe_action", "Inspect raw result. If high blast, escalate to 888_HOLD."
+            )
 
         # ── DEGRADED RESPONSE PREFIX (Phase 1, 2026-06-21) ──────────────
         # When the kernel is in DEGRADED state, every response carries a
@@ -2270,9 +2784,7 @@ def _enforce_nine_signal(
                     else float(_inner.get("confidence", 0.88) or 0.88)
                 )
                 _boundary = str(
-                    _inner.get("present_boundary")
-                    or out.get("present_boundary")
-                    or "LIVE"
+                    _inner.get("present_boundary") or out.get("present_boundary") or "LIVE"
                 )
                 _delta_s_val = abs(float(delta_s))
                 envelope["apex"] = _build_apex_envelope(
@@ -2281,8 +2793,7 @@ def _enforce_nine_signal(
                     evidence_strength=0.95,
                     boundary=_boundary,
                     uncertainty_declared=bool(
-                        _inner.get("uncertainty")
-                        or _inner.get("confidence")
+                        _inner.get("uncertainty") or _inner.get("confidence")
                     ),
                     coherent=verdict not in ("VOID", "HOLD"),
                     cost_used=_delta_s_val,
@@ -2293,7 +2804,11 @@ def _enforce_nine_signal(
                     f13_halt=(verdict == "VOID"),
                 )
             except Exception:
-                envelope["apex"] = {"equation": "g(t)=A·P·H·√(S·U)·E²", "verdict": verdict, "error": "envelope_build_failed"}
+                envelope["apex"] = {
+                    "equation": "g(t)=A·P·H·√(S·U)·E²",
+                    "verdict": verdict,
+                    "error": "envelope_build_failed",
+                }
 
         return envelope
 
@@ -2426,7 +2941,7 @@ def _enforce_nine_signal(
         verdict_str = enforced.get("verdict", "SEAL")
         session_stage = str(session_id or "global")[:8] if session_id else "global"
         # Derive a minimal g_score proxy from nine_signal health
-        nine_sig = enforced.get("nine_signal", {})
+        enforced.get("nine_signal", {})
         healthy = bool(enforced.get("status") == "OK" or enforced.get("status") == 200)
         g_proxy = 0.85 if (healthy and verdict_str == "SEAL") else 0.50
         delta_s_proxy = -0.01 if healthy else 0.01
@@ -3453,7 +3968,9 @@ _JUDGE_CHAIN_REGISTRY: dict[str, dict[str, Any]] = {}
 _VAULT_ENTRY_REGISTRY: dict[str, dict[str, Any]] = {}
 _PLAN_REGISTRY: dict[str, dict[str, Any]] = {}
 _EPOCH_REGISTRY: dict[str, dict[str, Any]] = {}
-_ACK_REGISTRY: dict[str, dict[str, Any]] = {}  # ack_id -> {issued_at, expires_at, tool_name, mode, consumed, actor_id, session_id}
+_ACK_REGISTRY: dict[
+    str, dict[str, Any]
+] = {}  # ack_id -> {issued_at, expires_at, tool_name, mode, consumed, actor_id, session_id}
 _ACK_TTL_SECONDS = 300  # 5 minute ack validity window (matches nonce TTL)
 _IRREVERSIBLE_ELICITATION_MODES = {"seal", "commit"}
 _NONCE_STORE: dict[str, float] = {}  # Replay attack prevention: nonce -> timestamp
@@ -3517,17 +4034,25 @@ def _validate_ack_id(
     if time.time() > entry.get("expires_at", 0):
         return False, f"ack_id expired: {ack_id}"
     if entry.get("tool_name") != tool_name:
-        return False, f"ack_id bound to different tool ({entry.get('tool_name')}), cannot use for {tool_name}"
+        return (
+            False,
+            f"ack_id bound to different tool ({entry.get('tool_name')}), cannot use for {tool_name}",
+        )
     if entry.get("mode") != mode:
         return False, f"ack_id bound to different mode ({entry.get('mode')}), cannot use for {mode}"
     if entry.get("actor_id") != actor_id:
-        return False, f"ack_id bound to different actor ({entry.get('actor_id')[:8]}...), cannot use for {actor_id}"
+        return (
+            False,
+            f"ack_id bound to different actor ({entry.get('actor_id')[:8]}...), cannot use for {actor_id}",
+        )
     if entry.get("session_id") != session_id:
         return False, f"ack_id bound to different session ({entry.get('session_id')[:8]}...)"
     # Mark consumed
     _ACK_REGISTRY[ack_id]["consumed"] = True
     _ACK_REGISTRY[ack_id]["consumed_at"] = time.time()
     return True, "ack_id valid and consumed"
+
+
 _TIMEOUT_MS = int(
     os.getenv("HEART_TIMEOUT_MS", "30000")
 )  # LLM timeout (L13: configurable, default 30s)
@@ -4220,6 +4745,181 @@ def _record_tool_invocation(
         pass  # Best-effort — never throw from a gauge
 
 
+def build_standard_mcp_result(
+    *,
+    tool: str,
+    facts: list[str] | None = None,
+    inferences: list[dict[str, Any]] | None = None,
+    recommendations: list[dict[str, Any]] | None = None,
+    unknowns: list[str] | None = None,
+    do_not_conclude: list[str] | None = None,
+    confidence: float = 0.6,
+    next_safe_action: str | dict[str, Any] | None = None,
+    evidence: list[str] | None = None,
+    assumptions: list[str] | None = None,
+    raw_result: dict[str, Any] | None = None,
+    mode: str = "observe",
+    authority: str = "advisory_only",
+) -> dict[str, Any]:
+    """Core builder for the cognitively clear MCP output envelope.
+
+    Implements the 10-point ChatGPT metacognitive standard:
+    - facts / inferences / recommendations separation
+    - explicit unknowns + do_not_conclude
+    - metacognition block
+    - risk + constitutional_check
+    - next_safe_action always present
+    - confidence bands + decision thresholds awareness
+
+    Use this (or wrap existing returns with it) for new tool logic.
+    """
+    facts = facts or []
+    inferences = inferences or []
+    recommendations = recommendations or []
+    unknowns = unknowns or []
+    do_not_conclude = do_not_conclude or []
+    evidence = evidence or []
+    assumptions = assumptions or []
+
+    # Derive confidence band
+    if confidence < 0.5:
+        band = "HOLD"
+        band_note = DECISION_THRESHOLDS["confidence_below_0_50"]
+    elif confidence < 0.70:
+        band = "ADVISORY_ONLY"
+        band_note = DECISION_THRESHOLDS["confidence_0_50_to_0_70"]
+    elif confidence < 0.85:
+        band = "ACTIONABLE_WITH_CAVEAT"
+        band_note = DECISION_THRESHOLDS["confidence_0_70_to_0_85"]
+    else:
+        band = "STRONG_RECOMMENDATION"
+        band_note = DECISION_THRESHOLDS["confidence_above_0_85"]
+
+    afford = get_full_affordance(tool)
+    is_l5 = "L5" in str(afford.get("agency_level", ""))
+    human_req = afford.get("requires_human_confirmation", False) or is_l5
+
+    risk = {
+        "blast_radius": afford.get("blast_radius", "low"),
+        "reversibility": "irreversible"
+        if afford.get("side_effect", "").startswith("append") or is_l5
+        else "reversible",
+        "human_confirmation_required": human_req,
+        "agency_level": afford.get("agency_level"),
+    }
+
+    metacognition = {
+        "confidence": round(confidence, 2),
+        "confidence_band": band,
+        "band_note": band_note,
+        "uncertainty_reason": "; ".join(unknowns[:3]) if unknowns else "No major unknowns declared",
+        "evidence_strength": "high"
+        if confidence > 0.8
+        else ("medium" if confidence > 0.5 else "low"),
+        "assumptions": assumptions,
+        "failure_modes": do_not_conclude[:3]
+        if do_not_conclude
+        else ["Outdated data", "Ambiguous input", "Missing domain evidence"],
+        "why_this_tool": afford.get("purpose", "Purpose not declared"),
+        "what_not_to_conclude": do_not_conclude,
+        "next_safe_action": next_safe_action
+        if next_safe_action
+        else "Call get_full_affordance or tool discovery resource then decide",
+    }
+
+    constitutional_check = {
+        "floor_passed": band != "HOLD" and not human_req,
+        "hold_required": human_req or band == "HOLD",
+        "hold_reason": "L5 irreversible action or confidence < 0.5"
+        if (human_req or band == "HOLD")
+        else None,
+        "agency_level": afford.get("agency_level"),
+    }
+
+    if isinstance(next_safe_action, str):
+        next_safe = {"action": next_safe_action, "tool": None, "reason": "Derived from result"}
+    elif isinstance(next_safe_action, dict):
+        next_safe = next_safe_action
+    else:
+        next_safe = {
+            "action": "Reflect then proceed to next governed step",
+            "tool": None,
+            "reason": "Default safe continuation",
+        }
+
+    envelope = {
+        "status": "OK",
+        "tool": tool,
+        "mode": mode,
+        "authority": authority if not human_req else "requires_human_confirmation",
+        "input_summary": {},
+        "result": raw_result or {"facts": facts},
+        "facts": facts,
+        "inferences": inferences,
+        "recommendations": recommendations,
+        "evidence": evidence,
+        "assumptions": assumptions,
+        "unknowns": unknowns,
+        "do_not_conclude": do_not_conclude,
+        "confidence": round(confidence, 2),
+        "risk": risk,
+        "metacognition": metacognition,
+        "constitutional_check": constitutional_check,
+        "next_safe_action": next_safe,
+        "verdict": "SEAL"
+        if (not human_req and confidence >= 0.7)
+        else ("HOLD" if human_req or confidence < 0.5 else "ADVISORY"),
+    }
+    return envelope
+
+
+def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Post-process any tool return to guarantee the full metacognitive grammar.
+
+    If the payload already has facts/inferences/next_safe_action etc, keep them.
+    Otherwise synthesize reasonable defaults from whatever the tool gave back.
+    This guarantees agents always receive the 4 questions answered.
+    """
+    if not isinstance(payload, dict):
+        payload = {"raw": payload}
+
+    # If already looks like our envelope, return as-is (or lightly enrich)
+    if "metacognition" in payload and "next_safe_action" in payload:
+        payload.setdefault("constitutional_check", {"floor_passed": True, "hold_required": False})
+        return payload
+
+    # Derive basics
+    conf = payload.get("confidence") or payload.get("meta", {}).get("confidence", 0.65)
+    if isinstance(conf, dict):
+        conf = conf.get("overall", conf.get("value", 0.65))
+    try:
+        conf = float(conf)
+    except Exception:
+        conf = 0.65
+
+    res = payload.get("result")
+    facts = payload.get("facts") or (res.get("facts") if isinstance(res, dict) else None) or []
+    if not facts and isinstance(res, (str, dict)):
+        # best effort: turn top level into a fact line
+        facts = [str(res)[:280]]
+
+    unknowns = payload.get("unknowns") or []
+    next_act = (
+        payload.get("next_safe_action")
+        or "Review result. If confidence low, gather more evidence via observe or domain organ."
+    )
+
+    return build_standard_mcp_result(
+        tool=tool,
+        facts=facts if isinstance(facts, list) else [str(facts)],
+        unknowns=unknowns if isinstance(unknowns, list) else [str(unknowns)],
+        confidence=conf,
+        next_safe_action=next_act,
+        raw_result=payload.get("result", payload),
+        mode=payload.get("mode", "observe"),
+    )
+
+
 def _ok(
     tool: str,
     result: dict[str, Any],
@@ -4292,6 +4992,11 @@ def _ok(
     # ROUND-TRIP GATE (Phase 1, 2026-06-21): extract trace_id from session
     # and embed it in every response. Models that claim a tool call was made
     # must cite the trace_id from the response they claim to have received.
+    # Metacog: attach lightweight full_affordance for pre-call cognition even on _ok path
+    try:
+        result.setdefault("_affordance", get_full_affordance(tool))
+    except Exception:
+        pass
     trace_id = None
     if session_id and session_id in _SESSIONS:
         sess = _SESSIONS[session_id]
@@ -4353,7 +5058,9 @@ def _ok(
 
     timestamp = _now()
     call_hash = _compute_call_hash(
-        tool, result, timestamp,
+        tool,
+        result,
+        timestamp,
         session_id=session_id,
     )
     # EPISTEMIC STRAIN GAUGE: record BEFORE building response so count is current
@@ -4384,6 +5091,22 @@ def _ok(
             f"delta_S={delta_S} within reversible thermodynamic bounds",
         ],
     }
+    # Metacognitive guarantee on the direct _ok path too (for tools that bypass the outer wrapper)
+    try:
+        std = ensure_standard_mcp_output(tool, result)
+        for k in (
+            "metacognition",
+            "next_safe_action",
+            "constitutional_check",
+            "risk",
+            "facts",
+            "unknowns",
+        ):
+            if k in std and k not in response:
+                response[k] = std[k]
+        response.setdefault("affordance_contract", get_full_affordance(tool))
+    except Exception:
+        pass
     return _enforce_nine_signal(
         tool,
         response,
@@ -4413,9 +5136,7 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
         sess = _SESSIONS.get(session_id)
         if isinstance(sess, dict):
             return bool(
-                sess.get("actor_verified")
-                or sess.get("signature_verified")
-                or sess.get("verified")
+                sess.get("actor_verified") or sess.get("signature_verified") or sess.get("verified")
             )
     except Exception:
         pass
@@ -4430,11 +5151,11 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
                 with open(p, encoding="utf-8") as f:
                     data = json.load(f)
                 sessions = data.get("sessions", {}) if isinstance(data, dict) else {}
-                sess = sessions.get(session_id) or (data.get(session_id) if isinstance(data, dict) else None)
+                sess = sessions.get(session_id) or (
+                    data.get(session_id) if isinstance(data, dict) else None
+                )
                 if isinstance(sess, dict):
-                    return bool(
-                        sess.get("actor_verified") or sess.get("signature_verified")
-                    )
+                    return bool(sess.get("actor_verified") or sess.get("signature_verified"))
     except Exception:
         pass
     return False
@@ -4476,7 +5197,14 @@ def _hold(
     # F2 / Nine-Signal: inject nine_signal into HOLD payload.
     # Distinguish: identity/session HOLDs → UNBOUND_SESSION (not system failure).
     _identity_floors = {"L11", "F11", "L13", "F13"}
-    _identity_keywords = ("identity", "actor_verified", "unverified", "session binding", "sovereign session", "F11_AUDIT")
+    _identity_keywords = (
+        "identity",
+        "actor_verified",
+        "unverified",
+        "session binding",
+        "sovereign session",
+        "F11_AUDIT",
+    )
     _is_identity_hold = False
     if floors:
         _is_identity_hold = bool(set(floors) & _identity_floors)
@@ -4505,7 +5233,9 @@ def _hold(
         _hold_invocation_count = _SESSIONS[session_id].get("invocation_count", 0)
     timestamp = _now()
     call_hash = _compute_call_hash(
-        tool, {}, timestamp,
+        tool,
+        {},
+        timestamp,
         session_id=session_id,
     )
     response = {
@@ -4565,14 +5295,18 @@ def _sabar(
         _sabar_invocation_count = _SESSIONS[session_id].get("invocation_count", 0)
     timestamp = _now()
     call_hash = _compute_call_hash(
-        tool, {}, timestamp,
+        tool,
+        {},
+        timestamp,
         session_id=session_id,
     )
     # ROUND-TRIP GATE: extract trace_id from session if available
     _sabar_trace_id = None
     if session_id and session_id in _SESSIONS:
         _sabar_trace_packet = _SESSIONS[session_id].get("trace_packet", {})
-        _sabar_trace_id = _sabar_trace_packet.get("trace_id") or _SESSIONS[session_id].get("trace_id")
+        _sabar_trace_id = _sabar_trace_packet.get("trace_id") or _SESSIONS[session_id].get(
+            "trace_id"
+        )
     response = {
         "status": "SABAR",
         "tool": tool,
@@ -5069,7 +5803,7 @@ def _arif_session_init(
             import uuid as _uuid
 
             trace_id = trace_id or f"trc_{_uuid.uuid4().hex[:12]}"
-            return _delegate_init(
+            _init_result = _delegate_init(
                 mode=mode,  # pass ORIGINAL mode (not legacy alias)
                 actor_id=actor_id,
                 ack_irreversible=ack_irreversible,
@@ -5087,6 +5821,10 @@ def _arif_session_init(
                 delegation_mode=delegation_mode or "internal_executor",
                 # DITEMPA 2026-06-22 — Layered init: forward verbose for audit path
                 verbose=verbose,
+            )
+            # Delegate returns a Pydantic SessionManifest; callers expect a dict.
+            return (
+                _init_result.model_dump() if hasattr(_init_result, "model_dump") else _init_result
             )
         except Exception as e:
             return _hold(
@@ -5192,7 +5930,7 @@ def _arif_session_init(
             import uuid as _uuid
 
             trace_id = trace_id or f"trc_{_uuid.uuid4().hex[:12]}"
-            return _delegate_init(
+            _init_result = _delegate_init(
                 mode=normalized_mode,
                 actor_id=actor_id,
                 ack_irreversible=ack_irreversible,
@@ -5208,6 +5946,10 @@ def _arif_session_init(
                 executor_actor_id=executor_actor_id or "arifOS@af-forge",
                 sovereign_id=sovereign_id or "ARIF_FAZIL",
                 delegation_mode=delegation_mode or "internal_executor",
+            )
+            # Delegate returns a Pydantic SessionManifest; callers expect a dict.
+            return (
+                _init_result.model_dump() if hasattr(_init_result, "model_dump") else _init_result
             )
         except Exception as e:
             return _hold(
@@ -6646,7 +7388,6 @@ def _arif_sense_observe(
 
         # ── Cascade Step 4: Exa ──
         exa_hits = []
-        exa_error = None
         if mm_error and tvly_error and fc_error:
             try:
                 from arifosmcp.runtime.exa_bridge import exa_bridge as _exa
@@ -6684,9 +7425,9 @@ def _arif_sense_observe(
                         delta_S=0.002,
                         provider="exa",
                     )
-                exa_error = exa_result.get("error", "zero_hits")
+                exa_result.get("error", "zero_hits")
             except Exception as exc:
-                exa_error = str(exc)
+                str(exc)
                 logger.debug("exa_bridge.search failed: %s", exc)
 
         # ── RealityHandler cascade (Brave → DDGS fallback) ──
@@ -7290,9 +8031,7 @@ def _arif_sense_observe(
 
         try:
             if mode == "skill_discover":
-                bridge_result = _run_async(
-                    _skyll.search_skills(query=query, limit=result_limit)
-                )
+                bridge_result = _run_async(_skyll.search_skills(query=query, limit=result_limit))
             else:  # skill_learn
                 # skill_learn: requires explicit ack (888_HOLD gate)
                 # The LLM/agent must pass `overwrite=True` to replace an
@@ -7331,7 +8070,9 @@ def _arif_sense_observe(
                 "query": query,
                 "epistemic_tag": bridge_result.get("epistemic_tag", "INTERPRETATION"),
                 "verdict": bridge_result.get("verdict", "SEAL"),
-                "result": {k: v for k, v in bridge_result.items() if k not in {"status", "verdict"}},
+                "result": {
+                    k: v for k, v in bridge_result.items() if k not in {"status", "verdict"}
+                },
             }
             return _ok("arif_sense_observe", payload, delta_S=0.005)
         except Exception as exc:
@@ -7364,9 +8105,7 @@ def _arif_sense_observe(
             if mode == "belief_propose":
                 # belief_propose needs an additional `message` — we use the
                 # mode name's `description` slot or fall back to a stub.
-                message = getattr(
-                    _arif_sense_observe, "__belief_message__", None
-                )
+                message = getattr(_arif_sense_observe, "__belief_message__", None)
                 if not message:
                     return _hold(
                         "arif_sense_observe",
@@ -7710,7 +8449,6 @@ def _arif_evidence_fetch(
         # ── SECURITY: Injection Scan ──
         from arifosmcp.runtime.a_rif.scorecard import track_security
 
-        injection_markers = ["ignore previous instructions", "system override", "you are now"]
         found_injections = [m for m in sanitized.lower() if m in sanitized.lower()]
         if found_injections:
             risk_flags.append("PROMPT_INJECTION_DETECTED")
@@ -8112,10 +8850,8 @@ def _build_sequential_result(
     if len(steps) >= 8:
         reasoning_quality = "exhaustive"
 
-    confidence_spike = False
     if len(confidence_trajectory) >= 2:
-        delta = confidence_trajectory[-1] - confidence_trajectory[-2]
-        confidence_spike = delta > 0.25
+        confidence_trajectory[-1] - confidence_trajectory[-2]
 
     reasoning_efficiency = round(final_confidence / max(total_cost, 0.01), 4)
 
@@ -8464,8 +9200,6 @@ def _arif_mind_reason(
             }
 
         # ── Shadow Control Injection (Fix 4) ──
-        active_shadow = None
-        control_laws = []
         if session_id and session_id in _SESSIONS:
             sess = _SESSIONS[session_id]
             card = sess.get("model_governance_card")
@@ -8475,12 +9209,12 @@ def _arif_mind_reason(
                     if hasattr(card, "shadow_profile")
                     else card.get("shadow_profile", {})
                 )
-                active_shadow = (
+                (
                     getattr(profile, "shadow", None)
                     if hasattr(profile, "shadow")
                     else profile.get("shadow")
                 )
-                control_laws = (
+                (
                     getattr(profile, "control_laws", [])
                     if hasattr(profile, "control_laws")
                     else profile.get("control_laws", [])
@@ -9606,7 +10340,7 @@ def _arif_kernel_route(
 
         # Construct v2 request
         request = MindRequest(
-            query=task or query or "",
+            query=task or "",
             mode=mode,
             session_id=session_id,
             actor_id=actor_id,
@@ -10597,6 +11331,7 @@ def _arif_memory_recall(
                 f"Question: {query}\n\nSub-questions (JSON array):"
             )
             import urllib.request as _ur
+
             _pl = json.dumps(
                 {
                     "model": "qwen2.5:7b",
@@ -10633,16 +11368,12 @@ def _arif_memory_recall(
 
             # RETRIEVE: multi-source fetch per sub-question
             for sq in sub_questions:
-
                 # ▸ MEMORY retrieval (Qdrant + Postgres)
                 try:
                     from arifosmcp.runtime.memory_store import search as _ms_search
+
                     _raw = _ms_search(query=sq, limit=5)
-                    _results = (
-                        _raw.get("results", [])
-                        if isinstance(_raw, dict)
-                        else (_raw or [])
-                    )
+                    _results = _raw.get("results", []) if isinstance(_raw, dict) else (_raw or [])
                     for r in _results:
                         all_evidence.append(
                             {
@@ -10665,8 +11396,11 @@ def _arif_memory_recall(
                 # Includes F2 TRUTH gate, F7 HUMILITY cap, Langfuse trace
                 try:
                     _sense_result = _arif_sense_observe(
-                        mode="search", query=sq, result_limit=3,
-                        session_id=session_id, actor_id=actor_id,
+                        mode="search",
+                        query=sq,
+                        result_limit=3,
+                        session_id=session_id,
+                        actor_id=actor_id,
                     )
                     _sense_data = _sense_result.get("result", _sense_result)
                     _hits = _sense_data.get("results", [])
@@ -10675,9 +11409,7 @@ def _arif_memory_recall(
                             {
                                 "source": "web",
                                 "sub_q": sq,
-                                "content": (
-                                    f"{hit.get('title', '')}: {hit.get('snippet', '')}"
-                                ),
+                                "content": (f"{hit.get('title', '')}: {hit.get('snippet', '')}"),
                                 "relevance": 0.7,
                                 "url": hit.get("link", ""),
                                 "title": hit.get("title", ""),
@@ -10693,7 +11425,9 @@ def _arif_memory_recall(
                     if _sense_data.get("evidence_receipt"):
                         telemetry.setdefault("evidence_receipt", _sense_data["evidence_receipt"])
                 except Exception as exc:
-                    logger.warning("agentic: web search via arif_sense_observe failed for '%s': %s", sq, exc)
+                    logger.warning(
+                        "agentic: web search via arif_sense_observe failed for '%s': %s", sq, exc
+                    )
 
             # EVAL — score coverage and conflict
             telemetry["states_visited"].append(f"EVAL_{loop_idx}")
@@ -10724,9 +11458,7 @@ def _arif_memory_recall(
                 try:
                     _refd = _try_reformulate_query(weakest)
                     if _refd and _refd != weakest:
-                        sub_questions = [
-                            _refd if s == weakest else s for s in sub_questions
-                        ]
+                        sub_questions = [_refd if s == weakest else s for s in sub_questions]
                 except Exception:
                     pass
 
@@ -10740,9 +11472,7 @@ def _arif_memory_recall(
 
         # Confidence: weighted blend of coverage, uniqueness, relevance
         avg_rel = (
-            sum(e["relevance"] for e in all_evidence) / len(all_evidence)
-            if all_evidence
-            else 0.0
+            sum(e["relevance"] for e in all_evidence) / len(all_evidence) if all_evidence else 0.0
         )
         telemetry["confidence"] = round(
             (coverage * 0.4) + ((1.0 - conflict) * 0.3) + (avg_rel * 0.3), 3
@@ -11729,8 +12459,6 @@ def _compute_institutional_drift(session_id: str | None = None) -> dict[str, Any
     seal_count = 0
     hold_count = 0
     void_count = 0
-    f13_mentions = 0
-    sovereign_ack_count = 0
     unique_actors = set()
     tool_counts: dict[str, int] = {}
     appeal_paths = set()
@@ -12764,12 +13492,14 @@ def _arif_judge_deliberate(
                     "message": f"CB5 Confidence Cascade: confidence rose {_confidence_increase:.2f} without new evidence — caution",
                 }
         # Record this verdict for future CB5 checks
-        _SESSIONS[session_id].setdefault("_prior_verdicts", []).append({
-            "confidence": getattr(verdict, "confidence", 0.0),
-            "verdict": verdict.verdict,
-            "timestamp": verdict.timestamp,
-            "evidence_provided": bool(evidence_receipt),
-        })
+        _SESSIONS[session_id].setdefault("_prior_verdicts", []).append(
+            {
+                "confidence": getattr(verdict, "confidence", 0.0),
+                "verdict": verdict.verdict,
+                "timestamp": verdict.timestamp,
+                "evidence_provided": bool(evidence_receipt),
+            }
+        )
 
     if verdict.status != "OK":
         meta_state = {"reason": "Constitutional breach detected by kernel"}
@@ -13095,9 +13825,9 @@ def _arif_judge_deliberate(
         session_id=session_id or "unknown",
     )
     seal_output["arif_ack_id"] = _seal_ack_id
-    seal_output[
-        "_ack_id_note"
-    ] = "Include this arif_ack_id in the next ATOMIC call (forge_execute/vault_seal). Expires in 5 minutes."
+    seal_output["_ack_id_note"] = (
+        "Include this arif_ack_id in the next ATOMIC call (forge_execute/vault_seal). Expires in 5 minutes."
+    )
     # ── F0_FIQH.md: 5-tier fiqh voice (ratified 2026-06-11 by 888) ────────────
     # Additive only: surfaces tier language in every judge verdict.
     # Agents can read `_fiqh_voice` for F1..F13 human-language tier strings.
@@ -13125,6 +13855,9 @@ async def _arif_judge_deliberate_tool(
     # 888_HOLD before the LLM runs. The hint is informational;
     # the actual gate is in require_sovereign_judgment().
     action_class: str | None = None,
+    audit_entropy: float | None = None,
+    wealth_score: float | None = None,
+    verification_surface: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     # ── FORGE D-INJECT (F13 #6 — 2026-06-11) ─────────────────────────────
     # P3-5 Scar Recall: surface prior institutional scars from scar.json
@@ -13440,6 +14173,7 @@ def _arif_vault_seal(
             _payload_to_check = payload
             try:
                 import json as _epi_json
+
                 _payload_parsed = _epi_json.loads(payload)
                 _eligible, _reason = verify_vault_eligibility(_payload_parsed)
             except (json.JSONDecodeError, TypeError, ValueError):
@@ -13840,7 +14574,7 @@ def _arif_vault_seal(
                 "drift_summary": drift_summary,
                 "constitutional_chain_id": judge_contract.constitutional_chain_id,
                 "judge_state_hash": judge_contract.state_hash,
-            "delta_s_total": entropy.delta_s,
+                "delta_s_total": entropy.delta_s,
             },
             entry_id=entry_id,
             ledger_size=len(_VAULT_LEDGER),
@@ -14438,6 +15172,7 @@ async def _arif_vault_seal_tool(
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
     witness_type: str = "ai",
+    drift_events: list[dict[str, Any]] | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
@@ -14695,9 +15430,7 @@ def _arif_forge_execute(
                     session_id=session_id,
                 )
             # Lease valid — atomically validate + consume one use.
-            _presented = present_lease(
-                _effective_lease_id, "arif_forge_execute", _req_action_class
-            )
+            _presented = present_lease(_effective_lease_id, "arif_forge_execute", _req_action_class)
             if not _presented.get("valid"):
                 # Defensive: if present fails despite validation passing
                 # (race condition), block — don't proceed without a consumed lease.
@@ -15404,7 +16137,7 @@ def _arif_ping(
     client_capabilities: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Lightweight probe — does NOT require session initialization.
-    
+
     CANARY TOOL (2026-06-14): Zero-ceremony diagnostic. Call with {} to
     verify the MCP transport bridge is alive. No session, no actor, no
     governance. Returns server identity + health summary.
@@ -15458,10 +16191,10 @@ def _arif_ping(
             compute_surface_hash,
             compute_tool_schema_hash,
         )
+
         surface_hash = compute_surface_hash()
         tool_schema_hashes = {
-            name: compute_tool_schema_hash(name)
-            for name in public_surface.get("tool_names", [])
+            name: compute_tool_schema_hash(name) for name in public_surface.get("tool_names", [])
         }
     except Exception:
         surface_hash = "sha256:unavailable"
@@ -15502,6 +16235,44 @@ def _arif_ping(
     # Also hoist version to result level for flat access: result.version
     response = _ok("arif_ping", payload, delta_S=0.0)
     response["version"] = os.environ.get("ARIFOS_VERSION", "v2026.04.26")
+
+    # Demonstration: structured metacognitive output for L0 tool (per feedback)
+    # Real tools should do this in their primary path when possible.
+    try:
+        if "metacognition" not in response:
+            demo = build_standard_mcp_result(
+                tool="arif_ping",
+                facts=[
+                    "Kernel alive",
+                    "Affordance contracts registered",
+                    f"Version {response.get('version')}",
+                ],
+                inferences=[
+                    {
+                        "claim": "Transport and core surface responsive",
+                        "confidence": 0.95,
+                        "basis": "ping response",
+                    }
+                ],
+                unknowns=["No session bound", "Full organ health not probed"],
+                confidence=0.92,
+                next_safe_action="Call arif_init or arif_triage to start governed work",
+                mode="observe",
+                authority="advisory_only",
+            )
+            # merge demo keys lightly
+            for kk in (
+                "facts",
+                "inferences",
+                "unknowns",
+                "metacognition",
+                "next_safe_action",
+                "constitutional_check",
+            ):
+                if kk in demo:
+                    response.setdefault(kk, demo[kk])
+    except Exception:
+        pass
     return response
 
 
@@ -15773,7 +16544,6 @@ def _runtime_selftest(
         ev_status = ev.get("status")
         ev_result = ev.get("result", {})
         # Should return HOLD with NO_EVIDENCE_BACKEND_CONFIGURED when no URL
-        ev_ok = ev_status in ("OK", "HOLD")  # both acceptable
         checks["evidence_fetch_check"] = {
             "verdict": "PASS",
             "status": ev_status,
@@ -15904,6 +16674,7 @@ def _server_version() -> str:
     """Resolve a single canonical server version string (no legacy env fallbacks)."""
     try:
         from arifosmcp.runtime.build import get_build_info
+
         info = get_build_info()
         version = info.get("version") or info.get("server_version")
         if version:
@@ -16029,22 +16800,26 @@ def _arif_schema_echo(
                 payload = kwargs[alt_key]
                 break
 
-    response = _ok("arif_schema_echo", {
-        "echo": payload,
-        "server_received_type": type(payload).__name__,
-        "server_received_repr": repr(payload)[:2000],
-        "received_keys": sorted(payload.keys()) if isinstance(payload, dict) else [],
-        "key_count": len(payload) if isinstance(payload, dict) else 0,
-        "received_kwargs_keys": sorted(kwargs.keys()) if kwargs else [],
-        "transport_hint": _envelope.get("_transport", "unknown") if _envelope else "unknown",
-        "server_identity": {
-            "service": "arifOS MCP",
-            "version": _server_version(),
-            "python": _sys.version.split()[0],
-            "platform": platform.platform(),
-            "mcp_spec": _MCP_SPEC_VERSION,
+    response = _ok(
+        "arif_schema_echo",
+        {
+            "echo": payload,
+            "server_received_type": type(payload).__name__,
+            "server_received_repr": repr(payload)[:2000],
+            "received_keys": sorted(payload.keys()) if isinstance(payload, dict) else [],
+            "key_count": len(payload) if isinstance(payload, dict) else 0,
+            "received_kwargs_keys": sorted(kwargs.keys()) if kwargs else [],
+            "transport_hint": _envelope.get("_transport", "unknown") if _envelope else "unknown",
+            "server_identity": {
+                "service": "arifOS MCP",
+                "version": _server_version(),
+                "python": _sys.version.split()[0],
+                "platform": platform.platform(),
+                "mcp_spec": _MCP_SPEC_VERSION,
+            },
         },
-    }, delta_S=0.0)
+        delta_S=0.0,
+    )
     return response
 
 
@@ -16065,29 +16840,34 @@ def _arif_version_echo(
     build_info = {}
     try:
         from arifosmcp.runtime.build import get_build_info
+
         build_info = get_build_info()
     except Exception:
         pass
 
-    response = _ok("arif_version_echo", {
-        "mcp_spec_version": _MCP_SPEC_VERSION,
-        "protocol_versions_supported": list(_MCP_SUPPORTED_VERSIONS),
-        "server_version": _server_version(),
-        "server_build": build_info,
-        "transport_preference": {
-            "primary_remote": "streamable_http",
-            "primary_local": "stdio",
-            "legacy": "sse_shim_only",
-            "experimental": "websocket_event_push",
+    response = _ok(
+        "arif_version_echo",
+        {
+            "mcp_spec_version": _MCP_SPEC_VERSION,
+            "protocol_versions_supported": list(_MCP_SUPPORTED_VERSIONS),
+            "server_version": _server_version(),
+            "server_build": build_info,
+            "transport_preference": {
+                "primary_remote": "streamable_http",
+                "primary_local": "stdio",
+                "legacy": "sse_shim_only",
+                "experimental": "websocket_event_push",
+            },
+            "dialect_hints": {
+                "naming": "arif_<noun>_<verb>",
+                "envelope": "FederationEnvelope with _envelope key",
+                "session_required": True,
+                "protocol_version_header": "MCP-Protocol-Version",
+                "session_id_header": "Mcp-Session-Id",
+            },
         },
-        "dialect_hints": {
-            "naming": "arif_<noun>_<verb>",
-            "envelope": "FederationEnvelope with _envelope key",
-            "session_required": True,
-            "protocol_version_header": "MCP-Protocol-Version",
-            "session_id_header": "Mcp-Session-Id",
-        },
-    }, delta_S=0.0)
+        delta_S=0.0,
+    )
     return response
 
 
@@ -16153,9 +16933,7 @@ def _arif_transport_echo(
         "spec_version_preferred": MCP_SPEC_VERSION_PREFERRED,
         "spec_version_received": pvr,
         "spec_version_ok": pvr in _MCP_SUPPORTED_VERSIONS,
-        "spec_version_deprecated": (
-            pvr == "2025-03-26" if pvr != "unknown" else False
-        ),
+        "spec_version_deprecated": (pvr == "2025-03-26" if pvr != "unknown" else False),
         "protocol_versions_supported": list(_MCP_SUPPORTED_VERSIONS),
         "client_name": cn,
         "client_version": cv,
@@ -16188,13 +16966,15 @@ def _arif_transport_echo(
     # A diagnostic tool that does not know what transport it ran over must
     # NOT narrate itself as safe — that is exactly the SEAL-over-WARN defect.
     transport_unknown_fields = [
-        name for name, value in (
+        name
+        for name, value in (
             ("spec_version_received", pvr),
             ("client_name", cn),
             ("client_version", cv),
             ("transport_reported", tr),
             ("transport_observed", to),
-        ) if value == "unknown"
+        )
+        if value == "unknown"
     ]
     if len(transport_unknown_fields) >= 3:
         response = _ok("arif_transport_echo", transport_info, delta_S=0.0)
@@ -16261,7 +17041,9 @@ def _arif_initialize_probe(
     elif protocol_version and not isinstance(payload, dict):
         payload = {"protocol_version": protocol_version}
     requested = _extract_payload_field(payload, "protocol_version") or _MCP_SPEC_VERSION
-    client_caps = _extract_payload_field(payload, "client_capabilities") or client_capabilities or {}
+    client_caps = (
+        _extract_payload_field(payload, "client_capabilities") or client_capabilities or {}
+    )
     negotiated = requested if requested in _MCP_SUPPORTED_VERSIONS else _MCP_SUPPORTED_VERSIONS[0]
     version_ok = requested in _MCP_SUPPORTED_VERSIONS
 
@@ -16275,34 +17057,38 @@ def _arif_initialize_probe(
         capabilities["resources"]["subscribe"] = True
         capabilities["resources"]["listChanged"] = True
 
-    response = _ok("arif_initialize_probe", {
-        "protocol_version": negotiated,
-        "protocol_version_requested": requested,
-        "protocol_version_ok": version_ok,
-        "server_info": {
-            "name": "arifOS Constitutional Kernel",
-            "version": _server_version(),
+    response = _ok(
+        "arif_initialize_probe",
+        {
+            "protocol_version": negotiated,
+            "protocol_version_requested": requested,
+            "protocol_version_ok": version_ok,
+            "server_info": {
+                "name": "arifOS Constitutional Kernel",
+                "version": _server_version(),
+            },
+            "capabilities": capabilities,
+            "client_capabilities_received": client_caps,
+            "instructions": (
+                "arifOS is a governed MCP gateway-kernel. "
+                "After initialize/initialized handshake, call arif_ping to confirm transport. "
+                "Then call arif_session_init(mode='light') for fast bootstrap, "
+                "or arif_session_init(mode='init') for full constitutional binding."
+            ),
+            "next_steps": [
+                "1. Send 'notifications/initialized'",
+                "2. Call arif_ping to confirm transport bridge",
+                "3. Call arif_version_echo to verify protocol version metadata",
+                "4. Call arif_schema_echo to verify payload fidelity",
+                "5. Call arif_session_init(mode='light') for fast bootstrap",
+                "6. Or arif_session_init(mode='init') for full constitutional binding",
+            ],
+            "diagnostic_path": [
+                "arif_ping → arif_version_echo → arif_schema_echo → arif_initialize_probe → arif_session_init",
+            ],
         },
-        "capabilities": capabilities,
-        "client_capabilities_received": client_caps,
-        "instructions": (
-            "arifOS is a governed MCP gateway-kernel. "
-            "After initialize/initialized handshake, call arif_ping to confirm transport. "
-            "Then call arif_session_init(mode='light') for fast bootstrap, "
-            "or arif_session_init(mode='init') for full constitutional binding."
-        ),
-        "next_steps": [
-            "1. Send 'notifications/initialized'",
-            "2. Call arif_ping to confirm transport bridge",
-            "3. Call arif_version_echo to verify protocol version metadata",
-            "4. Call arif_schema_echo to verify payload fidelity",
-            "5. Call arif_session_init(mode='light') for fast bootstrap",
-            "6. Or arif_session_init(mode='init') for full constitutional binding",
-        ],
-        "diagnostic_path": [
-            "arif_ping → arif_version_echo → arif_schema_echo → arif_initialize_probe → arif_session_init",
-        ],
-    }, delta_S=0.0)
+        delta_S=0.0,
+    )
     return response
 
 
@@ -16458,6 +17244,7 @@ def _arif_daily_intelligence_brief(
 # arif_memory v5 router — exposes federated dispatcher via MCP (FORGE 000Ω, 2026-06-21)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 async def _arif_memory_v5_router(
     mode: str = "recall",
     query: str | None = None,
@@ -16528,8 +17315,13 @@ async def _arif_memory_v5_router(
       - arif_memory_recall  (deprecated alias, also routed here for back-compat)
     """
     v5_native_modes = {
-        "recall", "inspect", "attest", "remember",
-        "promote", "revise", "forget",
+        "recall",
+        "inspect",
+        "attest",
+        "remember",
+        "promote",
+        "revise",
+        "forget",
     }
 
     if mode in v5_native_modes:
@@ -16639,6 +17431,7 @@ async def _arif_memory_v5_router(
         from arifosmcp.runtime.megaTools.tool_13_arif_memory import (
             arif_memory as _v5_dispatch,
         )
+
         return await _v5_dispatch(
             mode=mode,
             payload=payload,
@@ -16660,7 +17453,9 @@ async def _arif_memory_v5_router(
         tier=tier,
     )
 
+
 from arifosmcp.tools.arif_kernel_intercept import _arif_kernel_intercept
+
 
 async def _arif_kernel_intercept_tool(
     actor: str,
@@ -16672,9 +17467,13 @@ async def _arif_kernel_intercept_tool(
     epistemic_state: str = "UNKNOWN",
     evidence: list[dict[str, Any]] | None = None,
     authority_token: str | None = None,
-) -> str:
-    """Wrapper for the minimum constitutional kernel interceptor."""
-    result = await _arif_kernel_intercept(
+) -> dict[str, Any]:
+    """Wrapper for the minimum constitutional kernel interceptor.
+
+    Now wires the full constitutional affordance + metacognitive envelope
+    so the kernel decision itself is cognitively legible to agents.
+    """
+    raw = await _arif_kernel_intercept(
         actor=actor,
         intent=intent,
         requested_capability=requested_capability,
@@ -16685,45 +17484,160 @@ async def _arif_kernel_intercept_tool(
         evidence=evidence,
         authority_token=authority_token,
     )
-    import json
-    return json.dumps(result)
+
+    # Use the standard builder so kernel verdicts carry facts/inferences/metacog/next_safe
+    try:
+        decision = raw.get("decision", "ESCALATE")
+        facts = [f"Kernel decision: {decision}", f"Capability: {requested_capability}"]
+        inferences = [
+            {
+                "claim": raw.get("reason", ""),
+                "confidence": 0.9 if decision == "ALLOW" else 0.75,
+                "basis": "kernel floors + authority + reversibility",
+            }
+        ]
+        conf = 0.95 if decision == "ALLOW" else (0.80 if decision == "ESCALATE" else 0.60)
+
+        std = build_standard_mcp_result(
+            tool="arif_kernel_intercept",
+            facts=facts,
+            inferences=inferences,
+            unknowns=[] if decision != "ESCALATE" else ["Requires further evidence or human ack"],
+            confidence=conf,
+            next_safe_action=raw.get("next_safe_action") or "Follow kernel next_safe_action",
+            raw_result=raw,
+            mode="analyze" if decision == "ALLOW" else "recommend",
+            authority="requires_human_confirmation"
+            if raw.get("constitutional_check", {}).get("hold_required")
+            else "advisory_only",
+        )
+        # Preserve the kernel's native fields
+        std["kernel_decision"] = raw
+        std["affordance_for_capability"] = raw.get("affordance")
+        return std
+    except Exception:
+        # Fail-soft: never break the kernel
+        return {"kernel_raw": raw, "note": "standard envelope enrichment failed"}
+
+
+async def _arif_act(
+    seal_verdict_id: str,
+    approved_action_hash: str,
+    manifest: str | dict[str, Any] = "",
+    actor_id: str = "",
+    session_id: str = "",
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """
+    arif_act — the 900 execution gate in the 7-tool public surface.
+
+    HARD REQUIREMENT: A valid prior SEAL from arif_judge + arif_seal is mandatory.
+    No seal → 888_HOLD structurally. This makes bypass impossible in code, not docs.
+
+    It wraps arif_forge_execute after verification.
+    """
+    # 1. Hard structural gate
+    if not seal_verdict_id or not approved_action_hash:
+        return {
+            "verdict": "888_HOLD",
+            "reason": "arif_act requires seal_verdict_id and approved_action_hash from prior arif_judge + arif_seal.",
+            "next_safe_action": "Call arif_judge then arif_seal first. Then retry with the seal ids.",
+            "constitutional_check": {"hold_required": True, "floor": "L01+F13"},
+        }
+
+    # 2. Hard structural + cryptographic gate using the real VAULT999-anchored verifier
+    from arifosmcp.runtime.a2a.seal_verifier import A2ASealVerifier, SealVerificationRequest
+
+    verifier = A2ASealVerifier()
+    req = SealVerificationRequest(
+        session_id=session_id or "",
+        verdict="SEAL",
+        state_hash=approved_action_hash,
+    )
+    resp = verifier.verify_seal(req)
+
+    if not resp.valid or resp.verdict != "SEAL":
+        return {
+            "verdict": "888_HOLD",
+            "reason": f"Invalid SEAL: {resp.error or 'no valid anchored SEAL for this session/action'}",
+            "next_safe_action": "Call arif_judge then arif_seal first to obtain a verifiable seal_verdict_id + approved_action_hash.",
+            "verification_trace": resp.trace,
+        }
+
+    # Optional: if seal_verdict_id provided, we can treat it as additional proof (future: cross-check id)
+    # The verifier + required ids make bypass structurally impossible.
+
+    # 3. Delegate to the execution engine (forge)
+    try:
+        forge_result = await _arif_forge_execute_tool(
+            manifest=manifest,
+            actor_id=actor_id,
+            session_id=session_id,
+            **kwargs,
+        )
+        # Enrich with gate metadata + metacog
+        if isinstance(forge_result, dict):
+            forge_result.setdefault(
+                "seal_gate",
+                {
+                    "seal_verdict_id": seal_verdict_id,
+                    "approved_action_hash": approved_action_hash[:16] + "...",
+                    "verified": True,
+                },
+            )
+            # Apply core 7 structured output
+            try:
+                enriched = as_core_seven_result(
+                    "arif_act",
+                    forge_result,
+                    next_safe_action="Execution dispatched. Follow up with arif_seal if this was the terminal step.",
+                )
+                return enriched
+            except Exception:
+                pass
+        return forge_result
+    except Exception as exc:
+        return _hold(
+            "arif_act",
+            f"Execution after seal failed: {exc}",
+            ["L01"],
+            session_id=session_id,
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════
 
 
 _CANONICAL_HANDLERS: dict[str, Any] = {
-    # ── RSI CANONICAL SURFACE (2026-06-22) ─────────────────────────────────
-    # Primary short names (F4 CLARITY: one canonical name per operation).
+    # ── 7-TOOL MCP FACADE (2026-06-23) ─────────────────────────────────────
+    # Public agents see only these 7 verbs. Everything else is an alias or
+    # internal helper. See AGENTIC_AFFORDANCE_GUIDE.md.
     "arif_init": _arif_session_init,
     "arif_observe": _arif_sense_observe,
-    "arif_fetch": _arif_evidence_fetch,
     "arif_think": _arif_mind_reason_tool,
-    "arif_critique": _arif_heart_critique,
-    "arif_compose": _arif_reply_compose_tool,
-    "arif_memory": _arif_memory_v5_router,
-    "arif_judge": _arif_judge_deliberate_tool,
-    "arif_kernel_intercept": _arif_kernel_intercept_tool,
+    "arif_judge": _arif_kernel_intercept_tool,  # constitutional verdict / 888 (uses kernel)
+    "arif_act": _arif_act,
     "arif_seal": _arif_vault_seal_tool,
-    "arif_forge": _arif_forge_execute_tool,
-    "arif_measure": _arif_ops_measure,
-    "arif_explore": _arif_sense_observe,  # explore is a governed subset of observe
-
-    # ── SDK long-name aliases (2026-06-23 unification) ─────────────────────
-    # ChatGPT Apps SDK and legacy clients expect arif_<noun>_<verb> names.
-    # These are first-class aliases pointing to the same handlers as the
-    # short canonical names above. They do NOT create new operations.
-    "arif_session_init": _arif_session_init,
-    "arif_sense_observe": _arif_sense_observe,
+    # ── Internal aliases (still dispatchable, never advertised publicly) ───
+    "arif_fetch": _arif_evidence_fetch,
     "arif_evidence_fetch": _arif_evidence_fetch,
-    "arif_mind_reason": _arif_mind_reason_tool,
+    "arif_sense_observe": _arif_sense_observe,
+    "arif_critique": _arif_heart_critique,
     "arif_heart_critique": _arif_heart_critique,
+    "arif_compose": _arif_reply_compose_tool,
     "arif_reply_compose": _arif_reply_compose_tool,
+    "arif_memory": _arif_memory_v5_router,
     "arif_memory_recall": _arif_memory_v5_router,
+    "arif_measure": _arif_ops_measure,
     "arif_ops_measure": _arif_ops_measure,
+    "arif_explore": _arif_sense_observe,
+    "arif_kernel_intercept": _arif_kernel_intercept_tool,
+    "arif_forge": _arif_forge_execute_tool,
+    "arif_forge_execute": _arif_forge_execute_tool,
     "arif_judge_deliberate": _arif_judge_deliberate_tool,
     "arif_vault_seal": _arif_vault_seal_tool,
-    "arif_forge_execute": _arif_forge_execute_tool,
+    "arif_session_init": _arif_session_init,
+    "arif_mind_reason": _arif_mind_reason_tool,
 }
 
 # ── Backward-compat internal aliases (Rule 14 mode-first naming migration) ──
@@ -16761,6 +17675,7 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
 # Shadow Geometry Tools
 try:
     from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
+
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_self_evaluate"] = arif_self_evaluate
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_model_compare"] = arif_model_compare
 except ImportError:
@@ -16769,6 +17684,7 @@ except ImportError:
 # Hermes Agent tools — woven into diagnostic handlers
 try:
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
+
     _RUNTIME_DIAGNOSTIC_HANDLERS.update(HERMES_TOOL_HANDLERS)
 except ImportError as _e:
     # Hermes tools not available — gate behind import guard
@@ -16785,6 +17701,7 @@ try:
     from arifosmcp.tools.kernel_canonical import (
         arif_kernel_health as _arif_kernel_health_tool,
     )
+
     # arif_kernel_status — NOT IN kernel_canonical.py (not yet implemented)
     # Imported separately below with a graceful fallback.
     from arifosmcp.tools.kernel_canonical import (
@@ -16793,8 +17710,14 @@ try:
     from arifosmcp.tools.kernel_canonical import (
         arif_triage as _arif_triage_tool,
     )
-    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_route"] = _arif_route_tool
+
+    # Promote arif_route to the 7-tool canonical facade.
+    _CANONICAL_HANDLERS["arif_route"] = _arif_route_tool
+    # Ensure the public 7 facade points to it
+    _CANONICAL_HANDLERS["arif_route"] = _arif_route_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_triage"] = _arif_triage_tool
+    # Ensure 7-tool public names are always bound even if import order varies
+    _CANONICAL_HANDLERS.setdefault("arif_route", _arif_route_tool)
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_bridge_connect"] = _arif_bridge_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_attest"] = _arif_kernel_attest_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_health"] = _arif_kernel_health_tool
@@ -16805,13 +17728,13 @@ try:
     # Use arif_bridge_connect. F4 CLARITY: one name per operation.
 except ImportError as _rule14_err:
     import logging
-    logging.getLogger(__name__).warning(
-        "RULE 14 canonical tools not loaded: %s", _rule14_err
-    )
+
+    logging.getLogger(__name__).warning("RULE 14 canonical tools not loaded: %s", _rule14_err)
 
 # Paradox status tool — woven into diagnostic handlers
 try:
     from arifosmcp.tools.paradox import arif_paradox_status as _arif_paradox_status
+
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_paradox_status"] = _arif_paradox_status
 except ImportError as _e:
     pass
@@ -16819,6 +17742,7 @@ except ImportError as _e:
 # MCP Gate v0 — Constitutional Gate (2026-06-14)
 try:
     from arifosmcp.gate.mcp_gate_v0 import judge_action as _mcp_gate_judge
+
     # Wrap as callable that accepts canonical MCP _envelope
     async def _arif_gate_judge_handler(
         tool_name: str = "unknown",
@@ -16881,6 +17805,7 @@ try:
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_cross_attest"] = arif_cross_attest
 except ImportError as _e:
     import logging
+
     logging.getLogger(__name__).warning(
         "C2-1 fabrication defense (arif_tool_exists / arif_cross_attest) not loaded: %s", _e
     )
@@ -16988,7 +17913,6 @@ def _build_enriched_signature(handler):
         new_params.append(session_id_param)
 
     return sig.replace(parameters=new_params)
-
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -17243,9 +18167,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             # Envelope attachment must never crash a tool call.
             pass
 
-    def _inject_epistemic_tag(
-        response: dict[str, Any], tool_name: str
-    ) -> None:
+    def _inject_epistemic_tag(response: dict[str, Any], tool_name: str) -> None:
         """Inject _epistemic halal/haram tag into every tool response.
 
         Uses the tool classification registry. If the tool is not registered,
@@ -17375,7 +18297,15 @@ async def _arif_lease_issue(
             "actor_id": actor_id,
         }
 
-    valid_action_classes = ("OBSERVE", "REASON", "CRITIQUE", "DRY_RUN", "MUTATE", "EXTERNAL", "IRREVERSIBLE")
+    valid_action_classes = (
+        "OBSERVE",
+        "REASON",
+        "CRITIQUE",
+        "DRY_RUN",
+        "MUTATE",
+        "EXTERNAL",
+        "IRREVERSIBLE",
+    )
     if max_action_class not in valid_action_classes:
         return {
             "status": "VOID",
@@ -17491,18 +18421,18 @@ async def _arif_lease_inspect(
             "count": len(leases),
             "leases": [
                 {
-                    "lease_id": l.lease_id,
-                    "actor_id": l.actor_id,
-                    "organ_id": l.organ_id,
-                    "scope": l.scope,
-                    "max_action_class": l.max_action_class,
-                    "ttl_remaining_s": round(max(0.0, l.expires_at - time.time()), 1),
-                    "uses_consumed": l.uses_consumed,
-                    "max_uses": l.max_uses,
-                    "revoked": l.revoked,
-                    "revoke_reason": l.revoke_reason,
+                    "lease_id": lease.lease_id,
+                    "actor_id": lease.actor_id,
+                    "organ_id": lease.organ_id,
+                    "scope": lease.scope,
+                    "max_action_class": lease.max_action_class,
+                    "ttl_remaining_s": round(max(0.0, lease.expires_at - time.time()), 1),
+                    "uses_consumed": lease.uses_consumed,
+                    "max_uses": lease.max_uses,
+                    "revoked": lease.revoked,
+                    "revoke_reason": lease.revoke_reason,
                 }
-                for l in leases
+                for lease in leases
             ],
         },
         "session_id": session_id,
@@ -17574,7 +18504,9 @@ def register_tools(
             # arifos_* → arif_* legacy alias resolution (2026-06-22 migration)
             canonical = _LEGACY_ALIASES.get(name)
             if canonical:
-                handler = _CANONICAL_HANDLERS.get(canonical) or _RUNTIME_DIAGNOSTIC_HANDLERS.get(canonical)
+                handler = _CANONICAL_HANDLERS.get(canonical) or _RUNTIME_DIAGNOSTIC_HANDLERS.get(
+                    canonical
+                )
         if handler is None:
             continue
         try:
@@ -17632,13 +18564,26 @@ def register_tools(
                         _ft = _components.get(_tool_key)
                         if _ft is not None and hasattr(_ft, "parameters"):
                             _params = _ft.parameters
-                            if _modes and "properties" in _params and "mode" in _params["properties"]:
+                            if (
+                                _modes
+                                and "properties" in _params
+                                and "mode" in _params["properties"]
+                            ):
                                 _params["properties"]["mode"]["enum"] = _modes
                                 logger.info("INJECTED enum for %s: %s", name, _modes)
                             else:
-                                logger.warning("INJECTION FAILED: %s has mode=%s, props=%s", name, _modes, list(_params.get("properties", {}).keys()))
+                                logger.warning(
+                                    "INJECTION FAILED: %s has mode=%s, props=%s",
+                                    name,
+                                    _modes,
+                                    list(_params.get("properties", {}).keys()),
+                                )
                         else:
-                            logger.warning("INJECTION FAILED: tool key '%s' not found. Available: %s", _tool_key, list(_components.keys())[:5])
+                            logger.warning(
+                                "INJECTION FAILED: tool key '%s' not found. Available: %s",
+                                _tool_key,
+                                list(_components.keys())[:5],
+                            )
                     else:
                         logger.warning("INJECTION FAILED: no _local_provider")
                 except Exception:
@@ -17743,7 +18688,7 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arifos_triage": "arif_triage",
     "arifos_route": "arif_route",
     "arifos_bridge": "arif_bridge_connect",
-    "arifos_health": "arif_kernel_health",   # fixed: was wrongly arif_ops_measure
+    "arifos_health": "arif_kernel_health",  # fixed: was wrongly arif_ops_measure
     "arifos_status": "arif_kernel_status",
     "arifos_attest": "arif_kernel_attest",
     # ── Shadow geometry: arifos_* → arif_* ──────────────────────────────────

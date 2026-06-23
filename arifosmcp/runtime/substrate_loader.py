@@ -124,7 +124,11 @@ def _parse_substrate_md(text: str) -> dict[str, Any]:
         if section in ("biographical_facts",) and line.startswith("- "):
             out[section].append(line[2:].strip())
             continue
-        if section in ("scars", "shadows", "paradoxes", "thermodynamics") and line.startswith("|") and "---" not in line:
+        if (
+            section in ("scars", "shadows", "paradoxes", "thermodynamics")
+            and line.startswith("|")
+            and "---" not in line
+        ):
             cells = [c.strip() for c in line.strip("|").split("|")]
             # Skip header rows (first cell == "ID")
             if not cells or cells[0] != "ID":
@@ -197,6 +201,7 @@ def recall_similar_scars(
         # derived from the query string's hash (deterministic, cosine-safe).
         seed = int(hashlib.sha256(query.encode()).hexdigest()[:8], 16)
         import random
+
         rng = random.Random(seed)
         qvec = [rng.gauss(0, 1) for _ in range(1024)]
         norm = sum(v * v for v in qvec) ** 0.5
@@ -236,7 +241,9 @@ def recall_similar_scars(
 
 
 # ── Pre-load hook for arif_critique ──────────────────────────────────
-def preload_substrate_context(actor_id: str | None = None, session_id: str | None = None) -> dict[str, Any]:
+def preload_substrate_context(
+    actor_id: str | None = None, session_id: str | None = None
+) -> dict[str, Any]:
     """Called by arif_critique on F5/F6/F13 paths.
     Returns a compact context block that can be merged into the critique envelope.
     Fail-open: never raises.

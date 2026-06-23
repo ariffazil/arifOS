@@ -119,9 +119,7 @@ def _make_envelope(
 
 def test_T01_valid_c3_with_scar() -> None:
     """HUMAN_ASSISTED_AI at C3 with scar is valid."""
-    env = _make_envelope(
-        risk=RiskClass.C3, scar=True, provenance=ProvenanceClass.HUMAN_ASSISTED_AI
-    )
+    env = _make_envelope(risk=RiskClass.C3, scar=True, provenance=ProvenanceClass.HUMAN_ASSISTED_AI)
     assert env.commitment()
     assert env.provenance_class == ProvenanceClass.HUMAN_ASSISTED_AI
 
@@ -164,24 +162,18 @@ def test_T03_c3_without_scar_is_coercion_flag() -> None:
 def test_T04_c4_without_scar_is_coercion_flag() -> None:
     """C4+ human-attributable with scar_acknowledged=False is a coercion flag."""
     with pytest.raises(ValueError, match=r"coercion|scar_acknowledged"):
-        _make_envelope(
-            risk=RiskClass.C4, scar=False, provenance=ProvenanceClass.HUMAN_DIRECT
-        )
+        _make_envelope(risk=RiskClass.C4, scar=False, provenance=ProvenanceClass.HUMAN_DIRECT)
 
 
 def test_T05_c5_without_scar_is_coercion_flag() -> None:
     """C5+ human-attributable with scar_acknowledged=False is a coercion flag."""
     with pytest.raises(ValueError, match=r"coercion|scar_acknowledged"):
-        _make_envelope(
-            risk=RiskClass.C5, scar=False, provenance=ProvenanceClass.AI_AGENT_ACTION
-        )
+        _make_envelope(risk=RiskClass.C5, scar=False, provenance=ProvenanceClass.AI_AGENT_ACTION)
 
 
 def test_T06_c2_no_scar_ok() -> None:
     """C0-C2 with no scar is valid (low risk, no consequence)."""
-    env = _make_envelope(
-        risk=RiskClass.C2, scar=False, provenance=ProvenanceClass.AI_DRAFT
-    )
+    env = _make_envelope(risk=RiskClass.C2, scar=False, provenance=ProvenanceClass.AI_DRAFT)
     assert env.commitment()
 
 
@@ -275,32 +267,24 @@ def test_T11_scar_is_boolean_testimony() -> None:
 def test_T13_ai_draft_c3_hold() -> None:
     """Kernel Rule: AI_DRAFT at C3+ cannot cross into consequence."""
     with pytest.raises(ValueError, match=r"KERNEL RULE.*AI_DRAFT"):
-        _make_envelope(
-            risk=RiskClass.C3, scar=True, provenance=ProvenanceClass.AI_DRAFT
-        )
+        _make_envelope(risk=RiskClass.C3, scar=True, provenance=ProvenanceClass.AI_DRAFT)
 
 
 def test_T14_ai_draft_c2_ok() -> None:
     """AI_DRAFT at C0-C2 is valid (low risk, no consequence)."""
-    env = _make_envelope(
-        risk=RiskClass.C2, scar=False, provenance=ProvenanceClass.AI_DRAFT
-    )
+    env = _make_envelope(risk=RiskClass.C2, scar=False, provenance=ProvenanceClass.AI_DRAFT)
     assert env.commitment()
 
 
 def test_T15_unknown_origin_c1_hold() -> None:
     """UNKNOWN_ORIGIN is fail-secure: cannot cross C1+ (HOLD)."""
     with pytest.raises(ValueError, match=r"KERNEL RULE.*UNKNOWN_ORIGIN"):
-        _make_envelope(
-            risk=RiskClass.C1, scar=True, provenance=ProvenanceClass.UNKNOWN_ORIGIN
-        )
+        _make_envelope(risk=RiskClass.C1, scar=True, provenance=ProvenanceClass.UNKNOWN_ORIGIN)
 
 
 def test_T16_unknown_origin_c0_ok() -> None:
     """UNKNOWN_ORIGIN at C0 is valid (historical archive / no consequence)."""
-    env = _make_envelope(
-        risk=RiskClass.C0, scar=False, provenance=ProvenanceClass.UNKNOWN_ORIGIN
-    )
+    env = _make_envelope(risk=RiskClass.C0, scar=False, provenance=ProvenanceClass.UNKNOWN_ORIGIN)
     assert env.commitment()
 
 
@@ -383,8 +367,7 @@ def test_T21_truth_table_5x6() -> None:
                 "scar": True,
                 "provenance": cls,
                 "signature": "ed25519:sig_test"
-                if (cls == ProvenanceClass.AI_AGENT_ACTION
-                    and tier in (RiskClass.C4, RiskClass.C5))
+                if (cls == ProvenanceClass.AI_AGENT_ACTION and tier in (RiskClass.C4, RiskClass.C5))
                 else None,
             }
             if cls in (ProvenanceClass.AI_DRAFT, ProvenanceClass.UNKNOWN_ORIGIN):

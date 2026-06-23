@@ -35,6 +35,7 @@ store = CapabilityStore()
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
 
+
 class Candidate(BaseModel):
     tool_name: str
     server: str
@@ -89,6 +90,7 @@ def _rank_and_filter(
 
 
 # ── MCP Tools ────────────────────────────────────────────────────────────────
+
 
 @mcp.tool()
 def capability_search(query: str, limit: int = 10) -> str:
@@ -165,6 +167,7 @@ def capability_select(
 
 
 # ── Entrypoint ───────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Capability Index MCP Server")

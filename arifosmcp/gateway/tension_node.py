@@ -105,6 +105,7 @@ class EpistemicTag(StrEnum):
 
 class ClaimNode(BaseModel):
     """A single claim extracted from text — the atomic unit of tension analysis."""
+
     claim_id: str
     text: str
     claim_type: ClaimType
@@ -118,19 +119,26 @@ class ClaimNode(BaseModel):
     hedging_score: float = Field(default=0.0, ge=0.0, le=1.0)
     verifiable: bool = False
 
-    model_config = {"json_schema_extra": {"examples": [{
-        "claim_id": "claim_release_soon",
-        "text": "Kerajaan negeri bersedia mendedahkan laporan penuh insiden itu",
-        "claim_type": "promise",
-        "speaker": "actor_mb_selangor",
-        "epistemic_tag": "CLAIM",
-        "contradicts": ["claim_legal_constraints"],
-        "hedging_score": 0.15,
-    }]}}
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "claim_id": "claim_release_soon",
+                    "text": "Kerajaan negeri bersedia mendedahkan laporan penuh insiden itu",
+                    "claim_type": "promise",
+                    "speaker": "actor_mb_selangor",
+                    "epistemic_tag": "CLAIM",
+                    "contradicts": ["claim_legal_constraints"],
+                    "hedging_score": 0.15,
+                }
+            ]
+        }
+    }
 
 
 class EvidenceNode(BaseModel):
     """Observable fact, document, or record that grounds a claim."""
+
     evidence_id: str
     evidence_type: str  # document, testimony, timeline, data_point, news_article, court_record
     description: str
@@ -140,17 +148,24 @@ class EvidenceNode(BaseModel):
     classification: str = "PUBLIC"  # PUBLIC, CONFIDENTIAL, RESTRICTED
     reliability: float = Field(default=1.0, ge=0.0, le=1.0)
 
-    model_config = {"json_schema_extra": {"examples": [{
-        "evidence_id": "ev_kosmo_2026_06_12",
-        "evidence_type": "news_article",
-        "description": "Kosmo! report on MB Selangor statement regarding Putra Heights report disclosure",
-        "source_uri": "https://www.kosmo.com.my/2026/06/12/pendedahan-laporan-putra-heights-berdepan-kekangan-undang-undang/",
-        "reliability": 0.85,
-    }]}}
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "evidence_id": "ev_kosmo_2026_06_12",
+                    "evidence_type": "news_article",
+                    "description": "Kosmo! report on MB Selangor statement regarding Putra Heights report disclosure",
+                    "source_uri": "https://www.kosmo.com.my/2026/06/12/pendedahan-laporan-putra-heights-berdepan-kekangan-undang-undang/",
+                    "reliability": 0.85,
+                }
+            ]
+        }
+    }
 
 
 class ActorNode(BaseModel):
     """Institutional or individual actor in the governance graph."""
+
     actor_id: str
     name: str
     role: ActorRole
@@ -162,20 +177,27 @@ class ActorNode(BaseModel):
     visibility_score: float = Field(default=0.5, ge=0.0, le=1.0)
     accountability_score: float = Field(default=0.5, ge=0.0, le=1.0)
 
-    model_config = {"json_schema_extra": {"examples": [{
-        "actor_id": "actor_petronas",
-        "name": "Petronas / Petronas Gas Berhad",
-        "role": "operator",
-        "entity_type": "glc",
-        "jurisdiction": "persekutuan",
-        "power_score": 0.92,
-        "visibility_score": 0.35,
-        "accountability_score": 0.28,
-    }]}}
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "actor_id": "actor_petronas",
+                    "name": "Petronas / Petronas Gas Berhad",
+                    "role": "operator",
+                    "entity_type": "glc",
+                    "jurisdiction": "persekutuan",
+                    "power_score": 0.92,
+                    "visibility_score": 0.35,
+                    "accountability_score": 0.28,
+                }
+            ]
+        }
+    }
 
 
 class ReceiptNode(BaseModel):
     """Governance action receipt — proof that an action happened."""
+
     receipt_id: str
     action_type: str  # report_submitted, review_started, disclosure_published, override_signed
     object_ref: str  # what was acted on (report_id, claim_id, incident_id)
@@ -186,18 +208,25 @@ class ReceiptNode(BaseModel):
     hash: str = ""  # sha256 of this receipt
     signature: str = ""
 
-    model_config = {"json_schema_extra": {"examples": [{
-        "receipt_id": "rcpt_report_submitted_2026_04",
-        "action_type": "report_submitted",
-        "object_ref": "RPT-INC-20250401-PHGS01",
-        "actor_ref": "actor_independent_committee",
-        "timestamp": "2026-04-01T00:00:00+08:00",
-        "reason_code": "INVESTIGATION_COMPLETE",
-    }]}}
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "receipt_id": "rcpt_report_submitted_2026_04",
+                    "action_type": "report_submitted",
+                    "object_ref": "RPT-INC-20250401-PHGS01",
+                    "actor_ref": "actor_independent_committee",
+                    "timestamp": "2026-04-01T00:00:00+08:00",
+                    "reason_code": "INVESTIGATION_COMPLETE",
+                }
+            ]
+        }
+    }
 
 
 class ActivityNode(BaseModel):
     """A governed action or process in the timeline."""
+
     activity_id: str
     activity_type: str
     description: str
@@ -267,7 +296,9 @@ class TensionTelemetry(BaseModel):
     confidence: float = 0.0
     psi_le: float = 0.0
     verdict: str = "open_tension"
-    witness: dict[str, float] = Field(default_factory=lambda: {"human": 0.42, "ai": 0.32, "earth": 0.26})
+    witness: dict[str, float] = Field(
+        default_factory=lambda: {"human": 0.42, "ai": 0.32, "earth": 0.26}
+    )
     qdf: str = ""
 
 
@@ -297,6 +328,7 @@ class ParadoxTensionNode(BaseModel):
     in the belief graph that can trigger governance transitions, deeper inquiry,
     or protective holds.
     """
+
     tension_id: str
     type: str = Field(default="paradox_tension_node", frozen=True)
     title: str
@@ -315,11 +347,19 @@ class ParadoxTensionNode(BaseModel):
     # Sub-objects
     provenance: Provenance
     scores: TensionScores
-    relations: dict[str, list[str]] = Field(default_factory=lambda: {
-        "supports": [], "attacks": [], "refines": [],
-        "undercuts": [], "depends_on": [], "triggered_by": [],
-        "resolved_by": [], "masked_by": [], "witnessed_by": [],
-    })
+    relations: dict[str, list[str]] = Field(
+        default_factory=lambda: {
+            "supports": [],
+            "attacks": [],
+            "refines": [],
+            "undercuts": [],
+            "depends_on": [],
+            "triggered_by": [],
+            "resolved_by": [],
+            "masked_by": [],
+            "witnessed_by": [],
+        }
+    )
 
     # Temporal
     observed_from: str = ""
@@ -336,9 +376,7 @@ class ParadoxTensionNode(BaseModel):
     telemetry: TensionTelemetry = Field(default_factory=TensionTelemetry)
 
     model_config = {
-        "json_schema_extra": {
-            "examples": ["see contracts/paradox_tension_node.v1.json"]
-        }
+        "json_schema_extra": {"examples": ["see contracts/paradox_tension_node.v1.json"]}
     }
 
 
@@ -349,6 +387,7 @@ class ParadoxTensionNode(BaseModel):
 
 class BeliefGraph(BaseModel):
     """Container for an annotated governance episode."""
+
     graph_id: str
     title: str
     tensions: list[ParadoxTensionNode] = Field(default_factory=list)
@@ -387,19 +426,23 @@ class BeliefGraph(BaseModel):
         """Export as PROV-aligned activity chain."""
         chain: list[dict[str, Any]] = []
         for a in sorted(self.activities, key=lambda x: x.started_at):
-            chain.append({
-                "activity_id": a.activity_id,
-                "type": a.activity_type,
-                "started_at": a.started_at,
-                "actors": a.actors_involved,
-                "produced": a.produced_refs,
-            })
+            chain.append(
+                {
+                    "activity_id": a.activity_id,
+                    "type": a.activity_type,
+                    "started_at": a.started_at,
+                    "actors": a.actors_involved,
+                    "produced": a.produced_refs,
+                }
+            )
         for r in self.receipts:
-            chain.append({
-                "receipt_id": r.receipt_id,
-                "action_type": r.action_type,
-                "actor": r.actor_ref,
-                "timestamp": r.timestamp,
-                "hash": r.hash,
-            })
+            chain.append(
+                {
+                    "receipt_id": r.receipt_id,
+                    "action_type": r.action_type,
+                    "actor": r.actor_ref,
+                    "timestamp": r.timestamp,
+                    "hash": r.hash,
+                }
+            )
         return chain

@@ -41,8 +41,7 @@ def _default_chain_db() -> dict[str, dict[str, Any]]:
             "id": "genesis",
             "previous_id": "",
             "signature": (
-                "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
-                "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6"
+                "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6"
             ),
             "content_hash": hashlib.sha256(
                 b"arifOS genesis block - F13 SOVEREIGN - DITEMPA BUKAN DIBERI"
@@ -52,45 +51,33 @@ def _default_chain_db() -> dict[str, dict[str, Any]]:
             "id": "seal_001",
             "previous_id": "genesis",
             "signature": (
-                "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
-                "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7"
+                "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7"
             ),
-            "content_hash": hashlib.sha256(
-                b"arifOS seal 001 - constitutional session"
-            ).hexdigest(),
+            "content_hash": hashlib.sha256(b"arifOS seal 001 - constitutional session").hexdigest(),
         },
         "seal_002": {
             "id": "seal_002",
             "previous_id": "seal_001",
             "signature": (
-                "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
-                "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8"
+                "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8"
             ),
-            "content_hash": hashlib.sha256(
-                b"arifOS seal 002 - governance attestation"
-            ).hexdigest(),
+            "content_hash": hashlib.sha256(b"arifOS seal 002 - governance attestation").hexdigest(),
         },
         "orphan_seal": {
             "id": "orphan_seal",
             "previous_id": "nonexistent_parent",
             "signature": (
-                "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0"
-                "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9"
+                "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9"
             ),
-            "content_hash": hashlib.sha256(
-                b"orphan - no parent link"
-            ).hexdigest(),
+            "content_hash": hashlib.sha256(b"orphan - no parent link").hexdigest(),
         },
         "broken_seal": {
             "id": "broken_seal",
             "previous_id": "seal_001",
             "signature": (
-                "0000000000000000000000000000000000000000"
-                "0000000000000000000000000000000000000000"
+                "00000000000000000000000000000000000000000000000000000000000000000000000000000000"
             ),
-            "content_hash": hashlib.sha256(
-                b"tampered content"
-            ).hexdigest(),
+            "content_hash": hashlib.sha256(b"tampered content").hexdigest(),
         },
     }
 

@@ -1,5 +1,7 @@
 # arifOS — PROBE_PYPI
 
+> **DEPRECATED TOOL COUNTS (2026-06-23 7-tool facade)**: All "13 tools" / "13 canonical" claims here are pre-freeze. Public surface is now exactly 7 verbs. Run `python scripts/check_reality.py` for live drift.
+
 > **What a stranger sees when they `pip install arifos` today.**
 > Probe-only document. No fixes proposed here. This is a snapshot of
 > the current state so the next agent has receipts.
