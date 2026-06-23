@@ -1,0 +1,439 @@
+# constitutional.llms.txt — arifOS MCP Jurisdiction Registry
+# Version: 2026.06.23
+# SOT: arifOS/arifosmcp/constitutional_map.py (CANONICAL_TOOLS)
+# SOT: arifOS/arifosmcp/runtime/tools.py (TOOL_AFFORDANCE_CONTRACTS)
+# SOT: arifOS/arifosmcp/core/tool_self_model.py (BlastRadius)
+# SOT: arifOS/arifosmcp/tools/charters/tool.charter.json (floor/ack charter)
+# Status: REFERENCE IMPLEMENTATION (agentic land-title registry)
+# Purpose: Machine-readable constitutional discovery for the MCP ecosystem.
+# Not "what tools exist". "Under what lawful conditions may any tool act."
+#
+# MCP defines the roads.
+# FastMCP industrialises the vehicles.
+# arifOS defines who has lawful authority to move.
+#
+# arifOS is not another MCP server.
+# arifOS is the MCP jurisdiction layer.
+#
+# Format per tool (first-class entries):
+#   tool: <canonical_name>
+#   domain: <GOVERNANCE | EXECUTION | EARTH | CAPITAL | VITALITY | CONTROL>
+#   organ: <arifOS | A-FORGE | GEOX | WEALTH | WELL | AAA>
+#   blast_radius: <LOCAL | ACCOUNT | ORG | PUBLIC | FINANCIAL | INFRASTRUCTURE | CIVILIZATIONAL | ...>
+#   reversible: <true | false | "possible">
+#   reversibility_score: 0.0 (irreversible) — 1.0 (fully)
+#   required_floors: comma list (F1-F13 or L01-L13 mapping)
+#   evidence_required: list of evidence classes (downside_case, uncertainty_band, human_veto_path, domain_evidence, tri_witness, ...)
+#   sovereign_gate: 888_HOLD | authenticated | public | F13
+#   seal_required: VAULT999 | none
+#   may_self_authorize: false (iron rule across federation)
+#   action_class: OBSERVE | ANALYZE | DRAFT | MUTATE | IRREVERSIBLE | JUDGE | SEAL | EXECUTE
+#   risk_tier: low | medium | critical | ATOMIC
+#   authority_chain: arifOS (F13 veto) → organ (evidence/execute only)
+#   audit_obligation: VAULT999 + NATS governance stream
+#   fingerprint: (to be computed) hash(schema + authority + floors + reversibility + veto_path)
+#
+# Agent rule: Before using any tool, read this registry.
+# If tool not listed or may_self_authorize=true, treat as unknown jurisdiction. HOLD.
+#
+# DITEMPA BUKAN DIBERI
+
+# === arifOS (GOVERNANCE JURISDICTION) ===
+
+tool: arif_kernel_intercept
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F13,L13
+evidence_required: actor_identity, intent, action_class
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: JUDGE
+risk_tier: critical
+authority_chain: arifOS (minimum constitutional kernel) — real-time ALLOW/DENY/ESCALATE
+audit_obligation: session ledger + NATS
+note: 888_INTERCEPT. Replaces legacy judge for core operational enforcement. Mandatory for all mutating and external actions.
+fingerprint: (derive: schema + L13 + no-self-auth)
+
+tool: arif_init
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 0.95
+required_floors: F1,L01,F11,L11,F12,L12
+evidence_required: session_binding, actor_identity
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: DRAFT
+risk_tier: medium
+authority_chain: arifOS (F13 absolute) — session bootstrap only
+audit_obligation: session ledger
+note: 000_INIT. Call FIRST on every agentic session.
+fingerprint: (derive: schema + L01+L11+L12 + reversible + no-veto)
+
+tool: arif_observe
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F2,L02,F7,L07
+evidence_required: uncertainty_band, source_trace
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: OBSERVE
+risk_tier: low
+authority_chain: arifOS (read-only discovery)
+audit_obligation: optional
+note: 111_OBSERVE. Multimodal reality observation and hybrid discovery.
+fingerprint: (derive)
+
+tool: arif_explore
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F2,L02,F4,L04,F7,L07,F9,L09
+evidence_required: uncertainty_band, source_trace, anti_hantu
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: OBSERVE
+risk_tier: low
+authority_chain: arifOS (governed multi-step traversal)
+audit_obligation: optional
+note: 111_EXPLORE. Governed traversal across filesystem, web, API, knowledge graph.
+fingerprint: (derive)
+
+tool: arif_fetch
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F2,L02,F3,L03,F5,L05,F12,L12
+evidence_required: source_of_truth, tri_witness, uncertainty_band
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: OBSERVE
+risk_tier: medium
+authority_chain: arifOS (evidence only, no mutation)
+audit_obligation: optional
+note: 222_EVIDENCE. Verified external evidence retrieval with SOT grounding.
+fingerprint: (derive)
+
+tool: arif_think
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F2,L02,F7,L07,F8,L08,F10,L10
+evidence_required: uncertainty_band, assumptions_explicit, self_critique
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: ANALYZE
+risk_tier: medium
+authority_chain: arifOS (reasoning only)
+audit_obligation: optional
+note: 333_REASON. Symbolic reasoning kernel — epistemically honest, confidence-labeled.
+fingerprint: (derive)
+
+tool: arif_critique
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: ACCOUNT
+reversible: true
+reversibility_score: 0.9
+required_floors: F5,L05,F6,L06,F9,L09
+evidence_required: downside_case, maruah_dignity, anti_hantu, consequence_sim
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: ANALYZE
+risk_tier: medium
+authority_chain: arifOS (heart before hammer)
+audit_obligation: critique receipts
+note: 666_HEART. Ethical critique and consequence assessment.
+fingerprint: (derive)
+
+tool: arif_route
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F1,L01,F4,L04,F10,L10
+evidence_required: intent_clear, organ_boundary
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: ANALYZE
+risk_tier: low
+authority_chain: arifOS (intent router to evidence organs)
+audit_obligation: optional
+note: 555_ROUTE_CANONICAL. Intent-based routing to GEOX/WEALTH/WELL/A-FORGE.
+fingerprint: (derive)
+
+tool: arif_triage
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F4,L04,F10,L10
+evidence_required: session_state, priority_signal
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: OBSERVE
+risk_tier: low
+authority_chain: arifOS (session status + preflight)
+audit_obligation: optional
+note: 555_TRIAGE. Status, preflight, and priority classification.
+fingerprint: (derive)
+
+tool: arif_bridge_connect
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: ACCOUNT
+reversible: true
+reversibility_score: 1.0
+required_floors: F1,L01,F10,L10,F11,L11
+evidence_required: organ_target, tool_name, actor_identity
+sovereign_gate: authenticated
+seal_required: none
+may_self_authorize: false
+action_class: OBSERVE
+risk_tier: medium
+authority_chain: arifOS (low-level organ bridge)
+audit_obligation: session ledger
+note: 555_BRIDGE_CONNECT. Direct organ tool call when organ+tool are known.
+fingerprint: (derive)
+
+tool: arif_compose
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F2,L02,F4,L04,F6,L06,F9,L09
+evidence_required: final_content, tone_calibration, citations
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: DRAFT
+risk_tier: low
+authority_chain: arifOS (response formatting only)
+audit_obligation: optional
+note: 444_REPLY. Governed response composition — LAST step before presenting to Arif.
+fingerprint: (derive)
+
+tool: arif_memory
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: ACCOUNT
+reversible: "possible"
+reversibility_score: 0.7
+required_floors: F1,L01,F2,L02,F4,L04,F8,L08,F11,L11,F12,L12,F13,L13
+evidence_required: truth_class, actor_identity, session_binding
+sovereign_gate: public for recall/inspect/attest; 888_HOLD for remember/promote/revise; F13 for forget
+seal_required: VAULT999 for forget / tombstone
+may_self_authorize: false
+action_class: OBSERVE | MUTATE | ATOMIC
+risk_tier: medium
+authority_chain: arifOS (6-layer memory stack)
+audit_obligation: full receipt per mode
+note: 555_MEMORY v5. Supersedes arif_memory_recall. forget mode is IRREVERSIBLE and requires F13.
+fingerprint: (derive)
+
+tool: arif_judge
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: PUBLIC
+reversible: false
+reversibility_score: 0.0
+required_floors: F1,L01,F11,L11,F13,L13
+evidence_required: domain_evidence (GEOX|WEALTH|WELL), constitutional_chain_id, uncertainty_band, human_veto_path
+sovereign_gate: 888_HOLD
+seal_required: VAULT999 (verdict receipt)
+may_self_authorize: false
+action_class: JUDGE
+risk_tier: critical
+authority_chain: arifOS only (888) — no organ self-judges
+audit_obligation: VAULT999 + NATS
+note: 888_JUDGE. Final constitutional arbitration. Requires preceding sense→evidence→reason→critique pipeline.
+fingerprint: (derive: schema + L01+L11+L13 + irreversible_downstream + 888 + VAULT)
+
+tool: arif_seal
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: CIVILIZATIONAL
+reversible: false
+reversibility_score: 0.0
+required_floors: F1,L01,F11,L11,F13,L13
+evidence_required: judge_verdict (prior), ack_irreversible, actor_verified, chain_integrity
+sovereign_gate: 888_HOLD
+seal_required: VAULT999 (mandatory append-only)
+may_self_authorize: false
+action_class: SEAL
+risk_tier: critical
+authority_chain: arifOS (999) — append-only ledger. Irreversible by design.
+audit_obligation: full hash-chain + Supabase + Postgres
+note: 999_SEAL. Call LAST to permanently record any decision or completed workflow.
+fingerprint: (derive: schema + L01+L11+L13 + irreversible + VAULT999 + no-self-auth)
+
+tool: arif_forge
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: HIGH (delegated to A-FORGE EXECUTION)
+reversible: "possible"
+reversibility_score: 0.2
+required_floors: F1,L01,F11,L11,F13,L13
+evidence_required: judge_seal (constitutional_chain_id + vault_entry_id), ack_irreversible, dry_run_first, rollback_plan
+sovereign_gate: 888_HOLD
+seal_required: VAULT999 (pre + post)
+may_self_authorize: false
+action_class: EXECUTE
+risk_tier: critical
+authority_chain: arifOS judges → A-FORGE executes (never reverse). F13 human veto absolute.
+audit_obligation: VAULT999 + lease + execution receipt
+note: 010_FORGE_EXECUTE. Build execution — code generation, artifact creation, system modification.
+fingerprint: (derive: schema + L01+L11+L13 + irreversible + 888 + A-FORGE lease boundary)
+
+tool: arif_measure
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: LOCAL
+reversible: true
+reversibility_score: 1.0
+required_floors: F2,L02,F4,L04
+evidence_required: system_telemetry, uncertainty_band
+sovereign_gate: public
+seal_required: none
+may_self_authorize: false
+action_class: OBSERVE
+risk_tier: low
+authority_chain: arifOS (machine health + governance thermodynamics)
+audit_obligation: optional
+note: 777_MEASURE. Resource health, entropy delta, Ω band. Not for human biology (use WELL).
+fingerprint: (derive)
+
+# === A-FORGE (EXECUTION — governed actuator, never jurisdiction) ===
+
+tool: forge_execute (and all forge_*)
+domain: EXECUTION
+organ: A-FORGE
+blast_radius: depends (filesystem | git | docker | postgres | production)
+reversible: "possible" (depends on sub-action; many irreversible)
+reversibility_score: 0.0–0.5
+required_floors: (inherited from upstream arifOS arif_judge + lease)
+evidence_required: constitutional_chain_id (from arif_judge), lease_token, prior VAULT999
+sovereign_gate: 888_HOLD (via arifOS proxy)
+seal_required: VAULT999
+may_self_authorize: false   # IRON RULE — A-FORGE never self-authorizes
+action_class: EXECUTE | MUTATE | IRREVERSIBLE
+risk_tier: critical (for mutate paths)
+authority_chain: arifOS (F13) → lease → A-FORGE (hands only)
+audit_obligation: full (arifOS judge + A-FORGE execution receipt + VAULT)
+note: A-FORGE MCP (7071/7072) enforces FloorEnforcer at ingress. All high-impact require prior arif_judge + lease. See BRAIN-HANDS-CONTRACT.
+fingerprint: (A-FORGE tools inherit legitimacy from arifOS judge seal)
+
+# === Domain Evidence Organs (never authorize) ===
+
+tool: geox_* (all)
+domain: EARTH
+organ: GEOX
+blast_radius: EARTH_EVIDENCE (well, seismic, petrophysics, basin)
+reversible: true
+reversibility_score: 1.0
+required_floors: F2 (truth/physics), F9 (no hantu), plus arifOS gates for any downstream irreversible
+evidence_required: Physics9 bounds, contradiction scan, well/seismic provenance
+sovereign_gate: public for evidence; 888_HOLD when routed to judge/forge
+seal_required: VAULT999 only on claim_seal
+may_self_authorize: false
+action_class: OBSERVE | ANALYZE
+risk_tier: low–medium
+authority_chain: GEOX produces evidence. arifOS judges. Arif decides.
+note: ~39 tools. "Physics before Narrative." See geox.arif-fazil.com/mcp + geox/llms.txt
+
+tool: wealth_* (all)
+domain: CAPITAL
+organ: WEALTH
+blast_radius: CAPITAL_ALLOCATION | RISK | NPV/IRR/EMV
+reversible: true (computes only)
+reversibility_score: 1.0
+required_floors: F2, F7, F11 + arifOS for any allocation action
+evidence_required: downside_case, uncertainty_band, confluence, conservation_check
+sovereign_gate: public for compute; 888_HOLD for allocation decisions
+seal_required: VAULT999 when evidence used in irreversible path
+may_self_authorize: false
+action_class: ANALYZE
+risk_tier: medium (high for allocation implications)
+authority_chain: WEALTH computes. arifOS judges. Arif decides. Explicitly ADVISORY_ONLY.
+note: 20 public + aliases. wealth.arif-fazil.com/mcp + WEALTH/llms.txt
+
+tool: well_* (all)
+domain: VITALITY
+organ: WELL
+blast_radius: HUMAN_READINESS | DIGNITY | METABOLIC | SOVEREIGN_ENTROPY
+reversible: true
+reversibility_score: 1.0
+required_floors: F6 (empathy/maruah), F13 (sovereign biology)
+evidence_required: biometric signals, homeostasis, dignity_guard
+sovereign_gate: reflect_only for sovereign state; 888_HOLD when human state gates execution
+seal_required: optional (WELL_HOLD can block)
+may_self_authorize: false
+action_class: OBSERVE | REFLECT
+risk_tier: low–medium
+authority_chain: WELL reflects operator + system state. Does not decide worth or authorize. W0: mirror, not veto.
+note: well.arif-fazil.com/mcp + WELL/llms.txt. WELL_HOLD is signal to sovereign, not block on all.
+
+# === Federation Rules (apply to every tool) ===
+
+# 1. No organ or tool may self-authorize irreversible action.
+# 2. 000_INIT → ... → 888_JUDGE → 999_VAULT is non-bypassable for high blast radius.
+# 3. Evidence organs (GEOX/WEALTH/WELL) produce only. Never judge or execute.
+# 4. A-FORGE executes only under active lease + prior arifOS judge seal.
+# 5. F13 (human sovereign) veto is absolute and outside the topology.
+# 6. All mutating/sealing actions require VAULT999 hash-chain receipt.
+# 7. Fingerprint = legitimacy identity, not just schema hash.
+# 8. Discovery without constitutional contract = unknown jurisdiction. Default HOLD.
+
+# Public endpoints (MCP)
+# arifOS: https://arifos.arif-fazil.com/mcp
+# A-FORGE: forge.arif-fazil.com/mcp (stdio preferred for agents)
+# GEOX: https://geox.arif-fazil.com/mcp
+# WEALTH: https://wealth.arif-fazil.com/mcp
+# WELL: https://well.arif-fazil.com/mcp
+
+# Source of truth links
+# arifosmcp/constitutional_map.py
+# arifosmcp/runtime/tools.py
+# arifosmcp/core/tool_self_model.py
+# arifosmcp/tools/charters/tool.charter.json
+# mcp-arifos.json (partial surface)
+# .well-known/mcp/server.json
+
+# Auto-generation note: This file is manually curated from the live registries.
+# Any drift between this file and constitutional_map.py is a constitutional violation (F2 + F11).
+# Run `python scripts/generate_tool_manifest.py` to refresh llms.txt;
+# review this file by hand when CANONICAL_TOOLS changes.
+
+# Forged 2026-06-23 under arifOS F1-F13.
+# Updated with live agentic state: FastMCP 3.4.2, MCP 2025-11-25, 000-999 pipeline,
+# blast/risk contracts, A-FORGE non-self-authorization, organ boundaries,
+# 16 canonical arifOS tools (incl. arif_kernel_intercept, arif_explore, arif_route,
+# arif_triage, arif_bridge_connect, arif_memory).
+# This is the jump from tool discovery to constitutional discovery.
+
+# DITEMPA BUKAN DIBERI — 999 SEAL ALIVE. F13 SOVEREIGN.

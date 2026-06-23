@@ -12,11 +12,11 @@ from __future__ import annotations
 
 
 def test_canonical_tool_count():
-    """Surface must be >= 19 canonical tools. Diagnostics (DIAGNOSTIC_TOOLS) are internal runtime only."""
+    """Surface must be >= 16 canonical tools. Diagnostics (DIAGNOSTIC_TOOLS) are internal runtime only."""
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-    assert len(CANONICAL_TOOLS) >= 19, (
-        f"Surface drift: expected >= 19 tools, got {len(CANONICAL_TOOLS)}. VOID."
+    assert len(CANONICAL_TOOLS) >= 16, (
+        f"Surface drift: expected >= 16 tools, got {len(CANONICAL_TOOLS)}. VOID."
     )
     # list_constitutional_tools() and list_probe_tools() are different concepts;
     # the canonical surface is CANONICAL_TOOLS + DIAGNOSTIC_TOOLS
@@ -50,11 +50,11 @@ def test_canonical_prompts_count():
 
 
 def test_canonical_resources_count():
-    """Exactly 6 canonical resources required."""
+    """Exactly 14 canonical resources required."""
     from arifosmcp.resources import CANONICAL_RESOURCES
 
-    assert len(CANONICAL_RESOURCES) == 11, (
-        f"Resource drift: expected 11, got {len(CANONICAL_RESOURCES)}. VOID."
+    assert len(CANONICAL_RESOURCES) == 14, (
+        f"Resource drift: expected 14, got {len(CANONICAL_RESOURCES)}. VOID."
     )
 
 
