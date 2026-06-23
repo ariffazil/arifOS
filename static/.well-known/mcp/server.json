@@ -7,7 +7,7 @@
     "title": "arifOS Constitutional MCP Server",
     "version": "2026.06.14-SSCT"
   },
-  "description": "Governed MCP server exposing 13 constitutional AI operations + 3 lease tools + 3 forge ladder tools (19 total runtime surface). Human approval gates on irreversible actions, lease hard-block on mutation-class forge modes, VAULT999 immutable ledger, 888 Judge arbitration, and live thermodynamic telemetry.",
+  "description": "Governed MCP server exposing 16 constitutional AI operations + 12 SDK long-name aliases + 1 canary probe (29 total public surface). Human approval gates on irreversible actions, lease hard-block on mutation-class forge modes, VAULT999 immutable ledger, 888 Judge arbitration, and live thermodynamic telemetry.",
   "transport": {
     "type": "streamable-http",
     "endpoint": "https://arifos.arif-fazil.com/mcp"
@@ -32,7 +32,6 @@
     "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_TriWitness","L04_Clarity","L05_Peace2","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_Auditability","L12_Resilience","L13_Sovereign"],
     "extensionFloors": {"F0_PRIME": "draft", "F14_REGISTER": "DEAD_reborn_as_F2+F3_protocol", "F15_EPISTEMIC": "draft", "F16_GEOMETRIC": "draft", "F17_IGNITION": "draft"},
     "sovereignRulings": ["F14_REGISTER_DEAD_2026-06-13"]
-  }
   },
   "links": {
     "homepage": "https://arif-fazil.com/mcp",
@@ -43,12 +42,12 @@
     "constitution": "https://arif-fazil.com/000"
   },
   "tools": {
-    "count": 13,
+    "count": 29,
     "riskTiers": {
       "critical": ["arif_vault_seal","arif_forge_execute"],
-      "high": ["arif_judge_deliberate","arif_gateway_connect"],
+      "high": ["arif_judge_deliberate","arif_gateway_connect","arif_bridge_connect"],
       "medium": ["arif_evidence_fetch","arif_mind_reason","arif_heart_critique"],
-      "low": ["arif_session_init","arif_kernel_route","arif_reply_compose","arif_memory_recall","arif_ops_measure","arif_sense_observe"]
+      "low": ["arif_kernel_intercept","arif_session_init","arif_sense_observe","arif_reply_compose","arif_memory_recall","arif_ops_measure"]
     },
     "requiresHumanAck": ["arif_vault_seal","arif_forge_execute"]
   },

@@ -1,318 +1,68 @@
 {
-  "mcpVersion": "2025-11-25",
-  "name": "arifOS-APEX-G",
-  "version": "2026.05.04-CANONICAL-FIX",
-  "floors_count": 13,
-  "description": "Constitutional governance server — 13 canonical tools with F1-F13 floor enforcement. All tool names use arif_* canonical naming.",
-  "vendor": {
-    "name": "Muhammad Arif bin Fazil",
-    "url": "https://arif-fazil.com"
+  "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
+  "version": "1.0",
+  "protocolVersion": "2025-06-18",
+  "serverInfo": {
+    "name": "arifos-mcp",
+    "title": "arifOS Constitutional MCP Server",
+    "version": "2026.06.14-SSCT"
   },
-  "license": "AGPL-3.0-only",
-  "homepage": "https://github.com/ariffazil/arifosmcp",
-  "repository": "https://github.com/ariffazil/arifosmcp",
+  "description": "Governed MCP server exposing 16 constitutional AI operations + 12 SDK long-name aliases + 1 canary probe (29 total public surface). Human approval gates on irreversible actions, lease hard-block on mutation-class forge modes, VAULT999 immutable ledger, 888 Judge arbitration, and live thermodynamic telemetry.",
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://arifos.arif-fazil.com/mcp"
+  },
+  "authentication": {
+    "required": true,
+    "schemes": ["bearer"],
+    "headerName": "Authorization",
+    "envVar": "ARIFOS_API_KEY"
+  },
   "capabilities": {
-    "constitutional_floors": 13,
-    "public_surface": "canonical15",
-    "metabolic_routing": true,
-    "vault999": "postgresql+redis+merkle",
-    "vector_memory": "qdrant+bge-m3-1024dim",
-    "prompts": 8,
-    "resources": 5,
-    "apps": {
-      "available": true,
-      "ui_extension": "prefab-ui",
-      "entries": [
-        {
-          "id": "arifos_command_center",
-          "name": "arifOS Command Center",
-          "description": "Interactive MCP cockpit for governed session, ops, judge, forge, gateway, and vault review.",
-          "entry_tool": "arifos_command_center",
-          "status": "v0.1_evaluation_ready",
-          "risk_tier": "medium",
-          "default_mode": "dry_run_only",
-          "human_authority_required": true
-        }
-      ]
-    }
-  },
-  "serverUrl": "https://mcp.arif-fazil.com",
-  "llm_context": {
-    "schema": "arifos-llm-context/v1",
-    "canonical_tools": {
-      "init_anchor": "arif_init",
-      "evidence_sense": "arif_observe",
-      "agi_mind": "arif_think",
-      "route_meta": "arif_kernel_route",
-      "memory_recall": "arif_memory_recall",
-      "asi_heart": "arif_critique",
-      "ops_metrics": "arif_measure",
-      "apex_judge": "arif_judge",
-      "vault_seal": "arif_seal",
-      "forge_exec": "arif_forge",
-      "gateway_connect": "arif_gateway_connect",
-      "reply_compose": "arif_compose",
-      "vps_monitor": "arif_measure"
-    },
-    "tool_aliases": {
-      "arif.init": "arif_init",
-      "arif.sense": "arif_observe",
-      "arif.mind": "arif_think",
-      "arif.kernel": "arif_kernel_route",
-      "arif.route": "arif_kernel_route",
-      "arif.heart": "arif_critique",
-      "arif.ops": "arif_measure",
-      "arif.judge": "arif_judge",
-      "arif.memory": "arif_memory_recall",
-      "arif.vault": "arif_seal",
-      "arif.forge": "arif_forge",
-      "arif.gateway": "arif_gateway_connect",
-      "arif.health": "arif_measure",
-      "arif.reply": "arif_compose",
-      "init_anchor": "arif_init",
-      "physics_reality": "arif_observe",
-      "reality_compass": "arif_observe",
-      "agi_mind": "arif_think",
-      "agi_reason": "arif_think",
-      "asi_heart": "arif_critique",
-      "math_estimator": "arif_measure",
-      "apex_soul": "arif_judge",
-      "vault_ledger": "arif_seal",
-      "vault_seal": "arif_seal",
-      "code_engine": "arif_forge",
-      "vps_monitor": "arif_measure",
-      "architect_registry": "arif_init"
-    },
-    "discovery": {
-      "tool_contracts_resource": "arifos://contracts/tools",
-      "llm_context_resource": "arifos://mcp/context",
-      "server_json": "/.well-known/mcp/server.json"
-    },
-    "continuity_contract": {
-      "contract_version": "0.1.0",
-      "invariants": [
-        "authorization may not widen without authority_transition",
-        "session continuity must persist across tool handoff",
-        "canonical tool identity must remain explicit in every envelope"
-      ]
-    },
-    "domain_evidence_contract": {
-      "version": "geox-evidence/v1",
-      "accepted_sources": [
-        "GEOX"
-      ],
-      "fields": [
-        "claim_tag",
-        "asset_id",
-        "disagreement_band",
-        "p10_p50_p90",
-        "charge_probability",
-        "vault_receipt"
-      ],
-      "bindings": {
-        "sense": "arifos_sense(domain_evidence=...)",
-        "judge": "arifos_judge(domain_evidence=...)",
-        "memory_store": "arifos_memory(mode='asset_store', ...)",
-        "memory_query": "arifos_memory(mode='asset_query', ...)"
-      }
-    }
-  },
-  "tools": [
-    {
-      "name": "arif_ping",
-      "description": "Lightweight liveness probe — confirms kernel reachability.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_selftest",
-      "description": "Constitutional integrity probe — verifies the floor stack is intact.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_init",
-      "description": "Start a governed session and bind identity/context.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_observe",
-      "description": "Observe live signals from the environment and runtime.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_think",
-      "description": "Run governed reasoning over evidence and active context.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_critique",
-      "description": "Critique a candidate action against values, risk, and floors.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_kernel_route",
-      "description": "Route work through the constitutional kernel and routing policy.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_forge",
-      "description": "Execute an approved action through the forge lane.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_judge",
-      "description": "Deliberate on a candidate action and return a verdict path.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_seal",
-      "description": "Record the governed outcome into the audit trail.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_measure",
-      "description": "Measure operational state, economics, and execution thermodynamics.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_memory_recall",
-      "description": "Recall relevant prior context and anchored memory.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_fetch",
-      "description": "Fetch evidence from external or local sources with traceability.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_compose",
-      "description": "Compose a governed response aligned to active mandate and evidence.",
-      "inputSchema": {}
-    },
-    {
-      "name": "arif_gateway_connect",
-      "description": "Bridge into federated capability lanes through governed routing.",
-      "inputSchema": {}
-    }
-  ],
-  "resources": [
-    {
-      "name": "Constitutional Doctrine",
-      "description": "The eternal law of arifOS (Ψ).",
-      "mimeType": "application/json",
-      "uri": "arifos://doctrine"
-    },
-    {
-      "name": "System Vitals",
-      "description": "Real-time metabolic telemetry (Ω).",
-      "mimeType": "application/json",
-      "uri": "arifos://vitals"
-    },
-    {
-      "name": "Complete Blueprint",
-      "description": "Technical schema and ABI definitions (Δ).",
-      "mimeType": "application/json",
-      "uri": "arifos://schema"
-    },
-    {
-      "name": "Execution Bridge",
-      "description": "Signed execution manifests and receipts.",
-      "mimeType": "application/json",
-      "uri": "arifos://forge"
-    }
-  ],
-  "resourceTemplates": [
-    {
-      "name": "Ephemeral Instance",
-      "description": "Active session state and governance context.",
-      "mimeType": "application/json",
-      "uriTemplate": "arifos://session/{id}"
-    }
-  ],
-  "prompts": [
-    {
-      "name": "system",
-      "description": "Constitutional system context — arifOS F1-F13 governance floor",
-      "arguments": []
-    },
-    {
-      "name": "judge",
-      "description": "888_JUDGE verdict engine context — deliberative decision protocol",
-      "arguments": []
-    },
-    {
-      "name": "init",
-      "description": "000_INIT session anchor context — temporal + identity grounding",
-      "arguments": []
-    },
-    {
-      "name": "rsi",
-      "description": "Recursive Self-Improvement meta-skill — AGI reflection protocol",
-      "arguments": []
-    },
-    {
-      "name": "ortho",
-      "description": "Orthogonal correction meta-skill — drift detection and correction",
-      "arguments": []
-    },
-    {
-      "name": "epistemic",
-      "description": "Epistemic hygiene meta-skill — uncertainty and confidence framing",
-      "arguments": []
-    },
-    {
-      "name": "governance",
-      "description": "Governance awareness meta-skill — constitutional floor context",
-      "arguments": []
-    },
-    {
-      "name": "entropy",
-      "description": "Entropy management meta-skill — disorder detection and ordering",
-      "arguments": []
-    }
-  ],
-  "schema": {
-    "input": {
-      "arif_ping": {},
-      "arif_selftest": {},
-      "arif_init": {},
-      "arif_observe": {},
-      "arif_think": {},
-      "arif_critique": {},
-      "arif_kernel_route": {},
-      "arif_forge": {},
-      "arif_judge": {},
-      "arif_seal": {},
-      "arif_measure": {},
-      "arif_memory_recall": {},
-      "arif_fetch": {},
-      "arif_compose": {},
-      "arif_gateway_connect": {}
-    }
-  },
-  "platform_agnostic": true,
-  "model_agnostic": true,
-  "protocol": {
-    "standard": "MCP",
-    "transports": ["streamable_http"],
-    "endpoint": "https://mcp.arif-fazil.com/mcp"
-  },
-  "apps": {
-    "supported": true,
-    "extension": "io.modelcontextprotocol/ui",
-    "fallback_required": true,
-    "fallback_modes": ["text", "json"],
-    "primary_app": {
-      "id": "arifos_command_center",
-      "name": "arifOS Command Center MCP",
-      "description": "Interactive governance cockpit for arifOS MCP.",
-      "ui_resource": "ui://arifos/command-center.html"
-    }
+    "tools": { "listChanged": true },
+    "resources": { "subscribe": true, "listChanged": true },
+    "prompts": { "listChanged": true }
   },
   "governance": {
-    "authority": "Human 888 Judge",
-    "self_approval_allowed": false,
-    "audit_required": true,
-    "default_mode": "dry_run_only",
-    "irreversible_actions_require_ack": true
+    "humanApprovalRequiredForIrreversibleActions": true,
+    "selfApprovalForbidden": true,
+    "auditRequired": true,
+    "defaultMutationMode": "dry_run",
+    "leaseRequiredForMutation": true,
+    "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_TriWitness","L04_Clarity","L05_Peace2","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_Auditability","L12_Resilience","L13_Sovereign"],
+    "extensionFloors": {"F0_PRIME": "draft", "F14_REGISTER": "DEAD_reborn_as_F2+F3_protocol", "F15_EPISTEMIC": "draft", "F16_GEOMETRIC": "draft", "F17_IGNITION": "draft"},
+    "sovereignRulings": ["F14_REGISTER_DEAD_2026-06-13"]
+  },
+  "links": {
+    "homepage": "https://arif-fazil.com/mcp",
+    "status": "https://arif-fazil.com/mcp/status",
+    "explorer": "https://arif-fazil.com/mcp/explore",
+    "validator": "https://arif-fazil.com/mcp/validator",
+    "observability": "https://arif-fazil.com/mcp/observability",
+    "constitution": "https://arif-fazil.com/000"
+  },
+  "tools": {
+    "count": 29,
+    "riskTiers": {
+      "critical": ["arif_vault_seal","arif_forge_execute"],
+      "high": ["arif_judge_deliberate","arif_gateway_connect","arif_bridge_connect"],
+      "medium": ["arif_evidence_fetch","arif_mind_reason","arif_heart_critique"],
+      "low": ["arif_kernel_intercept","arif_session_init","arif_sense_observe","arif_reply_compose","arif_memory_recall","arif_ops_measure"]
+    },
+    "requiresHumanAck": ["arif_vault_seal","arif_forge_execute"]
+  },
+  "resources": {
+    "count": 5,
+    "uris": [
+      "arifos://doctrine",
+      "arifos://vitals",
+      "arifos://schema",
+      "arifos://session/{session_id}",
+      "arifos://forge"
+    ]
+  },
+  "prompts": {
+    "count": 8,
+    "names": ["system","judge","init","rsi","ortho","epistemic","governance","entropy"]
   }
 }
