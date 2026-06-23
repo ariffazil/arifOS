@@ -84,6 +84,7 @@ from starlette.responses import JSONResponse  # noqa: E402
 
 from arifosmcp.constitutional_map import (  # noqa: E402
     CANONICAL_TOOLS,
+    DIAGNOSTIC_TOOLS,
     list_canonical_tools,
     list_constitutional_tools,
     list_probe_tools,
@@ -1289,11 +1290,8 @@ async def mcp_health(request: Request) -> JSONResponse:
     )
 
 
-app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
-# Single source of truth: CANONICAL_TOOLS + DIAGNOSTIC_TOOLS from constitutional_map.
-# These counts are derived live — no hardcoded numbers, no stale comments.
-from arifosmcp.constitutional_map import DIAGNOSTIC_TOOLS
-
+app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
+# Counts are derived live from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (imported above).
 _actual_canonical_count = len(CANONICAL_TOOLS)
 _actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)
 _actual_total_count = _actual_canonical_count + _actual_diagnostic_count
@@ -1629,8 +1627,11 @@ if app:
         falsification = run_falsification_probes()
         falsification_failures = sum(1 for v in falsification.values() if not v["passed"])
 
-        _f = lambda k: bool(checks.get(k, False))
-        _n = lambda k: int(checks.get(k, 0) or 0)
+        def _f(k: str) -> bool:
+            return bool(checks.get(k, False))
+
+        def _n(k: str) -> int:
+            return int(checks.get(k, 0) or 0)
         has_registry = _n("model_souls_registered") >= 3
         has_shadows = _n("model_shadows_registered") >= 3
         has_reality = _n("reality_stack_modules") >= 7

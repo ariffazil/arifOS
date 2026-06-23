@@ -270,7 +270,7 @@ def post_observe_gate(
 
     policy_applied = None
     if anon:
-        if ac_str == "OBSERVE" and reversible:
+        if ac_str == "OBSERVE" and reversible and f12_total_hits == 0 and f09_total_hits == 0:
             c_dark = 0.0
             verdict = "PASS"
             advice = "OBSERVE anonymous reversible: anonymity is acceptable for read-only. PASS (c_dark=0)."

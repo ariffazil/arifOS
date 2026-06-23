@@ -301,17 +301,18 @@ class VaultDB:
             row = await conn.fetchrow(
                 """
                 INSERT INTO vault_seals (
-                    event_type, session_id, actor_id, action_type,
+                    event_type, session_id, actor_id, agent_id, action_type,
                     seal_hash, chain_hash, prev_seal_id,
                     action, payload, verdict, epoch, witness,
                     signature, signed_by, sealed_at
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
                 )
                 RETURNING id, seal_hash, chain_hash, epoch
             """,
                 "SOVEREIGN_SEAL",
                 req.session_id,
+                req.agent_id,
                 req.agent_id,
                 req.irreversibility_class or "general",
                 seal_hash,
@@ -360,17 +361,18 @@ class VaultDB:
             row = await conn.fetchrow(
                 """
                 INSERT INTO vault_seals (
-                    event_type, session_id, actor_id, action_type,
+                    event_type, session_id, actor_id, agent_id, action_type,
                     seal_hash, chain_hash, prev_seal_id,
                     action, payload, verdict, epoch, witness,
                     signature, signed_by, sealed_at
                 ) VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
                 )
                 RETURNING id, seal_hash, chain_hash, epoch
             """,
                 "AUDIT_RECEIPT",
                 req.session_id,
+                req.agent_id,
                 req.agent_id,
                 "audit",
                 seal_hash,

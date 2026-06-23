@@ -40,7 +40,9 @@ class Law(StrEnum):
 
     L01_AMANAH = "L01"  # Reversibility as conservation law (∃ undo)
     L02_TRUTH = "L02"  # Uncertainty as first-class citizen (τ ≥ 0.99)
-    L03_WITNESS = "L03"  # Quad-witness consensus (W₄ ≥ 0.75) — human · ai · earth · system (H·A·E·S)
+    L03_WITNESS = (
+        "L03"  # Quad-witness consensus (W₄ ≥ 0.75) — human · ai · earth · system (H·A·E·S)
+    )
     L04_CLARITY = "L04"  # Entropy reduction as progress (ΔS ≤ 0)
     L05_PEACE = "L05"  # Non-destruction as baseline (P² ≥ 1.0)
     L06_EMPATHY = "L06"  # RASA as protocol (κᵣ ≥ 0.70)
@@ -472,7 +474,12 @@ def preflight(
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_kernel_intercept": {
         "name": "arif_kernel_intercept",
-        "description": "888_INTERCEPT: The Minimum Constitutional Kernel. Brutalist interceptor for all agent actions. Takes KernelInput, returns KernelOutput (ALLOW, DENY, ESCALATE, SIMULATE). Replaces the legacy judge for core operational enforcement. Mandatory for all mutating and external actions.",
+        "description": (
+            "Minimum Constitutional Kernel — brutalist interceptor for all agent actions. "
+            "Takes action details and returns ALLOW, DENY, ESCALATE, or SIMULATE verdict. "
+            "Use for any mutating or external action that needs constitutional clearance. "
+            "Returns verdict with reasoning and floor violations."
+        ),
         "access": "public",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
@@ -486,7 +493,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_init": {
         "name": "arif_init",
-        "description": "000_INIT: Session bootstrap + identity binding. CALL FIRST on every agentic session — no audit trail, no floor enforcement, no actor binding without this. Do NOT call GEOX/WEALTH/WELL tools before calling this. Parameters: mode (init|light|resume|validate|epoch_open|epoch_seal), actor_id, session_id. Use mode='light' for fast (<1s) bootstrap with tool pointers; mode='init' for full constitutional binding (slow, ~60s).",  # noqa: E501
+        "description": (
+            "Start or resume a governed session. CALL THIS FIRST before any other tool. "
+            "Binds identity, creates audit trail, activates floor enforcement. "
+            "Use mode='light' for fast bootstrap (<1s). Use mode='init' for full binding (~60s). "
+            "Returns session_id needed by all other tools."
+        ),
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
@@ -510,7 +522,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_observe": {
         "name": "arif_observe",
-        "description": "111_OBSERVE: Multimodal reality observation and hybrid discovery. Call this for: web search, local wiki and repo index discovery (hybrid_discovery), checking system state, grounding session in current reality. Hybrid discovery is READ-ONLY evidence retrieval — it finds but does not store. Agents should pass findings to arif_think or arif_memory_recall as appropriate. Parameters: mode (search|hybrid_discovery|ingest|compass|atlas|entropy_dS|vitals), query, url, layers, session_id, actor_id.",  # noqa: E501
+        "description": (
+            "Search the web, check system vitals, or gather real-world data. "
+            "Use mode='search' for web search, mode='ingest' to fetch a URL, "
+            "mode='vitals' for CPU/memory/disk state. "
+            "Returns results with source citations and uncertainty tags."
+        ),
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
@@ -532,7 +549,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_fetch": {
         "name": "arif_fetch",
-        "description": "222_EVIDENCE: Verified external evidence retrieval with source-of-truth grounding. Call this when: a claim needs external citation, Arif needs live data before deciding, or reasoning requires factual grounding. Do NOT call this for general browsing (use arif_observe) or reasoning over already-gathered data (use arif_think). Parameters: mode (fetch|search|eureka), url, query (the evidence query string), thinking_depth, sequential_mode, session_id, actor_id.",  # noqa: E501
+        "description": (
+            "Fetch and preserve external evidence with source citations. "
+            "Use when a claim needs verified backing or factual grounding. "
+            "Provide url to fetch a specific page, or query to search for evidence. "
+            "Returns content with provenance tags and confidence scores."
+        ),
         "access": "public",
         "stage": ToolStage.EVIDENCE,
         "lane": TrinityLane.AGI,
@@ -555,7 +577,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_think": {
         "name": "arif_think",
-        "description": "333_REASON: Symbolic reasoning kernel — epistemically honest, self-critiquing, confidence-labeled. Call this for: complex multi-step reasoning, plan generation, refactor planning, cross-domain analysis, hypothesis evaluation. Labels its own uncertainty (F7). Do NOT call this for domain-specific calculations — use GEOX/WEALTH for those. Parameters: mode (reason|reflect|verify|critique|plan|plan_review|plan_approve|refactor_plan|metabolize), query (the reasoning prompt), plan_id, witness_type, session_id, actor_id.",  # noqa: E501
+        "description": (
+            "Multi-step reasoning, planning, and reflection with confidence labeling. "
+            "Use for complex analysis, hypothesis evaluation, plan generation. "
+            "Provide query with the question or problem to reason about. "
+            "Use mode='plan' to generate execution plans, mode='reflect' to self-critique. "
+            "Returns reasoning with confidence scores and uncertainty bands."
+        ),
         "access": "public",
         "stage": ToolStage.REASON,
         "lane": TrinityLane.AGI,
@@ -590,7 +618,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_critique": {
         "name": "arif_critique",
-        "description": "666_HEART: Ethical critique and consequence assessment against F1-L13 floors. Call this before: irreversible actions, decisions affecting dignity or human welfare, forge execution, or any proposal that may violate constitutional floors. Do NOT call this to make the final decision — that belongs to arif_judge. Modes: critique | simulate | redteam | maruah | deescalate | empathy. Parameters: mode, target, session_id, actor_id. Updated 2026-06-22: ethical constraint set now includes anti-capture (wealth_capture_scan integration), anti-hallucination (C_dark ≤ 0.30 hard enforcement), and dignity-first escalation (maruah mode).",  # noqa: E501
+        "description": (
+            "Assess ethical risks and human impact before acting. "
+            "Use before irreversible actions, decisions affecting dignity, or forge execution. "
+            "Provide target (the action/decision to critique). "
+            "Use mode='redteam' for adversarial analysis, mode='maruah' for dignity impact. "
+            "Returns risk assessment with floor violations and recommendations."
+        ),
         "access": "public",
         "stage": ToolStage.FORGE,
         "lane": TrinityLane.ASI,
@@ -612,7 +646,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     # ── CANONICAL TOOLS (RULE 14 MODE-FIRST NAMING, 2026-06-20) ──
     "arif_route": {
         "name": "arif_route",
-        "description": "555_ROUTE_CANONICAL: New canonical routing entry point. Routes an intent to the correct organ (GEOX, WEALTH, WELL, A-FORGE) using the organ_intent_map.yaml. Replaces arif_kernel_route(mode=route|delegate|bridge) for intent-based routing. For direct organ tool call with known organ+tool, use arif_bridge. Parameters: intent (natural language), organ (explicit override, optional), organ_tool (tool to call, optional), arguments (tool args), actor_id, session_id.",  # noqa: E501
+        "description": (
+            "Routes a natural-language intent to the correct federation organ. "
+            "Use when you know what you want but not which tool to call. "
+            "Provide intent describing the task (e.g., 'interpret this seismic section'). "
+            "Returns routing decision with organ, tool, and arguments."
+        ),
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -626,7 +665,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_triage": {
         "name": "arif_triage",
-        "description": "555_TRIAGE: Session status, preflight, and priority classification. Replaces arif_kernel_route(mode=status|preflight|triage). Modes: status (active session count + current stage), preflight (pre-session safety probe, no session required), triage (priority classification for a task). Parameters: mode (status|preflight|triage), session_id, stage, actor_id, priority.",
+        "description": (
+            "Constitutional preflight check. Returns kernel status, current holds, "
+            "and the correct lane for a proposed action before execution. "
+            "Use mode='status' for session count, mode='preflight' for safety probe, "
+            "mode='triage' for priority classification. "
+            "Returns status with holds, stage, and recommendations."
+        ),
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -638,10 +683,14 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "boundary",
         "expose": True,
     },
-
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",
-        "description": "555_BRIDGE_CONNECT (CANONICAL, forged 2026-06-21): Low-level direct organ tool call. Bypasses intent map — caller must specify organ and tool_name. Use arif_route for intent-based routing. Use arif_bridge_connect only when organ and tool are known ahead of time. Follows arif_<noun>_<verb> naming convention (bridge=organ bridge, connect=verb). Parameters: organ (geox|wealth|well|geox), tool_name, arguments, actor_id, session_id.",
+        "description": (
+            "Low-level direct organ tool call. Bypasses intent routing — caller must specify "
+            "organ and tool_name. Use only when both are known ahead of time. "
+            "Provide organ (geox|wealth|well), tool_name, and arguments. "
+            "Returns organ response with provenance tags."
+        ),
         "access": "authenticated",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -653,12 +702,14 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "boundary",
         "expose": True,
     },
-
-
-
     "arif_compose": {
         "name": "arif_compose",
-        "description": "444_REPLY: Governed response composition — formats final output for Arif with citations and tone calibration. Call this as the LAST step before presenting results to Arif. Do NOT call this mid-pipeline — only after reasoning and judgment are complete. Parameters: mode (compose|summarize|cite|tone_shift), message (the content to compose), style, citations, session_id, actor_id.",  # noqa: E501
+        "description": (
+            "Compose the final response for the user. Call this LAST, after reasoning and judgment are complete. "
+            "Provide message with the content to compose. "
+            "Use mode='summarize' for brief output, mode='cite' to include sources. "
+            "Returns formatted response with tone calibration and citations."
+        ),
         "access": "public",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
@@ -677,13 +728,27 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_memory": {
         "name": "arif_memory",
-        "description": "555_MEMORY v5: Federated memory tool — 7 canonical modes (recall|inspect|attest|remember|promote|revise|forget). Supersedes arif_memory_recall v4. Per Action-Class split: OBSERVE (recall|inspect|attest), MUTATE (remember|promote|revise), ATOMIC (forget). Hybrid recall cascade: vector (Qdrant L3) → graph (FalkorDB/Graphiti L5) → vault (VAULT999 v2 L6). Floor enforcement: B3 truth_class, B5 revise-supersede, C3 graph-mandatory cascade, A4 v1 tombstone gating. L13 SOVEREIGN mandatory for forget. Parameters: mode, payload, session_id, actor_id, lease_id, human_approval, trace_id, idempotency_key. See ADR-010 for L4 canonical-band + no-bypass rule.",  # noqa: E501
+        "description": (
+            "Federated memory tool — 7 canonical modes: "
+            "recall (search memories), inspect (view details), attest (verify), "
+            "remember (store new), promote (escalate tier), revise (update), forget (delete). "
+            "Use for storing, retrieving, and governing memory across the 6-layer stack. "
+            "Returns memory entries with provenance and truth-class tags."
+        ),
         "access": "public",
         "stage": ToolStage.MEMORY,
         "lane": TrinityLane.AGI,
-        "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L04_CLARITY, Law.L08_GENIUS, Law.L11_AUDIT, Law.L12_INJECTION, Law.L13_SOVEREIGN],
+        "floors": [
+            Law.L01_AMANAH,
+            Law.L02_TRUTH,
+            Law.L04_CLARITY,
+            Law.L08_GENIUS,
+            Law.L11_AUDIT,
+            Law.L12_INJECTION,
+            Law.L13_SOVEREIGN,
+        ],
         "risk_tier": "medium",
-        "irreversible": True,   # forget mode is IRREVERSIBLE on recall + writes tombstone to vault
+        "irreversible": True,  # forget mode is IRREVERSIBLE on recall + writes tombstone to vault
         "modes": ["recall", "inspect", "attest", "remember", "promote", "revise", "forget"],
         "eureka_insight": (
             "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). "
@@ -701,11 +766,15 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "schema_version": 5,
         "deprecated_aliases": ["arif_memory_recall"],
     },
-
-
     "arif_judge": {
         "name": "arif_judge",
-        "description": "888_JUDGE: Final constitutional arbitration — renders SEAL/HOLD/VOID verdicts. Call this before: any irreversible action, deployment, or consequential decision. Requires domain_evidence from GEOX/WEALTH/WELL as input. Do NOT call this first — must be preceded by sense→evidence→reason→critique pipeline. Parameters: mode (judge|validate|hold|rules|armor|probe|notify), candidate (the action/decision to judge), constitutional_chain_id, session_id, actor_id (required).",  # noqa: E501
+        "description": (
+            "Render final constitutional verdict on a proposed action. "
+            "Use when a decision is ready for arbitration and binding judgment. "
+            "Provide candidate (the action/decision to judge). "
+            "Returns verdict: SEAL (approved), HOLD (needs more info), or VOID (rejected). "
+            "Must be preceded by arif_critique for ethical assessment."
+        ),
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
@@ -723,7 +792,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_seal": {
         "name": "arif_seal",
-        "description": "999_SEAL: Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999. Call this LAST to permanently record any decision, verdict, or completed workflow. Irreversible — requires ack_irreversible=True and a preceding arif_judge SEAL verdict. Do NOT call this mid-pipeline or speculatively. Parameters: mode (seal|verify|ledger|changelog|audit), payload, ack_irreversible (bool, required), actor_id (required), constitutional_chain_id, judge_state_hash, session_id.",  # noqa: E501
+        "description": (
+            "Seal a verdict or outcome to the immutable audit ledger. "
+            "Use for final, irreversible records that must be preserved forever. "
+            "Provide payload with the content to seal. "
+            "Requires ack_irreversible=True and a preceding arif_judge SEAL verdict. "
+            "Returns seal_id and hash for permanent reference."
+        ),
         "access": "authenticated",
         "stage": ToolStage.SEAL,
         "lane": TrinityLane.APEX,
@@ -740,7 +815,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_forge": {
         "name": "arif_forge",
-        "description": "010_FORGE_EXECUTE: Build execution — code generation, artifact creation, system modification. Call this for: writing code, generating files, executing build commands. Requires arif_judge SEAL before side-effects are live (dry_run by default). Do NOT call this without a preceding judge verdict on consequential changes. Parameters: mode (engineer|query|write|generate|commit|recall|dry_run), manifest (the build manifest/instructions), query, artifact_id, ack_irreversible (bool), actor_id (required), constitutional_chain_id, judge_state_hash, vault_entry_id, plan_id, session_id.",  # noqa: E501
+        "description": (
+            "Execute approved builds, deployments, or system changes. "
+            "Use ONLY after arif_judge has issued a SEAL verdict. "
+            "Provide manifest with build instructions or query for code generation. "
+            "Use mode='dry_run' to preview without executing. "
+            "Requires ack_irreversible=True for live execution."
+        ),
         "access": "sovereign",
         "stage": ToolStage.FORGE_EXECUTE,
         "lane": TrinityLane.AGI,
@@ -766,7 +847,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_measure": {
         "name": "arif_measure",
-        "description": "777_MEASURE: Machine resource health + governance thermodynamics (g_score, entropy delta, Ω). Call this for: VPS CPU/RAM/disk state, arifOS reasoning quality metrics, or pre-forge health check. Do NOT use this for Arif's biological/cognitive state — use WELL:well_assess_metabolism for that. Parameters: mode (health|vitals|cost|genius|psi_le|omega|landauer|topology|drift), estimate, session_id, actor_id.",  # noqa: E501
+        "description": (
+            "Check system health, thermodynamic state, and resource metrics. "
+            "Use for operational status and metabolic monitoring. "
+            "Use mode='health' for overall status, mode='vitals' for CPU/memory/disk, "
+            "mode='topology' for service map, mode='drift' for config drift detection. "
+            "Returns metrics with health scores and recommendations."
+        ),
         "access": "public",
         "stage": ToolStage.MEASURE,
         "lane": TrinityLane.AGI,
@@ -930,7 +1017,14 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "risk_tier": "low",
         "irreversible": False,
         "floors": [],
-        "modes": ["ping", "schema_echo", "version_echo", "transport_echo", "initialize_probe", "conformance_report"],
+        "modes": [
+            "ping",
+            "schema_echo",
+            "version_echo",
+            "transport_echo",
+            "initialize_probe",
+            "conformance_report",
+        ],
         "tags": ["canary", "diagnostic", "transport", "multimode"],
     },
     # ── Individual canary names (DEPRECATED → arif_canary) ──
@@ -1302,7 +1396,6 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["status", "info", "health"],
         "tags": ["diagnostic", "paradox", "epistemic"],
     },
-
     # ── MCP Gate v0 — Constitutional Gate (2026-06-14) ─────────────────
     # The wedge: determines whether MCP-powered agents may touch the world.
     "arif_gate_judge": {
@@ -1320,14 +1413,19 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "lane": TrinityLane.AGI,
         "risk_tier": "low",
         "irreversible": False,
-        "floors": [Law.L01_AMANAH, Law.L04_CLARITY, Law.L08_GENIUS, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "floors": [
+            Law.L01_AMANAH,
+            Law.L04_CLARITY,
+            Law.L08_GENIUS,
+            Law.L11_AUDIT,
+            Law.L13_SOVEREIGN,
+        ],
         "modes": ["judge"],
         "tags": ["gate", "constitutional", "mcp", "infrastructure", "deprecated"],
         "_deprecated": True,
         "_canonical_name": "art_gate",
         "_deprecation_note": "This is ART.gate() — a function, not a tool. Should be runtime/art/gate.py, not a registered MCP tool.",
     },
-
     # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ───────────────────
     "arif_self_evaluate": {
         "name": "arif_self_evaluate",
@@ -1419,9 +1517,7 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
 # Note: actual MCP registration count may differ slightly from this dict
 # due to runtime-only registrations. The /health contract_status.tool_count
 # is authoritative for the live wire surface.
-FULL_SURFACE_TOOLS: tuple[str, ...] = (
-    CONSTITUTIONAL_TOOLS + tuple(DIAGNOSTIC_TOOLS.keys())
-)
+FULL_SURFACE_TOOLS: tuple[str, ...] = CONSTITUTIONAL_TOOLS + tuple(DIAGNOSTIC_TOOLS.keys())
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MCP ANNOTATIONS — derived from action_class, NOT hand-set
@@ -1541,6 +1637,7 @@ def _action_class_for_tool(tool_name: str, spec: dict[str, Any] | None = None) -
     # 1. Try the risk registry first
     try:
         from arifosmcp.runtime.tool_risk_registry import classify_tool
+
         profile = classify_tool(tool_name)
         if profile and profile.action_class != "OBSERVE":
             # Only use registry if it has a non-default classification
@@ -1590,193 +1687,249 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     # CANONICAL TOOLS — action_class from tool_risk_registry.py
     # ═══════════════════════════════════════════════════════════════════
     "arif_init": derive_mcp_annotations(
-        "PREPARE", title="Init Session",
+        "PREPARE",
+        title="Init Session",
     ),
     "arif_observe": derive_mcp_annotations(
-        "OBSERVE", title="Sense & Observe",
+        "OBSERVE",
+        title="Sense & Observe",
     ),
     "arif_fetch": derive_mcp_annotations(
-        "OBSERVE", title="Fetch Evidence",
+        "OBSERVE",
+        title="Fetch Evidence",
     ),
     "arif_think": derive_mcp_annotations(
-        "ANALYZE", title="Mind Reason",
+        "ANALYZE",
+        title="Mind Reason",
     ),
     "arif_critique": derive_mcp_annotations(
-        "ANALYZE", title="Heart Critique",
+        "ANALYZE",
+        title="Heart Critique",
     ),
     "arif_compose": derive_mcp_annotations(
-        "ANALYZE", title="Reply Compose",
+        "ANALYZE",
+        title="Reply Compose",
     ),
     "arif_judge": derive_mcp_annotations(
-        "DRAFT", title="Judge Deliberate",
+        "DRAFT",
+        title="Judge Deliberate",
     ),
     "arif_seal": derive_mcp_annotations(
-        "IRREVERSIBLE", title="Vault Seal", is_irreversible=True,
+        "IRREVERSIBLE",
+        title="Vault Seal",
+        is_irreversible=True,
     ),
     "arif_forge": derive_mcp_annotations(
-        "MUTATE", title="Forge Execute", is_irreversible=True,
+        "MUTATE",
+        title="Forge Execute",
+        is_irreversible=True,
     ),
     "arif_measure": derive_mcp_annotations(
-        "OBSERVE", title="Ops Measure",
+        "OBSERVE",
+        title="Ops Measure",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # RULE-14 DIAGNOSTIC TOOLS — action_class from kernel_canonical spec
     # ═══════════════════════════════════════════════════════════════════
     "arif_route": derive_mcp_annotations(
-        "ANALYZE", title="Route",
+        "ANALYZE",
+        title="Route",
     ),
     "arif_triage": derive_mcp_annotations(
-        "ANALYZE", title="Triage",
+        "ANALYZE",
+        title="Triage",
     ),
     "arif_bridge_connect": derive_mcp_annotations(
-        "BRIDGE", title="Bridge Connect",
+        "BRIDGE",
+        title="Bridge Connect",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # CHATGPT COMPATIBILITY SHIM — OBSERVE-class, read-only, open-world
     # ═══════════════════════════════════════════════════════════════════
     "arif_search": derive_mcp_annotations(
-        "OBSERVE", title="Search (ChatGPT Compat)",
+        "OBSERVE",
+        title="Search (ChatGPT Compat)",
     ),
     "arif_fetch": derive_mcp_annotations(
-        "OBSERVE", title="Fetch (ChatGPT Compat)",
+        "OBSERVE",
+        title="Fetch (ChatGPT Compat)",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # HERMES TOOLS (7) — all OBSERVE/ANALYZE (read-only cross-verification)
     # ═══════════════════════════════════════════════════════════════════
     "hermes_system_status": derive_mcp_annotations(
-        "OBSERVE", title="System Status",
+        "OBSERVE",
+        title="System Status",
     ),
     "hermes_vault_query": derive_mcp_annotations(
-        "OBSERVE", title="Vault Query",
+        "OBSERVE",
+        title="Vault Query",
     ),
     "hermes_epistemic_check": derive_mcp_annotations(
-        "ANALYZE", title="Epistemic Check",
+        "ANALYZE",
+        title="Epistemic Check",
     ),
     "hermes_fact_check": derive_mcp_annotations(
-        "ANALYZE", title="Fact Check",
+        "ANALYZE",
+        title="Fact Check",
     ),
     "hermes_cross_verify": derive_mcp_annotations(
-        "ANALYZE", title="Cross Verify",
+        "ANALYZE",
+        title="Cross Verify",
     ),
     "hermes_plan_review": derive_mcp_annotations(
-        "ANALYZE", title="Plan Review",
+        "ANALYZE",
+        title="Plan Review",
     ),
     "hermes_memory_steward": derive_mcp_annotations(
-        "ANALYZE", title="Memory Steward",
+        "ANALYZE",
+        title="Memory Steward",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # CANARY TOOLS (6) — zero-floor transport diagnostics, all OBSERVE
     # ═══════════════════════════════════════════════════════════════════
     "arif_canary": derive_mcp_annotations(
-        "OBSERVE", title="Canary (multimode)",
+        "OBSERVE",
+        title="Canary (multimode)",
     ),
     "arif_ping": derive_mcp_annotations(
-        "OBSERVE", title="Ping [DEPRECATED]",
+        "OBSERVE",
+        title="Ping [DEPRECATED]",
     ),
     "arif_schema_echo": derive_mcp_annotations(
-        "OBSERVE", title="Schema Echo",
+        "OBSERVE",
+        title="Schema Echo",
     ),
     "arif_version_echo": derive_mcp_annotations(
-        "OBSERVE", title="Version Echo",
+        "OBSERVE",
+        title="Version Echo",
     ),
     "arif_transport_echo": derive_mcp_annotations(
-        "OBSERVE", title="Transport Echo",
+        "OBSERVE",
+        title="Transport Echo",
     ),
     "arif_initialize_probe": derive_mcp_annotations(
-        "ANALYZE", title="Initialize Probe",
+        "ANALYZE",
+        title="Initialize Probe",
     ),
     "arif_conformance_report": derive_mcp_annotations(
-        "ANALYZE", title="Conformance Report",
+        "ANALYZE",
+        title="Conformance Report",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # LEASE TOOLS (3) — state-changing authority management
     # ═══════════════════════════════════════════════════════════════════
     "arif_lease_inspect": derive_mcp_annotations(
-        "OBSERVE", title="Lease Inspect",
+        "OBSERVE",
+        title="Lease Inspect",
     ),
     "arif_lease_issue": derive_mcp_annotations(
-        "MUTATE", title="Lease Issue",
+        "MUTATE",
+        title="Lease Issue",
     ),
     "arif_lease_revoke": derive_mcp_annotations(
-        "IRREVERSIBLE", title="Lease Revoke", is_irreversible=True,
+        "IRREVERSIBLE",
+        title="Lease Revoke",
+        is_irreversible=True,
     ),
     # ═══════════════════════════════════════════════════════════════════
     # ATTEST TOOLS (7) — read-only federation health verification
     # ═══════════════════════════════════════════════════════════════════
     "arif_os_attest": derive_mcp_annotations(
-        "OBSERVE", title="OS Attest",
+        "OBSERVE",
+        title="OS Attest",
     ),
     "arif_organ_attest": derive_mcp_annotations(
-        "ANALYZE", title="Organ Attest",
+        "ANALYZE",
+        title="Organ Attest",
     ),
     "arif_organ_attest_all": derive_mcp_annotations(
-        "ANALYZE", title="Organ Attest All",
+        "ANALYZE",
+        title="Organ Attest All",
     ),
     "arif_heartbeat": derive_mcp_annotations(
-        "OBSERVE", title="Heartbeat",
+        "OBSERVE",
+        title="Heartbeat",
     ),
     "arif_peer_contract_validate": derive_mcp_annotations(
-        "ANALYZE", title="Peer Contract Validate",
+        "ANALYZE",
+        title="Peer Contract Validate",
     ),
     "arif_peer_contract_attest": derive_mcp_annotations(
-        "OBSERVE", title="Peer Contract Attest",
+        "OBSERVE",
+        title="Peer Contract Attest",
     ),
     "arif_peer_contract_forbid": derive_mcp_annotations(
-        "MUTATE", title="Peer Contract Forbid",
+        "MUTATE",
+        title="Peer Contract Forbid",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # FORGE SUB-TOOLS (3) — pre-execution planning, all ANALYZE
     # ═══════════════════════════════════════════════════════════════════
     "forge_dry_run": derive_mcp_annotations(
-        "ANALYZE", title="Dry Run",
+        "ANALYZE",
+        title="Dry Run",
     ),
     "forge_plan": derive_mcp_annotations(
-        "ANALYZE", title="Plan",
+        "ANALYZE",
+        title="Plan",
     ),
     "forge_query": derive_mcp_annotations(
-        "OBSERVE", title="Query",
+        "OBSERVE",
+        title="Query",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # NARRATIVE TOOLS (2) — institutional analysis, all ANALYZE
     # ═══════════════════════════════════════════════════════════════════
     "arif_detect_institutional_shadow_drift": derive_mcp_annotations(
-        "ANALYZE", title="Detect Institutional Shadow Drift",
+        "ANALYZE",
+        title="Detect Institutional Shadow Drift",
     ),
     "arif_detect_narrative_tension": derive_mcp_annotations(
-        "ANALYZE", title="Detect Narrative Tension",
+        "ANALYZE",
+        title="Detect Narrative Tension",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # DIAGNOSTIC TOOLS (6) — health probes, drift checks, budget
     # ═══════════════════════════════════════════════════════════════════
     "arif_stack_health_probe": derive_mcp_annotations(
-        "OBSERVE", title="Stack Health Probe",
+        "OBSERVE",
+        title="Stack Health Probe",
     ),
     "arif_scan_local_instructions": derive_mcp_annotations(
-        "OBSERVE", title="Scan Local Instructions",
+        "OBSERVE",
+        title="Scan Local Instructions",
     ),
     "arif_organ_consensus": derive_mcp_annotations(
-        "ANALYZE", title="Organ Consensus",
+        "ANALYZE",
+        title="Organ Consensus",
     ),
     "arif_session_budget": derive_mcp_annotations(
-        "OBSERVE", title="Session Budget",
+        "OBSERVE",
+        title="Session Budget",
     ),
     "arif_floor_status": derive_mcp_annotations(
-        "OBSERVE", title="Floor Status",
+        "OBSERVE",
+        title="Floor Status",
     ),
     "mcp_drift_check": derive_mcp_annotations(
-        "ANALYZE", title="Drift Check",
+        "ANALYZE",
+        title="Drift Check",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # MCP GATE + SHADOW GEOMETRY (3) — evaluation infrastructure
     # ═══════════════════════════════════════════════════════════════════
     "arif_gate_judge": derive_mcp_annotations(
-        "ANALYZE", title="Gate Judge",
+        "ANALYZE",
+        title="Gate Judge",
     ),
     "arif_self_evaluate": derive_mcp_annotations(
-        "ANALYZE", title="Self Evaluate",
+        "ANALYZE",
+        title="Self Evaluate",
     ),
     "arif_model_compare": derive_mcp_annotations(
-        "ANALYZE", title="Model Compare",
+        "ANALYZE",
+        title="Model Compare",
     ),
 }
 
@@ -1949,6 +2102,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             TOOL_RISK_REGISTRY,
             classify_tool as _risk_classify,
         )
+
         _risk_registry = TOOL_RISK_REGISTRY
     except Exception:
         _risk_classify = None
@@ -2061,7 +2215,7 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
         "_note": (
             "SOLE SOURCE OF TRUTH. "
-        "Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). "
+            "Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). "
             "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. "
             "FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py "
             "for canonical tools, spec-inferred for diagnostic tools. The contract is "
@@ -2192,7 +2346,7 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "actor_id": str | None,
         "delegate_scope": dict | None,
         "contract_url": str | None,  # P2P Federation Contract v1 URL
-        "contract": dict | None,     # Inline P2P Federation Contract v1
+        "contract": dict | None,  # Inline P2P Federation Contract v1
     },
     "arif_judge": {
         "mode": str,
@@ -2649,6 +2803,7 @@ def get_cognitive_gradient() -> dict:
             gradient_summary,
             packaging_law_check,
         )
+
         return {
             "levels": gradient_summary(exposed_only=True),
             "ladder": gradient_ladder(),
@@ -2660,7 +2815,10 @@ def get_cognitive_gradient() -> dict:
         return {
             "levels": {},
             "ladder": [],
-            "packaging_check": {"verdict": "UNAVAILABLE", "summary": "Cognitive gradient module not loaded."},
+            "packaging_check": {
+                "verdict": "UNAVAILABLE",
+                "summary": "Cognitive gradient module not loaded.",
+            },
             "tool_count": len(CANONICAL_TOOLS),
             "gradient_tool_count": 0,
         }
@@ -2670,6 +2828,7 @@ def resolve_gradient_level(tool_name: str) -> int | None:
     """Return the cognitive level (1-4) for a tool, or None if unknown."""
     try:
         from arifosmcp.core.cognitive_gradient import resolve_level  # noqa: PLC0415
+
         level = resolve_level(tool_name)
         return int(level) if level is not None else None
     except ImportError:
@@ -2684,6 +2843,7 @@ def recommend_gradient_level(intent: str) -> dict:
             recommend_level,
             tools_at_level,
         )
+
         level = recommend_level(intent)
         tools = tools_at_level(level, exposed_only=True)
         return {
