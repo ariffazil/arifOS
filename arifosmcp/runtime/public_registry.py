@@ -16,7 +16,6 @@ from .prompts import V2_PROMPT_SPECS
 from .public_surface import (
     CANARY_PROBES,
     CANONICAL_13,
-    CANONICAL_LONG_NAME_ALIASES,
     current_public_surface_mode,
     normalize_public_surface_mode,
     public_tool_names_for_mode,
@@ -28,10 +27,11 @@ PYPROJECT_PATH = ROOT / "pyproject.toml"
 TOOL_REGISTRY_PATH = ROOT / "arifosmcp" / "tool_registry.json"
 DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
 
-CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13) | frozenset(CANONICAL_LONG_NAME_ALIASES)
+CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_13)
 # EXPECTED_TOOL_COUNT is the default public wire surface (canonical13 mode):
-# 16 canonical short names + 12 SDK long-name aliases + 1 canary probe = 29.
-EXPECTED_TOOL_COUNT = len(CANONICAL_13) + len(CANONICAL_LONG_NAME_ALIASES) + len(CANARY_PROBES)
+# FROZEN 2026-06-23: 15 canonical tools + 1 canary probe = 16.
+# SDK aliases removed from wire surface — one name per function.
+EXPECTED_TOOL_COUNT = len(CANONICAL_13) + len(CANARY_PROBES)
 
 RUNTIME_ENVELOPE_SCHEMA = {
     "type": "object",
@@ -374,7 +374,12 @@ def _tool_output_schema(name: str) -> dict[str, Any]:
             },
             "required": ["ok", "build", "schema_version"],
         }
-    if name in {"arif_schema_echo", "arif_version_echo", "arif_transport_echo", "arif_initialize_probe"}:
+    if name in {
+        "arif_schema_echo",
+        "arif_version_echo",
+        "arif_transport_echo",
+        "arif_initialize_probe",
+    }:
         return {
             "type": "object",
             "additionalProperties": True,

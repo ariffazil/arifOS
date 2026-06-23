@@ -1,16 +1,16 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
   "version": "1.0",
-  "protocolVersion": "2025-06-18",
+  "protocolVersion": "2025-11-25",
   "serverInfo": {
     "name": "arifos-mcp",
     "title": "arifOS Constitutional MCP Server",
-    "version": "2026.06.14-SSCT"
+    "version": "2026.06.23-canonical-freeze"
   },
-  "description": "Governed MCP server exposing 16 constitutional AI operations + 12 SDK long-name aliases + 1 canary probe (29 total public surface). Human approval gates on irreversible actions, lease hard-block on mutation-class forge modes, VAULT999 immutable ledger, 888 Judge arbitration, and live thermodynamic telemetry.",
+  "description": "Governed MCP server — 15 canonical tools + 1 canary probe (16 total). One name per function. Human approval gates on irreversible actions, VAULT999 immutable ledger, 888 Judge arbitration, live thermodynamic telemetry. FROZEN 2026-06-23: all SDK aliases removed from wire surface.",
   "transport": {
     "type": "streamable-http",
-    "endpoint": "https://arifos.arif-fazil.com/mcp"
+    "endpoint": "https://mcp.arif-fazil.com/mcp"
   },
   "authentication": {
     "required": true,
@@ -29,27 +29,167 @@
     "auditRequired": true,
     "defaultMutationMode": "dry_run",
     "leaseRequiredForMutation": true,
-    "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_TriWitness","L04_Clarity","L05_Peace2","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_Auditability","L12_Resilience","L13_Sovereign"],
-    "extensionFloors": {"F0_PRIME": "draft", "F14_REGISTER": "DEAD_reborn_as_F2+F3_protocol", "F15_EPISTEMIC": "draft", "F16_GEOMETRIC": "draft", "F17_IGNITION": "draft"},
-    "sovereignRulings": ["F14_REGISTER_DEAD_2026-06-13"]
+    "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_Witness","L04_Clarity","L05_Peace","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_Audit","L12_Injection","L13_Sovereign"],
+    "verdictTaxonomy": ["SEAL","HOLD","VOID","SABAR","PROCEED","888_HOLD"],
+    "riskClasses": ["C0_GRAMMAR","C1_DRAFT","C2_REVIEW","C3_PUBLIC","C4_LEGAL_MONEY","C5_IRREVERSIBLE"]
   },
   "links": {
-    "homepage": "https://arif-fazil.com/mcp",
-    "status": "https://arif-fazil.com/mcp/status",
-    "explorer": "https://arif-fazil.com/mcp/explore",
-    "validator": "https://arif-fazil.com/mcp/validator",
-    "observability": "https://arif-fazil.com/mcp/observability",
+    "homepage": "https://arif-fazil.com",
+    "status": "https://mcp.arif-fazil.com/health",
     "constitution": "https://arif-fazil.com/000"
   },
   "tools": {
-    "count": 29,
-    "riskTiers": {
-      "critical": ["arif_vault_seal","arif_forge_execute"],
-      "high": ["arif_judge_deliberate","arif_gateway_connect","arif_bridge_connect"],
-      "medium": ["arif_evidence_fetch","arif_mind_reason","arif_heart_critique"],
-      "low": ["arif_kernel_intercept","arif_session_init","arif_sense_observe","arif_reply_compose","arif_memory_recall","arif_ops_measure"]
-    },
-    "requiresHumanAck": ["arif_vault_seal","arif_forge_execute"]
+    "count": 16,
+    "frozen": "2026-06-23",
+    "naming": "arif_noun_verb (canonical) — one name per function",
+    "canonical": [
+      {
+        "name": "arif_init",
+        "stage": "000",
+        "access": "public",
+        "description": "Session bootstrap + identity binding. CALL FIRST.",
+        "actionClass": "PREPARE",
+        "riskTier": "medium",
+        "irreversible": false
+      },
+      {
+        "name": "arif_observe",
+        "stage": "111",
+        "access": "public",
+        "description": "Multimodal reality observation and hybrid discovery.",
+        "actionClass": "OBSERVE",
+        "riskTier": "low",
+        "irreversible": false
+      },
+      {
+        "name": "arif_fetch",
+        "stage": "222",
+        "access": "public",
+        "description": "Verified external evidence retrieval with source-of-truth grounding.",
+        "actionClass": "OBSERVE",
+        "riskTier": "medium",
+        "irreversible": false
+      },
+      {
+        "name": "arif_think",
+        "stage": "333",
+        "access": "public",
+        "description": "Symbolic reasoning kernel — epistemically honest, self-critiquing.",
+        "actionClass": "ANALYZE",
+        "riskTier": "medium",
+        "irreversible": false
+      },
+      {
+        "name": "arif_critique",
+        "stage": "666",
+        "access": "public",
+        "description": "Ethical critique and consequence assessment against F1-L13 floors.",
+        "actionClass": "ANALYZE",
+        "riskTier": "medium",
+        "irreversible": false
+      },
+      {
+        "name": "arif_compose",
+        "stage": "444r",
+        "access": "public",
+        "description": "Governed response composition — formats final output for Arif.",
+        "actionClass": "ANALYZE",
+        "riskTier": "low",
+        "irreversible": false
+      },
+      {
+        "name": "arif_route",
+        "stage": "555",
+        "access": "public",
+        "description": "Routes an intent to the correct federation organ.",
+        "actionClass": "ANALYZE",
+        "riskTier": "low",
+        "irreversible": false
+      },
+      {
+        "name": "arif_triage",
+        "stage": "555",
+        "access": "public",
+        "description": "Session status, preflight, and priority classification.",
+        "actionClass": "ANALYZE",
+        "riskTier": "low",
+        "irreversible": false
+      },
+      {
+        "name": "arif_bridge_connect",
+        "stage": "555",
+        "access": "authenticated",
+        "description": "Low-level direct organ tool call. Bypasses intent map.",
+        "actionClass": "BRIDGE",
+        "riskTier": "medium",
+        "irreversible": false
+      },
+      {
+        "name": "arif_memory",
+        "stage": "555m",
+        "access": "public",
+        "description": "Federated memory — 7 canonical modes (recall|inspect|attest|remember|promote|revise|forget).",
+        "actionClass": "ANALYZE",
+        "riskTier": "medium",
+        "irreversible": false
+      },
+      {
+        "name": "arif_measure",
+        "stage": "777",
+        "access": "public",
+        "description": "Machine resource health + governance thermodynamics.",
+        "actionClass": "OBSERVE",
+        "riskTier": "low",
+        "irreversible": false
+      },
+      {
+        "name": "arif_judge",
+        "stage": "888",
+        "access": "authenticated",
+        "description": "Final constitutional arbitration — renders SEAL/HOLD/VOID verdicts.",
+        "actionClass": "DRAFT",
+        "riskTier": "critical",
+        "irreversible": false
+      },
+      {
+        "name": "arif_seal",
+        "stage": "999",
+        "access": "authenticated",
+        "description": "Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999.",
+        "actionClass": "IRREVERSIBLE",
+        "riskTier": "critical",
+        "irreversible": true
+      },
+      {
+        "name": "arif_forge",
+        "stage": "010",
+        "access": "sovereign",
+        "description": "Build execution — code generation, artifact creation, system modification.",
+        "actionClass": "MUTATE",
+        "riskTier": "critical",
+        "irreversible": true
+      },
+      {
+        "name": "arif_kernel_intercept",
+        "stage": "888",
+        "access": "public",
+        "description": "Minimum Constitutional Kernel — brutalist interceptor for all agent actions.",
+        "actionClass": "DRAFT",
+        "riskTier": "critical",
+        "irreversible": false
+      }
+    ],
+    "canary": [
+      {
+        "name": "arif_canary",
+        "description": "Unified transport diagnostic probe. Six modes: ping|schema_echo|version_echo|transport_echo|initialize_probe|conformance_report",
+        "actionClass": "OBSERVE",
+        "riskTier": "low",
+        "irreversible": false
+      }
+    ],
+    "requiresHumanAck": ["arif_seal", "arif_forge"],
+    "requiresSession": ["arif_judge", "arif_seal", "arif_forge", "arif_bridge_connect", "arif_memory"]
   },
   "resources": {
     "count": 5,

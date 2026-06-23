@@ -1,21 +1,18 @@
 """
 test_003 — Surface RSI Canonical 13 (Level 0-1)
 
-Goal: /health or tools/list returns exactly 21 canonical arif_* tools
-      (no drift, no phantoms, no ghost aliases).
+Goal: /health or tools/list returns exactly 15 canonical arif_* tools + 1 canary
+      (no drift, no phantoms, no ghost aliases, no SDK duplicates).
 
 Pass criteria:
-    - tools_loaded = 21
+    - tools_loaded = 16 (15 canonical + 1 canary)
     - registry_truth = VERIFIED
-    - canonical_count = 21
+    - canonical_count = 16
     - contract_drift = false
 
-Current status (2026-06-12): PASS (canonical 13 alive).
-    But: live surface is 19 (16 arif_* + 3 forge_*). The 13/19 split
-    is a documented truth (see AGENTS.md "Canonical Tool-Count Truth
-    Table"). Both 13 and 19 are correct in different scopes.
-
-This test asserts the 13-canonical figure per the constitutional contract.
+FROZEN 2026-06-23: SDK aliases removed from wire surface.
+    15 canonical tools + 1 canary probe = 16 tools.
+    One name per function. No duplicates.
 """
 
 import urllib.request
@@ -32,7 +29,7 @@ def fetch_health() -> dict:
 
 def test_health_canonical_13():
     h = fetch_health()
-    assert h.get("tools_loaded") == 21, f"tools_loaded should be 21, got {h.get('tools_loaded')}"
+    assert h.get("tools_loaded") == 16, f"tools_loaded should be 16, got {h.get('tools_loaded')}"
     assert h.get("registry_truth") == "VERIFIED", (
         f"registry_truth should be VERIFIED, got {h.get('registry_truth')}"
     )

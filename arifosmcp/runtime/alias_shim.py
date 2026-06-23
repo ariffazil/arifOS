@@ -25,6 +25,7 @@ Operator: FORGE (000Ω)
 DITEMPA BUKAN DIBERI — Forged, Not Given
 ═══════════════════════════════════════════════════════════════════════════════
 """
+
 from __future__ import annotations
 
 import logging
@@ -41,11 +42,10 @@ logger = logging.getLogger(__name__)
 
 def dual_mode_enabled() -> bool:
     """
-    True if dual-mode is active (Phase 2).
-    Default: True (Phase 2 in progress).
-    Set ARIFOS_MCP_DUAL_MODE=false for Phase 3 cutover.
+    FROZEN 2026-06-23: dual-mode disabled (Phase 3 cutover).
+    Only canonical names on the wire. Legacy callers use kernel interceptor.
     """
-    val = os.getenv("ARIFOS_MCP_DUAL_MODE", "true").strip().lower()
+    val = os.getenv("ARIFOS_MCP_DUAL_MODE", "false").strip().lower()
     return val in ("true", "1", "yes", "on")
 
 
@@ -63,6 +63,7 @@ def _make_canonical_wrapper(
     Wrap a legacy handler so calls to the new canonical name are tagged
     with provenance metadata. Does NOT change behavior — only adds metadata.
     """
+
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         result = handler(*args, **kwargs)
         if isinstance(result, dict):
@@ -76,6 +77,7 @@ def _make_canonical_wrapper(
                     "migration_note": f"{new_name} is the new canonical name; {legacy_target} will be deprecated.",
                 }
         return result
+
     return wrapper
 
 
@@ -111,16 +113,31 @@ def register_new_canonical_tools(
         # `arif_session_init` still work via kernel interceptor alias
         # (kernel/interceptor.py TOOL_ALIASES) — but no longer surface
         # in tools/list as a public tool.
-        "arif_init":       (canonical_handlers.get("arif_init"),  "arif_init"),
-        "arif_observe":    (canonical_handlers.get("arif_observe"), "arif_observe"),
-        "arif_evidence":   (canonical_handlers.get("arif_fetch"), "arif_fetch"),
-        "arif_reason":     (canonical_handlers.get("arif_think_tool") or canonical_handlers.get("arif_think"), "arif_think"),
-        "arif_critique":   (canonical_handlers.get("arif_critique"), "arif_critique"),
-        "arif_reply":      (canonical_handlers.get("arif_compose_tool") or canonical_handlers.get("arif_compose"), "arif_compose"),
-        "arif_measure":    (canonical_handlers.get("arif_measure"),  "arif_measure"),
-        "arif_judge":      (canonical_handlers.get("arif_judge_tool") or canonical_handlers.get("arif_judge"), "arif_judge"),
-        "arif_seal":       (canonical_handlers.get("arif_seal_tool") or canonical_handlers.get("arif_seal"), "arif_seal"),
-        "arif_forge":      (canonical_handlers.get("arif_forge_tool") or canonical_handlers.get("arif_forge"), "arif_forge"),
+        "arif_init": (canonical_handlers.get("arif_init"), "arif_init"),
+        "arif_observe": (canonical_handlers.get("arif_observe"), "arif_observe"),
+        "arif_evidence": (canonical_handlers.get("arif_fetch"), "arif_fetch"),
+        "arif_reason": (
+            canonical_handlers.get("arif_think_tool") or canonical_handlers.get("arif_think"),
+            "arif_think",
+        ),
+        "arif_critique": (canonical_handlers.get("arif_critique"), "arif_critique"),
+        "arif_reply": (
+            canonical_handlers.get("arif_compose_tool") or canonical_handlers.get("arif_compose"),
+            "arif_compose",
+        ),
+        "arif_measure": (canonical_handlers.get("arif_measure"), "arif_measure"),
+        "arif_judge": (
+            canonical_handlers.get("arif_judge_tool") or canonical_handlers.get("arif_judge"),
+            "arif_judge",
+        ),
+        "arif_seal": (
+            canonical_handlers.get("arif_seal_tool") or canonical_handlers.get("arif_seal"),
+            "arif_seal",
+        ),
+        "arif_forge": (
+            canonical_handlers.get("arif_forge_tool") or canonical_handlers.get("arif_forge"),
+            "arif_forge",
+        ),
     }
 
     for new_name, (handler, legacy_target) in new_to_legacy.items():
@@ -293,22 +310,31 @@ if __name__ == "__main__":
     print("ALIAS SHIM — Phase 2 dual-mode dispatcher")
     print("=" * 70)
     print(f"\nDual mode enabled: {dual_mode_enabled()}")
-    print(f"  (ARIFOS_MCP_DUAL_MODE env var)")
+    print("  (ARIFOS_MCP_DUAL_MODE env var)")
 
     new_names_to_register = [
-        "arif_init", "arif_observe", "arif_evidence", "arif_reason",
-        "arif_critique", "arif_reply", "arif_recall", "arif_measure",
-        "arif_judge", "arif_seal", "arif_forge", "arif_probe",
+        "arif_init",
+        "arif_observe",
+        "arif_evidence",
+        "arif_reason",
+        "arif_critique",
+        "arif_reply",
+        "arif_recall",
+        "arif_measure",
+        "arif_judge",
+        "arif_seal",
+        "arif_forge",
+        "arif_probe",
     ]
     print(f"\nNew names to register ({len(new_names_to_register)}):")
     for n in new_names_to_register:
         print(f"  - {n}")
 
-    print(f"\narif_recall mode dispatch:")
-    print(f"  v5: store, seal, forget, promote, revise, audit, stats, learn")
-    print(f"  v4: recall, get, list, context, repo_ingest, repo_search, manage")
+    print("\narif_recall mode dispatch:")
+    print("  v5: store, seal, forget, promote, revise, audit, stats, learn")
+    print("  v4: recall, get, list, context, repo_ingest, repo_search, manage")
 
-    print(f"\narif_probe mode dispatch:")
+    print("\narif_probe mode dispatch:")
     for mode, target in [
         ("ping", "arif_ping"),
         ("conformance", "arif_conformance_report"),
@@ -319,7 +345,7 @@ if __name__ == "__main__":
     ]:
         print(f"  mode={mode!r} → {target}")
 
-    print(f"\nPhase 2 behavior:")
-    print(f"  DUAL_MODE=true  → 27 old + 12 new = 39 tools on wire")
-    print(f"  DUAL_MODE=false → 27 old only (Phase 3 cutover requires code update)")
-    print(f"\nDITEMPA BUKAN DIBERI.")
+    print("\nPhase 2 behavior:")
+    print("  DUAL_MODE=true  → 27 old + 12 new = 39 tools on wire")
+    print("  DUAL_MODE=false → 27 old only (Phase 3 cutover requires code update)")
+    print("\nDITEMPA BUKAN DIBERI.")

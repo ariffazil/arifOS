@@ -491,11 +491,9 @@ try:
     v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
     _assert_registered_surface(v2_tools_registered)
 
-    # ── Phase 2 dual-mode alias shim (14-ACT refactor) ───────────────────────
-    # When ARIFOS_MCP_DUAL_MODE=true (default during Phase 2), this registers
-    # the 12 NEW canonical tool names (arif_init, arif_observe, ...) as thin
-    # wrappers that dispatch to existing handlers. Old names remain registered.
-    # Phase 3 cutover: set ARIFOS_MCP_DUAL_MODE=false + remove old handlers.
+    # ── Phase 3 cutover — alias shim disabled (2026-06-23 freeze) ────────────
+    # FROZEN: ARIFOS_MCP_DUAL_MODE defaults to false.
+    # Only canonical names on the wire. Legacy callers use kernel interceptor.
     from arifosmcp.runtime.alias_shim import register_new_canonical_tools
     from arifosmcp.runtime.tools import _RUNTIME_DIAGNOSTIC_HANDLERS
     try:
@@ -2115,7 +2113,24 @@ def main() -> None:
         (Claude Desktop, Cursor, Codex, OpenCode, etc.)
       - stdin is a TTY (terminal)  → SSE server on ARIFOS_PORT (default 8088)
         (uvicorn, for VPS deployment)
+
+    CLI subcommands (when a known operator command is supplied):
+      - arifos check --goal "..."
+      - arifos judge --goal "..."
+      - arifos seal --message "..."
     """
+    # ── CLI DISPATCH ────────────────────────────────────────────────────
+    # If the user passed a known operator subcommand, route to the CLI.
+    # `arifos`, `arifos serve`, and piped stdio invocations continue to
+    # boot the MCP server for backward compatibility.
+    if sys.argv[1:] and sys.argv[1] in {"check", "judge", "seal", "help", "--help", "-h"}:
+        from arifosmcp.cli.main import main as cli_main
+
+        code = cli_main(sys.argv[1:])
+        if code >= 0:
+            sys.exit(code)
+        # code == -1 means fall through to server boot.
+
     # ── RASA WIRING: Feature-flagged human rasa governance ──────────────
     # Activated by RASA_WIRING_ENABLED=1 env var. Defaults to SHADOW mode
     # (telemetry only, no output modification). See arifosmcp/rasa/.

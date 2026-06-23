@@ -530,34 +530,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "observe",
         "expose": True,
     },
-    "arif_explore": {
-        "name": "arif_explore",
-        "description": "111_EXPLORE: Governed multi-step exploration across six modes — prospector (filesystem/codebase), navigator (web traversal), driller (API discovery), mapper (knowledge graph), surveyor (cross-organ telemetry), scout (recursive meta-explorer). L2 Exploration Substrate. Every step obeys ART→ACT→STOP. Read-only, constitutional, deterministic. Use this when: single-shot sense_observe is insufficient and the goal requires traversal, discovery, and graph-building across multiple steps. Do NOT use for simple web search (use arif_observe). Parameters: goal, mode (navigator|prospector|driller|mapper|surveyor|scout|auto), seed_url, seed_path, seed_api_base_url, seed_entity, seed_question, max_depth (default 4), max_steps (default 64), time_budget_s (default 60), trace_id, session_id, actor_id.",  # noqa: E501
-        "access": "public",
-        "stage": ToolStage.OBSERVE,
-        "lane": TrinityLane.AGI,
-        "floors": [Law.L02_TRUTH, Law.L07_HUMILITY, Law.L04_CLARITY, Law.L09_ANTIHANTU],
-        "risk_tier": "low",
-        "irreversible": False,
-        "modes": [
-            "navigator",
-            "prospector",
-            "driller",
-            "mapper",
-            "surveyor",
-            "scout",
-            "eureka",
-            "auto",
-        ],
-        "eureka_insight": (
-            "F2: τ ≥ 0.95. F7: Ω ∈ [0.03, 0.05]. "
-            "F4: ΔS ≤ 0 — every step reduces entropy. "
-            "F9: C_dark ≤ 0.30 — no hallucinated URLs, files, or endpoints. "
-            "Exploration is governed traversal, not blind search."
-        ),
-        "cognitive_axis": "explore",
-        "expose": True,
-    },
     "arif_fetch": {
         "name": "arif_fetch",
         "description": "222_EVIDENCE: Verified external evidence retrieval with source-of-truth grounding. Call this when: a claim needs external citation, Arif needs live data before deciding, or reasoning requires factual grounding. Do NOT call this for general browsing (use arif_observe) or reasoning over already-gathered data (use arif_think). Parameters: mode (fetch|search|eureka), url, query (the evidence query string), thinking_depth, sequential_mode, session_id, actor_id.",  # noqa: E501
@@ -1623,9 +1595,6 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     "arif_observe": derive_mcp_annotations(
         "OBSERVE", title="Sense & Observe",
     ),
-    "arif_explore": derive_mcp_annotations(
-        "OBSERVE", title="Explore (L2 Substrate)",
-    ),
     "arif_fetch": derive_mcp_annotations(
         "OBSERVE", title="Fetch Evidence",
     ),
@@ -1862,7 +1831,6 @@ CANONICAL_OUTPUT_SCHEMA: dict[str, Any] = {
 TOOL_STAGES: dict[str, ToolStage] = {
     "arif_init": ToolStage.INIT,
     "arif_observe": ToolStage.OBSERVE,
-    "arif_explore": ToolStage.OBSERVE,
     "arif_fetch": ToolStage.EVIDENCE,
     "arif_think": ToolStage.REASON,
     "arif_critique": ToolStage.FORGE,

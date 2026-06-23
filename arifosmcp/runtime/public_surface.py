@@ -14,9 +14,12 @@ from arifosmcp.resources import (
 from arifosmcp.runtime.build import get_build_info
 
 CANONICAL_13: tuple[str, ...] = tuple(
-    name for name in list_constitutional_tools()
-    if not (CANONICAL_TOOLS.get(name, {}).get("_deprecated", False)
-            or CANONICAL_TOOLS.get(name, {}).get("deprecated", False))
+    name
+    for name in list_constitutional_tools()
+    if not (
+        CANONICAL_TOOLS.get(name, {}).get("_deprecated", False)
+        or CANONICAL_TOOLS.get(name, {}).get("deprecated", False)
+    )
 )
 # CANONICAL_13 is the single canonical set — deprecated aliases excluded.
 
@@ -25,10 +28,12 @@ CANONICAL_13: tuple[str, ...] = tuple(
 # It requires no session, no actor, no governance — pure transport diagnostics.
 CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
 
-# ── SDK long-name aliases (2026-06-23 unification) ───────────────────────────
-# ChatGPT Apps SDK and legacy clients expect arif_<noun>_<verb> names.
-# These are first-class aliases pointing to the same handlers as the short
-# canonical names in CANONICAL_13. They do NOT create new operations.
+# ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────
+# These aliases were on the wire surface during Phase 2 dual-mode migration.
+# FROZEN 2026-06-23: aliases removed from public wire surface.
+# One name per tool. Internal Python aliases still resolve via _CANONICAL_HANDLERS.
+# If a legacy client sends arif_session_init, the kernel interceptor routes it.
+# But tools/list returns ONLY canonical names.
 CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = (
     "arif_session_init",
     "arif_sense_observe",
@@ -44,11 +49,11 @@ CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = (
     "arif_forge_execute",
 )
 
-# ── Canonical13 Public Surface (= canonical kernel + SDK aliases + canary) ───
-# This is the DEFAULT public wire surface. 16 canonical short names +
-# 12 SDK long-name aliases + 1 canary probe = 29 tools.
+# ── Canonical13 Public Surface (= canonical kernel + canary) ─────────────────
+# FROZEN 2026-06-23: 15 canonical tools + 1 canary probe = 16 tools.
+# SDK aliases removed from wire surface — one name per function, full stop.
 CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_13, *CANONICAL_LONG_NAME_ALIASES, *CANARY_PROBES]))
+    list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES]))
 )
 
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
@@ -98,21 +103,17 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_model_compare",
 )
 
-# EXPANDED_45 — the honest expanded public surface.
-# Previously this included ~28 ghost aliases (wealth_*, AFWELL_*, geoxarifOS_*,
-# arifos_T_*, arifos_M_*) that have NO FastMCP handlers. Those aliases created
-# ontology drift: the registry claimed 41 tools but only 19 were callable.
-# PHOENIX-72 fix: EXPANDED_45 now contains ONLY tools with actual handlers.
-# Canonical 13 + Diagnostic 6 = 19 registrable tools.
-# The old ghost aliases are preserved below as DOMAIN_ALIASES for documentation
-# and future implementation tracking, but they are NOT part of any public mode.
+# EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).
+# SDK aliases removed — canonical names only + diagnostics.
+# Canonical 15 + Canary 1 + Diagnostic 19 = 35 tools.
 EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_13, *CANONICAL_LONG_NAME_ALIASES, *CANARY_PROBES, *DIAGNOSTIC_TOOLS]))
+    list(dict.fromkeys([*CANONICAL_13, *CANARY_PROBES, *DIAGNOSTIC_TOOLS]))
 )
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
 # with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
 # See: forge_work/arifos-mcp-tool-audit-2026-06-21.md
+
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
     raw = (mode or "").strip().lower()
@@ -141,8 +142,9 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     """
     Return the public tool names for a given surface mode.
 
-    canonical13 (default): CANONICAL_13 + CANARY_PROBES (22 tools).
-        This is the honest default wire surface — 15 canonical tools + 1 canary probe.
+    canonical13 (default): CANONICAL_13 + CANARY_PROBES (16 tools).
+        FROZEN 2026-06-23: 15 canonical tools + 1 canary probe.
+        One name per function. No SDK aliases on the wire.
     expanded45: CANONICAL_13 + DIAGNOSTIC_TOOLS (gated tools included).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
 
@@ -154,7 +156,7 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
         candidates = EXPANDED_45
     else:
         # canonical13: 15 canonical tools + 1 canary probe = 16 tools on the default wire.
-        # Canary probe is a transport diagnostic (multimode arif_canary).
+        # FROZEN 2026-06-23: SDK aliases removed from wire surface.
         candidates = CANONICAL13_PUBLIC_SURFACE
     # Filter out internal_only tools regardless of mode.
     return tuple(
@@ -251,6 +253,7 @@ def deprecated_endpoint_redirect_hint(received_url: str | None) -> str | None:
     if received_url in DEPRECATED_ENDPOINTS:
         return CANONICAL_MCP_ENDPOINT
     return None
+
 
 # Peer sovereign processors — peer intelligences, NOT sub-tools of arifOS.
 # Each has its own governance floor, MCP transport, and update cycle.
