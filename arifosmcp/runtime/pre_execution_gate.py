@@ -389,6 +389,22 @@ def _act_reflex_check(
 # TOOL MANIFEST — canonical list of what every tool is allowed to do
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# SDK long-name aliases → canonical short names (2026-06-23 unification)
+_SDK_LONG_NAME_ALIASES: dict[str, str] = {
+    "arif_session_init": "arif_init",
+    "arif_sense_observe": "arif_observe",
+    "arif_evidence_fetch": "arif_fetch",
+    "arif_mind_reason": "arif_think",
+    "arif_heart_critique": "arif_critique",
+    "arif_reply_compose": "arif_compose",
+    "arif_memory_recall": "arif_memory",
+    "arif_gateway_connect": "arif_bridge_connect",
+    "arif_ops_measure": "arif_measure",
+    "arif_judge_deliberate": "arif_judge",
+    "arif_vault_seal": "arif_seal",
+    "arif_forge_execute": "arif_forge",
+}
+
 CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
     "arif_init": ToolManifestEntry(
         tool_name="arif_init",
@@ -666,7 +682,9 @@ def pre_execution_gate(
 
     # ── Gate 2: Tool manifest check ───────────────────────────────────
     tool_name = envelope.organ.tool_name
-    manifest_entry = CANONICAL_TOOL_MANIFEST.get(tool_name)
+    # Resolve SDK long-name aliases to canonical short names before manifest lookup
+    canonical_tool_name = _SDK_LONG_NAME_ALIASES.get(tool_name, tool_name)
+    manifest_entry = CANONICAL_TOOL_MANIFEST.get(canonical_tool_name)
 
     if manifest_entry is None and tool_name:
         # Tool not in canonical manifest → HOLD
