@@ -199,6 +199,10 @@ class TransportFaultCode(StrEnum):
     ARIF_SESSION_NOT_FOUND = "ARIF_SESSION_NOT_FOUND"
     ARIF_ENVELOPE_MISSING = "ARIF_ENVELOPE_MISSING"
     ARIF_LEASE_EXPIRED = "ARIF_LEASE_EXPIRED"
+    PLATFORM_INTERVENTION = "PLATFORM_INTERVENTION"
+    # Host platform (e.g. ChatGPT MCP connector, Claude client safety layer)
+    # blocked or rewrote the call. Per MCP spec: return structured JSONRPCErrorResponse
+    # with rich data so kernel can classify and route around untrusted pipe.
 
 
 def build_transport_error_envelope(
@@ -234,6 +238,7 @@ def build_transport_error_envelope(
         TransportFaultCode.ARIF_SESSION_NOT_FOUND: (-32001, "arif_init(mode='resume')"),
         TransportFaultCode.ARIF_ENVELOPE_MISSING: (-32602, "arif_ping"),
         TransportFaultCode.ARIF_LEASE_EXPIRED: (-32000, "arif_lease_issue"),
+        TransportFaultCode.PLATFORM_INTERVENTION: (-32000, "arif_host_policy_status"),
     }
 
     jsonrpc_code, default_next_probe = m.get(code, (-32602, "arif_ping"))

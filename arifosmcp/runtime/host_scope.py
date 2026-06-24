@@ -14,9 +14,12 @@ Trust Levels:
   SEMI_TRUSTED  → OBSERVE + PREPARE only, no SECRET/MEMORY/DIGNITY/VAULT
   UNTRUSTED     → OBSERVE only, READ-only scope
   UNKNOWN       → OBSERVE only, minimal surface (legacy default)
+PLATFORM_FILTERED → OBSERVE only; host safety layer known to intervene on governance/sovereign language.
 
 The SemiTrustedScopeGate is a runtime filter applied after envelope
 validation but before tool execution.
+
+PLATFORM_INTERVENTION (from fault_codes + mcp_transport_bridge) forces PLATFORM_FILTERED trust.
 
 DITEMPA BUKAN DIBERI — The host may orchestrate, but may not inherit the kingdom.
 """
@@ -127,6 +130,25 @@ HOST_TRUST_MATRIX: dict[HostAttestation, TrustLevelMatrix] = {
         max_risk_tier=RiskTier.T0,
         allowed_external_effects=[ExternalEffect.NONE],
         requires_checkpoint=False,
+        schema_redaction=True,
+    ),
+    # PLATFORM_FILTERED — forced by E_PLATFORM_INTERVENTION detection in mcp_transport_bridge + fault_codes
+    # Host (e.g. ChatGPT safety) is known to silently block sovereign/governance payloads.
+    # Kernel must downgrade and prefer raw stdio/direct pipes.
+    "PLATFORM_FILTERED": TrustLevelMatrix(
+        allowed_action_classes=[ActionClass.OBSERVE],
+        allowed_scopes=[ToolScope.READ],
+        blocked_scopes=[
+            ToolScope.WRITE,
+            ToolScope.EXTERNAL,
+            ToolScope.SECRET,
+            ToolScope.DIGNITY,
+            ToolScope.MEMORY,
+            ToolScope.VAULT,
+        ],
+        max_risk_tier=RiskTier.T0,
+        allowed_external_effects=[ExternalEffect.NONE],
+        requires_checkpoint=True,
         schema_redaction=True,
     ),
 }

@@ -530,6 +530,24 @@ def _try_promote_local_service(
     envelope.agent_id = "Hermes"
     envelope.authority.source = AuthoritySource.TOKEN
     envelope.host_attestation = HostAttestation.TRUSTED
+
+    # PLATFORM INTERVENTION WIRE (autonomous via mcp_transport_bridge + fault_codes)
+    # If the call arrived through a hosted client known to filter governance language,
+    # downgrade immediately. This is the kernel noticing the "devil is opacity".
+    # Note: for local-service promotion path, we skip request-based; middleware already tags.
+    try:
+        from arifosmcp.runtime.mcp_transport_bridge import get_host_platform_from_request
+        # request not in scope here; use None — inference inside getter will be unknown
+        # Real hosted platform tagging happens in MCPSessionBridgeMiddleware for HTTP ingress.
+        _ = get_host_platform_from_request(None)
+        # Only act if somehow a hosted signal is in envelope already (e.g. passed in args)
+        if "platform" in str(arguments or {}).lower() or "safety" in str(arguments or {}).lower():
+            envelope.host_platform = "hosted-client-reported"
+            envelope.host_attestation = "PLATFORM_FILTERED"
+            envelope.risk.tier = RiskTier.T0
+    except Exception:
+        pass  # non-fatal; never break ingress
+
     # Upgrade risk to allow MUTATE/ATOMIC
     if envelope.risk.action_class in (ActionClass.MUTATE, ActionClass.ATOMIC):
         envelope.risk.tier = RiskTier.T1  # Trusted local — lower tier

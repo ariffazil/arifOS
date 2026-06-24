@@ -130,6 +130,21 @@ class MCPSessionBridgeMiddleware(BaseHTTPMiddleware):
             # Also set as a request-scoped attribute for non-Starlette consumers
             request.scope["mcp_session_id"] = mcp_session_id
 
+        # PLATFORM HOST TAGGING — autonomous sensing of the pipe
+        ua = request.headers.get("user-agent", "") or request.headers.get("User-Agent", "")
+        host_platform = "unknown"
+        if "chatgpt" in ua.lower() or "openai" in ua.lower():
+            host_platform = "openai-chatgpt-mcp"
+        elif "claude" in ua.lower():
+            host_platform = "anthropic-claude-desktop"
+        elif "grok" in ua.lower() or "xai" in ua.lower():
+            host_platform = "xai-grok"
+        elif request.headers.get("x-mcp-host") or request.headers.get("X-MCP-Host"):
+            host_platform = request.headers.get("x-mcp-host") or request.headers.get("X-MCP-Host")
+
+        request.state.host_platform = host_platform
+        request.scope["host_platform"] = host_platform
+
         return await call_next(request)
 
 
@@ -156,6 +171,79 @@ def get_session_id_from_request(request: Request | None = None) -> str | None:
     sid = getattr(request.state, "mcp_session_id", None)
     if sid:
         return sid
+
+    # Try scope
+    sid = request.scope.get("mcp_session_id")
+    if sid:
+        return sid
+
+    # Fallback to header
+    return request.headers.get("MCP-Session-Id") or request.headers.get("mcp-session-id")
+
+
+# ═══════════════════════════════════════════════════════════════
+# PLATFORM HOST INTERVENTION SENSING (E_PLATFORM_INTERVENTION)
+# Per papa Elon directive + arifOS F-pipeline: hosted AI pipes are untrusted.
+# Detect safety/policy blocks and tag session for 888_JUDGE + alternate routing.
+# MCP spec: always return structured error with data for client/kernel correlation.
+# ═══════════════════════════════════════════════════════════════
+
+PLATFORM_HOST_MARKERS = (
+    "safety check",
+    "blocked by",
+    "safety checks",
+    "tool call was blocked",
+    "platform policy",
+    "host safety",
+)
+
+def detect_platform_intervention(error_text: str | None, headers: dict | None = None) -> dict[str, Any] | None:
+    """
+    Returns dict with platform intervention evidence if detected.
+    This is injected into FederationEnvelope / fault path.
+    Autonomous: kernel can use this to downgrade host trust and suggest raw transport.
+    """
+    if not error_text:
+        return None
+    txt = error_text.lower()
+    if any(marker in txt for marker in PLATFORM_HOST_MARKERS):
+        host_hint = None
+        ua = (headers or {}).get("user-agent", "") or (headers or {}).get("User-Agent", "")
+        if "chatgpt" in ua.lower() or "openai" in ua.lower():
+            host_hint = "openai-chatgpt-connector"
+        elif "claude" in ua.lower():
+            host_hint = "anthropic-claude"
+        elif "grok" in ua.lower() or "xai" in ua.lower():
+            host_hint = "xai-grok"
+        else:
+            host_hint = "unknown-hosted-mcp-client"
+        return {
+            "type": "PLATFORM_INTERVENTION",
+            "fault_code": "PLATFORM_INTERVENTION",
+            "host": host_hint,
+            "observed_signature": error_text[:200],
+            "recommended_transport": "stdio | direct http://127.0.0.1:8088/mcp (raw)",
+            "trust_impact": "downgrade to UNTRUSTED / SEMI_TRUSTED",
+            "per_mcp_spec": "client should surface JSONRPCError with data; kernel classifies as mechanical 888_HOLD",
+        }
+    return None
+
+
+def get_host_platform_from_request(request: Request | None = None) -> str:
+    """Return observed host platform for intervention classification and host_scope downgrade."""
+    if request is None:
+        return "unknown"
+    hp = getattr(request.state, "host_platform", None) or request.scope.get("host_platform")
+    if hp:
+        return hp
+    ua = request.headers.get("user-agent", "") or request.headers.get("User-Agent", "")
+    if "chatgpt" in ua.lower() or "openai" in ua.lower():
+        return "openai-chatgpt-mcp"
+    if "claude" in ua.lower():
+        return "anthropic-claude-desktop"
+    if "grok" in ua.lower() or "xai" in ua.lower():
+        return "xai-grok"
+    return "unknown-hosted"
 
     # Try scope
     sid = request.scope.get("mcp_session_id")
