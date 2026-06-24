@@ -454,3 +454,34 @@ __all__.extend(
         "KernelOutput",
     ]
 )
+
+# ── Canonical Constitutional Floors (single source, 2026-06 alignment) ───────
+from .floors import (
+    FLOORS,
+    FLOOR_IDS,
+    FLOOR_NAMES,
+    FLOOR_BY_ID,
+    ConstitutionalFloor,
+    get_floor,
+    is_canonical_floor,
+    validate_floors,
+    as_dict_list,
+    ADAT_TERAS,
+    FIQH_TIERS,
+)
+
+__all__.extend(
+    [
+        "FLOORS",
+        "FLOOR_IDS",
+        "FLOOR_NAMES",
+        "FLOOR_BY_ID",
+        "ConstitutionalFloor",
+        "get_floor",
+        "is_canonical_floor",
+        "validate_floors",
+        "as_dict_list",
+        "ADAT_TERAS",
+        "FIQH_TIERS",
+    ]
+)

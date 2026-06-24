@@ -206,7 +206,7 @@ Seven principles from Usman Awang's *Melayu*, mapped to F-floors and verdicts:
 
   M1  Pegang tali, pegang timba
       Own both governance AND economy.
-      Floors: F13 SOVEREIGN, F6 STEWARDSHIP
+      Floors: F13 SOVEREIGN, F7 HUMILITY
       Fiqh: wajib
       Response: SEAL only when both held; else 888_HOLD
 
@@ -218,7 +218,7 @@ Seven principles from Usman Awang's *Melayu*, mapped to F-floors and verdicts:
 
   M3  Sorak tanpa ledger = kampung tergadai
       Celebration without ledger = sovereignty loss.
-      Floors: F1 AMANAH, F6 STEWARDSHIP
+      Floors: F1 AMANAH, F7 HUMILITY
       Fiqh: wajib
       Response: SABAR until VAULT entry exists
 
@@ -236,7 +236,7 @@ Seven principles from Usman Awang's *Melayu*, mapped to F-floors and verdicts:
 
   M6  Baik hati mesti ada sempadan
       Hospitality must have boundaries.
-      Floors: F2 AMANAH, F6 STEWARDSHIP
+      Floors: F2 AMANAH, F7 HUMILITY
       Fiqh: sunat → wajib at critical threshold
       Response: SABAR when internal dependents starve
 

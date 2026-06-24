@@ -124,6 +124,9 @@ mypy arifosmcp/runtime/ --ignore-missing-imports
 
 ## 4. CONSTITUTIONAL LAW
 
+> Canonical machine source: `arifosmcp/schemas/floors.py` (import FLOORS / FLOOR_BY_ID)
+> Human source: `GENESIS/000_KERNEL_CANON.md`
+
 ### Active Floors (F1–F13)
 
 | Floor | Name | Type | Rule |

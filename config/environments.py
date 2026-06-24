@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
 
+import os
+
+from arifosmcp.schemas.floors import FLOOR_IDS, is_canonical_floor
+
 
 class DeploymentMode(Enum):
     """Deployment sovereignty modes."""
@@ -31,7 +35,7 @@ class EnvironmentConfig:
     rate_limit_enabled: bool
     auth_required: bool
     thermo_budget_multiplier: float
-    constitutional_floors: list[str]  # Which F1-F13 floors are enforced
+    constitutional_floors: list[str]  # Subset of canonical F1-F13 (see arifosmcp/schemas/floors.py)
 
 
 # =============================================================================
@@ -46,7 +50,7 @@ VPS_CONFIG = EnvironmentConfig(
     rate_limit_enabled=True,
     auth_required=True,  # Strict auth
     thermo_budget_multiplier=1.0,  # Full thermodynamic budget
-    constitutional_floors=[f"F{i}" for i in range(1, 14)],  # All F1-F13
+    constitutional_floors=FLOOR_IDS.copy(),  # All 13 canonical floors (single source: schemas/floors.py)
 )
 
 # =============================================================================
@@ -61,14 +65,13 @@ HORIZON_CONFIG = EnvironmentConfig(
     rate_limit_enabled=True,
     auth_required=False,  # Public access (tools decide)
     thermo_budget_multiplier=0.5,  # Conservative budget
-    constitutional_floors=[  # Gateway-enforced floors
-        "F1",  # Truth
-        "F2",  # Evidence
-        "F3",  # Uncertainty
-        "F5",  # Empathy
-        "F7",  # Humility
-        "F9",  # Security (basic)
-        "L12",  # Audit
+    constitutional_floors=[  # Gateway-enforced floors (must be canonical)
+        "F1",  # AMANAH
+        "F2",  # TRUTH
+        "F4",  # CLARITY
+        "F9",  # ANTIHANTU
+        "F11", # AUDITABILITY
+        "F13", # SOVEREIGN
     ],
 )
 
@@ -84,7 +87,7 @@ LOCAL_CONFIG = EnvironmentConfig(
     rate_limit_enabled=False,
     auth_required=False,
     thermo_budget_multiplier=2.0,  # Relaxed for dev
-    constitutional_floors=["F1", "F2", "F3"],  # Basic only
+    constitutional_floors=["F1", "F2", "F4"],  # Basic core floors only
 )
 
 
@@ -118,6 +121,15 @@ def get_environment() -> EnvironmentConfig:
 
     # Default to local
     return LOCAL_CONFIG
+
+
+# =============================================================================
+# Constitutional alignment guard (wired to single source of truth)
+# =============================================================================
+for _cfg_name, _cfg in [("VPS", VPS_CONFIG), ("HORIZON", HORIZON_CONFIG), ("LOCAL", LOCAL_CONFIG)]:
+    _invalid = [f for f in _cfg.constitutional_floors if not is_canonical_floor(f)]
+    if _invalid:
+        raise ValueError(f"{_cfg_name} config has non-canonical floors (must come from schemas/floors.py): {_invalid}")
 
 
 def is_sovereign() -> bool:

@@ -19,7 +19,7 @@ a2a_enabled = true
 
 [capabilities]
 roles = ["Constitutional Kernel", "Governance", "Judgment"]
-floors_enforced = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]
+floors_enforced = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]  # canonical list now in arifosmcp/schemas/floors.py (FLOOR_IDS)
 
 [security]
 vault999_attestation_required = true

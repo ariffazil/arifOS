@@ -40,6 +40,8 @@ DITEMPA BUKAN DIBERI — The pipe is forged, not given.
 from __future__ import annotations
 
 import logging
+import os
+import threading
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -187,6 +189,70 @@ def _is_principal_actor(actor_id: Any) -> bool:
     if _is_protected_sovereign_id is not None and _is_protected_sovereign_id(actor_norm):
         return True
     return actor_norm in _SOVEREIGN_ALIASES
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TELEGRAM 888_HOLD ALERT (B-telegram-888-hold)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Fire-and-forget notification using the same env vars as
+# /root/arifOS/services/notifier/main.py.
+# Safe by design: missing config → log + no-op; network errors are swallowed.
+# Runs in a daemon thread so the governance pipeline never blocks.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _notify_telegram_hold(ctx, result) -> None:
+    """Send a Telegram alert for an 888_HOLD verdict.
+
+    Reads NOTIFIER_TELEGRAM_BOT_TOKEN and NOTIFIER_TELEGRAM_CHAT_ID from the
+    environment. If either is missing, logs that Telegram is not configured
+    and returns silently. Never raises.
+    """
+    token = os.getenv("NOTIFIER_TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("NOTIFIER_TELEGRAM_CHAT_ID")
+    if not token or not chat_id:
+        logger.info("Telegram not configured")
+        return
+
+    actor_id = getattr(ctx, "actor_id", None) or "anonymous"
+    tool_name = getattr(ctx, "tool_name", "unknown")
+    action_class = getattr(ctx, "action_class", "OBSERVE")
+    blocked_at = result.blocked_at.value if result.blocked_at else "UNKNOWN"
+    reason = result.reasons[0] if result.reasons else "No reason provided"
+    if len(reason) > 200:
+        reason = reason[:197] + "..."
+
+    text = (
+        "🚨 *arifOS 888_HOLD*\n\n"
+        f"*Actor:* `{actor_id}`\n"
+        f"*Tool:* `{tool_name}`\n"
+        f"*Action:* `{action_class}`\n"
+        f"*Blocked at:* `{blocked_at}`\n"
+        f"*Reason:* {reason}"
+    )
+
+    try:
+        import requests
+
+        url = f"https://api.telegram.org/bot{token}/sendMessage"
+        requests.post(
+            url,
+            json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
+            timeout=10,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Telegram HOLD notification failed: %s", exc)
+
+
+def _notify_telegram_hold_async(ctx, result) -> None:
+    """Spawn a daemon thread to send the Telegram HOLD alert."""
+    t = threading.Thread(
+        target=_notify_telegram_hold,
+        args=(ctx, result),
+        daemon=True,
+        name="telegram-hold-notify",
+    )
+    t.start()
 
 
 def _has_active_authority(ctx: Any) -> bool:
@@ -832,6 +898,10 @@ class GovernancePipeline:
         Runs in a daemon thread — never blocks the governance pipeline.
         Fails silently — governance must never break because NATS is down.
         """
+        # Telegram alert for HOLD verdicts (fire-and-forget)
+        if result.verdict == PipelineVerdict.HOLD:
+            _notify_telegram_hold_async(ctx, result)
+
         if not _NATS_AVAILABLE:
             return
 

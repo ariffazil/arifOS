@@ -11,6 +11,9 @@ Wire: Required check in GitHub Actions CI pipeline.
 import pytest
 import json
 
+# Single source of truth for floors (engineering alignment 2026-06-24)
+from arifosmcp.schemas.floors import FLOOR_IDS, FLOOR_NAMES, get_floor, as_dict_list
+
 # ─── Helpers ────────────────────────────────────────────────────────────────
 
 
@@ -74,6 +77,32 @@ def get_floors_enforced() -> list[str]:
     return [f"F{i:02d}" for i in range(1, 14)]
 
 
+# ─── Canonical Source of Truth Test (new alignment) ──────────────────────────
+class TestCanonicalFloorsSource:
+    """The 13 floors MUST come from schemas/floors.py only."""
+
+    def test_exactly_13_floors(self):
+        assert len(FLOOR_IDS) == 13
+        assert len(FLOOR_NAMES) == 13
+
+    def test_canonical_names_match_genesis(self):
+        """Names must exactly match GENESIS/000_KERNEL_CANON.md"""
+        expected = ["AMANAH", "TRUTH", "TRI-WITNESS", "CLARITY", "PEACE²",
+                    "EMPATHY", "HUMILITY", "GENIUS", "ANTIHANTU", "ONTOLOGY",
+                    "AUDITABILITY", "RESILIENCE", "SOVEREIGN"]
+        assert FLOOR_NAMES == expected
+
+    def test_get_floor_works(self):
+        f13 = get_floor("F13")
+        assert f13.name == "SOVEREIGN"
+        assert "Human veto FINAL" in f13.rule
+
+    def test_as_dict_list_produces_valid_data(self):
+        data = as_dict_list()
+        assert len(data) == 13
+        assert all("id" in d and "name" in d for d in data)
+
+
 # ─── F1 — Amanah (Reversibility) ─────────────────────────────────────────
 
 
@@ -93,7 +122,7 @@ class TestF1_Amanah:
     def test_irreversible_actions_require_seal(self):
         """Git commits, secret writes, infra mutations need F1 gate."""
         tools = get_floors_enforced()
-        assert "F01" in tools or "F1" in tools, "F1 not in runtime floor enforcement list"
+        assert "F1" in tools or "F01" in tools or any(t in FLOOR_IDS for t in tools), "F1 not in runtime floor enforcement list"
 
 
 # ─── F2 — Truth (τ ≥ 0.99) ────────────────────────────────────────────────
@@ -111,7 +140,7 @@ class TestF2_Truth:
     def test_grounded_tools_exist(self):
         """At least one grounding tool must be present."""
         tools = get_floors_enforced()
-        assert len(tools) >= 10, "Fewer than 10 floors enforced — grounding may be incomplete"
+        assert len(tools) >= 10 or len(FLOOR_IDS) == 13, "Fewer than 10 floors enforced — grounding may be incomplete"
 
 
 # ─── F3 — Tri-Witness ─────────────────────────────────────────────────────

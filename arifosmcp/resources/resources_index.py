@@ -199,7 +199,7 @@ _FLOOR_MAP: dict[str, list[str]] = {
         "F12",
         "F13",
     ],
-    "arifos://trinity": ["F1", "F4", "F7", "F13"],
+    "arifos://trinity": ["F1", "F4", "F7", "F13"],  # core floors; full set in schemas/floors.py
     "arifos://schema": [
         "F1",
         "F2",

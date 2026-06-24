@@ -1,13 +1,13 @@
 """
 ART Library — Cold-path persistent memory of ART verdicts.
 
-W1 wedge (2026-06-21). Provides:
+W1 wedge (2026-06-21). Built AND wired. Provides:
   - Postgres-backed persistent call history (90-day bounded retention)
   - Read interface for art_registry.py (W2) and art_propose.py (W3)
   - Optional `ARIFOS_ART_LIBRARY=0` env kill-switch (zero overhead when off)
 
-The reflex (art.py) is NOT modified. Writes happen via a 5-line call from
-mesh_subscriber.py — see the WIRING section at the bottom of this docstring.
+The reflex (art.py) is NOT modified. Writes happen via a fire-and-forget
+call from mesh_subscriber.py:287-326 — see the WIRING section below.
 
 Heritage:
   - ART reflex:        arifosmcp/runtime/art.py       (hot path, ≤500 lines ceiling)
@@ -24,23 +24,12 @@ Design constraints (binding):
   - 90-day window matches ART's `days_since_use → ABANDONED` transition
   - LOC budget: ≤300 lines (cold-path discipline)
 
-WIRING (W1.5 — pending 888_HOLD, separate task):
-  In mesh_subscriber.py, add inside `organ_intelligence_printer` after
-  `verdict = data.get("verdict")`:
-      from arifosmcp.runtime.art_library import get_library, ArtVerdictRow
-      try:
-          await get_library().record(ArtVerdictRow(
-              ts=datetime.now(timezone.utc),
-              session_id=data.get("session_id", "unknown"),
-              tool_name=data.get("tool_name", "unknown"),
-              action_class=data.get("action_class", "unknown"),
-              tool_state=data.get("tool_state", "unknown"),
-              verdict=verdict.get("verdict", "unknown") if verdict else "unknown",
-              actor_id=data.get("actor_id"),
-              intent=data.get("intent"),
-          ))
-      except Exception:
-          pass  # library is fire-and-forget; never block the mesh
+WIRING (W1.5 LIVE — wired in mesh_subscriber.py:287-326):
+  The ART library write is already live inside `organ_intelligence_printer`.
+  Every mesh broadcast becomes a row in art_library via
+  `asyncio.get_running_loop().create_task(_record_art_verdict())`.
+  See `arifosmcp/runtime/mesh_subscriber.py` lines 287-326 for the
+  implementation. Never raises. Never blocks the mesh.
 
 DITEMPA BUKAN DIBERI — Library is forged, not configured.
 """

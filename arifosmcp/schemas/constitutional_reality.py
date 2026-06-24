@@ -1,8 +1,13 @@
 """Constitutional Reality schema — L2 verified state of F1-F13 implementation.
 
-This schema models the gap between what the 000_CONSTITUTION.md claims and
-what can be verified on the live system. It is intentionally mechanical:
-no consciousness, no feelings, no hantu. Just claims, evidence, and deltas.
+This schema models the gap between what GENESIS/000_KERNEL_CANON.md claims and
+what can be verified on the live system.
+
+Canonical floors source: arifosmcp/schemas/floors.py (FLOOR_IDS, FLOOR_BY_ID)
+Single source of truth for ids/names: F1..F13 (no padding, no Lxx aliases).
+
+It is intentionally mechanical: no consciousness, no feelings, no hantu.
+Just claims, evidence, and deltas.
 """
 
 from __future__ import annotations
@@ -10,6 +15,9 @@ from __future__ import annotations
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+# Canonical floors are the single source of truth
+from arifosmcp.schemas.floors import FLOOR_IDS, FLOOR_BY_ID, FLOORS  # noqa: F401 (use for validation/generation)
 
 
 class EvidenceRef(BaseModel):
@@ -29,13 +37,13 @@ class FloorReality(BaseModel):
     """Implementation status of one constitutional floor."""
 
     floor_id: str
-    "Canonical id: F01, F02, ..., F13 or L01-L13."
+    "Canonical id from schemas/floors.py: F1, F2, ..., F13 (use FLOOR_BY_ID)"
     name: str
-    "Human-readable name, e.g. AMANAH, TRUTH, SOVEREIGN."
+    "Canonical name from GENESIS/000: e.g. AMANAH, TRUTH, SOVEREIGN, ANTIHANTU"
     type: str
-    "HARD | SOFT | DERIVED."
+    "HARD | SOFT | DERIVED (see floors.py)"
     constitutional_claim: str
-    "What the constitution says this floor guarantees."
+    "What the constitution (GENESIS/000) says this floor guarantees."
     enforcement_code: list[str] = Field(default_factory=list)
     "Functions/classes that implement the check."
     evidence: list[EvidenceRef] = Field(default_factory=list)

@@ -284,7 +284,7 @@ def organ_intelligence_printer(organ_id: str) -> IntelligenceCallback:
 
         logger.info(" | ".join(parts))
 
-        # ── ART library write (W1.5 — fire-and-forget) ──────────────────────
+        # ── ART library write (W1.5 LIVE — fire-and-forget ART library write) ─
         # Every mesh broadcast becomes a row in art_library. Gives ART
         # longitudinal tool-memory without requiring organs to opt in.
         # Never raises. Never blocks the mesh. Async record() is scheduled

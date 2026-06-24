@@ -2,21 +2,22 @@
 EngineerAgent - Code Execution (Ω Axis)
 
 The EngineerAgent executes code, runs tools, and performs system operations.
-It is heavily guarded by L11 (Command Auth) and requires Validator approval
+It is heavily guarded by F11 AUDITABILITY and requires Validator approval
 for dangerous operations.
 
 Constitutional Role: A-ENGINEER (Ω - Humility/Heart)
-Enforced Floors: F5, F6, F9, L11
+Enforced Floors: F5 PEACE², F6 EMPATHY, F9 ANTIHANTU, F11 AUDITABILITY
+(imported from canonical schemas/floors.py)
 
 Responsibilities:
 - Code execution in sandboxed environment
 - Tool orchestration via MCP
 - File system operations (audited)
-- Shell command execution (L11 gated)
+- Shell command execution (F11 gated)
 - Dynamic tool creation (with F8/F9 validation)
 
 All dangerous operations require:
-1. L11 authorization check
+1. F11 authorization check
 2. Validator approval (for high-risk)
 3. Reversibility proof (F1)
 4. VAULT999 logging
@@ -30,6 +31,7 @@ import os
 import subprocess
 from typing import Any
 
+from arifosmcp.schemas.floors import FLOOR_IDS  # canonical single source
 from .base import ConstitutionalAgent, TrinityRole, Verdict
 
 logger = logging.getLogger(__name__)
@@ -46,14 +48,14 @@ class AGIAgent(ConstitutionalAgent):
     - Create dynamic tools (validated)
 
     It CANNOT:
-    - Execute without L11 authorization
+    - Execute without F11 AUDITABILITY authorization
     - Bypass the Validator for dangerous ops
     - Access secrets without authentication
     - Execute irreversible actions without 888_HOLD
     """
 
-    # Floors enforced by Engineer (Ω axis)
-    ENGINEER_FLOORS = ["F5", "F6", "F9", "L11"]
+    # Floors enforced by Engineer (Ω axis) — from single canonical source (schemas/floors.py)
+    ENGINEER_FLOORS = ["F5", "F6", "F9", "F11"]  # PEACE², EMPATHY, ANTIHANTU, AUDITABILITY
 
     def __init__(
         self,

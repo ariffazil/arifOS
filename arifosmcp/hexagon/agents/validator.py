@@ -6,13 +6,14 @@ It serves as the final judge for all high-stakes decisions, issuing verdicts
 and triggering 888_HOLD escalations when necessary.
 
 Constitutional Role: A-VALIDATOR (Ψ - Vitality/Soul)
-Enforced Floors: F1, F3, L10, L11, L13
+Enforced Floors: F1 AMANAH, F3 TRI-WITNESS, F10 ONTOLOGY, F11 AUDITABILITY, F13 SOVEREIGN
+(imported from canonical schemas/floors.py)
 
 Responsibilities:
 - Final verdict issuance (SEAL/SABAR/VOID/HOLD/PARTIAL)
 - 888_HOLD escalation triggers
-- L11 command authorization verification
-- L13 human sovereignty enforcement
+- F11 command authorization verification
+- F13 human sovereignty enforcement
 - Constitutional compliance validation
 - VAULT999 ledger integrity verification
 
@@ -24,6 +25,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from arifosmcp.schemas.floors import FLOOR_IDS  # canonical single source
 from .base import ConstitutionalAgent, FloorScore, TrinityRole, Verdict
 
 logger = logging.getLogger(__name__)
@@ -42,8 +44,8 @@ class APEXAgent(ConstitutionalAgent):
     It is the only agent that can invoke apex_judge from arifOS.
     """
 
-    # Floors enforced by Validator (Ψ axis)
-    VALIDATOR_FLOORS = ["F1", "F3", "L10", "L11", "L13"]
+    # Floors enforced by Validator (Ψ axis) — from single canonical source
+    VALIDATOR_FLOORS = ["F1", "F3", "F10", "F11", "F13"]
 
     def __init__(self, agent_id: str = "validator.apex", arifos_client=None):
         super().__init__(
@@ -111,10 +113,10 @@ class APEXAgent(ConstitutionalAgent):
 
         logger.info(f"[{execution_id}] Validating action from {agent_id}: {action_type}")
 
-        # === L11: Command Authorization Check ===
+        # === F11 AUDITABILITY: Command Authorization Check ===
         f11_passed = await self._check_f11_audit(action, agent_id)
 
-        # === L10: Ontology Lock Check ===
+        # === F10 ONTOLOGY: Ontology Lock Check ===
         f10_passed = await self._check_f10_ontology(action)
 
         # === F1: Reversibility Check ===
@@ -123,20 +125,20 @@ class APEXAgent(ConstitutionalAgent):
         # === F3: Tri-Witness Check (for critical actions) ===
         f3_passed = await self._check_f3_tri_witness(action, risk_level)
 
-        # === L13: Sovereign Check (always check for high-risk) ===
+        # === F13 SOVEREIGN: Sovereign Check (always check for high-risk) ===
         f13_required = self._determine_f13_requirement(action, risk_level)
 
         # Build floor scores
         floor_scores = [
             FloorScore(
-                "L11",
+                "F11",
                 1.0 if f11_passed else 0.0,
                 1.0,
                 f11_passed,
                 {"auth_verified": f11_passed},
             ),
             FloorScore(
-                "L10",
+                "F10",
                 1.0 if f10_passed else 0.0,
                 1.0,
                 f10_passed,

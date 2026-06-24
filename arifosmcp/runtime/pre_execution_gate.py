@@ -66,6 +66,65 @@ logger = logging.getLogger("arifosmcp.pre_execution_gate")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# INSTRUMENTAL REASONING ADVISORY — telemetry only, never affects verdict
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _detect_reasoning_mode(
+    envelope: KernelEnvelope,
+    requested_action: ActionClass,
+) -> str:
+    """Advisory classification: instrumental reasoning vs pattern-matched execution.
+
+    Uses the cognitive-tier classifier when available. AGI tier maps to
+    "instrumental" (goal-directed reasoning under uncertainty + governed tool
+    substrate). ASI tier maps to "pattern" (recursive self-modeling, not open
+    instrumental reasoning toward an external task). Falls back to simple
+    payload/intent heuristics if the classifier is unavailable.
+
+    This is PURE TELEMETRY. It must never influence the gate verdict.
+    """
+    tool_name = envelope.organ.tool_name or "unknown"
+    payload = getattr(envelope, "payload", {}) or {}
+    intent = (getattr(envelope, "intent", None) or "").strip()
+    params_text = " ".join(f"{k}={v}" for k, v in payload.items())
+    full_text = f"{tool_name} {intent} {params_text}".strip()
+
+    target = ""
+    for candidate in ("target_path", "path", "file", "repo", "target"):
+        if candidate in payload:
+            target = str(payload[candidate])
+            break
+
+    if _ASI_FIREWALL_AVAILABLE and full_text:
+        try:
+            classification = _classify_cognitive_tier(full_text, target)
+            if classification.get("tier") == "AGI":
+                return "instrumental"
+            if classification.get("tier") == "ASI":
+                return "pattern"
+        except Exception:
+            pass  # classifier failure must not block telemetry
+
+    # Fallback heuristic when classifier is unavailable or text is empty.
+    if requested_action in (ActionClass.OBSERVE, ActionClass.ANALYZE):
+        if not payload and not intent:
+            return "pattern"
+        return "instrumental"
+    if requested_action in (
+        ActionClass.DRAFT,
+        ActionClass.SIMULATE,
+        ActionClass.MUTATE,
+        ActionClass.EXTERNAL_SIDE_EFFECT,
+        ActionClass.IRREVERSIBLE,
+    ):
+        if payload or intent:
+            return "instrumental"
+        return "unknown"
+    return "unknown"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # ART REFLEX BRIDGE — maps envelope/manifest → ArtRequest → ArtVerdict → gate
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -753,6 +812,20 @@ def pre_execution_gate(
         GateResult with verdict (SEAL/SABAR/HOLD/VOID) and reasons.
     """
     t0 = time.monotonic()
+
+    # ── Instrumental-reasoning advisory log (non-blocking) ──────────────
+    # Records whether this governed action demonstrates goal-directed
+    # instrumental reasoning under uncertainty vs cached/pattern-matched
+    # execution. Pure telemetry; never affects the gate verdict.
+    reasoning_mode = _detect_reasoning_mode(envelope, requested_action)
+    logger.info(
+        "instrumental_reasoning_advisory: action_class=%s tool_name=%s actor_id=%s reasoning_mode=%s",
+        requested_action.value,
+        envelope.organ.tool_name or "unknown",
+        envelope.kernel.actor_id or "anonymous",
+        reasoning_mode,
+    )
+
     reasons: list[str] = []
     violations: list[str] = []
     degraded_organs: list[str] = []

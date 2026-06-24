@@ -64,6 +64,11 @@ class AnomalousContrast(BaseModel):
       0.35–0.59 → HOLD
       ≥ 0.60 → VOID
 
+    GEOX (L1 domain organ) supplies raw physics-domain indicators such as
+    attention_residual and boundary_condition_flags. arifOS computes the final
+    SEAL/SABAR/HOLD/VOID verdict from F1–F13, independent of GEOX. GEOX may
+    emit an advisory_status, but it is input to AC_Risk, not a verdict.
+
     Embeds in: 333_MIND, 888_JUDGE, 999_VAULT
     """
 
