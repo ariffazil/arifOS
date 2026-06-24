@@ -13,14 +13,9 @@ services:
     environment:
       - NODE_ENV=production
       - AF_FORGE_PORT=7071
-      # Loaded from /root/.secrets/a-forge.env below
       - ARIFOS_GOVERNANCE_URL=http://arifosmcp:8080
-      - SEA_LION_API_KEY=sk-znzfOJH_Yc7LKewfrfsl2A
-      - SEA_LION_BASE_URL=https://api.sea-lion.ai/v1
-      - MINIMAX_API_KEY=sk-cp-xL0YZe_eFlMBtT1FEjhkwpGzfzu6Y8aveXZNp1fX26CJsg2nIO8D6BxQOwj-rIm9jqqZVY0WwpbgEcxOs0YC0erEYBq0pe2S0v10YGlDZhxFavSaz2naD08
-      - MINIMAX_API_HOST=https://api.minimax.io
-      - OPERATOR_API_TOKEN=arif2026
-      - HUMAN_ESCALATION_WEBHOOK_URL=
+      # All provider secrets (MINIMAX_API_KEY, SEA_LION_API_KEY, etc.)
+      # are loaded from /root/.secrets/a-forge.env via env_file below.
     env_file:
       - /root/.secrets/a-forge.env
     networks:
