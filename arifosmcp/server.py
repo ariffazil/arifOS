@@ -82,6 +82,15 @@ from starlette.middleware.cors import CORSMiddleware  # noqa: E402
 from starlette.requests import Request  # noqa: E402
 from starlette.responses import JSONResponse  # noqa: E402
 
+# Standard FastMCP Skills provider for exposing SKILL.md playbooks as first-class resources
+# (skill:// URIs). Distinct from the custom arifosmcp.providers.skills (domain .py callables).
+try:
+    from pathlib import Path
+    from fastmcp.server.providers.skills import SkillsDirectoryProvider as FastMCPSkillsDirectoryProvider
+except ImportError:
+    FastMCPSkillsDirectoryProvider = None  # type: ignore
+    Path = None  # type: ignore
+
 from arifosmcp.constitutional_map import (  # noqa: E402
     CANONICAL_TOOLS,
     DIAGNOSTIC_TOOLS,
@@ -336,6 +345,37 @@ mcp = FastMCP(
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PHASE 2: UNIFIED FEDERATION SKILLS AS MCP RESOURCES (SKILL://)
+# Expose the canonical 7-core + project SKILL.md playbooks (aaa-doctrine-loader,
+# federation-router, arifos-kernel-operator, etc.) as first-class MCP resources.
+# Uses the official FastMCP SkillsDirectoryProvider (per Skills Over MCP WG / SEP-2640).
+# This gives all agents under AAA (Grok Build, Kimi, Claude, A2A agents, etc.)
+# a unified way to discover and load the exact same skill instructions via
+# resources/list + resources/read (skill://<name>/SKILL.md + _manifest).
+# Complements (does not replace) the custom domain .py SkillsDirectoryProvider.
+# ═══════════════════════════════════════════════════════════════════════════
+if FastMCPSkillsDirectoryProvider is not None and Path is not None:
+    try:
+        _skill_roots: list[Path] = [
+            Path("/root/.arifos/agents/kimi/skills"),  # canonical sovereign mirror
+            Path("/root/.agents/skills"),              # project / user scope
+        ]
+        _federation_skills_provider = FastMCPSkillsDirectoryProvider(
+            roots=_skill_roots,
+            supporting_files="template",  # compact list; clients read _manifest for full files
+            reload=False,  # stable in prod; dev can set True
+        )
+        mcp.add_provider(_federation_skills_provider)
+        logger.info(
+            "Federation SkillsDirectoryProvider added: skill:// URIs available for core SKILL.md "
+            "(unified bootstrap across all AAA agents via MCP resources)"
+        )
+    except Exception as _skills_err:
+        logger.warning(f"Could not wire standard SkillsDirectoryProvider for SKILL.md: {_skills_err}")
+else:
+    logger.info("FastMCPSkillsDirectoryProvider not available — skipping skill:// wiring")
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PHASE 0: TRANSPORT CANARY LAYER
