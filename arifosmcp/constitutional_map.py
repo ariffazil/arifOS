@@ -205,7 +205,7 @@ CORE_SEVEN_LABELS: dict[str, str] = {
     "arif_think": "Reason (333)",
     "arif_route": "Route (444/555)",
     "arif_judge": "Verdict (888)",
-    "arif_act": "Act (900, gated)",
+    "arif_act": "Act (900, gated) — routes through Verdict-Gated Action Bus (AGI/ASI tier, civilizational risk, world model organs, verification bottleneck per synthesis)",
     "arif_seal": "Permanent Record (999)",
 }
 
@@ -939,7 +939,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "risk_tier": "critical",
         "irreversible": True,
         "modes": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
-        "eureka_insight": "Internal alias for arif_act.",
+        "eureka_insight": "arif_act is the public surface for the Verdict-Gated Action Bus (action_bus.py). Cognition petitions; kernel + bus decide + execute + learn precedent.",
         "cognitive_axis": "execute",
         "expose": False,
     },

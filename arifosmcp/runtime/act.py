@@ -10,6 +10,10 @@ Public API:
         ActVerdict, ExecutionPattern, StageResult,
     )
 
+Substrate (AGI) path (recommended for models inside the kernel):
+    from arifosmcp.runtime.action_bus import petition_for_action, ActionBus
+    result = petition_for_action(intent)   # full verdict + lease + act + precedent memory update
+
 Lineage:
   2026-06-21 — ART (tool wisdom) + Kernel (law) complete. ACT is the third layer.
   2026-06-21 — Split: playbooks → act_playbooks.py, library → act_library.py,
@@ -33,6 +37,16 @@ from arifosmcp.runtime.act_playbooks import (
     StageResult,
     StageStatus,
 )
+
+# Verdict-Gated Action Bus (the substrate bridge)
+# Cognition should prefer petition_for_action / action_bus over direct act when operating as AGI substrate.
+try:
+    from arifosmcp.runtime.action_bus import ActionBus, petition_for_action, action_bus as substrate_action_bus
+    SUBSTRATE_ACTION_BUS_AVAILABLE = True
+except Exception:
+    SUBSTRATE_ACTION_BUS_AVAILABLE = False
+    substrate_action_bus = None
+    petition_for_action = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════

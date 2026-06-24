@@ -20,7 +20,13 @@ epistemic_status: SOURCE_OF_TRUTH
 > The law kernel of the arifOS Federation. arifOS structures decision; it does not decide.
 > Constitutional judgment (SEAL / SABAR / VOID) and floor enforcement remain in arifOS.
 >
-> Sealed: The load-bearing pair (One Skill: Knowing What NOT To Do / restraint; One Tool: Verdict Loop With Memory) is now canon for AGI and ASI. Scaffolded into Grok Build session init (see A-FORGE profiles.ts buildGrokBuildProfile). See GENESIS/011 §7 for human-language reflection and full contrast + eurekas. All agents/Grok Build sessions inherit this.
+> Sealed: The load-bearing pair (One Skill: Knowing What NOT To Do / restraint; One Tool: Verdict Loop With Memory) is now canon for AGI and ASI.
+
+> Per full contrast synthesis: AGI = human-range general competence (breadth across domains at human scale). ASI = beyond-human dominance (speed, depth, autonomy, civilizational consequence where verification is the bottleneck). Not myth — difference in governability.
+
+> arifOS mission (precise): Do not chase mythical intelligence. Build the substrate that keeps increasing intelligence governable. AGI needs verdict-gated bus; ASI needs civilization-scale restraint + hard refusal + world model (GEOX/WEALTH/WELL).
+
+> The bridge: runtime/action_bus.py now enforces AGI vs ASI tiers, civilizational blast detection, verification_bottleneck flag, world consequence (organs), tier-aware leases, and M3 precedent. arif_act (canonical 7) is the surface. All cognition petitions.
 >
 > 2026-06-24 Forge (Arif directive): Explicit AGI/ASI one-skill-one-tool pairs operationalized.
 > - AGI: instrumental reasoning under uncertainty (metabolic_loop + mind_reason + uncertainty_gate) + general tool-use substrate (A-FORGE leases + containment).
