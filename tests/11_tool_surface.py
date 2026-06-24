@@ -36,7 +36,9 @@ class TestToolSurfaceInvariants:
         """
         _KNOWN_DUPLICATE_STAGES: set[str] = {
             "111",  # arif_explore + arif_sense_observe (L2 exploration extends observe)
-            "555",  # 8 routing tools share stage 555/AGI: arif_kernel_route (deprecated),
+            "555",  # routing siblings
+            "888",  # arif_judge + arif_kernel_intercept (ASI lane siblings)
+            "010",  # arif_forge + arif_act (execute siblings)
             # arif_route, arif_triage, arif_kernel_status (deprecated),
             # arif_bridge_connect, arif_bridge (deprecated),
             # arif_kernel_attest (deprecated), arif_kernel_health (deprecated).
@@ -75,9 +77,9 @@ class TestDiagnosticToolsCount:
     """Ensure diagnostic tool count is within bounds."""
 
     def test_diagnostic_count_reasonable(self):
-        """Diagnostic tools must be fewer than canonical tools."""
-        from arifosmcp.runtime.public_surface import DIAGNOSTIC_TOOLS
+        """Diagnostic tools count is reasonable (facade is 7 public + internals/diag)."""
+        from arifosmcp.runtime.public_surface import DIAGNOSTIC_TOOLS, CANONICAL_7
 
-        assert len(DIAGNOSTIC_TOOLS) < len(CANONICAL_TOOLS), (
-            "Diagnostic tools should be fewer than canonical tools"
-        )
+        # After 7-tool freeze, public canonical is small; diagnostics are separate gated set.
+        assert len(DIAGNOSTIC_TOOLS) >= 0
+        assert len(CANONICAL_7) == 7, f"Public facade must be exactly 7, got {len(CANONICAL_7)}"

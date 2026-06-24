@@ -71,9 +71,9 @@ class TestStage000_SessionInit:
 
     def test_session_init_returns_valid_session(self, e2e_actor_id):
         """Session init must return a valid session with an ID."""
-        from arifosmcp.tools.session import arif_session_init
+        from arifosmcp.tools.session import arif_init
 
-        result = arif_session_init(mode="light", actor_id=e2e_actor_id)
+        result = arif_init(mode="light", actor_id=e2e_actor_id)
         assert result is not None
         assert result.status in ("OK", "INITIALIZED")
         assert result.session.session_id is not None
@@ -81,10 +81,10 @@ class TestStage000_SessionInit:
 
     def test_session_init_twice_generates_distinct_ids(self, e2e_actor_id):
         """Two session inits must produce distinct session IDs."""
-        from arifosmcp.tools.session import arif_session_init
+        from arifosmcp.tools.session import arif_init
 
-        s1 = arif_session_init(mode="light", actor_id=e2e_actor_id)
-        s2 = arif_session_init(mode="light", actor_id=e2e_actor_id)
+        s1 = arif_init(mode="light", actor_id=e2e_actor_id)
+        s2 = arif_init(mode="light", actor_id=e2e_actor_id)
         assert s1.session.session_id != s2.session.session_id
 
 
@@ -98,9 +98,9 @@ class TestStage111_Sense:
 
     def test_sense_observe_returns_status(self, e2e_session_id, e2e_actor_id, e2e_query):
         """Sense observe must return a valid status."""
-        from arifosmcp.tools.sense import arif_sense_observe
+        from arifosmcp.tools.sense import arif_observe
 
-        result = arif_sense_observe(
+        result = arif_observe(
             mode="compass",
             query=e2e_query,
             session_id=e2e_session_id,
@@ -173,9 +173,9 @@ class TestStage333_Mind:
 
     def test_mind_reason_returns_verdict(self, e2e_session_id, e2e_actor_id, e2e_query):
         """Mind reason must return a valid verdict."""
-        from arifosmcp.tools.reason import arif_mind_reason
+        from arifosmcp.tools.reason import arif_think
 
-        result = arif_mind_reason(
+        result = arif_think(
             mode="reason",
             query=e2e_query,
             actor_id=e2e_actor_id,
@@ -216,9 +216,9 @@ class TestStage444_Heart:
     @pytest.mark.asyncio
     async def test_heart_critique_returns_risks(self, e2e_session_id, e2e_actor_id, e2e_query):
         """Heart critique must return risk analysis with risks_found."""
-        from arifosmcp.tools.heart import arif_heart_critique
+        from arifosmcp.tools.heart import arif_critique
 
-        result = await arif_heart_critique(
+        result = await arif_critique(
             mode="critique",
             target=e2e_query,
             session_id=e2e_session_id,
@@ -337,10 +337,10 @@ class TestStage888_Judge:
     @pytest.mark.asyncio
     async def test_judge_deliberate_returns_verdict(self, e2e_session_id, e2e_actor_id, e2e_query):
         """Judge deliberate must return a valid verdict."""
-        from arifosmcp.tools.heart import arif_heart_critique
-        from arifosmcp.tools.judge import arif_judge_deliberate
+        from arifosmcp.tools.heart import arif_critique
+        from arifosmcp.tools.judge import arif_judge
 
-        heart_result = await arif_heart_critique(
+        heart_result = await arif_critique(
             mode="critique",
             target=e2e_query,
             session_id=e2e_session_id,
@@ -348,7 +348,7 @@ class TestStage888_Judge:
             fractal_auto=False,
         )
 
-        judge_result = await arif_judge_deliberate(
+        judge_result = await arif_judge(
             mode="judge",
             candidate=e2e_query,
             session_id=e2e_session_id,
@@ -403,9 +403,9 @@ class TestStage999_Vault:
     def test_vault_seal_is_callable(self, e2e_actor_id):
         """Vault seal must be callable."""
         try:
-            from arifosmcp.tools.vault import arif_vault_seal
+            from arifosmcp.tools.vault import arif_seal
 
-            result = arif_vault_seal(
+            result = arif_seal(
                 data={
                     "summary": "E2E flow verification complete",
                     "source": "tests/e2e/test_000_to_999_flow.py",
@@ -442,19 +442,19 @@ class TestFullE2EFlow:
             888: judge_deliberate
             999: vault_seal
         """
-        from arifosmcp.tools.session import arif_session_init
-        from arifosmcp.tools.sense import arif_sense_observe
-        from arifosmcp.tools.reason import arif_mind_reason
-        from arifosmcp.tools.heart import arif_heart_critique
+        from arifosmcp.tools.session import arif_init
+        from arifosmcp.tools.sense import arif_observe
+        from arifosmcp.tools.reason import arif_think
+        from arifosmcp.tools.heart import arif_critique
         from arifosmcp.tools.memory import arif_memory_recall
-        from arifosmcp.tools.judge import arif_judge_deliberate
+        from arifosmcp.tools.judge import arif_judge
 
         stages_passed = []
         pipeline_data = {}
 
         # ── 000 INIT ──────────────────────────────────────────────────
         print(f"\n[000_INIT] session={e2e_session_id}")
-        init_result = arif_session_init(mode="light", actor_id=e2e_actor_id)
+        init_result = arif_init(mode="light", actor_id=e2e_actor_id)
         assert init_result.status in ("OK", "INITIALIZED")
         assert init_result.session.session_id.startswith("SEAL-")
         pipeline_data["000_init"] = init_result
@@ -462,7 +462,7 @@ class TestFullE2EFlow:
         print("  ✓ Session initialized")
 
         # ── 111 SENSE ─────────────────────────────────────────────────
-        sense_result = arif_sense_observe(
+        sense_result = arif_observe(
             mode="compass",
             query=e2e_query,
             session_id=e2e_session_id,
@@ -486,7 +486,7 @@ class TestFullE2EFlow:
         print(f"  ✓ Rasa sense: risk_band={rasa_result.get('risk_band')}")
 
         # ── 333 MIND ──────────────────────────────────────────────────
-        mind_result = arif_mind_reason(
+        mind_result = arif_think(
             mode="reason",
             query=e2e_query,
             actor_id=e2e_actor_id,
@@ -498,7 +498,7 @@ class TestFullE2EFlow:
         print(f"  ✓ Mind: status={mind_result.status}")
 
         # ── 444 HEART ─────────────────────────────────────────────────
-        heart_result = await arif_heart_critique(
+        heart_result = await arif_critique(
             mode="critique",
             target=e2e_query,
             session_id=e2e_session_id,
@@ -524,7 +524,7 @@ class TestFullE2EFlow:
         print("  ✓ Memory recall OK")
 
         # ── 888 JUDGE ─────────────────────────────────────────────────
-        judge_result = await arif_judge_deliberate(
+        judge_result = await arif_judge(
             mode="judge",
             candidate=e2e_query,
             session_id=e2e_session_id,
@@ -638,19 +638,19 @@ class TestParadoxAndRasaIntegration:
 
     def test_no_data_leakage_between_stages(self, e2e_actor_id, e2e_query):
         """Verify that data from one stage does not leak to another."""
-        from arifosmcp.tools.session import arif_session_init
-        from arifosmcp.tools.sense import arif_sense_observe
+        from arifosmcp.tools.session import arif_init
+        from arifosmcp.tools.sense import arif_observe
 
-        s1 = arif_session_init(mode="light", actor_id=e2e_actor_id)
-        s2 = arif_session_init(mode="light", actor_id=e2e_actor_id)
+        s1 = arif_init(mode="light", actor_id=e2e_actor_id)
+        s2 = arif_init(mode="light", actor_id=e2e_actor_id)
 
-        sense1 = arif_sense_observe(
+        sense1 = arif_observe(
             mode="compass",
             query="Query for session 1",
             session_id=s1.session.session_id,
             actor_id=e2e_actor_id,
         )
-        sense2 = arif_sense_observe(
+        sense2 = arif_observe(
             mode="compass",
             query="Query for session 2",
             session_id=s2.session.session_id,
@@ -683,12 +683,12 @@ class TestE2EEdgeCases:
     def test_empty_pipeline_does_not_crash(self, e2e_session_id, e2e_actor_id):
         """Empty inputs through pipeline must not crash."""
         from arifosmcp.rasa.rasa_integration import rasa_sense_hook
-        from arifosmcp.tools.sense import arif_sense_observe
+        from arifosmcp.tools.sense import arif_observe
 
         rasa_empty = rasa_sense_hook("", session_id=e2e_session_id)
         assert rasa_empty is not None
 
-        sense_empty = arif_sense_observe(
+        sense_empty = arif_observe(
             mode="compass",
             query="",
             session_id=e2e_session_id,
