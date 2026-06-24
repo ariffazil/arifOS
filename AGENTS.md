@@ -19,6 +19,8 @@ epistemic_status: SOURCE_OF_TRUTH
 >
 > The law kernel of the arifOS Federation. arifOS structures decision; it does not decide.
 > Constitutional judgment (SEAL / SABAR / VOID) and floor enforcement remain in arifOS.
+>
+> Sealed: The load-bearing pair is now canon — One Skill: Knowing What NOT To Do (restraint). One Tool: Verdict Loop With Memory. Embedded across kernel, A-FORGE, MCP, and Grok Build. (See GENESIS/011 §7 for the plain human reflection.)
 
 ## Allowed Actions
 

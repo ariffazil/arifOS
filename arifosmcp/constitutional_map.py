@@ -1016,6 +1016,8 @@ ONE_SKILL_ONE_TOOL_CLASSIFICATION: dict[str, dict[str, Any]] = {
         "arif_seal": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Seals the verdict into append-only memory."},
         "arif_forge": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Execution substrate. Only after One Tool verdict + One Skill check."},
         "arif_forge_execute": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Teeth of the system. enforce_restraint_and_verdict must PASS."},
+        "arif_act": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Execution gate. Requires prior seal from One Tool."},
+        "arif_memory": {"restraint": "STANDARD", "verdict": "CONDITIONAL", "classification": "Memory ops gated by restraint for mutation."},
     },
     "note": "All tools inherit from INIT geometry. If kernel spec does not classify it, DENY.",
 }

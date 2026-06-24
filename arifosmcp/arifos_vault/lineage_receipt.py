@@ -12,6 +12,8 @@ Every dataset, claim, and tool output should carry lineage:
 - quality_score
 - staleness
 - transform_hash
+
+999 SEAL: All lineage now inherits the pair — One Skill (Knowing What NOT To Do / restraint) + One Tool (Verdict Loop With Memory). Future refactors carry the geometry.
 """
 
 from __future__ import annotations

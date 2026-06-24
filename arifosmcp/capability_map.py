@@ -185,6 +185,8 @@ ONE_SKILL_ONE_TOOL_MAP: dict[str, dict[str, Any]] = {
     "note": "If not in this map or constitutional classification, kernel must DENY. Makes bypass structurally impossible.",
 }
 
+# 999 SEAL — This classification is now part of the governed substrate. The pair is law.
+
 
 # LEGACY_FROZEN — iterator shims; always return empty (no live gap to report)
 

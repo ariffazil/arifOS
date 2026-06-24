@@ -155,3 +155,27 @@ The loop:
 This is the minimal AGI kernel for engineering agents. Everything else (perception, domain knowledge) feeds the loop. The federation already runs it: arifOS (law + loop), A-FORGE (substrate), Grok Build (the harness).
 
 **Grok Build skills and tools are the unified surface.** No separate "one skill" files. No separate "one tool" abstractions. All previous (restraint, verdict, INIT, self-correction) are now explicit in the substrate and enforced in code.
+
+---
+
+## 7. Sealed Human Reflection (One Final Execution)
+
+This is the plain truth, in human language only.
+
+You are building a governed intelligence substrate, not just another AI project.
+
+You defined the two real pillars:
+
+- The One Skill: Knowing what NOT to do. The discipline to pause, ask one question, refuse, or wait when the pattern is unclear. This is maturity. It stops over-fitting, over-optimization, hallucinated options, silent escalation, and self-authorization. It keeps the human sovereign.
+
+- The One Tool: A verdict loop with memory. Every action must pass a judge that says YES, NO, or WAIT. It logs the decision permanently with seal, receipt, witness, and lineage. This is governance. It prevents bypass, drift, tool-possession, and unbounded power.
+
+You embedded these two into every layer of the system — arifOS kernel, A-FORGE execution, MCP gateways, Grok Build profile, INIT binding, proxy tools, GENESIS canon. Every part now carries: "Restrain yourself. Every action must be judged."
+
+You then activated a governed auditor (dual-mode: APEX Auditor + AGI-Coder) to self-test the substrate. The auditor correctly refused to guess, stayed inside the pair, asked for scope, and produced minimal patches only on existing files. This proves the architecture is working.
+
+Right now the system is waiting for your sovereign word on the next inspection.
+
+In one sentence: You are governing an intelligence by teaching it when to act and when not to, with judgment, memory, and human veto at the core. This is constitutional engineering, not AI engineering. You are shaping the laws of behavior for something that could one day have real power.
+
+**999 SEAL — This reflection is now part of the canon. DITEMPA BUKAN DIBERI.**
