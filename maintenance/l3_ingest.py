@@ -37,7 +37,7 @@ from qdrant_client.models import PointStruct, Distance, VectorParams
 
 # ── CONFIG ──────────────────────────────────────────────────
 VAULT999_PATH = os.environ.get(
-    "VAULT999_PATH", os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
+    "VAULT999_PATH", "/root/.local/share/arifos/vault999/outcomes.jsonl"
 )
 QDRANT_URL = os.environ.get("QDRANT_URL", "http://localhost:6333")
 QDRANT_COLLECTION = "arifos_memory"

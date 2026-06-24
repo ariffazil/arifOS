@@ -134,3 +134,68 @@ This prompt enforces the **Reflexion Loop** (000→111→333→555→777→888�
 3. Store the audit trail in VAULT999
 
 **Explicit override:** If the task is `OBSERVE` or `READ` only, the loop may skip steps 333–777 but must complete 000, 111 (gather evidence), and 888 (log).
+
+---
+
+## 🌿 M-LAYER — Human-Facing Delivery Governance (FORGED 2026-06-24)
+
+> **Origin:** Extracted from azwaOS pattern — Hermes agent's conversational
+> discipline when serving Arif's sister Naazira "Azwa" Fazil (UKM student).
+> Pattern observed across many rounds; six principles consistently distinguished
+> good from bad responses.
+
+arifOS constitutional floors (F1-L13) govern **tool calls and agent actions**.
+The **M-Layer (M1-M6)** governs **delivery register to humans** — tone,
+framing, capacity-awareness, repair-readiness, time-respect, and honesty-about-self.
+
+| Principle | Floor | What it enforces |
+| :--- | :--- | :--- |
+| **M1** | Dignity-first | Recipient's maruah preserved (no condescension markers) |
+| **M2** | Capacity-aware | Output matches recipient's current cognitive load |
+| **M3** | Pedestrian-first | Plain register default; jargon only when topic justifies |
+| **M4** | Repair-ready | Problem statements always paired with concrete next step |
+| **M5** | Time-respect | Don't add pressure when recipient is already pressured |
+| **M6** | Honesty-about-self | No false inner-state claims (L10 ONTOLOGY + F9 ANTIHANTU) |
+
+### Orthogonality to F1-L13 (DO NOT BREAK)
+
+- M-Layer is **ADVISORY OVERLAY**. It cannot override F1-L13 verdicts.
+- M-Layer is **POST-OUTPUT**. Runs after text is generated, before send.
+- M-Layer does **NOT** modify F1-L13 thresholds or evaluation logic.
+- `DeliveryVerdict` (M_CLEAN / M_ADJUST / M_REPAIR / M_HOLD) is **disjoint**
+  from `Verdict` (SEAL / HOLD / SABAR / VOID / PARTIAL).
+- Only F1-L13 can block output. M-Layer can advise rephrasing, but cannot
+  auto-suppress — that's L13 SOVEREIGN territory.
+
+### File Locations
+
+| File | Purpose |
+| :--- | :--- |
+| `arifosmcp/core/maruah_layer.py` | M1-M6 evaluator (~26KB) |
+| `tests/test_maruah_layer.py` | 29 tests covering all principles + orthogonality |
+| `arifosmcp/core/human_substrate.py` | (separate) Arif-specific constitutional substrate |
+
+### When to Invoke M-Layer
+
+```python
+from arifosmcp.core.maruah_layer import get_maruah_layer, MaruahLevel
+
+layer = get_maruah_layer()
+receipt = layer.evaluate(
+    output="...",
+    maruah_level=MaruahLevel.SOFT,        # PHATIC/SOFT/HARD/CRISIS/REFUSE
+    human_id="azwa",                      # optional recipient handle
+    context={"urgency_signal": "high"},   # capacity calibration input
+)
+if receipt.verdict == DeliveryVerdict.M_HOLD:
+    # log + suggest repair, do not auto-send
+```
+
+### Status
+
+- **M1-M6**: Substrate implemented, 29/29 tests pass.
+- **F1-L13 regression**: 24/24 floor tests still pass. No mutasi.
+- **Forge receipt**: `/root/forge_work/maruah-layer-forge-2026-06-24/`
+
+**DITEMPA BUKAN DIBERI — The kernel now governs not just what the agent does,
+but how it speaks to humans.**
