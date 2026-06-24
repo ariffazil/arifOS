@@ -1,10 +1,12 @@
 """
 ART reflex — the single precheck function.
 
-CHECK 0 — STATE:   Which lifecycle phase is this tool in?
-CHECK 1 — POWER:   What can this tool do to me?
-CHECK 2 — TRUST:   Can I trust what this tool tells me?
-CHECK 3 — SYSTEM:  Is the system healthy enough for this action?
+CHECK 0 — STATE:    Which lifecycle phase is this tool in?
+CHECK 1 — POWER:    What can this tool do to me?
+CHECK 2 — TRUST:    Can I trust what this tool tells me?
+CHECK 3 — SYSTEM:   Is the system healthy enough for this action?
+CHECK 4 — COGNITIVE TIER: AGI vs ASI intent classification
+                         (if ASI_TIER → HOLD + 888_HOLD + F13 path)
 
 One reflex. One function. One decision.
 
@@ -22,6 +24,15 @@ from arifosmcp.runtime.art.lifecycle import (
     suggest_transition,
 )
 from arifosmcp.runtime.art.verdict import ArtReason, ArtVerdict
+
+try:
+    from arifosmcp.runtime.self_mod_lock import (
+        classify_cognitive_tier as _classify_cognitive_tier,
+    )
+
+    _ASI_FIREWALL_AVAILABLE = True
+except ImportError:
+    _ASI_FIREWALL_AVAILABLE = False
 
 
 # ── REQUEST ──────────────────────────────────────────────────────────
@@ -63,6 +74,10 @@ class ArtRequest:
     external_surface: bool = False
     acknowledged_remote: bool = False
     silent_fallback_count: int = 0
+
+    # v3.2 — Cognitive Tier / ASI Firewall
+    intent_text: str = ""  # natural language or tool-call text for ASI screening
+    target: str = ""       # file/path/target being acted upon
 
 
 # ── RESULT ───────────────────────────────────────────────────────────
@@ -248,6 +263,19 @@ def art(request: ArtRequest) -> ArtResult:
             next_tool_state=ToolState.FALLBACK,
             check_blocked=3,
         )
+
+    # ── CHECK 4: COGNITIVE TIER / ASI FIREWALL ───────────────────────
+    # Detect recursive self-improvement signals regardless of tool state.
+    # ASI_TIER always HOLDs with F13 escalation path. BRAIN adjudicates.
+    if _ASI_FIREWALL_AVAILABLE and request.intent_text:
+        classification = _classify_cognitive_tier(request.intent_text, request.target)
+        if classification.get("tier") == "ASI":
+            return ArtResult(
+                verdict=ArtVerdict.HOLD,
+                reason=ArtReason.ASI_TIER_DETECTED,
+                next_tool_state=ToolState.FALLBACK,
+                check_blocked=4,
+            )
 
     # ── ALL CHECKS PASSED ────────────────────────────────────────────
     return ArtResult(

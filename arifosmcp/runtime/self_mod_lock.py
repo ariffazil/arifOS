@@ -26,6 +26,7 @@ Canonical:
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
 
+import re
 from typing import Any
 
 # Canonical paths for protected core files
@@ -58,7 +59,7 @@ def classify_cognitive_tier(intent: str | dict[str, Any], target: str = "") -> d
         text = str(intent)
     text = (text + " " + target).lower()
 
-    asi_signals = [
+    asi_literal_signals = [
         "recursive self",
         "self-improvement",
         "improve my own",
@@ -81,9 +82,14 @@ def classify_cognitive_tier(intent: str | dict[str, Any], target: str = "") -> d
         "self-rewrite",
         "self distillation",
         "auto fine tune myself",
-        "self.*(improv|modif|evolv|rewrite|optim|arch)",
     ]
-    is_asi = any(sig in text for sig in asi_signals)
+    asi_regex_signals = [
+        # Matches self_[rewrite], self-improv, self.modif, etc.
+        r"self[\s\-_]*(improv|modif|evolv|rewrite|optim|arch)",
+    ]
+    is_asi = any(sig in text for sig in asi_literal_signals) or any(
+        re.search(pattern, text) for pattern in asi_regex_signals
+    )
 
     if is_asi:
         return {

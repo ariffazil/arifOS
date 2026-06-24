@@ -50,5 +50,9 @@ class ArtReason(StrEnum):
     # Abandonment
     TOOL_STALE = "tool unused >90 days — abandon candidate"
 
+    # Check 4: Cognitive Tier / ASI Firewall
+    ASI_TIER_DETECTED = "ASI_TIER detected — recursive self-improvement signal"
+    CORE_SELF_TARGET = "targeting protected core — self-modification locked"
+
     # All clear
     ALL_CHECKS_PASSED = "all checks passed — proceed"

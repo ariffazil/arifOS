@@ -11,7 +11,9 @@ The 10-Gate Sequence:
   Gate -1: Kaparinyo Scan         — "Apa rupanya?" — pre-floor simulation check
   Gate 0: Session Binding       — session_id must be valid and active
   Gate 1: Identity & Authority  — actor must be verified for this action class
+  Gate 1.5: F13 Sovereign       — F13 non-delegable authority integrity
   Gate 1.5: Principal Paradox   — E7: autonomy contracts as risk expands
+  Gate 1.6: Cognitive Tier      — ASI firewall: recursive self-improvement detection
   Gate 2: Budget Enforcement    — session must have remaining budget
   Gate 3: Risk Passport         — action must not exceed risk ceiling
   Gate 4: Vault Liveness        — audit trail must be fresh enough
@@ -143,6 +145,17 @@ try:
     )
 except ImportError:
     _is_protected_sovereign_id = None
+# ──────────────────────────────────────────────────────────────────────
+
+# ── ASI Cognitive Tier Firewall (Phase 2 — 2026-06-24) ────────────────
+try:
+    from arifosmcp.runtime.self_mod_lock import (
+        classify_cognitive_tier as _classify_cognitive_tier,
+    )
+
+    _ASI_FIREWALL_AVAILABLE = True
+except ImportError:
+    _ASI_FIREWALL_AVAILABLE = False
 # ──────────────────────────────────────────────────────────────────────
 
 logger = logging.getLogger("arifosmcp.governance_pipeline")
@@ -310,6 +323,7 @@ class Gate(StrEnum):
     IDENTITY = "GATE_1_IDENTITY"
     F13_SOVEREIGN = "GATE_1.5_F13_SOVEREIGN"  # E5: F13 non-delegable gate
     PRINCIPAL_PARADOX = "GATE_1.5_PRINCIPAL_PARADOX"  # E7: autonomy contracts as risk expands
+    COGNITIVE_TIER = "GATE_1.6_COGNITIVE_TIER"  # ASI firewall: skill/tool tier detection
     BUDGET = "GATE_2_BUDGET"
     RISK = "GATE_3_RISK"
     VAULT = "GATE_4_VAULT_LIVENESS"
@@ -431,6 +445,8 @@ class GovernancePipeline:
         f13_gate_enabled: bool = True,
         # ── E7 Principal Paradox (Gate 1.5) ──
         principal_paradox_enabled: bool = True,
+        # ── ASI Cognitive Tier Firewall (Gate 1.6) ──
+        asi_firewall_enabled: bool = True,
         # ── Enforcement mode ──
         enforcement_mode: str = "enforce",  # "enforce" | "simulate"
         # ── Standard gates ──
@@ -472,6 +488,9 @@ class GovernancePipeline:
 
         # E7 Principal Paradox (Gate 1.5)
         self.principal_paradox_enabled = principal_paradox_enabled and _E7_AVAILABLE
+
+        # ASI Cognitive Tier Firewall (Gate 1.6)
+        self.asi_firewall_enabled = asi_firewall_enabled and _ASI_FIREWALL_AVAILABLE
 
         # Enforcement mode — "enforce" (hard block) or "simulate" (log only)
         self.enforcement_mode = enforcement_mode
@@ -687,6 +706,23 @@ class GovernancePipeline:
                     self._publish_to_mesh(ctx, result)
                     # SABAR falls through — advisory, not hard block
                     # (F1 AMANAH: autonomy contraction is reversible policy)
+
+        # Gate 1.6: Cognitive Tier / ASI Firewall
+        if self.asi_firewall_enabled:
+            gate = self._gate_cognitive_tier(ctx)
+            result.gate_results.append(gate)
+            if not gate.passed:
+                result.verdict = PipelineVerdict.HOLD
+                result.blocked_at = gate.gate
+                result.reasons.append(gate.reason)
+                result.violated_laws.extend(gate.metadata.get("violated_laws", ["ASI_FIREWALL"]))
+                result.next_safe_action = (
+                    "ASI_TIER detected. BRAIN must judge via arif_judge_deliberate. "
+                    "F13 SOVEREIGN ratification required before any HANDS execution."
+                )
+                result.total_latency_ms = (time.perf_counter() - t0) * 1000
+                self._publish_to_mesh(ctx, result)
+                return result
 
         # Gate 2: Budget
         if self.budget_enabled:
@@ -978,6 +1014,71 @@ class GovernancePipeline:
                 "violated_laws": ["F13"] if not passed else [],
                 "caller": caller,
                 "action_class": action_class,
+            },
+        )
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE 1.6: COGNITIVE TIER / ASI FIREWALL
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def _gate_cognitive_tier(self, ctx: ToolCallContext) -> GateResult:
+        """ASI firewall: detect recursive self-improvement signals.
+
+        Runs after identity/authority gates and before budget/risk gates.
+        Any ASI_TIER signal forces 888_HOLD + F13 path. BRAIN adjudicates;
+        HANDS does not execute recursively without sovereign ratification.
+
+        The gate inspects the tool name, parameters, and any explicit target
+        to classify the cognitive tier of the intent. AGI_TIER passes.
+        ASI_TIER blocks with a structured HOLD.
+        """
+        t0 = time.perf_counter()
+
+        # Build intent text from tool name + parameters
+        parts = [str(ctx.tool_name)]
+        params = getattr(ctx, "params", {}) or {}
+        for key, value in params.items():
+            parts.append(f"{key}={value}")
+        intent_text = " ".join(parts)
+
+        # Target may be explicit in params (e.g. target_path, path, file, repo)
+        target = ""
+        for candidate in ("target_path", "path", "file", "repo", "target"):
+            if candidate in params:
+                target = str(params[candidate])
+                break
+
+        classification = _classify_cognitive_tier(intent_text, target)
+
+        if classification.get("tier") == "ASI":
+            return GateResult(
+                gate=Gate.COGNITIVE_TIER,
+                passed=False,
+                reason=(
+                    f"ASI_FIREWALL: {classification.get('reason')} "
+                    f"[skill={classification.get('skill')}; tool={classification.get('tool')}]"
+                ),
+                latency_ms=(time.perf_counter() - t0) * 1000,
+                metadata={
+                    "tier": "ASI",
+                    "skill": classification.get("skill"),
+                    "tool": classification.get("tool"),
+                    "requires": classification.get("requires", []),
+                    "violated_laws": ["ASI_FIREWALL", "F13"],
+                    "agi_safe": False,
+                },
+            )
+
+        return GateResult(
+            gate=Gate.COGNITIVE_TIER,
+            passed=True,
+            reason=f"AGI_TIER: {classification.get('reason')}",
+            latency_ms=(time.perf_counter() - t0) * 1000,
+            metadata={
+                "tier": "AGI",
+                "skill": classification.get("skill"),
+                "tool": classification.get("tool"),
+                "agi_safe": True,
             },
         )
 

@@ -131,19 +131,30 @@ _CHATGPT_COMPAT = os.getenv("ARIFOS_CHATGPT_COMPAT", "false").lower() in (
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         try:
-            return await call_next(request)
-        except Exception as e:
-            print(f"!!! KERNEL PANIC: {e}", file=sys.stderr)
-            print(traceback.format_exc(), file=sys.stderr)
-            return JSONResponse(
-                {
-                    "status": "void",
-                    "tool": "kernel_panic_handler",
-                    "error_message": "L13: System halt due to unhandled kernel exception.",
-                    "action": "HALT",
-                },
-                status_code=500,
-            )
+            try:
+                return await call_next(request)
+            except Exception as e:
+                print(f"!!! KERNEL PANIC: {e}", file=sys.stderr)
+                print(traceback.format_exc(), file=sys.stderr)
+                # Guard: never let the panic handler itself throw.
+                # If JSON serialize or any step here fails, fall through to safe JSON.
+                try:
+                    return JSONResponse(
+                        {
+                            "status": "void",
+                            "tool": "kernel_panic_handler",
+                            "error_message": "L13: System halt due to unhandled kernel exception.",
+                            "detail": str(e)[:200],
+                            "action": "HALT",
+                        },
+                        status_code=500,
+                    )
+                except Exception:
+                    # Last resort: plain JSON if even JSONResponse fails.
+                    return JSONResponse({"status": "void", "action": "HALT"}, status_code=500)
+        except Exception:
+            # Top-level: if call_next itself throws before we enter the inner try.
+            return JSONResponse({"status": "void", "action": "HALT"}, status_code=500)
 
 
 class StatelessGetRejectMiddleware(BaseHTTPMiddleware):

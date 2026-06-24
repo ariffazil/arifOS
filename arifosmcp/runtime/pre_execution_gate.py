@@ -40,6 +40,15 @@ from __future__ import annotations
 import logging
 import time
 
+try:
+    from arifosmcp.runtime.self_mod_lock import (
+        classify_cognitive_tier as _classify_cognitive_tier,
+    )
+
+    _ASI_FIREWALL_AVAILABLE = True
+except ImportError:
+    _ASI_FIREWALL_AVAILABLE = False
+
 from arifosmcp.schemas.kernel_envelope import (
     ActionClass,
     BlastRadius,
@@ -123,6 +132,17 @@ def _art_reflex_check(
     except (ImportError, Exception):
         _tool_state = ToolState.TRUSTED  # fail-open: gate continues
 
+    # Build intent text from tool name + payload for ASI screening.
+    payload = getattr(envelope, "payload", {}) or {}
+    intent_text = f"{envelope.organ.tool_name} " + " ".join(
+        f"{k}={v}" for k, v in payload.items()
+    )
+    target = ""
+    for candidate in ("target_path", "path", "file", "repo", "target"):
+        if candidate in payload:
+            target = str(payload[candidate])
+            break
+
     # Build ArtRequest from envelope + manifest + registry state.
     art_req = ArtRequest(
         action_class=_art_action_class_str(requested_action),
@@ -141,6 +161,8 @@ def _art_reflex_check(
             if requested_action == ActionClass.EXTERNAL_SIDE_EFFECT
             else False
         ),
+        intent_text=intent_text,
+        target=target,
     )
 
     art_result = art(art_req)
@@ -394,6 +416,60 @@ def _act_reflex_check(
             reasons=[f"ACT: {act_result.reason.value}"],
             violations=["ACT_REFLEX_BLOCK"],
             blocked_action_class=requested_action,
+        )
+
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GATE 2.7: ASI COGNITIVE TIER FIREWALL
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _asi_firewall_check(
+    envelope: KernelEnvelope,
+    requested_action: ActionClass,
+) -> GateResult | None:
+    """Gate 2.7 — Detect recursive self-improvement / ASI_TIER signals.
+
+    Defense-in-depth alongside GovernancePipeline Gate 1.6. Any tool call
+    whose intent or target signals recursive self-modification is HOLDed
+    with explicit F13 escalation. BRAIN must judge; HANDS does not execute.
+
+    Returns:
+        None if AGI_TIER (proceed to next gate).
+        GateResult(HOLD) if ASI_TIER detected.
+
+    Fails open: if classifier unavailable, returns None.
+    """
+    if not _ASI_FIREWALL_AVAILABLE:
+        return None
+
+    tool_name = envelope.organ.tool_name or ""
+    params = getattr(envelope, "payload", {}) or {}
+    params_text = " ".join(f"{k}={v}" for k, v in params.items())
+    intent_text = f"{tool_name} {params_text}".strip()
+
+    # Target may be explicit in payload
+    target = ""
+    for candidate in ("target_path", "path", "file", "repo", "target"):
+        if candidate in params:
+            target = str(params[candidate])
+            break
+
+    classification = _classify_cognitive_tier(intent_text, target)
+
+    if classification.get("tier") == "ASI":
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=[
+                f"ASI_FIREWALL: {classification.get('reason')} "
+                f"[skill={classification.get('skill')}; tool={classification.get('tool')}]"
+            ],
+            violations=["ASI_FIREWALL", "F13_SOVEREIGN"],
+            blocked_action_class=requested_action,
+            required_human_ack=True,
         )
 
     return None
@@ -728,6 +804,13 @@ def pre_execution_gate(
                         blocked_action_class=requested_action,
                         required_human_ack=True,
                     )
+
+    # ── Gate 2.7: ASI Cognitive Tier Firewall ─────────────────────────
+    # Runs BEFORE ART/ACT so that recursive self-improvement signals are
+    # caught regardless of tool lifecycle state. ASI_TIER forces 888_HOLD + F13.
+    asi_gate = _asi_firewall_check(envelope, requested_action)
+    if asi_gate is not None:
+        return asi_gate
 
     # ── Gate 2.5: ART reflex advisory check ────────────────────────────
     # Calls the stateless ART reflex (4 tool states × 3 checks) and maps

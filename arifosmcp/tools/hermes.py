@@ -180,8 +180,14 @@ def hermes_vault_query(
     # chain. Without this fix, vault_replay conformance could not find
     # entries — substrate readiness was failing on the most basic substrate
     # property: "can the kernel read its own sealed past?"
+    # Priority: VAULT999_PATH (conformance spine) > ARIFOS_VAULT_DIR (systemd)
+    # > /root/VAULT999 (canonical repo) > /agent/vault999 (legacy fallback)
     vault_dir = (
-        os.environ.get("ARIFOS_VAULT_DIR") or os.environ.get("VAULT999_PATH") or "/agent/vault999"
+        os.environ.get("VAULT999_PATH")
+        or os.environ.get("ARIFOS_VAULT_DIR")
+        or os.path.join(os.environ.get("ARIFOS_HOME", "/root"), "VAULT999")
+        or "/root/VAULT999"
+        or "/agent/vault999"
     )
 
     if not os.path.isdir(vault_dir):

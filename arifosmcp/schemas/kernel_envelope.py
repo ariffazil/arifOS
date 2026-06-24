@@ -450,6 +450,11 @@ class KernelEnvelope(BaseModel):
     )
     audit: AuditBlock = Field(default_factory=AuditBlock, description="Audit trail metadata")
 
+    # ── Tool call payload (optional) ────────────────
+    payload: dict[str, Any] = Field(
+        default_factory=dict, description="Original tool call parameters for gate inspection"
+    )
+
     # ── Gate outcome ──────────────────────────────────────────────
 
     verdict: GateVerdict = Field(

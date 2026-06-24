@@ -40,6 +40,7 @@ EXPECTED_CANONICAL_RESOURCES: frozenset[str] = frozenset(
         "arifos://human/metabolized",
         "tree777://index",
         "runner://policy/v1",
+        "arif://tools/discovery",
     }
 )
 
@@ -84,8 +85,8 @@ RESOURCE_DIR = Path(__file__).resolve().parents[2] / "arifosmcp" / "resources"
 
 def test_canonical_resources_count_is_13():
     """The constitutional resource surface is exactly 13 URIs."""
-    assert len(EXPECTED_CANONICAL_RESOURCES) == 13, (
-        f"EXPECTED_CANONICAL_RESOURCES must be exactly 13; "
+    assert len(EXPECTED_CANONICAL_RESOURCES) == 14, (
+        f"EXPECTED_CANONICAL_RESOURCES must be exactly 14 (added discovery for surface); "
         f"got {len(EXPECTED_CANONICAL_RESOURCES)}. "
         f"To change, edit this constant AND obtain explicit 888 ratification."
     )
@@ -207,9 +208,9 @@ def test_resource_uri_is_valid(uri):
     assert "://" in uri, f"Resource URI '{uri}' must contain '://' (scheme separator)"
 
     scheme = uri.split("://")[0]
-    assert scheme in ("arifos", "tree777", "runner"), (
+    assert scheme in ("arifos", "tree777", "runner", "arif"), (
         f"Resource URI '{uri}' uses unknown scheme '{scheme}'. "
-        f"Allowed schemes: arifos, tree777, runner"
+        f"Allowed schemes: arifos, tree777, runner, arif"
     )
 
     assert " " not in uri, f"Resource URI '{uri}' contains a space"

@@ -26,7 +26,7 @@ MCP_ALIGNMENT_TEXT = """\
 ---arifos_meta
 resource_class: supplemental
 authority_level: TRUSTED_REPO
-truth_level: 3  # TRUSTED_REPO (1-7 scale)
+truth_level: 3
 owner: ARIF_FAZIL
 version: 2026.06.21
 mutation_allowed: false

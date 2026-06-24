@@ -24,7 +24,7 @@ blast_radius: LOW
 evidence_level: CANONICAL
 staleness_policy: fail_closed
 last_attested: 2026-06-22T00:00:00Z
-truth_level: 1  # SOVEREIGN_CANON (1-7 scale)
+truth_level: 1
 ---end_arifos_meta
 
 arifOS Vitals — Metric Reference & Thresholds (Ω)
