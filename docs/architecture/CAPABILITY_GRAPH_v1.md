@@ -24,6 +24,24 @@ This document is the canonical v1 specification.
 
 ---
 
+## 0. Scope Boundary (Post-Audit)
+
+> **Premise correction:** arifOS is a governance kernel, not yet a full AGI substrate.
+> This spec specifies **one necessary layer** of the substrate: the **capability surface + action bus**.
+> It intentionally does NOT specify embodied memory, world model, bounded learning, or multi-domain synthesis.
+> Those layers are defined in the broader `AGI_SUBSTRATE_v1` architecture.
+> See audit: `/root/forge_work/CAPABILITY_GRAPH_v1_AUDIT.md`
+
+This document governs:
+- Which tools exist.
+- Who can invoke them.
+- What verdict loop is required.
+- How refusal is expressed.
+
+It does not govern what the system knows, how it learns, or how it models reality.
+
+---
+
 ## 2. Design Principles
 
 1. **One graph to rule them all.** No more `CANONICAL_TOOLS`, `tool_registry.json`, `public_tool_specs`, `mcp_surface_registry.yaml`, and `capability_map.py` drifting apart.
