@@ -207,8 +207,15 @@ class StatelessGetRejectMiddleware(BaseHTTPMiddleware):
 
 
 class OriginValidationMiddleware(BaseHTTPMiddleware):
-    """Validate Origin header on MCP endpoints to prevent DNS rebinding (SEP-2243)."""
+    """
+    Validate Origin header on MCP endpoints to prevent DNS rebinding (SEP-2243).
 
+    arifOS is a public MCP substrate; CORS is already open. This gate only
+    blocks obviously malicious origins while allowing legitimate browser/
+    orchestrator contexts (AAA, Microsoft Copilot, localhost dev).
+    """
+
+    # Exact-origin or scheme+host prefixes allowed for /mcp calls.
     ALLOWED_ORIGIN_PREFIXES: tuple[str, ...] = (
         "https://arifos.arif-fazil.com",
         "https://arif-fazil.com",
@@ -216,12 +223,39 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         "https://localhost",
         "http://127.0.0.1",
         "https://127.0.0.1",
+        # Microsoft Copilot / Teams / Office / 365 cloud origins
+        "https://teams.microsoft.com",
+        "https://copilot.microsoft.com",
+        "https://www.office.com",
+        "https://outlook.office.com",
+        "https://outlook.office365.com",
+        "https://*.office.com",
+        "https://*.cloud.microsoft",
+        "https://*.microsoft.com",
+        "https://*.sharepoint.com",
+        "https://*.onedrive.com",
+        "https://*.live.com",
     )
+
+    @classmethod
+    def _origin_allowed(cls, origin: str) -> bool:
+        """Support wildcard subdomains in allowed-origin list."""
+        if not origin:
+            return True  # server-to-server calls often omit Origin
+        for prefix in cls.ALLOWED_ORIGIN_PREFIXES:
+            if prefix.startswith("https://*."):
+                scheme_and_wild = prefix.split("://", 1)[1]  # e.g. *.microsoft.com
+                domain = scheme_and_wild.lstrip("*.")         # e.g. microsoft.com
+                if origin.startswith("https://") and origin[8:].endswith("." + domain):
+                    return True
+            elif origin.startswith(prefix):
+                return True
+        return False
 
     async def dispatch(self, request: Request, call_next):
         if request.url.path.startswith("/mcp"):
             origin = request.headers.get("origin", "")
-            if origin and not any(origin.startswith(p) for p in self.ALLOWED_ORIGIN_PREFIXES):
+            if not self._origin_allowed(origin):
                 return JSONResponse(
                     {"error": "Invalid Origin", "detail": "DNS rebinding protection"},
                     status_code=403,
@@ -372,6 +406,50 @@ if FastMCPSkillsDirectoryProvider is not None and Path is not None:
             "Federation SkillsDirectoryProvider added: skill:// URIs available for core SKILL.md "
             "(unified bootstrap across all AAA agents via MCP resources)"
         )
+
+        # Bridge for wire protocol: explicitly register FileResources so that
+        # mcp.http_app() streamable-http transport surfaces skill:// in resources/list
+        # (the in-proc Client + custom stdio _mcp.list_resources() see provider list;
+        #  the low-level HTTP JSON-RPC handler only sees decorator-registered + add_resource).
+        # This closes the gap between SDK Client verification and actual MCP clients over /mcp.
+        try:
+            from fastmcp.resources.types import FileResource  # type: ignore
+
+            _wire_registered: list[str] = []
+            for _r in _skill_roots:
+                if not _r.exists():
+                    continue
+                for _sd in sorted(_r.iterdir()):
+                    if not _sd.is_dir() or _sd.name.startswith(".") or _sd.name.startswith("_"):
+                        continue
+                    # Register primary SKILL.md explicitly for wire visibility.
+                    # _manifests (and supporting) are provided via the SkillsDirectoryProvider
+                    # (template mode) for full Client/IDE paths. Explicit File only for the
+                    # main playbooks keeps local_provider + wire list clean (~49 SKILL.md + original).
+                    _fn = "SKILL.md"
+                    _fp = _sd / _fn
+                    if _fp.is_file():
+                        _uri = f"skill://{_sd.name}/{_fn}"
+                        try:
+                            _fr = FileResource(
+                                uri=_uri,
+                                path=_fp,
+                                name=_uri,
+                                description=f"Federation SKILL.md playbook ({_sd.name})",
+                                mime_type="text/markdown",
+                            )
+                            mcp.add_resource(_fr)
+                            _wire_registered.append(_uri)
+                        except Exception as _re:
+                            logger.debug("skill FileResource add non-fatal for %s: %s", _uri, _re)
+            if _wire_registered:
+                logger.info(
+                    "Wire-bridge: added %d explicit skill://SKILL.md FileResources "
+                    "for http MCP resources/list visibility (provider supplies manifests + full SDK paths)",
+                    len(_wire_registered),
+                )
+        except Exception as _wire_err:
+            logger.warning("Could not wire explicit FileResources for skill:// (http list may miss): %s", _wire_err)
     except Exception as _skills_err:
         logger.warning(f"Could not wire standard SkillsDirectoryProvider for SKILL.md: {_skills_err}")
 else:
@@ -1435,7 +1513,25 @@ if app:
     app.add_middleware(OriginValidationMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
-    app.add_middleware(CORSMiddleware, allow_origins=["*"])
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=[
+            "Accept",
+            "Accept-Language",
+            "Authorization",
+            "Content-Language",
+            "Content-Type",
+            "MCP-Session-Id",
+            "MCP-Protocol-Version",
+            "X-Requested-With",
+            "X-Arifos-User-Id",
+            "X-Arifos-Sovereign-Sig",
+        ],
+        expose_headers=["MCP-Session-Id", "MCP-Protocol-Version"],
+        allow_credentials=False,
+    )
 
     from arifosmcp.runtime.governance_pipeline import get_pipeline
 
@@ -1646,6 +1742,9 @@ if app:
             checks["prompts_loaded"] = sum(1 for k in _components.keys() if k.startswith("prompt:"))
             checks["resources_loaded"] = sum(
                 1 for k in _components.keys() if k.startswith("resource:")
+            )
+            checks["skill_resources_loaded"] = sum(
+                1 for k in _components.keys() if "skill://" in k and "SKILL.md" in k
             )
             checks["prompts_resources_introspected"] = True
         except Exception:
