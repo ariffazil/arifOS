@@ -115,8 +115,11 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 VAULT_WRITER_TOKEN_FILE = os.getenv("VAULT_WRITER_TOKEN_FILE", "/run/secrets/vault_writer_token")
 
 
-# Load token from mounted Docker secret file
+# Load token from env or mounted Docker secret file
 def _load_writer_token() -> str:
+    token = os.getenv("VAULT_WRITER_TOKEN", "").strip()
+    if token:
+        return token
     try:
         with open(VAULT_WRITER_TOKEN_FILE) as f:
             return f.read().strip()
@@ -763,7 +766,7 @@ async def ratify(req: RatifyRequest, _auth=Depends(verify_writer_token)):
 
 
 @app.get("/pending")
-async def list_pending():
+async def list_pending(_auth=Depends(verify_writer_token)):
     """List all awaiting_human cooling_queue records"""
     async with db.pool.acquire() as conn:
         rows = await conn.fetch(
@@ -779,7 +782,7 @@ async def list_pending():
 
 
 @app.get("/inspect/{cooling_id}")
-async def inspect(cooling_id: str):
+async def inspect(cooling_id: str, _auth=Depends(verify_writer_token)):
     """Inspect a single cooling_queue record"""
     async with db.pool.acquire() as conn:
         row = await conn.fetchrow(
@@ -801,4 +804,4 @@ if __name__ == "__main__":
     import uvicorn
 
     port = int(os.getenv("VAULT999_WRITER_PORT", "5001"))
-    uvicorn.run(app, host="0.0.0.0", port=port)  # nosec: B104
+    uvicorn.run(app, host="127.0.0.1", port=port)

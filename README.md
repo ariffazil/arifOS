@@ -12,7 +12,8 @@
   ─────────────────────────────────────────
   Not a chatbot. Not a model wrapper. The LAW.
 
-**2026-06-23 Update**: Public surface frozen to exactly 7 verbs (arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal). All prior "13/15/16 tool" references below are historical.
+**2026-06-23 Update**: Public surface frozen to exactly 7 verbs (arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal). All prior "13/15/16 tool" references below are historical.  
+**2026-06-24 Update**: Live MCP red-team audit sealed 5 critical bypasses — A-FORGE `forge_shell_dryrun` governance, arifOS interceptor `canonical_tool` stability, GEOX `/mcp/` lane enforcement, vault999-writer localhost/auth hardening, WEALTH federated organ governance.
 ```
 
 </div>
