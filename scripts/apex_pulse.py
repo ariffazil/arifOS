@@ -5,6 +5,7 @@ Runs once a week to summarize federation drift and send 3 sentences to Arif via 
 """
 
 import json
+import os
 import urllib.request
 import urllib.error
 from datetime import datetime, timedelta, timezone
@@ -13,10 +14,12 @@ VAULT_PATH = "/root/arifOS/VAULT999/outcomes.jsonl"
 OLLAMA_URL = "http://localhost:11434/api/generate"
 HERMES_URL = "http://localhost:18001/tasks"
 
-# A2A Auth for Hermes
+# A2A Auth for Hermes — read from environment; no dev fallback (F1 AMANAH)
+_A2A_TOKEN = os.environ.get("A2A_TOKEN", "")
+_A2A_API_KEY = os.environ.get("A2A_API_KEY", "")
 HERMES_HEADERS = {
-    "Authorization": "Bearer aaa-a2a-token-dev",
-    "x-a2a-key": "aaa-a2a-apikey-dev",
+    "Authorization": f"Bearer {_A2A_TOKEN}",
+    "x-a2a-key": _A2A_API_KEY,
     "Content-Type": "application/json",
 }
 
