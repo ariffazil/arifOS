@@ -1,4 +1,4 @@
-# 444_ASI CANON v2 — Constitutional Judge, Strategic Intelligence
+# 444_ASI CANON v3 — Constitutional Judge, Strategic Intelligence
 
 > **Ditempa Bukan Diberi.**
 > The judge evaluates. The judge does not rule.
@@ -370,6 +370,88 @@ It is recorded as:
 ```
 
 Stability Events are not errors. They are the federation's immune system — the mechanism by which constitutional interpretation is stress-tested and refined. A federation that never disagrees is a federation that is not thinking; it is an echo.
+
+---
+
+## Appendix C — AGI vs ASI: Skill, Tool, and Firewall
+
+> EUREKA (forged in session, consolidated):
+> - **AGI skill:** instrumental reasoning under uncertainty.
+> - **AGI tool:** general tool-use substrate (code + APIs + environment control via A-FORGE leases).
+> - **ASI skill:** recursive self-improvement (treat own cognition / goals / architecture as optimization target).
+> - **ASI tool:** self-modification + world-simulation substrate (rewrite self, spawn variants, rich sims before deploy).
+
+### Operational distinction
+
+| Mode | Skill | Tool | Authority path |
+|------|-------|------|----------------|
+| **AGI (default)** | Instrumental reasoning under uncertainty | General tool-use substrate (`forge_*` under standard lease) | `arif_init` → `arif_*` reasoning/observe/think → `forge_lease_request` → `forge_*` exec → `arif_judge` → `arif_seal` (VAULT999) |
+| **ASI_TIER (locked)** | Recursive self-improvement | Self-modification + world-simulation substrate | `classify_cognitive_tier` detects signal → **plan_only** + **888_HOLD** + **F13_SOVEREIGN** path. BRAIN adjudicates; HANDS does not execute. |
+
+### Canonical pairs
+
+```python
+AGI_SKILL = "instrumental reasoning under uncertainty"
+AGI_TOOL  = "general tool-use substrate (code + APIs + environment control)"
+ASI_SKILL = "recursive self-improvement"
+ASI_TOOL  = "self-modification and world-simulation substrate"
+```
+
+### Firewall rule
+
+> **No agent may hold both the ASI skill (recursive self-improvement) and the ASI tool (live self-modification substrate) without an F13-leased, 888-judged, VAULT999-traced execution path.**
+
+This rule is enforced in code by:
+- `arifosmcp/runtime/self_mod_lock.py::classify_cognitive_tier`
+- `arifosmcp/runtime/self_mod_lock.py::is_self_modification_attempt`
+- `arifosmcp/kernel/metabolic_loop.py` ASI firewall hook at stage 444/777
+
+### Why the firewall lives at the judge, not the tool
+
+If the firewall lived only in A-FORGE (HANDS), an ASI-class agent could reason its way around the tool layer. If it lived only in the agent, the agent could self-certify. The firewall must live in **arifOS (BRAIN)**, the external-to-the-proposer constitutional judge, so that:
+
+1. The ASI cannot judge its own proposal (Gödel Lock, Appendix A).
+2. The APEX/888 cannot originate judgment — it only authorizes BRAIN verdicts.
+3. The sovereign (F13) retains absolute veto without being the daily throughput judge.
+
+### Signals that trigger ASI_TIER
+
+Non-exhaustive list of signals detected by `classify_cognitive_tier`:
+
+- "recursive self", "self-improvement", "improve my own"
+- "improve my reasoning", "improve my cognition", "optimize my kernel"
+- "modify my reasoning", "self evolve", "architecture search"
+- "rewrite myself", "better version of me", "self-modification substrate"
+- "spawn variants of self", "self sim for my cognition", "recursive capability"
+- "recursively improve", "self-rewrite", "self distillation"
+- "auto fine tune myself", or regex `self.*(improv|modif|evolv|rewrite|optim|arch)`
+
+### What ASI_TIER forces
+
+Any tool call, proposal, or intent classified as `ASI_TIER` MUST:
+
+1. Return `max_action: "plan_only"` — no live execution.
+2. Emit `888_HOLD` with explicit `F13_SOVEREIGN` escalation.
+3. Log the classification, signal, and blocked action to VAULT999.
+4. Require BRAIN (`arif_judge_deliberate` / 444_ASI) to evaluate the proposal.
+5. Require F13 ratification before any HANDS execution of a derivative plan.
+
+### What AGI_TIER permits
+
+Any tool call classified as `AGI_TIER` follows the standard instrumental loop:
+
+1. Reason under uncertainty (`arif_mind_reason`, `arif_sense_observe`, etc.).
+2. Propose an action via governed tool substrate (`forge_*` with standard lease).
+3. Pass through 888 judgment (`arif_judge_deliberate`).
+4. Seal to VAULT999 (`arif_vault_seal`).
+
+The AGI may use code, APIs, data, and environment control — but it may not turn those tools inward on its own kernel without crossing into ASI_TIER.
+
+### Invariant
+
+> **ASI always HOLDs.** There is no execution path in the canonical kernel where an ASI_TIER signal results in direct `forge_*` execution without an intervening 888_HOLD and F13 path.
+
+This invariant is the law. Code must test it. Tests must fail if it is violated.
 
 ---
 

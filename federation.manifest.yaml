@@ -54,7 +54,7 @@ organs:
     mcp_endpoint: https://mcp.arif-fazil.com/mcp
 
     tool_counts:
-      canonical_public: 13
+      canonical_public: 7  # F13 ratified 7-tool facade (2026-06-23)
       deprecated_aliases: 0
       hidden_internal: 0
       callable_verified: 13

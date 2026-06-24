@@ -251,7 +251,7 @@ def _check_policy_floors(
             reason=(
                 f"KERNEL_DENY: Capability not registered in graph.\n"
                 f"  raw_capability: {req.raw_tool_name}\n"
-                f"  normalized_capability: {canonical_tool}\n"
+                f"  normalized_capability: {_resolve_tool_alias(req.raw_tool_name)}\n"
                 f"  actor: {req.actor_id}\n"
                 f"  authority: {authority.value}\n"
                 f"  graph_version: {graph.version.version_id}\n"

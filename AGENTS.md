@@ -21,6 +21,13 @@ epistemic_status: SOURCE_OF_TRUTH
 > Constitutional judgment (SEAL / SABAR / VOID) and floor enforcement remain in arifOS.
 >
 > Sealed: The load-bearing pair (One Skill: Knowing What NOT To Do / restraint; One Tool: Verdict Loop With Memory) is now canon for AGI and ASI. Scaffolded into Grok Build session init (see A-FORGE profiles.ts buildGrokBuildProfile). See GENESIS/011 §7 for human-language reflection and full contrast + eurekas. All agents/Grok Build sessions inherit this.
+>
+> 2026-06-24 Forge (Arif directive): Explicit AGI/ASI one-skill-one-tool pairs operationalized.
+> - AGI: instrumental reasoning under uncertainty (metabolic_loop + mind_reason + uncertainty_gate) + general tool-use substrate (A-FORGE leases + containment).
+> - ASI: recursive self-improvement + self-mod + world-sim substrate.
+> - Firewall: runtime/self_mod_lock.py classify_cognitive_tier + is_... now returns tier + forces 888_HOLD/F13 for ASI.
+> - Contract: docs/BRAIN_HANDS_MCP_MAPPING.md + sandbox + receipt forge_work/AGI-ASI-ONE-SKILL-ONE-TOOL-FORGE-2026-06-24.md.
+> BRAIN owns skill + firewall. HANDS owns substrate. ASI_TIER never default.
 
 ## Allowed Actions
 

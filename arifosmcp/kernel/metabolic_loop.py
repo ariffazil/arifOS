@@ -2,18 +2,26 @@
 kernel/metabolic_loop.py — The AGI Metabolic Pump
 ══════════════════════════════════════════════════
 
-RSI EUREKA 2026-06-12: Forge #1 (Metabolic Loop Kernel)
+RSI EUREKA 2026-06-12 + session consolidation: Forge #1 (Metabolic Loop Kernel)
 
-Purpose: Turn arifOS from a document into a runtime kernel.
-Every agent call MUST pass through this loop. Not optional.
-Not "kalau sempat." Hard gate. Skip → no output.
+This **IS** the canonical implementation of AGI's one skill:
+  Instrumental reasoning under uncertainty
+  (perceive reality under incomplete info → form goals/hypotheses →
+   instrumental plan + act via tool substrate → observe evidence →
+   update beliefs + replan. Uncertainty declared. Evidence tiered.)
 
-The 5-stage pipeline:
-  000 PERCEIVE  — observe reality, fetch evidence
-  444 PROPOSE   — formulate action, generate candidate
-  777 EVALUATE  — run through Decision Torus, score ΔS
-  888 SOVEREIGN — F13 gate, human review if HOLE_RISK
+Paired with AGI's one tool (general tool-use substrate) realized in A-FORGE.
+
+The 5-stage pipeline (000-999 spine):
+  000 PERCEIVE  — observe reality, fetch evidence (arif_sense / observe)
+  444 PROPOSE   — formulate action, generate candidate (mind_reason 333_MIND)
+  777 EVALUATE  — run through Decision Torus, score ΔS (uncertainty_gate, floors)
+  888 SOVEREIGN — F13 gate, human review if HOLE_RISK / ASI_TIER
   999 SEAL      — write to VAULT999, commit to memory
+
+ASI boundary: Any PROPOSE/EVALUATE signal of recursive self-improvement
+  (see self_mod_lock.classify_cognitive_tier) escalates to 888_HOLD + F13.
+  ASI skill/tool pair is deliberately firewalled here.
 
 This module is the ENFORCEMENT LAYER. It wraps the existing
 core/kernel/loop_controller.py (SabarLoop) and adds:
@@ -21,19 +29,21 @@ core/kernel/loop_controller.py (SabarLoop) and adds:
   - Skip detection: if an agent tries to bypass a stage, return HOLD
   - State tracking: every transition records in KernelState
   - Entropy budget: ΔS accumulates; at threshold → mandatory HOLD
+  - ASI firewall hook (via self_mod_lock)
 
 Integration points:
   - core/kernel/loop_controller.py    — existing SabarLoop
   - runtime/kernel_state.py           — KernelState persistence
   - geometry/mind_geometry.py         — DecisionTorus.evaluate
   - runtime/echo_detector.py          — receipt-loop prevention
+  - runtime/self_mod_lock.py          — ASI_TIER detection
 
 F-binding:
   F1 AMANAH:   fully reversible — delete this file to revert
   F2 TRUTH:    every stage has evidence requirement
   F4 CLARITY:  entropy monotonic; each stage reduces or maintains ΔS
   F7 HUMILITY: cannot claim completion without passing all stages
-  F13 SOVEREIGN: stage 888 gates on human approval for HOLE_RISK
+  F13 SOVEREIGN: stage 888 gates on human approval for HOLE_RISK / ASI
 
 DITEMPA BUKAN DIBERI — the loop is not a suggestion. It is the spine.
 """

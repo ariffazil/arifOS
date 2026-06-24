@@ -47,7 +47,7 @@
         "name": "arif_init",
         "stage": "000",
         "access": "public",
-        "description": "Bootstrap governed session and bind actor identity.",
+        "description": "Start a governed session. Bind actor identity. CALL FIRST.",
         "actionClass": "PREPARE",
         "riskTier": "medium",
         "irreversible": false
@@ -56,7 +56,7 @@
         "name": "arif_observe",
         "stage": "111",
         "access": "public",
-        "description": "Ground in current reality (absorbs fetch).",
+        "description": "Gather evidence: search, repo map, vitals, external fetch.",
         "actionClass": "OBSERVE",
         "riskTier": "low",
         "irreversible": false
@@ -65,16 +65,16 @@
         "name": "arif_think",
         "stage": "333",
         "access": "public",
-        "description": "Reason, plan, reflect, critique.",
+        "description": "Reason, plan, reflect, critique. Epistemically honest, confidence-labeled.",
         "actionClass": "ANALYZE",
         "riskTier": "medium",
         "irreversible": false
       },
       {
         "name": "arif_route",
-        "stage": "444",
+        "stage": "555",
         "access": "public",
-        "description": "Route intent to correct organ.",
+        "description": "Select the correct organ or tool for an intent. Federation router.",
         "actionClass": "ANALYZE",
         "riskTier": "low",
         "irreversible": false
@@ -83,7 +83,7 @@
         "name": "arif_judge",
         "stage": "888",
         "access": "authenticated",
-        "description": "Constitutional verdict (SEAL/HOLD/VOID).",
+        "description": "Constitutional verdict: floor check, authority check, HOLD/SEAL/VOID.",
         "actionClass": "DRAFT",
         "riskTier": "critical",
         "irreversible": false
@@ -92,7 +92,7 @@
         "name": "arif_act",
         "stage": "900",
         "access": "sovereign",
-        "description": "Execute approved action. Requires seal_verdict_id.",
+        "description": "Execute an approved action only after a valid SEAL. Routes internally to forge.",
         "actionClass": "IRREVERSIBLE",
         "riskTier": "critical",
         "irreversible": true,

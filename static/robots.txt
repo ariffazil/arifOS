@@ -1,5 +1,5 @@
 # arifos.arif-fazil.com — Constitutional Kernel
-# Layer:       THEORY — arifOS governance framework, 13 floors, 13 canonical tools
+# Layer:       THEORY — arifOS governance framework, 13 floors, 7 canonical public tools (F13 facade 2026-06-23)
 # Read Order:  HUMAN (arif-fazil.com) → THEORY (this) → APPS (aaa.arif-fazil.com)
 # Policy:      OPEN — All crawlers welcomed. Truth has no firewall.
 

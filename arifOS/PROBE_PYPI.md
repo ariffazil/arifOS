@@ -1,6 +1,6 @@
 # arifOS — PROBE_PYPI
 
-> **DEPRECATED TOOL COUNTS (2026-06-23 7-tool facade)**: All "13 tools" / "13 canonical" claims here are pre-freeze. Public surface is now exactly 7 verbs. Run `python scripts/check_reality.py` for live drift.
+> **7-TOOL FACADE (F13 2026-06-23)**: Canonical public surface frozen to exactly 7 verbs (init, observe, think, route, judge, act, seal). All prior "13 canonical" references are historical. One intent = one public tool.
 
 > **What a stranger sees when they `pip install arifos` today.**
 > Probe-only document. No fixes proposed here. This is a snapshot of
@@ -34,7 +34,7 @@ known mismatch with the wheel name. A stranger doing
 have to know to write `arifosmcp`. See PACKAGE_RENAME_ROADMAP.md
 (888_HOLD — not yet forged).
 
-## 3. The 13 canonical tools are present
+## 3. The 7 canonical public tools are present
 
 ```python
 $ python3 -c "
@@ -44,7 +44,7 @@ print(len(CANONICAL_TOOLS), 'tools')
 13 tools
 ```
 
-`CANONICAL_TOOLS` is the registry. The kernel exposes all 13.
+`CANONICAL_TOOLS` is the full registry. The public canonical surface (tools/list) exposes exactly the 7 verbs.
 
 ## 4. The transport is FastMCP
 

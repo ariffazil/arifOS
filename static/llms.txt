@@ -1,10 +1,10 @@
 # arifOS — Constitutional AI Governance Kernel
 > Auto-generated from live tool registry. Hash: 8fc98b2d2ed0fe39
-> Total MCP tools: 57 | Canonical: 16 | Operational: 41
+> Public canonical surface: 7 tools (F13 2026-06-23 facade). Full MCP + gated: larger (see tool_registry).
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
 
 ## MCP Tools — Complete Surface
-arifOS exposes 57 MCP tools: 16 canonical constitutional tools
+arifOS public canonical surface: 7 tools (full gated surface larger); 7 canonical public tools (facade)
 and 41 operational support tools.
 
 ### Operational Categories

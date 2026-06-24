@@ -2,11 +2,14 @@
 ARIFOS CONSTITUTIONAL MAP (v2026.05.05-KANON-SSCT)
 ═══════════════════════════════════════════════════════════════════════════════
 
-SOLE SOURCE OF TRUTH for the 13 canonical MCP tools.
+SOLE SOURCE OF TRUTH for the canonical MCP tools.
+Public canonical surface: exactly 7 tools (F13 ratified 2026-06-23: arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal).
+Full CANONICAL_TOOLS dict registers the 7 + supporting internal tools (kernel_intercept etc).
 All arif_* naming. No governance surface, no CC modes as separate tools.
+One public intent = one canonical verb (F4 CLARITY).
 
 MACHINERY:
-  - CANONICAL_TOOLS   : 13-tool registry (name → spec with floors, stage, lane)
+  - CANONICAL_TOOLS   : registry for canonical surface (7 public + internal support; name → spec with floors, stage, lane)
   - Law enum          : L01–L13 with Eureka-wired threshold logic
   - TrinityLane      : AGI | ASI | APEX
   - ToolStage        : 000–999 metabolic stage codes
@@ -1030,7 +1033,7 @@ CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 # DIAGNOSTIC & FEDERATION TOOLS — non-canonical operational surface
 # ═══════════════════════════════════════════════════════════════════════════════
 # These tools are registered on the arifOS MCP surface but are NOT part of
-# the 13-tool canonical kernel (CANONICAL_TOOLS). They serve operational,
+# the 7-tool canonical public surface (CANONICAL_TOOLS primary). They serve operational,
 # diagnostic, federation-attestation, and lease-management roles.
 #
 # TIERS:
@@ -1043,7 +1046,7 @@ CONSTITUTIONAL_TOOLS: tuple[str, ...] = tuple(CANONICAL_TOOLS.keys())
 #   diagnostic — Health probes, floor status, drift checks, budget telemetry, instruction scanner
 #
 # NAMESPACE RULING (F13 SOVEREIGN, 2026-06-14; amended 2026-06-19 — Canonical13 enforcement):
-#   arif_*   — Canonical prefix for 21 canonical tools + 1 canary probe (public surface)
+#   arif_*   — Canonical prefix for the 7-tool public surface (F13 2026-06-23) + supporting internals + 1 canary probe
 #   hermes_* — GATED non-arif_ namespace for Hermes ASI tools (ARIFOS_MCP_EXPOSE_DEV_TOOLS)
 #   forge_*  — GATED non-arif_ namespace for A-FORGE sub-tools (ARIFOS_MCP_EXPOSE_DEV_TOOLS;
 #              forge_* tools are DEPRECATED on arifOS — use A-FORGE MCP directly)

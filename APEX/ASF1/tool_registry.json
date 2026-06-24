@@ -2,7 +2,7 @@
   "_schema": "arifos-ssct-v2026.05.05-kanon-ssct",
   "_source": "arifosmcp.constitutional_map.CANONICAL_TOOLS",
   "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS dict. Do not hand-edit — edit CANONICAL_TOOLS and regenerate. Diagnostic capabilities folded: arif_ops_measure[stack_health,budget], arif_gateway_connect[consensus], arif_judge_deliberate[scan_instructions].",
-  "canonical_count": 13,
+  "canonical_count": 7,  # public canonical surface (frozen 7 per F13 2026-06-23)
   "probe_count": 0,
   "total_surface": 13,
   "canonical_order": [

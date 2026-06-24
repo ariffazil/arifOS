@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). Do not hand-edit \u2014 edit the source dicts in constitutional_map.py and regenerate. FORGED 2026-06-21: affordance_contract added \u2014 derived from tool_risk_registry.py for canonical tools, spec-inferred for diagnostic tools. The contract is COMPUTED, not hand-set.",
+  "_note": "SOLE SOURCE OF TRUTH. Public canonical surface FROZEN to 7 tools (F13 ratified 2026-06-23: arif_init,arif_observe,arif_think,arif_route,arif_judge,arif_act,arif_seal). Full map in constitutional_map + public_surface.py. Do not hand-edit. Regenerate after source changes. 7-tool facade (one intent=one public tool, F4 CLARITY).",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py \u2192 ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
     "diagnostic_tools": "constitutional_map.py \u2192 spec-inferred from tier + irreversible + access fields",
@@ -9,17 +9,17 @@
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "Canonical13 public surface \u2014 21 canonical tools + 1 canary probe (22 default wire tools)",
+    "arif_*": "7 canonical public surface (F13 ratified 2026-06-23) — arif_init/observe/think/route/judge/act/seal. One intent = one public tool.",
     "hermes_*": "GATED \u2014 Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
     "forge_*": "GATED/DEPRECATED \u2014 A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
     "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
     "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
-  "canonical_count": 16,
+  "canonical_count": 7,
   "diagnostic_count": 40,
-  "total_surface": 55,
+  "total_surface": 7,
   "tier_summary": {
-    "canonical": 15,
+    "canonical": 7,
     "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
@@ -30,7 +30,7 @@
     "diagnostic": 9
   },
   "tier_legend": {
-    "canonical": "21 canonical tools \u2014 F1-F13 constitutional pipeline plus rule-14/public extensions",
+    "canonical": "7 public canonical tools (F13 2026-06-23 freeze) — the constitutional surface (init,observe,think,route,judge,act,seal)",
     "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
     "canary": "1 multimode transport/protocol diagnostic probe (no session required)",
     "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
@@ -40,22 +40,13 @@
     "diagnostic": "6 health probes, drift checks, floor status, budget telemetry, instruction scanner"
   },
   "canonical_order": [
-    "arif_kernel_intercept",
     "arif_init",
     "arif_observe",
-    "arif_explore",
-    "arif_fetch",
     "arif_think",
-    "arif_critique",
     "arif_route",
-    "arif_triage",
-    "arif_bridge_connect",
-    "arif_compose",
-    "arif_memory",
     "arif_judge",
-    "arif_seal",
-    "arif_forge",
-    "arif_measure"
+    "arif_act",
+    "arif_seal"
   ],
   "diagnostic_order": [
     "hermes_system_status",

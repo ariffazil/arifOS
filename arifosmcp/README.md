@@ -156,12 +156,12 @@ graph TB
 
 ## 📝 TOOL SPECIFICATIONS
 
-### init_anchor (000_INIT)
+### init_anchor (000_INIT) (legacy internal, see 7-tool freeze)
 
 **Purpose:** Initialize constitutional session.
 
 ```python
-async def init_anchor(
+async def init_anchor(  # legacy, see 7-tool freeze facade
     actor_id: str,
     declared_name: str,
     mode: Literal["init", "seal", "status"] = "init",
@@ -215,12 +215,12 @@ async def architect_registry() -> dict
 
 ---
 
-### physics_reality (111_SENSE)
+### physics_reality (111_SENSE) (legacy internal, see 7-tool freeze)
 
 **Purpose:** Ground queries in real-world data. Prevents hallucinations.
 
 ```python
-async def physics_reality(
+async def physics_reality(  # legacy, see 7-tool freeze facade
     query: str,
     mode: Literal["time", "search", "reality_check"] = "search",
     time_data: dict = None
@@ -231,7 +231,7 @@ async def physics_reality(
 
 ---
 
-### agi_mind (333_MIND)
+### agi_mind (333_MIND) (legacy internal, see 7-tool freeze)
 
 **Purpose:** Constitutional reasoning with three-phase Ollama pipeline.
 
@@ -252,7 +252,7 @@ graph TB
 ```
 
 ```python
-async def agi_mind(
+async def agi_mind(  # legacy, see 7-tool freeze facade
     query: str,
     context: dict,
     mode: Literal["think", "reflect", "decide"] = "think"
@@ -279,7 +279,7 @@ FLOORS ACTIVE: [F1-F13]
 
 ---
 
-### arifOS_kernel (444_ROUT)
+### arifOS_kernel (444_ROUT) (legacy internal, see 7-tool freeze)
 
 **Purpose:** Primary conductor — orchestrates full 000→888 pipeline.
 
@@ -291,7 +291,7 @@ graph LR
     D --> E["4. Route Action<br/>444_ROUT"]
     E --> F["5. Safety Critique<br/>asi_heart"]
     F --> G["6. Estimate Cost<br/>math_estimator"]
-    G --> H["7. Issue Verdict<br/>apex_soul"]
+    G --> H["7. Issue Verdict<br/>apex_soul (legacy, 7-tool freeze)"]
 
     style A fill:#1a1a2e,color:#fff
     style B fill:#16213e,color:#fff
@@ -304,7 +304,7 @@ graph LR
 ```
 
 ```python
-async def arifOS_kernel(
+async def arifOS_kernel(  # legacy, see 7-tool freeze facade
     query: str,
     tools: list[str],
     context: dict
@@ -313,12 +313,12 @@ async def arifOS_kernel(
 
 ---
 
-### asi_heart (666_HEART)
+### asi_heart (legacy internal, see 7-tool freeze) (666_HEART)
 
 **Purpose:** Safety critique — F5 Peace², F9 Ethics, harm potential.
 
 ```python
-async def asi_heart(
+async def asi_heart(  # legacy, see 7-tool freeze facade
     action_plan: dict
 ) -> dict
 ```
@@ -342,7 +342,7 @@ async def asi_heart(
 **Purpose:** Thermodynamic cost estimation.
 
 ```python
-async def math_estimator(
+async def math_estimator(  # legacy, see 7-tool freeze facade
     operation: str,
     inputs: dict
 ) -> dict
@@ -361,12 +361,12 @@ async def math_estimator(
 
 ---
 
-### apex_soul (888_JUDGE)
+### apex_soul (888_JUDGE) (legacy internal, see 7-tool freeze)
 
 **Purpose:** Final constitutional judgment.
 
 ```python
-async def apex_soul(
+async def apex_soul(  # legacy, see 7-tool freeze facade
     evidence: dict,
     context: dict
 ) -> dict
@@ -411,12 +411,12 @@ async def vault_ledger(
 
 ---
 
-### engineering_memory (555_MEM)
+### engineering_memory (555_MEM) (legacy internal, see 7-tool freeze)
 
 **Purpose:** Redis-backed session memory.
 
 ```python
-async def engineering_memory(
+async def engineering_memory(  # legacy, see 7-tool freeze facade
     key: str,
     operation: Literal["get", "set", "delete", "list"],
     value: any = None,
@@ -426,12 +426,12 @@ async def engineering_memory(
 
 ---
 
-### code_engine (—)
+### code_engine (—) (legacy internal, see 7-tool freeze)
 
 **Purpose:** Constrained Python execution for tool actions.
 
 ```python
-async def code_engine(
+async def code_engine(  # legacy, see 7-tool freeze facade
     code: str,
     language: Literal["python", "javascript"] = "python",
     constraints: dict = None
@@ -940,7 +940,7 @@ arifOS tools are organized into **5 constitutional bands**:
 
 ## ⚠️ Known Misalignments and Limitations
 
-1. **`apex_judge` alias**: The tool is canonically named `apex_soul` in code but exposed as `apex_judge` via MCP. This is a **public alias** documented here — do not rename canonical code without completing the full migration.
+1. **`apex_judge` alias (legacy, see 7-tool freeze facade)**: The tool is canonically named `apex_soul` in code but exposed as `apex_judge` via MCP. This is a **public alias** documented here — do not rename canonical code without completing the full migration.
 
 2. **`physics_reality` field name**: Uses `input` field instead of `query` — historical inconsistency from legacy API.
 

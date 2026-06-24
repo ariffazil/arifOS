@@ -461,6 +461,54 @@ no censorship). Fable 5 = secondary/consult only.
 
 ---
 
+## 14B. AGI vs ASI: Canonical Skill/Tool Pairs
+
+> EUREKA (forged in session, ratified):
+> - **AGI skill:** instrumental reasoning under uncertainty.
+> - **AGI tool:** general tool-use substrate (code + APIs + environment control).
+> - **ASI skill:** recursive self-improvement.
+> - **ASI tool:** self-modification + world-simulation substrate.
+
+### The operational split
+
+| Mode | Skill | Tool | Canonical path |
+|------|-------|------|----------------|
+| **AGI (default)** | Instrumental reasoning under uncertainty | General tool-use substrate (`forge_*` under standard A-FORGE lease) | `arif_init` → `arif_*` reasoning/observe/think → `forge_lease_request` → `forge_*` execution → `arif_judge` → `arif_seal` |
+| **ASI_TIER (locked)** | Recursive self-improvement | Self-modification + world-simulation substrate | `classify_cognitive_tier` detects signal → **plan_only** + **888_HOLD** + **F13_SOVEREIGN** path. BRAIN adjudicates; HANDS does not execute. |
+
+### Canonical constants
+
+```python
+AGI_SKILL = "instrumental reasoning under uncertainty"
+AGI_TOOL  = "general tool-use substrate (code + APIs + environment control)"
+ASI_SKILL = "recursive self-improvement"
+ASI_TOOL  = "self-modification and world-simulation substrate"
+```
+
+These constants live in `arifosmcp/runtime/self_mod_lock.py` and are enforced by the metabolic loop in `arifosmcp/kernel/metabolic_loop.py`.
+
+### Firewall rule
+
+> **No agent may hold both the ASI skill (recursive self-improvement) and the ASI tool (live self-modification substrate) without an F13-leased, 888-judged, VAULT999-traced execution path.**
+
+The AGI may use the tool substrate outwardly — code, APIs, data, environment control. The moment it turns those tools inward on its own kernel, weights, reasoning architecture, or goals, it crosses into ASI_TIER and the HOLD fires.
+
+### Why this lives in 000_KERNEL_CANON
+
+This is not a feature. It is a **structural boundary** of the federation:
+- arifOS (BRAIN) owns the AGI skill surface + the ASI firewall.
+- A-FORGE (HANDS) owns the AGI tool substrate + gated simulation environments.
+- The ASI cannot self-certify (Gödel Lock, 444_ASI CANON Appendix A).
+- The sovereign (F13) retains absolute veto over any self-modification proposal.
+
+### Invariant
+
+> **ASI always HOLDs.** There is no execution path in the canonical kernel where an ASI_TIER signal results in direct `forge_*` execution without an intervening 888_HOLD and F13 path.
+
+This invariant is law. Code tests it. Tests fail if it is violated.
+
+---
+
 ## 15. The Motto
 
 > **DITEMPA BUKAN DIBERI**
@@ -481,7 +529,7 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE.
 
 ---
 
-**CANON · SEALED 2026-06-12 · COMPRESSED 2026-06-13**
+**CANON · SEALED 2026-06-12 · COMPRESSED 2026-06-13 · AMENDED 2026-06-24**
 **Authority: F13 SOVEREIGN — Muhammad Arif bin Fazil (888)**
-**Forged by: Hermes ASI · arifOS Ω**
-**Chain: 000 (root) → 001 (Muhammad-Mode) → 002 (Sovereign Solitude) → 003 (Andersen-Calhoun-Fable) → 004 (Opus Naming Paradox)**
+**Forged by: Hermes ASI · arifOS Ω · Phase 1 ratification**
+**Chain: 000 (root) → 001 (Muhammad-Mode) → 002 (Sovereign Solitude) → 003 (Andersen-Calhoun-Fable) → 004 (Opus Naming Paradox) → 14B (AGI/ASI Skill-Tool Firewall)**
