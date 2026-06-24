@@ -83,6 +83,24 @@ class InitAnchorRequest(BaseRequest):
     human_approval: bool = Field(
         default=False, description="Whether human has pre-approved this action (L13)"
     )
+    restraint_flags: list[str] = Field(
+        default_factory=lambda: [
+            "restraint_under_uncertainty",
+            "refusal_on_ambiguity",
+            "bounded_authority",
+            "non_optimization",
+            "non_prediction",
+        ],
+        description="The One Skill: Knowing What NOT To Do — discipline of refusal under uncertainty. Bound at INIT. Enforced before execution."
+    )
+    verdict_geometry: dict[str, Any] = Field(
+        default_factory=dict,
+        description="The One Tool: Verdict Loop With Memory state (judge, seal, receipt, witness, cooling, lineage). Required for any execution."
+    )
+    requires_verdict_loop: bool = Field(
+        default=True,
+        description="This session/tool path must pass the full constitutional verdict loop (F1-F13 judge + seal + receipt) before acting."
+    )
 
     @field_validator("actor_id")
     @classmethod
@@ -112,6 +130,18 @@ class InitAnchorResponse(BaseResponse):
     identity: IdentityResolution = Field(description="Identity resolution details")
     allowed_next_tools: list[str] = Field(default_factory=list)
     abi_version: str = Field(default="1.0", description="ABI version used")
+    session_geometry: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Full bound geometry including scar, soul, restraint_flags, verdict_trace. This is the canonical header for every subsequent call."
+    )
+    restraint_state: str = Field(
+        default="active",
+        description="Current 'knowing what NOT to do' posture: active | HOLD | ASK_ONE_QUESTION | RELAXED"
+    )
+    verdict_trace_id: str | None = Field(
+        default=None,
+        description="ID of the active verdict receipt (from arif_judge + arif_seal). Required for execution paths."
+    )
 
 
 # =============================================================================

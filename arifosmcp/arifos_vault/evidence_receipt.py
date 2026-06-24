@@ -2,6 +2,11 @@
 Evidence Receipt — Claim + witness chain.
 
 F3 TRI-WITNESS: Human × AI × Earth must all witness every consequential claim.
+
+Deepened for One Skill + One Tool (map + memory step):
+- All receipts must carry restraint classification (from INIT geometry) and verdict trace.
+- The One Skill (Knowing What NOT To Do) and One Tool (Verdict Loop) are inherited here for future refactors.
+- No receipt without prior verdict loop passage.
 """
 
 from __future__ import annotations

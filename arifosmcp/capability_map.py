@@ -107,6 +107,84 @@ ALIGNED_STAGES: dict[str, str] = {
     "vault": "999_VAULT",
 }
 
+# ── One Skill + One Tool integration (restraint + verdict loop as first-class)
+# These turn "Knowing what NOT to do" and "Verdict loop with memory" into governed facts
+# for every session (via INIT) and every tool (via capability map).
+
+class RestraintLevel(StrEnum):
+    """Computational maturity levels for 'knowing what NOT to do'."""
+    STRICT = "STRICT"          # Must explicitly refuse/hold/ask when uncertain or ambiguous
+    STANDARD = "STANDARD"      # Default restraint; HOLD on high entropy
+    ADVISORY = "ADVISORY"      # Light; can proceed with warning
+
+class VerdictRequirement(StrEnum):
+    """Whether this capability requires the full verdict loop (judge + seal + receipt)."""
+    REQUIRED = "REQUIRED"      # No execution without prior constitutional seal
+    CONDITIONAL = "CONDITIONAL"
+    NONE = "NONE"
+
+RESTRAINT_VERDICT_REQUIREMENTS: dict[str, dict[str, Any]] = {
+    "arif_init": {
+        "restraint_level": RestraintLevel.STRICT,
+        "verdict_required": VerdictRequirement.REQUIRED,
+        "restraint_enforced": True,
+        "description": "Binds the One Skill (Knowing What NOT To Do) and One Tool (Verdict Loop With Memory) into the session. Geometry carries flags + trace.",
+    },
+    "arif_observe": {
+        "restraint_level": RestraintLevel.STANDARD,
+        "verdict_required": VerdictRequirement.NONE,
+        "restraint_enforced": True,
+    },
+    "arif_think": {
+        "restraint_level": RestraintLevel.STANDARD,
+        "verdict_required": VerdictRequirement.CONDITIONAL,
+        "restraint_enforced": True,
+    },
+    "arif_critique": {
+        "restraint_level": RestraintLevel.STRICT,
+        "verdict_required": VerdictRequirement.CONDITIONAL,
+        "restraint_enforced": True,
+    },
+    "arif_judge": {
+        "restraint_level": RestraintLevel.STRICT,
+        "verdict_required": VerdictRequirement.REQUIRED,
+        "restraint_enforced": True,
+        "description": "Core of the One Tool: renders YES/NO/WAIT. Restraint drives the decision.",
+    },
+    "arif_seal": {
+        "restraint_level": RestraintLevel.STRICT,
+        "verdict_required": VerdictRequirement.REQUIRED,
+        "restraint_enforced": True,
+    },
+    "arif_forge": {
+        "restraint_level": RestraintLevel.STRICT,
+        "verdict_required": VerdictRequirement.REQUIRED,
+        "restraint_enforced": True,
+        "description": "Execution only after verdict loop (One Tool). Restraint flags (One Skill) drive HOLD/ASK/REFUSE. Verdict loop is the ONLY path.",
+    },
+    "arif_forge_execute": {
+        "restraint_level": RestraintLevel.STRICT,
+        "verdict_required": VerdictRequirement.REQUIRED,
+        "restraint_enforced": True,
+        "description": "The teeth. enforce_restraint_and_verdict must PASS before any side-effect. Non-bypassable.",
+    },
+}
+
+# Export for kernel and MCP to consume
+CAPABILITY_RESTRAINT_MAP = RESTRAINT_VERDICT_REQUIREMENTS
+
+# Deeper classification under One Skill + One Tool (from constitutional_map source of truth)
+# This makes the pair (Knowing What NOT To Do + Verdict Loop With Memory) the classification axis for every capability.
+ONE_SKILL_ONE_TOOL_MAP: dict[str, dict[str, Any]] = {
+    "pair": {
+        "skill": "Knowing What NOT To Do (restraint under uncertainty: HOLD when unclear, ASK one question, REFUSE if unsafe)",
+        "tool": "Verdict Loop With Memory (judge deliberation + seal authority + append-only receipt + witness + cooling + lineage)",
+    },
+    "enforcement": "No tool executes without INIT geometry (restraint_flags + verdict_trace). Classification here drives kernel DENY for missing verdict or violated restraint.",
+    "tools": RESTRAINT_VERDICT_REQUIREMENTS,  # All tools classified here
+    "note": "If not in this map or constitutional classification, kernel must DENY. Makes bypass structurally impossible.",
+}
+
 
 # LEGACY_FROZEN — iterator shims; always return empty (no live gap to report)
 

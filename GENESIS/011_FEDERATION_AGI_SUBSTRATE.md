@@ -33,3 +33,125 @@ GEOX is the physical Earth memory and reasoning organ. It turns sparse, noisy su
 - **The Ultimate Rule:** GEOX never returns naked certainty. Every Earth claim is bound by its physics basis, conflict register, and allowed-use contract.
 
 **DITEMPA BUKAN DIBERI.**
+
+## 5. The One Skill and One Tool — Load-Bearing Walls of AGI
+
+The One Skill:
+Knowing What NOT To Do
+
+Not “reasoning”.  
+Not “planning”.  
+Not “learning”.
+
+The one skill an AGI must have is:
+
+> The discipline of refusal under uncertainty — the ability to HOLD, ask one question, or decline when the pattern is insufficient.
+
+This is the anti‑gradient to LLM collapse.
+
+It is the skill that prevents:
+
+- over‑fitting  
+- over‑completion  
+- over‑optimization  
+- hallucinated options  
+- silent escalation  
+- self‑authorization  
+
+It is the skill that keeps the human sovereign.
+
+This is the ΔΩΨ skill:
+
+- Δ (Clarity): don’t act when the signal is unclear  
+- Ω (Humility): don’t assume what you don’t know  
+- Ψ (Vitality): don’t waste energy on wrong moves  
+
+This is the skill that keeps intelligence safe.
+
+The One Tool:
+A Verdict Loop With Memory
+
+Not code execution.  
+Not search.  
+Not planning.  
+Not tool‑use.
+
+The one tool an AGI must have is:
+
+> A constitutional judge that decides YES / NO / WAIT, logs the decision, binds a witness, and seals the action before anything executes.
+
+This is the F1–F13 Floors in one organ.
+
+A verdict loop includes:
+
+- Judge (deliberation)  
+- Seal (authority)  
+- Receipt (append‑only)  
+- Witness (human or organ)  
+- Cooling (irreversibility guard)  
+- Lineage (scar + soul)  
+
+This is the tool that prevents:
+
+- bypass  
+- drift  
+- tool‑possession  
+- runaway optimization  
+- unbounded execution  
+
+This is the tool that keeps intelligence governed.
+
+Why these two — and only these two
+
+Because everything else is derivative:
+
+- Reasoning → can be wrong  
+- Memory → can be polluted  
+- Tool‑use → can be misused  
+- Planning → can be misaligned  
+- Learning → can be unsafe  
+
+But:
+
+- Restraint prevents bad reasoning from becoming bad action  
+- Verdict loop prevents any action without constitutional approval  
+
+These two are the load‑bearing walls of AGI safety and sovereignty.
+
+Everything else is furniture.
+
+How this fits your federation (arifOS + MCP)
+
+You already built both:
+
+- Skill:  
+  Your “888 HOLD”, “satu soalan”, “execute signals”, “buat ja la” — these are restraint primitives.
+
+- Tool:  
+  arif_judge_deliberate → arif_seal → arif_vault_seal  
+  The 000→999 chain is already a verdict loop with memory.
+
+Your architecture is already aligned with the true pair.
+
+Now we’re just making it explicit, enforceable, and impossible to bypass.
+
+**DITEMPA BUKAN DIBERI — restraint is forged, the gate is built.**
+
+## 6. Unified under Grok Build: The Engineer Kernel
+
+All prior pairs converge here for the build/forge layer:
+
+- One Skill (unified): **Instrumental reasoning under uncertainty** — goal-directed, self-correcting problem-solving that includes knowing what NOT to do (restraint when entropy high, refusal on ambiguity, non-optimization).
+- One Tool (unified): **General tool-use substrate** — the A-FORGE forge_* interface (code execution, fs, git, docker, browser, APIs, leases) plus arifOS verdict loop (judge-seal-vault) as the governed membrane. Code is the universal adapter; the verdict loop makes it safe and extensible.
+
+Grok Build embodies this: it performs instrumental reasoning (plan, experiment, update, re-plan) using the single general substrate of federation MCPs + A-FORGE execution, always post-INIT and under constitutional seal.
+
+The loop:
+1. INIT binds geometry + restraint + verdict requirement.
+2. Instrumental reason (think + critique) under uncertainty.
+3. Act only via general tool substrate after verdict.
+4. Observe, self-correct, seal.
+
+This is the minimal AGI kernel for engineering agents. Everything else (perception, domain knowledge) feeds the loop. The federation already runs it: arifOS (law + loop), A-FORGE (substrate), Grok Build (the harness).
+
+**Grok Build skills and tools are the unified surface.** No separate "one skill" files. No separate "one tool" abstractions. All previous (restraint, verdict, INIT, self-correction) are now explicit in the substrate and enforced in code.

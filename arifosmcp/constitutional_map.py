@@ -551,7 +551,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Start or resume a governed session. CALL THIS FIRST before any other tool. "
             "Binds identity, creates audit trail, activates floor enforcement. "
             "Use mode='light' for fast bootstrap (<1s). Use mode='init' for full binding (~60s). "
-            "Returns session_id needed by all other tools."
+            "Returns session_id needed by all other tools. Binds the One Skill (Knowing What NOT To Do) and One Tool (Verdict Loop With Memory) via geometry."
         ),
         "access": "public",
         "stage": ToolStage.INIT,
@@ -573,6 +573,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
         "cognitive_axis": "identity",
         "expose": True,
+        # Deeper classification under the irreducible pair
+        "restraint_level": "STRICT",
+        "verdict_required": "REQUIRED",
+        "one_skill": "Knowing What NOT To Do (restraint under uncertainty: HOLD/ASK/REFUSE)",
+        "one_tool": "Verdict Loop With Memory (judge + seal + receipt + witness)",
+        "classification": "Entry point that binds constitutional geometry with restraint flags and verdict requirement. No action without this.",
     },
     "arif_observe": {
         "name": "arif_observe",
@@ -843,6 +849,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ),
         "cognitive_axis": "judge",
         "expose": True,
+        # Deeper classification under the irreducible pair (One Skill + One Tool)
+        "restraint_level": "STRICT",
+        "verdict_required": "REQUIRED",
+        "one_skill": "Knowing What NOT To Do (restraint under uncertainty: HOLD/ASK/REFUSE)",
+        "one_tool": "Verdict Loop With Memory (judge + seal + receipt + witness + cooling)",
+        "classification": "The One Tool core. Every action must pass here. Restraint from geometry drives HOLD/ASK/REFUSE decisions. No bypass.",
     },
     "arif_judge_deliberate": {
         "name": "arif_judge_deliberate",
@@ -984,6 +996,29 @@ for _name, _spec in CANONICAL_TOOLS.items():
     if _name not in _PUBLIC_7:
         _spec["access"] = "internal_only"
         _spec["expose"] = False
+
+# ── Deeper One Skill + One Tool Classification (map step)
+# Every capability classified under the load-bearing pair.
+# One Skill: Knowing What NOT To Do (restraint: HOLD/ASK/REFUSE under uncertainty)
+# One Tool: Verdict Loop With Memory (judge/seal/receipt/witness/cooling)
+# This makes bypass impossible at the spec level. Sourced from constitutional truth.
+ONE_SKILL_ONE_TOOL_CLASSIFICATION: dict[str, dict[str, Any]] = {
+    "core": {
+        "skill": "Knowing What NOT To Do",
+        "tool": "Verdict Loop With Memory",
+        "enforcement": "restraint_flags from INIT geometry drive HOLD/ASK/REFUSE; verdict_trace required for execution",
+    },
+    "tools": {
+        "arif_init": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Binds geometry with One Skill flags + One Tool requirement."},
+        "arif_observe": {"restraint": "STANDARD", "verdict": "NONE", "classification": "Observe only; restraint for clarity, no verdict needed."},
+        "arif_think": {"restraint": "STANDARD", "verdict": "CONDITIONAL", "classification": "Reasoning under uncertainty; restraint prevents overfit."},
+        "arif_judge": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "The One Tool: renders the verdict that enables or refuses action."},
+        "arif_seal": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Seals the verdict into append-only memory."},
+        "arif_forge": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Execution substrate. Only after One Tool verdict + One Skill check."},
+        "arif_forge_execute": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Teeth of the system. enforce_restraint_and_verdict must PASS."},
+    },
+    "note": "All tools inherit from INIT geometry. If kernel spec does not classify it, DENY.",
+}
 
 
 PROBE_TOOLS: tuple[str, ...] = ()
