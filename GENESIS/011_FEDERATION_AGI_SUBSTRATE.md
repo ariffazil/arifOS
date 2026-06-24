@@ -131,6 +131,8 @@ You already built both:
   arif_judge_deliberate → arif_seal → arif_vault_seal  
   The 000→999 chain is already a verdict loop with memory.
 
+  > See `/root/arifOS/docs/000-999_CANONICAL_MAPPING.md` for the canonical 11-stage constitutional lifecycle and the compressed 5-stage metabolic loop that executes it.
+
 Your architecture is already aligned with the true pair.
 
 Now we’re just making it explicit, enforceable, and impossible to bypass.

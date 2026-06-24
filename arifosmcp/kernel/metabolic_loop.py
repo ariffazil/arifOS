@@ -12,12 +12,32 @@ This **IS** the canonical implementation of AGI's one skill:
 
 Paired with AGI's one tool (general tool-use substrate) realized in A-FORGE.
 
-The 5-stage pipeline (000-999 spine):
+The 5-stage metabolic loop (000-999 spine) is a compressed execution view of
+the full 11-stage constitutional pipeline. They are the same constitutional
+physics at different resolutions: the loop pumps actions through the kernel,
+while the 11-stage pipeline resolves paradox and produces a binding verdict.
+
+See /root/arifOS/docs/000-999_CANONICAL_MAPPING.md for the complete canonical
+mapping, paradox-resolution annotations, and nesting diagram.
+
+The 5-stage pipeline:
   000 PERCEIVE  — observe reality, fetch evidence (arif_sense / observe)
   444 PROPOSE   — formulate action, generate candidate (mind_reason 333_MIND)
   777 EVALUATE  — run through Decision Torus, score ΔS (uncertainty_gate, floors)
   888 SOVEREIGN — F13 gate, human review if HOLE_RISK / ASI_TIER
   999 SEAL      — write to VAULT999, commit to memory
+
+Compression into the 11-stage constitutional lifecycle:
+  000 PERCEIVE  = 000 INIT + 111 SENSE + 222 EVIDENCE
+  444 PROPOSE   = 333 REASON + 444 ROUTE
+  777 EVALUATE  = 555 MEMORY + 666 GOVERN + 777 MEASURE
+  888 SOVEREIGN = 888 JUDGE + 889 PROOF
+  999 SEAL      = 999 SEAL
+
+The 11-stage pipeline remains the canonical constitutional lifecycle. This
+metabolic loop is its execution pump: each loop stage expands into the
+corresponding constitutional stages at runtime, but the hard-gate enforcement
+here only tracks the five coarse-grained checkpoints for speed and clarity.
 
 ASI boundary: Any PROPOSE/EVALUATE signal of recursive self-improvement
   (see self_mod_lock.classify_cognitive_tier) escalates to 888_HOLD + F13.
@@ -83,6 +103,23 @@ STAGE_ORDER: list[Stage] = [
 ]
 
 STAGE_INDEX = {stage: idx for idx, stage in enumerate(STAGE_ORDER)}
+
+
+# ─── 5-stage ↔ 11-stage constitutional mapping ─────────────────────────────────
+#
+# The Stage enum below tracks the metabolic loop at coarse resolution. Each
+# value maps to one or more stages of the canonical 11-stage constitutional
+# lifecycle defined in /root/arifOS/docs/000-999_CANONICAL_MAPPING.md.
+#
+#   000_PERCEIVE  ──► 000_INIT  + 111_SENSE  + 222_EVIDENCE
+#   444_PROPOSE   ──► 333_REASON + 444_ROUTE
+#   777_EVALUATE  ──► 555_MEMORY + 666_GOVERN + 777_MEASURE
+#   888_SOVEREIGN ──► 888_JUDGE  + 889_PROOF
+#   999_SEAL      ──► 999_SEAL
+#
+# Execution logic and enum values MUST NOT change without a constitutional
+# amendment ratified by F13. Documentation-only edits are safe.
+# ───────────────────────────────────────────────────────────────────────────────
 
 
 class LoopVerdict(str, Enum):

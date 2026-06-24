@@ -200,6 +200,8 @@ The **11-stage metabolic pipeline**:
 → 555 MEMORY → 666 GOVERN → 777 MEASURE → 888 JUDGE → 889 PROOF → 999 SEAL
 ```
 
+> **Cross-reference:** The 11-stage sequence above is the canonical constitutional lifecycle. The same lifecycle is also expressed as a compressed 5-stage metabolic execution loop inside the kernel. For the full canonical mapping and the metabolic-loop compression, see [`/root/arifOS/docs/000-999_CANONICAL_MAPPING.md`](../docs/000-999_CANONICAL_MAPPING.md).
+
 **Stage breakdown:**
 
 | Stage | Name | Function | Default Tool |

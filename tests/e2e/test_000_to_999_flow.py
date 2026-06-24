@@ -4,16 +4,27 @@ E2E Flow Verification: 000 → 999 Full Pipeline
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 
-A single integration test suite that exercises the FULL 000→999 metabolic loop:
-  000: session_init
-  111: sense_observe (with rasa detection)
-  222: evidence_fetch (skip if not available)
-  333: mind_reason (with rasa context)
-  444: heart_critique (with rasa risk calculus)
-  555m: memory_recall (with rasa pattern matching)
-  555: kernel_route
-  888: judge_deliberate (with rasa-aware gating)
-  999: vault_seal
+A single integration test suite that exercises the canonical 000→999
+constitutional pipeline. The 11-stage lifecycle is the canonical geometry;
+the legacy 5-stage metabolic loop is the same lifecycle compressed for
+execution (see /root/arifOS/docs/000-999_CANONICAL_MAPPING.md).
+
+Canonical 11-stage pipeline:
+  000 INIT      → session_init: bind identity, geometry, scar, soul, lineage
+  111 SENSE     → sense_observe: observe reality (with rasa detection)
+  222 EVIDENCE  → evidence_fetch: tri-witness (skip if not available)
+  333 REASON    → mind_reason: generate hypothesis (with rasa context)
+  444 ROUTE     → kernel_route: send to correct organ
+  555 MEMORY    → memory_recall: compare against lineage (with rasa patterns)
+  666 GOVERN    → heart_critique: apply F1–F13 floors / risk calculus
+  777 MEASURE   → (computed by judge; no dedicated test class)
+  888 JUDGE     → judge_deliberate: external verdict (with rasa-aware gating)
+  889 PROOF     → (wrapped into judge/lease; no dedicated test class)
+  999 SEAL      → vault_seal: write to VAULT999
+
+This file previously mixed the 5-stage metabolic labels with the 11-stage
+constitutional labels (e.g. MIND→333, HEART→444). It has been aligned so
+that stage numbers match the canonical 11-stage pipeline.
 
 Verifies:
   - Data flows correctly between all stages
@@ -164,12 +175,12 @@ class TestStage222_Evidence:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Stage 333: MIND REASON (with rasa context)
+# Stage 333: REASON (with rasa context)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class TestStage333_Mind:
-    """333 MIND — Symbolic reasoning with rasa context."""
+class TestStage333_Reason:
+    """333 REASON — Symbolic hypothesis generation with rasa context."""
 
     def test_mind_reason_returns_verdict(self, e2e_session_id, e2e_actor_id, e2e_query):
         """Mind reason must return a valid verdict."""
@@ -206,12 +217,12 @@ class TestStage333_Mind:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Stage 444: HEART CRITIQUE (with rasa risk calculus)
+# Stage 666: GOVERN (heart critique as constitutional risk calculus)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class TestStage444_Heart:
-    """444 HEART — Constitutional risk analysis with rasa risk calculus."""
+class TestStage666_Govern:
+    """666 GOVERN — Apply F1–F13 floors via heart critique / risk calculus."""
 
     @pytest.mark.asyncio
     async def test_heart_critique_returns_risks(self, e2e_session_id, e2e_actor_id, e2e_query):
@@ -261,12 +272,12 @@ class TestStage444_Heart:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Stage 555m: MEMORY RECALL (with rasa pattern matching)
+# Stage 555: MEMORY RECALL (with rasa pattern matching)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class TestStage555m_Memory:
-    """555m MEMORY — Associative memory with rasa pattern matching."""
+class TestStage555_Memory:
+    """555 MEMORY — Associative memory with rasa pattern matching."""
 
     def test_memory_recall_returns_results(self, e2e_session_id, e2e_actor_id, e2e_query):
         """Memory recall must return valid results."""
@@ -303,12 +314,12 @@ class TestStage555m_Memory:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Stage 555: KERNEL ROUTE
+# Stage 444: ROUTE (kernel route)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class TestStage555_Route:
-    """555 ROUTE — Intent routing through constitutional kernel."""
+class TestStage444_Route:
+    """444 ROUTE — Intent routing through constitutional kernel."""
 
     def test_kernel_route_is_callable(self, e2e_session_id, e2e_actor_id, e2e_query):
         """Kernel route must be callable without crashing."""
@@ -426,21 +437,26 @@ class TestStage999_Vault:
 
 
 class TestFullE2EFlow:
-    """Complete end-to-end metabolic pipeline: 000 → 999."""
+    """Complete end-to-end constitutional pipeline: 000 → 999."""
 
     @pytest.mark.asyncio
     async def test_full_pipeline_000_to_999(self, e2e_session_id, e2e_actor_id, e2e_query):
         """
-        Exercise the FULL 000→999 metabolic loop.
+        Exercise the canonical 000→999 constitutional pipeline.
 
-        Stages:
-            000: session_init
-            111: sense_observe
-            333: mind_reason
-            444: heart_critique
-            555m: memory_recall
-            888: judge_deliberate
-            999: vault_seal
+        Stages exercised in this test:
+            000 INIT:     session_init
+            111 SENSE:    sense_observe
+            333 REASON:   mind_reason
+            555 MEMORY:   memory_recall
+            666 GOVERN:   heart_critique
+            888 JUDGE:    judge_deliberate
+            999 SEAL:     vault_seal
+
+        Full 11-stage canonical pipeline:
+            000 INIT → 111 SENSE → 222 EVIDENCE → 333 REASON → 444 ROUTE →
+            555 MEMORY → 666 GOVERN → 777 MEASURE → 888 JUDGE → 889 PROOF →
+            999 SEAL
         """
         from arifosmcp.tools.session import arif_init
         from arifosmcp.tools.sense import arif_observe
@@ -485,7 +501,7 @@ class TestFullE2EFlow:
         pipeline_data["111_rasa"] = rasa_result
         print(f"  ✓ Rasa sense: risk_band={rasa_result.get('risk_band')}")
 
-        # ── 333 MIND ──────────────────────────────────────────────────
+        # ── 333 REASON ────────────────────────────────────────────────
         mind_result = arif_think(
             mode="reason",
             query=e2e_query,
@@ -493,11 +509,11 @@ class TestFullE2EFlow:
             context={"session_id": e2e_session_id},
         )
         assert mind_result.status in ("OK", "HOLD")
-        pipeline_data["333_mind"] = mind_result
+        pipeline_data["333_reason"] = mind_result
         stages_passed.append("333")
-        print(f"  ✓ Mind: status={mind_result.status}")
+        print(f"  ✓ Reason: status={mind_result.status}")
 
-        # ── 444 HEART ─────────────────────────────────────────────────
+        # ── 666 GOVERN ────────────────────────────────────────────────
         heart_result = await arif_critique(
             mode="critique",
             target=e2e_query,
@@ -507,11 +523,11 @@ class TestFullE2EFlow:
         )
         assert heart_result is not None
         assert "risk_tier" in heart_result or "risks_found" in heart_result
-        pipeline_data["444_heart"] = heart_result
-        stages_passed.append("444")
-        print(f"  ✓ Heart: risk_tier={heart_result.get('risk_tier', '?')}")
+        pipeline_data["666_govern"] = heart_result
+        stages_passed.append("666")
+        print(f"  ✓ Govern: risk_tier={heart_result.get('risk_tier', '?')}")
 
-        # ── 555m MEMORY ───────────────────────────────────────────────
+        # ── 555 MEMORY ────────────────────────────────────────────────
         memory_result = arif_memory_recall(
             mode="recall",
             query=e2e_query,
@@ -519,8 +535,8 @@ class TestFullE2EFlow:
             actor_id=e2e_actor_id,
         )
         assert isinstance(memory_result, dict)
-        pipeline_data["555m_memory"] = memory_result
-        stages_passed.append("555m")
+        pipeline_data["555_memory"] = memory_result
+        stages_passed.append("555")
         print("  ✓ Memory recall OK")
 
         # ── 888 JUDGE ─────────────────────────────────────────────────
@@ -563,7 +579,7 @@ class TestFullE2EFlow:
 
         assert pipeline_data["000_init"].status in ("OK", "INITIALIZED")
         assert pipeline_data["111_sense"]["status"] in ("OK", "HOLD", "SABAR")
-        assert pipeline_data["333_mind"].status in ("OK", "HOLD")
+        assert pipeline_data["333_reason"].status in ("OK", "HOLD")
 
         print("[999_SEAL] Full E2E flow verified — DITEMPA, BUKAN DIBERI")
 
