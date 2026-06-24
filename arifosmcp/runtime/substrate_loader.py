@@ -170,6 +170,11 @@ def load_substrate() -> dict[str, Any]:
         parsed["epistemic_class"] = EPISTEMIC_CLASS
         parsed["provenance"] = PROVENANCE
         parsed["forged_at"] = SUBSTRATE_FORGED_AT
+        # Bi-temporal canon metadata (L0 memory architecture upgrade)
+        parsed["valid_from"] = SUBSTRATE_FORGED_AT
+        parsed["superseded_at"] = None
+        parsed["superseded_by"] = None
+        parsed["fact_at_queryable"] = True
         parsed["f13_addendum"] = F13_PRE_TRUST_ADDENDUM
         return parsed
     except Exception as e:
