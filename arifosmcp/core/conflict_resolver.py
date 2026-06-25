@@ -40,6 +40,7 @@ class VerdictRank(IntEnum):
 
 VERDICT_RANK: dict[str, VerdictRank] = {
     "PROCEED": VerdictRank.PROCEED,
+    "SEAL_OBSERVE_ONLY": VerdictRank.PROCEED,  # OBSERVE_ONLY = read-only = same rank as PROCEED
     "SEAL": VerdictRank.SEAL,
     "PARTIAL": VerdictRank.PARTIAL,
     "SABAR": VerdictRank.SABAR,
@@ -249,6 +250,24 @@ def resolve_multi_organ(
 
     if len(envelopes) == 1:
         return resolve_conflict(envelopes[0])
+
+    # C1 fix: pre-scan all envelopes for VOID before iterative loop.
+    # VOID always wins — if any envelope has VOID verdict, the pairwise chain
+    # must reach it even if an earlier pair escalates to 888_HOLD.
+    for env in envelopes:
+        rank_a = VERDICT_RANK.get(env.verdict_a, VerdictRank.UNKNOWN)
+        rank_b = VERDICT_RANK.get(env.verdict_b, VerdictRank.UNKNOWN)
+        if rank_a == VerdictRank.VOID or rank_b == VerdictRank.VOID:
+            winner = env.organ_a if rank_a == VerdictRank.VOID else env.organ_b
+            winner_verdict = env.verdict_a if rank_a == VerdictRank.VOID else env.verdict_b
+            return ResolutionResult(
+                winner_organ=winner,
+                winner_verdict=winner_verdict,
+                resolution_method="dominance",
+                reason="VOID dominates all — pre-scan caught in multi-organ set",
+                requires_888_hold=False,
+                latency_us=0,
+            )
 
     # Iterative pairwise resolution
     current = resolve_conflict(envelopes[0])

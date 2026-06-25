@@ -22,9 +22,13 @@ from __future__ import annotations
 import hashlib
 import json as json_lib
 import os
+import time as time_module
 import urllib.request
 from pathlib import Path
 from typing import Any
+
+from arifosmcp.core.latency_budget import LATENCY_BUDGETS
+from arifosmcp.core.latency_budget import DecisionClass as LatencyDecisionClass
 
 from arifosmcp.core.enforcement.maruah_critic import (
     maruah_critic_check,
@@ -981,6 +985,7 @@ async def arif_judge(
                 meta={"error": str(exc)},
             )
 
+    t_judge_start = time_module.monotonic()
     result = await _arif_judge(
         mode=mode,
         candidate=candidate,
@@ -991,6 +996,26 @@ async def arif_judge(
         wealth_score=_evidence.get("wealth_score"),
         verification_surface=_evidence.get("verification_surface"),
     )
+    elapsed_ms = (time_module.monotonic() - t_judge_start) * 1000
+    # Map action_tier to LatencyDecisionClass for budget lookup
+    tier_to_class = {
+        "standard": LatencyDecisionClass.C2_STANDARD,
+        "elevated": LatencyDecisionClass.C3_DEEP,
+        "sovereign": LatencyDecisionClass.C4_SOVEREIGN,
+        "c4": LatencyDecisionClass.C4_SOVEREIGN,
+        "c5": LatencyDecisionClass.C4_SOVEREIGN,
+    }
+    decision_class_latency = tier_to_class.get(action_tier, LatencyDecisionClass.C2_STANDARD)
+    budget = LATENCY_BUDGETS.get(decision_class_latency)
+    within_budget = (budget.max_latency_ms == 0) or (elapsed_ms <= budget.max_latency_ms)
+    if "meta" not in result:
+        result["meta"] = {}
+    result["meta"]["latency_ms"] = round(elapsed_ms, 2)
+    result["meta"]["within_budget"] = within_budget
+    result["meta"]["budget_class"] = decision_class_latency.value
+    result["meta"]["budget_max_ms"] = budget.max_latency_ms if budget.max_latency_ms > 0 else "unbounded"
+    if not within_budget:
+        result["meta"]["degradation"] = budget.degradation_verdict
 
     # Plumbing fix for 7-tool facade + semantic contract: ensure dict for downstream
     if hasattr(result, "model_dump"):

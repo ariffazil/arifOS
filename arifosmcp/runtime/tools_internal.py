@@ -102,7 +102,11 @@ async def _fetch_jwks() -> dict | None:
                 _jwt_cache_time = time.time()
                 return _jwt_cache
     except Exception:  # nosec: B110 — network failures are non-fatal in observe mode
-        pass
+        # Zen of AAA §6: No silent failure. Void must carry void_reason.
+        # This is intentionally non-fatal (observe mode), but must be logged.
+        import logging
+        _logger = logging.getLogger(__name__)
+        _logger.debug("JWT JWKS fetch failed — network non-fatal in observe mode, returning None")
     return None
 
 
