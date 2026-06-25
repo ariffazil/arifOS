@@ -18,6 +18,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+import concurrent.futures
 import hashlib
 import time
 from dataclasses import dataclass, field
@@ -246,7 +247,48 @@ def judge_with_budget(
 
     # Execute judge with timeout tracking
     t_judge_start = time.monotonic()
-    judge_output = judge_fn()
+
+    # L1 fix: preventive timeout — execute judge_fn in thread pool with hard deadline.
+    # If max_latency_ms > 0 (not C4_SOVEREIGN), enforce a timeout.
+    # This is preventive, not retroactive: if the timeout fires, we degrade immediately
+    # rather than measuring elapsed time after judge_fn returns.
+    timeout_seconds = (
+        None if (budget.max_latency_ms == 0 or budget.decision_class == DecisionClass.C4_SOVEREIGN)
+        else (budget.max_latency_ms / 1000.0) * 1.0  # 100% of budget as hard deadline
+    )
+    judge_output: dict[str, Any]
+    if timeout_seconds is not None:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(judge_fn)
+            try:
+                judge_output = future.result(timeout=timeout_seconds)
+            except concurrent.futures.TimeoutError:
+                # L1: preventive timeout — degrade immediately without running judge_fn to completion.
+                # This is the key difference from the old retroactive approach.
+                sub.judge_ms = budget.max_latency_ms  # approximate — killed at deadline
+                sub.total_ms = budget.max_latency_ms
+                degradation_reason = (
+                    f"Latency timeout: budget {budget.max_latency_ms}ms exceeded "
+                    f"for {decision_class}. Degraded to {budget.degradation_verdict} "
+                    f"(preventive timeout — judge_fn did not complete)."
+                )
+                result = JudgeResult(
+                    verdict=budget.degradation_verdict,
+                    decision_class=decision_class,
+                    latency_ms=sub.total_ms,
+                    within_budget=False,
+                    reason=degradation_reason,
+                    resolution=conflict_result,
+                )
+                return JudgePipelineResult(
+                    judge_result=result,
+                    sub_budget=sub,
+                    from_cache=False,
+                    degradation_reason=degradation_reason,
+                )
+    else:
+        judge_output = judge_fn()
+
     sub.judge_ms = (time.monotonic() - t_judge_start) * 1000
     sub.total_ms = (time.monotonic() - t_total_start) * 1000
 

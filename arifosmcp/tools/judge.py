@@ -27,6 +27,11 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.core.conflict_resolver import (
+    resolve_conflict,
+    resolve_multi_organ,
+)
+from arifosmcp.core.decision_contract import ConflictEnvelope
 from arifosmcp.core.latency_budget import LATENCY_BUDGETS
 from arifosmcp.core.latency_budget import DecisionClass as LatencyDecisionClass
 
@@ -1177,6 +1182,37 @@ async def arif_judge(
     # ── Paradox anchor injection (v3) ──
     result = _inject_judge_paradox(result, verdict_str, action_tier)
 
+    # ── Conflict Resolution (P0 wiring — I1 bridge) ──────────────────────
+    # After verdict is rendered, run conflict resolution to determine if this
+    # organ's verdict conflicts with others. Resolution result flows to vault receipt.
+    # Single-envelope case (one organ): resolve_conflict handles it.
+    # Multi-organ case (future): resolve_multi_organ does pairwise iteration.
+    _conflict_result: dict[str, Any] = {"conflict_resolved": False, "conflict_resolution": "none"}
+    try:
+        _verdict = str(result.get("verdict", ""))
+        _organ = organ_id or _evidence.get("organ_id", "arifOS")
+        _envelope = ConflictEnvelope(
+            conflict_id=f"{session_id or 'sess'}:{_organ}:{_verdict[:8]}",
+            organ_a=_organ,
+            verdict_a=_verdict,
+            organ_b="human",
+            verdict_b="888_HOLD",
+            conflict_domain="constitutional_judgment",
+            is_irreversible=("SEAL" in _verdict),
+        )
+        _res = resolve_conflict(_envelope)
+        _conflict_result = {
+            "conflict_resolved": True,
+            "conflict_resolution": _res.resolution_method,
+            "winner_organ": _res.winner_organ,
+            "winner_verdict": _res.winner_verdict,
+            "reason": _res.reason,
+        }
+        result.setdefault("meta", {})["conflict_resolution"] = _conflict_result
+    except Exception:
+        # Conflict resolution is advisory for now — never block vault sealing on error
+        result.setdefault("meta", {})["conflict_resolution"] = _conflict_result
+
     if vault_entry_id and is_seal:
         try:
             from arifosmcp.tools.vault import arif_seal
@@ -1187,6 +1223,10 @@ async def arif_judge(
                 "verdict": result.get("verdict", ""),
                 "constitutional_chain_id": result.get("meta", {}).get("constitutional_chain_id"),
                 "state_hash": result.get("meta", {}).get("state_hash"),
+                "conflict_resolved": _conflict_result.get("conflict_resolved", False),
+                "conflict_resolution": _conflict_result.get("conflict_resolution", "none"),
+                "latency_ms": result.get("meta", {}).get("latency_ms", 0),
+                "within_budget": result.get("meta", {}).get("within_budget", True),
             }
 
             seal_result = await arif_seal(

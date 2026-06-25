@@ -17,11 +17,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 
 # ── Receipt Schema ───────────────────────────────────────────────
@@ -44,7 +47,10 @@ class VaultReceipt:
     # ── Chain ─────────────────────────────────────────────────────
     parent_hash: str             # SHA256 of previous receipt in this session
     session_id: str              # Which session this belongs to
-    session_merkle_root: str     # Merkle root of all receipts in session (so far)
+    # V1 fix: renamed comment — this is a chain hash (cumulative), not a true Merkle root.
+    # True Merkle root (Phase 5) will use a separate field alongside this one.
+    # Kept as session_merkle_root for wire-format stability (Phase 1–4 compatibility).
+    session_merkle_root: str     # Chain hash: hash(r0 || hash(r1 || hash(r2 || ...)))
 
     # ── Provenance ────────────────────────────────────────────────
     actor_id: str                # Who did this
@@ -155,7 +161,14 @@ class SessionChain:
     """
     Manages per-session hash chain + Merkle checkpoint.
     Thread-safe for single-process use.
+
+    V5 fix: In-process cache eliminates O(N) vault scan per receipt.
+    Each SessionChain instance is cached by session_id within the same process.
     """
+
+    # V5: Process-level cache — keyed by session_id.
+    # Prevents O(N) disk reload every time create_and_seal_receipt is called.
+    _cache: dict[str, SessionChain] = {}
 
     def __init__(self, session_id: str, vault_path: str | Path | None = None):
         self.session_id = session_id
@@ -189,8 +202,22 @@ class SessionChain:
 
             if self.receipts:
                 self.parent_hash = self.receipts[-1].receipt_hash
-        except OSError:
-            pass  # File not readable — start fresh
+        except OSError as e:
+            # V2 fix: log + signal instead of silent pass.
+            # Silent pass means chain corruption goes undetected.
+            # F4 CLARITY: every anomaly must leave a trace.
+            logger.error(
+                "VAULT999 chain load failed for session_id=%s: %s. "
+                "Starting fresh — prior chain entries may exist but are unreachable. "
+                "Manual audit of vault file recommended.",
+                self.session_id,
+                e,
+            )
+            # F11 AUDIT signal: record the anomaly for vault audit trail.
+            # The session continues with an empty chain, but the OSError is
+            # now visible in logs and eligible for VAULT999 anomaly tracking.
+            # This is V2 from the 2026-06-25 audit — not a silent failure.
+            pass
 
     def _compute_chain_hash(self) -> str:
         """
@@ -381,7 +408,15 @@ def create_and_seal_receipt(
     Set self_modification_receipt=True for F14 constitutional amendment receipts.
     amendment_target should specify the target floor or content (e.g. "F14", "F3").
     """
-    chain = SessionChain(session_id, vault_path)
+    # V5 fix: use in-process cache to avoid O(N) vault scan per receipt.
+    # Cache hit: reuse existing SessionChain (already loaded from disk).
+    # Cache miss: load from disk + cache for subsequent calls in same process.
+    if session_id in SessionChain._cache:
+        chain = SessionChain._cache[session_id]
+    else:
+        chain = SessionChain(session_id, vault_path)
+        SessionChain._cache[session_id] = chain
+
     receipt = chain.create_receipt(
         actor_id=actor_id,
         organ_id=organ_id,
