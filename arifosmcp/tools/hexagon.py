@@ -76,13 +76,24 @@ _AGI.set_validator(_APEX)  # method name kept for backward compat
 
 
 def _nine_signal(status: str) -> dict:
-    """Malay/English semantic state envelope for constitutional verdicts."""
+    """Malay/English semantic state envelope for constitutional verdicts.
+
+    Truth-plane fix 2026-06-25: Added intermediate severity levels.
+    KHIANAT/BANGANG reserved for governance breach. SYUBHAH/BIJAK for config issues.
+    """
     if status == "OK":
         return {
             "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
             "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
             "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
             "overall": {"state": "SELAMAT", "en": "SAFE"},
+        }
+    if status == "WARN":
+        return {
+            "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "PRUDENT"},
+            "overall": {"state": "RETAK", "en": "CRACKED"},
         }
     return {
         "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},

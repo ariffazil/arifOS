@@ -639,10 +639,24 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
     ),
     "arif_memory_recall": ToolManifestEntry(
         tool_name="arif_memory_recall",
-        action_class=ActionClass.MUTATE,
-        safe_modes=["recall", "get", "list", "search", "context", "dry_run", "manage"],
-        dangerous_modes=["store", "prune"],
-        requires_lease=True,
+        # v5 router handles mode-level classification: inspect/recall/attest = OBSERVE,
+        # remember/promote/revise = MUTATE, forget = IRREVERSIBLE.
+        # Use OBSERVE as base; the v5 tool enforces lease/human_ack for mutating modes.
+        # (Truth-plane fix 2026-06-25: mode-level affordance alignment)
+        action_class=ActionClass.OBSERVE,
+        safe_modes=["recall", "inspect", "attest", "get", "list", "search", "context", "dry_run", "manage", "stats", "graph_get"],
+        dangerous_modes=["remember", "promote", "revise", "forget", "store", "prune"],
+        requires_lease=False,
+        requires_human_ack=False,
+        blast_radius=BlastRadius.ACCOUNT,
+        is_reversible=True,
+    ),
+    "arif_memory": ToolManifestEntry(
+        tool_name="arif_memory",
+        action_class=ActionClass.OBSERVE,
+        safe_modes=["recall", "inspect", "attest", "get", "list", "search", "context", "dry_run", "manage", "stats", "graph_get"],
+        dangerous_modes=["remember", "promote", "revise", "forget", "store", "prune"],
+        requires_lease=False,
         requires_human_ack=False,
         blast_radius=BlastRadius.ACCOUNT,
         is_reversible=True,

@@ -2166,7 +2166,19 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
             "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
             "overall": {"state": "BELUM_SAH", "en": "UNAUTHENTICATED"},
         }
-    if status in ("HOLD", "VOID"):
+    if status == "HOLD":
+        # Truth-plane fix 2026-06-25: HOLD means "wait for human decision."
+        # Most HOLDs are config/authority issues, not governance breaches.
+        # SYUBHAH/BIJAK = doubtful but system caught it prudently.
+        # KHIANAT/BANGANG reserved for VOID (actual breach).
+        return {
+            "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "PRUDENT"},
+            "overall": {"state": "RETAK", "en": "HOLDING"},
+        }
+    if status == "VOID":
+        # VOID = rejected due to actual violation. KHIANAT/BANGANG appropriate.
         return {
             "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
             "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},

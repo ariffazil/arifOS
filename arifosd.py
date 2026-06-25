@@ -17,6 +17,8 @@
 #   Key: local negentropy only in open system. ΔS_total ≥ 0 always preserved.
 # =============================================================================
 
+from __future__ import annotations
+
 import os
 import json
 import time
@@ -799,7 +801,6 @@ class MetabolicPipeline:
         # 000 INIT
         stages_run.append("000_INIT")
         human = ctx.get("human", "Arif Fazil")
-        ctx.get("actor_id", "arifOS")
         kappa_r = ctx.get("kappa_r", 0.9)
 
         # 111 SENSE
@@ -1118,7 +1119,7 @@ class MetabolicPipeline:
 class ArifHTTPHandler(BaseHTTPRequestHandler):
     """HTTP handler — health, MCP endpoints."""
 
-    pipeline: "MetabolicPipeline"
+    pipeline: MetabolicPipeline
 
     def log_message(self, fmt, *args):
         pass  # suppress default logging
@@ -1173,13 +1174,31 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
         req_id = req.get("id")
 
         if method == "initialize":
+            # FORGE 2026-06-25: Negotiate protocol version per MCP spec.
+            # Was hardcoded to "2024-11-05" — federation alignment with
+            # arifOS-kernel :8088 (2025-11-25) and the rest of the organs.
+            # Echo the client's requested version if it's in MCP SUPPORTED;
+            # otherwise fall back to LATEST. Backward + forward compatible.
+            _SUPPORTED_PROTOCOL_VERSIONS = {
+                "2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25",
+            }
+            _requested = params.get("protocolVersion", "2025-11-25")
+            _negotiated = (
+                _requested if _requested in _SUPPORTED_PROTOCOL_VERSIONS
+                else "2025-11-25"
+            )
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
                 "result": {
-                    "protocolVersion": "2024-11-05",
+                    "protocolVersion": _negotiated,
                     "serverInfo": {"name": "arifosd", "version": "0.1.0"},
-                    "capabilities": {"tools": {"listChanged": True}},
+                    "capabilities": {
+                        "tools": {"listChanged": True},
+                        # arifosd has no resources/prompts — keep surface honest.
+                        "resources": {"listChanged": False},
+                        "prompts": {"listChanged": False},
+                    },
                 },
             }
 
@@ -1254,7 +1273,7 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
 class UnixSocketHandler(socketserver.StreamRequestHandler):
     """Unix domain socket handler — stdio-over-socket for local MCP clients."""
 
-    pipeline: "MetabolicPipeline"
+    pipeline: MetabolicPipeline
 
     def handle(self):
         try:

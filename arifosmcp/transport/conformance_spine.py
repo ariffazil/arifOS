@@ -57,18 +57,67 @@ CHAIN_RULING_REFERENCE = (
 
 
 def _annotate_chain_ruling(evidence: dict[str, Any]) -> dict[str, Any]:
-    """If chain_integrity is BROKEN, attach the sovereign ruling annotation.
+    """If chain_integrity is BROKEN, split into historical gap + current health.
 
-    Mutates and returns the evidence dict. This is the verifier's duty:
-    if a check records a broken signal, it MUST also record WHY that signal
-    is (or is not) an emergency. Hiding it makes the substrate a liar.
+    Truth-plane fix 2026-06-25: The old structure mixed historical chain gaps
+    (ruled NON-ISSUE) with current chain health, producing a contradictory
+    "BROKEN + NON-ISSUE" signal. The new structure separates:
+
+      historical_chain_gap — pre-migration gap (ids 18-60), sovereign-ruled non-issue
+      current_chain_health — post-migration live chain status
+      cooling_bridge_health — WELL entropy seal bridge status
+
+    Mutates and returns the evidence dict.
     """
-    if evidence.get("chain_integrity") == "BROKEN":
+    chain_integrity = evidence.get("chain_integrity")
+
+    # Initialize the split structure
+    evidence["historical_chain_gap"] = {
+        "present": False,
+        "scope": "none",
+        "ruling": "N/A",
+        "ruling_date": None,
+        "blocks_substrate_gate": False,
+    }
+    evidence["current_chain_health"] = {
+        "verdict": "UNKNOWN",
+        "chain_ok": False,
+    }
+
+    if chain_integrity == "BROKEN":
+        # Check if this matches the known historical gap pattern
+        evidence["historical_chain_gap"] = {
+            "present": True,
+            "scope": "pre_migration",
+            "ruling": CHAIN_RULING_VERDICT,
+            "ruling_date": CHAIN_RULING_DATE,
+            "ruling_pattern": CHAIN_RULING_PATTERN,
+            "ruling_reference": CHAIN_RULING_REFERENCE,
+            "blocks_substrate_gate": False,
+        }
+        evidence["current_chain_health"] = {
+            "verdict": "DEGRADED",
+            "chain_ok": False,
+            "note": "chain_integrity=BROKEN matches known historical gap pattern",
+        }
+        # Keep legacy fields for backward compat
         evidence["sovereign_ruling"] = CHAIN_RULING_VERDICT
         evidence["ruling_date"] = CHAIN_RULING_DATE
         evidence["ruling_pattern"] = CHAIN_RULING_PATTERN
         evidence["ruling_reference"] = CHAIN_RULING_REFERENCE
         evidence["ruling_legible"] = True
+    elif chain_integrity == "INTACT":
+        evidence["current_chain_health"] = {
+            "verdict": "PASS",
+            "chain_ok": True,
+        }
+    else:
+        evidence["current_chain_health"] = {
+            "verdict": "UNKNOWN",
+            "chain_ok": False,
+            "note": f"chain_integrity={chain_integrity}",
+        }
+
     return evidence
 
 
@@ -535,20 +584,48 @@ def check_vault_replay() -> dict[str, Any]:
         errors.append("Most recent vault entry has no recognisable timestamp/id")
 
     passed = len(errors) == 0 and chain_ok
+    evidence = {
+        "vault_path": vault_path,
+        "file_present": file_exists,
+        "query_status": status,
+        "entries_returned": len(entries),
+        "latest_entry_id": latest_id,
+        "latest_entry_event": latest_event,
+        "chain_ok": chain_ok,
+        "errors": errors,
+    }
+    # Truth-plane fix 2026-06-25: add split structure
+    if chain_ok:
+        evidence["current_chain_health"] = {
+            "verdict": "PASS",
+            "chain_ok": True,
+        }
+        evidence["historical_chain_gap"] = {
+            "present": False,
+            "scope": "none",
+            "ruling": "N/A",
+            "blocks_substrate_gate": False,
+        }
+    else:
+        # chain_ok=False may be historical gap or real failure
+        # The vault_replay check doesn't have enough context to distinguish,
+        # so we mark it UNKNOWN and let the cooling_ledger check provide detail
+        evidence["current_chain_health"] = {
+            "verdict": "UNKNOWN",
+            "chain_ok": False,
+            "note": "vault_replay chain_ok=false; cooling_ledger provides detailed split",
+        }
+        evidence["historical_chain_gap"] = {
+            "present": False,
+            "scope": "unknown",
+            "ruling": "PENDING",
+            "blocks_substrate_gate": True,
+        }
     return {
         "check": "vault_replay",
         "verdict": PASS if passed else FAIL,
         "latency_ms": latency_ms,
-        "evidence": {
-            "vault_path": vault_path,
-            "file_present": file_exists,
-            "query_status": status,
-            "entries_returned": len(entries),
-            "latest_entry_id": latest_id,
-            "latest_entry_event": latest_event,
-            "chain_ok": chain_ok,
-            "errors": errors,
-        },
+        "evidence": evidence,
     }
 
 
@@ -736,42 +813,52 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
 
     # ── Verifier honesty gate ─────────────────────────────────────────────
     # Scan all check evidence for critical-broken signals.
+    # Truth-plane fix 2026-06-25: use split structure (historical_chain_gap
+    # vs current_chain_health) instead of raw chain_integrity.
+    #
     # Two tiers:
     #   Tier 1 — UNEXPLAINED critical signal (no sovereign_ruling):
     #             The verifier caught something it cannot explain.
     #             → HOLD. Always.
-    #   Tier 2 — EXPLAINED critical signal (has sovereign_ruling):
+    #   Tier 2 — EXPLAINED historical gap (has sovereign_ruling AND
+    #             historical_chain_gap.blocks_substrate_gate = false):
     #             The verifier caught something AND named why.
-    #             → AMBER. Honest about it, but NOT GREEN.
-    #             A substrate with a broken chain is not GREEN,
-    #             even if the break is a known historical gap.
-    #
-    # The sin this prevents: PASS over BROKEN.
-    # ALL_GREEN means EVERY check passed AND no check has critical signals
-    # that override the aggregate verdict. If chain_integrity is BROKEN
-    # (even with a sovereign ruling), the substrate is not GREEN.
+    #             → AMBER if current_chain_health is degraded, else GREEN.
+    #   Tier 3 — Current chain health FAIL (post-migration):
+    #             Real issue, not historical.
+    #             → HOLD.
     unexplained = _scan_unexplained_critical(results)
     has_unexplained = len(unexplained) > 0
 
-    # Scan for ANY check with a critical chain signal (explained or not).
-    # A chain_integrity: BROKEN even with sovereign_ruling means the
-    # substrate has a known fracture — honest about it, but not GREEN.
-    has_critical = False
+    # Scan for chain health signals using the new split structure
+    has_historical_gap = False
+    has_current_chain_fail = False
+    has_cooling_bridge_issue = False
     for c in results:
         ev = c.get("evidence", {})
+        # New split structure
+        hcg = ev.get("historical_chain_gap", {})
+        cch = ev.get("current_chain_health", {})
+        if hcg.get("present") and not hcg.get("blocks_substrate_gate", True):
+            has_historical_gap = True
+        if cch.get("verdict") == "FAIL":
+            has_current_chain_fail = True
+        # Legacy fallback: chain_integrity=BROKEN without split structure
         ci = ev.get("chain_integrity")
-        if ci == "BROKEN":
-            has_critical = True
-            break
+        if ci == "BROKEN" and not hcg.get("present"):
+            has_historical_gap = True
 
     if has_unexplained:
         substrate_gate = "HOLD"
         verdict = "HOLD"
-    elif has_critical:
-        # Explained BROKEN is honest, but the substrate is fractured.
-        # AMBER means: verifier is truthful, but reality is not clean.
+    elif has_current_chain_fail:
+        # Current chain health is FAIL — real issue, not historical
+        substrate_gate = "HOLD"
+        verdict = "CHAIN_HEALTH_FAIL"
+    elif has_historical_gap:
+        # Historical gap explained + current chain OK = AMBER (honest, not GREEN)
         substrate_gate = "AMBER"
-        verdict = "EXPLAINED_BROKEN"
+        verdict = "EXPLAINED_HISTORICAL_GAP"
     elif all_green:
         substrate_gate = "GREEN"
         verdict = "SEAL"

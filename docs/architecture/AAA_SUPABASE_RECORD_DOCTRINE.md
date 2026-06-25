@@ -396,4 +396,114 @@ Full schema reference: `docs/architecture/CONSTITUTIONAL_RECEIPT_SCHEMA.md`
 
 ---
 
+## Addendum: `external_action_receipt` — DRAFT (pending F13 ratification)
+
+**Status:** DRAFT v0.1 — authored 2026-06-25, pending F13 SOVEREIGN ratification
+**Author:** FORGE (000Ω)
+**Authoritative path:** This addendum becomes canonical only when F13 SOVEREIGN
+ratifies it via `arif_seal` + seal to VAULT999.
+
+### Rationale
+
+The doctrine above covers actions that happen **inside** the arifOS kernel surface
+(MCP tool calls, judge verdicts, sessions, approvals). It does NOT cover actions
+that happen **outside** the kernel — Hostinger VPS mutations, Cloudflare DNS
+updates, GitHub repo writes, local filesystem changes, Docker commands, cron jobs.
+
+Per the federation invariant **"DB = reality"**, every external side-effect MUST
+leave a trace in the canonical substrate. `external_action_receipt` is that trace.
+
+### Record Type Jurisdiction
+
+| Field | Value |
+|---|---|
+| **Jurisdiction** | Every external side-effect attempted by any agent in the federation |
+| **AAA floors that trigger recording** | F1 (AMANAH), F11 (AUDIT), F13 (SOVEREIGN) |
+| **Promotion to L6 VAULT999** | Only `risk_tier >= 3` AND `result IN ('success','failure','blocked')` |
+| **Required pattern** | BEFORE write (pending) → action runs → AFTER update (terminal result) |
+
+### Required Fields (per record)
+
+```
+source_system         — 'hostinger' | 'cloudflare' | 'github' | 'local_fs' | 'docker' | 'cron' | ...
+source_subdomain      — e.g. 'vps:af-forge', 'zone:arif-fazil.com', 'a-forge:file_ops'
+action_type           — verb on the source system (e.g. 'vps_restart', 'dns_update', 'file_write')
+target                — resource affected (vps_id, zone, repo, file path)
+parameters            — action inputs (jsonb)
+result                — 'pending' | 'success' | 'failure' | 'blocked' | 'rolled_back' | 'partial'
+actor_id              — initiating agent or human
+risk_tier             — 1 (read) to 5 (destructive)
+floor_refs            — floors triggered
+ack_irreversible      — true if action cannot be undone
+approval_ticket_id    — F13 ticket if human approval required
+human_ratifier        — 'Muhammad Arif bin Fazil' if F13 SOVEREIGN approved
+payload_hash          — SHA-256 of normalized content (trigger-computed)
+prev_receipt_hash     — chain link to previous receipt for tamper evidence
+metadata              — adapter-specific extras (gate_decision, backup_path, etc.)
+created_at            — BEFORE write timestamp
+completed_at          — AFTER update timestamp
+```
+
+### Adapter Wiring Matrix (current state)
+
+| Source System | Adapter | Receipt Pattern | Adapter File |
+|---|---|---|---|
+| Hostinger VPS | `gate.py` | MUTATE → write + complete; OBSERVE → skip | `/root/A-FORGE/src/infrastructure/tools/hostinger/gate.py` |
+| Cloudflare DNS | `cloudflare_mcp.py` | DNS create → write + complete; reads → skip | `/root/.hermes/mcp_servers/cloudflare_mcp.py` |
+| GitHub | `github_mcp_gate.py` | MUTATE_REVERSIBLE → write + complete; HIGH_RISK + ANTI_HANTU → blocked + receipt | `/root/.hermes/mcp_servers/github_mcp_gate.py` |
+| Local FS | `file_ops_wrapper.ts` | write/mkdir/copy/move → write + complete; read → skip | `/root/A-FORGE/src/infrastructure/tools/infra/file_ops_wrapper.ts` |
+| (other) | TBD | TBD | — |
+
+### The BEFORE / AFTER / Reconcile Invariant
+
+```
+Every external action MUST:
+  1. BEFORE — write receipt with result='pending' + action params + actor_id
+  2. EXECUTE — perform the action via the source system
+  3. AFTER  — update the same receipt row with terminal result + external_reference + error_message
+  4. RECONCILE — periodic F11 heartbeat scans for orphan 'pending' rows past SLA
+```
+
+Failure modes:
+- **(a) Adapter forgets to call BEFORE write** — action runs without substrate trace.
+  Detection: heartbeat finds no receipt for a known actor/action in the last N minutes.
+  Mitigation: hard-block the action at the adapter gate (Phase 2 — currently soft-warning).
+- **(b) Adapter writes BEFORE but crashes before AFTER** — receipt stays in 'pending'.
+  Detection: heartbeat finds pending rows older than SLA.
+  Mitigation: auto-mark as 'failure' after 5 minutes with error='orphan_pending'.
+- **(c) Supabase unreachable** — adapter logs to stderr and continues.
+  Detection: heartbeat reports `ERROR` on connection failure.
+  Mitigation: A-AUDIT escalates to OPS for substrate repair.
+
+### F11 AUDIT Heartbeat (the leak detector)
+
+```bash
+# Run periodically (cron @ every 5 min) — flags orphan pending receipts
+SUPABASE_URL=https://...SUPABASE_SERVICE_ROLE_KEY=... \
+  python3 /root/.hermes/mcp_servers/audit_heartbeat.py --max-age-seconds 60
+```
+
+Exit codes:
+- `0` — clean (no leaks)
+- `1` — leaks detected (prints list + JSON)
+- `2` — Supabase unreachable (heartbeat itself never blocks anything)
+
+### Pending F13 Ratification Items
+
+- [ ] F13 SOVEREIGN review of `external_action_receipt` schema
+- [ ] Promotion rule from L4 → L6 VAULT999 (currently: no auto-promotion)
+- [ ] Hard-block vs soft-warning for adapters that forget BEFORE write (currently soft)
+- [ ] Backfill of historical external actions (currently NONE — only new receipts from 2026-06-25 onwards)
+
+### Migration Reference
+
+`/root/arifOS/supabase/migrations/20260625_001_external_action_receipt.sql` — 182 lines
+- Schema: 26 columns, 10 indexes
+- Triggers: `trg_ear_compute_hash` (auto SHA-256), `trg_ear_touch_updated_at`
+- RLS: `service_role` ALL, `authenticated` R/W/U, anon blocked (allow-all phase)
+- Rollback: `DROP TABLE IF EXISTS public.external_action_receipt;`
+
+---
+
 *DITEMPA BUKAN DIBERI — Intelligence is forged, not given.*
+*Doctrine addendum awaiting F13 ratification — DITEMPA BUKAN DIBERI.*

@@ -1,0 +1,42 @@
+{
+  "seal_id": "seal_agentic_anthropology_2026-06-25",
+  "timestamp": "2026-06-25T18:29:08Z",
+  "actor_id": "arif",
+  "witness_type": "human",
+  "approved_by": "Arif (F13 SOVEREIGN)",
+  "verdict": "SEALED",
+  "payload": {
+    "title": "AGENTIC ANTHROPOLOGY PIPELINE — Phase 1+2+3",
+    "status": "LIVE",
+    "components": {
+      "state_classifier": {
+        "location": "arifosmcp/rama/",
+        "tests": 56,
+        "status": "PASSING"
+      },
+      "well_mcp_tool": {
+        "location": "WELL/server.py:well_classify_state",
+        "total_tools": 22,
+        "status": "REGISTERED"
+      },
+      "response_adapter": {
+        "location": "WELL/server.py:_well_modulate_posture",
+        "status": "INTEGRATED"
+      },
+      "shadow_detector": {
+        "location": "WELL/gate/dignity_shadow.py:detect_contradiction",
+        "status": "INTEGRATED"
+      }
+    },
+    "pipeline": "well_classify_state(message, session_id, stated_intent) → State Classifier → Contradiction Detector → Posture Modulation → GovernedPosture",
+    "verification": {
+      "sympathetic": {"polyvagal": "sympathetic", "confidence": 0.95, "posture": "ground", "markers": 7},
+      "dorsal": {"polyvagal": "dorsal", "confidence": 0.95, "posture": "hold_space", "markers": 3},
+      "organs_alive": "6/6",
+      "tests_passing": "56/56"
+    },
+    "anti_hantu_invariant": "The agent doesn't need to feel. The agent needs to read state and preserve dignity.",
+    "constitutional_floors": ["F2", "F4", "F6", "F9", "F10", "F11"]
+  },
+  "hash": "sha256:3d040adb9791c0a0003af9ae6cd0e91efc770fb9aadebca315e59e905aebf9f3"
+}

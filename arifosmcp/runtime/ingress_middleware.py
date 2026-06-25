@@ -72,6 +72,105 @@ def _result_code_from_tool_result(result: Any) -> str:
         return "UNK"
 
 
+def _nine_signal_for_severity(severity: str) -> dict[str, Any]:
+    """Map denial severity to appropriate nine_signal.
+
+    Truth-plane fix 2026-06-25: Moral severity words must describe governance
+    breach, not ordinary configuration failure.
+
+    Severity levels:
+      breach   — intentional or reckless governance violation (KHIANAT/BANGANG)
+      high     — serious policy violation (SYUBHAH/BIJAK)
+      medium   — authority or configuration issue (SYUBHAH/BIJAK)
+      low      — config mismatch, missing field, classification drift (RETAK/BIJAK)
+      advisory — informational, no moral charge (KUKUH/BIJAKSANA)
+    """
+    signals = {
+        "breach": {
+            "delta": {"state": "ROSAK", "en": "BROKEN", "domain_meaning": "Governance breach detected."},
+            "psi": {"state": "KHIANAT", "en": "BETRAYED", "domain_meaning": "Integrity violation."},
+            "omega": {"state": "BANGANG", "en": "FOOLISH", "domain_meaning": "Reckless action detected."},
+            "overall": {"state": "RETAK", "en": "FAILED"},
+        },
+        "high": {
+            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Serious policy violation."},
+            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Authority or policy issue."},
+            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System caught the issue."},
+            "overall": {"state": "RETAK", "en": "FAILED"},
+        },
+        "medium": {
+            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Authority or configuration issue."},
+            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Configuration mismatch."},
+            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System held correctly."},
+            "overall": {"state": "RETAK", "en": "FAILED"},
+        },
+        "low": {
+            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Config mismatch or missing field."},
+            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Classification drift, not breach."},
+            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System detected the issue early."},
+            "overall": {"state": "RETAK", "en": "FAILED"},
+        },
+        "advisory": {
+            "delta": {"state": "KUKUH", "en": "SOLID", "domain_meaning": "Informational hold."},
+            "psi": {"state": "AMANAH", "en": "TRUSTED", "domain_meaning": "No governance breach."},
+            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System held as designed."},
+            "overall": {"state": "SELAMAT", "en": "SAFE"},
+        },
+    }
+    return signals.get(severity, signals["low"])
+
+
+# Denial code → severity mapping (Invariant C)
+_DENIAL_SEVERITY: dict[str, str] = {
+    # Breach — intentional or reckless
+    "HALLUCINATION_DETECTED": "breach",
+    "CONSCIOUSNESS_CLAIM": "breach",
+    "IRREVERSIBLE_WITHOUT_HOLD": "breach",
+    "HUMAN_VETO_REQUIRED": "breach",
+    # High — serious policy violation
+    "AUTHORITY_INSUFFICIENT": "high",
+    "PLAN_NOT_APPROVED": "high",
+    "SANDBOX_SIDE_EFFECT": "high",
+    "CHANNEL_VIOLATION": "high",
+    # Medium — authority or configuration issue
+    "AUTH_MISSING": "medium",
+    "PLAN_MISSING": "medium",
+    "WITNESS_DEFICIT": "medium",
+    "BLAST_RADIUS_EXCEEDED": "medium",
+    "LEASE_EXPIRED": "medium",
+    "EPOCH_MISMATCH": "medium",
+    "ENVELOPE_MISSING": "medium",
+    "VERDICT_TOKEN_MISSING": "medium",
+    # Low — config mismatch, classification drift
+    "UNKNOWN_CAPABILITY": "low",
+    "CONTRACT_DRIFT": "low",
+    "ONTOLOGY_VIOLATION": "low",
+    "TRUTH_DEFICIT": "low",
+    "SCHEMA_VALIDATION_FAILED": "low",
+    "BETA_NON_SOVEREIGN": "low",
+}
+
+
+def _severity_for_reason(reason: str) -> str:
+    """Determine severity from HOLD reason text.
+
+    Looks for denial code patterns in the reason string.
+    Falls back to 'low' for unrecognized patterns.
+    """
+    reason_upper = reason.upper()
+    for code, severity in _DENIAL_SEVERITY.items():
+        if code in reason_upper:
+            return severity
+    # Pattern-based fallbacks
+    if "MUTATE requires" in reason or "observe_receipt" in reason.lower():
+        return "low"  # classification mismatch, not breach
+    if "not verified" in reason.lower() or "actor_verified" in reason.lower():
+        return "medium"
+    if "irreversible" in reason.lower():
+        return "high"
+    return "low"
+
+
 def _hold_envelope_dict(
     tool_name: str,
     reason: str,
@@ -79,6 +178,7 @@ def _hold_envelope_dict(
     session_id: str | None = None,
     actor_id: str | None = None,
     extra: dict[str, Any] | None = None,
+    severity: str | None = None,
 ) -> dict[str, Any]:
     """
     Build a schema-conformant HOLD envelope dict.
@@ -89,6 +189,9 @@ def _hold_envelope_dict(
 
     F2 Truth + L13 SOVEREIGN: every HOLD is a real verdict, with a reason.
     The reason is preserved verbatim so callers can act on it.
+
+    Truth-plane fix 2026-06-25: severity is now calibrated.
+    KHIANAT/BANGANG reserved for governance breach, not config mismatch.
     """
     ts = datetime.now(UTC).isoformat()
     result_payload: dict[str, Any] = {
@@ -97,6 +200,12 @@ def _hold_envelope_dict(
     }
     if extra:
         result_payload.update(extra)
+
+    # Determine severity if not provided
+    if severity is None:
+        severity = _severity_for_reason(reason)
+    nine_signal = _nine_signal_for_severity(severity)
+
     return {
         "status": "HOLD",
         "tool": tool_name,
@@ -108,27 +217,11 @@ def _hold_envelope_dict(
         "session_id": session_id,
         "actor_id": actor_id,
         "output_policy": "DOMAIN_HOLD",
-        "nine_signal": {
-            "delta": {
-                "state": "ROSAK",
-                "en": "BROKEN",
-                "domain_meaning": "Ingress rejected call before tool execution.",
-            },
-            "psi": {
-                "state": "KHIANAT",
-                "en": "BETRAYED",
-                "domain_meaning": "Floor violation, unauthorized action.",
-            },
-            "omega": {
-                "state": "BANGANG",
-                "en": "FOOLISH",
-                "domain_meaning": "Authority check failed at the boundary.",
-            },
-            "overall": {"state": "RETAK", "en": "FAILED"},
-        },
+        "nine_signal": nine_signal,
         "reasons": [reason, "Ingress middleware rejected before tool execution."],
         "_nine_signal_compliant": True,
         "_violations": [],
+        "_severity": severity,
         "stage_progression": None,
     }
 

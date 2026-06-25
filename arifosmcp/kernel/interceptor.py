@@ -141,6 +141,35 @@ TOOL_ALIASES: dict[str, str] = {
     # Memory recall
     "arif_recall": "arif_memory_recall",
     "recall": "arif_memory_recall",
+    # ── Legacy aliases from contracts/tools.yaml (compiled 2026-06-25) ──
+    # These MUST match contracts/tools.yaml legacy_aliases section.
+    # Source of truth: the contract, not this dict.
+    "arif_explore": "arif_observe",           # legacy, deprecated 2026-09-30
+    "arif_memory": "arif_memory_recall",      # legacy, deprecated 2026-09-30
+    "arif_bridge_connect": "arif_bridge",     # legacy, deprecated 2026-09-30
+    "arif_conformance_report": "arif_kernel_status",  # legacy, deprecated 2026-09-30
+    # arifos_* family (deprecated 2026-12-31)
+    "arifos_init": "arif_init",
+    "arifos_observe": "arif_observe",
+    "arifos_judge": "arif_judge",
+    "arifos_seal": "arif_seal",
+    "arifos_forge": "arif_forge",
+    "arifos_compose": "arif_compose",
+    "arifos_critique": "arif_critique",
+    "arifos_mind_reason": "arif_mind_reason",
+    "arifos_route": "arif_route",
+    "arifos_memory_recall": "arif_memory_recall",
+    "arifos_bridge": "arif_bridge",
+    "arifos_measure": "arif_measure",
+    "arifos_canary": "arif_canary",
+    "arifos_triage": "arif_triage",
+    "arifos_fetch": "arif_fetch",
+    "arifos_kernel_status": "arif_kernel_status",
+    "arifos_kernel_attest": "arif_kernel_attest",
+    "arifos_kernel_health": "arif_kernel_health",
+    "arifos_kernel_intercept": "arif_kernel_intercept",
+    "arifos_gateway_connect": "arif_gateway_connect",
+    "hermes_vault_query_legacy": "hermes_vault_query",
 }
 
 

@@ -335,14 +335,19 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
         reversibility=ReversibilityLevel.HIGH,
     ),
     # === MISSING CANONICAL ENTRIES (added 2026-06-21) ===
-    # arif_memory v5 — multi-mode: recall is OBSERVE, store is MUTATE, forget is ATOMIC
-    # The router handles internal classification. Externally it's a MUTATE (the safe ceiling).
+    # arif_memory v5 — multi-mode: recall/inspect/attest are OBSERVE,
+    # remember/promote/revise are MUTATE, forget is IRREVERSIBLE.
+    # The v5 router handles mode-level classification internally.
+    # Externally classify as PREPARE (matching arif_memory_recall) so
+    # envelope validation does not block read-only modes with MUTATE gating.
+    # The v5 tool enforces lease/human_ack for mutating modes itself.
+    # (Truth-plane fix 2026-06-25: mode-level affordance alignment)
     "arif_memory": RiskPassport(
-        tier=RiskTier.T3,
-        action_class=ActionClass.MUTATE,
-        tool_class=ToolClass.MUTATE,
-        blast_radius=BlastRadius.ORG,
-        reversibility=ReversibilityLevel.MEDIUM,
+        tier=RiskTier.T2,
+        action_class=ActionClass.PREPARE,
+        tool_class=ToolClass.RETRIEVE,
+        blast_radius=BlastRadius.ACCOUNT,
+        reversibility=ReversibilityLevel.HIGH,
     ),
     # arif_bridge_connect — routes calls to federation organs
     "arif_bridge_connect": RiskPassport(
