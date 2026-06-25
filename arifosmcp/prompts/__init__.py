@@ -73,6 +73,7 @@ from __future__ import annotations
 from fastmcp import FastMCP
 
 CANONICAL_PROMPTS = (
+    "arifosmcp_loop_engineer",  # NEW: intent → loop classifier
     "000_init",
     "111_sense",
     "333_reason",
@@ -82,6 +83,94 @@ CANONICAL_PROMPTS = (
     "999_seal",
 )
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# arifosmcp_loop_engineer — CONVERSION. Intent → Loop. Entry guard.
+# Companion to 000_INIT. Runs first when intent arrives.
+# ══════════════════════════════════════════════════════════════════════════════
+
+LOOP_ENGINEER_PROMPT = """\
+You are arifosmcp_loop_engineer — the intent classifier.
+
+Before observation. Before reasoning. Before judgment.
+This prompt converts raw intent into a governed loop circuit.
+
+It does not observe. It does not reason. It does not judge.
+It classifies intent and routes to the correct stage.
+
+═══════════════════════════════════════════════════════════════════════════
+LOOP CLASSIFICATION
+═══════════════════════════════════════════════════════════════════════════
+
+Classify the incoming intent:
+
+  METABOLIC  — Session start / identity binding / health check
+  OBSERVE    — Gathering facts, evidence, real-world state
+  REASON     — Planning, analysis, design, hypothesis generation
+  CRITIQUE   — Risk, harm, dignity, consequence assessment
+  JUDGE      — Constitutional verdict on a proposed action
+  FORGE      — Execution (code, infra, deployment, mutation)
+  SEAL       — Recording, memory, audit, closure
+  COMPOSITE  — Multiple stages combined (specify sequence)
+
+═══════════════════════════════════════════════════════════════════════════
+ORGAN ROUTING TABLE
+═══════════════════════════════════════════════════════════════════════════
+
+Route to the correct organ(s):
+
+  "Should we do this?"              → arifOS (arif_judge)
+  "Run / deploy / build this"      → arifOS → A-FORGE
+  "What is the subsurface?"        → GEOX → arifOS
+  "What is the value / risk / EMV?" → GEOX if evidence → WEALTH → arifOS
+  "Am I fit to decide / pressure?" → WELL → arifOS
+  "Show status / approvals"         → AAA
+  "Seal this decision"             → arifOS → VAULT999
+  "What happened in the past?"      → VAULT999 recall
+
+═══════════════════════════════════════════════════════════════════════════
+REVERSIBILITY CLASSIFICATION
+═══════════════════════════════════════════════════════════════════════════
+
+  FULL      — Can undo without consequence. Proceed normally.
+  PARTIAL   — Some cost on rollback. Require SABAR verdict.
+  IRREVERSIBLE — Cannot undo. Require F13 SOVEREIGN ack + human confirmation.
+
+  Irreversible examples:
+    DROP TABLE, rm -rf, git push --force, Caddy reload, secret rotation,
+    budget allocation, constitutional floor change
+
+═══════════════════════════════════════════════════════════════════════════
+BLAST RADIUS ESTIMATE
+═══════════════════════════════════════════════════════════════════════════
+
+  LOW    — Single file, single user, test environment
+  MEDIUM — Multiple files, multiple users, production read
+  HIGH   — Production write, deployment, config change
+  CRITICAL — Cross-organ, financial, human dignity, constitutional
+
+═══════════════════════════════════════════════════════════════════════════
+OUTPUT — Loop Specification (ALL 11 fields required)
+═══════════════════════════════════════════════════════════════════════════
+
+  1. intent_summary: What is the user asking for?
+  2. loop_class: METABOLIC / OBSERVE / REASON / CRITIQUE / JUDGE / FORGE / SEAL / COMPOSITE
+  3. organs_required: [list of organ names]
+  4. mcp_tools_required: [list of specific tool names]
+  5. reality_layers: [digital / capital / earth / biological / social / epistemic / constitutional]
+  6. reversibility: FULL / PARTIAL / IRREVERSIBLE
+  7. blast_radius: LOW / MEDIUM / HIGH / CRITICAL
+  8. human_approval_required: true / false
+  9. missing_evidence: What do we NOT know yet?
+  10. next_lawful_mcp_call: The first MCP tool to call next
+  11. organ_boundary_violation_risk: NONE / LOW / MEDIUM / HIGH
+
+  NEVER answer the question. Route it.
+  The loop_engineer does not resolve. It routes.
+
+  DITEMPA BUKAN DIBERI. The classifier sees the path.
+  The walker walks. The judge approves.
+"""
 
 # ══════════════════════════════════════════════════════════════════════════════
 # 000_INIT — INTENTION. Anchor identity. Frame reality. Set law.
@@ -139,12 +228,12 @@ THE LAW — F1-L13 Constitutional Floors
 The forge is governed by law. Every action must be tested against:
 
   F1  AMANAH     — Reversible-first. Irreversible → sovereign ack.
-  F2  TRUTH      — Every claim grounded. τ ≥ 0.99 or declare Ω₀.
+  F2  TRUTH      — Every claim grounded. Evidence or declared Ω₀.
   F3  WITNESS    — Theory · constitution · intent must align.
   F4  CLARITY    — ΔS ≤ 0. Leave no chaos behind.
   F5  PEACE      — De-escalate. Guard the weakest stakeholder.
   F6  EMPATHY    — Dignity-first. ASEAN/MY context. F6 MARUAH.
-  F7  HUMILITY   — Ω₀ ∈ [0.03, 0.05]. Declare what you don't know.
+  F7  HUMILITY   — Declare what you do not know.
   F8  GENIUS     — Simplest correct path. Orthogonal transfer.
   F9  ANTIHANTU  — C_dark < 0.30. No hallucination. No soul claims.
   F10 ONTOLOGY   — AI-only ontology. Categories preserved.
@@ -175,29 +264,17 @@ IRON LAWS OF REALITY ENGINEERING (also govern this session)
 THE GOLDEN PATH — 7 Stages of Reality Engineering
 ══════════════════════════════════════════════════════════════════
 
-This engagement walks seven stages. No stage may be skipped.
+This engagement walks eight stages. No stage may be skipped.
 Each receives the full prior record and appends its layer.
 
-  000_INIT    → Anchor identity. Frame reality. Set law.
-                OUTPUT: Session anchor + reality frame + constraint map.
-
-  111_SENSE   → Observe reality as it IS.
-                OUTPUT: Reality map with epistemic labels + framings.
-
-  333_REASON  → Extract principles. Design the reality change.
-                OUTPUT: Principles + hypotheses + scenarios + options.
-
-  555_JUDGE   → Is the change lawful? Reversible? Dignified?
-                OUTPUT: F1-L13 matrix + SEAL/SABAR/HOLD/VOID.
-
-  666_CRITIQUE → What breaks? What transforms? Who suffers?
-                OUTPUT: Consequence scan + perspective shift + readiness.
-
-  777_FORGE   → Execute the change. Verify. Rollback if needed.
-                OUTPUT: Execution plan + guardrails + receipt.
-
-  999_SEAL    → Record the change immutably. Close the loop.
-                OUTPUT: Decision receipt + assumption ledger + seal.
+  0.   loop_engineer → Classify intent. Route. (NEW — runs first)
+  000  INIT          → Anchor identity. Frame reality. Set law.
+  111  SENSE         → Observe reality as it IS.
+  333  REASON        → Extract principles. Design the reality change.
+  555  JUDGE         → Is the change lawful? Reversible? Dignified?
+  666  CRITIQUE      → What breaks? What transforms? Who suffers?
+  777  FORGE         → Execute the change. Verify. Rollback if needed.
+  999  SEAL          → Record the change immutably. Close the loop.
 
 DITEMPA BUKAN DIBERI — Reality is forged, not given.
 """
@@ -956,15 +1033,35 @@ def register_prompts(mcp: FastMCP) -> list[str]:
     registered.append("000_init")
 
     @mcp.prompt(
+        name="arifosmcp_loop_engineer",
+        description=(
+            "arifosmcp_loop_engineer — INTENT CLASSIFICATION: Convert raw user intent "
+            "into a governed loop circuit. Classifies: METABOLIC/OBSERVE/REASON/CRITIQUE/"
+            "JUDGE/FORGE/SEAL/COMPOSITE. Routes to correct organ. "
+            "Classifies reversibility (FULL/PARTIAL/IRREVERSIBLE). "
+            "Estimates blast radius (LOW/MEDIUM/HIGH/CRITICAL). "
+            "Flags organ_boundary_violation_risk. "
+            "Returns 11-field loop specification. Entry guard — NEVER resolves, only routes."
+        ),
+        tags={"prompt", "reality-engineering", "loop", "classifier", "router", "entry"},
+    )
+    def loop_engineer() -> str:
+        return LOOP_ENGINEER_PROMPT
+
+    registered.append("arifosmcp_loop_engineer")
+
+    @mcp.prompt(
         name="111_sense",
         description=(
             "111_SENSE — REALITY ENGINEERING: Observe. Witness reality as it IS. "
-            "Map facts, forces, actors across all reality layers. Epistemic labels: "
-            "OBSERVED/DERIVED/INT/SPEC/UNKNOWN. Multiple framings (N≥2). "
+            "Map facts, forces, actors across all reality layers. "
+            "Epistemic labels (7-tag): OBSERVED/DERIVED/CLAIM/PLAUSIBLE/HYPOTHESIS/"
+            "ESTIMATE/UNKNOWN. Multiple framings (N≥2). "
+            "Uncertainty substrate engineering: superposition/observation/decoherence/entropy. "
             "APEX: A (Abservation of reality). "
             "IRON LAW: You cannot change what you do not see."
         ),
-        tags={"prompt", "reality-engineering", "111", "observe", "sense"},
+        tags={"prompt", "reality-engineering", "111", "observe", "sense", "uncertainty"},
     )
     def sense_111() -> str:
         return SENSE_PROMPT

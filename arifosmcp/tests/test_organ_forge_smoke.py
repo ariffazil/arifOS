@@ -6,10 +6,10 @@ Run:  python -m pytest tests/test_organ_forge_smoke.py -v
 or:   python tests/test_organ_forge_smoke.py
 """
 
+from __future__ import annotations
+
 import pytest
 pytestmark = pytest.mark.skip(reason="import rot (memory/schemas moved); skipped during 7-tool surface freeze stabilization 2026-06-24. Fix imports separately.")
-
-from __future__ import annotations
 
 import sys
 from pathlib import Path
