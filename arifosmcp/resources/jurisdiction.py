@@ -87,6 +87,7 @@ def register_jurisdiction(mcp: FastMCP) -> list[str]:
             "not a permanent possession. All tools mapped to their autonomy band."
         ),
         text=JURISDICTION_TEXT,
+        tags={"resource", "jurisdiction", "autonomy", "grants"},
     )
     mcp.add_resource(resource)
     return ["arifos://jurisdiction"]

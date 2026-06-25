@@ -99,6 +99,7 @@ def register_civilization(mcp: FastMCP) -> list[str]:
             "Defines which organs DECIDE vs WITNESS vs COMPUTE vs REFLECT."
         ),
         text=CIVILIZATION_TEXT,
+        tags={"resource", "civilization", "organs", "ontology"},
     )
     mcp.add_resource(resource)
     return ["arifos://civilization"]

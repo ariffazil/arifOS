@@ -79,6 +79,7 @@ def register_identity(mcp: FastMCP) -> list[str]:
             "Identity is the root of accountability — all attestation chains begin here."
         ),
         text=IDENTITY_TEXT,
+        tags={"resource", "identity", "sovereign", "authority"},
     )
     mcp.add_resource(resource)
     return ["arifos://identity"]

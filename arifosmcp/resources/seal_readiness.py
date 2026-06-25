@@ -76,6 +76,7 @@ def register_seal_readiness(mcp: FastMCP) -> list[str]:
             "Bare SEAL without namespace is non-compliant."
         ),
         text=SEAL_TEXT,
+        tags={"resource", "vault", "seal", "integrity"},
     )
     mcp.add_resource(resource)
     return ["arifos://seal-readiness"]

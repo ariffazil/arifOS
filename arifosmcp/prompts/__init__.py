@@ -948,6 +948,7 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "APEX: A (Abservation of self and context). "
             "IRON LAW: An unanchored forge produces chaos."
         ),
+        tags={"prompt", "reality-engineering", "000", "anchor", "init"},
     )
     def init_000() -> str:
         return INIT_PROMPT
@@ -963,6 +964,7 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "APEX: A (Abservation of reality). "
             "IRON LAW: You cannot change what you do not see."
         ),
+        tags={"prompt", "reality-engineering", "111", "observe", "sense"},
     )
     def sense_111() -> str:
         return SENSE_PROMPT
@@ -978,6 +980,7 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "APEX: P (Principle extraction). "
             "IRON LAW: The AGI proposes. The ASI judges. The APEX authorizes."
         ),
+        tags={"prompt", "reality-engineering", "333", "reason", "design"},
     )
     def reason_333() -> str:
         return REASON_PROMPT
@@ -993,6 +996,7 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "APEX: P (Principle tested against reality). "
             "IRON LAW: Authority must precede action."
         ),
+        tags={"prompt", "reality-engineering", "555", "judge", "governance"},
     )
     def judge_555() -> str:
         return JUDGE_PROMPT
@@ -1008,6 +1012,7 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "alternatives scan. APEX: X (X-form awareness). "
             "IRON LAW: Blast radius spans all layers."
         ),
+        tags={"prompt", "reality-engineering", "666", "critique", "consequence"},
     )
     def critique_666() -> str:
         return CRITIQUE_PROMPT
@@ -1023,6 +1028,7 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "APEX: E (Execution with consequence awareness). "
             "IRON LAW: Intention ≠ Action. Verify everything."
         ),
+        tags={"prompt", "reality-engineering", "777", "forge", "execute"},
     )
     def forge_777() -> str:
         return FORGE_PROMPT
@@ -1039,6 +1045,7 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "APEX: X (X-form completion). "
             "IRON LAW: Unsealed events are not canonical."
         ),
+        tags={"prompt", "reality-engineering", "999", "seal", "irreversible"},
     )
     def seal_999() -> str:
         return SEAL_PROMPT

@@ -106,6 +106,7 @@ def register_schema(mcp: FastMCP) -> list[str]:
             "Use as the reference map for the entire constitutional kernel."
         ),
         text=SCHEMA_TEXT,
+        tags={"resource", "blueprint", "governance", "tools"},
     )
     mcp.add_resource(resource)
     return ["arifos://schema"]

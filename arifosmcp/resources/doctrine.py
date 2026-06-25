@@ -59,6 +59,7 @@ def register_doctrine(mcp: FastMCP) -> list[str]:
             "All tools and agents must operate within these floors."
         ),
         text=DOCTRINE_TEXT,
+        tags={"resource", "constitution", "sovereign", "immutable"},
     )
     mcp.add_resource(resource)
     return ["arifos://doctrine"]

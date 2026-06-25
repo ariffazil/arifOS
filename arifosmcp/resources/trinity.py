@@ -90,6 +90,7 @@ def register_trinity(mcp: FastMCP) -> list[str]:
             "SEAL/SABAR/HOLD/VOID are APEX-only verdict terms."
         ),
         text=TRINITY_TEXT,
+        tags={"resource", "trinity", "lanes", "governance"},
     )
     mcp.add_resource(resource)
     return ["arifos://trinity"]

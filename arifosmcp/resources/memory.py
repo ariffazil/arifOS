@@ -86,6 +86,7 @@ def register_memory(mcp: FastMCP) -> list[str]:
             "Truth does not become final until sealed."
         ),
         text=MEMORY_TEXT,
+        tags={"resource", "memory", "architecture", "layers"},
     )
     mcp.add_resource(resource)
     return ["arifos://memory"]

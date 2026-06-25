@@ -86,6 +86,7 @@ def register_vitals(mcp: FastMCP) -> list[str]:
             "This resource is the dictionary, not the reading."
         ),
         text=VITALS_TEXT,
+        tags={"resource", "vitals", "metrics", "thresholds"},
     )
     mcp.add_resource(resource)
     return ["arifos://vitals"]
