@@ -68,8 +68,8 @@ skills/langfuse-arifos/
 
 ```bash
 # arifOS → Langfuse (cloud Japan region)
-LANGFUSE_PUBLIC_KEY=pk-lf-bbe515cf-c1f7-46f3-badc-14cc172554ef
-LANGFUSE_SECRET_KEY=sk-lf-ed6da0eb-23c7-4ccb-a4f9-6d3bac1179d9
+LANGFUSE_PUBLIC_KEY=pk-lf-YOUR_PUBLIC_KEY
+LANGFUSE_SECRET_KEY=sk-lf-YOUR_SECRET_KEY
 LANGFUSE_HOST=https://jp.cloud.langfuse.com
 
 # arifOS → self-hosted Langfuse (internal Docker network)

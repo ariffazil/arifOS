@@ -54,6 +54,9 @@ env:
   ARIFOS_ENV: "ci"
   ARIFOS_EPOCH: "${{ github.run_id }}"
   WORKDIR: "${{ github.workspace }}"
+  # CI does not run inside the Docker container, so /root/arifos-model-registry
+  # (root-owned) is inaccessible. Point at a local checkout instead.
+  ARIFOS_REGISTRY_ROOT: "${{ github.workspace }}/arifos-model-registry"
 
 jobs:
 
@@ -77,6 +80,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+
+      - name: Create model registry stub for CI
+        run: |
+          mkdir -p "$WORKDIR/arifos-model-registry/models"
+          echo '{"models":[],"soul_archetypes":[],"runtime_profiles":[]}' > "$WORKDIR/arifos-model-registry/catalog.json"
 
       - name: Verify 13 canonical tools load
         run: |

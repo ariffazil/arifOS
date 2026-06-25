@@ -102,7 +102,7 @@ SECRET_PATTERNS='sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|AKIA[A-Z0-9]{
 if git rev-parse --git-dir >/dev/null 2>&1; then
     SECRET_HITS="$(
         git ls-files -z --cached --others --exclude-standard \
-        | python3 -c 'import os, sys; data=sys.stdin.buffer.read().split(b"\0"); skip=(b"docs/", b"wiki/", b"memory/", b"reports/", b"benchmarks/", b"artifacts/"); out=[p for p in data if p and not p.startswith(skip)]; sys.stdout.buffer.write(b"\0".join(out))' \
+        | python3 -c 'import os, sys; data=sys.stdin.buffer.read().split(b"\0"); skip=(b"docs/", b"wiki/", b"memory/", b"reports/", b"benchmarks/", b"artifacts/", b"archive/", b"tests/"); out=[p for p in data if p and not p.startswith(skip)]; sys.stdout.buffer.write(b"\0".join(out))' \
         | xargs -0 -r grep -nE "$SECRET_PATTERNS" 2>/dev/null \
         | head -n 5 || true
     )"

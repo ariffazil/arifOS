@@ -26,8 +26,8 @@ arifOS uses Langfuse Python SDK v3 with **context manager pattern** — spans au
 arifOS → Langfuse (cloud Japan):
 
 ```bash
-export LANGFUSE_PUBLIC_KEY=pk-lf-bbe515cf-c1f7-46f3-badc-14cc172554ef
-export LANGFUSE_SECRET_KEY=sk-lf-ed6da0eb-23c7-4ccb-a4f9-6d3bac1179d9
+export LANGFUSE_PUBLIC_KEY=pk-lf-YOUR_PUBLIC_KEY
+export LANGFUSE_SECRET_KEY=sk-lf-YOUR_SECRET_KEY
 export LANGFUSE_HOST=https://jp.cloud.langfuse.com
 ```
 
@@ -126,8 +126,8 @@ print('Trace sent — check Langfuse dashboard')
 ### 3. Inspect traces via API
 
 ```bash
-export LANGFUSE_PUBLIC_KEY=pk-lf-bbe515cf-c1f7-46f3-badc-14cc172554ef
-export LANGFUSE_SECRET_KEY=sk-lf-ed6da0eb-23c7-4ccb-a4f9-6d3bac1179d9
+export LANGFUSE_PUBLIC_KEY=pk-lf-YOUR_PUBLIC_KEY
+export LANGFUSE_SECRET_KEY=sk-lf-YOUR_SECRET_KEY
 export LANGFUSE_HOST=https://jp.cloud.langfuse.com
 
 # List recent traces
