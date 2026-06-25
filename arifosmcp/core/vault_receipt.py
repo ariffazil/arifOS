@@ -75,11 +75,15 @@ class VaultReceipt:
     witness_count: int           # How many witnesses attested
     witness_dissent: list[str]   # Any dissenting verdicts
 
+    # ── F14 Self-Modification ─────────────────────────────────────
+    self_modification_receipt: bool = False  # True if this receipt records an F14 amendment
+    amendment_target: str = ""              # Which floor/content is being amended (e.g. "F14", "F3")
+
     # ── Receipt Seal ──────────────────────────────────────────────
-    receipt_hash: str            # SHA256(canonical_order of all above fields)
+    receipt_hash: str = ""            # SHA256(canonical_order of all above fields)
 
     # ── Selective Disclosure ──────────────────────────────────────
-    view_key_id: str             # Auditor with key can see intent/decision
+    view_key_id: str = ""             # Auditor with key can see intent/decision
                                  # Without it: only sees hash
 
     def to_dict(self) -> dict[str, Any]:
@@ -124,6 +128,8 @@ def compute_receipt_hash(r: VaultReceipt) -> str:
             "verdict_hash": r.verdict_hash,
             "floors_evaluated": sorted(r.floors_evaluated),
             "floors_violated": sorted(r.floors_violated),
+            "self_modification_receipt": r.self_modification_receipt,
+            "amendment_target": r.amendment_target,
         },
         "conflict": {
             "conflict_resolved": r.conflict_resolved,
@@ -224,11 +230,16 @@ class SessionChain:
         within_budget: bool = True,
         witness_count: int = 0,
         witness_dissent: list[str] | None = None,
+        self_modification_receipt: bool = False,
+        amendment_target: str = "",
     ) -> VaultReceipt:
         """
         Create a new receipt in this session's chain.
         Auto-computes: receipt_id, ts, monotonic_counter, parent_hash,
         session_merkle_root, receipt_hash.
+
+        Set self_modification_receipt=True for F14 amendment proposals.
+        amendment_target specifies which floor/content is being amended.
         """
         # Compute fields
         receipt_id = str(uuid4())
@@ -263,6 +274,8 @@ class SessionChain:
             within_budget=within_budget,
             witness_count=witness_count,
             witness_dissent=witness_dissent or [],
+            self_modification_receipt=self_modification_receipt,
+            amendment_target=amendment_target,
             receipt_hash="",  # Computed below
             view_key_id="",  # Phase 6: selective disclosure
         )
@@ -358,10 +371,15 @@ def create_and_seal_receipt(
     within_budget: bool = True,
     witness_count: int = 0,
     witness_dissent: list[str] | None = None,
+    self_modification_receipt: bool = False,
+    amendment_target: str = "",
     vault_path: str | Path | None = None,
 ) -> VaultReceipt:
     """
     Convenience: create receipt + append to vault in one call.
+
+    Set self_modification_receipt=True for F14 constitutional amendment receipts.
+    amendment_target should specify the target floor or content (e.g. "F14", "F3").
     """
     chain = SessionChain(session_id, vault_path)
     receipt = chain.create_receipt(
@@ -382,6 +400,8 @@ def create_and_seal_receipt(
         within_budget=within_budget,
         witness_count=witness_count,
         witness_dissent=witness_dissent,
+        self_modification_receipt=self_modification_receipt,
+        amendment_target=amendment_target,
     )
     chain.append_to_vault(receipt)
     return receipt
