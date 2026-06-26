@@ -1,8 +1,8 @@
 """
 arifOS Resources — Canonical URI Surface
-════════════════════════════════════════
+═══════════════════════════════════════
 
-Core 7 public + supplemental resources (intelligence, not chaos).
+Core public + supplemental resources (intelligence, not chaos).
 
 TRUTH HIERARCHY (all resources carry a truth_level):
   1 SOVEREIGN_CANON  — Immutable constitution, seals, sovereign directives
@@ -13,7 +13,7 @@ TRUTH HIERARCHY (all resources carry a truth_level):
   6 MODEL_INFERENCE  — LLM-generated content, may hallucinate
   7 UNTRUSTED        — Unverified external, requires quarantine
 
-CANONICAL (13):
+CANONICAL (16 — includes loop-engineering + quickstart):
   arifos://doctrine          — Immutable law (F1–L13)
   arifos://trinity           — AAA lane definitions and separation of powers
   arifos://schema            — Complete blueprint (tools, lanes, forge bridge)
@@ -25,14 +25,17 @@ CANONICAL (13):
   arifos://vitals            — Metric reference and thresholds
   arifos://bootstrap         — Full federation knowledge-graph context (v2026.06.14)
   arifos://human/metabolized — Compact sovereign context (nutrient, not food)
+  arifos://loop-engineering  — 7-stage reality engineering loop (K1 dual naming)
+  arifos://quickstart        — LLM client getting started guide
   tree777://index            — TREE777 wiki index
   runner://policy/v1         — Context runner pinned policy (F2, F11)
 
-SUPPLEMENTAL (2 — auto-generated, low maintenance):
+SUPPLEMENTAL (3):
   arifos://mcp-alignment     — MCP spec conformance matrix (protocol, extensions, deprecations)
   arifos://resources/index   — Machine-readable JSON catalog of all resources
+  arifos://skills-catalog    — Machine-readable skill registry (dynamic from filesystem)
 
-GOVERNANCE RESOURCE (new):
+GOVERNANCE RESOURCE:
   arifos://resources/audit   — Governed resource audit with hashes, truth levels, authority
 
 REMOVED (chaos reduction):
@@ -55,6 +58,7 @@ from .evidence import register_evidence_resources
 from .human_context import register_human_context
 from .identity import register_identity
 from .jurisdiction import register_jurisdiction
+from .loop_engineering import register_loop_engineering
 from .mcp_alignment import register_mcp_alignment
 from .memory import register_memory
 from .resources_index import register_resources_index
@@ -62,7 +66,9 @@ from .runner import register_runner_resources
 from .schema import register_schema
 from .reality_state import register_reality_state
 from .seal_readiness import register_seal_readiness
+from .skills_catalog import register_skills_catalog
 from .sovereign import register_sovereign_resources
+from .quickstart import register_quickstart
 from .tree777 import register_tree777_resources
 from .trinity import register_trinity
 from .vitals import register_vitals
@@ -81,6 +87,8 @@ CANONICAL_RESOURCES = (
     "arifos://vitals",
     "arifos://bootstrap",
     "arifos://human/metabolized",
+    "arifos://loop-engineering",
+    "arifos://quickstart",
     "tree777://index",
     "runner://policy/v1",
     "arif://tools/discovery",
@@ -89,6 +97,7 @@ CANONICAL_RESOURCES = (
 SUPPLEMENTAL_RESOURCES = (
     "arifos://mcp-alignment",
     "arifos://resources/index",
+    "arifos://skills-catalog",
 )
 
 TREE777_RESOURCES = (
@@ -135,8 +144,11 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_memory(mcp))
     registered.extend(register_vitals(mcp))
     registered.extend(register_bootstrap(mcp))
+    registered.extend(register_loop_engineering(mcp))
+    registered.extend(register_quickstart(mcp))
     registered.extend(register_mcp_alignment(mcp))
     registered.extend(register_resources_index(mcp))
+    registered.extend(register_skills_catalog(mcp))
     registered.extend(register_evidence_resources(mcp))
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))

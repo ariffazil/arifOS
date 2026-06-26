@@ -233,23 +233,39 @@ def _probe_biological() -> dict[str, Any]:
     return result
 
 
-def _probe_quantum() -> dict[str, Any]:
-    """Probe quantum reality layer. Truth: NOT SENSED."""
+def _probe_uncertainty_substrate() -> dict[str, Any]:
+    """Probe uncertainty substrate — the quantum-physics-inspired decision substrate.
+
+    Quantum physics concepts map to arifOS classical equivalents.
+    No literal quantum hardware. No physics mysticism.
+    Quantum-style governance = superposition of hypotheses, interference from evidence,
+    bounded non-determinism, entanglement across organs.
+    """
     return {
-        "layer": "quantum",
-        "epistemic": "UNKNOWN",
+        "layer": "uncertainty_substrate",
+        "epistemic": "MAPPED",
         "timestamp": time.time(),
         "degraded": False,
         "note": (
-            "Quantum reality is not within arifOS domain scope. "
-            "No quantum sensors, qubit interfaces, or wavefunction models deployed. "
-            "This layer is UNKNOWN by design — not by oversight."
+            "Uncertainty substrate is classical — not quantum hardware. "
+            "Maps quantum-physics metaphor to arifOS decision engineering."
         ),
-        "closest_analogue": {
-            "entropy": "classical thermodynamic ΔS (not von Neumann)",
-            "superposition": "decisions are classical (SEAL/SABAR/HOLD/VOID)",
-            "entanglement": "organs communicate via NATS, not quantum channels",
-            "measurement": "observations are MCP tool calls, not wavefunction collapse",
+        "quantum_metaphor_map": {
+            # Metaphor → arifOS equivalent (NOT literal physics)
+            "superposition": "multiple hypotheses held simultaneously — N≥3 competing plans",
+            "interference": "evidence weights destructively/cconstructively — contradictory evidence cancels",
+            "decoherence": "contradiction scan — eliminates incompatible hypotheses",
+            "entanglement": "organs share state via NATS — correlated decisions across organs",
+            "tunneling": "bounded non-determinism — APPROVE despite low probability",
+            "collapse": "555_JUDGE verdict — SEAL/SABAR/HOLD/VOID",
+            "irreversibility": "777_FORGE execution — committed state change",
+            "measurement": "111_SENSE observation — MCP tool call binds evidence",
+            "uncertainty_principle": "F7 HUMILITY — fundamental limits on simultaneous accuracy",
+            "entanglement_swap": "cross-organ VAULT999 seal — correlated memory across organs",
+        },
+        "anti_hantu_guard": {
+            "C_dark_quantum_analogue": 0.0,  # No quantum consciousness claims
+            "note": "Quantum metaphor ONLY. No literal wavefunction, qubit, or quantum consciousness.",
         },
     }
 
@@ -264,10 +280,10 @@ def register_reality_state(mcp: FastMCP) -> list[str]:
         "arifos://reality/state",
         description=(
             "Causally-consistent multi-layer reality snapshot. "
-            "Returns current state of PHYSICAL, DIGITAL, BIOLOGICAL, and QUANTUM "
+            "Returns current state of PHYSICAL, DIGITAL, BIOLOGICAL, and UNCERTAINTY_SUBSTRATE "
             "reality layers at one consistent timestamp. "
             "Every value carries epistemic label (OBS/DER/INT/SPEC/UNKNOWN). "
-            "Quantum layer is truthfully declared UNKNOWN."
+            "Uncertainty substrate maps quantum-physics metaphor to classical decision engineering."
         ),
     )
     def reality_state_resource() -> dict[str, Any]:
@@ -280,7 +296,7 @@ def register_reality_state(mcp: FastMCP) -> list[str]:
             ("physical", _probe_physical),
             ("digital", _probe_digital),
             ("biological", _probe_biological),
-            ("quantum", _probe_quantum),
+            ("uncertainty_substrate", _probe_uncertainty_substrate),
         ]
         for name, probe_fn in layer_order:
             try:
@@ -302,7 +318,7 @@ def register_reality_state(mcp: FastMCP) -> list[str]:
 
         return {
             "resource": "arifos://reality/state",
-            "version": "v2026.06.22",
+            "version": "v2026.06.25",
             "snapshot_timestamp": snapshot_timestamp,
             "snapshot_iso": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(snapshot_timestamp)),
             "authority_level": "DYNAMIC",
@@ -322,8 +338,8 @@ def register_reality_state(mcp: FastMCP) -> list[str]:
                 "f2_truth": "All values labeled with epistemic status",
                 "f4_clarity": "Single snapshot — no ambiguity across reads",
                 "f6_maruah": "Biological layer does not diagnose or flatten",
-                "f7_humility": "Quantum truthfully declared UNKNOWN",
-                "f9_anti_hantu": "No fabrication — unsensed layers = UNKNOWN",
+                "f7_humility": "Uncertainty substrate is classical metaphor — not literal quantum",
+                "f9_anti_hantu": "No quantum consciousness claims — metaphor only; no fabrication",
                 "f13_sovereign": "Human boundaries respected",
             },
             "epistemic_disclaimer": (

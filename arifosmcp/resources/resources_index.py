@@ -40,6 +40,7 @@ def _build_resource_catalog() -> dict[str, Any]:
     """
     from arifosmcp.resources import (  # noqa: PLC0415 — lazy to break circular import
         CANONICAL_RESOURCES,
+        SUPPLEMENTAL_RESOURCES,
         EMBODIED_RESOURCES,
         EVIDENCE_RESOURCES,
         RUNNER_RESOURCES,
@@ -113,31 +114,26 @@ def _build_resource_catalog() -> dict[str, Any]:
             }
         )
 
-    # Supplemental resources
-    entries.append(
-        {
-            "uri": "arifos://mcp-alignment",
-            "family": "supplemental",
-            "mime_type": "text/plain",
-            "dynamic": False,
-            "description": "MCP spec conformance matrix — protocol compliance, extensions, deprecations, client compatibility",
-            "floors": ["F2", "F4", "F11"],
-        }
-    )
-
-    entries.append(
-        {
-            "uri": "arifos://resources/index",
-            "family": "supplemental",
-            "mime_type": "application/json",
-            "dynamic": False,
-            "description": "Machine-readable JSON catalog of all registered arifOS MCP resources with URIs, MIME types, descriptions, and floor linkages",
-            "floors": ["F2", "F4", "F11"],
-        }
-    )
+    # Supplemental resources (now includes skills-catalog + loop-engineering + quickstart)
+    _SUPPLEMENTAL_DESCRIPTIONS = {
+        "arifos://mcp-alignment": "MCP spec conformance matrix — protocol compliance, extensions, deprecations, client compatibility",
+        "arifos://resources/index": "Machine-readable JSON catalog of all registered arifOS MCP resources with URIs, MIME types, descriptions, and floor linkages",
+        "arifos://skills-catalog": "Machine-readable catalog of all agent skills — name, organ, completeness, triggers, floors",
+    }
+    for uri in SUPPLEMENTAL_RESOURCES:
+        entries.append(
+            {
+                "uri": uri,
+                "family": "supplemental",
+                "mime_type": "application/json" if "catalog" in uri or "index" in uri else "text/plain",
+                "dynamic": False,
+                "description": _SUPPLEMENTAL_DESCRIPTIONS.get(uri, "Supplemental resource"),
+                "floors": ["F2", "F4", "F11"],
+            }
+        )
 
     return {
-        "catalog_version": "v2026.06.21",
+        "catalog_version": "v2026.06.25",
         "generated_for": "arifOS MCP — Constitutional AI Governance Kernel",
         "protocol": "MCP 2025-11-25",
         "seal": "DITEMPA BUKAN DIBERI",
@@ -148,7 +144,7 @@ def _build_resource_catalog() -> dict[str, Any]:
             "embodied": len(EMBODIED_RESOURCES),
             "evidence": len(EVIDENCE_RESOURCES),
             "runner": len(RUNNER_RESOURCES),
-            "supplemental": 2,
+            "supplemental": len(SUPPLEMENTAL_RESOURCES),
         },
         "resources": entries,
     }
