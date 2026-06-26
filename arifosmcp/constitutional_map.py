@@ -537,7 +537,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Use for any mutating or external action that needs constitutional clearance. "
             "Returns verdict with reasoning and floor violations."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
         "floors": [Law.L13_SOVEREIGN],
@@ -546,7 +546,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["intercept"],
         "eureka_insight": "F13: Human veto absolute. Minimum kernel enforcement spine.",
         "cognitive_axis": "judge",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal enforcement only
     },
     "arif_init": {
         "name": "arif_init",
@@ -636,7 +636,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "L12: injection_probability < 0.85."
         ),
         "cognitive_axis": "verify",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
     },
     "arif_think": {
         "name": "arif_think",
@@ -704,7 +704,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs."
         ),
         "cognitive_axis": "critique",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
     },
     # ── CANONICAL TOOLS (RULE 14 MODE-FIRST NAMING, 2026-06-20) ──
     "arif_route": {
@@ -744,7 +744,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["status", "preflight", "triage"],
         "eureka_insight": "RULE 14: Mode-first. One tool, three related modes (status, preflight, triage) — all act on session state.",
         "cognitive_axis": "boundary",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
     },
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",
@@ -763,7 +763,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["connect"],
         "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 — arif_bridge retained as deprecated alias.",
         "cognitive_axis": "boundary",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
     },
     "arif_compose": {
         "name": "arif_compose",
@@ -787,7 +787,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable."
         ),
         "cognitive_axis": "reflect",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
     },
     "arif_memory": {
         "name": "arif_memory",
@@ -824,7 +824,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage."
         ),
         "cognitive_axis": "trace",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
         "supersedes": "arif_memory_recall",
         "schema_version": 5,
         "deprecated_aliases": ["arif_memory_recall"],
@@ -976,7 +976,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics."
         ),
         "cognitive_axis": "vitality",
-        "expose": True,
+        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
     },
 }
 

@@ -82,10 +82,34 @@ def verify_surface_consistency() -> dict[str, Any]:
     # ── Vantage 1: CANONICAL_13 (declared truth) ────────────────────
     _add_vantage("CANONICAL_13", list(CANONICAL_13))
 
-    # ── Vantage 2: CANONICAL_TOOLS keys ────────────────────────────
+    # ── Vantage 2: CANONICAL_TOOLS keys (public surface only) ──────
+    # F13-ratified 2026-06-26: only tools with expose=True are on the public wire.
+    # Internal tools (expose=False) are hidden from the public facade but remain
+    # registered in CANONICAL_TOOLS for internal dispatch. This vantage filters
+    # to only the exposed subset so the hash matches CANONICAL_7.
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-    _add_vantage("CANONICAL_TOOLS", list(CANONICAL_TOOLS.keys()))
+    exposed_tool_names = sorted(
+        name for name, spec in CANONICAL_TOOLS.items()
+        if spec.get("expose", True)  # default True for backward compat
+    )
+    _add_vantage("CANONICAL_TOOLS (exposed only)", exposed_tool_names)
+
+    # ── Vantage 2b: Full CANONICAL_TOOLS (internal superset) ────────
+    # This vantage documents the full internal registry but is NOT expected
+    # to match CANONICAL_7. It exists for audit visibility.
+    all_ct_names = sorted(CANONICAL_TOOLS.keys())
+    internal_only = sorted(set(all_ct_names) - set(exposed_tool_names))
+    vantages.append({
+        "source": "CANONICAL_TOOLS (full internal superset)",
+        "count": len(all_ct_names),
+        "hash": _hash_names(all_ct_names),
+        "matches_canonical": False,  # Expected: internal superset ≠ public facade
+        "exposed_count": len(exposed_tool_names),
+        "internal_count": len(internal_only),
+        "internal_tools": internal_only,
+        "note": "F13-ratified: internal tools hidden from public facade — NOT a divergence",
+    })
 
     # ── Vantage 3: public_tool_specs (what tools/list returns) ─────
     # NOTE: public_tool_specs() requires the live FastMCP server context.
