@@ -34,6 +34,7 @@ from arifosmcp.core.conflict_resolver import (
 from arifosmcp.core.decision_contract import ConflictEnvelope
 from arifosmcp.core.latency_budget import LATENCY_BUDGETS
 from arifosmcp.core.latency_budget import DecisionClass as LatencyDecisionClass
+from arifosmcp.core.vault_receipt import create_and_seal_receipt
 
 from arifosmcp.core.enforcement.maruah_critic import (
     maruah_critic_check,
@@ -990,18 +991,10 @@ async def arif_judge(
                 meta={"error": str(exc)},
             )
 
+    import asyncio
+
     t_judge_start = time_module.monotonic()
-    result = await _arif_judge(
-        mode=mode,
-        candidate=candidate,
-        session_id=session_id,
-        actor_id=actor_id,
-        constitutional_chain_id=constitutional_chain_id,
-        audit_entropy=audit_entropy,
-        wealth_score=_evidence.get("wealth_score"),
-        verification_surface=_evidence.get("verification_surface"),
-    )
-    elapsed_ms = (time_module.monotonic() - t_judge_start) * 1000
+
     # Map action_tier to LatencyDecisionClass for budget lookup
     tier_to_class = {
         "standard": LatencyDecisionClass.C2_STANDARD,
@@ -1012,15 +1005,57 @@ async def arif_judge(
     }
     decision_class_latency = tier_to_class.get(action_tier, LatencyDecisionClass.C2_STANDARD)
     budget = LATENCY_BUDGETS.get(decision_class_latency)
-    within_budget = (budget.max_latency_ms == 0) or (elapsed_ms <= budget.max_latency_ms)
+
+    # ── Preventive timeout (L1 fix) ──────────────────────────────────
+    # C4_SOVEREIGN: unbounded — no timeout. Human deliberation has no SLA.
+    # All other classes: hard timeout via asyncio.wait_for.
+    # If judge_fn exceeds budget → degrade immediately (preventive, not retroactive).
+    timeout_seconds: float | None = None
+    if budget and budget.max_latency_ms > 0:
+        timeout_seconds = budget.max_latency_ms / 1000.0
+
+    judge_coro = _arif_judge(
+        mode=mode,
+        candidate=candidate,
+        session_id=session_id,
+        actor_id=actor_id,
+        constitutional_chain_id=constitutional_chain_id,
+        audit_entropy=audit_entropy,
+        wealth_score=_evidence.get("wealth_score"),
+        verification_surface=_evidence.get("verification_surface"),
+    )
+
+    try:
+        if timeout_seconds is not None:
+            result = await asyncio.wait_for(judge_coro, timeout=timeout_seconds)
+        else:
+            result = await judge_coro
+        elapsed_ms = (time_module.monotonic() - t_judge_start) * 1000
+        within_budget = True
+    except asyncio.TimeoutError:
+        elapsed_ms = budget.max_latency_ms  # killed at deadline
+        within_budget = False
+        # Degrade to the budget's prescribed verdict
+        degradation_verdict = budget.degradation_verdict if budget else "HOLD"
+        result = {
+            "verdict": degradation_verdict,
+            "reasons": [
+                f"LATENCY_TIMEOUT: judge exceeded {budget.max_latency_ms}ms budget "
+                f"for {decision_class_latency.value}. Degraded to {degradation_verdict} "
+                f"(preventive timeout — deliberation did not complete)."
+            ],
+            "next_safe_action": "Re-run with narrower scope or escalate to sovereign (C4 unbounded).",
+        }
+
     if "meta" not in result:
         result["meta"] = {}
     result["meta"]["latency_ms"] = round(elapsed_ms, 2)
     result["meta"]["within_budget"] = within_budget
     result["meta"]["budget_class"] = decision_class_latency.value
-    result["meta"]["budget_max_ms"] = budget.max_latency_ms if budget.max_latency_ms > 0 else "unbounded"
+    result["meta"]["budget_max_ms"] = budget.max_latency_ms if (budget and budget.max_latency_ms > 0) else "unbounded"
+    result["meta"]["timeout_enforcement"] = "preventive" if timeout_seconds is not None else "unbounded"
     if not within_budget:
-        result["meta"]["degradation"] = budget.degradation_verdict
+        result["meta"]["degradation"] = budget.degradation_verdict if budget else "HOLD"
 
     # Plumbing fix for 7-tool facade + semantic contract: ensure dict for downstream
     if hasattr(result, "model_dump"):
@@ -1242,6 +1277,45 @@ async def arif_judge(
                 result["meta"] = {}
             result["meta"]["vault_sealed"] = True
             result["meta"]["vault_entry_id"] = getattr(seal_result, "entry_id", vault_entry_id)
+
+            # ── Structured vault receipt (I1 bridge) ──────────────────────
+            # Wire create_and_seal_receipt() for hash-chained provenance.
+            # This runs alongside arif_seal() — additive, not replacement.
+            # Produces a VaultReceipt with SHA-256 chain + Lamport clock
+            # for tamper-evident audit trail.
+            try:
+                _verdict_hash = hashlib.sha256(
+                    json_lib.dumps(result.get("verdict", ""), sort_keys=True).encode()
+                ).hexdigest()
+                _intent_hash = hashlib.sha256(
+                    json_lib.dumps(candidate if isinstance(candidate, str) else str(candidate)[:2000],
+                                   sort_keys=True).encode()
+                ).hexdigest()
+                _receipt = create_and_seal_receipt(
+                    session_id=session_id or "unknown",
+                    actor_id=actor_id or "unknown",
+                    organ_id=organ_id or "arifOS",
+                    intent_summary=(str(candidate)[:200] if candidate else "judge verdict"),
+                    intent_hash=_intent_hash,
+                    requested_authority=action_tier or "standard",
+                    pre_state_hash=result.get("meta", {}).get("state_hash", ""),
+                    decision=result.get("verdict", "UNKNOWN"),
+                    verdict_hash=_verdict_hash,
+                    floors_evaluated=list(_evidence.get("floors_checked", [])),
+                    floors_violated=list(_evidence.get("floors_violated", [])),
+                    conflict_resolved=_conflict_result.get("conflict_resolved", False),
+                    conflict_resolution=_conflict_result.get("conflict_resolution", "none"),
+                    decision_class=decision_class_latency.value,
+                    latency_ms=result.get("meta", {}).get("latency_ms", 0),
+                    within_budget=result.get("meta", {}).get("within_budget", True),
+                    witness_count=1 if _conflict_result.get("conflict_resolved") else 0,
+                )
+                result["meta"]["receipt_id"] = _receipt.receipt_id
+                result["meta"]["receipt_hash"] = _receipt.receipt_hash
+                result["meta"]["receipt_chain_ok"] = True
+            except Exception:
+                # Vault receipt is additive — never block the primary seal on receipt failure
+                result["meta"]["receipt_chain_ok"] = False
         except Exception:
             if "meta" not in result:
                 result["meta"] = {}
