@@ -41,20 +41,20 @@ def test_no_legacy_surface():
 
 
 def test_canonical_prompts_count():
-    """Exactly 9 canonical prompts required (Phase 1 adds 888_deliberation)."""
+    """Exactly 8 canonical prompts: loop_engineer (entry guard) + 7 Golden Path stages."""
     from arifosmcp.prompts import CANONICAL_PROMPTS
 
-    assert len(CANONICAL_PROMPTS) == 7, (
-        f"Prompt drift: expected 7, got {len(CANONICAL_PROMPTS)}. VOID."
+    assert len(CANONICAL_PROMPTS) == 8, (
+        f"Prompt drift: expected 8, got {len(CANONICAL_PROMPTS)}. VOID."
     )
 
 
 def test_canonical_resources_count():
-    """Exactly 14 canonical resources required."""
+    """Exactly 16 canonical resources required."""
     from arifosmcp.resources import CANONICAL_RESOURCES
 
-    assert len(CANONICAL_RESOURCES) == 14, (
-        f"Resource drift: expected 14, got {len(CANONICAL_RESOURCES)}. VOID."
+    assert len(CANONICAL_RESOURCES) == 16, (
+        f"Resource drift: expected 16, got {len(CANONICAL_RESOURCES)}. VOID."
     )
 
 

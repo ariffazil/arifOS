@@ -182,8 +182,8 @@ CANONICAL_PROMPTS = (
     "000_init",
     "111_sense",
     "333_reason",
-    "666_judge",
-    "555_critique",
+    "555_judge",
+    "666_critique",
     "777_forge",
     "999_seal",
 )
