@@ -246,7 +246,7 @@ async def test_phase0_hardening():
         process.terminate()
         try:
             process.wait(timeout=5)
-        except:
+        except subprocess.TimeoutExpired:
             process.kill()
 
 

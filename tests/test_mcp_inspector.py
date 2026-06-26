@@ -41,7 +41,7 @@ def run_mcp_test():
                 continue
             try:
                 return json.loads(line)
-            except:
+            except json.JSONDecodeError:
                 continue
 
     results = []
@@ -141,7 +141,7 @@ def run_mcp_test():
     process.terminate()
     try:
         process.wait(timeout=5)
-    except:
+    except subprocess.TimeoutExpired:
         process.kill()
 
     # Summary

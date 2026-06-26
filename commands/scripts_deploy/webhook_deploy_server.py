@@ -75,7 +75,7 @@ async def webhook_forge(request: Request, x_arifos_signature: str = Header(None)
 
     try:
         payload = json.loads(body)
-    except:
+    except json.JSONDecodeError:
         payload = {}
 
     return {
@@ -104,7 +104,7 @@ async def github_webhook(request: Request, x_hub_signature_256: str = Header(Non
 
     try:
         payload = json.loads(body)
-    except:
+    except json.JSONDecodeError:
         payload = {}
 
     event = request.headers.get("X-GitHub-Event", "unknown")

@@ -1724,7 +1724,7 @@ except Exception:
 
 
 # ── Sync Langfuse tracer for use in non-async tool functions ──────────────────
-def _get_sync_langfuse_tracer():
+def _get_sync_langfuse_tracer() -> Any:
     """
     Fire-and-forget Langfuse trace via synchronous httpx.
     Does NOT block the tool response path. Errors are silently swallowed.
@@ -1743,7 +1743,7 @@ def _get_sync_langfuse_tracer():
         if not (public_key and secret_key):
             return None
 
-        def _emit(name, session_id, metadata, tags):
+        def _emit(name: str, session_id: str | None, metadata: dict[str, Any] | None, tags: list[str] | None) -> None:
             try:
                 trace_id = str(uuid.uuid4())
                 ts = datetime.now(UTC).isoformat()
@@ -1788,7 +1788,7 @@ def _get_sync_langfuse_tracer():
 _SYNC_LANGFUSE = _get_sync_langfuse_tracer()
 
 
-def _sync_trace(name, session_id=None, metadata=None, tags=None):
+def _sync_trace(name: str, session_id: str | None = None, metadata: dict[str, Any] | None = None, tags: list[str] | None = None) -> None:
     """Lightweight sync trace call — safe to use in non-async functions."""
     if _SYNC_LANGFUSE is not None:
         _SYNC_LANGFUSE(name=name, session_id=session_id, metadata=metadata, tags=tags)
@@ -2212,7 +2212,7 @@ def _inject_nine_signal(model_dump_json: dict, status: str, tool: str = "") -> d
     return out
 
 
-def _run_async(coro):
+def _run_async(coro: Any) -> Any:
     """Run an async coroutine from a sync context safely.
 
     Handles nested event loops (FastMCP sync tool wrappers called from async
@@ -2232,7 +2232,7 @@ def _run_async(coro):
     # Cannot use run_until_complete on a running loop (Python 3.11+ raises).
     import concurrent.futures
 
-    def _thread_target():
+    def _thread_target() -> Any:
         return asyncio.run(coro)
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
@@ -2254,7 +2254,7 @@ class NineSignalOutput:
         output_policy: str | None = None,
         session_id: str | None = None,
         actor_id: str | None = None,
-    ):
+    ) -> None:
         global _VIOLATION_COUNTER
 
         self.tool_name = tool_name
@@ -17937,7 +17937,7 @@ def _extract_param_docs(docstring: str) -> dict[str, str]:
 from typing import Annotated
 
 
-def _build_enriched_signature(handler):
+def _build_enriched_signature(handler: Any) -> inspect.Signature:
     """Build a signature with Annotated descriptions from docstring.
 
     Injects `_envelope` as an optional parameter so external MCP clients

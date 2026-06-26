@@ -42,7 +42,7 @@ def parse_result(r: dict) -> tuple[str, dict]:
     try:
         txt = r["result"]["content"][0]["text"]
         return json.loads(txt)
-    except:
+    except (KeyError, IndexError, json.JSONDecodeError, TypeError):
         return {}
 
 

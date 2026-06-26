@@ -69,7 +69,7 @@ class MemoryQuerySkill:
                 try:
                     data = json.loads(result.get("stdout", "[]"))
                     results = self._filter_fresh(data)
-                except:
+                except (json.JSONDecodeError, TypeError):
                     pass
 
             return {
