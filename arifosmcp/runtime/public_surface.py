@@ -308,7 +308,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": "/ready",
-        "tools": 13,
+        "tools": 7,  # 7 public verbs (F13-ratified 2026-06-26 contract convergence)
         "prompts": len(CANONICAL_PROMPTS),
         "resources": len(CANONICAL_RESOURCES),
         "protocol_version": "2025-11-25",  # aligned with MCP_SPEC_VERSION_CANONICAL
@@ -404,7 +404,7 @@ def public_surface() -> dict[str, Any]:
             "endpoint": CANONICAL_MCP_ENDPOINT,
             "transport": "streamable-http",
             "protocol_version": PROTOCOL_VERSION,
-            "tools": 13,
+            "tools": 7,  # 7 public verbs (contract convergence 2026-06-26)
             "prompts": len(CANONICAL_PROMPTS),
             "resources": len(CANONICAL_RESOURCES),
             "canonical_resources": len(CANONICAL_RESOURCES),

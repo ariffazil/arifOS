@@ -28,7 +28,7 @@ def score_f1_reversibility(session_state: SessionState) -> FloorScore:
     """F1 AMANAH: Reversibility documented and appropriate."""
     # Check if any stage recorded reversibility classification
     for record in session_state.stage_history:
-        if record.stage in ("333", "555", "777"):
+        if record.stage in ("333", "555", "666", "777"):
             summary = record.output_summary.lower()
             if "irreversible" in summary:
                 # Irreversible is OK if sovereign ack is present

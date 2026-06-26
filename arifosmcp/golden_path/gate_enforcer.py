@@ -57,14 +57,16 @@ class GovernanceGateError(Exception):
 
 
 # ── Stage requirements ───────────────────────────────────────────────────────
+# 2026-06-26 RSI fix: critique (555) before judge (666).
+# Golden path: 000→111→333→555_CRITIQUE→666_JUDGE→777_FORGE→999_SEAL
 
 STAGE_REQUIREMENTS: dict[str, list[str]] = {
     "000": [],                           # Always enterable
     "111": ["000"],                      # Requires INIT
     "333": ["111"],                      # Requires SENSE
-    "555": ["333"],                      # Requires REASON
-    "666": ["555"],                      # Requires JUDGE (SEAL verdict)
-    "777": ["555", "666"],              # Requires JUDGE + CRITIQUE
+    "555": ["333"],                      # Requires REASON (critique produces readiness)
+    "666": ["555"],                      # Requires CRITIQUE (judge produces verdict)
+    "777": ["555", "666"],              # Requires CRITIQUE + JUDGE
     "999": ["777"],                      # Requires FORGE
 }
 
@@ -96,11 +98,11 @@ def check_stage_entry(
 
     # Special enforcement for 777_FORGE
     if target_stage == "777":
-        # Hard gate: must have SEAL verdict from 555
-        judge_record = state.get_stage_record("555")
+        # Hard gate: must have SEAL verdict from 666_JUDGE
+        judge_record = state.get_stage_record("666")
         if not judge_record or judge_record.verdict != "SEAL":
             missing_detail = (
-                f"555 verdict is '{judge_record.verdict if judge_record else 'NONE'}', "
+                f"666_JUDGE verdict is '{judge_record.verdict if judge_record else 'NONE'}', "
                 f"required: 'SEAL'"
             )
             return GateCheck(
@@ -108,17 +110,17 @@ def check_stage_entry(
                 organ="777",
                 reason=(
                     f"STRUCTURAL ENFORCEMENT: 777_FORGE cannot execute without "
-                    f"valid SEAL verdict from 555_JUDGE. {missing_detail}."
+                    f"valid SEAL verdict from 666_JUDGE. {missing_detail}."
                 ),
-                missing=["555_SEAL"],
+                missing=["666_SEAL"],
                 can_proceed=False,
             )
 
-        # Hard gate: must have FORGE_READY from 666
-        critique_record = state.get_stage_record("666")
+        # Hard gate: must have FORGE_READY from 555_CRITIQUE
+        critique_record = state.get_stage_record("555")
         if not critique_record or critique_record.readiness != "FORGE_READY":
             missing_detail = (
-                f"666 readiness is '{critique_record.readiness if critique_record else 'NONE'}', "
+                f"555_CRITIQUE readiness is '{critique_record.readiness if critique_record else 'NONE'}', "
                 f"required: 'FORGE_READY'"
             )
             return GateCheck(
@@ -126,24 +128,9 @@ def check_stage_entry(
                 organ="777",
                 reason=(
                     f"STRUCTURAL ENFORCEMENT: 777_FORGE cannot execute without "
-                    f"FORGE_READY from 666_CRITIQUE. {missing_detail}."
+                    f"FORGE_READY from 555_CRITIQUE. {missing_detail}."
                 ),
-                missing=["666_FORGE_READY"],
-                can_proceed=False,
-            )
-
-    # Special enforcement for 666_CRITIQUE — needs SEAL from 555
-    if target_stage == "666":
-        judge_record = state.get_stage_record("555")
-        if not judge_record or judge_record.verdict != "SEAL":
-            return GateCheck(
-                result=GateResult.BLOCKED,
-                organ="666",
-                reason=(
-                    f"666_CRITIQUE requires SEAL verdict from 555_JUDGE. "
-                    f"Current: '{judge_record.verdict if judge_record else 'NONE'}'."
-                ),
-                missing=["555_SEAL"],
+                missing=["555_FORGE_READY"],
                 can_proceed=False,
             )
 

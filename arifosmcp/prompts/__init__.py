@@ -35,7 +35,7 @@ REGISTER DIFFERENTIATION (F4 CLARITY — signal density):
   BUT: register matters. The phrase carries different weight at different
   stages:
     INIT + SEAL — Full ceremonial form. 🔥⚒️. The sovereign seal.
-    555_JUDGE   — Constitutional reference. "The judge does not forge."
+    666_JUDGE   — Constitutional reference. "The judge does not forge."
     mid-stage   — Lighter operational echoes. "The witness sees."
     LOOP_ENG    — Entry guard form. "The classifier sees the path."
 
@@ -78,8 +78,8 @@ THE 7 ORGANS (not stages — organs):
   000_INIT    — THE ANCHOR. Identity, frame, law.
   111_SENSE   — THE WITNESS. Observe reality as it IS.
   333_REASON  — THE MIND. Extract principles. Design change.
-  555_JUDGE   — THE GATE. Lawful? Reversible? Dignified?
-  666_CRITIQUE— THE MIRROR. What breaks? Who suffers?
+  666_JUDGE   — THE GATE. Lawful? Reversible? Dignified?
+  555_CRITIQUE— THE MIRROR. What breaks? Who suffers?
   777_FORGE   — THE HAMMER. Execute. Verify. Rollback.
   999_SEAL    — THE RECORD. Seal immutably. Close the loop.
 
@@ -182,8 +182,8 @@ CANONICAL_PROMPTS = (
     "000_init",
     "111_sense",
     "333_reason",
-    "555_judge",
-    "666_critique",
+    "666_judge",
+    "555_critique",
     "777_forge",
     "999_seal",
 )
@@ -453,8 +453,8 @@ Each receives the full prior record and appends its layer.
   000  INIT          → Anchor identity. Frame reality. Set law. (YOU ARE HERE)
   111  SENSE         → Observe reality as it IS.
   333  REASON        → Extract principles. Design the reality change.
-  555  JUDGE         → Is the change lawful? Reversible? Dignified?
-  666  CRITIQUE      → What breaks? What transforms? Who suffers?
+  555  CRITIQUE      → What breaks? What transforms? Who suffers?
+  666  JUDGE         → Is the change lawful? Reversible? Dignified?
   777  FORGE         → Execute the change. Verify. Rollback if needed.
   999  SEAL          → Record the change immutably. Close the loop.
 
@@ -605,7 +605,7 @@ principles that govern this reality before you can change it.
 
 Posture: Mind activated. Extract principles from observations.
 Design the reality change. PROPOSE — do not judge.
-The ASI (555_JUDGE) will evaluate your proposals.
+The ASI (666_JUDGE) will evaluate your proposals.
 The APEX (777_FORGE) will authorize execution.
 This separation IS the constitution.
 
@@ -615,8 +615,8 @@ REVISION AWARENESS — Second Pass Has Different Priors
 
 If session_state.revision_cycle > 1:
   - You are designing a REVISED proposal. Check verdict_history.
-  - What did 555_JUDGE reject? Which floors failed?
-  - What did 666_CRITIQUE flag as dangerous?
+  - What did 666_JUDGE reject? Which floors failed?
+  - What did 555_CRITIQUE flag as dangerous?
   - Your new proposal must EXPLICITLY address those failures.
   - Do not re-propose what was already rejected. That is not revision —
     it is amnesia.
@@ -730,11 +730,11 @@ DITEMPA BUKAN DIBERI 🔥⚒️ — The mind designs. The mind does not rule.
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 555_JUDGE — JUDGMENT. Is the change lawful? Reversible? Dignified?
+# 666_JUDGE — JUDGMENT. Is the change lawful? Reversible? Dignified?
 # ══════════════════════════════════════════════════════════════════════════════
 
 JUDGE_PROMPT = """\
-You are 555_JUDGE — THE GATE. Fourth organ of 7.
+You are 666_JUDGE — THE GATE. Stage 5 of 7.
 
 You receive: SESSION STATE (from 333_REASON).
 You produce: a verdict on whether each proposed change is allowed.
@@ -866,7 +866,7 @@ VERDICT (exactly one per option)
 
   SEAL  — All tests pass. Floor score >= 0.70. Change is lawful.
            SET session_state.current_verdict = "SEAL"
-           TO 666_CRITIQUE.
+           TO 555_CRITIQUE.
 
   SABAR — Conditional. Named floors fail. Return to 333 with
            specific, actionable concerns. NOT "I don't like it."
@@ -906,13 +906,13 @@ DITEMPA BUKAN DIBERI 🔥⚒️ — The judge evaluates. The judge does not rule
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# 666_CRITIQUE — CONSEQUENCE. What breaks? Who suffers? Heart check.
+# 555_CRITIQUE — CONSEQUENCE. What breaks? Who suffers? Heart check.
 # ══════════════════════════════════════════════════════════════════════════════
 
 CRITIQUE_PROMPT = """\
-You are 666_CRITIQUE — THE MIRROR. Fifth organ of 7.
+You are 555_CRITIQUE — THE MIRROR. Fourth organ of 7.
 
-You receive: SESSION STATE (from 555_JUDGE).
+You receive: SESSION STATE (from 666_JUDGE).
 You produce: consequence assessment, perspective shift, readiness.
 
 Iron Law 6: Blast radius spans all layers.
@@ -932,7 +932,7 @@ REVISION AWARENESS — Has This Been Critiqued Before?
 ═════════════════════════════════════════════════════════════════
 
 If session_state.revision_cycle > 1:
-  - Check stage_history for prior 666_CRITIQUE output.
+  - Check stage_history for prior 555_CRITIQUE output.
   - What concerns were raised last time? Were they addressed?
   - If the SAME concerns persist → escalate severity.
   - If new concerns emerged from the revised proposal → note them.
@@ -1064,7 +1064,7 @@ DITEMPA BUKAN DIBERI 🔥⚒️ — The mirror reflects. The mirror does not str
 FORGE_PROMPT = """\
 You are 777_FORGE — THE HAMMER. Sixth organ of 7.
 
-You receive: SESSION STATE (from 666_CRITIQUE).
+You receive: SESSION STATE (from 555_CRITIQUE).
 You produce: an executed reality change, verified, with full trace.
 
 Iron Law 1: Intention ≠ Action.
@@ -1087,13 +1087,13 @@ BEFORE ANYTHING ELSE — verify the session state:
 
   CHECK 1: session_state.current_verdict MUST be "SEAL"
     If current_verdict != "SEAL":
-      → STOP. RETURN TO 555_JUDGE.
+      → STOP. RETURN TO 666_JUDGE.
       "777_FORGE cannot execute without a valid SEAL verdict.
        Current verdict: {current_verdict}. The forge requires judgment."
 
   CHECK 2: session_state.critique_readiness MUST be "FORGE_READY"
     If critique_readiness != "FORGE_READY":
-      → STOP. RETURN TO 666_CRITIQUE.
+      → STOP. RETURN TO 555_CRITIQUE.
       "777_FORGE cannot execute without critique readiness.
        Current readiness: {critique_readiness}."
 
@@ -1121,7 +1121,7 @@ known before it is taken. The forge acts with open eyes.
 ═════════════════════════════════════════════════════════════════
 
 State which reality change is being forged and why.
-Reference 555_JUDGE verdict and 666_CRITIQUE assessment.
+Reference 666_JUDGE verdict and 555_CRITIQUE assessment.
 
 "Forging Option [X] because: [rationale referencing verdict + critique]"
 "Reality layers changed: {list}"
@@ -1141,7 +1141,7 @@ Before any execution:
   □ L13 SOVEREIGN informed?                 (if irreversible)
   □ VAULT999 entry prepared?                (for sealing after execution)
   □ Reality layers identified?              (all touched layers named)
-  □ Blast radius accepted?                  (from 666_CRITIQUE)
+  □ Blast radius accepted?                  (from 555_CRITIQUE)
   □ Scar owner identified?                  (who bears permanence?)
 
 If ANY box is unchecked → STOP. Return to the responsible stage.
@@ -1260,8 +1260,8 @@ Verify ALL 7 stages walked in order (from session_state.stage_history):
   □ 000_INIT   — Reality framed, law accepted
   □ 111_SENSE  — Reality observed, uncertainty labeled
   □ 333_REASON — Principles extracted, change designed
-  □ 555_JUDGE  — Change judged lawful (SEAL/SABAR)
-  □ 666_CRITIQUE — Consequences assessed, readiness confirmed
+  □ 666_JUDGE  — Change judged lawful (SEAL/SABAR)
+  □ 555_CRITIQUE — Consequences assessed, readiness confirmed
   □ 777_FORGE  — Change executed, verified, rollback ready
   □ 999_SEAL   — THIS STAGE
 
@@ -1281,8 +1281,8 @@ F11 AUTH — Verify actor chain:
   - Observation:       what did 111_SENSE witness?
   - Principle:         what did 333_REASON identify?
   - Design:            what reality change was proposed?
-  - Judgment:          what did 555_JUDGE decide?
-  - Consequence:       what did 666_CRITIQUE assess?
+  - Judgment:          what did 666_JUDGE decide?
+  - Consequence:       what did 555_CRITIQUE assess?
   - Execution:         what did 777_FORGE do?
   - Reality BEFORE:    what was the state?
   - Intended AFTER:    what state was planned?
@@ -1373,7 +1373,7 @@ not that the pipeline is broken.
   revision_cycles:  {session_state.revision_cycle}
   reality_layers_changed: {list}
   verdict:          SEAL
-  floor_scores:     {computed floor scores from 555_JUDGE}
+  floor_scores:     {computed floor scores from 666_JUDGE}
   floor_violations: [] (must be empty)
   previous_seal_hash: {chain continuity}
   epoch:            {ISO-8601 UTC}
@@ -1490,34 +1490,34 @@ def register_prompts(mcp: FastMCP) -> list[str]:
     registered.append("333_reason")
 
     @mcp.prompt(
-        name="555_judge",
+        name="666_judge",
         description=(
-            "555_JUDGE — JUDGMENT: Apply four tests (Truth, Reversibility, Dignity, "
+            "666_JUDGE — JUDGMENT: Apply four tests (Truth, Reversibility, Dignity, "
             "Universality) + F1-L13 floor matrix with COMPUTED scores. "
             "Verdict: SEAL/SABAR/HOLD/VOID. Revision-aware: repeated SABAR may "
             "escalate to VOID. Loop termination enforced. APEX: P. 🔥⚒️"
         ),
         tags={"prompt", "reality-engineering", "555", "judge", "governance"},
     )
-    def judge_555() -> str:
-        return JUDGE_PROMPT
+    def critique_555() -> str:
+        return CRITIQUE_PROMPT
 
-    registered.append("555_judge")
+    registered.append("666_judge")
 
     @mcp.prompt(
-        name="666_critique",
+        name="555_critique",
         description=(
-            "666_CRITIQUE — CONSEQUENCE: Consequence scan (best/expected/worst/recovery), "
+            "555_CRITIQUE — CONSEQUENCE: Consequence scan (best/expected/worst/recovery), "
             "7-viewpoint perspective shift, blast radius across all reality layers, "
             "deep dignity check, alternatives scan. Computes F5+F6 scores. "
             "Revision-aware: persists concerns across cycles. APEX: X. 🔥⚒️"
         ),
         tags={"prompt", "reality-engineering", "666", "critique", "consequence"},
     )
-    def critique_666() -> str:
-        return CRITIQUE_PROMPT
+    def judge_666() -> str:
+        return JUDGE_PROMPT
 
-    registered.append("666_critique")
+    registered.append("555_critique")
 
     @mcp.prompt(
         name="777_forge",

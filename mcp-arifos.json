@@ -2,8 +2,8 @@
   "$schema": "https://modelcontextprotocol.io/specification",
   "server_info": {
     "name": "arifOS MCP",
-    "version": "2026.05.04-MANIFEST-FIX",
-    "description": "Constitutional governance kernel MCP. Enforces F1-F13 floors, VAULT999 audit, 888_HOLD human veto. 13 canonical tools."
+    "version": "2026.06.26-CONTRACT-CONVERGENCE",
+    "description": "Constitutional governance kernel MCP. Enforces F1-F13 floors, VAULT999 audit, 888_HOLD human veto. 7 public verbs, 13 constitutional organs."
   },
   "source": {
     "path": "arifosmcp/server.py",
@@ -30,10 +30,20 @@
     "docker_image": "ariffazil/arifosmcp:latest"
   },
   "capabilities": {
-    "tools": {
-      "count": 13,
+    "public_tools": {
+      "count": 7,
+      "description": "Exactly 7 public verbs. One intent = one tool.",
       "list_endpoint": "/tools",
       "call_endpoint": "/tools/{tool_name}"
+    },
+    "constitutional_organs": {
+      "count": 13,
+      "description": "13 internal constitutional organs. Not all exposed on public wire."
+    },
+    "legacy_aliases": {
+      "supported": true,
+      "advertised": false,
+      "description": "Long-name aliases (arif_session_init, etc.) route at call time but are not in tools/list."
     },
     "resources": {
       "enabled": true,
@@ -41,44 +51,57 @@
     },
     "prompts": {
       "enabled": true,
-      "list_endpoint": "/prompts"
-    },
-    "apps": {
-      "available": true,
-      "ui_extension": "prefab-ui",
-      "entries": [
-        {
-          "id": "arifos_command_center",
-          "name": "arifOS Command Center",
-          "description": "Interactive MCP cockpit for governed session, ops, judge, forge, gateway, and vault review.",
-          "entry_tool": "arifos_command_center",
-          "status": "v0.1_evaluation_ready",
-          "risk_tier": "medium",
-          "default_mode": "dry_run_only",
-          "human_authority_required": true
-        }
+      "count": 8,
+      "list_endpoint": "/prompts",
+      "golden_path_order": [
+        "arifosmcp_loop_engineer",
+        "000_init",
+        "111_sense",
+        "333_reason",
+        "555_critique",
+        "666_judge",
+        "777_forge",
+        "999_seal"
       ]
     }
   },
-  "tools": [
-    {"name": "arif_session_init", "stage": "000_INIT", "lane": "AGI", "floors": ["L01", "L11", "L12"], "risk_tier": "critical"},
-    {"name": "arif_vault_seal", "stage": "999_VAULT", "lane": "APEX", "floors": ["L01", "L11", "L13"], "risk_tier": "critical"},
-    {"name": "arif_sense_observe", "stage": "111_SENSE", "lane": "AGI", "floors": ["L02"], "risk_tier": "low"},
-    {"name": "arif_heart_critique", "stage": "666_HEART", "lane": "ASI", "floors": ["L05", "L06"], "risk_tier": "medium"},
-    {"name": "arif_forge_execute", "stage": "010_FORGE", "lane": "AGI", "floors": ["L01", "L11", "L13"], "risk_tier": "critical"},
-    {"name": "arif_mind_reason", "stage": "333_MIND", "lane": "AGI", "floors": ["L02", "L07", "L08"], "risk_tier": "medium"},
-    {"name": "arif_judge_deliberate", "stage": "888_JUDGE", "lane": "ASI", "floors": ["L11", "L13"], "risk_tier": "critical"},
-    {"name": "arif_kernel_route", "stage": "444_KERNEL", "lane": "AGI", "floors": ["L01", "L04"], "risk_tier": "medium"},
-    {"name": "arif_ops_measure", "stage": "777_OPS", "lane": "AGI", "floors": ["L04"], "risk_tier": "low"},
-    {"name": "arif_memory_recall", "stage": "555_MEMORY", "lane": "AGI", "floors": ["L01", "L08"], "risk_tier": "low"},
-    {"name": "arif_evidence_fetch", "stage": "222_FETCH", "lane": "AGI", "floors": ["L02", "L03"], "risk_tier": "low"},
-    {"name": "arif_reply_compose", "stage": "444r_REPLY", "lane": "AGI", "floors": ["L04", "L06", "L09"], "risk_tier": "low"},
-    {"name": "arif_gateway_connect", "stage": "666g_GATEWAY", "lane": "ASI", "floors": ["L01", "L03"], "risk_tier": "medium"}
-  ],
+  "tools": {
+    "public_verbs": [
+      {"name": "arif_init", "stage": "000", "description": "Bootstrap governed session, bind actor identity."},
+      {"name": "arif_observe", "stage": "111", "description": "Ground in current reality, evidence gathering."},
+      {"name": "arif_think", "stage": "333", "description": "Reason, plan, reflect, critique."},
+      {"name": "arif_route", "stage": "555", "description": "Route intent to correct organ."},
+      {"name": "arif_judge", "stage": "888", "description": "Constitutional verdict (SEAL/HOLD/VOID)."},
+      {"name": "arif_act", "stage": "900", "description": "Execute approved action. Requires seal_verdict_id."},
+      {"name": "arif_seal", "stage": "999", "description": "Seal to immutable ledger."}
+    ]
+  },
+  "golden_path": {
+    "stages": 7,
+    "order": "000→111→333→555→666→777→999",
+    "organs": [
+      {"id": "000", "name": "INIT", "role": "THE ANCHOR"},
+      {"id": "111", "name": "SENSE", "role": "THE WITNESS"},
+      {"id": "333", "name": "REASON", "role": "THE MIND"},
+      {"id": "555", "name": "CRITIQUE", "role": "THE MIRROR"},
+      {"id": "666", "name": "JUDGE", "role": "THE GATE"},
+      {"id": "777", "name": "FORGE", "role": "THE HAMMER"},
+      {"id": "999", "name": "SEAL", "role": "THE RECORD"}
+    ],
+    "enforcement": {
+      "777_forge_blocked_without_666_SEAL": true,
+      "777_forge_blocked_without_555_FORGE_READY": true,
+      "metabolic_ceiling_max_loops": 5,
+      "sabar_returns_to_333": true,
+      "cross_session_memory": true
+    }
+  },
   "constitutional_floors": {
     "count": 13,
     "hard": ["F1", "F2", "F6", "F9", "L10", "L11", "L13"],
-    "soft": ["F3", "F4", "F5", "F7", "F8", "L12"]
+    "soft": ["F3", "F4", "F5", "F7", "F8", "L12"],
+    "computed": ["F1", "F2", "F7", "F9", "F13"],
+    "uncertain": ["F3", "F4", "F5", "F6", "F8", "F10", "F11", "F12"]
   },
   "endpoints": {
     "mcp": "https://mcp.arif-fazil.com/mcp",
@@ -94,18 +117,6 @@
     "standard": "MCP",
     "transports": ["streamable_http"],
     "endpoint": "https://mcp.arif-fazil.com/mcp"
-  },
-  "apps": {
-    "supported": true,
-    "extension": "io.modelcontextprotocol/ui",
-    "fallback_required": true,
-    "fallback_modes": ["text", "json"],
-    "primary_app": {
-      "id": "arifos_command_center",
-      "name": "arifOS Command Center MCP",
-      "description": "Interactive governance cockpit for arifOS MCP.",
-      "ui_resource": "ui://arifos/command-center.html"
-    }
   },
   "governance": {
     "authority": "Human 888 Judge",

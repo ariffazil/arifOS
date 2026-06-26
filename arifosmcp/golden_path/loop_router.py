@@ -42,6 +42,8 @@ class RoutingDecision:
 
 
 # ── The canonical golden path order ──────────────────────────────────────────
+# 2026-06-26 RSI fix: critique (555) before judge (666).
+# Matches Golden Path doctrine: 000→111→333→555→666→777→999
 
 GOLDEN_PATH = ["000", "111", "333", "555", "666", "777", "999"]
 
@@ -61,14 +63,14 @@ def route(state: SessionState) -> RoutingDecision:
     """Determine the next routing decision based on current session state.
 
     This is the brain of the loop. It reads:
-      - current_verdict (from 555_JUDGE)
-      - current_readiness (from 666_CRITIQUE)
+      - current_verdict (from 666_JUDGE)
+      - current_readiness (from 555_CRITIQUE)
       - loop_count (metabolic budget)
       - revision_cycle (how many times we've looped)
 
     And decides:
       - ADVANCE to next organ
-      - RETURN to 333 (after SABAR)
+      - RETURN to 333 (after SABAR from 666_JUDGE)
       - ESCALATE to sovereign (after HOLD)
       - TERMINATE (after VOID or SEAL)
       - FORCE HOLD (metabolic exhaustion)
@@ -124,13 +126,13 @@ def route(state: SessionState) -> RoutingDecision:
         )
 
     # ── SABAR returns to 333 with context ───────────────────────────────
-    if state.current_verdict == Verdict.SABAR and current == "555":
+    if state.current_verdict == Verdict.SABAR and current == "666":
         return RoutingDecision(
             action=RouteAction.RETURN_TO_333,
             current_stage=current,
             next_stage="333",
             reason=(
-                "SABAR verdict: named floor failures must be addressed. "
+                "SABAR verdict from 666_JUDGE: named floor failures must be addressed. "
                 "Returning to 333_REASON with prior verdict context. "
                 f"Revision cycle will become {state.revision_cycle + 1}."
             ),
@@ -140,13 +142,13 @@ def route(state: SessionState) -> RoutingDecision:
         )
 
     # ── HOLD_FOR_REVIEW returns to 333 ──────────────────────────────────
-    if state.current_readiness == Readiness.HOLD_FOR_REVIEW and current == "666":
+    if state.current_readiness == Readiness.HOLD_FOR_REVIEW and current == "555":
         return RoutingDecision(
             action=RouteAction.RETURN_TO_333,
             current_stage=current,
             next_stage="333",
             reason=(
-                "HOLD_FOR_REVIEW: critique identified concerns. "
+                "HOLD_FOR_REVIEW from 555_CRITIQUE: critique identified concerns. "
                 "Returning to 333_REASON to address them. "
                 f"Revision cycle will become {state.revision_cycle + 1}."
             ),
@@ -156,13 +158,13 @@ def route(state: SessionState) -> RoutingDecision:
         )
 
     # ── BLOCK returns to 000 ────────────────────────────────────────────
-    if state.current_readiness == Readiness.BLOCK and current == "666":
+    if state.current_readiness == Readiness.BLOCK and current == "555":
         return RoutingDecision(
             action=RouteAction.RETURN_TO_333,
             current_stage=current,
             next_stage="000",
             reason=(
-                "BLOCK: irreversible harm or dignity violation detected. "
+                "BLOCK from 555_CRITIQUE: irreversible harm or dignity violation detected. "
                 "Returning to 000_INIT. The forge must re-frame from the anchor."
             ),
             revision_cycle=state.revision_cycle + 1,
