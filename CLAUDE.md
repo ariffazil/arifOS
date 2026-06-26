@@ -6,19 +6,46 @@
 
 ---
 
-## 0. LOADING SEQUENCE (read in 30 seconds)
+## 0. LOADING SEQUENCE — HEPTALOGY BOOTSTRAP (30 seconds)
 
 ```bash
-# 1. Know the canonical tool surface:
+# === CONSTITUTIONAL PHYSICS (always first) ===
+
+# 1. Know the invariants — 7 Physics + 7 Zen:
+cat /root/AAA/docs/INVARIANTS.md | head -30
+
+# 2. Know what layer you are in — L3 CIVILIZATION (kernel):
+cat /root/AAA/docs/MEANING.md | head -50
+
+# 3. Know the canonical tool surface:
 cat arifosmcp/tool_registry.json | python3 -m json.tool | grep '"name"'
 
-# 2. Know the key modules:
-ls arifosmcp/runtime/*.py | grep -v __pycache__
+# === COGNITIVE STATE ===
 
-# 3. Verify health:
+# 4. Restore session state (survives compaction, anti-Strange-Loop):
+cat /root/.claude/projects/-root/memory/session-state.md
+
+# 5. Check deprecation registry (before using any tool):
+cat /root/AAA/docs/deprecation-registry.json | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+for k,v in d.get('deprecated_tools',{}).items():
+    print(f'  ❌ {k}: {v[\"status\"]} → {v.get(\"migration\",\"?\")}')"
+
+# 6. Search tool registry for capability overlap (before creating any tool):
+cat /root/AAA/docs/TOOLREGISTRY.json | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+print(f'  {len(d[\"organs\"])} organs, {len(d[\"capability_index\"])} capability tags')
+print(f'  Rule: search by capability_tag BEFORE creating any tool. Overlap ≥2 tags = duplicate.')"
+
+# === LIVE STATE ===
+
+# 7. Tiered context — slim focus only (~2KB), NEVER load archive:
+cat /root/CONTEXT.md
+
+# 8. Verify health + floor status:
 curl -s http://localhost:8088/health | python3 -m json.tool | head -20
-
-# 4. Confirm floor status:
 curl -s http://localhost:8088/health | python3 -m json.tool | grep -E 'floors|floor'
 ```
 
@@ -180,5 +207,6 @@ mypy arifosmcp/runtime/ --ignore-missing-imports
 
 ---
 
-*Companion: `/root/AGENTS.md` (federation-wide), `/root/CONTEXT.md` (live state), `/root/AAA/CLAUDE.md` (canonical agent instruction)*
+*Heptalogy: INVARIANTS · MEANING · TOOLREGISTRY · deprecation-registry · session-state · MCP-TEST-SUITE · CONTEXT tiers*
+*Canonical agent instruction: `/root/AAA/CLAUDE.md` | Federation landing: `/root/AGENTS.md`*
 *DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*

@@ -132,6 +132,7 @@ def _get_stage_lane_access(tool_name: str) -> tuple[str | None, str | None, str]
 
 
 _INTERNAL_MCP_REF: Any = None
+_FASTMCP_REF: Any = None  # FastMCP server instance with _local_provider._components
 
 
 def _get_tool_obj(tool: Any) -> Any:
@@ -2342,8 +2343,9 @@ def register_rest_routes(
         prefix: Optional URL prefix for all routes (e.g., "/api").
     """
     # Force prefix to start with / and not end with / if provided
-    global _INTERNAL_MCP_REF
+    global _INTERNAL_MCP_REF, _FASTMCP_REF
     _INTERNAL_MCP_REF = mcp
+    _FASTMCP_REF = fastmcp_instance or mcp
     active_prefix = prefix.rstrip("/")
     if active_prefix and not active_prefix.startswith("/"):
         active_prefix = f"/{active_prefix}"
@@ -5242,7 +5244,21 @@ def register_rest_routes(
         base = _public_base_url(request)
         from starlette.responses import PlainTextResponse
 
-        mcp_tools = getattr(mcp, "_tool_registry", []) or []
+        # Discover live MCP tools via FastMCP _local_provider._components
+        mcp_tool_names: list[str] = []
+        fmcp = _FASTMCP_REF or mcp
+        try:
+            provider = getattr(fmcp, "_local_provider", None)
+            if provider is not None:
+                components = getattr(provider, "_components", {})
+                for k in components:
+                    if k.startswith("tool:"):
+                        name = k.removeprefix("tool:")
+                        name = name.split("@")[0]
+                        if name and name not in mcp_tool_names:
+                            mcp_tool_names.append(name)
+        except Exception:
+            pass
 
         lines = [
             "# arifOS MCP — Constitutional AI Gateway",
@@ -5257,19 +5273,22 @@ def register_rest_routes(
             f"- **URL**: {base}/mcp",
             "- **Transport**: Streamable HTTP / SSE",
             "- **Protocol**: MCP 2025-03-26",
-            f"- **Tools**: {len(mcp_tools)} live constitutional tools",
+            f"- **Tools**: {len(mcp_tool_names)} live constitutional tools",
             "- **Capabilities**: constitutional_floors, metabolic_routing, vault999, vector_memory, prompts, resources",
             "",
-            f"## Core Tools ({len(mcp_tools)} total)",
+            f"## Core Tools ({len(mcp_tool_names)} total)",
             "",
             "| Tool | Stage | Description |",
             "|------|-------|-------------|",
         ]
 
-        for tool in sorted(mcp_tools):
-            t = _get_tool_obj(tool)
-            desc = (getattr(t, "description", "") or "").split("\n")[0][:70]
-            lines.append(f"| {t.name} | | {desc} |")
+        from arifosmcp.constitutional_map import CANONICAL_TOOLS
+
+        for name in sorted(mcp_tool_names):
+            spec = CANONICAL_TOOLS.get(name, {})
+            desc = spec.get("description", "")[:80]
+            stage = spec.get("stage_code", "")
+            lines.append(f"| {name} | {stage} | {desc} |")
 
         lines.extend(
             [

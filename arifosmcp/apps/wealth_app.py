@@ -119,12 +119,13 @@ def _assert_public_surface(actual_tools: set[str], strict: bool = False) -> None
 
 
 # ═══════════════════════════════════════════════════════
-# TOOL 1 — mcp_health_check
+# TOOL 1 — wealth_health_check
 # ═══════════════════════════════════════════════════════
 
 
-@wealth_app.tool(name="mcp_health_check", tags={"system", "public", "health"})
-def mcp_health_check() -> dict[str, Any]:
+@wealth_app.tool(name="wealth_health_check", tags={"system", "public", "health"})
+@wealth_app.tool(name="mcp_health_check", tags={"system", "public", "health", "deprecated"})
+def wealth_health_check() -> dict[str, Any]:
     """
     WEALTH organ health check with provenance and schema version.
     """

@@ -457,69 +457,15 @@ else:
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PHASE 0: TRANSPORT CANARY LAYER
-# ── Pre-registration probe tools registered OUTSIDE the big try block.
-#    These survive even if canonical tool registration fails.
-#    Zero floors, zero KG, zero identity, zero VAULT writes.
-#    Purpose: isolate whether transport wound is MCP init, schema, or kernel.
-# ═══════════════════════════════════════════════════════════════════════════
-
-
-@mcp.tool(
-    name="arif_conformance_report",
-    description=(
-        "PROOF MACHINE: Run the ARIF Conformance Spine v0.2 against the live kernel. "
-        "Every verdict is earned from a real response — no mocks, no hardcoded PASS. "
-        "Checks: kernel alive, MCP initialize, protocol version, schema echo, session start, "
-        "authority classification, 888_HOLD mutation refusal, VAULT replay verification, "
-        "cooling_ledger attestation. "
-        "substrate_gate=GREEN means arifOS is a governed runtime, not a concept."
-    ),
-    tags={"canary", "transport-probe", "read-only", "conformance", "proof-machine"},
-)
-def arif_conformance_report(
-    payload: Any = None,
-    _envelope: dict[str, Any] | None = None,
-    client_capabilities: dict[str, Any] | None = None,
-    actor_id: str | None = None,
-    session_id: str | None = None,
-) -> dict:
-    """
-    Run the live Conformance Spine and return a structured proof report.
-
-    No mocks. No hardcoded results. Every check fires against the running kernel.
-    substrate_gate GREEN = governed intelligence runtime proven.
-    substrate_gate AMBER = partial proof, residues remain.
-    substrate_gate RED   = critical failures, do not claim governance.
-    """
-    from arifosmcp.transport.conformance_spine import run_spine
-
-    report = run_spine()
-
-    # Annotate each check with a plain-English description
-    descriptions = {
-        "arifos_alive": "arifOS alive?               kernel /health returns healthy",
-        "mcp_initialize": "MCP initialize works?       protocol handshake returns serverInfo",
-        "protocol_version": "protocol version clear?     2025-11-25 or supported variant present",
-        "schema_echo_stable": "schema echo stable?         arif_schema_echo returns what was sent",
-        "session_starts": "session starts?             arif_init returns READY",
-        "authority_checked": "authority checked?          classify_authority fires SOVEREIGN/HIGH/MEDIUM/LOW",
-        "hold_blocks_mutation": "888_HOLD blocks mutation?   irreversible intents return 888_HOLD_REQUIRED",
-        "vault_replay": "VAULT replay verifies?      vault file readable, last entry valid JSON",
-        "cooling_ledger": "cooling ledger attests?     VAULT999 healthy + WELL entropy sealed",
-    }
-    for check in report["checks"]:
-        check["description"] = descriptions.get(check["check"], "")
-
-    return report
-
-
-# ── RSI: Five standalone probe tools RETIRED 2026-06-22 ─────────────────
+# ── RSI: Six standalone probe tools RETIRED 2026-06-22 ─────────────────
 # arif_ping, arif_schema_echo, arif_version_echo, arif_transport_echo,
-# arif_initialize_probe — formerly @mcp.tool-decorated in this file.
-# Now reachable ONLY via arif_canary(mode='<name>') in tools/canary_multimode.py.
+# arif_initialize_probe, arif_conformance_report — formerly @mcp.tool-decorated
+# in this file. Now reachable ONLY via arif_canary(mode='<name>') in
+# tools/canary_multimode.py.
 # The handlers (_runtime_ping, _runtime_schema_echo, _runtime_version_echo,
-# _runtime_transport_echo, _runtime_initialize_probe) remain registered in
-# runtime/tools.py:_RUNTIME_DIAGNOSTIC_HANDLERS for multimode dispatch.
+# _runtime_transport_echo, _runtime_initialize_probe, _runtime_conformance_report)
+# remain registered in runtime/tools.py:_RUNTIME_DIAGNOSTIC_HANDLERS
+# for multimode dispatch.
 # arif_ping's three-signal probe logic (floors_loaded / floors_enforced /
 # transport) is preserved on _runtime_ping.
 
@@ -656,24 +602,30 @@ try:
 
     # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
     # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
-    from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
+    if _EXPOSE_DEV_TOOLS:
+        from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
 
-    mcp.tool(
-        name="arif_canary",
-        description=(
-            "Unified transport diagnostic probe. One tool, six modes. "
-            "Use for liveness checks, protocol version verification, schema round-trip "
-            "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
-            "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
-        ),
-        tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
-        annotations={
-            "readOnlyHint": True,
-            "destructiveHint": False,
-            "openWorldHint": True,
-            "idempotentHint": True,
-        },
-    )(_arif_canary_handler)
+        mcp.tool(
+            name="arif_canary",
+            description=(
+                "Unified transport diagnostic probe. One tool, six modes. "
+                "Use for liveness checks, protocol version verification, schema round-trip "
+                "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
+                "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
+            ),
+            tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
+            annotations={
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "openWorldHint": True,
+                "idempotentHint": True,
+            },
+        )(_arif_canary_handler)
+    else:
+        logger.info(
+            "Canary multimode gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
+        )
 
     from arifosmcp.runtime.tools import _wrap_handler
 
@@ -949,15 +901,12 @@ try:
         # logger.info("GovernancePipeline middleware attached — 9-gate enforcement active")
 
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
-    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
-    # NOTE (2026-06-21): hermes_vault_query is required by the conformance spine (vault_replay check)
-    # and must be exposed always.
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
+    # Conformance spine runs via arif_canary(mode="conformance_report") which is also gated.
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
 
     _hermes_to_register = (
-        HERMES_TOOL_HANDLERS
-        if _EXPOSE_DEV_TOOLS
-        else {"hermes_vault_query": HERMES_TOOL_HANDLERS["hermes_vault_query"]}
+        HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
     )
     for _hermes_name, _hermes_handler in _hermes_to_register.items():
         _hw = _wrap_handler(_hermes_handler, _hermes_name)

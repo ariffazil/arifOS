@@ -169,7 +169,13 @@ def verify_surface_consistency() -> dict[str, Any]:
     # Only count vantages that are actually available for comparison.
     # Unavailable vantages (e.g., public_tool_specs outside live server)
     # are skipped rather than treated as mismatches.
-    active = [v for v in vantages if v.get("hash") not in ("UNAVAILABLE", "MISSING", "ERROR")]
+    # Documentation-only vantages (internal superset) are excluded from
+    # the consistency check — they exist for audit visibility only.
+    active = [
+        v for v in vantages
+        if v.get("hash") not in ("UNAVAILABLE", "MISSING", "ERROR")
+        and not v.get("note")  # documentation-only vantages have notes
+    ]
     all_match = all(v["matches_canonical"] for v in active)
     any_divergence = len(divergences) > 0
     any_missing = any(v.get("hash") in ("MISSING", "ERROR") or v.get("error") for v in vantages)

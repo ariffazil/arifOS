@@ -308,7 +308,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": "/ready",
-        "tools": 7,  # 7 public verbs (F13-ratified 2026-06-26 contract convergence)
+        "tools": len(CANONICAL_7),  # dynamic from CANONICAL_7 tuple — single source of truth
         "prompts": len(CANONICAL_PROMPTS),
         "resources": len(CANONICAL_RESOURCES),
         "protocol_version": "2025-11-25",  # aligned with MCP_SPEC_VERSION_CANONICAL
@@ -379,7 +379,10 @@ def public_surface() -> dict[str, Any]:
     All public-facing version counts, endpoint URLs, and metadata
     MUST be derived from here. README, llms.txt, status.json, and
     landing pages consume this function, not hardcoded values.
+
+    Tool count derived from live public_surface_state(), NOT hardcoded.
     """
+    surface_state = public_surface_state()
     registered_resource_families = (
         len(CANONICAL_RESOURCES)
         + len(EVIDENCE_RESOURCES)
@@ -404,7 +407,9 @@ def public_surface() -> dict[str, Any]:
             "endpoint": CANONICAL_MCP_ENDPOINT,
             "transport": "streamable-http",
             "protocol_version": PROTOCOL_VERSION,
-            "tools": 7,  # 7 public verbs (contract convergence 2026-06-26)
+            "tools": surface_state["kernel_tools"],
+            "tools_registered": surface_state["tools_registered"],
+            "surface_mode": surface_state["mode"],
             "prompts": len(CANONICAL_PROMPTS),
             "resources": len(CANONICAL_RESOURCES),
             "canonical_resources": len(CANONICAL_RESOURCES),

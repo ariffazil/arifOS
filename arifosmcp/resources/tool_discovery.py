@@ -20,7 +20,17 @@ from .tool_discovery_resource import (
 
 
 def register_tool_discovery(mcp: FastMCP) -> list[str]:
-    """Register tool discovery resource and alias resolver."""
+    """Register tool discovery resource and alias resolver.
+
+    MCP tools (arif_resolve_tool, arif_get_affordance) are gated behind
+    ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
+    Resources (arif://...) are always registered — they don't appear in tools/list.
+    """
+    import os
+
+    _EXPOSE_DEV_TOOLS = os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "false").lower() in (
+        "1", "true", "yes", "on",
+    )
     registered = []
 
     # Register the discovery resource
@@ -39,37 +49,39 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
 
     registered.append("arif://tools/discovery")
 
-    # Register alias resolution tool
-    @mcp.tool(
-        name="arif_resolve_tool",
-        description=(
-            "Resolve a tool name or alias to the canonical arifOS tool name. "
-            "Use when you have a tool name but aren't sure if it's the canonical name. "
-            "Returns the canonical name, use_when guidance, and examples."
-        ),
-        tags={"discovery", "utility", "read-only"},
-    )
-    def resolve_tool(name: str) -> dict:
-        """Resolve a tool name or alias to canonical form."""
-        canonical = resolve_tool_name(name)
-        if canonical:
-            from .tool_discovery_resource import TOOL_DISCOVERY
+    # Register alias resolution tool (gated — diagnostic utility)
+    if _EXPOSE_DEV_TOOLS:
 
-            meta = TOOL_DISCOVERY.get(canonical, {})
+        @mcp.tool(
+            name="arif_resolve_tool",
+            description=(
+                "Resolve a tool name or alias to the canonical arifOS tool name. "
+                "Use when you have a tool name but aren't sure if it's the canonical name. "
+                "Returns the canonical name, use_when guidance, and examples."
+            ),
+            tags={"discovery", "utility", "read-only"},
+        )
+        def resolve_tool(name: str) -> dict:
+            """Resolve a tool name or alias to canonical form."""
+            canonical = resolve_tool_name(name)
+            if canonical:
+                from .tool_discovery_resource import TOOL_DISCOVERY
+
+                meta = TOOL_DISCOVERY.get(canonical, {})
+                return {
+                    "found": True,
+                    "canonical_name": canonical,
+                    "use_when": meta.get("use_when", ""),
+                    "examples": meta.get("examples", []),
+                    "category": meta.get("category", ""),
+                }
             return {
-                "found": True,
-                "canonical_name": canonical,
-                "use_when": meta.get("use_when", ""),
-                "examples": meta.get("examples", []),
-                "category": meta.get("category", ""),
+                "found": False,
+                "query": name,
+                "suggestions": find_tools_by_query(name)[:3],
             }
-        return {
-            "found": False,
-            "query": name,
-            "suggestions": find_tools_by_query(name)[:3],
-        }
 
-    registered.append("arif_resolve_tool")
+        registered.append("arif_resolve_tool")
 
     # Register full constitutional affordance contract resource (metacognitive core)
     @mcp.resource(
@@ -87,25 +99,27 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
 
     registered.append("arif://tools/affordance")
 
-    # Tool to get affordance for one name (cognitive pre-call helper)
-    @mcp.tool(
-        name="arif_get_affordance",
-        description=(
-            "Return the complete constitutional affordance contract for a tool name. "
-            "Use this to decide 'why this tool', 'why not others', risk, agency level, "
-            "and expected metacognition shape. Preferred over guessing from name alone."
-        ),
-        tags={"discovery", "governance", "metacognition", "read-only"},
-    )
-    def get_affordance(name: str) -> dict:
-        try:
-            from arifosmcp.runtime.tools import get_full_affordance
+    # Tool to get affordance for one name (cognitive pre-call helper, gated)
+    if _EXPOSE_DEV_TOOLS:
 
-            return {"tool": name, "affordance": get_full_affordance(name)}
-        except Exception as e:
-            return {"tool": name, "error": str(e)}
+        @mcp.tool(
+            name="arif_get_affordance",
+            description=(
+                "Return the complete constitutional affordance contract for a tool name. "
+                "Use this to decide 'why this tool', 'why not others', risk, agency level, "
+                "and expected metacognition shape. Preferred over guessing from name alone."
+            ),
+            tags={"discovery", "governance", "metacognition", "read-only"},
+        )
+        def get_affordance(name: str) -> dict:
+            try:
+                from arifosmcp.runtime.tools import get_full_affordance
 
-    registered.append("arif_get_affordance")
+                return {"tool": name, "affordance": get_full_affordance(name)}
+            except Exception as e:
+                return {"tool": name, "error": str(e)}
+
+        registered.append("arif_get_affordance")
 
     # Core 7 pipeline resource — the kernel 7 tools done properly
     @mcp.resource(

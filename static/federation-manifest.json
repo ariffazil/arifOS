@@ -1,32 +1,39 @@
 {
-  "schema": "federation-manifest/v1",
-  "source": "arifOS MCP /api/federation-probe",
-  "generated": "2026-05-26T14:05:00Z",
-  "_sealed_by": "arifOS Forge Agent",
-  "_seal_note": "Corrected: GEOX port 8081 (not 18081), 11 tools (not 6). WEALTH 33, WELL 13. arifOS 8088. Health via /api/federation-probe.",
+  "schema": "federation-manifest/v3",
+  "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
+  "generated": "2026-06-26T15:48:15Z",
+  "transport": {
+    "protocol": "streamable-http + JSON-RPC 2.0",
+    "json_response": true,
+    "sse_remaining": 0,
+    "delta_s": 0,
+    "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
+  },
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.05.05-SSCT (c791a24). 120 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-06-26T15:48:15Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=7, total_declared=58.",
   "stack": {
     "topology": {
       "ordinal": 1,
-      "name": "APEX · Human Sovereign",
-      "role": "Final authority. F13 veto absolute. Constitutional witness to all terminal verdicts.",
+      "name": "Human Sovereign (Arif · F13)",
+      "role": "Final authority. F13 veto absolute. Constitutional witness.",
       "status": "live",
       "layers": [
         {
           "ordinal": 1,
-          "name": "APEX · Human Sovereign",
-          "role": "Final authority. F13 veto absolute. Constitutional witness to all terminal verdicts.",
+          "name": "Human Sovereign (Arif · F13)",
+          "role": "Final authority. F13 veto absolute. Constitutional witness.",
           "status": "live"
         },
         {
           "ordinal": 2,
           "name": "arifOS Governance Kernel",
-          "role": "13-floor constitutional engine. 888_JUDGE verdicts. 999_VAULT immutable ledger. ΔΩΨ Trinity routing.",
+          "role": "13-floor constitutional engine. 888_JUDGE. 999_VAULT. ΔΩΨ Trinity routing.",
           "status": "live"
         },
         {
           "ordinal": 3,
-          "name": "GEOX · WEALTH · WELL · AAA",
-          "role": "Earth · Capital · Vitality · A2A Hub. MCP-connected organs. 70 confirmed live tools across 4 organs.",
+          "name": "GEOX · WEALTH · WELL · AAA · A-FORGE",
+          "role": "Earth · Capital · Vitality · A2A Hub · Metabolic Shell. MCP-connected organs.",
           "status": "live"
         },
         {
@@ -41,69 +48,90 @@
           "role": "Public-facing surfaces. Read-only governance visibility. Constitutional doctrine.",
           "status": "live"
         }
-      ],
-      "flow": [
-        "APEX (human) → arifOS kernel → GEOX/WEALTH/WELL → agents → public surfaces"
       ]
     },
     "organs": {
       "arifos": {
         "name": "arifOS",
         "type": "governance_kernel",
-        "role": "Constitutional engine. F1–F13 floors. 888_JUDGE. 999_VAULT.",
+        "role": "Constitutional engine. F1-F13 floors. 888_JUDGE. 999_VAULT.",
         "port": 8088,
         "mcp": true,
-        "tools": 13,
+        "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
-        "status": "healthy"
+        "status": "healthy",
+        "tools": 58,
+        "release": "v2026.05.05-SSCT",
+        "version": "kanon-c791a24",
+        "commit": "c791a24",
+        "canonical_tools": 17,
+        "diagnostic_tools": 41,
+        "tools_exposed_mcp": 7,
+        "floors_active": 13,
+        "vault_health": "healthy",
+        "manifest_hash": "d53b77bbc45962e8"
       },
       "geox": {
         "name": "GEOX",
         "type": "earth_intelligence",
-        "role": "Subsurface physics. Petrophysics. Seismic. Basin analysis. Physics-9 grounded. 11 MCP tools live on port 8081.",
+        "role": "Subsurface physics. Petrophysics. Seismic. Basin analysis. Physics-9 grounded.",
         "port": 8081,
         "mcp": true,
-        "tools": 11,
+        "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
-        "discovery_endpoint": "/.well-known/mcp/server.json",
-        "status": "healthy"
+        "status": "healthy",
+        "tools": 16,
+        "version": "v2026.06.22-phase2",
+        "git_version": "geox-98cd5383"
       },
       "wealth": {
         "name": "WEALTH",
         "type": "capital_intelligence",
-        "role": "NPV/EMV. Risk scoring. Makcik² relational credit. Capital conservation. 33 verified MCP tools.",
+        "role": "NPV/EMV. Risk scoring. Makcik² relational credit. Capital conservation.",
         "port": 18082,
         "mcp": true,
-        "tools": 33,
+        "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
-        "discovery_endpoint": "/.well-known/mcp/server.json",
-        "status": "healthy"
+        "status": "alive",
+        "tools": 28,
+        "version": "2026.06.15"
       },
       "well": {
         "name": "WELL",
         "type": "vitality_engine",
-        "role": "Biological substrate. Operator cognitive pressure. Thermodynamic wellness. 7 public verbs (7-tool facade 2026-06-23). WELL_HOLD active.",
+        "role": "Biological substrate. Operator cognitive pressure. Thermodynamic wellness.",
         "port": 18083,
         "mcp": true,
-        "tools": 13,
+        "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
-        "discovery_endpoint": "/.well-known/mcp/server.json",
-        "status": "healthy"
+        "status": "degraded",
+        "tools": 18,
+        "version": "2026.05.15-ΩWELL+GWELL+FEDERATION"
       },
       "aaa": {
         "name": "AAA",
         "type": "a2a_hub",
-        "role": "A2A broker for cross-agent tasks. Inter-federation coordination.",
-        "port": 443,
+        "role": "A2A broker. Cockpit surface. Agent identity.",
+        "port": 3001,
         "mcp": false,
-        "status": "healthy"
+        "transport": "A2A (internal)",
+        "health_endpoint": "/health",
+        "status": "healthy",
+        "tools": 0,
+        "version": "1.0.0",
+        "agent_cards": 23
       },
-      "wiki": {
-        "name": "Wiki",
-        "type": "knowledge_base",
-        "role": "Compiled constitutional memory. Read-only wiki.",
-        "mcp": false,
-        "status": "static"
+      "forge": {
+        "name": "A-FORGE",
+        "type": "metabolic_shell",
+        "role": "Deployment orchestration. Agent engine loop. Executes after SEAL.",
+        "port": 7071,
+        "mcp": true,
+        "transport": "streamable-http + JSON-RPC",
+        "health_endpoint": "/health",
+        "status": "healthy",
+        "tools": 0,
+        "version": "0.1.0"
       }
     }
   }

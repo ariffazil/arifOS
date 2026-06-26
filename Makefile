@@ -6,7 +6,30 @@ DIR := /root/arifOS
 
 include /root/arifOS/scripts/security_audit.mk
 
-.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public verify-live reality-replay constitutional-benchmark reality
+.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public verify-live reality-replay constitutional-benchmark reality install-all update-all test-all health-all status-all system-deps
+
+# ══════════════════════════════════════════════════════════════════════════
+# Federation targets — unified dependency management for all 4 Python organs
+# ══════════════════════════════════════════════════════════════════════════
+FED_MGR = /root/arifOS/federation-manager.sh
+
+install-all:
+	@$(FED_MGR) install
+
+update-all:
+	@$(FED_MGR) update
+
+test-all:
+	@$(FED_MGR) test
+
+health-all:
+	@$(FED_MGR) health
+
+status-all:
+	@$(FED_MGR) status
+
+system-deps:
+	@$(FED_MGR) system-deps
 
 status:
 	@echo "--- arifOS Status (ΔΩΨ) ---"

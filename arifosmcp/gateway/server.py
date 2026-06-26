@@ -580,24 +580,12 @@ async def _proxy_mcp_to_organ(organ_name: str, body: dict) -> dict:
 
 def _route_tool_to_organ(tool_name: str) -> str | None:
     """Determine which organ owns a given tool name."""
-    # A-FORGE owns several federated/arif_ and wealth_ tools because it wraps
-    # upstream organs with local session/lease gating and telemetry.
-    AFORGE_OWNED = {
-        "arif_init",
-        "arif_health_check",
-        "arif_observe",
-        "arif_think",
-        "arif_critique",
-        "arif_forge",
-        "arif_seal",
-        "wealth_evaluate_ROI",
-        "wealth_compute_EMV",
-        "wealth_thermodynamic_scan",
-        "minimax_web_search",
-        "minimax_understand_image",
-        "request_amanah_lock",
-        "release_amanah_lock",
-    }
+    # A-FORGE tools are all forge_* prefixed — prefix routing (forge_→A-FORGE,
+    # arif_→arifOS, wealth_→WEALTH, well_→WELL, geox_→GEOX) handles the vast
+    # majority. This set is reserved for exceptions that don't match their prefix.
+    # 2026-06-26: Stale entries cleaned — all previous names were either renamed
+    # to forge_* or no longer exist as MCP tools.
+    AFORGE_OWNED = set()
     if tool_name in AFORGE_OWNED:
         return "A-FORGE"
     # Prefer cached tool catalog when available (most accurate)
