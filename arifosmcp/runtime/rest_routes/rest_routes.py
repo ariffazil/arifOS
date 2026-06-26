@@ -6574,10 +6574,17 @@ setInterval(refreshSot, 30000);
                     "stage": spec.get("stage", ""),
                     "lane": spec.get("lane", ""),
                     "risk": {
-                        "tier": manifest_spec.get("risk", {}).get("tier", "low"),
-                        "irreversible": manifest_spec.get("risk", {}).get("irreversible", False),
+                        # TOOL_CHARTER is authoritative; fall back to CANONICAL_TOOLS for tools
+                        # not yet registered in the charter (e.g. arif_act).
+                        "tier": manifest_spec.get("risk", {}).get(
+                            "tier", spec.get("risk_tier", "low")
+                        ),
+                        "irreversible": manifest_spec.get("risk", {}).get(
+                            "irreversible", spec.get("irreversible", False)
+                        ),
                         "requires_human_ack": manifest_spec.get("risk", {}).get(
-                            "requires_human_ack", False
+                            "requires_human_ack",
+                            spec.get("requires_auth") or False,
                         ),
                     },
                     "floors": spec.get("floors", []),
@@ -6585,14 +6592,23 @@ setInterval(refreshSot, 30000);
                 }
             )
 
+        # schema_valid: check the 7 canonical registered tools only.
+        # The 7 are the MCP-registered surface regardless of access level
+        # (public/authenticated/sovereign). Internal tools (expose=false) are
+        # access-controlled and not MCP-client-facing — excluded from this check.
+        canonical_names = set(public_tool_names())
+        canonical_tools = [t for t in tools_out if t["name"] in canonical_names]
+        schema_valid = all(
+            "properties" in t["inputSchema"] and t.get("outputSchema") is not None
+            for t in canonical_tools
+        )
+
         return JSONResponse(
             {
                 "tools": tools_out,
                 "count": len(tools_out),
-                "schema_valid": all(
-                    "properties" in t["inputSchema"] and t.get("outputSchema") is not None
-                    for t in tools_out
-                ),
+                "canonical_count": len(canonical_tools),
+                "schema_valid": schema_valid,
                 "version": f"kanon-{os.environ.get('DEPLOY_GIT_COMMIT', 'dev')}",
             }
         )
