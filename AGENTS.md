@@ -7,6 +7,7 @@ confidence: high
 scope: /root/arifOS
 epistemic_status: SOURCE_OF_TRUTH
 refresh_history:
+  - 2026-06-27 23:25 UTC (FORGE KERNEL HARDENING — 7 patches, C-1/C-2 bypasses closed, H-1/H-3/H-4/M-1/M-3)
   - 2026-06-27 18:30 UTC (FORGE RSI — SOT cleanup, tightened header narrative)
   - 2026-06-27 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)
 -->
