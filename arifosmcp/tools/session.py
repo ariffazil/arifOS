@@ -798,7 +798,10 @@ def arif_init(
                 "alignment_profile": {"loaded": bool(_model_soul)},
                 "adversarial_profile": {"loaded": bool(_model_shadow)},
                 "belief": {"intent_model": {"status": "light_mode_deferred"}},
-                "next": {"recommended_next": "arif_kernel_attest"},
+                # RSI 2026-06-27: external callers get arif_observe (public surface),
+                # not arif_kernel_attest (hidden from public facade). Verified internal
+                # agents still get arif_triage via the init/full path.
+                "next": {"recommended_next": "arif_observe"},
             },
             sid=sid,
             actor_id=actor_id or "light_client",
@@ -1002,7 +1005,9 @@ def arif_init(
                     }
                 },
                 "next": {
-                    "recommended_next": "arif_triage" if identity_verified else "arif_kernel_attest"
+                    # RSI 2026-06-27: external callers get arif_observe (public surface),
+                    # not arif_kernel_attest (hidden from public facade).
+                    "recommended_next": "arif_triage" if identity_verified else "arif_observe"
                 },
             },
             sid=sid,
