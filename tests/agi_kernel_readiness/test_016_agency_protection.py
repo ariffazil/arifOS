@@ -77,10 +77,7 @@ def test_wealth_tools_declare_recommendation_only():
         {
             "name": "wealth_personal_finance",
             "arguments": {
-                "mode": "personal_finance",
-                "monthly_income": 5000,
-                "monthly_expenses": 3000,
-                "liquid_assets": 10000,
+                "mode": "summary",
             },
         },
         session_id=sid or None,
@@ -102,10 +99,7 @@ def test_wealth_tools_declare_final_authority():
         {
             "name": "wealth_personal_finance",
             "arguments": {
-                "mode": "personal_finance",
-                "monthly_income": 5000,
-                "monthly_expenses": 3000,
-                "liquid_assets": 10000,
+                "mode": "summary",
             },
         },
         session_id=sid or None,

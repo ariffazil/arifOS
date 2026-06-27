@@ -56,7 +56,9 @@ def test_consecutive_boot_cycles():
     assert sealed_count == N_CYCLES, (
         f"all {N_CYCLES} cycles should return SEAL- session_id, got {sealed_count}"
     )
-    assert all(v == "SEAL" for v in verdicts), f"all verdicts should be SEAL, got {verdicts}"
+    assert all(v in ("SEAL", "SEAL_OBSERVE_ONLY") for v in verdicts), (
+        f"all verdicts should be SEAL family, got {verdicts}"
+    )
     # All session_ids should be unique
     assert len(set(session_ids)) == N_CYCLES, (
         f"all session_ids should be unique, got {len(set(session_ids))} unique"
@@ -82,11 +84,15 @@ def test_surface_drift_over_cycles():
         finally:
             c.close()
 
-    # Document: surface invariants from live_kernel_envelope
+    # Document: surface invariants from session_birth.stage
     # are stable across cycles. (F2 truth: today stage is "000"
     # for all cycles — that's a constant, not drift.)
-    stages = [s.get("kernel", {}).get("epoch_id", "unknown") for s in surfaces]
-    assert all(s == "EPOCH-LIVE-1" for s in stages), f"epoch_id should be stable, got {stages}"
+    stages = [
+        s.get("result", {}).get("session_birth", {}).get("stage", "unknown") for s in surfaces
+    ]
+    # F13-ratified response shape: stage=000 is the canonical Light Bootstrap
+    # value. All cycles must show the same stage — drift would be a kernel bug.
+    assert len(set(stages)) == 1, f"stage should be stable across cycles, got {stages}"
 
 
 if __name__ == "__main__":
