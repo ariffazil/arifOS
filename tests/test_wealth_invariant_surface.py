@@ -33,7 +33,7 @@ from skills.wealth.invariant_surface import (
 
 # Also test the app-level wrappers
 from arifosmcp.apps.wealth_app import (
-    mcp_health_check,
+    wealth_health_check,
     _wealth_boundary_governance,
     _wealth_conservation_capital,
     _wealth_energy_productivity,
@@ -328,7 +328,7 @@ class TestAppLevelWrappers:
 
 class TestHealthAndRegistry:
     def test_mcp_health_check(self):
-        result = mcp_health_check()
+        result = wealth_health_check()
         assert isinstance(result, dict)
         assert result["status"] == "OK"
         assert result["schema_version"] == "wealth.physics_economics.v1"
