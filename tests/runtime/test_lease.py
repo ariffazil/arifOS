@@ -141,7 +141,7 @@ class TestValidate:
             scope=["arif_forge_execute"],
             max_action_class="MUTATE",
         )
-        arif_lease_revoke(rec.lease_id, "test")
+        arif_lease_revoke(rec.lease_id, "test", actor_id="x")
         r = validate_lease_for_tool(rec.lease_id, "arif_forge_execute", "MUTATE")
         assert not r["valid"]
         assert r["verdict"] == "HOLD"
@@ -257,7 +257,7 @@ class TestMcpHandlers:
             scope=["arif_forge_execute"],
             max_action_class="MUTATE",
         )
-        result = arif_lease_revoke(rec.lease_id, "test")
+        result = arif_lease_revoke(rec.lease_id, "test", actor_id="x")
         assert result["status"] == "OK"
         assert result["result"]["lease"]["revoked"] is True
 

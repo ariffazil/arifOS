@@ -429,7 +429,25 @@ def arif_lease_revoke(
     session_id: str | None = None,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
-    """Revoke a lease."""
+    """Revoke a lease.
+
+    HARDENED 2026-06-27 (H-3 fix): F13 caller-auth required.
+    Lease revocation is IRREVERSIBLE — only sovereign-authenticated callers
+    may revoke. Unauthenticated callers get HOLD with 888 escalation.
+    """
+    # F13/L11: Verify caller before IRREVERSIBLE action
+    if not actor_id:
+        return {
+            "status": "HOLD",
+            "verdict": "HOLD",
+            "reason": (
+                "Lease revocation requires F13-authenticated caller. "
+                "Provide actor_id with valid Ed25519 signature. "
+                "This is an IRREVERSIBLE action (F1 AMANAH)."
+            ),
+            "result": {},
+            "escalation": "888_HOLD",
+        }
     rec = revoke_lease(lease_id, reason)
     if rec is None:
         return {

@@ -14554,36 +14554,40 @@ def _arif_vault_seal(
                     ack_irreversible_received=ack_irreversible,
                 ).model_dump(mode="json")
         except Exception as exc:
-            logger.warning("Vault seal Ed25519 verification error: %s", exc)
-            # Non-fatal: fall through to kernel eval path
+            logger.error(
+                "Vault seal Ed25519 verification FAILED — escalating to 888: %s",
+                exc,
+                extra={
+                    "actor_id": actor_id,
+                    "session_id": session_id,
+                    "action": "arif_vault_seal",
+                    "severity": "HIGH",
+                },
+            )
+            # Non-fatal but escalated: fall through to kernel eval path
+            # with signature_verified=False for audit trail
 
     # Only enforce L01 on actual write modes; read-only audit modes are safe
     if mode in {"seal", "commit"}:
         from arifosmcp.core.constitution_kernel import WitnessType
 
         wt = WitnessType.HUMAN if witness_type == "human" else WitnessType.AI
-        dev_mode_bypass = (
-            os.getenv("ARIFOS_DEV_MODE", "0") == "1"
-            and ack_irreversible
-            and bool(actor_id)
-            and mode == "seal"
-        )
-        k_verdict = (
-            {"passed": True, "violated_laws": [], "reason": "dev_mode_bypass"}
-            if dev_mode_bypass
-            else _KERNEL.evaluate_intent(
-                tool_name="arif_vault_seal",
-                params={
-                    "mode": mode,
-                    "ack_irreversible": ack_irreversible,
-                    "actor_signature": actor_signature,
-                    "nonce": nonce,
-                    "signature_verified": signature_verified,
-                },
-                session_id=session_id,
-                actor_id=actor_id,
-                witness_type=wt,
-            )
+        dev_mode_bypass = False  # HARDENED 2026-06-27: removed ARIFOS_DEV_MODE bypass.
+        # DEV_MODE no longer skips constitutional floor checks (C-1 fix).
+        # All seal operations MUST pass through kernel evaluation regardless of environment.
+        # To test seal flow without Arif, use the test harness with mock kernel.
+        k_verdict = _KERNEL.evaluate_intent(
+            tool_name="arif_vault_seal",
+            params={
+                "mode": mode,
+                "ack_irreversible": ack_irreversible,
+                "actor_signature": actor_signature,
+                "nonce": nonce,
+                "signature_verified": signature_verified,
+            },
+            session_id=session_id,
+            actor_id=actor_id,
+            witness_type=wt,
         )
         if not k_verdict["passed"]:
             _reason = k_verdict.get("reason", "Floor breach")

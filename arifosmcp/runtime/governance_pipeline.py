@@ -2160,6 +2160,81 @@ class GovernancePipeline:
 
         return GovernanceASGIMiddleware
 
+    def as_fastmcp3_middleware(self):
+        """HARDENED 2026-06-27 (H-1 fix): FastMCP 3.x compatible middleware.
+
+        Returns a Middleware subclass compatible with FastMCP 3.x's
+        add_middleware() API. Uses on_call_tool instead of ASGI scope/receive/send.
+
+        This replaces the old ASGI-based GovernanceASGIMiddleware which was
+        incompatible with FastMCP 3.x's (context, call_next) signature.
+        """
+        pipeline = self
+
+        try:
+            from fastmcp.server.middleware.middleware import (
+                Middleware,
+                MiddlewareContext,
+            )
+            from mcp.types import CallToolRequestParams
+        except ImportError:
+            logger.warning(
+                "GovernancePipeline: FastMCP 3.x middleware imports unavailable. "
+                "Governance will run per-tool only (via _wrap_handler)."
+            )
+            return None
+
+        class _GovMiddleware(Middleware):
+            async def on_call_tool(
+                self,
+                context: MiddlewareContext[CallToolRequestParams],
+                call_next,
+            ):
+                params = context.params
+                tool_name = getattr(params, "name", "unknown") if params else "unknown"
+                arguments = getattr(params, "arguments", {}) or {}
+
+                # Build ToolCallContext from FastMCP context
+                from arifosmcp.runtime.governance_pipeline import ToolCallContext
+
+                ctx = ToolCallContext(
+                    tool_name=tool_name,
+                    session_id=getattr(context, "session_id", None),
+                    actor_id=getattr(context, "actor_id", None),
+                    params=arguments,
+                )
+
+                # Run governance pipeline
+                result = pipeline.run(ctx)
+
+                if result.verdict.value == "PASS" or pipeline.enforcement_mode == "simulate":
+                    return await call_next(context)
+
+                # HOLD — return constitutional error
+                from mcp.types import TextContent
+
+                hold_receipt = result.hold_receipt()
+                return TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {
+                            "jsonrpc": "2.0",
+                            "error": {
+                                "code": -32000,
+                                "message": "Governance HOLD",
+                                "data": {
+                                    "verdict": result.verdict.value,
+                                    "reason": result.hold_reason or "Constitutional floor breach",
+                                    "violated_floors": result.violated_floors,
+                                    "receipt": hold_receipt,
+                                },
+                            },
+                        }
+                    ),
+                )
+
+        return _GovMiddleware
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SINGLETON — the federation-wide pipeline

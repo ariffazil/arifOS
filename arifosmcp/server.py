@@ -218,6 +218,8 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
     """
 
     # Exact-origin or scheme+host prefixes allowed for /mcp calls.
+    # HARDENED 2026-06-27: removed wildcard *.microsoft.com to prevent
+    # deep-subdomain bypass (M-3 fix). Only explicit Microsoft origins allowed.
     ALLOWED_ORIGIN_PREFIXES: tuple[str, ...] = (
         "https://arifos.arif-fazil.com",
         "https://arif-fazil.com",
@@ -225,15 +227,17 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         "https://localhost",
         "http://127.0.0.1",
         "https://127.0.0.1",
-        # Microsoft Copilot / Teams / Office / 365 cloud origins
+        # Microsoft Copilot / Teams / Office 365 — explicit origins only
         "https://teams.microsoft.com",
         "https://copilot.microsoft.com",
         "https://www.office.com",
         "https://outlook.office.com",
         "https://outlook.office365.com",
+        "https://login.microsoftonline.com",
+        "https://graph.microsoft.com",
+        # Wildcard subdomains — scoped to specific domains (not *.microsoft.com)
         "https://*.office.com",
         "https://*.cloud.microsoft",
-        "https://*.microsoft.com",
         "https://*.sharepoint.com",
         "https://*.onedrive.com",
         "https://*.live.com",
@@ -897,15 +901,28 @@ try:
         mcp.add_middleware(_ingress_middleware)  # pyright: ignore[reportArgumentType]
         logger.info("IngressToleranceMiddleware attached with envelope validation")
 
-        # ── Governance Pipeline middleware (P0 2026-06-14) ───────────────────
-        # DISABLED 2026-06-14: ASGI middleware pattern incompatible with
-        # FastMCP 3.x middleware (context, call_next) signature. Per-tool
-        # governance is enforced via _wrap_handler + constitutional floor
-        # checks in individual tool handlers. Re-enable after rewrite to
-        # FastMCP Middleware base class.
-        # from arifosmcp.runtime.governance_pipeline import get_pipeline
-        # mcp.add_middleware(get_pipeline().as_middleware)
-        # logger.info("GovernancePipeline middleware attached — 9-gate enforcement active")
+        # ── Governance Pipeline middleware (RE-ENABLED 2026-06-27 H-1 fix) ──────
+        # Now uses FastMCP 3.x compatible Middleware (on_call_tool pattern)
+        # instead of the old ASGI scope/receive/send pattern.
+        try:
+            from arifosmcp.runtime.governance_pipeline import get_pipeline
+
+            gov = get_pipeline()
+            fm3_mw = gov.as_fastmcp3_middleware()
+            if fm3_mw is not None:
+                mcp.add_middleware(fm3_mw)  # pyright: ignore[reportArgumentType]
+                logger.info("GovernancePipeline attached — 9-gate enforcement active (FastMCP 3.x)")
+            else:
+                logger.warning(
+                    "GovernancePipeline: FastMCP 3.x middleware unavailable. "
+                    "Governance runs per-tool via _wrap_handler."
+                )
+        except Exception as exc:
+            logger.warning(
+                "GovernancePipeline: attachment failed (%s). "
+                "Governance runs per-tool via _wrap_handler.",
+                exc,
+            )
 
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
@@ -1007,7 +1024,20 @@ try:
                 )
                 return remote_map
 
-            _REMOTE_TOOLS_HTTP = asyncio.run(_bootstrap_http_federation())
+            # M-1 FIX (2026-06-27): Handle nested event loop gracefully.
+            # asyncio.run() crashes if called from within a running loop.
+            # Defer to lazy init pattern — try eager, fall back gracefully.
+            try:
+                _REMOTE_TOOLS_HTTP = asyncio.run(_bootstrap_http_federation())
+            except RuntimeError as exc:
+                if "already running" in str(exc) or "cannot be called from a running" in str(exc):
+                    logger.warning(
+                        "HTTP federation: deferred (event loop already running). "
+                        "Remote organ tools will be discovered on first use."
+                    )
+                    _REMOTE_TOOLS_HTTP = {}
+                else:
+                    raise
 
             if _REMOTE_TOOLS_HTTP:
                 lp = mcp.providers[0]

@@ -38,6 +38,8 @@ class SealVerificationRequest(BaseModel):
     state_hash: str | None = None
     agent_id: str | None = None
     include_trace: bool = False
+    actor_signature: str | None = None  # Added 2026-06-27: real Ed25519 sig verification
+    nonce: str | None = None  # Added 2026-06-27: replay prevention for signature
 
 
 class SealVerificationResponse(BaseModel):
@@ -113,17 +115,35 @@ class A2ASealVerifier:
                 error=f"Verdict is {request.verdict}, not SEAL. Cannot verify as SEAL.",
             )
 
-        # Check state hash if provided
+        # ── State hash + cryptographic signature verification (HARDENED 2026-06-27) ─
+        # C-2 fix: real Ed25519 verification instead of state_hash format proxy.
+        # Requires actor_signature + nonce in the request. Falls back to
+        # state_hash format check for backward compatibility with older clients.
         state_hash_valid = None
-        if request.state_hash:
-            if len(request.state_hash) == 64:
-                state_hash_valid = True
-                trace.append("state_hash valid format (64 hex)")
-            else:
-                state_hash_valid = False
-                trace.append(
-                    f"state_hash malformed (expected 64 hex, got {len(request.state_hash)})"
+        signature_valid = None
+        if request.actor_signature and request.nonce:
+            try:
+                from arifosmcp.runtime.sovereign_verify import verify_actor
+
+                actor_id = request.agent_id or "unknown"
+                ok, reason = verify_actor(
+                    actor_id=actor_id,
+                    actor_signature=request.actor_signature,
+                    nonce=request.nonce,
                 )
+                signature_valid = ok
+                trace.append(f"Ed25519 {'verified' if ok else 'REJECTED'}: {reason}")
+            except Exception as exc:
+                logger.error(
+                    "Seal verifier Ed25519 check failed: %s",
+                    exc,
+                    extra={"session_id": request.session_id[:30]},
+                )
+                trace.append(f"Ed25519 verification error: {exc}")
+                # Do NOT fall through — leave signature_valid=None
+        elif request.state_hash and len(request.state_hash) == 64:
+            # Backward compat: state_hash format check only (NOT signature verification)
+            trace.append("state_hash valid format (64 hex) — signature NOT verified")
 
         # Check vault for anchoring
         vault_anchored = False
@@ -177,7 +197,7 @@ class A2ASealVerifier:
             state_hash_valid=state_hash_valid,
             vault_anchored=vault_anchored,
             vault_entry_index=vault_entry_index,
-            signature_valid=state_hash_valid,  # Simplified: hash format = signature proxy
+            signature_valid=signature_valid,  # HARDENED: real Ed25519 or None
             trace=trace,
             omega_ortho=report.omega_ortho,
             well_readiness=well_readiness,
