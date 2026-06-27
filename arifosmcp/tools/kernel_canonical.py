@@ -209,6 +209,24 @@ def arif_route(
         "organ_tool": organ_tool,
         "status": "routed",
         "routing_rule": "intent_map",
+        # TIME INVARIANT: source_of_truth chain — tracks provenance of this
+        # routing decision. When bridged to an organ, the organ receives this
+        # chain so it knows where the request originated and with what context.
+        "source_of_truth": {
+            "origin": "arif_route",
+            "actor_id": actor_id,
+            "session_id": session_id,
+            "timestamp": __import__("time").time(),
+            "routing_confidence": 0.95 if organ else 0.85,
+            "chain": [
+                {"step": "intent_received", "timestamp": __import__("time").time()},
+                {
+                    "step": "organ_resolved",
+                    "organ": target_organ.upper(),
+                    "timestamp": __import__("time").time(),
+                },
+            ],
+        },
     }
 
     # If no organ_tool specified, return routing decision only

@@ -21,7 +21,6 @@ site-packages/
 *.lock
 *.log
 tests/
-docs/
 skills/
 benchmarks/
 scripts/
@@ -64,3 +63,11 @@ WEALTH/
 WELL/
 A-FORGE/
 GEOX/
+.arifOS-data/
+telemetry/
+data/memory/
+*/.venv/
+*/__pycache__/
+*/node_modules/
+*.pyc
+*.pyo

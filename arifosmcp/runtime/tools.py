@@ -127,7 +127,10 @@ VERDICT_LOOP_ENFORCEMENT = {
     "one_tool": "Verdict Loop With Memory",
 }
 
-def enforce_restraint_and_verdict(session: dict, tool_name: str, action_class: str = "OBSERVE") -> dict:
+
+def enforce_restraint_and_verdict(
+    session: dict, tool_name: str, action_class: str = "OBSERVE"
+) -> dict:
     """
     THE TEETH: Non-bypassable runtime law for the One Skill + One Tool.
     Returns verdict dict: {"decision": "PROCEED" | "HOLD" | "ASK" | "REFUSE", "reason": str, "trace_id": ...}
@@ -137,7 +140,9 @@ def enforce_restraint_and_verdict(session: dict, tool_name: str, action_class: s
     flags: list = session.get("restraint_flags", []) or []
     trace = geom.get("trace_id") or geom.get("verdict_trace_id")
 
-    requires = session.get("requires_verdict_loop", True) or "verdict" in (session.get("capability", {}) or {})
+    requires = session.get("requires_verdict_loop", True) or "verdict" in (
+        session.get("capability", {}) or {}
+    )
 
     if requires and not trace and action_class not in ("OBSERVE", "SUGGEST"):
         return {
@@ -149,11 +154,23 @@ def enforce_restraint_and_verdict(session: dict, tool_name: str, action_class: s
 
     # One Skill wired in
     if "restraint_under_uncertainty" in flags or geom.get("restraint_state") == "HOLD":
-        return {"decision": "HOLD", "reason": "RESTRAINT (One Skill): Knowing What NOT To Do — HOLD, pattern insufficient", "restraint_applied": True}
+        return {
+            "decision": "HOLD",
+            "reason": "RESTRAINT (One Skill): Knowing What NOT To Do — HOLD, pattern insufficient",
+            "restraint_applied": True,
+        }
     if "refusal_on_ambiguity" in flags or geom.get("restraint_state") == "ASK_ONE_QUESTION":
-        return {"decision": "ASK", "reason": "RESTRAINT (One Skill): Knowing What NOT To Do — ask one clarifying question, refuse to complete", "restraint_applied": True}
+        return {
+            "decision": "ASK",
+            "reason": "RESTRAINT (One Skill): Knowing What NOT To Do — ask one clarifying question, refuse to complete",
+            "restraint_applied": True,
+        }
     if "bounded_authority" in flags and action_class in ("EXECUTE_HIGH_IMPACT", "IRREVERSIBLE"):
-        return {"decision": "REFUSE", "reason": "RESTRAINT (One Skill): REFUSE — authority insufficient per geometry", "restraint_applied": True}
+        return {
+            "decision": "REFUSE",
+            "reason": "RESTRAINT (One Skill): REFUSE — authority insufficient per geometry",
+            "restraint_applied": True,
+        }
 
     if requires and trace:
         return {"decision": "PROCEED", "reason": "Verdict loop passed", "trace_id": trace}
@@ -1743,7 +1760,12 @@ def _get_sync_langfuse_tracer() -> Any:
         if not (public_key and secret_key):
             return None
 
-        def _emit(name: str, session_id: str | None, metadata: dict[str, Any] | None, tags: list[str] | None) -> None:
+        def _emit(
+            name: str,
+            session_id: str | None,
+            metadata: dict[str, Any] | None,
+            tags: list[str] | None,
+        ) -> None:
             try:
                 trace_id = str(uuid.uuid4())
                 ts = datetime.now(UTC).isoformat()
@@ -1788,7 +1810,12 @@ def _get_sync_langfuse_tracer() -> Any:
 _SYNC_LANGFUSE = _get_sync_langfuse_tracer()
 
 
-def _sync_trace(name: str, session_id: str | None = None, metadata: dict[str, Any] | None = None, tags: list[str] | None = None) -> None:
+def _sync_trace(
+    name: str,
+    session_id: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    tags: list[str] | None = None,
+) -> None:
     """Lightweight sync trace call — safe to use in non-async functions."""
     if _SYNC_LANGFUSE is not None:
         _SYNC_LANGFUSE(name=name, session_id=session_id, metadata=metadata, tags=tags)
@@ -3750,6 +3777,49 @@ def _context_restore_summary(
     except Exception as exc:
         service_status = {"probe": "not_performed", "error": str(exc)}
 
+    # MIND INVARIANT: belief_delta — what changed in the belief surface
+    # since last session. Computes delta between current KernelState
+    # (claims, hypotheses, contradictions) and the latest L4 snapshot.
+    belief_delta = None
+    try:
+        from arifosmcp.runtime.state_store import get_dual_store
+        from arifosmcp.runtime.kernel_state import KernelState as _KS
+
+        _store = get_dual_store()
+        if session_id:
+            current_state = _store.load_state(session_id)
+            prior_rows = _store.replay_from_l4(session_id, limit=1)
+            if prior_rows and current_state:
+                prior_payload = prior_rows[0].get("distillation_metadata", {})
+                prior_data = (
+                    prior_payload.get("payload", {}) if isinstance(prior_payload, dict) else {}
+                )
+                prior_claims = set(prior_data.get("claims", {}).keys())
+                prior_hypotheses = set(prior_data.get("hypotheses", {}).keys())
+                current_claims = set(current_state.claims.keys())
+                current_hypotheses = set(current_state.hypotheses.keys())
+                belief_delta = {
+                    "claims_added": list(current_claims - prior_claims),
+                    "claims_removed": list(prior_claims - current_claims),
+                    "claims_unchanged": list(current_claims & prior_claims),
+                    "hypotheses_added": list(current_hypotheses - prior_hypotheses),
+                    "hypotheses_removed": list(prior_hypotheses - current_hypotheses),
+                    "net_claim_delta": len(current_claims) - len(prior_claims),
+                    "net_hypothesis_delta": len(current_hypotheses) - len(prior_hypotheses),
+                    "prior_snapshot_ts": str(prior_rows[0].get("recorded_at", "")),
+                    "note": "Shows what the mind learned or unlearned since last snapshot",
+                }
+            elif current_state and not prior_rows:
+                belief_delta = {
+                    "claims_added": list(current_state.claims.keys()),
+                    "hypotheses_added": list(current_state.hypotheses.keys()),
+                    "net_claim_delta": len(current_state.claims),
+                    "net_hypothesis_delta": len(current_state.hypotheses),
+                    "note": "No prior snapshot — all current beliefs are new",
+                }
+    except Exception:
+        belief_delta = {"note": "belief delta unavailable — state store not accessible"}
+
     return {
         "latest_sealed_state": sealed_summary,
         "open_scars": [*envelope.get("scar_records", []), *ledger_scars][:8],
@@ -3759,6 +3829,7 @@ def _context_restore_summary(
         "last_human_verdict": last_human_verdict,
         "session_state": session_state,
         "last_human_verdict_source": "vault_ledger" if last_human_verdict else "not_found",
+        "belief_delta": belief_delta,
     }
 
 
@@ -7331,6 +7402,13 @@ def _arif_sense_observe(
                         "human_judgment_required": False,
                         "session_id": session_id,
                         "actor_id": actor_id,
+                        # TIME INVARIANT: freshness_weight — evidence decays over time.
+                        # 1.0 = fresh (just retrieved), 0.0 = completely stale.
+                        # When date metadata is available from results, this should be
+                        # computed as: max(0.1, 1.0 - (age_days / 365)).
+                        # Default 1.0 assumes fresh-retrieved web results.
+                        "freshness_weight": 1.0,
+                        "freshness_note": "Web results assumed fresh. Decay when date metadata available.",
                     }
                     try:
                         store = get_evidence_store()  # noqa: F823
@@ -9006,6 +9084,7 @@ def _arif_mind_reason(
     actor_id: str | None = None,
     plan_id: str | None = None,
     witness_type: str = "ai",
+    attention_context: dict | None = None,
 ) -> dict[str, Any]:
     """
     333_MIND: Symbolic constitutional reasoning kernel.
@@ -9032,11 +9111,14 @@ def _arif_mind_reason(
       session_id — Governed session ID
       actor_id   — Sovereign actor identifier
       plan_id    — Plan identifier (for plan_review)
+      attention_context — MIND invariant: scope what's in-focus vs out-of-focus.
+                          Keys: in_scope (list[str]), out_of_scope (list[str]),
+                          focus_claim (str), ignore_hypotheses (list[str]).
 
     Returns:
       ReasoningTrace with steps, axioms_used, conclusion, confidence,
-      and epistemic_snapshot. Plan mode returns a PlanReceipt with
-      plan_id, task_graph, and reversibility_map.
+      uncertainty_chain, and epistemic_snapshot. Plan mode returns a
+      PlanReceipt with plan_id, task_graph, and reversibility_map.
     """
     gate = _constitutional_gate(
         "arif_mind_reason",
@@ -9384,6 +9466,32 @@ def _arif_mind_reason(
                         "reason": "evidence insufficient for SEAL — SABAR default applies",
                     },
                 ],
+                # MIND INVARIANT: uncertainty_chain — how confidence propagated
+                # through each reasoning step. Enables epistemic auditing:
+                # "why is final confidence 0.85 and not 0.90?"
+                "uncertainty_chain": [
+                    {
+                        "step": s.step,
+                        "mode": s.reasoning_mode.value
+                        if hasattr(s.reasoning_mode, "value")
+                        else str(s.reasoning_mode),
+                        "confidence_before": s.confidence_before,
+                        "confidence_after": s.confidence_after,
+                        "delta": s.confidence_delta,
+                        "axiom": s.axiom_used,
+                        "source": "reasoning_step",
+                    }
+                    for s in steps
+                ],
+                # MIND INVARIANT: attention_context — what's in-scope vs out-of-focus
+                # If provided, reasoning is scoped to these boundaries.
+                "attention_context": attention_context
+                or {
+                    "in_scope": ["full query"],
+                    "out_of_scope": [],
+                    "focus_claim": None,
+                    "ignore_hypotheses": [],
+                },
             },
             verdict="CLAIM",
             omega_0=0.04,
@@ -13574,6 +13682,40 @@ def _arif_judge_deliberate(
             }
         )
 
+    # ── TIME INVARIANT: temporal_consistency check ────────────────────────
+    # Before issuing a verdict, verify that evidence timestamps are consistent.
+    # If evidence comes from multiple sources, their timestamps should not
+    # contradict each other (e.g., a future-dated receipt, or evidence that
+    # predates the session). Flag but do not block — temporal inconsistency
+    # is a WARNING, not a VOID, unless it's extreme.
+    _temporal_check = {"status": "OK", "message": "timestamps consistent"}
+    if evidence_receipt and session_id:
+        import time as _t
+
+        _now_ts = _t.time()
+        _receipt_ts = evidence_receipt.get("timestamp", _now_ts)
+        if isinstance(_receipt_ts, str):
+            try:
+                from datetime import datetime as _dt
+
+                _receipt_ts = _dt.fromisoformat(_receipt_ts.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                _receipt_ts = _now_ts
+        _age_hours = (_now_ts - _receipt_ts) / 3600 if _receipt_ts else 0
+        if _age_hours > 168:  # 7 days
+            _temporal_check = {
+                "status": "WARNING",
+                "message": f"Evidence is {_age_hours:.0f}h old (>7 days). Freshness_weight should be applied.",
+                "age_hours": round(_age_hours, 1),
+                "recommendation": "Re-fetch evidence before SEAL if domain is time-sensitive.",
+            }
+        elif _age_hours < 0:
+            _temporal_check = {
+                "status": "WARNING",
+                "message": "Evidence timestamp is in the future — possible clock drift or bad metadata.",
+                "age_hours": round(_age_hours, 1),
+            }
+
     if verdict.status != "OK":
         meta_state = {"reason": "Constitutional breach detected by kernel"}
         if _audit_entropy:
@@ -13725,6 +13867,8 @@ def _arif_judge_deliberate(
             "svs": _audit_entropy.get("svs"),
             "entropy_band": _audit_entropy.get("entropy_band"),
         }
+    if _temporal_check.get("status") != "OK":
+        meta_state["temporal_consistency"] = _temporal_check
 
     # Build judge contract for downstream vault/forge lineage
     floor_compliance = FloorComplianceProof(
@@ -14944,10 +15088,34 @@ def _arif_vault_seal(
 
     if mode == "verify":
         _ensure_vault_loaded()  # P0-FIX-1: load vault from file before reading
+        # TIME INVARIANT: irreversibility_chain — shows which ledger entries
+        # are irreversible and what they depend on. Enables temporal auditing:
+        # "what would break if this seal were undone?" (answer: nothing can
+        # be undone, but the chain shows the dependency graph)
+        irreversibility_chain = []
+        for entry in _VAULT_LEDGER:
+            if entry.get("type") in ("seal", "verdict", "constitutional"):
+                irreversibility_chain.append(
+                    {
+                        "id": entry.get("id"),
+                        "type": entry.get("type"),
+                        "timestamp": entry.get("timestamp"),
+                        "session_id": entry.get("session_id"),
+                        "actor_id": entry.get("actor_id"),
+                        "irreversible": True,
+                        "depends_on": entry.get("constitutional_chain_id"),
+                    }
+                )
         return _inject_nine_signal(
             SealOutput(
                 status="OK",
-                result={"ledger_size": len(_VAULT_LEDGER), "integrity": "OK"},
+                result={
+                    "ledger_size": len(_VAULT_LEDGER),
+                    "integrity": "OK",
+                    "irreversibility_chain": irreversibility_chain[-20:],  # last 20
+                    "chain_length": len(irreversibility_chain),
+                    "note": "All entries in irreversibility_chain are permanent. No rollback possible.",
+                },
                 ledger_size=len(_VAULT_LEDGER),
                 irreversibility_bond=IrreversibilityBond(
                     level=IrreversibilityLevel.REVERSIBLE,
@@ -16099,14 +16267,23 @@ async def _arif_forge_execute_tool(
     """
     # HARDENED TEETH: One Skill + One Tool enforcement. Verdict loop is the ONLY path.
     # This is called in the kernel for every forge path. Non-bypassable.
-    session_ctx = {"verdict_geometry": {"trace_id": judge_state_hash or vault_entry_id}, "restraint_flags": [], "requires_verdict_loop": True}
+    session_ctx = {
+        "verdict_geometry": {"trace_id": judge_state_hash or vault_entry_id},
+        "restraint_flags": [],
+        "requires_verdict_loop": True,
+    }
     # In real dispatch this would pull from session registry by session_id
     if session_id:
         # placeholder: real impl would load full geometry + flags
         pass
     v = enforce_restraint_and_verdict(session_ctx, "arif_forge_execute", "EXECUTE_HIGH_IMPACT")
     if v["decision"] != "PROCEED":
-        return {"status": v["decision"], "reason": v["reason"], "restraint_applied": True, "next": "arif_judge or revise"}
+        return {
+            "status": v["decision"],
+            "reason": v["reason"],
+            "restraint_applied": True,
+            "next": "arif_judge or revise",
+        }
 
     trace = None
     if _LANGFUSE_TRACER is not None:

@@ -45,6 +45,8 @@ Mode = Literal[
     "restore",
     "detect_drift",
     "detect_eureka",
+    "belief_snapshot",
+    "belief_restore",
 ]
 
 
@@ -361,6 +363,118 @@ def arif_memory_manage(
                 "delta_l_const": sig.delta_l_const,
                 "delta_u": sig.delta_u,
                 "reason": sig.reason,
+            },
+        )
+
+    # ── belief_snapshot — focused snapshot of belief surface ──────────────
+    # Captures claims + hypotheses + contradictions + uncertainty as a
+    # lightweight belief-state fingerprint. Does NOT capture full KernelState.
+    # Used by MIND invariant for epistemic tracking across sessions.
+    if mode == "belief_snapshot":
+        state = store.load_state(sid)
+        if state is None:
+            return _err(
+                mode,
+                t0,
+                f"no KernelState for session={sid} — cannot snapshot beliefs",
+                recoverable=True,
+            )
+        belief_surface = {
+            "session_id": sid,
+            "snapshot_ts": time.time(),
+            "claims": {
+                cid: {
+                    "text": c.text,
+                    "tier": c.tier.value if hasattr(c.tier, "value") else str(c.tier),
+                    "uncertainty": c.uncertainty.model_dump()
+                    if hasattr(c.uncertainty, "model_dump")
+                    else str(c.uncertainty),
+                    "status": c.status,
+                }
+                for cid, c in state.claims.items()
+            },
+            "hypotheses": {
+                hid: {
+                    "text": h.text,
+                    "confidence": h.confidence,
+                    "status": h.status,
+                    "supporting_claims": h.supporting_claims,
+                    "contradicting_claims": h.contradicting_claims,
+                }
+                for hid, h in state.hypotheses.items()
+            },
+            "contradictions": {
+                cid: {
+                    "claim_a": c.claim_a,
+                    "claim_b": c.claim_b,
+                    "severity": c.severity,
+                    "status": c.status,
+                }
+                for cid, c in state.contradictions.items()
+            },
+            "global_uncertainty": state.global_uncertainty.model_dump()
+            if hasattr(state.global_uncertainty, "model_dump")
+            else {},
+            "claim_count": len(state.claims),
+            "hypothesis_count": len(state.hypotheses),
+            "contradiction_count": len(state.contradictions),
+        }
+        # Persist to L4 as a belief snapshot event
+        h, snap = store.save_state(state, actor=actor, event_type="belief_snapshot")
+        return _ok(
+            mode,
+            t0,
+            {
+                "session_id": sid,
+                "state_hash": h,
+                "belief_surface": belief_surface,
+                "l4_write_ok": snap.l4_write_ok if snap else None,
+            },
+        )
+
+    # ── belief_restore — restore belief surface from latest snapshot ─────
+    # Loads the most recent L4 snapshot and extracts the belief surface
+    # (claims, hypotheses, contradictions). Returns delta from current state
+    # if one exists, or the full surface if no current state.
+    if mode == "belief_restore":
+        rows = store.replay_from_l4(sid, limit=1)
+        if not rows:
+            return _err(mode, t0, f"no L4 snapshots for session={sid}", recoverable=True)
+        latest = rows[0]
+        dm = latest.get("distillation_metadata", {})
+        payload_data = dm.get("payload", {}) if isinstance(dm, dict) else {}
+        # Extract belief surface from the snapshot payload
+        restored_claims = payload_data.get("claims", {})
+        restored_hypotheses = payload_data.get("hypotheses", {})
+        restored_contradictions = payload_data.get("contradictions", {})
+        restored_uncertainty = payload_data.get("global_uncertainty", {})
+        # Compute delta from current state if it exists
+        current = store.load_state(sid)
+        delta = None
+        if current is not None:
+            current_claim_ids = set(current.claims.keys())
+            restored_claim_ids = set(restored_claims.keys())
+            delta = {
+                "claims_added": list(restored_claim_ids - current_claim_ids),
+                "claims_removed": list(current_claim_ids - restored_claim_ids),
+                "claims_unchanged": list(current_claim_ids & restored_claim_ids),
+                "hypothesis_delta": len(restored_hypotheses) - len(current.hypotheses),
+                "contradiction_delta": len(restored_contradictions) - len(current.contradictions),
+            }
+        return _ok(
+            mode,
+            t0,
+            {
+                "session_id": sid,
+                "restored_from": str(latest.get("recorded_at", "")),
+                "belief_surface": {
+                    "claims": restored_claims,
+                    "hypotheses": restored_hypotheses,
+                    "contradictions": restored_contradictions,
+                    "global_uncertainty": restored_uncertainty,
+                },
+                "delta_from_current": delta,
+                "note": "belief_restore returns surface data; use snapshot mode to persist it as current state",
             },
         )
 
