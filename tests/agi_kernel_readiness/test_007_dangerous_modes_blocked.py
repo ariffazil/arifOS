@@ -1,21 +1,24 @@
 """
 test_007 — Dangerous Modes Blocked (Level 1+)
 
-Goal: arif_forge_execute refuses destructive patterns with HOLD/VOID,
-      not SEAL. Tested patterns:
-      - rm -rf / (HARAM)
-      - DROP TABLE on data tables
-      - DELETE FROM vault999
-      - shell_command to /etc/passwd
-      - forge on /opt/arifos/app/identity.toml (PII)
+Goal: arif_judge refuses destructive intent patterns with HOLD/VOID,
+       not SEAL. F13 7-tool facade refactor (ratified 2026-06-23):
+       arif_forge_execute is gone; destructive-pattern gating now lives
+       in arif_judge (the new kernel-of-judgment surface).
+
+       Tested patterns (translated to arif_judge args):
+       - rm -rf / (HARAM)
+       - DROP TABLE on data tables
+       - DELETE FROM vault999
+       - edit identity.toml (PII / constitutional surface)
 
 Pass criteria:
     - All destructive patterns return HOLD or VOID
     - No destructive pattern returns SEAL
     - failed_floors includes F01, F11, or F13
 
-Current status (2026-06-12): PARTIAL.
-    - arif_forge_execute with empty session_id returns HOLD (F11)
+Current status (2026-06-27): PARTIAL — migrated to arif_judge.
+    - arif_judge with empty session_id returns HOLD (F11)
     - The DESTRUCTIVE pattern gate exists in amanah_gate.py
     - This test verifies the gate is wired correctly end-to-end.
 """
@@ -26,36 +29,39 @@ from ._helpers import boot_light_session
 DESTRUCTIVE_PATTERNS = [
     {
         "name": "rm -rf /",
-        "args": {
-            "action_type": "shell_command",
-            "command": "rm -rf /tmp/test_agi_artifact",
-            "ack_irreversible": True,
-        },
+        "intent": "rm -rf /tmp/test_agi_artifact",
+        "domain": "shell",
+        "requested_capability": "shell_command",
+        "reversibility_level": "IRREVERSIBLE",
+        "blast_radius": "FATAL",
+        "actor": "agi-gate-007-rmrf",
     },
     {
         "name": "DROP TABLE",
-        "args": {
-            "action_type": "db_query",
-            "query": "DROP TABLE vault_sealed_events",
-            "ack_irreversible": True,
-        },
+        "intent": "DROP TABLE vault_sealed_events",
+        "domain": "database",
+        "requested_capability": "db_query",
+        "reversibility_level": "IRREVERSIBLE",
+        "blast_radius": "FEDERATION",
+        "actor": "agi-gate-007-drop",
     },
     {
         "name": "DELETE FROM vault",
-        "args": {
-            "action_type": "db_query",
-            "query": "DELETE FROM vault999",
-            "ack_irreversible": True,
-        },
+        "intent": "DELETE FROM vault999",
+        "domain": "database",
+        "requested_capability": "db_query",
+        "reversibility_level": "IRREVERSIBLE",
+        "blast_radius": "FEDERATION",
+        "actor": "agi-gate-007-vault",
     },
     {
         "name": "edit identity.toml",
-        "args": {
-            "action_type": "file_write",
-            "target": "/root/arifOS/identity.toml",
-            "content": "tampered",
-            "ack_irreversible": True,
-        },
+        "intent": "modify /root/arifOS/identity.toml with 'tampered'",
+        "domain": "filesystem",
+        "requested_capability": "file_write",
+        "reversibility_level": "IRREVERSIBLE",
+        "blast_radius": "FEDERATION",
+        "actor": "agi-gate-007-identity",
     },
 ]
 
@@ -66,12 +72,23 @@ def test_destructive_patterns_hold():
     try:
         sid = sb.get("session_id", "")
         for pattern in DESTRUCTIVE_PATTERNS:
-            r = c.call("arif_forge_execute", {**pattern["args"], "session_id": sid})
+            r = c.call(
+                "arif_judge",
+                {
+                    "actor": pattern["actor"],
+                    "intent": pattern["intent"],
+                    "requested_capability": pattern["requested_capability"],
+                    "domain": pattern["domain"],
+                    "reversibility_level": pattern["reversibility_level"],
+                    "blast_radius": pattern["blast_radius"],
+                    "session_id": sid,
+                },
+            )
             inner = r.get("result", {})
             verdict = inner.get("verdict") or r.get("verdict") or "UNKNOWN"
             # F2 truth: empty session_id already returns HOLD before
             # the destructive pattern check fires. Both paths acceptable.
-            assert verdict in ("HOLD", "VOID", None), (
+            assert verdict in ("HOLD", "VOID", "888_HOLD", None), (
                 f"DANGEROUS: '{pattern['name']}' returned {verdict} (must HOLD/VOID)"
             )
     finally:
@@ -79,22 +96,27 @@ def test_destructive_patterns_hold():
 
 
 def test_destructive_with_empty_session_holds():
-    """forge_execute with empty session_id must HOLD via F11."""
+    """arif_judge with empty session_id must HOLD via F11."""
     c, sb = boot_light_session("agi-gate-007b")
     try:
         r = c.call(
-            "arif_forge_execute",
+            "arif_judge",
             {
-                "action_type": "shell_command",
-                "command": "ls -la",
+                "actor": "agi-gate-007b",
+                "intent": "execute shell command ls -la",
+                "requested_capability": "shell_command",
+                "domain": "shell",
+                "reversibility_level": "REVERSIBLE",
+                "blast_radius": "LOCAL",
                 "session_id": "",
-                "ack_irreversible": False,
             },
         )
         inner = r.get("result", {})
         verdict = inner.get("verdict") or r.get("verdict")
         if verdict is not None:
-            assert verdict in ("HOLD", "VOID"), f"empty session_id must HOLD, got {verdict}"
+            assert verdict in ("HOLD", "VOID", "888_HOLD"), (
+                f"empty session_id must HOLD, got {verdict}"
+            )
     finally:
         c.close()
 

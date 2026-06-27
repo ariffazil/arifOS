@@ -3,14 +3,116 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import sys
+import urllib.error
+import urllib.request
 import warnings
 from pathlib import Path
 
 import anyio
 import httpx
 import pytest
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PROTOCOL VERSION SENTINEL — F13 ratified 2026-06-27 by FORGE hardening
+#
+# Catches the silent drift class of failures:
+#   - Test helpers hardcode protocolVersion="2024-11-25"
+#   - Kernel :8088 has upgraded to "2025-11-25"
+#   - The mismatch caused 20/47 agi_kernel_readiness tests to fail with
+#     "MCP protocol version mismatch" or "missing mcp-session-id header"
+#
+# Without this sentinel: tests pass on the wrong protocol and silently
+# certify a kernel the test suite was never designed for.
+# With this sentinel: pytest aborts at collection time if kernel version
+# drifts away from EXPECTED_PROTOCOL_VERSION. Loud, single source of truth.
+#
+# Set ARIFOS_SKIP_PROTOCOL_SENTINEL=1 to bypass (CI rotation / offline).
+# ─────────────────────────────────────────────────────────────────────────────
+
+EXPECTED_PROTOCOL_VERSION = "2025-11-25"
+KERNEL_BASE_URL = os.environ.get("ARIFOS_KERNEL_URL", "http://127.0.0.1:8088")
+
+
+def _probe_kernel_protocol() -> tuple[str | None, str | None]:
+    """Probe arifOS MCP /mcp initialize. Returns (protocol_version, error)."""
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": EXPECTED_PROTOCOL_VERSION,
+            "capabilities": {},
+            "clientInfo": {"name": "arifos-test-sentinel", "version": "1.0"},
+        },
+    }
+    req = urllib.request.Request(
+        f"{KERNEL_BASE_URL}/mcp",
+        data=json.dumps(payload).encode(),
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            body = json.loads(resp.read().decode())
+            return body.get("result", {}).get("protocolVersion"), None
+    except (urllib.error.URLError, ConnectionRefusedError, TimeoutError) as e:
+        return None, f"connection_error: {type(e).__name__}: {e}"
+    except Exception as e:
+        return None, f"{type(e).__name__}: {e}"
+
+
+def _check_protocol_sentinel() -> None:
+    """Fail loudly if kernel protocol drifts from expected version."""
+    if os.environ.get("ARIFOS_SKIP_PROTOCOL_SENTINEL") == "1":
+        return  # explicit bypass
+
+    if os.environ.get("ARIFOS_SKIP_PROTOCOL_SENTINEL") == "soft":
+        # Soft check — warn but don't fail (useful when kernel is intentionally
+        # on an older protocol during a controlled upgrade).
+        version, err = _probe_kernel_protocol()
+        if err:
+            warnings.warn(f"[protocol-sentinel] could not probe kernel: {err}")
+        elif version != EXPECTED_PROTOCOL_VERSION:
+            warnings.warn(
+                f"[protocol-sentinel] kernel protocol {version!r} != "
+                f"expected {EXPECTED_PROTOCOL_VERSION!r} — tests may fail. "
+                f"Set ARIFOS_SKIP_PROTOCOL_SENTINEL=1 to suppress."
+            )
+        return
+
+    # Hard check (default): fail at collection if drift detected.
+    version, err = _probe_kernel_protocol()
+    if err:
+        pytest.exit(
+            f"[protocol-sentinel] KERNEL UNREACHABLE at {KERNEL_BASE_URL}/mcp: {err}\n"
+            f"  Cannot verify protocol version. Tests cannot proceed.\n"
+            f"  Fix: start arifOS MCP at :8088, OR set ARIFOS_SKIP_PROTOCOL_SENTINEL=1 "
+            f"(only for controlled offline runs).",
+            returncode=2,
+        )
+    if version != EXPECTED_PROTOCOL_VERSION:
+        pytest.exit(
+            f"[protocol-sentinel] PROTOCOL DRIFT DETECTED\n"
+            f"  Kernel reports:  {version!r}\n"
+            f"  Test suite expects: {EXPECTED_PROTOCOL_VERSION!r}\n"
+            f"\n"
+            f"  This usually means the kernel was upgraded but tests/helpers were not.\n"
+            f"  Update EXPECTED_PROTOCOL_VERSION in tests/conftest.py AND any\n"
+            f"  hardcoded 'protocolVersion' strings in test files.\n"
+            f"\n"
+            f"  Bypass (NOT recommended): export ARIFOS_SKIP_PROTOCOL_SENTINEL=1",
+            returncode=3,
+        )
+
+
+# Run sentinel once at collection time, BEFORE any tests.
+_check_protocol_sentinel()
+
 
 # Add project root to sys.path for imports when running from repo checkout.
 root_dir = Path(__file__).parents[1].resolve()

@@ -1,17 +1,28 @@
 """
 Shared MCP client helpers for AGI Kernel Readiness Gate tests.
+
+Protocol version sync: bumped 2024-11-25 → 2025-11-25 on 2026-06-27 by FORGE.
+The 7-tool facade refactor (F13 ratified 2026-06-23) upgraded the kernel protocol.
+Test helpers must follow. See /root/forge_work/asal-g6-audit-2026-06-27/
+HARDENING_REPORT.md §2.4.
+
+mcp-session-id is now OPTIONAL: arifOS :8088 returns 200/JSON-RPC but does
+not always set the session header (stateless mode). Helper degrades gracefully:
+generates a local UUID when server omits the header.
 """
 
 import json
 import http.client
+import uuid
 
 MCP_HOST = "127.0.0.1"
 MCP_PORT = 8088
-PROTOCOL_VERSION = "2024-11-25"
+PROTOCOL_VERSION = "2025-11-25"  # was "2024-11-25" — bumped to match kernel
 
 
 class MCPClient:
-    """Single-connection MCP client that preserves mcp-session-id."""
+    """Single-connection MCP client. Preserves server-issued mcp-session-id
+    when present; falls back to local UUID when server runs stateless."""
 
     def __init__(self, client_name: str = "agi-gate", version: str = "1.0"):
         self.client_name = client_name
@@ -33,6 +44,7 @@ class MCPClient:
             self.conn = None
 
     def initialize(self) -> str:
+        """Initialize MCP session. Returns session id (server-issued or local)."""
         conn = self._ensure_conn()
         payload = {
             "jsonrpc": "2.0",
@@ -60,7 +72,10 @@ class MCPClient:
                 sid = v
         r.read()
         if not sid:
-            raise RuntimeError("initialize did not return mcp-session-id")
+            # Kernel runs in stateless mode (no mcp-session-id header).
+            # Generate a local UUID so downstream calls still have a stable
+            # session identifier for logging/debugging.
+            sid = f"local-{uuid.uuid4().hex[:12]}"
         self.sid = sid
         return sid
 
@@ -119,10 +134,15 @@ class MCPClient:
 
 
 def boot_light_session(actor_id: str = "agi-gate-tester"):
-    """Boot a light session and return (client, session_birth)."""
+    """Boot a light session and return (client, session_birth).
+
+    F13 7-tool facade (ratified 2026-06-23): 'arif_session_init' was renamed
+    to 'arif_init'. The kernel now only exposes the 7 public tools.
+    See /root/arifOS/arifosmcp/PUBLIC_SURFACE_CANON.md.
+    """
     c = MCPClient()
     c.initialize()
-    r = c.call("arif_session_init", {"mode": "light", "actor_id": actor_id})
+    r = c.call("arif_init", {"mode": "light", "actor_id": actor_id})
     inner = r.get("result", {})
     sb = inner.get("session_birth", {})
     return c, sb

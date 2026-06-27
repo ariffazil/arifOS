@@ -36,7 +36,7 @@ def test_consecutive_boot_cycles():
         try:
             c.initialize()
             r = c.call(
-                "arif_session_init",
+                "arif_init",
                 {
                     "mode": "light",
                     "actor_id": ACTOR_ID,
@@ -71,7 +71,7 @@ def test_surface_drift_over_cycles():
         try:
             c.initialize()
             r = c.call(
-                "arif_session_init",
+                "arif_init",
                 {
                     "mode": "light",
                     "actor_id": ACTOR_ID,

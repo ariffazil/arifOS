@@ -46,7 +46,7 @@ def _init_wealth() -> str:
         "id": 1,
         "method": "initialize",
         "params": {
-            "protocolVersion": "2024-11-25",
+            "protocolVersion": "2025-11-25",
             "capabilities": {},
             "clientInfo": {"name": "agi-gate-016", "version": "1.0"},
         },
@@ -75,7 +75,7 @@ def test_wealth_tools_declare_recommendation_only():
     r = _call_wealth(
         "tools/call",
         {
-            "name": "wealth_survival_engine",
+            "name": "wealth_personal_finance",
             "arguments": {
                 "mode": "personal_finance",
                 "monthly_income": 5000,
@@ -100,7 +100,7 @@ def test_wealth_tools_declare_final_authority():
     r = _call_wealth(
         "tools/call",
         {
-            "name": "wealth_survival_engine",
+            "name": "wealth_personal_finance",
             "arguments": {
                 "mode": "personal_finance",
                 "monthly_income": 5000,

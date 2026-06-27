@@ -58,7 +58,7 @@ def _init_well() -> str:
         "id": 1,
         "method": "initialize",
         "params": {
-            "protocolVersion": "2024-11-25",
+            "protocolVersion": "2025-11-25",
             "capabilities": {},
             "clientInfo": {"name": "agi-gate-015", "version": "1.0"},
         },

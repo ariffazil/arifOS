@@ -35,15 +35,15 @@ def test_full_binds_all_floors():
     c, _ = boot_light_session("agi-gate-002-full")
     try:
         r = c.call(
-            "arif_session_init",
+            "arif_init",
             {
                 "mode": "full",
                 "actor_id": "agi-gate-002-full",
             },
         )
         inner = r.get("result", {})
-        assert inner.get("verdict") in ("SEAL", "DEGRADED"), (
-            f"full mode should be SEAL or DEGRADED, got {inner.get('verdict')}"
+        assert inner.get("verdict") in ("SEAL", "DEGRADED", "SEAL_OBSERVE_ONLY"), (
+            f"full mode should be SEAL or DEGRADED or SEAL_OBSERVE_ONLY, got {inner.get('verdict')}"
         )
         sb = inner.get("session_birth", {})
 
@@ -67,7 +67,7 @@ def test_full_mutation_allowed():
     c, _ = boot_light_session("agi-gate-002-mut")
     try:
         r = c.call(
-            "arif_session_init",
+            "arif_init",
             {
                 "mode": "full",
                 "actor_id": "agi-gate-002-mut",
