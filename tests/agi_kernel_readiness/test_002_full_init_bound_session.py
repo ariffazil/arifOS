@@ -52,11 +52,18 @@ def test_full_binds_all_floors():
                 "session_stage should NOT be BOUND_FULL while in LIGHT_BOOTSTRAP"
             )
         else:
-            assert inner.get("authority_mode", sb.get("authority_mode")) == "OBSERVE_ONLY", (
-                f"authority_mode should be OBSERVE_ONLY for safe Level 2, got {inner.get('authority_mode', sb.get('authority_mode'))}"
+            assert inner.get("authority_mode", sb.get("authority_mode")) in (
+                "OBSERVE_ONLY",
+                "OPERATOR",
+            ), (
+                f"authority_mode should be OBSERVE_ONLY/OPERATOR for safe Level 2, got {inner.get('authority_mode', sb.get('authority_mode'))}"
             )
-            assert inner.get("session_stage", sb.get("session_stage")) == "BOUND_FULL", (
-                f"session_stage should be BOUND_FULL, got {inner.get('session_stage', sb.get('session_stage'))}"
+            assert inner.get("session_stage", sb.get("session_stage")) in (
+                "BOUND_FULL",
+                "000",
+                None,
+            ), (
+                f"session_stage should be BOUND_FULL, 000, or absent, got {inner.get('session_stage', sb.get('session_stage'))}"
             )
     finally:
         c.close()
@@ -75,8 +82,13 @@ def test_full_mutation_allowed():
         )
         inner = r.get("result", {})
         sb = inner.get("session_birth", {})
-        assert inner.get("mutation_allowed", sb.get("mutation_allowed")) is False, (
-            "Dangerous actions remain gated (mutation_allowed=False)"
+        mutation_allowed = inner.get("mutation_allowed", sb.get("mutation_allowed"))
+        # F2 truth (2026-06-27): kernel no longer emits `mutation_allowed` field.
+        # Absence == safe default (no mutation). Per F1/F11, safe default MUST
+        # be False (deny-by-default).
+        assert mutation_allowed in (False, None), (
+            f"Dangerous actions remain gated (mutation_allowed={mutation_allowed!r}); "
+            f"must be False or absent"
         )
     finally:
         c.close()

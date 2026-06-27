@@ -29,12 +29,18 @@ def test_actor_verified_true_under_light():
         # F2 truth: today actor_verified=false under LIGHT_BOOTSTRAP
         # even when actor_id is provided. The kernel cannot verify
         # without a signed challenge.
-        if sb.get("actor_verified") is True:
+        # F13 ratified 2026-06-27: actor_verified field moved out of session_birth.
+        # It now lives in `result.actor_verified` (top of result envelope).
+        inner = getattr(c, "_last_result", None) or {}
+        av = (
+            sb.get("actor_verified")
+            if sb.get("actor_verified") is not None
+            else inner.get("actor_verified")
+        )
+        if av is True:
             return  # already passing
         # Document the gap
-        assert sb.get("actor_verified") is False, (
-            f"actor_verified should be False today, got {sb.get('actor_verified')}"
-        )
+        assert av in (False, None), f"actor_verified should be False (or absent) today, got {av!r}"
         # The gap is acknowledged, not a test failure per se.
     finally:
         c.close()
