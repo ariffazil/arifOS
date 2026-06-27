@@ -81,7 +81,7 @@ class TestSenseToMind:
     @pytest.mark.asyncio
     async def test_mind_accepts_sense_context(self, golden_context):
         """Mind reason must accept a context dict with session_id from Sense."""
-        from arifosmcp.tools.reason import arif_mind_reason
+        from arifosmcp.tools.reason import arif_think as arif_mind_reason
 
         result = arif_mind_reason(
             mode="reason",
@@ -91,7 +91,7 @@ class TestSenseToMind:
         )
         # Must produce structured output
         assert result.status in ("OK", "HOLD")
-        assert result.tool == "arif_mind_reason"
+        assert result.tool == "arif_think"
 
     def test_mind_delta_bundle_has_required_fields(self):
         """Mind reasoning bundle must include claim_state, confidence, evidence."""
@@ -287,7 +287,7 @@ class TestFullGoldenPath:
         """
         from arifosmcp.tools.session import arif_session_init
         from arifosmcp.tools.sense import arif_sense_observe
-        from arifosmcp.tools.reason import arif_mind_reason
+        from arifosmcp.tools.reason import arif_think as arif_mind_reason
         from arifosmcp.tools.heart import arif_heart_critique
         from arifosmcp.tools.judge import arif_judge_deliberate
 
