@@ -126,6 +126,7 @@ TOOL_ALIASES: dict[str, str] = {
     # Critique family
     "arif_heart": "arif_critique",
     "heart": "arif_critique",
+    "arif_heart_critique": "arif_critique",
     # Measure family
     "vitals": "arif_measure",
     "arif_vitals": "arif_measure",

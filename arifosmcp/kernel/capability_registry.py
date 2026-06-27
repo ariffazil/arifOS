@@ -550,6 +550,77 @@ def _build_default_graph() -> CapabilityGraph:
             max_simulations_before_action=10,
             requires_action_or_refusal_log=True,
         ),
+        # ── Act (900_EXECUTE gate) — F13-ratified 6th canonical public verb ──
+        CapabilityNode(
+            capability_id="kernel.act",
+            tool_name="arif_act",
+            server_id="local",
+            description="Execute a sealed action. Hard requirement: valid prior SEAL from arif_judge + arif_seal. The 900_EXECUTE gate. By design 888_HOLDs without prior SEAL.",
+            authority_required=AuthorityTier.SOVEREIGN,
+            mutation_class=MutationClass.IRREVERSIBLE,
+            irreversible=True,
+            blast_radius=BlastRadius.FEDERATION,
+            resource_class=ResourceClass.VAULT_ENTRY,
+            organ_id="arifOS",
+            requires_888_hold=True,
+            audit_required=True,
+            trust_state=TrustState.TRUSTED_MUTATE,
+            prompt_injection_surface=PromptInjectionSurface.HIGH,
+            data_exfiltration_risk=DataExfiltrationRisk.MEDIUM,
+            # Three Beasts: act requires external witness + anchor
+            requires_external_witness=True,
+            requires_external_anchor=True,
+        ),
+        # ── Lease primitives (federation lease system — expanded45 surface) ──
+        CapabilityNode(
+            capability_id="kernel.lease_issue",
+            tool_name="arif_lease_issue",
+            server_id="local",
+            description="Issue a federation lease binding authority to a tool invocation. The 700_LEASE gate.",
+            authority_required=AuthorityTier.HIGH,
+            mutation_class=MutationClass.IRREVERSIBLE,
+            irreversible=True,
+            blast_radius=BlastRadius.FEDERATION,
+            resource_class=ResourceClass.VAULT_ENTRY,
+            organ_id="arifOS",
+            requires_888_hold=True,
+            audit_required=True,
+            trust_state=TrustState.TRUSTED_MUTATE,
+            prompt_injection_surface=PromptInjectionSurface.MEDIUM,
+            data_exfiltration_risk=DataExfiltrationRisk.LOW,
+            requires_external_anchor=True,
+        ),
+        CapabilityNode(
+            capability_id="kernel.lease_revoke",
+            tool_name="arif_lease_revoke",
+            server_id="local",
+            description="Revoke a previously issued federation lease.",
+            authority_required=AuthorityTier.HIGH,
+            mutation_class=MutationClass.IRREVERSIBLE,
+            irreversible=True,
+            blast_radius=BlastRadius.FEDERATION,
+            resource_class=ResourceClass.VAULT_ENTRY,
+            organ_id="arifOS",
+            requires_888_hold=True,
+            audit_required=True,
+            trust_state=TrustState.TRUSTED_MUTATE,
+            prompt_injection_surface=PromptInjectionSurface.MEDIUM,
+            data_exfiltration_risk=DataExfiltrationRisk.LOW,
+            requires_external_anchor=True,
+        ),
+        CapabilityNode(
+            capability_id="kernel.lease_inspect",
+            tool_name="arif_lease_inspect",
+            server_id="local",
+            description="Inspect a federation lease without mutating state. Read-only.",
+            authority_required=AuthorityTier.MEDIUM,
+            mutation_class=MutationClass.NONE,
+            irreversible=False,
+            blast_radius=BlastRadius.LOCAL,
+            resource_class=ResourceClass.VAULT_ENTRY,
+            organ_id="arifOS",
+            trust_state=TrustState.TRUSTED_READ,
+        ),
         # ── GEOX organ ────────────────────────────────────────────────────
         CapabilityNode(
             capability_id="organ.geox.*",
@@ -595,8 +666,8 @@ def _build_default_graph() -> CapabilityGraph:
     ]
 
     version = GraphVersion(
-        version_id="v0.2.0",
-        description="Initial Capability Graph — 22 nodes covering runtime, fs, web, kernel, and organ servers",
+        version_id="v0.2.1",
+        description="Capability Graph v0.2.1 — added arif_act (900_EXECUTE gate) + 3 lease primitives (arif_lease_issue/revoke/inspect). 26 nodes total. Path A3 forge 2026-06-27.",
     )
 
     graph = CapabilityGraph(version=version, capabilities=capabilities)
