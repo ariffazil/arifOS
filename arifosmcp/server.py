@@ -86,7 +86,9 @@ from starlette.responses import JSONResponse  # noqa: E402
 # (skill:// URIs). Distinct from the custom arifosmcp.providers.skills (domain .py callables).
 try:
     from pathlib import Path
-    from fastmcp.server.providers.skills import SkillsDirectoryProvider as FastMCPSkillsDirectoryProvider
+    from fastmcp.server.providers.skills import (
+        SkillsDirectoryProvider as FastMCPSkillsDirectoryProvider,
+    )
 except ImportError:
     FastMCPSkillsDirectoryProvider = None  # type: ignore
     Path = None  # type: ignore
@@ -245,7 +247,7 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         for prefix in cls.ALLOWED_ORIGIN_PREFIXES:
             if prefix.startswith("https://*."):
                 scheme_and_wild = prefix.split("://", 1)[1]  # e.g. *.microsoft.com
-                domain = scheme_and_wild.lstrip("*.")         # e.g. microsoft.com
+                domain = scheme_and_wild.lstrip("*.")  # e.g. microsoft.com
                 if origin.startswith("https://") and origin[8:].endswith("." + domain):
                     return True
             elif origin.startswith(prefix):
@@ -394,7 +396,7 @@ if FastMCPSkillsDirectoryProvider is not None and Path is not None:
     try:
         _skill_roots: list[Path] = [
             Path("/root/.arifos/agents/kimi/skills"),  # canonical sovereign mirror
-            Path("/root/.agents/skills"),              # project / user scope
+            Path("/root/.agents/skills"),  # project / user scope
         ]
         _federation_skills_provider = FastMCPSkillsDirectoryProvider(
             roots=_skill_roots,
@@ -449,9 +451,14 @@ if FastMCPSkillsDirectoryProvider is not None and Path is not None:
                     len(_wire_registered),
                 )
         except Exception as _wire_err:
-            logger.warning("Could not wire explicit FileResources for skill:// (http list may miss): %s", _wire_err)
+            logger.warning(
+                "Could not wire explicit FileResources for skill:// (http list may miss): %s",
+                _wire_err,
+            )
     except Exception as _skills_err:
-        logger.warning(f"Could not wire standard SkillsDirectoryProvider for SKILL.md: {_skills_err}")
+        logger.warning(
+            f"Could not wire standard SkillsDirectoryProvider for SKILL.md: {_skills_err}"
+        )
 else:
     logger.info("FastMCPSkillsDirectoryProvider not available — skipping skill:// wiring")
 
@@ -623,9 +630,7 @@ try:
             },
         )(_arif_canary_handler)
     else:
-        logger.info(
-            "Canary multimode gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
-        )
+        logger.info("Canary multimode gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
 
     from arifosmcp.runtime.tools import _wrap_handler
 
@@ -905,9 +910,7 @@ try:
     # Conformance spine runs via arif_canary(mode="conformance_report") which is also gated.
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
 
-    _hermes_to_register = (
-        HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
-    )
+    _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
     for _hermes_name, _hermes_handler in _hermes_to_register.items():
         _hw = _wrap_handler(_hermes_handler, _hermes_name)
         if _hw is not None:
@@ -1431,7 +1434,7 @@ async def mcp_health(request: Request) -> JSONResponse:
     )
 
 
-app = mcp.http_app(transport="streamable-http", stateless_http=False, json_response=True)
+app = mcp.http_app(transport="streamable-http", stateless_http=True, json_response=True)
 # Counts are derived live from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (imported above).
 _actual_canonical_count = len(CANONICAL_TOOLS)
 _actual_diagnostic_count = len(DIAGNOSTIC_TOOLS)
@@ -1446,8 +1449,12 @@ app.state._diagnostic_tool_count = _actual_diagnostic_count  # pyright: ignore[r
 app.state._total_tool_count = _actual_total_count  # pyright: ignore[reportAttributeAccessIssue]
 if app:
     # ── MCP 2025-11-25 Transport Compliance Middleware ──────────────────────
-    # PHOENIX-73C FIX: stateless_http=False enables proper session management.
-    # Each client gets its own session; no more GET_STREAM_KEY singleton conflict.
+    # PHOENIX-73C FIX (updated 2026-06-27): stateless_http=True.
+    # - Each request is stateless (fresh transport per call)
+    # - No MCP-Session-Id header required on subsequent calls
+    # - arifOS constitutional tools are sessionless by design
+    # - MCP spec sessionId in JSON body (2025-11-25) not implemented in SDK 1.27.2;
+    #   session comes via HTTP header only — stateless mode sidesteps this gap
     # StatelessGetRejectMiddleware removed — SSE streaming now works via sessions.
     #
     # MCP Transport Bridge (Ω, 2026-06-12):

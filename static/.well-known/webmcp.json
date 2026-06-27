@@ -1,0 +1,37 @@
+{
+  "name": "arifOS Observatory WebMCP Surface",
+  "version": "1.0",
+  "description": "Browser-native agent tool surface for arifOS Observatory, governed by arifOS constitutional floors F1-F13.",
+  "sovereign": "did:web:arif-fazil.com",
+  "constitutional_kernel": "https://arifos.arif-fazil.com",
+  "mcp_endpoint": "https://arifos.arif-fazil.com/mcp",
+  "adapter_script": "/_shared/webmcp/arifos-webmcp-adapter.js",
+  "tools": [
+    {
+      "name": "get_federation_status",
+      "description": "Returns live health status of all arifOS federation organs (arifOS, GEOX, WEALTH, WELL, AAA)",
+      "endpoint": "https://arifos.arif-fazil.com/health",
+      "method": "GET",
+      "floor": "F2"
+    },
+    {
+      "name": "get_constitutional_floors",
+      "description": "Returns the arifOS constitutional floor definitions (F1-F13) — the governing law of the federation",
+      "endpoint": "https://arifos.arif-fazil.com/constitution.json",
+      "method": "GET",
+      "floor": "F2"
+    },
+    {
+      "name": "get_vault_status",
+      "description": "Returns VAULT999 status — immutable audit vault health and recent seals",
+      "endpoint": "https://arifos.arif-fazil.com/vault/status",
+      "method": "GET",
+      "floor": "F2"
+    }
+  ],
+  "constraints": {
+    "read_only": true,
+    "requires_sovereign_confirm": false,
+    "floor_guards": ["F1", "F2", "F8", "F9", "F12", "F13"]
+  }
+}

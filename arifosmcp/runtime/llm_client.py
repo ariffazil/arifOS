@@ -1,19 +1,20 @@
 """
 arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 
-Tier 1: MiniMax M3 (https://api.minimax.io/v1) — frontier agentic, rate-limited 2026-06-13
-Tier 1.5: Azure OpenAI (gpt-4.1-mini) — reliable cheap fallback
-Tier 2: SEA-LION v4 (https://api.sea-lion.ai/v1) — GPU API, intermittent
-Tier 3: raises LLMUnavailableError — caller applies deterministic fallback
+Trinity loop (per Arif directive 2026-06-27):
+  Tier 1:   MiniMax M3  (https://api.minimax.io/v1) — primary reasoning
+  Tier 1.5: MiMo        (https://token-plan-sgp.xiaomimimo.com/v1) — secondary
+  Tier 2:   SEA-LION    (https://api.sea-lion.ai/v1) — third voice, GPU-accelerated
+  Tier 3:   raises LLMUnavailableError — caller applies deterministic fallback
+
+Azure removed per Arif directive 2026-06-27 (was Tier 1.5).
 
 ILMU (ilmu-nemo-nano) — BLOCKED per FFF 2026-06-15.
-  F13 inversion, register-dependent hallucination, L02A parse failure,
-  institutional capture. Removed from cascade. Retained in config for
-  audit trail only. See ariffazil/BBB, CCC, DDD, FFF for full receipts.
+  F13 inversion, register-dependent hallucination, L02A parse failure.
+  Removed from cascade. Retained in config for audit trail only.
 
 Ollama (localhost:11434) is reserved for EMBEDDING only (bge-m3).
-It is NOT used for text generation — removed 2026-06-16 (Tier 4 was a ghost
-reference to llava:7b which was never pulled).
+Not used for text generation.
 
 ALL LLM output passes through 777_WITNESS envelope before reaching tool logic.
 Raw LLM text never enters judgment, memory, vault, or external action directly.
@@ -51,13 +52,13 @@ MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY")
 MINIMAX_BASE_URL = os.getenv("MINIMAX_API_HOST", "https://api.minimax.io")
 MINIMAX_MODEL = os.getenv("MINIMAX_MODEL", "MiniMax-M3")
 
-# Tier 1.5 — Azure OpenAI (gpt-4.1-mini, ProCopilot $200 credit)
-# Wired 2026-06-20. Sits between MiniMax (Tier 1) and ILMU (Tier 2)
-# as a reliable, cheap fallback when MiniMax is rate-limited.
-# Azure is OpenAI-compatible — uses same httpx pattern as ILMU.
-AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
-AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
-AZURE_OPENAI_MODEL = os.getenv("AZURE_OPENAI_MODEL", "gpt-4.1-mini")
+# Tier 1.5 — MiMo (TokenPlan mimo-v2.5-pro, Arif's primary model)
+# Replaces Azure per Arif directive 2026-06-27.
+# M3 ↔ MiMo loop: MiniMax M3 (primary reasoning) ↔ MiMo (secondary/parallel).
+# OpenAI-compatible /v1/chat/completions at TokenPlan endpoint.
+MIMO_API_KEY = os.getenv("MIMO_API_KEY")
+MIMO_BASE_URL = os.getenv("MIMO_BASE_URL", "https://token-plan-sgp.xiaomimimo.com/v1")
+MIMO_MODEL = os.getenv("MIMO_DEFAULT_MODEL", "mimo-v2.5-pro")
 
 # Ollama — EMBEDDING ONLY (bge-m3). NOT used for text generation.
 # Removed 2026-06-16: llava:7b generation tier was a ghost reference (never pulled).
@@ -581,6 +582,85 @@ async def _call_minimax(
     return raw_output, parsed
 
 
+async def _call_mimo(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 1.5 — call MiMo (TokenPlan mimo-v2.5-pro) via OpenAI-compatible API.
+
+    Arif's primary model. 1M context, native multimodal, MiMo architecture.
+    Replaces Azure gpt-4.1-mini as secondary reasoning partner per 2026-06-27 directive.
+
+    Returns (raw_output_str, parsed_output_dict).
+    """
+    if not MIMO_API_KEY:
+        raise LLMUnavailableError("MIMO_API_KEY not configured")
+
+    messages = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": MIMO_MODEL,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{MIMO_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {MIMO_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("MiMo transport error: %s", exc)
+        raise LLMUnavailableError(f"MiMo transport error: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning("MiMo HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"MiMo HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "") or msg.get("reasoning_content", "")
+    except Exception as exc:
+        logger.warning("MiMo parse error: %s", exc)
+        raise LLMUnavailableError(f"MiMo response parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            logger.info("MiMo JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+            parsed = repaired
+            raw_output = json.dumps(repaired)
+        else:
+            logger.warning("MiMo returned invalid JSON, wrapping plain text: %s", raw_output[:200])
+            parsed = {"reasoning": raw_output, "answer": raw_output}
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(f"MiMo output must be a JSON object, got {type(parsed).__name__}")
+
+    if not parsed:
+        raise LLMUnavailableError("MiMo returned empty JSON object")
+
+    logger.debug("MiMo inference complete (model=%s)", MIMO_MODEL)
+    return raw_output, parsed
+
+
 async def _call_azure(
     system: str,
     user: str,
@@ -841,12 +921,13 @@ async def call_llm(
     trace_recursion_depth: int = 0,
 ) -> LLMOutputEnvelope:
     """
-    Call MiniMax M3 (Tier 1) → Azure gpt-4.1-mini (Tier 1.5) → ILMU (Tier 2) → SEA-LION (Tier 3).
+    Call MiniMax M3 (Tier 1) → MiMo (Tier 1.5) → SEA-LION (Tier 2).
 
-    Cascade updated 2026-06-20: Azure inserted as Tier 1.5 (ProCopilot $200 credit).
-    Azure is OpenAI-compatible, cheap ($0.15/M input), reliable. Sits between
-    MiniMax (rate-limited) and ILMU (free but intermittent).
-    Original cascade reordered 2026-06-13: ILMU promoted to Tier 2.
+    Trinity loop per Arif directive 2026-06-27:
+      Tier 1:   MiniMax M3  — primary reasoning (frontier agentic, MSA)
+      Tier 1.5: MiMo       — secondary (TokenPlan mimo-v2.5-pro, Arif's primary model)
+      Tier 2:   SEA-LION   — tertiary (aisingapore/Llama-SEA-LION-v3.5-70B-R, GPU-accelerated)
+    Azure removed. ILMU BLOCKED per FFF 2026-06-15 — not in cascade.
 
     Returns LLMOutputEnvelope — the single legal form of LLM output in arifOS.
     The envelope is the ONLY thing that should reach tool logic, judgment, or memory.
@@ -907,19 +988,19 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 1.5 — Azure OpenAI gpt-4.1-mini (ProCopilot $200 credit)
-    # Wired 2026-06-20. Sits BETWEEN MiniMax and ILMU. Cheap, reliable,
-    # OpenAI-compatible. Falls through if AZURE_OPENAI_KEY is not set.
+    # Tier 1.5 — MiMo (TokenPlan mimo-v2.5-pro)
+    # Replaces Azure per Arif directive 2026-06-27.
+    # M3 ↔ MiMo loop: M3 primary, MiMo secondary when M3 fails/rate-limited.
     try:
         t0 = time.monotonic()
-        raw_output, parsed = await _call_azure(
+        raw_output, parsed = await _call_mimo(
             system, user, response_schema, temperature, max_tokens
         )
         return _make_envelope(
             raw_output,
             parsed,
-            "azure_openai",
-            AZURE_OPENAI_MODEL,
+            "mimo",
+            MIMO_MODEL,
             tool_origin,
             mode,
             combined_prompt,
@@ -930,7 +1011,7 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 2 — ILMU BLOCKED per FFF 2026-06-15.
+    # Tier 2 — ILMU BLOCKED per FFF 2026-06-15 (never in trinity loop).
     # F13 inversion, register-dependent hallucination, L02A parse failure.
     # Removed from cascade. See ariffazil/BBB, CCC, DDD, FFF for full receipts.
     # To re-enable: set ILMU_ENABLED = True AND obtain F13 SOVEREIGN directive.
@@ -955,7 +1036,7 @@ async def call_llm(
         except LLMUnavailableError:
             pass
 
-    # Tier 3 — SEA-LION v4 (GPU-accelerated API, intermittent as of 2026-06-13)
+    # Tier 2 — SEA-LION v4 (GPU-accelerated, third voice in trinity)
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_sea_lion(
@@ -976,19 +1057,18 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Ollama removed 2026-06-16 — was a ghost reference to llava:7b (never pulled).
-    # Ollama is retained for bge-m3 embeddings only (arifbrain, L3 ingest, AAA).
-    # Text generation cascade: MiniMax → Azure → SEA-LION → fallback.
-    # ILMU removed from cascade per FFF 2026-06-15.
+    # Ollama removed 2026-06-16 — retained for bge-m3 embeddings only.
+    # Text generation cascade: MiniMax M3 → MiMo → SEA-LION (trinity).
+    # ILMU BLOCKED per FFF 2026-06-15.
 
-    # Tier 4 — no LLM available
+    # Tier 3 — no LLM available
     return wrap_llm_error(
         provider="none",
         model="none",
         tool_origin=tool_origin,
         mode=mode,
         prompt=combined_prompt,
-        error_message="All LLM tiers exhausted (MiniMax M3 + Azure + SEA-LION). ILMU BLOCKED per FFF.",
+        error_message="All LLM tiers exhausted (MiniMax M3 + MiMo + SEA-LION). ILMU BLOCKED per FFF.",
     )
 
 
@@ -1057,12 +1137,30 @@ async def check_provider_health() -> dict[str, Any]:
         status["fallback"] = "unreachable"
         status["errors"].append(f"Ollama: {exc}")
 
-    # Determine active provider (match cascade: MiniMax → Azure → SEA-LION → fallback)
+    # Check MiMo (Tier 1.5 — TokenPlan mimo-v2.5-pro)
+    if not MIMO_API_KEY:
+        status["mimo"] = "unconfigured"
+    else:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                r = await client.get(
+                    MIMO_BASE_URL.rstrip("/v1") + "/models",
+                    headers={"Authorization": f"Bearer {MIMO_API_KEY}"},
+                )
+                if r.status_code in (200, 401):
+                    status["mimo"] = "reachable"
+                else:
+                    status["mimo"] = f"http_{r.status_code}"
+        except Exception as exc:
+            status["mimo"] = "unreachable"
+            status["errors"].append(f"MiMo: {exc}")
+
+    # Determine active provider (match cascade: M3 → MiMo → SEA-LION)
     # ILMU BLOCKED per FFF 2026-06-15 — not in cascade
     if status["primary"] == "reachable":
         status["active_provider"] = "minimax"
-    elif status.get("azure_openai") == "reachable":
-        status["active_provider"] = "azure_openai"
+    elif status.get("mimo") == "reachable":
+        status["active_provider"] = "mimo"
     elif status.get("sea_lion") == "reachable":
         status["active_provider"] = "sea_lion"
     elif status.get("ilmu") == "reachable":

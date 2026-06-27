@@ -56,7 +56,10 @@ from core.shared.laws import (
     get_health_report_floors,
 )
 
-from arifosmcp.runtime.build import get_build_info
+from arifosmcp.runtime.build import (
+    get_build_info,
+    get_deployment_mode,
+)
 from arifosmcp.runtime.identity import get_identity, get_identity_b3_hash
 from arifosmcp.runtime.capabilities import build_runtime_capability_map
 from arifosmcp.runtime.contracts import (
@@ -163,6 +166,13 @@ BUILD_INFO = get_build_info()
 BUILD_VERSION = BUILD_INFO["server_version"]
 MCP_PROTOCOL_VERSION = BUILD_INFO["protocol_version"]
 MCP_SUPPORTED_PROTOCOL_VERSIONS = BUILD_INFO["supported_protocol_versions"]
+
+# F2 TRUTH: deployment_source MUST reflect actual runtime mode.
+# Pre-fix (2026-06-27 audit): hardcoded "ghcr" + hardcoded ghcr.io image
+# prefix even when running natively. Federation root was lying about its
+# own runtime state. Now: detected at import time via /.dockerenv,
+# /proc/1/cgroup, and DEPLOY env var. See arifosmcp/runtime/build.py.
+_DEPLOYMENT_MODE = get_deployment_mode()
 
 TOOL_ALIASES: dict[str, str] = dict(AAA_TOOL_ALIASES)
 
@@ -2556,8 +2566,15 @@ def register_rest_routes(
             "git_commit": BUILD_INFO["build"].get("commit") or BUILD_VERSION,
             "git_branch": BUILD_INFO["build"].get("branch"),
             "build_time": BUILD_INFO["build"].get("built_at"),
-            "image": f"ghcr.io/ariffazil/arifos:{BUILD_INFO['build']['commit']}",
-            "deployment_source": "ghcr",
+            "image": (
+                f"ghcr.io/ariffazil/arifos:{BUILD_INFO['build']['commit']}"
+                if _DEPLOYMENT_MODE == "container"
+                else None
+            ),
+            "deployment_source": _DEPLOYMENT_MODE,
+            "deployment_marker": "/opt/arifos/app/.git_commit",
+            "deployment_marker_exists": os.path.exists("/opt/arifos/app/.git_commit"),
+            "runtime_path": str(Path(__file__).resolve().parents[3]),
             "transport": "streamable-http",
             "tools_loaded": getattr(
                 mcp,
@@ -3522,12 +3539,19 @@ def register_rest_routes(
         fingerprint = {
             "service": "arifosmcp",
             "git_sha": git_sha,
-            "image": os.getenv("DEPLOY_IMAGE", "ghcr.io/ariffazil/arifos:latest"),
+            "image": (os.getenv("DEPLOY_IMAGE") if _DEPLOYMENT_MODE == "container" else None),
             "image_digest": image_digest,
             "build_time": os.getenv("DEPLOY_BUILD_TIME", "unknown"),
             "registry_hash": registry_hash,
             "started_at": os.getenv("START_TIME", datetime.now(UTC).isoformat()),
-            "runtime_drift": git_sha == "unknown" or image_digest == "unknown",
+            "deployment_source": _DEPLOYMENT_MODE,
+            # F2 TRUTH (FORGE audit 2026-06-27): native deployment cannot have
+            # container drift — marker file divergence is a separate signal.
+            "runtime_drift": (
+                git_sha == "unknown" or image_digest == "unknown"
+                if _DEPLOYMENT_MODE == "container"
+                else False
+            ),
         }
         return JSONResponse(fingerprint)
 

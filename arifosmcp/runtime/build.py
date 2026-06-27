@@ -77,7 +77,15 @@ def _git_sha_short() -> str:
 
 
 def _image_tag() -> str:
-    """Resolve container image tag from env vars."""
+    """Resolve container image tag from env vars.
+
+    NOTE: Returns a ghcr.io image tag regardless of whether the runtime is
+    actually a container. Use _detect_deployment_mode() to determine if the
+    image tag is meaningful (only true when deployment_source == "container").
+    The ghcr.io image is built and pushed for portability/rollback purposes
+    but the canonical production runtime on VPS af-forge is NATIVE bare-metal
+    (see make deploy-local).
+    """
     for key in ("ARIFOS_IMAGE", "DEPLOY_IMAGE", "IMAGE_TAG"):
         val = os.environ.get(key, "").strip()
         if val and val not in ("unknown", "", "not-injected"):
@@ -86,6 +94,63 @@ def _image_tag() -> str:
     if commit and commit not in ("unknown", "not-injected"):
         return f"ghcr.io/ariffazil/arifos:{commit}"
     return "not-injected"
+
+
+def _detect_deployment_mode() -> str:
+    """Detect actual runtime deployment mode at process startup.
+
+    Determines whether the arifOS process is running inside a container
+    (Docker / Kubernetes / LXC / containerd) or natively on bare-metal.
+
+    Detection priority (highest first):
+        1. ``/.dockerenv`` file existence — definitive for Docker
+        2. ``/proc/1/cgroup`` containing docker/kubepods/lxc/containerd
+           patterns — definitive for Kubernetes, LXC, containerd
+        3. ``DEPLOY`` env var explicitly set to ``"container"`` — opt-in
+        4. Default: ``"native"``
+
+    Returns:
+        ``"container"`` if running inside a container, ``"native"`` otherwise.
+
+    F2 TRUTH: Health endpoint ``deployment_source`` MUST reflect this value,
+    not a hardcoded string. The federation root cannot lie about its own
+    runtime state (FORGE audit 2026-06-27).
+    """
+    # 1. .dockerenv file — definitive for Docker
+    if os.path.exists("/.dockerenv"):
+        return "container"
+
+    # 2. cgroup inspection — kubepods/lxc/docker/containerd patterns
+    try:
+        cgroup_path = Path("/proc/1/cgroup")
+        if cgroup_path.exists():
+            cgroup = cgroup_path.read_text(errors="replace")
+            if any(token in cgroup for token in ("docker-", "kubepods", "/lxc/", "containerd-")):
+                return "container"
+    except (FileNotFoundError, PermissionError, OSError):
+        pass
+
+    # 3. Explicit env override — opt-in container declaration
+    deploy_env = os.environ.get("DEPLOY", "").strip().lower()
+    if deploy_env == "container":
+        return "container"
+
+    # 4. Default — native bare-metal
+    return "native"
+
+
+# Module-level cache — detection is cheap but called on every /health hit.
+# Result is process-stable (cgroup + /.dockerenv cannot change at runtime).
+_DEPLOYMENT_MODE: str = _detect_deployment_mode()
+
+
+def get_deployment_mode() -> str:
+    """Public accessor for cached deployment mode detection.
+
+    Returns:
+        ``"container"`` or ``"native"``.
+    """
+    return _DEPLOYMENT_MODE
 
 
 def _build_time() -> str:
