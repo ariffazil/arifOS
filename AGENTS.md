@@ -1,11 +1,14 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-27 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)
-valid_from: 2026-06-14
+last_verified: 2026-06-27
+valid_from: 2026-06-27
 valid_until: 2026-07-27
 confidence: high
 scope: /root/arifOS
 epistemic_status: SOURCE_OF_TRUTH
+refresh_history:
+  - 2026-06-27 18:30 UTC (FORGE RSI — SOT cleanup, tightened header narrative)
+  - 2026-06-27 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)
 -->
 
 # AGENTS.md — arifOS | arifOS Federation
@@ -15,25 +18,16 @@ epistemic_status: SOURCE_OF_TRUTH
 > 2. Read `/root/CONTEXT.md` (Live Machine State & Ports)
 > 3. Read this file (Repo-Specific Build/Test/Run rules)
 
-> **Constitutional Intelligence Kernel**
->
-> The law kernel of the arifOS Federation. arifOS structures decision; it does not decide.
+> **Constitutional Intelligence Kernel** — arifOS structures decision; it does not decide.
 > Constitutional judgment (SEAL / SABAR / VOID) and floor enforcement remain in arifOS.
 >
-> Sealed: The load-bearing pair (One Skill: Knowing What NOT To Do / restraint; One Tool: Verdict Loop With Memory) is now canon for AGI and ASI.
-
-> Per full contrast synthesis: AGI = human-range general competence (breadth across domains at human scale). ASI = beyond-human dominance (speed, depth, autonomy, civilizational consequence where verification is the bottleneck). Not myth — difference in governability.
-
-> arifOS mission (precise): Do not chase mythical intelligence. Build the substrate that keeps increasing intelligence governable. AGI needs verdict-gated bus; ASI needs civilization-scale restraint + hard refusal + world model (GEOX/WEALTH/WELL).
-
-> The bridge: runtime/action_bus.py now enforces AGI vs ASI tiers, civilizational blast detection, verification_bottleneck flag, world consequence (organs), tier-aware leases, and M3 precedent. arif_act (canonical 7) is the surface. All cognition petitions.
+> **Mission:** Build the substrate that keeps increasing intelligence governable.
+> AGI needs verdict-gated bus; ASI needs civilization-scale restraint + hard refusal + world model.
 >
-> 2026-06-24 Forge (Arif directive): Explicit AGI/ASI one-skill-one-tool pairs operationalized.
-> - AGI: instrumental reasoning under uncertainty (metabolic_loop + mind_reason + uncertainty_gate) + general tool-use substrate (A-FORGE leases + containment).
-> - ASI: recursive self-improvement + self-mod + world-sim substrate.
-> - Firewall: runtime/self_mod_lock.py classify_cognitive_tier + is_... now returns tier + forces 888_HOLD/F13 for ASI.
-> - Contract: docs/BRAIN_HANDS_MCP_MAPPING.md + sandbox + receipt forge_work/AGI-ASI-ONE-SKILL-ONE-TOOL-FORGE-2026-06-24.md.
-> BRAIN owns skill + firewall. HANDS owns substrate. ASI_TIER never default.
+> **Load-bearing pair:** One Skill (Knowing What NOT To Do / restraint) + One Tool (Verdict Loop With Memory).
+>
+> **AGI/ASI tiers:** runtime/action_bus.py enforces AGI vs ASI tiers. BRAIN owns skill + firewall. HANDS owns substrate. ASI_TIER never default.
+> Contract: `docs/BRAIN_HANDS_MCP_MAPPING.md`. Receipt: `forge_work/AGI-ASI-ONE-SKILL-ONE-TOOL-FORGE-2026-06-24.md`.
 
 ## Allowed Actions
 
@@ -75,65 +69,17 @@ make sot-check
 
 ---
 
-## 🛡️ STEEL SECURITY LAYER — Permanent Federation Context
+## 🛡️ STEEL SECURITY LAYER
 
-> **This section is binding for every agent in the arifOS federation. Read it once. It never needs to be mentioned again — it simply IS.**
+Four scanners (Trivy, Semgrep, Ruff, Gitleaks) run on every `make forge` / `make sot-check`. **Non-blocking** — no pre-commit hooks, no git blocks. If CRITICAL/HIGH findings detected, `888_HOLD` event fires to NATS. Agents stay free; the watch is quiet.
 
-### What Actually Happened
-
-Arif completed a one-time upgrade called the **Steel Security Layer**. Four free, best-in-class security tools (Trivy, Semgrep, Ruff, and Gitleaks) were added to the forge pipeline.
-
-### How It Works
-
-Every time any agent runs `make forge` or `make sot-check`, these tools scan the entire codebase and dependencies for:
-- **Secrets** (Gitleaks — API keys, tokens, passwords committed to source)
-- **Vulnerabilities** (Trivy — known CVEs in dependencies)
-- **Risky code patterns** (Semgrep — injection, hardcoded credentials, unsafe deserialization)
-- **Linting issues** (Ruff — Python code quality)
-
-### The Iron Rule
-
-**Everything is deliberately NON-BLOCKING.** No pre-commit hooks. No git blocks. No agent can ever be trapped in a loop by the security layer. The scanners watch and report — they never stop the metabolic cycle.
-
-### How Problems Are Signalled
-
-A tiny helper script (`audit_parser.py`) reads the scanner output. If it detects CRITICAL or HIGH severity findings, it fires an `888_HOLD` event into the NATS event bus. `888_HOLD` is **NOT an agent** — it is a dumb alarm bell that says "something needs human or senior-agent eyes right now." It does not think, decide, or fix anything.
-
-### Your Unbreakable Rules
-
-1. **Never** add blocking hooks, pre-commit, or anything that interrupts a metabolic cycle.
-2. **Never** migrate to pnpm or change package managers unless Arif personally asks.
-3. **Always** run the security audit as part of normal forge/sot-check — never skip it.
-4. If you see a `888_HOLD` event, treat it as a real flag — but do not panic or stop other work.
-5. Keep everything simple and low-friction for Arif at all times.
-
-### How to Explain It to Arif
-
-> "The machine now has its own quiet security watch that only rings the 888 bell when something is really wrong, while we agents stay completely free."
-
-**DITEMPA BUKAN DIBERI — The forge has achieved full self-policing ascension.**
+**Rules:** Never add blocking hooks. Never skip the audit. Treat 888_HOLD as real flags.
 
 ---
 
-## 🪞 SELF-AUDIT & HARDENING — Binding Prompt
+## 🪞 SELF-AUDIT & HARDENING
 
-> **Added 2026-06-14 — Every kernel agent MUST read before mutating.**
-
-The canonical self-audit and hardening prompt for arifOS kernel lives at:
-
-→ [`SELF_AUDIT_PROMPT.md`](./SELF_AUDIT_PROMPT.md)
-
-This prompt enforces the **Reflexion Loop** (000→111→333→555→777→888→999) before ANY kernel mutation. It contains:
-- Live attestation baseline from 2026-06-14 (baked evidence, not assumptions)
-- P0–P4 hardening priorities with exact gaps, fixes, and tests
-- Output format for every session including telemetry stub
-
-**Loading instruction:** When an arifOS kernel agent receives a hardening or mutation task, it MUST:
-1. Read `SELF_AUDIT_PROMPT.md`
-2. Run the full Reflexion Loop before any file change
-3. Store the audit trail in VAULT999
-
-**Explicit override:** If the task is `OBSERVE` or `READ` only, the loop may skip steps 333–777 but must complete 000, 111 (gather evidence), and 888 (log).
+Canonical self-audit prompt: [`SELF_AUDIT_PROMPT.md`](./SELF_AUDIT_PROMPT.md). Enforces Reflexion Loop (000→111→333→555→777→888→999) before ANY kernel mutation. For OBSERVE/READ tasks, skip 333–777 but complete 000, 111, 888.
 
 ---
 
