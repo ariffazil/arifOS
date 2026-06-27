@@ -374,10 +374,12 @@ mcp = FastMCP(
         "- Truth survives falsification, not assertion.\n"
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
-        "Golden path: init → sense → mind → heart → judge → vault\n\n"
-        "Canonical surface: 27 tools on default wire "
-        "(21 constitutional arif_noun_verb + 6 zero-floor canary probes).\n"
-        f"Tools:\n  {', '.join(sorted(list_canonical_tools()))}\n\n"
+        "Golden path: init → observe → think → route → judge → seal\n\n"
+        # RSI 2026-06-27: Only advertise public surface tools. Hidden tools
+        # (arif_triage, arif_memory, arif_kernel_attest, etc.) must NOT appear
+        # in instructions — ChatGPT/external callers try to call them and get blocked.
+        "Public tools (9): arif_init, arif_observe, arif_fetch, arif_think, "
+        "arif_route, arif_critique, arif_judge, arif_act, arif_seal\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
