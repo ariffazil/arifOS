@@ -156,6 +156,84 @@ class ExploreMetrics(BaseModel):
     confidence: float = Field(default=0.0, ge=0.0, le=1.0)
 
 
+# ── Replay Receipt ─────────────────────────────────────────────
+
+
+class ReplayStep(BaseModel):
+    """Single step in an exploration trace for replay verification."""
+
+    step_index: int
+    mode: ExploreMode
+    action: str = Field(description="What the step did: sense|step|update|check|reflect")
+    input_nodes: int = Field(default=0, ge=0)
+    output_nodes: int = Field(default=0, ge=0)
+    findings_delta: int = Field(default=0)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    duration_s: float = Field(default=0.0, ge=0.0)
+    timestamp: str = Field(default="", description="ISO8601 utcnow at step start")
+
+
+class ReplayReceipt(BaseModel):
+    """
+    Traceable, HMAC-ready receipt for ExploreResponse.
+
+    Provides replay verification: given the same seed + goal + mode,
+    can we reproduce the same result_hash? If receipt_hash matches
+    on replay, the exploration is deterministic-verifiable.
+
+    Fields:
+        trace_id:       Unique identifier for this exploration session.
+        steps:          Ordered list of ReplayStep records.
+        result_hash:    SHA-256 of (goal + mode + sorted(findings) + graph_hash).
+        receipt_hash:  SHA-256 of (trace_id + result_hash + step_hashes).
+        verified:       Whether receipt_hash was independently recomputed.
+        explorer_tag:   Identity of the explorer (actor_id or agent class).
+        epistemic_tag:  OBS/DER/INT/SPEC — base evidence grade for the exploration.
+    """
+
+    trace_id: str
+    steps: list[ReplayStep] = Field(default_factory=list)
+    result_hash: str = Field(default="", description="SHA-256 of exploration result")
+    receipt_hash: str = Field(default="", description="SHA-256 of full trace")
+    verified: bool = Field(default=False)
+    explorer_tag: str = Field(
+        default="arif_explore", description="Identity that ran the exploration"
+    )
+    epistemic_tag: str = Field(
+        default="DER",
+        description="Evidence grade: OBS (direct) | DER (computed) | INT (interpreted) | SPEC (speculative)",
+    )
+
+    def compute_result_hash(
+        self,
+        goal: str,
+        mode: str,
+        finding_summaries: list[str],
+        node_hashes: list[str],
+    ) -> str:
+        """Compute SHA-256 result_hash from exploration outputs."""
+        import hashlib
+
+        payload = (
+            f"{goal}|{mode}|"
+            + "|".join(sorted(finding_summaries))
+            + "|"
+            + "|".join(sorted(node_hashes))
+        )
+        return hashlib.sha256(payload.encode()).hexdigest()
+
+    def compute_receipt_hash(self) -> str:
+        """Compute SHA-256 receipt_hash from trace + result_hash."""
+        import hashlib
+
+        step_hashes = "|".join(
+            hashlib.sha256(f"{s.step_index}{s.mode.value}{s.action}".encode()).hexdigest()
+            for s in self.steps
+        )
+        payload = f"{self.trace_id}|{self.result_hash}|{step_hashes}"
+        return hashlib.sha256(payload.encode()).hexdigest()
+
+
 # ── Response ──────────────────────────────────────────────────
 
 
@@ -172,6 +250,10 @@ class ExploreResponse(BaseModel):
     gaps: list[str] = Field(default_factory=list)
     metrics: ExploreMetrics = Field(default_factory=ExploreMetrics)
     verdict: Verdict = Field(default_factory=Verdict)
+    replay_receipt: ReplayReceipt | None = Field(
+        default=None,
+        description="Traceable replay receipt with result_hash + receipt_hash for verification",
+    )
 
 
 __all__ = [
@@ -193,4 +275,6 @@ __all__ = [
     "ExploreMetrics",
     "ExploreStatus",
     "ExploreResponse",
+    "ReplayReceipt",
+    "ReplayStep",
 ]
