@@ -12,6 +12,18 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+# INIT tier map — arif_init mode → numeric tier
+# Higher = more complete bootstrap. Used in SessionState for machine-readable tier.
+INIT_TIER_MAP: dict[str, int] = {
+    "ping": 0,
+    "discover": 1,
+    "birth": 2,
+    "light": 3,
+    "init": 4,
+    "full": 5,
+    "audit": 6,
+}
+
 
 def _get_os_info() -> str:
     import platform
@@ -465,6 +477,20 @@ class SessionState(BaseModel):
     nonce: str | None = None
     signature_verified: bool = False
     constitution_bound: bool = False
+    # Phase 2A: Bound verdict + authority + actor_verified into SessionState
+    # These were previously only in SessionManifest — now in the session state itself.
+    verdict: str | None = Field(
+        default=None,
+        description="SEAL | SEAL_OBSERVE_ONLY | DEGRADED | HOLD | VOID | SABAR",
+    )
+    authority: str | None = Field(
+        default=None,
+        description="FULL | LIMITED_MUTATE | OBSERVE_ONLY — set at INIT based on actor_verified",
+    )
+    init_tier: int | None = Field(
+        default=None,
+        description="0=ping, 1=discover, 2=birth, 3=light, 4=init, 5=full, 6=audit",
+    )
 
 
 class SessionManifest(BaseModel):

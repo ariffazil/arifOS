@@ -48,6 +48,106 @@ _MODE_EMOJI: dict[str, str] = {
     "opt_out": "🚪",
 }
 
+# INIT v2.0 — Explicit failure taxonomy
+# Every INIT HOLD carries a specific type so clients can handle each case distinctly.
+# These are encoded in meta.failure_type and meta.reason.
+INIT_FAILURE_TYPE: dict[str, str] = {
+    "actor_id_required": "INIT_IDENTITY_HOLD",  # null actor_id
+    "constitution_hash_schism": "INIT_CONSTITUTION_HOLD",  # constitution mismatch
+    "jurisdiction_mismatch": "INIT_JURISDICTION_HOLD",  # sovereign/actor mismatch
+    "capacity_insufficient": "INIT_CAPACITY_HOLD",  # context completeness too low
+    "floor_check_failed": "INIT_FLOOR_HOLD",  # F1-F13 gate failed
+    "unknown_mode": "INIT_MODE_HOLD",  # unrecognized mode
+    "idempotency_conflict": "INIT_IDEMPOTENCY_HOLD",  # conflicting sessions
+}
+
+
+def _make_init_hold(
+    reason: str,
+    failure_type: str,
+    *,
+    mode: str = "",
+    extra_meta: dict | None = None,
+) -> SessionManifest:
+    """Construct a typed INIT HOLD response.
+
+    All failure responses from arif_init carry:
+    - status=HOLD
+    - meta.failure_type = specific INIT_FAILURE_TYPE value
+    - meta.reason = human-readable explanation
+    - meta.violated_laws = list of F-laws implicated
+    """
+    meta = {
+        "reason": reason,
+        "failure_type": failure_type,
+        "violated_laws": [],
+    }
+    if extra_meta:
+        meta.update(extra_meta)
+    return _sm(
+        status="HOLD",
+        result={},
+        meta=meta,
+        doctrine=ARIF_DOCTRINE,
+    )
+
+
+def _compute_signature(status: str, mode: str, session_id: str, ts: float) -> str:
+    """Deterministic constitutional signature. Even HOLD responses are signed."""
+    payload = f"{DITEMPA_MOTTO}|{status}|{mode}|{session_id}|{ts:.6f}"
+    return f"sha256:{hashlib.sha256(payload.encode()).hexdigest()[:16]}"
+
+
+def _probe_constitution_hash() -> tuple[bool, str]:
+    """Probe whether the running constitution matches the sealed reference.
+
+    Returns (ok, detail). ok=True means hashes match.
+    detail explains what was checked and what the result was.
+    """
+    import hashlib
+    import os
+
+    # Canonical constitution hash — defined once at line ~229
+    expected = CONSTITUTION_HASH
+
+    # Check 1: Sealed constitution file
+    genesis_path = "/root/arifOS/GENESIS/constitution.json"
+    sealed_hash = "unknown"
+    if os.path.isfile(genesis_path):
+        try:
+            with open(genesis_path, "rb") as f:
+                sealed_hash = f"sha256:{hashlib.sha256(f.read()).hexdigest()[:16]}"
+        except Exception:
+            sealed_hash = "unreadable"
+
+    # Check 2: Runtime constitution module
+    runtime_hash = "unknown"
+    runtime_path = "/root/arifOS/arifosmcp/constitution_kernel.py"
+    if os.path.isfile(runtime_path):
+        try:
+            with open(runtime_path, "rb") as f:
+                runtime_hash = f"sha256:{hashlib.sha256(f.read()).hexdigest()[:16]}"
+        except Exception:
+            runtime_hash = "unreadable"
+
+    # A "schism" is: we can read both, and they differ
+    schism = (
+        sealed_hash not in ("unknown", "unreadable")
+        and runtime_hash not in ("unknown", "unreadable")
+        and sealed_hash != runtime_hash
+    )
+
+    if schism:
+        return False, (
+            f"constitution_hash_schism_detected: "
+            f"sealed={sealed_hash} runtime={runtime_hash} expected={expected}. "
+            f"Run mode=audit for full diagnosis."
+        )
+
+    return True, (
+        f"constitution_hash_intact: sealed={sealed_hash} runtime={runtime_hash} expected={expected}"
+    )
+
 
 def _compute_signature(status: str, mode: str, session_id: str, ts: float) -> str:
     """Deterministic constitutional signature. Even HOLD responses are signed."""
@@ -248,7 +348,13 @@ def _assert_no_static_inline(payload: dict, verbose: bool) -> None:
         )
 
 
-def _project_light(components: dict, sid: str, actor_id: str, constitution_hash: str) -> dict:
+def _project_light(
+    components: dict,
+    sid: str,
+    actor_id: str,
+    constitution_hash: str,
+    context_completeness: dict | None = None,
+) -> dict:
     """Project the full components dict into the frozen light header.
 
     Degraded-first ordering: exceptions lead, constants trail. ~15 fields.
@@ -325,6 +431,14 @@ def _project_light(components: dict, sid: str, actor_id: str, constitution_hash:
         "trace_id": trace_id,
         "called_from_kernel": called_from_kernel,
         "invocation_count": invocation_count,
+        # INIT v2.0 Phase 3.2: always surface context completeness score
+        # Lightweight — does not trigger STATIC_INLINE_FORBIDDEN.
+        # Full receipt (with beliefs/laws/continuity) still behind verbose=="audit".
+        "context_completeness": context_completeness
+        or {
+            "score": None,
+            "status": "not_computed",
+        },
     }
 
 
@@ -630,6 +744,23 @@ def arif_init(
             doctrine=ARIF_DOCTRINE,
         )
 
+    # ── CONSTITUTION HASH SCHISM GATE (INIT v2.0 P1.2) ─────────────────────────
+    # Block: init, light, full, birth — any mode that creates a governed session.
+    # Permitted: ping, discover, cleanup, challenge (pre-session probes).
+    # Probe before session creation so we reject at the gate, not after.
+    if mode in ("init", "light", "full", "birth"):
+        ok, detail = _probe_constitution_hash()
+        if not ok:
+            return _make_init_hold(
+                reason=detail,
+                failure_type=INIT_FAILURE_TYPE["constitution_hash_schism"],
+                mode=mode,
+                extra_meta={
+                    "schism_detected": True,
+                    "violated_laws": ["F11_AUDIT"],
+                },
+            )
+
     if mode == "light":
         sess = _new_session(
             actor_id or "light_client",
@@ -687,7 +818,15 @@ def arif_init(
             tool="arif_init",
             mode=mode,
             session=SessionState(
-                session_id=sid, actor_id=actor_id, stage="000", lane="AGI", constitution_bound=True
+                session_id=sid,
+                actor_id=actor_id,
+                stage="000",
+                lane="AGI",
+                constitution_bound=True,
+                verdict="SEAL_OBSERVE_ONLY",
+                authority="OBSERVE_ONLY",
+                init_tier=3,
+                actor_verified=False,
             ),
             actor={
                 "claimed_id": actor_id,
@@ -706,16 +845,24 @@ def arif_init(
         )
 
     if mode == "challenge":
-        if actor_id != "arif":
-            return _sm(
-                status="HOLD",
+        # INIT v2.0: generalize from hardcoded "arif" to sovereign identity map.
+        # Any actor_id in the sovereign map can request a crypto challenge.
+        # This supports multi-sovereign federation without code changes.
+        _SOVEREIGN_MAP: dict[str, str] = {
+            "ariffazil": "ariffazil",
+        }
+        if actor_id not in _SOVEREIGN_MAP:
+            return _make_init_hold(
+                reason=(
+                    f"crypto auth challenge is only available for verified sovereign actors. "
+                    f"actor_id={actor_id!r} is not in the sovereign identity map."
+                ),
+                failure_type=INIT_FAILURE_TYPE["jurisdiction_mismatch"],
                 mode="challenge",
-                result={},
-                meta={
-                    "reason": "crypto auth challenge is only available for actor_id=arif",
+                extra_meta={
                     "violated_laws": ["L11"],
+                    "sovereign_map_keys": list(_SOVEREIGN_MAP.keys()),
                 },
-                doctrine=ARIF_DOCTRINE,
             )
 
         from arifosmcp.runtime.crypto_auth import (
@@ -793,6 +940,42 @@ def arif_init(
             except Exception:
                 pass
 
+        # ── INIT v2.0: Derive verdict + authority from identity state ─────────
+        # These are bound into sess AND into the SessionState response.
+        if identity_verified and authority_level == "SOVEREIGN":
+            sess["verdict"] = "SEAL"
+            sess["authority"] = "FULL"
+        elif identity_verified:
+            sess["verdict"] = "SEAL"
+            sess["authority"] = "LIMITED_MUTATE"
+        else:
+            sess["verdict"] = "SEAL_OBSERVE_ONLY"
+            sess["authority"] = "OBSERVE_ONLY"
+
+        # ── Context Completeness Gate (INIT v2.0 P3.1) ─────────────────────────
+        # Advisory only — INIT never blocks session creation, but degrades verdict
+        # when context is insufficient for safe irreversible action.
+        well_mirror_data: dict = {}
+        try:
+            from arifosmcp.tools.judge import _read_well_substrate
+
+            well_mirror_data = _read_well_substrate() or {}
+        except Exception:
+            pass
+        context_receipt = _compute_context_completeness(
+            actor_id=actor_id,
+            identity_verified=identity_verified,
+            well_mirror=well_mirror_data,
+            session=sess,
+        )
+        sess["context_completeness"] = context_receipt.model_dump()
+        # Degrade if context too incomplete for safe irreversible action
+        if context_receipt.score < 0.5:
+            sess["verdict"] = "DEGRADED"
+            sess["authority"] = "OBSERVE_ONLY"
+            # Don't override FULL/SOVEREIGN — only degrade LIMITED_MUTATE/OBSERVE_ONLY
+            # This prevents accidentally downgrading a verified sovereign session
+
         # ── Soul/shadow load (minimal — only .loaded for header) ─────────
         _model_soul, _model_shadow = _load_soul_shadow(declared_model_key or "unknown")
         sess["model_soul"] = _model_soul
@@ -825,6 +1008,8 @@ def arif_init(
             sid=sid,
             actor_id=actor_id,
             constitution_hash=CONSTITUTION_HASH,
+            # INIT v2.0 Phase 3.2: always surface context completeness score
+            context_completeness=sess.get("context_completeness"),
         )
         # Override authority if verified sovereign
         if identity_verified and authority_level == "SOVEREIGN":
@@ -865,6 +1050,11 @@ def arif_init(
                 entropy_delta=sess.get("entropy_delta", 0.0),
                 sealed=sess.get("sealed", False),
                 constitution_bound=True,
+                # INIT v2.0: identity membrane fields bound from session state
+                verdict=sess.get("verdict", "SEAL_OBSERVE_ONLY"),
+                authority=sess.get("authority", "OBSERVE_ONLY"),
+                init_tier=5 if mode == "full" else 4,
+                actor_verified=identity_verified,
             ),
             actor={
                 "claimed_id": actor_id,
@@ -1062,11 +1252,16 @@ def arif_init(
             )
 
         # ── Idempotency: same key → same session_id (no duplicate births) ──
+        # INIT v2.0: composite idempotency key includes actor_id + requested_authority
+        # to prevent conflicting sessions from the same actor being collapsed.
         if idempotency_key:
-            # Check the existing sessions registry for a matching idempotency key
+            # Build composite key: actor_id + idempotency_key + requested_authority
+            # This ensures different intent/authority from same actor = different session
+            composite_key = f"{actor_id}:{idempotency_key}:{requested_authority}"
             try:
                 for existing_sid, existing_sess in _SESSIONS.items():
-                    if existing_sess.get("idempotency_key") == idempotency_key:
+                    existing_composite = existing_sess.get("idempotency_key", "")
+                    if existing_composite == composite_key:
                         # Reuse the original session
                         return _sm(
                             status="OK",
@@ -1143,7 +1338,7 @@ def arif_init(
             sess["birth_intent"] = intent
         sess["requested_authority"] = requested_authority
         if idempotency_key:
-            sess["idempotency_key"] = idempotency_key
+            sess["idempotency_key"] = composite_key  # use composite, not raw
         # Record call chain for audit
         if trace_id:
             sess["trace_id"] = trace_id
@@ -1174,6 +1369,10 @@ def arif_init(
                 stage="000",
                 lane="AGI",
                 constitution_bound=True,
+                verdict="SEAL_OBSERVE_ONLY",
+                authority="OBSERVE_ONLY",
+                init_tier=2,
+                actor_verified=False,
             ),
             actor={
                 "claimed_id": actor_id,
