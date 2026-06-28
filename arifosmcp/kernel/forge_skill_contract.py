@@ -13,6 +13,7 @@ constitutional invariants are satisfied:
 - no irreversible generated capability without F13/HOLD path
 - schema and code fingerprints before registration
 - HARAM scan before registration and before first execution
+- APEX Decision Field energy before draft admissibility
 
 DITEMPA BUKAN DIBERI — tools are forged, but the forge is governed.
 """
@@ -24,6 +25,12 @@ import json
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Mapping
+
+from arifosmcp.kernel.apex_decision_field import (
+    ApexDecisionField,
+    ApexDecisionVerdict,
+    assess_apex_decision_field,
+)
 
 
 class ForgeSkillVerdict(StrEnum):
@@ -55,6 +62,8 @@ class ForgeSkillDenyCode(StrEnum):
     IRREVERSIBLE_REQUIRES_F13 = "IRREVERSIBLE_REQUIRES_F13"
     DOMAIN_MISSING = "DOMAIN_MISSING"
     INTENT_MISSING = "INTENT_MISSING"
+    APEX_DECISION_FIELD_HOLD = "APEX_DECISION_FIELD_HOLD"
+    APEX_DECISION_FIELD_VOID = "APEX_DECISION_FIELD_VOID"
 
 
 SELF_MODIFICATION_TARGETS: frozenset[str] = frozenset(
@@ -120,6 +129,7 @@ class ForgeSkillRequest:
     output_schema: Mapping[str, Any] | None = None
     execute_immediately: bool = False
     f13_ack: bool = False
+    apex_field: ApexDecisionField | None = None
 
 
 @dataclass(frozen=True)
@@ -218,6 +228,14 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
     if request.capability_class == GeneratedCapabilityClass.IRREVERSIBLE and not request.f13_ack:
         deny.append(ForgeSkillDenyCode.IRREVERSIBLE_REQUIRES_F13)
 
+    apex_assessment = None
+    if request.apex_field is not None:
+        apex_assessment = assess_apex_decision_field(request.apex_field)
+        if apex_assessment.verdict == ApexDecisionVerdict.VOID:
+            deny.append(ForgeSkillDenyCode.APEX_DECISION_FIELD_VOID)
+        elif apex_assessment.verdict == ApexDecisionVerdict.HOLD:
+            deny.append(ForgeSkillDenyCode.APEX_DECISION_FIELD_HOLD)
+
     unique_deny = tuple(dict.fromkeys(deny))
     schema_fingerprint = (
         _sha256_json({"input_schema": request.input_schema, "output_schema": request.output_schema})
@@ -227,7 +245,11 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
     code_fingerprint = _sha256_text(request.generated_code)
 
     if unique_deny:
-        if ForgeSkillDenyCode.IRREVERSIBLE_REQUIRES_F13 in unique_deny and len(unique_deny) == 1:
+        hold_only_codes = {
+            ForgeSkillDenyCode.IRREVERSIBLE_REQUIRES_F13,
+            ForgeSkillDenyCode.APEX_DECISION_FIELD_HOLD,
+        }
+        if set(unique_deny).issubset(hold_only_codes):
             verdict = ForgeSkillVerdict.HOLD_888
         else:
             verdict = ForgeSkillVerdict.VOID
@@ -249,5 +271,6 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
             "vault_bypass_hits": vault_hits,
             "requires_f13_ack": request.capability_class == GeneratedCapabilityClass.IRREVERSIBLE,
             "f13_ack": request.f13_ack,
+            "apex_decision_field": apex_assessment.to_dict() if apex_assessment else None,
         },
     )
