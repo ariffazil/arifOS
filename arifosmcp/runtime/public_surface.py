@@ -99,7 +99,7 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_floor_status",
     "mcp_drift_check",
     "hermes_system_status",
-    "hermes_vault_query",
+    "arif_vault_query",
     "hermes_epistemic_check",
     "hermes_fact_check",
     "hermes_cross_verify",
@@ -147,9 +147,7 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
 # CANARY_PROBES (arif_canary dispatcher) is internal-only and not surfaced here;
 # the individual probe modes (arif_conformance_report, arif_schema_echo, etc.)
 # are already included in DIAGNOSTIC_TOOLS.
-EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_7, *DIAGNOSTIC_TOOLS]))
-)
+EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_7, *DIAGNOSTIC_TOOLS])))
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
 # with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
@@ -318,15 +316,14 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "mcp": True,
         "public_endpoint": "https://geox.arif-fazil.com/mcp",
         "internal_host": "127.0.0.1",
-        "internal_port": 18081,
+        "internal_port": 8081,  # fixed 2026-06-28: was 18081 (Docker-era stale)
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": None,
         "tools": None,
         "prompts": None,
         "resources": None,
-        "protocol_version": "2025-03-26",
-        "probe_note": "Systemd GEOX bridge endpoint. Do not use retired Docker-era 8081 metadata.",
+        "protocol_version": "2025-11-25",  # fixed 2026-06-28: was 2025-03-26 — aligned with MCP_SPEC_VERSION_CANONICAL
     },
     "wealth": {
         "role": "capital_intelligence_processor",
@@ -340,7 +337,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "tools": None,
         "prompts": None,
         "resources": None,
-        "protocol_version": "2025-03-26",
+        "protocol_version": "2025-11-25",  # fixed 2026-06-28: was 2025-03-26 — aligned with MCP_SPEC_VERSION_CANONICAL
     },
     "aforge": {
         "role": "bridge",

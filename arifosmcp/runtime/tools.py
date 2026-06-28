@@ -17997,7 +17997,9 @@ try:
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_attest"] = _arif_kernel_attest_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_health"] = _arif_kernel_health_tool
     # SDK long-name alias for arif_bridge_connect (2026-06-23 unification)
-    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_gateway_connect"] = _arif_bridge_tool
+    # REMOVED 2026-06-28: SDK aliases not registered as MCP tools.
+    # arif_gateway_connect routes internally via pre_execution_gate.py LEGACY_ALIASES.
+    # _RUNTIME_DIAGNOSTIC_HANDLERS["arif_gateway_connect"] = _arif_bridge_tool
 
     # arif_bridge (DEPRECATED alias for arif_bridge_connect) — RETIRED 2026-06-22 RSI.
     # Use arif_bridge_connect. F4 CLARITY: one name per operation.

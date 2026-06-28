@@ -918,10 +918,10 @@ try:
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
 
     _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
-    # Always register hermes_vault_query for conformance spine (vault_replay check).
+    # Always register arif_vault_query for conformance spine (vault_replay check).
     # The comment at line 969 claimed this exemption but the code never implemented it.
-    if not _EXPOSE_DEV_TOOLS and "hermes_vault_query" in HERMES_TOOL_HANDLERS:
-        _hermes_to_register["hermes_vault_query"] = HERMES_TOOL_HANDLERS["hermes_vault_query"]
+    if not _EXPOSE_DEV_TOOLS and "arif_vault_query" in HERMES_TOOL_HANDLERS:
+        _hermes_to_register["arif_vault_query"] = HERMES_TOOL_HANDLERS["arif_vault_query"]
     for _hermes_name, _hermes_handler in _hermes_to_register.items():
         _hw = _wrap_handler(_hermes_handler, _hermes_name)
         if _hw is not None:
@@ -958,7 +958,7 @@ try:
                 logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
     if not _EXPOSE_DEV_TOOLS:
         logger.info(
-            "Hermes tools gated (except hermes_vault_query for conformance check) — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose all."
+            "Hermes tools gated (except arif_vault_query for conformance check) — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose all."
         )
 
     # Refresh the public registry cache after all canonical tools are registered
@@ -1513,9 +1513,12 @@ if app:
         allow_credentials=False,
     )
 
-    from arifosmcp.runtime.governance_pipeline import get_pipeline
-
-    app.add_middleware(get_pipeline().as_middleware())
+    # ── Governance middleware removed 2026-06-28 ───────────────────────────
+    # get_pipeline().as_middleware() returned _GovMiddleware which doesn't
+    # conform to Starlette ASGI middleware protocol (needs __call__ with
+    # scope/receive/send). Governance runs per-tool via _wrap_handler in
+    # register_tools() — that path is the primary enforcement layer.
+    # app.add_middleware(get_pipeline().as_middleware())
     # Starlette executes later-added middleware first. Airlock must run before
     # governance so enforce mode sees scope["airlock_envelope"].
     app.add_middleware(AirlockASGIMiddleware)
