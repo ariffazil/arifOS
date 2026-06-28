@@ -2,6 +2,10 @@
 > Auto-generated from live tool registry. Hash: 62cd18aea724a64b
 > Total MCP tools: 58 | Canonical: 17 | Operational: 41
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
+>
+> **ZEN CIRCUIT MODEL (2026-06-28):** 7 public verbs = 7 circuits.
+> 000→111→333→666→888→010→999 (forge) | 000→111→333→555→777→888→999 (governance).
+> OpenCode 7 Zen skills: 000-init-intent-classify through 999-vault-seal-immutable.
 
 ## MCP Tools — Complete Surface
 arifOS exposes 58 MCP tools: 17 canonical constitutional tools
@@ -120,4 +124,4 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 - Manifest hash: 62cd18aea724a64b
 - Manifest URL: https://arifos.arif-fazil.com/manifest.txt
 
---- Auto-generated 2026-06-26T15:13:57.960478 ---
+--- Auto-generated 2026-06-28T03:36:42.815877 ---
