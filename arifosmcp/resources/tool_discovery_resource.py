@@ -169,7 +169,7 @@ TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
         "keywords": ["conformance", "compliance", "audit"],
         "examples": ["Run conformance report", "Audit the kernel"],
     },
-    "hermes_vault_query": {
+    "arif_vault_query": {
         "tier": "DIAGNOSTIC",
         "category": "memory",
         "decision_class": "C1",

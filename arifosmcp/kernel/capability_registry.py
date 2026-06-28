@@ -517,7 +517,7 @@ def _build_default_graph() -> CapabilityGraph:
         ),
         CapabilityNode(
             capability_id="kernel.vault_query",
-            tool_name="hermes_vault_query",
+            tool_name="arif_vault_query",
             server_id="local",
             description="Query VAULT999 entries",
             authority_required=AuthorityTier.LOW,

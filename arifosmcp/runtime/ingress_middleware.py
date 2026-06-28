@@ -1179,6 +1179,7 @@ if IS_FASTMCP_3:
                         # must leave an auditable receipt in VAULT999. Without this,
                         # constitutional enforcement is advisory — gates fire but no
                         # record persists. ADMIT_READ/SIMULATE skipped (high-volume).
+                        # P0.2: Use actual interceptor decision fields instead of hardcoded.
                         if decision.verdict not in (
                             AdmissibilityVerdict.ADMIT_READ,
                             AdmissibilityVerdict.ADMIT_SIMULATE,
@@ -1186,6 +1187,25 @@ if IS_FASTMCP_3:
                             try:
                                 from arifosmcp.core.vault_receipt import create_and_seal_receipt
                                 import hashlib
+
+                                # Use actual floors from interceptor, fall back to defaults
+                                _floors = (
+                                    decision.floors_evaluated
+                                    if decision.floors_evaluated
+                                    else ["F1", "F2", "F4", "F7", "F8", "F9", "F10", "F11"]
+                                )
+                                _violated = (
+                                    decision.floors_violated if decision.floors_violated else []
+                                )
+                                _dclass = (
+                                    decision.decision_class
+                                    if decision.decision_class
+                                    else (
+                                        "C3_DEEP"
+                                        if decision.verdict == AdmissibilityVerdict.HOLD_888
+                                        else "C2_STANDARD"
+                                    )
+                                )
 
                                 create_and_seal_receipt(
                                     session_id=sid or "anonymous",
@@ -1205,22 +1225,11 @@ if IS_FASTMCP_3:
                                     verdict_hash=hashlib.sha256(
                                         decision.reason.encode()
                                     ).hexdigest()[:16],
-                                    floors_evaluated=[
-                                        "F1",
-                                        "F2",
-                                        "F4",
-                                        "F7",
-                                        "F8",
-                                        "F9",
-                                        "F10",
-                                        "F11",
-                                    ],
-                                    floors_violated=[],
-                                    decision_class=(
-                                        "C3_DEEP"
-                                        if decision.verdict == AdmissibilityVerdict.HOLD_888
-                                        else "C2_STANDARD"
-                                    ),
+                                    floors_evaluated=_floors,
+                                    floors_violated=_violated,
+                                    decision_class=_dclass,
+                                    latency_ms=decision.latency_ms,
+                                    within_budget=decision.within_budget,
                                 )
                             except Exception:
                                 pass  # Sealing must never block tool execution

@@ -26,6 +26,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from .capability_registry import get_capability_graph
@@ -43,6 +44,26 @@ from .models import (
     Witness,
     WitnessType,
 )
+
+# ── P0.2 WIRING (2026-06-28): Enforcement spine integration ─────────────
+try:
+    from arifosmcp.core.latency_budget import (
+        LATENCY_BUDGETS,
+        DecisionClass as LatencyDecisionClass,
+    )
+
+    _LATENCY_BUDGET_AVAILABLE = True
+except ImportError:
+    _LATENCY_BUDGET_AVAILABLE = False
+    LATENCY_BUDGETS = {}
+
+try:
+    from arifosmcp.core.conflict_resolver import resolve_conflict
+    from arifosmcp.core.decision_contract import ConflictEnvelope
+
+    _CONFLICT_RESOLVER_AVAILABLE = True
+except ImportError:
+    _CONFLICT_RESOLVER_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -145,9 +166,9 @@ TOOL_ALIASES: dict[str, str] = {
     # ── Legacy aliases from contracts/tools.yaml (compiled 2026-06-25) ──
     # These MUST match contracts/tools.yaml legacy_aliases section.
     # Source of truth: the contract, not this dict.
-    "arif_explore": "arif_observe",           # legacy, deprecated 2026-09-30
-    "arif_memory": "arif_memory_recall",      # legacy, deprecated 2026-09-30
-    "arif_bridge_connect": "arif_bridge",     # legacy, deprecated 2026-09-30
+    "arif_explore": "arif_observe",  # legacy, deprecated 2026-09-30
+    "arif_memory": "arif_memory_recall",  # legacy, deprecated 2026-09-30
+    "arif_bridge_connect": "arif_bridge",  # legacy, deprecated 2026-09-30
     "arif_conformance_report": "arif_kernel_status",  # legacy, deprecated 2026-09-30
     # arifos_* family (deprecated 2026-12-31)
     "arifos_init": "arif_init",
@@ -170,7 +191,7 @@ TOOL_ALIASES: dict[str, str] = {
     "arifos_kernel_health": "arif_kernel_health",
     "arifos_kernel_intercept": "arif_kernel_intercept",
     "arifos_gateway_connect": "arif_gateway_connect",
-    "hermes_vault_query_legacy": "hermes_vault_query",
+    "hermes_vault_query_legacy": "arif_vault_query",
 }
 
 
@@ -617,6 +638,8 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
     Returns:
         An InterceptorDecision that the transport layer must respect.
     """
+    _t0 = time.monotonic()
+
     # Step 1: Normalise
     req = _normalise_request(raw_request)
 
@@ -633,6 +656,20 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
         authority=authority,
     )
 
+    # Determine decision class from capability mutation class
+    if capability and capability.mutation_class in (
+        MutationClass.EXTERNAL,
+        MutationClass.IRREVERSIBLE,
+    ):
+        decision_class_str = "C2_STANDARD"
+    elif capability and capability.requires_888_hold:
+        decision_class_str = "C2_STANDARD"
+    else:
+        decision_class_str = "C0_AUTO"
+
+    # Standard floors always evaluated
+    base_floors = ["F1", "F2", "F4", "F7", "F8", "F9", "F10", "F11"]
+
     # Step 4: Apply policy floors
     policy_block = _check_policy_floors(req, capability, authority)
     if policy_block is not None:
@@ -645,6 +682,44 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
                 policy_block.truth_class = TruthClass.POLICY_VERDICT
             else:
                 policy_block.truth_class = TruthClass.CLAIM
+
+        # ── P0.2: Populate latency + floor metadata ───────────────────────
+        elapsed = (time.monotonic() - _t0) * 1000
+        policy_block.latency_ms = round(elapsed, 2)
+        policy_block.decision_class = decision_class_str
+        policy_block.floors_evaluated = base_floors
+
+        # Extract floor from reason if available
+        if "FLOOR 1" in policy_block.reason or "FLOOR_1" in policy_block.reason:
+            policy_block.floors_violated = ["F1"]
+        elif "FLOOR 2" in policy_block.reason or "FLOOR_2" in policy_block.reason:
+            policy_block.floors_violated = ["F2"]
+        elif "FLOOR 4" in policy_block.reason:
+            policy_block.floors_violated = ["F4"]
+        elif "FLOOR 7" in policy_block.reason:
+            policy_block.floors_violated = ["F7"]
+        elif "FLOOR 8" in policy_block.reason:
+            policy_block.floors_violated = ["F8"]
+        elif "FLOOR 9" in policy_block.reason or "Strange loop" in policy_block.reason:
+            policy_block.floors_violated = ["F9"]
+        elif "FLOOR 10" in policy_block.reason or "Anti-sink" in policy_block.reason:
+            policy_block.floors_violated = ["F10"]
+        elif "FLOOR 11" in policy_block.reason:
+            policy_block.floors_violated = ["F11"]
+
+        # ── Latency budget check ──────────────────────────────────────────
+        if _LATENCY_BUDGET_AVAILABLE:
+            budget = LATENCY_BUDGETS.get(LatencyDecisionClass(decision_class_str))
+            if budget and budget.max_latency_ms > 0 and elapsed > budget.max_latency_ms:
+                policy_block.within_budget = False
+                policy_block.reason += (
+                    f"\n[LATENCY_BUDGET] Decision took {elapsed:.1f}ms "
+                    f"(budget: {budget.max_latency_ms}ms for {decision_class_str}). "
+                    f"Within constitutional latency envelope."
+                )
+            else:
+                policy_block.within_budget = True
+
         return policy_block
 
     # Step 5: Classify admission
@@ -679,11 +754,20 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
                 statement=witness_raw.get("statement", ""),
             )
 
+    # ── P0.2: Check latency budget on admit path ──────────────────────────
+    elapsed = (time.monotonic() - _t0) * 1000
+    within_budget = True
+    if _LATENCY_BUDGET_AVAILABLE:
+        budget = LATENCY_BUDGETS.get(LatencyDecisionClass(decision_class_str))
+        if budget and budget.max_latency_ms > 0 and elapsed > budget.max_latency_ms:
+            within_budget = False
+
     return InterceptorDecision(
         verdict=verdict,
         reason=(
             f"Capability '{capability.capability_id}' admitted "
             f"with class '{verdict.value}' (graph v{graph.version.version_id})."
+            f"{' [LATENCY: ' + str(round(elapsed, 1)) + 'ms]' if elapsed > 10 else ''}"
         ),
         capability_id=capability.capability_id,
         actor_id=req.actor_id,
@@ -697,4 +781,10 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
         truth_class=truth_class,
         sink_risk=SinkRisk.NONE,
         normalized_request=req.model_dump(),
+        # ── P0.2 fields ──
+        latency_ms=round(elapsed, 2),
+        within_budget=within_budget,
+        decision_class=decision_class_str,
+        floors_evaluated=base_floors,
+        floors_violated=[],
     )

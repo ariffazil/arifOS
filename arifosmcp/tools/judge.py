@@ -611,6 +611,31 @@ async def arif_judge(
 
     _evidence: dict = {}
     _is_elevated_tier = action_tier.lower() in ("sovereign", "c4", "c5")
+    _has_receipt = bool(sovereign_receipt and sovereign_receipt.strip())
+
+    # ── F11 SESSION GATE (2026-06-28 FORGE FIX) ────────────────────────────
+    # arif_judge requires a valid session_id. Empty or None → HOLD (F11 AUTH).
+    # Without a session, there is no constitutional chain, no audit trail.
+    # This was previously a NameError crash path — now explicit and early.
+    if not session_id or not session_id.strip():
+        return VerdictOutput(
+            verdict=VerdictCode.HOLD,
+            reasons=[
+                "F11_SESSION_GATE: arif_judge requires a valid session_id. "
+                "Empty or missing session means no constitutional chain exists.",
+                "F11 AUTH mandates verified identity before sensitive operations.",
+            ],
+            next_safe_action=(
+                "Call arif_init first to establish a valid session, "
+                "then re-invoke arif_judge with the returned session_id."
+            ),
+            meta={
+                "gate": "F11_SESSION_GATE",
+                "session_id": session_id,
+                "floor": "F11",
+                "floor_type": "HARD",
+            },
+        )
 
     if mode != "history":
         if _evidence.get("vitals") is None:
@@ -1052,8 +1077,12 @@ async def arif_judge(
     result["meta"]["latency_ms"] = round(elapsed_ms, 2)
     result["meta"]["within_budget"] = within_budget
     result["meta"]["budget_class"] = decision_class_latency.value
-    result["meta"]["budget_max_ms"] = budget.max_latency_ms if (budget and budget.max_latency_ms > 0) else "unbounded"
-    result["meta"]["timeout_enforcement"] = "preventive" if timeout_seconds is not None else "unbounded"
+    result["meta"]["budget_max_ms"] = (
+        budget.max_latency_ms if (budget and budget.max_latency_ms > 0) else "unbounded"
+    )
+    result["meta"]["timeout_enforcement"] = (
+        "preventive" if timeout_seconds is not None else "unbounded"
+    )
     if not within_budget:
         result["meta"]["degradation"] = budget.degradation_verdict if budget else "HOLD"
 
@@ -1288,8 +1317,10 @@ async def arif_judge(
                     json_lib.dumps(result.get("verdict", ""), sort_keys=True).encode()
                 ).hexdigest()
                 _intent_hash = hashlib.sha256(
-                    json_lib.dumps(candidate if isinstance(candidate, str) else str(candidate)[:2000],
-                                   sort_keys=True).encode()
+                    json_lib.dumps(
+                        candidate if isinstance(candidate, str) else str(candidate)[:2000],
+                        sort_keys=True,
+                    ).encode()
                 ).hexdigest()
                 _receipt = create_and_seal_receipt(
                     session_id=session_id or "unknown",
@@ -1325,6 +1356,7 @@ async def arif_judge(
     if "amanah_proof" in result and isinstance(result.get("amanah_proof"), dict):
         try:
             from arifosmcp.schemas.verdict import AmanahProof
+
             result["amanah_proof"] = AmanahProof(**result["amanah_proof"])
         except Exception:
             result["amanah_proof"] = AmanahProof()
@@ -1336,7 +1368,11 @@ async def arif_judge(
         v = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
         if v not in ("SEAL", "SABAR", "VOID", "HOLD", "PARADOX_HOLD"):
             v = "HOLD"
-        r = result.get("reasons", ["semantic normalization fallback"]) if isinstance(result, dict) else ["semantic normalization fallback"]
+        r = (
+            result.get("reasons", ["semantic normalization fallback"])
+            if isinstance(result, dict)
+            else ["semantic normalization fallback"]
+        )
         return VerdictOutput(verdict=v, reasons=r if isinstance(r, list) else [str(r)])
 
 

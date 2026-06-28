@@ -122,10 +122,19 @@ class MCPClient:
             return {"_error": d["error"]}
 
         content = d.get("result", {}).get("content", [])
+        structured = d.get("result", {}).get("structuredContent", {})
         if content and content[0].get("type") == "text":
             try:
-                return json.loads(content[0]["text"])
+                parsed = json.loads(content[0]["text"])
+                # Merge structuredContent verdict if text parse doesn't have one
+                if isinstance(parsed, dict) and structured:
+                    parsed.setdefault("verdict", structured.get("verdict"))
+                return parsed
             except json.JSONDecodeError:
+                # Text is not JSON (e.g. "888_HOLD: reason").
+                # Fall back to structuredContent if available.
+                if structured:
+                    return structured
                 return {"_raw_text": content[0]["text"][:500]}
         return d.get("result", {})
 

@@ -5,7 +5,7 @@ arifosmcp/tools/hermes.py — Hermes Agent Diagnostic Tools
 Three diagnostic tools for Hermes agent self-awareness:
 
 1. hermes_system_status — federation state snapshot
-2. hermes_vault_query  — query VAULT999 by date/filter
+2. arif_vault_query  — query VAULT999 by date/filter
 3. hermes_epistemic_check — epistemic confidence pre-check for CLAIMS
 
 These are registered as _RUNTIME_DIAGNOSTIC_HANDLERS and exposed
@@ -138,17 +138,17 @@ def hermes_system_status(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Tool 2: hermes_vault_query
+# Tool 2: arif_vault_query
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def hermes_vault_query(
+def arif_vault_query(
     query: str = "",
     mode: str = "recent",
     limit: int = 10,
     actor_id: str | None = None,
 ) -> dict[str, Any]:
-    """HERMES_VAULT_QUERY: Query VAULT999 audit ledger.
+    """ARIF_VAULT_QUERY: Query VAULT999 audit ledger.
 
     Modes:
       recent   — return N most recent VAULT entries (default)
@@ -869,7 +869,7 @@ def hermes_memory_steward(
 
 HERMES_TOOL_HANDLERS: dict[str, Any] = {
     "hermes_system_status": hermes_system_status,
-    "hermes_vault_query": hermes_vault_query,
+    "arif_vault_query": arif_vault_query,
     "hermes_epistemic_check": hermes_epistemic_check,
     "hermes_fact_check": hermes_fact_check,
     "hermes_cross_verify": hermes_cross_verify,

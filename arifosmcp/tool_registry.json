@@ -50,7 +50,7 @@
   ],
   "diagnostic_order": [
     "hermes_system_status",
-    "hermes_vault_query",
+    "arif_vault_query",
     "hermes_epistemic_check",
     "hermes_fact_check",
     "hermes_cross_verify",
@@ -734,7 +734,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       }
     },
-    "hermes_vault_query": {
+    "arif_vault_query": {
       "tier": "hermes",
       "namespace": "hermes_* (sanctioned)",
       "floors": [

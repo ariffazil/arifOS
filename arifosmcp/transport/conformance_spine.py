@@ -490,13 +490,13 @@ def check_hold_blocks_mutation() -> dict[str, Any]:
 def check_vault_replay() -> dict[str, Any]:
     """8. VAULT write → read → verify hash chain — proves memory is alive.
 
-    The canonical proof uses the kernel's own hermes_vault_query tool (mode=recent).
+    The canonical proof uses the kernel's own arif_vault_query tool (mode=recent).
     This exercises the live replay path rather than re-implementing the parser.
     A secondary file-existence check confirms the on-disk vault is present.
     """
     errors: list[str] = []
     explicit_env = os.getenv("ARIFOS_VAULT_PATH") or os.getenv("VAULT999_PATH")
-    # VJAMMMM fix (2026-06-21): hermes_vault_query reads from /root/VAULT999/,
+    # VJAMMMM fix (2026-06-21): arif_vault_query reads from /root/VAULT999/,
     # not /var/lib/arifos/vault999/outcomes.jsonl. The conformance check MUST
     # check the SAME path the query tool reads, or the file_present check and
     # the query_status check will disagree on reality.
@@ -534,7 +534,7 @@ def check_vault_replay() -> dict[str, Any]:
     result = _mcp_post(
         "tools/call",
         {
-            "name": "hermes_vault_query",
+            "name": "arif_vault_query",
             "arguments": {"mode": "recent", "limit": 5},
         },
         session_id=session_id,
@@ -575,9 +575,9 @@ def check_vault_replay() -> dict[str, Any]:
         errors.append("chain_ok signal not present in vault response — defaulting to False")
 
     if status not in ("OK", "SEAL", "ok", "seal"):
-        errors.append(f"hermes_vault_query returned non-OK status: {status}")
+        errors.append(f"arif_vault_query returned non-OK status: {status}")
     if not entries:
-        errors.append("hermes_vault_query returned no entries")
+        errors.append("arif_vault_query returned no entries")
     if not file_exists:
         errors.append("Vault directory is missing or empty")
     if latest_id == "unknown":
@@ -704,7 +704,7 @@ def check_cooling_ledger() -> dict[str, Any]:
         result = _mcp_post(
             "tools/call",
             {
-                "name": "hermes_vault_query",
+                "name": "arif_vault_query",
                 "arguments": {"mode": "recent", "limit": 20},
             },
             session_id=session_id,

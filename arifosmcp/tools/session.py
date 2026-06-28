@@ -992,6 +992,65 @@ def arif_init(
             # Don't override FULL/SOVEREIGN — only degrade LIMITED_MUTATE/OBSERVE_ONLY
             # This prevents accidentally downgrading a verified sovereign session
 
+        # ── P3 WIRING (2026-06-28): Qdrant memory recall on session init ──
+        # Without this, every session starts cold — no context from prior sessions.
+        # Load last 5 relevant vault entries as context.
+        _init_memory_recall: list[dict] = []
+        try:
+            from arifosmcp.runtime.memory_store import _get_qdrant_client
+            from qdrant_client.http import models
+
+            qclient = _get_qdrant_client()
+            if qclient is not None:
+                # Search arifos_memory and arifos_session_memory for recent entries
+                search_results = qclient.scroll(
+                    collection_name="arifos_memory",
+                    limit=5,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                if search_results and search_results[0]:
+                    for point in search_results[0]:
+                        payload = point.payload or {}
+                        _init_memory_recall.append(
+                            {
+                                "id": point.id,
+                                "content": payload.get("content", "")[:300],
+                                "session_id": payload.get("session_id", ""),
+                                "timestamp": payload.get("timestamp", ""),
+                                "actor_id": payload.get("actor_id", ""),
+                            }
+                        )
+                # Also check vault for recent seals
+                search_results_vault = qclient.scroll(
+                    collection_name="arifos_session_memory",
+                    limit=3,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                if search_results_vault and search_results_vault[0]:
+                    for point in search_results_vault[0]:
+                        payload = point.payload or {}
+                        _init_memory_recall.append(
+                            {
+                                "id": point.id,
+                                "content": payload.get("content", "")[:300],
+                                "session_id": payload.get("session_id", ""),
+                                "timestamp": payload.get("timestamp", ""),
+                                "actor_id": payload.get("actor_id", ""),
+                            }
+                        )
+
+            if _init_memory_recall:
+                sess["init_memory_recall"] = _init_memory_recall[:5]
+                # Update context completeness score — memory loaded improves it
+                context_receipt.score = min(context_receipt.score + 0.15, 1.0)
+                context_receipt.verdict = "ADEQUATE_CONTEXT"
+                sess["context_completeness"] = context_receipt.model_dump()
+        except Exception as exc:
+            logger.warning(f"P3 memory recall failed (non-fatal): {exc}")
+            sess["init_memory_recall"] = []
+
         # ── Soul/shadow load (minimal — only .loaded for header) ─────────
         _model_soul, _model_shadow = _load_soul_shadow(declared_model_key or "unknown")
         sess["model_soul"] = _model_soul

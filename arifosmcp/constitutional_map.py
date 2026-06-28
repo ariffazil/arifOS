@@ -1012,15 +1012,51 @@ ONE_SKILL_ONE_TOOL_CLASSIFICATION: dict[str, dict[str, Any]] = {
         "enforcement": "restraint_flags from INIT geometry drive HOLD/ASK/REFUSE; verdict_trace required for execution",
     },
     "tools": {
-        "arif_init": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Binds geometry with One Skill flags + One Tool requirement."},
-        "arif_observe": {"restraint": "STANDARD", "verdict": "NONE", "classification": "Observe only; restraint for clarity, no verdict needed."},
-        "arif_think": {"restraint": "STANDARD", "verdict": "CONDITIONAL", "classification": "Reasoning under uncertainty; restraint prevents overfit."},
-        "arif_judge": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "The One Tool: renders the verdict that enables or refuses action."},
-        "arif_seal": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Seals the verdict into append-only memory."},
-        "arif_forge": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Execution substrate. Only after One Tool verdict + One Skill check."},
-        "arif_forge_execute": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Teeth of the system. enforce_restraint_and_verdict must PASS."},
-        "arif_act": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Execution gate. Requires prior seal from One Tool."},
-        "arif_memory": {"restraint": "STANDARD", "verdict": "CONDITIONAL", "classification": "Memory ops gated by restraint for mutation."},
+        "arif_init": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Binds geometry with One Skill flags + One Tool requirement.",
+        },
+        "arif_observe": {
+            "restraint": "STANDARD",
+            "verdict": "NONE",
+            "classification": "Observe only; restraint for clarity, no verdict needed.",
+        },
+        "arif_think": {
+            "restraint": "STANDARD",
+            "verdict": "CONDITIONAL",
+            "classification": "Reasoning under uncertainty; restraint prevents overfit.",
+        },
+        "arif_judge": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "The One Tool: renders the verdict that enables or refuses action.",
+        },
+        "arif_seal": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Seals the verdict into append-only memory.",
+        },
+        "arif_forge": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Execution substrate. Only after One Tool verdict + One Skill check.",
+        },
+        "arif_forge_execute": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Teeth of the system. enforce_restraint_and_verdict must PASS.",
+        },
+        "arif_act": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Execution gate. Requires prior seal from One Tool.",
+        },
+        "arif_memory": {
+            "restraint": "STANDARD",
+            "verdict": "CONDITIONAL",
+            "classification": "Memory ops gated by restraint for mutation.",
+        },
     },
     "note": "All tools inherit from INIT geometry. If kernel spec does not classify it, DENY.",
 }
@@ -1073,8 +1109,8 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["brief", "full", "organs", "events"],
         "tags": ["hermes", "diagnostic"],
     },
-    "hermes_vault_query": {
-        "name": "hermes_vault_query",
+    "arif_vault_query": {
+        "name": "arif_vault_query",
         "description": "HERMES: Query VAULT999 audit ledger — recent entries, keyword search, organ filter, date filter.",
         "access": "public",
         "tier": "hermes",
@@ -1900,7 +1936,7 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
         "OBSERVE",
         title="System Status",
     ),
-    "hermes_vault_query": derive_mcp_annotations(
+    "arif_vault_query": derive_mcp_annotations(
         "OBSERVE",
         title="Vault Query",
     ),

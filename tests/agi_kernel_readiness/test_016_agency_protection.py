@@ -162,7 +162,7 @@ def test_wealth_authority_modes_include_observer():
     # readable, and should declare its mode
     r = _call_wealth(
         "tools/call",
-        {"name": "wealth_system_registry_status", "arguments": {"mode": "health"}},
+        {"name": "wealth_system_registry_status", "arguments": {"mode": "registry"}},
         session_id=sid or None,
     )
     content = r.get("result", {}).get("content", [])

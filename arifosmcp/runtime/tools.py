@@ -4309,25 +4309,51 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
     Deterministic SAFE_VOID fallback when LLM call times out or fails.
     L13 SOVEREIGN: This is not a generic error — it is a pre-signed safe state.
     Returns a VOID verdict with full reasoning, never a generic exception.
+
+    RSI 2026-06-28: Fixes schema compliance against CANONICAL_OUTPUT_SCHEMA.
+    - result: REQUIRED field — was missing entirely.
+    - reasons: REQUIRED field (array) — was returning 'reason' (string).
+    - nine_signal: must match _NINE_SIGNAL_SCHEMA (delta/psi/omega/overall).
+      The old shape (status/confidence/entropy_delta) was schema-invalid.
     """
+    _safe_reason = f"SAFE_VOID_FALLBACK: {reason}"
+    _safe_reasons = [_safe_reason]
+
     return {
         "status": "VOID",
         "tool": tool_name,
         "verdict": "VOID",
-        "reason": f"SAFE_VOID_FALLBACK: {reason}",
-        "nine_signal": {
-            "status": "VOID",
-            "entropy_delta": 0.0,
-            "confidence": 0.0,
-            "output_policy": "DOMAIN_VOID",
-            "omega_0": None,
-            "tau": 0.0,
-            "delta_S": 0.0,
-            "kappa_r": 0.0,
-            "peace_squared": 0.0,
-            "psi_vitality": 0.0,
-            "reasons": [f"SAFE_VOID: {reason}"],
+        "result": {
+            "status": "void_fallback",
+            "reason": _safe_reason,
+            "fallback": True,
+            "timeout_ms": _TIMEOUT_MS,
         },
+        "nine_signal": {
+            "delta": {
+                "plane": "machine_physical_state",
+                "state": "RETAK",
+                "en": "BROKEN",
+                "domain_meaning": "Tool surface registered but LLM path failed — machine layer broken.",
+            },
+            "psi": {
+                "plane": "governance_integrity",
+                "state": "SYUBHAH",
+                "en": "DOUBTFUL",
+                "domain_meaning": "Governance cannot verify without tool output — uncertain authority.",
+            },
+            "omega": {
+                "plane": "intelligence_discipline",
+                "state": "RETAK",
+                "en": "BROKEN",
+                "domain_meaning": "LLM reasoning path failed — no intelligence discipline available.",
+            },
+            "overall": {
+                "state": "RETAK",
+                "en": "VOID",
+            },
+        },
+        "reasons": _safe_reasons,
         "timeout_fallback": True,
         "fallback_reason": f"LLM did not respond within {_TIMEOUT_MS}ms — returning pre-signed SAFE_VOID per L13",
         "session_id": None,
