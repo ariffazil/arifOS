@@ -1,11 +1,17 @@
 {
-  "schema": "arifos-agent-manifest/v1",
-  "name": "arifOS Constitutional MCP Kernel",
-  "role": "mcp_kernel",
+  "schema_version": "0.2",
+  "organ_id": "arifos",
+  "name": "arifOS Constitutional Kernel",
+  "role": "constitution",
+  "description": "Constitutional AI governance kernel for the arifOS federation. Owns F1-F13 floors, 888 JUDGE, 999 VAULT SEAL, and authority routing. Does not execute — it governs.",
   "url": "https://arifos.arif-fazil.com",
+  "a2a_endpoint": "http://127.0.0.1:8088/a2a",
+  "agent_card_url": "http://127.0.0.1:8088/.well-known/agent-card.json",
   "mcp_endpoint": "https://arifos.arif-fazil.com/mcp",
+  "health_url": "http://127.0.0.1:8088/health",
   "transport": ["streamable-http"],
   "version": "2026.06.11-SSCT",
+  "protocol_version": "1.0.0",
   "constitutional_floors": 13,
   "capabilities": {
     "tools": true,
@@ -14,10 +20,92 @@
     "prompts": true,
     "vault": true,
     "vector_memory": true,
-    "session_cache": true
+    "session_cache": true,
+    "judge": true,
+    "seal": true
   },
+  "skills": [
+    {
+      "id": "arif_init",
+      "name": "Constitutional Session Init",
+      "description": "Initialize governed session with authority binding, floor acknowledgment, and sovereignty declaration. Golden path entry point.",
+      "tags": ["governance", "session", "authority"]
+    },
+    {
+      "id": "arif_observe",
+      "name": "Evidence Binding",
+      "description": "Gather and label evidence with epistemic discipline (OBS/DER/INT/SPEC). Search, ingest, and ground queries in reality.",
+      "tags": ["evidence", "observation", "truth"]
+    },
+    {
+      "id": "arif_think",
+      "name": "Multi-Step Reasoning",
+      "description": "Plan, critique, verify, and reflect with confidence labeling. Modes: reason, critique, verify, plan.",
+      "tags": ["reasoning", "planning", "humility"]
+    },
+    {
+      "id": "arif_route",
+      "name": "Intent Classification",
+      "description": "Route natural-language intent to the correct federation organ or kernel tool. Canonical intent router.",
+      "tags": ["routing", "classification", "federation"]
+    },
+    {
+      "id": "arif_judge",
+      "name": "Constitutional Verdict",
+      "description": "Render binding judgment on proposed actions. Evaluates intent, capability, blast radius, reversibility. Verdicts: PROCEED, HOLD, VOID, PARTIAL.",
+      "tags": ["judge", "verdict", "constitutional"]
+    },
+    {
+      "id": "arif_seal",
+      "name": "Immutable Audit Seal",
+      "description": "Seal verdicts and outcomes to VAULT999 immutable ledger. Final, irreversible records preserved forever.",
+      "tags": ["seal", "vault", "audit"]
+    },
+    {
+      "id": "arif_act",
+      "name": "Governed Execution",
+      "description": "Execute actions with valid prior SEAL from arif_judge. The 900-gate — no seal, no action.",
+      "tags": ["execution", "governance", "enforcement"]
+    },
+    {
+      "id": "constitutional_floor_enforcement",
+      "name": "F1-F13 Floor Enforcement",
+      "description": "Enforce all 13 constitutional floors (AMANAH, TRUTH, CLARITY, MARUAH, LAW, ANTI-HANTU, AUDIT, SOVEREIGN, etc.) across federation actions.",
+      "tags": ["floors", "enforcement", "sovereignty"]
+    },
+    {
+      "id": "apex_g_score_computation",
+      "name": "G-Score Computation",
+      "description": "Compute constitutional alignment score (G-Score) for proposed actions across all 13 floors.",
+      "tags": ["scoring", "alignment", "constitutional"]
+    },
+    {
+      "id": "reversibility_blast_radius_assessment",
+      "name": "Risk Assessment",
+      "description": "Assess blast radius and reversibility level for any proposed action. Determines verdict gate: 000→111→333→666→888→999.",
+      "tags": ["risk", "assessment", "reversibility"]
+    }
+  ],
   "tool_domains": ["geox", "wealth", "arifos"],
   "verdict_system": ["SEAL", "PROCEED", "HOLD", "PARTIAL", "VOID"],
+  "owned_mcp": [
+    "arif_init",
+    "arif_observe",
+    "arif_fetch",
+    "arif_think",
+    "arif_route",
+    "arif_critique",
+    "arif_judge",
+    "arif_act",
+    "arif_seal"
+  ],
+  "judge_skills": [
+    "arif_judge",
+    "arif_seal",
+    "constitutional_floor_enforcement",
+    "apex_g_score_computation",
+    "reversibility_blast_radius_assessment"
+  ],
   "identity": "https://arif-fazil.com/llms.txt",
   "canonical_index": "https://arif-fazil.com/.well-known/arifos.json",
   "wells": "https://arif-fazil.com/wells.json",
