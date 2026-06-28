@@ -17888,9 +17888,7 @@ async def _arif_act(
     try:
         from arifosmcp.runtime.executor import DYNAMIC_EXECUTOR_CONSTRAINTS
 
-        verdict_state = DYNAMIC_EXECUTOR_CONSTRAINTS["verdict_gates"].get(
-            resp.verdict, "BLOCK"
-        )
+        verdict_state = DYNAMIC_EXECUTOR_CONSTRAINTS["verdict_gates"].get(resp.verdict, "BLOCK")
         if verdict_state == "WAIT":
             return {
                 "verdict": "SABAR",
@@ -17915,14 +17913,6 @@ async def _arif_act(
         # verdict_state == "PROCEED" falls through to execution
     except ImportError:
         pass  # executor module unavailable — degrade to seal-only gate
-
-    # Optional: if seal_verdict_id provided, we can treat it as additional proof (future: cross-check id)
-    # The verifier + required ids make bypass structurally impossible.
-            "verification_trace": resp.trace,
-        }
-
-    # Optional: if seal_verdict_id provided, we can treat it as additional proof (future: cross-check id)
-    # The verifier + required ids make bypass structurally impossible.
 
     # 3. Delegate to the execution engine (forge)
     try:
