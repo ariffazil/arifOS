@@ -167,6 +167,13 @@ class ArifOSAgentCard(BaseModel):
     # ── Skills: 6-Axis Model ──────────────────────────────────────────────────
     skills: list = Field(default_factory=list)
 
+    # ── A2A Mesh Legibility (ADR-015) ─────────────────────────────────────────
+    # Declared surface must match actual surface. These fields advertise the
+    # constitutional kernel's judgment capabilities and owned MCP tools so peer
+    # organs know how to invoke arifOS law.
+    judge_skills: list[str] = Field(default_factory=list)
+    owned_mcp: list[str] = Field(default_factory=list)
+
     def model_post_init(self, *args):
         """Populate all fields lazily after init — avoids Pydantic forward-ref issues."""
         if not self.authentication:
@@ -249,6 +256,34 @@ class ArifOSAgentCard(BaseModel):
             }
             object.__setattr__(self, "axes", ax_counts)
             object.__setattr__(self, "total_agents", len(built_skills))
+        if not self.judge_skills:
+            object.__setattr__(
+                self,
+                "judge_skills",
+                [
+                    "arif_judge",
+                    "arif_seal",
+                    "constitutional_floor_enforcement",
+                    "apex_g_score_computation",
+                    "reversibility_blast_radius_assessment",
+                ],
+            )
+        if not self.owned_mcp:
+            object.__setattr__(
+                self,
+                "owned_mcp",
+                [
+                    "arif_init",
+                    "arif_observe",
+                    "arif_fetch",
+                    "arif_think",
+                    "arif_route",
+                    "arif_critique",
+                    "arif_judge",
+                    "arif_act",
+                    "arif_seal",
+                ],
+            )
 
     # ── A2A Endpoints ────────────────────────────────────────────────────────
     endpoints: dict[str, str] = Field(
