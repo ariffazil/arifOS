@@ -434,42 +434,22 @@ def register_embodied_resources(mcp: FastMCP) -> list[str]:
     """Register embodied tool intelligence resources on the given FastMCP server."""
     registered: list[str] = []
 
-    @mcp.resource(
-        "arifos://tools/self-model/{view}",
-        description=(
-            "The agent's complete runtime self-model of its own tools. "
-            "Returns every registered tool with capabilities, limitations, "
-            "risk tier, blast radius, permission gaps, and composition rules."
-        ),
-    )
-    async def get_self_model(view: str = "full") -> str:
-        return json.dumps(get_tool_self_model_resource()["body"], indent=2)
-
-    registered.append("arifos://tools/self-model/{view}")
-
-    @mcp.resource(
-        "arifos://tools/permissions/{scope}",
-        description=(
-            "Current permission state: which tools are executable vs blocked, "
-            "agent permissions held, and permission gap analysis."
-        ),
-    )
-    async def get_permissions(scope: str = "all") -> str:
-        return json.dumps(get_tool_permissions_resource()["body"], indent=2)
-
-    registered.append("arifos://tools/permissions/{scope}")
-
-    @mcp.resource(
-        "arifos://tools/composition-matrix/{format}",
-        description=(
-            "Tool composition safety matrix. Returns safe/dangerous pairings "
-            "for every registered tool combination."
-        ),
-    )
-    async def get_composition_matrix(format: str = "json") -> str:
-        return json.dumps(get_tool_composition_resource()["body"], indent=2)
-
-    registered.append("arifos://tools/composition-matrix/{format}")
+    # DISABLED 2026-06-28 (zen of resources — system introspection, not domain data):
+    # These expose AI's own tool usage stats, permissions, and composition metadata.
+    # MCP resources = domain data for AI context. AI already gets tools via tools/list.
+    # self-model, permissions, composition are internal system state, not domain data.
+    #
+    # @mcp.resource("arifos://tools/self-model/{view}", ...)
+    # async def get_self_model(view: str = "full") -> str: ...
+    # registered.append("arifos://tools/self-model/{view}")
+    #
+    # @mcp.resource("arifos://tools/permissions/{scope}", ...)
+    # async def get_permissions(scope: str = "all") -> str: ...
+    # registered.append("arifos://tools/permissions/{scope}")
+    #
+    # @mcp.resource("arifos://tools/composition-matrix/{format}", ...)
+    # async def get_composition_matrix(format: str = "json") -> str: ...
+    # registered.append("arifos://tools/composition-matrix/{format}")
 
     @mcp.resource(
         "arifos://witness/log/{filter}",

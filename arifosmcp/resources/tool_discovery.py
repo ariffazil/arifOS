@@ -29,25 +29,21 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
     import os
 
     _EXPOSE_DEV_TOOLS = os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "false").lower() in (
-        "1", "true", "yes", "on",
+        "1",
+        "true",
+        "yes",
+        "on",
     )
     registered = []
 
-    # Register the discovery resource
-    @mcp.resource(
-        uri="arif://tools/discovery",
-        name="arifOS Tool Discovery",
-        description=(
-            "Quick reference for selecting the correct arifOS tool. "
-            "Use this when unsure which tool to call. "
-            "Each tool has 'use_when' guidance, aliases, and examples."
-        ),
-        mime_type="application/json",
-    )
-    def tool_discovery_resource() -> dict:
-        return get_tool_discovery_resource_text()
-
-    registered.append("arif://tools/discovery")
+    # DISABLED 2026-06-28 (zen of resources — meta about tool interface, not domain data).
+    # AI gets all tools via tools/list (MCP spec). Tool selection guidance is meta,
+    # not domain operational data. Keep the gated tools (arif_resolve_tool, arif_get_affordance)
+    # since they are actual tools with domain utility.
+    #
+    # @mcp.resource(uri="arif://tools/discovery", ...)
+    # def tool_discovery_resource() -> dict: ...
+    # registered.append("arif://tools/discovery")
 
     # Register alias resolution tool (gated — diagnostic utility)
     if _EXPOSE_DEV_TOOLS:
@@ -83,21 +79,13 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
 
         registered.append("arif_resolve_tool")
 
-    # Register full constitutional affordance contract resource (metacognitive core)
-    @mcp.resource(
-        uri="arif://tools/affordance",
-        name="arifOS Constitutional Affordance Contracts",
-        description=(
-            "Full metacognitive contract per tool. purpose, use_when, do_not_use_when, "
-            "L0-L5 agency_level, blast_radius, human_confirmation, decision thresholds. "
-            "Agents: retrieve BEFORE calling any tool. Answers the four questions."
-        ),
-        mime_type="application/json",
-    )
-    def affordance_contracts_resource() -> dict:
-        return get_full_affordance_resource_text()
-
-    registered.append("arif://tools/affordance")
+    # DISABLED 2026-06-28 (zen of resources — tool affordance metadata, not domain data).
+    # Tool affordances are about the MCP tool interface itself. The gated tool
+    # arif_get_affordance still provides this for agents that need it.
+    #
+    # @mcp.resource(uri="arif://tools/affordance", ...)
+    # def affordance_contracts_resource() -> dict: ...
+    # registered.append("arif://tools/affordance")
 
     # Tool to get affordance for one name (cognitive pre-call helper, gated)
     if _EXPOSE_DEV_TOOLS:
@@ -121,31 +109,12 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
 
         registered.append("arif_get_affordance")
 
-    # Core 7 pipeline resource — the kernel 7 tools done properly
-    @mcp.resource(
-        uri="arif://core/seven",
-        name="arifOS Core 7 Pipeline",
-        description=(
-            "The 7 essential constitutional tools that form the primary governed loop. "
-            "Each has full affordance contracts, L0-L5 classification, and produces "
-            "metacognitive output (facts, inferences, unknowns, next_safe_action). "
-            "Agents should reason over this pipeline."
-        ),
-        mime_type="application/json",
-    )
-    def core_seven_pipeline_resource() -> dict:
-        from arifosmcp.constitutional_map import CORE_SEVEN, CORE_SEVEN_LABELS, CORE_SEVEN_STAGE_MAP
-        from arifosmcp.resources.tool_discovery_resource import get_full_affordance_resource_text
-
-        aff = get_full_affordance_resource_text()
-        return {
-            "core_seven": CORE_SEVEN,
-            "labels": CORE_SEVEN_LABELS,
-            "stage_map": CORE_SEVEN_STAGE_MAP,
-            "contracts": aff.get("core_seven", {}),
-            "instruction": "Follow the order. Call get_full_affordance or arif://tools/affordance before each step. Expect metacognition and next_safe_action in every response.",
-        }
-
-    registered.append("arif://core/seven")
+    # DISABLED 2026-06-28 (zen of resources — pipeline metadata, not domain data).
+    # Core 7 pipeline description is meta about the tool interface, not domain data.
+    # Agents discover tools via tools/list and tool descriptions.
+    #
+    # @mcp.resource(uri="arif://core/seven", ...)
+    # def core_seven_pipeline_resource() -> dict: ...
+    # registered.append("arif://core/seven")
 
     return registered

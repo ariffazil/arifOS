@@ -89,50 +89,59 @@ CANONICAL_RESOURCES = (
     "arifos://human/metabolized",
     "arifos://loop-engineering",
     "arifos://quickstart",
-    "tree777://index",
-    "runner://policy/v1",
-    "arif://tools/discovery",
+    "arifos://mcp-alignment",  # MCP spec conformance — useful for debugging
+    # REMOVED 2026-06-28 (zen of resources — indices to indices):
+    #   tree777://index         — wiki index, not domain operational data
+    #   runner://policy/v1      — runner policy metadata, not AI operational data
+    #   arif://tools/discovery  — consolidated into arifos://tools/self-model
 )
 
 SUPPLEMENTAL_RESOURCES = (
-    "arifos://mcp-alignment",
-    "arifos://resources/index",
-    "arifos://skills-catalog",
+    # REMOVED 2026-06-28 (catalog-of-catalog — meta, not domain data):
+    #   arifos://resources/index — catalog of resources → meta
+    #   arifos://skills-catalog — catalog of skills → meta
 )
 
 TREE777_RESOURCES = (
-    "tree777://index",
-    "tree777://skills/{category}/{name}",
+    # REMOVED 2026-06-28: tree777://index (meta, not domain data)
+    # Keep concepts/scars — these are domain knowledge (geology concepts, scars)
     "tree777://concepts/{name}",
     "tree777://scars/{name}",
 )
 
 EMBODIED_RESOURCES = (
-    "arifos://tools/self-model/{view}",
-    "arifos://tools/permissions/{scope}",
-    "arifos://tools/composition-matrix/{format}",
-    "arifos://witness/log/{filter}",
-    "arifos://witness/stats/{period}",
-    "arifos://boundaries/domain/{domain_id}",
+    # REMOVED 2026-06-28 (zen of resources — system introspection, not domain data):
+    #   arifos://tools/self-model/{view}     — tool usage stats → system introspection
+    #   arifos://tools/permissions/{scope}  — permission state → system state
+    #   arifos://tools/composition-matrix/{format} — tool composition → meta
+    # KEEP: audit trail + domain boundaries (AI needs this for governance work):
+    "arifos://witness/log/{filter}",  # AI reads its own sealed audit trail
+    "arifos://witness/stats/{period}",  # witness statistics
+    "arifos://boundaries/domain/{domain_id}",  # domain policy per organ — AI needs this
 )
 
 EVIDENCE_RESOURCES = (
-    "source://{hash}",
-    "receipt://web/{id}",
-    "contrast://{id}",
-    "void://{id}",
+    # KEEP — template resources (one template → many instances).
+    # These are domain data the AI fetched from the web, not catalogs or metadata.
+    "source://{hash}",  # ingested web source content
+    "receipt://web/{id}",  # evidence receipt for web fetch
+    "contrast://{id}",  # cross-source contrast report
+    "void://{id}",  # missing data taxonomy report
 )
 
-# Context Engine Runner (F13-safe burn-in surface, 2026-06-12)
-# Resources, not tools. Do not count toward the 13-tool surface.
-RUNNER_RESOURCES = (
-    "runner://receipt/{run_id}",
-    "runner://policy/v1",
-)
+# Context Engine Runner — REMOVED 2026-06-28 (indices, not domain data):
+#   runner://receipt/{run_id}  — receipt lookup → arif_fetch tool
+#   runner://policy/v1         — runner policy metadata → not AI operational data
+RUNNER_RESOURCES = ()
 
 
 def register_resources(mcp: FastMCP) -> list[str]:
-    """Register 13 canonical + evidence, embodied, TREE777, runner, supplemental, and human context families."""
+    """Register canonical + embodied + TREE777 concepts + human context families.
+
+    ZEN OF RESOURCES (2026-06-28): Removed catalog-of-catalog, indices-to-indices,
+    dynamic URI patterns. MCP resources = domain data AI needs for work, not
+    metadata about metadata or filesystem mirrors.
+    """
     registered: list[str] = []
     registered.extend(register_doctrine(mcp))
     registered.extend(register_trinity(mcp))
@@ -147,12 +156,14 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_loop_engineering(mcp))
     registered.extend(register_quickstart(mcp))
     registered.extend(register_mcp_alignment(mcp))
-    registered.extend(register_resources_index(mcp))
-    registered.extend(register_skills_catalog(mcp))
+    # DISABLED 2026-06-28 — catalog-of-catalog, not domain operational data:
+    # registered.extend(register_resources_index(mcp))    # arifos://resources/index
+    # registered.extend(register_skills_catalog(mcp))   # arifos://skills-catalog
     registered.extend(register_evidence_resources(mcp))
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))
-    registered.extend(register_runner_resources(mcp))
+    # DISABLED 2026-06-28 — indices, not domain operational data:
+    # registered.extend(register_runner_resources(mcp))   # runner://*
     registered.extend(register_sovereign_resources(mcp))
     registered.extend(register_human_context(mcp))
     registered.extend(register_reality_state(mcp))

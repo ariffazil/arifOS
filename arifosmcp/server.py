@@ -406,7 +406,7 @@ if FastMCPSkillsDirectoryProvider is not None and Path is not None:
         ]
         _federation_skills_provider = FastMCPSkillsDirectoryProvider(
             roots=_skill_roots,
-            supporting_files="template",  # compact list; clients read _manifest for full files
+            supporting_files=[],  # [] = SKILL.md only; no _manifest. Zen of resources 2026-06-28.
             reload=False,  # stable in prod; dev can set True
         )
         mcp.add_provider(_federation_skills_provider)
@@ -415,52 +415,40 @@ if FastMCPSkillsDirectoryProvider is not None and Path is not None:
             "(unified bootstrap across all AAA agents via MCP resources)"
         )
 
-        # Bridge for wire protocol: explicitly register FileResources so that
-        # mcp.http_app() streamable-http transport surfaces skill:// in resources/list
-        # (the in-proc Client + custom stdio _mcp.list_resources() see provider list;
-        #  the low-level HTTP JSON-RPC handler only sees decorator-registered + add_resource).
-        # This closes the gap between SDK Client verification and actual MCP clients over /mcp.
-        try:
-            from fastmcp.resources.types import FileResource  # type: ignore
-
-            _wire_registered: list[str] = []
-            for _r in _skill_roots:
-                if not _r.exists():
-                    continue
-                for _sd in sorted(_r.iterdir()):
-                    if not _sd.is_dir() or _sd.name.startswith(".") or _sd.name.startswith("_"):
-                        continue
-                    # Register primary SKILL.md explicitly for wire visibility.
-                    # _manifests (and supporting) are provided via the SkillsDirectoryProvider
-                    # (template mode) for full Client/IDE paths. Explicit File only for the
-                    # main playbooks keeps local_provider + wire list clean (~49 SKILL.md + original).
-                    _fn = "SKILL.md"
-                    _fp = _sd / _fn
-                    if _fp.is_file():
-                        _uri = f"skill://{_sd.name}/{_fn}"
-                        try:
-                            _fr = FileResource(
-                                uri=_uri,
-                                path=_fp,
-                                name=_uri,
-                                description=f"Federation SKILL.md playbook ({_sd.name})",
-                                mime_type="text/markdown",
-                            )
-                            mcp.add_resource(_fr)
-                            _wire_registered.append(_uri)
-                        except Exception as _re:
-                            logger.debug("skill FileResource add non-fatal for %s: %s", _uri, _re)
-            if _wire_registered:
-                logger.info(
-                    "Wire-bridge: added %d explicit skill://SKILL.md FileResources "
-                    "for http MCP resources/list visibility (provider supplies manifests + full SDK paths)",
-                    len(_wire_registered),
-                )
-        except Exception as _wire_err:
-            logger.warning(
-                "Could not wire explicit FileResources for skill:// (http list may miss): %s",
-                _wire_err,
-            )
+        # Bridge for wire protocol DISABLED 2026-06-28 (zen of resources):
+        # skill:// URIs are filesystem mirrors, not domain operational data.
+        # The SkillsDirectoryProvider still serves skill:// via resources/read for
+        # clients that explicitly request a known skill URI. The wire bridge was
+        # adding 37 redundant FileResource entries to resources/list, inflating
+        # the surface from ~20 to ~97. MCP resources should be domain data AI
+        # needs for work — not file mirrors (those live in the filesystem MCP).
+        # if FastMCPSkillsDirectoryProvider is not None and Path is not None:
+        #     try:
+        #         from fastmcp.resources.types import FileResource  # type: ignore
+        #         _wire_registered: list[str] = []
+        #         for _r in _skill_roots:
+        #             if not _r.exists():
+        #                 continue
+        #             for _sd in sorted(_r.iterdir()):
+        #                 if not _sd.is_dir() or _sd.name.startswith(".") or _sd.name.startswith("_"):
+        #                     continue
+        #                 _fn = "SKILL.md"
+        #                 _fp = _sd / _fn
+        #                 if _fp.is_file():
+        #                     _uri = f"skill://{_sd.name}/{_fn}"
+        #                     try:
+        #                         _fr = FileResource(uri=_uri, path=_fp, name=_uri,
+        #                             description=f"Federation SKILL.md playbook ({_sd.name})",
+        #                             mime_type="text/markdown")
+        #                         mcp.add_resource(_fr)
+        #                         _wire_registered.append(_uri)
+        #                     except Exception as _re:
+        #                         logger.debug("skill FileResource add non-fatal for %s: %s", _uri, _re)
+        #         if _wire_registered:
+        #             logger.info("Wire-bridge: added %d explicit skill://SKILL.md FileResources",
+        #                         len(_wire_registered))
+        #     except Exception as _wire_err:
+        #         logger.warning("Wire bridge disabled: %s", _wire_err)
     except Exception as _skills_err:
         logger.warning(
             f"Could not wire standard SkillsDirectoryProvider for SKILL.md: {_skills_err}"
