@@ -6,6 +6,29 @@
 
 ---
 
+## ZEN CIRCUIT ALIGNMENT (2026-06-28)
+
+This kernel hardening loop uses a governance-specific 7-stage flow. For **agent-side coding/forge work**, use the OpenCode 7 Zen skills:
+
+```
+GOVERNANCE LOOP (this file):   000→111→333→555→777→888→999
+CODING/FORGE LOOP (OpenCode):  000→111→333→666→888→010→999
+```
+
+| Circuit | Governance Role | Coding/Forge Role |
+|---------|----------------|-------------------|
+| 000 | Clarify Task | Orient + Session + Preflight |
+| 111 | Gather Evidence | Observe + Label Truth |
+| 333 | Draft Change | Plan + DAG + Humility |
+| 555/666 | Self-Critique (555) | Consequence Critique (666) |
+| 777/010 | Compare & Decide (777) | Execute with Warrant (010) |
+| 888 | Audit Trail | Constitutional Verdict |
+| 999 | Self-Improvement | Seal + Cleanup + Health |
+
+**Both loops share 000-111-333-888-999.** The middle circuits diverge: governance uses 555/777 (critique/decide), forge uses 666/010 (stress-test/execute).
+
+---
+
 ## 0. LIVE STATE BASELINE (Read before acting)
 
 From attestation on 2026-06-14 17:26 UTC:
