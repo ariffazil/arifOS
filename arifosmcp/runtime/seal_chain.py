@@ -13,8 +13,25 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+import base64
 import hashlib
-from typing import Any
+import json as _json
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+        Ed25519PrivateKey,
+        Ed25519PublicKey,
+    )
+
+try:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+        Ed25519PrivateKey,
+        Ed25519PublicKey,
+    )
+    _ED25519_AVAILABLE = True
+except ImportError:
+    _ED25519_AVAILABLE = False
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Genesis identifier — the root of the seal chain.
@@ -155,3 +172,92 @@ def validate_seal_chain(
 
         chain.append(prev_id)
         current = db[prev_id]
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Ed25519 Seal Chain Signing  (P0 EUREKA: wf-fd066b6b §8)
+#
+# Blueprint law: use Ed25519 (asymmetric), NOT HMAC — Ed25519 lets any third
+# party verify with the public key while only the key-holder can produce valid
+# seals. This is the property that matters for an independently-verifiable
+# seal_receipt.
+#
+# curr_hash = sha256(prev_hash || canonical_json(payload))
+# signature = Ed25519.sign(private_key, curr_hash)
+# seal_receipt = {seq, timestamp, payload, prev_hash, curr_hash, signature, pubkey_id}
+# ──────────────────────────────────────────────────────────────────────────────
+
+GENESIS_PREV_HASH: str = "GENESIS"
+
+
+def seal_entry(
+    prev_hash: str,
+    payload: dict[str, Any],
+    private_key: "Ed25519PrivateKey",
+) -> tuple[str, str]:
+    """
+    Compute hash and Ed25519 signature for a vault chain entry.
+
+    Returns (curr_hash, b64_signature). Use prev_hash=GENESIS_PREV_HASH for
+    the first entry. The curr_hash is: sha256(prev_hash || canonical_json(payload)).
+    """
+    if not _ED25519_AVAILABLE:
+        raise ImportError(
+            "cryptography library required for Ed25519 seal. "
+            "Install with: pip install cryptography"
+        )
+    canonical = _json.dumps(payload, sort_keys=True, default=str)
+    raw = (prev_hash + canonical).encode()
+    curr_hash = hashlib.sha256(raw).hexdigest()
+    sig = base64.b64encode(private_key.sign(curr_hash.encode())).decode()
+    return curr_hash, sig
+
+
+def verify_entry_signature(
+    curr_hash: str,
+    signature: str,
+    public_key: "Ed25519PublicKey",
+) -> bool:
+    """
+    Verify an Ed25519 signature over curr_hash.
+
+    Returns True if valid; False on any failure (invalid sig, wrong key,
+    malformed b64). Never raises — callers rely on bool result.
+    """
+    if not _ED25519_AVAILABLE:
+        return False
+    try:
+        public_key.verify(base64.b64decode(signature), curr_hash.encode())
+        return True
+    except Exception:
+        return False
+
+
+def build_seal_receipt(
+    seq: int,
+    prev_hash: str,
+    payload: dict[str, Any],
+    private_key: "Ed25519PrivateKey",
+    pubkey_id: str = "arifOS-kernel",
+) -> dict[str, Any]:
+    """
+    Build a complete seal_receipt dict clients can verify offline.
+
+    Structure: {seq, timestamp_iso, payload, prev_hash, curr_hash,
+                signature (b64), pubkey_id}
+
+    Anchor the chain head periodically to an external append-only system
+    or RFC 3161 timestamp authority for stronger guarantees.
+    """
+    from datetime import UTC, datetime
+
+    curr_hash, sig = seal_entry(prev_hash, payload, private_key)
+    return {
+        "seq": seq,
+        "timestamp_iso": datetime.now(UTC).isoformat(),
+        "payload": payload,
+        "prev_hash": prev_hash,
+        "curr_hash": curr_hash,
+        "signature": sig,
+        "pubkey_id": pubkey_id,
+    }

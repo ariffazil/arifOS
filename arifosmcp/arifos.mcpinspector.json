@@ -1,0 +1,48 @@
+{
+  "$schema": "https://modelcontextprotocol.io/specification/2025-03-26/schema.json",
+  "name": "arifOS MCP Kernel Inspector",
+  "version": "2026.06.19",
+  "description": "MCP Inspector profile for arifOS - tests all transports and constitutional floors",
+  "transports": {
+    "stdio": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "arifOS.arifosmcp.runtime", "stdio"],
+      "env": {
+        "ARIFOS_MINIMAL_STDIO": "1",
+        "AAA_MCP_TRANSPORT": "stdio"
+      },
+      "note": "Runs minimal stdio server - all logging suppressed to avoid corrupting JSON-RPC stream"
+    },
+    "http": {
+      "type": "streamable-http",
+      "url": "http://localhost:8080/mcp",
+      "note": "HTTP transport - start server with: python -m arifOS.arifosmcp.runtime http"
+    },
+    "http-alt": {
+      "type": "streamable-http", 
+      "url": "http://localhost:8800/mcp",
+      "note": "Alternative HTTP port 8800"
+    }
+  },
+  "default_transport": "stdio",
+  "inspector_settings": {
+    "MCP_SERVER_REQUEST_TIMEOUT": 300000,
+    "MCP_REQUEST_TIMEOUT_RESET_ON_PROGRESS": true,
+    "MCP_REQUEST_MAX_TOTAL_TIMEOUT": 60000
+  },
+  "test_suites": {
+    "transport_canaries": {
+      "description": "L1-L4 transport integrity tests",
+      "tests": ["arif_ping", "arif_transport_echo", "arif_initialize_probe"]
+    },
+    "constitutional_floors": {
+      "description": "F1-F13 floor validation",
+      "probe_order": ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13"]
+    },
+    "emergence_flow": {
+      "description": "Multi-step emergent intelligence scenarios",
+      "scenarios": ["S1_multi_step", "S2_multi_agent", "S3_long_horizon"]
+    }
+  }
+}

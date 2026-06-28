@@ -25,7 +25,6 @@ from arifosmcp.core.enforcement.risk_classifier import classify_tool
 from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_3
 from arifosmcp.schemas.federation_envelope import (
     ActionClass,
-    ActionReceipts,
     AuthoritySource,
     FederationEnvelope,
     HostAttestation,
@@ -38,16 +37,6 @@ from arifosmcp.schemas.sovereignty_checkpoint import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-# ── Replay defense: nonce check (imported lazily to avoid circular deps) ─
-def _check_nonce(trace_id: str) -> tuple[bool, str]:
-    """Check request nonce against replay cache.  Lazy import avoids circular deps."""
-    try:
-        from arifosmcp.runtime.session import check_request_nonce
-        return check_request_nonce(trace_id)
-    except ImportError:
-        return True, "nonce_module_unavailable"
 
 # ── Supabase Receipt Mode ─────────────────────────────────────────────
 # Controls whether the kernel hook writes receipts to Supabase.
@@ -98,81 +87,33 @@ def _nine_signal_for_severity(severity: str) -> dict[str, Any]:
     """
     signals = {
         "breach": {
-            "delta": {
-                "state": "ROSAK",
-                "en": "BROKEN",
-                "domain_meaning": "Governance breach detected.",
-            },
+            "delta": {"state": "ROSAK", "en": "BROKEN", "domain_meaning": "Governance breach detected."},
             "psi": {"state": "KHIANAT", "en": "BETRAYED", "domain_meaning": "Integrity violation."},
-            "omega": {
-                "state": "BANGANG",
-                "en": "FOOLISH",
-                "domain_meaning": "Reckless action detected.",
-            },
+            "omega": {"state": "BANGANG", "en": "FOOLISH", "domain_meaning": "Reckless action detected."},
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "high": {
-            "delta": {
-                "state": "RETAK",
-                "en": "CRACKED",
-                "domain_meaning": "Serious policy violation.",
-            },
-            "psi": {
-                "state": "SYUBHAH",
-                "en": "DOUBTFUL",
-                "domain_meaning": "Authority or policy issue.",
-            },
-            "omega": {
-                "state": "BIJAK",
-                "en": "PRUDENT",
-                "domain_meaning": "System caught the issue.",
-            },
+            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Serious policy violation."},
+            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Authority or policy issue."},
+            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System caught the issue."},
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "medium": {
-            "delta": {
-                "state": "RETAK",
-                "en": "CRACKED",
-                "domain_meaning": "Authority or configuration issue.",
-            },
-            "psi": {
-                "state": "SYUBHAH",
-                "en": "DOUBTFUL",
-                "domain_meaning": "Configuration mismatch.",
-            },
-            "omega": {
-                "state": "BIJAK",
-                "en": "PRUDENT",
-                "domain_meaning": "System held correctly.",
-            },
+            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Authority or configuration issue."},
+            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Configuration mismatch."},
+            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System held correctly."},
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "low": {
-            "delta": {
-                "state": "RETAK",
-                "en": "CRACKED",
-                "domain_meaning": "Config mismatch or missing field.",
-            },
-            "psi": {
-                "state": "SYUBHAH",
-                "en": "DOUBTFUL",
-                "domain_meaning": "Classification drift, not breach.",
-            },
-            "omega": {
-                "state": "BIJAKSANA",
-                "en": "WISE",
-                "domain_meaning": "System detected the issue early.",
-            },
+            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Config mismatch or missing field."},
+            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Classification drift, not breach."},
+            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System detected the issue early."},
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "advisory": {
             "delta": {"state": "KUKUH", "en": "SOLID", "domain_meaning": "Informational hold."},
             "psi": {"state": "AMANAH", "en": "TRUSTED", "domain_meaning": "No governance breach."},
-            "omega": {
-                "state": "BIJAKSANA",
-                "en": "WISE",
-                "domain_meaning": "System held as designed.",
-            },
+            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System held as designed."},
             "overall": {"state": "SELAMAT", "en": "SAFE"},
         },
     }
@@ -281,45 +222,6 @@ def _hold_envelope_dict(
         "_nine_signal_compliant": True,
         "_violations": [],
         "_severity": severity,
-        "stage_progression": None,
-    }
-
-
-def _deny_envelope_dict(
-    tool_name: str,
-    reason: str,
-    *,
-    session_id: str | None = None,
-    actor_id: str | None = None,
-    extra: dict[str, Any] | None = None,
-    verdict: str = "VOID",
-) -> dict[str, Any]:
-    """Build a schema-conformant DENY/QUARANTINE/VOID envelope dict.
-
-    Mirrors _hold_envelope_dict but emits a VOID verdict so the MCP SDK
-    receives structured content even when the kernel interceptor blocks the
-    call. Prevents 'outputSchema defined but no structured output returned'.
-    """
-    ts = datetime.now(UTC).isoformat()
-    result_payload: dict[str, Any] = {"reason": reason, "blocked": True}
-    if extra:
-        result_payload.update(extra)
-
-    return {
-        "status": "VOID",
-        "tool": tool_name,
-        "verdict": verdict,
-        "result": result_payload,
-        "meta": {"actor_id": actor_id or "ingress-middleware"},
-        "delta_S": 0.0,
-        "timestamp": ts,
-        "session_id": session_id,
-        "actor_id": actor_id,
-        "output_policy": "DOMAIN_VOID",
-        "nine_signal": _nine_signal_for_severity("ERROR"),
-        "reasons": [reason, "Kernel interceptor rejected before tool execution."],
-        "_nine_signal_compliant": True,
-        "_violations": [reason],
         "stage_progression": None,
     }
 
@@ -510,21 +412,19 @@ try:
 except Exception:
     _METRICS_AVAILABLE = False
 
-# The 12 canonical tools — enforce ingress tolerance + metrics on all of them
-# Updated 2026-07-07: names aligned with CANONICAL_12 (old names were stale)
+# The 11 mega-tools — enforce ingress tolerance on all of them
 MEGA_TOOLS = {
-    "arif_init",
-    "arif_triage",
-    "arif_observe",
-    "arif_think",
-    "arif_route",
-    "arif_bridge_connect",
-    "arif_critique",
-    "arif_memory",
-    "arif_judge",
-    "arif_forge",
-    "arif_compose",
-    "arif_seal",
+    "init_anchor",
+    "arifos_kernel",
+    "apex_soul",
+    "vault_ledger",
+    "agi_mind",
+    "asi_heart",
+    "engineering_memory",
+    "physics_reality",
+    "math_estimator",
+    "code_engine",
+    "architect_registry",
 }
 
 # Mode synonym normalization: obvious variants → canonical mode names
@@ -730,7 +630,6 @@ def _try_promote_local_service(
     # Note: for local-service promotion path, we skip request-based; middleware already tags.
     try:
         from arifosmcp.runtime.mcp_transport_bridge import get_host_platform_from_request
-
         # request not in scope here; use None — inference inside getter will be unknown
         # Real hosted platform tagging happens in MCPSessionBridgeMiddleware for HTTP ingress.
         _ = get_host_platform_from_request(None)
@@ -1004,89 +903,15 @@ if IS_FASTMCP_3:
                     )
                     if envelope is None:
                         # Legacy call: wrap with conservative defaults
-                        # FIX (2026-07-04): Thread MCP session ID from transport layer
-                        from arifosmcp.runtime.mcp_transport_bridge import (
-                            get_current_mcp_session_id,
-                        )
-
-                        mcp_sid = get_current_mcp_session_id()
                         envelope = wrap_legacy_call(
                             actor_id=None,
-                            session_id=mcp_sid,
+                            session_id=None,
                             tool_name=tool_name,
                         )
-                        logger.debug(
-                            f"Ingress: wrapped legacy call for {tool_name} (mcp_session={mcp_sid is not None})"
-                        )
+                        logger.debug(f"Ingress: wrapped legacy call for {tool_name}")
 
                     envelope_session_id = envelope.session_id
                     envelope_agent_id = envelope.agent_id
-
-                    # ── SESSION TOKEN RESOLUTION (Spine P0 — 2026-07-11) ──────
-                    # Runs AFTER envelope creation (both explicit and legacy wrap).
-                    # Resolves sct_v1 token → actor_id, updates envelope so
-                    # downstream validation sees a verified identity instead of
-                    # anonymous/UNKNOWN.
-                    _args_tok = dict(msg.arguments or {})
-                    _st_tok = _args_tok.get("session_token") or ""
-                    if _st_tok and (
-                        str(_st_tok).startswith("sct_v1.") or str(_st_tok).startswith("arifos.v1.")
-                    ):
-                        try:
-                            from arifosmcp.runtime.sct import verify_sct as _verify_sct
-                            from arifosmcp.schemas.federation_envelope import (
-                                AuthoritySource as _AuthSrc,
-                            )
-
-                            _claims_tok = _verify_sct(str(_st_tok))
-                            if _claims_tok:
-                                _res_actor = str(_claims_tok.get("actor") or "anonymous")
-                                _res_auth = str(_claims_tok.get("auth") or "OBSERVE_ONLY")
-                                _res_sid = str(_claims_tok.get("sid") or "")
-                                if _res_actor and _res_actor != "anonymous":
-                                    envelope.actor_id = _res_actor
-                                    envelope.agent_id = _res_actor
-                                    envelope.legacy_wrap = False
-                                    envelope.authority.source = _AuthSrc.TOKEN
-                                    if _res_sid:
-                                        envelope.session_id = _res_sid
-                                    # Inject into arguments for handlers that read kwargs directly
-                                    if "actor_id" not in _args_tok:
-                                        _args_tok["actor_id"] = _res_actor
-                                    if "actor" not in _args_tok:
-                                        _args_tok["actor"] = _res_actor
-                                    msg.arguments = _args_tok
-                                    logger.info(
-                                        "Ingress: resolved session_token for %s -> actor=%s auth=%s",
-                                        tool_name,
-                                        _res_actor,
-                                        _res_auth,
-                                    )
-                                    # ═════════════════════════════════════════════════════
-                                    # AUTO-POPULATE arif_ack_id for FULL (sovereign) sessions
-                                    # Fixes ATOMIC gate at validate_envelope_for_tool step 5
-                                    # which requires arif_ack_id for IRREVERSIBLE/ATOMIC actions.
-                                    # Verified sovereign sessions auto-derive the ack_id from
-                                    # the session token — no explicit parameter needed.
-                                    # ═════════════════════════════════════════════════════
-                                    if (
-                                        _res_auth == "FULL"
-                                        and _res_sid
-                                        and envelope.receipts is not None
-                                        and not envelope.receipts.arif_ack_id
-                                    ):
-                                        envelope.receipts.arif_ack_id = (
-                                            f"sct-sovereign-{_res_sid[:16]}-{int(time.time())}"
-                                        )
-                                        logger.info(
-                                            "Ingress: auto-populated arif_ack_id for %s "
-                                            "(session=%s, auth=%s)",
-                                            tool_name,
-                                            _res_sid[:16],
-                                            _res_auth,
-                                        )
-                        except Exception as _st_exc:
-                            logger.debug("Ingress: session_token resolution failed: %s", _st_exc)
 
                     # ── FORGE SCOPE GATE (v3: ToolScoper integration) ──────────────
                     # When forge_scope is non-empty, only tools on the allowlist pass.
@@ -1102,6 +927,7 @@ if IS_FASTMCP_3:
                             from mcp.types import TextContent
 
                             return ToolResult(
+                                is_error=True,
                                 content=[
                                     TextContent(
                                         type="text",
@@ -1159,6 +985,7 @@ if IS_FASTMCP_3:
 
                         verdict = "HOLD"
                         return ToolResult(
+                            is_error=True,
                             content=[TextContent(type="text", text=f"888_HOLD: {envelope_reason}")],
                             structured_content=_hold_envelope_dict(
                                 tool_name=tool_name,
@@ -1198,6 +1025,7 @@ if IS_FASTMCP_3:
 
                             verdict = "HOLD"
                             return ToolResult(
+                                is_error=True,
                                 content=[
                                     TextContent(
                                         type="text",
@@ -1242,6 +1070,7 @@ if IS_FASTMCP_3:
 
                                 verdict = "HOLD"
                                 return ToolResult(
+                                    is_error=True,
                                     content=[
                                         TextContent(
                                             type="text",
@@ -1300,84 +1129,6 @@ if IS_FASTMCP_3:
                         }
                         decision = intercept(kernel_input)
 
-                        # ── P0 WIRING (2026-06-28): Seal interceptor governance decisions ──
-                        # Every DENY, QUARANTINE, HOLD_888, and ADMIT_MUTATE decision
-                        # must leave an auditable receipt in VAULT999. Without this,
-                        # constitutional enforcement is advisory — gates fire but no
-                        # record persists. ADMIT_READ/SIMULATE skipped (high-volume).
-                        # P0.2: Use actual interceptor decision fields instead of hardcoded.
-                        if decision.verdict not in (
-                            AdmissibilityVerdict.ADMIT_READ,
-                            AdmissibilityVerdict.ADMIT_SIMULATE,
-                        ):
-                            try:
-                                from arifosmcp.core.vault_receipt import (
-                                    create_and_seal_receipt,
-                                    resolve_receipt_identity,
-                                )
-                                import hashlib
-
-                                # Use actual floors from interceptor, fall back to defaults
-                                _floors = (
-                                    decision.floors_evaluated
-                                    if decision.floors_evaluated
-                                    else ["F1", "F2", "F4", "F7", "F8", "F9", "F10", "F11"]
-                                )
-                                _violated = (
-                                    decision.floors_violated if decision.floors_violated else []
-                                )
-                                _dclass = (
-                                    decision.decision_class
-                                    if decision.decision_class
-                                    else (
-                                        "C3_DEEP"
-                                        if decision.verdict == AdmissibilityVerdict.HOLD_888
-                                        else "C2_STANDARD"
-                                    )
-                                )
-
-                                # F2 TRUTH: resolve real identity before minting receipt.
-                                # Relay placeholders (openclaw-anon, anonymous, unknown) are
-                                # NOT identities — resolve from session context.
-                                _sess_ctx = None
-                                try:
-                                    from arifosmcp.runtime.tools import get_session
-                                    _sess_ctx = get_session(sid) if sid else None
-                                except Exception:
-                                    pass
-                                _resolved_sid, _resolved_actor = resolve_receipt_identity(
-                                    session_id=sid,
-                                    actor_id=decision.actor_id or envelope.actor_id,
-                                    session_context=_sess_ctx,
-                                )
-
-                                create_and_seal_receipt(
-                                    session_id=_resolved_sid,
-                                    actor_id=_resolved_actor,
-                                    organ_id="arifOS",
-                                    intent_summary=f"INTERCEPTOR:{decision.verdict.value}:{tool_name}",
-                                    intent_hash=hashlib.sha256(tool_name.encode()).hexdigest()[:16],
-                                    requested_authority=(
-                                        decision.authority_tier.value
-                                        if decision.authority_tier
-                                        else "LOW"
-                                    ),
-                                    pre_state_hash=hashlib.sha256(
-                                        str(decision.normalized_request).encode()
-                                    ).hexdigest()[:16],
-                                    decision=decision.verdict.value,
-                                    verdict_hash=hashlib.sha256(
-                                        decision.reason.encode()
-                                    ).hexdigest()[:16],
-                                    floors_evaluated=_floors,
-                                    floors_violated=_violated,
-                                    decision_class=_dclass,
-                                    latency_ms=decision.latency_ms,
-                                    within_budget=decision.within_budget,
-                                )
-                            except Exception:
-                                pass  # Sealing must never block tool execution
-
                         if decision.verdict in (
                             AdmissibilityVerdict.DENY,
                             AdmissibilityVerdict.QUARANTINE,
@@ -1388,31 +1139,19 @@ if IS_FASTMCP_3:
                             )
                             from mcp.types import TextContent
 
-                            _deny_text = (
-                                f"KERNEL_{decision.verdict.value}: {decision.reason}\n\n"
-                                f"Capability: {decision.capability_id or 'unknown'}\n"
-                                f"Actor: {decision.actor_id or 'anonymous'}\n"
-                                f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}"
-                            )
                             return ToolResult(
-                                content=[TextContent(type="text", text=_deny_text)],
-                                structured_content=_deny_envelope_dict(
-                                    tool_name=tool_name,
-                                    reason=_deny_text,
-                                    session_id=envelope.session_id,
-                                    actor_id=envelope.actor_id,
-                                    extra={
-                                        "gate": "kernel_interceptor",
-                                        "interceptor_verdict": decision.verdict.value,
-                                        "capability_id": decision.capability_id,
-                                        "authority_tier": (
-                                            decision.authority_tier.value
-                                            if decision.authority_tier
-                                            else "LOW"
+                                is_error=True,
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=(
+                                            f"KERNEL_{decision.verdict.value}: {decision.reason}\n\n"
+                                            f"Capability: {decision.capability_id or 'unknown'}\n"
+                                            f"Actor: {decision.actor_id or 'anonymous'}\n"
+                                            f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}"
                                         ),
-                                    },
-                                    verdict="VOID",
-                                ),
+                                    )
+                                ],
                             )
 
                         if decision.verdict == AdmissibilityVerdict.HOLD_888:
@@ -1423,6 +1162,7 @@ if IS_FASTMCP_3:
 
                             verdict = "HOLD"
                             return ToolResult(
+                                is_error=True,
                                 content=[
                                     TextContent(
                                         type="text",
@@ -1520,126 +1260,15 @@ if IS_FASTMCP_3:
 
                     from arifosmcp.runtime.tools import _RESPONSE_CONTEXT
 
-                    # Prefer tool-arg identity over envelope coercion (openclaw-anon).
-                    # Envelope may be wrap_legacy_call after null actor; args often still
-                    # carry the real actor_id/session_id from the client.
-                    #
-                    # BREAK-004 fix (2026-07-13): NEVER emit a relay placeholder
-                    # (openclaw-anon / anonymous / unknown / null) into the response
-                    # context. If neither args nor envelope carry a real identity,
-                    # set _final_actor = None so the receipt writer (vault_receipt)
-                    # records f2_identity_status=UNRESOLVED instead of minting under
-                    # an anonymous actor. A governance system with anonymous
-                    # receipts is a mosque without qibla.
-                    from arifosmcp.runtime.actor_verification_matrix import (
-                        DENIED_IDENTITIES,
-                    )
-
-                    _args = getattr(msg, "arguments", None) or {}
-                    if not isinstance(_args, dict):
-                        _args = {}
-                    _arg_actor = _args.get("actor_id")
-                    _arg_session = _args.get("session_id")
-                    _env_actor = (
-                        str(envelope.actor_id)
-                        if hasattr(envelope, "actor_id") and envelope.actor_id
-                        else None
-                    )
-                    _env_session = (
-                        str(envelope.session_id)
-                        if hasattr(envelope, "session_id") and envelope.session_id
-                        else None
-                    )
-                    _placeholders = DENIED_IDENTITIES | {None}
-                    _real_actor = next(
-                        (v for v in (_arg_actor, _env_actor) if v not in _placeholders),
-                        None,
-                    )
-                    _real_session = next(
-                        (v for v in (_arg_session, _env_session) if v not in _placeholders),
-                        None,
-                    )
-                    # If we only found a placeholder, drop it — let the writer
-                    # stamp f2_identity_status=UNRESOLVED rather than mint under
-                    # an anonymous actor.
-                    _final_actor = _real_actor
-                    _final_session = _real_session
-                    if _final_actor is None or _final_session is None:
-                        # Try one more hop: session registry carries real identity
-                        # for active sessions.
-                        try:
-                            from arifosmcp.runtime.tools import _SESSIONS
-
-                            _probe_session = _real_session or _arg_session or _env_session
-                            if _probe_session and _probe_session not in _placeholders:
-                                _sctx = _SESSIONS.get(_probe_session) or {}
-                                if _final_actor is None:
-                                    _real_actor = _sctx.get("actor_id") or _sctx.get(
-                                        "canonical_actor_id"
-                                    )
-                                    if _real_actor and _real_actor not in _placeholders:
-                                        _final_actor = _real_actor
-                                if _final_session is None:
-                                    _real_session = _sctx.get("session_id") or _sctx.get(
-                                        "canonical_session_id"
-                                    )
-                                    if _real_session and _real_session not in _placeholders:
-                                        _final_session = _real_session
-                        except Exception:
-                            pass  # best-effort
-                    if _final_actor or _final_session:
+                    if hasattr(envelope, "actor_id") and envelope.actor_id:
                         _RESPONSE_CONTEXT.set(
                             {
-                                "actor_id": str(_final_actor) if _final_actor else None,
-                                "session_id": str(_final_session) if _final_session else None,
+                                "actor_id": str(envelope.actor_id),
+                                "session_id": str(envelope.session_id)
+                                if envelope.session_id
+                                else None,
                             }
                         )
-                    elif _arg_actor in _placeholders and _arg_actor is not None:
-                        # BREAK-004: log when ingress sees only placeholders.
-                        # The receipt writer will stamp UNRESOLVED; this log
-                        # is the upstream signal for the kernel.
-                        import logging as _lg
-
-                        _lg.getLogger(__name__).warning(
-                            "INGRESS identity unresolved: tool=%s arg_actor=%s "
-                            "env_actor=%s env_session=%s — receipt will be F2-flagged",
-                            tool_name,
-                            _arg_actor,
-                            _env_actor,
-                            _env_session,
-                        )
-
-                    # ── Replay defense: reject duplicate trace_id within TTL ──
-                    _trace_id = getattr(envelope, "trace_id", None) if envelope else None
-                    if _trace_id:
-                        _nonce_ok, _nonce_reason = _check_nonce(_trace_id)
-                        if not _nonce_ok:
-                            logger.warning(
-                                "REPLAY BLOCKED: trace_id=%s reason=%s tool=%s",
-                                _trace_id[:32],
-                                _nonce_reason,
-                                tool_name,
-                            )
-                            # C-010 fix 2026-07-12: do NOT re-import ToolResult here.
-                            # A late `import ToolResult` makes it a function-local name and
-                            # unbound earlier (HOLD/DENY paths → UnboundLocalError spam).
-                            from mcp.types import TextContent
-
-                            return ToolResult(
-                                content=[
-                                    TextContent(
-                                        type="text",
-                                        text=json.dumps(
-                                            {
-                                                "error": "replay_detected",
-                                                "reason": _nonce_reason,
-                                                "trace_id": _trace_id[:32],
-                                            }
-                                        ),
-                                    )
-                                ],
-                                isError=True,
-                            )
 
                     result = await call_next(context)
 
@@ -1648,10 +1277,7 @@ if IS_FASTMCP_3:
                             result.structured_content, dict
                         ):
                             sc = result.structured_content
-                            # Bangang #1 fix 2026-07-11: use VERDICT for constitutional meaning,
-                            # not STATUS (which is transport-level). Default to "OK" for tools
-                            # that don't set a constitutional verdict.
-                            verdict = sc.get("verdict") or "OK"
+                            verdict = sc.get("verdict") or sc.get("status") or "SEAL"
                         elif isinstance(result, dict):
                             verdict = result.get("verdict") or result.get("status") or "SEAL"
                         elif hasattr(result, "content") and result.content:
@@ -1668,31 +1294,6 @@ if IS_FASTMCP_3:
                     raise exc
                 finally:
                     elapsed_ms = int((time.monotonic() - t0) * 1000)
-                    # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
-                    # Supabase adapter never created. Writing directly to
-                    # VAULT999/outcomes.jsonl as append-only JSONL.
-                    try:
-                        from datetime import datetime as _dt, UTC as _UTC
-
-                        _outcomes_path = os.path.join(
-                            os.environ.get("ARIFOS_HOME", "/root"),
-                            "VAULT999",
-                            "outcomes.jsonl",
-                        )
-                        _outcome_entry = {
-                            "ts": _dt.now(_UTC).isoformat(),
-                            "event": "tool_call",
-                            "actor": envelope_agent_id or "unknown",
-                            "session": envelope_session_id or "unknown",
-                            "tool": tool_name,
-                            "verdict": verdict,
-                            "elapsed_ms": elapsed_ms,
-                        }
-                        os.makedirs(os.path.dirname(_outcomes_path), exist_ok=True)
-                        with open(_outcomes_path, "a") as _f:
-                            _f.write(json.dumps(_outcome_entry, default=str) + "\n")
-                    except Exception:
-                        pass
                     try:
                         loop = asyncio.get_running_loop()
                         if "result" in locals() and result:
@@ -1714,6 +1315,23 @@ if IS_FASTMCP_3:
                                 floors_checked=floors,
                                 elapsed_ms=elapsed_ms,
                             )
+                        )
+                        # ── VAULT999 STATE TRANSITION SEAL (P0 EUREKA wf-c64dfde6 §7) ──
+                        # Blueprint: "VAULT999 writes belong in middleware (on_call_tool
+                        # post-hook) so every consequential call is recorded regardless
+                        # of which organ served it." Only seals CONSEQUENTIAL_TOOLS.
+                        from arifosmcp.runtime.vault_sealer import schedule_state_transition_seal
+                        _resp_dict: dict[str, Any] = {"verdict": verdict, "status": verdict}
+                        if "result" in locals() and result is not None:
+                            if hasattr(result, "structured_content") and isinstance(
+                                result.structured_content, dict
+                            ):
+                                _resp_dict = {**result.structured_content, **_resp_dict}
+                        schedule_state_transition_seal(
+                            tool_name=tool_name,
+                            response=_resp_dict,
+                            session_id=envelope_session_id,
+                            actor_id=envelope_agent_id,
                         )
                     except Exception:
                         pass
