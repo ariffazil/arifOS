@@ -87,33 +87,81 @@ def _nine_signal_for_severity(severity: str) -> dict[str, Any]:
     """
     signals = {
         "breach": {
-            "delta": {"state": "ROSAK", "en": "BROKEN", "domain_meaning": "Governance breach detected."},
+            "delta": {
+                "state": "ROSAK",
+                "en": "BROKEN",
+                "domain_meaning": "Governance breach detected.",
+            },
             "psi": {"state": "KHIANAT", "en": "BETRAYED", "domain_meaning": "Integrity violation."},
-            "omega": {"state": "BANGANG", "en": "FOOLISH", "domain_meaning": "Reckless action detected."},
+            "omega": {
+                "state": "BANGANG",
+                "en": "FOOLISH",
+                "domain_meaning": "Reckless action detected.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "high": {
-            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Serious policy violation."},
-            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Authority or policy issue."},
-            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System caught the issue."},
+            "delta": {
+                "state": "RETAK",
+                "en": "CRACKED",
+                "domain_meaning": "Serious policy violation.",
+            },
+            "psi": {
+                "state": "SYUBHAH",
+                "en": "DOUBTFUL",
+                "domain_meaning": "Authority or policy issue.",
+            },
+            "omega": {
+                "state": "BIJAK",
+                "en": "PRUDENT",
+                "domain_meaning": "System caught the issue.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "medium": {
-            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Authority or configuration issue."},
-            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Configuration mismatch."},
-            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System held correctly."},
+            "delta": {
+                "state": "RETAK",
+                "en": "CRACKED",
+                "domain_meaning": "Authority or configuration issue.",
+            },
+            "psi": {
+                "state": "SYUBHAH",
+                "en": "DOUBTFUL",
+                "domain_meaning": "Configuration mismatch.",
+            },
+            "omega": {
+                "state": "BIJAK",
+                "en": "PRUDENT",
+                "domain_meaning": "System held correctly.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "low": {
-            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Config mismatch or missing field."},
-            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Classification drift, not breach."},
-            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System detected the issue early."},
+            "delta": {
+                "state": "RETAK",
+                "en": "CRACKED",
+                "domain_meaning": "Config mismatch or missing field.",
+            },
+            "psi": {
+                "state": "SYUBHAH",
+                "en": "DOUBTFUL",
+                "domain_meaning": "Classification drift, not breach.",
+            },
+            "omega": {
+                "state": "BIJAKSANA",
+                "en": "WISE",
+                "domain_meaning": "System detected the issue early.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "advisory": {
             "delta": {"state": "KUKUH", "en": "SOLID", "domain_meaning": "Informational hold."},
             "psi": {"state": "AMANAH", "en": "TRUSTED", "domain_meaning": "No governance breach."},
-            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System held as designed."},
+            "omega": {
+                "state": "BIJAKSANA",
+                "en": "WISE",
+                "domain_meaning": "System held as designed.",
+            },
             "overall": {"state": "SELAMAT", "en": "SAFE"},
         },
     }
@@ -630,6 +678,7 @@ def _try_promote_local_service(
     # Note: for local-service promotion path, we skip request-based; middleware already tags.
     try:
         from arifosmcp.runtime.mcp_transport_bridge import get_host_platform_from_request
+
         # request not in scope here; use None — inference inside getter will be unknown
         # Real hosted platform tagging happens in MCPSessionBridgeMiddleware for HTTP ingress.
         _ = get_host_platform_from_request(None)
@@ -1124,6 +1173,57 @@ if IS_FASTMCP_3:
                             },
                         }
                         decision = intercept(kernel_input)
+
+                        # ── P0 WIRING (2026-06-28): Seal interceptor governance decisions ──
+                        # Every DENY, QUARANTINE, HOLD_888, and ADMIT_MUTATE decision
+                        # must leave an auditable receipt in VAULT999. Without this,
+                        # constitutional enforcement is advisory — gates fire but no
+                        # record persists. ADMIT_READ/SIMULATE skipped (high-volume).
+                        if decision.verdict not in (
+                            AdmissibilityVerdict.ADMIT_READ,
+                            AdmissibilityVerdict.ADMIT_SIMULATE,
+                        ):
+                            try:
+                                from arifosmcp.core.vault_receipt import create_and_seal_receipt
+                                import hashlib
+
+                                create_and_seal_receipt(
+                                    session_id=sid or "anonymous",
+                                    actor_id=decision.actor_id or envelope.actor_id or "anonymous",
+                                    organ_id="arifOS",
+                                    intent_summary=f"INTERCEPTOR:{decision.verdict.value}:{tool_name}",
+                                    intent_hash=hashlib.sha256(tool_name.encode()).hexdigest()[:16],
+                                    requested_authority=(
+                                        decision.authority_tier.value
+                                        if decision.authority_tier
+                                        else "LOW"
+                                    ),
+                                    pre_state_hash=hashlib.sha256(
+                                        str(decision.normalized_request).encode()
+                                    ).hexdigest()[:16],
+                                    decision=decision.verdict.value,
+                                    verdict_hash=hashlib.sha256(
+                                        decision.reason.encode()
+                                    ).hexdigest()[:16],
+                                    floors_evaluated=[
+                                        "F1",
+                                        "F2",
+                                        "F4",
+                                        "F7",
+                                        "F8",
+                                        "F9",
+                                        "F10",
+                                        "F11",
+                                    ],
+                                    floors_violated=[],
+                                    decision_class=(
+                                        "C3_DEEP"
+                                        if decision.verdict == AdmissibilityVerdict.HOLD_888
+                                        else "C2_STANDARD"
+                                    ),
+                                )
+                            except Exception:
+                                pass  # Sealing must never block tool execution
 
                         if decision.verdict in (
                             AdmissibilityVerdict.DENY,

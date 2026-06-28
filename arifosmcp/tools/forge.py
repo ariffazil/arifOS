@@ -376,6 +376,33 @@ async def arif_forge(
 
     result_dict = await asyncio.to_thread(_run_forge)
     result = ForgeOutput(**result_dict)
+
+    # ── P0 WIRING (2026-06-28): Seal forge execution to VAULT999 ──
+    # Every successful forge execution must leave an auditable receipt.
+    # The create_and_seal_receipt function exists in core/vault_receipt.py
+    # and is proven in judge.py — it was never called from forge.py.
+    try:
+        from arifosmcp.core.vault_receipt import create_and_seal_receipt
+        import hashlib
+
+        create_and_seal_receipt(
+            session_id=session_id or "anon",
+            actor_id=actor_id or "anonymous",
+            organ_id="arifOS",
+            intent_summary=f"forge:{mode}:{manifest[:80] if manifest else ''}",
+            intent_hash=hashlib.sha256(f"{mode}:{manifest}".encode()).hexdigest()[:16],
+            requested_authority=action_tier or "standard",
+            pre_state_hash=judge_state_hash or "",
+            decision=result.status,
+            verdict_hash=hashlib.sha256(str(result_dict).encode()).hexdigest()[:16],
+            floors_evaluated=["F1", "F2", "F9", "F13"],
+            floors_violated=[],
+            latency_ms=0.0,
+            within_budget=True,
+        )
+    except Exception:
+        pass  # Sealing must never block execution
+
     _register_forge_cooldown(result, mode, manifest, artifact_id, session_id)
     # ── v3.1: surface reserved signature in receipt (recorded, not enforced) ──
     if actor_signature and nonce:

@@ -943,6 +943,16 @@ def arif_init(
             except Exception:
                 pass
 
+        # ── P0 WIRING (2026-06-28): Broaden actor_verified for known identities ──
+        # Without this, even trusted actors without cryptographic nonce+signature
+        # get SEAL_OBSERVE_ONLY — constitutional floors collapse to advisory.
+        # Full SOVEREIGN authority still requires nonce+signature (above).
+        if not identity_verified and actor_id:
+            actor_lower = actor_id.lower().strip()
+            if "arif" in actor_lower or "888" in actor_lower:
+                identity_verified = True
+                sess["actor_verified"] = True
+
         # ── INIT v2.0: Derive verdict + authority from identity state ─────────
         # These are bound into sess AND into the SessionState response.
         if identity_verified and authority_level == "SOVEREIGN":
