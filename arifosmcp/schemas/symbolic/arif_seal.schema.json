@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/arif_seal.schema.json",
+  "title": "arif_seal (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `arif_seal`. This schema is APPENDED to the existing arifos schema for `arif_seal` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: arif_seal MUST verify domain even when the tool itself is constitutional — protects against cross-surface contamination.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "seal_disambiguation"
+  ],
+  "properties": {
+    "component": {
+      "const": "arif_seal"
+    },
+    "organ": {
+      "const": "arifos"
+    },
+    "seal_disambiguation": {
+      "type": "object",
+      "description": "§3.I — ties to Rule Zero. Even though arif_seal is the constitutional SEAL tool, the input it receives must disambiguate which kind of seal is being asked for.",
+      "properties": {
+        "geological_seal": {
+          "type": "boolean"
+        },
+        "constitutional_SEAL": {
+          "type": "boolean"
+        },
+        "vault_seal": {
+          "type": "boolean"
+        },
+        "trap_seal_lithology": {
+          "type": "boolean"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every arif_seal output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

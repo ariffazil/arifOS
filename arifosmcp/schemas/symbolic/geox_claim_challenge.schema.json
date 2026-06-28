@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/geox_claim_challenge.schema.json",
+  "title": "geox_claim_challenge (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `geox_claim_challenge`. This schema is APPENDED to the existing geox schema for `geox_claim_challenge` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Challenge the symbol without attacking the person's maruah — critical for PETRONAS-style subsurface work.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "challenge_symbolic_target"
+  ],
+  "properties": {
+    "component": {
+      "const": "geox_claim_challenge"
+    },
+    "organ": {
+      "const": "geox"
+    },
+    "challenge_symbolic_target": {
+      "type": "object",
+      "description": "§3.H — Social systems collapse when one symbol becomes unquestioned truth.",
+      "properties": {
+        "dominant_story": {
+          "type": "string"
+        },
+        "institutional_inertia": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "prestige_bias": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "seniority_bias": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "map_authority_bias": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every geox_claim_challenge output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

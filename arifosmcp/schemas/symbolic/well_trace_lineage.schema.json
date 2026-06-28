@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/well_trace_lineage.schema.json",
+  "title": "well_trace_lineage (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `well_trace_lineage`. This schema is APPENDED to the existing well schema for `well_trace_lineage` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Memory poisoning prevention. Supersession chain must be preserved.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "memory_symbol_status"
+  ],
+  "properties": {
+    "component": {
+      "const": "well_trace_lineage"
+    },
+    "organ": {
+      "const": "well"
+    },
+    "memory_symbol_status": {
+      "type": "object",
+      "description": "§3.Q — Every memory must know its own symbolic status to prevent memory poisoning.",
+      "properties": {
+        "observed_fact": {
+          "type": "boolean"
+        },
+        "interpretation": {
+          "type": "boolean"
+        },
+        "emotional_state": {
+          "type": "boolean"
+        },
+        "ritual_phrase": {
+          "type": "boolean"
+        },
+        "governance_receipt": {
+          "type": "boolean"
+        },
+        "revoked_or_superseded": {
+          "type": "boolean"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every well_trace_lineage output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

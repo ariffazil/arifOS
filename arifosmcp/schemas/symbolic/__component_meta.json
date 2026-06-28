@@ -1,0 +1,30 @@
+{
+  "_meta": "MCP-SYMBOLIC-HARDEN-v1 §3 — Per-component hardening matrix. 17 components. Generated 2026-06-28.",
+  "_real_paths": {
+    "_note": "Spec said /opt/arifos/app/mcp_servers/{organ}/schemas/<file>.json — that path does not exist. Real path is /root/arifOS/arifosmcp/schemas/symbolic/<component>.schema.json.",
+    "components": {
+      "arif_triage": "/root/arifOS/arifosmcp/schemas/symbolic/arif_triage.schema.json",
+      "arif_think": "/root/arifOS/arifosmcp/schemas/symbolic/arif_think.schema.json",
+      "arif_judge": "/root/arifOS/arifosmcp/schemas/symbolic/arif_judge.schema.json",
+      "arif_forge": "/root/arifOS/arifosmcp/schemas/symbolic/arif_forge.schema.json",
+      "arif_seal": "/root/arifOS/arifosmcp/schemas/symbolic/arif_seal.schema.json",
+      "well_guard_dignity": "/root/arifOS/arifosmcp/schemas/symbolic/well_guard_dignity.schema.json",
+      "well_detect_boundary": "/root/arifOS/arifosmcp/schemas/symbolic/well_detect_boundary.schema.json",
+      "well_trace_lineage": "/root/arifOS/arifosmcp/schemas/symbolic/well_trace_lineage.schema.json",
+      "arif_init": "/root/arifOS/arifosmcp/schemas/symbolic/arif_init.schema.json",
+      "arif_observe": "/root/arifOS/arifosmcp/schemas/symbolic/arif_observe.schema.json",
+      "arif_explore": "/root/arifOS/arifosmcp/schemas/symbolic/arif_explore.schema.json",
+      "geox_claim_create": "/root/arifOS/arifosmcp/schemas/symbolic/geox_claim_create.schema.json",
+      "geox_claim_challenge": "/root/arifOS/arifosmcp/schemas/symbolic/geox_claim_challenge.schema.json",
+      "geox_claim_seal": "/root/arifOS/arifosmcp/schemas/symbolic/geox_claim_seal.schema.json",
+      "geox_prospect_evaluate": "/root/arifOS/arifosmcp/schemas/symbolic/geox_prospect_evaluate.schema.json",
+      "wealth_stock_analysis": "/root/arifOS/arifosmcp/schemas/symbolic/wealth_stock_analysis.schema.json",
+      "wealth_governance_verdict": "/root/arifOS/arifosmcp/schemas/symbolic/wealth_governance_verdict.schema.json",
+      "well_assess_livelihood": "/root/arifOS/arifosmcp/schemas/symbolic/well_assess_livelihood.schema.json",
+      "well_assess_sovereign_entropy": "/root/arifOS/arifosmcp/schemas/symbolic/well_assess_sovereign_entropy.schema.json",
+      "wealth_survival_engine": "/root/arifOS/arifosmcp/schemas/symbolic/wealth_survival_engine.schema.json",
+      "well_assess_homeostasis": "/root/arifOS/arifosmcp/schemas/symbolic/well_assess_homeostasis.schema.json",
+      "well_validate_vitality": "/root/arifOS/arifosmcp/schemas/symbolic/well_validate_vitality.schema.json"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/geox_claim_seal.schema.json",
+  "title": "geox_claim_seal (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `geox_claim_seal`. This schema is APPENDED to the existing geox schema for `geox_claim_seal` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Geological sealing, trap seal, and constitutional SEAL must not be confused.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "seal_disambiguation"
+  ],
+  "properties": {
+    "component": {
+      "const": "geox_claim_seal"
+    },
+    "organ": {
+      "const": "geox"
+    },
+    "seal_disambiguation": {
+      "type": "object",
+      "description": "§3.I — MANDATORY seal disambiguation. Ties to Rule Zero.",
+      "properties": {
+        "geological_seal": {
+          "type": "boolean"
+        },
+        "constitutional_SEAL": {
+          "type": "boolean"
+        },
+        "vault_seal": {
+          "type": "boolean"
+        },
+        "trap_seal_lithology": {
+          "type": "boolean"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every geox_claim_seal output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

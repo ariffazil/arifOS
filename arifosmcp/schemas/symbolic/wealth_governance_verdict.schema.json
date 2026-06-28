@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/wealth_governance_verdict.schema.json",
+  "title": "wealth_governance_verdict (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `wealth_governance_verdict`. This schema is APPENDED to the existing wealth schema for `wealth_governance_verdict` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Already has maruah_score / trust_index / peace2 — this makes symbolic inputs explicit.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "symbolic_capital_assessment"
+  ],
+  "properties": {
+    "component": {
+      "const": "wealth_governance_verdict"
+    },
+    "organ": {
+      "const": "wealth"
+    },
+    "symbolic_capital_assessment": {
+      "type": "object",
+      "description": "§3.K — Explicit symbolic inputs.",
+      "properties": {
+        "legitimacy_signal": {
+          "type": "string"
+        },
+        "trust_symbol": {
+          "type": "string"
+        },
+        "reputational_blast_radius": {
+          "type": "string"
+        },
+        "institutional_maruah_risk": {
+          "type": "string"
+        },
+        "public_private_boundary": {
+          "type": "string"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every wealth_governance_verdict output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}
