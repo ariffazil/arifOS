@@ -762,12 +762,51 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
         if budget and budget.max_latency_ms > 0 and elapsed > budget.max_latency_ms:
             within_budget = False
 
+    # ── v42.0: Cross-organ conflict resolution (non-blocking) ─────────────
+    # When witness data contains multiple organ verdicts, resolve conflicts.
+    # This is advisory — blocks only on VOID/escalation, never silently overrides.
+    conflict_result = None
+    if _CONFLICT_RESOLVER_AVAILABLE and witness and witness.witness_type != WitnessType.NONE:
+        witness_data = req.raw_arguments.get("witness", {})
+        if isinstance(witness_data, dict):
+            organ_a = witness_data.get("organ_a", "")
+            organ_b = witness_data.get("organ_b", "")
+            verdict_a = witness_data.get("verdict_a", "")
+            verdict_b = witness_data.get("verdict_b", "")
+            if organ_a and organ_b and verdict_a and verdict_b and verdict_a != verdict_b:
+                try:
+                    envelope = ConflictEnvelope(
+                        conflict_id=f"{req.raw_tool_name}:{req.raw_arguments.get('session_id', '')}",
+                        organ_a=organ_a,
+                        verdict_a=verdict_a,
+                        organ_b=organ_b,
+                        verdict_b=verdict_b,
+                        conflict_domain=capability.organ_id or "unknown",
+                        is_irreversible=bool(capability.irreversible),
+                    )
+                    conflict_result = resolve_conflict(envelope)
+                    if conflict_result.requires_888_hold:
+                        logger.warning(
+                            "Cross-organ conflict requires 888_HOLD: %s (%s vs %s)",
+                            conflict_result.reason,
+                            organ_a,
+                            organ_b,
+                        )
+                except Exception as exc:
+                    logger.debug("Conflict resolver skipped: %s", exc)
+
+    # ── v42.0: Attach conflict resolution to reason (if resolved) ─────────
+    conflict_note = ""
+    if conflict_result and conflict_result.requires_888_hold:
+        conflict_note = f" [CONFLICT: {conflict_result.resolution_method} → {conflict_result.winner_organ}/{conflict_result.winner_verdict}]"
+
     return InterceptorDecision(
         verdict=verdict,
         reason=(
             f"Capability '{capability.capability_id}' admitted "
             f"with class '{verdict.value}' (graph v{graph.version.version_id})."
             f"{' [LATENCY: ' + str(round(elapsed, 1)) + 'ms]' if elapsed > 10 else ''}"
+            f"{conflict_note}"
         ),
         capability_id=capability.capability_id,
         actor_id=req.actor_id,

@@ -80,6 +80,10 @@ _TOOL_STATE_MAP: dict[str, set[ExecutionState]] = {
     "arif_gateway_connect": {ExecutionState.AWAIT_APPROVAL},
     # ── 010_FORGE / EXECUTE ───────────────────────────────────────────────────────────
     "arif_forge": {ExecutionState.SIMULATE, ExecutionState.EXECUTE},
+    # ── DYN_ACT / EXECUTE (v42.0 — post-judge, pre-seal) ─────────────────────────────
+    # arif_act is the dynamic executor: requires prior arif_judge SEAL verdict,
+    # transitions to VERIFY for subsequent arif_seal. One SEAL verdict → N acts.
+    "arif_act": {ExecutionState.EXECUTE, ExecutionState.VERIFY},
     # ── 999_VAULT / SEAL ──────────────────────────────────────────────────────────────
     "arif_seal": {ExecutionState.VERIFY, ExecutionState.SEAL},
     # ── Infrastructure (omni-state) ───────────────────────────────────────────────────
@@ -102,6 +106,7 @@ _TOOL_PROGRESSION_MAP: dict[str, ExecutionState | None] = {
     "arif_kernel_route": ExecutionState.SIMULATE,
     "arif_critique": ExecutionState.AWAIT_APPROVAL,
     "arif_judge": ExecutionState.EXECUTE,
+    "arif_act": ExecutionState.VERIFY,  # v42.0: DYN — after act, move to VERIFY for seal
     "arif_gateway_connect": ExecutionState.EXECUTE,
     "arif_forge": ExecutionState.VERIFY,
     "arif_compose": None,
@@ -220,3 +225,29 @@ class ExecutionStateMachine:
 
 # Convenience singleton
 state_machine = ExecutionStateMachine()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# DYNAMIC EXECUTOR METADATA (v42.0) — arif_act constraints
+# ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# arif_act is the DYNAMIC EXECUTOR — not stage-locked to a single pipeline phase.
+# It operates post-judge, pre-seal and may run N times under a single SEAL verdict.
+#
+# Constraints are declarative (not enforced here — enforcement lives in tools.py::_arif_act
+# and A-FORGE runtime). This metadata is for audit + introspection.
+
+DYNAMIC_EXECUTOR_CONSTRAINTS: dict[str, Any] = {
+    "stage": "dynamic",
+    "execution_constraint": "requires_arif_judge_verdict",
+    "allowed_predecessors": ["arif_judge"],
+    "required_successor": "arif_seal",
+    "multi_act_support": True,
+    "orphan_act_policy": "audit_gap",  # act without seal = audit gap
+    "verdict_gates": {
+        "SEAL": "PROCEED",
+        "SABAR": "WAIT",
+        "HOLD": "ESCALATE_888",
+        "VOID": "BLOCK",
+    },
+}

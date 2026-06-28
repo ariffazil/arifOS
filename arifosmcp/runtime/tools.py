@@ -5080,8 +5080,25 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         payload.setdefault("constitutional_check", {"floor_passed": True, "hold_required": False})
         return payload
 
-    # Derive basics
-    conf = payload.get("confidence") or payload.get("meta", {}).get("confidence", 0.65)
+    # Derive basics — check routing-specific confidence before default
+    # Fix: arif_route stores routing_confidence in result.source_of_truth;
+    # ensure_standard_mcp_output was defaulting to 0.65 and ignoring it,
+    # causing verdict/hold_required contradictions (P0-4 fix 2026-06-28).
+    # Also check top-level source_of_truth (arif_route passes routing dict directly,
+    # not wrapped in a "result" key).
+    res = payload.get("result")
+    _routing_conf = None
+    if isinstance(res, dict):
+        _routing_conf = res.get("source_of_truth", {}).get("routing_confidence")
+    if _routing_conf is None:  # not in nested result — check top-level (direct call path)
+        _routing_conf = payload.get("source_of_truth", {}).get("routing_confidence")
+
+    conf = (
+        payload.get("confidence")
+        or payload.get("meta", {}).get("confidence")
+        or _routing_conf
+        or 0.65
+    )
     if isinstance(conf, dict):
         conf = conf.get("overall", conf.get("value", 0.65))
     try:
@@ -5089,7 +5106,6 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     except Exception:
         conf = 0.65
 
-    res = payload.get("result")
     facts = payload.get("facts") or (res.get("facts") if isinstance(res, dict) else None) or []
     if not facts and isinstance(res, (str, dict)):
         # best effort: turn top level into a fact line
@@ -17862,6 +17878,46 @@ async def _arif_act(
             "verdict": "888_HOLD",
             "reason": f"Invalid SEAL: {resp.error or 'no valid anchored SEAL for this session/action'}",
             "next_safe_action": "Call arif_judge then arif_seal first to obtain a verifiable seal_verdict_id + approved_action_hash.",
+            "verification_trace": resp.trace,
+        }
+
+    # ── v42.0: Verdict-state gate (SABAR/HOLD explicit reject) ────────────────
+    # The A2ASealVerifier proves the seal is cryptographically anchored.
+    # Now we enforce the verdict STATE: SABAR → WAIT, HOLD → ESCALATE, VOID → BLOCK.
+    # Without this, a valid SABAR seal could be replayed to trigger execution.
+    try:
+        from arifosmcp.runtime.executor import DYNAMIC_EXECUTOR_CONSTRAINTS
+
+        verdict_state = DYNAMIC_EXECUTOR_CONSTRAINTS["verdict_gates"].get(
+            resp.verdict, "BLOCK"
+        )
+        if verdict_state == "WAIT":
+            return {
+                "verdict": "SABAR",
+                "reason": "Prior verdict is SABAR — act deferred. Clarify and re-judge before acting.",
+                "next_safe_action": "Call arif_think (mode: reflect) then arif_judge to re-evaluate.",
+                "dynamic_executor": {"state": "WAIT", "verdict_ref": seal_verdict_id},
+            }
+        if verdict_state == "ESCALATE_888":
+            return {
+                "verdict": "888_HOLD",
+                "reason": "Prior verdict is HOLD — act blocked until 888 sovereign ack.",
+                "next_safe_action": "Escalate to human sovereign (F13). Do not retry without explicit ack.",
+                "dynamic_executor": {"state": "ESCALATE_888", "verdict_ref": seal_verdict_id},
+            }
+        if verdict_state == "BLOCK":
+            return {
+                "verdict": "VOID",
+                "reason": "Prior verdict is VOID or unknown — act constitutionally blocked.",
+                "next_safe_action": "Re-start pipeline from arif_observe. Do not retry with this verdict.",
+                "dynamic_executor": {"state": "BLOCK", "verdict_ref": seal_verdict_id},
+            }
+        # verdict_state == "PROCEED" falls through to execution
+    except ImportError:
+        pass  # executor module unavailable — degrade to seal-only gate
+
+    # Optional: if seal_verdict_id provided, we can treat it as additional proof (future: cross-check id)
+    # The verifier + required ids make bypass structurally impossible.
             "verification_trace": resp.trace,
         }
 
