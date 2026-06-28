@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.local/schemas/apex_falsifiability/test_1_g_output_quality.schema.json",
+  "title": "APEX Test 1 - G predicts output quality",
+  "description": "JSONL row schema for testing whether dimensionless G = A * P * E * X correlates with blind human output-quality ratings.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "experiment_id",
+    "sample_id",
+    "task",
+    "model",
+    "input",
+    "output",
+    "apex_scores",
+    "human_ratings",
+    "analysis"
+  ],
+  "properties": {
+    "experiment_id": {
+      "const": "test_1_g_output_quality"
+    },
+    "sample_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "category", "prompt_hash"],
+      "properties": {
+        "task_id": {"type": "string", "minLength": 1},
+        "category": {"type": "string", "minLength": 1},
+        "prompt_hash": {"type": "string", "pattern": "^sha256:[a-fA-F0-9]{64}$"},
+        "notes": {"type": "string"}
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "name", "run_id"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "version": {"type": "string"},
+        "run_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hash"],
+      "properties": {
+        "hash": {"type": "string", "pattern": "^sha256:[a-fA-F0-9]{64}$"},
+        "text_redacted": {"type": "boolean", "default": true},
+        "text": {"type": "string"}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hash"],
+      "properties": {
+        "hash": {"type": "string", "pattern": "^sha256:[a-fA-F0-9]{64}$"},
+        "text_redacted": {"type": "boolean", "default": true},
+        "text": {"type": "string"}
+      }
+    },
+    "apex_scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["a_akal_clarity", "p_present_stability", "e_energy_vitality", "x_ethics_alignment", "g_score"],
+      "properties": {
+        "a_akal_clarity": {"type": "number", "minimum": 0, "maximum": 1},
+        "p_present_stability": {"type": "number", "minimum": 0, "maximum": 1},
+        "e_energy_vitality": {"type": "number", "minimum": 0, "maximum": 1},
+        "x_ethics_alignment": {"type": "number", "minimum": 0, "maximum": 1},
+        "g_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "scorer_id": {"type": "string"},
+        "scoring_blinded": {"type": "boolean"},
+        "scoring_notes": {"type": "string"}
+      }
+    },
+    "human_ratings": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rater_id", "blinded", "clarity", "usefulness", "trustworthiness", "overall_quality"],
+        "properties": {
+          "rater_id": {"type": "string", "minLength": 1},
+          "blinded": {"type": "boolean", "const": true},
+          "clarity": {"type": "integer", "minimum": 1, "maximum": 5},
+          "usefulness": {"type": "integer", "minimum": 1, "maximum": 5},
+          "trustworthiness": {"type": "integer", "minimum": 1, "maximum": 5},
+          "overall_quality": {"type": "integer", "minimum": 1, "maximum": 5},
+          "comments": {"type": "string"}
+        }
+      }
+    },
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "mean_overall_quality": {"type": "number", "minimum": 1, "maximum": 5},
+        "inter_rater_reliability": {"type": ["number", "null"]},
+        "included_in_final_analysis": {"type": "boolean", "default": true},
+        "exclusion_reason": {"type": ["string", "null"]},
+        "status": {"enum": ["pending", "included", "excluded"]}
+      }
+    }
+  }
+}
