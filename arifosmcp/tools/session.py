@@ -829,11 +829,11 @@ def arif_init(
                 verdict="SEAL_OBSERVE_ONLY",
                 authority="OBSERVE_ONLY",
                 init_tier=3,
-                actor_verified=False,
+                actor_verified=sess.get("actor_verified", False),
             ),
             actor={
                 "claimed_id": actor_id,
-                "identity_verified": False,
+                "identity_verified": sess.get("actor_verified", False),
                 "authority_level": "OPERATOR",
             },
             constitution={
@@ -841,8 +841,11 @@ def arif_init(
                 "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}",
                 "human_judge_required": True,
             },
-            meta={"actor_verified": False, "authority_mode": "OBSERVE_ONLY"},
-            actor_verified=False,
+            meta={
+                "actor_verified": sess.get("actor_verified", False),
+                "authority_mode": "OBSERVE_ONLY",
+            },
+            actor_verified=sess.get("actor_verified", False),
             result=header,
             doctrine=ARIF_DOCTRINE,
         )
