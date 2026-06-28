@@ -80,7 +80,29 @@ Four scanners (Trivy, Semgrep, Ruff, Gitleaks) run on every `make forge` / `make
 
 ## 🪞 SELF-AUDIT & HARDENING
 
-Canonical self-audit prompt: [`SELF_AUDIT_PROMPT.md`](./SELF_AUDIT_PROMPT.md). Enforces Reflexion Loop (000→111→333→555→777→888→999) before ANY kernel mutation. For OBSERVE/READ tasks, skip 333–777 but complete 000, 111, 888.
+Canonical self-audit prompt: [`SELF_AUDIT_PROMPT.md`](./SELF_AUDIT_PROMPT.md). Enforces Reflexion Loop before ANY kernel mutation.
+
+### Zen Circuit Alignment (2026-06-28)
+
+Two loops, one constitution. Both use the same circuits — diverge only at the middle:
+
+```
+GOVERNANCE (kernel hardening):  000→111→333→555→777→888→999
+CODING/FORGE (agent execution):  000→111→333→666→888→010→999
+```
+
+| Circuit | Governance Role | Coding/Forge Role | arifOS Tool |
+|---------|----------------|-------------------|-------------|
+| **000** | Clarify Task | Orient + Session + Preflight | `arif_init` |
+| **111** | Gather Evidence | Observe + Label Truth | `arif_observe` |
+| **333** | Draft Change | Plan + DAG + Humility (0.90) | `arif_think` |
+| **555/666** | Self-Critique (555) | Consequence Critique (666) | `arif_think` (mode: critique) |
+| **777/010** | Compare & Decide (777) | Execute with Warrant (010) | `arif_act` |
+| **888** | Audit Trail | Constitutional Verdict | `arif_judge` |
+| **999** | Self-Improvement | Seal + Cleanup + Health | `arif_seal` |
+
+For OBSERVE/READ tasks, skip 333–777 but complete 000, 111, 888.
+For agent-side coding, use OpenCode 7 Zen skills: `000-init-intent-classify` through `999-vault-seal-immutable`.
 
 ---
 
