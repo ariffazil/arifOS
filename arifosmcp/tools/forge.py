@@ -284,6 +284,14 @@ async def arif_forge(
                     timestamp=datetime.now(UTC).isoformat(),
                 )
 
+    # ── P1 WIRING (2026-06-28): Latency budget enforcement ──
+    # The floor check is a constitutional gate, not just a performance concern.
+    # Record latency and flag if it exceeds the decision-class budget.
+    import time as _time
+    from arifosmcp.core.latency_budget import LATENCY_BUDGETS
+    from arifosmcp.core.decision_contract import DecisionClass
+
+    _t_check = _time.monotonic()
     floor_check = check_laws(
         "arif_forge",
         {
@@ -296,6 +304,10 @@ async def arif_forge(
         },
         actor_id,
     )
+    _latency_ms = (_time.monotonic() - _t_check) * 1000
+    _budget = LATENCY_BUDGETS.get(DecisionClass.C2_STANDARD, LATENCY_BUDGETS[DecisionClass.C3_DEEP])
+    floor_check["_latency_ms"] = _latency_ms
+    floor_check["_within_budget"] = _latency_ms <= _budget.max_total_ms
     if floor_check["verdict"] != "SEAL":
         from arifosmcp.runtime.tools import _inject_nine_signal
 
@@ -356,6 +368,46 @@ async def arif_forge(
                 },
                 timestamp=datetime.now(UTC).isoformat(),
             )
+
+    # ── P1 WIRING (2026-06-28): Cross-organ conflict resolution before dispatch ──
+    # Before forge dispatches to A-FORGE, validate there are no unresolved conflicts
+    # between arifOS verdict and the execution target. Currently a no-op guardrail
+    # that activates when cross-organ conflicts are registered.
+    try:
+        from arifosmcp.core.conflict_resolver import resolve_conflict
+        from arifosmcp.core.decision_contract import ConflictEnvelope
+
+        _conflict_envelope = ConflictEnvelope(
+            conflict_id=f"forge-{mode}-{session_id or 'anon'}",
+            organ_a="arifos",
+            verdict_a=floor_check.get("verdict", "SEAL"),
+            organ_b="a-forge",
+            verdict_b="PROCEED",
+            conflict_domain="forge",
+            is_irreversible=(mode in _ATOMIC_MODES),
+        )
+        _resolution = resolve_conflict(_conflict_envelope)
+        if _resolution.requires_888_hold:
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "error_code": ForgeErrorCode.E_SIDE_EFFECTS_BLOCKED,
+                    "reason": (
+                        f"Pre-execution conflict resolution required 888_HOLD: {_resolution.reason}"
+                    ),
+                    "conflict_resolution": {
+                        "winner_organ": _resolution.winner_organ,
+                        "winner_verdict": _resolution.winner_verdict,
+                        "resolution_method": _resolution.resolution_method,
+                        "requires_888_hold": _resolution.requires_888_hold,
+                    },
+                },
+                timestamp=datetime.now(UTC).isoformat(),
+            )
+    except Exception:
+        pass  # Conflict resolver offline → proceed (no conflicts = no block)
 
     import asyncio
 
