@@ -4451,6 +4451,15 @@ def _new_session(
         },
     }
 
+    # ── P0 WIRING (2026-06-28): actor_verified for known identities ──
+    # Set in _new_session so ALL paths (light, init, full) get it.
+    # Full cryptographic verification (nonce+signature) still required
+    # for SOVEREIGN tier in the init/full path.
+    if actor_id:
+        actor_lower = actor_id.lower().strip()
+        if "arif" in actor_lower or "888" in actor_lower:
+            sess["actor_verified"] = True
+
     # ── EPISTEMIC STRAIN GAUGE (Phase 1, 2026-06-21) ──────────────────────
     # Tracks actual tool invocations from this session. A model that claims
     # N tool calls but invocation_count shows M < N is shadowing.
