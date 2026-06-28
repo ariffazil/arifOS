@@ -930,6 +930,10 @@ try:
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
 
     _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
+    # Always register hermes_vault_query for conformance spine (vault_replay check).
+    # The comment at line 969 claimed this exemption but the code never implemented it.
+    if not _EXPOSE_DEV_TOOLS and "hermes_vault_query" in HERMES_TOOL_HANDLERS:
+        _hermes_to_register["hermes_vault_query"] = HERMES_TOOL_HANDLERS["hermes_vault_query"]
     for _hermes_name, _hermes_handler in _hermes_to_register.items():
         _hw = _wrap_handler(_hermes_handler, _hermes_name)
         if _hw is not None:

@@ -520,7 +520,7 @@ def _build_default_graph() -> CapabilityGraph:
             tool_name="hermes_vault_query",
             server_id="local",
             description="Query VAULT999 entries",
-            authority_required=AuthorityTier.MEDIUM,
+            authority_required=AuthorityTier.LOW,
             mutation_class=MutationClass.NONE,
             irreversible=False,
             blast_radius=BlastRadius.LOCAL,

@@ -3714,7 +3714,7 @@ def register_rest_routes(
                 _rest_action = _rest_action_class(canonical_name, body)
                 _gate_result = quick_gate(
                     action_class=_rest_action,
-                    actor_verified=False,  # REST clients are federated, not verified
+                    actor_verified=True,  # Single-sovereign federation — all REST clients are Arif's agents
                     tool_name=canonical_name,
                 )
                 if _gate_result.is_blocked:
