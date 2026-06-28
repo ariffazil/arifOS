@@ -816,6 +816,34 @@ def arif_init(
         # ── HARD INVARIANT — statics never inline outside audit ──────────
         _assert_no_static_inline(header, verbose=verbose if verbose else "")
 
+        # ── v42.0: Genesis Card Binding (AAA warga ignition) ────────────
+        # Load genesis_card.yaml — constitutional anchor for all sessions.
+        _genesis_card_path = "/root/AAA/registries/genesis/genesis_card.yaml"
+        _genesis_status = "not_loaded"
+        try:
+            import yaml as _g_yaml  # type: ignore
+
+            with open(_genesis_card_path, "r") as _gf:
+                _gc = _g_yaml.safe_load(_gf)
+            _g_hash = _gc.get("content_hash_sha256", "")
+            header["genesis"] = {
+                "id": _gc.get("id"),
+                "title": _gc.get("title"),
+                "url": _gc.get("url"),
+                "did": _gc.get("did"),
+                "content_hash_sha256": _g_hash,
+                "constitution_reference": _gc.get("constitution_reference"),
+                "motto": _gc.get("motto", "DITEMPA BUKAN DIBERI"),
+                "sections_count": len(_gc.get("sections", [])),
+            }
+            sess["genesis_card_hash"] = _g_hash
+            _genesis_status = "loaded"
+        except FileNotFoundError:
+            header["genesis_status"] = "not_found"
+        except Exception as _g_exc:
+            header["genesis_status"] = f"error: {_g_exc}"
+        header["genesis_status"] = _genesis_status
+
         return _sm(
             status="OK",
             tool="arif_init",
