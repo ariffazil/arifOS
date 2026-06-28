@@ -7012,6 +7012,60 @@ def _arif_session_init(
                 "swarm_boot": True,
             }
 
+        # ── v42.0: Genesis Card Binding (AAA warga ignition) ────────────────
+        # Load genesis_card.yaml — the constitutional anchor for all sessions.
+        # This binds arif_init to https://arif-fazil.com/000/ and ensures every
+        # vault witness entry includes genesis_card_hash.
+        _genesis_card = None
+        _genesis_hash = ""
+        _genesis_path = "/root/AAA/registries/genesis/genesis_card.yaml"
+        try:
+            import yaml as _yaml  # type: ignore
+
+            with open(_genesis_path, "r") as _gf:
+                _genesis_card = _yaml.safe_load(_gf)
+            _genesis_hash = _genesis_card.get("content_hash_sha256", "")
+            # Optional: verify live page hash (non-blocking)
+            if _genesis_card.get("binding", {}).get("verify_on_load", False):
+                try:
+                    import hashlib, urllib.request
+
+                    _live_url = _genesis_card.get("url", "")
+                    if _live_url:
+                        with urllib.request.urlopen(_live_url, timeout=3) as _resp:
+                            _live_content = _resp.read()
+                        _live_hash = hashlib.sha256(_live_content).hexdigest()
+                        if _live_hash != _genesis_hash:
+                            _init_response["genesis_warning"] = {
+                                "type": "hash_mismatch",
+                                "stored_hash": _genesis_hash[:16] + "...",
+                                "live_hash": _live_hash[:16] + "...",
+                                "action": _genesis_card.get("binding", {}).get(
+                                    "fallback_on_hash_mismatch", "HOLD"
+                                ),
+                            }
+                except Exception:
+                    pass  # Non-blocking — network may be unavailable
+        except FileNotFoundError:
+            _init_response["genesis_status"] = "not_found"
+        except Exception as _gen_exc:
+            _init_response["genesis_status"] = f"error: {_gen_exc}"
+
+        if _genesis_card:
+            _init_response["genesis"] = {
+                "id": _genesis_card.get("id"),
+                "title": _genesis_card.get("title"),
+                "url": _genesis_card.get("url"),
+                "did": _genesis_card.get("did"),
+                "content_hash_sha256": _genesis_hash,
+                "constitution_reference": _genesis_card.get("constitution_reference"),
+                "motto": _genesis_card.get("motto", "DITEMPA BUKAN DIBERI"),
+                "sections_count": len(_genesis_card.get("sections", [])),
+                "binding": _genesis_card.get("binding", {}),
+            }
+            _init_response["genesis_status"] = "loaded"
+            sess["genesis_card_hash"] = _genesis_hash
+
         # Persist mutated sess back to store
         _SESSIONS[sid] = sess
 
