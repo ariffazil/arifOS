@@ -3037,6 +3037,7 @@ def _enforce_nine_signal(
     # ── Philosophical Quote Injection ──────────────────────────────────────────
     try:
         from arifosmcp.runtime.philosophy import select_governed_philosophy
+        from arifosmcp.runtime.philosophy_registry import get_tool_quote_for_envelope
 
         verdict_str = enforced.get("verdict", "SEAL")
         session_stage = str(session_id or "global")[:8] if session_id else "global"
@@ -3046,35 +3047,51 @@ def _enforce_nine_signal(
         g_proxy = 0.85 if (healthy and verdict_str == "SEAL") else 0.50
         delta_s_proxy = -0.01 if healthy else 0.01
 
-        phi_result = select_governed_philosophy(
-            context=tool_name,
-            stage=session_stage,
-            verdict=verdict_str,
-            g_score=g_proxy,
-            violated_laws=enforced.get("_violations", []) or [],
-            session_id=session_id or "global",
-            delta_s=delta_s_proxy,
-            omega_score=0.05,
-        )
-        phi_quote = (
-            phi_result.get("atlas_result", {}).get("primary_quote", {})
-            or phi_result.get("agi")
-            or phi_result.get("asi")
-            or phi_result.get("apex")
-            or {}
-        )
-        if phi_quote and phi_quote.get("quote"):
+        # ═══ TOOL-SPECIFIC QUOTE OVERRIDE (2026-06-28 v2) ═══════
+        # Check philosophy_registry FIRST with context-aware scoring.
+        # Tool-specific quotes take precedence over atlas_27 S×G×Ω.
+        _ctx = f"{verdict_str} {tool_name}" if verdict_str else tool_name
+        _tool_quote, _apex_mode = get_tool_quote_for_envelope(tool_name, _ctx)
+        if _tool_quote:
+            # _tool_quote already formatted by philosophy_registry._format_quote()
+            phi_quote = _tool_quote
+            atlas_zone = {"name": "Tool-Specific", "id": "ZT00"}
+        else:
+            # Fallback: atlas-based coordinate selection
+            phi_result = select_governed_philosophy(
+                context=tool_name,
+                stage=session_stage,
+                verdict=verdict_str,
+                g_score=g_proxy,
+                violated_laws=enforced.get("_violations", []) or [],
+                session_id=session_id or "global",
+                delta_s=delta_s_proxy,
+                omega_score=0.05,
+            )
+            phi_quote = (
+                phi_result.get("atlas_result", {}).get("primary_quote", {})
+                or phi_result.get("agi")
+                or phi_result.get("asi")
+                or phi_result.get("apex")
+                or {}
+            )
             atlas_zone = phi_result.get("atlas_result", {}).get("zone", {})
+            _apex_mode = phi_result.get("apex_mode", "atlas_27")
+        if phi_quote and phi_quote.get("quote"):
             source_status = phi_quote.get("source_status", "CANDIDATE")
             anchor_payload = {
                 "quote_id": phi_quote.get("quote_id", "NONE"),
                 "text": phi_quote.get("quote", ""),
                 "author": phi_quote.get("author", "arifOS"),
                 "source": phi_quote.get("source", ""),
-                "zone": atlas_zone.get("name", "Unknown"),
-                "zone_id": atlas_zone.get("id", "Z??"),
-                "atlas_mode": phi_result.get("apex_mode", "atlas_27"),
+                "zone": atlas_zone.get("name", "Unknown") if atlas_zone else "Tool-Specific",
+                "zone_id": atlas_zone.get("id", "Z??") if atlas_zone else "ZT00",
+                "atlas_mode": _apex_mode,
                 "source_status": source_status,
+                # v2.0 symbolic metrics (non-contaminating metadata)
+                "symbolic_tags": phi_quote.get("symbolic_tags", []),
+                "dimension_scores": phi_quote.get("dimension_scores", {}),
+                "match_score": phi_quote.get("match_score"),
             }
             # P4: Block synthetic quotes from immutable seal (VAULT999)
             if tool_name == "arif_vault_seal" and source_status == "SYNTHETIC":

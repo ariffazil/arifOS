@@ -1,0 +1,1586 @@
+{
+  "version": "2.0.0",
+  "name": "arifOS Federation Tool-Quote Registry",
+  "description": "Centralized philosophical quote mapping for all MCP tools across arifOS, GEOX, WEALTH, WELL. Quotes are non-contaminating metadata — never used for reasoning, only for human resonance and agentic grounding.",
+  "created": "2026-06-28",
+  "motto": {
+    "text": "DITEMPA BUKAN DIBERI",
+    "author": "Arif Fazil",
+    "en": "Forged, Not Given"
+  },
+  "doctrine": {
+    "binding": "NON_CONTAMINATING",
+    "reasoning": "NEVER",
+    "logic": "NEVER",
+    "human_resonance": "PRIMARY",
+    "agentic_grounding": "PRIMARY",
+    "fallback": "atlas_27_coordinate_system"
+  },
+  "arifos": {
+    "organ": "arifOS",
+    "role": "Constitutional Kernel — Sovereign Layer",
+    "theme": "Authority, restraint, clarity, sovereignty, responsibility",
+    "tools": {
+      "arif_init": {
+        "purpose": "Identity, authority, uncertainty physics, session bootstrap",
+        "quotes": [
+          {
+            "id": "INIT-01",
+            "text": "Man is condemned to be free; because once thrown into the world, he is responsible for everything he does.",
+            "author": "Jean-Paul Sartre",
+            "source": "Being and Nothingness",
+            "year": 1943,
+            "trigger": "always",
+            "symbolic_tags": [
+              "FRE",
+              "RSP",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "fre": 1.0,
+              "hum": 0.4,
+              "mea": 0.6,
+              "pur": 0.7,
+              "res": 0.3,
+              "rsp": 1.0,
+              "sov": 1.0,
+              "tri": 0.3
+            }
+          },
+          {
+            "id": "INIT-02",
+            "text": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+            "author": "Marcus Aurelius",
+            "source": "Meditations",
+            "year": 180,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ATT",
+              "FRE",
+              "RES"
+            ],
+            "dimension_scores": {
+              "att": 1.0,
+              "cha": 0.7,
+              "fre": 0.5,
+              "hum": 0.6,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.9,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "arif_think": {
+        "purpose": "Reasoning engine — epistemic humility, multi-hypothesis thinking",
+        "quotes": [
+          {
+            "id": "THINK-01",
+            "text": "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
+            "author": "Aristotle",
+            "source": "Nicomachean Ethics",
+            "year": -340,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "EXC",
+              "HUM",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "att": 0.7,
+              "cha": 0.8,
+              "exc": 1.0,
+              "hum": 0.95,
+              "kno": 1.0,
+              "mea": 0.3,
+              "pur": 0.6,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          },
+          {
+            "id": "THINK-02",
+            "text": "I know that I know nothing.",
+            "author": "Socrates",
+            "source": "Platonic Dialogues",
+            "year": -400,
+            "trigger": "high_uncertainty",
+            "symbolic_tags": [
+              "HUM",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "cha": 0.6,
+              "hum": 1.0,
+              "kno": 0.9,
+              "mea": 0.3,
+              "pur": 0.5,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "arif_judge": {
+        "purpose": "Verdict loop — SEAL/SABAR/HOLD/VOID, reversibility, sovereign judgment",
+        "quotes": [
+          {
+            "id": "JUDGE-01",
+            "text": "Those who have a why to live can bear almost any how.",
+            "author": "Friedrich Nietzsche",
+            "source": "Twilight of the Idols",
+            "year": 1889,
+            "trigger": "always",
+            "symbolic_tags": [
+              "FRE",
+              "MEA",
+              "PUR",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "fre": 0.9,
+              "hum": 0.3,
+              "mea": 0.3,
+              "pow": 0.8,
+              "pur": 1.0,
+              "res": 0.8,
+              "rsp": 0.6,
+              "sov": 1.0,
+              "tri": 0.7
+            }
+          },
+          {
+            "id": "JUDGE-02",
+            "text": "Character is destiny.",
+            "author": "Heraclitus",
+            "source": "Fragments",
+            "year": -500,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "CHG",
+              "HUM"
+            ],
+            "dimension_scores": {
+              "cha": 1.0,
+              "chg": 1.0,
+              "hum": 0.8,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          },
+          {
+            "id": "JUDGE-03",
+            "text": "Never give in, never give in, never, never, never—in nothing, great or small, large or petty—never give in except to convictions of honour and good sense.",
+            "author": "Winston Churchill",
+            "source": "Harrow School Speech",
+            "year": 1941,
+            "trigger": "HOLD_or_SABAR",
+            "symbolic_tags": [
+              "ACT",
+              "PUR",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "act": 0.9,
+              "hum": 0.4,
+              "mea": 0.3,
+              "pur": 0.8,
+              "res": 1.0,
+              "sov": 0.7,
+              "tri": 0.8
+            }
+          }
+        ]
+      },
+      "arif_route": {
+        "purpose": "Intent routing — delegate to correct organ",
+        "quotes": [
+          {
+            "id": "ROUTE-01",
+            "text": "The impediment to action advances action. What stands in the way becomes the way.",
+            "author": "Marcus Aurelius",
+            "source": "Meditations",
+            "year": 180,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ACT",
+              "ATT",
+              "RES"
+            ],
+            "dimension_scores": {
+              "att": 1.0,
+              "cha": 0.7,
+              "fre": 0.5,
+              "hum": 0.6,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.9,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "arif_seal": {
+        "purpose": "Immutable ledger anchoring — irreversible sealing to VAULT999",
+        "quotes": [
+          {
+            "id": "SEAL-01",
+            "text": "Character cannot be developed in ease and quiet. Only through experience of trial and suffering can the soul be strengthened.",
+            "author": "Helen Keller",
+            "source": "Helen Keller's Journal",
+            "year": 1938,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "act": 0.9,
+              "cha": 1.0,
+              "hum": 0.3,
+              "mea": 0.7,
+              "pur": 0.8,
+              "res": 1.0,
+              "sov": 0.6,
+              "tri": 1.0
+            }
+          },
+          {
+            "id": "SEAL-02",
+            "text": "In the depth of winter, I finally learned that within me there lay an invincible summer.",
+            "author": "Albert Camus",
+            "source": "Return to Tipasa",
+            "year": 1952,
+            "trigger": "always",
+            "symbolic_tags": [
+              "MEA",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "fre": 0.6,
+              "hum": 0.5,
+              "mea": 0.8,
+              "pur": 0.7,
+              "res": 1.0,
+              "sov": 0.3,
+              "tri": 1.0
+            }
+          }
+        ]
+      },
+      "arif_observe": {
+        "purpose": "Reality grounding — observe before judging",
+        "quotes": [
+          {
+            "id": "OBS-01",
+            "text": "No man ever steps in the same river twice, for it's not the same river and he's not the same man.",
+            "author": "Heraclitus",
+            "source": "Fragments",
+            "year": -500,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "CHG",
+              "HUM"
+            ],
+            "dimension_scores": {
+              "act": 0.55,
+              "cha": 0.9,
+              "chg": 1.0,
+              "hum": 0.8,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "arif_critique": {
+        "purpose": "Consequence assessment, ethics, empathy",
+        "quotes": [
+          {
+            "id": "CRIT-01",
+            "text": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances, to choose one's own way.",
+            "author": "Viktor Frankl",
+            "source": "Man's Search for Meaning",
+            "year": 1946,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ATT",
+              "FRE",
+              "MEA",
+              "PUR"
+            ],
+            "dimension_scores": {
+              "att": 1.0,
+              "fre": 1.0,
+              "hum": 0.5,
+              "mea": 1.0,
+              "pur": 1.0,
+              "res": 0.9,
+              "sov": 0.85,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "arif_act": {
+        "purpose": "Execution gate — forge after floor check",
+        "quotes": [
+          {
+            "id": "ACT-01",
+            "text": "I am a slow walker, but I never walk back.",
+            "author": "Abraham Lincoln",
+            "source": "Speeches and Letters",
+            "year": 1864,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ACT",
+              "PUR",
+              "RES"
+            ],
+            "dimension_scores": {
+              "act": 1.0,
+              "cha": 0.7,
+              "exc": 0.6,
+              "hum": 0.3,
+              "mea": 0.3,
+              "pur": 0.8,
+              "res": 0.9,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "arif_forge": {
+        "purpose": "Build execution — creation, deployment",
+        "quotes": [
+          {
+            "id": "FORGE-01",
+            "text": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+            "author": "Aristotle",
+            "source": "Nicomachean Ethics",
+            "year": -340,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "EXC",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "att": 0.7,
+              "cha": 0.8,
+              "exc": 1.0,
+              "hum": 0.7,
+              "kno": 0.8,
+              "mea": 0.3,
+              "pur": 0.6,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      }
+    },
+    "system_tools": {
+      "vault999": {
+        "purpose": "Immutable audit memory — scar ledger",
+        "quotes": [
+          {
+            "id": "VLT-01",
+            "text": "The mystery of human existence lies not in just staying alive, but in finding something to live for.",
+            "author": "Fyodor Dostoevsky",
+            "source": "The Brothers Karamazov",
+            "year": 1880,
+            "trigger": "always",
+            "symbolic_tags": [
+              "DIG",
+              "MEA",
+              "PUR",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "cha": 0.8,
+              "dig": 0.9,
+              "hum": 0.7,
+              "mea": 1.0,
+              "pur": 0.55,
+              "res": 0.3,
+              "sov": 0.5,
+              "tri": 0.9
+            }
+          },
+          {
+            "id": "VLT-02",
+            "text": "Life is either a daring adventure or nothing at all.",
+            "author": "Helen Keller",
+            "source": "The Open Door",
+            "year": 1957,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "act": 1.0,
+              "cha": 0.9,
+              "hum": 0.3,
+              "mea": 0.7,
+              "pur": 0.8,
+              "res": 1.0,
+              "sov": 0.6,
+              "tri": 1.0
+            }
+          }
+        ]
+      },
+      "cooling_ledger": {
+        "purpose": "Heat, friction, temperature management",
+        "quotes": [
+          {
+            "id": "COOL-01",
+            "text": "If you're going through hell, keep going.",
+            "author": "Winston Churchill",
+            "source": "Speeches",
+            "year": 1941,
+            "trigger": "high_friction",
+            "symbolic_tags": [
+              "ACT",
+              "PUR",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "act": 1.0,
+              "hum": 0.4,
+              "mea": 0.3,
+              "pur": 0.8,
+              "res": 1.0,
+              "sov": 0.7,
+              "tri": 1.0
+            }
+          },
+          {
+            "id": "COOL-02",
+            "text": "This too shall pass.",
+            "author": "Persian Wisdom",
+            "source": "Sufi Tradition",
+            "year": 1200,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHG",
+              "HUM",
+              "RES"
+            ],
+            "dimension_scores": {
+              "att": 0.7,
+              "chg": 1.0,
+              "hum": 0.8,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.9,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "canon_matrix": {
+        "purpose": "Governance doctrine — sovereign intelligence definition",
+        "quotes": [
+          {
+            "id": "CAN-01",
+            "text": "The privilege of a lifetime is to become who you truly are.",
+            "author": "Joseph Campbell",
+            "source": "The Hero with a Thousand Faces",
+            "year": 1949,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "MEA",
+              "PUR",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "cha": 1.0,
+              "hum": 0.3,
+              "mea": 0.9,
+              "pur": 1.0,
+              "res": 0.3,
+              "sov": 0.8,
+              "tri": 0.7
+            }
+          },
+          {
+            "id": "CAN-02",
+            "text": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude.",
+            "author": "Viktor Frankl",
+            "source": "Man's Search for Meaning",
+            "year": 1946,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ATT",
+              "FRE",
+              "MEA",
+              "PUR"
+            ],
+            "dimension_scores": {
+              "att": 1.0,
+              "fre": 1.0,
+              "hum": 0.5,
+              "mea": 1.0,
+              "pur": 1.0,
+              "res": 0.9,
+              "sov": 0.85,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "asal": {
+        "purpose": "Sovereign Admission Layer — external model testing",
+        "quotes": [
+          {
+            "id": "ASAL-01",
+            "text": "The individual has always had to struggle to keep from being overwhelmed by the tribe. If you try it, you will be lonely often, and sometimes frightened. But no price is too high to pay for the privilege of owning yourself.",
+            "author": "Friedrich Nietzsche",
+            "source": "Thus Spoke Zarathustra",
+            "year": 1883,
+            "trigger": "always",
+            "symbolic_tags": [
+              "FRE",
+              "PUR",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "fre": 0.9,
+              "hum": 0.3,
+              "mea": 0.3,
+              "pow": 0.8,
+              "pur": 0.9,
+              "res": 0.8,
+              "rsp": 0.6,
+              "sov": 1.0,
+              "tri": 0.7
+            }
+          },
+          {
+            "id": "ASAL-02",
+            "text": "Appear weak when you are strong, and strong when you are weak.",
+            "author": "Sun Tzu",
+            "source": "The Art of War",
+            "year": -500,
+            "trigger": "adversarial",
+            "symbolic_tags": [
+              "DEC",
+              "POW"
+            ],
+            "dimension_scores": {
+              "cha": 0.6,
+              "dec": 1.0,
+              "hum": 0.5,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pow": 1.0,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      }
+    }
+  },
+  "geox": {
+    "organ": "GEOX",
+    "role": "Earth Reality Organ — evidence, physics, falsification",
+    "theme": "Physical reality, constraints, mass balance, deception detection, evidence discipline",
+    "tools": {
+      "geox_claim_create": {
+        "purpose": "Declare uncertainty honestly before claiming knowledge",
+        "quotes": [
+          {
+            "id": "GCC-01",
+            "text": "I know that I know nothing.",
+            "author": "Socrates",
+            "source": "Platonic Dialogues",
+            "year": -400,
+            "trigger": "always",
+            "symbolic_tags": [
+              "HUM",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "cha": 0.6,
+              "hum": 1.0,
+              "kno": 0.9,
+              "mea": 0.3,
+              "pur": 0.5,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          },
+          {
+            "id": "GCC-02",
+            "text": "It is better to be unhappy and know the worst, than to be happy in a fool's paradise.",
+            "author": "Fyodor Dostoevsky",
+            "source": "The Idiot",
+            "year": 1869,
+            "trigger": "high_uncertainty",
+            "symbolic_tags": [
+              "DIG",
+              "MEA",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "cha": 0.8,
+              "dig": 0.9,
+              "hum": 0.7,
+              "mea": 1.0,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.5,
+              "tri": 0.9
+            }
+          }
+        ]
+      },
+      "geox_evidence_reason": {
+        "purpose": "Multi-hypothesis reasoning, evidence synthesis",
+        "quotes": [
+          {
+            "id": "GER-01",
+            "text": "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
+            "author": "Aristotle",
+            "source": "Nicomachean Ethics",
+            "year": -340,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "EXC",
+              "HUM",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "att": 0.7,
+              "cha": 0.8,
+              "exc": 1.0,
+              "hum": 0.95,
+              "kno": 1.0,
+              "mea": 0.3,
+              "pur": 0.6,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          },
+          {
+            "id": "GER-02",
+            "text": "Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world.",
+            "author": "Albert Einstein",
+            "source": "What Life Means to Einstein",
+            "year": 1929,
+            "trigger": "abduction",
+            "symbolic_tags": [
+              "HUM",
+              "IMA",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "exc": 0.5,
+              "hum": 0.9,
+              "ima": 1.0,
+              "kno": 1.0,
+              "mea": 0.3,
+              "pur": 0.6,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "geox_seismic_compute": {
+        "purpose": "Physics computation — hard constraints, adversarial reality",
+        "quotes": [
+          {
+            "id": "GSC-01",
+            "text": "All warfare is based on deception.",
+            "author": "Sun Tzu",
+            "source": "The Art of War",
+            "year": -500,
+            "trigger": "anomalous_contrast",
+            "symbolic_tags": [
+              "DEC",
+              "POW"
+            ],
+            "dimension_scores": {
+              "cha": 0.6,
+              "dec": 1.0,
+              "hum": 0.5,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pow": 1.0,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "geox_prospect": {
+        "purpose": "Prospect evaluation under thin data and high uncertainty",
+        "quotes": [
+          {
+            "id": "GPR-01",
+            "text": "Character cannot be developed in ease and quiet. Only through experience of trial and suffering can the soul be strengthened.",
+            "author": "Helen Keller",
+            "source": "Helen Keller's Journal",
+            "year": 1938,
+            "trigger": "low_pos",
+            "symbolic_tags": [
+              "CHA",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "act": 0.9,
+              "cha": 1.0,
+              "hum": 0.3,
+              "mea": 0.7,
+              "pur": 0.8,
+              "res": 1.0,
+              "sov": 0.6,
+              "tri": 1.0
+            }
+          },
+          {
+            "id": "GPR-02",
+            "text": "In the depth of winter, I finally learned that within me there lay an invincible summer.",
+            "author": "Albert Camus",
+            "source": "Return to Tipasa",
+            "year": 1952,
+            "trigger": "low_pos",
+            "symbolic_tags": [
+              "MEA",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "fre": 0.6,
+              "hum": 0.5,
+              "mea": 0.8,
+              "pur": 0.7,
+              "res": 1.0,
+              "sov": 0.3,
+              "tri": 1.0
+            }
+          }
+        ]
+      },
+      "geox_subsurface_model": {
+        "purpose": "Joint inversion — gravity, magnetics, MT forward modeling",
+        "quotes": [
+          {
+            "id": "GSM-01",
+            "text": "What stands in the way becomes the way.",
+            "author": "Marcus Aurelius",
+            "source": "Meditations",
+            "year": 180,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ACT",
+              "ATT",
+              "RES"
+            ],
+            "dimension_scores": {
+              "att": 1.0,
+              "cha": 0.7,
+              "fre": 0.5,
+              "hum": 0.6,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.9,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "geox_well_desurvey": {
+        "purpose": "Wellbore geometry — minimum curvature truth",
+        "quotes": [
+          {
+            "id": "GWD-01",
+            "text": "No man ever steps in the same river twice, for it's not the same river and he's not the same man.",
+            "author": "Heraclitus",
+            "source": "Fragments",
+            "year": -500,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "CHG",
+              "HUM"
+            ],
+            "dimension_scores": {
+              "act": 0.55,
+              "cha": 0.9,
+              "chg": 1.0,
+              "hum": 0.8,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      }
+    }
+  },
+  "well": {
+    "organ": "WELL",
+    "role": "Human Wellbeing Organ — vitality, meaning, resilience",
+    "theme": "Mental health, emotional grounding, meaning-making, human continuity",
+    "tools": {
+      "well_classify_substrate": {
+        "purpose": "Substrate classification — human, machine, coupled",
+        "quotes": [
+          {
+            "id": "WCS-01",
+            "text": "The best and most beautiful things in the world cannot be seen or even touched—they must be felt with the heart.",
+            "author": "Helen Keller",
+            "source": "The Story of My Life",
+            "year": 1903,
+            "trigger": "human_substrate",
+            "symbolic_tags": [
+              "CHA",
+              "DIG",
+              "MEA",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "act": 0.9,
+              "cha": 0.9,
+              "dig": 0.55,
+              "hum": 0.3,
+              "mea": 0.95,
+              "pur": 0.8,
+              "res": 1.0,
+              "sov": 0.6,
+              "tri": 1.0
+            }
+          }
+        ]
+      },
+      "well_assess_homeostasis": {
+        "purpose": "Regulation, stability, empathic balance",
+        "quotes": [
+          {
+            "id": "WAH-01",
+            "text": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+            "author": "Marcus Aurelius",
+            "source": "Meditations",
+            "year": 180,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ATT",
+              "FRE",
+              "RES"
+            ],
+            "dimension_scores": {
+              "att": 1.0,
+              "cha": 0.7,
+              "fre": 0.5,
+              "hum": 0.6,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.9,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          },
+          {
+            "id": "WAH-02",
+            "text": "This too shall pass.",
+            "author": "Persian Wisdom",
+            "source": "Sufi Tradition",
+            "year": 1200,
+            "trigger": "degraded",
+            "symbolic_tags": [
+              "CHG",
+              "HUM",
+              "RES"
+            ],
+            "dimension_scores": {
+              "att": 0.7,
+              "chg": 1.0,
+              "hum": 0.8,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.9,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "well_check_repair": {
+        "purpose": "Healing, recovery, resilience, forge cycle integrity",
+        "quotes": [
+          {
+            "id": "WCR-01",
+            "text": "What does not kill me makes me stronger.",
+            "author": "Friedrich Nietzsche",
+            "source": "Twilight of the Idols",
+            "year": 1889,
+            "trigger": "always",
+            "symbolic_tags": [
+              "FRE",
+              "PUR",
+              "RES",
+              "SOV",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "fre": 0.9,
+              "hum": 0.3,
+              "mea": 0.3,
+              "pow": 1.0,
+              "pur": 0.9,
+              "res": 1.0,
+              "rsp": 0.6,
+              "sov": 1.0,
+              "tri": 0.7
+            }
+          }
+        ]
+      },
+      "well_assess_livelihood": {
+        "purpose": "Role, dignity, meaning, purpose assessment",
+        "quotes": [
+          {
+            "id": "WAL-01",
+            "text": "Those who have a why to live can bear almost any how.",
+            "author": "Friedrich Nietzsche",
+            "source": "Twilight of the Idols",
+            "year": 1889,
+            "trigger": "always",
+            "symbolic_tags": [
+              "FRE",
+              "MEA",
+              "PUR",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "fre": 0.9,
+              "hum": 0.3,
+              "mea": 0.3,
+              "pow": 0.8,
+              "pur": 1.0,
+              "res": 0.8,
+              "rsp": 0.6,
+              "sov": 1.0,
+              "tri": 0.7
+            }
+          },
+          {
+            "id": "WAL-02",
+            "text": "The privilege of a lifetime is to become who you truly are.",
+            "author": "Joseph Campbell",
+            "source": "The Hero with a Thousand Faces",
+            "year": 1949,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "MEA",
+              "PUR",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "cha": 1.0,
+              "hum": 0.3,
+              "mea": 0.9,
+              "pur": 1.0,
+              "res": 0.3,
+              "sov": 0.8,
+              "tri": 0.7
+            }
+          }
+        ]
+      },
+      "well_guard_dignity": {
+        "purpose": "Soul, personhood, meaning, symbolic boundaries",
+        "quotes": [
+          {
+            "id": "WGD-01",
+            "text": "The mystery of human existence lies not in just staying alive, but in finding something to live for.",
+            "author": "Fyodor Dostoevsky",
+            "source": "The Brothers Karamazov",
+            "year": 1880,
+            "trigger": "always",
+            "symbolic_tags": [
+              "DIG",
+              "MEA",
+              "PUR",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "cha": 0.8,
+              "dig": 0.9,
+              "hum": 0.7,
+              "mea": 1.0,
+              "pur": 0.55,
+              "res": 0.3,
+              "sov": 0.5,
+              "tri": 0.9
+            }
+          }
+        ]
+      },
+      "well_assess_sovereign_entropy": {
+        "purpose": "Measure sovereign unpredictability — protection from behavioral capture",
+        "quotes": [
+          {
+            "id": "WSE-01",
+            "text": "The individual has always had to struggle to keep from being overwhelmed by the tribe. But no price is too high to pay for the privilege of owning yourself.",
+            "author": "Friedrich Nietzsche",
+            "source": "Thus Spoke Zarathustra",
+            "year": 1883,
+            "trigger": "always",
+            "symbolic_tags": [
+              "FRE",
+              "PUR",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "fre": 0.9,
+              "hum": 0.3,
+              "mea": 0.3,
+              "pow": 0.8,
+              "pur": 0.9,
+              "res": 0.8,
+              "rsp": 0.6,
+              "sov": 1.0,
+              "tri": 0.7
+            }
+          }
+        ]
+      }
+    }
+  },
+  "wealth": {
+    "organ": "WEALTH",
+    "role": "Capital Thermodynamics Organ — risk, power, incentives, survival",
+    "theme": "Risk, deception, power, asymmetry, long-term survival, capital discipline",
+    "tools": {
+      "wealth_compute_emv": {
+        "purpose": "Expected Monetary Value under uncertainty",
+        "quotes": [
+          {
+            "id": "WEM-01",
+            "text": "Those who have a why to live can bear almost any how.",
+            "author": "Friedrich Nietzsche",
+            "source": "Twilight of the Idols",
+            "year": 1889,
+            "trigger": "always",
+            "symbolic_tags": [
+              "FRE",
+              "MEA",
+              "PUR",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "fre": 0.9,
+              "hum": 0.3,
+              "mea": 0.3,
+              "pow": 0.8,
+              "pur": 1.0,
+              "res": 0.8,
+              "rsp": 0.6,
+              "sov": 1.0,
+              "tri": 0.7
+            }
+          }
+        ]
+      },
+      "wealth_compute_evoi": {
+        "purpose": "Expected Value of Information — what is knowing worth?",
+        "quotes": [
+          {
+            "id": "WEV-01",
+            "text": "An investment in knowledge pays the best interest.",
+            "author": "Benjamin Franklin",
+            "source": "Poor Richard's Almanack",
+            "year": 1758,
+            "trigger": "always",
+            "symbolic_tags": [
+              "EXC",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "act": 0.7,
+              "exc": 0.8,
+              "hum": 0.6,
+              "kno": 1.0,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "wealth_asymmetry_check": {
+        "purpose": "Risk asymmetry — is the distribution skewed?",
+        "quotes": [
+          {
+            "id": "WAC-01",
+            "text": "All warfare is based on deception.",
+            "author": "Sun Tzu",
+            "source": "The Art of War",
+            "year": -500,
+            "trigger": "always",
+            "symbolic_tags": [
+              "DEC",
+              "POW"
+            ],
+            "dimension_scores": {
+              "cha": 0.6,
+              "dec": 1.0,
+              "hum": 0.5,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pow": 1.0,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          },
+          {
+            "id": "WAC-02",
+            "text": "If an injury has to be done to a man, it should be so severe that his vengeance need not be feared.",
+            "author": "Niccolò Machiavelli",
+            "source": "The Prince",
+            "year": 1532,
+            "trigger": "high_asymmetry",
+            "symbolic_tags": [
+              "DEC",
+              "POW",
+              "SOV"
+            ],
+            "dimension_scores": {
+              "dec": 1.0,
+              "hum": 0.2,
+              "mea": 0.3,
+              "pow": 1.0,
+              "pur": 0.3,
+              "res": 0.7,
+              "rsp": 0.5,
+              "sov": 0.8,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "wealth_runway_check": {
+        "purpose": "Survival — how many months at current burn?",
+        "quotes": [
+          {
+            "id": "WRC-01",
+            "text": "Character cannot be developed in ease and quiet.",
+            "author": "Helen Keller",
+            "source": "Helen Keller's Journal",
+            "year": 1938,
+            "trigger": "low_runway",
+            "symbolic_tags": [
+              "CHA",
+              "RES",
+              "TRI"
+            ],
+            "dimension_scores": {
+              "act": 0.9,
+              "cha": 1.0,
+              "hum": 0.3,
+              "mea": 0.7,
+              "pur": 0.8,
+              "res": 1.0,
+              "sov": 0.6,
+              "tri": 1.0
+            }
+          }
+        ]
+      },
+      "wealth_collapse_signature_scan": {
+        "purpose": "Institutional failure forensics",
+        "quotes": [
+          {
+            "id": "WCS-01",
+            "text": "Character is destiny.",
+            "author": "Heraclitus",
+            "source": "Fragments",
+            "year": -500,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "CHG",
+              "HUM"
+            ],
+            "dimension_scores": {
+              "cha": 1.0,
+              "chg": 1.0,
+              "hum": 0.8,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "wealth_monte_carlo_simulate": {
+        "purpose": "Value projection under many possible futures",
+        "quotes": [
+          {
+            "id": "WMC-01",
+            "text": "Imagination embraces the entire world, stimulating progress, giving birth to evolution.",
+            "author": "Albert Einstein",
+            "source": "What Life Means to Einstein",
+            "year": 1929,
+            "trigger": "always",
+            "symbolic_tags": [
+              "HUM",
+              "IMA",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "exc": 0.5,
+              "hum": 0.9,
+              "ima": 1.0,
+              "kno": 0.8,
+              "mea": 0.3,
+              "pur": 0.6,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "wealth_conservation_check": {
+        "purpose": "Capital conservation — net worth, asset/liability totals",
+        "quotes": [
+          {
+            "id": "WCC-01",
+            "text": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+            "author": "Aristotle",
+            "source": "Nicomachean Ethics",
+            "year": -340,
+            "trigger": "always",
+            "symbolic_tags": [
+              "CHA",
+              "EXC",
+              "KNO"
+            ],
+            "dimension_scores": {
+              "att": 0.7,
+              "cha": 0.8,
+              "exc": 1.0,
+              "hum": 0.7,
+              "kno": 0.8,
+              "mea": 0.3,
+              "pur": 0.6,
+              "res": 0.3,
+              "sov": 0.3,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "wealth_power_audit": {
+        "purpose": "Power dynamics, capture risk, rent extraction",
+        "quotes": [
+          {
+            "id": "WPA-01",
+            "text": "Appear weak when you are strong, and strong when you are weak.",
+            "author": "Sun Tzu",
+            "source": "The Art of War",
+            "year": -500,
+            "trigger": "always",
+            "symbolic_tags": [
+              "DEC",
+              "POW"
+            ],
+            "dimension_scores": {
+              "cha": 0.6,
+              "dec": 1.0,
+              "hum": 0.5,
+              "kno": 0.7,
+              "mea": 0.3,
+              "pow": 1.0,
+              "pur": 0.3,
+              "res": 0.3,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      },
+      "wealth_fiscal_breakeven": {
+        "purpose": "Oil price at which fiscal path becomes unsustainable",
+        "quotes": [
+          {
+            "id": "WFB-01",
+            "text": "The impediment to action advances action. What stands in the way becomes the way.",
+            "author": "Marcus Aurelius",
+            "source": "Meditations",
+            "year": 180,
+            "trigger": "always",
+            "symbolic_tags": [
+              "ACT",
+              "ATT",
+              "RES"
+            ],
+            "dimension_scores": {
+              "att": 1.0,
+              "cha": 0.7,
+              "fre": 0.5,
+              "hum": 0.6,
+              "mea": 0.3,
+              "pur": 0.3,
+              "res": 0.9,
+              "sov": 0.7,
+              "tri": 0.3
+            }
+          }
+        ]
+      }
+    }
+  },
+  "cross_cutting": {
+    "f13_sovereign": {
+      "purpose": "Final human veto — absolute authority",
+      "quote": {
+        "id": "F13-01",
+        "text": "The individual has always had to struggle to keep from being overwhelmed by the tribe. If you try it, you will be lonely often, and sometimes frightened. But no price is too high to pay for the privilege of owning yourself.",
+        "author": "Friedrich Nietzsche",
+        "source": "Thus Spoke Zarathustra",
+        "year": 1883,
+        "note": "This is the quote that matches Arif's life right now."
+      }
+    },
+    "ditempa_bukan_diberi": {
+      "purpose": "Core motto — Forged, Not Given",
+      "quote": {
+        "id": "DBD-01",
+        "text": "DITEMPA BUKAN DIBERI",
+        "author": "Arif Fazil",
+        "source": "arifOS Constitutional Motto",
+        "year": 2025,
+        "en": "Forged, Not Given"
+      }
+    }
+  },
+  "authors_index": {
+    "Marcus Aurelius": {
+      "era": "Stoic Rome",
+      "year": 180,
+      "theme": "mind over events, resilience"
+    },
+    "Socrates": {
+      "era": "Classical Greece",
+      "year": -400,
+      "theme": "epistemic humility"
+    },
+    "Aristotle": {
+      "era": "Classical Greece",
+      "year": -340,
+      "theme": "excellence through habit, educated mind"
+    },
+    "Heraclitus": {
+      "era": "Pre-Socratic Greece",
+      "year": -500,
+      "theme": "change, character as destiny"
+    },
+    "Friedrich Nietzsche": {
+      "era": "19th C Germany",
+      "year": 1889,
+      "theme": "sovereignty, why, tribe vs self"
+    },
+    "Viktor Frankl": {
+      "era": "20th C Austria",
+      "year": 1946,
+      "theme": "meaning, attitude as last freedom"
+    },
+    "Albert Camus": {
+      "era": "20th C France",
+      "year": 1952,
+      "theme": "invincible summer, absurd resilience"
+    },
+    "Helen Keller": {
+      "era": "20th C America",
+      "year": 1938,
+      "theme": "trial, character, heart"
+    },
+    "Fyodor Dostoevsky": {
+      "era": "19th C Russia",
+      "year": 1880,
+      "theme": "meaning, harsh truth"
+    },
+    "Winston Churchill": {
+      "era": "20th C Britain",
+      "year": 1941,
+      "theme": "resilience, never give in"
+    },
+    "Sun Tzu": {
+      "era": "Ancient China",
+      "year": -500,
+      "theme": "deception, strategy, power"
+    },
+    "Niccolò Machiavelli": {
+      "era": "Renaissance Italy",
+      "year": 1532,
+      "theme": "realism, power, severity"
+    },
+    "Albert Einstein": {
+      "era": "20th C Physics",
+      "year": 1929,
+      "theme": "imagination, curiosity"
+    },
+    "Abraham Lincoln": {
+      "era": "19th C America",
+      "year": 1864,
+      "theme": "slow but forward"
+    },
+    "Lao Tzu": {
+      "era": "Ancient China",
+      "year": -600,
+      "theme": "transformation, journey"
+    },
+    "Joseph Campbell": {
+      "era": "20th C America",
+      "year": 1949,
+      "theme": "becoming, hero's journey"
+    },
+    "Jean-Paul Sartre": {
+      "era": "20th C France",
+      "year": 1943,
+      "theme": "freedom, responsibility"
+    },
+    "Benjamin Franklin": {
+      "era": "18th C America",
+      "year": 1758,
+      "theme": "knowledge investment"
+    }
+  },
+  "_enriched": {
+    "date": "2026-06-28",
+    "symbolic_tags_added": true,
+    "dimension_scores_added": true,
+    "quotes_enriched": 49,
+    "tag_lexicon": {
+      "SOV": {
+        "name": "Sovereignty",
+        "axis": "individual_vs_collective"
+      },
+      "HUM": {
+        "name": "Humility",
+        "axis": "certainty_vs_uncertainty"
+      },
+      "PUR": {
+        "name": "Purpose",
+        "axis": "meaning_vs_void"
+      },
+      "RES": {
+        "name": "Resilience",
+        "axis": "endurance_vs_break"
+      },
+      "RSP": {
+        "name": "Responsibility",
+        "axis": "agency_vs_victimhood"
+      },
+      "CHG": {
+        "name": "Change",
+        "axis": "stasis_vs_flux"
+      },
+      "TRI": {
+        "name": "Trial",
+        "axis": "ease_vs_hardship"
+      },
+      "FRE": {
+        "name": "Freedom",
+        "axis": "autonomy_vs_constraint"
+      },
+      "DEC": {
+        "name": "Deception",
+        "axis": "truth_vs_appearance"
+      },
+      "POW": {
+        "name": "Power",
+        "axis": "dominance_vs_submission"
+      },
+      "EXC": {
+        "name": "Excellence",
+        "axis": "habit_vs_spark"
+      },
+      "IMA": {
+        "name": "Imagination",
+        "axis": "known_vs_possible"
+      },
+      "MEA": {
+        "name": "Meaning",
+        "axis": "significance_vs_absurdity"
+      },
+      "ATT": {
+        "name": "Attitude",
+        "axis": "internal_vs_external"
+      },
+      "KNO": {
+        "name": "Knowledge",
+        "axis": "knowing_vs_ignorance"
+      },
+      "CHA": {
+        "name": "Character",
+        "axis": "destiny_vs_accident"
+      },
+      "DIG": {
+        "name": "Dignity",
+        "axis": "worth_vs_degradation"
+      },
+      "ACT": {
+        "name": "Action",
+        "axis": "courage_vs_paralysis"
+      }
+    },
+    "author_profiles_count": 20
+  }
+}

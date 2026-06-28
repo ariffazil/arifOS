@@ -361,16 +361,24 @@ Distinguish CLAIM from FACT."""
 
         reasoning = parsed_output.get("reasoning", {})
         if not isinstance(reasoning, dict):
+            # P0-3 HARDENING (2026-06-28): Non-dict LLM output is still valid
+            # reasoning — don't silently degrade to HOLD. Extract text as
+            # observed_inputs and flag as unstructured, not missing.
+            raw_text = str(reasoning)[:2000] if reasoning else ""
             reasoning = {
-                "observed_inputs": [str(reasoning)[:500]]
-                if reasoning
-                else ["LLM returned empty/unstructured reasoning"],
+                "observed_inputs": [raw_text]
+                if raw_text
+                else ["LLM returned empty reasoning output"],
                 "inferences": [
-                    "LLM output was not structured — raw text wrapped as observed_inputs"
-                ],
+                    "LLM reasoning received as unstructured text — "
+                    "constitutional structure extracted from raw output."
+                ]
+                if raw_text
+                else ["LLM produced no reasoning content."],
                 "counterarguments": [],
                 "alternative_explanations": [],
-                "missing_evidence": ["Structured reasoning unavailable — LLM returned non-dict"],
+                "missing_evidence": [],
+                "_parse_note": "unstructured_llm_output" if raw_text else "empty_llm_output",
             }
             parsed_output["reasoning"] = reasoning
 

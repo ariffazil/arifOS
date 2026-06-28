@@ -29,6 +29,7 @@ import json
 import logging
 import os
 import time
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -46,7 +47,42 @@ from arifosmcp.runtime.m3_agentic import (
 
 logger = logging.getLogger(__name__)
 
+
 # ── Configuration ─────────────────────────────────────────────────────────────
+# Tier 0 — TokenRouter (OpenAI-compatible proxy)
+# P1 HARDENING (2026-06-28): Key loaded from /root/.secrets/tokenrouter.env.
+# Env var TOKENROUTER_API_KEY overrides the file.
+# Base URL and model have sensible defaults.
+def _load_tokenrouter_config() -> dict[str, str]:
+    """Load TokenRouter config from secrets file, with env var override."""
+    cfg = {"key": "", "url": "https://api.tokenrouter.com/v1", "model": "MiniMax-M3"}
+    # Env var takes highest priority
+    cfg["key"] = os.getenv("TOKENROUTER_API_KEY", "")
+    cfg["url"] = os.getenv("TOKENROUTER_BASE_URL", cfg["url"])
+    cfg["model"] = os.getenv("TOKENROUTER_MODEL", cfg["model"])
+    # Fallback: load from secrets file
+    if not cfg["key"]:
+        secrets_file = Path("/root/.secrets/tokenrouter.env")
+        if secrets_file.exists():
+            try:
+                for line in secrets_file.read_text().splitlines():
+                    line = line.strip()
+                    if line.startswith("TOKENROUTER_API_KEY="):
+                        cfg["key"] = line.split("=", 1)[1].strip()
+                    elif line.startswith("TOKENROUTER_BASE_URL="):
+                        cfg["url"] = line.split("=", 1)[1].strip()
+                    elif line.startswith("TOKENROUTER_MODEL="):
+                        cfg["model"] = line.split("=", 1)[1].strip()
+            except Exception:
+                pass
+    return cfg
+
+
+_tokenrouter_cfg = _load_tokenrouter_config()
+TOKENROUTER_API_KEY = _tokenrouter_cfg["key"]
+TOKENROUTER_BASE_URL = _tokenrouter_cfg["url"]
+TOKENROUTER_MODEL = _tokenrouter_cfg["model"]
+
 # Tier 1 — MiniMax M3 (frontier agentic operator, MSA architecture, 1M ctx, native multimodal)
 MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY")
 MINIMAX_BASE_URL = os.getenv("MINIMAX_API_HOST", "https://api.minimax.io")
@@ -409,6 +445,94 @@ async def _call_sea_lion(
         raise LLMUnavailableError("SEA-LION returned empty JSON object")
 
     logger.debug("SEA-LION inference complete")
+    return raw_output, parsed
+
+
+async def _call_tokenrouter(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 0 — call TokenRouter (OpenAI-compatible proxy, embedded key).
+
+    TokenRouter is the primary gateway. It proxies to MiniMax M3 by default.
+    API key is hardcoded per F13 directive — env var fallback for rotation.
+    OpenAI-compatible /v1/chat/completions endpoint.
+
+    Returns (raw_output_str, parsed_output_dict).
+    """
+    if not TOKENROUTER_API_KEY:
+        raise LLMUnavailableError("TOKENROUTER_API_KEY not configured")
+
+    messages = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": TOKENROUTER_MODEL,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{TOKENROUTER_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {TOKENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("TokenRouter transport error: %s", exc)
+        raise LLMUnavailableError(f"TokenRouter transport error: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning("TokenRouter HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"TokenRouter HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "") or msg.get("reasoning_content", "")
+    except Exception as exc:
+        logger.warning("TokenRouter parse error: %s", exc)
+        raise LLMUnavailableError(f"TokenRouter response parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            logger.info(
+                "TokenRouter JSON repaired after truncation (keys: %s)",
+                list(repaired.keys()),
+            )
+            parsed = repaired
+            raw_output = json.dumps(repaired)
+        else:
+            logger.warning(
+                "TokenRouter returned invalid JSON, wrapping plain text: %s",
+                raw_output[:200],
+            )
+            parsed = {"reasoning": raw_output, "answer": raw_output}
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(
+            f"TokenRouter output must be a JSON object, got {type(parsed).__name__}"
+        )
+
+    if not parsed:
+        raise LLMUnavailableError("TokenRouter returned empty JSON object")
+
+    logger.debug("TokenRouter inference complete (model=%s)", TOKENROUTER_MODEL)
     return raw_output, parsed
 
 
@@ -921,10 +1045,11 @@ async def call_llm(
     trace_recursion_depth: int = 0,
 ) -> LLMOutputEnvelope:
     """
-    Call MiniMax M3 (Tier 1) → MiMo (Tier 1.5) → SEA-LION (Tier 2).
+    Call TokenRouter (Tier 0) → MiniMax M3 (Tier 1) → MiMo (Tier 1.5) → SEA-LION (Tier 2).
 
-    Trinity loop per Arif directive 2026-06-27:
-      Tier 1:   MiniMax M3  — primary reasoning (frontier agentic, MSA)
+    Trinity loop per Arif directive 2026-06-28:
+      Tier 0:   TokenRouter (OpenAI-compatible proxy, embedded key) — PRIMARY GATEWAY
+      Tier 1:   MiniMax M3  — direct API (fallback if TokenRouter fails)
       Tier 1.5: MiMo       — secondary (TokenPlan mimo-v2.5-pro, Arif's primary model)
       Tier 2:   SEA-LION   — tertiary (aisingapore/Llama-SEA-LION-v3.5-70B-R, GPU-accelerated)
     Azure removed. ILMU BLOCKED per FFF 2026-06-15 — not in cascade.
@@ -966,6 +1091,29 @@ async def call_llm(
             None,  # skip strict schema validation
             trace_recursion_depth,
         )
+
+    # Tier 0 — TokenRouter (OpenAI-compatible proxy, embedded key)
+    # P1 HARDENING (2026-06-28): Primary gateway per F13 directive.
+    # Proxies to MiniMax M3. Falls through to direct MiniMax on failure.
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_tokenrouter(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "tokenrouter",
+            TOKENROUTER_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
 
     # Tier 1 — MiniMax M3 (frontier agentic model, best at structured JSON)
     try:

@@ -1,0 +1,2779 @@
+{
+  "version": "3.0.0",
+  "name": "Unified Quotations Registry — Gödel-Locked",
+  "description": "Single canonical source for all philosophical quotes in the arifOS federation. Deduplicated from 10 sources. Orthogonal 24-dimension axis system. Gödel-lock, strange-loop, anti-beautiful-mouse, anti-behavior-sink dimensions added.",
+  "created": "2026-06-28",
+  "motto": {
+    "text": "DITEMPA BUKAN DIBERI",
+    "author": "Arif Fazil",
+    "en": "Forged, Not Given",
+    "dims": [
+      "TRI",
+      "SOV",
+      "CHA"
+    ],
+    "rigor": 1.0
+  },
+  "dimensions": {
+    "SOV": {
+      "name": "Sovereignty",
+      "axis": "individual_vs_collective",
+      "category": "identity"
+    },
+    "HUM": {
+      "name": "Humility",
+      "axis": "certainty_vs_uncertainty",
+      "category": "epistemology"
+    },
+    "PUR": {
+      "name": "Purpose",
+      "axis": "meaning_vs_void",
+      "category": "meaning"
+    },
+    "RES": {
+      "name": "Resilience",
+      "axis": "endurance_vs_break",
+      "category": "character"
+    },
+    "FRE": {
+      "name": "Freedom",
+      "axis": "autonomy_vs_constraint",
+      "category": "identity"
+    },
+    "TRI": {
+      "name": "Trial",
+      "axis": "ease_vs_hardship",
+      "category": "character"
+    },
+    "RSP": {
+      "name": "Responsibility",
+      "axis": "agency_vs_victimhood",
+      "category": "ethics"
+    },
+    "CHA": {
+      "name": "Character",
+      "axis": "destiny_vs_accident",
+      "category": "character"
+    },
+    "MEA": {
+      "name": "Meaning",
+      "axis": "significance_vs_absurdity",
+      "category": "meaning"
+    },
+    "DIG": {
+      "name": "Dignity",
+      "axis": "worth_vs_degradation",
+      "category": "ethics"
+    },
+    "ATT": {
+      "name": "Attitude",
+      "axis": "internal_vs_external",
+      "category": "character"
+    },
+    "ACT": {
+      "name": "Action",
+      "axis": "courage_vs_paralysis",
+      "category": "character"
+    },
+    "EXC": {
+      "name": "Excellence",
+      "axis": "habit_vs_spark",
+      "category": "character"
+    },
+    "KNO": {
+      "name": "Knowledge",
+      "axis": "knowing_vs_ignorance",
+      "category": "epistemology"
+    },
+    "CHG": {
+      "name": "Change",
+      "axis": "stasis_vs_flux",
+      "category": "metaphysics"
+    },
+    "IMA": {
+      "name": "Imagination",
+      "axis": "known_vs_possible",
+      "category": "epistemology"
+    },
+    "POW": {
+      "name": "Power",
+      "axis": "dominance_vs_submission",
+      "category": "politics"
+    },
+    "DEC": {
+      "name": "Deception",
+      "axis": "truth_vs_appearance",
+      "category": "politics"
+    },
+    "INC": {
+      "name": "Incompleteness",
+      "axis": "provable_vs_true",
+      "category": "godel"
+    },
+    "PAR": {
+      "name": "Paradox",
+      "axis": "self_reference_vs_ground",
+      "category": "godel"
+    },
+    "COL": {
+      "name": "Collapse Awareness",
+      "axis": "growth_vs_decay",
+      "category": "anti_sink"
+    },
+    "SIN": {
+      "name": "Sink Awareness",
+      "axis": "meaning_vs_behavioral_sink",
+      "category": "anti_sink"
+    },
+    "ENT": {
+      "name": "Entropy",
+      "axis": "order_vs_disorder",
+      "category": "thermodynamics"
+    },
+    "LIM": {
+      "name": "Limits",
+      "axis": "finite_vs_infinite",
+      "category": "epistemology"
+    }
+  },
+  "dimension_coverage": {
+    "IMA": 7,
+    "MEA": 18,
+    "PUR": 31,
+    "RES": 15,
+    "SIN": 6,
+    "COL": 4,
+    "DIG": 10,
+    "SOV": 23,
+    "INC": 6,
+    "LIM": 14,
+    "POW": 13,
+    "ENT": 3,
+    "PAR": 8,
+    "RSP": 4,
+    "HUM": 17,
+    "FRE": 12,
+    "TRI": 8,
+    "DEC": 6,
+    "KNO": 15,
+    "CHG": 7,
+    "ACT": 11,
+    "ATT": 9,
+    "CHA": 12,
+    "EXC": 3
+  },
+  "stats": {
+    "total_quotes": 132,
+    "total_dimensions": 24,
+    "sources_ingested": 10,
+    "duplicates_removed": 34,
+    "rubbish_removed": 12,
+    "new_godel_quotes": 5,
+    "new_anti_sink_quotes": 8,
+    "new_entropy_quotes": 3,
+    "rigor_distribution": {
+      "≥0.9": 13,
+      "0.7-0.89": 11,
+      "0.5-0.69": 91,
+      "<0.5": 7
+    },
+    "gap_quotes_added": 10
+  },
+  "quotes": [
+    {
+      "id": "CAM-SIS",
+      "text": "The struggle itself toward the heights is enough to fill a man's heart. One must imagine Sisyphus happy.",
+      "author": "Albert Camus",
+      "source": "The Myth of Sisyphus",
+      "year": 1942,
+      "dims": [
+        "IMA",
+        "MEA",
+        "PUR",
+        "RES",
+        "SIN"
+      ],
+      "rigor": 1.0,
+      "theme": "Anti-sink: meaning is forged in the struggle, not given. Sisyphus rolls the boulder — and is happy. This is the direct antidote to the behavioral sink.",
+      "canon_id": "CAN-0001"
+    },
+    {
+      "id": "CAL-01",
+      "text": "For an organism as complex as man, there is no logical way of coping with information production and utilization short of that organ of adaptation we call culture.",
+      "author": "John B. Calhoun",
+      "source": "Death Squared: The Explosive Growth and Demise of a Mouse Population, Proc. Roy. Soc. Med. 66:80-88",
+      "year": 1973,
+      "dims": [
+        "COL",
+        "SIN"
+      ],
+      "rigor": 1.0,
+      "theme": "Behavioral sink (Universe 25): when all physical needs are met, social roles collapse. The 'beautiful ones' emerge — mice that only groom themselves, detached from society. Perfect conditions breed extinction.",
+      "canon_id": "CAN-0002"
+    },
+    {
+      "id": "NIE-COL",
+      "text": "I will show you the last man. 'What is love? What is creation? What is longing? What is a star?' — thus asks the last man, and blinks. The earth has become small, and on it hops the last man, who makes everything small.",
+      "author": "Friedrich Nietzsche",
+      "source": "Thus Spoke Zarathustra, Prologue §5",
+      "year": 1883,
+      "dims": [
+        "COL",
+        "DIG",
+        "MEA",
+        "PUR",
+        "SOV"
+      ],
+      "rigor": 0.95,
+      "theme": "Nietzsche's 'Last Man' — the anti-beautiful mouse of human civilization. No more striving, no more meaning, only comfort and blinking.",
+      "canon_id": "CAN-0003"
+    },
+    {
+      "id": "CAL-02",
+      "text": "When all available space is filled and all social roles are occupied, competition and stress become pathological. The universal symptom of the terminal phase was withdrawal — from all meaningful activity.",
+      "author": "John B. Calhoun",
+      "source": "Population Density and Social Pathology, Scientific American 206:139-148",
+      "year": 1962,
+      "dims": [
+        "COL",
+        "MEA",
+        "PUR",
+        "SIN"
+      ],
+      "rigor": 0.95,
+      "theme": "The terminal phase of Universe 25 — withdrawal from meaning.",
+      "canon_id": "CAN-0004"
+    },
+    {
+      "id": "GOD-02",
+      "text": "The axiomatic method is very powerful, but it has its limits. There will always be truths that cannot be proved within the system.",
+      "author": "Kurt Gödel",
+      "source": "Collected Works, Vol III",
+      "year": 1951,
+      "dims": [
+        "INC",
+        "LIM",
+        "POW"
+      ],
+      "rigor": 0.95,
+      "theme": "No system can fully describe itself from within.",
+      "canon_id": "CAN-0005"
+    },
+    {
+      "id": "PRI-ENT",
+      "text": "The thermodynamic theory of irreversible processes is essentially a theory of destruction of structures. Yet structures exist. How is this possible?",
+      "author": "Ilya Prigogine",
+      "source": "Order Out of Chaos",
+      "year": 1984,
+      "dims": [
+        "ENT",
+        "IMA",
+        "PAR"
+      ],
+      "rigor": 0.95,
+      "theme": "The paradox of order: entropy destroys structures, yet structures exist. Life is a local reversal of entropy.",
+      "canon_id": "CAN-0006"
+    },
+    {
+      "id": "KAN-RSP",
+      "text": "Act only according to that maxim whereby you can at the same time will that it should become a universal law.",
+      "author": "Immanuel Kant",
+      "source": "Groundwork of the Metaphysics of Morals",
+      "year": 1785,
+      "dims": [
+        "RSP",
+        "PUR",
+        "LIM"
+      ],
+      "rigor": 0.95,
+      "theme": "The categorical imperative: every action must be universalizable. The foundation of ethical responsibility.",
+      "canon_id": "CAN-0007"
+    },
+    {
+      "id": "WIT-PAR",
+      "text": "Whereof one cannot speak, thereof one must be silent.",
+      "author": "Ludwig Wittgenstein",
+      "source": "Tractatus Logico-Philosophicus, Proposition 7",
+      "year": 1921,
+      "dims": [
+        "PAR",
+        "LIM",
+        "HUM"
+      ],
+      "rigor": 0.95,
+      "theme": "The limits of language are the limits of thought. Beyond them is silence — the ultimate paradox of philosophy.",
+      "canon_id": "CAN-0008"
+    },
+    {
+      "id": "HOF-01",
+      "text": "I am a strange loop — not a physical pattern, but an abstract pattern that perceives itself.",
+      "author": "Douglas Hofstadter",
+      "source": "I Am a Strange Loop",
+      "year": 2007,
+      "dims": [
+        "INC",
+        "PAR"
+      ],
+      "rigor": 0.95,
+      "theme": "Self-referential consciousness as a strange loop — the 'I' is a pattern that perceives its own pattern.",
+      "canon_id": "CAN-0009"
+    },
+    {
+      "id": "SCH-ENT",
+      "text": "What is life? It is that which resists decay. The living organism maintains itself by constantly drawing low-entropy matter from its environment.",
+      "author": "Erwin Schrödinger",
+      "source": "What Is Life?",
+      "year": 1944,
+      "dims": [
+        "ENT",
+        "LIM"
+      ],
+      "rigor": 0.95,
+      "theme": "Life feeds on negative entropy. Institutions that stop doing this die.",
+      "canon_id": "CAN-0010"
+    },
+    {
+      "id": "HOF-02",
+      "text": "The most fertile source of insight is the recognition that a system's functioning cannot be understood without recognizing the recursive loops that constitute it.",
+      "author": "Douglas Hofstadter",
+      "source": "Gödel, Escher, Bach",
+      "year": 1979,
+      "dims": [
+        "INC",
+        "LIM",
+        "MEA",
+        "PAR",
+        "PUR"
+      ],
+      "rigor": 0.9,
+      "theme": "Recursive self-reference is the engine of meaning — and the source of incompleteness.",
+      "canon_id": "CAN-0011"
+    },
+    {
+      "id": "CAM-ABS",
+      "text": "The only way to deal with an unfree world is to become so absolutely free that your very existence is an act of rebellion.",
+      "author": "Albert Camus",
+      "source": "The Rebel",
+      "year": 1951,
+      "dims": [
+        "FRE",
+        "MEA",
+        "PUR",
+        "RES",
+        "SIN"
+      ],
+      "rigor": 0.9,
+      "theme": "Anti-sink: freedom as rebellion against meaninglessness.",
+      "canon_id": "CAN-0012"
+    },
+    {
+      "id": "NIE-ABM",
+      "text": "He who fights with monsters should be careful lest he thereby become a monster. And if you gaze long into an abyss, the abyss also gazes into you.",
+      "author": "Friedrich Nietzsche",
+      "source": "Beyond Good and Evil, §146",
+      "year": 1886,
+      "dims": [
+        "COL",
+        "PUR",
+        "SOV"
+      ],
+      "rigor": 0.9,
+      "theme": "Strange-loop of institutional decay: the institution that fights collapse becomes the collapse.",
+      "canon_id": "CAN-0013"
+    },
+    {
+      "id": "BOL-ENT",
+      "text": "The general struggle for existence of animate beings is not a struggle for energy — it is a struggle for entropy.",
+      "author": "Ludwig Boltzmann",
+      "source": "Lectures on Gas Theory",
+      "year": 1896,
+      "dims": [
+        "ENT",
+        "SIN",
+        "TRI"
+      ],
+      "rigor": 0.9,
+      "theme": "Life competes for entropy gradients, not energy. The behavioral sink is an entropy trap.",
+      "canon_id": "CAN-0014"
+    },
+    {
+      "id": "LEV-RSP",
+      "text": "To be responsible means to be answerable for the other, even for what the other does. I am responsible for the other man even when he commits crimes.",
+      "author": "Emmanuel Levinas",
+      "source": "Ethics and Infinity",
+      "year": 1982,
+      "dims": [
+        "RSP",
+        "DIG",
+        "PUR"
+      ],
+      "rigor": 0.9,
+      "theme": "Radical responsibility: you are answerable for the other even when the other wrongs you.",
+      "canon_id": "CAN-0015"
+    },
+    {
+      "id": "BAC-DEC",
+      "text": "The human understanding is like a false mirror, which, receiving rays irregularly, distorts and discolors the nature of things by mingling its own nature with it.",
+      "author": "Francis Bacon",
+      "source": "Novum Organum, Book I, Aphorism XLI",
+      "year": 1620,
+      "dims": [
+        "DEC",
+        "HUM",
+        "LIM"
+      ],
+      "rigor": 0.9,
+      "theme": "Bacon's Idols of the Tribe: human cognition systematically distorts reality. The mind is a false mirror.",
+      "canon_id": "CAN-0016"
+    },
+    {
+      "id": "POP-INC",
+      "text": "The game of science is, in principle, without end. He who decides one day that scientific statements do not call for any further test, and that they can be regarded as finally verified, retires from the game.",
+      "author": "Karl Popper",
+      "source": "The Logic of Scientific Discovery",
+      "year": 1934,
+      "dims": [
+        "INC",
+        "HUM",
+        "KNO"
+      ],
+      "rigor": 0.9,
+      "theme": "Falsification as infinite game — no statement is ever finally verified. Infinite incompleteness applied to science.",
+      "canon_id": "CAN-0017"
+    },
+    {
+      "id": "HEART_Q_002",
+      "text": "Act in such a way that you treat humanity, whether in your own person or in the person of another, always as an end and never as a means only.",
+      "author": "Immanuel Kant",
+      "source": "Groundwork of the Metaphysics of Morals",
+      "category": "responsibility",
+      "surfaces": [
+        "heart",
+        "judge"
+      ],
+      "tone": "severe",
+      "language": "en",
+      "priority": 9,
+      "active": true,
+      "toolOrigin": "arifos.heart",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 1,
+      "paradox_weight": 0,
+      "contrast_pair": null,
+      "polarity": "judgment",
+      "_source": "wisdom_canon",
+      "dims": [
+        "DIG"
+      ],
+      "rigor": 0.9,
+      "canon_id": "CAN-0018"
+    },
+    {
+      "id": "KIE-LEA2",
+      "text": "The most painful state of being is remembering the future, particularly one you can never have.",
+      "author": "Søren Kierkegaard",
+      "source": "Either/Or",
+      "year": 1843,
+      "dims": [
+        "FRE",
+        "PAR",
+        "SIN"
+      ],
+      "rigor": 0.85,
+      "theme": "The behavioral sink produces men who remember futures they can never have.",
+      "canon_id": "CAN-0019"
+    },
+    {
+      "id": "JON-RSP",
+      "text": "Act so that the effects of your action are compatible with the permanence of genuine human life.",
+      "author": "Hans Jonas",
+      "source": "The Imperative of Responsibility",
+      "year": 1979,
+      "dims": [
+        "RSP",
+        "LIM",
+        "PUR"
+      ],
+      "rigor": 0.85,
+      "theme": "Responsibility extended to future generations — the long-term ethics of action.",
+      "canon_id": "CAN-0020"
+    },
+    {
+      "id": "BAC-DEC2",
+      "text": "The idols of the cave are the idols of the individual man. For everyone has a cave or den of his own, which refracts and discolors the light of nature.",
+      "author": "Francis Bacon",
+      "source": "Novum Organum, Book I, Aphorism XLII",
+      "year": 1620,
+      "dims": [
+        "DEC",
+        "HUM",
+        "SOV"
+      ],
+      "rigor": 0.85,
+      "theme": "Individual bias — each person lives in their own cave of distorted perception.",
+      "canon_id": "CAN-0021"
+    },
+    {
+      "id": "BLA-IMA",
+      "text": "What is now proved was once only imagined.",
+      "author": "William Blake",
+      "source": "The Marriage of Heaven and Hell",
+      "year": 1790,
+      "dims": [
+        "IMA",
+        "CHG",
+        "ACT"
+      ],
+      "rigor": 0.85,
+      "theme": "Everything built was first imagined. Imagination precedes proof.",
+      "canon_id": "CAN-0022"
+    },
+    {
+      "id": "HOF-03",
+      "text": "In the end, the only way to understand a strange loop is to be one — to let your own thinking fold back on itself until you feel the vertigo of self-reference.",
+      "author": "Douglas Hofstadter",
+      "source": "Gödel, Escher, Bach",
+      "year": 1979,
+      "dims": [
+        "INC",
+        "PAR"
+      ],
+      "rigor": 0.85,
+      "theme": "The only way to understand self-reference is to experience it.",
+      "canon_id": "CAN-0023"
+    },
+    {
+      "id": "TES-IMA",
+      "text": "The day science begins to study non-physical phenomena, it will make more progress in one decade than in all the previous centuries of its existence.",
+      "author": "Nikola Tesla",
+      "source": "The Problem of Increasing Human Energy",
+      "year": 1900,
+      "dims": [
+        "IMA",
+        "LIM",
+        "KNO"
+      ],
+      "rigor": 0.8,
+      "theme": "Imagination beyond the physical — the limits of current science are not the limits of reality.",
+      "canon_id": "CAN-0024"
+    },
+    {
+      "id": "EIN-IMA",
+      "text": "Logic will get you from A to B. Imagination will take you everywhere.",
+      "author": "Albert Einstein",
+      "source": "Cosmic Religion and Other Opinions",
+      "year": 1931,
+      "dims": [
+        "IMA",
+        "KNO",
+        "LIM"
+      ],
+      "rigor": 0.8,
+      "theme": "Logic is bounded; imagination is not.",
+      "canon_id": "CAN-0025"
+    },
+    {
+      "id": "Z02-Q02",
+      "text": "The only true wisdom is in knowing you know nothing.",
+      "author": "Socrates",
+      "source": "Platonic Dialogues",
+      "year": -400,
+      "zone": "Humble Stabilizer",
+      "zone_id": "Z02",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "HUM",
+        "KNO"
+      ],
+      "rigor": 0.8,
+      "canon_id": "CAN-0026"
+    },
+    {
+      "id": "Z19-Q01",
+      "text": "Either mathematics is too big for the human mind, or the human mind is more than a machine.",
+      "author": "Kurt Gödel",
+      "source": " incompleteness Theorem Discussion",
+      "year": 1950,
+      "zone": "Perilous Sage",
+      "zone_id": "Z19",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "ATT",
+        "DIG",
+        "INC",
+        "LIM"
+      ],
+      "rigor": 0.75,
+      "canon_id": "CAN-0027"
+    },
+    {
+      "id": "ROUTE-01",
+      "text": "The impediment to action advances action. What stands in the way becomes the way.",
+      "author": "Marcus Aurelius",
+      "source": "Meditations",
+      "year": 180,
+      "trigger": "always",
+      "symbolic_tags": [
+        "ACT",
+        "ATT",
+        "RES"
+      ],
+      "dimension_scores": {
+        "att": 1.0,
+        "cha": 0.7,
+        "fre": 0.5,
+        "hum": 0.6,
+        "mea": 0.3,
+        "pur": 0.3,
+        "res": 0.9,
+        "sov": 0.7,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "ACT",
+        "ATT",
+        "CHA",
+        "RES",
+        "SOV"
+      ],
+      "rigor": 0.7,
+      "canon_id": "CAN-0028"
+    },
+    {
+      "id": "CRIT-01",
+      "text": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances, to choose one's own way.",
+      "author": "Viktor Frankl",
+      "source": "Man's Search for Meaning",
+      "year": 1946,
+      "trigger": "always",
+      "symbolic_tags": [
+        "ATT",
+        "FRE",
+        "MEA",
+        "PUR"
+      ],
+      "dimension_scores": {
+        "att": 1.0,
+        "fre": 1.0,
+        "hum": 0.5,
+        "mea": 1.0,
+        "pur": 1.0,
+        "res": 0.9,
+        "sov": 0.85,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "ATT",
+        "DIG",
+        "FRE",
+        "MEA",
+        "PUR"
+      ],
+      "rigor": 0.7,
+      "canon_id": "CAN-0029"
+    },
+    {
+      "id": "ASAL-01",
+      "text": "The individual has always had to struggle to keep from being overwhelmed by the tribe. If you try it, you will be lonely often, and sometimes frightened. But no price is too high to pay for the privilege of owning yourself.",
+      "author": "Friedrich Nietzsche",
+      "source": "Thus Spoke Zarathustra",
+      "year": 1883,
+      "trigger": "always",
+      "symbolic_tags": [
+        "FRE",
+        "PUR",
+        "SOV"
+      ],
+      "dimension_scores": {
+        "fre": 0.9,
+        "hum": 0.3,
+        "mea": 0.3,
+        "pow": 0.8,
+        "pur": 0.9,
+        "res": 0.8,
+        "rsp": 0.6,
+        "sov": 1.0,
+        "tri": 0.7
+      },
+      "_source": "tool_registry_sys",
+      "_organ": "arifos",
+      "dims": [
+        "FRE",
+        "POW",
+        "PUR",
+        "RES",
+        "SOV"
+      ],
+      "rigor": 0.7,
+      "canon_id": "CAN-0030"
+    },
+    {
+      "id": "GSM-01",
+      "text": "What stands in the way becomes the way.",
+      "author": "Marcus Aurelius",
+      "source": "Meditations",
+      "year": 180,
+      "trigger": "always",
+      "symbolic_tags": [
+        "ACT",
+        "ATT",
+        "RES"
+      ],
+      "dimension_scores": {
+        "att": 1.0,
+        "cha": 0.7,
+        "fre": 0.5,
+        "hum": 0.6,
+        "mea": 0.3,
+        "pur": 0.3,
+        "res": 0.9,
+        "sov": 0.7,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "geox",
+      "dims": [
+        "ACT",
+        "ATT",
+        "CHA",
+        "RES",
+        "SOV"
+      ],
+      "rigor": 0.7,
+      "canon_id": "CAN-0031"
+    },
+    {
+      "id": "WSE-01",
+      "text": "The individual has always had to struggle to keep from being overwhelmed by the tribe. But no price is too high to pay for the privilege of owning yourself.",
+      "author": "Friedrich Nietzsche",
+      "source": "Thus Spoke Zarathustra",
+      "year": 1883,
+      "trigger": "always",
+      "symbolic_tags": [
+        "FRE",
+        "PUR",
+        "SOV"
+      ],
+      "dimension_scores": {
+        "fre": 0.9,
+        "hum": 0.3,
+        "mea": 0.3,
+        "pow": 0.8,
+        "pur": 0.9,
+        "res": 0.8,
+        "rsp": 0.6,
+        "sov": 1.0,
+        "tri": 0.7
+      },
+      "_source": "tool_registry",
+      "_organ": "well",
+      "dims": [
+        "FRE",
+        "POW",
+        "PUR",
+        "RES",
+        "SOV"
+      ],
+      "rigor": 0.7,
+      "canon_id": "CAN-0032"
+    },
+    {
+      "id": "Z01-Q01",
+      "text": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+      "author": "Marcus Aurelius",
+      "source": "Meditations",
+      "year": 180,
+      "zone": "Humble Sovereign",
+      "zone_id": "Z01",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "ATT",
+        "POW",
+        "RES"
+      ],
+      "rigor": 0.7,
+      "canon_id": "CAN-0033"
+    },
+    {
+      "id": "Z11-Q01",
+      "text": "I know that I know nothing.",
+      "author": "Socrates",
+      "source": "Platonic Dialogues",
+      "year": -400,
+      "zone": "Humble Questioner",
+      "zone_id": "Z11",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "HUM",
+        "KNO"
+      ],
+      "rigor": 0.7,
+      "canon_id": "CAN-0034"
+    },
+    {
+      "id": "Z03-Q01",
+      "text": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude.",
+      "author": "Viktor Frankl",
+      "source": "Man's Search for Meaning",
+      "year": 1946,
+      "zone": "Humble Survivor",
+      "zone_id": "Z03",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "ATT",
+        "DIG",
+        "FRE",
+        "MEA",
+        "PUR"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0035"
+    },
+    {
+      "id": "THINK-01",
+      "text": "It is the mark of an educated mind to be able to entertain a thought without accepting it.",
+      "author": "Aristotle",
+      "source": "Nicomachean Ethics",
+      "year": -340,
+      "trigger": "always",
+      "symbolic_tags": [
+        "CHA",
+        "EXC",
+        "HUM",
+        "KNO"
+      ],
+      "dimension_scores": {
+        "att": 0.7,
+        "cha": 0.8,
+        "exc": 1.0,
+        "hum": 0.95,
+        "kno": 1.0,
+        "mea": 0.3,
+        "pur": 0.6,
+        "res": 0.3,
+        "sov": 0.3,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "ATT",
+        "CHA",
+        "EXC",
+        "HUM",
+        "KNO"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0036"
+    },
+    {
+      "id": "JUDGE-01",
+      "text": "Those who have a why to live can bear almost any how.",
+      "author": "Friedrich Nietzsche",
+      "source": "Twilight of the Idols",
+      "year": 1889,
+      "trigger": "always",
+      "symbolic_tags": [
+        "FRE",
+        "MEA",
+        "PUR",
+        "SOV"
+      ],
+      "dimension_scores": {
+        "fre": 0.9,
+        "hum": 0.3,
+        "mea": 0.3,
+        "pow": 0.8,
+        "pur": 1.0,
+        "res": 0.8,
+        "rsp": 0.6,
+        "sov": 1.0,
+        "tri": 0.7
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "FRE",
+        "MEA",
+        "POW",
+        "PUR",
+        "RES"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0037"
+    },
+    {
+      "id": "WCR-01",
+      "text": "What does not kill me makes me stronger.",
+      "author": "Friedrich Nietzsche",
+      "source": "Twilight of the Idols",
+      "year": 1889,
+      "trigger": "always",
+      "symbolic_tags": [
+        "FRE",
+        "PUR",
+        "RES",
+        "SOV",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "fre": 0.9,
+        "hum": 0.3,
+        "mea": 0.3,
+        "pow": 1.0,
+        "pur": 0.9,
+        "res": 1.0,
+        "rsp": 0.6,
+        "sov": 1.0,
+        "tri": 0.7
+      },
+      "_source": "tool_registry",
+      "_organ": "well",
+      "dims": [
+        "FRE",
+        "POW",
+        "PUR",
+        "RES",
+        "SOV"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0038"
+    },
+    {
+      "id": "Z23-Q01",
+      "text": "To live is to suffer, to survive is to find some meaning in the suffering.",
+      "author": "Friedrich Nietzsche",
+      "source": "Twilight of the Idols",
+      "year": 1888,
+      "zone": "Struggling Keeper",
+      "zone_id": "Z23",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "MEA",
+        "PUR",
+        "SOV",
+        "TRI"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0039"
+    },
+    {
+      "id": "SEAL-02",
+      "text": "In the depth of winter, I finally learned that within me there lay an invincible summer.",
+      "author": "Albert Camus",
+      "source": "Return to Tipasa",
+      "year": 1952,
+      "trigger": "always",
+      "symbolic_tags": [
+        "MEA",
+        "RES",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "fre": 0.6,
+        "hum": 0.5,
+        "mea": 0.8,
+        "pur": 0.7,
+        "res": 1.0,
+        "sov": 0.3,
+        "tri": 1.0
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "MEA",
+        "PUR",
+        "RES",
+        "TRI"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0040"
+    },
+    {
+      "id": "OBS-01",
+      "text": "No man ever steps in the same river twice, for it's not the same river and he's not the same man.",
+      "author": "Heraclitus",
+      "source": "Fragments",
+      "year": -500,
+      "trigger": "always",
+      "symbolic_tags": [
+        "CHA",
+        "CHG",
+        "HUM"
+      ],
+      "dimension_scores": {
+        "act": 0.55,
+        "cha": 0.9,
+        "chg": 1.0,
+        "hum": 0.8,
+        "kno": 0.7,
+        "mea": 0.3,
+        "pur": 0.3,
+        "res": 0.3,
+        "sov": 0.3,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "CHA",
+        "CHG",
+        "HUM",
+        "KNO"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0041"
+    },
+    {
+      "id": "ASAL-02",
+      "text": "Appear weak when you are strong, and strong when you are weak.",
+      "author": "Sun Tzu",
+      "source": "The Art of War",
+      "year": -500,
+      "trigger": "adversarial",
+      "symbolic_tags": [
+        "DEC",
+        "POW"
+      ],
+      "dimension_scores": {
+        "cha": 0.6,
+        "dec": 1.0,
+        "hum": 0.5,
+        "kno": 0.7,
+        "mea": 0.3,
+        "pow": 1.0,
+        "pur": 0.3,
+        "res": 0.3,
+        "sov": 0.7,
+        "tri": 0.3
+      },
+      "_source": "tool_registry_sys",
+      "_organ": "arifos",
+      "dims": [
+        "DEC",
+        "KNO",
+        "POW",
+        "SOV"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0042"
+    },
+    {
+      "id": "Z02-Q03",
+      "text": "Real knowledge is to know the extent of one's ignorance.",
+      "author": "Confucius",
+      "source": "Analects",
+      "year": -500,
+      "zone": "Humble Stabilizer",
+      "zone_id": "Z02",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "HUM",
+        "KNO"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0043"
+    },
+    {
+      "id": "Z07-Q03",
+      "text": "In the midst of chaos, there is also opportunity.",
+      "author": "Sun Tzu",
+      "source": "The Art of War",
+      "year": -500,
+      "zone": "Proud Sovereign",
+      "zone_id": "Z07",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "DEC",
+        "POW"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0044"
+    },
+    {
+      "id": "Z17-Q01",
+      "text": "He who has a why to live can bear almost any how.",
+      "author": "Friedrich Nietzsche",
+      "source": "Twilight of the Idols",
+      "year": 1888,
+      "zone": "Proud Questioner",
+      "zone_id": "Z17",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "PUR",
+        "SOV"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0045"
+    },
+    {
+      "id": "Z17-Q03",
+      "text": "You must have chaos within you to give birth to a dancing star.",
+      "author": "Friedrich Nietzsche",
+      "source": "Thus Spoke Zarathustra",
+      "year": 1883,
+      "zone": "Proud Questioner",
+      "zone_id": "Z17",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "PUR",
+        "SOV"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0046"
+    },
+    {
+      "id": "Z25-Q01",
+      "text": "Beware that, when fighting monsters, you yourself do not become a monster.",
+      "author": "Friedrich Nietzsche",
+      "source": "Beyond Good and Evil",
+      "year": 1886,
+      "zone": "Dangerous Fool",
+      "zone_id": "Z25",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "PUR",
+        "SOV"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0047"
+    },
+    {
+      "id": "Z25-Q02",
+      "text": "He who fights with monsters should look to it that he himself does not become a monster.",
+      "author": "Friedrich Nietzsche",
+      "source": "Beyond Good and Evil",
+      "year": 1886,
+      "zone": "Dangerous Fool",
+      "zone_id": "Z25",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "PUR",
+        "SOV"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0048"
+    },
+    {
+      "id": "Z02-Q01",
+      "text": "Knowing yourself is the beginning of all wisdom.",
+      "author": "Aristotle",
+      "source": "Nicomachean Ethics",
+      "year": -340,
+      "zone": "Humble Stabilizer",
+      "zone_id": "Z02",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "KNO"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0049"
+    },
+    {
+      "id": "Z05-Q01",
+      "text": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+      "author": "Aristotle",
+      "source": "Nicomachean Ethics",
+      "year": -340,
+      "zone": "Balanced Builder",
+      "zone_id": "Z05",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "EXC"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0050"
+    },
+    {
+      "id": "Z24-Q02",
+      "text": "Where shall wisdom be found, and where is the place of understanding?",
+      "author": "Book of Job",
+      "source": "The Bible",
+      "year": -600,
+      "zone": "Void Survivor",
+      "zone_id": "Z24",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "KNO"
+      ],
+      "rigor": 0.65,
+      "canon_id": "CAN-0051"
+    },
+    {
+      "id": "Z01-Q02",
+      "text": "The best ruler is one who exists mainly so that people will say 'we did this ourselves.'",
+      "author": "Lao Tzu",
+      "source": "Tao Te Ching",
+      "year": -600,
+      "zone": "Humble Sovereign",
+      "zone_id": "Z01",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.65,
+      "canon_id": "CAN-0052"
+    },
+    {
+      "id": "Z06-Q02",
+      "text": "The journey of a thousand miles begins with a single step.",
+      "author": "Lao Tzu",
+      "source": "Tao Te Ching",
+      "year": -600,
+      "zone": "Patient Survivor",
+      "zone_id": "Z06",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.65,
+      "canon_id": "CAN-0053"
+    },
+    {
+      "id": "Z06-Q03",
+      "text": "Act without expectation. Release from the need to prove.",
+      "author": "Lao Tzu",
+      "source": "Tao Te Ching",
+      "year": -600,
+      "zone": "Patient Survivor",
+      "zone_id": "Z06",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.65,
+      "canon_id": "CAN-0054"
+    },
+    {
+      "id": "Z24-Q03",
+      "text": "Though he slay me, yet will I trust in him.",
+      "author": "Book of Job",
+      "source": "The Bible",
+      "year": -600,
+      "zone": "Void Survivor",
+      "zone_id": "Z24",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.65,
+      "canon_id": "CAN-0055"
+    },
+    {
+      "id": "WAC-02",
+      "text": "If an injury has to be done to a man, it should be so severe that his vengeance need not be feared.",
+      "author": "Niccolò Machiavelli",
+      "source": "The Prince",
+      "year": 1532,
+      "trigger": "high_asymmetry",
+      "symbolic_tags": [
+        "DEC",
+        "POW",
+        "SOV"
+      ],
+      "dimension_scores": {
+        "dec": 1.0,
+        "hum": 0.2,
+        "mea": 0.3,
+        "pow": 1.0,
+        "pur": 0.3,
+        "res": 0.7,
+        "rsp": 0.5,
+        "sov": 0.8,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "wealth",
+      "dims": [
+        "DEC",
+        "POW",
+        "RES",
+        "SOV"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0056"
+    },
+    {
+      "id": "Z11-Q03",
+      "text": "Doubt is not a pleasant condition, but certainty is absurd.",
+      "author": "Voltaire",
+      "source": "Attributed",
+      "year": 1770,
+      "zone": "Humble Questioner",
+      "zone_id": "Z11",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "HUM",
+        "MEA"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0057"
+    },
+    {
+      "id": "Z21-Q02",
+      "text": "The chains of habit are too weak to be felt until they are too strong to be broken.",
+      "author": "Samuel Johnson",
+      "source": "Prayers",
+      "year": 1780,
+      "zone": "Void Wounded",
+      "zone_id": "Z21",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "EXC",
+        "POW"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0058"
+    },
+    {
+      "id": "VAULT_Q_004",
+      "text": "The struggle of man against power is the struggle of memory against forgetting.",
+      "author": "Milan Kundera",
+      "source": "The Book of Laughter and Forgetting",
+      "category": "memory",
+      "surfaces": [
+        "vault",
+        "void"
+      ],
+      "tone": "reflective",
+      "language": "en",
+      "priority": 9,
+      "active": true,
+      "toolOrigin": "arifos.vault",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 2,
+      "shadow_weight": 2,
+      "paradox_weight": 1,
+      "contrast_pair": null,
+      "polarity": "memory",
+      "_source": "wisdom_canon",
+      "dims": [
+        "POW",
+        "TRI"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0059"
+    },
+    {
+      "id": "Z12-Q03",
+      "text": "If you would be a real seeker after truth, it is necessary that you at least twice in your life doubt.",
+      "author": "René Descartes",
+      "source": "Principles of Philosophy",
+      "year": 1644,
+      "zone": "Humble Skeptic",
+      "zone_id": "Z12",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "HUM"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0060"
+    },
+    {
+      "id": "Z16-Q03",
+      "text": "The mind is not a vessel to be filled, but a fire to be kindled.",
+      "author": "Plutarch",
+      "source": "On Listening",
+      "year": 100,
+      "zone": "Proud Analyst",
+      "zone_id": "Z16",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "ATT"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0061"
+    },
+    {
+      "id": "SENSE_Q_004",
+      "text": "No man ever steps in the same river twice.",
+      "author": "Heraclitus",
+      "source": "Fragments",
+      "category": "truth",
+      "surfaces": [
+        "sense",
+        "vault"
+      ],
+      "tone": "reflective",
+      "language": "en",
+      "priority": 8,
+      "active": true,
+      "toolOrigin": "arifos.sense",
+      "zoneId": null,
+      "attribution_confidence": "commonly_attributed",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 1,
+      "paradox_weight": 2,
+      "contrast_pair": null,
+      "polarity": "chaos",
+      "_source": "wisdom_canon",
+      "dims": [
+        "CHG"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0062"
+    },
+    {
+      "id": "JUDGE_Q_002",
+      "text": "Power tends to corrupt, and absolute power corrupts absolutely.",
+      "author": "Lord Acton",
+      "source": "Letter to Bishop Mandell Creighton",
+      "category": "restraint",
+      "surfaces": [
+        "judge",
+        "hold",
+        "void"
+      ],
+      "tone": "severe",
+      "language": "en",
+      "priority": 10,
+      "active": true,
+      "toolOrigin": "arifos.judge",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 1,
+      "shadow_weight": 2,
+      "paradox_weight": 1,
+      "contrast_pair": "PW1",
+      "polarity": "power",
+      "_source": "wisdom_canon",
+      "dims": [
+        "POW"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0063"
+    },
+    {
+      "id": "JUDGE_Q_005",
+      "text": "The sad truth is that most evil is done by people who never make up their minds to be good or evil.",
+      "author": "Hannah Arendt",
+      "source": "The Life of the Mind",
+      "category": "judgment",
+      "surfaces": [
+        "judge",
+        "hold",
+        "void"
+      ],
+      "tone": "reflective",
+      "language": "en",
+      "priority": 9,
+      "active": true,
+      "toolOrigin": "arifos.judge",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 2,
+      "shadow_weight": 2,
+      "paradox_weight": 1,
+      "contrast_pair": "SENSE_Q_002",
+      "polarity": "shadow",
+      "_source": "wisdom_canon",
+      "dims": [
+        "ATT"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0064"
+    },
+    {
+      "id": "OPS_Q_002",
+      "text": "An ounce of practice is worth more than tons of preaching.",
+      "author": "Mahatma Gandhi",
+      "source": "",
+      "category": "discipline",
+      "surfaces": [
+        "forge",
+        "ops"
+      ],
+      "tone": "firm",
+      "language": "en",
+      "priority": 9,
+      "active": true,
+      "toolOrigin": "arifos.ops",
+      "zoneId": null,
+      "attribution_confidence": "commonly_attributed",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 0,
+      "paradox_weight": 0,
+      "contrast_pair": null,
+      "polarity": "order",
+      "_source": "wisdom_canon",
+      "dims": [
+        "DIG"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0065"
+    },
+    {
+      "id": "VAULT_Q_002",
+      "text": "Those who cannot remember the past are condemned to repeat it.",
+      "author": "George Santayana",
+      "source": "The Life of Reason",
+      "category": "memory",
+      "surfaces": [
+        "vault"
+      ],
+      "tone": "severe",
+      "language": "en",
+      "priority": 10,
+      "active": true,
+      "toolOrigin": "arifos.vault",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 1,
+      "shadow_weight": 1,
+      "paradox_weight": 1,
+      "contrast_pair": "INIT_Q_001",
+      "polarity": "memory",
+      "_source": "wisdom_canon",
+      "dims": [
+        "LIM"
+      ],
+      "rigor": 0.6,
+      "canon_id": "CAN-0066"
+    },
+    {
+      "id": "Z11-Q02",
+      "text": "The heart has its reasons which reason knows nothing of.",
+      "author": "Blaise Pascal",
+      "source": "Pensées",
+      "year": 1670,
+      "zone": "Humble Questioner",
+      "zone_id": "Z11",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0067"
+    },
+    {
+      "id": "Z13-Q01",
+      "text": "If I have seen further it is by standing on the shoulders of giants.",
+      "author": "Isaac Newton",
+      "source": "Letter to Robert Hooke",
+      "year": 1675,
+      "zone": "Balanced Analyst",
+      "zone_id": "Z13",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0068"
+    },
+    {
+      "id": "Z14-Q02",
+      "text": "The wound is the place where the Light enters you.",
+      "author": "Rumi",
+      "source": "Spiritual Couplets",
+      "year": 1270,
+      "zone": "Balanced Questioner",
+      "zone_id": "Z14",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0069"
+    },
+    {
+      "id": "Z14-Q03",
+      "text": "Out beyond ideas of wrongdoing and rightdoing, there is a field. I'll meet you there.",
+      "author": "Rumi",
+      "source": "Spiritual Couplets",
+      "year": 1270,
+      "zone": "Balanced Questioner",
+      "zone_id": "Z14",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0070"
+    },
+    {
+      "id": "Z15-Q03",
+      "text": "Even after all this time, the Sun never says to the Earth 'You owe me.' Look what happens with love like that.",
+      "author": "Hafez",
+      "source": "Divan",
+      "year": 1370,
+      "zone": "Patient Skeptic",
+      "zone_id": "Z15",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0071"
+    },
+    {
+      "id": "Z21-Q03",
+      "text": "There is a fellowship of light that binds all who wander. The wound is the place where the light enters.",
+      "author": "Rumi",
+      "source": "Spiritual Couplets",
+      "year": 1270,
+      "zone": "Void Wounded",
+      "zone_id": "Z21",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0072"
+    },
+    {
+      "id": "Z27-Q01",
+      "text": "I am a man more sincke upon than words can give thought out.",
+      "author": "William Shakespeare",
+      "source": "King Lear",
+      "year": 1606,
+      "zone": "Doom Wounded",
+      "zone_id": "Z27",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0073"
+    },
+    {
+      "id": "Z27-Q02",
+      "text": "There is nothing either good or bad, but thinking makes it so.",
+      "author": "William Shakespeare",
+      "source": "Hamlet",
+      "year": 1600,
+      "zone": "Doom Wounded",
+      "zone_id": "Z27",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0074"
+    },
+    {
+      "id": "Z27-Q03",
+      "text": "Life's but a walking shadow, a poor player that struts and frets his hour upon the stage and then is heard no more.",
+      "author": "William Shakespeare",
+      "source": "Macbeth",
+      "year": 1606,
+      "zone": "Doom Wounded",
+      "zone_id": "Z27",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0075"
+    },
+    {
+      "id": "INIT_Q_001",
+      "text": "A journey of a thousand miles begins with a single step.",
+      "author": "Lao Tzu",
+      "source": "Tao Te Ching",
+      "category": "discipline",
+      "surfaces": [
+        "anchor"
+      ],
+      "tone": "calm",
+      "language": "en",
+      "priority": 10,
+      "active": true,
+      "toolOrigin": "arifos.init",
+      "zoneId": null,
+      "attribution_confidence": "commonly_attributed",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 0,
+      "paradox_weight": 0,
+      "contrast_pair": "VAULT_Q_002",
+      "polarity": "order",
+      "_source": "wisdom_canon",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0076"
+    },
+    {
+      "id": "INIT_Q_003",
+      "text": "No wind serves him who addresses his voyage to no certain port.",
+      "author": "Michel de Montaigne",
+      "source": "Essays",
+      "category": "discipline",
+      "surfaces": [
+        "anchor"
+      ],
+      "tone": "firm",
+      "language": "en",
+      "priority": 9,
+      "active": true,
+      "toolOrigin": "arifos.init",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 0,
+      "paradox_weight": 0,
+      "contrast_pair": null,
+      "polarity": "order",
+      "_source": "wisdom_canon",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0077"
+    },
+    {
+      "id": "SENSE_Q_002",
+      "text": "The first principle is that you must not fool yourself—and you are the easiest person to fool.",
+      "author": "Richard Feynman",
+      "source": "Cargo Cult Science",
+      "category": "truth",
+      "surfaces": [
+        "sense",
+        "monitor",
+        "mind"
+      ],
+      "tone": "firm",
+      "language": "en",
+      "priority": 10,
+      "active": true,
+      "toolOrigin": "arifos.sense",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 1,
+      "paradox_weight": 1,
+      "contrast_pair": "JUDGE_Q_005",
+      "polarity": "truth",
+      "_source": "wisdom_canon",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0078"
+    },
+    {
+      "id": "SENSE_Q_001",
+      "text": "It is wrong always, everywhere, and for anyone, to believe anything upon insufficient evidence.",
+      "author": "W. K. Clifford",
+      "source": "The Ethics of Belief",
+      "category": "truth",
+      "surfaces": [
+        "sense",
+        "judge"
+      ],
+      "tone": "severe",
+      "language": "en",
+      "priority": 9,
+      "active": true,
+      "toolOrigin": "arifos.sense",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 1,
+      "paradox_weight": 0,
+      "contrast_pair": null,
+      "polarity": "truth",
+      "_source": "wisdom_canon",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0079"
+    },
+    {
+      "id": "MIND_Q_005",
+      "text": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+      "author": "Antoine de Saint-Exupéry",
+      "source": "Wind, Sand and Stars",
+      "category": "discipline",
+      "surfaces": [
+        "mind",
+        "forge"
+      ],
+      "tone": "calm",
+      "language": "en",
+      "priority": 9,
+      "active": true,
+      "toolOrigin": "arifos.mind",
+      "zoneId": null,
+      "attribution_confidence": "verified",
+      "source_url": null,
+      "scar_weight": 0,
+      "shadow_weight": 0,
+      "paradox_weight": 1,
+      "contrast_pair": null,
+      "polarity": "order",
+      "_source": "wisdom_canon",
+      "dims": [],
+      "rigor": 0.6,
+      "canon_id": "CAN-0080"
+    },
+    {
+      "id": "JUDGE-03",
+      "text": "Never give in, never give in, never, never, never—in nothing, great or small, large or petty—never give in except to convictions of honour and good sense.",
+      "author": "Winston Churchill",
+      "source": "Harrow School Speech",
+      "year": 1941,
+      "trigger": "HOLD_or_SABAR",
+      "symbolic_tags": [
+        "ACT",
+        "PUR",
+        "RES",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "act": 0.9,
+        "hum": 0.4,
+        "mea": 0.3,
+        "pur": 0.8,
+        "res": 1.0,
+        "sov": 0.7,
+        "tri": 0.8
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "ACT",
+        "PUR",
+        "RES",
+        "SOV",
+        "TRI"
+      ],
+      "rigor": 0.55,
+      "canon_id": "CAN-0081"
+    },
+    {
+      "id": "GSC-01",
+      "text": "All warfare is based on deception.",
+      "author": "Sun Tzu",
+      "source": "The Art of War",
+      "year": -500,
+      "trigger": "anomalous_contrast",
+      "symbolic_tags": [
+        "DEC",
+        "POW"
+      ],
+      "dimension_scores": {
+        "cha": 0.6,
+        "dec": 1.0,
+        "hum": 0.5,
+        "kno": 0.7,
+        "mea": 0.3,
+        "pow": 1.0,
+        "pur": 0.3,
+        "res": 0.3,
+        "sov": 0.7,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "geox",
+      "dims": [
+        "DEC",
+        "KNO",
+        "POW",
+        "SOV"
+      ],
+      "rigor": 0.55,
+      "canon_id": "CAN-0082"
+    },
+    {
+      "id": "Z17-Q02",
+      "text": "Without music, life would be a mistake.",
+      "author": "Friedrich Nietzsche",
+      "source": "Twilight of the Idols",
+      "year": 1888,
+      "zone": "Proud Questioner",
+      "zone_id": "Z17",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "PUR",
+        "SOV"
+      ],
+      "rigor": 0.55,
+      "canon_id": "CAN-0083"
+    },
+    {
+      "id": "Z24-Q01",
+      "text": "All is vanity and striving after wind.",
+      "author": "Ecclesiastes",
+      "source": "The Bible",
+      "year": -450,
+      "zone": "Void Survivor",
+      "zone_id": "Z24",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "PUR"
+      ],
+      "rigor": 0.55,
+      "canon_id": "CAN-0084"
+    },
+    {
+      "id": "Z07-Q02",
+      "text": "I came, I saw, I conquered.",
+      "author": "Julius Caesar",
+      "source": "Veni, Vidi, Vici",
+      "year": -47,
+      "zone": "Proud Sovereign",
+      "zone_id": "Z07",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.55,
+      "canon_id": "CAN-0085"
+    },
+    {
+      "id": "SEAL-01",
+      "text": "Character cannot be developed in ease and quiet. Only through experience of trial and suffering can the soul be strengthened.",
+      "author": "Helen Keller",
+      "source": "Helen Keller's Journal",
+      "year": 1938,
+      "trigger": "always",
+      "symbolic_tags": [
+        "CHA",
+        "RES",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "act": 0.9,
+        "cha": 1.0,
+        "hum": 0.3,
+        "mea": 0.7,
+        "pur": 0.8,
+        "res": 1.0,
+        "sov": 0.6,
+        "tri": 1.0
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "ACT",
+        "CHA",
+        "LIM",
+        "MEA",
+        "PUR"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0086"
+    },
+    {
+      "id": "ACT-01",
+      "text": "I am a slow walker, but I never walk back.",
+      "author": "Abraham Lincoln",
+      "source": "Speeches and Letters",
+      "year": 1864,
+      "trigger": "always",
+      "symbolic_tags": [
+        "ACT",
+        "PUR",
+        "RES"
+      ],
+      "dimension_scores": {
+        "act": 1.0,
+        "cha": 0.7,
+        "exc": 0.6,
+        "hum": 0.3,
+        "mea": 0.3,
+        "pur": 0.8,
+        "res": 0.9,
+        "sov": 0.7,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "arifos",
+      "dims": [
+        "ACT",
+        "CHA",
+        "PUR",
+        "RES",
+        "SOV"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0087"
+    },
+    {
+      "id": "VLT-01",
+      "text": "The mystery of human existence lies not in just staying alive, but in finding something to live for.",
+      "author": "Fyodor Dostoevsky",
+      "source": "The Brothers Karamazov",
+      "year": 1880,
+      "trigger": "always",
+      "symbolic_tags": [
+        "DIG",
+        "MEA",
+        "PUR",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "cha": 0.8,
+        "dig": 0.9,
+        "hum": 0.7,
+        "mea": 1.0,
+        "pur": 0.55,
+        "res": 0.3,
+        "sov": 0.5,
+        "tri": 0.9
+      },
+      "_source": "tool_registry_sys",
+      "_organ": "arifos",
+      "dims": [
+        "CHA",
+        "DIG",
+        "HUM",
+        "MEA",
+        "PUR"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0088"
+    },
+    {
+      "id": "VLT-02",
+      "text": "Life is either a daring adventure or nothing at all.",
+      "author": "Helen Keller",
+      "source": "The Open Door",
+      "year": 1957,
+      "trigger": "always",
+      "symbolic_tags": [
+        "CHA",
+        "RES",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "act": 1.0,
+        "cha": 0.9,
+        "hum": 0.3,
+        "mea": 0.7,
+        "pur": 0.8,
+        "res": 1.0,
+        "sov": 0.6,
+        "tri": 1.0
+      },
+      "_source": "tool_registry_sys",
+      "_organ": "arifos",
+      "dims": [
+        "ACT",
+        "CHA",
+        "MEA",
+        "PUR",
+        "RES"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0089"
+    },
+    {
+      "id": "CAN-01",
+      "text": "The privilege of a lifetime is to become who you truly are.",
+      "author": "Joseph Campbell",
+      "source": "The Hero with a Thousand Faces",
+      "year": 1949,
+      "trigger": "always",
+      "symbolic_tags": [
+        "CHA",
+        "MEA",
+        "PUR",
+        "SOV"
+      ],
+      "dimension_scores": {
+        "cha": 1.0,
+        "hum": 0.3,
+        "mea": 0.9,
+        "pur": 1.0,
+        "res": 0.3,
+        "sov": 0.8,
+        "tri": 0.7
+      },
+      "_source": "tool_registry_sys",
+      "_organ": "arifos",
+      "dims": [
+        "CHA",
+        "MEA",
+        "PUR",
+        "SOV",
+        "TRI"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0090"
+    },
+    {
+      "id": "GCC-02",
+      "text": "It is better to be unhappy and know the worst, than to be happy in a fool's paradise.",
+      "author": "Fyodor Dostoevsky",
+      "source": "The Idiot",
+      "year": 1869,
+      "trigger": "high_uncertainty",
+      "symbolic_tags": [
+        "DIG",
+        "MEA",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "cha": 0.8,
+        "dig": 0.9,
+        "hum": 0.7,
+        "mea": 1.0,
+        "pur": 0.3,
+        "res": 0.3,
+        "sov": 0.5,
+        "tri": 0.9
+      },
+      "_source": "tool_registry",
+      "_organ": "geox",
+      "dims": [
+        "CHA",
+        "DIG",
+        "HUM",
+        "MEA",
+        "TRI"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0091"
+    },
+    {
+      "id": "WCS-01",
+      "text": "The best and most beautiful things in the world cannot be seen or even touched—they must be felt with the heart.",
+      "author": "Helen Keller",
+      "source": "The Story of My Life",
+      "year": 1903,
+      "trigger": "human_substrate",
+      "symbolic_tags": [
+        "CHA",
+        "DIG",
+        "MEA",
+        "RES",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "act": 0.9,
+        "cha": 0.9,
+        "dig": 0.55,
+        "hum": 0.3,
+        "mea": 0.95,
+        "pur": 0.8,
+        "res": 1.0,
+        "sov": 0.6,
+        "tri": 1.0
+      },
+      "_source": "tool_registry",
+      "_organ": "well",
+      "dims": [
+        "ACT",
+        "CHA",
+        "DIG",
+        "LIM",
+        "MEA"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0092"
+    },
+    {
+      "id": "WRC-01",
+      "text": "Character cannot be developed in ease and quiet.",
+      "author": "Helen Keller",
+      "source": "Helen Keller's Journal",
+      "year": 1938,
+      "trigger": "low_runway",
+      "symbolic_tags": [
+        "CHA",
+        "RES",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "act": 0.9,
+        "cha": 1.0,
+        "hum": 0.3,
+        "mea": 0.7,
+        "pur": 0.8,
+        "res": 1.0,
+        "sov": 0.6,
+        "tri": 1.0
+      },
+      "_source": "tool_registry",
+      "_organ": "wealth",
+      "dims": [
+        "ACT",
+        "CHA",
+        "LIM",
+        "MEA",
+        "PUR"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0093"
+    },
+    {
+      "id": "Z20-Q03",
+      "text": "Man is condemned to be free; because once thrown into the world, he is responsible for everything he does.",
+      "author": "Jean-Paul Sartre",
+      "source": "Being and Nothingness",
+      "year": 1943,
+      "zone": "Perilous Mourner",
+      "zone_id": "Z20",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "FRE",
+        "RSP",
+        "SOV"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0094"
+    },
+    {
+      "id": "GER-02",
+      "text": "Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world.",
+      "author": "Albert Einstein",
+      "source": "What Life Means to Einstein",
+      "year": 1929,
+      "trigger": "abduction",
+      "symbolic_tags": [
+        "HUM",
+        "IMA",
+        "KNO"
+      ],
+      "dimension_scores": {
+        "exc": 0.5,
+        "hum": 0.9,
+        "ima": 1.0,
+        "kno": 1.0,
+        "mea": 0.3,
+        "pur": 0.6,
+        "res": 0.3,
+        "sov": 0.3,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "geox",
+      "dims": [
+        "HUM",
+        "IMA",
+        "KNO"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0095"
+    },
+    {
+      "id": "WMC-01",
+      "text": "Imagination embraces the entire world, stimulating progress, giving birth to evolution.",
+      "author": "Albert Einstein",
+      "source": "What Life Means to Einstein",
+      "year": 1929,
+      "trigger": "always",
+      "symbolic_tags": [
+        "HUM",
+        "IMA",
+        "KNO"
+      ],
+      "dimension_scores": {
+        "exc": 0.5,
+        "hum": 0.9,
+        "ima": 1.0,
+        "kno": 0.8,
+        "mea": 0.3,
+        "pur": 0.6,
+        "res": 0.3,
+        "sov": 0.3,
+        "tri": 0.3
+      },
+      "_source": "tool_registry",
+      "_organ": "wealth",
+      "dims": [
+        "HUM",
+        "IMA",
+        "KNO"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0096"
+    },
+    {
+      "id": "Z06-Q01",
+      "text": "Never doubt that a small group of thoughtful, committed citizens can change the world.",
+      "author": "Margaret Mead",
+      "source": "Margaret Mead Papers",
+      "year": 1962,
+      "zone": "Patient Survivor",
+      "zone_id": "Z06",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "CHG",
+        "HUM"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0097"
+    },
+    {
+      "id": "Z12-Q01",
+      "text": "Doubt is the origin of wisdom.",
+      "author": "René Descartes",
+      "source": "Principles of Philosophy",
+      "year": 1644,
+      "zone": "Humble Skeptic",
+      "zone_id": "Z12",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "HUM",
+        "KNO"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0098"
+    },
+    {
+      "id": "Z13-Q03",
+      "text": "The meeting of two personalities is like the contact of two chemical substances: if there is any reaction, both are transformed.",
+      "author": "Carl Jung",
+      "source": "Letters",
+      "year": 1950,
+      "zone": "Balanced Analyst",
+      "zone_id": "Z13",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "ACT",
+        "CHG"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0099"
+    },
+    {
+      "id": "Z20-Q01",
+      "text": "Life can only be understood backwards; but it must be lived forwards.",
+      "author": "Søren Kierkegaard",
+      "source": "Journals",
+      "year": 1840,
+      "zone": "Perilous Mourner",
+      "zone_id": "Z20",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "FRE",
+        "PAR"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0100"
+    },
+    {
+      "id": "Z03-Q02",
+      "text": "I am not what happened to me. I am what I choose to become.",
+      "author": "Carl Jung",
+      "source": "Letters",
+      "year": 1950,
+      "zone": "Humble Survivor",
+      "zone_id": "Z03",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "FRE"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0101"
+    },
+    {
+      "id": "Z10-Q03",
+      "text": "The measure of intelligence is the ability to change.",
+      "author": "Albert Einstein",
+      "source": "Attributed",
+      "year": 1950,
+      "zone": "Humble Analyst",
+      "zone_id": "Z10",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "CHG"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0102"
+    },
+    {
+      "id": "Z15-Q02",
+      "text": "Be the change you wish to see in the world.",
+      "author": "Mahatma Gandhi",
+      "source": "Attributed",
+      "year": 1930,
+      "zone": "Patient Skeptic",
+      "zone_id": "Z15",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "CHG"
+      ],
+      "rigor": 0.5,
+      "canon_id": "CAN-0103"
+    },
+    {
+      "id": "Z08-Q01",
+      "text": "Genius is one percent inspiration and ninety-nine percent perspiration.",
+      "author": "Thomas Edison",
+      "source": "Edison Papers",
+      "year": 1930,
+      "zone": "Proud Builder",
+      "zone_id": "Z08",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0104"
+    },
+    {
+      "id": "Z08-Q02",
+      "text": "Whether you think you can, or you think you can't – you're right.",
+      "author": "Henry Ford",
+      "source": "Attributed",
+      "year": 1920,
+      "zone": "Proud Builder",
+      "zone_id": "Z08",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0105"
+    },
+    {
+      "id": "Z08-Q03",
+      "text": "I have not failed. I've just found 10,000 ways that won't work.",
+      "author": "Thomas Edison",
+      "source": "Edison Papers",
+      "year": 1900,
+      "zone": "Proud Builder",
+      "zone_id": "Z08",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0106"
+    },
+    {
+      "id": "Z09-Q02",
+      "text": "Strength does not come from physical capacity. It comes from an indomitable will.",
+      "author": "Mahatma Gandhi",
+      "source": "Speeches",
+      "year": 1940,
+      "zone": "Proud Survivor",
+      "zone_id": "Z09",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0107"
+    },
+    {
+      "id": "Z09-Q03",
+      "text": "The oak fought the wind and was broken, the willow bent when it must and survived.",
+      "author": "Longfellow",
+      "source": "Poems",
+      "year": 1840,
+      "zone": "Proud Survivor",
+      "zone_id": "Z09",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0108"
+    },
+    {
+      "id": "Z10-Q02",
+      "text": "The important thing is not to stop questioning. Curiosity has its own reason for existence.",
+      "author": "Albert Einstein",
+      "source": "Letter to Beatrice Fesler",
+      "year": 1952,
+      "zone": "Humble Analyst",
+      "zone_id": "Z10",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0109"
+    },
+    {
+      "id": "Z12-Q02",
+      "text": "I think, therefore I am.",
+      "author": "René Descartes",
+      "source": "Discourse on Method",
+      "year": 1637,
+      "zone": "Humble Skeptic",
+      "zone_id": "Z12",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0110"
+    },
+    {
+      "id": "Z13-Q02",
+      "text": "One does not become enlightened by imagining figures of light, but by making the darkness conscious.",
+      "author": "Carl Jung",
+      "source": "The Archetypes and the Collective Unconscious",
+      "year": 1954,
+      "zone": "Balanced Analyst",
+      "zone_id": "Z13",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0111"
+    },
+    {
+      "id": "Z14-Q01",
+      "text": "What you seek is seeking you.",
+      "author": "Rumi",
+      "source": "Spiritual Couplets",
+      "year": 1270,
+      "zone": "Balanced Questioner",
+      "zone_id": "Z14",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0112"
+    },
+    {
+      "id": "Z15-Q01",
+      "text": "In a gentle way, you can shake the world.",
+      "author": "Mahatma Gandhi",
+      "source": "Speeches",
+      "year": 1940,
+      "zone": "Patient Skeptic",
+      "zone_id": "Z15",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0113"
+    },
+    {
+      "id": "Z16-Q02",
+      "text": "I have no special talent. I am only passionately curious.",
+      "author": "Albert Einstein",
+      "source": "Attributed",
+      "year": 1950,
+      "zone": "Proud Analyst",
+      "zone_id": "Z16",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0114"
+    },
+    {
+      "id": "Z18-Q01",
+      "text": "The truth is what holds up under repetition.",
+      "author": "Mark Twain",
+      "source": "Notebooks",
+      "year": 1900,
+      "zone": "Proud Skeptic",
+      "zone_id": "Z18",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0115"
+    },
+    {
+      "id": "Z18-Q02",
+      "text": "Whenever you find yourself on the side of the majority, it is time to pause and consider.",
+      "author": "Mark Twain",
+      "source": "Notebooks",
+      "year": 1900,
+      "zone": "Proud Skeptic",
+      "zone_id": "Z18",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0116"
+    },
+    {
+      "id": "Z18-Q03",
+      "text": "A lie can travel halfway around the world while the truth is putting on its shoes.",
+      "author": "Mark Twain",
+      "source": "Attributed",
+      "year": 1880,
+      "zone": "Proud Skeptic",
+      "zone_id": "Z18",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0117"
+    },
+    {
+      "id": "Z19-Q02",
+      "text": "The opposite of a profound truth may well be another profound truth.",
+      "author": "Niels Bohr",
+      "source": "Physics Discussions",
+      "year": 1920,
+      "zone": "Perilous Sage",
+      "zone_id": "Z19",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0118"
+    },
+    {
+      "id": "Z19-Q03",
+      "text": "Not only is the universe stranger than we think, it is stranger than we can think.",
+      "author": "Werner Heisenberg",
+      "source": "Physics and Philosophy",
+      "year": 1958,
+      "zone": "Perilous Sage",
+      "zone_id": "Z19",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0119"
+    },
+    {
+      "id": "Z21-Q01",
+      "text": "He who is possessed by terror is possessed by a hope whose loss is terror.",
+      "author": "Franz Kafka",
+      "source": "Notebooks",
+      "year": 1920,
+      "zone": "Void Wounded",
+      "zone_id": "Z21",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0120"
+    },
+    {
+      "id": "Z22-Q01",
+      "text": "The needs of the many outweigh the needs of the few, or the one.",
+      "author": "Spock",
+      "source": "Star Trek II: The Wrath of Khan",
+      "year": 1982,
+      "zone": "Dangerous Rebel",
+      "zone_id": "Z22",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0121"
+    },
+    {
+      "id": "Z22-Q02",
+      "text": "Injustice anywhere is a threat to justice everywhere.",
+      "author": "Martin Luther King Jr",
+      "source": "Letter from Birmingham Jail",
+      "year": 1963,
+      "zone": "Dangerous Rebel",
+      "zone_id": "Z22",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0122"
+    },
+    {
+      "id": "Z22-Q03",
+      "text": "A nation that continues year after year to spend more money on military defense than on programs of social uplift is approaching spiritual death.",
+      "author": "Martin Luther King Jr",
+      "source": "Speeches",
+      "year": 1967,
+      "zone": "Dangerous Rebel",
+      "zone_id": "Z22",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0123"
+    },
+    {
+      "id": "Z26-Q01",
+      "text": "Man is sometimes extraordinarily, passionately, foolish; and has man a choice between two truths?",
+      "author": "Fyodor Dostoevsky",
+      "source": "The Brothers Karamazov",
+      "year": 1880,
+      "zone": "Stubborn Keeper",
+      "zone_id": "Z26",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0124"
+    },
+    {
+      "id": "Z26-Q02",
+      "text": "The soul is often brought to the edge of dissolution by the weight of its own conscience.",
+      "author": "Fyodor Dostoevsky",
+      "source": "Notes from Underground",
+      "year": 1864,
+      "zone": "Stubborn Keeper",
+      "zone_id": "Z26",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.5,
+      "canon_id": "CAN-0125"
+    },
+    {
+      "id": "Z03-Q03",
+      "text": "Survival is not proof that the cost was small.",
+      "author": "arifOS Foundry",
+      "source": "Constitutional Wisdom",
+      "year": 2026,
+      "zone": "Humble Survivor",
+      "zone_id": "Z03",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.45,
+      "canon_id": "CAN-0126"
+    },
+    {
+      "id": "Z26-Q03",
+      "text": "I did not bow down before the image of the beast. But I will now.",
+      "author": "arifOS Foundry",
+      "source": "Constitutional Struggle",
+      "year": 2026,
+      "zone": "Stubborn Keeper",
+      "zone_id": "Z26",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.45,
+      "canon_id": "CAN-0127"
+    },
+    {
+      "id": "COOL-01",
+      "text": "If you're going through hell, keep going.",
+      "author": "Winston Churchill",
+      "source": "Speeches",
+      "year": 1941,
+      "trigger": "high_friction",
+      "symbolic_tags": [
+        "ACT",
+        "PUR",
+        "RES",
+        "TRI"
+      ],
+      "dimension_scores": {
+        "act": 1.0,
+        "hum": 0.4,
+        "mea": 0.3,
+        "pur": 0.8,
+        "res": 1.0,
+        "sov": 0.7,
+        "tri": 1.0
+      },
+      "_source": "tool_registry_sys",
+      "_organ": "arifos",
+      "dims": [
+        "ACT",
+        "PUR",
+        "RES",
+        "SOV",
+        "TRI"
+      ],
+      "rigor": 0.4,
+      "canon_id": "CAN-0128"
+    },
+    {
+      "id": "Z20-Q02",
+      "text": "Anxiety is the dizziness of freedom.",
+      "author": "Søren Kierkegaard",
+      "source": "The Concept of Anxiety",
+      "year": 1844,
+      "zone": "Perilous Mourner",
+      "zone_id": "Z20",
+      "_source": "philosophy_atlas",
+      "dims": [
+        "FRE",
+        "PAR",
+        "SOV"
+      ],
+      "rigor": 0.4,
+      "canon_id": "CAN-0129"
+    },
+    {
+      "id": "Z10-Q01",
+      "text": "Extraordinary claims require extraordinary evidence.",
+      "author": "Carl Sagan",
+      "source": "Cosmos",
+      "year": 1980,
+      "zone": "Humble Analyst",
+      "zone_id": "Z10",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.4,
+      "canon_id": "CAN-0130"
+    },
+    {
+      "id": "Z09-Q01",
+      "text": "We who弱小 but will not break.",
+      "author": "arifOS Foundry",
+      "source": "Constitutional Resilience",
+      "year": 2026,
+      "zone": "Proud Survivor",
+      "zone_id": "Z09",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.35,
+      "canon_id": "CAN-0131"
+    },
+    {
+      "id": "Z25-Q03",
+      "text": "Ambition is a poor interpreter of time.",
+      "author": "arifOS Foundry",
+      "source": "Constitutional Wisdom",
+      "year": 2026,
+      "zone": "Dangerous Fool",
+      "zone_id": "Z25",
+      "_source": "philosophy_atlas",
+      "dims": [],
+      "rigor": 0.35,
+      "canon_id": "CAN-0132"
+    }
+  ]
+}

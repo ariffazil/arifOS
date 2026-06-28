@@ -64,6 +64,25 @@ def _load_intent_map() -> dict[str, Any]:
     # Fallback: hardcoded map
     _intent_map_cache = {
         "organ_routes": {
+            "arifos": {
+                "organ": "arifOS",
+                "port": 8088,
+                "intent_keywords": [
+                    "life roadmap",
+                    "career decision",
+                    "personal decision",
+                    "what should i do",
+                    "life direction",
+                    "should i leave",
+                    "should i stay",
+                    "human sovereign",
+                    "sovereign decision",
+                    "life choice",
+                    "exit strategy",
+                    "what do i want",
+                    "my future",
+                ],
+            },
             "geox": {
                 "organ": "GEOX",
                 "port": 8081,
