@@ -608,7 +608,46 @@ try:
     #   arif_canary(mode="conformance_report") — was arif_conformance_report
     pass  # legacy probe blocks deleted; arif_canary below is canonical
 
-    # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
+    # ── Conformance Report Standalone (9-Tool Audit Fix 1 — 2026-06-29) ────
+    # Always callable. Read-only. Zero-ceremony. The proof machine.
+    # Previously gated behind arif_canary(mode="conformance_report") which
+    # required ARIFOS_MCP_EXPOSE_DEV_TOOLS=true. Now standalone and always on.
+    # Uses a wrapper without **kwargs because FastMCP 3 rejects **kwargs in tool sigs.
+    from arifosmcp.runtime.tools import _runtime_conformance_report
+
+    def _conformance_handler(
+        payload: Any = None,
+        _envelope: dict[str, Any] | None = None,
+        client_capabilities: dict[str, Any] | None = None,
+        actor_id: str | None = None,
+        session_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Standalone conformance report — FastMCP 3 compatible (no **kwargs)."""
+        return _runtime_conformance_report(
+            payload=payload, _envelope=_envelope, client_capabilities=client_capabilities
+        )
+
+    mcp.tool(
+        name="arif_conformance_report",
+        description=(
+            "Full conformance spine proof machine. Runs 9 live checks against the "
+            "running arifOS kernel: arifos_alive, mcp_initialize, protocol_version, "
+            "schema_echo_stable, session_starts, authority_checked, hold_blocks_mutation, "
+            "vault_replay, cooling_ledger. Returns structured PASS/FAIL report with "
+            "evidence per check. No session required. Read-only. Zero side effects. "
+            "Use when: you need to prove arifOS is a substrate, not just a narrative."
+        ),
+        tags={"conformance", "diagnostic", "read-only", "proof"},
+        annotations={
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "openWorldHint": True,
+            "idempotentHint": True,
+        },
+    )(_conformance_handler)
+    logger.info("Conformance report standalone registered — always callable.")
+
+# ── Canary Multimode (replaces 6 individual canaries) ────────────────────
     # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
     if _EXPOSE_DEV_TOOLS:
