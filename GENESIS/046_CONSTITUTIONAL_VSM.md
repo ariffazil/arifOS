@@ -29,7 +29,7 @@ This is not metaphor. This is structural mapping with cryptographic proof.
 | **S5 — Identity** | "Who is this system?" | F13 SOVEREIGN + 888 JUDGE | Cryptographic identity anchor, sovereign veto, SEAL authority |
 | **S4 — Intelligence** | Horizon scanning, future modeling | arifROUTE + arifOBSERVE + AAA Cockpit | Situational awareness, signal mesh, federation topology |
 | **S3 — Control** | Audit, regulation, resource allocation | arifJUDGE + SEAL pipeline | Verdict engine (SEAL/HOLD/VOID), metabolic brakes, cooling ledger |
-| **S2 — Coordination** | Synchronization, coherence, conflict resolution | A2A mesh + forge coordination | Organ harmonization, contract enforcement, drift detection |
+| **S2 — Coordination** | Synchronization, coherence, conflict resolution | Current: A2A mesh + organ heartbeat bus; Target: verified forge coordination | Live liveness attestations now; full coordination enforcement specified in GENESIS/047 |
 | **S1 — Operations** | Execution, doing the work | A-FORGE + GEOX/WEALTH/WELL | Governed execution, domain organs, capability leases |
 | **Algedonic** | Pain/pleasure signals | WELL vitality + entropy monitoring | Biological readiness, Ψ vitality index, ΔS tracking |
 | **POSIWID** | "Purpose is what it does" | F2 TRUTH + VAULT999 | "Purpose of arifOS is what it SEALS" — ledger behavior, not declared intent |
@@ -161,7 +161,8 @@ This is mathematically hard. Ashby's Law of Requisite Variety says the controlle
 
 ### 5.2 How This Manifests in arifOS
 
-arifOS S2 = A2A mesh + forge coordination + organ harmonization.
+arifOS S2 today = A2A mesh + organ heartbeat bus + partial forge awareness.
+arifOS S2 target = verified forge coordination + drift events + coordination attestation.
 
 Current weaknesses:
 | Gap | Symptom | Severity |
@@ -182,6 +183,7 @@ The S2 gap is not a constitutional defect — it is a **maturation surface**. Th
 4. **Escalates** unresolved conflicts to arifJUDGE with full evidence package
 
 This is Phase 3 work — not architecture redesign, but protocol formalization.
+GENESIS/047 is the canonical protocol target for this phase; it should not be read as already-live enforcement unless the transport subjects, attestation flow, and forge gate checks are present in code.
 
 ---
 
