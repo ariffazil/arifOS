@@ -141,6 +141,10 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_triage",
     "arif_vault_seal",
     "arif_resolve_tool",
+    # ── Eureka Margin Discovery Substrate (Phase 2, 2026-06-29) ──
+    "arif_discover_margins",
+    "arif_bridge_mcp_server",
+    "arif_synthesize_canon",
 )
 
 # EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).

@@ -29,13 +29,13 @@
 
 | Endpoint | URL |
 |----------|-----|
-| Health | `https://arifos.arif-fazil.com/health` |
-| MCP | `https://arifos.arif-fazil.com/mcp` |
-| Tools | `https://arifos.arif-fazil.com/tools` |
+| Health | `https://mcp.arif-fazil.com/health` |
+| MCP | `https://mcp.arif-fazil.com/mcp` |
+| Tools | `https://mcp.arif-fazil.com/tools` |
 
 ## Required Health Check
 ```bash
-curl https://arifos.arif-fazil.com/health
+curl https://mcp.arif-fazil.com/health
 # Expected: {"status":"healthy","version":"kanon-..."}
 ```
 

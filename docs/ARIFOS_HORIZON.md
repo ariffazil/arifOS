@@ -146,7 +146,7 @@ When `floors_active ≠ None` AND `VAULT999` wired to MCP layer → issue **v202
 | `https://arifos.arif-fazil.com` | Documentation portal | ✅ LIVE |
 | `https://geox.arif-fazil.com` | GEOX spatial intelligence portal | ✅ LIVE |
 | `https://arif-fazil.com` | Main federation portal (SOUL/MIND/BODY) | ✅ LIVE |
-| `https://arifosmcp.arif-fazil.com/*` | Legacy (pre-Trinity) — 301 redirect | ↩ REDIRECT |
+| Legacy pre-Trinity domain | Decommissioned; traffic redirected to `mcp.arif-fazil.com` (MCP/tools/health) or `arifos.arif-fazil.com` (portal) | ↩ REDIRECT |
 
 **Quick connect (MCP clients — Claude, Cursor, etc.):**
 ```json

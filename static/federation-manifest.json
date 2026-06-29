@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-06-29T15:51:37Z",
+  "generated": "2026-06-29T16:00:18Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.05.05-SSCT (7c163c8). 134 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-06-29T15:51:37Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=9, total_declared=58.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.05.05-SSCT (aeeda70). 134 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-06-29T16:00:18Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=9, total_declared=58.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -62,8 +62,8 @@
         "status": "healthy",
         "tools": 58,
         "release": "v2026.05.05-SSCT",
-        "version": "kanon-7c163c8",
-        "commit": "7c163c8",
+        "version": "kanon-aeeda70",
+        "commit": "aeeda70",
         "canonical_tools": 17,
         "diagnostic_tools": 41,
         "tools_exposed_mcp": 9,
