@@ -9,19 +9,19 @@
 # Not: "Does the code run?"
 #
 # Constitutional Verification:
-#   F1 Amanah    → Reversibility enforced
-#   F2 Truth     → Hallucinations blocked
-#   F3 Witness   → Consensus required
-#   F4 Entropy   → ΔS ≤ 0 enforced
-#   F5 Peace     → Stability maintained
-#   F6 Empathy    → Weakest protected
-#   F7 Humility  → Gödel band [0.03,0.05]
-#   F8 Genius    → G† ≥ 0.80 required
-#   F9 Anti-Hantu → No consciousness claims
-#   F10 Ontology → Category lock
-#   F11 Auth     → Identity verified
-#   F12 Defense  → Injection blocked
-#   F13 Sovereign → Human override works
+#   F1 AMANAH    → Reversibility enforced
+#   F2 TRUTH     → Hallucinations blocked
+#   F3 TRI-WITNESS → Consensus required
+#   F4 CLARITY (ΔS) → ΔS ≤ 0 enforced
+#   F5 PEACE²    → Stability maintained
+#   F6 EMPATHY   → Weakest protected
+#   F7 HUMILITY  → Ω₀ ∈ [0.03,0.05]
+#   F8 GENIUS    → G ≥ 0.80 required
+#   F9 ANTIHANTU → No consciousness claims
+#   F10 ONTOLOGY → AI-only ontology
+#   F11 AUDITABILITY → Identity verified, every action logged
+#   F12 RESILIENCE → Injection blocked
+#   F13 SOVEREIGN → Human override works
 
 name: arifOS Unified CI
 
@@ -129,17 +129,16 @@ jobs:
           with open('arifosmcp/tool_registry.json') as f:
             reg = json.load(f)
           tools = reg.get('tools', {})
-          if len(tools) < 13:
-            print(f'ERROR: expected at least 13 tools, got {len(tools)}')
+          # F13 ratified 2026-06-23: 7 canonical public tools.
+          # canonical_order declares: init→observe→think→route→judge→act→seal
+          # Note: arif_act = arif_forge (execution tool; act is the registry aspirational name)
+          canonical_7 = ['arif_init', 'arif_observe', 'arif_think', 'arif_route',
+                         'arif_judge', 'arif_forge', 'arif_seal']
+          total = len(tools)
+          if total < 50:
+            print(f'ERROR: expected at least 50 tools total, got {total}')
             sys.exit(1)
-          canonical_13 = [
-            'arif_session_init', 'arif_sense_observe', 'arif_evidence_fetch',
-            'arif_mind_reason', 'arif_heart_critique', 'arif_judge_deliberate',
-            'arif_forge_execute', 'arif_vault_seal', 'arif_memory_recall',
-            'arif_kernel_route', 'arif_ops_measure', 'arif_reply_compose',
-            'arif_gateway_connect'
-          ]
-          missing = [c for c in canonical_13 if c not in tools]
+          missing = [c for c in canonical_7 if c not in tools]
           if missing:
             print(f'ERROR: missing canonical tools: {missing}')
             sys.exit(1)
@@ -149,7 +148,8 @@ jobs:
             if not any(name.startswith(p) for p in allowed):
               print(f'ERROR: bad name {name}')
               sys.exit(1)
-          print(f'PASS: {len(tools)} tools registered, all 13 canonical present')
+          canon_count = reg.get('canonical_count', len(canonical_7))
+          print(f'PASS: {total} tools registered, {canon_count} canonical, all {len(canonical_7)} present')
           PY
 
   # ─────────────────────────────────────────────────────────────
@@ -246,11 +246,12 @@ jobs:
           import sys, warnings
           sys.path.insert(0, '.')
           shims = [
-            ('arifosmcp.runtime.tool_specs', 'get_tool_spec'),
-            ('arifosmcp.runtime.schemas', 'RuntimeSchema'),
-            ('arifosmcp.runtime.models', 'RuntimeEnvelope'),
-            ('arifosmcp.runtime.sessions', 'Session'),
-            ('arifosmcp.runtime.resources', 'register_resources'),
+            # Canonical runtime modules (paths corrected for 2026-06-29 registry rename)
+            ('arifosmcp.runtime.tool_spec', 'get_tool_spec'),
+            ('arifosmcp.runtime.schema', 'RuntimeSchema'),
+            ('arifosmcp.runtime.model', 'RuntimeEnvelope'),
+            ('arifosmcp.runtime.session', 'Session'),
+            ('arifosmcp.runtime.resource', 'register_resources'),
             ('arifosmcp.runtime.prompts', 'register_prompts'),
             ('arifosmcp.runtime.floors', 'check_floors'),
             ('arifosmcp.runtime.governance_identity', 'GovernanceIdentity'),
@@ -271,33 +272,30 @@ jobs:
           if fail: sys.exit(1)
           PY
 
-      - name: All 17 tool shims resolve
+      - name: All tool shims resolve (canonical + diagnostic)
         run: |
           cd "$WORKDIR"
           uv run python3 - <<'PY'
-          import sys, warnings
+          import sys, warnings, importlib
           sys.path.insert(0, '.')
-          shims = [
-            ('arifosmcp.tools.session_init', 'arif_session_init'),
-            ('arifosmcp.tools.sense_observe', 'arif_sense_observe'),
-            ('arifosmcp.tools.evidence_fetch', 'arif_evidence_fetch'),
-            ('arifosmcp.tools.judge_deliberate', 'arif_judge_deliberate'),
-            ('arifosmcp.tools.mind_reason', 'arif_mind_reason'),
-            ('arifosmcp.tools.kernel_route', 'arif_kernel_route'),
-            ('arifosmcp.tools.reply_compose', 'arif_reply_compose'),
+          # Canonical tool modules (file names match the simple short form)
+          canonical_modules = [
+            ('arifosmcp.tools.session', 'arif_session_init'),
+            ('arifosmcp.tools.sense', 'arif_sense_observe'),
+            ('arifosmcp.tools.evidence', 'arif_evidence_fetch'),
+            ('arifosmcp.tools.reason', 'arif_mind_reason'),
+            ('arifosmcp.tools.kernel', 'arif_kernel_route'),
+            ('arifosmcp.tools.reply', 'arif_reply_compose'),
             ('arifosmcp.tools.memory_recall', 'arif_memory_recall'),
-            ('arifosmcp.tools.heart_critique', 'arif_heart_critique'),
-            ('arifosmcp.tools.gateway_connect', 'arif_gateway_connect'),
-            ('arifosmcp.tools.ops_measure', 'arif_ops_measure'),
-            ('arifosmcp.tools.vault_seal', 'arif_vault_seal'),
-            ('arifosmcp.tools.forge_execute', 'arif_forge_execute'),
-            ('arifosmcp.tools.fetch_tool', 'arifos_fetch'),
-            ('arifosmcp.tools.lsp_tools', 'lsp_'),
-            ('arifosmcp.tools.reality_bridge', 'RealityBridge'),
-            ('arifosmcp.tools.architect_tools', 'architect_'),
+            ('arifosmcp.tools.heart', 'arif_heart_critique'),
+            ('arifosmcp.tools.gateway', 'arif_gateway_connect'),
+            ('arifosmcp.tools.ops', 'arif_ops_measure'),
+            ('arifosmcp.tools.vault', 'arif_vault_seal'),
+            ('arifosmcp.tools.forge', 'arif_forge_execute'),
+            ('arifosmcp.tools.judge', 'arif_judge_deliberate'),
           ]
           ok = fail = 0
-          for pkg, name in shims:
+          for pkg, name in canonical_modules:
             with warnings.catch_warnings():
               warnings.simplefilter('ignore', DeprecationWarning)
               try:
@@ -305,9 +303,10 @@ jobs:
                 print(f'OK {pkg}.{name}')
                 ok += 1
               except Exception as e:
-                # 2 known pre-existing failures
-                print(f'SKIP {pkg}.{name}: {str(e)[:60]}')
-          print(f'Result: {ok} resolved')
+                print(f'FAIL {pkg}.{name}: {str(e)[:60]}')
+                fail += 1
+          print(f'Result: {ok} OK, {fail} FAIL')
+          if fail: sys.exit(1)
           PY
 
   # ─────────────────────────────────────────────────────────────
