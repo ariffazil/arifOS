@@ -14,6 +14,7 @@
 #   4. generated/conformance_fixtures.json — happy + denial path fixtures
 #
 # Tool universe: 13 canonical + 1 diagnostic + 7 federated + 1 sanctioned = 22
+# Plus arif_act = 23, arif_resolve_tool = 24, arif_conformance_report = 25
 #
 # Naming policy:
 #   - Canonical: arif_* (e.g., arif_init, arif_seal)
@@ -29,7 +30,7 @@
 meta_schema:
   contract_family: "arifos-tool-contract"
   version: "0.1.0"
-  generated_at: "2026-06-23T04:15:00+08:00"
+  generated_at: "2026-06-28T21:15:00+08:00"
   source_of_truth: true
   schema_owners: [arif, forge]
   breaking_change_policy: "Taxonomy/denial/required-field changes require new contract_family major version."
@@ -138,6 +139,9 @@ legacy_aliases:
   - { alias: arifos_kernel_intercept,   canonical: arif_kernel_intercept,   deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_gateway_connect,    canonical: arif_gateway_connect,    deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: hermes_vault_query_legacy, canonical: hermes_vault_query,      deprecated_after: "2026-09-30", shim_layer: true }
+  - { alias: arif_session_init,        canonical: arif_init,               deprecated_after: "2026-12-31", shim_layer: true,
+      alias_of: arif_init, note: "long-name SDK alias for arif_init — resolves to arif_init via _CANONICAL_HANDLERS" }
+  - { alias: arifos_act,               canonical: arif_act,                deprecated_after: "2026-12-31", shim_layer: true }
 
 # ════════════════════════════════════════════════════════════════════════════════
 # TOOL UNIVERSE — 13 canonical + 1 diagnostic + 7 federated + 1 sanctioned = 22
@@ -248,6 +252,26 @@ canonical_tools:
       audit_events: [verdict_issued, witness_attached, hold_declared, response_emitted],
       witness_requirements: [], contract_version: "1.0.0" }
 
+  # arif_act — 900 execution gate. Requires prior SEAL. HIGH authority gate.
+  - { canonical_name: arif_act, role: execution_gate, axis: "000Ω_FORGE", pipeline_stage: execute,
+      contract_class: gateway, mutation_class: execute, requires_plan: true,
+      modes: [execute, verify, dry_run], reversibility: guarded, blast_radius: high,
+      authority_required: sovereign, channel: stable,
+      hold_conditions: [requires_seal_verdict_id, requires_approved_action_hash],
+      denial_codes: [AUTHORITY_INSUFFICIENT, HUMAN_VETO_REQUIRED, VERDICT_TOKEN_MISSING,
+                     IRREVERSIBLE_WITHOUT_HOLD],
+      audit_events: [plan_approved, tool_called, execution_completed],
+      witness_requirements: [human, ai], contract_version: "1.0.0",
+      notes: "900 execution gate. HARD REQUIREMENT: seal_verdict_id + approved_action_hash from prior arif_judge + arif_seal. No seal → 888_HOLD structurally." }
+
+  - { canonical_name: arif_resolve_tool, role: tool_resolution, axis: "555_ROUTE", pipeline_stage: intent,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [resolve, lookup], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      notes: "Resolve a tool name or alias to its canonical registration. Use when 'Unknown tool' is returned." }
+
   # arif_seal — SPECIAL contract_class=seal. Sealing tools have stricter rules.
   - { canonical_name: arif_seal, role: vault_sealing, axis: "999_SEAL", pipeline_stage: seal,
       contract_class: seal, mutation_class: seal, requires_plan: true,
@@ -270,6 +294,14 @@ diagnostic:
       channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY],
       audit_events: [response_emitted], witness_requirements: [],
       contract_version: "1.0.0" }
+
+  - { canonical_name: arif_conformance_report, role: conformance_spine, axis: "000_KERNEL", pipeline_stage: intake,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [conformance, proof_machine], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      notes: "Conformance spine: checks kernel_alive, initialize_lifecycle, tools_list_matches_callable, alias_resolution, session_init, unknown_tool_error_is_self_correctable." }
 
 # ── 7 FEDERATED organ boundary tools ─────────────────────────────────────────
 federated_organs:

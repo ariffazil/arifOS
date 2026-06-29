@@ -18,13 +18,13 @@ from arifosmcp.runtime.build import get_build_info
 # diagnostic probe, or hidden helper. See /root/AAA/skills/arifos-recursive-audit
 # and AGENTIC_AFFORDANCE_GUIDE.md for doctrine.
 CANONICAL_7: tuple[str, ...] = (
-    "arif_init",  # 000 — Bootstrap governed session and bind actor identity.
-    "arif_observe",  # 111 — Ground in current reality (absorbs fetch).
-    "arif_think",  # 333 — Reason, plan, reflect, critique.
-    "arif_route",  # 444 — Route intent to correct organ.
-    "arif_judge",  # 888 — Constitutional verdict (SEAL/HOLD/VOID).
-    "arif_act",  # 900 — Execute approved action. Requires seal_verdict_id.
-    "arif_seal",  # 999 — Seal to immutable ledger.
+    "arif_init",  # 000 — Start here. Session bootstrap + actor identity. Precedes all other calls.
+    "arif_observe",  # 111 — Ground in reality. External evidence, vitals, repo map.
+    "arif_think",  # 333 — Reason, plan, critique. Cognitive engine for complex decisions.
+    "arif_route",  # 444 — Select organ/tool. Bridge when intent→tool mapping is uncertain.
+    "arif_judge",  # 888 — Constitutional verdict. SEAL/HOLD/SABAR/VOID. Evidence→plan→judge pipeline.
+    "arif_act",  # 900 — Execute only after valid SEAL. Requires seal_verdict_id + approved_action_hash.
+    "arif_seal",  # 999 — Permanent record. VAULT999 hash chain. Irreversible.
 )
 
 # Deprecated alias for internal code that still imports CANONICAL_13.
@@ -140,6 +140,7 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arif_tool_exists",
     "arif_triage",
     "arif_vault_seal",
+    "arif_resolve_tool",
 )
 
 # EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).

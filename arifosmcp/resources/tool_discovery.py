@@ -45,39 +45,40 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
     # def tool_discovery_resource() -> dict: ...
     # registered.append("arif://tools/discovery")
 
-    # Register alias resolution tool (gated — diagnostic utility)
-    if _EXPOSE_DEV_TOOLS:
+    # Register alias resolution tool (diagnostic utility — always available in expanded45)
+    # Removed ARIFOS_MCP_EXPOSE_DEV_TOOLS gate 2026-06-28: this is a read-only diagnostic
+    # that agents need for tool alias resolution. F4 CLARITY: better to resolve than guess.
 
-        @mcp.tool(
-            name="arif_resolve_tool",
-            description=(
-                "Resolve a tool name or alias to the canonical arifOS tool name. "
-                "Use when you have a tool name but aren't sure if it's the canonical name. "
-                "Returns the canonical name, use_when guidance, and examples."
-            ),
-            tags={"discovery", "utility", "read-only"},
-        )
-        def resolve_tool(name: str) -> dict:
-            """Resolve a tool name or alias to canonical form."""
-            canonical = resolve_tool_name(name)
-            if canonical:
-                from .tool_discovery_resource import TOOL_DISCOVERY
+    @mcp.tool(
+        name="arif_resolve_tool",
+        description=(
+            "Resolve a tool name or alias to the canonical arifOS tool name. "
+            "Use when you have a tool name but aren't sure if it's the canonical name. "
+            "Returns the canonical name, use_when guidance, and examples."
+        ),
+        tags={"discovery", "utility", "read-only"},
+    )
+    def resolve_tool(name: str) -> dict:
+        """Resolve a tool name or alias to canonical form."""
+        canonical = resolve_tool_name(name)
+        if canonical:
+            from .tool_discovery_resource import TOOL_DISCOVERY
 
-                meta = TOOL_DISCOVERY.get(canonical, {})
-                return {
-                    "found": True,
-                    "canonical_name": canonical,
-                    "use_when": meta.get("use_when", ""),
-                    "examples": meta.get("examples", []),
-                    "category": meta.get("category", ""),
-                }
+            meta = TOOL_DISCOVERY.get(canonical, {})
             return {
-                "found": False,
-                "query": name,
-                "suggestions": find_tools_by_query(name)[:3],
+                "found": True,
+                "canonical_name": canonical,
+                "use_when": meta.get("use_when", ""),
+                "examples": meta.get("examples", []),
+                "category": meta.get("category", ""),
             }
+        return {
+            "found": False,
+            "query": name,
+            "suggestions": find_tools_by_query(name)[:3],
+        }
 
-        registered.append("arif_resolve_tool")
+    registered.append("arif_resolve_tool")
 
     # DISABLED 2026-06-28 (zen of resources — tool affordance metadata, not domain data).
     # Tool affordances are about the MCP tool interface itself. The gated tool

@@ -354,6 +354,7 @@ def _project_light(
     actor_id: str,
     constitution_hash: str,
     context_completeness: dict | None = None,
+    actor_verified: bool = False,
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -389,8 +390,8 @@ def _project_light(
     return {
         # GATING
         "session_id": sid,
-        "actor_verified": False,
-        "authority": "OBSERVE_ONLY",
+        "actor_verified": actor_verified,
+        "authority": "OBSERVE_ONLY" if not actor_verified else "FULL",
         # VERDICT (single source)
         "verdict": {
             "delta": "STABLE",
@@ -412,10 +413,10 @@ def _project_light(
         "session_birth": {
             "session_id": sid,
             "actor_id": actor_id,
-            "authority_mode": "OPERATOR",
+            "authority_mode": "SOVEREIGN" if actor_verified else "OPERATOR",
             "stage": "000",
             "lane": "AGI",
-            "verdict": "OBSERVE_ONLY",
+            "verdict": "FULL" if actor_verified else "OBSERVE_ONLY",
         },
         # RSI 2026-06-22: renamed from model_soul_loaded / model_shadow_loaded
         # (F9 ANTI-HANTU / F10 MECHANICAL-CLAIM compliance)
@@ -790,6 +791,16 @@ def arif_init(
         except Exception:
             pass
 
+        # ── P0 WIRING (light mode): Mark known identities as verified ─────
+        # Mirrors the same logic in init/full mode (line ~981).
+        # Without this, light-mode sessions always get SEAL_OBSERVE_ONLY.
+        _light_actor_verified = False
+        if actor_id:
+            _actor_lower = actor_id.lower().strip()
+            if "arif" in _actor_lower or "888" in _actor_lower:
+                _light_actor_verified = True
+                sess["actor_verified"] = True
+
         # ── Project to frozen header (15 fields, degraded-first) ────────
         header = _project_light(
             components={
@@ -806,6 +817,7 @@ def arif_init(
             sid=sid,
             actor_id=actor_id or "light_client",
             constitution_hash=CONSTITUTION_HASH,
+            actor_verified=_light_actor_verified,
         )
 
         # ── Verbose=audit: only path that inlines statics (seal only) ───

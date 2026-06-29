@@ -47,7 +47,7 @@
         "name": "arif_init",
         "stage": "000",
         "access": "public",
-        "description": "Start a governed session. Bind actor identity. CALL FIRST.",
+        "description": "START HERE. Bootstrap session + bind actor identity. Select when no session_id exists or resuming a previous session.",
         "actionClass": "PREPARE",
         "riskTier": "medium",
         "irreversible": false
@@ -56,7 +56,7 @@
         "name": "arif_observe",
         "stage": "111",
         "access": "public",
-        "description": "Gather evidence: search, repo map, vitals, external fetch.",
+        "description": "Ground in reality. Select when factual evidence gap exists: web search, URL fetch, vitals, repo map. Resolves data uncertainty.",
         "actionClass": "OBSERVE",
         "riskTier": "low",
         "irreversible": false
@@ -65,7 +65,7 @@
         "name": "arif_think",
         "stage": "333",
         "access": "public",
-        "description": "Reason, plan, reflect, critique. Epistemically honest, confidence-labeled.",
+        "description": "Reason under uncertainty. Select when cognitive decomposition is needed: plan, critique, analyze, verify. Resolves reasoning gap.",
         "actionClass": "ANALYZE",
         "riskTier": "medium",
         "irreversible": false
@@ -74,7 +74,7 @@
         "name": "arif_route",
         "stage": "555",
         "access": "public",
-        "description": "Select the correct organ or tool for an intent. Federation router.",
+        "description": "Select organ/tool for intent. Select when intent→tool mapping is uncertain. Bridges to GEOX, WEALTH, WELL, or A-FORGE.",
         "actionClass": "ANALYZE",
         "riskTier": "low",
         "irreversible": false
@@ -83,7 +83,7 @@
         "name": "arif_judge",
         "stage": "888",
         "access": "authenticated",
-        "description": "Constitutional verdict: floor check, authority check, HOLD/SEAL/VOID.",
+        "description": "Constitutional verdict. Select when evidence→plan pipeline is complete. Floor check + authority check. Returns SEAL/HOLD/SABAR/VOID.",
         "actionClass": "DRAFT",
         "riskTier": "critical",
         "irreversible": false
@@ -92,7 +92,7 @@
         "name": "arif_act",
         "stage": "900",
         "access": "sovereign",
-        "description": "Execute an approved action only after a valid SEAL. Routes internally to forge.",
+        "description": "Execute after valid SEAL. Select ONLY when seal_verdict_id + approved_action_hash exist from prior judge→seal pipeline. 888_HOLD structurally otherwise.",
         "actionClass": "IRREVERSIBLE",
         "riskTier": "critical",
         "irreversible": true,
@@ -102,7 +102,7 @@
         "name": "arif_seal",
         "stage": "999",
         "access": "authenticated",
-        "description": "Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999.",
+        "description": "Immutable VAULT999 anchor. Select when finality and audit trail required. Cryptographic hash-chain record. Irreversible.",
         "actionClass": "IRREVERSIBLE",
         "riskTier": "critical",
         "irreversible": true

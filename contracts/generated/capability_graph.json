@@ -1,9 +1,9 @@
 {
   "contract_family": "arifos-tool-contract",
   "contract_version": "0.1.0",
-  "generated_at": "2026-06-23T04:15:00+08:00",
-  "graph_version": "v0.1.0",
-  "node_count": 22,
+  "generated_at": "2026-06-28T21:15:00+08:00",
+  "graph_version": "v0.2.0",
+  "node_count": 25,
   "nodes": [
     {
       "capability_id": "canonical_tools.arif_init",
@@ -49,7 +49,8 @@
       "fingerprint": "sha256:9eef5cbb8b2ad4d7",
       "section": "canonical_tools",
       "legacy_aliases": [
-        "arifos_init"
+        "arifos_init",
+        "arif_session_init"
       ]
     },
     {
@@ -619,6 +620,106 @@
       ]
     },
     {
+      "capability_id": "canonical_tools.arif_act",
+      "tool_name": "arif_act",
+      "server_id": "local",
+      "description": "execution_gate",
+      "authority_required": "SOVEREIGN",
+      "requires_888_hold": true,
+      "mutation_class": "execute",
+      "irreversible": false,
+      "blast_radius": "FEDERATION",
+      "resource_class": "MEMORY",
+      "organ_id": "arifOS",
+      "trust_state": "TRUSTED_MUTATE",
+      "requires_external_witness": true,
+      "channel": "stable",
+      "contract_class": "gateway",
+      "axis": "000\u03a9_FORGE",
+      "pipeline_stage": "execute",
+      "modes": [
+        "execute",
+        "verify",
+        "dry_run"
+      ],
+      "input_schema": {},
+      "output_schema": {},
+      "denial_codes": [
+        "AUTHORITY_INSUFFICIENT",
+        "HUMAN_VETO_REQUIRED",
+        "VERDICT_TOKEN_MISSING",
+        "IRREVERSIBLE_WITHOUT_HOLD"
+      ],
+      "audit_events": [
+        "plan_approved",
+        "tool_called",
+        "execution_completed"
+      ],
+      "witness_requirements": [
+        "human",
+        "ai"
+      ],
+      "hold_conditions": [
+        "requires_seal_verdict_id",
+        "requires_approved_action_hash"
+      ],
+      "allowed_actors": null,
+      "bootstrap": false,
+      "requires_plan": true,
+      "requires_verdict_token": false,
+      "requires_epoch_id": false,
+      "requires_receipt_parent_ids": false,
+      "contract_version": "1.0.0",
+      "fingerprint": "sha256:99118780eb64dab8",
+      "section": "canonical_tools",
+      "legacy_aliases": [
+        "arifos_act"
+      ]
+    },
+    {
+      "capability_id": "canonical_tools.arif_resolve_tool",
+      "tool_name": "arif_resolve_tool",
+      "server_id": "local",
+      "description": "tool_resolution",
+      "authority_required": "LOW",
+      "requires_888_hold": false,
+      "mutation_class": "read",
+      "irreversible": false,
+      "blast_radius": "LOCAL",
+      "resource_class": "MEMORY",
+      "organ_id": "arifOS",
+      "trust_state": "TRUSTED_READ",
+      "requires_external_witness": false,
+      "channel": "stable",
+      "contract_class": "ordinary",
+      "axis": "555_ROUTE",
+      "pipeline_stage": "intent",
+      "modes": [
+        "resolve",
+        "lookup"
+      ],
+      "input_schema": {},
+      "output_schema": {},
+      "denial_codes": [
+        "UNKNOWN_CAPABILITY"
+      ],
+      "audit_events": [
+        "response_emitted"
+      ],
+      "witness_requirements": [],
+      "hold_conditions": [],
+      "allowed_actors": null,
+      "bootstrap": false,
+      "requires_plan": false,
+      "requires_verdict_token": false,
+      "requires_epoch_id": false,
+      "requires_receipt_parent_ids": false,
+      "contract_version": "1.0.0",
+      "fingerprint": "sha256:5e0f253abf273c09",
+      "section": "canonical_tools",
+      "legacy_aliases": []
+    },
+    {
       "capability_id": "canonical_tools.arif_seal",
       "tool_name": "arif_seal",
       "server_id": "local",
@@ -733,6 +834,49 @@
       "legacy_aliases": [
         "arifos_measure"
       ]
+    },
+    {
+      "capability_id": "diagnostic.arif_conformance_report",
+      "tool_name": "arif_conformance_report",
+      "server_id": "local",
+      "description": "conformance_spine",
+      "authority_required": "LOW",
+      "requires_888_hold": false,
+      "mutation_class": "read",
+      "irreversible": false,
+      "blast_radius": "LOCAL",
+      "resource_class": "MEMORY",
+      "organ_id": "arifOS",
+      "trust_state": "TRUSTED_READ",
+      "requires_external_witness": false,
+      "channel": "stable",
+      "contract_class": "diagnostic",
+      "axis": "000_KERNEL",
+      "pipeline_stage": "intake",
+      "modes": [
+        "conformance",
+        "proof_machine"
+      ],
+      "input_schema": {},
+      "output_schema": {},
+      "denial_codes": [
+        "UNKNOWN_CAPABILITY"
+      ],
+      "audit_events": [
+        "response_emitted"
+      ],
+      "witness_requirements": [],
+      "hold_conditions": [],
+      "allowed_actors": null,
+      "bootstrap": false,
+      "requires_plan": false,
+      "requires_verdict_token": false,
+      "requires_epoch_id": false,
+      "requires_receipt_parent_ids": false,
+      "contract_version": "1.0.0",
+      "fingerprint": "sha256:f3b603d9ff170fe4",
+      "section": "diagnostic",
+      "legacy_aliases": []
     },
     {
       "capability_id": "federated_organs.arif_route",
@@ -1479,7 +1623,9 @@
     "arifos_kernel_health": "arif_kernel_health",
     "arifos_kernel_intercept": "arif_kernel_intercept",
     "arifos_gateway_connect": "arif_gateway_connect",
-    "hermes_vault_query_legacy": "hermes_vault_query"
+    "hermes_vault_query_legacy": "hermes_vault_query",
+    "arif_session_init": "arif_init",
+    "arifos_act": "arif_act"
   },
   "deprecated": {
     "arifos_init": "2026-12-31",
@@ -1506,6 +1652,8 @@
     "arifos_kernel_health": "2026-12-31",
     "arifos_kernel_intercept": "2026-12-31",
     "arifos_gateway_connect": "2026-12-31",
-    "hermes_vault_query_legacy": "2026-09-30"
+    "hermes_vault_query_legacy": "2026-09-30",
+    "arif_session_init": "2026-12-31",
+    "arifos_act": "2026-12-31"
   }
 }

@@ -9,15 +9,15 @@ All "13/16 canonical", arifos_*, agi_mind, asi_heart, apex_*, physics_reality, m
 
 ## The 7 Canonical Public Tools
 
-| Verb | Stage | Purpose |
+| Verb | Stage | Agentic Selection — When to Choose This Tool |
 |------|-------|---------|
-| arif_init | 000 | Bootstrap governed session + bind actor/geometry. CALL FIRST. |
-| arif_observe | 111 | Ground in reality, evidence, search, vitals. |
-| arif_think | 333 | Instrumental reasoning under uncertainty, plan, critique. |
-| arif_route | 555 | Route to correct organ / capability (federation). |
-| arif_judge | 888 | Constitutional verdict (floors, HOLD/SEAL/VOID/SABAR). |
-| arif_act | 900 | Execute only after valid prior SEAL (gated). |
-| arif_seal | 999 | Immutable VAULT999 ledger anchor. |
+| arif_init | 000 | START HERE. Bootstrap session + bind actor identity. Selected when no session_id exists. |
+| arif_observe | 111 | Ground in reality. Selected when factual evidence gap exists (search, vitals, repo map). |
+| arif_think | 333 | Reason under uncertainty. Selected when cognitive decomposition is needed (plan, critique, analyze). |
+| arif_route | 555 | Route to correct organ. Selected when intent→tool mapping is uncertain. |
+| arif_judge | 888 | Constitutional verdict. Selected when evidence→plan pipeline is complete and floor arbitration is needed. |
+| arif_act | 900 | Execute after valid SEAL. Selected ONLY when seal_verdict_id + approved_action_hash exist. |
+| arif_seal | 999 | Immutable VAULT999 anchor. Selected when finality and audit trail are required. |
 
 ## Source of Truth
 

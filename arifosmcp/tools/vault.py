@@ -32,6 +32,7 @@ async def arif_seal(
     trace_root: str | None = None,
     policy_digest: str | None = None,
     cooldown_entry_id: str | None = None,
+    genesis_card_hash: str | None = None,
 ) -> SealOutput:
     """
     999_VAULT: Immutable ledger anchoring.
@@ -145,6 +146,30 @@ async def arif_seal(
         witness_type=witness_type,
         drift_events=drift_events,
     )
+
+    # ── P0-3: Genesis card binding (AAA warga ignition) ────────────────
+    # Auto-load genesis_card_hash from genesis_card.yaml if not provided.
+    # v42.0 doc promises: "every vault witness entry must have the binding"
+    # but schema didn't carry genesis_card_hash. This closes the gap.
+    _resolved_genesis_hash = genesis_card_hash
+    if not _resolved_genesis_hash:
+        try:
+            _genesis_path = "/root/AAA/registries/genesis/genesis_card.yaml"
+            with open(_genesis_path, "r") as _gf:
+                _gdata = _gf.read()
+                import hashlib as _g_hashlib
+
+                _resolved_genesis_hash = (
+                    f"sha256:{_g_hashlib.sha256(_gdata.encode()).hexdigest()[:32]}"
+                )
+        except Exception:
+            _resolved_genesis_hash = None
+
+    if _resolved_genesis_hash and "meta" not in result:
+        result["meta"] = {}
+    if _resolved_genesis_hash:
+        result["meta"]["genesis_card_hash"] = _resolved_genesis_hash
+
     if cooldown_meta:
         result["meta"] = result.get("meta", {})
         result["meta"]["sabar_cooldown"] = cooldown_meta

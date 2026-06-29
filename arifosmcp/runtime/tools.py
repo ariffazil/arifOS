@@ -17902,10 +17902,15 @@ async def _arif_act(
     """
     arif_act — the 900 execution gate in the 7-tool public surface.
 
+    Agentic selection: Choose this tool ONLY when the evidence→plan→judge→seal pipeline
+    is complete. The gradient pulling toward arif_act is authorized intent — you have
+    seal_verdict_id from arif_judge + approved_action_hash from arif_seal. Without both,
+    this tool structurally returns 888_HOLD — no bypass possible in code.
+
     HARD REQUIREMENT: A valid prior SEAL from arif_judge + arif_seal is mandatory.
     No seal → 888_HOLD structurally. This makes bypass impossible in code, not docs.
 
-    It wraps arif_forge_execute after verification.
+    It wraps arif_forge_execute after cryptographic verification via A2ASealVerifier.
     """
     # 1. Hard structural gate
     if not seal_verdict_id or not approved_action_hash:

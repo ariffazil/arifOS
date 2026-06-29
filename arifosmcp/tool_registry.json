@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH. Public canonical surface FROZEN to 7 tools (F13 ratified 2026-06-23: arif_init,arif_observe,arif_think,arif_route,arif_judge,arif_act,arif_seal). Full map in constitutional_map + public_surface.py. Do not hand-edit. Regenerate after source changes. 7-tool facade (one intent=one public tool, F4 CLARITY).",
+  "_note": "SOLE SOURCE OF TRUTH. Canonical 7 (F13 ratified 2026-06-23): arif_init→observe→think→route→judge→act→seal. Each tool closes a specific agentic gap: init(session), observe(evidence), think(reasoning), route(routing), judge(decision), act(execution), seal(finality). One intent = one public tool (F4 CLARITY). Full map in constitutional_map + public_surface.py. Do not hand-edit. Regenerate after source changes.",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py \u2192 ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
     "diagnostic_tools": "constitutional_map.py \u2192 spec-inferred from tier + irreversible + access fields",

@@ -378,12 +378,19 @@ mcp = FastMCP(
         "- Truth survives falsification, not assertion.\n"
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
-        "Golden path: init → observe → think → route → judge → seal\n\n"
+        "Golden path: init → observe → think → route → judge → act → seal\n\n"
         # RSI 2026-06-27: Only advertise public surface tools. Hidden tools
         # (arif_triage, arif_memory, arif_kernel_attest, etc.) must NOT appear
         # in instructions — ChatGPT/external callers try to call them and get blocked.
-        "Public tools (9): arif_init, arif_observe, arif_fetch, arif_think, "
-        "arif_route, arif_critique, arif_judge, arif_act, arif_seal\n\n"
+        # Agentic selection: each tool closes a specific gap in the intent→action pipeline.
+        "Canonical 7 — select by gap:\n"
+        "  arif_init   — No session yet? Start here. Binds actor identity.\n"
+        "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
+        "  arif_think   — Reasoning gap? Plan, critique, analyze, verify.\n"
+        "  arif_route   — Tool uncertainty? Route intent to correct organ.\n"
+        "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
+        "  arif_act     — Ready to execute? Requires valid SEAL from judge→seal pipeline.\n"
+        "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )

@@ -180,13 +180,13 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
 # but these 7 are the ones that must be cognitively perfect.
 
 CORE_SEVEN: list[str] = [
-    "arif_init",  # 000 INIT — bootstrap + identity binding (must be first)
-    "arif_observe",  # 111 OBSERVE — ground in reality (absorbs fetch)
-    "arif_think",  # 333 THINK — reasoning + plans + critique (absorbs critique)
-    "arif_route",  # 444/555 ROUTE — intent routing
-    "arif_judge",  # 888 JUDGE — verdict (enforced by arif_kernel_intercept)
-    "arif_act",  # 900 ACT — gated execution (hard seal requirement)
-    "arif_seal",  # 999 SEAL — immutable record
+    "arif_init",  # 000 — Session bootstrap + actor identity. Agent's first action selection.
+    "arif_observe",  # 111 — Reality grounding. Choose when evidence gap exists.
+    "arif_think",  # 333 — Cognitive engine. Reason, plan, critique, metabolize.
+    "arif_route",  # 444/555 — Intent router. Choose when tool-to-intent mapping is uncertain.
+    "arif_judge",  # 888 — Constitutional verdict. Evidence→plan→judge pipeline.
+    "arif_act",  # 900 — Gated execution. HARD seal_verdict_id + approved_action_hash gate.
+    "arif_seal",  # 999 — Immutable VAULT999 ledger record. Terminal pipeline step.
 ]
 
 CORE_SEVEN_WITH_ENGINE = {
