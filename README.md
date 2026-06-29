@@ -12,7 +12,7 @@
   ─────────────────────────────────────────
   Not a chatbot. Not a model wrapper. The LAW.
 
-**2026-06-23 Update**: Public surface frozen to exactly 7 verbs (arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal). All prior "13/15/16 tool" references below are historical.  
+**2026-06-29 Update**: Public surface: 10 verbs via MCP (arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal, arif_resolve_tool, arif_vault_query, arif_conformance_report).  
 **2026-06-24 Update**: Live MCP red-team audit sealed 5 critical bypasses — A-FORGE `forge_shell_dryrun` governance, arifOS interceptor `canonical_tool` stability, GEOX `/mcp/` lane enforcement, vault999-writer localhost/auth hardening, WEALTH federated organ governance.
 ```
 
@@ -27,11 +27,11 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![MCP Tools](https://img.shields.io/badge/MCP-7%20public%20verbs%20%7C%20plumbing%20hidden-10b981?logo=anthropic)](https://mcp.arif-fazil.com/mcp)
-[![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
+[![MCP Tools](https://img.shields.io/badge/MCP-10%20public%20verbs%20%7C%2017%20canonical-10b981?logo=anthropic)](https://mcp.arif-fazil.com/mcp)
+[![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.05.05-SSCT.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
-[![Federation](https://img.shields.io/badge/federation-7%20organs%20%2B%202%20services-8B5CF6)](FEDERATION_CONTRACT.md)
+[![Federation](https://img.shields.io/badge/federation-7%20organs-8B5CF6)](FEDERATION_CONTRACT.md)
 [![Status](https://img.shields.io/badge/status-OPERATIONAL-success)](FEDERATION_STATUS.md)
 
 ---
@@ -71,8 +71,8 @@
 
 - ✅ **The law layer** — decides what must NOT be done, so agents can be trusted with what they CAN do
 - ✅ **A constitutional engine** — 13 enforceable floors (F1–F13) with mathematical invariants
-- ✅ **A federation hub** — 7 organs (GEOX, WEALTH, WELL, AAA, A-FORGE, APEX legacy) governed under one contract; plus MIND:51001 and MEMORY:51002 federated intelligence services hosted by A-FORGE
-- ✅ **An MCP server** — 7 public verbs (clean facade) + internal tools (see public_surface.py). 2026-06-23 freeze.
+- ✅ **A federation hub** — 7 organs (arifOS, A-FORGE, GEOX, WEALTH, WELL, AAA, VAULT999) governed under one contract. Hermes:8644 (MIND) and OpenClaw:18789 (HANDS) are edge agents, not organs.
+- ✅ **An MCP server** — 10 exposed MCP verbs + 17 canonical + 58 total declared. Live count: `curl :8088/health | jq .tools_exposed_via_mcp`.
 - ✅ **An immutable ledger** — VAULT999: append-only, hash-chained, every decision sealed forever
 - ✅ **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute. No algorithm overrides.
 
@@ -83,6 +83,9 @@
 - ❌ **NOT a startup or SaaS** — not for sale, not venture-backed
 - ❌ **NOT LangChain, CrewAI, AutoGen, or any agent framework** — it sits ABOVE them, governing their actions
 - ❌ **NOT a replacement for human judgment** — the human is outside the topology. The human rules.
+- ❌ **NOT the cockpit** — AAA:3001 displays state. arifOS judges it.
+- ❌ **NOT the executor** — A-FORGE:7071/7072 executes. arifOS authorizes.
+- ❌ **NOT domain intelligence** — GEOX/WEALTH/WELL compute evidence. arifOS consumes it.
 
 ### Why This Exists
 
@@ -102,7 +105,7 @@ arifOS fills that gap. It is the **perlembagaan** (constitution) for agents. The
 | Audience | What They Get |
 |----------|--------------|
 | **Human Operators** (non-coders) | A cockpit (AAA) showing every agent action, every verdict, every seal. Plain language. |
-| **AI Agents** (Claude, GPT, Gemini, etc.) | 13 governed MCP tools. Every tool call passes through F1-F13 enforcement. |
+| **AI Agents** (Claude, GPT, Gemini, etc.) | 10 governed MCP tools (17 canonical, 58 total). Every tool call passes through F1-F13 enforcement. |
 | **Developers** | A FastMCP Python server with Pydantic v2 contracts, pytest suite, and clear extension patterns. |
 | **Institutions** (GLC, government, enterprise) | A demonstrable governance layer. Audit trail. Constitutional compliance. No black box. |
 
@@ -119,31 +122,39 @@ arifOS is the kernel. Six other organs serve under it. Every organ has a port, a
                           │   Human — final veto     │
                           └────────────┬────────────┘
                                        │
+              ┌────────────────────────┼────────────────────────┐
+              │                        │                        │
+    ┌─────────▼──┐            ┌───────▼───────┐        ┌───────▼───────┐
+    │   Hermes   │            │     AAA       │        │   OpenClaw    │
+    │   🧠 MIND  │            │  🖥️  Cockpit  │        │   🤖 HANDS    │
+    │   :8644    │            │    :3001      │        │   :18789      │
+    │  Telegram  │            │  Display only │        │  Transport    │
+    └────────────┘            └───────────────┘        └───────────────┘
+                                       │
                           ┌────────────▼────────────┐
                           │       arifOS (Ω)        │
                           │   Constitutional Kernel │
                           │   Port: 8088            │
                           │   F1-F13 · 888 JUDGE    │
-                          │   999 VAULT · 13 Tools  │
+                          │   10 tools · 17 canon   │
                           └──┬───┬───┬───┬───┬─────┘
                              │   │   │   │   │
               ┌──────────────┼───┼───┼───┼───┼──────────────┐
               │              │   │   │   │   │              │
-    ┌─────────▼──┐  ┌───────▼─┐ ┌▼───────┐ ┌▼─────────┐  ┌▼─────────┐
-    │   GEOX     │  │ WEALTH  │ │  WELL  │ │   AAA    │  │ A-FORGE  │
-    │   🌍 Earth │  │ 💰 Cap  │ │ 🫀 Vit │ │ 🖥️  Cock │  │ ⚒️  Exec  │
-    │   :8081    │  │ :18082  │ │ :18083 │ │  :3001   │  │  :7071   │
-    │  Evidence  │  │ Compute │ │ Reflect│ │ Display  │  │ Execute  │
-    └────────────┘  └─────────┘ └────────┘ └──────────┘  └──────────┘
-              │              │   │   │   │   │              │
-              │   ┌──────────┘   │   │   │   └──────────┐   │
-              │   │              │   │   │              │   │
-              │ ┌─▼────────┐   ┌─▼───▼───▼───┐        ┌─▼───▼───┐
-              │ │ MIND     │   │ APEX (legacy)│        │ MEMORY  │
-              │ │ :51001   │   │ :3002        │        │ :51002  │
-              │ │ Reasoning│   │ Health probe │        │ Memory  │
-              │ └──────────┘   └──────────────┘        └─────────┘
-              │  (A-FORGE hosted)   (deliberation in AAA a2a)
+    ┌─────────▼──┐  ┌───────▼─┐ ┌▼───────┐ ┌▼─────────┐   │
+    │   GEOX     │  │ WEALTH  │ │  WELL  │ │ A-FORGE  │   │
+    │   🌍 Earth │  │ 💰 Cap  │ │ 🫀 Vit │ │ ⚒️  Exec  │   │
+    │   :8081    │  │ :18082  │ │ :18083 │ │:7071/7072│   │
+    │  Evidence  │  │ Compute │ │ Reflect│ │ Execute  │   │
+    └────────────┘  └─────────┘ └────────┘ └────┬─────┘   │
+                                               │         │
+                          ┌────────────────────┘         │
+                          ▼                              │
+                    ┌──────────┐                         │
+                    │ VAULT999 │◄────────────────────────┘
+                    │ 🔒 Seal  │
+                    │ Immutable│
+                    └──────────┘
 ```
 
 ### Organ Boundaries (Non-Negotiable)
@@ -155,15 +166,18 @@ arifOS is the kernel. Six other organs serve under it. Every organ has a port, a
 | **WEALTH** | 18082 | Capital intelligence | Compute NPV/IRR/risk with epistemic tags | Allocate capital, hide downside |
 | **WELL** | 18083 | Human readiness | Report readiness scores, reflect only | Make medical diagnoses, judge fitness |
 | **AAA** | 3001 | Control plane | Display state, route tasks, queue HOLDs | Issue constitutional verdicts |
-| **A-FORGE** | 7071 | Execution shell | Execute under SEAL, build, deploy | Self-authorize, compute domain logic |
+| **A-FORGE** | 7071/7072 | Execution shell | Execute under SEAL, build, deploy | Self-authorize, compute domain logic |
+| **VAULT999** | — | Immutable seal | Append-only hash-chained ledger | Edit, delete, or rewrite sealed records |
+| **Hermes** | 8644 | MIND — edge agent | Natural language interface (Telegram) | Issue constitutional verdicts |
+| **OpenClaw** | 18789 | HANDS — transport agent | Agent transport / execution bridge | Issue constitutional verdicts |
 
 ### The Authority Chain
 
 ```
 Arif (F13 SOVEREIGN)
-  → arifOS kernel (F1-F13 floor enforcement)
-    → Domain organ advisory (GEOX / WEALTH / WELL)
-      → AAA cockpit (human operator surface)
+  → AAA/Hermes/OpenClaw (IDENTITY — display, route, message)
+    → arifOS kernel (GOVERNANCE — F1-F13 floor enforcement)
+      → Domain organ advisory (GEOX / WEALTH / WELL)
         → A-FORGE execution (gated by 888 JUDGE)
           → VAULT999 seal (immutable, forever)
 ```
@@ -269,7 +283,7 @@ ruff check . && ruff format .
 ```bash
 # Health probe
 curl -s http://127.0.0.1:8088/health | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'tools={d[\"tools_loaded\"]} floors={d[\"floors_active\"]} drift={d[\"runtime_drift\"]}')"
-# Expected: 7 public verbs, floors=13, internals hidden. (legacy example)
+# Expected: tools exposed via MCP, floors=13. (live: curl :8088/health | jq .tools_exposed_via_mcp)
 ```
 
 ### Install as Python Package
@@ -290,27 +304,28 @@ serve()  # starts MCP kernel on port 8088
 Every governed action follows this numbered sequence. No step can be skipped. 888 is the gate. 999 is the seal.
 
 ```
-     000 — arif_session_init      ▸ Start constitutional session
-     100 — arif_sense_observe     ▸ Gather evidence from web/world
+     000 — arif_init              ▸ Start constitutional session (internal: arif_session_init)
+     100 — arif_observe           ▸ Gather evidence from web/world (internal: arif_sense_observe)
      200 — arif_evidence_fetch    ▸ Fetch + preserve sources with citations
-     300 — arif_mind_reason       ▸ Multi-step reasoning, planning, reflection
-     400 — arif_kernel_route      ▸ Route intent to correct organ/tool
+     300 — arif_think             ▸ Multi-step reasoning, planning, reflection (internal: arif_mind_reason)
+     400 — arif_route             ▸ Route intent to correct organ/tool (internal: arif_kernel_route)
      500 — arif_memory_recall     ▸ Search past sessions, assets, sealed events
      600 — arif_heart_critique    ▸ Ethical risk + human impact assessment
      700 — arif_gateway_connect   ▸ Bridge to other federation agents/organs
      800 — arif_ops_measure       ▸ Health, thermodynamics, resource metrics
-     888 — arif_judge_deliberate  ▸ ⚖️ CONSTITUTIONAL VERDICT (SEAL/SABAR/VOID/HOLD)
-     900 — arif_forge_execute     ▸ Execute only if 888 issued SEAL
-     999 — arif_vault_seal        ▸ 🔒 Seal to immutable VAULT999 ledger
+     888 — arif_judge             ▸ ⚖️ CONSTITUTIONAL VERDICT (SEAL/SABAR/VOID/HOLD) (internal: arif_judge_deliberate)
+     900 — arif_act               ▸ Execute only if 888 issued SEAL (internal: arif_forge_execute)
+     999 — arif_seal              ▸ 🔒 Seal to immutable VAULT999 ledger (internal: arif_vault_seal)
 ```
 
 ```
     000 ──→ 100 ──→ 200 ──→ 300 ──→ 400 ──→ 500
-                                              │
-    999 ←── 900 ←── 888 ←────────────────────┘
+     │                                            │
+    999 ←── 900 ←── 888 ←────────────────────────┘
      🔒        ⚒️        ⚖️
     Seal    Execute   Judge
 ```
+(000=arif_init, 100=arif_observe, 300=arif_think, 400=arif_route, 888=arif_judge, 900=arif_act, 999=arif_seal)
 
 **The iron rule:** No action skips 888. No organ self-authorizes. The pipeline is the constitution in motion.
 
@@ -322,8 +337,8 @@ Every governed action follows this numbered sequence. No step can be skipped. 88
 arifOS/
 │
 ├── arifosmcp/               ← Canonical MCP runtime (the active engine)
-│   ├── server.py            ← FastMCP entry point — 7 public verbs (facade), streamable-http
-│   ├── tools/               ← 13 canonical tool implementations
+│   ├── server.py            ← FastMCP entry point — 10 public verbs (facade), streamable-http
+│   ├── tools/               ← 17 canonical tool implementations
 │   │   ├── session.py       ← 000 — arif_session_init
 │   │   ├── sense.py         ← 100 — arif_sense_observe
 │   │   ├── evidence.py      ← 200 — arif_evidence_fetch
@@ -352,7 +367,7 @@ arifOS/
 ├── FEDERATION_CONTRACT.md   ← Binding contract for all 7 organs
 ├── FEDERATION_STATUS.md     ← Live organ health matrix
 ├── docs/                    ← Constitutional specs, ADRs, sovereign essays
-├── tests/                   ← pytest suite (140+ test files)
+├── tests/                   ← pytest suite (329 tests)
 ├── deploy/                  ← Systemd units, Caddyfile, Docker configs
 └── static/                  ← Served constitutional documents (F0-F13, scar, theory)
 ```
@@ -384,7 +399,7 @@ The constitution exists because you exist. Your veto is absolute. No algorithm, 
 ### How to Monitor the Federation
 
 1. **AAA Cockpit** — `https://aaa.arif-fazil.com` — visual dashboard of all organs
-2. **Health endpoint** — `https://mcp.arif-fazil.com/health` — machine-readable status
+2. **Health endpoint** — `https://arifos.arif-fazil.com/health` — machine-readable status
 3. **Hermes Telegram** — `@ASI_arifos_bot` — natural language queries about federation state
 4. **Grafana** — `http://127.0.0.1:3000` — metrics and dashboards
 
@@ -450,7 +465,7 @@ Unverified identity produces `SEAL_OBSERVE_ONLY` — you may observe, not author
 }
 ```
 
-**Available tools (public):** 7 verbs only. Internals (memory, compose, forge, diagnostics, aliases) are not exposed on the public MCP surface. See the 7-tool facade. (This sentence updated 2026-06-23.)
+**Available tools (public):** 10 MCP verbs. Internals (diagnostics, support tools) are not exposed on the public MCP surface. See `curl :8088/health | jq .tools_exposed_via_mcp`.
 
 ### Adat Agentik Binding
 
@@ -726,14 +741,15 @@ docker push ghcr.io/ariffazil/arifos:latest
 | **WELL** (Vitality) | `ariffazil/well` | [README](https://github.com/ariffazil/well) | `FEDERATION_CONTRACT.md` |
 | **AAA** (Cockpit) | `ariffazil/aaa` | [README](https://github.com/ariffazil/aaa) | `FEDERATION_CONTRACT.md` |
 | **A-FORGE** (Forge) | `ariffazil/A-FORGE` | [README](https://github.com/ariffazil/A-FORGE) | `FEDERATION_CONTRACT.md` |
-| **APEX** (Legacy) | `ariffazil/apex` | — | Legacy health probe — deliberation moved to AAA a2a-server |
+| **APEX** (Absorbed) | `ariffazil/apex` | — | Absorbed into AAA a2a-server (2026-06-02). Service stopped. |
+| **VAULT999** (Seal) | `ariffazil/arifos` | This file | Immutable append-only hash-chained ledger |
 
-### Federated Intelligence Services (hosted by A-FORGE)
+### Edge Agents
 
-| Service | Port | Role | Hosted In |
-|---------|------|------|-----------|
-| **MIND** | 51001 | Sequential reasoning / deliberation | `ariffazil/A-FORGE` |
-| **MEMORY** | 51002 | Cognitive memory bridge | `ariffazil/A-FORGE` |
+| Agent | Port | Role | Hosted In |
+|-------|------|------|-----------|
+| **Hermes** | 8644 | MIND — natural language interface (Telegram) | `ariffazil/hermes` |
+| **OpenClaw** | 18789 | HANDS — agent transport / execution bridge | `ariffazil/openclaw` |
 
 ### Key Documents
 
@@ -814,14 +830,14 @@ arifOS distinguishes between canonical constitutional tools and operational supp
 
 ```json
 {
-  "canonical_tools": 15,
-  "canary_multimode": 1,
-  "total_public_surface": 16,
-  "chatgpt_compat_shims": 2
+  "tools_exposed_via_mcp": 10,
+  "canonical_tools": 17,
+  "diagnostic_tools": 41,
+  "total_declared_tools": 58
 }
 ```
 
-The public surface is the **7 canonical verbs**. Legacy 15/16 counts and old names are no longer public. All other tools are internal or demoted. See runtime/public_surface.py.
+The public surface is the **10 MCP-exposed verbs**. All other tools are internal, diagnostic, or support. See `arifosmcp/tool_registry.json` for the live canonical registry.
 
 ### ChatGPT Compatibility (ADR-012)
 
@@ -984,7 +1000,7 @@ This is intentional. AGPL-3.0 ensures that any modified version of arifOS runnin
 ```
 ╔══════════════════════════════════════════════════════════╗
 ║  arifOS — Constitutional AI Governance Kernel           ║
-║  Port: 8088 · Tools: 13 · Floors: 13 · Organs: 7       ║
+║  Port: 8088 · Tools: 10 exposed (17 canonical) · Floors: 13 · Organs: 7 ║
 ║  License: AGPL-3.0 · Sovereign: Arif Fazil              ║
 ║  Status: OPERATIONAL · Federation: ALIVE                ║
 ║                                                        ║

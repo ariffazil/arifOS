@@ -58,7 +58,7 @@ curl -s http://localhost:8088/health | python3 -m json.tool | grep -E 'floors|fl
 ```
 Arif (F13 SOVEREIGN)
     ↓
-arifOS (20 canonical + 37 diagnostic = 57 total registered tools)
+arifOS (17 canonical + 41 diagnostic = 58 total declared tools, 10 exposed via MCP)
     ├── 000 arif_session_init      — start or resume a governed session
     ├── 111 arif_sense_observe     — search/ingest/observe reality
     ├── 222 arif_evidence_fetch    — fetch + cite external evidence
@@ -83,7 +83,7 @@ arifOS (20 canonical + 37 diagnostic = 57 total registered tools)
 
 **Golden path:** `session_init → sense_observe/evidence_fetch → mind_reason → heart_critique → judge_deliberate → vault_seal`
 
-**Federated organs (gateway upstream):** GEOX:8081, WEALTH:18082, WELL:18083, A-FORGE:7072, AAA:3001, MIND (51001), MEMORY (51002)
+**Federated organs (gateway upstream):** GEOX:8081, WEALTH:18082, WELL:18083, A-FORGE:7071/7072, AAA:3001. Edge agents: Hermes:8644 (MIND), OpenClaw:18789 (HANDS).
 
 ---
 
