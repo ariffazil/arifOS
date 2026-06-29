@@ -59,7 +59,7 @@
 
 ```bash
 # All public endpoints
-curl -s --max-time 5 https://arifos.arif-fazil.com/health
+curl -s --max-time 5 https://mcp.arif-fazil.com/health
 curl -s --max-time 5 https://geox.arif-fazil.com/health
 curl -s --max-time 5 https://wealth.arif-fazil.com/health
 curl -s --max-time 5 https://well.arif-fazil.com/health

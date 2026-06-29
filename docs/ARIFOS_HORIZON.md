@@ -106,8 +106,7 @@ Consolidated from 44 tools → 13 canonical tools. Zero capability loss.
 | Endpoint | Status |
 |----------|--------|
 | `https://mcp.arif-fazil.com/mcp` | ✅ **CANONICAL** (post-Trinity) |
-| `https://arifosmcp.arif-fazil.com/mcp` | 301 Redirect → canonical |
-| `https://arifosmcp.arif-fazil.com/health` | 301 Redirect → canonical |
+| `https://mcp.arif-fazil.com/health` | ✅ **CANONICAL** health endpoint |
 
 ### Runtime State (verified 2026-05-02)
 | Field | Value | Note |
@@ -213,7 +212,7 @@ Any AI operating in this Space must:
 | [github.com/ariffazil/arifOS](https://github.com/ariffazil/arifOS) | Canonical repository |
 | [github.com/ariffazil/arifOS/blob/main/README.md](https://github.com/ariffazil/arifOS/blob/main/README.md) | Full README |
 | [arifos.arif-fazil.com](https://arifos.arif-fazil.com) | Documentation portal |
-| [arifosmcp.arif-fazil.com](https://arifosmcp.arif-fazil.com) | Legacy MCP portal (redirects) |
+| [mcp.arif-fazil.com](https://mcp.arif-fazil.com) | MCP portal |
 | [gist.github.com/ariffazil/81314f6cda1ea898f9feb88ce8f8959b](https://gist.github.com/ariffazil/81314f6cda1ea898f9feb88ce8f8959b) | Canonical gist |
 | [pypi.org/project/arifos](https://pypi.org/project/arifos) | PyPI package |
 | [modelcontextprotocol.io/docs/learn/architecture](https://modelcontextprotocol.io/docs/learn/architecture) | MCP protocol spec |
