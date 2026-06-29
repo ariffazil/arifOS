@@ -4576,7 +4576,12 @@ def register_rest_routes(
             except Exception:
                 pass
 
-        main_tools = sorted(main_registry.get("canonical_order", []))
+        # Full intended surface = canonical_order + diagnostic_order
+        # (comparing only canonical_order vs ~50 live tools caused a permanent false HOLD)
+        canonical_tools = main_registry.get("canonical_order", [])
+        diagnostic_tools = main_registry.get("diagnostic_order", [])
+        main_tools = sorted(set(canonical_tools) | set(diagnostic_tools))
+
         missing = list(set(main_tools) - set(live_tools))
         extra = list(set(live_tools) - set(main_tools))
 
@@ -4585,6 +4590,8 @@ def register_rest_routes(
                 "verdict": "SEAL" if not missing and not extra else "HOLD",
                 "live_count": len(live_tools),
                 "main_count": len(main_tools),
+                "registry_canonical": len(canonical_tools),
+                "registry_diagnostic": len(diagnostic_tools),
                 "missing_on_live": missing,
                 "extra_on_live": extra,
                 "sot_source": sot_source,
