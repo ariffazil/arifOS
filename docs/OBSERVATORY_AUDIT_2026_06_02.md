@@ -64,7 +64,7 @@ Observatory says WELL is "Healthy" on port 8083. `well.arif-fazil.com/` returns 
 Observatory's "📊 Dashboard v2" nav link points to `https://arifos.arif-fazil.com/dashboard-v2.html` which returns **404 ("Not Found")**. Dead link in the production header.
 
 ### F4 — mcp.arif-fazil.com is a redirect, not a gateway
-`mcp.arif-fazil.com/` returns 200 but is actually **the same HTML as the arifos Observatory** (Caddy aliasing or SPA fallback). The "MCP Gateway" promised in the header is not a distinct surface. The actual MCP endpoint should be at `arifos.arif-fazil.com/mcp` (per the agent discovery `<link rel="mcp">` tag in the arif-fazil.com HTML).
+`mcp.arif-fazil.com/` returns 200 but is actually **the same HTML as the arifos Observatory** (Caddy aliasing or SPA fallback). The "MCP Gateway" promised in the header is not a distinct surface. The actual MCP endpoint should be at `mcp.arif-fazil.com/mcp` (per the agent discovery `<link rel="mcp">` tag in the arif-fazil.com HTML).
 
 ### F5 — apex.arif-fazil.com serves AAA content
 `apex.arif-fazil.com/` returns 200 but the HTML body is the **AAA Cockpit** (title: "AAA Cockpit - Evidence-Based Industrialism | arifOS", canonical: `https://aaa.arif-fazil.com/`). APEX is misrouted to AAA. The arif-sites Caddy rules are aliased wrong.

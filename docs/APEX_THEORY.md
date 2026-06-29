@@ -133,7 +133,7 @@ The motto — **DITEMPA BUKAN DIBERI** — means "forged, not given." The system
 
 - **Status:** Operational, constitution-bound, 13/13 floors active
 - **Live MCP endpoint:** `mcp.arif-fazil.com/mcp`
-- **Health probe:** `mcp.arif-fazil.com/mcp/health` (or `arifos.arif-fazil.com/mcp/health`)
+- **Health probe:** `mcp.arif-fazil.com/mcp/health` (or `mcp.arif-fazil.com/mcp/health`)
 - **Build:** `kanon-2026.06.04+4b6220e` (audit-chain traceable)
 - **G-score:** ~0.57 (functional, below 0.80 elegance target)
 - **Identity:** Claimed, not cryptographically verified

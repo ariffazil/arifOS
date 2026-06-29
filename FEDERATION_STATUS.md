@@ -78,7 +78,7 @@
 
 | Site | Via | Backend |
 |------|-----|---------|
-| `arifos.arif-fazil.com/mcp` | Cloudflare Tunnel | arifOS:8088 |
+| `mcp.arif-fazil.com/mcp` | Cloudflare Tunnel | arifOS:8088 |
 | `geox.arif-fazil.com/mcp` | Cloudflare Tunnel | GEOX:8081 |
 | `wealth.arif-fazil.com/mcp` | Cloudflare Tunnel | WEALTH:18082 |
 | `well.arif-fazil.com/mcp` | Cloudflare Tunnel | WELL:18083 |

@@ -98,7 +98,7 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 
 | Organ | MCP Endpoint | Role | Tools |
 |------|-------------|------|-------|
-| **arifOS** (8088) | `arifos.arif-fazil.com/mcp` | Governance kernel | 17 canonical + 41 operational |
+| **arifOS** (8088) | `mcp.arif-fazil.com/mcp` | Governance kernel | 17 canonical + 41 operational |
 | **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |
 | **GEOX** (8081) | `geox.arif-fazil.com/mcp` | Earth intelligence | 33 canonical tools |
 | **WEALTH** (18082) | `wealth.arif-fazil.com/mcp` | Capital intelligence | 20+ tools |

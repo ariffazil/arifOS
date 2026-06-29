@@ -1401,7 +1401,7 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
         {
             "name": "arifos",
             "displayName": "arifOS Constitutional Kernel",
-            "url": "https://arifos.arif-fazil.com/mcp",
+            "url": "https://mcp.arif-fazil.com/mcp",
             "version": _DEPLOY_VERSION.lstrip("v"),
             "capabilities": {"tools": True, "resources": True, "prompts": True},
             "authentication": {"type": "bearer"},

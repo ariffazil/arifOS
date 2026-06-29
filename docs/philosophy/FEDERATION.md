@@ -39,7 +39,7 @@ Tools on GEOX/WEALTH/WELL that accept session_id should receive it from the acti
 | Field | Value |
 |---|---|
 | Domain | Constitutional Governance |
-| Canonical URL | `https://arifos.arif-fazil.com/mcp` |
+| Canonical URL | `https://mcp.arif-fazil.com/mcp` |
 | Local port | `127.0.0.1:8088` |
 | Version | v2026.05.05-SSCT |
 | Tools | 13 canonical + 1 daily brief = 14 total |

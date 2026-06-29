@@ -66,7 +66,7 @@ fi
 # ── MCP route tests ───────────────────────────────────────────
 MCP_HEALTH_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://arifos.arif-fazil.com/health" 2>/dev/null || echo "000")
 MCP_TOOLS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "https://arifos.arif-fazil.com/tools" 2>/dev/null || echo "000")
-MCP_MCP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -H "Accept: text/event-stream" "https://arifos.arif-fazil.com/mcp" 2>/dev/null || echo "000")
+MCP_MCP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -H "Accept: text/event-stream" "https://mcp.arif-fazil.com/mcp" 2>/dev/null || echo "000")
 MCP_ROUTE_PASS=true
 if [ "$MCP_HEALTH_CODE" != "200" ]; then
     MCP_ROUTE_PASS=false

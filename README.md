@@ -27,7 +27,7 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://pypi.org/project/arifos/)
-[![MCP Tools](https://img.shields.io/badge/MCP-7%20public%20verbs%20%7C%20plumbing%20hidden-10b981?logo=anthropic)](https://arifos.arif-fazil.com/mcp)
+[![MCP Tools](https://img.shields.io/badge/MCP-7%20public%20verbs%20%7C%20plumbing%20hidden-10b981?logo=anthropic)](https://mcp.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active%20(F14%20DEAD)-f59e0b)](arifosmcp/CONSTITUTIONAL_EXTENSION_v2026.06.11-SELH.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444?logo=gnu)](LICENSE)
 [![Port](https://img.shields.io/badge/port-8088-64748b)](deploy/arifos.service)
@@ -229,7 +229,7 @@ Connect to the MCP endpoint:
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/mcp",
+      "url": "https://mcp.arif-fazil.com/mcp",
       "transport": "streamable-http"
     }
   }
@@ -384,7 +384,7 @@ The constitution exists because you exist. Your veto is absolute. No algorithm, 
 ### How to Monitor the Federation
 
 1. **AAA Cockpit** — `https://aaa.arif-fazil.com` — visual dashboard of all organs
-2. **Health endpoint** — `https://arifos.arif-fazil.com/health` — machine-readable status
+2. **Health endpoint** — `https://mcp.arif-fazil.com/health` — machine-readable status
 3. **Hermes Telegram** — `@ASI_arifos_bot` — natural language queries about federation state
 4. **Grafana** — `http://127.0.0.1:3000` — metrics and dashboards
 
@@ -443,7 +443,7 @@ Unverified identity produces `SEAL_OBSERVE_ONLY` — you may observe, not author
 {
   "mcpServers": {
     "arifOS": {
-      "url": "https://arifos.arif-fazil.com/mcp",
+      "url": "https://mcp.arif-fazil.com/mcp",
       "transport": "streamable-http"
     }
   }
@@ -790,13 +790,13 @@ arifOS is an MCP-native governed agent federation. Each organ exposes a separate
 
 ### Primary MCP Endpoints
 
-| Organ | Endpoint | Role | Use When |
-|-------|----------|------|----------|
-| **arifOS** | `https://arifos.arif-fazil.com/mcp` | Constitutional governance kernel | Session, routing, judgment, leases, attestation, safety gates |
-| **A-FORGE** | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Planning, dry-runs, repo/file/system work, tests, benchmarks, execution |
-| **GEOX** | `https://geox.arif-fazil.com/mcp` | Geoscience organ | Earth intelligence, spatial/geology workflows |
-| **WEALTH** | `https://wealth.arif-fazil.com/mcp` | Capital/economic organ | Finance, economics, capital intelligence |
-| **WELL** | `https://well.arif-fazil.com/mcp` | Wellness organ | Health, wellness, vitality intelligence |
+| Organ | Public Frontdoor | Internal Endpoint (Port) | Role |
+|-------|------------------|---------------------------|------|
+| **arifOS Gateway** | `https://mcp.arif-fazil.com/mcp` | `localhost:8088` | Unified Frontdoor & Constitutional governance kernel |
+| **A-FORGE** | *Internal-only* | `localhost:7071` / `7072` | Engineering actuator |
+| **GEOX** | *Internal-only* | `localhost:8081` | Geoscience organ |
+| **WEALTH** | *Internal-only* | `localhost:18082` | Capital/economic organ |
+| **WELL** | *Internal-only* | `localhost:18083` | Wellness organ |
 
 ### Recommended Connection Order
 
@@ -890,7 +890,7 @@ If a tool returns:
 ```json
 {
   "status": "DEPRECATED_PROXY",
-  "canonical_endpoint": "https://forge.arif-fazil.com/mcp"
+  "canonical_endpoint": "https://mcp.arif-fazil.com/mcp"
 }
 ```
 
@@ -904,7 +904,7 @@ LLM-readable federation manifest:
 
 Health endpoint:
 
-> `https://arifos.arif-fazil.com/health`
+> `https://mcp.arif-fazil.com/health`
 
 The manifest and health endpoint are auto-generated from the live registry. Do not infer tool counts from README badges alone.
 

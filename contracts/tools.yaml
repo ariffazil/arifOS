@@ -142,6 +142,8 @@ legacy_aliases:
   - { alias: arif_session_init,        canonical: arif_init,               deprecated_after: "2026-12-31", shim_layer: true,
       alias_of: arif_init, note: "long-name SDK alias for arif_init — resolves to arif_init via _CANONICAL_HANDLERS" }
   - { alias: arifos_act,               canonical: arif_act,                deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arif_reply_compose,       canonical: arif_compose,            deprecated_after: "2026-09-30", shim_layer: true,
+      alias_of: arif_compose, note: "legacy arif_reply_compose — long-name SDK alias for arif_compose; runtime resolves via _SDK_LONG_NAME_ALIASES" }
 
 # ════════════════════════════════════════════════════════════════════════════════
 # TOOL UNIVERSE — 13 canonical + 1 diagnostic + 7 federated + 1 sanctioned = 22

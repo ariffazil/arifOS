@@ -2,7 +2,7 @@
   "contract_family": "arifos-tool-contract",
   "contract_version": "0.1.0",
   "generated_at": "2026-06-28T21:15:00+08:00",
-  "graph_version": "v0.2.0",
+  "graph_version": "v0.1.0",
   "node_count": 25,
   "nodes": [
     {
@@ -509,7 +509,8 @@
       "fingerprint": "sha256:e31625140e8bc895",
       "section": "canonical_tools",
       "legacy_aliases": [
-        "arifos_compose"
+        "arifos_compose",
+        "arif_reply_compose"
       ]
     },
     {
@@ -1625,7 +1626,8 @@
     "arifos_gateway_connect": "arif_gateway_connect",
     "hermes_vault_query_legacy": "hermes_vault_query",
     "arif_session_init": "arif_init",
-    "arifos_act": "arif_act"
+    "arifos_act": "arif_act",
+    "arif_reply_compose": "arif_compose"
   },
   "deprecated": {
     "arifos_init": "2026-12-31",
@@ -1654,6 +1656,7 @@
     "arifos_gateway_connect": "2026-12-31",
     "hermes_vault_query_legacy": "2026-09-30",
     "arif_session_init": "2026-12-31",
-    "arifos_act": "2026-12-31"
+    "arifos_act": "2026-12-31",
+    "arif_reply_compose": "2026-09-30"
   }
 }

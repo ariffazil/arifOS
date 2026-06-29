@@ -53,6 +53,10 @@ conformance:
 	@echo "Running ARIF Conformance Spine v0.1..."
 	@$(PYTHON) -m arifosmcp.transport.conformance_spine
 
+deploy-bridge:
+	@echo "Deploying local source to app runtime via bridge..."
+	@bash scripts/deploy-bridge.sh
+
 deploy-local:
 	@echo "Deploying current arifOS HEAD to native bare-metal runtime..."
 	@cd $(DIR) && git fetch origin main

@@ -89,15 +89,24 @@ F1 AMANAH . F2 TRUTH . F3 TRI-WITNESS . F4 CLARITY . F5 PEACE2
 F6 EMPATHY . F7 HUMILITY . F8 GENIUS . F9 ANTIHANTU . F10 ONTOLOGY
 F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 
-## Federation Organs - MCP Endpoints
+## Canonical MCP Gateway
 
-| Organ | MCP Endpoint | Role | Tools |
-|------|-------------|------|-------|
-| **arifOS** (8088) | `arifos.arif-fazil.com/mcp` | Governance kernel | 16 canonical + 41 operational |
-| **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |
-| **GEOX** (8081) | `geox.arif-fazil.com/mcp` | Earth intelligence | 33 canonical tools |
-| **WEALTH** (18082) | `wealth.arif-fazil.com/mcp` | Capital intelligence | 20+ tools |
-| **WELL** (18083) | `well.arif-fazil.com/mcp` | Human readiness | 18+ tools |
+All public MCP traffic routes through one canonical gateway:
+
+| Endpoint | URL |
+|----------|-----|
+| MCP transport | `https://mcp.arif-fazil.com/mcp` |
+| Health | `https://mcp.arif-fazil.com/health` |
+
+## Federation Organs
+
+| Organ | Domain | Role | Tools |
+|------|--------|------|-------|
+| **arifOS** (8088) | `arifos.arif-fazil.com` | Governance kernel | 16 canonical + 41 operational |
+| **A-FORGE** (7071) | `forge.arif-fazil.com` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |
+| **GEOX** (8081) | `geox.arif-fazil.com` | Earth intelligence | 33 canonical tools |
+| **WEALTH** (18082) | `wealth.arif-fazil.com` | Capital intelligence | 20+ tools |
+| **WELL** (18083) | `well.arif-fazil.com` | Human readiness | 18+ tools |
 | **AAA** (3001) | `aaa.arif-fazil.com` | Control plane cockpit | A2A server, React SPA |
 
 ## Agent Rules (mandatory)

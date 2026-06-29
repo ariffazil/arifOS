@@ -214,7 +214,7 @@ Tool: agi_reason
 | `406 Not Acceptable` | Add header `Accept: application/json, text/event-stream` |
 | `429 Rate Limited` | Wait 60s, you're sending too fast |
 | `VOID` verdict | Check `floors` array in response — which floor failed? |
-| No response | Try `/health` endpoint: `curl https://arifosmcp.arif-fazil.com/health` |
+| No response | Try `/health` endpoint: `curl https://mcp.arif-fazil.com/health` |
 
 ---
 

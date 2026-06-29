@@ -3870,8 +3870,8 @@ def register_rest_routes(
         return JSONResponse(
             {
                 "note": "Cloudflare proxies block /.well-known/*. Use the canonical endpoint below.",
-                "canonical": f"{_public_base_url(request)}/.well-known/mcp/server.json",
-                "mcpEndpoint": f"{_public_base_url(request)}/mcp",
+                "canonical": "https://mcp.arif-fazil.com/.well-known/mcp/server.json",
+                "mcpEndpoint": "https://mcp.arif-fazil.com/mcp",
                 "docs": "https://modelcontextprotocol.io",
             },
             headers={"Access-Control-Allow-Origin": "*"},
@@ -3892,6 +3892,27 @@ def register_rest_routes(
                 "code_challenge_methods_supported": ["S256"],
                 "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"],
             }
+        )
+
+    @route("/.well-known/oauth-protected-resource", methods=["GET"])
+    @route("/.well-known/oauth-protected-resource/mcp", methods=["GET"])
+    async def oauth_protected_resource(request: Request) -> Response:
+        """OAuth 2.0 Protected Resource Metadata (RFC 8707).
+
+        Spec-compliant MCP clients fetch this first to discover the
+        authorization server before starting the auth code flow.
+        Without this, OAuth clients fail with
+        "failed to get oauth authorization url".
+        """
+        base = _public_base_url(request)
+        return JSONResponse(
+            {
+                "resource": f"{base}/mcp",
+                "authorization_servers": [base],
+                "bearer_methods_supported": ["header"],
+                "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"],
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
         )
 
     @route("/.well-known/jwks.json", methods=["GET"])

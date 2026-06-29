@@ -65,7 +65,7 @@ curl -s --max-time 5 https://wealth.arif-fazil.com/health
 curl -s --max-time 5 https://well.arif-fazil.com/health
 
 # MCP tool discovery (after initialize)
-curl -s --max-time 5 -X POST https://arifos.arif-fazil.com/mcp \
+curl -s --max-time 5 -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'
 ```

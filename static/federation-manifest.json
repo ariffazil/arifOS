@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-06-26T15:48:15Z",
+  "generated": "2026-06-29T15:51:37Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.05.05-SSCT (c791a24). 120 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-06-26T15:48:15Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=7, total_declared=58.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.05.05-SSCT (7c163c8). 134 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-06-29T15:51:37Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=9, total_declared=58.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -62,11 +62,11 @@
         "status": "healthy",
         "tools": 58,
         "release": "v2026.05.05-SSCT",
-        "version": "kanon-c791a24",
-        "commit": "c791a24",
+        "version": "kanon-7c163c8",
+        "commit": "7c163c8",
         "canonical_tools": 17,
         "diagnostic_tools": 41,
-        "tools_exposed_mcp": 7,
+        "tools_exposed_mcp": 9,
         "floors_active": 13,
         "vault_health": "healthy",
         "manifest_hash": "d53b77bbc45962e8"
@@ -80,9 +80,9 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 16,
-        "version": "v2026.06.22-phase2",
-        "git_version": "geox-98cd5383"
+        "tools": 31,
+        "version": "v2026.06.29-phase2.2-rasa",
+        "git_version": "geox-28ba4d97"
       },
       "wealth": {
         "name": "WEALTH",
@@ -105,7 +105,7 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "degraded",
-        "tools": 18,
+        "tools": 17,
         "version": "2026.05.15-ΩWELL+GWELL+FEDERATION"
       },
       "aaa": {

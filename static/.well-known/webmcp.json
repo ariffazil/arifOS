@@ -4,7 +4,7 @@
   "description": "Browser-native agent tool surface for arifOS Observatory, governed by arifOS constitutional floors F1-F13.",
   "sovereign": "did:web:arif-fazil.com",
   "constitutional_kernel": "https://arifos.arif-fazil.com",
-  "mcp_endpoint": "https://arifos.arif-fazil.com/mcp",
+  "mcp_endpoint": "https://mcp.arif-fazil.com/mcp",
   "adapter_script": "/_shared/webmcp/arifos-webmcp-adapter.js",
   "tools": [
     {

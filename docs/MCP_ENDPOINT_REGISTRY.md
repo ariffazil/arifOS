@@ -17,11 +17,11 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Property | Value |
 |----------|-------|
 | Name | arifOS Constitutional |
-| Public URL | `https://arifos.arif-fazil.com/mcp` |
+| Public URL | `https://mcp.arif-fazil.com/mcp` |
 | Transport | `streamable-http` |
 | Internal | `http://127.0.0.1:8088/mcp` |
 | Container port | 8080 (Docker default); live VPS uses 8088 |
-| Caddy route | `arifos.arif-fazil.com/mcp*` → `127.0.0.1:8088` |
+| Caddy route | `mcp.arif-fazil.com/mcp*` → `127.0.0.1:8088` |
 | Tools | 13 canonical `arif_*` tools |
 | Auth | None (public) |
 | Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
@@ -74,7 +74,7 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 
 | Service | openclaw.json url | Caddyfile route | server.py transport |
 |---------|------------------|-----------------|-------------------|
-| arifOS | `http://localhost:8088/mcp` | `arifos.arif-fazil.com/mcp*` | `streamable-http` |
+| arifOS | `http://localhost:8088/mcp` | `mcp.arif-fazil.com/mcp*` | `streamable-http` |
 | GEOX | `https://geox.arif-fazil.com/mcp` | `geox.arif-fazil.com/mcp/*` | `streamable-http` |
 | WEALTH | `http://localhost:18082/mcp` | `wealth.arif-fazil.com/mcp` | `streamable-http` |
 | WELL | *(dead)* | *(removed)* | `streamable-http` |
@@ -97,13 +97,13 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 
 ```bash
 # All public endpoints
-curl -s --max-time 5 https://arifos.arif-fazil.com/health
+curl -s --max-time 5 https://mcp.arif-fazil.com/health
 curl -s --max-time 5 https://geox.arif-fazil.com/health
 curl -s --max-time 5 https://wealth.arif-fazil.com/health
 curl -s --max-time 5 https://well.arif-fazil.com/health
 
 # MCP tool discovery (after initialize)
-curl -s --max-time 5 -X POST https://arifos.arif-fazil.com/mcp \
+curl -s --max-time 5 -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'

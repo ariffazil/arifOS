@@ -19,7 +19,7 @@ Verified against `https://arifos.arif-fazil.com/api/federation-probe` on 2026-05
 
 | Organ | Public MCP URL | Health | Verified tool count | Notes |
 |---|---|---:|---:|---|
-| arifOS | `https://arifos.arif-fazil.com/mcp` | healthy | 13 | Canonical governance surface. |
+| arifOS | `https://mcp.arif-fazil.com/mcp` | healthy | 13 | Canonical governance surface. |
 | GEOX | `https://geox.arif-fazil.com/mcp` | healthy | 22 | MCP session required for enumeration. |
 | WEALTH | `https://wealth.arif-fazil.com/mcp` | healthy | 17 | MCP session required for enumeration. |
 | WELL | `https://well.arif-fazil.com/mcp` | healthy | 45 | REFLECT_ONLY substrate monitor. Post PHOENIX-73F collapse (2026-05-26). |
@@ -76,7 +76,7 @@ It is not a memory write, VAULT seal, final truth oracle, or constitutional verd
 The discovery index for making tools easier to find is:
 
 ```text
-https://arifos.arif-fazil.com/mcp-discovery-index.json
+https://mcp.arif-fazil.com/mcp-discovery-index.json
 ```
 
 It intentionally separates verified MCP counts from REST registry counts where those differ.
@@ -144,7 +144,7 @@ python -m pytest tests/test_canonical.py tests/test_wiki_tools.py tests/test_hyb
 For public MCP JSON-RPC calls, include both content negotiation headers:
 
 ```bash
-curl -fsS --max-time 20 -X POST https://arifos.arif-fazil.com/mcp \
+curl -fsS --max-time 20 -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'

@@ -804,6 +804,20 @@
       },
       "expected_verdict": "SEAL",
       "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_compose",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_reply_compose"
+      },
+      "expected_resolved_to": "arif_compose",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-09-30",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
     }
   ]
 }

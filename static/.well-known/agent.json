@@ -3,7 +3,7 @@
   "name": "arifOS Constitutional MCP Kernel",
   "role": "mcp_kernel",
   "url": "https://arifos.arif-fazil.com",
-  "mcp_endpoint": "https://arifos.arif-fazil.com/mcp",
+  "mcp_endpoint": "https://mcp.arif-fazil.com/mcp",
   "transport": ["streamable-http"],
   "version": "2026.06.11-SSCT",
   "constitutional_floors": 13,
