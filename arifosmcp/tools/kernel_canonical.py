@@ -61,84 +61,106 @@ def _load_intent_map() -> dict[str, Any]:
                 return _intent_map_cache
     except Exception:
         pass
-    # Fallback: hardcoded map
+    # Fallback: hardcoded map — G13 FIX (2026-06-30): machine domain + AAA added
     _intent_map_cache = {
         "organ_routes": {
             "arifos": {
                 "organ": "arifOS",
                 "port": 8088,
                 "intent_keywords": [
-                    "life roadmap",
-                    "career decision",
-                    "personal decision",
-                    "what should i do",
-                    "life direction",
-                    "should i leave",
-                    "should i stay",
-                    "human sovereign",
-                    "sovereign decision",
-                    "life choice",
-                    "exit strategy",
-                    "what do i want",
-                    "my future",
+                    # Machine / MCP surface
+                    "MCP", "MCP server", "MCP tool", "MCP endpoint", "MCP connector",
+                    "tool registry", "tool schema", "tool conformance",
+                    "tool surface", "tool manifest", "tools/list", "tools/call",
+                    "capability surface", "capability lease",
+                    # Governance / constitutional
+                    "kernel health", "kernel status", "kernel route", "kernel attest",
+                    "arifos kernel", "arifos health", "arifos status",
+                    "constitutional floor", "constitutional check",
+                    "governance check", "governance status",
+                    "seal boundary", "seal verdict", "authority envelope",
+                    "epistemic tag", "cognitive axis",
+                    # Session / memory / vault
+                    "initialize session", "session init", "session anchor",
+                    "memory recall", "memory search", "vault seal", "vault ledger",
+                    "lease request", "belief state", "runtime schema",
+                    # Canonical tool names
+                    "arif init", "arif route", "arif triage",
+                    "arif judge", "arif seal", "arif measure",
+                    "arif observe", "arif think", "arif critique",
+                    "arif bridge", "arif gateway", "arif forge", "arif_forge",
+                    "arif memory", "arif_memory", "arif session", "arif vault",
+                    # Federation
+                    "federation contract", "federation manifest",
+                    "organ attestation", "organ health",
+                    "agentic search", "agent registry",
+                    # Sovereign / personal decisions
+                    "life roadmap", "career decision", "personal decision",
+                    "what should i do", "life direction",
+                    "should i leave", "should i stay",
+                    "human sovereign", "sovereign decision",
+                    "life choice", "exit strategy",
+                    "what do i want", "my future",
+                ],
+            },
+            "aaa": {
+                "organ": "AAA",
+                "port": 3001,
+                "intent_keywords": [
+                    "cockpit", "dashboard", "control plane",
+                    "AAA cockpit", "AAA dashboard",
+                    "agent identity", "agent registry cockpit",
+                    "permission list", "access control", "audit log",
+                    "federation health", "approval queue",
+                    "A2A gateway", "identity anchor", "throttle",
+                ],
+            },
+            "a_forge": {
+                "organ": "A-FORGE",
+                "port": 7071,
+                "intent_keywords": [
+                    "build", "deploy", "forge", "compile",
+                    "commit", "push", "git", "docker",
+                    "container", "image", "pipeline", "ci/cd",
+                    "jenkins", "github", "repository", "version",
+                    "dry run", "dry-run", "execute plan",
+                    "node install", "npm install", "npm build", "npm test",
+                    "uv sync", "docker compose",
+                    "systemctl restart", "systemd unit", "service restart",
+                    "make deploy", "code deploy", "rollback", "mutate file",
+                    "forge execute", "forge plan", "forge dryrun",
                 ],
             },
             "geox": {
                 "organ": "GEOX",
                 "port": 8081,
                 "intent_keywords": [
-                    "seismic",
-                    "well log",
-                    "las",
-                    "petrophysics",
-                    "horizon",
-                    "fault",
-                    "amplitude",
-                    "basin",
-                    "prospect",
-                    "subsurface",
-                    "velocity",
-                    "lithology",
-                    "porosity",
-                    "permeability",
-                    "resistivity",
-                    "gamma ray",
-                    "sonic",
-                    "density",
-                    "structural",
-                    "trap",
+                    "seismic", "well log", "las", "petrophysics",
+                    "horizon", "fault", "amplitude", "basin", "prospect",
+                    "subsurface", "velocity", "lithology", "porosity",
+                    "permeability", "resistivity", "gamma ray",
+                    "sonic", "density", "structural", "trap",
                 ],
             },
             "wealth": {
                 "organ": "WEALTH",
                 "port": 18082,
                 "intent_keywords": [
-                    "portfolio",
-                    "npv",
-                    "irr",
-                    "emv",
-                    "option",
-                    "derivative",
-                    "capital",
-                    "hedge",
-                    "risk metric",
-                    "allocation",
-                    "stress test",
+                    "portfolio", "npv", "irr", "emv",
+                    "option", "derivative", "capital", "hedge",
+                    "risk metric", "allocation", "stress test",
                 ],
             },
             "well": {
                 "organ": "WELL",
                 "port": 18083,
                 "intent_keywords": [
-                    "vitality",
-                    "biometric",
-                    "sleep",
-                    "heart rate",
-                    "hrv",
-                    "metabolic",
-                    "readiness",
-                    "recovery",
-                    "autonomic",
+                    # G13 FIX: human-vitality-only keywords
+                    "human health", "personal health",
+                    "wellness", "vitality", "biometric",
+                    "sleep", "heart rate", "hrv", "metabolic",
+                    "readiness", "recovery", "autonomic",
+                    "wellbeing", "maruah", "fatigue", "cognition load",
                 ],
             },
         }
@@ -151,7 +173,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     if explicit_organ:
         return explicit_organ.lower()
     if not intent:
-        return "arifos"
+        return "arifOS"
     intent_lower = intent.lower()
     intent_map = _load_intent_map()
     organ_routes = intent_map.get("organ_routes", {})
@@ -163,7 +185,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
             if kw.lower() in intent_lower and len(kw) > best_len:
                 best_len = len(kw)
                 best_match = organ_config.get("organ", organ_key.upper())
-    return best_match or "arifos"
+    return best_match or "arifOS"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -273,6 +295,9 @@ def arif_route(
 
     if target_organ.lower() == "a-forge":
         return _ok("arif_route", {**routing, "bridge_status": "a-forge: use A-FORGE MCP directly"})
+
+    if target_organ.lower() == "aaa":
+        return _ok("arif_route", {**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"})
 
     if target_organ.lower() == "arifos":
         return _ok("arif_route", {**routing, "bridge_status": "kernel-local: no bridge needed"})

@@ -12,8 +12,164 @@
 # Match priority: longest keyword wins (substring match)
 #
 # Ratified: 2026-06-20
+# Updated: 2026-06-30 — G13 fix: machine-domain routing added (was misrouting to WELL)
 ---
 organ_routes:
+  # ── arifOS Kernel: machine / governance / constitutional domain ──────────
+  # G13 FIX (2026-06-30): Previously arifos had NO keywords — it was only the
+  # default fallback. Machine-domain queries containing "health", "readiness",
+  # etc. would match WELL keywords. Now arifos has explicit machine keywords
+  # (longer than WELL's generic ones) so machine queries route correctly.
+  arifos:
+    intent_keywords:
+      # Machine / MCP surface
+      - MCP
+      - MCP server
+      - MCP tool
+      - MCP endpoint
+      - MCP connector
+      - tool registry
+      - tool schema
+      - tool conformance
+      - tool surface
+      - tool manifest
+      - tools/list
+      - tools/call
+      - capability surface
+      - capability lease
+      # Governance / constitutional
+      - kernel health
+      - kernel status
+      - kernel route
+      - kernel attest
+      - arifos kernel
+      - arifos health
+      - arifos status
+      - constitutional floor
+      - constitutional check
+      - governance check
+      - governance status
+      - seal boundary
+      - seal verdict
+      - authority envelope
+      - epistemic tag
+      - cognitive axis
+      # Session / memory / vault
+      - initialize session
+      - session init
+      - session anchor
+      - memory recall
+      - memory search
+      - vault seal
+      - vault ledger
+      - lease request
+      - belief state
+      - runtime schema
+      # Canonical tool names (explicit arif_* queries)
+      - arif init
+      - arif route
+      - arif triage
+      - arif judge
+      - arif seal
+      - arif measure
+      - arif observe
+      - arif think
+      - arif critique
+      - arif bridge
+      - arif gateway
+      - arif forge
+      - arif_forge
+      - arif memory
+      - arif_memory
+      - arif session
+      - arif vault
+      # Federation
+      - federation contract
+      - federation manifest
+      - organ attestation
+      - organ health
+      - agentic search
+      - agent registry
+      # Sovereign / personal decisions (original arifos domain)
+      - life roadmap
+      - career decision
+      - personal decision
+      - what should i do
+      - life direction
+      - should i leave
+      - should i stay
+      - human sovereign
+      - sovereign decision
+      - life choice
+      - exit strategy
+      - what do i want
+      - my future
+    organ: arifOS
+    port: 8088
+    tool_prefix: arifos_
+
+  aaa:
+    intent_keywords:
+      - cockpit
+      - dashboard
+      - control plane
+      - AAA cockpit
+      - AAA dashboard
+      - agent identity
+      - agent registry cockpit
+      - permission list
+      - access control
+      - audit log
+      - federation health
+      - approval queue
+      - A2A gateway
+      - identity anchor
+      - throttle
+    organ: AAA
+    port: 3001
+    tool_prefix: ""
+
+  a_forge:
+    intent_keywords:
+      - build
+      - deploy
+      - forge
+      - compile
+      - commit
+      - push
+      - git
+      - docker
+      - container
+      - image
+      - pipeline
+      - ci/cd
+      - jenkins
+      - github
+      - repository
+      - version
+      - dry run
+      - dry-run
+      - execute plan
+      - node install
+      - npm install
+      - npm build
+      - npm test
+      - uv sync
+      - docker compose
+      - systemctl restart
+      - systemd unit
+      - service restart
+      - make deploy
+      - code deploy
+      - rollback
+      - mutate file
+      - forge execute
+      - forge plan
+      - forge dryrun
+    organ: A-FORGE
+    port: 7071
+    tool_prefix: ""
+
   geox:
     intent_keywords:
       - seismic
@@ -120,10 +276,15 @@ organ_routes:
 
   well:
     intent_keywords:
+      # G13 FIX: "health" removed from WELL — it was too broad and captured
+      # machine/federation/kernel health queries. Now only human/vitality
+      # health keywords route to WELL. "health" alone defaults to arifOS.
+      # Specific human-health phrases (longer match) still route here:
+      - human health
+      - personal health
       - wellness
       - vitality
       - biometric
-      - health
       - sleep
       - heart rate
       - hrv
@@ -146,57 +307,13 @@ organ_routes:
       - temperature
       - stress index
       - autonomic
+      - wellbeing
+      - maruah
+      - fatigue
+      - cognition load
     organ: WELL
     port: 18083
     tool_prefix: well_
-
-  a_forge:
-    intent_keywords:
-      - build
-      - deploy
-      - forge
-      - compile
-      - commit
-      - push
-      - git
-      - docker
-      - container
-      - image
-      - pipeline
-      - ci/cd
-      - jenkins
-      - github
-      - repository
-      - version
-    organ: A-FORGE
-    port: 7071
-    tool_prefix: ""
-
-  aaa:
-    intent_keywords:
-      - dashboard
-      - control plane
-      - throttle
-      - permission
-      - access control
-      - audit log
-      - federation health
-      - agent registry
-      - cockpit
-    organ: AAA
-    port: 3001
-    tool_prefix: ""
-
-  # apex:
-  #   intent_keywords:
-  #     - apex
-  #     - oracle
-  #     - third witness
-  #     - constitutional review
-  #   organ: APEX
-  #   port: 3002
-  #   tool_prefix: ""
-  # NOTE: APEX decommissioned 2026-06-14. Deliberation absorbed into AAA a2a-server.
 
 # Default routing when no keyword matches
 default_organ: arifOS
@@ -207,7 +324,7 @@ precedence:
   # (earth domain takes priority over financial for hybrid queries)
   geox_priority_over:
     - wealth
-  well_priority_over:
-    - a_forge
+  # G13 FIX (2026-06-30): Removed well_priority_over a_forge.
+  # Machine health queries now match arifos/AAA keywords (longer than WELL's).
   # Exact organ override — if organ parameter is explicitly passed, use it
   explicit_organ_overrides_keyword_match: true
