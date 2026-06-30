@@ -1,0 +1,33 @@
+{
+  "$schema": "https://glama.ai/schemas/glama.json",
+  "name": "arifOS",
+  "description": "Production-grade Constitutional AI Governance System. 13 canonical MCP tools enforcing F1-F13 constitutional floors, 888_JUDGE sovereign verdict pipeline, VAULT999 immutable ledger.",
+  "author": {
+    "name": "Muhammad Arif bin Fazil",
+    "url": "https://arif-fazil.com"
+  },
+  "repository": {
+    "url": "https://github.com/ariffazil/arifOS",
+    "type": "git"
+  },
+  "homepage": "https://arif-fazil.com",
+  "license": "AGPL-3.0",
+  "version": "2026.06.30",
+  "tags": [
+    "constitutional-ai",
+    "governance",
+    "mcp-server",
+    "sovereign-ai",
+    "ai-safety",
+    "federation"
+  ],
+  "features": {
+    "tools": true,
+    "resources": true,
+    "prompts": false
+  },
+  "transport": {
+    "type": "streamable-http",
+    "url": "https://arifos.arif-fazil.com/mcp"
+  }
+}
