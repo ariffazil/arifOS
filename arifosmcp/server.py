@@ -619,8 +619,11 @@ try:
             client_capabilities: dict[str, Any] | None = None,
             actor_id: str | None = None,
             session_id: str | None = None,
+            mode: str = "full",
+            limit: int = 10,
         ) -> dict[str, Any]:
-            """Standalone conformance report — FastMCP 3 compatible (no **kwargs)."""
+            """Standalone conformance report — FastMCP 3 compatible (no **kwargs).
+            P3 fix 2026-06-30: mode/limit params absorbed for schema compatibility."""
             return _runtime_conformance_report(
                 payload=payload, _envelope=_envelope, client_capabilities=client_capabilities
             )
@@ -649,7 +652,7 @@ try:
             "Conformance report standalone gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
         )
 
-# ── Canary Multimode (replaces 6 individual canaries) ────────────────────
+    # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
     # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
     if _EXPOSE_DEV_TOOLS:
@@ -677,12 +680,16 @@ try:
     # ── P3 FIX 2026-06-30: arif_triage + arif_compose — ChatGPT audit BANGANG ──
     # Both tools are implemented in kernel_canonical.py but were excluded from
     # server.py registration (intentionally canonical-7 only). Now added to expanded45.
+    # ── P3 FIX 2026-06-30: Import _wrap_handler EARLY for triage/compose/conformance ──
+    from arifosmcp.runtime.tools import _wrap_handler
+
     # arif_triage: session status, priority queue, preflight checks.
     # arif_compose: governed response composition — formats final output.
     if _EXPOSE_DEV_TOOLS:
         try:
             from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
-            _triage_handler = _arif_triage
+
+            _triage_handler = _wrap_handler(_arif_triage, "arif_triage")
             mcp.tool(
                 name="arif_triage",
                 description=(
@@ -693,14 +700,18 @@ try:
                 tags={"triage", "diagnostic", "read-only", "session"},
                 annotations={"readOnlyHint": True, "destructiveHint": False},
             )(_triage_handler)
-            logger.info("arif_triage registered — expanded45 operator surface (P3 fix 2026-06-30).")
+            logger.info(
+                "arif_triage registered — expanded45 operator surface (P3 fix 2026-06-30, _wrap_handler)."
+            )
         except Exception as _triage_err:
             logger.warning("arif_triage registration failed (non-fatal): %s", _triage_err)
 
         try:
             from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH
+
             _compose_fn = _CTH.get("arif_compose")
             if _compose_fn is not None:
+                _compose_wrapped = _wrap_handler(_compose_fn, "arif_compose")
                 mcp.tool(
                     name="arif_compose",
                     description=(
@@ -710,14 +721,16 @@ try:
                     ),
                     tags={"compose", "reply", "read-only", "output"},
                     annotations={"readOnlyHint": True, "destructiveHint": False},
-                )(_compose_fn)
-                logger.info("arif_compose registered — expanded45 operator surface (P3 fix 2026-06-30).")
+                )(_compose_wrapped)
+                logger.info(
+                    "arif_compose registered — expanded45 operator surface (P3 fix 2026-06-30, _wrap_handler)."
+                )
             else:
-                logger.warning("arif_compose: not found in CANONICAL_TOOL_HANDLERS — skip registration.")
+                logger.warning(
+                    "arif_compose: not found in CANONICAL_TOOL_HANDLERS — skip registration."
+                )
         except Exception as _compose_err:
             logger.warning("arif_compose registration failed (non-fatal): %s", _compose_err)
-
-    from arifosmcp.runtime.tools import _wrap_handler
 
     # ── Forge Ladder — DEPRECATED PROXY (engineering tools moved to A-FORGE) ─
     # forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate now

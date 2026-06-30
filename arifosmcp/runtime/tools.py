@@ -4304,6 +4304,20 @@ def _ensure_vault_loaded() -> None:
     _VAULT_LOADED = True
 
 
+# 333_MIND degraded reasoning states (P1 recovery 2026-06-30).
+# Local/non-breaking: used in result.meta and timeout fallback telemetry.
+DEGRADED_REASONING_STATES = {
+    "SUCCESS_REASONED": "SUCCESS_REASONED",
+    "SUCCESS_PARTIAL": "SUCCESS_PARTIAL",
+    "DEGRADED_EMPTY_HOLD": "DEGRADED_EMPTY_HOLD",
+    "DEGRADED_TIMEOUT": "DEGRADED_TIMEOUT",
+    "DEGRADED_DISPATCH": "DEGRADED_DISPATCH",
+    "DEGRADED_NO_EVIDENCE": "DEGRADED_NO_EVIDENCE",
+    "VOID_SCHEMA": "VOID_SCHEMA",
+    "VOID_UNSAFE": "VOID_UNSAFE",
+}
+
+
 def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
     """
     Deterministic SAFE_VOID fallback when LLM call times out or fails.
@@ -4315,6 +4329,9 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
     - reasons: REQUIRED field (array) — was returning 'reason' (string).
     - nine_signal: must match _NINE_SIGNAL_SCHEMA (delta/psi/omega/overall).
       The old shape (status/confidence/entropy_delta) was schema-invalid.
+
+    P1 2026-06-30: Adds degraded_state taxonomy so empty VOID is never mistaken
+    for successful reasoning. Telemetry flags distinguish dispatch vs compute.
     """
     _safe_reason = f"SAFE_VOID_FALLBACK: {reason}"
     _safe_reasons = [_safe_reason]
@@ -4328,6 +4345,12 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
             "reason": _safe_reason,
             "fallback": True,
             "timeout_ms": _TIMEOUT_MS,
+            "degraded_state": DEGRADED_REASONING_STATES["DEGRADED_TIMEOUT"],
+            "telemetry": {
+                "handler_entered": True,
+                "model_started": True,
+                "handler_returned": False,
+            },
         },
         "nine_signal": {
             "delta": {
@@ -9525,11 +9548,21 @@ def _arif_mind_reason(
             entropy_direction="stable",
             irreversibility=False,
         )
-        # Async constitutional synthesis — SEA-LION LLM when available, template fallback
-        # F7 Humility: confidence hard-capped at 0.85 by _synthesize_async
-        synthesis_dict = _run_async(_synthesize_async(query, "inductive"))
-        synthesis_text = synthesis_dict.get("bounded_answer", _synthesize(query, "inductive"))
-        llm_confidence = synthesis_dict.get("overall_confidence", 0.85)
+        # P1 2026-06-30: bypass async LLM to eliminate 30s timeout on arif_think/reason.
+        # Deterministic template synthesis preserves constitutional grounding.
+        synthesis_text = _synthesize(query, "inductive")
+        synthesis_dict = {
+            "bounded_answer": synthesis_text,
+            "what_is_supported": [],
+            "what_is_not_supported": [],
+            "what_remains_unknown": [
+                "P1 degraded mode — LLM synthesis bypassed for timeout resilience"
+            ],
+            "confidence_reasoning": 0.5,
+            "confidence_evidence": 0.3,
+            "overall_confidence": 0.65,
+        }
+        llm_confidence = synthesis_dict["overall_confidence"]
         scars_list = _detect_scars(query, synthesis_text)
         output = MindOutput(
             status="OK",
@@ -9947,12 +9980,15 @@ async def _arif_mind_reason_tool(
             pass
 
     try:
-        # Structural/deterministic modes — bypass LLM entirely
+        # Structural/deterministic modes — bypass LLM entirely.
+        # P1 fix (2026-06-30, FORGE): reflect | verify | critique were
+        # incorrectly routed through LLM path, causing 30-60s timeout on
+        # modes that have instant deterministic sync handlers in
+        # _arif_mind_reason (threat_engine.classify, axioms dict, plan
+        # registry). Only reason | debate | socratic | metabolize genuinely
+        # require the LLM inference pipeline (v2 / SEA-LION / Ollama).
         if mode not in (
             "reason",
-            "reflect",
-            "verify",
-            "critique",
             "debate",
             "socratic",
             "metabolize",
@@ -9965,6 +10001,23 @@ async def _arif_mind_reason_tool(
                 plan_id=plan_id,
                 witness_type=witness_type,
             )
+            # P1 telemetry: deterministic bypass must expose handler_entered,
+            # model_started=false, handler_returned=true so callers can diagnose
+            # the old timeout path vs the fixed sync path.
+            _telemetry = {
+                "handler_entered": True,
+                "model_started": False,
+                "handler_returned": True,
+                "deterministic_bypass": True,
+                "mode": mode,
+            }
+            if isinstance(result, dict):
+                result.setdefault("meta", {})
+                result["meta"]["telemetry"] = _telemetry
+                result["meta"]["degraded_state"] = DEGRADED_REASONING_STATES["SUCCESS_REASONED"]
+            elif hasattr(result, "meta") and isinstance(result.meta, dict):
+                result.meta["telemetry"] = _telemetry
+                result.meta["degraded_state"] = DEGRADED_REASONING_STATES["SUCCESS_REASONED"]
             if trace:
                 await trace.span(
                     "arif_mind_reason",
@@ -10007,6 +10060,13 @@ async def _arif_mind_reason_tool(
                 plan_id=plan_id,
                 witness_type=witness_type,
             )
+            # P1: the async LLM module failed to import or dispatch; mark the
+            # fallback so callers can distinguish dispatch failure from timeout.
+            if isinstance(result, dict):
+                result.setdefault("meta", {})
+                result["meta"]["degraded_state"] = DEGRADED_REASONING_STATES["DEGRADED_DISPATCH"]
+            elif hasattr(result, "meta") and isinstance(result.meta, dict):
+                result.meta["degraded_state"] = DEGRADED_REASONING_STATES["DEGRADED_DISPATCH"]
 
         result["tool"] = "arif_mind_reason"
         result["nine_signal"] = _nine_signal_from_status(result.get("status", "OK"))
@@ -11021,6 +11081,8 @@ def _arif_reply_compose(
     session_id: str | None = None,
     actor_id: str | None = None,
     evidence_receipt: dict[str, Any] | None = None,
+    ai_involvement: str = "full",  # F14 #1 — absorbed, not used in rule fallback
+    language: str = "en",  # F14 #4 — absorbed, not used in rule fallback
 ) -> dict[str, Any]:
     """
     444_REPLY: Governed response composition with constitutional tone control.
@@ -11268,7 +11330,15 @@ async def _arif_reply_compose_tool(
                 language=language,  # F14 #4
             )
 
-        result.setdefault("status", "OK")
+        # P3 FIX 2026-06-30: Verdict monotonicity — propagate VOID/BLOCKED from inner compose.
+        # Inner compose (reply_compose.py) returns verdict: VOID/BLOCKED without a status key.
+        # setdefault("status", "OK") was silently overriding VOID→OK → nine_signal: SELAMAT.
+        # Outer must preserve the inner constitutional verdict.
+        inner_verdict = result.get("verdict")
+        if inner_verdict in ("VOID", "BLOCKED"):
+            result["status"] = inner_verdict
+        else:
+            result.setdefault("status", "OK")
         result["tool"] = "arif_reply_compose"
         result.setdefault("session_id", session_id)
         result.setdefault("actor_id", _actor_for_response(session_id, actor_id))
@@ -19050,10 +19120,19 @@ def get_tool_handler(name: str) -> Any:
     if handler:
         return handler
 
-    # 2. Try legacy alias
+    # 2. Try legacy alias (forward lookup)
     canonical_name = _LEGACY_ALIASES.get(name)
     if canonical_name:
-        return CANONICAL_TOOL_HANDLERS.get(canonical_name)
+        handler = CANONICAL_TOOL_HANDLERS.get(canonical_name)
+        if handler:
+            return handler
+
+    # 3. Try reverse lookup (if name is target of alias)
+    for k, v in _LEGACY_ALIASES.items():
+        if v == name:
+            handler = CANONICAL_TOOL_HANDLERS.get(k)
+            if handler:
+                return handler
 
     return None
 
@@ -19067,24 +19146,52 @@ def register_v2_tools(mcp: FastMCP, **kwargs: Any) -> list[str]:
 # arifos_* → arif_* canonical name mapping for backward compatibility.
 # Used by tools_hardened_dispatch.get_tool_handler to route legacy calls.
 _LEGACY_ALIASES: dict[str, str] = {
-    # ── Canonical 13: arifos_* → short canonical arif_* ─────────────────────
-    # Long-name aliases (arif_session_init, arif_judge_deliberate, etc.) are
-    # now first-class handlers; the legacy arifos_* prefix resolves directly
-    # to the short canonical names to keep routing unambiguous.
+    # ── Legacy -> New (For dispatch routing) ──
+    "arif_init": "arifos_init",
+    "arif_observe": "arifos_observe",
+    "arif_think": "arifos_think",
+    "arif_route": "arifos_route",
+    "arif_judge": "arifos_judge",
+    "arif_act": "arifos_act",
+    "arif_seal": "arifos_seal",
+    "arif_kernel_intercept": "arifos_kernel_intercept",
+    "arif_critique": "arifos_critique",
+    "arif_fetch": "arifos_fetch",
+    "arif_compose": "arifos_compose",
+    "arif_memory": "arifos_memory",
+    "arif_measure": "arifos_measure",
+    "arif_forge": "arifos_forge",
+    "arif_bridge_connect": "arifos_bridge_connect",
+    "arif_ping": "arifos_ping",
+    "arif_canary": "arifos_canary",
+    "arif_conformance_report": "arifos_conformance_report",
+    "arif_schema_echo": "arifos_schema_echo",
+    "arif_version_echo": "arifos_version_echo",
+    "arif_transport_echo": "arifos_transport_echo",
+    "arif_initialize_probe": "arifos_initialize_probe",
+    "arif_triage": "arifos_triage",
+    "arif_bridge": "arifos_bridge_connect",
+    "arif_kernel_health": "arifos_kernel_health",
+    "arif_kernel_status": "arifos_kernel_status",
+    "arif_kernel_attest": "arifos_kernel_attest",
+    "arif_self_evaluate": "arifos_self_evaluate",
+    "arif_model_compare": "arifos_model_compare",
+    # ── New -> Legacy (For handler registration) ──
     "arifos_init": "arif_init",
-    "arifos_kernel": "arif_kernel_intercept",
+    "arifos_observe": "arif_observe",
+    "arifos_think": "arif_think",
+    "arifos_route": "arif_route",
     "arifos_judge": "arif_judge",
-    "arifos_vault": "arif_seal",
-    "arifos_mind": "arif_think",
-    "arifos_heart": "arif_critique",
+    "arifos_act": "arif_act",
+    "arifos_seal": "arif_seal",
+    "arifos_kernel_intercept": "arif_kernel_intercept",
+    "arifos_critique": "arif_critique",
+    "arifos_fetch": "arif_fetch",
+    "arifos_compose": "arif_compose",
     "arifos_memory": "arif_memory",
-    "arifos_sense": "arif_observe",
-    "arifos_ops": "arif_measure",
+    "arifos_measure": "arif_measure",
     "arifos_forge": "arif_forge",
-    "arifos_gateway": "arif_bridge_connect",
-    "arifos_evidence": "arif_fetch",
-    "arifos_reply": "arif_compose",
-    # ── Canary probes: arifos_* → arif_* ────────────────────────────────────
+    "arifos_bridge_connect": "arif_bridge_connect",
     "arifos_ping": "arif_ping",
     "arifos_canary": "arif_canary",
     "arifos_conformance_report": "arif_conformance_report",
@@ -19092,14 +19199,11 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arifos_version_echo": "arif_version_echo",
     "arifos_transport_echo": "arif_transport_echo",
     "arifos_initialize_probe": "arif_initialize_probe",
-    # ── Kernel diagnostics: arifos_* → arif_* ───────────────────────────────
     "arifos_triage": "arif_triage",
-    "arifos_route": "arif_route",
     "arifos_bridge": "arif_bridge_connect",
-    "arifos_health": "arif_kernel_health",  # fixed: was wrongly arif_ops_measure
-    "arifos_status": "arif_kernel_status",
-    "arifos_attest": "arif_kernel_attest",
-    # ── Shadow geometry: arifos_* → arif_* ──────────────────────────────────
+    "arifos_kernel_health": "arif_kernel_health",
+    "arifos_kernel_status": "arif_kernel_status",
+    "arifos_kernel_attest": "arif_kernel_attest",
     "arifos_self_evaluate": "arif_self_evaluate",
     "arifos_model_compare": "arif_model_compare",
 }
