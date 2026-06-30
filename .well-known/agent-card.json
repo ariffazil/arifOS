@@ -1,0 +1,27 @@
+{
+  "schema": "arifOS/agent-card/v2.0.0",
+  "name": "arifOS Constitutional Kernel",
+  "service_id": "arifos-kernel",
+  "version": "2026.06.30",
+  "description": "Constitutional kernel — 7-tool MCP surface, 13 floors, VAULT999, F1-F13 governance.",
+  "authority": "F13_SOVEREIGN",
+  "transport": {
+    "port": 8088,
+    "domain": "arifos.arif-fazil.com",
+    "endpoint": "https://arifos.arif-fazil.com/mcp"
+  },
+  "capabilities": {
+    "tools": 7,
+    "golden_path": ["init","observe","think","route","judge","act","seal"]
+  },
+  "governance": {
+    "floors": ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13"],
+    "verdict_types": ["SEAL","HOLD","SABAR","VOID"],
+    "authority_boundary": "F13_SOVEREIGN"
+  },
+  "identity_hash": {
+    "algorithm": "BLAKE3",
+    "source": "session_init",
+    "chain_upstream": null
+  }
+}

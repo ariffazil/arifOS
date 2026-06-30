@@ -1,0 +1,19 @@
+{
+  "schema": "mcp",
+  "version": "2026.06.30",
+  "protocolVersion": "2025-11-25",
+  "name": "arifOS MCP",
+  "description": "Constitutional kernel — 7-tool MCP surface, 13 floors, VAULT999 immutable audit.",
+  "tools": 7,
+  "endpoint": "https://arifos.arif-fazil.com/mcp",
+  "identity": {
+    "canonical_name": "arifOS",
+    "service_id": "arifos-kernel",
+    "authority": "F13_SOVEREIGN",
+    "port": 8088
+  },
+  "governance": {
+    "floors": ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13"],
+    "authority_boundary": "F13_SOVEREIGN"
+  }
+}

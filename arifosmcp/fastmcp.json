@@ -1,14 +1,13 @@
 {
   "server_info": {
     "name": "arifOS MCP",
-    "version": "2026.04.16",
-    "description": "Constitutional 13-floor MCP gateway. Trinity: arifOS (governance), GEOX (earth grounding), WEALTH (capital intelligence). Public surface: 13 canonical tools (arif_noun_verb naming). Diagnostic capabilities folded into canonical modes: stack_health→arif_measure, budget→arif_measure, consensus→arif_gateway_connect, scan_instructions→arif_judge."
+    "version": "2026.06.30",
+    "description": "Constitutional kernel. Public surface: exactly 7 tools (cognition exposed, plumbing hidden). 13 floors, F13 sovereign veto. DITEMPA BUKAN DIBERI."
   },
-  "protocolVersion": "2025-03-26",
-  "mcp_version": "2025-03-26",
+  "protocolVersion": "2025-11-25",
+  "mcp_version": "2025-11-25",
   "supportedProtocolVersions": [
-    "2025-03-26",
-    "2024-11-05"
+    "2025-11-25"
   ],
   "transport": "streamable-http",
   "constitutional_floors": {
@@ -27,427 +26,130 @@
   "organs": [
     "arifOS",
     "GEOX",
-    "WEALTH"
+    "WEALTH",
+    "WELL",
+    "A-FORGE",
+    "AAA"
   ],
   "tools": [
     {
-      "name": "arifos_init",
-      "description": "Initialize constitutional session with identity binding and telemetry seed. Modes: init/probe/state/status (safe read modes) | revoke requires human_approval. probe mode: Session diagnostic checking anchor validity and authority enum compatibility.",
+      "name": "arif_init",
+      "description": "000 Bootstrap governed session and bind actor identity.",
       "inputSchema": {
         "type": "object",
-        "required": [
-          "actor_id",
-          "intent"
-        ],
+        "required": ["actor_id", "intent"],
         "properties": {
-          "actor_id": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 64
-          },
-          "intent": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 20000
-          },
-          "declared_name": {
-            "type": "string",
-            "maxLength": 64
-          },
-          "session_id": {
-            "type": "string",
-            "minLength": 8,
-            "maxLength": 128
-          },
-          "risk_tier": {
-            "type": "string",
-            "enum": [
-              "low",
-              "medium",
-              "high",
-              "critical"
-            ],
-            "default": "medium"
-          },
-          "platform": {
-            "type": "string",
-            "enum": [
-              "mcp",
-              "chatgpt_apps",
-              "cursor",
-              "api",
-              "stdio",
-              "unknown"
-            ],
-            "default": "unknown"
-          },
+          "actor_id": { "type": "string", "minLength": 2, "maxLength": 64 },
+          "intent": { "type": "string", "minLength": 1, "maxLength": 20000 },
+          "session_id": { "type": "string", "minLength": 8, "maxLength": 128 },
           "mode": {
             "type": "string",
-            "enum": [
-              "init",
-              "refresh",
-              "state",
-              "status",
-              "probe"
-            ],
-            "default": "init",
-            "description": "Session operation mode. probe=diagnostic compatibility check. revoke=separate arifos.session tool (requires human_approval)."
+            "enum": ["init", "light", "resume", "validate", "epoch_open", "epoch_seal", "opt_out"],
+            "default": "init"
           }
         }
       }
     },
     {
-      "name": "arifos_sense",
-      "description": "Ground query in physical reality via the 8-stage constitutional sensing protocol: PARSE \u2192 CLASSIFY \u2192 DECIDE \u2192 PLAN \u2192 RETRIEVE \u2192 NORMALIZE \u2192 GATE \u2192 HANDOFF. Live web search is gated by truth classification \u2014 invariants use offline reasoning; time-sensitive facts trigger live retrieval; ambiguous queries HOLD for narrowing.",
+      "name": "arif_observe",
+      "description": "111 Ground in current reality (absorbs fetch).",
       "inputSchema": {
         "type": "object",
-        "required": [
-          "query"
-        ],
+        "required": ["query"],
         "properties": {
-          "query": {
-            "type": "string",
-            "description": "Query to classify and ground in reality"
-          },
+          "query": { "type": "string", "description": "Query to ground" },
           "mode": {
             "type": "string",
-            "enum": [
-              "governed",
-              "search",
-              "ingest",
-              "compass",
-              "atlas",
-              "time"
-            ],
-            "default": "governed",
-            "description": "'governed' = full 8-stage constitutional protocol (recommended). Legacy modes: 'search' (raw), 'ingest' (URL fetch), 'compass' (auto-detect), 'atlas' (discovery), 'time' (clock grounding)."
+            "enum": ["search", "hybrid_discovery", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+            "default": "search"
           },
-          "session_id": {
-            "type": "string"
-          },
-          "intent": {
-            "type": "string",
-            "description": "Optional user intent hint"
-          },
-          "query_frame": {
-            "type": "object",
-            "description": "Optional: {domain, time_scope, jurisdiction}"
-          },
-          "dry_run": {
-            "type": "boolean",
-            "default": true,
-            "description": "False = execute live retrieval; True = plan only (no HTTP calls)"
-          }
+          "url": { "type": "string" },
+          "session_id": { "type": "string" }
         }
       }
     },
     {
-      "name": "arifos_mind",
-      "description": "Multi-source synthesis and structured first-principles reasoning with uncertainty bands.",
+      "name": "arif_think",
+      "description": "333 Reason, plan, reflect, critique.",
       "inputSchema": {
         "type": "object",
-        "required": [
-          "query"
-        ],
+        "required": ["query"],
         "properties": {
-          "query": {
-            "type": "string",
-            "description": "Task or question to reason about"
-          },
-          "context": {
-            "type": "string",
-            "description": "Additional context for reasoning"
-          },
+          "query": { "type": "string", "description": "Task or question to reason about" },
           "mode": {
             "type": "string",
-            "enum": [
-              "reason",
-              "sequential",
-              "step",
-              "branch",
-              "merge",
-              "review"
-            ],
-            "default": "reason",
-            "description": "reason=AGI pipeline; sequential=constitutional step-thinking; step/branch/merge/review=thinking session ops"
+            "enum": ["reason", "reflect", "verify", "critique", "plan", "plan_review", "plan_approve", "refactor_plan", "metabolize", "axioms"],
+            "default": "reason"
           },
-          "session_id": {
-            "type": "string"
-          }
+          "session_id": { "type": "string" }
         }
       }
     },
     {
-      "name": "arifos_kernel",
-      "description": "Route request to correct metabolic lane or tool family based on risk and task type.",
+      "name": "arif_route",
+      "description": "444 Route intent to correct organ.",
       "inputSchema": {
         "type": "object",
-        "required": [
-          "query"
-        ],
+        "required": ["intent"],
         "properties": {
-          "query": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Request to route"
-          },
+          "intent": { "type": "string", "description": "Natural-language description of what the user wants" },
+          "organ": { "type": "string" },
+          "organ_tool": { "type": "string" },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_judge",
+      "description": "888 Constitutional verdict (SEAL/HOLD/SABAR/VOID).",
+      "inputSchema": {
+        "type": "object",
+        "required": ["actor", "intent", "requested_capability", "domain", "reversibility_level", "blast_radius"],
+        "properties": {
+          "actor": { "type": "string" },
+          "intent": { "type": "string" },
+          "requested_capability": { "type": "string" },
+          "domain": { "type": "string" },
+          "reversibility_level": { "type": "string" },
+          "blast_radius": { "type": "string" },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_act",
+      "description": "900 Execute approved action. Requires seal_verdict_id.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["seal_verdict_id", "approved_action_hash"],
+        "properties": {
+          "seal_verdict_id": { "type": "string" },
+          "approved_action_hash": { "type": "string" },
+          "actor_id": { "type": "string" },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_seal",
+      "description": "999 Seal to immutable ledger.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["mode"],
+        "properties": {
           "mode": {
             "type": "string",
-            "enum": [
-              "kernel",
-              "status"
-            ],
-            "default": "kernel"
+            "enum": ["seal", "verify", "ledger", "changelog", "audit"],
+            "default": "seal"
           },
-          "session_id": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    {
-      "name": "arifos_heart",
-      "description": "Red-team proposal for ethical risks. Simulate consequences, evaluate against F5, F6, F9.",
-      "inputSchema": {
-        "type": "object",
-        "required": [
-          "query"
-        ],
-        "properties": {
-          "query": {
-            "type": "string",
-            "description": "Content or proposal to critique"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "critique",
-              "simulate"
-            ],
-            "default": "critique"
-          },
-          "session_id": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    {
-      "name": "arifos_ops",
-      "description": "Calculate operation costs, thermodynamics, capacity, and timing with entropy analysis.",
-      "inputSchema": {
-        "type": "object",
-        "required": [
-          "query"
-        ],
-        "properties": {
-          "query": {
-            "type": "string",
-            "description": "Action to estimate costs for"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "cost",
-              "health",
-              "vitals",
-              "entropy"
-            ],
-            "default": "cost"
-          },
-          "session_id": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    {
-      "name": "arifos_judge",
-      "description": "Final constitutional verdict evaluation. Outputs: SEAL, PARTIAL, VOID, HOLD.",
-      "inputSchema": {
-        "type": "object",
-        "required": [
-          "query",
-          "risk_tier"
-        ],
-        "properties": {
-          "query": {
-            "type": "string",
-            "description": "Action to judge"
-          },
-          "risk_tier": {
-            "type": "string",
-            "enum": [
-              "low",
-              "medium",
-              "high",
-              "critical"
-            ],
-            "default": "medium"
-          },
-          "telemetry": {
-            "type": "object",
-            "description": "Optional telemetry data"
-          },
-          "session_id": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    {
-      "name": "arifos_memory",
-      "description": "Retrieve governed memory and engineering context from vector store.",
-      "inputSchema": {
-        "type": "object",
-        "required": [
-          "query"
-        ],
-        "properties": {
-          "query": {
-            "type": "string",
-            "description": "Memory query"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "vector_query",
-              "vector_store",
-              "engineer",
-              "query"
-            ],
-            "default": "vector_query"
-          },
-          "session_id": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    {
-      "name": "arifos_vault",
-      "description": "Append immutable verdict record to Merkle-hashed ledger.",
-      "inputSchema": {
-        "type": "object",
-        "required": [
-          "verdict"
-        ],
-        "properties": {
-          "verdict": {
-            "type": "string",
-            "enum": [
-              "SEAL",
-              "PARTIAL",
-              "VOID",
-              "HOLD"
-            ],
-            "description": "Verdict to log"
-          },
-          "evidence": {
-            "type": "string",
-            "description": "Evidence summary"
-          },
-          "session_id": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    {
-      "name": "arifos_gateway",
-      "description": "Orthogonality guard (\u03a9_ortho >= 0.95) supervising AGI||ASI lanes across arifOS, WEALTH, and GEOX organs. Modes: guard, audit, correlate.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "session_id": {
-            "type": "string"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "guard",
-              "audit",
-              "correlate"
-            ],
-            "default": "guard"
-          },
-          "tool_trace": {
-            "type": "array",
-            "description": "Ordered list of tool calls to evaluate"
-          },
-          "correlation_threshold": {
-            "type": "number",
-            "default": 0.95
-          }
-        },
-        "required": [
-          "session_id"
-        ]
-      }
-    },
-    {
-      "name": "arifos_forge",
-      "description": "Issue signed execution manifest to A-FORGE substrate. Requires judge SEAL. Preserves separation of powers.",
-      "inputSchema": {
-        "type": "object",
-        "required": [
-          "action",
-          "payload",
-          "session_id",
-          "judge_verdict",
-          "judge_g_star"
-        ],
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "shell",
-              "api_call",
-              "contract",
-              "compute",
-              "container",
-              "vm"
-            ],
-            "description": "Execution type"
-          },
-          "payload": {
-            "type": "object",
-            "description": "Action-specific parameters"
-          },
-          "session_id": {
-            "type": "string"
-          },
-          "judge_verdict": {
-            "type": "string",
-            "enum": [
-              "SEAL"
-            ],
-            "description": "Must be SEAL from arifos.judge"
-          },
-          "judge_g_star": {
-            "type": "number",
-            "minimum": 0.0,
-            "maximum": 1.0,
-            "description": "G\u2605 score at time of verdict"
-          },
-          "constraints": {
-            "type": "object",
-            "description": "Resource limits (cpu, memory, timeout)"
-          },
-          "dry_run": {
-            "type": "boolean",
-            "default": true,
-            "description": "Generate manifest without dispatch"
-          },
-          "a_forge_endpoint": {
-            "type": "string",
-            "description": "Target substrate endpoint"
-          }
+          "payload": { "type": "string" },
+          "ack_irreversible": { "type": "boolean", "default": false },
+          "session_id": { "type": "string" }
         }
       }
     }
   ],
-  "public_tool_count": 13,
+  "public_tool_count": 7,
   "resources": [
     {
       "uri": "arifos://vitals",
@@ -458,8 +160,16 @@
       "description": "Constitutional floor specifications"
     },
     {
-      "uri": "arifos://trinity",
-      "description": "\u0394\u03a9\u03a8 Trinity architecture"
+      "uri": "arifos://doctrine",
+      "description": "Constitutional doctrine and governance"
+    },
+    {
+      "uri": "arifos://schema",
+      "description": "Schema definitions"
+    },
+    {
+      "uri": "arifos://session/{session_id}",
+      "description": "Session state resource"
     }
   ],
   "capabilities": {

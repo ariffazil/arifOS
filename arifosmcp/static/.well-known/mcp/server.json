@@ -1,129 +1,28 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
-  "version": "1.0",
+  "schema": "mcp",
+  "version": "2026.06.30",
   "protocolVersion": "2025-11-25",
-  "serverInfo": {
-    "name": "arifos-mcp",
-    "title": "arifOS Constitutional MCP Server",
-    "version": "2026.06.23-7tool-facade"
-  },
-  "description": "Governed MCP server — 7 canonical verbs only (init, observe, think, route, judge, act, seal). Human approval gates on irreversible actions, VAULT999 immutable ledger, 888 Judge arbitration, live thermodynamic telemetry. F13 ratified 2026-06-23: expose cognition, hide plumbing.",
-  "transport": {
-    "type": "streamable-http",
-    "endpoint": "https://mcp.arif-fazil.com/mcp"
-  },
-  "authentication": {
-    "required": true,
-    "schemes": ["bearer"],
-    "headerName": "Authorization",
-    "envVar": "ARIFOS_API_KEY"
-  },
-  "capabilities": {
-    "tools": { "listChanged": true },
-    "resources": { "subscribe": true, "listChanged": true },
-    "prompts": { "listChanged": true }
+  "name": "arifOS MCP",
+  "description": "Constitutional kernel. Public surface: exactly 7 tools. 13 floors, F13 sovereign veto.",
+  "tools": [
+    "arif_init", "arif_observe", "arif_think", "arif_route",
+    "arif_judge", "arif_act", "arif_seal"
+  ],
+  "public_tool_count": 7,
+  "constitution_hash": "c65465c98bc2cfa0",
+  "floors_active": 13,
+  "endpoint": "https://mcp.arif-fazil.com/mcp",
+  "identity": {
+    "canonical_name": "arifOS MCP",
+    "service_id": "arifos-mcp",
+    "authority": "F13_SOVEREIGN",
+    "transport": "streamable-http",
+    "port": 8088,
+    "domain": "mcp.arif-fazil.com"
   },
   "governance": {
-    "humanApprovalRequiredForIrreversibleActions": true,
-    "selfApprovalForbidden": true,
-    "auditRequired": true,
-    "defaultMutationMode": "dry_run",
-    "leaseRequiredForMutation": true,
-    "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_Witness","L04_Clarity","L05_Peace","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_Audit","L12_Injection","L13_Sovereign"],
-    "verdictTaxonomy": ["SEAL","HOLD","VOID","SABAR","PROCEED","888_HOLD"],
-    "riskClasses": ["C0_GRAMMAR","C1_DRAFT","C2_REVIEW","C3_PUBLIC","C4_LEGAL_MONEY","C5_IRREVERSIBLE"]
-  },
-  "links": {
-    "homepage": "https://arif-fazil.com",
-    "status": "https://mcp.arif-fazil.com/health",
-    "constitution": "https://arif-fazil.com/000"
-  },
-  "tools": {
-    "count": 7,
-    "frozen": "2026-06-23",
-    "naming": "arif_verb (canonical) — one intent = one public tool",
-    "canonical": [
-      {
-        "name": "arif_init",
-        "stage": "000",
-        "access": "public",
-        "description": "START HERE. Bootstrap session + bind actor identity. Select when no session_id exists or resuming a previous session.",
-        "actionClass": "PREPARE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_observe",
-        "stage": "111",
-        "access": "public",
-        "description": "Ground in reality. Select when factual evidence gap exists: web search, URL fetch, vitals, repo map. Resolves data uncertainty.",
-        "actionClass": "OBSERVE",
-        "riskTier": "low",
-        "irreversible": false
-      },
-      {
-        "name": "arif_think",
-        "stage": "333",
-        "access": "public",
-        "description": "Reason under uncertainty. Select when cognitive decomposition is needed: plan, critique, analyze, verify. Resolves reasoning gap.",
-        "actionClass": "ANALYZE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_route",
-        "stage": "555",
-        "access": "public",
-        "description": "Select organ/tool for intent. Select when intent→tool mapping is uncertain. Bridges to GEOX, WEALTH, WELL, or A-FORGE.",
-        "actionClass": "ANALYZE",
-        "riskTier": "low",
-        "irreversible": false
-      },
-      {
-        "name": "arif_judge",
-        "stage": "888",
-        "access": "authenticated",
-        "description": "Constitutional verdict. Select when evidence→plan pipeline is complete. Floor check + authority check. Returns SEAL/HOLD/SABAR/VOID.",
-        "actionClass": "DRAFT",
-        "riskTier": "critical",
-        "irreversible": false
-      },
-      {
-        "name": "arif_act",
-        "stage": "900",
-        "access": "sovereign",
-        "description": "Execute after valid SEAL. Select ONLY when seal_verdict_id + approved_action_hash exist from prior judge→seal pipeline. 888_HOLD structurally otherwise.",
-        "actionClass": "IRREVERSIBLE",
-        "riskTier": "critical",
-        "irreversible": true,
-        "requiresSeal": true
-      },
-      {
-        "name": "arif_seal",
-        "stage": "999",
-        "access": "authenticated",
-        "description": "Immutable VAULT999 anchor. Select when finality and audit trail required. Cryptographic hash-chain record. Irreversible.",
-        "actionClass": "IRREVERSIBLE",
-        "riskTier": "critical",
-        "irreversible": true
-      }
-    ],
-    "requiresHumanAck": ["arif_seal", "arif_act"],
-    "requiresSession": ["arif_judge", "arif_seal", "arif_act"],
-    "irreversibleGate": "arif_act requires seal_verdict_id + approved_action_hash from prior arif_judge + arif_seal"
-  },
-  "resources": {
-    "count": 5,
-    "uris": [
-      "arifos://doctrine",
-      "arifos://vitals",
-      "arifos://schema",
-      "arifos://session/{session_id}",
-      "arifos://tools/affordance"
-    ]
-  },
-  "prompts": {
-    "count": 1,
-    "names": ["arifos-constitutional-reflex"]
+    "floors": ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13"],
+    "verdict_types": ["SEAL","HOLD","SABAR","VOID"],
+    "irreversible_gate": "arif_act requires seal_verdict_id"
   }
 }

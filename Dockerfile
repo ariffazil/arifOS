@@ -138,7 +138,11 @@ LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifos" \
       org.opencontainers.image.revision="${DEPLOY_GIT_COMMIT}" \
       org.opencontainers.image.created="${DEPLOY_BUILD_TIME}" \
       org.opencontainers.image.source="https://github.com/ariffazil/arifOS" \
-      org.opencontainers.image.licenses="AGPL-3.0"
+      org.opencontainers.image.description="Constitutional kernel — 7-tool MCP surface, 13 floors, VAULT999, F1-F13 governance." \
+      org.opencontainers.image.version="2026.06.30" \
+      org.opencontainers.image.licenses="BSL-1.1" \
+      arifos.organ="arifOS" \
+      arifos.authority="F13_SOVEREIGN"
 
 # Execute consolidated entrypoint
 CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8088"]
