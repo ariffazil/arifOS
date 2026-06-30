@@ -9,7 +9,14 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "kimi-coding/k2p5"
+        "primary": "tokenrouter/deepseek/deepseek-v4-pro",
+        "fallbacks": [
+          "tokenrouter/anthropic/claude-sonnet-4.6",
+          "tokenrouter/deepseek/deepseek-v4-flash",
+          "tokenrouter/xiaomi/mimo-v2.5-pro",
+          "tokenrouter/x-ai/grok-4.20-beta",
+          "tokenrouter/z-ai/glm-5.1"
+        ]
       },
       "sandbox": {
         "mode": "all"

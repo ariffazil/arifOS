@@ -18,13 +18,13 @@ from arifosmcp.runtime.build import get_build_info
 # diagnostic probe, or hidden helper. See /root/AAA/skills/arifos-recursive-audit
 # and AGENTIC_AFFORDANCE_GUIDE.md for doctrine.
 CANONICAL_7: tuple[str, ...] = (
-    "arif_init",  # 000 — Start here. Session bootstrap + actor identity. Precedes all other calls.
-    "arif_observe",  # 111 — Ground in reality. External evidence, vitals, repo map.
-    "arif_think",  # 333 — Reason, plan, critique. Cognitive engine for complex decisions.
-    "arif_route",  # 444 — Select organ/tool. Bridge when intent→tool mapping is uncertain.
-    "arif_judge",  # 888 — Constitutional verdict. SEAL/HOLD/SABAR/VOID. Evidence→plan→judge pipeline.
-    "arif_act",  # 900 — Execute only after valid SEAL. Requires seal_verdict_id + approved_action_hash.
-    "arif_seal",  # 999 — Permanent record. VAULT999 hash chain. Irreversible.
+    "arifos_init",  # 000 — Start here. Session bootstrap + actor identity. Precedes all other calls.
+    "arifos_observe",  # 111 — Ground in reality. External evidence, vitals, repo map.
+    "arifos_think",  # 333 — Reason, plan, critique. Cognitive engine for complex decisions.
+    "arifos_route",  # 444 — Select organ/tool. Bridge when intent→tool mapping is uncertain.
+    "arifos_judge",  # 888 — Constitutional verdict. SEAL/HOLD/SABAR/VOID. Evidence→plan→judge pipeline.
+    "arifos_act",  # 900 — Execute only after valid SEAL. Requires seal_verdict_id + approved_action_hash.
+    "arifos_seal",  # 999 — Permanent record. VAULT999 hash chain. Irreversible.
 )
 
 # Deprecated alias for internal code that still imports CANONICAL_13.
@@ -61,90 +61,72 @@ CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = (
 # ── Canonical7 Public Surface (= exactly 7 canonical verbs) ─────────────────
 # F13 ratified 2026-06-23: exactly 7 public verbs.
 # Everything else (plumbing, aliases, diagnostics) is internal and filtered.
+# ── Canonical 7 Public Surface (F13 ratified 2026-06-23) ─────────────────
+# The public surface is exactly 7 verbs. The name CANONICAL13_PUBLIC_SURFACE
+# is retained for backward compat but is semantically CANONICAL_7.
 CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_7
 
+# Preferred canonical names for surface modes (2026-06-30 clarity fix):
+#   "canonical7"  → 7 constitutional verbs (default public)
+#   "canonical13" → DEPRECATED alias for "canonical7" — kept for backward compat
+#   "expanded45"  → canonical7 + all diagnostics (operator/debug)
+VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
+    "canonical7",      # preferred — matches the number 7
+    "canonical13",     # deprecated alias — still works, maps to canonical7
+    "expanded45",      # operator/debug surface
+)
+
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
-    # "arifos_" is blocked from tools/list but NOT from dispatch.
-    # _LEGACY_ALIASES in tools.py routes arifos_* → arif_* at call time.
+    # "arif_" is blocked from tools/list but NOT from dispatch.
+    # _LEGACY_ALIASES in tools.py routes arif_* → arifos_* at call time.
     # Full surface unblock when execution gate + constitutional_map aligned.
-    "arifos_",
-    "_arifos_",
+    "arif_",
+    "_arif_",
     "wealth_",
     "afwell_",
     "geox_",
     "geoxarifos_",
 )
 
-VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
-    "canonical13",
-    "expanded45",
-)
-
 
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
 # These are the ONLY non-canonical tools that have live FastMCP handlers.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
-    "arif_ping",
+    "arifos_ping",
     # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
-    "arif_conformance_report",
-    "arif_schema_echo",
-    "arif_version_echo",
-    "arif_transport_echo",
-    "arif_initialize_probe",
+    "arifos_schema_echo",
+    "arifos_version_echo",
+    "arifos_transport_echo",
+    "arifos_initialize_probe",
     # ── Legacy diagnostics ──
-    "arif_stack_health_probe",
-    "arif_scan_local_instructions",
-    "arif_organ_consensus",
-    "arif_session_budget",
-    "arif_floor_status",
+    "arifos_stack_health_probe",
+    "arifos_scan_local_instructions",
+    "arifos_organ_consensus",
+    "arifos_session_budget",
+    "arifos_floor_status",
     "mcp_drift_check",
-    "hermes_system_status",
-    "arif_vault_query",
-    "hermes_epistemic_check",
-    "hermes_fact_check",
-    "hermes_cross_verify",
-    "hermes_plan_review",
-    "hermes_memory_steward",
+    "arifos_vault_query",
     # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ──
-    "arif_self_evaluate",
-    "arif_model_compare",
-    # ── Internal aliases and helpers (demoted 2026-06-23 7-tool facade) ──
-    # SDK long-name aliases and internal-only handlers remain callable but are
-    # NOT advertised on the public wire surface. Public agents see only CANONICAL_7.
-    "arif_bridge_connect",
-    "arif_compose",
-    "arif_critique",
-    "arif_cross_attest",
-    "arif_evidence_fetch",
-    "arif_explore",
-    "arif_fetch",
-    "arif_forge",
-    "arif_forge_execute",
-    "arif_gate_judge",
-    "arif_gateway_connect",
-    "arif_heart_critique",
-    "arif_judge_deliberate",
-    "arif_kernel_attest",
-    "arif_kernel_health",
-    "arif_kernel_intercept",
-    "arif_measure",
-    "arif_memory",
-    "arif_memory_recall",
-    "arif_mind_reason",
-    "arif_ops_measure",
-    "arif_paradox_status",
-    "arif_reply_compose",
-    "arif_selftest",
-    "arif_sense_observe",
-    "arif_session_init",
-    "arif_tool_exists",
-    "arif_triage",
-    "arif_vault_seal",
-    "arif_resolve_tool",
+    "arifos_self_evaluate",
+    "arifos_model_compare",
+    # ── Internal helpers (non-deprecated) ──
+    "arifos_bridge_connect",
+    "arifos_gate_judge",
+    "arifos_gateway_connect",
+    "arifos_heart_critique",
+    "arifos_kernel_attest",
+    "arifos_kernel_health",
+    "arifos_kernel_intercept",
+    "arifos_paradox_status",
+    "arifos_selftest",
+    "arifos_tool_exists",
+    "arifos_resolve_tool",
     # ── Eureka Margin Discovery Substrate (Phase 2, 2026-06-29) ──
-    "arif_discover_margins",
-    "arif_bridge_mcp_server",
-    "arif_synthesize_canon",
+    "arifos_discover_margins",
+    "arifos_bridge_mcp_server",
+    "arifos_synthesize_canon",
+    # ── BM25 Tool Retrieval (Ratel insight, 2026-06-29) ──
+    "arifos_retrieve_tools",
 )
 
 # EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).
@@ -160,6 +142,11 @@ EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_7, *DIAGNOST
 
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
+    """Resolve surface mode. canonical7 (default) = 7 verbs. expanded45 = 7 + diagnostics.
+
+    canonical13 is a deprecated alias for canonical7 — it always meant 7 tools
+    (the 13 was a historical count, never the current canonical number).
+    """
     raw = (mode or "").strip().lower()
     if not raw:
         raw = (os.getenv("ARIFOS_PUBLIC_SURFACE_MODE", "") or "").strip().lower()
@@ -167,15 +154,16 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         raw = (os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "") or "").strip().lower()
 
     profile_map = {
-        "public": "canonical13",
-        "chatgpt": "canonical13",
-        "agnostic_public": "canonical13",
-        "canonical13": "canonical13",
-        "canonical15": "canonical13",  # deprecated alias — canonical count is 15
+        "canonical7": "canonical7",
+        "public": "canonical7",
+        "chatgpt": "canonical7",
+        "agnostic_public": "canonical7",
+        "canonical13": "canonical7",  # deprecated alias — canonical count is 7
+        "canonical15": "canonical7",  # deprecated alias
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
-    return profile_map.get(raw, "canonical13")
+    return profile_map.get(raw, "canonical7")
 
 
 def current_public_surface_mode() -> str:
@@ -186,22 +174,29 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     """
     Return the public tool names for a given surface mode.
 
-    canonical13 (default): CANONICAL_7 (7 tools).
-        F13 ratified 2026-06-23: exactly 7 canonical verbs.
-        One intent = one public tool. No SDK aliases on the wire.
-    expanded45: CANONICAL_7 + DIAGNOSTIC_TOOLS (gated tools included).
+    canonical7 (default): CANONICAL_7 (7 constitutional verbs).
+        F13 ratified 2026-06-23: exactly 7 public verbs.
+        One intent = one public tool. No SDK aliases, no diagnostics on the wire.
+    expanded45: CANONICAL_7 + DIAGNOSTIC_TOOLS (operator/debug surface).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+        Adds arif_conformance_report, arif_canary, and other read-only diagnostics.
 
     INTERNAL_ONLY filter: tools registered in CANONICAL_TOOLS with
     access == "internal_only" are NEVER exposed via any public mode.
     """
     resolved = normalize_public_surface_mode(mode)
     if resolved == "expanded45":
-        candidates = EXPANDED_45
+        expose_dev_tools = os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "false").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
+        candidates = EXPANDED_45 if expose_dev_tools else CANONICAL13_PUBLIC_SURFACE
     else:
-        # canonical13: exactly the 7 canonical verbs (F13-ratified 2026-06-23).
-        # SDK aliases and plumbing hidden. Canaries/diagnostics not on public wire by default.
-        candidates = CANONICAL13_PUBLIC_SURFACE
+        # canonical7 (default): exactly the 7 canonical verbs.
+        # Also handles "canonical13" (deprecated alias).
+        candidates = CANONICAL13_PUBLIC_SURFACE  # == CANONICAL_7
     # Filter out internal_only tools regardless of mode.
     return tuple(
         name
@@ -218,16 +213,27 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 
 
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
+    """Report the public tool surface state for the given mode.
+
+    Two profiles (2026-06-30 clarity):
+      canonical7 — 7 constitutional verbs (public agents, default)
+      expanded45 — canonical7 + diagnostics (operator/debug, ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)
+    """
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
-    diagnostic_tools = [name for name in tool_names if name in set(DIAGNOSTIC_TOOLS)]
+    diagnostic_names = [name for name in tool_names if name in set(DIAGNOSTIC_TOOLS)]
     return {
         "mode": resolved,
+        "mode_aliases": {
+            "canonical7": "7 constitutional verbs (public default)",
+            "canonical13": "DEPRECATED alias for canonical7",
+            "expanded45": "canonical7 + arif_conformance_report + arif_canary + diagnostics (operator/debug)",
+        },
         "tools_registered": len(tool_names),
         "kernel_tools": len(CANONICAL_7),
-        "diagnostic_tools": diagnostic_tools,
+        "canonical_count": len(CANONICAL_7),
+        "diagnostic_tools": diagnostic_names,
         "tool_names": tool_names,
-        "canonical13_count": len(CANONICAL_7),
         "blocked_public_prefixes": list(BLOCKED_PUBLIC_PREFIXES),
     }
 

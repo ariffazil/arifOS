@@ -24,8 +24,8 @@ from .tool_discovery_resource import (
 def register_tool_discovery(mcp: FastMCP) -> list[str]:
     """Register tool discovery resource and alias resolver.
 
-    MCP tools (arif_resolve_tool, arif_get_affordance) are gated behind
-    ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
+    MCP tools (arif_resolve_tool, arif_get_affordance) are internal operator
+    aids and stay behind ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
     Resources (arif://...) are always registered — they don't appear in tools/list.
     """
     import os
@@ -47,77 +47,65 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
     # def tool_discovery_resource() -> dict: ...
     # registered.append("arif://tools/discovery")
 
-    # Register alias resolution tool (diagnostic utility — always available in expanded45)
-    # Removed ARIFOS_MCP_EXPOSE_DEV_TOOLS gate 2026-06-28: this is a read-only diagnostic
-    # that agents need for tool alias resolution. F4 CLARITY: better to resolve than guess.
-    # 9-Tool Audit Fix 2 (2026-06-29): absorbs _envelope/actor_id/session_id to prevent
-    # FastMCP 3 Pydantic validation errors from transport-injected fields. The resolver
-    # ignores these — it only cares about `name`. But it MUST accept them in the signature.
+    if _EXPOSE_DEV_TOOLS:
+        # Internal operator utility. Read-only, but not part of the public 7-verb
+        # constitutional facade.
+        @mcp.tool(
+            name="arif_resolve_tool",
+            description=(
+                "Resolve a tool name or alias to the canonical arifOS tool name. "
+                "Use when you have a tool name but aren't sure if it's the canonical name. "
+                "Returns: canonical_name, aliases, callable, schema_valid, authority_class, "
+                "use_when, examples. Only `name` is used — all other fields are absorbed and ignored."
+            ),
+            tags={"discovery", "utility", "read-only"},
+        )
+        def resolve_tool(
+            name: str,
+            _envelope: Any = None,
+            actor_id: str | None = None,
+            session_id: str | None = None,
+        ) -> dict:
+            """Resolve a tool name or alias to canonical form — pure resolution."""
+            normalized = (name or "").strip()
+            if not normalized:
+                return {
+                    "found": False,
+                    "query": name,
+                    "error": "Empty tool name — provide a non-empty string.",
+                    "callable": False,
+                    "schema_valid": True,
+                    "registered_in_graph": False,
+                    "authority_class": "unknown",
+                    "suggestions": [],
+                }
+            canonical = resolve_tool_name(normalized)
+            if canonical:
+                from .tool_discovery_resource import TOOL_DISCOVERY
 
-    @mcp.tool(
-        name="arif_resolve_tool",
-        description=(
-            "Resolve a tool name or alias to the canonical arifOS tool name. "
-            "Use when you have a tool name but aren't sure if it's the canonical name. "
-            "Returns: canonical_name, aliases, callable, schema_valid, authority_class, "
-            "use_when, examples. Only `name` is used — all other fields are absorbed and ignored."
-        ),
-        tags={"discovery", "utility", "read-only"},
-    )
-    def resolve_tool(
-        name: str,
-        _envelope: Any = None,
-        actor_id: str | None = None,
-        session_id: str | None = None,
-    ) -> dict:
-        """Resolve a tool name or alias to canonical form — pure resolution.
-
-        Takes name (required). Absorbs _envelope, actor_id, session_id from
-        transport without using them — prevents FastMCP 3 Pydantic validation
-        errors from unexpected keyword injection. The resolver is clean: it only
-        cares about the tool name. Everything else is envelope noise.
-        """
-        # Normalize — strip whitespace, handle empty/None
-        normalized = (name or "").strip()
-        if not normalized:
+                meta = TOOL_DISCOVERY.get(canonical, {})
+                return {
+                    "found": True,
+                    "canonical_name": canonical,
+                    "aliases": meta.get("aliases", []),
+                    "use_when": meta.get("use_when", ""),
+                    "examples": meta.get("examples", []),
+                    "category": meta.get("category", ""),
+                    "callable": True,
+                    "schema_valid": True,
+                    "registered_in_graph": True,
+                    "authority_class": meta.get("tier", "public"),
+                }
             return {
                 "found": False,
-                "query": name,
-                "error": "Empty tool name — provide a non-empty string.",
+                "query": normalized,
+                "suggestions": find_tools_by_query(normalized)[:3],
                 "callable": False,
                 "schema_valid": True,
                 "registered_in_graph": False,
                 "authority_class": "unknown",
-                "suggestions": [],
             }
-        canonical = resolve_tool_name(normalized)
-        if canonical:
-            from .tool_discovery_resource import TOOL_DISCOVERY
-
-            meta = TOOL_DISCOVERY.get(canonical, {})
-            return {
-                "found": True,
-                "canonical_name": canonical,
-                "aliases": meta.get("aliases", []),
-                "use_when": meta.get("use_when", ""),
-                "examples": meta.get("examples", []),
-                "category": meta.get("category", ""),
-                "callable": True,
-                "schema_valid": True,
-                "registered_in_graph": True,
-                "authority_class": meta.get("tier", "public"),
-            }
-        return {
-            "found": False,
-            "query": normalized,
-            "suggestions": find_tools_by_query(normalized)[:3],
-            "callable": False,
-            "schema_valid": True,
-            "registered_in_graph": False,
-            "authority_class": "unknown",
-        }
-
-    registered.append("arif_resolve_tool")
+        registered.append("arif_resolve_tool")
 
     # DISABLED 2026-06-28 (zen of resources — tool affordance metadata, not domain data).
     # Tool affordances are about the MCP tool interface itself. The gated tool

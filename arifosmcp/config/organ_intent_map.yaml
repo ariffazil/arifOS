@@ -28,6 +28,18 @@ organ_routes:
       - MCP tool
       - MCP endpoint
       - MCP connector
+      - MCP diagnostic
+      - MCP conformance
+      - MCP surface
+      - ChatGPT connector
+      - OpenAI connector
+      - Copilot connector
+      - surface drift
+      - connector schema
+      - connector cache
+      - protocol version
+      - protocol drift
+      - protocol conformance
       - tool registry
       - tool schema
       - tool conformance

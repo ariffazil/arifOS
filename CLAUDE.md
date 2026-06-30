@@ -191,7 +191,7 @@ mypy arifosmcp/runtime/ --ignore-missing-imports
 - **New tools** → extend handler in `arifosmcp/tools/`, update `constitutional_map.py`, regenerate `tool_registry.json`.
 - **Lease required for mutation** — all mutation-class forge modes (engineer, write, generate, commit) require a valid lease. Read-only modes exempt. Hard-block (no warn-and-proceed).
 - **Memory tiers** — unknown tiers downgrade to `ephemeral` (F2 TRUTH fix). Tiers: sacred, canon, session, ephemeral, test.
-- **888_HOLD before:** `rm -rf`, vault writes, force push, production deploy, secret rotation.
+- **888_HOLD before:** `rm -rf`, vault writes, **force push to shared main branch**, production deploy, secret rotation. Feature-branch force-push = digital normal per AGENTS.md §10.
 - **Identity anchors** — arifOS→constitution_hash, GEOX→physics_manifest, WEALTH→capital_manifest, WELL→substrate_manifest.
 - **Agentic search** — FSM states: PLAN→RETRIEVE→EVAL→(REFINE)*→SYNTHESISE. MAX_LOOPS=3.
 

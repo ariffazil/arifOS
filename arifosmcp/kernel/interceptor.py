@@ -192,6 +192,7 @@ TOOL_ALIASES: dict[str, str] = {
     "arifos_kernel_intercept": "arif_kernel_intercept",
     "arifos_gateway_connect": "arif_gateway_connect",
     "hermes_vault_query_legacy": "arif_vault_query",
+    "hermes_vault_query": "arif_vault_query",  # P3 fix 2026-06-30: canonical alias
 }
 
 

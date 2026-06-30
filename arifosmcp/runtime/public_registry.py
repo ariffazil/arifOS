@@ -531,26 +531,31 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
             or "Governed arifOS MCP tool.",
             output_schema=None,
         )
+        input_schema = tool.parameters
+        if input_schema is None:
+            input_schema = {"type": "object", "properties": {}, "additionalProperties": False}
+        elif isinstance(input_schema, dict):
+            input_schema = {**input_schema, "additionalProperties": False}
         contracts[name] = {
             "description": tool.description
             or _TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool."),
-            "input_schema": tool.parameters
-            or {"type": "object", "properties": {}, "additionalProperties": False},
+            "input_schema": input_schema,
             "output_schema": None,
         }
     return contracts
 
 
 def _spec_for_name(name: str) -> Any:
-    contract = _tool_registry_contracts().get(name, {})
-    runtime_contract = _runtime_contracts().get(name, {})
+    lookup_name = name.replace("arifos_", "arif_") if name.startswith("arifos_") else name
+    contract = _tool_registry_contracts().get(lookup_name, {})
+    runtime_contract = _runtime_contracts().get(lookup_name, {})
     return SimpleNamespace(
         name=name,
         description=runtime_contract.get(
-            "description", _TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool.")
+            "description", _TOOL_DESCRIPTIONS.get(lookup_name, "Governed arifOS MCP tool.")
         ),
-        role=_role_for_name(name),
-        layer=_layer_for_name(name),
+        role=_role_for_name(lookup_name),
+        layer=_layer_for_name(lookup_name),
         stage=contract.get("stage", "000"),
         trinity=contract.get("lane", "AGI"),
         floors=tuple(contract.get("floors", [])),
@@ -558,7 +563,7 @@ def _spec_for_name(name: str) -> Any:
             "input_schema",
             {"type": "object", "properties": {}, "additionalProperties": False},
         ),
-        output_schema=runtime_contract.get("output_schema") or _tool_output_schema(name),
+        output_schema=runtime_contract.get("output_schema") or _tool_output_schema(lookup_name),
         visibility="public",
         access=contract.get("access", "public"),
     )

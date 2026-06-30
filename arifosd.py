@@ -1206,6 +1206,15 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
             return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": TOOLS}}
 
         if method == "tools/call":
+            tool_name = params.get("name", "")
+            # ── Legacy alias resolution (2026-06-30: align with canonical 7) ─
+            resolved = TOOL_ALIAS_MAP.get(tool_name, tool_name)
+            if resolved != tool_name:
+                params = dict(params)
+                params["name"] = resolved
+                params.setdefault("_meta", {})
+                params["_meta"]["resolved_from"] = tool_name
+                params["_meta"]["resolved_to"] = resolved
             args = params.get("arguments", {})
             return asyncio.run(
                 self.pipeline.metabolize(
@@ -1297,33 +1306,74 @@ class UnixSocketHandler(socketserver.StreamRequestHandler):
 # MODULE 6 — MCP TOOL REGISTRY
 # =============================================================================
 
+# ── Canonical 7 Public MCP Surface (aligned with arifOS F13-ratified 2026-06-23) ─
+# arifosd now exposes exactly the 7 canonical MCP verbs.
+# Legacy aliases (arif_session_init, arif_sense_observe, etc.) resolve via
+# TOOL_ALIAS_MAP below. Shell wrappers (arif_run/exec/sudo/systemctl) and
+# diagnostics (arif_apex_judge, arif_floor_status, arif_vault_integrity) are
+# removed from the public wire surface — call arif_route for routing or
+# arif_conformance_report on the FastMCP :8088 surface for diagnostics.
 TOOLS = [
     {
-        "name": "arif_session_init",
-        "description": "000 INIT — initialize governed session",
+        "name": "arif_init",
+        "description": "000 INIT — initialize governed session. Start here. Session bootstrap + actor identity.",
         "inputSchema": {
             "type": "object",
-            "properties": {"actor_id": {"type": "string"}},
+            "properties": {
+                "actor_id": {"type": "string"},
+                "mode": {"type": "string", "enum": ["init", "resume", "validate", "light"]},
+            },
             "required": ["actor_id"],
         },
     },
     {
-        "name": "arif_sense_observe",
-        "description": "111 SENSE — sense machine state",
+        "name": "arif_observe",
+        "description": "111 OBSERVE — ground in reality. External evidence, vitals, repo map.",
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
-        "name": "arif_judge_deliberate",
-        "description": "888 JUDGE — deliver verdict on a plan",
+        "name": "arif_think",
+        "description": "333 THINK — reason, plan, critique. Cognitive engine for complex decisions.",
         "inputSchema": {
             "type": "object",
-            "properties": {"intent": {"type": "string"}, "command": {"type": "string"}},
+            "properties": {"intent": {"type": "string"}, "context": {"type": "object"}},
             "required": ["intent"],
         },
     },
     {
-        "name": "arif_vault_seal",
-        "description": "999 VAULT — write seal to VAULT999 ledger",
+        "name": "arif_route",
+        "description": "444 ROUTE — select organ/tool. Bridge when intent→tool mapping is uncertain.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"intent": {"type": "string"}},
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_judge",
+        "description": "888 JUDGE — constitutional verdict. SEAL/HOLD/SABAR/VOID. Evidence→plan→judge pipeline.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"intent": {"type": "string"}, "evidence": {"type": "object"}},
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_act",
+        "description": "900 ACT — execute only after valid SEAL. Requires seal_verdict_id + approved_action_hash.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "intent": {"type": "string"},
+                "seal_verdict_id": {"type": "string"},
+                "approved_action_hash": {"type": "string"},
+            },
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "arif_seal",
+        "description": "999 SEAL — permanent record. VAULT999 hash chain. Irreversible.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -1335,70 +1385,37 @@ TOOLS = [
             "required": ["data", "tool", "stage", "actor"],
         },
     },
-    {
-        "name": "arif_run",
-        "description": "Execute command through constitutional kernel",
-        "inputSchema": {
-            "type": "object",
-            "properties": {"intent": {"type": "string"}, "command": {"type": "string"}},
-            "required": ["intent"],
-        },
-    },
-    {
-        "name": "arif_exec",
-        "description": "Execute script through constitutional kernel",
-        "inputSchema": {
-            "type": "object",
-            "properties": {"intent": {"type": "string"}, "script_path": {"type": "string"}},
-            "required": ["intent"],
-        },
-    },
-    {
-        "name": "arif_sudo",
-        "description": "Privileged execution through constitutional kernel",
-        "inputSchema": {
-            "type": "object",
-            "properties": {"intent": {"type": "string"}, "command": {"type": "string"}},
-            "required": ["intent", "command"],
-        },
-    },
-    {
-        "name": "arif_systemctl",
-        "description": "Service control through constitutional kernel",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "intent": {"type": "string"},
-                "action": {"type": "string"},
-                "service": {"type": "string"},
-            },
-            "required": ["intent"],
-        },
-    },
-    {
-        "name": "arif_apex_judge",
-        "description": "APEX thermodynamic judgment on intent",
-        "inputSchema": {
-            "type": "object",
-            "properties": {
-                "intent": {"type": "string"},
-                "kappa_r": {"type": "number"},
-                "confidence": {"type": "number"},
-            },
-            "required": ["intent"],
-        },
-    },
-    {
-        "name": "arif_floor_status",
-        "description": "Query F01–F13 floor status",
-        "inputSchema": {"type": "object", "properties": {}},
-    },
-    {
-        "name": "arif_vault_integrity",
-        "description": "Verify VAULT999 chain hash integrity",
-        "inputSchema": {"type": "object", "properties": {}},
-    },
 ]
+
+# ── Legacy alias resolver for tools/call ─────────────────────────────────
+# Maps deprecated long-form tool names to their canonical equivalents.
+# Clients sending arif_session_init will resolve to arif_init, etc.
+# This prevents "unknown tool" errors for legacy clients while keeping
+# the tools/list surface clean (canonical 7 only).
+TOOL_ALIAS_MAP: dict[str, str] = {
+    "arif_session_init": "arif_init",
+    "arif_sense_observe": "arif_observe",
+    "arif_mind_reason": "arif_think",
+    "arif_heart_critique": "arif_judge",
+    "arif_judge_deliberate": "arif_judge",
+    "arif_vault_seal": "arif_seal",
+    "arif_kernel_route": "arif_route",
+    "arif_reply_compose": "arif_act",
+    "arif_forge_execute": "arif_act",
+    "arif_evidence_fetch": "arif_observe",
+    "arif_ops_measure": "arif_observe",
+    "arif_memory_recall": "arif_think",
+    "arif_gateway_connect": "arif_route",
+    # ── Shell wrappers → arif_route (not direct execution) ──
+    "arif_run": "arif_route",
+    "arif_exec": "arif_route",
+    "arif_sudo": "arif_route",
+    "arif_systemctl": "arif_route",
+    # ── Diagnostics → arif_observe (read-only routing) ──
+    "arif_apex_judge": "arif_judge",
+    "arif_floor_status": "arif_observe",
+    "arif_vault_integrity": "arif_observe",
+}
 
 
 # =============================================================================

@@ -1,8 +1,8 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-29
+last_verified: 2026-06-30
 valid_from: 2026-06-27
-valid_until: 2026-07-29
+valid_until: 2026-07-30
 confidence: high
 scope: /root/arifOS
 epistemic_status: SOURCE_OF_TRUTH
@@ -67,6 +67,33 @@ make sot-check
 - Canonical MCP runtime lives in `arifosmcp/`
 - Deepest constitutional enforcement lives in `core/`
 - `arifosmcp/AGENTS.md` contains MCP-tool-specific guidance
+
+---
+
+## 🧠 CI ARCHITECTURE — Dual-Lane Agentic CI (FORGED 2026-07-01)
+
+> **DITEMPA BUKAN DIBERI** — CI is forged, not given.
+> **Architecture receipt:** `forge_work/AGENTIC-CI-FORGE-2026-07-01.md`
+
+Every push to `main` triggers **two lanes**:
+
+| Lane | Name | What It Does | Verdict |
+|------|------|-------------|---------|
+| **Lane 1** | Standard CI | Lint (Ruff) → Type check (MyPy) → Test (Pytest) → Build check | Pass/Fail |
+| **Lane 2** | BIJAKSANA (Agentic CI) | ΔS (entropy) → Φ (clarity) → Ψ (truth/manifest) → Ω (governance) | SEAL_READY / SABAR / HOLD |
+
+**The Report:** Both lanes feed into an `Agentic CI Report` — a structured JSON artifact posted as a GitHub Check Run with label `Agentic CI`. Federation cron picks up Check Run → `arif_judge` → AAA register → VAULT999 seal.
+
+**Workflow file:** `.github/workflows/agentic-ci.yml`
+
+**The Loop:**
+```
+git push → Lane 1 (Standard) + Lane 2 (BIJAKSANA)
+       → Agentic CI Report (JSON + Check Run)
+       → Federation cron → arif_judge → AAA → VAULT999
+```
+
+**Cross-organ:** This architecture is deployed identically across all 6 federation organs (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL). Each organ's `AGENTS.md` carries this section. The workflow adapts to Python (pytest/ruff/mypy) or Node (npm test/build/lint).
 
 ---
 

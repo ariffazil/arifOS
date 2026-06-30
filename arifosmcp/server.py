@@ -1019,6 +1019,7 @@ try:
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
     # Conformance spine runs via arif_canary(mode="conformance_report") which is also gated.
+    from arifosmcp.constitutional_map import CANONICAL_OUTPUT_SCHEMA
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
 
     _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
@@ -1029,12 +1030,16 @@ try:
                 name=_hermes_name,
                 description=_hermes_handler.__doc__,
                 tags={"hermes", "diagnostic", "read-only"},
+                output_schema=CANONICAL_OUTPUT_SCHEMA,
+                annotations={"readOnlyHint": True, "destructiveHint": False},
             )(_hw)
         else:
             # fallback for non-async handlers
             mcp.tool(
                 name=_hermes_name,
                 tags={"hermes", "diagnostic", "read-only"},
+                output_schema=CANONICAL_OUTPUT_SCHEMA,
+                annotations={"readOnlyHint": True, "destructiveHint": False},
             )(_hermes_handler)
     v2_tools_registered.extend(list(_hermes_to_register.keys()))
 

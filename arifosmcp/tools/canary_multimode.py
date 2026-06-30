@@ -115,6 +115,7 @@ async def arif_canary(
                     payload=payload,
                     _envelope=_envelope,
                     client_capabilities=client_capabilities,
+                    fast=True,  # P3 fix 2026-06-30: reduce timeouts to prevent MCP timeout
                 )
 
         return {

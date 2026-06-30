@@ -97,6 +97,35 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         session_id = params.get("session_id")
         actor_id = params.get("actor_id")
 
+        # ── P1 2026-06-30: bypass heavy LLM pipeline for all modes except metabolize ──
+        # The v3.3 reasoning engine in tools/reason.py calls arif_think_structured which
+        # blocks on SEA-LION/Ollama for 30-60s. Route deterministic/structural modes
+        # through the sync _arif_mind_reason kernel, which is LLM-free for these modes.
+        if mode != "metabolize":
+            from arifosmcp.runtime.tools import _arif_mind_reason
+
+            attention_context = None
+            ctx_param = params.get("context")
+            if isinstance(ctx_param, dict):
+                attention_context = ctx_param.get("attention_context")
+
+            result = _arif_mind_reason(
+                mode=mode,
+                query=query,
+                session_id=session_id,
+                actor_id=actor_id,
+                plan_id=params.get("plan_id"),
+                witness_type=params.get("witness_type", "ai"),
+                attention_context=attention_context,
+            )
+            if hasattr(result, "model_dump"):
+                return result.model_dump()  # type: ignore[attr-defined]
+            if hasattr(result, "dict"):
+                return result.dict()  # type: ignore[attr-defined]
+            if isinstance(result, dict):
+                return result
+            return {}
+
         # ── PLAN PROBE: mind.plan(task) → structured steps ──
         if mode == "plan":
             task_type = params.get("task_type", "debug_deploy_failure")

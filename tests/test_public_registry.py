@@ -19,8 +19,8 @@ def test_server_json_matches_canonical7_registry() -> None:
     tool_names = {tool["name"] for tool in server_json["tools"]}
 
     assert tool_names == CANONICAL_PUBLIC_TOOLS
-    # Mode name "canonical13" is the historical profile key; the facade is 7 verbs.
-    assert server_json["capabilities"]["public_surface"] == "canonical13"
+    # canonical7 is the preferred public mode name; canonical13 remains an alias.
+    assert server_json["capabilities"]["public_surface"] == "canonical7"
 
 
 def test_mcp_manifest_matches_canonical7_registry() -> None:

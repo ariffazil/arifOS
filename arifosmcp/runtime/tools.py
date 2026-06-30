@@ -623,6 +623,89 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "agency_level": "L4_EXECUTE_REVERSIBLE",  # forget is L5 in practice
         "decision_thresholds": DECISION_THRESHOLDS,
     },
+    # ── P3 FIX 2026-06-30: Explicit contracts for tools previously hitting _default trap ──
+    # These tools are OBSERVE-class, fully reversible, no side effects.
+    # _default had requires_human_confirmation=True which caused constitutional_check:
+    # floor_passed=false + hold_required=true while verdict=SEAL. This contradiction
+    # confused external agents (ChatGPT audit caught it on arif_route).
+    "arif_route": {
+        "purpose": "Route an intent to the correct federation organ. Pure discovery — no mutation.",
+        "use_when": ["You know what you want but not which organ to call"],
+        "do_not_use_when": ["You already know the exact tool to call"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "routing_decision",
+        "evidence_required": False,
+        "agency_level": "L1_ANALYZE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_triage": {
+        "purpose": "Session status, preflight checks, and priority assessment. Core immune function.",
+        "use_when": ["Before arif_init when unsure of session state", "Checking active sessions"],
+        "do_not_use_when": ["Session already verified and active"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "session_status",
+        "evidence_required": False,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_compose": {
+        "purpose": "Governed response composition — formats final output with citations and tone.",
+        "use_when": ["As the LAST step before presenting results to Arif"],
+        "do_not_use_when": ["Mid-pipeline — compose after reasoning, not during"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "composed_message",
+        "evidence_required": False,
+        "agency_level": "L1_ANALYZE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_kernel_status": {
+        "purpose": "Federation telemetry and semantic tool discovery. Read-only kernel state.",
+        "use_when": ["Checking organ health", "Discovering available tools"],
+        "do_not_use_when": ["Mutation required — this is observe-only"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "kernel_telemetry",
+        "evidence_required": False,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_kernel_health": {
+        "purpose": "Federation liveness heartbeat snapshot. Read-only probe.",
+        "use_when": ["Quick health check of all organs"],
+        "do_not_use_when": ["Detailed organ diagnostics — use organ-specific tools"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "health_snapshot",
+        "evidence_required": False,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
+    "arif_kernel_attest": {
+        "purpose": "Live organ attestation — verifies an organ is alive and healthy.",
+        "use_when": ["Verifying organ liveness before cross-organ calls"],
+        "do_not_use_when": ["Organ already verified within the last minute"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "attestation_receipt",
+        "evidence_required": False,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+    },
     # Default fallbacks for other tools
     "_default": {
         "purpose": "Tool purpose not yet declared in constitutional contract. Treat conservatively.",
@@ -677,11 +760,14 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
     # Canonical blast_radius normalization
     if "blast_radius" not in full or full.get("blast_radius") in (None, "unknown"):
         full["blast_radius"] = power.get("expected_blast_radius", "LOW").lower()
-    # Human confirmation synthesis
+    # Human confirmation synthesis — P3 fix 2026-06-30:
+    # Previous `or` chain (purpose or power or agency) caused False in purpose
+    # to be overridden by True in power. Now: if purpose explicitly declares
+    # requires_human_confirmation, use that value even if it's False.
     full["requires_human_confirmation"] = (
         purpose.get("requires_human_confirmation")
-        or power.get("requires_human_ack", False)
-        or agency.get("human_confirmation", False)
+        if "requires_human_confirmation" in purpose
+        else (power.get("requires_human_ack", False) or agency.get("human_confirmation", False))
     )
     return full
 
@@ -17191,13 +17277,15 @@ def _runtime_conformance_report(
     payload: Any = None,
     _envelope: dict[str, Any] | None = None,
     client_capabilities: dict[str, Any] | None = None,
+    fast: bool = False,
     **kwargs: Any,
 ) -> dict[str, Any]:
-    """Conformance spine proof machine — zero-ceremony transport diagnostic."""
+    """Conformance spine proof machine — zero-ceremony transport diagnostic.
+    P3 fix 2026-06-30: fast=True reduces per-check HTTP timeouts from 15s→5s."""
     from arifosmcp.transport.conformance_spine import run_spine
 
     try:
-        return run_spine(fast=False)
+        return run_spine(fast=fast)
     except Exception as e:
         return _error_envelope(
             "arif_conformance_report",

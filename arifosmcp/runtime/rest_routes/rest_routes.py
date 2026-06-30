@@ -2556,6 +2556,8 @@ def register_rest_routes(
             "status": "healthy",
             "identity_hash": identity_hash,
             "service": "arifOS-mcp",
+            "mcp_protocol_version": MCP_PROTOCOL_VERSION,
+            "mcp_supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
             "release_name": BUILD_INFO["version"],
             "version": (
                 f"kanon-{BUILD_INFO['build']['commit']}"

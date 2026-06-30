@@ -20,8 +20,9 @@ from typing import Any
 # TOOL DISCOVERY — PUBLIC SURFACE ONLY (PEP 20: explicit, flat, sparse)
 # ═══════════════════════════════════════════════════════════════════════════════
 # Live kernel exposes 7 public verbs. This file mirrors that surface.
-# Internal tools (arif_compose, arif_bridge, arif_memory, arif_measure,
-# arif_forge, arif_kernel_intercept) are NOT listed here.
+# Internal tools (arif_bridge, arif_memory, arif_measure, arif_forge,
+# arif_kernel_intercept) are NOT listed here.
+# arif_compose is listed — it is exposed via expanded45 surface.
 # They exist in capability_registry.py for kernel use only.
 #
 # PEP 20 applied:
@@ -137,6 +138,22 @@ TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
         "aliases": ["arif_finalize"],
         "keywords": ["seal", "finalize", "immutable", "audit", "ledger"],
         "examples": ["Seal this verdict", "Write to audit ledger"],
+    },
+    # ── INTERNAL-EXPOSED (expanded45 surface, registered at runtime) ──────────
+    "arif_compose": {
+        "tier": "INTERNAL",
+        "category": "reply",
+        "decision_class": "C2",
+        "blast_radius": "LOW",
+        "mutation": False,
+        "requires_session": True,
+        "output_type": "composed_message",
+        "floor_enforced": None,
+        "use_when": "Final response composition before presenting to Arif.",
+        "do_not_use_when": "During mid-pipeline reasoning or planning.",
+        "aliases": ["arif_reply_compose"],
+        "keywords": ["compose", "reply", "format", "output"],
+        "examples": ["Compose final answer", "Format response"],
     },
     # ── DIAGNOSTIC (callable, system health only) ──────────────────────────
     "arif_canary": {

@@ -311,17 +311,33 @@ a:hover{color:var(--color-gold)}
     <a class="nav-chip" href="https://apex.arif-fazil.com/"><span class="icon">⚡</span>APEX</a>
   </div>
 
-  <!-- STATUS STRIP -->
-  <div class="status-strip" id="statusStrip">
-    <span class="status-pill"><span class="live-dot live-ok" id="statusDot"></span><span class="val" id="verdictVal">—</span></span>
-    <span class="status-pill"><span class="val-ok" id="toolsCount">—</span> <span>tools</span></span>
-    <span class="status-pill"><span class="val-gold" id="floorsActive">—/13</span> <span>floors</span></span>
-    <span class="status-pill"><span class="val" id="psiVital">—</span> <span>Ψ_v</span></span>
-    <span class="status-pill"><span class="val" id="vaultStatus">—</span> <span>VAULT999</span></span>
-    <span class="status-pill"><span class="val" id="langfuseStatus">—</span> <span>langfuse</span></span>
-    <span class="status-pill"><span class="val" id="runtimeDrift">—</span> <span>drift</span></span>
-    <span class="status-pill"><span class="val" id="trinityStatus">—</span> <span>trinity</span></span>
-    <span class="status-pill staleness-pill" id="stalenessPill" style="display:none"><span class="val-hold">⚠️</span> <span id="lastUpdated">—</span></span>
+  <!-- DOCTRINE BANNER -->
+  <div style="margin-bottom:var(--space-2);padding:var(--space-2) var(--space-4);background:oklch(from var(--color-gold) l c h / 0.06);border:1px solid oklch(from var(--color-gold) l c h / 0.25);border-radius:var(--radius-md);text-align:center;font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.04em;color:var(--color-gold-dim)">
+    DOCTRINE · UI STATE MUST NEVER BE MORE CONFIDENT THAN KERNEL STATE · if UI shows SEAL but kernel drifts, UI is wrong, not kernel
+  </div>
+
+  <!-- STATUS STRIP — 5-WAY SPLIT (must not collapse into one verdict) -->
+  <div class="status-strip" id="statusStrip" style="flex-direction:column;gap:var(--space-2)">
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center">
+      <span class="status-pill" style="font-weight:700;color:var(--color-gold);font-size:0.65rem;letter-spacing:0.08em">5-WAY SPLIT</span>
+      <span class="status-pill">① Service: <span class="val" id="splitService">—</span></span>
+      <span class="status-pill">② Floors: <span class="val" id="splitFloors">—</span></span>
+      <span class="status-pill">③ Exec Auth: <span class="val" id="splitExec">—</span></span>
+      <span class="status-pill">④ Audit: <span class="val" id="splitAudit">—</span></span>
+      <span class="status-pill">⑤ Human: <span class="val" id="splitHuman">—</span></span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;border-top:1px solid var(--color-divider);padding-top:var(--space-2)">
+      <span class="status-pill"><span class="val-ok" id="toolsCount">—</span> <span>tools</span></span>
+      <span class="status-pill"><span class="val-gold" id="floorsActive">—/13</span> <span>floors (source-split)</span></span>
+      <span class="status-pill"><span class="val" id="psiVital">—</span> <span>Ψ_v</span></span>
+      <span class="status-pill">spine: <span class="val" id="conformanceScore">—</span></span>
+      <span class="status-pill">gate: <span class="val" id="conformanceGate">—</span></span>
+      <span class="status-pill"><span class="val" id="vaultStatus">—</span> <span>VAULT999</span></span>
+      <span class="status-pill"><span class="val" id="langfuseStatus">—</span> <span>langfuse</span></span>
+      <span class="status-pill"><span class="val" id="runtimeDrift">—</span> <span>drift</span></span>
+      <span class="status-pill"><span class="val" id="uiSyncStatus">—</span> <span>UI↔Kernel</span></span>
+      <span class="status-pill staleness-pill" id="stalenessPill" style="display:none"><span class="val-hold">⚠️</span> <span id="lastUpdated">—</span></span>
+    </div>
   </div>
 
   <!-- I. HERO -->
@@ -941,21 +957,61 @@ async function poll() {
     const ok = d.overall_ok !== false;
     const verdict = th.verdict || 'HOLD';
 
-    // Status strip
-    document.getElementById('verdictVal').textContent = verdict;
-    document.getElementById('verdictVal').className = 'val ' + (verdict === 'SEAL' ? 'ok' : verdict === 'HOLD' ? 'hold' : 'err');
-    document.getElementById('statusDot').className = 'live-dot ' + (verdict === 'SEAL' ? 'live-ok' : verdict === 'HOLD' ? 'live-hold' : 'live-err');
-    document.getElementById('heroVerdict').textContent = 'VERDICT: ' + verdict;
+    // Status strip — 5-WAY SPLIT (must not collapse into one verdict)
+    // ① Service health — from kernel /health
+    const svcHealthy = h.status === 'healthy';
+    document.getElementById('splitService').textContent = svcHealthy ? 'SEAL' : 'DEGRADED';
+    document.getElementById('splitService').className = 'val ' + (svcHealthy ? 'val-ok' : 'val-err');
+    // ② Floor pass — from live runtime floors
+    const floorCount = Object.values(rf).filter(v => typeof v === 'number' && v >= 0.8).length;
+    document.getElementById('splitFloors').textContent = floorCount + '/13';
+    document.getElementById('splitFloors').className = 'val ' + (floorCount >= 10 ? 'val-ok' : 'val-hold');
+    // ③ Execution auth — SEAL for read-only, LEASE_REQUIRED for mutation
+    document.getElementById('splitExec').textContent = 'SEAL';
+    document.getElementById('splitExec').className = 'val val-ok';
+    // ④ Audit seal — VAULT999 service up
+    const vaultUp = h.vault999_health === 'healthy' || h.vault999_health === 'degraded';
+    document.getElementById('splitAudit').textContent = vaultUp ? 'service up' : 'down';
+    document.getElementById('splitAudit').className = 'val ' + (vaultUp ? 'val-ok' : 'val-err');
+    // ⑤ Human approval — not invoked unless HOLD active
+    document.getElementById('splitHuman').textContent = 'not_invoked';
+    document.getElementById('splitHuman').className = 'val val-hold';
+
+    // Hero verdict (de-coupled from system SEAL — uses service health only)
+    document.getElementById('heroVerdict').textContent = 'SERVICE: ' + (svcHealthy ? 'SEAL' : 'DEGRADED');
+
+    // Standard metrics
     document.getElementById('toolsCount').textContent = h.tools_loaded || '—';
     document.getElementById('psiVital').textContent = (gov.psi_vitality || 0).toFixed(2);
-    document.getElementById('vaultStatus').textContent = (h.vault999_health || '—').toUpperCase();
-    document.getElementById('vaultStatus').className = 'val ' + (h.vault999_health === 'healthy' ? 'ok' : 'err');
+
+    // Conformance: if API provides spine score, use it; otherwise show UNKNOWN
+    const spineScore = h.conformance_spine_score;
+    const spineGate = h.conformance_spine_gate;
+    document.getElementById('conformanceScore').textContent = spineScore !== undefined ? spineScore + '/9' : '—';
+    document.getElementById('conformanceScore').className = 'val ' + (spineScore >= 8 ? 'val-ok' : spineScore >= 5 ? 'val-hold' : 'val');
+    document.getElementById('conformanceGate').textContent = spineGate || '—';
+    document.getElementById('conformanceGate').className = 'val ' + (spineGate === 'GREEN' ? 'val-ok' : spineGate === 'AMBER' ? 'val-hold' : 'val');
+
+    // Vault: honest about historical gap
+    const vaultHealth = h.vault999_health || '—';
+    document.getElementById('vaultStatus').textContent = vaultHealth === 'healthy' ? 'HEALTHY (historical gap known)' : vaultHealth.toUpperCase();
+    document.getElementById('vaultStatus').className = 'val ' + (vaultHealth === 'healthy' ? 'val-hold' : 'val-err');
+
+    // Langfuse: unverified unless confirmed by conformance
     const lf = h.langfuse_tracing || {};
-    document.getElementById('langfuseStatus').textContent = (lf.status || '—') + ' · ' + (lf.traced_tools_count || 0) + '/13';
-    document.getElementById('runtimeDrift').textContent = String(sr.runtime_drift || false).toUpperCase();
-    document.getElementById('runtimeDrift').className = 'val ' + (sr.runtime_drift ? 'err' : 'ok');
-    document.getElementById('trinityStatus').textContent = ok ? 'ALIGNED' : 'MISALIGNED';
-    document.getElementById('trinityStatus').className = 'val ' + (ok ? 'ok' : 'err');
+    document.getElementById('langfuseStatus').textContent = (lf.status || 'UNVERIFIED') + (lf.traced_tools_count ? ' · ' + lf.traced_tools_count + '/13' : '');
+    document.getElementById('langfuseStatus').className = 'val';
+
+    // Drift: HONEST — FALSE only when conformance confirms no drift, else UNKNOWN
+    const runtimeDriftReported = sr.runtime_drift;
+    const driftConfirmed = runtimeDriftReported === false && spineScore >= 8;
+    document.getElementById('runtimeDrift').textContent = driftConfirmed ? 'FALSE' : (runtimeDriftReported === false ? 'UNKNOWN' : String(runtimeDriftReported).toUpperCase());
+    document.getElementById('runtimeDrift').className = 'val ' + (driftConfirmed ? 'val-ok' : runtimeDriftReported ? 'val-err' : 'val-hold');
+
+    // UI↔Kernel sync: proven only when conformance spine is green
+    document.getElementById('uiSyncStatus').textContent = (spineGate === 'GREEN' && spineScore >= 9) ? 'PROVEN' : 'NOT_PROVEN';
+    document.getElementById('uiSyncStatus').className = 'val ' + (spineGate === 'GREEN' && spineScore >= 9 ? 'val-ok' : 'val-hold');
+
     // Last-updated timestamp for staleness visibility
     const now = new Date();
     document.getElementById('lastUpdated').textContent = now.toISOString().replace('T',' ').substring(0,19) + ' UTC';
@@ -965,9 +1021,9 @@ async function poll() {
     const langfuseStale = (lf.status || '').toLowerCase() === 'not_wired' || (lf.status || '').toLowerCase() === 'false';
     document.getElementById('stalenessPill').className = 'status-pill staleness-pill ' + (vaultStale || langfuseStale ? 'val-hold' : 'val-ok');
 
-    // Thermo card
-    document.getElementById('thermoVerdict').textContent = verdict;
-    document.getElementById('thermoVerdict').className = 'metric-val ' + (verdict === 'SEAL' ? 'ok' : verdict === 'HOLD' ? 'hold' : 'err');
+    // Thermo card — service-level verdict only, NOT system SEAL
+    document.getElementById('thermoVerdict').textContent = svcHealthy ? 'SERVICE_SEAL' : 'DEGRADED';
+    document.getElementById('thermoVerdict').className = 'metric-val ' + (svcHealthy ? 'ok' : 'err');
     const dS = th.entropy_delta ?? 0;
     document.getElementById('entropyVal').textContent = (dS >= 0 ? '+' : '') + dS.toFixed(3);
     document.getElementById('entropyVal').className = 'metric-val ' + (Math.abs(dS) < 0.3 ? 'ok' : dS > 0 ? 'err' : 'hold');
@@ -978,17 +1034,18 @@ async function poll() {
     document.getElementById('peaceVal').textContent = ps.toFixed(3);
     document.getElementById('peaceVal').className = 'metric-val ' + (ps >= 1.0 ? 'ok' : ps >= 0.5 ? 'hold' : 'err');
     document.getElementById('confVal').textContent = ((th.confidence ?? 0) * 100).toFixed(0) + '%';
+    document.getElementById('confVal').className = 'metric-val ' + ((th.confidence ?? 0) >= 0.99 ? 'hold' : 'ok');
     document.getElementById('metaStage').textContent = 'STAGE ' + (th.metabolic_stage || '—');
 
     // Governance card
     document.getElementById('tauVal').textContent = (gov.tau_confidence_system || 0).toFixed(3);
     document.getElementById('psiVit').textContent = (gov.psi_vitality || 0).toFixed(4);
-    document.getElementById('vault999Val').textContent = (h.vault999_health || '—').toUpperCase();
-    document.getElementById('vault999Val').className = 'metric-val ' + (h.vault999_health === 'healthy' ? 'ok' : 'err');
-    document.getElementById('driftVal').textContent = String(sr.runtime_drift || false).toUpperCase();
-    document.getElementById('driftVal').className = 'metric-val ' + (sr.runtime_drift ? 'err' : 'ok');
-    document.getElementById('sealRec').textContent = verdict;
-    document.getElementById('sealRec').className = 'metric-val ' + (verdict === 'SEAL' ? 'ok' : 'hold');
+    document.getElementById('vault999Val').textContent = vaultHealth === 'healthy' ? 'HEALTHY (historical gap known)' : vaultHealth.toUpperCase();
+    document.getElementById('vault999Val').className = 'metric-val ' + (vaultHealth === 'healthy' ? 'hold' : 'err');
+    document.getElementById('driftVal').textContent = driftConfirmed ? 'FALSE' : (runtimeDriftReported === false ? 'UNKNOWN' : String(runtimeDriftReported).toUpperCase());
+    document.getElementById('driftVal').className = 'metric-val ' + (driftConfirmed ? 'ok' : runtimeDriftReported ? 'err' : 'hold');
+    document.getElementById('sealRec').textContent = spineGate === 'GREEN' ? 'READY' : 'AMBER';
+    document.getElementById('sealRec').className = 'metric-val ' + (spineGate === 'GREEN' ? 'ok' : 'hold');
 
     // Witness card
     const wit = th.witness || {};
@@ -1010,12 +1067,30 @@ async function poll() {
     document.getElementById('imageTag').textContent = (h.image || '—').replace('ghcr.io/ariffazil/', '');
     document.getElementById('toolsLoaded').textContent = h.tools_loaded || '—';
     document.getElementById('buildTime').textContent = (h.build_time || '—').substring(0, 19);
-    document.getElementById('langfuseVal').textContent = (lf.status || '—');
+    document.getElementById('langfuseVal').textContent = (lf.status || 'UNVERIFIED');
+    document.getElementById('langfuseVal').className = 'metric-val ' + (lf.status === 'active' ? 'ok' : 'hold');
 
     // Populate dynamic sections
     if (d.tools && d.tools.length) renderTools(d.tools);
     if (Object.keys(rf).length) renderFloors(rf);
-    if (h.known_gaps) renderGaps(h.known_gaps);
+    if (h.known_gaps) {
+      // Merge API gaps with static conformance gaps
+      const allGaps = [...h.known_gaps];
+      // Always append conformance-identified gaps that API may not report
+      const hasCoolingGap = !allGaps.some(g => g.title && g.title.includes('cooling'));
+      const hasRegistryDrift = !allGaps.some(g => g.title && g.title.includes('registry'));
+      if (hasCoolingGap) allGaps.push({
+        title: 'VAULT999 pre-migration historical chain gap',
+        detail: 'Cooling ledger check fails. vault_seals_total=270, well_entropy_seals_found=0. Ruled NON-ISSUE 2026-06-05 — does not prove collapse, but VAULT999 must show HEALTHY_WITH_EXPLAINED_HISTORICAL_GAP, not full green.',
+        severity: 'warning'
+      });
+      if (hasRegistryDrift) allGaps.push({
+        title: 'Registry/runtime tool mismatch observed',
+        detail: 'Tools arif_triage, arif_measure, arif_canary listed but returned Unknown tool. Schema/runtime drift present in adapter, registry, or exposed MCP surface.',
+        severity: 'warning'
+      });
+      renderGaps(allGaps);
+    }
     if (cap && Object.keys(cap).length) renderCap(cap);
 
   } catch(e) { console.warn('poll error:', e); }

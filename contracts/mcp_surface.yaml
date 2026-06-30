@@ -2,7 +2,7 @@ schema_version: 2
 kind: arifos.mcp_surface
 owner_repo: arifOS
 status: contract
-last_verified: "2026-06-09"
+last_verified: "2026-06-30"
 runtime_surface:
   primary_transport: streamable_http
   primary_port: 8088
@@ -38,34 +38,60 @@ authority:
     - memory_governance
     - audit_and_vault
     - federation_brokering
+  resources_owned:
+    - arifos://identity
+    - arifos://kernel/*
+    - arifos://reality/state
+    - arifos://resources/index
+    - arifos://resources/audit
+    - arifos://leases/*
+    - arifos://doctrine
+    - arifos://trinity
+    - arifos://vault/*
+    - runner://*
   excludes:
     - domain_geology_logic
     - capital_allocation_logic
     - cockpit_ui
     - deployment_substrate
 canonical_tools:
-  - arif_session_init
-  - arif_sense_observe
-  - arif_evidence_fetch
-  - arif_mind_reason
-  - arif_kernel_route
-  - arif_reply_compose
-  - arif_memory_recall
-  - arif_heart_critique
-  - arif_gateway_connect
-  - arif_ops_measure
-  - arif_judge_deliberate
-  - arif_vault_seal
-  - arif_forge_execute
-  # Rule-14 canonical tools (2026-06-20)
+  - arif_init
+  - arif_observe
+  - arif_think
   - arif_route
-  - arif_triage
-  - arif_kernel_status
-  - arif_bridge
-  - arif_kernel_attest
-  - arif_kernel_health
+  - arif_judge
+  - arif_act
+  - arif_seal
+public_surface:
+  default_mode: canonical7
+  default_public_count: 7
+  public_verbs:
+    - arif_init
+    - arif_observe
+    - arif_think
+    - arif_route
+    - arif_judge
+    - arif_act
+    - arif_seal
+  operator_debug_mode: expanded45
+  operator_debug_gate: ARIFOS_MCP_EXPOSE_DEV_TOOLS=true
+  internal_transport_only:
+    - ping
+    - challenge
+    - status
+    - conformance
+    - tool_retrieval
+    - vault_query
 canonical_modes:
-  arif_sense_observe:
+  arif_init:
+    - init
+    - light
+    - full
+    - resume
+    - validate
+    - epoch_open
+    - epoch_seal
+  arif_observe:
     - search
     - hybrid_discovery
     - ingest
@@ -74,7 +100,7 @@ canonical_modes:
     - entropy_dS
     - vitals
     - repo_map
-  arif_mind_reason:
+  arif_think:
     - reason
     - reflect
     - verify
@@ -84,60 +110,24 @@ canonical_modes:
     - plan_approve
     - refactor_plan
     - metabolize
-  arif_heart_critique:
-    - critique
-    - simulate
-    - empathize
-    - redteam
-    - maruah
-    - deescalate
-    - instruction_scan
-  arif_judge_deliberate:
+  arif_judge:
     - judge
     - compare
     - history
     - explain
     - floor_status
     - witness_consensus
-  arif_vault_seal:
+  arif_seal:
     - seal
-    - sabar
-    - void
-    - read
-    - chain_verify
-  arif_forge_execute:
-    - engineer
-    - query
     - dry_run
-    - revert
-  arif_gateway_connect:
-    - route
-    - discover
-    - status
-  arif_kernel_route:
-    - route
-    - stage
-    - lane
     - list
-    - status
-    - surface_drift
-  arif_ops_measure:
-    - health
-    - vitals
-    - cost
-    - predict
-    - topology
-    - drift
-    - stack_health
-    - budget
-  arif_memory_recall:
-    - recall
-    - store
-    - get
-    - list
-    - context
-    - repo_ingest
-    - repo_search
+    - verify
+    - chain
+    - render
+  arif_act:
+    - execute
+    - dry_run
+    - verify_seal
 drift_detection:
   enabled: true
   check_interval_seconds: 300
