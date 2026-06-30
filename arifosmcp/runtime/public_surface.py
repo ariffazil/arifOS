@@ -38,25 +38,11 @@ CANONICAL_13: tuple[str, ...] = CANONICAL_7
 CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
 
 # ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────
-# These aliases were on the wire surface during Phase 2 dual-mode migration.
-# FROZEN 2026-06-23: aliases removed from public wire surface.
-# One name per tool. Internal Python aliases still resolve via _CANONICAL_HANDLERS.
-# If a legacy client sends arif_session_init, the kernel interceptor routes it.
-# But tools/list returns ONLY canonical names.
-CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = (
-    "arif_session_init",
-    "arif_sense_observe",
-    "arif_evidence_fetch",
-    "arif_mind_reason",
-    "arif_heart_critique",
-    "arif_reply_compose",
-    "arif_memory_recall",
-    "arif_gateway_connect",
-    "arif_ops_measure",
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_forge_execute",
-)
+# FROZEN 2026-06-23 + PURGED 2026-06-30: aliases removed from public wire surface.
+# Backend handlers still resolve via _CANONICAL_HANDLERS + _LEGACY_ALIASES for
+# backward compatibility, but tools/list returns ONLY canonical names.
+# See: forge_work/BANGANG-ALIAS-PURGE-2026-06-30.md
+CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = ()  # intentionally empty
 
 # ── Canonical7 Public Surface (= exactly 7 canonical verbs) ─────────────────
 # F13 ratified 2026-06-23: exactly 7 public verbs.
