@@ -73,6 +73,52 @@ BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
 )
 
 
+# ══ ARIFOS ↔ A-FORGE Namespace Separation (F4 CLARITY) ══════════════════════
+# arifOS and A-FORGE share verb collisions on: judge, seal, execute, act.
+# The delegation table below makes explicit which tool runs where, and why.
+# Option A (route-only) was ratified 2026-07-01: arifOS = governance facade,
+# A-FORGE = execution engine. No tool removal — explicit delegation clarifies roles.
+#
+# ┌──────────────────────┬───────────────────────────┬─────────────────────┐
+# │ arifOS (this repo)   │ A-FORGE (:7071/:7072)    │ Delegation          │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_judge          │ forge_judge_proxy         │ arifOS = local      │
+# │   888 constitutional │   (arifOS→A-FORGE bridge) │ governance/judgment │
+# │   verdict, SEAL/     │   A-FORGE cannot self-    │ No external call    │
+# │   HOLD/SABAR/VOID    │   authorize; arifOS holds │ for judge           │
+# │                      │   final veto               │                     │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_seal           │ forge_seal                │ arifOS = local      │
+# │   999 VAULT999       │   (A-FORGE vault seal)   │ Only arifOS writes  │
+# │   immutable ledger   │                           │ to VAULT999         │
+# │                      │                           │ No delegation       │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_act            │ (internal only)           │ arifOS = local      │
+# │   900 execution      │   wraps _arif_forge_      │ arif_act verifies   │
+# │   gate; requires     │   execute after SEAL      │ SEAL then calls     │
+# │   seal_verdict_id +  │   verification via         │ _arif_forge_execute │
+# │   approved_action_   │   A2ASealVerifier         │ locally             │
+# │   hash              │                           │                     │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_forge_execute  │ forge_execute             │ arifOS = local      │
+# │   (010 FORGE stage) │   (A-FORGE motor cortex)  │ Both run locally;   │
+# │   plan-gated build, │   REST/MCP execution,      │ arifOS has own      │
+# │   artifact produce  │   lease + SCAR + witness   │ forge_exec handler  │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ (none — arifOS does │ forge_dry_run, forge_*    │ A-FORGE owns        │
+# │  not expose these   │  filesystem, git, docker,  │ engineering tools    │
+# │  on public surface) │  postgres, etc.            │ arifOS has deprec.  │
+# │                      │                           │ proxy → A-FORGE     │
+# │                      │                           │ (removal 2026-07-15)│
+# └──────────────────────┴───────────────────────────┴─────────────────────┘
+#
+# Blast radius of collision: NONE. Infrastructure already separates the two
+# namespaces. The deprecation proxy for forge_* (server.py §forge-ladder)
+# routes external callers to A-FORGE MCP automatically when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+# The only remaining "collision" is documentation ambiguity — fixed by this table.
+# See: forge_work/AFORGE-ARIFOS-COLLISION-AUDIT-2026-07-01.md
+
+
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
 # These are the ONLY non-canonical tools that have live FastMCP handlers.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (

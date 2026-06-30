@@ -19,11 +19,11 @@ refresh_history:
 > 2. Read `/root/CONTEXT.md` (Live Machine State & Ports)
 > 3. Read this file (Repo-Specific Build/Test/Run rules)
 
-> **Constitutional Intelligence Kernel** — arifOS structures decision; it does not decide.
-> Constitutional judgment (SEAL / SABAR / VOID) and floor enforcement remain in arifOS.
->
-> **Mission:** Build the substrate that keeps increasing intelligence governable.
-> AGI needs verdict-gated bus; ASI needs civilization-scale restraint + hard refusal + world model.
+> **Constitutional Separation (Substrate / Constitution / Cognition):**
+- **Substrate (Δ)** carries and changes state (A-FORGE :7071/7072 executor, transport, ports).
+- **Constitution (Ω)** bounds and authorizes action (arifOS :8088 judge, seal, lease, policy).
+- **Cognition (Ψ)** interprets and reduces uncertainty (AAA :3001 cockpit, A2A, reasoning).
+Each layer has a bounded function. No layer may impersonate another: never let Ψ execute, never let Δ judge, never let Ω hallucinate. All high-risk execution requires lease + prior arifOS judgment path. See `docs/philosophy/THREE_LAYER_ONTOLOGY.md`.
 >
 > **Load-bearing pair:** One Skill (Knowing What NOT To Do / restraint) + One Tool (Verdict Loop With Memory).
 >
