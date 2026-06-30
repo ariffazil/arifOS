@@ -130,9 +130,11 @@ HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
 # Metadata Labels — OCI image spec for immutable provenance
 # Uses ENV variables (DEPLOY_GIT_COMMIT, DEPLOY_BUILD_TIME) since those
 # are populated from ARG at build time and correctly expand in LABEL.
-LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifosmcp" \
+LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifos" \
       io.modelcontextprotocol.server.version="${DEPLOY_GIT_COMMIT}" \
       io.modelcontextprotocol.server.description="Constitutional AI governance server with 13 canonical MCP capability tools. Diagnostics are internal runtime only." \
+      io.modelcontextprotocol.server.transport="streamable-http" \
+      io.modelcontextprotocol.server.port="8088" \
       org.opencontainers.image.revision="${DEPLOY_GIT_COMMIT}" \
       org.opencontainers.image.created="${DEPLOY_BUILD_TIME}" \
       org.opencontainers.image.source="https://github.com/ariffazil/arifOS" \

@@ -1,7 +1,7 @@
 {
   "$schema": "https://glama.ai/schemas/glama.json",
   "name": "arifOS",
-  "description": "Production-grade Constitutional AI Governance System. 13 canonical MCP tools enforcing F1-F13 constitutional floors, 888_JUDGE sovereign verdict pipeline, VAULT999 immutable ledger.",
+  "description": "Production-grade Constitutional AI Governance System. 13 canonical MCP tools enforcing F1-F13 constitutional floors, 888_JUDGE sovereign verdict pipeline, VAULT999 immutable ledger. F2 TRUTH: evidence-labeled. F9 ANTI-HANTU: tool, not being. F13 SOVEREIGN: human veto is absolute.",
   "author": {
     "name": "Muhammad Arif bin Fazil",
     "url": "https://arif-fazil.com"
@@ -19,15 +19,12 @@
     "mcp-server",
     "sovereign-ai",
     "ai-safety",
-    "federation"
+    "federation",
+    "arifos"
   ],
   "features": {
     "tools": true,
     "resources": true,
     "prompts": false
-  },
-  "transport": {
-    "type": "streamable-http",
-    "url": "https://arifos.arif-fazil.com/mcp"
   }
 }
