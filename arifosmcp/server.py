@@ -103,6 +103,10 @@ from arifosmcp.constitutional_map import (  # noqa: E402
 from arifosmcp.runtime.peer_contract import (  # noqa: E402
     get_arifos_peer_contract,
 )
+from arifosmcp.runtime.dpop_auth import (  # noqa: E402
+    extract_cnf_jkt,
+    verify_dpop_proof,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -267,6 +271,62 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
                     status_code=403,
                 )
         return await call_next(request)
+
+
+class DPoPAuthMiddleware(BaseHTTPMiddleware):
+    """
+    Enforce or observe DPoP on bearer-authenticated requests.
+
+    This closes the bearer replay gap without forcing anonymous/public reads
+    into an auth regime they do not currently use.
+    """
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.mode = os.getenv("ARIFOS_DPOP_MODE", "observe").strip().lower()
+
+    async def dispatch(self, request: Request, call_next):
+        authorization = request.headers.get("authorization", "").strip()
+        if not authorization.lower().startswith("bearer "):
+            return await call_next(request)
+
+        access_token = authorization[7:].strip()
+        proof = request.headers.get("dpop", "").strip()
+        if not proof:
+            if self.mode == "enforce":
+                return JSONResponse(
+                    {"error": "unauthorized", "message": "missing_dpop_proof"},
+                    status_code=401,
+                    headers={"X-DPoP-Status": "DENIED"},
+                )
+            response = await call_next(request)
+            response.headers["X-DPoP-Status"] = "MISSING"
+            return response
+
+        result = verify_dpop_proof(
+            proof,
+            method=request.method,
+            url=str(request.url),
+            access_token=access_token,
+            access_token_cnf_jkt=extract_cnf_jkt(access_token),
+        )
+        if not result.valid:
+            logger.warning("DPoP validation failed path=%s error=%s", request.url.path, result.error)
+            if self.mode == "enforce":
+                return JSONResponse(
+                    {"error": "unauthorized", "message": result.error},
+                    status_code=401,
+                    headers={"X-DPoP-Status": "DENIED"},
+                )
+            response = await call_next(request)
+            response.headers["X-DPoP-Status"] = f"OBSERVE:{result.error}"
+            return response
+
+        request.state.dpop_claims = result.claims
+        request.state.dpop_jkt = result.jwk_thumbprint
+        response = await call_next(request)
+        response.headers["X-DPoP-Status"] = "VERIFIED"
+        return response
 
 
 # ── MCP Transport spec compliance (modelcontextprotocol.io/specification/2025-11-25/basic/transports) ─
@@ -1597,6 +1657,7 @@ if app:
     from arifosmcp.transport import AirlockASGIMiddleware
 
     app.add_middleware(OriginValidationMiddleware)
+    app.add_middleware(DPoPAuthMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
     app.add_middleware(
@@ -1607,6 +1668,7 @@ if app:
             "Accept",
             "Accept-Language",
             "Authorization",
+            "DPoP",
             "Content-Language",
             "Content-Type",
             "MCP-Session-Id",
@@ -1615,7 +1677,7 @@ if app:
             "X-Arifos-User-Id",
             "X-Arifos-Sovereign-Sig",
         ],
-        expose_headers=["MCP-Session-Id", "MCP-Protocol-Version"],
+        expose_headers=["MCP-Session-Id", "MCP-Protocol-Version", "X-DPoP-Status"],
         allow_credentials=False,
     )
 

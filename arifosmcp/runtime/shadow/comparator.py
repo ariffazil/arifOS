@@ -199,7 +199,7 @@ async def run_shadow_comparison(tool: str, *args, **kwargs) -> ShadowComparison 
     if os.getenv("ENABLE_SHADOW_COMPARE", "false").lower() != "true":
         return None
 
-    from ..tools_hardened_dispatch import get_shadow_backends
+    from ..dispatcher import get_shadow_backends
 
     backends = get_shadow_backends()
     if tool not in backends:

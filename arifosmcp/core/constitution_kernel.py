@@ -491,7 +491,7 @@ class ConstitutionKernel:
             status = "OK"
             verdict = "SEAL"
 
-        return ConstitutionalVerdict(
+        v = ConstitutionalVerdict(
             status=status,
             verdict=verdict,
             threat=threat,
@@ -499,6 +499,23 @@ class ConstitutionKernel:
             authority=authority,
             irreversibility=threat.irreversibility,
         )
+        try:
+            from arifosmcp.runtime.event_bus import emit_event_sync
+            event = {
+                "trace_id": getattr(context, "plan_id", None) or "unknown",
+                "verdict": verdict,
+                "source": "kernel",
+                "event_type": "constitutional_verdict",
+                "actor": context.actor_id or "anonymous",
+                "timestamp": v.timestamp,
+                "confidence": threat.overall_confidence if threat else 0.0,
+                "reversibility": threat.irreversibility.name if threat else "UNKNOWN",
+                "seal_required": verdict == "SEAL",
+            }
+            emit_event_sync(event)
+        except Exception:
+            pass
+        return v
 
     def preflight(
         self,

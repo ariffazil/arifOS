@@ -5,7 +5,7 @@ import sys
 # Ensure arifosmcp is in path
 sys.path.append(os.getcwd())
 
-from arifosmcp.runtime.tools_hardened_dispatch import hardened_agi_mind_dispatch
+from arifosmcp.runtime.dispatcher import hardened_agi_mind_dispatch
 
 
 async def run_test():
