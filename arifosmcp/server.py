@@ -369,7 +369,7 @@ _DEPLOY_VERSION = (
 mcp = FastMCP(
     "ARIFOS MCP",
     version=_DEPLOY_VERSION,
-    website_url="https://arifosmcp.arif-fazil.com",
+    website_url="https://mcp.arif-fazil.com",
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
         "Membrane Principle:\n"
