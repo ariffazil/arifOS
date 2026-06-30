@@ -72,3 +72,13 @@ This document defines the 33 canonical operating terms of arifOS. They are divid
 * **Never let SEAL impersonate F13.**
 * **Never let HANTU pass as evidence.**
 * **Never let BIJAK pretend to be BIJAKSANA.**
+
+---
+
+## 6. Term Admission & Pruning
+
+All canonical terms are subject to:
+* **CANON_GATE**: No term enters the 33 unless it names a real operational distinction and changes machine behavior, governance judgment, or intelligence diagnosis.
+* **CANON_GARBAGE_COLLECTION**: Terms not affecting routing, judgment, diagnosis, execution, or audit are demoted to metaphor.
+See: [CANON_GATE.md](file:///root/arifOS/docs/philosophy/CANON_GATE.md).
+
