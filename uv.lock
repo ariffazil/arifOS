@@ -222,7 +222,7 @@ wheels = [
 
 [[package]]
 name = "arifos"
-version = "2026.6.14"
+version = "1!2026.6.30.post2"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },

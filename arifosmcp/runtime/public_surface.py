@@ -18,13 +18,13 @@ from arifosmcp.runtime.build import get_build_info
 # diagnostic probe, or hidden helper. See /root/AAA/skills/arifos-recursive-audit
 # and AGENTIC_AFFORDANCE_GUIDE.md for doctrine.
 CANONICAL_7: tuple[str, ...] = (
-    "arifos_init",  # 000 — Start here. Session bootstrap + actor identity. Precedes all other calls.
-    "arifos_observe",  # 111 — Ground in reality. External evidence, vitals, repo map.
-    "arifos_think",  # 333 — Reason, plan, critique. Cognitive engine for complex decisions.
-    "arifos_route",  # 444 — Select organ/tool. Bridge when intent→tool mapping is uncertain.
-    "arifos_judge",  # 888 — Constitutional verdict. SEAL/HOLD/SABAR/VOID. Evidence→plan→judge pipeline.
-    "arifos_act",  # 900 — Execute only after valid SEAL. Requires seal_verdict_id + approved_action_hash.
-    "arifos_seal",  # 999 — Permanent record. VAULT999 hash chain. Irreversible.
+    "arif_init",  # 000 — Start here. Session bootstrap + actor identity. Precedes all other calls.
+    "arif_observe",  # 111 — Ground in reality. External evidence, vitals, repo map.
+    "arif_think",  # 333 — Reason, plan, critique. Cognitive engine for complex decisions.
+    "arif_route",  # 444 — Select organ/tool. Bridge when intent→tool mapping is uncertain.
+    "arif_judge",  # 888 — Constitutional verdict. SEAL/HOLD/SABAR/VOID. Evidence→plan→judge pipeline.
+    "arif_act",  # 900 — Execute only after valid SEAL. Requires seal_verdict_id + approved_action_hash.
+    "arif_seal",  # 999 — Permanent record. VAULT999 hash chain. Irreversible.
 )
 
 # Deprecated alias for internal code that still imports CANONICAL_13.
@@ -71,16 +71,14 @@ CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_7
 #   "canonical13" → DEPRECATED alias for "canonical7" — kept for backward compat
 #   "expanded45"  → canonical7 + all diagnostics (operator/debug)
 VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
-    "canonical7",      # preferred — matches the number 7
-    "canonical13",     # deprecated alias — still works, maps to canonical7
-    "expanded45",      # operator/debug surface
+    "canonical7",  # preferred — matches the number 7
+    "canonical13",  # deprecated alias — still works, maps to canonical7
+    "expanded45",  # operator/debug surface
 )
 
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
-    # "arif_" is blocked from tools/list but NOT from dispatch.
-    # _LEGACY_ALIASES in tools.py routes arif_* → arifos_* at call time.
-    # Full surface unblock when execution gate + constitutional_map aligned.
-    "arif_",
+    # arif_* is the canonical public facade. Block only internal/organ prefixes
+    # that should never appear on the public wire surface.
     "_arif_",
     "wealth_",
     "afwell_",
