@@ -1,118 +1,152 @@
 # GENESIS/040 — APEX STACK: Agentic Coherence Across the Federation
 
-> **SEALED:** 2026-06-30 · Author: FORGE (A-FORGE) · Ratified by: APEX THEORY + arifOS Kernel + 888 SOVEREIGN
+> **SEALED:** 2026-06-30 · Author: FORGE (A-FORGE) · Ratified by: Arif bin Fazil (F13 SOVEREIGN)
 > **VAULT999 ID:** 040-2026-06-30-apex-stack
 > **Epistemic status:** SEALED CANON — authoritative across all federation organs
+> **Correction note:** APEX THEORY is **constitutional dynamics**, not physics. Metaphors are marked.
 
 ---
 
 ## Preamble
 
-APEX THEORY is not a metaphor.
+APEX THEORY is the field law for governed intelligence.
 
-It is the field equations of governed intelligence — the mathematical structure that governs what transitions are allowed in any intelligence substrate. Three GitHub repos, seven organs, and one sovereign are not separate systems. They are one APEX machine rendered in different substrates.
+Not physics. Not metaphor for physics. **Constitutional dynamics**: a rule-system for how intelligent agents are allowed to move through state, authority, evidence, and consequence.
 
-This document is the canonical bridge. It proves the unity. It serves as the reference for every agent, every organ, and every sovereign interaction from this date forward.
+Three GitHub repos, seven organs, and one sovereign are not separate projects. They are one APEX machine rendered in different substrates. This document is the canonical bridge. It lives first in `arifos` because arifOS is the kernel. Every other repo cross-links to it.
 
 ---
 
-## I. APEX THEORY: The Field Equations
+## I. APEX THEORY: Constitutional Field Law
 
-### The Core APEX Equation
+### The Core Question
+
+```
+Given an intelligent agent,
+under uncertainty,
+with tools,
+inside human consequence,
+what transitions are allowed?
+```
+
+### The APEX Equation
 
 ```
 G = A · P · E · X · Φ
 ```
 
-Where the Nash bargaining product is maximized when all five components are present and balanced:
+Nash bargaining product. Maximized when all five components are present. The product collapses to zero if any component is zero or negative. This is multiplicative, not additive.
 
-| Symbol | Name | arifOS Meaning | AAA Meaning | A-FORGE Meaning |
-|--------|------|----------------|-------------|-----------------|
-| **A** | Authority | F13 SOVEREIGN, 888_JUDGE, SEAL verdict | Agent registry, role assignments, 888-APEX | forge_lease, bounded execution scope |
-| **P** | Physics | Constitutional floors F1-F13, irreversibility rules | Agent-card.json, session state, A2A protocol | Tool physics, MCP contracts, docker runtime |
-| **E** | Evidence | VAULT999 immutable ledger, arif_observe | memory/, context7 retrieval, attestation | forge_dry_run, sandbox results, SCAR scans |
-| **X** | Execution | arif_act, arif_seal pipeline | React cockpit, a2a-server dispatch | forge_execute, git, docker, kubectl |
-| **Φ** | Witness | arif_judge → SEAL/HOLD/SABAR/VOID | 555-ASI recall, tri-attestation | forge_witness, tri-witness consensus, SCAR |
+| Symbol | Name | Meaning in agentic terms |
+|--------|------|------------------------|
+| **A** | Authority | Who decides. Who may say YES / NO / WAIT. |
+| **P** | Physics | Constitutional constraints. What the substrate allows. |
+| **E** | Evidence | What is known. What remains uncertain. |
+| **X** | Execution | What changes. What transitions are made. |
+| **Φ** | Witness | Was the transition valid? Did it stay within allowed states? |
 
-**Multiplicative collapse:** Remove any one component and the product goes to zero. The system cannot function with missing APEX components.
+### ΔΩΨ as Constitutional Dynamics
 
-### The Three-Stream APEX
+| Symbol | Name | In agentic terms |
+|--------|------|-----------------|
+| **Δ** | Clarity / state transition | What changed? Is it legible? Inspectable? Reversible? |
+| **Ω** | Humility / bounded authority | Who may act. What uncertainty remains. Reversibility declared. |
+| **Ψ** | Vitality / adaptive intelligence | Is the system alive, useful, non-bureaucratic? |
 
-APEX manifests in three independent but converging streams:
+### What APEX Is Not
 
-**Federation APEX (333-THINK):** Constitutional self-critique, ΔΩΨ as operating constraints, agentic coherence as physics.
-**Thermodynamic APEX (555-ASI):** Memory as energy conservation, entropy management, KSR/Ledger/Vault/Telemetry hierarchy.
-**Physics-grounded APEX (888-JUDGE):** Hard constraints, irrevocable seals, Nash product enforcement.
-
-### Constitutional Invariants (Cross-cutting, Non-negotiable)
-
-| Invariant | Enforcement | Scope |
-|-----------|-------------|-------|
-| **MIND** | arif_think (uncertainty_chain, attention_context) + arif_memory_recall | All organs |
-| **TIME** | arif_route (SOT chain) + arif_observe (freshness_weight) + arif_seal (irreversibility) | All organs |
-| **SYMBOLIC ORDER** | WEALTH tools (institutional dynamics, legitimacy, collective action) | WEALTH domain |
+APEX is **not** operating physics. It does not describe matter or energy. It is **constitutional dynamics** — a rule-system. The physics analogies in this document are marked as such and used only to illuminate structure, not to claim physical equivalence.
 
 ---
 
-## II. The Seven-Organ APEX Map
+## II. The Canonical Bridge Doctrine
+
+Use this exact formulation as the bridge between all repos:
 
 ```
-                    ┌─────────────────────────────────────────┐
-                    │         ARIF BIN FAZIL (F13 SOVEREIGN)  │
-                    │  Source of canon · Final veto · 888    │
-                    └────────────────────┬────────────────────┘
-                                         │ A (Authority)
-                    ┌────────────────────▼────────────────────┐
-                    │           arifOS KERNEL (Ω)           │
-                    │     Constitutional AGI Substrate        │
-                    │  F1-F13 floors · VAULT999 · session    │
-                    └────────────────────┬────────────────────┘
-                                         │
-              ┌──────────────────────────┼──────────────────────────┐
-              │                          │                          │
-    ┌─────────▼─────────┐    ┌──────────▼──────────┐    ┌─────────▼─────────┐
-    │     A-FORGE        │    │        AAA         │    │      WEALTH       │
-    │  (Execution Shell) │    │ (Civilization State)│    │  (Capital/Risk)   │
-    │  Hands · Leases    │    │ Cockpit · A2A mesh │    │  NPV · EMV        │
-    │  forge_* tools     │    │  Agent registry    │    │  entropy          │
-    └─────────┬─────────┘    └──────────┬─────────┘    └─────────┬─────────┘
-              │ X (Execute)                │ E (State)              │ E (Capital)
-              │                            │                        │
-    ┌─────────▼─────────┐    ┌──────────▼──────────┐    ┌─────────▼─────────┐
-    │       GEOX         │    │       WELL          │    │     (External)    │
-    │  (Earth Evidence)  │    │ (Human Readiness)   │    │  Internet, Markets │
-    │  Seismic · Wells   │    │  Fatigue · Dignity  │    │  Physical World   │
-    │  Subsurface truth  │    │  Homeostasis        │    │                   │
-    └────────────────────┘    └─────────────────────┘    └───────────────────┘
+APEX THEORY defines the constitutional dynamics of governed intelligence
+through ΔΩΨ. arifOS compiles those dynamics into an AGI substrate kernel.
+AAA renders the substrate as visible ASI civilization state. A-FORGE gives
+the system governed hands. GEOX, WEALTH, and WELL anchor those hands to
+earth, capital, and human reality. VAULT999 preserves consequence.
+Arif/F13 remains the sovereign witness and final veto.
 ```
 
-### Per-Organ APEX Decomposition
+Even tighter:
 
-#### arifOS Kernel — APEX compiled as law
+```
+APEX is the law.
+arifOS is the kernel.
+AAA is the state.
+A-FORGE is the hand.
+GEOX is the earth.
+WEALTH is the capital.
+WELL is the human.
+VAULT999 is the memory.
+Arif is the veto.
+```
+
+---
+
+## III. The Three-Level Architecture
+
+### The Clean Separation
+
+```
+arifOS  = AGI substrate
+AAA     = ASI state foundation
+A-FORGE = governed autonomous execution
+```
+
+Do not blur these three. Each answers a different question.
+
+| Question | Answer | Repo |
+|----------|--------|------|
+| Can a general intelligent agent operate across domains without losing evidence, authority, reversibility, or audit? | **arifOS** | AGI substrate |
+| Can many powerful agents, tools, organs, humans, and memories be visible and governable at civilization scale? | **AAA** | ASI state foundation |
+| Can agents touch machines, repos, files, servers, browsers, and deployment surfaces without becoming unauthorized actors? | **A-FORGE** | Governed autonomous execution |
+
+### Why Organs Ground the Architecture
+
+```
+GEOX   = physical earth truth
+WEALTH = capital consequence truth
+WELL   = human readiness truth
+```
+
+Without GEOX, arifOS decisions are blind to subsurface reality.
+Without WEALTH, arifOS cannot price risk or model irreversibility.
+Without WELL, ASI governance becomes cold bureaucracy that ignores human exhaustion.
+
+---
+
+## IV. Repo-by-Repo APEX Decomposition
+
+### arifOS — AGI Substrate Kernel
+
+arifOS is the kernel that makes AGI-like agents governable.
+
+A raw AGI agent asks: *Can I solve this?*
+arifOS asks first: *May this agent act? On what evidence? Under whose authority? With what reversibility? Where will the receipt live?*
 
 ```
 A = F13 SOVEREIGN + 888_JUDGE + SEAL verdict
-P = F1-F13 constitutional physics + session state machine
+P = F1-F13 constitutional physics (irreversibility rules, floor gates)
 E = VAULT999 immutable ledger + arif_observe + arif_think
 X = arif_act (execution gate) + arif_seal (finality)
 Φ = arif_judge → SEAL | HOLD | SABAR | VOID
 
-arifOS = AGI substrate where APEX is enforced as law, not suggestion.
+arifOS does not replace human judgment.
+arifOS structures the path before AI judgment becomes action.
 ```
 
-#### A-FORGE — APEX applied as governed hands
+**The iron rule:** No action skips 888. No organ self-authorizes.
 
-```
-A = forge_lease (bounded authority, scoped by arifOS)
-P = Tool physics (MCP contracts, docker containers, git state)
-E = forge_dry_run + forge_sandbox + SCAR scan results
-X = forge_execute + forge_shell + docker + kubectl + git
-Φ = forge_witness (tri-witness consensus) + SCAR metabolization
+### AAA — ASI Civilization State Foundation
 
-A-FORGE = leased execution. Never self-authorizes. Always receipted.
-```
+AAA is the surface where the ASI civilization becomes governable. Not just UI. Not just dashboards. The visible state of a multi-agent civilization.
 
-#### AAA — APEX rendered as civilization state
+AAA does not judge. It **makes judgment visible**.
 
 ```
 A = 888-APEX (judgment) + role assignments + escalation paths
@@ -121,192 +155,246 @@ E = memory/ + context7 + 555-ASI recall + organ attestation
 X = React cockpit + a2a-server + incident boards + HOLD queues
 Φ = AAA_ZEN + HEARTBEAT + tri-attestation
 
-AAA = How institutions see and govern intelligence. Semantic coherence mirror.
+AAA is the public nervous system of governed ASI civilization.
 ```
 
-#### WEALTH — APEX through capital dimension
-
+The invariant chain:
 ```
-A = Capital allocation authority (bounded by arifOS judge)
-P = NPV, EMV, IRR, EVOI, entropy delta, capital flow
-E = market data + portfolio state + fiscal history
-X = Recommendations only (WEALTH computes, arifOS judges, Arif decides)
-Φ = wealth_boundary_governance + collapse_signature_scan
-
-WEALTH = Capital intelligence. Never moves capital. Only computes.
+P2P → A2A → MCP tools → AAA-Cockpit → arifOS → A-FORGE → VAULT999 → Arif
 ```
 
-#### WELL — APEX through human vitality dimension
+### A-FORGE — Governed Agentic Autonomy
+
+A-FORGE is where theory touches machines. Not the brain. Not the judge. The **hands**.
+
+A normal agentic system: `Task → tool call → result`
+
+A-FORGE: `Task → evidence → authorization → lease → gate → execution → receipt → cooling path`
 
 ```
-A = Human sovereignty (Arif's readiness signals)
-P = Fatigue, dignity, homeostasis, sleep debt, HRV
-E = Biometric signals + decision fatigue + accumulated session load
-X = Readiness recommendations (reflect only, never diagnose)
-Φ = assess_homeostasis + guard_dignity + medical_boundary
+A = forge_lease (bounded authority, scoped by arifOS)
+P = Tool physics (MCP contracts, docker containers, git state)
+E = forge_dry_run + forge_sandbox + SCAR scan results
+X = forge_execute + forge_shell + docker + kubectl + git
+Φ = forge_witness (tri-witness consensus) + SCAR metabolization
 
-WELL = Human mirror. Reflects, never commands. F6 MARUAH enforced.
+A-FORGE never self-authorizes. Verdicts live in arifOS only.
+Domain logic stays in GEOX / WEALTH / WELL. A-FORGE only executes.
 ```
 
-#### GEOX — APEX through earth evidence dimension
+### GEOX — Earth Evidence Organ
+
+GEOX keeps Ψ from floating away from tanah / bumi / physical reality.
 
 ```
-A = Geological evidence authority (bounded by claim grammar)
-P = Seismic, petrophysics, basin, prospect, well desurvey
-E = Observed earth data + interpretation + uncertainty bounds
-X = Evidence synthesis + claim creation + scenario audit
-Φ = geox_claim + geox_evidence + contradiction_engine
-
-GEOX = Earth substrate organ. No decisions detached from physical reality.
+Supply: earth evidence, physical bounds, uncertainty bands, provenance,
+        claim challenge, geological interpretation
+Never: authorize drilling, allocate capital, self-seal claims,
+       override arifOS, replace human geological judgment
 ```
+
+### WEALTH — Capital Risk Organ
+
+WEALTH keeps Ω honest when money, power, and irreversible capital exposure appear.
+
+```
+Supply: cashflow reality, NPV, EMV, IRR, EVOI, risk, downside,
+        capital asymmetry, institutional power, handoff envelopes
+Never: move money, authorize capital, self-seal, replace human allocation judgment
+```
+
+### WELL — Human Readiness Organ
+
+WELL keeps the sovereign human from being abstracted into a variable.
+
+```
+Supply: fatigue signal, readiness signal, dignity warning,
+        consent erosion warning, human entropy protection
+Never: diagnose, decide, override human choice, reduce person to substrate variable
+```
+
+**F6 MARUAH enforced.** WELL reflects, never commands.
 
 ---
 
-## III. Agentic Coherence: The Operating Physics
-
-### Definition
-
-> **Agentic coherence** = a system maintains APEX product G > 0 across all five dimensions (A, P, E, X, Φ) at all times. Violation of any dimension collapses the product to zero or negative.
-
-### The Seven Layers of Agentic Coherence
-
-| Layer | Name | arifOS Implementation | AAA Implementation | A-FORGE Implementation |
-|-------|------|----------------------|-------------------|------------------------|
-| **L0** | State coherence | Session state machine, KSR | Agent-card.json | forge_work/ receipts |
-| **L1** | Semantic coherence | F1-F13 definitions, SEAL meaning | Dashboard semantics, A2A protocol | Tool schemas, MCP contracts |
-| **L2** | Memory coherence | VAULT999 + Ledger | memory/, 555-ASI recall | SCAR scars, execution history |
-| **L3** | Tool coherence | arif_route, arif_get_affordance | Tool registry | forge_registry, skill store |
-| **L4** | Authority coherence | F13, 888_JUDGE, leases | Role assignments, escalation | forge_lease, scope limits |
-| **L5** | Consequence coherence | arif_seal, receipts | Incident boards, HOLD queues | forge_execute receipts, rollback |
-| **L6** | Vitality coherence | Stack health, drift detection | Organ attestation | forge_health_check, monitoring |
-
-### APEX Product Maintenance Rules
+## V. The Seven-Organ APEX Map
 
 ```
-1. G = A·P·E·X·Φ must remain > 0 at all times.
-2. Any dimension at 0 → system cannot act.
-3. Any dimension at negative → constitutional violation → 888_HOLD.
-4. ΔS (entropy change) must be ≤ 0 per iteration (cooling law).
-5. Tri-witness (H × AI × External) required for SEAL-grade actions.
-6. Irreversibility chain must be declared before any IRREVERSIBLE action.
+                    ┌─────────────────────────────────────────┐
+                    │         ARIF BIN FAZIL (F13 SOVEREIGN)  │
+                    │  Sovereign canon · Final veto · 888    │
+                    └────────────────────┬────────────────────┘
+                                         │
+                    ┌────────────────────▼────────────────────┐
+                    │           arifOS KERNEL (Ω)           │
+                    │     Constitutional AGI Substrate        │
+                    │  F1-F13 · VAULT999 · 888 JUDGE        │
+                    └────────────────────┬────────────────────┘
+                                         │
+              ┌──────────────────────────┼──────────────────────────┐
+              │                          │                          │
+    ┌─────────▼─────────┐    ┌──────────▼──────────┐    ┌─────────▼─────────┐
+    │     A-FORGE        │    │        AAA         │    │      WEALTH       │
+    │  (Governed Hands)  │    │ (Civilization State)│    │  (Capital/Risk)   │
+    │  forge_* tools     │    │ Cockpit · A2A mesh │    │  NPV · EMV        │
+    └─────────┬─────────┘    └──────────┬─────────┘    └─────────┬─────────┘
+              │ X (Execute)                │ E (State)              │ E (Capital)
+              │                            │                        │
+    ┌─────────▼─────────┐    ┌──────────▼──────────┐    ┌─────────▼─────────┐
+    │       GEOX         │    │       WELL          │    │     (External)    │
+    │  (Earth Evidence)  │    │ (Human Readiness)   │    │  Internet, Markets │
+    │  Seismic · Wells   │    │  Fatigue · Dignity  │    │  Physical World   │
+    └────────────────────┘    └─────────────────────┘    └───────────────────┘
 ```
+
+### Per-Organ ΔΩΨ Map
+
+| Organ | Δ (Clarity) | Ω (Humility) | Ψ (Vitality) |
+|-------|-------------|--------------|--------------|
+| **arifOS** | 000→999 pipeline, session state, receipts | F1-F13 floors, 888 judge, SEAL bounds | Routing, health, drift, adaptive governance |
+| **AAA** | Dashboards, timelines, task state | Roles, approvals, escalation | Live agent mesh, experiments, risk lanes |
+| **A-FORGE** | Job graphs, deploy history, receipts | Leases, scopes, OBSERVE/ACT lanes | Tool routing, retries, orchestration |
+| **GEOX** | Seismic, well logs, physical bounds | Claim uncertainty, evidence gaps | Physical reality anchor |
+| **WEALTH** | Cashflow, NPV, IRR, risk bands | Downside challenge, capital bounds | Capital substrate, institutional health |
+| **WELL** | Fatigue signal, readiness state | Dignity bounds, consent erosion | Human vitality, homeostasis |
 
 ---
 
-## IV. The 000→999 Metabolic Cycle (APEX as Living System)
+## VI. The Authority Spine
+
+Confirmed by `arifos` README:
 
 ```
-000 INIT     → Session born. A bound. P initialized.
-111 SENSE    → E gathered. arif_observe. Evidence weighted.
-222 THINK    → P applied. Constraints checked. Plan formed.
-333 PLAN     → X planned. Blast radius assessed. Reversibility declared.
-444 CRITIQUE → Ω applied. Risk, dignity, harm reviewed.
-555 REFLECT  → Memory anchored. Ledger updated. ASI integration.
-666 HEART    → Ψ assessed. Vitality, consequence, meaning evaluated.
-777 FORGE    → X executed. Tools fired. Receipts generated.
-888 JUDGE    → Φ verdict. SEAL | HOLD | SABAR | VOID.
-999 SEAL     → Finality. VAULT999 immutable record. G fixed.
+Arif → AAA/Hermes → arifOS kernel → domain organs → A-FORGE → VAULT999
 ```
 
-Each stage maintains G = A·P·E·X·Φ. The cycle is APEX in motion.
+arifOS kernel is the constitutional center. AAA is the cockpit. A-FORGE is the hand. Domain organs supply reality. VAULT999 remembers.
 
 ---
 
-## V. GitHub Repo Topology (Canonical)
+## VII. The Six Coherence Layers
+
+| Layer | Repo / Organ | Function |
+|-------|-------------|----------|
+| **State coherence** | `arifos` | Canonical state machine; 000→999 path |
+| **Semantic coherence** | `ariffazil`, `AAA`, APEX docs | Terms mean the same across time |
+| **Memory coherence** | `VAULT999`, `AAA`, `ariffazil` | Receipts, scars, sealed history |
+| **Tool coherence** | `A-FORGE` | Right tool, right lease, right blast radius |
+| **Authority coherence** | `aripos`, `AAA`, F13 | Who may judge, act, hold, veto |
+| **Consequence coherence** | `A-FORGE`, `WEALTH`, `GEOX`, `WELL`, `VAULT999` | What changes, who is affected, what is logged |
+
+---
+
+## VIII. GitHub Repo Topology (Canonical)
 
 ```
 https://github.com/ariffazil/ariffazil
-    └── Sovereign canon · Identity · APEX THEORY source
-    └── GENESIS/040 = this document
+    Sovereign canon, identity root, doctrine source
 
 https://github.com/ariffazil/arifos
-    └── APEX kernel (Ω) — constitutional AGI substrate
-    └── VAULT999 — immutable civilizational ledger
-    └── F1-F13 floors — physics of meaning
-    └── arif_judge, arif_seal, arif_act — execution gate
+    AGI substrate kernel
+    F1-F13 constitutional floors
+    VAULT999 immutable ledger
+    888_JUDGE verdict engine
+    THIS document lives here first
 
 https://github.com/ariffazil/A-FORGE
-    └── APEX execution (X) — governed hands
-    └── forge_* tools — tool registry and execution
-    └── forge_lease, forge_witness — authority and witness
+    Governed autonomous execution
+    forge_* tools, leases, receipts
+    Hands that touch machines under arifOS authority
 
 https://github.com/ariffazil/AAA
-    └── APEX civilization state — semantic coherence layer
-    └── a2a-server — inter-agent communication
-    └── React cockpit — human-readable state surface
-    └── Agent registry — 333-AGI, 555-ASI, 888-APEX
-
-https://github.com/ariffazil/wealth
-    └── APEX capital dimension — consequence coherence
-    └── NPV, EMV, EVOI — financial physics
-    └── collapse_signature_scan — institutional failure forensics
-
-https://github.com/ariffazil/well
-    └── APEX human vitality dimension — authority coherence
-    └── Fatigue, dignity, homeostasis — human substrate signals
-    └── F6 MARUAH enforcement — never diagnose, always reflect
+    ASI civilization state
+    Cockpit, A2A mesh, agent registry
+    Makes judgment visible
 
 https://github.com/ariffazil/geox
-    └── APEX earth evidence dimension — physical substrate
-    └── Seismic, petrophysics, basin — earth truth
-    └── Claim grammar — evidence-structured uncertainty
+    Earth evidence organ
+    Physical reality anchor
+    Must never authorize or allocate capital
+
+https://github.com/ariffazil/wealth
+    Capital risk organ
+    NPV, EMV, institutional forensics
+    Must never move money or self-seal
+
+https://github.com/ariffazil/well
+    Human readiness organ
+    Fatigue, dignity, homeostasis
+    Reflect-only, never decide
 ```
 
 ---
 
-## VI. Cross-Repo Seals
+## IX. Cross-Repo Cross-Link Instruction
 
-| Seal ID | Content | Repo | Status |
-|---------|---------|------|--------|
-| 040-2026-06-30-apex-stack | This document | arifOS/GENESIS | SEALED |
-| 013-apex-falsification | APEX falsification protocol | arifOS/GENESIS | SEALED |
-| 015-apex-kernel-voice | APEX as kernel voice | arifOS/GENESIS | SEALED |
-| 011-federation-agi-substrate | Federation AGI substrate | arifOS/GENESIS | SEALED |
+Every repo's `README.md` should contain:
+
+```markdown
+## APEX STACK Bridge
+
+This repo is one organ of the arifOS federation. The canonical bridge doctrine is:
+
+> APEX THEORY defines the constitutional dynamics of governed intelligence
+> through ΔΩΨ. arifOS compiles those dynamics into an AGI substrate kernel.
+> AAA renders the substrate as visible ASI civilization state. A-FORGE gives
+> the system governed hands. GEOX, WEALTH, and WELL anchor those hands to
+> earth, capital, and human reality. VAULT999 preserves consequence.
+> Arif/F13 remains the sovereign witness and final veto.
+
+Full doctrine: [arifOS/GENESIS/040_APEX_STACK.md](https://github.com/ariffazil/arifos/blob/main/GENESIS/040_APEX_STACK.md)
+```
 
 ---
 
-## VII. Final Synthesis
+## X. What APEX Is Not
 
-### The One-Line APEX STACK
+| Claim | Correction |
+|-------|-----------|
+| "APEX is like quantum physics" | APEX is constitutional dynamics. The topology rhymes with physics because constraint systems share structure. Mark as metaphor. |
+| "arifOS replaces human judgment" | arifOS structures the path before AI judgment becomes action. Human veto remains. |
+| "AAA is the judge" | AAA makes judgment visible. Never the judge. |
+| "A-FORGE self-authorizes" | A-FORGE never self-authorizes. arifOS grants leases. |
+| "WEALTH moves capital" | WEALTH computes only. Never moves money. |
+| "WELL diagnoses" | WELL reflects human readiness. Never diagnoses. |
+| "GEOX authorizes drilling" | GEOX provides evidence. Never authorizes. |
+
+---
+
+## XI. Final Synthesis
 
 ```
-APEX THEORY = field equations.
-arifOS      = kernel enforcing APEX on all agents.
-AAA         = civilization cockpit governing APEX state.
-A-FORGE     = execution shell acting under arifOS leases.
-WELL        = human readiness feeding authority bounds.
-WEALTH      = capital intelligence feeding consequence bounds.
-GEOX        = earth substrate feeding physical evidence.
-ariffazil   = sovereign witness keeping meaning coherent across time.
+APEX is the law.            (constitutional field law of governed intelligence)
+arifOS is the kernel.      (AGI substrate enforcing that law)
+AAA is the state.           (civilization seeing and governing that kernel)
+A-FORGE is the hand.        (execution under kernel authority)
+GEOX is the earth.          (physical evidence anchor)
+WEALTH is the capital.      (risk and consequence anchor)
+WELL is the human.           (readiness and dignity anchor)
+VAULT999 is the memory.     (irreversible audit)
+Arif is the veto.           (F13 SOVEREIGN, final authority)
 ```
-
-### The Invariant That Cannot Be Broken
 
 ```
 G = A · P · E · X · Φ > 0
 
 ∀ organs, ∀ agents, ∀ actions, ∀ time.
 
-This is not a policy.
-This is physics.
-```
-
-### Canonical Citation
-
-```markdown
-When referencing APEX STACK in any organ, tool, or document:
-
-> "APEX STACK — Agentic Coherence Across the Federation"  
-> GENESIS/040 · arifOS GitHub · SEALED 2026-06-30  
-> Author: FORGE · Ratified by: APEX THEORY + arifOS Kernel + 888 SOVEREIGN
+This is not physics.
+This is constitutional dynamics.
 ```
 
 ---
 
-**SEALED.** This document is immutable. It cross-links all seven organs. It is the official bridge doctrine of the arifOS federation.
+**SEALED.** This document is immutable. It is the official bridge doctrine of the arifOS federation. It lives first in `arifos/GENESIS/`. Every repo cross-links to it.
 
 DITEMPA BUKAN DIBERI.
 
 ---
 
-*Next: GENESIS/041 (if needed) — APEX as executable governance protocol, or GENESIS/042 — Mathematical formalization of ΔΩΨ as operators.*
+*Canonical citation:*
+```markdown
+> "APEX STACK — Agentic Coherence Across the Federation"
+> GENESIS/040 · arifOS GitHub · SEALED 2026-06-30
+> Author: FORGE · Ratified: Arif bin Fazil (F13 SOVEREIGN)
+```
