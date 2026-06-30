@@ -212,6 +212,14 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 
 **Rule:** arifOS judges → A-FORGE executes → VAULT999 records. Never skip the chain.
 
+### Federation Context (read all 3 for full picture)
+
+| Read this | For | Link |
+|-----------|-----|------|
+| **arifOS** (this repo) | Constitutional kernel. 10 verbs. 13 floors. The judge. | ← you are here |
+| **A-FORGE** | Executor. 75 MCP tools. Gates + A-THINK law. | [`ariffazil/A-FORGE`](https://github.com/ariffazil/A-FORGE) |
+| **AAA** | Cockpit. A2A mesh. Agent registry. React 19 dashboard. | [`ariffazil/AAA`](https://github.com/ariffazil/AAA) |
+
 ---
 
 ## 8. License & Sovereignty
