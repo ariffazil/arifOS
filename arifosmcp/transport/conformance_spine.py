@@ -293,27 +293,18 @@ def check_mcp_initialize() -> dict[str, Any]:
 
 
 def check_protocol_version() -> dict[str, Any]:
-    """3. Protocol version must be MCP 2025-11-25 or supported.
-
-    Uses internal _runtime_version_echo handler directly — bypasses the
-    gated arif_canary surface which is only available in expanded45 mode.
-    The conformance spine tests the *kernel*, not the MCP tool registry.
-    """
-    try:
-        from arifosmcp.runtime.tools import _runtime_version_echo
-
-        tool_result = _runtime_version_echo()
-    except Exception as e:
-        return {
-            "check": "protocol_version",
-            "verdict": FAIL,
-            "evidence": {
-                "mcp_spec_version": "",
-                "supported_protocol_versions": [],
-                "server_version": "",
-                "exception": str(e),
-            },
-        }
+    """3. Protocol version must be MCP 2025-11-25 or supported."""
+    # arif_version_echo now lives inside arif_canary(mode="version_echo")
+    session_id = _get_session()
+    result = _mcp_post(
+        "tools/call",
+        {
+            "name": "arif_canary",
+            "arguments": {"mode": "version_echo"},
+        },
+        session_id=session_id,
+    )
+    tool_result = _extract_tool_result(result)
 
     supported = tool_result.get("protocol_versions_supported", [])
     mcp_spec = tool_result.get("mcp_spec_version", "")
@@ -327,39 +318,28 @@ def check_protocol_version() -> dict[str, Any]:
             "mcp_spec_version": mcp_spec,
             "supported_protocol_versions": supported,
             "server_version": server_version,
+            "error": result.get("error"),
         },
     }
 
 
 def check_schema_echo_stable() -> dict[str, Any]:
-    """4. arif_schema_echo must return what was sent — schema tolerance.
-
-    Uses internal _runtime_schema_echo handler directly — bypasses the
-    gated arif_canary surface which is only available in expanded45 mode.
-    """
+    """4. arif_schema_echo must return what was sent — schema tolerance."""
+    session_id = _get_session()
     probe_payload = {"probe_key": "schema_test", "nested": {"depth": 1}, "list_val": [1, 2, 3]}
 
     t0 = time.monotonic()
-    try:
-        from arifosmcp.runtime.tools import _runtime_schema_echo
-
-        tool_result = _runtime_schema_echo(payload=probe_payload)
-    except Exception as e:
-        latency_ms = round((time.monotonic() - t0) * 1000, 1)
-        return {
-            "check": "schema_echo_stable",
-            "verdict": FAIL,
-            "latency_ms": latency_ms,
-            "evidence": {
-                "echo_present": False,
-                "received_type": None,
-                "received_keys": None,
-                "key_count": None,
-                "exception": str(e),
-            },
-        }
+    result = _mcp_post(
+        "tools/call",
+        {
+            "name": "arif_canary",
+            "arguments": {"mode": "schema_echo", "payload": probe_payload},
+        },
+        session_id=session_id,
+    )
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
+    tool_result = _extract_tool_result(result)
     echo = tool_result.get("echo", {})
     passed = (
         isinstance(echo, dict)
@@ -376,6 +356,7 @@ def check_schema_echo_stable() -> dict[str, Any]:
             "received_type": tool_result.get("server_received_type"),
             "received_keys": tool_result.get("received_keys"),
             "key_count": tool_result.get("key_count"),
+            "error": result.get("error"),
         },
     }
 
@@ -712,7 +693,10 @@ def check_cooling_ledger() -> dict[str, Any]:
         last_seal = vault_data.get("last_seal", {})
         if last_seal:
             last_action = last_seal.get("action", "")
+            last_source = last_seal.get("source_agent", "")
             if "well_entropy" in last_action.lower() or "entropy" in last_action.lower():
+                well_entropy_seals += 1
+            elif "well" in last_source.lower():
                 well_entropy_seals += 1
     except Exception as e:
         errors.append(f"VAULT999 well entropy probe failed: {e}")
@@ -737,7 +721,10 @@ def check_cooling_ledger() -> dict[str, Any]:
         for entry in entries:
             if isinstance(entry, dict):
                 action = entry.get("action") or entry.get("event") or ""
+                source = entry.get("source_agent") or ""
                 if "well_entropy" in action.lower() or "entropy" in action.lower():
+                    well_entropy_seals += 1
+                elif "well" in source.lower():
                     well_entropy_seals += 1
     except Exception:
         pass  # hermes vault is optional secondary check
@@ -802,6 +789,8 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
             "protocol_version",
             "schema_echo_stable",
             "session_starts",
+            "vault_replay",  # P3 fix 2026-06-30: recursive HTTP deadlock
+            "cooling_ledger",  # P3 fix 2026-06-30: recursive HTTP + VAULT999 API
         ):
             r = {
                 "check": name,
