@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "ariffazil/arifos",
+  "name": "io.github.ariffazil/arifos",
   "title": "arifOS",
   "description": "Constitutional AI governance: 13+ MCP tools, sovereign verdict pipeline, immutable audit ledger",
   "websiteUrl": "https://arif-fazil.com",

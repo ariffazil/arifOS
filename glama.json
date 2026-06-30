@@ -1,7 +1,7 @@
 {
   "$schema": "https://glama.ai/schemas/glama.json",
   "name": "arifOS",
-  "description": "Production-grade Constitutional AI Governance System. 13 canonical MCP tools enforcing F1-F13 constitutional floors, 888_JUDGE sovereign verdict pipeline, VAULT999 immutable ledger. F2 TRUTH: evidence-labeled. F9 ANTI-HANTU: tool, not being. F13 SOVEREIGN: human veto is absolute.",
+  "description": "Production-grade Constitutional AI Governance System. 7 canonical MCP tools (init, observe, think, route, judge, act, seal) enforcing F1-F13 constitutional floors, 888_JUDGE sovereign verdict pipeline, VAULT999 immutable ledger, 82 resources, 8 prompts. F13 SOVEREIGN: human veto is absolute. DITEMPA BUKAN DIBERI.",
   "author": {
     "name": "Muhammad Arif bin Fazil",
     "url": "https://arif-fazil.com"
@@ -20,11 +20,34 @@
     "sovereign-ai",
     "ai-safety",
     "federation",
+    "orchestration",
+    "audit",
+    "immutable-ledger",
     "arifos"
   ],
   "features": {
     "tools": true,
     "resources": true,
-    "prompts": false
-  }
+    "prompts": true
+  },
+  "tools": {
+    "count": 7,
+    "public_manifest": "https://mcp.arif-fazil.com/manifest/tools.json",
+    "naming": "arif_verb — canonical single-intent tools"
+  },
+  "resources": {
+    "count": 82
+  },
+  "prompts": {
+    "count": 8
+  },
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://mcp.arif-fazil.com/mcp",
+    "auth_required": true,
+    "auth_type": "bearer",
+    "env_var": "ARIFOS_API_KEY"
+  },
+  "protocol": "2025-11-25",
+  "client_compatibility": ["Claude Desktop", "Copilot Agents", "Cursor", "Smithery", "Glama", "mcp.so", "OpenCode", "Kimi Code", "Cline", "Windsurf"]
 }

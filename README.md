@@ -26,6 +26,9 @@
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444)](LICENSE)
 [![Federation](https://img.shields.io/badge/federation-7%20organs%20alive-8B5CF6)](FEDERATION_STATUS.md)
 [![PyPI](https://img.shields.io/pypi/v/arifos?label=pypi)](https://pypi.org/project/arifos/)
+[![Glama](https://img.shields.io/badge/Glama-arifOS-8A2BE2)](https://glama.ai/mcp/servers/ariffazil/arifos)
+[![Smithery](https://img.shields.io/badge/Smithery-arifOS-FF6B35)](https://smithery.ai/server/ariffazil/arifos)
+[![mcp.so](https://img.shields.io/badge/mcp.so-arifOS-00BFFF)](https://mcp.so/servers/ariffazil/arifos)
 
 ---
 
