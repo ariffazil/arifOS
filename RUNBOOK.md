@@ -215,7 +215,7 @@ python well_autosleeper.py  # if present
 
 The probe currently reports all registered tools including aliases.
 This is a known registry-truth gap (GAP-003 continuation).
-Canonical count should be verified against `arifOS/TOOL_MANIFEST.json`.
+Canonical count should be verified against `arifOS/arifosmcp/mcp.json`.
 
 ### 6.4 A-FORGE MCP 406 / session required
 

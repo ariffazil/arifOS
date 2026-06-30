@@ -58,7 +58,7 @@ A tool must declare all required state. Implicit behavior is forbidden.
 One tool = one intent. No multi-purpose monsters.
 
 - **Failure mode:** Kitchen-sink tools that do N things, impossible to govern
-- **Enforced by:** `arif_mind_reason` (plans decomposed into single-intent steps), `TOOL_MANIFEST.json`
+- **Enforced by:** `arif_mind_reason` (plans decomposed into single-intent steps), `mcp.json`
 - **Metabolic stage:** 333_REASON
 - **Verdict class:** HOLD if tool scope cannot be stated in one sentence
 
@@ -106,7 +106,7 @@ Outputs must be readable, not compressed. Every receipt earns its pixels.
 Parameters must explain themselves. Errors must explain themselves. Every tool carries `eureka_insight`.
 
 - **Failure mode:** Cryptic parameters, error codes without explanations, missing documentation
-- **Enforced by:** `TOOL_MANIFEST.json` (every tool has description + eureka_insight), `arif://tools/discovery`
+- **Enforced by:** `mcp.json` (every tool has description + eureka_insight), `arif://tools/discovery`
 - **Metabolic stage:** All stages
 - **Verdict class:** HOLD if tool lacks self-documenting params
 
@@ -178,7 +178,7 @@ Return HOLD or SABAR instead of hallucinating. Confidence without evidence is da
 Each intent maps to one canonical tool. No duplicate tools doing the same thing.
 
 - **Failure mode:** Overlapping tools, duplicate capabilities, namespace pollution
-- **Enforced by:** `TOOL_MANIFEST.json` (uniqueness enforced), `arif_kernel_route` (canonical routing)
+- **Enforced by:** `mcp.json` (uniqueness enforced), `arif_kernel_route` (canonical routing)
 - **Metabolic stage:** 444_ROUTE
 - **Verdict class:** HOLD if duplicate tool detected in registry
 
@@ -250,7 +250,7 @@ Auditable = governable. Every tool must earn its complexity by being traceable.
 Each domain gets its own namespace. arif*, geox*, wealth*, forge*, well*. Domain bleed is a constitutional violation.
 
 - **Failure mode:** Domain bleed, tool collision, organ boundary violation
-- **Enforced by:** `arif_kernel_route` (namespace registry), `TOOL_MANIFEST.json` (namespace uniqueness)
+- **Enforced by:** `arif_kernel_route` (namespace registry), `mcp.json` (namespace uniqueness)
 - **Metabolic stage:** 444_ROUTE
 - **Verdict class:** VOID if tool crosses domain without proper gateway
 
@@ -370,13 +370,13 @@ Every tool call is a stage in the constitutional metabolic cycle:
 | Structured Complexity | Δ | Multi-organ flows | `arif_gateway_connect` |
 | Shallow Invocation | Δ | Auth chains | `arif_judge_deliberate` |
 | Breathing Room | Δ | Output formatting | `arif_reply_compose` |
-| Self-Documenting | Δ | Parameters, errors | `TOOL_MANIFEST.json` |
+| Self-Documenting | Δ | Parameters, errors | `mcp.json` |
 | No Exemptions | Ω | All tools | F13 SOVEREIGN |
 | Graceful Degradation | Ω | Organ failure | `arif_kernel_route` |
 | Loud Failure | Δ/Ω | Error handling | `arif_judge_deliberate` |
 | Intentional Quiet | Ω | Suppression | `arif_heart_critique` |
 | Ambiguity Discipline | Ω | Intent resolution | `arif_kernel_route` |
-| Canonical Intent | Δ | Tool uniqueness | `TOOL_MANIFEST.json` |
+| Canonical Intent | Δ | Tool uniqueness | `mcp.json` |
 | Discoverability | Δ | Documentation | `arif://tools/discovery` |
 | Incremental Progress | Ψ | Reasoning | `arif_mind_reason` |
 | Judgment Before Action | Ω | Execution gating | `arif_judge_deliberate` |
@@ -423,7 +423,7 @@ This document is the single source of truth for the Zen-of-MCP mapping in arifOS
 It supersedes all ad-hoc tool descriptions that lack constitutional grounding.
 
 **Related canonical documents:**
-- `/root/arifOS/TOOL_MANIFEST.json` — machine-readable tool registry
+- `/root/arifOS/arifosmcp/mcp.json` — machine-readable tool registry
 - `/root/arifOS/static/arifos/theory/000/000_CONSTITUTION.md` — F1-F13 floors
 - `/root/AAA/docs/UNIFIED_AGENT_PROTOCOL.md` — A2A protocol binding
 - `/canon/A2A.md` — federation A2A spec (I-1 through I-10)

@@ -1180,13 +1180,13 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
             # Echo the client's requested version if it's in MCP SUPPORTED;
             # otherwise fall back to LATEST. Backward + forward compatible.
             _SUPPORTED_PROTOCOL_VERSIONS = {
-                "2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25",
+                "2024-11-05",
+                "2025-03-26",
+                "2025-06-18",
+                "2025-11-25",
             }
             _requested = params.get("protocolVersion", "2025-11-25")
-            _negotiated = (
-                _requested if _requested in _SUPPORTED_PROTOCOL_VERSIONS
-                else "2025-11-25"
-            )
+            _negotiated = _requested if _requested in _SUPPORTED_PROTOCOL_VERSIONS else "2025-11-25"
             return {
                 "jsonrpc": "2.0",
                 "id": req_id,
@@ -1399,13 +1399,11 @@ TOOL_ALIAS_MAP: dict[str, str] = {
     "arif_heart_critique": "arif_judge",
     "arif_judge_deliberate": "arif_judge",
     "arif_vault_seal": "arif_seal",
-    "arif_kernel_route": "arif_route",
     "arif_reply_compose": "arif_act",
     "arif_forge_execute": "arif_act",
     "arif_evidence_fetch": "arif_observe",
     "arif_ops_measure": "arif_observe",
     "arif_memory_recall": "arif_think",
-    "arif_gateway_connect": "arif_route",
     # ── Shell wrappers → arif_route (not direct execution) ──
     "arif_run": "arif_route",
     "arif_exec": "arif_route",
