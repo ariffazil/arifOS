@@ -18196,6 +18196,7 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_ops_measure": _arif_ops_measure,
     "arif_explore": _arif_sense_observe,
     "arif_kernel_intercept": _arif_kernel_intercept_tool,
+    "arifos_kernel_intercept": _arif_kernel_intercept_tool,  # canonical name in public surface
     "arif_forge": _arif_forge_execute_tool,
     "arif_forge_execute": _arif_forge_execute_tool,
     "arif_judge_deliberate": _arif_judge_deliberate_tool,

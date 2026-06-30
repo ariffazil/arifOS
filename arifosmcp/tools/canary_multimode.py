@@ -64,13 +64,15 @@ async def arif_canary(
         if mode == "ping":
             handler = _RUNTIME_DIAGNOSTIC_HANDLERS.get("arif_ping")
             if handler:
-                return handler(
+                raw = handler(
                     mode="probe",
                     session_id=session_id,
                     actor_id=actor_id,
                     include_constitution=include_constitution,
                     _envelope=_envelope,
                 )
+                # Wrap in clean canary envelope — strip constitutional noise
+                return _wrap_ping(raw)
 
         elif mode == "schema_echo":
             handler = _RUNTIME_DIAGNOSTIC_HANDLERS.get("arif_schema_echo")
@@ -133,6 +135,42 @@ async def arif_canary(
             "mode": mode,
             "error": str(e),
         }
+
+
+def _wrap_ping(raw: dict[str, Any]) -> dict[str, Any]:
+    """Wrap raw arif_ping output in a clean canary envelope.
+
+    A canary's job is to reduce uncertainty. The raw ping handler returns
+    confused constitutional metadata (purpose undeclared, blast_radius unknown,
+    verdict SEAL for observation). This wrapper strips the noise and returns
+    clean liveness evidence.
+    """
+    # Extract what matters from the raw response
+    status = raw.get("status", "UNKNOWN")
+    service = raw.get("service", "arifOS MCP")
+    runtime = raw.get("runtime", "unknown")
+    vault = raw.get("vault", "unknown")
+    forge = raw.get("forge", "unknown")
+    session_required = raw.get("session_required", True)
+
+    # Derive clean values
+    is_ok = status == "OK" and runtime in ("ready", "ok")
+
+    return {
+        "status": "OK" if is_ok else "DEGRADED",
+        "tool": "arif_canary",
+        "mode": "ping",
+        "service": service,
+        "runtime": runtime,
+        "vault": vault,
+        "forge": forge,
+        "session_required": session_required,
+        "mutation": False,
+        "blast_radius": "none",
+        "output_is_evidence": True,
+        "evidence_type": "transport_liveness",
+        "verdict": "OBSERVED",
+    }
 
 
 CANARY_MODES = _CANARY_MODES
