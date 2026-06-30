@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "ariffazil/arifos",
+  "title": "arifOS",
+  "description": "Constitutional AI governance: 13+ MCP tools, sovereign verdict pipeline, immutable audit ledger",
+  "websiteUrl": "https://arif-fazil.com",
+  "repository": {
+    "url": "https://github.com/ariffazil/arifOS",
+    "source": "github"
+  },
+  "version": "2026.6.30",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "arifos",
+      "version": "1!2026.6.30.post1",
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://arifos.arif-fazil.com/mcp"
+      }
+    }
+  ]
+}
