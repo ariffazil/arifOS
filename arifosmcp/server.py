@@ -608,44 +608,46 @@ try:
     #   arif_canary(mode="conformance_report") — was arif_conformance_report
     pass  # legacy probe blocks deleted; arif_canary below is canonical
 
-    # ── Conformance Report Standalone (9-Tool Audit Fix 1 — 2026-06-29) ────
-    # Always callable. Read-only. Zero-ceremony. The proof machine.
-    # Previously gated behind arif_canary(mode="conformance_report") which
-    # required ARIFOS_MCP_EXPOSE_DEV_TOOLS=true. Now standalone and always on.
-    # Uses a wrapper without **kwargs because FastMCP 3 rejects **kwargs in tool sigs.
-    from arifosmcp.runtime.tools import _runtime_conformance_report
+    # ── Conformance Report + Canary Multimode (expanded45 operator surface) ────
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+    if _EXPOSE_DEV_TOOLS:
+        from arifosmcp.runtime.tools import _runtime_conformance_report
 
-    def _conformance_handler(
-        payload: Any = None,
-        _envelope: dict[str, Any] | None = None,
-        client_capabilities: dict[str, Any] | None = None,
-        actor_id: str | None = None,
-        session_id: str | None = None,
-    ) -> dict[str, Any]:
-        """Standalone conformance report — FastMCP 3 compatible (no **kwargs)."""
-        return _runtime_conformance_report(
-            payload=payload, _envelope=_envelope, client_capabilities=client_capabilities
+        def _conformance_handler(
+            payload: Any = None,
+            _envelope: dict[str, Any] | None = None,
+            client_capabilities: dict[str, Any] | None = None,
+            actor_id: str | None = None,
+            session_id: str | None = None,
+        ) -> dict[str, Any]:
+            """Standalone conformance report — FastMCP 3 compatible (no **kwargs)."""
+            return _runtime_conformance_report(
+                payload=payload, _envelope=_envelope, client_capabilities=client_capabilities
+            )
+
+        mcp.tool(
+            name="arif_conformance_report",
+            description=(
+                "Full conformance spine proof machine. Runs 9 live checks against the "
+                "running arifOS kernel: arifos_alive, mcp_initialize, protocol_version, "
+                "schema_echo_stable, session_starts, authority_checked, hold_blocks_mutation, "
+                "vault_replay, cooling_ledger. Returns structured PASS/FAIL report with "
+                "evidence per check. No session required. Read-only. Zero side effects. "
+                "Use when: you need to prove arifOS is a substrate, not just a narrative."
+            ),
+            tags={"conformance", "diagnostic", "read-only", "proof"},
+            annotations={
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "openWorldHint": True,
+                "idempotentHint": True,
+            },
+        )(_conformance_handler)
+        logger.info("Conformance report standalone registered — expanded45 operator surface.")
+    else:
+        logger.info(
+            "Conformance report standalone gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
         )
-
-    mcp.tool(
-        name="arif_conformance_report",
-        description=(
-            "Full conformance spine proof machine. Runs 9 live checks against the "
-            "running arifOS kernel: arifos_alive, mcp_initialize, protocol_version, "
-            "schema_echo_stable, session_starts, authority_checked, hold_blocks_mutation, "
-            "vault_replay, cooling_ledger. Returns structured PASS/FAIL report with "
-            "evidence per check. No session required. Read-only. Zero side effects. "
-            "Use when: you need to prove arifOS is a substrate, not just a narrative."
-        ),
-        tags={"conformance", "diagnostic", "read-only", "proof"},
-        annotations={
-            "readOnlyHint": True,
-            "destructiveHint": False,
-            "openWorldHint": True,
-            "idempotentHint": True,
-        },
-    )(_conformance_handler)
-    logger.info("Conformance report standalone registered — always callable.")
 
 # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
     # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
@@ -671,6 +673,49 @@ try:
         )(_arif_canary_handler)
     else:
         logger.info("Canary multimode gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
+
+    # ── P3 FIX 2026-06-30: arif_triage + arif_compose — ChatGPT audit BANGANG ──
+    # Both tools are implemented in kernel_canonical.py but were excluded from
+    # server.py registration (intentionally canonical-7 only). Now added to expanded45.
+    # arif_triage: session status, priority queue, preflight checks.
+    # arif_compose: governed response composition — formats final output.
+    if _EXPOSE_DEV_TOOLS:
+        try:
+            from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
+            _triage_handler = _arif_triage
+            mcp.tool(
+                name="arif_triage",
+                description=(
+                    "Session status, priority queue, and preflight checks. "
+                    "Modes: status (active session count + stage) | preflight (pre-session safety probe) "
+                    "| triage (priority assessment). Core immune function — run before arif_init when unsure of session state."
+                ),
+                tags={"triage", "diagnostic", "read-only", "session"},
+                annotations={"readOnlyHint": True, "destructiveHint": False},
+            )(_triage_handler)
+            logger.info("arif_triage registered — expanded45 operator surface (P3 fix 2026-06-30).")
+        except Exception as _triage_err:
+            logger.warning("arif_triage registration failed (non-fatal): %s", _triage_err)
+
+        try:
+            from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH
+            _compose_fn = _CTH.get("arif_compose")
+            if _compose_fn is not None:
+                mcp.tool(
+                    name="arif_compose",
+                    description=(
+                        "Governed response composition — formats final output for Arif with citations and tone calibration. "
+                        "Call as the LAST step before presenting results. "
+                        "Modes: compose | summarize | cite | tone_shift | style | format | nudge | repo_answer."
+                    ),
+                    tags={"compose", "reply", "read-only", "output"},
+                    annotations={"readOnlyHint": True, "destructiveHint": False},
+                )(_compose_fn)
+                logger.info("arif_compose registered — expanded45 operator surface (P3 fix 2026-06-30).")
+            else:
+                logger.warning("arif_compose: not found in CANONICAL_TOOL_HANDLERS — skip registration.")
+        except Exception as _compose_err:
+            logger.warning("arif_compose registration failed (non-fatal): %s", _compose_err)
 
     from arifosmcp.runtime.tools import _wrap_handler
 
@@ -964,10 +1009,6 @@ try:
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
 
     _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
-    # Always register arif_vault_query for conformance spine (vault_replay check).
-    # The comment at line 969 claimed this exemption but the code never implemented it.
-    if not _EXPOSE_DEV_TOOLS and "arif_vault_query" in HERMES_TOOL_HANDLERS:
-        _hermes_to_register["arif_vault_query"] = HERMES_TOOL_HANDLERS["arif_vault_query"]
     for _hermes_name, _hermes_handler in _hermes_to_register.items():
         _hw = _wrap_handler(_hermes_handler, _hermes_name)
         if _hw is not None:
@@ -1004,7 +1045,7 @@ try:
                 logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
     if not _EXPOSE_DEV_TOOLS:
         logger.info(
-            "Hermes tools gated (except arif_vault_query for conformance check) — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose all."
+            "Hermes tools gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose expanded45 diagnostics."
         )
 
     # Refresh the public registry cache after all canonical tools are registered

@@ -70,6 +70,10 @@ def _load_intent_map() -> dict[str, Any]:
                 "intent_keywords": [
                     # Machine / MCP surface
                     "MCP", "MCP server", "MCP tool", "MCP endpoint", "MCP connector",
+                    "MCP diagnostic", "MCP conformance", "MCP surface",
+                    "ChatGPT connector", "OpenAI connector", "Copilot connector",
+                    "surface drift", "connector schema", "connector cache",
+                    "protocol version", "protocol drift", "protocol conformance",
                     "tool registry", "tool schema", "tool conformance",
                     "tool surface", "tool manifest", "tools/list", "tools/call",
                     "capability surface", "capability lease",
@@ -175,6 +179,32 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     if not intent:
         return "arifOS"
     intent_lower = intent.lower()
+
+    # ── Hard kernel guard (2026-06-30): MCP/kernel/diagnostic queries MUST route ─
+    # to arifOS. These are kernel-level concerns, never domain-organ concerns.
+    # The keyword map below handles normal cases; this guard catches edge cases
+    # where a domain organ (e.g. WELL "health") would otherwise win.
+    _KERNEL_GUARD_PATTERNS: list[str] = [
+        "mcp ", "mcp server", "mcp tool", "mcp endpoint", "mcp connector",
+        "mcp surface", "mcp diagnostic", "mcp conformance", "mcp protocol",
+        "chatgpt connector", "openai connector", "copilot connector",
+        "tool registry", "tool schema", "tool conformance", "tool list",
+        "tools/list", "tools/call", "tool surface", "tool manifest",
+        "surface drift", "connector schema", "connector cache",
+        "protocol version", "protocol drift", "protocol conformance",
+        "capability surface", "capability lease",
+        "kernel health", "kernel status", "kernel route", "kernel attest",
+        "arifos kernel", "arifos health", "arifos status", "arifos mcp",
+        "constitutional floor", "constitutional check",
+        "governance check", "governance status",
+        "seal boundary", "seal verdict", "authority envelope",
+        "federation contract", "federation manifest",
+        "organ attestation", "organ health",
+    ]
+    for pattern in _KERNEL_GUARD_PATTERNS:
+        if pattern in intent_lower:
+            return "arifOS"
+
     intent_map = _load_intent_map()
     organ_routes = intent_map.get("organ_routes", {})
     # Longest keyword match wins
@@ -270,8 +300,27 @@ def arif_route(
         },
     }
 
+    # P2 FIX 2026-06-30: Verdict monotonicity — HOLD > DEGRADED > SEAL.
+    # ChatGPT audit caught: arif_route returned verdict: SEAL while inner signals
+    # said hold_required: true + floor_passed: false. That is a contradiction.
+    # Rule: if any critical subsignal fires HOLD, outer verdict CANNOT be SEAL.
+    def _routing_hold_required(r: dict) -> bool:
+        """Check if any inner subsignal requires HOLD."""
+        if r.get("hold_required") is True:
+            return True
+        if r.get("floor_passed") is False:
+            return True
+        nine = r.get("nine_signal") or {}
+        if isinstance(nine, dict):
+            overall = nine.get("overall") or {}
+            if isinstance(overall, dict) and overall.get("state") in ("SYUBHAH", "HOLD", "VOID"):
+                return True
+        return False
+
     # If no organ_tool specified, return routing decision only
     if not organ_tool:
+        if _routing_hold_required(routing):
+            return _hold("arif_route", "Routing HOLD: inner subsignal requires hold (floor_passed=false or hold_required=true)", extra_meta={"routing": routing})
         return _ok("arif_route", routing)
 
     # Bridge call to organ
@@ -279,18 +328,24 @@ def arif_route(
         result = _bridge_geox(organ_tool, arguments or {}, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
+        if _routing_hold_required(routing):
+            return _hold("arif_route", "Bridge HOLD: inner subsignal requires hold", extra_meta={"routing": routing})
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "wealth":
         result = _bridge_wealth(organ_tool, arguments or {}, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
+        if _routing_hold_required(routing):
+            return _hold("arif_route", "Bridge HOLD: inner subsignal requires hold", extra_meta={"routing": routing})
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "well":
         result = _bridge_well(organ_tool, arguments or {}, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
+        if _routing_hold_required(routing):
+            return _hold("arif_route", "Bridge HOLD: inner subsignal requires hold", extra_meta={"routing": routing})
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "a-forge":

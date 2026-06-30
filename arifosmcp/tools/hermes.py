@@ -869,7 +869,11 @@ def hermes_memory_steward(
 
 HERMES_TOOL_HANDLERS: dict[str, Any] = {
     "hermes_system_status": hermes_system_status,
-    "arif_vault_query": arif_vault_query,
+    # P1 FIX 2026-06-30: contracts/tools.yaml declares `hermes_vault_query` (sanctioned non-arif_ prefix).
+    # Registry drift: key was "arif_vault_query" → caused KERNEL_DENY for callers using the canonical name.
+    # Both keys registered: "hermes_vault_query" (canonical) + "arif_vault_query" (legacy alias).
+    "hermes_vault_query": arif_vault_query,
+    "arif_vault_query": arif_vault_query,  # legacy alias — kept for backward compat
     "hermes_epistemic_check": hermes_epistemic_check,
     "hermes_fact_check": hermes_fact_check,
     "hermes_cross_verify": hermes_cross_verify,
