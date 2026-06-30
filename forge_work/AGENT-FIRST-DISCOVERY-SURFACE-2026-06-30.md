@@ -122,10 +122,16 @@
 
 ## 6. Live Zen Result (2026-06-30)
 
-- Before fix: `mcp_surface_truth_test.py` → `FAIL` (session auth continuity).
-- Root cause: test used internal tool names (`arif_session_init`, `arif_kernel_health`, `arif_kernel_route`) instead of wire names (`arif_init`, `arif_observe`, `arif_route`).
-- After fix: test → `PASS with WARNINGS` (only `runtime_drift=TRUE` remains, requiring redeploy).
-- New contradiction removed: test script now aligned with canonical public facade.
+- Before fix: `mcp_surface_truth_test.py` → `FAIL` (session auth continuity); arifOS.service failed to start after deploy with `RuntimeError: Legacy surface detected`.
+- Root causes:
+  1. Test script used internal tool names instead of wire names.
+  2. `CANONICAL_7` in `public_surface.py` used `arifos_*` names while `_assert_registered_surface` rejected any `arifos_*` tool as legacy — a self-contradiction.
+  3. `BLOCKED_PUBLIC_PREFIXES` blocked the canonical `arif_*` facade.
+- After fix:
+  - `mcp_surface_truth_test.py` → **PASS** (no warnings, `runtime_drift=False`, all 4 surfaces consistent).
+  - Conformance spine → **8/9 PASS**; only `cooling_ledger` FAIL due to known pre-migration historical gap (sovereign ruling NON-ISSUE).
+  - arifOS.service healthy; wire tools match `/.well-known/mcp/server.json` canonical `arif_*` names.
+- Commits: `0148a60ac` (remove contradictory assertion), `85f6e57aa` (align CANONICAL_7 with discovery surface).
 
 ## 7. Evidence
 
