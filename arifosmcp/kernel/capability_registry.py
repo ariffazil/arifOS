@@ -165,11 +165,15 @@ def _build_default_graph() -> CapabilityGraph:
             allow_python_fallback=False,
         ),
         # ── Web / Network ─────────────────────────────────────────────────
+        # EVOLVED 2026-06-30: web.search routes to forge_forge_search (Brave).
+        # websearch was a dead alias — no real handler. forge_forge_search is
+        # the fittest search tool: fastest, governed (OBSERVE-class), audited.
+        # Survival of the fittest. The rest went extinct.
         CapabilityNode(
             capability_id="web.search",
-            tool_name="websearch",
-            server_id="local",
-            description="Web search",
+            tool_name="forge_forge_search",
+            server_id="aforge",
+            description="Web search via Brave — fastest governed web search tool in the federation",
             authority_required=AuthorityTier.LOW,
             mutation_class=MutationClass.NONE,
             irreversible=False,

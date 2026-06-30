@@ -505,8 +505,9 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
             f"unexpected={sorted(unexpected)}. "
             f"Expected public 7 tools={sorted(expected_set)}."
         )
-    if any(name.startswith("arifos_") for name in registered_names):
-        raise RuntimeError("Legacy surface detected in registered MCP tools")
+    # F13 ratified 2026-06-23: public surface is exactly CANONICAL_7.
+    # The first check above enforces that invariant. No additional prefix check
+    # is needed — and the previous arifos_ prefix check contradicted CANONICAL_7.
 
 
 v2_tools_registered: list[str] = []
