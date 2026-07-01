@@ -220,3 +220,6 @@ contracts/generated/
 # Local scratch and type-check cache
 scratch/
 .mypy_cache/
+
+# GitHub Copilot workspace — not VPS-aware, do not commit
+Copilot/
