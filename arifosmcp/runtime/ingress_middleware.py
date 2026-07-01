@@ -274,6 +274,45 @@ def _hold_envelope_dict(
     }
 
 
+def _deny_envelope_dict(
+    tool_name: str,
+    reason: str,
+    *,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    extra: dict[str, Any] | None = None,
+    verdict: str = "VOID",
+) -> dict[str, Any]:
+    """Build a schema-conformant DENY/QUARANTINE/VOID envelope dict.
+
+    Mirrors _hold_envelope_dict but emits a VOID verdict so the MCP SDK
+    receives structured content even when the kernel interceptor blocks the
+    call. Prevents 'outputSchema defined but no structured output returned'.
+    """
+    ts = datetime.now(UTC).isoformat()
+    result_payload: dict[str, Any] = {"reason": reason, "blocked": True}
+    if extra:
+        result_payload.update(extra)
+
+    return {
+        "status": "VOID",
+        "tool": tool_name,
+        "verdict": verdict,
+        "result": result_payload,
+        "meta": {"actor_id": actor_id or "ingress-middleware"},
+        "delta_S": 0.0,
+        "timestamp": ts,
+        "session_id": session_id,
+        "actor_id": actor_id,
+        "output_policy": "DOMAIN_VOID",
+        "nine_signal": _nine_signal_for_severity("ERROR"),
+        "reasons": [reason, "Kernel interceptor rejected before tool execution."],
+        "_nine_signal_compliant": True,
+        "_violations": [reason],
+        "stage_progression": None,
+    }
+
+
 def _extract_error_from_result(result: Any) -> str | None:
     """Extract error message from ToolResult if present."""
     try:
@@ -1244,18 +1283,31 @@ if IS_FASTMCP_3:
                             )
                             from mcp.types import TextContent
 
+                            _deny_text = (
+                                f"KERNEL_{decision.verdict.value}: {decision.reason}\n\n"
+                                f"Capability: {decision.capability_id or 'unknown'}\n"
+                                f"Actor: {decision.actor_id or 'anonymous'}\n"
+                                f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}"
+                            )
                             return ToolResult(
-                                content=[
-                                    TextContent(
-                                        type="text",
-                                        text=(
-                                            f"KERNEL_{decision.verdict.value}: {decision.reason}\n\n"
-                                            f"Capability: {decision.capability_id or 'unknown'}\n"
-                                            f"Actor: {decision.actor_id or 'anonymous'}\n"
-                                            f"Authority: {decision.authority_tier.value if decision.authority_tier else 'LOW'}"
+                                content=[TextContent(type="text", text=_deny_text)],
+                                structured_content=_deny_envelope_dict(
+                                    tool_name=tool_name,
+                                    reason=_deny_text,
+                                    session_id=envelope.session_id,
+                                    actor_id=envelope.actor_id,
+                                    extra={
+                                        "gate": "kernel_interceptor",
+                                        "interceptor_verdict": decision.verdict.value,
+                                        "capability_id": decision.capability_id,
+                                        "authority_tier": (
+                                            decision.authority_tier.value
+                                            if decision.authority_tier
+                                            else "LOW"
                                         ),
-                                    )
-                                ],
+                                    },
+                                    verdict="VOID",
+                                ),
                             )
 
                         if decision.verdict == AdmissibilityVerdict.HOLD_888:

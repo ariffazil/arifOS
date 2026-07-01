@@ -378,6 +378,33 @@ def _build_default_graph() -> CapabilityGraph:
             organ_id="arifOS",
             trust_state=TrustState.TRUSTED_READ,
         ),
+        # ── Live kernel attestation + tool retrieval (expanded45 operator surface)
+        CapabilityNode(
+            capability_id="kernel.os_attest",
+            tool_name="arif_os_attest",
+            server_id="local",
+            description="Live self-attestation of the constitutional kernel (arifOS organ.attest)",
+            authority_required=AuthorityTier.LOW,
+            mutation_class=MutationClass.NONE,
+            irreversible=False,
+            blast_radius=BlastRadius.LOCAL,
+            resource_class=ResourceClass.MEMORY,
+            organ_id="arifOS",
+            trust_state=TrustState.TRUSTED_READ,
+        ),
+        CapabilityNode(
+            capability_id="kernel.retrieve_tools",
+            tool_name="arif_retrieve_tools",
+            server_id="local",
+            description="BM25 lexical tool retrieval across the arifOS federation catalog",
+            authority_required=AuthorityTier.LOW,
+            mutation_class=MutationClass.NONE,
+            irreversible=False,
+            blast_radius=BlastRadius.LOCAL,
+            resource_class=ResourceClass.MEMORY,
+            organ_id="arifOS",
+            trust_state=TrustState.TRUSTED_READ,
+        ),
         CapabilityNode(
             capability_id="kernel.bridge",
             tool_name="arif_bridge",
@@ -683,8 +710,8 @@ def _build_default_graph() -> CapabilityGraph:
     ]
 
     version = GraphVersion(
-        version_id="v0.2.1",
-        description="Capability Graph v0.2.1 — added arif_act (900_EXECUTE gate) + 3 lease primitives (arif_lease_issue/revoke/inspect). 26 nodes total. Path A3 forge 2026-06-27.",
+        version_id="v0.2.2",
+        description="Capability Graph v0.2.2 — added arif_os_attest + arif_retrieve_tools to expanded45 surface. 2026-07-01.",
     )
 
     graph = CapabilityGraph(version=version, capabilities=capabilities)

@@ -35,9 +35,13 @@ def register_retrieve_tools(mcp: FastMCP) -> list[str]:
     if not expose_dev_tools:
         return []
 
+    from arifosmcp.constitutional_map import CANONICAL_OUTPUT_SCHEMA
+    from arifosmcp.runtime.tools import _wrap_handler
     from arifosmcp.tools.retrieve_tools import arif_retrieve_tools as _handler
 
-    @mcp.tool(
+    _wrapped = _wrap_handler(_handler, "arif_retrieve_tools")
+
+    mcp.tool(
         name="arif_retrieve_tools",
         description=(
             "BM25 lexical tool retrieval across the arifOS federation tool catalog. "
@@ -52,24 +56,7 @@ def register_retrieve_tools(mcp: FastMCP) -> list[str]:
             "top_k (1-20, default 5), include_scores (default true)."
         ),
         tags={"retrieval", "discovery", "bm25", "lexical", "read-only"},
-    )
-    async def _arif_retrieve_tools_wrapped(
-        query: str,
-        organ: str | None = None,
-        top_k: int = 5,
-        include_scores: bool = True,
-        _envelope: Any = None,
-        actor_id: str | None = None,
-        session_id: str | None = None,
-    ) -> dict[str, Any]:
-        return await _handler(
-            query=query,
-            organ=organ,
-            top_k=top_k,
-            include_scores=include_scores,
-            _envelope=_envelope,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
+        output_schema=CANONICAL_OUTPUT_SCHEMA,
+    )(_wrapped)
 
     return ["arif_retrieve_tools"]

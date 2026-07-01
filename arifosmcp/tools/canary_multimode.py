@@ -141,17 +141,22 @@ def _wrap_ping(raw: dict[str, Any]) -> dict[str, Any]:
     """Wrap raw arif_ping output in a clean canary envelope.
 
     A canary's job is to reduce uncertainty. The raw ping handler returns
-    confused constitutional metadata (purpose undeclared, blast_radius unknown,
-    verdict SEAL for observation). This wrapper strips the noise and returns
-    clean liveness evidence.
+    a canonical envelope with the actual payload nested under result{};
+    this wrapper reads from result first, then falls back to top-level keys.
     """
-    # Extract what matters from the raw response
-    status = raw.get("status", "UNKNOWN")
-    service = raw.get("service", "arifOS MCP")
-    runtime = raw.get("runtime", "unknown")
-    vault = raw.get("vault", "unknown")
-    forge = raw.get("forge", "unknown")
-    session_required = raw.get("session_required", True)
+    # The ping handler returns a canonical Nine-Signal envelope. The payload
+    # we care about lives inside raw["result"] (or raw itself for legacy).
+    payload = raw.get("result", raw) if isinstance(raw, dict) else {}
+    if not isinstance(payload, dict):
+        payload = {}
+
+    # Extract what matters from the payload
+    status = payload.get("status") or raw.get("status", "UNKNOWN")
+    service = payload.get("service") or raw.get("service", "arifOS MCP")
+    runtime = payload.get("runtime") or raw.get("runtime", "unknown")
+    vault = payload.get("vault") or raw.get("vault", "unknown")
+    forge = payload.get("forge") or raw.get("forge", "unknown")
+    session_required = payload.get("session_required") or raw.get("session_required", True)
 
     # Derive clean values
     is_ok = status == "OK" and runtime in ("ready", "ok")
