@@ -4,7 +4,8 @@
 
 > **Canonical Source of Truth:** `ariffazil/arifOS`
 > **Authority:** arifOS F13 SOVEREIGN (Muhammad Arif bin Fazil)
-> **Last Verified:** 2026-06-21
+> **Last Verified:** 2026-07-01
+> **Valid Until:** 2026-07-31
 > **Rule:** All other repo READMEs must point here for live/degraded/disabled status.
 > **Contract:** See `FEDERATION_CONTRACT.md` for organ boundaries and invariants.
 
@@ -14,13 +15,13 @@
 
 | Organ | Repo | Port | Status | Tools | Notes |
 |-------|------|------|--------|-------|-------|
-| **arifOS** (Kernel) | `ariffazil/arifos` | 8088 | ⚠️ DEGRADED | 20 canonical + 37 diagnostic (total 57 registered) | F1-F13 active; health probe reports DEGRADED_CLAIM (tool_count=0 at crawl — static fallback active); `_static_tools` fix 2026-06-21 |
+| **arifOS** (Kernel) | `ariffazil/arifos` | 8088 | ✅ OPERATIONAL | 17 canonical + 41 diagnostic = 58 declared; 7 public verbs; 48 via MCP | F1-F13 active; `/health` healthy; version `kanon-1bcf22d` |
 | **AAA** (Cockpit) | `ariffazil/aaa` | 3001 | ✅ OPERATIONAL | — | React 19 + A2A gateway |
-| **GEOX** (Earth) | `ariffazil/geox` | 8081 | ✅ OPERATIONAL | 40 canonical | Apache-2.0 licensed; attestation verified 2026-06-21 |
-| **WEALTH** (Capital) | `ariffazil/wealth` | 18082 | ✅ OPERATIONAL | 24 live | AGPL-3.0; attestation verified 2026-06-21 |
-| **WELL** (Vitality) | `ariffazil/well` | 18083 | ⚠️ DEGRADED | 15 live | DEGRADED_CLAIM per kernel attestation 2026-06-21; state.json STALE; REFLECT_ONLY |
+| **GEOX** (Earth) | `ariffazil/geox` | 8081 | ✅ OPERATIONAL | 31 canonical | Apache-2.0 licensed; attestation verified 2026-07-01 |
+| **WEALTH** (Capital) | `ariffazil/wealth` | 18082 | ✅ OPERATIONAL | 32 live | AGPL-3.0; attestation verified 2026-07-01 |
+| **WELL** (Vitality) | `ariffazil/well` | 18083 | ✅ OPERATIONAL | 22 live | `/health` healthy; state_age_hours 9.5; REFLECT_ONLY |
 | **A-FORGE** (Forge) | `ariffazil/A-FORGE` | 7071 | ✅ OPERATIONAL | — | TypeScript execution shell; hosts MIND:51001 + MEMORY:51002 |
-| **A-FORGE MCP** | `ariffazil/A-FORGE` | 7072 | ✅ OPERATIONAL | 77 tools | Dedicated MCP gateway (`a-forge-mcp.service`); single streamable-http session, stdio preferred for agents |
+| **A-FORGE MCP** | `ariffazil/A-FORGE` | 7072 | ✅ OPERATIONAL | 72 tools | Dedicated MCP gateway (`a-forge-mcp.service`); single streamable-http session, stdio preferred for agents |
 | **APEX** (888 Judge) | `ariffazil/apex` | 3002 | ⚠️ LEGACY | — | Legacy health probe — deliberation moved to AAA a2a-server |
 | **OpenClaw** (Gateway) | — | 18789 | ✅ OPERATIONAL | — | A2A mesh gateway |
 
@@ -51,13 +52,10 @@
 
 | Issue | Severity | Detail |
 |-------|----------|--------|
-| arifOS kernel DEGRADED | 🔴 HIGH | Kernel health probe reports DEGRADED_CLAIM; `FederationRegistry._static_tools` missing (fixed 2026-06-21); MCP tools/list crawl returns 0 tools for arifOS |
 | arifOS tool registry divergence | 🟡 MEDIUM | 12 different ActionClass enums across codebase; PREPARE used in tool_registry.json but not in canonical kernel_envelope.py |
-| WELL state.json stale | ⚠️ MEDIUM | `OPERATOR_DECLARED_STALE` for engineering test phase; fresh biometric input still pending (F13); 15 tools attested live |
-| arifOS CONTEXT/RUNBOOK | 🟡 MEDIUM | CONTEXT.md present but stale; RUNBOOK.md missing |
-| WEALTH tool count variance | 🟡 LOW | 24 live per MCP attestation vs 54 declared (20 public + 34 aliases) |
-| APEX decommission | 🟡 LOW | `apex-prime.service` still running on 3002 for legacy health probe; marked legacy-only |
 | A-FORGE lease gate | 🔴 HIGH | Leases self-issued by A-FORGE; must be kernel-issued — T4 in progress |
+| APEX decommission | 🟡 LOW | `apex-prime.service` still running on 3002 for legacy health probe; marked legacy-only |
+| arifOS CONTEXT.md | 🟡 LOW | `CONTEXT.md` referenced by `RUNBOOK.md` but missing from `/root/arifOS`; live state lives in `/root/CONTEXT.md` |
 
 ## Infrastructure
 

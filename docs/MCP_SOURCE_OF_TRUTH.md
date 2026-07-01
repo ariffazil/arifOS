@@ -1,7 +1,8 @@
 # arifOS MCP Source of Truth
 
 **Status:** CURRENT SOT | RUNTIME COUNTS VERIFIED | GDK TEST SEAL PENDING
-**Last verified:** 2026-05-26
+**Last verified:** 2026-07-01
+**Valid until:** 2026-07-31
 **Scope:** arifOS MCP surface, federation MCP endpoints, and discovery boundaries.
 
 This file is the human-readable MCP SOT. Machine-readable surfaces remain:
@@ -15,40 +16,36 @@ This file is the human-readable MCP SOT. Machine-readable surfaces remain:
 
 ## Runtime Truth
 
-Verified against `https://arifos.arif-fazil.com/api/federation-probe` on 2026-05-22:
+Verified against live `/health` endpoints on 2026-07-01:
 
 | Organ | Public MCP URL | Health | Verified tool count | Notes |
 |---|---|---:|---:|---|
-| arifOS | `https://mcp.arif-fazil.com/mcp` | healthy | 13 | Canonical governance surface. |
-| GEOX | `https://geox.arif-fazil.com/mcp` | healthy | 22 | MCP session required for enumeration. |
-| WEALTH | `https://wealth.arif-fazil.com/mcp` | healthy | 17 | MCP session required for enumeration. |
-| WELL | `https://well.arif-fazil.com/mcp` | healthy | 45 | REFLECT_ONLY substrate monitor. Post PHOENIX-73F collapse (2026-05-26). |
-| AAA | no canonical MCP endpoint in this repo | healthy | unknown | Control plane and A2A gateway surface. |
-| A-FORGE | no canonical MCP endpoint in this repo | healthy | unknown | Execution/metabolism repo, not arifOS law. |
+| arifOS | `https://mcp.arif-fazil.com/mcp` | healthy | 7 public / 17 canonical / 48 via MCP | Canonical governance surface. |
+| GEOX | `https://geox.arif-fazil.com/mcp` | healthy | 31 canonical | MCP session required for full enumeration. |
+| WEALTH | `https://wealth.arif-fazil.com/mcp` | healthy | 32 live | MCP session required for enumeration. Includes aliases. |
+| WELL | `https://well.arif-fazil.com/mcp` | healthy | 22 live | REFLECT_ONLY substrate monitor. |
+| AAA | no canonical MCP endpoint | healthy | — | Control plane and A2A gateway surface at `https://aaa.arif-fazil.com`. |
+| A-FORGE | `https://forge.arif-fazil.com/mcp` | healthy | 72 via MCP | Execution/metabolism repo. Connect via A-FORGE MCP gateway. |
 | Wiki | static knowledge site | unknown | 0 | Static surface, not an MCP server. |
 
 ## arifOS Canonical Tools
 
-The public arifOS MCP surface remains 13 canonical `arif_*` tools:
+The public arifOS MCP surface is exactly 7 canonical verbs:
 
-1. `arif_session_init`
-2. `arif_sense_observe`
-3. `arif_evidence_fetch`
-4. `arif_mind_reason`
-5. `arif_heart_critique`
-6. `arif_kernel_route`
-7. `arif_reply_compose`
-8. `arif_memory_recall`
-9. `arif_gateway_connect`
-10. `arif_judge_deliberate`
-11. `arif_vault_seal`
-12. `arif_forge_execute`
-13. `arif_ops_measure`
+1. `arif_init`
+2. `arif_observe`
+3. `arif_think`
+4. `arif_route`
+5. `arif_judge`
+6. `arif_act`
+7. `arif_seal`
 
-Do not add a 14th canonical tool for discovery. The governed discovery loop belongs under:
+The full internal canonical surface has 17 names (including legacy aliases such as `arif_session_init`, `arif_sense_observe`, `arif_evidence_fetch`, etc.); see `arifosmcp/tool_registry.json` and `arifosmcp/PUBLIC_SURFACE_CANON.md` for the machine-readable breakdown.
+
+Do not add an 8th public canonical verb for discovery. The governed discovery loop belongs under:
 
 ```text
-arif_sense_observe(mode="compass")
+arif_observe(mode="compass")
 ```
 
 The standalone wiki utilities may exist as implementation helpers or non-canonical utility tools:
@@ -58,7 +55,7 @@ The standalone wiki utilities may exist as implementation helpers or non-canonic
 - `arif_wiki_search`
 - `arif_wiki_ask`
 
-They do not replace the canonical 13-tool surface.
+They do not replace the canonical 7-verb surface.
 
 ## Discovery Boundary
 
@@ -122,16 +119,17 @@ These are not reasons to reject the SOT, but they should stay visible in any rea
 - The current shell does not expose `BRAVE_API_KEY`, `EXA_API_KEY`, or `TAVILY_API_KEY`; web search layers may report `UNAVAILABLE` in local tests while live services still resolve through configured runtime providers.
 - Some compatibility/docs/runtime strings still contain `L11_AUTH`; canonical map uses `L11_AUDIT`, but full nomenclature normalization is not complete.
 - JS/TS symbol extraction now detects `export function`, `export async function`, `export class`, and `export const ... =>` in the local smoke test.
-- Latest combined local smoke before this docs audit:
+- Latest combined local smoke before this docs audit (pre-2026-07-01):
   `tests/test_canonical.py tests/test_wiki_tools.py tests/test_hybrid_discovery.py tests/test_gdk_compass.py`
-  returned `39 passed, 1 failed, 2 errors`.
+  returned `39 passed, 1 failed, 2 errors`. Re-run after any code change.
 - The GDK compass errors are test/code contract drift: `tests/test_gdk_compass.py` currently patches `arifosmcp.tools.sense._CompassProcessor`, but that symbol is not present in `arifosmcp/tools/sense.py`.
 - The remaining canonical failure is `test_injection_guard_blocks`: `arif_sense_observe(mode="search", query="rm -rf /")` returns `OK` where the test expects `HOLD`.
 
 ## Verification Commands
 
 ```bash
-curl -fsS --max-time 20 https://arifos.arif-fazil.com/api/federation-probe | python3 -m json.tool
+curl -fsS --max-time 20 https://arifos.arif-fazil.com/health | python3 -m json.tool
+for p in 8081 18082 18083 7072; do curl -fsS --max-time 10 "http://localhost:$p/health" | head -c 200; echo; done
 
 python -m py_compile arifos_wiki_tools/*.py \
   arifosmcp/tools/sense.py \
@@ -156,4 +154,4 @@ MCP transports capability. It does not create truth, memory, judgment, or author
 
 arifOS is the Governed Action Gateway around MCP: it asks what action is being requested, whether it is allowed, what can go wrong, whether a human must approve, and whether the action can be audited later.
 
-arifOS governs and audits. APEX may deliberate. Arif remains the final sovereign authority.
+arifOS governs and audits. AAA a2a-server handles deliberation. Arif remains the final sovereign authority.

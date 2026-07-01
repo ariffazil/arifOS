@@ -1,9 +1,9 @@
 # Federation Architecture — Sovereign Intelligence Civilization Stack
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-29
-valid_from: 2026-06-29
-valid_until: 2026-07-29
+last_verified: 2026-07-01
+valid_from: 2026-07-01
+valid_until: 2026-07-31
 heptalogy: live-table-mapping
 epistemic_status: LIVE_INTELLIGENCE
 -->

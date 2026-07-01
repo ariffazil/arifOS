@@ -211,11 +211,9 @@ cd /root/WELL
 python well_autosleeper.py  # if present
 ```
 
-### 6.3 arifOS tool count mismatch (39 vs 13)
+### 6.3 arifOS tool count mismatch
 
-The probe currently reports all registered tools including aliases.
-This is a known registry-truth gap (GAP-003 continuation).
-Canonical count should be verified against `arifOS/arifosmcp/mcp.json`.
+Live `/health` reports 17 internal canonical tools + 41 diagnostic = 58 declared, 7 public canonical verbs, and 48 tools exposed via MCP. Canonical public count should be verified against `arifosmcp/PUBLIC_SURFACE_CANON.md`.
 
 ### 6.4 A-FORGE MCP 406 / session required
 
@@ -247,7 +245,7 @@ curl -s http://localhost:7071/mcp
 
 | File | Purpose |
 |------|---------|
-| `/root/arifOS/CONTEXT.md` | Live machine + service state |
+| `/root/CONTEXT.md` | Live machine + service state (global federation focus) |
 | `/root/arifOS/FEDERATION_REALITY_SNAPSHOT.md` | Latest reality probe output |
 | `/root/arifOS/docs/REALITY_SCORECARD.md` | Reality score baseline |
 | `/root/arifOS/scripts/federation_reality_probe.py` | Probe script |

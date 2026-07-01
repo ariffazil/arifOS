@@ -32,7 +32,7 @@
 
 - **The law layer** — decides what agents must NOT do, so they can be trusted with what they CAN do
 - **An MCP server** — 7 canonical public verbs. Golden path: `arif_init` → `arif_observe` → `arif_think` → `arif_route` → `arif_judge` → `arif_act` → `arif_seal`
-- **A federation hub** — 7 organs (arifOS, A-FORGE, GEOX, WEALTH, WELL, AAA, VAULT999) under one contract
+- **A federation hub** — 6 live organs (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL) plus the VAULT999 immutable ledger under one contract
 - **An immutable ledger** — VAULT999: append-only, hash-chained. Every decision sealed forever
 - **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute
 
@@ -241,7 +241,7 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 <div align="center">
 
 ```
-arifOS · Port 8088 · 7 canonical public verbs · 13 floors · 7 organs
+arifOS · Port 8088 · 7 canonical public verbs · 13 floors · 6 live organs
 AGPL-3.0 · Sovereign: Arif Fazil · Federation: ALIVE
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 ```

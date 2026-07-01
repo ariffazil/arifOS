@@ -106,7 +106,7 @@ Every push to `main` triggers **two lanes**:
 
 **The Report:** Both lanes feed into an `Agentic CI Report` — a structured JSON artifact posted as a GitHub Check Run with label `Agentic CI`. Federation cron picks up Check Run → `arif_judge` → AAA register → VAULT999 seal.
 
-**Workflow file:** `.github/workflows/agentic-ci.yml`
+**Workflow file:** `.github/workflows/01-unified-ci.yml` (consolidated unified CI). The BIJAKSANA agentic lane is the target architecture; the current production pipeline uses standard CI + governance gates.
 
 **The Loop:**
 ```
