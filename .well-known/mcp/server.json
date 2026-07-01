@@ -1,19 +1,88 @@
 {
-  "schema": "mcp",
-  "version": "2026.06.30",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
+  "version": "1.0",
   "protocolVersion": "2025-11-25",
-  "name": "arifOS MCP",
-  "description": "Constitutional kernel — 7-tool MCP surface, 13 floors, VAULT999 immutable audit.",
-  "tools": 7,
-  "endpoint": "https://arifos.arif-fazil.com/mcp",
-  "identity": {
-    "canonical_name": "arifOS",
-    "service_id": "arifos-kernel",
-    "authority": "F13_SOVEREIGN",
-    "port": 8088
+  "serverInfo": {
+    "name": "ARIFOS MCP",
+    "title": "arifOS Constitutional MCP Server",
+    "version": "2026.07.01-public7"
+  },
+  "description": "Constitutional governance kernel. Public MCP facade is exactly 7 verbs: init, observe, think, route, judge, act, seal. Internal diagnostics and legacy compatibility tools exist behind the public facade but are not part of the default public surface.",
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://mcp.arif-fazil.com/mcp"
+  },
+  "authentication": {
+    "required": false,
+    "schemes": [
+      "bearer"
+    ],
+    "description": "Initialize and default public discovery are open. Higher-authority tools such as arif_judge, arif_act, and arif_seal enforce authentication or sovereign approval."
+  },
+  "capabilities": {
+    "tools": {
+      "listChanged": true
+    },
+    "resources": {
+      "subscribe": false,
+      "listChanged": true
+    },
+    "prompts": {
+      "listChanged": true
+    },
+    "tasks": {
+      "list": {},
+      "cancel": {},
+      "requests": {
+        "tools": {
+          "call": {}
+        },
+        "prompts": {
+          "get": {}
+        },
+        "resources": {
+          "read": {}
+        }
+      }
+    }
+  },
+  "tools": {
+    "count": 7,
+    "canonical": [
+      "arif_init",
+      "arif_observe",
+      "arif_think",
+      "arif_route",
+      "arif_judge",
+      "arif_act",
+      "arif_seal"
+    ],
+    "goldenPath": [
+      "arif_init",
+      "arif_observe",
+      "arif_think",
+      "arif_route",
+      "arif_judge",
+      "arif_act",
+      "arif_seal"
+    ]
   },
   "governance": {
-    "floors": ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13"],
-    "authority_boundary": "F13_SOVEREIGN"
+    "floorsActive": 13,
+    "verdictTypes": [
+      "SEAL",
+      "HOLD",
+      "SABAR",
+      "VOID"
+    ],
+    "humanApprovalRequiredForIrreversibleActions": true,
+    "irreversibleGate": "arif_act requires a valid governed approval path ending in seal."
+  },
+  "links": {
+    "documentation": "https://arifos.arif-fazil.com",
+    "homepage": "https://arif-fazil.com",
+    "github": "https://github.com/ariffazil/arifos",
+    "status": "https://arifos.arif-fazil.com/health",
+    "llms": "https://arifos.arif-fazil.com/llms.txt"
   }
 }

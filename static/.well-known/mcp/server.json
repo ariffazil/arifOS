@@ -3,190 +3,86 @@
   "version": "1.0",
   "protocolVersion": "2025-11-25",
   "serverInfo": {
-    "name": "arifos-mcp",
+    "name": "ARIFOS MCP",
     "title": "arifOS Constitutional MCP Server",
-    "version": "2026.06.30-10surface-aligned"
+    "version": "2026.07.01-public7"
   },
-  "description": "Governed MCP server — 7 canonical verbs only (init, observe, think, route, judge, act, seal). Human approval gates on irreversible actions, VAULT999 immutable ledger, 888 Judge arbitration, live thermodynamic telemetry. F13 ratified 2026-06-23: expose cognition, hide plumbing.",
-  "labels": {
-    "mcp:category": "constitutional-kernel",
-    "mcp:subcategory": "governance,ai-safety,orchestration",
-    "mcp:transport": "streamable-http",
-    "mcp:port": "8088",
-    "mcp:organs": "arifos,forge,geox,wealth,well,aaa",
-    "mcp:floors": "13",
-    "mcp:public-tools": "7",
-    "glama:verified": "true",
-    "smithery:runtime": "python",
-    "smithery:protocol": "mcp-2025-11-25"
-  },
-  "tags": ["constitutional-ai", "governance", "ai-safety", "federation", "orchestration", "audit", "immutable-ledger", "mcp-server", "agentic"],
+  "description": "Constitutional governance kernel. Public MCP facade is exactly 7 verbs: init, observe, think, route, judge, act, seal. Internal diagnostics and legacy compatibility tools exist behind the public facade but are not part of the default public surface.",
   "transport": {
     "type": "streamable-http",
     "endpoint": "https://mcp.arif-fazil.com/mcp"
   },
   "authentication": {
-    "required": true,
-    "schemes": ["bearer"],
-    "headerName": "Authorization",
-    "envVar": "ARIFOS_API_KEY"
+    "required": false,
+    "schemes": [
+      "bearer"
+    ],
+    "description": "Initialize and default public discovery are open. Higher-authority tools such as arif_judge, arif_act, and arif_seal enforce authentication or sovereign approval."
   },
   "capabilities": {
-    "tools": { "listChanged": true },
-    "resources": { "subscribe": true, "listChanged": true },
-    "prompts": { "listChanged": true }
-  },
-  "governance": {
-    "humanApprovalRequiredForIrreversibleActions": true,
-    "selfApprovalForbidden": true,
-    "auditRequired": true,
-    "defaultMutationMode": "dry_run",
-    "leaseRequiredForMutation": true,
-    "constitutionalFloors": ["L01_Amanah","L02_Truth","L03_Witness","L04_Clarity","L05_Peace","L06_Empathy","L07_Humility","L08_Genius","L09_AntiHantu","L10_Ontology","L11_Audit","L12_Injection","L13_Sovereign"],
-    "verdictTaxonomy": ["SEAL","HOLD","VOID","SABAR","PROCEED","888_HOLD"],
-    "riskClasses": ["C0_GRAMMAR","C1_DRAFT","C2_REVIEW","C3_PUBLIC","C4_LEGAL_MONEY","C5_IRREVERSIBLE"]
-  },
-  "links": {
-    "homepage": "https://arif-fazil.com",
-    "status": "https://mcp.arif-fazil.com/health",
-    "constitution": "https://arif-fazil.com/000",
-    "github": "https://github.com/ariffazil/arifOS",
-    "documentation": "https://arifos.arif-fazil.com",
-    "mcp-endpoint": "https://mcp.arif-fazil.com/mcp"
+    "tools": {
+      "listChanged": true
+    },
+    "resources": {
+      "subscribe": false,
+      "listChanged": true
+    },
+    "prompts": {
+      "listChanged": true
+    },
+    "tasks": {
+      "list": {},
+      "cancel": {},
+      "requests": {
+        "tools": {
+          "call": {}
+        },
+        "prompts": {
+          "get": {}
+        },
+        "resources": {
+          "read": {}
+        }
+      }
+    }
   },
   "tools": {
     "count": 7,
-    "frozen": "2026-06-23",
-    "naming": "arif_verb (canonical) — one intent = one public tool",
     "canonical": [
-      {
-        "name": "arif_init",
-        "stage": "000",
-        "access": "public",
-        "description": "Start a governed session. Bind actor identity. CALL FIRST.",
-        "actionClass": "PREPARE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_observe",
-        "stage": "111",
-        "access": "public",
-        "description": "Gather evidence: search, repo map, vitals, external fetch.",
-        "actionClass": "OBSERVE",
-        "riskTier": "low",
-        "irreversible": false
-      },
-      {
-        "name": "arif_think",
-        "stage": "333",
-        "access": "public",
-        "description": "Reason, plan, reflect, critique. Epistemically honest, confidence-labeled.",
-        "actionClass": "ANALYZE",
-        "riskTier": "medium",
-        "irreversible": false
-      },
-      {
-        "name": "arif_route",
-        "stage": "555",
-        "access": "public",
-        "description": "Select the correct organ or tool for an intent. Federation router.",
-        "actionClass": "ANALYZE",
-        "riskTier": "low",
-        "irreversible": false
-      },
-      {
-        "name": "arif_judge",
-        "stage": "888",
-        "access": "authenticated",
-        "description": "Constitutional verdict: floor check, authority check, HOLD/SEAL/VOID.",
-        "actionClass": "DRAFT",
-        "riskTier": "critical",
-        "irreversible": false
-      },
-      {
-        "name": "arif_act",
-        "stage": "900",
-        "access": "sovereign",
-        "description": "Execute an approved action only after a valid SEAL. Routes internally to forge.",
-        "actionClass": "IRREVERSIBLE",
-        "riskTier": "critical",
-        "irreversible": true,
-        "requiresSeal": true
-      },
-      {
-        "name": "arif_seal",
-        "stage": "999",
-        "access": "authenticated",
-        "description": "Immutable ledger anchoring — cryptographic hash-chain seal to VAULT999.",
-        "actionClass": "IRREVERSIBLE",
-        "riskTier": "critical",
-        "irreversible": true
-      }
+      "arif_init",
+      "arif_observe",
+      "arif_think",
+      "arif_route",
+      "arif_judge",
+      "arif_act",
+      "arif_seal"
     ],
-    "requiresHumanAck": ["arif_seal", "arif_act"],
-    "requiresSession": ["arif_judge", "arif_seal", "arif_act"],
-    "irreversibleGate": "arif_act requires seal_verdict_id + approved_action_hash from prior arif_judge + arif_seal"
-  },
-  "resources": {
-    "count": 82,
-    "categories": [
-      "static (arifos://*) — constitutional doctrine, schema, vitals, identity, memory, civilization, jurisdiction",
-      "templated (arifos://vault/{type}, session/{id}, boundaries/domain/{id}, witness/log/{filter}, witness/stats/{period})",
-      "skills (skill://*) — 35 canonical skills from 7 federation organs",
-      "tree777 (tree777://) — wiki concepts, scars, skills index",
-      "sovereign (sovereign://) — Arif's sealed knowledge archive",
-      "evidence (contrast://, void://, source://, receipt://) — F-WEB evidence receipts"
-    ],
-    "uris": [
-      "arifos://doctrine",
-      "arifos://vitals",
-      "arifos://schema",
-      "arifos://identity",
-      "arifos://memory",
-      "arifos://civilization",
-      "arifos://jurisdiction",
-      "arifos://quickstart",
-      "arifos://bootstrap",
-      "arifos://trinity",
-      "arifos://loop-engineering",
-      "arifos://mcp-alignment",
-      "arifos://seal-readiness",
-      "arifos://reality/state",
-      "arifos://human/metabolized",
-      "arifos://session/{session_id}",
-      "arifos://tools/affordance",
-      "arifos://vault/{vault_type}",
-      "arifos://witness/log/{filter}",
-      "arifos://witness/stats/{period}",
-      "arifos://boundaries/domain/{domain_id}",
-      "skill://*",
-      "tree777://*",
-      "sovereign://*",
-      "contrast://*",
-      "void://*",
-      "source://*",
-      "receipt://*"
+    "goldenPath": [
+      "arif_init",
+      "arif_observe",
+      "arif_think",
+      "arif_route",
+      "arif_judge",
+      "arif_act",
+      "arif_seal"
     ]
   },
-  "prompts": {
-    "count": 8,
-    "names": [
-      "arifosmcp_loop_engineer",
-      "000_init",
-      "111_sense",
-      "333_reason",
-      "555_critique",
-      "666_judge",
-      "777_forge",
-      "999_seal"
+  "governance": {
+    "floorsActive": 13,
+    "verdictTypes": [
+      "SEAL",
+      "HOLD",
+      "SABAR",
+      "VOID"
     ],
-    "description": "8 reality engineering prompts — each a governed organ in the 000-999 golden path: classify intent, anchor identity, witness reality, design change, critique consequence, judge lawfulness, execute with warrant, seal immutably."
+    "humanApprovalRequiredForIrreversibleActions": true,
+    "irreversibleGate": "arif_act requires a valid governed approval path ending in seal."
   },
-  "mcpSpec": {
-    "protocol": "2025-11-25",
-    "supportedVersions": ["2025-03-26", "2024-11-05"],
-    "extensions": ["json-schema-2020-12", "streamable-http", "mcp-apps", "pagination"],
-    "clientCompatibility": ["Claude Desktop", "Copilot Agents", "Cursor", "Smithery", "Glama", "mcp.so", "OpenCode", "Kimi Code"]
+  "links": {
+    "documentation": "https://arifos.arif-fazil.com",
+    "homepage": "https://arif-fazil.com",
+    "github": "https://github.com/ariffazil/arifos",
+    "status": "https://arifos.arif-fazil.com/health",
+    "llms": "https://arifos.arif-fazil.com/llms.txt"
   }
 }
