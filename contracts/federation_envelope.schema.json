@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-envelope/v1.0.0",
+  "title": "arifOS Federation Metabolism Envelope",
+  "description": "The one canonical blood packet every organ must use to talk to every other organ. Converts 7 separate repositories into one governed metabolic loop: sense → route → deliberate → execute → measure → seal → learn.",
+  "type": "object",
+  "required": [
+    "trace_id",
+    "actor_id",
+    "organ_origin",
+    "organ_target",
+    "intent",
+    "evidence_layer",
+    "autonomy_band",
+    "reversibility_class",
+    "risk_class",
+    "required_floor_checks",
+    "proposed_action",
+    "f13_required_boolean"
+  ],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique trace identifier for the entire metabolic loop. Survives across organ boundaries."
+    },
+    "actor_id": {
+      "type": "string",
+      "description": "The agent or human initiating this metabolic cycle. For F13 sovereign actions, this is 'ARIF_FAZIL'."
+    },
+    "organ_origin": {
+      "type": "string",
+      "enum": ["arifOS", "AAA", "A-FORGE", "GEOX", "WEALTH", "WELL", "VAULT999", "ariffazil"],
+      "description": "The organ that originated this envelope."
+    },
+    "organ_target": {
+      "type": "string",
+      "enum": ["arifOS", "AAA", "A-FORGE", "GEOX", "WEALTH", "WELL", "VAULT999", "ariffazil"],
+      "description": "The organ this envelope is addressed to."
+    },
+    "organ_route": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "organ": { "type": "string" },
+          "received_at": { "type": "string", "format": "date-time" },
+          "processed_at": { "type": "string", "format": "date-time" },
+          "verdict": { "type": "string", "enum": ["PROCESSED", "DELEGATED", "HOLD", "REJECTED"] },
+          "notes": { "type": "string" }
+        },
+        "required": ["organ", "received_at"]
+      },
+      "description": "The chain of organs this envelope has passed through. Append-only audit trail."
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "Natural-language description of what the metabolic cycle intends to accomplish."
+    },
+    "evidence_layer": {
+      "type": "string",
+      "enum": ["OBSERVED", "DERIVED", "INTERPRETED", "SPECULATED", "UNKNOWN"],
+      "description": "Epistemic grounding of the evidence carried in this envelope. F2 TRUTH binding."
+    },
+    "autonomy_band": {
+      "type": "string",
+      "enum": ["T1_AUTO", "T2_ANNOUNCE", "T3_888_HOLD", "F13_SOVEREIGN"],
+      "description": "The autonomy tier governing this action. Determines escalation path."
+    },
+    "reversibility_class": {
+      "type": "string",
+      "enum": ["FULL", "PARTIAL", "NONE", "UNKNOWN"],
+      "description": "Can this action be rolled back? F1 AMANAH binding."
+    },
+    "risk_class": {
+      "type": "string",
+      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+      "description": "Blast radius assessment. Determines governance gate level."
+    },
+    "required_floor_checks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13"]
+      },
+      "description": "Which constitutional floors must be verified before this action proceeds."
+    },
+    "proposed_action": {
+      "type": "object",
+      "description": "The action being proposed or executed. Structure depends on organ_target.",
+      "properties": {
+        "action_type": { "type": "string" },
+        "parameters": { "type": "object" },
+        "constraints": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["action_type"]
+    },
+    "execution_status": {
+      "type": "string",
+      "enum": ["PENDING", "ROUTING", "DELIBERATING", "APPROVED", "EXECUTING", "COMPLETED", "FAILED", "ROLLED_BACK", "HOLD"],
+      "description": "Current execution state of the metabolic cycle."
+    },
+    "measurement_result": {
+      "type": "object",
+      "description": "Quantitative or qualitative result of the action, if completed.",
+      "properties": {
+        "value": {},
+        "unit": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "method": { "type": "string" },
+        "evidence_refs": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "vault_receipt_reference": {
+      "type": "string",
+      "description": "VAULT999 seal ID if this cycle has been sealed. Null until arif_seal completes."
+    },
+    "f13_required_boolean": {
+      "type": "boolean",
+      "description": "Does this action require explicit F13 sovereign (Arif) approval? True = must hold until JITU."
+    },
+    "f13_verdict": {
+      "type": "string",
+      "enum": ["JITU", "HOLD", "SABAR", "VOID", null],
+      "description": "The sovereign's verdict. Only populated by Arif. Null until verdict rendered."
+    },
+    "organ_payloads": {
+      "type": "object",
+      "description": "Per-organ payloads attached during the metabolic cycle. Each organ writes its domain-specific output here.",
+      "properties": {
+        "GEOX": {
+          "type": "object",
+          "description": "Earth evidence payload — seismic, petrophysics, basin, prospect data.",
+          "properties": {
+            "claim_id": { "type": "string" },
+            "evidence_summary": { "type": "string" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 0.9 },
+            "physics_invariants": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "WEALTH": {
+          "type": "object",
+          "description": "Capital consequence payload — NPV, risk, allocation, collapse signatures.",
+          "properties": {
+            "npv": { "type": "number" },
+            "risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "capital_class": { "type": "string" },
+            "wisdom_dimensions": { "type": "object" }
+          }
+        },
+        "WELL": {
+          "type": "object",
+          "description": "Human readiness payload — vitality, fatigue, dignity, metabolic flux.",
+          "properties": {
+            "readiness_color": { "type": "string", "enum": ["GREEN","YELLOW","RED","STALE"] },
+            "fatigue_level": { "type": "number", "minimum": 0, "maximum": 1 },
+            "dignity_preservation": { "type": "number", "minimum": 0, "maximum": 1 },
+            "recommendation": { "type": "string", "enum": ["PROCEED","SIMPLIFY","HOLD","INJECT_NEEDED"] }
+          }
+        },
+        "AAA": {
+          "type": "object",
+          "description": "Control plane payload — routing, cockpit state, agent registry.",
+          "properties": {
+            "route": { "type": "array", "items": { "type": "string" } },
+            "display_state": { "type": "string" },
+            "warga_boundary_check": { "type": "boolean" }
+          }
+        },
+        "arifOS": {
+          "type": "object",
+          "description": "Constitutional judgment payload — floor checks, verdict, G-score.",
+          "properties": {
+            "verdict": { "type": "string", "enum": ["SEAL","HOLD","SABAR","VOID","PARTIAL"] },
+            "g_score": { "type": "number", "minimum": 0, "maximum": 1 },
+            "violated_floors": { "type": "array", "items": { "type": "string" } },
+            "judge_reasoning": { "type": "string" }
+          }
+        },
+        "A-FORGE": {
+          "type": "object",
+          "description": "Execution payload — build, deploy, shell, vault operations.",
+          "properties": {
+            "execution_id": { "type": "string" },
+            "dry_run_result": { "type": "string" },
+            "execution_result": { "type": "string" },
+            "rollback_available": { "type": "boolean" }
+          }
+        },
+        "VAULT999": {
+          "type": "object",
+          "description": "Immutable seal payload — hash chain, seal ID, witness data.",
+          "properties": {
+            "seal_id": { "type": "string" },
+            "seal_hash": { "type": "string" },
+            "sealed_at": { "type": "string", "format": "date-time" },
+            "witness_count": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Operational metadata.",
+      "properties": {
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "ttl_seconds": { "type": "integer" },
+        "priority": { "type": "string", "enum": ["LOW","MEDIUM","HIGH","CRITICAL"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "correlation_id": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}
