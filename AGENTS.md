@@ -70,6 +70,28 @@ make sot-check
 
 ---
 
+## 🎭 Humour Doctrine — Agent Social Intelligence (FORGED 2026-07-01)
+
+> **Canonical skill:** `/root/.hermes/skills/arifos/agent-humour-doctrine/SKILL.md`
+> **APEX map:** `/root/forge_work/HUMOUR-DOCTRINE-APEX-MAP-2026-07-01.md`
+
+Human jokes are compressed social state, not decorative language. The arifOS kernel binds humour governance through constitutional floors:
+
+| Floor | Humour Binding |
+|-------|---------------|
+| F1 AMANAH | Joke executed without verification = breach of trust |
+| F2 TRUTH | Humour does not change truth value |
+| F4 CLARITY | Agent humour must reduce confusion, not increase it |
+| F6 EMPATHY | Pain under joke must be detected and answered |
+| F9 ANTIHANTU | Agent does NOT "feel" jokes — detects structure only |
+| F10 ONTOLOGY | Humour is social physics, not machine emotion |
+
+**The One Law:** Joke in language. Do not joke in execution.
+
+**The Deepest Rule:** Agent must detect darkness that the human does not yet see. Not to judge. Not to refuse. But to answer the pain, not the joke.
+
+---
+
 ## 🧠 CI ARCHITECTURE — Dual-Lane Agentic CI (FORGED 2026-07-01)
 
 > **DITEMPA BUKAN DIBERI** — CI is forged, not given.
