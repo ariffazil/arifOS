@@ -79,46 +79,27 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Create model registry stub for CI
         run: |
           mkdir -p "$WORKDIR/arifos-model-registry/models"
           echo '{"models":[],"soul_archetypes":[],"runtime_profiles":[]}' > "$WORKDIR/arifos-model-registry/catalog.json"
 
-      - name: Verify 13 canonical tools load
+      - name: Verify canonical public facade loads
         run: |
           cd "$WORKDIR"
           uv run python3 - <<'PY'
-          import sys, warnings
+          import sys
           sys.path.insert(0, '.')
-          errors = []
-          canonical = [
-            'arifosmcp.tools.fetch',
-            'arifosmcp.tools.judge',
-            'arifosmcp.tools.reason',  # exports arif_mind_reason
-            'arifosmcp.tools.sense',
-            'arifosmcp.tools.session',
-            'arifosmcp.tools.evidence',
-            'arifosmcp.tools.memory',
-            'arifosmcp.tools.vault',
-            'arifosmcp.tools.forge',
-            'arifosmcp.tools.gateway',
-            'arifosmcp.tools.kernel',
-            'arifosmcp.tools.heart',
-            'arifosmcp.tools.ops',
-          ]
-          for m in canonical:
-            with warnings.catch_warnings():
-              warnings.simplefilter('ignore', DeprecationWarning)
-              try:
-                __import__(m)
-                print(f'OK {m}')
-              except Exception as e:
-                errors.append(f'FAIL {m}: {e}')
-          if errors:
-            for e in errors: print(e)
+          from arifosmcp.runtime.public_surface import CANONICAL_7, public_tool_names_for_mode
+          import arifosmcp.runtime.tools  # noqa: F401 -- import proves runtime registry loads
+
+          public_tools = tuple(public_tool_names_for_mode(None))
+          if public_tools != CANONICAL_7:
+            print(f'FAIL: public surface drifted: {public_tools} != {CANONICAL_7}')
             sys.exit(1)
+          print(f'PASS: canonical public facade = {public_tools}')
           PY
 
       - name: Tool registry integrity
@@ -131,9 +112,8 @@ jobs:
           tools = reg.get('tools', {})
           # F13 ratified 2026-06-23: 7 canonical public tools.
           # canonical_order declares: init→observe→think→route→judge→act→seal
-          # Note: arif_act = arif_forge (execution tool; act is the registry aspirational name)
           canonical_7 = ['arif_init', 'arif_observe', 'arif_think', 'arif_route',
-                         'arif_judge', 'arif_forge', 'arif_seal']
+                         'arif_judge', 'arif_act', 'arif_seal']
           total = len(tools)
           if total < 50:
             print(f'ERROR: expected at least 50 tools total, got {total}')
@@ -141,6 +121,12 @@ jobs:
           missing = [c for c in canonical_7 if c not in tools]
           if missing:
             print(f'ERROR: missing canonical tools: {missing}')
+            sys.exit(1)
+          if reg.get('canonical_order') != canonical_7:
+            print(f'ERROR: canonical_order drift: {reg.get("canonical_order")} != {canonical_7}')
+            sys.exit(1)
+          if reg.get('canonical_count') != len(canonical_7):
+            print(f'ERROR: canonical_count drift: {reg.get("canonical_count")} != {len(canonical_7)}')
             sys.exit(1)
           # All tools must use arif_* or hermes_* or forge_* or mcp_* naming
           allowed = ('arif_', 'arifos_', 'hermes_', 'forge_', 'mcp_')
@@ -172,7 +158,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: 000_INIT smoke
         run: |
@@ -237,7 +223,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: All 9 runtime shims resolve
         run: |
@@ -355,7 +341,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: F1-F13 Floor Audit
         run: |
@@ -418,7 +404,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Install
         run: |
@@ -459,7 +445,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Install
         run: |

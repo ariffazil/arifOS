@@ -21,7 +21,7 @@
 
 [![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python)](https://pypi.org/project/arifos/)
-[![MCP](https://img.shields.io/badge/MCP-10%20verbs%20public-10b981)](https://mcp.arif-fazil.com/mcp)
+[![MCP](https://img.shields.io/badge/MCP-7%20canonical%20verbs-10b981)](https://mcp.arif-fazil.com/mcp)
 [![Floors](https://img.shields.io/badge/floors-F1–F13%20active-f59e0b)](arifosmcp/core/floors.py)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444)](LICENSE)
 [![Federation](https://img.shields.io/badge/federation-7%20organs%20alive-8B5CF6)](FEDERATION_STATUS.md)
@@ -37,7 +37,7 @@
 > **arifOS is a constitutional governance kernel that sits between AI agents and their tools, enforcing 13 floors before any irreversible action.**
 
 - **The law layer** — decides what agents must NOT do, so they can be trusted with what they CAN do
-- **An MCP server** — 10 public verbs. Agents call `arif_init` → `arif_judge` → `arif_seal`
+- **An MCP server** — 7 canonical public verbs. Golden path: `arif_init` → `arif_observe` → `arif_think` → `arif_route` → `arif_judge` → `arif_act` → `arif_seal`
 - **A federation hub** — 7 organs (arifOS, A-FORGE, GEOX, WEALTH, WELL, AAA, VAULT999) under one contract
 - **An immutable ledger** — VAULT999: append-only, hash-chained. Every decision sealed forever
 - **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute
@@ -81,37 +81,36 @@ You don't install arifOS. You interact through:
 pip install arifos                          # from PyPI
 # or
 git clone git@github.com:ariffazil/arifos.git && cd arifOS
-uv sync --frozen
-python -m arifosmcp.server                   # starts on :8088
+uv sync --all-extras
+python -m arifosmcp.runtime.server           # starts on :8088
 curl http://127.0.0.1:8088/health            # verify
-python -m pytest tests/ -q --tb=short        # 4,400+ tests
+python -m pytest tests/ -q --tb=short
 ```
 
 ---
 
-## 3. The 10 Public Tools
+## 3. The 7 Canonical Public Tools
 
-Every governed action follows the golden path. 888 is the gate. 999 is the seal.
+Default `tools/list` is frozen to the 7-verb public facade in `arifosmcp/PUBLIC_SURFACE_CANON.md`. Diagnostic and legacy aliases still exist internally, but they are not part of the default public MCP wire surface.
 
 | # | Tool | Stage | What It Does |
 |---|------|-------|---------------|
 | 1 | `arif_init` | 000 | Start constitutional session. Always first. |
 | 2 | `arif_observe` | 111 | Gather evidence — web search, URL fetch, system vitals |
 | 3 | `arif_think` | 333 | Reason, plan, critique, verify — multi-step cognition |
-| 4 | `arif_route` | 444 | Route intent to the correct federation organ |
+| 4 | `arif_route` | 555 | Route intent to the correct federation organ |
 | 5 | `arif_judge` | 888 | Constitutional verdict — SEAL / HOLD / SABAR / VOID |
 | 6 | `arif_act` | 900 | Execute only if 888 issued SEAL |
 | 7 | `arif_seal` | 999 | Append to immutable VAULT999 ledger |
-| 8 | `arif_resolve_tool` | — | Resolve tool name to canonical form |
-| 9 | `arif_vault_query` | — | Query the VAULT999 audit ledger |
-| 10 | `arif_conformance_report` | — | Full 9-check constitutional spine proof |
 
 ```
-000 ──→ 111 ──→ 333 ──→ 444 ──→ 888 ──→ 900 ──→ 999
+000 ──→ 111 ──→ 333 ──→ 555 ──→ 888 ──→ 900 ──→ 999
 init    observe  think   route   judge   act     seal
 ```
 
 **The iron rule:** No action skips 888. No organ self-authorizes.
+
+**Source of truth:** `arifosmcp/PUBLIC_SURFACE_CANON.md`, `arifosmcp/runtime/public_surface.py`, and `arifosmcp/tool_registry.json`.
 
 ---
 
@@ -193,9 +192,9 @@ arifOS is the kernel. Six organs serve under it. Two edge agents interface with 
 
 ```bash
 # Development
-uv sync --frozen
-python -m arifosmcp.server
-python -m pytest tests/ -q --tb=short        # 4,400+ tests
+uv sync --all-extras
+python -m arifosmcp.runtime.server
+python -m pytest tests/ -q --tb=short
 ruff check . && ruff format .
 
 # Deploy to VPS
@@ -231,7 +230,7 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 
 | Read this | For | Link |
 |-----------|-----|------|
-| **arifOS** (this repo) | Constitutional kernel. 10 verbs. 13 floors. The judge. | ← you are here |
+| **arifOS** (this repo) | Constitutional kernel. 7 canonical public verbs. 13 floors. The judge. | ← you are here |
 | **A-FORGE** | Executor. 75 MCP tools. Gates + A-THINK law. | [`ariffazil/A-FORGE`](https://github.com/ariffazil/A-FORGE) |
 | **AAA** | Cockpit. A2A mesh. Agent registry. React 19 dashboard. | [`ariffazil/AAA`](https://github.com/ariffazil/AAA) |
 
@@ -248,7 +247,7 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 <div align="center">
 
 ```
-arifOS · Port 8088 · 10 public verbs · 13 floors · 7 organs
+arifOS · Port 8088 · 7 canonical public verbs · 13 floors · 7 organs
 AGPL-3.0 · Sovereign: Arif Fazil · Federation: ALIVE
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 ```
