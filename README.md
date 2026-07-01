@@ -19,16 +19,10 @@
 
 </div>
 
-[![CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
-[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python)](https://pypi.org/project/arifos/)
-[![MCP](https://img.shields.io/badge/MCP-7%20canonical%20verbs-10b981)](https://mcp.arif-fazil.com/mcp)
-[![Floors](https://img.shields.io/badge/floors-F1–F13%20active-f59e0b)](arifosmcp/core/floors.py)
-[![License](https://img.shields.io/badge/license-AGPL--3.0-ef4444)](LICENSE)
-[![Federation](https://img.shields.io/badge/federation-7%20organs%20alive-8B5CF6)](FEDERATION_STATUS.md)
-[![PyPI](https://img.shields.io/pypi/v/arifos?label=pypi)](https://pypi.org/project/arifos/)
-[![Glama](https://img.shields.io/badge/Glama-arifOS-8A2BE2)](https://glama.ai/mcp/servers/ariffazil/arifos)
-[![Smithery](https://img.shields.io/badge/Smithery-arifOS-FF6B35)](https://smithery.ai/server/ariffazil/arifos)
-[![mcp.so](https://img.shields.io/badge/mcp.so-arifOS-00BFFF)](https://mcp.so/servers/ariffazil/arifos)
+[![Unified CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
+[![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml)
+[![PyPI](https://img.shields.io/pypi/v/arifos?label=PyPI)](https://pypi.org/project/arifos/)
+[![License](https://img.shields.io/github/license/ariffazil/arifos?label=License)](LICENSE)
 
 ---
 
