@@ -1,27 +1,76 @@
 {
-  "schema": "arifOS/agent-card/v2.0.0",
-  "name": "arifOS Constitutional Kernel",
-  "service_id": "arifos-kernel",
-  "version": "2026.06.30",
-  "description": "Constitutional kernel — 7-tool MCP surface, 13 floors, VAULT999, F1-F13 governance.",
-  "authority": "F13_SOVEREIGN",
-  "transport": {
-    "port": 8088,
-    "domain": "arifos.arif-fazil.com",
-    "endpoint": "https://arifos.arif-fazil.com/mcp"
-  },
-  "capabilities": {
-    "tools": 7,
-    "golden_path": ["init","observe","think","route","judge","act","seal"]
-  },
-  "governance": {
-    "floors": ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13"],
-    "verdict_types": ["SEAL","HOLD","SABAR","VOID"],
-    "authority_boundary": "F13_SOVEREIGN"
-  },
-  "identity_hash": {
-    "algorithm": "BLAKE3",
-    "source": "session_init",
-    "chain_upstream": null
-  }
+    "$schema": "arifOS/agent-card/v2.0.0",
+    "id": "arifos-kernel",
+    "name": "arifOS Constitutional Kernel",
+    "description": "Constitutional kernel — 7-tool MCP surface (init→observe→think→route→judge→act→seal), 13 floors, VAULT999, F1-F13 governance. Owns 888 JUDGE, 999 VAULT SEAL, and authority routing. Public MCP tool execution routed through canonical gateway at mcp.arif-fazil.com.",
+    "version": "2026.07.01",
+    "protocolVersion": "1.0.0",
+    "url": "https://arifos.arif-fazil.com",
+    "provider": {
+        "organization": "arifOS Federation",
+        "url": "https://arif-fazil.com"
+    },
+    "service_id": "arifos-kernel",
+    "authority": "F13_SOVEREIGN",
+    "transport": {
+        "port": 8088,
+        "domain": "arifos.arif-fazil.com",
+        "endpoint": "https://arifos.arif-fazil.com/mcp",
+        "methods": ["streamable-http"]
+    },
+    "capabilities": {
+        "tools": 7,
+        "tools_count": 13,
+        "resources": true,
+        "prompts": true,
+        "vault": true,
+        "vector_memory": true,
+        "session_cache": true,
+        "judge": true,
+        "seal": true,
+        "golden_path": ["init", "observe", "think", "route", "judge", "act", "seal"]
+    },
+    "tool_domains": ["geox", "wealth", "well", "aforge", "aforge-mcp", "aaa", "arifos"],
+    "verdict_system": ["SEAL", "PROCEED", "HOLD", "PARTIAL", "VOID"],
+    "governance": {
+        "floors": ["F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12","F13"],
+        "verdict_types": ["SEAL","HOLD","SABAR","VOID"],
+        "authority_boundary": "F13_SOVEREIGN"
+    },
+    "owned_mcp": [
+        "arif_init", "arif_observe", "arif_fetch", "arif_think",
+        "arif_route", "arif_critique", "arif_judge", "arif_act", "arif_seal"
+    ],
+    "judge_skills": [
+        "arif_judge", "arif_seal",
+        "constitutional_floor_enforcement",
+        "apex_g_score_computation",
+        "reversibility_blast_radius_assessment"
+    ],
+    "skills": [
+        {"id": "arif_init", "name": "Constitutional Session Init", "description": "Initialize governed session with authority binding, floor acknowledgment, and sovereignty declaration. Golden path entry point.", "tags": ["governance","session","authority"], "floor_scope": ["F1","F2","F11","F13"]},
+        {"id": "arif_observe", "name": "Evidence Binding", "description": "Gather and label evidence with epistemic discipline (OBS/DER/INT/SPEC). Search, ingest, and ground queries in reality.", "tags": ["evidence","observation","truth"], "floor_scope": ["F2","F11"]},
+        {"id": "arif_think", "name": "Multi-Step Reasoning", "description": "Plan, critique, verify, and reflect with confidence labeling. Modes: reason, critique, verify, plan.", "tags": ["reasoning","planning","humility"], "floor_scope": ["F2","F7"]},
+        {"id": "arif_route", "name": "Intent Classification", "description": "Route natural-language intent to the correct federation organ or kernel tool. Canonical intent router.", "tags": ["routing","classification","federation"], "floor_scope": ["F4","F8","F11"]},
+        {"id": "arif_judge", "name": "Constitutional Verdict", "description": "Render binding judgment on proposed actions. Evaluates intent, capability, blast radius, reversibility. Verdicts: PROCEED, HOLD, VOID, PARTIAL.", "tags": ["judge","verdict","constitutional"], "floor_scope": ["F1","F2","F4","F7","F8","F9","F11","F13"]},
+        {"id": "arif_seal", "name": "Immutable Audit Seal", "description": "Seal verdicts and outcomes to VAULT999 immutable ledger. Final, irreversible records preserved forever.", "tags": ["seal","vault","audit"], "floor_scope": ["F1","F11","F13"]},
+        {"id": "arif_act", "name": "Governed Execution", "description": "Execute actions with valid prior SEAL from arif_judge. The 900-gate — no seal, no action.", "tags": ["execution","governance","enforcement"], "floor_scope": ["F1","F13"]},
+        {"id": "constitutional_floor_enforcement", "name": "F1-F13 Floor Enforcement", "description": "Enforce all 13 constitutional floors across federation actions.", "tags": ["floors","enforcement","sovereignty"], "floor_scope": ["F1","F2","F4","F7","F8","F9","F11","F13"]},
+        {"id": "apex_g_score_computation", "name": "G-Score Computation", "description": "Compute constitutional alignment score (G-Score) for proposed actions across all 13 floors.", "tags": ["scoring","alignment","constitutional"], "floor_scope": ["F2","F7","F11"]},
+        {"id": "reversibility_blast_radius_assessment", "name": "Risk Assessment", "description": "Assess blast radius and reversibility level for any proposed action. Determines verdict gate: 000→111→333→666→888→999.", "tags": ["risk","assessment","reversibility"], "floor_scope": ["F1","F2","F13"]}
+    ],
+    "identity": "https://arif-fazil.com/llms.txt",
+    "canonical_index": "https://arif-fazil.com/.well-known/arifos.json",
+    "identity_hash": {
+        "algorithm": "BLAKE3",
+        "source": "session_init",
+        "chain_upstream": null
+    },
+    "metadata": {
+        "sealed": true,
+        "epoch": "2026-04-18",
+        "consolidated": "2026-07-01T20:00:00Z",
+        "consolidated_by": "FORGE (000Ω) — Phase 2 entropy reduction",
+        "source": "merged from static/agent-card.json (richer data) + .well-known/agent-card.json (newer schema)"
+    }
 }
