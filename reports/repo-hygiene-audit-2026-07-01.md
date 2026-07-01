@@ -81,15 +81,33 @@
 
 ---
 
+## Execution Status
+
+F13 ratified all recommendations (`yes ratify all`). Kimi Code executed the safe subset and pushed to `main`.
+
+**Executed:**
+- Deleted stub authority redirects: `docs/CONSTITUTION.md`, `docs/00_META/CONSTITUTION.md`, `docs/AGENTS.md`.
+- Deleted empty `.gitmodules`.
+- Removed on-disk runtime debris: `node_modules/` (335 MB), `.opencode/node_modules/` (58 MB), `.venv/` (5.8 GB), `dist/` (12 MB), `.pytest_cache/`, `.ruff_cache/`, `.serena/`, egg-infos, `arifosmcp/dist/`, `arifosmcp/ARIFOS_MCP_AGENT_SEED.json`, `arifosmcp/ARIFOS_MCP_FINAL_SEAL.md`.
+- Commits: `dc03988aa`, `1144263ce`, `d6b701ec5`.
+
+**Deferred (production dependency):**
+- `arifosmcp/` consolidation and duplicate `floors.py` removal — production services (`arifos.service`, `l5_search_api`) still run from `arifosmcp.runtime`.
+- README server command update — canonical `arifos` package has no exposed server module yet.
+- APEX reference cleanup — requires domain review.
+- VAULT999 tracked dumps and `archive/` contents — need separate archival policy.
+
+Receipt: `reports/repo-hygiene-audit-2026-07-01-RECEIPT.md`
+
 ### Recommendations
 
-1. **Consolidate or retire `arifosmcp/`** — `arifosmcp/` duplicates constitutional files and runtime surface. Either complete the migration into `arifos/` + `core/` or clearly mark `arifosmcp/` as a quarantine archive. — **HIGH** — Owner: A-FORGE / Arif
-2. **Remove runtime debris from disk** — `node_modules/`, `.venv/`, `.opencode/node_modules/`, `.pytest_cache/`, `.ruff_cache/`, `.serena/` are ignored and should not persist in the working copy. Add a cleanup step to the runbook. — **MEDIUM** — Owner: Ops
-3. **Stop tracking build artifacts and ledger dumps** — `git rm --cached dist/*`, `uv.lock` (if regenerated in CI), `VAULT999/SEALED_EVENTS.jsonl`, and `archive/` contents. Move VAULT999 runtime data to a dedicated runtime volume, not git. — **HIGH** — Owner: A-FORGE
-4. **Deduplicate authority files** — Remove stub `docs/CONSTITUTION.md`, `docs/00_META/CONSTITUTION.md`, and merge `arifosmcp/AGENTS.md` into root `AGENTS.md` or delete if superseded. Keep one `floors.py` (canonical in `arifos/`). — **HIGH** — Owner: AAA / Arif
-5. **Fix stale README / APEX references** — Update README server command to the current canonical module; audit APEX references and remove or redirect to AAA `a2a-server/deliberation.ts`. — **MEDIUM** — Owner: A-FORGE
-6. **Remove empty `.gitmodules`** — Delete the 0-byte untracked `.gitmodules` file. — **LOW** — Owner: A-FORGE
-7. **Clarify package migration status in `AGENTS.md`** — Document which package roots are canonical (`arifos/`, `core/`) and which are legacy (`arifosmcp/`, `aforge-python-migration/`). — **MEDIUM** — Owner: AAA
+1. **Consolidate or retire `arifosmcp/`** — `arifosmcp/` duplicates constitutional files and runtime surface. Either complete the migration into `arifos/` + `core/` or clearly mark `arifosmcp/` as a quarantine archive. — **HIGH** — Owner: A-FORGE / Arif — **DEFERRED until production cutover**
+2. **Remove runtime debris from disk** — `node_modules/`, `.venv/`, `.opencode/node_modules/`, `.pytest_cache/`, `.ruff_cache/`, `.serena/` are ignored and should not persist in the working copy. Add a cleanup step to the runbook. — **MEDIUM** — Owner: Ops — **DONE**
+3. **Stop tracking build artifacts and ledger dumps** — `git rm --cached dist/*`, `uv.lock` (if regenerated in CI), `VAULT999/SEALED_EVENTS.jsonl`, and `archive/` contents. Move VAULT999 runtime data to a dedicated runtime volume, not git. — **HIGH** — Owner: A-FORGE — **PARTIAL (dist/ removed from disk; VAULT999/archive need policy)**
+4. **Deduplicate authority files** — Remove stub `docs/CONSTITUTION.md`, `docs/00_META/CONSTITUTION.md`, and merge `arifosmcp/AGENTS.md` into root `AGENTS.md` or delete if superseded. Keep one `floors.py` (canonical in `arifos/`). — **HIGH** — Owner: AAA / Arif — **PARTIAL (stubs removed; arifosmcp/ duplicates deferred)**
+5. **Fix stale README / APEX references** — Update README server command to the current canonical module; audit APEX references and remove or redirect to AAA `a2a-server/deliberation.ts`. — **MEDIUM** — Owner: A-FORGE — **DEFERRED**
+6. **Remove empty `.gitmodules`** — Delete the 0-byte untracked `.gitmodules` file. — **LOW** — Owner: A-FORGE — **DONE**
+7. **Clarify package migration status in `AGENTS.md`** — Document which package roots are canonical (`arifos/`, `core/`) and which are legacy (`arifosmcp/`, `aforge-python-migration/`). — **MEDIUM** — Owner: AAA — **PENDING**
 
 ---
 
