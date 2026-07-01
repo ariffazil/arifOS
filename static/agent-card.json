@@ -86,7 +86,7 @@
       "tags": ["risk", "assessment", "reversibility"]
     }
   ],
-  "tool_domains": ["geox", "wealth", "arifos"],
+  "tool_domains": ["geox", "wealth", "well", "aforge", "aforge-mcp", "aaa", "arifos"],
   "verdict_system": ["SEAL", "PROCEED", "HOLD", "PARTIAL", "VOID"],
   "owned_mcp": [
     "arif_init",

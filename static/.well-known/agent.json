@@ -16,7 +16,7 @@
     "vector_memory": true,
     "session_cache": true
   },
-  "tool_domains": ["geox", "wealth", "arifos"],
+  "tool_domains": ["geox", "wealth", "well", "aforge", "aforge-mcp", "aaa", "arifos"],
   "verdict_system": ["SEAL", "PROCEED", "HOLD", "PARTIAL", "VOID"],
   "identity": "https://arif-fazil.com/llms.txt",
   "canonical_index": "https://arif-fazil.com/.well-known/arifos.json",
