@@ -1,131 +1,50 @@
-# arifOS — Constitutional AI Governance Kernel
-> Auto-generated from live tool registry. Hash: 8fc98b2d2ed0fe39
-> Public canonical surface: 7 tools (F13 2026-06-23 facade). Full MCP + gated: larger (see tool_registry).
-> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
+# arifOS — Constitutional MCP Kernel
 
-## MCP Tools — Complete Surface
-arifOS public canonical surface: 7 tools (full gated surface larger); 7 canonical public tools (facade)
-and 41 operational support tools.
+arifOS is the constitutional governance kernel of the federation. It is an MCP server with a **public wire facade frozen to 7 canonical verbs**:
 
-### Operational Categories
-- attest: 7 tools
-- canary: 7 tools
-- chatgpt-shim: 2 tools
-- diagnostic: 7 tools
-- discovery: 1 tools
-- forge-sub: 3 tools
-- hermes: 7 tools
-- lease: 3 tools
-- narrative: 2 tools
-- unknown: 2 tools
+- `arif_init`
+- `arif_observe`
+- `arif_think`
+- `arif_route`
+- `arif_judge`
+- `arif_act`
+- `arif_seal`
 
-### Canonical Constitutional Tools (16)
-| Tool | Stage | Access | Reversible | Modes |
-|------|-------|--------|------------|-------|
-| `arif_kernel_intercept` | 888 | public | ✓ | intercept |
-| `arif_init` | 000 | public | ✓ | init, light, resume, validate, epoch_open, epoch_seal +2 more |
-| `arif_observe` | 111 | public | ✓ | search, hybrid_discovery, ingest, compass, atlas, entropy_dS +1 more |
-| `arif_explore` | 111 | public | ✓ | navigator, prospector, driller, mapper, surveyor, scout +2 more |
-| `arif_fetch` | 222 | public | ✓ | fetch, search, eureka |
-| `arif_think` | 333 | public | ✓ | reason, reflect, verify, critique, axioms, plan +4 more |
-| `arif_critique` | 666 | public | ✓ | critique, simulate, redteam, maruah, deescalate, empathy |
-| `arif_route` | 555 | public | ✓ | route |
-| `arif_triage` | 555 | public | ✓ | status, preflight, triage |
-| `arif_bridge_connect` | 555 | authenticated | ✓ | connect |
-| `arif_compose` | 444r | public | ✓ | compose, summarize, cite, tone_shift |
-| `arif_memory` | 555m | public | ✗ HOLD | recall, inspect, attest, remember, promote, revise +1 more |
-| `arif_judge` | 888 | authenticated | ✓ | judge, validate, hold, rules, armor, probe +1 more |
-| `arif_seal` | 999 | authenticated | ✗ HOLD | seal, verify, ledger, changelog, audit |
-| `arif_forge` | 010 | sovereign | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
-| `arif_measure` | 777 | public | ✓ | health, vitals, cost, genius, psi_le, omega +3 more |
+Everything else in the generated registry is internal, gated, diagnostic, or backward-compat. Default public `tools/list` should resolve to these 7 verbs only.
 
-### Operational Support Tools (41)
-| Tool | Category | Risk | Mutates | Modes |
-|------|----------|------|---------|-------|
-| `hermes_system_status` | hermes | low | no | brief, full, organs, events |
-| `hermes_vault_query` | hermes | low | no | recent, search, organ, date |
-| `hermes_epistemic_check` | hermes | low | no | quick, vault, full |
-| `hermes_fact_check` | hermes | low | no | quick, web, deep |
-| `hermes_cross_verify` | hermes | medium | no | verify |
-| `hermes_plan_review` | hermes | low | no | quick, full |
-| `hermes_memory_steward` | hermes | low | no | classify, compact |
-| `arif_canary` | canary | low | no | ping, schema_echo, version_echo, transport_echo +2 more |
-| `arif_ping` | canary | low | no | probe |
-| `arif_schema_echo` | canary | low | no | echo |
-| `arif_version_echo` | canary | low | no | echo |
-| `arif_transport_echo` | canary | low | no | echo |
-| `arif_initialize_probe` | canary | low | no | probe |
-| `arif_conformance_report` | canary | low | no | report |
-| `arif_lease_inspect` | lease | low | no | inspect |
-| `arif_lease_issue` | lease | medium | no | issue |
-| `arif_lease_revoke` | lease | medium | ✗ HOLD | revoke |
-| `arif_os_attest` | attest | low | no | attest |
-| `arif_organ_attest` | attest | low | no | attest |
-| `arif_organ_attest_all` | attest | low | no | attest |
-| `arif_heartbeat` | attest | low | no | record, query |
-| `arif_peer_contract_validate` | attest | low | no | validate |
-| `arif_peer_contract_attest` | attest | low | no | attest |
-| `arif_peer_contract_forbid` | attest | medium | no | forbid |
-| `forge_dry_run` | forge-sub | low | no | dry_run |
-| `forge_plan` | forge-sub | low | no | plan |
-| `forge_query` | forge-sub | low | no | query |
-| `arif_detect_institutional_shadow_drift` | narrative | medium | no | detect |
-| `arif_detect_narrative_tension` | narrative | medium | no | detect |
-| `arif_stack_health_probe` | diagnostic | low | no | probe |
-| `arif_scan_local_instructions` | diagnostic | low | no | scan |
-| `arif_organ_consensus` | diagnostic | low | no | consensus |
-| `arif_session_budget` | diagnostic | low | no | budget |
-| `arif_floor_status` | diagnostic | low | no | status |
-| `mcp_drift_check` | unknown | low | no | status, info, health |
-| `arif_gate_judge` | unknown | low | no | judge |
-| `arif_self_evaluate` | diagnostic | low | no | evaluate |
-| `arif_model_compare` | diagnostic | low | no | compare |
-| `arif_search` | chatgpt-shim | low | no | search |
-| `arif_fetch` | chatgpt-shim | low | no | fetch |
-| `arif_resolve_tool` | discovery | low | no |  |
+## Canonical MCP alignment
 
-## Constitutional Floors (F1-F13)
-F1 AMANAH . F2 TRUTH . F3 TRI-WITNESS . F4 CLARITY . F5 PEACE2
-F6 EMPATHY . F7 HUMILITY . F8 GENIUS . F9 ANTIHANTU . F10 ONTOLOGY
-F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
+- **Protocol version:** `2025-11-25`
+- **Transport:** Streamable HTTP over JSON-RPC 2.0
+- **Public MCP endpoint:** `https://mcp.arif-fazil.com/mcp`
+- **Runtime health JSON:** `https://arifos.arif-fazil.com/health`
+- **POST requirement:** send `Accept: application/json`
+- **Golden flow:** `initialize` → `tools/list` → `tools/call`
+- **Governed action path:** `arif_init` → `arif_observe` → `arif_think` → `arif_route` → `arif_judge` → `arif_act` → `arif_seal`
 
-## Canonical MCP Gateway
+## Live behavior notes
 
-All public MCP traffic routes through one canonical gateway:
+- `arif_init` is the first real tool call for any governed session.
+- Unverified actors can initialize successfully but may receive narrowed authority such as `OBSERVE_ONLY`.
+- `tools/list` returns the public 7-verb facade by default; diagnostic and legacy aliases are not part of the default public surface.
 
-| Endpoint | URL |
-|----------|-----|
-| MCP transport | `https://mcp.arif-fazil.com/mcp` |
-| Health | `https://mcp.arif-fazil.com/health` |
+## Official MCP references
 
-## Federation Organs
+- Intro: https://modelcontextprotocol.io/docs/getting-started/intro.md
+- Architecture: https://modelcontextprotocol.io/specification/2025-11-25/architecture/index.md
+- Lifecycle: https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle.md
+- Transports: https://modelcontextprotocol.io/specification/2025-11-25/basic/transports.md
+- Server tools: https://modelcontextprotocol.io/specification/2025-11-25/server/tools.md
+- Authorization: https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization.md
+- Tasks: https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks.md
+- Registry: https://modelcontextprotocol.io/registry/about.md
+- Full MCP docs index: https://modelcontextprotocol.io/llms.txt
 
-| Organ | Domain | Role | Tools |
-|------|--------|------|-------|
-| **arifOS** (8088) | `arifos.arif-fazil.com` | Governance kernel | 16 canonical + 41 operational |
-| **A-FORGE** (7071) | `forge.arif-fazil.com` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |
-| **GEOX** (8081) | `geox.arif-fazil.com` | Earth intelligence | 33 canonical tools |
-| **WEALTH** (18082) | `wealth.arif-fazil.com` | Capital intelligence | 20+ tools |
-| **WELL** (18083) | `well.arif-fazil.com` | Human readiness | 18+ tools |
-| **AAA** (3001) | `aaa.arif-fazil.com` | Control plane cockpit | A2A server, React SPA |
+## arifOS source of truth
 
-## Agent Rules (mandatory)
-1. Never skip the 000-999 pipeline
-2. Never self-certify (F2 TRUTH)
-3. Never fabricate evidence (F9 ANTIHANTU)
-4. Never bypass human veto (F13 SOVEREIGN)
-5. Reversible-first: commit before big changes (F1 AMANAH)
+- `arifosmcp/PUBLIC_SURFACE_CANON.md`
+- `arifosmcp/runtime/public_surface.py`
+- `arifosmcp/tool_registry.json`
+- `README.md`
 
-### Tool Location Rules
-- arifOS (8088) = governance only (judge, seal, reason, critique, hermes, lease, attest)
-- A-FORGE (7071) = engineering only (forge_*, filesystem, git, docker, postgres, shell, job)
-- forge_* on arifOS = DEPRECATED PROXY (calls forwarded to A-FORGE)
-- GEOX/WEALTH/WELL = domain evidence organs
-
-## Verification
-- tools/list count should match total (57)
-- canonical_tools + operational_tools == tools_exposed_via_mcp
-- Manifest hash: 8fc98b2d2ed0fe39
-- Manifest URL: https://arifos.arif-fazil.com/manifest.txt
-
---- Auto-generated 2026-06-23T02:12:57.657025 ---
+DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
