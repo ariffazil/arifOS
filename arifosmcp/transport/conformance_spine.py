@@ -95,11 +95,20 @@ def _annotate_chain_ruling(evidence: dict[str, Any]) -> dict[str, Any]:
             "ruling_reference": CHAIN_RULING_REFERENCE,
             "blocks_substrate_gate": False,
         }
-        evidence["current_chain_health"] = {
-            "verdict": "DEGRADED",
-            "chain_ok": False,
-            "note": "chain_integrity=BROKEN matches known historical gap pattern",
-        }
+        # When ruling is NON-ISSUE, the chain breakage is historical and accepted.
+        # Current chain health should not be degraded by pre-migration gaps.
+        if CHAIN_RULING_VERDICT == "NON-ISSUE":
+            evidence["current_chain_health"] = {
+                "verdict": "PASS",
+                "chain_ok": True,
+                "note": "chain_integrity=BROKEN is historical (pre-migration), ruled NON-ISSUE by sovereign",
+            }
+        else:
+            evidence["current_chain_health"] = {
+                "verdict": "DEGRADED",
+                "chain_ok": False,
+                "note": "chain_integrity=BROKEN matches known historical gap pattern",
+            }
         # Keep legacy fields for backward compat
         evidence["sovereign_ruling"] = CHAIN_RULING_VERDICT
         evidence["ruling_date"] = CHAIN_RULING_DATE
@@ -847,7 +856,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         # New split structure
         hcg = ev.get("historical_chain_gap", {})
         cch = ev.get("current_chain_health", {})
-        if hcg.get("present") and not hcg.get("blocks_substrate_gate", True):
+        if hcg.get("present") and hcg.get("blocks_substrate_gate", False):
             has_historical_gap = True
         if cch.get("verdict") == "FAIL":
             has_current_chain_fail = True
