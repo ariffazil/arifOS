@@ -2711,11 +2711,15 @@ def _enforce_nine_signal(
             "_nine_signal_compliant",
             "_violations",
             "philosophical_anchor",
+            "actor",
         }
         if isinstance(out.get("result"), dict):
             result_payload = dict(out["result"])
         else:
             result_payload = {k: v for k, v in out.items() if k not in envelope_keys}
+
+        # /000 principal-agent separation: actor surfaced at top-level
+        # envelope (not inside result). See envelope dict below.
 
         # Resolve actor_verified once for the canonical verdict function
         actor_verified_flag = out.get("actor_verified")
@@ -2895,6 +2899,9 @@ def _enforce_nine_signal(
             "affordance_contract": _get_affordance_contract(tool_name),
             "full_affordance": get_full_affordance(tool_name),
             "stage_progression": _compute_stage_progression(tool_name, verdict),
+            # /000 principal-agent separation: surface delegation chain in
+            # every MCP response envelope (not buried in result).
+            "actor": out.get("actor") if isinstance(out.get("actor"), dict) else None,
         }
 
         # ── METACOGNITIVE STANDARD ENVELOPE (ChatGPT 2026 feedback)
