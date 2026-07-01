@@ -4541,6 +4541,11 @@ def _new_session(
     declared_model_key: str | None = None,
     deployment_id: str = "vps_main_arifos",
     agent_policy: dict | None = None,  # GAP-C: AgentPolicy integration
+    # ── /000 Principal-Agent Separation (forged 2026-07-01) ──────────
+    sovereign_id: str | None = None,
+    caller_actor_id: str | None = None,
+    executor_actor_id: str | None = None,
+    delegation_mode: str | None = None,
 ) -> dict[str, Any]:
     sid = f"SEAL-{uuid.uuid4().hex[:16]}"
 
@@ -4548,9 +4553,22 @@ def _new_session(
 
     from arifosmcp.runtime.session_auth import SESSION_TTL_SECONDS
 
+    # /000: Derive principal from sovereign_id or fallback to actor_id
+    _principal = sovereign_id or (
+        actor_id if actor_id and actor_id.lower().strip() in ("arif", "888") else None
+    )
+    _delegation = delegation_mode or (
+        "delegated" if sovereign_id and actor_id and actor_id != sovereign_id else "direct"
+    )
+
     sess = {
         "session_id": sid,
         "actor_id": actor_id or "anonymous",
+        # ── /000 Principal-Agent Chain ─────────────────────────────────
+        "sovereign_id": _principal,
+        "caller_actor_id": caller_actor_id or actor_id,
+        "executor_actor_id": executor_actor_id or actor_id,
+        "delegation_mode": _delegation,
         "created_at": _now(),
         "created_at_unix": time.time(),
         "expires_at_unix": time.time() + SESSION_TTL_SECONDS,

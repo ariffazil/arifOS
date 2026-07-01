@@ -767,6 +767,11 @@ def arif_init(
             actor_id or "light_client",
             declared_model_key=declared_model_key,
             deployment_id=deployment_id,
+            # ── /000 Principal-Agent Separation (forged 2026-07-01) ──
+            sovereign_id=sovereign_id,
+            caller_actor_id=caller_actor_id or actor_id,
+            executor_actor_id=executor_actor_id or actor_id,
+            delegation_mode=delegation_mode,
         )
         sid = sess.get("session_id", "UNKNOWN")
         model_key = declared_model_key or "unknown"
@@ -856,6 +861,8 @@ def arif_init(
             header["genesis_status"] = f"error: {_g_exc}"
         header["genesis_status"] = _genesis_status
 
+        _light_sovereign = sess.get("sovereign_id")
+        _light_delegation = sess.get("delegation_mode", "direct")
         return _sm(
             status="OK",
             tool="arif_init",
@@ -873,8 +880,13 @@ def arif_init(
             ),
             actor={
                 "claimed_id": actor_id,
+                "sovereign_id": _light_sovereign,
+                "delegation_mode": _light_delegation,
                 "identity_verified": sess.get("actor_verified", False),
                 "authority_level": "OPERATOR",
+                "principal_agent_separation": _light_delegation == "delegated"
+                and _light_sovereign
+                and _light_sovereign != actor_id,
             },
             constitution={
                 "id": CONSTITUTION_HASH,
@@ -963,6 +975,11 @@ def arif_init(
             actor_id,
             declared_model_key=declared_model_key,
             deployment_id=deployment_id,
+            # ── /000 Principal-Agent Separation (forged 2026-07-01) ──
+            sovereign_id=sovereign_id,
+            caller_actor_id=caller_actor_id,
+            executor_actor_id=executor_actor_id,
+            delegation_mode=delegation_mode,
         )
 
         # ════════════════════════════════════════════════════════════════════════
@@ -971,9 +988,20 @@ def arif_init(
         # ════════════════════════════════════════════════════════════════════════
 
         # ── Authority / identity ─────────────────────────────────────────
-        authority_level = (
-            "SOVEREIGN" if actor_id == "arif" else ("OPERATOR" if actor_id else "ANONYMOUS")
-        )
+        # /000: Principal-Agent Separation (forged 2026-07-01)
+        # Authority derives from sovereign_id (human principal at position zero),
+        # NOT from actor_id (which may be an agent instrument).
+        # When sovereign_id is absent but actor_id is a known principal (arif/888),
+        # treat actor_id as both principal and agent (backward compatible).
+        _effective_principal = sovereign_id or actor_id
+        if _effective_principal and _effective_principal.lower().strip() in ("arif", "888"):
+            authority_level = "SOVEREIGN"
+        elif sovereign_id and actor_id and actor_id != sovereign_id:
+            authority_level = "DELEGATED"
+        elif actor_id:
+            authority_level = "OPERATOR"
+        else:
+            authority_level = "ANONYMOUS"
 
         identity_verified = False
         if actor_id == "arif" and nonce and signature:
@@ -1154,6 +1182,13 @@ def arif_init(
                 doctrine=ARIF_DOCTRINE,
             )
 
+        # ── /000 Principal-Agent Response (forged 2026-07-01) ────────────
+        _sovereign_id = sess.get("sovereign_id")
+        _delegation_mode = sess.get("delegation_mode", "direct")
+        _is_delegated = (
+            _delegation_mode == "delegated" and _sovereign_id and _sovereign_id != actor_id
+        )
+
         return _sm(
             status="OK",
             tool="arif_init",
@@ -1175,8 +1210,11 @@ def arif_init(
             ),
             actor={
                 "claimed_id": actor_id,
+                "sovereign_id": _sovereign_id,
+                "delegation_mode": _delegation_mode,
                 "identity_verified": identity_verified,
                 "authority_level": authority_level,
+                "principal_agent_separation": _is_delegated,
             },
             constitution={
                 "id": CONSTITUTION_HASH,
