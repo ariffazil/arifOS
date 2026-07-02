@@ -3,7 +3,7 @@
   "contract_version": "0.1.0",
   "generated_at": "2026-06-28T21:15:00+08:00",
   "graph_version": "v0.1.0",
-  "node_count": 25,
+  "node_count": 28,
   "nodes": [
     {
       "capability_id": "canonical_tools.arif_init",
@@ -837,6 +837,138 @@
       ]
     },
     {
+      "capability_id": "diagnostic.arif_floor_status",
+      "tool_name": "arif_floor_status",
+      "server_id": "local",
+      "description": "floor_introspection",
+      "authority_required": "LOW",
+      "requires_888_hold": false,
+      "mutation_class": "read",
+      "irreversible": false,
+      "blast_radius": "LOCAL",
+      "resource_class": "MEMORY",
+      "organ_id": "arifOS",
+      "trust_state": "TRUSTED_READ",
+      "requires_external_witness": false,
+      "channel": "stable",
+      "contract_class": "diagnostic",
+      "axis": "888_JUDGE",
+      "pipeline_stage": "intake",
+      "modes": [
+        "floor_status"
+      ],
+      "input_schema": {},
+      "output_schema": {},
+      "denial_codes": [
+        "UNKNOWN_CAPABILITY"
+      ],
+      "audit_events": [
+        "response_emitted"
+      ],
+      "witness_requirements": [],
+      "hold_conditions": [],
+      "allowed_actors": null,
+      "bootstrap": false,
+      "requires_plan": false,
+      "requires_verdict_token": false,
+      "requires_epoch_id": false,
+      "requires_receipt_parent_ids": false,
+      "contract_version": "1.0.0",
+      "fingerprint": "sha256:e390b69c5e6169a4",
+      "section": "diagnostic",
+      "legacy_aliases": [
+        "arifos_floor_status"
+      ]
+    },
+    {
+      "capability_id": "diagnostic.arif_organ_attest",
+      "tool_name": "arif_organ_attest",
+      "server_id": "local",
+      "description": "single_organ_attestation",
+      "authority_required": "LOW",
+      "requires_888_hold": false,
+      "mutation_class": "read",
+      "irreversible": false,
+      "blast_radius": "LOCAL",
+      "resource_class": "MEMORY",
+      "organ_id": "arifOS",
+      "trust_state": "TRUSTED_READ",
+      "requires_external_witness": false,
+      "channel": "stable",
+      "contract_class": "diagnostic",
+      "axis": "000_KERNEL",
+      "pipeline_stage": "intake",
+      "modes": [
+        "attest"
+      ],
+      "input_schema": {},
+      "output_schema": {},
+      "denial_codes": [
+        "UNKNOWN_CAPABILITY"
+      ],
+      "audit_events": [
+        "response_emitted"
+      ],
+      "witness_requirements": [],
+      "hold_conditions": [],
+      "allowed_actors": null,
+      "bootstrap": false,
+      "requires_plan": false,
+      "requires_verdict_token": false,
+      "requires_epoch_id": false,
+      "requires_receipt_parent_ids": false,
+      "contract_version": "1.0.0",
+      "fingerprint": "sha256:32179f68a2acaa74",
+      "section": "diagnostic",
+      "legacy_aliases": [
+        "arifos_organ_attest"
+      ]
+    },
+    {
+      "capability_id": "diagnostic.arif_organ_attest_all",
+      "tool_name": "arif_organ_attest_all",
+      "server_id": "local",
+      "description": "all_organs_attestation",
+      "authority_required": "LOW",
+      "requires_888_hold": false,
+      "mutation_class": "read",
+      "irreversible": false,
+      "blast_radius": "LOCAL",
+      "resource_class": "MEMORY",
+      "organ_id": "arifOS",
+      "trust_state": "TRUSTED_READ",
+      "requires_external_witness": false,
+      "channel": "stable",
+      "contract_class": "diagnostic",
+      "axis": "000_KERNEL",
+      "pipeline_stage": "intake",
+      "modes": [
+        "attest_all"
+      ],
+      "input_schema": {},
+      "output_schema": {},
+      "denial_codes": [
+        "UNKNOWN_CAPABILITY"
+      ],
+      "audit_events": [
+        "response_emitted"
+      ],
+      "witness_requirements": [],
+      "hold_conditions": [],
+      "allowed_actors": null,
+      "bootstrap": false,
+      "requires_plan": false,
+      "requires_verdict_token": false,
+      "requires_epoch_id": false,
+      "requires_receipt_parent_ids": false,
+      "contract_version": "1.0.0",
+      "fingerprint": "sha256:30fff38c550d83b6",
+      "section": "diagnostic",
+      "legacy_aliases": [
+        "arifos_organ_attest_all"
+      ]
+    },
+    {
       "capability_id": "diagnostic.arif_conformance_report",
       "tool_name": "arif_conformance_report",
       "server_id": "local",
@@ -1613,6 +1745,9 @@
     "arifos_bridge": "arif_bridge",
     "arifos_measure": "arif_measure",
     "arifos_canary": "arif_canary",
+    "arifos_floor_status": "arif_floor_status",
+    "arifos_organ_attest": "arif_organ_attest",
+    "arifos_organ_attest_all": "arif_organ_attest_all",
     "arifos_triage": "arif_triage",
     "arif_bridge_connect": "arif_bridge",
     "arif_conformance_report": "arif_kernel_status",
@@ -1643,6 +1778,9 @@
     "arifos_bridge": "2026-12-31",
     "arifos_measure": "2026-12-31",
     "arifos_canary": "2026-12-31",
+    "arifos_floor_status": "2026-12-31",
+    "arifos_organ_attest": "2026-12-31",
+    "arifos_organ_attest_all": "2026-12-31",
     "arifos_triage": "2026-12-31",
     "arif_bridge_connect": "2026-09-30",
     "arif_conformance_report": "2026-09-30",

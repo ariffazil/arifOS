@@ -657,15 +657,10 @@ def arif_init(
     """
     000_INIT — Constitutional session bootstrap.
 
-    Now includes:
-    - Embodiment card (VPS-root awareness)
-    - Causality warning (atomic button awareness)
-    - Execution law (what requires what)
-    - Attention surface (what to watch)
-    - Tool surface (semantic groups, not raw dump)
-    - Risk leash (safety boundary)
+    Binds actor identity, returns session_id + authority level + floor status.
+    Includes: embodiment card, execution law, tool surface, risk leash.
 
-    No longer silently coerces null to "anonymous".
+    Modes: ping | light | init | resume | validate | epoch_open | epoch_seal | cleanup
     """
 
     # ── PING MODE ──────────────────────────────────────────────

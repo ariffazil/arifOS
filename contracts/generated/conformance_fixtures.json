@@ -113,6 +113,27 @@
       "actor_id": "arifbfazil"
     },
     {
+      "tool": "arif_floor_status",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest_all",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
       "tool": "arif_conformance_report",
       "fixture_class": "happy",
       "input": {},
@@ -299,6 +320,30 @@
     },
     {
       "tool": "arif_measure",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_floor_status",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest_all",
       "fixture_class": "schema_pass_constitution_fail",
       "input": {},
       "expected_verdict": "HOLD",
@@ -602,6 +647,48 @@
         "alias_used": "arifos_canary"
       },
       "expected_resolved_to": "arif_canary",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_floor_status",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_floor_status"
+      },
+      "expected_resolved_to": "arif_floor_status",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_organ_attest"
+      },
+      "expected_resolved_to": "arif_organ_attest",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest_all",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_organ_attest_all"
+      },
+      "expected_resolved_to": "arif_organ_attest_all",
       "deprecation_metadata": {
         "deprecated_after": "2026-12-31",
         "shim_layer": true

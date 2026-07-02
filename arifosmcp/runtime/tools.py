@@ -18635,6 +18635,41 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     if handler is None:
         return None
 
+    # P0 FIX 2026-07-02 (FORGE): Return ToolResult with structured_content
+    # to bypass FastMCP convert_result() which fails on non-serializable
+    # objects in the envelope dict. When pydantic_core.to_jsonable_python()
+    # fails, convert_result returns ToolResult(structured_content=None),
+    # which causes MCP SDK to throw
+    # "outputSchema defined but no structured output returned".
+    # Fix: sanitize via json round-trip + return ToolResult directly so
+    # convert_result passes it through (isinstance check at top).
+    def _sanitize_envelope(resp: dict[str, Any]) -> Any:
+        import json as _json
+
+        try:
+            sanitized = _json.loads(_json.dumps(resp, default=str, ensure_ascii=False))
+        except Exception:
+            logger.warning("JSON sanitization failed for %s; returning raw envelope", tool_name)
+            sanitized = resp
+        # Return ToolResult with structured_content set so FastMCP
+        # convert_result() passes it through without attempting
+        # pydantic_core.to_jsonable_python() which may fail.
+        try:
+            from fastmcp.tools.tool import ToolResult
+            from mcp.types import TextContent
+
+            return ToolResult(
+                content=[
+                    TextContent(
+                        type="text", text=_json.dumps(sanitized, default=str, ensure_ascii=False)
+                    )
+                ],
+                structured_content=sanitized,
+            )
+        except Exception:
+            # Fallback: return sanitized dict
+            return sanitized
+
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
@@ -18654,7 +18689,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
             _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
             _schedule_seal(final_resp, tool_name, kwargs)
-            return final_resp
+            return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
         final_resp = _enforce_nine_signal(
             tool_name,
@@ -18670,9 +18705,6 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
             from arifOS.supabase_adapter import record_tool_call
 
-            # s000.tool_calls.tool_calls_status_check allows:
-            # planned | pending_approval | running | succeeded | failed | blocked | voided
-            # Map "completed" → "succeeded" to satisfy the CHECK constraint.
             loop = asyncio.get_running_loop()
             loop.create_task(
                 record_tool_call(
@@ -18680,14 +18712,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     tool_name=tool_name,
                     organ_code="arifOS",
                     arguments=kwargs,
-                    risk_tier=0,  # Could extract from manifest
+                    risk_tier=0,
                     status="succeeded",
                     actor_ref=kwargs.get("actor_id"),
                 )
             )
         except Exception as e:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
-        return final_resp
+        return _sanitize_envelope(final_resp)
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -18709,7 +18741,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
             _inject_epistemic_tag(final_resp, tool_name)
             _schedule_seal(final_resp, tool_name, kwargs)
-            return final_resp
+            return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
         final_resp = _enforce_nine_signal(
             tool_name,
@@ -18741,7 +18773,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
         except Exception as e:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
-        return final_resp
+        return _sanitize_envelope(final_resp)
 
     def _attach_live_kernel_envelope(
         response: dict[str, Any], tool_name: str, kwargs: dict[str, Any]

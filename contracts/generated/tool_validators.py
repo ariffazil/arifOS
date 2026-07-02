@@ -176,6 +176,33 @@ class arif_measure_Output(BaseModel):
     status: str = 'OK'
 
 
+# ── arif_floor_status (contract_class=diagnostic, mutation_class=read) ──
+class arif_floor_status_Input(BaseModel):
+    envelope: KernelEnvelope = None  # required for mutations
+
+class arif_floor_status_Output(BaseModel):
+    result: Any = None
+    status: str = 'OK'
+
+
+# ── arif_organ_attest (contract_class=diagnostic, mutation_class=read) ──
+class arif_organ_attest_Input(BaseModel):
+    envelope: KernelEnvelope = None  # required for mutations
+
+class arif_organ_attest_Output(BaseModel):
+    result: Any = None
+    status: str = 'OK'
+
+
+# ── arif_organ_attest_all (contract_class=diagnostic, mutation_class=read) ──
+class arif_organ_attest_all_Input(BaseModel):
+    envelope: KernelEnvelope = None  # required for mutations
+
+class arif_organ_attest_all_Output(BaseModel):
+    result: Any = None
+    status: str = 'OK'
+
+
 # ── arif_conformance_report (contract_class=diagnostic, mutation_class=read) ──
 class arif_conformance_report_Input(BaseModel):
     envelope: KernelEnvelope = None  # required for mutations

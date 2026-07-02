@@ -71,7 +71,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     "arif_initialize_probe": (
         "CANARY: Test MCP initialize/initialized handshake without constitutional "
-        "ceremony. Simulates protocol version negotiation per MCP spec 2025-06-18. "
+        "ceremony. Simulates protocol version negotiation per MCP spec 2025-11-25. "
         "Use AFTER ping passes but BEFORE arif_init."
     ),
     # ═════════════════════════════════════════════════════════════════════════
@@ -82,32 +82,23 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     # ═════════════════════════════════════════════════════════════════════════
     # ── 000_INIT ────────────────────────────────────────────────────────────
     "arif_init": (
-        "START HERE. Bootstrap a governed constitutional session and bind actor identity. "
-        "Select when: starting any new conversation, resuming a previous session, or before "
-        "any other arif_* tool call. Without a session_id, no governed action is possible. "
-        "Returns: session_id, authority level (SEAL/OBSERVE_ONLY/FULL), floor status, "
-        "next_tool recommendation, and constitution hash. "
-        "Modes: init (full, ~60s) | light (<1s, tool pointers only) | resume | validate | "
-        "epoch_open | epoch_seal | ping. "
-        "Do NOT select when: you already have a live session_id and verified authority "
-        "(use arif_triage instead), or the request is a pure factual question needing no session."
+        "START HERE. Bind governed session before any arif_* call. "
+        "Without session_id, no governed action possible. "
+        "Returns: session_id, authority level, floor status, next_tool. "
+        "Modes: ping (<1s probe) | light (<1s pointers) | init (~60s full) | "
+        "resume | validate | epoch_open | epoch_seal. "
+        "Skip when: live session exists (use arif_triage) or factual question (use arif_observe)."
     ),
-    "arif_session_init": (
-        "[SDK alias of arif_init] Bootstrap a governed constitutional session. "
-        "Select this alias when your SDK convention uses long-form names. "
-        "Identical behavior to arif_init. Modes: init | light | resume | validate | epoch_open | epoch_seal."
-    ),
+    # arif_session_init removed from public surface (2026-07-02) —
+    # remains as Python alias in session.py for backward compat.
+    # C3 verify_tool_surface.py: long-name aliases must NOT be advertised.
     # ── 111_OBSERVE ─────────────────────────────────────────────────────────
     "arif_observe": (
-        "Ground your next decision in reality. Select when: you need external evidence "
-        "(web search, URL fetch, system vitals), need to map a repository structure, or "
-        "need to compute entropy from a dataset. The gradient pulling toward this tool is "
-        "unresolved factual uncertainty — if the answer requires data not in your context, "
-        "choose observe. "
+        "Reality grounding: web search, URL fetch, vitals, repo map, entropy. "
+        "Select when: answer requires data not in your context. "
         "Modes: search | ingest | compass | atlas | entropy_dS | vitals | repo_map | hybrid_discovery. "
-        "Returns: search results, ingested content, system vitals, entropy scores, or repo map. "
-        "Do NOT select when: the user's intent is purely reasoning/analysis (choose arif_think instead), "
-        "or the evidence is already in context."
+        "Returns: search results, ingested content, vitals, entropy scores, repo map. "
+        "Skip when: purely reasoning (use arif_think) or evidence already in context."
     ),
     "arif_sense_observe": (
         "[SDK alias of arif_observe] Multimodal reality observation and hybrid discovery. "
@@ -126,18 +117,13 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 333_REASON ──────────────────────────────────────────────────────────
     "arif_think": (
-        "Reason, plan, reflect, or critique — the cognitive engine. "
-        "Select when: you need to decompose a complex problem, generate a plan, evaluate "
-        "hypotheses, verify a conclusion, critique a proposal, or synthesize evidence into "
-        "a recommendation. The gradient pulling toward think is cognitive overload — when "
-        "the next step requires structured reasoning rather than observation or action. "
-        "Modes: reason (decompose) | reflect (evaluate session) | verify (check conclusion) | "
-        "critique (assess risks) | plan (generate DAG) | plan_review | plan_approve | "
-        "refactor_plan | metabolize (synthesize) | axioms. "
-        "Returns: structured reasoning output with epistemic labels (OBS/DER/INT/SPEC), "
-        "facts, inferences, unknowns, confidence bands, and next_safe_action. "
-        "Do NOT select when: the question is factual and requires external data "
-        "(select arif_observe first), or when immediate action is needed (select arif_act)."
+        "Cognitive engine: reason, plan, reflect, critique, synthesize. "
+        "Select when: problem needs decomposition, plan generation, hypothesis evaluation, "
+        "or evidence synthesis. Gradient: cognitive overload → structured reasoning. "
+        "Modes: reason | reflect | verify | critique | plan | plan_review | plan_approve | "
+        "refactor_plan | metabolize | axioms. "
+        "Returns: epistemic labels (OBS/DER/INT/SPEC), facts, inferences, next_safe_action. "
+        "Skip when: factual question (use arif_observe) or immediate action needed (use arif_act)."
     ),
     "arif_mind_reason": (
         "[SDK alias of arif_think] Multi-step reasoning, planning, and reflection "
@@ -169,13 +155,11 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 666_CRITIQUE ────────────────────────────────────────────────────────
     "arif_critique": (
-        "Assess ethical risks and human impact BEFORE acting. "
-        "Select when: an action is sensitive, irreversible, dignity-affecting, or has "
-        "human consequences. The gradient toward critique is risk — if blast_radius is "
-        "MEDIUM or HIGH, critique before act. "
+        "Ethical risk + human impact assessment. Select when: action is sensitive, "
+        "irreversible, dignity-affecting, or blast_radius MEDIUM/HIGH. "
         "Modes: critique | simulate | empathize | redteam | maruah | deescalate | instruction_scan. "
-        "Returns: risk assessment, violated floors, empathy score, human impact report. "
-        "Do NOT select when: the action is purely technical with zero human dimension."
+        "Returns: risk assessment, violated floors, empathy score, human impact. "
+        "Skip when: purely technical with zero human dimension."
     ),
     "arif_heart_critique": (
         "[SDK alias of arif_critique] Assess ethical risks and human impact before acting."
@@ -200,44 +184,32 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 888_JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
-        "Render final constitutional verdict — the arbitration gate. "
-        "Select when: a decision is ready for binding judgment. You have gathered evidence "
-        "(observe), reasoned about it (think), and the decision requires floor compliance "
-        "verification. The gradient toward judge is completion of the evidence-to-plan pipeline. "
-        "Returns: SEAL (approved) | HOLD (revise) | SABAR (wait) | VOID (rejected) — with "
-        "violated floors, evidence receipts, and authority verification. "
+        "Constitutional verdict gate. Select when: evidence gathered, plan ready, "
+        "floor compliance needs verification. "
+        "Returns: SEAL | HOLD | SABAR | VOID + violated floors + receipts. "
         "Modes: judge | compare | history | explain | floor_status | witness_consensus. "
-        "REQUIRES: actor, intent, domain, reversibility_level, blast_radius — all mandatory. "
-        "Do NOT select when: evidence is incomplete (choose observe first), plan is not ready "
-        "(choose think first), or the action is reversible and low-risk (advisory mode is sufficient)."
+        "REQUIRES: actor, intent, domain, reversibility_level, blast_radius. "
+        "Skip when: evidence incomplete (use arif_observe), plan not ready (use arif_think), "
+        "or action is reversible + low-risk (advisory sufficient)."
     ),
     "arif_judge_deliberate": (
         "[SDK alias of arif_judge] Render final constitutional verdict on a proposed action."
     ),
     # ── 900_ACT ─────────────────────────────────────────────────────────────
     "arif_act": (
-        "Execute an approved action — the 900 execution gate. "
-        "HARD REQUIREMENT: Valid prior SEAL from arif_judge + arif_seal is mandatory. "
-        "Select only when: you have seal_verdict_id AND approved_action_hash from a "
-        "completed judge→seal pipeline. The gradient toward act is complete authorization — "
-        "all evidence gathered, plan reasoned, risk critiqued, judge approved, seal written. "
-        "Without seal_verdict_id + approved_action_hash, this tool returns 888_HOLD structurally. "
-        "Routes through A2ASealVerifier for cryptographic verification before execution. "
-        "Do NOT select when: you are still in planning/critique phase, or no prior SEAL exists. "
-        "This is the LAST tool in the constitutional pipeline — after it, seal the result."
+        "Execution gate (900). REQUIRES: seal_verdict_id + approved_action_hash from prior "
+        "judge→seal pipeline. Without these, returns 888_HOLD structurally. "
+        "Routes through A2ASealVerifier before execution. "
+        "Skip when: still planning (use arif_think) or no prior SEAL exists. "
+        "Last tool in constitutional pipeline — seal the result after."
     ),
     # ── 999_SEAL ────────────────────────────────────────────────────────────
     "arif_seal": (
-        "Append a verdict or outcome to the immutable VAULT999 ledger — irreversible. "
-        "Select when: a 888_JUDGE SEAL verdict exists and needs permanent cryptographic "
-        "anchoring, or an execution result needs audit trail. The gradient toward seal is "
-        "finality — this record can never be deleted. "
-        "Modes: seal (append record) | verify (validate chain integrity) | "
-        "chain (show hash chain) | list (enumerate seals) | dry_run (preview) | "
-        "seal_card | render. "
-        "ack_irreversible=True is required for seal mode. "
-        "Do NOT select when: the verdict is HOLD/SABAR/VOID (seal only SEAL outcomes), "
-        "or testing (use dry_run mode instead)."
+        "Immutable ledger append (VAULT999). Select when: SEAL verdict needs permanent "
+        "anchoring or execution result needs audit trail. Irreversible. "
+        "Modes: seal | verify | chain | list | dry_run | seal_card | render. "
+        "Requires ack_irreversible=True for seal mode. "
+        "Skip when: verdict is HOLD/SABAR/VOID (seal only SEAL) or testing (use dry_run)."
     ),
     "arif_vault_seal": (
         "[SDK alias of arif_seal] Seal a verdict or outcome to the immutable audit ledger. "
@@ -642,7 +614,7 @@ def build_server_json(
 
     return {
         "mcpVersion": "2025-11-25",
-        "protocolVersion": "2025-03-26",
+        "protocolVersion": "2025-11-25",
         "name": "arifOS-APEX-G",
         "version": release_version_label(),
         "description": (

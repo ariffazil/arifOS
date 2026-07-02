@@ -121,6 +121,9 @@ legacy_aliases:
   - { alias: arifos_bridge,             canonical: arif_bridge,             deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_measure,            canonical: arif_measure,            deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_canary,             canonical: arif_canary,             deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_floor_status,       canonical: arif_floor_status,       deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_organ_attest,       canonical: arif_organ_attest,       deprecated_after: "2026-12-31", shim_layer: true }
+  - { alias: arifos_organ_attest_all,   canonical: arif_organ_attest_all,   deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_triage,             canonical: arif_triage,             deprecated_after: "2026-12-31", shim_layer: true }
   # ── Live MCP drift orphans (caught by find_orphans 2026-06-22) ──
   # These exist in the live MCP layer but not in the SSOT canonical list.
@@ -296,6 +299,30 @@ diagnostic:
       channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY],
       audit_events: [response_emitted], witness_requirements: [],
       contract_version: "1.0.0" }
+
+  - { canonical_name: arif_floor_status, role: floor_introspection, axis: "888_JUDGE", pipeline_stage: intake,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [floor_status], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      notes: "Query live status of all 13 constitutional floors — active, enforcement state, recent violations." }
+
+  - { canonical_name: arif_organ_attest, role: single_organ_attestation, axis: "000_KERNEL", pipeline_stage: intake,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [attest], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      notes: "Probe and attest a single federation organ." }
+
+  - { canonical_name: arif_organ_attest_all, role: all_organs_attestation, axis: "000_KERNEL", pipeline_stage: intake,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [attest_all], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      notes: "Attest arifOS plus all federation organs in one call." }
 
   - { canonical_name: arif_conformance_report, role: conformance_spine, axis: "000_KERNEL", pipeline_stage: intake,
       contract_class: diagnostic, mutation_class: read, requires_plan: false,
