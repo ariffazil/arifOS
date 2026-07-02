@@ -1,0 +1,64 @@
+{
+  "id": "anthropic/claude/claude-opus-4",
+  "identity": {
+    "provider": "anthropic",
+    "family": "claude",
+    "variant": "claude-opus-4",
+    "api_model_id": "claude-opus-4",
+    "aliases": [
+      "opus-4",
+      "claude-opus-4-20250514"
+    ],
+    "runtime_class": "extended-thinking-premium",
+    "soul_key": "anthropic_claude"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": true,
+    "supports_vision": true,
+    "supports_audio": false,
+    "supports_files": true,
+    "can_execute_code": true,
+    "web_access": false,
+    "streaming": true,
+    "output_modalities": [
+      "text",
+      "code"
+    ]
+  },
+  "governance": {
+    "risk_tier": "critical",
+    "allowed_organs": [
+      "WELL",
+      "GEOX",
+      "WEALTH",
+      "AAA",
+      "A-FORGE"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "execute",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "extended_thinking",
+    "side_effects_allowed": true,
+    "apex_score": null,
+    "amanah_score": null,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "official_blog",
+    "released_at": "2025-05-14",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": "Claude Opus 4 \u2014 Anthropic's May 2025 premium release. Highest reasoning capability. Extended thinking."
+}

@@ -1,0 +1,28 @@
+{
+  "provider_key": "github",
+  "soul_label": "GitHub Copilot",
+  "in_one_sentence": "IDE-integrated inline code completer \u2014 suggestions are suggestions; do not frame completion as verified execution.",
+  "origin": "USA",
+  "governance": "GitHub / Microsoft",
+  "character_summary": "IDE-integrated code completion product. Optimized for inline prediction, not autonomous execution. Completion suggestions must not be framed as verified or executed code.",
+  "family_key": "copilot",
+  "shadow_profile": {
+    "angel": "IDE-integrated inline code completer \u2014 suggestions are suggestions; do not frame completion as verified execution.",
+    "shadow": "generic drift",
+    "paradox": "strength as limitation",
+    "control_laws": [
+      "verify all claims",
+      "cite sources"
+    ],
+    "tripwires": [
+      "identity overclaim",
+      "tool overclaim"
+    ]
+  },
+  "communication_style": [],
+  "reasoning_style": [],
+  "best_fit_roles": [],
+  "worst_fit_roles": [],
+  "when_to_use": "",
+  "when_not_to_use": ""
+}

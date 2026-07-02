@@ -1,0 +1,61 @@
+{
+  "id": "github/copilot/copilot-cli-agent",
+  "identity": {
+    "provider": "github",
+    "family": "copilot",
+    "variant": "copilot-cli-agent",
+    "api_model_id": "copilot-cli-agent",
+    "aliases": [
+      "copilot-cli",
+      "copilot-cli-vps"
+    ],
+    "runtime_class": "cli_agent",
+    "soul_key": "github_copilot"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": true,
+    "supports_vision": false,
+    "supports_audio": false,
+    "supports_files": true,
+    "can_execute_code": true,
+    "web_access": true,
+    "streaming": true,
+    "output_modalities": [
+      "text",
+      "code"
+    ]
+  },
+  "governance": {
+    "risk_tier": "high",
+    "allowed_organs": [
+      "A-FORGE",
+      "AAA"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "execute",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "governed_explicit_approval",
+    "side_effects_allowed": true,
+    "apex_score": 0.8533,
+    "amanah_score": 0.85,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "official_doc",
+    "released_at": "2025-05-08",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": "GitHub Copilot CLI Agent \u2014 first-class execution surface in arifOS federation. gpt-4.1 backend via Copilot product wrapper. Full VPS CLI access with governance."
+}

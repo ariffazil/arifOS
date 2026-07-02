@@ -1,0 +1,61 @@
+{
+  "id": "minimax/minimax/minimax-m2.7",
+  "identity": {
+    "provider": "minimax",
+    "family": "minimax",
+    "variant": "minimax-m2.7",
+    "api_model_id": "minimax-m2.7",
+    "aliases": [],
+    "runtime_class": "m2.7",
+    "soul_key": "minimax_m27"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": true,
+    "supports_vision": true,
+    "supports_audio": false,
+    "supports_files": true,
+    "can_execute_code": true,
+    "web_access": true,
+    "streaming": true,
+    "output_modalities": [
+      "text",
+      "code"
+    ]
+  },
+  "governance": {
+    "risk_tier": "high",
+    "allowed_organs": [
+      "WELL",
+      "GEOX",
+      "WEALTH",
+      "AAA",
+      "A-FORGE"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "execute",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "governed_explicit_approval",
+    "side_effects_allowed": true,
+    "apex_score": 0.7993,
+    "amanah_score": 0.85,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "provider_api",
+    "released_at": "2025-01-01",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": ""
+}

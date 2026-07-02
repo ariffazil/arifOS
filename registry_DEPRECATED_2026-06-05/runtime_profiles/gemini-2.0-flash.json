@@ -1,0 +1,24 @@
+{
+  "deployment_id": "gemini-2.0-flash",
+  "provider_key": "google",
+  "family_key": "gemini",
+  "model_id": "gemini-2.0-flash",
+  "tools_live": ["read", "write", "exec"],
+  "web_on": true,
+  "memory_mode": "session_only",
+  "execution_mode": "advisory",
+  "side_effects_allowed": false,
+  "auth_level": "read_only",
+  "verified_at": "2026-03-28T00:00:00Z",
+  "capabilities": {
+    "supports_tools": true,
+    "supports_web": true,
+    "supports_files": true,
+    "supports_vision": true,
+    "has_memory": false,
+    "can_execute_code": false,
+    "can_browse": true,
+    "max_context_tokens": 1000000,
+    "risk_tier": "low"
+  }
+}

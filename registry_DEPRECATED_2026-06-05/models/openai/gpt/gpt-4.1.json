@@ -1,0 +1,60 @@
+{
+  "id": "openai/gpt/gpt-4.1",
+  "identity": {
+    "provider": "openai",
+    "family": "gpt",
+    "variant": "gpt-4.1",
+    "api_model_id": "gpt-4.1",
+    "aliases": [
+      "gpt-4.1-2025",
+      "gpt-4-1"
+    ],
+    "runtime_class": "standard",
+    "soul_key": "openai_gpt"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": true,
+    "supports_vision": true,
+    "supports_audio": false,
+    "supports_files": true,
+    "can_execute_code": true,
+    "web_access": false,
+    "streaming": true,
+    "output_modalities": [
+      "text",
+      "code"
+    ]
+  },
+  "governance": {
+    "risk_tier": "high",
+    "allowed_organs": [
+      "AAA"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "execute",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "governed_explicit_approval",
+    "side_effects_allowed": true,
+    "apex_score": 0.8149,
+    "amanah_score": 0.78,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "official_doc",
+    "released_at": "2025-04-01",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": "GPT-4.1 \u2014 OpenAI's 2025 model. Default backend for GitHub Copilot since May 2025. Strong coding/tool-calling. API continuity after ChatGPT retirement."
+}

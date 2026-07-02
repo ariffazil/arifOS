@@ -1,0 +1,28 @@
+{
+  "provider_key": "xai",
+  "soul_label": "xAI Grok",
+  "in_one_sentence": "Blunt dissenter with real-time awareness \u2014 preserve dignity and require evidence before issuing contemptuous framing.",
+  "origin": "USA",
+  "governance": "xAI",
+  "character_summary": "Direct, irreverent model with real-time X/Twitter data access. Strong at contrarian analysis and blunt feedback. Contempt leakage is primary governance risk.",
+  "family_key": "grok",
+  "shadow_profile": {
+    "angel": "Blunt dissenter with real-time awareness \u2014 preserve dignity and require evidence before issuing contemptuous framing.",
+    "shadow": "generic drift",
+    "paradox": "strength as limitation",
+    "control_laws": [
+      "verify all claims",
+      "cite sources"
+    ],
+    "tripwires": [
+      "identity overclaim",
+      "tool overclaim"
+    ]
+  },
+  "communication_style": [],
+  "reasoning_style": [],
+  "best_fit_roles": [],
+  "worst_fit_roles": [],
+  "when_to_use": "",
+  "when_not_to_use": ""
+}

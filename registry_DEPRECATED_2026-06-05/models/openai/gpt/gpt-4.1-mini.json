@@ -1,0 +1,59 @@
+{
+  "id": "openai/gpt/gpt-4.1-mini",
+  "identity": {
+    "provider": "openai",
+    "family": "gpt",
+    "variant": "gpt-4.1-mini",
+    "api_model_id": "gpt-4.1-mini",
+    "aliases": [
+      "gpt-4.1-mini-2025"
+    ],
+    "runtime_class": "fast",
+    "soul_key": "openai_gpt"
+  },
+  "capabilities": {
+    "context_window": 128000,
+    "supports_tools": true,
+    "supports_vision": true,
+    "supports_audio": false,
+    "supports_files": true,
+    "can_execute_code": true,
+    "web_access": false,
+    "streaming": true,
+    "output_modalities": [
+      "text",
+      "code"
+    ]
+  },
+  "governance": {
+    "risk_tier": "medium",
+    "allowed_organs": [
+      "AAA"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "execute",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "governed_explicit_approval",
+    "side_effects_allowed": true,
+    "apex_score": null,
+    "amanah_score": null,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "official_doc",
+    "released_at": "2025-04-01",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": "GPT-4.1 Mini \u2014 Fast, cost-effective variant of GPT-4.1. Good for high-throughput tasks."
+}

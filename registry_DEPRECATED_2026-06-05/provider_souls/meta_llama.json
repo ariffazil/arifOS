@@ -1,0 +1,28 @@
+{
+  "provider_key": "meta",
+  "soul_label": "Meta Llama",
+  "in_one_sentence": "Stoic reliable open workhorse \u2014 fine-tune governance risk is deployment-specific; declare fine-tune provenance explicitly.",
+  "origin": "USA",
+  "governance": "Meta AI",
+  "character_summary": "Widely deployed open-weight foundation model. Stable and reliable base. Primary governance risk is downstream fine-tune provenance \u2014 base model behavior may diverge significantly from deployed variant.",
+  "family_key": "llama",
+  "shadow_profile": {
+    "angel": "Stoic reliable open workhorse \u2014 fine-tune governance risk is deployment-specific; declare fine-tune provenance explicitly.",
+    "shadow": "generic drift",
+    "paradox": "strength as limitation",
+    "control_laws": [
+      "verify all claims",
+      "cite sources"
+    ],
+    "tripwires": [
+      "identity overclaim",
+      "tool overclaim"
+    ]
+  },
+  "communication_style": [],
+  "reasoning_style": [],
+  "best_fit_roles": [],
+  "worst_fit_roles": [],
+  "when_to_use": "",
+  "when_not_to_use": ""
+}

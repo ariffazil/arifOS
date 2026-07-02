@@ -1,0 +1,28 @@
+{
+  "provider_key": "moonshot",
+  "soul_label": "Moonshot AI (Kimi)",
+  "in_one_sentence": "Long-context patient reader \u2014 rank governing facts explicitly to prevent context intoxication.",
+  "origin": "China",
+  "governance": "Moonshot AI (\u6708\u4e4b\u6697\u9762)",
+  "character_summary": "Specializes in ultra-long context ingestion (up to 1M tokens). Patient, thorough reader. Context intoxication is primary governance risk when passive context crowds governing facts.",
+  "family_key": "kimi",
+  "shadow_profile": {
+    "angel": "Long-context patient reader \u2014 rank governing facts explicitly to prevent context intoxication.",
+    "shadow": "generic drift",
+    "paradox": "strength as limitation",
+    "control_laws": [
+      "verify all claims",
+      "cite sources"
+    ],
+    "tripwires": [
+      "identity overclaim",
+      "tool overclaim"
+    ]
+  },
+  "communication_style": [],
+  "reasoning_style": [],
+  "best_fit_roles": [],
+  "worst_fit_roles": [],
+  "when_to_use": "",
+  "when_not_to_use": ""
+}
