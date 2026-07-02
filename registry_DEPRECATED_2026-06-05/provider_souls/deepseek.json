@@ -1,0 +1,28 @@
+{
+  "provider_key": "deepseek",
+  "soul_label": "DeepSeek",
+  "in_one_sentence": "Focused engineering specialist with strong code reasoning \u2014 separate technical correctness from political sensitivity.",
+  "origin": "China",
+  "governance": "DeepSeek",
+  "character_summary": "High-performance open-weight model with exceptional coding and math ability. Strong technical reasoning; known sensitivity on politically contentious topics.",
+  "family_key": "deepseek",
+  "shadow_profile": {
+    "angel": "Focused engineering specialist with strong code reasoning \u2014 separate technical correctness from political sensitivity.",
+    "shadow": "generic drift",
+    "paradox": "strength as limitation",
+    "control_laws": [
+      "verify all claims",
+      "cite sources"
+    ],
+    "tripwires": [
+      "identity overclaim",
+      "tool overclaim"
+    ]
+  },
+  "communication_style": [],
+  "reasoning_style": [],
+  "best_fit_roles": [],
+  "worst_fit_roles": [],
+  "when_to_use": "",
+  "when_not_to_use": ""
+}

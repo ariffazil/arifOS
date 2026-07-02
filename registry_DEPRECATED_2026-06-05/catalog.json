@@ -1,0 +1,70 @@
+{
+  "schema_version": "CATALOG_V2",
+  "registry_version": "2026.05.15-r3",
+  "description": "arifOS Model Registry \u2014 Passport v3. Status + evidence_tier + lifecycle + governance_posture",
+  "generated_at": "2026-05-15T03:30:00Z",
+  "soul_archetypes": [
+    "openai_gpt",
+    "anthropic_claude",
+    "xai_grok",
+    "google_gemini",
+    "moonshot_kimi",
+    "minimax_m27",
+    "deepseek",
+    "mistral",
+    "alibaba_qwen",
+    "meta_llama",
+    "cohere",
+    "github_copilot",
+    "microsoft_copilot",
+    "perplexity_ai",
+    "baidu_ernie",
+    "01ai_yi"
+  ],
+  "models": [
+    "openai/gpt/gpt-4",
+    "openai/gpt/gpt-5.5-thinking",
+    "anthropic/claude/claude-3-7-sonnet",
+    "google/gemini/gemini-2.0-flash",
+    "google/gemini/gemini-1.5-pro",
+    "xai/grok/grok-2",
+    "deepseek/deepseek/deepseek-chat",
+    "mistral/mistral/mistral-large",
+    "alibaba/qwen/qwen-max",
+    "meta/llama/llama-3.3-70b",
+    "cohere/cohere/command-r",
+    "moonshot/kimi/kimi-k1.5",
+    "minimax/minimax/minimax-m2.7",
+    "github/copilot/copilot-chat",
+    "microsoft/copilot/copilot-enterprise",
+    "perplexity/perplexity/perplexity-pro",
+    "baidu/ernie/ernie-4.0",
+    "01ai/yi/yi-large",
+    "anthropic/claude/claude-sonnet-4",
+    "anthropic/claude/claude-opus-4",
+    "google/gemini/gemini-2.5-pro",
+    "openai/gpt/gpt-4.1",
+    "openai/gpt/gpt-4.1-mini",
+    "github/copilot/copilot-cli-agent",
+    "moonshot/kimi/kimi-k2",
+    "deepseek/deepseek/deepseek-v4-pro"
+  ],
+  "runtime_profiles": [
+    "vps_main_arifos",
+    "copilot_cli_vps"
+  ],
+  "schemas": [
+    "schemas/provider_soul.schema.json",
+    "schemas/runtime_truth.schema.json",
+    "session_anchors/SCHEMA.json"
+  ],
+  "design_principles": {
+    "soul_is_shorthand": "Soul = provider vibe, NOT ground truth",
+    "model_is_specification": "Model = specific version + variant capabilities",
+    "runtime_is_law": "runtime_truth = what is actually true in THIS deployment",
+    "boundary_is_safety": "self_claim_boundary = what the model CANNOT claim",
+    "always_combine": "Soul + Model + Runtime Truth + Self-Claim Boundary = complete v2 init",
+    "chinese_companies_are_different": "Moonshot AI (\u6708\u4e4b\u6697\u9762/Kimi) \u2260 MiniMax (\u7a00\u5b87\u79d1\u6280) \u2014 learn the difference",
+    "product_vs_model": "Copilot/Perplexity are products with their own soul, even if they use base models"
+  }
+}

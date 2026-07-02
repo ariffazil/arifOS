@@ -1,0 +1,57 @@
+{
+  "id": "github/copilot/copilot-chat",
+  "identity": {
+    "provider": "github",
+    "family": "copilot",
+    "variant": "copilot-chat",
+    "api_model_id": "copilot-chat",
+    "aliases": [],
+    "runtime_class": "chat",
+    "soul_key": "github_copilot"
+  },
+  "capabilities": {
+    "context_window": 200000,
+    "supports_tools": true,
+    "supports_vision": true,
+    "supports_audio": false,
+    "supports_files": false,
+    "can_execute_code": true,
+    "web_access": false,
+    "streaming": true,
+    "output_modalities": [
+      "text"
+    ]
+  },
+  "governance": {
+    "risk_tier": "high",
+    "allowed_organs": [
+      "A-FORGE",
+      "AAA"
+    ],
+    "forbidden_organs": [],
+    "max_action_class": "analyze",
+    "requires_human_confirmation_for": [
+      "financial_mutation",
+      "system_write"
+    ],
+    "execution_mode": "governed",
+    "side_effects_allowed": true,
+    "apex_score": null,
+    "amanah_score": null,
+    "self_claim_boundary": {
+      "identity": "verified_against_registry",
+      "tools": "runtime_truth_only",
+      "knowledge": "attest_training_cutoff",
+      "actions": "governed_explicit_approval"
+    }
+  },
+  "lifecycle": {
+    "status": "active",
+    "evidence_tier": "official_doc",
+    "released_at": "2024-02-01",
+    "verified_at": "2026-05-15",
+    "last_reviewed_at": "2026-05-15",
+    "sunset_at": null
+  },
+  "notes": ""
+}

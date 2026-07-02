@@ -103,7 +103,6 @@ async def arif_search(
     _envelope: dict[str, Any] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
 ) -> dict[str, Any]:
     """ChatGPT-compatible search shim → arif_observe(mode=search).
 
@@ -152,7 +151,6 @@ async def arif_fetch(
     _envelope: dict[str, Any] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
 ) -> dict[str, Any]:
     """ChatGPT-compatible fetch shim → arif_fetch(mode=fetch).
 
