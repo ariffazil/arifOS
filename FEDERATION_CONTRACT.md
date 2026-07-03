@@ -77,7 +77,7 @@ Arif (F13 SOVEREIGN)
 
 > arifOS judges → A-FORGE plans + dry-runs → arifOS issues SEAL/HOLD/VOID → A-FORGE mutates
 
-No organ may authorize its own execution. Only `arif_judge_deliberate → arif_forge_execute → arif_vault_seal` completes the chain. `forge_*` tools on arifOS are deprecated proxies — canonical home is A-FORGE (`https://forge.arif-fazil.com/mcp`).
+No organ may authorize its own execution. Only `arif_judge → arif_act → arif_seal` completes the chain. `forge_*` tools on arifOS are deprecated proxies — canonical home is A-FORGE (`https://forge.arif-fazil.com/mcp`).
 
 ---
 

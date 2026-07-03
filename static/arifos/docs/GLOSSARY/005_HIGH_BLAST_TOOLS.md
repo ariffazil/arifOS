@@ -7,8 +7,8 @@
 
 | Tool / capability          | Blast radius                       | Current gating          | Target gating                    |
 | -------------------------- | ---------------------------------- | ----------------------- | -------------------------------- |
-| arif_forge_execute         | deploy / build                     | F1+F11+F13 (good)       | + reversibility score in payload |
-| arif_vault_seal            | ledger write                       | F1+F11+F13              | + envelope upgrade (LEGACY_WRAP) |
+| arif_act                   | deploy / build                     | F1+F11+F13 (good)       | + reversibility score in payload |
+| arif_seal                  | ledger write                       | F1+F11+F13              | + envelope upgrade (LEGACY_WRAP) |
 | shell_* (if any)           | arbitrary code exec                 | NOT EXPOSED              | KEEP NOT EXPOSED                 |
 | fs_write_* (if any)        | filesystem mutation                 | NOT EXPOSED              | KEEP NOT EXPOSED                 |
 | db_write_* (if any)        | data corruption                     | NOT EXPOSED              | KEEP NOT EXPOSED                 |

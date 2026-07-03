@@ -76,14 +76,14 @@ arifOS (17 canonical + 41 diagnostic = 58 total declared tools; 7 public canonic
     ├── 666 arif_heart_critique    — ethical risk + empathy audit + redteam
     ├── 666g arif_gateway_connect   — bridge to federation organs (GEOX/WEALTH/WELL/A-FORGE)
     ├── 777 arif_ops_measure       — health + vitals + cost + drift + topology
-    ├── 888 arif_judge_deliberate  — render constitutional verdict (SEAL/SABAR/HOLD/VOID)
-    ├── 900 arif_forge_execute     — execute approved plans (LEASE REQUIRED for mutation)
-    └── 999 arif_vault_seal        — seal to immutable append-only ledger
+    ├── 888 arif_judge             — render constitutional verdict (SEAL/SABAR/HOLD/VOID)
+    ├── 900 arif_act               — execute approved plans (LEASE REQUIRED for mutation)
+    └── 999 arif_seal              — seal to immutable append-only ledger
 ```
 
-**Golden path:** `session_init → sense_observe/evidence_fetch → mind_reason → heart_critique → judge_deliberate → vault_seal`
+**Golden path:** `arif_init → arif_observe → arif_think → arif_heart_critique → arif_judge → arif_seal`
 
-**Federated organs (gateway upstream):** GEOX:8081, WEALTH:18082, WELL:18083, A-FORGE:7071/7072, AAA:3001. Edge agents: Hermes:8644 (MIND), OpenClaw:18789 (HANDS).
+**Federated organs (gateway upstream):** GEOX:8081, WEALTH:18082, WELL:18083, A-FORGE:7071/7072, AAA:3001.
 
 ---
 
