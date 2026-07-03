@@ -29,7 +29,7 @@ async def run_dual_transport() -> None:
     http_config = uvicorn.Config(
         app,
         host="0.0.0.0",
-        port=8080,
+        port=8088,
         timeout_graceful_shutdown=2,
         lifespan="on",
         ws="websockets-sansio",
