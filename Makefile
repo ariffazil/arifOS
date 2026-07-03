@@ -250,6 +250,10 @@ reality-replay:
 prove: health sot-check security-audit constitutional-benchmark vault999-verify reality-replay
 	@echo "Synthesizing ARIFOS_PROOF_PACK.md..."
 
+drift-check:
+	@echo "Checking transport contract alignment..."
+	@/root/arifOS/scripts/drift-check.sh
+
 substrate-loop-test:
 	@echo "Running End-to-End AGI Substrate Loop Test..."
 	pytest benchmarks/loops/test_restrain_authorize_act_observe_learn.py -v
