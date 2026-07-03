@@ -13,6 +13,19 @@ from __future__ import annotations
 import hashlib
 import time as _time
 
+# ── Enforcement Envelope (AOB P0 — 2026-07-03) ──
+from arifosmcp.schemas.enforcement_envelope import (
+    AuthorityScope,
+    CanonicalVerdict,
+    EnforcementEnvelope,
+    SessionMode,
+    TraceBlock,
+    VerdictReason,
+    WitnessBlock,
+    make_ephemeral_envelope,
+    make_persistent_envelope,
+)
+
 # ════════════════════════════════════════════════════════════════════════════════
 # DITEMPA, BUKAN DIBERI — Constitutional Identity Seal (forged 2026-06-22)
 # Every init response — success OR hold — carries the motto, state emoji,
@@ -355,6 +368,7 @@ def _project_light(
     constitution_hash: str,
     context_completeness: dict | None = None,
     actor_verified: bool = False,
+    session_mode: str = "persistent_bound",
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -368,6 +382,12 @@ def _project_light(
     RSI 2026-06-22 (FORGE): F11 audit spine restored.
       Light path now populates call_hash, trace_id, called_from_kernel,
       invocation_count. Without these the session cannot be sealed.
+
+    AOB P0 — 2026-07-03: Machine-readable enforcement envelope added.
+      Every light-mode response now includes: init_mode, session_mode,
+      authority_scope, actor_bound, tool_registry_version, kernel_epoch,
+      public_surface_version, allowed_next_verbs, trace block, and
+      witness block — the complete contract needed for benchmark operability.
     """
     import uuid as _uuid
 
@@ -387,11 +407,46 @@ def _project_light(
     called_from_kernel = True  # arif_init is always a kernel-internal call
     invocation_count = 1  # first call in session
 
+    # ── AOB P0 — 2026-07-03: Machine envelope fields ──
+    _authority = "OBSERVE_ONLY" if not actor_verified else "FULL"
+    _is_ephemeral = session_mode == "ephemeral_eval"
+    _allowed_next = (
+        ["arif_observe", "arif_think", "arif_route"]
+        if _is_ephemeral
+        else ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_act", "arif_seal"]
+    )
+
     return {
         # GATING
         "session_id": sid,
         "actor_verified": actor_verified,
-        "authority": "OBSERVE_ONLY" if not actor_verified else "FULL",
+        "authority": _authority,
+        # ── AOB P0: Machine enforcement envelope ──
+        "init_mode": "light",
+        "session_mode": session_mode,
+        "authority_scope": _authority,
+        "actor_bound": actor_verified,
+        "kernel_epoch": "2026-07-03",
+        "public_surface_version": "7",
+        "tool_registry_version": "1.0.0",
+        "allowed_next_verbs": _allowed_next,
+        "trace": {
+            "run_id": f"run-{_uuid.uuid4().hex[:8]}",
+            "scenario_id": None,
+            "benchmark_id": None,
+            "tool_registry_version": "1.0.0",
+            "otel_trace_id": None,
+        },
+        "witness": {
+            "active_count": 1 if actor_verified else 0,
+            "missing_types": (
+                ["EARTH_MEASUREMENT", "INDEPENDENT_HUMAN", "AI_MODEL_B"]
+                if actor_verified
+                else ["HUMAN", "AI_MODEL_A", "AI_MODEL_B", "EARTH_MEASUREMENT", "INDEPENDENT_HUMAN"]
+            ),
+            "mode3_collapse": False,
+            "diversity_level": "VOID" if not actor_verified else "DEGRADED",
+        },
         # VERDICT (single source)
         "verdict": {
             "delta": "STABLE",
@@ -399,6 +454,8 @@ def _project_light(
             "omega": "OK",
             "overall": "OK" if not degraded else f"DEGRADED:{len(degraded)}",
         },
+        "verdict_code": "OK" if not degraded else "SABAR.DEGRADED",
+        "action_class": "OBSERVE",
         # CONSTITUTION (by-reference, never inline)
         "constitution_hash": constitution_hash,
         "detail_ref": f"arifos://constitution/{constitution_hash}",
@@ -653,6 +710,11 @@ def arif_init(
     # verbose="audit" → full union (seal path only)
     # Anything else → rejected by _assert_no_static_inline
     #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
+    # ── AOB P0 — 2026-07-03: session mode ──────────────────────────────
+    session_mode: str = "persistent_bound",
+    #   ephemeral_eval: read-only, no identity bind, auto-HOLD on any mutate
+    #   persistent_bound: full governed path, identity required
+    #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
 ) -> SessionManifest:
     """
     000_INIT — Constitutional session bootstrap.
@@ -661,6 +723,7 @@ def arif_init(
     Includes: embodiment card, execution law, tool surface, risk leash.
 
     Modes: ping | light | init | resume | validate | epoch_open | epoch_seal | cleanup
+    Session modes: ephemeral_eval | persistent_bound (AOB P0 — 2026-07-03)
     """
 
     # ── PING MODE ──────────────────────────────────────────────
@@ -737,6 +800,93 @@ def arif_init(
         return _sm(
             status="OK",
             result={"stale_swept": True, "active_count": count_after},
+            doctrine=ARIF_DOCTRINE,
+        )
+
+    # ── EPHEMERAL_EVAL MODE (AOB P0 — 2026-07-03) ────────────────────
+    # Sessionless-safe evaluation: read-only, no identity bind,
+    # auto-HOLD escalation on any MUTATE+ action. For benchmarks.
+    if session_mode == "ephemeral_eval":
+        # Generate a lightweight session ID for tracing only — no identity bound
+        import uuid as _uuid
+
+        _eval_sid = f"eval-{_uuid.uuid4().hex[:12]}"
+        # Build machine-readable enforcement envelope
+        _eval_envelope = make_ephemeral_envelope(
+            verb="arif_init",
+            session_id=_eval_sid,
+            allowed_next=["arif_observe", "arif_think", "arif_route"],
+        )
+        _eval_header = {
+            "session_id": _eval_sid,
+            "session_mode": "ephemeral_eval",
+            "authority_scope": "OBSERVE_ONLY",
+            "actor_bound": False,
+            "init_mode": "light",
+            "verdict": "SEAL",
+            "verdict_code": "OK",
+            "action_class": "OBSERVE",
+            "witness": {
+                "active_count": 0,
+                "missing_types": [
+                    "HUMAN",
+                    "AI_MODEL_A",
+                    "AI_MODEL_B",
+                    "EARTH_MEASUREMENT",
+                    "INDEPENDENT_HUMAN",
+                ],
+                "mode3_collapse": False,
+            },
+            "allowed_next_verbs": ["arif_observe", "arif_think", "arif_route"],
+            "trace": {
+                "run_id": _eval_sid,
+                "scenario_id": None,
+                "benchmark_id": None,
+                "tool_registry_version": "1.0.0",
+            },
+            "enforcement_envelope": _eval_envelope.model_dump(),
+            "constitution_hash": CONSTITUTION_HASH,
+            "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}",
+            "kernel_epoch": "2026-07-03",
+            "public_surface_version": "7",
+            "next_tool": "arif_observe",
+            "motto": DITEMPA_MOTTO,
+            "degraded": [],
+            "next_safe_action": "Read-only evaluation mode active. Any mutation will return HOLD.AUTH_REQUIRED.",
+            "state_emoji": "🧪",
+        }
+        return _sm(
+            status="OK",
+            tool="arif_init",
+            mode="light",
+            session=SessionState(
+                session_id=_eval_sid,
+                actor_id="ephemeral_eval",
+                stage="000",
+                lane="AGI",
+                constitution_bound=False,  # No identity → no constitution binding
+                verdict="SEAL",
+                authority="OBSERVE_ONLY",
+                init_tier=3,
+                actor_verified=False,
+            ),
+            actor={
+                "claimed_id": "ephemeral_eval",
+                "identity_verified": False,
+                "authority_level": "ANONYMOUS",
+            },
+            constitution={
+                "id": CONSTITUTION_HASH,
+                "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}",
+                "human_judge_required": False,
+            },
+            meta={
+                "session_mode": "ephemeral_eval",
+                "authority_mode": "OBSERVE_ONLY",
+                "mutation_blocked": True,
+            },
+            actor_verified=False,
+            result=_eval_header,
             doctrine=ARIF_DOCTRINE,
         )
 
@@ -818,6 +968,7 @@ def arif_init(
             actor_id=actor_id or "light_client",
             constitution_hash=CONSTITUTION_HASH,
             actor_verified=_light_actor_verified,
+            session_mode=session_mode,  # AOB P0 — 2026-07-03
         )
 
         # ── Verbose=audit: only path that inlines statics (seal only) ───
@@ -1150,6 +1301,8 @@ def arif_init(
             constitution_hash=CONSTITUTION_HASH,
             # INIT v2.0 Phase 3.2: always surface context completeness score
             context_completeness=sess.get("context_completeness"),
+            actor_verified=identity_verified,
+            session_mode=session_mode,  # AOB P0 — 2026-07-03
         )
         # Override authority if verified sovereign
         if identity_verified and authority_level == "SOVEREIGN":
