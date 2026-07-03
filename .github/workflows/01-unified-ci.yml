@@ -138,6 +138,11 @@ jobs:
           print(f'PASS: {total} tools registered, {canon_count} canonical, all {len(canonical_7)} present')
           PY
 
+      - name: Canonical surface drift guard
+        run: |
+          cd "$WORKDIR"
+          python3 commands/scripts_deploy/validate_canonical_surface.py
+
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Constitutional Import Chain — 888_JUDGE, SEAL, FLOORS
   # ─────────────────────────────────────────────────────────────
@@ -508,10 +513,14 @@ jobs:
             import json
             with open('arifosmcp/tool_registry.json') as f:
                 reg = json.load(f)
-            tools = reg.get('tools', [])
-            print(f'Tools: {len(tools)}')
-            for t in sorted(tools, key=lambda x: x.get('name','')):
-                print(f'  - {t[\"name\"]}')
+            tools = reg.get('tools', {})
+            names = sorted(tools) if isinstance(tools, dict) else sorted(
+                t.get('name', '?') for t in tools if isinstance(t, dict)
+            )
+            print(f'Tools: {len(names)}')
+            print(f'Canonical public: {reg.get(\"canonical_count\", \"?\")}')
+            for name in names:
+                print(f'  - {name}')
           "
           echo ""
           echo "=== Live Endpoint Check ==="
