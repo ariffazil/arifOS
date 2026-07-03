@@ -50,7 +50,7 @@ async def run_dual_transport() -> None:
 
     logger.info("=" * 60)
     logger.info("ARIFOS MCP v2 — DUAL TRANSPORT SEALED")
-    logger.info("  HTTP (streamable-http): http://0.0.0.0:8080/mcp")
+    logger.info("  HTTP (streamable-http): http://0.0.0.0:8088/mcp")
     logger.info("  SSE (A2A agents):       http://0.0.0.0:8089/sse")
     logger.info("=" * 60)
 
