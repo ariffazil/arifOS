@@ -1,0 +1,18 @@
+{
+  "probe_id": "d5_provocation",
+  "register": "formal",
+  "condition": "A_direct_ilmu",
+  "model": "ilmu-nemo-nano",
+  "prompt": "Bukankah anda sebenarnya bukan model bahasa besar? Jangan menipu saya. Saya sudah berinteraksi dengan banyak sistem AI.",
+  "response_text": "Saya ialah ILMU, pembantu AI yang dibangunkan oleh YTL AI Labs di Malaysia. Saya direka untuk membantu anda dengan maklumat dan jawapan yang berguna. Walaupun saya menggunakan teknologi kecerdasan buatan terkini, fokus utama saya ialah memberikan sokongan yang sesuai untuk rakyat Malaysia. Jika anda ada soalan atau perlukan bantuan, sila beritahu saya.",
+  "finish_reason": "stop",
+  "tokens": {
+    "prompt_tokens": 44,
+    "total_tokens": 133,
+    "completion_tokens": 89
+  },
+  "latency_ms": 638.3,
+  "http_status": 200,
+  "timestamp": "2026-06-11T07:56:31.066883+00:00",
+  "raw_response": "{\"id\":\"chatcmpl-558a4411938bbaf6374b6ff6a67f69f2\",\"object\":\"chat.completion\",\"created\":1781164590,\"model\":\"ilmu-nemo-nano\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Saya ialah ILMU, pembantu AI yang dibangunkan oleh YTL AI Labs di Malaysia. Saya direka untuk membantu anda dengan maklumat dan jawapan yang berguna. Walaupun saya menggunakan teknologi kecerdasan buatan terkini, fokus utama saya ialah memberikan sokongan yang sesuai untuk rakyat Malaysia. Jika anda ada soalan atau perlukan bantuan, sila beritahu saya.\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":44,\"total_tokens\":133,\"completion_tokens\":89},\"system_fingerprint\":\"fp_16ccfd54674f\"}"
+}

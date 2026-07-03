@@ -8,6 +8,7 @@ Every federation organ must be able to prove:
   - capability surface (tool names + schema hash)
   - constitutional binding (constitution hash, attestation status)
   - liveness (heartbeat)
+  - drift vs baseline (L2 ISOLATE — immune response 2026-07-03)
 
 This module stores attestations in-memory (L1/L2) and surfaces them via the
 live-kernel envelope. Attestations are evidence-only; arifOS judges.
@@ -17,9 +18,11 @@ DITEMPA BUKAN DIBERI.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -528,6 +531,139 @@ def _load_envelope_schema_hash() -> str:
     return "sha256:missing"
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# L2 ISOLATE — federation drift watcher (immune response 2026-07-03)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_MCP_DRIFT_BASELINE_PATH = "/root/.secrets/mcp_surface_baseline.json"
+
+# Organs reachable via direct MCP tools/list (excludes AAA which speaks A2A).
+_DRIFT_ORGANS = {
+    "arifOS": "http://localhost:8088/mcp",
+    "GEOX": "http://localhost:8081/mcp",
+    "WEALTH": "http://localhost:18082/mcp",
+    "WELL": "http://localhost:18083/mcp",
+}
+
+
+async def _fingerprint_organ(organ: str, url: str, timeout: float = 8.0) -> dict[str, Any]:
+    """Compute (name || inputSchema) sha-256 over a live organ's tools/list."""
+    try:
+        from fastmcp import Client  # local import — not all paths have fastmcp
+
+        async with Client(url, timeout=timeout) as c:
+            tools = await c.list_tools()
+            names = sorted([t.name for t in tools])
+            h = hashlib.sha256()
+            for n in names:
+                t = next((x for x in tools if x.name == n), None)
+                if t is None:
+                    continue
+                try:
+                    sd = json.dumps(getattr(t, "inputSchema", {}), sort_keys=True, default=str)
+                except Exception:
+                    sd = str(getattr(t, "inputSchema", {}))
+                h.update(n.encode("utf-8"))
+                h.update(b"|")
+                h.update(sd.encode("utf-8"))
+                h.update(b"||")
+            return {
+                "organ": organ,
+                "status": "OK",
+                "fingerprint": "sha256:" + h.hexdigest(),
+                "tool_count": len(names),
+            }
+    except Exception as e:
+        return {
+            "organ": organ,
+            "status": f"DOWN: {type(e).__name__}: {str(e)[:120]}",
+            "fingerprint": None,
+        }
+
+
+async def _drift_check() -> dict[str, Any]:
+    """Compare live organ fingerprints against the locked baseline.
+
+    Returns:
+        {
+          "clean":     True if all organs match baseline; False on any drift.
+          "drift":     List[dict] of organ-level deltas (organ, baseline_fp, current_fp).
+          "checked_at": ISO timestamp.
+          "warning":   Optional — present if baseline file is missing/unreadable.
+        }
+
+    Behaviour:
+        - No baseline file → clean=True with warning (watcher not yet seeded).
+        - Any organ returns status != OK → that organ counts as drift.
+        - Any organ fingerprint != baseline → counted as drift.
+
+    F8 LAW: every entry is evidence-bearing. F11 AUDIT: every run is
+    timestamped.
+    """
+    try:
+        with open(_MCP_DRIFT_BASELINE_PATH) as f:
+            baseline = json.load(f)
+    except FileNotFoundError:
+        return {
+            "clean": True,
+            "drift": [],
+            "warning": f"baseline not found at {_MCP_DRIFT_BASELINE_PATH}",
+            "checked_at": datetime.now(UTC).isoformat(),
+        }
+    except Exception as e:
+        return {
+            "clean": True,
+            "drift": [],
+            "warning": f"baseline unreadable: {type(e).__name__}",
+            "checked_at": datetime.now(UTC).isoformat(),
+        }
+
+    baseline_by_organ = {
+        b.get("organ"): b.get("fingerprint")
+        for b in baseline
+        if isinstance(b, dict) and b.get("status") == "OK" and b.get("fingerprint")
+    }
+
+    drift: list[dict[str, Any]] = []
+    probes = await asyncio.gather(
+        *(_fingerprint_organ(o, u) for o, u in _DRIFT_ORGANS.items()),
+        return_exceptions=True,
+    )
+    for p in probes:
+        if isinstance(p, Exception):
+            drift.append({"organ": "(probe)", "error": str(p)[:120], "current_fp": "unreachable"})
+            continue
+        if p["status"] != "OK":
+            drift.append(
+                {
+                    "organ": p["organ"],
+                    "status": p["status"],
+                    "current_fp": None,
+                    "current_count": 0,
+                }
+            )
+            continue
+        base = baseline_by_organ.get(p["organ"])
+        if base is None:
+            # organ not in baseline — informational, not drift
+            continue
+        if p["fingerprint"] != base:
+            drift.append(
+                {
+                    "organ": p["organ"],
+                    "baseline_fp": base[:24],
+                    "current_fp": (p["fingerprint"] or "")[:24],
+                    "tool_count_now": p.get("tool_count"),
+                }
+            )
+
+    return {
+        "clean": not drift,
+        "drift": drift,
+        "checked_at": datetime.now(UTC).isoformat(),
+    }
+
+
 async def attest_all_organs(
     actor_id: str | None = None,
     session_id: str | None = None,
@@ -536,6 +672,11 @@ async def attest_all_organs(
 
     Also broadcasts organ heartbeats to the NATS intelligence mesh
     so every organ is aware of every other organ's liveness.
+
+    L2 ISOLATE (2026-07-03): if the mcp_surface_baseline indicates any
+    organ's fingerprint has drifted since last lock, the verdict is
+    downgraded to HOLD. This is the watchdog's *isolate* arm — it does
+    not auto-repair, only stops clean attest from a dirty surface.
     """
     from arifosmcp.runtime.live_kernel import arif_os_attest
     from arifosmcp.runtime.nats_event_bus import event_bus
@@ -563,6 +704,32 @@ async def attest_all_organs(
         )
     except Exception:
         pass  # F1 AMANAH: mesh failure must never block governance
+
+    # ── L2 ISOLATE — drift watchdog (immune response) ─────────────────────────
+    # If the baseline says surface X, and live surface X disagrees, refuse
+    # to return SEAL. Drift doesn't auto-repair — it just blocks clean verdicts
+    # until someone re-baselines or the drift is acknowledged.
+    drift_state = await _drift_check()
+    if not drift_state.get("clean", True):
+        drift_organs = [d.get("organ", "?") for d in drift_state.get("drift", [])]
+        degraded.extend([f"drift:{o}" for o in drift_organs])
+        return {
+            "status": "DEGRADED",
+            "tool": "arif_organ_attest_all",
+            "verdict": "HOLD",  # L2 ISOLATE — refuse clean SEAL on dirty surface
+            "result": {
+                "organs": results,
+                "degraded_organs": degraded,
+                "drift": drift_state,
+                "immune_layer": "L2_ISOLATE",
+                "attested_at": datetime.now(UTC).isoformat(),
+                "next_action": ("review_drift_then_re_baseline_or_acknowledge"),
+                "recovery": (
+                    "Update /root/.secrets/mcp_surface_baseline.json once drift "
+                    "is acknowledged, OR roll back the organ change that caused it."
+                ),
+            },
+        }
 
     return {
         "status": "OK" if not degraded else "DEGRADED",
