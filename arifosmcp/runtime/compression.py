@@ -35,7 +35,7 @@ from typing import Any
 
 try:
     from core.shared.constitutional_ontology import RuntimeState
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover — legacy fallback, see core/shared/__init__.py
     import os as _os
     import sys
 
