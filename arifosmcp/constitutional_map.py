@@ -2266,8 +2266,11 @@ get_floor_coverage = get_law_coverage
 def build_tool_registry_manifest() -> dict[str, Any]:
     """
     Generate the canonical tool registry manifest.
-    Merges CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 diagnostic/hermes/canary/lease/attest/forge-sub/narrative).
-    Single source: CANONICAL_TOOLS + DIAGNOSTIC_TOOLS dicts. No legacy aliases.
+    Merges CANONICAL_TOOLS + DIAGNOSTIC_TOOLS into one machine-readable registry.
+
+    Public canonical order is the exposed 7-tool facade. Non-exposed entries from
+    CANONICAL_TOOLS remain in the manifest as internal aliases/supporting tools,
+    but they are not counted as public canonical surface.
 
     FORGED 2026-06-21: Every tool now includes an affordance_contract derived from
     tool_risk_registry.py (canonical) or inferred from the tool spec (diagnostic).
@@ -2343,10 +2346,30 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)",
         }
 
+    public_canonical_order = [
+        name
+        for name in [
+            "arif_init",
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_judge",
+            "arif_act",
+            "arif_seal",
+        ]
+        if name in CANONICAL_TOOLS and CANONICAL_TOOLS[name].get("expose", True)
+    ]
+    internal_canonical_order = [
+        name
+        for name, spec in CANONICAL_TOOLS.items()
+        if not spec.get("expose", True) and name not in DIAGNOSTIC_TOOLS
+    ]
+
     all_tools: dict[str, dict[str, Any]] = {}
 
     # ── Canonical (13 kernel + Rule-14 diagnostics) ──
     for name, spec in CANONICAL_TOOLS.items():
+        is_public = spec.get("expose", True)
         all_tools[name] = {
             "stage": spec["stage"].value if hasattr(spec["stage"], "value") else str(spec["stage"]),
             "lane": spec["lane"].value if hasattr(spec["lane"], "value") else str(spec["lane"]),
@@ -2357,9 +2380,14 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "requires_auth": spec["access"] != "public",
             "modes": spec.get("modes", []),
             "eureka_insight": spec.get("eureka_insight", ""),
-            "tier": "canonical",
-            "namespace": "arif_* (canonical prefix)",
-            "tags": ["canonical"],
+            "tier": "canonical" if is_public else "internal",
+            "namespace": (
+                "arif_* (canonical public prefix)"
+                if is_public
+                else "arif_* (internal supporting alias)"
+            ),
+            "tags": ["canonical"] if is_public else ["internal", "non-public"],
+            "public_exposed": is_public,
             "affordance_contract": _affordance_contract(name, spec),
         }
         # Forward deprecation metadata if present
@@ -2393,7 +2421,9 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
         "_note": (
             "SOLE SOURCE OF TRUTH. "
-            "Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). "
+            "Generated from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS. "
+            "canonical_order is the exposed 7-tool public facade; internal_canonical_order contains "
+            "non-public supporting aliases that remain registered for compatibility and governed routing. "
             "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. "
             "FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py "
             "for canonical tools, spec-inferred for diagnostic tools. The contract is "
@@ -2406,27 +2436,30 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "forged": "2026-06-21",
         },
         "_namespace_ruling": {
-            "arif_*": "Canonical13 public surface — 21 canonical tools + 1 canary probe (22 default wire tools)",
+            "arif_*": "7 canonical public verbs plus internal supporting aliases that are not on the default wire surface",
             "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
             "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
             "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
             "mcp_*": "GATED — Utility namespace for operational diagnostics",
         },
-        "canonical_count": len(CONSTITUTIONAL_TOOLS),
+        "canonical_count": len(public_canonical_order),
+        "internal_canonical_count": len(internal_canonical_order),
         "diagnostic_count": len(DIAGNOSTIC_TOOLS),
         "total_surface": len(all_tools),
         "tier_summary": tier_counts,
         "tier_legend": {
-            "canonical": "21 canonical tools — F1-F13 constitutional pipeline plus rule-14/public extensions",
-            "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
-            "canary": "1 multimode transport/protocol diagnostic probe (no session required)",
-            "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
-            "attest": "4 federation organ attestation tools (self + peer heartbeat)",
-            "forge-sub": "3 pre-execution forge planning tools (dry_run, plan, query)",
-            "narrative": "2 institutional shadow drift + narrative tension detection tools",
-            "diagnostic": "6 health probes, drift checks, floor status, budget telemetry, instruction scanner",
+            "canonical": "7 exposed public verbs on the default MCP wire surface",
+            "internal": "Internal supporting arif_* aliases/tools kept for governed routing and compatibility",
+            "hermes": "Cross-verification, fact-checking, vault query, and epistemic checks",
+            "canary": "Transport and protocol echo/probe tools",
+            "lease": "Capability lease lifecycle tools",
+            "attest": "Federation organ attestation and heartbeat tools",
+            "forge-sub": "Pre-execution forge planning tools",
+            "narrative": "Institutional shadow drift and narrative tension detection tools",
+            "diagnostic": "Health probes, drift checks, floor status, budget telemetry, and scanners",
         },
-        "canonical_order": list(CONSTITUTIONAL_TOOLS),
+        "canonical_order": public_canonical_order,
+        "internal_canonical_order": internal_canonical_order,
         "diagnostic_order": list(DIAGNOSTIC_TOOLS.keys()),
         "laws": [f.value for f in Law],
         "floors": [f.value for f in Law],  # deprecated alias

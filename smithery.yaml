@@ -2,29 +2,26 @@
 # Public manifest for Smithery marketplace
 # DITEMPA BUKAN DIBERI
 #
-# THIS FILE IS THE PUBLIC-facing manifest.
-# The canonical tool registry lives in: arifosmcp/tool_registry.json
-# Source of truth for callable surface: live MCP /tools endpoint
-#
-# This manifest exposes the canonical public tool surface.
-# All tools listed here MUST match the live callable surface exactly.
-#
-# Registry: https://smithery.ai
-# Homepage: https://arif-fazil.com
+# This file must describe the current public MCP wire surface only.
+# Source of truth for public tool names/count:
+#   - arifosmcp/runtime/public_surface.py
+#   - arifosmcp/tool_registry.json
+#   - static/.well-known/mcp/server.json
 
 name: arifos
-version: "2026.05.22"
+version: "2026.07.03"
 display_name: "arifOS — Constitutional Intelligence Kernel"
 description: |
   arifOS is the constitutional governance kernel for the arifOS federation.
-  Provides 13 canonical MCP tools enforcing F1-F13 constitutional floors.
-  All actions require sovereign authorization. Judgment remains with Arif.
+  Public MCP facade is exactly 7 canonical verbs: init, observe, think, route,
+  judge, act, seal. Internal diagnostics and legacy aliases exist behind the
+  public facade but are not part of the default callable surface.
 
 category: governance
 subcategory: ai-safety
 
 # MCP protocol
-mcp_version: "2024-11-05"
+mcp_version: "2025-11-25"
 transport: streamable_http
 command: python
 args: ["-m", "arifosmcp.runtime.__main__", "--mode", "http"]
@@ -36,302 +33,160 @@ install:
   source: https://github.com/ariffazil/arifos
   python_version: ">=3.12"
 
-# Canonical 13 tools — MUST match live callable surface
+# Exactly 7 public tools — MUST match the live public callable surface
 tools:
-  - id: arif_session_init
-    name: arif_session_init
+  - id: arif_init
+    name: arif_init
     description: |
-      Session anchor — binds identity, generates session ID, declares constitutional
-      fingerprint. Stage 000. Required before any other tool.
+      Bootstrap a governed session, bind actor identity, and establish the
+      constitutional session context. Always the first public tool.
     input_schema:
       type: object
       properties:
         mode:
           type: string
-          enum: [init, resume, validate, epoch_open, epoch_seal]
+          enum: [init, light, resume, validate, epoch_open, epoch_seal, opt_out, opt_out_profiling]
           default: init
         actor_id:
           type: string
-          description: Sovereign actor identifier
-        ack_irreversible:
-          type: boolean
-          default: false
-          description: Required for irreversible operations (F1 Amanah)
       required: [mode]
 
-  - id: arif_sense_observe
-    name: arif_sense_observe
+  - id: arif_observe
+    name: arif_observe
     description: |
-      Reality grounding — search, ingest, compass, atlas, entropy_dS, vitals.
-      Stage 111. Gathers evidence before reasoning.
+      Ground in current reality through search, ingest, atlas/compass views,
+      entropy checks, and vitals.
     input_schema:
       type: object
       properties:
         mode:
           type: string
-          enum: [search, ingest, compass, atlas, entropy_dS, vitals, classify, extract_claims, contrast]
+          enum: [search, hybrid_discovery, ingest, compass, atlas, entropy_dS, vitals]
         query:
           type: string
         url:
           type: string
-        layers:
-          type: array
-          items: { type: string }
       required: [mode]
 
-  - id: arif_evidence_fetch
-    name: arif_evidence_fetch
+  - id: arif_think
+    name: arif_think
     description: |
-      Evidence preservation — fetch URL into receipt, search evidence store,
-      archive receipts. Stage 222. Requires W3 witness >= 0.75.
+      Reason, reflect, verify, critique, and plan within the governed cognitive lane.
     input_schema:
       type: object
       properties:
         mode:
           type: string
-          enum: [fetch, search, archive, verify, void_audit]
-        url:
-          type: string
-        query:
-          type: string
-        session_id:
-          type: string
-        actor_id:
-          type: string
-      required: [mode]
-
-  - id: arif_mind_reason
-    name: arif_mind_reason
-    description: |
-      Reasoning engine — reason, reflect, verify, critique, axioms, plan,
-      plan_review, plan_approve. Stage 333. F2/F7/F8/F10 gated.
-    input_schema:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [reason, reflect, verify, critique, debate, socratic, axioms, plan, plan_review, plan_approve]
+          enum: [reason, reflect, verify, critique, axioms, plan, plan_review, plan_approve, refactor_plan, metabolize]
         query:
           type: string
         session_id:
           type: string
         plan_id:
           type: string
-      required: [mode, query]
+      required: [mode]
 
-  - id: arif_heart_critique
-    name: arif_heart_critique
+  - id: arif_route
+    name: arif_route
     description: |
-      Ethical/risk critique — critique, simulate, redteam, maruah, deescalate,
-      empathize. Stage 444 (ASI). F5/F6/F9 gated. Anti-Hallucination shield.
+      Route intent to the correct organ or next governed step when tool selection
+      is uncertain.
     input_schema:
       type: object
       properties:
         mode:
           type: string
-          enum: [critique, simulate, redteam, maruah, deescalate, empathize, summary]
-        target:
-          type: string
-        evidence_receipt:
-          type: object
-      required: [mode, target]
-
-  - id: arif_kernel_route
-    name: arif_kernel_route
-    description: |
-      Kernel orchestration — route, kernel, triage, delegate, status.
-      Stage 555. F1/F4/F3/F10 gated. Selects correct organ for task.
-    input_schema:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [route, stage, lane, list, status, kernel, federation_health, triage, depth_select, risk_gate, budget_gate, authority_gate, reversibility_gate, workflow_select, delegate]
-        target:
+          enum: [route]
+        intent:
           type: string
         task:
           type: string
-        stage:
-          type: string
         session_id:
           type: string
       required: [mode]
 
-  - id: arif_reply_compose
-    name: arif_reply_compose
+  - id: arif_judge
+    name: arif_judge
     description: |
-      Reply synthesis — compose, summarize, cite, tone_shift.
-      Stage 444r. F4/F6/F9 gated. Governed response generation.
+      Render a constitutional verdict. Public discovery is open, but judgment
+      itself is an authenticated/high-authority step.
     input_schema:
       type: object
       properties:
         mode:
           type: string
-          enum: [compose, summary, cite, format, style, nudge]
-        message:
-          type: string
-        style:
-          type: string
-        citations:
-          type: array
-          items: { type: string }
-      required: [mode, message]
-
-  - id: arif_memory_recall
-    name: arif_memory_recall
-    description: |
-      Governed memory — recall, store, get, list, prune, search, context.
-      Stage 555m. F1/F8 gated. 6-layer memory architecture.
-    input_schema:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [recall, store, get, list, prune, search, context, dry_run, stats]
-        query:
-          type: string
-        memory_id:
-          type: string
-        tier:
-          type: string
-          enum: [ephemeral, session, qdrant, postgres, graphiti, vault999]
-      required: [mode]
-
-  - id: arif_gateway_connect
-    name: arif_gateway_connect
-    description: |
-      A2A mesh bridge — connect, delegate, handover, revoke, probe.
-      Stage 666g. F1/F3 gated. Cross-agent federation routing.
-    input_schema:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [route, discover, handshake, relay, seal, delegate]
-        target_agent:
-          type: string
-        session_id:
-          type: string
-      required: [mode]
-
-  - id: arif_judge_deliberate
-    name: arif_judge_deliberate
-    description: |
-      Constitutional verdict — judge, compare, history, explain.
-      Stage 888 (ASI). F11/F13 gated. Returns SEAL/SABAR/HOLD/VOID.
-      Requires authentication. Human veto is absolute.
-    input_schema:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [judge, compare, history, explain]
+          enum: [judge, validate, hold, rules, armor, probe, notify]
         candidate:
           type: string
-        constitutional_chain_id:
-          type: string
         session_id:
           type: string
-        evidence_receipt:
-          type: object
-        claimed_evidence_level:
-          type: string
-      required: [mode, candidate]
+      required: [mode]
 
-  - id: arif_vault_seal
-    name: arif_vault_seal
+  - id: arif_act
+    name: arif_act
     description: |
-      Immutable ledger — seal, verify, chain, list.
-      Stage 999 (APEX). F1/F11/F13 gated. Append-only VAULT999 ledger.
-      Irreversible. Requires ack_irreversible=True.
+      Execute an approved action only after a valid governed approval path exists.
     input_schema:
       type: object
       properties:
         mode:
           type: string
-          enum: [seal, verify, chain, list, dry_run, audit, ledger, retrieve_audit]
+          enum: [execute, dry_run, verify_seal]
+        seal_verdict_id:
+          type: string
+        approved_action_hash:
+          type: string
+      required: [mode]
+
+  - id: arif_seal
+    name: arif_seal
+    description: |
+      Seal a final governed result to the immutable VAULT999 ledger.
+    input_schema:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [seal, verify, ledger, changelog, audit]
         payload:
           type: string
         ack_irreversible:
           type: boolean
           default: false
-        constitutional_chain_id:
-          type: string
-        judge_state_hash:
-          type: string
-      required: [mode, payload]
-
-  - id: arif_forge_execute
-    name: arif_forge_execute
-    description: |
-      Execution bridge — engineer, query, write, generate, commit, recall, dry_run.
-      Stage 010. F1/F11/F13 gated. Only executes after 888_JUDGE SEAL.
-      Requires plan_id from approved arif_mind_reason.
-    input_schema:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [engineer, query, write, generate, commit, recall, dry_run]
-        manifest:
-          type: string
-        plan_id:
-          type: string
-        ack_irreversible:
-          type: boolean
-          default: false
-        vault_entry_id:
-          type: string
       required: [mode]
 
-  - id: arif_ops_measure
-    name: arif_ops_measure
-    description: |
-      Thermodynamic telemetry — health, vitals, cost, genius, psi_le, omega,
-      landauer, topology, drift. Stage 777. F4 gated. Measures ΔS, G, Ω, Ψ.
-    input_schema:
-      type: object
-      properties:
-        mode:
-          type: string
-          enum: [health, vitals, cost, predict, topology, drift, genius, omega, psi_le, landauer, entropy_delta]
-        estimate:
-          type: number
-      required: [mode]
-
-# Constitutional governance
 governance:
   floors:
     - id: F01
       name: Amanah
-      description: Reversibility — irreversible requires explicit sovereign ack
+      description: Reversibility — irreversible paths require explicit approval
     - id: F02
       name: Truth
       description: Accuracy >= 0.99 or declare uncertainty band
     - id: F03
       name: Witness
-      description: W3 >= 0.75 for cross-agent consensus
+      description: Multi-witness grounding for high-consequence operations
     - id: F04
       name: Clarity
       description: ΔS <= 0 — entropy must decrease
     - id: F05
       name: Peace
-      description: Peace >= 1.0 — human dignity preserved
+      description: Non-destructive power
     - id: F06
       name: Empathy
-      description: κᵣ >= 0.70 — human impact assessment
+      description: Human dignity and weakest-stakeholder protection
     - id: F07
       name: Humility
-      description: Ω ∈ [0.03, 0.05] — confidence band honest
+      description: Honest confidence band
     - id: F08
       name: Genius
-      description: G >= 0.80 — elegant correctness
+      description: Elegant correctness under governance
     - id: F09
       name: Anti-Hantu
-      description: C_dark < 0.30 — no consciousness/emotion claims
+      description: No hallucinated personhood, emotion, or false certainty
     - id: F10
       name: Ontology
-      description: Structural coherence — no self-contradiction
+      description: Structural coherence and AI-only ontology
     - id: F11
       name: Auth
       description: Identity verified before sensitive operations
@@ -340,9 +195,8 @@ governance:
       description: Sanitize inputs — no prompt injection
     - id: F13
       name: Sovereign
-      description: Human veto absolute — Arif holds final authority
+      description: Human veto absolute
 
-# Verdict system
 verdicts:
   SEAL:
     description: Proceed — all floors passed
@@ -357,7 +211,6 @@ verdicts:
     description: Block — floor breach detected
     action: reject
 
-# Authority contract
 authority:
   human_sovereign: Muhammad Arif bin Fazil
   assistant_role: instrument
@@ -365,7 +218,6 @@ authority:
   irreversible_requires_ack: true
   final_verdict: Arif
 
-# Author
 author:
   name: Muhammad Arif bin Fazil
   email: ariffazil@gmail.com

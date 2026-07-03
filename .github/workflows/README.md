@@ -34,8 +34,8 @@ If you need to publish without creating a release:
 | Issue | Solution |
 |-------|----------|
 | "Permission denied" | Check `GITHUB_TOKEN` has `id-token: write` permission |
-| "Server already exists" | Bump version in `server.json` and `pyproject.toml` |
-| "Invalid server.json" | Run `python -c "import json; json.load(open('server.json'))"` locally |
+| "Server already exists" | Bump version in `static/.well-known/mcp/server.json` and `pyproject.toml` |
+| "Invalid server.json" | Run `python -c "import json; json.load(open('static/.well-known/mcp/server.json'))"` locally |
 
 ## Links
 

@@ -1,7 +1,7 @@
 [project]
 name = "arifos"
 version = "1!2026.06.30.post2"
-description = "arifOS Constitutional AI Kernel and federation bridge — 13 canonical MCP tools, VAULT999 ledger, F1–F13 floor enforcement"
+description = "arifOS Constitutional AI Kernel and federation bridge — 7 public MCP verbs, VAULT999 ledger, F1–F13 floor enforcement"
 readme = "README.md"
 requires-python = ">=3.12"
 license = "AGPL-3.0-only"

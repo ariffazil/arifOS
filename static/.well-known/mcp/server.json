@@ -5,7 +5,7 @@
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional MCP Server",
-    "version": "2026.07.01-public7"
+    "version": "2026.07.03-public7"
   },
   "description": "Constitutional governance kernel. Public MCP facade is exactly 7 verbs: init, observe, think, route, judge, act, seal. Internal diagnostics and legacy compatibility tools exist behind the public facade but are not part of the default public surface.",
   "transport": {

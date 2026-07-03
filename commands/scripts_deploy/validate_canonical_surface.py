@@ -46,6 +46,7 @@ def check_tool_registry() -> list[str]:
     with open(path) as f:
         data = json.load(f)
     canonical_order = data.get("canonical_order", [])
+    tools = data.get("tools", {})
     for name in canonical_order:
         if not name.startswith("arif_"):
             errors.append(f"tool_registry.json: canonical_order contains non-arif_* name: {name}")
@@ -53,6 +54,15 @@ def check_tool_registry() -> list[str]:
     if len(canonical_order) != 7:
         errors.append(
             f"tool_registry.json: expected 7 canonical tools (public surface, F13-ratified 2026-06-23), found {len(canonical_order)}"
+        )
+    missing = sorted(set(canonical_order) - set(tools))
+    if missing:
+        errors.append(f"tool_registry.json: canonical_order missing tool entries: {missing}")
+    canonical_tagged = sorted(name for name, spec in tools.items() if spec.get("tier") == "canonical")
+    if sorted(canonical_order) != canonical_tagged:
+        errors.append(
+            "tool_registry.json: canonical tier entries do not match canonical_order "
+            f"(canonical_order={sorted(canonical_order)}, tier=canonical={canonical_tagged})"
         )
     return errors
 
