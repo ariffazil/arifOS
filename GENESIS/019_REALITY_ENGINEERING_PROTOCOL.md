@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [/root/arifOS/docs/HISTORICAL_NOTICE.md](docs/HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # EUREKA-019: Reality Engineering Protocol — The 7-Stage Forge Procedure
 
 **Date:** 2026-06-21  

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [/root/arifOS/docs/HISTORICAL_NOTICE.md](docs/HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # GENESIS/000 — The Kernel Canon
 
 > **Canonical root of all GENESIS documents across the arifOS Federation.**

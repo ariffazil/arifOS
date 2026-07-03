@@ -588,7 +588,7 @@ canonical_registry:
     type: pipeline_stage
     coded: true
     module: arifosmcp.constitutional_map
-    tool: arif_judge_deliberate
+    tool: arif_judge
     description: "Final constitutional arbitration"
 
   - name: stage_999_seal
@@ -596,5 +596,5 @@ canonical_registry:
     type: pipeline_stage
     coded: true
     module: arifosmcp.constitutional_map
-    tool: arif_vault_seal
+    tool: arif_seal
     description: "Immutable ledger anchoring + cryptographic seal"

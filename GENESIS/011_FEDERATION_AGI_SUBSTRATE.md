@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [/root/arifOS/docs/HISTORICAL_NOTICE.md](docs/HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # 011: THE FEDERATION AGI SUBSTRATE
 
 > **Epistemic Status:** SOVEREIGN ARCHITECTURE

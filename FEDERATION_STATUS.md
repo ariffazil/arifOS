@@ -54,7 +54,7 @@
 |-------|----------|--------|
 | arifOS tool registry divergence | 🟡 MEDIUM | 12 different ActionClass enums across codebase; PREPARE used in tool_registry.json but not in canonical kernel_envelope.py |
 | A-FORGE lease gate | 🔴 HIGH | Leases self-issued by A-FORGE; must be kernel-issued — T4 in progress |
-| APEX decommission | 🟡 LOW | `apex-prime.service` still running on 3002 for legacy health probe; marked legacy-only |
+| APEX decommission | ✅ RESOLVED | `apex-prime.service` stopped. Deliberation moved to AAA a2a-server. Port 3002 freed. |
 | arifOS CONTEXT.md | 🟡 LOW | `CONTEXT.md` referenced by `RUNBOOK.md` but missing from `/root/arifOS`; live state lives in `/root/CONTEXT.md` |
 
 ## Infrastructure

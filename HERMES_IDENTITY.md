@@ -171,8 +171,8 @@ Via MCP to arifOS kernel :8088
 - `arif_memory_recall` — recall
 - `arif_ops_measure` — measure
 - `arif_forge_execute` — forge
-- `arif_judge_deliberate` — judge (888)
-- `arif_vault_seal` — seal (999)
+- `arif_judge` — judge (888)
+- `arif_seal` — seal (999)
 
 ### 5.2 Hermes Diagnostic Tools (3)
 Registered in arifOS expanded45 surface:

@@ -707,7 +707,7 @@ The following mode bloat patterns are flagged for refactoring (not deletion — 
 |---|---|---|
 | `arif_kernel_route` | 16 modes | → `arif_route` (routing) + `arif_triage` (status) + `arif_kernel_status` (telemetry) |
 | `arif_gateway_connect` | 6 modes | → `arif_agent_discover` + `arif_agent_connect` + `arif_agent_handshake` |
-| `arif_judge_deliberate` | 6 modes | → `arif_judge` + `arif_judge_history` (different shape) |
+| `arif_judge` | 6 modes | → `arif_judge` + `arif_judge_history` (different shape) |
 | `arif_session_init` | 7 modes | → `arif_session_start` + `arif_session_resume` + `arif_session_validate` |
 
 ### Internal Wiring (Mode-First)
