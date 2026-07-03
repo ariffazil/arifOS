@@ -311,7 +311,9 @@ class DPoPAuthMiddleware(BaseHTTPMiddleware):
             access_token_cnf_jkt=extract_cnf_jkt(access_token),
         )
         if not result.valid:
-            logger.warning("DPoP validation failed path=%s error=%s", request.url.path, result.error)
+            logger.warning(
+                "DPoP validation failed path=%s error=%s", request.url.path, result.error
+            )
             if self.mode == "enforce":
                 return JSONResponse(
                     {"error": "unauthorized", "message": result.error},
@@ -468,8 +470,7 @@ mcp = FastMCP(
 if FastMCPSkillsDirectoryProvider is not None and Path is not None:
     try:
         _skill_roots: list[Path] = [
-            Path("/root/.arifos/agents/kimi/skills"),  # canonical sovereign mirror
-            Path("/root/.agents/skills"),  # project / user scope
+            Path("/root/.agents/skills"),  # SINGLE SOT — all agents load from here
         ]
         _federation_skills_provider = FastMCPSkillsDirectoryProvider(
             roots=_skill_roots,
@@ -1375,6 +1376,7 @@ try:
                 def _arif_floor_status(
                     session_id: str | None = None,
                     actor_id: str | None = None,
+                    _envelope: dict[str, Any] | None = None,
                 ):
                     """Report the current state of constitutional floor enforcement."""
                     result = _get_floor_status()
