@@ -104,7 +104,7 @@ init    observe  think   route   judge   act     seal
 
 **The iron rule:** No action skips 888. No organ self-authorizes.
 
-**Source of truth:** `arifosmcp/PUBLIC_SURFACE_CANON.md`, `arifosmcp/runtime/public_surface.py`, and `arifosmcp/tool_registry.json`.
+**Source of truth:** `arifosmcp/runtime/public_surface.py` → `arifosmcp/tool_registry.json` → `static/.well-known/mcp/server.json`. `mcp-arifos.json` is compatibility metadata, not the canonical server card.
 
 ---
 
@@ -187,7 +187,7 @@ arifOS is the kernel. Six organs serve under it. Two edge agents interface with 
 ```bash
 # Development
 uv sync --all-extras
-python -m arifosmcp.runtime.server
+uv run python -m arifosmcp.runtime.server
 python -m pytest tests/ -q --tb=short
 ruff check . && ruff format .
 

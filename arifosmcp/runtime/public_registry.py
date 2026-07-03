@@ -24,7 +24,7 @@ from .tool_spec import PUBLIC_RESOURCE_SPECS
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 TOOL_REGISTRY_PATH = ROOT / "arifosmcp" / "tool_registry.json"
-DEFAULT_PUBLIC_BASE_URL = "https://arifosmcp.arif-fazil.com"
+DEFAULT_PUBLIC_BASE_URL = "https://mcp.arif-fazil.com/mcp"
 
 CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_7)
 # EXPECTED_TOOL_COUNT is the default public wire surface (canonical7 mode):
@@ -609,6 +609,8 @@ def build_server_json(
     resolved_surface_mode = normalize_public_surface_mode(
         surface_mode or current_public_surface_mode()
     )
+    project = get_pyproject_metadata()
+    urls = project.get("urls", {}) if isinstance(project, dict) else {}
     specs = public_tool_specs(resolved_surface_mode)
     resources, resource_templates = _resources_payload()
 
@@ -623,8 +625,8 @@ def build_server_json(
         ),
         "vendor": {"name": "Muhammad Arif bin Fazil", "url": "https://arif-fazil.com"},
         "license": "AGPL-3.0-only",
-        "homepage": "https://github.com/ariffazil/arifosmcp",
-        "repository": "https://github.com/ariffazil/arifosmcp",
+        "homepage": urls.get("Homepage", "https://arifos.arif-fazil.com"),
+        "repository": urls.get("Repository", "https://github.com/ariffazil/arifos"),
         "capabilities": {
             "constitutional_floors": 13,
             "public_surface": resolved_surface_mode,

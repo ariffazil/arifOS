@@ -21,6 +21,10 @@ def test_server_json_matches_canonical7_registry() -> None:
     assert tool_names == CANONICAL_PUBLIC_TOOLS
     # canonical7 is the preferred public mode name; canonical13 remains an alias.
     assert server_json["capabilities"]["public_surface"] == "canonical7"
+    assert server_json["protocolVersion"] == "2025-11-25"
+    assert server_json["serverUrl"] == "https://mcp.arif-fazil.com/mcp"
+    assert server_json["homepage"] == "https://arifos.arif-fazil.com"
+    assert server_json["repository"] == "https://github.com/ariffazil/arifos"
 
 
 def test_mcp_manifest_matches_canonical7_registry() -> None:

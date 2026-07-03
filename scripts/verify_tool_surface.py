@@ -172,15 +172,29 @@ def verify_all() -> bool:
     else:
         check("C7: Manifest structure", False, "Cannot load manifest")
 
-    # C8: Golden path prompt order is correct (critique before judge)
+    # C8: Golden path order is correct for the public 7-verb facade
     if manifest:
         gp_order = manifest.get("capabilities", {}).get("prompts", {}).get("golden_path_order", [])
-        critique_before_judge = False
-        if "555_critique" in gp_order and "666_judge" in gp_order:
-            critique_before_judge = gp_order.index("555_critique") < gp_order.index("666_judge")
+        expected_sequence = [
+            "000_init",
+            "111_observe",
+            "333_think",
+            "555_route",
+            "888_judge",
+            "900_act",
+            "999_seal",
+        ]
+        sequence_positions = []
+        ordered = True
+        for step in expected_sequence:
+            if step not in gp_order:
+                ordered = False
+                break
+            sequence_positions.append(gp_order.index(step))
+        ordered = ordered and sequence_positions == sorted(sequence_positions)
         check(
-            "C8: Golden path order: critique (555) before judge (666)",
-            critique_before_judge,
+            "C8: Golden path order follows init→observe→think→route→judge→act→seal",
+            ordered,
             f"Order: {' → '.join(gp_order)}" if gp_order else "No golden_path_order in manifest",
         )
 

@@ -84,22 +84,16 @@ def _policy(**overrides) -> VisibilityPolicy:
 
 def test_healthy_organ_exposes_full_surface():
     tools = [
-        _tool("arif_session_init", tier=Tier.CORE),
-        _tool("arif_sense_observe", tier=Tier.CORE),
-        _tool("arif_mind_reason", tier=Tier.CORE),
-        _tool("arif_judge_deliberate", tier=Tier.CORE),
-        _tool("arif_vault_seal", tier=Tier.CORE),
-        _tool("arif_forge_execute", tier=Tier.CORE),
-        _tool("arif_memory_recall", tier=Tier.CORE),
-        _tool("arif_reply_compose", tier=Tier.CORE),
-        _tool("arif_heart_critique", tier=Tier.CORE),
-        _tool("arif_kernel_route", tier=Tier.CORE),
-        _tool("arif_evidence_fetch", tier=Tier.CORE),
-        _tool("arif_gateway_connect", tier=Tier.CORE),
-        _tool("arif_ops_measure", tier=Tier.CORE),
+        _tool("arif_init", tier=Tier.CORE),
+        _tool("arif_observe", tier=Tier.CORE),
+        _tool("arif_think", tier=Tier.CORE),
+        _tool("arif_route", tier=Tier.CORE),
+        _tool("arif_judge", tier=Tier.CORE),
+        _tool("arif_act", tier=Tier.CORE),
+        _tool("arif_seal", tier=Tier.CORE),
     ]
     result = filter_visible_tools(tools, _policy())
-    assert result.counts["visible"] == 13
+    assert result.counts["visible"] == 7
     assert result.counts["hidden"] == 0
     assert result.counts["quarantined_diagnostics"] == 0
 
@@ -111,13 +105,13 @@ def test_healthy_organ_exposes_full_surface():
 
 def test_degraded_organ_yields_3_diagnostic_tools():
     tools = [
-        _tool("arif_session_init", tier=Tier.CORE),
+        _tool("arif_init", tier=Tier.CORE),
         _tool("some_broken_tool", organ="broken", tier=Tier.CORE, health=OrganHealth.DEGRADED),
         _tool("another_broken_tool", organ="broken", tier=Tier.CORE, health=OrganHealth.DEGRADED),
     ]
     result = filter_visible_tools(tools, _policy())
     # The 2 broken tools are moved to hidden + quarantined_diagnostics placeholder
-    assert result.counts["visible"] == 1  # only the healthy arif_session_init
+    assert result.counts["visible"] == 1  # only the healthy arif_init
     assert result.counts["quarantined_diagnostics"] >= 1
     # And the diagnostic shortlist generator for the broken organ returns 3
     shortlist = get_diagnostic_shortlist("broken")
@@ -132,7 +126,7 @@ def test_degraded_organ_yields_3_diagnostic_tools():
 
 def test_lab_tools_require_explicit_route():
     tools = [
-        _tool("arif_session_init", tier=Tier.CORE),
+        _tool("arif_init", tier=Tier.CORE),
         _tool("experimental_search", tier=Tier.LAB, organ="minimax-search"),
         _tool("experimental_browse", tier=Tier.LAB, organ="minimax-search"),
     ]
@@ -152,7 +146,7 @@ def test_lab_tools_require_explicit_route():
 
 def test_deprecated_tools_not_visible():
     tools = [
-        _tool("arif_session_init", tier=Tier.CORE),
+        _tool("arif_init", tier=Tier.CORE),
         _tool("legacy_alias", tier=Tier.DEPRECATED, organ="arifOS"),
         _tool("old_mmx_code", tier=Tier.DEPRECATED, organ="minimax-code"),
     ]
