@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS Federation Loop — Organ Integration Reference
 > **DITEMPA BUKAN DIBERI — Intelligence is forged, not given.**
 > Version: v2026.05.02 | Epoch: 2026-05-02T22:40+08:00

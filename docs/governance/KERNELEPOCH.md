@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # KERNEL EPOCH — Session Epoch Specification
 **Floor:** F11 IDENTITY | **Authority:** ARIF FAZIL (267378578)
 **Status:** OPERATIVE | **Sealed:** 2026-05-11

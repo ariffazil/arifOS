@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS Full-Stack Architecture Manifesto
 **v2026.05.03 · SEALED**
 > DITEMPA BUKAN DIBERI — Intelligence is forged, not given.

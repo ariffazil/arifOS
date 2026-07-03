@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # Context Engine Phase T1 — Drift Report
 
 > **Date:** 2026-06-12 · **For:** Arif (F13 SOVEREIGN) · **Status:** SEAL-READY TEST LAYER

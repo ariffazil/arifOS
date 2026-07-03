@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # Phase 2 Pressure-Trigger Middleware (δ) — DIFF + TEST REPORT
 
 > **For sovereign review per Arif's α → δ directive**  

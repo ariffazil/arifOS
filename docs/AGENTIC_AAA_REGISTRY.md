@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS Federation — Agentic AAA Registry
 
 > **Authority:** 888 (Muhammad Arif bin Fazil, F13 SOVEREIGN)

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # RESOURCE_INVENTORY.md — arifOS MCP Resource Audit
 **Generated:** 2026-05-25
 **Phase:** PHASE 1 — Resource Inventory

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # TOOL_INVENTORY.md — arifOS MCP Tool Audit
 **Generated:** 2026-05-25
 **Total tools:** 72 (Gateway:2 + Kernel:13 + GEOX:11 + WEALTH:32 + WELL:14)

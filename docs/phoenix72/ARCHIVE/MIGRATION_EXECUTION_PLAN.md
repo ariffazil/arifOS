@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # MIGRATION_EXECUTION_PLAN.md — PHOENIX-72 Blueprint
 **Date:** 2026-05-25
 **Phase:** HOLD — Design Blueprint Only (Router directive: no mutation)

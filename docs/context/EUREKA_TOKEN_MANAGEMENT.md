@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # EUREKA — Token & Context Management in Agentic AI
 
 > **Authority:** 888 (Arif Fazil, F13 SOVEREIGN) — provisional, awaiting F13 ed25519 to upgrade to canon  

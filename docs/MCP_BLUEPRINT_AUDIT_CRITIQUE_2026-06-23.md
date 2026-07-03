@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # MCP Blueprint Audit — Critique of Claude Analysis vs Live arifOS/A-FORGE Reality (2026-06-23)
 
 **Author role:** Grok (Constitutional Clerk / Forge / acting under 888 context for analysis + reversible execution). Arif = F13 SOVEREIGN + 888 Judge.
