@@ -69,90 +69,204 @@ def _load_intent_map() -> dict[str, Any]:
                 "port": 8088,
                 "intent_keywords": [
                     # Machine / MCP surface
-                    "MCP", "MCP server", "MCP tool", "MCP endpoint", "MCP connector",
-                    "MCP diagnostic", "MCP conformance", "MCP surface",
-                    "ChatGPT connector", "OpenAI connector", "Copilot connector",
-                    "surface drift", "connector schema", "connector cache",
-                    "protocol version", "protocol drift", "protocol conformance",
-                    "tool registry", "tool schema", "tool conformance",
-                    "tool surface", "tool manifest", "tools/list", "tools/call",
-                    "capability surface", "capability lease",
+                    "MCP",
+                    "MCP server",
+                    "MCP tool",
+                    "MCP endpoint",
+                    "MCP connector",
+                    "MCP diagnostic",
+                    "MCP conformance",
+                    "MCP surface",
+                    "ChatGPT connector",
+                    "OpenAI connector",
+                    "Copilot connector",
+                    "surface drift",
+                    "connector schema",
+                    "connector cache",
+                    "protocol version",
+                    "protocol drift",
+                    "protocol conformance",
+                    "tool registry",
+                    "tool schema",
+                    "tool conformance",
+                    "tool surface",
+                    "tool manifest",
+                    "tools/list",
+                    "tools/call",
+                    "capability surface",
+                    "capability lease",
                     # Governance / constitutional
-                    "kernel health", "kernel status", "kernel route", "kernel attest",
-                    "arifos kernel", "arifos health", "arifos status",
-                    "constitutional floor", "constitutional check",
-                    "governance check", "governance status",
-                    "seal boundary", "seal verdict", "authority envelope",
-                    "epistemic tag", "cognitive axis",
+                    "kernel health",
+                    "kernel status",
+                    "kernel route",
+                    "kernel attest",
+                    "arifos kernel",
+                    "arifos health",
+                    "arifos status",
+                    "constitutional floor",
+                    "constitutional check",
+                    "governance check",
+                    "governance status",
+                    "seal boundary",
+                    "seal verdict",
+                    "authority envelope",
+                    "epistemic tag",
+                    "cognitive axis",
                     # Session / memory / vault
-                    "initialize session", "session init", "session anchor",
-                    "memory recall", "memory search", "vault seal", "vault ledger",
-                    "lease request", "belief state", "runtime schema",
+                    "initialize session",
+                    "session init",
+                    "session anchor",
+                    "memory recall",
+                    "memory search",
+                    "vault seal",
+                    "vault ledger",
+                    "lease request",
+                    "belief state",
+                    "runtime schema",
                     # Canonical tool names
-                    "arif init", "arif route", "arif triage",
-                    "arif judge", "arif seal", "arif measure",
-                    "arif observe", "arif think", "arif critique",
-                    "arif bridge", "arif gateway", "arif forge", "arif_forge",
-                    "arif memory", "arif_memory", "arif session", "arif vault",
+                    "arif init",
+                    "arif route",
+                    "arif triage",
+                    "arif judge",
+                    "arif seal",
+                    "arif measure",
+                    "arif observe",
+                    "arif think",
+                    "arif critique",
+                    "arif bridge",
+                    "arif gateway",
+                    "arif forge",
+                    "arif_forge",
+                    "arif memory",
+                    "arif_memory",
+                    "arif session",
+                    "arif vault",
                     # Federation
-                    "federation contract", "federation manifest",
-                    "organ attestation", "organ health",
-                    "agentic search", "agent registry",
+                    "federation contract",
+                    "federation manifest",
+                    "organ attestation",
+                    "organ health",
+                    "agentic search",
+                    "agent registry",
                     # Sovereign / personal decisions
-                    "life roadmap", "career decision", "personal decision",
-                    "what should i do", "life direction",
-                    "should i leave", "should i stay",
-                    "human sovereign", "sovereign decision",
-                    "life choice", "exit strategy",
-                    "what do i want", "my future",
+                    "life roadmap",
+                    "career decision",
+                    "personal decision",
+                    "what should i do",
+                    "life direction",
+                    "should i leave",
+                    "should i stay",
+                    "human sovereign",
+                    "sovereign decision",
+                    "life choice",
+                    "exit strategy",
+                    "what do i want",
+                    "my future",
                 ],
             },
             "aaa": {
                 "organ": "AAA",
                 "port": 3001,
                 "intent_keywords": [
-                    "cockpit", "dashboard", "control plane",
-                    "AAA cockpit", "AAA dashboard",
-                    "agent identity", "agent registry cockpit",
-                    "permission list", "access control", "audit log",
-                    "federation health", "approval queue",
-                    "A2A gateway", "identity anchor", "throttle",
+                    "cockpit",
+                    "dashboard",
+                    "control plane",
+                    "AAA cockpit",
+                    "AAA dashboard",
+                    "agent identity",
+                    "agent registry cockpit",
+                    "permission list",
+                    "access control",
+                    "audit log",
+                    "federation health",
+                    "approval queue",
+                    "A2A gateway",
+                    "identity anchor",
+                    "throttle",
                 ],
             },
             "a_forge": {
                 "organ": "A-FORGE",
                 "port": 7071,
                 "intent_keywords": [
-                    "build", "deploy", "forge", "compile",
-                    "commit", "push", "git", "docker",
-                    "container", "image", "pipeline", "ci/cd",
-                    "jenkins", "github", "repository", "version",
-                    "dry run", "dry-run", "execute plan",
-                    "node install", "npm install", "npm build", "npm test",
-                    "uv sync", "docker compose",
-                    "systemctl restart", "systemd unit", "service restart",
-                    "make deploy", "code deploy", "rollback", "mutate file",
-                    "forge execute", "forge plan", "forge dryrun",
+                    "build",
+                    "deploy",
+                    "forge",
+                    "compile",
+                    "commit",
+                    "push",
+                    "git",
+                    "docker",
+                    "container",
+                    "image",
+                    "pipeline",
+                    "ci/cd",
+                    "jenkins",
+                    "github",
+                    "repository",
+                    "version",
+                    "dry run",
+                    "dry-run",
+                    "execute plan",
+                    "node install",
+                    "npm install",
+                    "npm build",
+                    "npm test",
+                    "uv sync",
+                    "docker compose",
+                    "systemctl restart",
+                    "systemd unit",
+                    "service restart",
+                    "make deploy",
+                    "code deploy",
+                    "rollback",
+                    "mutate file",
+                    "forge execute",
+                    "forge plan",
+                    "forge dryrun",
                 ],
             },
             "geox": {
                 "organ": "GEOX",
                 "port": 8081,
                 "intent_keywords": [
-                    "seismic", "well log", "las", "petrophysics",
-                    "horizon", "fault", "amplitude", "basin", "prospect",
-                    "subsurface", "velocity", "lithology", "porosity",
-                    "permeability", "resistivity", "gamma ray",
-                    "sonic", "density", "structural", "trap",
+                    "seismic",
+                    "well log",
+                    "las",
+                    "petrophysics",
+                    "horizon",
+                    "fault",
+                    "amplitude",
+                    "basin",
+                    "prospect",
+                    "subsurface",
+                    "velocity",
+                    "lithology",
+                    "porosity",
+                    "permeability",
+                    "resistivity",
+                    "gamma ray",
+                    "sonic",
+                    "density",
+                    "structural",
+                    "trap",
                 ],
             },
             "wealth": {
                 "organ": "WEALTH",
                 "port": 18082,
                 "intent_keywords": [
-                    "portfolio", "npv", "irr", "emv",
-                    "option", "derivative", "capital", "hedge",
-                    "risk metric", "allocation", "stress test",
+                    "portfolio",
+                    "npv",
+                    "irr",
+                    "emv",
+                    "option",
+                    "derivative",
+                    "capital",
+                    "hedge",
+                    "risk metric",
+                    "allocation",
+                    "stress test",
                 ],
             },
             "well": {
@@ -160,11 +274,22 @@ def _load_intent_map() -> dict[str, Any]:
                 "port": 18083,
                 "intent_keywords": [
                     # G13 FIX: human-vitality-only keywords
-                    "human health", "personal health",
-                    "wellness", "vitality", "biometric",
-                    "sleep", "heart rate", "hrv", "metabolic",
-                    "readiness", "recovery", "autonomic",
-                    "wellbeing", "maruah", "fatigue", "cognition load",
+                    "human health",
+                    "personal health",
+                    "wellness",
+                    "vitality",
+                    "biometric",
+                    "sleep",
+                    "heart rate",
+                    "hrv",
+                    "metabolic",
+                    "readiness",
+                    "recovery",
+                    "autonomic",
+                    "wellbeing",
+                    "maruah",
+                    "fatigue",
+                    "cognition load",
                 ],
             },
         }
@@ -185,21 +310,53 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # The keyword map below handles normal cases; this guard catches edge cases
     # where a domain organ (e.g. WELL "health") would otherwise win.
     _KERNEL_GUARD_PATTERNS: list[str] = [
-        "mcp ", "mcp server", "mcp tool", "mcp endpoint", "mcp connector",
-        "mcp surface", "mcp diagnostic", "mcp conformance", "mcp protocol",
-        "chatgpt connector", "openai connector", "copilot connector",
-        "tool registry", "tool schema", "tool conformance", "tool list",
-        "tools/list", "tools/call", "tool surface", "tool manifest",
-        "surface drift", "connector schema", "connector cache",
-        "protocol version", "protocol drift", "protocol conformance",
-        "capability surface", "capability lease",
-        "kernel health", "kernel status", "kernel route", "kernel attest",
-        "arifos kernel", "arifos health", "arifos status", "arifos mcp",
-        "constitutional floor", "constitutional check",
-        "governance check", "governance status",
-        "seal boundary", "seal verdict", "authority envelope",
-        "federation contract", "federation manifest",
-        "organ attestation", "organ health",
+        "mcp ",
+        "mcp server",
+        "mcp tool",
+        "mcp endpoint",
+        "mcp connector",
+        "mcp surface",
+        "mcp diagnostic",
+        "mcp conformance",
+        "mcp protocol",
+        "chatgpt connector",
+        "openai connector",
+        "copilot connector",
+        "tool registry",
+        "tool schema",
+        "tool conformance",
+        "tool list",
+        "tools/list",
+        "tools/call",
+        "tool surface",
+        "tool manifest",
+        "surface drift",
+        "connector schema",
+        "connector cache",
+        "protocol version",
+        "protocol drift",
+        "protocol conformance",
+        "capability surface",
+        "capability lease",
+        "kernel health",
+        "kernel status",
+        "kernel route",
+        "kernel attest",
+        "arifos kernel",
+        "arifos health",
+        "arifos status",
+        "arifos mcp",
+        "constitutional floor",
+        "constitutional check",
+        "governance check",
+        "governance status",
+        "seal boundary",
+        "seal verdict",
+        "authority envelope",
+        "federation contract",
+        "federation manifest",
+        "organ attestation",
+        "organ health",
     ]
     for pattern in _KERNEL_GUARD_PATTERNS:
         if pattern in intent_lower:
@@ -320,7 +477,11 @@ def arif_route(
     # If no organ_tool specified, return routing decision only
     if not organ_tool:
         if _routing_hold_required(routing):
-            return _hold("arif_route", "Routing HOLD: inner subsignal requires hold (floor_passed=false or hold_required=true)", extra_meta={"routing": routing})
+            return _hold(
+                "arif_route",
+                "Routing HOLD: inner subsignal requires hold (floor_passed=false or hold_required=true)",
+                extra_meta={"routing": routing},
+            )
         return _ok("arif_route", routing)
 
     # Bridge call to organ
@@ -329,7 +490,11 @@ def arif_route(
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
-            return _hold("arif_route", "Bridge HOLD: inner subsignal requires hold", extra_meta={"routing": routing})
+            return _hold(
+                "arif_route",
+                "Bridge HOLD: inner subsignal requires hold",
+                extra_meta={"routing": routing},
+            )
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "wealth":
@@ -337,7 +502,11 @@ def arif_route(
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
-            return _hold("arif_route", "Bridge HOLD: inner subsignal requires hold", extra_meta={"routing": routing})
+            return _hold(
+                "arif_route",
+                "Bridge HOLD: inner subsignal requires hold",
+                extra_meta={"routing": routing},
+            )
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "well":
@@ -345,14 +514,20 @@ def arif_route(
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
-            return _hold("arif_route", "Bridge HOLD: inner subsignal requires hold", extra_meta={"routing": routing})
+            return _hold(
+                "arif_route",
+                "Bridge HOLD: inner subsignal requires hold",
+                extra_meta={"routing": routing},
+            )
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "a-forge":
         return _ok("arif_route", {**routing, "bridge_status": "a-forge: use A-FORGE MCP directly"})
 
     if target_organ.lower() == "aaa":
-        return _ok("arif_route", {**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"})
+        return _ok(
+            "arif_route", {**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"}
+        )
 
     if target_organ.lower() == "arifos":
         return _ok("arif_route", {**routing, "bridge_status": "kernel-local: no bridge needed"})
@@ -419,26 +594,41 @@ def arif_triage(
     if mode == "preflight":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
-        return _ok(
-            "arif_triage",
-            {
-                "kernel": "alive",
-                "observe_only": True,
-                "mutation_allowed": False,
-                "external_side_effects_allowed": False,
-                "irreversible_allowed": False,
-                "session_required": True,
-                "session_id_present": bool(session_id),
-                "actor_id_present": bool(actor_id),
-                "actor_verified": False,
-                "authority_mode": "OBSERVE_ONLY",
-                "stage": stage or "000",
-                "canonical_tool_count": len(CANONICAL_TOOLS),
-                "active_sessions": len(_SESSIONS),
-                "next_safe_action": "Call arif_init(mode='ping' | 'light' | 'full')",
-                "mode": "preflight",
-            },
-        )
+        session_id_present = bool(session_id)
+        actor_id_present = bool(actor_id)
+        preflight_payload: dict[str, Any] = {
+            "kernel": "alive",
+            "observe_only": True,
+            "mutation_allowed": False,
+            "external_side_effects_allowed": False,
+            "irreversible_allowed": False,
+            "session_required": True,
+            "session_id_present": session_id_present,
+            "actor_id_present": actor_id_present,
+            "actor_verified": False,
+            "authority_mode": "OBSERVE_ONLY",
+            "stage": stage or "000",
+            "canonical_tool_count": len(CANONICAL_TOOLS),
+            "active_sessions": len(_SESSIONS),
+            "next_safe_action": "Call arif_init(mode='ping' | 'light' | 'full')",
+            "mode": "preflight",
+        }
+        # Verdict gate normalization (PATCH 1, 2026-07-03):
+        # If session is required but missing, the constitutional verdict
+        # CANNOT be SEAL — must be HOLD with SESSION_REQUIRED.
+        if not session_id_present:
+            return _hold(
+                "arif_triage",
+                reason="SESSION_REQUIRED",
+                floors=["F11"],
+                extra_meta={
+                    "hold_reason": "SESSION_REQUIRED",
+                    "required_precondition_failed": "session_id",
+                    "next_safe_action": "arif_init",
+                    "preflight_diagnostics": preflight_payload,
+                },
+            )
+        return _ok("arif_triage", preflight_payload)
 
     if mode == "triage":
         # Simple priority classification
