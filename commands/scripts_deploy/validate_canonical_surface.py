@@ -3,10 +3,10 @@
 validate_canonical_surface.py — CI guard against public surface drift.
 
 Checks:
-1. tool_registry.json contains only arif_* canonical tools
-2. No arifos_* names in public_registry.py
-3. README.md and PUBLIC_SURFACE_CANON.md agree on tool count
-4. No legacy names in active docs
+1. tool_registry.json canonical_order stays at exactly 7 public arif_* verbs
+2. Every canonical_order entry has a matching tool entry
+3. Only those 7 entries are tagged tier=canonical in tool_registry.json
+4. PUBLIC_SURFACE_CANON.md stays free of legacy names before the migration guide
 """
 
 import json
