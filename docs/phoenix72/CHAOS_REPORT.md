@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # CHAOS_REPORT.md — arifOS MCP Issues
 **Generated:** 2026-05-25
 **Severity Scale:** CRITICAL / HIGH / MEDIUM / LOW / INFO

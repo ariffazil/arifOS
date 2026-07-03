@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # TOOL_LIFECYCLE_STATUS.md — Tool-by-Tool Accountability
 **Date:** 2026-05-25
 **Principle:** Every tool has one owner, one stage, one risk class. No tool may exist without these.

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # HERMES_AGENT_CANON.md — arifOS Constitutional Reference
 
 > This file captures the constitutional elements that Hermes must respect when operating in or against arifOS.

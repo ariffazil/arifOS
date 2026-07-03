@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # ZEN_OF_MCP — arifOS Tool Surface Doctrine
 
 > **Sealed:** 2026-06-26 | **Authority:** Arif Fazil (F13 SOVEREIGN) | **Version:** 1.0

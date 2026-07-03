@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # PERMISSION_RISK_REPORT.md — Risk and Permission Analysis
 **Date:** 2026-05-25
 **Principle:** Every risk has a mitigation. Every permission has an owner. No tool activation without this clearance.

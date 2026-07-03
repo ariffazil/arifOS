@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS — Newton's Laws for the Motion of Consequence
 **Version:** v2026.04.26-KANON
 **Epoch:** 2026-04-26 (Seri Kembangan)

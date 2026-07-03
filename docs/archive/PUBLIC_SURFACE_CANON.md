@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # PUBLIC_SURFACE_CANON.md — arifOS MCP Public API Contract
 
 > **Status:** SEALED — Canonical 13 + 2 probes

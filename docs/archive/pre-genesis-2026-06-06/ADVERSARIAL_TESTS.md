@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # WEALTH Adversarial Test Matrix
 # Phase 2 — Verification-First Capital Governance
 # Version: 2026.04.27-KANON

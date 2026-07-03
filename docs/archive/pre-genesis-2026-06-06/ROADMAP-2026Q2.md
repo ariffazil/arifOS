@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # ROADMAP-2026Q2 — arifOS Federation MCP Governance Layer
 
 > **Version:** 2026.05.17-CORRECTED

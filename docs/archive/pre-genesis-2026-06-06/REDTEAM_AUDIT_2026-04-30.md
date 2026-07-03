@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS MCP Red-Team Audit Report
 **SEALED v2026.04.26‑KANON** | **Date:** 2026-04-30 | **Auditor:** Kimi Code CLI (External)
 
