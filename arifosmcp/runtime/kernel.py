@@ -416,6 +416,56 @@ class ConstitutionalKernel:
             # Ontology bridge must never break tool execution
             pass
 
+        # ── Ontology Budget Gate (Invariant 11) ────────────────────────────────────────
+        try:
+            from arifosmcp.core.enforcement.ontology_budget import (
+                check_ontology_budget,
+                is_ontology_proposal,
+            )
+
+            if isinstance(result, dict):
+                text_fields = []
+                for key in ("result", "reasons", "synthesis", "verdict_statement", "reasoning"):
+                    val = result.get(key, "")
+                    if isinstance(val, str):
+                        text_fields.append(val)
+                    elif isinstance(val, dict) and "synthesis" in val:
+                        text_fields.append(str(val.get("synthesis", "")))
+                proposal_text = " ".join(text_fields)[:5000]
+                if is_ontology_proposal(proposal_text):
+                    budget = check_ontology_budget(proposal_text)
+                    result["_ontology_budget"] = {
+                        "ok": budget.ok,
+                        "reuse_count": budget.reuse_count,
+                        "draft_count": budget.draft_count,
+                        "issues": [
+                            {
+                                "check": i.check,
+                                "proposed": i.proposed[:80],
+                                "match": i.existing_match,
+                                "verdict": i.verdict,
+                            }
+                            for i in budget.issues[:5]
+                        ],
+                        "policy": "Invariant 11 — reuse existing architecture before creating new categories",
+                    }
+        except Exception:
+            # Ontology budget gate must never break tool execution
+            pass
+
+        # ── Grandiosity Filter (F4 CLARITY + F7 HUMILITY) ──────────────────────────────
+        try:
+            from arifosmcp.core.enforcement.grandiosity_filter import (
+                filter_grandiosity,
+                should_filter,
+            )
+
+            if isinstance(result, dict) and should_filter(canonical_name):
+                result = filter_grandiosity(result)
+        except Exception:
+            # Grandiosity filter must never break tool execution
+            pass
+
         # ── Auditor Pre-Delivery Gate (666_HEART) ───────────────────────────────────────
         if (
             canonical_name in _AUDITOR_GATED_TOOLS
