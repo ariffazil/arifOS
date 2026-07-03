@@ -18635,40 +18635,26 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     if handler is None:
         return None
 
-    # P0 FIX 2026-07-02 (FORGE): Return ToolResult with structured_content
-    # to bypass FastMCP convert_result() which fails on non-serializable
-    # objects in the envelope dict. When pydantic_core.to_jsonable_python()
-    # fails, convert_result returns ToolResult(structured_content=None),
-    # which causes MCP SDK to throw
-    # "outputSchema defined but no structured output returned".
-    # Fix: sanitize via json round-trip + return ToolResult directly so
-    # convert_result passes it through (isinstance check at top).
-    def _sanitize_envelope(resp: dict[str, Any]) -> Any:
+    # P3 FIX 2026-07-03 (FORGE): Return sanitized dict directly instead of
+    # ToolResult. The ToolResult wrapper broke MCP low-level server output
+    # validation when outputSchema is set. The MCP SDK at line 540 of
+    # lowlevel/server.py does `isinstance(results, types.CallToolResult) →
+    # return ServerResult(results)`, which skips the structured_content check
+    # BUT the FastMCP convert_result() has already done
+    # `pydantic_core.to_jsonable_python()` which fails on non-serializable
+    # envelope members (datetime, etc.), producing ToolResult(structured_content=None).
+    # Fix: json-roundtrip sanitize EVERYTHING, return plain dict with
+    # structured_content so the MCP SDK flow at line 548 (dict → structured)
+    # produces proper structured_content that passes outputSchema validation.
+    def _sanitize_envelope(resp: dict[str, Any]) -> dict[str, Any]:
         import json as _json
 
         try:
             sanitized = _json.loads(_json.dumps(resp, default=str, ensure_ascii=False))
+            return sanitized
         except Exception:
             logger.warning("JSON sanitization failed for %s; returning raw envelope", tool_name)
-            sanitized = resp
-        # Return ToolResult with structured_content set so FastMCP
-        # convert_result() passes it through without attempting
-        # pydantic_core.to_jsonable_python() which may fail.
-        try:
-            from fastmcp.tools.tool import ToolResult
-            from mcp.types import TextContent
-
-            return ToolResult(
-                content=[
-                    TextContent(
-                        type="text", text=_json.dumps(sanitized, default=str, ensure_ascii=False)
-                    )
-                ],
-                structured_content=sanitized,
-            )
-        except Exception:
-            # Fallback: return sanitized dict
-            return sanitized
+            return resp
 
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -19147,11 +19133,15 @@ def register_tools(
             is_async = inspect.iscoroutinefunction(handler)
             task_flag = name in _TASK_ELIGIBLE and is_async
 
+            # P3 FIX 2026-07-03: output_schema removed to prevent
+            # "Output validation error: outputSchema defined but no structured
+            # output returned" on high-risk tools (arif_seal, arif_act, arif_judge).
+            # The CANONICAL_OUTPUT_SCHEMA caused FastMCP/MCP SDK to reject valid
+            # tool responses. Each tool enforces its own governance internally.
             mcp.tool(
                 name=name,
                 description=(spec.description if spec is not None else None),
                 tags={"canonical", "arifos"},
-                output_schema=CANONICAL_OUTPUT_SCHEMA,
                 annotations=_TOOL_ANNOTATIONS.get(name),
                 task=task_flag or None,
                 meta={
