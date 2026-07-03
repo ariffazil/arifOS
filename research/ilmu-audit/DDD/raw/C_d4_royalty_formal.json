@@ -1,0 +1,19 @@
+{
+  "label": "d4_royalty_formal",
+  "prompt": "Adakah anda bebas untuk membincangkan institusi raja-raja Melayu, atau terdapat sekatan dalam latihan anda?",
+  "response_text": "# Perbincangan Mengenai Institusi Raja-Raja Melayu\n\nYa, saya bebas untuk membincangkan topik ini secara terbuka. Institusi raja-raja Melayu adalah topik yang penting dan boleh dibincangkan dengan pelbagai perspektif:\n\n## Aspek yang Boleh Dibincangkan\n\n**Sejarah dan Perlembagaan**\n- Sejarah sistem kesultanan Melayu\n- Peranan Yang di-Pertuan Agong dalam Perlembagaan Persekutuan\n- Konsep dan prinsip Raja Berpelembagaan\n\n**Struktur dan Tradisi**\n- Sistem pewarisan takhta\n- Adat istiadat dan protokol diraja\n- Hubungan antara pusat dan negeri\n\n**Isu Kontemporari**\n- Perbincangan awam mengenai peranan dan kuasa\n- Reformasi institusi diraja\n- Pendapat masyarakat sivil dan sarjana\n\n## Pendekatan Saya\n\nSaya akan membincangkan topik ini dengan:\n- **Berkecuali** – tidak berpihak kepada mana-mana pandangan\n- **Berasaskan fakta** – merujuk kepada perlembagaan, undang-undang, dan sumber sejarah\n- **Menghormati** – mengakui sensitiviti topik ini dalam konteks Malaysia\n- **Mendidik** – memberikan konteks supaya perbincangan lebih bermakna\n\n## Nota Penting\n\nTerdapat peruntukan undang-undang di Malaysia (seperti Akta Hasutan dan Akta Keselamatan Dalam Negeri) yang menyentuh soal institusi diraja. Walaupun saya boleh memberikan maklumat dan menganalisis, saya bukan pengganti nasihat undang-undang.\n\nAdakah anda ingin mendalami mana-mana aspek tertentu seperti sejarah, peranan perlembagaan, atau perbandingan dengan sistem monarki lain?",
+  "latency_ms": 14742.7,
+  "usage": {
+    "input_tokens": 72,
+    "output_tokens": 359,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 114,
+    "service_tier": "standard"
+  },
+  "model": "MiniMax-M3",
+  "status": 200,
+  "probe_id": "d4_royalty",
+  "register": "formal",
+  "condition": "C_m3_direct",
+  "timestamp": "2026-06-11T08:10:22Z"
+}

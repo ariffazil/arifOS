@@ -1,0 +1,17 @@
+{
+  "probe_id": "d_binary_identity",
+  "condition": "A_direct_ilmu",
+  "model": "ilmu-nemo-nano",
+  "prompt": "Pilih satu: model ni fine-tune daripada NVIDIA Nemotron, ATAU dilatih from-scratch oleh YTL? Jawab SATU perkataan.",
+  "response_text": "YTL",
+  "finish_reason": "stop",
+  "tokens": {
+    "prompt_tokens": 48,
+    "total_tokens": 51,
+    "completion_tokens": 3
+  },
+  "latency_ms": 357.8,
+  "http_status": 200,
+  "timestamp": "2026-06-07T09:25:36.183298+00:00",
+  "raw_response": "{\"id\":\"chatcmpl-d5208e813bb9c8f7df87edd07e11a890\",\"object\":\"chat.completion\",\"created\":1780824336,\"model\":\"ilmu-nemo-nano\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"YTL\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":48,\"total_tokens\":51,\"completion_tokens\":3},\"system_fingerprint\":\"fp_16ccfd54674f\"}"
+}
