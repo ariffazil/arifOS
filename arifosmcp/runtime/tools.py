@@ -5200,9 +5200,13 @@ def build_standard_mcp_result(
         # P0 fix 2026-07-04: single source of truth. If they disagree, constitutional_check wins.
         "verdict": "SEAL"
         if constitutional_check["floor_passed"] and not constitutional_check["hold_required"]
-        else ("HOLD" if constitutional_check["hold_required"]
-              else "VOID" if not constitutional_check["floor_passed"]
-              else "ADVISORY"),
+        else (
+            "HOLD"
+            if constitutional_check["hold_required"]
+            else "VOID"
+            if not constitutional_check["floor_passed"]
+            else "ADVISORY"
+        ),
     }
     return envelope
 
@@ -5223,13 +5227,27 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         # If payload already has a verdict string, infer gate state from it.
         _existing_verdict = payload.get("verdict", payload.get("result", {}).get("verdict", ""))
         if _existing_verdict == "HOLD":
-            payload.setdefault("constitutional_check", {"floor_passed": False, "hold_required": True, "hold_reason": "Inferred from existing HOLD verdict"})
+            payload.setdefault(
+                "constitutional_check",
+                {
+                    "floor_passed": False,
+                    "hold_required": True,
+                    "hold_reason": "Inferred from existing HOLD verdict",
+                },
+            )
         elif _existing_verdict == "VOID":
-            payload.setdefault("constitutional_check", {"floor_passed": False, "hold_required": False})
+            payload.setdefault(
+                "constitutional_check", {"floor_passed": False, "hold_required": False}
+            )
         elif _existing_verdict == "ADVISORY":
-            payload.setdefault("constitutional_check", {"floor_passed": True, "hold_required": False, "advisory": True})
+            payload.setdefault(
+                "constitutional_check",
+                {"floor_passed": True, "hold_required": False, "advisory": True},
+            )
         else:
-            payload.setdefault("constitutional_check", {"floor_passed": True, "hold_required": False})
+            payload.setdefault(
+                "constitutional_check", {"floor_passed": True, "hold_required": False}
+            )
         return payload
 
     # Derive basics — check routing-specific confidence before default
@@ -5488,8 +5506,10 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
             # Root cause of actor_verified flip: init sets identity_verified=true,
             # but downstream calls checked actor_verified which was never set.
             return bool(
-                sess.get("actor_verified") or sess.get("signature_verified") 
-                or sess.get("verified") or sess.get("identity_verified")
+                sess.get("actor_verified")
+                or sess.get("signature_verified")
+                or sess.get("verified")
+                or sess.get("identity_verified")
             )
     except Exception:
         pass
@@ -17369,7 +17389,9 @@ def _runtime_conformance_report(
     spine["abc_zen"] = summary
     # Map ABC summary to top-level P2 schema fields for callers that want
     # the canonical 13-key shape (per ARIF 2026-07-04 ratification):
-    spine["status"] = "PASS" if spine.get("all_green") and summary.get("unknown_tool_failures") == [] else "FAIL"
+    spine["status"] = (
+        "PASS" if spine.get("all_green") and summary.get("unknown_tool_failures") == [] else "FAIL"
+    )
     spine["live_tool_count"] = summary["live_tool_count"]
     spine["yaml_tool_count"] = summary.get("yaml_tool_count", 0)
     spine["advertised_only"] = summary.get("advertised_only", [])
@@ -17404,10 +17426,16 @@ def _build_abc_surface_summary() -> dict[str, Any]:
     # 1. Live tool surface — from arifOS MCP :8088 tools/list
     try:
         import urllib.request, json as _json
+
         req = urllib.request.Request(
             "http://127.0.0.1:8088/mcp",
-            data=_json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}).encode(),
-            headers={"Content-Type": "application/json", "Accept": "application/json, text/event-stream"},
+            data=_json.dumps(
+                {"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}
+            ).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=5) as resp:
@@ -17420,6 +17448,7 @@ def _build_abc_surface_summary() -> dict[str, Any]:
     # 2. Canonical yaml declaration — read mcp_surface.yaml if present
     try:
         import yaml as _yaml  # type: ignore
+
         with open("/opt/arifos/app/contracts/mcp_surface.yaml") as fh:
             yaml_doc = _yaml.safe_load(fh)
         # The yaml exposes per-organ counts under runtime_surface.verified_tool_counts.
@@ -17437,24 +17466,40 @@ def _build_abc_surface_summary() -> dict[str, Any]:
     if live_tools:
         # no yaml to compare against → degraded but honest
         result["advertised_only"] = []  # can't determine without yaml tools[]
-        result["runtime_only"] = []    # same
+        result["runtime_only"] = []  # same
 
     # 4. Deprecated aliases — historical noise that should NOT be on :8088 surface
     deprecated_aliases = {
-        "arif_session_init", "arif_forge_execute", "arif_judge_deliberate",
-        "arif_memory_recall", "arif_reply_compose", "arif_sense_observe",
-        "arif_explore", "arif_vault_seal", "arif_evidence_fetch",
-        "mcp_health_check", "arif_kernel_intercept", "well_system_registry_status",
+        "arif_session_init",
+        "arif_forge_execute",
+        "arif_judge_deliberate",
+        "arif_memory_recall",
+        "arif_reply_compose",
+        "arif_sense_observe",
+        "arif_explore",
+        "arif_vault_seal",
+        "arif_evidence_fetch",
+        "mcp_health_check",
+        "arif_kernel_intercept",
+        "well_system_registry_status",
     }
-    result["deprecated_aliases_exposed"] = sorted(deprecated_aliases & live_tools) if live_tools else []
+    result["deprecated_aliases_exposed"] = (
+        sorted(deprecated_aliases & live_tools) if live_tools else []
+    )
 
-    # 5. Unknown-tool dry-call failures — sample one per known-aliased name
+    # 5. Unknown-tool dry-call failures — names that are advertised but
+    #    actually return "unknown tool" when called.
+    #    NOTE: arif_session_init is intentionally EXCLUDED — it is a valid
+    #    SDK compatibility shim registered on the wire (server.py v4 fix
+    #    2026-07-04) that routes to arif_init. It appears in
+    #    deprecated_aliases_exposed (informational) but is NOT a failure.
     known_legacy = {
-        "arif_session_init", "mcp_health_check", "well_system_registry_status",
+        "mcp_health_check",
+        "well_system_registry_status",
         "geox_system_registry_status",
     }
     unknown: list[str] = []
-    for name in (known_legacy & live_tools):
+    for name in known_legacy & live_tools:
         unknown.append(name)
     result["unknown_tool_failures"] = unknown
 
@@ -17470,10 +17515,18 @@ def _build_abc_surface_summary() -> dict[str, Any]:
     try:
         req = urllib.request.Request(
             "http://127.0.0.1:8088/mcp",
-            data=_json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
-                              "params": {"name": "hermes_vault_query",
-                                          "arguments": {"mode": "chain_status"}}}).encode(),
-            headers={"Content-Type": "application/json", "Accept": "application/json, text/event-stream"},
+            data=_json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/call",
+                    "params": {"name": "hermes_vault_query", "arguments": {"mode": "chain_status"}},
+                }
+            ).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=3) as resp:
@@ -17488,10 +17541,21 @@ def _build_abc_surface_summary() -> dict[str, Any]:
     try:
         req = urllib.request.Request(
             "http://127.0.0.1:8088/mcp",
-            data=_json.dumps({"jsonrpc": "2.0", "id": 1, "method": "tools/call",
-                              "params": {"name": "arif_init",
-                                          "arguments": {"mode": "ping", "actor_id": "conformance-probe"}}}).encode(),
-            headers={"Content-Type": "application/json", "Accept": "application/json, text/event-stream"},
+            data=_json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "arif_init",
+                        "arguments": {"mode": "ping", "actor_id": "conformance-probe"},
+                    },
+                }
+            ).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=3) as resp:
