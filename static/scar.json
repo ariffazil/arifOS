@@ -8,5 +8,29 @@
     "id": "SCAR_002",
     "name": "Professional Pressure",
     "description": "Zero failures record. High-stakes subsurface decisions. Calibrated humility."
+  },
+  {
+    "id": "SCAR_003",
+    "name": "Deployment Theater",
+    "description": "Three incidents on 2026-07-04: changes claimed LIVE without external HTTP verification. Root cause: dev tree (/root/arifOS/) \u2260 live kernel (/opt/arifos/app/). Fix: INVARIANTS #13 + Three-Tense Contract (COMMITTED \u2260 DEPLOYED \u2260 VERIFIED).",
+    "severity": "HIGH",
+    "sealed_date": "2026-07-04",
+    "constraint": "Never claim LIVE without all 5 deploy steps verified by external probe."
+  },
+  {
+    "id": "SCAR_004",
+    "name": "Single-Writer Field Violation",
+    "description": "actor_verified field written by 3 code paths with different logic (kernel_router: any-non-anon=True, agentic_bridge: hardcoded True, rest_routes: hardcoded True). Canonical _is_actor_verified() returned False. Same response carried two truths. P0 bug.",
+    "severity": "CRITICAL",
+    "sealed_date": "2026-07-04",
+    "constraint": "INVARIANTS #12: No field with >1 read-consumer may have >1 write-site. Violation = P0, blocks merge."
+  },
+  {
+    "id": "SCAR_005",
+    "name": "Phantom Tool Misclassification",
+    "description": "arif_scan_local_instructions and arif_bridge_connect declared phantom (indexed, not callable) when both were implemented. arif_resolve_tool checked stale capability graph (v0.2.3), not actual code. Led to unnecessary cleanup work.",
+    "severity": "MEDIUM",
+    "sealed_date": "2026-07-04",
+    "constraint": "Before declaring phantom, verify with grep + import check. Graph can be stale; code is truth."
   }
 ]
