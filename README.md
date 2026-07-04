@@ -31,7 +31,7 @@
 > **arifOS is a constitutional governance kernel that sits between AI agents and their tools, enforcing 13 floors before any irreversible action.**
 
 - **The law layer** — decides what agents must NOT do, so they can be trusted with what they CAN do
-- **An MCP server** — 7 canonical public verbs. Golden path: `arif_init` → `arif_observe` → `arif_think` → `arif_route` → `arif_judge` → `arif_act` → `arif_seal`
+- **An MCP server** — 12 canonical public verbs (F13 SOVEREIGN RATIFIED 2026-07-04; prior freeze was 7). One intent = one public tool. See `arifosmcp/PUBLIC_SURFACE_CANON.md`.
 - **A federation hub** — 6 live organs (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL) plus the VAULT999 immutable ledger under one contract
 - **An immutable ledger** — VAULT999: append-only, hash-chained. Every decision sealed forever
 - **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute
@@ -83,28 +83,36 @@ python -m pytest tests/ -q --tb=short
 
 ---
 
-## 3. The 7 Canonical Public Tools
+## 3. The 12 Canonical Public Tools
 
-Default `tools/list` is frozen to the 7-verb public facade in `arifosmcp/PUBLIC_SURFACE_CANON.md`. Diagnostic and legacy aliases still exist internally, but they are not part of the default public MCP wire surface.
+Default `tools/list` is frozen to the **12-verb public facade** (`arifosmcp/PUBLIC_SURFACE_CANON.md`, F13 ratified 2026-07-04). Diagnostic and legacy aliases still exist internally and may surface via governed channels, but they are not on the default public MCP wire surface. **arif_seal is no longer public** — VAULT999 owns the receipt seal; `arif_judge` returns `SEAL_CANDIDATE`.
 
 | # | Tool | Stage | What It Does |
 |---|------|-------|---------------|
 | 1 | `arif_init` | 000 | Start constitutional session. Always first. |
-| 2 | `arif_observe` | 111 | Gather evidence — web search, URL fetch, system vitals |
-| 3 | `arif_think` | 333 | Reason, plan, critique, verify — multi-step cognition |
-| 4 | `arif_route` | 555 | Route intent to the correct federation organ |
-| 5 | `arif_judge` | 888 | Constitutional verdict — SEAL / HOLD / SABAR / VOID |
-| 6 | `arif_act` | 900 | Execute only if 888 issued SEAL |
-| 7 | `arif_seal` | 999 | Append to immutable VAULT999 ledger |
+| 2 | `arif_canary` | 000c | Transport diagnostic — 6 modes: ping, schema_echo, version_echo, transport_echo, initialize_probe, conformance_report. |
+| 3 | `arif_triage` | 000t | Status + preflight for live sessions. Tell me the next safe action. |
+| 4 | `arif_observe` | 111 | Broad sensing — web search, URL ingest, system vitals. |
+| 5 | `arif_fetch` | 111f | Targeted URL/source fetch with provenance. |
+| 6 | `arif_think` | 333 | Reason, plan, critique, metabolize — multi-step cognition. |
+| 7 | `arif_critique` | 666 | Maruah / risk check before irreversible or dignity-affecting actions. |
+| 8 | `arif_route` | 444 | Route intent to the correct federation organ. |
+| 9 | `arif_bridge_connect` | 555b | Low-level direct organ call (bypasses triage — caller specifies organ + tool). |
+| 10 | `arif_judge` | 888 | Constitutional verdict — `SEAL_CANDIDATE` / `HOLD` / `SABAR` / `VOID`. The kernel judges; it does not seal. |
+| 11 | `arif_forge` | 900 | Guarded execution, only after a `SEAL_CANDIDATE` from `arif_judge`. (`arif_act` retained as internal alias.) |
+| 12 | `arif_compose` | 444r | Governed final reply. Call LAST after reasoning + judgment are complete. |
 
 ```
-000 ──→ 111 ──→ 333 ──→ 555 ──→ 888 ──→ 900 ──→ 999
-init    observe  think   route   judge   act     seal
+000 ── 000c ── 000t ──→ 111 / 111f ──→ 333 ──→ 444 ── 555b ──→ 666 ──→ 888 ──→ 900 ──→ 444r
+init  canary  triage    observe fetch  think    route   bridge  critique  judge   forge   compose
 ```
 
-**The iron rule:** No action skips 888. No organ self-authorizes.
+**Iron rules:**
+- No action skips 888. No organ self-authorizes.
+- After 888 → `arif_forge`; after 888 + reply → `arif_compose`.
+- `arif_seal` is internal alias only — public sealing route = `arif_judge → SEAL_CANDIDATE → VAULT999`.
 
-**Source of truth:** `arifosmcp/runtime/public_surface.py` → `arifosmcp/tool_registry.json` → `static/.well-known/mcp/server.json`. `mcp-arifos.json` is compatibility metadata, not the canonical server card.
+**Source of truth:** `arifosmcp/PUBLIC_SURFACE_CANON.md` → `arifosmcp/runtime/public_surface.py` (`CANONICAL_12`) → `arifosmcp/constitutional_map.py` (`_PUBLIC_12`) → `arifosmcp/tool_registry.json` (`canonical_order`) → `static/.well-known/mcp/server.json`. All SDK aliases (`arif_session_init`, `arif_gateway_connect`, `arif_forge_execute`, `arif_heart_critique`, `arif_mind_reason`, `arif_reply_compose`, `arif_evidence_fetch`, `arif_sense_observe`, `arif_judge_deliberate`) resolve to one of the 12.
 
 ---
 
