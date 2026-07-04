@@ -45,23 +45,25 @@
   },
   "canonical_order": [
     "arif_init",
+    "arif_canary",
+    "arif_triage",
     "arif_observe",
+    "arif_fetch",
     "arif_think",
     "arif_route",
+    "arif_critique",
+    "arif_bridge_connect",
     "arif_judge",
-    "arif_act",
-    "arif_seal"
+    "arif_forge",
+    "arif_compose"
   ],
   "internal_canonical_order": [
     "arif_kernel_intercept",
-    "arif_critique",
-    "arif_triage",
-    "arif_bridge_connect",
-    "arif_compose",
     "arif_memory",
-    "arif_judge_deliberate",
-    "arif_forge",
-    "arif_measure"
+    "arif_measure",
+    "arif_seal",
+    "arif_act",
+    "arif_judge_deliberate"
   ],
   "diagnostic_order": [
     "hermes_system_status",

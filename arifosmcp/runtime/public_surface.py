@@ -13,52 +13,81 @@ from arifosmcp.resources import (
 )
 from arifosmcp.runtime.build import get_build_info
 
-# ═─ 7-Tool MCP Facade (F4 CLARITY: one intent = one public tool) ─═══════════
-# Public agents see only these 7 verbs. Everything else is an internal alias,
-# diagnostic probe, or hidden helper. See /root/AAA/skills/arifos-recursive-audit
-# and AGENTIC_AFFORDANCE_GUIDE.md for doctrine.
-CANONICAL_7: tuple[str, ...] = (
-    "arif_init",  # 000 — Start here. Session bootstrap + actor identity. Precedes all other calls.
-    "arif_observe",  # 111 — Ground in reality. External evidence, vitals, repo map.
-    "arif_think",  # 333 — Reason, plan, critique. Cognitive engine for complex decisions.
-    "arif_route",  # 444 — Select organ/tool. Bridge when intent→tool mapping is uncertain.
-    "arif_judge",  # 888 — Constitutional verdict. SEAL/HOLD/SABAR/VOID. Evidence→plan→judge pipeline.
-    "arif_act",  # 900 — Execute only after valid SEAL. Requires seal_verdict_id + approved_action_hash.
-    "arif_seal",  # 999 — Permanent record. VAULT999 hash chain. Irreversible.
+# ══ 9-Verb Metabolic Loop (F4 CLARITY: one stage = one public verb) ══════
+# Public agents see exactly these 9 stage-verbs. 9 stages = 9 tools.
+# CANONICAL-9 collapse 2026-07-04:
+#   - Removed from public surface: arif_canary (→ arif_init mode), arif_triage
+#       (→ arif_init mode), arif_fetch (→ arif_observe mode),
+#       arif_bridge_connect (→ arif_route mode).
+#   - Restored to public surface: arif_seal (999 — stage needs its verb).
+#   - Promoted to public surface: arif_critique (555 — separated from arif_think).
+#   - Each absorbed verb becomes a mode on its parent tool.
+# See /root/forge_work/2026-07-04/ZEN-9-VERB-METABOLIC-LOOP.md for doctrine.
+CANONICAL_9: tuple[str, ...] = (
+    # 000 — Session anchor + transport probe + preflight (merged)
+    "arif_init",  # 000 — Session bootstrap. Modes: init, resume, canary, preflight, triage
+    # 111 — Reality sensing + evidence fetch (merged)
+    "arif_observe",  # 111 — Sense reality. Modes: search, fetch, ingest, vitals, atlas
+    # 333 — Reasoning engine
+    "arif_think",  # 333 — Cognitive engine. Modes: reason, plan, reflect, verify
+    # 444 — Intent routing + organ bridge (merged)
+    "arif_route",  # 444 — Route intent to organ. Modes: route, bridge, triage
+    # 555 — Adversarial critique (promoted from arif_think mode to own tool)
+    "arif_critique",  # 555 — Ethical/maruah assessment. Modes: critique, redteam, maruah, shadow
+    # 666 — Constitutional verdict
+    "arif_judge",  # 666 — Constitutional verdict. SEAL/CANDIDATE/HOLD/SABAR/VOID
+    # 777 — Guarded execution
+    "arif_forge",  # 777 — Execute after SEAL. Modes: engineer, query, write, generate, commit
+    # 888 — Governed response composition
+    "arif_compose",  # 888 — Response composition. Modes: compose, summarize, cite, tone_shift
+    # 999 — VAULT999 seal
+    "arif_seal",  # 999 — Append to VAULT999. Modes: seal, verify, ledger
 )
 
-# Deprecated alias for internal code that still imports CANONICAL_13.
-CANONICAL_13: tuple[str, ...] = CANONICAL_7
-# CANONICAL_7 is the single public canonical set.
+# ── DEPRECATED ALIASES (P5 shadow cleanup 2026-07-04) ─────────────────────
+# These exist ONLY for backward compatibility with imports in tests/fixtures.
+# They all point to CANONICAL_9. Do NOT use in new code.
+# SHADOW STATUS: frozen, not removed — removal would break existing imports.
+CANONICAL_7: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
+CANONICAL_13: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
+CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
 
-# ── Canary Probe — transport diagnostic, now internal-only ─────────────────
-# The canary is a pure transport probe. In the 7-tool facade it is no longer
-# advertised on the public wire surface; it remains available as a diagnostic
-# helper for federation operators and health checks.
-CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
+# ── Canary Probe — transport diagnostic, absorbed into arif_init(mode=canary) ──
+# arif_canary is absorbed as a mode of arif_init. Its 6 child names are
+# DEPRECATED → use arif_init(mode=canary). They are kept as internal aliases
+# for backward compatibility only.
+CANARY_PROBES: tuple[str, ...] = ()
+DEPRECATED_CANARY_CHILDREN: tuple[str, ...] = (
+    "arif_ping",
+    "arif_schema_echo",
+    "arif_version_echo",
+    "arif_transport_echo",
+    "arif_initialize_probe",
+    "arif_conformance_report",
+)
 
 # ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────
-# FROZEN 2026-06-23 + PURGED 2026-06-30: aliases removed from public wire surface.
-# Backend handlers still resolve via _CANONICAL_HANDLERS + _LEGACY_ALIASES for
-# backward compatibility, but tools/list returns ONLY canonical names.
-# See: forge_work/BANGANG-ALIAS-PURGE-2026-06-30.md
+# FROZEN 2026-06-23 + PURGED 2026-06-30 + RE-PURGED 2026-07-04: aliases removed
+# from public wire surface. Backend handlers still resolve via _LEGACY_ALIASES for
+# backward compatibility, but tools/list returns ONLY canonical 12 names.
+# See: forge_work/BANGANG-ALIAS-PURGE-2026-06-30.md and the 2026-07-04 YELLOW re-purge.
 CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = ()  # intentionally empty
 
-# ── Canonical7 Public Surface (= exactly 7 canonical verbs) ─────────────────
-# F13 ratified 2026-06-23: exactly 7 public verbs.
-# Everything else (plumbing, aliases, diagnostics) is internal and filtered.
-# ── Canonical 7 Public Surface (F13 ratified 2026-06-23) ─────────────────
-# The public surface is exactly 7 verbs. The name CANONICAL13_PUBLIC_SURFACE
-# is retained for backward compat but is semantically CANONICAL_7.
-CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_7
+# ── Canonical 9 Public Surface (CANONICAL-9 2026-07-04) ─────────────
+# The public surface is exactly 9 stages = 9 tools.
+# The name CANONICAL13_PUBLIC_SURFACE is retained for backward compat.
 
-# Preferred canonical names for surface modes (2026-06-30 clarity fix):
-#   "canonical7"  → 7 constitutional verbs (default public)
-#   "canonical13" → DEPRECATED alias for "canonical7" — kept for backward compat
-#   "expanded45"  → canonical7 + all diagnostics (operator/debug)
+
+# Preferred canonical names for surface modes (2026-07-04 ZEN-9):
+#   "canonical9"  → 9-stage metabolic loop (default public)
+#   "canonical12" → DEPRECATED alias for "canonical9"
+#   "canonical7"  → DEPRECATED alias for "canonical9"
+#   "expanded45"  → canonical9 + all diagnostics (operator/debug)
 VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
-    "canonical7",  # preferred — matches the number 7
-    "canonical13",  # deprecated alias — still works, maps to canonical7
+    "canonical9",  # preferred — 9-stage metabolic loop
+    "canonical12",  # deprecated alias — maps to canonical9
+    "canonical7",  # deprecated alias — maps to canonical9
+    "canonical13",  # deprecated alias — maps to canonical9
     "expanded45",  # operator/debug surface
 )
 
@@ -160,11 +189,8 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
 )
 
 # EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).
-# SDK aliases removed — canonical 7 verbs + diagnostics.
-# CANARY_PROBES (arif_canary dispatcher) is internal-only and not surfaced here;
-# the individual probe modes (arif_conformance_report, arif_schema_echo, etc.)
-# are already included in DIAGNOSTIC_TOOLS.
-EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_7, *DIAGNOSTIC_TOOLS])))
+# Diagnostics are appended to the canonical 9-stage metabolic loop tools.
+EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_9, *DIAGNOSTIC_TOOLS])))
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
 # with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
@@ -172,10 +198,10 @@ EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_7, *DIAGNOST
 
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
-    """Resolve surface mode. canonical7 (default) = 7 verbs. expanded45 = 7 + diagnostics.
+    """Resolve surface mode. canonical9 (default) = 9-stage loop. expanded45 = canonical9 + diagnostics.
 
-    canonical13 is a deprecated alias for canonical7 — it always meant 7 tools
-    (the 13 was a historical count, never the current canonical number).
+    canonical12 / canonical7 / canonical13 are deprecated aliases that always
+    meant (and still mean) the canonical public set — now the 9-stage metabolic loop.
     """
     raw = (mode or "").strip().lower()
     if not raw:
@@ -184,16 +210,18 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         raw = (os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "") or "").strip().lower()
 
     profile_map = {
-        "canonical7": "canonical7",
-        "public": "canonical7",
-        "chatgpt": "canonical7",
-        "agnostic_public": "canonical7",
-        "canonical13": "canonical7",  # deprecated alias — canonical count is 7
-        "canonical15": "canonical7",  # deprecated alias
+        "canonical9": "canonical9",
+        "public": "canonical9",
+        "chatgpt": "canonical9",
+        "agnostic_public": "canonical9",
+        "canonical12": "canonical9",  # deprecated alias — canonical count is now 9
+        "canonical7": "canonical9",  # deprecated alias — was 7/12; now 9-stage loop
+        "canonical13": "canonical9",  # deprecated alias — maps to canonical9
+        "canonical15": "canonical9",  # deprecated alias — pre-freeze count
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
-    return profile_map.get(raw, "canonical7")
+    return profile_map.get(raw, "canonical9")
 
 
 def current_public_surface_mode() -> str:
@@ -204,12 +232,13 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     """
     Return the public tool names for a given surface mode.
 
-    canonical7 (default): CANONICAL_7 (7 constitutional verbs).
-        F13 ratified 2026-06-23: exactly 7 public verbs.
-        One intent = one public tool. No SDK aliases, no diagnostics on the wire.
-    expanded45: CANONICAL_7 + DIAGNOSTIC_TOOLS (operator/debug surface).
+    canonical9 (default): CANONICAL_9 (9-stage metabolic loop).
+        CANONICAL-9 2026-07-04: exactly 9 surface verbs mapping to 9 stages.
+        One stage = one public verb. Absorbed tools become internal modes.
+        arif_critique promoted from arif_think mode to its own public tool at 555.
+    expanded45: CANONICAL_9 + DIAGNOSTIC_TOOLS (operator/debug surface).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
-        Adds arif_conformance_report, arif_canary, and other read-only diagnostics.
+        Adds canary probes and other read-only diagnostics.
 
     INTERNAL_ONLY filter: tools registered in CANONICAL_TOOLS with
     access == "internal_only" are NEVER exposed via any public mode.
@@ -222,11 +251,10 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
             "yes",
             "on",
         )
-        candidates = EXPANDED_45 if expose_dev_tools else CANONICAL13_PUBLIC_SURFACE
+        candidates = EXPANDED_45 if expose_dev_tools else CANONICAL_9
     else:
-        # canonical7 (default): exactly the 7 canonical verbs.
-        # Also handles "canonical13" (deprecated alias).
-        candidates = CANONICAL13_PUBLIC_SURFACE  # == CANONICAL_7
+        # canonical9 (default): the 9-stage metabolic loop.
+        candidates = CANONICAL_9
     # Filter out internal_only tools regardless of mode.
     return tuple(
         name
@@ -245,9 +273,9 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     """Report the public tool surface state for the given mode.
 
-    Two profiles (2026-06-30 clarity):
-      canonical7 — 7 constitutional verbs (public agents, default)
-      expanded45 — canonical7 + diagnostics (operator/debug, ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)
+    Two profiles (2026-07-04 CANONICAL-9):
+      canonical9 — 9-stage metabolic loop (9 tools, public agents, default)
+      expanded45 — canonical9 + diagnostics (operator/debug, ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)
     """
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
@@ -255,13 +283,15 @@ def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     return {
         "mode": resolved,
         "mode_aliases": {
-            "canonical7": "7 constitutional verbs (public default)",
-            "canonical13": "DEPRECATED alias for canonical7",
-            "expanded45": "canonical7 + arif_conformance_report + arif_canary + diagnostics (operator/debug)",
+            "canonical9": "9-stage metabolic loop (9 tools, public default; CANONICAL-9 2026-07-04)",
+            "canonical12": "DEPRECATED alias for canonical9 (was 12 verbs pre-2026-07-04)",
+            "canonical7": "DEPRECATED alias for canonical9",
+            "canonical13": "DEPRECATED alias for canonical9",
+            "expanded45": "canonical9 + diagnostics (operator/debug)",
         },
         "tools_registered": len(tool_names),
-        "kernel_tools": len(CANONICAL_7),
-        "canonical_count": len(CANONICAL_7),
+        "kernel_tools": len(CANONICAL_9),
+        "canonical_count": len(CANONICAL_9),
         "diagnostic_tools": diagnostic_names,
         "tool_names": tool_names,
         "blocked_public_prefixes": list(BLOCKED_PUBLIC_PREFIXES),
@@ -347,7 +377,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": "/ready",
-        "tools": len(CANONICAL_7),  # dynamic from CANONICAL_7 tuple — single source of truth
+        "tools": len(CANONICAL_9),  # dynamic from CANONICAL_9 tuple — single source of truth
         "prompts": len(CANONICAL_PROMPTS),
         "resources": len(CANONICAL_RESOURCES),
         "protocol_version": "2025-11-25",  # aligned with MCP_SPEC_VERSION_CANONICAL

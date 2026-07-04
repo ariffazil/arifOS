@@ -1,12 +1,14 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-07-03
+last_verified: 2026-07-04
 valid_from: 2026-06-27
-valid_until: 2026-08-02
+valid_until: 2026-08-03
 confidence: high
 scope: /root/arifOS
 epistemic_status: SOURCE_OF_TRUTH
 refresh_history:
+  - 2026-07-04 20:00 UTC (FORGE final — MARHIN doctrine ratified; marhin_discovery v1.0.0 + skills_contracts_resource v1.0.0 forged; 24/24 tests PASS; 10/10 hard gates satisfied; RSI INIT DORMANT awaiting F13 enable)
+  - 2026-07-04 19:55 UTC (FORGE wrap — Phase 1 stable; skill_delta_engine v1.0.0 dormant 8/8; entropy audit sealed; Phase 2 wiring deferred)
   - 2026-06-27 23:25 UTC (FORGE KERNEL HARDENING — 7 patches, C-1/C-2 bypasses closed, H-1/H-3/H-4/M-1/M-3)
   - 2026-06-27 18:30 UTC (FORGE RSI — SOT cleanup, tightened header narrative)
   - 2026-06-27 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)

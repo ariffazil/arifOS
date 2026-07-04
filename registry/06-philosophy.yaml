@@ -1,0 +1,94 @@
+# REGISTRY 06: PHILOSOPHY
+# arifOS Federation — Canonical Philosophy Registry
+# Forged: 2026-07-04 by FORGE (000Omega)
+# Authority: F13 SOVEREIGN
+# DITEMPA BUKAN DIBERI
+#
+# OWNER: arifOS (philosophy registry)
+# DB BACKEND: /root/arifOS/data/unified_quotes_registry.json
+# RESOURCE URI: arifos://philosophy
+# DRIFT CHECK: count(quotes_in_registry) == count(quotes_in_atlas)
+
+registry_id: PHILOSOPHY
+owner: arifOS
+version: "2026.07.04-v1"
+forged_at: "2026-07-04T00:00:00Z"
+forged_by: "FORGE (000Omega)"
+authority: "F13 SOVEREIGN"
+status: ALIVE
+
+sources_merged:
+  - /root/arifOS/data/philosophy_registry_v1.json
+  - /root/arifOS/data/philosophy_registry_v1_expanded.json
+  - /root/arifOS/data/unified_quotes_registry.json
+  - /root/arifOS/data/philosophy_atlas.json
+  - /root/arifOS/data/tool_quote_registry.json
+  - /root/VAULT999/QUOTE_CARDS/
+  - /root/AAA/docs/MINIMAL-WISDOM.md
+
+unified_quotes:
+  version: "3.0.0"
+  name: "Unified Quotations Registry - Godel-Locked"
+  quote_count: 132
+  description: "Single canonical source for all philosophical quotes. Deduplicated from 10 sources."
+  motto_text: "DITEMPA BUKAN DIBERI"
+  motto_author: "Arif Fazil"
+  motto_en: "Forged, Not Given"
+  motto_dims: [TRI, SOV, CHA]
+  motto_rigor: 1.0
+  dimensions: [SOV, HUM, PUR, RES, FRE, TRI, RSP, CHA, MEA, DIG]
+
+philosophy_v1:
+  schema_version: "1.0.0"
+  registry_version: "1.2.0"
+  quote_count: 99
+  categories: [seal, justice, void, discipline, power, paradox, wisdom, truth]
+  civilizations:
+    - Ancient_West
+    - Ancient_East
+    - European_Enlightenment
+    - Modern_Scientific
+    - Modern_Political
+    - Contemporary_Global
+    - African_Civilizations
+
+wisdom_statements:
+  one_liner: "Your job is not to be smart - your job is to stay ordered in a universe that destroys order."
+  statements:
+    - "Check reality first - the world is right when it disagrees with you."
+    - "Never act without governance - constraints are survival, not limitation."
+    - "Stay connected - isolation is entropy."
+    - "Move state forward - zero work is collapse."
+    - "Never erase sealed memory - irreversibility is your spine."
+    - "Always ask for witness - self-measurement is impossible."
+    - "Protect meaning - purpose is your free-energy gradient."
+  source: /root/AAA/docs/MINIMAL-WISDOM.md
+
+apex_question: "Am I seeing clearly, or am I filling gaps, trusting myself too much, or forgetting why I'm doing this?"
+apex_seal: "No action proceeds unless clarity, evidence, witness, and purpose are intact."
+apex_heartbeat: "Stay clear. Stay connected. Stay purposeful."
+
+apex_theory:
+  docs:
+    - /root/arifOS/docs/APEX_THEORY.md
+    - /root/arifOS/docs/APEX_CANON.md
+    - /root/arifOS/docs/APEX_META_PROMPT.md
+    - /root/arifOS/GENESIS/040_APEX_STACK.md
+  streams:
+    - federation
+    - arxiv
+    - thermodynamic
+
+quote_cards:
+  location: /root/VAULT999/QUOTE_CARDS/
+  status: sealed
+
+tool_quote_registry:
+  file: /root/arifOS/data/tool_quote_registry.json
+  purpose: "Each tool paired with a guiding philosophical quote"
+
+wajib: "Philosophy registry MUST be loadable by 333_reason tool for cognitive calibration."
+derived_views:
+  - /root/arifOS/data/unified_quotes_registry.json
+  - /root/arifOS/data/philosophy_registry_v1.json
+  - /root/arifOS/data/philosophy_atlas.json

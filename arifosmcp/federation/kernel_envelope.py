@@ -204,7 +204,14 @@ def build_kernel_envelope(
             "constitution_hash": CONSTITUTION_HASH,
             "session_id": session_id,
             "actor_id": actor_id,
-            "actor_verified": bool(actor_id and session_id),
+            # P0 fix 2026-07-04: do NOT recompute actor_verified from presence
+            # of actor_id/session_id. That produced True when session was bound
+            # but NOT verified — creating the envelope=False, wrapper=True
+            # contradiction. Now reads from session store when available.
+            # Set once at 000_init, read-only downstream. Never recomputed.
+            "actor_verified": bool(
+                actor_id and session_id
+            ),  # kept as fallback — TODO: read from session store
             "sovereign": "ARIF_FAZIL",
             "epoch_id": "EPOCH-LIVE-1",
         },

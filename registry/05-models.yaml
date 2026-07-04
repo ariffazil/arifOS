@@ -1,0 +1,182 @@
+# REGISTRY 05: MODELS
+# arifOS Federation — Canonical Model Registry
+# Forged: 2026-07-04 by FORGE (000Omega)
+# Authority: F13 SOVEREIGN
+# DITEMPA BUKAN DIBERI
+#
+# OWNER: arifOS (canonical model registry)
+# DB BACKEND: /root/arifOS/arifosmcp/config/model_registry.json
+# RESOURCE URI: arifos://models
+# DRIFT CHECK: count(models_in_registry) == count(models_configured)
+
+registry_id: MODELS
+owner: arifOS
+version: "2026.07.04-v1"
+forged_at: "2026-07-04T00:00:00Z"
+forged_by: "FORGE (000Omega)"
+authority: "F13 SOVEREIGN"
+status: ALIVE
+
+sources_merged:
+  - /root/arifOS/arifosmcp/config/model_registry.json
+  - /root/arifos-model-registry/
+  - /root/AAA/registries/FEDERATION_MODEL.json
+  - /root/AAA/registries/models/
+  - /root/AAA/registries/model_soul.yaml
+
+# ── Model Registry (26 models) ──
+models:
+  # DeepSeek (2 models)
+  - model_key: "deepseek/deepseek-v4-pro"
+    provider: deepseek
+    family: deepseek
+    risk_tier: bounded
+    context_window: 1048576
+    capabilities: [reason, draft, code, analyze, search, plan, agentic]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit, constitutional_amendment]
+    identity_verified: true
+    role: AUDITOR
+  - model_key: "deepseek/deepseek-chat"
+    provider: deepseek
+    family: deepseek-chat
+    risk_tier: bounded
+    capabilities: [reason, draft, code, analyze, search]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit, constitutional_amendment]
+    identity_verified: false
+
+  # MiniMax (2 models)
+  - model_key: "minimax/minimax-m3"
+    provider: minimax
+    family: minimax
+    risk_tier: bounded
+    context_window: 1048576
+    capabilities: [reason, draft, code, analyze, search, plan, agentic, constitutional_deliberation]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+    identity_verified: true
+  - model_key: "minimax/minimax-m2.7-highspeed"
+    provider: minimax
+    family: minimax
+    risk_tier: bounded
+    capabilities: [reason, draft, code, analyze]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+    identity_verified: true
+    role: OPS
+
+  # Alibaba/Bailian (4+ models)
+  - model_key: "alibaba/glm-5.2"
+    provider: "alibaba (bailian-token-plan)"
+    family: glm
+    risk_tier: bounded
+    context_window: 262144
+    capabilities: [reason, draft, code, analyze, search, plan, agentic]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+    identity_verified: true
+    role: FORGE
+  - model_key: "alibaba/kimi-k2.7-code"
+    provider: "alibaba (bailian-token-plan)"
+    family: kimi
+    risk_tier: bounded
+    context_window: 262144
+    capabilities: [reason, draft, code, analyze, plan, agentic]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+    identity_verified: true
+    role: PLAN
+  - model_key: "alibaba/qwen-3.6-flash"
+    provider: "alibaba (bailian-token-plan)"
+    family: qwen
+    risk_tier: bounded
+    context_window: 131072
+    capabilities: [reason, draft, code, analyze]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+    identity_verified: true
+    role: Small
+
+  # Xiaomi (1 model)
+  - model_key: "xiaomi/mimo-v2.5-pro"
+    provider: xiaomi
+    family: mimo
+    risk_tier: bounded
+    context_window: 1000000
+    capabilities: [reason, draft, code, analyze, search, plan, agentic, tool_call]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+    identity_verified: true
+    role: PRIMARY (OpenCode)
+
+  # Anthropic (2 models)
+  - model_key: "anthropic/claude-opus-4"
+    provider: anthropic
+    family: claude
+    risk_tier: bounded
+    context_window: 1000000
+    capabilities: [reason, draft, code, analyze, search, plan, agentic]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+    identity_verified: true
+  - model_key: "anthropic/claude-sonnet-4"
+    provider: anthropic
+    family: claude
+    risk_tier: guarded
+    context_window: 1000000
+    capabilities: [reason, draft, code, analyze]
+    forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+
+  # Ilmu, OpenRouter, Hermes (remaining)
+  - model_key: "ilmu/ilmu-model"
+    provider: ilmu
+    risk_tier: guarded
+  - model_key: "openrouter/auto"
+    provider: openrouter
+    risk_tier: guarded
+  - model_key: "hermes/internal"
+    provider: hermes
+    risk_tier: bounded
+
+# ── Default for Unlisted ──
+default_for_unlisted:
+  risk_tier: guarded
+  forbidden: [self_authorize, seal_without_judge, irreversible_commit]
+  requires_human_ack_for: [all_irreversible]
+
+# ── Provider Endpoints ──
+providers:
+  deepseek:
+    endpoint: "https://api.deepseek.com/v1"
+    auth: "Bearer ${DEEPSEEK_API_KEY}"
+  minimax:
+    endpoint: "https://api.minimax.io/v1"
+    auth: "Bearer ${MINIMAX_API_KEY}"
+  alibaba:
+    endpoint: "https://dashscope.aliyuncs.com/api/v1"
+    auth: "Bearer ${BAILIAN_API_KEY}"
+  xiaomi:
+    endpoint: "https://api.token-plan-sgp.xiaomi.com/v1"
+    auth: "Bearer ${XIAOMI_API_KEY}"
+  anthropic:
+    endpoint: "https://api.anthropic.com/v1"
+    auth: "Bearer ${ANTHROPIC_API_KEY}"
+
+# ── Model Rotation (Active 2026-07-04) ──
+rotation:
+  OpenCode: "MiMo V2.5 Pro (xiaomi)"
+  FORGE: "GLM-5.2 (bailian)"
+  AUDITOR: "DeepSeek V4 Pro"
+  OPS: "MiniMax M2.7 Highspeed"
+  PLAN: "Kimi K2.7 Code"
+  Small: "Qwen 3.6 Flash"
+
+# ── Model Souls and Shadows ──
+souls_and_shadows:
+  location: /root/AAA/registries/models/
+  providers_with_souls: [anthropic, deepseek, kimi, minimax, qwen, xiaomi_mimo, ilmu]
+  shadow_incidents:
+    - id: "SHADOW-2026-06-12-0001"
+      name: "Ismail Marzuki Ghazali"
+      classification: phantom_proper_noun
+      verdict: "SHADOW - audited, classified, not erased"
+      carry_forward: "BM Noun Layer v0.1 needs L1 grammar plus L2 onomastic plus L3 cognitive BM"
+
+# ── WAJIB ──
+wajib: "Model registry MUST declare forbidden actions per model. No self_authorize ever."
+derived_views:
+  - /root/arifOS/arifosmcp/config/model_registry.json
+  - /root/AAA/registries/FEDERATION_MODEL.json
+  - /root/AAA/registries/model_soul.yaml

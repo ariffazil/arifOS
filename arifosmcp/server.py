@@ -544,18 +544,24 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface contains exactly the 7 public canonical verbs.
+    """Assert the registered surface matches the canonical public set.
 
-    7-Tool MCP Facade (F13 ratified 2026-06-23): the default public wire surface is
-    exactly 7 tools. Canary probes and diagnostics are internal helpers, gated behind
-    ARIFOS_MCP_EXPOSE_DEV_TOOLS=true for expanded45 mode.
+    ZEN-9 collapse 2026-07-04: the default public wire surface is the 9-stage
+    metabolic loop. Absorbed tools and internal-only aliases are subtracted.
     """
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_7, DIAGNOSTIC_TOOLS
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS as CONST_DIAG
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_9
 
-    expected_set = set(CANONICAL_7)
-    # Subtract ALL non-public tools (canary probes + gated diagnostics) from the
-    # registered set. What remains must be exactly the public 7.
-    registered_set = set(registered_names) - set(DIAGNOSTIC_TOOLS)
+    expected_set = set(CANONICAL_9)
+    registered_set = set(registered_names)
+    # Subtract all non-public tools: internal-only canonical + all diagnostic tools
+    non_public = {
+        name
+        for name, spec in CANONICAL_TOOLS.items()
+        if spec.get("access") == "internal_only" or not spec.get("expose", True)
+    }
+    non_public.update(CONST_DIAG.keys())
+    registered_set -= non_public
     for probe in CANARY_PROBES:
         registered_set.discard(probe)
     if registered_set != expected_set:
@@ -564,11 +570,8 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
         raise RuntimeError(
             f"Surface drift detected: missing={sorted(missing)}, "
             f"unexpected={sorted(unexpected)}. "
-            f"Expected public 7 tools={sorted(expected_set)}."
+            f"Expected public tools={sorted(expected_set)}."
         )
-    # F13 ratified 2026-06-23: public surface is exactly CANONICAL_7.
-    # The first check above enforces that invariant. No additional prefix check
-    # is needed — and the previous arifos_ prefix check contradicted CANONICAL_7.
 
 
 v2_tools_registered: list[str] = []
@@ -634,7 +637,7 @@ try:
     _ingress_middleware = IngressToleranceMiddleware()
 
     v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
-    _assert_registered_surface(v2_tools_registered)
+    # Surface assertion deferred — runs after all CANONICAL_12 tools are registered (incl. arif_canary)
 
     # ── Phase 3 cutover — alias shim disabled (2026-06-23 freeze) ────────────
     # FROZEN: ARIFOS_MCP_DUAL_MODE defaults to false.
@@ -716,28 +719,29 @@ try:
 
     # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
     # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
-    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
-    if _EXPOSE_DEV_TOOLS:
-        from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
+    # CANONICAL: always registered — arif_canary is in CANONICAL_12 public surface.
+    from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
 
-        mcp.tool(
-            name="arif_canary",
-            description=(
-                "Unified transport diagnostic probe. One tool, six modes. "
-                "Use for liveness checks, protocol version verification, schema round-trip "
-                "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
-                "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
-            ),
-            tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
-            annotations={
-                "readOnlyHint": True,
-                "destructiveHint": False,
-                "openWorldHint": True,
-                "idempotentHint": True,
-            },
-        )(_arif_canary_handler)
-    else:
-        logger.info("Canary multimode gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
+    mcp.tool(
+        name="arif_canary",
+        description=(
+            "Unified transport diagnostic probe. One tool, six modes. "
+            "Use for liveness checks, protocol version verification, schema round-trip "
+            "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
+            "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
+        ),
+        tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
+        annotations={
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "openWorldHint": True,
+            "idempotentHint": True,
+        },
+    )(_arif_canary_handler)
+    v2_tools_registered.append("arif_canary")
+
+    # NOW run surface assertion — all CANONICAL_12 tools registered
+    _assert_registered_surface(v2_tools_registered)
 
     # ── P3 FIX 2026-06-30: arif_triage + arif_compose — ChatGPT audit BANGANG ──
     # Both tools are implemented in kernel_canonical.py but were excluded from
@@ -794,87 +798,19 @@ try:
         except Exception as _compose_err:
             logger.warning("arif_compose registration failed (non-fatal): %s", _compose_err)
 
-    # ── Forge Ladder — DEPRECATED PROXY (engineering tools moved to A-FORGE) ─
-    # forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate now
-    # live on A-FORGE MCP (forge.arif-fazil.com/mcp, port 7071).
-    # arifOS retains a thin deprecation proxy that redirects agents to A-FORGE.
-    # Hard removal target: 2026-07-15.
-    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
-    if _EXPOSE_DEV_TOOLS:
-        _FORGE_MCP_ENDPOINT = "https://forge.arif-fazil.com/mcp"
-        _FORGE_DEPRECATION_MSG = (
-            "forge_* tools have moved to A-FORGE MCP. "
-            "Connect to forge.arif-fazil.com/mcp for engineering tools. "
-            "This arifOS endpoint will be removed 2026-07-15."
-        )
-        _FORGE_DEPRECATION_META = {
-            "status": "DEPRECATED_PROXY",
-            "forwarded_to": _FORGE_MCP_ENDPOINT,
-            "removal_after": "2026-07-15",
-            "migration": "Connect to forge.arif-fazil.com/mcp for forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate, filesystem, git, docker, postgres, and all engineering tools.",
-        }
-
-        def _make_forge_deprecated_proxy(tool_name: str) -> Callable:
-            """Return a handler that returns deprecation metadata (no **kwargs, FastMCP compat)."""
-            if tool_name == "forge_query":
-
-                def _h1(
-                    manifest: str = "",
-                    query: str = "",
-                    cwd: str = ".",
-                    session_id: str | None = None,
-                    actor_id: str | None = None,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h1
-            elif tool_name == "forge_plan":
-
-                def _h2(
-                    goal: str = "",
-                    workspace: str = ".",
-                    session_id: str | None = None,
-                    actor_id: str | None = None,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h2
-            elif tool_name == "forge_dry_run":
-
-                def _h3(
-                    plan_id: str = "",
-                    manifest: str = "",
-                    cwd: str = ".",
-                    session_id: str | None = None,
-                    actor_id: str | None = None,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h3
-            else:
-
-                def _h4(
-                    intent: str = "",
-                    context: dict | None = None,
-                    risk_tier: str = "medium",
-                    force_simulation: bool = True,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h4
-
-        for _fn in ("forge_query", "forge_plan", "forge_dry_run", "forge_plan_and_simulate"):
-            mcp.tool(
-                name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"}
-            )(_make_forge_deprecated_proxy(_fn))
-    else:
-        logger.info(
-            "Forge deprecated proxies gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
-        )
+    # ── Forge Ladder — REMOVED 2026-07-03 (FORGE T1 entropy cut, ahead of 2026-07-15 schedule)
+    # forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate previously
+    # proxied to A-FORGE MCP (forge.arif-fazil.com/mcp, port 7071) via deprecation stub.
+    # Stubs removed to honor the entropy law (Phase 1 audit 2026-07-03):
+    #   • every advertised callable must exist in tools/list as a real function
+    #   • alias-without-wrapper is FORBIDDEN
+    #   • engineering tools fully live on A-FORGE :7072 (74 tools)
+    # Reversible: this block can be restored from git history (ec1e6f803..HEAD).
+    # Receipt: /root/forge_work/tools-phase1-cut-2026-07-03.md
+    logger.info(
+        "Forge deprecated proxies REMOVED (FORGE T1 cut 2026-07-03). "
+        "Engineering tools live on A-FORGE :7072."
+    )
 
     # ── ChatGPT Compatibility Facade (ADR-012) ──────────────────────────────
     # GATED: only registered when ARIFOS_CHATGPT_COMPAT=true.
@@ -902,6 +838,39 @@ try:
             logger.info("ChatGPT compat shim registered: %s", _shim_name)
     else:
         logger.info("ChatGPT compat shims gated — set ARIFOS_CHATGPT_COMPAT=true to expose.")
+
+    # ── SDK Long-Name Alias Shims (2026-07-03 v2) ────────────────────────────
+    # ChatGPT discovers arif_session_init and arif_gateway_connect from
+    # .well-known/mcp/server.json sdk_long_name_aliases, but these are not
+    # registered in tools/list → "Unknown tool" errors.
+    # v2 fix: use _wrap_handler (same as register_tools) for proper param filtering.
+    _SDK_ALIAS_DEFS: list[tuple[str, str, str]] = [
+        ("arif_session_init", "arif_init", "arif_init"),
+        ("arif_gateway_connect", "arif_bridge_connect", "arif_bridge_connect"),
+    ]
+    for _alias_name, _handler_key, _canonical_name in _SDK_ALIAS_DEFS:
+        _alias_handler = _CANONICAL_HANDLERS.get(_handler_key) or _RUNTIME_DIAGNOSTIC_HANDLERS.get(
+            _handler_key
+        )
+        if _alias_handler is None:
+            logger.warning("SDK alias shim: no handler for %s (key=%s)", _alias_name, _handler_key)
+            continue
+        _wrapped_alias = _wrap_handler(_alias_handler, _alias_name)
+        if _wrapped_alias is None:
+            logger.warning("SDK alias shim: _wrap_handler returned None for %s", _alias_name)
+            continue
+        try:
+            mcp.tool(
+                name=_alias_name,
+                description=f"[DEPRECATED ALIAS] Use {_canonical_name} instead. Compatibility wrapper for SDK/ChatGPT clients.",
+                tags={"deprecated", "alias", "sdk-compat"},
+                annotations={"readOnlyHint": True, "destructiveHint": False},
+            )(_wrapped_alias)
+            logger.info(
+                "SDK alias shim registered: %s → %s (DEPRECATED)", _alias_name, _canonical_name
+            )
+        except Exception as _alias_err:
+            logger.warning("SDK alias shim failed for %s: %s", _alias_name, _alias_err)
 
     # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
