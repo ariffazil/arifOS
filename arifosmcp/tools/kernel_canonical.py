@@ -309,6 +309,29 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # to arifOS. These are kernel-level concerns, never domain-organ concerns.
     # The keyword map below handles normal cases; this guard catches edge cases
     # where a domain organ (e.g. WELL "health") would otherwise win.
+    #
+    # G14 FIX (2026-07-04): The original guard was over-greedy — it caught
+    # "organ health" and "organ attestation" even when the intent was an
+    # organ-qualified query like "WELL organ health" or "GEOX organ health",
+    # which should route to the named organ, not to arifOS. Fix: detect an
+    # organ-qualified phrase first (e.g. "WELL organ X", "GEOX earth Y")
+    # and route to that organ BEFORE the kernel guard fires.
+    _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS")
+
+    # Step 1: organ-qualified phrases win. If intent starts with an organ
+    # name OR contains "<organ> organ" / "<organ> health", route to it.
+    for organ_name in _ORGAN_NAMES:
+        # "WELL organ health" → WELL; "GEOX earth evidence" → GEOX; etc.
+        organ_lower = organ_name.lower().replace("-", " ").replace("a forge", "a_forge")
+        if (
+            intent_lower.startswith(organ_lower + " ")
+            or f" {organ_lower} " in intent_lower
+            or f" {organ_lower} organ " in intent_lower
+            or f" {organ_lower} health" in intent_lower
+        ):
+            return organ_lower.replace(" ", "_").replace("a_forge", "a-forge")
+
+    # Step 2: kernel guard for kernel-level concerns (MCP / constitutional / governance)
     _KERNEL_GUARD_PATTERNS: list[str] = [
         "mcp ",
         "mcp server",
@@ -355,16 +378,20 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
         "authority envelope",
         "federation contract",
         "federation manifest",
-        "organ attestation",
-        "organ health",
+        # G14 FIX: removed "organ attestation" and "organ health" from the
+        # kernel guard. Organ-qualified phrases are caught in Step 1 above.
+        # Unqualified "organ attestation" still routes to arifOS via the
+        # YAML keyword map (arifos.intent_keywords: "organ attestation").
+        "arifos organ attestation",
+        "arifos organ health",
     ]
     for pattern in _KERNEL_GUARD_PATTERNS:
         if pattern in intent_lower:
             return "arifOS"
 
+    # Step 3: YAML intent map — longest keyword match wins
     intent_map = _load_intent_map()
     organ_routes = intent_map.get("organ_routes", {})
-    # Longest keyword match wins
     best_match = None
     best_len = 0
     for organ_key, organ_config in organ_routes.items():
