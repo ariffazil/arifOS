@@ -7546,14 +7546,15 @@ def _arif_sense_observe(
 
     Modes:
       search      — Free-text query against configured search backends.
-      ingest      — Fetch and parse a specific URL.
+      fetch       — Fetch and parse a specific URL (canonical name, absorbed from arif_fetch).
+      ingest      — Legacy alias for fetch.
       compass     — Directional / geospatial heading query.
       atlas       — Structured map/layer retrieval.
       entropy_dS  — Measure thermodynamic entropy delta of the session.
       vitals      — CPU, memory, and I/O telemetry.
 
     Parameters:
-      mode       — search | ingest | compass | atlas | entropy_dS | vitals
+      mode       — search | fetch | ingest | compass | atlas | entropy_dS | vitals
       query      — Free-text search query
       url        — Target URL for ingest mode
       layers     — Layer identifiers for atlas mode
@@ -7563,6 +7564,12 @@ def _arif_sense_observe(
     Returns:
       Observation payload with results, source tag, and omega_0 (uncertainty).
     """
+    # ── Mode normalization ────────────────────────────────────────────────────
+    # `fetch` is the canonical name for URL ingestion (absorbed from arif_fetch).
+    # `ingest` is the legacy name. Both route to the same logic.
+    if mode == "fetch":
+        mode = "ingest"
+
     # ── Absorbed wiki mode (PHOENIX-72 / canonical13) ──────────────────────────
     # Short-circuit before auth/gate because it is read-only and non-network.
     if mode == "repo_map":
@@ -8591,6 +8598,7 @@ def _arif_sense_observe(
 
     allowed_modes = [
         "search",
+        "fetch",
         "ingest",
         "compass",
         "atlas",
