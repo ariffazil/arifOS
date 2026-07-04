@@ -1,0 +1,11 @@
+name: Surface Gate
+on: [push, pull_request]
+jobs:
+  surface-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pip install pyyaml
+      - name: Check surface-map against live MCP
+        run: python3 scripts/pin-surface-map.py --ci
