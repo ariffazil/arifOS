@@ -61,6 +61,8 @@ organ_routes:
       - constitutional check
       - governance check
       - governance status
+      - federation health
+      - federation healthy
       - seal boundary
       - seal verdict
       - authority envelope
@@ -132,7 +134,6 @@ organ_routes:
       - permission list
       - access control
       - audit log
-      - federation health
       - approval queue
       - A2A gateway
       - identity anchor
@@ -210,8 +211,10 @@ organ_routes:
       - forge readiness
       - forge probe
     organ: A-FORGE
-    port: 7071
-    tool_prefix: ""
+    # G15 FIX (2026-07-04): A-FORGE MCP gateway is :7072; tool prefix is forge_
+    # :7071 is the HTTP API /health /api/federation-probe endpoint.
+    port: 7072
+    tool_prefix: "forge_"
 
   geox:
     intent_keywords:

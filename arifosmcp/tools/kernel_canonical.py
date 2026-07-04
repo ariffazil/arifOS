@@ -452,7 +452,11 @@ def arif_route(
 
     target_organ = _route_intent_to_organ(intent, organ)
     intent_map = _load_intent_map()
-    organ_config = intent_map.get("organ_routes", {}).get(target_organ.lower(), {})
+    # G15 FIX (2026-07-04): normalize organ lookup key so "A-FORGE" → "a_forge"
+    # matches the YAML key. Previously hyphens caused A-FORGE route to miss config
+    # and return port=0 / tool_prefix="".
+    lookup_key = target_organ.lower().replace("-", "_")
+    organ_config = intent_map.get("organ_routes", {}).get(lookup_key, {})
     port = organ_config.get("port", 0)
     tool_prefix = organ_config.get("tool_prefix", "")
 
