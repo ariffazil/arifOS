@@ -2619,6 +2619,7 @@ def register_rest_routes(
             "surface_consistency": _get_surface_consistency(),
             "floors_active": get_floor_count(),
             "floors_enforcement": "active",
+            "runtime_floors": thermo.get("floors", {}),
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
             "registry_truth": "VERIFIED",
             "schema_hash": _compute_schema_hash(mcp, tool_registry),
