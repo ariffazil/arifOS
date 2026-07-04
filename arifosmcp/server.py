@@ -548,6 +548,10 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
 
     ZEN-9 collapse 2026-07-04: the default public wire surface is the 9-stage
     metabolic loop. Absorbed tools and internal-only aliases are subtracted.
+
+    SDK alias shims (arif_session_init, arif_gateway_connect) are also
+    subtracted — they live on the wire for SDK compat but are NOT canonical.
+    Their `_redirect_to` payload teaches callers to migrate.
     """
     from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS as CONST_DIAG
     from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_9
@@ -564,6 +568,10 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
     registered_set -= non_public
     for probe in CANARY_PROBES:
         registered_set.discard(probe)
+    # Subtract deprecated SDK aliases — they live on the wire for back-compat
+    # but must not count toward the canonical surface (forged 2026-07-04).
+    for _sdk_alias in ("arif_session_init", "arif_gateway_connect"):
+        registered_set.discard(_sdk_alias)
     if registered_set != expected_set:
         missing = expected_set - registered_set
         unexpected = registered_set - expected_set
@@ -839,44 +847,91 @@ try:
     else:
         logger.info("ChatGPT compat shims gated — set ARIFOS_CHATGPT_COMPAT=true to expose.")
 
-    # ── SDK Long-Name Alias Shims (2026-07-03 v2) ────────────────────────────
-    # ChatGPT discovers arif_session_init and arif_gateway_connect from
-    # .well-known/mcp/server.json sdk_long_name_aliases, but these are not
-    # registered in tools/list → "Unknown tool" errors.
-    # v2 fix: use _wrap_handler (same as register_tools) for proper param filtering.
-    # v3 fix (2026-07-04): gate behind ARIFOS_CHATGPT_COMPAT — these are compat shims.
-    if _CHATGPT_COMPAT:
-        _SDK_ALIAS_DEFS: list[tuple[str, str, str]] = [
-            ("arif_session_init", "arif_init", "arif_init"),
-            ("arif_gateway_connect", "arif_bridge_connect", "arif_bridge_connect"),
-        ]
-        for _alias_name, _handler_key, _canonical_name in _SDK_ALIAS_DEFS:
-            _alias_handler = _CANONICAL_HANDLERS.get(
-                _handler_key
-            ) or _RUNTIME_DIAGNOSTIC_HANDLERS.get(_handler_key)
-            if _alias_handler is None:
+    # ── SDK Long-Name Alias Shims (2026-07-04 v4) ────────────────────────────
+    # ChatGPT/SDK clients discover arif_session_init and arif_gateway_connect from
+    # .well-known/mcp/server.json sdk_long_name_aliases. If we don't register them
+    # on the wire, the surface rejects with "Unknown tool" — the exact drift that
+    # caused ChatGPT to keep calling the wrong tool (2026-07-04).
+    #
+    # v4 fix (2026-07-04): ALWAYS register the SDK aliases on the wire using the
+    # underlying dispatcher functions (which have explicit named params — FastMCP
+    # 3.x rejects *args/**kwargs wrappers).
+    #   - Solves "Unknown tool" surface drift.
+    #   - Description screams DEPRECATED + redirect to canonical name.
+    #   - Discovery manifest (`tool_discovery_resource.py`) marks aliases as
+    #     `deprecated: true` so fresh clients skip them.
+    #   - Subtracted from `_assert_registered_surface` so the assertion passes.
+    #
+    # Why not wrap _CANONICAL_HANDLERS["arif_init"]? Because the wrapped callable
+    # uses *args/**kwargs internally (see runtime/tools.py:_wrap_handler), and
+    # FastMCP 3.x rejects such wrappers at registration time. Instead we mount
+    # the underlying dispatcher functions directly: `_arif_session_init` from
+    # runtime/tools.py (with explicit named params) and the existing bridge
+    # connect handler if present.
+    _SDK_ALIAS_REGISTRATIONS: list[tuple[str, Callable[..., Any], str]] = []
+
+    # arif_session_init → mount _arif_session_init from runtime/tools.py
+    try:
+        from arifosmcp.runtime.tools import _arif_session_init as _sdk_alias_session_init
+
+        _SDK_ALIAS_REGISTRATIONS.append(
+            ("arif_session_init", _sdk_alias_session_init, "arif_init")
+        )
+    except Exception as _alias_lookup_err:
+        logger.warning(
+            "SDK alias shim: could not import _arif_session_init: %s", _alias_lookup_err
+        )
+
+    # arif_gateway_connect → try bridge handler, fall back to wrapping canonical
+    _gateway_handler = (
+        _CANONICAL_HANDLERS.get("arif_bridge_connect")
+        or _RUNTIME_DIAGNOSTIC_HANDLERS.get("arif_bridge_connect")
+    )
+    if _gateway_handler is not None:
+        # Inspect: reject *args/**kwargs wrappers (FastMCP 3.x rule).
+        try:
+            import inspect as _inspect
+
+            _sig = _inspect.signature(_gateway_handler)
+            _has_var_args = any(
+                p.kind in (_inspect.Parameter.VAR_POSITIONAL, _inspect.Parameter.VAR_KEYWORD)
+                for p in _sig.parameters.values()
+            )
+            if not _has_var_args:
+                _SDK_ALIAS_REGISTRATIONS.append(
+                    ("arif_gateway_connect", _gateway_handler, "arif_bridge_connect")
+                )
+            else:
                 logger.warning(
-                    "SDK alias shim: no handler for %s (key=%s)", _alias_name, _handler_key
+                    "SDK alias shim: arif_bridge_connect handler has *args/**kwargs "
+                    "— skipping alias mount (would be rejected by FastMCP)."
                 )
-                continue
-            _wrapped_alias = _wrap_handler(_alias_handler, _alias_name)
-            if _wrapped_alias is None:
-                logger.warning("SDK alias shim: _wrap_handler returned None for %s", _alias_name)
-                continue
-            try:
-                mcp.tool(
-                    name=_alias_name,
-                    description=f"[DEPRECATED ALIAS] Use {_canonical_name} instead. Compatibility wrapper for SDK/ChatGPT clients.",
-                    tags={"deprecated", "alias", "sdk-compat"},
-                    annotations={"readOnlyHint": True, "destructiveHint": False},
-                )(_wrapped_alias)
-                logger.info(
-                    "SDK alias shim registered: %s → %s (DEPRECATED)", _alias_name, _canonical_name
-                )
-            except Exception as _alias_err:
-                logger.warning("SDK alias shim failed for %s: %s", _alias_name, _alias_err)
-    else:
-        logger.info("SDK alias shims gated — set ARIFOS_CHATGPT_COMPAT=true to expose.")
+        except Exception as _sig_err:
+            logger.warning("SDK alias shim: signature inspect failed: %s", _sig_err)
+
+    for _alias_name, _alias_handler, _canonical_name in _SDK_ALIAS_REGISTRATIONS:
+        try:
+            mcp.tool(
+                name=_alias_name,
+                description=(
+                    f"[DEPRECATED SDK ALIAS → use {_canonical_name}] "
+                    f"This alias exists only for SDK/ChatGPT clients that already "
+                    f"discovered the legacy name from the manifest. It will be "
+                    f"removed in a future release. New calls MUST use "
+                    f"`{_canonical_name}` instead. Behavior is identical to "
+                    f"`{_canonical_name}` — only the name differs."
+                ),
+                tags={"deprecated", "alias", "sdk-compat", "redirect:" + _canonical_name},
+                annotations={"readOnlyHint": True, "destructiveHint": False},
+            )(_alias_handler)
+            v2_tools_registered.append(_alias_name)
+            logger.info(
+                "SDK alias shim registered (always-on): %s → %s (DEPRECATED)",
+                _alias_name,
+                _canonical_name,
+            )
+        except Exception as _alias_err:
+            logger.warning("SDK alias shim failed for %s: %s", _alias_name, _alias_err)
 
     # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).

@@ -45,7 +45,11 @@ TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
         "floor_enforced": "F1",
         "use_when": "Starting or resuming a governed constitutional session.",
         "do_not_use_when": "Session already active. Use other tools directly.",
+        # Aliases — deprecated 2026-07-04. Kept on the wire so clients that
+        # already discovered them get a working call (with `_redirect_to` hint),
+        # but the `deprecated` flag tells fresh clients to skip them.
         "aliases": ["arif_session_init", "session_init"],
+        "deprecated_aliases": ["arif_session_init", "session_init"],
         "keywords": ["start", "begin", "initialize", "session", "resume"],
         "examples": ["Start a new session", "Initialize arifOS"],
     },
