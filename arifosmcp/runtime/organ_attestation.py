@@ -45,6 +45,7 @@ from arifosmcp.runtime.peer_contract import (
     get_arifos_peer_contract_hash,
     get_arifos_peer_contract_url,
 )
+from arifosmcp.runtime.session import get_session_identity
 
 logger = logging.getLogger("arifosmcp.organ_attestation")
 
@@ -431,10 +432,27 @@ async def attest_organ(
         },
     )
 
+    # Resolve actor_verified from session store when available
+    # For the attest call itself, defer to session identity (the actual caller's state).
+    # Fallback: bool(session_id and actor_id) — same logic as kernel_envelope.py pre-fix.
+    _attest_actor_verified = bool(session_id and actor_id)  # fallback default
+    if session_id:
+        try:
+            _session_idn = get_session_identity(session_id)
+            if _session_idn:
+                _attest_actor_verified = bool(
+                    _session_idn.get("actor_verified")
+                    or _session_idn.get("signature_verified")
+                    or _session_idn.get("verified")
+                )
+        except Exception:
+            pass  # fallback already set
+
     envelope = LiveKernelEnvelope(
         kernel=KernelIdentity(
             session_id=session_id or "",
             actor_id=actor_id or "",
+            actor_verified=_attest_actor_verified,
             constitution_hash=_load_arifos_constitution_hash(),
         ),
         organ=OrganAttestationEnvelope(

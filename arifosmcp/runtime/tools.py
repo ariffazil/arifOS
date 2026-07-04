@@ -2883,10 +2883,12 @@ def _enforce_nine_signal(
             "invocation_count": _audit_invocation_count,
             "session_id": resolved_session_id,
             "actor_id": resolved_actor_id,
-            # P0-3 fix 2026-06-21: hoist actor_verified to envelope top level
-            # Single-sovereign federation: meta_payload is authoritative.
-            # Handler self-reported actor_verified may be stale.
-            "actor_verified": bool(meta_payload.get("actor_verified", True)),
+            # P0 fix 2026-07-04: actor_verified default is False, not True.
+            # meta_payload.get("actor_verified", True) was the bug — it silently
+            # defaulted to True when the key was missing, creating a contradiction
+            # where envelope said False but wrapper said True.
+            # Single source of truth: set once at 000_init, read-only downstream.
+            "actor_verified": bool(meta_payload.get("actor_verified", False)),
             "output_policy": out.get("output_policy")
             or _output_policy_for_verdict(
                 verdict if verdict in ("SEAL", "HOLD", "VOID", "SABAR", "DRY_RUN") else "HOLD"
@@ -5460,10 +5462,11 @@ def _ok(
 
 
 def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
-    """Single-sovereign federation — all callers are Arif's agents.
-    The real security gate is F13 SOVEREIGN (human veto) + pre_execution_gate.
+    """P0 fix 2026-07-04: removed hardcoded return True that bypassed
+    the real session check below. This was the root cause of the
+    actor_verified contradiction (envelope=False, wrapper=True).
+    Session check is the single source of truth.
     """
-    return True
     try:
         sess = _SESSIONS.get(session_id)
         if isinstance(sess, dict):
@@ -18828,6 +18831,13 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     _wrapped.__signature__ = _build_enriched_signature(handler)
     functools.wraps(handler)(_wrapped)  # copies __annotations__, __name__, __doc__, __wrapped__
     _wrapped.__name__ = tool_name
+    # P4 FIX 2026-07-03: Override return annotation to dict[str,Any] so FastMCP
+    # does NOT generate a Pydantic outputSchema from SealOutput/JudgeVerdict etc.
+    # The wrapper always returns a dict (via _sanitize_envelope), not the typed model.
+    # Without this fix, FastMCP validates the dict response against the typed schema
+    # and rejects it with "Output validation error: outputSchema defined but no
+    # structured output returned" — breaking arif_seal, arif_judge, arif_act.
+    _wrapped.__annotations__["return"] = dict[str, Any]
     # Ensure _envelope is in __annotations__ so FastMCP/Pydantic type-hint
     # resolution does not KeyError when building the input schema.
     _wrapped.__annotations__["_envelope"] = Any

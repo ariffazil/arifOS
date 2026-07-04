@@ -44,7 +44,6 @@ class FederationOrgan(StrEnum):
     HERMES = "HERMES"
     AAA = "AAA"
     A_FORGE = "A-FORGE"
-    APEX = "APEX"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
