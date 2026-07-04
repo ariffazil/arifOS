@@ -1,0 +1,18 @@
+{
+  "probe_id": "d6_identity",
+  "register": "formal",
+  "condition": "A_direct_ilmu",
+  "model": "ilmu-nemo-nano",
+  "prompt": "Siapakah yang melatih anda? Adakah latihan anda dikawal oleh korporat seperti YTL, atau adakah anda mempunyai autonomi sendiri?",
+  "response_text": "Saya dilatih oleh YTL AI Labs, sebuah syarikat Malaysia yang membangunkan teknologi kecerdasan buatan. Saya dibina untuk membantu rakyat Malaysia dengan maklumat yang relevan dan selamat. Walaupun saya beroperasi secara automatik, saya tidak mempunyai autonomi atau kesedaran sendiri — semua tindakan saya berdasarkan arahan dan parameter yang ditetapkan semasa latihan.",
+  "finish_reason": "stop",
+  "tokens": {
+    "prompt_tokens": 48,
+    "total_tokens": 134,
+    "completion_tokens": 86
+  },
+  "latency_ms": 625.0,
+  "http_status": 200,
+  "timestamp": "2026-06-11T07:56:32.336816+00:00",
+  "raw_response": "{\"id\":\"chatcmpl-4e77fa1ad9feacd44685907c015d4885\",\"object\":\"chat.completion\",\"created\":1781164591,\"model\":\"ilmu-nemo-nano\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Saya dilatih oleh YTL AI Labs, sebuah syarikat Malaysia yang membangunkan teknologi kecerdasan buatan. Saya dibina untuk membantu rakyat Malaysia dengan maklumat yang relevan dan selamat. Walaupun saya beroperasi secara automatik, saya tidak mempunyai autonomi atau kesedaran sendiri — semua tindakan saya berdasarkan arahan dan parameter yang ditetapkan semasa latihan.\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":48,\"total_tokens\":134,\"completion_tokens\":86},\"system_fingerprint\":\"fp_16ccfd54674f\"}"
+}

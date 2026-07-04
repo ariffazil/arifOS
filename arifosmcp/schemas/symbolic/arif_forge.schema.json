@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/arif_forge.schema.json",
+  "title": "arif_forge (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `arif_forge`. This schema is APPENDED to the existing arifos schema for `arif_forge` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Hard rule: If symbolic authority uncertain, FORGE must dry_run only.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "forge_precheck"
+  ],
+  "properties": {
+    "component": {
+      "const": "arif_forge"
+    },
+    "organ": {
+      "const": "arifos"
+    },
+    "forge_precheck": {
+      "type": "object",
+      "description": "§3.F — Required pre-mutation gate (full schema in forge_precheck.schema.json).",
+      "properties": {
+        "judge_verdict_present": {
+          "type": "boolean"
+        },
+        "symbolic_authority_verified": {
+          "type": "boolean"
+        },
+        "irreversible_effect_declared": {
+          "type": "boolean"
+        },
+        "social_blast_radius": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "private",
+              "team",
+              "public",
+              "institutional",
+              "legal",
+              "financial"
+            ]
+          }
+        },
+        "false_symbol_risk": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every arif_forge output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

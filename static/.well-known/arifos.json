@@ -4,8 +4,8 @@
   "url": "https://mcp.arif-fazil.com",
   "canonical": "https://arif-fazil.com/.well-known/arifos.json",
   "mcp": "https://mcp.arif-fazil.com/mcp",
-  "version": "2026.4.13",
-  "tools": 22,
+  "version": "2026.07.03-public7",
+  "tools": 7,
   "sealed": true,
   "epoch": "2026-04-18",
   "apps": [

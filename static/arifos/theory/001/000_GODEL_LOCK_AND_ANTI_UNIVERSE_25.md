@@ -171,7 +171,7 @@ Let Arif decide.
 | ----------------------------- | ------------------------------------------------------------- |
 | Self-observation allowed       | arifOS exposes /health, /tools, /mcp openly                   |
 | Self-modification gated        | L01 AMANAH reversibility check; L13 SOVEREIGN for irreversibles |
-| Self-approval forbidden        | No tool can mark its own verdict SEAL; only arif_judge_deliberate can |
+| Self-approval forbidden        | No tool can mark its own verdict SEAL; only arif_judge can |
 | External contrast              | Golden tests, red-team, runtime attestation, fresh state, human veto |
 | No closed paradise             | New organs must be added (not closed federation); universe coverage is intentionally low (2.5/10) |
 | Always external contrast       | VAULT999 ledger must grow; 30 canonical E2E traces must be recorded; red-team leaderboard must exist |

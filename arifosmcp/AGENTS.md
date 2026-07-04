@@ -9,9 +9,9 @@ generated_from: arifosmcp.constitutional_map.CANONICAL_TOOLS
 
 # arifOS MCP Runtime — Canonical Agent Skills
 
-> **DEPRECATED SURFACE (2026-06-23)**: This doc reflects pre-freeze surface. Public MCP is now exactly 7 verbs only.
-> See runtime/public_surface.py CANONICAL_7 and constitutional_map.py _PUBLIC_7.
-> Old names (arif_compose, arif_forge, arif_memory_*, etc.) are internal.
+> **ZEN-9 METABOLIC LOOP (2026-07-04)**: Public MCP is now the 9-stage metabolic loop (8 tools + critique absorbed into think as mode).
+> See runtime/public_surface.py CANONICAL_9 and constitutional_map.py _PUBLIC_9.
+> Absorbed tools: arif_canary, arif_triage → arif_init modes; arif_fetch → arif_observe mode; arif_critique → arif_think mode; arif_bridge_connect → arif_route mode.
 
 > **Constitutional Intelligence Kernel + Agent Runtime**
 >
@@ -29,53 +29,38 @@ Trinity Lanes, pipeline diagram, witness defaults, resource URIs, footer) are ha
      Regenerate: python -m arifosmcp.maintenance.generate_agents_md
      ═══════════════════════════════════════════════════════════════════════════ -->
 
-## 21 Canonical Tools (arif_noun_verb)
+## 8 Public Tools — 9-Stage Metabolic Loop
 
 All tools follow the `arif_<noun>_<verb>` naming convention.
+The 9th stage (critique) is absorbed into `arif_think(mode=critique)`.
 
-### GOVERNANCE (APEX / ASI)
+### SESSION & GOVERNANCE
 
-| Tool | Stage | Lane | Access | F-Floors |
-| :--- | :---- | :--- | :----- | :-------- |
-| `arif_init` | 000 | AGI | public | L01, L11, L12 |
-| `arif_judge` | 888 | ASI | authenticated | L01, L11, L13 |
-| `arif_seal` | 999 | APEX | authenticated | L01, L11, L13 |
+| Tool | Stage | Lane | Access | F-Floors | Modes |
+| :--- | :---- | :--- | :----- | :-------- | :---- |
+| `arif_init` | 000 | AGI | public | L01, L11, L12 | init, resume, canary, preflight, triage |
+| `arif_judge` | 666 | ASI | authenticated | L01, L02, L11, L13 | intercept, judge, validate, hold, escalate |
+| `arif_seal` | 999 | APEX | authenticated | L01, L11, L13 | seal, verify, ledger, changelog, audit |
 
-### INTELLIGENCE (Δ Mind / Ω Heart)
+### INTELLIGENCE (Cognitive Engine)
 
-| Tool | Stage | Lane | Access | F-Floors |
-| :--- | :---- | :--- | :----- | :-------- |
-| `arif_think` | 333 | AGI | public | L02, L07, L08, L10 |
-| `arif_critique` | 666 | ASI | public | L05, L06, L09 |
-| `arif_compose` | 444r | AGI | public | L02, L04, L06, L09 |
+| Tool | Stage | Lane | Access | F-Floors | Modes |
+| :--- | :---- | :--- | :----- | :-------- | :---- |
+| `arif_think` | 333 | AGI | public | L02, L05, L06, L07, L08, L09, L10 | reason, plan, critique, reflect, verify, simulate, redteam, maruah |
+| `arif_compose` | 888 | AGI | public | L02, L04, L06, L09 | compose, summarize, cite, tone_shift |
 
-### INFRASTRUCTURE
+### ROUTING & EXECUTION
 
-| Tool | Stage | Lane | Access | F-Floors |
-| :--- | :---- | :--- | :----- | :-------- |
-| `arif_kernel_route` | 555 | AGI | public | L01, L04, L03, L10 |
-| `arif_route` | 555 | AGI | public | L01, L04, L10 |
-| `arif_triage` | 555 | AGI | public | L04, L10 |
-| `arif_kernel_status` | 555 | AGI | public | L02, L04, L08 |
-| `arif_kernel_attest` | 555 | AGI | public | L01, L02 |
-| `arif_kernel_health` | 555 | AGI | public | L02, L04 |
-| `arif_bridge` | 555 | AGI | authenticated | L01, L11, L10 |
-| `arif_gateway_connect` | 666g | ASI | public | L01, L03, L11 |
-| `arif_memory_recall` | 555m | AGI | public | L01, L08, L02 |
-| `arif_measure` | 777 | AGI | public | L02, L04 |
+| Tool | Stage | Lane | Access | F-Floors | Modes |
+| :--- | :---- | :--- | :----- | :-------- | :---- |
+| `arif_route` | 444 | AGI | public | L01, L04, L10, L11 | route, bridge |
+| `arif_forge` | 777 | AGI | authenticated | L01, L11, L13 | engineer, query, write, generate, commit |
 
 ### REALITY GROUNDING
 
-| Tool | Stage | Lane | Access | F-Floors |
-| :--- | :---- | :--- | :----- | :-------- |
-| `arif_observe` | 111 | AGI | public | L02, L07 |
-| `arif_fetch` | 222 | AGI | public | L02, L03, L05, L12 |
-
-### EXECUTION
-
-| Tool | Stage | Lane | Access | F-Floors |
-| :--- | :---- | :--- | :----- | :-------- |
-| `arif_forge` | 010 | AGI | sovereign | L01, L11, L13 |
+| Tool | Stage | Lane | Access | F-Floors | Modes |
+| :--- | :---- | :--- | :----- | :-------- | :---- |
+| `arif_observe` | 111 | AGI | public | L02, L03, L07, L12 | search, fetch, ingest, vitals, atlas |
 
 
 ## Constitutional Laws (F1–L13)
@@ -115,28 +100,17 @@ Threshold: C_dark < 0.30 for SEAL.
 | ASI | Strategic judgment | 888 |
 | APEX | Authority resolution | 999 |
 
-## 000–999 Metabolic Pipeline
+## 000–999 Metabolic Pipeline (ZEN-9 Loop)
 
 ```
-000   → arif_init        — 000_INIT: Session bootstrap + identity binding. CALL FIRST…
-010   → arif_forge       — 010_FORGE_EXECUTE: Build execution — code generation,…
-111   → arif_observe       — 111_OBSERVE: Multimodal reality observation and hybrid…
-222   → arif_fetch      — 222_EVIDENCE: Verified external evidence retrieval with…
-333   → arif_think         — 333_REASON: Symbolic reasoning kernel — epistemically…
-444r  → arif_compose       — 444_REPLY: Governed response composition — formats final…
-555   → arif_kernel_route        — 555_ROUTE [DEPRECATED — use arif_route + arif_triage +…
-555   → arif_route               — 555_ROUTE_CANONICAL: New canonical routing entry point.…
-555   → arif_triage              — 555_TRIAGE: Session status, preflight, and priority…
-555   → arif_kernel_status       — 555_KERNEL_STATUS: Telemetry, semantic tool discovery, and…
-555   → arif_bridge              — 555_BRIDGE: Low-level direct organ tool call. Bypasses…
-555   → arif_kernel_attest       — 555_KERNEL_ATTEST: Live organ attestation. Replaces…
-555   → arif_kernel_health       — 555_KERNEL_HEALTH: Federation liveness heartbeat snapshot.…
-555m  → arif_memory_recall       — 555_MEMORY v4: Unified cognitive memory — 8 canonical modes…
-666   → arif_critique      — 666_HEART: Ethical critique and consequence assessment…
-666g  → arif_gateway_connect     — 666_GATEWAY: Federated cross-agent bridge — connects arifOS…
-777   → arif_measure         — 777_MEASURE: Machine resource health + governance…
-888   → arif_judge    — 888_JUDGE: Final constitutional arbitration — renders…
-999   → arif_seal          — 999_SEAL: Immutable ledger anchoring — cryptographic…
+000   → arif_init        — 000_INIT: Session bootstrap. Absorbed: canary, triage
+111   → arif_observe     — 111_OBSERVE: Sense reality. Absorbed: fetch
+333   → arif_think       — 333_REASON: Cognitive engine. Absorbed: critique
+444   → arif_route       — 444_ROUTE: Intent routing. Absorbed: bridge_connect
+666   → arif_judge       — 666_JUDGE: Constitutional verdict. SEAL/HOLD/SABAR/VOID
+777   → arif_forge       — 777_FORGE: Guarded execution. Requires prior SEAL
+888   → arif_compose     — 888_COMPOSE: Governed response. Final wire
+999   → arif_seal        — 999_SEAL: Append to VAULT999. Gödel break — only sovereign opens next loop
 ```
 
 

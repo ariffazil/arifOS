@@ -6,7 +6,7 @@
   "canonical_url": "https://arifos.arif-fazil.com/llms.json",
   "source_of_truth": {
     "human": "https://arifos.arif-fazil.com/docs/MCP_SOURCE_OF_TRUTH.md",
-    "discovery_index": "https://arifos.arif-fazil.com/mcp-discovery-index.json",
+    "discovery_index": "https://mcp.arif-fazil.com/mcp-discovery-index.json",
     "runtime_probe": "https://arifos.arif-fazil.com/api/federation-probe"
   },
   "package": {
@@ -18,12 +18,12 @@
   },
   "endpoints": {
     "public_mcp_gateway": "https://mcp.arif-fazil.com/mcp",
-    "service_mcp": "https://arifos.arif-fazil.com/mcp",
+    "service_mcp": "https://mcp.arif-fazil.com/mcp",
     "health": "https://arifos.arif-fazil.com/health",
     "tools_list": "https://arifos.arif-fazil.com/tools",
     "mcp_manifest": "https://arifos.arif-fazil.com/.well-known/mcp/server.json",
     "federation_probe": "https://arifos.arif-fazil.com/api/federation-probe",
-    "discovery_index": "https://arifos.arif-fazil.com/mcp-discovery-index.json",
+    "discovery_index": "https://mcp.arif-fazil.com/mcp-discovery-index.json",
     "protocol": "MCP JSON-RPC 2.0",
     "transport": "streamable-http",
     "legacy_endpoint": "https://arifosmcp.arif-fazil.com/mcp"

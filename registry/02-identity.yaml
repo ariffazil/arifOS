@@ -1,0 +1,179 @@
+# REGISTRY 02: IDENTITY
+# arifOS Federation — Canonical Identity Registry
+# Forged: 2026-07-04 by FORGE (000Ω)
+# Authority: F13 SOVEREIGN
+# DITEMPA BUKAN DIBERI
+#
+# OWNER: AAA (agent cards) + arifOS (sessions + leases)
+# DB BACKEND: /root/AAA/registries/AAA_AGENTS_REGISTRY.json
+#             /root/AAA/agents/*/agent-card.json (20 cards)
+# RESOURCE URI: arifos://identity
+# SCHEMA: agent-card-v2.2.0.schema.json
+# DRIFT CHECK: count(agent_cards_on_disk) == count(registry_agents)
+
+registry_id: IDENTITY
+owner: AAA + arifOS
+version: "2026.07.04-v1"
+forged_at: "2026-07-04T00:00:00Z"
+forged_by: "FORGE (000Ω)"
+authority: "F13 SOVEREIGN"
+status: ALIVE
+
+# ── Source files merged ──
+sources_merged:
+  - /root/AAA/registries/AAA_AGENTS_REGISTRY.json
+  - /root/AAA/registries/agents.yaml
+  - /root/AAA/agents/*/agent-card.json
+  - /root/arifOS/static/agent-card.json
+  - /root/arifOS/static/soul.json
+  - /root/arifOS/arifosmcp/schemas/peer_federation_contract.py
+
+# ── Sovereign Anchor ──
+sovereign:
+  id: "000"
+  name: "Muhammad Arif bin Fazil"
+  did: "did:web:arif-fazil.com"
+  role: "F13 SOVEREIGN"
+  authority: "absolute"
+  veto: "Arif holds final veto on all irreversible actions"
+  anchor_url: "https://arif-fazil.com/000/"
+  signature: "Ed25519 verifiable by any agent"
+
+# ── Agent Tiers ──
+tiers:
+  PRIMARY:
+    description: "Federation-level constitutional agents"
+    agents: ["333-AGI", "555-ASI", "888-APEX"]
+  SUPPORT:
+    description: "Internal control plane"
+    agents: ["A-AUDIT", "A-ARCHIVE"]
+  CODING:
+    description: "Forge instruments and coding harnesses"
+    agents: ["OpenCode", "OpenClaw", "Hermes", "Copilot", "Cursor", "Grok-Build", "Windsurf", "Codex-CLI", "Kimi-Code", "continue-cli", "gemini-cli"]
+  RUNTIME:
+    description: "Live runtime agents"
+    agents: ["hermes-ops"]
+
+# ── Agent Roster (20 agents) ──
+agents:
+  - id: "333-AGI"
+    tier: PRIMARY
+    role: "Delta MIND — reason + execute"
+    stage: 333
+    pipeline_position: 1
+  - id: "555-ASI"
+    tier: PRIMARY
+    role: "Memory + critique — deep pattern recognition"
+    stage: 555
+    pipeline_position: 2
+  - id: "888-APEX"
+    tier: PRIMARY
+    role: "Judge — constitutional verdict"
+    stage: 888
+    pipeline_position: 3
+  - id: "A-AUDIT"
+    tier: SUPPORT
+    role: "Autonomous constitutional auditor"
+    stage: null
+    pipeline_position: 4
+  - id: "A-ARCHIVE"
+    tier: SUPPORT
+    role: "Archive and memory steward"
+    stage: null
+    pipeline_position: 5
+  - id: "OpenCode"
+    tier: CODING
+    role: "Governed coding forge worker"
+    model: "MiMo V2.5 Pro"
+    stage: null
+  - id: "FORGE"
+    tier: CODING
+    role: "Autonomous engineering arm"
+    model: "GLM-5.2"
+    stage: 000
+  - id: "AUDITOR"
+    tier: CODING
+    role: "Constitutional auditor"
+    model: "DeepSeek V4 Pro"
+  - id: "OPS"
+    tier: CODING
+    role: "Topology guardian"
+    model: "MiniMax M2.7 Highspeed"
+  - id: "PLAN"
+    tier: CODING
+    role: "DAG planner"
+    model: "Kimi K2.7 Code"
+  - id: "Hermes"
+    tier: CODING
+    role: "Telegram conversational agent"
+  - id: "OpenClaw"
+    tier: CODING
+    role: "Legacy reasoning engine"
+  - id: "Copilot"
+    tier: CODING
+    role: "GitHub Copilot harness"
+  - id: "Cursor"
+    tier: CODING
+    role: "Cursor IDE harness"
+  - id: "Grok-Build"
+    tier: CODING
+    role: "xAI Grok 4.3 Build TUI harness"
+  - id: "Windsurf"
+    tier: CODING
+    role: "Windsurf IDE harness"
+  - id: "Codex-CLI"
+    tier: CODING
+    role: "OpenAI Codex CLI harness"
+  - id: "Kimi-Code"
+    tier: CODING
+    role: "Kimi K2.7 Code harness"
+  - id: "continue-cli"
+    tier: CODING
+    role: "Continue CLI forge instrument"
+  - id: "gemini-cli"
+    tier: CODING
+    role: "Gemini CLI harness"
+
+# ── Principal Agent Taxonomy ──
+principal_taxonomy:
+  - architect    # Designs systems
+  - agent        # Autonomous actor
+  - llm          # Language model
+  - human        # Human operator
+  - institution  # Institutional entity
+  - earth        # Physical reality witness
+  - void         # Null/empty
+  - liar         # Adversarial/untrusted
+  - unknown      # Unverified
+
+# ── Session State ──
+session_state:
+  storage: "/root/arifOS/memory/"
+  format: "markdown daily logs"
+  qdrant_collections:
+    - arifos_session_memory
+    - arifos_memory
+    - arifos_cognitive_memory
+  wajib: "Session state MUST survive context compaction (anti-strange-loop)"
+
+# ── Lease Registry ──
+lease_registry:
+  issuer: "arifOS kernel"
+  scope: ["organ_id", "tool_list", "action_class", "ttl_seconds"]
+  wajib: "Leases scope organ/agent tool access and action class"
+
+# ── Peer Federation Contracts ──
+peer_contracts:
+  protocol: "Peer Federation Contract v1"
+  organ_to_organ: true
+  wajib: "Organ-to-organ capability contracts with attestation"
+
+# ── Pipeline ──
+pipeline: "000-SALAM → 333-AGI (reason) → 555-ASI (critique + memory) → 888-APEX (judge) → [A-AUDIT validates]"
+
+# ── Derived Views ──
+derived_views:
+  - /root/AAA/registries/AAA_AGENTS_REGISTRY.json
+  - /root/AAA/registries/agents.yaml
+  - /root/arifOS/static/agent-card.json
+  - /root/arifOS/static/soul.json

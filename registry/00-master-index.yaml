@@ -1,0 +1,110 @@
+# arifOS Registry — Master Index
+# Forged: 2026-07-04 by FORGE (000Omega)
+# Authority: F13 SOVEREIGN
+# DITEMPA BUKAN DIBERI
+#
+# 9 canonical registries. One concept, one registry, one resource URI.
+# Drift between layers = constitutional breach.
+
+version: "2026.07.04-v1"
+forged_at: "2026-07-04T00:00:00Z"
+forged_by: "FORGE (000Omega)"
+authority: "F13 SOVEREIGN"
+status: ALIVE
+
+# ── The 9 Canonical Registries ──
+registries:
+  01-CONSTITUTION:
+    file: 01-constitution.yaml
+    owner: arifOS
+    resource_uri: arifos://doctrine
+    db_backend: /root/arifOS/static/constitution.json
+    wajib: "Every agent must load F1-F13 at session init"
+    
+  02-IDENTITY:
+    file: 02-identity.yaml
+    owner: AAA + arifOS
+    resource_uri: arifos://identity
+    db_backend: /root/AAA/registries/AAA_AGENTS_REGISTRY.json
+    wajib: "Agent cards discoverable at /.well-known/agent.json"
+    
+  03-TOOLS:
+    file: 03-tools.yaml
+    owner: arifOS + AAA
+    resource_uri: arifos://tools
+    db_backend: /root/arifOS/arifosmcp/tool_registry.json
+    wajib: "Every tool must have affordance card before registration"
+    
+  04-SCARS:
+    file: 04-scars.yaml
+    owner: arifOS + VAULT999
+    resource_uri: arifos://scars
+    db_backend: /root/arifOS/static/scar.json + /root/VAULT999/scars/
+    wajib: "Scars immutable once sealed. Cooling ledger entries MUST have TTL."
+    
+  05-MODELS:
+    file: 05-models.yaml
+    owner: arifOS
+    resource_uri: arifos://models
+    db_backend: /root/arifOS/arifosmcp/config/model_registry.json
+    wajib: "Model registry MUST declare forbidden actions per model"
+    
+  06-PHILOSOPHY:
+    file: 06-philosophy.yaml
+    owner: arifOS
+    resource_uri: arifos://philosophy
+    db_backend: /root/arifOS/data/unified_quotes_registry.json
+    wajib: "Philosophy registry loadable by 333_reason for cognitive calibration"
+    
+  07-MEMORY:
+    file: 07-memory.yaml
+    owner: arifOS + all organs
+    resource_uri: arifos://memory
+    db_backend: /root/arifOS/memory/ + Qdrant (12 collections)
+    wajib: "Session state MUST survive context compaction"
+    
+  08-VAULT:
+    file: 08-vault.yaml
+    owner: VAULT999
+    resource_uri: arifos://vault
+    db_backend: /root/VAULT999/ (31 subdirs)
+    wajib: "Append-only. No delete, no modify, no overwrite."
+    
+  09-WITNESS:
+    file: 09-witness.yaml
+    owner: arifOS + VAULT999
+    resource_uri: arifos://witness
+    db_backend: /root/VAULT999/witness/
+    wajib: "Every LLM output MUST be wrapped in WitnessPacket"
+
+# ── Init Load Order ──
+init_load_order:
+  mandatory:
+    - 01-CONSTITUTION
+    - 02-IDENTITY
+    - 03-TOOLS
+    - 04-SCARS
+    - 05-MODELS
+  optional:
+    - 06-PHILOSOPHY
+    - 07-MEMORY
+    - 08-VAULT
+    - 09-WITNESS
+
+# ── Drift Detection ──
+drift_detector: /root/arifOS/registry/drift_detector.py
+drift_rule: "DB says X, registry says Y, resource shows Z = VOID"
+
+# ── The Zen ──
+zen: |
+  CONSTITUTION  - what IS the law
+  IDENTITY      - WHO is acting
+  TOOLS         - WHAT can be done
+  SCARS         - WHAT went wrong
+  MODELS        - WHAT runs the thinking
+  PHILOSOPHY    - WHY it matters
+  MEMORY        - WHAT was learned
+  VAULT         - WHAT cannot be changed
+  WITNESS       - WHAT can be proven
+  
+  Nine registries. Nine truths. One sovereign at /000/.

@@ -1,8 +1,10 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-28
+last_verified: 2026-07-03
 valid_from: 2026-05-22
-valid_until: 2026-07-28
+valid_until: 2026-08-02
 confidence: high
 scope: /
 -->

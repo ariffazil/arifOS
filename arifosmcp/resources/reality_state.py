@@ -164,7 +164,7 @@ def _probe_digital() -> dict[str, Any]:
         "vault999": {
             "epistemic": "DECLARED",
             "layers": ["local_JSONL", "Postgres", "Supabase"],
-            "note": "Chain height available via hermes_vault_query",
+            "note": "Chain height available via arif_vault_query",
         }
     }
 

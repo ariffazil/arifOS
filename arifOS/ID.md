@@ -74,7 +74,7 @@ Sovereign, F13 floor.
 | Link | URL |
 |---|---|
 | Source | `https://github.com/ariffazil/arifos` |
-| Public MCP endpoint | `https://arifos.arif-fazil.com/mcp` |
+| Public MCP endpoint | `https://mcp.arif-fazil.com/mcp` |
 | Live server card | `https://arifos.arif-fazil.com/.well-known/mcp.json` |
 | Wheel | `dist/arifos-2026.6.11-py3-none-any.whl` |
 | PyPI | (not yet published — pre-release verification) |

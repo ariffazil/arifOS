@@ -13,143 +13,184 @@ from arifosmcp.resources import (
 )
 from arifosmcp.runtime.build import get_build_info
 
-# ═─ 7-Tool MCP Facade (F4 CLARITY: one intent = one public tool) ─═══════════
-# Public agents see only these 7 verbs. Everything else is an internal alias,
-# diagnostic probe, or hidden helper. See /root/AAA/skills/arifos-recursive-audit
-# and AGENTIC_AFFORDANCE_GUIDE.md for doctrine.
-CANONICAL_7: tuple[str, ...] = (
-    "arif_init",  # 000 — Bootstrap governed session and bind actor identity.
-    "arif_observe",  # 111 — Ground in current reality (absorbs fetch).
-    "arif_think",  # 333 — Reason, plan, reflect, critique.
-    "arif_route",  # 444 — Route intent to correct organ.
-    "arif_judge",  # 888 — Constitutional verdict (SEAL/HOLD/VOID).
-    "arif_act",  # 900 — Execute approved action. Requires seal_verdict_id.
-    "arif_seal",  # 999 — Seal to immutable ledger.
+# ══ 9-Verb Metabolic Loop (F4 CLARITY: one stage = one public verb) ══════
+# Public agents see exactly these 9 stage-verbs. 9 stages = 9 tools.
+# CANONICAL-9 collapse 2026-07-04:
+#   - Removed from public surface: arif_canary (→ arif_init mode), arif_triage
+#       (→ arif_init mode), arif_fetch (→ arif_observe mode),
+#       arif_bridge_connect (→ arif_route mode).
+#   - Restored to public surface: arif_seal (999 — stage needs its verb).
+#   - Promoted to public surface: arif_critique (555 — separated from arif_think).
+#   - Each absorbed verb becomes a mode on its parent tool.
+# See /root/forge_work/2026-07-04/ZEN-9-VERB-METABOLIC-LOOP.md for doctrine.
+CANONICAL_9: tuple[str, ...] = (
+    # 000 — Session anchor + transport probe + preflight (merged)
+    "arif_init",  # 000 — Session bootstrap. Modes: init, resume, canary, preflight, triage
+    # 111 — Reality sensing + evidence fetch (merged)
+    "arif_observe",  # 111 — Sense reality. Modes: search, fetch, ingest, vitals, atlas
+    # 333 — Reasoning engine
+    "arif_think",  # 333 — Cognitive engine. Modes: reason, plan, reflect, verify
+    # 444 — Intent routing + organ bridge (merged)
+    "arif_route",  # 444 — Route intent to organ. Modes: route, bridge, triage
+    # 555 — Adversarial critique (promoted from arif_think mode to own tool)
+    "arif_critique",  # 555 — Ethical/maruah assessment. Modes: critique, redteam, maruah, shadow
+    # 666 — Constitutional verdict
+    "arif_judge",  # 666 — Constitutional verdict. SEAL/CANDIDATE/HOLD/SABAR/VOID
+    # 777 — Guarded execution
+    "arif_forge",  # 777 — Execute after SEAL. Modes: engineer, query, write, generate, commit
+    # 888 — Governed response composition
+    "arif_compose",  # 888 — Response composition. Modes: compose, summarize, cite, tone_shift
+    # 999 — VAULT999 seal
+    "arif_seal",  # 999 — Append to VAULT999. Modes: seal, verify, ledger
 )
 
-# Deprecated alias for internal code that still imports CANONICAL_13.
-CANONICAL_13: tuple[str, ...] = CANONICAL_7
-# CANONICAL_7 is the single public canonical set.
+# ── DEPRECATED ALIASES (P5 shadow cleanup 2026-07-04) ─────────────────────
+# These exist ONLY for backward compatibility with imports in tests/fixtures.
+# They all point to CANONICAL_9. Do NOT use in new code.
+# SHADOW STATUS: frozen, not removed — removal would break existing imports.
+CANONICAL_7: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
+CANONICAL_13: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
+CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
 
-# ── Canary Probe — transport diagnostic, now internal-only ─────────────────
-# The canary is a pure transport probe. In the 7-tool facade it is no longer
-# advertised on the public wire surface; it remains available as a diagnostic
-# helper for federation operators and health checks.
-CANARY_PROBES: tuple[str, ...] = ("arif_canary",)
+# ── Canary Probe — transport diagnostic, absorbed into arif_init(mode=canary) ──
+# arif_canary is absorbed as a mode of arif_init. Its 6 child names are
+# DEPRECATED → use arif_init(mode=canary). They are kept as internal aliases
+# for backward compatibility only.
+CANARY_PROBES: tuple[str, ...] = ()
+DEPRECATED_CANARY_CHILDREN: tuple[str, ...] = (
+    "arif_ping",
+    "arif_schema_echo",
+    "arif_version_echo",
+    "arif_transport_echo",
+    "arif_initialize_probe",
+    "arif_conformance_report",
+)
 
 # ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────
-# These aliases were on the wire surface during Phase 2 dual-mode migration.
-# FROZEN 2026-06-23: aliases removed from public wire surface.
-# One name per tool. Internal Python aliases still resolve via _CANONICAL_HANDLERS.
-# If a legacy client sends arif_session_init, the kernel interceptor routes it.
-# But tools/list returns ONLY canonical names.
-CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = (
-    "arif_session_init",
-    "arif_sense_observe",
-    "arif_evidence_fetch",
-    "arif_mind_reason",
-    "arif_heart_critique",
-    "arif_reply_compose",
-    "arif_memory_recall",
-    "arif_gateway_connect",
-    "arif_ops_measure",
-    "arif_judge_deliberate",
-    "arif_vault_seal",
-    "arif_forge_execute",
+# FROZEN 2026-06-23 + PURGED 2026-06-30 + RE-PURGED 2026-07-04: aliases removed
+# from public wire surface. Backend handlers still resolve via _LEGACY_ALIASES for
+# backward compatibility, but tools/list returns ONLY canonical 12 names.
+# See: forge_work/BANGANG-ALIAS-PURGE-2026-06-30.md and the 2026-07-04 YELLOW re-purge.
+CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = ()  # intentionally empty
+
+# ── Canonical 9 Public Surface (CANONICAL-9 2026-07-04) ─────────────
+# The public surface is exactly 9 stages = 9 tools.
+# The name CANONICAL13_PUBLIC_SURFACE is retained for backward compat.
+
+
+# Preferred canonical names for surface modes (2026-07-04 ZEN-9):
+#   "canonical9"  → 9-stage metabolic loop (default public)
+#   "canonical12" → DEPRECATED alias for "canonical9"
+#   "canonical7"  → DEPRECATED alias for "canonical9"
+#   "expanded45"  → canonical9 + all diagnostics (operator/debug)
+VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
+    "canonical9",  # preferred — 9-stage metabolic loop
+    "canonical12",  # deprecated alias — maps to canonical9
+    "canonical7",  # deprecated alias — maps to canonical9
+    "canonical13",  # deprecated alias — maps to canonical9
+    "expanded45",  # operator/debug surface
 )
 
-# ── Canonical7 Public Surface (= exactly 7 canonical verbs) ─────────────────
-# F13 ratified 2026-06-23: exactly 7 public verbs.
-# Everything else (plumbing, aliases, diagnostics) is internal and filtered.
-CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_7
-
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
-    # "arifos_" is blocked from tools/list but NOT from dispatch.
-    # _LEGACY_ALIASES in tools.py routes arifos_* → arif_* at call time.
-    # Full surface unblock when execution gate + constitutional_map aligned.
-    "arifos_",
-    "_arifos_",
+    # arif_* is the canonical public facade. Block only internal/organ prefixes
+    # that should never appear on the public wire surface.
+    "_arif_",
     "wealth_",
     "afwell_",
     "geox_",
     "geoxarifos_",
 )
 
-VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
-    "canonical13",
-    "expanded45",
-)
+
+# ══ ARIFOS ↔ A-FORGE Namespace Separation (F4 CLARITY) ══════════════════════
+# arifOS and A-FORGE share verb collisions on: judge, seal, execute, act.
+# The delegation table below makes explicit which tool runs where, and why.
+# Option A (route-only) was ratified 2026-07-01: arifOS = governance facade,
+# A-FORGE = execution engine. No tool removal — explicit delegation clarifies roles.
+#
+# ┌──────────────────────┬───────────────────────────┬─────────────────────┐
+# │ arifOS (this repo)   │ A-FORGE (:7071/:7072)    │ Delegation          │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_judge          │ forge_judge_proxy         │ arifOS = local      │
+# │   888 constitutional │   (arifOS→A-FORGE bridge) │ governance/judgment │
+# │   verdict, SEAL/     │   A-FORGE cannot self-    │ No external call    │
+# │   HOLD/SABAR/VOID    │   authorize; arifOS holds │ for judge           │
+# │                      │   final veto               │                     │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_seal           │ forge_seal                │ arifOS = local      │
+# │   999 VAULT999       │   (A-FORGE vault seal)   │ Only arifOS writes  │
+# │   immutable ledger   │                           │ to VAULT999         │
+# │                      │                           │ No delegation       │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_act            │ (internal only)           │ arifOS = local      │
+# │   900 execution      │   wraps _arif_forge_      │ arif_act verifies   │
+# │   gate; requires     │   execute after SEAL      │ SEAL then calls     │
+# │   seal_verdict_id +  │   verification via         │ _arif_forge_execute │
+# │   approved_action_   │   A2ASealVerifier         │ locally             │
+# │   hash              │                           │                     │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ arif_forge_execute  │ forge_execute             │ arifOS = local      │
+# │   (010 FORGE stage) │   (A-FORGE motor cortex)  │ Both run locally;   │
+# │   plan-gated build, │   REST/MCP execution,      │ arifOS has own      │
+# │   artifact produce  │   lease + SCAR + witness   │ forge_exec handler  │
+# ├──────────────────────┼───────────────────────────┼─────────────────────┤
+# │ (none — arifOS does │ forge_dry_run, forge_*    │ A-FORGE owns        │
+# │  not expose these   │  filesystem, git, docker,  │ engineering tools    │
+# │  on public surface) │  postgres, etc.            │ arifOS has deprec.  │
+# │                      │                           │ proxy → A-FORGE     │
+# │                      │                           │ (removal 2026-07-15)│
+# └──────────────────────┴───────────────────────────┴─────────────────────┘
+#
+# Blast radius of collision: NONE. Infrastructure already separates the two
+# namespaces. The deprecation proxy for forge_* (server.py §forge-ladder)
+# routes external callers to A-FORGE MCP automatically when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+# The only remaining "collision" is documentation ambiguity — fixed by this table.
+# See: forge_work/AFORGE-ARIFOS-COLLISION-AUDIT-2026-07-01.md
 
 
 # Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
 # These are the ONLY non-canonical tools that have live FastMCP handlers.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
-    "arif_ping",
+    "arifos_ping",
     # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
-    "arif_conformance_report",
-    "arif_schema_echo",
-    "arif_version_echo",
-    "arif_transport_echo",
-    "arif_initialize_probe",
+    "arifos_schema_echo",
+    "arifos_version_echo",
+    "arifos_transport_echo",
+    "arifos_initialize_probe",
     # ── Legacy diagnostics ──
-    "arif_stack_health_probe",
-    "arif_scan_local_instructions",
-    "arif_organ_consensus",
-    "arif_session_budget",
-    "arif_floor_status",
+    "arifos_stack_health_probe",
+    "arifos_scan_local_instructions",
+    "arifos_organ_consensus",
+    "arifos_session_budget",
+    "arifos_floor_status",
     "mcp_drift_check",
-    "hermes_system_status",
-    "hermes_vault_query",
-    "hermes_epistemic_check",
-    "hermes_fact_check",
-    "hermes_cross_verify",
-    "hermes_plan_review",
-    "hermes_memory_steward",
+    "arifos_vault_query",
     # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ──
-    "arif_self_evaluate",
-    "arif_model_compare",
-    # ── Internal aliases and helpers (demoted 2026-06-23 7-tool facade) ──
-    # SDK long-name aliases and internal-only handlers remain callable but are
-    # NOT advertised on the public wire surface. Public agents see only CANONICAL_7.
-    "arif_bridge_connect",
-    "arif_compose",
-    "arif_critique",
-    "arif_cross_attest",
-    "arif_evidence_fetch",
-    "arif_explore",
-    "arif_fetch",
-    "arif_forge",
-    "arif_forge_execute",
-    "arif_gate_judge",
-    "arif_gateway_connect",
-    "arif_heart_critique",
-    "arif_judge_deliberate",
-    "arif_kernel_attest",
-    "arif_kernel_health",
-    "arif_kernel_intercept",
-    "arif_measure",
-    "arif_memory",
-    "arif_memory_recall",
-    "arif_mind_reason",
-    "arif_ops_measure",
-    "arif_paradox_status",
-    "arif_reply_compose",
-    "arif_selftest",
-    "arif_sense_observe",
-    "arif_session_init",
-    "arif_tool_exists",
-    "arif_triage",
-    "arif_vault_seal",
+    "arifos_self_evaluate",
+    "arifos_model_compare",
+    # ── Internal helpers (non-deprecated) ──
+    "arifos_bridge_connect",
+    "arifos_gate_judge",
+    "arifos_gateway_connect",
+    "arifos_heart_critique",
+    "arifos_kernel_attest",
+    "arifos_kernel_health",
+    "arifos_kernel_intercept",
+    "arifos_paradox_status",
+    "arifos_selftest",
+    "arifos_tool_exists",
+    "arifos_resolve_tool",
+    # ── Eureka Margin Discovery Substrate (Phase 2, 2026-06-29) ──
+    "arifos_discover_margins",
+    "arifos_bridge_mcp_server",
+    "arifos_synthesize_canon",
+    # ── BM25 Tool Retrieval (Ratel insight, 2026-06-29) ──
+    "arifos_retrieve_tools",
 )
 
 # EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).
-# SDK aliases removed — canonical 7 verbs + diagnostics.
-# CANARY_PROBES (arif_canary dispatcher) is internal-only and not surfaced here;
-# the individual probe modes (arif_conformance_report, arif_schema_echo, etc.)
-# are already included in DIAGNOSTIC_TOOLS.
-EXPANDED_45: tuple[str, ...] = tuple(
-    list(dict.fromkeys([*CANONICAL_7, *DIAGNOSTIC_TOOLS]))
-)
+# Diagnostics are appended to the canonical 9-stage metabolic loop tools.
+EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_9, *DIAGNOSTIC_TOOLS])))
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
 # with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
@@ -157,6 +198,11 @@ EXPANDED_45: tuple[str, ...] = tuple(
 
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
+    """Resolve surface mode. canonical9 (default) = 9-stage loop. expanded45 = canonical9 + diagnostics.
+
+    canonical12 / canonical7 / canonical13 are deprecated aliases that always
+    meant (and still mean) the canonical public set — now the 9-stage metabolic loop.
+    """
     raw = (mode or "").strip().lower()
     if not raw:
         raw = (os.getenv("ARIFOS_PUBLIC_SURFACE_MODE", "") or "").strip().lower()
@@ -164,15 +210,18 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         raw = (os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "") or "").strip().lower()
 
     profile_map = {
-        "public": "canonical13",
-        "chatgpt": "canonical13",
-        "agnostic_public": "canonical13",
-        "canonical13": "canonical13",
-        "canonical15": "canonical13",  # deprecated alias — canonical count is 15
+        "canonical9": "canonical9",
+        "public": "canonical9",
+        "chatgpt": "canonical9",
+        "agnostic_public": "canonical9",
+        "canonical12": "canonical9",  # deprecated alias — canonical count is now 9
+        "canonical7": "canonical9",  # deprecated alias — was 7/12; now 9-stage loop
+        "canonical13": "canonical9",  # deprecated alias — maps to canonical9
+        "canonical15": "canonical9",  # deprecated alias — pre-freeze count
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
-    return profile_map.get(raw, "canonical13")
+    return profile_map.get(raw, "canonical9")
 
 
 def current_public_surface_mode() -> str:
@@ -183,22 +232,29 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     """
     Return the public tool names for a given surface mode.
 
-    canonical13 (default): CANONICAL_7 (7 tools).
-        F13 ratified 2026-06-23: exactly 7 canonical verbs.
-        One intent = one public tool. No SDK aliases on the wire.
-    expanded45: CANONICAL_7 + DIAGNOSTIC_TOOLS (gated tools included).
+    canonical9 (default): CANONICAL_9 (9-stage metabolic loop).
+        CANONICAL-9 2026-07-04: exactly 9 surface verbs mapping to 9 stages.
+        One stage = one public verb. Absorbed tools become internal modes.
+        arif_critique promoted from arif_think mode to its own public tool at 555.
+    expanded45: CANONICAL_9 + DIAGNOSTIC_TOOLS (operator/debug surface).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
+        Adds canary probes and other read-only diagnostics.
 
     INTERNAL_ONLY filter: tools registered in CANONICAL_TOOLS with
     access == "internal_only" are NEVER exposed via any public mode.
     """
     resolved = normalize_public_surface_mode(mode)
     if resolved == "expanded45":
-        candidates = EXPANDED_45
+        expose_dev_tools = os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "false").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
+        candidates = EXPANDED_45 if expose_dev_tools else CANONICAL_9
     else:
-        # canonical13: exactly the 7 canonical verbs (F13-ratified 2026-06-23).
-        # SDK aliases and plumbing hidden. Canaries/diagnostics not on public wire by default.
-        candidates = CANONICAL13_PUBLIC_SURFACE
+        # canonical9 (default): the 9-stage metabolic loop.
+        candidates = CANONICAL_9
     # Filter out internal_only tools regardless of mode.
     return tuple(
         name
@@ -215,16 +271,29 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 
 
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
+    """Report the public tool surface state for the given mode.
+
+    Two profiles (2026-07-04 CANONICAL-9):
+      canonical9 — 9-stage metabolic loop (9 tools, public agents, default)
+      expanded45 — canonical9 + diagnostics (operator/debug, ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)
+    """
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
-    diagnostic_tools = [name for name in tool_names if name in set(DIAGNOSTIC_TOOLS)]
+    diagnostic_names = [name for name in tool_names if name in set(DIAGNOSTIC_TOOLS)]
     return {
         "mode": resolved,
+        "mode_aliases": {
+            "canonical9": "9-stage metabolic loop (9 tools, public default; CANONICAL-9 2026-07-04)",
+            "canonical12": "DEPRECATED alias for canonical9 (was 12 verbs pre-2026-07-04)",
+            "canonical7": "DEPRECATED alias for canonical9",
+            "canonical13": "DEPRECATED alias for canonical9",
+            "expanded45": "canonical9 + diagnostics (operator/debug)",
+        },
         "tools_registered": len(tool_names),
-        "kernel_tools": len(CANONICAL_7),
-        "diagnostic_tools": diagnostic_tools,
+        "kernel_tools": len(CANONICAL_9),
+        "canonical_count": len(CANONICAL_9),
+        "diagnostic_tools": diagnostic_names,
         "tool_names": tool_names,
-        "canonical13_count": len(CANONICAL_7),
         "blocked_public_prefixes": list(BLOCKED_PUBLIC_PREFIXES),
     }
 
@@ -308,7 +377,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": "/ready",
-        "tools": len(CANONICAL_7),  # dynamic from CANONICAL_7 tuple — single source of truth
+        "tools": len(CANONICAL_9),  # dynamic from CANONICAL_9 tuple — single source of truth
         "prompts": len(CANONICAL_PROMPTS),
         "resources": len(CANONICAL_RESOURCES),
         "protocol_version": "2025-11-25",  # aligned with MCP_SPEC_VERSION_CANONICAL
@@ -318,15 +387,14 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "mcp": True,
         "public_endpoint": "https://geox.arif-fazil.com/mcp",
         "internal_host": "127.0.0.1",
-        "internal_port": 18081,
+        "internal_port": 8081,  # fixed 2026-06-28: was 18081 (Docker-era stale)
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": None,
         "tools": None,
         "prompts": None,
         "resources": None,
-        "protocol_version": "2025-03-26",
-        "probe_note": "Systemd GEOX bridge endpoint. Do not use retired Docker-era 8081 metadata.",
+        "protocol_version": "2025-11-25",  # fixed 2026-06-28: was 2025-03-26 — aligned with MCP_SPEC_VERSION_CANONICAL
     },
     "wealth": {
         "role": "capital_intelligence_processor",
@@ -340,7 +408,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "tools": None,
         "prompts": None,
         "resources": None,
-        "protocol_version": "2025-03-26",
+        "protocol_version": "2025-11-25",  # fixed 2026-06-28: was 2025-03-26 — aligned with MCP_SPEC_VERSION_CANONICAL
     },
     "aforge": {
         "role": "bridge",

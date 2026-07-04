@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/well_guard_dignity.schema.json",
+  "title": "well_guard_dignity (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `well_guard_dignity`. This schema is APPENDED to the existing well schema for `well_guard_dignity` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Calling someone 'irrational' may be technically descriptive but symbolically humiliating — WELL must catch it.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "dignity_symbol_check"
+  ],
+  "properties": {
+    "component": {
+      "const": "well_guard_dignity"
+    },
+    "organ": {
+      "const": "well"
+    },
+    "dignity_symbol_check": {
+      "type": "object",
+      "description": "§3.M — Natural home of social-symbology intelligence.",
+      "properties": {
+        "reduction_to_metric": {
+          "type": "boolean"
+        },
+        "identity_symbol_violation": {
+          "type": "boolean"
+        },
+        "grief_or_family_charge": {
+          "type": "boolean"
+        },
+        "sacred_or_taboo_domain": {
+          "type": "boolean"
+        },
+        "coercive_symbol_detected": {
+          "type": "boolean"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every well_guard_dignity output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

@@ -53,6 +53,15 @@ INTENT_KEYWORDS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b(observe|sense|search|fetch|ingest|scan)\b", re.I), "arifOS"),
     (re.compile(r"\b(ops|health|measure|vitals|topology)\b", re.I), "arifOS"),
     (re.compile(r"\b(forge|build|deploy|engineer|compile)\b", re.I), "arifOS"),
+    # Machine / MCP / runtime governance stays in the kernel lane, not WELL.
+    # G13: system drift/load/reliability/uptime are machine health, not human vitality.
+    (
+        re.compile(
+            r"\b(mcp|tools[/ _-]?(list|call)|initialize|conformance|capability[ _-]?graph|authority[ _-]?header|tool[ _-]?surface|agent[ _-]?card|router|transport|protocol|runtime|schema|execution|gui|app|system[ _-]?(drift|load|reliability|uptime|health)|config[ _-]?drift|runtime[ _-]?drift|cpu[ _-]?load|server[ _-]?load|workload)\b",
+            re.I,
+        ),
+        "arifOS",
+    ),
     # GEOX
     (re.compile(r"\b(basin|well|seismic|prospect|reservoir|geology|geophys)\b", re.I), "geox"),
     (re.compile(r"\b(stratigraphy|facies|stratum|tops|segy|las)\b", re.I), "geox"),
@@ -63,9 +72,12 @@ INTENT_KEYWORDS: list[tuple[re.Pattern[str], str]] = [
     ),
     (re.compile(r"\b(money|cashflow|burn|runway|survival)\b", re.I), "wealth"),
     (re.compile(r"\b(wealth_(omni_wisdom|signal|inequality|game))\b", re.I), "wealth"),
-    # WELL
+    # WELL — human vitality only (G13: machine health routes to arifOS/AAA)
     (
-        re.compile(r"\b(wellness|fatigue|stress|sleep|homeostasis|vitality|biometric)\b", re.I),
+        re.compile(
+            r"\b(wellness|fatigue|stress|sleep|sleep[ _]?debt|homeostasis|vitality|biometric|readiness|recovery|hrv|rhr|spo2|autonomic|maruah|wellbeing|cognition[ _]?load)\b",
+            re.I,
+        ),
         "well",
     ),
     (re.compile(r"\b(dignity|consent|sovereign_entropy|reflect_only)\b", re.I), "well"),

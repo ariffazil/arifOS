@@ -78,7 +78,9 @@ mcp.arif-fazil.com {
     root * /var/www/html/mcp
 
     handle /mcp* {
-        reverse_proxy arifosmcp:3000
+        reverse_proxy arifosmcp:3000 {
+            header_up Accept "application/json, text/event-stream, */*"
+        }
     }
     handle /health {
         reverse_proxy arifosmcp:3000

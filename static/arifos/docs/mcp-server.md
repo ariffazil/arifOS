@@ -35,9 +35,9 @@ arifOS is model-agnostic at the transport layer. MCP transports capability; arif
 | 444r | `arif_reply_compose` | Governed response composition |
 | 555m | `arif_memory_recall` | Governed memory recall/store/list |
 | 666g | `arif_gateway_connect` | Federation/A2A gateway |
-| 888 | `arif_judge_deliberate` | Constitutional deliberation |
-| 999 | `arif_vault_seal` | VAULT999 audit/seal surface |
-| 666 | `arif_forge_execute` | Bounded execution/forge action |
+| 888 | `arif_judge` | Constitutional deliberation |
+| 999 | `arif_seal` | VAULT999 audit/seal surface |
+| 666 | `arif_act` | Bounded execution/forge action |
 | 777 | `arif_ops_measure` | Health, cost, telemetry |
 
 ## Governed Discovery

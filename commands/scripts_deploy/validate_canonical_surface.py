@@ -3,10 +3,10 @@
 validate_canonical_surface.py — CI guard against public surface drift.
 
 Checks:
-1. tool_registry.json contains only arif_* canonical tools
-2. No arifos_* names in public_registry.py
-3. README.md and PUBLIC_SURFACE_CANON.md agree on tool count
-4. No legacy names in active docs
+1. tool_registry.json canonical_order stays at exactly 7 public arif_* verbs
+2. Every canonical_order entry has a matching tool entry
+3. Only those 7 entries are tagged tier=canonical in tool_registry.json
+4. PUBLIC_SURFACE_CANON.md stays free of legacy names before the migration guide
 """
 
 import json
@@ -46,6 +46,7 @@ def check_tool_registry() -> list[str]:
     with open(path) as f:
         data = json.load(f)
     canonical_order = data.get("canonical_order", [])
+    tools = data.get("tools", {})
     for name in canonical_order:
         if not name.startswith("arif_"):
             errors.append(f"tool_registry.json: canonical_order contains non-arif_* name: {name}")
@@ -53,6 +54,15 @@ def check_tool_registry() -> list[str]:
     if len(canonical_order) != 7:
         errors.append(
             f"tool_registry.json: expected 7 canonical tools (public surface, F13-ratified 2026-06-23), found {len(canonical_order)}"
+        )
+    missing = sorted(set(canonical_order) - set(tools))
+    if missing:
+        errors.append(f"tool_registry.json: canonical_order missing tool entries: {missing}")
+    canonical_tagged = sorted(name for name, spec in tools.items() if spec.get("tier") == "canonical")
+    if sorted(canonical_order) != canonical_tagged:
+        errors.append(
+            "tool_registry.json: canonical tier entries do not match canonical_order "
+            f"(canonical_order={sorted(canonical_order)}, tier=canonical={canonical_tagged})"
         )
     return errors
 

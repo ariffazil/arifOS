@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/arif_observe.schema.json",
+  "title": "arif_observe (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `arif_observe`. This schema is APPENDED to the existing arifos schema for `arif_observe` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: A PETRONAS annual report is not just information — it is institutional self-symbolisation.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ"
+  ],
+  "properties": {
+    "component": {
+      "const": "arif_observe"
+    },
+    "organ": {
+      "const": "arifos"
+    },
+    "source_symbol_class": {
+      "type": "array",
+      "description": "§3.C — Observation result must be classified by source symbol.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "legal_document",
+          "corporate_statement",
+          "ritual_text",
+          "personal_memory",
+          "financial_signal",
+          "geological_interpretation",
+          "governance_receipt",
+          "propaganda",
+          "mythic_frame",
+          "social_media_symbol"
+        ]
+      }
+    },
+    "interpretation_warning": {
+      "type": "object",
+      "properties": {
+        "observed_text_is_not_authority": {
+          "type": "boolean"
+        },
+        "symbol_requires_context": {
+          "type": "boolean"
+        },
+        "possible_performative_effect": {
+          "type": "boolean"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every arif_observe output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

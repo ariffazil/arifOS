@@ -188,14 +188,16 @@ def test_diagnostic_tools_do_not_bleed_into_canonical13():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Test 5: Only two surface modes exist: canonical13 (public) and expanded45 (internal).
+# Test 5: Surface modes stay bounded: canonical7 preferred, canonical13 legacy alias,
+# expanded45 internal/dev.
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 def test_only_two_public_surface_modes_exist():
-    """The universe of allowed surface modes is exactly 2. No rogue modes."""
-    assert set(VALID_PUBLIC_SURFACE_MODES) == {"canonical13", "expanded45"}, (
-        f"VALID_PUBLIC_SURFACE_MODES must be exactly {{'canonical13', 'expanded45'}}; "
+    """The universe of allowed surface modes is tightly bounded. No rogue modes."""
+    assert set(VALID_PUBLIC_SURFACE_MODES) == {"canonical7", "canonical13", "expanded45"}, (
+        f"VALID_PUBLIC_SURFACE_MODES must be exactly "
+        f"{{'canonical7', 'canonical13', 'expanded45'}}; "
         f"got {set(VALID_PUBLIC_SURFACE_MODES)}. Adding a new public mode is a "
         f"constitutional change requiring 888 ratification."
     )

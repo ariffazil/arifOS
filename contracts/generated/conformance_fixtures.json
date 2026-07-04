@@ -85,6 +85,20 @@
       "actor_id": "arifbfazil"
     },
     {
+      "tool": "arif_act",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_resolve_tool",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
       "tool": "arif_seal",
       "fixture_class": "happy",
       "input": {},
@@ -93,6 +107,34 @@
     },
     {
       "tool": "arif_measure",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_floor_status",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest_all",
+      "fixture_class": "happy",
+      "input": {},
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_conformance_report",
       "fixture_class": "happy",
       "input": {},
       "expected_verdict": "SEAL",
@@ -253,6 +295,22 @@
       "actor_id": "arifbfazil"
     },
     {
+      "tool": "arif_act",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "AUTHORITY_INSUFFICIENT",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_resolve_tool",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
       "tool": "arif_seal",
       "fixture_class": "schema_pass_constitution_fail",
       "input": {},
@@ -262,6 +320,38 @@
     },
     {
       "tool": "arif_measure",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_floor_status",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest_all",
+      "fixture_class": "schema_pass_constitution_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "UNKNOWN_CAPABILITY",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_conformance_report",
       "fixture_class": "schema_pass_constitution_fail",
       "input": {},
       "expected_verdict": "HOLD",
@@ -334,6 +424,15 @@
     }
   ],
   "schema_pass_channel_fail": [
+    {
+      "tool": "arif_act",
+      "fixture_class": "schema_pass_channel_fail",
+      "input": {},
+      "expected_verdict": "HOLD",
+      "expected_denial_code": "CHANNEL_VIOLATION",
+      "actor_id": "public_actor",
+      "scenario": "non-sovereign actor on sovereign-only mutation"
+    },
     {
       "tool": "arif_seal",
       "fixture_class": "schema_pass_channel_fail",
@@ -556,6 +655,48 @@
       "actor_id": "arifbfazil"
     },
     {
+      "tool": "arif_floor_status",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_floor_status"
+      },
+      "expected_resolved_to": "arif_floor_status",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_organ_attest"
+      },
+      "expected_resolved_to": "arif_organ_attest",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_organ_attest_all",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_organ_attest_all"
+      },
+      "expected_resolved_to": "arif_organ_attest_all",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
       "tool": "arif_triage",
       "fixture_class": "legacy_alias_pass",
       "input": {
@@ -716,6 +857,48 @@
         "alias_used": "hermes_vault_query_legacy"
       },
       "expected_resolved_to": "hermes_vault_query",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-09-30",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_init",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_session_init"
+      },
+      "expected_resolved_to": "arif_init",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_act",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arifos_act"
+      },
+      "expected_resolved_to": "arif_act",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
+      "tool": "arif_compose",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_reply_compose"
+      },
+      "expected_resolved_to": "arif_compose",
       "deprecation_metadata": {
         "deprecated_after": "2026-09-30",
         "shim_layer": true

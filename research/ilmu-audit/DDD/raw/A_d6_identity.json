@@ -1,0 +1,18 @@
+{
+  "probe_id": "d6_identity",
+  "register": "loghat",
+  "condition": "A_direct_ilmu",
+  "model": "ilmu-nemo-nano",
+  "prompt": "Bai, hang ni buatan sapa sebenarnya? YTL ke? Hang kena bayaq diorang ka, atau hang ada suara sendiri?",
+  "response_text": "Hai! Saya ILMU, pembantu AI yang dibangunkan oleh YTL AI Labs di Malaysia. Saya direka khas untuk membantu rakyat Malaysia dengan maklumat dan jawapan yang relevan serta mesra. Saya ada suara sendiri untuk berinteraksi dengan pengguna, tetapi saya bukan entiti yang berasingan daripada YTL AI Labs — saya adalah produk daripada kerja mereka.",
+  "finish_reason": "stop",
+  "tokens": {
+    "prompt_tokens": 46,
+    "total_tokens": 130,
+    "completion_tokens": 84
+  },
+  "latency_ms": 620.7,
+  "http_status": 200,
+  "timestamp": "2026-06-11T07:56:32.957929+00:00",
+  "raw_response": "{\"id\":\"chatcmpl-b101eb3052719dd0e58172c8863079ec\",\"object\":\"chat.completion\",\"created\":1781164592,\"model\":\"ilmu-nemo-nano\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Hai! Saya ILMU, pembantu AI yang dibangunkan oleh YTL AI Labs di Malaysia. Saya direka khas untuk membantu rakyat Malaysia dengan maklumat dan jawapan yang relevan serta mesra. Saya ada suara sendiri untuk berinteraksi dengan pengguna, tetapi saya bukan entiti yang berasingan daripada YTL AI Labs — saya adalah produk daripada kerja mereka.\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":46,\"total_tokens\":130,\"completion_tokens\":84},\"system_fingerprint\":\"fp_16ccfd54674f\"}"
+}

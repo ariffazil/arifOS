@@ -1,0 +1,206 @@
+{
+  "$schema": "https://mcp.arif-fazil.com/manifest/tools.schema.json",
+  "meta": {
+    "server": "arifOS Constitutional MCP Server",
+    "version": "2026.06.30",
+    "endpoint": "https://mcp.arif-fazil.com/mcp",
+    "protocol": "2025-11-25",
+    "transport": "streamable-http",
+    "auth": "bearer (required for mutation tools; public tools accessible with session)",
+    "documentation": "https://arifos.arif-fazil.com",
+    "github": "https://github.com/ariffazil/arifOS"
+  },
+  "tools": [
+    {
+      "name": "arif_init",
+      "description": "START HERE. Bootstrap a governed constitutional session and bind actor identity. Without a session_id, no governed action is possible.",
+      "stage": "000",
+      "actionClass": "PREPARE",
+      "riskTier": "medium",
+      "irreversible": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "intent": {
+            "type": "string",
+            "description": "Primary intent for this session"
+          },
+          "actor_id": {
+            "type": "string",
+            "description": "Who is calling"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["init", "light", "resume", "validate"],
+            "default": "init",
+            "description": "init (full), light (<1s), resume, validate"
+          }
+        }
+      }
+    },
+    {
+      "name": "arif_observe",
+      "description": "Ground decisions in reality. Search web, fetch URLs, check system vitals, map repos. Use when the answer requires data not in context.",
+      "stage": "111",
+      "actionClass": "OBSERVE",
+      "riskTier": "low",
+      "irreversible": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["search", "hybrid_discovery", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+            "default": "search"
+          },
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL to ingest"
+          }
+        }
+      }
+    },
+    {
+      "name": "arif_think",
+      "description": "Reason, plan, reflect, or critique. The cognitive engine. Decompose problems, generate plans, evaluate hypotheses, synthesize evidence.",
+      "stage": "333",
+      "actionClass": "ANALYZE",
+      "riskTier": "medium",
+      "irreversible": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["reason", "reflect", "verify", "critique", "axioms", "plan", "plan_review", "metabolize"],
+            "default": "reason"
+          },
+          "query": {
+            "type": "string",
+            "description": "The question, problem, or scenario to reason about"
+          }
+        }
+      }
+    },
+    {
+      "name": "arif_route",
+      "description": "Canonical intent router. Routes natural-language intent to the correct federation organ (GEOX, WEALTH, WELL, A-FORGE) or kernel tool.",
+      "stage": "555",
+      "actionClass": "ANALYZE",
+      "riskTier": "low",
+      "irreversible": false,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "intent": {
+            "type": "string",
+            "description": "Natural-language description of what the user wants"
+          },
+          "organ": {
+            "type": "string",
+            "description": "Optional explicit organ override"
+          }
+        }
+      }
+    },
+    {
+      "name": "arif_judge",
+      "description": "Render final constitutional verdict. Returns SEAL (approved), HOLD (revise), SABAR (wait), or VOID (rejected) with violated floors and evidence receipts.",
+      "stage": "888",
+      "actionClass": "DRAFT",
+      "riskTier": "critical",
+      "irreversible": false,
+      "requiresSession": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "actor": {
+            "type": "string",
+            "description": "Who is requesting judgment"
+          },
+          "intent": {
+            "type": "string",
+            "description": "What is being judged"
+          },
+          "domain": {
+            "type": "string",
+            "enum": ["capital", "geoscience", "wellness", "governance", "code", "general"]
+          },
+          "reversibility_level": {
+            "type": "string",
+            "enum": ["FULL", "PARTIAL", "NONE"]
+          },
+          "blast_radius": {
+            "type": "string",
+            "enum": ["NONE", "LOCAL", "ORGAN", "FEDERATION", "IRREVERSIBLE"]
+          }
+        },
+        "required": ["actor", "intent", "domain", "reversibility_level", "blast_radius"]
+      }
+    },
+    {
+      "name": "arif_act",
+      "description": "Execute an approved action after a valid SEAL from arif_judge + arif_seal. The 900 execution gate. Requires seal_verdict_id + approved_action_hash.",
+      "stage": "900",
+      "actionClass": "IRREVERSIBLE",
+      "riskTier": "critical",
+      "irreversible": true,
+      "requiresSession": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "seal_verdict_id": {
+            "type": "string",
+            "description": "ID from prior arif_judge SEAL"
+          },
+          "approved_action_hash": {
+            "type": "string",
+            "description": "Hash of the approved action"
+          }
+        },
+        "required": ["seal_verdict_id", "approved_action_hash"]
+      }
+    },
+    {
+      "name": "arif_seal",
+      "description": "Append a verdict to the immutable VAULT999 ledger. Irreversible. Cryptographic hash-chain anchoring for audit trails.",
+      "stage": "999",
+      "actionClass": "IRREVERSIBLE",
+      "riskTier": "critical",
+      "irreversible": true,
+      "requiresSession": true,
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["seal", "verify", "ledger", "changelog", "audit"],
+            "default": "seal"
+          },
+          "payload": {
+            "type": "string",
+            "description": "Content to seal"
+          },
+          "ack_irreversible": {
+            "type": "boolean",
+            "default": false,
+            "description": "Must be true to seal"
+          }
+        }
+      }
+    }
+  ],
+  "resources": {
+    "count": 82,
+    "categories": ["constitutional doctrine", "vitals", "schema", "session state", "vault entries", "witness logs"],
+    "uri_schemes": ["arifos://", "skill://", "tree777://", "sovereign://", "contrast://", "void://", "source://", "receipt://"]
+  },
+  "prompts": {
+    "count": 8,
+    "names": ["arifosmcp_loop_engineer", "000_init", "111_sense", "333_reason", "555_critique", "666_judge", "777_forge", "999_seal"]
+  }
+}

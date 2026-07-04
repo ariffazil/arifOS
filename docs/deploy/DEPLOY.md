@@ -34,7 +34,7 @@ python scripts/deploy.py --environment production --dry-run
 | Environment   | URL                                | Auto-Deploy       | Approval Required |
 |---------------|------------------------------------|-------------------|-------------------|
 | **Staging**   | `https://staging.arif-fazil.com`   | On push to `main` | No                |
-| **Production**| `https://arifosmcp.arif-fazil.com` | Manual only       | Yes               |
+| **Production**| `https://mcp.arif-fazil.com` | Manual only       | Yes               |
 
 ---
 
@@ -271,7 +271,7 @@ docker-compose down
 docker-compose up -d
 
 # 3. Check status
-curl https://arifosmcp.arif-fazil.com/health
+curl https://mcp.arif-fazil.com/health
 ```
 
 ### Database Recovery

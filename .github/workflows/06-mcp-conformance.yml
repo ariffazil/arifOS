@@ -10,6 +10,10 @@ on:
       - 'arifosmcp/transport/**'
       - 'arifosmcp/tools/**'
       - 'arifosmcp/tool_registry.json'
+      - 'arifosmcp/runtime/public_surface.py'
+      - 'arifosmcp/runtime/public_registry.py'
+      - 'static/.well-known/mcp/server.json'
+      - 'mcp-arifos.json'
       - '.github/workflows/06-mcp-conformance.yml'
   pull_request:
   merge_group:
@@ -64,7 +68,7 @@ jobs:
               'jsonrpc': '2.0',
               'id': 1,
               'method': 'initialize',
-              'params': {'protocolVersion': '2024-11-05', 'capabilities': {}, 'clientInfo': {'name': 'test', 'version': '1.0'}}
+              'params': {'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'test', 'version': '1.0'}}
             }
             print('JSON-RPC 2.0 structure: OK')
             print(f'Request: {json.dumps(req)}')
@@ -88,3 +92,8 @@ jobs:
           print(f'PASS: {len(tools)} tools, all MCP-compliant')
           for n in names: print(f'  {n}')
           "
+
+      - name: Public surface drift guard
+        run: |
+          cd "$WORKDIR"
+          python3 commands/scripts_deploy/validate_canonical_surface.py

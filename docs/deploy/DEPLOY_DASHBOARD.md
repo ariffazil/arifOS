@@ -72,7 +72,7 @@ systemctl restart arifosmcp
 docker-compose restart arifosmcp
 
 # 6. Verify deployment
-curl -I https://arifosmcp.arif-fazil.com/dashboard/
+curl -I https://arifos.arif-fazil.com/dashboard/
 ```
 
 ### Option 3: Docker Deployment
@@ -90,9 +90,9 @@ docker logs -f arifosmcp
 
 | URL | File | Purpose |
 |-----|------|---------|
-| `https://arifosmcp.arif-fazil.com/dashboard/` | `index.html` | Entry point (redirects to v2) |
-| `https://arifosmcp.arif-fazil.com/dashboard/dashboard-v2.html` | `dashboard-v2.html` | NEW: Improved dashboard |
-| `https://arifosmcp.arif-fazil.com/dashboard/dashboard.html` | `dashboard.html` | Legacy (kept for reference) |
+| `https://arifos.arif-fazil.com/dashboard/` | `index.html` | Entry point (redirects to v2) |
+| `https://arifos.arif-fazil.com/dashboard/dashboard-v2.html` | `dashboard-v2.html` | NEW: Improved dashboard |
+| `https://arifos.arif-fazil.com/dashboard/dashboard.html` | `dashboard.html` | Legacy (kept for reference) |
 
 ## Live Data Integration
 
@@ -133,7 +133,7 @@ Edit the `DEMO_DATA` object in the script section for testing.
 - Try hard refresh: `Ctrl+F5` or `Cmd+Shift+R`
 
 ### API endpoint not working
-- Test: `curl https://arifosmcp.arif-fazil.com/api/governance-status`
+- Test: `curl https://arifos.arif-fazil.com/api/governance-status`
 - Check CORS headers in server.py
 - Verify the endpoint returns valid JSON
 
@@ -142,7 +142,7 @@ Edit the `DEMO_DATA` object in the script section for testing.
 - [ ] `dashboard-v2.html` created in `arifosmcp/sites/apex-dashboard/`
 - [ ] `index.html` redirects to v2
 - [ ] Server mounts `/dashboard` route correctly
-- [ ] Live URL accessible: `https://arifosmcp.arif-fazil.com/dashboard/`
+- [ ] Live URL accessible: `https://arifos.arif-fazil.com/dashboard/`
 - [ ] Five vitals display correctly
 - [ ] Tri-Witness radar chart renders
 - [ ] 13 floors show all green/pass

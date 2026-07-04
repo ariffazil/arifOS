@@ -1,0 +1,55 @@
+{
+  "rsi_init_id": "RSI-INIT-2026-07-04",
+  "init_at": "2026-07-04T20:00:00Z",
+  "actor": "FORGE (000Ω)",
+  "model": "MiMo V2.5 Pro",
+  "doctrine": "MARHIN_DOCTRINE_SEAL_2026-07-04",
+  "eureka_law": "Every autonomous step must either increase verified capability, reduce entropy, or trigger HOLD.",
+  "marhin_stages": ["Membrane", "Account", "React", "Heal", "Integrate", "Navigate"],
+  "engines": {
+    "skill_delta_engine": {
+      "version": "1.0.0",
+      "path": "arifosmcp/runtime/skill_delta_engine.py",
+      "tests": "5/5 OK",
+      "mutation_allowed": false,
+      "attach_to_bus": "dormant — F13 actor_signature required for enable_post_seal_rebuild"
+    },
+    "marhin_discovery": {
+      "version": "1.0.0",
+      "path": "arifosmcp/runtime/marhin_discovery.py",
+      "tests": "5/5 OK",
+      "mutation_allowed": false,
+      "attach_to_bus": "dormant — read-only StageResult hook ready"
+    },
+    "skills_contracts_resource": {
+      "version": "1.0.0",
+      "path": "arifosmcp/runtime/skills_contracts_resource.py",
+      "tests": "5/5 OK",
+      "mutation_allowed": false,
+      "uri": "arifos://skills/contracts",
+      "skill_count": 12
+    }
+  },
+  "resources_registered": [
+    "arifos://skills/contracts (12 skill genes; read-only)"
+  ],
+  "hard_gates": {
+    "G1_no_hidden_mutation": "satisfied (mutation_allowed=False on every artifact)",
+    "G2_no_fake_SEAL": "satisfied (no SEAL emission paths in any engine)",
+    "G3_no_self_authorized_execution": "satisfied (authority.can_auto_apply=False always)",
+    "G4_no_skill_regression": "satisfied (test_diff_detects_weakened_gate in skill_delta_engine)",
+    "G5_no_alias_resurrection": "satisfied (test_extinct_skill_blocked)",
+    "G6_no_cooling_bypass": "satisfied (test_cooling_blocks_runaway)",
+    "G7_no_F13_override": "satisfied (no F13 mutation path)",
+    "G8_no_resource_tool_confusion": "satisfied (resources layer thick; skills_contracts_resource is read-only)",
+    "G9_no_execution_without_rollback": "satisfied (rsi_patch_harness.rollback_patch)",
+    "G10_no_growth_without_metric": "satisfied (MARHIN emit EurekaPacket with before/after)"
+  },
+  "rsi_status": "DORMANT",
+  "autorebuild_enabled": false,
+  "enable_token": "F13 actor_signature required",
+  "f13_status": "PENDING",
+  "evidence_layer": "L5",
+  "autonomy_band": "YELLOW",
+  "next_session_pickup": "WBA_INIT_BRIDGE — wire attach_to_event_bus on rsi/event_bus.py at scaffold_rebuild + skill_rebuild stages"
+}

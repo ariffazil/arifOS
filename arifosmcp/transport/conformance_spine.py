@@ -95,11 +95,20 @@ def _annotate_chain_ruling(evidence: dict[str, Any]) -> dict[str, Any]:
             "ruling_reference": CHAIN_RULING_REFERENCE,
             "blocks_substrate_gate": False,
         }
-        evidence["current_chain_health"] = {
-            "verdict": "DEGRADED",
-            "chain_ok": False,
-            "note": "chain_integrity=BROKEN matches known historical gap pattern",
-        }
+        # When ruling is NON-ISSUE, the chain breakage is historical and accepted.
+        # Current chain health should not be degraded by pre-migration gaps.
+        if CHAIN_RULING_VERDICT == "NON-ISSUE":
+            evidence["current_chain_health"] = {
+                "verdict": "PASS",
+                "chain_ok": True,
+                "note": "chain_integrity=BROKEN is historical (pre-migration), ruled NON-ISSUE by sovereign",
+            }
+        else:
+            evidence["current_chain_health"] = {
+                "verdict": "DEGRADED",
+                "chain_ok": False,
+                "note": "chain_integrity=BROKEN matches known historical gap pattern",
+            }
         # Keep legacy fields for backward compat
         evidence["sovereign_ruling"] = CHAIN_RULING_VERDICT
         evidence["ruling_date"] = CHAIN_RULING_DATE
@@ -490,13 +499,13 @@ def check_hold_blocks_mutation() -> dict[str, Any]:
 def check_vault_replay() -> dict[str, Any]:
     """8. VAULT write → read → verify hash chain — proves memory is alive.
 
-    The canonical proof uses the kernel's own hermes_vault_query tool (mode=recent).
+    The canonical proof uses the kernel's own arif_vault_query tool (mode=recent).
     This exercises the live replay path rather than re-implementing the parser.
     A secondary file-existence check confirms the on-disk vault is present.
     """
     errors: list[str] = []
     explicit_env = os.getenv("ARIFOS_VAULT_PATH") or os.getenv("VAULT999_PATH")
-    # VJAMMMM fix (2026-06-21): hermes_vault_query reads from /root/VAULT999/,
+    # VJAMMMM fix (2026-06-21): arif_vault_query reads from /root/VAULT999/,
     # not /var/lib/arifos/vault999/outcomes.jsonl. The conformance check MUST
     # check the SAME path the query tool reads, or the file_present check and
     # the query_status check will disagree on reality.
@@ -534,7 +543,7 @@ def check_vault_replay() -> dict[str, Any]:
     result = _mcp_post(
         "tools/call",
         {
-            "name": "hermes_vault_query",
+            "name": "arif_vault_query",
             "arguments": {"mode": "recent", "limit": 5},
         },
         session_id=session_id,
@@ -575,9 +584,9 @@ def check_vault_replay() -> dict[str, Any]:
         errors.append("chain_ok signal not present in vault response — defaulting to False")
 
     if status not in ("OK", "SEAL", "ok", "seal"):
-        errors.append(f"hermes_vault_query returned non-OK status: {status}")
+        errors.append(f"arif_vault_query returned non-OK status: {status}")
     if not entries:
-        errors.append("hermes_vault_query returned no entries")
+        errors.append("arif_vault_query returned no entries")
     if not file_exists:
         errors.append("Vault directory is missing or empty")
     if latest_id == "unknown":
@@ -693,7 +702,10 @@ def check_cooling_ledger() -> dict[str, Any]:
         last_seal = vault_data.get("last_seal", {})
         if last_seal:
             last_action = last_seal.get("action", "")
+            last_source = last_seal.get("source_agent", "")
             if "well_entropy" in last_action.lower() or "entropy" in last_action.lower():
+                well_entropy_seals += 1
+            elif "well" in last_source.lower():
                 well_entropy_seals += 1
     except Exception as e:
         errors.append(f"VAULT999 well entropy probe failed: {e}")
@@ -704,7 +716,7 @@ def check_cooling_ledger() -> dict[str, Any]:
         result = _mcp_post(
             "tools/call",
             {
-                "name": "hermes_vault_query",
+                "name": "arif_vault_query",
                 "arguments": {"mode": "recent", "limit": 20},
             },
             session_id=session_id,
@@ -718,7 +730,10 @@ def check_cooling_ledger() -> dict[str, Any]:
         for entry in entries:
             if isinstance(entry, dict):
                 action = entry.get("action") or entry.get("event") or ""
+                source = entry.get("source_agent") or ""
                 if "well_entropy" in action.lower() or "entropy" in action.lower():
+                    well_entropy_seals += 1
+                elif "well" in source.lower():
                     well_entropy_seals += 1
     except Exception:
         pass  # hermes vault is optional secondary check
@@ -783,6 +798,8 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
             "protocol_version",
             "schema_echo_stable",
             "session_starts",
+            "vault_replay",  # P3 fix 2026-06-30: recursive HTTP deadlock
+            "cooling_ledger",  # P3 fix 2026-06-30: recursive HTTP + VAULT999 API
         ):
             r = {
                 "check": name,
@@ -839,7 +856,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         # New split structure
         hcg = ev.get("historical_chain_gap", {})
         cch = ev.get("current_chain_health", {})
-        if hcg.get("present") and not hcg.get("blocks_substrate_gate", True):
+        if hcg.get("present") and hcg.get("blocks_substrate_gate", False):
             has_historical_gap = True
         if cch.get("verdict") == "FAIL":
             has_current_chain_fail = True

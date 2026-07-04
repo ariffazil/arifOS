@@ -223,7 +223,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         name="arif_memory",
         description="Federated memory tool — recall, inspect, attest, remember, promote, revise, forget.",
         use_when="User wants to store, retrieve, or manage memory across the federation. Keywords: 'remember', 'recall', 'forget', 'memory', 'store'.",
-        do_not_use_when="User wants to query VAULT999 specifically (use hermes_vault_query).",
+        do_not_use_when="User wants to query VAULT999 specifically (use arif_vault_query).",
         aliases=["arif_remember", "arif_recall", "memory", "remember", "recall"],
         keywords=["memory", "remember", "recall", "forget", "store", "attest", "promote", "revise"],
         examples=[
@@ -401,8 +401,8 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         category="governance",
     ),
     # ── VAULT QUERY ────────────────────────────────────────────────────────────
-    "hermes_vault_query": ArifToolDiscovery(
-        name="hermes_vault_query",
+    "arif_vault_query": ArifToolDiscovery(
+        name="arif_vault_query",
         description="Query VAULT999 audit ledger. Search sealed records by keyword, organ, or date.",
         use_when="User wants to search the audit trail, find past seals, or query historical records. Keywords: 'vault', 'audit', 'history', 'sealed', 'past'.",
         do_not_use_when="User wants to create new memories (use arif_memory) or seal new records (use arif_seal).",

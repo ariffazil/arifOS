@@ -244,6 +244,7 @@ async def arif_stack_health_probe(
     session_id: str | None = None,
     actor_id: str | None = None,
     include_services: list[str] | None = None,
+    _envelope: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     777_OPS: Federation stack health and governance probe.

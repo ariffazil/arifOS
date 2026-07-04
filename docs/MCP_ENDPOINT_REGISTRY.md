@@ -1,5 +1,5 @@
 # MCP Endpoint Registry — Source of Truth
-# Updated: 2026-05-22
+# Updated: 2026-07-01
 # Author: arifOS maintainers
 
 ## Purpose
@@ -17,14 +17,14 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Property | Value |
 |----------|-------|
 | Name | arifOS Constitutional |
-| Public URL | `https://arifos.arif-fazil.com/mcp` |
+| Public URL | `https://mcp.arif-fazil.com/mcp` |
 | Transport | `streamable-http` |
 | Internal | `http://127.0.0.1:8088/mcp` |
 | Container port | 8080 (Docker default); live VPS uses 8088 |
-| Caddy route | `arifos.arif-fazil.com/mcp*` → `127.0.0.1:8088` |
-| Tools | 13 canonical `arif_*` tools |
+| Caddy route | `mcp.arif-fazil.com/mcp*` → `127.0.0.1:8088` |
+| Tools | 7 public canonical verbs (`arif_init/observe/think/route/judge/act/seal`); 17 internal canonical; 48 exposed via MCP |
 | Auth | None (public) |
-| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
+| Status | HEALTHY, verified by `/health` on 2026-07-01 |
 
 ### GEOX (Earth Intelligence)
 | Property | Value |
@@ -35,10 +35,10 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Internal | `http://127.0.0.1:18081/mcp` AND `/mcp/stream` (both routes) |
 | Container port | 8081 (Docker default); live VPS uses 18081 |
 | Caddy route | `geox.arif-fazil.com/mcp/*` → `127.0.0.1:18081/mcp/stream` |
-| Tools | 22 verified MCP tools |
+| Tools | 31 canonical tools per `/health` |
 | Auth | None (public) |
-| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
-| Note | Enumeration requires MCP JSON-RPC session headers. 4 dot-notation aliases observed. |
+| Status | HEALTHY, verified by `/health` on 2026-07-01 |
+| Note | Enumeration requires MCP JSON-RPC session headers. Public `tools/list` without session may return 7 surface tools. |
 
 ### WEALTH (Capital Intelligence)
 | Property | Value |
@@ -49,24 +49,24 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 | Internal | `http://127.0.0.1:18082/mcp` |
 | Container port | 8082 (Docker default); live VPS uses 18082 |
 | Caddy route | `wealth.arif-fazil.com/mcp` → `127.0.0.1:18082/mcp` |
-| Tools | 17 verified MCP tools |
+| Tools | 32 live MCP tools (includes backward-compat aliases) |
 | Auth | None (public) |
-| Status | HEALTHY, verified by `/api/federation-probe` on 2026-05-22 |
-| Note | Enumeration requires MCP JSON-RPC session headers. 2 generic-name tools observed: `vault_write`, `vault_query`. |
+| Status | HEALTHY, verified by `/health` on 2026-07-01 |
+| Note | Enumeration requires MCP JSON-RPC session headers. Includes legacy aliases such as `wealth_emv_compute`, `wealth_monte_carlo`, `wealth_evoi_compute`, `wealth_reason_agent`, `wealth_system_registry_status`. |
 
 ### WELL (Biological Substrate)
 | Property | Value |
 |----------|-------|
 | Name | WELL Biological Monitor |
-| Public URL | *(dead — Caddy route removed)* |
+| Public URL | `https://well.arif-fazil.com/mcp` |
 | Transport | `streamable-http` |
-| Internal | `http://127.0.0.1:8083/mcp` (dead) |
-| Container port | 8083 (never deployed on live VPS) |
-| Caddy route | *(removed from Caddyfile)* |
-| Tools | 15 verified MCP tools |
+| Internal | `http://127.0.0.1:18083/mcp` |
+| Container port | 8083 (Docker default); live VPS uses 18083 |
+| Caddy route | `well.arif-fazil.com/mcp` → `127.0.0.1:18083` |
+| Tools | 22 live MCP tools |
 | Auth | None (public) |
-| Status | **DEAD** — Service removed from Caddyfile; returns 525/404 |
-| Note | REFLECT_ONLY substrate monitor. Not deployed on live VPS. |
+| Status | **HEALTHY** — verified by `/health` on 2026-07-01 |
+| Note | REFLECT_ONLY substrate monitor. `well_system_registry_status` is deprecated; use `well_registry_status`. |
 
 ---
 
@@ -74,10 +74,10 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 
 | Service | openclaw.json url | Caddyfile route | server.py transport |
 |---------|------------------|-----------------|-------------------|
-| arifOS | `http://localhost:8088/mcp` | `arifos.arif-fazil.com/mcp*` | `streamable-http` |
+| arifOS | `http://localhost:8088/mcp` | `mcp.arif-fazil.com/mcp*` | `streamable-http` |
 | GEOX | `https://geox.arif-fazil.com/mcp` | `geox.arif-fazil.com/mcp/*` | `streamable-http` |
 | WEALTH | `http://localhost:18082/mcp` | `wealth.arif-fazil.com/mcp` | `streamable-http` |
-| WELL | *(dead)* | *(removed)* | `streamable-http` |
+| WELL | `https://well.arif-fazil.com/mcp` | `well.arif-fazil.com/mcp` | `streamable-http` |
 
 ---
 
@@ -97,13 +97,13 @@ Companion SOT: `docs/MCP_SOURCE_OF_TRUTH.md`.
 
 ```bash
 # All public endpoints
-curl -s --max-time 5 https://arifos.arif-fazil.com/health
+curl -s --max-time 5 https://mcp.arif-fazil.com/health
 curl -s --max-time 5 https://geox.arif-fazil.com/health
 curl -s --max-time 5 https://wealth.arif-fazil.com/health
 curl -s --max-time 5 https://well.arif-fazil.com/health
 
 # MCP tool discovery (after initialize)
-curl -s --max-time 5 -X POST https://arifos.arif-fazil.com/mcp \
+curl -s --max-time 5 -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","method":"tools/list","params":{},"id":1}'

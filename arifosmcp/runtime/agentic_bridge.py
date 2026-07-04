@@ -257,6 +257,7 @@ def classify_and_bridge(
         RiskBlock,
         StateBlock,
     )
+    from arifosmcp.runtime.tools import _is_actor_verified
 
     ac = ActionClass(action_class)
 
@@ -269,7 +270,11 @@ def classify_and_bridge(
     envelope = KernelEnvelope(
         kernel=KernelIdentity(
             actor_id=actor_id,
-            actor_verified=True,
+            # P0 single-writer discipline (2026-07-04): route through canonical
+            # _is_actor_verified(session_id, actor_id) instead of hardcoded True.
+            # Prior shortcut lied about actor verification for non-sovereign
+            # callers and contributed to envelope/kernel/wrapper divergence.
+            actor_verified=_is_actor_verified(session_id, actor_id),
             session_id=session_id,
             constitution_hash=kwargs.get("constitution_hash", ""),
         ),

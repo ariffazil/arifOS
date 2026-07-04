@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS v2026.04.26-KANON — The True 13-Tool Canonical Surface
 
 **Release Date:** 2026-04-26

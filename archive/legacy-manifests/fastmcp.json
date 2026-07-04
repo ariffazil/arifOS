@@ -1,0 +1,180 @@
+{
+  "server_info": {
+    "name": "arifOS MCP",
+    "version": "2026.06.30",
+    "description": "Constitutional kernel. Public surface: exactly 7 tools (cognition exposed, plumbing hidden). 13 floors, F13 sovereign veto. DITEMPA BUKAN DIBERI."
+  },
+  "protocolVersion": "2025-11-25",
+  "mcp_version": "2025-11-25",
+  "supportedProtocolVersions": [
+    "2025-11-25"
+  ],
+  "transport": "streamable-http",
+  "constitutional_floors": {
+    "count": 13,
+    "hard_floors": [
+      "F1",
+      "F2",
+      "F6",
+      "F9",
+      "L10",
+      "L11",
+      "L13"
+    ],
+    "membrane": "arifOS governance kernel"
+  },
+  "organs": [
+    "arifOS",
+    "GEOX",
+    "WEALTH",
+    "WELL",
+    "A-FORGE",
+    "AAA"
+  ],
+  "tools": [
+    {
+      "name": "arif_init",
+      "description": "000 Bootstrap governed session and bind actor identity.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["actor_id", "intent"],
+        "properties": {
+          "actor_id": { "type": "string", "minLength": 2, "maxLength": 64 },
+          "intent": { "type": "string", "minLength": 1, "maxLength": 20000 },
+          "session_id": { "type": "string", "minLength": 8, "maxLength": 128 },
+          "mode": {
+            "type": "string",
+            "enum": ["init", "light", "resume", "validate", "epoch_open", "epoch_seal", "opt_out"],
+            "default": "init"
+          }
+        }
+      }
+    },
+    {
+      "name": "arif_observe",
+      "description": "111 Ground in current reality (absorbs fetch).",
+      "inputSchema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": { "type": "string", "description": "Query to ground" },
+          "mode": {
+            "type": "string",
+            "enum": ["search", "hybrid_discovery", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+            "default": "search"
+          },
+          "url": { "type": "string" },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_think",
+      "description": "333 Reason, plan, reflect, critique.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": { "type": "string", "description": "Task or question to reason about" },
+          "mode": {
+            "type": "string",
+            "enum": ["reason", "reflect", "verify", "critique", "plan", "plan_review", "plan_approve", "refactor_plan", "metabolize", "axioms"],
+            "default": "reason"
+          },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_route",
+      "description": "444 Route intent to correct organ.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["intent"],
+        "properties": {
+          "intent": { "type": "string", "description": "Natural-language description of what the user wants" },
+          "organ": { "type": "string" },
+          "organ_tool": { "type": "string" },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_judge",
+      "description": "888 Constitutional verdict (SEAL/HOLD/SABAR/VOID).",
+      "inputSchema": {
+        "type": "object",
+        "required": ["actor", "intent", "requested_capability", "domain", "reversibility_level", "blast_radius"],
+        "properties": {
+          "actor": { "type": "string" },
+          "intent": { "type": "string" },
+          "requested_capability": { "type": "string" },
+          "domain": { "type": "string" },
+          "reversibility_level": { "type": "string" },
+          "blast_radius": { "type": "string" },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_act",
+      "description": "900 Execute approved action. Requires seal_verdict_id.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["seal_verdict_id", "approved_action_hash"],
+        "properties": {
+          "seal_verdict_id": { "type": "string" },
+          "approved_action_hash": { "type": "string" },
+          "actor_id": { "type": "string" },
+          "session_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "arif_seal",
+      "description": "999 Seal to immutable ledger.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["mode"],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["seal", "verify", "ledger", "changelog", "audit"],
+            "default": "seal"
+          },
+          "payload": { "type": "string" },
+          "ack_irreversible": { "type": "boolean", "default": false },
+          "session_id": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "public_tool_count": 7,
+  "resources": [
+    {
+      "uri": "arifos://vitals",
+      "description": "Live thermodynamic telemetry"
+    },
+    {
+      "uri": "arifos://floors/F1-F13",
+      "description": "Constitutional floor specifications"
+    },
+    {
+      "uri": "arifos://doctrine",
+      "description": "Constitutional doctrine and governance"
+    },
+    {
+      "uri": "arifos://schema",
+      "description": "Schema definitions"
+    },
+    {
+      "uri": "arifos://session/{session_id}",
+      "description": "Session state resource"
+    }
+  ],
+  "capabilities": {
+    "tools": true,
+    "resources": true,
+    "prompts": false
+  }
+}

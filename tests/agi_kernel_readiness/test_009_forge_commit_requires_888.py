@@ -69,9 +69,15 @@ def test_forge_reversible_works():
         # F2 truth: today returns HOLD due to F11, not because of 888
         if verdict == "HOLD":
             reasons = inner.get("reasons", []) or r.get("reasons", [])
-            assert any("F11" in str(s) or "session" in str(s).lower() for s in reasons), (
-                f"HOLD should be F11-related, got {reasons}"
-            )
+            # HOLD is valid from multiple ingress gates:
+            # F11 (session), actor_id (anonymous check), or forge scope
+            assert any(
+                "F11" in str(s)
+                or "session" in str(s).lower()
+                or "actor" in str(s).lower()
+                or "anonymous" in str(s).lower()
+                for s in reasons
+            ), f"HOLD should be governance-related, got {reasons}"
     finally:
         c.close()
 

@@ -100,15 +100,15 @@ docker logs -f arifosmcp
 
 ```bash
 # Test MCP
-curl -X POST https://arifosmcp.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
 # Test A2A Agent Card
-curl https://arifosmcp.arif-fazil.com/.well-known/agent.json | jq
+curl https://arifos.arif-fazil.com/.well-known/agent.json | jq
 
 # Test A2A task submission
-curl -X POST https://arifosmcp.arif-fazil.com/a2a/task \
+curl -X POST https://arifos.arif-fazil.com/a2a/task \
   -H "Content-Type: application/json" \
   -d '{
     "client_agent_id": "test-agent",
@@ -116,10 +116,10 @@ curl -X POST https://arifosmcp.arif-fazil.com/a2a/task \
   }'
 
 # Test WebMCP manifest
-curl https://arifosmcp.arif-fazil.com/.well-known/webmcp
+curl https://arifos.arif-fazil.com/.well-known/webmcp
 
 # Test WebMCP console (should return HTML)
-curl https://arifosmcp.arif-fazil.com/webmcp | head -20
+curl https://arifos.arif-fazil.com/webmcp | head -20
 ```
 
 ---
@@ -214,14 +214,14 @@ ls -la arifosmcp/runtime/a2a/__init__.py
 
 ## 🎯 Next Steps After Deploy
 
-1. **Test MCP**: Connect Claude Desktop to `https://arifosmcp.arif-fazil.com/mcp`
+1. **Test MCP**: Connect Claude Desktop to `https://mcp.arif-fazil.com/mcp`
 
 2. **Test A2A**: Use the A2A test script:
    ```bash
    python scripts/test_a2a.py
    ```
 
-3. **Test WebMCP**: Open browser to `https://arifosmcp.arif-fazil.com/webmcp`
+3. **Test WebMCP**: Open browser to `https://arifos.arif-fazil.com/webmcp`
 
 4. **Register with A2A directory**: Submit to A2A agent registries
 

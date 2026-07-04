@@ -1,0 +1,122 @@
+# User Outcome Metrics — External Success Criteria
+
+# Blindspot #10 response. Internal architecture metrics are cheap.
+# User outcome metrics are expensive — and they're the only ones that matter.
+#
+# Updated: 2026-06-30 by FORGE (000Ω)
+# Review frequency: monthly
+
+version: "1.0.0"
+owner: arif
+
+# These are the questions USERS will ask. If we can't answer them with data,
+# we're building infrastructure without proving value.
+
+outcome_metrics:
+
+  # ── Does it prevent destructive actions? ──────────────────────────
+  - id: destructive_prevention
+    question: "Does arifOS prevent actions I'd regret?"
+    measurement: count of arif_act calls that were HELD before destructive action + count of successful destructive actions
+    healthy_threshold: ">95% of destructive actions are HELD with clear remediation"
+    current_status: unknown
+    evidence_required:
+      - "vault999 audit of all arif_act calls"
+      - "post-action damage reports (if any)"
+    review_method: "Monthly scan of vault999 for ack_irreversible gates fired"
+
+  # ── Does it reduce hallucinated tool calls? ────────────────────────
+  - id: hallucinated_call_reduction
+    question: "Does arifOS stop the AI from calling tools that don't exist?"
+    measurement: "hallucinated tool call rate (per 1000 calls) before vs. after adopting arifOS"
+    healthy_threshold: "<0.1% hallucinated calls reach execution"
+    current_status: unknown
+    evidence_required:
+      - "Tool call logs with name-not-found errors"
+      - "F9 floor firing rate"
+    review_method: "Weekly log scan + F9 counter metric"
+
+  # ── Does it improve interoperability? ─────────────────────────────
+  - id: interoperability
+    question: "Can I easily use arifOS with other MCP clients?"
+    measurement: "number of distinct clients (Claude Desktop, OpenCode, Kimi, OpenClaw, etc.) successfully integrated per month"
+    healthy_threshold: "new client integrates in <1 hour using only docs"
+    current_status: "5 known clients"
+    evidence_required:
+      - "Integration logs from new clients"
+      - "Time-to-first-call recorded"
+    review_method: "Track every new client connection in metrics"
+
+  # ── Does it reduce development time? ──────────────────────────────
+  - id: dev_time_reduction
+    question: "Is arifOS FASTER to build with than plain MCP + ad-hoc logging?"
+    measurement: "time-to-production-feature for teams using arifOS vs. control (plain MCP)"
+    healthy_threshold: "1.5× faster or more for features involving audit + gating"
+    current_status: unknown
+    evidence_required:
+      - "At least 3 external projects adopting arifOS"
+      - "Time tracking on comparable features"
+    review_method: "Quarterly survey of adopters"
+
+  # ── Does it reduce production incidents? ──────────────────────────
+  - id: incident_reduction
+    question: "Do arifOS-deployed agents have fewer production incidents than undeployed?"
+    measurement: "incidents per 1000 sessions: arifOS vs. vanilla MCP"
+    healthy_threshold: "30% fewer incidents in arifOS deployments"
+    current_status: unknown
+    evidence_required:
+      - "Incident reporting from adopters"
+      - "Control group without arifOS"
+    review_method: "Quarterly comparison report"
+
+  # ── Is it easy to debug? ──────────────────────────────────────────
+  - id: debug_ease
+    question: "When something goes wrong, can I find out in under 5 minutes?"
+    measurement: "time from incident report to root cause (median, last 10 incidents)"
+    healthy_threshold: "<5 minutes median"
+    current_status: unknown
+    evidence_required:
+      - "Incident log with debug timestamps"
+    review_method: "Every incident post-mortem"
+
+  # ── Is it easy to remove? ─────────────────────────────────────────
+  - id: removal_ease
+    question: "Can I stop using arifOS without rewriting my agents?"
+    measurement: "time to migrate off arifOS (median)"
+    healthy_threshold: "<1 day for standard MCP clients"
+    current_status: "not measured"
+    evidence_required:
+      - "At least 1 documented migration-off path"
+    review_method: "One-time documented migration exercise"
+
+# ── How we measure adoption (leading indicator) ─────────────────────
+
+adoption_signals:
+  - github_stars
+  - github_forks
+  - pypi_downloads_per_week
+  - docker_pulls_per_week
+  - active_sessions_per_day
+  - external_issues_and_prs
+
+# These are VANITY METRICS. They tell you if people are looking.
+# Outcome metrics tell you if people benefit.
+
+# ── The North Star Metric ───────────────────────────────────────────
+
+north_star:
+  metric: "production_incidents_prevented_per_month"
+  why: "If arifOS stops at least one regretful action per user per month, value is clear."
+  how_to_measure: "Survey adopters quarterly: 'How many actions did arifOS HOLD that you're glad it did?'"
+  target: ">1 per active user per month"
+
+# ── When to reconsider ──────────────────────────────────────────────
+
+reconsider_arifos_if:
+  - "0 external adopters in 6 months"
+  - "Adopters report arifOS causes more incidents than it prevents"
+  - "Debug time consistently >15 minutes"
+  - "Migration-off cost >1 week"
+  - "User surveys indicate the governance is overhead without value"
+
+action: "If 2+ triggers hit, 888_HOLD → constitutional review → pivot or delete."

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # Canonical13 MCP Migration — arifOS Public Tool Surface
 
 > **Status:** AUDIT COMPLETE (2026-06-19) — Phase 1 enforcement live, Phase 2 rename pending.

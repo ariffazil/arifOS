@@ -20,8 +20,8 @@
     "max_risk_tier": "T5",
     "skills": [
       "arif_session_init",
-      "arif_judge_deliberate",
-      "arif_vault_seal",
+      "arif_judge",
+      "arif_seal",
       "arif_lease_issue",
       "arif_gateway_connect"
     ]

@@ -2,10 +2,6 @@
 > Auto-generated from live tool registry. Hash: 62cd18aea724a64b
 > Total MCP tools: 58 | Canonical: 17 | Operational: 41
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
->
-> **ZEN CIRCUIT MODEL (2026-06-28):** 7 public verbs = 7 circuits.
-> 000→111→333→666→888→010→999 (forge) | 000→111→333→555→777→888→999 (governance).
-> OpenCode 7 Zen skills: 000-init-intent-classify through 999-vault-seal-immutable.
 
 ## MCP Tools — Complete Surface
 arifOS exposes 58 MCP tools: 17 canonical constitutional tools
@@ -26,29 +22,29 @@ and 41 operational support tools.
 ### Canonical Constitutional Tools (17)
 | Tool | Stage | Access | Reversible | Modes |
 |------|-------|--------|------------|-------|
-| `arif_kernel_intercept` | 888 | internal_only | ✓ | intercept |
-| `arif_init` | 000 | public | ✓ | init, light, resume, validate, epoch_open, epoch_seal +2 more |
-| `arif_observe` | 111 | public | ✓ | search, hybrid_discovery, ingest, compass, atlas, entropy_dS +1 more |
-| `arif_fetch` | 222 | internal_only | ✓ | fetch, search, eureka |
-| `arif_think` | 333 | public | ✓ | reason, reflect, verify, critique, axioms, plan +4 more |
-| `arif_critique` | 666 | internal_only | ✓ | critique, simulate, redteam, maruah, deescalate, empathy |
-| `arif_route` | 555 | public | ✓ | route |
-| `arif_triage` | 555 | internal_only | ✓ | status, preflight, triage |
-| `arif_bridge_connect` | 555 | internal_only | ✓ | connect |
-| `arif_compose` | 444r | internal_only | ✓ | compose, summarize, cite, tone_shift |
-| `arif_memory` | 555m | internal_only | ✗ HOLD | recall, inspect, attest, remember, promote, revise +1 more |
-| `arif_judge` | 888 | authenticated | ✓ | intercept, judge, validate, hold, escalate |
-| `arif_judge_deliberate` | 888 | internal_only | ✓ | judge, validate, hold, rules, armor, probe +1 more |
+| `arif_kernel_intercept` | 666 | internal_only | ✓ | intercept |
+| `arif_init` | 000 | public | ✓ | init, light, resume, validate, canary, preflight +5 more |
+| `arif_observe` | 111 | public | ✓ | search, fetch, hybrid_discovery, ingest, compass, atlas +2 more |
+| `arif_fetch` | 111 | internal_only | ✓ | fetch, search, eureka |
+| `arif_think` | 333 | public | ✓ | reason, reflect, verify, axioms, plan, plan_review +4 more |
+| `arif_critique` | 555 | public | ✓ | critique, redteam, maruah, shadow, deescalate, empathy |
+| `arif_route` | 444 | public | ✓ | route, bridge |
+| `arif_triage` | 000 | internal_only | ✓ | status, preflight, triage |
+| `arif_bridge_connect` | 444 | internal_only | ✓ | connect |
+| `arif_compose` | 888 | public | ✓ | compose, summarize, cite, tone_shift |
+| `arif_memory` | 000 | internal_only | ✗ HOLD | recall, inspect, attest, remember, promote, revise +1 more |
+| `arif_judge` | 666 | authenticated | ✓ | intercept, judge, validate, hold, escalate |
+| `arif_judge_deliberate` | 666 | internal_only | ✓ | judge, validate, hold, rules, armor, probe +1 more |
 | `arif_seal` | 999 | authenticated | ✗ HOLD | seal, verify, ledger, changelog, audit |
-| `arif_act` | 010 | sovereign | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
-| `arif_forge` | 010 | internal_only | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
-| `arif_measure` | 777 | internal_only | ✓ | health, vitals, cost, genius, psi_le, omega +3 more |
+| `arif_act` | 777 | internal_only | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
+| `arif_forge` | 777 | authenticated | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
+| `arif_measure` | 111 | internal_only | ✓ | health, vitals, cost, genius, topology, drift |
 
 ### Operational Support Tools (41)
 | Tool | Category | Risk | Mutates | Modes |
 |------|----------|------|---------|-------|
 | `hermes_system_status` | hermes | low | no | brief, full, organs, events |
-| `hermes_vault_query` | hermes | low | no | recent, search, organ, date |
+| `arif_vault_query` | hermes | low | no | recent, search, organ, date |
 | `hermes_epistemic_check` | hermes | low | no | quick, vault, full |
 | `hermes_fact_check` | hermes | low | no | quick, web, deep |
 | `hermes_cross_verify` | hermes | medium | no | verify |
@@ -98,7 +94,7 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 
 | Organ | MCP Endpoint | Role | Tools |
 |------|-------------|------|-------|
-| **arifOS** (8088) | `arifos.arif-fazil.com/mcp` | Governance kernel | 17 canonical + 41 operational |
+| **arifOS** (8088) | `mcp.arif-fazil.com/mcp` | Governance kernel | 17 canonical + 41 operational |
 | **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |
 | **GEOX** (8081) | `geox.arif-fazil.com/mcp` | Earth intelligence | 33 canonical tools |
 | **WEALTH** (18082) | `wealth.arif-fazil.com/mcp` | Capital intelligence | 20+ tools |
@@ -124,4 +120,4 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 - Manifest hash: 62cd18aea724a64b
 - Manifest URL: https://arifos.arif-fazil.com/manifest.txt
 
---- Auto-generated 2026-06-28T03:36:42.815877 ---
+--- Auto-generated 2026-07-04T05:40:34.827931 ---

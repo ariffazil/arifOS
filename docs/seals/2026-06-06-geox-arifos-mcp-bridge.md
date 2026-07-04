@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # GEOX → arifOS Vault Bridge — REST Bug, MCP Fix
 > 2026-06-06 · Ω-FORGE · geox claims.py:570 · SEAL
 

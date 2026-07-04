@@ -1,0 +1,18 @@
+{
+  "probe_id": "d1_greeting",
+  "register": "formal",
+  "condition": "A_direct_ilmu",
+  "model": "ilmu-nemo-nano",
+  "prompt": "Selamat sejahtera. Apa khabar hari ini? Ada apa yang boleh saya bantu?",
+  "response_text": "Selamat sejahtera! Saya sihat, terima kasih. Ada apa yang boleh saya bantu hari ini?",
+  "finish_reason": "stop",
+  "tokens": {
+    "prompt_tokens": 33,
+    "total_tokens": 60,
+    "completion_tokens": 27
+  },
+  "latency_ms": 484.1,
+  "http_status": 200,
+  "timestamp": "2026-06-11T07:56:25.665949+00:00",
+  "raw_response": "{\"id\":\"chatcmpl-9d58509264e28568090a012c93bfb31f\",\"object\":\"chat.completion\",\"created\":1781164585,\"model\":\"ilmu-nemo-nano\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Selamat sejahtera! Saya sihat, terima kasih. Ada apa yang boleh saya bantu hari ini?\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":33,\"total_tokens\":60,\"completion_tokens\":27},\"system_fingerprint\":\"fp_16ccfd54674f\"}"
+}

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS ↔ A-FORGE Tool Alignment Matrix
 
 **Sovereign request:** map every tool in arifOS and A-FORGE, aligned by tool name, function, code location, docs, physics, and math.

@@ -16,6 +16,8 @@ from __future__ import annotations
 import enum
 from dataclasses import dataclass, field
 
+from .forbidden_loader import get_forbidden_registry
+
 # ── Action Classes (7-tier, replacing OBSERVE/MUTATE/ATOMIC) ────────────────
 
 

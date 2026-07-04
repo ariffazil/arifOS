@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names. See [HISTORICAL_NOTICE.md](../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # PHOENIX72_GAP_MATRIX.md — Tool Gap Analysis
 **Date:** 2026-05-25
 **Principle:** A tool is ALIVE only when all 7 conditions pass

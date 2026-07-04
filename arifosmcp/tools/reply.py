@@ -15,6 +15,30 @@ from arifosmcp.runtime.tools import _hold, _ok
 
 
 # ── F14 stamping helpers (Right #1 + #4) ──────────────────────────────
+def _stamp_authority_headers(
+    result: dict[str, Any],
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Stamp every arif_compose response with authority headers (9-Tool Audit Fix 4).
+
+    Turns arif_compose from a formatter into an output gate.
+    """
+    headers = {
+        "authority_mode": "compose",
+        "evidence_layer": "MIND_333",
+        "seal_status": "UNSEALED",
+        "reversibility": "high",
+        "next_allowed_action": "arif_judge" if session_id else "arif_init",
+    }
+    # Inject into result payload or top-level
+    if isinstance(result, dict):
+        if "result" in result and isinstance(result["result"], dict):
+            result["result"]["authority_headers"] = headers
+        else:
+            result["authority_headers"] = headers
+    return result
+
+
 def _stamp_f14_reply(
     result: dict[str, Any],
     ai_involvement: str = "full",
@@ -56,6 +80,15 @@ def arif_compose(
     ai_involvement: str = "full",
     language: str = "en",
 ) -> dict[str, Any]:
+    # ── Authority Headers (9-Tool Audit Fix 4 — 2026-06-29) ──
+    _authority_headers = {
+        "authority_mode": "compose",
+        "evidence_layer": "MIND_333",
+        "seal_status": "UNSEALED",
+        "reversibility": "high",
+        "next_allowed_action": "arif_judge" if session_id else "arif_init",
+    }
+
     # ── Reply Boundary Check (v2 Deepening — Task 4) ──
     from arifosmcp.runtime.tools import _arif_seal, get_session
 
@@ -197,7 +230,7 @@ def arif_compose(
 
     # VOID or Ω₂: block delivery entirely
     if heart_verdict == "VOID" or omega_state.get("omega") == "Ω₂":
-        return _hold(
+        return _stamp_authority_headers(_hold(
             "arif_compose",
             f"666_HEART VOID: {heart_result.get('risks_found', [])}",
             {
@@ -205,11 +238,11 @@ def arif_compose(
                 "heart_verdict": heart_verdict,
                 "caveats": heart_result.get("caveats", []),
             },
-        )
+        ), session_id)
 
     # HOLD or Ω₁: deliver with constitutional caveats
     if heart_verdict == "HOLD" or omega_state.get("omega") == "Ω₁":
-        return _ok(
+        return _stamp_authority_headers(_ok(
             "arif_compose",
             {
                 "message": message,
@@ -219,18 +252,18 @@ def arif_compose(
                 "heart_caveats": heart_result.get("risks_found", []),
                 "omega_state": omega_state,
             },
-        )
+        ), session_id)
 
     floor_check = check_laws("arif_compose", {"message": message or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_compose", floor_check["reason"], floor_check["violated_laws"])
+        return _stamp_authority_headers(_hold("arif_compose", floor_check["reason"], floor_check["violated_laws"]), session_id)
 
     if mode == "compose":
         result = _ok(
             "arif_compose",
             {"message": message, "formatted": message, "tone": "neutral"},
         )
-        return _stamp_f14_reply(result, ai_involvement, language)
+        return _stamp_authority_headers(_stamp_f14_reply(result, ai_involvement, language), session_id)
     if mode == "format":
         result = _ok("arif_compose", {"message": message, "style": style or "markdown"})
         return _stamp_f14_reply(result, ai_involvement, language)
@@ -260,7 +293,7 @@ def arif_compose(
             "message": f"{mode} activated based on GEOX quantum scale classifier.",
         }
 
-    return _hold("arif_compose", f"Unknown mode: {mode}")
+    return _stamp_authority_headers(_hold("arif_compose", f"Unknown mode: {mode}"), session_id)
 
 
 # Backward compatibility alias

@@ -53,6 +53,10 @@ conformance:
 	@echo "Running ARIF Conformance Spine v0.1..."
 	@$(PYTHON) -m arifosmcp.transport.conformance_spine
 
+deploy-bridge:
+	@echo "Deploying local source to app runtime via bridge..."
+	@bash scripts/deploy-bridge.sh
+
 deploy-local:
 	@echo "Deploying current arifOS HEAD to native bare-metal runtime..."
 	@cd $(DIR) && git fetch origin main
@@ -245,6 +249,10 @@ reality-replay:
 
 prove: health sot-check security-audit constitutional-benchmark vault999-verify reality-replay
 	@echo "Synthesizing ARIFOS_PROOF_PACK.md..."
+
+drift-check:
+	@echo "Checking transport contract alignment..."
+	@/root/arifOS/scripts/drift-check.sh
 
 substrate-loop-test:
 	@echo "Running End-to-End AGI Substrate Loop Test..."

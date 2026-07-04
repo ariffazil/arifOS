@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # ARIFOS TOOL AUDIT REPORT
 > **SEAL:** 999-SEAL-TOOL-AUDIT-20260523
 > **Timestamp:** 2026-05-23T10:28:43+08:00

@@ -1,0 +1,115 @@
+# REGISTRY 07: MEMORY
+# arifOS Federation — Canonical Memory Registry
+# Forged: 2026-07-04 by FORGE (000Omega)
+# Authority: F13 SOVEREIGN
+# DITEMPA BUKAN DIBERI
+#
+# OWNER: arifOS (session state) + each organ (organ-specific memory)
+# DB BACKEND: /root/arifOS/memory/ + Qdrant (12 collections)
+# RESOURCE URI: arifos://memory
+# DRIFT CHECK: count(memory_files_on_disk) >= count(memory_vectors_in_qdrant)
+
+registry_id: MEMORY
+owner: arifOS + all organs
+version: "2026.07.04-v1"
+forged_at: "2026-07-04T00:00:00Z"
+forged_by: "FORGE (000Omega)"
+authority: "F13 SOVEREIGN"
+status: ALIVE
+
+sources_merged:
+  - /root/arifOS/memory/
+  - /root/memory/
+  - /root/AAA/memory/
+  - /root/WEALTH/memory/
+  - /root/WELL/memory/
+  - /root/AAA/VAULT999/tree777/tree777_anchors.jsonl
+  - Qdrant collections (12)
+
+# ── Memory Hierarchy (§7.9 Sealed 2026-06-20) ──
+hierarchy:
+  - tier: KSR
+    name: Kernel State Record
+    entropy: high
+    nature: transitional
+    description: "Present state, high entropy, transitional"
+  - tier: Vault
+    name: Sealed Past
+    entropy: low
+    nature: append_only
+    description: "Sealed past - low entropy, append-only, never modified"
+  - tier: Ledger
+    name: Arrow Operation
+    entropy: monotonic
+    nature: hash_chained
+    description: "The append itself, monotonic, hash-chained"
+  - tier: Federation
+    name: Indexed Past
+    entropy: medium
+    nature: decay_managed
+    description: "Medium entropy, decay-managed, advisory"
+  - tier: Telemetry
+    name: Observation
+    entropy: disposable
+    nature: sample_expire
+    description: "Disposable, no authority, sample/expire/discard"
+
+# ── Qdrant Collections (12) ──
+qdrant_collections:
+  - name: aforge_skills
+    purpose: "A-FORGE skill vectors"
+  - name: arif_evidence
+    purpose: "Evidence packets for reasoning"
+  - name: arif_geometry
+    purpose: "Spatial and geometric data"
+  - name: arif_human_substrate
+    purpose: "Human substrate signals"
+  - name: arifbrain_states
+    purpose: "Brain state snapshots"
+  - name: arifos_agent_episodes
+    purpose: "Agent episode memory"
+  - name: arifos_cognitive_memory
+    purpose: "Cognitive memory for reasoning"
+  - name: arifos_l5_graph
+    purpose: "L5 knowledge graph"
+  - name: arifos_memory
+    purpose: "General arifOS memory"
+  - name: arifos_session_memory
+    purpose: "Session-specific memory"
+  - name: engineering_tasks
+    purpose: "Engineering task records"
+  - name: mcp_capabilities
+    purpose: "MCP capability index"
+
+# ── Memory Directories ──
+directories:
+  arifOS_session: /root/arifOS/memory/
+  root_carry_forward: /root/memory/
+  AAA: /root/AAA/memory/
+  WEALTH: /root/WEALTH/memory/
+  WELL: /root/WELL/memory/
+
+# ── TREE777 ──
+tree777:
+  anchors: /root/AAA/VAULT999/tree777/tree777_anchors.jsonl
+  scripts:
+    - /root/AAA/scripts/tree777_weekly_anchor.sh
+    - /root/AAA/scripts/tree777_health_pulse.sh
+    - /root/AAA/scripts/tree777_promotion_review.sh
+  purpose: "Weekly skill audit anchors - knowledge tree index"
+
+# ── Session State Schema ──
+session_state:
+  fields: [current_task, blockers, discoveries, next_action, stage, floor_status]
+  format: markdown
+  wajib: "Session state MUST survive context compaction (anti-strange-loop)"
+
+# ── Memory Architecture Law ──
+memory_law: "LLM thinks. KSR is. Kernel transitions. Ledger appends. Vault remembers. Federation recalls. Telemetry observes."
+
+# ── WAJIB ──
+wajib: "Session state MUST survive context compaction. The hash chain is the arrow of time."
+derived_views:
+  - /root/arifOS/memory/
+  - /root/memory/
+  - /root/AAA/memory/

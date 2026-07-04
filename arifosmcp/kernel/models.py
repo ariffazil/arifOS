@@ -531,3 +531,21 @@ class InterceptorDecision(BaseModel):
         default=None,
         description="Optional instruction to prepend to tool arguments, e.g. 'SIMULATION_MODE'",
     )
+
+    # ── P0.2 WIRING (2026-06-28): Latency budget + conflict resolution ──
+    latency_ms: float = Field(default=0.0, description="Interceptor elapsed time in ms")
+    within_budget: bool = Field(
+        default=True, description="Was interceptor within its latency budget?"
+    )
+    decision_class: str = Field(
+        default="C1_FAST",
+        description="C0_AUTO | C1_FAST | C2_STANDARD | C3_DEEP | C4_SOVEREIGN",
+    )
+    floors_evaluated: list[str] = Field(
+        default_factory=list,
+        description="Constitutional floors actually checked during this interception",
+    )
+    floors_violated: list[str] = Field(
+        default_factory=list,
+        description="Floors that were violated (ordered by severity)",
+    )

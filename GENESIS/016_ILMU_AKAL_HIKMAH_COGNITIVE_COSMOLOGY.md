@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [/root/arifOS/docs/HISTORICAL_NOTICE.md](docs/HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # GENESIS 016 — ILMU · AKAL · HIKMAH
 
 ## The 3-Layer Cognitive Cosmology of arifOS

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS MCP Tool Surface — Red Team Audit
 **Date:** 2026-05-19  
 **Auditor:** Constitutional Clerk (L3 AGI)  
