@@ -34,6 +34,10 @@ class ArifToolDiscovery:
     category: str
     modes: list[str] | None = None
     requires_session: bool = True
+    # Deprecated aliases that still resolve on the wire (SDK back-compat).
+    # Fresh clients should prefer the canonical `name` over any entry here.
+    # Added 2026-07-04 — default [] for back-compat with older entries.
+    deprecated_aliases: list[str] | None = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -48,12 +52,15 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
         use_when="Beginning a new conversation, starting a task, resuming a session, or binding to a constitutional context. Keywords: 'start session', 'initialize', 'begin', 'new conversation', 'resume'.",
         do_not_use_when="Already in an active session. Use other tools directly.",
         aliases=[
-            "arif_session_init",
+            "arif_session_init",  # deprecated 2026-07-04 — kept for SDK back-compat
             "arifos_init",
-            "session_init",
+            "session_init",  # deprecated 2026-07-04 — kept for SDK back-compat
             "init_session",
             "start_session",
         ],
+        # deprecated_aliases (forged 2026-07-04) — clients reading discovery
+        # should treat these as non-preferred. The canonical name is `arif_init`.
+        deprecated_aliases=["arif_session_init", "session_init"],
         keywords=["init", "session", "start", "begin", "resume", "initialize", "bootstrap", "bind"],
         examples=[
             "Start a new session",
