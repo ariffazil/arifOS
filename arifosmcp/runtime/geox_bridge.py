@@ -10,6 +10,9 @@ Pattern:
 1. POST JSON-RPC to /mcp with Accept: text/event-stream
 2. Server responds with SSE stream (event: message, data: <json>)
 3. Parse SSE events to extract JSON-RPC responses
+
+FIX (2026-07-04): MCP protocol requires session initialization before tools/list.
+The bridge now manages a cached session ID with automatic re-initialization on expiry.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ import logging
 import math
 import os
 import statistics
+import time
 from collections.abc import Sequence
 from typing import Any
 
@@ -32,23 +36,106 @@ GEOX_HOST = os.getenv("GEOX_BRIDGE_HOST", "localhost")
 GEOX_PORT = int(os.getenv("GEOX_BRIDGE_PORT", "8081"))
 GEOX_BASE = f"http://{GEOX_HOST}:{GEOX_PORT}"
 
+# ── MCP Session Cache ────────────────────────────────────────────────────────
+# GEOX FastMCP requires a valid Mcp-Session-Id for all requests after initialize.
+# We cache the session ID and re-initialize when expired (HTTP 400 "Missing session ID").
+_geox_session_id: str | None = None
+_geox_session_established_at: float = 0.0
+_GEOX_SESSION_TTL_SECONDS = 600  # 10 minutes — conservative; server may expire sooner
 
-async def _post_json_rpc(endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
-    """
-    Send a JSON-RPC request to GEOX and collect SSE response events.
 
-    Returns the parsed JSON-RPC result dict.
-    Raises on error responses.
-    """
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+async def _ensure_session(client: httpx.AsyncClient) -> str | None:
+    """Ensure we have a valid GEOX MCP session. Returns session ID or None."""
+    global _geox_session_id, _geox_session_established_at
+
+    # Check if cached session is still fresh
+    if (
+        _geox_session_id
+        and (time.time() - _geox_session_established_at) < _GEOX_SESSION_TTL_SECONDS
+    ):
+        return _geox_session_id
+
+    # Initialize a new session
+    init_payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-03-26",
+            "capabilities": {},
+            "clientInfo": {"name": "arifos-geox-bridge", "version": "1.0"},
+        },
+    }
+
+    try:
         resp = await client.post(
-            f"{GEOX_BASE}{endpoint}",
-            json=payload,
+            f"{GEOX_BASE}/mcp",
+            json=init_payload,
             headers={
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
             },
         )
+        if resp.status_code == 200:
+            session_id = resp.headers.get("mcp-session-id")
+            if session_id:
+                _geox_session_id = session_id.strip()
+                _geox_session_established_at = time.time()
+                logger.info(f"GEOX MCP session initialized: {_geox_session_id[:12]}...")
+                return _geox_session_id
+            else:
+                logger.warning("GEOX initialize returned 200 but no mcp-session-id header")
+        else:
+            logger.warning(f"GEOX initialize returned HTTP {resp.status_code}")
+    except Exception as e:
+        logger.warning(f"GEOX session initialization failed: {e}")
+
+    return None
+
+
+async def _post_json_rpc(endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """
+    Send a JSON-RPC request to GEOX with MCP session lifecycle management.
+
+    Returns the parsed JSON-RPC result dict.
+    Raises on error responses.
+    """
+    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        # Ensure we have a valid session
+        session_id = await _ensure_session(client)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        if session_id:
+            headers["Mcp-Session-Id"] = session_id
+
+        resp = await client.post(
+            f"{GEOX_BASE}{endpoint}",
+            json=payload,
+            headers=headers,
+        )
+
+        # Handle session expiry: retry once with fresh session
+        if resp.status_code == 400:
+            try:
+                err_body = resp.json()
+                err_msg = err_body.get("error", {}).get("message", "")
+            except Exception:
+                err_msg = resp.text[:200]
+
+            if "session" in err_msg.lower():
+                logger.info("GEOX session expired, re-initializing...")
+                _geox_session_id = None  # force re-init
+                session_id = await _ensure_session(client)
+                if session_id:
+                    headers["Mcp-Session-Id"] = session_id
+                    resp = await client.post(
+                        f"{GEOX_BASE}{endpoint}",
+                        json=payload,
+                        headers=headers,
+                    )
 
         if resp.status_code == 406:
             raise ConnectionError(
