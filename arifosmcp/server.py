@@ -383,8 +383,8 @@ def _resolve_git_commit() -> str:
         _val = os.environ.get(_key, "").strip()
         if _val and _val not in ("unknown", ""):
             return _val[:7]
-    # 3. Read .git/HEAD from canonical repo
-    for _git_dir in ("/root/arifOS/.git", "/app/.git"):
+    # 3. Read .git/HEAD — live kernel FIRST, dev tree SECOND
+    for _git_dir in ("/opt/arifos/app/.git", "/root/arifOS/.git", "/app/.git"):
         try:
             _head = os.path.join(_git_dir, "HEAD")
             if os.path.exists(_head):
