@@ -1,0 +1,97 @@
+# OSINT_DORKS_CORPUS.yaml — Google Dork Reference Corpus
+# Forged: 2026-06-29 — EHT Repo Audit (Arif + Claude Code AAA)
+# Authority: F13 SOVEREIGN directive
+# Source:  github.com/hhhrrrttt222111/Ethical-Hacking-Tools/14. Google Dorking/
+# Status:  REFERENCE — read-only, never auto-execute
+#
+# PRINCIPLE: Dorks are documented public search syntax — not exploits.
+# F2 TRUTH: These are publicly available search operators.
+# F5 PEACE: Never auto-generate dork queries — this is a reference corpus only.
+#
+# DITEMPA BUKAN DIBERI
+
+_meta:
+  schema: arifos-osint-dork-corpus-v1
+  forged: 2026-06-29
+  source: Ethical-Hacking-Tools repo (14. Google Dorking/)
+  source_commit: 0ca243daf27768f4c08780a2f0f2d35b4ec29661
+  constitutional_authority: F13 SOVEREIGN
+  total_files: 5
+  total_signatures: 7055
+  status: REFERENCE_ONLY
+  governance: "READ-ONLY. Agents may reference these patterns but NEVER auto-execute dork queries. F2 TRUTH + F5 PEACE."
+
+corpus:
+  - file: cctv.txt
+    signatures: 24
+    category: camera_exposure
+    risk: LOW
+    description: "Camera/webcam exposure discovery dorks — finds publicly accessible camera feeds"
+    sample:
+      - 'Inurl:"CgiStart?page="'
+      - 'inurl:/view.shtml'
+      - 'intitle:"Live View / – AXIS"'
+      - 'inurl:view/view.shtml'
+      - 'inurl:ViewerFrame?Mode='
+
+  - file: dorks1.txt
+    signatures: 792
+    category: mixed_recon
+    risk: LOW
+    description: "General-purpose reconnaissance dorks — config exposure, DB dumps, confidential documents"
+    sample:
+      - 'components/com_simpleboard/image_upload.php?sbp='
+      - 'confidential site:mil'
+      - 'config.php'
+      - 'config.php?_CCFG[_PKG_PATH_DBSE]='
+
+  - file: dorks2.txt
+    signatures: 3981
+    category: parameter_discovery
+    risk: LOW
+    description: "Parameter/endpoint discovery dorks — ID params, cart params, detail pages"
+    sample:
+      - 'about_us.php?id='
+      - 'about.php?cartID='
+      - 'aboutbook.php?id='
+      - 'aboutchiangmai/details.php?id='
+
+  - file: dorks3.txt
+    signatures: 1636
+    category: parameter_discovery
+    risk: LOW
+    description: "Additional parameter/endpoint dorks — cart, login, add-to-cart params"
+    sample:
+      - 'about.php?cartID='
+      - 'accinfo.php?cartId='
+      - 'acclogin.php?cartID='
+      - 'add.php?bookid='
+
+  - file: sql_injection.txt
+    signatures: 622
+    category: sqli_probing
+    risk: MEDIUM
+    description: "SQL injection probe dorks — ID params, article params, category params"
+    governance_note: "These dorks identify POTENTIALLY vulnerable parameters. They are SEARCH SYNTAX, not exploits. However, follow-up SQL injection testing requires category 12 (Database Assessment) governance with DRAFT_ONLY + target authorization."
+    sample:
+      - 'inurl:/index.php?id='
+      - 'inurl:/trainers.php?id='
+      - 'inurl:/buy.php?category='
+      - 'inurl:/article.php?ID='
+
+# ─── GOVERNANCE RULES ──────────────────────────────────────────
+# 1. Agents may USE this corpus to understand what dorks exist
+# 2. Agents may NEVER auto-execute dork queries against search engines
+# 3. Dork use in OSINT recon MUST be OBSERVE_ONLY (read, never mutate)
+# 4. sql_injection.txt dorks are category 12 (Database Assessment) — DRAFT_ONLY
+# 5. Any tool that generates dorks from this corpus requires F13 sovereign approval
+#
+# ─── INTEGRATION PATH ──────────────────────────────────────────
+# This corpus is consumed by:
+#   1. forge_osint_dork_lookup — search the corpus by category/keyword
+#   2. GEOX OSINT recon pipeline — passive target profiling
+#   3. arifOS forbidden gate — ensures no auto-execution
+#
+# Eureka: These 7,055 dorks represent a curated, publicly-available
+# search syntax corpus. The value is in the CURATION (which dorks
+# work), not in any single dork (which is just SQL for Google).

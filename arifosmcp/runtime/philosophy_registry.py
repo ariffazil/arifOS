@@ -82,12 +82,13 @@ def _load_registry() -> dict[str, Any]:
         return _REGISTRY_CACHE
     try:
         _REGISTRY_CACHE = json.loads(path.read_text())
-        n = len(_REGISTRY_CACHE.get("quotes", []))
-        logger.info("Loaded %s (%s quotes)", path.name, n)
+        if _REGISTRY_CACHE is not None:
+            n = len(_REGISTRY_CACHE.get("quotes", []))
+            logger.info("Loaded %s (%s quotes)", path.name, n)
     except Exception as exc:
         logger.warning("Failed to load registry: %s", exc)
         _REGISTRY_CACHE = {}
-    return _REGISTRY_CACHE
+    return _REGISTRY_CACHE if _REGISTRY_CACHE is not None else {}
 
 
 # ── Match Scoring Engine ──────────────────────────────────────────────────────
@@ -293,6 +294,44 @@ def tags_to_meaning(tags: list[str]) -> str:
     return " ⊗ ".join(names)
 
 
+def inject_philosophy(envelope: Any) -> dict[str, Any]:
+    """
+    Inject philosophical quote into output envelope as metadata.
+
+    QUOTES ARE NON-CONTAMINATING METADATA. They ride in the philosophical_anchor
+    envelope for human resonance. They NEVER enter reasoning, logic, 888_JUDGE
+    deliberation, or VAULT999 sealing criteria.
+
+    Args:
+        envelope: The output envelope (must have .tool_name and .context attributes)
+
+    Returns:
+        Dict with quote metadata or empty dict if no quote available
+    """
+    try:
+        tool_name = getattr(envelope, "tool_name", "")
+        context = getattr(envelope, "context", "")
+
+        # Get tool-specific quote with context-aware scoring
+        quote, injection_mode = get_tool_quote_for_envelope(tool_name, context)
+
+        if quote:
+            return {
+                "quote": quote.get("quote", ""),
+                "author": quote.get("author", ""),
+                "source": quote.get("source", ""),
+                "symbolic_tags": quote.get("symbolic_tags", []),
+                "dimension_scores": quote.get("dimension_scores", {}),
+                "match_score": quote.get("match_score", 0.5),
+                "injection_mode": injection_mode,
+                "metadata_only": True,  # Explicit flag: quotes are metadata, not reasoning
+            }
+        return {}
+    except Exception as exc:
+        logger.debug(f"Philosophy injection failed: {exc}")
+        return {}
+
+
 __all__ = [
     "SYMBOLIC_TAGS",
     "CONTEXT_DIMENSION_MAP",
@@ -302,4 +341,5 @@ __all__ = [
     "get_tool_quote_for_envelope",
     "resolve_symbolic_tag",
     "tags_to_meaning",
+    "inject_philosophy",
 ]

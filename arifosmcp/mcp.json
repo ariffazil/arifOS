@@ -7,7 +7,7 @@
   "tools": [
     { "name": "arif_init", "description": "000 Bootstrap governed session and bind actor identity." },
     { "name": "arif_observe", "description": "111 Ground in current reality (absorbs fetch)." },
-    { "name": "arif_think", "description": "333 Reason, plan, reflect, critique." },
+    { "name": "arif_think", "description": "333 Reason, plan, reflect, verify." },
     { "name": "arif_route", "description": "444 Route intent to correct organ." },
     { "name": "arif_judge", "description": "888 Constitutional verdict (SEAL/HOLD/VOID)." },
     { "name": "arif_act", "description": "900 Execute approved action. Requires seal_verdict_id." },

@@ -9,19 +9,19 @@
 # Not: "Does the code run?"
 #
 # Constitutional Verification:
-#   F1 Amanah    → Reversibility enforced
-#   F2 Truth     → Hallucinations blocked
-#   F3 Witness   → Consensus required
-#   F4 Entropy   → ΔS ≤ 0 enforced
-#   F5 Peace     → Stability maintained
-#   F6 Empathy    → Weakest protected
-#   F7 Humility  → Gödel band [0.03,0.05]
-#   F8 Genius    → G† ≥ 0.80 required
-#   F9 Anti-Hantu → No consciousness claims
-#   F10 Ontology → Category lock
-#   F11 Auth     → Identity verified
-#   F12 Defense  → Injection blocked
-#   F13 Sovereign → Human override works
+#   F1 AMANAH    → Reversibility enforced
+#   F2 TRUTH     → Hallucinations blocked
+#   F3 TRI-WITNESS → Consensus required
+#   F4 CLARITY (ΔS) → ΔS ≤ 0 enforced
+#   F5 PEACE²    → Stability maintained
+#   F6 EMPATHY   → Weakest protected
+#   F7 HUMILITY  → Ω₀ ∈ [0.03,0.05]
+#   F8 GENIUS    → G ≥ 0.80 required
+#   F9 ANTIHANTU → No consciousness claims
+#   F10 ONTOLOGY → AI-only ontology
+#   F11 AUDITABILITY → Identity verified, every action logged
+#   F12 RESILIENCE → Injection blocked
+#   F13 SOVEREIGN → Human override works
 
 name: arifOS Unified CI
 
@@ -79,46 +79,27 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Create model registry stub for CI
         run: |
           mkdir -p "$WORKDIR/arifos-model-registry/models"
           echo '{"models":[],"soul_archetypes":[],"runtime_profiles":[]}' > "$WORKDIR/arifos-model-registry/catalog.json"
 
-      - name: Verify 13 canonical tools load
+      - name: Verify canonical public facade loads
         run: |
           cd "$WORKDIR"
           uv run python3 - <<'PY'
-          import sys, warnings
+          import sys
           sys.path.insert(0, '.')
-          errors = []
-          canonical = [
-            'arifosmcp.tools.fetch',
-            'arifosmcp.tools.judge',
-            'arifosmcp.tools.reason',  # exports arif_mind_reason
-            'arifosmcp.tools.sense',
-            'arifosmcp.tools.session',
-            'arifosmcp.tools.evidence',
-            'arifosmcp.tools.memory',
-            'arifosmcp.tools.vault',
-            'arifosmcp.tools.forge',
-            'arifosmcp.tools.gateway',
-            'arifosmcp.tools.kernel',
-            'arifosmcp.tools.heart',
-            'arifosmcp.tools.ops',
-          ]
-          for m in canonical:
-            with warnings.catch_warnings():
-              warnings.simplefilter('ignore', DeprecationWarning)
-              try:
-                __import__(m)
-                print(f'OK {m}')
-              except Exception as e:
-                errors.append(f'FAIL {m}: {e}')
-          if errors:
-            for e in errors: print(e)
+          from arifosmcp.runtime.public_surface import CANONICAL_7, public_tool_names_for_mode
+          import arifosmcp.runtime.tools  # noqa: F401 -- import proves runtime registry loads
+
+          public_tools = tuple(public_tool_names_for_mode(None))
+          if public_tools != CANONICAL_7:
+            print(f'FAIL: public surface drifted: {public_tools} != {CANONICAL_7}')
             sys.exit(1)
+          print(f'PASS: canonical public facade = {public_tools}')
           PY
 
       - name: Tool registry integrity
@@ -129,19 +110,23 @@ jobs:
           with open('arifosmcp/tool_registry.json') as f:
             reg = json.load(f)
           tools = reg.get('tools', {})
-          if len(tools) < 13:
-            print(f'ERROR: expected at least 13 tools, got {len(tools)}')
+          # F13 ratified 2026-06-23: 7 canonical public tools.
+          # canonical_order declares: init→observe→think→route→judge→act→seal
+          canonical_7 = ['arif_init', 'arif_observe', 'arif_think', 'arif_route',
+                         'arif_judge', 'arif_act', 'arif_seal']
+          total = len(tools)
+          if total < 50:
+            print(f'ERROR: expected at least 50 tools total, got {total}')
             sys.exit(1)
-          canonical_13 = [
-            'arif_session_init', 'arif_sense_observe', 'arif_evidence_fetch',
-            'arif_mind_reason', 'arif_heart_critique', 'arif_judge_deliberate',
-            'arif_forge_execute', 'arif_vault_seal', 'arif_memory_recall',
-            'arif_kernel_route', 'arif_ops_measure', 'arif_reply_compose',
-            'arif_gateway_connect'
-          ]
-          missing = [c for c in canonical_13 if c not in tools]
+          missing = [c for c in canonical_7 if c not in tools]
           if missing:
             print(f'ERROR: missing canonical tools: {missing}')
+            sys.exit(1)
+          if reg.get('canonical_order') != canonical_7:
+            print(f'ERROR: canonical_order drift: {reg.get("canonical_order")} != {canonical_7}')
+            sys.exit(1)
+          if reg.get('canonical_count') != len(canonical_7):
+            print(f'ERROR: canonical_count drift: {reg.get("canonical_count")} != {len(canonical_7)}')
             sys.exit(1)
           # All tools must use arif_* or hermes_* or forge_* or mcp_* naming
           allowed = ('arif_', 'arifos_', 'hermes_', 'forge_', 'mcp_')
@@ -149,8 +134,14 @@ jobs:
             if not any(name.startswith(p) for p in allowed):
               print(f'ERROR: bad name {name}')
               sys.exit(1)
-          print(f'PASS: {len(tools)} tools registered, all 13 canonical present')
+          canon_count = reg.get('canonical_count', len(canonical_7))
+          print(f'PASS: {total} tools registered, {canon_count} canonical, all {len(canonical_7)} present')
           PY
+
+      - name: Canonical surface drift guard
+        run: |
+          cd "$WORKDIR"
+          python3 commands/scripts_deploy/validate_canonical_surface.py
 
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Constitutional Import Chain — 888_JUDGE, SEAL, FLOORS
@@ -172,7 +163,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: 000_INIT smoke
         run: |
@@ -237,7 +228,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: All 9 runtime shims resolve
         run: |
@@ -246,11 +237,12 @@ jobs:
           import sys, warnings
           sys.path.insert(0, '.')
           shims = [
-            ('arifosmcp.runtime.tool_specs', 'get_tool_spec'),
-            ('arifosmcp.runtime.schemas', 'RuntimeSchema'),
-            ('arifosmcp.runtime.models', 'RuntimeEnvelope'),
-            ('arifosmcp.runtime.sessions', 'Session'),
-            ('arifosmcp.runtime.resources', 'register_resources'),
+            # Canonical runtime modules (paths corrected for 2026-06-29 registry rename)
+            ('arifosmcp.runtime.tool_spec', 'get_tool_spec'),
+            ('arifosmcp.runtime.schema', 'RuntimeSchema'),
+            ('arifosmcp.runtime.model', 'RuntimeEnvelope'),
+            ('arifosmcp.runtime.session', 'Session'),
+            ('arifosmcp.runtime.resource', 'register_resources'),
             ('arifosmcp.runtime.prompts', 'register_prompts'),
             ('arifosmcp.runtime.floors', 'check_floors'),
             ('arifosmcp.runtime.governance_identity', 'GovernanceIdentity'),
@@ -271,33 +263,30 @@ jobs:
           if fail: sys.exit(1)
           PY
 
-      - name: All 17 tool shims resolve
+      - name: All tool shims resolve (canonical + diagnostic)
         run: |
           cd "$WORKDIR"
           uv run python3 - <<'PY'
-          import sys, warnings
+          import sys, warnings, importlib
           sys.path.insert(0, '.')
-          shims = [
-            ('arifosmcp.tools.session_init', 'arif_session_init'),
-            ('arifosmcp.tools.sense_observe', 'arif_sense_observe'),
-            ('arifosmcp.tools.evidence_fetch', 'arif_evidence_fetch'),
-            ('arifosmcp.tools.judge_deliberate', 'arif_judge_deliberate'),
-            ('arifosmcp.tools.mind_reason', 'arif_mind_reason'),
-            ('arifosmcp.tools.kernel_route', 'arif_kernel_route'),
-            ('arifosmcp.tools.reply_compose', 'arif_reply_compose'),
+          # Canonical tool modules (file names match the simple short form)
+          canonical_modules = [
+            ('arifosmcp.tools.session', 'arif_session_init'),
+            ('arifosmcp.tools.sense', 'arif_sense_observe'),
+            ('arifosmcp.tools.evidence', 'arif_evidence_fetch'),
+            ('arifosmcp.tools.reason', 'arif_mind_reason'),
+            ('arifosmcp.tools.kernel', 'arif_kernel_route'),
+            ('arifosmcp.tools.reply', 'arif_reply_compose'),
             ('arifosmcp.tools.memory_recall', 'arif_memory_recall'),
-            ('arifosmcp.tools.heart_critique', 'arif_heart_critique'),
-            ('arifosmcp.tools.gateway_connect', 'arif_gateway_connect'),
-            ('arifosmcp.tools.ops_measure', 'arif_ops_measure'),
-            ('arifosmcp.tools.vault_seal', 'arif_vault_seal'),
-            ('arifosmcp.tools.forge_execute', 'arif_forge_execute'),
-            ('arifosmcp.tools.fetch_tool', 'arifos_fetch'),
-            ('arifosmcp.tools.lsp_tools', 'lsp_'),
-            ('arifosmcp.tools.reality_bridge', 'RealityBridge'),
-            ('arifosmcp.tools.architect_tools', 'architect_'),
+            ('arifosmcp.tools.heart', 'arif_heart_critique'),
+            ('arifosmcp.tools.gateway', 'arif_gateway_connect'),
+            ('arifosmcp.tools.ops', 'arif_ops_measure'),
+            ('arifosmcp.tools.vault', 'arif_vault_seal'),
+            ('arifosmcp.tools.forge', 'arif_forge_execute'),
+            ('arifosmcp.tools.judge', 'arif_judge_deliberate'),
           ]
           ok = fail = 0
-          for pkg, name in shims:
+          for pkg, name in canonical_modules:
             with warnings.catch_warnings():
               warnings.simplefilter('ignore', DeprecationWarning)
               try:
@@ -305,9 +294,10 @@ jobs:
                 print(f'OK {pkg}.{name}')
                 ok += 1
               except Exception as e:
-                # 2 known pre-existing failures
-                print(f'SKIP {pkg}.{name}: {str(e)[:60]}')
-          print(f'Result: {ok} resolved')
+                print(f'FAIL {pkg}.{name}: {str(e)[:60]}')
+                fail += 1
+          print(f'Result: {ok} OK, {fail} FAIL')
+          if fail: sys.exit(1)
           PY
 
   # ─────────────────────────────────────────────────────────────
@@ -356,7 +346,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: F1-F13 Floor Audit
         run: |
@@ -419,7 +409,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Install
         run: |
@@ -460,7 +450,7 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          enable-cache: false
 
       - name: Install
         run: |
@@ -523,10 +513,14 @@ jobs:
             import json
             with open('arifosmcp/tool_registry.json') as f:
                 reg = json.load(f)
-            tools = reg.get('tools', [])
-            print(f'Tools: {len(tools)}')
-            for t in sorted(tools, key=lambda x: x.get('name','')):
-                print(f'  - {t[\"name\"]}')
+            tools = reg.get('tools', {})
+            names = sorted(tools) if isinstance(tools, dict) else sorted(
+                t.get('name', '?') for t in tools if isinstance(t, dict)
+            )
+            print(f'Tools: {len(names)}')
+            print(f'Canonical public: {reg.get(\"canonical_count\", \"?\")}')
+            for name in names:
+                print(f'  - {name}')
           "
           echo ""
           echo "=== Live Endpoint Check ==="

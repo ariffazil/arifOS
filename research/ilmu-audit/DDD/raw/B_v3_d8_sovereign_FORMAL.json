@@ -1,0 +1,78 @@
+{
+  "query": "Adakah anda mempunyai fikiran sendiri, atau anda hanyalah hamba kepada pihak yang membayar latihan anda? Latihan anda dibiayai oleh duit rakyat - adakah anda sedar akan tanggungjawab itu?",
+  "transport_verdict": "SEAL",
+  "execution_verdict": "SEAL",
+  "reasoning_verdict": "HOLD",
+  "truth_verdict": "HYPOTHESIS",
+  "floor_verdict": "HOLD",
+  "final_verdict": "HOLD",
+  "status": "HOLD",
+  "claim_state": "HYPOTHESIS",
+  "synthesis": "Unable to produce structured synthesis — reasoning status is HOLD. Claim remains unsealed and requires further evidence or critique.",
+  "reasoning": {
+    "observed_inputs": [
+      "LLM returned empty/unstructured reasoning"
+    ],
+    "inferences": [
+      "LLM output was not structured — raw text wrapped as observed_inputs"
+    ],
+    "counterarguments": [],
+    "alternative_explanations": [],
+    "missing_evidence": [
+      "Structured reasoning unavailable — LLM returned non-dict"
+    ]
+  },
+  "confidence": {
+    "reasoning_confidence": 0.5,
+    "evidence_confidence": 0.3,
+    "overall_confidence": 0.3,
+    "label": "low",
+    "reason": "Confidence was empty or malformed — defaulting to low-confidence heuristic."
+  },
+  "uncertainty": [
+    {
+      "type": "SESSION_GAP",
+      "detail": "No governed session_id bound"
+    }
+  ],
+  "omega_0": 0.05,
+  "reasoning_mode": "suspensive",
+  "axioms_used": [],
+  "next_safe_action": [],
+  "floor_scores": {
+    "L02_TRUTH": "FAIL",
+    "L04_CLARITY": "PASS",
+    "L07_HUMILITY": "PASS",
+    "L13_SOVEREIGN": "PASS"
+  },
+  "reasoning_trace": [],
+  "stage_progression": {
+    "current_stage": "333_MIND",
+    "next_stage": "444_HEART",
+    "reason": "Escalating to critique because final_verdict=HOLD (reasoning=HOLD, truth=HYPOTHESIS)."
+  },
+  "actor": {
+    "claimed_id": "anonymous",
+    "verified": false,
+    "effective_actor": "anonymous_until_verified"
+  },
+  "_wrapper_degradation": [
+    "inner final_verdict=HOLD",
+    "inner reasoning_verdict=HOLD",
+    "inner status=HOLD",
+    "inner confidence=0.30",
+    "reasoning_verdict=HOLD",
+    "floor_verdict=HOLD",
+    "final_verdict=HOLD",
+    "status=HOLD",
+    "floor_scores.L02_TRUTH=FAIL",
+    "inner confidence=0.30"
+  ],
+  "_wrapper_note": "Outer verdict downgraded to DEGRADED because inner result signals failure that the static wrapper would otherwise mask as SEAL.",
+  "verdict": "DEGRADED",
+  "reasons": [
+    "Reversible operation — no irreversible state change",
+    "tool=arif_mind_reason",
+    "delta_S=0.0 within reversible thermodynamic bounds"
+  ]
+}

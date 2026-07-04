@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/arif_triage.schema.json",
+  "title": "arif_triage (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `arif_triage`. This schema is APPENDED to the existing arifos schema for `arif_triage` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Best place for symbolic intelligence injection. Must classify *before* lane routing.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "symbolic_triage"
+  ],
+  "properties": {
+    "component": {
+      "const": "arif_triage"
+    },
+    "organ": {
+      "const": "arifos"
+    },
+    "symbolic_triage": {
+      "type": "object",
+      "description": "§3.B — Classify action before lane.",
+      "properties": {
+        "action_symbol": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "send",
+            "seal",
+            "judge",
+            "delete",
+            "publish",
+            "approve",
+            "advise"
+          ]
+        },
+        "authority_type": {
+          "type": "string",
+          "enum": [
+            "none",
+            "personal",
+            "institutional",
+            "financial",
+            "legal",
+            "sovereign",
+            "sacred"
+          ]
+        },
+        "symbolic_harm_risk": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "ambiguity": {
+          "type": "string",
+          "enum": [
+            "monosemic",
+            "polysemic"
+          ]
+        },
+        "cultural_sensitivity": {
+          "type": "string",
+          "enum": [
+            "none",
+            "maruah",
+            "adab",
+            "grief",
+            "family",
+            "nation",
+            "religion",
+            "institutional_rank"
+          ]
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every arif_triage output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

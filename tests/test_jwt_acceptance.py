@@ -130,7 +130,7 @@ class TestRoutingFailSafety:
         bridge = GEOXBridge(geox_endpoint="http://localhost:8081")
         mock_handler = MagicMock(return_value="unexpected_string")
         with patch(
-            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
+            "arifosmcp.runtime.dispatcher.get_tool_handler",
             return_value=mock_handler,
         ):
             result = asyncio.run(bridge._judge_pre_check("test_op", "internal"))
@@ -149,7 +149,7 @@ class TestRoutingFailSafety:
             raise RuntimeError("judge crashed")
 
         with patch(
-            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
+            "arifosmcp.runtime.dispatcher.get_tool_handler",
             return_value=_exploding_handler,
         ):
             result = asyncio.run(bridge._judge_pre_check("test_op", "internal"))
@@ -164,7 +164,7 @@ class TestRoutingFailSafety:
         bridge = GEOXBridge(geox_endpoint="http://localhost:8081")
         mock_handler = MagicMock(return_value={"verdict": "HOLD", "hold_id": "888-test"})
         with patch(
-            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
+            "arifosmcp.runtime.dispatcher.get_tool_handler",
             return_value=mock_handler,
         ):
             result = asyncio.run(bridge.compute_petrophysics({"classification": "internal"}))
@@ -292,9 +292,173 @@ class TestNoFailOpenSEAL:
 
         bridge = GEOXBridge(geox_endpoint="http://localhost:8081")
         with patch(
-            "arifosmcp.runtime.tools_hardened_dispatch.get_tool_handler",
+            "arifosmcp.runtime.dispatcher.get_tool_handler",
             side_effect=ImportError("gone"),
         ):
             result = asyncio.run(bridge._judge_pre_check("op", "class"))
         assert result.get("verdict") == "HOLD"
         assert result.get("verdict") != "SEAL"
+
+
+class TestDPoPAcceptance:
+    """Acceptance tests for DPoP (Demonstrating Proof-of-Possession)."""
+
+    def test_compute_jwk_thumbprint(self):
+        from arifosmcp.runtime.dpop_auth import _jwk_thumbprint as compute_jwk_thumbprint
+        jwk = {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": "MKBCTNIcKUSDii11ySs3526iYJHgS-v-YMT1401XS48",
+            "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM"
+        }
+        thumb = compute_jwk_thumbprint(jwk)
+        assert len(thumb) > 0
+
+    def test_valid_dpop_proof(self):
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.hazmat.backends import default_backend
+        from jwt.algorithms import ECAlgorithm
+        import jwt as pyjwt
+        from arifosmcp.runtime.dpop_auth import verify_dpop_proof, _b64url_sha256
+        import json as _json
+
+        # 1. Generate key and JWK
+        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+        public_jwk = _json.loads(ECAlgorithm.to_jwk(private_key.public_key()))
+        public_jwk["kid"] = "dpop-key-1"
+
+        # 2. Build DPoP proof
+        now = int(time.time())
+        token = "test-access-token"
+        payload = {
+            "htm": "POST",
+            "htu": "https://localhost:8088/mcp/initialize",
+            "iat": now,
+            "jti": f"jti-{now}",
+            "ath": _b64url_sha256(token)
+        }
+        headers = {
+            "typ": "dpop+jwt",
+            "alg": "ES256",
+            "jwk": public_jwk
+        }
+        proof = pyjwt.encode(payload, private_key, algorithm="ES256", headers=headers)
+
+        # 3. Verify
+        result = verify_dpop_proof(
+            proof_jwt=proof,
+            method="POST",
+            url="https://localhost:8088/mcp/initialize",
+            access_token=token
+        )
+        assert result.valid is True
+        assert result.claims["htm"] == "POST"
+
+    def test_invalid_dpop_htm_rejected(self):
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.hazmat.backends import default_backend
+        from jwt.algorithms import ECAlgorithm
+        import jwt as pyjwt
+        from arifosmcp.runtime.dpop_auth import verify_dpop_proof, _b64url_sha256
+        import json as _json
+
+        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+        public_jwk = _json.loads(ECAlgorithm.to_jwk(private_key.public_key()))
+        token = "test-access-token"
+        payload = {
+            "htm": "GET",
+            "htu": "https://localhost:8088/mcp/initialize",
+            "iat": int(time.time()),
+            "jti": f"jti-{time.time()}",
+            "ath": _b64url_sha256(token)
+        }
+        headers = {"typ": "dpop+jwt", "alg": "ES256", "jwk": public_jwk}
+        proof = pyjwt.encode(payload, private_key, algorithm="ES256", headers=headers)
+
+        result = verify_dpop_proof(
+            proof_jwt=proof,
+            method="POST",
+            url="https://localhost:8088/mcp/initialize",
+            access_token=token
+        )
+        assert result.valid is False
+        assert "htm_mismatch" in result.error
+
+
+class TestDIDResolverAcceptance:
+    """Acceptance tests for DID resolver."""
+
+    def test_base58_decode(self):
+        from arifosmcp.runtime.did_resolver import base58_decode
+        # Verify decoding of standard Base58 string
+        decoded = base58_decode("z")
+        assert len(decoded) > 0
+
+    def test_resolve_did_key_ed25519(self):
+        from arifosmcp.runtime.did_resolver import resolve_did
+        # Standard Ed25519 did:key
+        did = "did:key:z6MkpTHR8VNsBxRzAgPbdJu2efx4L6cxDuh5gG6H6T4L"
+        doc = resolve_did(did)
+        assert doc is not None
+        assert doc["id"] == did
+        assert len(doc["verificationMethod"]) == 1
+        assert doc["verificationMethod"][0]["type"] == "Ed25519VerificationKey2020"
+
+    def test_resolve_did_arifos(self):
+        from arifosmcp.runtime.did_resolver import resolve_did
+        did = "did:arifos:arif"
+        doc = resolve_did(did)
+        assert doc is not None
+        assert doc["id"] == did
+        assert "verificationMethod" in doc
+
+
+class TestVCAcceptance:
+    """Acceptance tests for Verifiable Credentials (VC)."""
+
+    def test_issue_and_verify_vc(self):
+        from cryptography.hazmat.primitives.asymmetric import ed25519
+        from cryptography.hazmat.primitives import serialization
+        from arifosmcp.runtime.vc import issue_credential, verify_credential
+
+        # 1. Generate issuer keypair
+        priv = ed25519.Ed25519PrivateKey.generate()
+        priv_pem = priv.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
+        ).decode("utf-8")
+
+        # 2. Issue a VC
+        issuer_did = "did:arifos:arif"
+        subject = {"id": "did:arifos:agent:a-forge", "lease_id": "lease-abc-123"}
+        vc = issue_credential(
+            issuer_did=issuer_did,
+            issuer_private_key_pem=priv_pem,
+            subject=subject,
+            expiry_seconds=300
+        )
+
+        assert vc["issuer"] == issuer_did
+        assert vc["credentialSubject"] == subject
+        assert "proof" in vc
+
+        # 3. Patch did resolver to return issuer public key
+        pub_bytes = priv.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode("utf-8")
+        
+        from unittest.mock import patch
+        mock_did_doc = {
+            "id": issuer_did,
+            "verificationMethod": [{
+                "id": f"{issuer_did}#key-1",
+                "type": "JsonWebKey2020",
+                "publicKeyPem": pub_bytes
+            }]
+        }
+
+        with patch("arifosmcp.runtime.vc.resolve_did", return_value=mock_did_doc):
+            ok, err = verify_credential(vc)
+            assert ok is True, f"Verification failed: {err}"

@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS MCP Tool Audit — 2026-05-15
 
 **Tester:** MinMax-M2.7 via OpenCode MCP
@@ -134,12 +136,12 @@ tests/ (full suite): 29 failed (all pre-existing), 1606 passed, 14 skipped
 
 ```bash
 # Initialize session
-curl -X POST https://arifos.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"arif_session_init","arguments":{"mode":"init","actor_id":"arif"}},"id":1}'
 
 # Test any tool
-curl -X POST https://arifos.arif-fazil.com/mcp \
+curl -X POST https://mcp.arif-fazil.com/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
   -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"<tool>","arguments":{...}},"id":N}'

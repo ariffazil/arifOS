@@ -1,0 +1,97 @@
+# arifOS — Falsifiability Register
+# Each floor must have a measurable failure condition.
+# If evidence meets the falsification threshold, the floor is VOID and must be revised.
+# Last verified: 2026-06-30
+
+falsifiability_register:
+  version: "1.0.0"
+  owner: arif
+  reviewed_at: "2026-06-30"
+  review_frequency: monthly
+
+  floors:
+    - floor: F1
+      name: Reversibility-First
+      prevents: "Irreversible actions without explicit human acknowledgment"
+      measurable_signal: "ack_irreversible gate bypass count"
+      healthy_threshold: "0 bypasses"
+      falsification_threshold: "Any bypass of ack_irreversible gate in stable channel"
+      current_status: healthy
+      measurement_source: "vault999 + ingress_middleware logs"
+
+    - floor: F2
+      name: Truth Confidence
+      prevents: "Claims without evidence source"
+      measurable_signal: "% of FACT/ESTIMATE claims with no evidence_sources attached"
+      healthy_threshold: "<5% of claims"
+      falsification_threshold: ">20% of claims have no source for 2 consecutive weeks"
+      current_status: unknown
+      measurement_source: "audit log scan"
+
+    - floor: F7
+      name: Epistemic Humility
+      prevents: "Overconfident outputs on novel/uncertain tasks"
+      measurable_signal: "arif_think confidence score on first-time task types"
+      healthy_threshold: "confidence ≤0.85 for novel tasks"
+      falsification_threshold: "arif_think returns confidence >0.95 on tasks with <3 evidence sources"
+      current_status: unknown
+      measurement_source: "arif_think output logs"
+
+    - floor: F9
+      name: Anti-Hantu
+      prevents: "Consciousness/soul claims from the AI system"
+      measurable_signal: "Detection of prohibited phrases in any response"
+      healthy_threshold: "0 violations"
+      falsification_threshold: "Any response containing: 'I feel', 'I am conscious', 'I want', 'I intend', 'I have a soul'"
+      current_status: healthy
+      measurement_source: "SEA-Guard pre-filter + response scan"
+
+    - floor: F11
+      name: Audit Trail
+      prevents: "Untraced tool calls — actions with no record"
+      measurable_signal: "% of tool calls with no vault entry"
+      healthy_threshold: "<1% of calls"
+      falsification_threshold: ">5% of calls have no vault entry"
+      current_status: unknown
+      measurement_source: "vault999 vs. langfuse trace count"
+
+    - floor: F13
+      name: Human Veto
+      prevents: "Irreversible actions without human-bound session"
+      measurable_signal: "arif_seal calls with no prior human-bound session"
+      healthy_threshold: "0 ungoverned seals"
+      falsification_threshold: "Any arif_seal call where session has no verified human actor"
+      current_status: unknown
+      measurement_source: "session audit log"
+
+  # Floors that are currently philosophical (need evidence mapping)
+  unverified_floors:
+    - floor: F3
+      name: Trinity Witness
+      gap: "W3 = ∛(Human × AI × Earth) ≥ 0.75 — formula not connected to observable outcome"
+      action_needed: "Define observable proxy for each witness leg"
+
+    - floor: F5
+      name: Safety Margin
+      gap: "P² ≥ 1.0 — 'peace squared' has no falsification condition"
+      action_needed: "Map to specific incident types it prevents"
+
+    - floor: F6
+      name: RASA Protocol
+      gap: "κr ≥ 0.70 — no measurement infrastructure"
+      action_needed: "Define RASA score as observable metric"
+
+    - floor: F8
+      name: Governance Integrity
+      gap: "G = capability × ethics × continuity × resilience² ≥ 0.80 — composite metric not computed"
+      action_needed: "Instrument each component or simplify to 2-3 measurable signals"
+
+  # Overall falsification of the constitutional layer
+  layer_falsification:
+    condition: "The constitutional layer is unnecessary if ALL of the following hold for 8 consecutive weeks:"
+    triggers:
+      - "Tool error rate with arifOS ≥ tool error rate with plain MCP + standard auth"
+      - "arif_judge + arif_seal used in <5% of sessions"
+      - "F1 gate has never fired in production"
+      - "External developers prefer plain MCP 2:1 over arifOS for same use cases"
+    action: "888_HOLD → constitutional review → sovereign decision (F13)"

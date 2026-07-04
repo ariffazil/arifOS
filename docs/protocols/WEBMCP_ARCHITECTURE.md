@@ -108,7 +108,7 @@ class WebMCPConfig:
 
     # CORS - F12 Injection Guard will validate origins
     ALLOWED_ORIGINS = [
-        "https://arifosmcp.arif-fazil.com",
+        "https://arifos.arif-fazil.com",
         "https://*.arif-fazil.com",
         "http://localhost:3000",  # Dev only
     ]
@@ -277,7 +277,7 @@ class WebMCPGateway:
  *
  * Usage:
  *   import { WebMCPClient } from '@arifos/webmcp';
- *   const client = new WebMCPClient('https://arifosmcp.arif-fazil.com');
+ *   const client = new WebMCPClient('https://arifos.arif-fazil.com');
  *   const result = await client.call('agi_reason', { query: '...' });
  */
 
@@ -496,7 +496,7 @@ export { WebMCPClient };
 
   <script>
     // Connect to WebSocket for real-time HOLD events
-    const ws = new WebSocket('wss://arifosmcp.arif-fazil.com/webmcp/ws');
+    const ws = new WebSocket('wss://arifos.arif-fazil.com/webmcp/ws');
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
@@ -696,7 +696,7 @@ upstream webmcp_backend {
 
 server {
     listen 443 ssl http2;
-    server_name arifosmcp.arif-fazil.com;
+    server_name arifos.arif-fazil.com;
 
     ssl_certificate /etc/letsencrypt/live/arif-fazil.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/arif-fazil.com/privkey.pem;
@@ -747,7 +747,7 @@ server {
 import { useWebMCP } from '@arifos/webmcp/react';
 
 function GovernedAIChat() {
-  const { client, vitals, hold } = useWebMCP('https://arifosmcp.arif-fazil.com');
+  const { client, vitals, hold } = useWebMCP('https://arifos.arif-fazil.com');
   const [response, setResponse] = useState(null);
 
   const askAI = async (query) => {
@@ -782,7 +782,7 @@ from arifosmcp.webmcp import WebMCPClient
 
 async def main():
     # Connect to WebMCP
-    client = WebMCPClient('https://arifosmcp.arif-fazil.com')
+    client = WebMCPClient('https://arifos.arif-fazil.com')
     await client.init(actor_id='web-user-123')
 
     # Call tools through web gateway

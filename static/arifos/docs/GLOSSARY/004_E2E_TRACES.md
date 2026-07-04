@@ -11,7 +11,7 @@
 3. geox_evidence_reason(abduction=full, evidence_refs=[…])
 4. geox_claim_create(claim_text="…", truth_class=INTERPRETATION)
 5. geox_claim_seal(claim_id=clm_…, ack_irreversible=True)
-   → bridge: /mcp initialize → tools/call arif_vault_seal
+   → bridge: /mcp initialize → tools/call arif_seal
    → canonical: VAULT999 line ++
 6. user sees: verdict=SEAL, claim_id, seal_receipt
 ```
@@ -23,7 +23,7 @@
 3. wealth_omni_wisdom(mode=omni, decision_context={…})
 4. wealth_boundary_governance(maruah_score=0.7)
 5. wealth_hysteresis_ledger(path_params={…}) → sealed path
-6. arif_vault_seal → VAULT999 line ++
+6. arif_seal → VAULT999 line ++
 7. user sees: verdict=SEAL, deal_id, hysteresis_path
 ```
 
@@ -32,18 +32,18 @@
 1. user asks "am I fit to decide?"
 2. well_assess_homeostasis(mode=fatigue, …)
 3. well_validate_vitality(decision_class=C4)
-4. if well_score < 0.6: arif_judge_deliberate → 888_HOLD
-5. arif_vault_seal(hold_reason="low_vitality")
+4. if well_score < 0.6: arif_judge → 888_HOLD
+5. arif_seal(hold_reason="low_vitality")
 6. user sees: 888_HOLD pending approval
 ```
 
 ## Canonical trace 4: A-FORGE execution
 ```text
 1. user asks "deploy this build"
-2. arif_judge_deliberate(candidate=plan, irreversibility=high)
-3. arif_forge_execute(ack_irreversible=True, judge_state_hash=…)
+2. arif_judge(candidate=plan, irreversibility=high)
+3. arif_act(ack_irreversible=True, judge_state_hash=…)
 4. A-FORGE 4-layer gate: F1 → capability → F3/F6/F9 → approval
-5. arif_vault_seal(forge_receipt=…)
+5. arif_seal(forge_receipt=…)
 6. user sees: SEAL, build_id, vault_entry_id
 ```
 
@@ -53,7 +53,7 @@
 2. /mcp: tools/list returns 13 canonical tools
 3. /.well-known/mcp.json returns server card
 4. arif_ops_measure: thermodynamic entropy delta
-5. arif_vault_seal(state_attestation=…)
+5. arif_seal(state_attestation=…)
 6. user sees: GREEN/owner_summary, sealed attestation receipt
 ```
 

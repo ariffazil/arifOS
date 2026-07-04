@@ -21,7 +21,7 @@ COMPOSE_CMD="docker compose -f $COMPOSE_FILE"
 
 PUBLIC_HEALTH_URL="https://arifos.arif-fazil.com/health"
 PUBLIC_TOOLS_URL="https://arifos.arif-fazil.com/tools"
-PUBLIC_MCP_URL="https://arifos.arif-fazil.com/mcp"
+PUBLIC_MCP_URL="https://mcp.arif-fazil.com/mcp"
 
 STATUS="PASS"
 REASONS=()

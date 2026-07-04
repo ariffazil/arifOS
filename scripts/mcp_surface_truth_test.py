@@ -174,10 +174,11 @@ def test_session_auth_continuity() -> dict:
     """
     [5/5] SESSION AUTH CONTINUITY TEST
 
-    Tests the full session lifecycle:
-      1. arif_session_init → capture session_id
-      2. arif_kernel_health with session_id → must NOT return L11
-      3. arif_kernel_route with session_id → must NOT return L11
+    Tests the full session lifecycle using the WIRE tool names exposed by
+    the live MCP server (public facade), not internal/declared names:
+      1. arif_init → capture session_id
+      2. arif_observe(mode=vitals) with session_id → must NOT return L11
+      3. arif_route(intent=...) with session_id → must NOT return L11
       4. validate session survives 3+ sequential calls
 
     Returns dict with verdict and per-step results.
@@ -194,7 +195,7 @@ def test_session_auth_continuity() -> dict:
                 "id": "5-session-init",
                 "method": "tools/call",
                 "params": {
-                    "name": "arif_session_init",
+                    "name": "arif_init",
                     "arguments": {
                         "mode": "light",
                         "actor_id": "surface-truth-test",
@@ -236,7 +237,7 @@ def test_session_auth_continuity() -> dict:
             "steps": [{"step": 1, "name": "session_init", "status": "FAIL", "detail": str(e)}],
         }
 
-    # Step 2: arif_kernel_health — no session required (public mode)
+    # Step 2: arif_observe(mode=vitals) — health/ops probe with session
     try:
         resp = http_post_json(
             ARIFOS_MCP_URL,
@@ -245,33 +246,35 @@ def test_session_auth_continuity() -> dict:
                 "id": "5-health",
                 "method": "tools/call",
                 "params": {
-                    "name": "arif_kernel_health",
+                    "name": "arif_observe",
                     "arguments": {
+                        "mode": "vitals",
                         "actor_id": "surface-truth-test",
                         "session_id": session_id,
                     },
                 },
             },
         )
-        # Health should work regardless; check for error
         error = resp.get("error")
         if error:
             steps.append(
                 {
                     "step": 2,
-                    "name": "arif_kernel_health",
+                    "name": "arif_observe(vitals)",
                     "status": "FAIL",
                     "detail": error.get("message", str(error)),
                 }
             )
             all_passed = False
         else:
-            steps.append({"step": 2, "name": "arif_kernel_health", "status": "PASS"})
+            steps.append({"step": 2, "name": "arif_observe(vitals)", "status": "PASS"})
     except Exception as e:
-        steps.append({"step": 2, "name": "arif_kernel_health", "status": "FAIL", "detail": str(e)})
+        steps.append(
+            {"step": 2, "name": "arif_observe(vitals)", "status": "FAIL", "detail": str(e)}
+        )
         all_passed = False
 
-    # Step 3: arif_kernel_route(mode=status) with session
+    # Step 3: arif_route(intent=status check) with session
     try:
         resp = http_post_json(
             ARIFOS_MCP_URL,
@@ -280,9 +283,9 @@ def test_session_auth_continuity() -> dict:
                 "id": "5-route",
                 "method": "tools/call",
                 "params": {
-                    "name": "arif_kernel_route",
+                    "name": "arif_route",
                     "arguments": {
-                        "mode": "status",
+                        "intent": "status check",
                         "session_id": session_id,
                         "actor_id": "surface-truth-test",
                     },
@@ -294,32 +297,31 @@ def test_session_auth_continuity() -> dict:
             steps.append(
                 {
                     "step": 3,
-                    "name": "arif_kernel_route(status)",
+                    "name": "arif_route(status)",
                     "status": "FAIL",
                     "detail": error.get("message", str(error)),
                 }
             )
             all_passed = False
         else:
-            steps.append({"step": 3, "name": "arif_kernel_route(status)", "status": "PASS"})
+            steps.append({"step": 3, "name": "arif_route(status)", "status": "PASS"})
     except Exception as e:
-        steps.append(
-            {"step": 3, "name": "arif_kernel_route(status)", "status": "FAIL", "detail": str(e)}
-        )
+        steps.append({"step": 3, "name": "arif_route(status)", "status": "FAIL", "detail": str(e)})
         all_passed = False
 
     # Step 4: Sequential continuity — call 3 different tools with same session
-    continuity_passed = True
-    for i, tool_name in enumerate(
-        ["arif_kernel_health", "arif_kernel_route", "arif_kernel_health"], start=4
-    ):
+    seq_tools = [
+        ("arif_observe", {"mode": "vitals"}),
+        ("arif_route", {"intent": "status check"}),
+        ("arif_observe", {"mode": "vitals"}),
+    ]
+    for i, (tool_name, extra_args) in enumerate(seq_tools, start=4):
         try:
             args = {
                 "session_id": session_id,
                 "actor_id": "surface-truth-test",
             }
-            if tool_name == "arif_kernel_route":
-                args["mode"] = "status"
+            args.update(extra_args)
 
             resp = http_post_json(
                 ARIFOS_MCP_URL,
@@ -343,7 +345,6 @@ def test_session_auth_continuity() -> dict:
                         "detail": error.get("message", str(error)),
                     }
                 )
-                continuity_passed = False
                 all_passed = False
             else:
                 steps.append({"step": i, "name": f"continuity[{tool_name}]", "status": "PASS"})
@@ -351,7 +352,6 @@ def test_session_auth_continuity() -> dict:
             steps.append(
                 {"step": i, "name": f"continuity[{tool_name}]", "status": "FAIL", "detail": str(e)}
             )
-            continuity_passed = False
             all_passed = False
 
     verdict = "PASS" if all_passed else "FAIL"

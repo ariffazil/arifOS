@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # ADR-013: Naming Geometry — Kernel (2-term dot) vs A-FORGE (3-term underscore)
 
 **Status:** RATIFIED  

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://glama.ai/schemas/glama.json",
+  "deprecated": true,
+  "redirect": "https://glama.ai/mcp/servers/ariffazil/arifos",
+  "description": "DEPRECATED — This is an old auto-crawled entry. The canonical arifOS MCP Server is at /ariffazil/arifos with active maintenance, verified badge, and up-to-date tools.",
+  "name": "arifOS (deprecated — use canonical entry)",
+  "author": {
+    "name": "Muhammad Arif bin Fazil",
+    "url": "https://arif-fazil.com"
+  },
+  "repository": {
+    "url": "https://github.com/ariffazil/arifOS",
+    "type": "git"
+  }
+}

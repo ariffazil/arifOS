@@ -1,0 +1,78 @@
+# SEAL MANIFEST — EHT-2026-06-29
+# Forged: 2026-06-29
+# Sealed: 2026-06-29 19:55 UTC
+# Authority: F13 SOVEREIGN (888 — Muhammad Arif bin Fazil)
+# 
+# This manifest records the constitutional sealing of 4 artifacts
+# from the Ethical-Hacking-Tools repository audit.
+#
+# DITEMPA BUKAN DIBERI — Sealed by execution, not by ceremony.
+
+seal:
+  id: EHT-2026-06-29
+  timestamp: 2026-06-29T19:55:00Z
+  sovereign: "888 — Muhammad Arif bin Fazil"
+  sovereign_directive: "Seal"
+  source: "hhhrrrttt222111/Ethical-Hacking-Tools"
+  source_digest: "AAA/archive/ethical-hacking-tools-digest-2026-06-29.txt"
+  forge_work_root: "/root/arifOS/forge_work/offsec_governance"
+
+artifacts:
+  - id: SEAL-001
+    path: "ToolHazardV1/forbidden_patterns.yaml"
+    description: "12 HARD_BLOCKED tool patterns (phishing, persistence, exploitation)"
+    constitutional_basis: [F1, F5, F10, F11]
+    integration_targets:
+      - "arifosmcp/gate/mcp_gate_v0.py — reject matching tool calls"
+      - "arifosmcp/config/model_registry.json — per-agent forbidden action_classes"
+
+  - id: SEAL-002
+    path: "ToolHazardV1/kali_taxonomy.yaml"
+    description: "14-cell Kali menu taxonomy with verdict + reversibility + blast radius"
+    constitutional_basis: [F1, F5, F8, F13]
+    integration_targets:
+      - "arifosmcp/tool_risk_registry.py — derive risk profiles from category defaults"
+      - "A-FORGE forge_skill domain classifier — map new skills to hazard cells"
+      - "AAA cockpit — 14-cell hazard dashboard"
+
+  - id: SEAL-003
+    path: "OSINTReconV1/OSINTRECON_V1.md"
+    description: "Passive OSINT recon skill — 7,060 Google dork corpus (OBSERVE_ONLY)"
+    constitutional_basis: [F2, F5, F10]
+    integration_targets:
+      - "Hermes ASI — OSINT recon skill load"
+      - "GEOX — passive asset discovery"
+    corpus:
+      - "corpus/dorks1.txt — 793 parameterized URL signatures"
+      - "corpus/dorks2.txt — 3,982 broad exposure signatures"
+      - "corpus/dorks3.txt — 1,637 login/portal signatures"
+      - "corpus/sql_injection.txt — 623 SQLi probe patterns"
+      - "corpus/cctv.txt — 25 camera exposure signatures"
+
+  - id: SEAL-004
+    path: "GEoxClaimV1/GEOX_GROUND_TRUTH_SOURCES.yaml"
+    description: "CVE/NVD/Exploit-DB cross-reference layer for GEOX claim engine"
+    constitutional_basis: [F2, F3, F7]
+    integration_targets:
+      - "geox_egs_claim_create — CVE_CROSS_REFERENCE + PRODUCT_CPE_MATCH"
+      - "geox_egs_evidence_attach — auto-enrich from canonical sources"
+      - "geox_egs_evidence_reason — confidence calibration per source tier"
+    sources:
+      tier1: [NVD, CVE_DETAILS, EXPLOIT_DB]
+      tier2: [RAPID7_VULNDB, OVAL_MITRE, SPLOITUS, CXSECURITY]
+      tier3: [OSVDB, SECURITYFOCUS, SECUNIA, VUPEN]
+
+scar:
+  id: "EHT-2026-06-29-scar"
+  statement: >
+    Phishing tools (ShellPhish, blackeye, HiddenEye) listed under
+    'ethical hacking' taxonomy = structural confusion. Lists are not
+    endorsements. The 14-category Kali taxonomy is now the governed
+    classification standard. Build classifier gate.
+
+verdict: SEALED
+next_steps:
+  - "Wire forbidden_patterns into mcp_gate_v0.py"
+  - "Wire kali_taxonomy into tool_risk_registry.py"
+  - "Deploy OSINTRECON_V1 as Hermes skill"
+  - "Integrate GEOX_GROUND_TRUTH_SOURCES into geox_egs_* tools"

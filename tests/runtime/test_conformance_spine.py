@@ -90,12 +90,12 @@ def test_reversible_intents_do_not_trigger_hold():
 
 
 def _mock_mcp_post_for_vault(entries: list[dict[str, Any]] | None):
-    """Return a monkeypatch callable that fakes initialize + hermes_vault_query."""
+    """Return a monkeypatch callable that fakes initialize + arif_vault_query."""
 
     def _mcp_post(method: str, params: dict[str, Any] | None = None, **kwargs):
         if method == "initialize":
             return {"result": {"protocolVersion": "2025-11-25", "serverInfo": {"name": "test"}}}
-        if method == "tools/call" and params and params.get("name") == "hermes_vault_query":
+        if method == "tools/call" and params and params.get("name") == "arif_vault_query":
             if entries is None:
                 return _tool_response({"status": "ERROR", "result": {"entries": []}})
             return _tool_response(

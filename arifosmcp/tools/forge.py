@@ -307,7 +307,7 @@ async def arif_forge(
     _latency_ms = (_time.monotonic() - _t_check) * 1000
     _budget = LATENCY_BUDGETS.get(DecisionClass.C2_STANDARD, LATENCY_BUDGETS[DecisionClass.C3_DEEP])
     floor_check["_latency_ms"] = _latency_ms
-    floor_check["_within_budget"] = _latency_ms <= _budget.max_total_ms
+    floor_check["_within_budget"] = _latency_ms <= _budget.max_latency_ms
     if floor_check["verdict"] != "SEAL":
         from arifosmcp.runtime.tools import _inject_nine_signal
 

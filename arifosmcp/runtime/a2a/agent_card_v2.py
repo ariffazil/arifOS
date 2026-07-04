@@ -148,7 +148,7 @@ class ArifOSAgentCard(BaseModel):
         "A2A connects minds. MCP connects hands. arifOS governs both."
     )
     url: str = "http://a-forge-arifos-mcp:8080"
-    external_url: str = "https://arifosmcp.arif-fazil.com"
+    external_url: str = "https://arifos.arif-fazil.com"
     version: str = "2026.04.17-V2"
     protocol_version: str = "A2A/1.0"
 
@@ -166,6 +166,13 @@ class ArifOSAgentCard(BaseModel):
 
     # ── Skills: 6-Axis Model ──────────────────────────────────────────────────
     skills: list = Field(default_factory=list)
+
+    # ── A2A Mesh Legibility (ADR-015) ─────────────────────────────────────────
+    # Declared surface must match actual surface. These fields advertise the
+    # constitutional kernel's judgment capabilities and owned MCP tools so peer
+    # organs know how to invoke arifOS law.
+    judge_skills: list[str] = Field(default_factory=list)
+    owned_mcp: list[str] = Field(default_factory=list)
 
     def model_post_init(self, *args):
         """Populate all fields lazily after init — avoids Pydantic forward-ref issues."""
@@ -249,6 +256,34 @@ class ArifOSAgentCard(BaseModel):
             }
             object.__setattr__(self, "axes", ax_counts)
             object.__setattr__(self, "total_agents", len(built_skills))
+        if not self.judge_skills:
+            object.__setattr__(
+                self,
+                "judge_skills",
+                [
+                    "arif_judge",
+                    "arif_seal",
+                    "constitutional_floor_enforcement",
+                    "apex_g_score_computation",
+                    "reversibility_blast_radius_assessment",
+                ],
+            )
+        if not self.owned_mcp:
+            object.__setattr__(
+                self,
+                "owned_mcp",
+                [
+                    "arif_init",
+                    "arif_observe",
+                    "arif_fetch",
+                    "arif_think",
+                    "arif_route",
+                    "arif_critique",
+                    "arif_judge",
+                    "arif_act",
+                    "arif_seal",
+                ],
+            )
 
     # ── A2A Endpoints ────────────────────────────────────────────────────────
     endpoints: dict[str, str] = Field(
@@ -298,7 +333,7 @@ def _build_6axis_skills() -> list[AxisSkill]:
                 description="Read current human substrate state (cognitive fatigue, stress, clarity)",
                 operation_class="READ",
                 tool_name="well_state",
-                mcp_endpoint="https://afwell.fastmcp.app/mcp",
+                mcp_endpoint="https://mcp.arif-fazil.com/mcp",
                 risk_tier="low",
                 tags=["perception", "wellness", "human-state"],
                 examples=["what is current operator fatigue?", "load wellness state"],
@@ -310,7 +345,7 @@ def _build_6axis_skills() -> list[AxisSkill]:
                 description="Reflect operator readiness and cognitive load for governance decisions",
                 operation_class="READ",
                 tool_name="well_readiness",
-                mcp_endpoint="https://afwell.fastmcp.app/mcp",
+                mcp_endpoint="https://mcp.arif-fazil.com/mcp",
                 risk_tier="low",
                 tags=["perception", "readiness", "human-factor"],
             ),
@@ -321,7 +356,7 @@ def _build_6axis_skills() -> list[AxisSkill]:
                 description="Fetch earth/physical state from GEOX organ",
                 operation_class="READ",
                 tool_name="geo_snapshot",
-                mcp_endpoint="https://geoxarifOS.fastmcp.app/mcp",
+                mcp_endpoint="https://mcp.arif-fazil.com/mcp",
                 risk_tier="low",
                 tags=["perception", "geophysics", "earth-state"],
                 examples=["what is current geological state?", "fetch spatial context"],
@@ -349,7 +384,7 @@ def _build_6axis_skills() -> list[AxisSkill]:
                 description="Compute petrophysical properties (porosity, saturation, permeability)",
                 operation_class="COMPUTE",
                 tool_name="geox_well_compute_petrophysics",
-                mcp_endpoint="https://geoxarifOS.fastmcp.app/mcp",
+                mcp_endpoint="https://mcp.arif-fazil.com/mcp",
                 risk_tier="medium",
                 tags=["transformation", "physics", "reservoir"],
             ),
@@ -380,7 +415,7 @@ def _build_6axis_skills() -> list[AxisSkill]:
                 description="Process seismic data and pick geological horizons",
                 operation_class="COMPUTE",
                 tool_name="geox_prospect_evaluate",
-                mcp_endpoint="https://geoxarifOS.fastmcp.app/mcp",
+                mcp_endpoint="https://mcp.arif-fazil.com/mcp",
                 risk_tier="high",
                 tags=["transformation", "geophysics", "seismic"],
             ),

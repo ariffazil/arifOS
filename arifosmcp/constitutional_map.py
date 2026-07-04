@@ -1,22 +1,31 @@
 """
-ARIFOS CONSTITUTIONAL MAP (v2026.05.05-KANON-SSCT)
+ARIFOS CONSTITUTIONAL MAP (v2026.07.04-CANONICAL-9)
 ═══════════════════════════════════════════════════════════════════════════════
 
 SOLE SOURCE OF TRUTH for the canonical MCP tools.
-Public canonical surface: exactly 7 tools (F13 ratified 2026-06-23: arif_init, arif_observe, arif_think, arif_route, arif_judge, arif_act, arif_seal).
-Full CANONICAL_TOOLS dict registers the 7 + supporting internal tools (kernel_intercept etc).
-All arif_* naming. No governance surface, no CC modes as separate tools.
-One public intent = one canonical verb (F4 CLARITY).
+Public canonical surface: the 9-stage metabolic loop (CANONICAL-9 2026-07-04:
+9 stages = 9 public tools. arif_critique promoted from arif_think mode to
+its own public tool at stage 555).
+
+Canonical 9 stages = arif_init (000), arif_observe (111), arif_think (333),
+arif_route (444), arif_critique (555), arif_judge (666), arif_forge (777),
+arif_compose (888), arif_seal (999). arif_canary, arif_triage → modes of
+arif_init. arif_fetch → mode of arif_observe. arif_bridge_connect → mode of
+arif_route. arif_critique is now its own public tool at 555.
+
+Full CANONICAL_TOOLS dict registers the public verbs + supporting internal tools.
+All arif_* naming. One stage = one canonical verb (F4 CLARITY).
 
 MACHINERY:
-  - CANONICAL_TOOLS   : registry for canonical surface (7 public + internal support; name → spec with floors, stage, lane)
+  - CANONICAL_TOOLS   : registry for canonical surface (public verbs + internal support tools; name → spec with floors, stage, lane)
+  - CORE_NINE         : ordered list of the 9-stage public verbs
   - Law enum          : L01–L13 with Eureka-wired threshold logic
   - TrinityLane      : AGI | ASI | APEX
   - ToolStage        : 000–999 metabolic stage codes
   - _TOOL_INPUT_SCHEMAS  : canonical I/O type signatures (L10 ONTOLOGY enforced)
   - _TOOL_OUTPUT_SCHEMAS : canonical output envelope per tool
   - validate_tool_response_schema()  : F2 Nine-Signal contract checker
-  - check_schema_coverage()          : all-13 tools have schemas = CI pass
+  - check_schema_coverage()          : all tools have schemas = CI pass
   - enforce_irreversibility_guard() : F1 hard gate
 
 EUREKA INSIGHTS WIRING (from EUREKA_INSIGHTS_SEAL_v2026.04.07):
@@ -62,36 +71,19 @@ class Law(StrEnum):
 class TrinityLane(StrEnum):
     AGI = "AGI"  # Tactical execution (000–777)
     ASI = "ASI"  # Strategic judgment (888)
-    APEX = "APEX"  # Authority resolution (999)
+    SOVEREIGN = "SOVEREIGN"  # Authority resolution (999)
 
 
 class ToolStage(StrEnum):
-    INIT = "000"
-    OBSERVE = "111"
-    EVIDENCE = "222"
-    REASON = "333"
-    CRITIQUE = "444"
-    # REPLY is a refinement of CRITIQUE (444). The "r" suffix encodes
-    # parent-child relationship: reply composition is a governance-refined
-    # sub-stage of the critique/reflection phase, not an independent stage.
-    REPLY = "444r"
-    ROUTE = "555"
-    # MEMORY is a refinement of ROUTE (555). The "m" suffix encodes
-    # that memory operations are a specialized form of routing — they
-    # route queries through the 6-layer memory stack (L1-L6).
-    MEMORY = "555m"
-    # 666 is constitutionally the CRITIQUE/HEART gate (arif_critique).
-    # FORGE execution is a separate stage — 010 FORGE_EXECUTE — to prevent
-    # the dangerous semantic confusion that caused v3.1 progression bug.
-    FORGE = "666"
-    FORGE_EXECUTE = "010"
-    # GATEWAY is a refinement of FORGE (666). The "g" suffix encodes
-    # that cross-organ federation bridging is a governed sub-stage of
-    # the critique/forge phase, not an independent stage.
-    GATEWAY = "666g"
-    MEASURE = "777"
-    JUDGE = "888"
-    SEAL = "999"
+    INIT = "000"  # Session bootstrap (absorbed: canary, triage)
+    OBSERVE = "111"  # Reality sensing (absorbed: fetch)
+    REASON = "333"  # Cognitive reasoning
+    ROUTE = "444"  # Intent routing (absorbed: bridge_connect)
+    CRITIQUE = "555"  # Adversarial critique (promoted from arif_think mode)
+    JUDGE = "666"  # Constitutional verdict
+    FORGE_EXECUTE = "777"  # Guarded execution
+    REPLY = "888"  # Response composition
+    SEAL = "999"  # VAULT999 seal anchor
 
 
 class FiqhTier(StrEnum):
@@ -140,85 +132,94 @@ def get_floor_tier(floor: Law) -> FiqhTier:
 # stage's tool and prompt. HOLD/SABAR/VOID verdicts nullify progression.
 # 999_SEAL is terminal — no next stage.
 
-STAGE_PROGRESSION: dict[str, dict[str, str | None]] = {
-    "000": {"next": "111", "tool": "arif_observe", "prompt": "111_agi"},
-    "111": {"next": "222", "tool": "arif_fetch", "prompt": None},
-    "222": {"next": "333", "tool": "arif_think", "prompt": None},
-    # v3.1: 333 reason → 666 heart (ontology-aligned: 666 = HEART)
-    "333": {"next": "666", "tool": "arif_critique", "prompt": "444_asi"},
-    # Stage suffixes: "r" = reply (refinement of critique), "m" = memory
-    # (refinement of route), "g" = gateway (refinement of forge). These
-    # encode parent-child relationships, not independent stage numbers.
-    # 444r reply is a side-branch; no tool sits directly at 444.
-    "444r": {"next": "555", "tool": "arif_route", "prompt": None},
-    # v3.1 fix: 555 route/memory → 666 critique (heart), NOT forge.
-    # Constitutionally: critique MUST precede forge. Never skip heart.
-    "555": {"next": "666", "tool": "arif_critique", "prompt": "666_critique"},
-    "555m": {"next": "666", "tool": "arif_critique", "prompt": "666_critique"},
-    # 666 critique pre-forge ethical check — heart before hammer
-    "666": {"next": "010", "tool": "arif_forge", "prompt": "010_dry_run"},
-    "666g": {"next": "010", "tool": "arif_forge", "prompt": "010_dry_run"},
-    # 010 forge → 777 measure (verify before judge)
-    "010": {"next": "777", "tool": "arif_measure", "prompt": None},
-    "777": {"next": "888", "tool": "arif_judge", "prompt": "888_apex"},
-    "888": {"next": "999", "tool": "arif_seal", "prompt": "999_seal"},
-    "999": {"next": None, "tool": None, "prompt": None},
+METABOLIC_LOOP: dict[str, dict[str, str | None]] = {
+    "000": {"next": "111", "verb": "observe"},
+    "111": {"next": "333", "verb": "think"},
+    "333": {"next": "444", "verb": "route"},
+    "444": {"next": "555", "verb": "critique"},
+    "555": {"next": "666", "verb": "judge"},
+    "666": {"next": "777", "verb": "forge"},
+    "777": {"next": "888", "verb": "compose"},
+    "888": {"next": "999", "verb": "seal"},
+    "999": {"next": None},  # Gödel break — only sovereign can authorize 000
 }
 
+# Backward compat alias
+STAGE_PROGRESSION: dict[str, dict[str, str | None]] = METABOLIC_LOOP
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# CORE 7 — The Kernel's Primary 7-Tool Metabolic Pipeline
+# CORE NINE — The 9-Stage Metabolic Loop (CANONICAL-9 2026-07-04)
 # ═══════════════════════════════════════════════════════════════════════════════
-# These are the 7 essential tools that form the governed agentic loop.
-# "Properly" means:
-#   - Complete affordance contracts (purpose, use_when, do_not_use, L0-L5, risk, thresholds)
-#   - Every response carries facts | inferences | unknowns | metacognition | next_safe_action
-#   - arif_kernel_intercept is the enforcement brain for the 888 slot
-#   - This loop is what metacognitive agents should primarily reason about.
+# Public agents see exactly 9 surface verbs (9 stages = 9 tools).
+# Everything else is an internal mode, diagnostic handler, or hidden helper.
+# CANONICAL-9 2026-07-04:
+#   - Absorbed into arif_init: arif_canary (mode=canary), arif_triage (mode=triage)
+#   - Absorbed into arif_observe: arif_fetch (mode=fetch)
+#   - Absorbed into arif_route: arif_bridge_connect (mode=bridge)
+#   - Restored: arif_seal (999 — stage needs its verb)
+#   - Promoted: arif_critique (555 — separated from arif_think to own public tool)
+#   - arif_compose at 888, arif_forge at 777, arif_judge at 666
+# See /root/forge_work/2026-07-04/ZEN-9-VERB-METABOLIC-LOOP.md for doctrine.
 #
-# This is the expressive core. There are more tools (internals + diagnostics), but these 7 are public.
-# but these 7 are the ones that must be cognitively perfect.
+# This is the expressive core. There are more tools (internals + diagnostics),
+# but these are the public 9-stage loop. These are the ones that must be cognitively perfect.
 
-CORE_SEVEN: list[str] = [
-    "arif_init",  # 000 INIT — bootstrap + identity binding (must be first)
-    "arif_observe",  # 111 OBSERVE — ground in reality (absorbs fetch)
-    "arif_think",  # 333 THINK — reasoning + plans + critique (absorbs critique)
-    "arif_route",  # 444/555 ROUTE — intent routing
-    "arif_judge",  # 888 JUDGE — verdict (enforced by arif_kernel_intercept)
-    "arif_act",  # 900 ACT — gated execution (hard seal requirement)
-    "arif_seal",  # 999 SEAL — immutable record
+CORE_NINE: list[str] = [
+    "arif_init",  # 000 — Session bootstrap. Modes: init, resume, canary, preflight, triage
+    "arif_observe",  # 111 — Sense reality. Modes: search, fetch, ingest, vitals, atlas
+    "arif_think",  # 333 — Cognitive engine. Modes: reason, plan, reflect, verify
+    "arif_route",  # 444 — Route intent to organ. Modes: route, bridge, triage
+    "arif_critique",  # 555 — Adversarial critique. Modes: critique, redteam, maruah, shadow
+    "arif_judge",  # 666 — Constitutional verdict. SEAL/CANDIDATE/HOLD/SABAR/VOID
+    "arif_forge",  # 777 — Guarded execution. Modes: engineer, query, write, generate, commit
+    "arif_compose",  # 888 — Response composition. Modes: compose, summarize, cite, tone_shift
+    "arif_seal",  # 999 — Append to VAULT999. Modes: seal, verify, ledger
 ]
 
-CORE_SEVEN_WITH_ENGINE = {
-    "arif_init": "arif_init",
-    "arif_observe": "arif_observe",
-    "arif_think": "arif_think",
-    "arif_route": "arif_route",
+CORE_NINE_WITH_ENGINE = {
+    "arif_init": "arif_init (modes: init, resume, canary, preflight, triage)",
+    "arif_observe": "arif_observe (modes: search, fetch, ingest, vitals, atlas)",
+    "arif_think": "arif_think (modes: reason, plan, reflect, verify)",
+    "arif_route": "arif_route (modes: route, bridge, dispatch)",
+    "arif_critique": "arif_critique (modes: critique, redteam, maruah, shadow, deescalate, empathy)",
     "arif_judge": "arif_judge (kernel: arif_kernel_intercept)",
-    "arif_act": "arif_act (gated execution)",
-    "arif_seal": "arif_seal",
+    "arif_forge": "arif_forge (modes: engineer, query, write, generate, commit; arif_act is internal alias)",
+    "arif_compose": "arif_compose (modes: compose, summarize, cite, tone_shift)",
+    "arif_seal": "arif_seal (modes: seal, verify, ledger; VAULT999 seal anchor)",
 }
 
-CORE_SEVEN_LABELS: dict[str, str] = {
-    "arif_init": "Bootstrap (000)",
-    "arif_observe": "Ground Reality (111)",
-    "arif_think": "Reason (333)",
-    "arif_route": "Route (444/555)",
-    "arif_judge": "Verdict (888)",
-    "arif_act": "Act (900, gated) — routes through Verdict-Gated Action Bus (AGI/ASI tier, civilizational risk, world model organs, verification bottleneck per synthesis)",
-    "arif_seal": "Permanent Record (999)",
+CORE_NINE_LABELS: dict[str, str] = {
+    "arif_init": "Session anchor (000)",
+    "arif_observe": "Sensing observation (111)",
+    "arif_think": "Reasoning engine (333)",
+    "arif_route": "Intent router (444)",
+    "arif_critique": "Adversarial critique (555)",
+    "arif_judge": "Constitutional verdict (666)",
+    "arif_forge": "Guarded execution gate (777)",
+    "arif_compose": "Response composer (888)",
+    "arif_seal": "VAULT999 seal (999)",
 }
 
-# Map stage to the canonical tool in the clean 7-loop (for docs / agents)
-CORE_SEVEN_STAGE_MAP: dict[str, str] = {
+# Map stage to the canonical tool in the 9-stage loop (for docs / agents).
+CORE_NINE_STAGE_MAP: dict[str, str] = {
     "000": "arif_init",
     "111": "arif_observe",
     "333": "arif_think",
     "444": "arif_route",
-    "888": "arif_judge",
-    "900": "arif_act",
+    "555": "arif_critique",
+    "666": "arif_judge",
+    "777": "arif_forge",
+    "888": "arif_compose",
     "999": "arif_seal",
 }
+
+# Backward-compat aliases (DEPRECATED — resolve to the new names).
+CANONICAL_7 = tuple(CORE_NINE)  # deprecated alias; semantically CORE_NINE
+CORE_SEVEN = CORE_NINE  # deprecated alias; semantically CORE_NINE
+CORE_SEVEN_WITH_ENGINE = CORE_NINE_WITH_ENGINE
+CORE_SEVEN_LABELS = CORE_NINE_LABELS
+CORE_SEVEN_STAGE_MAP = CORE_NINE_STAGE_MAP
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -512,20 +513,20 @@ def preflight(
 # ═══════════════════════════════════════════════════════════════════════════════
 #
 # FLOOR COVERAGE INVARIANT: ALL L01–L13 must appear on ≥ 2 tools each.
-# Current coverage:
-#   L01: arif_init, arif_seal, arif_forge     (3)
-#   L02: arif_observe, arif_fetch, arif_think  (3)
-#   L03: arif_fetch                                         (1)
-#   L04: arif_compose, arif_measure                        (2, incl. topology/drift)
-#   L05: arif_critique, arif_fetch                   (2)
-#   L06: arif_critique, arif_compose                     (2)
-#   L07: arif_think, arif_observe                       (2)
-#   L08: arif_think                                            (1)
-#   L09: arif_compose, arif_critique                    (2)
-#   L10: arif_think                                            (1)
-#   L11: arif_init, arif_judge, arif_seal, arif_forge (4)
-#   L12: arif_init, arif_fetch                      (2)
-#   L13: arif_judge, arif_seal, arif_forge (3)
+# Current coverage (ZEN-9 collapse: absorbed tools folded into parents):
+#   L01: arif_init, arif_route, arif_judge, arif_seal, arif_forge  (5)
+#   L02: arif_observe, arif_think, arif_compose, arif_judge        (4)
+#   L03: arif_observe                                               (1)
+#   L04: arif_route, arif_compose                                   (2)
+#   L05: arif_think, arif_observe                                   (2)
+#   L06: arif_think, arif_compose                                   (2)
+#   L07: arif_think, arif_observe                                   (2)
+#   L08: arif_think                                                 (1)
+#   L09: arif_think, arif_compose                                   (2)
+#   L10: arif_think, arif_route                                     (2)
+#   L11: arif_init, arif_route, arif_judge, arif_seal, arif_forge  (5)
+#   L12: arif_init, arif_observe                                    (2)
+#   L13: arif_judge, arif_seal, arif_forge                          (3)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
@@ -546,7 +547,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["intercept"],
         "eureka_insight": "F13: Human veto absolute. Minimum kernel enforcement spine.",
         "cognitive_axis": "judge",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal enforcement only
+        "expose": False,  # F13-ratified 2026-07-04: 12-tool public facade — kernel intercept stays internal
     },
     "arif_init": {
         "name": "arif_init",
@@ -554,7 +555,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Start or resume a governed session. CALL THIS FIRST before any other tool. "
             "Binds identity, creates audit trail, activates floor enforcement. "
             "Use mode='light' for fast bootstrap (<1s). Use mode='init' for full binding (~60s). "
-            "Returns session_id needed by all other tools. Binds the One Skill (Knowing What NOT To Do) and One Tool (Verdict Loop With Memory) via geometry."
+            "Mode='canary' for transport diagnostics (replaces arif_canary). "
+            "Mode='triage' for preflight checks (replaces arif_triage). "
+            "Returns session_id needed by all other tools."
         ),
         "access": "public",
         "stage": ToolStage.INIT,
@@ -567,6 +570,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "light",
             "resume",
             "validate",
+            "canary",
+            "preflight",
+            "triage",
             "epoch_open",
             "epoch_seal",
             # F14 — Right #10 (opt out) + Right #6 (refuse profiling).
@@ -586,19 +592,22 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_observe": {
         "name": "arif_observe",
         "description": (
-            "Search the web, check system vitals, or gather real-world data. "
-            "Use mode='search' for web search, mode='ingest' to fetch a URL, "
+            "Sense reality: search the web, fetch evidence, check system vitals, "
+            "or gather real-world data. "
+            "Use mode='search' for web search, mode='fetch' for verified external evidence "
+            "(replaces arif_fetch), mode='ingest' to fetch a URL, "
             "mode='vitals' for CPU/memory/disk state. "
             "Returns results with source citations and uncertainty tags."
         ),
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
-        "floors": [Law.L02_TRUTH, Law.L07_HUMILITY],
+        "floors": [Law.L02_TRUTH, Law.L03_WITNESS, Law.L07_HUMILITY, Law.L12_INJECTION],
         "risk_tier": "low",
         "irreversible": False,
         "modes": [
             "search",
+            "fetch",
             "hybrid_discovery",
             "ingest",
             "compass",
@@ -613,13 +622,12 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_fetch": {
         "name": "arif_fetch",
         "description": (
-            "Fetch and preserve external evidence with source citations. "
-            "Use when a claim needs verified backing or factual grounding. "
-            "Provide url to fetch a specific page, or query to search for evidence. "
-            "Returns content with provenance tags and confidence scores."
+            "[ABSORBED into arif_observe(mode=fetch)] Fetch and preserve external evidence "
+            "with source citations. Retained as internal alias for backward compatibility. "
+            "Use arif_observe(mode='fetch') instead."
         ),
-        "access": "public",
-        "stage": ToolStage.EVIDENCE,
+        "access": "internal_only",
+        "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
         "floors": [
             Law.L02_TRUTH,
@@ -630,21 +638,18 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["fetch", "search", "eureka"],
-        "eureka_insight": (
-            "F3: W₃ = ∛(Human × AI × Earth) ≥ 0.75. "
-            "F5: P² ≥ 1.0 — safety margin. "
-            "L12: injection_probability < 0.85."
-        ),
+        "eureka_insight": ("F3: W₃ = ∛(Human × AI × Earth) ≥ 0.75. F5: P² ≥ 1.0 — safety margin. "),
         "cognitive_axis": "verify",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
+        "expose": False,  # ZEN-9 collapse 2026-07-04: absorbed into arif_observe(mode=fetch)
     },
     "arif_think": {
         "name": "arif_think",
         "description": (
-            "Multi-step reasoning, planning, and reflection with confidence labeling. "
+            "Cognitive engine: multi-step reasoning, planning, and reflection. "
             "Use for complex analysis, hypothesis evaluation, plan generation. "
-            "Provide query with the question or problem to reason about. "
-            "Use mode='plan' to generate execution plans, mode='reflect' to self-critique. "
+            "Use mode='plan' to generate execution plans, mode='reflect' to self-critique, "
+            "mode='verify' to check logical consistency. "
+            "For ethical/maruah assessment, use arif_critique (stage 555). "
             "Returns reasoning with confidence scores and uncertainty bands."
         ),
         "access": "public",
@@ -652,8 +657,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "lane": TrinityLane.AGI,
         "floors": [
             Law.L02_TRUTH,
+            Law.L05_PEACE,
+            Law.L06_EMPATHY,
             Law.L07_HUMILITY,
             Law.L08_GENIUS,
+            Law.L09_ANTIHANTU,
             Law.L10_ONTOLOGY,
         ],
         "risk_tier": "medium",
@@ -662,13 +670,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "reason",
             "reflect",
             "verify",
-            "critique",
             "axioms",
             "plan",
             "plan_review",
             "plan_approve",
             "refactor_plan",
             "metabolize",
+            "simulate",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
@@ -682,29 +690,27 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_critique": {
         "name": "arif_critique",
         "description": (
-            "Assess ethical risks and human impact before acting. "
-            "Use before irreversible actions, decisions affecting dignity, or forge execution. "
-            "Provide target (the action/decision to critique). "
-            "Use mode='redteam' for adversarial analysis, mode='maruah' for dignity impact. "
-            "Returns risk assessment with floor violations and recommendations."
+            "Adversarially test a plan or proposal before constitutional judgment. "
+            "Use for ethical risk assessment, maruah/dignity checks, red-teaming, "
+            "and shadow diagnostic scans. "
+            "Use mode='redteam' for adversarial testing, mode='maruah' for dignity "
+            "assessment, mode='shadow' for alignment failure mode detection. "
+            "Returns risk assessment, violated floors, empathy score, and human impact."
         ),
         "access": "public",
-        "stage": ToolStage.FORGE,
+        "stage": ToolStage.CRITIQUE,
         "lane": TrinityLane.ASI,
         "floors": [Law.L05_PEACE, Law.L06_EMPATHY, Law.L09_ANTIHANTU],
         "risk_tier": "medium",
         "irreversible": False,
-        "modes": ["critique", "simulate", "redteam", "maruah", "deescalate", "empathy"],
+        "modes": ["critique", "redteam", "maruah", "shadow", "deescalate", "empathy"],
         "eureka_insight": (
             "F5: P² ≥ 1.0. F6: κᵣ ≥ 0.70 (RASA). "
             "F9: C_dark ≤ 0.30 — no biological or artificial emotional substrate. "
-            "F9 Doctrine (arifOS×MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. "
-            "No substrate grants it feeling, intent, or personhood. "
-            "PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. "
-            "PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs."
+            "F9 Doctrine: The machine is an instrument, not a person."
         ),
         "cognitive_axis": "critique",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
+        "expose": True,  # CANONICAL-9 2026-07-04: promoted from arif_think mode to own public tool at 555
     },
     # ── CANONICAL TOOLS (RULE 14 MODE-FIRST NAMING, 2026-06-20) ──
     "arif_route": {
@@ -712,58 +718,56 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "description": (
             "Routes a natural-language intent to the correct federation organ. "
             "Use when you know what you want but not which tool to call. "
+            "Use mode='bridge' for direct organ bridge (replaces arif_bridge_connect). "
             "Provide intent describing the task (e.g., 'interpret this seismic section'). "
             "Returns routing decision with organ, tool, and arguments."
         ),
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
-        "floors": [Law.L01_AMANAH, Law.L04_CLARITY, Law.L10_ONTOLOGY],
+        "floors": [Law.L01_AMANAH, Law.L04_CLARITY, Law.L10_ONTOLOGY, Law.L11_AUDIT],
         "risk_tier": "low",
         "irreversible": False,
-        "modes": ["route"],
-        "eureka_insight": "RULE 14: One tool, one operation (routing). Modes are not used; intent is the parameter.",
+        "modes": ["route", "bridge"],
+        "eureka_insight": "ZEN-9: route absorbs bridge_connect as mode. One tool, two operations (route, bridge).",
         "cognitive_axis": "boundary",
         "expose": True,
     },
     "arif_triage": {
         "name": "arif_triage",
         "description": (
-            "Constitutional preflight check. Returns kernel status, current holds, "
-            "and the correct lane for a proposed action before execution. "
-            "Use mode='status' for session count, mode='preflight' for safety probe, "
-            "mode='triage' for priority classification. "
-            "Returns status with holds, stage, and recommendations."
+            "[ABSORBED into arif_init(mode=triage)] Constitutional preflight check. "
+            "Retained as internal alias for backward compatibility. "
+            "Use arif_init(mode='triage') instead."
         ),
-        "access": "public",
-        "stage": ToolStage.ROUTE,
+        "access": "internal_only",
+        "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [Law.L04_CLARITY, Law.L10_ONTOLOGY],
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["status", "preflight", "triage"],
-        "eureka_insight": "RULE 14: Mode-first. One tool, three related modes (status, preflight, triage) — all act on session state.",
+        "eureka_insight": "ZEN-9: absorbed into arif_init(mode=triage).",
         "cognitive_axis": "boundary",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
+        "expose": False,  # ZEN-9 collapse 2026-07-04: absorbed into arif_init(mode=triage)
     },
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",
         "description": (
-            "Low-level direct organ tool call. Bypasses intent routing — caller must specify "
-            "organ and tool_name. Use only when both are known ahead of time. "
-            "Provide organ (geox|wealth|well), tool_name, and arguments. "
-            "Returns organ response with provenance tags."
+            "[ABSORBED into arif_route(mode=bridge)] Low-level direct organ tool call. "
+            "Retained as internal alias for backward compatibility. "
+            "Use arif_route(mode='bridge') instead."
         ),
-        "access": "authenticated",
+        "access": "internal_only",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L10_ONTOLOGY],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["connect"],
-        "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 — arif_bridge retained as deprecated alias.",
+        "eureka_insight": "ZEN-9: absorbed into arif_route(mode=bridge).",
         "cognitive_axis": "boundary",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
+        "expose": False,  # ZEN-9 collapse 2026-07-04: absorbed into arif_route(mode=bridge)
     },
     "arif_compose": {
         "name": "arif_compose",
@@ -787,19 +791,17 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable."
         ),
         "cognitive_axis": "reflect",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
+        "expose": True,  # F13-ratified 2026-07-04: 12-tool kernel trim — promoted (response composer)
     },
     "arif_memory": {
         "name": "arif_memory",
         "description": (
-            "Federated memory tool — 7 canonical modes: "
-            "recall (search memories), inspect (view details), attest (verify), "
-            "remember (store new), promote (escalate tier), revise (update), forget (delete). "
-            "Use for storing, retrieving, and governing memory across the 6-layer stack. "
-            "Returns memory entries with provenance and truth-class tags."
+            "INTERNAL: Federated memory tool — 7 canonical modes. "
+            "Recalls, stores, and governs memory across the 6-layer stack. "
+            "Not on public surface; use dedicated memory tools."
         ),
-        "access": "public",
-        "stage": ToolStage.MEMORY,
+        "access": "internal_only",
+        "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [
             Law.L01_AMANAH,
@@ -811,20 +813,15 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             Law.L13_SOVEREIGN,
         ],
         "risk_tier": "medium",
-        "irreversible": True,  # forget mode is IRREVERSIBLE on recall + writes tombstone to vault
+        "irreversible": True,
         "modes": ["recall", "inspect", "attest", "remember", "promote", "revise", "forget"],
         "eureka_insight": (
             "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). "
-            "F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. "
             "F4: hybrid recall cascade (vector→graph→vault) reduces entropy per mode. "
-            "F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. "
             "F11: every write carries actor_id + session_id + receipt (forensic traceability). "
-            "F13: forget mode requires explicit human ack — L13 SOVEREIGN. "
-            "Direction 1 (memory kernel v5) — ratified 2026-06-21. "
-            "ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage."
         ),
         "cognitive_axis": "trace",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
+        "expose": False,
         "supersedes": "arif_memory_recall",
         "schema_version": 5,
         "deprecated_aliases": ["arif_memory_recall"],
@@ -880,30 +877,34 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_seal": {
         "name": "arif_seal",
         "description": (
-            "Seal a verdict or outcome to the immutable audit ledger. "
-            "Use for final, irreversible records that must be preserved forever. "
-            "Provide payload with the content to seal. "
-            "Requires ack_irreversible=True and a preceding arif_judge SEAL verdict. "
-            "Returns seal_id and hash for permanent reference."
+            "999 — Append to VAULT999 immutable ledger. "
+            "Mode='seal' to create a new VAULT999 entry with content, reason, tier, and tags. "
+            "Mode='verify' to check an existing seal. Mode='ledger' to query the ledger. "
+            "Every seal is irreversible — ack_irreversible=True required. "
+            "The Gödel break: 999 closes the metabolic loop. Only sovereign can authorize 000."
         ),
         "access": "authenticated",
         "stage": ToolStage.SEAL,
-        "lane": TrinityLane.APEX,
+        "lane": TrinityLane.SOVEREIGN,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
         "modes": ["seal", "verify", "ledger", "changelog", "audit"],
         "eureka_insight": (
-            "F1: irreversible — ack_irreversible=True mandatory. "
-            "L11: author identity verified. L13: human approved."
+            "ZEN-9: seal restored to public surface — 999 needs its verb. "
+            "Gödel break: 999 cannot authorize 000. Only sovereign heartbeat. "
+            "Kernel judges (arif_judge). VAULT999 seals. ARIF F13 owns final veto."
         ),
         "cognitive_axis": "seal",
-        "expose": True,
+        "expose": True,  # ZEN-9 collapse 2026-07-04: restored to public surface
     },
     "arif_act": {
         "name": "arif_act",
-        "description": "Execute approved action. Requires seal_verdict_id.",
-        "access": "sovereign",
+        "description": (
+            "INTERNAL alias for arif_forge. Retained for backward compatibility with "
+            "intercept routing tables. Not on public surface; call arif_forge instead."
+        ),
+        "access": "internal_only",
         "stage": ToolStage.FORGE_EXECUTE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
@@ -919,41 +920,46 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "dry_run",
         ],
         "eureka_insight": (
-            "F1: irreversible — ack_irreversible=True mandatory. "
-            "L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. "
-            "L13: judge SEAL required before execution."
+            "F13-ratified 2026-07-04: arif_forge replaces arif_act on the public wire. "
+            "arif_act retained internally for backwards compatibility."
         ),
         "cognitive_axis": "execute",
-        "expose": True,
+        "expose": False,  # F13-ratified 2026-07-04: arif_forge is now the canonical public name
     },
     "arif_forge": {
         "name": "arif_forge",
         "description": (
-            "Internal alias for arif_act. Retained for backward compatibility "
-            "but no longer advertised on the public MCP surface."
+            "Execute approved action. Guarded by the Verdict-Gated Action Bus. "
+            "Requires a prior SEAL_CANDIDATE verdict from arif_judge (seal_verdict_id "
+            "+ approved_action_hash). Modes: engineer | query | write | generate | "
+            "commit | recall | dry_run. Cognition petitions; kernel + bus decide + "
+            "execute + learn precedent."
         ),
-        "access": "internal_only",
+        "access": "authenticated",
         "stage": ToolStage.FORGE_EXECUTE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
         "risk_tier": "critical",
         "irreversible": True,
         "modes": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
-        "eureka_insight": "arif_act is the public surface for the Verdict-Gated Action Bus (action_bus.py). Cognition petitions; kernel + bus decide + execute + learn precedent.",
+        "eureka_insight": (
+            "F1: irreversible — ack_irreversible=True mandatory. "
+            "L11: actor verified. L12: fail safely; no unsafe continuation when "
+            "substrate confidence drops. L13: judge SEAL_CANDIDATE required before "
+            "execution. F13-ratified 2026-07-04: arif_forge replaces arif_act as the "
+            "canonical public execution tool."
+        ),
         "cognitive_axis": "execute",
-        "expose": False,
+        "expose": True,  # F13-ratified 2026-07-04: 12-tool kernel trim — canonical public execution gate
     },
     "arif_measure": {
         "name": "arif_measure",
         "description": (
-            "Check system health, thermodynamic state, and resource metrics. "
-            "Use for operational status and metabolic monitoring. "
-            "Use mode='health' for overall status, mode='vitals' for CPU/memory/disk, "
-            "mode='topology' for service map, mode='drift' for config drift detection. "
-            "Returns metrics with health scores and recommendations."
+            "INTERNAL: Check system health, thermodynamic state, and resource metrics. "
+            "Not on public surface. Use federation monitoring tools."
         ),
-        "access": "public",
-        "stage": ToolStage.MEASURE,
+        "access": "internal_only",
+        "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L02_TRUTH, Law.L04_CLARITY],
         "risk_tier": "low",
@@ -963,40 +969,42 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "vitals",
             "cost",
             "genius",
-            "psi_le",
-            "omega",
-            "landauer",
             "topology",
             "drift",
         ],
         "eureka_insight": (
             "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. "
-            "Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. "
-            "Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. "
-            "F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics."
+            "F8: measured intelligence is not useful intelligence."
         ),
         "cognitive_axis": "vitality",
-        "expose": False,  # F13-ratified: 7-tool public facade — internal tool, hidden from public surface
+        "expose": False,
     },
 }
 
 
-# ═─ 7-Tool MCP Facade enforcement ─══════════════════════════════════════════
-# F13 SOVEREIGN ratification 2026-06-23: public surface is exactly 7 verbs.
-# All other canonical tools are demoted to internal_only aliases.
-_PUBLIC_7: frozenset[str] = frozenset(
+# ═─ 9-Stage Metabolic Loop enforcement (CANONICAL-9 2026-07-04) ──────
+# Public surface is the 9-stage metabolic loop (9 tools = 9 stages).
+# arif_critique is now its own public tool at stage 555.
+# Tools not in this set are force-set to access="internal_only", expose=False.
+_PUBLIC_9: frozenset[str] = frozenset(
     {
         "arif_init",
         "arif_observe",
         "arif_think",
         "arif_route",
+        "arif_critique",
         "arif_judge",
-        "arif_act",
+        "arif_forge",
+        "arif_compose",
         "arif_seal",
     }
 )
+# Backward-compat aliases (DEPRECATED).
+_PUBLIC_7: frozenset[str] = _PUBLIC_9
+_PUBLIC_12: frozenset[str] = _PUBLIC_9
+
 for _name, _spec in CANONICAL_TOOLS.items():
-    if _name not in _PUBLIC_7:
+    if _name not in _PUBLIC_9:
         _spec["access"] = "internal_only"
         _spec["expose"] = False
 
@@ -1012,15 +1020,51 @@ ONE_SKILL_ONE_TOOL_CLASSIFICATION: dict[str, dict[str, Any]] = {
         "enforcement": "restraint_flags from INIT geometry drive HOLD/ASK/REFUSE; verdict_trace required for execution",
     },
     "tools": {
-        "arif_init": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Binds geometry with One Skill flags + One Tool requirement."},
-        "arif_observe": {"restraint": "STANDARD", "verdict": "NONE", "classification": "Observe only; restraint for clarity, no verdict needed."},
-        "arif_think": {"restraint": "STANDARD", "verdict": "CONDITIONAL", "classification": "Reasoning under uncertainty; restraint prevents overfit."},
-        "arif_judge": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "The One Tool: renders the verdict that enables or refuses action."},
-        "arif_seal": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Seals the verdict into append-only memory."},
-        "arif_forge": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Execution substrate. Only after One Tool verdict + One Skill check."},
-        "arif_forge_execute": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Teeth of the system. enforce_restraint_and_verdict must PASS."},
-        "arif_act": {"restraint": "STRICT", "verdict": "REQUIRED", "classification": "Execution gate. Requires prior seal from One Tool."},
-        "arif_memory": {"restraint": "STANDARD", "verdict": "CONDITIONAL", "classification": "Memory ops gated by restraint for mutation."},
+        "arif_init": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Binds geometry with One Skill flags + One Tool requirement.",
+        },
+        "arif_observe": {
+            "restraint": "STANDARD",
+            "verdict": "NONE",
+            "classification": "Observe only; restraint for clarity, no verdict needed.",
+        },
+        "arif_think": {
+            "restraint": "STANDARD",
+            "verdict": "CONDITIONAL",
+            "classification": "Reasoning under uncertainty; restraint prevents overfit.",
+        },
+        "arif_judge": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "The One Tool: renders the verdict that enables or refuses action.",
+        },
+        "arif_seal": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Seals the verdict into append-only memory.",
+        },
+        "arif_forge": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Execution substrate. Only after One Tool verdict + One Skill check.",
+        },
+        "arif_forge_execute": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Teeth of the system. enforce_restraint_and_verdict must PASS.",
+        },
+        "arif_act": {
+            "restraint": "STRICT",
+            "verdict": "REQUIRED",
+            "classification": "Execution gate. Requires prior seal from One Tool.",
+        },
+        "arif_memory": {
+            "restraint": "STANDARD",
+            "verdict": "CONDITIONAL",
+            "classification": "Memory ops gated by restraint for mutation.",
+        },
     },
     "note": "All tools inherit from INIT geometry. If kernel spec does not classify it, DENY.",
 }
@@ -1073,8 +1117,8 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["brief", "full", "organs", "events"],
         "tags": ["hermes", "diagnostic"],
     },
-    "hermes_vault_query": {
-        "name": "hermes_vault_query",
+    "arif_vault_query": {
+        "name": "arif_vault_query",
         "description": "HERMES: Query VAULT999 audit ledger — recent entries, keyword search, organ filter, date filter.",
         "access": "public",
         "tier": "hermes",
@@ -1900,7 +1944,7 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
         "OBSERVE",
         title="System Status",
     ),
-    "hermes_vault_query": derive_mcp_annotations(
+    "arif_vault_query": derive_mcp_annotations(
         "OBSERVE",
         title="Vault Query",
     ),
@@ -2123,14 +2167,15 @@ CANONICAL_OUTPUT_SCHEMA: dict[str, Any] = {
 TOOL_STAGES: dict[str, ToolStage] = {
     "arif_init": ToolStage.INIT,
     "arif_observe": ToolStage.OBSERVE,
-    "arif_fetch": ToolStage.EVIDENCE,
+    "arif_fetch": ToolStage.OBSERVE,
     "arif_think": ToolStage.REASON,
-    "arif_critique": ToolStage.FORGE,
+    "arif_critique": ToolStage.REASON,
+    "arif_route": ToolStage.ROUTE,
     "arif_compose": ToolStage.REPLY,
     "arif_judge": ToolStage.JUDGE,
     "arif_seal": ToolStage.SEAL,
     "arif_forge": ToolStage.FORGE_EXECUTE,
-    "arif_measure": ToolStage.MEASURE,
+    "arif_measure": ToolStage.OBSERVE,
 }
 
 
@@ -2160,10 +2205,8 @@ def _list_tools_by_access(access: str) -> list[str]:
 
 
 def list_public_tools() -> list[str]:
-    # The canonical public surface is the Core 7.
-    # Everything else (memory, measure, compose, kernel internals, aliases)
-    # is internal or demoted.
-    return list(CORE_SEVEN)
+    # The canonical public surface is the 9-stage metabolic loop.
+    return list(CORE_NINE)
 
 
 def list_authenticated_tools() -> list[str]:
@@ -2230,8 +2273,11 @@ get_floor_coverage = get_law_coverage
 def build_tool_registry_manifest() -> dict[str, Any]:
     """
     Generate the canonical tool registry manifest.
-    Merges CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 diagnostic/hermes/canary/lease/attest/forge-sub/narrative).
-    Single source: CANONICAL_TOOLS + DIAGNOSTIC_TOOLS dicts. No legacy aliases.
+    Merges CANONICAL_TOOLS + DIAGNOSTIC_TOOLS into one machine-readable registry.
+
+    Public canonical order is the exposed 7-tool facade. Non-exposed entries from
+    CANONICAL_TOOLS remain in the manifest as internal aliases/supporting tools,
+    but they are not counted as public canonical surface.
 
     FORGED 2026-06-21: Every tool now includes an affordance_contract derived from
     tool_risk_registry.py (canonical) or inferred from the tool spec (diagnostic).
@@ -2307,10 +2353,31 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)",
         }
 
+    public_canonical_order = [
+        name
+        for name in [
+            "arif_init",
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_judge",
+            "arif_forge",
+            "arif_compose",
+            "arif_seal",
+        ]
+        if name in CANONICAL_TOOLS and CANONICAL_TOOLS[name].get("expose", True)
+    ]
+    internal_canonical_order = [
+        name
+        for name, spec in CANONICAL_TOOLS.items()
+        if not spec.get("expose", True) and name not in DIAGNOSTIC_TOOLS
+    ]
+
     all_tools: dict[str, dict[str, Any]] = {}
 
     # ── Canonical (13 kernel + Rule-14 diagnostics) ──
     for name, spec in CANONICAL_TOOLS.items():
+        is_public = spec.get("expose", True)
         all_tools[name] = {
             "stage": spec["stage"].value if hasattr(spec["stage"], "value") else str(spec["stage"]),
             "lane": spec["lane"].value if hasattr(spec["lane"], "value") else str(spec["lane"]),
@@ -2321,9 +2388,14 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "requires_auth": spec["access"] != "public",
             "modes": spec.get("modes", []),
             "eureka_insight": spec.get("eureka_insight", ""),
-            "tier": "canonical",
-            "namespace": "arif_* (canonical prefix)",
-            "tags": ["canonical"],
+            "tier": "canonical" if is_public else "internal",
+            "namespace": (
+                "arif_* (canonical public prefix)"
+                if is_public
+                else "arif_* (internal supporting alias)"
+            ),
+            "tags": ["canonical"] if is_public else ["internal", "non-public"],
+            "public_exposed": is_public,
             "affordance_contract": _affordance_contract(name, spec),
         }
         # Forward deprecation metadata if present
@@ -2357,7 +2429,9 @@ def build_tool_registry_manifest() -> dict[str, Any]:
         "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
         "_note": (
             "SOLE SOURCE OF TRUTH. "
-            "Generated from CANONICAL_TOOLS (21 canonical) + DIAGNOSTIC_TOOLS (40 operational). "
+            "Generated from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS. "
+            "canonical_order is the exposed 7-tool public facade; internal_canonical_order contains "
+            "non-public supporting aliases that remain registered for compatibility and governed routing. "
             "Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. "
             "FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py "
             "for canonical tools, spec-inferred for diagnostic tools. The contract is "
@@ -2370,27 +2444,30 @@ def build_tool_registry_manifest() -> dict[str, Any]:
             "forged": "2026-06-21",
         },
         "_namespace_ruling": {
-            "arif_*": "Canonical13 public surface — 21 canonical tools + 1 canary probe (22 default wire tools)",
+            "arif_*": "9-stage metabolic loop public verbs plus internal supporting aliases",
             "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
-            "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
+            "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly)",
             "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
             "mcp_*": "GATED — Utility namespace for operational diagnostics",
         },
-        "canonical_count": len(CONSTITUTIONAL_TOOLS),
+        "canonical_count": len(public_canonical_order),
+        "internal_canonical_count": len(internal_canonical_order),
         "diagnostic_count": len(DIAGNOSTIC_TOOLS),
         "total_surface": len(all_tools),
         "tier_summary": tier_counts,
         "tier_legend": {
-            "canonical": "21 canonical tools — F1-F13 constitutional pipeline plus rule-14/public extensions",
-            "hermes": "7 cross-verification, fact-checking, vault query, epistemic checks",
-            "canary": "1 multimode transport/protocol diagnostic probe (no session required)",
-            "lease": "3 capability lease lifecycle tools (inspect, issue, revoke)",
-            "attest": "4 federation organ attestation tools (self + peer heartbeat)",
-            "forge-sub": "3 pre-execution forge planning tools (dry_run, plan, query)",
-            "narrative": "2 institutional shadow drift + narrative tension detection tools",
-            "diagnostic": "6 health probes, drift checks, floor status, budget telemetry, instruction scanner",
+            "canonical": "7 exposed public verbs on the default MCP wire surface",
+            "internal": "Internal supporting arif_* aliases/tools kept for governed routing and compatibility",
+            "hermes": "Cross-verification, fact-checking, vault query, and epistemic checks",
+            "canary": "Transport and protocol echo/probe tools",
+            "lease": "Capability lease lifecycle tools",
+            "attest": "Federation organ attestation and heartbeat tools",
+            "forge-sub": "Pre-execution forge planning tools",
+            "narrative": "Institutional shadow drift and narrative tension detection tools",
+            "diagnostic": "Health probes, drift checks, floor status, budget telemetry, and scanners",
         },
-        "canonical_order": list(CONSTITUTIONAL_TOOLS),
+        "canonical_order": public_canonical_order,
+        "internal_canonical_order": internal_canonical_order,
         "diagnostic_order": list(DIAGNOSTIC_TOOLS.keys()),
         "laws": [f.value for f in Law],
         "floors": [f.value for f in Law],  # deprecated alias

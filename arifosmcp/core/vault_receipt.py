@@ -40,57 +40,61 @@ class VaultReceipt:
     """
 
     # ── Identity ──────────────────────────────────────────────────
-    receipt_id: str              # UUIDv7 — time-ordered, no central authority
-    ts: str                      # ISO8601
-    monotonic_counter: int       # Lamport clock — total ordering within session
+    receipt_id: str  # UUIDv7 — time-ordered, no central authority
+    ts: str  # ISO8601
+    monotonic_counter: int  # Lamport clock — total ordering within session
 
     # ── Chain ─────────────────────────────────────────────────────
-    parent_hash: str             # SHA256 of previous receipt in this session
-    session_id: str              # Which session this belongs to
+    parent_hash: str  # SHA256 of previous receipt in this session
+    session_id: str  # Which session this belongs to
     # V1 fix: renamed comment — this is a chain hash (cumulative), not a true Merkle root.
     # True Merkle root (Phase 5) will use a separate field alongside this one.
     # Kept as session_merkle_root for wire-format stability (Phase 1–4 compatibility).
-    session_merkle_root: str     # Chain hash: hash(r0 || hash(r1 || hash(r2 || ...)))
+    session_merkle_root: str  # Chain hash: hash(r0 || hash(r1 || hash(r2 || ...)))
 
     # ── Provenance ────────────────────────────────────────────────
-    actor_id: str                # Who did this
-    organ_id: str                # Which organ (arifOS|A-FORGE|GEOX|WEALTH|WELL|AAA|HUMAN)
-    actor_pubkey_epoch: int      # Which key generation signed this (0 = bootstrap)
-    actor_signature: str         # Ed25519 signature (hex) — "" if unsigned (Phase 1)
+    actor_id: str  # Who did this
+    organ_id: str  # Which organ (arifOS|A-FORGE|GEOX|WEALTH|WELL|AAA|HUMAN)
+    actor_pubkey_epoch: int  # Which key generation signed this (0 = bootstrap)
+    actor_signature: str  # Ed25519 signature (hex) — "" if unsigned (Phase 1)
 
     # ── Constitutional ────────────────────────────────────────────
-    intent_summary: str          # Human-readable summary
-    intent_hash: str             # SHA256 of full intent payload
-    requested_authority: str     # AuthorityClass value
-    pre_state_hash: str          # Frozen input envelope hash
-    decision: str                # VerdictClass value
-    verdict_hash: str            # SHA256 of full verdict payload
+    intent_summary: str  # Human-readable summary
+    intent_hash: str  # SHA256 of full intent payload
+    requested_authority: str  # AuthorityClass value
+    pre_state_hash: str  # Frozen input envelope hash
+    decision: str  # VerdictClass value
+    verdict_hash: str  # SHA256 of full verdict payload
     floors_evaluated: list[str]  # F1..F13 actually checked
-    floors_violated: list[str]   # Which floors were violated
+    floors_violated: list[str]  # Which floors were violated
 
     # ── Conflict Resolution ───────────────────────────────────────
-    conflict_resolved: bool      # Was a conflict resolved?
-    conflict_resolution: str     # Resolution method (dominance|authority|escalate|none)
+    conflict_resolved: bool  # Was a conflict resolved?
+    conflict_resolution: str  # Resolution method (dominance|authority|escalate|none)
 
     # ── Latency ───────────────────────────────────────────────────
-    decision_class: str          # C0_AUTO | C1_FAST | C2_STANDARD | C3_DEEP | C4_SOVEREIGN
-    latency_ms: float            # Actual latency
-    within_budget: bool          # Did it stay within budget?
+    decision_class: str  # C0_AUTO | C1_FAST | C2_STANDARD | C3_DEEP | C4_SOVEREIGN
+    latency_ms: float  # Actual latency
+    within_budget: bool  # Did it stay within budget?
 
     # ── Witness ───────────────────────────────────────────────────
-    witness_count: int           # How many witnesses attested
-    witness_dissent: list[str]   # Any dissenting verdicts
+    witness_count: int  # How many witnesses attested
+    witness_dissent: list[str]  # Any dissenting verdicts
 
     # ── F14 Self-Modification ─────────────────────────────────────
     self_modification_receipt: bool = False  # True if this receipt records an F14 amendment
-    amendment_target: str = ""              # Which floor/content is being amended (e.g. "F14", "F3")
+    amendment_target: str = ""  # Which floor/content is being amended (e.g. "F14", "F3")
+
+    # ── Dynamic Act (v42.0) ───────────────────────────────────────
+    judge_verdict_ref: str = ""  # Hash of prior arif_judge verdict that authorized this act
+    # Mandatory for arif_act receipts; empty for non-act tools
 
     # ── Receipt Seal ──────────────────────────────────────────────
-    receipt_hash: str = ""            # SHA256(canonical_order of all above fields)
+    receipt_hash: str = ""  # SHA256(canonical_order of all above fields)
 
     # ── Selective Disclosure ──────────────────────────────────────
-    view_key_id: str = ""             # Auditor with key can see intent/decision
-                                 # Without it: only sees hash
+    view_key_id: str = ""  # Auditor with key can see intent/decision
+    # Without it: only sees hash
 
     def to_dict(self) -> dict[str, Any]:
         """Canonical dict for serialization."""
@@ -109,48 +113,53 @@ def compute_receipt_hash(r: VaultReceipt) -> str:
     Canonical hash — deterministic, order-independent within groups.
     SHA-256 for Phase 1. BLAKE3 for speed later if needed.
     """
-    canonical = json.dumps({
-        "identity": {
-            "receipt_id": r.receipt_id,
-            "ts": r.ts,
-            "monotonic_counter": r.monotonic_counter,
+    canonical = json.dumps(
+        {
+            "identity": {
+                "receipt_id": r.receipt_id,
+                "ts": r.ts,
+                "monotonic_counter": r.monotonic_counter,
+            },
+            "chain": {
+                "parent_hash": r.parent_hash,
+                "session_id": r.session_id,
+                "session_merkle_root": r.session_merkle_root,
+            },
+            "provenance": {
+                "actor_id": r.actor_id,
+                "organ_id": r.organ_id,
+                "actor_pubkey_epoch": r.actor_pubkey_epoch,
+                "actor_signature": r.actor_signature,
+            },
+            "constitutional": {
+                "intent_hash": r.intent_hash,
+                "requested_authority": r.requested_authority,
+                "pre_state_hash": r.pre_state_hash,
+                "decision": r.decision,
+                "verdict_hash": r.verdict_hash,
+                "floors_evaluated": sorted(r.floors_evaluated),
+                "floors_violated": sorted(r.floors_violated),
+                "self_modification_receipt": r.self_modification_receipt,
+                "amendment_target": r.amendment_target,
+                "judge_verdict_ref": r.judge_verdict_ref,
+            },
+            "conflict": {
+                "conflict_resolved": r.conflict_resolved,
+                "conflict_resolution": r.conflict_resolution,
+            },
+            "latency": {
+                "decision_class": r.decision_class,
+                "latency_ms": r.latency_ms,
+                "within_budget": r.within_budget,
+            },
+            "witness": {
+                "witness_count": r.witness_count,
+                "witness_dissent": sorted(r.witness_dissent),
+            },
         },
-        "chain": {
-            "parent_hash": r.parent_hash,
-            "session_id": r.session_id,
-            "session_merkle_root": r.session_merkle_root,
-        },
-        "provenance": {
-            "actor_id": r.actor_id,
-            "organ_id": r.organ_id,
-            "actor_pubkey_epoch": r.actor_pubkey_epoch,
-            "actor_signature": r.actor_signature,
-        },
-        "constitutional": {
-            "intent_hash": r.intent_hash,
-            "requested_authority": r.requested_authority,
-            "pre_state_hash": r.pre_state_hash,
-            "decision": r.decision,
-            "verdict_hash": r.verdict_hash,
-            "floors_evaluated": sorted(r.floors_evaluated),
-            "floors_violated": sorted(r.floors_violated),
-            "self_modification_receipt": r.self_modification_receipt,
-            "amendment_target": r.amendment_target,
-        },
-        "conflict": {
-            "conflict_resolved": r.conflict_resolved,
-            "conflict_resolution": r.conflict_resolution,
-        },
-        "latency": {
-            "decision_class": r.decision_class,
-            "latency_ms": r.latency_ms,
-            "within_budget": r.within_budget,
-        },
-        "witness": {
-            "witness_count": r.witness_count,
-            "witness_dissent": sorted(r.witness_dissent),
-        },
-    }, sort_keys=True, separators=(",", ":"))
+        sort_keys=True,
+        separators=(",", ":"),
+    )
     return hashlib.sha256(canonical.encode()).hexdigest()
 
 
@@ -259,6 +268,7 @@ class SessionChain:
         witness_dissent: list[str] | None = None,
         self_modification_receipt: bool = False,
         amendment_target: str = "",
+        judge_verdict_ref: str = "",
     ) -> VaultReceipt:
         """
         Create a new receipt in this session's chain.
@@ -267,6 +277,9 @@ class SessionChain:
 
         Set self_modification_receipt=True for F14 amendment proposals.
         amendment_target specifies which floor/content is being amended.
+
+        judge_verdict_ref: Hash of prior arif_judge verdict (v42.0 Dynamic Act).
+        Required for arif_act receipts to prove the act was authorized.
         """
         # Compute fields
         receipt_id = str(uuid4())
@@ -285,7 +298,7 @@ class SessionChain:
             actor_id=actor_id,
             organ_id=organ_id,
             actor_pubkey_epoch=0,  # Bootstrap epoch — no keys yet
-            actor_signature="",    # Phase 1: unsigned
+            actor_signature="",  # Phase 1: unsigned
             intent_summary=intent_summary,
             intent_hash=intent_hash,
             requested_authority=requested_authority,
@@ -303,6 +316,7 @@ class SessionChain:
             witness_dissent=witness_dissent or [],
             self_modification_receipt=self_modification_receipt,
             amendment_target=amendment_target,
+            judge_verdict_ref=judge_verdict_ref,
             receipt_hash="",  # Computed below
             view_key_id="",  # Phase 6: selective disclosure
         )
@@ -400,6 +414,7 @@ def create_and_seal_receipt(
     witness_dissent: list[str] | None = None,
     self_modification_receipt: bool = False,
     amendment_target: str = "",
+    judge_verdict_ref: str = "",
     vault_path: str | Path | None = None,
 ) -> VaultReceipt:
     """
@@ -437,6 +452,7 @@ def create_and_seal_receipt(
         witness_dissent=witness_dissent,
         self_modification_receipt=self_modification_receipt,
         amendment_target=amendment_target,
+        judge_verdict_ref=judge_verdict_ref,
     )
     chain.append_to_vault(receipt)
     return receipt

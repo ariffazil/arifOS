@@ -174,7 +174,7 @@ ssh root@arif-fazil.com "cd /root/arifosmcp && docker-compose restart"
 | Environment | URL | Deploy Command |
 |-------------|-----|----------------|
 | Staging | https://staging.arif-fazil.com | `make deploy-staging` |
-| Production | https://arifosmcp.arif-fazil.com | `make deploy-production` |
+| Production | https://mcp.arif-fazil.com | `make deploy-production` |
 
 ---
 

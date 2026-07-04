@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/geox_prospect_evaluate.schema.json",
+  "title": "geox_prospect_evaluate (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `geox_prospect_evaluate`. This schema is APPENDED to the existing geox schema for `geox_prospect_evaluate` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: A prospect verdict is one of the heaviest symbols in subsurface work.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "seal_disambiguation"
+  ],
+  "properties": {
+    "component": {
+      "const": "geox_prospect_evaluate"
+    },
+    "organ": {
+      "const": "geox"
+    },
+    "seal_disambiguation": {
+      "type": "object",
+      "description": "§3.I — Same as geox_claim_seal. Prospect evaluation triggers high-stakes symbol cascades.",
+      "properties": {
+        "geological_seal": {
+          "type": "boolean"
+        },
+        "constitutional_SEAL": {
+          "type": "boolean"
+        },
+        "vault_seal": {
+          "type": "boolean"
+        },
+        "trap_seal_lithology": {
+          "type": "boolean"
+        }
+      }
+    },
+    "prospect_symbolic_load": {
+      "type": "object",
+      "description": "Captures the social weight a prospect evaluation carries.",
+      "properties": {
+        "career_signal": {
+          "type": "boolean"
+        },
+        "partner_signal": {
+          "type": "boolean"
+        },
+        "budget_lock_in_risk": {
+          "type": "boolean"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every geox_prospect_evaluate output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

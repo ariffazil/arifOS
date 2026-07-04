@@ -88,7 +88,6 @@ class Organ(StrEnum):
     WEALTH = "WEALTH"
     WELL = "WELL"
     A_FORGE = "A-FORGE"
-    APEX = "APEX"
     AAA = "AAA"
     EXTERNAL = "EXTERNAL"
 

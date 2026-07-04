@@ -183,6 +183,7 @@ def _run_minimal_stdio_server() -> None:
     from .geox_bridge import call_geox_tool, list_geox_tools
     from .server import create_aaa_mcp_server
     from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
+    from .public_surface import CANONICAL_LONG_NAME_ALIASES, public_tool_names_for_mode
     from .tools import CANONICAL_TOOL_HANDLERS
 
     # FastMCP instance for resources + prompts (all three surfaces)
@@ -547,7 +548,16 @@ def _run_minimal_stdio_server() -> None:
 
         # ── tools/list ───────────────────────────────────────────────────────
         if method == "tools/list":
-            local_tools = [tool_descriptor(name) for name in tool_handlers]
+            # Filter: only expose public surface tools (canonical + diagnostics).
+            # Aliases remain dispatchable via _CANONICAL_HANDLERS but are never
+            # advertised on the agent-facing MCP surface.  F4: one name per tool.
+            _public_names = set(public_tool_names_for_mode())
+            _alias_block = set(CANONICAL_LONG_NAME_ALIASES)
+            local_tools = [
+                tool_descriptor(name)
+                for name in tool_handlers
+                if name in _public_names or name not in _alias_block
+            ]
             remote_tools = [rt["schema"] for rt in _remote_tools.values()]
             send(
                 {

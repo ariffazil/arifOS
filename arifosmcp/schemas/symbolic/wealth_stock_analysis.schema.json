@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/wealth_stock_analysis.schema.json",
+  "title": "wealth_stock_analysis (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `wealth_stock_analysis`. This schema is APPENDED to the existing wealth schema for `wealth_stock_analysis` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Price, rating, dividend, PE, 'buy call' are not neutral facts — they move behavior.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "market_symbolic_layer"
+  ],
+  "properties": {
+    "component": {
+      "const": "wealth_stock_analysis"
+    },
+    "organ": {
+      "const": "wealth"
+    },
+    "market_symbolic_layer": {
+      "type": "object",
+      "description": "§3.J — Markets are symbolic machines.",
+      "properties": {
+        "signal_type": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "price",
+              "narrative",
+              "status",
+              "fear",
+              "greed",
+              "authority_claim",
+              "herd_symbol"
+            ]
+          }
+        },
+        "manipulation_risk": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "social_proof_detected": {
+          "type": "boolean"
+        },
+        "tamak_trigger": {
+          "type": "boolean"
+        },
+        "capital_irreversibility": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every wealth_stock_analysis output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

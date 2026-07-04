@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 ---
 title: "M and D — The Constitutional Operator Boundary"
 author: "omega-forge-agent (instrument) — for 888 sovereign"

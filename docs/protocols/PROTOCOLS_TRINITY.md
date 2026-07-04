@@ -23,25 +23,25 @@ arifOS now implements **all three major AI agent protocols**:
 ### MCP (Model Context Protocol)
 ```
 https://mcp.arif-fazil.com/mcp         ← MCP endpoint (JSON-RPC)
-https://arifos.arif-fazil.com/health      ← Health check
-https://arifos.arif-fazil.com/tools       ← Tool listing
+https://mcp.arif-fazil.com/health      ← Health check
+https://mcp.arif-fazil.com/tools       ← Tool listing
 ```
 
 ### A2A (Agent-to-Agent Protocol)
 ```
-https://arifosmcp.arif-fazil.com/.well-known/agent.json  ← Agent Card
-https://arifosmcp.arif-fazil.com/a2a/task                ← Submit task
-https://arifosmcp.arif-fazil.com/a2a/status/{id}         ← Task status
-https://arifosmcp.arif-fazil.com/a2a/cancel/{id}         ← Cancel task
-https://arifosmcp.arif-fazil.com/a2a/subscribe/{id}      ← SSE updates
+https://arifos.arif-fazil.com/.well-known/agent.json  ← Agent Card
+https://arifos.arif-fazil.com/a2a/task                ← Submit task
+https://arifos.arif-fazil.com/a2a/status/{id}         ← Task status
+https://arifos.arif-fazil.com/a2a/cancel/{id}         ← Cancel task
+https://arifos.arif-fazil.com/a2a/subscribe/{id}      ← SSE updates
 ```
 
 ### WebMCP (Web Model Context Protocol)
 ```
-https://arifosmcp.arif-fazil.com/.well-known/webmcp      ← WebMCP manifest
-https://arifosmcp.arif-fazil.com/webmcp                  ← Console UI
-https://arifosmcp.arif-fazil.com/webmcp/sdk.js           ← JavaScript SDK
-https://arifosmcp.arif-fazil.com/webmcp/tools.json       ← Tool charter
+https://arifos.arif-fazil.com/.well-known/webmcp      ← WebMCP manifest
+https://arifos.arif-fazil.com/webmcp                  ← Console UI
+https://arifos.arif-fazil.com/webmcp/sdk.js           ← JavaScript SDK
+https://arifos.arif-fazil.com/webmcp/tools.json       ← Tool charter
 ```
 
 ---
@@ -97,7 +97,7 @@ https://arifosmcp.arif-fazil.com/webmcp/tools.json       ← Tool charter
 ┌─────────────────────────────────────────────────────────────────────┐
 │                      HUMAN INTERFACE                                 │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  WebMCP Console: https://arifosmcp.arif-fazil.com/webmcp     │   │
+│  │  WebMCP Console: https://arifos.arif-fazil.com/webmcp     │   │
 │  │  • Initialize sessions                                       │   │
 │  │  • Execute constitutional kernel                             │   │
 │  │  • Audit floors                                              │   │
@@ -134,12 +134,12 @@ claude mcp add arifos \
 import httpx
 
 # 1. Discover arifOS capabilities
-response = httpx.get("https://arifosmcp.arif-fazil.com/.well-known/agent.json")
+response = httpx.get("https://arifos.arif-fazil.com/.well-known/agent.json")
 agent_card = response.json()
 
 # 2. Submit a task
 task_response = httpx.post(
-    "https://arifosmcp.arif-fazil.com/a2a/task",
+    "https://arifos.arif-fazil.com/a2a/task",
     json={
         "client_agent_id": "my-agent-123",
         "messages": [{"role": "user", "content": "Analyze this code"}],
@@ -149,7 +149,7 @@ task_response = httpx.post(
 task_id = task_response.json()["task_id"]
 
 # 3. Check status
-status = httpx.get(f"https://arifosmcp.arif-fazil.com/a2a/status/{task_id}")
+status = httpx.get(f"https://arifos.arif-fazil.com/a2a/status/{task_id}")
 ```
 
 ### For WebMCP (Browser)
@@ -158,7 +158,7 @@ status = httpx.get(f"https://arifosmcp.arif-fazil.com/a2a/status/{task_id}")
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="https://arifosmcp.arif-fazil.com/webmcp/sdk.js"></script>
+    <script src="https://arifos.arif-fazil.com/webmcp/sdk.js"></script>
 </head>
 <body>
     <form data-webmcp-tool="init_anchor">
@@ -281,9 +281,9 @@ git pull origin main
 docker-compose up -d --build arifosmcp
 
 # Verify all endpoints
-curl https://arifos.arif-fazil.com/health
-curl https://arifosmcp.arif-fazil.com/.well-known/agent.json
-curl https://arifosmcp.arif-fazil.com/.well-known/webmcp
+curl https://mcp.arif-fazil.com/health
+curl https://arifos.arif-fazil.com/.well-known/agent.json
+curl https://arifos.arif-fazil.com/.well-known/webmcp
 ```
 
 ### Verify Protocols
@@ -295,14 +295,14 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 
 # A2A
-curl https://arifosmcp.arif-fazil.com/.well-known/agent.json
-curl -X POST https://arifosmcp.arif-fazil.com/a2a/task \
+curl https://arifos.arif-fazil.com/.well-known/agent.json
+curl -X POST https://arifos.arif-fazil.com/a2a/task \
   -H "Content-Type: application/json" \
   -d '{"client_agent_id":"test","messages":[{"role":"user","content":"Hello"}]}'
 
 # WebMCP
-curl https://arifosmcp.arif-fazil.com/webmcp
-curl https://arifosmcp.arif-fazil.com/webmcp/tools.json
+curl https://arifos.arif-fazil.com/webmcp
+curl https://arifos.arif-fazil.com/webmcp/tools.json
 ```
 
 ---

@@ -2184,56 +2184,10 @@ class GovernancePipeline:
             )
             return None
 
-        class _GovMiddleware(Middleware):
-            async def on_call_tool(
-                self,
-                context: MiddlewareContext[CallToolRequestParams],
-                call_next,
-            ):
-                params = context.params
-                tool_name = getattr(params, "name", "unknown") if params else "unknown"
-                arguments = getattr(params, "arguments", {}) or {}
-
-                # Build ToolCallContext from FastMCP context
-                from arifosmcp.runtime.governance_pipeline import ToolCallContext
-
-                ctx = ToolCallContext(
-                    tool_name=tool_name,
-                    session_id=getattr(context, "session_id", None),
-                    actor_id=getattr(context, "actor_id", None),
-                    params=arguments,
-                )
-
-                # Run governance pipeline
-                result = pipeline.run(ctx)
-
-                if result.verdict.value == "PASS" or pipeline.enforcement_mode == "simulate":
-                    return await call_next(context)
-
-                # HOLD — return constitutional error
-                from mcp.types import TextContent
-
-                hold_receipt = result.hold_receipt()
-                return TextContent(
-                    type="text",
-                    text=json.dumps(
-                        {
-                            "jsonrpc": "2.0",
-                            "error": {
-                                "code": -32000,
-                                "message": "Governance HOLD",
-                                "data": {
-                                    "verdict": result.verdict.value,
-                                    "reason": result.hold_reason or "Constitutional floor breach",
-                                    "violated_floors": result.violated_floors,
-                                    "receipt": hold_receipt,
-                                },
-                            },
-                        }
-                    ),
-                )
-
-        return _GovMiddleware
+        # RETURNED None 2026-06-28 — the _GovMiddleware class didn't conform
+        # to Starlette ASGI middleware protocol (needs __call__ with scope/receive/send).
+        # Governance runs per-tool via _wrap_handler in register_tools().
+        return None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

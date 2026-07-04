@@ -19,6 +19,7 @@ from arifosmcp.tools.reply import arif_compose
 from arifosmcp.tools.sense import arif_observe
 from arifosmcp.tools.session import arif_init
 from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
+from arifosmcp.tools.retrieve_tools import arif_retrieve_tools
 from arifosmcp.tools.vault import arif_seal
 
 __all__ = [
@@ -32,6 +33,8 @@ __all__ = [
     "arif_triage",  # replaces arif_kernel_route(mode=status|preflight|triage)
     "arif_bridge_connect",  # P1-C
     "arif_memory",  # P1-B: now surfaced (v5 federated)
+    # ── BM25 tool retrieval (Ratel insight, 2026-06-29) ──
+    "arif_retrieve_tools",  # BM25 lexical tool search across federation
     # ── Legacy (soft-deprecated, still functional) ──
     "arif_compose",
     "arif_critique",

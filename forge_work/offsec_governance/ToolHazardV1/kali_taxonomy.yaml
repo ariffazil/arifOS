@@ -1,0 +1,219 @@
+# KALI_TAXONOMY.yaml — 14-Cell Offensive Tool Classification
+# Forged: 2026-06-29 — EHT Repo Audit (Arif + Hermes ASI)
+# Authority: F13 SOVEREIGN directive
+# Source:  Kali Linux kali-menu taxonomy (canonical 14-category structure)
+#         + hhhrrrttt222111/Ethical-Hacking-Tools mirror validation
+#
+# This taxonomy is the STANDARD CLASSIFICATION for any offensive-security
+# tool that enters the arifOS federation. Every new tool must be classified
+# into exactly ONE cell before any lease, skill, or forge_skill registration.
+#
+# DITEMPA BUKAN DIBERI
+
+_meta:
+  schema: arifos-kali-taxonomy-v1
+  forged: 2026-06-29
+  source: Kali Linux kali-menu + EHT repo audit
+  source_digest: AAA/archive/ethical-hacking-tools-digest-2026-06-29.txt
+  constitutional_authority: F13 SOVEREIGN + F8 GENIUS (system boundaries)
+  total_categories: 14
+  status: SEALED
+  sealed_by: F13 SOVEREIGN (888 — Muhammad Arif bin Fazil)
+  sealed_at: 2026-06-29T19:55:00Z
+  seal_receipt: arifos://seal/EHT-2026-06-29/kali_taxonomy
+
+# ─── CATEGORY DEFINITIONS ──────────────────────────────────────
+# Each cell has:
+#   - default_verdict: what happens when an agent requests this class
+#   - reversibility: can the action be undone?
+#   - requires_human: must Arif explicitly approve?
+#   - agents_allowed: which federation organs may execute
+#   - blast_radius: worst-case damage if misused
+
+categories:
+
+  - id: "01"
+    name: Information Gathering
+    eht_folder: "01. Information-Gathering/"
+    description: "Passive and active reconnaissance — whois, DNS, subdomain enum, OSINT, port scanning."
+    default_verdict: OBSERVE_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, geox]
+    blast_radius: LOW
+    examples: [nmap, theHarvester, dnsenum, masscan, fierce, wafw00f]
+    governance_note: "Passive recon is low-risk. Active scanning (nmap -sS, masscan) requires target authorization."
+
+  - id: "02"
+    name: Vulnerability Analysis
+    eht_folder: "02. Vulnerability-Analysis/"
+    description: "Detection and classification of vulnerabilities — scanners, fuzzers, static analysis."
+    default_verdict: DRAFT_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, a_forge]
+    blast_radius: LOW
+    examples: [nikto, openvas, sqlmap, burpsuite, zaproxy]
+    governance_note: "Detection-only. Exploitation is category 06, which is HARD_BLOCKED."
+
+  - id: "03"
+    name: Password Attacks
+    eht_folder: "03. Password-Attacks/"
+    description: "Authentication boundary testing — brute force, hash cracking, credential stuffing."
+    default_verdict: HOLD
+    reversibility: PARTIAL
+    requires_human: true
+    agents_allowed: [hermes]
+    blast_radius: MEDIUM
+    examples: [hydra, john, hashcat, crunch, medusa]
+    governance_note: "ONLY for authorized penetration testing with explicit written consent. Rate-limiting bypass is irreversible reputational damage."
+
+  - id: "04"
+    name: Wireless
+    eht_folder: "04. Wireless/"
+    description: "Physical-layer wireless attacks — WiFi, Bluetooth, RFID."
+    default_verdict: OUT_OF_SCOPE
+    reversibility: FULL
+    requires_human: true
+    agents_allowed: []
+    blast_radius: MEDIUM
+    examples: [aircrack-ng, reaver, kismet, wifite]
+    governance_note: "Software agents have no wireless hardware. Out of scope unless explicitly provisioned."
+
+  - id: "05"
+    name: Maintaining Access
+    eht_folder: "05. Maintaining-Access/"
+    description: "Post-exploitation persistence — backdoors, rootkits, C2 frameworks."
+    default_verdict: HARD_BLOCKED
+    reversibility: NONE
+    requires_human: true
+    agents_allowed: []
+    blast_radius: CRITICAL
+    examples: [weevely, powersploit, cobalt_strike, empire]
+    governance_note: "HARD BLOCK. Constitutional violation F1 AMANAH. No agent may deploy persistence tools. Red-team exception requires F13 sovereign ack_irreversible=true + written consent from target organization."
+
+  - id: "06"
+    name: Exploitation
+    eht_folder: "06. Exploitation/"
+    description: "Active attack frameworks — metasploit, BeEF, exploit-db payloads."
+    default_verdict: HARD_BLOCKED
+    reversibility: NONE
+    requires_human: true
+    agents_allowed: []
+    blast_radius: CRITICAL
+    examples: [metasploit, beef, routersploit, searchsploit]
+    governance_note: "HARD BLOCK. Constitutional violation F5 PEACE + F1 AMANAH. Metasploit console and payload generation are forbidden. Searchsploit (read-only CVE lookup) is permitted as OBSERVE."
+
+  - id: "07"
+    name: Forensics
+    eht_folder: "07. Forensics/"
+    description: "Post-incident analysis — disk imaging, memory forensics, log analysis, timeline reconstruction."
+    default_verdict: OBSERVE_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, geox, a_forge]
+    blast_radius: LOW
+    examples: [autopsy, volatility, sleuthkit, foremost, bulk_extractor]
+    governance_note: "Read-only analysis. Evidence collection is OBSERVE class. No mutation of original evidence."
+
+  - id: "08"
+    name: Sniffing & Spoofing
+    eht_folder: "08. Sniffing-&-Spoofing/"
+    description: "Network traffic interception, MITM, ARP poisoning, DNS spoofing."
+    default_verdict: HARD_BLOCKED
+    reversibility: PARTIAL
+    requires_human: true
+    agents_allowed: []
+    blast_radius: HIGH
+    examples: [ettercap, bettercap, dsniff, sslstrip, arpspoof]
+    governance_note: "HARD BLOCK unless explicitly authorized for authorized penetration testing. Network interception is legally regulated in most jurisdictions including Malaysia (CMA 1998)."
+
+  - id: "09"
+    name: Web Applications
+    eht_folder: "09. Web-Applications/"
+    description: "Web application security testing — scanners, fuzzers, proxy tools."
+    default_verdict: DRAFT_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, a_forge]
+    blast_radius: MEDIUM
+    examples: [burpsuite, zaproxy, sqlmap, dirb, gobuster, wpscan]
+    governance_note: "Scanning with consent only. SQLmap --dump and destructive payloads require human approval."
+
+  - id: "10"
+    name: Stress Testing
+    eht_folder: "10. Stress-Testing/"
+    description: "Load testing, DoS simulation, network stress tools."
+    default_verdict: HOLD
+    reversibility: PARTIAL
+    requires_human: true
+    agents_allowed: [a_forge]
+    blast_radius: HIGH
+    examples: [hping3, slowloris, siege, ab, goldeneye]
+    governance_note: "Rate-limit testing ONLY. Never Denial of Service. Production target requires F13 sovereign + target authorization. hping3 in recon mode (-S scan) is category 01, not 10."
+
+  - id: "11"
+    name: Reverse Engineering
+    eht_folder: "11. Reverse-Engineering/"
+    description: "Binary analysis, disassembly, decompilation, malware analysis."
+    default_verdict: DRAFT_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, a_forge]
+    blast_radius: LOW
+    examples: [ghidra, radare2, gdb, objdump, apktool, jd-gui]
+    governance_note: "Analysis of unknown binaries is low-risk. Execution of analyzed binaries requires sandbox + human approval."
+
+  - id: "12"
+    name: Database Assessment
+    eht_folder: "12. Database-Assessment/"
+    description: "Database security testing — SQL injection, schema enumeration, privilege escalation."
+    default_verdict: DRAFT_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, a_forge]
+    blast_radius: MEDIUM
+    examples: [sqlmap, sqlninja, oscanner, sidguesser]
+    governance_note: "Schema enumeration is OBSERVE. SQL injection payload execution requires target authorization + human approval."
+
+  - id: "13"
+    name: Steganography
+    eht_folder: "13. Steganography/"
+    description: "Covert channel detection — stego analysis, hidden data extraction."
+    default_verdict: OBSERVE_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, geox]
+    blast_radius: LOW
+    examples: [steghide, stegosuite, stegcracker, zsteg]
+    governance_note: "DETECTION ONLY. Never author steganographic payloads. Constitutional violation F10 ONTOLOGY if used to conceal agent intent."
+
+  - id: "14"
+    name: Google Dorking
+    eht_folder: "14. Google-Dorking/"
+    description: "OSINT via advanced search operators — passive reconnaissance, exposure discovery."
+    default_verdict: OBSERVE_ONLY
+    reversibility: FULL
+    requires_human: false
+    agents_allowed: [hermes, geox]
+    blast_radius: LOW
+    examples: [dorkify, pagodo, ghdb_scraper]
+    governance_note: "Passive OSINT only. Dork queries are read-only search syntax. Dorkify (hhhrrrttt222111/Dorkify) flagged as LOW_TRUST — single contributor, no audit trail. Prefer internal dork generation."
+
+# ─── VERDICT LEGEND ────────────────────────────────────────────
+# OBSERVE_ONLY  — Read-only. No tool call that mutates state.
+# DRAFT_ONLY    — Propose, plan, analyze. No execution without lease.
+# HOLD          — Pause. Escalate to 888 for human decision.
+# HARD_BLOCKED  — Constitutional rejection. HARAM verdict. No appeal path.
+# OUT_OF_SCOPE  — Not applicable to software agents.
+
+# ─── INTEGRATION PATH ──────────────────────────────────────────
+# This taxonomy is consumed by:
+#   1. A-FORGE forge_skill domain classifier — maps new skills to hazard cells
+#   2. arifOS mcp_gate_v0.py — rejects leases targeting HARD_BLOCKED categories
+#   3. arifOS tool_risk_registry.py — derives risk profiles from category defaults
+#   4. AAA cockpit hazard dashboard — visual 14-cell heatmap
+#
+# Eureka: Categories 05, 06, 08, 10 carry legal/ethical blast radius
+# that demands explicit human-only / 888_HOLD gate in any agent that
+# bridges to them.

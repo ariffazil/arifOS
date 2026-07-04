@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/arif_init.schema.json",
+  "title": "arif_init (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `arif_init`. This schema is APPENDED to the existing arifos schema for `arif_init` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: init must know who is speaking AND what symbolic world the session operates inside.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "symbolic_context"
+  ],
+  "properties": {
+    "component": {
+      "const": "arif_init"
+    },
+    "organ": {
+      "const": "arifos"
+    },
+    "symbolic_context": {
+      "type": "object",
+      "description": "§3.A — Session must know the symbolic world it operates inside.",
+      "properties": {
+        "actor_identity": {
+          "type": "string"
+        },
+        "role_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cultural_frame": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "maruah",
+              "amanah",
+              "adab",
+              "budi",
+              "daulat"
+            ]
+          }
+        },
+        "session_mode": {
+          "type": "string"
+        },
+        "symbolic_risk_profile": {
+          "type": "object",
+          "properties": {
+            "false_seal": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "authority_confusion": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            "ritual_language": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every arif_init output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

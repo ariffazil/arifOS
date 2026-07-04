@@ -40,12 +40,12 @@ def test_bridge_vault_seal_propagates():
         headers={"Content-Type":"application/json"}, method="POST")
     with urllib.request.urlopen(req, timeout=10) as r:
         sid = r.headers.get("Mcp-Session-Id")
-    # 2. call arif_vault_seal (probe, no write)
-    r = _mcp_call("arif_vault_seal",
+    # 2. call arif_seal (probe, no write)
+    r = _mcp_call("arif_seal",
         {"action":"PROBE","payload":"golden","actor_id":"golden-test",
          "session_id":sid,"ack_irreversible":False}, sid)
     # Either SEAL (success) or HOLD (needs envelope upgrade) are both valid
-    # signals; the bridge reached arif_vault_seal. The key invariant is
+    # signals; the bridge reached arif_seal. The key invariant is
     # NOT a 400 / 404 / "Missing session ID" response.
     text = r.get("result",{}).get("content",[{}])[0].get("text","")
     assert "Missing session ID" not in text, f"session handshake lost: {text!r}"

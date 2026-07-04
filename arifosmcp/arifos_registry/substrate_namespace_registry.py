@@ -156,7 +156,7 @@ class SubstrateNamespaceRegistry:
                 organ="Hermes (ASI peer agent, port 18001)",
                 endpoint="http://127.0.0.1:18001/mcp",
                 lanes=["asi_observation", "asi_judgment", "asi_deliberation"],
-                tool_count=7,  # hermes_system_status, hermes_vault_query, hermes_epistemic_check, hermes_fact_check, hermes_cross_verify, hermes_plan_review, hermes_memory_steward
+                tool_count=7,  # hermes_system_status, arif_vault_query, hermes_epistemic_check, hermes_fact_check, hermes_cross_verify, hermes_plan_review, hermes_memory_steward
                 description="Hermes ASI peer agent: 7 tools exposed via arifOS surface (judge, not executor)",
             ),
             "forge": SubstrateNamespace(

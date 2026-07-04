@@ -103,7 +103,6 @@ async def arif_search(
     _envelope: dict[str, Any] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
 ) -> dict[str, Any]:
     """ChatGPT-compatible search shim → arif_observe(mode=search).
 
@@ -123,13 +122,24 @@ async def arif_search(
         }
 
     try:
-        result = await handler(
-            mode="search",
-            query=query,
-            _envelope=_envelope,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
+        import inspect
+
+        if inspect.iscoroutinefunction(handler):
+            result = await handler(
+                mode="search",
+                query=query,
+                _envelope=_envelope,
+                actor_id=actor_id,
+                session_id=session_id,
+            )
+        else:
+            result = handler(
+                mode="search",
+                query=query,
+                _envelope=_envelope,
+                actor_id=actor_id,
+                session_id=session_id,
+            )
         # Normalize to stable output keys
         if isinstance(result, dict):
             result.setdefault("tool", "arif_search")
@@ -152,7 +162,11 @@ async def arif_fetch(
     _envelope: dict[str, Any] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
-    **kwargs: Any,
+    thinking_depth: int = 0,
+    thinking_budget: float = 1.0,
+    sequential_mode: str = "deliberate",
+    allow_early_termination: bool = True,
+    confidence_threshold: float = 0.90,
 ) -> dict[str, Any]:
     """ChatGPT-compatible fetch shim → arif_fetch(mode=fetch).
 
@@ -161,6 +175,9 @@ async def arif_fetch(
 
     Set persist=True to route through evidence_fetch ingest mode
     (governed, requires session).
+
+    Sequential thinking parameters (thinking_depth, confidence_threshold, etc.)
+    are forwarded to the canonical handler.
     """
     from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
 
@@ -179,13 +196,32 @@ async def arif_fetch(
         }
 
     try:
-        result = await handler(
-            mode=mode,
-            url=url,
-            _envelope=_envelope,
-            actor_id=actor_id,
-            session_id=session_id,
-        )
+        import inspect
+
+        if inspect.iscoroutinefunction(handler):
+            result = await handler(
+                mode=mode,
+                url=url,
+                actor_id=actor_id,
+                session_id=session_id,
+                thinking_depth=thinking_depth,
+                thinking_budget=thinking_budget,
+                sequential_mode=sequential_mode,
+                allow_early_termination=allow_early_termination,
+                confidence_threshold=confidence_threshold,
+            )
+        else:
+            result = handler(
+                mode=mode,
+                url=url,
+                actor_id=actor_id,
+                session_id=session_id,
+                thinking_depth=thinking_depth,
+                thinking_budget=thinking_budget,
+                sequential_mode=sequential_mode,
+                allow_early_termination=allow_early_termination,
+                confidence_threshold=confidence_threshold,
+            )
         # Normalize to stable output keys
         if isinstance(result, dict):
             result.setdefault("tool", "arif_fetch")

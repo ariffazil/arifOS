@@ -137,7 +137,7 @@ Treat repos as layers, not competing truths:
 [HERMES STATE]
 Alignment work reported complete in 3 phases:
 1) HERMES_IDENTITY.md created. Hermes framed as constitutional deliberation organ.
-2) Diagnostics: hermes_system_status, hermes_vault_query, hermes_epistemic_check.
+2) Diagnostics: hermes_system_status, arif_vault_query, hermes_epistemic_check.
 3) Helpers blueprint: Memory Steward, Fact Checker, Plan Reviewer, Ecosystem Watcher.
 
 Critical remaining Hermes needs:

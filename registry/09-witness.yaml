@@ -1,0 +1,124 @@
+# REGISTRY 09: WITNESS
+# arifOS Federation — Canonical Witness Registry
+# Forged: 2026-07-04 by FORGE (000Omega)
+# Authority: F13 SOVEREIGN
+# DITEMPA BUKAN DIBERI
+#
+# OWNER: arifOS (witness protocol) + VAULT999 (witness records)
+# DB BACKEND: /root/VAULT999/witness/
+# RESOURCE URI: arifos://witness
+# DRIFT CHECK: count(witness_records_in_vault) >= count(witness_packets_emitted)
+
+registry_id: WITNESS
+owner: arifOS + VAULT999
+version: "2026.07.04-v1"
+forged_at: "2026-07-04T00:00:00Z"
+forged_by: "FORGE (000Omega)"
+authority: "F13 SOVEREIGN"
+status: ALIVE
+
+sources_merged:
+  - /root/VAULT999/witness/
+  - /root/arifOS/arifosmcp/runtime/witness_packet.py
+  - /root/arifOS/arifosmcp/schemas/federation_envelope.py
+  - /root/arifOS/arifosmcp/transport/conformance_spine.py
+  - /root/arifOS/arifosmcp/transport/conformance.py
+
+# ── Witness Records in VAULT999 ──
+witness_records:
+  location: /root/VAULT999/witness/
+  entries:
+    - file: "777-FORGE-CHAOS-CLEANUP-2026-07-03.jsonl"
+      type: forge_receipt
+    - file: "777-FORGE-DUAL-TRANSPORT-PORT-FIX-2026-07-03.jsonl"
+      type: forge_receipt
+    - file: "777-forge-spawns.jsonl"
+      type: spawn_receipt
+      purpose: "777-FORGE spawn receipts with PID verification"
+    - file: "AUDIT-GEOX-RSI-2026-07-03.md"
+      type: audit
+    - file: "KERNEL-HARDENING-2026-06-27.json"
+      type: kernel_hardening
+    - file: "KERNEL-HARDENING-SEAL-2026-06-27.json"
+      type: seal
+    - file: "KINABALU-REALITY-ALIGNMENT-2026-07-03.md"
+      type: reality_alignment
+    - file: "SESSION-SEAL-2026-07-03-P0-P3.md"
+      type: session_seal
+    - file: "dual-citizenship-eureka-20260703-042132.jsonl"
+      type: eureka
+    - file: "governed-loop-autonomy-v0.3-distribution.jsonl"
+      type: governance
+    - file: "xhv-claude-20260614-044108.json"
+      type: cross_verification
+    - file: "xhv-opencode-20260614-044530.json"
+      type: cross_verification
+
+# ── Witness Packet Protocol ──
+witness_packet:
+  code: /root/arifOS/arifosmcp/runtime/witness_packet.py
+  lines: 707
+  purpose: "LLM output wrapped with provenance before use"
+  wajib: "Every LLM output MUST be wrapped in WitnessPacket before use"
+
+# ── Tri-Witness Consensus ──
+tri_witness:
+  formula: "W3 = cbrt(Human x AI x Earth)"
+  method: "geometric mean (Nash 1950)"
+  threshold: 0.75
+  verdicts: [CONSENSUS, WEAK, DIVERGENT]
+  rule: "All three channels must be present. Zero in any channel collapses consensus."
+  sovereign_rule: "DIVERGENT triggers 888_HOLD"
+
+# ── Federation Envelope ──
+federation_envelope:
+  code: /root/arifOS/arifosmcp/schemas/federation_envelope.py
+  lines: 645
+  purpose: "Envelopes for cross-organ communication"
+
+# ── Conformance Spine ──
+conformance:
+  spine: /root/arifOS/arifosmcp/transport/conformance_spine.py
+  check: /root/arifOS/arifosmcp/transport/conformance.py
+  checks:
+    - arifos_alive
+    - mcp_initialize
+    - protocol_version
+    - schema_echo_stable
+    - session_starts
+    - authority_checked
+    - hold_blocks_mutation
+    - vault_replay
+    - cooling_ledger
+  purpose: "9 live checks proving arifOS is a substrate, not just a narrative"
+
+# ── Cross-Verification ──
+cross_verification:
+  tool: "hermes_cross_verify"
+  purpose: "Submit a CLAIM for cross-agent verification"
+  targets: [opencode, hermes, auto]
+  verdicts: [VERIFIED, CONTRADICTED, INSUFFICIENT]
+  default_confidence: 0.0
+
+# ── Provenance Chains ──
+provenance:
+  purpose: "source to transformation to current state"
+  requirement: "Every claim must trace back to source"
+
+# ── Attestation Receipts ──
+attestation:
+  purpose: "Organ health, schema hash, tool count"
+  tools: [arif_organ_attest, arif_organ_attest_all, arif_os_attest]
+
+# ── 777-FORGE Spawn Witness ──
+forge_spawn_witness:
+  ledger: /root/VAULT999/witness/777-forge-spawns.jsonl
+  trust_anchor: "Every spawn produces a witness receipt with real PID"
+  verification: "ps -p PID must return the real process"
+  rule: "If Hermes claims a session without 777-FORGE receipt, the session DID NOT HAPPEN"
+
+# ── WAJIB ──
+wajib: "Every LLM output MUST be wrapped in WitnessPacket before use. Claims without witnesses are opinions."
+derived_views:
+  - /root/VAULT999/witness/
+  - /root/arifOS/arifosmcp/runtime/witness_packet.py

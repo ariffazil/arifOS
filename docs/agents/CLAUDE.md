@@ -111,7 +111,7 @@ docker stats --no-stream                      # resource usage
 docker system prune -af                       # clean unused images (confirm first)
 
 # Health check
-curl -s https://arifosmcp.arif-fazil.com/health | python3 -m json.tool
+curl -s https://mcp.arif-fazil.com/health | python3 -m json.tool
 ```
 
 ---
@@ -190,10 +190,10 @@ make maintenance         # Automated maintenance + cleanup
 ### Live URLs
 | Service | URL |
 |---------|-----|
-| MCP endpoint | https://arifosmcp.arif-fazil.com/mcp |
-| Health + capability map | https://arifosmcp.arif-fazil.com/health |
-| Tool explorer | https://arifosmcp.arif-fazil.com/tools |
-| Grafana monitoring | https://monitor.arifosmcp.arif-fazil.com |
+| MCP endpoint | https://mcp.arif-fazil.com/mcp |
+| Health + capability map | https://mcp.arif-fazil.com/health |
+| Tool explorer | https://mcp.arif-fazil.com/tools |
+| Grafana monitoring | https://monitor.arifos.arif-fazil.com |
 | arifOS docs | https://arifos.arif-fazil.com |
 | APEX Theory | https://apex.arif-fazil.com |
 

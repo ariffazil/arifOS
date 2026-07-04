@@ -11,7 +11,7 @@
 
 ```
 Internal:  http://10.0.10.15:8081/webmcp  ✅ Working
-Public:    https://arifosmcp.arif-fazil.com/webmcp  ❌ 404
+Public:    https://arifos.arif-fazil.com/webmcp  ❌ 404
 ```
 
 **Traefik logs show no route detection** for `/webmcp` path because the original configuration used separate hostnames:
@@ -113,15 +113,15 @@ docker logs traefik 2>&1 | grep -E "(arifosmcp|webmcp)"
 
 ### Test 1: Health Check
 ```bash
-curl -s https://mcp.arif-fazil.com/mcp/health
-curl -s https://arifosmcp.arif-fazil.com/webmcp/health
+curl -s https://mcp.arif-fazil.com/health
+curl -s https://arifos.arif-fazil.com/webmcp/health
 ```
 
 **Expected**: Both return `{"status":"ok",...}`
 
 ### Test 2: Vitals Endpoint
 ```bash
-curl -s https://arifosmcp.arif-fazil.com/webmcp/vitals | jq .
+curl -s https://arifos.arif-fazil.com/webmcp/vitals | jq .
 ```
 
 **Expected**:
@@ -138,7 +138,7 @@ curl -s https://arifosmcp.arif-fazil.com/webmcp/vitals | jq .
 
 ### Test 3: Session Initialization
 ```bash
-curl -X POST https://arifosmcp.arif-fazil.com/webmcp/init \
+curl -X POST https://arifos.arif-fazil.com/webmcp/init \
   -H "Content-Type: application/json" \
   -d '{"actor_id": "test_user", "context": "WebMCP deployment verification"}'
 ```
@@ -147,7 +147,7 @@ curl -X POST https://arifosmcp.arif-fazil.com/webmcp/init \
 
 ### Test 4: Tool List
 ```bash
-curl -s https://arifosmcp.arif-fazil.com/webmcp/tools | jq '.tools | length'
+curl -s https://arifos.arif-fazil.com/webmcp/tools | jq '.tools | length'
 ```
 
 **Expected**: Returns `25` (number of public tools)
@@ -241,7 +241,7 @@ Once deployed, you'll have:
 | Protocol | URL | Purpose | Audience |
 |----------|-----|---------|----------|
 | **A2A MCP** | `https://mcp.arif-fazil.com/mcp` | Agent-to-Agent SSE | AI Agents (Kimi, Claude, etc.) |
-| **WebMCP** | `https://arifosmcp.arif-fazil.com/webmcp` | Browser HTTP/WebSocket | Human Users |
+| **WebMCP** | `https://arifos.arif-fazil.com/webmcp` | Browser HTTP/WebSocket | Human Users |
 
 **Same domain. Same SSL. Same VAULT999. Dual-surface constitutional AI.**
 

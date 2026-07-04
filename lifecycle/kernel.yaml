@@ -1,0 +1,244 @@
+# arifOS Lifecycle Kernel — Declarative Config (v0.2 — corrected)
+# Ratified 2026-07-04 via SOVEREIGN signal "Forge all".
+# HOLD correction 2026-07-04: SEAL must trigger REVIEW, not autonomous MUTATION.
+# See forge_work/AUDIT-LIFECYCLE-KERNEL-FORGE-2026-07-04.md for HOLD history.
+#
+# Reference contract: arifOS/lifecycle/{seal_shadow,seal_post_hook,init_scaffold,skill_registry,skill_delta_engine}.py
+# F13 ratification required for any field mutation.
+
+# ─── Constitutional Law (Permanent, F13-bound) ─────────────────────────────
+constitutional_law:
+  SEAL_triggers_review: true                 # every SEAL emits SkillDeltaEvent
+  SEAL_does_not_directly_mutate_skills: true # SEAL is review, not patch
+  INIT_restores_body_plan: true              # INIT loads invariants, never invents
+  Scaffold_proposes_patch: true              # output only, applies_automatically: false
+  Diff_detects_drift: true                   # old_contract vs proposed_contract
+  Tests_prove_survival: true                 # survivor_skill_contracts required
+  Judge_controls_semantic_change: true       # judge_required_if_contract_semantics_change
+  Cooling_blocks_runaway: true               # rate-limit regeneration loops
+  A_FORGE_executes_only_after_gate: true     # never bypasses judge + cooling
+
+# ─── 12 Named Skills — versioned contracts ─────────────────────────────────
+# Each skill carries a contract: version, must_preserve, must_never_weaken, tests.
+# The contract is the unit of Diff, not the raw skill definition.
+skills:
+  boundary_sensing:
+    version: 1.0.0
+    physics: membrane
+    biology: immune_self_non_self
+    chemistry: reaction_vessel
+    contract:
+      must_preserve: [evidence_floor, reversibility_check, authority_check]
+      must_never_weaken: [human_ack_for_irreversible_action, A_FORGE_mutation_gate]
+      tests: [mutation_without_anchor_returns_HOLD, dry_run_does_not_write, judge_required_before_execute]
+  conservation_accounting:
+    version: 1.0.0
+    physics: conservation
+    biology: metabolism
+    chemistry: stoichiometry
+    contract:
+      must_preserve: [no_hidden_state_change, lineage_continuity]
+      must_never_weaken: [audit_log_completeness, receipt_irreversibility]
+      tests: [every_mutation_emits_receipt, no_silent_state_change]
+  entropy_reduction:
+    version: 1.0.0
+    physics: entropy
+    biology: repair
+    chemistry: purification
+    contract:
+      must_preserve: [entropy_budget_band, cooling_threshold]
+      must_never_weaken: [cooling_required_before_resume, no_autonomous_heating]
+      tests: [plan_entropy_delta_within_bounds, cooling_advisory_emitted_when_exceeded]
+  gradient_detection:
+    version: 1.0.0
+    physics: gradients
+    biology: chemotaxis
+    chemistry: concentration
+    contract:
+      must_preserve: [gradient_direction_fidelity, source_attribution]
+      must_never_weaken: [no_gradient_fabrication, no_false_signal_amplification]
+      tests: [gradients_origin_traced, no_phantom_gradients_emitted]
+  reaction_gating:
+    version: 1.0.0
+    physics: activation_energy
+    biology: enzymes
+    chemistry: catalysts_inhibitors
+    contract:
+      must_preserve: [evidence_floor, reversibility_check, authority_check, external_anchor_for_mutation]
+      must_never_weaken: [human_ack_for_irreversible_action, A_FORGE_mutation_gate]
+      tests: [mutation_without_anchor_returns_HOLD, dry_run_does_not_write, judge_required_before_execute]
+  homeostasis_regulation:
+    version: 1.0.0
+    physics: equilibrium
+    biology: homeostasis
+    chemistry: buffers
+    contract:
+      must_preserve: [L07_band_0.03_0.05, organ_balance_invariants]
+      must_never_weaken: [no_band_drift_past_threshold, no_silent_band_widening]
+      tests: [uncertainty_band_within_bounds, no_organ_dominance_drift]
+  immune_response:
+    version: 1.0.0
+    physics: anomaly_detection
+    biology: immunity
+    chemistry: contamination_detection
+    contract:
+      must_preserve: [anomaly_signal_quarantine, witness_present_for_irreversible]
+      must_never_weaken: [no_autoimmune_attack, immune_memory_must_not_become_autoimmunity]
+      tests: [witness_required_on_anomaly, immune_memory_does_not_lower_thresholds]
+  metabolic_flow_management:
+    version: 1.0.0
+    physics: energy_throughput
+    biology: metabolism
+    chemistry: reaction_flux
+    contract:
+      must_preserve: [flux_within_catalyst_limit, lease_bounds]
+      must_never_weaken: [no_unbounded_loop, lease_required_for_irreversible]
+      tests: [lease_required, no_infinite_loop_pattern]
+  lineage_and_replay:
+    version: 1.0.0
+    physics: causality
+    biology: dna_lineage
+    chemistry: reaction_pathway
+    contract:
+      must_preserve: [lineage_chain_continuity, receipt_readonly]
+      must_never_weaken: [no_sealed_memory_rewrite, no_lineage_gap_introduction]
+      tests: [no_sealed_ledger_rewrite, lineage_hash_chain_valid]
+  scar_learning:
+    version: 1.0.0
+    physics: hysteresis
+    biology: wound_healing
+    chemistry: irreversible_reactions
+    contract:
+      must_preserve: [scar_immutability, scar_to_threshold_mapping]
+      must_never_weaken: [no_scar_suppression, scars_update_thresholds_not_identity]
+      tests: [no_silent_scar_drop, scar_to_threshold_change_only_with_F13]
+  multi_organ_translation:
+    version: 1.0.0
+    physics: coordinate_transforms
+    biology: nervous_system
+    chemistry: coupled_reactions
+    contract:
+      must_preserve: [organ_identity, no_cross_organ_privilege_escalation]
+      must_never_weaken: [L10_ontology_no_organ_claiming_substrate]
+      tests: [no_organ_self_marking_as_SEAL, no_F13_self_mutation]
+  execution_discipline:
+    version: 1.0.0
+    physics: work_to_state_change
+    biology: injury_risk
+    chemistry: irreversible_reaction
+    contract:
+      must_preserve: [F13_boundary, A_FORGE_gate, cooling_required]
+      must_never_weaken: [human_ack_for_irreversible, no_self_marking_sealed]
+      tests: [A_FORGE_cannot_execute_without_anchor, no_fake_GREEN]
+
+# ─── Loop Architecture (corrected per HOLD verdict) ─────────────────────────
+# SEAL emits a Skill Delta Event. INIT reloads body plan only. Scaffold
+# proposes, never applies. Diff is a missing stage now added. Tests prove
+# survival. Judge approves semantic change. Cooling rate-limits. A-FORGE
+# applies ONLY after all gates pass.
+
+loop:
+  trigger: SEAL
+  mutation_allowed_per_stage: false  # applied_automatically: false throughout
+  stages:
+    - name: seal_receipt_lock
+      mutation: false
+      output: SkillDeltaEvent
+    - name: init_regeneration
+      mutation: false
+      loads: [canonical_tool_surface, organ_boundaries, authority_tiers, evidence_floor_rules, extinction_ledger, survivor_skill_contracts, cooling_policy]
+    - name: scaffold_rebuild
+      mutation: false
+      output: proposed_skill_delta
+      applies_automatically: false
+    - name: skill_diff                  # NEW: stage that was missing
+      mutation: false
+      compares: [old_skill_contract, proposed_skill_contract]
+      detects: [weakened_gate, expanded_autonomy, hidden_mutation, authority_drift]
+    - name: survivor_tests
+      mutation: false
+      required: [old_receipts_replay, extinct_tools_not_resurrected, all_12_skills_present, A_FORGE_cannot_execute_without_anchor, no_fake_GREEN]
+    - name: organ_rebind
+      condition: tests_pass
+      mutation: routing_only
+    - name: judge_gate
+      required_for: [skill_contract_change, execution_policy_change, autonomy_band_change]
+      owner: arifOS_judge
+    - name: cooling
+      required: true
+      blocks: [repeated_SEAL_regeneration_loops, immediate_execution_after_policy_change]
+    - name: resume
+      condition: [judge_passed_or_no_mutation, cooling_complete, no_unresolved_HOLD]
+
+# ─── Autonomy Zones ──────────────────────────────────────────────────────────
+autonomous_allowed:
+  - detect_that_skill_update_is_needed
+  - draft_skill_delta
+  - run_tests
+  - compare_against_previous_contract
+  - generate_receipt
+  - recommend_resume_or_hold
+
+autonomous_forbidden:
+  - change_execution_policy_without_judge
+  - weaken_human_ack
+  - remove_cooling
+  - change_F13_boundary
+  - mutate_A_FORGE_execution_rules
+  - mark_self_as_sealed
+
+# ─── Hard Rules (Skill Delta Engine boundary) ────────────────────────────────
+skill_delta_engine:
+  inputs: [seal_receipt, current_skill_contracts, extinction_ledger, organ_registry, last_cooling_state]
+  outputs: [proposed_skill_delta, risk_class, affected_organs, tests_required, judge_required, resume_allowed]
+  hard_rules:
+    - cannot_apply_patch
+    - cannot_change_tool_surface
+    - cannot_change_A_FORGE_policy
+    - cannot_mark_SEAL
+    - cannot_bypass_cooling
+    - cannot_weaken_human_ack
+    - cannot_mutate_F13_boundary
+
+# ─── Missing Invariants (corrected per HOLD verdict) ────────────────────────
+# These are the doctrine additions the previous version omitted. Each is
+# checked at engine boundary + inside SkillDeltaEngine.evaluate().
+
+missing_invariants:
+  physics_noether_discipline:
+    statement: every symmetry implies conservation; no hidden state change.
+    enforced_by: [seal_shadow.sha256_chain, lineage_and_replay.contract.must_preserve]
+  biology_immune_memory:
+    statement: scars update thresholds, not identity; immune memory must not become autoimmune attack.
+    enforced_by: [scar_learning.contract.must_never_weaken, immune_response.contract.tests]
+  chemistry_activation_barrier:
+    statement: reaction requires threshold; catalyst (A-FORGE) must NOT lower activation energy for forbidden reactions.
+    enforced_by: [reaction_gating.contract.tests, execution_discipline.contract.tests]
+
+# ─── Autonomy Bands ─────────────────────────────────────────────────────────
+autonomy:
+  digital_code: MUBAH                    # commit/push/restart free per AGENTS.md §10
+  physical_human_money: FARD              # 888_HOLD required
+  irreversible_seal: F13_REQUIRED        # actor != judge
+  skill_contract_change: F13_REQUIRED
+  execution_policy_change: F13_REQUIRED
+
+# ─── Floor Map ──────────────────────────────────────────────────────────────
+floors:
+  L01_amanah: reversible_first
+  L02_truth: shadow_ledger_persists_pre_seal
+  L04_clarity: scaffolding_reduces_entropy
+  L07_humility: replay_band_0.03_0.05
+  L11_auth: actor_judge_distinct             # GÖDEL-LOCK
+  L13_sovereign: f13_ratification_on_skill_contract_change
+
+# ─── Skill Rebuild Trigger (corrected) ─────────────────────────────────────
+# OLD prime law: "Every SEAL event must regenerate the agent's skill metabolism."
+# CORRECTED: every SEAL triggers REVIEW, may trigger scaffold, must NOT
+# trigger autonomous mutation without gate.
+
+trigger:
+  rule: every_SEAL_event
+  must_trigger: RSI_REVIEW
+  may_trigger: skill_scaffold_update
+  must_not_trigger: autonomous_mutation_without_gate

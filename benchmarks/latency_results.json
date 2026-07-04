@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-06-30T07:20:03Z",
+  "base_url": "http://localhost:8088/mcp",
+  "runs_per_tool": 10,
+  "results": [
+    {
+      "tool": "arif_init (light)",
+      "runs": 10,
+      "errors": 0,
+      "p50_ms": 59.8,
+      "p95_ms": 161.0,
+      "min_ms": 26.5,
+      "max_ms": 161.0
+    },
+    {
+      "tool": "arif_route",
+      "runs": 10,
+      "errors": 0,
+      "p50_ms": 27.7,
+      "p95_ms": 476.0,
+      "min_ms": 20.0,
+      "max_ms": 476.0
+    },
+    {
+      "tool": "arif_observe",
+      "runs": 10,
+      "errors": 0,
+      "p50_ms": 34.7,
+      "p95_ms": 57.6,
+      "min_ms": 24.9,
+      "max_ms": 57.6
+    },
+    {
+      "tool": "arif_think",
+      "error": "all calls failed",
+      "error_count": 10
+    },
+    {
+      "tool": "arif_judge",
+      "runs": 10,
+      "errors": 2,
+      "p50_ms": 33.5,
+      "p95_ms": 14314.0,
+      "min_ms": 7.4,
+      "max_ms": 14314.0
+    },
+    {
+      "tool": "arif_seal (dry_run)",
+      "runs": 10,
+      "errors": 0,
+      "p50_ms": 12.3,
+      "p95_ms": 24.3,
+      "min_ms": 11.0,
+      "max_ms": 24.3
+    },
+    {
+      "tool": "arif_canary (ping)",
+      "runs": 10,
+      "errors": 0,
+      "p50_ms": 17.3,
+      "p95_ms": 22.6,
+      "min_ms": 12.5,
+      "max_ms": 22.6
+    }
+  ]
+}

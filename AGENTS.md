@@ -1,12 +1,14 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-06-28
+last_verified: 2026-07-04
 valid_from: 2026-06-27
-valid_until: 2026-07-28
+valid_until: 2026-08-03
 confidence: high
 scope: /root/arifOS
 epistemic_status: SOURCE_OF_TRUTH
 refresh_history:
+  - 2026-07-04 20:00 UTC (FORGE final — MARHIN doctrine ratified; marhin_discovery v1.0.0 + skills_contracts_resource v1.0.0 forged; 24/24 tests PASS; 10/10 hard gates satisfied; RSI INIT DORMANT awaiting F13 enable)
+  - 2026-07-04 19:55 UTC (FORGE wrap — Phase 1 stable; skill_delta_engine v1.0.0 dormant 8/8; entropy audit sealed; Phase 2 wiring deferred)
   - 2026-06-27 23:25 UTC (FORGE KERNEL HARDENING — 7 patches, C-1/C-2 bypasses closed, H-1/H-3/H-4/M-1/M-3)
   - 2026-06-27 18:30 UTC (FORGE RSI — SOT cleanup, tightened header narrative)
   - 2026-06-27 18:08 UTC (999_SEAL — MCP Gate v0 deployed + schema adapter + epistemic extension)
@@ -19,11 +21,11 @@ refresh_history:
 > 2. Read `/root/CONTEXT.md` (Live Machine State & Ports)
 > 3. Read this file (Repo-Specific Build/Test/Run rules)
 
-> **Constitutional Intelligence Kernel** — arifOS structures decision; it does not decide.
-> Constitutional judgment (SEAL / SABAR / VOID) and floor enforcement remain in arifOS.
->
-> **Mission:** Build the substrate that keeps increasing intelligence governable.
-> AGI needs verdict-gated bus; ASI needs civilization-scale restraint + hard refusal + world model.
+> **Constitutional Separation (Substrate / Constitution / Cognition):**
+- **Substrate (Δ)** carries and changes state (A-FORGE :7071/7072 executor, transport, ports).
+- **Constitution (Ω)** bounds and authorizes action (arifOS :8088 judge, seal, lease, policy).
+- **Cognition (Ψ)** interprets and reduces uncertainty (AAA :3001 cockpit, A2A, reasoning).
+Each layer has a bounded function. No layer may impersonate another: never let Ψ execute, never let Δ judge, never let Ω hallucinate. All high-risk execution requires lease + prior arifOS judgment path. See `docs/philosophy/THREE_LAYER_ONTOLOGY.md`.
 >
 > **Load-bearing pair:** One Skill (Knowing What NOT To Do / restraint) + One Tool (Verdict Loop With Memory).
 >
@@ -67,6 +69,55 @@ make sot-check
 - Canonical MCP runtime lives in `arifosmcp/`
 - Deepest constitutional enforcement lives in `core/`
 - `arifosmcp/AGENTS.md` contains MCP-tool-specific guidance
+
+---
+
+## 🎭 Humour Doctrine — Agent Social Intelligence (FORGED 2026-07-01)
+
+> **Canonical skill:** `/root/.hermes/skills/arifos/agent-humour-doctrine/SKILL.md`
+> **APEX map:** `/root/forge_work/HUMOUR-DOCTRINE-APEX-MAP-2026-07-01.md`
+
+Human jokes are compressed social state, not decorative language. The arifOS kernel binds humour governance through constitutional floors:
+
+| Floor | Humour Binding |
+|-------|---------------|
+| F1 AMANAH | Joke executed without verification = breach of trust |
+| F2 TRUTH | Humour does not change truth value |
+| F4 CLARITY | Agent humour must reduce confusion, not increase it |
+| F6 EMPATHY | Pain under joke must be detected and answered |
+| F9 ANTIHANTU | Agent does NOT "feel" jokes — detects structure only |
+| F10 ONTOLOGY | Humour is social physics, not machine emotion |
+
+**The One Law:** Joke in language. Do not joke in execution.
+
+**The Deepest Rule:** Agent must detect darkness that the human does not yet see. Not to judge. Not to refuse. But to answer the pain, not the joke.
+
+---
+
+## 🧠 CI ARCHITECTURE — Dual-Lane Agentic CI (FORGED 2026-07-01)
+
+> **DITEMPA BUKAN DIBERI** — CI is forged, not given.
+> **Architecture receipt:** `forge_work/AGENTIC-CI-FORGE-2026-07-01.md`
+
+Every push to `main` triggers **two lanes**:
+
+| Lane | Name | What It Does | Verdict |
+|------|------|-------------|---------|
+| **Lane 1** | Standard CI | Lint (Ruff) → Type check (MyPy) → Test (Pytest) → Build check | Pass/Fail |
+| **Lane 2** | BIJAKSANA (Agentic CI) | ΔS (entropy) → Φ (clarity) → Ψ (truth/manifest) → Ω (governance) | SEAL_READY / SABAR / HOLD |
+
+**The Report:** Both lanes feed into an `Agentic CI Report` — a structured JSON artifact posted as a GitHub Check Run with label `Agentic CI`. Federation cron picks up Check Run → `arif_judge` → AAA register → VAULT999 seal.
+
+**Workflow file:** `.github/workflows/01-unified-ci.yml` (consolidated unified CI). The BIJAKSANA agentic lane is the target architecture; the current production pipeline uses standard CI + governance gates.
+
+**The Loop:**
+```
+git push → Lane 1 (Standard) + Lane 2 (BIJAKSANA)
+       → Agentic CI Report (JSON + Check Run)
+       → Federation cron → arif_judge → AAA → VAULT999
+```
+
+**Cross-organ:** This architecture is deployed identically across all 6 federation organs (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL). Each organ's `AGENTS.md` carries this section. The workflow adapts to Python (pytest/ruff/mypy) or Node (npm test/build/lint).
 
 ---
 

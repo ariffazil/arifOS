@@ -2556,6 +2556,8 @@ def register_rest_routes(
             "status": "healthy",
             "identity_hash": identity_hash,
             "service": "arifOS-mcp",
+            "mcp_protocol_version": MCP_PROTOCOL_VERSION,
+            "mcp_supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
             "release_name": BUILD_INFO["version"],
             "version": (
                 f"kanon-{BUILD_INFO['build']['commit']}"
@@ -3710,11 +3712,19 @@ def register_rest_routes(
             try:
                 from arifosmcp.schemas.kernel_envelope import ActionClass
                 from arifosmcp.runtime.pre_execution_gate import quick_gate
+                from arifosmcp.runtime.tools import _is_actor_verified
 
                 _rest_action = _rest_action_class(canonical_name, body)
+                # P0 single-writer discipline (2026-07-04): route through canonical
+                # _is_actor_verified(session_id, actor_id) instead of the prior
+                # hardcoded True shortcut. Single-sovereign federation is a
+                # governance claim, not an authentication bypass — only an
+                # active session that has been verified should pass the gate.
+                _rest_session_id = body.get("session_id") or ""
+                _rest_actor_id = body.get("actor_id") or ""
                 _gate_result = quick_gate(
                     action_class=_rest_action,
-                    actor_verified=True,  # Single-sovereign federation — all REST clients are Arif's agents
+                    actor_verified=_is_actor_verified(_rest_session_id, _rest_actor_id),
                     tool_name=canonical_name,
                 )
                 if _gate_result.is_blocked:
@@ -3870,8 +3880,8 @@ def register_rest_routes(
         return JSONResponse(
             {
                 "note": "Cloudflare proxies block /.well-known/*. Use the canonical endpoint below.",
-                "canonical": f"{_public_base_url(request)}/.well-known/mcp/server.json",
-                "mcpEndpoint": f"{_public_base_url(request)}/mcp",
+                "canonical": "https://mcp.arif-fazil.com/.well-known/mcp/server.json",
+                "mcpEndpoint": "https://mcp.arif-fazil.com/mcp",
                 "docs": "https://modelcontextprotocol.io",
             },
             headers={"Access-Control-Allow-Origin": "*"},
@@ -3892,6 +3902,27 @@ def register_rest_routes(
                 "code_challenge_methods_supported": ["S256"],
                 "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"],
             }
+        )
+
+    @route("/.well-known/oauth-protected-resource", methods=["GET"])
+    @route("/.well-known/oauth-protected-resource/mcp", methods=["GET"])
+    async def oauth_protected_resource(request: Request) -> Response:
+        """OAuth 2.0 Protected Resource Metadata (RFC 8707).
+
+        Spec-compliant MCP clients fetch this first to discover the
+        authorization server before starting the auth code flow.
+        Without this, OAuth clients fail with
+        "failed to get oauth authorization url".
+        """
+        base = _public_base_url(request)
+        return JSONResponse(
+            {
+                "resource": f"{base}/mcp",
+                "authorization_servers": [base],
+                "bearer_methods_supported": ["header"],
+                "scopes_supported": ["openid", "profile", "mcp:full", "mcp:read_only"],
+            },
+            headers={"Access-Control-Allow-Origin": "*"},
         )
 
     @route("/.well-known/jwks.json", methods=["GET"])
@@ -4555,7 +4586,12 @@ def register_rest_routes(
             except Exception:
                 pass
 
-        main_tools = sorted(main_registry.get("canonical_order", []))
+        # Full intended surface = canonical_order + diagnostic_order
+        # (comparing only canonical_order vs ~50 live tools caused a permanent false HOLD)
+        canonical_tools = main_registry.get("canonical_order", [])
+        diagnostic_tools = main_registry.get("diagnostic_order", [])
+        main_tools = sorted(set(canonical_tools) | set(diagnostic_tools))
+
         missing = list(set(main_tools) - set(live_tools))
         extra = list(set(live_tools) - set(main_tools))
 
@@ -4564,6 +4600,8 @@ def register_rest_routes(
                 "verdict": "SEAL" if not missing and not extra else "HOLD",
                 "live_count": len(live_tools),
                 "main_count": len(main_tools),
+                "registry_canonical": len(canonical_tools),
+                "registry_diagnostic": len(diagnostic_tools),
                 "missing_on_live": missing,
                 "extra_on_live": extra,
                 "sot_source": sot_source,

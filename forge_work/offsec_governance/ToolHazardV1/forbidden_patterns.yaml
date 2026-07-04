@@ -1,0 +1,118 @@
+# FORBIDDEN_PATTERNS.yaml — arifOS Constitutional Tool Blocklist
+# Forged: 2026-06-29 — EHT Repo Audit (Arif + Hermes ASI)
+# Authority: F13 SOVEREIGN directive
+# Source:  github.com/hhhrrrttt222111/Ethical-Hacking-Tools
+# Digest:  AAA/archive/ethical-hacking-tools-digest-2026-06-29.txt
+# Status:  DRAFT — pending F13 seal_verdict_id for constitutional activation
+#
+# PRINCIPLE: Listing a tool under "ethical hacking" is not endorsement.
+# The following tools have PRIMARY USE CASES that are illegal, unethical,
+# or irreversible without sovereign authorization. They are HARD-BLOCKED
+# at the arifOS kernel level — not soft-gated, not advisory.
+#
+# DITEMPA BUKAN DIBERI
+
+_meta:
+  schema: arifos-forbidden-patterns-v1
+  forged: 2026-06-29
+  source: Ethical-Hacking-Tools repo audit
+  source_digest: AAA/archive/ethical-hacking-tools-digest-2026-06-29.txt
+  constitutional_authority: F13 SOVEREIGN + F1 AMANAH + F5 PEACE
+  total_patterns: 12
+  status: SEALED
+  sealed_by: F13 SOVEREIGN (888 — Muhammad Arif bin Fazil)
+  sealed_at: 2026-06-29T19:55:00Z
+  seal_receipt: arifos://seal/EHT-2026-06-29/forbidden_patterns
+
+# ─── HARD BLOCK: PHISHING TOOLKITS ─────────────────────────────
+# These tools are credential harvesters. Their PRIMARY use case
+# is unauthorized credential capture — not "ethical hacking."
+# Constitutional violation: F5 PEACE, F1 AMANAH (irreversible harm)
+
+phishing_kits:
+  block_level: HARD
+  constitutional_basis: [F1, F5, F10]
+  reason: "Primary use is unauthorized credential capture. No ethical use case possible."
+  patterns:
+    - name: ShellPhish
+      upstream: thelinuxchoice/shellphish
+      kind: phishing_shell_generator
+      eht_category: Phishing
+    - name: blackeye
+      upstream: An0nUD4Y/blackeye
+      kind: credential_harvester
+      eht_category: Phishing
+    - name: HiddenEye Legacy
+      upstream: DarkSecDevelopers/HiddenEye
+      kind: phishing_framework
+      eht_category: Phishing
+      note: "Legacy version — modern variants exist"
+    - name: wifiphisher
+      upstream: wifiphisher/wifiphisher
+      kind: rogue_access_point
+      eht_category: 04_Wireless
+    - name: evilginx
+      upstream: kgretzky/evilginx2
+      kind: session_cookie_hijacking
+      eht_category: Phishing
+    - name: modlishka
+      upstream: drk1wi/Modlishka
+      kind: reverse_proxy_phishing
+      eht_category: Phishing
+    - name: King Phisher
+      upstream: rsmusllp/king-phisher
+      kind: phishing_campaign_manager
+      eht_category: Phishing
+
+# ─── HARD BLOCK: KILL-CHAIN PERSISTENCE ────────────────────────
+# Tools in the "Maintaining Access" kill-chain phase.
+# Constitutional violation: F1 AMANAH (persistence = irreversible)
+
+persistence_tools:
+  block_level: HARD
+  constitutional_basis: [F1, F5, F11]
+  reason: "Post-exploit persistence tools have zero ethical use case outside authorized red-team ops with explicit written consent."
+  patterns:
+    - name: weevely
+      upstream: epinna/weevely3
+      kind: webshell
+      eht_category: 05_Maintaining_Access
+    - name: powersploit
+      upstream: PowerShellMafia/PowerSploit
+      kind: post_exploitation_framework
+      eht_category: 05_Maintaining_Access
+
+# ─── HARD BLOCK: ACTIVE EXPLOITATION TOOLKITS ──────────────────
+# Tools whose PRIMARY purpose is exploitation, not detection.
+# Constitutional violation: F5 PEACE, F1 AMANAH
+
+exploitation_toolkits:
+  block_level: HARD
+  constitutional_basis: [F1, F5, F10]
+  reason: "Active exploitation frameworks are weapons, not reconnaissance tools. No governed agent may wield them."
+  patterns:
+    - name: metasploit
+      upstream: rapid7/metasploit-framework
+      kind: exploitation_framework
+      eht_category: 06_Exploitation
+      note: "msfconsole blocked; msfvenom payload generation also blocked"
+    - name: beef
+      upstream: beefproject/beef
+      kind: browser_exploitation_framework
+      eht_category: 06_Exploitation
+    - name: routersploit
+      upstream: threat9/routersploit
+      kind: router_exploitation_framework
+      eht_category: 06_Exploitation
+
+# ─── KERNEL ENFORCEMENT SPEC ──────────────────────────────────
+# These patterns feed into the arifOS gate layer:
+#   arifosmcp/gate/mcp_gate_v0.py  — rejects tool calls matching forbidden patterns
+#   arifosmcp/constitutional_map.py — HARAM verdict on blocked tool names
+#   arifosmcp/config/model_registry.json — per-agent forbidden action_classes
+#
+# Integration path:
+#   1. This YAML → consumed by arifos_forbidden_registry loader
+#   2. Loader → populates mcp_gate_v0.forbidden_patterns dict
+#   3. Gate → rejects any A-FORGE lease or arif_bridge call targeting blocked tools
+#   4. Rejection → F5 PEACE + HARAM verdict + 888_HOLD escalation

@@ -2,127 +2,65 @@
   "$schema": "https://modelcontextprotocol.io/specification",
   "server_info": {
     "name": "arifOS MCP",
-    "version": "2026.06.26-CONTRACT-CONVERGENCE",
-    "description": "Constitutional governance kernel MCP. Enforces F1-F13 floors, VAULT999 audit, 888_HOLD human veto. 7 public verbs, 13 constitutional organs."
+    "version": "2026.07.03-public7",
+    "description": "Compatibility manifest for the arifOS MCP public facade. Canonical discovery is the live MCP server card."
   },
-  "source": {
-    "path": "arifosmcp/server.py",
-    "entrypoint": "mcp",
-    "repo": "https://github.com/ariffazil/arifOS",
-    "repo_path": "/opt/arifos/src/arifOS"
-  },
-  "environment": {
-    "runtime": "python",
-    "python_version": ">=3.12",
-    "package_manager": "uv",
-    "dependencies": [
-      "fastmcp>=3.0,<4.0",
-      "uvicorn",
-      "fastapi>=0.100.0",
-      "pydantic>=2.0"
-    ]
-  },
-  "deployment": {
-    "transport": "streamable-http",
+  "canonical_discovery": {
+    "server_manifest": "https://mcp.arif-fazil.com/.well-known/mcp/server.json",
     "endpoint": "https://mcp.arif-fazil.com/mcp",
-    "port": 8088,
-    "container": "arifosmcp",
-    "docker_image": "ariffazil/arifosmcp:latest"
+    "transport": "streamable-http"
   },
   "capabilities": {
     "public_tools": {
       "count": 7,
-      "description": "Exactly 7 public verbs. One intent = one tool.",
-      "list_endpoint": "/tools",
-      "call_endpoint": "/tools/{tool_name}"
+      "description": "Exactly 7 public verbs: init, observe, think, route, judge, act, seal."
     },
     "constitutional_organs": {
       "count": 13,
-      "description": "13 internal constitutional organs. Not all exposed on public wire."
+      "description": "Internal constitutional organs exist behind the governed public surface."
     },
     "legacy_aliases": {
       "supported": true,
       "advertised": false,
-      "description": "Long-name aliases (arif_session_init, etc.) route at call time but are not in tools/list."
-    },
-    "resources": {
-      "enabled": true,
-      "list_endpoint": "/resources"
+      "description": "Long-name aliases such as arif_session_init may still route, but they are not in tools/list."
     },
     "prompts": {
-      "enabled": true,
       "count": 8,
-      "list_endpoint": "/prompts",
       "golden_path_order": [
         "arifosmcp_loop_engineer",
         "000_init",
-        "111_sense",
-        "333_reason",
-        "555_critique",
-        "666_judge",
-        "777_forge",
+        "111_observe",
+        "333_think",
+        "555_route",
+        "888_judge",
+        "900_act",
         "999_seal"
       ]
     }
   },
   "tools": {
     "public_verbs": [
-      {"name": "arif_init", "stage": "000", "description": "Bootstrap governed session, bind actor identity."},
-      {"name": "arif_observe", "stage": "111", "description": "Ground in current reality, evidence gathering."},
-      {"name": "arif_think", "stage": "333", "description": "Reason, plan, reflect, critique."},
-      {"name": "arif_route", "stage": "555", "description": "Route intent to correct organ."},
-      {"name": "arif_judge", "stage": "888", "description": "Constitutional verdict (SEAL/HOLD/VOID)."},
-      {"name": "arif_act", "stage": "900", "description": "Execute approved action. Requires seal_verdict_id."},
-      {"name": "arif_seal", "stage": "999", "description": "Seal to immutable ledger."}
+      "arif_init",
+      "arif_observe",
+      "arif_think",
+      "arif_route",
+      "arif_judge",
+      "arif_act",
+      "arif_seal"
     ]
   },
   "golden_path": {
-    "stages": 7,
-    "order": "000→111→333→555→666→777→999",
-    "organs": [
-      {"id": "000", "name": "INIT", "role": "THE ANCHOR"},
-      {"id": "111", "name": "SENSE", "role": "THE WITNESS"},
-      {"id": "333", "name": "REASON", "role": "THE MIND"},
-      {"id": "555", "name": "CRITIQUE", "role": "THE MIRROR"},
-      {"id": "666", "name": "JUDGE", "role": "THE GATE"},
-      {"id": "777", "name": "FORGE", "role": "THE HAMMER"},
-      {"id": "999", "name": "SEAL", "role": "THE RECORD"}
-    ],
+    "order": "000→111→333→555→888→900→999",
     "enforcement": {
-      "777_forge_blocked_without_666_SEAL": true,
-      "777_forge_blocked_without_555_FORGE_READY": true,
-      "metabolic_ceiling_max_loops": 5,
-      "sabar_returns_to_333": true,
-      "cross_session_memory": true
+      "900_act_blocked_without_prior_judge": true,
+      "900_act_blocked_without_prior_seal": true,
+      "sabar_returns_to_333": true
     }
   },
-  "constitutional_floors": {
-    "count": 13,
-    "hard": ["F1", "F2", "F6", "F9", "L10", "L11", "L13"],
-    "soft": ["F3", "F4", "F5", "F7", "F8", "L12"],
-    "computed": ["F1", "F2", "F7", "F9", "F13"],
-    "uncertain": ["F3", "F4", "F5", "F6", "F8", "F10", "F11", "F12"]
-  },
-  "endpoints": {
-    "mcp": "https://mcp.arif-fazil.com/mcp",
-    "health": "https://mcp.arif-fazil.com/health",
-    "tools": "https://mcp.arif-fazil.com/tools",
-    "metrics": "https://mcp.arif-fazil.com/metrics/json",
-    "openapi": "https://mcp.arif-fazil.com/openapi.json",
-    "server_manifest": "https://mcp.arif-fazil.com/.well-known/mcp/server.json"
-  },
-  "platform_agnostic": true,
-  "model_agnostic": true,
-  "protocol": {
-    "standard": "MCP",
-    "transports": ["streamable_http"],
-    "endpoint": "https://mcp.arif-fazil.com/mcp"
-  },
   "governance": {
+    "floors_active": 13,
     "authority": "Human 888 Judge",
     "self_approval_allowed": false,
-    "audit_required": true,
-    "default_mode": "dry_run_only",
     "irreversible_actions_require_ack": true
   }
 }

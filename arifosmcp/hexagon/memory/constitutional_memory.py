@@ -129,3 +129,9 @@ class ConstitutionalMemoryStore:
 
     async def search(self, **kwargs) -> list[MemoryEntry]:
         return await self.recall(**kwargs)
+
+    async def delete(self, memory_id: str, project_id: str = "default") -> bool:
+        """Delete a memory by memory_id from Qdrant."""
+        from arifosmcp.memory.vector_memory_qdrant import vector_forget
+        res = await vector_forget(point_id=memory_id)
+        return res.get("ok", False)

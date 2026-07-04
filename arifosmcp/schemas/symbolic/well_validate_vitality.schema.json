@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/well_validate_vitality.schema.json",
+  "title": "well_validate_vitality (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `well_validate_vitality`. This schema is APPENDED to the existing well schema for `well_validate_vitality` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Validate that vitality signals do not become identity freezing.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ"
+  ],
+  "properties": {
+    "component": {
+      "const": "well_validate_vitality"
+    },
+    "organ": {
+      "const": "well"
+    },
+    "vitality_symbolic_load": {
+      "type": "object",
+      "description": "§14 MEDIUM — Vitality validation has social weight.",
+      "properties": {
+        "capability_claim": {
+          "type": "boolean"
+        },
+        "identity_reduction_risk": {
+          "type": "boolean"
+        },
+        "operator_pacing_meaning": {
+          "type": "string"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every well_validate_vitality output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

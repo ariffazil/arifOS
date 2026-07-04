@@ -442,22 +442,11 @@ curl -s http://localhost:18795/.well-known/agent-card.json | python3 -m json.too
 
 ---
 
-### APEX Prime (888 JUDGE)
+### APEX Prime (888 JUDGE) — DECOMMISSIONED
 
-| Field | Value |
-|-------|-------|
-| Service | `apex-prime.service` |
-| Port | 3002 |
-
-#### Restart
-```bash
-systemctl restart apex-prime
-```
-
-#### Verify
-```bash
-curl -s http://localhost:3002/health | python3 -m json.tool
-```
+> **Status:** DECOMMISSIONED. Deliberation moved to AAA a2a-server (`deliberation.ts`).
+> `apex-prime.service` stopped. Port 3002 no longer in use.
+> 888 JUDGE verdicts now route through `arif_judge` on arifOS kernel :8088.
 
 ---
 

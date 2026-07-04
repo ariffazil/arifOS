@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # SEAL_DRAFT_999 v1 — Intent Envelope + Kernel Rule
 
 > **Draft for VAULT999 entry. NOT sealed yet.**

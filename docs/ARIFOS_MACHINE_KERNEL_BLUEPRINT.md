@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](./HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # arifOS Machine Kernel — HERMES FORGE BLUEPRINT
 **Version:** 1.0-FORGE
 **Date:** 2026-05-23

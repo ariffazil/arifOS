@@ -410,7 +410,7 @@ note: well.arif-fazil.com/mcp + WELL/llms.txt. WELL_HOLD is signal to sovereign,
 # 8. Discovery without constitutional contract = unknown jurisdiction. Default HOLD.
 
 # Public endpoints (MCP)
-# arifOS: https://arifos.arif-fazil.com/mcp
+# arifOS: https://mcp.arif-fazil.com/mcp
 # A-FORGE: forge.arif-fazil.com/mcp (stdio preferred for agents)
 # GEOX: https://geox.arif-fazil.com/mcp
 # WEALTH: https://wealth.arif-fazil.com/mcp

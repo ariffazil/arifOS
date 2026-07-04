@@ -87,6 +87,9 @@ _ONTOLOGY_EXPORTS = {
     "RiskLevel",
     "ConfidenceLevel",
     "Reversibility",
+    # NOTE: `constitutional_ontology` (submodule name) is handled as a special
+    # case in __getattr__ — the submodule name itself is not exported as a
+    # class/enum attribute. (Heartbeat 2026-07-03.)
 }
 
 __all__ = sorted(
@@ -108,6 +111,10 @@ def __getattr__(name: str):
         return import_module(".laws", __name__)
     if name == "sbert_floors":
         return import_module(".sbert_laws", __name__)
+    # Submodule name: `import core.shared.constitutional_ontology` must resolve
+    # to the module itself, not a submodule attribute lookup. (Heartbeat 2026-07-03.)
+    if name == "constitutional_ontology":
+        return import_module(".constitutional_ontology", __name__)
     if name in _ATLAS_EXPORTS:
         return getattr(import_module(".atlas", __name__), name)
     if name in _PHYSICS_EXPORTS:

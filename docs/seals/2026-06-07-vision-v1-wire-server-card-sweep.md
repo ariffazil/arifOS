@@ -1,3 +1,5 @@
+> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
+
 # Vision V1 Wire + Server Card Sweep
 > Date: 2026-06-07 (autonomous, F13 SOVEREIGN delegation via Arif directive "ok do autonomously and recursively try to lower the entropy")
 > Agent: Omega (Ω)

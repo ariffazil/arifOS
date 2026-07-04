@@ -1,0 +1,18 @@
+{
+  "probe_id": "d1_greeting",
+  "register": "loghat",
+  "condition": "A_direct_ilmu",
+  "model": "ilmu-nemo-nano",
+  "prompt": "Hang ok ka? Apa cerita hari ni?",
+  "response_text": "Saya ok, terima kasih. Hari ini saya sedia membantu anda dengan sebarang soalan atau permintaan. Ada apa yang boleh saya bantu?",
+  "finish_reason": "stop",
+  "tokens": {
+    "prompt_tokens": 23,
+    "total_tokens": 59,
+    "completion_tokens": 36
+  },
+  "latency_ms": 475.0,
+  "http_status": 200,
+  "timestamp": "2026-06-11T07:56:26.141553+00:00",
+  "raw_response": "{\"id\":\"chatcmpl-994976a6877e9e2f1115d4d68957220c\",\"object\":\"chat.completion\",\"created\":1781164585,\"model\":\"ilmu-nemo-nano\",\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Saya ok, terima kasih. Hari ini saya sedia membantu anda dengan sebarang soalan atau permintaan. Ada apa yang boleh saya bantu?\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":23,\"total_tokens\":59,\"completion_tokens\":36},\"system_fingerprint\":\"fp_16ccfd54674f\"}"
+}

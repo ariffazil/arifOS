@@ -9,6 +9,8 @@ DITEMPA BUKAN DIBERI — Discovered, not guessed.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastmcp import FastMCP
 
 from .tool_discovery_resource import (
@@ -22,8 +24,8 @@ from .tool_discovery_resource import (
 def register_tool_discovery(mcp: FastMCP) -> list[str]:
     """Register tool discovery resource and alias resolver.
 
-    MCP tools (arif_resolve_tool, arif_get_affordance) are gated behind
-    ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
+    MCP tools (arif_resolve_tool, arif_get_affordance) are internal operator
+    aids and stay behind ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
     Resources (arif://...) are always registered — they don't appear in tools/list.
     """
     import os
@@ -45,21 +47,39 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
     # def tool_discovery_resource() -> dict: ...
     # registered.append("arif://tools/discovery")
 
-    # Register alias resolution tool (gated — diagnostic utility)
     if _EXPOSE_DEV_TOOLS:
-
+        # Internal operator utility. Read-only, but not part of the public 7-verb
+        # constitutional facade.
         @mcp.tool(
             name="arif_resolve_tool",
             description=(
                 "Resolve a tool name or alias to the canonical arifOS tool name. "
                 "Use when you have a tool name but aren't sure if it's the canonical name. "
-                "Returns the canonical name, use_when guidance, and examples."
+                "Returns: canonical_name, aliases, callable, schema_valid, authority_class, "
+                "use_when, examples. Only `name` is used — all other fields are absorbed and ignored."
             ),
             tags={"discovery", "utility", "read-only"},
         )
-        def resolve_tool(name: str) -> dict:
-            """Resolve a tool name or alias to canonical form."""
-            canonical = resolve_tool_name(name)
+        def resolve_tool(
+            name: str,
+            _envelope: Any = None,
+            actor_id: str | None = None,
+            session_id: str | None = None,
+        ) -> dict:
+            """Resolve a tool name or alias to canonical form — pure resolution."""
+            normalized = (name or "").strip()
+            if not normalized:
+                return {
+                    "found": False,
+                    "query": name,
+                    "error": "Empty tool name — provide a non-empty string.",
+                    "callable": False,
+                    "schema_valid": True,
+                    "registered_in_graph": False,
+                    "authority_class": "unknown",
+                    "suggestions": [],
+                }
+            canonical = resolve_tool_name(normalized)
             if canonical:
                 from .tool_discovery_resource import TOOL_DISCOVERY
 
@@ -67,16 +87,24 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
                 return {
                     "found": True,
                     "canonical_name": canonical,
+                    "aliases": meta.get("aliases", []),
                     "use_when": meta.get("use_when", ""),
                     "examples": meta.get("examples", []),
                     "category": meta.get("category", ""),
+                    "callable": True,
+                    "schema_valid": True,
+                    "registered_in_graph": True,
+                    "authority_class": meta.get("tier", "public"),
                 }
             return {
                 "found": False,
-                "query": name,
-                "suggestions": find_tools_by_query(name)[:3],
+                "query": normalized,
+                "suggestions": find_tools_by_query(normalized)[:3],
+                "callable": False,
+                "schema_valid": True,
+                "registered_in_graph": False,
+                "authority_class": "unknown",
             }
-
         registered.append("arif_resolve_tool")
 
     # DISABLED 2026-06-28 (zen of resources — tool affordance metadata, not domain data).
@@ -99,7 +127,7 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
             ),
             tags={"discovery", "governance", "metacognition", "read-only"},
         )
-        def get_affordance(name: str) -> dict:
+        def get_affordance(name: str, _envelope: Any = None, actor_id: str = "", session_id: str = "") -> dict:
             try:
                 from arifosmcp.runtime.tools import get_full_affordance
 

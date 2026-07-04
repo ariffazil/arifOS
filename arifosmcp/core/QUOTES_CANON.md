@@ -159,4 +159,43 @@
 
 ---
 
-*39 quotes = 13 tools × 3 quotes each. Injected via `_WISDOM_QUOTES` in tools.py. Forged, Not Given. DITEMPA BUKAN DIBERI.*
+*33 quotes = 13 tools × 3 quotes each. Injected via `_WISDOM_QUOTES` in tools.py. Forged, Not Given. DITEMPA BUKAN DIBERI.*
+
+## Quote Metadata Schema
+
+Quotes are NON-CONTAMINATING METADATA. They ride in the philosophical_anchor
+envelope for human resonance. They NEVER enter reasoning, logic, 888_JUDGE
+deliberation, or VAULT999 sealing criteria.
+
+```json
+{
+  "id": "Q01",
+  "quote": "",
+  "author": "",
+  "function": "humility | uncertainty | reversibility | evidence | restraint | courage",
+  "use_when": [],
+  "must_not_be_used_when": []
+}
+```
+
+## Quote Placement Rules
+
+```yaml
+philosophical_quotes:
+  allowed: true
+  count: 33
+  storage: "resource or metadata table"
+  default_output: false
+  trigger_only_when:
+    - user asks for philosophy
+    - mode = reflect
+    - mode = teaching
+    - debug = true
+    - quote has functional role
+  forbidden_when:
+    - debugging production failure
+    - compact mode
+    - evidence verification
+    - timeout recovery
+    - security/governance decision
+```

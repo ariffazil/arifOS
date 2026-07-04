@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/arif_judge.schema.json",
+  "title": "arif_judge (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `arif_judge`. This schema is APPENDED to the existing arifos schema for `arif_judge` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Hard rule: No judgment if symbol_owner == unknown.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "evidence_receipt"
+  ],
+  "properties": {
+    "component": {
+      "const": "arif_judge"
+    },
+    "organ": {
+      "const": "arifos"
+    },
+    "evidence_receipt": {
+      "type": "object",
+      "description": "§3.E — Hardening block on evidence input.",
+      "properties": {
+        "symbolic_context": {
+          "type": "object",
+          "properties": {
+            "symbol_invoked": {
+              "type": "string",
+              "enum": [
+                "SEAL",
+                "HOLD",
+                "VOID",
+                "approve",
+                "publish",
+                "delete",
+                "send"
+              ]
+            },
+            "symbol_owner": {
+              "type": "string",
+              "enum": [
+                "Arif",
+                "arifOS",
+                "VAULT999",
+                "institution",
+                "unknown"
+              ]
+            },
+            "authority_verified": {
+              "type": "boolean"
+            },
+            "performative_effect": {
+              "type": "boolean"
+            },
+            "irreversible_social_effect": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every arif_judge output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

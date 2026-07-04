@@ -67,7 +67,7 @@ User or Agent
 
 - **MCP (Model Context Protocol):** arifOS exposes its 13 tools as an MCP server. Any MCP client (Claude Desktop, Cursor, etc.) can connect.
 - **A2A (Agent-to-Agent):** arifOS can route requests to and from other agents in the federation via the AAA gateway.
-- **HTTP REST:** Direct API calls to `arifos.arif-fazil.com/mcp` or your self-hosted instance.
+- **HTTP REST:** Direct API calls to `mcp.arif-fazil.com/mcp` or your self-hosted instance.
 
 ---
 

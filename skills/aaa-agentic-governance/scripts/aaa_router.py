@@ -37,7 +37,7 @@ ORGAN_RULES: list[tuple[str, float, str, str]] = [
     (
         "arifOS",
         0.92,
-        r"\b(arifos|f1|f2|f3|f4|f5|f6|f7|f8|f9|f10|f11|f12|f13|floor|constitution|constitutional|judge|seal|sabar|hold|void|vault999|mcp tool|kernel|authority|doctrine|invariants)\b",
+        r"\b(arifos|f1|f2|f3|f4|f5|f6|f7|f8|f9|f10|f11|f12|f13|floor|constitution|constitutional|judge|seal|sabar|hold|void|vault999|mcp|tools[/ _-]?(list|call)|tool schema|tool registry|registry|conformance|capability surface|initialize|protocol|router|runtime|schema|kernel|authority|doctrine|invariants)\b",
         "constitutional law, MCP kernel, verdict, or authority task",
     ),
     (
@@ -67,7 +67,7 @@ ORGAN_RULES: list[tuple[str, float, str, str]] = [
     (
         "WELL",
         0.86,
-        r"\b(well\b|readiness|fatigue|sleep|stress|vitality|dignity|substrate|metabolic|homeostasis|repair|livelihood|reliability|biological)\b",
+        r"\b(well\b|readiness|fatigue|sleep|stress|vitality|dignity|metabolic|homeostasis|livelihood|biological|hrv|heart rate|rhr|spo2|autonomic|maruah|wellbeing)\b",
         "human readiness, substrate state, fatigue, dignity, or reliability",
     ),
     (

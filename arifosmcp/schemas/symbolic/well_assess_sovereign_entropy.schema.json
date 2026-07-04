@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/well_assess_sovereign_entropy.schema.json",
+  "title": "well_assess_sovereign_entropy (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `well_assess_sovereign_entropy`. This schema is APPENDED to the existing well schema for `well_assess_sovereign_entropy` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Agent must not convert Arif into a fixed symbol. That would violate sovereignty.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "sovereignty_guard"
+  ],
+  "properties": {
+    "component": {
+      "const": "well_assess_sovereign_entropy"
+    },
+    "organ": {
+      "const": "well"
+    },
+    "sovereignty_guard": {
+      "type": "object",
+      "description": "§3.P — Hard guard against symbolic overreach on the operator.",
+      "properties": {
+        "no_personality_capture": {
+          "type": "boolean"
+        },
+        "no_behavioral_extraction": {
+          "type": "boolean"
+        },
+        "no_identity_freezing": {
+          "type": "boolean"
+        },
+        "preserve_operator_contradiction": {
+          "type": "boolean"
+        },
+        "do_not_reduce_arif_to_profile": {
+          "type": "boolean"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every well_assess_sovereign_entropy output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

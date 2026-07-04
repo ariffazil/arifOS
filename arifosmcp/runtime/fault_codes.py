@@ -250,7 +250,14 @@ def classify_exception(exc: Exception) -> FaultClassification:
         )
 
     # PLATFORM_INTERVENTION: host safety / policy layer block (OpenAI, Claude, etc.)
-    platform_markers = ["safety check", "blocked by", "safety checks", "platform policy", "host policy", "tool call was blocked"]
+    platform_markers = [
+        "safety check",
+        "blocked by",
+        "safety checks",
+        "platform policy",
+        "host policy",
+        "tool call was blocked",
+    ]
     if any(m in err_str for m in platform_markers):
         return FaultClassification(
             FaultClass.MECHANICAL,
@@ -320,8 +327,13 @@ ARIF_JSONRPC_ERROR_MAP: dict[str, int] = {
     TransportFaultCode.ARIF_LEASE_EXPIRED: -32000,
 }
 
-_MCP_SPEC_VERSION = "2025-06-18"
-_MCP_SUPPORTED_VERSIONS = ("2025-06-18", "2025-11-25", "2025-03-26")
+_MCP_SPEC_VERSION = (
+    "2025-11-25"  # fixed 2026-06-28: was "2025-06-18" (bogus — not a real spec version)
+)
+_MCP_SUPPORTED_VERSIONS = (
+    "2025-11-25",
+    "2025-03-26",
+)  # aligned with public_surface.py MCP_SPEC_VERSIONS_SUPPORTED
 
 
 def build_transport_error_envelope(

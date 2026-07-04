@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/wealth_survival_engine.schema.json",
+  "title": "wealth_survival_engine (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `wealth_survival_engine`. This schema is APPENDED to the existing wealth schema for `wealth_survival_engine` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Prevents agent from treating money as only spreadsheet flow.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "symbolic_finance_pressure"
+  ],
+  "properties": {
+    "component": {
+      "const": "wealth_survival_engine"
+    },
+    "organ": {
+      "const": "wealth"
+    },
+    "symbolic_finance_pressure": {
+      "type": "object",
+      "description": "§3.L — Survival is not only arithmetic.",
+      "properties": {
+        "family_obligation": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "status_consumption": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "institutional_dependency": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "shame_risk": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "hidden_commitment": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every wealth_survival_engine output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

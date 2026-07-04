@@ -53,9 +53,9 @@ organs:
     description: "Report human readiness scores, reflect only"
 
   apex:
-    role: "Verdict Engine (Legacy)"
+    role: "Verdict Engine (DECOMMISSIONED)"
     repo: "ariffazil/arifOS (subdir APEX)"
     path: "/root/APEX"
-    port: 3002
-    status: "archived"
-    description: "Legacy probe only. Deliberation moved to AAA a2a-server."
+    port: null
+    status: "decommissioned"
+    description: "Decommissioned. Deliberation moved to arifOS kernel :8088 (arif_judge) + AAA a2a-server (deliberation.ts). Port 3002 freed."

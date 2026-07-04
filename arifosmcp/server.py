@@ -103,6 +103,10 @@ from arifosmcp.constitutional_map import (  # noqa: E402
 from arifosmcp.runtime.peer_contract import (  # noqa: E402
     get_arifos_peer_contract,
 )
+from arifosmcp.runtime.dpop_auth import (  # noqa: E402
+    extract_cnf_jkt,
+    verify_dpop_proof,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -269,6 +273,64 @@ class OriginValidationMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class DPoPAuthMiddleware(BaseHTTPMiddleware):
+    """
+    Enforce or observe DPoP on bearer-authenticated requests.
+
+    This closes the bearer replay gap without forcing anonymous/public reads
+    into an auth regime they do not currently use.
+    """
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.mode = os.getenv("ARIFOS_DPOP_MODE", "observe").strip().lower()
+
+    async def dispatch(self, request: Request, call_next):
+        authorization = request.headers.get("authorization", "").strip()
+        if not authorization.lower().startswith("bearer "):
+            return await call_next(request)
+
+        access_token = authorization[7:].strip()
+        proof = request.headers.get("dpop", "").strip()
+        if not proof:
+            if self.mode == "enforce":
+                return JSONResponse(
+                    {"error": "unauthorized", "message": "missing_dpop_proof"},
+                    status_code=401,
+                    headers={"X-DPoP-Status": "DENIED"},
+                )
+            response = await call_next(request)
+            response.headers["X-DPoP-Status"] = "MISSING"
+            return response
+
+        result = verify_dpop_proof(
+            proof,
+            method=request.method,
+            url=str(request.url),
+            access_token=access_token,
+            access_token_cnf_jkt=extract_cnf_jkt(access_token),
+        )
+        if not result.valid:
+            logger.warning(
+                "DPoP validation failed path=%s error=%s", request.url.path, result.error
+            )
+            if self.mode == "enforce":
+                return JSONResponse(
+                    {"error": "unauthorized", "message": result.error},
+                    status_code=401,
+                    headers={"X-DPoP-Status": "DENIED"},
+                )
+            response = await call_next(request)
+            response.headers["X-DPoP-Status"] = f"OBSERVE:{result.error}"
+            return response
+
+        request.state.dpop_claims = result.claims
+        request.state.dpop_jkt = result.jwk_thumbprint
+        response = await call_next(request)
+        response.headers["X-DPoP-Status"] = "VERIFIED"
+        return response
+
+
 # ── MCP Transport spec compliance (modelcontextprotocol.io/specification/2025-11-25/basic/transports) ─
 # Per Streamable HTTP spec:
 #   POST with proper Accept: 200 OK (json or sse)
@@ -369,7 +431,7 @@ _DEPLOY_VERSION = (
 mcp = FastMCP(
     "ARIFOS MCP",
     version=_DEPLOY_VERSION,
-    website_url="https://arifosmcp.arif-fazil.com",
+    website_url="https://mcp.arif-fazil.com",
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
         "Membrane Principle:\n"
@@ -378,12 +440,19 @@ mcp = FastMCP(
         "- Truth survives falsification, not assertion.\n"
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
-        "Golden path: init → observe → think → route → judge → seal\n\n"
+        "Golden path: init → observe → think → route → judge → act → seal\n\n"
         # RSI 2026-06-27: Only advertise public surface tools. Hidden tools
         # (arif_triage, arif_memory, arif_kernel_attest, etc.) must NOT appear
         # in instructions — ChatGPT/external callers try to call them and get blocked.
-        "Public tools (9): arif_init, arif_observe, arif_fetch, arif_think, "
-        "arif_route, arif_critique, arif_judge, arif_act, arif_seal\n\n"
+        # Agentic selection: each tool closes a specific gap in the intent→action pipeline.
+        "Canonical 7 — select by gap:\n"
+        "  arif_init   — No session yet? Start here. Binds actor identity.\n"
+        "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
+        "  arif_think   — Reasoning gap? Plan, critique, analyze, verify.\n"
+        "  arif_route   — Tool uncertainty? Route intent to correct organ.\n"
+        "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
+        "  arif_act     — Ready to execute? Requires valid SEAL from judge→seal pipeline.\n"
+        "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
@@ -401,8 +470,7 @@ mcp = FastMCP(
 if FastMCPSkillsDirectoryProvider is not None and Path is not None:
     try:
         _skill_roots: list[Path] = [
-            Path("/root/.arifos/agents/kimi/skills"),  # canonical sovereign mirror
-            Path("/root/.agents/skills"),  # project / user scope
+            Path("/root/.agents/skills"),  # SINGLE SOT — all agents load from here
         ]
         _federation_skills_provider = FastMCPSkillsDirectoryProvider(
             roots=_skill_roots,
@@ -476,18 +544,24 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface contains exactly the 7 public canonical verbs.
+    """Assert the registered surface matches the canonical public set.
 
-    7-Tool MCP Facade (F13 ratified 2026-06-23): the default public wire surface is
-    exactly 7 tools. Canary probes and diagnostics are internal helpers, gated behind
-    ARIFOS_MCP_EXPOSE_DEV_TOOLS=true for expanded45 mode.
+    ZEN-9 collapse 2026-07-04: the default public wire surface is the 9-stage
+    metabolic loop. Absorbed tools and internal-only aliases are subtracted.
     """
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_7, DIAGNOSTIC_TOOLS
+    from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS as CONST_DIAG
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_9
 
-    expected_set = set(CANONICAL_7)
-    # Subtract ALL non-public tools (canary probes + gated diagnostics) from the
-    # registered set. What remains must be exactly the public 7.
-    registered_set = set(registered_names) - set(DIAGNOSTIC_TOOLS)
+    expected_set = set(CANONICAL_9)
+    registered_set = set(registered_names)
+    # Subtract all non-public tools: internal-only canonical + all diagnostic tools
+    non_public = {
+        name
+        for name, spec in CANONICAL_TOOLS.items()
+        if spec.get("access") == "internal_only" or not spec.get("expose", True)
+    }
+    non_public.update(CONST_DIAG.keys())
+    registered_set -= non_public
     for probe in CANARY_PROBES:
         registered_set.discard(probe)
     if registered_set != expected_set:
@@ -496,10 +570,8 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
         raise RuntimeError(
             f"Surface drift detected: missing={sorted(missing)}, "
             f"unexpected={sorted(unexpected)}. "
-            f"Expected public 7 tools={sorted(expected_set)}."
+            f"Expected public tools={sorted(expected_set)}."
         )
-    if any(name.startswith("arifos_") for name in registered_names):
-        raise RuntimeError("Legacy surface detected in registered MCP tools")
 
 
 v2_tools_registered: list[str] = []
@@ -565,7 +637,7 @@ try:
     _ingress_middleware = IngressToleranceMiddleware()
 
     v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
-    _assert_registered_surface(v2_tools_registered)
+    # Surface assertion deferred — runs after all CANONICAL_12 tools are registered (incl. arif_canary)
 
     # ── Phase 3 cutover — alias shim disabled (2026-06-23 freeze) ────────────
     # FROZEN: ARIFOS_MCP_DUAL_MODE defaults to false.
@@ -601,114 +673,144 @@ try:
     #   arif_canary(mode="conformance_report") — was arif_conformance_report
     pass  # legacy probe blocks deleted; arif_canary below is canonical
 
-    # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
-    # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
-    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
+    # ── Conformance Report + Canary Multimode (expanded45 operator surface) ────
+    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
     if _EXPOSE_DEV_TOOLS:
-        from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
+        from arifosmcp.runtime.tools import _runtime_conformance_report
+
+        def _conformance_handler(
+            payload: Any = None,
+            _envelope: dict[str, Any] | None = None,
+            client_capabilities: dict[str, Any] | None = None,
+            actor_id: str | None = None,
+            session_id: str | None = None,
+            mode: str = "full",
+            limit: int = 10,
+        ) -> dict[str, Any]:
+            """Standalone conformance report — FastMCP 3 compatible (no **kwargs).
+            P3 fix 2026-06-30: mode/limit params absorbed for schema compatibility."""
+            return _runtime_conformance_report(
+                payload=payload, _envelope=_envelope, client_capabilities=client_capabilities
+            )
 
         mcp.tool(
-            name="arif_canary",
+            name="arif_conformance_report",
             description=(
-                "Unified transport diagnostic probe. One tool, six modes. "
-                "Use for liveness checks, protocol version verification, schema round-trip "
-                "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
-                "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
+                "Full conformance spine proof machine. Runs 9 live checks against the "
+                "running arifOS kernel: arifos_alive, mcp_initialize, protocol_version, "
+                "schema_echo_stable, session_starts, authority_checked, hold_blocks_mutation, "
+                "vault_replay, cooling_ledger. Returns structured PASS/FAIL report with "
+                "evidence per check. No session required. Read-only. Zero side effects. "
+                "Use when: you need to prove arifOS is a substrate, not just a narrative."
             ),
-            tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
+            tags={"conformance", "diagnostic", "read-only", "proof"},
             annotations={
                 "readOnlyHint": True,
                 "destructiveHint": False,
                 "openWorldHint": True,
                 "idempotentHint": True,
             },
-        )(_arif_canary_handler)
-    else:
-        logger.info("Canary multimode gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose.")
-
-    from arifosmcp.runtime.tools import _wrap_handler
-
-    # ── Forge Ladder — DEPRECATED PROXY (engineering tools moved to A-FORGE) ─
-    # forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate now
-    # live on A-FORGE MCP (forge.arif-fazil.com/mcp, port 7071).
-    # arifOS retains a thin deprecation proxy that redirects agents to A-FORGE.
-    # Hard removal target: 2026-07-15.
-    # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
-    if _EXPOSE_DEV_TOOLS:
-        _FORGE_MCP_ENDPOINT = "https://forge.arif-fazil.com/mcp"
-        _FORGE_DEPRECATION_MSG = (
-            "forge_* tools have moved to A-FORGE MCP. "
-            "Connect to forge.arif-fazil.com/mcp for engineering tools. "
-            "This arifOS endpoint will be removed 2026-07-15."
-        )
-        _FORGE_DEPRECATION_META = {
-            "status": "DEPRECATED_PROXY",
-            "forwarded_to": _FORGE_MCP_ENDPOINT,
-            "removal_after": "2026-07-15",
-            "migration": "Connect to forge.arif-fazil.com/mcp for forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate, filesystem, git, docker, postgres, and all engineering tools.",
-        }
-
-        def _make_forge_deprecated_proxy(tool_name: str) -> Callable:
-            """Return a handler that returns deprecation metadata (no **kwargs, FastMCP compat)."""
-            if tool_name == "forge_query":
-
-                def _h1(
-                    manifest: str = "",
-                    query: str = "",
-                    cwd: str = ".",
-                    session_id: str | None = None,
-                    actor_id: str | None = None,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h1
-            elif tool_name == "forge_plan":
-
-                def _h2(
-                    goal: str = "",
-                    workspace: str = ".",
-                    session_id: str | None = None,
-                    actor_id: str | None = None,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h2
-            elif tool_name == "forge_dry_run":
-
-                def _h3(
-                    plan_id: str = "",
-                    manifest: str = "",
-                    cwd: str = ".",
-                    session_id: str | None = None,
-                    actor_id: str | None = None,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h3
-            else:
-
-                def _h4(
-                    intent: str = "",
-                    context: dict | None = None,
-                    risk_tier: str = "medium",
-                    force_simulation: bool = True,
-                    _envelope: dict | None = None,
-                ) -> dict[str, Any]:
-                    return dict(**_FORGE_DEPRECATION_META, tool=tool_name)
-
-                return _h4
-
-        for _fn in ("forge_query", "forge_plan", "forge_dry_run", "forge_plan_and_simulate"):
-            mcp.tool(
-                name=_fn, description=_FORGE_DEPRECATION_MSG, tags={"forge", "deprecated", "proxy"}
-            )(_make_forge_deprecated_proxy(_fn))
+        )(_conformance_handler)
+        logger.info("Conformance report standalone registered — expanded45 operator surface.")
     else:
         logger.info(
-            "Forge deprecated proxies gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
+            "Conformance report standalone gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
         )
+
+    # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
+    # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
+    # CANONICAL: always registered — arif_canary is in CANONICAL_12 public surface.
+    from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
+
+    mcp.tool(
+        name="arif_canary",
+        description=(
+            "Unified transport diagnostic probe. One tool, six modes. "
+            "Use for liveness checks, protocol version verification, schema round-trip "
+            "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
+            "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
+        ),
+        tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
+        annotations={
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "openWorldHint": True,
+            "idempotentHint": True,
+        },
+    )(_arif_canary_handler)
+    v2_tools_registered.append("arif_canary")
+
+    # NOW run surface assertion — all CANONICAL_12 tools registered
+    _assert_registered_surface(v2_tools_registered)
+
+    # ── P3 FIX 2026-06-30: arif_triage + arif_compose — ChatGPT audit BANGANG ──
+    # Both tools are implemented in kernel_canonical.py but were excluded from
+    # server.py registration (intentionally canonical-7 only). Now added to expanded45.
+    # ── P3 FIX 2026-06-30: Import _wrap_handler EARLY for triage/compose/conformance ──
+    from arifosmcp.runtime.tools import _wrap_handler
+
+    # arif_triage: session status, priority queue, preflight checks.
+    # arif_compose: governed response composition — formats final output.
+    if _EXPOSE_DEV_TOOLS:
+        try:
+            from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
+
+            _triage_handler = _wrap_handler(_arif_triage, "arif_triage")
+            mcp.tool(
+                name="arif_triage",
+                description=(
+                    "Session status, priority queue, and preflight checks. "
+                    "Modes: status (active session count + stage) | preflight (pre-session safety probe) "
+                    "| triage (priority assessment). Core immune function — run before arif_init when unsure of session state."
+                ),
+                tags={"triage", "diagnostic", "read-only", "session"},
+                annotations={"readOnlyHint": True, "destructiveHint": False},
+            )(_triage_handler)
+            logger.info(
+                "arif_triage registered — expanded45 operator surface (P3 fix 2026-06-30, _wrap_handler)."
+            )
+        except Exception as _triage_err:
+            logger.warning("arif_triage registration failed (non-fatal): %s", _triage_err)
+
+        try:
+            from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH
+
+            _compose_fn = _CTH.get("arif_compose")
+            if _compose_fn is not None:
+                _compose_wrapped = _wrap_handler(_compose_fn, "arif_compose")
+                mcp.tool(
+                    name="arif_compose",
+                    description=(
+                        "Governed response composition — formats final output for Arif with citations and tone calibration. "
+                        "Call as the LAST step before presenting results. "
+                        "Modes: compose | summarize | cite | tone_shift | style | format | nudge | repo_answer."
+                    ),
+                    tags={"compose", "reply", "read-only", "output"},
+                    annotations={"readOnlyHint": True, "destructiveHint": False},
+                )(_compose_wrapped)
+                logger.info(
+                    "arif_compose registered — expanded45 operator surface (P3 fix 2026-06-30, _wrap_handler)."
+                )
+            else:
+                logger.warning(
+                    "arif_compose: not found in CANONICAL_TOOL_HANDLERS — skip registration."
+                )
+        except Exception as _compose_err:
+            logger.warning("arif_compose registration failed (non-fatal): %s", _compose_err)
+
+    # ── Forge Ladder — REMOVED 2026-07-03 (FORGE T1 entropy cut, ahead of 2026-07-15 schedule)
+    # forge_query, forge_plan, forge_dry_run, forge_plan_and_simulate previously
+    # proxied to A-FORGE MCP (forge.arif-fazil.com/mcp, port 7071) via deprecation stub.
+    # Stubs removed to honor the entropy law (Phase 1 audit 2026-07-03):
+    #   • every advertised callable must exist in tools/list as a real function
+    #   • alias-without-wrapper is FORBIDDEN
+    #   • engineering tools fully live on A-FORGE :7072 (74 tools)
+    # Reversible: this block can be restored from git history (ec1e6f803..HEAD).
+    # Receipt: /root/forge_work/tools-phase1-cut-2026-07-03.md
+    logger.info(
+        "Forge deprecated proxies REMOVED (FORGE T1 cut 2026-07-03). "
+        "Engineering tools live on A-FORGE :7072."
+    )
 
     # ── ChatGPT Compatibility Facade (ADR-012) ──────────────────────────────
     # GATED: only registered when ARIFOS_CHATGPT_COMPAT=true.
@@ -736,6 +838,39 @@ try:
             logger.info("ChatGPT compat shim registered: %s", _shim_name)
     else:
         logger.info("ChatGPT compat shims gated — set ARIFOS_CHATGPT_COMPAT=true to expose.")
+
+    # ── SDK Long-Name Alias Shims (2026-07-03 v2) ────────────────────────────
+    # ChatGPT discovers arif_session_init and arif_gateway_connect from
+    # .well-known/mcp/server.json sdk_long_name_aliases, but these are not
+    # registered in tools/list → "Unknown tool" errors.
+    # v2 fix: use _wrap_handler (same as register_tools) for proper param filtering.
+    _SDK_ALIAS_DEFS: list[tuple[str, str, str]] = [
+        ("arif_session_init", "arif_init", "arif_init"),
+        ("arif_gateway_connect", "arif_bridge_connect", "arif_bridge_connect"),
+    ]
+    for _alias_name, _handler_key, _canonical_name in _SDK_ALIAS_DEFS:
+        _alias_handler = _CANONICAL_HANDLERS.get(_handler_key) or _RUNTIME_DIAGNOSTIC_HANDLERS.get(
+            _handler_key
+        )
+        if _alias_handler is None:
+            logger.warning("SDK alias shim: no handler for %s (key=%s)", _alias_name, _handler_key)
+            continue
+        _wrapped_alias = _wrap_handler(_alias_handler, _alias_name)
+        if _wrapped_alias is None:
+            logger.warning("SDK alias shim: _wrap_handler returned None for %s", _alias_name)
+            continue
+        try:
+            mcp.tool(
+                name=_alias_name,
+                description=f"[DEPRECATED ALIAS] Use {_canonical_name} instead. Compatibility wrapper for SDK/ChatGPT clients.",
+                tags={"deprecated", "alias", "sdk-compat"},
+                annotations={"readOnlyHint": True, "destructiveHint": False},
+            )(_wrapped_alias)
+            logger.info(
+                "SDK alias shim registered: %s → %s (DEPRECATED)", _alias_name, _canonical_name
+            )
+        except Exception as _alias_err:
+            logger.warning("SDK alias shim failed for %s: %s", _alias_name, _alias_err)
 
     # ── Institutional Shadow Drift (GENESIS/006 runtime sensor) ─────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (Canonical13 enforcement).
@@ -915,13 +1050,10 @@ try:
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
     # Conformance spine runs via arif_canary(mode="conformance_report") which is also gated.
+    from arifosmcp.constitutional_map import CANONICAL_OUTPUT_SCHEMA
     from arifosmcp.tools.hermes import HERMES_TOOL_HANDLERS
 
     _hermes_to_register = HERMES_TOOL_HANDLERS if _EXPOSE_DEV_TOOLS else {}
-    # Always register hermes_vault_query for conformance spine (vault_replay check).
-    # The comment at line 969 claimed this exemption but the code never implemented it.
-    if not _EXPOSE_DEV_TOOLS and "hermes_vault_query" in HERMES_TOOL_HANDLERS:
-        _hermes_to_register["hermes_vault_query"] = HERMES_TOOL_HANDLERS["hermes_vault_query"]
     for _hermes_name, _hermes_handler in _hermes_to_register.items():
         _hw = _wrap_handler(_hermes_handler, _hermes_name)
         if _hw is not None:
@@ -929,12 +1061,16 @@ try:
                 name=_hermes_name,
                 description=_hermes_handler.__doc__,
                 tags={"hermes", "diagnostic", "read-only"},
+                output_schema=CANONICAL_OUTPUT_SCHEMA,
+                annotations={"readOnlyHint": True, "destructiveHint": False},
             )(_hw)
         else:
             # fallback for non-async handlers
             mcp.tool(
                 name=_hermes_name,
                 tags={"hermes", "diagnostic", "read-only"},
+                output_schema=CANONICAL_OUTPUT_SCHEMA,
+                annotations={"readOnlyHint": True, "destructiveHint": False},
             )(_hermes_handler)
     v2_tools_registered.extend(list(_hermes_to_register.keys()))
 
@@ -958,7 +1094,7 @@ try:
                 logger.debug("Schema enum injection skipped for %s", _hn, exc_info=True)
     if not _EXPOSE_DEV_TOOLS:
         logger.info(
-            "Hermes tools gated (except hermes_vault_query for conformance check) — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose all."
+            "Hermes tools gated — set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose expanded45 diagnostics."
         )
 
     # Refresh the public registry cache after all canonical tools are registered
@@ -1209,6 +1345,7 @@ try:
                 def _arif_floor_status(
                     session_id: str | None = None,
                     actor_id: str | None = None,
+                    _envelope: dict[str, Any] | None = None,
                 ):
                     """Report the current state of constitutional floor enforcement."""
                     result = _get_floor_status()
@@ -1394,7 +1531,7 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
         {
             "name": "arifos",
             "displayName": "arifOS Constitutional Kernel",
-            "url": "https://arifos.arif-fazil.com/mcp",
+            "url": "https://mcp.arif-fazil.com/mcp",
             "version": _DEPLOY_VERSION.lstrip("v"),
             "capabilities": {"tools": True, "resources": True, "prompts": True},
             "authentication": {"type": "bearer"},
@@ -1491,6 +1628,7 @@ if app:
     from arifosmcp.transport import AirlockASGIMiddleware
 
     app.add_middleware(OriginValidationMiddleware)
+    app.add_middleware(DPoPAuthMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
     app.add_middleware(
@@ -1501,6 +1639,7 @@ if app:
             "Accept",
             "Accept-Language",
             "Authorization",
+            "DPoP",
             "Content-Language",
             "Content-Type",
             "MCP-Session-Id",
@@ -1509,13 +1648,16 @@ if app:
             "X-Arifos-User-Id",
             "X-Arifos-Sovereign-Sig",
         ],
-        expose_headers=["MCP-Session-Id", "MCP-Protocol-Version"],
+        expose_headers=["MCP-Session-Id", "MCP-Protocol-Version", "X-DPoP-Status"],
         allow_credentials=False,
     )
 
-    from arifosmcp.runtime.governance_pipeline import get_pipeline
-
-    app.add_middleware(get_pipeline().as_middleware())
+    # ── Governance middleware removed 2026-06-28 ───────────────────────────
+    # get_pipeline().as_middleware() returned _GovMiddleware which doesn't
+    # conform to Starlette ASGI middleware protocol (needs __call__ with
+    # scope/receive/send). Governance runs per-tool via _wrap_handler in
+    # register_tools() — that path is the primary enforcement layer.
+    # app.add_middleware(get_pipeline().as_middleware())
     # Starlette executes later-added middleware first. Airlock must run before
     # governance so enforce mode sees scope["airlock_envelope"].
     app.add_middleware(AirlockASGIMiddleware)

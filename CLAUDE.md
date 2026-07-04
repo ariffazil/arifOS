@@ -2,7 +2,7 @@
 
 > **The law of the federation. arifOS structures decision; it does not decide.**
 > **DITEMPA BUKAN DIBERI — Forged, Not Given.**
-> **Last SOT refresh: 2026-06-21 | Commit: running HEAD**
+> **Last SOT refresh: 2026-07-01 | Commit: e179e8552 (deployed 1bcf22d)**
 
 ---
 
@@ -58,7 +58,7 @@ curl -s http://localhost:8088/health | python3 -m json.tool | grep -E 'floors|fl
 ```
 Arif (F13 SOVEREIGN)
     ↓
-arifOS (20 canonical + 37 diagnostic = 57 total registered tools)
+arifOS (17 canonical + 41 diagnostic = 58 total declared tools; 7 public canonical verbs, 48 exposed via MCP)
     ├── 000 arif_session_init      — start or resume a governed session
     ├── 111 arif_sense_observe     — search/ingest/observe reality
     ├── 222 arif_evidence_fetch    — fetch + cite external evidence
@@ -76,14 +76,14 @@ arifOS (20 canonical + 37 diagnostic = 57 total registered tools)
     ├── 666 arif_heart_critique    — ethical risk + empathy audit + redteam
     ├── 666g arif_gateway_connect   — bridge to federation organs (GEOX/WEALTH/WELL/A-FORGE)
     ├── 777 arif_ops_measure       — health + vitals + cost + drift + topology
-    ├── 888 arif_judge_deliberate  — render constitutional verdict (SEAL/SABAR/HOLD/VOID)
-    ├── 900 arif_forge_execute     — execute approved plans (LEASE REQUIRED for mutation)
-    └── 999 arif_vault_seal        — seal to immutable append-only ledger
+    ├── 888 arif_judge             — render constitutional verdict (SEAL/SABAR/HOLD/VOID)
+    ├── 900 arif_act               — execute approved plans (LEASE REQUIRED for mutation)
+    └── 999 arif_seal              — seal to immutable append-only ledger
 ```
 
-**Golden path:** `session_init → sense_observe/evidence_fetch → mind_reason → heart_critique → judge_deliberate → vault_seal`
+**Golden path:** `arif_init → arif_observe → arif_think → arif_heart_critique → arif_judge → arif_seal`
 
-**Federated organs (gateway upstream):** GEOX:8081, WEALTH:18082, WELL:18083, A-FORGE:7072, AAA:3001, MIND (51001), MEMORY (51002)
+**Federated organs (gateway upstream):** GEOX:8081, WEALTH:18082, WELL:18083, A-FORGE:7071/7072, AAA:3001.
 
 ---
 
@@ -191,7 +191,7 @@ mypy arifosmcp/runtime/ --ignore-missing-imports
 - **New tools** → extend handler in `arifosmcp/tools/`, update `constitutional_map.py`, regenerate `tool_registry.json`.
 - **Lease required for mutation** — all mutation-class forge modes (engineer, write, generate, commit) require a valid lease. Read-only modes exempt. Hard-block (no warn-and-proceed).
 - **Memory tiers** — unknown tiers downgrade to `ephemeral` (F2 TRUTH fix). Tiers: sacred, canon, session, ephemeral, test.
-- **888_HOLD before:** `rm -rf`, vault writes, force push, production deploy, secret rotation.
+- **888_HOLD before:** `rm -rf`, vault writes, **force push to shared main branch**, production deploy, secret rotation. Feature-branch force-push = digital normal per AGENTS.md §10.
 - **Identity anchors** — arifOS→constitution_hash, GEOX→physics_manifest, WEALTH→capital_manifest, WELL→substrate_manifest.
 - **Agentic search** — FSM states: PLAN→RETRIEVE→EVAL→(REFINE)*→SYNTHESISE. MAX_LOOPS=3.
 

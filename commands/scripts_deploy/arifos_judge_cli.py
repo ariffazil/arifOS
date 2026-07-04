@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
-ARIFOS_MCP_URL = os.getenv("ARIFOS_MCP_URL", "https://arifos.arif-fazil.com/mcp")
+ARIFOS_MCP_URL = os.getenv("ARIFOS_MCP_URL", "https://mcp.arif-fazil.com/mcp")
 ACTOR_ID = os.getenv("ARIFOS_ACTOR_ID", "arif-fazil")
 
 

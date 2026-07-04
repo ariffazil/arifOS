@@ -8,6 +8,13 @@ for backward compatibility with existing tests and server.py.
 The canonical capability definitions live in constitutional_map.py.
 """
 
+# ════════════════════════════════════════════════════════════════════
+# ZEN 2026-06-30: These aliases are REVERSE-COMPAT ONLY.
+# They do NOT appear on tools/list. The public surface is exactly 7 tools.
+# No new aliases should be added. Existing aliases will be removed
+# after a 30-day deprecation window (target: 2026-07-30).
+# ════════════════════════════════════════════════════════════════════
+
 from __future__ import annotations
 
 from enum import StrEnum
@@ -111,17 +118,22 @@ ALIGNED_STAGES: dict[str, str] = {
 # These turn "Knowing what NOT to do" and "Verdict loop with memory" into governed facts
 # for every session (via INIT) and every tool (via capability map).
 
+
 class RestraintLevel(StrEnum):
     """Computational maturity levels for 'knowing what NOT to do'."""
-    STRICT = "STRICT"          # Must explicitly refuse/hold/ask when uncertain or ambiguous
-    STANDARD = "STANDARD"      # Default restraint; HOLD on high entropy
-    ADVISORY = "ADVISORY"      # Light; can proceed with warning
+
+    STRICT = "STRICT"  # Must explicitly refuse/hold/ask when uncertain or ambiguous
+    STANDARD = "STANDARD"  # Default restraint; HOLD on high entropy
+    ADVISORY = "ADVISORY"  # Light; can proceed with warning
+
 
 class VerdictRequirement(StrEnum):
     """Whether this capability requires the full verdict loop (judge + seal + receipt)."""
-    REQUIRED = "REQUIRED"      # No execution without prior constitutional seal
+
+    REQUIRED = "REQUIRED"  # No execution without prior constitutional seal
     CONDITIONAL = "CONDITIONAL"
     NONE = "NONE"
+
 
 RESTRAINT_VERDICT_REQUIREMENTS: dict[str, dict[str, Any]] = {
     "arif_init": {

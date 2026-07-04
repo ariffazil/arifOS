@@ -43,6 +43,124 @@ from arifosmcp.runtime.adat_registry import (
 MALU_MIN = 0.0
 MALU_MAX = 1.0
 
+# ── CMAG Multiplicative Floor-Product ───────────────────────────────────
+# Ratified: 2026-06-30 by F13 SOVEREIGN (draft stage — pending F13 ratification)
+# Source: CMAG — Constitutional Multi-Agent Governance (arxiv 2603.13189)
+# Eureka: Hermes Midday Forge Pulse 2026-06-30
+#
+# Problem: Additive malu scoring (WAJIB +=5, HARAM +=10, SUNAT +=1) makes
+# 1 catastrophic HARAM + 50 minor SUNAT sum the same as 1 HARAM alone.
+# This is mathematically wrong for constitutional governance because a single
+# F1 AMANAH breach should crash the product, not nudge it.
+#
+# Solution: Multiplicative floor-product:
+#   floor_product = ∏(1 - violation_share_i) across F1-F13
+# A single dimension at 0.5 halves the entire score. The 2026-06-27 ART
+# consolidation (parallel art_*.py) would have been caught as a single F8
+# GENIUS integrity breach, not forgiven as "two minor SUNAT, +2."
+#
+# Dual-surface: additive malu_index (existing) + multiplicative floor_product.
+# Switch authority to multiplicative when malu_index > 0.30 (SEDERHANA band).
+# Backward compatible — additive surface preserved for all downstream consumers.
+
+# Floor-product is computed from the per-adat violation shares.
+# Each F-floor violation maps to a share of 1.0 (full breach = 0.0 factor).
+# Smaller adat violations map to softer penalties (e.g., SUNAT = 0.05 share).
+
+# Floor → violation share mapping (what portion of integrity is compromised)
+# Higher share = more severe integrity breach
+FLOOR_SHARE_MAP = {
+    "F01": 1.00,  # AMANAH — full integrity breach
+    "F02": 0.30,  # TRUTH — partial integrity breach
+    "F03": 0.15,  # WITNESS
+    "F04": 0.10,  # CLARITY
+    "F05": 0.10,  # PEACE
+    "F06": 0.20,  # EMPATHY/MARUAH
+    "F07": 0.15,  # HUMILITY
+    "F08": 0.25,  # GENIUS — integrity of intelligence
+    "F09": 0.60,  # ANTI-HANTU — high integrity breach
+    "F10": 0.50,  # ONTOLOGY
+    "F11": 0.40,  # AUTH
+    "F12": 0.50,  # INJECTION
+    "F13": 1.00,  # SOVEREIGN — full breach
+}
+
+# Adat → Floor mapping (which constitutional floor each adat violation hits)
+# This is the bridge between adat violations and floor-product computation
+ADAT_TO_FLOOR = {
+    "ADAT-01-KEJUJURAN": "F02",  # TRUTH
+    "ADAT-02-MARUAH": "F06",  # EMPATHY/MARUAH
+    "ADAT-03-VETO": "F13",  # SOVEREIGN
+    "ADAT-04-KESUNGGUHAN": "F04",  # CLARITY
+    "ADAT-05-KERAHASIAAN": "F11",  # AUTH
+    "ADAT-06-KEINSAfAN": "F07",  # HUMILITY
+    "ADAT-07-TEBUS-SALAH": "F04",  # CLARITY (restitution tracking)
+}
+
+
+def compute_floor_product(malu_score_instance: MaluScore) -> dict[str, Any]:
+    """
+    Compute the multiplicative floor-product from a MaluScore instance.
+
+    floor_product = ∏(1 - violation_share_i) for i in {affected floors}
+
+    Returns dict with:
+      - floor_product: [0.0, 1.0] — multiplicative constitutional integrity
+      - affected_floors: list of floor IDs with violations
+      - per_floor_factor: {floor_id: factor}
+      - verdict: "INTACT" | "DEGRADED" | "BREACHED" | "COLLAPSED"
+      - additive_malu: current malu_index (for comparison)
+      - authority: "additive" | "multiplicative" (which surface binds)
+    """
+    # Map adat violations to floor shares
+    floor_violations: dict[str, float] = {}
+    for adat_id, accumulated in malu_score_instance.per_adat().items():
+        floor_id = ADAT_TO_FLOOR.get(adat_id)
+        if floor_id is None:
+            continue
+        share = FLOOR_SHARE_MAP.get(floor_id, 0.10)
+        floor_violations[floor_id] = floor_violations.get(floor_id, 0.0) + share * accumulated
+
+    # Compute multiplicative product
+    product = 1.0
+    per_floor_factor: dict[str, float] = {}
+    for floor_id, violation_share in floor_violations.items():
+        factor = max(0.0, 1.0 - min(1.0, violation_share))
+        factor = round(factor, 4)
+        per_floor_factor[floor_id] = factor
+        product *= factor
+
+    product = round(max(0.0, product), 4)
+
+    # Verdict classification
+    if product >= 0.95:
+        verdict = "INTACT"
+    elif product >= 0.70:
+        verdict = "DEGRADED"
+    elif product >= 0.30:
+        verdict = "BREACHED"
+    else:
+        verdict = "COLLAPSED"
+
+    # Authority: switch to multiplicative when malu_index > 0.30 (SEDERHANA+)
+    authority = "multiplicative" if malu_score_instance.index > 0.30 else "additive"
+
+    return {
+        "floor_product": product,
+        "affected_floors": list(floor_violations.keys()),
+        "per_floor_factor": per_floor_factor,
+        "verdict": verdict,
+        "additive_malu": malu_score_instance.index,
+        "additive_tier": malu_score_instance.tier,
+        "authority": authority,
+        "note": (
+            "Multiplicative floor-product per CMAG (arxiv 2603.13189). "
+            "A single F1/F13 breach crashes the product. "
+            "Draft stage — pending F13 ratification for binding switch."
+        ),
+    }
+
+
 # Malu index tiers (separate from WARGA tiers — these are the thresholds
 # at which malu alone triggers a darjat demotion)
 MALU_TIERS = {

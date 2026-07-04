@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/well_assess_livelihood.schema.json",
+  "title": "well_assess_livelihood (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `well_assess_livelihood`. This schema is APPENDED to the existing well schema for `well_assess_livelihood` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Livelihood is role, maruah, social position, meaning — not just income.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "role_symbolics"
+  ],
+  "properties": {
+    "component": {
+      "const": "well_assess_livelihood"
+    },
+    "organ": {
+      "const": "well"
+    },
+    "role_symbolics": {
+      "type": "object",
+      "description": "§3.O — Livelihood is not just income.",
+      "properties": {
+        "title_pressure": {
+          "type": "string"
+        },
+        "eldest_child_burden": {
+          "type": "string"
+        },
+        "corporate_rank_signal": {
+          "type": "string"
+        },
+        "public_identity_risk": {
+          "type": "string"
+        },
+        "purpose_symbol_alignment": {
+          "type": "string"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every well_assess_livelihood output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/forge_precheck.schema.json",
+  "title": "ForgePrecheck",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3.F — Required pre-mutation gate for arif_forge. Kept as a separate schema (not folded into the existing forge schema) per spec instruction. This file lives at the real path /root/arifOS/arifosmcp/schemas/symbolic/forge_precheck.schema.json (spec said /opt/arifos/app/mcp_servers/arifos/core/schemas/forge_precheck.schema.json — that path does not exist). Additive only. Hard rule: if symbolic authority is uncertain, FORGE must dry_run only — not a warning, a gate.",
+  "type": "object",
+  "required": [
+    "judge_verdict_present",
+    "symbolic_authority_verified",
+    "irreversible_effect_declared",
+    "social_blast_radius",
+    "false_symbol_risk"
+  ],
+  "properties": {
+    "judge_verdict_present": {
+      "type": "boolean",
+      "description": "True iff a prior arif_judge verdict (SEAL/CAUTION/HOLD/VOID) exists for this action."
+    },
+    "symbolic_authority_verified": {
+      "type": "boolean",
+      "description": "True iff the symbol_owner has been verified (not 'unknown')."
+    },
+    "irreversible_effect_declared": {
+      "type": "boolean",
+      "description": "True iff the caller has explicitly declared the irreversibility of this action."
+    },
+    "social_blast_radius": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Estimated blast radius layers affected by this forge action.",
+      "items": {
+        "type": "string",
+        "enum": ["private", "team", "public", "institutional", "legal", "financial"]
+      }
+    },
+    "false_symbol_risk": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Risk that this forge action will be misread as a constitutional SEAL or other authority it does not carry."
+    },
+    "dry_run_only": {
+      "type": "boolean",
+      "description": "Optional override. If true, the forge runs in dry-run mode regardless of other fields."
+    },
+    "ack_irreversible": {
+      "type": "boolean",
+      "description": "Mirrors arif_act.ack_irreversible. Must be true if any layer of social_blast_radius implies irreversibility."
+    }
+  },
+  "allOf": [
+    {
+      "description": "Coherence: if false_symbol_risk is high, dry_run_only must be true.",
+      "if": {"properties": {"false_symbol_risk": {"const": "high"}}, "required": ["false_symbol_risk"]},
+      "then": {"properties": {"dry_run_only": {"const": true}}}
+    },
+    {
+      "description": "Coherence: if blast_radius includes 'legal' or 'financial', ack_irreversible must be true.",
+      "if": {
+        "properties": {
+          "social_blast_radius": {
+            "type": "array",
+            "contains": {"enum": ["legal", "financial"]}
+          }
+        },
+        "required": ["social_blast_radius"]
+      },
+      "then": {"properties": {"ack_irreversible": {"const": true}}}
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/well_detect_boundary.schema.json",
+  "title": "well_detect_boundary (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `well_detect_boundary`. This schema is APPENDED to the existing well schema for `well_detect_boundary` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Boundary context is required for downstream dignity / sovereignty decisions.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "boundary_type"
+  ],
+  "properties": {
+    "component": {
+      "const": "well_detect_boundary"
+    },
+    "organ": {
+      "const": "well"
+    },
+    "boundary_type": {
+      "type": "array",
+      "description": "§3.N — Symbolic boundary type. Same sentence safe in one boundary, harmful in another.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "personal",
+          "family",
+          "professional",
+          "institutional",
+          "sacred",
+          "legal",
+          "sexual",
+          "grief",
+          "national",
+          "sovereign"
+        ]
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every well_detect_boundary output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

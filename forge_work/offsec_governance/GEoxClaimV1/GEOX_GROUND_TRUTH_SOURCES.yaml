@@ -1,0 +1,250 @@
+# GEOX_GROUND_TRUTH_SOURCES.yaml — CVE/NVD/Exploit-DB Cross-Reference Layer
+# Forged: 2026-06-29 — EHT Repo Audit (Resources.md analysis)
+# Authority: F13 SOVEREIGN directive
+# Source:  hhhrrrttt222111/Ethical-Hacking-Tools → Resources.md
+# Target:  GEOX claim-evidence pipeline (geox_egs_claim_create, geox_egs_evidence_attach)
+#
+# PRINCIPLE: GEOX claims about vulnerabilities, software weaknesses, or
+# exploitable surfaces must be cross-referenced against canonical ground-truth
+# databases. Unverified claims = F2 TRUTH violation. This file defines the
+# canonical sources and their integration paths.
+#
+# DITEMPA BUKAN DIBERI — Evidence is foraged, not assumed.
+
+_meta:
+  schema: geox-ground-truth-sources-v1
+  forged: 2026-06-29
+  source: Ethical-Hacking-Tools/Resources.md
+  source_digest: AAA/archive/ethical-hacking-tools-digest-2026-06-29.txt
+  constitutional_authority: F2 TRUTH + F3 WITNESS
+  target_organ: GEOX
+  target_tools: [geox_egs_claim_create, geox_egs_evidence_attach, geox_egs_query_claim, geox_egs_evidence_reason]
+  status: SEALED
+  sealed_by: F13 SOVEREIGN (888 — Muhammad Arif bin Fazil)
+  sealed_at: 2026-06-29T19:55:00Z
+  seal_receipt: arifos://seal/EHT-2026-06-29/GEOX_GROUND_TRUTH_SOURCES
+
+# ─── CANONICAL SOURCES (Tier 1 — Authoritative) ───────────────
+# These are the three sources every GEOX vulnerability claim must
+# cross-reference. Tier 1 = machine-queryable, structured data,
+# authoritative.
+
+canonical_sources:
+
+  - id: NVD
+    name: "National Vulnerability Database"
+    url: "https://nvd.nist.gov"
+    api: "https://services.nvd.nist.gov/rest/json/cves/2.0"
+    kind: "cve_database"
+    tier: 1
+    queryable: true
+    structured: true
+    coverage: "All CVEs since 1999"
+    use_for:
+      - "CVE lookup by ID"
+      - "CVSS severity scoring"
+      - "CPE product matching"
+      - "vulnerability timeline reconstruction"
+    geox_integration:
+      claim_create: "If claim.statement mentions CVE-*, resolve against NVD API"
+      evidence_attach: "Auto-attach NVD CVE record as supporting evidence"
+      evidence_reason: "Cross-reference claim severity against NVD CVSS score"
+
+  - id: CVE_DETAILS
+    name: "CVE Details"
+    url: "https://www.cvedetails.com"
+    kind: "cve_enrichment"
+    tier: 1
+    queryable: true
+    structured: true
+    coverage: "Enriched CVE data with vendor/product/version mapping"
+    use_for:
+      - "Vendor-specific vulnerability surface"
+      - "Product version vulnerability timeline"
+      - "CVSS score history"
+    geox_integration:
+      claim_create: "Enrich claim with vendor product mapping"
+      evidence_attach: "Attach CVE Details vendor breakdown"
+
+  - id: EXPLOIT_DB
+    name: "Exploit Database"
+    url: "https://www.exploit-db.com"
+    api: "https://gitlab.com/exploit-database/exploitdb"
+    kind: "exploit_repository"
+    tier: 1
+    queryable: true
+    structured: true
+    coverage: "Proof-of-concept exploits for known CVEs"
+    use_for:
+      - "Validating exploitability claims"
+      - "Linking CVE to concrete exploit code"
+      - "Severity escalation evidence"
+    warning: "READ-ONLY. Never execute exploit code from Exploit-DB. F6 PEACE: this is evidence, not armament."
+    geox_integration:
+      claim_create: "If claim asserts exploitability, check Exploit-DB for PoC existence"
+      evidence_attach: "Attach Exploit-DB entry as exploitability evidence"
+
+# ─── SECONDARY SOURCES (Tier 2 — Supporting) ──────────────────
+
+secondary_sources:
+
+  - id: RAPID7_VULNDB
+    name: "Rapid7 Vulnerability Database"
+    url: "https://www.rapid7.com/db/"
+    kind: "vendor_vulndb"
+    tier: 2
+    queryable: true
+    structured: true
+    use_for: [ "Metasploit module mapping", "vendor risk scoring" ]
+
+  - id: OVAL_MITRE
+    name: "OVAL (Open Vulnerability and Assessment Language)"
+    url: "https://oval.mitre.org"
+    kind: "standardized_checklist"
+    tier: 2
+    queryable: true
+    structured: true
+    use_for: [ "Compliance checking", "standardized vulnerability definitions" ]
+
+  - id: SPLOITUS
+    name: "Sploitus"
+    url: "https://sploitus.com"
+    kind: "exploit_aggregator"
+    tier: 2
+    queryable: true
+    structured: false
+    use_for: [ "Cross-repository exploit search", "multiple-source verification" ]
+
+  - id: CXSECURITY
+    name: "CXSecurity"
+    url: "https://cxsecurity.com"
+    kind: "exploit_aggregator"
+    tier: 2
+    queryable: true
+    structured: false
+    use_for: [ "Alternative exploit source", "non-English vulnerability reports" ]
+
+# ─── HISTORICAL / ARCHIVAL (Tier 3 — Reference) ───────────────
+# These sources are defunct, partially available, or of marginal
+# reliability. Use only for historical claims or when Tier 1/2
+# sources are silent.
+
+archival_sources:
+
+  - id: OSVDB
+    name: "Open Sourced Vulnerability Database"
+    url: "https://osvdb.org"
+    status: "DEFUNCT (archived)"
+    tier: 3
+    use_for: [ "Historical vulnerability claims pre-2016" ]
+    note: "No longer maintained. Use NVD for post-2016 coverage."
+
+  - id: SECURITYFOCUS
+    name: "SecurityFocus (Bugtraq)"
+    url: "https://www.securityfocus.com"
+    status: "ARCHIVAL (limited updates)"
+    tier: 3
+    use_for: [ "Historical vulnerability discussions", "mailing list archives" ]
+
+  - id: SECUNIA
+    name: "Secunia Advisories"
+    url: "https://secunia.com/advisories/"
+    status: "ABSORBED (Flexera)"
+    tier: 3
+    use_for: [ "Historical advisory tracking" ]
+
+  - id: VUPEN
+    name: "VUPEN Security"
+    url: "https://www.vupen.com/english/security-advisories/"
+    status: "DEFUNCT"
+    tier: 3
+    note: "Former zero-day broker. Historical only. NOT a trusted source for current claims."
+
+# ─── CLAIM-EVIDENCE PIPELINE INTEGRATION ──────────────────────
+
+integration_rules:
+
+  # RULE 1: CVE claims MUST be cross-referenced
+  - rule: CVE_CROSS_REFERENCE
+    trigger: claim.statement matches /CVE-\d{4}-\d{4,}/
+    action:
+      - "Query NVD for CVE details"
+      - "Query CVE Details for vendor/product enrichment"
+      - "Attach both as supporting_evidence"
+    constitutional_basis: F2 TRUTH
+    failure_mode: "If CVE not found in NVD → downgrade claim confidence to 0.3"
+
+  # RULE 2: Exploitability claims MUST have Exploit-DB evidence
+  - rule: EXPLOITABILITY_EVIDENCE
+    trigger: claim.statement contains ("exploitable" | "PoC available" | "exploit exists")
+    action:
+      - "Query Exploit-DB for related entries"
+      - "If found → attach as exploitability evidence"
+      - "If not found → downgrade claim to 'unverified exploitability'"
+    constitutional_basis: F2 TRUTH + F7 HUMILITY
+    failure_mode: "No Exploit-DB entry → claim.epistemic_status = 'INFERRED' not 'OBSERVED'"
+
+  # RULE 3: Severity claims MUST be audited against CVSS
+  - rule: SEVERITY_AUDIT
+    trigger: claim.statement contains ("critical" | "high severity" | "CVSS")
+    action:
+      - "Query NVD for CVSS vector"
+      - "Compare claimed severity vs CVSS score"
+      - "If mismatch > 1.0 CVSS point → flag contradiction"
+    constitutional_basis: F2 TRUTH
+    failure_mode: "Severity contradiction → geox_egs_claim_challenge"
+
+  # RULE 4: Product claims MUST resolve against CPE
+  - rule: PRODUCT_CPE_MATCH
+    trigger: claim.statement contains product/vendor names
+    action:
+      - "Query NVD CPE dictionary"
+      - "Map product name to CPE identifier"
+      - "Attach CPE match as provenance evidence"
+    constitutional_basis: F3 WITNESS
+    failure_mode: "Unmatched product → flag as 'unverified product scope'"
+
+# ─── GEOX TOOL BEHAVIOR ───────────────────────────────────────
+# These integration rules modify the behavior of existing GEOX tools:
+
+geox_egs_claim_create:
+  pre_create_checks:
+    - "CVE_CROSS_REFERENCE (if CVE pattern detected)"
+    - "PRODUCT_CPE_MATCH (if product name detected)"
+  auto_attach_evidence:
+    - "NVD CVE record"
+    - "CVE Details vendor breakdown"
+  epistemic_override:
+    - "Synthetic claim without source → max confidence 0.5"
+    - "Claim with NVD+Exploit-DB evidence → confidence boost +0.2"
+
+geox_egs_evidence_attach:
+  allowed_sources:
+    - "canonical_sources (Tier 1)"
+    - "secondary_sources (Tier 2)"
+    - "archival_sources (Tier 3 — marked as LOW_CONFIDENCE)"
+  auto_enrich:
+    - "If evidence.url matches known source domains → tag with source tier"
+
+geox_egs_evidence_reason:
+  cross_reference:
+    - "For every claim, check contradiction against canonical sources"
+    - "If NVD disagrees with claim → generate alternative scenario"
+  confidence_calibration:
+    - "Tier 1 source evidence → confidence floor 0.70"
+    - "Tier 2 source evidence → confidence floor 0.50"
+    - "Tier 3 source evidence → confidence floor 0.30"
+    - "No source evidence → confidence max 0.40"
+
+# ─── 888_HOLD TRIGGERS ────────────────────────────────────────
+# GEOX claims that match these patterns trigger 888_HOLD escalation:
+
+hold_triggers:
+  - pattern: "zero-day"
+    reason: "Zero-day claims require human verification of timeline and disclosure status"
+  - pattern: "critical infrastructure"
+    reason: "Claims about critical infrastructure have national security implications (F5 PEACE)"
+  - pattern: "PETRONAS|TNB|MAHB|Bank Negara"
+    reason: "Malaysian national entities — escalate to sovereign (F13 SOVEREIGN)"
+  - pattern: "backdoor|trojan|rootkit"
+    reason: "Malware claims require forensic evidence chain (F3 WITNESS + F11 AUTH)"

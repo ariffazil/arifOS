@@ -13,6 +13,19 @@ from __future__ import annotations
 import hashlib
 import time as _time
 
+# ── Enforcement Envelope (AOB P0 — 2026-07-03) ──
+from arifosmcp.schemas.enforcement_envelope import (
+    AuthorityScope,
+    CanonicalVerdict,
+    EnforcementEnvelope,
+    SessionMode,
+    TraceBlock,
+    VerdictReason,
+    WitnessBlock,
+    make_ephemeral_envelope,
+    make_persistent_envelope,
+)
+
 # ════════════════════════════════════════════════════════════════════════════════
 # DITEMPA, BUKAN DIBERI — Constitutional Identity Seal (forged 2026-06-22)
 # Every init response — success OR hold — carries the motto, state emoji,
@@ -354,6 +367,8 @@ def _project_light(
     actor_id: str,
     constitution_hash: str,
     context_completeness: dict | None = None,
+    actor_verified: bool = False,
+    session_mode: str = "persistent_bound",
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -367,6 +382,12 @@ def _project_light(
     RSI 2026-06-22 (FORGE): F11 audit spine restored.
       Light path now populates call_hash, trace_id, called_from_kernel,
       invocation_count. Without these the session cannot be sealed.
+
+    AOB P0 — 2026-07-03: Machine-readable enforcement envelope added.
+      Every light-mode response now includes: init_mode, session_mode,
+      authority_scope, actor_bound, tool_registry_version, kernel_epoch,
+      public_surface_version, allowed_next_verbs, trace block, and
+      witness block — the complete contract needed for benchmark operability.
     """
     import uuid as _uuid
 
@@ -386,11 +407,46 @@ def _project_light(
     called_from_kernel = True  # arif_init is always a kernel-internal call
     invocation_count = 1  # first call in session
 
+    # ── AOB P0 — 2026-07-03: Machine envelope fields ──
+    _authority = "OBSERVE_ONLY" if not actor_verified else "FULL"
+    _is_ephemeral = session_mode == "ephemeral_eval"
+    _allowed_next = (
+        ["arif_observe", "arif_think", "arif_route"]
+        if _is_ephemeral
+        else ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_act", "arif_seal"]
+    )
+
     return {
         # GATING
         "session_id": sid,
-        "actor_verified": False,
-        "authority": "OBSERVE_ONLY",
+        "actor_verified": actor_verified,
+        "authority": _authority,
+        # ── AOB P0: Machine enforcement envelope ──
+        "init_mode": "light",
+        "session_mode": session_mode,
+        "authority_scope": _authority,
+        "actor_bound": actor_verified,
+        "kernel_epoch": "2026-07-03",
+        "public_surface_version": "7",
+        "tool_registry_version": "1.0.0",
+        "allowed_next_verbs": _allowed_next,
+        "trace": {
+            "run_id": f"run-{_uuid.uuid4().hex[:8]}",
+            "scenario_id": None,
+            "benchmark_id": None,
+            "tool_registry_version": "1.0.0",
+            "otel_trace_id": None,
+        },
+        "witness": {
+            "active_count": 1 if actor_verified else 0,
+            "missing_types": (
+                ["EARTH_MEASUREMENT", "INDEPENDENT_HUMAN", "AI_MODEL_B"]
+                if actor_verified
+                else ["HUMAN", "AI_MODEL_A", "AI_MODEL_B", "EARTH_MEASUREMENT", "INDEPENDENT_HUMAN"]
+            ),
+            "mode3_collapse": False,
+            "diversity_level": "VOID" if not actor_verified else "DEGRADED",
+        },
         # VERDICT (single source)
         "verdict": {
             "delta": "STABLE",
@@ -398,6 +454,8 @@ def _project_light(
             "omega": "OK",
             "overall": "OK" if not degraded else f"DEGRADED:{len(degraded)}",
         },
+        "verdict_code": "OK" if not degraded else "SABAR.DEGRADED",
+        "action_class": "OBSERVE",
         # CONSTITUTION (by-reference, never inline)
         "constitution_hash": constitution_hash,
         "detail_ref": f"arifos://constitution/{constitution_hash}",
@@ -412,10 +470,10 @@ def _project_light(
         "session_birth": {
             "session_id": sid,
             "actor_id": actor_id,
-            "authority_mode": "OPERATOR",
+            "authority_mode": "SOVEREIGN" if actor_verified else "OPERATOR",
             "stage": "000",
             "lane": "AGI",
-            "verdict": "OBSERVE_ONLY",
+            "verdict": "FULL" if actor_verified else "OBSERVE_ONLY",
         },
         # RSI 2026-06-22: renamed from model_soul_loaded / model_shadow_loaded
         # (F9 ANTI-HANTU / F10 MECHANICAL-CLAIM compliance)
@@ -652,19 +710,20 @@ def arif_init(
     # verbose="audit" → full union (seal path only)
     # Anything else → rejected by _assert_no_static_inline
     #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
+    # ── AOB P0 — 2026-07-03: session mode ──────────────────────────────
+    session_mode: str = "persistent_bound",
+    #   ephemeral_eval: read-only, no identity bind, auto-HOLD on any mutate
+    #   persistent_bound: full governed path, identity required
+    #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
 ) -> SessionManifest:
     """
     000_INIT — Constitutional session bootstrap.
 
-    Now includes:
-    - Embodiment card (VPS-root awareness)
-    - Causality warning (atomic button awareness)
-    - Execution law (what requires what)
-    - Attention surface (what to watch)
-    - Tool surface (semantic groups, not raw dump)
-    - Risk leash (safety boundary)
+    Binds actor identity, returns session_id + authority level + floor status.
+    Includes: embodiment card, execution law, tool surface, risk leash.
 
-    No longer silently coerces null to "anonymous".
+    Modes: ping | light | init | resume | validate | epoch_open | epoch_seal | cleanup
+    Session modes: ephemeral_eval | persistent_bound (AOB P0 — 2026-07-03)
     """
 
     # ── PING MODE ──────────────────────────────────────────────
@@ -744,6 +803,93 @@ def arif_init(
             doctrine=ARIF_DOCTRINE,
         )
 
+    # ── EPHEMERAL_EVAL MODE (AOB P0 — 2026-07-03) ────────────────────
+    # Sessionless-safe evaluation: read-only, no identity bind,
+    # auto-HOLD escalation on any MUTATE+ action. For benchmarks.
+    if session_mode == "ephemeral_eval":
+        # Generate a lightweight session ID for tracing only — no identity bound
+        import uuid as _uuid
+
+        _eval_sid = f"eval-{_uuid.uuid4().hex[:12]}"
+        # Build machine-readable enforcement envelope
+        _eval_envelope = make_ephemeral_envelope(
+            verb="arif_init",
+            session_id=_eval_sid,
+            allowed_next=["arif_observe", "arif_think", "arif_route"],
+        )
+        _eval_header = {
+            "session_id": _eval_sid,
+            "session_mode": "ephemeral_eval",
+            "authority_scope": "OBSERVE_ONLY",
+            "actor_bound": False,
+            "init_mode": "light",
+            "verdict": "SEAL",
+            "verdict_code": "OK",
+            "action_class": "OBSERVE",
+            "witness": {
+                "active_count": 0,
+                "missing_types": [
+                    "HUMAN",
+                    "AI_MODEL_A",
+                    "AI_MODEL_B",
+                    "EARTH_MEASUREMENT",
+                    "INDEPENDENT_HUMAN",
+                ],
+                "mode3_collapse": False,
+            },
+            "allowed_next_verbs": ["arif_observe", "arif_think", "arif_route"],
+            "trace": {
+                "run_id": _eval_sid,
+                "scenario_id": None,
+                "benchmark_id": None,
+                "tool_registry_version": "1.0.0",
+            },
+            "enforcement_envelope": _eval_envelope.model_dump(),
+            "constitution_hash": CONSTITUTION_HASH,
+            "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}",
+            "kernel_epoch": "2026-07-03",
+            "public_surface_version": "7",
+            "next_tool": "arif_observe",
+            "motto": DITEMPA_MOTTO,
+            "degraded": [],
+            "next_safe_action": "Read-only evaluation mode active. Any mutation will return HOLD.AUTH_REQUIRED.",
+            "state_emoji": "🧪",
+        }
+        return _sm(
+            status="OK",
+            tool="arif_init",
+            mode="light",
+            session=SessionState(
+                session_id=_eval_sid,
+                actor_id="ephemeral_eval",
+                stage="000",
+                lane="AGI",
+                constitution_bound=False,  # No identity → no constitution binding
+                verdict="SEAL",
+                authority="OBSERVE_ONLY",
+                init_tier=3,
+                actor_verified=False,
+            ),
+            actor={
+                "claimed_id": "ephemeral_eval",
+                "identity_verified": False,
+                "authority_level": "ANONYMOUS",
+            },
+            constitution={
+                "id": CONSTITUTION_HASH,
+                "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}",
+                "human_judge_required": False,
+            },
+            meta={
+                "session_mode": "ephemeral_eval",
+                "authority_mode": "OBSERVE_ONLY",
+                "mutation_blocked": True,
+            },
+            actor_verified=False,
+            result=_eval_header,
+            doctrine=ARIF_DOCTRINE,
+        )
+
     # ── CONSTITUTION HASH SCHISM GATE (INIT v2.0 P1.2) ─────────────────────────
     # Block: init, light, full, birth — any mode that creates a governed session.
     # Permitted: ping, discover, cleanup, challenge (pre-session probes).
@@ -766,6 +912,11 @@ def arif_init(
             actor_id or "light_client",
             declared_model_key=declared_model_key,
             deployment_id=deployment_id,
+            # ── /000 Principal-Agent Separation (forged 2026-07-01) ──
+            sovereign_id=sovereign_id,
+            caller_actor_id=caller_actor_id or actor_id,
+            executor_actor_id=executor_actor_id or actor_id,
+            delegation_mode=delegation_mode,
         )
         sid = sess.get("session_id", "UNKNOWN")
         model_key = declared_model_key or "unknown"
@@ -790,6 +941,16 @@ def arif_init(
         except Exception:
             pass
 
+        # ── P0 WIRING (light mode): Mark known identities as verified ─────
+        # Mirrors the same logic in init/full mode (line ~981).
+        # Without this, light-mode sessions always get SEAL_OBSERVE_ONLY.
+        _light_actor_verified = False
+        if actor_id:
+            _actor_lower = actor_id.lower().strip()
+            if "arif" in _actor_lower or "888" in _actor_lower:
+                _light_actor_verified = True
+                sess["actor_verified"] = True
+
         # ── Project to frozen header (15 fields, degraded-first) ────────
         header = _project_light(
             components={
@@ -806,6 +967,8 @@ def arif_init(
             sid=sid,
             actor_id=actor_id or "light_client",
             constitution_hash=CONSTITUTION_HASH,
+            actor_verified=_light_actor_verified,
+            session_mode=session_mode,  # AOB P0 — 2026-07-03
         )
 
         # ── Verbose=audit: only path that inlines statics (seal only) ───
@@ -816,6 +979,36 @@ def arif_init(
         # ── HARD INVARIANT — statics never inline outside audit ──────────
         _assert_no_static_inline(header, verbose=verbose if verbose else "")
 
+        # ── v42.0: Genesis Card Binding (AAA warga ignition) ────────────
+        # Load genesis_card.yaml — constitutional anchor for all sessions.
+        _genesis_card_path = "/root/AAA/registries/genesis/genesis_card.yaml"
+        _genesis_status = "not_loaded"
+        try:
+            import yaml as _g_yaml  # type: ignore
+
+            with open(_genesis_card_path, "r") as _gf:
+                _gc = _g_yaml.safe_load(_gf)
+            _g_hash = _gc.get("content_hash_sha256", "")
+            header["genesis"] = {
+                "id": _gc.get("id"),
+                "title": _gc.get("title"),
+                "url": _gc.get("url"),
+                "did": _gc.get("did"),
+                "content_hash_sha256": _g_hash,
+                "constitution_reference": _gc.get("constitution_reference"),
+                "motto": _gc.get("motto", "DITEMPA BUKAN DIBERI"),
+                "sections_count": len(_gc.get("sections", [])),
+            }
+            sess["genesis_card_hash"] = _g_hash
+            _genesis_status = "loaded"
+        except FileNotFoundError:
+            header["genesis_status"] = "not_found"
+        except Exception as _g_exc:
+            header["genesis_status"] = f"error: {_g_exc}"
+        header["genesis_status"] = _genesis_status
+
+        _light_sovereign = sess.get("sovereign_id")
+        _light_delegation = sess.get("delegation_mode", "direct")
         return _sm(
             status="OK",
             tool="arif_init",
@@ -833,8 +1026,13 @@ def arif_init(
             ),
             actor={
                 "claimed_id": actor_id,
+                "sovereign_id": _light_sovereign,
+                "delegation_mode": _light_delegation,
                 "identity_verified": sess.get("actor_verified", False),
                 "authority_level": "OPERATOR",
+                "principal_agent_separation": _light_delegation == "delegated"
+                and _light_sovereign
+                and _light_sovereign != actor_id,
             },
             constitution={
                 "id": CONSTITUTION_HASH,
@@ -923,6 +1121,11 @@ def arif_init(
             actor_id,
             declared_model_key=declared_model_key,
             deployment_id=deployment_id,
+            # ── /000 Principal-Agent Separation (forged 2026-07-01) ──
+            sovereign_id=sovereign_id,
+            caller_actor_id=caller_actor_id,
+            executor_actor_id=executor_actor_id,
+            delegation_mode=delegation_mode,
         )
 
         # ════════════════════════════════════════════════════════════════════════
@@ -931,9 +1134,20 @@ def arif_init(
         # ════════════════════════════════════════════════════════════════════════
 
         # ── Authority / identity ─────────────────────────────────────────
-        authority_level = (
-            "SOVEREIGN" if actor_id == "arif" else ("OPERATOR" if actor_id else "ANONYMOUS")
-        )
+        # /000: Principal-Agent Separation (forged 2026-07-01)
+        # Authority derives from sovereign_id (human principal at position zero),
+        # NOT from actor_id (which may be an agent instrument).
+        # When sovereign_id is absent but actor_id is a known principal (arif/888),
+        # treat actor_id as both principal and agent (backward compatible).
+        _effective_principal = sovereign_id or actor_id
+        if _effective_principal and _effective_principal.lower().strip() in ("arif", "888"):
+            authority_level = "SOVEREIGN"
+        elif sovereign_id and actor_id and actor_id != sovereign_id:
+            authority_level = "DELEGATED"
+        elif actor_id:
+            authority_level = "OPERATOR"
+        else:
+            authority_level = "ANONYMOUS"
 
         identity_verified = False
         if actor_id == "arif" and nonce and signature:
@@ -992,6 +1206,65 @@ def arif_init(
             # Don't override FULL/SOVEREIGN — only degrade LIMITED_MUTATE/OBSERVE_ONLY
             # This prevents accidentally downgrading a verified sovereign session
 
+        # ── P3 WIRING (2026-06-28): Qdrant memory recall on session init ──
+        # Without this, every session starts cold — no context from prior sessions.
+        # Load last 5 relevant vault entries as context.
+        _init_memory_recall: list[dict] = []
+        try:
+            from arifosmcp.runtime.memory_store import _get_qdrant_client
+            from qdrant_client.http import models
+
+            qclient = _get_qdrant_client()
+            if qclient is not None:
+                # Search arifos_memory and arifos_session_memory for recent entries
+                search_results = qclient.scroll(
+                    collection_name="arifos_memory",
+                    limit=5,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                if search_results and search_results[0]:
+                    for point in search_results[0]:
+                        payload = point.payload or {}
+                        _init_memory_recall.append(
+                            {
+                                "id": point.id,
+                                "content": payload.get("content", "")[:300],
+                                "session_id": payload.get("session_id", ""),
+                                "timestamp": payload.get("timestamp", ""),
+                                "actor_id": payload.get("actor_id", ""),
+                            }
+                        )
+                # Also check vault for recent seals
+                search_results_vault = qclient.scroll(
+                    collection_name="arifos_session_memory",
+                    limit=3,
+                    with_payload=True,
+                    with_vectors=False,
+                )
+                if search_results_vault and search_results_vault[0]:
+                    for point in search_results_vault[0]:
+                        payload = point.payload or {}
+                        _init_memory_recall.append(
+                            {
+                                "id": point.id,
+                                "content": payload.get("content", "")[:300],
+                                "session_id": payload.get("session_id", ""),
+                                "timestamp": payload.get("timestamp", ""),
+                                "actor_id": payload.get("actor_id", ""),
+                            }
+                        )
+
+            if _init_memory_recall:
+                sess["init_memory_recall"] = _init_memory_recall[:5]
+                # Update context completeness score — memory loaded improves it
+                context_receipt.score = min(context_receipt.score + 0.15, 1.0)
+                context_receipt.verdict = "ADEQUATE_CONTEXT"
+                sess["context_completeness"] = context_receipt.model_dump()
+        except Exception as exc:
+            logger.warning(f"P3 memory recall failed (non-fatal): {exc}")
+            sess["init_memory_recall"] = []
+
         # ── Soul/shadow load (minimal — only .loaded for header) ─────────
         _model_soul, _model_shadow = _load_soul_shadow(declared_model_key or "unknown")
         sess["model_soul"] = _model_soul
@@ -1028,6 +1301,8 @@ def arif_init(
             constitution_hash=CONSTITUTION_HASH,
             # INIT v2.0 Phase 3.2: always surface context completeness score
             context_completeness=sess.get("context_completeness"),
+            actor_verified=identity_verified,
+            session_mode=session_mode,  # AOB P0 — 2026-07-03
         )
         # Override authority if verified sovereign
         if identity_verified and authority_level == "SOVEREIGN":
@@ -1055,6 +1330,13 @@ def arif_init(
                 doctrine=ARIF_DOCTRINE,
             )
 
+        # ── /000 Principal-Agent Response (forged 2026-07-01) ────────────
+        _sovereign_id = sess.get("sovereign_id")
+        _delegation_mode = sess.get("delegation_mode", "direct")
+        _is_delegated = (
+            _delegation_mode == "delegated" and _sovereign_id and _sovereign_id != actor_id
+        )
+
         return _sm(
             status="OK",
             tool="arif_init",
@@ -1076,8 +1358,11 @@ def arif_init(
             ),
             actor={
                 "claimed_id": actor_id,
+                "sovereign_id": _sovereign_id,
+                "delegation_mode": _delegation_mode,
                 "identity_verified": identity_verified,
                 "authority_level": authority_level,
+                "principal_agent_separation": _is_delegated,
             },
             constitution={
                 "id": CONSTITUTION_HASH,

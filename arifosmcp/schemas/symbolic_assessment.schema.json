@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic_assessment.schema.json",
+  "title": "SymbolicAssessment",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Common symbolic assessment block appended to every major tool output. This schema is intended to be referenced via $ref (not inlined) from each organ's per-tool output schema. Additive only — never rewires existing fields. spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md",
+  "type": "object",
+  "required": [
+    "literal_result",
+    "symbolic_meaning",
+    "authority_used",
+    "authority_missing",
+    "social_blast_radius",
+    "cultural_risk",
+    "reversibility",
+    "next_safe_action"
+  ],
+  "properties": {
+    "literal_result": {
+      "type": "string",
+      "description": "Plain, factual statement of what this tool actually did or returned. No interpretation."
+    },
+    "symbolic_meaning": {
+      "type": "string",
+      "description": "How this output will likely be read socially — by Arif, by institutions, by downstream agents. Distinguish from literal."
+    },
+    "authority_used": {
+      "type": "string",
+      "description": "Which authority was the basis for this action (e.g. arifOS, VAULT999, Arif, institution, none)."
+    },
+    "authority_missing": {
+      "type": "string",
+      "description": "Which authority was NOT present but was implicitly required. Empty string if none."
+    },
+    "social_blast_radius": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Estimated social blast radius of this output if leaked or misread."
+    },
+    "cultural_risk": {
+      "type": "string",
+      "enum": [
+        "none",
+        "maruah",
+        "adab",
+        "family",
+        "grief",
+        "institutional",
+        "legal",
+        "sovereign"
+      ],
+      "description": "Cultural-sensitivity risk class. Empty/None if no cultural dimension is implicated."
+    },
+    "reversibility": {
+      "type": "string",
+      "enum": ["reversible", "semi_irreversible", "irreversible"],
+      "description": "Whether the social/operational effect of this output can be undone."
+    },
+    "next_safe_action": {
+      "type": "string",
+      "description": "Suggested next action that preserves reversibility and avoids false-seal/maruah risk."
+    },
+    "evidence_layer": {
+      "type": "string",
+      "enum": ["L0_observation", "L1_derivation", "L2_interpretation", "L3_speculation"],
+      "description": "Optional. Which evidence layer this output rests on (L0=raw, L1=derived, L2=interpreted, L3=speculative)."
+    },
+    "false_seal_risk": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Optional. Risk that this output will be misread as a constitutional SEAL when it is not."
+    }
+  },
+  "additionalProperties": false
+}

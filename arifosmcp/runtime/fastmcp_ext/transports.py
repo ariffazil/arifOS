@@ -147,8 +147,12 @@ class ConstitutionalJWTAuthMiddleware:
         headers = _decode_headers(scope)
         authorization = headers.get("authorization", "").strip()
         token = ""
+        is_dpop = False
         if authorization.lower().startswith("bearer "):
             token = authorization[7:].strip()
+        elif authorization.lower().startswith("dpop "):
+            token = authorization[5:].strip()
+            is_dpop = True
 
         # ── JWT Verification ──────────────────────────────────────────────
         jwt_result = None
@@ -178,6 +182,56 @@ class ConstitutionalJWTAuthMiddleware:
                     )
                     await response(scope, receive, send)
                     return
+
+            # ── DPoP Verification ─────────────────────────────────────────────
+            cnf_jkt = jwt_result.claims.get("cnf", {}).get("jkt") if jwt_result.valid else None
+            dpop_header = headers.get("dpop", "").strip()
+
+            if is_dpop or dpop_header or cnf_jkt:
+                from arifosmcp.runtime.dpop_auth import verify_dpop_proof
+
+                method = scope.get("method", "GET")
+                host = "localhost"
+                for k, v in scope.get("headers", []):
+                    if k == b"host":
+                        host = v.decode("utf-8")
+                        break
+                scheme = scope.get("scheme", "http")
+                path = scope.get("path", "")
+                url = f"{scheme}://{host}{path}"
+
+                dpop_res = verify_dpop_proof(
+                    proof_jwt=dpop_header,
+                    method=method,
+                    url=url,
+                    access_token=token,
+                    access_token_cnf_jkt=cnf_jkt,
+                )
+
+                if not dpop_res.valid:
+                    log_violation(
+                        token_preview=token[:8] + "..." if len(token) > 12 else "***",
+                        error=f"dpop_verification_failed: {dpop_res.error}",
+                        path=path,
+                    )
+                    if is_enforce_mode():
+                        response = JSONResponse(
+                            {
+                                "error": "unauthorized",
+                                "message": f"DPoP proof verification failed: {dpop_res.error}",
+                                "x-constitutional-status": "DENIED",
+                            },
+                            status_code=401,
+                            headers={"X-Constitutional-Status": "DENIED"},
+                        )
+                        await response(scope, receive, send)
+                        return
+                    else:
+                        jwt_result.valid = False
+                        jwt_result.error = f"dpop_failed: {dpop_res.error}"
+                else:
+                    if jwt_result.valid:
+                        jwt_result.auth_method = "dpop"
 
         # ── Identity Binding (JWT.sub ONLY) ───────────────────────────────
         from arifosmcp.runtime.jwt_auth import set_request_auth_lineage
@@ -481,6 +535,7 @@ def _build_http_middleware() -> list[Middleware]:
                     "Accept",
                     "Accept-Language",
                     "Authorization",
+                    "DPoP",
                     "Content-Language",
                     "Content-Type",
                     # MCP protocol headers
@@ -496,6 +551,7 @@ def _build_http_middleware() -> list[Middleware]:
                 expose_headers=[
                     "MCP-Session-Id",
                     "MCP-Protocol-Version",
+                    "X-DPoP-Status",
                     "X-Arifos-Sovereign-Status",
                     "X-Arifos-Sovereign-Subject",
                 ],

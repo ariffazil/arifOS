@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/well_assess_homeostasis.schema.json",
+  "title": "well_assess_homeostasis (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `well_assess_homeostasis`. This schema is APPENDED to the existing well schema for `well_assess_homeostasis` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Homeostasis numbers are read as social signals, not just internal telemetry.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ"
+  ],
+  "properties": {
+    "component": {
+      "const": "well_assess_homeostasis"
+    },
+    "organ": {
+      "const": "well"
+    },
+    "homeostasis_symbolic_layer": {
+      "type": "object",
+      "description": "§14 MEDIUM — Homeostasis can be misread as cold optimisation. Add the symbolic layer.",
+      "properties": {
+        "vitality_social_meaning": {
+          "type": "string"
+        },
+        "sleep_charge_grief_overlay": {
+          "type": "boolean"
+        },
+        "energy_symbol_for_others": {
+          "type": "string"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every well_assess_homeostasis output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}

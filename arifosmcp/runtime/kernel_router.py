@@ -262,6 +262,7 @@ class HardenedKernelRouter:
         try:
             from arifosmcp.schemas.kernel_envelope import ActionClass
             from arifosmcp.runtime.pre_execution_gate import quick_gate
+            from arifosmcp.runtime.tools import _is_actor_verified
 
             canonical_name = self.LEGACY_TO_CANONICAL.get(tool_name, tool_name)
             # Determine action class: init/session = observe; forge/vault = mutate
@@ -293,9 +294,15 @@ class HardenedKernelRouter:
             else:
                 action_class = ActionClass.OBSERVE
 
+            # P0 single-writer discipline (2026-07-04): route through canonical
+            # _is_actor_verified(session_id, actor_id) instead of the prior
+            # shortcut `(actor_id != "anonymous")` which returned True for any
+            # non-"anonymous" id (e.g. "openclaw-anon") and bypassed the real
+            # session check. This is the second writer that caused the
+            # envelope-False / wrapper-True contradiction in arif_organ_attest.
             gate_result = quick_gate(
                 action_class=action_class,
-                actor_verified=(actor_id != "anonymous"),
+                actor_verified=_is_actor_verified(session_id, actor_id),
                 tool_name=canonical_name,
             )
 

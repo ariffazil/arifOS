@@ -61,12 +61,12 @@ navigator.modelContext.registerTool("bookFlight", {
 ### Endpoints
 
 ```
-https://arifosmcp.arif-fazil.com/.well-known/webmcp     → WebMCP manifest
-https://arifosmcp.arif-fazil.com/webmcp                  → Console UI
-https://arifosmcp.arif-fazil.com/webmcp/sdk.js           → JavaScript SDK
-https://arifosmcp.arif-fazil.com/webmcp/tools.json       → Tool charter
-https://arifosmcp.arif-fazil.com/webmcp/execute/{tool}   → HTTP execution
-https://arifosmcp.arif-fazil.com/webmcp/ws               → WebSocket
+https://arifos.arif-fazil.com/.well-known/webmcp     → WebMCP manifest
+https://arifos.arif-fazil.com/webmcp                  → Console UI
+https://arifos.arif-fazil.com/webmcp/sdk.js           → JavaScript SDK
+https://arifos.arif-fazil.com/webmcp/tools.json       → Tool charter
+https://arifos.arif-fazil.com/webmcp/execute/{tool}   → HTTP execution
+https://arifos.arif-fazil.com/webmcp/ws               → WebSocket
 ```
 
 ---
@@ -85,18 +85,18 @@ docker-compose up -d --build arifosmcp
 ### Step 2: Verify WebMCP Works
 ```bash
 # Check manifest
-curl https://arifosmcp.arif-fazil.com/.well-known/webmcp
+curl https://arifos.arif-fazil.com/.well-known/webmcp
 
 # Check console
-curl https://arifosmcp.arif-fazil.com/webmcp
+curl https://arifos.arif-fazil.com/webmcp
 
 # Check SDK
-curl https://arifosmcp.arif-fazil.com/webmcp/sdk.js
+curl https://arifos.arif-fazil.com/webmcp/sdk.js
 ```
 
 ### Step 3: Test in Browser
 1. Open Chrome 146+ (or any browser)
-2. Go to: https://arifosmcp.arif-fazil.com/webmcp
+2. Go to: https://arifos.arif-fazil.com/webmcp
 3. You should see the WebMCP Console with:
    - Initialize Session form
    - Constitutional Kernel form
@@ -136,7 +136,7 @@ docker-compose.yml                           ← MOD: Fix WebMCP routing
 
 ```bash
 # 1. Check if WebMCP is discoverable
-curl -s https://arifosmcp.arif-fazil.com/.well-known/webmcp | jq
+curl -s https://arifos.arif-fazil.com/.well-known/webmcp | jq
 
 # Expected output:
 {
@@ -152,7 +152,7 @@ curl -s https://arifosmcp.arif-fazil.com/.well-known/webmcp | jq
 }
 
 # 2. Check console page
-curl -s https://arifosmcp.arif-fazil.com/webmcp | head -20
+curl -s https://arifos.arif-fazil.com/webmcp | head -20
 
 # Should show HTML with "arifOS WebMCP" title
 ```

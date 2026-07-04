@@ -138,7 +138,7 @@ def generate_llms_txt() -> str:
     lines.append("| Organ | MCP Endpoint | Role | Tools |")
     lines.append("|------|-------------|------|-------|")
     lines.append(
-        f"| **arifOS** (8088) | `arifos.arif-fazil.com/mcp` | Governance kernel | {len(_canonical_tool_list())} canonical + {len(_operational_tool_list())} operational |"
+        f"| **arifOS** (8088) | `mcp.arif-fazil.com/mcp` | Governance kernel | {len(_canonical_tool_list())} canonical + {len(_operational_tool_list())} operational |"
     )
     lines.append(
         "| **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |"

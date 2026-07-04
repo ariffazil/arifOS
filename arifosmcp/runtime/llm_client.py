@@ -1,23 +1,20 @@
 """
 arifosmcp/runtime/llm_client.py — Shared LLM Cognition Client
 
-Trinity loop (per Arif directive 2026-06-27):
-  Tier 1:   MiniMax M3  (https://api.minimax.io/v1) — primary reasoning
-  Tier 1.5: MiMo        (https://token-plan-sgp.xiaomimimo.com/v1) — secondary
-  Tier 2:   SEA-LION    (https://api.sea-lion.ai/v1) — third voice, GPU-accelerated
-  Tier 3:   raises LLMUnavailableError — caller applies deterministic fallback
+APEX Theory applied (TokenRouter primary gateway):
+- TokenRouter (https://api.tokenrouter.com/v1) — PRIMARY for all organs.
+  Organ/task-aware routing (quality/cost/latency modes per spec):
+    GEOX: petrophysics=deepseek-v4-pro (1M quality), basin screen=flash (cost), seismic=glm-5.1 (spatial)
+    WEALTH: emv/npv=cost-fast, risk=deep-reasoner (quality), market=latency
+    WELL: cost mode only + PII firewalls (reflect-only)
+- Direct fallbacks (MiniMax/MiMo) for redundancy: federation survives single provider failure.
+- TokenRouter + direct = sovereignty + resilience.
 
-Azure removed per Arif directive 2026-06-27 (was Tier 1.5).
+Tier 0 (TokenRouter) → Tier 1 (MiniMax) → etc. as fallback.
 
-ILMU (ilmu-nemo-nano) — BLOCKED per FFF 2026-06-15.
-  F13 inversion, register-dependent hallucination, L02A parse failure.
-  Removed from cascade. Retained in config for audit trail only.
+ILMU BLOCKED. Ollama EMBEDDING only.
 
-Ollama (localhost:11434) is reserved for EMBEDDING only (bge-m3).
-Not used for text generation.
-
-ALL LLM output passes through 777_WITNESS envelope before reaching tool logic.
-Raw LLM text never enters judgment, memory, vault, or external action directly.
+ALL output via 777_WITNESS envelope.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -122,6 +119,40 @@ ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
 SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")
 SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
 SEA_LION_MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-SEA-LION-v4-32B-IT")
+
+
+def resolve_tokenrouter_model(
+    organ: str = "", task_type: str = "", preferred: str | None = None
+) -> str:
+    """APEX Theory router: organ + task → best TokenRouter model (quality/cost/latency).
+
+    Uses the pasted spec for GEOX/WEALTH/WELL + fallbacks.
+    All via TokenRouter for unified key + redundancy (TokenRouter + direct providers).
+    """
+    if preferred:
+        return preferred
+    o = (organ or "").lower()
+    t = (task_type or "").lower()
+    if o == "geox" or "geox" in t or "petrophys" in t or "well_log" in t or "basin" in t or "seismic" in t:
+        if any(k in t for k in ("petrophys", "well log", "full log", "qc", "interpretation")):
+            return "deepseek-v4-pro"  # quality, 1M ctx for full well logs
+        if any(k in t for k in ("quick", "screen", "basin screen", "fast")):
+            return "deepseek-v4-flash"  # cost mode
+        if any(k in t for k in ("seismic", "spatial", "interpret")):
+            return "glm-5.1"  # or glm-5-turbo; good spatial reasoning
+        return "deepseek-v4-pro"  # default quality for GEOX earth evidence
+    if o == "wealth" or "wealth" in t or "emv" in t or "npv" in t or "risk" in t or "market" in t:
+        if any(k in t for k in ("emv", "npv", "compute", "irr", "fiscal", "runway")):
+            return "deepseek-v4-flash"  # cost/fast deterministic math
+        if any(k in t for k in ("risk", "asym", "asymmetry", "scenario")):
+            return "deepseek-reasoner"  # quality deep on asymmetric
+        if any(k in t for k in ("market", "latency", "real-time", "fx", "price")):
+            return "glm-5-turbo"  # latency mode (fast agentic)
+        return "deepseek-v4-flash"  # default cost for capital compute
+    if o == "well" or "well" in t or "vital" in t or "metabol" in t or "dignity" in t:
+        return "deepseek-v4-flash"  # cost mode for reflect-only; low compute
+    # default (e.g. arifos, aforge, general)
+    return TOKENROUTER_MODEL
 
 
 class LLMUnavailableError(Exception):
@@ -454,13 +485,16 @@ async def _call_tokenrouter(
     response_schema: dict[str, Any] | None,
     temperature: float,
     max_tokens: int = 1200,
+    model: str | None = None,
 ) -> tuple[str, dict[str, Any]]:
     """
     Tier 0 — call TokenRouter (OpenAI-compatible proxy, embedded key).
 
-    TokenRouter is the primary gateway. It proxies to MiniMax M3 by default.
-    API key is hardcoded per F13 directive — env var fallback for rotation.
-    OpenAI-compatible /v1/chat/completions endpoint.
+    TokenRouter is the PRIMARY gateway per APEX Theory (F13 directive).
+    Supports organ/task-specific routing (quality/cost/latency modes).
+    Proxies to best model for task (DeepSeek V4 Pro for high-accuracy 1M ctx,
+    Flash for cost, GLM for spatial, etc.). + direct fallbacks for redundancy.
+    API key from vault / env. OpenAI-compatible /v1/chat/completions.
 
     Returns (raw_output_str, parsed_output_dict).
     """
@@ -471,8 +505,9 @@ async def _call_tokenrouter(
     if user:
         messages.append({"role": "user", "content": user})
 
+    effective_model = model or TOKENROUTER_MODEL
     payload: dict[str, Any] = {
-        "model": TOKENROUTER_MODEL,
+        "model": effective_model,
         "messages": messages,
         "max_tokens": max_tokens,
         "temperature": temperature,
@@ -532,7 +567,7 @@ async def _call_tokenrouter(
     if not parsed:
         raise LLMUnavailableError("TokenRouter returned empty JSON object")
 
-    logger.debug("TokenRouter inference complete (model=%s)", TOKENROUTER_MODEL)
+    logger.debug("TokenRouter inference complete (model=%s)", effective_model)
     return raw_output, parsed
 
 
@@ -1043,29 +1078,28 @@ async def call_llm(
     tool_origin: str = "UNKNOWN",
     mode: str = "infer",
     trace_recursion_depth: int = 0,
+    preferred_model: str | None = None,
+    organ: str = "",
+    task_type: str = "",
 ) -> LLMOutputEnvelope:
     """
-    Call TokenRouter (Tier 0) → MiniMax M3 (Tier 1) → MiMo (Tier 1.5) → SEA-LION (Tier 2).
+    Call TokenRouter (Tier 0 primary) → direct fallbacks.
 
-    Trinity loop per Arif directive 2026-06-28:
-      Tier 0:   TokenRouter (OpenAI-compatible proxy, embedded key) — PRIMARY GATEWAY
-      Tier 1:   MiniMax M3  — direct API (fallback if TokenRouter fails)
-      Tier 1.5: MiMo       — secondary (TokenPlan mimo-v2.5-pro, Arif's primary model)
-      Tier 2:   SEA-LION   — tertiary (aisingapore/Llama-SEA-LION-v3.5-70B-R, GPU-accelerated)
-    Azure removed. ILMU BLOCKED per FFF 2026-06-15 — not in cascade.
+    APEX Theory applied (per pasted spec):
+    - TokenRouter as unified gateway for redundancy (survives single provider failure).
+    - Organ/task-specific routing (quality/cost/latency modes):
+      GEOX: petrophysics=DeepSeek V4 Pro (1M), quick basin=Flash (cost), seismic=GLM 5.1 (spatial)
+      WEALTH: EMV/NPV=cost fast, risk=quality deep, market=latency
+      WELL: cost mode + PII firewalls (reflect-only)
+    - tool_origin or organ/task_type used to resolve model when preferred_model not passed.
 
     Returns LLMOutputEnvelope — the single legal form of LLM output in arifOS.
-    The envelope is the ONLY thing that should reach tool logic, judgment, or memory.
 
     Args:
-        system:       Constitutional system prompt
-        user:         User query / task description
-        response_schema: JSON schema describing required output fields
-        temperature:  Sampling temperature (0.1–0.3 for adjudication, 0.4–0.7 for reply)
-        max_tokens:   Maximum tokens in response
-        tool_origin:  Canonical tool name calling this LLM (e.g. "333_REASON")
-        mode:         Cognitive mode of the call (e.g. "reason", "critique")
-        trace_recursion_depth: current recursion depth in the call chain
+        ... (existing)
+        preferred_model: explicit model id to send to TokenRouter (e.g. "deepseek-v4-pro")
+        organ: "geox" | "wealth" | "well" | ...
+        task_type: "petrophysics" | "emv" | "risk" | "seismic" | ...
     """
     # Build combined prompt string for audit trail
     combined_prompt = f"{system}\n\n{user}"
@@ -1092,19 +1126,19 @@ async def call_llm(
             trace_recursion_depth,
         )
 
-    # Tier 0 — TokenRouter (OpenAI-compatible proxy, embedded key)
-    # P1 HARDENING (2026-06-28): Primary gateway per F13 directive.
-    # Proxies to MiniMax M3. Falls through to direct MiniMax on failure.
+    # Tier 0 — TokenRouter (OpenAI-compatible proxy, embedded key) — PRIMARY
+    # APEX Theory: resolve per organ/task for quality/cost/latency + redundancy.
+    effective_model = preferred_model or resolve_tokenrouter_model(organ, task_type)
     try:
         t0 = time.monotonic()
         raw_output, parsed = await _call_tokenrouter(
-            system, user, response_schema, temperature, max_tokens
+            system, user, response_schema, temperature, max_tokens, model=effective_model
         )
         return _make_envelope(
             raw_output,
             parsed,
             "tokenrouter",
-            TOKENROUTER_MODEL,
+            effective_model,
             tool_origin,
             mode,
             combined_prompt,

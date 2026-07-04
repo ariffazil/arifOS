@@ -73,7 +73,9 @@ from .tree777 import register_tree777_resources
 from .trinity import register_trinity
 from .vitals import register_vitals
 from .tool_discovery import register_tool_discovery
+from .retrieve_tools import register_retrieve_tools
 from .vault999_template import register_vault999_template
+from .surface_map import register_surface_map
 
 CANONICAL_RESOURCES = (
     "arifos://doctrine",
@@ -90,11 +92,11 @@ CANONICAL_RESOURCES = (
     "arifos://loop-engineering",
     "arifos://quickstart",
     "arifos://mcp-alignment",  # MCP spec conformance — useful for debugging
-    # REMOVED 2026-06-28 (zen of resources — indices to indices):
+    "arifos://mcp/surface-map",
+)    # REMOVED 2026-06-28 (zen of resources — indices to indices):
     #   tree777://index         — wiki index, not domain operational data
     #   runner://policy/v1      — runner policy metadata, not AI operational data
     #   arif://tools/discovery  — consolidated into arifos://tools/self-model
-)
 
 SUPPLEMENTAL_RESOURCES = (
     # REMOVED 2026-06-28 (catalog-of-catalog — meta, not domain data):
@@ -168,5 +170,7 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_human_context(mcp))
     registered.extend(register_reality_state(mcp))
     registered.extend(register_tool_discovery(mcp))
+    registered.extend(register_retrieve_tools(mcp))
     registered.extend(register_vault999_template(mcp))
+    registered.extend(register_surface_map(mcp))
     return registered

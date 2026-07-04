@@ -1,5 +1,7 @@
 # PHOENIX-72 Archaeological Archive
 
+> **⚠️ HISTORICAL RECORD** — This archive uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`, etc.). See [`/root/arifOS/docs/HISTORICAL_NOTICE.md`](../HISTORICAL_NOTICE.md) for the migration map. These names were correct at the time of writing (2026-05-26).
+
 > DITEMPA BUKAN DIBERI — Intelligence is forged, not given.
 
 ## What This Is

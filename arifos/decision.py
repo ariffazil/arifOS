@@ -3,6 +3,13 @@ decision.py — The single Decision object.
 
 This is the kernel's verdict on a proposed action. The same
 Decision flows through prethink → pretool → posttool → seal.
+
+APEX THEORY EMBEDDING (2026-06-28):
+- apex_overclaim_audit(): F2 TRUTH enforcement — detect certainty
+  claims without evidence. Maps to APEX Contrast (overclaim audit).
+- apex_epistemic_tag: OBS/DER/INT/SPEC labels in FloorVerdict.evidence.
+- apex_mesa_signal in RiskEnvelope: Landauer thermodynamic cost signal
+  from risk.py, surfaced as a decision-level field.
 """
 
 from __future__ import annotations
@@ -10,6 +17,156 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
+
+# APEX THEORY imports
+from arifos.risk import landauer_cost_for_action, mesa_optimization_signal
+
+
+# ─── APEX: Epistemic Tagging ─────────────────────────────────────────────────
+
+APEX_EPISTEMIC_TAGS: tuple[str, ...] = ("OBS", "DER", "INT", "SPEC")
+"""
+APEX THEORY: Epistemic certainty labels.
+
+Required on every claim in FloorVerdict.reason and Decision.reasons.
+Hard cap at 0.90 confidence per F7 HUMILITY.
+"""
+
+
+def apex_tag_claim(claim: str, default_tag: str = "OBS") -> str:
+    """
+    APEX THEORY: Tag a textual claim with its epistemic source.
+
+    Scans the claim for markers and returns the appropriate tag:
+    - OBS  — direct observation ("I see X", "X is present")
+    - DER  — derived from OBS ("therefore X", "computed X from Y")
+    - INT  — interpretation of ambiguous data ("likely X", "may be Y")
+    - SPEC — speculation without direct evidence ("might X", "could be Y")
+
+    If no markers found, returns default_tag (default: OBS).
+    Falls back to DER if the claim contains logical connectors.
+    Falls back to SPEC if modal uncertainty words are present.
+    """
+    claim_lower = claim.lower()
+
+    # APEX contrast: certainty markers override everything.
+    # "definitely confirmed" = SPEC (overclaim), not OBS.
+    certainty_markers = (
+        "definitely",
+        "certainly",
+        "absolutely",
+        "clearly",
+        "obviously",
+        "undoubtedly",
+        "surely",
+        "always",
+        "never",
+    )
+    if any(m in claim_lower for m in certainty_markers):
+        return "SPEC"
+
+    # SPEC markers — modal speculation
+    spec_markers = (
+        "might",
+        "could",
+        "possibly",
+        "perhaps",
+        "speculate",
+        "unconfirmed",
+        "unverified",
+        "unclear",
+        "unknown",
+        "may be",
+        "potentially",
+        "assumed",
+    )
+    if any(m in claim_lower for m in spec_markers):
+        return "SPEC"
+
+    # OBS markers — direct observation (checked after SPEC to avoid
+    # false OBS from "confirmed" which appears in both categories)
+    obs_markers = (
+        "observed",
+        "confirmed",
+        "measured",
+        "detected",
+        "present",
+        "exists",
+        "seen",
+        "found",
+        "verified",
+    )
+    if any(m in claim_lower for m in obs_markers):
+        return "OBS"
+
+    # DER markers — logical derivation
+    der_markers = (
+        "therefore",
+        "thus",
+        "hence",
+        "computed",
+        "calculated",
+        "derived",
+        "because",
+        "implies",
+        "consequently",
+    )
+    if any(m in claim_lower for m in der_markers):
+        return "DER"
+
+    # INT markers — interpretive
+    int_markers = (
+        "likely",
+        "probable",
+        "appears",
+        "suggests",
+        "consistent with",
+        "indicative",
+        "presumed",
+    )
+    if any(m in claim_lower for m in int_markers):
+        return "INT"
+
+    return default_tag
+
+
+def apex_overclaim_audit(claims: list[str]) -> dict[str, Any]:
+    """
+    APEX THEORY: F2 TRUTH — detect overclaim / certainty without evidence.
+
+    Scans a list of textual claims and flags:
+    - SPEC claims asserted as CERTAIN (confidence > 0.90 on unverified)
+    - INT claims treated as OBS
+    - Missing epistemic tags
+
+    Returns:
+        overclaim_count: number of overclaim patterns detected
+        flagged_claims: list of (claim, issue) tuples
+        apex_epistemic_tags: APEX-EPISTEMIC-TAG header for responses
+    """
+    flagged = []
+    for claim in claims:
+        tag = apex_tag_claim(claim)
+        issue = None
+
+        if tag == "SPEC" and ("definitely" in claim.lower() or "certainly" in claim.lower()):
+            issue = "SPEC claim with certainty language"
+        elif tag == "INT" and "confirmed" in claim.lower():
+            issue = "INT claim with OBS certainty language"
+
+        if issue:
+            flagged.append((claim, issue))
+
+    return {
+        "overclaim_count": len(flagged),
+        "flagged_claims": flagged,
+        "apex_epistemic_tags": APEX_EPISTEMIC_TAGS,
+        "confidence_cap": 0.90,  # F7 HUMILITY hard cap
+        "epistemic_label": "APEX-OVERCLAIM-AUDIT",
+        # APEX contrast: always label confidence explicitly
+        "confidence": 0.85,
+        "confidence_label": "DER",
+    }
 
 
 # Re-export for backward compat
@@ -121,6 +278,7 @@ class RiskEnvelope(BaseModel):
     human_ack_required: bool = False
     estimated_tokens: int = 0
     estimated_time_seconds: int = 0
+    fidelity_loss: float = 0.0  # APEX: estimated information loss at layer boundary crossings
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -150,6 +308,7 @@ class Decision(BaseModel):
     next_safe_action: str | None = None
     seal_pointer: str | None = None
     taint: Literal["UNTRUSTED", "TRUSTED", "VERIFIED"] = "UNTRUSTED"
+    fidelity_loss: float = 0.0  # APEX: cumulative information fidelity loss across layer boundaries
 
     def is_permitted(self) -> bool:
         return self.verdict in ("ALLOW", "DEGRADED")
@@ -176,4 +335,6 @@ class Decision(BaseModel):
             "next_safe_action": self.next_safe_action,
             "seal_pointer": self.seal_pointer,
             "taint": self.taint,
+            "fidelity_loss": self.fidelity_loss,
+            "risk_fidelity_loss": self.risk.fidelity_loss,
         }

@@ -116,7 +116,7 @@ class GEOXBridge:
     async def _judge_pre_check(self, operation: str, data_classification: str) -> dict[str, Any]:
         """Run arifOS Judge pre-check before delegating to GEOX."""
         try:
-            from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
+            from arifosmcp.runtime.dispatcher import get_tool_handler
 
             handler = get_tool_handler("arifos_judge")
             result = handler(
@@ -136,7 +136,7 @@ class GEOXBridge:
     async def _audit_post_check(self, result: dict[str, Any]) -> None:
         """Run arifOS Judge audit after GEOX returns."""
         try:
-            from arifosmcp.runtime.tools_hardened_dispatch import get_tool_handler
+            from arifosmcp.runtime.dispatcher import get_tool_handler
 
             handler = get_tool_handler("arifos_judge")
             handler(

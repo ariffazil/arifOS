@@ -103,7 +103,7 @@ All 214 tests pass in ~2.5s. **No regressions.** The substrate stayed 100% green
 | Item | Why F13 | What blocks it |
 |---|---|---|
 | 4-stage loop end-to-end live traversal | Requires F13-signed FederationEnvelope | Sovereign signature |
-| Public MCP endpoint test (arifos.arif-fazil.com/mcp) | External network + sovereign key | The sovereign is the only one who can sign a test envelope |
+| Public MCP endpoint test (mcp.arif-fazil.com/mcp) | External network + sovereign key | The sovereign is the only one who can sign a test envelope |
 | `arif_context_status` ACTIVE segments / DROPPED segments | Need packet integration; currently safe-default empty | Wire packet → status flow (1-session work) |
 | `_ARIF_PUBKEYS` wiring in vault999-writer | F11 cryptographic config | Sovereign pubkey choice |
 | `arif_session_init` async refactor (P0-4 connector) | 50+ line kernel surgery | Sovereign design conversation |

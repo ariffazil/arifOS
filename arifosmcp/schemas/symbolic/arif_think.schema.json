@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifosmcp.local/schemas/symbolic/arif_think.schema.json",
+  "title": "arif_think (symbolic hardening)",
+  "description": "MCP-SYMBOLIC-HARDEN-v1 §3 — additive symbolic hardening for `arif_think`. This schema is APPENDED to the existing arifos schema for `arif_think` and does not rewrite any pre-existing field. Spec: /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §3. Note: Mandatory for non-trivial tasks. arif_think cannot be trusted without this pass.",
+  "type": "object",
+  "required": [
+    "component",
+    "organ",
+    "symbolic_reasoning_pass"
+  ],
+  "properties": {
+    "component": {
+      "const": "arif_think"
+    },
+    "organ": {
+      "const": "arifos"
+    },
+    "symbolic_reasoning_pass": {
+      "type": "object",
+      "description": "§3.D — Mandatory 6-axis symbolic_reasoning_pass for every non-trivial task.",
+      "properties": {
+        "literal_meaning": {
+          "type": "string"
+        },
+        "social_meaning": {
+          "type": "string"
+        },
+        "authority_implication": {
+          "type": "string"
+        },
+        "emotional_charge": {
+          "type": "string"
+        },
+        "institutional_consequence": {
+          "type": "string"
+        },
+        "protocol_translation": {
+          "type": "string"
+        },
+        "uncertainty": {
+          "type": "string"
+        }
+      }
+    },
+    "symbolic_assessment": {
+      "$ref": "../symbolic_assessment.schema.json",
+      "description": "MCP-SYMBOLIC-HARDEN-v1 §8 — Every arif_think output should carry this symbolic_assessment block so callers can distinguish literal from symbolic, identify authority, and preserve reversibility. See /root/arifOS/forge_work/MCP-SYMBOLIC-HARDEN-v1.md §8."
+    }
+  },
+  "additionalProperties": true
+}
