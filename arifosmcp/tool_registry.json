@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS. canonical_order is the exposed 7-tool public facade; internal_canonical_order contains non-public supporting aliases that remain registered for compatibility and governed routing. Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py for canonical tools, spec-inferred for diagnostic tools. The contract is COMPUTED, not hand-set.",
+  "_note": "SOLE SOURCE OF TRUTH. Generated from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS. canonical_order is the exposed 9-tool public facade (ZEN-9 metabolic loop); internal_canonical_order contains non-public supporting aliases that remain registered for compatibility and governed routing. Do not hand-edit — edit the source dicts in constitutional_map.py and regenerate. FORGED 2026-06-21: affordance_contract added — derived from tool_risk_registry.py for canonical tools, spec-inferred for diagnostic tools. The contract is COMPUTED, not hand-set.",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py → ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
     "diagnostic_tools": "constitutional_map.py → spec-inferred from tier + irreversible + access fields",
@@ -9,19 +9,19 @@
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "7 canonical public verbs plus internal supporting aliases that are not on the default wire surface",
+    "arif_*": "9 canonical public verbs (ZEN-9) plus internal supporting aliases that are not on the default wire surface",
     "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
     "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
     "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
     "mcp_*": "GATED — Utility namespace for operational diagnostics"
   },
-  "canonical_count": 7,
+  "canonical_count": 9,
   "internal_canonical_count": 9,
   "diagnostic_count": 41,
   "total_surface": 57,
   "tier_summary": {
     "internal": 9,
-    "canonical": 7,
+    "canonical": 9,
     "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
@@ -33,7 +33,7 @@
     "discovery": 1
   },
   "tier_legend": {
-    "canonical": "7 exposed public verbs on the default MCP wire surface",
+    "canonical": "9 exposed public verbs on the default MCP wire surface (ZEN-9 metabolic loop)",
     "internal": "Internal supporting arif_* aliases/tools kept for governed routing and compatibility",
     "hermes": "Cross-verification, fact-checking, vault query, and epistemic checks",
     "canary": "Transport and protocol echo/probe tools",
@@ -45,25 +45,25 @@
   },
   "canonical_order": [
     "arif_init",
-    "arif_canary",
-    "arif_triage",
     "arif_observe",
-    "arif_fetch",
     "arif_think",
     "arif_route",
     "arif_critique",
-    "arif_bridge_connect",
     "arif_judge",
     "arif_forge",
-    "arif_compose"
+    "arif_compose",
+    "arif_seal"
   ],
   "internal_canonical_order": [
     "arif_kernel_intercept",
     "arif_memory",
     "arif_measure",
-    "arif_seal",
     "arif_act",
-    "arif_judge_deliberate"
+    "arif_judge_deliberate",
+    "arif_canary",
+    "arif_triage",
+    "arif_fetch",
+    "arif_bridge_connect"
   ],
   "diagnostic_order": [
     "hermes_system_status",
