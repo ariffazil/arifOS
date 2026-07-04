@@ -2,7 +2,7 @@
 test_public_surface_invariants — Lock canonical 9-stage metabolic loop MCP public facade.
 
 Invariants (ZEN-9 collapse 2026-07-04):
-  1. Default public surface = exactly CANONICAL_9 (9-stage loop, 8 verbs).
+  1. Default public surface = exactly CANONICAL_9 (9 tools, 9 stages).
   2. No forbidden tools appear in default mode.
   3. expanded45 requires explicit gate.
   4. All canonical tools have strict schemas (additionalProperties: false).
@@ -24,6 +24,7 @@ EXPECTED_CANONICAL_9 = {
     "arif_observe",
     "arif_think",
     "arif_route",
+    "arif_critique",
     "arif_judge",
     "arif_forge",
     "arif_compose",
@@ -38,8 +39,7 @@ FORBIDDEN_PUBLIC = {
     # Absorbed into arif_observe(mode=fetch)
     "arif_fetch",
     "arif_evidence_fetch",
-    # Absorbed into arif_think(mode=critique)
-    "arif_critique",
+    # Absorbed into arif_think (but arif_critique is standalone canonical)
     "arif_heart_critique",
     # Absorbed into arif_route(mode=bridge)
     "arif_bridge_connect",
@@ -69,8 +69,8 @@ class TestPublicSurfaceInvariants:
     """Constitutional MCP public surface invariants (ZEN-9)."""
 
     def test_canonical_9_exact_count(self):
-        """CANONICAL_9 must be exactly 8 tools (9 stages, critique absorbed into think)."""
-        assert len(CANONICAL_9) == 8, f"Expected 8, got {len(CANONICAL_9)}"
+        """CANONICAL_9 must be exactly 9 tools (9 stages, critique standalone)."""
+        assert len(CANONICAL_9) == 9, f"Expected 9, got {len(CANONICAL_9)}"
 
     def test_canonical_9_contents(self):
         """CANONICAL_9 must contain the exact expected tools."""
@@ -84,9 +84,9 @@ class TestPublicSurfaceInvariants:
         assert mode == "canonical9", f"Expected canonical9, got {mode}"
 
     def test_default_public_tools_exactly_8(self):
-        """Default public tools/list must return exactly CANONICAL_9."""
+        """Default public tools/list must return exactly CANONICAL_9 (9 tools)."""
         tools = public_tool_names_for_mode(None)
-        assert len(tools) == 8, f"Expected 8 tools, got {len(tools)}: {tools}"
+        assert len(tools) == 9, f"Expected 9 tools, got {len(tools)}: {tools}"
 
     def test_default_public_tools_match_canonical(self):
         """Default public tools must match CANONICAL_9 exactly."""
@@ -140,6 +140,7 @@ class TestPublicSurfaceInvariants:
             "arif_observe",
             "arif_think",
             "arif_route",
+            "arif_critique",
             "arif_judge",
             "arif_forge",
             "arif_compose",
@@ -177,7 +178,6 @@ class TestPublicSurfaceInvariants:
             "arif_canary",
             "arif_triage",
             "arif_fetch",
-            "arif_critique",
             "arif_bridge_connect",
         ):
             assert absorbed not in tools, (

@@ -7,26 +7,23 @@ def test_public_registry_exposes_only_canonical_12() -> None:
     tools = build_server_json()["tools"]
     names = {tool["name"] for tool in tools}
 
-    # FROZEN 2026-07-04: canonical12 wire surface = exactly 12 canonical verbs.
-    # SDK aliases and individual canary children removed from wire surface — one
-    # name per function. arif_forge replaces arif_act as the canonical execution
-    # tool; arif_act is now an internal alias only.
+    # ZEN-9 (2026-07-04): canonical wire surface = exactly 9 canonical verbs.
+    # arif_critique promoted to standalone (not absorbed into think).
+    # Absorbed tools (arif_canary, arif_triage, arif_fetch, arif_bridge_connect)
+    # are internal-only aliases.
     assert len(names) == EXPECTED_TOOL_COUNT
-    assert EXPECTED_TOOL_COUNT == 12, f"EXPECTED_TOOL_COUNT must be 12, got {EXPECTED_TOOL_COUNT}"
-    # All 12 canonical verbs on the wire
+    assert EXPECTED_TOOL_COUNT == 9, f"EXPECTED_TOOL_COUNT must be 9, got {EXPECTED_TOOL_COUNT}"
+    # All 9 canonical verbs on the wire
     expected_canonical = {
         "arif_init",
-        "arif_canary",
-        "arif_triage",
         "arif_observe",
-        "arif_fetch",
         "arif_think",
         "arif_route",
         "arif_critique",
-        "arif_bridge_connect",
         "arif_judge",
         "arif_forge",
         "arif_compose",
+        "arif_seal",
     }
     assert expected_canonical.issubset(names), (
         f"Missing canonical tools: {expected_canonical - names}"
@@ -42,7 +39,7 @@ def test_public_registry_exposes_only_canonical_12() -> None:
     # Trim 2026-07-04: arif_forge is the canonical public name; arif_act is internal alias
     assert "arif_forge" in names
     assert "arif_act" not in names  # internal alias now
-    # Fake seal verb removed from public wire (VAULT999 owns)
-    assert "arif_seal" not in names
+    # ZEN-9: arif_seal is canonical (stage 999 — VAULT999 append)
+    assert "arif_seal" in names
     # Memory moved to archive (rule 6)
     assert "arif_memory" not in names
