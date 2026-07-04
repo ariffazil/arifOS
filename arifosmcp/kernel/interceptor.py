@@ -72,19 +72,50 @@ logger = logging.getLogger(__name__)
 
 
 def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
-    """Extract structured fields from a raw MCP tools/call payload."""
+    """Extract structured fields from a raw MCP tools/call payload.
+
+    Identity binding precedence (constitutional-physics, F1 AMANAH):
+      1. JWT/DPoP-bound identity in the request-scoped auth lineage (transport-verified) — AUTHORITATIVE
+      2. JSON-arg actor_id (self-report) — ADVISORY, caps at MEDIUM, NEVER SOVEREIGN
+    """
     params = raw.get("params", {})
     args = params.get("arguments", {})
     name = params.get("name", raw.get("name", "unknown"))
 
-    # Try to extract actor from envelope or headers
+    # ── Path 1: Transport-verified identity (JWT/DPoP) — AUTHORITATIVE ─────
+    jwt_sub: str | None = None
+    auth_method: str | None = None
+    jwt_verified = False
+    try:
+        from arifosmcp.runtime.jwt_auth import get_request_auth_lineage
+
+        lineage = get_request_auth_lineage()
+        if isinstance(lineage, dict) and lineage.get("sub"):
+            jwt_sub = str(lineage["sub"])
+            auth_method = lineage.get("auth_method")
+            jwt_verified = True
+    except (ImportError, LookupError):
+        pass
+
+    # ── Path 2: JSON-arg fallback (self-report) — ADVISORY ONLY ──────────
     envelope = args.get("_envelope", {})
     if isinstance(envelope, dict):
-        actor_id = envelope.get("actor_id") or envelope.get("actor", args.get("actor_id"))
+        arg_actor_id = envelope.get("actor_id") or envelope.get("actor", args.get("actor_id"))
         server_id = envelope.get("server_id") or envelope.get("organ", "local")
     else:
-        actor_id = args.get("actor_id")
+        arg_actor_id = args.get("actor_id")
         server_id = "local"
+
+    # ── Identity resolution: JWT wins; self-report is downgrade ──────────
+    if jwt_verified and jwt_sub:
+        actor_id = jwt_sub
+        actor_source = "jwt_verified" if auth_method != "dpop" else "dpop_verified"
+    elif arg_actor_id:
+        actor_id = arg_actor_id
+        actor_source = "self_report"
+    else:
+        actor_id = None
+        actor_source = None
 
     # Infer server_id from tool name prefix if not set in envelope
     if server_id == "local":
@@ -107,6 +138,8 @@ def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
         raw_arguments=args,
         server_id=server_id,
         actor_id=str(actor_id) if actor_id else None,
+        actor_source=actor_source,
+        auth_method=auth_method,
         session_id=str(session_id) if session_id else None,
         authority_tier=AuthorityTier.LOW,
     )
@@ -209,25 +242,54 @@ def _resolve_tool_alias(tool_name: str) -> str:
 def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
     """Resolve the actor's authority tier.
 
-    v0.2: semantic labels. Future: cryptographic nonce + session binding.
+    v0.4 (2026-07-04): Transport-verification floor — SOVEREIGN authority is
+    ONLY granted when actor_id was bound at the transport layer
+    (JWT.sub or DPoP). JSON-arg self-report (any client variant like
+    `arif`, `Arif Fazil`, `user_arif`, `888`) caps at MEDIUM even if the
+    string matches sovereign patterns.
 
-    v0.2.1 (2026-06-22): broaden to substring match so client variants like
-    `arifbfazil`, `Arif Fazil`, `user_arif` resolve to SOVEREIGN.
+    v0.2.1 (2026-06-22): broaden to substring match under JWT verification.
+    v0.2: semantic labels. v0.3 future: cryptographic nonce + session binding.
     """
     if not req.actor_id:
-        return AuthorityTier.LOW
+        auth = AuthorityTier.LOW
+        print(
+            f"[KERNEL_AUTHORITY] actor=None actor_source={req.actor_source} "
+            f"raw_tool={req.raw_tool_name} -> {auth.value}",
+            flush=True,
+        )
+        return auth
+
     actor_lower = req.actor_id.lower().strip()
-    # Exact match first (cheap, deterministic)
-    if actor_lower in ("arif", "888"):
-        return AuthorityTier.SOVEREIGN
-    if actor_lower in ("root", "hermes"):
-        return AuthorityTier.HIGH
-    # Substring match for sovereign variants (case-insensitive)
-    if "arif" in actor_lower or "888" in actor_lower:
-        return AuthorityTier.SOVEREIGN
-    if req.session_id:
-        return AuthorityTier.MEDIUM
-    return AuthorityTier.LOW
+    verified = req.actor_source in ("jwt_verified", "dpop_verified")
+
+    # ── Transport-verified identity: full authority ladder ────────────────
+    if verified:
+        if actor_lower in ("arif", "888"):
+            auth = AuthorityTier.SOVEREIGN
+        elif actor_lower in ("root", "hermes"):
+            auth = AuthorityTier.HIGH
+        elif "arif" in actor_lower or "888" in actor_lower:
+            auth = AuthorityTier.SOVEREIGN
+        elif req.session_id:
+            auth = AuthorityTier.MEDIUM
+        else:
+            auth = AuthorityTier.LOW
+    else:
+        # ── Self-report (no transport binding) — caps at MEDIUM ──────────
+        # F1 AMANAH floor: unverified identity cannot drive irreversible action.
+        if req.session_id:
+            auth = AuthorityTier.MEDIUM
+        else:
+            auth = AuthorityTier.LOW
+
+    print(
+        f"[KERNEL_AUTHORITY] actor={req.actor_id} actor_source={req.actor_source} "
+        f"verified={verified} session={bool(req.session_id)} raw_tool={req.raw_tool_name} "
+        f"-> {auth.value}",
+        flush=True,
+    )
+    return auth
 
 
 # ── Policy floors ──────────────────────────────────────────────────────────────
@@ -272,6 +334,8 @@ def _check_policy_floors(
                     f"and re-probe."
                 ),
                 actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
                 authority_tier=authority,
                 resource_class=None,
                 organ_id=None,
@@ -311,7 +375,7 @@ def _check_policy_floors(
                 f"Suggested fixes:\n"
                 f"  1. Register capability in /contracts/tools.yaml (ADR-009 proposed)\n"
                 f"  2. Regenerate capability graph\n"
-                f"  3. Check aliases: {list(TOOL_ALIASES.keys())[:5]}...\n"
+                f"  3. Canonical tools: arif_init, arif_observe, arif_think, arif_judge, arif_seal\n"
                 f"  4. Run arif_kernel_status for full capability list"
             ),
             actor_id=req.actor_id,
@@ -398,6 +462,8 @@ def _check_policy_floors(
                 ),
                 capability_id=capability.capability_id,
                 actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
                 authority_tier=authority,
                 mutation_class=capability.mutation_class,
                 blast_radius=capability.blast_radius,
@@ -486,6 +552,8 @@ def _check_policy_floors(
                 ),
                 capability_id=capability.capability_id,
                 actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
                 authority_tier=authority,
                 mutation_class=capability.mutation_class,
                 blast_radius=capability.blast_radius,
@@ -507,6 +575,8 @@ def _check_policy_floors(
                 ),
                 capability_id=capability.capability_id,
                 actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
                 authority_tier=authority,
                 mutation_class=capability.mutation_class,
                 blast_radius=capability.blast_radius,
@@ -551,6 +621,8 @@ def _check_policy_floors(
                 ),
                 capability_id=capability.capability_id,
                 actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
                 authority_tier=authority,
                 mutation_class=capability.mutation_class,
                 blast_radius=capability.blast_radius,
@@ -584,6 +656,8 @@ def _check_policy_floors(
                 ),
                 capability_id=capability.capability_id,
                 actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
                 authority_tier=authority,
                 mutation_class=capability.mutation_class,
                 blast_radius=capability.blast_radius,
@@ -613,6 +687,8 @@ def _check_policy_floors(
                 ),
                 capability_id=capability.capability_id,
                 actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
                 authority_tier=authority,
                 mutation_class=capability.mutation_class,
                 blast_radius=capability.blast_radius,
@@ -624,7 +700,114 @@ def _check_policy_floors(
                 graph_version=graph.version.version_id,
             )
 
+    # FLOOR 11b (Amanah-Replay, 2026-07-04):
+    # Irreversible mutations require a fresh `nonce` to defeat
+    # HTTP/SSE retry-induced double-fire. Nonces are remembered in an
+    # in-memory cache for 24h; replays are DENIED with a clear reason.
+    if capability.mutation_class == MutationClass.IRREVERSIBLE:
+        nonce_raw = req.raw_arguments.get("nonce")
+        if not isinstance(nonce_raw, str) or not nonce_raw:
+            return InterceptorDecision(
+                verdict=AdmissibilityVerdict.DENY,
+                reason=(
+                    f"Amanah-Replay: capability '{capability.capability_id}' is irreversible "
+                    f"and requires a non-empty 'nonce' argument. Supply a 4-128 char alphanumeric "
+                    f"nonce with optional dash/underscore. This defeats HTTP/SSE retry double-fire "
+                    f"on irreversible actions."
+                ),
+                capability_id=capability.capability_id,
+                actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
+                authority_tier=authority,
+                mutation_class=capability.mutation_class,
+                blast_radius=capability.blast_radius,
+                resource_class=capability.resource_class,
+                organ_id=capability.organ_id,
+                truth_class=TruthClass.POLICY_VERDICT,
+                normalized_request=req.model_dump(),
+                graph_version=graph.version.version_id,
+            )
+        if (
+            len(nonce_raw) < 4
+            or len(nonce_raw) > 128
+            or not _NONCE_RE.match(r"^[A-Za-z0-9_-]+$", nonce_raw)
+        ):
+            return InterceptorDecision(
+                verdict=AdmissibilityVerdict.DENY,
+                reason=(
+                    f"Amanah-Replay: nonce shape invalid. Must be 4-128 chars, "
+                    f"[A-Za-z0-9_-] only. Got: {nonce_raw[:16]!r}..."
+                ),
+                capability_id=capability.capability_id,
+                actor_id=req.actor_id,
+                actor_source=req.actor_source,
+                auth_method=req.auth_method,
+                authority_tier=authority,
+                mutation_class=capability.mutation_class,
+                blast_radius=capability.blast_radius,
+                resource_class=capability.resource_class,
+                organ_id=capability.organ_id,
+                truth_class=TruthClass.POLICY_VERDICT,
+                normalized_request=req.model_dump(),
+                graph_version=graph.version.version_id,
+            )
+        now = time.time()
+        with _NONCE_LOCK:
+            _evict_expired_nonces(now)
+            if nonce_raw in _NONCE_SEEN:
+                seen_at = _NONCE_SEEN[nonce_raw]
+                return InterceptorDecision(
+                    verdict=AdmissibilityVerdict.REPLAY_REQUIRED,
+                    reason=(
+                        f"Amanah-Replay DENIED: nonce {nonce_raw[:12]}... was first seen at "
+                        f"{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime(seen_at))}. "
+                        f"Replays on irreversible actions are blocked. Supply a fresh nonce."
+                    ),
+                    capability_id=capability.capability_id,
+                    actor_id=req.actor_id,
+                    actor_source=req.actor_source,
+                    auth_method=req.auth_method,
+                    authority_tier=authority,
+                    mutation_class=capability.mutation_class,
+                    blast_radius=capability.blast_radius,
+                    resource_class=capability.resource_class,
+                    organ_id=capability.organ_id,
+                    truth_class=TruthClass.POLICY_VERDICT,
+                    normalized_request=req.model_dump(),
+                    graph_version=graph.version.version_id,
+                )
+            _NONCE_SEEN[nonce_raw] = now
+
     return None  # policy passes
+
+
+# ── Nonce replay-protection cache (Floor 11b) ───────────────────────────────
+import re as _NONCE_RE
+import threading as _threading
+
+_NONCE_TTL_SECONDS = 86400  # 24h
+_NONCE_SEEN: dict[str, float] = {}
+_NONCE_LOCK = _threading.Lock()
+
+
+def _evict_expired_nonces(now: float) -> None:
+    """Drop nonces older than TTL. In-memory only; federate via VAULT999 later."""
+    cutoff = now - _NONCE_TTL_SECONDS
+    expired = [n for n, ts in _NONCE_SEEN.items() if ts < cutoff]
+    for n in expired:
+        _NONCE_SEEN.pop(n, None)
+
+
+def nonce_cache_size() -> int:
+    """Diagnostic — current replay-protection cache size."""
+    return len(_NONCE_SEEN)
+
+
+def clear_nonce_cache() -> None:
+    """Diagnostic reset — used by tests only, not by tool dispatch."""
+    with _NONCE_LOCK:
+        _NONCE_SEEN.clear()
 
 
 # ── Main interceptor ──────────────────────────────────────────────────────────
@@ -811,6 +994,8 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
         ),
         capability_id=capability.capability_id,
         actor_id=req.actor_id,
+        actor_source=req.actor_source,
+        auth_method=req.auth_method,
         authority_tier=authority,
         mutation_class=capability.mutation_class,
         blast_radius=capability.blast_radius,
