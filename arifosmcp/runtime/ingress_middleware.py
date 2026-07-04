@@ -991,12 +991,20 @@ if IS_FASTMCP_3:
                     )
                     if envelope is None:
                         # Legacy call: wrap with conservative defaults
+                        # FIX (2026-07-04): Thread MCP session ID from transport layer
+                        from arifosmcp.runtime.mcp_transport_bridge import (
+                            get_current_mcp_session_id,
+                        )
+
+                        mcp_sid = get_current_mcp_session_id()
                         envelope = wrap_legacy_call(
                             actor_id=None,
-                            session_id=None,
+                            session_id=mcp_sid,
                             tool_name=tool_name,
                         )
-                        logger.debug(f"Ingress: wrapped legacy call for {tool_name}")
+                        logger.debug(
+                            f"Ingress: wrapped legacy call for {tool_name} (mcp_session={mcp_sid is not None})"
+                        )
 
                     envelope_session_id = envelope.session_id
                     envelope_agent_id = envelope.agent_id

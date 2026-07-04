@@ -30,6 +30,7 @@ DITEMPA BUKAN DIBERI — Forged 2026-06-12 by Omega (Ω)
 
 from __future__ import annotations
 
+import contextvars
 import logging
 from typing import Any
 
@@ -38,6 +39,12 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 logger = logging.getLogger("arifosmcp.transport_bridge")
+
+# ── Context variable for threading MCP session ID through async call chains ──
+# Set by MCPSessionBridgeMiddleware, read by ingress middleware and tool handlers.
+_current_mcp_session_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "current_mcp_session_id", default=None
+)
 
 # ═══════════════════════════════════════════════════════════════
 # SUPPORTED PROTOCOL VERSIONS
@@ -129,6 +136,8 @@ class MCPSessionBridgeMiddleware(BaseHTTPMiddleware):
             request.state.mcp_session_id = mcp_session_id
             # Also set as a request-scoped attribute for non-Starlette consumers
             request.scope["mcp_session_id"] = mcp_session_id
+            # Thread through async context for FastMCP middleware access
+            _current_mcp_session_id.set(mcp_session_id)
 
         # PLATFORM HOST TAGGING — autonomous sensing of the pipe
         ua = request.headers.get("user-agent", "") or request.headers.get("User-Agent", "")
@@ -151,6 +160,18 @@ class MCPSessionBridgeMiddleware(BaseHTTPMiddleware):
 # ═══════════════════════════════════════════════════════════════
 # SESSION CONTEXT INJECTOR (for tool handlers)
 # ═══════════════════════════════════════════════════════════════
+
+
+def get_current_mcp_session_id() -> str | None:
+    """
+    Get the MCP session ID from the async context variable.
+
+    This is the primary way for tool handlers and middleware to access
+    the MCP session ID without needing the HTTP request object.
+
+    Set by MCPSessionBridgeMiddleware on every request with a session header.
+    """
+    return _current_mcp_session_id.get()
 
 
 def get_session_id_from_request(request: Request | None = None) -> str | None:
@@ -197,7 +218,10 @@ PLATFORM_HOST_MARKERS = (
     "host safety",
 )
 
-def detect_platform_intervention(error_text: str | None, headers: dict | None = None) -> dict[str, Any] | None:
+
+def detect_platform_intervention(
+    error_text: str | None, headers: dict | None = None
+) -> dict[str, Any] | None:
     """
     Returns dict with platform intervention evidence if detected.
     This is injected into FederationEnvelope / fault path.
