@@ -246,6 +246,47 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 
 ---
 
+## 🔌 MCP Connection
+
+Connect to arifOS via the Model Context Protocol:
+
+| Property | Value |
+|----------|-------|
+| **Endpoint** | `https://mcp.arif-fazil.com/mcp` |
+| **Alternate** | `https://arif-fazil.com/mcp` |
+| **Transport** | Streamable HTTP (JSON-RPC 2.0) |
+| **Tools** | 45 exposed (17 canonical + 41 diagnostic) |
+| **Health** | `https://arifos.arif-fazil.com/health` |
+
+### Claude Code / Cursor
+
+Add to your MCP client config:
+```json
+{
+  "mcpServers": {
+    "arifos": {
+      "url": "https://mcp.arif-fazil.com/mcp"
+    }
+  }
+}
+```
+
+### Direct Usage
+
+```bash
+curl -X POST https://mcp.arif-fazil.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+```
+
+### Discovery
+
+- Agent Card: `https://arifos.arif-fazil.com/.well-known/agent-card.json`
+- MCP Manifest: `https://arifos.arif-fazil.com/.well-known/mcp.json`
+
+---
+
 ## 8. License & Sovereignty
 
 **AGPL-3.0.** The constitution must remain open. The kernel must remain inspectable.
