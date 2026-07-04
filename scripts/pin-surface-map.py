@@ -253,6 +253,25 @@ def main():
             print("❌ Fix not applied.")
             sys.exit(1)
 
+    # ── CI infrastructure exemption ─────────────────────────────────────
+    # If neither tools nor /health could be probed at all (CI runner has no
+    # live MCP), don't fail the gate on ghost/phantom drift — we simply
+    # cannot verify against live state. Surface-YAML parsing still happens
+    # and CRITICAL surface_yaml drift still fails.
+    live_unavailable = (
+        not live_tools
+        and not health
+        and severity > 0
+    )
+    if args.ci and live_unavailable:
+        any_critical = any(d.get("severity") == "CRITICAL" for d in drift)
+        if any_critical:
+            print("⚠️  Live MCP unreachable AND CRITICAL surface drift — failing CI gate.")
+            sys.exit(1)
+        print("ℹ️  Live MCP unreachable in CI — drift detection against live skipped.")
+        print("   (surface YAML parsed cleanly; ghost/phantom checks deferred to manual run)")
+        sys.exit(0)
+
     if args.ci and severity >= 1:
         sys.exit(1)
     sys.exit(0 if severity < 1 else severity)
