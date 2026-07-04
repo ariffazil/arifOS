@@ -137,6 +137,25 @@ organ_routes:
       - A2A gateway
       - identity anchor
       - throttle
+      # G14 FIX (2026-07-04): Add explicit organ-qualified keywords
+      # so "AAA state", "AAA governance", "AAA Supabase" route to AAA
+      # not back to arifOS.
+      - AAA organ
+      - AAA state
+      - AAA health
+      - AAA governance
+      - AAA supabase
+      - AAA frontend
+      - AAA governance-card
+      - governance card
+      - seal chain
+      - a2a_server
+      - a2a bridge
+      - a2a federation
+      - A2A federation
+      - A2A mesh
+      - agent card
+      - agent registry
     organ: AAA
     port: 3001
     tool_prefix: ""
@@ -178,6 +197,18 @@ organ_routes:
       - forge execute
       - forge plan
       - forge dryrun
+      # G14 FIX (2026-07-04): Add organ-qualified + status-only keywords
+      # so A-FORGE status/health routes correctly. Critical: "forge status"
+      # and "forge health" must NOT require sovereign authority (the kernel
+      # gate for forge.execute stays, but a read-only status probe must work).
+      - A-FORGE organ
+      - A-FORGE status
+      - A-FORGE health
+      - A-FORGE state
+      - forge status
+      - forge health
+      - forge readiness
+      - forge probe
     organ: A-FORGE
     port: 7071
     tool_prefix: ""
@@ -242,6 +273,44 @@ organ_routes:
       - RS
       - SP
       - caliper
+      # G14 FIX (2026-07-04): Add organ-qualified + earth-domain keywords
+      # so "GEOX organ health", "earth evidence", "geology interpretation",
+      # "seismic section" route to GEOX even when kernel guard catches "organ health".
+      - GEOX organ
+      - GEOX health
+      - GEOX earth
+      - GEOX geology
+      - GEOX seismic
+      - GEOX evidence
+      - earth evidence
+      - earth intelligence
+      - geology interpretation
+      - geology evidence
+      - geoscience
+      - geomechanics
+      - geostatistics
+      - biostratigraphy
+      - biostrat
+      - macrostrat
+      - physics manifest
+      - physics_manifest
+      - physics_manifest_hash
+      - natural law
+      - earth domain
+      - seismic section
+      - seismic volume
+      - seismic attribute
+      - seismic forward
+      - seismic well tie
+      - basin analysis
+      - structural geology
+      - well log analysis
+      - well logs
+      - well_qc
+      - well_desurvey
+      - well_ingest
+      - GEOX surface
+      - geox surface status
     organ: GEOX
     port: 8081
     tool_prefix: geox_
@@ -282,6 +351,25 @@ organ_routes:
       - theta
       - vega
       - rho
+      # G14 FIX (2026-07-04): organ-qualified + capital-domain keywords
+      - WEALTH organ
+      - WEALTH health
+      - WEALTH capital
+      - capital manifest
+      - capital_manifest
+      - capital_manifest_hash
+      - wealth health
+      - wealth health probe
+      - portfolio risk
+      - portfolio stress
+      - capital allocation
+      - capital intelligence
+      - financial domain
+      - money domain
+      - stock analysis
+      - market data
+      - fiscal breakeven
+      - collapse signature
     organ: WEALTH
     port: 18082
     tool_prefix: wealth_
@@ -323,6 +411,28 @@ organ_routes:
       - maruah
       - fatigue
       - cognition load
+      # G14 FIX (2026-07-04): Add organ-qualified + bridge-specific keywords
+      # so "WELL organ health", "cooling bridge status", "entropy seal" etc.
+      # route to WELL even when kernel guard catches "organ health".
+      # Longest-keyword match in kernel_canonical.py ensures these win.
+      - WELL organ
+      - WELL health
+      - WELL cooling
+      - WELL entropy
+      - WELL readiness
+      - WELL substrate
+      - WELL substrate_manifest
+      - WELL state
+      - WELL biometric
+      - cooling bridge
+      - cooling ledger
+      - cooling bridge status
+      - well_entropy_seal
+      - metabolic_flux
+      - metabolic flux
+      - well state.json
+      - well heartbeat
+      - substrate_manifest
     organ: WELL
     port: 18083
     tool_prefix: well_
