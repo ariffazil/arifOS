@@ -552,12 +552,10 @@ def _run_minimal_stdio_server() -> None:
             # Aliases remain dispatchable via _CANONICAL_HANDLERS but are never
             # advertised on the agent-facing MCP surface.  F4: one name per tool.
             _public_names = set(public_tool_names_for_mode())
-            _alias_block = set(CANONICAL_LONG_NAME_ALIASES)
-            local_tools = [
-                tool_descriptor(name)
-                for name in tool_handlers
-                if name in _public_names or name not in _alias_block
-            ]
+            # Whitelist-only: only expose tools in the canonical public surface.
+            # All others (aliases, diagnostics, internal) remain callable via
+            # tools/call but are NOT advertised on tools/list. F4 CLARITY.
+            local_tools = [tool_descriptor(name) for name in tool_handlers if name in _public_names]
             remote_tools = [rt["schema"] for rt in _remote_tools.values()]
             send(
                 {
