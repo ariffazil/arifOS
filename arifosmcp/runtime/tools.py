@@ -13447,6 +13447,11 @@ def _arif_judge_deliberate(
     # ── F-WEB Evidence Gate ──
     evidence_receipt: dict[str, Any] | None = None,
     claimed_evidence_level: str | None = None,
+    # arif_judge public-surface Contract C fields, captured as audit context.
+    # See _arif_judge_deliberate_tool for the rationale on no-VAR_KEYWORD.
+    # Patched 2026-06-30 (F13 SOVEREIGN: "fix the judge ingress first").
+    contract_c_audit: dict[str, Any] | None = None,
+    contract_c_kwargs: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     888_JUDGE: Constitutional adjudication and verdict emission.
@@ -14367,6 +14372,18 @@ async def _arif_judge_deliberate_tool(
     audit_entropy: float | None = None,
     wealth_score: float | None = None,
     verification_surface: dict[str, Any] | None = None,
+    # arif_judge public-surface Contract C fields, captured as audit context.
+    # Required to remain keyword-only (no VAR_KEYWORD) because Python requires
+    # VAR_KEYWORD to be the last parameter and _build_enriched_signature
+    # injects _envelope/actor_id/session_id after the handler's last param.
+    # Patched 2026-06-30 (F13 SOVEREIGN: "fix the judge ingress first").
+    #
+    # contract_c_kwargs carries the unrenamable Contract C fields
+    # (requested_capability, domain, reversibility_level, blast_radius,
+    # authority_token) that have no D counterpart. Populated by
+    # _filter_kwargs_for_handler and audit-logged via meta.
+    contract_c_audit: dict[str, Any] | None = None,
+    contract_c_kwargs: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     # ── FORGE D-INJECT (F13 #6 — 2026-06-11) ─────────────────────────────
     # P3-5 Scar Recall: surface prior institutional scars from scar.json
@@ -18528,6 +18545,19 @@ _LEGACY_PARAM_ALIASES: dict[str, dict[str, str]] = {
         "proposal": "candidate",
         "action": "candidate",
     },
+    # arif_judge — public-surface tool name. Maps Contract C (canonical
+    # public-schema fields: actor/intent/requested_capability/domain/
+    # reversibility_level/blast_radius/evidence/authority_token/epistemic_state)
+    # to Contract D (handler named params). Without these aliases, public
+    # clients hit a TypeError on extra kwargs and the wrapper returns VOID,
+    # breaking F13 L13 elicit gate. Patched 2026-06-30 (F13 SOVEREIGN
+    # directive: "fix the judge ingress first").
+    "arif_judge": {
+        "actor": "actor_id",
+        "intent": "candidate",
+        "evidence": "evidence_receipt",
+        "epistemic_state": "claimed_evidence_level",
+    },
     "arif_reply_compose": {"topic": "message", "text": "message", "content": "message"},
     "arif_gateway_connect": {
         "endpoint": "target_agent",
@@ -18545,42 +18575,78 @@ _LEGACY_PARAM_ALIASES: dict[str, dict[str, str]] = {
 def _filter_kwargs_for_handler(
     handler: Any, kwargs: dict[str, Any], tool_name: str
 ) -> dict[str, Any]:
-    """
-    Filter kwargs to only pass parameters the handler accepts.
+    """Filter kwargs to only pass parameters the handler accepts.
+
     Maps legacy aliases to canonical names. Drops unknowns with a warning.
+
+    arif_judge ingress patch 2026-06-30 (F13 SOVEREIGN "fix the judge
+    ingress first"): aliases always apply — even when the handler accepts
+    **kwargs — so Contract C public-surface fields (actor/intent/evidence/
+    epistemic_state) are renamed to Contract D named params (actor_id/
+    candidate/evidence_receipt/claimed_evidence_level) before the handler
+    runs. Unknown Contract C fields (requested_capability, domain,
+    reversibility_level, blast_radius, authority_token) flow through
+    **_contract_c_kwargs and are logged for audit, never silently dropped.
     """
     sig = inspect.signature(handler)
     params = sig.parameters
 
-    # If handler accepts **kwargs, pass everything through
+    # Apply aliases FIRST so renamed keys replace original Contract C keys.
+    aliases = _LEGACY_PARAM_ALIASES.get(tool_name, {})
+    accepted = set(params.keys())
+    contract_c_audit: dict[str, Any] = {}
+    translated: dict[str, Any] = {}
+    for key, value in kwargs.items():
+        if key in aliases:
+            canonical = aliases[key]
+            logger.warning(
+                "Tool %s: aliased parameter '%s' -> '%s' (value=%r)",
+                tool_name,
+                key,
+                canonical,
+                value,
+            )
+            # If both the original and canonical keys are present (caller
+            # passed both), keep the canonical value (which is what the
+            # handler will read).
+            if canonical in kwargs:
+                translated[canonical] = kwargs[canonical]
+            else:
+                translated[canonical] = value
+        else:
+            translated[key] = value
+            # Track fields that did not match an alias and aren't accepted by
+            # the handler — for arif_judge these are Contract C public-surface
+            # fields like requested_capability, domain, reversibility_level,
+            # blast_radius, authority_token (which have no D counterpart).
+            # Fields that DO match handler signature (mode, session_id, etc.)
+            # are NOT tracked — they're properly consumed by the handler.
+            if key not in accepted:
+                contract_c_audit[key] = value
+
+    # Inject a single audit dict carrying Contract C fields that have no D
+    # counterpart. Strip them from translated so they reach the handler
+    # ONLY via contract_c_kwargs (which is a named param on arif_judge
+    # handlers). This avoids TypeError when the handler signature lacks
+    # **kwargs.
+    if contract_c_audit:
+        if "contract_c_kwargs" not in translated:
+            translated["contract_c_kwargs"] = contract_c_audit
+        # Remove the unrenamable Contract C fields from translated so the
+        # handler never sees them as direct kwargs.
+        for key in list(contract_c_audit.keys()):
+            if key in translated and key not in accepted:
+                translated.pop(key, None)
+
+    # If handler accepts **kwargs, pass everything through (legacy path).
     if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()):
-        return kwargs
+        return translated
 
     accepted = set(params.keys())
-    aliases = _LEGACY_PARAM_ALIASES.get(tool_name, {})
     filtered: dict[str, Any] = {}
-
-    for key, value in kwargs.items():
+    for key, value in translated.items():
         if key in accepted:
             filtered[key] = value
-        elif key in aliases:
-            canonical = aliases[key]
-            if canonical in accepted:
-                logger.warning(
-                    "Tool %s: aliased parameter '%s' -> '%s' (value=%r)",
-                    tool_name,
-                    key,
-                    canonical,
-                    value,
-                )
-                filtered[canonical] = value
-            else:
-                logger.warning(
-                    "Tool %s: aliased parameter '%s' -> '%s' rejected (not accepted)",
-                    tool_name,
-                    key,
-                    canonical,
-                )
         else:
             logger.warning(
                 "Tool %s: dropped unknown parameter '%s' (value=%r)",
