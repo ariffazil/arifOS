@@ -3712,11 +3712,19 @@ def register_rest_routes(
             try:
                 from arifosmcp.schemas.kernel_envelope import ActionClass
                 from arifosmcp.runtime.pre_execution_gate import quick_gate
+                from arifosmcp.runtime.tools import _is_actor_verified
 
                 _rest_action = _rest_action_class(canonical_name, body)
+                # P0 single-writer discipline (2026-07-04): route through canonical
+                # _is_actor_verified(session_id, actor_id) instead of the prior
+                # hardcoded True shortcut. Single-sovereign federation is a
+                # governance claim, not an authentication bypass — only an
+                # active session that has been verified should pass the gate.
+                _rest_session_id = body.get("session_id") or ""
+                _rest_actor_id = body.get("actor_id") or ""
                 _gate_result = quick_gate(
                     action_class=_rest_action,
-                    actor_verified=True,  # Single-sovereign federation — all REST clients are Arif's agents
+                    actor_verified=_is_actor_verified(_rest_session_id, _rest_actor_id),
                     tool_name=canonical_name,
                 )
                 if _gate_result.is_blocked:
