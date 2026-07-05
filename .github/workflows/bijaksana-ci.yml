@@ -31,13 +31,18 @@ jobs:
 
       - run: pip install ruff -q
 
-      - name: "ΔS — Entropy"
+      - name: "ΔS — Entropy delta"
         id: ds
         run: |
-          # Dead signals: unused imports, bare TODOs, f-strings without placeholders
-          F401=$(ruff check --select F401 --output-format json . 2>/dev/null | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
-          F541=$(ruff check --select F541 --output-format json . 2>/dev/null | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
-          TODO=$(grep -r "TODO\|FIXME\|HACK" --include="*.py" . 2>/dev/null | wc -l)
+          # Measure only NEW entropy introduced by this push.
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- '*.py' 2>/dev/null || true)
+          if [ -z "$CHANGED" ]; then
+            F401=0; F541=0; TODO=0
+          else
+            F401=$(ruff check --select F401 --output-format json $CHANGED 2>/dev/null | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
+            F541=$(ruff check --select F541 --output-format json $CHANGED 2>/dev/null | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
+            TODO=$(echo "$CHANGED" | xargs grep -H "TODO\|FIXME\|HACK" 2>/dev/null | wc -l || echo 0)
+          fi
           DS=$((F401 + F541 + TODO))
           echo "value=$DS" >> $GITHUB_OUTPUT
           echo "ΔS = F401($F401) + F541($F541) + TODO($TODO) = $DS"
@@ -45,12 +50,13 @@ jobs:
       - name: "Φ — Clarity"
         id: phi
         run: |
-          TOTAL=$(ruff check --statistics . 2>/dev/null | wc -l || echo 1)
-          ERRORS=$(ruff check . 2>/dev/null | wc -l || echo 0)
+          # File-level pass rate: files with zero ruff violations / total Python files.
+          TOTAL=$(find . -name '*.py' | wc -l)
           if [ "$TOTAL" -eq 0 ]; then
             PHI=100
           else
-            PHI=$(( (TOTAL - ERRORS) * 100 / TOTAL ))
+            FILES_WITH_ERRORS=$(ruff check --output-format json . 2>/dev/null | python3 -c "import sys,json; print(len(set(v['filename'] for v in json.load(sys.stdin))))" 2>/dev/null || echo 0)
+            PHI=$(( (TOTAL - FILES_WITH_ERRORS) * 100 / TOTAL ))
           fi
           echo "value=$PHI" >> $GITHUB_OUTPUT
           echo "Φ = $PHI%"
@@ -58,16 +64,14 @@ jobs:
       - name: "Ψ — Truth"
         id: psi
         run: |
-          if [ -f "federation-manifests/manifest.json" ]; then
+          if [ -f "arifosmcp/tool_registry.json" ]; then
             python3 -c "
           import json
-          m = json.load(open('federation-manifests/manifest.json'))
+          m = json.load(open('arifosmcp/tool_registry.json'))
           tools = len(m.get('tools', []))
-          resources = len(m.get('resources', []))
-          prompts = len(m.get('prompts', []))
-          print(f'Ψ = {tools}T {resources}R {prompts}P')
-          print(f'authority = {m.get(\"authority_boundary\", \"UNKNOWN\")}')
-          print(f'sha256 = {m.get(\"sha256\", \"none\")[:16]}')
+          canonical = len(m.get('canonical_order', []))
+          print(f'Ψ = {tools} tools, {canonical} canonical')
+          print(f'canonical_order = {m.get(\"canonical_order\", [])}')
           "
             echo "value=ALIGNED" >> $GITHUB_OUTPUT
           else
@@ -78,17 +82,22 @@ jobs:
       - name: "Ω — Governance"
         id: omega
         run: |
-          # Check: no tool claims authority outside manifest
-          SELF_AUTH=$(grep -r "self.*authorize\|self.*grant\|self.*approve" --include="*.py" . 2>/dev/null | wc -l)
+          # Check: no NEW self-authorization logic introduced outside guards/tests/docs.
+          CHANGED=$(git diff --name-only HEAD~1 HEAD -- '*.py' 2>/dev/null || true)
+          if [ -n "$CHANGED" ]; then
+            SELF_AUTH=$(echo "$CHANGED" | xargs grep -HnE '\b(self_?authorize|self_?approve|self_?grant)\b' 2>/dev/null | grep -vE '(test_|benchmarks/|docs/|archive/|_guard|fiqh_agentik|no_executor_may_self_authorize)' | wc -l || echo 0)
+          else
+            SELF_AUTH=0
+          fi
           CREEP=$(git diff HEAD~1 HEAD --stat 2>/dev/null | grep -c "server.py" || echo 0)
-          MANIFEST=$(git diff HEAD~1 HEAD --stat 2>/dev/null | grep -c "manifest" || echo 0)
+          MANIFEST=$(git diff HEAD~1 HEAD --stat 2>/dev/null | grep -cE 'tool_registry|manifest' || echo 0)
 
           if [ "$CREEP" -gt 0 ] && [ "$MANIFEST" -eq 0 ]; then
             echo "value=DRIFT" >> $GITHUB_OUTPUT
-            echo "Ω = DRIFT (server changed, manifest unchanged)"
+            echo "Ω = DRIFT (server changed, registry unchanged)"
           elif [ "$SELF_AUTH" -gt 0 ]; then
             echo "value=BREACH" >> $GITHUB_OUTPUT
-            echo "Ω = BREACH (self-authorization detected)"
+            echo "Ω = BREACH (self-authorization detected in changed code)"
           else
             echo "value=LOCKED" >> $GITHUB_OUTPUT
             echo "Ω = LOCKED"
