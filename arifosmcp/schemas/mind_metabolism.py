@@ -223,7 +223,11 @@ class MindGovernance(BaseModel):
     floors_checked: list[str] = Field(default_factory=list)
     claim_strength_violations: list[str] = Field(default_factory=list)
     human_judgment_required: bool = False
-    verdict: str = "HOLD"
+    verdict: str = Field(
+        default="HOLD",
+        description="PASS | HOLD | BLOCK | OK — NEVER SEAL. Governance checks assess floor compliance, "
+        "they do not seal truth. See arif_judge for SEAL. Default HOLD = fail-closed.",
+    )
     invariant_axes: InvariantAxes | None = Field(
         default=None,
         description="25-axis invariant pass/fail from arif_think reasoning pass",
@@ -380,6 +384,57 @@ class InvariantAxes(BaseModel):
         default=True,
         description="Did the system help humans supervise it without self-judging?",
     )
+
+
+class ConvergenceStep(BaseModel):
+    """Single iteration state in the convergence loop."""
+
+    iteration: int = Field(description="0-based iteration index")
+    query: str = Field(description="Query used for this iteration")
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0)
+    claim_state: str = "UNKNOWN"
+    synthesis: str = ""
+    evidence_hash: str = Field(
+        default="",
+        description="SHA-256 prefix of evidence+inferences+counterarguments — detects plateau",
+    )
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ConvergenceReport(BaseModel):
+    """
+    Output from arif_think(mode='converge').
+
+    Contains the collapsed answer, iteration history, marginal gain
+    trace, and governance signals. Collapse is NOT final truth — it is
+    the best answer under available evidence.
+    """
+
+    iterations: int = Field(default=0, description="Total iterations run")
+    collapsed: bool = Field(default=False, description="Did the loop converge?")
+    collapse_reason: str = Field(
+        default="",
+        description="marginal_gain_below_threshold | godel_lock_hit | "
+        "max_iterations_reached | evidence_plateau | reasoning_error",
+    )
+    marginal_gain: float = Field(default=0.0, description="Final marginal gain")
+    threshold: float = Field(default=0.02, description="Gain threshold used")
+    patience_used: int = Field(default=2, description="Patience parameter used")
+    godel_lock_detected: bool = Field(default=False)
+    loop_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+    confidence_path: list[float] = Field(
+        default_factory=list, description="Confidence per iteration for convergence audit"
+    )
+    evidence_hashes: list[str] = Field(
+        default_factory=list, description="Evidence hash per iteration — plateau detection proof"
+    )
+    final_state: ConvergenceStep | None = Field(
+        default=None, description="Collapsed state — best current answer"
+    )
+    history: list[ConvergenceStep] = Field(
+        default_factory=list, description="Full iteration history for audit"
+    )
+    error: str | None = Field(default=None, description="Error if loop crashed")
 
 
 class MindResponse(BaseModel):

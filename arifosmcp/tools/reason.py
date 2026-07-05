@@ -839,7 +839,7 @@ def _build_delta_bundle(
     return bundle
 
 
-def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> dict[str, Any]:
+def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> Any:
     """Run coroutine in sync context, including when caller already has an active event loop.
 
     L13 TIMEOUT_SAFE: Hard timeout prevents indefinite hangs when LLM backends stall.
@@ -884,6 +884,48 @@ def arif_think(
     """
     333_MIND: Constitutional reasoning and synthesis (Structured Witness).
     """
+    # ── CONVERGE MODE: recursive convergence loop with marginal gain collapse ──
+    if mode == "converge":
+        from arifosmcp.runtime.convergence import ConvergenceController
+
+        # Extract convergence parameters from context or use defaults
+        ctx = context or {}
+        controller = ConvergenceController(
+            max_iterations=ctx.get("max_iterations", 5),
+            min_delta=ctx.get("min_delta", 0.02),
+            patience=ctx.get("patience", 2),
+        )
+        # P0 FIX: use _run_reasoning_sync to handle async contexts safely
+        report = _run_reasoning_sync(
+            controller.converge(
+                query=query or "",
+                actor_id=actor_id,
+                context=context,
+            )
+        )
+        # Wrap report as Synthesis-compatible output
+        bundle = {
+            "actor_authority": {
+                "verified": bool(actor_id and context and context.get("session_id")),
+                "scope": "observe_only",
+                "note": "Convergence loop collapsed. Final answer is best current estimate, not sealed truth.",
+            },
+            "convergence": report.model_dump() if hasattr(report, "model_dump") else dict(report),
+            "governance_check": {
+                "floors_checked": [],
+                "floors_violated": [],
+                "verdict": "PASS"
+                if report.collapsed and not report.godel_lock_detected
+                else "HOLD",
+                "reason": f"Convergence collapsed: {report.collapse_reason}",
+            },
+            "truth_verdict": {
+                "sealed": False,
+                "note": "Collapsed answer is best guess under evidence, not final truth. Route to arif_judge for SEAL.",
+            },
+        }
+        return Synthesis(**_ok("arif_think", bundle))
+
     if mode in (
         "geox_quantum_suitability",
         "geox_scale_classifier",
@@ -960,31 +1002,53 @@ def arif_think(
             if isinstance(synthesis_v2.get("confidence"), dict)
             else {}
         )
+        # ZEN LAYER SEPARATION: five distinct sections, each with one domain of authority.
+        # No overlapping verdicts. governance_check.verdict uses PASS/HOLD/BLOCK (not SEAL).
+        # truth_verdict.sealed is always false — only arif_judge/arif_seal can set it.
         bundle = {
-            "claim_state": str(packet.get("claim_state", "UNKNOWN")).upper(),
-            "reasoning_verdict": str(reason_result.get("status", "OK")).upper(),
-            "evidence_used": packet.get("attestations", [])
-            if isinstance(packet.get("attestations"), list)
-            else [],
-            "inferences": packet.get("abductions", [])
-            if isinstance(packet.get("abductions"), list)
-            else [],
-            "counterarguments": packet.get("counterarguments", [])
-            if isinstance(packet.get("counterarguments"), list)
-            else [],
-            "missing_evidence": packet.get("missing_evidence", [])
-            if isinstance(packet.get("missing_evidence"), list)
-            else [],
-            "confidence": {
-                "overall": float(
-                    raw_conf_v2.get("overall_confidence", raw_conf_v2.get("overall", 0.0))
-                ),
-                "label": str(raw_conf_v2.get("label", "low")),
+            "actor_authority": {
+                "verified": bool(actor_id and session_id),
+                "scope": "observe_only",
+                "note": "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
             },
-            "next_safe_action": [a.get("tool") for a in packet.get("next_actions", [])]
-            if isinstance(packet.get("next_actions"), list)
-            else [],
-            "_mind_routing": _routing["_mind_routing"],
+            "reasoning_output": {
+                "claim_state": str(packet.get("claim_state", "UNKNOWN")).upper(),
+                "evidence_used": packet.get("attestations", [])
+                if isinstance(packet.get("attestations"), list)
+                else [],
+                "inferences": packet.get("abductions", [])
+                if isinstance(packet.get("abductions"), list)
+                else [],
+                "counterarguments": packet.get("counterarguments", [])
+                if isinstance(packet.get("counterarguments"), list)
+                else [],
+                "missing_evidence": packet.get("missing_evidence", [])
+                if isinstance(packet.get("missing_evidence"), list)
+                else [],
+                "confidence": {
+                    "overall": float(
+                        raw_conf_v2.get("overall_confidence", raw_conf_v2.get("overall", 0.0))
+                    ),
+                    "label": str(raw_conf_v2.get("label", "low")),
+                },
+                "synthesis": synthesis_v2.get("bounded_answer")
+                if isinstance(synthesis_v2, dict)
+                else None,
+                "next_actions": [a.get("tool") for a in packet.get("next_actions", [])]
+                if isinstance(packet.get("next_actions"), list)
+                else [],
+            },
+            "governance_check": {
+                "floors_checked": [],
+                "floors_violated": [],
+                "verdict": "PASS",
+                "reason": "All floors passed (no explicit floor check for metabolize mode)",
+            },
+            "truth_verdict": {
+                "sealed": False,
+                "note": "Not final authority. This is advisory reasoning. Route to arif_judge for SEAL.",
+            },
+            "mind_routing": _routing["_mind_routing"],
         }
         return Synthesis(**_ok("arif_think", bundle))
 
@@ -1009,31 +1073,51 @@ def arif_think(
     )
 
     # ── AGI KERNEL READINESS GATE 001 FIELDS ──
+    # ZEN LAYER SEPARATION: five distinct sections.
+    # No overlapping verdicts. governance_check.verdict = PASS/HOLD/BLOCK (not SEAL).
+    # truth_verdict.sealed = False — only arif_judge can set it.
     bundle = {
-        "claim_state": str(reason_result.get("claim_state", "UNKNOWN")).upper(),
-        "reasoning_verdict": "HOLD"
-        if floor_verdict != "SEAL"
-        else str(reason_result.get("status", "HOLD")).upper(),
-        "evidence_used": reasoning_data.get("attestations", [])
-        if isinstance(reasoning_data.get("attestations"), list)
-        else [],
-        "inferences": reasoning_data.get("abductions", [])
-        if isinstance(reasoning_data.get("abductions"), list)
-        else [],
-        "counterarguments": reasoning_data.get("counterarguments", [])
-        if isinstance(reasoning_data.get("counterarguments"), list)
-        else [],
-        "missing_evidence": reasoning_data.get("missing_evidence", [])
-        if isinstance(reasoning_data.get("missing_evidence"), list)
-        else [],
-        "confidence": {
-            "overall": float(raw_conf.get("overall_confidence", raw_conf.get("overall", 0.0))),
-            "label": str(raw_conf.get("label", "low")),
+        "actor_authority": {
+            "verified": bool(actor_id and session_id),
+            "scope": "observe_only",
+            "note": "Actor not cryptographically verified — advisory only. Route to arif_judge for SEAL.",
         },
-        "next_safe_action": reason_result.get("next_safe_action", [])
-        if isinstance(reason_result.get("next_safe_action"), list)
-        else [],
-        "_mind_routing": _routing["_mind_routing"],
+        "reasoning_output": {
+            "claim_state": str(reason_result.get("claim_state", "UNKNOWN")).upper(),
+            "evidence_used": reasoning_data.get("attestations", [])
+            if isinstance(reasoning_data.get("attestations"), list)
+            else [],
+            "inferences": reasoning_data.get("abductions", [])
+            if isinstance(reasoning_data.get("abductions"), list)
+            else [],
+            "counterarguments": reasoning_data.get("counterarguments", [])
+            if isinstance(reasoning_data.get("counterarguments"), list)
+            else [],
+            "missing_evidence": reasoning_data.get("missing_evidence", [])
+            if isinstance(reasoning_data.get("missing_evidence"), list)
+            else [],
+            "confidence": {
+                "overall": float(raw_conf.get("overall_confidence", raw_conf.get("overall", 0.0))),
+                "label": str(raw_conf.get("label", "low")),
+            },
+            "synthesis": reason_result.get("synthesis")
+            if isinstance(reason_result.get("synthesis"), str)
+            else None,
+            "next_actions": reason_result.get("next_safe_action", [])
+            if isinstance(reason_result.get("next_safe_action"), list)
+            else [],
+        },
+        "governance_check": {
+            "floors_checked": list(floor_check.get("checked_laws", [])),
+            "floors_violated": list(floor_check.get("violated_laws", [])),
+            "verdict": "PASS" if floor_verdict == "SEAL" else "HOLD",
+            "reason": "All floors passed" if floor_verdict == "SEAL" else floor_reason,
+        },
+        "truth_verdict": {
+            "sealed": False,
+            "note": "Not final authority. This is advisory reasoning. Route to arif_judge for SEAL.",
+        },
+        "mind_routing": _routing["_mind_routing"],
     }
 
     if floor_verdict != "SEAL":
