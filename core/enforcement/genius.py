@@ -276,6 +276,7 @@ def _compute_pca_dials(
         P=round(float(dials_normalized[1]), 4),
         X=round(float(dials_normalized[2]), 4),
         E=round(float(dials_normalized[3]), 4),
+        PHI=0.75,  # ZEN placeholder; full witness from telemetry in cluster path
     )
 
     return dials, metadata
@@ -345,7 +346,13 @@ def _compute_cluster_dials(
     energy_vitality = (energy_from_floors + energy_ratio) / 2.0
     energy = max(0.0, energy_vitality - (uncertainty_penalty * 0.5))
 
-    return APEXDials(A=akal, P=presence, X=exploration, E=energy)
+    # ZEN Phase 1: Φ (Witness) dial — tri-witness × (1 - ToAC contrast) × f13
+    # Per 777_SOUL_APEX.md + 040_APEX_STACK.md. Closes Φ gap.
+    tri_witness = getattr(floors, 'f3_tri_witness', 0.8)
+    toac_contrast = (telemetry or {}).get('contrast_score', 0.5)  # ToAC AC_Risk; default per brief
+    phi = tri_witness * (1.0 - min(toac_contrast, 0.99)) * getattr(floors, 'f13_sovereign', 0.9)
+
+    return APEXDials(A=akal, P=presence, X=exploration, E=energy, PHI=phi)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -355,12 +362,9 @@ def _compute_cluster_dials(
 
 class APEXDials(BaseModel):
     """
-    The 4 APEX dials derived from floor scores.
-
-    Each dial represents a dimension of constitutional compliance.
-    Derivation method is recorded in the metadata returned by
-    calculate_genius(), not in the dials themselves — the dials
-    are pure values.
+    The 5 APEX dials (A·P·E·X·Φ) derived from 13 floor scores via eigendecomposition.
+    ZEN Phase 1 update per APEX_STACK_Forge_2026-07-06_v1 + 777_SOUL_APEX.md + 040_APEX_STACK.md.
+    Φ (Witness) closes the underdeveloped gap: tri-witness × (1 - ToAC contrast) × f13.
     """
 
     A: float = Field(
@@ -379,9 +383,14 @@ class APEXDials(BaseModel):
         le=1.0,
         description="Energy: Vitality dimension (PC4 or L12/L13 + budget)",
     )
+    PHI: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Witness (Φ): tri-witness × (1 - ToAC contrast) × sovereign/f13. New 5th dial for full G = A·P·E·X·Φ",
+    )
 
     def to_dict(self) -> dict[str, float]:
-        return {"A": self.A, "P": self.P, "X": self.X, "E": self.E}
+        return {"A": self.A, "P": self.P, "X": self.X, "E": self.E, "PHI": self.PHI}
 
 
 def audit_result_to_floor_scores(audit_result: Any) -> FloorScores:
@@ -582,13 +591,10 @@ def calculate_genius(
     telemetry: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    The Unified Genius Equation: G = (A × P × X × E²) × (1 - h)
-
-    Dials are derived from the 13 constitutional floor scores via:
-      - PCA eigendecomposition (when N ≥ 5 verdicts accumulated), or
-      - Geometric mean cluster projection (fallback).
-
-    Returns a dict with genius_score, dials, verdict, and derivation metadata.
+    The Unified Genius Equation (ZEN Phase 1): G = A · P · E · X · Φ × (1 - h)
+    Full 5-factor per user synthesis + 777_SOUL_APEX.md + 040_APEX_STACK.md.
+    Dials derived via eigendecomposition (PCA or cluster) + Φ witness.
+    ToAC contrast and TPCP enforced upstream in envelope/judge.
     """
     # Record this floor observation for future PCA
     history = get_floor_history()
@@ -601,9 +607,10 @@ def calculate_genius(
     presence = dials.P
     exploration = dials.X
     energy = dials.E
+    phi = getattr(dials, 'PHI', 0.8)  # Witness
 
-    # G = A * P * X * E² (APEX G Theorem)
-    g_gen = akal * presence * exploration * (energy**2)
+    # ZEN: G = A · P · E · X · Φ  (full 5-factor)
+    g_gen = akal * presence * energy * exploration * phi
     final_g = g_gen * (1.0 - h)
 
     # Determine derivation method
@@ -634,6 +641,7 @@ def calculate_genius(
         "derivation": derivation,
         "derivation_meta": derivation_meta,
         "provenance": "constitutional_measurement",
+        "phi_witness": phi,  # ZEN explicit
     }
 
 

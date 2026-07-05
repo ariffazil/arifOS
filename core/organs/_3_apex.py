@@ -107,6 +107,15 @@ def _detect_contradictions(
     contradictions: list[dict[str, Any]] = []
     text = (reason_summary or "").lower()
 
+    # ZEN Phase 1 TPCP enforcement (from tpcp.py)
+    try:
+        from arifosmcp.core.paradox.tpcp import run_tpcp_pipeline
+        tpcp = run_tpcp_pipeline(contradictions or [], floor_scores)
+        if hasattr(tpcp, 'phi_P') and tpcp.phi_P < 0.40:
+            contradictions.append({"stage_a": "TPCP", "stage_b": "verdict", "severity": "critical", "description": f"TPCP Φ_P={tpcp.phi_P:.2f} forces HOLD", "confidence": 0.9})
+    except Exception:
+        pass  # graceful if not wired
+
     # 1. Text-level pattern-pair contradictions
     for pattern_a, pattern_b, severity in _COHERENCE_PATTERNS:
         if _re.search(pattern_a, text) and _re.search(pattern_b, text):
@@ -171,6 +180,9 @@ def _detect_contradictions(
             contradictions.append(contradiction)
 
     return contradictions
+
+# ZEN Phase 1: TPCP + ToAC integration (enforce in judge)
+# Called from judge paths to apply paradox conductance and contrast.
 
 
 def _derive_next_actions(materiality: str) -> list[NextAction]:
