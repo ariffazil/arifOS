@@ -155,7 +155,7 @@ def verify_service_health() -> dict:
 
     result = {"status": "unknown", "reachable": False}
     try:
-        with urllib.request.urlopen("http://localhost:8100/health", timeout=2) as resp:
+        with urllib.request.urlopen("http://localhost:5001/health", timeout=2) as resp:  # writer (live); legacy 8100 removed
             data = json.loads(resp.read().decode())
             result["status"] = data.get("status", "unknown")
             result["reachable"] = True

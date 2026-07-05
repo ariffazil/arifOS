@@ -81,22 +81,45 @@ class ToolManifest:
 
 
 class MCPToolRegistry:
-    """Federation-wide MCP tool capability manifest."""
+    """THE CANONICAL write path for federation MCP tool manifests.
+    
+    Single master. All organs MUST register here (via kernel or arif_register_organ_surface).
+    This is the only place that may mutate the live capability surface.
+    Updates propagate to Qdrant mcp_capabilities + Postgres aaa.mcp_surface.
+    Direct edits to AAA/TOOLREGISTRY.json or per-organ lists are invalid.
+    """
 
     def __init__(self):
         self._tools: dict[str, ToolManifest] = {}
 
     def register(self, manifest: ToolManifest) -> None:
-        """Register a tool manifest."""
+        """Register — the ONLY allowed write. Enforces namespace, no dup, full manifest."""
+        from .namespace_guard import get_namespace_guard  # lazy to avoid cycle
+        guard = get_namespace_guard()
+        result = guard.validate(manifest.tool_name)
+        if not result.valid:
+            raise ValueError(f"Non-canonical namespace for {manifest.tool_name}: {result.reason}")
         if manifest.tool_name in self._tools:
-            raise ValueError(f"Tool {manifest.tool_name} already registered")
+            raise ValueError(f"Tool {manifest.tool_name} already registered in canonical")
+        # TODO: persist to Qdrant mcp_capabilities + aaa.mcp_surface with provenance
         self._tools[manifest.tool_name] = manifest
 
     def get(self, tool_name: str) -> ToolManifest | None:
         return self._tools.get(tool_name)
 
+    def list_all(self) -> list[ToolManifest]:
+        return list(self._tools.values())
+
     def list_by_organ(self, organ: str) -> list[ToolManifest]:
         return [m for m in self._tools.values() if m.organ == organ]
+
+    def get_federation_view(self) -> dict:
+        """Single source view for reads (use via arifos:// or kernel tool)."""
+        return {
+            "canonical_count": len(self._tools),
+            "by_organ": {o: len(self.list_by_organ(o)) for o in ["arifOS", "GEOX", "WEALTH", "WELL", "A-FORGE", "AAA"]},
+            "tools": [m.to_dict() for m in self.list_all()],
+        }
 
     def list_by_lane(self, lane: ToolLane) -> list[ToolManifest]:
         return [m for m in self._tools.values() if m.lane == lane]

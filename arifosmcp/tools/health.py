@@ -65,8 +65,8 @@ _SERVICE_ENDPOINTS: dict[str, dict[str, Any]] = {
         "timeout": 5.0,
     },
     "vault999": {
-        "url": "http://localhost:8100/health",
-        "docker_host": "vault999:8100",
+        "url": "http://localhost:5001/health",
+        "docker_host": "vault999-writer:5001",
         "timeout": 5.0,
     },
     "graphiti-mcp": {

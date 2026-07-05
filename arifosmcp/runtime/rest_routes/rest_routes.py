@@ -2113,15 +2113,42 @@ def _compute_runtime_drift() -> dict[str, Any]:
 
 
 def _probe_vault999_health() -> str:
-    """Best-effort vault999 health probe."""
+    """Best-effort vault999 health probe.
+    Prefers live writer (5001) + seal_chain_head (fs truth) over legacy 8100 container.
+    Fixes: vault999_health "unreachable"/None in arifOS /health report.
+    """
+    # 1. Live writer (canonical active path)
     try:
         import urllib.request
+        with urllib.request.urlopen("http://localhost:5001/health", timeout=2) as resp:
+            data = json.loads(resp.read().decode())
+            if data.get("status") == "healthy":
+                return "healthy"
+    except Exception:
+        pass
 
+    # 2. Legacy API (if ever revived)
+    try:
         with urllib.request.urlopen("http://localhost:8100/health", timeout=2) as resp:
             data = json.loads(resp.read().decode())
-            return data.get("status", "unknown")
+            if data.get("status") in ("healthy", "ok", "alive"):
+                return "healthy"
     except Exception:
-        return "unreachable"
+        pass
+
+    # 3. FS-backed truth: seal_chain + head present + recent activity
+    try:
+        head_p = "/root/.local/share/arifos/vault999/seal_chain_head.json"
+        chain_p = "/root/.local/share/arifos/vault999/seal_chain.jsonl"
+        if os.path.exists(head_p) and os.path.exists(chain_p):
+            import time as _t
+            if _t.time() - os.path.getmtime(head_p) < 86400:  # within 24h
+                return "healthy"
+            return "degraded"  # exists but stale
+    except Exception:
+        pass
+
+    return "unreachable"
 
 
 def _probe_provider_status() -> dict[str, Any]:

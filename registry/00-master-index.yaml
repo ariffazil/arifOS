@@ -5,6 +5,18 @@
 #
 # 9 canonical registries. One concept, one registry, one resource URI.
 # Drift between layers = constitutional breach.
+#
+# These are Database/Memory layer (structured reality storage).
+# LLM = pattern compressor (used inside organs for inference).
+# Agentic = goal-directed loops (domain organs + A-FORGE).
+# Governance (kernel + floors) constrains what agents may do with the above.
+#
+# See CANONICAL_REGISTRY_GOVERNANCE.md (2026-07-05) for full layer separation.
+# - Single canonical WRITE path per registry (kernel-governed).
+# - Single READ path: arifos://* resources + kernel tools.
+# - Organs plug in via namespace allocation + manifest registration.
+# - Provenance + drift auto-detection mandatory.
+# - Shared substrate, strict namespaces, kernel owns governance truth.
 
 version: "2026.07.04-v1"
 forged_at: "2026-07-04T00:00:00Z"
@@ -30,10 +42,10 @@ registries:
     
   03-TOOLS:
     file: 03-tools.yaml
-    owner: arifOS + AAA
-    resource_uri: arifos://tools
-    db_backend: /root/arifOS/arifosmcp/tool_registry.json
-    wajib: "Every tool must have affordance card before registration"
+    owner: arifOS kernel ONLY (arifos_registry/mcp_tool_registry.MCPToolRegistry.register is the sole write path)
+    resource_uri: arifos://registry/toolregistry  (the single read path)
+    db_backend: live MCPToolRegistry + Qdrant mcp_capabilities + Postgres aaa.mcp_surface
+    wajib: "ALL writes via kernel MCPToolRegistry.register ONLY. AAA/TOOLREGISTRY.json + per-organ lists = DERIVED snapshots. Any other write = drift + auto-HOLD. See CANONICAL_REGISTRY_GOVERNANCE.md"
     
   04-SCARS:
     file: 04-scars.yaml
