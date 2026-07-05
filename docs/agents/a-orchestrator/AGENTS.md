@@ -1,6 +1,6 @@
-# AGENTS.md - Your Workspace
+# 🎼 ORCHESTRA
 
-This folder is home. Treat it that way.
+> Your workspace. Treat it that way.
 
 ## First Run
 
