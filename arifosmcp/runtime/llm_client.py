@@ -60,8 +60,8 @@ def _load_tokenrouter_config() -> dict[str, str]:
     # Fallback: load from secrets file
     if not cfg["key"]:
         secrets_file = Path("/root/.secrets/tokenrouter.env")
-        if secrets_file.exists():
-            try:
+        try:
+            if secrets_file.exists():
                 for line in secrets_file.read_text().splitlines():
                     line = line.strip()
                     if line.startswith("TOKENROUTER_API_KEY="):
@@ -70,8 +70,8 @@ def _load_tokenrouter_config() -> dict[str, str]:
                         cfg["url"] = line.split("=", 1)[1].strip()
                     elif line.startswith("TOKENROUTER_MODEL="):
                         cfg["model"] = line.split("=", 1)[1].strip()
-            except Exception:
-                pass
+        except (PermissionError, OSError):
+            pass
     return cfg
 
 
