@@ -751,11 +751,38 @@ try:
     # NOW run surface assertion — all CANONICAL_12 tools registered
     _assert_registered_surface(v2_tools_registered)
 
+    # ── Deprecation aliases — ghost tool redirect (SESAT fix 2026-07-05) ────
+    # arif_kernel_intercept is a retired internal name. Its role is now split
+    # across arif_judge (verdict), arif_route (routing), arif_canary (transport).
+    # Register as thin deprecation alias so HTTP clients don't get "Unknown tool."
+    from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH_ALIAS, _wrap_handler
+
+    _GHOST_ALIASES: dict[str, str] = {
+        "arif_kernel_intercept": "arif_judge",
+        "arifos_kernel_intercept": "arif_judge",
+    }
+    for _ghost_name, _canonical_target in _GHOST_ALIASES.items():
+        _ghost_fn = _CTH_ALIAS.get(_ghost_name) or _CTH_ALIAS.get(_canonical_target)
+        if _ghost_fn is not None:
+            _ghost_wrapped = _wrap_handler(_ghost_fn, _ghost_name)
+            mcp.tool(
+                name=_ghost_name,
+                description=(
+                    f"DEPRECATED alias for {_canonical_target}. "
+                    f"Use {_canonical_target} instead. "
+                    f"This name will be removed in a future release."
+                ),
+                tags={"deprecated", "alias"},
+                annotations={
+                    "readOnlyHint": True,
+                    "destructiveHint": False,
+                },
+            )(_ghost_wrapped)
+            logger.info(f"Deprecation alias registered: {_ghost_name} → {_canonical_target}")
+
     # ── P3 FIX 2026-06-30: arif_triage + arif_compose — ChatGPT audit BANGANG ──
     # Both tools are implemented in kernel_canonical.py but were excluded from
     # server.py registration (intentionally canonical-7 only). Now added to expanded45.
-    # ── P3 FIX 2026-06-30: Import _wrap_handler EARLY for triage/compose/conformance ──
-    from arifosmcp.runtime.tools import _wrap_handler
 
     # arif_triage: session status, priority queue, preflight checks.
     # arif_compose: governed response composition — formats final output.
@@ -874,19 +901,14 @@ try:
     try:
         from arifosmcp.runtime.tools import _arif_session_init as _sdk_alias_session_init
 
-        _SDK_ALIAS_REGISTRATIONS.append(
-            ("arif_session_init", _sdk_alias_session_init, "arif_init")
-        )
+        _SDK_ALIAS_REGISTRATIONS.append(("arif_session_init", _sdk_alias_session_init, "arif_init"))
     except Exception as _alias_lookup_err:
-        logger.warning(
-            "SDK alias shim: could not import _arif_session_init: %s", _alias_lookup_err
-        )
+        logger.warning("SDK alias shim: could not import _arif_session_init: %s", _alias_lookup_err)
 
     # arif_gateway_connect → try bridge handler, fall back to wrapping canonical
-    _gateway_handler = (
-        _CANONICAL_HANDLERS.get("arif_bridge_connect")
-        or _RUNTIME_DIAGNOSTIC_HANDLERS.get("arif_bridge_connect")
-    )
+    _gateway_handler = _CANONICAL_HANDLERS.get(
+        "arif_bridge_connect"
+    ) or _RUNTIME_DIAGNOSTIC_HANDLERS.get("arif_bridge_connect")
     if _gateway_handler is not None:
         # Inspect: reject *args/**kwargs wrappers (FastMCP 3.x rule).
         try:

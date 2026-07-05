@@ -208,6 +208,7 @@ async def arif_organ_consensus(
     organs: list[str] | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    _envelope: Any = None,
 ) -> dict[str, Any]:
     """
     F3 WITNESS: Cross-organ Tri-Witness consensus for proposed actions.

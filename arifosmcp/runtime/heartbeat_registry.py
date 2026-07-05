@@ -160,6 +160,7 @@ def arif_heartbeat(
     organ_id: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    _envelope: Any = None,
 ) -> dict[str, Any]:
     """
     Record or query federation heartbeats.
