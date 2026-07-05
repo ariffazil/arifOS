@@ -11,11 +11,16 @@ must carry an APEX envelope. Transport frames remain protocol-pure JSON-RPC.
 APEX-Law equation: g(t) = A(t) · P(t) · H(t) · √(S(t)·U(t)) · E(t)²
 """
 
+from __future__ import annotations
+
+import math
+from datetime import datetime, timezone
+from typing import Any
+
 # ZEN Phase 1: ToAC + TPCP integration per APEX_STACK_Forge_2026-07-06_v1
 # ToAC: AC_Risk = U_phys × D_transform × B_cog (from GEOX/040)
 # TPCP: 4-phase (ΔP → ΩP → ΨP → Φ_P) + most restrictive verdict
-
-from core.paradox.tpcp import run_tpcp_pipeline  # TPCP enforcement
+# NOTE: TPCP run_tpcp_pipeline not present in paradox pkg (path was wrong too). ToAC fn local. Deferred.
 
 def toac_contrast_score(evidence: dict | None = None, claim_strength: float = 0.5) -> float:
     """Mandatory ToAC contrast tag. Default 0.50 per brief if missing."""
@@ -27,13 +32,6 @@ def toac_contrast_score(evidence: dict | None = None, claim_strength: float = 0.
     risk = min(1.0, u_phys * d_trans * b_cog)
     return risk
 
-DITEMPA BUKAN DIBERI
-"""
-from __future__ import annotations
-
-import math
-from datetime import datetime, timezone
-from typing import Any
 
 # ── Constants ──────────────────────────────────────────────────────────────
 

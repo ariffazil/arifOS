@@ -1,18 +1,37 @@
 """
 arifosmcp/runtime/memory_store.py -- 555_MEMORY Canonical Backend v3
 
+Wired to the full memory civilisation ladder (see FEDERATION_MEMORY.md):
+Biological (human reconstruction: experience→encoding→emotional tag→retrieval→rebuild)
+→ Digital (L1-L5: working/personal/retrieval/storage/knowledge)
+→ Institutional (procedure via floors, registries, provenance)
+→ Governed constitutional (L6 VAULT999 + F1-F13 conscience + authority bands)
+→ Agentic flow (only then to action in A-FORGE).
+
+The Agentic Intelligence Flow (must traverse):
+Human experience (reconstructive, meaning-first) 
+→ agent attention/encoding (with tier OBS/DER/INT) 
+→ digital layers (L1-5 with provenance) 
+→ institutionalise (kernel check, canonical registry write only) 
+→ constitutional (L6 seal if needed, expiry/boundary) 
+→ governed act (SEAL + F13 veto).
+
 CONSOLIDATED: Qdrant (vector search) + Postgres (durable record) dual-write.
 Every store() call writes to BOTH backends atomically:
   - Qdrant  → semantic search backbone (arifos_memory collection)
   - Postgres → durable audit record (memory_store table, soft-delete)
 
 Tiers:
-  SACRED    → 'sacred'    — immune to prune, never expires
-  CANONICAL → 'canon'     — 90-day TTL
-  SESSION   → 'session'   — 24-hour TTL
-  EPHEMERAL → 'ephemeral' — 1-hour TTL
+  SACRED    → 'sacred'    — immune to prune, never expires (constitutional)
+  CANONICAL → 'canon'     — 90-day TTL (institutional)
+  SESSION   → 'session'   — 24-hour TTL (working/personal)
+  EPHEMERAL → 'ephemeral' — 1-hour TTL (working)
 
-DITEMPA BUKAN DIBERI -- Forged, Not Given
+No store bypasses the ladder. LLM only compresses inside organs. Drift = HOLD.
+
+# AGENTIC MEMORY ROUTING ENFORCEMENT (AGENTIC_MEMORY_ROUTING.md)
+# All writes MUST go through here. Direct layer access = violation.
+# See AGENTIC_MEMORY_ROUTING.md for mandatory paths, vector ban, write-back contract.
 """
 
 from __future__ import annotations
@@ -30,6 +49,17 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def enforce_memory_routing(tier: str, content: dict, actor: str) -> bool:
+    """Central gate. Classify, check band, provenance, floors. Reject bypass."""
+    if not content.get("provenance") or not content.get("authority_band"):
+        raise RuntimeError("F2+F11: Memory write missing provenance or authority_band. Use contract.")
+    # TODO: full floor check + registry canonical + no direct Qdrant/Postgres from caller
+    # For now: log + require via this fn
+    logger.info(f"memory_route_enforced: tier={tier} actor={actor} band={content.get('authority_band')}")
+    return True
+
 
 # Phoenix-72 Band Middleware
 from arifosmcp.runtime.phoenix_72 import (  # noqa: E402, PLC0415

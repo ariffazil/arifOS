@@ -1,21 +1,28 @@
 """
-arifos://registry/toolregistry — Tool Registry (TOOLREGISTRY.json)
-arifos://kernel/deprecation   — Deprecation Registry (deprecation-registry.json)
+arifos://registry/* — Canonical Federation Registries (single read path)
 
-MCP resource wrappers around the two canonical FS-based registries at
-/root/AAA/docs/. Added 2026-07-04 per Arif's drift closure directive:
-agents need MCP resource access, not just FS reads.
+Per CANONICAL_REGISTRY_GOVERNANCE.md:
+- One canonical write authority per registry (kernel-governed for cross-organ truth).
+- Organs register surfaces; kernel canonicalizes + adds provenance.
+- All federation queries ("what tools?", "active agents?") MUST use these or kernel tools.
+- Direct FS or per-organ lists = domain only, not federation truth.
 
-F2 TRUTH: Content is read from FS on each fetch — always fresh.
-F4 CLARITY: JSON output, machine-parseable.
-F8 LAW: Read-only. No mutation through MCP.
-F11 AUDIT: File stat + hash included in response.
+Current exposed:
+- arifos://registry/toolregistry → capability surface across organs
+- arifos://kernel/deprecation → deprecated surfaces
 
+F2 TRUTH: Always fresh from source on fetch. Provenance (source, hash, modified, authority) included.
+F4 CLARITY: One path. No "which registry did you read?"
+F8 LAW: Read-only here. Writes go through kernel arifos_registry/ + governed tools only.
+F11 AUDIT: Full stat + hash + authority ref. Drift with master index = VOID.
+
+See: /root/arifOS/registry/00-master-index.yaml + CANONICAL_REGISTRY_GOVERNANCE.md
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from typing import Any
@@ -26,34 +33,53 @@ _TOOLREGISTRY_PATH = "/root/AAA/docs/TOOLREGISTRY.json"
 _DEPRECATION_PATH = "/root/AAA/docs/deprecation-registry.json"
 
 
-def _load_json_or_error(path: str) -> dict[str, Any]:
-    """Load a JSON file, returning content + metadata."""
+def _load_json_or_error(path: str, registry_name: str = "unknown") -> dict[str, Any]:
+    """Load a JSON file, returning content + full provenance metadata.
+    
+    Per CANONICAL_REGISTRY_GOVERNANCE.md: every response carries authority, hash, freshness.
+    This makes the read path auditable and drift-detectable.
+    """
     try:
         if not os.path.isfile(path):
             return {
                 "error": f"File not found: {path}",
                 "status": "MISSING",
+                "authority": "CANONICAL_REGISTRY_GOVERNANCE.md",
+                "registry": registry_name,
             }
         stat = os.stat(path)
         with open(path, encoding="utf-8") as f:
             data = json.load(f)
+        content_hash = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:16]
         return {
             "status": "LOADED",
+            "authority": "arifOS kernel (see CANONICAL_REGISTRY_GOVERNANCE.md)",
+            "registry": registry_name,
             "source": path,
             "size_bytes": stat.st_size,
             "modified_unix": int(stat.st_mtime),
+            "content_hash": content_hash,
+            "provenance": {
+                "written_via": "kernel-governed path (or legacy file under transition)",
+                "read_path": f"arifos://registry/{registry_name}",
+                "note": "Single source of truth for federation. Organs must not treat per-organ lists as canonical for cross-organ queries.",
+            },
             "content": data,
         }
     except json.JSONDecodeError as e:
         return {
             "error": f"JSON decode error: {e}",
             "status": "CORRUPT",
+            "authority": "CANONICAL_REGISTRY_GOVERNANCE.md",
+            "registry": registry_name,
             "source": path,
         }
     except Exception as e:
         return {
             "error": str(e),
             "status": "ERROR",
+            "authority": "CANONICAL_REGISTRY_GOVERNANCE.md",
+            "registry": registry_name,
             "source": path,
         }
 
@@ -68,14 +94,14 @@ def register_federation_registry(mcp: FastMCP) -> list[str]:
 
     @mcp.resource("arifos://registry/toolregistry")
     def toolregistry_resource() -> dict[str, Any]:
-        """Machine-readable tool registry — canonical tool names, tags, antipatterns.
+        """THE SINGLE READ PATH for federation tool registry.
 
-        Source: /root/AAA/docs/TOOLREGISTRY.json
-        Maps capability_tag to tool names across all 5 organs (arifOS, GEOX,
-        WEALTH, WELL, A-FORGE). Use to find tools by capability and detect
-        duplicate tool creation.
+        Per CANONICAL_REGISTRY_GOVERNANCE.md + FEDERATION_MEMORY.md: this is the bureaucratic/institutional memory layer in the ladder.
+        Kernel (arifos_registry.MCPToolRegistry) ONLY canonical source. Write only via register(). 
+        All organs/agents use this for federation view. Part of agentic flow: institutionalise before act.
         """
-        return _load_json_or_error(_TOOLREGISTRY_PATH)
+        # TODO: replace load with live from MCPToolRegistry.get_federation_view() + stores
+        return _load_json_or_error(_TOOLREGISTRY_PATH, "toolregistry")
 
     registered.append("arifos://registry/toolregistry")
 
@@ -87,7 +113,7 @@ def register_federation_registry(mcp: FastMCP) -> list[str]:
         Check BEFORE using any tool, endpoint, or service.
         If deprecated → migrate, don't use.
         """
-        return _load_json_or_error(_DEPRECATION_PATH)
+        return _load_json_or_error(_DEPRECATION_PATH, "deprecation")
 
     registered.append("arifos://kernel/deprecation")
 

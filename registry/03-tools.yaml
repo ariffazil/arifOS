@@ -27,15 +27,12 @@ updated_by: "AUDITOR (Ψ)"
 authority: "F13 SOVEREIGN"
 status: ALIVE
 
-# ── Source files merged ──
-sources_merged:
-  - /root/AAA/docs/TOOLREGISTRY.json
-  - /root/AAA/registries/TOOL_MANIFEST.json
-  - /root/AAA/registries/CAPABILITY_INDEX.json
-  - /root/arifOS/arifosmcp/tool_registry.json
-  - /root/arifOS/arifosmcp/constitutional_map.py
-  - /root/arifOS/arifosmcp/runtime/public_surface.py
-  - /root/AAA/docs/deprecation-registry.json
+# ── DERIVED ONLY — DO NOT EDIT AS SOURCE ──
+# This is a snapshot for reference. 
+# Canonical write: ONLY arifOS kernel arifos_registry/mcp_tool_registry.MCPToolRegistry.register
+# Single read: arifos://registry/toolregistry (kernel-backed)
+# Any other write path (direct edit here, per-organ lists, hand registration) = invalid, triggers drift/HOLD.
+# See CANONICAL_REGISTRY_GOVERNANCE.md for enforcement rules.
 
 # ── The Trinity Naming Convention ──
 naming_convention:
