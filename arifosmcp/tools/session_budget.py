@@ -83,6 +83,7 @@ async def arif_session_budget(
     ceiling_override: dict[str, float] | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    _envelope: Any = None,
 ) -> dict[str, Any]:
     """
     F1/L07 BUDGET: Session-cumulative metabolic budget tracker.

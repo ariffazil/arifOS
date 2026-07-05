@@ -1,0 +1,519 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# arifOS KERNEL TOOL INVARIANTS — Numbered, Stable, Immutable
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# PURPOSE: Single source of truth for kernel tool identity.
+#   - Each tool gets a fixed number (K001, K002, ...).
+#   - Numbers are IMMUTABLE once assigned. Tools can be added (K015, K016...)
+#     but never renumbered or reused.
+#   - Aliases are listed but do not get their own number.
+#   - Diagnostic tools get D001, D002, ...
+#   - This file is the CONSTITUTION of the tool surface.
+#
+# WHY: The health endpoint reports 6 different tool counts depending on
+#   which observer is counting. That is chaos. This file ends it.
+#
+# RULES:
+#   1. To add a tool: append with next number. Never insert.
+#   2. To deprecate a tool: set status=deprecated. Never remove the line.
+#   3. To alias a tool: add to the aliases list of the canonical tool.
+#   4. Every tool in this file MUST have a handler registered somewhere.
+#   5. Every handler registered MUST appear in this file.
+#
+# FORGED: 2026-07-05 by FORGE (000Ω) under F13 SOVEREIGN
+# DITEMPA BUKAN DIBERI
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version: "1.0.0"
+forged: "2026-07-05T12:35:00Z"
+author: "FORGE (000Ω)"
+sovereign: "ARIF_FAZIL"
+
+# ─── CANONICAL KERNEL TOOLS (K-series) ─────────────────────────────────────
+# These are the governed tools. Every agent can call them.
+# Count: 14 (verified 2026-07-05 E2E test)
+
+canonical:
+  K001:
+    name: arif_init
+    description: "Session bootstrap — identity lock, authority binding, law acceptance"
+    stage: "000 INIT"
+    action_class: OBSERVE
+    aliases: [arif_session_init]
+    status: active
+
+  K002:
+    name: arif_observe
+    description: "Reality grounding — web search, fetch, vitals, repo map, entropy"
+    stage: "111 SENSE"
+    action_class: OBSERVE
+    aliases: [arif_sense_observe, arif_explore]
+    status: active
+
+  K003:
+    name: arif_think
+    description: "Cognitive engine — reason, plan, reflect, critique, synthesize"
+    stage: "333 REASON"
+    action_class: OBSERVE
+    aliases: [arif_mind_reason]
+    status: active
+
+  K004:
+    name: arif_route
+    description: "Intent router — maps natural language to correct federation organ"
+    stage: "333 REASON"
+    action_class: OBSERVE
+    aliases: []
+    status: active
+
+  K005:
+    name: arif_critique
+    description: "Heart gate — ethical risk, dignity, consequence assessment"
+    stage: "555 CRITIQUE"
+    action_class: OBSERVE
+    aliases: [arif_heart_critique]
+    status: active
+
+  K006:
+    name: arif_judge
+    description: "Constitutional verdict — SEAL/HOLD/SABAR/VOID against F1-F13"
+    stage: "666 JUDGE"
+    action_class: JUDGE
+    aliases: [arif_kernel_intercept, arifos_kernel_intercept]
+    status: active
+
+  K007:
+    name: arif_judge_deliberate
+    description: "Deep constitutional deliberation — multi-floor analysis"
+    stage: "666 JUDGE"
+    action_class: JUDGE
+    aliases: []
+    status: active
+
+  K008:
+    name: arif_forge
+    description: "Execution prep — dry-run, engineer, query, write, generate"
+    stage: "777 FORGE"
+    action_class: MUTATE
+    aliases: [arif_forge_execute]
+    status: active
+
+  K009:
+    name: arif_act
+    description: "Irreversible execution — requires valid SEAL from judge→seal pipeline"
+    stage: "777 FORGE"
+    action_class: IRREVERSIBLE
+    aliases: []
+    status: active
+
+  K010:
+    name: arif_seal
+    description: "Immutable ledger append — VAULT999 seal with witness chain"
+    stage: "999 SEAL"
+    action_class: IRREVERSIBLE
+    aliases: [arif_vault_seal]
+    status: active
+
+  K011:
+    name: arif_compose
+    description: "Response composition — format final output with citations and tone"
+    stage: "999 SEAL"
+    action_class: OBSERVE
+    aliases: [arif_reply_compose]
+    status: active
+
+  K012:
+    name: arif_fetch
+    description: "URL content extraction — HTML, markdown, text, JSON, readability"
+    stage: "111 SENSE"
+    action_class: OBSERVE
+    aliases: [arif_evidence_fetch]
+    status: active
+
+  K013:
+    name: arif_measure
+    description: "Quantitative estimate — with uncertainty bounds and epistemic label"
+    stage: "333 REASON"
+    action_class: OBSERVE
+    aliases: [arif_ops_measure]
+    status: active
+
+  K014:
+    name: arif_memory
+    description: "Memory recall — search VAULT999, carry-forward, session state"
+    stage: "111 SENSE"
+    action_class: OBSERVE
+    aliases: [arif_memory_recall]
+    status: active
+
+# ─── DIAGNOSTIC TOOLS (D-series) ──────────────────────────────────────────
+# Internal probes, health checks, transport verification.
+# Not part of the golden path. Agents rarely need these directly.
+
+diagnostic:
+  D001:
+    name: arif_canary
+    description: "Transport liveness probe — ping, schema_echo, version_echo"
+    aliases: []
+    status: active
+
+  D002:
+    name: arif_conformance_report
+    description: "Full conformance spine — 9 live checks against running kernel"
+    aliases: []
+    status: active
+
+  D003:
+    name: arif_triage
+    description: "Session status, priority queue, preflight checks"
+    aliases: []
+    status: active
+
+  D004:
+    name: arif_vault_query
+    description: "Query VAULT999 audit ledger — recent, search, organ, date"
+    aliases: []
+    status: active
+
+  D005:
+    name: arif_organ_attest
+    description: "Probe and attest a single federation organ"
+    aliases: []
+    status: active
+
+  D006:
+    name: arif_organ_attest_all
+    description: "Attest arifOS plus all federation organs in one call"
+    aliases: []
+    status: active
+
+  D007:
+    name: arif_organ_consensus
+    description: "Cross-organ tri-witness consensus for proposed actions"
+    aliases: []
+    status: active
+
+  D008:
+    name: arif_os_attest
+    description: "arifOS kernel self-attestation — constitution, schema, tools, health"
+    aliases: []
+    status: active
+
+  D009:
+    name: arif_stack_health_probe
+    description: "Probe federation health — arifOS, organs, vault, model registry"
+    aliases: []
+    status: active
+
+  D010:
+    name: arif_heartbeat
+    description: "Record or query federation heartbeats"
+    aliases: []
+    status: active
+
+  D011:
+    name: arif_session_budget
+    description: "Session-cumulative metabolic budget tracker"
+    aliases: []
+    status: active
+
+  D012:
+    name: arif_floor_status
+    description: "Report current state of all 13 constitutional floors"
+    aliases: []
+    status: active
+
+  D013:
+    name: arif_scan_local_instructions
+    description: "Scan files for hidden instructions or governance violations"
+    aliases: []
+    status: active
+
+  D014:
+    name: arif_bridge_connect
+    description: "Bridge call to federation organ tools"
+    aliases: []
+    status: active
+
+  D015:
+    name: arif_cross_attest
+    description: "Cross-organ attestation with latency"
+    aliases: []
+    status: active
+
+  D016:
+    name: arif_gate_judge
+    description: "Gate-level constitutional judgment"
+    aliases: []
+    status: active
+
+  D017:
+    name: arif_initialize_probe
+    description: "MCP initialize handshake probe"
+    aliases: []
+    status: active
+
+  D018:
+    name: arif_kernel_attest
+    description: "Kernel attestation probe"
+    aliases: []
+    status: active
+
+  D019:
+    name: arif_kernel_health
+    description: "Kernel health probe"
+    aliases: []
+    status: active
+
+  D020:
+    name: arif_model_compare
+    description: "Model comparison utility"
+    aliases: []
+    status: active
+
+  D021:
+    name: arif_paradox_status
+    description: "Paradox status check"
+    aliases: []
+    status: active
+
+  D022:
+    name: arif_ping
+    description: "Simple liveness ping"
+    aliases: []
+    status: active
+
+  D023:
+    name: arif_schema_echo
+    description: "Schema echo verification"
+    aliases: []
+    status: active
+
+  D024:
+    name: arif_self_evaluate
+    description: "Self-evaluation utility"
+    aliases: []
+    status: active
+
+  D025:
+    name: arif_selftest
+    description: "Self-test utility"
+    aliases: []
+    status: active
+
+  D026:
+    name: arif_tool_exists
+    description: "Tool existence check"
+    aliases: []
+    status: active
+
+  D027:
+    name: arif_transport_echo
+    description: "Transport echo verification"
+    aliases: []
+    status: active
+
+  D028:
+    name: arif_version_echo
+    description: "Version echo verification"
+    aliases: []
+    status: active
+
+  D029:
+    name: arif_resolve_tool
+    description: "Resolve tool name or alias to canonical name"
+    aliases: []
+    status: active
+
+  D030:
+    name: arif_retrieve_tools
+    description: "BM25 lexical tool retrieval across federation catalog"
+    aliases: []
+    status: active
+
+  D031:
+    name: arif_get_affordance
+    description: "Return constitutional affordance contract for a tool"
+    aliases: []
+    status: active
+
+  D032:
+    name: arif_wiki_ingest
+    description: "Index a local repository into the wiki"
+    aliases: []
+    status: active
+
+  D033:
+    name: arif_wiki_map
+    description: "Get structural map of an indexed repository"
+    aliases: []
+    status: active
+
+  D034:
+    name: arif_wiki_search
+    description: "Search the wiki index for scored evidence chunks"
+    aliases: []
+    status: active
+
+  D035:
+    name: arif_wiki_ask
+    description: "Ask a natural-language question over the wiki index"
+    aliases: []
+    status: active
+
+  D036:
+    name: arif_detect_institutional_shadow_drift
+    description: "Detect institutional function-name drift (Petronas Paradox)"
+    aliases: []
+    status: active
+
+  D037:
+    name: arif_detect_narrative_tension
+    description: "Detect paradox tension and power asymmetry in text"
+    aliases: []
+    status: active
+
+  D038:
+    name: mcp_drift_check
+    description: "Compare live tool registry against canonical manifest for drift"
+    aliases: []
+    status: active
+
+  D039:
+    name: hermes_cross_verify
+    description: "Cross-agent verification — delegate fact-check to second agent"
+    aliases: []
+    status: active
+
+  D040:
+    name: hermes_epistemic_check
+    description: "Pre-flight epistemic confidence check for claims"
+    aliases: []
+    status: active
+
+  D041:
+    name: hermes_fact_check
+    description: "Verify claims against VAULT999 + heuristic"
+    aliases: []
+    status: active
+
+  D042:
+    name: hermes_memory_steward
+    description: "Classify content into memory tiers"
+    aliases: []
+    status: active
+
+  D043:
+    name: hermes_plan_review
+    description: "Review plans for safety and completeness"
+    aliases: []
+    status: active
+
+  D044:
+    name: hermes_system_status
+    description: "Return current federation state snapshot"
+    aliases: []
+    status: active
+
+  D045:
+    name: hermes_vault_query
+    description: "Query VAULT999 audit ledger (Hermes variant)"
+    aliases: []
+    status: active
+
+# ─── DEPRECATED ALIASES ────────────────────────────────────────────────────
+# These names still work but SHOULD NOT be used in new code.
+# They redirect to canonical tools at runtime.
+
+deprecated:
+  - name: arif_session_init
+    canonical: arif_init
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_init for consistency"
+
+  - name: arif_kernel_intercept
+    canonical: arif_judge
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_judge for clarity"
+
+  - name: arifos_kernel_intercept
+    canonical: arif_judge
+    deprecated_since: "2026-06-22"
+    reason: "Legacy namespace prefix"
+
+  - name: arif_sense_observe
+    canonical: arif_observe
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_observe for consistency"
+
+  - name: arif_explore
+    canonical: arif_observe
+    deprecated_since: "2026-06-22"
+    reason: "Merged into arif_observe"
+
+  - name: arif_mind_reason
+    canonical: arif_think
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_think for consistency"
+
+  - name: arif_evidence_fetch
+    canonical: arif_fetch
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_fetch for consistency"
+
+  - name: arif_heart_critique
+    canonical: arif_critique
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_critique for consistency"
+
+  - name: arif_reply_compose
+    canonical: arif_compose
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_compose for consistency"
+
+  - name: arif_vault_seal
+    canonical: arif_seal
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_seal for consistency"
+
+  - name: arif_ops_measure
+    canonical: arif_measure
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_measure for consistency"
+
+  - name: arif_forge_execute
+    canonical: arif_forge
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_forge for consistency"
+
+  - name: arif_memory_recall
+    canonical: arif_memory
+    deprecated_since: "2026-06-22"
+    reason: "Renamed to arif_memory for consistency"
+
+# ─── INVARIANT COUNTS ──────────────────────────────────────────────────────
+# These numbers are the CONTRACT. If your count differs, something is wrong.
+
+counts:
+  canonical: 14         # K001–K014
+  diagnostic: 45        # D001–D045
+  deprecated_aliases: 13
+  total_unique_handlers: 59   # canonical + diagnostic (no alias overlap)
+  total_names_in_code: 69     # includes all aliases
+  health_endpoint_expected:
+    canonical_tools: 14
+    diagnostic_tools: 45
+    tools_exposed_via_mcp: 59
+    total_declared_tools: 59
+
+# ─── GOLDEN PATH (canonical tools by stage) ────────────────────────────────
+# The 7-stage governance pipeline. Each stage maps to 1+ canonical tools.
+
+golden_path:
+  "000_INIT": [K001]                    # arif_init
+  "111_SENSE": [K002, K012, K014]       # arif_observe, arif_fetch, arif_memory
+  "333_REASON": [K003, K004, K013]      # arif_think, arif_route, arif_measure
+  "555_CRITIQUE": [K005]                # arif_critique
+  "666_JUDGE": [K006, K007]             # arif_judge, arif_judge_deliberate
+  "777_FORGE": [K008, K009]             # arif_forge, arif_act
+  "999_SEAL": [K010, K011]              # arif_seal, arif_compose

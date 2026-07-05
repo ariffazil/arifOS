@@ -19618,7 +19618,7 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arif_judge": "arifos_judge",
     "arif_act": "arifos_act",
     "arif_seal": "arifos_seal",
-    "arif_kernel_intercept": "arifos_kernel_intercept",
+    "arif_kernel_intercept": "arif_judge",  # ghost alias → canonical (SESAT fix 2026-07-05)
     "arif_critique": "arifos_critique",
     "arif_fetch": "arifos_fetch",
     "arif_compose": "arifos_compose",
@@ -19648,7 +19648,7 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arifos_judge": "arif_judge",
     "arifos_act": "arif_act",
     "arifos_seal": "arif_seal",
-    "arifos_kernel_intercept": "arif_kernel_intercept",
+    "arifos_kernel_intercept": "arif_judge",  # ghost alias → canonical (SESAT fix 2026-07-05)
     "arifos_critique": "arif_critique",
     "arifos_fetch": "arif_fetch",
     "arifos_compose": "arif_compose",

@@ -232,6 +232,7 @@ def mcp_drift_check(
     mode: str = "report",
     target_manifest: str = "canonical13",
     mcp_server: Any | None = None,
+    _envelope: Any = None,
 ) -> dict[str, Any]:
     """Detect drift between manifest and live registered surface.
 

@@ -201,6 +201,7 @@ async def arif_scan_local_instructions(
     root_dir: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    _envelope: Any = None,
 ) -> dict[str, Any]:
     """
     L12 GUARD: Scan local agent instruction files for constitutional override attempts.

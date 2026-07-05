@@ -577,6 +577,7 @@ def arif_triage(
     stage: str | None = None,
     actor_id: str | None = None,
     priority: str | None = None,
+    _envelope: Any = None,
 ) -> dict[str, Any]:
     """
     Session status, priority queue, and preflight checks.

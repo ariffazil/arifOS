@@ -502,6 +502,17 @@ class InterceptorInput(BaseModel):
     actor_id: str | None = None
     session_id: str | None = None
     authority_tier: AuthorityTier = AuthorityTier.LOW
+    # ── L11 AUTH lineage (added 2026-07-05) — forge-000-omega, sovereign ack 'ok 333' ──
+    # Pydantic v2 silently strips undeclared fields; without these, kernel crashes at
+    # interceptor.py:257 on req.actor_source access. See L11-AUTH-DIAGNOSTIC/FINDINGS.md.
+    actor_source: str | None = Field(
+        default=None,
+        description="Identity binding source: jwt_verified | dpop_verified | self_report",
+    )
+    auth_method: str | None = Field(
+        default=None,
+        description="Transport auth method: jwt | dpop",
+    )
 
 
 class InterceptorDecision(BaseModel):
