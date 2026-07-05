@@ -3,9 +3,9 @@
 validate_canonical_surface.py — CI guard against public surface drift.
 
 Checks:
-1. tool_registry.json canonical_order stays at exactly 7 public arif_* verbs
+1. tool_registry.json canonical_order stays at exactly 9 public arif_* verbs (ZEN-9)
 2. Every canonical_order entry has a matching tool entry
-3. Only those 7 entries are tagged tier=canonical in tool_registry.json
+3. Only those 9 entries are tagged tier=canonical in tool_registry.json
 4. PUBLIC_SURFACE_CANON.md stays free of legacy names before the migration guide
 """
 
@@ -51,9 +51,9 @@ def check_tool_registry() -> list[str]:
         if not name.startswith("arif_"):
             errors.append(f"tool_registry.json: canonical_order contains non-arif_* name: {name}")
     # Full "tools" dict may include gated/diagnostic (hermes, forge_*) — only canonical_order defines the public surface.
-    if len(canonical_order) != 7:
+    if len(canonical_order) != 9:
         errors.append(
-            f"tool_registry.json: expected 7 canonical tools (public surface, F13-ratified 2026-06-23), found {len(canonical_order)}"
+            f"tool_registry.json: expected 9 canonical tools (ZEN-9 public surface), found {len(canonical_order)}"
         )
     missing = sorted(set(canonical_order) - set(tools))
     if missing:

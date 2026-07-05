@@ -110,23 +110,24 @@ jobs:
           with open('arifosmcp/tool_registry.json') as f:
             reg = json.load(f)
           tools = reg.get('tools', {})
-          # F13 ratified 2026-06-23: 7 canonical public tools.
-          # canonical_order declares: init→observe→think→route→judge→act→seal
-          canonical_7 = ['arif_init', 'arif_observe', 'arif_think', 'arif_route',
-                         'arif_judge', 'arif_act', 'arif_seal']
+          # ZEN-9 metabolic loop: 9 canonical public tools.
+          # canonical_order declares: init→observe→think→route→critique→judge→forge→compose→seal
+          canonical_9 = ['arif_init', 'arif_observe', 'arif_think', 'arif_route',
+                         'arif_critique', 'arif_judge', 'arif_forge', 'arif_compose',
+                         'arif_seal']
           total = len(tools)
           if total < 50:
             print(f'ERROR: expected at least 50 tools total, got {total}')
             sys.exit(1)
-          missing = [c for c in canonical_7 if c not in tools]
+          missing = [c for c in canonical_9 if c not in tools]
           if missing:
             print(f'ERROR: missing canonical tools: {missing}')
             sys.exit(1)
-          if reg.get('canonical_order') != canonical_7:
-            print(f'ERROR: canonical_order drift: {reg.get("canonical_order")} != {canonical_7}')
+          if reg.get('canonical_order') != canonical_9:
+            print(f'ERROR: canonical_order drift: {reg.get("canonical_order")} != {canonical_9}')
             sys.exit(1)
-          if reg.get('canonical_count') != len(canonical_7):
-            print(f'ERROR: canonical_count drift: {reg.get("canonical_count")} != {len(canonical_7)}')
+          if reg.get('canonical_count') != len(canonical_9):
+            print(f'ERROR: canonical_count drift: {reg.get("canonical_count")} != {len(canonical_9)}')
             sys.exit(1)
           # All tools must use arif_* or hermes_* or forge_* or mcp_* naming
           allowed = ('arif_', 'arifos_', 'hermes_', 'forge_', 'mcp_')
@@ -134,8 +135,8 @@ jobs:
             if not any(name.startswith(p) for p in allowed):
               print(f'ERROR: bad name {name}')
               sys.exit(1)
-          canon_count = reg.get('canonical_count', len(canonical_7))
-          print(f'PASS: {total} tools registered, {canon_count} canonical, all {len(canonical_7)} present')
+          canon_count = reg.get('canonical_count', len(canonical_9))
+          print(f'PASS: {total} tools registered, {canon_count} canonical, all {len(canonical_9)} present')
           PY
 
       - name: Canonical surface drift guard
