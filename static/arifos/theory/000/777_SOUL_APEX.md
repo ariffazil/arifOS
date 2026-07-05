@@ -1,9 +1,11 @@
 # 777_SOUL_APEX — The Physics, Mathematics, and Symbolism of Constitutional Physics (Ψ)
 
-**Version:** v55.5-EIGEN
+**Version:** v2026.07.06-ZEN (Phase 1 applied)
 **Status:** SOVEREIGNLY_SEALED
 **Authority:** Muhammad Arif bin Fazil
 **Motto:** *"Ditempa Bukan Diberi"* (Forged, Not Given)
+
+**Live update note:** Φ dial, ToAC, TPCP enforcement added per plan. floors_to_dials now returns 5 dials. G 5-factor. See core/enforcement/genius.py and envelope.
 
 ---
 

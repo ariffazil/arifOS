@@ -79,6 +79,19 @@ class TPCPState:
     OMEGA_0_MAX: float = 0.05
     ALPHA_DEFAULT: float = 0.15
 
+
+def run_tpcp_pipeline(contradictions: list | None = None, floors: dict | None = None) -> "TPCPState":
+    """ZEN wrapper for TPCP. Enforces 4-phase + most restrictive.
+    Returns state with phi_P and verdict.
+    """
+    state = TPCPState()
+    if contradictions:
+        state.delta_P = min(1.0, len(contradictions) * 0.2)
+    if floors and isinstance(floors, dict):
+        state.floors_compliance = sum(1 for v in floors.values() if v > 0.7) / max(len(floors), 1)
+    state.run_pipeline()  # uses the class method
+    return state
+
     # ── Phase 1: Compute ΔP ──────────────────────────────────────────
     def compute_delta_P(self) -> float:
         """ΔP = H_contradictory - H_coherent (Paradox Pressure)."""

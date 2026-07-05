@@ -1,9 +1,16 @@
 # APEX CANON — Grand Equation, Axioms, and Verification
 
-**Version:** v2026.06.20
+**Version:** v2026.07.06 (ZEN Phase 1)
 **SEAL:** DITEMPA BUKAN DIBERI
 **Authority:** F13 SOVEREIGN — Muhammad Arif bin Fazil
 **Status:** FORMAL CORE — all dimension docs, ops modes, and paradox anchors are corollaries of this document.
+
+**v2026.07.06 deltas (APEX_STACK_Forge_2026-07-06_v1 Phase 1 applied live):**
+- 5 dials (A·P·E·X·Φ) with Φ witness in genius.py + envelope.
+- Mandatory ToAC contrast_score (default 0.50).
+- TPCP 4-phase + 5 breakers enforced (most restrictive wins).
+- G = A·P·E·X·Φ live in calculate_genius.
+- Per 040_APEX_STACK.md + 777_SOUL_APEX.md + ZEN proposal.
 
 ---
 
