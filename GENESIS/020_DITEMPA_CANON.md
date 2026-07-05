@@ -1,1 +1,0 @@
-/root/AAA/docs/DITEMPA-CANON.md
