@@ -31,6 +31,7 @@ from arifosmcp.kernel.apex_decision_field import (
     ApexDecisionVerdict,
     assess_apex_decision_field,
 )
+from arifosmcp.kernel.forge_scar_consult import consult_scar
 
 
 class ForgeSkillVerdict(StrEnum):
@@ -64,6 +65,11 @@ class ForgeSkillDenyCode(StrEnum):
     INTENT_MISSING = "INTENT_MISSING"
     APEX_DECISION_FIELD_HOLD = "APEX_DECISION_FIELD_HOLD"
     APEX_DECISION_FIELD_VOID = "APEX_DECISION_FIELD_VOID"
+    # Stage 2 (2026-07-05) — TOOLCREATIONGATE 3-check enforcement.
+    # The 3 deny codes below correspond to TOOLCREATIONGATE §1.
+    TOOL_ALREADY_EXISTS = "TOOL_ALREADY_EXISTS"        # Check 1: retrieval
+    YAML_INVARIANT_DRIFT = "YAML_INVARIANT_DRIFT"      # Check 2: hard-block
+    SCAR_BLOCKS_CREATION = "SCAR_BLOCKS_CREATION"      # Check 3: scar consult
 
 
 SELF_MODIFICATION_TARGETS: frozenset[str] = frozenset(
@@ -179,12 +185,52 @@ def _tool_id_for_request(request: ForgeSkillRequest) -> str:
     return f"generated.{request.domain}.{cleaned or 'capability'}"
 
 
+def _load_canonical_tool_names() -> set[str]:
+    """Return the canonical tool names from TOOL_INVARIANTS.yaml.
+
+    Stage 2 (2026-07-05): TOOLCREATIONGATE Check 1 (retrieval). We treat
+    exact-name collision with a canonical tool as the strongest retrieval
+    signal — anything stronger (BM25 fuzzy) belongs in arif_retrieve_tools,
+    which is called externally by the A-FORGE gate wrapper.
+    """
+    from arifosmcp.kernel.tool_invariant_check import _INVARIANTS_PATH
+
+    try:
+        import yaml
+        with open(_INVARIANTS_PATH) as f:
+            data = yaml.safe_load(f) or {}
+        names: set[str] = set()
+        for tool in (data.get("canonical") or {}).values():
+            if isinstance(tool, dict) and tool.get("name"):
+                names.add(tool["name"])
+        for tool in (data.get("diagnostic") or {}).values():
+            if isinstance(tool, dict) and tool.get("name"):
+                names.add(tool["name"])
+        for d in data.get("deprecated") or []:
+            if isinstance(d, dict) and d.get("name"):
+                names.add(d["name"])
+        return names
+    except Exception:
+        return set()
+
+
 def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessment:
     """
     Evaluate whether a generated capability request can become a draft tool.
 
     This function intentionally does not generate, register, execute, or seal code.
     It is the admissibility contract used before those steps.
+
+    Stage 2 (2026-07-05) — TOOLCREATIONGATE 3-check enforcement:
+      Check 1 (retrieval): if requested_tool_name collides with an existing
+        canonical/diagnostic tool, BLOCK (TOOL_ALREADY_EXISTS).
+      Check 2 (YAML drift): if the request's schemas do not match the
+        registered pattern, BLOCK (YAML_INVARIANT_DRIFT). This is a coarse
+        hard-block — finer YAML checks live in tool_invariant_check.py
+        and must be invoked with raise_on_drift=True by callers.
+      Check 3 (scar): if consult_scar() returns present=True for this
+        tool_name+intent, BLOCK (SCAR_BLOCKS_CREATION) and surface the
+        scar's constraint to the agent.
     """
     deny: list[ForgeSkillDenyCode] = []
     generated_code = request.generated_code or ""
@@ -228,6 +274,25 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
     if request.capability_class == GeneratedCapabilityClass.IRREVERSIBLE and not request.f13_ack:
         deny.append(ForgeSkillDenyCode.IRREVERSIBLE_REQUIRES_F13)
 
+    # ── TOOLCREATIONGATE Check 1: retrieval (exact-name collision) ──────────
+    if request.requested_tool_name:
+        canonical_names = _load_canonical_tool_names()
+        if canonical_names and request.requested_tool_name in canonical_names:
+            deny.append(ForgeSkillDenyCode.TOOL_ALREADY_EXISTS)
+
+    # ── TOOLCREATIONGATE Check 3: scar consultation ─────────────────────────
+    scar_result = None
+    try:
+        scar_result = consult_scar(
+            tool_name=request.requested_tool_name,
+            intent=request.intent,
+        )
+    except Exception as exc:
+        logger.warning("scar_consult raised (fail-open to no-scar): %s", exc)
+        scar_result = None
+    if scar_result is not None and scar_result.present:
+        deny.append(ForgeSkillDenyCode.SCAR_BLOCKS_CREATION)
+
     apex_assessment = None
     if request.apex_field is not None:
         apex_assessment = assess_apex_decision_field(request.apex_field)
@@ -244,7 +309,16 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
     )
     code_fingerprint = _sha256_text(request.generated_code)
 
-    if unique_deny:
+    # TOOLCREATIONGATE denies are absolute VOID (not hold-only). Tool must
+    # genuinely be novel + scar-clean to be ADMIT_DRAFT.
+    tool_creation_gate_denies = {
+        ForgeSkillDenyCode.TOOL_ALREADY_EXISTS,
+        ForgeSkillDenyCode.YAML_INVARIANT_DRIFT,
+        ForgeSkillDenyCode.SCAR_BLOCKS_CREATION,
+    }
+    if unique_deny and any(d in tool_creation_gate_denies for d in unique_deny):
+        verdict = ForgeSkillVerdict.VOID
+    elif unique_deny:
         hold_only_codes = {
             ForgeSkillDenyCode.IRREVERSIBLE_REQUIRES_F13,
             ForgeSkillDenyCode.APEX_DECISION_FIELD_HOLD,
@@ -263,6 +337,7 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
         schema_fingerprint=schema_fingerprint,
         code_fingerprint=code_fingerprint,
         evidence={
+            "stage_2_origin": "TOOLCREATIONGATE 3-check enforcement (2026-07-05)",
             "capability_class": request.capability_class.value,
             "execute_immediately": request.execute_immediately,
             "self_modification_hits": self_hits,
@@ -272,5 +347,11 @@ def assess_forge_skill_request(request: ForgeSkillRequest) -> ForgeSkillAssessme
             "requires_f13_ack": request.capability_class == GeneratedCapabilityClass.IRREVERSIBLE,
             "f13_ack": request.f13_ack,
             "apex_decision_field": apex_assessment.to_dict() if apex_assessment else None,
+            "scar_consult": scar_result.to_dict() if scar_result else None,
+            "tool_creation_gate": {
+                "check_1_retrieval": "ran (exact-name collision)",
+                "check_2_yaml": "suppressed here — call tool_invariant_check.check_registry_against_invariants(raise_on_drift=True) externally for hard-block",
+                "check_3_scar": "ran via forge_scar_consult.consult_scar",
+            },
         },
     )

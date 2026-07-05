@@ -17,6 +17,7 @@ from mcp.types import TextContent
 
 from arifosmcp.constitutional_map import CANONICAL_TOOLS
 from arifosmcp.runtime.law import check_laws
+from arifosmcp.runtime.public_surface import public_boundary_allows
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +110,12 @@ class ConstitutionalProvider(Provider):
             if t.name not in CANONICAL_TOOLS:
                 logger.warning(
                     f"[ConstitutionalProvider] Dropping unregistered tool '{t.name}' at list time."
+                )
+                continue
+            if not public_boundary_allows(t.name):
+                logger.info(
+                    "[ConstitutionalProvider] Hiding non-public tool '%s' from default tools/list.",
+                    t.name,
                 )
                 continue
             wrapped.append(self._wrap(t))

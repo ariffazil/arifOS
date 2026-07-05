@@ -153,13 +153,15 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
         "list_fn": "list_geox_tools",
         "identity_anchor_type": "physics_manifest",
         "identity_anchor_candidates": [
-            "/root/geox/GENESIS/004_PHYSICS_MANIFEST.md",
-            "/opt/geox/app/GENESIS/004_PHYSICS_MANIFEST.md",
+            "/root/GEOX/GENESIS/003a_PHYSICS_MANIFEST.md",
+            "/root/geox/GENESIS/003a_PHYSICS_MANIFEST.md",
+            "/opt/geox/app/GENESIS/003a_PHYSICS_MANIFEST.md",
         ],
         # kept for backward compat — sameness check only
         "constitution_candidates": [
-            "/root/geox/GENESIS/004_PHYSICS_MANIFEST.md",
-            "/opt/geox/app/GENESIS/004_PHYSICS_MANIFEST.md",
+            "/root/GEOX/GENESIS/003a_PHYSICS_MANIFEST.md",
+            "/root/geox/GENESIS/003a_PHYSICS_MANIFEST.md",
+            "/opt/geox/app/GENESIS/003a_PHYSICS_MANIFEST.md",
         ],
     },
     "WEALTH": {
@@ -198,9 +200,21 @@ _ORGAN_CONFIG: dict[str, dict[str, Any]] = {
         "health_fn": "vault_health_check",
         "list_fn": "list_vault_tools",
         "identity_anchor_type": "vault_manifest",
+        # Stage 0.2 (2026-07-05): prioritise the canonical manifest and the
+        # constitution-aware identity_anchor.json over mutable seal_chain.jsonl.
+        # The seal chain mutates on every seal — it's audit material, not
+        # static identity. The manifest is the vault's stable self-declared
+        # identity; identity_anchor.json pins that explicitly.
         "identity_anchor_candidates": [
+            "/root/.local/share/arifos/vault999/vault_manifest.json",
+            "/root/.local/share/arifos/vault999/identity_anchor.json",
+            "/agent/vault999/vault_manifest.json",
+            # Legacy fallback — seal_chain.jsonl is mutable; here only as
+            # last resort so the probe never returns missing unless the
+            # entire vault is gone.
+            "/root/VAULT999/seal_chain.jsonl",
+            "/root/.local/share/arifos/vault999/seal_chain.jsonl",
             "/agent/vault999/vault999.jsonl",
-            "/agent/vault999/vault999_legacy.jsonl",
         ],
     },
 }

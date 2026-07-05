@@ -42,9 +42,14 @@ def _get_diagnostic_tools() -> list[str]:
 
 
 def _get_domain_aliases() -> list[str]:
-    from arifosmcp.runtime.public_surface import DOMAIN_ALIASES
+    # DOMAIN_ALIASES was removed during the public-surface collapse.
+    # Keep the inventory script stable by treating the absence as canonical zero.
+    try:
+        from arifosmcp.runtime.public_surface import DOMAIN_ALIASES
 
-    return list(DOMAIN_ALIASES)
+        return list(DOMAIN_ALIASES)
+    except Exception:
+        return []
 
 
 def _get_handlers() -> list[str]:

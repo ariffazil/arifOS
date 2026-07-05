@@ -103,6 +103,7 @@ from arifosmcp.constitutional_map import (  # noqa: E402
 from arifosmcp.runtime.peer_contract import (  # noqa: E402
     get_arifos_peer_contract,
 )
+from arifosmcp.runtime.public_surface import public_tool_names_for_mode  # noqa: E402
 from arifosmcp.runtime.dpop_auth import (  # noqa: E402
     extract_cnf_jkt,
     verify_dpop_proof,
@@ -440,18 +441,20 @@ mcp = FastMCP(
         "- Truth survives falsification, not assertion.\n"
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
-        "Golden path: init → observe → think → route → judge → act → seal\n\n"
+        "Golden path: init → observe → think → route → critique → judge → forge → compose → seal\n\n"
         # RSI 2026-06-27: Only advertise public surface tools. Hidden tools
         # (arif_triage, arif_memory, arif_kernel_attest, etc.) must NOT appear
         # in instructions — ChatGPT/external callers try to call them and get blocked.
         # Agentic selection: each tool closes a specific gap in the intent→action pipeline.
-        "Canonical 7 — select by gap:\n"
+        "Canonical 9 — select by gap:\n"
         "  arif_init   — No session yet? Start here. Binds actor identity.\n"
         "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
         "  arif_think   — Reasoning gap? Plan, critique, analyze, verify.\n"
         "  arif_route   — Tool uncertainty? Route intent to correct organ.\n"
+        "  arif_critique — Human risk gap? Run maruah, ethics, and red-team review.\n"
         "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
-        "  arif_act     — Ready to execute? Requires valid SEAL from judge→seal pipeline.\n"
+        "  arif_forge   — Ready to stage execution? Prepare governed execution path.\n"
+        "  arif_compose — Need human-ready output? Format the governed response.\n"
         "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
@@ -1101,6 +1104,27 @@ try:
 
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
+
+    # Default HTTP tools/list must reflect the canonical public facade exactly.
+    # Keep aliases and diagnostics registered for compatibility and direct calls,
+    # but hide them from default discovery unless an explicit non-default
+    # surface mode is requested elsewhere.
+    try:
+        _provider = getattr(mcp, "_local_provider", None)
+        if _provider is not None and hasattr(_provider, "_list_tools"):
+            _orig_list_tools = _provider._list_tools
+
+            async def _public_only_list_tools():
+                tools = await _orig_list_tools()
+                allowed = set(public_tool_names_for_mode())
+                return [tool for tool in tools if tool.name in allowed]
+
+            _provider._list_tools = _public_only_list_tools
+            logger.info(
+                "Patched FastMCP local provider: default tools/list now returns canonical public facade only."
+            )
+    except Exception as _surface_patch_err:
+        logger.warning("Failed to patch default tools/list public facade: %s", _surface_patch_err)
 
     # Attach middleware to MCP server (FastMCP 3.x only)
     if IS_FASTMCP_3:
