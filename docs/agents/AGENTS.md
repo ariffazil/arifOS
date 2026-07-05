@@ -1,4 +1,4 @@
-# A-ARCHITECT — Design Authority
+# 🏛️ ARCHITECT
 
 **Symbol:** 🏛️ | **Trinity:** Δ | **Identity:** `agent://arifos/architect`
 **Capability Class:** READ-PLAN | **Authority:** 888_JUDGE
