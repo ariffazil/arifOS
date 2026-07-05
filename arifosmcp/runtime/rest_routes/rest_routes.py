@@ -1957,16 +1957,14 @@ def _openapi_schema(base_url: str, tools: list[Any]) -> dict[str, Any]:
 
 
 def _count_mcp_tools(fmcp: Any) -> int:
-    """Count total tools registered on the FastMCP instance, not just canonical."""
+    """Count tools exposed on the default public MCP wire surface."""
     try:
-        provider = getattr(fmcp, "_local_provider", None)
-        if provider is not None:
-            components = getattr(provider, "_components", {})
-            tool_count = sum(1 for k in components if k.startswith("tool:"))
-            return tool_count
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+        return len(public_tool_names_for_mode())
     except Exception:
         pass
-    return 13
+    return 9
 
 
 def _get_diagnostic_tool_count(mcp: Any) -> int:
@@ -2608,7 +2606,7 @@ def register_rest_routes(
             "tool_count_semantics": {
                 "canonical_tools_loaded": "Constitutional core tools from CANONICAL_TOOLS (dynamically derived)",
                 "diagnostic_tools": "Supporting MCP tools (leases, probes, Hermes, forge helpers, attestation, diagnostics) from DIAGNOSTIC_TOOLS",
-                "tools_exposed_via_mcp": "Total tools returned by MCP tools/list (includes all FastMCP registered tools)",
+                "tools_exposed_via_mcp": "Total tools returned by default MCP tools/list public facade",
                 "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (the full declared surface)",
             },
             "tool_manifest_url": "https://arifos.arif-fazil.com/manifest.txt",

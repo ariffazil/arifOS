@@ -19505,6 +19505,8 @@ def register_tools(
                         _tool_key = f"tool:{name}@"
                         _ft = _components.get(_tool_key)
                         if _ft is not None and hasattr(_ft, "parameters"):
+                            if spec and spec.input_schema:
+                                _ft.parameters = dict(spec.input_schema)
                             _params = _ft.parameters
                             if (
                                 _modes

@@ -1,8 +1,14 @@
 """
 Tool Invariant Check — startup validation against TOOL_INVARIANTS.yaml
 
-One function. One check. One truth.
-If the registry drifts from the YAML, the kernel logs a warning.
+Stage 2 (2026-07-05): escalate from warn-only to optionally BLOCK on drift.
+
+Two functions:
+  - check_registry_against_invariants(registered_names, *, raise_on_drift=False)
+    Default behaviour: log + return dict (backward compat).
+    When raise_on_drift=True: raise ToolInvariantDrift on any drift.
+  - consult_scar(fingerprint)  → delegated to forge_scar_consult.scar_consult
+    (Check 3 of TOOLCREATIONGATE — see forge_scar_consult.py)
 
 DITEMPA BUKAN DIBERI — 2026-07-05, FORGE (000Ω)
 """
@@ -18,6 +24,19 @@ import yaml
 logger = logging.getLogger(__name__)
 
 _INVARIANTS_PATH = Path(__file__).parent / "TOOL_INVARIANTS.yaml"
+
+
+class ToolInvariantDrift(Exception):
+    """Raised when registered tools diverge from TOOL_INVARIANTS.yaml.
+
+    Stage 2 hardening: callers in the TOOLCREATIONGATE pipeline now raise
+    this on drift instead of just logging. Conformance spine remains
+    unaffected (it does NOT pass raise_on_drift).
+    """
+
+    def __init__(self, payload: dict[str, Any]) -> None:
+        super().__init__(f"TOOL_INVARIANT_DRIFT: {payload}")
+        self.payload = payload
 
 
 def _load_invariants() -> dict[str, Any] | None:
@@ -42,15 +61,23 @@ def _extract_canonical_names(invariants: dict) -> set[str]:
 
 def check_registry_against_invariants(
     registered_names: set[str],
+    *,
+    raise_on_drift: bool = False,
 ) -> dict[str, Any]:
     """
     Compare live registered tools against TOOL_INVARIANTS.yaml.
 
+    Args:
+        registered_names: set of tool names currently in the live registry.
+        raise_on_drift: if True, raise ToolInvariantDrift when status=DRIFT.
+            Default False preserves the historical warn-only behaviour
+            (conformance spine, health probes).
+
     Returns:
         {
-            "status": "PASS" | "DRIFT",
-            "in_yaml_not_registered": [...],   # tools in YAML but missing from runtime
-            "in_registered_not_yaml": [...],   # tools in runtime but not in YAML
+            "status": "PASS" | "DRIFT" | "ERROR",
+            "in_yaml_not_registered": [...],
+            "in_registered_not_yaml": [...],
             "canonical_count": int,
             "diagnostic_count": int,
             "registered_count": int,
@@ -58,6 +85,10 @@ def check_registry_against_invariants(
     """
     invariants = _load_invariants()
     if invariants is None:
+        if raise_on_drift:
+            raise ToolInvariantDrift(
+                {"status": "ERROR", "reason": "Cannot load invariants file"}
+            )
         return {"status": "ERROR", "reason": "Cannot load invariants file"}
 
     yaml_names = _extract_canonical_names(invariants)
@@ -81,7 +112,7 @@ def check_registry_against_invariants(
             in_registered_not_yaml,
         )
 
-    return {
+    payload = {
         "status": status,
         "in_yaml_not_registered": in_yaml_not_registered,
         "in_registered_not_yaml": in_registered_not_yaml,
@@ -90,3 +121,8 @@ def check_registry_against_invariants(
         "registered_count": len(registered_names),
         "yaml_total": len(yaml_names),
     }
+
+    if raise_on_drift and status == "DRIFT":
+        raise ToolInvariantDrift(payload)
+    return payload
+

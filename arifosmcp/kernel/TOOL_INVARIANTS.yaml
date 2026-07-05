@@ -33,6 +33,75 @@ sovereign: "ARIF_FAZIL"
 # These are the governed tools. Every agent can call them.
 # Count: 14 (verified 2026-07-05 E2E test)
 
+# ─── HARMONIC INDEX (Stage 1 — 2026-07-05) ──────────────────────────────────
+# band.slot identity for canonical kernel tools only.
+# 8 bands × slots 1..N per band. Diagnostics reference canonical IDs.
+#
+# WHY: K-series numbers (K001..K014) are stable internal IDs but opaque to
+# humans. harmonic_id (e.g. 111.2) is the public-facing identifier that
+# mirrors the 7-stage governance pipeline and is what sovereign + review
+# surfaces should display.
+#
+# Schema: "band.slot" where band ∈ {000, 111, 333, 555, 666, 777, 999}
+# and slot is the tool's position within its band (1-indexed).
+#
+# Resolution rules (see tool_id_resolver.py):
+#   - name (e.g. "arif_fetch")        → K-series id
+#   - K-series id (e.g. "K012")        → harmonic_id
+#   - harmonic_id (e.g. "111.2")       → name
+#   - any of the above                  → all three
+#
+# Deprecated names (e.g. arif_sense_observe) keep working via the
+# `deprecated_aliases` block below. No K-series id is ever reused.
+
+harmonic_index:
+  version: "1.0.0-2026.07.05"
+  forged: "2026-07-05"
+  sovereign: "ARIF_FAZIL"
+  bands:
+    "000": "000 INIT — session bootstrap"
+    "111": "111 SENSE — observation, fetch, memory"
+    "333": "333 REASON — think, route, measure"
+    "555": "555 CRITIQUE — ethical risk, dignity"
+    "666": "666 JUDGE — constitutional verdict"
+    "777": "777 FORGE — execution prep + act"
+    "999": "999 SEAL — vault seal + compose"
+  # band.slot → K-series id
+  by_harmonic:
+    "000.1": { k_id: K001, name: arif_init }
+    "111.1": { k_id: K002, name: arif_observe }
+    "111.2": { k_id: K012, name: arif_fetch }
+    "111.3": { k_id: K014, name: arif_memory }
+    "333.1": { k_id: K003, name: arif_think }
+    "333.2": { k_id: K004, name: arif_route }
+    "333.3": { k_id: K013, name: arif_measure }
+    "555.1": { k_id: K005, name: arif_critique }
+    "666.1": { k_id: K006, name: arif_judge }
+    "666.2": { k_id: K007, name: arif_judge_deliberate }
+    "777.1": { k_id: K008, name: arif_forge }
+    "777.2": { k_id: K009, name: arif_act }
+    "999.1": { k_id: K010, name: arif_seal }
+    "999.2": { k_id: K011, name: arif_compose }
+  # name → harmonic_id (for UI/explainer surfaces)
+  by_name:
+    arif_init: "000.1"
+    arif_observe: "111.1"
+    arif_fetch: "111.2"
+    arif_memory: "111.3"
+    arif_think: "333.1"
+    arif_route: "333.2"
+    arif_measure: "333.3"
+    arif_critique: "555.1"
+    arif_judge: "666.1"
+    arif_judge_deliberate: "666.2"
+    arif_forge: "777.1"
+    arif_act: "777.2"
+    arif_seal: "999.1"
+    arif_compose: "999.2"
+  reserved_slots:
+    "000.2": "reserved for future 000-stage bootstrap tool"
+    "888.0": "reserved for sovereign-judgment stage (not yet active)"
+
 canonical:
   K001:
     name: arif_init

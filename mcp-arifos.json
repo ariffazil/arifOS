@@ -2,7 +2,7 @@
   "$schema": "https://modelcontextprotocol.io/specification",
   "server_info": {
     "name": "arifOS MCP",
-    "version": "2026.07.03-public7",
+    "version": "2026.07.05-canonical9",
     "description": "Compatibility manifest for the arifOS MCP public facade. Canonical discovery is the live MCP server card."
   },
   "canonical_discovery": {
@@ -12,8 +12,8 @@
   },
   "capabilities": {
     "public_tools": {
-      "count": 7,
-      "description": "Exactly 7 public verbs: init, observe, think, route, judge, act, seal."
+      "count": 9,
+      "description": "Exactly 9 public verbs: init, observe, think, route, critique, judge, forge, compose, seal."
     },
     "constitutional_organs": {
       "count": 13,
@@ -25,15 +25,17 @@
       "description": "Long-name aliases such as arif_session_init may still route, but they are not in tools/list."
     },
     "prompts": {
-      "count": 8,
+      "count": 10,
       "golden_path_order": [
         "arifosmcp_loop_engineer",
         "000_init",
         "111_observe",
         "333_think",
-        "555_route",
-        "888_judge",
-        "900_act",
+        "444_route",
+        "555_critique",
+        "666_judge",
+        "777_forge",
+        "888_compose",
         "999_seal"
       ]
     }
@@ -44,16 +46,18 @@
       "arif_observe",
       "arif_think",
       "arif_route",
+      "arif_critique",
       "arif_judge",
-      "arif_act",
+      "arif_forge",
+      "arif_compose",
       "arif_seal"
     ]
   },
   "golden_path": {
-    "order": "000→111→333→555→888→900→999",
+    "order": "000→111→333→444→555→666→777→888→999",
     "enforcement": {
-      "900_act_blocked_without_prior_judge": true,
-      "900_act_blocked_without_prior_seal": true,
+      "777_forge_blocked_without_prior_judge": true,
+      "777_forge_blocked_without_prior_seal": true,
       "sabar_returns_to_333": true
     }
   },

@@ -521,6 +521,34 @@ def _spec_for_name(name: str) -> Any:
     lookup_name = name.replace("arifos_", "arif_") if name.startswith("arifos_") else name
     contract = _tool_registry_contracts().get(lookup_name, {})
     runtime_contract = _runtime_contracts().get(lookup_name, {})
+    input_schema = runtime_contract.get(
+        "input_schema",
+        {"type": "object", "properties": {}, "additionalProperties": False},
+    )
+    if lookup_name == "arif_forge":
+        # Public facade advertises the verdict-gated execution contract, not the
+        # full internal wrapper parameter surface.
+        input_schema = {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "mode": {"default": "engineer", "type": "string"},
+                "manifest": {"default": "", "type": "string"},
+                "seal_verdict_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "approved_action_hash": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "query": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "artifact_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "session_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "ack_irreversible": {"default": False, "type": "boolean"},
+                "actor_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "constitutional_chain_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "judge_state_hash": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "vault_entry_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "plan_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "arif_ack_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "_envelope": {"default": None, "title": "Envelope"},
+            },
+        }
     return SimpleNamespace(
         name=name,
         description=runtime_contract.get(
@@ -531,10 +559,7 @@ def _spec_for_name(name: str) -> Any:
         stage=contract.get("stage", "000"),
         trinity=contract.get("lane", "AGI"),
         floors=tuple(contract.get("floors", [])),
-        input_schema=runtime_contract.get(
-            "input_schema",
-            {"type": "object", "properties": {}, "additionalProperties": False},
-        ),
+        input_schema=input_schema,
         output_schema=runtime_contract.get("output_schema") or _tool_output_schema(lookup_name),
         visibility="public",
         access=contract.get("access", "public"),
