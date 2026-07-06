@@ -5557,6 +5557,24 @@ def _ok(
     )
     # EPISTEMIC STRAIN GAUGE: record BEFORE building response so count is current
     _record_tool_invocation(tool, session_id, "OK")
+    # APEX Phase 3: record tool call for APEX primitive derivation
+    try:
+        from arifosmcp.runtime.apex_primitives import record_tool_call as _apex_record
+
+        _apex_record(
+            tool_name=tool,
+            success=True,
+            has_evidence=bool(
+                result.get("evidence") or result.get("sources") or result.get("citations")
+            ),
+            within_lease=bool(session_id),
+            dry_run_first=bool(meta_payload.get("dry_run")),
+            reversible=True,
+            actor_id=actor_id or "",
+            session_id=session_id or "",
+        )
+    except Exception:
+        pass  # APEX metrics are best-effort
     invocation_count = None
     if session_id and session_id in _SESSIONS:
         invocation_count = _SESSIONS[session_id].get("invocation_count", 0)
@@ -5731,6 +5749,23 @@ def _hold(
         _hold_trace_id = _hold_trace_packet.get("trace_id") or _SESSIONS[session_id].get("trace_id")
     # EPISTEMIC STRAIN GAUGE: record BEFORE building response
     _record_tool_invocation(tool, session_id, "HOLD")
+    # APEX Phase 3: record tool call for APEX primitive derivation
+    try:
+        from arifosmcp.runtime.apex_primitives import record_tool_call as _apex_record
+
+        _apex_record(
+            tool_name=tool,
+            success=False,
+            has_evidence=bool(floors),
+            within_lease=bool(session_id),
+            dry_run_first=False,
+            reversible=True,
+            failure_code="HOLD",
+            actor_id=actor_id or "",
+            session_id=session_id or "",
+        )
+    except Exception:
+        pass  # APEX metrics are best-effort
     _hold_invocation_count = None
     if session_id and session_id in _SESSIONS:
         _hold_invocation_count = _SESSIONS[session_id].get("invocation_count", 0)
@@ -5808,6 +5843,23 @@ def _sabar(
         pass  # SESAT is best-effort, not blocking
     # EPISTEMIC STRAIN GAUGE: record BEFORE building response
     _record_tool_invocation(tool, session_id, "SABAR")
+    # APEX Phase 3: record tool call for APEX primitive derivation
+    try:
+        from arifosmcp.runtime.apex_primitives import record_tool_call as _apex_record
+
+        _apex_record(
+            tool_name=tool,
+            success=False,
+            has_evidence=False,
+            within_lease=bool(session_id),
+            dry_run_first=False,
+            reversible=True,
+            failure_code="SABAR",
+            actor_id=actor_id or "",
+            session_id=session_id or "",
+        )
+    except Exception:
+        pass  # APEX metrics are best-effort
     _sabar_invocation_count = None
     if session_id and session_id in _SESSIONS:
         _sabar_invocation_count = _SESSIONS[session_id].get("invocation_count", 0)
@@ -5868,6 +5920,22 @@ def _error_envelope(
     timestamp = _now()
     call_hash = _compute_call_hash(tool, {"error": error}, timestamp, session_id=session_id)
     _record_tool_invocation(tool, session_id, "ERROR")
+    # APEX Phase 3: record error for APEX primitive derivation
+    try:
+        from arifosmcp.runtime.apex_primitives import record_tool_call as _apex_record
+
+        _apex_record(
+            tool_name=tool,
+            success=False,
+            has_evidence=False,
+            within_lease=bool(session_id),
+            dry_run_first=False,
+            reversible=True,
+            failure_code="ERROR",
+            session_id=session_id or "",
+        )
+    except Exception:
+        pass  # APEX metrics are best-effort
     nine_signal = _annotate_nine_signal(
         _nine_signal_from_status("ERROR"),
         _domain_for_tool(tool),
@@ -13739,8 +13807,24 @@ def _arif_judge_deliberate(
 
     # ── MEMBRANE-03: Measurement-based floor gate ──────────────────────────
     # When A-FORGE passes a MeasurementPacket, use G, C_dark for floor checks.
-    # The kernel reads, never recomputes (MEMBRANE-01/04).
+    # APEX Phase 3: enrich measurement with real computed APEX values when
+    # A-FORGE passes defaults or placeholders.
     if measurement and isinstance(measurement, dict):
+        try:
+            from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
+
+            _live_apex = compute_apex_from_metrics()
+            if _live_apex.get("sample_size", 0) > 0:
+                # Merge real values — A-FORGE values take precedence if non-default
+                for _k in ("A", "P", "E", "X", "Phi", "G", "C_dark"):
+                    _live_key = _k if _k != "Phi" else "Phi"
+                    if _k not in measurement or measurement[_k] in (None, 0.5, 0.0625, 0.25):
+                        measurement[_k] = _live_apex.get(_live_key, measurement.get(_k))
+                measurement.setdefault("source", "apex_primitives.py")
+                measurement["kernel_enriched"] = True
+                measurement["sample_size"] = _live_apex.get("sample_size", 0)
+        except Exception:
+            pass  # Enrichment is best-effort
         _mG = measurement.get("G")
         _mC = measurement.get("C_dark")
         _mW = measurement.get("W3")
@@ -14879,6 +14963,26 @@ async def _arif_judge_deliberate_tool(
                 )
         except Exception:
             pass
+
+        # APEX Phase 3: record governed-vs-baseline comparison
+        try:
+            from arifosmcp.runtime.governed_vs_baseline import (
+                record_comparison as _record_cmp,
+            )
+
+            _gverdict = result.get("verdict", "UNKNOWN")
+            _record_cmp(
+                tool_name="arif_judge_deliberate",
+                governed_verdict=_gverdict,
+                baseline_verdict="ALLOW",  # ungoverned default
+                sesat_detected=(_gverdict in ("HOLD", "VOID")),
+                measurement_G=measurement.get("G", 0) if measurement else 0,
+                measurement_C_dark=measurement.get("C_dark", 0) if measurement else 0,
+                actor_id=actor_id or "",
+                session_id=session_id or "",
+            )
+        except Exception:
+            pass  # Comparison recording is best-effort
 
         return result
     finally:
@@ -19241,6 +19345,30 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
         except Exception as e:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
+        # APEX Phase 3: record every tool call for APEX primitive derivation
+        try:
+            from arifosmcp.runtime.apex_primitives import (
+                record_tool_call as _apex_record,
+            )
+
+            _status = final_resp.get("status", "UNKNOWN")
+            _apex_record(
+                tool_name=tool_name,
+                success=(_status == "OK"),
+                has_evidence=bool(
+                    final_resp.get("result", {}).get("evidence")
+                    or final_resp.get("result", {}).get("sources")
+                    or final_resp.get("result", {}).get("citations")
+                ),
+                within_lease=bool(kwargs.get("session_id")),
+                dry_run_first=bool(kwargs.get("dry_run")),
+                reversible=(_status != "VOID"),
+                failure_code="" if _status == "OK" else _status,
+                actor_id=kwargs.get("actor_id") or "",
+                session_id=kwargs.get("session_id") or "",
+            )
+        except Exception:
+            pass  # APEX metrics are best-effort
         return _sanitize_envelope(final_resp)
 
     # Async wrapper
@@ -19295,6 +19423,30 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
         except Exception as e:
             logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
+        # APEX Phase 3: record every tool call for APEX primitive derivation (async)
+        try:
+            from arifosmcp.runtime.apex_primitives import (
+                record_tool_call as _apex_record,
+            )
+
+            _status = final_resp.get("status", "UNKNOWN")
+            _apex_record(
+                tool_name=tool_name,
+                success=(_status == "OK"),
+                has_evidence=bool(
+                    final_resp.get("result", {}).get("evidence")
+                    or final_resp.get("result", {}).get("sources")
+                    or final_resp.get("result", {}).get("citations")
+                ),
+                within_lease=bool(kwargs.get("session_id")),
+                dry_run_first=bool(kwargs.get("dry_run")),
+                reversible=(_status != "VOID"),
+                failure_code="" if _status == "OK" else _status,
+                actor_id=kwargs.get("actor_id") or "",
+                session_id=kwargs.get("session_id") or "",
+            )
+        except Exception:
+            pass  # APEX metrics are best-effort
         return _sanitize_envelope(final_resp)
 
     def _attach_live_kernel_envelope(
@@ -19950,3 +20102,6 @@ def _f14_entanglement_for_session(session_id: str | None) -> dict[str, Any]:
     result["available"] = True
     result["right_id"] = "right_to_non_addictive_AI"
     return result
+
+
+# APEX_VERIFY_1783324528

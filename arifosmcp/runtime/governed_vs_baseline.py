@@ -23,7 +23,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-_DB_DIR = Path("/root/.local/share/arifos")
+_DB_DIR = Path("/var/lib/arifos")
 _DB_PATH = _DB_DIR / "apex_metrics.db"
 
 
