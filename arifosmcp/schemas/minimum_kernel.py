@@ -39,6 +39,14 @@ class KernelInput(BaseModel):
     epistemic_state: TruthState = Field(
         default=TruthState.UNKNOWN, description="The universal truth state of the payload."
     )
+    measurement: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "Optional MeasurementPacket from A-FORGE. When present, kernel uses "
+            "G, C_dark, W3 for floor checks instead of computing anything. "
+            "MEMBRANE-03: only typed packets cross the membrane."
+        ),
+    )
 
 
 class KernelOutput(BaseModel):

@@ -2319,14 +2319,14 @@ def _nine_signal_from_apex(
     C_dark: float,
     system_health: float = 1.0,
 ) -> dict[str, str | dict]:
-    """Build Nine-Signal from REAL APEX computation — not status labels.
+    """[MEMBRANE_DEPRECATED] Build Nine-Signal from APEX scores.
 
-    Δ DELTA: system_health (CPU/mem/disk proxy)
-    Ψ PSI:   1 - C_dark (governance integrity = inverse of shadow)
-    Ω OMEGA: G (intelligence quality = APEX score)
+    This function is KEPT as fallback/test-only. It must NOT be called
+    from live kernel paths. A-FORGE computes nine_signal and passes it
+    through the MeasurementPacket. The kernel reads, never recomputes.
 
-    This replaces the cosmetic status→label lookup when APEX primitives exist.
-    See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
+    Phase 2: remove after all A-FORGE ingress paths are proven.
+    See: /root/A-FORGE/forge_work/2026-07-06/MEMBRANE_ARCHITECTURE.md
     """
     # Δ DELTA — machine physical state
     if system_health >= 0.80:
@@ -2384,19 +2384,18 @@ def _nine_signal_from_apex(
 def _inject_nine_signal(model_dump_json: dict, status: str, tool: str = "") -> dict:
     """Inject nine_signal block into a raw model_dump(mode='json') dict.
 
-    If APEX scores are available in the envelope, uses real computation.
-    Falls back to status→label lookup for backward compatibility.
+    MEMBRANE-01: Kernel does NOT compute APEX. It accepts what A-FORGE passes.
+    If the caller (A-FORGE) provided a nine_signal dict, use it.
+    Otherwise, fall back to status→label lookup (the advisory surface).
+    The kernel never calls compute_apex, compute_c_dark, or live metrics here.
     """
     out = dict(model_dump_json)
-    # Try real APEX if scores present
-    apex_scores = out.get("_apex_scores")
-    if apex_scores and all(k in apex_scores for k in ("G", "C_dark")):
-        ns = _nine_signal_from_apex(
-            G=apex_scores["G"],
-            C_dark=apex_scores["C_dark"],
-            system_health=apex_scores.get("system_health", 1.0),
-        )
+    # If A-FORGE already computed nine_signal, use it (measurement crosses membrane)
+    pre_computed = out.get("nine_signal")
+    if pre_computed and isinstance(pre_computed, dict) and "omega" in pre_computed:
+        ns = pre_computed
     else:
+        # Advisory surface: status→label lookup (kernel does not compute)
         ns = _nine_signal_from_status(status)
     if tool:
         ns = _annotate_nine_signal(ns, _domain_for_tool(tool))
@@ -5378,6 +5377,41 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     )
 
 
+def maybe_hantar_wrap(
+    tool: str,
+    response: dict[str, Any],
+    state: str = "LURUS",
+    sesat: Any | None = None,
+    malu_total: float = 0.0,
+) -> dict[str, Any]:
+    """Optional HANTAR wrapper for tool results.
+
+    When called, wraps the response in a HANTAR envelope.
+    WAJIB per SESAT grammar: every inter-node communication should be HANTAR.
+    But this is opt-in — callers choose when to wrap.
+
+    Usage:
+        result = _ok("my_tool", {...})
+        if should_wrap:
+            result = maybe_hantar_wrap("my_tool", result, state="LURUS")
+    """
+    try:
+        from arifosmcp.runtime.hantar import hantar_wrap, HantarState
+
+        st = HantarState(state) if isinstance(state, str) else state
+        envelope = hantar_wrap(
+            source_node=tool,
+            target_node="caller",
+            state=st,
+            output_content=response,
+            sesat=sesat,
+            malu_total=malu_total,
+        )
+        return envelope.to_dict()
+    except Exception:
+        return response  # HANTAR is best-effort, not blocking
+
+
 def _ok(
     tool: str,
     result: dict[str, Any],
@@ -5674,6 +5708,22 @@ def _hold(
     actor_id = _actor_for_response(session_id, meta.get("actor_id"))
     meta.setdefault("actor_id", actor_id)
     _add_floor_compat(meta)
+    # SESAT integration: attach structured failure event to HOLD responses
+    try:
+        from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
+
+        fc = FailureCode.JALAN_KUASA if floors else FailureCode.JALAN_BENAR
+        sesat = emit_sesat(
+            source_node=tool,
+            failure_code=fc.value,
+            failed_claim=f"HOLD: {reason}",
+            observed_reality=reason,
+            severity="YELLOW",
+            lantai=floors or ["F2"],
+        )
+        meta["sesat_event"] = sesat.to_dict()
+    except Exception:
+        pass  # SESAT is best-effort, not blocking
     # ROUND-TRIP GATE: extract trace_id from session if available
     _hold_trace_id = None
     if session_id and session_id in _SESSIONS:
@@ -5741,6 +5791,21 @@ def _sabar(
         session_id = response_ctx.get("session_id")
     actor_id = _actor_for_response(session_id, meta.get("actor_id"))
     meta.setdefault("actor_id", actor_id)
+    # SESAT integration: attach structured failure event to SABAR responses
+    try:
+        from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
+
+        sesat = emit_sesat(
+            source_node=tool,
+            failure_code=FailureCode.JALAN_KONTEKS.value,
+            failed_claim=f"SABAR: {reason}",
+            observed_reality=reason,
+            severity="YELLOW",
+            lantai=["F3"],
+        )
+        meta["sesat_event"] = sesat.to_dict()
+    except Exception:
+        pass  # SESAT is best-effort, not blocking
     # EPISTEMIC STRAIN GAUGE: record BEFORE building response
     _record_tool_invocation(tool, session_id, "SABAR")
     _sabar_invocation_count = None
@@ -13337,6 +13402,13 @@ def _arif_ops_measure(
                 "telemetry_source": "live_metrics",
                 "verified": live["verified"],
                 "timestamp": live["timestamp"],
+                "membrane_note": (
+                    "INFRASTRUCTURE TELEMETRY — NOT APEX. "
+                    "g_score = CPU/mem/disk health proxy. "
+                    "APEX G = A·P·E·X·Φ is computed by A-FORGE, not kernel. "
+                    "See MEMBRANE-01/04. This field will be removed when "
+                    "A-FORGE MeasurementPacket ingress is fully wired."
+                ),
             },
             delta_S=0.001,
         )
@@ -13357,25 +13429,24 @@ def _arif_ops_measure(
             delta_S=0.0,
         )
     if mode == "genius":
-        # REAL APEX G computation — wire apex_c_dark.compute_apex()
-        from arifosmcp.runtime.apex_c_dark import compute_apex
+        # MEMBRANE-01: Kernel returns raw telemetry. A-FORGE computes APEX.
+        from arifosmcp.core.telemetry.live_metrics import get_live_metrics
 
-        apex_v = compute_apex(
-            adaptation=0.7,  # TODO: derive from live tool call success rate
-            perception=0.7,  # TODO: derive from evidence floor compliance
-            execution=0.7,  # TODO: derive from forge execution success rate
-            cross_domain=0.6,  # TODO: derive from inter-organ routing success
-            integration=0.6,  # TODO: derive from scar feedback / Φ
-        )
+        live = get_live_metrics().health_snapshot()
+        cpu = live["cpu"].get("value") or 0.0
+        mem = live["mem"].get("percent", {}).get("value") or 0.0
+        disk = live["disk"].get("percent", {}).get("value") or 0.0
+        system_health = max(0.0, 1.0 - (cpu + mem + disk) / 300.0)
+
         return _ok(
             "arif_ops_measure",
             {
-                "equation": "G = A · P · E · X · Φ",
-                "G": round(apex_v.G, 4),
-                "C_dark": round(apex_v.C_dark, 4),
-                "verdict": apex_v.verdict.value,
-                "scores": {"A": 0.7, "P": 0.7, "E": 0.7, "X": 0.6, "Phi": 0.6},
-                "note": "Phase 1: primitives are defaults. Phase 2: derive from live telemetry.",
+                "system_health": round(system_health, 4),
+                "cpu": round(cpu, 1),
+                "mem": round(mem, 1),
+                "disk": round(disk, 1),
+                "telemetry_source": "live_metrics",
+                "membrane_note": "Kernel returns telemetry. A-FORGE computes G = A·P·E·X·Φ.",
             },
             delta_S=0.0,
         )
@@ -13595,6 +13666,8 @@ def _arif_judge_deliberate(
     # ── F-WEB Evidence Gate ──
     evidence_receipt: dict[str, Any] | None = None,
     claimed_evidence_level: str | None = None,
+    # ── MEMBRANE-03: MeasurementPacket from A-FORGE ──
+    measurement: dict[str, Any] | None = None,
     # arif_judge public-surface Contract C fields, captured as audit context.
     # See _arif_judge_deliberate_tool for the rationale on no-VAR_KEYWORD.
     # Patched 2026-06-30 (F13 SOVEREIGN: "fix the judge ingress first").
@@ -13663,6 +13736,50 @@ def _arif_judge_deliberate(
             "actor_id": actor_id,
             "_gate_error": True,
         }
+
+    # ── MEMBRANE-03: Measurement-based floor gate ──────────────────────────
+    # When A-FORGE passes a MeasurementPacket, use G, C_dark for floor checks.
+    # The kernel reads, never recomputes (MEMBRANE-01/04).
+    if measurement and isinstance(measurement, dict):
+        _mG = measurement.get("G")
+        _mC = measurement.get("C_dark")
+        _mW = measurement.get("W3")
+        if _mC is not None and _mC >= 0.30:
+            return {
+                "status": "OK",
+                "tool": "arif_judge_deliberate",
+                "verdict": "HOLD",
+                "reason": (
+                    f"F9 ANTI-HANTU: C_dark={_mC:.3f} >= 0.30 from MeasurementPacket. "
+                    "Hallucination risk too high for autonomous action."
+                ),
+                "measurement_received": {"G": _mG, "C_dark": _mC, "W3": _mW},
+                "membrane": {
+                    "source": measurement.get("source", "unknown"),
+                    "kernel_computed": False,
+                },
+                "session_id": session_id,
+                "actor_id": actor_id,
+                "constitutional_floor_triggered": "F9",
+            }
+        if _mG is not None and _mG < 0.50:
+            return {
+                "status": "OK",
+                "tool": "arif_judge_deliberate",
+                "verdict": "HOLD",
+                "reason": (
+                    f"F8 GENIUS: G={_mG:.3f} < 0.50 from MeasurementPacket. "
+                    "Intelligence quality insufficient for autonomous action."
+                ),
+                "measurement_received": {"G": _mG, "C_dark": _mC, "W3": _mW},
+                "membrane": {
+                    "source": measurement.get("source", "unknown"),
+                    "kernel_computed": False,
+                },
+                "session_id": session_id,
+                "actor_id": actor_id,
+                "constitutional_floor_triggered": "F8",
+            }
 
     # ── FORGE D (2026-06-11): P3-5 Scar Recall (WAJIB before judge) ─────────
     # Scar jurisprudence: surface prior institutional scars from scar.json
@@ -14520,6 +14637,10 @@ async def _arif_judge_deliberate_tool(
     audit_entropy: float | None = None,
     wealth_score: float | None = None,
     verification_surface: dict[str, Any] | None = None,
+    # ── MEMBRANE-03: MeasurementPacket from A-FORGE ──
+    # When present, forwarded to kernel for floor checks.
+    # Kernel reads G, C_dark, W3; never recomputes.
+    measurement: dict[str, Any] | None = None,
     # arif_judge public-surface Contract C fields, captured as audit context.
     # Required to remain keyword-only (no VAR_KEYWORD) because Python requires
     # VAR_KEYWORD to be the last parameter and _build_enriched_signature
@@ -14664,6 +14785,7 @@ async def _arif_judge_deliberate_tool(
             constitutional_chain_id=constitutional_chain_id,
             evidence_receipt=evidence_receipt,
             claimed_evidence_level=claimed_evidence_level,
+            measurement=measurement,
         )
 
         if trace:
@@ -18383,11 +18505,15 @@ async def _arif_kernel_intercept_tool(
     epistemic_state: str = "UNKNOWN",
     evidence: list[dict[str, Any]] | None = None,
     authority_token: str | None = None,
+    measurement: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Wrapper for the minimum constitutional kernel interceptor.
 
     Now wires the full constitutional affordance + metacognitive envelope
     so the kernel decision itself is cognitively legible to agents.
+
+    MEMBRANE-03: Accepts optional measurement dict (MeasurementPacket from A-FORGE).
+    When present, passes to kernel for floor checks. Kernel reads, never recomputes.
     """
     raw = await _arif_kernel_intercept(
         actor=actor,
@@ -18399,6 +18525,7 @@ async def _arif_kernel_intercept_tool(
         epistemic_state=epistemic_state,
         evidence=evidence,
         authority_token=authority_token,
+        measurement=measurement,
     )
 
     # Use the standard builder so kernel verdicts carry facts/inferences/metacog/next_safe

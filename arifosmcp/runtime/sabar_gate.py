@@ -157,9 +157,8 @@ def _increment_malu(actor_id: str, reason: str, malu_delta: float) -> dict[str, 
 
         receipt = record_malu_event(
             actor_id=actor_id,
-            reason=reason,
-            malu_delta=malu_delta,
-            source=GATE_ID,
+            adat_id="ADAT-01-KEJUJURAN",  # F9 ANTI-HANTU → truth violation
+            context={"gate": GATE_ID, "reason": reason, "malu_delta": malu_delta},
         )
         return {
             "malu_event_id": getattr(receipt, "event_id", None),

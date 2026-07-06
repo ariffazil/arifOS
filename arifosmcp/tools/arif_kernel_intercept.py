@@ -95,6 +95,7 @@ async def _arif_kernel_intercept(
     epistemic_state: str = "UNKNOWN",
     evidence: list[dict[str, Any]] | None = None,
     authority_token: str | None = None,
+    measurement: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     The Minimum Constitutional Kernel. All federation actions pass through here.
@@ -106,6 +107,10 @@ async def _arif_kernel_intercept(
     (ed25519). Dev-mode fallback uses constant-time sentinel comparison;
     production MUST load the sovereign public key from
     /root/.secrets/sovereign_key.pub at boot.
+
+    MEMBRANE-03: When measurement dict is provided (from A-FORGE MeasurementPacket),
+    the kernel uses G, C_dark, W3 for floor checks WITHOUT recomputing.
+    When absent, falls back to current advisory behavior.
     """
     evidence = evidence or []
 
@@ -129,7 +134,17 @@ async def _arif_kernel_intercept(
         reversibility_level=r_class,
         blast_radius=blast_radius,
         epistemic_state=t_state,
+        measurement=measurement,
     )
+
+    # ── MEMBRANE-03: Extract pre-computed APEX from MeasurementPacket ──
+    # When A-FORGE passes measurement, the kernel reads G, C_dark, W3
+    # for floor checks. It NEVER recomputes these values.
+    _m = measurement or {}
+    _G = _m.get("G")
+    _C_dark = _m.get("C_dark")
+    _W3 = _m.get("W3")
+    _has_measurement = _G is not None and _C_dark is not None
 
     # 1. 888 HOLD trigger for Irreversible or Sovereign actions (F13 SOVEREIGN)
     if r_class in {ReversibilityClass.R4_IRREVERSIBLE, ReversibilityClass.R5_SOVEREIGN}:
@@ -235,6 +250,60 @@ async def _arif_kernel_intercept(
         base["metacognition"] = {"confidence": 0.80, "next_safe_action": base["next_safe_action"]}
         return base
 
+    # 2d. MEMBRANE: Measurement-based floor checks (F9 ANTI-HANTU)
+    # When A-FORGE passes a MeasurementPacket, use it for floor gating.
+    # The kernel reads, never recomputes (MEMBRANE-01/04).
+    if _has_measurement:
+        # F9 ANTI-HANTU: C_dark < 0.30 — hallucination detector
+        if _C_dark >= 0.30:
+            output = KernelOutput(
+                decision="ESCALATE",
+                constitutional_floor_triggered="F9",
+                reason=(
+                    f"F9 ANTI-HANTU: C_dark={_C_dark:.3f} >= 0.30 threshold. "
+                    "Hallucination risk too high for autonomous action."
+                ),
+                audit_hash=compute_audit_hash(kernel_input),
+                rollback_instruction=None,
+            )
+            base = output.model_dump()
+            base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
+            base["membrane"] = {"source": _m.get("source", "unknown"), "kernel_computed": False}
+            base["next_safe_action"] = (
+                "Reduce hallucination risk (improve P or X primitives) then re-submit"
+            )
+            base["metacognition"] = {
+                "confidence": 0.90,
+                "next_safe_action": base["next_safe_action"],
+                "measurement_used": True,
+            }
+            return base
+
+        # F8 GENIUS: G < 0.50 — intelligence quality too low
+        if _G is not None and _G < 0.50:
+            output = KernelOutput(
+                decision="ESCALATE",
+                constitutional_floor_triggered="F8",
+                reason=(
+                    f"F8 GENIUS: G={_G:.3f} < 0.50 threshold. "
+                    "Intelligence quality insufficient for autonomous action."
+                ),
+                audit_hash=compute_audit_hash(kernel_input),
+                rollback_instruction=None,
+            )
+            base = output.model_dump()
+            base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
+            base["membrane"] = {"source": _m.get("source", "unknown"), "kernel_computed": False}
+            base["next_safe_action"] = (
+                "Improve evidence/primitives then re-submit, or escalate to human"
+            )
+            base["metacognition"] = {
+                "confidence": 0.85,
+                "next_safe_action": base["next_safe_action"],
+                "measurement_used": True,
+            }
+            return base
+
     # 3. Standard Allow
     output = KernelOutput(
         decision="ALLOW",
@@ -254,6 +323,17 @@ async def _arif_kernel_intercept(
     target_aff = get_full_affordance(requested_capability)
     base["affordance"] = target_aff
     base["agency_level"] = target_aff.get("agency_level")
+
+    # ── MEMBRANE: Attach measurement receipt when present ──
+    if _has_measurement:
+        base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
+        base["membrane"] = {
+            "source": _m.get("source", "unknown"),
+            "calculator": _m.get("calculator", "unknown"),
+            "kernel_computed": False,
+            "note": "Kernel read measurement; did not recompute (MEMBRANE-01/04)",
+        }
+
     # Metacognitive next step from kernel perspective
     is_l5 = "L5" in str(target_aff.get("agency_level", ""))
     next_act = (
@@ -266,6 +346,7 @@ async def _arif_kernel_intercept(
         "confidence": 0.92 if not is_l5 else 0.75,
         "why_this_tool": "Kernel minimum intercept passed all gates",
         "next_safe_action": next_act,
+        "measurement_used": _has_measurement,
     }
     base["constitutional_check"] = {
         "floor_passed": True,
