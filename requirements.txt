@@ -375,7 +375,7 @@ nest-asyncio==1.6.0
     # via firecrawl-py
 networkx==3.6.1
     # via torch
-numpy==2.5.0
+numpy==2.5.1
     # via
     #   arifos (pyproject.toml)
     #   qdrant-client
@@ -775,7 +775,7 @@ tqdm==4.68.3
     #   transformers
 trafilatura==2.1.0
     # via arifos (pyproject.toml)
-transformers==5.12.1
+transformers==5.13.0
     # via
     #   arifos (pyproject.toml)
     #   sentence-transformers
