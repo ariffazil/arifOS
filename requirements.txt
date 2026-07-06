@@ -383,7 +383,7 @@ numpy==2.5.0
     #   scipy
     #   sentence-transformers
     #   transformers
-nvidia-cublas==13.1.1.3
+nvidia-cublas==13.6.0.2
     # via
     #   nvidia-cudnn-cu13
     #   nvidia-cusolver
