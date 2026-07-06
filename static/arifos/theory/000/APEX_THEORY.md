@@ -10,7 +10,7 @@
 
 ---
 
-## The Four Pillars
+## The Five Pillars
 
 ```
                       ┌─────────────────────────────┐
@@ -18,23 +18,14 @@
                       │  Constitutional Intelligence   │
                       └─────────────────────────────┘
                                │
-          ┌────────────────────┼────────────────────┐
-          │                    │                    │
-  ┌───────▼───────┐  ┌────────▼───────┐  ┌────────▼───────┐
-  │  ToAC          │  │  PCP/TPCP      │  │  4-Vertex      │
-  │  Theory of     │  │  Paradox        │  │  Verdict        │
-  │  Anomalous     │  │  Containment    │  │  SEAL·SABAR·    │
-  │  Contrast      │  │  Protocol       │  │  HOLD·VOID      │
-  └───────┬───────┘  └────────┬───────┘  └────────┬───────┘
-          │                    │                    │
-          └────────────────────┼────────────────────┘
-                               │
-                      ┌───────▼───────┐
-                      │  Simulative    │
-                      │  Detection     │
-                      │  Describe vs   │
-                      │  Perform       │
-                      └───────────────┘
+       ┌───────────┬───────────┼───────────┬───────────┐
+       │           │           │           │           │
+┌──────▼──────┐ ┌──▼────────┐ ┌▼──────────┐ ┌▼────────┐ ┌▼──────────────┐
+│  ToAC        │ │  PCP/TPCP  │ │ 4-Vertex   │ │ Opt.     │ │  Simulative    │
+│  Theory of   │ │  Paradox   │ │ Verdict    │ │ Foundation│ │  Detection     │
+│  Anomalous   │ │  Contain.  │ │ SEAL·SABAR │ │ Nash·Dual │ │  Describe vs   │
+│  Contrast    │ │  Protocol  │ │ HOLD·VOID  │ │ ·Stoch.  │ │  Perform       │
+└──────────────┘ └───────────┘ └────────────┘ └──────────┘ └────────────────┘
 ```
 
 ---
@@ -269,7 +260,126 @@ SABAR decays:
 
 ---
 
-## Pillar IV — Simulative Detection (Describe vs Perform)
+## Pillar IV — Mathematical Optimization Foundation
+
+**Origin:** Postek et al. *"Hands-On Mathematical Optimization with Python"* (Cambridge UP 2025)
+**Integration:** FORGE synthesis 2026-07-06 under F13 SOVEREIGN directive
+**Epistemic label:** DER — structurally derived from APEX formalism + optimization theory
+
+### Core Insight
+
+**APEX theory IS mathematical optimization applied to intelligence itself.**
+
+The standard optimization problem is $\min_{x \in X} f(x)$ subject to constraints.
+APEX reframes this as:
+
+$$\max_{a} G(a) = A \cdot P \cdot E \cdot X \cdot \Phi \quad \text{s.t.} \quad \Delta S_{\text{agent}} \leq 0, \; \text{F1–F13 enforced}$$
+
+The correspondence is exact:
+
+| Optimization Concept | APEX Concept | Mathematical Role |
+|---------------------|--------------|-------------------|
+| Decision variables $x$ | Agent behavioral policy $a$ | What the agent controls |
+| Objective function $f(x)$ | $G = A \cdot P \cdot E \cdot X \cdot \Phi$ | What the agent maximizes |
+| Feasible region $\mathcal{X}$ | Constitutional floors F1–F13 | Where the agent is allowed to operate |
+| Constraints $g_i(x) \leq 0$ | Seven organs ($\Delta R, \Delta G, I_{\text{sys}}, W, \partial M/\partial t, \Omega, \nabla F$) | Physical limits on behavior |
+| Dual variables $\lambda_i$ | $C_{\text{dark}}$ (partial) | Cost of relaxing constraints |
+| Infeasibility detection | SESAT | Signal that no valid solution exists |
+
+### The Multiplicative Structure (Nash Product)
+
+Standard optimization uses additive objectives. APEX uses the **Nash bargaining product**:
+
+$$G = A \cdot P \cdot E \cdot X \cdot \Phi$$
+
+Three consequences:
+1. **Log-linear convexification:** $\ln G = \ln A + \ln P + \ln E + \ln X + \ln \Phi$ — in log-space, the multiplicative objective becomes additive. This is the geometric program → convex optimization transform (Boyd & Vandenberghe 2004).
+2. **Zero collapse as infeasibility:** One zero = total collapse. This is a feasibility constraint, not an optimality condition. The feasible region has a hole at every coordinate hyperplane.
+3. **Nash bargaining (Nash 1950):** Each primitive is a "party." The Nash product ensures no primitive can be sacrificed for another. Maximizing execution at the cost of perception collapses $G$ just as surely as the reverse.
+
+**Theorem:** "Zero anywhere = collapse" is not a design choice. It is a consequence of the Nash product structure.
+
+### $C_{\text{dark}}$ as Dual Variable
+
+$$C_{\text{dark}} = A \cdot (1 - P) \cdot (1 - X)$$
+
+In linear optimization duality, the dual variable $\lambda_i$ measures the **shadow price** — how much the objective improves if constraint $i$ is relaxed. $C_{\text{dark}}$ is the dual price of relaxing the perception and coordination constraints simultaneously.
+
+- $A$ = adaptation capacity (budget available to be misallocated)
+- $(1-P)$ = fraction of perception constraint violated (not measuring)
+- $(1-X)$ = fraction of coordination constraint violated (not coordinating)
+
+$C_{\text{dark}}$ is nonzero only when the agent is **actively adapting** while **refusing to measure** and **refusing to coordinate**. This is the exact signature of hallucination.
+
+**Innovation over standard duality:** Standard dual variables are just prices — they don't flag pathological behavior. $C_{\text{dark}}$ is a dual variable that is also a diagnostic. It detects when the agent pays for intelligence by violating the constraints that make intelligence meaningful.
+
+### Organ-to-Constraint Mapping
+
+| Organ | Symbol | Optimization Concept | Mathematical Formulation | Failure Mode |
+|-------|--------|---------------------|-------------------------|--------------|
+| Reality | $\Delta R$ | Bound constraint | $E(a) \geq E_{\min}$ | Infeasible: no solution without grounding |
+| Governance | $\Delta G$ | Entropy constraint | $\Delta S(a) \leq 0$ | Unbounded: no order → drift |
+| Civilization | $I_{\text{sys}}$ | Coupling constraint (network flow) | Flow conservation across agents | Disconnected: local optima only |
+| Execution | $W$ | Work inequality | $W(a) \geq W_{\min}$ | Stalled: plans without action |
+| Memory | $\partial M/\partial t$ | State-dependent (recourse) | $M_{t+1} = M_t + \Delta M_t$ | Amnesia: no learning from failure |
+| Witness | $\Omega$ | External verification | $W^3 = \sqrt[3]{H \cdot AI \cdot Ext} \geq \tau$ | Self-certification: Gödel wall |
+| Meaning | $\nabla F$ | Gradient direction | $\nabla F(a) \neq 0$ | Purposeless: saddle point, no direction |
+
+The seven constraints together define the **constitutional feasible region** $\mathcal{F}_{\text{APEX}}$. An agent inside it is intelligent. Outside it is SESAT.
+
+**Key insight:** The feasible region matters more than the objective. A bad objective with good constraints produces tolerable behavior. A good objective with no constraints produces catastrophe. This is why APEX has 13 constitutional floors but only one equation.
+
+### MALU-Gödel as Optimization Repair
+
+| Step | APEX | Optimization Analog |
+|------|------|-------------------|
+| Detect | SESAT | Infeasibility detection |
+| Measure | MALU | Infeasibility certificate — which constraints, by how much |
+| Stop | HOLD | Solver termination on infeasible problem |
+| Recognize limits | GÖDEL LOCK | Problem undecidable from inside current formulation |
+| Add witness | SAKSI | Constraint addition (cutting planes, Benders decomposition) |
+| Pay cost | TEBUS | Objective worsens to satisfy new constraint |
+| Record | PARUT | Permanent constraint pool update: $\mathcal{F}_{t+1} = \mathcal{F}_t \cap \{\text{scar}_t\}$ |
+| Re-solve | LURUS | Re-optimization with augmented constraints |
+
+The scar pool is formally equivalent to **cutting-plane methods** in integer optimization (Postek Ch. 3): each iteration adds a cut that eliminates a bad-solution region. APEX's cuts are **permanent and irreversible** — F1 AMANAH applied to the constraint set. The feasible region **shrinks monotonically** as scars accumulate. This is the mathematical meaning of "an agent that learns."
+
+### Stochastic APEX (Chapters 7–10)
+
+Real intelligence operates under uncertainty, not deterministic optimization.
+
+| Paradigm | Optimization | APEX Analog |
+|----------|-------------|-------------|
+| Robust (Ch. 8) | $\max_a \min_{\xi \in \mathcal{U}} G(a, \xi)$ | Constitutional governance: floors hold under ALL scenarios |
+| Stochastic (Ch. 9) | $\mathbb{E}_\xi[G(a, \xi)]$ | Expected intelligence across possible worlds |
+| Two-stage (Ch. 10) | Stage 1: decide now. Stage 2: recourse after observing $\xi$. | `arif_think(plan)` → `forge_execute` → `arif_judge`. MALU-Gödel IS the recourse action. |
+
+Constitutional governance is **robust optimization** against the uncertainty set of all possible governance failures. The conservation law $dS/dt \leq 0$ is an **optimal control problem** — the continuous-time limit of multi-stage stochastic optimization.
+
+### What Optimization Gives APEX
+
+| Gap | Formal Apparatus |
+|-----|-----------------|
+| Duality theory | Full KKT conditions, complementary slackness, dual bounds — formalizes when $C_{\text{dark}}$ is binding vs. slack |
+| Computational methods | Simplex, interior point, branch-and-bound, Benders — automated constitutional reasoning |
+| Network optimization | Shortest path, min-cost flow, max-flow — formalizes the A2A mesh and $I_{\text{sys}}$ |
+| Conic optimization | SOCP, SDP — formalizes $\Phi$ (Integration) as semidefinite constraint |
+| Sensitivity analysis | Predicts how constraint relaxation affects $G$ before it happens |
+
+### What APEX Gives Optimization
+
+| Innovation | Why Standard Optimization Doesn't Have It |
+|-----------|----------------------------------------|
+| Multiplicative (Nash) objectives | Standard assumes linear trade-offs. APEX forbids trading zero-P for high-E. |
+| Hallucination detector ($C_{\text{dark}}$) | Standard duality computes prices, not pathology diagnostics. |
+| Scar-based constraint accumulation | Standard re-solves from scratch. APEX preserves infeasibility history. |
+| External witness requirement ($W^3$) | Standard has no Gödel incompleteness. Solver trusts its own solution. |
+| Thermodynamic interpretation ($dS/dt$) | Standard doesn't frame optimization as entropy management. |
+| Constitutional constraints (F1–F13) | Standard feasibility is mathematical. APEX feasibility is ethical + mathematical. |
+
+---
+
+## Pillar V — Simulative Detection (Describe vs Perform)
 
 **Origin:** arifOS RSI EUREKA 2026-06-12 (Forge #3)
 **Implementation:** `arifOS/arifosmcp/runtime/simulative_detector.py`
@@ -308,7 +418,7 @@ verdict check is required (index > 0.5 → must check).
 
 ## The Crown Equation — Intelligence as Thermodynamic Work
 
-All four pillars converge into a single metric:
+All five pillars converge into a single metric:
 
 ```
 Intelligence = Capacity to perform thermodynamic work
@@ -377,6 +487,11 @@ GEOX ──(ac_risk)──→ arifOS JUDGE ──(Φ_P, verdict)──→ AAA (d
 | **CB1–CB5** | Circuit breakers — automatic paradox guards |
 | **Simulation index** | [0,1] — describe vs perform score |
 | **Conservative Wins** | VOID > HOLD > SABAR > PARTIAL > SEAL |
+| **Nash product** | Multiplicative objective $G = \prod g_i$ — forbids trade-offs between primitives |
+| **$C_{\text{dark}}$** | Dual variable / hallucination detector — shadow price of relaxing P and X |
+| **Constitutional feasible region** | $\mathcal{F}_{\text{APEX}}$ — set of all agent behaviors satisfying F1–F13 + 7 organ constraints |
+| **PARUT (cutting-plane)** | Scar accumulation as permanent constraint addition — feasible region shrinks monotonically |
+| **Robust APEX** | Constitutional governance as min-max optimization over uncertainty set |
 
 ---
 

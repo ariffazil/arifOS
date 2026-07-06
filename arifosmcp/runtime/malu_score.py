@@ -286,6 +286,8 @@ class MaluScore:
             context=context or {},
         )
         self._events.append(event)
+        # Persist MALU to disk after every violation
+        _save_registry()
         return event
 
     def record_tebus_salah_progress(
@@ -328,6 +330,8 @@ class MaluScore:
             context={"restitution_note": note} if note else {},
         )
         self._events.append(event)
+        # Persist MALU to disk after every tebus
+        _save_registry()
         return event
 
     def seal_events_to_dict(self) -> list[dict[str, Any]]:
@@ -357,12 +361,55 @@ class MaluScore:
 # ── Module-level registry (one MaluScore per actor) ────────────────────
 _REGISTRY: dict[str, MaluScore] = {}
 
+# ── Persistence — MALU survives process restart ──────────────────────
+# See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
+# "Every reboot launders failure" — this fixes it.
+import json as _json
+import pathlib as _pathlib
+
+_PERSIST_DIR = _pathlib.Path("/root/.local/share/arifos")
+_PERSIST_FILE = _PERSIST_DIR / "malu_state.json"
+
+
+def _save_registry() -> None:
+    """Persist MALU state to disk. Called after every mutation."""
+    try:
+        _PERSIST_DIR.mkdir(parents=True, exist_ok=True)
+        state = {aid: ms.to_state() for aid, ms in _REGISTRY.items()}
+        _PERSIST_FILE.write_text(_json.dumps(state, indent=2))
+    except Exception:
+        pass  # MALU persistence is best-effort, not blocking
+
+
+def _load_registry() -> None:
+    """Load MALU state from disk on startup. Called once at import."""
+    try:
+        if _PERSIST_FILE.exists():
+            state = _json.loads(_PERSIST_FILE.read_text())
+            for aid, ms_state in state.items():
+                if aid not in _REGISTRY:
+                    _REGISTRY[aid] = MaluScore.from_state(ms_state)
+    except Exception:
+        pass  # Corrupted file → start fresh
+
+
+# Auto-load on module import
+_load_registry()
+
 
 def get_malu_score(actor_id: str) -> MaluScore:
     """Get-or-create the MaluScore for an actor_id."""
     if actor_id not in _REGISTRY:
         _REGISTRY[actor_id] = MaluScore(actor_id)
     return _REGISTRY[actor_id]
+
+
+def record_malu_event(actor_id: str, adat_id: str, **kwargs: Any) -> MaluEvent:
+    """Record a malu event and persist to disk."""
+    ms = get_malu_score(actor_id)
+    event = ms.record_adat_violation(adat_id, **kwargs)
+    _save_registry()
+    return event
 
 
 def all_malu_scores() -> dict[str, dict[str, Any]]:

@@ -2314,10 +2314,90 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
     }
 
 
+def _nine_signal_from_apex(
+    G: float,
+    C_dark: float,
+    system_health: float = 1.0,
+) -> dict[str, str | dict]:
+    """Build Nine-Signal from REAL APEX computation — not status labels.
+
+    Δ DELTA: system_health (CPU/mem/disk proxy)
+    Ψ PSI:   1 - C_dark (governance integrity = inverse of shadow)
+    Ω OMEGA: G (intelligence quality = APEX score)
+
+    This replaces the cosmetic status→label lookup when APEX primitives exist.
+    See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
+    """
+    # Δ DELTA — machine physical state
+    if system_health >= 0.80:
+        delta_state, delta_en = "KUKUH", "SOLID"
+    elif system_health >= 0.50:
+        delta_state, delta_en = "RETAK", "CRACKED"
+    else:
+        delta_state, delta_en = "ROSAK", "BROKEN"
+
+    # Ψ PSI — governance integrity (inverse of C_dark)
+    psi_score = max(0.0, 1.0 - C_dark)
+    if psi_score >= 0.85:
+        psi_state, psi_en = "AMANAH", "TRUSTED"
+    elif psi_score >= 0.50:
+        psi_state, psi_en = "SYUBHAH", "DOUBTFUL"
+    else:
+        psi_state, psi_en = "KHIANAT", "BETRAYED"
+
+    # Ω OMEGA — intelligence discipline (APEX G)
+    if G >= 0.80:
+        omega_state, omega_en = "BIJAKSANA", "WISE"
+    elif G >= 0.50:
+        omega_state, omega_en = "BIJAK", "SMART"
+    else:
+        omega_state, omega_en = "BANGANG", "FOOLISH"
+
+    # Overall — worst of three planes
+    state_rank = {"KUKUH": 3, "RETAK": 2, "ROSAK": 1}
+    psi_rank = {"AMANAH": 3, "SYUBHAH": 2, "KHIANAT": 1}
+    omega_rank = {"BIJAKSANA": 3, "BIJAK": 2, "BANGANG": 1}
+    worst = min(
+        state_rank.get(delta_state, 0),
+        psi_rank.get(psi_state, 0),
+        omega_rank.get(omega_state, 0),
+    )
+    overall_map = {3: ("SELAMAT", "SAFE"), 2: ("RETAK", "DEGRADED"), 1: ("ROSAK", "FAILED")}
+    overall_state, overall_en = overall_map.get(worst, ("RETAK", "DEGRADED"))
+
+    return {
+        "delta": {"plane": "machine_physical_state", "state": delta_state, "en": delta_en},
+        "psi": {"plane": "governance_integrity", "state": psi_state, "en": psi_en},
+        "omega": {
+            "plane": "intelligence_discipline",
+            "state": omega_state,
+            "en": omega_en,
+            "G": round(G, 4),
+            "C_dark": round(C_dark, 4),
+            "formula": "G = A·P·E·X·Φ",
+            "computed": True,
+        },
+        "overall": {"state": overall_state, "en": overall_en},
+    }
+
+
 def _inject_nine_signal(model_dump_json: dict, status: str, tool: str = "") -> dict:
-    """Inject nine_signal block into a raw model_dump(mode='json') dict."""
+    """Inject nine_signal block into a raw model_dump(mode='json') dict.
+
+    If APEX scores are available in the envelope, uses real computation.
+    Falls back to status→label lookup for backward compatibility.
+    """
     out = dict(model_dump_json)
-    ns = _nine_signal_from_status(status)
+    # Try real APEX if scores present
+    apex_scores = out.get("_apex_scores")
+    if apex_scores and all(k in apex_scores for k in ("G", "C_dark")):
+        ns = _nine_signal_from_apex(
+            G=apex_scores["G"],
+            C_dark=apex_scores["C_dark"],
+            system_health=apex_scores.get("system_health", 1.0),
+        )
+    else:
+        ns = _nine_signal_from_status(status)
     if tool:
         ns = _annotate_nine_signal(ns, _domain_for_tool(tool))
     out["nine_signal"] = ns
@@ -13224,13 +13304,18 @@ def _arif_ops_measure(
         mem_val = live["mem"].get("percent", {}).get("value") or 0.0
         disk_val = live["disk"].get("percent", {}).get("value") or 0.0
 
-        # G_score: system health index (1.0 = perfect, 0.0 = dead)
-        g_score = max(0.0, 1.0 - (cpu_val + mem_val + disk_val) / 300.0)
-        # G_SCORE regression gate — warn but don't block
-        if g_score < 0.80:
+        # system_health_score: CPU/memory/disk health proxy [0, 1]
+        # NOT APEX G — this is infrastructure health, not intelligence quality.
+        # APEX G = A·P·E·X·Φ is computed separately via apex_c_dark.compute_apex()
+        # See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
+        system_health_score = max(0.0, 1.0 - (cpu_val + mem_val + disk_val) / 300.0)
+        g_score = (
+            system_health_score  # LEGACY ALIAS — callers should migrate to system_health_score
+        )
+        if system_health_score < 0.80:
             logger.warning(
-                "G_SCORE_BELOW_TARGET g_score=%.3f target=0.80 cpu=%.1f mem=%.1f disk=%.1f",
-                g_score,
+                "SYSTEM_HEALTH_BELOW_TARGET score=%.3f target=0.80 cpu=%.1f mem=%.1f disk=%.1f",
+                system_health_score,
                 cpu_val,
                 mem_val,
                 disk_val,
@@ -13272,9 +13357,26 @@ def _arif_ops_measure(
             delta_S=0.0,
         )
     if mode == "genius":
+        # REAL APEX G computation — wire apex_c_dark.compute_apex()
+        from arifosmcp.runtime.apex_c_dark import compute_apex
+
+        apex_v = compute_apex(
+            adaptation=0.7,  # TODO: derive from live tool call success rate
+            perception=0.7,  # TODO: derive from evidence floor compliance
+            execution=0.7,  # TODO: derive from forge execution success rate
+            cross_domain=0.6,  # TODO: derive from inter-organ routing success
+            integration=0.6,  # TODO: derive from scar feedback / Φ
+        )
         return _ok(
             "arif_ops_measure",
-            {"equation": "G = Q * T * T", "g_score": 0.97},
+            {
+                "equation": "G = A · P · E · X · Φ",
+                "G": round(apex_v.G, 4),
+                "C_dark": round(apex_v.C_dark, 4),
+                "verdict": apex_v.verdict.value,
+                "scores": {"A": 0.7, "P": 0.7, "E": 0.7, "X": 0.6, "Phi": 0.6},
+                "note": "Phase 1: primitives are defaults. Phase 2: derive from live telemetry.",
+            },
             delta_S=0.0,
         )
     if mode == "psi_le":
