@@ -572,7 +572,7 @@ pydantic-ai-slim==2.5.0
     # via
     #   pydantic-ai
     #   pydantic-evals
-pydantic-core==2.46.4
+pydantic-core==2.47.0
     # via pydantic
 pydantic-evals==2.5.0
     # via pydantic-ai-slim
