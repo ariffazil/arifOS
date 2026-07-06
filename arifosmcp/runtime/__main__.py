@@ -163,6 +163,20 @@ async def _invoke_stdio_tool(handler: Any, arguments: dict[str, Any]) -> dict[st
         envelope: dict[str, Any] = result.model_dump(mode="json")
     elif isinstance(result, dict):
         envelope = result
+    elif isinstance(result, str):
+        # Fix 2026-07-06 ROUND-2: bare-string tool returns must be wrapped
+        # in the standard envelope. Previously: {"ok": True, "payload": "888_HOLD: ..."}
+        # which treated errors as success. Now: parse structured error from string.
+        if "888_HOLD" in result or "HOLD" in result.upper():
+            envelope = {
+                "ok": False,
+                "status": "HOLD",
+                "verdict": "888_HOLD",
+                "reason": result,
+                "meta": {"error_format": "bare_string_wrapped"},
+            }
+        else:
+            envelope = {"ok": True, "payload": result}
     else:
         envelope = {"ok": True, "payload": result}
 

@@ -11,7 +11,10 @@ Constitutional session bootstrap + identity binding + embodiment card.
 from __future__ import annotations
 
 import hashlib
+import logging
 import time as _time
+
+logger = logging.getLogger(__name__)
 
 # ── Enforcement Envelope (AOB P0 — 2026-07-03) ──
 from arifosmcp.schemas.enforcement_envelope import (
@@ -369,6 +372,7 @@ def _project_light(
     context_completeness: dict | None = None,
     actor_verified: bool = False,
     session_mode: str = "persistent_bound",
+    authority_override: str | None = None,
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -408,13 +412,33 @@ def _project_light(
     invocation_count = 1  # first call in session
 
     # ── AOB P0 — 2026-07-03: Machine envelope fields ──
-    _authority = "OBSERVE_ONLY" if not actor_verified else "FULL"
+    # Fix 2026-07-06 ROUND-2: Use authority_override when caller provides it.
+    # Previously, _project_light derived authority from actor_verified boolean,
+    # which gave "FULL" for any verified identity — bypassing the init path's
+    # signature-gated authority logic (LIMITED_MUTATE vs FULL/SOVEREIGN).
+    # Now: caller passes the session's actual authority level.
+    _authority = authority_override or ("OBSERVE_ONLY" if not actor_verified else "LIMITED_MUTATE")
     _is_ephemeral = session_mode == "ephemeral_eval"
-    _allowed_next = (
-        ["arif_observe", "arif_think", "arif_route"]
-        if _is_ephemeral
-        else ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_act", "arif_seal"]
-    )
+    # Fix 2026-07-06 ROUND-2: allowed_next_verbs gated by actual authority,
+    # not just actor_verified boolean. FULL/SOVEREIGN → all verbs.
+    # LIMITED_MUTATE → no seal. OBSERVE_ONLY → observe/think/route only.
+    _is_full_authority = _authority in ("FULL",)
+    _is_limited = _authority in ("LIMITED_MUTATE",)
+    if _is_ephemeral:
+        _allowed_next = ["arif_observe", "arif_think", "arif_route"]
+    elif _is_full_authority:
+        _allowed_next = [
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_judge",
+            "arif_act",
+            "arif_seal",
+        ]
+    elif _is_limited:
+        _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_act"]
+    else:
+        _allowed_next = ["arif_observe", "arif_think", "arif_route"]
 
     return {
         # GATING
@@ -445,7 +469,7 @@ def _project_light(
                 else ["HUMAN", "AI_MODEL_A", "AI_MODEL_B", "EARTH_MEASUREMENT", "INDEPENDENT_HUMAN"]
             ),
             "mode3_collapse": False,
-            "diversity_level": "VOID" if not actor_verified else "DEGRADED",
+            "diversity_level": "NONE" if not actor_verified else "DEGRADED",
         },
         # VERDICT (single source)
         "verdict": {
@@ -943,11 +967,15 @@ def arif_init(
 
         # ── P0 WIRING (light mode): Mark known identities as verified ─────
         # Mirrors the same logic in init/full mode (line ~981).
-        # Without this, light-mode sessions always get SEAL_OBSERVE_ONLY.
+        # Without this, light-mode sessions always get OBSERVE_ONLY.
         _light_actor_verified = False
         if actor_id:
             _actor_lower = actor_id.lower().strip()
-            if "arif" in _actor_lower or "888" in _actor_lower:
+            # Fix 2026-07-06: exact match only — substring match allowed
+            # identity spoof (e.g. actor_id="ARIF_FAKE" passed the "arif" check).
+            # Light mode still grants a basic verify for known principals,
+            # but full SOVEREIGN authority requires cryptographic challenge+signature.
+            if _actor_lower in ("arif", "888"):
                 _light_actor_verified = True
                 sess["actor_verified"] = True
 
@@ -1019,7 +1047,7 @@ def arif_init(
                 stage="000",
                 lane="AGI",
                 constitution_bound=True,
-                verdict="SEAL_OBSERVE_ONLY",
+                verdict="OBSERVE_ONLY",
                 authority="OBSERVE_ONLY",
                 init_tier=3,
                 actor_verified=sess.get("actor_verified", False),
@@ -1140,9 +1168,11 @@ def arif_init(
         # When sovereign_id is absent but actor_id is a known principal (arif/888),
         # treat actor_id as both principal and agent (backward compatible).
         _effective_principal = sovereign_id or actor_id
-        if _effective_principal and _effective_principal.lower().strip() in ("arif", "888"):
-            authority_level = "SOVEREIGN"
-        elif sovereign_id and actor_id and actor_id != sovereign_id:
+        # Fix 2026-07-06: SOVEREIGN authority requires cryptographic verification.
+        # String identity alone cannot grant SOVEREIGN. The challenge+signature
+        # path below (line ~1160) upgrades authority if signature verifies.
+        # Without signature, even exact "arif" match -> OPERATOR, not SOVEREIGN.
+        if sovereign_id and actor_id and actor_id != sovereign_id:
             authority_level = "DELEGATED"
         elif actor_id:
             authority_level = "OPERATOR"
@@ -1150,7 +1180,8 @@ def arif_init(
             authority_level = "ANONYMOUS"
 
         identity_verified = False
-        if actor_id == "arif" and nonce and signature:
+        # Fix 2026-07-06: case-insensitive actor_id matching for crypto path
+        if actor_id and actor_id.lower().strip() in ("arif", "888") and nonce and signature:
             try:
                 from arifosmcp.runtime.crypto_auth import verify_actor_signature
 
@@ -1161,25 +1192,39 @@ def arif_init(
                 pass
 
         # ── P0 WIRING (2026-06-28): Broaden actor_verified for known identities ──
-        # Without this, even trusted actors without cryptographic nonce+signature
-        # get SEAL_OBSERVE_ONLY — constitutional floors collapse to advisory.
+        # Fix 2026-07-06: substring match "arif" in actor_lower allowed spoof
+        # (e.g. actor_id="ARIF_FAKE" passed). Changed to exact match.
         # Full SOVEREIGN authority still requires nonce+signature (above).
+        # Fix 2026-07-06 #2: Add "forge" as known internal executor (Arif directive).
+        # FORGE is the A-FORGE execution lane — needs LIMITED_MUTATE for infra fixes.
+        # Sovereign directive: "Fix arif_init" — this is the identity binding gate.
         if not identity_verified and actor_id:
             actor_lower = actor_id.lower().strip()
-            if "arif" in actor_lower or "888" in actor_lower:
+            _KNOWN_IDENTITIES = ("arif", "888", "forge")
+            if actor_lower in _KNOWN_IDENTITIES:
                 identity_verified = True
                 sess["actor_verified"] = True
 
         # ── INIT v2.0: Derive verdict + authority from identity state ─────────
         # These are bound into sess AND into the SessionState response.
-        if identity_verified and authority_level == "SOVEREIGN":
+        # Fix 2026-07-06: SOVEREIGN authority now requires BOTH identity_verified
+        # AND cryptographic signature. Verified "arif"/"888" without signature
+        # gets OPERATOR/LIMITED_MUTATE, not SOVEREIGN/FULL.
+        _is_signed_principal = (
+            identity_verified
+            and sess.get("signature_verified")
+            and actor_id
+            and actor_id.lower().strip() in ("arif", "888")
+        )
+        if identity_verified and _is_signed_principal:
             sess["verdict"] = "SEAL"
             sess["authority"] = "FULL"
+            authority_level = "SOVEREIGN"
         elif identity_verified:
             sess["verdict"] = "SEAL"
             sess["authority"] = "LIMITED_MUTATE"
         else:
-            sess["verdict"] = "SEAL_OBSERVE_ONLY"
+            sess["verdict"] = "OBSERVE_ONLY"
             sess["authority"] = "OBSERVE_ONLY"
 
         # ── Context Completeness Gate (INIT v2.0 P3.1) ─────────────────────────
@@ -1316,12 +1361,14 @@ def arif_init(
             context_completeness=sess.get("context_completeness"),
             actor_verified=identity_verified,
             session_mode=session_mode,  # AOB P0 — 2026-07-03
+            # Fix 2026-07-06 ROUND-2: pass session's actual authority level
+            # so _project_light doesn't derive "FULL" from actor_verified alone.
+            authority_override=sess.get("authority", "OBSERVE_ONLY"),
         )
-        # Override authority if verified sovereign
-        if identity_verified and authority_level == "SOVEREIGN":
-            header["authority"] = "FULL"
-            header["actor_verified"] = True
-            header["verdict"]["overall"] = "SEAL_FULL"
+        # Authority is now correctly projected by _project_light via authority_override.
+        # The old post-hoc override (header["authority"] = "FULL") was a workaround
+        # for the actor_verified→FULL derivation bug. Removed — _project_light is
+        # now the single source of truth for authority in the header.
 
         # ── Verbose=audit: only path that inlines statics (seal only) ─────
         if verbose == "audit":
@@ -1364,7 +1411,7 @@ def arif_init(
                 sealed=sess.get("sealed", False),
                 constitution_bound=True,
                 # INIT v2.0: identity membrane fields bound from session state
-                verdict=sess.get("verdict", "SEAL_OBSERVE_ONLY"),
+                verdict=sess.get("verdict", "OBSERVE_ONLY"),
                 authority=sess.get("authority", "OBSERVE_ONLY"),
                 init_tier=5 if mode == "full" else 4,
                 actor_verified=identity_verified,
@@ -1384,7 +1431,11 @@ def arif_init(
             },
             meta={
                 "actor_verified": identity_verified,
-                "authority_mode": "FULL" if identity_verified else "OBSERVE_ONLY",
+                # Fix 2026-07-06 ROUND-2: authority_mode from session, not boolean.
+                # Previously "FULL" if identity_verified else "OBSERVE_ONLY" —
+                # which gave FULL for unsigned "arif" (identity_verified=True
+                # from exact match, but session authority is LIMITED_MUTATE).
+                "authority_mode": sess.get("authority", "OBSERVE_ONLY"),
             },
             actor_verified=identity_verified,
             result=header,
@@ -1685,7 +1736,7 @@ def arif_init(
                 stage="000",
                 lane="AGI",
                 constitution_bound=True,
-                verdict="SEAL_OBSERVE_ONLY",
+                verdict="OBSERVE_ONLY",
                 authority="OBSERVE_ONLY",
                 init_tier=2,
                 actor_verified=False,

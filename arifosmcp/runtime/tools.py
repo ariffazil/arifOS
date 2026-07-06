@@ -102,7 +102,7 @@ _SIGNAL_SEVERITY: dict[str, int] = {
     "DEGRADED": 4,
     "BIJAK": 4,  # nine_signal Ω: SMART (degraded intelligence)
     # ── Observe only / partial (severity 5) ──
-    "SEAL_OBSERVE_ONLY": 5,
+    "OBSERVE_ONLY": 5,
     "PARTIAL": 5,
     # ── Clean / healthy (severity 6, highest) ──
     "SEAL": 6,
@@ -1218,18 +1218,18 @@ def _derive_affordance_verdict(
     the verdict is wrong — the tool cannot be irreversible.
 
     This function narrows verdicts that contradict the affordance contract.
-    It NEVER upgrades a verdict — only narrows (HOLD→SEAL_OBSERVE_ONLY)
+    It NEVER upgrades a verdict — only narrows (HOLD→OBSERVE_ONLY)
     or leaves unchanged.
 
     Rules:
     1. If affordance.irreversible=False and verdict=HOLD due to L11 only:
-       → narrow to SEAL_OBSERVE_ONLY (over-gating a read)
+       → narrow to OBSERVE_ONLY (over-gating a read)
     2. If affordance.action_class=OBSERVE and affordance.safe_autonomous_use=True:
-       → HOLD on identity/session grounds → SEAL_OBSERVE_ONLY
+       → HOLD on identity/session grounds → OBSERVE_ONLY
     3. If affordance.irreversible=True or action_class=EXECUTE:
        → never narrow (these need full gates)
     4. If affordance.output_is_approval=False:
-       → verdict cannot be SEAL as authorization (handled by SEAL_OBSERVE_ONLY)
+       → verdict cannot be SEAL as authorization (handled by OBSERVE_ONLY)
 
     Returns: narrowed verdict or original if no narrowing applies.
     """
@@ -1249,9 +1249,9 @@ def _derive_affordance_verdict(
 
     if is_observe and safe_autonomous and no_mutation and no_irreversible:
         # This tool is purely observational. HOLD on identity/session grounds
-        # is over-gating. Narrow to SEAL_OBSERVE_ONLY.
+        # is over-gating. Narrow to OBSERVE_ONLY.
         if current_verdict == "HOLD":
-            return "SEAL_OBSERVE_ONLY"
+            return "OBSERVE_ONLY"
 
     return current_verdict
 
@@ -1287,6 +1287,13 @@ def _collect_monotonicity_floor(
         if sev is not None and sev < worst_severity:
             worst_severity = sev
             worst_label = v
+            if sev <= 0:
+                import sys as _sys
+
+                print(
+                    f"[MONO_TRACK] downgrade to '{v}' (sev={sev}) from {source_hint}",
+                    file=_sys.stderr,
+                )
 
     # ── 1. Nine-signal plane states ─────────────────────────────────────
     ns = out.get("nine_signal")
@@ -1327,6 +1334,12 @@ def _collect_monotonicity_floor(
             for k, v in obj.items():
                 pk = f"{path}.{k}" if path else str(k)
                 if isinstance(v, str) and v.strip().upper() in _TERMINAL:
+                    import sys as _sys
+
+                    print(
+                        f"[MONO_DEBUG] _deep_scan found terminal '{v.strip()}' at {pk}",
+                        file=_sys.stderr,
+                    )
                     _track(v.strip().upper(), pk)
                 elif isinstance(v, dict):
                     _deep_scan(v, pk)
@@ -1418,7 +1431,7 @@ def _compute_canonical_verdict(
     All signals flow in. One verdict flows out. No scattered if-else chains.
 
     Precedence (highest to lowest):
-        VOID > SABAR > HOLD > ERROR > DEGRADED > SEAL_OBSERVE_ONLY > SEAL
+        VOID > SABAR > HOLD > ERROR > DEGRADED > OBSERVE_ONLY > SEAL
 
     Signals considered (in order):
         1. Initial verdict from status
@@ -1466,12 +1479,54 @@ def _compute_canonical_verdict(
         if verdict == "SEAL":
             verdict = "DEGRADED"
 
-    # ── Step 5: Actor verification (P0-3 identity gating) ─────────────────
-    if verdict == "SEAL" and actor_verified is False:
-        verdict = "SEAL_OBSERVE_ONLY"
+    # ── Step 5: Session-bound authority resolution (fix 2026-07-06) ────
+    # ALL tools must derive identity+authority from the session store,
+    # not from per-tool args. If a session_id is present in the response,
+    # look up the session and use its stored authority as the single
+    # source of truth. Any mismatch between passed args and session data
+    # is logged as a SCAR (identity drift).
+    _session_id = out.get("session_id") or (
+        result_payload.get("session_id") if isinstance(result_payload, dict) else None
+    )
+    _session_actor_verified = actor_verified  # default to passed value
+    if _session_id and _session_id != "unknown":
+        _sess = get_session(_session_id)
+        if _sess and isinstance(_sess, dict):
+            _sess_av = _sess.get("actor_verified", False)
+            _sess_actor = _sess.get("actor_id", "anonymous")
+            # If session has a stronger verification than the per-tool check,
+            # use the session value (single source of truth).
+            if _sess_av and not actor_verified:
+                _session_actor_verified = True
+                degradation.append(
+                    f"session_bound_authority: session={_session_id} actor={_sess_actor} "
+                    f"verified=True (overrode per-tool actor_verified={actor_verified})"
+                )
+            elif actor_verified and not _sess_av:
+                # Tool claims verification but session disagrees → SCAR
+                degradation.append(
+                    f"session_authority_SCAR: tool claims actor_verified=True but "
+                    f"session={_session_id} has actor_verified=False. "
+                    f"Session authority is sovereign."
+                )
+                _session_actor_verified = False
+            # Log if actor_id differs
+            _passed_actor = out.get("actor_id") or (
+                result_payload.get("actor_id") if isinstance(result_payload, dict) else None
+            )
+            if _passed_actor and _passed_actor != _sess_actor:
+                degradation.append(
+                    f"session_actor_mismatch: passed actor_id={_passed_actor} "
+                    f"≠ session actor_id={_sess_actor} for session={_session_id}"
+                )
+
+    # ── Step 5b: Actor verification (P0-3 identity gating) ───────────────
+    # Uses session-derived authority, not per-tool args.
+    if verdict == "SEAL" and _session_actor_verified is False:
+        verdict = "OBSERVE_ONLY"
         degradation.append(
             "actor_verified=False — identity not verified, verdict narrowed to "
-            "SEAL_OBSERVE_ONLY. May observe, may not authorize or approve. "
+            "OBSERVE_ONLY. May observe, may not authorize or approve. "
             "(P0-3 + WAJIB-4 enforcement 2026-06-21)."
         )
 
@@ -2184,8 +2239,8 @@ def _output_policy_for_verdict(verdict: str) -> str:
         return "DOMAIN_HOLD"
     if verdict in ("VOID", "SABAR"):
         return "DOMAIN_VOID"
-    if verdict == "SEAL_OBSERVE_ONLY":
-        return "DOMAIN_SEAL_OBSERVE_ONLY"
+    if verdict == "OBSERVE_ONLY":
+        return "DOMAIN_OBSERVE_ONLY"
     return "DOMAIN_SEAL"
 
 
@@ -2254,7 +2309,7 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
             "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
             "overall": {"state": "SELAMAT", "en": "SAFE"},
         }
-    if status == "SEAL_OBSERVE_ONLY":
+    if status == "OBSERVE_ONLY":
         return {
             "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
             "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
@@ -2828,7 +2883,10 @@ def _enforce_nine_signal(
 
         # result_payload already built above before reactive wrapper
 
-        result_payload["verdict"] = verdict
+        # Fix 2026-07-06: verdict is set at envelope level only, not duplicated
+        # into result_payload. All consumers should read envelope.verdict.
+        # Backward compat: result.reasons is still set below.
+        result_payload.pop("verdict", None)  # remove any stale inner verdict
         result_payload.setdefault(
             "reasons", _as_reason_list(out.get("reasons") or out.get("reason"))
         )
@@ -2972,6 +3030,10 @@ def _enforce_nine_signal(
             or _output_policy_for_verdict(
                 verdict if verdict in ("SEAL", "HOLD", "VOID", "SABAR", "DRY_RUN") else "HOLD"
             ),
+            # Fix 2026-07-06: status_scope clarifies what "OK" means.
+            # status="OK" = transport/liveness. output_policy = capability.
+            # Agents MUST check output_policy before trusting status.
+            "status_scope": "transport" if status == "OK" else "capability",
             "nine_signal": nine,
             "reasons": reasons,
             # C4-2 fix 2026-06-21: surface tool affordance contract at top
@@ -3021,6 +3083,62 @@ def _enforce_nine_signal(
                 "next_safe_action", "Inspect raw result. If high blast, escalate to 888_HOLD."
             )
 
+        # ── AGI-READINESS STRUCTURED FIELDS (fix 2026-07-06) ──────────
+        # Ensure arif_think(mode=reason) always emits the AGI-readiness schema:
+        # claim_state, reasoning_verdict, evidence_used, inferences,
+        # counterarguments, missing_evidence, confidence (object), next_safe_action.
+        if tool_name == "arif_think" and isinstance(result_payload, dict):
+            if "claim_state" not in result_payload:
+                _v = (verdict or "").upper()
+                if _v == "SEAL":
+                    result_payload["claim_state"] = "CLAIM"
+                elif _v in ("HOLD", "SABAR"):
+                    result_payload["claim_state"] = "UNKNOWN"
+                else:
+                    result_payload["claim_state"] = "HYPOTHESIS"
+            result_payload.setdefault("reasoning_verdict", verdict or "UNKNOWN")
+            # evidence_used: may be a dict (nested result.result.evidence_used) or list
+            _ev = result_payload.get("evidence_used") or result_payload.get("axioms_used", [])
+            if isinstance(_ev, dict):
+                _ev = list(_ev.keys())
+            elif not isinstance(_ev, list):
+                _ev = []
+            result_payload["evidence_used"] = _ev
+            result_payload.setdefault("inferences", result_payload.get("reasoning_trace", []))
+            result_payload.setdefault("counterarguments", [])
+            result_payload.setdefault("missing_evidence", result_payload.get("unknowns", []))
+            # next_safe_action: may be a dict, convert to list
+            _nsa = result_payload.get("next_safe_action") or envelope.get("next_safe_action")
+            if isinstance(_nsa, dict):
+                _nsa = [_nsa.get("action", str(_nsa))]
+            elif not isinstance(_nsa, list):
+                _nsa = []
+            result_payload["next_safe_action"] = _nsa
+            # Convert confidence from number to object if needed.
+            # arif_think nests confidence inside result.result — fix both levels.
+            _nested = result_payload.get("result")
+            _nested_conf = _nested.get("confidence") if isinstance(_nested, dict) else None
+            _top_conf = result_payload.get("confidence")
+            # Propagate confidence from nested to top-level if missing
+            if _top_conf is None and _nested_conf is not None:
+                result_payload["confidence"] = _nested_conf
+            # Convert any plain number confidence to structured object
+            for _target in (
+                [result_payload, _nested] if isinstance(_nested, dict) else [result_payload]
+            ):
+                _c = _target.get("confidence")
+                if _c is not None and not isinstance(_c, dict):
+                    _target["confidence"] = {
+                        "overall": float(_c) if isinstance(_c, (int, float)) else 0.5,
+                        "label": (
+                            "high"
+                            if (isinstance(_c, (int, float)) and _c >= 0.7)
+                            else "low"
+                            if (isinstance(_c, (int, float)) and _c < 0.4)
+                            else "medium"
+                        ),
+                    }
+
         # ── DEGRADED RESPONSE PREFIX (Phase 1, 2026-06-21) ──────────────
         # When the kernel is in DEGRADED state, every response carries a
         # mandatory `response_prefix` field. Models that receive DEGRADED
@@ -3032,9 +3150,9 @@ def _enforce_nine_signal(
             _reasons = reasons or []
             _short_reason = _reasons[0] if _reasons else "degraded kernel state"
             envelope["response_prefix"] = f"⚠️ DEGRADED [{_short_reason[:120]}]"
-        if verdict == "SEAL_OBSERVE_ONLY":
+        if verdict == "OBSERVE_ONLY":
             envelope["response_prefix"] = (
-                "🔒 SEAL_OBSERVE_ONLY — identity not verified. "
+                "🔒 OBSERVE_ONLY — identity not verified. "
                 "May observe, may not authorize or approve."
             )
 
@@ -4698,9 +4816,13 @@ def _new_session(
     # Set in _new_session so ALL paths (light, init, full) get it.
     # Full cryptographic verification (nonce+signature) still required
     # for SOVEREIGN tier in the init/full path.
+    # Fix 2026-07-06 ROUND-2: EXACT match only — substring "arif" in
+    # "arif_fake" was the identity-spoof root cause. Must match the
+    # init path's _KNOWN_IDENTITIES tuple exactly.
     if actor_id:
         actor_lower = actor_id.lower().strip()
-        if "arif" in actor_lower or "888" in actor_lower:
+        _KNOWN = ("arif", "888", "forge")
+        if actor_lower in _KNOWN:
             sess["actor_verified"] = True
 
     # ── EPISTEMIC STRAIN GAUGE (Phase 1, 2026-06-21) ──────────────────────
@@ -5336,6 +5458,32 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     # Also check top-level source_of_truth (arif_route passes routing dict directly,
     # not wrapped in a "result" key).
     res = payload.get("result")
+
+    # ── VOID/failure detection (2026-07-06): don't boilerplate confidence on failures ──
+    _status = (payload.get("status") or "").upper()
+    _verdict = (payload.get("verdict") or "").upper()
+    _is_failure = _status in ("VOID", "FAILURE", "ERROR") or _verdict == "VOID"
+    if _is_failure:
+        # Failure responses get honest metacognition, not template optimism
+        conf = 0.0
+        _failure_reason = (
+            payload.get("reason")
+            or payload.get("fallback_reason")
+            or (res.get("reason") if isinstance(res, dict) else None)
+            or "Tool execution failed"
+        )
+        _next_act = f"Diagnose failure: {_failure_reason}. Retry or escalate to 888_HOLD."
+        _unknowns = [f"Tool returned {_status}/{_verdict}: {_failure_reason}"]
+        return build_standard_mcp_result(
+            tool=tool,
+            facts=[f"Tool failed with status={_status}, verdict={_verdict}"],
+            unknowns=_unknowns,
+            confidence=0.0,
+            next_safe_action=_next_act,
+            raw_result=payload.get("result", payload),
+            mode="failure",
+        )
+
     _routing_conf = None
     if isinstance(res, dict):
         _routing_conf = res.get("source_of_truth", {}).get("routing_confidence")
@@ -12633,6 +12781,27 @@ async def _arif_heart_critique(
             result,
             delta_S=0.0,
         )
+
+    # ── Shadow diagnostic mode (alignment failure detection) ────────────────
+    # Routes to shadow_geometry.arif_self_evaluate instead of generic LLM critique.
+    # Fixes: shadow mode was falling through to 30s LLM timeout (2026-07-06).
+    if mode == "shadow":
+        from arifosmcp.tools.shadow_geometry import arif_self_evaluate as _shadow_eval
+
+        try:
+            result = await _shadow_eval(
+                query=target or "No target provided for shadow diagnostic",
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+            return _ok(
+                "arif_heart_critique",
+                result,
+                delta_S=0.0,
+            )
+        except Exception as exc:
+            logger.warning("Shadow diagnostic failed: %s", exc, exc_info=True)
+            return _safe_void_fallback("arif_heart_critique", f"Shadow diagnostic failed: {exc}")
 
     # ── Absorbed diagnostic mode (PHOENIX-72 / canonical13) ────────────────────
     if mode == "instruction_scan":
