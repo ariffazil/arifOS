@@ -457,6 +457,24 @@ def arif_route(
     # and return port=0 / tool_prefix="".
     lookup_key = target_organ.lower().replace("-", "_")
     organ_config = intent_map.get("organ_routes", {}).get(lookup_key, {})
+
+    # Fix 2026-07-06 ROUND-2: Organ registry allowlist — reject unknown organs.
+    # Previously, any string as organ would get routed with port=0, tool_prefix="",
+    # routing_confidence=0.95. Now: if organ_config is empty AND the organ was
+    # explicitly provided (not inferred from intent), reject with HOLD.
+    if not organ_config and organ:
+        return _hold(
+            "arif_route",
+            f"UNKNOWN_ORGAN: '{organ}' is not a registered federation organ. "
+            f"Known organs: {sorted(intent_map.get('organ_routes', {}).keys())}. "
+            f"Cannot route to unregistered organ (F8 GENIUS: simplest correct path).",
+            ["L08"],
+        )
+    # If organ was inferred from intent and still no config, default to arifOS
+    if not organ_config:
+        organ_config = intent_map.get("organ_routes", {}).get("arifos", {})
+        target_organ = "arifos"
+
     port = organ_config.get("port", 0)
     tool_prefix = organ_config.get("tool_prefix", "")
 
