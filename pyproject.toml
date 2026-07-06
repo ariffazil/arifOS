@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "fastmcp[tasks]==3.4.2",
+    "fastmcp[tasks]==3.4.3",
     "fastapi>=0.136.1",
     "uvicorn[standard]>=0.47.0",
     "sse-starlette>=3.4.4",
@@ -75,8 +75,8 @@ dependencies = [
     "python-docx>=1.1.2",
     "openpyxl>=3.1.5",
     "pillow>=11.0.0",
-    "opentelemetry-api>=1.42.1,<1.43.0",
-    "opentelemetry-sdk>=1.42.1,<1.43.0",
+    "opentelemetry-api>=1.42.1,<1.44.0",
+    "opentelemetry-sdk>=1.42.1,<1.44.0",
     "pydantic-ai>=1.94.0",
     "langgraph>=1.2.6",
     "duckdb>=1.5.4",
