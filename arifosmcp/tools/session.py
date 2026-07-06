@@ -512,7 +512,7 @@ def _build_audit_full(sess: dict, actor_id: str, model_key: str, deployment_id: 
         _compute_warnings,
         actor_id=actor_id,
         declared_model_key=model_key,
-        floor_check={"verdict": "SEAL"},
+        floor_check={"verdict": sess.get("verdict", "SEAL")},
         fallback=[],
     )
     context_completeness = _safe_build(
@@ -1269,6 +1269,19 @@ def arif_init(
         _model_soul, _model_shadow = _load_soul_shadow(declared_model_key or "unknown")
         sess["model_soul"] = _model_soul
         sess["model_shadow"] = _model_shadow
+
+        # ── Verdict coherence (2026-07-06) ──────────────────────────────
+        # F2 TRUTH + F3 WITNESS: top-level verdict must reflect actual state.
+        # If alignment or adversarial profile failed to load, verdict cannot
+        # be SEAL — the session lacks full grounding.
+        # This closes the asymmetry where verdict=SEAL but verdict_code=SABAR.DEGRADED.
+        if sess.get("verdict") == "SEAL" and (not _model_soul or not _model_shadow):
+            sess["verdict"] = "SABAR"
+            logger.info(
+                "Verdict downgraded SEAL→SABAR: alignment_profile=%s adversarial_profile=%s",
+                bool(_model_soul),
+                bool(_model_shadow),
+            )
 
         # ── Persist session ──────────────────────────────────────────────
         try:
