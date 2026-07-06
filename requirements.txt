@@ -390,7 +390,7 @@ nvidia-cublas==13.1.1.3
     #   torch
 nvidia-cuda-cupti==13.0.85
     # via cuda-toolkit
-nvidia-cuda-nvrtc==13.0.88
+nvidia-cuda-nvrtc==13.3.33
     # via
     #   cuda-toolkit
     #   nvidia-cublas
