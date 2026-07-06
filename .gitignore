@@ -224,3 +224,56 @@ scratch/
 # GitHub Copilot workspace — not VPS-aware, do not commit
 Copilot/
 *.derived
+
+# === Working/exploratory files (removed from GitHub 2026-07-06) ===
+# These exist locally but are not tracked in the remote repo.
+# They are working artifacts, not production code.
+
+# Working directories
+forge_work/
+arifosmcp/forge_work/
+archive/
+arifosmcp/archive/
+experiments/
+incidents/
+blueprints/
+design/
+evals/
+benchmarks/
+reports/
+rendered/
+logs/
+data/
+research/
+
+# Root-level working files
+AFORGE_PHASE1_CONTROL_SPINE.md
+AGENTIC_MEMORY_ROUTING.md
+AGENT_KERNEL_START.md
+COMPUTE_TIERING.md
+CONFORMANCE-BASELINE-*.md
+FEDERATION_MEMORY.md
+FEDERATION_REALITY_SNAPSHOT.md
+FEDERATION_STATUS.md
+FOUNDATION_SPRINT_V1.md
+HERMES_HELPERS.md
+HERMES_IDENTITY.md
+ORGAN_FORGE_INTEGRATION.md
+REPO_ROLE_MAP.md
+ROOLBACK_PLAN_PHASE1.md
+ROOT_888_HOLD.md
+ROOTKEY_SPEC_v53.md
+arifos_agent_surface_map.md
+arifos_agent_surface_map.yaml
+bootstrap_ledgers.py
+federation-manager.sh
+generate_missing_tests.py
+generate_tests.py
+patch_schemas.py
+run_scar_listener.py
+session_memory_bridge.py
+test_eureka_lem.py
+last_eureka_result.json
+CONSTITUTIONAL_REALITY_LATEST.json
+ESTATE_MANIFEST.yaml
+federation.manifest.yaml
