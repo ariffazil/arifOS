@@ -74,7 +74,7 @@ def _bootstrap_result(
         "risk": risk_tier,
         "platform": platform,
         "stage": stage,
-        "governance": {"verdict": "SEAL"},
+        "governance": {"verdict": "SEAL" if verified else "SABAR"},
         "bootstrap_sequence": [
             "1. check_vital",
             "2. audit_rules",
@@ -117,7 +117,7 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
             canonical_tool_name="arifos_init",
             stage="000_INIT",
             status=RuntimeStatus.SUCCESS,
-            verdict=Verdict.SEAL,
+            verdict=Verdict.SABAR,  # Diagnostic read only — no identity bound
             session_id=session_id,
             caller_state="anonymous",
             diagnostics_only=True,
@@ -283,7 +283,7 @@ async def init_anchor(
                 platform=str(identity.get("platform") or "mcp"),
                 verified=bool(identity.get("verified")),
                 stage="000_INIT",
-                governance={"verdict": "SEAL"},
+                governance={"verdict": "SEAL" if bool(identity.get("verified")) else "SABAR"},
             )
         return _status_envelope(_session_id, get_session_identity(_session_id))
 
@@ -379,7 +379,7 @@ async def init_anchor(
         "ok": True,
         "session_id": _session_id,
         "status": "SUCCESS",
-        "verdict": "SEAL",
+        "verdict": "SEAL" if verified else "SABAR_OBSERVE_ONLY",
         "identity": {
             "declared_actor_id": _dn,
             "auth_state": auth_state,
@@ -421,7 +421,7 @@ async def init_anchor(
             platform="mcp",
             verified=verified,
             stage="555_ROUTE",
-            governance={"verdict": "SEAL"},
+            governance={"verdict": "SEAL" if verified else "SABAR"},
             sign=True,  # ← FIXED: generates continuity token
         )
         _session_id = _signed_session_id
@@ -453,7 +453,7 @@ async def init_anchor(
         canonical_tool_name="arifos_init",
         stage="000_INIT",
         status=RuntimeStatus.SUCCESS,
-        verdict=Verdict.SEAL,
+        verdict=Verdict.SEAL if verified else Verdict.SABAR,
         session_id=_session_id,
         caller_state="verified" if verified else "anonymous",
         authority=authority_obj,
