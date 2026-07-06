@@ -362,35 +362,114 @@ class MaluScore:
 _REGISTRY: dict[str, MaluScore] = {}
 
 # ── Persistence — MALU survives process restart ──────────────────────
-# See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
-# "Every reboot launders failure" — this fixes it.
+# Phase 2: Migrated from JSON to SQLite for concurrent access.
+# Schema: (actor_id, adat_id, malu_delta, malu_total, event_id, timestamp, context_json)
+# See: /root/A-FORGE/forge_work/2026-07-06/PHASE2_INIT_PROMPT.md T10
 import json as _json
 import pathlib as _pathlib
+import sqlite3 as _sqlite3
 
 _PERSIST_DIR = _pathlib.Path("/root/.local/share/arifos")
-_PERSIST_FILE = _PERSIST_DIR / "malu_state.json"
+_PERSIST_DB = _PERSIST_DIR / "malu_state.db"
+_PERSIST_FILE = _PERSIST_DIR / "malu_state.json"  # LEGACY — read-only fallback
+
+
+def _get_db() -> _sqlite3.Connection:
+    """Get SQLite connection. Creates table if needed."""
+    _PERSIST_DIR.mkdir(parents=True, exist_ok=True)
+    conn = _sqlite3.connect(str(_PERSIST_DB), timeout=5)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS malu_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor_id TEXT NOT NULL,
+            adat_id TEXT NOT NULL,
+            malu_delta REAL NOT NULL,
+            malu_total REAL NOT NULL,
+            event_id TEXT NOT NULL UNIQUE,
+            timestamp TEXT NOT NULL,
+            context_json TEXT DEFAULT '{}',
+            fqh_tier TEXT DEFAULT '',
+            description TEXT DEFAULT '',
+            event_type TEXT DEFAULT 'violation'
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS malu_state (
+            actor_id TEXT PRIMARY KEY,
+            malu_index REAL NOT NULL,
+            per_adat_json TEXT DEFAULT '{}',
+            init_epoch_utc TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    return conn
 
 
 def _save_registry() -> None:
-    """Persist MALU state to disk. Called after every mutation."""
+    """Persist MALU state to SQLite. Called after every mutation."""
     try:
-        _PERSIST_DIR.mkdir(parents=True, exist_ok=True)
-        state = {aid: ms.to_state() for aid, ms in _REGISTRY.items()}
-        _PERSIST_FILE.write_text(_json.dumps(state, indent=2))
+        conn = _get_db()
+        for aid, ms in _REGISTRY.items():
+            # Upsert actor state
+            conn.execute(
+                """INSERT OR REPLACE INTO malu_state (actor_id, malu_index, per_adat_json, init_epoch_utc)
+                   VALUES (?, ?, ?, ?)""",
+                (aid, ms.index, _json.dumps(ms.per_adat()), ms._epoch_init),
+            )
+            # Insert any new events
+            for evt in ms._events:
+                try:
+                    conn.execute(
+                        """INSERT OR IGNORE INTO malu_events
+                           (actor_id, adat_id, malu_delta, malu_total, event_id, timestamp, context_json, fqh_tier, description, event_type)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            evt.actor_id,
+                            evt.adat_id,
+                            evt.malu_delta,
+                            evt.malu_index_after,
+                            evt.event_id,
+                            evt.epoch_utc,
+                            _json.dumps(evt.context),
+                            evt.fqh_tier,
+                            evt.description,
+                            "tebus" if evt.fqh_tier == "TEBUS_SALAH" else "violation",
+                        ),
+                    )
+                except _sqlite3.IntegrityError:
+                    pass  # Event already exists (idempotent)
+        conn.commit()
+        conn.close()
     except Exception:
         pass  # MALU persistence is best-effort, not blocking
 
 
 def _load_registry() -> None:
-    """Load MALU state from disk on startup. Called once at import."""
+    """Load MALU state from SQLite on startup. Falls back to JSON if needed."""
     try:
-        if _PERSIST_FILE.exists():
+        if _PERSIST_DB.exists():
+            conn = _get_db()
+            rows = conn.execute(
+                "SELECT actor_id, malu_index, per_adat_json, init_epoch_utc FROM malu_state"
+            ).fetchall()
+            for aid, idx, per_adat_json, epoch in rows:
+                if aid not in _REGISTRY:
+                    ms = MaluScore(actor_id=aid)
+                    ms._index = idx
+                    ms._per_adat = _json.loads(per_adat_json) if per_adat_json else {}
+                    ms._epoch_init = epoch
+                    _REGISTRY[aid] = ms
+            conn.close()
+        elif _PERSIST_FILE.exists():
+            # Legacy JSON fallback — one-time migration
             state = _json.loads(_PERSIST_FILE.read_text())
             for aid, ms_state in state.items():
                 if aid not in _REGISTRY:
                     _REGISTRY[aid] = MaluScore.from_state(ms_state)
+            _save_registry()  # Migrate to SQLite
     except Exception:
-        pass  # Corrupted file → start fresh
+        pass  # Corrupted → start fresh
 
 
 # Auto-load on module import

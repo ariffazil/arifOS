@@ -276,7 +276,14 @@ def _compute_pca_dials(
         P=round(float(dials_normalized[1]), 4),
         X=round(float(dials_normalized[2]), 4),
         E=round(float(dials_normalized[3]), 4),
-        PHI=0.75,  # ZEN placeholder; full witness from telemetry in cluster path
+        PHI=round(
+            float(
+                getattr(floors, "f3_tri_witness", 0.8)
+                * (1.0 - min(getattr(floors, "f9_anti_hantu", 0.0), 0.99))
+                * getattr(floors, "f13_sovereign", 0.9)
+            ),
+            4,
+        ),  # Φ derived from tri-witness × (1 - anti-hantu) × sovereign
     )
 
     return dials, metadata
@@ -348,9 +355,9 @@ def _compute_cluster_dials(
 
     # ZEN Phase 1: Φ (Witness) dial — tri-witness × (1 - ToAC contrast) × f13
     # Per 777_SOUL_APEX.md + 040_APEX_STACK.md. Closes Φ gap.
-    tri_witness = getattr(floors, 'f3_tri_witness', 0.8)
-    toac_contrast = (telemetry or {}).get('contrast_score', 0.5)  # ToAC AC_Risk; default per brief
-    phi = tri_witness * (1.0 - min(toac_contrast, 0.99)) * getattr(floors, 'f13_sovereign', 0.9)
+    tri_witness = getattr(floors, "f3_tri_witness", 0.8)
+    toac_contrast = (telemetry or {}).get("contrast_score", 0.5)  # ToAC AC_Risk; default per brief
+    phi = tri_witness * (1.0 - min(toac_contrast, 0.99)) * getattr(floors, "f13_sovereign", 0.9)
 
     return APEXDials(A=akal, P=presence, X=exploration, E=energy, PHI=phi)
 
@@ -607,7 +614,7 @@ def calculate_genius(
     presence = dials.P
     exploration = dials.X
     energy = dials.E
-    phi = getattr(dials, 'PHI', 0.8)  # Witness
+    phi = getattr(dials, "PHI", 0.8)  # Witness
 
     # ZEN: G = A · P · E · X · Φ  (full 5-factor)
     g_gen = akal * presence * energy * exploration * phi
