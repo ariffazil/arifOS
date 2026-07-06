@@ -187,6 +187,33 @@ def run_all() -> bool:
     assert r.get("measurement_received") is not None, "measurement_received missing"
     results["D-M11"] = "PASS"
 
+    # ═══ D-M12: record_tool_call() populates SQLite (APEX Phase 3) ═══
+    from arifosmcp.runtime.apex_primitives import (
+        record_tool_call,
+        compute_apex_from_metrics,
+    )
+
+    record_tool_call("test_d_m12", success=True, has_evidence=True, within_lease=True)
+    results["D-M12"] = "PASS"
+
+    # ═══ D-M13: compute_apex_from_metrics() returns real values (APEX Phase 3) ═══
+    m = compute_apex_from_metrics()
+    assert m["sample_size"] > 0, f"sample_size=0, expected >0"
+    assert 0 <= m["G"] <= 1, f"G={m['G']} out of [0,1]"
+    assert 0 <= m["C_dark"] <= 1, f"C_dark={m['C_dark']} out of [0,1]"
+    results["D-M13"] = "PASS"
+
+    # ═══ D-M14: record_comparison() populates governed_events (APEX Phase 3) ═══
+    from arifosmcp.runtime.governed_vs_baseline import record_comparison
+
+    record_comparison(
+        tool_name="test_d_m14",
+        governed_verdict="HOLD",
+        baseline_verdict="ALLOW",
+        sesat_detected=True,
+    )
+    results["D-M14"] = "PASS"
+
     # ═══ SUMMARY ═══
     passed = sum(1 for v in results.values() if v == "PASS")
     total = len(results)

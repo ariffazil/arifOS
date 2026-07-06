@@ -31,6 +31,14 @@ Phase 2 status (2026-07-06):
   - HANTAR utility added ✅
   - D-MEMBRANE tests: 11/11 PASS ✅
 
+Phase 3 status (2026-07-06):
+  - record_tool_call() wired into _ok, _hold, _sabar, _error_envelope ✅
+  - record_tool_call() wired into _wrap_handler (sync + async) ✅
+  - compute_apex_from_metrics() enriches MeasurementPacket in forge_judge_proxy ✅
+  - record_comparison() wired into _arif_judge_deliberate ✅
+  - APEX metrics DB at /var/lib/arifos/apex_metrics.db (arifos user writable) ✅
+  - Real A,P,E,X,Φ values from live tool calls ✅
+
 The measurement crosses up. The verdict crosses down. Anything else recreates
 cosmetic governance in a cleaner costume.
 
