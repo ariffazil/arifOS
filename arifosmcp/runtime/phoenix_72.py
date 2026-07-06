@@ -101,11 +101,50 @@ def is_cooldown_complete(cooldown_expiry: datetime | str) -> bool:
     return datetime.now(UTC) >= cooldown_expiry
 
 
+def compute_w3(tri_witness: dict[str, bool | float]) -> tuple[float, str]:
+    """Compute W³ = ∛(H × AI × Ext) — Nash geometric mean.
+
+    Supports both boolean (backward compatible) and numeric confidence [0,1].
+    Boolean True → 1.0, False → 0.0.
+    Any zero channel collapses W³ to 0.
+
+    See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
+    """
+    h_raw = tri_witness.get("human", False)
+    ai_raw = tri_witness.get("ai", False)
+    ext_raw = tri_witness.get("earth", False)
+
+    # Convert boolean to float for backward compatibility
+    h = float(h_raw) if isinstance(h_raw, (int, float)) else (1.0 if h_raw else 0.0)
+    ai = float(ai_raw) if isinstance(ai_raw, (int, float)) else (1.0 if ai_raw else 0.0)
+    ext = float(ext_raw) if isinstance(ext_raw, (int, float)) else (1.0 if ext_raw else 0.0)
+
+    # Zero in any channel collapses consensus
+    if h == 0 or ai == 0 or ext == 0:
+        missing = []
+        if h == 0:
+            missing.append("human")
+        if ai == 0:
+            missing.append("ai")
+        if ext == 0:
+            missing.append("earth")
+        return 0.0, f"W³=0 — missing witness: {missing}"
+
+    # Nash (1950) geometric mean
+    w3 = (h * ai * ext) ** (1 / 3)
+
+    if w3 >= 0.75:
+        return w3, f"W³={w3:.3f} ≥ 0.75 — CONSENSUS"
+    if w3 >= 0.50:
+        return w3, f"W³={w3:.3f} ≥ 0.50 — WEAK"
+    return w3, f"W³={w3:.3f} < 0.50 — DIVERGENT"
+
+
 def should_seal(
     created_at: datetime | str,
     cooldown_expiry: datetime | str,
     psi_utility: int,
-    tri_witness: dict[str, bool],
+    tri_witness: dict[str, bool | float],
     anti_hantu_flag: bool,
     explicit_seal_requested: bool = False,
 ) -> tuple[bool, str]:
@@ -129,13 +168,10 @@ def should_seal(
     if psi_utility <= PSI_UTILITY_THRESHOLD:
         return False, f"psi_utility={psi_utility} <= threshold={PSI_UTILITY_THRESHOLD}"
 
-    # Check Tri-Witness
-    human = tri_witness.get("human", False)
-    ai = tri_witness.get("ai", False)
-    earth = tri_witness.get("earth", False)
-    if not (human and ai and earth):
-        missing = [k for k, v in {"human": human, "ai": ai, "earth": earth}.items() if not v]
-        return False, f"tri_witness incomplete: missing={missing}"
+    # Check Tri-Witness — real W³ geometric mean
+    w3, w3_reason = compute_w3(tri_witness)
+    if w3 < 0.50:
+        return False, f"tri_witness DIVERGENT: {w3_reason}"
 
     return True, "all SEAL conditions met"
 
@@ -143,7 +179,7 @@ def should_seal(
 def should_void(
     cooldown_expiry: datetime | str,
     psi_utility: int,
-    tri_witness: dict[str, bool],
+    tri_witness: dict[str, bool | float],
     anti_hantu_flag: bool,
     explicit_veto: bool = False,
 ) -> tuple[bool, str]:
