@@ -55,15 +55,18 @@ class AuthorityLevel(StrEnum):
     ARIF = "arif"
 
 
-class RuntimeStatus(StrEnum):
-    SUCCESS = "SUCCESS"
-    ERROR = "ERROR"
-    TIMEOUT = "TIMEOUT"
-    HOLD = "HOLD"
-    DRY_RUN = "DRY_RUN"
-    DEGRADED = "DEGRADED"
-    SABAR = "SABAR"
-    UNKNOWN = "UNKNOWN"
+from arifosmcp.models.verdicts import RuntimeStatus
+
+# RuntimeStatus is now canonical — imported from models/verdicts.
+# Backward-compat alias for files importing Verdict from model (DEPRECATED — use models/verdicts directly)
+from arifosmcp.models.verdicts import Verdict
+
+# Legacy local extensions (not in canonical RuntimeStatus):
+LEGACY_RS_DRY_RUN = "DRY_RUN"  # Model-only: simulation/dry-run mode
+LEGACY_RS_DEGRADED = "DEGRADED"  # Model-only: degraded capability
+LEGACY_RS_UNKNOWN = "UNKNOWN"  # Model-only: uninitialized state
+# Note: SABAR was removed — it is a governance Verdict, not a RuntimeStatus.
+# Use Verdict.SABAR for governance holds, RuntimeStatus.SUCCESS for transport success.
 
 
 class Stage(StrEnum):
@@ -171,7 +174,14 @@ class ToolResponse(BaseModel):
     omega_0: float = 0.0
 
 
-class Verdict(BaseModel):
+class VerdictEnvelope(BaseModel):
+    """Structured verdict envelope — NOT a governance verdict.
+
+    This is a data container for verdict metadata (code, floor, reason).
+    For the canonical governance verdict (SEAL/HOLD/SABAR/VOID), use:
+        from arifosmcp.models.verdicts import Verdict
+    """
+
     code: str
     floor: str | None = None
     reason: str = ""
@@ -185,6 +195,10 @@ class Verdict(BaseModel):
     HOLD_888: ClassVar[str] = "HOLD_888"
     DEGRADED: ClassVar[str] = "DEGRADED"
     VOID: ClassVar[str] = "VOID"
+
+
+# Backward-compatible alias — deprecated, use VerdictEnvelope
+Verdict = VerdictEnvelope
 
 
 class SacredStage(StrEnum):
@@ -360,11 +374,12 @@ class RuntimeEnvelope(BaseModel):
         return data
 
 
-class VerdictCode(StrEnum):
-    SEAL = "SEAL"
-    SABAR = "SABAR"
-    PARTIAL = "PARTIAL"
-    VOID = "VOID"
+from arifosmcp.models.verdicts import Verdict as VerdictCode
+
+# VerdictCode is now canonical Verdict — imported from models/verdicts.
+# PARTIAL is not a governance verdict. Use VerdictState.SABAR_EPISTEMIC
+# for partial qualification, or RuntimeStatus for transport partial status.
+LEGACY_VC_PARTIAL = VerdictCode.SABAR  # Best mapping: SABAR as "partial proceed"
 
 
 class PhilosophyState(BaseModel):

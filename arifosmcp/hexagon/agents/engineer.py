@@ -32,7 +32,7 @@ import subprocess
 from typing import Any
 
 from arifosmcp.schemas.floors import FLOOR_IDS  # canonical single source
-from .base import ConstitutionalAgent, TrinityRole, Verdict
+from .base import ConstitutionalAgent, TrinityRole, AgentVerdict as Verdict
 
 logger = logging.getLogger(__name__)
 

@@ -17,6 +17,7 @@ from enum import Enum
 from typing import Any
 
 from core.shared.laws import get_law_threshold
+from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANTS
@@ -40,11 +41,8 @@ class RiskLevel(Enum):
     CRITICAL = "critical"  # Forge only — requires dual-signature
 
 
-class Verdict(Enum):
-    SEAL = "SEAL"  # Proceed
-    HOLD = "HOLD"  # Escalate to human
-    SABAR = "SABAR"  # Retry with guidance
-    VOID = "VOID"  # Halt with explanation
+# Verdict imported from canonical source: arifosmcp.models.verdicts
+# Local definition removed — Phase 3 verdict unification (2026-07-07)
 
 
 class SideEffectClass(Enum):

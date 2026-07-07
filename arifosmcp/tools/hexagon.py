@@ -24,7 +24,7 @@ from typing import Any
 from fastmcp import Context
 
 from arifosmcp.hexagon.agents.base import FloorScore
-from arifosmcp.hexagon.agents.base import Verdict as HexVerdict  # was AZVerdict
+from arifosmcp.hexagon.agents.base import AgentVerdict as HexVerdict  # was AZVerdict
 
 # AgentZero Components
 from arifosmcp.hexagon.agents.engineer import AGIAgent  # was EngineerAgent (reclassified Δ MIND)
@@ -57,7 +57,7 @@ class SimpleArifOSClient:
             floor_scores=[FloorScore(f, 1.0, 1.0, True) for f in floors],
         )
 
-    async def seal_to_vault(self, verdict: AZVerdict) -> str:
+    async def seal_to_vault(self, verdict: HexVerdict) -> str:
         return f"vault_{uuid.uuid4().hex[:12]}"
 
     async def request_human_approval(self, execution_id: str, reason: str) -> bool:

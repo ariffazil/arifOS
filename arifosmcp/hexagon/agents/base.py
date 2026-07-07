@@ -54,12 +54,21 @@ class FloorScore:
 
 
 @dataclass
-class Verdict:
+class AgentVerdict:
     """
-    Constitutional verdict from arifOS evaluation.
+    Agent execution verdict — NOT governance.
 
-    This is the core governance mechanism - every agent action
-    must receive a verdict before execution.
+    This is an agent's internal evaluation result, distinct from the
+    canonical governance Verdict (SealType) defined in models/verdicts.py.
+
+    The canonical Verdict (SEAL/HOLD/SABAR/VOID) is used by arif_judge
+    for constitutional governance. AgentVerdict carries:
+    - status (maps to governance concepts via VerdictStatus)
+    - execution_id, agent_id, action_type (agent lifecycle)
+    - floor_scores (F1-L13 pass/fail per floor)
+
+    Import governance Verdict from:
+        from arifosmcp.models.verdicts import Verdict
     """
 
     status: VerdictStatus
@@ -84,8 +93,8 @@ class Verdict:
         agent_id: str,
         action_type: str,
         floor_scores: list[FloorScore],
-    ) -> Verdict:
-        """Create a SEAL verdict (full approval)."""
+    ) -> AgentVerdict:
+        """Create a SEAL status verdict (full approval)."""
         return cls(
             status=VerdictStatus.SEAL,
             execution_id=execution_id,
@@ -102,8 +111,8 @@ class Verdict:
         action_type: str,
         violations: list[str],
         floor_scores: list[FloorScore],
-    ) -> Verdict:
-        """Create a VOID verdict (rejected)."""
+    ) -> AgentVerdict:
+        """Create a VOID status verdict (rejected)."""
         return cls(
             status=VerdictStatus.VOID,
             execution_id=execution_id,
@@ -122,8 +131,8 @@ class Verdict:
         hold_reason: str,
         escalation_path: str,
         floor_scores: list[FloorScore],
-    ) -> Verdict:
-        """Create a HOLD verdict (888_HOLD escalation)."""
+    ) -> AgentVerdict:
+        """Create a HOLD status verdict (888_HOLD escalation)."""
         return cls(
             status=VerdictStatus.HOLD,
             execution_id=execution_id,
@@ -170,11 +179,11 @@ class Verdict:
 class ArifOSClient(Protocol):
     """Protocol for arifOS MCP client."""
 
-    async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> Verdict:
+    async def evaluate_action(self, action: dict[str, Any], floors: list[str]) -> AgentVerdict:
         """Evaluate action against constitutional floors."""
         ...
 
-    async def seal_to_vault(self, verdict: Verdict) -> str:
+    async def seal_to_vault(self, verdict: AgentVerdict) -> str:
         """Seal verdict to VAULT999, return chain hash."""
         ...
 
@@ -294,7 +303,7 @@ class ConstitutionalAgent(ABC):
             logger.error(f"[{execution_id}] Execution failed: {e}")
             raise ConstitutionalExecutionError(f"Agent execution failed: {e}") from e
 
-    async def _evaluate_constitutionality(self, action: dict[str, Any]) -> Verdict:
+    async def _evaluate_constitutionality(self, action: dict[str, Any]) -> AgentVerdict:
         """
         Evaluate action against constitutional floors.
 
@@ -304,11 +313,13 @@ class ConstitutionalAgent(ABC):
         # For now, we simulate the evaluation
         return await self.arifos.evaluate_action(action, self.enforced_floors)
 
-    async def _log_to_vault(self, verdict: Verdict, result: dict | None = None) -> str:
+    async def _log_to_vault(self, verdict: AgentVerdict, result: dict | None = None) -> str:
         """Log execution to VAULT999 immutable ledger."""
         return await self.arifos.seal_to_vault(verdict)
 
-    async def _handle_hold_state(self, verdict: Verdict, action: dict[str, Any]) -> dict[str, Any]:
+    async def _handle_hold_state(
+        self, verdict: AgentVerdict, action: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Handle 888_HOLD escalation.
 
@@ -346,7 +357,7 @@ class ConstitutionalAgent(ABC):
 
     @abstractmethod
     async def _execute_impl(
-        self, task: dict[str, Any], execution_id: str, verdict: Verdict
+        self, task: dict[str, Any], execution_id: str, verdict: AgentVerdict
     ) -> dict[str, Any]:
         """
         Actual agent implementation.

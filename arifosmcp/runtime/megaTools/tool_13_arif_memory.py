@@ -1,13 +1,14 @@
 """
-arifosmcp/runtime/megaTools/tool_08_arif_memory.py
+arifosmcp/runtime/megaTools/tool_13_arif_memory.py
 
-🔥 ARIF_MEMORY v5 — Federated Memory Tool (Direction 1, ratified 2026-06-21)
-Stage: 555_MEMORY v5 | Trinity: OMEGA Ω | Floors: L01, L02, L04, L08, L11, L12, L13
+🔥 ARIF_MEMORY v5.1 — Federated Memory Tool + JITU Contradiction Engine
+Stage: 555_MEMORY v5.1 | Trinity: OMEGA Ω | Floors: L01, L02, L04, L08, L09, L11, L12, L13
 
-Modes (7 canonical):
+Modes (8 canonical):
   recall     — OBSERVE — semantic + graph + vault retrieval (hybrid cascade)
   inspect    — OBSERVE — read a memory object's full state
   attest     — OBSERVE — verify a memory_id against vault seal chain
+  audit      — OBSERVE — JITU contradiction engine: compare action vs memory state
   remember   — MUTATE  — write a candidate memory (default-deny)
   promote    — MUTATE  — move candidate from lower tier to higher tier
   revise     — MUTATE  — supersede prior memory (B5: supersedes_memory_id required)
@@ -45,7 +46,7 @@ from arifosmcp.runtime.model import RuntimeEnvelope
 logger = logging.getLogger(__name__)
 
 
-# ── 7 federated modes ─────────────────────────────────────────────────────
+# ── 8 federated modes (v5.1 — audit/JITU added 2026-07-07) ─────────────
 
 ARIF_MEMORY_MODES = (
     "recall",
@@ -55,6 +56,7 @@ ARIF_MEMORY_MODES = (
     "promote",
     "revise",
     "forget",
+    "audit",
 )
 
 # Mode → action class
@@ -62,6 +64,7 @@ MODE_ACTION_CLASS = {
     "recall": "OBSERVE",
     "inspect": "OBSERVE",
     "attest": "OBSERVE",
+    "audit": "OBSERVE",
     "remember": "EXECUTE_REVERSIBLE",
     "promote": "EXECUTE_HIGH_IMPACT",
     "revise": "EXECUTE_HIGH_IMPACT",
@@ -73,6 +76,7 @@ MODE_PRE_FLOORS = {
     "recall": ("L02", "L12"),
     "inspect": ("L02", "L12"),
     "attest": ("L02", "L11", "L12"),
+    "audit": ("L02", "L09", "L11", "L12"),
     "remember": ("L01", "L02", "L08", "L11", "L12"),
     "promote": ("L01", "L02", "L04", "L07", "L11", "L12"),
     "revise": ("L01", "L02", "L04", "L09", "L11", "L12"),
@@ -84,6 +88,7 @@ MODE_REQUIRES_LEASE = {
     "recall": False,
     "inspect": False,
     "attest": False,
+    "audit": False,
     "remember": True,
     "promote": True,
     "revise": True,
@@ -95,6 +100,7 @@ MODE_REQUIRES_HUMAN_ACK = {
     "recall": False,
     "inspect": False,
     "attest": False,
+    "audit": False,
     "remember": False,
     "promote": False,
     "revise": False,
@@ -128,7 +134,6 @@ LEGACY_MODE_ALIASES = {
     "seal": "attest",
     "forget": "forget",
     "update": "revise",
-    "audit": "attest",
     "stats": "inspect",
     "learn": "remember",
     "init_recall": "recall",
@@ -136,6 +141,10 @@ LEGACY_MODE_ALIASES = {
     "context": "recall",
     "quarantine": "remember",
     "import": "remember",
+    # JITU aliases (2026-07-07)
+    "jitu": "audit",
+    "contradiction_check": "audit",
+    "pre_flight_audit": "audit",
 }
 
 
@@ -287,13 +296,15 @@ async def arif_memory(
     # Day 3 NEW handlers (promote / forget / attest) — direct call
     # Day 3.5 added: remember (handles L4 write without embedding dependency)
     # Day 4 polish: inspect (direct Postgres lookup for UUID queries)
-    if mode in ("remember", "promote", "forget", "attest", "inspect"):
+    # Day 5 (2026-07-07): audit — JITU contradiction engine
+    if mode in ("remember", "promote", "forget", "attest", "inspect", "audit"):
         from arifosmcp.runtime.memory_handlers_v5 import (
             _handle_remember,
             _handle_promote,
             _handle_forget,
             _handle_attest,
             _handle_inspect,
+            _handle_audit,
         )
 
         handler = {
@@ -302,6 +313,7 @@ async def arif_memory(
             "forget": _handle_forget,
             "attest": _handle_attest,
             "inspect": _handle_inspect,
+            "audit": _handle_audit,
         }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)

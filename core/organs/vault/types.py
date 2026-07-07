@@ -28,14 +28,23 @@ class VaultRecordType(Enum):
     AUDIT = "audit"  # Audit event
 
 
-class Verdict(Enum):
-    """Possible verdicts."""
+class VaultVerdict(Enum):
+    """Vault-specific verdict — NOT canonical governance verdict.
 
-    APPROVED = "Approved"
-    PARTIAL = "Partial"
-    PAUSE = "Pause"
-    VOID = "Void"
-    HOLD = "Hold"
+    APPROVED maps to Verdict.SEAL, PAUSE maps to Verdict.SABAR.
+    For canonical governance verdicts, use:
+        from arifosmcp.models.verdicts import Verdict
+    """
+
+    APPROVED = "Approved"  # → Verdict.SEAL
+    PARTIAL = "Partial"  # → VerdictState.SABAR_EPISTEMIC
+    PAUSE = "Pause"  # → Verdict.SABAR
+    VOID = "Void"  # → Verdict.VOID
+    HOLD = "Hold"  # → Verdict.HOLD
+
+
+# Legacy alias — deprecated, use VaultVerdict
+Verdict = VaultVerdict
 
 
 @dataclass

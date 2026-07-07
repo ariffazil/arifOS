@@ -233,35 +233,33 @@ class SignedIntentEnvelope(BaseModel):
 # ============================================================================
 # VERDICT ENUM — Constitutional Outcomes
 # ============================================================================
+# Phase 3 verdict unification (2026-07-07): canonical source is arifosmcp.models.verdicts
+# Extra members (PROVISIONAL, PARTIAL, PAUSED, ALIVE, DEGRADED) are backward-compatible
+# string aliases — they will be migrated to VerdictState sub-states in Phase 3b.
+
+from arifosmcp.models.verdicts import Verdict  # Canonical: SEAL, HOLD, SABAR, VOID
 
 
-class Verdict(str, Enum):
-    """
-    Constitutional verdict outcomes.
+class _ExpandedVerdict:
+    """Backward-compatible extra verdict members. Not governance — transport/status only."""
 
-    Only these 7 canonical verdicts exist system-wide:
-    - SEAL        (non-terminal): stage successful
-    - PROVISIONAL (non-terminal): exploratory result
-    - PARTIAL     (non-terminal): incomplete but usable
-    - SABAR       (non-terminal): pause / needs more context
-    - HOLD        (non-terminal): waiting for authority/human
-    - HOLD_888    (non-terminal): specific high-stakes human gating
-    - VOID        (TERMINAL):     hard rejection / invalid state — must be extremely rare
+    PROVISIONAL = "PROVISIONAL"  # → VerdictState.SEAL_QUALIFIED
+    PARTIAL = "PARTIAL"  # → VerdictState.SABAR_EPISTEMIC
+    HOLD_888 = "HOLD_888"  # → VerdictState.HOLD_888
+    PAUSED = "PAUSED"  # → transport status, not governance
+    ALIVE = "ALIVE"  # → transport status, not governance
+    DEGRADED = "DEGRADED"  # → transport status, not governance
 
-    Normalization rule (enforced by verdict_contract.normalize_verdict):
-        if stage < 888 and verdict == VOID: verdict = SABAR
-    """
 
-    SEAL = "SEAL"
-    PROVISIONAL = "PROVISIONAL"
-    PARTIAL = "PARTIAL"
-    SABAR = "SABAR"
-    HOLD = "HOLD"
-    HOLD_888 = "HOLD_888"
-    VOID = "VOID"
-    PAUSED = "PAUSED"
-    ALIVE = "ALIVE"
-    DEGRADED = "DEGRADED"
+# Backward compatibility: Verdict.PROVISIONAL etc. still resolve
+# These are NOT canonical governance verdicts — they are transport/status aliases.
+# New code MUST use: from arifosmcp.models.verdicts import Verdict, VerdictState
+Verdict.PROVISIONAL = "PROVISIONAL"  # type: ignore[attr-defined]
+Verdict.PARTIAL = "PARTIAL"  # type: ignore[attr-defined]
+Verdict.HOLD_888 = "HOLD_888"  # type: ignore[attr-defined]
+Verdict.PAUSED = "PAUSED"  # type: ignore[attr-defined]
+Verdict.ALIVE = "ALIVE"  # type: ignore[attr-defined]
+Verdict.DEGRADED = "DEGRADED"  # type: ignore[attr-defined]
 
 
 # =============================================================================

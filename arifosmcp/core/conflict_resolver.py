@@ -40,7 +40,7 @@ class VerdictRank(IntEnum):
 
 VERDICT_RANK: dict[str, VerdictRank] = {
     "PROCEED": VerdictRank.PROCEED,
-    "SEAL_OBSERVE_ONLY": VerdictRank.PROCEED,  # OBSERVE_ONLY = read-only = same rank as PROCEED
+    "OBSERVE_ONLY": VerdictRank.PROCEED,  # OBSERVE_ONLY = read-only = same rank as PROCEED
     "SEAL": VerdictRank.SEAL,
     "PARTIAL": VerdictRank.PARTIAL,
     "SABAR": VerdictRank.SABAR,

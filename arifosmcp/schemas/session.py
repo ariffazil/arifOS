@@ -481,7 +481,7 @@ class SessionState(BaseModel):
     # These were previously only in SessionManifest — now in the session state itself.
     verdict: str | None = Field(
         default=None,
-        description="SEAL | SEAL_OBSERVE_ONLY | DEGRADED | HOLD | VOID | SABAR",
+        description="SEAL | OBSERVE_ONLY | DEGRADED | HOLD | VOID | SABAR",
     )
     authority: str | None = Field(
         default=None,

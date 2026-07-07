@@ -21,17 +21,17 @@ from pydantic import BaseModel, Field
 
 # ── Enums ────────────────────────────────────────────────────────────────────
 
-class Verdict(str, Enum):
-    """555_JUDGE verdict options."""
-    SEAL = "SEAL"
-    SABAR = "SABAR"
-    HOLD = "HOLD"
-    VOID = "VOID"
-    PENDING = "PENDING"
+from arifosmcp.models.verdicts import Verdict
+
+# Verdict is now canonical — imported from models/verdicts.
+# PENDING is a session state reason code, NOT a governance verdict.
+# Use Verdict.SABAR for "awaiting evidence" and attach PENDING as reason code.
+LEGACY_SESSION_PENDING = Verdict.SABAR
 
 
 class Readiness(str, Enum):
     """666_CRITIQUE readiness options."""
+
     FORGE_READY = "FORGE_READY"
     HOLD_FOR_REVIEW = "HOLD_FOR_REVIEW"
     BLOCK = "BLOCK"
@@ -40,6 +40,7 @@ class Readiness(str, Enum):
 
 class FloorStatus(str, Enum):
     """Floor evaluation status."""
+
     PASS = "PASS"
     FAIL = "FAIL"
     UNCERTAIN = "UNCERTAIN"
@@ -48,6 +49,7 @@ class FloorStatus(str, Enum):
 
 class Reversibility(str, Enum):
     """Reversibility classification."""
+
     FULL = "FULL"
     PARTIAL = "PARTIAL"
     IRREVERSIBLE = "IRREVERSIBLE"
@@ -55,6 +57,7 @@ class Reversibility(str, Enum):
 
 class BlastRadius(str, Enum):
     """Blast radius estimate."""
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
@@ -63,21 +66,26 @@ class BlastRadius(str, Enum):
 
 # ── Sub-models ───────────────────────────────────────────────────────────────
 
+
 class StageRecord(BaseModel):
     """Record of a single organ's execution."""
+
     stage: str = Field(description="Organ ID: 000, 111, 333, 555, 666, 777, 999")
     name: str = Field(description="Organ name: INIT, SENSE, REASON, JUDGE, CRITIQUE, FORGE, SEAL")
     revision: int = Field(default=1, description="Which revision cycle this execution was in")
     output_summary: str = Field(default="", description="Brief summary of organ output")
     output_hash: str = Field(default="", description="SHA-256 of full output")
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    verdict: Optional[str] = Field(default=None, description="Verdict if this was a judge/forge organ")
+    verdict: Optional[str] = Field(
+        default=None, description="Verdict if this was a judge/forge organ"
+    )
     floor_violations: list[str] = Field(default_factory=list, description="Floor IDs that failed")
     readiness: Optional[str] = Field(default=None, description="Readiness if critique organ")
 
 
 class FloorScore(BaseModel):
     """Computed or declared score for a constitutional floor."""
+
     floor_id: str = Field(description="F1..F13")
     status: FloorStatus = Field(default=FloorStatus.UNCERTAIN)
     score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
@@ -87,6 +95,7 @@ class FloorScore(BaseModel):
 
 class Assumption(BaseModel):
     """A critical assumption from the assumption ledger."""
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     statement: str = Field(description="The assumption")
     implication_if_wrong: str = Field(description="What breaks if this is wrong")
@@ -97,6 +106,7 @@ class Assumption(BaseModel):
 
 
 # ── Session State ────────────────────────────────────────────────────────────
+
 
 class SessionState(BaseModel):
     """
@@ -135,9 +145,7 @@ class SessionState(BaseModel):
     prior_seal_hash: Optional[str] = Field(default=None)
 
     # Metadata
-    created_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     sealed_at: Optional[str] = Field(default=None)
 
     # ── Methods ──────────────────────────────────────────────────────────
@@ -161,13 +169,15 @@ class SessionState(BaseModel):
     def set_verdict(self, verdict: Verdict, reasons: list[str] | None = None) -> None:
         """Set the current verdict and append to history."""
         self.current_verdict = verdict
-        self.verdict_history.append({
-            "verdict": verdict.value,
-            "stage": self.current_stage,
-            "revision": self.revision_cycle,
-            "reasons": reasons or [],
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        })
+        self.verdict_history.append(
+            {
+                "verdict": verdict.value,
+                "stage": self.current_stage,
+                "revision": self.revision_cycle,
+                "reasons": reasons or [],
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            }
+        )
 
     def set_floor_score(self, floor_id: str, score: FloorScore) -> None:
         """Set or update a floor score."""
@@ -215,22 +225,22 @@ class SessionState(BaseModel):
             lines.append("  floor_scores:")
             for fid, fs in self.floor_scores.items():
                 computed_tag = " [COMPUTED]" if fs.computed else " [DECLARED]"
-                lines.append(
-                    f"    {fid}: {fs.status.value} "
-                    f"(score={fs.score}){computed_tag}"
-                )
+                lines.append(f"    {fid}: {fs.status.value} (score={fs.score}){computed_tag}")
 
         if self.prior_session_id:
             lines.append(f"  prior_session_id: {self.prior_session_id}")
             lines.append(f"  prior_assumptions: {len(self.assumption_ledger)}")
 
         if self.returned_from:
-            lines.append(f"  ⚠️  RETURNING from {self.returned_from} — revision {self.revision_cycle}")
+            lines.append(
+                f"  ⚠️  RETURNING from {self.returned_from} — revision {self.revision_cycle}"
+            )
 
         return "\n".join(lines)
 
 
 # ── Factory ──────────────────────────────────────────────────────────────────
+
 
 def create_session(
     actor_id: str = "anonymous",

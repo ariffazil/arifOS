@@ -236,6 +236,32 @@ def _ditempa_seal(manifest: SessionManifest, mode: str = "") -> SessionManifest:
     return manifest
 
 
+def _build_meta(
+    identity_verified: bool,
+    authority: str,
+    sess: dict,
+) -> dict[str, Any]:
+    """Build the meta response dict, optionally including challenge nonce.
+
+    When a sovereign identity (arif/888) claims identity without crypto proof,
+    the pending_challenge_nonce is surfaced in meta so the caller can complete
+    the challenge-response flow on the next init call.
+    """
+    meta: dict[str, Any] = {
+        "actor_verified": identity_verified,
+        "authority_mode": authority,
+    }
+    challenge_nonce = sess.get("pending_challenge_nonce") if isinstance(sess, dict) else None
+    if challenge_nonce:
+        meta["challenge_nonce"] = challenge_nonce
+        meta["challenge_required"] = True
+        meta["next_safe_action"] = (
+            "Sign the nonce with your Ed25519 key and re-init with nonce+signature "
+            "for full sovereign authority"
+        )
+    return meta
+
+
 def _sm(*args, **kwargs) -> SessionManifest:
     """Shorthand: build SessionManifest + seal with DITEMPA in one call.
 
@@ -1191,19 +1217,41 @@ def arif_init(
             except Exception:
                 pass
 
-        # ── P0 WIRING (2026-06-28): Broaden actor_verified for known identities ──
+        # ── P0 WIRING (2026-07-07): Challenge-response enforcement for sovereign ──
         # Fix 2026-07-06: substring match "arif" in actor_lower allowed spoof
         # (e.g. actor_id="ARIF_FAKE" passed). Changed to exact match.
-        # Full SOVEREIGN authority still requires nonce+signature (above).
-        # Fix 2026-07-06 #2: Add "forge" as known internal executor (Arif directive).
-        # FORGE is the A-FORGE execution lane — needs LIMITED_MUTATE for infra fixes.
-        # Sovereign directive: "Fix arif_init" — this is the identity binding gate.
+        # Fix 2026-07-07: Sovereign identities (arif/888) WITHOUT cryptographic
+        # proof no longer auto-grant identity_verified. Challenge-response is
+        # now the default enforcement path per F13 sovereign directive. Only
+        # "forge" (internal executor) retains auto-grant for infra operations.
         if not identity_verified and actor_id:
             actor_lower = actor_id.lower().strip()
-            _KNOWN_IDENTITIES = ("arif", "888", "forge")
-            if actor_lower in _KNOWN_IDENTITIES:
+            if actor_lower == "forge":
+                # forge is a known internal executor — auto-grant without crypto
                 identity_verified = True
                 sess["actor_verified"] = True
+                logger.info("Auto-granted identity for forge (internal executor)")
+            elif actor_lower in ("arif", "888"):
+                # Sovereign identity claimed WITHOUT cryptographic signature.
+                # Issue challenge nonce via crypto_auth.verify_actor_signature path.
+                # identity_verified stays False until caller completes challenge.
+                challenge_nonce = None
+                try:
+                    from arifosmcp.runtime.crypto_auth import issue_actor_challenge
+
+                    challenge_nonce = issue_actor_challenge("arif")
+                    sess["pending_challenge_nonce"] = challenge_nonce
+                    logger.warning(
+                        "Sovereign identity '%s' claimed without signature. "
+                        "Challenge nonce issued: %s. Caller must re-init with "
+                        "signed nonce for full authority.",
+                        actor_id,
+                        challenge_nonce[:16] if challenge_nonce else "N/A",
+                    )
+                except Exception as exc:
+                    logger.warning("Failed to issue challenge for %s: %s", actor_id, exc)
+                identity_verified = False
+                sess["actor_verified"] = False
 
         # ── INIT v2.0: Derive verdict + authority from identity state ─────────
         # These are bound into sess AND into the SessionState response.
@@ -1429,14 +1477,11 @@ def arif_init(
                 "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}",
                 "human_judge_required": True,
             },
-            meta={
-                "actor_verified": identity_verified,
-                # Fix 2026-07-06 ROUND-2: authority_mode from session, not boolean.
-                # Previously "FULL" if identity_verified else "OBSERVE_ONLY" —
-                # which gave FULL for unsigned "arif" (identity_verified=True
-                # from exact match, but session authority is LIMITED_MUTATE).
-                "authority_mode": sess.get("authority", "OBSERVE_ONLY"),
-            },
+            meta=_build_meta(
+                identity_verified=identity_verified,
+                authority=sess.get("authority", "OBSERVE_ONLY"),
+                sess=sess,
+            ),
             actor_verified=identity_verified,
             result=header,
             doctrine=ARIF_DOCTRINE,

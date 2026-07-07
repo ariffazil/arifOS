@@ -26,7 +26,7 @@ import logging
 from typing import Any
 
 from arifosmcp.schemas.floors import FLOOR_IDS  # canonical single source
-from .base import ConstitutionalAgent, FloorScore, TrinityRole, Verdict
+from .base import ConstitutionalAgent, FloorScore, TrinityRole, AgentVerdict as Verdict
 
 logger = logging.getLogger(__name__)
 

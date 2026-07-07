@@ -32,14 +32,11 @@ CONFIG_DIR = AGENTS_DIR / "config"
 VAULT_DIR = Path("VAULT999")
 
 
-class Verdict(Enum):
-    """Constitutional verdicts."""
+from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
-    SEAL = "SEAL"
-    VOID = "VOID"
-    HOLD = "888_HOLD"
-    PARTIAL = "PARTIAL"
-    SABAR = "SABAR"
+# Verdict imported from canonical source (Phase 3 verdict unification, 2026-07-07)
+# PARTIAL was a non-canonical member — use VerdictState.SABAR_EPISTEMIC instead
+Verdict.PARTIAL = "PARTIAL"  # type: ignore[attr-defined]  # DEPRECATED
 
 
 class AgentRole(Enum):

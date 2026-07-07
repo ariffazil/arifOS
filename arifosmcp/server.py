@@ -1738,9 +1738,27 @@ if app:
     app.add_middleware(DPoPAuthMiddleware)
     app.add_middleware(MCPSessionBridgeMiddleware)  # Extract MCP-Session-Id → request.state
     app.add_middleware(MCPProtocolVersionMiddleware)  # Validate MCP-Protocol-Version
+    # CORS: env-driven allowed origins. Default: federation domains only.
+    # Set ARIFOS_CORS_ORIGINS=* for development only.
+    _cors_raw = os.getenv("ARIFOS_CORS_ORIGINS", "").strip()
+    if _cors_raw == "*":
+        _cors_origins = ["*"]
+    elif _cors_raw:
+        _cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+    else:
+        _cors_origins = [
+            "https://arif-fazil.com",
+            "https://arifos.arif-fazil.com",
+            "https://mcp.arif-fazil.com",
+            "https://aaa.arif-fazil.com",
+            "http://localhost:3001",
+            "http://localhost:8088",
+            "http://127.0.0.1:3001",
+            "http://127.0.0.1:8088",
+        ]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=_cors_origins,
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=[
             "Accept",

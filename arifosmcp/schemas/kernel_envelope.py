@@ -104,22 +104,13 @@ class ActionClass(StrEnum):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class GateVerdict(StrEnum):
-    """Constitutional gate verdict.
+from arifosmcp.models.verdicts import Verdict as GateVerdict
 
-    Canonical verdict set (Invariant #15):
-      SEAL  — proceed, all checks passed
-      SABAR — proceed with conditions, warnings active
-      HOLD  — stop, insufficient authority or missing succession continuity
-      VOID  — stop, invalid input or internal error
-      REJECT — stop, constitutional floor violation (F13-level prohibition)
-    """
-
-    SEAL = "SEAL"  # proceed
-    SABAR = "SABAR"  # proceed with conditions
-    HOLD = "HOLD"  # stop — insufficient authority
-    VOID = "VOID"  # stop — invalid input / internal error
-    REJECT = "REJECT"  # stop — constitutional floor violation (F13 prohibition)
+# GateVerdict is now imported from models/verdicts (see Invariant #15).
+# Canonical: SEAL | SABAR | HOLD | VOID
+# REJECT was a legacy synonym for VOID (constitutional floor violation).
+# Use GateVerdict.VOID instead. Backward-compat alias:
+LEGACY_GATE_REJECT = GateVerdict.VOID
 
 
 class BlastRadius(StrEnum):

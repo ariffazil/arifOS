@@ -32,6 +32,13 @@ a2a_agent_json: /root/arifOS/.well-known/agent.json
 [![PyPI](https://img.shields.io/pypi/v/arifos?label=PyPI)](https://pypi.org/project/arifos/)
 [![License](https://img.shields.io/github/license/ariffazil/arifos?label=License)](LICENSE)
 
+> **⚠️ PUBLIC REPO NOTICE (2026-07-06):** The GitHub repository `ariffazil/arifos` is a
+> **public snapshot** and may be **archived or significantly behind** the live production
+> codebase running on `af-forge` (72.62.71.199). The live code has active patches for
+> identity verification, schema strictness, CORS hardening, and MCP error handling that
+> are NOT reflected in the public repo. Security audits should target the live deployment,
+> not the public GitHub snapshot. See `SECURITY.md` for details.
+
 ---
 
 ## 1. What Is arifOS?

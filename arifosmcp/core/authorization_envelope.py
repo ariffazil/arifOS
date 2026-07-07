@@ -66,14 +66,26 @@ class EvidenceFloor(str, Enum):
     GROUND_TRUTH = "ground_truth"  # Sealed in VAULT999
 
 
-class Verdict(str, Enum):
-    """Constitutional verdict from the policy engine."""
+class PolicyVerdict(str, Enum):
+    """Policy engine gate verdict — NOT constitutional governance.
+
+    This is an execution pre-check, distinct from the canonical Verdict.
+    PROCEED here = all gates passed for this execution path.
+    The canonical Verdict (SEAL/HOLD/SABAR/VOID) is set by arif_judge at governance layer.
+
+    Governance Verdict is imported from models/verdicts:
+        from arifosmcp.models.verdicts import Verdict
+    """
 
     PROCEED = "PROCEED"  # All gates passed
     HOLD = "HOLD"  # Needs review or additional evidence
     SABAR = "SABAR"  # Wait (timing or state issue)
     VOID = "VOID"  # Constitutionally forbidden
     DRY_RUN = "DRY_RUN"  # Execute in observation mode only
+
+
+# Legacy alias — use PolicyVerdict
+Verdict = PolicyVerdict
 
 
 # ── The Envelope ───────────────────────────────────────────────────────

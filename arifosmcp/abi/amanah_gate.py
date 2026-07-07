@@ -27,10 +27,22 @@ from enum import Enum
 logger = logging.getLogger("amanah_gate")
 
 
-class Verdict(str, Enum):
+class AmanahVerdict(str, Enum):
+    """Execution gate verdict — NOT governance.
+
+    This is an execution pre-check, not a constitutional verdict.
+    PROCEED = safe to pass through the gate.
+    HOLD = requires human review.
+    HARAM = universally blocked pattern (rm -rf /, DROP TABLE, etc.)
+    """
+
     PROCEED = "PROCEED"  # Safe — pass through
     HOLD = "888_HOLD"  # Needs human review (not used here yet)
     HARAM = "HARAM"  # Blocked — universal consensus
+
+
+# Legacy alias — deprecated, use AmanahVerdict
+Verdict = AmanahVerdict
 
 
 # ── HARAM Patterns ──────────────────────────────────────────────────────────────

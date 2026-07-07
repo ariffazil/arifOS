@@ -1,2 +1,0 @@
-# Sentinel-Watch — Requirements
-python-telegram-bot>=22.7

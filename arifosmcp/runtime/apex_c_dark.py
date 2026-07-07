@@ -28,21 +28,19 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Optional
 
+from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
-class Verdict(Enum):
-    """Four-vertex verdict from APEX THEORY."""
-    SEAL = "SEAL"       # Approved, irreversible
-    SABAR = "SABAR"     # Patience, default state
-    HOLD = "HOLD"       # Need more info
-    VOID = "VOID"       # Forbidden
+
+# Verdict imported from canonical source (Phase 3 verdict unification, 2026-07-07)
+# Four-vertex verdict from APEX THEORY: SEAL, SABAR, HOLD, VOID
 
 
 @dataclass
 class OrganState:
     """State of one of the seven organs."""
+
     name: str
     symbol: str
     value: float  # [0, 1]
@@ -61,49 +59,46 @@ class OrganState:
 @dataclass
 class APEXState:
     """Full APEX state across seven organs."""
-    reality: float       # ΔR — energy conservation
-    governance: float    # ΔG — entropy reduction
+
+    reality: float  # ΔR — energy conservation
+    governance: float  # ΔG — entropy reduction
     civilization: float  # I_sys — statistical coordination
-    execution: float     # W — work
-    memory: float        # ∂M/∂t — Landauer cost
-    witness: float       # Ω — Gödel incompleteness
-    meaning: float       # ∇F — free energy gradient
+    execution: float  # W — work
+    memory: float  # ∂M/∂t — Landauer cost
+    witness: float  # Ω — Gödel incompleteness
+    meaning: float  # ∇F — free energy gradient
 
     def to_organs(self) -> list[OrganState]:
         return [
-            OrganState("Reality", "ΔR", self.reality,
-                       "Energy conservation", "False certainty"),
-            OrganState("Governance", "ΔG", self.governance,
-                       "Entropy reduction", "Rule drift"),
-            OrganState("Civilization", "I_sys", self.civilization,
-                       "Statistical coordination", "Isolation"),
-            OrganState("Execution", "W", self.execution,
-                       "Work", "Paralysis"),
-            OrganState("Memory", "∂M/∂t", self.memory,
-                       "Landauer cost", "Forgetting"),
-            OrganState("Witness", "Ω", self.witness,
-                       "Gödel incompleteness", "Self-verification"),
-            OrganState("Meaning", "∇F", self.meaning,
-                       "Free energy gradient", "Equilibrium death"),
+            OrganState("Reality", "ΔR", self.reality, "Energy conservation", "False certainty"),
+            OrganState("Governance", "ΔG", self.governance, "Entropy reduction", "Rule drift"),
+            OrganState(
+                "Civilization", "I_sys", self.civilization, "Statistical coordination", "Isolation"
+            ),
+            OrganState("Execution", "W", self.execution, "Work", "Paralysis"),
+            OrganState("Memory", "∂M/∂t", self.memory, "Landauer cost", "Forgetting"),
+            OrganState("Witness", "Ω", self.witness, "Gödel incompleteness", "Self-verification"),
+            OrganState("Meaning", "∇F", self.meaning, "Free energy gradient", "Equilibrium death"),
         ]
 
 
 @dataclass
 class APEXVerdict:
     """Result of APEX analysis."""
+
     # The APEX Formula: G = A · P · E · X · Φ
-    G: float                    # Multiplicative intelligence score
-    A: float                    # Adaptation
-    P: float                    # Perception
-    E: float                    # Execution
-    X: float                    # Cross-domain
-    Phi: float                  # Integration
+    G: float  # Multiplicative intelligence score
+    A: float  # Adaptation
+    P: float  # Perception
+    E: float  # Execution
+    X: float  # Cross-domain
+    Phi: float  # Integration
 
     # Shadow term: C_dark = A · (1-P) · (1-X)
-    C_dark: float               # Hallucination risk
+    C_dark: float  # Hallucination risk
 
     # Conservation law: dS/dt ≤ 0
-    dS_dt: float                # Entropy rate (negative = ordered)
+    dS_dt: float  # Entropy rate (negative = ordered)
 
     # Organ states
     organs: list[OrganState]
@@ -248,9 +243,16 @@ def compute_apex(
         verdict_reason = f"Default SABAR — G = {G:.3f}, C_dark = {C_dark:.3f}"
 
     return APEXVerdict(
-        G=G, A=A, P=P, E=E, X=X, Phi=Phi,
-        C_dark=C_dark, dS_dt=dS_dt,
-        organs=organs, verdict=verdict,
+        G=G,
+        A=A,
+        P=P,
+        E=E,
+        X=X,
+        Phi=Phi,
+        C_dark=C_dark,
+        dS_dt=dS_dt,
+        organs=organs,
+        verdict=verdict,
         verdict_reason=verdict_reason,
         repair_chain=repair_chain,
         blindspots=blindspots,
@@ -313,21 +315,33 @@ if __name__ == "__main__":
     # Demo: healthy agent
     print("=== Healthy Agent ===")
     v = compute_apex(
-        adaptation=0.8, perception=0.7, execution=0.6,
-        cross_domain=0.5, integration=0.6, entropy_rate=-0.1,
+        adaptation=0.8,
+        perception=0.7,
+        execution=0.6,
+        cross_domain=0.5,
+        integration=0.6,
+        entropy_rate=-0.1,
     )
     print(v.to_json())
 
     print("\n=== Hallucinating Agent (high C_dark) ===")
     v = compute_apex(
-        adaptation=0.9, perception=0.1, execution=0.8,
-        cross_domain=0.1, integration=0.5, entropy_rate=0.3,
+        adaptation=0.9,
+        perception=0.1,
+        execution=0.8,
+        cross_domain=0.1,
+        integration=0.5,
+        entropy_rate=0.3,
     )
     print(v.to_json())
 
     print("\n=== Dead Organ (zero execution) ===")
     v = compute_apex(
-        adaptation=0.8, perception=0.7, execution=0.0,
-        cross_domain=0.5, integration=0.6, entropy_rate=-0.1,
+        adaptation=0.8,
+        perception=0.7,
+        execution=0.0,
+        cross_domain=0.5,
+        integration=0.6,
+        entropy_rate=-0.1,
     )
     print(v.to_json())

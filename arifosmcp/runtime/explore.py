@@ -48,7 +48,7 @@ from arifosmcp.schemas.explore import (
     SeedAPI,
     SeedPath,
     SeedURL,
-    Verdict,
+    ExploreVerdict,
 )
 
 logger = logging.getLogger("arifos.explore")
@@ -312,7 +312,7 @@ class ExplorationKernel:
         self._seal = vault_seal
 
         # Verdict placeholder
-        self._verdict: Verdict = Verdict(saturation=Saturation.LOW)
+        self._verdict: ExploreVerdict = ExploreVerdict(saturation=Saturation.LOW)
 
     # ── Public entry point ──────────────────────────────────
 
@@ -549,7 +549,7 @@ class ExplorationKernel:
             return sum(e.confidence for e in self.graph.edges) / len(self.graph.edges)
         return 0.0
 
-    def _compute_verdict(self) -> Verdict:
+    def _compute_verdict(self) -> ExploreVerdict:
         """Judge saturation and propose next moves."""
         # Saturation based on coverage + remaining budget
         if self.metrics.coverage >= 0.80 and self.metrics.confidence >= 0.70:
@@ -586,7 +586,7 @@ class ExplorationKernel:
                 )
             )
 
-        return Verdict(saturation=saturation, next_moves=next_moves)
+        return ExploreVerdict(saturation=saturation, next_moves=next_moves)
 
     def _budget_exhausted(self) -> bool:
         """Check if time budget is exhausted."""

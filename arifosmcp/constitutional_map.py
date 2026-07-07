@@ -796,11 +796,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_memory": {
         "name": "arif_memory",
         "description": (
-            "INTERNAL: Federated memory tool — 7 canonical modes. "
-            "Recalls, stores, and governs memory across the 6-layer stack. "
-            "Not on public surface; use dedicated memory tools."
+            "Constitutional memory governor — 7 canonical modes: "
+            "recall, inspect, attest, remember, promote, revise, forget. "
+            "Every write passes F1/F2/F4/F9/F11/F13 floor checks before storage delegation. "
+            "Memory writes are J-space mutations — they shape future reasoning. "
+            "arifOS judges, A-FORGE stores. Storage = external, governance = internal."
         ),
-        "access": "internal_only",
+        "access": "authenticated",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [
@@ -821,7 +823,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F11: every write carries actor_id + session_id + receipt (forensic traceability). "
         ),
         "cognitive_axis": "trace",
-        "expose": False,
+        "expose": True,
         "supersedes": "arif_memory_recall",
         "schema_version": 5,
         "deprecated_aliases": ["arif_memory_recall"],
@@ -982,8 +984,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
 }
 
 
-# ═─ 9-Stage Metabolic Loop enforcement (CANONICAL-9 2026-07-04) ──────
-# Public surface is the 9-stage metabolic loop (9 tools = 9 stages).
+# ═─ 10-Tool Public Surface (CANONICAL-10 2026-07-07) ──────
+# Public surface is the 9-stage metabolic loop + constitutional memory governor.
+# arif_memory promoted from internal_only to public (555m — J-space membrane).
 # arif_critique is now its own public tool at stage 555.
 # Tools not in this set are force-set to access="internal_only", expose=False.
 _PUBLIC_9: frozenset[str] = frozenset(
@@ -993,6 +996,7 @@ _PUBLIC_9: frozenset[str] = frozenset(
         "arif_think",
         "arif_route",
         "arif_critique",
+        "arif_memory",
         "arif_judge",
         "arif_forge",
         "arif_compose",

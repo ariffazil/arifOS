@@ -13,20 +13,15 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
-class Verdict(StrEnum):
-    """Constitutional verdicts."""
-
-    SEAL = "SEAL"  # Approved - action is constitutional
-    VOID = "VOID"  # Rejected - violates floors
-    PARTIAL = "PARTIAL"  # Conditional - modifications required
-    SABAR = "SABAR"  # Pending - insufficient information
-    HOLD_888 = "888_HOLD"  # Human required - sovereign veto triggered
+# Backward-compatible aliases for non-canonical members (Phase 3 unification, 2026-07-07)
+Verdict.PARTIAL = "PARTIAL"  # type: ignore[attr-defined]  # → VerdictState.SABAR_EPISTEMIC
+Verdict.HOLD_888 = "888_HOLD"  # type: ignore[attr-defined]  # → VerdictState.HOLD_888
 
 
 class FloorViolation(BaseModel):

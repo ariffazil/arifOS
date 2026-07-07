@@ -2,7 +2,7 @@
 
 Verifies that the verdict engine respects the affordance_contract:
 - OBSERVE-class + safe_autonomous_use + no mutation + no irreversible
-  → HOLD on identity grounds narrows to SEAL_OBSERVE_ONLY
+  → HOLD on identity grounds narrows to OBSERVE_ONLY
 - EXECUTE-class / irreversible → HOLD stays HOLD (never narrowed)
 - VOID/SABAR → never narrowed (these are terminal states)
 """
@@ -16,7 +16,7 @@ from arifosmcp.runtime.tools import _derive_affordance_verdict
 class TestDeriveAffordanceVerdict:
     """Test the affordance→verdict derivation function."""
 
-    # ── OBSERVE-class tools: HOLD should narrow to SEAL_OBSERVE_ONLY ─────
+    # ── OBSERVE-class tools: HOLD should narrow to OBSERVE_ONLY ─────
 
     def test_observe_hold_narrows_to_seal_observe_only(self):
         """An OBSERVE-class tool held on identity grounds is over-gated."""
@@ -27,7 +27,7 @@ class TestDeriveAffordanceVerdict:
             "safe_autonomous_use": True,
         }
         result = _derive_affordance_verdict("arif_ping", "HOLD", affordance)
-        assert result == "SEAL_OBSERVE_ONLY"
+        assert result == "OBSERVE_ONLY"
 
     def test_observe_seal_stays_seal(self):
         """An OBSERVE-class tool that already passed stays SEAL."""
@@ -59,8 +59,8 @@ class TestDeriveAffordanceVerdict:
             "irreversible": False,
             "safe_autonomous_use": True,
         }
-        result = _derive_affordance_verdict("arif_ping", "SEAL_OBSERVE_ONLY", affordance)
-        assert result == "SEAL_OBSERVE_ONLY"
+        result = _derive_affordance_verdict("arif_ping", "OBSERVE_ONLY", affordance)
+        assert result == "OBSERVE_ONLY"
 
     # ── EXECUTE-class tools: never narrow ─────────────────────────────────
 

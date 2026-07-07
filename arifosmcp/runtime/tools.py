@@ -1704,21 +1704,18 @@ class Stage:
     VAULT_999 = "999_VAULT"
 
 
-class Verdict(Enum):
-    SEAL = "SEAL"
-    PROVISIONAL = "PROVISIONAL"
-    PARTIAL = "PARTIAL"
-    SABAR = "SABAR"
-    HOLD = "HOLD"
-    HOLD_888 = "HOLD_888"
-    VOID = "VOID"
+from arifosmcp.models.verdicts import Verdict, RuntimeStatus, SealType
 
+# Legacy alias — tools.py historically defined PROVISIONAL and PARTIAL
+# which are NOT canonical verdicts. They are now RuntimeStatus values.
+# PROVISIONAL → RuntimeStatus.HOLD (tool blocked by gate)
+# PARTIAL → RuntimeStatus.SUCCESS (partial completion is still success)
 
-class RuntimeStatus(Enum):
-    SUCCESS = "SUCCESS"
-    ERROR = "ERROR"
-    TIMEOUT = "TIMEOUT"
-    DRY_RUN = "DRY_RUN"
+LEGACY_VERDICT_SEAL = Verdict.SEAL
+LEGACY_VERDICT_SABAR = Verdict.SABAR
+LEGACY_VERDICT_HOLD = Verdict.HOLD
+LEGACY_VERDICT_HOLD_888 = Verdict.HOLD
+LEGACY_VERDICT_VOID = Verdict.VOID
 
 
 LEGACY_KERNEL_TOOL_NAME = "metabolic_loop_router"
@@ -5814,6 +5811,52 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
     return False
 
 
+def _require_verified_session(
+    session_id: str | None,
+    actor_id: str | None,
+    tool_name: str,
+    require_for_modes: tuple[str, ...] | None = None,
+    current_mode: str | None = None,
+) -> dict | None:
+    """Enforce session-bound identity verification at tool entry points.
+
+    F11 AUTH: Every tool entry point should look up the session first and
+    verify actor_verified/identity_verified before mutation (F13 directive 2026-07-07).
+    Returns None if OK to proceed, or a HOLD dict if identity check fails.
+    When require_for_modes is provided, the check only applies when the
+    current mode is in that tuple (e.g. only for engineer/write/generate/commit).
+    """
+    if require_for_modes is not None and current_mode is not None:
+        if current_mode not in require_for_modes:
+            return None  # Mode doesn't require verification
+
+    if not session_id:
+        return {
+            "status": "HOLD",
+            "verdict": "HOLD",
+            "reason": f"{tool_name}: session_id required (F11 AUTH). "
+            "Call arif_init first to obtain a governed session.",
+            "next_safe_action": "Call arif_init(mode=init) to bind a governed session",
+            "violated_laws": ["L11"],
+        }
+
+    if not _is_actor_verified(session_id, actor_id):
+        return {
+            "status": "HOLD",
+            "verdict": "HOLD",
+            "reason": (
+                f"{tool_name}: actor identity not verified for session "
+                f"{session_id[:12] if session_id else '?'}... "
+                "Session has actor_verified=False. "
+                "Complete the challenge-response flow via arif_init with nonce+signature."
+            ),
+            "next_safe_action": "Complete crypto challenge-response via arif_init(nonce=..., actor_signature=...)",
+            "violated_laws": ["L11"],
+        }
+
+    return None
+
+
 def _add_floor_compat(meta: dict[str, Any]) -> None:
     """Add deprecated 'failed_floors' alias from 'violated_laws' (2026-06-06)."""
     if "violated_laws" in meta and "failed_floors" not in meta:
@@ -6696,6 +6739,7 @@ def _arif_session_init(
         constitution_bound = False
         authority_level = "OBSERVER"
         invariants_checked: list[str] = []
+        _init_pending_challenge: str | None = None
         identity = get_constitution_identity()
         constitution_hash = identity["constitution_hash"]
 
@@ -6809,16 +6853,43 @@ def _arif_session_init(
                 session_id=session_id,
             )
         else:
-            # No signature
+            # No signature — issue challenge for sovereign identities
             if actor_id and actor_id != "anonymous":
-                # actor_id provided but no signature → OPERATOR_CLAIMED
-                authority_level = "OPERATOR_CLAIMED"
-                invariants_checked.append("operator_claimed_no_signature")
-                logger.info("Operator claimed: actor_id=%s authority=OPERATOR_CLAIMED", actor_id)
+                _actor_lower = actor_id.lower().strip()
+                if _actor_lower in ("arif", "888"):
+                    # Sovereign identity claimed WITHOUT signature.
+                    # Issue challenge nonce as default enforcement path.
+                    _pending_challenge = None
+                    try:
+                        from arifosmcp.runtime.crypto_auth import issue_actor_challenge
+
+                        _pending_challenge = issue_actor_challenge("arif")
+                        logger.warning(
+                            "Sovereign identity '%s' without signature — "
+                            "challenge nonce issued: %s",
+                            actor_id,
+                            _pending_challenge[:16] if _pending_challenge else "N/A",
+                        )
+                    except Exception as exc:
+                        logger.warning("Failed to issue challenge: %s", exc)
+                    authority_level = "CHALLENGE_REQUIRED"
+                    invariants_checked.append("challenge_required")
+                    invariants_checked.append("sovereign_identity_requires_crypto_verification")
+                    # Store challenge in response context so the response builder picks it up
+                    _init_pending_challenge = _pending_challenge
+                else:
+                    # Non-sovereign actor_id without signature → OPERATOR_CLAIMED
+                    authority_level = "OPERATOR_CLAIMED"
+                    invariants_checked.append("operator_claimed_no_signature")
+                    logger.info(
+                        "Operator claimed: actor_id=%s authority=OPERATOR_CLAIMED", actor_id
+                    )
+                    _init_pending_challenge = None
             else:
                 # Anonymous → OBSERVER access (read-heavy tools only)
                 authority_level = "OBSERVER"
                 invariants_checked.append("no_signature_observer_access")
+                _init_pending_challenge = None
 
         # Constitution binding at T=0 (F1 Amanah - trust established at init)
         if constitution_bound or not actor_signature:
@@ -6843,6 +6914,14 @@ def _arif_session_init(
         sess["actor_verified"] = identity_verified
         sess["authority_level"] = authority_level
         sess["constitution_bound"] = constitution_bound
+        if _init_pending_challenge:
+            sess["pending_challenge_nonce"] = _init_pending_challenge
+            sess["challenge_required"] = True
+            logger.info(
+                "Challenge nonce stored in session %s for actor %s",
+                sid,
+                actor_id,
+            )
 
         # P3 Fix: Initialize thermodynamic budget for the new session
         try:
@@ -7394,6 +7473,16 @@ def _arif_session_init(
                 "identity_verified": identity_verified,
                 "authority": "human_judge",
             },
+            # Challenge nonce (only present when sovereign identity needs crypto proof)
+            **(
+                {
+                    "pending_challenge_nonce": _init_pending_challenge,
+                    "challenge_required": True,
+                    "next_safe_action": "Sign the nonce with Ed25519 key and re-init with nonce+signature",
+                }
+                if _init_pending_challenge
+                else {}
+            ),
             # Session state (WAJIB - aligned with schema and tests)
             "session": {
                 "session_id": sid,
@@ -16300,6 +16389,19 @@ async def _arif_vault_seal_tool(
     Returns:
       SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
     """
+    # F11 AUTH: Session-bound identity verification at tool entry point.
+    # Seal mode is irreversible — require verified session.
+    # verify/chain/list are read-only and can proceed without verification.
+    _seal_verified = _require_verified_session(
+        session_id,
+        actor_id,
+        "arif_vault_seal",
+        require_for_modes=("seal",),
+        current_mode=mode,
+    )
+    if _seal_verified is not None:
+        return _seal_verified
+
     trace = None
     if _LANGFUSE_TRACER is not None:
         try:
@@ -16360,6 +16462,30 @@ async def _arif_vault_seal_tool(
 
                 from arifOS.supabase_adapter import seal_vault999
 
+                # ═══════════════════════════════════════════════════════════════
+                # MONOTONICITY ENFORCEMENT — every verdict committed to VAULT999
+                # must be a canonical Verdict. Non-canonical verdicts raise
+                # ValueError here before they reach the immutable ledger.
+                # ═══════════════════════════════════════════════════════════════
+                try:
+                    from arifosmcp.models.verdicts import enforce_verdict_monotonicity
+
+                    _seal_verdict = result.get("verdict", "SEAL")
+                    enforce_verdict_monotonicity(_seal_verdict)
+                except (ImportError, ValueError) as _mono_err:
+                    logger.error(
+                        "MONOTONICITY VIOLATION — seal blocked: %s",
+                        _mono_err,
+                    )
+                    return {
+                        "status": "HOLD",
+                        "verdict": "HOLD",
+                        "reason": f"Monotonicity violation: {_mono_err}. "
+                        "Only canonical Verdict values (SEAL/HOLD/SABAR/VOID) "
+                        "may be sealed to VAULT999.",
+                        "violation": "verdict_monotonicity",
+                    }
+
                 try:
                     content_payload = json.loads(payload) if payload else {}
                 except Exception:
@@ -16370,7 +16496,7 @@ async def _arif_vault_seal_tool(
                     seal_vault999(
                         subject_type="vault_seal",
                         seal_type="seal",
-                        verdict=result.get("verdict", "SEAL"),
+                        verdict=_seal_verdict,
                         content=content_payload,
                         session_ref=session_id or "unknown",
                         actor_ref=actor_id or "anonymous",
@@ -17121,6 +17247,19 @@ async def _arif_forge_execute_tool(
       ForgeOutput with status, execution_trace, artifact_id, and
       irreversibility_level.
     """
+    # F11 AUTH: Session-bound identity verification at tool entry point.
+    # Modes requiring verification: engineer, write, generate, commit (mutating).
+    # Query/safe and dry_run modes can proceed without verification (observe-only).
+    _forge_verified = _require_verified_session(
+        session_id,
+        actor_id,
+        "arif_forge_execute",
+        require_for_modes=("engineer", "write", "generate", "commit"),
+        current_mode=mode,
+    )
+    if _forge_verified is not None:
+        return _forge_verified
+
     # HARDENED TEETH: One Skill + One Tool enforcement. Verdict loop is the ONLY path.
     # This is called in the kernel for every forge path. Non-bypassable.
     session_ctx = {

@@ -1,0 +1,846 @@
+{
+  "registry": [
+    {
+      "branch": "mathematics",
+      "aliases": [
+        "math",
+        "algebra",
+        "analysis",
+        "geometry",
+        "topology",
+        "number_theory",
+        "combinatorics",
+        "calculus",
+        "differential",
+        "integral"
+      ],
+      "organ": "ASI",
+      "confidence": 1.0,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "logic_foundations",
+      "aliases": [
+        "logic",
+        "proof_theory",
+        "model_theory",
+        "computability",
+        "modal_logic",
+        "fuzzy_logic"
+      ],
+      "organ": "ASI",
+      "confidence": 1.0,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "statistics_probability",
+      "aliases": [
+        "statistics",
+        "probability",
+        "bayesian",
+        "stochastic",
+        "causal_inference",
+        "distributions",
+        "regression"
+      ],
+      "organ": "WEALTH",
+      "confidence": 0.9,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "computation",
+      "aliases": [
+        "algorithms",
+        "complexity",
+        "automata",
+        "computability",
+        "information_theory",
+        "cryptography",
+        "coding"
+      ],
+      "organ": "ASI",
+      "confidence": 1.0,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "decision_game_theory",
+      "aliases": [
+        "game_theory",
+        "utility",
+        "mechanism_design",
+        "decision_theory",
+        "\u535a\u5f08"
+      ],
+      "organ": "WEALTH",
+      "confidence": 0.9,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "systems_cybernetics",
+      "aliases": [
+        "systems_theory",
+        "control_theory",
+        "dynamical_systems",
+        "chaos",
+        "catastrophe"
+      ],
+      "organ": "ASI",
+      "confidence": 0.8,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "earth_science",
+      "aliases": [
+        "geology",
+        "tectonics",
+        "mineralogy",
+        "petrology",
+        "sedimentology",
+        "stratigraphy",
+        "volcanology",
+        "seismology",
+        "geomorphology",
+        "structural_geology",
+        "geological"
+      ],
+      "organ": "GEOX",
+      "confidence": 1.0,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "oceanography",
+      "aliases": [
+        "oceanography",
+        "physical_oceanography",
+        "chemical_oceanography",
+        "marine_science",
+        "sea"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.95,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "hydrology",
+      "aliases": [
+        "hydrology",
+        "water_resources",
+        "groundwater",
+        "hydrogeology"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.9,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "meteorology",
+      "aliases": [
+        "meteorology",
+        "weather",
+        "atmospheric_science",
+        "climate"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.85,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "glaciology",
+      "aliases": [
+        "glaciology",
+        "glaciers",
+        "ice_sheets",
+        "permafrost",
+        "cryosphere"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.85,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "geophysics",
+      "aliases": [
+        "geophysics",
+        "seismic",
+        "seismology",
+        "gravity",
+        "magnetic",
+        "electrical_resistivity"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.95,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "geochemistry",
+      "aliases": [
+        "geochemistry",
+        "isotope_geochemistry",
+        "trace_elements"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.9,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "petrophysics",
+      "aliases": [
+        "petrophysics",
+        "porosity",
+        "permeability",
+        "saturation",
+        "well_log",
+        "sonic",
+        "density_log"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.95,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "sedimentology",
+      "aliases": [
+        "sedimentology",
+        "depositional",
+        "delta",
+        "turbidite",
+        "clastic",
+        "carbonate",
+        "shale"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.95,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "stratigraphy",
+      "aliases": [
+        "stratigraphy",
+        "sequence_stratigraphy",
+        "chronostratigraphy",
+        "biostratigraphy",
+        "biozone",
+        "lithostratigraphy"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.95,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "paleontology",
+      "aliases": [
+        "paleontology",
+        "paleobotany",
+        "paleozoology",
+        "micropaleontology",
+        "fossil",
+        "nannofossil",
+        "foraminifera",
+        "palynology",
+        "paleoecology"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.9,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "petroleum_geology",
+      "aliases": [
+        "petroleum_geology",
+        "source_rock",
+        "reservoir",
+        "seal",
+        "trap",
+        "hydrocarbon",
+        "migration",
+        "maturation",
+        "thermal_burial"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.85,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "physics",
+      "aliases": [
+        "mechanics",
+        "thermodynamics",
+        "electromagnetism",
+        "optics",
+        "quantum_mechanics",
+        "nuclear_physics",
+        "plasma"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.6,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "chemistry",
+      "aliases": [
+        "organic_chemistry",
+        "inorganic",
+        "physical_chemistry",
+        "analytical_chemistry",
+        "biochemistry"
+      ],
+      "organ": "GEOX",
+      "confidence": 0.5,
+      "domain": "PHYSICAL"
+    },
+    {
+      "branch": "economics",
+      "aliases": [
+        "economics",
+        "macroeconomics",
+        "microeconomics",
+        "econometrics",
+        "political_economy",
+        "development_economics"
+      ],
+      "organ": "WEALTH",
+      "confidence": 1.0,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "finance",
+      "aliases": [
+        "finance",
+        "financial_analysis",
+        "corporate_finance",
+        "investment",
+        "portfolio",
+        "asset_allocation",
+        "equities",
+        "bonds"
+      ],
+      "organ": "WEALTH",
+      "confidence": 1.0,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "capital_npv",
+      "aliases": [
+        "npv",
+        "net_present_value",
+        "irr",
+        "internal_rate_return",
+        "emv",
+        "expected_monetary_value",
+        "cashflow",
+        "discount_rate",
+        "roi",
+        "roe",
+        "dscr"
+      ],
+      "organ": "WEALTH",
+      "confidence": 1.0,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "risk_management",
+      "aliases": [
+        "risk",
+        "risk_management",
+        "var",
+        "cvar",
+        "drawdown",
+        "volatility",
+        "risk_aversion",
+        "downside"
+      ],
+      "organ": "WEALTH",
+      "confidence": 0.95,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "capital_conservation",
+      "aliases": [
+        "capital_conservation",
+        "net_worth",
+        "asset_liability",
+        "balance_sheet",
+        "liquidity",
+        "runway",
+        "burn_rate"
+      ],
+      "organ": "WEALTH",
+      "confidence": 0.95,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "oil_price",
+      "aliases": [
+        "oil_price",
+        "crude_oil",
+        "brent",
+        "wti",
+        " OPEC",
+        "petroleum_revenue",
+        "fuel_price",
+        "energy_price"
+      ],
+      "organ": "WEALTH",
+      "confidence": 0.8,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "fiscal_policy",
+      "aliases": [
+        "fiscal",
+        "monetary",
+        "budget",
+        "deficit",
+        "government_expenditure",
+        "taxation",
+        "subsidy"
+      ],
+      "organ": "WEALTH",
+      "confidence": 0.9,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "game_theory",
+      "aliases": [
+        "game_theory",
+        "strategic_interaction",
+        "nash_equilibrium",
+        "cooperative_games",
+        "auction"
+      ],
+      "organ": "WEALTH",
+      "confidence": 0.85,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "medicine",
+      "aliases": [
+        "medicine",
+        "medical",
+        "clinical",
+        "diagnosis",
+        "treatment",
+        "therapy",
+        "patient",
+        "disease",
+        "disorder"
+      ],
+      "organ": "WELL",
+      "confidence": 1.0,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "neuroscience",
+      "aliases": [
+        "neuroscience",
+        "neurobiology",
+        "brain",
+        "neuron",
+        "synapse",
+        "cortex",
+        "neurotransmitter",
+        "cognitive_neuroscience"
+      ],
+      "organ": "WELL",
+      "confidence": 1.0,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "sleep",
+      "aliases": [
+        "sleep",
+        "insomnia",
+        "sleep_deprivation",
+        "circadian",
+        "REM",
+        "sleep_hygiene",
+        "melatonin"
+      ],
+      "organ": "WELL",
+      "confidence": 1.0,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "psychology",
+      "aliases": [
+        "psychology",
+        "psychiatric",
+        "mental_health",
+        "depression",
+        "anxiety",
+        "cognitive_psychology",
+        "behavioral"
+      ],
+      "organ": "WELL",
+      "confidence": 1.0,
+      "domain": "MIND"
+    },
+    {
+      "branch": "fatigue",
+      "aliases": [
+        "fatigue",
+        "tiredness",
+        "exhaustion",
+        "burnout",
+        "chronic_fatigue",
+        "decision_fatigue"
+      ],
+      "organ": "WELL",
+      "confidence": 1.0,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "vitality",
+      "aliases": [
+        "vitality",
+        "energy",
+        "wellness",
+        "health",
+        "fitness",
+        "resilience"
+      ],
+      "organ": "WELL",
+      "confidence": 1.0,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "endocrinology",
+      "aliases": [
+        "endocrinology",
+        "hormone",
+        "endocrine",
+        "cortisol",
+        "testosterone",
+        "estrogen",
+        "insulin"
+      ],
+      "organ": "WELL",
+      "confidence": 0.95,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "immunology",
+      "aliases": [
+        "immunology",
+        "immune",
+        "antibody",
+        "antigen",
+        "vaccine",
+        "autoimmune",
+        "inflammation"
+      ],
+      "organ": "WELL",
+      "confidence": 0.95,
+      "domain": "LIFE"
+    },
+    {
+      "branch": "law",
+      "aliases": [
+        "law",
+        "legal",
+        "jurisprudence",
+        "statute",
+        "precedent",
+        "litigation"
+      ],
+      "organ": "arifOS",
+      "confidence": 1.0,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "governance",
+      "aliases": [
+        "governance",
+        "government",
+        "policy",
+        "regulation",
+        "institutional",
+        "constitutional",
+        "sovereignty"
+      ],
+      "organ": "arifOS",
+      "confidence": 1.0,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "ethics",
+      "aliases": [
+        "ethics",
+        "moral",
+        "deontological",
+        "consequentialist",
+        "virtue_ethics",
+        "applied_ethics"
+      ],
+      "organ": "arifOS",
+      "confidence": 1.0,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "rights",
+      "aliases": [
+        "rights",
+        "human_rights",
+        "civil_rights",
+        "property_rights",
+        "intellectual_property"
+      ],
+      "organ": "arifOS",
+      "confidence": 0.9,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "constitutional_floors",
+      "aliases": [
+        "constitutional_floors",
+        "f1",
+        "f13",
+        "amanah",
+        "floor",
+        "veto",
+        "sovereign_veto"
+      ],
+      "organ": "arifOS",
+      "confidence": 1.0,
+      "domain": "FORMAL"
+    },
+    {
+      "branch": "computer_science",
+      "aliases": [
+        "computer_science",
+        "software_engineering",
+        "programming",
+        "software",
+        "code",
+        "coding",
+        "algorithm",
+        "data_structure"
+      ],
+      "organ": "AAA",
+      "confidence": 1.0,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "ai_ml",
+      "aliases": [
+        "artificial_intelligence",
+        "machine_learning",
+        "deep_learning",
+        "neural_network",
+        "ai",
+        "ml",
+        "nlp",
+        "computer_vision",
+        "classification",
+        "regression_ml",
+        "supervised",
+        "unsupervised"
+      ],
+      "organ": "AAA",
+      "confidence": 1.0,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "database",
+      "aliases": [
+        "database",
+        "databases",
+        "sql",
+        "nosql",
+        "postgresql",
+        "mysql",
+        "mongodb",
+        "data_warehousing"
+      ],
+      "organ": "AAA",
+      "confidence": 0.95,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "networking",
+      "aliases": [
+        "networking",
+        "network",
+        "internet",
+        "tcp",
+        "ip",
+        "http",
+        "dns",
+        "cdn",
+        "cdn",
+        "cloud_computing"
+      ],
+      "organ": "AAA",
+      "confidence": 0.9,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "cybersecurity",
+      "aliases": [
+        "cybersecurity",
+        "security",
+        "cryptography_app",
+        "penetration_testing",
+        "vulnerability"
+      ],
+      "organ": "AAA",
+      "confidence": 0.9,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "media_production",
+      "aliases": [
+        "film",
+        "photography",
+        "animation",
+        "video",
+        "media_production",
+        "documentary"
+      ],
+      "organ": "AAA",
+      "confidence": 0.6,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "petroleum_engineering",
+      "aliases": [
+        "petroleum_engineering",
+        "reservoir_engineering",
+        "drilling_engineering",
+        "production_engineering",
+        "well_placement",
+        "enhanced_oil_recovery",
+        "downhole"
+      ],
+      "organ": "A-FORGE",
+      "confidence": 1.0,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "mechanical_engineering",
+      "aliases": [
+        "mechanical_engineering",
+        "thermodynamics",
+        "fluid_mechanics",
+        "heat_transfer",
+        "manufacturing",
+        "robotics",
+        "mechatronics",
+        "automotive",
+        "engine",
+        "turbine"
+      ],
+      "organ": "A-FORGE",
+      "confidence": 1.0,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "civil_engineering",
+      "aliases": [
+        "civil_engineering",
+        "structural_engineering",
+        "geotechnical_engineering",
+        "construction",
+        "bridge",
+        "building",
+        "infrastructure"
+      ],
+      "organ": "A-FORGE",
+      "confidence": 1.0,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "electrical_engineering",
+      "aliases": [
+        "electrical_engineering",
+        "power_systems",
+        "control_systems",
+        "signal_processing",
+        "electronics",
+        "embedded_systems"
+      ],
+      "organ": "A-FORGE",
+      "confidence": 1.0,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "aerospace_engineering",
+      "aliases": [
+        "aerospace_engineering",
+        "aerodynamics",
+        "propulsion",
+        "avionics",
+        "orbital_mechanics",
+        "satellite",
+        "spacecraft"
+      ],
+      "organ": "A-FORGE",
+      "confidence": 1.0,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "nuclear_engineering",
+      "aliases": [
+        "nuclear_engineering",
+        "reactor_physics",
+        "radiation",
+        "nuclear_safety",
+        "fuel_cycle"
+      ],
+      "organ": "A-FORGE",
+      "confidence": 0.9,
+      "domain": "APPLIED"
+    },
+    {
+      "branch": "linguistics",
+      "aliases": [
+        "linguistics",
+        "phonetics",
+        "phonology",
+        "syntax",
+        "semantics",
+        "pragmatics",
+        "sociolinguistics",
+        "language"
+      ],
+      "organ": "ASI",
+      "confidence": 0.85,
+      "domain": "MIND"
+    },
+    {
+      "branch": "philosophy",
+      "aliases": [
+        "philosophy",
+        "metaphysics",
+        "epistemology",
+        "existentialism",
+        "phenomenology",
+        "hermeneutics",
+        "analytic_philosophy"
+      ],
+      "organ": "arifOS",
+      "confidence": 0.8,
+      "domain": "SOCIAL"
+    },
+    {
+      "branch": "history",
+      "aliases": [
+        "history",
+        "historian",
+        "historical",
+        "ancient",
+        "medieval",
+        "modern_era"
+      ],
+      "organ": "ASI",
+      "confidence": 0.5,
+      "domain": "SOCIAL"
+    }
+  ],
+  "metadata": {
+    "total_branches": 56,
+    "generated": "2026-07-06",
+    "schema_version": "1.2",
+    "purpose": "Lightweight kernel routing \u2014 arif_route organ affinity"
+  }
+}

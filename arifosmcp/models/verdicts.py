@@ -173,3 +173,119 @@ class VerdictResult(BaseModel):
     def is_void(self) -> bool:
         """Check if constitution is breached."""
         return self.verdict == SealType.VOID
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CANONICAL ALIAS — single import path for all runtime code
+# ═══════════════════════════════════════════════════════════════════════════════
+# All runtime modules import:
+#   from arifosmcp.models.verdicts import Verdict, RuntimeStatus
+# No module may define its own Verdict class locally.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+Verdict = SealType
+"""Canonical governance verdict. Alias for SealType.
+Constitutional ordering: VOID > HOLD > SABAR > SEAL"""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TRANSPORT STATUS — execution plumbing, NOT governance
+# ═══════════════════════════════════════════════════════════════════════════════
+# Governance = constitutional law (Verdict: SEAL/HOLD/SABAR/VOID)
+# Transport  = execution plumbing (RuntimeStatus: SUCCESS/ERROR/TIMEOUT/RETRY)
+# These are NEVER mixed. A tool returns a RuntimeStatus and may carry a Verdict.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class RuntimeStatus(StrEnum):
+    """Transport status — execution plumbing, not constitutional governance.
+
+    This is what a tool returns to indicate execution outcome.
+    Governance verdicts (SEAL/HOLD/SABAR/VOID) travel in the payload, NOT as status.
+    """
+
+    SUCCESS = "SUCCESS"  # Tool executed normally
+    ERROR = "ERROR"  # Tool encountered an error
+    TIMEOUT = "TIMEOUT"  # Tool exceeded its time budget
+    RETRY = "RETRY"  # Transient failure — caller should retry
+    HOLD = "HOLD"  # Tool blocked by constitutional gate (NOT governance verdict — transport block)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MONOTONICITY — constitutional ordering enforcement
+# ═══════════════════════════════════════════════════════════════════════════════
+# VOID > HOLD > SABAR > SEAL
+# - VOID overrides everything — irreversible constitutional breach
+# - HOLD overrides SABAR and SEAL — human veto
+# - SABAR overrides SEAL — conditional proceed
+# - SEAL is the lowest authority — proceed only if no higher verdict blocks
+#
+# Every merge point in the system must respect this ordering:
+# - arif_judge verdict merge
+# - arif_memory floor aggregation
+# - arif_forge execution gates
+# - 888_HOLD conflict routing
+# - JITU conflict detection
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+VERDICT_ORDER: dict[str, int] = {
+    "SEAL": 0,
+    "SABAR": 1,
+    "HOLD": 2,
+    "VOID": 3,
+}
+
+
+def enforce_verdict_monotonicity(v: Verdict | str) -> int:
+    """Return the constitutional weight of a verdict.
+
+    Higher weight = higher authority.
+    Use this to enforce that a HOLD cannot be downgraded to SEAL,
+    and VOID cannot be overridden by any other verdict.
+
+    Args:
+        v: Verdict as SealType enum or string ("SEAL", "HOLD", "SABAR", "VOID")
+
+    Returns:
+        Integer weight: SEAL=0, SABAR=1, HOLD=2, VOID=3
+
+    Raises:
+        ValueError: If the verdict string is not a canonical verdict
+    """
+    key = v.value if isinstance(v, Verdict) else str(v).upper()
+    if key not in VERDICT_ORDER:
+        raise ValueError(
+            f"Unknown verdict '{v}'. Canonical verdicts: SEAL, HOLD, SABAR, VOID. "
+            "RuntimeStatus values (SUCCESS/ERROR/TIMEOUT/RETRY) are transport only."
+        )
+    return VERDICT_ORDER[key]
+
+
+def merge_verdicts(v1: Verdict | str, v2: Verdict | str) -> Verdict:
+    """Merge two verdicts — the higher weight wins.
+
+    At every merge point in the system, call this to enforce monotonicity.
+    A HOLD from any gate cannot be downgraded by a later SEAL.
+    """
+    w1 = enforce_verdict_monotonicity(v1)
+    w2 = enforce_verdict_monotonicity(v2)
+    winner = (
+        SealType.SEAL
+        if w1 == 0 and w2 == 0
+        else (
+            SealType.VOID
+            if w1 >= 3 or w2 >= 3
+            else (
+                SealType.HOLD
+                if w1 >= 2 or w2 >= 2
+                else (SealType.SABAR if w1 >= 1 or w2 >= 1 else SealType.SEAL)
+            )
+        )
+    )
+    return Verdict(winner)
+
+
+def is_verdict_allowed(v: Verdict | str) -> bool:
+    """Check if a verdict allows progression (SEAL or conditional SABAR)."""
+    return enforce_verdict_monotonicity(v) <= 1  # SEAL or SABAR

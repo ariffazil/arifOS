@@ -40,19 +40,13 @@ from pydantic import BaseModel, Field
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class CanonicalVerdict(StrEnum):
-    """The four constitutional outcomes. No organ may invent new verdicts.
+from arifosmcp.models.verdicts import Verdict as CanonicalVerdict
 
-    Cross-repo mapping (legacy → canonical):
-      GEOX QUALIFY → SABAR
-      A-FORGE CAUTION → SABAR
-      arifOS PARADOX_HOLD → HOLD (with verdict_code="HOLD.PARADOX")
-    """
-
-    SEAL = "SEAL"  # proceed, all gates satisfied
-    HOLD = "HOLD"  # blocked, requires resolution
-    SABAR = "SABAR"  # proceed with conditions, warnings active
-    VOID = "VOID"  # permanently blocked, constitutional breach
+# CanonicalVerdict is now imported from models/verdicts.
+# Cross-repo mapping (legacy → canonical):
+#   GEOX QUALIFY → Verdict.SABAR
+#   A-FORGE CAUTION → Verdict.SABAR
+#   arifOS PARADOX_HOLD → Verdict.HOLD (with VerdictState.HOLD_PARADOX)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -294,7 +288,7 @@ LEGACY_VERDICT_MAP: dict[str, CanonicalVerdict] = {
     # arifOS legacy
     "PARADOX_HOLD": CanonicalVerdict.HOLD,
     "REJECT": CanonicalVerdict.VOID,
-    "SEAL_OBSERVE_ONLY": CanonicalVerdict.SEAL,
+    "OBSERVE_ONLY": CanonicalVerdict.SEAL,
     "FULL": CanonicalVerdict.SEAL,
     # AAA
     "PENDING": CanonicalVerdict.SABAR,
