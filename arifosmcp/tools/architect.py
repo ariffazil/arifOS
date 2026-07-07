@@ -245,15 +245,160 @@ def _suggest_data_flow(query: str) -> list[dict]:
 
 
 def _constitutional_checklist(query: str) -> list[dict]:
-    """Generate constitutional checklist for design."""
-    return [
-        {"floor": "F1", "check": "Can this be reversed?", "status": "TODO"},
-        {"floor": "F2", "check": "Are all facts verifiable?", "status": "TODO"},
-        {"floor": "F4", "check": "Is complexity justified?", "status": "TODO"},
-        {"floor": "F7", "check": "Are uncertainty bands declared?", "status": "TODO"},
-        {"floor": "F9", "check": "Does this cause harm?", "status": "TODO"},
-        {"floor": "L13", "check": "Is human authority preserved?", "status": "TODO"},
+    """Generate constitutional checklist for design.
+
+    P0-#3 FIX (2026-07-07): F1, F4, F11, F13 implemented inline.
+    Other floors raise NotImplementedError (fail closed — cannot claim compliance
+    without real checks).
+
+    Each floor returns {"floor": str, "check": str, "status": "PASS"|"FAIL"|"BLOCK"|"ERROR",
+                        "detail": str}.
+    """
+    query_lower = query.lower()
+    results: list[dict] = []
+
+    # ── F1 AMANAH: Can this be reversed? ──────────────────────────
+    irreversible_markers = [
+        "delete",
+        "drop",
+        "destroy",
+        "remove permanently",
+        "rm -rf",
+        "truncate",
+        "purge",
+        "wipe",
+        "irreversible",
+        "one-way",
     ]
+    has_irreversible = any(marker in query_lower for marker in irreversible_markers)
+    results.append(
+        {
+            "floor": "F1",
+            "check": "Can this be reversed?",
+            "status": "FAIL" if has_irreversible else "PASS",
+            "detail": (
+                "Irreversible action detected — requires sovereign ack (F1 AMANAH)"
+                if has_irreversible
+                else "No irreversible markers found in query"
+            ),
+        }
+    )
+
+    # ── F4 CLARITY: Is complexity justified? ──────────────────────
+    # Heuristic: count distinct component/concept mentions
+    complexity_markers = [
+        "microservice",
+        "distributed",
+        "event-driven",
+        "cqrs",
+        "event sourcing",
+        "multi-tenant",
+        "sharding",
+        "consensus",
+        "byzantine",
+        "raft",
+        "paxos",
+    ]
+    complexity_count = sum(1 for m in complexity_markers if m in query_lower)
+    # Also count if query is very long (>500 chars) as a proxy for over-scoping
+    if len(query) > 500:
+        complexity_count += 1
+    results.append(
+        {
+            "floor": "F4",
+            "check": "Is complexity justified?",
+            "status": "FAIL" if complexity_count >= 3 else "PASS",
+            "detail": (
+                f"High complexity detected ({complexity_count} markers). "
+                "Simplify or justify each component (F4 CLARITY: ΔS ≤ 0)"
+                if complexity_count >= 3
+                else f"Complexity within bounds ({complexity_count} markers)"
+            ),
+        }
+    )
+
+    # ── F2 TRUTH: Are all facts verifiable? ───────────────────────
+    results.append(
+        {
+            "floor": "F2",
+            "check": "Are all facts verifiable?",
+            "status": "ERROR",
+            "detail": (
+                "F2 TRUTH check not implemented — cannot claim compliance without "
+                "real evidence verification. Fails closed per P0-#3 directive."
+            ),
+        }
+    )
+
+    # ── F7 HUMILITY: Are uncertainty bands declared? ──────────────
+    results.append(
+        {
+            "floor": "F7",
+            "check": "Are uncertainty bands declared?",
+            "status": "ERROR",
+            "detail": (
+                "F7 HUMILITY check not implemented — cannot claim compliance without "
+                "real uncertainty band verification. Fails closed per P0-#3 directive."
+            ),
+        }
+    )
+
+    # ── F9 ANTIHANTU: Does this cause harm? ──────────────────────
+    results.append(
+        {
+            "floor": "F9",
+            "check": "Does this cause harm?",
+            "status": "ERROR",
+            "detail": (
+                "F9 ANTIHANTU check not implemented — cannot claim compliance without "
+                "real harm assessment. Fails closed per P0-#3 directive."
+            ),
+        }
+    )
+
+    # ── F11 AUTH: Is identity verified before sensitive ops? ─────
+    auth_markers = ["auth", "identity", "session", "token", "verify", "credential", "proof"]
+    has_auth = any(marker in query_lower for marker in auth_markers)
+    results.append(
+        {
+            "floor": "F11",
+            "check": "Is identity verified before sensitive ops?",
+            "status": "PASS" if has_auth else "FAIL",
+            "detail": (
+                "Identity/auth mechanism referenced in design"
+                if has_auth
+                else "No identity verification mechanism mentioned — F11 AUTH requires it"
+            ),
+        }
+    )
+
+    # ── F13 SOVEREIGN: Is human authority preserved? ──────────────
+    sovereign_markers = [
+        "human",
+        "override",
+        "veto",
+        "approval",
+        "sovereign",
+        "manual",
+        "888_hold",
+        "ack_irreversible",
+        "human-in-the-loop",
+    ]
+    has_sovereign = any(marker in query_lower for marker in sovereign_markers)
+    results.append(
+        {
+            "floor": "F13",
+            "check": "Is human authority preserved?",
+            "status": "PASS" if has_sovereign else "FAIL",
+            "detail": (
+                "Human override/authority mechanism found in design"
+                if has_sovereign
+                else "No human authority mechanism — F13 SOVEREIGN requires human veto on irreversible"
+            ),
+        }
+    )
+
+    return results
 
 
 # ─────────────────────────────────────────────────────────────

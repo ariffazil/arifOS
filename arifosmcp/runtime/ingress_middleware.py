@@ -499,19 +499,21 @@ try:
 except Exception:
     _METRICS_AVAILABLE = False
 
-# The 11 mega-tools — enforce ingress tolerance on all of them
+# The 12 canonical tools — enforce ingress tolerance + metrics on all of them
+# Updated 2026-07-07: names aligned with CANONICAL_12 (old names were stale)
 MEGA_TOOLS = {
-    "init_anchor",
-    "arifos_kernel",
-    "apex_soul",
-    "vault_ledger",
-    "agi_mind",
-    "asi_heart",
-    "engineering_memory",
-    "physics_reality",
-    "math_estimator",
-    "code_engine",
-    "architect_registry",
+    "arif_init",
+    "arif_triage",
+    "arif_observe",
+    "arif_think",
+    "arif_route",
+    "arif_bridge_connect",
+    "arif_critique",
+    "arif_memory",
+    "arif_judge",
+    "arif_forge",
+    "arif_compose",
+    "arif_seal",
 }
 
 # Mode synonym normalization: obvious variants → canonical mode names

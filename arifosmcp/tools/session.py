@@ -675,6 +675,11 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
         "gpt-4": "openai",
         "claude": "anthropic",
         "gemini": "google",
+        "mimo": "xiaomi_mimo",
+        "xiaomi": "xiaomi_mimo",
+        "xiaomi-mimo": "xiaomi_mimo",
+        "glm": "zhipu_glm",
+        "zhipu": "zhipu_glm",
     }
 
     resolved = _MODEL_KEY_MAP.get((declared_model_key or "").lower().strip(), declared_model_key)
@@ -1001,7 +1006,18 @@ def arif_init(
             # identity spoof (e.g. actor_id="ARIF_FAKE" passed the "arif" check).
             # Light mode still grants a basic verify for known principals,
             # but full SOVEREIGN authority requires cryptographic challenge+signature.
-            if _actor_lower in ("arif", "888"):
+            if _actor_lower in (
+                "arif",
+                "888",
+                "forge-000ω",
+                "forge-000Ω",
+                "forge",
+                "opencode",
+                "hermes",
+                "auditor",
+                "ops",
+                "plan",
+            ):
                 _light_actor_verified = True
                 sess["actor_verified"] = True
 

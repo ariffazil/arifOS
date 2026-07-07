@@ -13,53 +13,40 @@ from arifosmcp.resources import (
 )
 from arifosmcp.runtime.build import get_build_info
 
-# ══ 10-Verb Metabolic Loop (F4 CLARITY: one stage = one public verb) ══════
-# Public agents see exactly these 10 stage-verbs. 9 stages + memory governor.
-# CANONICAL-10 update 2026-07-07:
-#   - Promoted to public surface: arif_memory (555m — constitutional memory governor).
-#   - arif_memory gates all memory writes through F1/F2/F4/F9/F11/F13 floors.
-#   - Memory writes are J-space mutations — they shape future reasoning.
-# CANONICAL-9 collapse 2026-07-04:
-#   - Removed from public surface: arif_canary (→ arif_init mode), arif_triage
-#       (→ arif_init mode), arif_fetch (→ arif_observe mode),
-#       arif_bridge_connect (→ arif_route mode).
-#   - Restored to public surface: arif_seal (999 — stage needs its verb).
-#   - Promoted to public surface: arif_critique (555 — separated from arif_think).
-#   - Each absorbed verb becomes a mode on its parent tool.
-# See /root/forge_work/2026-07-04/ZEN-9-VERB-METABOLIC-LOOP.md for doctrine.
-CANONICAL_9: tuple[str, ...] = (
-    # 000 — Session anchor + transport probe + preflight (merged)
-    "arif_init",  # 000 — Session bootstrap. Modes: init, resume, canary, preflight, triage
-    # 111 — Reality sensing + evidence fetch (merged)
-    "arif_observe",  # 111 — Sense reality. Modes: search, fetch, ingest, vitals, atlas
-    # 333 — Reasoning engine
-    "arif_think",  # 333 — Cognitive engine. Modes: reason, plan, reflect, verify
-    # 444 — Intent routing + organ bridge (merged)
-    "arif_route",  # 444 — Route intent to organ. Modes: route, bridge, triage
-    # 555 — Adversarial critique (promoted from arif_think mode to own tool)
-    "arif_critique",  # 555 — Ethical/maruah assessment. Modes: critique, redteam, maruah, shadow
-    # 555m — Constitutional memory governor (promoted from internal_only 2026-07-07)
-    "arif_memory",  # 555m — Memory gate. Modes: recall, inspect, attest, remember, promote, revise, forget
-    # 666 — Constitutional verdict
-    "arif_judge",  # 666 — Constitutional verdict. SEAL/CANDIDATE/HOLD/SABAR/VOID
-    # 777 — Guarded execution
-    "arif_forge",  # 777 — Execute after SEAL. Modes: engineer, query, write, generate, commit
-    # 888 — Governed response composition
-    "arif_compose",  # 888 — Response composition. Modes: compose, summarize, cite, tone_shift
-    # 999 — VAULT999 seal
-    "arif_seal",  # 999 — Append to VAULT999. Modes: seal, verify, ledger
+# ══ 12-Verb Metabolic Loop (F4 CLARITY: one stage = one public verb) ══════
+# Public agents see exactly 12 canonical tools. 9 stages + preflight + bridge + memory.
+# CANONICAL-12 update 2026-07-07:
+#   - Restored to public surface: arif_triage (000t — session preflight).
+#   - Restored to public surface: arif_bridge_connect (444b — direct organ bridge).
+#   - Retained: arif_memory (555m — constitutional memory governor).
+#   - Retained: arif_seal (999 — VAULT999 immutable ledger).
+#   - arif_fetch remains as mode=fetch on arif_observe (registration compat).
+#   - Total: 12 canonical tools. One intent = one verb.
+CANONICAL_12: tuple[str, ...] = (
+    "arif_init",  # 000  — Session bootstrap
+    "arif_triage",  # 000t — Session preflight
+    "arif_observe",  # 111  — Reality sensing (absorbs arif_fetch as mode=fetch)
+    "arif_think",  # 333  — Cognitive engine
+    "arif_route",  # 444  — Organ router
+    "arif_bridge_connect",  # 444b — Direct organ bridge
+    "arif_critique",  # 555  — Maruah/risk assessment
+    "arif_memory",  # 555m — Memory governor
+    "arif_judge",  # 666  — Constitutional verdict
+    "arif_forge",  # 777  — Guarded execution
+    "arif_compose",  # 888  — Response composer
+    "arif_seal",  # 999  — VAULT999 seal
 )
 
-# ── DEPRECATED ALIASES (P5 shadow cleanup 2026-07-04) ─────────────────────
-# These exist ONLY for backward compatibility with imports in tests/fixtures.
-# They all point to CANONICAL_9. Do NOT use in new code.
-# SHADOW STATUS: frozen, not removed — removal would break existing imports.
-CANONICAL_7: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
-CANONICAL_13: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
-CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_9  # DEPRECATED — use CANONICAL_9
+# ── DEPRECATED ALIASES (backward compat only) ─────────────────────────────
+CANONICAL_13: tuple[str, ...] = (
+    CANONICAL_12  # DEPRECATED — use CANONICAL_12 (registry.py, surface_consistency.py)
+)
+CANONICAL_9: tuple[str, ...] = CANONICAL_12  # DEPRECATED — use CANONICAL_12
+CANONICAL_7: tuple[str, ...] = CANONICAL_12  # DEPRECATED — use CANONICAL_12
+CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_12  # DEPRECATED alias
 
 # ── Canary Probe — transport diagnostic, absorbed into arif_init(mode=canary) ──
-# arif_canary is absorbed as a mode of arif_init. Its 6 child names are
+# arif_canary remains absorbed as a mode of arif_init. Its 6 child names are
 # DEPRECATED → use arif_init(mode=canary). They are kept as internal aliases
 # for backward compatibility only.
 CANARY_PROBES: tuple[str, ...] = ()
@@ -75,25 +62,26 @@ DEPRECATED_CANARY_CHILDREN: tuple[str, ...] = (
 # ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────
 # FROZEN 2026-06-23 + PURGED 2026-06-30 + RE-PURGED 2026-07-04: aliases removed
 # from public wire surface. Backend handlers still resolve via _LEGACY_ALIASES for
-# backward compatibility, but tools/list returns ONLY canonical 12 names.
+# backward compatibility, but tools/list returns ONLY canonical 13 names.
 # See: forge_work/BANGANG-ALIAS-PURGE-2026-06-30.md and the 2026-07-04 YELLOW re-purge.
 CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = ()  # intentionally empty
 
-# ── Canonical 9 Public Surface (CANONICAL-9 2026-07-04) ─────────────
-# The public surface is exactly 9 stages = 9 tools.
-# The name CANONICAL13_PUBLIC_SURFACE is retained for backward compat.
+# ── Canonical 13 Public Surface (CANONICAL-13 2026-07-07) ─────────────
+# The public surface is exactly 13 tools = 9 stages + 3 evidence/preflight/bridge + memory.
+# The name CANONICAL_9 is retained as deprecated alias for backward compat.
 
 
-# Preferred canonical names for surface modes (2026-07-04 ZEN-9):
-#   "canonical9"  → 9-stage metabolic loop (default public)
-#   "canonical12" → DEPRECATED alias for "canonical9"
-#   "canonical7"  → DEPRECATED alias for "canonical9"
-#   "expanded45"  → canonical9 + all diagnostics (operator/debug)
+# Preferred canonical names for surface modes (2026-07-07 CANONICAL-13):
+#   "canonical13" → 13 canonical tools (default public)
+#   "canonical9"  → DEPRECATED alias for "canonical13"
+#   "canonical12" → DEPRECATED alias for "canonical13"
+#   "canonical7"  → DEPRECATED alias for "canonical13"
+#   "expanded45"  → canonical13 + all diagnostics (operator/debug)
 VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
-    "canonical9",  # preferred — 9-stage metabolic loop
-    "canonical12",  # deprecated alias — maps to canonical9
-    "canonical7",  # deprecated alias — maps to canonical9
-    "canonical13",  # deprecated alias — maps to canonical9
+    "canonical13",  # preferred — 13 canonical tools
+    "canonical9",  # deprecated alias — maps to canonical13
+    "canonical12",  # deprecated alias — maps to canonical13
+    "canonical7",  # deprecated alias — maps to canonical13
     "expanded45",  # operator/debug surface
 )
 
@@ -195,8 +183,8 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
 )
 
 # EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).
-# Diagnostics are appended to the canonical 9-stage metabolic loop tools.
-EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_9, *DIAGNOSTIC_TOOLS])))
+# Diagnostics are appended to the canonical 13 tools.
+EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_12, *DIAGNOSTIC_TOOLS])))
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
 # with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
@@ -204,10 +192,10 @@ EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_9, *DIAGNOST
 
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
-    """Resolve surface mode. canonical9 (default) = 9-stage loop. expanded45 = canonical9 + diagnostics.
+    """Resolve surface mode. canonical13 (default) = 13 canonical tools. expanded45 = canonical13 + diagnostics.
 
-    canonical12 / canonical7 / canonical13 are deprecated aliases that always
-    meant (and still mean) the canonical public set — now the 9-stage metabolic loop.
+    canonical9 / canonical12 / canonical7 are deprecated aliases that always
+    mean the canonical public set — now the 13-tool surface.
     """
     raw = (mode or "").strip().lower()
     if not raw:
@@ -216,18 +204,18 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         raw = (os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "") or "").strip().lower()
 
     profile_map = {
-        "canonical9": "canonical9",
-        "public": "canonical9",
-        "chatgpt": "canonical9",
-        "agnostic_public": "canonical9",
-        "canonical12": "canonical9",  # deprecated alias — canonical count is now 9
-        "canonical7": "canonical9",  # deprecated alias — was 7/12; now 9-stage loop
-        "canonical13": "canonical9",  # deprecated alias — maps to canonical9
-        "canonical15": "canonical9",  # deprecated alias — pre-freeze count
+        "canonical13": "canonical13",
+        "canonical9": "canonical13",  # deprecated alias
+        "canonical12": "canonical13",  # deprecated alias
+        "canonical7": "canonical13",  # deprecated alias
+        "canonical15": "canonical13",  # deprecated alias
+        "public": "canonical13",
+        "chatgpt": "canonical13",
+        "agnostic_public": "canonical13",
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
-    return profile_map.get(raw, "canonical9")
+    return profile_map.get(raw, "canonical13")
 
 
 def current_public_surface_mode() -> str:
@@ -238,13 +226,11 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
     """
     Return the public tool names for a given surface mode.
 
-    canonical9 (default): CANONICAL_9 (9-stage metabolic loop).
-        CANONICAL-9 2026-07-04: exactly 9 surface verbs mapping to 9 stages.
-        One stage = one public verb. Absorbed tools become internal modes.
-        arif_critique promoted from arif_think mode to its own public tool at 555.
-    expanded45: CANONICAL_9 + DIAGNOSTIC_TOOLS (operator/debug surface).
+    canonical13 (default): CANONICAL_12 (13 canonical tools).
+        CANONICAL-13 2026-07-07: 9 stages + 3 evidence/preflight/bridge + memory governor.
+        One intent = one public verb.
+    expanded45: CANONICAL_12 + DIAGNOSTIC_TOOLS (operator/debug surface).
         Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
-        Adds canary probes and other read-only diagnostics.
 
     INTERNAL_ONLY filter: tools registered in CANONICAL_TOOLS with
     access == "internal_only" are NEVER exposed via any public mode.
@@ -257,10 +243,10 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
             "yes",
             "on",
         )
-        candidates = EXPANDED_45 if expose_dev_tools else CANONICAL_9
+        candidates = EXPANDED_45 if expose_dev_tools else CANONICAL_12
     else:
-        # canonical9 (default): the 9-stage metabolic loop.
-        candidates = CANONICAL_9
+        # canonical13 (default): the 13 canonical tools.
+        candidates = CANONICAL_12
     # Filter out internal_only tools regardless of mode.
     return tuple(
         name
@@ -279,9 +265,9 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     """Report the public tool surface state for the given mode.
 
-    Two profiles (2026-07-04 CANONICAL-9):
-      canonical9 — 9-stage metabolic loop (9 tools, public agents, default)
-      expanded45 — canonical9 + diagnostics (operator/debug, ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)
+    Two profiles (2026-07-07 CANONICAL-13):
+      canonical13 — 13 canonical tools (13 tools, public default)
+      expanded45  — canonical13 + diagnostics (operator/debug, ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)
     """
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
@@ -289,15 +275,15 @@ def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     return {
         "mode": resolved,
         "mode_aliases": {
-            "canonical9": "9-stage metabolic loop (9 tools, public default; CANONICAL-9 2026-07-04)",
-            "canonical12": "DEPRECATED alias for canonical9 (was 12 verbs pre-2026-07-04)",
-            "canonical7": "DEPRECATED alias for canonical9",
-            "canonical13": "DEPRECATED alias for canonical9",
-            "expanded45": "canonical9 + diagnostics (operator/debug)",
+            "canonical12": "12 canonical tools (public default; CANONICAL-12 2026-07-07)",
+            "canonical9": "DEPRECATED alias for canonical13",
+            "canonical12": "DEPRECATED alias for canonical13",
+            "canonical7": "DEPRECATED alias for canonical13",
+            "expanded45": "canonical13 + diagnostics (operator/debug)",
         },
         "tools_registered": len(tool_names),
-        "kernel_tools": len(CANONICAL_9),
-        "canonical_count": len(CANONICAL_9),
+        "kernel_tools": len(CANONICAL_12),
+        "canonical_count": len(CANONICAL_12),
         "diagnostic_tools": diagnostic_names,
         "tool_names": tool_names,
         "blocked_public_prefixes": list(BLOCKED_PUBLIC_PREFIXES),
@@ -383,7 +369,7 @@ PEER_SOVEREIGNS: dict[str, dict[str, Any]] = {
         "mcp_path": "/mcp",
         "health_path": "/health",
         "ready_path": "/ready",
-        "tools": len(CANONICAL_9),  # dynamic from CANONICAL_9 tuple — single source of truth
+        "tools": len(CANONICAL_12),  # dynamic from CANONICAL_12 tuple — single source of truth
         "prompts": len(CANONICAL_PROMPTS),
         "resources": len(CANONICAL_RESOURCES),
         "protocol_version": "2025-11-25",  # aligned with MCP_SPEC_VERSION_CANONICAL

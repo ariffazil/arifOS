@@ -9,11 +9,11 @@ Biological (human reconstruction: experience→encoding→emotional tag→retrie
 → Agentic flow (only then to action in A-FORGE).
 
 The Agentic Intelligence Flow (must traverse):
-Human experience (reconstructive, meaning-first) 
-→ agent attention/encoding (with tier OBS/DER/INT) 
-→ digital layers (L1-5 with provenance) 
-→ institutionalise (kernel check, canonical registry write only) 
-→ constitutional (L6 seal if needed, expiry/boundary) 
+Human experience (reconstructive, meaning-first)
+→ agent attention/encoding (with tier OBS/DER/INT)
+→ digital layers (L1-5 with provenance)
+→ institutionalise (kernel check, canonical registry write only)
+→ constitutional (L6 seal if needed, expiry/boundary)
 → governed act (SEAL + F13 veto).
 
 CONSOLIDATED: Qdrant (vector search) + Postgres (durable record) dual-write.
@@ -52,12 +52,41 @@ logger = logging.getLogger(__name__)
 
 
 def enforce_memory_routing(tier: str, content: dict, actor: str) -> bool:
-    """Central gate. Classify, check band, provenance, floors. Reject bypass."""
+    """Central gate. Classify, check band, provenance, floors. Reject bypass.
+
+    P1-#7 FIX (2026-07-07): Floor checks now RAISE on violation, not just log.
+    F2 TRUTH: provenance + authority_band mandatory.
+    F11 AUTH: actor verified, band valid, sacred tiers require SOVEREIGN/JUDGE.
+    """
+    # F2+F11: Provenance and authority band are mandatory
     if not content.get("provenance") or not content.get("authority_band"):
-        raise RuntimeError("F2+F11: Memory write missing provenance or authority_band. Use contract.")
-    # TODO: full floor check + registry canonical + no direct Qdrant/Postgres from caller
-    # For now: log + require via this fn
-    logger.info(f"memory_route_enforced: tier={tier} actor={actor} band={content.get('authority_band')}")
+        raise RuntimeError(
+            "F2+F11: Memory write missing provenance or authority_band. Use contract."
+        )
+
+    band = content["authority_band"]
+    _VALID_BANDS = {"OBSERVE", "FORGE", "SOVEREIGN", "JUDGE", "VERDICT"}
+
+    # F11: Authority band must be valid
+    if band not in _VALID_BANDS:
+        raise RuntimeError(
+            f"F11 AUTH: Invalid authority_band '{band}'. "
+            f"Must be one of: {', '.join(sorted(_VALID_BANDS))}"
+        )
+
+    # F11: Actor must be identified for non-ephemeral tiers
+    if tier not in (TIER_EPHEMERAL, TIER_TEST) and (not actor or actor == "anonymous"):
+        raise RuntimeError(
+            f"F11 AUTH: Memory write to tier='{tier}' requires identified actor, got '{actor}'"
+        )
+
+    # F1: Sacred/canonical tiers require elevated authority
+    if tier in _SACRED_TIERS and band not in {"SOVEREIGN", "JUDGE"}:
+        raise RuntimeError(
+            f"F1 AMANAH: Sacred tier writes require SOVEREIGN or JUDGE authority, got '{band}'"
+        )
+
+    logger.info(f"memory_route_enforced: tier={tier} actor={actor} band={band}")
     return True
 
 

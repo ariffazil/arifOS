@@ -12,6 +12,25 @@ from arifosmcp.resources import (
     register_resources,
 )
 
+# ── System capabilities (was missing — pre-existing bug closed 2026-07-07) ────
+# F1 AMANAH: conservative system metadata. Source of truth for /charter "system" block.
+SYSTEM_CAPABILITIES = {
+    "version": "2.0.0",
+    "kernel": "arifOS",
+    "model_architecture": "constitutional_substrate",
+    "substrate_separation": True,
+    "trinity_lanes": ["AGI", "ASI", "APEX"],
+    "constitutional_floors": 13,
+    "verdict_system": ["SEAL", "PARTIAL", "VOID", "HOLD"],
+    "transport": ["mcp", "a2a", "rest"],
+    "authentication_required": False,
+    "public_endpoint": "https://arifosmcp.arif-fazil.com/mcp",
+    "protocol": {
+        "mcp_version": "2025-11-25",
+        "a2a_version": "1.0.1",
+    },
+}
+
 __all__ = [
     "CANONICAL_RESOURCES",
     "EVIDENCE_RESOURCES",
@@ -21,6 +40,7 @@ __all__ = [
     "manifest_resources",
     "read_resource_content",
     "apex_tools_markdown_table",
+    "SYSTEM_CAPABILITIES",
 ]
 
 

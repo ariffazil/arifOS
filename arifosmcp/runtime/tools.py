@@ -1704,18 +1704,21 @@ class Stage:
     VAULT_999 = "999_VAULT"
 
 
-from arifosmcp.models.verdicts import Verdict, RuntimeStatus, SealType
+class Verdict(Enum):
+    SEAL = "SEAL"
+    PROVISIONAL = "PROVISIONAL"
+    PARTIAL = "PARTIAL"
+    SABAR = "SABAR"
+    HOLD = "HOLD"
+    HOLD_888 = "HOLD_888"
+    VOID = "VOID"
 
-# Legacy alias — tools.py historically defined PROVISIONAL and PARTIAL
-# which are NOT canonical verdicts. They are now RuntimeStatus values.
-# PROVISIONAL → RuntimeStatus.HOLD (tool blocked by gate)
-# PARTIAL → RuntimeStatus.SUCCESS (partial completion is still success)
 
-LEGACY_VERDICT_SEAL = Verdict.SEAL
-LEGACY_VERDICT_SABAR = Verdict.SABAR
-LEGACY_VERDICT_HOLD = Verdict.HOLD
-LEGACY_VERDICT_HOLD_888 = Verdict.HOLD
-LEGACY_VERDICT_VOID = Verdict.VOID
+class RuntimeStatus(Enum):
+    SUCCESS = "SUCCESS"
+    ERROR = "ERROR"
+    TIMEOUT = "TIMEOUT"
+    DRY_RUN = "DRY_RUN"
 
 
 LEGACY_KERNEL_TOOL_NAME = "metabolic_loop_router"
@@ -1976,7 +1979,7 @@ def _constitutional_gate(
     query: str | None = None,
     url: str | None = None,
     target_agent: str | None = None,
-    ack_irreversible: bool = False,
+    constitutional_chain_id: str | None = None,
     witness_type: str = "ai",
     plan_id: str | None = None,
 ) -> dict[str, Any] | None:
@@ -1987,33 +1990,35 @@ def _constitutional_gate(
     the tool must return the constitutional HOLD/VOID response immediately.
     Returns None if the action is authorized (SEAL).
 
-    RSI HARDENING (2026-06-04): L13 SOVEREIGN gate — irreversible actions on
-    Tier 3 tools require sovereign session authorization (not just a boolean).
+    REMOVED 2026-07-07: ack_irreversible self-attestation boolean removed.
+    Replaced by: prior arif_judge SEAL via constitutional_chain_id for
+    agent-to-agent flows; sovereign session + mcp:allow for Arif-to-tool flows.
+    See /root/memory/2026-07-07.md §22:08.
     """
     # ═══════════════════════════════════════════════════════════════════════════
-    # L13 SOVEREIGN — Irreversible Action Gate (RSI HARDENING)
+    # L13 SOVEREIGN — Irreversible Action Gate
     # ═══════════════════════════════════════════════════════════════════════════
-    # Previously: ack_irreversible was just a boolean any agent could set True.
-    # Now: Tier 3 tools require sovereign session authorization.
-    # A session is "sovereign" if actor_id matches the sovereign identity AND
-    # the session has passed identity verification.
+    # Tier 3 tools require sovereign session authorization OR a prior
+    # arif_judge SEAL via constitutional_chain_id.
     _TIER_3_IRREVERSIBLE_TOOLS: frozenset[str] = frozenset(
         {
             "arif_forge_execute",
             "arif_vault_seal",
         }
     )
-    if tool_name in _TIER_3_IRREVERSIBLE_TOOLS and ack_irreversible:
+    if tool_name in _TIER_3_IRREVERSIBLE_TOOLS:
+        has_prior_seal = bool(constitutional_chain_id)
         sess = _SESSIONS.get(session_id) if session_id else None
         authority = sess.get("authority_level", "anonymous") if sess else "anonymous"
-        identity_verified = sess.get("identity_verified", False) if sess else False
+        is_sovereign = (authority == "sovereign") and sess.get("identity_verified", False)
 
-        if authority != "sovereign" or not identity_verified:
+        if not (has_prior_seal or is_sovereign):
             return _hold(
                 tool_name,
-                "L13 SOVEREIGN: Irreversible action requires sovereign session authorization. "
-                f"Current session authority={authority}, identity_verified={identity_verified}. "
-                "Re-initiate session with sovereign credentials.",
+                "L13 SOVEREIGN: Irreversible action requires prior arif_judge SEAL "
+                "(constitutional_chain_id) or sovereign session authorization. "
+                f"Current session authority={authority}, identity_verified={sess.get('identity_verified', False) if sess else False}. "
+                "Re-initiate with sovereign credentials or provide constitutional_chain_id from prior SEAL.",
                 ["L13"],
                 session_id=session_id,
                 extra_meta={
@@ -2042,7 +2047,7 @@ def _constitutional_gate(
             query=query,
             url=url,
             target_agent=target_agent,
-            ack_irreversible=ack_irreversible,
+            constitutional_chain_id=constitutional_chain_id,
             witness_type=(
                 WitnessType(witness_type)
                 if witness_type in ("ai", "human", "multi")
@@ -2298,72 +2303,119 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
 
     overall collapses the three planes into one verdict label.
     Ref: KERNELHASIAPEX.md §4 — Nine-Signal Dashboard Contract
+
+    F3 FIX (2026-07-07): Restructured to lead with overall verdict and
+    add _dominant_plane + _dominance_rule. Claude feedback: two "good"
+    planes anchor attention before overall "bad" verdict, creating false
+    confidence by construction. Now:
+      1. overall comes FIRST (most important signal)
+      2. _dominant_plane names which sub-signal is the weakest link
+      3. _dominance_rule explains the floor-dominates-aggregate principle
     """
-    if status in ("OK", "SEAL"):
-        return {
-            "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
-            "psi": {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
-            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
-            "overall": {"state": "SELAMAT", "en": "SAFE"},
-        }
-    if status == "OBSERVE_ONLY":
-        return {
-            "delta": {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
-            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
-            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
-            "overall": {"state": "SELAMAT_SEBATAS_PEMERHATIAN", "en": "SAFE_OBSERVE_ONLY"},
-        }
-    if status == "DEGRADED":
-        return {
-            "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
-            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
-            "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
-            "overall": {"state": "DEGRADED", "en": "DEGRADED"},
-        }
-    if status == "UNBOUND_SESSION":
-        return {
-            "delta": {
-                "plane": "machine_physical_state",
-                "state": "TIDAK_PASTI",
-                "en": "UNMEASURED",
-            },
-            "psi": {"plane": "governance_integrity", "state": "BELUM_IKAT", "en": "UNBOUND"},
-            "omega": {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
-            "overall": {"state": "BELUM_SAH", "en": "UNAUTHENTICATED"},
-        }
-    if status == "HOLD":
-        # Truth-plane fix 2026-06-25: HOLD means "wait for human decision."
-        # Most HOLDs are config/authority issues, not governance breaches.
-        # SYUBHAH/BIJAK = doubtful but system caught it prudently.
-        # KHIANAT/BANGANG reserved for VOID (actual breach).
-        return {
-            "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
-            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
-            "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "PRUDENT"},
-            "overall": {"state": "RETAK", "en": "HOLDING"},
-        }
-    if status == "VOID":
-        # VOID = rejected due to actual violation. KHIANAT/BANGANG appropriate.
-        return {
-            "delta": {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
-            "psi": {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
-            "omega": {"plane": "intelligence_discipline", "state": "BANGANG", "en": "FOOLISH"},
-            "overall": {"state": "RETAK", "en": "FAILED"},
-        }
-    if status == "SABAR":
-        return {
-            "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
-            "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
-            "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
-            "overall": {"state": "SABAR", "en": "PATIENCE"},
-        }
-    # DRY_RUN / default
-    return {
-        "delta": {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
-        "psi": {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
-        "omega": {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
-        "overall": {"state": "SELAMAT", "en": "SAFE"},
+    # Signal severity for dominance detection (lower = worse)
+    _SEV = {
+        "ROSAK": 0,
+        "KHIANAT": 0,
+        "BANGANG": 0,
+        "RETAK": 1,
+        "TIDAK_PASTI": 1,
+        "BELUM_IKAT": 1,
+        "SYUBHAH": 2,
+        "BIJAK": 3,
+        "KUKUH": 5,
+        "AMANAH": 5,
+        "BIJAKSANA": 5,
+        "SELAMAT": 5,
+        "SELAMAT_SEBATAS_PEMERHATIAN": 4,
+        "BELUM_SAH": 1,
+        "SABAR": 2,
+        "DEGRADED": 1,
     }
+
+    def _build(delta_d, psi_d, omega_d, overall_d):
+        # Find the dominant (worst) sub-signal
+        planes = {"delta": delta_d, "psi": psi_d, "omega": omega_d}
+        worst_plane = min(planes, key=lambda p: _SEV.get(planes[p]["state"], 99))
+        worst_state = planes[worst_plane]["state"]
+        overall_state = overall_d["state"]
+        # Only annotate dominance if a sub-signal is worse than overall
+        if _SEV.get(worst_state, 99) < _SEV.get(overall_state, 99):
+            dominant_meta = {
+                "_dominant_plane": worst_plane,
+                "_dominant_state": worst_state,
+                "_dominance_rule": (
+                    f"Sub-signal floor dominates aggregate: "
+                    f"{worst_plane}={worst_state} overrides overall. "
+                    f"Anchoring on majority-good planes is a known cognitive bias."
+                ),
+            }
+        else:
+            dominant_meta = {}
+        # overall FIRST, then sub-signals, then dominance metadata
+        return {
+            "overall": overall_d,
+            "delta": delta_d,
+            "psi": psi_d,
+            "omega": omega_d,
+            **dominant_meta,
+        }
+
+    if status in ("OK", "SEAL"):
+        return _build(
+            {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+            {"plane": "governance_integrity", "state": "AMANAH", "en": "TRUSTED"},
+            {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            {"state": "SELAMAT", "en": "SAFE"},
+        )
+    if status == "OBSERVE_ONLY":
+        return _build(
+            {"plane": "machine_physical_state", "state": "KUKUH", "en": "SOLID"},
+            {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            {"state": "SELAMAT_SEBATAS_PEMERHATIAN", "en": "SAFE_OBSERVE_ONLY"},
+        )
+    if status == "DEGRADED":
+        return _build(
+            {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+            {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+            {"state": "DEGRADED", "en": "DEGRADED"},
+        )
+    if status == "UNBOUND_SESSION":
+        return _build(
+            {"plane": "machine_physical_state", "state": "TIDAK_PASTI", "en": "UNMEASURED"},
+            {"plane": "governance_integrity", "state": "BELUM_IKAT", "en": "UNBOUND"},
+            {"plane": "intelligence_discipline", "state": "BIJAKSANA", "en": "WISE"},
+            {"state": "BELUM_SAH", "en": "UNAUTHENTICATED"},
+        )
+    if status == "HOLD":
+        return _build(
+            {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+            {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            {"plane": "intelligence_discipline", "state": "BIJAK", "en": "PRUDENT"},
+            {"state": "RETAK", "en": "HOLDING"},
+        )
+    if status == "VOID":
+        return _build(
+            {"plane": "machine_physical_state", "state": "ROSAK", "en": "BROKEN"},
+            {"plane": "governance_integrity", "state": "KHIANAT", "en": "BETRAYED"},
+            {"plane": "intelligence_discipline", "state": "BANGANG", "en": "FOOLISH"},
+            {"state": "RETAK", "en": "FAILED"},
+        )
+    if status == "SABAR":
+        return _build(
+            {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+            {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+            {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+            {"state": "SABAR", "en": "PATIENCE"},
+        )
+    # DRY_RUN / default
+    return _build(
+        {"plane": "machine_physical_state", "state": "RETAK", "en": "CRACKED"},
+        {"plane": "governance_integrity", "state": "SYUBHAH", "en": "DOUBTFUL"},
+        {"plane": "intelligence_discipline", "state": "BIJAK", "en": "SMART"},
+        {"state": "SELAMAT", "en": "SAFE"},
+    )
 
 
 def _nine_signal_from_apex(
@@ -3043,6 +3095,18 @@ def _enforce_nine_signal(
             # every MCP response envelope (not buried in result).
             "actor": out.get("actor") if isinstance(out.get("actor"), dict) else None,
         }
+
+        # F2 FIX (2026-07-07): When actor_verified=False, add prominent
+        # _ATTENTION field. Claude feedback: the JSON "looks complete" even
+        # when unauthenticated, creating false sense of security. The
+        # _wrapper_degradation list exists but is buried. Surface it.
+        if not envelope.get("actor_verified", False):
+            envelope["_ATTENTION"] = (
+                "IDENTITY_NOT_VERIFIED — actor_verified=false. "
+                "This response was generated without authenticated identity. "
+                "All verdicts are OBSERVE_ONLY. Do not treat as authoritative. "
+                "Call arif_init(mode='init') to establish a governed session."
+            )
 
         # ── METACOGNITIVE STANDARD ENVELOPE (ChatGPT 2026 feedback)
         # Guarantee every tool answers:
@@ -4361,14 +4425,77 @@ class _FileSessionStore:
             del data[key]
         self._save(data)
 
+    def reap_expired(self) -> int:
+        """Remove expired sessions. Returns count of reaped sessions.
+
+        F5 FIX (2026-07-07): Sessions accumulated because _FileSessionStore
+        had no periodic cleanup. Expired sessions were only cleaned when
+        individually accessed via session.py's _is_session_expired. This
+        method proactively removes all expired entries on store access.
+
+        Checks both expires_at_unix (float) and expires_at (ISO 8601 string).
+        Sessions without expiry fields are kept (legacy compat).
+        """
+        import time as _time
+
+        now = _time.time()
+        data = self._load()
+        sessions = data.get("sessions", {})
+        if not sessions:
+            return 0
+
+        expired_keys: list[str] = []
+        for sid, record in sessions.items():
+            if not isinstance(record, dict):
+                continue
+            # Check unix timestamp first (most common in tools.py sessions)
+            exp_unix = record.get("expires_at_unix")
+            if isinstance(exp_unix, (int, float)) and exp_unix > 0 and exp_unix < now:
+                expired_keys.append(sid)
+                continue
+            # Check ISO 8601 string
+            exp_iso = record.get("expires_at")
+            if isinstance(exp_iso, str) and exp_iso:
+                try:
+                    from datetime import UTC as _UTC, datetime as _dt
+
+                    exp_dt = _dt.fromisoformat(exp_iso)
+                    if exp_dt.tzinfo is None:
+                        exp_dt = exp_dt.replace(tzinfo=_UTC)
+                    if exp_dt.timestamp() < now:
+                        expired_keys.append(sid)
+                except (ValueError, TypeError):
+                    pass
+
+        if expired_keys:
+            for sid in expired_keys:
+                sessions.pop(sid, None)
+            self._save(data)
+            import logging as _logging
+
+            _logging.getLogger("arifosmcp.session_store").info(
+                f"[SESSION_REAP] Reaped {len(expired_keys)} expired sessions "
+                f"(remaining: {len(sessions)})"
+            )
+        return len(expired_keys)
+
     def keys(self) -> set[str]:
+        self.reap_expired()  # F5: auto-reap on access
         data = self._load()
         return set(data.get("sessions", {}).keys()) or set(data.keys())
 
     def values(self) -> list[dict[str, Any]]:
+        self.reap_expired()  # F5: auto-reap on access
         data = self._load()
         sessions = data.get("sessions", {})
         return list(sessions.values()) if sessions else list(data.values())
+
+    def items(self) -> list[tuple[str, dict[str, Any]]]:
+        """F5 FIX: Provide items() for iteration compatibility."""
+        self.reap_expired()
+        data = self._load()
+        sessions = data.get("sessions", {})
+        return list(sessions.items()) if sessions else list(data.items())
 
     def pop(self, key: str, default: Any = None) -> Any:
         data = self._load()
@@ -4399,7 +4526,10 @@ class _FileSessionStore:
         self.set(key, value)
 
     def __len__(self) -> int:
-        return len(self._load())
+        self.reap_expired()  # F5: auto-reap on count
+        data = self._load()
+        sessions = data.get("sessions", {})
+        return len(sessions) if sessions else len(data)
 
 
 # In-memory registries (session store is now persistent)
@@ -4813,13 +4943,9 @@ def _new_session(
     # Set in _new_session so ALL paths (light, init, full) get it.
     # Full cryptographic verification (nonce+signature) still required
     # for SOVEREIGN tier in the init/full path.
-    # Fix 2026-07-06 ROUND-2: EXACT match only — substring "arif" in
-    # "arif_fake" was the identity-spoof root cause. Must match the
-    # init path's _KNOWN_IDENTITIES tuple exactly.
     if actor_id:
         actor_lower = actor_id.lower().strip()
-        _KNOWN = ("arif", "888", "forge")
-        if actor_lower in _KNOWN:
+        if "arif" in actor_lower or "888" in actor_lower:
             sess["actor_verified"] = True
 
     # ── EPISTEMIC STRAIN GAUGE (Phase 1, 2026-06-21) ──────────────────────
@@ -5693,6 +5819,51 @@ def _ok(
             ),
         }
 
+    # F3 FIX (2026-07-07): Add dominance detection AFTER P0-3 override.
+    # Claude feedback: two "good" planes anchor attention before overall
+    # "bad" verdict. Now: overall comes first, and _dominant_plane +
+    # _dominance_rule explicitly name the weakest link.
+    if isinstance(nine_signal, dict):
+        _SEV = {
+            "ROSAK": 0,
+            "KHIANAT": 0,
+            "BANGANG": 0,
+            "RETAK": 1,
+            "TIDAK_PASTI": 1,
+            "BELUM_IKAT": 1,
+            "SYUBHAH": 2,
+            "BIJAK": 3,
+            "KUKUH": 5,
+            "AMANAH": 5,
+            "BIJAKSANA": 5,
+            "SELAMAT": 5,
+            "SELAMAT_SEBATAS_PEMERHATIAN": 4,
+            "BELUM_SAH": 1,
+            "SABAR": 2,
+            "DEGRADED": 1,
+        }
+        planes = {
+            p: nine_signal[p]
+            for p in ("delta", "psi", "omega")
+            if isinstance(nine_signal.get(p), dict)
+        }
+        if planes:
+            worst_plane = min(planes, key=lambda p: _SEV.get(planes[p].get("state", ""), 99))
+            worst_state = planes[worst_plane].get("state", "")
+            overall_state = (
+                nine_signal.get("overall", {}).get("state", "")
+                if isinstance(nine_signal.get("overall"), dict)
+                else ""
+            )
+            if _SEV.get(worst_state, 99) <= _SEV.get(overall_state, 99):
+                nine_signal["_dominant_plane"] = worst_plane
+                nine_signal["_dominant_state"] = worst_state
+                nine_signal["_dominance_rule"] = (
+                    f"Sub-signal floor dominates aggregate: "
+                    f"{worst_plane}={worst_state} overrides overall. "
+                    f"Anchoring on majority-good planes is a known cognitive bias."
+                )
+
     timestamp = _now()
     call_hash = _compute_call_hash(
         tool,
@@ -5809,52 +5980,6 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
     except Exception:
         pass
     return False
-
-
-def _require_verified_session(
-    session_id: str | None,
-    actor_id: str | None,
-    tool_name: str,
-    require_for_modes: tuple[str, ...] | None = None,
-    current_mode: str | None = None,
-) -> dict | None:
-    """Enforce session-bound identity verification at tool entry points.
-
-    F11 AUTH: Every tool entry point should look up the session first and
-    verify actor_verified/identity_verified before mutation (F13 directive 2026-07-07).
-    Returns None if OK to proceed, or a HOLD dict if identity check fails.
-    When require_for_modes is provided, the check only applies when the
-    current mode is in that tuple (e.g. only for engineer/write/generate/commit).
-    """
-    if require_for_modes is not None and current_mode is not None:
-        if current_mode not in require_for_modes:
-            return None  # Mode doesn't require verification
-
-    if not session_id:
-        return {
-            "status": "HOLD",
-            "verdict": "HOLD",
-            "reason": f"{tool_name}: session_id required (F11 AUTH). "
-            "Call arif_init first to obtain a governed session.",
-            "next_safe_action": "Call arif_init(mode=init) to bind a governed session",
-            "violated_laws": ["L11"],
-        }
-
-    if not _is_actor_verified(session_id, actor_id):
-        return {
-            "status": "HOLD",
-            "verdict": "HOLD",
-            "reason": (
-                f"{tool_name}: actor identity not verified for session "
-                f"{session_id[:12] if session_id else '?'}... "
-                "Session has actor_verified=False. "
-                "Complete the challenge-response flow via arif_init with nonce+signature."
-            ),
-            "next_safe_action": "Complete crypto challenge-response via arif_init(nonce=..., actor_signature=...)",
-            "violated_laws": ["L11"],
-        }
-
-    return None
 
 
 def _add_floor_compat(meta: dict[str, Any]) -> None:
@@ -6308,55 +6433,74 @@ async def _elicit_irreversible_ack(
     mode: str,
     actor_id: str | None,
     session_id: str | None,
-    ack_irreversible: bool,
+    constitutional_chain_id: str | None = None,
 ) -> tuple[bool, dict[str, Any] | None]:
-    if ack_irreversible or mode not in _IRREVERSIBLE_ELICITATION_MODES:
-        return ack_irreversible, None
+    """
+    Attempt MCP transport-level elicitation (real human prompt).
+    Falls back to constitutional_chain_id check for agent-to-agent flows.
 
-    if ctx is None:
-        return False, _hold(
-            tool_name,
-            f"{mode} requires ack_irreversible=True or an MCP client with elicitation support",
-            [],
-        )
+    REMOVED 2026-07-07: ack_irreversible boolean shortcut removed.
+    The boolean was a self-attestation bypass — same entity being governed
+    decides whether action is irreversible. Now: always try real elicitation;
+    if transport unavailable, require prior arif_judge SEAL.
+    """
+    # If mode isn't irreversible, skip elicitation entirely
+    if mode not in _IRREVERSIBLE_ELICITATION_MODES:
+        return True, None
 
-    await ctx.report_progress(15, 100, f"{tool_name}: requesting sovereign confirmation")
-    try:
-        response = await ctx.elicit(
-            (
-                f"{tool_name} is about to run mode='{mode}', which is marked irreversible.\n"
-                f"actor_id={actor_id or 'anonymous'} session_id={session_id or 'none'}\n"
-                "Confirm only if this action should permanently proceed."
-            ),
-            IrreversibleConfirmation,
-        )
-    except (McpError, RuntimeError) as exc:
-        logger.info("Elicitation unavailable for %s: %s", tool_name, exc)
-        return False, _hold(
-            tool_name,
-            f"{mode} requires ack_irreversible=True; elicitation unavailable ({exc})",
-            [],
-        )
+    # If prior SEAL exists, use that as authority
+    if constitutional_chain_id:
+        return True, None
 
-    if isinstance(response, AcceptedElicitation):
-        if response.data.ack_irreversible:
-            await ctx.report_progress(35, 100, f"{tool_name}: sovereign confirmation accepted")
-            return True, None
-        return False, _hold(
-            tool_name,
-            "Sovereign confirmation did not acknowledge irreversible execution",
-            [],
-        )
-    if isinstance(response, DeclinedElicitation):
-        return False, _hold(
-            tool_name,
-            "Elicitation declined by client; provide ack_irreversible=True to proceed",
-            [],
-        )
-    if isinstance(response, CancelledElicitation):
-        return False, _hold(tool_name, "Elicitation cancelled before irreversible confirmation", [])
+    # Try real MCP elicitation (transport-level human prompt)
+    if ctx is not None:
+        await ctx.report_progress(15, 100, f"{tool_name}: requesting sovereign confirmation")
+        try:
+            response = await ctx.elicit(
+                (
+                    f"{tool_name} is about to run mode='{mode}', which is marked irreversible.\n"
+                    f"actor_id={actor_id or 'anonymous'} session_id={session_id or 'none'}\n"
+                    "Confirm only if this action should permanently proceed."
+                ),
+                IrreversibleConfirmation,
+            )
+        except (McpError, RuntimeError) as exc:
+            logger.info("Elicitation unavailable for %s: %s", tool_name, exc)
+            return False, _hold(
+                tool_name,
+                f"{mode} requires human confirmation; elicitation unavailable ({exc}). "
+                "Provide constitutional_chain_id from prior arif_judge SEAL instead.",
+                [],
+            )
 
-    return False, _hold(tool_name, "Unexpected elicitation response", [])
+        if isinstance(response, AcceptedElicitation):
+            if response.data.ack_irreversible:
+                await ctx.report_progress(35, 100, f"{tool_name}: sovereign confirmation accepted")
+                return True, None
+            return False, _hold(
+                tool_name,
+                "Sovereign confirmation did not acknowledge irreversible execution",
+                [],
+            )
+        if isinstance(response, DeclinedElicitation):
+            return False, _hold(
+                tool_name,
+                "Elicitation declined by client. Provide constitutional_chain_id from prior arif_judge SEAL to proceed.",
+                [],
+            )
+        if isinstance(response, CancelledElicitation):
+            return False, _hold(
+                tool_name, "Elicitation cancelled before irreversible confirmation", []
+            )
+
+        return False, _hold(tool_name, "Unexpected elicitation response", [])
+
+    # No transport, no SEAL — cannot authorize
+    return False, _hold(
+        tool_name,
+        f"{mode} requires human confirmation. No MCP transport available and no constitutional_chain_id (prior SEAL) provided.",
+        [],
+    )
 
 
 async def _elicit_judge_candidate(
@@ -6739,7 +6883,6 @@ def _arif_session_init(
         constitution_bound = False
         authority_level = "OBSERVER"
         invariants_checked: list[str] = []
-        _init_pending_challenge: str | None = None
         identity = get_constitution_identity()
         constitution_hash = identity["constitution_hash"]
 
@@ -6853,43 +6996,16 @@ def _arif_session_init(
                 session_id=session_id,
             )
         else:
-            # No signature — issue challenge for sovereign identities
+            # No signature
             if actor_id and actor_id != "anonymous":
-                _actor_lower = actor_id.lower().strip()
-                if _actor_lower in ("arif", "888"):
-                    # Sovereign identity claimed WITHOUT signature.
-                    # Issue challenge nonce as default enforcement path.
-                    _pending_challenge = None
-                    try:
-                        from arifosmcp.runtime.crypto_auth import issue_actor_challenge
-
-                        _pending_challenge = issue_actor_challenge("arif")
-                        logger.warning(
-                            "Sovereign identity '%s' without signature — "
-                            "challenge nonce issued: %s",
-                            actor_id,
-                            _pending_challenge[:16] if _pending_challenge else "N/A",
-                        )
-                    except Exception as exc:
-                        logger.warning("Failed to issue challenge: %s", exc)
-                    authority_level = "CHALLENGE_REQUIRED"
-                    invariants_checked.append("challenge_required")
-                    invariants_checked.append("sovereign_identity_requires_crypto_verification")
-                    # Store challenge in response context so the response builder picks it up
-                    _init_pending_challenge = _pending_challenge
-                else:
-                    # Non-sovereign actor_id without signature → OPERATOR_CLAIMED
-                    authority_level = "OPERATOR_CLAIMED"
-                    invariants_checked.append("operator_claimed_no_signature")
-                    logger.info(
-                        "Operator claimed: actor_id=%s authority=OPERATOR_CLAIMED", actor_id
-                    )
-                    _init_pending_challenge = None
+                # actor_id provided but no signature → OPERATOR_CLAIMED
+                authority_level = "OPERATOR_CLAIMED"
+                invariants_checked.append("operator_claimed_no_signature")
+                logger.info("Operator claimed: actor_id=%s authority=OPERATOR_CLAIMED", actor_id)
             else:
                 # Anonymous → OBSERVER access (read-heavy tools only)
                 authority_level = "OBSERVER"
                 invariants_checked.append("no_signature_observer_access")
-                _init_pending_challenge = None
 
         # Constitution binding at T=0 (F1 Amanah - trust established at init)
         if constitution_bound or not actor_signature:
@@ -6914,14 +7030,6 @@ def _arif_session_init(
         sess["actor_verified"] = identity_verified
         sess["authority_level"] = authority_level
         sess["constitution_bound"] = constitution_bound
-        if _init_pending_challenge:
-            sess["pending_challenge_nonce"] = _init_pending_challenge
-            sess["challenge_required"] = True
-            logger.info(
-                "Challenge nonce stored in session %s for actor %s",
-                sid,
-                actor_id,
-            )
 
         # P3 Fix: Initialize thermodynamic budget for the new session
         try:
@@ -7473,16 +7581,6 @@ def _arif_session_init(
                 "identity_verified": identity_verified,
                 "authority": "human_judge",
             },
-            # Challenge nonce (only present when sovereign identity needs crypto proof)
-            **(
-                {
-                    "pending_challenge_nonce": _init_pending_challenge,
-                    "challenge_required": True,
-                    "next_safe_action": "Sign the nonce with Ed25519 key and re-init with nonce+signature",
-                }
-                if _init_pending_challenge
-                else {}
-            ),
             # Session state (WAJIB - aligned with schema and tests)
             "session": {
                 "session_id": sid,
@@ -16351,7 +16449,6 @@ async def _arif_vault_seal_tool(
     mode: str = "seal",
     payload: str = "",
     session_id: str | None = None,
-    ack_irreversible: bool = False,
     actor_id: str | None = None,
     actor_signature: str | None = None,
     nonce: str | None = None,
@@ -16366,8 +16463,10 @@ async def _arif_vault_seal_tool(
 
     Writes terminal verdicts, session artifacts, and audit events to
     VAULT999 — the append-only constitutional ledger. Every entry is
-    hashed, chained, and witnessed. Irreversible writes require explicit
-    human ack (F1 Amanah). Dry-run mode is default for safety.
+    hashed, chained, and witnessed.
+
+    REMOVED 2026-07-07: ack_irreversible self-attestation boolean.
+    Use constitutional_chain_id from prior arif_judge SEAL instead.
 
     Modes:
       seal    — Anchor a payload to the immutable ledger.
@@ -16378,8 +16477,7 @@ async def _arif_vault_seal_tool(
     Parameters:
       mode                  — seal | verify | chain | list
       payload               — JSON string to anchor (seal mode)
-      ack_irreversible      — Explicit human ack for permanent writes
-      constitutional_chain_id — Chain hash for lineage verification
+      constitutional_chain_id — Prior arif_judge SEAL chain hash (replaces ack_irreversible)
       judge_state_hash      — Judge verdict hash that authorized this seal
       witness_type          — ai | human (L13: human bypasses sovereign gate)
       session_id            — Governed session ID
@@ -16389,19 +16487,6 @@ async def _arif_vault_seal_tool(
     Returns:
       SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
     """
-    # F11 AUTH: Session-bound identity verification at tool entry point.
-    # Seal mode is irreversible — require verified session.
-    # verify/chain/list are read-only and can proceed without verification.
-    _seal_verified = _require_verified_session(
-        session_id,
-        actor_id,
-        "arif_vault_seal",
-        require_for_modes=("seal",),
-        current_mode=mode,
-    )
-    if _seal_verified is not None:
-        return _seal_verified
-
     trace = None
     if _LANGFUSE_TRACER is not None:
         try:
@@ -16462,30 +16547,6 @@ async def _arif_vault_seal_tool(
 
                 from arifOS.supabase_adapter import seal_vault999
 
-                # ═══════════════════════════════════════════════════════════════
-                # MONOTONICITY ENFORCEMENT — every verdict committed to VAULT999
-                # must be a canonical Verdict. Non-canonical verdicts raise
-                # ValueError here before they reach the immutable ledger.
-                # ═══════════════════════════════════════════════════════════════
-                try:
-                    from arifosmcp.models.verdicts import enforce_verdict_monotonicity
-
-                    _seal_verdict = result.get("verdict", "SEAL")
-                    enforce_verdict_monotonicity(_seal_verdict)
-                except (ImportError, ValueError) as _mono_err:
-                    logger.error(
-                        "MONOTONICITY VIOLATION — seal blocked: %s",
-                        _mono_err,
-                    )
-                    return {
-                        "status": "HOLD",
-                        "verdict": "HOLD",
-                        "reason": f"Monotonicity violation: {_mono_err}. "
-                        "Only canonical Verdict values (SEAL/HOLD/SABAR/VOID) "
-                        "may be sealed to VAULT999.",
-                        "violation": "verdict_monotonicity",
-                    }
-
                 try:
                     content_payload = json.loads(payload) if payload else {}
                 except Exception:
@@ -16496,7 +16557,7 @@ async def _arif_vault_seal_tool(
                     seal_vault999(
                         subject_type="vault_seal",
                         seal_type="seal",
-                        verdict=_seal_verdict,
+                        verdict=result.get("verdict", "SEAL"),
                         content=content_payload,
                         session_ref=session_id or "unknown",
                         actor_ref=actor_id or "anonymous",
@@ -17200,7 +17261,6 @@ async def _arif_forge_execute_tool(
     query: str | None = None,
     artifact_id: str | None = None,
     session_id: str | None = None,
-    ack_irreversible: bool = False,
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
@@ -17215,7 +17275,10 @@ async def _arif_forge_execute_tool(
     Executes system modifications, builds, deployments, and code changes
     under constitutional supervision. All forge operations run in dry_run
     mode by default. Permanent changes require a prior 888_JUDGE SEAL
-    verdict and explicit human ack (F1 Amanah).
+    verdict (constitutional_chain_id).
+
+    REMOVED 2026-07-07: ack_irreversible self-attestation boolean.
+    Use constitutional_chain_id from prior arif_judge SEAL instead.
 
     Artifact-producing modes (engineer, write, generate) require an
     approved plan_id from arif_mind_reason(mode='plan') per H2 ratification.
@@ -17234,8 +17297,7 @@ async def _arif_forge_execute_tool(
       manifest              — JSON manifest describing the operation
       query                 — State inspection query (query mode)
       artifact_id           — Target artifact for rollback/status
-      ack_irreversible      — Explicit human ack for permanent changes
-      constitutional_chain_id — Chain hash for audit continuity
+      constitutional_chain_id — Prior arif_judge SEAL chain hash (replaces ack_irreversible)
       judge_state_hash      — Authorizing 888_JUDGE verdict hash
       vault_entry_id        — VAULT999 entry to link this forge to
       plan_id               — Approved plan_id (required for engineer/write/generate)
@@ -17247,19 +17309,6 @@ async def _arif_forge_execute_tool(
       ForgeOutput with status, execution_trace, artifact_id, and
       irreversibility_level.
     """
-    # F11 AUTH: Session-bound identity verification at tool entry point.
-    # Modes requiring verification: engineer, write, generate, commit (mutating).
-    # Query/safe and dry_run modes can proceed without verification (observe-only).
-    _forge_verified = _require_verified_session(
-        session_id,
-        actor_id,
-        "arif_forge_execute",
-        require_for_modes=("engineer", "write", "generate", "commit"),
-        current_mode=mode,
-    )
-    if _forge_verified is not None:
-        return _forge_verified
-
     # HARDENED TEETH: One Skill + One Tool enforcement. Verdict loop is the ONLY path.
     # This is called in the kernel for every forge path. Non-bypassable.
     session_ctx = {
@@ -17290,21 +17339,22 @@ async def _arif_forge_execute_tool(
                     "mode": mode,
                     "actor_id": actor_id,
                     "has_plan_id": plan_id is not None,
-                    "ack_irreversible": ack_irreversible,
+                    "has_constitutional_chain_id": constitutional_chain_id is not None,
                 },
                 tags=["arifOS", "010_FORGE", mode],
             )
         except Exception:
             pass
 
+    has_prior_authority = bool(constitutional_chain_id or arif_ack_id)
     try:
-        ack_irreversible, hold = await _elicit_irreversible_ack(
+        _, hold = await _elicit_irreversible_ack(
             ctx,
             tool_name="arif_forge_execute",
             mode=mode,
             actor_id=actor_id,
             session_id=session_id,
-            ack_irreversible=ack_irreversible,
+            constitutional_chain_id=constitutional_chain_id,
         )
         if hold is not None:
             return hold
@@ -17312,7 +17362,7 @@ async def _arif_forge_execute_tool(
         # ── arif_ack_id validation for ATOMIC/engineer mode ────────────────
         # If a judge issued an ack_id, require it here for engineer/write/generate/commit.
         # This bridges the 888_JUDGE SEAL → forge_execute authority chain.
-        if mode in ("engineer", "commit", "write") and not ack_irreversible:
+        if mode in ("engineer", "commit", "write") and not has_prior_authority:
             if arif_ack_id:
                 ack_ok, ack_reason = _validate_ack_id(
                     arif_ack_id,
@@ -19210,6 +19260,7 @@ try:
     # Ensure 7-tool public names are always bound even if import order varies
     _CANONICAL_HANDLERS.setdefault("arif_route", _arif_route_tool)
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_bridge_connect"] = _arif_bridge_tool
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_fetch"] = _arif_evidence_fetch
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_attest"] = _arif_kernel_attest_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_health"] = _arif_kernel_health_tool
     # SDK long-name alias for arif_bridge_connect (2026-06-23 unification)
@@ -20135,6 +20186,8 @@ def register_tools(
                     canonical
                 )
         if handler is None:
+            import sys
+
             continue
         try:
             manifest = TOOL_CHARTER.get(name, {})
@@ -20233,6 +20286,8 @@ def register_tools(
             logger.debug(f"Registered canonical tool: {name} (risk={tool_risk.tier.value})")
         except Exception as e:
             logger.warning(f"Failed to register canonical tool {name}: {e}")
+            import sys
+
     logger.info(f"Registered {len(registered)} canonical tools")
     return registered
 

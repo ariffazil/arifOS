@@ -254,8 +254,8 @@ class _ExpandedVerdict:
 # Backward compatibility: Verdict.PROVISIONAL etc. still resolve
 # These are NOT canonical governance verdicts — they are transport/status aliases.
 # New code MUST use: from arifosmcp.models.verdicts import Verdict, VerdictState
+# (v1.0 ratified 2026-07-07: Verdict.PARTIAL is now canonical SealType.PARTIAL — patch removed.)
 Verdict.PROVISIONAL = "PROVISIONAL"  # type: ignore[attr-defined]
-Verdict.PARTIAL = "PARTIAL"  # type: ignore[attr-defined]
 Verdict.HOLD_888 = "HOLD_888"  # type: ignore[attr-defined]
 Verdict.PAUSED = "PAUSED"  # type: ignore[attr-defined]
 Verdict.ALIVE = "ALIVE"  # type: ignore[attr-defined]

@@ -1,10 +1,14 @@
 """
-arifOS v2.0 — Canonical Verdict Enumerations
+arifOS v2.0 — Canonical Verdict Enumerations (v1.0 ratified 2026-07-07)
 ═══════════════════════════════════════════════════════════════════════════
-Defines the three primary seals (SEAL, HOLD, VOID, SABAR), the 13 canonical
-constitutional floors, and the metabolic telemetry schemas.
+Defines the FIVE primary seals (SEAL, HOLD, SABAR, PARTIAL, VOID), the 14 canonical
+qualified substates, the 13 constitutional floors, and the metabolic telemetry schemas.
 
-DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
+5-state monotonic lattice (canon):
+    VOID > HOLD > SABAR > PARTIAL > SEAL
+    (most restrictive ─────────► least restrictive)
+
+DITEMPA BUKAN DIBERI — 999 SEAL ALIVE · canon anchored at /root/A-FORGE/proto/verdict/
 """
 
 from enum import Enum, StrEnum
@@ -14,14 +18,16 @@ from pydantic import BaseModel, Field, field_validator
 
 class SealType(StrEnum):
     """
-    The four canonical seals of arifOS v2.0.
+    The FIVE canonical seals of arifOS v2.0 (v1.0 ratified 2026-07-07).
     Only SEAL allows progression to Tier 05 (Execution).
+    Monotonicity ordering: VOID > HOLD > SABAR > PARTIAL > SEAL.
     """
 
-    SEAL = "SEAL"  # W³ ≥ 0.95, all Floors pass — proceed
-    HOLD = "HOLD"  # 888_HOLD — human veto/review required
-    SABAR = "SABAR"  # Wait — more evidence needed (Temporal Sabar)
-    VOID = "VOID"  # Hard Floor violation — blocked permanently
+    VOID = "VOID"  # HARD floor violation — blocked permanently (rank 4)
+    HOLD = "HOLD"  # 888_HOLD — human veto/review required (rank 3)
+    SABAR = "SABAR"  # SOFT caution — wait, retry allowed (rank 2)
+    PARTIAL = "PARTIAL"  # DERIVED warning — proceed with cooling (rank 1)
+    SEAL = "SEAL"  # all floors pass; W³ ≥ 0.95 — proceed (rank 0)
 
 
 class VerdictState(StrEnum):
@@ -47,6 +53,10 @@ class VerdictState(StrEnum):
     SABAR_EPISTEMIC = "SABAR_EPISTEMIC"  # Waiting for grounded truth
     SABAR_GEOPOLITICAL = "SABAR_GEOPOLITICAL"  # Waiting for external stability
 
+    # PARTIAL substates (v1.0 ratified 2026-07-07)
+    PARTIAL_DERIVED = "PARTIAL_DERIVED"  # derived floor warns, proceed with cooling
+    PARTIAL_REVERSIBILITY = "PARTIAL_REVERSIBILITY"  # reversibility ambiguous, monitor
+
 
 class FloorState(StrEnum):
     """
@@ -68,7 +78,7 @@ class FloorName(StrEnum):
 
     F1_REVERSIBILITY = "F1_REVERSIBILITY"  # κᵣ — Can we undo this?
     F2_TRUTH = "F2_TRUTH"  # Λ2 — Physical grounding
-    F3_QUAD_WITNESS = "F3_QUAD_WITNESS"  # W⁴ — human · ai · earth · system (H·A·E·S alignment)
+    F3_TRI_WITNESS = "F3_TRI_WITNESS"  # W³ — human · ai · earth (H·A·E geometric mean, Nash 1950)
     F4_CLARITY = "F4_CLARITY"  # ΔS — Entropy reduction
     F5_ORTHOGONALITY = "F5_ORTHOGONALITY"  # Ω — Lane independence
     F6_MARUAH = "F6_MARUAH"  # Peace² — Human dignity
@@ -212,12 +222,13 @@ class RuntimeStatus(StrEnum):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# MONOTONICITY — constitutional ordering enforcement
+# MONOTONICITY (v1.0 — ratified 2026-07-07, 5-state lattice)
 # ═══════════════════════════════════════════════════════════════════════════════
-# VOID > HOLD > SABAR > SEAL
+# VOID > HOLD > SABAR > PARTIAL > SEAL
 # - VOID overrides everything — irreversible constitutional breach
-# - HOLD overrides SABAR and SEAL — human veto
-# - SABAR overrides SEAL — conditional proceed
+# - HOLD overrides SABAR + PARTIAL + SEAL — human veto
+# - SABAR overrides PARTIAL + SEAL — conditional proceed
+# - PARTIAL overrides SEAL — derived warning, proceed cooling
 # - SEAL is the lowest authority — proceed only if no higher verdict blocks
 #
 # Every merge point in the system must respect this ordering:
@@ -225,30 +236,34 @@ class RuntimeStatus(StrEnum):
 # - arif_memory floor aggregation
 # - arif_forge execution gates
 # - 888_HOLD conflict routing
-# - JITU conflict detection
+# - JITU contradiction detection (δ ≥ 0.50 → HOLD)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
 VERDICT_ORDER: dict[str, int] = {
+    # v1.0 ratified 2026-07-07 — 5-state lattice (added PARTIAL between SABAR and SEAL)
+    # Higher number = higher authority (more restrictive)
+    # VOID (4) > HOLD (3) > SABAR (2) > PARTIAL (1) > SEAL (0)
     "SEAL": 0,
-    "SABAR": 1,
-    "HOLD": 2,
-    "VOID": 3,
+    "PARTIAL": 1,
+    "SABAR": 2,
+    "HOLD": 3,
+    "VOID": 4,
 }
 
 
 def enforce_verdict_monotonicity(v: Verdict | str) -> int:
-    """Return the constitutional weight of a verdict.
+    """Return the constitutional weight of a verdict (v1.0 — 5-state lattice, 2026-07-07).
 
     Higher weight = higher authority.
     Use this to enforce that a HOLD cannot be downgraded to SEAL,
     and VOID cannot be overridden by any other verdict.
 
     Args:
-        v: Verdict as SealType enum or string ("SEAL", "HOLD", "SABAR", "VOID")
+        v: Verdict as SealType enum or string ("SEAL", "PARTIAL", "HOLD", "SABAR", "VOID")
 
     Returns:
-        Integer weight: SEAL=0, SABAR=1, HOLD=2, VOID=3
+        Integer weight: SEAL=0, PARTIAL=1, SABAR=2, HOLD=3, VOID=4
 
     Raises:
         ValueError: If the verdict string is not a canonical verdict
@@ -256,36 +271,38 @@ def enforce_verdict_monotonicity(v: Verdict | str) -> int:
     key = v.value if isinstance(v, Verdict) else str(v).upper()
     if key not in VERDICT_ORDER:
         raise ValueError(
-            f"Unknown verdict '{v}'. Canonical verdicts: SEAL, HOLD, SABAR, VOID. "
+            f"Unknown verdict '{v}'. Canonical verdicts: SEAL, PARTIAL, HOLD, SABAR, VOID. "
             "RuntimeStatus values (SUCCESS/ERROR/TIMEOUT/RETRY) are transport only."
         )
     return VERDICT_ORDER[key]
 
 
 def merge_verdicts(v1: Verdict | str, v2: Verdict | str) -> Verdict:
-    """Merge two verdicts — the higher weight wins.
+    """Merge two verdicts — the higher weight wins (v1.0 — 5-state lattice).
 
     At every merge point in the system, call this to enforce monotonicity.
     A HOLD from any gate cannot be downgraded by a later SEAL.
+    PARTIAL merges into SABAR weight class (weight=2 in this 5-state impl).
     """
     w1 = enforce_verdict_monotonicity(v1)
     w2 = enforce_verdict_monotonicity(v2)
-    winner = (
-        SealType.SEAL
-        if w1 == 0 and w2 == 0
-        else (
-            SealType.VOID
-            if w1 >= 3 or w2 >= 3
-            else (
-                SealType.HOLD
-                if w1 >= 2 or w2 >= 2
-                else (SealType.SABAR if w1 >= 1 or w2 >= 1 else SealType.SEAL)
-            )
-        )
-    )
-    return Verdict(winner)
+    wmax = max(w1, w2)
+    if wmax >= 4:
+        return Verdict(SealType.VOID)
+    if wmax >= 3:
+        return Verdict(SealType.HOLD)
+    if wmax >= 2:
+        return Verdict(SealType.SABAR)
+    if wmax >= 1:
+        return Verdict(SealType.PARTIAL)
+    return Verdict(SealType.SEAL)
 
 
 def is_verdict_allowed(v: Verdict | str) -> bool:
-    """Check if a verdict allows progression (SEAL or conditional SABAR)."""
-    return enforce_verdict_monotonicity(v) <= 1  # SEAL or SABAR
+    """Check if a verdict allows progression (v1.0 — 5-state lattice).
+
+    Progression allowed for: SEAL, PARTIAL, SABAR (proceed with caveats).
+    Blocked for: HOLD (paused), VOID (constitutional breach).
+    """
+    weight = enforce_verdict_monotonicity(v)
+    return weight <= 2  # SEAL=0, PARTIAL=1, SABAR=2 — all three allow action with semantics

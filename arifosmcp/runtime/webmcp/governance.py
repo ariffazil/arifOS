@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field, field_validator
 from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
 # Backward-compatible aliases for non-canonical members (Phase 3 unification, 2026-07-07)
-Verdict.PARTIAL = "PARTIAL"  # type: ignore[attr-defined]  # → VerdictState.SABAR_EPISTEMIC
+# (v1.0 ratified 2026-07-07: Verdict.PARTIAL is now canonical SealType.PARTIAL — patch removed.)
 Verdict.HOLD_888 = "888_HOLD"  # type: ignore[attr-defined]  # → VerdictState.HOLD_888
 
 

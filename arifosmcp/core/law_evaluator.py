@@ -343,11 +343,18 @@ class FloorEvaluator:
             key=lambda x: x.value,
         )
         if effective_irreversibility.value >= IrreversibilityLevel.HIGH.value:
-            if not getattr(context, "ack_irreversible", False):
+            # REMOVED 2026-07-07: ack_irreversible self-attestation removed.
+            # Replaced by: prior arif_judge SEAL via constitutional_chain_id,
+            # or sovereign session authority.
+            has_prior_seal = bool(getattr(context, "constitutional_chain_id", None))
+            is_sovereign = getattr(context, "actor_id", None) == "arif"
+            if not (has_prior_seal or is_sovereign):
                 if "L01" not in failed:
                     failed.append("L01")
                     reasons["L01"] = (
-                        f"High irreversibility (level={effective_irreversibility.name}) requires ack_irreversible=True"
+                        f"High irreversibility (level={effective_irreversibility.name}) "
+                        "requires prior arif_judge SEAL (constitutional_chain_id) "
+                        "or sovereign session"
                     )
 
         # ── L02 TRUTH — Information Fidelity (≥ 0.99) ───────────────────────────
@@ -550,14 +557,12 @@ class FloorEvaluator:
             context.tool_name in human_required_tools_modes
             and context.mode in human_required_tools_modes[context.tool_name]
         ):
-            # Explicit ack only completes L13 when it is attached to a human witness.
+            # REMOVED 2026-07-07: ack_irreversible self-attestation removed.
+            # arif_seal always requires human witness unless prior SEAL exists.
+            has_prior_seal = bool(getattr(context, "constitutional_chain_id", None))
             wt = getattr(context, "witness_type", "ai")
             wt_str = getattr(wt, "value", str(wt))
-            if (
-                context.tool_name == "arif_seal"
-                and getattr(context, "ack_irreversible", False)
-                and wt_str == "human"
-            ):
+            if context.tool_name == "arif_seal" and has_prior_seal and wt_str == "human":
                 return False
             return True
         if (context.tool_name, context.mode) == ("arif_think", "plan_approve"):

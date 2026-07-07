@@ -250,6 +250,16 @@ def _load_intent_map() -> dict[str, Any]:
                     "density",
                     "structural",
                     "trap",
+                    # SERP API: academic/local domain (2026-07-07)
+                    "scholar",
+                    "academic paper",
+                    "research paper",
+                    "citation",
+                    "patent",
+                    "patent search",
+                    "geology consultant",
+                    "local business",
+                    "geological survey",
                 ],
             },
             "wealth": {
@@ -267,6 +277,26 @@ def _load_intent_map() -> dict[str, Any]:
                     "risk metric",
                     "allocation",
                     "stress test",
+                    # SERP API: finance/commerce/trends domain (2026-07-07)
+                    "stock price",
+                    "stock quote",
+                    "market data",
+                    "market overview",
+                    "crypto price",
+                    "forex rate",
+                    "exchange rate",
+                    "commodity price",
+                    "bond yield",
+                    "finance search",
+                    "product price",
+                    "shopping",
+                    "price comparison",
+                    "market trends",
+                    "search trends",
+                    "trending topics",
+                    "fiscal data",
+                    "gdp",
+                    "inflation",
                 ],
             },
             "well": {
@@ -290,6 +320,15 @@ def _load_intent_map() -> dict[str, Any]:
                     "maruah",
                     "fatigue",
                     "cognition load",
+                    # SERP API: travel domain (2026-07-07)
+                    "flight search",
+                    "hotel search",
+                    "travel planning",
+                    "flight deal",
+                    "hotel review",
+                    "travel destination",
+                    "rest planning",
+                    "vacation",
                 ],
             },
         }
@@ -625,17 +664,43 @@ def arif_triage(
     if mode == "status":
         prediction_health = _get_prediction_health()
         live_stage = "unknown"
+        stage_source = "unknown"
         if session_id:
             sess = _SESSIONS.get(session_id, {})
             live_stage = sess.get("stage", stage or "unknown")
+            stage_source = "session"
         elif stage:
             live_stage = stage
+            stage_source = "parameter"
+        else:
+            # F5 FIX (2026-07-07): When no session_id provided, find the most
+            # recent session's stage instead of returning "unknown". Claude
+            # feedback: 63 sessions all showing stage="unknown" is misleading.
+            try:
+                most_recent = None
+                most_recent_ts = 0
+                for sid, sess in _SESSIONS.items():
+                    if isinstance(sess, dict):
+                        ts = (
+                            sess.get("expires_at_unix", 0)
+                            or sess.get("created_at_unix", 0)
+                            or sess.get("issued_at", 0)
+                            or sess.get("created_at_ts", 0)
+                        )
+                        if isinstance(ts, (int, float)) and ts > most_recent_ts:
+                            most_recent_ts = ts
+                            most_recent = sess
+                if most_recent and most_recent.get("stage"):
+                    live_stage = most_recent["stage"]
+                    stage_source = "most_recent_session"
+            except Exception:
+                pass
         return _ok(
             "arif_triage",
             {
                 "active_sessions": len(_SESSIONS),
                 "stage": live_stage,
-                "stage_source": "session" if session_id else ("parameter" if stage else "unknown"),
+                "stage_source": stage_source,
                 "prediction_health": prediction_health,
                 "mode": "status",
             },

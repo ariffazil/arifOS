@@ -182,8 +182,8 @@ CANONICAL_PROMPTS = (
     "000_init",
     "111_sense",
     "333_reason",
-    "555_judge",
-    "666_critique",
+    "555_critique",  # stage 555 = arif_critique (ethical/maruah assessment)
+    "666_judge",  # stage 666 = arif_judge (constitutional verdict)
     "777_forge",
     "999_seal",
 )
@@ -1534,21 +1534,6 @@ def register_prompts(mcp: FastMCP) -> list[str]:
     registered.append("333_reason")
 
     @mcp.prompt(
-        name="666_judge",
-        description=(
-            "666_JUDGE — JUDGMENT: Apply four tests (Truth, Reversibility, Dignity, "
-            "Universality) + F1-L13 floor matrix with COMPUTED scores. "
-            "Verdict: SEAL/SABAR/HOLD/VOID. Revision-aware: repeated SABAR may "
-            "escalate to VOID. Loop termination enforced. APEX: P. 🔥⚒️"
-        ),
-        tags={"prompt", "reality-engineering", "555", "judge", "governance"},
-    )
-    def critique_555() -> str:
-        return CRITIQUE_PROMPT
-
-    registered.append("666_judge")
-
-    @mcp.prompt(
         name="555_critique",
         description=(
             "555_CRITIQUE — CONSEQUENCE: Consequence scan (best/expected/worst/recovery), "
@@ -1556,12 +1541,27 @@ def register_prompts(mcp: FastMCP) -> list[str]:
             "deep dignity check, alternatives scan. Computes F5+F6 scores. "
             "Revision-aware: persists concerns across cycles. APEX: X. 🔥⚒️"
         ),
-        tags={"prompt", "reality-engineering", "666", "critique", "consequence"},
+        tags={"prompt", "reality-engineering", "555", "critique", "consequence"},
+    )
+    def critique_555() -> str:
+        return CRITIQUE_PROMPT
+
+    registered.append("555_critique")
+
+    @mcp.prompt(
+        name="666_judge",
+        description=(
+            "666_JUDGE — JUDGMENT: Apply four tests (Truth, Reversibility, Dignity, "
+            "Universality) + F1-L13 floor matrix with COMPUTED scores. "
+            "Verdict: SEAL/SABAR/HOLD/VOID. Revision-aware: repeated SABAR may "
+            "escalate to VOID. Loop termination enforced. APEX: P. 🔥⚒️"
+        ),
+        tags={"prompt", "reality-engineering", "666", "judge", "governance"},
     )
     def judge_666() -> str:
         return JUDGE_PROMPT
 
-    registered.append("555_critique")
+    registered.append("666_judge")
 
     @mcp.prompt(
         name="777_forge",

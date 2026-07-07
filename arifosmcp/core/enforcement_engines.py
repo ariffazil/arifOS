@@ -434,22 +434,31 @@ class SovereignGate(EnforcementEngine):
         if tool_name not in self.IRREVERSIBLE_TOOLS:
             return True, "Not an irreversible tool", {}
 
-        ack = params.get("ack_irreversible", False)
-        if not ack:
+        # REMOVED 2026-07-07: ack_irreversible self-attestation removed.
+        # Replaced by: prior arif_judge SEAL via constitutional_chain_id,
+        # or sovereign session + mcp:allow.
+        constitutional_chain_id = context.get("constitutional_chain_id") or params.get(
+            "constitutional_chain_id"
+        )
+        is_sovereign = context.get("actor_id") == "arif"
+
+        if constitutional_chain_id or is_sovereign:
             return (
-                False,
-                "Irreversible action requires ack_irreversible=True",
+                True,
+                "Irreversible action authorized by prior SEAL or sovereign session",
                 {
-                    "verdict": "HOLD",
-                    "reason": "F1 AMANAH gate — ack_irreversible required",
+                    "authorization": "constitutional_chain_id"
+                    if constitutional_chain_id
+                    else "sovereign"
                 },
             )
 
         return (
-            True,
-            "Irreversible acknowledged",
+            False,
+            "Irreversible action requires prior arif_judge SEAL (constitutional_chain_id) or sovereign session",
             {
-                "ack_irreversible": True,
+                "verdict": "HOLD",
+                "reason": "F1 AMANAH gate — ack_irreversible removed; use constitutional_chain_id",
             },
         )
 

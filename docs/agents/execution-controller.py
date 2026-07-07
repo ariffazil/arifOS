@@ -35,8 +35,8 @@ VAULT_DIR = Path("VAULT999")
 from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
 # Verdict imported from canonical source (Phase 3 verdict unification, 2026-07-07)
-# PARTIAL was a non-canonical member — use VerdictState.SABAR_EPISTEMIC instead
-Verdict.PARTIAL = "PARTIAL"  # type: ignore[attr-defined]  # DEPRECATED
+# (v1.0 ratified 2026-07-07: Verdict.PARTIAL is now canonical SealType.PARTIAL — patch removed.)
+# For prior mapping to VerdictState.SABAR_EPISTEMIC, see migration notes.
 
 
 class AgentRole(Enum):
