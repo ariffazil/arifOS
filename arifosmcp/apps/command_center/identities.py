@@ -2,11 +2,12 @@
 
 Extracted from archive: _archived/root_runtime_pre_migration/governance_identities.py
 DITEMPA BUKAN DIBERI — Forged, Not Given
+
+SECURITY (2026-07-06): SEMANTIC_KEYS removed. Phrase-based auth eliminated.
 """
 
 from __future__ import annotations
 
-import hashlib
 import re
 from typing import Any
 
@@ -23,14 +24,7 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
     "muhammad_arif",
 }
 
-# P0: Semantic Keys (ABI v1.0 — Naming as Creation)
-SEMANTIC_KEYS: dict[str, str] = {
-    "arif": hashlib.sha256(b"IM ARIF").hexdigest(),
-    "ariffazil": hashlib.sha256(b"IM ARIF").hexdigest(),
-    "arif-fazil": hashlib.sha256(b"IM ARIF").hexdigest(),
-}
-
-# Identity phrase patterns (English + Malay)
+# Identity phrase patterns (English + Malay) — NLP parsing ONLY, NOT auth
 IDENTITY_PHRASES: list[tuple[str, str]] = [
     (r"^(i am|im|i'm|saya|aku|hamba)\s+(arif|ariffazil|arif-fazil)$", "arif"),
     (
@@ -60,30 +54,18 @@ def is_protected_sovereign_id(actor_id: str | None) -> bool:
 
 
 def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> bool:
-    """Validate cryptographic or semantic proof for protected sovereign ID."""
+    """Validate cryptographic proof for protected sovereign ID.
+
+    SECURITY (2026-07-06): Semantic key bypass removed. Only cryptographic
+    signatures or explicit human approval through verified sessions are accepted.
+    """
     if not proof:
         return False
 
-    actor_id_clean = actor_id.lower().strip()
-
-    # Path 1: Semantic Key (Naming is Creation)
-    semantic_candidate = None
-    if isinstance(proof, str):
-        semantic_candidate = proof
-    elif isinstance(proof, dict):
-        semantic_candidate = proof.get("semantic_key") or proof.get("key") or proof.get("proof")
-
-    if semantic_candidate and actor_id_clean in SEMANTIC_KEYS:
-        if isinstance(semantic_candidate, str):
-            candidate_hash = hashlib.sha256(semantic_candidate.strip().upper().encode()).hexdigest()
-            if candidate_hash == SEMANTIC_KEYS[actor_id_clean]:
-                return True
-
-    # Path 2: Cryptographic Signature (Ed25519 — placeholder for production)
     if isinstance(proof, dict):
         required_fields = ["signature", "nonce", "timestamp"]
         if all(field in proof for field in required_fields):
-            # TODO: Add Ed25519 verification
-            pass
+            # TODO (real): Ed25519 verification. Until then, reject.
+            return False
 
     return False

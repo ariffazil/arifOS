@@ -309,6 +309,24 @@ async def arif_judge(
             },
         )
 
+    # ── SESSION-BOUND IDENTITY (fix 2026-07-06) ──────────────────────────
+    # Derive actor_id from the session store, not from per-tool args.
+    # This ensures all tools in the same session see the same actor identity.
+    from arifosmcp.runtime.tools import get_session as _get_session
+
+    _sess = _get_session(session_id) if session_id else None
+    if _sess and isinstance(_sess, dict):
+        _sess_actor = _sess.get("actor_id")
+        if _sess_actor and _sess_actor != "anonymous":
+            if actor_id and actor_id != _sess_actor:
+                # Log SCAR: passed actor differs from session actor
+                if "warnings" not in _sess:
+                    _sess.setdefault("_judge_scars", []).append(
+                        f"actor_mismatch: passed={actor_id} session={_sess_actor}"
+                    )
+            # Session identity is authoritative
+            actor_id = _sess_actor
+
     if mode != "history":
         if _evidence.get("vitals") is None:
             try:

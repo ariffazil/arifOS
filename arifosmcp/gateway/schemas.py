@@ -61,12 +61,11 @@ class TriggerKind(str, Enum):
     MULTI_JURISDICTION_PING_PONG = "multi_jurisdiction_ping_pong"
 
 
-class Verdict(str, Enum):
-    SEAL = "SEAL"
-    HOLD = "HOLD"
-    VOID = "VOID"
-    SABAR = "SABAR"
-    ESCALATE = "ESCALATE"
+from arifosmcp.models.verdicts import Verdict
+
+# Verdict is now canonical — imported from models/verdicts.
+# ESCALATE is a gateway-only reason code attached to Verdict.HOLD, NOT a verdict itself.
+LEGACY_GATEWAY_ESCALATE = Verdict.HOLD
 
 
 class RiskClass(str, Enum):

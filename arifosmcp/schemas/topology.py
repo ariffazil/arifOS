@@ -43,11 +43,22 @@ class RiskBand(StrEnum):
     HIGH = "high"
 
 
-class Verdict(StrEnum):
-    PASS = "pass"
-    REVISE = "revise"
-    HOLD = "hold"
-    VOID = "void"
+class TopologyVerdict(StrEnum):
+    """Topology-specific verdict — NOT canonical governance verdict.
+
+    PASS maps to Verdict.SEAL, REVISE maps to Verdict.SABAR.
+    For canonical governance verdicts, use:
+        from arifosmcp.models.verdicts import Verdict
+    """
+
+    PASS = "pass"  # → Verdict.SEAL
+    REVISE = "revise"  # → Verdict.SABAR
+    HOLD = "hold"  # → Verdict.HOLD
+    VOID = "void"  # → Verdict.VOID
+
+
+# Legacy alias — deprecated, use TopologyVerdict
+Verdict = TopologyVerdict
 
 
 class Confidence(StrEnum):

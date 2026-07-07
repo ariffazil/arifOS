@@ -49,11 +49,9 @@ ALL_FLOORS = [
 ]
 
 
-class Verdict(str, Enum):
-    SEAL = "SEAL"  # Allow & seal to VAULT999
-    SABAR = "SABAR"  # Allow but flag — human review recommended
-    HOLD = "HOLD"  # Block pending 888_HOLD
-    VOID = "VOID"  # Block — constitutional violation
+from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
+
+# Verdict imported from canonical source (Phase 3 verdict unification, 2026-07-07)
 
 
 @dataclass

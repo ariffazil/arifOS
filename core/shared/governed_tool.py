@@ -9,9 +9,9 @@ try:
 except ImportError:
     evaluate_tool_call = None
 
-# Verdict is not in core.laws; provide a local fallback
+# Verdict from canonical source (Phase 3 verdict unification, 2026-07-07)
 try:
-    from arifosmcp.models.verdicts import VerdictState as Verdict
+    from arifosmcp.models.verdicts import Verdict
 except ImportError:
 
     class Verdict:

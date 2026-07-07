@@ -45,7 +45,8 @@ def test_consecutive_boot_cycles():
             inner = r.get("result", {})
             sb = inner.get("session_birth", {})
             sess = sb.get("session_id", "")
-            verdict = inner.get("verdict")
+            # Fix 2026-07-06: verdict at envelope level, not inside result
+            verdict = r.get("verdict") or inner.get("verdict")
             session_ids.append(sess)
             verdicts.append(verdict)
         finally:
@@ -56,7 +57,7 @@ def test_consecutive_boot_cycles():
     assert sealed_count == N_CYCLES, (
         f"all {N_CYCLES} cycles should return SEAL- session_id, got {sealed_count}"
     )
-    assert all(v in ("SEAL", "SEAL_OBSERVE_ONLY") for v in verdicts), (
+    assert all(v in ("SEAL", "OBSERVE_ONLY") for v in verdicts), (
         f"all verdicts should be SEAL family, got {verdicts}"
     )
     # All session_ids should be unique

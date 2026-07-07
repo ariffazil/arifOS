@@ -59,7 +59,14 @@ class Action:
 
 
 @dataclass
-class Verdict:
+class ActionClassVerdict:
+    """Action classifier verdict — NOT governance.
+
+    This is an action classification result (gate, reasons, may_execute),
+    distinct from the canonical governance Verdict (SEAL/HOLD/SABAR/VOID)
+    defined in models/verdicts.py.
+    """
+
     gate: Gate
     reasons: list[str]
     required_human_judge: bool
@@ -75,11 +82,11 @@ class ArifOSMetabolism:
     activation_phrase: str = "HANG INGAT BALIK!!!"
     audit_log: list[dict[str, Any]] = field(default_factory=list)
 
-    def classify_gate(self, action: Action) -> Verdict:
+    def classify_gate(self, action: Action) -> ActionClassVerdict:
         reasons: list[str] = []
 
         if action.action_class == ActionClass.UNKNOWN:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.HOLD_888,
                 reasons=["Unknown action class. Fail closed."],
                 required_human_judge=True,
@@ -87,7 +94,7 @@ class ArifOSMetabolism:
             )
 
         if action.disables_safeguard or action.touches_secret:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.HOLD_888,
                 reasons=["Safeguard/secret boundary touched."],
                 required_human_judge=True,
@@ -95,7 +102,7 @@ class ArifOSMetabolism:
             )
 
         if action.action_class == ActionClass.ATOMIC:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.HOLD_888,
                 reasons=["Atomic action. Irreversible or high consequence."],
                 required_human_judge=True,
@@ -112,7 +119,7 @@ class ArifOSMetabolism:
             reasons.append("External side effect.")
 
         if len(reasons) >= 2:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.HOLD_888,
                 reasons=reasons + ["Multiple risk factors. HOLD."],
                 required_human_judge=True,
@@ -120,7 +127,7 @@ class ArifOSMetabolism:
             )
 
         if action.external_side_effect:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.HUMAN_CONFIRMATION,
                 reasons=reasons + ["Externalization requires human confirmation."],
                 required_human_judge=True,
@@ -128,7 +135,7 @@ class ArifOSMetabolism:
             )
 
         if action.action_class == ActionClass.MUTATE:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.PLAN_BACKUP_AUDIT,
                 reasons=reasons + ["Mutation requires plan, backup, audit."],
                 required_human_judge=False,
@@ -136,7 +143,7 @@ class ArifOSMetabolism:
             )
 
         if action.action_class == ActionClass.PREPARE:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.ALLOW_IF_REVERSIBLE,
                 reasons=reasons + ["Preparation allowed only if reversible."],
                 required_human_judge=False,
@@ -144,7 +151,7 @@ class ArifOSMetabolism:
             )
 
         if action.action_class == ActionClass.REASON:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.ALLOW_WITH_EPISTEMIC_TAGS,
                 reasons=["Reasoning allowed; mark claim state and uncertainty."],
                 required_human_judge=False,
@@ -152,21 +159,21 @@ class ArifOSMetabolism:
             )
 
         if action.action_class == ActionClass.OBSERVE:
-            return Verdict(
+            return ActionClassVerdict(
                 gate=Gate.ALLOW,
                 reasons=["Observation only. Reversible."],
                 required_human_judge=False,
                 may_execute=True,
             )
 
-        return Verdict(
+        return ActionClassVerdict(
             gate=Gate.HOLD_888,
             reasons=["Unhandled path. Fail closed."],
             required_human_judge=True,
             may_execute=False,
         )
 
-    def record(self, action: Action, verdict: Verdict) -> None:
+    def record(self, action: Action, verdict: ActionClassVerdict) -> None:
         self.audit_log.append(
             {
                 "action": action.name,

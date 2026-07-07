@@ -293,9 +293,25 @@ def inject_epistemic_for_tool(
     """Inject the default epistemic tag for a known tool by its name.
 
     If the tool is not in the registry, defaults to DETERMINISTIC (safe fallback).
+
+    Fix 2026-07-06: OBSERVE_ONLY verdict → authority_claim downgraded to ADVISORY.
+    An observe-only response must never claim EXECUTIVE authority, as the verdict
+    explicitly denies authorization capability.
     """
     tag = get_default_epistemic(tool_name)
     if tag is None:
         # Unknown tool — safe default
         tag = EPISTEMIC_DETERMINISTIC
-    return inject_epistemic(response, tag, tagged_by=tagged_by)
+
+    result = inject_epistemic(response, tag, tagged_by=tagged_by)
+
+    # Fix 2026-07-06: OBSERVE_ONLY verdict → downgrade authority_claim to ADVISORY
+    # The epistemic tag and the verdict must not contradict each other.
+    verdict = response.get("verdict", "")
+    if (
+        verdict == "OBSERVE_ONLY"
+        and result.get("_epistemic", {}).get("authority_claim") == "EXECUTIVE"
+    ):
+        result["_epistemic"]["authority_claim"] = "ADVISORY"
+
+    return result

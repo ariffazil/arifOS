@@ -141,7 +141,13 @@ class NextMove(BaseModel):
     reason: str
 
 
-class Verdict(BaseModel):
+class ExploreVerdict(BaseModel):
+    """Exploration outcome — NOT governance.
+
+    This tracks exploration saturation and next moves, distinct from the
+    canonical governance Verdict (SEAL/HOLD/SABAR/VOID) in models/verdicts.py.
+    """
+
     saturation: Saturation
     next_moves: list[NextMove] = Field(default_factory=list)
 
@@ -249,7 +255,7 @@ class ExploreResponse(BaseModel):
     findings: list[Finding] = Field(default_factory=list)
     gaps: list[str] = Field(default_factory=list)
     metrics: ExploreMetrics = Field(default_factory=ExploreMetrics)
-    verdict: Verdict = Field(default_factory=Verdict)
+    verdict: ExploreVerdict | None = None
     replay_receipt: ReplayReceipt | None = Field(
         default=None,
         description="Traceable replay receipt with result_hash + receipt_hash for verification",
@@ -271,7 +277,7 @@ __all__ = [
     "Finding",
     "Saturation",
     "NextMove",
-    "Verdict",
+    "ExploreVerdict",
     "ExploreMetrics",
     "ExploreStatus",
     "ExploreResponse",

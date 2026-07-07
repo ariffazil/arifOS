@@ -1,0 +1,2421 @@
+{
+  "anchor_index": [
+    {
+      "keyword": "mathematics",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "math",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "algebra",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "analysis",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "geometry",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "topology",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "number",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "theory",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "combinatorics",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "calculus",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "differential",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "integral",
+      "organ": "ASI",
+      "branch": "mathematics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "logic",
+      "organ": "ASI",
+      "branch": "logic_foundations",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "foundations",
+      "organ": "ASI",
+      "branch": "logic_foundations",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "proof",
+      "organ": "ASI",
+      "branch": "logic_foundations",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "model",
+      "organ": "ASI",
+      "branch": "logic_foundations",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "computability",
+      "organ": "ASI",
+      "branch": "logic_foundations",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "modal",
+      "organ": "ASI",
+      "branch": "logic_foundations",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "fuzzy",
+      "organ": "ASI",
+      "branch": "logic_foundations",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "statistics",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "probability",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "bayesian",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "stochastic",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "causal",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "inference",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "distributions",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "regression",
+      "organ": "WEALTH",
+      "branch": "statistics_probability",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "computation",
+      "organ": "ASI",
+      "branch": "computation",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "algorithms",
+      "organ": "ASI",
+      "branch": "computation",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "complexity",
+      "organ": "ASI",
+      "branch": "computation",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "automata",
+      "organ": "ASI",
+      "branch": "computation",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "information",
+      "organ": "ASI",
+      "branch": "computation",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "cryptography",
+      "organ": "ASI",
+      "branch": "computation",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "coding",
+      "organ": "ASI",
+      "branch": "computation",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "decision",
+      "organ": "WEALTH",
+      "branch": "decision_game_theory",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "game",
+      "organ": "WEALTH",
+      "branch": "decision_game_theory",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "utility",
+      "organ": "WEALTH",
+      "branch": "decision_game_theory",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "mechanism",
+      "organ": "WEALTH",
+      "branch": "decision_game_theory",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "design",
+      "organ": "WEALTH",
+      "branch": "decision_game_theory",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "systems",
+      "organ": "ASI",
+      "branch": "systems_cybernetics",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "cybernetics",
+      "organ": "ASI",
+      "branch": "systems_cybernetics",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "control",
+      "organ": "ASI",
+      "branch": "systems_cybernetics",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "dynamical",
+      "organ": "ASI",
+      "branch": "systems_cybernetics",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "chaos",
+      "organ": "ASI",
+      "branch": "systems_cybernetics",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "catastrophe",
+      "organ": "ASI",
+      "branch": "systems_cybernetics",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "earth",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "science",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "geology",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "tectonics",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "mineralogy",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "petrology",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "sedimentology",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "stratigraphy",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "volcanology",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "seismology",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "geomorphology",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "structural",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "geological",
+      "organ": "GEOX",
+      "branch": "earth_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "oceanography",
+      "organ": "GEOX",
+      "branch": "oceanography",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "physical",
+      "organ": "GEOX",
+      "branch": "oceanography",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "chemical",
+      "organ": "GEOX",
+      "branch": "oceanography",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "marine",
+      "organ": "GEOX",
+      "branch": "oceanography",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "sea",
+      "organ": "GEOX",
+      "branch": "oceanography",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "hydrology",
+      "organ": "GEOX",
+      "branch": "hydrology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "water",
+      "organ": "GEOX",
+      "branch": "hydrology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "resources",
+      "organ": "GEOX",
+      "branch": "hydrology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "groundwater",
+      "organ": "GEOX",
+      "branch": "hydrology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "hydrogeology",
+      "organ": "GEOX",
+      "branch": "hydrology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "meteorology",
+      "organ": "GEOX",
+      "branch": "meteorology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "weather",
+      "organ": "GEOX",
+      "branch": "meteorology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "atmospheric",
+      "organ": "GEOX",
+      "branch": "meteorology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "climate",
+      "organ": "GEOX",
+      "branch": "meteorology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "glaciology",
+      "organ": "GEOX",
+      "branch": "glaciology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "glaciers",
+      "organ": "GEOX",
+      "branch": "glaciology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "ice",
+      "organ": "GEOX",
+      "branch": "glaciology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "sheets",
+      "organ": "GEOX",
+      "branch": "glaciology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "permafrost",
+      "organ": "GEOX",
+      "branch": "glaciology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "cryosphere",
+      "organ": "GEOX",
+      "branch": "glaciology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "geophysics",
+      "organ": "GEOX",
+      "branch": "geophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "seismic",
+      "organ": "GEOX",
+      "branch": "geophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "gravity",
+      "organ": "GEOX",
+      "branch": "geophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "magnetic",
+      "organ": "GEOX",
+      "branch": "geophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "electrical",
+      "organ": "GEOX",
+      "branch": "geophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "resistivity",
+      "organ": "GEOX",
+      "branch": "geophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "geochemistry",
+      "organ": "GEOX",
+      "branch": "geochemistry",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "isotope",
+      "organ": "GEOX",
+      "branch": "geochemistry",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "trace",
+      "organ": "GEOX",
+      "branch": "geochemistry",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "elements",
+      "organ": "GEOX",
+      "branch": "geochemistry",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "petrophysics",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "porosity",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "permeability",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "saturation",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "well",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "log",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "sonic",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "density",
+      "organ": "GEOX",
+      "branch": "petrophysics",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "depositional",
+      "organ": "GEOX",
+      "branch": "sedimentology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "delta",
+      "organ": "GEOX",
+      "branch": "sedimentology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "turbidite",
+      "organ": "GEOX",
+      "branch": "sedimentology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "clastic",
+      "organ": "GEOX",
+      "branch": "sedimentology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "carbonate",
+      "organ": "GEOX",
+      "branch": "sedimentology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "shale",
+      "organ": "GEOX",
+      "branch": "sedimentology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "sequence",
+      "organ": "GEOX",
+      "branch": "stratigraphy",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "chronostratigraphy",
+      "organ": "GEOX",
+      "branch": "stratigraphy",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "biostratigraphy",
+      "organ": "GEOX",
+      "branch": "stratigraphy",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "biozone",
+      "organ": "GEOX",
+      "branch": "stratigraphy",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "lithostratigraphy",
+      "organ": "GEOX",
+      "branch": "stratigraphy",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "paleontology",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "paleobotany",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "paleozoology",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "micropaleontology",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "fossil",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "nannofossil",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "foraminifera",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "palynology",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "paleoecology",
+      "organ": "GEOX",
+      "branch": "paleontology",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "petroleum",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "source",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "rock",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "reservoir",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "seal",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "trap",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "hydrocarbon",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "migration",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "maturation",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "thermal",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "burial",
+      "organ": "GEOX",
+      "branch": "petroleum_geology",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "physics",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "mechanics",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "thermodynamics",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "electromagnetism",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "optics",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "quantum",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "nuclear",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "plasma",
+      "organ": "GEOX",
+      "branch": "physics",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "chemistry",
+      "organ": "GEOX",
+      "branch": "chemistry",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "organic",
+      "organ": "GEOX",
+      "branch": "chemistry",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "inorganic",
+      "organ": "GEOX",
+      "branch": "chemistry",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "analytical",
+      "organ": "GEOX",
+      "branch": "chemistry",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "biochemistry",
+      "organ": "GEOX",
+      "branch": "chemistry",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "economics",
+      "organ": "WEALTH",
+      "branch": "economics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "macroeconomics",
+      "organ": "WEALTH",
+      "branch": "economics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "microeconomics",
+      "organ": "WEALTH",
+      "branch": "economics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "econometrics",
+      "organ": "WEALTH",
+      "branch": "economics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "political",
+      "organ": "WEALTH",
+      "branch": "economics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "economy",
+      "organ": "WEALTH",
+      "branch": "economics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "development",
+      "organ": "WEALTH",
+      "branch": "economics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "finance",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "financial",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "corporate",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "investment",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "portfolio",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "asset",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "allocation",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "equities",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "bonds",
+      "organ": "WEALTH",
+      "branch": "finance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "capital",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "npv",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "net",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "present",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "value",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "irr",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "internal",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "rate",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "return",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "emv",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "expected",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "monetary",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "cashflow",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "discount",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "roi",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "roe",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "dscr",
+      "organ": "WEALTH",
+      "branch": "capital_npv",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "risk",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "management",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "var",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "cvar",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "drawdown",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "volatility",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "aversion",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "downside",
+      "organ": "WEALTH",
+      "branch": "risk_management",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "conservation",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "worth",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "liability",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "balance",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "sheet",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "liquidity",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "runway",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "burn",
+      "organ": "WEALTH",
+      "branch": "capital_conservation",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "oil",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "price",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "crude",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "brent",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "wti",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "opec",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "revenue",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "fuel",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "energy",
+      "organ": "WEALTH",
+      "branch": "oil_price",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "fiscal",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "policy",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "budget",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "deficit",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "government",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "expenditure",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "taxation",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "subsidy",
+      "organ": "WEALTH",
+      "branch": "fiscal_policy",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "strategic",
+      "organ": "WEALTH",
+      "branch": "game_theory",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "interaction",
+      "organ": "WEALTH",
+      "branch": "game_theory",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "nash",
+      "organ": "WEALTH",
+      "branch": "game_theory",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "equilibrium",
+      "organ": "WEALTH",
+      "branch": "game_theory",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "cooperative",
+      "organ": "WEALTH",
+      "branch": "game_theory",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "games",
+      "organ": "WEALTH",
+      "branch": "game_theory",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "auction",
+      "organ": "WEALTH",
+      "branch": "game_theory",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "medicine",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "medical",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "clinical",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "diagnosis",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "treatment",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "therapy",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "patient",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "disease",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "disorder",
+      "organ": "WELL",
+      "branch": "medicine",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "neuroscience",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "neurobiology",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "brain",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "neuron",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "synapse",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "cortex",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "neurotransmitter",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "cognitive",
+      "organ": "WELL",
+      "branch": "neuroscience",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "sleep",
+      "organ": "WELL",
+      "branch": "sleep",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "insomnia",
+      "organ": "WELL",
+      "branch": "sleep",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "deprivation",
+      "organ": "WELL",
+      "branch": "sleep",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "circadian",
+      "organ": "WELL",
+      "branch": "sleep",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "rem",
+      "organ": "WELL",
+      "branch": "sleep",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "hygiene",
+      "organ": "WELL",
+      "branch": "sleep",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "melatonin",
+      "organ": "WELL",
+      "branch": "sleep",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "psychology",
+      "organ": "WELL",
+      "branch": "psychology",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "psychiatric",
+      "organ": "WELL",
+      "branch": "psychology",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "mental",
+      "organ": "WELL",
+      "branch": "psychology",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "health",
+      "organ": "WELL",
+      "branch": "psychology",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "depression",
+      "organ": "WELL",
+      "branch": "psychology",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "anxiety",
+      "organ": "WELL",
+      "branch": "psychology",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "behavioral",
+      "organ": "WELL",
+      "branch": "psychology",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "fatigue",
+      "organ": "WELL",
+      "branch": "fatigue",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "tiredness",
+      "organ": "WELL",
+      "branch": "fatigue",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "exhaustion",
+      "organ": "WELL",
+      "branch": "fatigue",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "burnout",
+      "organ": "WELL",
+      "branch": "fatigue",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "chronic",
+      "organ": "WELL",
+      "branch": "fatigue",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "vitality",
+      "organ": "WELL",
+      "branch": "vitality",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "wellness",
+      "organ": "WELL",
+      "branch": "vitality",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "fitness",
+      "organ": "WELL",
+      "branch": "vitality",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "resilience",
+      "organ": "WELL",
+      "branch": "vitality",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "endocrinology",
+      "organ": "WELL",
+      "branch": "endocrinology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "hormone",
+      "organ": "WELL",
+      "branch": "endocrinology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "endocrine",
+      "organ": "WELL",
+      "branch": "endocrinology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "cortisol",
+      "organ": "WELL",
+      "branch": "endocrinology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "testosterone",
+      "organ": "WELL",
+      "branch": "endocrinology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "estrogen",
+      "organ": "WELL",
+      "branch": "endocrinology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "insulin",
+      "organ": "WELL",
+      "branch": "endocrinology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "immunology",
+      "organ": "WELL",
+      "branch": "immunology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "immune",
+      "organ": "WELL",
+      "branch": "immunology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "antibody",
+      "organ": "WELL",
+      "branch": "immunology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "antigen",
+      "organ": "WELL",
+      "branch": "immunology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "vaccine",
+      "organ": "WELL",
+      "branch": "immunology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "autoimmune",
+      "organ": "WELL",
+      "branch": "immunology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "inflammation",
+      "organ": "WELL",
+      "branch": "immunology",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "law",
+      "organ": "arifOS",
+      "branch": "law",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "legal",
+      "organ": "arifOS",
+      "branch": "law",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "jurisprudence",
+      "organ": "arifOS",
+      "branch": "law",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "statute",
+      "organ": "arifOS",
+      "branch": "law",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "precedent",
+      "organ": "arifOS",
+      "branch": "law",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "litigation",
+      "organ": "arifOS",
+      "branch": "law",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "governance",
+      "organ": "arifOS",
+      "branch": "governance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "regulation",
+      "organ": "arifOS",
+      "branch": "governance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "institutional",
+      "organ": "arifOS",
+      "branch": "governance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "constitutional",
+      "organ": "arifOS",
+      "branch": "governance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "sovereignty",
+      "organ": "arifOS",
+      "branch": "governance",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "ethics",
+      "organ": "arifOS",
+      "branch": "ethics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "moral",
+      "organ": "arifOS",
+      "branch": "ethics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "deontological",
+      "organ": "arifOS",
+      "branch": "ethics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "consequentialist",
+      "organ": "arifOS",
+      "branch": "ethics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "virtue",
+      "organ": "arifOS",
+      "branch": "ethics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "applied",
+      "organ": "arifOS",
+      "branch": "ethics",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "rights",
+      "organ": "arifOS",
+      "branch": "rights",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "human",
+      "organ": "arifOS",
+      "branch": "rights",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "civil",
+      "organ": "arifOS",
+      "branch": "rights",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "property",
+      "organ": "arifOS",
+      "branch": "rights",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "intellectual",
+      "organ": "arifOS",
+      "branch": "rights",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "floors",
+      "organ": "arifOS",
+      "branch": "constitutional_floors",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "f13",
+      "organ": "arifOS",
+      "branch": "constitutional_floors",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "amanah",
+      "organ": "arifOS",
+      "branch": "constitutional_floors",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "floor",
+      "organ": "arifOS",
+      "branch": "constitutional_floors",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "veto",
+      "organ": "arifOS",
+      "branch": "constitutional_floors",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "sovereign",
+      "organ": "arifOS",
+      "branch": "constitutional_floors",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "computer",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "software",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "engineering",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "programming",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "code",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "algorithm",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "data",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "structure",
+      "organ": "AAA",
+      "branch": "computer_science",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "artificial",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "intelligence",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "machine",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "learning",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "deep",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "neural",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "network",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "nlp",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "vision",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "classification",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "supervised",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "unsupervised",
+      "organ": "AAA",
+      "branch": "ai_ml",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "database",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "databases",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "sql",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "nosql",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "postgresql",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "mysql",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "mongodb",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "warehousing",
+      "organ": "AAA",
+      "branch": "database",
+      "confidence": 0.95
+    },
+    {
+      "keyword": "networking",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "internet",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "tcp",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "http",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "dns",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "cdn",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "cloud",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "computing",
+      "organ": "AAA",
+      "branch": "networking",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "cybersecurity",
+      "organ": "AAA",
+      "branch": "cybersecurity",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "security",
+      "organ": "AAA",
+      "branch": "cybersecurity",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "app",
+      "organ": "AAA",
+      "branch": "cybersecurity",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "penetration",
+      "organ": "AAA",
+      "branch": "cybersecurity",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "testing",
+      "organ": "AAA",
+      "branch": "cybersecurity",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "vulnerability",
+      "organ": "AAA",
+      "branch": "cybersecurity",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "media",
+      "organ": "AAA",
+      "branch": "media_production",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "production",
+      "organ": "AAA",
+      "branch": "media_production",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "film",
+      "organ": "AAA",
+      "branch": "media_production",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "photography",
+      "organ": "AAA",
+      "branch": "media_production",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "animation",
+      "organ": "AAA",
+      "branch": "media_production",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "video",
+      "organ": "AAA",
+      "branch": "media_production",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "documentary",
+      "organ": "AAA",
+      "branch": "media_production",
+      "confidence": 0.6
+    },
+    {
+      "keyword": "drilling",
+      "organ": "A-FORGE",
+      "branch": "petroleum_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "placement",
+      "organ": "A-FORGE",
+      "branch": "petroleum_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "enhanced",
+      "organ": "A-FORGE",
+      "branch": "petroleum_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "recovery",
+      "organ": "A-FORGE",
+      "branch": "petroleum_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "downhole",
+      "organ": "A-FORGE",
+      "branch": "petroleum_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "mechanical",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "fluid",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "heat",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "transfer",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "manufacturing",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "robotics",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "mechatronics",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "automotive",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "engine",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "turbine",
+      "organ": "A-FORGE",
+      "branch": "mechanical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "geotechnical",
+      "organ": "A-FORGE",
+      "branch": "civil_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "construction",
+      "organ": "A-FORGE",
+      "branch": "civil_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "bridge",
+      "organ": "A-FORGE",
+      "branch": "civil_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "building",
+      "organ": "A-FORGE",
+      "branch": "civil_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "infrastructure",
+      "organ": "A-FORGE",
+      "branch": "civil_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "power",
+      "organ": "A-FORGE",
+      "branch": "electrical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "signal",
+      "organ": "A-FORGE",
+      "branch": "electrical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "processing",
+      "organ": "A-FORGE",
+      "branch": "electrical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "electronics",
+      "organ": "A-FORGE",
+      "branch": "electrical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "embedded",
+      "organ": "A-FORGE",
+      "branch": "electrical_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "aerospace",
+      "organ": "A-FORGE",
+      "branch": "aerospace_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "aerodynamics",
+      "organ": "A-FORGE",
+      "branch": "aerospace_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "propulsion",
+      "organ": "A-FORGE",
+      "branch": "aerospace_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "avionics",
+      "organ": "A-FORGE",
+      "branch": "aerospace_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "orbital",
+      "organ": "A-FORGE",
+      "branch": "aerospace_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "satellite",
+      "organ": "A-FORGE",
+      "branch": "aerospace_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "spacecraft",
+      "organ": "A-FORGE",
+      "branch": "aerospace_engineering",
+      "confidence": 1.0
+    },
+    {
+      "keyword": "reactor",
+      "organ": "A-FORGE",
+      "branch": "nuclear_engineering",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "radiation",
+      "organ": "A-FORGE",
+      "branch": "nuclear_engineering",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "safety",
+      "organ": "A-FORGE",
+      "branch": "nuclear_engineering",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "cycle",
+      "organ": "A-FORGE",
+      "branch": "nuclear_engineering",
+      "confidence": 0.9
+    },
+    {
+      "keyword": "linguistics",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "phonetics",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "phonology",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "syntax",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "semantics",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "pragmatics",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "sociolinguistics",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "language",
+      "organ": "ASI",
+      "branch": "linguistics",
+      "confidence": 0.85
+    },
+    {
+      "keyword": "philosophy",
+      "organ": "arifOS",
+      "branch": "philosophy",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "metaphysics",
+      "organ": "arifOS",
+      "branch": "philosophy",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "epistemology",
+      "organ": "arifOS",
+      "branch": "philosophy",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "existentialism",
+      "organ": "arifOS",
+      "branch": "philosophy",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "phenomenology",
+      "organ": "arifOS",
+      "branch": "philosophy",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "hermeneutics",
+      "organ": "arifOS",
+      "branch": "philosophy",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "analytic",
+      "organ": "arifOS",
+      "branch": "philosophy",
+      "confidence": 0.8
+    },
+    {
+      "keyword": "history",
+      "organ": "ASI",
+      "branch": "history",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "historian",
+      "organ": "ASI",
+      "branch": "history",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "historical",
+      "organ": "ASI",
+      "branch": "history",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "ancient",
+      "organ": "ASI",
+      "branch": "history",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "medieval",
+      "organ": "ASI",
+      "branch": "history",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "modern",
+      "organ": "ASI",
+      "branch": "history",
+      "confidence": 0.5
+    },
+    {
+      "keyword": "era",
+      "organ": "ASI",
+      "branch": "history",
+      "confidence": 0.5
+    }
+  ],
+  "metadata": {
+    "total_keywords": 402,
+    "generated": "2026-07-06",
+    "schema_version": "1.2"
+  }
+}

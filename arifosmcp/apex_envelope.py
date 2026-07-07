@@ -22,13 +22,14 @@ from typing import Any
 # TPCP: 4-phase (ΔP → ΩP → ΨP → Φ_P) + most restrictive verdict
 # NOTE: TPCP run_tpcp_pipeline not present in paradox pkg (path was wrong too). ToAC fn local. Deferred.
 
+
 def toac_contrast_score(evidence: dict | None = None, claim_strength: float = 0.5) -> float:
     """Mandatory ToAC contrast tag. Default 0.50 per brief if missing."""
     if not evidence:
         return 0.50
-    u_phys = evidence.get('uncertainty_phys', 0.5)
-    d_trans = evidence.get('distortion', 0.5)
-    b_cog = evidence.get('bias_cog', 0.5)
+    u_phys = evidence.get("uncertainty_phys", 0.5)
+    d_trans = evidence.get("distortion", 0.5)
+    b_cog = evidence.get("bias_cog", 0.5)
     risk = min(1.0, u_phys * d_trans * b_cog)
     return risk
 
@@ -43,13 +44,21 @@ BOUNDARIES = {"LIVE", "CACHED", "INFERRED"}
 ACTION_CLASSES = {"READ", "MUTATE", "ATOMIC", "IRREVERSIBLE"}
 PROOF_LEVELS = {"ZKPC_NONE", "ZKPC_OBSERVATION", "ZKPC_AUDIT", "ZKPC_CERTAINTY"}
 
-VERDICT_VOID = "VOID"
-VERDICT_HOLD = "HOLD"
-VERDICT_SABAR = "SABAR"
-VERDICT_SEAL = "SEAL"
+from arifosmcp.models.verdicts import (
+    Verdict,  # Canonical: SEAL, HOLD, SABAR, VOID
+    VERDICT_ORDER,  # Canonical ordering: SEAL=0, SABAR=1, HOLD=2, VOID=3
+    enforce_verdict_monotonicity,
+)
 
-# Verdict lattice: VOID > HOLD > SABAR > SEAL
-_VERDICT_ORDER = {VERDICT_VOID: 0, VERDICT_HOLD: 1, VERDICT_SABAR: 2, VERDICT_SEAL: 3}
+# Legacy string constants — kept for backward compatibility
+VERDICT_VOID = Verdict.VOID
+VERDICT_HOLD = Verdict.HOLD
+VERDICT_SABAR = Verdict.SABAR
+VERDICT_SEAL = Verdict.SEAL
+
+# Phase 4 monotonicity: use canonical VERDICT_ORDER
+# Old _VERDICT_ORDER was inverted (VOID=0). Canonical uses VOID=3 (highest authority).
+# For "most restrictive" logic, use: enforce_verdict_monotonicity(v) >= 2 (HOLD or VOID)
 
 
 # ── Gate Verdict Factory ───────────────────────────────────────────────────
@@ -88,5 +97,3 @@ def amanah_gate(
         score=score,
         detail=f"confidence {c:.2f} {'<=' if passed else '>'} evidence {e:.2f}",
     )
-
-

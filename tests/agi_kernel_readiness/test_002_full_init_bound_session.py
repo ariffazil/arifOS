@@ -42,8 +42,11 @@ def test_full_binds_all_floors():
             },
         )
         inner = r.get("result", {})
-        assert inner.get("verdict") in ("SEAL", "DEGRADED", "SEAL_OBSERVE_ONLY"), (
-            f"full mode should be SEAL or DEGRADED or SEAL_OBSERVE_ONLY, got {inner.get('verdict')}"
+        # Fix 2026-07-06: verdict moved to envelope level (result.vercid removed).
+        # Read from envelope for the authoritative verdict.
+        verdict = r.get("verdict") or inner.get("verdict")
+        assert verdict in ("SEAL", "DEGRADED", "OBSERVE_ONLY"), (
+            f"full mode should be SEAL or DEGRADED or OBSERVE_ONLY, got {verdict}"
         )
         sb = inner.get("session_birth", {})
 

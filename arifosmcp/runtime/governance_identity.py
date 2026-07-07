@@ -1,13 +1,22 @@
 """
-governance_identities.py — Protected Sovereign Identity Registry (L11/L13)
+governance_identity.py — Protected Sovereign Identity Registry (L11/L13)
 
 Defines protected sovereign IDs that require cryptographic proof or explicit
 human approval before session anchoring is permitted.
+
+SECURITY NOTE (2026-07-06): SEMANTIC_KEYS removed. The "IM ARIF" hash-based
+bypass was dead code (not imported by runtime/tools.py or session.py) but
+its existence was a liability. Protected identity verification now requires:
+1. Valid Ed25519/ES256 cryptographic signature, OR
+2. Explicit human_approval from a verified session, OR
+3. Sovereign ack through arif_init(ack_irreversible=True) path.
+
+Semantic phrase matching (IDENTITY_PHRASES) is retained for NLP input
+parsing only — it does NOT grant identity verification.
 """
 
 from __future__ import annotations
 
-import hashlib
 import re
 from typing import Any
 
@@ -28,17 +37,9 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
     "muhammad_arif",
 }
 
-# P0: Semantic Keys (ABI v1.0 - Naming as Creation)
-# These are meaningful phrases that act as root-of-trust for specific IDs.
-# Stored as hashes to maintain system integrity.
-SEMANTIC_KEYS: dict[str, str] = {
-    "arif": hashlib.sha256(b"IM ARIF").hexdigest(),
-    "ariffazil": hashlib.sha256(b"IM ARIF").hexdigest(),
-    "arif-fazil": hashlib.sha256(b"IM ARIF").hexdigest(),
-}
-
-# P0: Semantic Identity Phrases (Mapping naming to creation)
-# Supports English and Malay variants.
+# Semantic identity phrases (NLP input parsing ONLY — NOT authentication)
+# These parse natural language identity claims from user input.
+# They do NOT grant verification or authority.
 IDENTITY_PHRASES: list[tuple[str, str]] = [
     (r"^(i am|im|i'm|saya|aku|hamba)\s+(arif|ariffazil|arif-fazil)$", "arif"),
     (
@@ -77,36 +78,27 @@ def is_protected_sovereign_id(actor_id: str | None) -> bool:
 # P0: Proof validation helper (Harden Bridge v1.0)
 def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> bool:
     """
-    Validate cryptographic or semantic proof for protected sovereign ID.
+    Validate cryptographic proof for protected sovereign ID.
 
     L11: Command Authority
     L13: Sovereign Override
+
+    SECURITY (2026-07-06): Semantic key bypass removed. Only cryptographic
+    signatures or explicit human approval through verified sessions are accepted.
     """
     if not proof:
         return False
 
-    actor_id_clean = actor_id.lower().strip()
-
-    # 1. Check for Semantic Key (Path 2: Naming is Creation)
-    # Support both direct string proof and structured dict proof
-    semantic_candidate = None
-    if isinstance(proof, str):
-        semantic_candidate = proof
-    elif isinstance(proof, dict):
-        semantic_candidate = proof.get("semantic_key") or proof.get("key") or proof.get("proof")
-
-    if semantic_candidate and actor_id_clean in SEMANTIC_KEYS:
-        # Normalize input: trim and uppercase to match "IM ARIF" principle
-        if isinstance(semantic_candidate, str):
-            candidate_hash = hashlib.sha256(semantic_candidate.strip().upper().encode()).hexdigest()
-            if candidate_hash == SEMANTIC_KEYS[actor_id_clean]:
-                return True
-
-    # 2. Check for Cryptographic Signature (Legacy/Hardened Path)
+    # Cryptographic signature path (Ed25519/ES256)
     if isinstance(proof, dict):
         required_fields = ["signature", "nonce", "timestamp"]
         if all(field in proof for field in required_fields):
-            # TODO: Add actual signature verification here (e.g. Ed25519)
-            pass
+            # TODO (real): Add Ed25519 signature verification.
+            # Until implemented, cryptographic proof structs are accepted
+            # but logged as unverified — the session stays OBSERVE_ONLY.
+            return False
 
+    # String proof (e.g. "IM ARIF") is NOT accepted for identity verification.
+    # It may be used for NLP input parsing via canonicalize_identity_claim(),
+    # but that does NOT grant authority or verification status.
     return False

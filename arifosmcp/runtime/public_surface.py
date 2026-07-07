@@ -13,8 +13,12 @@ from arifosmcp.resources import (
 )
 from arifosmcp.runtime.build import get_build_info
 
-# ══ 9-Verb Metabolic Loop (F4 CLARITY: one stage = one public verb) ══════
-# Public agents see exactly these 9 stage-verbs. 9 stages = 9 tools.
+# ══ 10-Verb Metabolic Loop (F4 CLARITY: one stage = one public verb) ══════
+# Public agents see exactly these 10 stage-verbs. 9 stages + memory governor.
+# CANONICAL-10 update 2026-07-07:
+#   - Promoted to public surface: arif_memory (555m — constitutional memory governor).
+#   - arif_memory gates all memory writes through F1/F2/F4/F9/F11/F13 floors.
+#   - Memory writes are J-space mutations — they shape future reasoning.
 # CANONICAL-9 collapse 2026-07-04:
 #   - Removed from public surface: arif_canary (→ arif_init mode), arif_triage
 #       (→ arif_init mode), arif_fetch (→ arif_observe mode),
@@ -34,6 +38,8 @@ CANONICAL_9: tuple[str, ...] = (
     "arif_route",  # 444 — Route intent to organ. Modes: route, bridge, triage
     # 555 — Adversarial critique (promoted from arif_think mode to own tool)
     "arif_critique",  # 555 — Ethical/maruah assessment. Modes: critique, redteam, maruah, shadow
+    # 555m — Constitutional memory governor (promoted from internal_only 2026-07-07)
+    "arif_memory",  # 555m — Memory gate. Modes: recall, inspect, attest, remember, promote, revise, forget
     # 666 — Constitutional verdict
     "arif_judge",  # 666 — Constitutional verdict. SEAL/CANDIDATE/HOLD/SABAR/VOID
     # 777 — Guarded execution

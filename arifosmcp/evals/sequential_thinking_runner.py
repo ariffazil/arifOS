@@ -21,7 +21,6 @@ import json
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -31,17 +30,14 @@ import yaml
 from arifosmcp.integrations.sequential_mcp_bridge import (
     run_external_sequence,
 )
+from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DATA MODELS
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-class Verdict(Enum):
-    SEAL = "SEAL"
-    HOLD = "HOLD"
-    VOID = "VOID"
-    SABAR = "SABAR"
+# Verdict imported from canonical source (Phase 3 verdict unification, 2026-07-07)
 
 
 @dataclass

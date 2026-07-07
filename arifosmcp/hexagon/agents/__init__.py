@@ -9,18 +9,20 @@ HEXAGON Agent Classes (was: AgentZero Agent Classes)
 - A-ARCHIVE         → ArchiveAgent stub (deferred — wraps arif_seal)
 """
 
-from .base import ConstitutionalAgent, TrinityRole, Verdict
+from .base import ConstitutionalAgent, TrinityRole, AgentVerdict
 from .engineer import AGIAgent  # was EngineerAgent
 from .validator import APEXAgent  # was ValidatorAgent
 
 # Backward-compat aliases (HEXAGON-NAME-CANON-20260606)
 EngineerAgent = AGIAgent
 ValidatorAgent = APEXAgent
+Verdict = AgentVerdict  # Phase 3: renamed to AgentVerdict, alias for backward compat
 
 __all__ = [
     "ConstitutionalAgent",
     "TrinityRole",
-    "Verdict",
+    "AgentVerdict",
+    "Verdict",  # backward-compat alias
     "AGIAgent",  # was EngineerAgent
     "APEXAgent",  # was ValidatorAgent
     "EngineerAgent",  # backward-compat alias

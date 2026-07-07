@@ -30,16 +30,27 @@ from arifosmcp.schemas.forge import ConstitutionalCompliance, IrreversibilityBon
 from arifosmcp.schemas.lineage import JudgeSealContract
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# VERDICT CODES
+# VERDICT CODES — CANONICAL SOURCE
 # ═══════════════════════════════════════════════════════════════════════════════
+# VerdictCode is now an alias for the canonical Verdict from models/verdicts.py.
+# Every module must import Verdict from models/verdicts, NOT define its own.
+# PARADOX_HOLD is a schema-level extension, not a governance verdict.
 
 
-class VerdictCode(StrEnum):
-    SEAL = "SEAL"  # Approved — proceed
-    SABAR = "SABAR"  # Wait — under review
-    VOID = "VOID"  # Rejected — constitutional breach
-    HOLD = "HOLD"  # Paused — manual review required
-    PARADOX_HOLD = "PARADOX_HOLD"  # Two truths conflict — both verified, both preserved
+from arifosmcp.models.verdicts import Verdict as VerdictCode
+from arifosmcp.models.verdicts import (
+    RuntimeStatus,
+    SealType,
+    VerdictState,
+    enforce_verdict_monotonicity,
+    merge_verdicts,
+    is_verdict_allowed,
+)
+
+# PARADOX_HOLD — two truths conflict, both preserved.
+# This is a reason code attached to a Verdict.HOLD, NOT a verdict itself.
+# Governance verdict remains HOLD; the reason is PARADOX_HOLD.
+PARADOX_HOLD = "PARADOX_HOLD"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -819,10 +830,19 @@ class _VerdictEnvelope(BaseModel):
     timestamp: str | None = None
 
 
-class Verdict(_VerdictEnvelope):
-    """Backward-compatible verdict envelope."""
+class JudgeVerdictEnvelope(_VerdictEnvelope):
+    """Backward-compatible verdict envelope — NOT a governance verdict.
+
+    This is a data container for judge tool output.
+    For the canonical governance verdict (SEAL/HOLD/SABAR/VOID), use:
+        from arifosmcp.models.verdicts import Verdict
+    """
 
     tool: str = "arif_judge"
+
+
+# Legacy alias — deprecated, use JudgeVerdictEnvelope
+Verdict = JudgeVerdictEnvelope
 
 
 class CritiqueReport(_VerdictEnvelope):
