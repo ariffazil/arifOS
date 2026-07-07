@@ -8,6 +8,8 @@ Single L11 AUTH validator for all tools.
 import os
 import time
 
+from arifosmcp.runtime.governance_identity import is_protected_sovereign_id
+
 SESSION_TTL_SECONDS = 3600  # 1 hour
 SESSION_GRACE_SECONDS = 300  # 5 min grace period after TTL
 
@@ -175,7 +177,24 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
             "validator": "L11_AUDIT",
         }
 
-    # ── 4. Actor ID mismatch ──────────────────────────────────────────────────
+    # ── 4. Protected sovereign ID must be signature-verified ─────────────────
+    sess_actor = sess.get("actor_id", "")
+    if is_protected_sovereign_id(sess_actor) and not sess.get("signature_verified", False):
+        return {
+            "valid": False,
+            "session": sess,
+            "reason": (
+                "L11 AUTH: Protected sovereign ID claimed without verified signature. "
+                "Actor IDs matching PROTECTED_SOVEREIGN_IDS require Ed25519 signature "
+                "verification through arif_session_init. Use a valid actor_signature "
+                "or use an unprivileged actor_id."
+            ),
+            "actor_id_claimed": sess_actor,
+            "signature_verified": False,
+            "required_action": "arif_session_init with valid actor_signature",
+        }
+
+    # ── 5. Actor ID mismatch ──────────────────────────────────────────────────
     if actor_id and sess.get("actor_id") != actor_id:
         return {
             "valid": False,
@@ -185,7 +204,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
             "actor_id_on_session": sess.get("actor_id"),
         }
 
-    # ── 5. TTL refresh (continuity improvement) ───────────────────────────────
+    # ── 6. TTL refresh (continuity improvement) ───────────────────────────────
     if now > expires_at - (SESSION_TTL_SECONDS // 2):
         # Session is past half-life: refresh TTL
         new_expires = now + SESSION_TTL_SECONDS

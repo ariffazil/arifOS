@@ -17,8 +17,11 @@ parsing only — it does NOT grant identity verification.
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # P0: Protected Sovereign IDs (L11 Identity Hardening)
 # These IDs cannot be claimed without:
@@ -85,20 +88,83 @@ def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> b
 
     SECURITY (2026-07-06): Semantic key bypass removed. Only cryptographic
     signatures or explicit human approval through verified sessions are accepted.
+
+    IMPLEMENTED (2026-07-07): Ed25519 + HMAC verification via sovereign_verify.
     """
     if not proof:
         return False
 
-    # Cryptographic signature path (Ed25519/ES256)
+    # Cryptographic signature path (Ed25519)
     if isinstance(proof, dict):
         required_fields = ["signature", "nonce", "timestamp"]
         if all(field in proof for field in required_fields):
-            # TODO (real): Add Ed25519 signature verification.
-            # Until implemented, cryptographic proof structs are accepted
-            # but logged as unverified — the session stays OBSERVE_ONLY.
-            return False
+            return _verify_ed25519_proof(actor_id, proof)
+
+        # HMAC path (Telegram-native identity)
+        if "hmac_challenge" in proof and "hmac_sig" in proof:
+            return _verify_hmac_proof(actor_id, proof)
 
     # String proof (e.g. "IM ARIF") is NOT accepted for identity verification.
     # It may be used for NLP input parsing via canonicalize_identity_claim(),
     # but that does NOT grant authority or verification status.
     return False
+
+
+def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
+    """Verify Ed25519 signature proof. Returns True only on cryptographic success."""
+    try:
+        from arifosmcp.runtime.sovereign_verify import (
+            is_challenge_fresh,
+            verify_sovereign_signature,
+        )
+        from arifosmcp.runtime.sovereign_signer import get_constitution_hash
+    except ImportError:
+        logger.error(
+            "sovereign_verify/sovereign_signer not importable — Ed25519 verification unavailable"
+        )
+        return False
+
+    nonce = proof["nonce"]
+    signature = proof["signature"]
+
+    # Reject stale challenges (60s window for Ed25519)
+    if not is_challenge_fresh(nonce, window_sec=60):
+        logger.warning("Ed25519 proof rejected: stale nonce for actor=%s", actor_id)
+        return False
+
+    constitution_hash = get_constitution_hash()
+    verified, reason = verify_sovereign_signature(
+        actor_id=actor_id,
+        constitution_hash=constitution_hash,
+        nonce=nonce,
+        actor_signature=signature,
+    )
+
+    if verified:
+        logger.info("Ed25519 proof verified for actor=%s", actor_id)
+    else:
+        logger.warning("Ed25519 proof FAILED for actor=%s reason=%s", actor_id, reason)
+
+    return verified
+
+
+def _verify_hmac_proof(actor_id: str, proof: dict) -> bool:
+    """Verify HMAC-rootkey proof (Telegram-native path)."""
+    try:
+        from arifosmcp.runtime.sovereign_verify import verify_hmac_signature
+    except ImportError:
+        logger.error("sovereign_verify not importable — HMAC verification unavailable")
+        return False
+
+    verified, reason = verify_hmac_signature(
+        actor_id=actor_id,
+        challenge=proof["hmac_challenge"],
+        sig=proof["hmac_sig"],
+    )
+
+    if verified:
+        logger.info("HMAC proof verified for actor=%s", actor_id)
+    else:
+        logger.warning("HMAC proof FAILED for actor=%s reason=%s", actor_id, reason)
+
+    return verified

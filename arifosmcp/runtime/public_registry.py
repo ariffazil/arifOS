@@ -12,7 +12,9 @@ from pydantic import TypeAdapter
 
 from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
 
-from .prompts import V2_PROMPT_SPECS
+from arifosmcp.registry import get_prompt_specs_for_charter as _get_prompt_specs_for_charter
+
+V2_PROMPT_SPECS = _get_prompt_specs_for_charter()  # sourced from single-source-of-truth registry
 from .public_surface import (
     CANONICAL_7,
     current_public_surface_mode,
@@ -534,16 +536,31 @@ def _spec_for_name(name: str) -> Any:
             "properties": {
                 "mode": {"default": "engineer", "type": "string"},
                 "manifest": {"default": "", "type": "string"},
-                "seal_verdict_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
-                "approved_action_hash": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "seal_verdict_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                },
+                "approved_action_hash": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                },
                 "query": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "artifact_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "session_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "ack_irreversible": {"default": False, "type": "boolean"},
                 "actor_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
-                "constitutional_chain_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
-                "judge_state_hash": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
-                "vault_entry_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "constitutional_chain_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                },
+                "judge_state_hash": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                },
+                "vault_entry_id": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                },
                 "plan_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "arif_ack_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "_envelope": {"default": None, "title": "Envelope"},

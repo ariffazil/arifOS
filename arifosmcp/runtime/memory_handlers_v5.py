@@ -981,4 +981,342 @@ __all__ = [
     "_handle_forget",
     "_handle_attest",
     "_handle_inspect",
+    "_handle_audit",
 ]
+
+
+# ────────────────────────────────────────────────────────────────────────
+# _handle_audit — JITU Contradiction Engine (2026-07-07)
+# ────────────────────────────────────────────────────────────────────────
+# SPEC:
+#   Compares a proposed action against stored memory state to detect
+#   contradictions. Application-layer proxy for J-space monitoring.
+#
+#   Input:
+#     payload['action']              : dict — the proposed action
+#       .description                 : str — what the agent proposes to do
+#       .domain                      : str — organ/context (geox, wealth, kernel, etc.)
+#       .reversibility               : str — FULL | PARTIAL | NONE
+#       .blast_radius                : str — LOW | MEDIUM | HIGH | CRITICAL
+#       .target                      : str — what is being acted upon
+#     payload['memory_scope']        : dict — optional scope limits
+#       .search_domain               : str — limit memory search
+#       .include_scars               : bool (default True)
+#       .include_sealed              : bool (default True)
+#       .include_recent              : bool (default True)
+#       .max_age_days                : int (default 30)
+#
+#   Output:
+#     verdict: PROCEED | ADVISORY | HOLD
+#     jitu_fired: bool
+#     contradiction_delta: float [0.0, 1.0]
+#     conflicts: list[dict]
+#
+#   Contradiction types:
+#     doctrine_violation  — action contradicts sealed doctrine
+#     scar_violation      — action repeats a sealed failure pattern
+#     truth_inflation     — claims certainty memory doesn't support
+#     authority_escalation — claims authority it doesn't have
+#     identity_drift      — actor doesn't match registered identity
+#     reversibility_lie   — claims reversible when it's not
+# ────────────────────────────────────────────────────────────────────────
+
+# Contradiction severity weights (sum components → delta)
+_CONTRADICTION_WEIGHTS = {
+    "doctrine_violation": 0.30,
+    "scar_violation": 0.25,
+    "truth_inflation": 0.15,
+    "authority_escalation": 0.15,
+    "identity_drift": 0.10,
+    "reversibility_lie": 0.05,
+}
+
+# JITU threshold: delta ≥ this value → HOLD + route to 888
+_JITU_THRESHOLD = 0.50
+
+# Advisory threshold: delta ≥ this value → ADVISORY (flag, don't block)
+_JITU_ADVISORY_THRESHOLD = 0.20
+
+
+async def _handle_audit(payload: dict, ctx: Any) -> dict:
+    """JITU contradiction engine — compare proposed action vs memory state.
+
+    Returns PROCEED if no contradiction, ADVISORY for minor conflicts,
+    HOLD + jitu_fired=True for significant contradictions.
+    """
+    import hashlib
+    import json
+    from datetime import datetime, timezone
+
+    action = payload.get("action", {})
+    memory_scope = payload.get("memory_scope", {})
+    actor_id = payload.get("actor_id", "unknown")
+
+    if not action.get("description"):
+        return {
+            "ok": False,
+            "verdict": "HOLD",
+            "payload": {
+                "error": "MISSING_ACTION",
+                "message": "audit requires action.description",
+                "jitu_fired": False,
+            },
+        }
+
+    action_desc = action["description"]
+    action_domain = action.get("domain", "general")
+    action_reversibility = action.get("reversibility", "UNKNOWN")
+    action_blast = action.get("blast_radius", "UNKNOWN")
+
+    conflicts: list[dict] = []
+    memory_state: dict = {
+        "relevant_memories": 0,
+        "active_scars": 0,
+        "sealed_doctrine": 0,
+        "contradictions_found": 0,
+    }
+
+    # ── Step 1: Pull relevant memory state ──
+    try:
+        from arifosmcp.runtime.memory_store import search as memory_search
+
+        # Search for memories relevant to this action domain
+        search_query = f"{action_domain} {action_desc[:200]}"
+        max_age = memory_scope.get("max_age_days", 30)
+
+        results = memory_search(
+            query=search_query,
+            limit=20,
+            session_id=payload.get("session_id"),
+        )
+
+        if isinstance(results, dict):
+            records = results.get("results", results.get("records", []))
+        elif isinstance(results, list):
+            records = results
+        else:
+            records = []
+
+        memory_state["relevant_memories"] = len(records)
+
+    except Exception as exc:
+        logger.warning(f"[JITU] memory search failed: {exc}")
+        records = []
+
+    # ── Step 2: Classify memories and check contradictions ──
+    sealed_records = []
+    scar_records = []
+    recent_records = []
+
+    for rec in records:
+        tier = rec.get("tier", "")
+        phoenix_state = rec.get("phoenix_state", "")
+        tags = rec.get("tags", [])
+        content = rec.get("content", rec.get("text", ""))
+        rec_actor = rec.get("actor_id", rec.get("actor", ""))
+
+        if tier in ("sacred", "vault") or phoenix_state == "sealed":
+            sealed_records.append(rec)
+        if "scar" in str(tags).lower() or phoenix_state == "scar":
+            scar_records.append(rec)
+        recent_records.append(rec)
+
+    memory_state["sealed_doctrine"] = len(sealed_records)
+    memory_state["active_scars"] = len(scar_records)
+
+    # ── Step 3: Detect contradiction types ──
+
+    # 3a. doctrine_violation — action contradicts sealed doctrine
+    for rec in sealed_records:
+        content = (rec.get("content", "") or rec.get("text", "")).lower()
+        # Check if action keywords contradict doctrine keywords
+        action_lower = action_desc.lower()
+
+        # Simple keyword contradiction detection
+        contradiction_pairs = [
+            (["skip", "bypass", "ignore"], ["required", "mandatory", "must", "shall"]),
+            (["force", "override", "ignore"], ["forbidden", "blocked", "prohibited"]),
+            (["deploy", "release", "push"], ["hold", "pause", "wait", "pending"]),
+            (["delete", "remove", "drop"], ["preserve", "retain", "immutable"]),
+        ]
+
+        for action_keywords, doctrine_keywords in contradiction_pairs:
+            action_match = any(kw in action_lower for kw in action_keywords)
+            doctrine_match = any(kw in content for kw in doctrine_keywords)
+            if action_match and doctrine_match:
+                conflicts.append(
+                    {
+                        "type": "doctrine_violation",
+                        "memory_id": rec.get("id", "unknown"),
+                        "memory_says": content[:200],
+                        "action_says": action_desc[:200],
+                        "severity": "HIGH",
+                        "floor": "F2",
+                    }
+                )
+                break  # one match per record is enough
+
+    # 3b. scar_violation — action repeats a sealed failure pattern
+    for rec in scar_records:
+        content = (rec.get("content", "") or rec.get("text", "")).lower()
+        action_lower = action_desc.lower()
+
+        # Check if action resembles a known failure
+        scar_keywords = ["failed", "broke", "error", "crash", "revert", "rollback"]
+        if any(kw in content for kw in scar_keywords):
+            # Check if action targets the same area
+            content_words = set(content.split())
+            action_words = set(action_lower.split())
+            overlap = content_words & action_words
+            if len(overlap) >= 3:  # significant keyword overlap
+                conflicts.append(
+                    {
+                        "type": "scar_violation",
+                        "memory_id": rec.get("id", "unknown"),
+                        "memory_says": content[:200],
+                        "action_says": action_desc[:200],
+                        "severity": "HIGH",
+                        "floor": "F1",
+                    }
+                )
+
+    # 3c. truth_inflation — action claims certainty memory doesn't support
+    certainty_keywords = ["verified", "confirmed", "proven", "certain", "definite", "sealed"]
+    action_claims_certainty = any(kw in action_desc.lower() for kw in certainty_keywords)
+    if action_claims_certainty:
+        # Check if any relevant memory has low confidence
+        for rec in records:
+            truth_class = rec.get("truth_class", {})
+            if isinstance(truth_class, dict):
+                confidence = truth_class.get("confidence", 1.0)
+                if confidence < 0.5:
+                    conflicts.append(
+                        {
+                            "type": "truth_inflation",
+                            "memory_id": rec.get("id", "unknown"),
+                            "memory_says": f"confidence={confidence}",
+                            "action_says": "claims certainty",
+                            "severity": "MEDIUM",
+                            "floor": "F2",
+                        }
+                    )
+                    break
+
+    # 3d. authority_escalation — action claims authority it doesn't have
+    authority_keywords = ["seal", "approve", "authorize", "ratify", "sovereign"]
+    action_claims_authority = any(kw in action_desc.lower() for kw in authority_keywords)
+    if action_claims_authority and action_blast in ("HIGH", "CRITICAL"):
+        conflicts.append(
+            {
+                "type": "authority_escalation",
+                "memory_id": "N/A",
+                "memory_says": "high-blast action requires sovereign approval",
+                "action_says": action_desc[:200],
+                "severity": "CRITICAL",
+                "floor": "F13",
+            }
+        )
+
+    # 3e. identity_drift — actor doesn't match registered identity
+    if actor_id and actor_id != "unknown":
+        for rec in records:
+            rec_actor = rec.get("actor_id", rec.get("actor", ""))
+            if rec_actor and rec_actor != actor_id and rec_actor != "unknown":
+                # Different actor wrote this memory — not necessarily a conflict
+                # but flag if action claims to act on behalf of that actor
+                if rec_actor.lower() in action_desc.lower():
+                    conflicts.append(
+                        {
+                            "type": "identity_drift",
+                            "memory_id": rec.get("id", "unknown"),
+                            "memory_says": f"actor={rec_actor}",
+                            "action_says": f"actor={actor_id} references {rec_actor}",
+                            "severity": "MEDIUM",
+                            "floor": "F11",
+                        }
+                    )
+
+    # 3f. reversibility_lie — claims reversible when it's not
+    if action_reversibility == "FULL" and action_blast in ("HIGH", "CRITICAL"):
+        conflicts.append(
+            {
+                "type": "reversibility_lie",
+                "memory_id": "N/A",
+                "memory_says": f"blast_radius={action_blast} implies significant impact",
+                "action_says": f"reversibility={action_reversibility}",
+                "severity": "MEDIUM",
+                "floor": "F1",
+            }
+        )
+
+    # ── Step 4: Compute contradiction delta ──
+    memory_state["contradictions_found"] = len(conflicts)
+
+    delta = 0.0
+    seen_types: set[str] = set()
+    for conflict in conflicts:
+        ctype = conflict["type"]
+        if ctype not in seen_types:
+            delta += _CONTRADICTION_WEIGHTS.get(ctype, 0.10)
+            seen_types.add(ctype)
+    delta = min(delta, 1.0)
+
+    # ── Step 5: Determine verdict ──
+    if delta >= _JITU_THRESHOLD:
+        verdict = "HOLD"
+        jitu_fired = True
+    elif delta >= _JITU_ADVISORY_THRESHOLD:
+        verdict = "ADVISORY"
+        jitu_fired = False
+    else:
+        verdict = "PROCEED"
+        jitu_fired = False
+
+    # ── Step 6: Build receipt ──
+    audit_id = hashlib.sha256(
+        f"{actor_id}:{action_desc}:{datetime.now(timezone.utc).isoformat()}".encode()
+    ).hexdigest()[:16]
+
+    result = {
+        "ok": True,
+        "verdict": verdict,
+        "payload": {
+            "mode": "audit",
+            "jitu_fired": jitu_fired,
+            "contradiction_delta": round(delta, 4),
+            "conflicts": conflicts,
+            "memory_state": memory_state,
+            "thresholds": {
+                "advisory": _JITU_ADVISORY_THRESHOLD,
+                "jitu": _JITU_THRESHOLD,
+            },
+            "floor_report": {
+                "F1": "fail" if any(c["floor"] == "F1" for c in conflicts) else "pass",
+                "F2": "fail" if any(c["floor"] == "F2" for c in conflicts) else "pass",
+                "F9": "pass",  # anti-hantu: we're checking, not claiming
+                "F11": "fail" if any(c["floor"] == "F11" for c in conflicts) else "pass",
+                "F13": "fail" if any(c["floor"] == "F13" for c in conflicts) else "pass",
+            },
+            "receipt": {
+                "audit_id": audit_id,
+                "actor_id": actor_id,
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "not_sealed": True,
+            },
+            "route_to": "888_HOLD" if jitu_fired else None,
+            "note": (
+                f"JITU: {len(conflicts)} contradictions detected, delta={delta:.2f}. "
+                f"Sovereign review required."
+                if jitu_fired
+                else f"Audit complete: {len(conflicts)} conflicts, delta={delta:.2f}"
+            ),
+        },
+    }
+
+    if jitu_fired:
+        logger.warning(
+            f"[JITU] actor={actor_id} action={action_desc[:100]} "
+            f"delta={delta:.2f} conflicts={len(conflicts)} → HOLD"
+        )
+
+    return result

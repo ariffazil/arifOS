@@ -108,7 +108,11 @@ class ActionContext(BaseModel):
     target_agent: str | None = Field(default=None, description="Federation target")
 
     # Authority signals
-    ack_irreversible: bool = Field(default=False, description="L01 Amanah explicit ack")
+    # REMOVED 2026-07-07: ack_irreversible was a self-attestation bypass — same entity
+    # being governed decides whether action is irreversible. Replaced by requiring
+    # prior arif_judge SEAL (via constitutional_chain_id) for irreversible agent-to-agent
+    # flows, and sovereign session + mcp:allow for Arif-to-tool flows.
+    # See /root/memory/2026-07-07.md §22:08 for full rationale.
     witness_type: WitnessType = Field(default=WitnessType.AI, description="L13 witness type")
     plan_id: str | None = Field(default=None, description="H2 ratified plan ID")
 
@@ -435,11 +439,17 @@ class FloorEvaluator:
         )
 
         if effective_irreversibility.value >= IrreversibilityLevel.HIGH.value:
-            if not context.ack_irreversible:
+            # REMOVED 2026-07-07: ack_irreversible self-attestation removed.
+            # Replaced by: prior arif_judge SEAL via constitutional_chain_id,
+            # or sovereign session authority.
+            has_prior_seal = bool(context.constitutional_chain_id)
+            is_sovereign = context.actor_id == "arif" and getattr(context, "session_id", None)
+            if not (has_prior_seal or is_sovereign):
                 failed.append("L01")
                 reasons["L01"] = (
                     f"Irreversible action (level={effective_irreversibility.name}) "
-                    "requires ack_irreversible=True"
+                    "requires prior arif_judge SEAL (constitutional_chain_id) "
+                    "or sovereign session"
                 )
 
         # L02 TRUTH — No fabrication

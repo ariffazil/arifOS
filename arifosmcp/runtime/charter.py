@@ -3,6 +3,11 @@ arifosmcp/runtime/charter.py — arifOS MCP Manifest
 
 Well-known charter for discovery and SDK generation.
 
+Migration 2026-07-07: V2_PROMPT_SPECS sourced from arifosmcp.registry
+(single source of truth) instead of arifosmcp.runtime.prompt (deleted).
+The legacy runtime/prompt.py and runtime/prompts.py have been superseded
+by /root/arifOS/arifosmcp/registry/prompt_registry.yaml.
+
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
@@ -10,9 +15,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from arifosmcp.runtime.prompt import V2_PROMPT_SPECS
+from arifosmcp.registry import get_prompt_specs_for_charter
 from arifosmcp.runtime.resource import SYSTEM_CAPABILITIES
-from arifosmcp.runtime.tool_specs import V2_TOOLS
+from arifosmcp.runtime.tool_spec import V2_TOOLS
 
 
 def build_charter_v2(
@@ -35,9 +40,9 @@ def build_charter_v2(
             }
         )
 
-    # Build prompt entries
+    # Build prompt entries — sourced from arifosmcp.registry (single source of truth)
     prompts = []
-    for spec in V2_PROMPT_SPECS:
+    for spec in get_prompt_specs_for_charter():
         prompts.append(
             {
                 "name": spec["name"],

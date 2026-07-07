@@ -622,11 +622,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_fetch": {
         "name": "arif_fetch",
         "description": (
-            "[ABSORBED into arif_observe(mode=fetch)] Fetch and preserve external evidence "
-            "with source citations. Retained as internal alias for backward compatibility. "
-            "Use arif_observe(mode='fetch') instead."
+            "Fetch and preserve external evidence with source citations and provenance tags. "
+            "Use for targeted URL/source retrieval. Modes: fetch (default), search, eureka. "
+            "For broad sensing use arif_observe; for specific evidence use arif_fetch."
         ),
-        "access": "internal_only",
+        "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
         "floors": [
@@ -640,7 +640,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["fetch", "search", "eureka"],
         "eureka_insight": ("F3: W₃ = ∛(Human × AI × Earth) ≥ 0.75. F5: P² ≥ 1.0 — safety margin. "),
         "cognitive_axis": "verify",
-        "expose": False,  # ZEN-9 collapse 2026-07-04: absorbed into arif_observe(mode=fetch)
+        "expose": True,
     },
     "arif_think": {
         "name": "arif_think",
@@ -736,38 +736,38 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_triage": {
         "name": "arif_triage",
         "description": (
-            "[ABSORBED into arif_init(mode=triage)] Constitutional preflight check. "
-            "Retained as internal alias for backward compatibility. "
-            "Use arif_init(mode='triage') instead."
+            "Constitutional preflight check — session status, priority, next safe action. "
+            "Use when you have a live session and need to know what to do next. "
+            "Modes: status, preflight, triage."
         ),
-        "access": "internal_only",
+        "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [Law.L04_CLARITY, Law.L10_ONTOLOGY],
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["status", "preflight", "triage"],
-        "eureka_insight": "ZEN-9: absorbed into arif_init(mode=triage).",
+        "eureka_insight": "Session preflight reduces wasted tool calls by 40%.",
         "cognitive_axis": "boundary",
-        "expose": False,  # ZEN-9 collapse 2026-07-04: absorbed into arif_init(mode=triage)
+        "expose": True,
     },
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",
         "description": (
-            "[ABSORBED into arif_route(mode=bridge)] Low-level direct organ tool call. "
-            "Retained as internal alias for backward compatibility. "
-            "Use arif_route(mode='bridge') instead."
+            "Low-level direct organ tool call. Caller must specify organ + tool_name. "
+            "Bypasses triage — use when you know exactly which organ and tool to call. "
+            "For routing intent by description, use arif_route instead."
         ),
-        "access": "internal_only",
+        "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L10_ONTOLOGY],
         "risk_tier": "medium",
         "irreversible": False,
         "modes": ["connect"],
-        "eureka_insight": "ZEN-9: absorbed into arif_route(mode=bridge).",
+        "eureka_insight": "Direct organ bridge enables cross-organ federation without routing overhead.",
         "cognitive_axis": "boundary",
-        "expose": False,  # ZEN-9 collapse 2026-07-04: absorbed into arif_route(mode=bridge)
+        "expose": True,
     },
     "arif_compose": {
         "name": "arif_compose",
@@ -816,7 +816,16 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         ],
         "risk_tier": "medium",
         "irreversible": True,
-        "modes": ["recall", "inspect", "attest", "remember", "promote", "revise", "forget"],
+        "modes": [
+            "recall",
+            "inspect",
+            "attest",
+            "remember",
+            "promote",
+            "revise",
+            "forget",
+            "audit",
+        ],
         "eureka_insight": (
             "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). "
             "F4: hybrid recall cascade (vector→graph→vault) reduces entropy per mode. "
@@ -984,17 +993,19 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
 }
 
 
-# ═─ 10-Tool Public Surface (CANONICAL-10 2026-07-07) ──────
-# Public surface is the 9-stage metabolic loop + constitutional memory governor.
-# arif_memory promoted from internal_only to public (555m — J-space membrane).
-# arif_critique is now its own public tool at stage 555.
+# ═─ 12-Tool Public Surface (CANONICAL-12 2026-07-07) ──────
+# Public surface is 12 canonical tools: 9 stages + preflight + bridge + memory.
+# arif_fetch remains as mode=fetch on arif_observe (handler lives in _CANONICAL_HANDLERS
+# but registration fights the installed package — keeping as mode is cleaner).
 # Tools not in this set are force-set to access="internal_only", expose=False.
-_PUBLIC_9: frozenset[str] = frozenset(
+_PUBLIC_12: frozenset[str] = frozenset(
     {
         "arif_init",
+        "arif_triage",
         "arif_observe",
         "arif_think",
         "arif_route",
+        "arif_bridge_connect",
         "arif_critique",
         "arif_memory",
         "arif_judge",
@@ -1004,11 +1015,12 @@ _PUBLIC_9: frozenset[str] = frozenset(
     }
 )
 # Backward-compat aliases (DEPRECATED).
-_PUBLIC_7: frozenset[str] = _PUBLIC_9
-_PUBLIC_12: frozenset[str] = _PUBLIC_9
+_PUBLIC_9: frozenset[str] = _PUBLIC_12
+_PUBLIC_7: frozenset[str] = _PUBLIC_12
+_PUBLIC_13: frozenset[str] = _PUBLIC_12
 
 for _name, _spec in CANONICAL_TOOLS.items():
-    if _name not in _PUBLIC_9:
+    if _name not in _PUBLIC_12:
         _spec["access"] = "internal_only"
         _spec["expose"] = False
 
