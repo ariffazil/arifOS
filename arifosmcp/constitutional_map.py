@@ -509,8 +509,10 @@ def preflight(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 13 CANONICAL TOOLS — arif_noun_verb naming
+# CANONICAL KERNEL VERBS — arif_noun_verb naming
 # ═══════════════════════════════════════════════════════════════════════════════
+# MCP "tools" are the transport envelope. These entries are constitutional
+# kernel stages (metabolic loop 000→999), not generic plugins.
 #
 # FLOOR COVERAGE INVARIANT: ALL L01–L13 must appear on ≥ 2 tools each.
 # Current coverage (ZEN-9 collapse: absorbed tools folded into parents):
@@ -552,12 +554,11 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_init": {
         "name": "arif_init",
         "description": (
-            "Start or resume a governed session. CALL THIS FIRST before any other tool. "
-            "Binds identity, creates audit trail, activates floor enforcement. "
-            "Use mode='light' for fast bootstrap (<1s). Use mode='init' for full binding (~60s). "
-            "Mode='canary' for transport diagnostics (replaces arif_canary). "
-            "Mode='triage' for preflight checks (replaces arif_triage). "
-            "Returns session_id needed by all other tools."
+            "KERNEL 000 · Session ignition. Binds actor, floors, and audit before any other "
+            "arif_* verb can govern. Without session_id the kernel treats the caller as "
+            "anonymous (OBSERVE_ONLY). Modes: ping | light | init | resume | validate | "
+            "epoch_open | epoch_seal | canary | preflight | triage. "
+            "Returns session_id, authority band, allowed_next_verbs. Not a helper plugin."
         ),
         "access": "public",
         "stage": ToolStage.INIT,
@@ -592,12 +593,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_observe": {
         "name": "arif_observe",
         "description": (
-            "Sense reality: search the web, fetch evidence, check system vitals, "
-            "or gather real-world data. "
-            "Use mode='search' for web search, mode='fetch' for verified external evidence "
-            "(replaces arif_fetch), mode='ingest' to fetch a URL, "
-            "mode='vitals' for CPU/memory/disk state. "
-            "Returns results with source citations and uncertainty tags."
+            "KERNEL 111 · Sense reality into evidence (not reasoning, not judgment). "
+            "Modes: search | fetch | ingest | vitals | compass | atlas | entropy_dS | "
+            "repo_map | hybrid_discovery. Returns evidence with sources + uncertainty tags. "
+            "Domain compute → arif_route to GEOX/WEALTH/WELL."
         ),
         "access": "public",
         "stage": ToolStage.OBSERVE,
@@ -645,12 +644,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_think": {
         "name": "arif_think",
         "description": (
-            "Cognitive engine: multi-step reasoning, planning, and reflection. "
-            "Use for complex analysis, hypothesis evaluation, plan generation. "
-            "Use mode='plan' to generate execution plans, mode='reflect' to self-critique, "
-            "mode='verify' to check logical consistency. "
-            "For ethical/maruah assessment, use arif_critique (stage 555). "
-            "Returns reasoning with confidence scores and uncertainty bands."
+            "KERNEL 333 · Mind — structured reasoning under F2/F7 (not chat, not verdict). "
+            "Modes: reason | reflect | verify | plan | plan_review | plan_approve | "
+            "refactor_plan | metabolize | axioms. Returns OBS/DER/INT/SPEC labels. "
+            "Maruah/ethics → arif_critique. Binding decision → arif_judge."
         ),
         "access": "public",
         "stage": ToolStage.REASON,
@@ -690,12 +687,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_critique": {
         "name": "arif_critique",
         "description": (
-            "Adversarially test a plan or proposal before constitutional judgment. "
-            "Use for ethical risk assessment, maruah/dignity checks, red-teaming, "
-            "and shadow diagnostic scans. "
-            "Use mode='redteam' for adversarial testing, mode='maruah' for dignity "
-            "assessment, mode='shadow' for alignment failure mode detection. "
-            "Returns risk assessment, violated floors, empathy score, and human impact."
+            "KERNEL 555 · Heart — ethical/dignity/risk stress before judgment (not SEAL). "
+            "Requires non-empty target. Modes: critique | redteam | maruah | deescalate | "
+            "empathize | simulate | shadow. Returns risk, floors, human impact. "
+            "Binding verdict is arif_judge only."
         ),
         "access": "public",
         "stage": ToolStage.CRITIQUE,
@@ -716,11 +711,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_route": {
         "name": "arif_route",
         "description": (
-            "Routes a natural-language intent to the correct federation organ. "
-            "Use when you know what you want but not which tool to call. "
-            "Use mode='bridge' for direct organ bridge (replaces arif_bridge_connect). "
-            "Provide intent describing the task (e.g., 'interpret this seismic section'). "
-            "Returns routing decision with organ, tool, and arguments."
+            "KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE). "
+            "Select when goal is known but organ/verb is not. Optional organ_tool = "
+            "governed bridge (prefer over arif_bridge_connect). Not session preflight "
+            "(use arif_triage). Returns organ, port, tool_prefix, suggested_tools."
         ),
         "access": "public",
         "stage": ToolStage.ROUTE,
@@ -736,9 +730,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_triage": {
         "name": "arif_triage",
         "description": (
-            "Constitutional preflight check — session status, priority, next safe action. "
-            "Use when you have a live session and need to know what to do next. "
-            "Modes: status, preflight, triage."
+            "KERNEL 000 · Session preflight / immune status — not intent routing. "
+            "Modes: status | preflight | triage. Returns stage, holds, next_safe_action. "
+            "Organ choice → arif_route."
         ),
         "access": "public",
         "stage": ToolStage.INIT,
@@ -754,9 +748,8 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",
         "description": (
-            "Low-level direct organ tool call. Caller must specify organ + tool_name. "
-            "Bypasses triage — use when you know exactly which organ and tool to call. "
-            "For routing intent by description, use arif_route instead."
+            "KERNEL 444-direct · Low-level organ call (organ + tool_name required). "
+            "Authority HIGH/lease. Agents prefer arif_route. Not a free MCP proxy."
         ),
         "access": "public",
         "stage": ToolStage.ROUTE,
@@ -772,10 +765,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_compose": {
         "name": "arif_compose",
         "description": (
-            "Compose the final response for the user. Call this LAST, after reasoning and judgment are complete. "
-            "Provide message with the content to compose. "
-            "Use mode='summarize' for brief output, mode='cite' to include sources. "
-            "Returns formatted response with tone calibration and citations."
+            "KERNEL reply · Final human-facing composition (citations, tone, ΔS≤0). "
+            "Call LAST after observe/think/judge. Modes: compose | summarize | cite | "
+            "tone_shift | style | format. Not a substitute for judge or seal."
         ),
         "access": "public",
         "stage": ToolStage.REPLY,
@@ -796,11 +788,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_memory": {
         "name": "arif_memory",
         "description": (
-            "Constitutional memory governor — 7 canonical modes: "
-            "recall, inspect, attest, remember, promote, revise, forget. "
-            "Every write passes F1/F2/F4/F9/F11/F13 floor checks before storage delegation. "
-            "Memory writes are J-space mutations — they shape future reasoning. "
-            "arifOS judges, A-FORGE stores. Storage = external, governance = internal."
+            "KERNEL memory governor · L1–L6 under F1/F2/F4/F11 (not a free notepad). "
+            "Modes: recall | inspect | attest | remember | promote | revise | forget. "
+            "Writes are J-space mutations; arifOS judges, storage organs hold data."
         ),
         "access": "authenticated",
         "stage": ToolStage.INIT,
@@ -840,11 +830,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_judge": {
         "name": "arif_judge",
         "description": (
-            "888 constitutional verdict on a proposed action. Floor check, authority check, "
-            "and HOLD/SEAL/VOID/ESCALATE arbitration. This is the minimum constitutional kernel — "
-            "every mutating or external action must pass through it. "
-            "Provide candidate action with intent, actor, authority, evidence, and reversibility. "
-            "Returns verdict + next_safe_action."
+            "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
+            "Not advice; binding floor + authority arbitration. Requires actor, intent, "
+            "domain, reversibility_level, blast_radius. Authority: SOVEREIGN session for "
+            "real adjudicate. Returns verdict + receipts + next_safe_action."
         ),
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
@@ -888,11 +877,9 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_seal": {
         "name": "arif_seal",
         "description": (
-            "999 — Append to VAULT999 immutable ledger. "
-            "Mode='seal' to create a new VAULT999 entry with content, reason, tier, and tags. "
-            "Mode='verify' to check an existing seal. Mode='ledger' to query the ledger. "
-            "Every seal is irreversible — ack_irreversible=True required. "
-            "The Gödel break: 999 closes the metabolic loop. Only sovereign can authorize 000."
+            "KERNEL 999 · VAULT999 immutable append — irreversible civilizational memory. "
+            "Modes: seal | verify | chain | list | dry_run. seal requires ack_irreversible. "
+            "Kernel judges; vault seals; Arif owns F13 veto. Not for HOLD/SABAR/VOID paths."
         ),
         "access": "authenticated",
         "stage": ToolStage.SEAL,
@@ -940,11 +927,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_forge": {
         "name": "arif_forge",
         "description": (
-            "Execute approved action. Guarded by the Verdict-Gated Action Bus. "
-            "Requires a prior SEAL_CANDIDATE verdict from arif_judge (seal_verdict_id "
-            "+ approved_action_hash). Modes: engineer | query | write | generate | "
-            "commit | recall | dry_run. Cognition petitions; kernel + bus decide + "
-            "execute + learn precedent."
+            "KERNEL 777 · Execution gate via A-FORGE (hands, not law). Mutates only after "
+            "arif_judge SEAL + lease/chain IDs — no self-authorize. Modes: dry_run | "
+            "engineer | query | write | generate | commit | recall. Public execution "
+            "verb (arif_act is internal alias only)."
         ),
         "access": "authenticated",
         "stage": ToolStage.FORGE_EXECUTE,
@@ -1891,40 +1877,40 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     # ═══════════════════════════════════════════════════════════════════
     "arif_init": derive_mcp_annotations(
         "PREPARE",
-        title="Init Session",
+        title="000 Init · Kernel Session",
     ),
     "arif_observe": derive_mcp_annotations(
         "OBSERVE",
-        title="Sense & Observe",
+        title="111 Observe · Sense Reality",
     ),
     "arif_fetch": derive_mcp_annotations(
         "OBSERVE",
-        title="Fetch Evidence",
+        title="Evidence Fetch",
     ),
     "arif_think": derive_mcp_annotations(
         "ANALYZE",
-        title="Mind Reason",
+        title="333 Think · Mind",
     ),
     "arif_critique": derive_mcp_annotations(
         "ANALYZE",
-        title="Heart Critique",
+        title="555 Critique · Heart",
     ),
     "arif_compose": derive_mcp_annotations(
         "ANALYZE",
-        title="Reply Compose",
+        title="Compose · Kernel Reply",
     ),
     "arif_judge": derive_mcp_annotations(
         "DRAFT",
-        title="Judge Deliberate",
+        title="888 Judge · Verdict",
     ),
     "arif_seal": derive_mcp_annotations(
         "IRREVERSIBLE",
-        title="Vault Seal",
+        title="999 Seal · VAULT999",
         is_irreversible=True,
     ),
     "arif_forge": derive_mcp_annotations(
         "MUTATE",
-        title="Forge Execute",
+        title="777 Forge · Execute Gate",
         is_irreversible=True,
     ),
     "arif_measure": derive_mcp_annotations(
@@ -1933,22 +1919,22 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
     ),
     "arif_memory": derive_mcp_annotations(
         "MUTATE",
-        title="Memory Governor",
+        title="Memory Governor · Kernel",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # RULE-14 DIAGNOSTIC TOOLS — action_class from kernel_canonical spec
     # ═══════════════════════════════════════════════════════════════════
     "arif_route": derive_mcp_annotations(
         "ANALYZE",
-        title="Route",
+        title="444 Route · Intent→Organ",
     ),
     "arif_triage": derive_mcp_annotations(
         "ANALYZE",
-        title="Triage",
+        title="000 Triage · Session Preflight",
     ),
     "arif_bridge_connect": derive_mcp_annotations(
         "BRIDGE",
-        title="Bridge Connect",
+        title="444 Bridge · Direct Organ (HIGH)",
     ),
     # ═══════════════════════════════════════════════════════════════════
     # CHATGPT COMPATIBILITY SHIM — OBSERVE-class, read-only, open-world

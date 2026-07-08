@@ -44,242 +44,212 @@ RUNTIME_ENVELOPE_SCHEMA = {
 }
 
 _TOOL_DESCRIPTIONS: dict[str, str] = {
+    # ═══════════════════════════════════════════════════════════════════════
+    # arifOS KERNEL VERBS (MCP "tools" = transport envelope only)
+    # These are constitutional stages of the kernel metabolic loop — not
+    # general-purpose plugins. Visibility on MCP ≠ authority to mutate.
+    # Pattern: KERNEL stage · what · authority · select · returns · skip
+    # Public wire = 12 verbs (CANONICAL-12). Order agents: init → triage/
+    # observe → route → think/critique → judge → forge → seal → compose.
+    # ═══════════════════════════════════════════════════════════════════════
     # ── Diagnostic Probes ──────────────────────────────────────────────────
     "arif_ping": (
-        "Confirm kernel reachability. The zero-risk selection: if unsure the server is live, "
-        "choose ping first. Returns build info + schema version + ok status. "
-        "Select when: any other tool returned connection error, or before init to validate transport."
+        "KERNEL probe · transport liveness only (not a session). "
+        "Select when another kernel call failed on connection. "
+        "Returns build + schema + ok. Prefer arif_init(mode=ping) for constitutional probe."
     ),
     "arif_selftest": (
-        "Constitutional integrity probe — verifies the floor stack is intact. "
-        "Select when: you suspect floor drift, post-deployment, or after a kernel mutation. "
-        "Returns floor-by-floor pass/fail with violation details."
+        "KERNEL probe · floor-stack integrity. "
+        "Select after deploy or suspected floor drift. Returns per-floor pass/fail."
     ),
     # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
     "arif_schema_echo": (
-        "CANARY: Echo back what the client sent plus the server's interpretation. "
-        "Zero-floor transport diagnostic. If what you sent != what you received, "
-        "the transport bridge is mangling your payload. "
-        "Select when: schema validation errors occur during tool calls."
+        "KERNEL canary · payload round-trip. Zero floors. "
+        "Select when schema validation errors suggest transport mangling."
     ),
     "arif_version_echo": (
-        "CANARY: Return MCP protocol version, supported versions, and dialect hints. "
-        "Zero-floor version probe. Use to detect version-dialect drift before "
-        "attempting a full session init."
+        "KERNEL canary · MCP protocol version negotiation. "
+        "Use before full arif_init if client/server dialect drift is suspected."
     ),
     "arif_transport_echo": (
-        "CANARY: Return every transport-level detail the server observed: "
-        "headers, protocol, source, transport hint. Zero-floor diagnostic."
+        "KERNEL canary · observed headers/protocol/source. Zero floors."
     ),
     "arif_initialize_probe": (
-        "CANARY: Test MCP initialize/initialized handshake without constitutional "
-        "ceremony. Simulates protocol version negotiation per MCP spec 2025-11-25. "
-        "Use AFTER ping passes but BEFORE arif_init."
+        "KERNEL canary · MCP initialize handshake without constitutional ceremony. "
+        "After ping, before arif_init."
     ),
-    # ═════════════════════════════════════════════════════════════════════════
-    # CANONICAL 7 — F13 Ratified 2026-06-23
-    # Agentic intelligence framing: each description answers the selection
-    # question "Should I choose this tool as my next action?"
-    # Gradient: intent - current_context = required_action
-    # ═════════════════════════════════════════════════════════════════════════
-    # ── 000_INIT ────────────────────────────────────────────────────────────
+    # ── 000 INIT ────────────────────────────────────────────────────────────
     "arif_init": (
-        "START HERE. Bind governed session before any arif_* call. "
-        "Without session_id, no governed action possible. "
-        "Returns: session_id, authority level, floor status, next_tool. "
-        "Modes: ping (<1s probe) | light (<1s pointers) | init (~60s full) | "
-        "resume | validate | epoch_open | epoch_seal. "
-        "Skip when: live session exists (use arif_triage) or factual question (use arif_observe)."
+        "KERNEL 000 · Session ignition — not a helper app. Binds actor, floors, and audit "
+        "before any other arif_* verb can govern. Without session_id, kernel treats you as "
+        "anonymous (OBSERVE_ONLY / SYUBHAH). "
+        "Authority: pre-session open; light/init mint session_id + authority band. "
+        "Modes: ping | light | init | resume | validate | epoch_open | epoch_seal | canary | "
+        "preflight | triage. "
+        "Returns: session_id, actor_verified, authority, allowed_next_verbs, next_tool. "
+        "Skip when live session already bound → arif_triage; pure facts only → arif_observe."
     ),
-    # arif_session_init removed from public surface (2026-07-02) —
-    # remains as Python alias in session.py for backward compat.
-    # C3 verify_tool_surface.py: long-name aliases must NOT be advertised.
-    # ── 111_OBSERVE ─────────────────────────────────────────────────────────
+    # ── 000 TRIAGE (session immune, not intent router) ─────────────────────
+    "arif_triage": (
+        "KERNEL 000 · Session preflight / immune status — not intent routing. "
+        "Select to read active session stage, holds, priority, next safe kernel verb. "
+        "Authority: L0 with session. Modes: status | preflight | triage. "
+        "Do NOT use for organ choice — that is arif_route. "
+        "Returns: active_sessions, stage, next_safe_action."
+    ),
+    # ── 111 OBSERVE ─────────────────────────────────────────────────────────
     "arif_observe": (
-        "Reality grounding: web search, URL fetch, vitals, repo map, entropy. "
-        "Select when: answer requires data not in your context. "
-        "Modes: search | ingest | compass | atlas | entropy_dS | vitals | repo_map | hybrid_discovery. "
-        "Returns: search results, ingested content, vitals, entropy scores, repo map. "
-        "Skip when: purely reasoning (use arif_think) or evidence already in context."
+        "KERNEL 111 · Sense reality into evidence (not reasoning, not judgment). "
+        "Web/URL/vitals/repo/entropy with epistemic tags. "
+        "Authority: L0 OBSERVE. Modes: search | fetch | ingest | compass | atlas | "
+        "entropy_dS | vitals | repo_map | hybrid_discovery. "
+        "Returns: evidence + sources + uncertainty. "
+        "Skip when pure reasoning → arif_think; domain compute → arif_route to GEOX/WEALTH/WELL."
     ),
     "arif_sense_observe": (
-        "[SDK alias of arif_observe] Multimodal reality observation and hybrid discovery. "
-        "Select this alias when your SDK uses long-form naming conventions."
+        "[alias → arif_observe] KERNEL 111 sense. Prefer canonical name arif_observe."
     ),
-    # ── 222_EVIDENCE ────────────────────────────────────────────────────────
+    # ── 222 EVIDENCE (folded; keep mode=fetch on observe) ───────────────────
     "arif_fetch": (
-        "Preserve external evidence with source citations. "
-        "Select when: a claim needs verified backing, you need to extract content from a "
-        "specific URL, or factual grounding is required before judgment. "
-        "Returns: fetched content with source metadata. "
-        "Do NOT select when: arif_observe(mode=search) is sufficient for broad discovery."
+        "KERNEL evidence fetch (prefer arif_observe mode=fetch). "
+        "URL/source retrieval with provenance. Not a general browser tool."
     ),
     "arif_evidence_fetch": (
-        "[SDK alias of arif_fetch] Fetch and preserve external evidence with source citations."
+        "[alias → arif_fetch / arif_observe] Evidence preserve. Prefer arif_observe."
     ),
-    # ── 333_REASON ──────────────────────────────────────────────────────────
+    # ── 333 THINK ───────────────────────────────────────────────────────────
     "arif_think": (
-        "Cognitive engine: reason, plan, reflect, critique, synthesize. "
-        "Select when: problem needs decomposition, plan generation, hypothesis evaluation, "
-        "or evidence synthesis. Gradient: cognitive overload → structured reasoning. "
-        "Modes: reason | reflect | verify | critique | plan | plan_review | plan_approve | "
-        "refactor_plan | metabolize | axioms. "
-        "Returns: epistemic labels (OBS/DER/INT/SPEC), facts, inferences, next_safe_action. "
-        "Skip when: factual question (use arif_observe) or immediate action needed (use arif_act)."
+        "KERNEL 333 · Mind — structure reasoning under F2/F7 (not a chat model, not a verdict). "
+        "Plan, reflect, verify, synthesize with OBS/DER/INT/SPEC labels. "
+        "Authority: L0–L1. Modes: reason | reflect | verify | plan | plan_review | "
+        "plan_approve | refactor_plan | metabolize | axioms. "
+        "Returns: structured reasoning + confidence + next_safe_action. "
+        "Ethical/maruah risk → arif_critique. Binding decision → arif_judge. Facts → arif_observe."
     ),
     "arif_mind_reason": (
-        "[SDK alias of arif_think] Multi-step reasoning, planning, and reflection "
-        "with confidence labeling."
+        "[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."
     ),
-    # ── 444/555_ROUTE ──────────────────────────────────────────────────────
+    # ── 444 ROUTE ───────────────────────────────────────────────────────────
+    "arif_route": (
+        "KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE). "
+        "Select when you know the goal but not which organ/verb. "
+        "Optional organ_tool+arguments = governed bridge call (prefer this over "
+        "arif_bridge_connect). Authority: L0. Returns: organ, port, tool_prefix, suggested_tools. "
+        "Not session preflight (use arif_triage). Not a free shell."
+    ),
     "arif_kernel_route": (
-        "[DEPRECATED — use arif_route] Legacy routing entry. "
-        "Modes: route | stage | lane | list | status | surface_drift."
+        "[DEPRECATED → arif_route] Legacy KERNEL 444 entry."
     ),
-    "arif_compose": (
-        "Compose the final response — format, cite, style. "
-        "Select LAST, after reasoning and judgment are complete, when the output needs "
-        "to be structured for human consumption. "
-        "Modes: compose | style | cite | summary | format | nudge | repo_answer."
+    # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
+    "arif_bridge_connect": (
+        "KERNEL 444-direct · Low-level organ call (organ + tool_name required). "
+        "Bypasses intent routing. Authority: HIGH / lease — often 888_HOLD for anonymous. "
+        "Agents should prefer arif_route (same reach, safer default). "
+        "Not a generic MCP proxy; only federation organs under kernel envelope."
     ),
-    "arif_reply_compose": ("[SDK alias of arif_compose] Compose the final response for the user."),
-    # ── 555_MEMORY ──────────────────────────────────────────────────────────
-    "arif_memory": (
-        "Store, retrieve, and govern memory across the 6-layer stack. "
-        "Select when: you need to recall past session context, store a finding for future "
-        "sessions, inspect memory lineage, or promote/revise existing memories. "
-        "Modes: recall | inspect | attest | remember | promote | revise | forget. "
-        "Do NOT select when: the query is ephemeral and doesn't need persistence."
+    "arif_bridge": (
+        "[DEPRECATED → arif_bridge_connect] Direct organ bridge."
     ),
-    "arif_memory_recall": (
-        "[SDK alias of arif_memory] Federated memory tool — 7 canonical modes: "
-        "recall | inspect | attest | remember | promote | revise | forget."
-    ),
-    # ── 666_CRITIQUE ────────────────────────────────────────────────────────
+    # ── 555 CRITIQUE ────────────────────────────────────────────────────────
     "arif_critique": (
-        "Ethical risk + human impact assessment. Select when: action is sensitive, "
-        "irreversible, dignity-affecting, or blast_radius MEDIUM/HIGH. "
-        "Modes: critique | simulate | empathize | redteam | maruah | deescalate | instruction_scan. "
-        "Returns: risk assessment, violated floors, empathy score, human impact. "
-        "Skip when: purely technical with zero human dimension."
+        "KERNEL 555 · Heart — ethical/dignity/risk stress before judgment (not SEAL). "
+        "Select when blast_radius MEDIUM+, human/dignity impact, or irreversible risk. "
+        "Requires non-empty target (proposal/plan text). "
+        "Authority: L1. Modes: critique | redteam | maruah | deescalate | empathize | "
+        "simulate | instruction_scan. Returns: risk, floors, human impact. "
+        "Skip pure technical with zero human stake. Binding verdict → arif_judge."
     ),
     "arif_heart_critique": (
-        "[SDK alias of arif_critique] Assess ethical risks and human impact before acting."
+        "[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."
     ),
-    # ── 666g_GATEWAY ────────────────────────────────────────────────────────
-    "arif_gateway_connect": (
-        "Bridge to other federation agents (GEOX, WEALTH, WELL, A-FORGE, AAA). "
-        "Select when: a task requires multi-organ coordination or cross-domain reasoning. "
-        "Modes: route | discover | handshake | relay. "
-        "Do NOT select when: the task can complete within the current session alone."
+    # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
+    "arif_memory": (
+        "KERNEL memory governor · L1–L6 stack under F1/F2/F4/F11 (not a free notepad). "
+        "Recall/inspect free-ish; remember/promote/revise/forget are J-space mutations. "
+        "Authority: recall L0; writes gated. Modes: recall | inspect | attest | remember | "
+        "promote | revise | forget. Skip ephemeral one-off facts."
     ),
-    # ── 777_MEASURE ─────────────────────────────────────────────────────────
-    "arif_measure": (
-        "Check system health, thermodynamic state, and resource metrics. "
-        "Select when: you need operational status before a deployment, want to monitor "
-        "metabolic cost, or need a pre-flight health check. "
-        "Modes: health | vitals | cost | predict | topology | drift | stack_health | budget. "
-        "Returns: live telemetry, entropy scores, resource utilization."
+    "arif_memory_recall": (
+        "[alias → arif_memory] Prefer canonical arif_memory."
     ),
-    "arif_ops_measure": (
-        "[SDK alias of arif_measure] Check system health, thermodynamic state, and resource metrics."
-    ),
-    # ── 888_JUDGE ───────────────────────────────────────────────────────────
+    # ── 666 JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
-        "Constitutional verdict gate. Select when: evidence gathered, plan ready, "
-        "floor compliance needs verification. "
-        "Returns: SEAL | HOLD | SABAR | VOID + violated floors + receipts. "
+        "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
+        "Not advice; binding arbitration of floors + authority. "
+        "Authority: 888_HOLD / SOVEREIGN session required for real adjudicate. "
+        "REQUIRES: actor, intent, domain, reversibility_level, blast_radius (+ evidence). "
         "Modes: judge | compare | history | explain | floor_status | witness_consensus. "
-        "REQUIRES: actor, intent, domain, reversibility_level, blast_radius. "
-        "Skip when: evidence incomplete (use arif_observe), plan not ready (use arif_think), "
-        "or action is reversible + low-risk (advisory sufficient)."
+        "Skip if evidence incomplete → arif_observe; plan incomplete → arif_think; "
+        "reversible low-risk advisory only."
     ),
     "arif_judge_deliberate": (
-        "[SDK alias of arif_judge] Render final constitutional verdict on a proposed action."
+        "[alias/internal → arif_judge] Prefer public arif_judge."
     ),
-    # ── 900_ACT ─────────────────────────────────────────────────────────────
-    "arif_act": (
-        "Execution gate (900). REQUIRES: seal_verdict_id + approved_action_hash from prior "
-        "judge→seal pipeline. Without these, returns 888_HOLD structurally. "
-        "Routes through A2ASealVerifier before execution. "
-        "Skip when: still planning (use arif_think) or no prior SEAL exists. "
-        "Last tool in constitutional pipeline — seal the result after."
-    ),
-    # ── 999_SEAL ────────────────────────────────────────────────────────────
-    "arif_seal": (
-        "Immutable ledger append (VAULT999). Select when: SEAL verdict needs permanent "
-        "anchoring or execution result needs audit trail. Irreversible. "
-        "Modes: seal | verify | chain | list | dry_run | seal_card | render. "
-        "Requires ack_irreversible=True for seal mode. "
-        "Skip when: verdict is HOLD/SABAR/VOID (seal only SEAL) or testing (use dry_run)."
-    ),
-    "arif_vault_seal": (
-        "[SDK alias of arif_seal] Seal a verdict or outcome to the immutable audit ledger. "
-        "Use for final, irreversible records that must be preserved forever."
-    ),
-    # ── 010_FORGE ───────────────────────────────────────────────────────────
+    # ── 777 FORGE ───────────────────────────────────────────────────────────
     "arif_forge": (
-        "Prepare execution (dry-run capable) of an action via A-FORGE. "
-        "Select when: you have a prior arif_judge SEAL and need to stage execution. "
-        "This is the reversible prep stage BEFORE arif_act. "
-        "Use BEFORE arif_act for the actual irreversible execution. "
-        "Do NOT select when: no lease or no judge approval exists."
+        "KERNEL 777 · Execution gate via A-FORGE (hands, not law). "
+        "Mutates only after arif_judge SEAL + lease/chain IDs — no self-authorize. "
+        "Authority: 888_HOLD without SEAL. Modes include dry_run | engineer | query | write. "
+        "Public execution verb (arif_act is internal alias only). "
+        "Skip while still planning (arif_think) or without judge SEAL."
     ),
     "arif_forge_execute": (
-        "[SDK alias of arif_forge] Execute approved builds, deployments, or system changes. "
-        "Use ONLY after arif_judge has issued a SEAL verdict."
+        "[alias → arif_forge] Prefer arif_forge."
     ),
-    # ── Rule 14 expansion (2026-06-20) ──
-    "arif_route": (
-        "Canonical intent router. Select when: you know what you want but not which tool or "
-        "organ to call. Routes natural-language intent to the correct federation organ "
-        "(GEOX, WEALTH, WELL, A-FORGE) or kernel tool. "
-        "Optionally accepts organ_tool to bridge-call directly — bypassing the routing decision. "
-        "Returns: organ, port, tool_prefix, suggested_tools. "
-        "Do NOT select when: you already know the exact tool to call."
+    "arif_act": (
+        "[INTERNAL alias → arif_forge] Not on public kernel facade. Call arif_forge after SEAL."
     ),
-    "arif_triage": (
-        "Constitutional preflight check. Select when: you need to determine the correct lane "
-        "for a proposed action before execution. Returns kernel status, current holds, "
-        "and lane recommendation."
+    # ── 888 COMPOSE ─────────────────────────────────────────────────────────
+    "arif_compose": (
+        "KERNEL reply · Final human-facing composition (citations, tone, ΔS≤0). "
+        "Call LAST after observe/think/judge — not mid-pipeline. "
+        "Authority: L0–L1. Modes: compose | summarize | cite | tone_shift | style | format. "
+        "Not a substitute for arif_judge or arif_seal."
+    ),
+    "arif_reply_compose": (
+        "[alias → arif_compose] Prefer arif_compose."
+    ),
+    # ── 999 SEAL ────────────────────────────────────────────────────────────
+    "arif_seal": (
+        "KERNEL 999 · VAULT999 immutable append — civilizational memory, irreversible. "
+        "Authority: 888_HOLD / SOVEREIGN + ack_irreversible for seal mode. "
+        "Modes: seal | verify | chain | list | dry_run | seal_card | render. "
+        "Seal only after SEAL verdict path; HOLD/SABAR/VOID do not seal. "
+        "Testing → dry_run. Kernel judges; vault seals; Arif owns F13 veto."
+    ),
+    "arif_vault_seal": (
+        "[alias → arif_seal] Prefer arif_seal."
+    ),
+    # ── Gateway / measure (non-public helpers) ──────────────────────────────
+    "arif_gateway_connect": (
+        "KERNEL federation gateway (legacy). Prefer arif_route for organ selection."
+    ),
+    "arif_measure": (
+        "KERNEL ops measure (internal). Prefer arif_observe(mode=vitals) on public surface."
+    ),
+    "arif_ops_measure": (
+        "[alias → arif_measure] Internal ops measure."
     ),
     "arif_kernel_status": (
-        "[DEPRECATED — moving to arif_diag_telemetry] Kernel telemetry and discovery. "
-        "Query live health, tool registry, and predictive readiness across the federation surface."
+        "[DEPRECATED] Kernel telemetry. Prefer arif_triage / arif_observe(mode=vitals)."
     ),
-    "arif_bridge_connect": (
-        "Low-level direct organ tool call. Bypasses intent routing — caller must "
-        "specify organ and tool_name. Select when: both organ and tool are known ahead of time. "
-        "Canonical name follows arif_<noun>_<verb> convention."
-    ),
-    "arif_bridge": ("[DEPRECATED — use arif_bridge_connect] Low-level direct organ tool call."),
     "arif_kernel_attest": (
-        "[DEPRECATED — moving to arif_diag_attest] Live organ attestation. "
-        "Verify identity, tool surface, and constitutional binding."
+        "[DEPRECATED] Organ attestation diagnostic."
     ),
     "arif_kernel_health": (
-        "[DEPRECATED — moving to arif_diag_health] Lightweight kernel liveness probe."
+        "[DEPRECATED] Kernel liveness. Prefer arif_init(mode=ping)."
     ),
     "arif_conformance_report": (
-        "[DEPRECATED — use arif_canary(mode=conformance_report)] "
-        "PROOF MACHINE: run the ARIF Conformance Spine against the live kernel."
+        "[DEPRECATED → arif_canary mode=conformance_report] Conformance spine."
     ),
     "arif_canary": (
-        "Unified transport diagnostic probe. One tool, six modes. "
-        "Select when: you need liveness checks, protocol version verification, schema "
-        "round-trip testing, transport detail dumps, MCP handshake tests, or full conformance. "
-        "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
+        "KERNEL transport diagnostic (not constitutional work). "
+        "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | "
+        "conformance_report. Zero floors."
     ),
     # ── ChatGPT Compatibility Shim ──
     "arif_search": (
-        "Search the web for current information. "
-        "Select when: you need to find facts, documentation, or real-world data. "
-        "Returns search results with titles, URLs, and snippets."
-    ),
-    "arif_fetch": (
-        "Fetch content from a URL. "
-        "Select when: you need to read the contents of a specific webpage or document. "
-        "Returns page content as text."
+        "Compat search → prefer KERNEL arif_observe(mode=search)."
     ),
 }
 
@@ -502,7 +472,7 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
             name=name,
             description=_TOOL_DESCRIPTIONS.get(name)
             or inspect.getdoc(handler)
-            or "Governed arifOS MCP tool.",
+            or "Governed arifOS kernel verb (MCP transport envelope).",
             output_schema=None,
         )
         input_schema = tool.parameters
@@ -512,7 +482,7 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
             input_schema = {**input_schema, "additionalProperties": False}
         contracts[name] = {
             "description": tool.description
-            or _TOOL_DESCRIPTIONS.get(name, "Governed arifOS MCP tool."),
+            or _TOOL_DESCRIPTIONS.get(name, "Governed arifOS kernel verb (MCP transport envelope)."),
             "input_schema": input_schema,
             "output_schema": None,
         }
