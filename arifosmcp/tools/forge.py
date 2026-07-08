@@ -456,16 +456,40 @@ async def arif_forge(
         pass  # Sealing must never block execution
 
     _register_forge_cooldown(result, mode, manifest, artifact_id, session_id)
-    # ── v3.1: surface reserved signature in receipt (recorded, not enforced) ──
+    # ── v3.1: actor_signature verification (Ed25519) ────────────────────────
     if actor_signature and nonce:
-        # F13 territory — log receipt only, do not act
-        sig_receipt = {
-            "actor_signature_provided": True,
-            "nonce_provided": True,
-            "actor_signature_preview": actor_signature[:16] if actor_signature else None,
-            "f13_status": "RESERVED — per-call signature path not yet enforced; "
-            "signature inherited from session_init until F13 ratifies.",
-        }
+        # Verify Ed25519 signature over (nonce + actor_id + mode)
+        try:
+            from cryptography.hazmat.primitives import serialization
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+            from pathlib import Path
+
+            _pub_pem = Path("/opt/arifos/secrets/did_arifos_public.key").read_bytes()
+            _pub_key = serialization.load_pem_public_key(_pub_pem)
+            if not isinstance(_pub_key, Ed25519PublicKey):
+                raise TypeError("Expected Ed25519PublicKey")
+            _payload = f"{nonce}:{actor_id}:{mode}".encode()
+            _pub_key.verify(bytes.fromhex(actor_signature), _payload)
+            sig_receipt = {
+                "actor_signature_verified": True,
+                "nonce_provided": True,
+                "f13_status": "VERIFIED — Ed25519 per-call signature enforced",
+            }
+        except Exception as e:
+            _meta = {
+                "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+                "reason": f"F11 AUTH: actor_signature verification FAILED: {e}",
+                "violated_laws": ["F11"],
+                "f13_status": "REJECTED — invalid Ed25519 signature",
+            }
+            _add_floor_compat(_meta)
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta=_meta,
+                timestamp=datetime.now(UTC).isoformat(),
+            )
         # Attach to result.meta if present, else to result.result
         if hasattr(result, "meta") and result.meta is not None:
             result.meta["per_call_signature_receipt"] = sig_receipt
