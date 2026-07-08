@@ -138,6 +138,10 @@
         "description": "Actor's self-assessment of evidence quality",
         "enum": ["ANECDOTAL", "CORROBORATED", "VERIFIED", "MEASURED", "DIRECT"],
         "default": "ANECDOTAL"
+      },
+      "claim_receipt_ref": {
+        "type": ["string", "null"],
+        "description": "Optional claim_id of an ArifOSClaimReceipt (see schemas/arifos_claim_receipt.schema.json + GENESIS/020). Preferred for canon claims. 'No receipt, no canon' rule applies: L4 inference insufficient for irreversible. Kernel should call verify_claim_receipt before high-stakes verdicts."
       }
     }
   },

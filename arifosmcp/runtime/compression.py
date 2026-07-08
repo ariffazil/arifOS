@@ -33,16 +33,25 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+import os as _os
+
 try:
     from core.shared.constitutional_ontology import RuntimeState
-except ModuleNotFoundError:  # pragma: no cover — legacy fallback, see core/shared/__init__.py
-    import os as _os
-    import sys
+except ModuleNotFoundError:  # pragma: no cover — namespace collision fallback
+    # arifosmcp/__init__.py guard should handle this. If we're still here,
+    # use importlib to load directly from the canonical path.
+    import importlib.util as _il_util
 
-    _parent = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-    if _parent not in sys.path:
-        sys.path.insert(0, _parent)
-    from core.shared.constitutional_ontology import RuntimeState
+    _ont_path = _os.path.join(
+        _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))),
+        "core",
+        "shared",
+        "constitutional_ontology.py",
+    )
+    _spec = _il_util.spec_from_file_location("_arifos_constitutional_ontology", _ont_path)
+    _mod = _il_util.module_from_spec(_spec)
+    _spec.loader.exec_module(_mod)
+    RuntimeState = _mod.RuntimeState
 
 
 class CompressionMode(Enum):

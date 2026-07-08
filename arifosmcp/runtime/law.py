@@ -430,6 +430,49 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
             except Exception as e:
                 logger.error(f"L09 TAQWA check failed: {e}")
 
+    # ── DRAFT_CONTROL_DOCTRINE: CLARITY CONTRACT GATE (2026-07-08) ─────────────
+    # Enforces Intent→Evidence→Authority→Risk→Route→Action→Receipt minimum.
+    # Hard blocks per doctrine for missing actor/session/intent/evidence_layer etc.
+    # One CHAOTIC or missing critical → HOLD/VOID.
+    clarity_required = {
+        "actor_id": actor_id,
+        "session_id": params.get("session_id"),
+        "intent": params.get("intent") or params.get("query") or params.get("prompt"),
+        "evidence_layer": (params.get("evidence_layer") or (params.get("evidence", {}) or {}).get("layer") if isinstance(params.get("evidence"), dict) else None) or "L4",
+    }
+    missing_critical = [k for k, v in clarity_required.items() if not v]
+    ev_layer = clarity_required.get("evidence_layer") or "L4"
+    if risk_tier in ("critical", "sovereign", "high") or tool_name in ("arif_forge", "arif_seal", "arif_judge", "arif_act"):
+        if missing_critical:
+            failed.append("CLARITY")
+            logger.warning(f"CLARITY HOLD: {tool_name} missing {missing_critical} in clarity_contract")
+        # Evidence layer sanity: L4 cannot drive irreversible
+        if ev_layer == "L4" and spec.get("irreversible"):
+            failed.append("CLARITY_L4")
+            logger.critical(f"CLARITY VOID: L4 inference cannot drive irreversible {tool_name}")
+        # Route owner stub (extend in full router)
+        route_owner = params.get("route_owner")
+        if tool_name == "arif_forge" and route_owner and route_owner != "A-FORGE":
+            failed.append("CLARITY_ROUTE")
+            logger.warning("CLARITY ROUTE: forge action must declare route_owner=A-FORGE")
+    if "CLARITY" in failed or "CLARITY_L4" in failed:
+        # Return early with clarity details
+        try:
+            from arifosmcp.runtime.clarity_carry import open_contradiction
+            if "CLARITY_L4" in failed:
+                open_contradiction(f"L4 on {tool_name}", "irreversible action", "params", "doctrine", "CRITICAL")
+        except Exception:
+            pass
+        return {
+            "verdict": "HOLD" if "CLARITY_L4" not in failed else "VOID",
+            "label": VerdictLabel.HOLD_EXECUTION if "CLARITY_L4" not in failed else VerdictLabel.VOID,
+            "violated_laws": failed + ["CLARITY_CONTRACT"],
+            "reason": f"Clarity contract failure: missing={missing_critical}, layer={ev_layer}",
+            "clarity_contract": clarity_required,
+            "request_type": request_type,
+            "next_safe_action": "Supply actor_id, session_id, intent, evidence_layer (L1-L3 for action). Re-run with full contract.",
+        }
+
     # ── 5. Build response ────────────────────────────────────────────────────
     if failed:
         if "L13" in failed:

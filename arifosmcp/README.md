@@ -2,19 +2,26 @@
 
 `arifosmcp/` is the **live MCP runtime package** inside this repository. It is the packaging and server layer for the arifOS constitutional kernel; it is **not** a separate public doctrine surface.
 
-## Current truth
+## Current truth (SATU PERMUKAAN 2026-07-08 — F13 approved consolidation)
 
-- Public MCP wire surface: **exactly 7 verbs**
-  - `arif_init`
-  - `arif_observe`
-  - `arif_think`
-  - `arif_route`
-  - `arif_judge`
-  - `arif_act`
-  - `arif_seal`
+- Public MCP wire surface: **exactly 12 canonical verbs** (live + tool_registry.json + runtime/public_surface.py:CANONICAL_12)
+  - `arif_init` (000)
+  - `arif_triage` (000t)
+  - `arif_observe` (111)
+  - `arif_think` (333)
+  - `arif_route` (444)
+  - `arif_bridge_connect` (444b)
+  - `arif_critique` (555)
+  - `arif_memory` (555m)
+  - `arif_judge` (666)
+  - `arif_forge` (777)
+  - `arif_compose` (888)
+  - `arif_seal` (999)
 - Canonical public endpoint: `https://mcp.arif-fazil.com/mcp`
 - Canonical local runtime entrypoint: `uv run python -m arifosmcp.runtime.server`
 - Packaged server authority: `arifosmcp.server`
+
+**Source of truth (live > code > docs):** runtime/public_surface.py CANONICAL_12 + tool_registry.json + :8088/tools + :8088/health. Older claims (7/10/13/20) are HISTORICAL.
 
 ## Source of truth order
 
@@ -32,7 +39,7 @@ When docs or manifests disagree, trust these first:
 - `server.py` and `runtime/server.py` — packaged and local runtime entrypoints
 - `runtime/tools.py` — handler implementations and execution gates
 - `runtime/public_registry.py` — machine-readable public discovery payloads
-- `runtime/public_surface.py` — the 7-verb public facade
+- `runtime/public_surface.py` — the 12-verb public facade (CANONICAL_12)
 - `runtime/` bridges, leases, memory, and health/reporting infrastructure
 
 ## What this package does not mean

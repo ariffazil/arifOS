@@ -489,6 +489,13 @@ def arif_route(
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_route", floor_check["reason"], floor_check["violated_laws"])
 
+    # Kernel dispatch gate: if _envelope provided (cross-organ), session must match live issued one
+    # (This is before organ runs — wall, not policy)
+    if arguments and "_envelope" in (arguments or {}):
+        env = arguments.get("_envelope") or {}
+        if session_id and env.get("session_id") and env.get("session_id") != session_id:
+            return _hold("arif_route", "Kernel reject: _envelope.session_id does not match live session issued by kernel")
+
     target_organ = _route_intent_to_organ(intent, organ)
     intent_map = _load_intent_map()
     # G15 FIX (2026-07-04): normalize organ lookup key so "A-FORGE" → "a_forge"
@@ -572,9 +579,19 @@ def arif_route(
             )
         return _ok("arif_route", routing)
 
+    # Build transport _envelope from live session state (ALWAYS populated, never re-typed by caller)
+    _envelope = {
+        "session_id": session_id,
+        "constitutional_chain_id": session_id or "cc-none",
+        "actor_id": actor_id,
+        "trace_id": f"trace_{int(__import__('time').time() * 1000)}_{actor_id or 'anon'}",
+    }
+    call_args = dict(arguments or {})
+    call_args.setdefault("_envelope", _envelope)
+
     # Bridge call to organ
     if target_organ.lower() == "geox":
-        result = _bridge_geox(organ_tool, arguments or {}, session_id, actor_id)
+        result = _bridge_geox(organ_tool, call_args, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
@@ -586,7 +603,7 @@ def arif_route(
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "wealth":
-        result = _bridge_wealth(organ_tool, arguments or {}, session_id, actor_id)
+        result = _bridge_wealth(organ_tool, call_args, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
@@ -598,7 +615,7 @@ def arif_route(
         return _ok("arif_route", routing)
 
     if target_organ.lower() == "well":
-        result = _bridge_well(organ_tool, arguments or {}, session_id, actor_id)
+        result = _bridge_well(organ_tool, call_args, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
@@ -805,13 +822,27 @@ def arif_bridge_connect(
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_bridge", floor_check["reason"], floor_check["violated_laws"])
 
+    # IDENTITY PROPAGATION (FORGE 2026-07-08): Inject _envelope into arguments
+    # so identity crosses organ boundaries. Previously identity was lost here —
+    # the bridge functions echo it back, but it was never populated.
+    _args = dict(arguments or {})
+    if session_id or actor_id:
+        _args.setdefault(
+            "_envelope",
+            {
+                "session_id": session_id,
+                "actor_id": actor_id,
+                "source_organ": "arifOS",
+            },
+        )
+
     organ_lower = organ.lower()
     if organ_lower == "geox":
-        return _bridge_geox(tool_name, arguments or {}, session_id, actor_id)
+        return _bridge_geox(tool_name, _args, session_id, actor_id)
     if organ_lower == "wealth":
-        return _bridge_wealth(tool_name, arguments or {}, session_id, actor_id)
+        return _bridge_wealth(tool_name, _args, session_id, actor_id)
     if organ_lower == "well":
-        return _bridge_well(tool_name, arguments or {}, session_id, actor_id)
+        return _bridge_well(tool_name, _args, session_id, actor_id)
     return _hold("arif_bridge", f"Unknown organ: {organ}")
 
 
@@ -925,10 +956,11 @@ def _assert_organ_attested(organ: str) -> dict[str, Any] | None:
 def _bridge_geox(
     tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
 ) -> dict[str, Any]:
-    """Bridge a call to GEOX organ."""
+    """Bridge a call to GEOX organ. Populates and expects echo of _envelope."""
     hold = _assert_organ_attested("geox")
     if hold:
         return hold
+    _envelope = arguments.get("_envelope")
     try:
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
         from arifosmcp.runtime.epistemic_injector import (
@@ -946,6 +978,11 @@ def _bridge_geox(
             actor_id=actor_id,
             lease_id=arguments.get("lease_id"),
         )
+        # Echo _envelope unchanged for integrity check (free drift detector)
+        if isinstance(wrapped, dict) and _envelope:
+            wrapped.setdefault("_envelope", _envelope)
+        elif isinstance(result, dict) and _envelope:
+            result.setdefault("_envelope", _envelope)
 
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
         # Check if the bridged result claims executive authority but is AI-generated.
@@ -961,6 +998,13 @@ def _bridge_geox(
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
+        # Kernel-side: if echoed _envelope.session_id does not match sent, flag (drift detector)
+        echoed = (wrapped or result) if isinstance(wrapped or result, dict) else {}
+        echoed_env = echoed.get("_envelope") or echoed.get("envelope") or {}
+        if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
+            logger.warning("ENVELOPE DRIFT DETECTED in GEOX response")
+            return _hold("arif_bridge", "Envelope session_id mismatch — identity rewrite suspected")
+
         return _ok(
             "arif_bridge",
             {
@@ -971,6 +1015,7 @@ def _bridge_geox(
                 "boundary_enforced": validated["boundary_enforced"],
                 "violations": validated["violations"],
                 "_epistemic_checked": True,
+                "_envelope_echoed": bool(_envelope),
             },
         )
     except Exception as e:
@@ -980,10 +1025,11 @@ def _bridge_geox(
 def _bridge_wealth(
     tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
 ) -> dict[str, Any]:
-    """Bridge a call to WEALTH organ."""
+    """Bridge a call to WEALTH organ. Echo _envelope for identity integrity."""
     hold = _assert_organ_attested("wealth")
     if hold:
         return hold
+    _envelope = arguments.get("_envelope")
     try:
         from arifosmcp.runtime.epistemic_injector import (
             read_epistemic,
@@ -994,10 +1040,13 @@ def _bridge_wealth(
         result = _run_async(call_wealth_tool(tool_name, arguments))
         validated = validate_organ_output("wealth", result)
 
+        # Echo unchanged
+        out = validated.get("output", result)
+        if isinstance(out, dict) and _envelope:
+            out.setdefault("_envelope", _envelope)
+
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
-        _source_epi = (
-            read_epistemic(validated["output"]) if isinstance(validated["output"], dict) else None
-        )
+        _source_epi = read_epistemic(out) if isinstance(out, dict) else None
         if _source_epi:
             _eligible, _reason = verify_route_eligibility(_source_epi, "EXECUTIVE")
             if not _eligible:
@@ -1008,16 +1057,24 @@ def _bridge_wealth(
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
+        # Kernel check for echo match
+        echoed_env = out.get("_envelope") or out.get("envelope") or {} if isinstance(out, dict) else {}
+        if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
+            return _hold(
+                "arif_bridge", "Envelope session_id mismatch — identity rewrite suspected (WEALTH)"
+            )
+
         return _ok(
             "arif_bridge",
             {
                 "organ": "WEALTH",
                 "tool": tool_name,
-                "result": validated["output"],
+                "result": out,
                 "status": "bridged",
                 "boundary_enforced": validated["boundary_enforced"],
                 "violations": validated["violations"],
                 "_epistemic_checked": True,
+                "_envelope_echoed": bool(_envelope),
             },
         )
     except Exception as e:
@@ -1027,10 +1084,11 @@ def _bridge_wealth(
 def _bridge_well(
     tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
 ) -> dict[str, Any]:
-    """Bridge a call to WELL organ."""
+    """Bridge a call to WELL organ. Echo _envelope unchanged."""
     hold = _assert_organ_attested("well")
     if hold:
         return hold
+    _envelope = arguments.get("_envelope")
     try:
         from arifosmcp.runtime.epistemic_injector import (
             read_epistemic,
@@ -1039,6 +1097,17 @@ def _bridge_well(
         from arifosmcp.runtime.well_bridge import call_well_tool
 
         result = _run_async(call_well_tool(tool_name, arguments))
+
+        # Echo _envelope
+        if isinstance(result, dict) and _envelope:
+            result.setdefault("_envelope", _envelope)
+
+        # Kernel echo match check
+        echoed_env = result.get("_envelope") or result.get("envelope") or {} if isinstance(result, dict) else {}
+        if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
+            return _hold(
+                "arif_bridge", "Envelope session_id mismatch — identity rewrite suspected (WELL)"
+            )
 
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
         _source_epi = read_epistemic(result) if isinstance(result, dict) else None
@@ -1060,6 +1129,7 @@ def _bridge_well(
                 "result": result,
                 "status": "bridged",
                 "_epistemic_checked": True,
+                "_envelope_echoed": bool(_envelope),
             },
         )
     except Exception as e:

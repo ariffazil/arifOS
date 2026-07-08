@@ -138,13 +138,14 @@ async def call_wealth_tool(
             "discount_rate": 0.12
         })
     """
+    args = dict(arguments or {})
     payload = {
         "jsonrpc": "2.0",
         "id": 1,
         "method": "tools/call",
         "params": {
             "name": tool_name,
-            "arguments": arguments or {},
+            "arguments": args,
         },
     }
     result = await _post_json_rpc(payload)
