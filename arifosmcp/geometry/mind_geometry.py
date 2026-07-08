@@ -656,7 +656,7 @@ def compute_action_affordance(
     blocked: list[str] = []
     next_tool = "arif_critique"
     mem_tier = "hypothesis"
-    requires_human_ack = False
+    requires_f13_sovereign_ack = False
     requires_evidence = False
 
     # Geometry verdict gates
@@ -711,12 +711,12 @@ def compute_action_affordance(
     if sovereign_proximity >= 0.75:
         # Too close to forbidden center — restrict
         blocked.extend(["MUTATE", "EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"])
-        requires_human_ack = True
+        requires_f13_sovereign_ack = True
     elif sovereign_proximity >= 0.5:
         blocked.extend(["EXTERNAL_SIDE_EFFECT", "IRREVERSIBLE"])
 
     # Memory tier from verdict + tensions
-    if requires_evidence or requires_human_ack:
+    if requires_evidence or requires_f13_sovereign_ack:
         mem_tier = "scratch"
     elif geometry_verdict == GeometryVerdict.SURFACE and not tensions:
         mem_tier = "fact"
@@ -726,7 +726,7 @@ def compute_action_affordance(
         blocked_action_classes=tuple(sorted(set(blocked))),
         next_cognitive_tool=next_tool,
         memory_tier_recommendation=mem_tier,
-        requires_human_ack=requires_human_ack,
+        requires_f13_sovereign_ack=requires_f13_sovereign_ack,
         requires_evidence=requires_evidence,
     )
 
@@ -820,7 +820,7 @@ def compute_cognitive_state(
             "blocked_action_classes": list(affordance.blocked_action_classes),
             "next_cognitive_tool": affordance.next_cognitive_tool,
             "memory_tier_recommendation": affordance.memory_tier_recommendation,
-            "requires_human_ack": affordance.requires_human_ack,
+            "requires_f13_sovereign_ack": affordance.requires_f13_sovereign_ack,
             "requires_evidence": affordance.requires_evidence,
         },
         "trajectory": (

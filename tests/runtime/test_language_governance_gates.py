@@ -21,7 +21,9 @@ def test_authority_gate_blocks_authority_smuggling() -> None:
         "decision_class": "C2",
         "uncertainty_state": "PARTIAL",
         "generated_by": "instrument_model",
-        "requires_human_ack": True,
+        # REMOVED 2026-07-08: requires_human_ack flag is rubber-stamp HITL.
+        # Kernel encodes governance autonomously. F13 sovereign thresholds only.
+        "requires_human_ack": False,
     }
     result = enforce_authority_boundary(payload)
     assert result.status == "HOLD"

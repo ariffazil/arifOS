@@ -153,7 +153,7 @@ class PolicyBlock(BaseModel):
     scope: Literal["private", "shared", "public", "sovereign"] = "private"
     ttl: str | None = None  # ISO 8601 duration, e.g. P30D
     deletable: bool = True
-    requires_human_ack: bool = False
+    requires_f13_sovereign_ack: bool = False
     floors_required: list[str] = Field(default_factory=list)
 
 

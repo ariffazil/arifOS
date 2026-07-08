@@ -48,11 +48,279 @@ REMOVED (chaos reduction):
 
 from __future__ import annotations
 
+import logging
+from datetime import datetime, timezone
+from typing import Any
+
 from fastmcp import FastMCP
 
 from .bootstrap import register_bootstrap
 from .civilization import register_civilization
 from .doctrine import register_doctrine
+
+logger = logging.getLogger(__name__)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# RESOURCE PROVENANCE — MCP-spec-aligned metadata for all core resources
+# ══════════════════════════════════════════════════════════════════════════════
+# Per MCP spec: resources are application-driven context. Provenance tracks
+# source, freshness, and evidence layer for constitutional compliance.
+# ══════════════════════════════════════════════════════════════════════════════
+
+_RESOURCE_PROVENANCE: dict[str, dict[str, Any]] = {
+    "arifos://doctrine": {
+        "source": "constitution",
+        "truth_level": 1,
+        "truth_label": "SOVEREIGN_CANON",
+        "mutability": "immutable",
+        "staleness": "never_stale",
+        "evidence_layer": "constitutional",
+    },
+    "arifos://trinity": {
+        "source": "aaa_control_plane",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "governance",
+    },
+    "arifos://schema": {
+        "source": "arifosmcp_schema",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "structural",
+    },
+    "arifos://civilization": {
+        "source": "arifosmcp_ontology",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "ontological",
+    },
+    "arifos://seal-readiness": {
+        "source": "kernel_health_probe",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "dynamic",
+        "staleness": "real_time",
+        "evidence_layer": "operational",
+    },
+    "arifos://jurisdiction": {
+        "source": "arifosmcp_governance",
+        "truth_level": 2,
+        "truth_label": "SEALED_VAULT",
+        "mutability": "append_only",
+        "staleness": "refresh_on_seal",
+        "evidence_layer": "governance",
+    },
+    "arifos://identity": {
+        "source": "identity_toml",
+        "truth_level": 1,
+        "truth_label": "SOVEREIGN_CANON",
+        "mutability": "immutable",
+        "staleness": "never_stale",
+        "evidence_layer": "identity",
+    },
+    "arifos://memory": {
+        "source": "arifosmcp_memory_arch",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "architectural",
+    },
+    "arifos://vitals": {
+        "source": "kernel_metrics",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "dynamic",
+        "staleness": "real_time",
+        "evidence_layer": "operational",
+    },
+    "arifos://bootstrap": {
+        "source": "federation_knowledge_graph",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "contextual",
+    },
+    "arifos://loop-engineering": {
+        "source": "canonical_pipeline",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "procedural",
+    },
+    "arifos://quickstart": {
+        "source": "documentation",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "documentation",
+    },
+    "arifos://mcp-alignment": {
+        "source": "mcp_spec_comparison",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_spec_update",
+        "evidence_layer": "conformance",
+    },
+    "arifos://human/metabolized": {
+        "source": "sovereign_context",
+        "truth_level": 5,
+        "truth_label": "USER_CLAIM",
+        "mutability": "session_scoped",
+        "staleness": "per_session",
+        "evidence_layer": "human",
+    },
+    "arifos://reality/state": {
+        "source": "kernel_runtime",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "dynamic",
+        "staleness": "real_time",
+        "evidence_layer": "operational",
+    },
+    "arifos://mcp/surface-map": {
+        "source": "tool_registry",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "dynamic",
+        "staleness": "real_time",
+        "evidence_layer": "operational",
+    },
+    # Evidence resource templates (F-WEB)
+    "source://{hash}": {
+        "source": "web_fetch",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "immutable_after_ingest",
+        "staleness": "frozen_at_fetch",
+        "evidence_layer": "evidence",
+    },
+    "receipt://web/{id}": {
+        "source": "evidence_store",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "immutable_after_write",
+        "staleness": "frozen_at_receipt",
+        "evidence_layer": "evidence",
+    },
+    "contrast://{id}": {
+        "source": "evidence_store",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "immutable_after_write",
+        "staleness": "frozen_at_creation",
+        "evidence_layer": "evidence",
+    },
+    "void://{id}": {
+        "source": "evidence_store",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "immutable_after_write",
+        "staleness": "frozen_at_creation",
+        "evidence_layer": "evidence",
+    },
+    # Tree777 wiki
+    "tree777://index": {
+        "source": "wiki",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "knowledge",
+    },
+    "tree777://skills/{category}/{name}": {
+        "source": "wiki",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "knowledge",
+    },
+    "tree777://concepts/{name}": {
+        "source": "wiki",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "knowledge",
+    },
+    "tree777://scars/{name}": {
+        "source": "wiki",
+        "truth_level": 2,
+        "truth_label": "SEALED_VAULT",
+        "mutability": "append_only",
+        "staleness": "never_stale",
+        "evidence_layer": "scar",
+    },
+    # Sovereign
+    "sovereign://{file}": {
+        "source": "sovereign_fs",
+        "truth_level": 1,
+        "truth_label": "SOVEREIGN_CANON",
+        "mutability": "sovereign_controlled",
+        "staleness": "sovereign_determined",
+        "evidence_layer": "sovereign",
+    },
+    # VAULT999
+    "arifos://vault/{vault_type}": {
+        "source": "vault999",
+        "truth_level": 2,
+        "truth_label": "SEALED_VAULT",
+        "mutability": "append_only",
+        "staleness": "never_stale",
+        "evidence_layer": "audit",
+    },
+    # Witness
+    "arifos://witness/log/{filter}": {
+        "source": "witness_oracle",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "append_only",
+        "staleness": "real_time",
+        "evidence_layer": "witness",
+    },
+    "arifos://witness/stats/{period}": {
+        "source": "witness_oracle",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "dynamic",
+        "staleness": "real_time",
+        "evidence_layer": "witness",
+    },
+    # Boundaries
+    "arifos://boundaries/domain/{domain_id}": {
+        "source": "boundary_sense",
+        "truth_level": 4,
+        "truth_label": "OBSERVED_EXTERNAL",
+        "mutability": "dynamic",
+        "staleness": "real_time",
+        "evidence_layer": "operational",
+    },
+}
+
+
+def get_resource_provenance(uri: str) -> dict[str, Any] | None:
+    """Get provenance metadata for a resource URI."""
+    # Exact match first
+    if uri in _RESOURCE_PROVENANCE:
+        return _RESOURCE_PROVENANCE[uri]
+    # Template match (e.g., source://{hash} → source://)
+    for pattern, meta in _RESOURCE_PROVENANCE.items():
+        if "{" in pattern and uri.startswith(pattern.split("{")[0]):
+            return meta
+    return None
+
+
 from .embodied_resources import register_embodied_resources
 from .evidence import register_evidence_resources
 from .human_context import register_human_context
@@ -93,10 +361,10 @@ CANONICAL_RESOURCES = (
     "arifos://quickstart",
     "arifos://mcp-alignment",  # MCP spec conformance — useful for debugging
     "arifos://mcp/surface-map",
-)    # REMOVED 2026-06-28 (zen of resources — indices to indices):
-    #   tree777://index         — wiki index, not domain operational data
-    #   runner://policy/v1      — runner policy metadata, not AI operational data
-    #   arif://tools/discovery  — consolidated into arifos://tools/self-model
+)  # REMOVED 2026-06-28 (zen of resources — indices to indices):
+#   tree777://index         — wiki index, not domain operational data
+#   runner://policy/v1      — runner policy metadata, not AI operational data
+#   arif://tools/discovery  — consolidated into arifos://tools/self-model
 
 SUPPLEMENTAL_RESOURCES = (
     # REMOVED 2026-06-28 (catalog-of-catalog — meta, not domain data):

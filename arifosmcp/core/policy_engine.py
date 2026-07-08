@@ -69,9 +69,9 @@ class PolicyVerdict:
 def _f1_amanah(env: AuthorizationEnvelope) -> tuple[bool, str]:
     """F1: Reversible-first. Irreversible requires human ack."""
     if env.reversibility == Reversibility.NONE:
-        if not env.requires_human_ack:
+        if not env.requires_f13_sovereign_ack:
             return False, "F1 AMANAH: Irreversible action requires human acknowledgment (F13)"
-        if not env.human_ack_token:
+        if not env.f13_sovereign_ack_token:
             return False, "F1 AMANAH: Irreversible action requires valid human ack token"
     return True, "F1 AMANAH: OK"
 
@@ -127,7 +127,7 @@ def _f13_sovereign(env: AuthorizationEnvelope) -> tuple[bool, str]:
             BlastRadius.EXTERNAL,
             BlastRadius.IRREVERSIBLE,
         ):
-            if not env.human_ack_token:
+            if not env.f13_sovereign_ack_token:
                 return False, "F13 SOVEREIGN: High-blast irreversible requires sovereign ack"
     return True, "F13 SOVEREIGN: OK"
 

@@ -786,25 +786,14 @@ class ConstitutionKernel:
 
 class SchemaContractValidator:
     """
-    Validates that documented API, Pydantic models, and MCP elicitation schemas
-    are isomorphic.
+    Validates that documented API and Pydantic models are isomorphic.
 
     Run this in CI. Fail the build on mismatch.
-    """
 
-    @staticmethod
-    def validate_elicitation_model(model: type[BaseModel]) -> list[str]:
-        """Ensure model fields are compatible with MCP elicitation schemas."""
-        errors: list[str] = []
-        for name, field_info in model.model_fields.items():
-            annotation = field_info.annotation
-            # FastMCP elicitation rejects Union with None
-            if hasattr(annotation, "__origin__") and annotation.__origin__ is type[None] | str:
-                errors.append(
-                    f"Field '{name}' has Union type with None — "
-                    "FastMCP elicitation will reject this. Use default='' instead."
-                )
-        return errors
+    REMOVED 2026-07-08: validate_elicitation_model() — elicitation removed.
+    Kernel encodes governance via 10-check autonomous gate; no transport-level
+    human prompt. F13 sovereign thresholds apply to the 8 irreversible categories.
+    """
 
     @staticmethod
     def validate_mode_consistency(

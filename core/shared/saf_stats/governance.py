@@ -2,7 +2,7 @@
 
 Mirrors the arifOS kernel gates, applied per-tool. Every read-only
 inspection is auto-SEAL. Every analytic mutation is SABAR-by-default
-and requires explicit `ack_irreversible=True` for VOID-eligible ops.
+and requires explicit `f13_severity_acknowledged=True` for VOID-eligible ops.
 """
 
 from __future__ import annotations
@@ -94,7 +94,7 @@ def govern(
     tool: str,
     *,
     actor: str = "arif-fazil",
-    ack_irreversible: bool = False,
+    f13_severity_acknowledged: bool = False,
     input_data_hash: Optional[str] = None,
     is_destructive: bool = False,
     is_exfiltrative: bool = False,
@@ -104,7 +104,7 @@ def govern(
 
     Read-only inspections: SEAL by default.
     Destructive ops (drop, impute, overwrite, delete rows): SABAR unless
-        ack_irreversible=True → SEAL.
+        f13_severity_acknowledged=True → SEAL.
     Exfiltrative ops (network, file egress outside SAF_DATA_ROOT): VOID.
     """
     checks: list[ConstitutionalCheck] = []
@@ -138,12 +138,12 @@ def govern(
         )
 
     # L13 SOVEREIGN — destructive ops require explicit ack
-    if is_destructive and not ack_irreversible:
+    if is_destructive and not f13_severity_acknowledged:
         checks.append(
             ConstitutionalCheck(
                 floor=L13_SOVEREIGN,
                 passed=False,
-                note="destructive operation requires ack_irreversible=True",
+                note="destructive operation requires f13_severity_acknowledged=True",
                 severity="warn",
             )
         )
@@ -172,7 +172,7 @@ def govern(
     if has_block:
         verdict = Verdict.VOID
         irreversibility = "hard"
-    elif is_destructive and not ack_irreversible:
+    elif is_destructive and not f13_severity_acknowledged:
         verdict = Verdict.SABAR
         irreversibility = "soft"
     else:
@@ -189,7 +189,7 @@ def govern(
         note="OK"
         if verdict == Verdict.SEAL
         else (
-            "destructive op flagged — pass ack_irreversible=True to proceed"
+            "destructive op flagged — pass f13_severity_acknowledged=True to proceed"
             if verdict == Verdict.SABAR
             else "blocked by F6 PRIVACY"
         ),

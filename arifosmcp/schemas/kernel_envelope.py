@@ -80,7 +80,7 @@ class ActionClass(StrEnum):
         return action not in {cls.OBSERVE, cls.UNKNOWN}
 
     @classmethod
-    def requires_human_ack(cls, action: ActionClass) -> bool:
+    def requires_f13_sovereign_ack(cls, action: ActionClass) -> bool:
         """Actions that MUST have explicit human acknowledgement."""
         return action in {cls.IRREVERSIBLE, cls.EXTERNAL_SIDE_EFFECT}
 
@@ -148,7 +148,7 @@ class BlastRadius(StrEnum):
     INFRA = "INFRASTRUCTURE"
 
     @classmethod
-    def requires_human_ack(cls, radius: BlastRadius) -> bool:
+    def requires_f13_sovereign_ack(cls, radius: BlastRadius) -> bool:
         """Returns True if this blast radius requires human acknowledgement."""
         return radius.value >= cls.INFRASTRUCTURE.value
 
@@ -299,10 +299,10 @@ class AuthorityBlock(BaseModel):
     irreversible_allowed: bool = Field(
         default=False, description="Whether irreversible actions are allowed"
     )
-    human_ack_required: bool = Field(
+    f13_sovereign_required: bool = Field(
         default=False, description="Whether explicit human acknowledgement is required"
     )
-    human_ack_id: str | None = Field(
+    f13_sovereign_ack_id: str | None = Field(
         default=None, description="Human acknowledgement receipt ID, if provided"
     )
 
@@ -356,7 +356,7 @@ class RiskBlock(BaseModel):
     secret_touching: bool = Field(
         default=False, description="Whether this action touches secrets/credentials"
     )
-    human_ack_required: bool = Field(
+    f13_sovereign_required: bool = Field(
         default=False, description="Whether human acknowledgement is required for this action"
     )
     max_allowed_action_class: ActionClass = Field(
@@ -476,9 +476,9 @@ class KernelEnvelope(BaseModel):
         return ActionClass.requires_lease(self.authority.action_class)
 
     @property
-    def requires_human_ack(self) -> bool:
+    def requires_f13_sovereign_ack(self) -> bool:
         """Whether this action requires human acknowledgement."""
-        return ActionClass.requires_human_ack(self.authority.action_class)
+        return ActionClass.requires_f13_sovereign_ack(self.authority.action_class)
 
     @property
     def is_gated(self) -> bool:
@@ -534,12 +534,12 @@ class KernelEnvelope(BaseModel):
             # non-production or bootstrapping scenarios.
             pass
 
-        # If action is IRREVERSIBLE, human_ack_required must be set
+        # If action is IRREVERSIBLE, f13_sovereign_required must be set
         if self.authority.action_class == ActionClass.IRREVERSIBLE:
-            if not self.authority.human_ack_required:
-                self.reasons.append("IRREVERSIBLE action without human_ack_required flag")
-            if not self.authority.human_ack_id:
-                self.reasons.append("IRREVERSIBLE action without human_ack_id")
+            if not self.authority.f13_sovereign_required:
+                self.reasons.append("IRREVERSIBLE action without f13_sovereign_required flag")
+            if not self.authority.f13_sovereign_ack_id:
+                self.reasons.append("IRREVERSIBLE action without f13_sovereign_ack_id")
 
         # If verdict is HOLD or VOID, reasons must be populated
         if self.verdict in {GateVerdict.HOLD, GateVerdict.VOID}:
@@ -719,7 +719,7 @@ class HumanAcknowledgement(BaseModel):
     public publication.
     """
 
-    human_ack_id: str = Field(
+    f13_sovereign_ack_id: str = Field(
         default_factory=lambda: f"hack_{uuid4().hex[:12]}",
         description="Unique acknowledgement identifier",
     )
@@ -742,13 +742,13 @@ class HumanAcknowledgement(BaseModel):
         default=None, description="Ed25519 signature over (nonce + exact_command)"
     )
     binding_hash: str = Field(
-        default="", description="SHA-256 of (human_ack_id + nonce + exact_command)"
+        default="", description="SHA-256 of (f13_sovereign_ack_id + nonce + exact_command)"
     )
 
     @model_validator(mode="after")
     def _compute_binding(self) -> HumanAcknowledgement:
         """Compute the binding hash that ties this acknowledgement to the action."""
-        raw = f"{self.human_ack_id}:{self.nonce}:{self.exact_command}"
+        raw = f"{self.f13_sovereign_ack_id}:{self.nonce}:{self.exact_command}"
         self.binding_hash = f"sha256:{hashlib.sha256(raw.encode()).hexdigest()}"
         return self
 
@@ -821,7 +821,7 @@ class AuditEvent(BaseModel):
     prior_event_hash: str = Field(default="", description="Hash of prior audit event")
     verdict: GateVerdict = Field(default=GateVerdict.SEAL, description="Gate verdict")
     reasons: list[str] = Field(default_factory=list, description="Reasons")
-    human_ack_id: str | None = Field(default=None, description="Human acknowledgement ID")
+    f13_sovereign_ack_id: str | None = Field(default=None, description="Human acknowledgement ID")
 
     @model_validator(mode="after")
     def _compute_event_hash(self) -> AuditEvent:
@@ -864,7 +864,7 @@ class ToolManifestEntry(BaseModel):
     safe_modes: list[str] = Field(default_factory=list, description="Safe modes")
     dangerous_modes: list[str] = Field(default_factory=list, description="Gated modes")
     requires_lease: bool = Field(default=False)
-    requires_human_ack: bool = Field(default=False)
+    requires_f13_sovereign_ack: bool = Field(default=False)
     blast_radius: BlastRadius = Field(default=BlastRadius.LOCAL)
     is_reversible: bool = Field(default=True)
     memory_scope: MemoryScope | None = Field(default=None)
@@ -882,7 +882,7 @@ def _self_check() -> bool:
     assert env.verdict == GateVerdict.SEAL
     assert env.is_safe
     assert not env.is_mutating
-    assert not env.requires_human_ack
+    assert not env.requires_f13_sovereign_ack
     assert env.authority.action_class == ActionClass.OBSERVE
 
     # 2. Create a HOLD envelope
@@ -904,9 +904,9 @@ def _self_check() -> bool:
     assert not ActionClass.is_mutating(ActionClass.OBSERVE)
 
     # 5. Verify human ack requirement
-    assert ActionClass.requires_human_ack(ActionClass.IRREVERSIBLE)
-    assert ActionClass.requires_human_ack(ActionClass.EXTERNAL_SIDE_EFFECT)
-    assert not ActionClass.requires_human_ack(ActionClass.OBSERVE)
+    assert ActionClass.requires_f13_sovereign_ack(ActionClass.IRREVERSIBLE)
+    assert ActionClass.requires_f13_sovereign_ack(ActionClass.EXTERNAL_SIDE_EFFECT)
+    assert not ActionClass.requires_f13_sovereign_ack(ActionClass.OBSERVE)
 
     # 6. Verify HumanAcknowledgement binding hash
     hack = HumanAcknowledgement(

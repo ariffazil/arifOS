@@ -90,49 +90,49 @@ MEMORY_SCOPE_RULES: dict[MemoryScope, dict[str, Any]] = {
         "overwritable": True,
         "expires": True,
         "requires_lease": False,
-        "requires_human_ack": False,
+        "requires_f13_sovereign_ack": False,
         "description": "Ephemeral scratch — can be freely overwritten",
     },
     MemoryScope.SESSION: {
         "overwritable": False,
         "expires": True,
         "requires_lease": False,
-        "requires_human_ack": False,
+        "requires_f13_sovereign_ack": False,
         "description": "Session-bound — expires when session ends",
     },
     MemoryScope.PROJECT: {
         "overwritable": False,
         "expires": False,
         "requires_lease": True,
-        "requires_human_ack": False,
+        "requires_f13_sovereign_ack": False,
         "description": "Project-scoped — requires lease to write",
     },
     MemoryScope.ORGAN: {
         "overwritable": False,
         "expires": False,
         "requires_lease": True,
-        "requires_human_ack": False,
+        "requires_f13_sovereign_ack": False,
         "description": "Organ-owned — belongs to a specific organ",
     },
     MemoryScope.SOVEREIGN: {
         "overwritable": False,
         "expires": False,
         "requires_lease": True,
-        "requires_human_ack": True,
+        "requires_f13_sovereign_ack": True,
         "description": "Sovereign memory — requires ARIF authority",
     },
     MemoryScope.CONSTITUTIONAL: {
         "overwritable": False,
         "expires": False,
         "requires_lease": True,
-        "requires_human_ack": True,
+        "requires_f13_sovereign_ack": True,
         "description": "Constitutional memory — HOLD before mutation",
     },
     MemoryScope.VAULT: {
         "overwritable": False,
         "expires": False,
         "requires_lease": True,
-        "requires_human_ack": True,
+        "requires_f13_sovereign_ack": True,
         "description": "Vault memory — irreversible-grade",
     },
 }
@@ -169,7 +169,7 @@ def check_memory_access(
                 )
 
         # Human ack required
-        if rules.get("requires_human_ack") and action_class in (
+        if rules.get("requires_f13_sovereign_ack") and action_class in (
             ActionClass.MUTATE,
             ActionClass.IRREVERSIBLE,
         ):

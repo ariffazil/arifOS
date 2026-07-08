@@ -922,7 +922,7 @@ class ConstitutionalLaws:
             actor_id is not None and actor_id.lower() in ("arif", "sovereign", "human"),
             session_id is not None and "sovereign" in session_id.lower(),
             parameters.get("actor_id", "") in ("arif", "sovereign", "human"),
-            parameters.get("ack_irreversible", False) is True,
+            parameters.get("f13_severity_acknowledged", False) is True,
         ]
 
         sovereignty_score = sum(1 for s in sovereignty_signals if s) / len(sovereignty_signals)
@@ -934,7 +934,7 @@ class ConstitutionalLaws:
             parameters.get("actor_id", "") in ("ai", "agent", "model", "assistant"),
         ]
         is_ai_proposing = any(ai_self_approval_signals)
-        parameters.get("ack_irreversible", False) is True
+        parameters.get("f13_severity_acknowledged", False) is True
         has_explicit_sovereign = (
             sovereignty_signals[0] or sovereignty_signals[1] or sovereignty_signals[2]
         )

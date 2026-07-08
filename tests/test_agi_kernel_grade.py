@@ -665,7 +665,7 @@ class TestGateBeforeTool:
 class TestMemoryScopeViolation:
     """Memory scope violations must be blocked."""
 
-    def test_constitutional_memory_requires_human_ack(self):
+    def test_constitutional_memory_requires_f13_sovereign_ack(self):
         ok, violations = check_memory_access(
             [MemoryScope.CONSTITUTIONAL],
             ActionClass.MUTATE,
@@ -843,11 +843,11 @@ class TestKernelAttestation:
         assert ActionClass.is_mutating(ActionClass.IRREVERSIBLE)
         assert not ActionClass.is_mutating(ActionClass.OBSERVE)
 
-    def test_action_class_requires_human_ack(self):
-        assert ActionClass.requires_human_ack(ActionClass.IRREVERSIBLE)
-        assert ActionClass.requires_human_ack(ActionClass.EXTERNAL_SIDE_EFFECT)
-        assert not ActionClass.requires_human_ack(ActionClass.OBSERVE)
-        assert not ActionClass.requires_human_ack(ActionClass.ANALYZE)
+    def test_action_class_requires_f13_sovereign_ack(self):
+        assert ActionClass.requires_f13_sovereign_ack(ActionClass.IRREVERSIBLE)
+        assert ActionClass.requires_f13_sovereign_ack(ActionClass.EXTERNAL_SIDE_EFFECT)
+        assert not ActionClass.requires_f13_sovereign_ack(ActionClass.OBSERVE)
+        assert not ActionClass.requires_f13_sovereign_ack(ActionClass.ANALYZE)
 
 
 # ═══════════════════════════════════════════════════════════════════════════

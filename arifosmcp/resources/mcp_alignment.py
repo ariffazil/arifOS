@@ -56,7 +56,7 @@ CORE SPEC CONFORMANCE
 [✓] initialize          — MCP handshake with capabilities
 [✓] ping                — Liveness probe
 [✓] logging             — Structured log notifications
-[~] elicitation         — Partial: form-elicitation on SEAL-class tools
+[ ] elicitation         — REMOVED 2026-07-08: kernel-encode governance, no transport-level human prompt
 [ ] completions         — Not implemented (constitutional guard)
 
 EXTENSIONS SUPPORT
@@ -138,7 +138,7 @@ def register_mcp_alignment(mcp: FastMCP) -> list[str]:
         name="MCP Spec Conformance Matrix",
         description=(
             "Current conformance status of arifOS vs. MCP 2025-11-25 specification. "
-            "Covers core spec (tools, resources, prompts, elicitation), extensions "
+            "Covers core spec (tools, resources, prompts), extensions "
             "(JSON Schema 2020-12, Pagination, Tasks, MCP Apps, OAuth), transport, "
             "auth/security posture, deprecations, live resource inventory, and "
             "client compatibility matrix. Use to understand what an MCP client can "

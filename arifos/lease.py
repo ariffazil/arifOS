@@ -31,7 +31,7 @@ class Lease(BaseModel):
     permitted_tools: list[str] = Field(default_factory=list)
     max_blast_radius: str = "LOCAL"
     is_revocable: bool = True
-    human_ack_required: bool = False
+    f13_sovereign_required: bool = False
     metadata: dict[str, str] = Field(default_factory=dict)
 
     def is_expired(self, now: datetime | None = None) -> bool:

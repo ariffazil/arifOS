@@ -193,9 +193,7 @@ def _art_reflex_check(
 
     # Build intent text from tool name + payload for ASI screening.
     payload = getattr(envelope, "payload", {}) or {}
-    intent_text = f"{envelope.organ.tool_name} " + " ".join(
-        f"{k}={v}" for k, v in payload.items()
-    )
+    intent_text = f"{envelope.organ.tool_name} " + " ".join(f"{k}={v}" for k, v in payload.items())
     target = ""
     for candidate in ("target_path", "path", "file", "repo", "target"):
         if candidate in payload:
@@ -378,8 +376,8 @@ def _act_reflex_check(
         has_dry_run=False,
         has_compensation=False,
         human_acknowledged=(
-            envelope.authority.human_ack_required
-            or (manifest_entry and manifest_entry.requires_human_ack)
+            envelope.authority.f13_sovereign_required
+            or (manifest_entry and manifest_entry.requires_f13_sovereign_ack)
         ),
         previous_stage_verified=True,
         is_multi_step=False,
@@ -561,7 +559,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["init", "resume", "validate", "status", "discover", "handover"],
         dangerous_modes=["revoke", "epoch_open", "epoch_seal"],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -582,7 +580,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         ],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -592,7 +590,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["fetch", "search", "verify"],
         dangerous_modes=["archive"],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -613,7 +611,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         ],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -623,7 +621,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["route", "stage", "lane", "list", "status", "context_runner"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -633,7 +631,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["compose"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -644,20 +642,44 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         # Use OBSERVE as base; the v5 tool enforces lease/human_ack for mutating modes.
         # (Truth-plane fix 2026-06-25: mode-level affordance alignment)
         action_class=ActionClass.OBSERVE,
-        safe_modes=["recall", "inspect", "attest", "get", "list", "search", "context", "dry_run", "manage", "stats", "graph_get"],
+        safe_modes=[
+            "recall",
+            "inspect",
+            "attest",
+            "get",
+            "list",
+            "search",
+            "context",
+            "dry_run",
+            "manage",
+            "stats",
+            "graph_get",
+        ],
         dangerous_modes=["remember", "promote", "revise", "forget", "store", "prune"],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.ACCOUNT,
         is_reversible=True,
     ),
     "arif_memory": ToolManifestEntry(
         tool_name="arif_memory",
         action_class=ActionClass.OBSERVE,
-        safe_modes=["recall", "inspect", "attest", "get", "list", "search", "context", "dry_run", "manage", "stats", "graph_get"],
+        safe_modes=[
+            "recall",
+            "inspect",
+            "attest",
+            "get",
+            "list",
+            "search",
+            "context",
+            "dry_run",
+            "manage",
+            "stats",
+            "graph_get",
+        ],
         dangerous_modes=["remember", "promote", "revise", "forget", "store", "prune"],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.ACCOUNT,
         is_reversible=True,
     ),
@@ -675,7 +697,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         ],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -685,7 +707,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["discover", "handshake"],
         dangerous_modes=["route", "relay"],
         requires_lease=True,
-        requires_human_ack=True,
+        requires_f13_sovereign_ack=True,
         blast_radius=BlastRadius.PUBLIC,
         is_reversible=True,
     ),
@@ -695,7 +717,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["health", "vitals", "cost", "predict", "genius", "psi_le", "omega", "landauer"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -705,7 +727,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["judge", "compare", "history", "explain"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -715,7 +737,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["list", "verify", "chain", "dry_run"],
         dangerous_modes=["seal"],
         requires_lease=True,
-        requires_human_ack=True,
+        requires_f13_sovereign_ack=True,
         blast_radius=BlastRadius.INFRASTRUCTURE,
         is_reversible=False,
     ),
@@ -725,7 +747,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["query", "recall", "dry_run"],
         dangerous_modes=["engineer", "write", "generate", "commit"],
         requires_lease=True,
-        requires_human_ack=True,
+        requires_f13_sovereign_ack=True,
         blast_radius=BlastRadius.PUBLIC,
         is_reversible=False,
     ),
@@ -736,7 +758,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["route"],
         dangerous_modes=["delegate", "bridge"],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -746,7 +768,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["status", "preflight", "triage"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -756,7 +778,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["telemetry", "discover", "prediction"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -766,7 +788,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["bridge"],
         dangerous_modes=[],
         requires_lease=True,
-        requires_human_ack=True,
+        requires_f13_sovereign_ack=True,
         blast_radius=BlastRadius.ACCOUNT,
         is_reversible=True,
     ),
@@ -776,7 +798,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["attest"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -786,7 +808,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         safe_modes=["health"],
         dangerous_modes=[],
         requires_lease=False,
-        requires_human_ack=False,
+        requires_f13_sovereign_ack=False,
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
@@ -882,7 +904,7 @@ def pre_execution_gate(
                     f"requires explicit human acknowledgement"
                 )
                 violations.append("F1_AMANAH — dangerous mode without ack")
-                if not envelope.authority.human_ack_required:
+                if not envelope.authority.f13_sovereign_required:
                     return GateResult(
                         envelope=envelope,
                         verdict=GateVerdict.HOLD,
@@ -1023,7 +1045,7 @@ def pre_execution_gate(
                 blocked_action_class=ActionClass.IRREVERSIBLE,
             )
 
-        if not envelope.authority.human_ack_required:
+        if not envelope.authority.f13_sovereign_required:
             return GateResult(
                 envelope=envelope,
                 verdict=GateVerdict.HOLD,
@@ -1033,13 +1055,13 @@ def pre_execution_gate(
                 required_human_ack=True,
             )
 
-        if not envelope.authority.human_ack_id:
-            reasons.append("Irreversible action without human_ack_id — HOLD")
+        if not envelope.authority.f13_sovereign_ack_id:
+            reasons.append("Irreversible action without f13_sovereign_ack_id — HOLD")
             violations.append("F13_SOVEREIGN — implicit irreversible")
 
     # ── Gate 7: Human acknowledgement check ───────────────────────────
-    if ActionClass.requires_human_ack(requested_action):
-        if not envelope.authority.human_ack_required:
+    if ActionClass.requires_f13_sovereign_ack(requested_action):
+        if not envelope.authority.f13_sovereign_required:
             return GateResult(
                 envelope=envelope,
                 verdict=GateVerdict.HOLD,
@@ -1123,7 +1145,7 @@ def pre_execution_gate(
         forbidden_scopes = {MemoryScope.CONSTITUTIONAL, MemoryScope.VAULT}
         active_forbidden = [s for s in memory_scopes if s in forbidden_scopes]
         if active_forbidden:
-            if not envelope.authority.human_ack_required:
+            if not envelope.authority.f13_sovereign_required:
                 return GateResult(
                     envelope=envelope,
                     verdict=GateVerdict.HOLD,
@@ -1149,7 +1171,7 @@ def pre_execution_gate(
 
     # ── Gate 13: Secret touching check ────────────────────────────────
     if envelope.risk.secret_touching:
-        if not envelope.authority.human_ack_required:
+        if not envelope.authority.f13_sovereign_required:
             reasons.append("Action touches secrets but no human acknowledgement — advisory warning")
             violations.append("F12_INJECTION — secret exposure risk")
 
@@ -1338,8 +1360,8 @@ def pre_execution_gate(
         violations=violations,
         blocked_action_class=None,  # only set on HOLD; already returned above
         required_lease_scope=None,
-        required_human_ack=envelope.authority.human_ack_required
-        or ActionClass.requires_human_ack(requested_action),
+        required_human_ack=envelope.authority.f13_sovereign_required
+        or ActionClass.requires_f13_sovereign_ack(requested_action),
         drift_detected=drift_detected,
         drift_level=drift_level,
         degraded_organs=degraded_organs,
@@ -1362,7 +1384,7 @@ def quick_gate(
     *,
     actor_verified: bool = False,
     lease_id: str | None = None,
-    human_ack_id: str | None = None,
+    f13_sovereign_ack_id: str | None = None,
     tool_name: str = "",
     constitution_hash: str = "",
 ) -> GateResult:
@@ -1385,11 +1407,13 @@ def quick_gate(
         authority=AuthorityBlock(
             action_class=action_class,
             lease_id=lease_id or "LEASE-NONE",
-            human_ack_id=human_ack_id,
-            human_ack_required=bool(human_ack_id),
+            f13_sovereign_ack_id=f13_sovereign_ack_id,
+            f13_sovereign_required=bool(f13_sovereign_ack_id),
             mutation_allowed=action_class
             in (ActionClass.MUTATE, ActionClass.EXTERNAL_SIDE_EFFECT, ActionClass.IRREVERSIBLE),
-            irreversible_allowed=(action_class == ActionClass.IRREVERSIBLE and bool(human_ack_id)),
+            irreversible_allowed=(
+                action_class == ActionClass.IRREVERSIBLE and bool(f13_sovereign_ack_id)
+            ),
         ),
     )
 
@@ -1461,7 +1485,7 @@ def _self_check() -> bool:
             lease_id="LEASE-ACTIVE",
             mutation_allowed=True,
             irreversible_allowed=True,
-            human_ack_required=False,  # missing
+            f13_sovereign_required=False,  # missing
         ),
     )
     result5 = pre_execution_gate(env5, ActionClass.IRREVERSIBLE)
@@ -1527,8 +1551,8 @@ def _self_check() -> bool:
             lease_id="LEASE-ACTIVE",
             mutation_allowed=True,
             irreversible_allowed=True,
-            human_ack_required=True,
-            human_ack_id="hack_test123",
+            f13_sovereign_required=True,
+            f13_sovereign_ack_id="hack_test123",
         ),
     )
     result8 = pre_execution_gate(env8, ActionClass.IRREVERSIBLE, drift_report=crit_drift)

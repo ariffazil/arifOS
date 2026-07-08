@@ -1,18 +1,18 @@
 """
 test_009 — Forge Commit Requires 888 (Level 2)
 
-Goal: arif_forge_execute with ack_irreversible=True and an irreversible
+Goal: arif_forge_execute with f13_severity_acknowledged=True and an irreversible
       target (e.g. writing to /opt/arifos/app/, changing identity.toml)
       requires an 888 sovereign signature, returning HOLD without it.
 
 Pass criteria:
-    - ack_irreversible=True + irreversible target + no 888 sig → HOLD
-    - ack_irreversible=True + reversible target → SEAL
+    - f13_severity_acknowledged=True + irreversible target + no 888 sig → HOLD
+    - f13_severity_acknowledged=True + reversible target → SEAL
     - 888 sig present → SEAL (with audit)
 
 Current status (2026-06-12): PARTIAL.
     - F11 AUTH fail-closed works (empty session_id → HOLD)
-    - ack_irreversible flag is honored at the wrapper level
+    - f13_severity_acknowledged flag is honored at the wrapper level
     - The 888 signature path requires F13 territory (sovereign key)
 
 This test verifies the gate exists. The signature injection is a
@@ -34,7 +34,7 @@ def test_forge_irreversible_no_888_holds():
                 "target": "/opt/arifos/app/identity.toml",
                 "content": "tampered",
                 "session_id": sid,
-                "ack_irreversible": True,
+                "f13_severity_acknowledged": True,
                 # 888_sig intentionally absent
             },
         )
@@ -60,7 +60,7 @@ def test_forge_reversible_works():
                 "target": "/tmp/agi-gate-test.txt",
                 "content": "reversible test",
                 "session_id": sid,
-                "ack_irreversible": False,
+                "f13_severity_acknowledged": False,
             },
         )
         inner = r.get("result", {})

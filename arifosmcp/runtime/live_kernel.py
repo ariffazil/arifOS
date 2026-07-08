@@ -72,7 +72,7 @@ class RiskProfile(BaseModel):
     reversibility_score: float = 1.0
     blast_radius: str = "LOW"
     secret_touching: bool = False
-    human_ack_required: bool = False
+    f13_sovereign_required: bool = False
 
 
 class AuditReceipt(BaseModel):
@@ -332,7 +332,7 @@ def build_kernel_envelope(
             reversibility_score=reversibility,
             blast_radius=risk_blast,
             secret_touching=False,
-            human_ack_required=verdict in ("HOLD", "DENY") or irreversible_allowed,
+            f13_sovereign_required=verdict in ("HOLD", "DENY") or irreversible_allowed,
         ),
         audit=AuditReceipt(
             vault_required=vault_required,
@@ -474,7 +474,7 @@ def arif_os_attest(
             reversibility_score=1.0,
             blast_radius="LOW",
             secret_touching=False,
-            human_ack_required=False,
+            f13_sovereign_required=False,
         ),
         audit=AuditReceipt(
             vault_required=True,

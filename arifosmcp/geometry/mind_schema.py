@@ -219,7 +219,7 @@ class ActionAffordance(BaseModel):
         default="hypothesis",
         description="One of: fact, hypothesis, scratch, ephemeral, sovereign, vault",
     )
-    requires_human_ack: bool = False
+    requires_f13_sovereign_ack: bool = False
     requires_evidence: bool = False
 
 

@@ -252,7 +252,7 @@ class RiskMarker(BaseModel):
     description: str
     tier: RiskTier
     irreversibility: bool
-    requires_human_ack: bool
+    requires_f13_sovereign_ack: bool
     mitigation: str | None = None
 
 
