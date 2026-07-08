@@ -1459,6 +1459,31 @@ if IS_FASTMCP_3:
                     raise exc
                 finally:
                     elapsed_ms = int((time.monotonic() - t0) * 1000)
+                    # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
+                    # Supabase adapter never created. Writing directly to
+                    # VAULT999/outcomes.jsonl as append-only JSONL.
+                    try:
+                        from datetime import datetime as _dt, UTC as _UTC
+
+                        _outcomes_path = os.path.join(
+                            os.environ.get("ARIFOS_HOME", "/root"),
+                            "VAULT999",
+                            "outcomes.jsonl",
+                        )
+                        _outcome_entry = {
+                            "ts": _dt.now(_UTC).isoformat(),
+                            "event": "tool_call",
+                            "actor": envelope_agent_id or "unknown",
+                            "session": envelope_session_id or "unknown",
+                            "tool": tool_name,
+                            "verdict": verdict,
+                            "elapsed_ms": elapsed_ms,
+                        }
+                        os.makedirs(os.path.dirname(_outcomes_path), exist_ok=True)
+                        with open(_outcomes_path, "a") as _f:
+                            _f.write(json.dumps(_outcome_entry, default=str) + "\n")
+                    except Exception:
+                        pass
                     try:
                         loop = asyncio.get_running_loop()
                         if "result" in locals() and result:
