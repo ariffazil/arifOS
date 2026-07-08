@@ -1,4 +1,4 @@
-# arifOS MCP Tool Namespacing
+# TOOL_NAMESPACING.md — HISTORICAL (pre-2026-07 SATU PERMUKAAN)
 
 **Status:** SEALED — 20-tool surface confirmed. Arif 2026-04-17.
 **Epoch:** 2026-04-17

@@ -1,12 +1,11 @@
-# PUBLIC SURFACE CANON — arifOS 10-Tool Canonical Surface
+# PUBLIC SURFACE CANON — arifOS 12-Tool Canonical Surface (SATU PERMUKAAN 2026-07-08 F13)
 
-**CANONICAL-10 (2026-07-07): 9-stage metabolic loop + constitutional memory governor.**
-Consolidated from the prior 12-verb surface (2026-07-04) by absorbing 4 verbs into modes
-on their parent tools, and promoting 2 tools (arif_memory, arif_seal) to canonical.
+**Current (SATU PERMUKAAN 2026-07-08 F13):** 12 canonical verbs (live + runtime/public_surface.py:CANONICAL_12).
+Previous "10" attempt HISTORICAL. Live includes `arif_triage` and `arif_bridge_connect`.
 
 One intent = one public tool (F4 CLARITY). The Kernel is a constitutional switchboard, not a warehouse.
 
-## The 10 Canonical Public Tools
+## The 12 Canonical Public Tools (live)
 
 | # | Verb | Stage | Role | Agentic Selection — When to Choose This Tool |
 |---|------|-------|------|------------------------------------------------|

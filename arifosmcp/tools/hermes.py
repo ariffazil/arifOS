@@ -2,14 +2,21 @@
 arifosmcp/tools/hermes.py — Hermes Agent Diagnostic Tools
 ═══════════════════════════════════════════════════════════
 
-Three diagnostic tools for Hermes agent self-awareness:
+Diagnostic tools for Hermes (now receipt-bound per 020 Truth Receipt Doctrine):
 
 1. hermes_system_status — federation state snapshot
 2. arif_vault_query  — query VAULT999 by date/filter
-3. hermes_epistemic_check — epistemic confidence pre-check for CLAIMS
+3. hermes_epistemic_check — epistemic confidence pre-check for CLAIMS (now returns truth_enforcement L1-L4 receipt + agent contract)
+4. hermes_fact_check — evidence-backed verdict (receipt enforcement attached)
 
-These are registered as _RUNTIME_DIAGNOSTIC_HANDLERS and exposed
-via the expanded45 public surface mode.
+All claim paths now obey:
+- L4 cannot trigger irreversible
+- No valid receipt → no canon (downgraded to L4 + HOLD for high-stakes)
+- Agent contract in output (to_agent_contract surface)
+
+Enforcement provided by arifos_vault.truth_enforcement (enforce_claim, hermes_claim_to_receipt).
+
+Registered as _RUNTIME_DIAGNOSTIC_HANDLERS.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -21,6 +28,8 @@ import logging
 import os
 from datetime import UTC, datetime
 from typing import Any
+
+from arifosmcp.arifos_vault.truth_enforcement import hermes_claim_to_receipt
 
 logger = logging.getLogger("arifosmcp.hermes")
 
@@ -392,6 +401,19 @@ def hermes_epistemic_check(
         confidence_label = "TAK_TAHU"
         recommendation = "HOLD — gather evidence before any assertion"
 
+    # === Truth-chain enforcement (verdict 2026-07-08) ===
+    # Attach L1-L4 receipt contract. No receipt → L4 (analysis). Irreversible blocked at L4.
+    enforcement = None
+    try:
+        enforcement = hermes_claim_to_receipt(
+            claim=claim,
+            evidence_context=evidence_context or "",
+            actor_id=actor,
+            irreversible=False,  # epistemic check is never the execution step
+        )
+    except Exception as e:
+        enforcement = {"status": "ERROR", "reason": f"enforcement failed: {e}"}
+
     return {
         "status": "OK",
         "result": {
@@ -402,6 +424,11 @@ def hermes_epistemic_check(
             "gaps": gaps,
             "recommendation": recommendation,
             "mode": mode,
+            # New: receipt-bound truth layer + agent contract
+            "truth_enforcement": enforcement,
+            "evidence_layer": enforcement.get("layer") if enforcement else "L4",
+            "receipt_id": (enforcement.get("receipt") or {}).get("claim_id") if enforcement else None,
+            "agent_must_obey": "verified claims within authority (L4 prepare-only for irreversible)",
         },
     }
 
@@ -536,6 +563,10 @@ def hermes_fact_check(
             "gaps": gaps[:5],
             "recommendation": recommendation,
             "heuristic_score": round(heuristic_score, 3),
+            # Truth receipt enforcement (L1-L4 + agent contract per 020 verdict)
+            "truth_enforcement": hermes_claim_to_receipt(claim=claim, evidence_context="fact_check+"+str(len(evidence)), actor_id=actor, irreversible=False),
+            "evidence_layer": "L2" if verdict in ("CONFIRMED", "REFUTED") else "L4",
+            "agent_contract_note": "Agents obey the attached contract, not the claim text.",
         },
     }
 

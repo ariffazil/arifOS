@@ -415,14 +415,24 @@ class InjectionGate(EnforcementEngine):
 
 
 class SovereignGate(EnforcementEngine):
-    """F13 Sovereign veto enforcement."""
+    """F13 Sovereign veto enforcement.
+
+    HARDENED 2026-07-08 (FORGE): Three fixes:
+    1. IRREVERSIBLE_TOOLS includes arif_forge_execute (the actual MCP tool name).
+    2. cc_id verification uses registry lookup, not truthiness check.
+       If cc_id is provided, it MUST exist in the judge chain registry.
+       Truthiness-only was structurally identical to the removed ack_irreversible.
+    3. All returns are structured dicts, never bare strings.
+    """
 
     name = "sovereign_gate"
     description = "Enforces F13 sovereign veto on irreversible actions"
 
     IRREVERSIBLE_TOOLS = [
         "arif_seal",
+        "arif_seal_write",
         "arif_forge",
+        "arif_forge_execute",
     ]
 
     def check(
@@ -434,31 +444,74 @@ class SovereignGate(EnforcementEngine):
         if tool_name not in self.IRREVERSIBLE_TOOLS:
             return True, "Not an irreversible tool", {}
 
-        # REMOVED 2026-07-07: ack_irreversible self-attestation removed.
-        # Replaced by: prior arif_judge SEAL via constitutional_chain_id,
-        # or sovereign session + mcp:allow.
+        # SOVEREIGN BYPASS: actor_id == "arif" with verified session
+        is_sovereign = context.get("actor_id") == "arif" and context.get("session_id")
+
+        # CC_ID REGISTRY LOOKUP: not truthiness — must exist in kernel registry
         constitutional_chain_id = context.get("constitutional_chain_id") or params.get(
             "constitutional_chain_id"
         )
-        is_sovereign = context.get("actor_id") == "arif"
+        cc_id_verified = False
+        if constitutional_chain_id:
+            try:
+                from arifosmcp.runtime.tools import _JUDGE_CHAIN_REGISTRY
 
-        if constitutional_chain_id or is_sovereign:
+                cc_id_verified = constitutional_chain_id in _JUDGE_CHAIN_REGISTRY
+            except ImportError:
+                # Registry unavailable — fail closed (HOLD, not ALLOW)
+                return (
+                    False,
+                    "Judge registry unavailable — cannot verify constitutional_chain_id",
+                    {
+                        "verdict": "HOLD",
+                        "reason": "F1 AMANAH: registry import failed, cannot verify cc_id",
+                        "failure_mode": "registry_unavailable",
+                    },
+                )
+
+        if is_sovereign:
             return (
                 True,
-                "Irreversible action authorized by prior SEAL or sovereign session",
+                "Irreversible action authorized by sovereign session",
                 {
-                    "authorization": "constitutional_chain_id"
-                    if constitutional_chain_id
-                    else "sovereign"
+                    "authorization": "sovereign",
+                    "actor_id": context.get("actor_id"),
                 },
             )
 
+        if cc_id_verified:
+            return (
+                True,
+                "Irreversible action authorized by verified prior SEAL",
+                {
+                    "authorization": "constitutional_chain_id",
+                    "cc_id": constitutional_chain_id,
+                    "verified": True,
+                },
+            )
+
+        # cc_id provided but NOT in registry = fabricated or stale
+        if constitutional_chain_id and not cc_id_verified:
+            return (
+                False,
+                "constitutional_chain_id not found in judge registry — fabricated or stale",
+                {
+                    "verdict": "HOLD",
+                    "reason": "F1 AMANAH: cc_id not in registry. Must have prior arif_judge SEAL.",
+                    "cc_id_provided": constitutional_chain_id,
+                    "cc_id_verified": False,
+                    "failure_mode": "cc_id_not_in_registry",
+                },
+            )
+
+        # No cc_id at all
         return (
             False,
             "Irreversible action requires prior arif_judge SEAL (constitutional_chain_id) or sovereign session",
             {
                 "verdict": "HOLD",
-                "reason": "F1 AMANAH gate — ack_irreversible removed; use constitutional_chain_id",
+                "reason": "F1 AMANAH: no cc_id and no sovereign session. Reversible-first.",
+                "failure_mode": "missing_authorization",
             },
         )
 

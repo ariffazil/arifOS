@@ -1308,7 +1308,7 @@ class UnixSocketHandler(socketserver.StreamRequestHandler):
 
 # ── Canonical 7 Public MCP Surface (aligned with arifOS F13-ratified 2026-06-23) ─
 # arifosd now exposes exactly the 7 canonical MCP verbs.
-# Legacy aliases (arif_session_init, arif_sense_observe, etc.) resolve via
+# Legacy aliases (DEPRECATED shims only — SATU PERMUKAAN 2026-07-08) (arif_init  # DEPRECATED shim, arif_sense_observe, etc.) resolve via
 # TOOL_ALIAS_MAP below. Shell wrappers (arif_run/exec/sudo/systemctl) and
 # diagnostics (arif_apex_judge, arif_floor_status, arif_vault_integrity) are
 # removed from the public wire surface — call arif_route for routing or
@@ -1389,11 +1389,11 @@ TOOLS = [
 
 # ── Legacy alias resolver for tools/call ─────────────────────────────────
 # Maps deprecated long-form tool names to their canonical equivalents.
-# Clients sending arif_session_init will resolve to arif_init, etc.
+# Clients sending arif_init  # DEPRECATED shim will resolve to arif_init, etc.
 # This prevents "unknown tool" errors for legacy clients while keeping
 # the tools/list surface clean (canonical 7 only).
 TOOL_ALIAS_MAP: dict[str, str] = {
-    "arif_session_init": "arif_init",
+    "arif_init  # DEPRECATED shim": "arif_init",
     "arif_sense_observe": "arif_observe",
     "arif_mind_reason": "arif_think",
     "arif_heart_critique": "arif_judge",

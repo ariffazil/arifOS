@@ -46,7 +46,7 @@ a2a_agent_json: /root/arifOS/.well-known/agent.json
 > **arifOS is a constitutional governance kernel that sits between AI agents and their tools, enforcing 13 floors before any irreversible action.**
 
 - **The law layer** — decides what agents must NOT do, so they can be trusted with what they CAN do
-- **An MCP server** — 12 canonical public verbs (F13 SOVEREIGN RATIFIED 2026-07-04; prior freeze was 7). One intent = one public tool. See `arifosmcp/PUBLIC_SURFACE_CANON.md`.
+- **An MCP server** — 12 canonical public verbs (current live SATU PERMUKAAN 2026-07-08; source: arifosmcp/runtime/public_surface.py CANONICAL_12). One intent = one public tool. See `arifosmcp/PUBLIC_SURFACE_CANON.md`.
 - **A federation hub** — 6 live organs (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL) plus the VAULT999 immutable ledger under one contract
 - **An immutable ledger** — VAULT999: append-only, hash-chained. Every decision sealed forever
 - **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute
@@ -60,6 +60,14 @@ a2a_agent_json: /root/arifOS/.well-known/agent.json
 > APEX THEORY defines the constitutional dynamics of governed intelligence through ΔΩΨ. arifOS compiles those dynamics into an AGI substrate kernel. AAA renders the substrate as visible ASI civilization state. A-FORGE gives the system governed hands. GEOX, WEALTH, and WELL anchor those hands to earth, capital, and human reality. VAULT999 preserves consequence. Arif/F13 remains the sovereign witness and final veto.
 
 **arifOS must never:** replace human judgment, self-authorize a SEAL, skip 888_JUDGE, or issue verdicts without a constitutional chain.
+
+### Trinity Orthogonal Role (SATU PERMUKAAN)
+**arifOS = LAW / JUDGMENT**
+- Primary question: **"Can this be allowed?"**
+- Owns: F1–F13 floors, verdicts (SEAL/HOLD/VOID), boundary enforcement, evidence standards.
+- Must not: execute, display state to operator, route tasks.
+- See also: AAA (STATE/ROUTING/VISIBILITY), A-FORGE (EXECUTION/MUTATION)
+- One-line: arifOS is the judge; AAA is the cockpit; A-FORGE is the hand.
 
 Full doctrine: [GENESIS/040_APEX_STACK.md](https://github.com/ariffazil/arifos/blob/main/GENESIS/040_APEX_STACK.md)
 
@@ -247,7 +255,7 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 
 | Read this | For | Link |
 |-----------|-----|------|
-| **arifOS** (this repo) | Constitutional kernel. 7 canonical public verbs. 13 floors. The judge. | ← you are here |
+| **arifOS** (this repo) | Constitutional kernel. 12 canonical (see public_surface.py). 13 floors. The judge. | ← you are here |
 | **A-FORGE** | Executor. 75 MCP tools. Gates + A-THINK law. | [`ariffazil/A-FORGE`](https://github.com/ariffazil/A-FORGE) |
 | **AAA** | Cockpit. A2A mesh. Agent registry. React 19 dashboard. | [`ariffazil/AAA`](https://github.com/ariffazil/AAA) |
 
@@ -305,7 +313,7 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
 <div align="center">
 
 ```
-arifOS · Port 8088 · 7 canonical public verbs · 13 floors · 6 live organs
+arifOS · Port 8088 · 12 canonical (see public_surface.py) · 13 floors · 6 live organs
 AGPL-3.0 · Sovereign: Arif Fazil · Federation: ALIVE
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 ```

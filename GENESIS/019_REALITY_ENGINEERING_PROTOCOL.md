@@ -34,6 +34,7 @@ The protocol is not optional for significant forge operations. It is the constit
 
 555_JUDGE   → Is the change lawful? Reversible? Dignified?
               OUTPUTS: F1-L13 matrix + SEAL/SABAR/HOLD/VOID verdict.
+              **Must reference ArifOSClaimReceipt (L1-L4) for any claim used in judgment.** See 020. No receipt → HOLD or VOID on consequential matters.
 
 666_CRITIQUE → What breaks? What transforms? Who suffers?
               OUTPUTS: Consequence scan + perspective shift + readiness verdict.
@@ -43,6 +44,7 @@ The protocol is not optional for significant forge operations. It is the constit
 
 999_SEAL    → Record the change immutably. Close the loop.
               OUTPUTS: Decision receipt + assumption ledger + seal entry.
+              **Every canon claim emitted or relied upon in the forge must be wrapped in a verified ArifOSClaimReceipt (020) and appended to the truth chain.**
 ```
 
 No stage may be skipped. Each stage depends on the integrity of all prior stages. A false observation (111) propagates through the entire forge and produces a false reality change.

@@ -1,12 +1,17 @@
 """
-Evidence Receipt — Claim + witness chain.
+Evidence Receipt — Claim + witness chain (tri-witness + epistemic labels).
 
 F3 TRI-WITNESS: Human × AI × Earth must all witness every consequential claim.
 
-Deepened for One Skill + One Tool (map + memory step):
-- All receipts must carry restraint classification (from INIT geometry) and verdict trace.
-- The One Skill (Knowing What NOT To Do) and One Tool (Verdict Loop) are inherited here for future refactors.
+This is the *memory/provenance* receipt (pairs with memory-stack L0-L6 in receipt.schema.json).
+
+For **governance truth authority** (L1-L4 execution permission, no-receipt-no-canon, dual human/agent surfaces, authority scope, replay + falsification) use the canonical:
+  ArifOSClaimReceipt + arifos_claim_receipt.schema.json (see GENESIS/020_ARIFOS_TRUTH_RECEIPT_DOCTRINE.md)
+
+Deepened for One Skill + One Tool:
+- All receipts must carry restraint classification and verdict trace.
 - No receipt without prior verdict loop passage.
+- Claim receipts (truth layer) gate irreversible action; this receipt provides witness integrity.
 """
 
 from __future__ import annotations

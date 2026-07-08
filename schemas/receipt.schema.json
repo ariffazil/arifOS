@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arif-fazil.com/schemas/receipt.schema.json",
   "title": "arifOS Evidence Receipt",
-  "description": "Canonical schema for an evidence receipt. Every claim in the federation must reference one. The receipt's evidence_level caps the claim's certainty. Forged 2026-06-02 18:41 UTC under F13 SOVEREIGN ratification.",
+  "description": "Canonical schema for an evidence receipt (memory/provenance stack L0-L6). Every claim in the federation must reference one. evidence_level caps provenance certainty.\n\nFor governance truth authority (L1 Ground Truth / L2 Verified / L3 Cached / L4 Inferred + No Receipt No Canon + dual surfaces + authority scope + replay/falsify) use arifos_claim_receipt.schema.json + ArifOSClaimReceipt (GENESIS/020). They complement: this = where evidence lives in stack; claim receipt = what authority it carries for execution.\n\nForged 2026-06-02; truth-layer extended 2026-07-08.",
   "type": "object",
   "properties": {
     "receipt_id": {

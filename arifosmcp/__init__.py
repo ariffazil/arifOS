@@ -10,6 +10,19 @@ __version__ = "2026.06.11-FIQHGEOM"
 __author__ = "Muhammad Arif bin Fazil"
 __license__ = "AGPL-3.0-only"
 
+# ── NAMESPACE COLLISION GUARD ──────────────────────────────────────────────
+# External consumers (GEOX, WEALTH, WELL) may have their own `core/` package
+# that shadows arifOS's core/shared/. Ensure arifOS root is at sys.path[0]
+# so `from core.shared.*` resolves to arifOS's core, not the consumer's.
+import os as _ns_os, sys as _ns_sys
+
+_arifos_root = _ns_os.path.dirname(_ns_os.path.dirname(_ns_os.path.abspath(__file__)))
+if _arifos_root not in _ns_sys.path or _ns_sys.path.index(_arifos_root) > 0:
+    if _arifos_root in _ns_sys.path:
+        _ns_sys.path.remove(_arifos_root)
+    _ns_sys.path.insert(0, _arifos_root)
+# ── END NAMESPACE COLLISION GUARD ──────────────────────────────────────────
+
 try:
     import asyncio
 

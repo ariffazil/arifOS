@@ -10,6 +10,9 @@ DITEMPA BUKAN DIBERI — Forged, Not Given 🔥🌎🧠🪙
 
 from __future__ import annotations
 
+# Shared ArifOSResponse for schema consistency (action_class etc single source)
+from arifosmcp.schemas.arifos_response import ArifOSResponse, ActionClass, ensure_arifos_response, get_canonical_action_class
+
 # ── APEX Runtime Governance Envelope (APEX-MCP-001) ──────────────────────────
 try:
     from arifosmcp.apex_envelope import apex_envelope as _build_apex_envelope
@@ -757,6 +760,12 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
         "examples": discover.get("examples", []),
         "category": discover.get("category"),
     }
+    # Use shared ArifOSResponse for canonical action_class etc (no drift)
+    try:
+        resp_model = ensure_arifos_response({"result": {}, "action_class": full.get("action_class", "OBSERVE")})
+        full["action_class"] = resp_model.action_class
+    except Exception:
+        pass
     # Canonical blast_radius normalization
     if "blast_radius" not in full or full.get("blast_radius") in (None, "unknown"):
         full["blast_radius"] = power.get("expected_blast_radius", "LOW").lower()
@@ -1994,6 +2003,36 @@ def _compute_canonical_verdict(
             "OBSERVE_ONLY. May observe, may not authorize or approve. "
             "(P0-3 + WAJIB-4 enforcement 2026-06-21)."
         )
+
+    # ── Step 5c: Witness degradation ceiling (FORGE 2026-07-08) ─────────
+    # INVARIANT: Kernel cannot lie to itself about how well-checked a verdict is.
+    # If witness diversity is NONE or DEGRADED, verdict is capped below SEAL.
+    # This prevents: session with 0 witnesses returning SEAL-tier responses.
+    # Diversity levels: NONE (0), DEGRADED (1-2), PARTIAL (3), FULL (4+)
+    _WITNESS_VERDICT_CEILING = {
+        "NONE": "HOLD",  # 0 witnesses → cannot proceed past HOLD
+        "DEGRADED": "DEGRADED",  # 1-2 witnesses → capped at DEGRADED
+        "PARTIAL": None,  # 3 witnesses → no cap
+        "FULL": None,  # 4+ witnesses → no cap
+    }
+    _witness_info = out.get("witness") or (
+        result_payload.get("witness") if isinstance(result_payload, dict) else None
+    )
+    if isinstance(_witness_info, dict):
+        _witness_diversity = _witness_info.get("diversity_level", "NONE")
+        _witness_ceiling = _WITNESS_VERDICT_CEILING.get(_witness_diversity)
+        if _witness_ceiling and verdict in ("SEAL", "ALLOW"):
+            # Use _SIGNAL_SEVERITY (already in scope) for monotonicity check
+            # Lower severity number = more restrictive (VOID=0, SEAL=6)
+            ceiling_sev = _SIGNAL_SEVERITY.get(_witness_ceiling, 2)
+            verdict_sev = _SIGNAL_SEVERITY.get(verdict, 6)
+            if ceiling_sev <= verdict_sev:
+                verdict = _witness_ceiling
+                degradation.append(
+                    f"witness_ceiling: diversity={_witness_diversity} "
+                    f"capped verdict to {_witness_ceiling}. "
+                    f"Need ≥3 witnesses for SEAL."
+                )
 
     # ── Step 6: Affordance narrowing (WAJIB-2) ───────────────────────────
     affordance = _get_affordance_contract(tool_name)
@@ -6418,7 +6457,16 @@ def _ok(
         ):
             if k in std and k not in response:
                 response[k] = std[k]
-        response.setdefault("affordance_contract", get_full_affordance(tool))
+        aff = get_full_affordance(tool)
+        # Canonical: action_class lives at ArifOSResponse top level (see shared model)
+        # affordance_contract may reference but no independent copy of action_class
+        response.setdefault("affordance_contract", aff)
+        # ensure top level uses shared
+        try:
+            ar = ensure_arifos_response({"result": response.get("result"), "action_class": aff.get("action_class", "OBSERVE")})
+            response["action_class"] = ar.action_class
+        except Exception:
+            pass
     except Exception:
         pass
     return _enforce_nine_signal(
@@ -16196,6 +16244,50 @@ def _arif_vault_seal(
         }
         _VAULT_LEDGER.append(entry)
         _VAULT_ENTRY_REGISTRY[entry_id] = entry
+        # CORE KERNEL FIX (pre-deploy 2026-07-08): wire immutable seal_chain + head + carry (doctrine)
+        try:
+            from arifosmcp.runtime.clarity_carry import emit_carry_forward
+            emit_carry_forward("arif_vault_seal", session_id or "", actor_id or "", "L1-L2", {"entry_id": entry_id, "type": "constitutional_seal"})
+        except Exception:
+            pass
+        # CORE KERNEL FIX (pre-deploy 2026-07-08): wire immutable seal_chain + head
+        # Previously only in-mem _VAULT_LEDGER + outcomes; now produces hash-chained
+        # append-only record matching doctrine (prev_id, content_hash, id).
+        # Matches ChatGPT analysis gap + AGENTS seal_chain requirement.
+        try:
+            vault_dir = os.path.dirname(_get_vault_file_path()) or "/root/arifOS/VAULT999"
+            os.makedirs(vault_dir, exist_ok=True)
+            chain_path = os.path.join(vault_dir, "seal_chain.jsonl")
+            head_path = os.path.join(vault_dir, "seal_chain_head.json")
+            prev = "genesis"
+            if os.path.exists(chain_path):
+                with open(chain_path, encoding="utf-8") as cf:
+                    for line in cf:
+                        line = line.strip()
+                        if line:
+                            try:
+                                last = json.loads(line)
+                                prev = last.get("id", prev)
+                            except Exception:
+                                pass
+            content_hash = hashlib.sha256(
+                json.dumps(entry, sort_keys=True, default=str).encode()
+            ).hexdigest()
+            chain_entry = {
+                "id": entry_id,
+                "previous_id": prev,
+                "timestamp": _now(),
+                "content_hash": content_hash,
+                "actor_id": actor_id,
+                "session_id": session_id,
+                "type": "constitutional_seal",
+            }
+            with open(chain_path, "a", encoding="utf-8") as cf:
+                cf.write(json.dumps(chain_entry) + "\n")
+            with open(head_path, "w", encoding="utf-8") as hf:
+                hf.write(json.dumps({"head": entry_id, "timestamp": _now(), "content_hash": content_hash}))
+        except Exception as _chain_err:
+            logger.warning(f"seal chain persist non-fatal: {_chain_err}")
         output = SealOutput(
             status="OK",
             result={

@@ -187,13 +187,18 @@ async def call_geox_tool(
             "params": {}
         })
     """
+    args = dict(arguments or {})
+    # Forward _envelope if present (identity propagation — kernel always populates)
+    if "_envelope" in args:
+        # Organ must echo it back unchanged in its result
+        pass
     payload = {
         "jsonrpc": "2.0",
         "id": 1,
         "method": "tools/call",
         "params": {
             "name": tool_name,
-            "arguments": arguments or {},
+            "arguments": args,
         },
     }
     result = await _post_json_rpc("/mcp/", payload)

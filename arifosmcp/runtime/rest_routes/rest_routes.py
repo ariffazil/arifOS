@@ -2429,6 +2429,8 @@ def register_rest_routes(
         finally:
             federation_ledger.close()
 
+        # F2: tool_count = public MCP facade (/tools, tools/list), NOT full registry.
+        exposed = _count_mcp_tools(fastmcp_instance or mcp)
         return JSONResponse(
             {
                 "service": "arifOS AAA MCP Server",
@@ -2438,8 +2440,18 @@ def register_rest_routes(
                 "mcp_endpoint": "/mcp",
                 "tools_endpoint": "/tools",
                 "health_endpoint": "/health",
-                "tool_count": len(tool_registry),
-                "tools": list(tool_registry.keys()),
+                "tool_count": exposed,
+                "tools_exposed_via_mcp": exposed,
+                "tools_loaded": len(tool_registry),
+                "total_declared_tools": (
+                    getattr(mcp, "_tool_count", len(tool_registry))
+                    + _get_diagnostic_tool_count(mcp)
+                ),
+                "tool_count_semantics": {
+                    "tool_count": "Public MCP tools/list facade (same as /tools)",
+                    "tools_loaded": "Internal registry callables (canonical + aliases)",
+                    "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS",
+                },
             }
         )
 
@@ -2464,6 +2476,9 @@ def register_rest_routes(
         if "text/html" in accept:
             return HTMLResponse(aaa_landing_html, headers={"Cache-Control": "max-age=60"})
         # For MCP clients requesting JSON
+        # F2 (2026-07-08): tool_count must match /tools + tools/list public facade.
+        # Previously len(tool_registry) advertised 52 while /tools returned 12.
+        exposed = _count_mcp_tools(fastmcp_instance or mcp)
         return JSONResponse(
             {
                 "service": "arifOS AAA MCP Server",
@@ -2473,7 +2488,18 @@ def register_rest_routes(
                 "tools_endpoint": "/tools",
                 "health_endpoint": "/health",
                 "documentation": "https://arifos.arif-fazil.com",
-                "tool_count": len(tool_registry),
+                "tool_count": exposed,
+                "tools_exposed_via_mcp": exposed,
+                "tools_loaded": len(tool_registry),
+                "total_declared_tools": (
+                    getattr(mcp, "_tool_count", len(tool_registry))
+                    + _get_diagnostic_tool_count(mcp)
+                ),
+                "tool_count_semantics": {
+                    "tool_count": "Public MCP tools/list facade (same as /tools)",
+                    "tools_loaded": "Internal registry callables (canonical + aliases)",
+                    "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS",
+                },
             }
         )
 

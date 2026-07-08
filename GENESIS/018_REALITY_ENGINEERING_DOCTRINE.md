@@ -41,6 +41,8 @@ change made explicit. The Seven Iron Laws now do that.
 6. Blast radius spans all layers — No layer is isolated.
 7. The forge leaves scars — Record loss, permanence, and debt.
 8. Evidence has rank — Weak claims cannot drive strong action.
+
+**2026-07-08 extension (020):** Evidence rank is now enforced by explicit L1-L4 truth layers in ArifOSClaimReceipt. L4 inference cannot authorize irreversible action. See GENESIS/020_ARIFOS_TRUTH_RECEIPT_DOCTRINE.md — "No Receipt, No Canon". Every consequential claim must carry the full proof envelope (hash + authority + replay + falsification).
 ```
 
 ### Law 0 — Non-action is a valid reality decision
