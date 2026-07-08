@@ -11,7 +11,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given 🔥🌎🧠🪙
 from __future__ import annotations
 
 # Shared ArifOSResponse for schema consistency (action_class etc single source)
-from arifosmcp.schemas.arifos_response import ArifOSResponse, ActionClass, ensure_arifos_response, get_canonical_action_class
+from arifosmcp.schemas.arifos_response import (
+    ArifOSResponse,
+    ActionClass,
+    ensure_arifos_response,
+    get_canonical_action_class,
+)
 
 # ── APEX Runtime Governance Envelope (APEX-MCP-001) ──────────────────────────
 try:
@@ -762,7 +767,9 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
     }
     # Use shared ArifOSResponse for canonical action_class etc (no drift)
     try:
-        resp_model = ensure_arifos_response({"result": {}, "action_class": full.get("action_class", "OBSERVE")})
+        resp_model = ensure_arifos_response(
+            {"result": {}, "action_class": full.get("action_class", "OBSERVE")}
+        )
         full["action_class"] = resp_model.action_class
     except Exception:
         pass
@@ -6463,7 +6470,12 @@ def _ok(
         response.setdefault("affordance_contract", aff)
         # ensure top level uses shared
         try:
-            ar = ensure_arifos_response({"result": response.get("result"), "action_class": aff.get("action_class", "OBSERVE")})
+            ar = ensure_arifos_response(
+                {
+                    "result": response.get("result"),
+                    "action_class": aff.get("action_class", "OBSERVE"),
+                }
+            )
             response["action_class"] = ar.action_class
         except Exception:
             pass
@@ -16247,7 +16259,14 @@ def _arif_vault_seal(
         # CORE KERNEL FIX (pre-deploy 2026-07-08): wire immutable seal_chain + head + carry (doctrine)
         try:
             from arifosmcp.runtime.clarity_carry import emit_carry_forward
-            emit_carry_forward("arif_vault_seal", session_id or "", actor_id or "", "L1-L2", {"entry_id": entry_id, "type": "constitutional_seal"})
+
+            emit_carry_forward(
+                "arif_vault_seal",
+                session_id or "",
+                actor_id or "",
+                "L1-L2",
+                {"entry_id": entry_id, "type": "constitutional_seal"},
+            )
         except Exception:
             pass
         # CORE KERNEL FIX (pre-deploy 2026-07-08): wire immutable seal_chain + head
@@ -16285,7 +16304,11 @@ def _arif_vault_seal(
             with open(chain_path, "a", encoding="utf-8") as cf:
                 cf.write(json.dumps(chain_entry) + "\n")
             with open(head_path, "w", encoding="utf-8") as hf:
-                hf.write(json.dumps({"head": entry_id, "timestamp": _now(), "content_hash": content_hash}))
+                hf.write(
+                    json.dumps(
+                        {"head": entry_id, "timestamp": _now(), "content_hash": content_hash}
+                    )
+                )
         except Exception as _chain_err:
             logger.warning(f"seal chain persist non-fatal: {_chain_err}")
         output = SealOutput(
@@ -20148,25 +20171,34 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
+        # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
+        # Root cause: Supabase adapter (arifOS.supabase_adapter) was never
+        # created. Old writer removed during incomplete migration. Silent
+        # ImportError swallowed by try/except. Fixed: write directly to
+        # VAULT999/outcomes.jsonl as append-only JSONL.
         try:
-            import asyncio
+            from datetime import datetime as _dt, UTC as _UTC
 
-            from arifOS.supabase_adapter import record_tool_call
-
-            loop = asyncio.get_running_loop()
-            loop.create_task(
-                record_tool_call(
-                    session_ref=kwargs.get("session_id") or "unknown",
-                    tool_name=tool_name,
-                    organ_code="arifOS",
-                    arguments=kwargs,
-                    risk_tier=0,
-                    status="succeeded",
-                    actor_ref=kwargs.get("actor_id"),
-                )
+            _outcomes_path = os.path.join(
+                os.environ.get("ARIFOS_HOME", "/root"), "VAULT999", "outcomes.jsonl"
             )
+            _verdict = final_resp.get(
+                "verdict", final_resp.get("meta", {}).get("verdict", "UNKNOWN")
+            )
+            _outcome_entry = {
+                "ts": _dt.now(_UTC).isoformat(),
+                "event": "tool_call",
+                "actor": kwargs.get("actor_id") or "unknown",
+                "session": kwargs.get("session_id") or "unknown",
+                "tool": tool_name,
+                "verdict": _verdict,
+                "detail": final_resp.get("detail", final_resp.get("error", ""))[:500],
+            }
+            os.makedirs(os.path.dirname(_outcomes_path), exist_ok=True)
+            with open(_outcomes_path, "a") as _f:
+                _f.write(json.dumps(_outcome_entry, default=str) + "\n")
         except Exception as e:
-            logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
+            logger.debug(f"outcomes.jsonl write failed: {e}")
         # APEX Phase 3: record every tool call for APEX primitive derivation
         try:
             from arifosmcp.runtime.apex_primitives import (
@@ -20224,27 +20256,30 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
         _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
+        # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
         try:
-            import asyncio
+            from datetime import datetime as _dt, UTC as _UTC
 
-            from arifOS.supabase_adapter import record_tool_call
-
-            loop = asyncio.get_running_loop()
-            loop.create_task(
-                record_tool_call(
-                    session_ref=kwargs.get("session_id") or "unknown",
-                    tool_name=tool_name,
-                    organ_code="arifOS",
-                    arguments=kwargs,
-                    risk_tier=0,
-                    # See sync wrapper — s000.tool_calls CHECK constraint
-                    # does not allow "completed"; use "succeeded".
-                    status="succeeded",
-                    actor_ref=kwargs.get("actor_id"),
-                )
+            _outcomes_path = os.path.join(
+                os.environ.get("ARIFOS_HOME", "/root"), "VAULT999", "outcomes.jsonl"
             )
+            _verdict = final_resp.get(
+                "verdict", final_resp.get("meta", {}).get("verdict", "UNKNOWN")
+            )
+            _outcome_entry = {
+                "ts": _dt.now(_UTC).isoformat(),
+                "event": "tool_call",
+                "actor": kwargs.get("actor_id") or "unknown",
+                "session": kwargs.get("session_id") or "unknown",
+                "tool": tool_name,
+                "verdict": _verdict,
+                "detail": final_resp.get("detail", final_resp.get("error", ""))[:500],
+            }
+            os.makedirs(os.path.dirname(_outcomes_path), exist_ok=True)
+            with open(_outcomes_path, "a") as _f:
+                _f.write(json.dumps(_outcome_entry, default=str) + "\n")
         except Exception as e:
-            logger.debug(f"Supabase canonical receipt dispatch failed: {e}")
+            logger.debug(f"outcomes.jsonl write failed: {e}")
         # APEX Phase 3: record every tool call for APEX primitive derivation (async)
         try:
             from arifosmcp.runtime.apex_primitives import (
