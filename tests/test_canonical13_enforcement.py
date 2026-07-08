@@ -34,21 +34,30 @@ from arifosmcp.runtime.public_surface import (
 # ─────────────────────────────────────────────────────────────────────────────
 
 # F13 SOVEREIGN ratification 2026-06-23: public surface collapsed from 13 to 7 verbs.
+# CANONICAL-12 update 2026-07-07: expanded to 12 tools (9 stages + preflight + bridge + memory).
 # One intent = one public tool. All aliases and low-level plumbing are internal.
 EXPECTED_PUBLIC_TOOLS: frozenset[str] = frozenset(
     {
         # GOVERNANCE (APEX / ASI)
         "arif_init",  # 000 — session bootstrap
-        "arif_judge",  # 888 — constitutional verdict / kernel intercept
+        "arif_triage",  # 000t — session preflight
+        "arif_judge",  # 666 — constitutional verdict
         "arif_seal",  # 999 — immutable audit receipt
         # REALITY GROUNDING
         "arif_observe",  # 111 — gather evidence
         # INTELLIGENCE
         "arif_think",  # 333 — reason, plan, reflect
         # ROUTING
-        "arif_route",  # 444/555 — select correct organ / tool
+        "arif_route",  # 444 — organ router
+        "arif_bridge_connect",  # 444b — direct organ bridge
+        # CRITIQUE
+        "arif_critique",  # 555 — maruah/risk assessment
+        # MEMORY
+        "arif_memory",  # 555m — constitutional memory governor
         # EXECUTION
-        "arif_act",  # 900 — execute approved action after SEAL
+        "arif_forge",  # 777 — guarded execution
+        # COMPOSITION
+        "arif_compose",  # 888 — response composer
     }
 )
 
@@ -78,9 +87,9 @@ FORBIDDEN_PUBLIC_PREFIXES: tuple[str, ...] = (
 
 
 def test_canonical7_is_exactly_7():
-    """The constitutional public surface is exactly 7 tools. Not 6, not 8, not 39."""
-    assert len(CANONICAL_13) == 7, (
-        f"CANONICAL_7 must be exactly 7 tools; got {len(CANONICAL_13)}. "
+    """The constitutional public surface is exactly 12 tools (CANONICAL-12)."""
+    assert len(CANONICAL_13) == 12, (
+        f"CANONICAL_12 must be exactly 12 tools; got {len(CANONICAL_13)}. "
         f"To change, edit EXPECTED_PUBLIC_TOOLS in test_canonical13_enforcement.py "
         f"AND obtain explicit 888 ratification."
     )
@@ -110,12 +119,12 @@ def test_canonical13_set_matches_expected_public_tools():
 
 
 def test_canonical_tools_registry_size_is_7():
-    """The CANONICAL_TOOLS dict in constitutional_map.py must hold exactly 7 public entries."""
+    """The CANONICAL_TOOLS dict in constitutional_map.py must hold exactly 12 public entries."""
     public_tools = {
         name for name, spec in CANONICAL_TOOLS.items() if spec.get("access") != "internal_only"
     }
-    assert len(public_tools) == 7, (
-        f"CANONICAL_TOOLS must have exactly 7 public entries; got {len(public_tools)}: {sorted(public_tools)}."
+    assert len(public_tools) == 12, (
+        f"CANONICAL_TOOLS must have exactly 12 public entries; got {len(public_tools)}: {sorted(public_tools)}."
     )
 
 
@@ -193,11 +202,13 @@ def test_diagnostic_tools_do_not_bleed_into_canonical13():
 
 
 def test_only_two_public_surface_modes_exist():
-    """The universe of allowed surface modes is exactly 2. No rogue modes."""
-    assert set(VALID_PUBLIC_SURFACE_MODES) == {"canonical13", "expanded45"}, (
-        f"VALID_PUBLIC_SURFACE_MODES must be exactly {{'canonical13', 'expanded45'}}; "
-        f"got {set(VALID_PUBLIC_SURFACE_MODES)}. Adding a new public mode is a "
-        f"constitutional change requiring 888 ratification."
+    """The universe of allowed surface modes. Deprecated aliases retained for backward compat."""
+    allowed = {"canonical13", "canonical9", "canonical12", "canonical7", "expanded45"}
+    actual = set(VALID_PUBLIC_SURFACE_MODES)
+    assert actual == allowed, (
+        f"VALID_PUBLIC_SURFACE_MODES drifted. "
+        f"Expected {allowed}; got {actual}. "
+        f"Adding a new public mode is a constitutional change requiring 888 ratification."
     )
 
 
@@ -258,25 +269,24 @@ def test_every_public_tool_declares_floors(tool_name: str):
 
 
 def test_irreversible_tools_are_exactly_vault_and_act():
-    """Irreversible tool-level tools must be exactly: arif_seal + arif_act.
+    """Irreversible tool-level tools: arif_seal + arif_forge + arif_memory.
 
-    Note: arif_judge is `irreversible: False` at the tool level —
-    the irreversibility of its SEAL verdict is enforced downstream by the
-    F1 AMANAH gate inside arif_seal and arif_act. This is the
-    correct architecture: judgment is reversible (re-judge), only commitment
-    is irreversible (seal/act).
+    arif_seal: immutable vault append (can't unseal)
+    arif_forge: guarded execution (can't unexecute)
+    arif_memory: memory mutation with destructiveHint=True (can't unwrite)
+    arif_judge is reversible at tool level — re-judgment is always allowed.
     """
     irreversible = sorted(
         name
         for name, spec in CANONICAL_TOOLS.items()
         if spec.get("access") != "internal_only" and spec.get("irreversible", False)
     )
-    expected = sorted(["arif_act", "arif_seal"])
+    expected = sorted(["arif_forge", "arif_memory", "arif_seal"])
     assert irreversible == expected, (
         f"Irreversible public tool set drifted. "
         f"Expected {expected}; got {irreversible}. "
-        f"Tool-level irreversibility is reserved for the 2 commitment gates. "
-        f"Judgment stays reversible — only the seal and the act commit state."
+        f"Tool-level irreversibility is reserved for commitment gates. "
+        f"Judgment stays reversible — only seal/forge/memory commit state."
     )
 
 
@@ -290,4 +300,4 @@ def test_the_law_in_one_assertion():
 
     Edit EXPECTED_PUBLIC_TOOLS at the top of this file ONLY with 888 ratification.
     """
-    assert set(CANONICAL_13) == set(EXPECTED_PUBLIC_TOOLS) and len(EXPECTED_PUBLIC_TOOLS) == 7
+    assert set(CANONICAL_13) == set(EXPECTED_PUBLIC_TOOLS) and len(EXPECTED_PUBLIC_TOOLS) == 12

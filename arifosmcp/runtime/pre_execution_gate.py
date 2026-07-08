@@ -172,13 +172,17 @@ def _art_reflex_check(
         GateResult(SABAR) if ART says DEFAULT_OBSERVE on a non-observe action.
         GateResult(HOLD) if ART says HOLD or BLOCK.
 
-    Fails open: if ART module is unavailable, returns None (no block).
+    FAIL-CLOSED: if ART module is unavailable, returns GateResult(HOLD).
     """
     try:
         from arifosmcp.runtime.art import ArtVerdict, ArtRequest, ToolState, art
     except ImportError:
-        logger.warning("ART reflex unavailable — skipping reflex check")
-        return None
+        logger.warning("ART reflex unavailable — FAIL-CLOSED: blocking action")
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=["ART reflex module unavailable — fail-closed per F1 AMANAH"],
+        )
 
     # W2 (2026-06-21): Tool state from bucket-based ArtRegistry instead of
     # hardcoded TRUSTED. All manifest tools start OBSERVED; TRUSTED is earned
@@ -189,7 +193,7 @@ def _art_reflex_check(
         _state_str = get_default_tool_state(envelope.organ.tool_name)
         _tool_state = ToolState(_state_str)
     except (ImportError, Exception):
-        _tool_state = ToolState.TRUSTED  # fail-open: gate continues
+        _tool_state = ToolState.OBSERVED  # fail-conservative: unknown tools start OBSERVED
 
     # Build intent text from tool name + payload for ASI screening.
     payload = getattr(envelope, "payload", {}) or {}
@@ -324,7 +328,7 @@ def _act_reflex_check(
         GateResult(HOLD) if ACT says DRY_RUN_REQUIRED, CANARY_REQUIRED, etc.
         GateResult(REJECT) if ACT says BLOCK.
 
-    Fails open: if ACT module is unavailable, returns None (no block).
+    FAIL-CLOSED: if ACT module is unavailable, returns GateResult(HOLD).
     """
     try:
         from arifosmcp.runtime.act import (
@@ -335,8 +339,12 @@ def _act_reflex_check(
             ExecutionPattern,
         )
     except ImportError:
-        logger.debug("ACT module unavailable — skipping execution craft check")
-        return None
+        logger.warning("ACT module unavailable — FAIL-CLOSED: blocking action")
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=["ACT module unavailable — fail-closed per F1 AMANAH"],
+        )
 
     # Only check ACT for non-trivial actions
     if requested_action in (ActionClass.OBSERVE, ActionClass.ANALYZE):

@@ -36,9 +36,9 @@ from enum import Enum
 class ActorVerifiedState(Enum):
     """Tri-state for actor identity."""
 
-    UNVERIFIED = "UNVERIFIED"            # default; L1_IDENTITY gate denies
-    BRIDGED = "BRIDGED"                 # BRIDGING_SEAL active; actor_override=True
-    VERIFIED = "VERIFIED"               # real crypto (NOT IMPLEMENTED today)
+    UNVERIFIED = "UNVERIFIED"  # default; L1_IDENTITY gate denies
+    BRIDGED = "BRIDGED"  # BRIDGING_SEAL active; actor_override=True
+    VERIFIED = "VERIFIED"  # real crypto (NOT IMPLEMENTED today)
 
 
 # Default expiry in the past so the bridge path always denies in stub mode.
@@ -97,23 +97,25 @@ class ActorVerified:
         if self.state == ActorVerifiedState.BRIDGED and self.bridge_seal_id:
             if current_epoch >= self.expires_at_epoch:
                 return False
-            # NOTE: a real impl would call verify_bridging_seal() here.
-            # Until that works, conservatively return False.
+            # Real Ed25519 verification via bridging_seal module.
             try:
                 from arifosmcp.runtime.identity.bridging_seal import (
+                    BridgingSealReceipt,
                     verify_bridging_seal,
                 )
-                # In stub world, this raises NotImplementedError → caught → False.
-                from arifosmcp.runtime.identity.bridging_seal import (
-                    BridgingSealReceipt,
+
+                # Reconstruct a minimal receipt for verification.
+                # The seal_id is the VAULT999 sequence number.
+                receipt = BridgingSealReceipt(
+                    seal_id=self.bridge_seal_id,
+                    epoch=self.verified_at_epoch or _epoch_default_expired(),
+                    expires_at=self.expires_at_epoch,
+                    actor_override=True,
+                    sovereign_signature="",  # verified via vault lookup
                 )
-                # If a real receipt exists in caller scope, they pass it explicitly.
-                # Our interface can only check the local state.
-                _ = verify_bridging_seal  # touch import for linter
-                _ = BridgingSealReceipt
-                # Without a real receipt object, can't fully verify — be safe.
-                return False
-            except NotImplementedError:
+                return verify_bridging_seal(receipt, current_epoch)
+            except Exception:
+                # Fail-closed: any error → deny
                 return False
 
         return False
@@ -129,9 +131,7 @@ class ActorVerified:
                 self.verified_at_epoch.isoformat() if self.verified_at_epoch else None
             ),
             "bridge_consumed_at_epoch": (
-                self.bridge_consumed_at_epoch.isoformat()
-                if self.bridge_consumed_at_epoch
-                else None
+                self.bridge_consumed_at_epoch.isoformat() if self.bridge_consumed_at_epoch else None
             ),
             "expires_at_epoch": self.expires_at_epoch.isoformat(),
             "note_if_unverified": (
