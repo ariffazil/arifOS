@@ -5,9 +5,10 @@
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional MCP Server",
-    "version": "2026.07.01-public7"
+    "version": "kanon-b55f78b",
+    "release": "v2026.07.04-MARHIN"
   },
-  "description": "Constitutional governance kernel. Public MCP facade is exactly 7 verbs: init, observe, think, route, judge, act, seal. Internal diagnostics and legacy compatibility tools exist behind the public facade but are not part of the default public surface.",
+  "description": "Constitutional governance kernel for the arifOS federation. Exposes three MCP primitives: Tools (12 governed actions), Resources (183 context sources + 12 templates), and Prompts (8 golden-path stages). Public facade is 12 tools; 5 internal tools hidden behind sovereign gate. All operations governed by 13 constitutional floors (F1-F13).",
   "transport": {
     "type": "streamable-http",
     "endpoint": "https://mcp.arif-fazil.com/mcp"
@@ -17,44 +18,50 @@
     "schemes": [
       "bearer"
     ],
-    "description": "Initialize and default public discovery are open. Higher-authority tools such as arif_judge, arif_act, and arif_seal enforce authentication or sovereign approval."
+    "description": "Initialize and default public discovery are open. Higher-authority tools such as arif_judge and arif_seal enforce authentication or sovereign approval."
   },
   "capabilities": {
     "tools": {
-      "listChanged": true
+      "listChanged": true,
+      "count": 12,
+      "note": "12 public tools. 5 internal tools (arif_act, arif_fetch, arif_judge_deliberate, arif_kernel_intercept, arif_measure) hidden per F13 ratification."
     },
     "resources": {
       "subscribe": false,
-      "listChanged": true
+      "listChanged": true,
+      "count": 183,
+      "templates": 12,
+      "note": "16 core constitutional resources (arifos://) + 167 skill resources (skill://). 12 dynamic templates for witness logs, vault entries, source retrieval."
     },
     "prompts": {
-      "listChanged": true
+      "listChanged": true,
+      "count": 8,
+      "note": "8 golden-path stages: loop_engineer, 000_init, 111_sense, 333_reason, 555_critique, 666_judge, 777_forge, 999_seal."
     },
     "tasks": {
       "list": {},
       "cancel": {},
       "requests": {
-        "tools": {
-          "call": {}
-        },
-        "prompts": {
-          "get": {}
-        },
-        "resources": {
-          "read": {}
-        }
+        "tools": { "call": {} },
+        "prompts": { "get": {} },
+        "resources": { "read": {} }
       }
     }
   },
   "tools": {
-    "count": 7,
+    "count": 12,
     "canonical": [
       "arif_init",
+      "arif_triage",
       "arif_observe",
       "arif_think",
       "arif_route",
+      "arif_bridge_connect",
+      "arif_critique",
+      "arif_memory",
       "arif_judge",
-      "arif_act",
+      "arif_forge",
+      "arif_compose",
       "arif_seal"
     ],
     "goldenPath": [
@@ -63,20 +70,22 @@
       "arif_think",
       "arif_route",
       "arif_judge",
-      "arif_act",
+      "arif_forge",
       "arif_seal"
+    ],
+    "internal": [
+      "arif_act",
+      "arif_fetch",
+      "arif_judge_deliberate",
+      "arif_kernel_intercept",
+      "arif_measure"
     ]
   },
   "governance": {
     "floorsActive": 13,
-    "verdictTypes": [
-      "SEAL",
-      "HOLD",
-      "SABAR",
-      "VOID"
-    ],
+    "verdictTypes": ["SEAL", "HOLD", "SABAR", "VOID"],
     "humanApprovalRequiredForIrreversibleActions": true,
-    "irreversibleGate": "arif_act requires a valid governed approval path ending in seal."
+    "irreversibleGate": "arif_seal requires ack_irreversible=true. arif_forge requires prior arif_judge SEAL."
   },
   "links": {
     "documentation": "https://arifos.arif-fazil.com",
