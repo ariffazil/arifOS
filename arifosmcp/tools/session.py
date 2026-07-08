@@ -399,6 +399,7 @@ def _project_light(
     actor_verified: bool = False,
     session_mode: str = "persistent_bound",
     authority_override: str | None = None,
+    intent: str | None = None,
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -465,6 +466,12 @@ def _project_light(
         _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_act"]
     else:
         _allowed_next = ["arif_observe", "arif_think", "arif_route"]
+
+    # Fix 2026-07-08: intent is an explicit param — never read free variable `sess`
+    # (NameError blocked light bootstrap → all tools stayed anonymous).
+    _clarity_intent = intent or (
+        "light_bootstrap" if session_mode == "light" else "constitutionally_bound_session"
+    )
 
     return {
         # GATING
@@ -552,7 +559,7 @@ def _project_light(
         "clarity_contract": {
             "actor": actor_id or "anonymous",
             "session_id": sid,
-            "intent": "light_bootstrap" if session_mode == "light" else (sess.get("intent") or "constitutionally_bound_session"),
+            "intent": _clarity_intent,
             "evidence_layer": "L2" if actor_verified else "L4",
             "timestamp": _now_ts,
             "authority_band": _authority,
@@ -1063,6 +1070,7 @@ def arif_init(
             constitution_hash=CONSTITUTION_HASH,
             actor_verified=_light_actor_verified,
             session_mode=session_mode,  # AOB P0 — 2026-07-03
+            intent=intent or sess.get("intent") or "light_bootstrap",
         )
 
         # ── Verbose=audit: only path that inlines statics (seal only) ───
@@ -1452,6 +1460,7 @@ def arif_init(
             # Fix 2026-07-06 ROUND-2: pass session's actual authority level
             # so _project_light doesn't derive "FULL" from actor_verified alone.
             authority_override=sess.get("authority", "OBSERVE_ONLY"),
+            intent=sess.get("intent") or intent or "constitutionally_bound_session",
         )
         # Authority is now correctly projected by _project_light via authority_override.
         # The old post-hoc override (header["authority"] = "FULL") was a workaround
