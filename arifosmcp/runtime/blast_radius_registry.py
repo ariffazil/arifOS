@@ -53,7 +53,7 @@ class ToolRiskProfile:
     reversibility: ReversibilityLevel  # FULLY / PARTIALLY / IRREVERSIBLE
     enforcement: EnforcementMode  # SIMULATE / ENFORCE / PROPOSE
     description: str = ""
-    requires_human_ack: bool = False  # Must get F13 sign-off
+    requires_f13_sovereign_ack: bool = False  # Must get F13 sign-off
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -63,7 +63,7 @@ class ToolRiskProfile:
             "blast_radius": self.blast_radius.value,
             "reversibility": self.reversibility.value,
             "enforcement": self.enforcement.value,
-            "requires_human_ack": self.requires_human_ack,
+            "requires_f13_sovereign_ack": self.requires_f13_sovereign_ack,
             "description": self.description,
         }
 
@@ -274,7 +274,7 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         blast_radius=BlastRadius.PUBLIC,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
         enforcement=EnforcementMode.ENFORCE,
-        requires_human_ack=True,
+        requires_f13_sovereign_ack=True,
         description="Seal to immutable ledger — IRREVERSIBLE, requires F13 ack",
     ),
     # ── T5: Infrastructure Atomic ──────────────────────────────────────────
@@ -285,7 +285,7 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         blast_radius=BlastRadius.INFRASTRUCTURE,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
         enforcement=EnforcementMode.ENFORCE,
-        requires_human_ack=True,
+        requires_f13_sovereign_ack=True,
         description="Build/deploy/system change — ATOMIC, requires F13 ack",
     ),
     "arif_judge": ToolRiskProfile(
@@ -295,7 +295,7 @@ BLAST_RADIUS_REGISTRY: dict[str, ToolRiskProfile] = {
         blast_radius=BlastRadius.PUBLIC,
         reversibility=ReversibilityLevel.IRREVERSIBLE,
         enforcement=EnforcementMode.ENFORCE,
-        requires_human_ack=True,
+        requires_f13_sovereign_ack=True,
         description="Final constitutional verdict — IRREVERSIBLE, requires F13",
     ),
 }

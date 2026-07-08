@@ -285,7 +285,7 @@ def classify_and_bridge(
         authority=AuthorityBlock(
             actor_id=actor_id,
             action_class=ac,
-            human_ack_required=not is_reversible,
+            f13_sovereign_required=not is_reversible,
         ),
         state=StateBlock(),
         risk=RiskBlock(

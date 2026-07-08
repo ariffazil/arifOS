@@ -256,7 +256,11 @@ class WebMCPGateway:
                     "call": "/webmcp/call/{tool_name}",
                     "vitals": "/webmcp/vitals",
                 },
-                "human_in_the_loop": True,
+                # REMOVED 2026-07-08: human_in_the_loop flag. WebMCP runs the
+                # kernel-encoded 10-check autonomous gate. F13 sovereign thresholds
+                # apply at the 8 irreversible categories.
+                "human_in_the_loop": False,
+                "governance_mode": "autonomous_kernel",
                 "tools": self._tool_charter(),
             }
 

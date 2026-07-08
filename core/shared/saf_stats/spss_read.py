@@ -11,7 +11,7 @@
 
 All read tools respect F6 PRIVACY (sandbox) and F1 AMANAH (sealed
 verdict). Destructive tools (convert_* overwriting, generate overwriting)
-return SABAR unless ack_irreversible=True.
+return SABAR unless f13_severity_acknowledged=True.
 """
 
 from __future__ import annotations
@@ -254,7 +254,7 @@ def convert_spss_to_csv(
     file_path: str,
     output_path: str,
     *,
-    ack_irreversible: bool = False,
+    f13_severity_acknowledged: bool = False,
 ) -> dict:
     src = sandbox.safe_resolve(file_path, mode="read")
     dst = sandbox.safe_resolve(output_path, mode="write", must_exist=False)
@@ -262,11 +262,11 @@ def convert_spss_to_csv(
         "convert_spss_to_csv",
         is_destructive=True,
         writes_to_disk=True,
-        ack_irreversible=ack_irreversible,
+        f13_severity_acknowledged=f13_severity_acknowledged,
     )
     if vp.verdict == governance.Verdict.SABAR:
         return vp.to_dict() | {
-            "note": "set ack_irreversible=True to actually write the file",
+            "note": "set f13_severity_acknowledged=True to actually write the file",
             "would_write": sandbox.relative_to_root(dst),
         }
     df = _read_any(src)
@@ -308,7 +308,7 @@ def convert_csv_to_sav(
     output_path: str,
     *,
     column_labels: Optional[dict] = None,
-    ack_irreversible: bool = False,
+    f13_severity_acknowledged: bool = False,
 ) -> dict:
     src = sandbox.safe_resolve(file_path, mode="read")
     dst = sandbox.safe_resolve(output_path, mode="write", must_exist=False)
@@ -316,11 +316,11 @@ def convert_csv_to_sav(
         "convert_csv_to_sav",
         is_destructive=True,
         writes_to_disk=True,
-        ack_irreversible=ack_irreversible,
+        f13_severity_acknowledged=f13_severity_acknowledged,
     )
     if vp.verdict == governance.Verdict.SABAR:
         return vp.to_dict() | {
-            "note": "set ack_irreversible=True to actually write the file",
+            "note": "set f13_severity_acknowledged=True to actually write the file",
             "would_write": sandbox.relative_to_root(dst),
         }
     df = _read_any(src)

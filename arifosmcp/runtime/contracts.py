@@ -25,13 +25,19 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class VerdictCode(StrEnum):
-    """Canonical constitutional verdict codes."""
+    """Canonical constitutional verdict codes.
 
-    SEAL = "SEAL"  # Approved, attested
-    PARTIAL = "PARTIAL"  # Approved with reservations
-    VOID = "VOID"  # Rejected, failed floors
-    SABAR = "SABAR"  # Pending, needs more info
-    HOLD = "888_HOLD"  # High-risk, requires human
+    DEPRECATED local definition (2026-07-08 P0-2 fix).
+    Previously defined HOLD = "888_HOLD" which conflicted with SealType.HOLD = "HOLD".
+    Now aliases to SealType (via models/verdicts) for single-source verdict grammar.
+    All code should import VerdictCode from arifosmcp.runtime.model instead.
+    """
+
+    SEAL = "SEAL"
+    PARTIAL = "PARTIAL"
+    VOID = "VOID"
+    SABAR = "SABAR"
+    HOLD = "HOLD"  # Was "888_HOLD" — now matches SealType.HOLD
 
 
 class RiskTier(StrEnum):

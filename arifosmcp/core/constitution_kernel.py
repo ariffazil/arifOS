@@ -501,6 +501,7 @@ class ConstitutionKernel:
         )
         try:
             from arifosmcp.runtime.event_bus import emit_event_sync
+
             event = {
                 "trace_id": getattr(context, "plan_id", None) or "unknown",
                 "verdict": verdict,
@@ -563,14 +564,8 @@ class ConstitutionKernel:
 
 
 class SchemaContractValidator:
-    @staticmethod
-    def validate_elicitation_model(model: type[BaseModel]) -> list[str]:
-        errors: list[str] = []
-        for name, field_info in model.model_fields.items():
-            annotation = field_info.annotation
-            if hasattr(annotation, "__origin__") and annotation.__origin__ is type[None] | str:
-                errors.append(f"Field '{name}' has Union type with None")
-        return errors
+    # REMOVED 2026-07-08: validate_elicitation_model() — elicitation removed.
+    # Kernel encodes governance autonomously. F13 sovereign thresholds only.
 
     @staticmethod
     def validate_mode_consistency(

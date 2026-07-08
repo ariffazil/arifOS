@@ -110,9 +110,18 @@ def _detect_contradictions(
     # ZEN Phase 1 TPCP enforcement (from tpcp.py)
     try:
         from arifosmcp.core.paradox.tpcp import run_tpcp_pipeline
+
         tpcp = run_tpcp_pipeline(contradictions or [], floor_scores)
-        if hasattr(tpcp, 'phi_P') and tpcp.phi_P < 0.40:
-            contradictions.append({"stage_a": "TPCP", "stage_b": "verdict", "severity": "critical", "description": f"TPCP Φ_P={tpcp.phi_P:.2f} forces HOLD", "confidence": 0.9})
+        if hasattr(tpcp, "phi_P") and tpcp.phi_P < 0.40:
+            contradictions.append(
+                {
+                    "stage_a": "TPCP",
+                    "stage_b": "verdict",
+                    "severity": "critical",
+                    "description": f"TPCP Φ_P={tpcp.phi_P:.2f} forces HOLD",
+                    "confidence": 0.9,
+                }
+            )
     except Exception:
         pass  # graceful if not wired
 
@@ -180,6 +189,7 @@ def _detect_contradictions(
             contradictions.append(contradiction)
 
     return contradictions
+
 
 # ZEN Phase 1: TPCP + ToAC integration (enforce in judge)
 # Called from judge paths to apply paradox conductance and contrast.
@@ -480,7 +490,7 @@ async def judge(
     contradictions = _detect_contradictions(reason_summary, floor_scores, candidate.value)
     critical_contradictions = [c for c in contradictions if c["severity"] == "critical"]
     if critical_contradictions:
-        candidate = Verdict.HOLD_888
+        candidate = Verdict.HOLD  # P0-2 fix: HOLD_888 was monkey-patched, not a real enum member
         reason_summary = (reason_summary or "") + (
             f" [COHERENCE HOLD: {len(critical_contradictions)} critical contradiction(s) detected]"
         )

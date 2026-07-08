@@ -1931,6 +1931,10 @@ _TOOL_ANNOTATIONS: dict[str, dict[str, Any]] = {
         "OBSERVE",
         title="Ops Measure",
     ),
+    "arif_memory": derive_mcp_annotations(
+        "MUTATE",
+        title="Memory Governor",
+    ),
     # ═══════════════════════════════════════════════════════════════════
     # RULE-14 DIAGNOSTIC TOOLS — action_class from kernel_canonical spec
     # ═══════════════════════════════════════════════════════════════════

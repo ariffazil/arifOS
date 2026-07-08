@@ -247,6 +247,7 @@ class _FakeContext:
         self.progress.append((progress, total, message))
 
 
+@pytest.mark.skip(reason="REMOVED 2026-07-08: elicitation removed. Kernel-encode governance only.")
 @pytest.mark.asyncio
 async def test_elicitation_accepts_irreversible_ack():
     ctx = _FakeContext(AcceptedElicitation(data=IrreversibleConfirmation(ack_irreversible=True)))
@@ -265,6 +266,7 @@ async def test_elicitation_accepts_irreversible_ack():
     assert ctx.progress
 
 
+@pytest.mark.skip(reason="REMOVED 2026-07-08: elicitation removed. Kernel-encode governance only.")
 @pytest.mark.asyncio
 async def test_elicitation_decline_holds_irreversible_action():
     ack, hold = await _elicit_irreversible_ack(
@@ -281,6 +283,7 @@ async def test_elicitation_decline_holds_irreversible_action():
     assert hold["status"] == "HOLD"
 
 
+@pytest.mark.skip(reason="REMOVED 2026-07-08: elicitation removed. Kernel-encode governance only.")
 @pytest.mark.asyncio
 async def test_elicitation_accepts_missing_judge_candidate():
     candidate, hold = await _elicit_judge_candidate(
@@ -293,6 +296,7 @@ async def test_elicitation_accepts_missing_judge_candidate():
     assert hold is None
 
 
+@pytest.mark.skip(reason="REMOVED 2026-07-08: elicitation removed. Kernel-encode governance only.")
 @pytest.mark.asyncio
 async def test_elicitation_cancel_holds_missing_judge_candidate():
     candidate, hold = await _elicit_judge_candidate(

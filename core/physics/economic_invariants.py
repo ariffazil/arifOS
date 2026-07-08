@@ -309,15 +309,15 @@ def check_mode_collapse_market(
 
 def check_irreversibility_commitment(
     is_irreversible: bool,
-    ack_irreversible: bool = False,
+    f13_severity_acknowledged: bool = False,
 ) -> dict[str, Any]:
     """Inv-8: Irreversibility of Capital Commitment."""
-    if is_irreversible and not ack_irreversible:
+    if is_irreversible and not f13_severity_acknowledged:
         raise IrreversibilityError(
             "Irreversible capital commitment detected without sovereign ack. "
             "F1 Amanah requires explicit acknowledgment."
         )
-    return {"invariant": "I08", "passed": True, "ack": ack_irreversible}
+    return {"invariant": "I08", "passed": True, "ack": f13_severity_acknowledged}
 
 
 def check_genius_discipline(
@@ -755,7 +755,7 @@ def run_all_invariants(
             _record(
                 "I08",
                 check_irreversibility_commitment(
-                    payload["is_irreversible"], payload.get("ack_irreversible", False)
+                    payload["is_irreversible"], payload.get("f13_severity_acknowledged", False)
                 ),
                 None,
             )

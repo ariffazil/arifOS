@@ -988,6 +988,21 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,
         "safe_autonomous_use": True,
     },
+    # P0-4 canonical name
+    "arif_observe": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": True,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "known": True,
+    },
     "arif_evidence_fetch": {
         "action_class": "OBSERVE",
         "mutation": False,
@@ -1015,6 +1030,21 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,
         "safe_autonomous_use": True,
     },
+    # P0-4 canonical name
+    "arif_think": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "known": True,
+    },
     "arif_heart_critique": {
         "action_class": "OBSERVE",
         "mutation": False,
@@ -1028,6 +1058,21 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,
         "safe_autonomous_use": True,
     },
+    # P0-4 canonical name
+    "arif_critique": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "known": True,
+    },
     "arif_reply_compose": {
         "action_class": "OBSERVE",
         "mutation": False,
@@ -1040,6 +1085,21 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_evidence": False,
         "output_is_approval": False,
         "safe_autonomous_use": True,
+    },
+    # P0-4 canonical name
+    "arif_compose": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": False,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "known": True,
     },
     "arif_memory_recall": {
         "action_class": "OBSERVE",
@@ -1133,6 +1193,23 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "safe_autonomous_use": True,
     },
     # ── JUDGE / SEAL-class (irreversible, requires human ack) ────────────
+    # P0-4 fix (2026-07-08): Add canonical names alongside legacy aliases.
+    # _LEGACY_ALIASES only maps arif_* ↔ arifos_*, not arif_judge → arif_judge_deliberate.
+    # Without these entries, canonical names fall through to UNKNOWN.
+    "arif_judge": {
+        "action_class": "JUDGE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,  # reasoning only, no state change
+        "requires_session": True,
+        "requires_lease": True,
+        "requires_human_ack": False,
+        "expected_blast_radius": "MEDIUM",
+        "output_is_evidence": True,
+        "output_is_approval": False,  # verdict is advisory, not approval
+        "safe_autonomous_use": True,
+        "known": True,
+    },
     "arif_judge_deliberate": {
         "action_class": "JUDGE",
         "mutation": False,
@@ -1159,7 +1236,35 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,  # evidence, not approval
         "safe_autonomous_use": False,
     },
+    "arif_seal": {
+        "action_class": "SEAL",
+        "mutation": True,
+        "external_side_effect": False,
+        "irreversible": True,
+        "requires_session": True,
+        "requires_lease": True,
+        "requires_human_ack": True,
+        "expected_blast_radius": "HIGH",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": False,
+        "known": True,
+    },
     # ── EXECUTE-class (irreversible, requires lease + ack) ────────────────
+    "arif_forge": {
+        "action_class": "EXECUTE",
+        "mutation": True,
+        "external_side_effect": True,
+        "irreversible": "possible",
+        "requires_session": True,
+        "requires_lease": True,
+        "requires_human_ack": True,
+        "expected_blast_radius": "HIGH",
+        "output_is_evidence": False,
+        "output_is_approval": False,
+        "safe_autonomous_use": False,
+        "known": True,
+    },
     "arif_forge_execute": {
         "action_class": "EXECUTE",
         "mutation": True,
@@ -1173,6 +1278,361 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,
         "safe_autonomous_use": False,
     },
+    # ════════════════════════════════════════════════════════════════════════
+    # P0-4b (2026-07-08): forge_* affordance contracts with transport_constraint.
+    # A-FORGE tools are in a separate MCP server (TypeScript, port 7072).
+    # Many require stdio session ownership — fail on Streamable HTTP.
+    # These entries let arifOS agents know BEFORE calling.
+    # ════════════════════════════════════════════════════════════════════════
+    # ── forge_* OBSERVE-class (http_ok) ───────────────────────────────────
+    "forge_probe": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": False,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_health_check": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": False,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_registry": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": False,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_memory": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_search": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": True,
+        "irreversible": False,
+        "requires_session": False,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_fetch": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": True,
+        "irreversible": False,
+        "requires_session": False,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_chart": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    # ── forge_* OBSERVE-class (stdio_only) ────────────────────────────────
+    "forge_filesystem": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_filesystem_read": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_filesystem_stat": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_filesystem_search": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_filesystem_tree": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_git": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_docker": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_worktree": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    # ── forge_* MUTATE-class (stdio_only, requires lease) ─────────────────
+    "forge_shell": {
+        "action_class": "EXECUTE",
+        "mutation": True,
+        "external_side_effect": True,
+        "irreversible": "depends",
+        "requires_session": True,
+        "requires_lease": True,
+        "requires_human_ack": True,
+        "expected_blast_radius": "HIGH",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": False,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_filesystem_write": {
+        "action_class": "EXECUTE",
+        "mutation": True,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": True,
+        "requires_human_ack": False,
+        "expected_blast_radius": "MEDIUM",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": False,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_filesystem_patch": {
+        "action_class": "EXECUTE",
+        "mutation": True,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": True,
+        "requires_human_ack": False,
+        "expected_blast_radius": "MEDIUM",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": False,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    "forge_postgres": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "stdio_only",
+        "known": True,
+    },
+    # ── forge_* GOVERNANCE-class (http_ok, proxy to arifOS) ───────────────
+    "forge_judge_proxy": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_session_init": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": False,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_evaluate": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
+    "forge_lease": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+        "transport_constraint": "http_ok",
+        "known": True,
+    },
 }
 
 
@@ -1185,10 +1645,14 @@ def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
     """
     # Resolve arifos_* → arif_* via legacy alias map (2026-06-22 migration)
     lookup_name = _LEGACY_ALIASES.get(tool_name, tool_name)
-    if lookup_name in TOOL_AFFORDANCE_CONTRACTS:
-        contract = dict(TOOL_AFFORDANCE_CONTRACTS[lookup_name])
-        contract["known"] = True
-        return contract
+    # P0-4 fix (2026-07-08): Try resolved name first, then original name.
+    # _LEGACY_ALIASES maps arif_judge → arifos_judge, but affordance dict
+    # has arif_judge. Without fallback, canonical names resolve to UNKNOWN.
+    for candidate in (lookup_name, tool_name):
+        if candidate in TOOL_AFFORDANCE_CONTRACTS:
+            contract = dict(TOOL_AFFORDANCE_CONTRACTS[candidate])
+            contract["known"] = True
+            return contract
     return {
         "action_class": "UNKNOWN",
         "mutation": "unknown",
@@ -1201,6 +1665,7 @@ def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
         "output_is_evidence": False,
         "output_is_approval": False,
         "safe_autonomous_use": False,
+        "transport_constraint": "unknown",  # P0-4b: fail-safe
         "known": False,  # Mark as fallback so callers know to be cautious
     }
 
@@ -1631,11 +2096,9 @@ def _compute_stage_progression(tool_name: str, verdict: str) -> dict[str, Any] |
 
 
 from fastmcp import Context, FastMCP
-from fastmcp.server.elicitation import (
-    AcceptedElicitation,
-    CancelledElicitation,
-    DeclinedElicitation,
-)
+
+# REMOVED 2026-07-08: elicitation import — kernel-encode governance
+# from fastmcp.server.elicitation import (AcceptedElicitation, CancelledElicitation, DeclinedElicitation)
 from mcp import McpError
 from pydantic import BaseModel, Field
 
@@ -2904,12 +3367,24 @@ def _enforce_nine_signal(
         # /000 principal-agent separation: actor surfaced at top-level
         # envelope (not inside result). See envelope dict below.
 
-        # Resolve actor_verified once for the canonical verdict function
-        actor_verified_flag = out.get("actor_verified")
-        if actor_verified_flag is None and isinstance(out.get("actor"), dict):
-            actor_verified_flag = out["actor"].get("identity_verified")
-        if actor_verified_flag is None and isinstance(result_payload, dict):
-            actor_verified_flag = result_payload.get("actor_verified")
+        # Resolve actor_verified — SINGLE SOURCE: session store only.
+        # P0-1 fix (2026-07-08): Three-source lookup (out/actor/result_payload)
+        # caused drift where tools could emit actor_verified=True while session
+        # store had False. Now: session store is the sole authority. Per-tool
+        # claims are advisory log only, never used for gating.
+        actor_verified_flag = False  # default: unverified
+        if resolved_session_id and resolved_session_id != "unknown":
+            _sess = get_session(resolved_session_id)
+            if _sess and isinstance(_sess, dict):
+                actor_verified_flag = bool(_sess.get("actor_verified", False))
+        # Log per-tool claims for audit (advisory only, not used for gating)
+        _tool_claimed_av = out.get("actor_verified")
+        if _tool_claimed_av is not None and _tool_claimed_av != actor_verified_flag:
+            logger.info(
+                f"P0-1_AUDIT: tool={tool_name} claimed actor_verified={_tool_claimed_av} "
+                f"but session={resolved_session_id} has {actor_verified_flag}. "
+                f"Session authority is sovereign."
+            )
 
         # ── WAJIB-3: Single canonical verdict derivation ───────────────────
         # All signals flow in. One verdict flows out. No scattered if-else.
@@ -3075,6 +3550,19 @@ def _enforce_nine_signal(
             # where envelope said False but wrapper said True.
             # Single source of truth: set once at 000_init, read-only downstream.
             "actor_verified": bool(meta_payload.get("actor_verified", False)),
+            # P0-3 fix (2026-07-08): Structured authority block.
+            # Replaces ambiguous flat fields (authority: FULL + authority_mode: OBSERVE_ONLY)
+            # with explicit separation: whose authority, over what, at which level.
+            "authority": {
+                "human_authority": "SOVEREIGN",  # Arif is always sovereign
+                "runtime_authority": ("FULL" if actor_verified_flag else "OBSERVE_ONLY"),
+                "mutation_allowed": (
+                    verdict not in ("VOID", "HOLD", "OBSERVE_ONLY", "DEGRADED")
+                    and actor_verified_flag
+                ),
+                "seal_allowed": (verdict == "SEAL" and actor_verified_flag),
+                "actor_verified": actor_verified_flag,
+            },
             "output_policy": out.get("output_policy")
             or _output_policy_for_verdict(
                 verdict if verdict in ("SEAL", "HOLD", "VOID", "SABAR", "DRY_RUN") else "HOLD"
@@ -6436,69 +6924,18 @@ async def _elicit_irreversible_ack(
     constitutional_chain_id: str | None = None,
 ) -> tuple[bool, dict[str, Any] | None]:
     """
-    Attempt MCP transport-level elicitation (real human prompt).
-    Falls back to constitutional_chain_id check for agent-to-agent flows.
+    REMOVED 2026-07-08: elicitation removed.
+    Kernel encodes governance autonomously via the 10-check autonomous gate.
+    F13 sovereign thresholds (8 of them) still apply via constitutional_chain_id
+    from prior arif_judge SEAL. No transport-level human prompt.
 
-    REMOVED 2026-07-07: ack_irreversible boolean shortcut removed.
-    The boolean was a self-attestation bypass — same entity being governed
-    decides whether action is irreversible. Now: always try real elicitation;
-    if transport unavailable, require prior arif_judge SEAL.
+    Always returns HOLD — caller must use the F13 sovereign path.
     """
-    # If mode isn't irreversible, skip elicitation entirely
-    if mode not in _IRREVERSIBLE_ELICITATION_MODES:
-        return True, None
-
-    # If prior SEAL exists, use that as authority
-    if constitutional_chain_id:
-        return True, None
-
-    # Try real MCP elicitation (transport-level human prompt)
-    if ctx is not None:
-        await ctx.report_progress(15, 100, f"{tool_name}: requesting sovereign confirmation")
-        try:
-            response = await ctx.elicit(
-                (
-                    f"{tool_name} is about to run mode='{mode}', which is marked irreversible.\n"
-                    f"actor_id={actor_id or 'anonymous'} session_id={session_id or 'none'}\n"
-                    "Confirm only if this action should permanently proceed."
-                ),
-                IrreversibleConfirmation,
-            )
-        except (McpError, RuntimeError) as exc:
-            logger.info("Elicitation unavailable for %s: %s", tool_name, exc)
-            return False, _hold(
-                tool_name,
-                f"{mode} requires human confirmation; elicitation unavailable ({exc}). "
-                "Provide constitutional_chain_id from prior arif_judge SEAL instead.",
-                [],
-            )
-
-        if isinstance(response, AcceptedElicitation):
-            if response.data.ack_irreversible:
-                await ctx.report_progress(35, 100, f"{tool_name}: sovereign confirmation accepted")
-                return True, None
-            return False, _hold(
-                tool_name,
-                "Sovereign confirmation did not acknowledge irreversible execution",
-                [],
-            )
-        if isinstance(response, DeclinedElicitation):
-            return False, _hold(
-                tool_name,
-                "Elicitation declined by client. Provide constitutional_chain_id from prior arif_judge SEAL to proceed.",
-                [],
-            )
-        if isinstance(response, CancelledElicitation):
-            return False, _hold(
-                tool_name, "Elicitation cancelled before irreversible confirmation", []
-            )
-
-        return False, _hold(tool_name, "Unexpected elicitation response", [])
-
-    # No transport, no SEAL — cannot authorize
     return False, _hold(
         tool_name,
-        f"{mode} requires human confirmation. No MCP transport available and no constitutional_chain_id (prior SEAL) provided.",
+        "Elicitation removed (2026-07-08). Kernel-encoded governance: "
+        "use constitutional_chain_id from prior arif_judge SEAL, "
+        "or escalate to F13 sovereign via 8-threshold rule.",
         [],
     )
 
@@ -6509,82 +6946,24 @@ async def _elicit_judge_candidate(
     mode: str,
     candidate: str | None,
 ) -> tuple[str | None, dict[str, Any] | None]:
-    # L13 FIX: Always elicit — the model cannot self-certify even if it provides
-    # a candidate as a tool argument. The candidate is treated as context for the
-    # human to review, not as self-certification. This closes the L13 bypass where
-    # a model could call arif_judge_deliberate(candidate="my action is safe") and
-    # have judgment run directly without human review.
-    #
-    # Rule: arif_judge_deliberate is a two-party protocol. The model requests
-    # judgment. The human (via elicitation) confirms the candidate. The model
-    # never однозначно accepts its own safety argument.
+    # REMOVED 2026-07-08: elicitation removed. Kernel-encode governance.
+    # arif_judge_deliberate is a two-party protocol — but the second party
+    # is the kernel's autonomous governance, not a human prompt.
+    # The model requests judgment; the kernel judges via 10-check autonomous gate.
+    # F13 sovereign thresholds apply to the 8 irreversible categories.
 
     if mode == "rules":
         # rules mode returns constitutional text — not a verdict judgment.
-        # No candidate required; bypass is safe here.
         return candidate, None
 
-    if ctx is None:
-        # No MCP context means no elicitation possible. Require explicit candidate.
-        if not candidate or not candidate.strip():
-            return None, _hold(
-                "arif_judge_deliberate",
-                "candidate is required when elicitation is unavailable",
-                [],
-            )
-        # Fall through to elicitation if ctx is None but candidate exists.
-        # This path still requires the model to present the candidate through
-        # an MCP client with elicitation support — the model cannot judge itself.
+    if not candidate or not candidate.strip():
         return None, _hold(
             "arif_judge_deliberate",
-            "MCP client with elicitation support is required to confirm the candidate. "
-            "Model cannot self-certify (L13). Provide candidate via an MCP client that "
-            "supports elicitation, or use mode='history' to browse past verdicts.",
+            "candidate is required (non-empty string)",
             [],
         )
-
-    # Always elicit — candidate provided as tool argument is advisory context,
-    # not a bypass. The human must explicitly confirm through the elicitation dialog.
-    await ctx.report_progress(15, 100, "arif_judge_deliberate: requesting human confirmation")
-    try:
-        candidate_preview = (
-            candidate[:500] + "..." if candidate and len(candidate) > 500 else (candidate or "")
-        )
-        response = await ctx.elicit(
-            f"arif_judge_deliberate: Confirm the candidate to be judged.\n"
-            f"The model has requested judgment on an action. "
-            f"You (Arif) must confirm or modify the candidate before adjudication proceeds.\n\n"
-            f"Candidate: {candidate_preview}",
-            JudgeCandidateInput,
-        )
-    except (McpError, RuntimeError) as exc:
-        logger.info("Elicitation unavailable for arif_judge_deliberate: %s", exc)
-        return None, _hold(
-            "arif_judge_deliberate",
-            f"candidate is required; elicitation unavailable ({exc})",
-            [],
-        )
-
-    if isinstance(response, AcceptedElicitation):
-        candidate_text = response.data.candidate.strip()
-        if candidate_text:
-            await ctx.report_progress(35, 100, "arif_judge_deliberate: candidate accepted")
-            return candidate_text, None
-        return None, _hold("arif_judge_deliberate", "candidate cannot be empty", [])
-    if isinstance(response, DeclinedElicitation):
-        return None, _hold(
-            "arif_judge_deliberate",
-            "Elicitation declined by client; provide candidate explicitly to proceed",
-            [],
-        )
-    if isinstance(response, CancelledElicitation):
-        return None, _hold(
-            "arif_judge_deliberate",
-            "Elicitation cancelled before candidate selection",
-            [],
-        )
-
-    return None, _hold("arif_judge_deliberate", "Unexpected elicitation response", [])
+    # Return the candidate as-is. The kernel applies 10-check governance.
+    return candidate, None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -15141,7 +15520,8 @@ async def _arif_judge_deliberate_tool(
     The apex adjudication organ. Evaluates a candidate action against
     all 13 constitutional floors (F1–L13) and returns a binding verdict:
     SEAL (approved), SABAR (conditional), HOLD (paused), or VOID (rejected).
-    Irreversible actions require explicit human confirmation via ctx elicitation.
+    Irreversible actions gated by kernel-encoded 8 F13 sovereign thresholds;
+    F13 escalation only when prior arif_judge SEAL is unavailable.
 
     Modes:
       judge     — Full constitutional review of a candidate.
@@ -15197,20 +15577,11 @@ async def _arif_judge_deliberate_tool(
             pass
 
     try:
-        # ── Benchmark/eval bypass (L13-gate waiver for headless constitutional testing) ──
-        # arifOS reserves the right to grant programmatic callers a bypass of the human
-        # elicitation gate when: (1) the caller is a known bench harness, (2) the call is
-        # HEADLESS (ctx is None — no secure UI channel), and (3) the bypass identity is
-        # pre-authorized by the sovereign (L13). This does NOT grant general access — it
-        # authorises specifically-identified programmatic benchmarks.
-        _bench_approved = frozenset({"aaa-eval", "arifOS-bench"})
-        if actor_id in _bench_approved and ctx is None and mode != "history":
-            # Programmatic bench harness — skip human elicitation, pass-through candidate.
-            # The full constitutional kernel (_arif_judge_deliberate) still runs.
-            # Safe to bypass here: this path only triggers for headless bench callers with
-            # a pre-authorized identity that the sovereign (L13) has explicitly approved.
-            candidate = candidate or ""
-        elif mode != "history":
+        # ── Benchmark/eval path (no human prompt; kernel-encoded governance) ──
+        # REMOVED 2026-07-08: bench harness bypass for human elicitation.
+        # The full constitutional kernel applies the 10-check autonomous gate
+        # to all callers, including benchmarks. No special bench path.
+        if mode != "history":
             candidate, hold = await _elicit_judge_candidate(ctx, mode=mode, candidate=candidate)
             if hold is not None:
                 return hold

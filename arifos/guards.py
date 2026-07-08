@@ -92,7 +92,7 @@ async def prethink(
                 reversibility=Reversibility.IRREVERSIBLE.value
                 if action_class in HOLD_TRIGGERS
                 else Reversibility.REVERSIBLE.value,
-                human_ack_required=any(f.verdict == "HOLD" for f in failed),
+                f13_sovereign_required=any(f.verdict == "HOLD" for f in failed),
             ),
             required_human_ack=any(f.verdict == "HOLD" for f in failed),
             reasons=[f.reason for f in failed],
@@ -122,7 +122,7 @@ async def prethink(
             risk=RiskEnvelope(
                 blast_radius=intent.blast_radius.value,
                 reversibility=Reversibility.REVERSIBLE.value,
-                human_ack_required=True,
+                f13_sovereign_required=True,
             ),
             required_human_ack=True,
             reasons=[f"kernel unreachable: {exc}"],

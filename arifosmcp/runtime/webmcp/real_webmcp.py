@@ -97,7 +97,9 @@ class RealWebMCPGateway:
                     "imperative": self.config.enable_imperative,
                 },
                 "tools": list(self.tools.values()),
-                "human_in_the_loop": self.config.require_human_confirmation,
+                # REMOVED 2026-07-08: human_in_the_loop flag. Kernel-encoded governance.
+                "human_in_the_loop": False,
+                "governance_mode": "autonomous_kernel",
             }
 
         # Main WebMCP Console - Human-friendly interface
