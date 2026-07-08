@@ -784,50 +784,55 @@ try:
             logger.info(f"Deprecation alias registered: {_ghost_name} → {_canonical_target}")
 
     # ── P3 FIX 2026-06-30: arif_triage + arif_compose — ChatGPT audit BANGANG ──
-    # Both tools are implemented in kernel_canonical.py but were excluded from
-    # server.py registration (intentionally canonical-7 only). Now added to expanded45.
-
-    # arif_triage: session status, priority queue, preflight checks.
-    # arif_compose: governed response composition — formats final output.
+    # Both kernel verbs live in kernel_canonical / CANONICAL_TOOL_HANDLERS.
+    # Descriptions MUST come from public_registry._TOOL_DESCRIPTIONS (single source).
     if _EXPOSE_DEV_TOOLS:
         try:
+            from arifosmcp.runtime.public_registry import _TOOL_DESCRIPTIONS as _KERNEL_DESCS
+            from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS as _KERNEL_ANN
             from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
 
             _triage_handler = _wrap_handler(_arif_triage, "arif_triage")
+            _triage_ann = dict(_KERNEL_ANN.get("arif_triage") or {})
+            _triage_ann.setdefault("readOnlyHint", True)
+            _triage_ann.setdefault("destructiveHint", False)
             mcp.tool(
                 name="arif_triage",
-                description=(
-                    "Session status, priority queue, and preflight checks. "
-                    "Modes: status (active session count + stage) | preflight (pre-session safety probe) "
-                    "| triage (priority assessment). Core immune function — run before arif_init when unsure of session state."
+                description=_KERNEL_DESCS.get(
+                    "arif_triage",
+                    "KERNEL 000 · Session preflight / immune status — not intent routing.",
                 ),
-                tags={"triage", "diagnostic", "read-only", "session"},
-                annotations={"readOnlyHint": True, "destructiveHint": False},
+                tags={"kernel", "triage", "session", "000"},
+                annotations=_triage_ann,
             )(_triage_handler)
             logger.info(
-                "arif_triage registered — expanded45 operator surface (P3 fix 2026-06-30, _wrap_handler)."
+                "arif_triage registered — kernel verb 000 preflight (desc from public_registry)."
             )
         except Exception as _triage_err:
             logger.warning("arif_triage registration failed (non-fatal): %s", _triage_err)
 
         try:
+            from arifosmcp.runtime.public_registry import _TOOL_DESCRIPTIONS as _KERNEL_DESCS
+            from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS as _KERNEL_ANN
             from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH
 
             _compose_fn = _CTH.get("arif_compose")
             if _compose_fn is not None:
                 _compose_wrapped = _wrap_handler(_compose_fn, "arif_compose")
+                _compose_ann = dict(_KERNEL_ANN.get("arif_compose") or {})
+                _compose_ann.setdefault("readOnlyHint", True)
+                _compose_ann.setdefault("destructiveHint", False)
                 mcp.tool(
                     name="arif_compose",
-                    description=(
-                        "Governed response composition — formats final output for Arif with citations and tone calibration. "
-                        "Call as the LAST step before presenting results. "
-                        "Modes: compose | summarize | cite | tone_shift | style | format | nudge | repo_answer."
+                    description=_KERNEL_DESCS.get(
+                        "arif_compose",
+                        "KERNEL reply · Final human-facing composition.",
                     ),
-                    tags={"compose", "reply", "read-only", "output"},
-                    annotations={"readOnlyHint": True, "destructiveHint": False},
+                    tags={"kernel", "compose", "reply"},
+                    annotations=_compose_ann,
                 )(_compose_wrapped)
                 logger.info(
-                    "arif_compose registered — expanded45 operator surface (P3 fix 2026-06-30, _wrap_handler)."
+                    "arif_compose registered — kernel reply verb (desc from public_registry)."
                 )
             else:
                 logger.warning(
