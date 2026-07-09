@@ -151,20 +151,11 @@ def validate_session(
             actor_id=actor_id,
             allow_store=True,
         )
-        # If SCT or store resolved — return immediately (continuity)
-        if standing.valid:
+        # SCT-first: any valid standing, OR explicit token (even if invalid/expired),
+        # is authoritative — do not fall through to a different store identity.
+        if standing.valid or session_token:
             return standing.as_auth_dict()
-        # If SCT was provided but invalid/expired — do not silently fall through
-        # to a different session_id identity; surface the SCT failure.
-        if session_token:
-            return standing.as_auth_dict()
-        # No token, store miss — fall through to legacy path for env bootstrap
-        # and dual-store rehydrate that resolve_standing may not cover fully.
-        if standing.reason and standing.reason != "L11 AUTH: session_id missing":
-            # Keep legacy path only for missing-id → env bootstrap below
-            if session_id:
-                # resolve_standing already tried store; return its deny
-                return standing.as_auth_dict()
+        # No token: fall through to legacy for env auto-bootstrap edge cases.
     except Exception as exc:
         logger.warning("SCT resolve_standing failed, legacy path: %s", exc)
 
