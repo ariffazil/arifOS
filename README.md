@@ -1,9 +1,9 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
 federation_release: v2026.07.09-SPINE-P0
-last_verified: 2026-07-09T11:05Z
-live_commit: e5d157b
-live_version: kanon-e5d157b
+last_verified: 2026-07-09T11:10Z
+live_commit: 2fc0089
+live_version: kanon-2fc0089
 runtime_path: /opt/arifos/app
 runtime_drift: false
 owner_summary: GREEN
