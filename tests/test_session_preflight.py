@@ -49,12 +49,17 @@ def test_session_init_light_creates_session_birth():
     assert result.status == "OK"
     assert "session_birth" in result.result
     birth = result.result["session_birth"]
+    header = result.result
     assert birth["actor_id"] == "arifbfazil"
     assert birth["actor_verified"] is False
-    assert birth["authority_mode"] == "OPERATOR"
+    # Amanah 2026-07-09: birth authority = real band, not role label OPERATOR
+    assert birth["authority_mode"] == "OBSERVE_ONLY"
+    assert birth["verdict"] == "OBSERVE_ONLY"
     assert birth["mutation_allowed"] is False
+    assert birth["authority_mode"] == header["authority"]  # single source
     assert birth["stage"] == "000"
     assert birth["session_id"].startswith("SEAL-")
+    assert "arif_act" not in header.get("allowed_next_verbs", [])
 
 
 def test_kernel_route_preflight_no_session():
