@@ -93,9 +93,9 @@ TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
         "output_type": "routing_decision",
         "floor_enforced": "F4",
         "use_when": "You know what you want but not which organ to call.",
-        "do_not_use_when": "You know the exact tool — call it directly via arif_act.",
-        "aliases": ["arifos_route"],
-        "keywords": ["route", "organ", "delegate", "which", "where"],
+        "do_not_use_when": "You know the exact tool — call it directly via arif_forge after SEAL.",
+        "aliases": [],  # no live aliases — use arif_route only
+        "keywords": ["route", "organ", "which", "where"],
         "examples": ["Route this to GEOX", "Which organ handles geology?"],
     },
     "arif_judge": {
@@ -109,11 +109,11 @@ TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
         "floor_enforced": "F13",
         "use_when": "A decision needs constitutional arbitration and binding judgment.",
         "do_not_use_when": "Routine observation or reasoning — use arif_observe/arif_think.",
-        "aliases": ["arif_verdict"],
+        "aliases": [],  # convergence: one name
         "keywords": ["judge", "verdict", "decide", "approve", "reject"],
         "examples": ["Judge this proposal", "Should we proceed?"],
     },
-    "arif_act": {
+    "arif_forge": {
         "tier": "PUBLIC",
         "category": "execution",
         "decision_class": "C4",
@@ -123,9 +123,9 @@ TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
         "output_type": "execution_receipt",
         "floor_enforced": "F1",
         "use_when": "After arif_judge issues SEAL. Execute the approved action.",
-        "do_not_use_when": "No valid SEAL verdict. Call arif_judge first.",
-        "aliases": ["arif_forge", "arif_execute"],
-        "keywords": ["execute", "build", "deploy", "forge", "act", "run"],
+        "do_not_use_when": "No valid SEAL verdict. Call arif_judge first. arif_act is internal-only.",
+        "aliases": [],  # arif_act is internal-only — not a public alias
+        "keywords": ["execute", "build", "deploy", "forge", "run"],
         "examples": ["Execute the approved plan", "Build and deploy"],
     },
     "arif_seal": {

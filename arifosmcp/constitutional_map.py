@@ -714,7 +714,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE). "
             "Select when goal is known but organ/verb is not. Optional organ_tool = "
             "governed bridge (prefer over arif_bridge_connect). Not session preflight "
-            "(use arif_triage). Returns organ, port, tool_prefix, suggested_tools."
+            "(use arif_init mode=preflight|triage). Returns organ, port, tool_prefix, suggested_tools."
         ),
         "access": "public",
         "stage": ToolStage.ROUTE,
@@ -723,27 +723,27 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["route", "bridge"],
-        "eureka_insight": "ZEN-9: route absorbs bridge_connect as mode. One tool, two operations (route, bridge).",
+        "deprecated_aliases": [],  # no live aliases — convergence over choice
+        "eureka_insight": "ZEN-9: route absorbs bridge as mode. One tool, two operations.",
         "cognitive_axis": "boundary",
         "expose": True,
     },
     "arif_triage": {
         "name": "arif_triage",
         "description": (
-            "KERNEL 000 · Session preflight / immune status — not intent routing. "
-            "Modes: status | preflight | triage. Returns stage, holds, next_safe_action. "
-            "Organ choice → arif_route."
+            "DEPRECATED — use arif_init(mode='preflight'|'triage'|'status'). "
+            "Internal session preflight handler only; not on public tools/list."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
         "floors": [Law.L04_CLARITY, Law.L10_ONTOLOGY],
         "risk_tier": "low",
         "irreversible": False,
         "modes": ["status", "preflight", "triage"],
-        "eureka_insight": "Session preflight reduces wasted tool calls by 40%.",
+        "eureka_insight": "Absorbed into arif_init 2026-07-09 (audit dual-existence kill).",
         "cognitive_axis": "boundary",
-        "expose": True,
+        "expose": False,
     },
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",

@@ -471,16 +471,18 @@ def _check_policy_floors(
                 graph_version=graph.version.version_id,
             )
 
-    # FLOOR 5: requires_888_hold AND not SOVEREIGN → HOLD_888
+    # FLOOR 5: requires_888_hold AND not SOVEREIGN → HOLD_888 (structured, not bare text)
     if capability.requires_888_hold and authority != AuthorityTier.SOVEREIGN:
+        _actor = req.actor_id or "anonymous"
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.HOLD_888,
             reason=(
                 f"Capability '{capability.capability_id}' requires 888_HOLD. "
-                f"Requires SOVEREIGN authority. Current: '{authority.value}'."
+                f"Requires SOVEREIGN authority. Current: '{authority.value}'. "
+                f"Actor: {_actor}."
             ),
             capability_id=capability.capability_id,
-            actor_id=req.actor_id,
+            actor_id=_actor,  # single actor source — never format independently
             authority_tier=authority,
             mutation_class=capability.mutation_class,
             blast_radius=capability.blast_radius,
@@ -493,14 +495,16 @@ def _check_policy_floors(
     # FLOOR 6: Irreversible AND not SOVEREIGN → HOLD_888 (before authority check)
     # Irreversible with insufficient authority is an escalation prompt, not a hard block.
     if capability.irreversible and authority != AuthorityTier.SOVEREIGN:
+        _actor = req.actor_id or "anonymous"
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.HOLD_888,
             reason=(
                 f"Capability '{capability.capability_id}' is irreversible. "
-                f"Requires SOVEREIGN authority. Current: '{authority.value}'."
+                f"Requires SOVEREIGN authority. Current: '{authority.value}'. "
+                f"Actor: {_actor}."
             ),
             capability_id=capability.capability_id,
-            actor_id=req.actor_id,
+            actor_id=_actor,
             authority_tier=authority,
             mutation_class=capability.mutation_class,
             blast_radius=capability.blast_radius,

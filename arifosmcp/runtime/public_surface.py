@@ -13,22 +13,19 @@ from arifosmcp.resources import (
 )
 from arifosmcp.runtime.build import get_build_info
 
-# ══ 12-Verb Metabolic Loop (F4 CLARITY: one stage = one public verb) ══════
-# Public agents see exactly 12 canonical tools. 9 stages + preflight + bridge + memory.
-# CANONICAL-12 update 2026-07-07:
-#   - Restored to public surface: arif_triage (000t — session preflight).
-#   - Restored to public surface: arif_bridge_connect (444b — direct organ bridge).
-#   - Retained: arif_memory (555m — constitutional memory governor).
-#   - Retained: arif_seal (999 — VAULT999 immutable ledger).
-#   - arif_fetch remains as mode=fetch on arif_observe (registration compat).
-#   - Total: 12 canonical tools. One intent = one verb.
+# ══ Metabolic public surface (F4 CLARITY: one stage = one public verb) ══════
+# Audit 2026-07-09 (Spine P0 cleanup):
+#   - arif_triage REMOVED from public wire — absorbed into arif_init(mode=preflight|triage|status)
+#   - arif_fetch / arif_search / arif_explore → modes of arif_observe (no live aliases)
+#   - arif_delegate → not an alias of arif_route
+#   - arif_bridge_connect / arif_memory retained (HIGH path + memory governor)
+# One intent = one canonical name. Deprecated names = thin log wrappers only.
 CANONICAL_12: tuple[str, ...] = (
-    "arif_init",  # 000  — Session bootstrap
-    "arif_triage",  # 000t — Session preflight
-    "arif_observe",  # 111  — Reality sensing (absorbs arif_fetch as mode=fetch)
+    "arif_init",  # 000  — Session bootstrap (+ modes: preflight, triage, status)
+    "arif_observe",  # 111  — Reality sensing (modes: search, fetch, ingest, vitals, atlas)
     "arif_think",  # 333  — Cognitive engine
-    "arif_route",  # 444  — Organ router
-    "arif_bridge_connect",  # 444b — Direct organ bridge
+    "arif_route",  # 444  — Organ router (modes: route, bridge)
+    "arif_bridge_connect",  # 444b — Direct organ bridge (HIGH)
     "arif_critique",  # 555  — Maruah/risk assessment
     "arif_memory",  # 555m — Memory governor
     "arif_judge",  # 666  — Constitutional verdict

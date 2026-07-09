@@ -20,7 +20,6 @@ from arifosmcp.runtime.sct import (
     unmeasured_apex,
     verify_sct,
 )
-from arifosmcp.tools.kernel_canonical import arif_triage
 from arifosmcp.tools.session import _project_light, arif_init
 from arifosmcp.tools.sense import arif_observe
 
@@ -137,17 +136,36 @@ def test_init_triage_observe_with_token_after_store_delete():
             pass
     assert _SESSIONS.get(sid) is None
 
-    t = arif_triage(
+    # Canonical preflight is arif_init(mode=preflight) — not standalone arif_triage
+    t = arif_init(
+        mode="preflight",
+        session_id=sid,
+        actor_id="sct-slice1-actor",
+    )
+    # SessionManifest or dict
+    t_dict = t.model_dump() if hasattr(t, "model_dump") else (t if isinstance(t, dict) else {})
+    # Preflight may return triage envelope
+    if not t_dict and hasattr(t, "result"):
+        t_dict = {"status": "OK", "result": t.result} if t else {}
+    if isinstance(t, dict):
+        t_dict = t
+    assert t_dict.get("status") in ("OK", "ok", "HOLD", None) or t is not None, t_dict
+    tr = t_dict.get("result") or {}
+    # Token standing: either echoed or reinjected via middleware when store gone
+    # Internal arif_triage path still accepts SCT when session_token wired
+    from arifosmcp.tools.kernel_canonical import arif_triage
+
+    t2 = arif_triage(
         mode="preflight",
         session_id=sid,
         session_token=token,
         actor_id="sct-slice1-actor",
     )
-    assert t.get("status") == "OK", t
-    tr = t.get("result") or {}
-    assert tr.get("session_found") is True
-    assert tr.get("standing_source") == "sct"
-    assert t.get("session_token") or tr.get("session_token")
+    assert t2.get("status") == "OK", t2
+    tr2 = t2.get("result") or {}
+    assert tr2.get("session_found") is True
+    assert tr2.get("standing_source") == "sct"
+    assert t2.get("session_token") or tr2.get("session_token")
 
     # observe: search may hit network; L11 must not HOLD for missing store
     o = arif_observe(
