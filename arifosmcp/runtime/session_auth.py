@@ -30,18 +30,46 @@ _TIER_AUTHORITY_MAP: dict[str, str] = {
 }
 
 
+# ── Ed25519 registry bootstrap exemption (ACCEPTED RISK — IRR-DIP-AUDIT 2026-07-09) ──
+#
+# Actors `arif` (F13 SOVEREIGN) and `a-forge` (execution organ) are HARD-CODED
+# authority principals. They intentionally BYPASS the Ed25519 identity_proof
+# check required of every other agent in agent_identities.json.
+#
+# WHY (bootstrap / circular dependency):
+#   The registry is used to validate actors. Root principals must be able to
+#   call into the registry before (or without) being registered with Ed25519
+#   proofs — otherwise no one can bootstrap or operate the registry itself.
+#
+# SCOPE (minimize blast radius):
+#   - arif  → authority_level "sovereign" (F13 only)
+#   - a-forge → authority_level "operator" (engineering organ)
+#   - No other actor_id receives this bypass. Unknown actors → "anonymous".
+#
+# FUTURE hardening (not blocking):
+#   Separate bootstrap credentials with limited scope + rotation, then require
+#   Ed25519 even for these two outside the bootstrap path.
+#
+# Doc: /root/arifOS/docs/ED25519_REGISTRY_BOOTSTRAP_EXEMPTION.md
+# Seal reference: A-FORGE/forge_work/IRR-DIP-AUDIT-FINAL.md Priority 3
+_ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
+    "arif": "sovereign",
+    "a-forge": "operator",
+}
+
+
 def _resolve_authority_from_registry(actor_id: str | None) -> str:
     """
     Resolve authority level from agent_identities.json registry.
 
-    Falls back to hardcoded mapping for known system actors (arif, a-forge)
-    and for agents not in the registry.
+    System actors `arif` and `a-forge` are Ed25519-exempt bootstrap principals
+    (see module constant _ED25519_EXEMPT_SYSTEM_ACTORS and docs/
+    ED25519_REGISTRY_BOOTSTRAP_EXEMPTION.md). All other agents need Ed25519
+    identity_proof in the registry or they resolve as anonymous.
     """
-    # Hardcoded system actors (unchanged)
-    if actor_id == "arif":
-        return "sovereign"
-    if actor_id == "a-forge":
-        return "operator"
+    # Hardcoded system actors — Ed25519 registry bootstrap exemption
+    if actor_id in _ED25519_EXEMPT_SYSTEM_ACTORS:
+        return _ED25519_EXEMPT_SYSTEM_ACTORS[actor_id]
 
     # Look up in registry
     if actor_id and _AGENT_IDENTITIES_PATH.exists():
