@@ -1129,6 +1129,13 @@ def arif_init(
 
         _light_sovereign = sess.get("sovereign_id")
         _light_delegation = sess.get("delegation_mode", "direct")
+
+        # ── Persist session ──────────────────────────────────────────────
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+            _SESSIONS[sess["session_id"]] = sess
+        except Exception:
+            pass
         return _sm(
             status="OK",
             tool="arif_init",

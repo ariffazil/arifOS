@@ -174,6 +174,19 @@ async def call_wealth_tool(
         })
     """
     args = dict(arguments or {})
+    meta = dict(args.get("_meta") or {}) if isinstance(args.get("_meta"), dict) else {}
+    bound_actor = args.get("actor_id") or args.get("caller_actor_id")
+    bound_session = args.get("session_id") or args.get("caller_session_id")
+    if bound_actor:
+        meta.setdefault("actor_id", bound_actor)
+    if bound_session:
+        meta.setdefault("session_id", bound_session)
+    if meta:
+        args["_meta"] = meta
+    if "caller_actor_id" in args:
+        del args["caller_actor_id"]
+    if "caller_session_id" in args:
+        del args["caller_session_id"]
     payload = {
         "jsonrpc": "2.0",
         "id": 1,

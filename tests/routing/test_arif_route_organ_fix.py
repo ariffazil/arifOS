@@ -35,7 +35,7 @@ from arifosmcp.tools import kernel_canonical  # noqa: E402
 def _route(intent: str) -> str:
     """Call _route_intent_to_organ and clear cache to pick up YAML changes."""
     kernel_canonical._intent_map_cache = None  # clear cache
-    return kernel_canonical._route_intent_to_organ(intent)
+    return kernel_canonical._route_intent_to_organ(intent).lower()
 
 
 class TestOrganQualifiedRouting:

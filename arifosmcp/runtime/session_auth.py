@@ -116,23 +116,57 @@ def _get_env_session() -> str | None:
     return os.getenv("ARIFOS_SESSION_ID") or os.getenv("ARIFOS_DEFAULT_SESSION_ID")
 
 
-def validate_session(session_id: str | None, actor_id: str | None = None) -> dict:
+def validate_session(
+    session_id: str | None,
+    actor_id: str | None = None,
+    session_token: str | None = None,
+) -> dict:
     """
     Centralized L11 session validator.
-    Falls back to persisted session store if in-memory _SESSIONS miss.
-    Auto-refreshes TTL on valid validation to improve continuity.
+
+    Slice 1 (2026-07-09): SCT-first via resolve_standing.
+      1. session_token (signed capability) — no store required
+      2. session_id store lookup — legacy, mints SCT on hit
+      3. deny
 
     Auto-ID: if session_id or actor_id is None AND the corresponding
     env var (ARIFOS_SESSION_ID / ARIFOS_ACTOR_ID) is set, use it.
-    This enables autonomous governance when MCP clients don't pass IDs.
 
-    Returns: {"valid": bool, "session": dict|None, "reason": str, "actor_id": str|None, ...}
+    Returns: {"valid": bool, "session": dict|None, "reason": str, "actor_id": str|None,
+              "session_token": str|None, "source": str, ...}
     """
     # ── Auto-ID: env var fallback for autonomous governance ───────────────────
     if not session_id:
         session_id = _get_env_session()
     if not actor_id:
         actor_id = _get_env_actor()
+
+    # ── SCT-first standing (inhabit path) ─────────────────────────────────────
+    try:
+        from arifosmcp.runtime.sct import resolve_standing
+
+        standing = resolve_standing(
+            session_token=session_token,
+            session_id=session_id,
+            actor_id=actor_id,
+            allow_store=True,
+        )
+        # If SCT or store resolved — return immediately (continuity)
+        if standing.valid:
+            return standing.as_auth_dict()
+        # If SCT was provided but invalid/expired — do not silently fall through
+        # to a different session_id identity; surface the SCT failure.
+        if session_token:
+            return standing.as_auth_dict()
+        # No token, store miss — fall through to legacy path for env bootstrap
+        # and dual-store rehydrate that resolve_standing may not cover fully.
+        if standing.reason and standing.reason != "L11 AUTH: session_id missing":
+            # Keep legacy path only for missing-id → env bootstrap below
+            if session_id:
+                # resolve_standing already tried store; return its deny
+                return standing.as_auth_dict()
+    except Exception as exc:
+        logger.warning("SCT resolve_standing failed, legacy path: %s", exc)
 
     if not session_id:
         return {
@@ -142,7 +176,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
             "actor_id": None,
         }
 
-    # ── 1. In-memory lookup (fast path) ───────────────────────────────────────
+    # ── 1. In-memory lookup (fast path) — legacy ──────────────────────────────
     from arifosmcp.runtime.tools import _SESSIONS
 
     sess = _SESSIONS.get(session_id)
