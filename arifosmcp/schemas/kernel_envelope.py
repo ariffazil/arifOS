@@ -585,8 +585,12 @@ class GateResult(BaseModel):
 
     @property
     def is_blocked(self) -> bool:
-        """Whether the gate blocks this action."""
-        return self.verdict in {GateVerdict.HOLD, GateVerdict.VOID, GateVerdict.REJECT}
+        """Whether the gate blocks this action.
+
+        REJECT is a legacy synonym for VOID (see LEGACY_GATE_REJECT).
+        GateVerdict is SealType — no REJECT member. Use VOID only.
+        """
+        return self.verdict in {GateVerdict.HOLD, GateVerdict.VOID, LEGACY_GATE_REJECT}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
