@@ -3617,6 +3617,40 @@ def _enforce_nine_signal(
                 if isinstance(out.get("result"), dict)
                 else None
             )
+        # G-theater fix (2026-07-09): runtime_authority from SCT claims, not boolean
+        # theater. Compute BEFORE envelope dict (cannot put statements inside {}).
+        _runtime_auth = "OBSERVE_ONLY"
+        try:
+            from arifosmcp.runtime.sct import verify_sct as _verify_sct_envelope
+
+            _tok_for_auth = (
+                (isinstance(result_payload, dict) and result_payload.get("session_token"))
+                or out.get("session_token")
+            )
+            if isinstance(_tok_for_auth, str) and _tok_for_auth:
+                _claims = _verify_sct_envelope(_tok_for_auth)
+                if isinstance(_claims, dict):
+                    _runtime_auth = str(_claims.get("auth") or _runtime_auth)
+            if _runtime_auth == "OBSERVE_ONLY" and isinstance(result_payload, dict):
+                _runtime_auth = str(
+                    result_payload.get("authority")
+                    or result_payload.get("authority_mode")
+                    or _runtime_auth
+                )
+            if _runtime_auth == "OBSERVE_ONLY" and isinstance(meta_payload, dict):
+                _runtime_auth = str(meta_payload.get("authority_mode") or _runtime_auth)
+            if _runtime_auth == "OBSERVE_ONLY" and actor_verified_flag:
+                _runtime_auth = "LIMITED_MUTATE"  # identity band, not FULL theater
+        except Exception:
+            _runtime_auth = "LIMITED_MUTATE" if actor_verified_flag else "OBSERVE_ONLY"
+        _human_auth = (
+            "SOVEREIGN"
+            if (
+                actor_verified_flag
+                and (resolved_actor_id or "").lower() in ("arif", "888", "ariffazil")
+            )
+            else "OPERATOR"
+        )
         envelope = {
             "status": status,
             "tool": tool_name,
@@ -3632,22 +3666,16 @@ def _enforce_nine_signal(
             "session_id": resolved_session_id,
             "actor_id": resolved_actor_id,
             # P0 fix 2026-07-04: actor_verified default is False, not True.
-            # meta_payload.get("actor_verified", True) was the bug — it silently
-            # defaulted to True when the key was missing, creating a contradiction
-            # where envelope said False but wrapper said True.
             # Single source of truth: set once at 000_init, read-only downstream.
             "actor_verified": actor_verified_flag or bool(meta_payload.get("actor_verified", False)),
-            # P0-3 fix (2026-07-08): Structured authority block.
-            # Replaces ambiguous flat fields (authority: FULL + authority_mode: OBSERVE_ONLY)
-            # with explicit separation: whose authority, over what, at which level.
             "authority": {
-                "human_authority": "SOVEREIGN",  # Arif is always sovereign
-                "runtime_authority": ("FULL" if actor_verified_flag else "OBSERVE_ONLY"),
+                "human_authority": _human_auth,
+                "runtime_authority": _runtime_auth,
                 "mutation_allowed": (
-                    verdict not in ("VOID", "HOLD", "OBSERVE_ONLY", "DEGRADED")
-                    and actor_verified_flag
+                    _runtime_auth in ("LIMITED_MUTATE", "FULL", "SOVEREIGN")
+                    and verdict not in ("VOID", "HOLD", "OBSERVE_ONLY", "DEGRADED")
                 ),
-                "seal_allowed": (verdict == "SEAL" and actor_verified_flag),
+                "seal_allowed": (_runtime_auth in ("FULL", "SOVEREIGN") and verdict == "SEAL"),
                 "actor_verified": actor_verified_flag,
             },
             "output_policy": out.get("output_policy")
