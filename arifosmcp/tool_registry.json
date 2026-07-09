@@ -1,7 +1,7 @@
 {
-  "_schema": "arifos-ssct-v2026.06.14-kanon-ssct",
+  "_schema": "arifos-ssct-v2026.07.09-spine-p0",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH for disk vantage. canonical_order is the exposed 12-tool public facade (F13-ratified wire surface). internal_canonical_order contains non-public supporting tools (expose=False). Regenerated 2026-07-08 to clear surface_consistency DIVERGENT (was stale ZEN-9). Prefer regenerating from CANONICAL_TOOLS + DIAGNOSTIC_TOOLS when available.",
+  "_note": "SOLE SOURCE OF TRUTH for disk vantage. canonical_order is the exposed 11-tool public facade (Spine P0 2026-07-09: arif_triage demoted to internal). Regenerated 2026-07-09.",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py \u2192 ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
     "diagnostic_tools": "constitutional_map.py \u2192 spec-inferred from tier + irreversible + access fields",
@@ -9,19 +9,19 @@
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "12 canonical public verbs (public MCP facade) plus 5 internal supporting tools not on the default wire surface",
+    "arif_*": "11 canonical public verbs + 6 internal supporting tools",
     "hermes_*": "GATED \u2014 Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
     "forge_*": "GATED/DEPRECATED \u2014 A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
     "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
     "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
-  "canonical_count": 12,
-  "internal_canonical_count": 5,
+  "canonical_count": 11,
+  "internal_canonical_count": 6,
   "diagnostic_count": 41,
   "total_surface": 58,
   "tier_summary": {
     "internal": 0,
-    "canonical": 12,
+    "canonical": 11,
     "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
@@ -33,7 +33,7 @@
     "discovery": 1
   },
   "tier_legend": {
-    "canonical": "12 exposed public verbs on the default MCP wire surface (current facade)",
+    "canonical": "11 exposed public verbs on default MCP wire (Spine P0 2026-07-09)",
     "internal": "None (all surfaced in canonical for registration match; gating still applies)",
     "hermes": "Cross-verification, fact-checking, vault query, and epistemic checks",
     "canary": "Transport and protocol echo/probe tools",
@@ -45,7 +45,6 @@
   },
   "canonical_order": [
     "arif_init",
-    "arif_triage",
     "arif_observe",
     "arif_think",
     "arif_route",
@@ -58,6 +57,7 @@
     "arif_seal"
   ],
   "internal_canonical_order": [
+    "arif_triage",
     "arif_act",
     "arif_fetch",
     "arif_judge_deliberate",
@@ -427,7 +427,10 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=low, irreversible=False, access=internal_only",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "expose": false,
+      "deprecated": true,
+      "migration": "arif_init(mode=preflight|triage)"
     },
     "arif_bridge_connect": {
       "stage": "555",
@@ -670,7 +673,7 @@
       ],
       "risk_tier": "critical",
       "irreversible": true,
-      "access": "sovereign",
+      "access": "internal_only",
       "requires_auth": true,
       "modes": [
         "engineer",
@@ -697,7 +700,8 @@
         "autonomy_floor": "PRINCIPAL_APPROVAL_REQUIRED",
         "rationale": "Spec-inferred: tier=critical, irreversible=True, access=sovereign",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "expose": false
     },
     "arif_forge": {
       "stage": "010",
@@ -1973,9 +1977,8 @@
   },
   "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",
   "_surface_sync": {
-    "forged": "2026-07-08",
-    "reason": "Align disk registry with live 12-tool facade; flip surface_consistency to CONSISTENT",
-    "previous_canonical_count": 12,
-    "public_hash_source": "CANONICAL_13 / public_tool_names_for_mode"
+    "regenerated_at": "2026-07-09T11:11:46.634367+00:00",
+    "source": "public_surface.CANONICAL_12 + constitutional_map internal tools",
+    "public_count": 11
   }
 }
