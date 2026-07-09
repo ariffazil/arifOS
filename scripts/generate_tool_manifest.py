@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import sys
+import datetime
 from typing import Any
 
 
@@ -60,12 +61,58 @@ def _all_mcp_tools() -> list[dict[str, Any]]:
     return _canonical_tool_list() + _operational_tool_list()
 
 
+def _canonical_resources_list() -> list[dict[str, Any]]:
+    """Extract registered resources catalog."""
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    try:
+        from arifosmcp.resources.resources_index import _build_resource_catalog
+        catalog = _build_resource_catalog()
+        return catalog.get("resources", [])
+    except Exception as e:
+        # Fallback list if import fails
+        fallback_uris = [
+            "arifos://doctrine", "arifos://trinity", "arifos://schema",
+            "arifos://civilization", "arifos://seal-readiness", "arifos://jurisdiction",
+            "arifos://identity", "arifos://memory", "arifos://vitals",
+            "arifos://bootstrap", "arifos://human/metabolized", "arifos://loop-engineering",
+            "arifos://quickstart", "arifos://mcp-alignment", "arifos://mcp/surface-map"
+        ]
+        fallback_desc = {
+            "arifos://doctrine": "Immutable 13-floor constitution (F1–F13). All tools and agents operate within these floors.",
+            "arifos://trinity": "AAA Trinity lane architecture: AGI proposes, ASI/APEX judges/authorizes, FORGE executes, SEAL records.",
+            "arifos://schema": "Complete canonical blueprint of the arifOS MCP surface — tools, lanes, floors.",
+            "arifos://civilization": "Organs, strata, constitutional boundaries, and entropy responsibility models.",
+            "arifos://seal-readiness": "Vault integrity, disambiguated seal types, and seal gates.",
+            "arifos://jurisdiction": "Autonomy bands (GREEN to BLACK), CapabilityGrants, and rules.",
+            "arifos://identity": "Sovereign identity manifest and root of accountability chains.",
+            "arifos://memory": "6-layer memory architecture: ephemeral to immutable VAULT999.",
+            "arifos://vitals": "Constitutional metrics and green/yellow/red thresholds.",
+            "arifos://bootstrap": "Complete federation knowledge-graph context in a single call.",
+            "arifos://human/metabolized": "Compact human intelligence/context (nutrient representation).",
+            "arifos://loop-engineering": "7-stage reality engineering loop (K1 dual naming).",
+            "arifos://quickstart": "LLM client onboarding and fast-start guide.",
+            "arifos://mcp-alignment": "MCP specification conformance and client compatibility matrix.",
+            "arifos://mcp/surface-map": "Map of owned tools and resources across organs."
+        }
+        return [
+            {
+                "uri": uri,
+                "family": "canonical",
+                "mime_type": "text/plain",
+                "dynamic": False,
+                "description": fallback_desc.get(uri, "arifOS core resource"),
+                "floors": ["F2", "F4"]
+            } for uri in fallback_uris
+        ]
+
+
 def manifest_hash() -> str:
     """SHA256 of the full manifest JSON for cross-reference."""
     manifest = {
         "canonical_tools": len(_canonical_tool_list()),
         "operational_tools": len(_operational_tool_list()),
         "tools_exposed_via_mcp": len(_all_mcp_tools()),
+        "canonical_resources": len(_canonical_resources_list()),
     }
     raw = json.dumps(manifest, sort_keys=True).encode()
     return hashlib.sha256(raw).hexdigest()[:16]
@@ -75,20 +122,27 @@ def generate_llms_txt() -> str:
     """Generate llms.txt content from the live registry."""
     canonical = _canonical_tool_list()
     operational = _operational_tool_list()
-    total = len(canonical) + len(operational)
+    resources = _canonical_resources_list()
+    total_tools = len(canonical) + len(operational)
     mhash = manifest_hash()
 
     lines: list[str] = []
     lines.append("# arifOS — Constitutional AI Governance Kernel")
-    lines.append(f"> Auto-generated from live tool registry. Hash: {mhash}")
+    lines.append(f"> Auto-generated from live tool and resource registries. Hash: {mhash}")
     lines.append(
-        f"> Total MCP tools: {total} | Canonical: {len(canonical)} | Operational: {len(operational)}"
+        f"> Total MCP: {total_tools} Tools | {len(resources)} Resources | Status: OPERATIONAL"
     )
     lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
     lines.append("")
+    lines.append("## Docs")
+    lines.append("- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)")
+    lines.append("- [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context")
+    lines.append("- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping")
+    lines.append("- [INVARIANTS.md](file:///root/AAA/docs/INVARIANTS.md): 11 Physics + 7 Zen principles")
+    lines.append("")
     lines.append("## MCP Tools — Complete Surface")
     lines.append(
-        f"arifOS exposes {total} MCP tools: {len(canonical)} canonical constitutional tools"
+        f"arifOS exposes {total_tools} MCP tools: {len(canonical)} canonical constitutional tools"
     )
     lines.append(f"and {len(operational)} operational support tools.")
     lines.append("")
@@ -126,6 +180,59 @@ def generate_llms_txt() -> str:
         if len(t["modes"]) > 4:
             modes += f" +{len(t['modes']) - 4} more"
         lines.append(f"| `{t['name']}` | {t['tier']} | {t['risk_tier']} | {irr} | {modes} |")
+    lines.append("")
+
+    # MCP Resources section
+    lines.append("## MCP Resources — Canonical & Embodied")
+    lines.append("Unlike Tools (which represent mutable side-effects), Resources represent addressable, read-only state and facts.")
+    lines.append("All resources carry an explicit `truth_level` under the arifOS truth hierarchy:")
+    lines.append("1. **SOVEREIGN_CANON** (immutable constitution/directs)")
+    lines.append("2. **SEALED_VAULT** (append-only logs, signed judgments)")
+    lines.append("3. **TRUSTED_REPO** (git SOT)")
+    lines.append("4. **OBSERVED_EXTERNAL** (real-time environment/telemetry)")
+    lines.append("5. **USER_CLAIM** (unverified human input)")
+    lines.append("6. **MODEL_INFERENCE** (AI assertions)")
+    lines.append("7. **UNTRUSTED** (unverified external context)")
+    lines.append("")
+    lines.append("### Registered arifOS MCP Resources")
+    lines.append("| URI | Family | Linked Floors | Description |")
+    lines.append("|-----|--------|---------------|-------------|")
+    
+    # Sort resources by family then URI
+    sorted_resources = sorted(resources, key=lambda x: (x.get("family", ""), x.get("uri", "")))
+    for r in sorted_resources:
+        floors = ", ".join(r.get("floors", []))
+        lines.append(f"| `{r['uri']}` | {r['family']} | {floors} | {r['description']} |")
+    lines.append("")
+
+    lines.append("## Federation Resources Map (Cross-Organ)")
+    lines.append("To prevent chaos and duplicate context (F4 CLARITY), do not duplicate these namespaces. Route or read accordingly:")
+    lines.append("")
+    lines.append("### Control Plane & A2A State (AAA — L3)")
+    lines.append("- `aaa://state/agent-registry` — Live registry of active agent cards")
+    lines.append("- `aaa://state/a2a-cards` — Peer capability profiles (`agent-card-*.json`)")
+    lines.append("- `aaa://state/zen-init` — Central AAA init template constraints")
+    lines.append("- `aaa://state/cockpit` — Global session queues and orchestration panels")
+    lines.append("")
+    lines.append("### Governed Actuator (A-FORGE — L2)")
+    lines.append("- `aforge://execution/leases/status` — Agent concurrency lease status")
+    lines.append("- `aforge://execution/reality/loop` — Reality loop transaction snapshots")
+    lines.append("- `aforge://execution/receipts/{id}` — Signed mutation receipts of executed commands")
+    lines.append("")
+    lines.append("### Earth Intelligence Substrate (GEOX — L1)")
+    lines.append("- `geox://evidence/{well,seismic,prospect,claim}` — Underground geologic evidence assets")
+    lines.append("- `geox://basins/index` — Structural/basin index files")
+    lines.append("- `geox://claims/graph` — Geological claim networks and structural uncertainty data")
+    lines.append("")
+    lines.append("### Capital Intelligence Substrate (WEALTH — L1)")
+    lines.append("- `wealth://capital/npv|emv|irr|risk|thresholds` — NPV, IRR, and EMV calculation variables")
+    lines.append("- `wealth://collapse/signatures` — Failure forensics for entities or portfolios")
+    lines.append("- `wealth://flows` — Personal, market, and macro capital flows")
+    lines.append("")
+    lines.append("### Vitality Substrate (WELL — L1)")
+    lines.append("- `well://identity` — Five-well frame (Homeostasis, Metabolism, Governance, Coupling, Utility)")
+    lines.append("- `well://metabolic/flux` — Human metabolic rate indicators (reflect-only)")
+    lines.append("- `well://decision/classes` — Human vs machine decision metrics")
     lines.append("")
 
     lines.append("## Constitutional Floors (F1-F13)")
@@ -172,12 +279,12 @@ def generate_llms_txt() -> str:
     lines.append("- GEOX/WEALTH/WELL = domain evidence organs")
     lines.append("")
     lines.append("## Verification")
-    lines.append(f"- tools/list count should match total ({total})")
+    lines.append(f"- tools/list count should match total ({total_tools})")
     lines.append("- canonical_tools + operational_tools == tools_exposed_via_mcp")
     lines.append(f"- Manifest hash: {mhash}")
     lines.append("- Manifest URL: https://arifos.arif-fazil.com/manifest.txt")
     lines.append("")
-    lines.append(f"--- Auto-generated {__import__('datetime').datetime.now().isoformat()} ---")
+    lines.append(f"--- Auto-generated {datetime.datetime.now(datetime.timezone.utc).isoformat()} ---")
 
     return "\n".join(lines)
 
@@ -190,8 +297,9 @@ def main() -> None:
         f.write(txt)
     print(f"[MANIFEST] Wrote {path} ({len(txt)} chars)")
     print(
-        f"[MANIFEST] Canonical: {len(_canonical_tool_list())} | Operational: {len(_operational_tool_list())}"
+        f"[MANIFEST] Canonical Tools: {len(_canonical_tool_list())} | Operational Tools: {len(_operational_tool_list())}"
     )
+    print(f"[MANIFEST] Canonical Resources: {len(_canonical_resources_list())}")
     print(f"[MANIFEST] Total MCP tools: {len(_all_mcp_tools())}")
     print(f"[MANIFEST] Hash: {manifest_hash()}")
 
