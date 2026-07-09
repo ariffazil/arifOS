@@ -447,7 +447,7 @@ def create_organ_session_token(
 ) -> str | None:
     """Create a time-limited HMAC token that organs can verify.
 
-    Uses ARIF_ROOTKEY env var as the shared secret.
+    Uses ARIFOS_ROOTKEY (canonical) or ARIF_ROOTKEY (legacy alias) as shared secret.
     Format: "f0_v1:{session_id}:{actor_id}:{expiry}:{hmac_hex}"
 
     Args:
@@ -456,13 +456,13 @@ def create_organ_session_token(
         ttl_seconds: Token validity window (default 5 min)
 
     Returns:
-        Token string, or None if ARIF_ROOTKEY not configured
+        Token string, or None if neither rootkey env var is configured
     """
-    rootkey = os.environ.get("ARIF_ROOTKEY", "")
+    rootkey = os.environ.get("ARIFOS_ROOTKEY", "") or os.environ.get("ARIF_ROOTKEY", "")
     if not rootkey:
         logger.warning(
-            "F0_ROOTKEY: ARIF_ROOTKEY not set — cannot create organ session tokens. "
-            "GEOX/WEALTH/WELL will not verify sessions cryptographically."
+            "F0_ROOTKEY: ARIFOS_ROOTKEY/ARIF_ROOTKEY not set — cannot create organ "
+            "session tokens. GEOX/WEALTH/WELL will not verify sessions cryptographically."
         )
         return None
 
@@ -485,9 +485,9 @@ def verify_organ_session_token(token: str) -> tuple[bool, str, str]:
     Returns:
         (verified: bool, actor_id: str, reason: str)
     """
-    rootkey = os.environ.get("ARIF_ROOTKEY", "")
+    rootkey = os.environ.get("ARIFOS_ROOTKEY", "") or os.environ.get("ARIF_ROOTKEY", "")
     if not rootkey:
-        return False, "", "ARIF_ROOTKEY not configured on this organ"
+        return False, "", "ARIFOS_ROOTKEY/ARIF_ROOTKEY not configured on this organ"
 
     try:
         parts = token.split(":")
@@ -538,7 +538,9 @@ def get_rootkey_anchor_status() -> dict[str, Any]:
         Dict with anchor status information
     """
     pem_bytes, fingerprint = load_sovereign_public_key()
-    rootkey_configured = bool(os.environ.get("ARIF_ROOTKEY", ""))
+    rootkey_configured = bool(
+        os.environ.get("ARIFOS_ROOTKEY", "") or os.environ.get("ARIF_ROOTKEY", "")
+    )
 
     return {
         "f0_rootkey_anchor": {

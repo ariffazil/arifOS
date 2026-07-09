@@ -51,8 +51,22 @@ def _get_secret(env_name: str, default: str = "") -> str:
     return default
 
 
+def get_rootkey(default: str = "") -> str:
+    """Canonical rootkey loader.
+
+    Live vault / systemd inject **ARIFOS_ROOTKEY**.
+    Older code + Telegram paths still say **ARIF_ROOTKEY**.
+    Prefer ARIFOS_*, fall back to ARIF_* (and file mounts via _get_secret).
+    """
+    return (
+        _get_secret("ARIFOS_ROOTKEY", "")
+        or _get_secret("ARIF_ROOTKEY", "")
+        or default
+    )
+
+
 def _is_rootkey_configured() -> bool:
-    return bool(_get_secret("ARIF_ROOTKEY"))
+    return bool(get_rootkey())
 
 
 async def _verify_who_page() -> bool:
@@ -96,7 +110,7 @@ def is_challenge_fresh(challenge: str, window_sec: int = 60) -> bool:
 
 def verify_rootkey(actor_id: str, challenge: str, sig: str) -> bool:
     """
-    L11 AUTH + F3 WITNESS: Verify actor holds ARIF_ROOTKEY.
+    L11 AUTH + F3 WITNESS: Verify actor holds ARIFOS_ROOTKEY (alias: ARIF_ROOTKEY).
 
     Args:
         actor_id: Must be "ariffazil" (sovereign identity)
@@ -107,7 +121,7 @@ def verify_rootkey(actor_id: str, challenge: str, sig: str) -> bool:
         True if rootkey signature is valid AND challenge is fresh
     """
     if not _is_rootkey_configured():
-        logger.debug("ARIF_ROOTKEY not set — rootkey verification skipped")
+        logger.debug("ARIFOS_ROOTKEY/ARIF_ROOTKEY not set — rootkey verification skipped")
         return False
 
     if actor_id != "ariffazil":
@@ -117,7 +131,7 @@ def verify_rootkey(actor_id: str, challenge: str, sig: str) -> bool:
         logger.warning(f"L11 rootkey: stale challenge rejected — {challenge[:50]}")
         return False
 
-    rootkey = _get_secret("ARIF_ROOTKEY", "")
+    rootkey = get_rootkey("")
     expected = hmac.new(
         rootkey.encode(),
         challenge.encode(),
@@ -140,7 +154,7 @@ async def verify_arif_identity(
     1. Rootkey path: actor_id=ariffazil + valid (challenge, sig) pair
     2. Session path: valid session_id in _SESSION_IDENTITY (already verified)
 
-    Fails open if ARIF_ROOTKEY is not configured.
+    Fails open if neither ARIFOS_ROOTKEY nor ARIF_ROOTKEY is configured.
     """
     if actor_id == "ariffazil" and challenge and sig:
         rootkey_ok = verify_rootkey(actor_id, challenge, sig)
@@ -172,9 +186,9 @@ def make_rootkey_sig(op_id: str) -> tuple[str, str]:
         challenge, sig = make_rootkey_sig("memory_store")
         await arif_memory_recall(mode="store", ..., challenge=challenge, sig=sig)
     """
-    rootkey = _get_secret("ARIF_ROOTKEY", "")
+    rootkey = get_rootkey("")
     if not rootkey:
-        raise ValueError("ARIF_ROOTKEY not configured")
+        raise ValueError("ARIFOS_ROOTKEY/ARIF_ROOTKEY not configured")
 
     challenge = f"{int(time.time())}:{op_id}"
     sig = hmac.new(

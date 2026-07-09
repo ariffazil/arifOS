@@ -1,7 +1,7 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
 federation_release: v2026.07.08
-last_verified: 2026-07-08
+last_verified: 2026-07-09
 changelog: /root/arifOS/CHANGELOG.md
 p0_actor_id_binding: live (kernel reads JWT lineage first; self-report caps MEDIUM)
 floor_11b_amanah_replay: live (nonce required for IRREVERSIBLE mutations; 24h cache)

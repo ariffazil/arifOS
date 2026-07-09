@@ -9,7 +9,7 @@ import os
 import time
 from typing import Any, Dict
 
-CARRY_PATH = os.getenv("ARIFOS_CARRY_FORWARD", "/root/arifOS/arifosmcp/runtime/carry_forward.json")
+CARRY_PATH = os.getenv("ARIFOS_CARRY_FORWARD", "/root/.local/share/arifos/carry_forward.json")
 CONTRA_LEDGER = os.getenv("ARIFOS_CONTRADICTION_LEDGER", "/root/arifOS/arifosmcp/runtime/contradiction_ledger.jsonl")
 
 def emit_carry_forward(action: str, session_id: str, actor_id: str, evidence_layer: str, receipt: Dict[str, Any]) -> str:

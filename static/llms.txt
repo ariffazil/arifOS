@@ -159,6 +159,30 @@ To prevent chaos and duplicate context (F4 CLARITY), do not duplicate these name
 - `well://metabolic/flux` — Human metabolic rate indicators (reflect-only)
 - `well://decision/classes` — Human vs machine decision metrics
 
+## A2A Protocol — Peer-to-Peer Collaboration
+In addition to MCP (which handles direct client-server data and tool access), the arifOS federation utilizes the **Agent-to-Agent (A2A)** protocol for peer-to-peer collaboration, agreement, and task delegation.
+
+### 1. A2A Communication Fabric (The Protocol)
+- `message/send` — Submit a message/task to another agent. Enforces mandatory `session_id` to prevent Ghost Tasks.
+- `message/stream` — Stream real-time agent output using Server-Sent Events (SSE).
+- `tasks/get` — Retrieve status and history of a routed task.
+- `tasks/list` — List tasks, filterable by multi-tenancy `tenant`.
+- `tasks/cancel` — Abort a running task execution.
+- `tasks/subscribe` — Real-time event subscription for task state changes.
+
+### 2. A2A Transactional Layer (The Meaning-Exchange)
+- **Agent Cards** (`/.well-known/agent-card.json`) — Declares agent capabilities, static/JWT auth schemes, and autonomy boundaries (`canDo`/`cannotDo`).
+- **Autonomy Tiers** — Strict boundary constraints defined per agent card:
+  - **T1 (Execution)** — Routine, local operations (no HOLD).
+  - **T2 (Negotiation)** — Refactoring/deployment tasks (announce, medium risk).
+  - **T3 (Architectural)** — Irreversible/constitutional adjustments (888_HOLD mandatory).
+- **Task States** — Wire state machine mapping:
+  - `TASK_STATE_INPUT_REQUIRED` — Maps internally to arifOS `HOLD_888` verdict.
+  - `TASK_STATE_REJECTED` — Maps internally to arifOS `VOID` verdict.
+
+### 3. Orchestration & Coordination
+- **Context Lineage** (`contextId` / `contextLineage`) — Tracks the parent arifOS `session_id` throughout the lifecycle of delegated messages/tasks to ensure end-to-end auditability and eliminate Ghost Tasks.
+
 ## Constitutional Floors (F1-F13)
 F1 AMANAH . F2 TRUTH . F3 TRI-WITNESS . F4 CLARITY . F5 PEACE2
 F6 EMPATHY . F7 HUMILITY . F8 GENIUS . F9 ANTIHANTU . F10 ONTOLOGY
@@ -192,6 +216,6 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 - tools/list count should match total (58)
 - canonical_tools + operational_tools == tools_exposed_via_mcp
 - Manifest hash: bcc250de232a1c2a
-- Manifest URL: https://arifos.arif-fazil.com/manifest.txt
+- Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-07-09T00:33:59.593357+00:00 ---
+--- Auto-generated 2026-07-09T01:30:49.498706+00:00 ---

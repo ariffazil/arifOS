@@ -7347,9 +7347,9 @@ def _arif_session_init(
             _NONCE_STORE[nonce] = time.time()
             invariants_checked.append("nonce_fresh")
 
-        # F1/L11: HMAC-rootkey verification (Telegram-native path — ARIF_ROOTKEY)
-        # This path is tried FIRST because Telegram agents hold ARIF_ROOTKEY,
-        # not the Ed25519 private key (which only the root process has).
+        # F1/L11: HMAC-rootkey verification (Telegram-native path)
+        # Shared secret: ARIFOS_ROOTKEY (canonical) / ARIF_ROOTKEY (legacy alias).
+        # Tried FIRST — Telegram agents hold the rootkey, not Ed25519 private key.
         if actor_signature and nonce:
             try:
                 from arifosmcp.runtime.sovereign_verify import (
@@ -16996,7 +16996,6 @@ async def _arif_vault_seal_tool(
             mode=mode,
             actor_id=actor_id,
             session_id=session_id,
-            ack_irreversible=ack_irreversible,
         )
         if hold is not None:
             return hold

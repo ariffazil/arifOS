@@ -308,7 +308,7 @@ def generate_llms_txt() -> str:
     lines.append(f"- tools/list count should match total ({total_tools})")
     lines.append("- canonical_tools + operational_tools == tools_exposed_via_mcp")
     lines.append(f"- Manifest hash: {mhash}")
-    lines.append("- Manifest URL: https://arifos.arif-fazil.com/manifest.txt")
+    lines.append("- Manifest URL: https://arifos.arif-fazil.com/tools.json")
     lines.append("")
     lines.append(f"--- Auto-generated {datetime.datetime.now(datetime.timezone.utc).isoformat()} ---")
 
@@ -318,10 +318,18 @@ def generate_llms_txt() -> str:
 def main() -> None:
     """Generate llms.txt and output manifest JSON for CI."""
     txt = generate_llms_txt()
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "llms.txt")
-    with open(path, "w") as f:
-        f.write(txt)
-    print(f"[MANIFEST] Wrote {path} ({len(txt)} chars)")
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    targets = [
+        os.path.join(repo_root, "llms.txt"),
+        os.path.join(repo_root, "static", "llms.txt"),
+        os.path.join(repo_root, "arifosmcp", "static", "llms.txt"),
+        os.path.join(repo_root, "arifosmcp", "sites", "llms.txt"),
+        os.path.join(repo_root, "arifosmcp", "sites", "developer", "llms.txt"),
+    ]
+    for path in targets:
+        with open(path, "w") as f:
+            f.write(txt)
+        print(f"[MANIFEST] Wrote {path} ({len(txt)} chars)")
     print(
         f"[MANIFEST] Canonical Tools: {len(_canonical_tool_list())} | Operational Tools: {len(_operational_tool_list())}"
     )

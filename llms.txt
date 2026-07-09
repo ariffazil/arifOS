@@ -216,6 +216,6 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 - tools/list count should match total (58)
 - canonical_tools + operational_tools == tools_exposed_via_mcp
 - Manifest hash: bcc250de232a1c2a
-- Manifest URL: https://arifos.arif-fazil.com/manifest.txt
+- Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-07-09T00:46:01.707749+00:00 ---
+--- Auto-generated 2026-07-09T01:30:49.498706+00:00 ---

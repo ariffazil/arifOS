@@ -446,6 +446,32 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def _bind_identity(
+    actor_id: str | None, session_id: str | None
+) -> tuple[str | None, str | None]:
+    """Recover actor/session from session store when MCP drops or nulls identity.
+
+    Explicit non-anon actor_id always wins. Session-bound actor fills gaps.
+    Prevents wrap_legacy_call / outer envelope coercing to openclaw-anon when
+    the caller already passed a verified session.
+    """
+    _ANON = frozenset({None, "", "anonymous", "openclaw-anon", "unknown", "null"})
+    aid = actor_id if actor_id not in _ANON else None
+    sid = session_id if session_id not in _ANON else None
+    if sid:
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+
+            sess = _SESSIONS.get(sid) or {}
+            if not aid:
+                cand = sess.get("actor_id") or sess.get("canonical_actor_id")
+                if cand and cand not in _ANON:
+                    aid = str(cand)
+        except Exception:
+            pass
+    return aid, sid
+
+
 def arif_route(
     intent: str,
     organ: str | None = None,
@@ -485,9 +511,25 @@ def arif_route(
                    arguments={"mode": "stress"})
         → routes to WEALTH, calls wealth_portfolio(mode="stress"), returns result
     """
+    actor_id, session_id = _bind_identity(actor_id, session_id)
+    # Prefer identity inside arguments._envelope if tool args lost top-level fields
+    if arguments and isinstance(arguments, dict):
+        env = arguments.get("_envelope") or {}
+        if isinstance(env, dict):
+            if not actor_id and env.get("actor_id"):
+                actor_id = env.get("actor_id")
+            if not session_id and env.get("session_id"):
+                session_id = env.get("session_id")
+            actor_id, session_id = _bind_identity(actor_id, session_id)
+
     floor_check = check_laws("arif_route", {"intent": intent}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_route", floor_check["reason"], floor_check["violated_laws"])
+        return _hold(
+            "arif_route",
+            floor_check["reason"],
+            floor_check["violated_laws"],
+            session_id=session_id,
+        )
 
     # Kernel dispatch gate: if _envelope provided (cross-organ), session must match live issued one
     # (This is before organ runs — wall, not policy)
@@ -569,15 +611,35 @@ def arif_route(
                 return True
         return False
 
+    def _route_ok(payload: dict[str, Any]) -> dict[str, Any]:
+        payload = {
+            **payload,
+            "actor_id": actor_id,
+            "session_id": session_id,
+        }
+        return _ok(
+            "arif_route",
+            payload,
+            meta={"actor_id": actor_id},
+            session_id=session_id,
+        )
+
+    def _route_hold(reason: str, extra: dict | None = None) -> dict[str, Any]:
+        return _hold(
+            "arif_route",
+            reason,
+            extra_meta={**(extra or {}), "actor_id": actor_id, "session_id": session_id},
+            session_id=session_id,
+        )
+
     # If no organ_tool specified, return routing decision only
     if not organ_tool:
         if _routing_hold_required(routing):
-            return _hold(
-                "arif_route",
+            return _route_hold(
                 "Routing HOLD: inner subsignal requires hold (floor_passed=false or hold_required=true)",
-                extra_meta={"routing": routing},
+                {"routing": routing},
             )
-        return _ok("arif_route", routing)
+        return _route_ok(routing)
 
     # Build transport _envelope from live session state (ALWAYS populated, never re-typed by caller)
     _envelope = {
@@ -587,7 +649,9 @@ def arif_route(
         "trace_id": f"trace_{int(__import__('time').time() * 1000)}_{actor_id or 'anon'}",
     }
     call_args = dict(arguments or {})
-    call_args.setdefault("_envelope", _envelope)
+    # Force envelope identity — do not let stale null envelope win
+    prev_env = call_args.get("_envelope") if isinstance(call_args.get("_envelope"), dict) else {}
+    call_args["_envelope"] = {**prev_env, **{k: v for k, v in _envelope.items() if v is not None}}
 
     # Bridge call to organ
     if target_organ.lower() == "geox":
@@ -595,49 +659,37 @@ def arif_route(
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
-            return _hold(
-                "arif_route",
-                "Bridge HOLD: inner subsignal requires hold",
-                extra_meta={"routing": routing},
-            )
-        return _ok("arif_route", routing)
+            return _route_hold("Bridge HOLD: inner subsignal requires hold", {"routing": routing})
+        return _route_ok(routing)
 
     if target_organ.lower() == "wealth":
         result = _bridge_wealth(organ_tool, call_args, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
-            return _hold(
-                "arif_route",
-                "Bridge HOLD: inner subsignal requires hold",
-                extra_meta={"routing": routing},
-            )
-        return _ok("arif_route", routing)
+            return _route_hold("Bridge HOLD: inner subsignal requires hold", {"routing": routing})
+        return _route_ok(routing)
 
     if target_organ.lower() == "well":
         result = _bridge_well(organ_tool, call_args, session_id, actor_id)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
-            return _hold(
-                "arif_route",
-                "Bridge HOLD: inner subsignal requires hold",
-                extra_meta={"routing": routing},
-            )
-        return _ok("arif_route", routing)
+            return _route_hold("Bridge HOLD: inner subsignal requires hold", {"routing": routing})
+        return _route_ok(routing)
 
     if target_organ.lower() == "a-forge":
-        return _ok("arif_route", {**routing, "bridge_status": "a-forge: use A-FORGE MCP directly"})
+        return _route_ok({**routing, "bridge_status": "a-forge: use A-FORGE MCP directly"})
 
     if target_organ.lower() == "aaa":
-        return _ok(
-            "arif_route", {**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"}
+        return _route_ok(
+            {**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"}
         )
 
     if target_organ.lower() == "arifos":
-        return _ok("arif_route", {**routing, "bridge_status": "kernel-local: no bridge needed"})
+        return _route_ok({**routing, "bridge_status": "kernel-local: no bridge needed"})
 
-    return _hold("arif_route", f"Unknown organ: {target_organ}")
+    return _route_hold(f"Unknown organ: {target_organ}")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -939,17 +991,65 @@ def _run_async(coro) -> Any:
 
 
 def _assert_organ_attested(organ: str) -> dict[str, Any] | None:
-    """Fail-closed gate: require recent ALIVE attestation before bridging."""
-    from arifosmcp.runtime.heartbeat_registry import is_organ_stale
-    from arifosmcp.runtime.organ_attestation import get_organ_attestation
+    """Fail-closed gate: require recent ALIVE attestation before bridging.
 
-    rec = get_organ_attestation(organ.upper())
+    Lazy re-attest once if registry is empty/stale after kernel restart
+    (in-memory attestation evaporates on process recycle while organs stay live).
+    """
+    from arifosmcp.runtime.heartbeat_registry import is_organ_stale
+    from arifosmcp.runtime.organ_attestation import (
+        attest_organ,
+        get_organ_attestation,
+        is_healthy,
+    )
+
+    oid = organ.upper()
+    rec = get_organ_attestation(oid)
+
+    def _needs_refresh(r) -> bool:
+        if r is None:
+            return True
+        if r.status in ("REVOKED", "DEGRADED_CLAIM", "DEGRADED", "UNATTESTED"):
+            return True
+        try:
+            if is_organ_stale(oid):
+                return True
+        except Exception:
+            return True
+        return False
+
+    if _needs_refresh(rec):
+        try:
+            result = _run_async(attest_organ(oid))
+            # attest_organ returns dict; re-read registry
+            rec = get_organ_attestation(oid)
+            if rec is None and isinstance(result, dict):
+                # Some paths return inline status without registry write
+                st = (result.get("status") or result.get("attestation", {}).get("status") or "")
+                if not is_healthy(st) and st not in ("ALIVE", "alive"):
+                    return _hold(
+                        "arif_bridge",
+                        f"Organ {organ} re-attest failed: {result.get('status') or result}",
+                    )
+        except Exception as exc:
+            return _hold(
+                "arif_bridge",
+                f"Organ {organ} has no live attestation and re-attest failed: {exc}",
+            )
+
+    rec = get_organ_attestation(oid)
     if rec is None:
         return _hold("arif_bridge", f"Organ {organ} has no live attestation.")
     if rec.status in ("REVOKED", "DEGRADED_CLAIM", "DEGRADED", "UNATTESTED"):
         return _hold("arif_bridge", f"Organ {organ} status={rec.status}")
-    if is_organ_stale(organ.upper()):
-        return _hold("arif_bridge", f"Organ {organ} heartbeat stale. Re-attest.")
+    if rec.status not in ("ALIVE", "DEGRADED_NOT_FAILED", "CONSTITUTIONAL_HOLD"):
+        # Allow ALIVE family only
+        if rec.status != "ALIVE":
+            try:
+                if is_organ_stale(oid):
+                    return _hold("arif_bridge", f"Organ {organ} heartbeat stale. Re-attest.")
+            except Exception:
+                pass
     return None
 
 
