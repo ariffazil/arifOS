@@ -1,15 +1,18 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
-federation_release: v2026.07.04-MARHIN
-last_verified: 2026-07-09T04:50Z
-live_commit: 1bfeaba
-live_version: kanon-1bfeaba
+federation_release: v2026.07.09-SPINE-P0
+last_verified: 2026-07-09T11:05Z
+live_commit: e5d157b
+live_version: kanon-e5d157b
 runtime_path: /opt/arifos/app
 runtime_drift: false
 owner_summary: GREEN
-tools_exposed_via_mcp: 12
+tools_exposed_via_mcp: 11
 canonical_tools_loaded: 17
 total_declared_tools: 58
+spine_p0_sct: live (sct_v1 mint; store-delete full loop; apex UNMEASURED at birth)
+arif_triage: DEPRECATED_ALIAS → arif_init(mode=preflight|triage)
+arif_act: internal_only (never in allowed_next_verbs)
 changelog: /root/arifOS/CHANGELOG.md
 p0_actor_id_binding: live (kernel reads JWT lineage first; self-report caps MEDIUM)
 floor_11b_amanah_replay: live (nonce required for IRREVERSIBLE mutations; 24h cache)
@@ -55,7 +58,7 @@ machine_sot: /root/A-FORGE/forge_work/2026-07-09/MACHINE-SOT-2026-07-09.json
 > **arifOS is a constitutional governance kernel that sits between AI agents and their tools, enforcing 13 floors before any irreversible action.**
 
 - **The law layer** — decides what agents must NOT do, so they can be trusted with what they CAN do
-- **An MCP server** — 12 canonical public verbs (current live SATU PERMUKAAN 2026-07-08; source: arifosmcp/runtime/public_surface.py CANONICAL_12). One intent = one public tool. See `arifosmcp/PUBLIC_SURFACE_CANON.md`.
+- **An MCP server** — 11 canonical public verbs (SATU PERMUKAAN 2026-07-09 Spine P0; source: `arifosmcp/runtime/public_surface.py` CANONICAL_12). Session standing rides signed `sct_v1` capability tokens. One intent = one public tool. See `arifosmcp/PUBLIC_SURFACE_CANON.md`.
 - **A federation hub** — 6 live organs (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL) plus the VAULT999 immutable ledger under one contract
 - **An immutable ledger** — VAULT999: append-only, hash-chained. Every decision sealed forever
 - **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute

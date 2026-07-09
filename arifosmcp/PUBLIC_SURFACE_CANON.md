@@ -1,24 +1,26 @@
-# PUBLIC SURFACE CANON — arifOS 12-Tool Canonical Surface (SATU PERMUKAAN 2026-07-08 F13)
+# PUBLIC SURFACE CANON — arifOS Canonical Surface (SATU PERMUKAAN 2026-07-09 Spine P0)
 
-**Current (SATU PERMUKAAN 2026-07-08 F13):** 12 canonical verbs (live + runtime/public_surface.py:CANONICAL_12).
-Previous "10" attempt HISTORICAL. Live includes `arif_triage` and `arif_bridge_connect`.
+**Current (2026-07-09 Spine P0):** 11 canonical public verbs (`runtime/public_surface.py:CANONICAL_12`).
+`arif_triage` demoted to deprecated wire alias → `arif_init(mode=preflight|triage)`.
+Standing rides signed **`sct_v1`** session capability tokens (store = optional cache).
 
-One intent = one public tool (F4 CLARITY). The Kernel is a constitutional switchboard, not a warehouse.
+One intent = one public tool (F4 CLARITY / MCP convergence). Kernel is a constitutional switchboard, not a warehouse.
 
-## The 12 Canonical Public Tools (live)
+## The 11 Canonical Public Tools (live)
 
 | # | Verb | Stage | Role | Agentic Selection — When to Choose This Tool |
 |---|------|-------|------|------------------------------------------------|
-| 1 | `arif_init` | 000 | Session anchor | START HERE. Bootstrap session + bind actor identity. Modes: `init`, `resume`, `validate`, `canary`, `preflight`, `triage`. Absorbs `arif_canary` + `arif_triage` as modes. |
-| 2 | `arif_observe` | 111 | Reality sensing | Ground in reality. Web search, URL fetch, vitals, repo map. Modes: `search`, `fetch`, `ingest`, `compass`, `atlas`, `entropy_dS`, `vitals`. Absorbs `arif_fetch` as `mode=fetch`. |
-| 3 | `arif_think` | 333 | Cognitive engine | Reason, plan, reflect, critique, metabolize. Modes: `reason`, `reflect`, `verify`, `axioms`, `plan`, `plan_review`, `plan_approve`, `refactor_plan`, `metabolize`, `simulate`. |
-| 4 | `arif_route` | 444 | Organ router | Route intent to correct federation organ. Modes: `route`, `bridge`. Absorbs `arif_bridge_connect` as `mode=bridge`. |
-| 5 | `arif_critique` | 555 | Maruah / risk | Ethical risk + human impact assessment before irreversible actions. Modes: `critique`, `redteam`, `maruah`, `shadow`, `deescalate`, `empathy`. |
-| 6 | `arif_memory` | 555m | Memory governor | Constitutional memory gate (F1/F2/F4/F9/F11/F13). Memory writes are J-space mutations that shape future reasoning. Modes: `recall`, `inspect`, `attest`, `remember`, `promote`, `revise`, `forget`, `audit`. |
-| 7 | `arif_judge` | 666 | Constitutional verdict | Render `SEAL_CANDIDATE` / `HOLD` / `SABAR` / `VOID`. The Kernel judges; it does not seal. Modes: `judge`, `compare`, `history`, `explain`, `floor_status`, `witness_consensus`. |
-| 8 | `arif_forge` | 777 | Guarded execution | Execute only after a `SEAL_CANDIDATE` from `arif_judge`. Modes: `engineer`, `query`, `write`, `generate`, `commit`, `recall`, `dry_run`. `arif_act` retained as internal alias. |
-| 9 | `arif_compose` | 888 | Response composer | Governed final reply wire. Call LAST after reasoning + judgment complete. Modes: `compose`, `summarize`, `cite`, `tone_shift`, `style`, `format`, `nudge`, `repo_answer`. |
-| 10 | `arif_seal` | 999 | VAULT999 seal | Immutable ledger append (irreversible). Modes: `seal`, `verify`, `ledger`, `changelog`, `audit`, `dry_run`. |
+| 1 | `arif_init` | 000 | Session anchor | START HERE. Bootstrap + bind identity + mint `session_token` (`sct_v1`). Modes: `init`, `light`, `resume`, `validate`, `canary`, **`preflight`**, **`triage`**. Absorbs canary + triage. |
+| 2 | `arif_observe` | 111 | Reality sensing | Ground in reality. Modes: `search`, `fetch`, `ingest`, `compass`, `atlas`, `vitals`. Absorbs fetch as `mode=fetch` (no live aliases). |
+| 3 | `arif_think` | 333 | Cognitive engine | Reason, plan, reflect. Internal impl name `arif_mind_reason` is not public. |
+| 4 | `arif_route` | 444 | Organ router | Route intent to organ. Modes: `route`, `bridge`. No `arif_triage`/`arif_delegate` aliases. |
+| 5 | `arif_bridge_connect` | 444b | Direct organ bridge | HIGH path; prefer `arif_route` for default. |
+| 6 | `arif_critique` | 555 | Maruah / risk | Ethical risk before irreversible. |
+| 7 | `arif_memory` | 555m | Memory governor | Constitutional memory gate. |
+| 8 | `arif_judge` | 666 | Constitutional verdict | SEAL/HOLD/SABAR/VOID. Structured returns; SCT standing. |
+| 9 | `arif_forge` | 777 | Guarded execution | After SEAL. `arif_act` internal-only (never in `allowed_next_verbs`). Prefer `dry_run`. |
+| 10 | `arif_compose` | 888 | Response composer | Final human reply LAST. |
+| 11 | `arif_seal` | 999 | VAULT999 seal | Immutable ledger. Prefer `verify`/`dry_run` until SOVEREIGN. |
 
 ## Metabolic Loop
 
@@ -69,7 +71,8 @@ One stage = one public verb. Absorbed verbs become modes on their parent tool.
 
 ## Source of Truth
 
-- `arifosmcp/runtime/public_surface.py` : `CANONICAL_9` (canonical — 10 tools)
+- `arifosmcp/runtime/public_surface.py` : `CANONICAL_12` (11 public verbs after triage demotion)
+- `arifosmcp/runtime/sct.py` : signed session capability (`sct_v1`)
 - `arifosmcp/constitutional_map.py` : `CANONICAL_TOOLS` (full registry)
 - `arifosmcp/resources/schema.py` : `SCHEMA_TEXT` (blueprint resource)
 - `static/.well-known/mcp/server.json` : MCP server card
@@ -79,8 +82,9 @@ One stage = one public verb. Absorbed verbs become modes on their parent tool.
 All previous "7 canonical", "12 canonical", "13 canonical", `arifos_*`, long SDK aliases
 (`arif_session_init`, `arif_gateway_connect`, `arif_forge_execute`, etc), `agi_mind`,
 `asi_heart`, `apex_soul`, `apex_judge`, `physics_reality`, `math_estimator`, `code_engine`,
-`engineering_memory` are historical/internal only. Public wire (`tools/list`) returns **only** the 10.
+`engineering_memory` are historical/internal only. Public wire (`tools/list`) returns **canonical
+public verbs only** (triage = deprecated alias). Standing = `session_token` (`sct_v1`).
 
 See `runtime/public_surface.py` for `BLOCKED_PUBLIC_PREFIXES`, `DEPRECATED_CANARY_CHILDREN`, and alias handling.
 
-**DITEMPA BUKAN DIBERI — 10 is the surface, and the Kernel becomes powerful when it stops being impressive.**
+**DITEMPA BUKAN DIBERI — one state machine, one standing token, not eleven costumes.**

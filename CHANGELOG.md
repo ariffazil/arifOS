@@ -6,6 +6,26 @@ semver). See AGENTS.md §7 for the rationale and iron rules.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 
+## v2026.07.09 — Spine P0 inhabit + audit removal
+
+### Session capability (`sct_v1`)
+- Canonical wire format **`sct_v1`** only at birth (no dual-mint `arifos.v1`).
+- Birth apex **UNMEASURED**; authority = identity band (no invented G theater).
+- `session_token` + `resolve_standing` on metabolic verbs; store-delete full loop proven.
+- `capability_token.py` thin facade → `sct.py` (merge, not second birth).
+
+### Public surface / convergence
+- **`arif_triage`** demoted: use `arif_init(mode=preflight|triage)`; deprecated thin wrapper only.
+- Discovery aliases cleared for route/observe/act (MCP convergence over choice).
+- **`arif_act`** never appears in `allowed_next_verbs`; `arif_forge` is the public execute verb.
+- Per-response `full_affordance` paste removed → `affordance_ref` only.
+- `arif_mind_reason` purpose declared as internal of `arif_think`.
+
+### Tests / receipts
+- `tests/test_sct_slice1.py` (10) green.
+- Forge receipts: `forge_work/2026-07-09/SESSION-SEAL-KERNEL-INHABIT-*.md`,
+  `MCP-A2A-FASTMCP-ROOT-CAUSE-PROBE.md`, `AUDIT-REMOVAL-LIST-DONE.md`.
+
 ## v2026.06.11-FIQHGEOM — 2026-06-11
 
 ### EUREKA-G: Constitutional Geometry Engine
