@@ -1425,13 +1425,51 @@ if IS_FASTMCP_3:
 
                     from arifosmcp.runtime.tools import _RESPONSE_CONTEXT
 
-                    if hasattr(envelope, "actor_id") and envelope.actor_id:
+                    # Prefer tool-arg identity over envelope coercion (openclaw-anon).
+                    # Envelope may be wrap_legacy_call after null actor; args often still
+                    # carry the real actor_id/session_id from the client.
+                    _args = getattr(msg, "arguments", None) or {}
+                    if not isinstance(_args, dict):
+                        _args = {}
+                    _arg_actor = _args.get("actor_id")
+                    _arg_session = _args.get("session_id")
+                    _env_actor = (
+                        str(envelope.actor_id)
+                        if hasattr(envelope, "actor_id") and envelope.actor_id
+                        else None
+                    )
+                    _env_session = (
+                        str(envelope.session_id)
+                        if hasattr(envelope, "session_id") and envelope.session_id
+                        else None
+                    )
+                    _placeholders = {
+                        None,
+                        "",
+                        "anonymous",
+                        "openclaw-anon",
+                        "unknown",
+                        "null",
+                    }
+                    _final_actor = (
+                        _arg_actor
+                        if _arg_actor not in _placeholders
+                        else (_env_actor if _env_actor not in _placeholders else _arg_actor or _env_actor)
+                    )
+                    _final_session = (
+                        _arg_session
+                        if _arg_session not in _placeholders
+                        else (
+                            _env_session
+                            if _env_session not in _placeholders
+                            else _arg_session or _env_session
+                        )
+                    )
+                    if _final_actor or _final_session:
                         _RESPONSE_CONTEXT.set(
                             {
-                                "actor_id": str(envelope.actor_id),
-                                "session_id": str(envelope.session_id)
-                                if envelope.session_id
-                                else None,
+                                "actor_id": str(_final_actor) if _final_actor else None,
+                                "session_id": str(_final_session) if _final_session else None,
                             }
                         )
 
