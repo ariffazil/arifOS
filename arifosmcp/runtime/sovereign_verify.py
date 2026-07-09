@@ -66,7 +66,8 @@ def verify_hmac_signature(
     if actor_id != "ariffazil":
         return False, "hmac_actor_id_mismatch"
 
-    rootkey = os.getenv("ARIF_ROOTKEY", "")
+    # Canonical vault name is ARIFOS_ROOTKEY; ARIF_ROOTKEY is legacy alias only.
+    rootkey = os.getenv("ARIFOS_ROOTKEY", "") or os.getenv("ARIF_ROOTKEY", "")
     if not rootkey:
         return False, "hmac_rootkey_not_configured"
 

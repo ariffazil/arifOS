@@ -1,14 +1,16 @@
 {
-  "schema": "federation-manifest/v4",
-  "source": "FORGE 000Ω live probe 2026-07-06T07:25:00Z",
-  "generated": "2026-07-06T07:25:00Z",
+  "schema": "federation-manifest/v3",
+  "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
+  "generated": "2026-07-09T01:41:49Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
+    "sse_remaining": 0,
     "delta_s": 0,
-    "note": "Transport standardized across federation organs. ΔS ≤ 0."
+    "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "6/6 organs HEALTHY. 144 exposed + 49 internal = 193 tools. Seal chain 97 entries. WELL state stale 28.9h. Runtime drift on arifOS kernel.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.04-MARHIN (7951e56). 213 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-07-09T01:41:49Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=12, total_declared=58.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -26,10 +28,7 @@
           "ordinal": 2,
           "name": "arifOS Governance Kernel",
           "role": "13-floor constitutional engine. 888_JUDGE. 999_VAULT. ΔΩΨ Trinity routing.",
-          "status": "live",
-          "port": 8088,
-          "verdict": "SEAL",
-          "runtime_drift": true
+          "status": "live"
         },
         {
           "ordinal": 3,
@@ -39,20 +38,14 @@
         },
         {
           "ordinal": 4,
-          "name": "Agents (OpenCode · Hermes · FORGE · OPS · PLAN · AUDITOR)",
+          "name": "OpenClaw · Hermes · OpenCode",
           "role": "Agent runtime. Telegram interface. A2A bridge. Model routing and execution.",
           "status": "live"
         },
         {
           "ordinal": 5,
-          "name": "Surfaces (Observatory · Cockpit · Sites)",
+          "name": "Observatory · Canon · Wiki",
           "role": "Public-facing surfaces. Read-only governance visibility. Constitutional doctrine.",
-          "status": "live"
-        },
-        {
-          "ordinal": 6,
-          "name": "Infrastructure (Docker · Caddy · Databases · NATS)",
-          "role": "Substrate layer. PostgreSQL, Redis, Qdrant, FalkorDB, CouchDB, MinIO, Temporal, Graphiti.",
           "status": "live"
         }
       ]
@@ -67,66 +60,58 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "verdict": "SEAL",
-        "tools_public": 9,
-        "tools_internal": 8,
-        "tools_diagnostic": 41,
-        "tools_total": 58,
+        "tools": 58,
         "release": "v2026.07.04-MARHIN",
-        "version": "kanon-b55f78b",
-        "commit": "b55f78b",
+        "version": "kanon-7951e56",
+        "commit": "7951e56",
+        "canonical_tools": 17,
+        "diagnostic_tools": 41,
+        "tools_exposed_mcp": 12,
         "floors_active": 13,
         "vault_health": "healthy",
-        "langfuse": "ACTIVE",
-        "graphiti": "enabled",
-        "runtime_drift": true,
-        "drift_note": "build=b55f78b vs live=158355f"
+        "manifest_hash": "837c6d050e3c29a5"
       },
       "geox": {
         "name": "GEOX",
         "type": "earth_intelligence",
-        "role": "Subsurface physics. Petrophysics. Seismic. Basin analysis. Biostrat. Earth Graph.",
+        "role": "Subsurface physics. Petrophysics. Seismic. Basin analysis. Physics-9 grounded.",
         "port": 8081,
         "mcp": true,
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 46,
-        "version": "v2026.07.03-phase2.7-biostrat",
-        "domain_law": "NATURAL_LAW"
+        "tools": 87,
+        "version": "v2026.07.06-phase3.1-rsi-pipeline",
+        "git_version": "geox-c50fcd8a"
       },
       "wealth": {
         "name": "WEALTH",
         "type": "capital_intelligence",
-        "role": "NPV/EMV. Risk scoring. Capital conservation. Monte Carlo. Portfolio optimization. Collapse detection.",
+        "role": "NPV/EMV. Risk scoring. Makcik² relational credit. Capital conservation.",
         "port": 18082,
         "mcp": true,
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
-        "status": "healthy",
-        "tools": 37,
-        "version": "2026.06.15",
-        "layers": ["core", "contracts", "mcp", "arifos_bridge", "compat"]
+        "status": "alive",
+        "tools": 50,
+        "version": "2026.06.15"
       },
       "well": {
         "name": "WELL",
         "type": "vitality_engine",
-        "role": "Biological substrate. Operator cognitive pressure. Thermodynamic wellness. Dignity guard.",
+        "role": "Biological substrate. Operator cognitive pressure. Thermodynamic wellness.",
         "port": 18083,
         "mcp": true,
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "degraded",
         "tools": 18,
-        "version": "2026.05.15-ΩWELL+GWELL+FEDERATION",
-        "authority": "REFLECT_ONLY",
-        "state_stale_hours": 28.9,
-        "degraded_reason": "Biometric data stale >24h"
+        "version": "2026.05.15-ΩWELL+GWELL+FEDERATION"
       },
       "aaa": {
         "name": "AAA",
         "type": "a2a_hub",
-        "role": "A2A broker. Cockpit surface. Agent identity. Deliberation engine.",
+        "role": "A2A broker. Cockpit surface. Agent identity.",
         "port": 3001,
         "mcp": false,
         "transport": "A2A (internal)",
@@ -134,101 +119,20 @@
         "status": "healthy",
         "tools": 0,
         "version": "1.0.0",
-        "agent_cards": 23,
-        "vault_connected": true,
-        "chain_seq": 97
+        "agent_cards": 26
       },
       "forge": {
         "name": "A-FORGE",
-        "type": "execution_shell",
-        "role": "Build. Deploy. Execute. Docker. Git. Shell. MCP gateway on :7072.",
+        "type": "metabolic_shell",
+        "role": "Deployment orchestration. Agent engine loop. Executes after SEAL.",
         "port": 7071,
-        "mcp_port": 7072,
         "mcp": true,
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 34,
-        "version": "0.1.0-enterprise",
-        "authority_ceiling": "777_FORGE"
+        "tools": 0,
+        "version": "0.1.0"
       }
-    },
-    "infrastructure": {
-      "databases": {
-        "postgres_pgvector": {"port": 5432, "status": "healthy", "image": "pgvector/pgvector:pg16"},
-        "supabase_postgres": {"port": 54322, "status": "healthy", "image": "supabase/postgres:17.6.1.106"},
-        "redis": {"port": 6379, "status": "healthy", "image": "redis:7-alpine"},
-        "qdrant": {"port": "6333-6334", "status": "healthy", "image": "qdrant/qdrant:latest"},
-        "falkordb": {"port": 6380, "status": "healthy", "image": "falkordb/falkordb:latest"},
-        "couchdb": {"port": 5984, "status": "healthy", "image": "couchdb:3.5"},
-        "minio": {"port": "9000-9001", "status": "healthy", "image": "minio/minio:latest"}
-      },
-      "messaging": {
-        "nats": {"port_client": 4222, "port_monitor": 8222, "status": "healthy"},
-        "temporal": {"port": 7233, "status": "healthy", "image": "temporalio/auto-setup:latest"},
-        "graphiti": {"port": 8000, "status": "healthy", "image": "zepai/knowledge-graph-mcp:latest"}
-      },
-      "monitoring": {
-        "prometheus": {"port": 9090, "status": "healthy"},
-        "grafana": {"port": 3000, "status": "healthy", "version": "13.1.0"},
-        "cadvisor": {"port": 8082, "status": "healthy"}
-      },
-      "docker_containers": 10,
-      "systemd_services": 22,
-      "docker_networks": ["af-forge_default", "arifos_core", "bridge", "supabase_network_aaa-supabase"]
-    },
-    "surfaces": {
-      "trinity": {
-        "soul": {"domain": "arif-fazil.com", "role": "Human identity", "endpoints": ["/", "/canon/", "/essays/"]},
-        "mind": {"domain": "arifos.arif-fazil.com", "role": "Governance observatory", "endpoints": ["/api/status", "/health", "/federation.html"]},
-        "body": {"domain": "aaa.arif-fazil.com", "role": "Operations cockpit", "endpoints": ["/", "/a2a/"]}
-      },
-      "organs": {
-        "geox": {"domain": "geox.arif-fazil.com", "role": "Earth intelligence"},
-        "wealth": {"domain": "wealth.arif-fazil.com", "role": "Capital intelligence"},
-        "well": {"domain": "well.arif-fazil.com", "role": "Human readiness"},
-        "mcp": {"domain": "mcp.arif-fazil.com", "role": "Canonical MCP gateway"}
-      },
-      "infrastructure": {
-        "forge": {"domain": "forge.arif-fazil.com", "role": "A-FORGE + OpenCode IDE"},
-        "prometheus": {"domain": "prometheus.arif-fazil.com"},
-        "grafana": {"domain": "grafana.arif-fazil.com"},
-        "temporal": {"domain": "temporal.arif-fazil.com"},
-        "nats": {"domain": "nats.arif-fazil.com"},
-        "vault999": {"domain": "vault999.arif-fazil.com"}
-      }
-    },
-    "skills": {
-      "total": 80,
-      "location": "/root/.agents/skills/",
-      "categories": {
-        "constitutional_stages": 7,
-        "core_doctrine": 5,
-        "boot_init": 5,
-        "geox": 9,
-        "wealth": 4,
-        "well": 1,
-        "federation": 7,
-        "forge_execution": 5,
-        "mcp_tools": 6,
-        "alignment_audit": 5,
-        "zen_organs": 7,
-        "meta_other": 19
-      }
-    },
-    "seal_chain": {
-      "entries": 97,
-      "last_actor": "ARIF",
-      "last_verdict": "SEAL",
-      "last_timestamp": "2026-07-06T07:18:46Z",
-      "path": "/root/.local/share/arifos/vault999/seal_chain.jsonl"
-    },
-    "known_issues": [
-      {"severity": "AMBER", "item": "arifOS runtime drift — build commit b55f78b != live commit 158355f"},
-      {"severity": "AMBER", "item": "WELL state stale 28.9h — biometric gap, WELL_HOLD signal"},
-      {"severity": "AMBER", "item": "Identity drift flagged in carry-forward"},
-      {"severity": "LOW", "item": "GEOX identity unverified"},
-      {"severity": "LOW", "item": "TOOLREGISTRY.json mcp_tool_inventory.organs has 0 tools (structural gap)"}
-    ]
+    }
   }
 }

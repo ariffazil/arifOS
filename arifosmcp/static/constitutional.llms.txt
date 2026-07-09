@@ -274,6 +274,24 @@ audit_obligation: VAULT999 + NATS
 note: 888_JUDGE. Final constitutional arbitration. Requires preceding sense→evidence→reason→critique pipeline.
 fingerprint: (derive: schema + L01+L11+L13 + irreversible_downstream + 888 + VAULT)
 
+tool: arif_judge_deliberate
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: PUBLIC
+reversible: false
+reversibility_score: 0.0
+required_floors: F1,L01,F11,L11,F13,L13
+evidence_required: same as arif_judge
+sovereign_gate: internal_only
+seal_required: inherited from arif_judge
+may_self_authorize: false
+action_class: JUDGE
+risk_tier: critical
+authority_chain: internal deliberation path under arifOS 888 only; not public surface
+audit_obligation: inherited from arif_judge
+note: Internal-only deliberate variant retained for governed arbitration flows and backward compatibility.
+fingerprint: (derive)
+
 tool: arif_seal
 domain: GOVERNANCE
 organ: arifOS
@@ -309,6 +327,24 @@ authority_chain: arifOS judges → A-FORGE executes (never reverse). F13 human v
 audit_obligation: VAULT999 + lease + execution receipt
 note: 010_FORGE_EXECUTE. Build execution — code generation, artifact creation, system modification.
 fingerprint: (derive: schema + L01+L11+L13 + irreversible + 888 + A-FORGE lease boundary)
+
+tool: arif_act
+domain: GOVERNANCE
+organ: arifOS
+blast_radius: HIGH (delegated to A-FORGE EXECUTION)
+reversible: "possible"
+reversibility_score: 0.2
+required_floors: F1,L01,F11,L11,F13,L13
+evidence_required: same as arif_forge
+sovereign_gate: internal_only
+seal_required: inherited from arif_forge
+may_self_authorize: false
+action_class: EXECUTE
+risk_tier: critical
+authority_chain: internal alias for arif_forge only; execution still governed by arifOS then leased to A-FORGE
+audit_obligation: inherited from arif_forge
+note: Internal compatibility alias. Public callers should use arif_forge.
+fingerprint: (derive)
 
 tool: arif_measure
 domain: GOVERNANCE
@@ -410,7 +446,7 @@ note: well.arif-fazil.com/mcp + WELL/llms.txt. WELL_HOLD is signal to sovereign,
 # 8. Discovery without constitutional contract = unknown jurisdiction. Default HOLD.
 
 # Public endpoints (MCP)
-# arifOS: https://mcp.arif-fazil.com/mcp
+# arifOS: https://arifos.arif-fazil.com/mcp
 # A-FORGE: forge.arif-fazil.com/mcp (stdio preferred for agents)
 # GEOX: https://geox.arif-fazil.com/mcp
 # WEALTH: https://wealth.arif-fazil.com/mcp

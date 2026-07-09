@@ -1505,7 +1505,7 @@ LLMS_JSON = {
         "law": {
             "name": "The Mind (Technical Docs & Apps)",
             "url": "https://arifos.arif-fazil.com",
-            "llms_txt": "https://arifos.arif-fazil.com/manifest.txt",
+            "llms_txt": "https://arifos.arif-fazil.com/llms.txt",
             "role": "The 13 Floors specification and integration hub.",
         },
         "brain": {
@@ -2662,7 +2662,7 @@ def register_rest_routes(
                 "tools_exposed_via_mcp": "Total tools returned by default MCP tools/list public facade",
                 "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (the full declared surface)",
             },
-            "tool_manifest_url": "https://arifos.arif-fazil.com/manifest.txt",
+            "tool_manifest_url": "https://arifos.arif-fazil.com/tools.json",
             "tool_manifest_hash": "auto-generated",
             # ── FORGE 2: Surface Self-Consistency (2026-06-22) ─────────────
             # INVARIANT: H(sorted(canonical_tool_names)) must be identical

@@ -632,7 +632,7 @@ class GovernancePipeline:
                     result.violated_laws.append("F0")
                     result.next_safe_action = (
                         "Seal F0_ROOTKEY anchor: run arif_seal with "
-                        "f0_rootkey anchor payload, or set ARIF_ROOTKEY env var."
+                        "f0_rootkey anchor payload, or set ARIFOS_ROOTKEY env var."
                     )
                     result.total_latency_ms = (time.perf_counter() - t0) * 1000
                     self._publish_to_mesh(ctx, result)
