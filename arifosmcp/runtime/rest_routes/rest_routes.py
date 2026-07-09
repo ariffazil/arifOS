@@ -5358,6 +5358,19 @@ def register_rest_routes(
         base = _public_base_url(request)
         from starlette.responses import PlainTextResponse
 
+        # Prefer generated static SOT (tools + resources map) when present.
+        _static_llms = os.path.join(
+            os.path.dirname(__file__), "..", "..", "static", "llms.txt"
+        )
+        if os.path.isfile(_static_llms):
+            try:
+                with open(_static_llms, encoding="utf-8") as _sf:
+                    _body = _sf.read()
+                if "MCP Resources" in _body or "arifos://" in _body:
+                    return PlainTextResponse(_body)
+            except OSError:
+                pass
+
         # Discover live MCP tools via FastMCP _local_provider._components
         mcp_tool_names: list[str] = []
         fmcp = _FASTMCP_REF or mcp
