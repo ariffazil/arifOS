@@ -42,19 +42,19 @@ VALID_AUTH = frozenset(
 # Metabolic verbs by authority band (no arif_act — public surface uses arif_forge)
 AUTHORITY_VERBS: dict[str, list[str]] = {
     "OBSERVE_ONLY": [
+        "arif_init",
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_triage",
         "arif_compose",
         "arif_critique",
         "arif_memory",
     ],
     "LIMITED_MUTATE": [
+        "arif_init",
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_triage",
         "arif_compose",
         "arif_critique",
         "arif_memory",
@@ -62,10 +62,10 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_forge",
     ],
     "FULL": [
+        "arif_init",
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_triage",
         "arif_compose",
         "arif_critique",
         "arif_memory",
@@ -74,10 +74,10 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_seal",
     ],
     "SOVEREIGN": [
+        "arif_init",
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_triage",
         "arif_compose",
         "arif_critique",
         "arif_memory",

@@ -882,9 +882,28 @@ def arif_init(
     Binds actor identity, returns session_id + authority level + floor status.
     Includes: embodiment card, execution law, tool surface, risk leash.
 
-    Modes: ping | light | init | resume | validate | epoch_open | epoch_seal | cleanup
+    Modes: ping | light | init | resume | validate | preflight | triage | status |
+           epoch_open | epoch_seal | cleanup
     Session modes: ephemeral_eval | persistent_bound (AOB P0 — 2026-07-03)
+
+    Audit 2026-07-09: standalone arif_triage removed from public surface.
+    Session preflight lives here as mode=preflight|triage|status.
     """
+    # ── PREFLIGHT / TRIAGE (absorbed from standalone arif_triage) ──
+    if mode in ("preflight", "triage"):
+        from arifosmcp.tools.kernel_canonical import arif_triage as _session_preflight
+
+        logger.info(
+            "arif_init mode=%s → session preflight (standalone arif_triage deprecated)",
+            mode,
+        )
+        # Note: mode=status stays on existing arif_init status path below.
+        return _session_preflight(
+            mode=mode,  # preflight | triage
+            session_id=session_id,
+            actor_id=actor_id,
+            priority=intent,
+        )
 
     # ── PING MODE ──────────────────────────────────────────────
     # Pre-session, zero-authority capability probe. No actor_id required.

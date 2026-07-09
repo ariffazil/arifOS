@@ -788,34 +788,48 @@ try:
             )(_ghost_wrapped)
             logger.info(f"Deprecation alias registered: {_ghost_name} → {_canonical_target}")
 
-    # ── P3 FIX 2026-06-30: arif_triage + arif_compose — ChatGPT audit BANGANG ──
-    # Both kernel verbs live in kernel_canonical / CANONICAL_TOOL_HANDLERS.
-    # Descriptions MUST come from public_registry._TOOL_DESCRIPTIONS (single source).
-    if _EXPOSE_DEV_TOOLS:
-        try:
-            from arifosmcp.runtime.public_registry import _TOOL_DESCRIPTIONS as _KERNEL_DESCS
-            from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS as _KERNEL_ANN
-            from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
+    # ── arif_triage: DEPRECATED public name (2026-07-09 audit) ─────────────
+    # Canonical path: arif_init(mode=preflight|triage). Thin wrapper only —
+    # logs deprecation, never first-class CANONICAL surface.
+    try:
+        from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
 
-            _triage_handler = _wrap_handler(_arif_triage, "arif_triage")
-            _triage_ann = dict(_KERNEL_ANN.get("arif_triage") or {})
-            _triage_ann.setdefault("readOnlyHint", True)
-            _triage_ann.setdefault("destructiveHint", False)
-            mcp.tool(
-                name="arif_triage",
-                description=_KERNEL_DESCS.get(
-                    "arif_triage",
-                    "KERNEL 000 · Session preflight / immune status — not intent routing.",
-                ),
-                tags={"kernel", "triage", "session", "000"},
-                annotations=_triage_ann,
-            )(_triage_handler)
-            logger.info(
-                "arif_triage registered — kernel verb 000 preflight (desc from public_registry)."
+        def _triage_deprecated_wrapper(**kwargs):  # type: ignore[no-untyped-def]
+            logger.warning(
+                "DEPRECATED tool arif_triage called — use arif_init(mode='preflight'|'triage')"
             )
-        except Exception as _triage_err:
-            logger.warning("arif_triage registration failed (non-fatal): %s", _triage_err)
+            out = _arif_triage(**kwargs)
+            if isinstance(out, dict):
+                out.setdefault(
+                    "deprecated",
+                    {
+                        "tool": "arif_triage",
+                        "use": "arif_init",
+                        "mode": kwargs.get("mode") or "preflight",
+                        "note": "Standalone arif_triage removed from canonical surface 2026-07-09",
+                    },
+                )
+            return out
 
+        _triage_handler = _wrap_handler(_triage_deprecated_wrapper, "arif_triage")
+        mcp.tool(
+            name="arif_triage",
+            description=(
+                "DEPRECATED alias. Use arif_init(mode='preflight'|'triage'|'status') instead. "
+                "Thin wrapper retained for one release; will be removed."
+            ),
+            tags={"deprecated", "alias", "kernel"},
+            annotations={
+                "readOnlyHint": True,
+                "destructiveHint": False,
+            },
+        )(_triage_handler)
+        # Do NOT append to v2_tools_registered — not part of CANONICAL surface
+        logger.info("arif_triage registered as DEPRECATED alias → arif_init(mode=preflight|triage)")
+    except Exception as _triage_err:
+        logger.warning("arif_triage deprecation wrapper failed (non-fatal): %s", _triage_err)
+
+    if _EXPOSE_DEV_TOOLS:
         try:
             from arifosmcp.runtime.public_registry import _TOOL_DESCRIPTIONS as _KERNEL_DESCS
             from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS as _KERNEL_ANN

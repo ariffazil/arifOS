@@ -251,7 +251,7 @@ def make_persistent_envelope(
         verdict_code=VerdictReason.OK,
         action_class="OBSERVE",
         allowed_next_verbs=allowed_next
-        or ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_act", "arif_seal"],
+        or ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_forge", "arif_seal"],
         witness=WitnessBlock(),
         trace=TraceBlock(),
     )

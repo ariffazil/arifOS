@@ -385,7 +385,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
             "Before calling any other arif_* or organ tool",
         ],
         "do_not_use_when": [
-            "You already have a live verified session (use arif_triage instead)",
+            "You already have a live verified session (use arif_init mode=preflight)",
             "Pure unauthenticated health check (use arif_ping)",
         ],
         "authority_level": "advisory_only",
@@ -396,7 +396,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "evidence_required": False,
         "agency_level": "L0_OBSERVE",
         "decision_thresholds": DECISION_THRESHOLDS,
-        "next_safe_action_default": "Call arif_observe or arif_triage with the new session_id",
+        "next_safe_action_default": "Call arif_observe or arif_init(mode='preflight') with the new session_id",
         "restraint_level": "STRICT",
         "verdict_loop_required": True,
         "restraint_enforced": True,
@@ -421,7 +421,23 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "evidence_required": True,
         "agency_level": "L0_OBSERVE",
         "decision_thresholds": DECISION_THRESHOLDS,
-        "next_safe_action_default": "Feed observations into arif_think or arif_fetch for more targeted evidence",
+        "next_safe_action_default": "Feed observations into arif_think (use arif_observe mode=fetch for targeted URLs)",
+    },
+    # Internal implementation name for arif_think — never undeclared orphan
+    "arif_mind_reason": {
+        "purpose": "Internal implementation of arif_think (333_MIND). Prefer public name arif_think.",
+        "use_when": ["Internal kernel dispatch only"],
+        "do_not_use_when": ["Public agent tools/list — call arif_think"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "synthesis",
+        "evidence_required": True,
+        "agency_level": "L1_ANALYZE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "next_safe_action_default": "Use arif_think as the public verb",
+        "canonical_public_name": "arif_think",
     },
     "arif_fetch": {
         "purpose": "Targeted, citable evidence retrieval from a specific URL or focused query. Produces sourced facts suitable for downstream inference and judgment.",
@@ -734,33 +750,50 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
 def get_full_affordance(tool_name: str) -> dict[str, Any]:
     """Return the complete cognitive + power affordance contract for an agent.
 
-    Merges:
-    - TOOL_PURPOSE_CONTRACTS (why + when + limits + thresholds)
-    - TOOL_AFFORDANCE_CONTRACTS (power surface, mutation, blast)
-    - TOOL_DISCOVERY (use_when examples, aliases, keywords)
-    - AGENCY_LEVELS (L0-L5 metacognitive classification)
+    Call ON DEMAND via resource arifos://tools/affordance — not every hop.
+    Audit 2026-07-09: decision_thresholds / agency referenced once, not pasted
+    as full DECISION_THRESHOLDS blob on every response.
 
-    Agents SHOULD call this (or the MCP resource equivalent) before invoking
-    any tool whose name is not already familiar.
+    Internal name arif_mind_reason resolves to arif_think (no orphan purpose).
     """
     from arifosmcp.resources.tool_discovery_resource import TOOL_DISCOVERY
 
-    lookup = tool_name
-    # legacy alias handling already in _get_affordance_contract
-    purpose = TOOL_PURPOSE_CONTRACTS.get(lookup) or TOOL_PURPOSE_CONTRACTS.get("_default", {})
+    # Orphan kill: never leave arif_mind_reason as undeclared purpose
+    _ALIAS_TO_CANON = {
+        "arif_mind_reason": "arif_think",
+        "arif_act": "arif_forge",
+        "arif_fetch": "arif_observe",
+        "arif_search": "arif_observe",
+        "arif_explore": "arif_observe",
+        "arif_triage": "arif_init",
+        "arif_delegate": "arif_route",
+    }
+    lookup = _ALIAS_TO_CANON.get(tool_name, tool_name)
+    purpose = dict(
+        TOOL_PURPOSE_CONTRACTS.get(lookup)
+        or TOOL_PURPOSE_CONTRACTS.get(tool_name)
+        or TOOL_PURPOSE_CONTRACTS.get("_default", {})
+    )
+    # Reference shared thresholds — do not embed full DECISION_THRESHOLDS dict
+    if "decision_thresholds" in purpose:
+        purpose["decision_thresholds"] = "arifos://schema/decision_thresholds"
     power = _get_affordance_contract(lookup)
-    discover = TOOL_DISCOVERY.get(lookup, {})
+    discover = TOOL_DISCOVERY.get(lookup, {}) or TOOL_DISCOVERY.get(tool_name, {})
 
     agency_key = purpose.get("agency_level", "L0_OBSERVE")
     agency = AGENCY_LEVELS.get(agency_key, AGENCY_LEVELS["L0_OBSERVE"])
 
     full = {
         "tool_name": lookup,
+        "resolved_from": tool_name if tool_name != lookup else None,
         **purpose,
         **{k: v for k, v in power.items() if k not in purpose},
         "agency": agency,
+        "agency_ref": f"arifos://schema/agency/{agency_key}",
+        "decision_thresholds_ref": "arifos://schema/decision_thresholds",
         "use_when_discovery": discover.get("use_when"),
-        "aliases": discover.get("aliases", []),
+        # No live aliases on wire — discovery lists historical names only
+        "deprecated_aliases": list(discover.get("aliases") or []),
         "keywords": discover.get("keywords", []),
         "examples": discover.get("examples", []),
         "category": discover.get("category"),
@@ -3627,11 +3660,10 @@ def _enforce_nine_signal(
             "status_scope": "transport" if status == "OK" else "capability",
             "nine_signal": nine,
             "reasons": reasons,
-            # C4-2 fix 2026-06-21: surface tool affordance contract at top
-            # level. Per ChatGPT review Action 3. Agents can now choose safer
-            # paths without guessing — the power surface is exposed.
-            "affordance_contract": _get_affordance_contract(tool_name),
-            "full_affordance": get_full_affordance(tool_name),
+            # Audit 2026-07-09: stop pasting full schema (decision_thresholds /
+            # agency / full_affordance) on every hop — one referenced contract.
+            "affordance_ref": f"arifos://tools/affordance/{tool_name}",
+            "affordance_contract": _get_affordance_contract(tool_name),  # slim power surface only
             "stage_progression": _compute_stage_progression(tool_name, verdict),
             # /000 principal-agent separation: surface delegation chain in
             # every MCP response envelope (not buried in result).
