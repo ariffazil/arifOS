@@ -1150,6 +1150,96 @@ def _bridge_wealth(
         if isinstance(out, dict) and _envelope:
             out.setdefault("_envelope", _envelope)
 
+        # ── F2: epistemic pass-through integrity (2026-07-09) ──────────────
+        # Bridge must not return "successful" payloads that lost honesty tags.
+        # Extract text-wrapped MCP content if needed.
+        def _extract_wealth_payload(obj: Any) -> dict[str, Any] | None:
+            if not isinstance(obj, dict):
+                return None
+            if obj.get("epistemic_tag") or obj.get("claim_state"):
+                return obj
+            # MCP content shape
+            content = obj.get("content")
+            if isinstance(content, list) and content:
+                text = content[0].get("text") if isinstance(content[0], dict) else None
+                if text:
+                    try:
+                        import json as _json
+
+                        parsed = _json.loads(text)
+                        if isinstance(parsed, dict):
+                            return parsed
+                    except Exception:
+                        return None
+            inner = obj.get("result")
+            if isinstance(inner, dict):
+                return _extract_wealth_payload(inner)
+            return None
+
+        wealth_payload = _extract_wealth_payload(out) if isinstance(out, dict) else None
+        if wealth_payload is not None:
+            # Stamp caller chain-of-custody (never invent caller=Arif)
+            if actor_id:
+                wealth_payload.setdefault("caller_actor_id", actor_id)
+            if session_id:
+                wealth_payload.setdefault("caller_session_id", session_id)
+            wealth_payload.setdefault(
+                "human_final_authority_meaning",
+                "F13_SOVEREIGN_VETO_ROLE_NOT_CALLER",
+            )
+            # HOLD if organ honesty tags stripped (true hollow handoff)
+            if not wealth_payload.get("epistemic_tag"):
+                return _hold(
+                    "arif_bridge",
+                    "Epistemic strip detected: WEALTH payload missing epistemic_tag (F2)",
+                    ["F2_TRUTH"],
+                    session_id=session_id,
+                )
+            # Hard-stop: DRAFT / incomplete witness cannot be treated as SEAL-ready
+            # Still pass payload for advisory (tunnel), but force ceiling + flags.
+            _w = wealth_payload.get("witness") if isinstance(wealth_payload.get("witness"), dict) else {}
+            _incomplete = _w.get("is_complete") is False or (
+                isinstance(_w.get("missing"), list) and len(_w.get("missing") or []) > 0
+            )
+            _draft = str(wealth_payload.get("claim_state") or "").upper() in (
+                "DRAFT",
+                "SPECULATIVE",
+                "ASSUMED",
+            )
+            if _incomplete or _draft:
+                wealth_payload["governance_ceiling"] = "ADVISORY_ONLY"
+                wealth_payload["execution_authorized"] = False
+                wealth_payload["bridge_policy"] = "tunnel_passthrough_honest_tags"
+                wealth_payload["kernel_note"] = (
+                    "Witness incomplete and/or claim_state DRAFT — "
+                    "kernel may OBSERVE/ADVISE only; EXECUTIVE/SEAL requires HOLD"
+                )
+                # Surface as soft HOLD on executive paths only (already gated);
+                # do not null the solver result (truth over sanitization).
+            # Re-embed stamped payload if MCP text wrapper
+            if isinstance(out, dict) and out.get("content"):
+                try:
+                    import json as _json
+
+                    out = dict(out)
+                    out["content"] = [
+                        {
+                            "type": "text",
+                            "text": _json.dumps(wealth_payload, default=str),
+                        }
+                    ]
+                    out["_epistemic_passthrough"] = True
+                    out["_caller_stamped"] = True
+                except Exception:
+                    pass
+            elif isinstance(out, dict):
+                out = {**out, **{k: wealth_payload[k] for k in (
+                    "caller_actor_id",
+                    "caller_session_id",
+                    "human_final_authority_meaning",
+                    "epistemic_tag",
+                ) if k in wealth_payload}}
+
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
         _source_epi = read_epistemic(out) if isinstance(out, dict) else None
         if _source_epi:
@@ -1180,7 +1270,11 @@ def _bridge_wealth(
                 "violations": validated["violations"],
                 "_epistemic_checked": True,
                 "_envelope_echoed": bool(_envelope),
+                "actor_id": actor_id,
+                "session_id": session_id,
             },
+            meta={"actor_id": actor_id},
+            session_id=session_id,
         )
     except Exception as e:
         return _hold("arif_bridge", f"WEALTH bridge failed: {e}")

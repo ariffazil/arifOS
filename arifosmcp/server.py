@@ -1282,14 +1282,41 @@ try:
             if _REMOTE_TOOLS_HTTP:
                 lp = mcp.providers[0]
 
+                from arifosmcp.runtime.remote_proxy_auth import (
+                    deny_payload,
+                    inject_session_params,
+                    require_remote_proxy_session,
+                )
+
                 def _make_proxy(organ: str, tool_name: str):
                     async def proxy(**kwargs: object) -> ToolResult:
+                        # Path-B gate: valid session_id before organ forward
+                        gate = require_remote_proxy_session(
+                            tool_name=tool_name,
+                            organ=organ,
+                            arguments=dict(kwargs),  # type: ignore[arg-type]
+                        )
+                        if not gate["ok"]:
+                            hold = deny_payload(
+                                gate, organ=organ, tool_name=tool_name
+                            )
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=json.dumps(hold, default=str),
+                                    )
+                                ],
+                                structured_content=hold,
+                            )
+
+                        forward = gate["forward_args"]
                         if organ == "WEALTH":
-                            raw = await call_wealth_tool(tool_name, kwargs)
+                            raw = await call_wealth_tool(tool_name, forward)
                         elif organ == "WELL":
-                            raw = await call_well_tool(tool_name, kwargs)
+                            raw = await call_well_tool(tool_name, forward)
                         elif organ == "GEOX":
-                            raw = await call_geox_tool(tool_name, kwargs)
+                            raw = await call_geox_tool(tool_name, forward)
                         else:
                             raise RuntimeError(f"Unknown organ: {organ}")
 
@@ -1334,10 +1361,16 @@ try:
                 for name, info in _REMOTE_TOOLS_HTTP.items():
                     schema = info["schema"]
                     proxy_fn = _make_proxy(info["organ"], name)
+                    params = inject_session_params(
+                        schema.get("inputSchema", {"type": "object"})
+                    )
                     ft = FunctionTool(
                         name=name,
-                        description=schema.get("description", ""),
-                        parameters=schema.get("inputSchema", {"type": "object"}),
+                        description=(
+                            (schema.get("description") or "")
+                            + " [Path B organ proxy — session_id required]"
+                        ).strip(),
+                        parameters=params,
                         fn=proxy_fn,
                     )
                     lp.add_tool(ft)  # pyright: ignore[reportAttributeAccessIssue]
