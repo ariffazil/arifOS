@@ -870,23 +870,25 @@ def arif_bridge_connect(
     Returns:
         Kernel-wrapped organ output with envelope.
     """
+    actor_id, session_id = _bind_identity(actor_id, session_id)
     floor_check = check_laws("arif_bridge", {"organ": organ, "tool": tool_name}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _hold("arif_bridge", floor_check["reason"], floor_check["violated_laws"])
-
-    # IDENTITY PROPAGATION (FORGE 2026-07-08): Inject _envelope into arguments
-    # so identity crosses organ boundaries. Previously identity was lost here —
-    # the bridge functions echo it back, but it was never populated.
-    _args = dict(arguments or {})
-    if session_id or actor_id:
-        _args.setdefault(
-            "_envelope",
-            {
-                "session_id": session_id,
-                "actor_id": actor_id,
-                "source_organ": "arifOS",
-            },
+        return _hold(
+            "arif_bridge",
+            floor_check["reason"],
+            floor_check["violated_laws"],
+            session_id=session_id,
         )
+
+    # IDENTITY PROPAGATION: always inject _envelope; merge, never drop identity.
+    _args = dict(arguments or {})
+    _env = {
+        "session_id": session_id,
+        "actor_id": actor_id,
+        "source_organ": "arifOS",
+    }
+    prev = _args.get("_envelope") if isinstance(_args.get("_envelope"), dict) else {}
+    _args["_envelope"] = {**prev, **{k: v for k, v in _env.items() if v is not None}}
 
     organ_lower = organ.lower()
     if organ_lower == "geox":
@@ -895,7 +897,7 @@ def arif_bridge_connect(
         return _bridge_wealth(tool_name, _args, session_id, actor_id)
     if organ_lower == "well":
         return _bridge_well(tool_name, _args, session_id, actor_id)
-    return _hold("arif_bridge", f"Unknown organ: {organ}")
+    return _hold("arif_bridge", f"Unknown organ: {organ}", session_id=session_id)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

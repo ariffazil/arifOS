@@ -2718,16 +2718,24 @@ def _runtime_claim_boundary(card: dict[str, Any] | Any, key: str) -> str | None:
 
 
 def _actor_for_response(session_id: str | None = None, candidate: str | None = None) -> str:
-    """Return the validated actor_id for response consistency."""
-    if candidate and candidate != "anonymous" and candidate != "null":
-        return candidate
+    """Return the validated actor_id for response consistency.
+
+    openclaw-anon / unknown are NOT trusted candidates — they are relay
+    placeholders from wrap_legacy_call when identity was dropped. Prefer
+    session-bound actor over those placeholders (identity-propagation fix 2026-07-09).
+    """
+    _RELAY_PLACEHOLDERS = frozenset(
+        {"anonymous", "openclaw-anon", "unknown", "null", "", "None"}
+    )
+    if candidate and str(candidate) not in _RELAY_PLACEHOLDERS:
+        return str(candidate)
     ctx = _RESPONSE_CONTEXT.get() or {}
     if not session_id:
         session_id = ctx.get("session_id")
     ctx_actor = ctx.get("actor_id")
-    if ctx_actor and ctx_actor != "anonymous":
+    if ctx_actor and str(ctx_actor) not in _RELAY_PLACEHOLDERS:
         return str(ctx_actor)
-    if session_id:
+    if session_id and session_id not in _RELAY_PLACEHOLDERS:
         try:
             sess = _SESSIONS.get(session_id)
             if sess:
