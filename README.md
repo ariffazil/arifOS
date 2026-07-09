@@ -120,36 +120,38 @@ python -m pytest tests/ -q --tb=short
 
 ---
 
-## 3. The 12 Canonical Public Tools
+## 3. The 11 Canonical Public Tools (Spine P0 — 2026-07-09)
 
-Default `tools/list` is frozen to the **12-verb public facade** (`arifosmcp/PUBLIC_SURFACE_CANON.md`, F13 ratified 2026-07-08). Diagnostic and legacy aliases still exist internally and may surface via governed channels, but they are not on the default public MCP wire surface. **arif_seal remains on the 12-tool public canonical surface** (PUBLIC_SURFACE_CANON.md tool #10). Future target: VAULT999 auto-seal after `arif_judge` returns `SEAL_CANDIDATE`, removing `arif_seal` from the public wire. A2B and all downstream consumers should continue using `arif_seal` until further notice.
+Default `tools/list` is the **11-verb public facade** (`arifosmcp/PUBLIC_SURFACE_CANON.md`).
+Session standing rides signed **`sct_v1`** tokens (store = optional cache). Birth apex is **UNMEASURED**.
 
 | # | Tool | Stage | What It Does |
 |---|------|-------|---------------|
-| 1 | `arif_init` | 000 | Start constitutional session. Always first. |
-| 2 | `arif_canary` | 000c | Transport diagnostic — 6 modes: ping, schema_echo, version_echo, transport_echo, initialize_probe, conformance_report. |
-| 3 | `arif_triage` | 000t | Status + preflight for live sessions. Tell me the next safe action. |
-| 4 | `arif_observe` | 111 | Broad sensing — web search, URL ingest, system vitals. |
-| 5 | `arif_fetch` | 111f | Targeted URL/source fetch with provenance. |
-| 6 | `arif_think` | 333 | Reason, plan, critique, metabolize — multi-step cognition. |
-| 7 | `arif_critique` | 666 | Maruah / risk check before irreversible or dignity-affecting actions. |
-| 8 | `arif_route` | 444 | Route intent to the correct federation organ. |
-| 9 | `arif_bridge_connect` | 555b | Low-level direct organ call (bypasses triage — caller specifies organ + tool). |
-| 10 | `arif_judge` | 888 | Constitutional verdict — `SEAL_CANDIDATE` / `HOLD` / `SABAR` / `VOID`. The kernel judges; it does not seal. |
-| 11 | `arif_forge` | 900 | Guarded execution, only after a `SEAL_CANDIDATE` from `arif_judge`. (`arif_act` retained as internal alias.) |
-| 12 | `arif_compose` | 444r | Governed final reply. Call LAST after reasoning + judgment are complete. |
+| 1 | `arif_init` | 000 | Start session + mint `session_token`. Modes: `init`, `light`, **`preflight`**, **`triage`**, `canary`. Always first. |
+| 2 | `arif_observe` | 111 | Reality sensing — search, fetch, vitals, compass. (`arif_fetch` = mode, not public verb.) |
+| 3 | `arif_think` | 333 | Reason, plan, reflect. (`arif_mind_reason` = internal only.) |
+| 4 | `arif_route` | 444 | Route intent to federation organ. Modes: `route`, `bridge`. |
+| 5 | `arif_bridge_connect` | 444b | Direct organ call (HIGH). Prefer `arif_route` by default. |
+| 6 | `arif_critique` | 555 | Maruah / risk before irreversible action. |
+| 7 | `arif_memory` | 555m | Constitutional memory governor. |
+| 8 | `arif_judge` | 666 | Verdict — SEAL / HOLD / SABAR / VOID. Kernel judges; does not seal. |
+| 9 | `arif_forge` | 777 | Guarded execution after SEAL. (`arif_act` internal-only — never in `allowed_next_verbs`.) |
+| 10 | `arif_compose` | 888 | Final human reply. Call LAST. |
+| 11 | `arif_seal` | 999 | VAULT999 immutable ledger. Prefer `verify`/`dry_run` until SOVEREIGN. |
 
 ```
-000 ── 000c ── 000t ──→ 111 / 111f ──→ 333 ──→ 444 ── 555b ──→ 666 ──→ 888 ──→ 900 ──→ 444r
-init  canary  triage    observe fetch  think    route   bridge  critique  judge   forge   compose
+000 → 111 → 333 → 444 → 555 → 555m → 666 → 777 → 888 → 999
+init  observe think route critique memory judge forge compose seal
 ```
+
+**Demoted / not public:** `arif_triage` → `arif_init(mode=preflight|triage)`; `arif_fetch` → `arif_observe(mode=fetch)`; `arif_act` → `arif_forge`.
 
 **Iron rules:**
-- No action skips 888. No organ self-authorizes.
-- After 888 → `arif_forge`; after 888 + reply → `arif_compose`.
-- `arif_seal` is internal alias only — public sealing route = `arif_judge → SEAL_CANDIDATE → VAULT999`.
+- No action skips judge. No organ self-authorizes.
+- Pass `session_token` every hop — do not re-interrogate store-only `session_id`.
+- After SEAL → `arif_forge`; reply last → `arif_compose`.
 
-**Source of truth:** `arifosmcp/PUBLIC_SURFACE_CANON.md` → `arifosmcp/runtime/public_surface.py` (`CANONICAL_12`) → `arifosmcp/constitutional_map.py` (`_PUBLIC_12`) → `arifosmcp/tool_registry.json` (`canonical_order`) → `static/.well-known/mcp/server.json`. All SDK aliases (`arif_session_init`, `arif_gateway_connect`, `arif_forge_execute`, `arif_heart_critique`, `arif_mind_reason`, `arif_reply_compose`, `arif_evidence_fetch`, `arif_sense_observe`, `arif_judge_deliberate`) resolve to one of the 12.
+**Source of truth:** `PUBLIC_SURFACE_CANON.md` → `runtime/public_surface.py` → `tool_registry.json` (`canonical_order`) → live `/health`.
 
 ---
 

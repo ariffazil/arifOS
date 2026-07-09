@@ -11,7 +11,7 @@
 - [INVARIANTS.md](file:///root/AAA/docs/INVARIANTS.md): 11 Physics + 7 Zen principles
 
 ## MCP Tools — Complete Surface
-arifOS exposes 58 MCP tools: 17 canonical constitutional tools
+arifOS exposes 58 MCP tools: 11 public + 6 internal canonical tools
 and 41 operational support tools.
 
 ### Operational Categories
@@ -32,11 +32,11 @@ and 41 operational support tools.
 | `arif_kernel_intercept` | 666 | internal_only | ✓ | intercept |
 | `arif_init` | 000 | public | ✓ | init, light, resume, validate, canary, preflight +5 more |
 | `arif_observe` | 111 | public | ✓ | search, fetch, hybrid_discovery, ingest, compass, atlas +2 more |
-| `arif_fetch` | 111 | internal_only | ✓ | fetch, search, eureka |
+| `arif_fetch` | 111 | internal_only (mode of observe) | ✓ | use arif_observe mode=fetch |
 | `arif_think` | 333 | public | ✓ | reason, reflect, verify, axioms, plan, plan_review +4 more |
 | `arif_critique` | 555 | public | ✓ | critique, redteam, maruah, shadow, deescalate, empathy |
 | `arif_route` | 444 | public | ✓ | route, bridge |
-| `arif_triage` | 000 | **DEPRECATED** | ✓ | use arif_init mode=preflight|triage |
+| ~~`arif_triage`~~ | 000 | internal/deprecated | ✓ | **use `arif_init(mode=preflight\|triage)`** |
 | `arif_bridge_connect` | 444 | public | ✓ | connect |
 | `arif_compose` | 888 | public | ✓ | compose, summarize, cite, tone_shift |
 | `arif_memory` | 000 | authenticated | ✗ HOLD | recall, inspect, attest, remember, promote, revise +2 more |
