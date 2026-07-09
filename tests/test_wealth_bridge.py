@@ -39,6 +39,12 @@ async def aiter_lines(lines: list[str]) -> Any:
 class TestWealthHealthCheck:
     @pytest.mark.asyncio
     async def test_healthy(self) -> None:
+        health_resp = MagicMock()
+        health_resp.status_code = 200
+        health_resp.json = MagicMock(
+            return_value={"status": "healthy", "version": "test", "identity": True}
+        )
+
         init_resp = MagicMock()
         init_resp.status_code = 200
         init_resp.headers = {"mcp-session-id": "sess-abc"}
@@ -58,6 +64,7 @@ class TestWealthHealthCheck:
 
         with patch("httpx.AsyncClient") as mock_cls:
             inst = MagicMock()
+            inst.get = AsyncMock(return_value=health_resp)
             inst.post = AsyncMock(side_effect=mock_post)
             inst.__aenter__ = AsyncMock(return_value=inst)
             inst.__aexit__ = AsyncMock(return_value=False)
@@ -69,6 +76,10 @@ class TestWealthHealthCheck:
 
     @pytest.mark.asyncio
     async def test_unhealthy(self) -> None:
+        health_resp = MagicMock()
+        health_resp.status_code = 500
+        health_resp.json = MagicMock(return_value={"status": "unhealthy"})
+
         init_resp = MagicMock()
         init_resp.status_code = 200
         init_resp.headers = {"mcp-session-id": "sess-abc"}
@@ -85,6 +96,7 @@ class TestWealthHealthCheck:
 
         with patch("httpx.AsyncClient") as mock_cls:
             inst = MagicMock()
+            inst.get = AsyncMock(return_value=health_resp)
             inst.post = AsyncMock(side_effect=mock_post)
             inst.__aenter__ = AsyncMock(return_value=inst)
             inst.__aexit__ = AsyncMock(return_value=False)
@@ -92,7 +104,7 @@ class TestWealthHealthCheck:
 
             result = await wealth_health_check()
             assert result["status"] == "unhealthy"
-            assert "error" in result
+            assert "tool_surface_error" in result
 
 
 class TestResetSession:

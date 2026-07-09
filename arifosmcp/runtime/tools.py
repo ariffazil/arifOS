@@ -3603,7 +3603,7 @@ def _enforce_nine_signal(
             # defaulted to True when the key was missing, creating a contradiction
             # where envelope said False but wrapper said True.
             # Single source of truth: set once at 000_init, read-only downstream.
-            "actor_verified": bool(meta_payload.get("actor_verified", False)),
+            "actor_verified": actor_verified_flag or bool(meta_payload.get("actor_verified", False)),
             # P0-3 fix (2026-07-08): Structured authority block.
             # Replaces ambiguous flat fields (authority: FULL + authority_mode: OBSERVE_ONLY)
             # with explicit separation: whose authority, over what, at which level.
@@ -4887,9 +4887,26 @@ class _FileSessionStore:
     def __init__(self, path: str | None = None) -> None:
         self._using_explicit_path = bool(path or os.getenv("ARIFOS_SESSION_STORE_PATH"))
         self._path = path or os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
+        
+        # Prevent split-brain: verify writability on init
+        is_writable = False
         try:
-            os.makedirs(os.path.dirname(self._path), exist_ok=True)
+            dir_path = os.path.dirname(self._path)
+            os.makedirs(dir_path, exist_ok=True)
+            if os.path.exists(self._path):
+                with open(self._path, "a"):
+                    pass
+                is_writable = True
+            else:
+                temp_file = os.path.join(dir_path, f".tmp_write_test_{os.getpid()}")
+                with open(temp_file, "w"):
+                    pass
+                os.remove(temp_file)
+                is_writable = True
         except OSError:
+            pass
+
+        if not is_writable and not self._using_explicit_path:
             self._fallback_to_tmp()
 
     def _fallback_to_tmp(self) -> None:

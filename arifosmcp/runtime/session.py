@@ -289,7 +289,7 @@ def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
                     "authority_level": "operator"
                     if sess.get("actor_id") == "arif"
                     else "anonymous",
-                    "verified": False,
+                    "verified": bool(sess.get("actor_verified", False)),
                     "recovered_from_file_store": True,
                     "expires_at": datetime.fromtimestamp(
                         sess.get("expires_at_unix", 0.0),

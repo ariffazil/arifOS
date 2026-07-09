@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-07-09T01:41:49Z",
+  "generated": "2026-07-09T10:14:56Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.04-MARHIN (7951e56). 213 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-07-09T01:41:49Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=12, total_declared=58.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.04-MARHIN (29e18b8). 199 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-07-09T10:14:56Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=12, total_declared=58.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -62,8 +62,8 @@
         "status": "healthy",
         "tools": 58,
         "release": "v2026.07.04-MARHIN",
-        "version": "kanon-7951e56",
-        "commit": "7951e56",
+        "version": "kanon-29e18b8",
+        "commit": "29e18b8",
         "canonical_tools": 17,
         "diagnostic_tools": 41,
         "tools_exposed_mcp": 12,
@@ -80,9 +80,9 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 87,
+        "tools": 73,
         "version": "v2026.07.06-phase3.1-rsi-pipeline",
-        "git_version": "geox-c50fcd8a"
+        "git_version": "geox-32024e42"
       },
       "wealth": {
         "name": "WEALTH",
