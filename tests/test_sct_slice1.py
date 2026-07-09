@@ -174,7 +174,8 @@ def test_init_triage_observe_with_token_after_store_delete():
     tr2 = t2.get("result") or {}
     assert tr2.get("session_found") is True
     assert tr2.get("standing_source") == "sct"
-    assert t2.get("session_token") or tr2.get("session_token")
+    assert t2.get("session_token") == token
+    assert (t2.get("apex_scalars") or tr2.get("apex_scalars") or {}).get("G") == UNMEASURED
 
     # observe: search may hit network; L11 must not HOLD for missing store
     o = arif_observe(
