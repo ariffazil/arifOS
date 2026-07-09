@@ -1063,6 +1063,7 @@ def _bridge_geox(
     if hold:
         return hold
     _envelope = arguments.get("_envelope")
+    call_args = {k: v for k, v in (arguments or {}).items() if k != "_envelope"}
     try:
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
         from arifosmcp.runtime.epistemic_injector import (
@@ -1071,7 +1072,7 @@ def _bridge_geox(
         )
         from arifosmcp.runtime.geox_bridge import call_geox_tool
 
-        result = _run_async(call_geox_tool(tool_name, arguments))
+        result = _run_async(call_geox_tool(tool_name, call_args))
         validated = validate_organ_output("geox", result)
         wrapped = wrap_geox_output(
             validated["output"],
@@ -1132,6 +1133,8 @@ def _bridge_wealth(
     if hold:
         return hold
     _envelope = arguments.get("_envelope")
+    # Organ MCP schemas reject unknown kwargs — strip kernel envelope before call
+    call_args = {k: v for k, v in (arguments or {}).items() if k != "_envelope"}
     try:
         from arifosmcp.runtime.epistemic_injector import (
             read_epistemic,
@@ -1139,7 +1142,7 @@ def _bridge_wealth(
         )
         from arifosmcp.runtime.wealth_bridge import call_wealth_tool
 
-        result = _run_async(call_wealth_tool(tool_name, arguments))
+        result = _run_async(call_wealth_tool(tool_name, call_args))
         validated = validate_organ_output("wealth", result)
 
         # Echo unchanged
@@ -1191,6 +1194,7 @@ def _bridge_well(
     if hold:
         return hold
     _envelope = arguments.get("_envelope")
+    call_args = {k: v for k, v in (arguments or {}).items() if k != "_envelope"}
     try:
         from arifosmcp.runtime.epistemic_injector import (
             read_epistemic,
@@ -1198,7 +1202,7 @@ def _bridge_well(
         )
         from arifosmcp.runtime.well_bridge import call_well_tool
 
-        result = _run_async(call_well_tool(tool_name, arguments))
+        result = _run_async(call_well_tool(tool_name, call_args))
 
         # Echo _envelope
         if isinstance(result, dict) and _envelope:
