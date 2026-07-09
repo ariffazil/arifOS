@@ -171,6 +171,9 @@ lanes:
     geox_claim_challenge: judgment
     geox_claim_seal: judgment
     geox_benchmark_001: reasoning
+    geox_well_time_depth_calibrate: evidence
+    geox_well_seismic_mistie_rms: evidence
+    geox_wavelet_extract_least_squares: evidence
     geox_3d_model_build: reasoning
     geox_map_layers_list: discovery
     geox_map_scene_plan: reasoning
