@@ -119,7 +119,7 @@ python -m pytest tests/ -q --tb=short
 
 ## 3. The 12 Canonical Public Tools
 
-Default `tools/list` is frozen to the **12-verb public facade** (`arifosmcp/PUBLIC_SURFACE_CANON.md`, F13 ratified 2026-07-04). Diagnostic and legacy aliases still exist internally and may surface via governed channels, but they are not on the default public MCP wire surface. **arif_seal is no longer public** — VAULT999 owns the receipt seal; `arif_judge` returns `SEAL_CANDIDATE`.
+Default `tools/list` is frozen to the **12-verb public facade** (`arifosmcp/PUBLIC_SURFACE_CANON.md`, F13 ratified 2026-07-08). Diagnostic and legacy aliases still exist internally and may surface via governed channels, but they are not on the default public MCP wire surface. **arif_seal remains on the 12-tool public canonical surface** (PUBLIC_SURFACE_CANON.md tool #10). Future target: VAULT999 auto-seal after `arif_judge` returns `SEAL_CANDIDATE`, removing `arif_seal` from the public wire. A2B and all downstream consumers should continue using `arif_seal` until further notice.
 
 | # | Tool | Stage | What It Does |
 |---|------|-------|---------------|

@@ -491,8 +491,12 @@ async def _wrap_call(
             if ident.get("verified_actor_id"):
                 payload["verified_actor_id"] = ident.get("verified_actor_id")
 
+    # MCP logging: lifecycle at info (filtered by default client min=warning)
     if ctx and hasattr(ctx, "info"):
-        await ctx.info(f"Calling metabolic stage {stage.value} for {tool_name}")
+        try:
+            await ctx.info(f"Calling metabolic stage {stage.value} for {tool_name}")
+        except Exception:
+            pass
 
     # PHASE 0 FIX: Sanitize payload before sending to kernel
     try:
@@ -623,8 +627,37 @@ async def _wrap_call(
                     envelope.payload["human_approval_persisted"]
                 )
 
-        if ctx and hasattr(ctx, "info"):
-            await ctx.info(f"Metabolic transition complete: {envelope.verdict}")
+        # MCP logging — verdict-aware (HOLD/VOID/error path; SEAL stays quiet at default min)
+        try:
+            from arifosmcp.runtime.mcp_logging import emit_mcp_log, floor_event_to_level
+
+            _v = str(getattr(envelope, "verdict", "") or "")
+            _v_up = _v.upper()
+            if _v_up in ("HOLD", "SABAR", "VOID", "PARTIAL", "888_HOLD"):
+                _lvl = floor_event_to_level(
+                    "HOLD" if _v_up in ("HOLD", "SABAR", "PARTIAL") else "VOID",
+                    failed_floors=["F13"] if "888" in _v_up or "F13" in _v_up else [],
+                )
+                if _v_up == "VOID":
+                    _lvl = "error"
+                await emit_mcp_log(
+                    _lvl,
+                    f"Metabolic verdict {_v} on {tool_name}",
+                    tool=tool_name,
+                    floor="KERNEL",
+                    verdict=_v_up,
+                    logger_name="arifos.judge",
+                    rate_key=f"arifos:{tool_name}:{_v_up}",
+                    extra={"stage": getattr(stage, "value", str(stage)), "session_id": session_id},
+                )
+            elif ctx and hasattr(ctx, "info"):
+                await ctx.info(f"Metabolic transition complete: {envelope.verdict}")
+        except Exception:
+            if ctx and hasattr(ctx, "info"):
+                try:
+                    await ctx.info(f"Metabolic transition complete: {envelope.verdict}")
+                except Exception:
+                    pass
 
         return envelope
 
@@ -640,8 +673,25 @@ async def _wrap_call(
         verdict = Verdict.VOID if "AUTH_FAILURE" in error_msg else Verdict.HOLD
         error_code = "AUTH_FAILURE" if "AUTH_FAILURE" in error_msg else "KERNEL_ERROR"
 
-        if ctx and hasattr(ctx, "error"):
-            await ctx.error(f"Metabolic failure in {tool_name}: {error_msg}")
+        try:
+            from arifosmcp.runtime.mcp_logging import emit_mcp_log
+
+            await emit_mcp_log(
+                "critical" if "AUTH_FAILURE" in error_msg else "error",
+                f"Metabolic failure in {tool_name}: {error_msg[:200]}",
+                tool=tool_name,
+                floor="KERNEL",
+                verdict="VOID" if "AUTH_FAILURE" in error_msg else "HOLD",
+                logger_name="arifos.judge",
+                rate_key=f"arifos:{tool_name}:FAIL",
+                extra={"error_code": error_code, "session_id": session_id},
+            )
+        except Exception:
+            if ctx and hasattr(ctx, "error"):
+                try:
+                    await ctx.error(f"Metabolic failure in {tool_name}: {error_msg}")
+                except Exception:
+                    pass
 
         envelope = _create_error_envelope(
             tool_name=tool_name,

@@ -8,8 +8,7 @@
   "version": "2026.07.03-public7",
   "constitutional_floors": 13,
   "capabilities": {
-    "tools": true,
-    "tools_count": 7,
+    "tools": "discoverable via tools/list",
     "resources": true,
     "prompts": true,
     "vault": true,
