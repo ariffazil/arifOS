@@ -9,18 +9,38 @@
 
 ## 1. Definition
 
-**AKAL** (Arabic/Malay: عقل — intellect, reason) is the constitutional
-guarantee that every state transition is chosen through lawful reasoning,
-not opaque model output. AKAL is the **reasoning kernel** — the engine
-that generates, evaluates, and selects transition candidates under
-constitutional constraints.
+**AKAL** (Arabic/Malay: عقل — intellect, reason) is **consequence-aware
+agency that can only commit when authority, evidence, reversibility, and
+lineage permit commitment.**
+
+It is *not* "the agent commits." Commitment is the *result* of AKAL under
+permission — never the definition. Without that gate, civilization boundary
+collapses into clever action.
+
+Operationally, AKAL is the **reasoning kernel** — the engine that generates,
+evaluates, and selects transition candidates under constitutional constraints,
+not opaque model output.
 
 AKAL answers: **"What transitions are available, which one was chosen,
-and why?"**
+why — and is commitment permitted?"**
 
 The rule: **Reasoning must be auditable.** Every decision must show its
 candidates, its selection, and its justification. Opaque model output
 without transition candidates is a constitutional violation.
+
+**Permanent correction (F13 2026-07-09):** never redefine AKAL as mere
+commitment. See also `AAA/docs/architecture/SUBSTRATE_GEOMETRY.md`.
+
+**Load-bearing dictionary (2026-07-09):** the 4-gate commit standard lives in
+`/root/AAA/docs/canon/AKAL-DICTIONARY.md` — seal id `AKAL-DICTIONARY::v1.0.0::2026-07-09`.
+
+```
+permit = authority ∧ evidence ∧ reversibility ∧ lineage
+commit only if permit
+```
+
+This file (AKAL.md) remains the APEX/kernel surface map (candidates, 333, planes).
+The dictionary is the **commit gate** agents must emit and enforce.
 
 ---
 

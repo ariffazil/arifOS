@@ -70,4 +70,12 @@ class MemoryOutput(BaseModel):
     hard_rules_passed: bool = True
     failed_rule: int | None = None
 
+    # ── Spine P0: SCT continuity echo ───────────────────────────────────────
+    session_token: str | None = None
+    standing_source: str | None = None
+    apex_scalars: dict[str, Any] | None = None
+    authority: str | None = None
+    actor_verified: bool | None = None
+    authority_delta: dict[str, Any] | None = None
+
     model_config = {"extra": "forbid"}

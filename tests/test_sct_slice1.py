@@ -299,26 +299,24 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
         assert f_res.get("dry_run") is True, f_dict
         assert f_res.get("actor_id") == "spine-p0-actor", f_dict
         assert "TOKEN_INVALID" not in str(f_dict), f_dict
-        # ForgeOutput schema may not top-level session_token; result or dry path OK
-        _ftok = f_dict.get("session_token") or f_res.get("session_token")
-        assert _ftok in (token, None) or str(_ftok).startswith("sct_v1."), f_dict
+        # Spine P0: direct tool must echo SCT continuity at top level
+        assert f_dict.get("session_token") == token, f_dict
+        assert f_dict.get("standing_source") == "sct", f_dict
+        assert (f_dict.get("apex_scalars") or {}).get("G") == UNMEASURED, f_dict
 
         # ── seal verify ──────────────────────────────────────────────────────
-        try:
-            seal_out = await arif_seal(
-                mode="verify",
-                payload="spine-p0",
-                session_id=sid,
-                session_token=token,
-                actor_id="spine-p0-actor",
-            )
-            s_dict = _response_dict(seal_out)
-            assert "TOKEN_INVALID" not in str(s_dict), s_dict
-            # Standing accepted if we got past SCT gate (pre-existing seal kwargs TypeError OK)
-            _stok = s_dict.get("session_token") or (s_dict.get("meta") or {}).get("session_token")
-            assert _stok in (token, None) or (isinstance(_stok, str) and _stok.startswith("sct_v1.")), s_dict
-        except TypeError as te:
-            assert "ack_irreversible" in str(te) or "unexpected keyword" in str(te)
+        seal_out = await arif_seal(
+            mode="verify",
+            payload="spine-p0",
+            session_id=sid,
+            session_token=token,
+            actor_id="spine-p0-actor",
+        )
+        s_dict = _response_dict(seal_out)
+        assert "TOKEN_INVALID" not in str(s_dict), s_dict
+        assert s_dict.get("session_token") == token, s_dict
+        assert s_dict.get("standing_source") == "sct", s_dict
+        assert (s_dict.get("apex_scalars") or {}).get("G") == UNMEASURED, s_dict
 
         # ── heart critique ───────────────────────────────────────────────────
         critique_out = await arif_critique(
@@ -345,9 +343,10 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
         )
         j_dict = _response_dict(judge_out)
         assert "TOKEN_INVALID" not in str(j_dict), j_dict
-        # VerdictOutput may not carry top-level session_token; no L11/token fail is enough
-        _jtok = j_dict.get("session_token")
-        assert _jtok in (token, None) or str(_jtok or "").startswith("sct_v1."), j_dict
+        # Spine P0: direct tool must echo SCT continuity at top level
+        assert j_dict.get("session_token") == token, j_dict
+        assert j_dict.get("standing_source") == "sct", j_dict
+        assert (j_dict.get("apex_scalars") or {}).get("G") == UNMEASURED, j_dict
 
         # ── memory recall ────────────────────────────────────────────────────
         memory_out = await arif_memory(
@@ -359,8 +358,10 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
         )
         m_dict = _response_dict(memory_out)
         assert "TOKEN_INVALID" not in str(m_dict), m_dict
-        _mtok = m_dict.get("session_token")
-        assert _mtok in (token, None) or str(_mtok or "").startswith("sct_v1."), m_dict
+        # Spine P0: direct tool must echo SCT continuity at top level
+        assert m_dict.get("session_token") == token, m_dict
+        assert m_dict.get("standing_source") == "sct", m_dict
+        assert (m_dict.get("apex_scalars") or {}).get("G") == UNMEASURED, m_dict
 
     asyncio.run(_async_block())
 

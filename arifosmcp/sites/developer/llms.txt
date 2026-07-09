@@ -35,7 +35,7 @@ and 41 operational support tools.
 | `arif_think` | 333 | public | ✓ | reason, reflect, verify, axioms, plan, plan_review +4 more |
 | `arif_critique` | 555 | public | ✓ | critique, redteam, maruah, shadow, deescalate, empathy |
 | `arif_route` | 444 | public | ✓ | route, bridge |
-| `arif_triage` | 000 | public | ✓ | status, preflight, triage |
+| `arif_triage` | 000 | internal_only | ✓ | status, preflight, triage |
 | `arif_bridge_connect` | 444 | public | ✓ | connect |
 | `arif_compose` | 888 | public | ✓ | compose, summarize, cite, tone_shift |
 | `arif_memory` | 000 | authenticated | ✗ HOLD | recall, inspect, attest, remember, promote, revise +2 more |
@@ -218,4 +218,4 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 - Manifest hash: bcc250de232a1c2a
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-07-09T01:30:49.498706+00:00 ---
+--- Auto-generated 2026-07-09T12:11:27.753576+00:00 ---

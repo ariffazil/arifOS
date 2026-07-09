@@ -288,39 +288,77 @@ async def arif_judge(
 
     # ── SCT-first standing (Spine P0) — store optional ─────────────────────
     _standing_token = session_token
+    _standing_source = None
+    _standing_apex: dict[str, Any] | None = None
+    _standing_actor_verified = False
+    _standing_authority: str | None = None
+    _standing_delta: dict[str, Any] | None = None
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.session_auth import validate_session
+            from arifosmcp.runtime.sct import resolve_standing
 
-            auth = validate_session(session_id, actor_id, session_token=session_token)
-            if auth.get("valid"):
-                _standing_token = auth.get("session_token") or session_token
-                if auth.get("session_id"):
-                    session_id = auth.get("session_id")
-                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
-                    actor_id = auth.get("actor_id")
+            _standing = resolve_standing(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+                allow_store=True,
+            )
+            if _standing.valid:
+                _standing_token = _standing.session_token or session_token
+                _standing_source = _standing.source
+                _standing_apex = dict(_standing.apex) if _standing.apex else None
+                _standing_actor_verified = _standing.actor_verified
+                _standing_authority = _standing.authority
+                _standing_delta = _standing.authority_delta
+                if _standing.session_id:
+                    session_id = _standing.session_id
+                if _standing.actor_id and _standing.actor_id != "anonymous":
+                    actor_id = _standing.actor_id
             elif session_token:
-                return VerdictOutput(
-                    verdict=VerdictCode.HOLD,
-                    reasons=[
-                        auth.get("reason") or "L11 AUTH: SCT invalid",
-                        "Provide a valid session_token from arif_init.",
-                    ],
-                    next_safe_action="Call arif_init, then re-invoke arif_judge with session_token.",
-                    meta={
-                        "gate": "L11_SCT_GATE",
-                        "sesat_event": {
-                            "sesat": True,
-                            "type": "TOKEN_INVALID",
-                            "reason": auth.get("reason"),
+                return _echo_standing(
+                    VerdictOutput(
+                        verdict=VerdictCode.HOLD,
+                        reasons=[
+                            _standing.reason or "L11 AUTH: SCT invalid",
+                            "Provide a valid session_token from arif_init.",
+                        ],
+                        next_safe_action="Call arif_init, then re-invoke arif_judge with session_token.",
+                        meta={
+                            "gate": "L11_SCT_GATE",
+                            "sesat_event": {
+                                "sesat": True,
+                                "type": "TOKEN_INVALID",
+                                "reason": _standing.reason,
+                            },
+                            "session_id": session_id,
+                            "floor": "F11",
+                            "floor_type": "HARD",
                         },
-                        "session_id": session_id,
-                        "floor": "F11",
-                        "floor_type": "HARD",
-                    },
+                    )
                 )
         except Exception:
             pass
+
+    def _echo_standing(out: VerdictOutput) -> VerdictOutput:
+        """Echo next-hop SCT continuity onto a direct VerdictOutput."""
+        if not _standing_token:
+            return out
+        data = out.model_dump(mode="json")
+        data["session_token"] = _standing_token
+        data["standing_source"] = _standing_source or "sct"
+        if _standing_apex is not None:
+            data["apex_scalars"] = _standing_apex
+        data["authority"] = _standing_authority or "OBSERVE_ONLY"
+        data["actor_verified"] = _standing_actor_verified
+        if _standing_delta is not None:
+            data["authority_delta"] = _standing_delta
+        res = data.get("result")
+        if isinstance(res, dict):
+            res.setdefault("session_token", _standing_token)
+            res.setdefault("standing_source", _standing_source or "sct")
+            if _standing_apex is not None:
+                res.setdefault("apex_scalars", _standing_apex)
+        return VerdictOutput(**data)
 
     # ── F11 SESSION GATE — session_id OR valid SCT ────────────────────────
     if not session_id or not str(session_id).strip():
@@ -711,28 +749,32 @@ async def arif_judge(
                 if scan_verdict == "SEAL"
                 else (VerdictCode.VOID if scan_verdict == "VOID" else VerdictCode.HOLD)
             )
-            return VerdictOutput(
-                verdict=verdict_code,
-                reasons=[raw.get("summary", "Scan complete.")]
-                if isinstance(raw, dict)
-                else ["Scan complete."],
-                next_safe_action=(
-                    "Review findings and remediate override patterns before continuing."
-                    if scan_verdict in ("HOLD", "VOID")
-                    else "No override patterns detected — proceed."
-                ),
-                meta={
-                    "scan_instructions": raw if isinstance(raw, dict) else {"raw": str(raw)},
-                    "floor": "L12",
-                    "guard": "INJECTION_SCANNER",
-                },
+            return _echo_standing(
+                VerdictOutput(
+                    verdict=verdict_code,
+                    reasons=[raw.get("summary", "Scan complete.")]
+                    if isinstance(raw, dict)
+                    else ["Scan complete."],
+                    next_safe_action=(
+                        "Review findings and remediate override patterns before continuing."
+                        if scan_verdict in ("HOLD", "VOID")
+                        else "No override patterns detected — proceed."
+                    ),
+                    meta={
+                        "scan_instructions": raw if isinstance(raw, dict) else {"raw": str(raw)},
+                        "floor": "L12",
+                        "guard": "INJECTION_SCANNER",
+                    },
+                )
             )
         except Exception as exc:
-            return VerdictOutput(
-                verdict=VerdictCode.HOLD,
-                reasons=[f"scan_instructions failed: {exc}"],
-                next_safe_action="Check governance_scan module availability.",
-                meta={"error": str(exc)},
+            return _echo_standing(
+                VerdictOutput(
+                    verdict=VerdictCode.HOLD,
+                    reasons=[f"scan_instructions failed: {exc}"],
+                    next_safe_action="Check governance_scan module availability.",
+                    meta={"error": str(exc)},
+                )
             )
 
     import asyncio
@@ -1089,7 +1131,7 @@ async def arif_judge(
             result["amanah_proof"] = AmanahProof()
 
     try:
-        return VerdictOutput(**result)
+        return _echo_standing(VerdictOutput(**result))
     except Exception:
         # Robust fallback for incomplete semantic outputs or plumbing during E2E (7-tool facade)
         v = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
@@ -1100,7 +1142,9 @@ async def arif_judge(
             if isinstance(result, dict)
             else ["semantic normalization fallback"]
         )
-        return VerdictOutput(verdict=v, reasons=r if isinstance(r, list) else [str(r)])
+        return _echo_standing(
+            VerdictOutput(verdict=v, reasons=r if isinstance(r, list) else [str(r)])
+        )
 
 
 def _apply_cooldown_awareness(result: dict, cooldown_entry_id: str | None) -> None:
