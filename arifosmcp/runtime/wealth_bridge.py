@@ -119,10 +119,45 @@ async def _post_json_rpc(payload: dict[str, Any]) -> dict[str, Any]:
 
         # WEALTH returns plain JSON, not SSE
         parsed = resp.json()
+        if not isinstance(parsed, dict):
+            raise ConnectionError(f"WEALTH non-object JSON-RPC body: {type(parsed).__name__}")
         if parsed.get("error"):
             raise ConnectionError(f"WEALTH JSON-RPC error: {parsed['error']}")
 
-        return parsed.get("result", {})
+        # DIP-03 (2026-07-09): never coerce missing `result` → {} (silent success).
+        # If the organ omits `result`, propagate the full envelope so callers see failure.
+        return _extract_jsonrpc_result(parsed)
+
+
+def _extract_jsonrpc_result(parsed: dict[str, Any]) -> dict[str, Any]:
+    """
+    Extract JSON-RPC `result` without null-suppression (IRR-DIP-AUDIT DIP-03).
+
+    - `result` present and dict → return as-is
+    - `result` present and non-dict/null → wrap with null_coercion_result flag
+    - `result` absent → return full `parsed` + flags (do NOT invent empty success)
+    """
+    if "result" not in parsed:
+        out = dict(parsed)
+        out["null_coercion_result"] = True
+        out["bridge_error"] = "missing_jsonrpc_result"
+        logger.warning(
+            "WEALTH JSON-RPC missing 'result' key; propagating full payload (keys=%s)",
+            sorted(parsed.keys()),
+        )
+        return out
+
+    result = parsed["result"]
+    if result is None:
+        return {
+            "result": None,
+            "null_coercion_result": True,
+            "bridge_error": "null_jsonrpc_result",
+        }
+    if isinstance(result, dict):
+        return result
+    # Non-dict result (rare for tools/call) — keep type visible, never drop
+    return {"value": result, "null_coercion_result": False}
 
 
 async def call_wealth_tool(
