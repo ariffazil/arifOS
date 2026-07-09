@@ -1,23 +1,29 @@
 """
-arifOS Kernel — Constitutional Governance Physics
+arifOS Kernel — Constitutional Judgment Engine
 
 Physics computes. Kernel governs. Agent acts. Receipt remembers. Sovereign decides.
 
-Architecture:
-  Python kernel  = judge      — ΔΩΨ, 000-999, 6 tripwires, source-weighted collapse
-  TypeScript     = executor   — A-FORGE hands (forge_* tools)
-  Quantum        = calculator — GEOX/WEALTH backend, never kernel, never judge
-  VAULT999       = memory     — immutable seal chain
-  AAA            = cockpit    — state display, intent routing
+Wording law (2026-07-09):
+  Python kernel = constitutional judgment engine (CollapseResult / SEAL-path / HOLD / VOID / SABAR).
+  It does NOT replace sovereign veto. Arif / F13 remains supreme.
 
-This module implements the formal kernel ONLY:
+Architecture:
+  Python kernel  = constitutional judgment engine — ΔΩΨ, 000-999, 6 tripwires, collapse
+  TypeScript     = executor   — A-FORGE hands (forge_* tools), never reimplements verdicts
+  Quantum        = calculator — evidence organ / contract only; never kernel, never judge, never hands
+  VAULT999       = memory     — immutable seal chain (only true SEAL)
+  AAA            = cockpit    — state display, intent routing
+  Arif / F13     = sovereign  — final veto above all code
+
+This module implements the formal judgment engine ONLY:
   - Δ (entropy/pressure), Ω (uncertainty), Ψ (integrity)
   - 000-999 metabolic pipeline
   - 6 tripwires at 888
   - Source-weighted evidence fusion
-  - VAULT999 seal chain
+  - SealRecord / SealChain helpers (library; live VAULT999 is the civilizational seal)
   - Governance contracts for external compute (quantum, etc.)
 
+Local tests prove behavior under fixtures — they are NOT a constitutional SEAL.
 No domain physics. No solver code. No execution logic.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
