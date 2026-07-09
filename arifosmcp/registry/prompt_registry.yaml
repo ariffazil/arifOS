@@ -34,7 +34,7 @@ prompts:
   - id: "arifosmcp_loop_engineer"
     semantic_name: "intake"
     title: "Loop Engineer — Entry Guard"
-    description: "Intent classification + loop routing. Runs first when intent arrives. Converts raw intent into a governed loop circuit."
+    description: "Intent classification + loop routing. Runs first when intent arrives. Converts raw intent into a governed loop circuit, stays repo-agnostic, reduces entropy, and names how reality will be re-checked before seal."
     floor_binding: ["L01", "L11"]
     inputs_schema:
       type: "object"
@@ -47,12 +47,13 @@ prompts:
       - "loop_classification returned (METABOLIC|OBSERVE|REASON|CRITIQUE|JUDGE|FORGE|SEAL|COMPOSITE)"
       - "routing_decision returned"
       - "session_state initialized if first stage"
+      - "reality_recheck_path named before downstream execution"
     entropy_budget_tokens: 400
 
   - id: "000_init"
     semantic_name: "anchor"
     title: "000_INIT — The Anchor"
-    description: "Identity binding, reality grounding, floor acceptance, cross-session memory load. Bootstrap stage."
+    description: "Identity binding, reality grounding, floor acceptance, cross-session memory load, and prior seal-gap inheritance. Bootstrap stage for restoring clarity and lawful direction."
     floor_binding: ["L01", "L11", "L12"]
     inputs_schema:
       type: "object"
@@ -66,12 +67,13 @@ prompts:
       - "session_id returned"
       - "actor_signature recorded"
       - "session_state.entropy_baseline captured"
+      - "prior seal assumptions/gaps loaded or explicitly absent"
     entropy_budget_tokens: 800
 
   - id: "111_sense"
     semantic_name: "witness"
     title: "111_SENSE — The Witness"
-    description: "Open observation, pattern detection, evidence gathering with epistemic labels (F2). F2 computed."
+    description: "Open observation, pattern detection, evidence gathering with epistemic labels (F2), and definition of the next reality check needed after execution. Must lower ambiguity, not just add volume."
     floor_binding: ["L02", "L03", "L07", "L12"]
     inputs_schema:
       type: "object"
@@ -86,12 +88,13 @@ prompts:
       - "evidence_receipt returned (F-WEB)"
       - "epistemic_label attached (OBS/DER/INT/SPEC)"
       - "void_classification if MNAR detected"
+      - "post_execution_recheck condition defined"
     entropy_budget_tokens: 600
 
   - id: "333_reason"
     semantic_name: "mind"
     title: "333_REASON — The Mind"
-    description: "Abstraction, abduction (N≥3 hypotheses), synthesis, proposal. F7 computed. Humility band [0.03, 0.05]."
+    description: "Abstraction, abduction (N≥3 hypotheses), synthesis, proposal, and explicit re-check plan for observed AFTER state. F7 computed. Invariant, orthogonal, and cross-domain."
     floor_binding: ["L02", "L05", "L06", "L07", "L08", "L09", "L10"]
     inputs_schema:
       type: "object"
@@ -104,12 +107,13 @@ prompts:
       - "hypothesis_set returned (N≥3)"
       - "humility_band asserted (Ω₀ ∈ [0.03, 0.05])"
       - "C_dark computed (< 0.30 for SEAL eligibility)"
+      - "recheck_plan returned for each proposed option"
     entropy_budget_tokens: 1200
 
   - id: "555_critique"
     semantic_name: "mirror"
     title: "555_CRITIQUE — The Mirror"
-    description: "Consequence scan, blast radius, perspective shift, dignity check, alternatives. F5/F6 computed. Pre-forge ethical/maruah assessment."
+    description: "Consequence scan, blast radius, perspective shift, dignity check, alternatives, and reality-return readiness. F5/F6 computed. Preserves optionality and human clarity before action."
     floor_binding: ["L05", "L06", "L12"]
     inputs_schema:
       type: "object"
@@ -124,12 +128,13 @@ prompts:
       - "maruah_verdict returned (M_CLEAN/M_ADJUST/M_REPAIR/M_HOLD)"
       - "blast_radius returned (LOW/MED/HIGH/CRITICAL)"
       - "alternatives ≥ 1"
+      - "forge_readiness denied if post-execution reality check is weak"
     entropy_budget_tokens: 800
 
   - id: "666_judge"
     semantic_name: "gate"
     title: "666_JUDGE — The Gate"
-    description: "Constitutional verdict — four tests (Truth, Reversibility, Dignity, Universality) + F1-F13 floor matrix. Returns SEAL/SABAR/HOLD/VOID/PARTIAL."
+    description: "Constitutional verdict — four tests (Truth, Reversibility, Dignity, Universality) + F1-F13 floor matrix. Clean SEAL requires a concrete path back to observed reality. General principles over local preference."
     floor_binding: ["L01", "L02", "L11", "L13"]
     inputs_schema:
       type: "object"
@@ -155,12 +160,13 @@ prompts:
       - "violated_floors[] if not SEAL"
       - "constitutional_chain_id (cc_id) for SEAL"
       - "receipts[] with provenance"
+      - "reality_return_gate enforced before clean SEAL"
     entropy_budget_tokens: 600
 
   - id: "777_forge"
     semantic_name: "hammer"
     title: "777_FORGE — The Hammer"
-    description: "Structural enforcement gate. Execute smallest reversible step, verify, rollback on failure. Blocked without 666 SEAL + 555 FORGE_READY."
+    description: "Structural enforcement gate. Execute smallest reversible step, verify actual AFTER state, rollback on failure, and return to reality if intended vs observed diverge. Must reduce uncertainty, not merely mutate state."
     floor_binding: ["L01", "L11", "L13"]
     inputs_schema:
       type: "object"
@@ -179,12 +185,13 @@ prompts:
       - "changed_files[] returned"
       - "verification_result returned"
       - "rollback_plan returned"
+      - "reality_delta recorded (intended AFTER vs observed AFTER)"
     entropy_budget_tokens: 1000
 
   - id: "999_seal"
     semantic_name: "fossil"
     title: "999_SEAL — The Record"
-    description: "Golden path verification, immutable VAULT999 write, assumption ledger. IRREVERSIBLE. Tri-witness required."
+    description: "Golden path verification, immutable VAULT999 write, recursive MCP stack hardening, remaining-gap scaffold, and future INIT seal pack. Preserves invariants across repo, project, and domain boundaries."
     floor_binding: ["L01", "L11", "L13"]
     inputs_schema:
       type: "object"
@@ -203,6 +210,9 @@ prompts:
       - "chain_position returned"
       - "VAULT999 entry confirmed"
       - "ack_irreversible = true asserted"
+      - "recursive_hardening_report returned (skills/kernel/tools/prompts/resources)"
+      - "gaps_remaining scaffolded with severity + proof + smallest_lawful_fix"
+      - "future_init_seal_pack returned for next 000_INIT"
     entropy_budget_tokens: 400
 
 # ── LINEAGE ──────────────────────────────────────────────────────────
