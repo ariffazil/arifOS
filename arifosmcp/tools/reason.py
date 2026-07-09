@@ -944,7 +944,11 @@ def arif_think(
         if session_id:
             env.setdefault("session_id", session_id)
         if _standing_auth:
-            env.setdefault("authority", _standing_auth.get("authority"))
+            _auth = _standing_auth.get("authority")
+            # Prefer band string when structured block present
+            if isinstance(_auth, dict):
+                _auth = _auth.get("runtime_authority") or _auth.get("authority") or _auth
+            env.setdefault("authority", _auth)
             env.setdefault("actor_verified", bool(_standing_auth.get("actor_verified")))
             if isinstance(_standing_auth.get("apex_scalars"), dict):
                 env.setdefault("apex_scalars", _standing_auth["apex_scalars"])
