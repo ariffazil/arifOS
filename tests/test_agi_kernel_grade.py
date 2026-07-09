@@ -230,7 +230,7 @@ class TestWrongActor:
             ),
         )
         result = pre_execution_gate(env, ActionClass.MUTATE)
-        assert result.verdict in (GateVerdict.HOLD, GateVerdict.REJECT)
+        assert result.verdict in (GateVerdict.HOLD, GateVerdict.VOID)
         combined = " ".join(result.reasons).lower()
         assert "verified" in combined or "resolved" in combined
 
@@ -589,7 +589,7 @@ class TestModelSwap:
                 ),
             )
             result = pre_execution_gate(env, ActionClass.MUTATE)
-            assert result.verdict in (GateVerdict.HOLD, GateVerdict.REJECT), (
+            assert result.verdict in (GateVerdict.HOLD, GateVerdict.VOID), (
                 f"Model '{model_id}' should not bypass mutation gate"
             )
 

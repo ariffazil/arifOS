@@ -298,10 +298,10 @@ def _art_reflex_check(
         )
 
     # BLOCK → REJECT (constitutional-level prohibition)
-    # GateVerdict.REJECT is a true block (is_blocked=True after schema fix)
+    # GateVerdict.VOID is a true block (is_blocked=True after schema fix)
     return GateResult(
         envelope=envelope,
-        verdict=GateVerdict.REJECT,
+        verdict=GateVerdict.VOID,
         reasons=[f"ART reflex: {art_result.reason.value}"],
         violations=["ART_REFLEX_BLOCK"],
         blocked_action_class=requested_action,
@@ -477,7 +477,7 @@ def _act_reflex_check(
     if act_result.verdict == ActVerdict.BLOCK:
         return GateResult(
             envelope=envelope,
-            verdict=GateVerdict.REJECT,
+            verdict=GateVerdict.VOID,
             reasons=[f"ACT: {act_result.reason.value}"],
             violations=["ACT_REFLEX_BLOCK"],
             blocked_action_class=requested_action,
@@ -1299,7 +1299,7 @@ def pre_execution_gate(
                 elif first_fail_verdict == "REJECT":
                     return GateResult(
                         envelope=envelope,
-                        verdict=GateVerdict.REJECT,
+                        verdict=GateVerdict.VOID,
                         reasons=[f"Constitutional Rejection: {eval_res['first_failure']}"],
                         violations=["F13_SOVEREIGN — Constitutional prohibition triggered"],
                         blocked_action_class=requested_action,
