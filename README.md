@@ -72,6 +72,8 @@ runtime_drift: true (local patches ahead of public snapshot)
 
 Full doctrine: [GENESIS/040_APEX_STACK.md](https://github.com/ariffazil/arifos/blob/main/GENESIS/040_APEX_STACK.md)
 
+**Orthogonal CANON:** [ariffazil/CANON.md](https://github.com/ariffazil/ariffazil/blob/main/CANON.md) — this repo owns **ART + KERNEL + VAULT999 write**. A-FORGE owns APA + ACT. AAA owns doctrine + TREE777. Product space: ART × KERNEL × APA × ACT → VAULT999.
+
 ---
 
 ## 2. Quick Start
