@@ -5,10 +5,74 @@ arifosmcp/runtime/session_auth.py
 Single L11 AUTH validator for all tools.
 """
 
+import json
+import logging
 import os
 import time
+from pathlib import Path
 
 from arifosmcp.runtime.governance_identity import is_protected_sovereign_id
+
+logger = logging.getLogger(__name__)
+
+_AGENT_IDENTITIES_PATH = Path("/root/A-FORGE/data/agent_identities.json")
+
+# Trust tier → authority level mapping
+_TIER_AUTHORITY_MAP: dict[str, str] = {
+    "ELDER": "sovereign",
+    "VERIFIED": "operator",
+    "TRUSTED": "operator",
+    "OBSERVED": "operator",
+    "UNVERIFIED": "anonymous",
+    "BIRTH": "anonymous",
+    "APPRENTICE": "anonymous",
+    "DEREGISTERED": "anonymous",
+}
+
+
+def _resolve_authority_from_registry(actor_id: str | None) -> str:
+    """
+    Resolve authority level from agent_identities.json registry.
+
+    Falls back to hardcoded mapping for known system actors (arif, a-forge)
+    and for agents not in the registry.
+    """
+    # Hardcoded system actors (unchanged)
+    if actor_id == "arif":
+        return "sovereign"
+    if actor_id == "a-forge":
+        return "operator"
+
+    # Look up in registry
+    if actor_id and _AGENT_IDENTITIES_PATH.exists():
+        try:
+            registry = json.loads(_AGENT_IDENTITIES_PATH.read_text())
+            entry = registry.get(actor_id)
+            if entry:
+                proof = entry.get("identity_proof", {})
+                # Only grant operator+ if agent has Ed25519 identity
+                if isinstance(proof, dict) and proof.get("type") == "ed25519":
+                    tier = entry.get("trust_tier", "UNVERIFIED")
+                    authority = _TIER_AUTHORITY_MAP.get(tier, "anonymous")
+                    logger.info(
+                        "Session auth: resolved %s → %s (tier=%s, ed25519 verified)",
+                        actor_id,
+                        authority,
+                        tier,
+                    )
+                    return authority
+                else:
+                    logger.info(
+                        "Session auth: %s has no Ed25519 identity (proof=%s), defaulting to anonymous",
+                        actor_id,
+                        type(proof).__name__,
+                    )
+                    return "anonymous"
+        except Exception as e:
+            logger.warning("Session auth: failed to read registry: %s", e)
+
+    return "anonymous"
+
 
 SESSION_TTL_SECONDS = 3600  # 1 hour
 SESSION_GRACE_SECONDS = 300  # 5 min grace period after TTL
@@ -103,11 +167,7 @@ def validate_session(session_id: str | None, actor_id: str | None = None) -> dic
                 bind_session_identity(
                     session_id=session_id,
                     actor_id=env_actor_id or "anonymous",
-                    authority_level=(
-                        "sovereign"
-                        if env_actor_id == "arif"
-                        else ("operator" if env_actor_id == "a-forge" else "anonymous")
-                    ),
+                    authority_level=_resolve_authority_from_registry(env_actor_id),
                     auth_context={
                         "source": "validate_session",
                         "mode": "auto_bootstrap",
