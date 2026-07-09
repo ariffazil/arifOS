@@ -313,7 +313,8 @@ class Synthesis(BaseModel):
     session_id: str | None = None
     session_token: str | None = None
     actor_verified: bool = False
-    authority: str | None = None
+    # str band (LIMITED_MUTATE) or structured authority block from envelope
+    authority: str | dict[str, Any] | None = None
     apex_scalars: dict[str, Any] = Field(default_factory=dict)
     standing_source: str | None = None
 
@@ -329,7 +330,7 @@ class ReplyBlock(BaseModel):
     session_id: str | None = None
     session_token: str | None = None
     actor_verified: bool = False
-    authority: str | None = None
+    authority: str | dict[str, Any] | None = None
     apex_scalars: dict[str, Any] = Field(default_factory=dict)
     standing_source: str | None = None
 
