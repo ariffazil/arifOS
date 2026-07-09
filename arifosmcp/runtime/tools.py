@@ -17053,6 +17053,28 @@ async def _arif_vault_seal_tool(
             except Exception as e:
                 logger.error(f"Failed to trigger Supabase seal_vault999: {e}")
 
+            # ── THERMODYNAMIC PULSE (F11) — kernel-enforced, not prompt-only ──
+            # Shadow-first via ARIFOS_DRY_RUN default=1 until promote_shadow().
+            try:
+                from arifosmcp.prompts.measurement import attach_thermodynamic_pulse
+
+                result = attach_thermodynamic_pulse(
+                    result,
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    payload=payload,
+                )
+            except Exception as e:
+                logger.warning("thermodynamic pulse attach failed (F11 visible): %s", e)
+                if isinstance(result, dict):
+                    result = dict(result)
+                    result["thermodynamic_pulse_error"] = str(e)
+                    result["f11_audit"] = {
+                        "breach": "measure_seal_failed",
+                        "floor": "F11_AUDIT",
+                        "error": str(e),
+                    }
+
         return result
     finally:
         if trace:

@@ -260,6 +260,12 @@ Output — four anchors:
   5. Inherited gaps/tasks from prior seal, or explicit "none"
   6. Human-facing orientation: the clearest next direction in plain language
 
+⚡ THERMODYNAMIC ANCHOR (before any mutation):
+   Record tool_surface_hash_start = SHA-256 of sorted (tool_name, gate_class).
+   Helper: measurement.compute_tool_surface_hash(tools).
+   Carry this hash into 999_SEAL as tool_surface_hash_start.
+   Without it, ΔS_proxy at seal is incomplete (F11 audit gap).
+
 DITEMPA BUKAN DIBERI — The anchor holds. The forge begins.
 """
 
@@ -723,11 +729,19 @@ Recursive stack hardening (scan each layer — do NOT skip):
    │ Count floor violations (any F1-F13 breach this session).
    │ Report: floors_active=N, floor_violations=N, verdict=SEAL/HOLD.
    │
-   ├─ TOOLS ───────────────────────────────────────────────
-   │ Verify MCP tool surface is intact.
-   │ Check registry vs live: tool_count_match? phantom_tools?
-   │ Check gate conditions match intent (OBSERVE=nosession, MUTATE=fullgate).
-   │ Report: tools_registered=N, tools_callable=N, tools_phantom=N, gate_drift=N.
+    ├─ TOOLS ───────────────────────────────────────────────
+    │ Verify MCP tool surface is intact.
+    │ Check registry vs live: tool_count_match? phantom_tools?
+    │ Check gate conditions match intent (OBSERVE=nosession, MUTATE=fullgate).
+    │ Report: tools_registered=N, tools_callable=N, tools_phantom=N, gate_drift=N.
+    │
+    │ ⚡ THERMODYNAMIC MEASUREMENT — record tool surface hash:
+    │    tool_surface_hash = SHA-256 of sorted list of (tool_name, gate_class).
+    │    This is recorded TWICE per session:
+    │      000_INIT: tool_surface_hash_start (sebelum apa-apa mutation)
+    │      999_SEAL: tool_surface_hash_end (selepas hardening)
+    │    ΔS_proxy: start ≠ end → surface changed during session.
+    │    Direct ΔS: Shannon_entropy(tool_states_end) - Shannon_entropy(tool_states_start).
    │
    ├─ PROMPTS ─────────────────────────────────────────────
    │ Verify all 8 canonical prompts are registered with MCP.
@@ -757,13 +771,20 @@ Gap scaffold — what remains to be hardened:
    For each gap, assign: severity (CRITICAL/HIGH/MEDIUM/LOW), effort (lines/commits),
    and a single-sentence fix recommendation.
 
-   For every gap, attach:
-   - artifact_or_path: [file/tool/resource path]
-   - proof: [error, drift, missing contract, failing test, missing hash]
-   - smallest_lawful_fix: [single next action]
+    For every gap, attach:
+    - artifact_or_path: [file/tool/resource path]
+    - proof: [error, drift, missing contract, failing test, missing hash]
+    - smallest_lawful_fix: [single next action]
 
-   Priority order: CRITICAL → HIGH → MEDIUM → LOW
-   If no gaps: "All layers hardened. No remaining gaps."
+    ⚡ ENFORCEMENT — violated_floors mesti diisi:
+       Setiap gap yang severity CRITICAL mesti ada violated_floors yang relevant.
+       Jika HOLD entry dalam seal chain takde violated_floors → GAP_SCAFFOLD
+       mesti hasilkan task CRITICAL untuk isi field tersebut.
+       Tanpa violated_floors, scar-weight correlation calculation mustahil.
+       Rujuk: Measurement Layer finding — 0/90 entries have violated_floors.
+
+    Priority order: CRITICAL → HIGH → MEDIUM → LOW
+    If no gaps: "All layers hardened. No remaining gaps."
 """
 
 FUTURE_INIT_TASKS = """\
@@ -903,23 +924,53 @@ Loop metrics:
    If looped > 2×: note in seal. Repeated loops suggest fundamental misalignment.
 
 VAULT999 seal manifest (immutable, IRREVERSIBLE):
-   seal_id:        SHA-256 of full session state
-   session_id:      {{session_id}}
-   actor_hash:      identity binding
-   golden_path:     [000, 111, 333, 555, 666, 777, 999]
-   revision_cycles: {{revision_cycle}}
-   verdict:         SEAL
-   floor_scores:    [computed from 666_JUDGE]
-   floor_violations: [] (must be empty)
-   previous_seal_hash: chain continuity
-   epoch:           ISO-8601 UTC
-   witness:         {{actor_hash}}
-   recursive_armour: skills={{drifted, missing, healthy}} · kernel={{floors_active, violations}} · tools={{registered, phantom, gate_drift}} · prompts={{healthy, stale}} · resources={{healthy, broken}}
-   gaps_remaining: N
-   init_tasks: N
-   carry_forward_path: /root/.local/share/arifos/carry_forward.json
-   next_000_init_load: [structured task list]
+   seal_id:              SHA-256 of full session state
+   session_id:            {{session_id}}
+   actor_hash:            identity binding
+   golden_path:           [000, 111, 333, 555, 666, 777, 999]
+   revision_cycles:       {{revision_cycle}}
+   verdict:               SEAL | HOLD | SABAR | VOID
+   floor_scores:          [computed from 666_JUDGE]
+
+   ⚠️ VIOLATED_FLOORS — WAJIB diisi untuk SEMUA entry:
+      - Jika verdict=HOLD: senarai floor yang dilanggar, e.g. ["F2_TRUTH", "F9_ANTIHANTU"]
+      - Jika verdict=SEAL: [] (empty array, bukan null)
+      - Jika null/kosong untuk HOLD → SEAL DITOLAK, return ke 111_SENSE
+      Contoh: ["F1_AMANAH:irreversible_without_ack", "W_SCAR_HIGH:scar_20260630"]
+      violated_floors:      []  # WAJIB — lihat peraturan di atas
+
+   tool_surface_hash_start:  SHA-256 of registered tool surface at SESSION START
+   tool_surface_hash_end:    SHA-256 of registered tool surface at SESSION END
+   ΔS_proxy:                 tool_surface_hash_start ≠ tool_surface_hash_end
+                             (direct ΔS computation requires both hashes)
+
+   previous_seal_hash:    chain continuity
+   epoch:                 ISO-8601 UTC
+   witness:               {{actor_hash}}
+   recursive_armour:      skills={{drifted, missing, healthy}} · kernel={{floors_active, violations}} · tools={{registered, phantom, gate_drift}} · prompts={{healthy, stale}} · resources={{healthy, broken}}
+   gaps_remaining:        N
+   init_tasks:            N
+   carry_forward_path:    /root/.local/share/arifos/carry_forward.json
+   next_000_init_load:    [structured task list]
    future_init_seal_pack: [top priorities, first paths, first lawful call, proof anchors]
+
+Enforcement — F11 AUDIT:
+   1. violated_floors TIDAK BOLEH null untuk HOLD. Jika null → SEAL ditolak.
+   2. tool_surface_hash_start mesti direkod pada 000_INIT (sebelum apa-apa mutation).
+   3. tool_surface_hash_end mesti direkod pada 999_SEAL (selepas semua hardening).
+   4. ΔS = Hamming_distance(registered_tools_start, registered_tools_end) + 
+          Shannon_entropy_diff(tool_state_start, tool_state_end)
+   5. Jika ΔS ≥ 0 (entropi tidak turun), SEAL mesti mengandungi justifikasi kenapa.
+
+   ⚡ THERMODYNAMIC PULSE — WAJIB sebelum SEAL ditutup:
+      Panggil measurement.measure_seal(seal_entry) dengan seal_data lengkap
+      (verdict, actor, epoch, violated_floors, tool_surface_hash_start/end,
+       gaps_remaining, init_tasks, dan session_logs jika ada).
+      Fungsi ini compute ΔS, JS divergence, scar correlation, moving stats.
+      Output pulse direkod ke entropy_registry.shadow.jsonl (ARIFOS_DRY_RUN=1).
+      Pulse line mesti di-embed dalam output SEAL sebagai audit trail.
+      KEGAGALAN memanggil measure_seal() = F11 AUDIT breach.
+      Pulse adalah denyut nadi termodinamik — tanpanya, SEAL tidak lengkap.
 
 Session close chain:
    SEAL -> RECURSIVE_HARDEN -> GAP_SCAFFOLD -> INIT_TASKS ->
