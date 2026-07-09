@@ -814,6 +814,32 @@ class VerdictOutput(BaseModel):
         description="Durable approval object if the verdict requires human sign-off",
     )
 
+    # ── Spine P0: SCT continuity echo ───────────────────────────────────────
+    session_token: str | None = Field(
+        default=None,
+        description="Signed session capability token (sct_v1) for next-hop continuity",
+    )
+    standing_source: str | None = Field(
+        default=None,
+        description="How standing was resolved: sct | store | ephemeral | deny",
+    )
+    apex_scalars: dict[str, Any] | None = Field(
+        default=None,
+        description="APEX scalars carried by the resolved standing (G, C_dark, W3, h)",
+    )
+    authority: str | None = Field(
+        default=None,
+        description="Authority band from resolved standing (OBSERVE_ONLY | LIMITED_MUTATE | FULL | SOVEREIGN)",
+    )
+    actor_verified: bool | None = Field(
+        default=None,
+        description="Whether the actor identity was verified in this standing",
+    )
+    authority_delta: dict[str, Any] | None = Field(
+        default=None,
+        description="Authority delta between token band and tool requirement",
+    )
+
     timestamp: str | None = None
 
 
@@ -1061,4 +1087,30 @@ class SealOutput(BaseModel):
         "— the geological equivalent of a missing layer in the stratigraphic column. "
         "Named after Arif's Layang-Layang scar: work existed, truth was correct, "
         "but attribution was erased.",
+    )
+
+    # ── Spine P0: SCT continuity echo ───────────────────────────────────────
+    session_token: str | None = Field(
+        default=None,
+        description="Signed session capability token (sct_v1) for next-hop continuity",
+    )
+    standing_source: str | None = Field(
+        default=None,
+        description="How standing was resolved: sct | store | ephemeral | deny",
+    )
+    apex_scalars: dict[str, Any] | None = Field(
+        default=None,
+        description="APEX scalars carried by the resolved standing (G, C_dark, W3, h)",
+    )
+    authority: str | None = Field(
+        default=None,
+        description="Authority band from resolved standing (OBSERVE_ONLY | LIMITED_MUTATE | FULL | SOVEREIGN)",
+    )
+    actor_verified: bool | None = Field(
+        default=None,
+        description="Whether the actor identity was verified in this standing",
+    )
+    authority_delta: dict[str, Any] | None = Field(
+        default=None,
+        description="Authority delta between token band and tool requirement",
     )

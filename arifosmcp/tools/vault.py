@@ -8,9 +8,11 @@ Immutable ledger and audit engine.
 from __future__ import annotations
 
 import hashlib
-from typing import Literal
+from typing import Any, Literal
 
-from arifosmcp.runtime.tools import _arif_seal
+# Sync core accepts ack_irreversible. Async MCP wrapper (_arif_seal /
+# _arif_vault_seal_tool) dropped that kwarg 2026-07-07 — do not call it here.
+from arifosmcp.runtime.tools import _arif_vault_seal
 from arifosmcp.schemas.verdict import SealOutput
 
 
@@ -46,38 +48,76 @@ async def arif_seal(
     """
     # ── SCT standing (Spine P0) ──
     _standing_token = session_token
+    _standing_source = None
+    _standing_apex: dict[str, Any] | None = None
+    _standing_actor_verified = False
+    _standing_authority: str | None = None
+    _standing_delta: dict[str, Any] | None = None
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.session_auth import validate_session
+            from arifosmcp.runtime.sct import resolve_standing
 
-            auth = validate_session(session_id, actor_id, session_token=session_token)
-            if auth.get("valid"):
-                _standing_token = auth.get("session_token") or session_token
-                if auth.get("session_id"):
-                    session_id = auth.get("session_id")
-                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
-                    actor_id = auth.get("actor_id")
+            _standing = resolve_standing(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+                allow_store=True,
+            )
+            if _standing.valid:
+                _standing_token = _standing.session_token or session_token
+                _standing_source = _standing.source
+                _standing_apex = dict(_standing.apex) if _standing.apex else None
+                _standing_actor_verified = _standing.actor_verified
+                _standing_authority = _standing.authority
+                _standing_delta = _standing.authority_delta
+                if _standing.session_id:
+                    session_id = _standing.session_id
+                if _standing.actor_id and _standing.actor_id != "anonymous":
+                    actor_id = _standing.actor_id
             elif session_token:
-                return SealOutput(
-                    mode=mode,
-                    status="HOLD",
-                    verdict="HOLD",
-                    reasons=[auth.get("reason") or "L11 AUTH: SCT invalid"],
-                    next_safe_action="Call arif_init and pass session_token",
-                    entry_id="",
-                    actor_id=actor_id,
-                    meta={
-                        "sesat_event": {
-                            "sesat": True,
-                            "type": "TOKEN_INVALID",
-                            "reason": auth.get("reason"),
+                return _echo_standing(
+                    SealOutput(
+                        mode=mode,
+                        status="HOLD",
+                        verdict="HOLD",
+                        reasons=[_standing.reason or "L11 AUTH: SCT invalid"],
+                        next_safe_action="Call arif_init and pass session_token",
+                        entry_id="",
+                        actor_id=actor_id,
+                        meta={
+                            "sesat_event": {
+                                "sesat": True,
+                                "type": "TOKEN_INVALID",
+                                "reason": _standing.reason,
+                            },
+                            "gate": "L11_SCT_GATE",
+                            "session_token_prefix": (session_token or "")[:24],
                         },
-                        "gate": "L11_SCT_GATE",
-                        "session_token_prefix": (session_token or "")[:24],
-                    },
+                    )
                 )
         except Exception:
             pass
+
+    def _echo_standing(out: SealOutput) -> SealOutput:
+        """Echo next-hop SCT continuity onto a direct SealOutput."""
+        if not _standing_token:
+            return out
+        data = out.model_dump(mode="json")
+        data["session_token"] = _standing_token
+        data["standing_source"] = _standing_source or "sct"
+        if _standing_apex is not None:
+            data["apex_scalars"] = _standing_apex
+        data["authority"] = _standing_authority or "OBSERVE_ONLY"
+        data["actor_verified"] = _standing_actor_verified
+        if _standing_delta is not None:
+            data["authority_delta"] = _standing_delta
+        res = data.get("result")
+        if isinstance(res, dict):
+            res.setdefault("session_token", _standing_token)
+            res.setdefault("standing_source", _standing_source or "sct")
+            if _standing_apex is not None:
+                res.setdefault("apex_scalars", _standing_apex)
+        return SealOutput(**data)
 
     # ── GÖDEL-LOCK (Mission 001): No self-certification ──
     # The actor of an IRREVERSIBLE mutation cannot be the final certifier.
@@ -87,36 +127,40 @@ async def arif_seal(
         actor_session_id = actor_id  # the session that originated the action
         # If actor == judge, block self-certification
         if actor_session_id and judge_session_id and actor_session_id == judge_session_id:
-            return SealOutput(
-                mode=mode,
-                verdict="HOLD",
-                payload=payload,
-                status="GODEL_LOCK",
-                chain_ok=False,
-                entry_id="",
-                created_at="",
-                note=(
-                    f"GÖDEL-LOCK: actor {actor_session_id} cannot certify its own "
-                    f"IRREVERSIBLE action. Requires separate judge session (F13 SOVEREIGN or "
-                    f"independent 888 JUDGE). This is an illegal state — the system cannot "
-                    f"self-certify."
-                ),
+            return _echo_standing(
+                SealOutput(
+                    mode=mode,
+                    verdict="HOLD",
+                    payload=payload,
+                    status="GODEL_LOCK",
+                    chain_ok=False,
+                    entry_id="",
+                    created_at="",
+                    note=(
+                        f"GÖDEL-LOCK: actor {actor_session_id} cannot certify its own "
+                        f"IRREVERSIBLE action. Requires separate judge session (F13 SOVEREIGN or "
+                        f"independent 888 JUDGE). This is an illegal state — the system cannot "
+                        f"self-certify."
+                    ),
+                )
             )
         # witness required for IRREVERSIBLE
         if not witness:
-            return SealOutput(
-                mode=mode,
-                verdict="HOLD",
-                payload=payload,
-                status="MISSING_WITNESS",
-                chain_ok=False,
-                entry_id="",
-                created_at="",
-                note=(
-                    "GÖDEL-LOCK: IRREVERSIBLE seal requires a non-null witness. "
-                    "No witness_id provided. An external witness (human, signed sensor, "
-                    "or vault anchor) must attest to this action."
-                ),
+            return _echo_standing(
+                SealOutput(
+                    mode=mode,
+                    verdict="HOLD",
+                    payload=payload,
+                    status="MISSING_WITNESS",
+                    chain_ok=False,
+                    entry_id="",
+                    created_at="",
+                    note=(
+                        "GÖDEL-LOCK: IRREVERSIBLE seal requires a non-null witness. "
+                        "No witness_id provided. An external witness (human, signed sensor, "
+                        "or vault anchor) must attest to this action."
+                    ),
+                )
             )
 
     # ── SABAR cooldown gate (internal hardening) ──
@@ -161,16 +205,18 @@ async def arif_seal(
             cooldown_meta["cooldown"] = "unavailable"
 
     if mode in ("seal_card", "render"):
-        return _build_seal_card(
-            verdict=verdict,
-            floors=floors,
-            witness=witness,
-            trace_root=trace_root,
-            policy_digest=policy_digest,
-            mode=mode,
+        return _echo_standing(
+            _build_seal_card(
+                verdict=verdict,
+                floors=floors,
+                witness=witness,
+                trace_root=trace_root,
+                policy_digest=policy_digest,
+                mode=mode,
+            )
         )
 
-    result = _arif_seal(
+    result = _arif_vault_seal(
         mode=mode,
         payload=payload,
         session_id=session_id,
@@ -218,7 +264,7 @@ async def arif_seal(
                 f"F{int(v[1:]):02d}" if v.startswith("L") and v[1:].isdigit() else v
                 for v in _meta["violated_laws"]
             ]
-    return SealOutput(**result)
+    return _echo_standing(SealOutput(**result))
 
 
 def _build_seal_card(

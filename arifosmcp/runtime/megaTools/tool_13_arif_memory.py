@@ -180,33 +180,112 @@ async def arif_memory(
     from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
     # ── SCT standing (Spine P0) ──
+    # Define echo FIRST so every return path can stamp continuity.
+    _standing: Any = None
+    _standing_token = session_token
+
+    def _echo_standing(out: Any) -> Any:
+        """Echo next-hop SCT continuity onto RuntimeEnvelope or compatible dict.
+
+        RuntimeEnvelope reserves `authority` for CanonicalAuthority, so the
+        string band is stamped as `authority_band`.
+        """
+        token = None
+        source = "sct"
+        apex = None
+        actor_verified = False
+        authority = None
+        authority_delta = None
+        if _standing is not None and getattr(_standing, "valid", False):
+            token = _standing.session_token or _standing_token
+            source = _standing.source or "sct"
+            apex = dict(_standing.apex) if _standing.apex else None
+            actor_verified = bool(_standing.actor_verified)
+            authority = _standing.authority
+            authority_delta = _standing.authority_delta
+        elif _standing_token:
+            token = _standing_token
+        if not token:
+            return out
+
+        if isinstance(out, RuntimeEnvelope):
+            out.session_token = token
+            out.standing_source = source
+            out.apex_scalars = apex
+            out.actor_verified = actor_verified
+            out.authority_band = authority
+            out.authority_delta = authority_delta
+            if isinstance(out.payload, dict):
+                out.payload.setdefault("session_token", token)
+                out.payload.setdefault("standing_source", source)
+                if apex is not None:
+                    out.payload.setdefault("apex_scalars", apex)
+            return out
+
+        if isinstance(out, dict):
+            out = dict(out)
+            out["session_token"] = token
+            out["standing_source"] = source
+            if apex is not None:
+                out["apex_scalars"] = apex
+            out["actor_verified"] = actor_verified
+            if authority is not None:
+                out["authority_band"] = authority
+            if authority_delta is not None:
+                out["authority_delta"] = authority_delta
+            return out
+
+        # Pydantic / ToolResult — best-effort attribute stamp
+        for attr, val in (
+            ("session_token", token),
+            ("standing_source", source),
+            ("apex_scalars", apex),
+            ("actor_verified", actor_verified),
+            ("authority_band", authority),
+            ("authority_delta", authority_delta),
+        ):
+            if hasattr(out, attr):
+                try:
+                    setattr(out, attr, val)
+                except Exception:
+                    pass
+        return out
+
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.session_auth import validate_session
+            from arifosmcp.runtime.sct import resolve_standing
 
-            auth = validate_session(session_id, actor_id, session_token=session_token)
-            if auth.get("valid"):
-                session_token = auth.get("session_token") or session_token
-                if auth.get("session_id"):
-                    session_id = auth.get("session_id")
-                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
-                    actor_id = auth.get("actor_id")
+            _standing = resolve_standing(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+                allow_store=True,
+            )
+            if _standing.valid:
+                session_token = _standing.session_token or session_token
+                _standing_token = session_token
+                if _standing.session_id:
+                    session_id = _standing.session_id
+                if _standing.actor_id and _standing.actor_id != "anonymous":
+                    actor_id = _standing.actor_id
             elif session_token:
-                return forge_verdict(
-                    tool_id="arif_memory",
-                    canonical_tool_name="arif_memory",
-                    stage="555m",
-                    payload={
-                        "sesat_event": {
-                            "sesat": True,
-                            "type": "TOKEN_INVALID",
-                            "reason": auth.get("reason"),
+                return _echo_standing(
+                    forge_verdict(
+                        tool_id="arif_memory",
+                        canonical_tool_name="arif_memory",
+                        stage="555m",
+                        payload={
+                            "sesat_event": {
+                                "sesat": True,
+                                "type": "TOKEN_INVALID",
+                                "reason": _standing.reason,
+                            },
+                            "session_token": session_token,
                         },
-                        "session_token": session_token,
-                    },
-                    session_id=session_id,
-                    override_code=VerdictCode.HOLD,
-                    message=auth.get("reason") or "L11 AUTH: SCT invalid",
+                        session_id=session_id,
+                        override_code=VerdictCode.HOLD,
+                        message=_standing.reason or "L11 AUTH: SCT invalid",
+                    )
                 )
         except Exception:
             pass
@@ -226,48 +305,62 @@ async def arif_memory(
             logger.info(f"[ARIF_MEMORY] legacy mode '{mode}' → '{resolved}'")
             mode = resolved
         else:
-            return forge_verdict(
-                tool_id="arif_memory",
-                canonical_tool_name="arif_memory",
-                stage="555m",
-                payload={"note": f"unknown mode: {mode}"},
-                session_id=session_id,
-                override_code=VerdictCode.VOID,
-                message=f"arif_memory: unknown mode '{mode}'",
+            return _echo_standing(
+                forge_verdict(
+                    tool_id="arif_memory",
+                    canonical_tool_name="arif_memory",
+                    stage="555m",
+                    payload={"note": f"unknown mode: {mode}"},
+                    session_id=session_id,
+                    override_code=VerdictCode.VOID,
+                    message=f"arif_memory: unknown mode '{mode}'",
+                )
             )
 
     if mode not in ARIF_MEMORY_MODES:
-        return forge_verdict(
-            tool_id="arif_memory",
-            canonical_tool_name="arif_memory",
-            stage="555m",
-            payload={"note": "mode required"},
-            session_id=session_id,
-            override_code=VerdictCode.SABAR,
-            message=f"arif_memory: mode must be one of {ARIF_MEMORY_MODES}",
+        return _echo_standing(
+            forge_verdict(
+                tool_id="arif_memory",
+                canonical_tool_name="arif_memory",
+                stage="555m",
+                payload={"note": "mode required"},
+                session_id=session_id,
+                override_code=VerdictCode.SABAR,
+                message=f"arif_memory: mode must be one of {ARIF_MEMORY_MODES}",
+            )
         )
 
     # ── 1. Action-class enforcement: lease + human_ack ──
     if MODE_REQUIRES_LEASE.get(mode) and not lease_id:
-        return forge_verdict(
-            tool_id="arif_memory",
-            canonical_tool_name="arif_memory",
-            stage="555m",
-            payload={"mode": mode, "note": "lease required"},
-            session_id=session_id,
-            override_code=VerdictCode.SABAR,
-            message=f"arif_memory: mode='{mode}' requires lease_id (action class: {MODE_ACTION_CLASS[mode]})",
+        return _echo_standing(
+            forge_verdict(
+                tool_id="arif_memory",
+                canonical_tool_name="arif_memory",
+                stage="555m",
+                payload={"mode": mode, "note": "lease required"},
+                session_id=session_id,
+                override_code=VerdictCode.SABAR,
+                message=(
+                    f"arif_memory: mode='{mode}' requires lease_id "
+                    f"(action class: {MODE_ACTION_CLASS[mode]})"
+                ),
+            )
         )
 
     if MODE_REQUIRES_HUMAN_ACK.get(mode) and not human_approval:
-        return forge_verdict(
-            tool_id="arif_memory",
-            canonical_tool_name="arif_memory",
-            stage="555m",
-            payload={"mode": mode, "note": "human ack required (L13 SOVEREIGN)"},
-            session_id=session_id,
-            override_code=VerdictCode.HOLD,
-            message=f"arif_memory: mode='{mode}' requires human_approval=True (L13 SOVEREIGN)",
+        return _echo_standing(
+            forge_verdict(
+                tool_id="arif_memory",
+                canonical_tool_name="arif_memory",
+                stage="555m",
+                payload={"mode": mode, "note": "human ack required (L13 SOVEREIGN)"},
+                session_id=session_id,
+                override_code=VerdictCode.HOLD,
+                message=(
+                    f"arif_memory: mode='{mode}' requires human_approval=True "
+                    f"(L13 SOVEREIGN)"
+                ),
+            )
         )
 
     # ── 2. B3: truth_class enforcement on remember ──
@@ -276,18 +369,23 @@ async def arif_memory(
         if isinstance(truth_class, dict):
             confidence = truth_class.get("confidence", 1.0)
             if confidence < 0.3 and not human_approval:
-                return forge_verdict(
-                    tool_id="arif_memory",
-                    canonical_tool_name="arif_memory",
-                    stage="555m",
-                    payload={
-                        "mode": mode,
-                        "confidence": confidence,
-                        "note": "B3: confidence<0.3 requires human_ack",
-                    },
-                    session_id=session_id,
-                    override_code=VerdictCode.SABAR,
-                    message=f"arif_memory: B3 violation — confidence={confidence} < 0.3 and no human_ack",
+                return _echo_standing(
+                    forge_verdict(
+                        tool_id="arif_memory",
+                        canonical_tool_name="arif_memory",
+                        stage="555m",
+                        payload={
+                            "mode": mode,
+                            "confidence": confidence,
+                            "note": "B3: confidence<0.3 requires human_ack",
+                        },
+                        session_id=session_id,
+                        override_code=VerdictCode.SABAR,
+                        message=(
+                            f"arif_memory: B3 violation — confidence={confidence} "
+                            f"< 0.3 and no human_ack"
+                        ),
+                    )
                 )
 
     # ── 3. B5: revise-supersede enforcement ──
@@ -295,36 +393,46 @@ async def arif_memory(
         resolution_kind = payload.get("resolution_kind", "supersede")
         if resolution_kind in ("supersede", "merge"):
             if not payload.get("supersedes_memory_id"):
-                return forge_verdict(
-                    tool_id="arif_memory",
-                    canonical_tool_name="arif_memory",
-                    stage="555m",
-                    payload={
-                        "mode": mode,
-                        "resolution_kind": resolution_kind,
-                        "note": "B5: supersedes_memory_id required for supersede/merge",
-                    },
-                    session_id=session_id,
-                    override_code=VerdictCode.SABAR,
-                    message=f"arif_memory: B5 violation — {resolution_kind} requires supersedes_memory_id",
+                return _echo_standing(
+                    forge_verdict(
+                        tool_id="arif_memory",
+                        canonical_tool_name="arif_memory",
+                        stage="555m",
+                        payload={
+                            "mode": mode,
+                            "resolution_kind": resolution_kind,
+                            "note": "B5: supersedes_memory_id required for supersede/merge",
+                        },
+                        session_id=session_id,
+                        override_code=VerdictCode.SABAR,
+                        message=(
+                            f"arif_memory: B5 violation — {resolution_kind} "
+                            f"requires supersedes_memory_id"
+                        ),
+                    )
                 )
 
     # ── 4. A4: v1 vault tombstone gating on attest ──
     if mode == "attest":
         target_version = payload.get("vault_version") or payload.get("target_version")
         if target_version == "v1":
-            return forge_verdict(
-                tool_id="arif_memory",
-                canonical_tool_name="arif_memory",
-                stage="555m",
-                payload={
-                    "mode": mode,
-                    "vault_version": "v1",
-                    "note": "A4: v1 vault FROZEN per sovereign ruling 2026-06-05",
-                },
-                session_id=session_id,
-                override_code=VerdictCode.SABAR,
-                message="arif_memory: A4 violation — v1 vault is FROZEN, no new seals or attestations",
+            return _echo_standing(
+                forge_verdict(
+                    tool_id="arif_memory",
+                    canonical_tool_name="arif_memory",
+                    stage="555m",
+                    payload={
+                        "mode": mode,
+                        "vault_version": "v1",
+                        "note": "A4: v1 vault FROZEN per sovereign ruling 2026-06-05",
+                    },
+                    session_id=session_id,
+                    override_code=VerdictCode.SABAR,
+                    message=(
+                        "arif_memory: A4 violation — v1 vault is FROZEN, "
+                        "no new seals or attestations"
+                    ),
+                )
             )
 
     # ── 5. Dispatch to backend ──
@@ -352,17 +460,21 @@ async def arif_memory(
         }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)
-            return _wrap_result(res_dict, mode=mode, session_id=session_id)
+            return _echo_standing(
+                _wrap_result(res_dict, mode=mode, session_id=session_id)
+            )
         except Exception as exc:
             logger.exception(f"[ARIF_MEMORY] {mode} handler failed: {exc}")
-            return forge_verdict(
-                tool_id="arif_memory",
-                canonical_tool_name="arif_memory",
-                stage="555m",
-                payload={"mode": mode, "error": str(exc)},
-                session_id=session_id,
-                override_code=VerdictCode.SABAR,
-                message=f"arif_memory: {mode} handler failed: {exc}",
+            return _echo_standing(
+                forge_verdict(
+                    tool_id="arif_memory",
+                    canonical_tool_name="arif_memory",
+                    stage="555m",
+                    payload={"mode": mode, "error": str(exc)},
+                    session_id=session_id,
+                    override_code=VerdictCode.SABAR,
+                    message=f"arif_memory: {mode} handler failed: {exc}",
+                )
             )
 
     # Day 4 polish (2026-06-21): SKIP broken HARDENED_DISPATCH_MAP path.
@@ -372,7 +484,7 @@ async def arif_memory(
     from arifosmcp.runtime.tools_internal import engineering_memory_dispatch_impl
 
     try:
-        return await engineering_memory_dispatch_impl(
+        result = await engineering_memory_dispatch_impl(
             mode=_map_mode_to_engineering(mode, payload),
             payload=payload,
             auth_context=None,
@@ -380,16 +492,19 @@ async def arif_memory(
             dry_run=False,
             ctx=ctx,
         )
+        return _echo_standing(result)
     except Exception as exc:
         logger.exception(f"[ARIF_MEMORY] backend dispatch failed: {exc}")
-        return forge_verdict(
-            tool_id="arif_memory",
-            canonical_tool_name="arif_memory",
-            stage="555m",
-            payload={"mode": mode, "error": str(exc)},
-            session_id=session_id,
-            override_code=VerdictCode.SABAR,
-            message=f"arif_memory: backend dispatch failed: {exc}",
+        return _echo_standing(
+            forge_verdict(
+                tool_id="arif_memory",
+                canonical_tool_name="arif_memory",
+                stage="555m",
+                payload={"mode": mode, "error": str(exc)},
+                session_id=session_id,
+                override_code=VerdictCode.SABAR,
+                message=f"arif_memory: backend dispatch failed: {exc}",
+            )
         )
 
 

@@ -351,6 +351,16 @@ class RuntimeEnvelope(BaseModel):
     status: RuntimeStatus = RuntimeStatus.SUCCESS
     authority: CanonicalAuthority | None = None
 
+    # ── Spine P0: SCT continuity echo ───────────────────────────────────────
+    # authority is reserved for CanonicalAuthority; authority_band holds the
+    # string band from resolved SCT standing to avoid type collision.
+    session_token: str | None = None
+    standing_source: str | None = None
+    apex_scalars: dict[str, Any] | None = None
+    authority_band: str | None = None
+    actor_verified: bool | None = None
+    authority_delta: dict[str, Any] | None = None
+
     allowed_next_tools: list[str] = Field(default_factory=list)
     transitions: list[dict[str, Any]] = Field(default_factory=list)
     operator_summary: dict[str, Any] = Field(default_factory=dict)

@@ -96,58 +96,98 @@ async def arif_forge(
     """
     # ── SCT standing (Spine P0) ──
     _standing_token = session_token
+    _standing_source = None
+    _standing_apex: dict[str, Any] | None = None
+    _standing_actor_verified = False
+    _standing_authority: str | None = None
+    _standing_delta: dict[str, Any] | None = None
     if session_token or session_id:
         try:
-            from arifosmcp.runtime.session_auth import validate_session
+            from arifosmcp.runtime.sct import resolve_standing
 
-            auth = validate_session(session_id, actor_id, session_token=session_token)
-            if auth.get("valid"):
-                _standing_token = auth.get("session_token") or session_token
-                if auth.get("session_id"):
-                    session_id = auth.get("session_id")
-                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
-                    actor_id = auth.get("actor_id")
+            _standing = resolve_standing(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+                allow_store=True,
+            )
+            if _standing.valid:
+                _standing_token = _standing.session_token or session_token
+                _standing_source = _standing.source
+                _standing_apex = dict(_standing.apex) if _standing.apex else None
+                _standing_actor_verified = _standing.actor_verified
+                _standing_authority = _standing.authority
+                _standing_delta = _standing.authority_delta
+                if _standing.session_id:
+                    session_id = _standing.session_id
+                if _standing.actor_id and _standing.actor_id != "anonymous":
+                    actor_id = _standing.actor_id
             elif session_token:
                 _meta = {
                     "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
-                    "reason": auth.get("reason") or "L11 AUTH: SCT invalid",
+                    "reason": _standing.reason or "L11 AUTH: SCT invalid",
                     "sesat_event": {
                         "sesat": True,
                         "type": "TOKEN_INVALID",
-                        "reason": auth.get("reason"),
+                        "reason": _standing.reason,
                     },
                     "violated_laws": ["L11"],
                     "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
                 }
                 _add_floor_compat(_meta)
-                return ForgeOutput(
-                    status="HOLD",
-                    result={},
-                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
-                    meta=_meta,
-                    timestamp=datetime.now(UTC).isoformat(),
+                return _echo_standing(
+                    ForgeOutput(
+                        status="HOLD",
+                        result={},
+                        manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                        meta=_meta,
+                        timestamp=datetime.now(UTC).isoformat(),
+                    )
                 )
         except Exception:
             pass
 
+    def _echo_standing(out: ForgeOutput) -> ForgeOutput:
+        """Echo next-hop SCT continuity onto a direct ForgeOutput."""
+        if not _standing_token:
+            return out
+        data = out.model_dump(mode="json")
+        data["session_token"] = _standing_token
+        data["standing_source"] = _standing_source or "sct"
+        if _standing_apex is not None:
+            data["apex_scalars"] = _standing_apex
+        data["authority"] = _standing_authority or "OBSERVE_ONLY"
+        data["actor_verified"] = _standing_actor_verified
+        if _standing_delta is not None:
+            data["authority_delta"] = _standing_delta
+        res = data.get("result")
+        if isinstance(res, dict):
+            res.setdefault("session_token", _standing_token)
+            res.setdefault("standing_source", _standing_source or "sct")
+            if _standing_apex is not None:
+                res.setdefault("apex_scalars", _standing_apex)
+        return ForgeOutput(**data)
+
     # Amanah: dry_run never mutates — structured receipt only
     if dry_run:
-        return ForgeOutput(
-            status="HOLD",
-            result={
-                "dry_run": True,
-                "mode": mode,
-                "session_id": session_id,
-                "session_token": _standing_token,
-                "actor_id": actor_id,
-                "note": "dry_run — no host mutation; pass dry_run=false after SEAL",
-            },
-            manifest=ForgeManifest(status=ManifestStatus.HOLD),
-            meta={
-                "dry_run": True,
-                "standing_source": "sct" if _standing_token else "none",
-            },
-            timestamp=datetime.now(UTC).isoformat(),
+        return _echo_standing(
+            ForgeOutput(
+                status="HOLD",
+                result={
+                    "dry_run": True,
+                    "mode": mode,
+                    "session_id": session_id,
+                    "session_token": _standing_token,
+                    "actor_id": actor_id,
+                    "note": "dry_run — no host mutation; pass dry_run=false after SEAL",
+                },
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta={
+                    "dry_run": True,
+                    "standing_source": _standing_source or ("sct" if _standing_token else "none"),
+                },
+                timestamp=datetime.now(UTC).isoformat(),
+            )
         )
 
     # ── v3.1: Mode classification gate ────────────────────────────────────────
@@ -555,7 +595,7 @@ async def arif_forge(
             result.meta["per_call_signature_receipt"] = sig_receipt
         elif hasattr(result, "result") and isinstance(result.result, dict):
             result.result["per_call_signature_receipt"] = sig_receipt
-    return result
+    return _echo_standing(result)
 
 
 def _register_forge_cooldown(
