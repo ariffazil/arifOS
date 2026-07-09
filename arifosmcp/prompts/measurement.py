@@ -37,8 +37,48 @@ DRY_RUN_ENV_VAR = "ARIFOS_DRY_RUN"  # set to "1" to write to shadow only
 
 
 def is_dry_run() -> bool:
-    """Check ARIFOS_DRY_RUN env var — if set, metrics go to shadow registry."""
-    return os.environ.get(DRY_RUN_ENV_VAR, "0") == "1"
+    """Shadow-first until calibrated.
+
+    ARIFOS_DRY_RUN default **1** (shadow registry only).
+    Set ARIFOS_DRY_RUN=0 only after promote_shadow() succeeds on ≥3 stable seals.
+    """
+    return os.environ.get(DRY_RUN_ENV_VAR, "1") == "1"
+
+
+def _scar_match_count(entry: dict) -> int:
+    """scar_matches is an int in measure_seal output; tolerate legacy list form."""
+    sm = entry.get("scar_matches", 0)
+    if isinstance(sm, list):
+        return len(sm)
+    try:
+        return int(sm or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def compute_tool_surface_hash(tools: list[Any]) -> str:
+    """
+    SHA-256 of sorted tool surface for ΔS_proxy.
+
+    Accepts list[str] tool names, or list of (name, gate_class) / dicts
+    with keys name/gate_class.
+    """
+    import hashlib
+
+    parts: list[str] = []
+    for t in tools:
+        if isinstance(t, dict):
+            name = str(t.get("name") or t.get("tool_name") or "")
+            gate = str(t.get("gate_class") or t.get("gate") or "")
+            parts.append(f"{name}:{gate}" if gate else name)
+        elif isinstance(t, (list, tuple)) and len(t) >= 1:
+            name = str(t[0])
+            gate = str(t[1]) if len(t) > 1 else ""
+            parts.append(f"{name}:{gate}" if gate else name)
+        else:
+            parts.append(str(t))
+    material = "|".join(sorted(parts))
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
 
 
 # ─── Core Computation ────────────────────────────────────────────────────────
@@ -217,26 +257,26 @@ def compute_moving_statistics(registry_entries: list[dict]) -> dict:
     Used for pivotal_threshold_deviation — how far current ΔS is from
     the moving average, in standard deviations.
     """
+    _default = {
+        "moving_avg_delta_s": 0.0,
+        "moving_std_delta_s": 0.0,
+        "z_score_delta_s": 0.0,
+        "pivotal_threshold_deviation": 0.0,
+        "convergence_rate": 1.0,
+    }
+
     if len(registry_entries) < 2:
-        return {
-            "moving_avg_delta_s": 0.0,
-            "moving_std_delta_s": 0.0,
-            "z_score_delta_s": 0.0,
-            "n": len(registry_entries),
-            "convergence_rate": 1.0,
-        }
+        result = dict(_default)
+        result["n"] = len(registry_entries)
+        return result
 
     recent = registry_entries[-BASELINE_WINDOW:]
     deltas = [e.get("delta_s", 0.0) for e in recent if e.get("delta_s") is not None]
 
     if not deltas:
-        return {
-            "moving_avg_delta_s": 0.0,
-            "moving_std_delta_s": 0.0,
-            "z_score_delta_s": 0.0,
-            "n": 0,
-            "convergence_rate": 1.0,
-        }
+        result = dict(_default)
+        result["n"] = 0
+        return result
 
     n = len(deltas)
     avg = sum(deltas) / n
@@ -287,40 +327,47 @@ def read_shadow() -> list[dict]:
     return read_registry(SHADOW_REGISTRY_PATH)
 
 
-def append_to_registry(metrics: dict, force_canon: bool = False) -> None:
+def append_to_registry(
+    metrics: dict,
+    force_canon: bool = False,
+    dry_run: bool | None = None,
+) -> Path:
     """
     Append a single metrics entry.
 
-    Normal mode — respects ARIFOS_DRY_RUN:
-      - dry-run=1 → writes to shadow registry ONLY
-      - dry-run=0 → writes to canon registry
+    Normal mode — respects ARIFOS_DRY_RUN (or explicit dry_run override):
+      - dry-run → writes to shadow registry ONLY
+      - not dry-run → writes to canon registry
 
     force_canon=True bypasses dry-run (used by promote_shadow).
+    Returns the path written.
     """
-    if force_canon or not is_dry_run():
-        REGISTRY_DIR.mkdir(parents=True, exist_ok=True)
-        line = json.dumps(metrics, sort_keys=True, default=str) + "\n"
-        with open(REGISTRY_PATH, "a") as f:
-            f.write(line)
-    else:
-        # Dry-run mode: write to shadow
+    use_shadow = (not force_canon) and (is_dry_run() if dry_run is None else bool(dry_run))
+    line = json.dumps(metrics, sort_keys=True, default=str) + "\n"
+    if use_shadow:
         SHADOW_REGISTRY_PATH.parent.mkdir(parents=True, exist_ok=True)
-        line = json.dumps(metrics, sort_keys=True, default=str) + "\n"
         with open(SHADOW_REGISTRY_PATH, "a") as f:
             f.write(line)
-        print(f"[DRY-RUN] Metrics written to shadow: {SHADOW_REGISTRY_PATH}")
+        return SHADOW_REGISTRY_PATH
+
+    REGISTRY_DIR.mkdir(parents=True, exist_ok=True)
+    with open(REGISTRY_PATH, "a") as f:
+        f.write(line)
+    return REGISTRY_PATH
 
 
 def promote_shadow(keep_shadow: bool = False, force: bool = False) -> int:
     """
     Promote shadow registry entries to canon registry.
 
-    After promotion, shadow entries are either deleted (default) or kept
-    if keep_shadow=True. Returns number of promoted entries.
+    Guards (unless force=True):
+      1. 3 ≤ n ≤ 5 shadow entries
+      2. violated_floors empty on all entries
+      3. scar_matches == 0 on all entries (int or list-tolerant)
+      4. std(ΔS) < 0.1 and std(JS) < 0.1
 
-    Only promotes if there are 3-5 entries in the shadow registry,
-    and they are stable (ΔS, JS, violated_floors, scar_matches are stable/clean).
-    Pass force=True to bypass stability checks.
+    After promotion, shadow is deleted unless keep_shadow=True.
+    Returns number of promoted entries (0 if blocked).
     """
     shadow_entries = read_shadow()
     if not shadow_entries:
@@ -328,43 +375,37 @@ def promote_shadow(keep_shadow: bool = False, force: bool = False) -> int:
 
     n = len(shadow_entries)
     if not force:
-        # Enforce 3 to 5 seals
         if not (3 <= n <= 5):
             print(f"[PROMOTION] Blocked: Shadow registry has {n} entries (expected 3 to 5).")
             return 0
 
-        # 1. Check violated_floors (must be clean)
-        has_violations = any(len(e.get("violated_floors", [])) > 0 for e in shadow_entries)
+        has_violations = any(len(e.get("violated_floors") or []) > 0 for e in shadow_entries)
         if has_violations:
             print("[PROMOTION] Blocked: Some shadow entries contain violated floors.")
             return 0
 
-        # 2. Check scar matches (must be clean/empty)
-        has_scars = any(len(e.get("scar_matches", [])) > 0 for e in shadow_entries)
+        has_scars = any(_scar_match_count(e) > 0 for e in shadow_entries)
         if has_scars:
             print("[PROMOTION] Blocked: Some shadow entries contain scar correlation matches.")
             return 0
 
-        # 3. Check stability of ΔS (delta_s)
-        deltas = [e.get("delta_s", 0.0) for e in shadow_entries]
+        deltas = [float(e.get("delta_s") or 0.0) for e in shadow_entries]
         avg_ds = sum(deltas) / n
-        var_ds = sum((x - avg_ds) ** 2 for x in deltas) / n
-        std_ds = math.sqrt(var_ds)
+        std_ds = math.sqrt(sum((x - avg_ds) ** 2 for x in deltas) / n)
         if std_ds >= 0.1:
             print(f"[PROMOTION] Blocked: ΔS is unstable (std={std_ds:.4f} >= 0.1).")
             return 0
 
-        # 4. Check stability of JS (js_vs_baseline)
-        js_vals = [e.get("js_vs_baseline", 0.0) for e in shadow_entries]
+        js_vals = [float(e.get("js_vs_baseline") or 0.0) for e in shadow_entries]
         avg_js = sum(js_vals) / n
-        var_js = sum((x - avg_js) ** 2 for x in js_vals) / n
-        std_js = math.sqrt(var_js)
+        std_js = math.sqrt(sum((x - avg_js) ** 2 for x in js_vals) / n)
         if std_js >= 0.1:
             print(f"[PROMOTION] Blocked: JS is unstable (std={std_js:.4f} >= 0.1).")
             return 0
 
         print(
-            f"[PROMOTION] Stability checks passed (n={n}, std_ds={std_ds:.4f}, std_js={std_js:.4f}). Promoting..."
+            f"[PROMOTION] Stability checks passed "
+            f"(n={n}, std_ds={std_ds:.4f}, std_js={std_js:.4f}). Promoting..."
         )
 
     promoted = 0
@@ -372,10 +413,8 @@ def promote_shadow(keep_shadow: bool = False, force: bool = False) -> int:
         append_to_registry(entry, force_canon=True)
         promoted += 1
 
-    # Clear shadow
-    if not keep_shadow:
-        if SHADOW_REGISTRY_PATH.exists():
-            SHADOW_REGISTRY_PATH.unlink()
+    if not keep_shadow and SHADOW_REGISTRY_PATH.exists():
+        SHADOW_REGISTRY_PATH.unlink()
 
     return promoted
 
@@ -455,8 +494,16 @@ def measure_seal(
     registry = read_registry()
     moving = compute_moving_statistics(registry)
 
-    # Resolve dry-run state
+    # Resolve dry-run state (explicit arg wins over env)
     _dry = dry_run if dry_run is not None else is_dry_run()
+
+    verdict = str(seal_entry.get("verdict", "UNKNOWN")).upper()
+    violated = list(scar["violated_floors"] or seal_entry.get("violated_floors") or [])
+
+    # F11: HOLD without violated_floors is an audit breach (recorded, not raised)
+    f11_breach: str | None = None
+    if verdict == "HOLD" and not violated:
+        f11_breach = "violated_floors_required_for_HOLD"
 
     # 6. Build metrics envelope
     metrics = {
@@ -464,7 +511,7 @@ def measure_seal(
         "session_id": seal_entry.get("session_id", ""),
         "seq": seal_entry.get("seq"),
         "actor": seal_entry.get("actor", "unknown"),
-        "verdict": seal_entry.get("verdict", "UNKNOWN"),
+        "verdict": verdict,
         "epoch": seal_entry.get("epoch", timestamp),
         # Core thermodynamic metrics
         "delta_s": entropy["delta_s"],
@@ -474,8 +521,8 @@ def measure_seal(
         # Gate metrics
         "js_vs_baseline": fisher["js_vs_baseline"],
         "critical_gaps": fisher["critical_gaps"],
-        "violated_floors": scar["violated_floors"],
-        "scar_matches": scar["scar_matches"],
+        "violated_floors": violated,
+        "scar_matches": int(scar["scar_matches"] or 0),
         "gate_fired": scar["gate_fired"],
         # Task metrics
         "acc_gap": tasks["acc_gap"],
@@ -496,15 +543,107 @@ def measure_seal(
         # Dry-run metadata
         "dry_run": _dry,
         "shadow_path": str(SHADOW_REGISTRY_PATH) if _dry else None,
+        "f11_breach": f11_breach,
     }
 
-    # Append to registry
-    append_to_registry(metrics)
+    written = append_to_registry(metrics, dry_run=_dry)
+    metrics["registry_written"] = str(written)
 
-    if not is_dry_run():
-        promote_shadow(keep_shadow=False, force=False)
+    # When leaving dry-run (canon writes), try promote any ready shadow batch
+    if not _dry:
+        try:
+            promoted = promote_shadow(keep_shadow=False, force=False)
+            metrics["shadow_promoted"] = promoted
+        except Exception as exc:  # never block seal path
+            metrics["shadow_promote_error"] = str(exc)
 
     return metrics
+
+
+def attach_thermodynamic_pulse(
+    result: dict,
+    *,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    payload: str | dict | None = None,
+    dry_run: bool | None = None,
+) -> dict:
+    """
+    Kernel helper: after a successful arif_seal, compute pulse + embed on result.
+
+    Never raises — failures become f11_pulse_error on the result (F11 visible).
+    """
+    try:
+        content: dict[str, Any] = {}
+        if isinstance(payload, dict):
+            content = payload
+        elif isinstance(payload, str) and payload.strip():
+            try:
+                parsed = json.loads(payload)
+                if isinstance(parsed, dict):
+                    content = parsed
+            except (json.JSONDecodeError, TypeError):
+                content = {}
+
+        seal_entry = {
+            "session_id": session_id or content.get("session_id") or result.get("session_id") or "",
+            "actor": actor_id or content.get("actor") or result.get("actor_id") or "unknown",
+            "verdict": (
+                content.get("verdict")
+                or result.get("verdict")
+                or (result.get("result") or {}).get("verdict")
+                or "SEAL"
+            ),
+            "epoch": result.get("created_at") or content.get("epoch") or datetime.now(timezone.utc).isoformat(),
+            "violated_floors": content.get("violated_floors") or content.get("floors_violated") or [],
+            "tool_surface_hash_start": content.get("tool_surface_hash_start"),
+            "tool_surface_hash_end": content.get("tool_surface_hash_end"),
+            "gaps_remaining": content.get("gaps_remaining"),
+            "init_tasks": content.get("init_tasks"),
+            "seq": result.get("entry_id") or content.get("seq"),
+            "gaps": content.get("gaps") or [],
+        }
+        pre = content.get("pre_state") or {}
+        post = content.get("post_state") or {}
+        # If only hashes present, still record; entropy falls back to char_mass
+        metrics = measure_seal(
+            seal_entry,
+            pre_state=pre if isinstance(pre, dict) else {},
+            post_state=post if isinstance(post, dict) else {},
+            session_logs=content.get("session_logs") if isinstance(content.get("session_logs"), dict) else None,
+            dry_run=dry_run,
+        )
+        pulse = summary_line(metrics)
+        result = dict(result)
+        result["thermodynamic_pulse"] = pulse
+        result["thermodynamic_metrics"] = {
+            "delta_s": metrics.get("delta_s"),
+            "delta_s_method": metrics.get("delta_s_method"),
+            "js_vs_baseline": metrics.get("js_vs_baseline"),
+            "violated_floors": metrics.get("violated_floors"),
+            "scar_matches": metrics.get("scar_matches"),
+            "dry_run": metrics.get("dry_run"),
+            "f11_breach": metrics.get("f11_breach"),
+            "tool_surface_hash_start": metrics.get("tool_surface_hash_start"),
+            "tool_surface_hash_end": metrics.get("tool_surface_hash_end"),
+            "registry_written": metrics.get("registry_written"),
+        }
+        if metrics.get("f11_breach"):
+            result["f11_audit"] = {
+                "breach": metrics["f11_breach"],
+                "floor": "F11_AUDIT",
+                "remedy": "HOLD entries must list violated_floors non-empty",
+            }
+        return result
+    except Exception as exc:
+        out = dict(result)
+        out["thermodynamic_pulse_error"] = str(exc)
+        out["f11_audit"] = {
+            "breach": "measure_seal_failed",
+            "floor": "F11_AUDIT",
+            "error": str(exc),
+        }
+        return out
 
 
 def summary_line(metrics: dict, show_dry_run: bool = True) -> str:
@@ -583,11 +722,19 @@ if __name__ == "__main__":
     p = {"SEAL": 0.8, "HOLD": 0.2}
     q = {"SEAL": 0.5, "HOLD": 0.5}
     js = js_divergence(p, q)
-    print(f"JS(P||Q) = {js:.4f} bits (expect ~0.12)")
+    print(f"JS(P||Q) = {js:.4f} bits (expect ~0.073)")
+
+    # Tool surface hash determinism
+    h1 = compute_tool_surface_hash(["b", "a"])
+    h2 = compute_tool_surface_hash(["a", "b"])
+    assert h1 == h2, "tool surface hash must be order-invariant"
+    print(f"tool_surface_hash ok: {h1[:16]}…")
 
     # Measure current registry state (if any)
     registry = read_registry()
     print(f"\nRegistry: {len(registry)} entries at {REGISTRY_PATH}")
+    print(f"Shadow:   {len(read_shadow())} entries at {SHADOW_REGISTRY_PATH}")
+    print(f"dry_run default: {is_dry_run()}")
 
     if registry:
         print("\n" + print_registry_summary(5))
