@@ -46,6 +46,7 @@ async def arif_forge(
     query: str | None = None,
     artifact_id: str | None = None,
     session_id: str | None = None,
+    session_token: str | None = None,
     ack_irreversible: bool = False,
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
@@ -64,6 +65,7 @@ async def arif_forge(
     # verified. AGI_KERNEL_READINESS_GATE_001 Tier 5.
     actor_signature: str | None = None,
     nonce: str | None = None,
+    dry_run: bool = False,
 ) -> ForgeOutput:
     """
     010_FORGE_EXECUTE: Sovereign execution bridge to A-FORGE.
@@ -89,7 +91,65 @@ async def arif_forge(
             but not verified. F13 ratifies enforcement.
         nonce: RESERVED — replay-prevention nonce. Must accompany
             actor_signature if either is provided. F1 AMANAH.
+        dry_run: Amanah — when True, return structured plan/HOLD without mutation.
+        session_token: SCT (sct_v1) preferred standing from arif_init.
     """
+    # ── SCT standing (Spine P0) ──
+    _standing_token = session_token
+    if session_token or session_id:
+        try:
+            from arifosmcp.runtime.session_auth import validate_session
+
+            auth = validate_session(session_id, actor_id, session_token=session_token)
+            if auth.get("valid"):
+                _standing_token = auth.get("session_token") or session_token
+                if auth.get("session_id"):
+                    session_id = auth.get("session_id")
+                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
+                    actor_id = auth.get("actor_id")
+            elif session_token:
+                _meta = {
+                    "error_code": ForgeErrorCode.E_JUDGE_STATE_HASH_REQUIRED,
+                    "reason": auth.get("reason") or "L11 AUTH: SCT invalid",
+                    "sesat_event": {
+                        "sesat": True,
+                        "type": "TOKEN_INVALID",
+                        "reason": auth.get("reason"),
+                    },
+                    "violated_laws": ["L11"],
+                    "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
+                }
+                _add_floor_compat(_meta)
+                return ForgeOutput(
+                    status="HOLD",
+                    result={},
+                    manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                    meta=_meta,
+                    timestamp=datetime.now(UTC).isoformat(),
+                )
+        except Exception:
+            pass
+
+    # Amanah: dry_run never mutates — structured receipt only
+    if dry_run:
+        return ForgeOutput(
+            status="HOLD",
+            result={
+                "dry_run": True,
+                "mode": mode,
+                "session_id": session_id,
+                "session_token": _standing_token,
+                "actor_id": actor_id,
+                "note": "dry_run — no host mutation; pass dry_run=false after SEAL",
+            },
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta={
+                "dry_run": True,
+                "standing_source": "sct" if _standing_token else "none",
+            },
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+
     # ── v3.1: Mode classification gate ────────────────────────────────────────
     if mode not in _FORGE_MUTATE_ATOMIC:
         return ForgeOutput(

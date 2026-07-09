@@ -1,14 +1,18 @@
 """
-Session Capability Token (SCT) — Slice 1
+Session Capability Token (SCT) — Spine P0 (inhabit, don't interrogate)
 
-Inhabit, don't interrogate. State rides with a signed token; the store is
-optional cache only.
+State rides with a signed token; the store is optional cache only.
 
-Wire format:
+Wire format (canonical — only birth path):
     sct_v1.<base64url(payload_json)>.<hmac_sha256_hex>
 
+Legacy verify-only (never mint):
+    arifos.v1.<b64>.<b64sig>  → normalized into sct claims
+
+Merged from capability_token.py (2026-07-09 Spine P0):
+  derive_verbs, apply_caveats, compute_authority_delta, derive_authority (measured only)
+
 Spec: /root/A-FORGE/forge_work/2026-07-09/SESSION-CAPABILITY-TOKEN-SPEC.md
-Forged 2026-07-09 — amanah first, no invented APEX numbers.
 """
 
 from __future__ import annotations
@@ -35,11 +39,65 @@ VALID_AUTH = frozenset(
     {"OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN", "OPERATOR", "ANONYMOUS"}
 )
 
+# Metabolic verbs by authority band (no arif_act — public surface uses arif_forge)
+AUTHORITY_VERBS: dict[str, list[str]] = {
+    "OBSERVE_ONLY": [
+        "arif_observe",
+        "arif_think",
+        "arif_route",
+        "arif_triage",
+        "arif_compose",
+        "arif_critique",
+        "arif_memory",
+    ],
+    "LIMITED_MUTATE": [
+        "arif_observe",
+        "arif_think",
+        "arif_route",
+        "arif_triage",
+        "arif_compose",
+        "arif_critique",
+        "arif_memory",
+        "arif_judge",
+        "arif_forge",
+    ],
+    "FULL": [
+        "arif_observe",
+        "arif_think",
+        "arif_route",
+        "arif_triage",
+        "arif_compose",
+        "arif_critique",
+        "arif_memory",
+        "arif_judge",
+        "arif_forge",
+        "arif_seal",
+    ],
+    "SOVEREIGN": [
+        "arif_observe",
+        "arif_think",
+        "arif_route",
+        "arif_triage",
+        "arif_compose",
+        "arif_critique",
+        "arif_memory",
+        "arif_judge",
+        "arif_forge",
+        "arif_seal",
+    ],
+}
+
+_AUTH_ORDER = {"OBSERVE_ONLY": 0, "LIMITED_MUTATE": 1, "FULL": 2, "SOVEREIGN": 3}
+
 _FALLBACK_SECRET = "fallback-ephemeral-secret"  # nosec B105 — detected + warned
+_PROD_SIGNING_KEY_PATHS = (
+    "/opt/arifos/app/.signing_key",
+    os.path.expanduser("~/.arifos/signing_key"),
+)
 
 
 def _get_signing_secret() -> bytes:
-    """HMAC key. Prefer ARIFOS_SESSION_SECRET; warn hard if fallback used."""
+    """HMAC key. Prefer ARIFOS_SESSION_SECRET; then 32-byte prod key file; warn if fallback."""
     secret = os.getenv("ARIFOS_SESSION_SECRET")
     if not secret:
         secret_file = os.getenv("ARIFOS_SESSION_SECRET_FILE")
@@ -48,12 +106,164 @@ def _get_signing_secret() -> bytes:
                 secret = Path(secret_file).read_text().strip()
             except OSError:
                 secret = None
-    if not secret:
-        secret = _FALLBACK_SECRET
-        logger.warning(
-            "SCT: using fallback session secret — set ARIFOS_SESSION_SECRET in prod"
-        )
-    return secret.encode()
+    if secret:
+        return secret.encode() if isinstance(secret, str) else secret
+
+    # Production 32-byte key file (merged from capability_token path)
+    for path in _PROD_SIGNING_KEY_PATHS:
+        try:
+            p = Path(path)
+            if p.is_file():
+                raw = p.read_bytes()
+                if len(raw) == 32:
+                    return raw
+                # Accept text secrets stored in that path
+                text = raw.decode("utf-8", errors="ignore").strip()
+                if text:
+                    return text.encode()
+        except OSError:
+            continue
+
+    logger.warning(
+        "SCT: using fallback session secret — set ARIFOS_SESSION_SECRET in prod"
+    )
+    return _FALLBACK_SECRET.encode()
+
+
+def derive_verbs(authority: str) -> list[str]:
+    """Derive allowed_next_verbs from authority band. Never includes arif_act."""
+    auth = (authority or "OBSERVE_ONLY").upper()
+    verbs = list(AUTHORITY_VERBS.get(auth, AUTHORITY_VERBS["OBSERVE_ONLY"]))
+    return ["arif_forge" if v == "arif_act" else v for v in verbs]
+
+
+def derive_authority(
+    G: float,
+    C_dark: float,
+    W3: float,
+    profiles_ok: bool,
+    witness_div: str,
+    id_verified: bool,
+    sig_verified: bool,
+    context_score: float,
+) -> tuple[str, str]:
+    """
+    Map *measured* APEX scalars → (authority, verdict).
+
+    HARD RULE: call only when G/C_dark/W3 are real measurements.
+    Birth with no measure stays identity band + UNMEASURED apex — do not call this.
+    """
+    if not id_verified:
+        return ("OBSERVE_ONLY", "OBSERVE_ONLY")
+    if W3 < 0.30:
+        return ("OBSERVE_ONLY", "SABAR")
+    if G < 0.50 or C_dark >= 0.30:
+        return ("OBSERVE_ONLY", "VOID")
+    if G < 0.80:
+        return ("LIMITED_MUTATE", "SABAR")
+    if not profiles_ok or witness_div == "NONE":
+        return ("LIMITED_MUTATE", "SABAR")
+    if W3 < 0.75:
+        return ("LIMITED_MUTATE", "SABAR")
+    if context_score < 0.50:
+        return ("LIMITED_MUTATE", "SABAR")
+    if sig_verified:
+        return ("SOVEREIGN", "SEAL")
+    return ("FULL", "SEAL")
+
+
+def identity_band_authority(
+    *,
+    actor_verified: bool,
+    signature_verified: bool = False,
+    is_sovereign_principal: bool = False,
+) -> str:
+    """Birth authority without measured apex — identity only, no G theater."""
+    if not actor_verified:
+        return "OBSERVE_ONLY"
+    if signature_verified and is_sovereign_principal:
+        return "FULL"  # measured apex still required for SOVEREIGN theater
+    return "LIMITED_MUTATE"
+
+
+@dataclass
+class AuthorityDelta:
+    from_auth: str
+    to_auth: str
+    reason: str
+    sufficient: bool
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "from": self.from_auth,
+            "to": self.to_auth,
+            "reason": self.reason,
+            "sufficient": self.sufficient,
+        }
+
+
+def compute_authority_delta(
+    token_auth: str,
+    required: str,
+    tool_name: str,
+) -> AuthorityDelta:
+    """Explicit authority delta for every tool call (attenuation-aware)."""
+    token_level = _AUTH_ORDER.get((token_auth or "").upper(), -1)
+    required_level = _AUTH_ORDER.get((required or "").upper(), -1)
+    sufficient = token_level >= required_level
+    return AuthorityDelta(
+        from_auth=token_auth or "OBSERVE_ONLY",
+        to_auth=required or "OBSERVE_ONLY",
+        reason=f"{tool_name} requires {required}",
+        sufficient=sufficient,
+    )
+
+
+def apply_caveats(
+    claims: dict[str, Any],
+    new_caveats: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Attenuate claims only — never widen authority or verbs.
+    Returns a *new* claims dict (caller must re-mint/sign).
+    """
+    out = dict(claims)
+    current_auth = str(out.get("auth") or "OBSERVE_ONLY")
+    current_level = _AUTH_ORDER.get(current_auth, 0)
+    narrowed_auth = current_auth
+    narrowed_verbs = list(out.get("allowed") or derive_verbs(current_auth))
+    caveats = list(out.get("caveats") or [])
+
+    for caveat in new_caveats:
+        ctype = caveat.get("type")
+        value = caveat.get("value")
+        if ctype == "max_action_class":
+            requested = str(value or "OBSERVE_ONLY").upper()
+            requested_level = _AUTH_ORDER.get(requested, -1)
+            if requested_level > current_level:
+                raise ValueError(
+                    f"Caveat attempts to WIDEN authority: {current_auth} → {requested}. "
+                    "Caveats can only narrow."
+                )
+            narrowed_auth = requested
+            allowed_for = set(AUTHORITY_VERBS.get(requested, []))
+            narrowed_verbs = [v for v in narrowed_verbs if v in allowed_for]
+        elif ctype == "max_verb":
+            if value not in narrowed_verbs:
+                raise ValueError(
+                    f"Caveat references verb '{value}' not in current scope."
+                )
+            idx = narrowed_verbs.index(value)
+            narrowed_verbs = narrowed_verbs[: idx + 1]
+        elif ctype == "forbid_tool":
+            if value in narrowed_verbs:
+                narrowed_verbs = [v for v in narrowed_verbs if v != value]
+        caveats.append(dict(caveat))
+
+    out["auth"] = narrowed_auth
+    out["allowed"] = narrowed_verbs
+    out["caveats"] = caveats
+    return out
 
 
 def unmeasured_apex() -> dict[str, Any]:
@@ -108,7 +318,7 @@ def mint_sct(
     if auth_norm not in VALID_AUTH:
         auth_norm = "OBSERVE_ONLY"
 
-    allowed_list = list(allowed or ["arif_observe", "arif_think", "arif_route"])
+    allowed_list = list(allowed) if allowed is not None else derive_verbs(auth_norm)
     # Public surface: never leak internal alias arif_act
     allowed_list = ["arif_forge" if a == "arif_act" else a for a in allowed_list]
 
@@ -167,6 +377,49 @@ def verify_sct(
     """
     if not token or not isinstance(token, str):
         return None
+
+    if token.startswith("arifos.v1."):
+        try:
+            from arifosmcp.runtime.capability_token import verify_token
+            payload = verify_token(token)
+            if payload:
+                claims = {
+                    "sct_v": 1,
+                    "sid": payload.sub,
+                    "actor": payload.act,
+                    "auth": payload.auth,
+                    "av": payload.witness.active_count > 0,
+                    "stage": "000",
+                    "lane": "AGI",
+                    "iat": payload.iat,
+                    "exp": payload.exp,
+                    "ttl": payload.exp - payload.iat,
+                    "nbf": payload.iat,
+                    "kid": "default",
+                    "verdict": {
+                        "state": payload.apex.verdict,
+                        "dominant_reason": None,
+                    },
+                    "apex": {
+                        "G": payload.apex.G,
+                        "C_dark": payload.apex.C_dark,
+                        "W3": payload.apex.W3,
+                        "h": payload.apex.h,
+                    },
+                    "witness": {
+                        "active": payload.witness.active_count,
+                        "diversity": payload.witness.diversity,
+                    },
+                    "allowed": payload.verbs,
+                }
+                if expected_actor:
+                    if claims.get("actor") != expected_actor:
+                        return None
+                return claims
+        except Exception:
+            pass
+        return None
+
     parts = token.split(".")
     if len(parts) != 3:
         return None

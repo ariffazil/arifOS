@@ -239,6 +239,7 @@ async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,
     session_id: str | None = None,
+    session_token: str | None = None,
     actor_id: str | None = None,
     constitutional_chain_id: str | None = None,
     vault_entry_id: str | None = None,
@@ -285,21 +286,54 @@ async def arif_judge(
     _is_elevated_tier = action_tier.lower() in ("sovereign", "c4", "c5")
     _has_receipt = bool(sovereign_receipt and sovereign_receipt.strip())
 
-    # ── F11 SESSION GATE (2026-06-28 FORGE FIX) ────────────────────────────
-    # arif_judge requires a valid session_id. Empty or None → HOLD (F11 AUTH).
-    # Without a session, there is no constitutional chain, no audit trail.
-    # This was previously a NameError crash path — now explicit and early.
-    if not session_id or not session_id.strip():
+    # ── SCT-first standing (Spine P0) — store optional ─────────────────────
+    _standing_token = session_token
+    if session_token or session_id:
+        try:
+            from arifosmcp.runtime.session_auth import validate_session
+
+            auth = validate_session(session_id, actor_id, session_token=session_token)
+            if auth.get("valid"):
+                _standing_token = auth.get("session_token") or session_token
+                if auth.get("session_id"):
+                    session_id = auth.get("session_id")
+                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
+                    actor_id = auth.get("actor_id")
+            elif session_token:
+                return VerdictOutput(
+                    verdict=VerdictCode.HOLD,
+                    reasons=[
+                        auth.get("reason") or "L11 AUTH: SCT invalid",
+                        "Provide a valid session_token from arif_init.",
+                    ],
+                    next_safe_action="Call arif_init, then re-invoke arif_judge with session_token.",
+                    meta={
+                        "gate": "L11_SCT_GATE",
+                        "sesat_event": {
+                            "sesat": True,
+                            "type": "TOKEN_INVALID",
+                            "reason": auth.get("reason"),
+                        },
+                        "session_id": session_id,
+                        "floor": "F11",
+                        "floor_type": "HARD",
+                    },
+                )
+        except Exception:
+            pass
+
+    # ── F11 SESSION GATE — session_id OR valid SCT ────────────────────────
+    if not session_id or not str(session_id).strip():
         return VerdictOutput(
             verdict=VerdictCode.HOLD,
             reasons=[
-                "F11_SESSION_GATE: arif_judge requires a valid session_id. "
+                "F11_SESSION_GATE: arif_judge requires a valid session_id or session_token. "
                 "Empty or missing session means no constitutional chain exists.",
                 "F11 AUTH mandates verified identity before sensitive operations.",
             ],
             next_safe_action=(
                 "Call arif_init first to establish a valid session, "
-                "then re-invoke arif_judge with the returned session_id."
+                "then re-invoke arif_judge with session_id + session_token."
             ),
             meta={
                 "gate": "F11_SESSION_GATE",
@@ -309,9 +343,7 @@ async def arif_judge(
             },
         )
 
-    # ── SESSION-BOUND IDENTITY (fix 2026-07-06) ──────────────────────────
-    # Derive actor_id from the session store, not from per-tool args.
-    # This ensures all tools in the same session see the same actor identity.
+    # ── SESSION-BOUND IDENTITY — SCT reinjects store; prefer token actor ──
     from arifosmcp.runtime.tools import get_session as _get_session
 
     _sess = _get_session(session_id) if session_id else None
@@ -319,12 +351,9 @@ async def arif_judge(
         _sess_actor = _sess.get("actor_id")
         if _sess_actor and _sess_actor != "anonymous":
             if actor_id and actor_id != _sess_actor:
-                # Log SCAR: passed actor differs from session actor
-                if "warnings" not in _sess:
-                    _sess.setdefault("_judge_scars", []).append(
-                        f"actor_mismatch: passed={actor_id} session={_sess_actor}"
-                    )
-            # Session identity is authoritative
+                _sess.setdefault("_judge_scars", []).append(
+                    f"actor_mismatch: passed={actor_id} session={_sess_actor}"
+                )
             actor_id = _sess_actor
 
     if mode != "history":
