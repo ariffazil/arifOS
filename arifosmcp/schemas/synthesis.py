@@ -303,23 +303,35 @@ class MindOutput(BaseModel):
 
 
 class Synthesis(BaseModel):
-    """Backward-compatible synthesis envelope."""
+    """Backward-compatible synthesis envelope with SCT continuity."""
 
     status: str = "OK"
     tool: str = "arif_think"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
+    session_id: str | None = None
+    session_token: str | None = None
+    actor_verified: bool = False
+    authority: str | None = None
+    apex_scalars: dict[str, Any] = Field(default_factory=dict)
+    standing_source: str | None = None
 
 
 class ReplyBlock(BaseModel):
-    """Reply envelope for arif_compose."""
+    """Reply envelope for arif_compose with SCT continuity."""
 
     status: str = "OK"
     tool: str = "arif_compose"
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
     timestamp: str | None = None
+    session_id: str | None = None
+    session_token: str | None = None
+    actor_verified: bool = False
+    authority: str | None = None
+    apex_scalars: dict[str, Any] = Field(default_factory=dict)
+    standing_source: str | None = None
 
 
 class EvidenceBlock(BaseModel):
