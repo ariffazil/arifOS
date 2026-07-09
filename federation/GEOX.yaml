@@ -120,10 +120,11 @@ lanes:
     requires_arifos_judge: true
     can_emit_888_HOLD: true
     tools:
-      - geox_claim_create
-      - geox_claim_validate
-      - geox_claim_challenge
-      - geox_claim_seal
+      - geox_claim                 # unified (create|validate|challenge|seal|attach_evidence)
+      - geox_claim_create          # legacy alias
+      - geox_claim_validate        # legacy alias
+      - geox_claim_challenge       # legacy alias
+      - geox_claim_seal            # legacy alias
       - geox_segy_export_tool
     description: "Seal, challenge, evaluate claims. MUST route through arifOS judge."
 
@@ -164,10 +165,17 @@ lanes:
     geox_vision_audit: reasoning
     geox_report_to_workflow: reasoning
     geox_abstraction_guard: reasoning
+    geox_claim: judgment
     geox_claim_create: judgment
     geox_claim_validate: judgment
     geox_claim_challenge: judgment
     geox_claim_seal: judgment
+    geox_benchmark_001: reasoning
+    geox_3d_model_build: reasoning
+    geox_map_layers_list: discovery
+    geox_map_scene_plan: reasoning
+    geox_map_render_preview: reasoning
+    geox_map_export_package: judgment
     geox_segy_export_tool: judgment
 
 # ═══════════════════════════════════════════════════════════════════════════════

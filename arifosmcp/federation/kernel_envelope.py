@@ -105,11 +105,13 @@ def get_lane_for_tool(organ_id: str, tool_name: str) -> str:
 
         # Fallback heuristics based on tool name patterns
         judgment_tools = {
+            "geox_claim",
             "geox_claim_create",
             "geox_claim_validate",
             "geox_claim_challenge",
             "geox_claim_seal",
             "geox_segy_export_tool",
+            "geox_map_export_package",
         }
         discovery_tools = {
             "geox_system_registry_status",
