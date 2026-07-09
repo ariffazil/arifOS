@@ -1,10 +1,16 @@
 # arifOS — Constitutional AI Governance Kernel
-> Auto-generated from live tool registry. Hash: 8fc98b2d2ed0fe39
-> Public canonical surface: 7 tools (F13 2026-06-23 facade). Full MCP + gated: larger (see tool_registry).
+> Auto-generated from live tool and resource registries. Hash: bcc250de232a1c2a
+> Total MCP: 58 Tools | 24 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
 
+## Docs
+- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)
+- [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context
+- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping
+- [INVARIANTS.md](file:///root/AAA/docs/INVARIANTS.md): 11 Physics + 7 Zen principles
+
 ## MCP Tools — Complete Surface
-arifOS public canonical surface: 7 tools (full gated surface larger); 7 canonical public tools (facade)
+arifOS exposes 58 MCP tools: 17 canonical constitutional tools
 and 41 operational support tools.
 
 ### Operational Categories
@@ -19,31 +25,32 @@ and 41 operational support tools.
 - narrative: 2 tools
 - unknown: 2 tools
 
-### Canonical Constitutional Tools (16)
+### Canonical Constitutional Tools (17)
 | Tool | Stage | Access | Reversible | Modes |
 |------|-------|--------|------------|-------|
-| `arif_kernel_intercept` | 888 | public | ✓ | intercept |
-| `arif_init` | 000 | public | ✓ | init, light, resume, validate, epoch_open, epoch_seal +2 more |
-| `arif_observe` | 111 | public | ✓ | search, hybrid_discovery, ingest, compass, atlas, entropy_dS +1 more |
-| `arif_explore` | 111 | public | ✓ | navigator, prospector, driller, mapper, surveyor, scout +2 more |
-| `arif_fetch` | 222 | public | ✓ | fetch, search, eureka |
-| `arif_think` | 333 | public | ✓ | reason, reflect, verify, critique, axioms, plan +4 more |
-| `arif_critique` | 666 | public | ✓ | critique, simulate, redteam, maruah, deescalate, empathy |
-| `arif_route` | 555 | public | ✓ | route |
-| `arif_triage` | 555 | public | ✓ | status, preflight, triage |
-| `arif_bridge_connect` | 555 | authenticated | ✓ | connect |
-| `arif_compose` | 444r | public | ✓ | compose, summarize, cite, tone_shift |
-| `arif_memory` | 555m | public | ✗ HOLD | recall, inspect, attest, remember, promote, revise +1 more |
-| `arif_judge` | 888 | authenticated | ✓ | judge, validate, hold, rules, armor, probe +1 more |
+| `arif_kernel_intercept` | 666 | internal_only | ✓ | intercept |
+| `arif_init` | 000 | public | ✓ | init, light, resume, validate, canary, preflight +5 more |
+| `arif_observe` | 111 | public | ✓ | search, fetch, hybrid_discovery, ingest, compass, atlas +2 more |
+| `arif_fetch` | 111 | internal_only | ✓ | fetch, search, eureka |
+| `arif_think` | 333 | public | ✓ | reason, reflect, verify, axioms, plan, plan_review +4 more |
+| `arif_critique` | 555 | public | ✓ | critique, redteam, maruah, shadow, deescalate, empathy |
+| `arif_route` | 444 | public | ✓ | route, bridge |
+| `arif_triage` | 000 | public | ✓ | status, preflight, triage |
+| `arif_bridge_connect` | 444 | public | ✓ | connect |
+| `arif_compose` | 888 | public | ✓ | compose, summarize, cite, tone_shift |
+| `arif_memory` | 000 | authenticated | ✗ HOLD | recall, inspect, attest, remember, promote, revise +2 more |
+| `arif_judge` | 666 | authenticated | ✓ | intercept, judge, validate, hold, escalate |
+| `arif_judge_deliberate` | 666 | internal_only | ✓ | judge, validate, hold, rules, armor, probe +1 more |
 | `arif_seal` | 999 | authenticated | ✗ HOLD | seal, verify, ledger, changelog, audit |
-| `arif_forge` | 010 | sovereign | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
-| `arif_measure` | 777 | public | ✓ | health, vitals, cost, genius, psi_le, omega +3 more |
+| `arif_act` | 777 | internal_only | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
+| `arif_forge` | 777 | authenticated | ✗ HOLD | engineer, query, write, generate, commit, recall +1 more |
+| `arif_measure` | 111 | internal_only | ✓ | health, vitals, cost, genius, topology, drift |
 
 ### Operational Support Tools (41)
 | Tool | Category | Risk | Mutates | Modes |
 |------|----------|------|---------|-------|
 | `hermes_system_status` | hermes | low | no | brief, full, organs, events |
-| `hermes_vault_query` | hermes | low | no | recent, search, organ, date |
+| `arif_vault_query` | hermes | low | no | recent, search, organ, date |
 | `hermes_epistemic_check` | hermes | low | no | quick, vault, full |
 | `hermes_fact_check` | hermes | low | no | quick, web, deep |
 | `hermes_cross_verify` | hermes | medium | no | verify |
@@ -84,29 +91,88 @@ and 41 operational support tools.
 | `arif_fetch` | chatgpt-shim | low | no | fetch |
 | `arif_resolve_tool` | discovery | low | no |  |
 
+## MCP Resources — Canonical & Embodied
+Unlike Tools (which represent mutable side-effects), Resources represent addressable, read-only state and facts.
+All resources carry an explicit `truth_level` under the arifOS truth hierarchy:
+1. **SOVEREIGN_CANON** (immutable constitution/directs)
+2. **SEALED_VAULT** (append-only logs, signed judgments)
+3. **TRUSTED_REPO** (git SOT)
+4. **OBSERVED_EXTERNAL** (real-time environment/telemetry)
+5. **USER_CLAIM** (unverified human input)
+6. **MODEL_INFERENCE** (AI assertions)
+7. **UNTRUSTED** (unverified external context)
+
+### Registered arifOS MCP Resources
+| URI | Family | Linked Floors | Description |
+|-----|--------|---------------|-------------|
+| `arifos://bootstrap` | canonical | F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13 | Complete federation knowledge-graph bootstrap context. Full world-model in one call. v2026.06.14. |
+| `arifos://civilization` | canonical | F1, F10 | Seven federation organs, three intelligence strata, constitutional boundaries, entropy responsibility model. |
+| `arifos://doctrine` | canonical | F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13 | Immutable 13-floor constitution (F1–F13). All tools and agents operate within these floors. |
+| `arifos://human/metabolized` | canonical | F1, F6, F9, F13 | Metabolized sovereign context — compact human intelligence. The nutrient, not the full testimony. |
+| `arifos://identity` | canonical | F1, F13 | Sovereign identity manifest bound from identity.toml. Root of accountability — all attestation chains begin here. |
+| `arifos://jurisdiction` | canonical | F11, F13 | Five autonomy bands (GREEN→BLACK), CapabilityGrant registry, jurisdiction rules. |
+| `arifos://loop-engineering` | canonical |  |  |
+| `arifos://mcp-alignment` | canonical |  |  |
+| `arifos://mcp/surface-map` | canonical |  |  |
+| `arifos://memory` | canonical | F2, F6, F12 | Six-layer memory architecture: L1 ephemeral → L6 immutable (VAULT999). Memory ≠ truth without provenance. |
+| `arifos://quickstart` | canonical |  |  |
+| `arifos://schema` | canonical | F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, F13 | Complete canonical blueprint of the arifOS MCP surface — tools, Trinity lanes, floors, separation of powers. |
+| `arifos://seal-readiness` | canonical | F2, F12 | Vault integrity report, five disambiguated seal types, seven-floor seal gate, non-seal verdicts. |
+| `arifos://trinity` | canonical | F1, F4, F7, F13 | AAA Trinity lane architecture: AGI(111) proposes, ASI(444) judges, APEX(888) authorizes, FORGE(010) executes, 999 seals. |
+| `arifos://vitals` | canonical | F8 | Constitutional vitals reference — metric definitions, green/yellow/red thresholds. For LIVE values use arif_measure. |
+| `arifos://boundaries/domain/{domain_id}` | embodied | F2, F8, F11 | Domain boundary definition by domain identifier. |
+| `arifos://witness/log/{filter}` | embodied | F2, F8, F11 | Witness log entries filtered by criteria. |
+| `arifos://witness/stats/{period}` | embodied | F2, F8, F11 | Witness statistics aggregated by time period. |
+| `contrast://{id}` | evidence | F2, F3 | Contrast evidence by identifier. |
+| `receipt://web/{id}` | evidence | F2, F3 | Web evidence receipt by identifier. |
+| `source://{hash}` | evidence | F2, F3 | Evidence source by content hash. |
+| `void://{id}` | evidence | F2, F3 | Void evidence by identifier. |
+| `tree777://concepts/{name}` | tree777 | F2, F4 | TREE777 knowledge graph resource |
+| `tree777://scars/{name}` | tree777 | F2, F4 | TREE777 knowledge graph resource |
+
+## Federation Resources Map (Cross-Organ)
+To prevent chaos and duplicate context (F4 CLARITY), do not duplicate these namespaces. Route or read accordingly:
+
+### Control Plane & A2A State (AAA — L3)
+- `aaa://state/agent-registry` — Live registry of active agent cards
+- `aaa://state/a2a-cards` — Peer capability profiles (`agent-card-*.json`)
+- `aaa://state/zen-init` — Central AAA init template constraints
+- `aaa://state/cockpit` — Global session queues and orchestration panels
+
+### Governed Actuator (A-FORGE — L2)
+- `aforge://execution/leases/status` — Agent concurrency lease status
+- `aforge://execution/reality/loop` — Reality loop transaction snapshots
+- `aforge://execution/receipts/{id}` — Signed mutation receipts of executed commands
+
+### Earth Intelligence Substrate (GEOX — L1)
+- `geox://evidence/{well,seismic,prospect,claim}` — Underground geologic evidence assets
+- `geox://basins/index` — Structural/basin index files
+- `geox://claims/graph` — Geological claim networks and structural uncertainty data
+
+### Capital Intelligence Substrate (WEALTH — L1)
+- `wealth://capital/npv|emv|irr|risk|thresholds` — NPV, IRR, and EMV calculation variables
+- `wealth://collapse/signatures` — Failure forensics for entities or portfolios
+- `wealth://flows` — Personal, market, and macro capital flows
+
+### Vitality Substrate (WELL — L1)
+- `well://identity` — Five-well frame (Homeostasis, Metabolism, Governance, Coupling, Utility)
+- `well://metabolic/flux` — Human metabolic rate indicators (reflect-only)
+- `well://decision/classes` — Human vs machine decision metrics
+
 ## Constitutional Floors (F1-F13)
 F1 AMANAH . F2 TRUTH . F3 TRI-WITNESS . F4 CLARITY . F5 PEACE2
 F6 EMPATHY . F7 HUMILITY . F8 GENIUS . F9 ANTIHANTU . F10 ONTOLOGY
 F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 
-## Canonical MCP Gateway
+## Federation Organs - MCP Endpoints
 
-All public MCP traffic routes through one canonical gateway:
-
-| Endpoint | URL |
-|----------|-----|
-| MCP transport | `https://mcp.arif-fazil.com/mcp` |
-| Health | `https://mcp.arif-fazil.com/health` |
-
-## Federation Organs
-
-| Organ | Domain | Role | Tools |
-|------|--------|------|-------|
-| **arifOS** (8088) | `arifos.arif-fazil.com` | Governance kernel | 16 canonical + 41 operational |
-| **A-FORGE** (7071) | `forge.arif-fazil.com` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |
-| **GEOX** (8081) | `geox.arif-fazil.com` | Earth intelligence | 33 canonical tools |
-| **WEALTH** (18082) | `wealth.arif-fazil.com` | Capital intelligence | 20+ tools |
-| **WELL** (18083) | `well.arif-fazil.com` | Human readiness | 18+ tools |
+| Organ | MCP Endpoint | Role | Tools |
+|------|-------------|------|-------|
+| **arifOS** (8088) | `mcp.arif-fazil.com/mcp` | Governance kernel | 17 canonical + 41 operational |
+| **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |
+| **GEOX** (8081) | `geox.arif-fazil.com/mcp` | Earth intelligence | 33 canonical tools |
+| **WEALTH** (18082) | `wealth.arif-fazil.com/mcp` | Capital intelligence | 20+ tools |
+| **WELL** (18083) | `well.arif-fazil.com/mcp` | Human readiness | 18+ tools |
 | **AAA** (3001) | `aaa.arif-fazil.com` | Control plane cockpit | A2A server, React SPA |
 
 ## Agent Rules (mandatory)
@@ -123,9 +189,9 @@ All public MCP traffic routes through one canonical gateway:
 - GEOX/WEALTH/WELL = domain evidence organs
 
 ## Verification
-- tools/list count should match total (57)
+- tools/list count should match total (58)
 - canonical_tools + operational_tools == tools_exposed_via_mcp
-- Manifest hash: 8fc98b2d2ed0fe39
+- Manifest hash: bcc250de232a1c2a
 - Manifest URL: https://arifos.arif-fazil.com/manifest.txt
 
---- Auto-generated 2026-06-23T02:12:57.657025 ---
+--- Auto-generated 2026-07-09T00:33:59.593357+00:00 ---
