@@ -446,9 +446,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def _bind_identity(
-    actor_id: str | None, session_id: str | None
-) -> tuple[str | None, str | None]:
+def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | None, str | None]:
     """Recover actor/session from session store when MCP drops or nulls identity.
 
     Explicit non-anon actor_id always wins. Session-bound actor fills gaps.
@@ -536,7 +534,10 @@ def arif_route(
     if arguments and "_envelope" in (arguments or {}):
         env = arguments.get("_envelope") or {}
         if session_id and env.get("session_id") and env.get("session_id") != session_id:
-            return _hold("arif_route", "Kernel reject: _envelope.session_id does not match live session issued by kernel")
+            return _hold(
+                "arif_route",
+                "Kernel reject: _envelope.session_id does not match live session issued by kernel",
+            )
 
     target_organ = _route_intent_to_organ(intent, organ)
     intent_map = _load_intent_map()
@@ -682,9 +683,7 @@ def arif_route(
         return _route_ok({**routing, "bridge_status": "a-forge: use A-FORGE MCP directly"})
 
     if target_organ.lower() == "aaa":
-        return _route_ok(
-            {**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"}
-        )
+        return _route_ok({**routing, "bridge_status": "aaa: cockpit/identity — use AAA:3001"})
 
     if target_organ.lower() == "arifos":
         return _route_ok({**routing, "bridge_status": "kernel-local: no bridge needed"})
@@ -780,18 +779,38 @@ def arif_triage(
 
         session_id_present = bool(session_id)
         actor_id_present = bool(actor_id)
+
+        # FIX 2026-07-09: Actually look up the session from the store instead
+        # of hardcoding actor_verified=False / authority_mode="OBSERVE_ONLY".
+        # This was the root cause of the arif_init→arif_triage desync:
+        # init wrote actor_verified=true, triage returned false (hardcoded).
+        _actor_verified = False
+        _authority_mode = "OBSERVE_ONLY"
+        _stage_from_session = stage or "000"
+        _session_found = False
+
+        if session_id_present:
+            sess = _SESSIONS.get(session_id)
+            if sess and isinstance(sess, dict):
+                _session_found = True
+                _actor_verified = sess.get("actor_verified", False)
+                _authority_mode = sess.get("authority", "OBSERVE_ONLY")
+                _stage_from_session = sess.get("stage", stage or "000")
+
         preflight_payload: dict[str, Any] = {
             "kernel": "alive",
-            "observe_only": True,
-            "mutation_allowed": False,
+            "observe_only": not _actor_verified,
+            "mutation_allowed": _actor_verified
+            and _authority_mode in ("FULL", "SOVEREIGN", "LIMITED_MUTATE"),
             "external_side_effects_allowed": False,
             "irreversible_allowed": False,
             "session_required": True,
             "session_id_present": session_id_present,
+            "session_found": _session_found,
             "actor_id_present": actor_id_present,
-            "actor_verified": False,
-            "authority_mode": "OBSERVE_ONLY",
-            "stage": stage or "000",
+            "actor_verified": _actor_verified,
+            "authority_mode": _authority_mode,
+            "stage": _stage_from_session,
             "canonical_tool_count": len(CANONICAL_TOOLS),
             "active_sessions": len(_SESSIONS),
             "next_safe_action": "Call arif_init(mode='ping' | 'light' | 'full')",
@@ -808,6 +827,20 @@ def arif_triage(
                 extra_meta={
                     "hold_reason": "SESSION_REQUIRED",
                     "required_precondition_failed": "session_id",
+                    "next_safe_action": "arif_init",
+                    "preflight_diagnostics": preflight_payload,
+                },
+            )
+        # FIX 2026-07-09: If session_id provided but not found in store,
+        # return HOLD — the session doesn't exist or has expired.
+        if not _session_found:
+            return _hold(
+                "arif_triage",
+                reason="SESSION_NOT_FOUND",
+                floors=["F11"],
+                extra_meta={
+                    "hold_reason": "SESSION_NOT_FOUND",
+                    "required_precondition_failed": "valid_session_id",
                     "next_safe_action": "arif_init",
                     "preflight_diagnostics": preflight_payload,
                 },
@@ -1027,7 +1060,7 @@ def _assert_organ_attested(organ: str) -> dict[str, Any] | None:
             rec = get_organ_attestation(oid)
             if rec is None and isinstance(result, dict):
                 # Some paths return inline status without registry write
-                st = (result.get("status") or result.get("attestation", {}).get("status") or "")
+                st = result.get("status") or result.get("attestation", {}).get("status") or ""
                 if not is_healthy(st) and st not in ("ALIVE", "alive"):
                     return _hold(
                         "arif_bridge",
@@ -1197,7 +1230,11 @@ def _bridge_wealth(
                 )
             # Hard-stop: DRAFT / incomplete witness cannot be treated as SEAL-ready
             # Still pass payload for advisory (tunnel), but force ceiling + flags.
-            _w = wealth_payload.get("witness") if isinstance(wealth_payload.get("witness"), dict) else {}
+            _w = (
+                wealth_payload.get("witness")
+                if isinstance(wealth_payload.get("witness"), dict)
+                else {}
+            )
             _incomplete = _w.get("is_complete") is False or (
                 isinstance(_w.get("missing"), list) and len(_w.get("missing") or []) > 0
             )
@@ -1233,12 +1270,19 @@ def _bridge_wealth(
                 except Exception:
                     pass
             elif isinstance(out, dict):
-                out = {**out, **{k: wealth_payload[k] for k in (
-                    "caller_actor_id",
-                    "caller_session_id",
-                    "human_final_authority_meaning",
-                    "epistemic_tag",
-                ) if k in wealth_payload}}
+                out = {
+                    **out,
+                    **{
+                        k: wealth_payload[k]
+                        for k in (
+                            "caller_actor_id",
+                            "caller_session_id",
+                            "human_final_authority_meaning",
+                            "epistemic_tag",
+                        )
+                        if k in wealth_payload
+                    },
+                }
 
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
         _source_epi = read_epistemic(out) if isinstance(out, dict) else None
@@ -1253,7 +1297,9 @@ def _bridge_wealth(
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
         # Kernel check for echo match
-        echoed_env = out.get("_envelope") or out.get("envelope") or {} if isinstance(out, dict) else {}
+        echoed_env = (
+            out.get("_envelope") or out.get("envelope") or {} if isinstance(out, dict) else {}
+        )
         if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
             return _hold(
                 "arif_bridge", "Envelope session_id mismatch — identity rewrite suspected (WEALTH)"
@@ -1303,7 +1349,11 @@ def _bridge_well(
             result.setdefault("_envelope", _envelope)
 
         # Kernel echo match check
-        echoed_env = result.get("_envelope") or result.get("envelope") or {} if isinstance(result, dict) else {}
+        echoed_env = (
+            result.get("_envelope") or result.get("envelope") or {}
+            if isinstance(result, dict)
+            else {}
+        )
         if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
             return _hold(
                 "arif_bridge", "Envelope session_id mismatch — identity rewrite suspected (WELL)"

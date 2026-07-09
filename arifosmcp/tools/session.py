@@ -449,7 +449,10 @@ def _project_light(
     # Fix 2026-07-06 ROUND-2: allowed_next_verbs gated by actual authority,
     # not just actor_verified boolean. FULL/SOVEREIGN → all verbs.
     # LIMITED_MUTATE → no seal. OBSERVE_ONLY → observe/think/route only.
-    _is_full_authority = _authority in ("FULL",)
+    # FIX 2026-07-09: SOVEREIGN is equal or higher than FULL — both get all verbs.
+    # FIX 2026-07-09 (amanah): public surface uses arif_forge; arif_act is internal
+    # alias only and must not leak into allowed_next_verbs (registry contract).
+    _is_full_authority = _authority in ("FULL", "SOVEREIGN")
     _is_limited = _authority in ("LIMITED_MUTATE",)
     if _is_ephemeral:
         _allowed_next = ["arif_observe", "arif_think", "arif_route"]
@@ -459,11 +462,17 @@ def _project_light(
             "arif_think",
             "arif_route",
             "arif_judge",
-            "arif_act",
+            "arif_forge",
             "arif_seal",
         ]
     elif _is_limited:
-        _allowed_next = ["arif_observe", "arif_think", "arif_route", "arif_judge", "arif_act"]
+        _allowed_next = [
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_judge",
+            "arif_forge",
+        ]
     else:
         _allowed_next = ["arif_observe", "arif_think", "arif_route"]
 
@@ -524,13 +533,20 @@ def _project_light(
         "next_safe_action": "proceed" if not degraded else "address degraded items",
         "energy_remaining": "sufficient",
         # BACKWARD-COMPAT MINIMAL ALIASES (one source, no duplication)
+        # FIX 2026-07-09 (amanah): session_birth MUST mirror real authority band.
+        # Prior bug: actor_verified alone → authority_mode=SOVEREIGN / verdict=FULL
+        # while top-level authority stayed LIMITED_MUTATE/OBSERVE_ONLY (dual source).
+        # Authority bands only — never role labels (OPERATOR) or constitutional SEAL.
         "session_birth": {
             "session_id": sid,
             "actor_id": actor_id,
-            "authority_mode": "SOVEREIGN" if actor_verified else "OPERATOR",
+            "actor_verified": actor_verified,
+            "authority_mode": _authority,
             "stage": "000",
             "lane": "AGI",
-            "verdict": "FULL" if actor_verified else "OBSERVE_ONLY",
+            "verdict": _authority,
+            "mutation_allowed": bool(_is_full_authority or _is_limited),
+            "authority_source": "identity_band",
         },
         # RSI 2026-06-22: renamed from model_soul_loaded / model_shadow_loaded
         # (F9 ANTI-HANTU / F10 MECHANICAL-CLAIM compliance)
@@ -563,7 +579,9 @@ def _project_light(
             "evidence_layer": "L2" if actor_verified else "L4",
             "timestamp": _now_ts,
             "authority_band": _authority,
-            "reversibility": "PARTIAL" if _is_limited else ("FULL" if _is_full_authority else "LOW"),
+            "reversibility": "PARTIAL"
+            if _is_limited
+            else ("FULL" if _is_full_authority else "LOW"),
             "route_owner": "arifOS",
             "proposed_action": "session_bind",
             "expected_receipt": "arifos://session/" + sid,
