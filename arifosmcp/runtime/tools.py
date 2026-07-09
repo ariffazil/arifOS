@@ -2784,6 +2784,52 @@ def _actor_for_response(session_id: str | None = None, candidate: str | None = N
     return "anonymous"
 
 
+def _attach_sct_continuity(
+    final_resp: dict[str, Any],
+    payload: dict[str, Any] | None,
+    tool_name: str,
+) -> None:
+    """Stamp SCT-derived continuity + authority delta onto a tool response.
+
+    Uses sct.attach_continuity so the public surface echoes session_token,
+    standing_source, apex_scalars, and authority_delta consistently.
+    """
+    if not payload:
+        return
+    try:
+        from arifosmcp.runtime.sct import (
+            attach_continuity as _sct_attach,
+            compute_authority_delta,
+            _claims_to_standing,
+        )
+
+        required_auth = "OBSERVE_ONLY"
+        if tool_name == "arif_seal":
+            required_auth = "FULL"
+        elif tool_name in ("arif_judge", "arif_forge", "arif_act"):
+            required_auth = "LIMITED_MUTATE"
+
+        token = payload.get("session_token") or ""
+        standing = _claims_to_standing(
+            payload,
+            token,
+            "sct",
+            "L11 AUTH: SCT valid",
+        )
+        delta = compute_authority_delta(
+            str(payload.get("auth") or "OBSERVE_ONLY"),
+            required_auth,
+            tool_name,
+        )
+        standing.authority_delta = delta.as_dict()
+        _sct_attach(final_resp, standing)
+        actor = payload.get("actor")
+        if actor and actor != "anonymous":
+            final_resp.setdefault("actor_id", actor)
+    except Exception:
+        pass
+
+
 def _output_policy_for_verdict(verdict: str) -> str:
     if verdict == "DRY_RUN":
         return "SIMULATION_ONLY"
@@ -8605,6 +8651,7 @@ def _arif_sense_observe(
     query: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     url: str | None = None,
     layers: list[str] | None = None,
     result_limit: int = 10,
@@ -11182,6 +11229,7 @@ async def _arif_mind_reason_tool(
     query: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     plan_id: str | None = None,
     witness_type: str = "ai",
     ctx: Context | None = None,
@@ -12491,6 +12539,7 @@ async def _arif_reply_compose_tool(
     citations: list[str] | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     # ── F14 — Right #1 (know) + #4 (language) ────────────────────────
     ai_involvement: str = "full",
     language: str = "en",
@@ -13362,6 +13411,7 @@ async def _arif_heart_critique(
     target: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     # ── F-WEB: web evidence scan ──
     evidence_receipt: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -15588,6 +15638,7 @@ async def _arif_judge_deliberate_tool(
     candidate: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     constitutional_chain_id: str | None = None,
     ctx: Context | None = None,
     # ── F-WEB Evidence Gate ──
@@ -17021,6 +17072,7 @@ async def _arif_vault_seal_tool(
     payload: str = "",
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     actor_signature: str | None = None,
     nonce: str | None = None,
     constitutional_chain_id: str | None = None,
@@ -17854,6 +17906,7 @@ async def _arif_forge_execute_tool(
     artifact_id: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     constitutional_chain_id: str | None = None,
     judge_state_hash: str | None = None,
     vault_entry_id: str | None = None,
@@ -19343,6 +19396,7 @@ async def _arif_memory_v5_router(
     memory_id: str | None = None,
     session_id: str | None = None,
     actor_id: str | None = None,
+    session_token: str | None = None,
     metadata: dict | None = None,
     tier: str | None = None,
     content: str | None = None,
@@ -19560,6 +19614,7 @@ async def _arif_kernel_intercept_tool(
     evidence: list[dict[str, Any]] | None = None,
     authority_token: str | None = None,
     measurement: dict[str, Any] | None = None,
+    session_token: str | None = None,
 ) -> dict[str, Any]:
     """Wrapper for the minimum constitutional kernel interceptor.
 
@@ -20510,36 +20565,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             pass  # APEX metrics are best-effort
 
         # Attach continuity + authority delta from SCT claims
-        if payload:
-            required_auth = "OBSERVE_ONLY"
-            if tool_name == "arif_seal":
-                required_auth = "FULL"
-            elif tool_name in ("arif_judge", "arif_forge", "arif_act"):
-                required_auth = "LIMITED_MUTATE"
-            try:
-                from arifosmcp.runtime.sct import compute_authority_delta
-
-                delta = compute_authority_delta(
-                    str(payload.get("auth") or "OBSERVE_ONLY"),
-                    required_auth,
-                    tool_name,
-                )
-                final_resp["authority_delta"] = delta.as_dict()
-                if isinstance(payload.get("apex"), dict):
-                    final_resp["apex_scalars"] = payload["apex"]
-                if payload.get("session_token"):
-                    final_resp["session_token"] = payload["session_token"]
-                    res = final_resp.get("result")
-                    if isinstance(res, dict):
-                        res.setdefault("session_token", payload["session_token"])
-                final_resp.setdefault("standing_source", "sct")
-                final_resp.setdefault(
-                    "authority", payload.get("auth") or final_resp.get("authority")
-                )
-                if payload.get("actor") and payload.get("actor") != "anonymous":
-                    final_resp.setdefault("actor_id", payload.get("actor"))
-            except Exception:
-                pass
+        _attach_sct_continuity(final_resp, payload, tool_name)
 
         return _sanitize_envelope(final_resp)
 
@@ -20637,36 +20663,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             pass  # APEX metrics are best-effort
 
         # Attach continuity + authority delta from SCT claims
-        if payload:
-            required_auth = "OBSERVE_ONLY"
-            if tool_name == "arif_seal":
-                required_auth = "FULL"
-            elif tool_name in ("arif_judge", "arif_forge", "arif_act"):
-                required_auth = "LIMITED_MUTATE"
-            try:
-                from arifosmcp.runtime.sct import compute_authority_delta
-
-                delta = compute_authority_delta(
-                    str(payload.get("auth") or "OBSERVE_ONLY"),
-                    required_auth,
-                    tool_name,
-                )
-                final_resp["authority_delta"] = delta.as_dict()
-                if isinstance(payload.get("apex"), dict):
-                    final_resp["apex_scalars"] = payload["apex"]
-                if payload.get("session_token"):
-                    final_resp["session_token"] = payload["session_token"]
-                    res = final_resp.get("result")
-                    if isinstance(res, dict):
-                        res.setdefault("session_token", payload["session_token"])
-                final_resp.setdefault("standing_source", "sct")
-                final_resp.setdefault(
-                    "authority", payload.get("auth") or final_resp.get("authority")
-                )
-                if payload.get("actor") and payload.get("actor") != "anonymous":
-                    final_resp.setdefault("actor_id", payload.get("actor"))
-            except Exception:
-                pass
+        _attach_sct_continuity(final_resp, payload, tool_name)
 
         return _sanitize_envelope(final_resp)
 
