@@ -4,13 +4,16 @@ SCT Slice 1 — session capability token continuity tests.
 Acceptance:
   1. init mints session_token + honest UNMEASURED apex
   2. verify_sct round-trips
-  3. Drop store row → observe/triage still work with token alone
+  3. Drop store row → observe/triage/think/compose/critique/judge/forge/seal/memory
+     still work with token alone
   4. Tampered token → invalid
   5. No arif_act in allowed
+  6. dry_run/verify paths for forge/seal do not require a live store
 """
 
 from __future__ import annotations
 
+import asyncio
 import time
 
 from arifosmcp.runtime.sct import (
@@ -20,8 +23,14 @@ from arifosmcp.runtime.sct import (
     unmeasured_apex,
     verify_sct,
 )
+from arifosmcp.tools import arif_memory
+from arifosmcp.tools.forge import arif_forge
+from arifosmcp.tools.heart import arif_critique
+from arifosmcp.tools.reason import arif_think
+from arifosmcp.tools.reply import arif_compose
 from arifosmcp.tools.session import _project_light, arif_init
 from arifosmcp.tools.sense import arif_observe
+from arifosmcp.tools.vault import arif_seal
 
 
 def _components() -> dict:
@@ -174,13 +183,11 @@ def test_init_triage_observe_with_token_after_store_delete():
         session_token=token,
         actor_id="sct-slice1-actor",
     )
-    assert o.get("status") != "HOLD" or "L11" not in str(o.get("reason", "")), o
-    # Prefer OK; vitals may return ok wrapper
-    assert o.get("status") in ("OK", "ok", "SEAL", None) or o.get("verdict") not in (
-        "RETAK",
-        "VOID",
-    ), o
-    assert o.get("session_token") or (o.get("result") or {}).get("session_token")
+    assert "L11" not in str(o.get("reason", "")), o
+    assert o.get("status") != "HOLD", o
+    assert o.get("session_token") == token
+    assert o.get("standing_source") == "sct"
+    assert (o.get("apex_scalars") or {}).get("G") == UNMEASURED
 
 
 def test_unmeasured_apex_helper():
