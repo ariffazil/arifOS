@@ -699,6 +699,7 @@ def arif_route(
 def arif_triage(
     mode: str = "status",
     session_id: str | None = None,
+    session_token: str | None = None,
     stage: str | None = None,
     actor_id: str | None = None,
     priority: str | None = None,
@@ -716,6 +717,7 @@ def arif_triage(
     Args:
         mode:        "status" | "preflight" | "triage"
         session_id:   Optional session to query
+        session_token: SCT (preferred) — signed capability from arif_init
         stage:       Stage hint (used if session_id not provided)
         actor_id:    Calling actor
         priority:    Task priority hint for triage mode
@@ -776,30 +778,50 @@ def arif_triage(
 
     if mode == "preflight":
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.runtime.sct import resolve_standing
 
-        session_id_present = bool(session_id)
+        session_id_present = bool(session_id) or bool(session_token)
         actor_id_present = bool(actor_id)
 
-        # FIX 2026-07-09: Actually look up the session from the store instead
-        # of hardcoding actor_verified=False / authority_mode="OBSERVE_ONLY".
-        # This was the root cause of the arif_init→arif_triage desync:
-        # init wrote actor_verified=true, triage returned false (hardcoded).
+        # SCT Slice 1: inhabit via token first; store is optional cache.
         _actor_verified = False
         _authority_mode = "OBSERVE_ONLY"
         _stage_from_session = stage or "000"
         _session_found = False
+        _standing_source = "none"
+        _session_token_out: str | None = None
+        _apex_scalars: dict[str, Any] | None = None
+        _sid_resolved = session_id
 
-        if session_id_present:
+        standing = resolve_standing(
+            session_token=session_token,
+            session_id=session_id,
+            actor_id=actor_id,
+            tool="arif_triage",
+            mode="preflight",
+            allow_store=True,
+        )
+        if standing.valid:
+            _session_found = True
+            _actor_verified = standing.actor_verified
+            _authority_mode = standing.authority
+            _stage_from_session = standing.stage or stage or "000"
+            _standing_source = standing.source
+            _session_token_out = standing.session_token
+            _apex_scalars = dict(standing.apex)
+            _sid_resolved = standing.session_id or session_id
+        elif session_id and not session_token:
             sess = _SESSIONS.get(session_id)
             if sess and isinstance(sess, dict):
                 _session_found = True
                 _actor_verified = sess.get("actor_verified", False)
                 _authority_mode = sess.get("authority", "OBSERVE_ONLY")
                 _stage_from_session = sess.get("stage", stage or "000")
+                _standing_source = "store"
 
         preflight_payload: dict[str, Any] = {
             "kernel": "alive",
-            "observe_only": not _actor_verified,
+            "observe_only": (not _actor_verified) or _authority_mode == "OBSERVE_ONLY",
             "mutation_allowed": _actor_verified
             and _authority_mode in ("FULL", "SOVEREIGN", "LIMITED_MUTATE"),
             "external_side_effects_allowed": False,
@@ -807,18 +829,22 @@ def arif_triage(
             "session_required": True,
             "session_id_present": session_id_present,
             "session_found": _session_found,
+            "session_id": _sid_resolved,
             "actor_id_present": actor_id_present,
             "actor_verified": _actor_verified,
             "authority_mode": _authority_mode,
             "stage": _stage_from_session,
+            "standing_source": _standing_source,
             "canonical_tool_count": len(CANONICAL_TOOLS),
             "active_sessions": len(_SESSIONS),
             "next_safe_action": "Call arif_init(mode='ping' | 'light' | 'full')",
             "mode": "preflight",
         }
-        # Verdict gate normalization (PATCH 1, 2026-07-03):
-        # If session is required but missing, the constitutional verdict
-        # CANNOT be SEAL — must be HOLD with SESSION_REQUIRED.
+        if _session_token_out:
+            preflight_payload["session_token"] = _session_token_out
+        if _apex_scalars:
+            preflight_payload["apex_scalars"] = _apex_scalars
+
         if not session_id_present:
             return _hold(
                 "arif_triage",
@@ -826,13 +852,11 @@ def arif_triage(
                 floors=["F11"],
                 extra_meta={
                     "hold_reason": "SESSION_REQUIRED",
-                    "required_precondition_failed": "session_id",
+                    "required_precondition_failed": "session_id_or_session_token",
                     "next_safe_action": "arif_init",
                     "preflight_diagnostics": preflight_payload,
                 },
             )
-        # FIX 2026-07-09: If session_id provided but not found in store,
-        # return HOLD — the session doesn't exist or has expired.
         if not _session_found:
             return _hold(
                 "arif_triage",
@@ -840,12 +864,18 @@ def arif_triage(
                 floors=["F11"],
                 extra_meta={
                     "hold_reason": "SESSION_NOT_FOUND",
-                    "required_precondition_failed": "valid_session_id",
+                    "required_precondition_failed": "valid_session_id_or_session_token",
                     "next_safe_action": "arif_init",
                     "preflight_diagnostics": preflight_payload,
                 },
             )
-        return _ok("arif_triage", preflight_payload)
+        out = _ok("arif_triage", preflight_payload, session_id=_sid_resolved)
+        if isinstance(out, dict) and _session_token_out:
+            out["session_token"] = _session_token_out
+            if _apex_scalars:
+                out["apex_scalars"] = _apex_scalars
+            out["standing_source"] = _standing_source
+        return out
 
     if mode == "triage":
         # Simple priority classification

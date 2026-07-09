@@ -576,6 +576,7 @@ def arif_observe(
     layers: list[str] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
+    session_token: str | None = None,
     partition_mode: str = "ONLINE",
     partition_timeout: int = 30,
     top_k: int = 5,
@@ -610,22 +611,71 @@ def arif_observe(
             "message": f"{mode} activated based on GEOX quantum scale classifier.",
         }
 
-    # ── L11 AUTH: Session Validation (Hardened) ───────────────────────────────
-    auth = validate_session(session_id, actor_id)
+    # ── L11 AUTH: SCT-first standing (Slice 1 — inhabit, don't interrogate) ──
+    auth = validate_session(session_id, actor_id, session_token=session_token)
+    _standing_token = auth.get("session_token") if isinstance(auth, dict) else None
     if not auth["valid"]:
-        # If it's a read-only SENSE operation and we have an actor_id,
-        # allow a temporary "ephemeral" session for discovery if configured.
-        if mode in ("hybrid_discovery", "vitals", "compass", "search") and actor_id:
-            logger.debug(f"L11 AUTH: session_id missing for {mode}, using ephemeral context.")
+        # Read-only SENSE: ephemeral only when no SCT was supplied (token failure is hard).
+        if (
+            not session_token
+            and mode in ("hybrid_discovery", "vitals", "compass", "search")
+            and actor_id
+        ):
+            logger.debug(
+                "L11 AUTH: no standing for %s, using ephemeral context.", mode
+            )
             auth = {
                 "valid": True,
                 "session": {"actor_id": actor_id, "stage": "111", "ephemeral": True},
                 "actor_id": actor_id,
+                "source": "ephemeral",
             }
         else:
             if auth.get("expired"):
-                return _sabar("arif_observe", auth["reason"], session_id=session_id)
-            return _hold("arif_observe", auth["reason"], ["L11"], session_id=session_id)
+                out = _sabar("arif_observe", auth["reason"], session_id=session_id)
+            else:
+                out = _hold(
+                    "arif_observe", auth["reason"], ["L11"], session_id=session_id
+                )
+            if isinstance(out, dict) and session_id:
+                out.setdefault("session_id", session_id)
+            return out
+
+    def _with_continuity(resp: dict[str, Any]) -> dict[str, Any]:
+        """Echo SCT so the next hop can inhabit without store lookup."""
+        if not isinstance(resp, dict):
+            return resp
+        if _standing_token:
+            resp["session_token"] = _standing_token
+            result = resp.get("result")
+            if isinstance(result, dict):
+                result.setdefault("session_token", _standing_token)
+                if auth.get("apex_scalars"):
+                    result.setdefault("apex_scalars", auth["apex_scalars"])
+                result.setdefault("standing_source", auth.get("source", "sct"))
+            if auth.get("apex_scalars"):
+                resp.setdefault("apex_scalars", auth["apex_scalars"])
+            resp.setdefault("standing_source", auth.get("source", "sct"))
+        sid = session_id or (auth.get("session") or {}).get("session_id")
+        if sid:
+            resp.setdefault("session_id", sid)
+        return resp
+
+    # Shadow local wrappers so every success/hold path echoes the token
+    def _ok(tool: str, result: dict, **kwargs: Any) -> dict[str, Any]:  # type: ignore[no-redef]
+        from arifosmcp.runtime.tools import _ok as _ok_raw
+
+        return _with_continuity(_ok_raw(tool, result, **kwargs))
+
+    def _hold(tool: str, reason: str, floors=None, **kwargs: Any) -> dict[str, Any]:  # type: ignore[no-redef]
+        from arifosmcp.runtime.tools import _hold as _hold_raw
+
+        return _with_continuity(_hold_raw(tool, reason, floors, **kwargs))
+
+    def _sabar(tool: str, reason: str, **kwargs: Any) -> dict[str, Any]:  # type: ignore[no-redef]
+        from arifosmcp.runtime.tools import _sabar as _sabar_raw
+
+        return _with_continuity(_sabar_raw(tool, reason, **kwargs))
 
     q = query or url or ""
 
@@ -647,6 +697,7 @@ def arif_observe(
             mode="hybrid_discovery",
             query=q,
             session_id=session_id,
+            session_token=session_token or _standing_token,
             actor_id=actor_id,
             top_k=3,
         )

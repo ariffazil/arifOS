@@ -482,7 +482,7 @@ def _project_light(
         "light_bootstrap" if session_mode == "light" else "constitutionally_bound_session"
     )
 
-    return {
+    out = {
         # GATING
         "session_id": sid,
         "actor_verified": actor_verified,
@@ -597,6 +597,55 @@ def _project_light(
             "clarity_compression": "CLEAR",
         },
     }
+
+    # ── SCT Slice 1 (2026-07-09): mint signed capability — inhabit, don't interrogate
+    try:
+        from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
+
+        _verdict_state = (
+            "OK" if not degraded else "SABAR.DEGRADED"
+        )
+        _token, _claims = mint_sct(
+            sid=sid,
+            actor=actor_id or "anonymous",
+            auth=_authority,
+            av=bool(actor_verified),
+            stage="000",
+            lane="AGI",
+            verdict_state=_verdict_state,
+            dominant_reason=(
+                None if not degraded else f"degraded:{','.join(degraded)}"
+            ),
+            allowed=list(_allowed_next),
+            apex=unmeasured_apex(),
+            witness={
+                "active": 1 if actor_verified else 0,
+                "diversity": "NONE" if not actor_verified else "PARTIAL",
+            },
+        )
+        out["session_token"] = _token
+        out["apex_scalars"] = dict(_claims.get("apex") or unmeasured_apex())
+        out["authority_delta"] = None
+        out["standing_source"] = "sct"
+        out["session_birth"]["session_token"] = _token
+        out["sct_claims"] = {
+            "auth": _claims.get("auth"),
+            "av": _claims.get("av"),
+            "exp": _claims.get("exp"),
+            "sid": _claims.get("sid"),
+        }
+    except Exception as _sct_exc:
+        # Continuity mint failure must not block init — but mark clearly
+        out["session_token"] = None
+        out["apex_scalars"] = {
+            "G": "UNMEASURED",
+            "C_dark": "UNMEASURED",
+            "W3": "UNMEASURED",
+            "h": "UNMEASURED",
+        }
+        out["sct_error"] = type(_sct_exc).__name__
+
+    return out
 
 
 def _build_audit_full(sess: dict, actor_id: str, model_key: str, deployment_id: str) -> dict:
@@ -1133,6 +1182,10 @@ def arif_init(
         # ── Persist session ──────────────────────────────────────────────
         try:
             from arifosmcp.runtime.tools import _SESSIONS
+
+            if isinstance(header, dict) and header.get("session_token"):
+                sess["session_token"] = header["session_token"]
+                sess["apex"] = header.get("apex_scalars")
             _SESSIONS[sess["session_id"]] = sess
         except Exception:
             pass
@@ -1491,14 +1544,6 @@ def arif_init(
                 bool(_model_shadow),
             )
 
-        # ── Persist session ──────────────────────────────────────────────
-        try:
-            from arifosmcp.runtime.tools import _SESSIONS
-
-            _SESSIONS[sess["session_id"]] = sess
-        except Exception:
-            pass
-
         # ── Project to frozen header (mode=init/full: same shape as light) ─
         sid = sess.get("session_id", "UNKNOWN")
         header = _project_light(
@@ -1533,6 +1578,18 @@ def arif_init(
         # The old post-hoc override (header["authority"] = "FULL") was a workaround
         # for the actor_verified→FULL derivation bug. Removed — _project_light is
         # now the single source of truth for authority in the header.
+
+        # ── Persist session (+ SCT cache) after header mint ───────────────
+        try:
+            from arifosmcp.runtime.tools import _SESSIONS
+
+            if isinstance(header, dict) and header.get("session_token"):
+                sess["session_token"] = header["session_token"]
+                sess["apex"] = header.get("apex_scalars")
+                sess["allowed_next_verbs"] = header.get("allowed_next_verbs")
+            _SESSIONS[sess["session_id"]] = sess
+        except Exception:
+            pass
 
         # ── Verbose=audit: only path that inlines statics (seal only) ─────
         if verbose == "audit":
