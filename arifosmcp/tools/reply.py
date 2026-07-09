@@ -18,24 +18,35 @@ from arifosmcp.runtime.tools import _hold, _ok
 def _stamp_authority_headers(
     result: dict[str, Any],
     session_id: str | None = None,
+    headers: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Stamp every arif_compose response with authority headers (9-Tool Audit Fix 4).
 
     Turns arif_compose from a formatter into an output gate.
+    Continuity headers (session_token, standing_source, apex_scalars, etc.)
+    are echoed at the top level when present.
     """
-    headers = {
+    base = {
         "authority_mode": "compose",
         "evidence_layer": "MIND_333",
         "seal_status": "UNSEALED",
         "reversibility": "high",
         "next_allowed_action": "arif_judge" if session_id else "arif_init",
     }
+    if headers:
+        base.update(headers)
     # Inject into result payload or top-level
     if isinstance(result, dict):
         if "result" in result and isinstance(result["result"], dict):
-            result["result"]["authority_headers"] = headers
+            result["result"]["authority_headers"] = base
         else:
-            result["authority_headers"] = headers
+            result["authority_headers"] = base
+        # Echo SCT continuity at top level for Spine P0 round-trip assertions
+        for key in ("session_token", "standing_source", "authority", "actor_verified", "apex_scalars"):
+            if key in base:
+                result.setdefault(key, base[key])
+        if session_id:
+            result.setdefault("session_id", session_id)
     return result
 
 
@@ -83,13 +94,17 @@ def arif_compose(
 ) -> dict[str, Any]:
     # ── SCT standing (Spine P0) — close pipeline without store ──
     _standing_token = session_token
+    _standing_source: str | None = None
+    _standing_auth: dict[str, Any] = {}
     if session_token or session_id:
         try:
             from arifosmcp.runtime.session_auth import validate_session
 
             auth = validate_session(session_id, actor_id, session_token=session_token)
             if auth.get("valid"):
+                _standing_auth = auth
                 _standing_token = auth.get("session_token") or session_token
+                _standing_source = auth.get("source")
                 if auth.get("session_id"):
                     session_id = auth.get("session_id")
                 if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
@@ -115,15 +130,23 @@ def arif_compose(
             pass
 
     # ── Authority Headers (9-Tool Audit Fix 4 — 2026-06-29) ──
-    _authority_headers = {
+    _authority_headers: dict[str, Any] = {
         "authority_mode": "compose",
         "evidence_layer": "MIND_333",
         "seal_status": "UNSEALED",
         "reversibility": "high",
         "next_allowed_action": "arif_judge" if session_id else "arif_init",
         "session_token": _standing_token,
-        "standing_source": "sct" if _standing_token else ("store" if session_id else "none"),
+        "standing_source": _standing_source
+        or ("sct" if _standing_token else ("store" if session_id else "none")),
     }
+    if _standing_auth:
+        _authority_headers["authority"] = _standing_auth.get("authority")
+        _authority_headers["actor_verified"] = bool(_standing_auth.get("actor_verified"))
+        if isinstance(_standing_auth.get("apex_scalars"), dict):
+            _authority_headers["apex_scalars"] = _standing_auth["apex_scalars"]
+        elif isinstance(_standing_auth.get("apex"), dict):
+            _authority_headers["apex_scalars"] = _standing_auth["apex"]
 
     # ── Reply Boundary Check (v2 Deepening — Task 4) ──
     from arifosmcp.runtime.tools import _arif_seal, get_session
@@ -274,7 +297,7 @@ def arif_compose(
                 "heart_verdict": heart_verdict,
                 "caveats": heart_result.get("caveats", []),
             },
-        ), session_id)
+        ), session_id, _authority_headers)
 
     # HOLD or Ω₁: deliver with constitutional caveats
     if heart_verdict == "HOLD" or omega_state.get("omega") == "Ω₁":
@@ -288,18 +311,18 @@ def arif_compose(
                 "heart_caveats": heart_result.get("risks_found", []),
                 "omega_state": omega_state,
             },
-        ), session_id)
+        ), session_id, _authority_headers)
 
     floor_check = check_laws("arif_compose", {"message": message or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _stamp_authority_headers(_hold("arif_compose", floor_check["reason"], floor_check["violated_laws"]), session_id)
+        return _stamp_authority_headers(_hold("arif_compose", floor_check["reason"], floor_check["violated_laws"]), session_id, _authority_headers)
 
     if mode == "compose":
         result = _ok(
             "arif_compose",
             {"message": message, "formatted": message, "tone": "neutral"},
         )
-        return _stamp_authority_headers(_stamp_f14_reply(result, ai_involvement, language), session_id)
+        return _stamp_authority_headers(_stamp_f14_reply(result, ai_involvement, language), session_id, _authority_headers)
     if mode == "format":
         result = _ok("arif_compose", {"message": message, "style": style or "markdown"})
         return _stamp_f14_reply(result, ai_involvement, language)
@@ -329,7 +352,7 @@ def arif_compose(
             "message": f"{mode} activated based on GEOX quantum scale classifier.",
         }
 
-    return _stamp_authority_headers(_hold("arif_compose", f"Unknown mode: {mode}"), session_id)
+    return _stamp_authority_headers(_hold("arif_compose", f"Unknown mode: {mode}"), session_id, _authority_headers)
 
 
 # Backward compatibility alias

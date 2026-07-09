@@ -889,6 +889,7 @@ def arif_think(
     # ── SCT standing (Spine P0) — inhabit, don't re-interrogate ──
     _standing_token = session_token
     _standing_source = None
+    _standing_auth: dict[str, Any] = {}
     if session_token or session_id or (context and context.get("session_id")):
         try:
             from arifosmcp.runtime.session_auth import validate_session
@@ -896,6 +897,7 @@ def arif_think(
             _sid = session_id or (context or {}).get("session_id")
             auth = validate_session(_sid, actor_id, session_token=session_token)
             if auth.get("valid"):
+                _standing_auth = auth
                 _standing_token = auth.get("session_token") or session_token
                 _standing_source = auth.get("source")
                 if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
@@ -941,6 +943,13 @@ def arif_think(
                 env.setdefault("standing_source", _standing_source)
         if session_id:
             env.setdefault("session_id", session_id)
+        if _standing_auth:
+            env.setdefault("authority", _standing_auth.get("authority"))
+            env.setdefault("actor_verified", bool(_standing_auth.get("actor_verified")))
+            if isinstance(_standing_auth.get("apex_scalars"), dict):
+                env.setdefault("apex_scalars", _standing_auth["apex_scalars"])
+            elif isinstance(_standing_auth.get("apex"), dict):
+                env.setdefault("apex_scalars", _standing_auth["apex"])
         return env
 
     # ── CONVERGE MODE: recursive convergence loop with marginal gain collapse ──

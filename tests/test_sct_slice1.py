@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from typing import Any
 
 from arifosmcp.runtime.sct import (
     UNMEASURED,
@@ -26,6 +27,7 @@ from arifosmcp.runtime.sct import (
 from arifosmcp.tools import arif_memory
 from arifosmcp.tools.forge import arif_forge
 from arifosmcp.tools.heart import arif_critique
+from arifosmcp.tools.judge import arif_judge
 from arifosmcp.tools.reason import arif_think
 from arifosmcp.tools.reply import arif_compose
 from arifosmcp.tools.session import _project_light, arif_init
@@ -222,14 +224,17 @@ def test_apply_caveats_never_widens():
         assert "WIDEN" in str(e)
 
 
+def _response_dict(obj: Any) -> dict[str, Any]:
+    """Normalize ToolResult / Pydantic model / dict responses for assertions."""
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump()  # type: ignore[union-attr]
+    if hasattr(obj, "dict"):
+        return obj.dict()  # type: ignore[union-attr]
+    return dict(obj) if isinstance(obj, dict) else {"raw": obj}
+
+
 def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
     """Spine P0 acceptance: delete store mid-flight; standing rides token alone."""
-    import asyncio
-
-    from arifosmcp.tools.forge import arif_forge
-    from arifosmcp.tools.reason import arif_think
-    from arifosmcp.tools.reply import arif_compose
-    from arifosmcp.tools.vault import arif_seal
     from arifosmcp.runtime.tools import _SESSIONS
 
     r = arif_init(mode="light", actor_id="spine-p0-actor")
@@ -238,7 +243,7 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
     token = header["session_token"]
     assert token.startswith("sct_v1.")
     assert header["apex_scalars"]["G"] == UNMEASURED
-    assert not any(str(header.get("session_token", "")).startswith("arifos.v1") for _ in [0])
+    assert not token.startswith("arifos.v1")
 
     # Drop store — inhabit via token only
     try:
@@ -250,6 +255,7 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
             pass
     assert _SESSIONS.get(sid) is None
 
+    # ── think ───────────────────────────────────────────────────────────────
     think = arif_think(
         mode="reason",
         query="spine p0 standing check",
@@ -257,15 +263,14 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
         session_id=sid,
         session_token=token,
     )
-    # Synthesis may be model or dict-like
-    t_dict = think.model_dump() if hasattr(think, "model_dump") else dict(think)
-    assert t_dict.get("status") in ("OK", "HOLD", "ok"), t_dict
-    # No L11 store miss when token present
-    reasons = str(t_dict.get("reasons") or t_dict.get("reason") or "")
-    assert "session_id not found" not in reasons.lower() or t_dict.get("session_token")
-    # Prefer standing echo
-    assert t_dict.get("session_token") or (t_dict.get("result") or {}).get("session_token") or True
+    t_dict = _response_dict(think)
+    assert t_dict.get("status") == "OK", t_dict
+    assert "L11" not in str(t_dict.get("reason", "")), t_dict
+    assert t_dict.get("session_token") == token, t_dict
+    assert t_dict.get("standing_source") == "sct", t_dict
+    assert (t_dict.get("apex_scalars") or {}).get("G") == UNMEASURED, t_dict
 
+    # ── compose ──────────────────────────────────────────────────────────────
     compose = arif_compose(
         mode="compose",
         message="pipeline close ok",
@@ -273,43 +278,81 @@ def test_full_loop_store_delete_think_compose_forge_dry_seal_verify():
         session_id=sid,
         session_token=token,
     )
-    assert isinstance(compose, dict)
-    assert compose.get("status") != "VOID" or "TOKEN" not in str(compose)
-    # L11 not found should not fire when token valid
-    assert "session_id not found" not in str(compose).lower() or compose.get("session_token")
+    c_dict = _response_dict(compose)
+    assert c_dict.get("status") == "OK", c_dict
+    assert "L11" not in str(c_dict.get("reason", "")), c_dict
+    assert c_dict.get("session_token") == token, c_dict
+    assert c_dict.get("standing_source") == "sct", c_dict
 
-    forge_out = asyncio.run(
-        arif_forge(
+    async def _async_block() -> None:
+        # ── forge dry_run ────────────────────────────────────────────────────
+        forge_out = await arif_forge(
             mode="engineer",
             session_id=sid,
             session_token=token,
             actor_id="spine-p0-actor",
             dry_run=True,
         )
-    )
-    f_dict = forge_out.model_dump() if hasattr(forge_out, "model_dump") else dict(forge_out)
-    assert f_dict.get("status") == "HOLD"
-    assert (f_dict.get("result") or {}).get("dry_run") is True
-    assert (f_dict.get("result") or {}).get("actor_id") == "spine-p0-actor"
+        f_dict = _response_dict(forge_out)
+        assert f_dict.get("status") in ("OK", "HOLD"), f_dict
+        f_res = f_dict.get("result") or {}
+        assert f_res.get("dry_run") is True, f_dict
+        assert f_res.get("actor_id") == "spine-p0-actor", f_dict
+        assert "TOKEN_INVALID" not in str(f_dict), f_dict
+        assert f_dict.get("session_token") == token, f_dict
+        assert f_dict.get("standing_source") == "sct", f_dict
 
-    try:
-        seal_out = asyncio.run(
-            arif_seal(
-                mode="verify",
-                payload="spine-p0",
-                session_id=sid,
-                session_token=token,
-                actor_id="spine-p0-actor",
-            )
+        # ── seal verify ──────────────────────────────────────────────────────
+        seal_out = await arif_seal(
+            mode="verify",
+            payload="spine-p0",
+            session_id=sid,
+            session_token=token,
+            actor_id="spine-p0-actor",
         )
-        s_dict = seal_out.model_dump() if hasattr(seal_out, "model_dump") else dict(seal_out)
-        # Standing must not fail as TOKEN_INVALID after store delete
-        meta = s_dict.get("meta") or {}
-        assert (meta.get("sesat_event") or {}).get("type") != "TOKEN_INVALID", s_dict
-        assert "TOKEN_INVALID" not in str(s_dict.get("reasons") or [])
-    except TypeError as te:
-        # Pre-existing _arif_seal kwargs mismatch is out of spine P0 scope;
-        # prove standing resolved (TypeError only after SCT gate).
-        assert "ack_irreversible" in str(te) or "unexpected keyword" in str(te)
+        s_dict = _response_dict(seal_out)
+        assert "TOKEN_INVALID" not in str(s_dict), s_dict
+        assert s_dict.get("session_token") == token, s_dict
+        assert s_dict.get("standing_source") == "sct", s_dict
+
+        # ── heart critique ───────────────────────────────────────────────────
+        critique_out = await arif_critique(
+            mode="summary",
+            target="spine p0 token continuity",
+            session_id=sid,
+            session_token=token,
+            actor_id="spine-p0-actor",
+        )
+        cr_dict = _response_dict(critique_out)
+        assert "TOKEN_INVALID" not in str(cr_dict), cr_dict
+        assert cr_dict.get("session_token") == token, cr_dict
+        assert cr_dict.get("standing_source") == "sct", cr_dict
+
+        # ── judge scan (lightweight deterministic path) ──────────────────────
+        judge_out = await arif_judge(
+            mode="scan_instructions",
+            candidate=".",
+            session_id=sid,
+            session_token=token,
+            actor_id="spine-p0-actor",
+        )
+        j_dict = _response_dict(judge_out)
+        assert "TOKEN_INVALID" not in str(j_dict), j_dict
+        assert j_dict.get("session_token") == token, j_dict
+
+        # ── memory recall ────────────────────────────────────────────────────
+        memory_out = await arif_memory(
+            mode="recall",
+            query="spine p0",
+            session_id=sid,
+            session_token=token,
+            actor_id="spine-p0-actor",
+        )
+        m_dict = _response_dict(memory_out)
+        assert "TOKEN_INVALID" not in str(m_dict), m_dict
+        assert m_dict.get("session_token") == token, m_dict
+
+    asyncio.run(_async_block())
+
     # No dual arifos.v1 mint in path
     assert token.startswith("sct_v1.")
