@@ -570,7 +570,19 @@ def _run_minimal_stdio_server() -> None:
             # All others (aliases, diagnostics, internal) remain callable via
             # tools/call but are NOT advertised on tools/list. F4 CLARITY.
             local_tools = [tool_descriptor(name) for name in tool_handlers if name in _public_names]
-            remote_tools = [rt["schema"] for rt in _remote_tools.values()]
+            # Advertise session_id on Path-B organ proxies (lightweight auth surface)
+            from arifosmcp.runtime.remote_proxy_auth import inject_session_params
+
+            remote_tools = []
+            for rt in _remote_tools.values():
+                schema = dict(rt["schema"])
+                schema["inputSchema"] = inject_session_params(schema.get("inputSchema"))
+                desc = schema.get("description") or ""
+                if "session_id required" not in desc.lower():
+                    schema["description"] = (
+                        f"{desc} [Path B organ proxy — session_id required]"
+                    ).strip()
+                remote_tools.append(schema)
             send(
                 {
                     "jsonrpc": "2.0",
@@ -590,12 +602,40 @@ def _run_minimal_stdio_server() -> None:
             if name in _remote_tools:
                 organ = _remote_tools[name]["organ"]
                 try:
+                    # Path-B gate: valid session_id required (not full constitutional gate)
+                    from arifosmcp.runtime.remote_proxy_auth import (
+                        deny_payload,
+                        require_remote_proxy_session,
+                    )
+
+                    gate = require_remote_proxy_session(
+                        tool_name=name,
+                        organ=organ,
+                        arguments=arguments if isinstance(arguments, dict) else {},
+                    )
+                    if not gate["ok"]:
+                        send(
+                            {
+                                "jsonrpc": "2.0",
+                                "id": request_id,
+                                "error": {
+                                    "code": -32001,
+                                    "message": gate["reason"],
+                                    "data": deny_payload(
+                                        gate, organ=organ, tool_name=name
+                                    ),
+                                },
+                            }
+                        )
+                        continue
+
+                    forward = gate["forward_args"]
                     if organ == "WEALTH":
-                        coro = call_wealth_tool(name, arguments)
+                        coro = call_wealth_tool(name, forward)
                     elif organ == "WELL":
-                        coro = call_well_tool(name, arguments)
+                        coro = call_well_tool(name, forward)
                     elif organ == "GEOX":
-                        coro = call_geox_tool(name, arguments)
+                        coro = call_geox_tool(name, forward)
                     else:
                         raise RuntimeError(f"Unknown organ: {organ}")
 
