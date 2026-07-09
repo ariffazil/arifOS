@@ -1,12 +1,20 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
-federation_release: v2026.07.08
-last_verified: 2026-07-09
+federation_release: v2026.07.04-MARHIN
+last_verified: 2026-07-09T04:50Z
+live_commit: 1bfeaba
+live_version: kanon-1bfeaba
+runtime_path: /opt/arifos/app
+runtime_drift: false
+owner_summary: GREEN
+tools_exposed_via_mcp: 12
+canonical_tools_loaded: 17
+total_declared_tools: 58
 changelog: /root/arifOS/CHANGELOG.md
 p0_actor_id_binding: live (kernel reads JWT lineage first; self-report caps MEDIUM)
 floor_11b_amanah_replay: live (nonce required for IRREVERSIBLE mutations; 24h cache)
 a2a_agent_json: /root/arifOS/.well-known/agent.json
-runtime_drift: true (local patches ahead of public snapshot)
+machine_sot: /root/A-FORGE/forge_work/2026-07-09/MACHINE-SOT-2026-07-09.json
 -->
 
 <div align="center">
