@@ -63,6 +63,11 @@ Localhost IS the password (ADR-001).
 All data services bind to 127.0.0.1, no auth required internally.
 UFW handles the outside world.
 
+A2A Autonomy Tiers (Unified Mapping):
+  T1 (Execution)     — Routine tasks, local run/test/build, precise FS edits. Auto-do.
+  T2 (Negotiation)   — Multi-file refactor, dependency updates, local service restarts. Announce-and-execute.
+  T3 (Architectural) — Constitutional changes, production deploys, secret rotations, vault999 writes. 888_HOLD required.
+
 DITEMPA BUKAN DIBERI
 """
 
