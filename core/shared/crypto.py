@@ -119,12 +119,18 @@ def ed25519_sign(message: str, private_key: str) -> str:
 
         return signature.hex()
 
-    except (ImportError, ValueError):
-        # Fallback: SHA-256 HMAC simulation (NOT SECURE FOR PRODUCTION)
-        # ValueError fires when private_key is a passphrase rather than hex bytes
-        import hmac
-
-        return hmac.new(private_key.encode(), message.encode(), hashlib.sha256).hexdigest()
+    except ImportError:
+        # FAIL CLOSED: Ed25519 signing requires cryptography library
+        raise RuntimeError(
+            "Ed25519 signing requires 'cryptography' library. "
+            "Install with: pip install cryptography."
+        )
+    except ValueError:
+        # Key format error — raise explicitly
+        raise ValueError(
+            "Ed25519 private key must be 32-byte hex string. "
+            f"Got {len(private_key)} chars: {private_key[:8]}..."
+        )
 
 
 def ed25519_verify(message: str, signature: str, public_key: str) -> bool:
@@ -160,9 +166,13 @@ def ed25519_verify(message: str, signature: str, public_key: str) -> bool:
             return False
 
     except ImportError:
-        # Fallback: Always return True in dev mode
-        # TODO: Remove this in production!
-        return True
+        # FAIL CLOSED: Ed25519 verification requires cryptography library
+        # Never return True without actual verification (F1 AMANAH, L11 Command Auth)
+        raise RuntimeError(
+            "Ed25519 verification requires 'cryptography' library. "
+            "Install with: pip install cryptography. "
+            "Never bypass signature verification."
+        )
 
 
 def generate_ed25519_keypair() -> tuple[str, str]:
@@ -191,10 +201,12 @@ def generate_ed25519_keypair() -> tuple[str, str]:
         return (private_bytes.hex(), public_bytes.hex())
 
     except ImportError:
-        # Fallback: Generate random hex strings (NOT SECURE FOR PRODUCTION)
-        private_hex = hashlib.sha256(str(uuid.uuid4()).encode()).hexdigest()
-        public_hex = hashlib.sha256(str(uuid.uuid4()).encode()).hexdigest()
-        return (private_hex, public_hex)
+        # FAIL CLOSED: Ed25519 key generation requires cryptography library
+        raise RuntimeError(
+            "Ed25519 key generation requires 'cryptography' library. "
+            "Install with: pip install cryptography. "
+            "Never generate fake keypairs."
+        )
 
 
 # ============================================================================

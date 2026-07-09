@@ -433,6 +433,8 @@ mcp = FastMCP(
     "ARIFOS MCP",
     version=_DEPLOY_VERSION,
     website_url="https://mcp.arif-fazil.com",
+    # MCP logging: SEP-2577 deprecated — FastMCP may still declare logging; no expansion.
+    client_log_level="warning",
     instructions=(
         "Constitutional AI orchestration kernel — arifOS.\n\n"
         "Membrane Principle:\n"
@@ -459,6 +461,9 @@ mcp = FastMCP(
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
 )
+
+# Completions CANCELLED 2026-07-09 — agents use full tool JSON; no human UI typing path.
+# Do not wire completion/complete or advertise completions:{} (SEP agent surface).
 
 # ═══════════════════════════════════════════════════════════════════════════
 # PHASE 2: UNIFIED FEDERATION SKILLS AS MCP RESOURCES (SKILL://)
@@ -1297,9 +1302,7 @@ try:
                             arguments=dict(kwargs),  # type: ignore[arg-type]
                         )
                         if not gate["ok"]:
-                            hold = deny_payload(
-                                gate, organ=organ, tool_name=tool_name
-                            )
+                            hold = deny_payload(gate, organ=organ, tool_name=tool_name)
                             return ToolResult(
                                 content=[
                                     TextContent(
@@ -1361,9 +1364,7 @@ try:
                 for name, info in _REMOTE_TOOLS_HTTP.items():
                     schema = info["schema"]
                     proxy_fn = _make_proxy(info["organ"], name)
-                    params = inject_session_params(
-                        schema.get("inputSchema", {"type": "object"})
-                    )
+                    params = inject_session_params(schema.get("inputSchema", {"type": "object"}))
                     ft = FunctionTool(
                         name=name,
                         description=(

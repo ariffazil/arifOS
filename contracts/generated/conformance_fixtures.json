@@ -641,6 +641,20 @@
       "actor_id": "arifbfazil"
     },
     {
+      "tool": "arif_measure",
+      "fixture_class": "legacy_alias_pass",
+      "input": {
+        "alias_used": "arif_ops_measure"
+      },
+      "expected_resolved_to": "arif_measure",
+      "deprecation_metadata": {
+        "deprecated_after": "2026-12-31",
+        "shim_layer": true
+      },
+      "expected_verdict": "SEAL",
+      "actor_id": "arifbfazil"
+    },
+    {
       "tool": "arif_canary",
       "fixture_class": "legacy_alias_pass",
       "input": {

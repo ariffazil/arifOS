@@ -120,6 +120,10 @@ legacy_aliases:
   - { alias: arifos_memory_recall,      canonical: arif_memory_recall,      deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_bridge,             canonical: arif_bridge,             deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_measure,            canonical: arif_measure,            deprecated_after: "2026-12-31", shim_layer: true }
+  # Live diagnostic name still referenced by AgentOps / some harness surfaces.
+  # Canonical capability is arif_measure; without this alias the capability graph
+  # rejects arif_ops_measure as UNKNOWN_CAPABILITY (VOID surface-contract mismatch).
+  - { alias: arif_ops_measure,          canonical: arif_measure,            deprecated_after: "2026-12-31", shim_layer: true,  alias_of: arif_measure, note: "legacy ops name — resolves to arif_measure (777 health telemetry)" }
   - { alias: arifos_canary,             canonical: arif_canary,             deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_floor_status,       canonical: arif_floor_status,       deprecated_after: "2026-12-31", shim_layer: true }
   - { alias: arifos_organ_attest,       canonical: arif_organ_attest,       deprecated_after: "2026-12-31", shim_layer: true }

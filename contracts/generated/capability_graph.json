@@ -833,7 +833,8 @@
       "fingerprint": "sha256:1e73f99415fa5719",
       "section": "diagnostic",
       "legacy_aliases": [
-        "arifos_measure"
+        "arifos_measure",
+        "arif_ops_measure"
       ]
     },
     {
@@ -1744,6 +1745,7 @@
     "arifos_memory_recall": "arif_memory_recall",
     "arifos_bridge": "arif_bridge",
     "arifos_measure": "arif_measure",
+    "arif_ops_measure": "arif_measure",
     "arifos_canary": "arif_canary",
     "arifos_floor_status": "arif_floor_status",
     "arifos_organ_attest": "arif_organ_attest",
@@ -1777,6 +1779,7 @@
     "arifos_memory_recall": "2026-12-31",
     "arifos_bridge": "2026-12-31",
     "arifos_measure": "2026-12-31",
+    "arif_ops_measure": "2026-12-31",
     "arifos_canary": "2026-12-31",
     "arifos_floor_status": "2026-12-31",
     "arifos_organ_attest": "2026-12-31",

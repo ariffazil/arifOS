@@ -2,7 +2,7 @@
     "$schema": "arifOS/agent-card/v2.0.0",
     "id": "arifos-kernel",
     "name": "arifOS Constitutional Kernel",
-    "description": "Constitutional kernel — 7-tool MCP surface (init→observe→think→route→judge→act→seal), 13 floors, VAULT999, F1-F13 governance. Owns 888 JUDGE, 999 VAULT SEAL, and authority routing. Public MCP tool execution routed through canonical gateway at mcp.arif-fazil.com.",
+    "description": "Constitutional kernel — init→observe→think→route→judge→act→seal pipeline, 13 floors, VAULT999, F1-F13 governance. Owns 888 JUDGE, 999 VAULT SEAL, and authority routing. Public MCP tool execution routed through canonical gateway at mcp.arif-fazil.com.",
     "version": "2026.07.01",
     "protocolVersion": "1.0.0",
     "url": "https://arifos.arif-fazil.com",
@@ -19,8 +19,7 @@
         "methods": ["streamable-http"]
     },
     "capabilities": {
-        "tools": 7,
-        "tools_count": 13,
+        "tools": "discoverable via tools/list",
         "resources": true,
         "prompts": true,
         "vault": true,
