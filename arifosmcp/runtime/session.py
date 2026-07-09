@@ -463,6 +463,30 @@ def get_session_identity(session_id: str) -> dict[str, Any] | None:
 
     Returns None if the session has not been anchored via init_anchor.
     """
+    if session_id and str(session_id).startswith("arifos.v1."):
+        try:
+            from arifosmcp.runtime.capability_token import verify_token
+            payload = verify_token(session_id)
+            if payload:
+                record = {
+                    "actor_id": payload.act,
+                    "verified_actor_id": payload.act if payload.witness.active_count > 0 else None,
+                    "actor_verified": payload.witness.active_count > 0,
+                    "authority_level": payload.auth.lower(),
+                    "session_token": session_id,
+                    "verdict": payload.apex.verdict,
+                }
+                # Cache in _SESSION_IDENTITY so other thread/DB lookups find it
+                _SESSION_IDENTITY[payload.sub] = {
+                    **record,
+                    "created_at": datetime.fromtimestamp(payload.iat, UTC).isoformat(),
+                    "expires_at": datetime.fromtimestamp(payload.exp, UTC).isoformat(),
+                    "stage": "000",
+                }
+                return record
+        except Exception:
+            pass
+
     resolved_session_id = _resolve_lookup_session_id(session_id)
     if not resolved_session_id:
         return None

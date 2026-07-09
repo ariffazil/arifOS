@@ -1693,6 +1693,7 @@ async def arif_critique(
     target: str | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
+    session_token: str | None = None,
     context_type: str | None = None,
     trace_recursion_depth: int = 0,
     fractal_auto: bool = True,
@@ -1736,14 +1737,50 @@ async def arif_critique(
     _ct = context_type or "external_action"
     is_internal = _ct == "internal_audit"
 
+    # ── SCT standing (Spine P0) ──
+    _standing_token = session_token
+    if session_token or session_id:
+        try:
+            from arifosmcp.runtime.session_auth import validate_session
+
+            auth = validate_session(session_id, actor_id, session_token=session_token)
+            if auth.get("valid"):
+                _standing_token = auth.get("session_token") or session_token
+                if auth.get("session_id"):
+                    session_id = auth.get("session_id")
+                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
+                    actor_id = auth.get("actor_id")
+            elif session_token:
+                return {
+                    "status": "HOLD",
+                    "tool": "arif_critique",
+                    "verdict": {
+                        "state": "HOLD",
+                        "dominant_reason": auth.get("reason") or "L11 AUTH: SCT invalid",
+                    },
+                    "sesat_event": {
+                        "sesat": True,
+                        "type": "TOKEN_INVALID",
+                        "reason": auth.get("reason"),
+                    },
+                    "reasons": [auth.get("reason") or "L11 AUTH: SCT invalid"],
+                    "session_id": session_id,
+                    "result": None,
+                }
+        except Exception:
+            pass
+
     # Recursion clamp (Eureka 2026-05-21)
     if trace_recursion_depth > 2:
-        return _heart_fallback(
+        fb = _heart_fallback(
             mode=mode,
             target=target or "",
             context_type=_ct,
             trace_recursion_depth=trace_recursion_depth,
         )
+        if isinstance(fb, dict) and _standing_token:
+            fb["session_token"] = _standing_token
+        return fb
 
     # ── L0 Human Reality Substrate pre-load (F13 directive, 2026-06-16) ──
     # Advisory context for F5 PEACE / F6 EMPATHY / F13 SOVEREIGN evaluations.
@@ -1983,6 +2020,26 @@ async def arif_critique(
     # Advisory: informs F5/F6/F13 evaluations. Sovereign reality is pre-trusted.
     if _arif_substrate is not None:
         result.setdefault("meta", {})["arif_substrate"] = _arif_substrate
+
+    if isinstance(result, dict):
+        if _standing_token:
+            result["session_token"] = _standing_token
+            result.setdefault("standing_source", "sct")
+        if session_id:
+            result.setdefault("session_id", session_id)
+        if actor_id and actor_id != "anonymous":
+            result.setdefault("actor_id", actor_id)
+        # One verdict field preference when outer is missing
+        if "verdict" not in result and result.get("action_risk_verdict"):
+            result["verdict"] = {
+                "state": str(result.get("action_risk_verdict")),
+                "dominant_reason": result.get("degraded_reason"),
+            }
+        elif isinstance(result.get("verdict"), str):
+            result["verdict"] = {
+                "state": result["verdict"],
+                "dominant_reason": result.get("degraded_reason"),
+            }
 
     return result
 

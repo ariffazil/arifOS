@@ -20154,6 +20154,172 @@ def _inject_envelope_into_kwargs(
     return kwargs
 
 
+def verify_and_inject_token(
+    kwargs: dict[str, Any], tool_name: str
+) -> tuple[bool, dict[str, Any] | None, dict[str, Any] | None]:
+    """Verify session capability token (sct_v1 canonical; arifos.v1 verify-only legacy).
+
+    If valid, rehydrates session dict into _SESSIONS (store = optional cache).
+    Returns (success, error_response_dict, claims_dict).
+    """
+    token = kwargs.get("session_token")
+    if not token:
+        session_id = kwargs.get("session_id")
+        # Accept raw token passed as session_id (both wire formats)
+        if session_id and (
+            str(session_id).startswith("sct_v1.")
+            or str(session_id).startswith("arifos.v1.")
+        ):
+            token = session_id
+
+    if not token:
+        return True, None, None
+
+    try:
+        from arifosmcp.runtime.sct import (
+            resolve_standing,
+            verify_sct,
+        )
+
+        actor_hint = kwargs.get("actor_id")
+        claims = verify_sct(token, expected_actor=actor_hint if actor_hint else None)
+        if claims is None and actor_hint:
+            # Retry without actor pin (caller may pass wrong actor; token is truth)
+            claims = verify_sct(token, expected_actor=None)
+        if claims is None:
+            standing = resolve_standing(
+                session_token=token,
+                session_id=kwargs.get("session_id"),
+                actor_id=actor_hint,
+                tool=tool_name,
+            )
+            token_prefix = token[:30] if token else "(none)"
+            err_resp = {
+                "status": "HOLD",
+                "tool": tool_name,
+                "verdict": {"state": "HOLD", "dominant_reason": standing.reason},
+                "result": None,
+                "sesat": True,
+                "sesat_event": {
+                    "sesat": True,
+                    "type": "TOKEN_INVALID",
+                    "malu_delta": 0.05,
+                    "tebus_required": "re-authenticate via arif_init",
+                    "token_prefix": token_prefix,
+                    "reason": standing.reason,
+                },
+                "type": "TOKEN_INVALID",
+                "malu_delta": 0.05,
+                "tebus_required": "re-authenticate via arif_init",
+                "token_prefix": token_prefix,
+                "reasons": [standing.reason or f"Session token invalid. Prefix: {token_prefix}..."],
+            }
+            return False, err_resp, None
+
+        allowed = list(claims.get("allowed") or [])
+        # Kernel birth/resume always allowed; empty allowed → band-only later
+        _always = {"arif_init", "arif_session_init"}
+        if (
+            tool_name not in _always
+            and allowed
+            and tool_name not in allowed
+            and not tool_name.startswith("forge_")
+        ):
+            err_resp = {
+                "status": "HOLD",
+                "tool": tool_name,
+                "verdict": {
+                    "state": "HOLD",
+                    "dominant_reason": f"Tool '{tool_name}' not in token allowed verbs",
+                },
+                "result": None,
+                "sesat": True,
+                "sesat_event": {
+                    "sesat": True,
+                    "type": "UNAUTHORIZED_VERB",
+                    "reason": f"Tool '{tool_name}' not allowed for authority '{claims.get('auth')}'",
+                    "tebus_required": "re-authenticate with higher credentials",
+                },
+                "type": "UNAUTHORIZED_VERB",
+                "reason": f"Tool '{tool_name}' not allowed for authority level '{claims.get('auth')}'",
+                "tebus_required": "re-authenticate with higher credentials",
+                "reasons": [
+                    f"Tool '{tool_name}' not allowed for authority level '{claims.get('auth')}'"
+                ],
+            }
+            return False, err_resp, None
+
+        sid = str(claims.get("sid") or "")
+        actor = str(claims.get("actor") or "anonymous")
+        auth = str(claims.get("auth") or "OBSERVE_ONLY")
+        apex = claims.get("apex") if isinstance(claims.get("apex"), dict) else {}
+        verdict_blob = claims.get("verdict") if isinstance(claims.get("verdict"), dict) else {}
+        # Prefer refreshed token if past half-life
+        standing = resolve_standing(
+            session_token=token,
+            session_id=sid,
+            actor_id=actor,
+            tool=tool_name,
+            allow_store=False,
+        )
+        live_token = standing.session_token or token
+        if standing.valid and standing.claims:
+            claims = standing.claims
+            sid = str(claims.get("sid") or sid)
+            actor = str(claims.get("actor") or actor)
+            auth = str(claims.get("auth") or auth)
+            apex = claims.get("apex") if isinstance(claims.get("apex"), dict) else apex
+
+        sess_reconstructed = {
+            "session_id": sid,
+            "actor_id": actor,
+            "sovereign_id": actor,
+            "created_at": claims.get("iat"),
+            "verdict": (verdict_blob.get("state") if verdict_blob else None) or auth,
+            "authority": auth,
+            "actor_verified": bool(claims.get("av")),
+            "session_token": live_token,
+            "apex": dict(apex) if apex else {},
+            "allowed_next_verbs": list(claims.get("allowed") or allowed),
+            "stage": str(claims.get("stage") or "000"),
+            "lane": str(claims.get("lane") or "AGI"),
+            "sct_source": "sct",
+        }
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        if sid:
+            _SESSIONS[sid] = sess_reconstructed
+
+        kwargs["session_id"] = sid or kwargs.get("session_id")
+        # Never collapse known actor → anonymous
+        if actor and actor != "anonymous":
+            kwargs["actor_id"] = actor
+        elif not kwargs.get("actor_id"):
+            kwargs["actor_id"] = actor
+        kwargs["session_token"] = live_token
+
+        # claims dict for authority_delta attach
+        claims_out = dict(claims)
+        claims_out["session_token"] = live_token
+        return True, None, claims_out
+
+    except Exception as e:
+        logger.exception("Token verification crashed")
+        return False, {
+            "status": "HOLD",
+            "tool": tool_name,
+            "verdict": {"state": "HOLD", "dominant_reason": str(e)},
+            "result": None,
+            "sesat_event": {
+                "sesat": True,
+                "type": "TOKEN_VERIFY_ERROR",
+                "reason": str(e),
+            },
+            "error": f"Token verification system error: {e}",
+            "reasons": [f"Token verification system error: {e}"],
+        }, None
+
+
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
     """
     Wrap a handler so:
@@ -20190,6 +20356,19 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+        
+        # Token verification middleware (Step 3)
+        ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
+        if not ok:
+            final_resp = _enforce_nine_signal(
+                tool_name,
+                err_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            return _sanitize_envelope(final_resp)
+
         _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
             response = handler(*args, **_filtered)
@@ -20269,11 +20448,57 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
         except Exception:
             pass  # APEX metrics are best-effort
+
+        # Attach continuity + authority delta from SCT claims
+        if payload:
+            required_auth = "OBSERVE_ONLY"
+            if tool_name == "arif_seal":
+                required_auth = "FULL"
+            elif tool_name in ("arif_judge", "arif_forge", "arif_act"):
+                required_auth = "LIMITED_MUTATE"
+            try:
+                from arifosmcp.runtime.sct import compute_authority_delta
+
+                delta = compute_authority_delta(
+                    str(payload.get("auth") or "OBSERVE_ONLY"),
+                    required_auth,
+                    tool_name,
+                )
+                final_resp["authority_delta"] = delta.as_dict()
+                if isinstance(payload.get("apex"), dict):
+                    final_resp["apex_scalars"] = payload["apex"]
+                if payload.get("session_token"):
+                    final_resp["session_token"] = payload["session_token"]
+                    res = final_resp.get("result")
+                    if isinstance(res, dict):
+                        res.setdefault("session_token", payload["session_token"])
+                final_resp.setdefault("standing_source", "sct")
+                final_resp.setdefault(
+                    "authority", payload.get("auth") or final_resp.get("authority")
+                )
+                if payload.get("actor") and payload.get("actor") != "anonymous":
+                    final_resp.setdefault("actor_id", payload.get("actor"))
+            except Exception:
+                pass
+
         return _sanitize_envelope(final_resp)
 
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+        
+        # Token verification middleware (Step 3)
+        ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
+        if not ok:
+            final_resp = _enforce_nine_signal(
+                tool_name,
+                err_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id"),
+            )
+            _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
+            return _sanitize_envelope(final_resp)
+
         _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
             response = await handler(*args, **_filtered)
@@ -20350,6 +20575,39 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
         except Exception:
             pass  # APEX metrics are best-effort
+
+        # Attach continuity + authority delta from SCT claims
+        if payload:
+            required_auth = "OBSERVE_ONLY"
+            if tool_name == "arif_seal":
+                required_auth = "FULL"
+            elif tool_name in ("arif_judge", "arif_forge", "arif_act"):
+                required_auth = "LIMITED_MUTATE"
+            try:
+                from arifosmcp.runtime.sct import compute_authority_delta
+
+                delta = compute_authority_delta(
+                    str(payload.get("auth") or "OBSERVE_ONLY"),
+                    required_auth,
+                    tool_name,
+                )
+                final_resp["authority_delta"] = delta.as_dict()
+                if isinstance(payload.get("apex"), dict):
+                    final_resp["apex_scalars"] = payload["apex"]
+                if payload.get("session_token"):
+                    final_resp["session_token"] = payload["session_token"]
+                    res = final_resp.get("result")
+                    if isinstance(res, dict):
+                        res.setdefault("session_token", payload["session_token"])
+                final_resp.setdefault("standing_source", "sct")
+                final_resp.setdefault(
+                    "authority", payload.get("auth") or final_resp.get("authority")
+                )
+                if payload.get("actor") and payload.get("actor") != "anonymous":
+                    final_resp.setdefault("actor_id", payload.get("actor"))
+            except Exception:
+                pass
+
         return _sanitize_envelope(final_resp)
 
     def _attach_live_kernel_envelope(

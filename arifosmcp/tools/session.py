@@ -444,7 +444,17 @@ def _project_light(
     # which gave "FULL" for any verified identity — bypassing the init path's
     # signature-gated authority logic (LIMITED_MUTATE vs FULL/SOVEREIGN).
     # Now: caller passes the session's actual authority level.
-    _authority = authority_override or ("OBSERVE_ONLY" if not actor_verified else "LIMITED_MUTATE")
+    if authority_override:
+        _authority = authority_override
+    else:
+        # Spine P0: identity band only at birth — no invented G → VOID theater
+        from arifosmcp.runtime.sct import identity_band_authority
+
+        _authority = identity_band_authority(
+            actor_verified=bool(actor_verified),
+            signature_verified=False,
+            is_sovereign_principal=False,
+        )
     _is_ephemeral = session_mode == "ephemeral_eval"
     # Fix 2026-07-06 ROUND-2: allowed_next_verbs gated by actual authority,
     # not just actor_verified boolean. FULL/SOVEREIGN → all verbs.
@@ -598,13 +608,11 @@ def _project_light(
         },
     }
 
-    # ── SCT Slice 1 (2026-07-09): mint signed capability — inhabit, don't interrogate
+    # ── SCT Signed Capability (sct_v1 only — never dual-mint arifos.v1) ─────
     try:
         from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
 
-        _verdict_state = (
-            "OK" if not degraded else "SABAR.DEGRADED"
-        )
+        _apex = unmeasured_apex()  # birth: honest UNMEASURED unless real measure
         _token, _claims = mint_sct(
             sid=sid,
             actor=actor_id or "anonymous",
@@ -612,20 +620,17 @@ def _project_light(
             av=bool(actor_verified),
             stage="000",
             lane="AGI",
-            verdict_state=_verdict_state,
-            dominant_reason=(
-                None if not degraded else f"degraded:{','.join(degraded)}"
-            ),
-            allowed=list(_allowed_next),
-            apex=unmeasured_apex(),
+            verdict_state=str(out.get("verdict_code") or "OK"),
+            dominant_reason=None,
+            allowed=_allowed_next,
+            apex=_apex,
             witness={
                 "active": 1 if actor_verified else 0,
-                "diversity": "NONE" if not actor_verified else "PARTIAL",
+                "diversity": "PARTIAL" if actor_verified else "NONE",
             },
         )
         out["session_token"] = _token
-        out["apex_scalars"] = dict(_claims.get("apex") or unmeasured_apex())
-        out["authority_delta"] = None
+        out["apex_scalars"] = dict(_apex)
         out["standing_source"] = "sct"
         out["session_birth"]["session_token"] = _token
         out["sct_claims"] = {
@@ -633,9 +638,11 @@ def _project_light(
             "av": _claims.get("av"),
             "exp": _claims.get("exp"),
             "sid": _claims.get("sid"),
+            "sct_v": _claims.get("sct_v"),
         }
     except Exception as _sct_exc:
         # Continuity mint failure must not block init — but mark clearly
+        logger.error(f"SCT mint failed: {_sct_exc}")
         out["session_token"] = None
         out["apex_scalars"] = {
             "G": "UNMEASURED",
@@ -1421,27 +1428,32 @@ def arif_init(
                 identity_verified = False
                 sess["actor_verified"] = False
 
-        # ── INIT v2.0: Derive verdict + authority from identity state ─────────
-        # These are bound into sess AND into the SessionState response.
-        # Fix 2026-07-06: SOVEREIGN authority now requires BOTH identity_verified
-        # AND cryptographic signature. Verified "arif"/"888" without signature
-        # gets OPERATOR/LIMITED_MUTATE, not SOVEREIGN/FULL.
+        # ── Birth authority: identity band only (Spine P0) ──
+        # derive_authority is for *measured* apex later — never invent G at birth.
+        from arifosmcp.runtime.sct import identity_band_authority
+
         _is_signed_principal = (
             identity_verified
             and sess.get("signature_verified")
             and actor_id
             and actor_id.lower().strip() in ("arif", "888")
         )
-        if identity_verified and _is_signed_principal:
-            sess["verdict"] = "SEAL"
-            sess["authority"] = "FULL"
-            authority_level = "SOVEREIGN"
-        elif identity_verified:
-            sess["verdict"] = "SEAL"
-            sess["authority"] = "LIMITED_MUTATE"
+        sig_verified = bool(sess.get("signature_verified", False))
+        _derived_auth = identity_band_authority(
+            actor_verified=bool(identity_verified),
+            signature_verified=sig_verified,
+            is_sovereign_principal=bool(_is_signed_principal),
+        )
+        sess["authority"] = _derived_auth
+        if _derived_auth == "FULL":
+            sess["verdict"] = "OK"
+            authority_level = "SOVEREIGN"  # role label for ops; authority band stays FULL
+        elif _derived_auth == "LIMITED_MUTATE":
+            sess["verdict"] = "OK"
+            authority_level = "OPERATOR"
         else:
             sess["verdict"] = "OBSERVE_ONLY"
-            sess["authority"] = "OBSERVE_ONLY"
+            authority_level = "ANONYMOUS"
 
         # ── Context Completeness Gate (INIT v2.0 P3.1) ─────────────────────────
         # Advisory only — INIT never blocks session creation, but degrades verdict
@@ -1462,10 +1474,10 @@ def arif_init(
         sess["context_completeness"] = context_receipt.model_dump()
         # Degrade if context too incomplete for safe irreversible action
         if context_receipt.score < 0.5:
-            sess["verdict"] = "DEGRADED"
-            sess["authority"] = "OBSERVE_ONLY"
-            # Don't override FULL/SOVEREIGN — only degrade LIMITED_MUTATE/OBSERVE_ONLY
-            # This prevents accidentally downgrading a verified sovereign session
+            # Don't override FULL/SOVEREIGN — only degrade LIMITED_MUTATE
+            if sess["authority"] not in ("SOVEREIGN", "FULL"):
+                sess["verdict"] = "DEGRADED"
+                sess["authority"] = "OBSERVE_ONLY"
 
         # ── P3 WIRING (2026-06-28): Qdrant memory recall on session init ──
         # Without this, every session starts cold — no context from prior sessions.

@@ -71,6 +71,7 @@ def arif_compose(
     citations: list[str] | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
+    session_token: str | None = None,
     # ── F14 — Right #1 (know) + #4 (language) ────────────────────────
     # These parameters are stamped onto the reply metadata, not
     # used to filter the reply content. ai_involvement: how
@@ -80,6 +81,39 @@ def arif_compose(
     ai_involvement: str = "full",
     language: str = "en",
 ) -> dict[str, Any]:
+    # ── SCT standing (Spine P0) — close pipeline without store ──
+    _standing_token = session_token
+    if session_token or session_id:
+        try:
+            from arifosmcp.runtime.session_auth import validate_session
+
+            auth = validate_session(session_id, actor_id, session_token=session_token)
+            if auth.get("valid"):
+                _standing_token = auth.get("session_token") or session_token
+                if auth.get("session_id"):
+                    session_id = auth.get("session_id")
+                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
+                    actor_id = auth.get("actor_id")
+            elif session_token:
+                return {
+                    "status": "HOLD",
+                    "tool": "arif_compose",
+                    "verdict": {
+                        "state": "HOLD",
+                        "dominant_reason": auth.get("reason") or "L11 AUTH: SCT invalid",
+                    },
+                    "sesat_event": {
+                        "sesat": True,
+                        "type": "TOKEN_INVALID",
+                        "reason": auth.get("reason"),
+                    },
+                    "reasons": [auth.get("reason") or "L11 AUTH: SCT invalid"],
+                    "session_id": session_id,
+                    "result": None,
+                }
+        except Exception:
+            pass
+
     # ── Authority Headers (9-Tool Audit Fix 4 — 2026-06-29) ──
     _authority_headers = {
         "authority_mode": "compose",
@@ -87,6 +121,8 @@ def arif_compose(
         "seal_status": "UNSEALED",
         "reversibility": "high",
         "next_allowed_action": "arif_judge" if session_id else "arif_init",
+        "session_token": _standing_token,
+        "standing_source": "sct" if _standing_token else ("store" if session_id else "none"),
     }
 
     # ── Reply Boundary Check (v2 Deepening — Task 4) ──

@@ -880,10 +880,69 @@ def arif_think(
     query: str | None = None,
     actor_id: str | None = None,
     context: dict | None = None,
+    session_id: str | None = None,
+    session_token: str | None = None,
 ) -> Synthesis:
     """
     333_MIND: Constitutional reasoning and synthesis (Structured Witness).
     """
+    # ── SCT standing (Spine P0) — inhabit, don't re-interrogate ──
+    _standing_token = session_token
+    _standing_source = None
+    if session_token or session_id or (context and context.get("session_id")):
+        try:
+            from arifosmcp.runtime.session_auth import validate_session
+
+            _sid = session_id or (context or {}).get("session_id")
+            auth = validate_session(_sid, actor_id, session_token=session_token)
+            if auth.get("valid"):
+                _standing_token = auth.get("session_token") or session_token
+                _standing_source = auth.get("source")
+                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
+                    actor_id = auth.get("actor_id")
+                if auth.get("session_id"):
+                    session_id = auth.get("session_id")
+                    if context is None:
+                        context = {}
+                    context = dict(context)
+                    context.setdefault("session_id", session_id)
+            elif session_token:
+                # Token was supplied but invalid — structured HOLD, not bare string
+                hold = _hold(
+                    "arif_think",
+                    auth.get("reason") or "L11 AUTH: SCT invalid",
+                    ["L11"],
+                    session_id=_sid,
+                )
+                hold["sesat_event"] = {
+                    "sesat": True,
+                    "type": "TOKEN_INVALID",
+                    "reason": auth.get("reason"),
+                }
+                hold["verdict"] = {
+                    "state": "HOLD",
+                    "dominant_reason": auth.get("reason"),
+                }
+                return Synthesis(**hold)
+        except Exception:
+            pass
+
+    def _echo_standing(env: dict[str, Any]) -> dict[str, Any]:
+        if not isinstance(env, dict):
+            return env
+        if _standing_token:
+            env["session_token"] = _standing_token
+            res = env.get("result")
+            if isinstance(res, dict):
+                res.setdefault("session_token", _standing_token)
+                if _standing_source:
+                    res.setdefault("standing_source", _standing_source)
+            if _standing_source:
+                env.setdefault("standing_source", _standing_source)
+        if session_id:
+            env.setdefault("session_id", session_id)
+        return env
+
     # ── CONVERGE MODE: recursive convergence loop with marginal gain collapse ──
     if mode == "converge":
         from arifosmcp.runtime.convergence import ConvergenceController
@@ -978,7 +1037,9 @@ def arif_think(
         arif_think_structured as run_reasoning,
     )
 
-    session_id = context.get("session_id") if context else None
+    # Prefer explicit session_id / SCT-resolved; context as fallback only
+    if not session_id:
+        session_id = context.get("session_id") if context else None
 
     # ── MIND ROUTING: complexity score + path recommendation ──
     _routing = build_routing_envelope(
@@ -1050,7 +1111,7 @@ def arif_think(
             },
             "mind_routing": _routing["_mind_routing"],
         }
-        return Synthesis(**_ok("arif_think", bundle))
+        return Synthesis(**_echo_standing(_ok("arif_think", bundle)))
 
     # Floor check (Manual override check)
     floor_check = check_laws("arif_think", {"query": query or ""}, actor_id)
@@ -1129,6 +1190,6 @@ def arif_think(
             session_id=session_id,
         )
         hold_env["result"] = bundle
-        return Synthesis(**hold_env)
+        return Synthesis(**_echo_standing(hold_env))
 
-    return Synthesis(**_ok("arif_think", bundle))
+    return Synthesis(**_echo_standing(_ok("arif_think", bundle)))

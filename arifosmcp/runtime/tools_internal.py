@@ -477,6 +477,36 @@ async def _wrap_call(
     - Proper envelope construction in all paths
     """
     session_id = _normalize_session_id(session_id)
+    
+    # Resolve SCT (sct_v1) if present — store is optional cache
+    token = payload.get("session_token") or (
+        session_id
+        if session_id
+        and (str(session_id).startswith("sct_v1.") or str(session_id).startswith("arifos.v1."))
+        else None
+    )
+    if token:
+        try:
+            from arifosmcp.runtime.sct import resolve_standing, verify_sct
+
+            claims = verify_sct(token)
+            if claims:
+                session_id = str(claims.get("sid") or session_id)
+                payload["session_id"] = session_id
+                actor = str(claims.get("actor") or "")
+                if actor and actor != "anonymous":
+                    payload["actor_id"] = actor
+                if claims.get("av"):
+                    payload["verified_actor_id"] = actor
+                payload["session_token"] = token
+                standing = resolve_standing(
+                    session_token=token, session_id=session_id, actor_id=actor
+                )
+                if standing.valid and standing.session_token:
+                    payload["session_token"] = standing.session_token
+        except Exception:
+            pass
+
     payload["session_id"] = session_id
     payload["tool"] = tool_name
     payload["stage"] = stage.value

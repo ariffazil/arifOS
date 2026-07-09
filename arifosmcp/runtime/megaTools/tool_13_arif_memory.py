@@ -161,6 +161,7 @@ async def arif_memory(
     payload: dict[str, Any] | None = None,
     query: str | None = None,
     session_id: str | None = None,
+    session_token: str | None = None,
     actor_id: str | None = None,
     lease_id: str | None = None,
     human_approval: bool = False,
@@ -178,11 +179,45 @@ async def arif_memory(
     from arifosmcp.runtime.model import VerdictCode
     from arifosmcp.runtime.verdict_wrapper import forge_verdict
 
+    # ── SCT standing (Spine P0) ──
+    if session_token or session_id:
+        try:
+            from arifosmcp.runtime.session_auth import validate_session
+
+            auth = validate_session(session_id, actor_id, session_token=session_token)
+            if auth.get("valid"):
+                session_token = auth.get("session_token") or session_token
+                if auth.get("session_id"):
+                    session_id = auth.get("session_id")
+                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
+                    actor_id = auth.get("actor_id")
+            elif session_token:
+                return forge_verdict(
+                    tool_id="arif_memory",
+                    canonical_tool_name="arif_memory",
+                    stage="555m",
+                    payload={
+                        "sesat_event": {
+                            "sesat": True,
+                            "type": "TOKEN_INVALID",
+                            "reason": auth.get("reason"),
+                        },
+                        "session_token": session_token,
+                    },
+                    session_id=session_id,
+                    override_code=VerdictCode.HOLD,
+                    message=auth.get("reason") or "L11 AUTH: SCT invalid",
+                )
+        except Exception:
+            pass
+
     payload = dict(payload or {})
     if raw_input and not query:
         query = raw_input
     if query and "query" not in payload:
         payload["query"] = query
+    if session_token:
+        payload["session_token"] = session_token
 
     # ── 0. Resolve legacy mode if needed ──
     if mode and mode not in ARIF_MEMORY_MODES:

@@ -18,6 +18,7 @@ async def arif_seal(
     mode: Literal["seal", "verify", "chain", "list", "dry_run", "seal_card", "render"] = "seal",
     payload: str = "",
     session_id: str | None = None,
+    session_token: str | None = None,
     ack_irreversible: bool = False,
     actor_id: str | None = None,
     actor_signature: str | None = None,
@@ -41,7 +42,43 @@ async def arif_seal(
         cooldown_entry_id: If provided, the seal is gated on SABAR cooldown completion.
             Without it, cooldown is logged as bypassed (legacy compat path).
             Internal hardening — no new tool surface.
+        session_token: SCT (sct_v1) preferred standing from arif_init.
     """
+    # ── SCT standing (Spine P0) ──
+    _standing_token = session_token
+    if session_token or session_id:
+        try:
+            from arifosmcp.runtime.session_auth import validate_session
+
+            auth = validate_session(session_id, actor_id, session_token=session_token)
+            if auth.get("valid"):
+                _standing_token = auth.get("session_token") or session_token
+                if auth.get("session_id"):
+                    session_id = auth.get("session_id")
+                if auth.get("actor_id") and auth.get("actor_id") != "anonymous":
+                    actor_id = auth.get("actor_id")
+            elif session_token:
+                return SealOutput(
+                    mode=mode,
+                    status="HOLD",
+                    verdict="HOLD",
+                    reasons=[auth.get("reason") or "L11 AUTH: SCT invalid"],
+                    next_safe_action="Call arif_init and pass session_token",
+                    entry_id="",
+                    actor_id=actor_id,
+                    meta={
+                        "sesat_event": {
+                            "sesat": True,
+                            "type": "TOKEN_INVALID",
+                            "reason": auth.get("reason"),
+                        },
+                        "gate": "L11_SCT_GATE",
+                        "session_token_prefix": (session_token or "")[:24],
+                    },
+                )
+        except Exception:
+            pass
+
     # ── GÖDEL-LOCK (Mission 001): No self-certification ──
     # The actor of an IRREVERSIBLE mutation cannot be the final certifier.
     # Enforced at the SEAL boundary — the last gate before Vault999 write.
