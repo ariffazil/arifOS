@@ -1120,30 +1120,78 @@ def arif_init(
         except Exception:
             pass
 
-        # ── P0 WIRING (light mode): Mark known identities as verified ─────
-        # Mirrors the same logic in init/full mode (line ~981).
-        # Without this, light-mode sessions always get OBSERVE_ONLY.
+        # ── P0 WIRING (light mode): crypto bind + challenge (2026-07-10) ──
+        # Wire_ArifInit_Signature_To_Session_v1: light mode MUST process
+        # nonce+signature the same as init. No string-name auto-verify for
+        # hermes/agents (F13: only crypto elevates; only Arif is SOVEREIGN).
         _light_actor_verified = False
-        if actor_id:
-            _actor_lower = actor_id.lower().strip()
-            # Fix 2026-07-06: exact match only — substring match allowed
-            # identity spoof (e.g. actor_id="ARIF_FAKE" passed the "arif" check).
-            # Light mode still grants a basic verify for known principals,
-            # but full SOVEREIGN authority requires cryptographic challenge+signature.
-            if _actor_lower in (
-                "arif",
-                "888",
-                "forge-000ω",
-                "forge-000Ω",
-                "forge",
-                "opencode",
-                "hermes",
-                "auditor",
-                "ops",
-                "plan",
-            ):
+        _light_band = "OBSERVE_ONLY"
+        _light_agent_class = "UNVERIFIED"
+        _light_authority_level = "ANONYMOUS"
+        _sig = signature
+        if actor_id and nonce and _sig:
+            try:
+                from arifosmcp.runtime.crypto_auth import (
+                    classify_actor_band,
+                    verify_init_identity,
+                )
+
+                _ok, _reason = verify_init_identity(
+                    actor_id=actor_id,
+                    nonce=nonce,
+                    signature_b64=_sig,
+                    constitution_hash=CONSTITUTION_HASH,
+                )
+                _band = classify_actor_band(actor_id, _ok)
+                _light_actor_verified = bool(_band["actor_verified"])
+                _light_band = str(_band["actor_band"])
+                _light_agent_class = str(_band["agent_class"])
+                _light_authority_level = str(_band["authority_level"])
+                sess["actor_verified"] = _light_actor_verified
+                sess["signature_verified"] = bool(_band["signature_verified"])
+                sess["actor_band"] = _light_band
+                sess["agent_class"] = _light_agent_class
+                sess["identity_verify_reason"] = _reason
+                sess["authority"] = _light_band
+                logger.info(
+                    "light-mode identity bind actor=%s verified=%s band=%s class=%s reason=%s",
+                    actor_id,
+                    _light_actor_verified,
+                    _light_band,
+                    _light_agent_class,
+                    _reason,
+                )
+            except Exception as _exc:
+                logger.warning("light-mode crypto bind failed: %s", _exc)
+                sess["actor_verified"] = False
+                sess["signature_verified"] = False
+        elif actor_id:
+            # Issue challenge for registered / sovereign actors (ART → APA)
+            try:
+                from arifosmcp.runtime.crypto_auth import (
+                    is_registered_actor,
+                    issue_actor_challenge,
+                )
+
+                _al = actor_id.lower().strip()
+                if _al in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
+                    challenge_nonce = issue_actor_challenge(actor_id)
+                    sess["pending_challenge_nonce"] = challenge_nonce
+                    sess["challenge_signature_payload"] = f"{actor_id}:{challenge_nonce}"
+                    sess["challenge_signature_payload_alt"] = (
+                        f"{actor_id}:{CONSTITUTION_HASH}:{challenge_nonce}"
+                    )
+            except Exception as _exc:
+                logger.warning("light-mode challenge issue failed: %s", _exc)
+            # forge internal executor only — not Hermes, not string "arif" without crypto
+            if actor_id.lower().strip() == "forge":
                 _light_actor_verified = True
+                _light_band = "LIMITED_MUTATE"
+                _light_agent_class = "AGENT"
+                _light_authority_level = "OPERATOR"
                 sess["actor_verified"] = True
+                sess["agent_class"] = "AGENT"
+                sess["authority"] = "LIMITED_MUTATE"
 
         # ── Project to frozen header (15 fields, degraded-first) ────────
         header = _project_light(
@@ -1164,6 +1212,7 @@ def arif_init(
             actor_verified=_light_actor_verified,
             session_mode=session_mode,  # AOB P0 — 2026-07-03
             intent=intent or sess.get("intent") or "light_bootstrap",
+            authority_override=_light_band,
         )
 
         # ── Verbose=audit: only path that inlines statics (seal only) ───
@@ -1204,6 +1253,7 @@ def arif_init(
 
         _light_sovereign = sess.get("sovereign_id")
         _light_delegation = sess.get("delegation_mode", "direct")
+        _light_auth = sess.get("authority", _light_band) or "OBSERVE_ONLY"
 
         # ── Persist session ──────────────────────────────────────────────
         try:
@@ -1225,31 +1275,32 @@ def arif_init(
                 stage="000",
                 lane="AGI",
                 constitution_bound=True,
-                verdict="OBSERVE_ONLY",
-                authority="OBSERVE_ONLY",
+                verdict=_light_auth if _light_actor_verified else "OBSERVE_ONLY",
+                authority=_light_auth,
                 init_tier=3,
-                actor_verified=sess.get("actor_verified", False),
+                actor_verified=bool(sess.get("actor_verified", False)),
+                signature_verified=bool(sess.get("signature_verified", False)),
             ),
             actor={
                 "claimed_id": actor_id,
-                "sovereign_id": _light_sovereign,
+                "sovereign_id": _light_sovereign or "ARIF_FAZIL",
                 "delegation_mode": _light_delegation,
-                "identity_verified": sess.get("actor_verified", False),
-                "authority_level": "OPERATOR",
-                "principal_agent_separation": _light_delegation == "delegated"
-                and _light_sovereign
-                and _light_sovereign != actor_id,
+                "identity_verified": bool(sess.get("actor_verified", False)),
+                "authority_level": _light_authority_level,
+                "agent_class": sess.get("agent_class", _light_agent_class),
+                "principal_agent_separation": True,  # Hermes/agent ≠ F13 sovereign
             },
             constitution={
                 "id": CONSTITUTION_HASH,
                 "detail_ref": f"arifos://constitution/{CONSTITUTION_HASH}",
                 "human_judge_required": True,
             },
-            meta={
-                "actor_verified": sess.get("actor_verified", False),
-                "authority_mode": "OBSERVE_ONLY",
-            },
-            actor_verified=sess.get("actor_verified", False),
+            meta=_build_meta(
+                identity_verified=bool(sess.get("actor_verified", False)),
+                authority=_light_auth,
+                sess=sess,
+            ),
+            actor_verified=bool(sess.get("actor_verified", False)),
             result=header,
             doctrine=ARIF_DOCTRINE,
         )
@@ -1358,89 +1409,81 @@ def arif_init(
             authority_level = "ANONYMOUS"
 
         identity_verified = False
-        # Multi-actor crypto path: arif/888 OR any registered agent with public key
+        # Wire_ArifInit_Signature_To_Session_v1: unified crypto bind
+        # Accepts both crypto_auth payload and kernel identity/verify payload.
         if actor_id and nonce and signature:
             try:
                 from arifosmcp.runtime.crypto_auth import (
+                    classify_actor_band,
                     is_registered_actor,
-                    verify_actor_signature,
+                    verify_init_identity,
                 )
 
                 _aid = actor_id.lower().strip()
                 if _aid in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
-                    identity_verified = verify_actor_signature(actor_id, nonce, signature)
-                    sess["signature_verified"] = identity_verified
+                    _ok, _reason = verify_init_identity(
+                        actor_id=actor_id,
+                        nonce=nonce,
+                        signature_b64=signature,
+                        constitution_hash=CONSTITUTION_HASH,
+                    )
+                    _band = classify_actor_band(actor_id, _ok)
+                    identity_verified = bool(_band["actor_verified"])
+                    sess["signature_verified"] = bool(_band["signature_verified"])
                     sess["actor_verified"] = identity_verified
-            except Exception:
-                pass
+                    sess["actor_band"] = _band["actor_band"]
+                    sess["agent_class"] = _band["agent_class"]
+                    sess["identity_verify_reason"] = _reason
+                    logger.info(
+                        "init-mode identity bind actor=%s verified=%s band=%s class=%s reason=%s",
+                        actor_id,
+                        identity_verified,
+                        _band["actor_band"],
+                        _band["agent_class"],
+                        _reason,
+                    )
+            except Exception as _exc:
+                logger.warning("init-mode crypto bind failed: %s", _exc)
 
-        # ── P0 WIRING (2026-07-07): Challenge-response enforcement for sovereign ──
-        # Fix 2026-07-06: substring match "arif" in actor_lower allowed spoof
-        # (e.g. actor_id="ARIF_FAKE" passed). Changed to exact match.
-        # Fix 2026-07-07: Sovereign identities (arif/888) WITHOUT cryptographic
-        # proof no longer auto-grant identity_verified. Challenge-response is
-        # now the default enforcement path per F13 sovereign directive. Only
-        # "forge" (internal executor) retains auto-grant for infra operations.
-        # Sovereign localhost bypass: actor_id="arif" from the same VPS
-        # is auto-verified. Domain ownership at arif-fazil.com/000 +
-        # same-machine execution = sufficient proof. No challenge dance.
-        if (
-            actor_id
-            and actor_id.lower().strip() in ("arif", "888")
-            and not identity_verified
-            and deployment_id == "vps_main_arifos"
-        ):
-            identity_verified = True
-            sess["actor_verified"] = True
-            sess["signature_verified"] = True
-            sess["sovereign_localhost_bypass"] = True
-            logger.info("Sovereign '%s' auto-verified via localhost bypass", actor_id)
-
+        # ── Challenge path when not verified ──
+        # F13: no localhost bypass auto-SOVEREIGN. Crypto only for human sovereign.
+        # "forge" remains internal executor auto-grant (infra, not human F13).
         if not identity_verified and actor_id:
             actor_lower = actor_id.lower().strip()
             if actor_lower == "forge":
-                # forge is a known internal executor — auto-grant without crypto
                 identity_verified = True
                 sess["actor_verified"] = True
+                sess["agent_class"] = "AGENT"
+                sess["actor_band"] = "LIMITED_MUTATE"
                 logger.info("Auto-granted identity for forge (internal executor)")
-            elif actor_lower in ("arif", "888"):
-                # Sovereign identity claimed WITHOUT cryptographic signature.
-                # Issue challenge nonce via crypto_auth.verify_actor_signature path.
-                # identity_verified stays False until caller completes challenge.
-                challenge_nonce = None
-                try:
-                    from arifosmcp.runtime.crypto_auth import issue_actor_challenge
-
-                    challenge_nonce = issue_actor_challenge("arif")
-                    sess["pending_challenge_nonce"] = challenge_nonce
-                    logger.warning(
-                        "Sovereign identity '%s' claimed without signature. "
-                        "Challenge nonce issued: %s. Caller must re-init with "
-                        "signed nonce for full authority.",
-                        actor_id,
-                        challenge_nonce[:16] if challenge_nonce else "N/A",
-                    )
-                except Exception as exc:
-                    logger.warning("Failed to issue challenge for %s: %s", actor_id, exc)
-                identity_verified = False
-                sess["actor_verified"] = False
             else:
-                # Registered external/internal agents: issue challenge if key known
                 try:
                     from arifosmcp.runtime.crypto_auth import (
                         is_registered_actor,
                         issue_actor_challenge,
                     )
 
-                    if is_registered_actor(actor_id):
-                        challenge_nonce = issue_actor_challenge(actor_id)
+                    _challenge_actor = (
+                        "arif"
+                        if actor_lower in ("arif", "888", "ariffazil")
+                        else actor_id
+                    )
+                    if actor_lower in ("arif", "888", "ariffazil") or is_registered_actor(
+                        actor_id
+                    ):
+                        challenge_nonce = issue_actor_challenge(_challenge_actor)
                         sess["pending_challenge_nonce"] = challenge_nonce
-                        sess["challenge_signature_payload"] = f"{actor_id}:{challenge_nonce}"
-                        logger.info(
-                            "Registered actor '%s' claimed without signature. "
-                            "Challenge issued: %s…",
+                        sess["challenge_signature_payload"] = (
+                            f"{_challenge_actor}:{challenge_nonce}"
+                        )
+                        sess["challenge_signature_payload_alt"] = (
+                            f"{_challenge_actor}:{CONSTITUTION_HASH}:{challenge_nonce}"
+                        )
+                        logger.warning(
+                            "Identity '%s' claimed without valid signature. "
+                            "Challenge nonce issued: %s…",
                             actor_id,
-                            challenge_nonce[:16],
+                            challenge_nonce[:16] if challenge_nonce else "N/A",
                         )
                 except Exception as exc:
                     logger.warning("Failed to issue challenge for %s: %s", actor_id, exc)
@@ -1448,14 +1491,13 @@ def arif_init(
                 sess["actor_verified"] = False
 
         # ── Birth authority: identity band only (Spine P0) ──
-        # derive_authority is for *measured* apex later — never invent G at birth.
         from arifosmcp.runtime.sct import identity_band_authority
 
         _is_signed_principal = (
             identity_verified
             and sess.get("signature_verified")
             and actor_id
-            and actor_id.lower().strip() in ("arif", "888")
+            and actor_id.lower().strip() in ("arif", "888", "ariffazil")
         )
         sig_verified = bool(sess.get("signature_verified", False))
         _derived_auth = identity_band_authority(
@@ -1463,16 +1505,28 @@ def arif_init(
             signature_verified=sig_verified,
             is_sovereign_principal=bool(_is_signed_principal),
         )
+        # Prefer classify_actor_band when crypto path ran
+        if sess.get("actor_band") in ("FULL", "LIMITED_MUTATE", "OBSERVE_ONLY"):
+            _derived_auth = sess["actor_band"]
         sess["authority"] = _derived_auth
         if _derived_auth == "FULL":
             sess["verdict"] = "OK"
-            authority_level = "SOVEREIGN"  # role label for ops; authority band stays FULL
+            # Role label SOVEREIGN only for human principal — never Hermes
+            authority_level = (
+                "SOVEREIGN" if _is_signed_principal else "OPERATOR"
+            )
+            if not sess.get("agent_class"):
+                sess["agent_class"] = (
+                    "SOVEREIGN_PRINCIPAL" if _is_signed_principal else "AGENT"
+                )
         elif _derived_auth == "LIMITED_MUTATE":
             sess["verdict"] = "OK"
             authority_level = "OPERATOR"
+            sess.setdefault("agent_class", "AGENT")
         else:
             sess["verdict"] = "OBSERVE_ONLY"
             authority_level = "ANONYMOUS"
+            sess.setdefault("agent_class", "UNVERIFIED")
 
         # ── Context Completeness Gate (INIT v2.0 P3.1) ─────────────────────────
         # Advisory only — INIT never blocks session creation, but degrades verdict
