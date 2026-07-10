@@ -34,6 +34,8 @@ _PUBKEY_CANDIDATES = [
     Path("/run/sekrits/arifos_sovereign.pub"),
     Path("/run/secrets/arifos_sovereign.pub"),
     Path("/root/compose/sekrits/arifos_sovereign.pub"),
+    # Canonical AAA Arif identity public key (PEM Ed25519)
+    Path("/root/AAA/IDENTITY/keys/arif_public.pem"),
     Path("/root/.ssh/operator_did_ed25519.pub"),
 ]
 
