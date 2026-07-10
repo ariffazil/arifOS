@@ -2757,9 +2757,7 @@ def _actor_for_response(session_id: str | None = None, candidate: str | None = N
     placeholders from wrap_legacy_call when identity was dropped. Prefer
     session-bound actor over those placeholders (identity-propagation fix 2026-07-09).
     """
-    _RELAY_PLACEHOLDERS = frozenset(
-        {"anonymous", "openclaw-anon", "unknown", "null", "", "None"}
-    )
+    _RELAY_PLACEHOLDERS = frozenset({"anonymous", "openclaw-anon", "unknown", "null", "", "None"})
     if candidate and str(candidate) not in _RELAY_PLACEHOLDERS:
         return str(candidate)
     ctx = _RESPONSE_CONTEXT.get() or {}
@@ -3557,21 +3555,20 @@ def _enforce_nine_signal(
             delta_s = 0.0
 
         nine = out.get("nine_signal")
-        # HONESTY FIX (P0-2026-06-10): When the reactive wrapper downgrades
-        # verdict to DEGRADED (inner HOLD/FAIL detected), the hardcoded "OK"
-        # nine_signal from _ok() is now a lie.  Force-regenerate it from the
-        # actual verdict so the audit surface tells the truth.
+        # PHASE A BIRTH-FIX (2026-07-10): Always derive nine_signal from verdict,
+        # not status. The verdict is the canonical constitutional judgment; the
+        # nine_signal must reflect it truthfully. Previous code only regenerated
+        # on DEGRADED — now regenerates whenever verdict != status.
         if (
-            verdict == "DEGRADED"
+            verdict != status
             or not isinstance(nine, dict)
             or not all(k in nine for k in ("delta", "psi", "omega"))
         ):
-            if verdict == "DEGRADED":
-                signal_status = "DEGRADED"
-            else:
-                signal_status = (
-                    status if status in ("OK", "SEAL", "HOLD", "VOID", "SABAR") else "HOLD"
-                )
+            signal_status = (
+                verdict
+                if verdict in ("OK", "SEAL", "HOLD", "VOID", "SABAR", "DEGRADED", "OBSERVE_ONLY")
+                else "HOLD"
+            )
             nine = _nine_signal_from_status(signal_status)
         nine = _annotate_nine_signal(nine, _domain_for_tool(tool_name))
 
@@ -3588,6 +3585,30 @@ def _enforce_nine_signal(
             ]
         if verdict != "SEAL" and not reasons:
             reasons = [f"{verdict} — tool returned a non-SEAL status"]
+
+        # PHASE A BIRTH-FIX (2026-07-10): Emit sesat_event for all non-SEAL
+        # verdicts. Previously only emitted in _hold() for explicit HOLD responses.
+        # Now extends to arif_judge / arif_forge / arif_seal and all other tools.
+        if verdict != "SEAL":
+            try:
+                from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
+
+                fc = (
+                    FailureCode.JALAN_KUASA
+                    if verdict in ("VOID", "SABAR")
+                    else FailureCode.JALAN_BENAR
+                )
+                sesat = emit_sesat(
+                    source_node=tool_name,
+                    failure_code=fc.value,
+                    failed_claim=f"{verdict}: {'; '.join(reasons[:3])}",
+                    observed_reality=f"verdict={verdict}, status={status}",
+                    severity="YELLOW" if verdict in ("HOLD", "DEGRADED", "OBSERVE_ONLY") else "RED",
+                    lantai=[],
+                )
+                meta_payload["sesat_event"] = sesat.to_dict()
+            except Exception:
+                pass  # SESAT is best-effort, not blocking
 
         # ── APEX Runtime Governance Envelope (APEX-MCP-001) ──────────────────
         # 10 gates → 6 dials → G → verdict. Injected into every tool response.
@@ -3663,30 +3684,41 @@ def _enforce_nine_signal(
                 if isinstance(out.get("result"), dict)
                 else None
             )
-        # G-theater fix (2026-07-09): runtime_authority from SCT claims, not boolean
-        # theater. Compute BEFORE envelope dict (cannot put statements inside {}).
+        # PHASE A BIRTH-FIX (2026-07-10): SCT token is PRIMARY source of truth
+        # for runtime_authority. If SCT token is present and valid, its authority
+        # is the single source — no fallback chain can override it.
+        # Legacy path: if no SCT token, fall back to session store lookup.
         _runtime_auth = "OBSERVE_ONLY"
+        _sct_authority_resolved = False
         try:
             from arifosmcp.runtime.sct import verify_sct as _verify_sct_envelope
 
             _tok_for_auth = (
-                (isinstance(result_payload, dict) and result_payload.get("session_token"))
-                or out.get("session_token")
-            )
+                isinstance(result_payload, dict) and result_payload.get("session_token")
+            ) or out.get("session_token")
             if isinstance(_tok_for_auth, str) and _tok_for_auth:
                 _claims = _verify_sct_envelope(_tok_for_auth)
                 if isinstance(_claims, dict):
-                    _runtime_auth = str(_claims.get("auth") or _runtime_auth)
-            if _runtime_auth == "OBSERVE_ONLY" and isinstance(result_payload, dict):
-                _runtime_auth = str(
-                    result_payload.get("authority")
-                    or result_payload.get("authority_mode")
-                    or _runtime_auth
-                )
-            if _runtime_auth == "OBSERVE_ONLY" and isinstance(meta_payload, dict):
-                _runtime_auth = str(meta_payload.get("authority_mode") or _runtime_auth)
-            if _runtime_auth == "OBSERVE_ONLY" and actor_verified_flag:
-                _runtime_auth = "LIMITED_MUTATE"  # identity band, not FULL theater
+                    _sct_auth = _claims.get("auth")
+                    if _sct_auth and _sct_auth != "OBSERVE_ONLY":
+                        _runtime_auth = str(_sct_auth)
+                        _sct_authority_resolved = True
+                        logger.debug(
+                            f"PHASE_A: SCT authority resolved: {_runtime_auth} "
+                            f"for session={resolved_session_id}"
+                        )
+            # Legacy fallback: only if SCT token not present or not resolved
+            if not _sct_authority_resolved:
+                if isinstance(result_payload, dict):
+                    _runtime_auth = str(
+                        result_payload.get("authority")
+                        or result_payload.get("authority_mode")
+                        or _runtime_auth
+                    )
+                if _runtime_auth == "OBSERVE_ONLY" and isinstance(meta_payload, dict):
+                    _runtime_auth = str(meta_payload.get("authority_mode") or _runtime_auth)
+                if _runtime_auth == "OBSERVE_ONLY" and actor_verified_flag:
+                    _runtime_auth = "LIMITED_MUTATE"  # identity band, not FULL theater
         except Exception:
             _runtime_auth = "LIMITED_MUTATE" if actor_verified_flag else "OBSERVE_ONLY"
         _human_auth = (
@@ -3713,7 +3745,8 @@ def _enforce_nine_signal(
             "actor_id": resolved_actor_id,
             # P0 fix 2026-07-04: actor_verified default is False, not True.
             # Single source of truth: set once at 000_init, read-only downstream.
-            "actor_verified": actor_verified_flag or bool(meta_payload.get("actor_verified", False)),
+            "actor_verified": actor_verified_flag
+            or bool(meta_payload.get("actor_verified", False)),
             "authority": {
                 "human_authority": _human_auth,
                 "runtime_authority": _runtime_auth,
@@ -4993,7 +5026,7 @@ class _FileSessionStore:
     def __init__(self, path: str | None = None) -> None:
         self._using_explicit_path = bool(path or os.getenv("ARIFOS_SESSION_STORE_PATH"))
         self._path = path or os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
-        
+
         # Prevent split-brain: verify writability on init
         is_writable = False
         try:
@@ -20282,8 +20315,7 @@ def verify_and_inject_token(
         session_id = kwargs.get("session_id")
         # Accept raw token passed as session_id (both wire formats)
         if session_id and (
-            str(session_id).startswith("sct_v1.")
-            or str(session_id).startswith("arifos.v1.")
+            str(session_id).startswith("sct_v1.") or str(session_id).startswith("arifos.v1.")
         ):
             token = session_id
 
@@ -20420,19 +20452,23 @@ def verify_and_inject_token(
 
     except Exception as e:
         logger.exception("Token verification crashed")
-        return False, {
-            "status": "HOLD",
-            "tool": tool_name,
-            "verdict": {"state": "HOLD", "dominant_reason": str(e)},
-            "result": None,
-            "sesat_event": {
-                "sesat": True,
-                "type": "TOKEN_VERIFY_ERROR",
-                "reason": str(e),
+        return (
+            False,
+            {
+                "status": "HOLD",
+                "tool": tool_name,
+                "verdict": {"state": "HOLD", "dominant_reason": str(e)},
+                "result": None,
+                "sesat_event": {
+                    "sesat": True,
+                    "type": "TOKEN_VERIFY_ERROR",
+                    "reason": str(e),
+                },
+                "error": f"Token verification system error: {e}",
+                "reasons": [f"Token verification system error: {e}"],
             },
-            "error": f"Token verification system error: {e}",
-            "reasons": [f"Token verification system error: {e}"],
-        }, None
+            None,
+        )
 
 
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
@@ -20471,7 +20507,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Sync wrapper
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
-        
+
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
         if not ok:
@@ -20572,7 +20608,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
-        
+
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
         if not ok:
