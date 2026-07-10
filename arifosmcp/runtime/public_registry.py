@@ -71,9 +71,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "KERNEL canary · MCP protocol version negotiation. "
         "Use before full arif_init if client/server dialect drift is suspected."
     ),
-    "arif_transport_echo": (
-        "KERNEL canary · observed headers/protocol/source. Zero floors."
-    ),
+    "arif_transport_echo": ("KERNEL canary · observed headers/protocol/source. Zero floors."),
     "arif_initialize_probe": (
         "KERNEL canary · MCP initialize handshake without constitutional ceremony. "
         "After ping, before arif_init."
@@ -126,9 +124,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Returns: structured reasoning + confidence + next_safe_action. "
         "Ethical/maruah risk → arif_critique. Binding decision → arif_judge. Facts → arif_observe."
     ),
-    "arif_mind_reason": (
-        "[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."
-    ),
+    "arif_mind_reason": ("[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."),
     # ── 444 ROUTE ───────────────────────────────────────────────────────────
     "arif_route": (
         "KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE). "
@@ -137,19 +133,15 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "arif_bridge_connect). Authority: L0. Returns: organ, port, tool_prefix, suggested_tools. "
         "Not session preflight (use arif_triage). Not a free shell."
     ),
-    "arif_kernel_route": (
-        "[DEPRECATED → arif_route] Legacy KERNEL 444 entry."
-    ),
+    "arif_kernel_route": ("[DEPRECATED → arif_route] Legacy KERNEL 444 entry."),
     # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
     "arif_bridge_connect": (
-        "KERNEL 444-direct · Low-level organ call (organ + tool_name required). "
-        "Bypasses intent routing. Authority: HIGH / lease — often 888_HOLD for anonymous. "
+        "KERNEL 444-direct · Calls a pre-authorized organ tool directly after "
+        "server-side authorization and policy validation. Requires organ + tool_name. "
         "Agents should prefer arif_route (same reach, safer default). "
-        "Not a generic MCP proxy; only federation organs under kernel envelope."
+        "Only federation organs under kernel envelope; not a generic proxy."
     ),
-    "arif_bridge": (
-        "[DEPRECATED → arif_bridge_connect] Direct organ bridge."
-    ),
+    "arif_bridge": ("[DEPRECATED → arif_bridge_connect] Direct organ bridge."),
     # ── 555 CRITIQUE ────────────────────────────────────────────────────────
     "arif_critique": (
         "KERNEL 555 · Heart — ethical/dignity/risk stress before judgment (not SEAL). "
@@ -159,9 +151,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "simulate | instruction_scan. Returns: risk, floors, human impact. "
         "Skip pure technical with zero human stake. Binding verdict → arif_judge."
     ),
-    "arif_heart_critique": (
-        "[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."
-    ),
+    "arif_heart_critique": ("[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."),
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
         "KERNEL memory governor · L1–L6 stack under F1/F2/F4/F11 (not a free notepad). "
@@ -169,9 +159,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Authority: recall L0; writes gated. Modes: recall | inspect | attest | remember | "
         "promote | revise | forget. Skip ephemeral one-off facts."
     ),
-    "arif_memory_recall": (
-        "[alias → arif_memory] Prefer canonical arif_memory."
-    ),
+    "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
         "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
@@ -182,9 +170,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Skip if evidence incomplete → arif_observe; plan incomplete → arif_think; "
         "reversible low-risk advisory only."
     ),
-    "arif_judge_deliberate": (
-        "[alias/internal → arif_judge] Prefer public arif_judge."
-    ),
+    "arif_judge_deliberate": ("[alias/internal → arif_judge] Prefer public arif_judge."),
     # ── 777 FORGE ───────────────────────────────────────────────────────────
     "arif_forge": (
         "KERNEL 777 · Execution gate via A-FORGE (hands, not law). "
@@ -193,9 +179,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Public execution verb (arif_act is internal alias only). "
         "Skip while still planning (arif_think) or without judge SEAL."
     ),
-    "arif_forge_execute": (
-        "[alias → arif_forge] Prefer arif_forge."
-    ),
+    "arif_forge_execute": ("[alias → arif_forge] Prefer arif_forge."),
     "arif_act": (
         "[INTERNAL alias → arif_forge] Not on public kernel facade. Call arif_forge after SEAL."
     ),
@@ -206,9 +190,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Authority: L0–L1. Modes: compose | summarize | cite | tone_shift | style | format. "
         "Not a substitute for arif_judge or arif_seal."
     ),
-    "arif_reply_compose": (
-        "[alias → arif_compose] Prefer arif_compose."
-    ),
+    "arif_reply_compose": ("[alias → arif_compose] Prefer arif_compose."),
     # ── 999 SEAL ────────────────────────────────────────────────────────────
     "arif_seal": (
         "KERNEL 999 · VAULT999 immutable append — civilizational memory, irreversible. "
@@ -217,9 +199,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "Seal only after SEAL verdict path; HOLD/SABAR/VOID do not seal. "
         "Testing → dry_run. Kernel judges; vault seals; Arif owns F13 veto."
     ),
-    "arif_vault_seal": (
-        "[alias → arif_seal] Prefer arif_seal."
-    ),
+    "arif_vault_seal": ("[alias → arif_seal] Prefer arif_seal."),
     # ── Gateway / measure (non-public helpers) ──────────────────────────────
     "arif_gateway_connect": (
         "KERNEL federation gateway (legacy). Prefer arif_route for organ selection."
@@ -227,18 +207,12 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_measure": (
         "KERNEL ops measure (internal). Prefer arif_observe(mode=vitals) on public surface."
     ),
-    "arif_ops_measure": (
-        "[alias → arif_measure] Internal ops measure."
-    ),
+    "arif_ops_measure": ("[alias → arif_measure] Internal ops measure."),
     "arif_kernel_status": (
         "[DEPRECATED] Kernel telemetry. Prefer arif_triage / arif_observe(mode=vitals)."
     ),
-    "arif_kernel_attest": (
-        "[DEPRECATED] Organ attestation diagnostic."
-    ),
-    "arif_kernel_health": (
-        "[DEPRECATED] Kernel liveness. Prefer arif_init(mode=ping)."
-    ),
+    "arif_kernel_attest": ("[DEPRECATED] Organ attestation diagnostic."),
+    "arif_kernel_health": ("[DEPRECATED] Kernel liveness. Prefer arif_init(mode=ping)."),
     "arif_conformance_report": (
         "[DEPRECATED → arif_canary mode=conformance_report] Conformance spine."
     ),
@@ -248,9 +222,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
         "conformance_report. Zero floors."
     ),
     # ── ChatGPT Compatibility Shim ──
-    "arif_search": (
-        "Compat search → prefer KERNEL arif_observe(mode=search)."
-    ),
+    "arif_search": ("Compat search → prefer KERNEL arif_observe(mode=search)."),
 }
 
 
@@ -482,7 +454,9 @@ def _runtime_contracts() -> dict[str, dict[str, Any]]:
             input_schema = {**input_schema, "additionalProperties": False}
         contracts[name] = {
             "description": tool.description
-            or _TOOL_DESCRIPTIONS.get(name, "Governed arifOS kernel verb (MCP transport envelope)."),
+            or _TOOL_DESCRIPTIONS.get(
+                name, "Governed arifOS kernel verb (MCP transport envelope)."
+            ),
             "input_schema": input_schema,
             "output_schema": None,
         }
