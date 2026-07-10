@@ -32,6 +32,7 @@ CANONICAL_12: tuple[str, ...] = (
     "arif_forge",  # 777  — Guarded execution
     "arif_compose",  # 888  — Response composer
     "arif_seal",  # 999  — VAULT999 seal
+    "arif_verify",  # E1   — JITU pre-execution gate (SEAL token verification)
 )
 
 # ── DEPRECATED ALIASES (backward compat only) ─────────────────────────────
