@@ -19643,14 +19643,19 @@ from arifosmcp.runtime.vault_registry import (
 # ── E1 FORGE: arif_verify ────────────────────────────────────────────────────
 
 async def _arif_verify_tool(
-    token: str,
-    command: str,
+    token: str | None = None,
+    command: str | None = None,
     actor_id: str = "ARIF",
+    seal: str | None = None,
+    irreversible_hash: str | None = None,
+    signature: str | None = None,
+    command_hash: str | None = None,
 ) -> dict[str, Any]:
     """
     F13 + F1: Cryptographic verification of SEAL token for IRREVERSIBLE shell actions.
 
-    arif_verify is the JITU pre-execution gate for A-FORGE. It atomically:
+    arif_verify is the JITU pre-execution gate for A-FORGE (ACT phase padlock).
+    It atomically:
       1. Checks token exists in kernel registry
       2. Verifies token not expired
       3. Confirms actor binding
@@ -19661,19 +19666,47 @@ async def _arif_verify_tool(
     passing the exact command string. A valid verification = SEAL envelope authorized.
 
     Args:
-        token:     SEAL token from JITU approval (e.g. "SEAL-a1b2c3d4e5f6g7h8")
-        command:   Exact shell command string to verify (e.g. "git push --force origin main")
-        actor_id:  Sovereign actor claiming this seal (default "ARIF")
+        token / seal: SEAL token from JITU approval (e.g. "SEAL-a1b2c3d4e5f6g7h8")
+        command: Exact shell command string to verify
+        actor_id: Sovereign actor claiming this seal (default "ARIF")
+        irreversible_hash / command_hash: optional client-side hash (receipt only;
+            server recomputes from command)
+        signature: optional Ed25519 receipt field (not yet hard-required)
 
     Returns:
-        dict:
-            token_valid   — kernel-minted, signature valid, not expired
-            scope_valid   — SHA256(command) matches vault command_hash
-            replay_safe   — token not yet consumed
-            violations    — list of failure reasons (empty on success)
-            entry         — full registry entry on success, None on failure
+        dict with token_valid, scope_valid, replay_safe, violations, entry
     """
-    result = _verify_seal_from_registry(token=token, command=command, actor_id=actor_id)
+    seal_token = (token or seal or "").strip()
+    cmd = (command or "").strip()
+    if not seal_token:
+        return {
+            "token_valid": False,
+            "scope_valid": False,
+            "replay_safe": False,
+            "violations": ["TOKEN_MISSING"],
+            "entry": None,
+            "tool": "arif_verify",
+        }
+    if not cmd:
+        return {
+            "token_valid": False,
+            "scope_valid": False,
+            "replay_safe": False,
+            "violations": ["COMMAND_MISSING"],
+            "entry": None,
+            "tool": "arif_verify",
+        }
+    result = _verify_seal_from_registry(token=seal_token, command=cmd, actor_id=actor_id)
+    # Attach optional client hashes for audit (do not trust as authority)
+    if irreversible_hash or command_hash or signature:
+        result = {
+            **result,
+            "client_irreversible_hash": irreversible_hash or command_hash,
+            "client_signature_present": bool(signature),
+            "tool": "arif_verify",
+        }
+    else:
+        result = {**result, "tool": "arif_verify"}
     return result
 
 

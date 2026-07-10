@@ -2826,6 +2826,119 @@ if app:
 
     app.add_route("/kernel/identity/verify", kernel_identity_verify, methods=["POST"])
 
+    # ── POST /kernel/arif_verify — JITU SEAL padlock (ACT phase) ───────────
+    # Forged 2026-07-10: Authority plane padlock for A-FORGE preExecutionGate.
+    # Same semantics as MCP tool arif_verify — no host mutation beyond vault burn.
+    async def kernel_arif_verify(request: Request) -> JSONResponse:
+        """POST /kernel/arif_verify — cryptographic SEAL verification before ACT.
+
+        Body JSON:
+          seal | token          — SEAL-… token from JITU
+          irreversible_hash     — optional client hash (receipt)
+          command               — exact shell/command string (required)
+          actor_id              — default ARIF
+          signature             — optional Ed25519 receipt field
+
+        Returns token_valid / scope_valid / replay_safe / violations.
+        """
+        from starlette.responses import JSONResponse
+
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(
+                {
+                    "token_valid": False,
+                    "scope_valid": False,
+                    "replay_safe": False,
+                    "violations": ["INVALID_JSON"],
+                },
+                status_code=400,
+            )
+
+        token = body.get("token") or body.get("seal") or ""
+        command = body.get("command") or body.get("shell_command") or ""
+        actor_id = body.get("actor_id") or "ARIF"
+        signature = body.get("signature")
+        irreversible_hash = body.get("irreversible_hash") or body.get("command_hash")
+
+        try:
+            from arifosmcp.runtime.tools import _arif_verify_tool
+
+            result = await _arif_verify_tool(
+                token=token,
+                command=command,
+                actor_id=actor_id,
+                seal=token,
+                irreversible_hash=irreversible_hash,
+                signature=signature,
+            )
+        except Exception as e:
+            return JSONResponse(
+                {
+                    "token_valid": False,
+                    "scope_valid": False,
+                    "replay_safe": False,
+                    "violations": [f"VERIFY_ERROR:{type(e).__name__}"],
+                    "error": str(e)[:200],
+                },
+                status_code=500,
+            )
+
+        # Lease registry observe (non-authoritative)
+        lease_note = {"active_count": None}
+        try:
+            import json as _json
+            from pathlib import Path as _Path
+
+            lp = _Path("/root/A-FORGE/leases/lease_store.jsonl")
+            if lp.is_file():
+                latest = {}
+                for line in lp.read_text().splitlines():
+                    if not line.strip():
+                        continue
+                    try:
+                        rec = _json.loads(line)
+                        if rec.get("lease_id"):
+                            latest[rec["lease_id"]] = rec
+                    except Exception:
+                        continue
+                lease_note["active_count"] = sum(
+                    1 for r in latest.values() if r.get("status") == "ACTIVE"
+                )
+        except Exception:
+            pass
+
+        # AAA seal chain head seq
+        chain_seq = None
+        try:
+            import json as _json2
+            from pathlib import Path as _P2
+
+            head = _P2("/root/.local/share/arifos/vault999/seal_chain_head.json")
+            if head.is_file():
+                chain_seq = _json2.loads(head.read_text()).get("seq")
+        except Exception:
+            pass
+
+        ok = bool(result.get("token_valid") and result.get("scope_valid") and result.get("replay_safe"))
+        payload = {
+            **result,
+            "endpoint": "/kernel/arif_verify",
+            "gate_status": "PASS" if ok else "HOLD",
+            "lease_registry": lease_note,
+            "aaa_seal_chain_seq": chain_seq,
+            "art_apa_act": {
+                "ART": "intent classified as IRREVERSIBLE before kernel",
+                "APA": "affordance padlock — allowed only with valid SEAL",
+                "ACT": "A-FORGE may execute only after PASS",
+            },
+            "ditempa_bukan_diberi": True,
+        }
+        return JSONResponse(payload, status_code=200 if ok else 403)
+
+    app.add_route("/kernel/arif_verify", kernel_arif_verify, methods=["POST"])
+
     # Register REST routes from rest_routes.py — /000, /999, /constitution, etc.
     try:
         from arifosmcp.runtime.rest_routes import register_rest_routes
