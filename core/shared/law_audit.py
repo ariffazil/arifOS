@@ -518,7 +518,7 @@ class FloorAuditor:
         ctx_str = str(context).lower()
         # Check if a rollback/backup path is mentioned
         has_backup = any(
-            (kw in action_lower or kw in ctx_str)
+            kw in action_lower or kw in ctx_str
             for kw in ("backup", "rollback", "snapshot", "reversible", "dry-run")
         )
         if is_destructive and not has_backup:
