@@ -21051,6 +21051,8 @@ def register_tools(
     ingress_middleware: Any | None = None,
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
+    import sys as _dbg_sys2
+
     from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS, CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
     from arifosmcp.runtime.public_registry import public_tool_spec_by_name
@@ -21184,6 +21186,34 @@ def register_tools(
             import sys
 
     logger.info(f"Registered {len(registered)} canonical tools")
+
+    # ═══════════════════════════════════════════════════════════════════════════════
+    # POST-REGISTRATION ENRICHMENT — Binding 3 compliance (mcp-builder-doctrine v1.1.0)
+    # Injects "Use when..." trigger from constitutional_map.CANONICAL_TOOLS into
+    # live tool descriptions. Without this, the model sees registry stubs without
+    # trigger context.
+    # ═══════════════════════════════════════════════════════════════════════════════
+    try:
+        import sys as _dbg_sys
+
+        _components = getattr(getattr(mcp, "_local_provider", None), "_components", {})
+        _enriched = 0
+        for tool_name in registered:
+            _key = f"tool:{tool_name}@"
+            if _key in _components:
+                canonical = CANONICAL_TOOLS.get(tool_name)
+                if canonical:
+                    canonical_desc = canonical.get("description", "")
+                    existing = getattr(_components[_key], "description", "") or ""
+                    if "Use when" in canonical_desc and "Use when" not in existing:
+                        _components[_key].description = canonical_desc
+                        _enriched += 1
+        logger.info(
+            f"MANIFEST_ENRICH: enriched {_enriched} tool descriptions with Use-when triggers"
+        )
+    except Exception as e:
+        logger.warning(f"MANIFEST_ENRICH: skipped — {e}")
+
     return registered
 
 

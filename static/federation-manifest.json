@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-07-09T10:29:39Z",
+  "generated": "2026-07-10T12:33:36Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.04-MARHIN (ad22836). 199 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-07-09T10:29:39Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=12, total_declared=58.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.09-SPINE-P0 (0678e93). 164 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-07-10T12:33:36Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=11, total_declared=58.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -61,15 +61,15 @@
         "health_endpoint": "/health",
         "status": "healthy",
         "tools": 58,
-        "release": "v2026.07.04-MARHIN",
-        "version": "kanon-ad22836",
-        "commit": "ad22836",
+        "release": "v2026.07.09-SPINE-P0",
+        "version": "kanon-0678e93",
+        "commit": "0678e93",
         "canonical_tools": 17,
         "diagnostic_tools": 41,
-        "tools_exposed_mcp": 12,
+        "tools_exposed_mcp": 11,
         "floors_active": 13,
         "vault_health": "healthy",
-        "manifest_hash": "837c6d050e3c29a5"
+        "manifest_hash": "b26e699dd74cc85c"
       },
       "geox": {
         "name": "GEOX",
@@ -80,9 +80,9 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 73,
+        "tools": 81,
         "version": "v2026.07.06-phase3.1-rsi-pipeline",
-        "git_version": "geox-32024e42"
+        "git_version": "geox-7c779feb"
       },
       "wealth": {
         "name": "WEALTH",
@@ -93,7 +93,7 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "alive",
-        "tools": 50,
+        "tools": 7,
         "version": "2026.06.15"
       },
       "well": {

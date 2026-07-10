@@ -46,6 +46,7 @@ class ArtReason(StrEnum):
     FAILURE_RATE_HIGH = "failure rate exceeds threshold — fallback suggested"
     DRIFT_DETECTED = "schema/permission drift detected — fallback suggested"
     CUMULATIVE_SILENT_FALLBACK = "cumulative silent fallback detected — hold"
+    EMPTY_TOOL_RESULT = "tool result empty or error — cannot cite as evidence"
 
     # Abandonment
     TOOL_STALE = "tool unused >90 days — abandon candidate"
