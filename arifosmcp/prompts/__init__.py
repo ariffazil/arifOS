@@ -13,6 +13,11 @@ clear forward direction for humans and agents.
 
 from __future__ import annotations
 
+# MCP primitive imports — resource embedding for prompts (Binding #23-26, 2026-07-10)
+from mcp.types import EmbeddedResource, TextResourceContents
+from fastmcp.prompts.base import Message
+from pydantic import AnyUrl
+
 # ==============================================================================
 # SHARED CONSTANTS — referenced by all prompts, NOT duplicated in text
 # ==============================================================================
@@ -992,12 +997,32 @@ What is forged and sealed is not forgotten.
 def register_prompts(mcp) -> list[str]:
     """Register 8 Reality Engineering prompts with MCP.
 
-    Zen-compact v2026.07.08:
+    Zen-compact v2026.07.10:
       - 52K chars → ~20K chars (62% reduction)
       - 9,260 zen violations → 0
-      - All prompts use MCP template arguments ({{session_id}}, etc.)
+      - All prompts return messages[] with embedded resources (Bindings #23-26)
+      - FastMCP infers PromptArgument[] from function signature
+      - Docstring Args: drives completion API
       - Shared constants extracted (F1-F13, APEX, IRON_LAWS, etc.)
     """
+
+    # ── Prompt helper: text message (Binding #23) ──
+    def _msg_text(text: str, role: str = "user") -> Message:
+        return Message(text, role=role)
+
+    # ── Prompt helper: embedded resource message (Binding #23) ──
+    def _msg_resource(uri: str, text: str, mime: str = "text/plain") -> Message:
+        return Message(
+            EmbeddedResource(
+                type="resource",
+                resource=TextResourceContents(
+                    uri=AnyUrl(uri),
+                    mimeType=mime,
+                    text=text,
+                ),
+            ),
+            role="user",
+        )
 
     registered = []
 
@@ -1012,9 +1037,18 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "loop", "classifier"},
     )
-    def loop_engineer(intent: str = "", domain: str = "") -> str:
+    def loop_engineer(intent: str = "", domain: str = "") -> list[Message]:
+        """Intent classification + session init.
+
+        Args:
+            intent: The user's raw intent to classify
+            domain: The domain hint for routing
+        """
         ctx = f"\n\n## Context\nIntent: {intent}\nDomain: {domain}\n" if intent or domain else ""
-        return LOOP_ENGINEER_PROMPT + ctx
+        return [
+            _msg_text(LOOP_ENGINEER_PROMPT + ctx),
+            _msg_resource("arifos://constitution/floors", SHARED_FLOORS),
+        ]
 
     registered.append("arifosmcp_loop_engineer")
 
@@ -1027,9 +1061,18 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "000", "anchor"},
     )
-    def init_000(actor_id: str = "", intent: str = "") -> str:
+    def init_000(actor_id: str = "", intent: str = "") -> list[Message]:
+        """Anchor identity, frame reality, accept F1-F13.
+
+        Args:
+            actor_id: Who is initiating this session
+            intent: The primary intent for this session
+        """
         ctx = f"\n\n## Context\nActor: {actor_id}\nIntent: {intent}\n" if actor_id or intent else ""
-        return INIT_PROMPT + ctx
+        return [
+            _msg_text(INIT_PROMPT + ctx),
+            _msg_resource("arifos://session/identity", f"Actor: {actor_id}\nIntent: {intent}"),
+        ]
 
     registered.append("000_init")
 
@@ -1042,13 +1085,22 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "111", "observe"},
     )
-    def sense_111(domain: str = "", evidence_refs: str = "") -> str:
+    def sense_111(domain: str = "", evidence_refs: str = "") -> list[Message]:
+        """Witness reality as it IS — observe, don't interpret.
+
+        Args:
+            domain: The domain being observed
+            evidence_refs: References to existing evidence
+        """
         ctx = (
             f"\n\n## Context\nDomain: {domain}\nEvidence: {evidence_refs}\n"
             if domain or evidence_refs
             else ""
         )
-        return SENSE_PROMPT + ctx
+        return [
+            _msg_text(SENSE_PROMPT + ctx),
+            _msg_resource("arifos://evidence/catalog", f"Domain: {domain}\nRefs: {evidence_refs}"),
+        ]
 
     registered.append("111_sense")
 
@@ -1061,11 +1113,25 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "333", "reason"},
     )
-    def reason_333(domain: str = "", decision_context: str = "", evidence_refs: str = "") -> str:
+    def reason_333(
+        domain: str = "", decision_context: str = "", evidence_refs: str = ""
+    ) -> list[Message]:
+        """Extract principles, generate hypotheses.
+
+        Args:
+            domain: The domain being reasoned about
+            decision_context: The decision being evaluated
+            evidence_refs: References to evidence
+        """
         ctx = ""
         if domain or decision_context or evidence_refs:
             ctx = f"\n\n## Context\nDomain: {domain}\nDecision: {decision_context}\nEvidence: {evidence_refs}\n"
-        return REASON_PROMPT + ctx
+        return [
+            _msg_text(REASON_PROMPT + ctx),
+            _msg_resource(
+                "arifos://reasoning/context", f"Domain: {domain}\nDecision: {decision_context}"
+            ),
+        ]
 
     registered.append("333_reason")
 
@@ -1078,11 +1144,23 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "555", "critique"},
     )
-    def critique_555(proposal: str = "", stakeholders: str = "") -> str:
+    def critique_555(proposal: str = "", stakeholders: str = "") -> list[Message]:
+        """Consequence scan, perspective shift, dignity check.
+
+        Args:
+            proposal: The proposal to critique
+            stakeholders: Who is affected by this proposal
+        """
         ctx = ""
         if proposal or stakeholders:
             ctx = f"\n\n## Context\nProposal: {proposal}\nStakeholders: {stakeholders}\n"
-        return CRITIQUE_PROMPT + ctx
+        return [
+            _msg_text(CRITIQUE_PROMPT + ctx),
+            _msg_resource(
+                "arifos://critique/stakeholders",
+                f"Proposal: {proposal}\nStakeholders: {stakeholders}",
+            ),
+        ]
 
     registered.append("555_critique")
 
@@ -1095,11 +1173,25 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "666", "judge"},
     )
-    def judge_666(candidate: str = "", reversibility: str = "", blast_radius: str = "") -> str:
+    def judge_666(
+        candidate: str = "", reversibility: str = "", blast_radius: str = ""
+    ) -> list[Message]:
+        """Four tests + F1-F13 floor matrix with computed scores.
+
+        Args:
+            candidate: The candidate action to judge
+            reversibility: How reversible the action is
+            blast_radius: The blast radius of the action
+        """
         ctx = ""
         if candidate or reversibility or blast_radius:
             ctx = f"\n\n## Context\nCandidate: {candidate}\nReversibility: {reversibility}\nBlast radius: {blast_radius}\n"
-        return JUDGE_PROMPT + ctx
+        return [
+            _msg_text(JUDGE_PROMPT + ctx),
+            _msg_resource(
+                "arifos://judge/verdict/history", "Load prior verdict history for this domain."
+            ),
+        ]
 
     registered.append("666_judge")
 
@@ -1113,11 +1205,22 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "777", "forge"},
     )
-    def forge_777(seal_verdict_id: str = "", action_plan: str = "") -> str:
+    def forge_777(seal_verdict_id: str = "", action_plan: str = "") -> list[Message]:
+        """Pre-forge checklist, step-by-step execution.
+
+        Args:
+            seal_verdict_id: The SEAL verdict authorizing execution
+            action_plan: The action plan to execute
+        """
         ctx = ""
         if seal_verdict_id or action_plan:
             ctx = f"\n\n## Context\nSEAL verdict: {seal_verdict_id}\nAction plan: {action_plan}\n"
-        return FORGE_PROMPT + ctx
+        return [
+            _msg_text(FORGE_PROMPT + ctx),
+            _msg_resource(
+                "arifos://forge/execution/plan", f"SEAL: {seal_verdict_id}\nPlan: {action_plan}"
+            ),
+        ]
 
     registered.append("777_forge")
 
@@ -1130,11 +1233,20 @@ def register_prompts(mcp) -> list[str]:
         ),
         tags={"prompt", "reality-engineering", "999", "seal"},
     )
-    def seal_999(receipt: str = "", actor_id: str = "") -> str:
+    def seal_999(receipt: str = "", actor_id: str = "") -> list[Message]:
+        """Golden path verification, reality change receipt.
+
+        Args:
+            receipt: The receipt to seal
+            actor_id: Who is sealing
+        """
         ctx = ""
         if receipt or actor_id:
             ctx = f"\n\n## Context\nReceipt: {receipt}\nActor: {actor_id}\n"
-        return SEAL_PROMPT + ctx
+        return [
+            _msg_text(SEAL_PROMPT + ctx),
+            _msg_resource("arifos://vault/chain/head", "Load VAULT999 seal chain head."),
+        ]
 
     registered.append("999_seal")
 
