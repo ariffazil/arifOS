@@ -919,6 +919,29 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "seal",
         "expose": True,  # ZEN-9 collapse 2026-07-04: restored to public surface
     },
+    "arif_verify": {
+        "name": "arif_verify",
+        "description": (
+            "KERNEL E1 · JITU pre-execution gate — cryptographic SEAL token verification. "
+            "A-FORGE must call before IRREVERSIBLE shell/mutation. Atomically checks token "
+            "exists, not expired, actor-bound, command_hash match, then burns token (one-shot). "
+            "Payload: token (or seal), command (exact string), actor_id, optional signature. "
+            "Use when: verifying a SEAL before execute; never invent SEAL validity without this tool."
+        ),
+        "access": "authenticated",
+        "stage": ToolStage.SEAL,
+        "lane": TrinityLane.SOVEREIGN,
+        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
+        "risk_tier": "high",
+        "irreversible": False,
+        "modes": ["verify"],
+        "eureka_insight": (
+            "ART→KERNEL→ACT padlock: ART classifies, arif_judge SEALs, arif_verify unlocks ACT. "
+            "Without arif_verify the cage has a hasp but no padlock."
+        ),
+        "cognitive_axis": "verify",
+        "expose": True,
+    },
     "arif_act": {
         "name": "arif_act",
         "description": (
@@ -1023,6 +1046,7 @@ _PUBLIC_12: frozenset[str] = frozenset(
         "arif_forge",
         "arif_compose",
         "arif_seal",
+        "arif_verify",  # E1 JITU pre-execution gate — public padlock for ACT
     }
 )
 # Backward-compat aliases (DEPRECATED).
