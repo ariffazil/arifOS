@@ -428,12 +428,15 @@ class SovereignGate(EnforcementEngine):
     name = "sovereign_gate"
     description = "Enforces F13 sovereign veto on irreversible actions"
 
-    IRREVERSIBLE_TOOLS = [
-        "arif_seal",
-        "arif_seal_write",
-        "arif_forge",
-        "arif_forge_execute",
-    ]
+    # HARDENED 2026-07-10: was hardcoded [arif_seal, arif_seal_write, arif_forge,
+    # arif_forge_execute] — diverged from CANONICAL_TOOLS when new irreversible tools
+    # were added (e.g. arif_measure/lease-revoke at constitutional_map:1361).
+    # FIX: dynamic lookup from _IRREVERSIBLE_TOOLS so SovereignGate always tracks live canon.
+    @classmethod
+    def _get_irreversible_tools(cls) -> frozenset[str]:
+        from arifosmcp.constitutional_map import _IRREVERSIBLE_TOOLS
+
+        return frozenset(_IRREVERSIBLE_TOOLS)
 
     def check(
         self,
@@ -441,7 +444,9 @@ class SovereignGate(EnforcementEngine):
         params: dict[str, Any],
         context: dict[str, Any],
     ) -> tuple[bool, str, dict[str, Any]]:
-        if tool_name not in self.IRREVERSIBLE_TOOLS:
+        # Resolve irreversible tools dynamically so SovereignGate tracks live CANONICAL_TOOLS
+        irreversible_tools = self._get_irreversible_tools()
+        if tool_name not in irreversible_tools:
             return True, "Not an irreversible tool", {}
 
         # SOVEREIGN BYPASS: actor_id == "arif" with verified session
