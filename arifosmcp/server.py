@@ -2463,6 +2463,224 @@ if app:
 
     app.add_route("/kernel/readiness", agi_kernel_readiness, methods=["GET"])
 
+    # ── GET /kernel/authority-probe — read-only unsealed-write gate probe ──
+    # Forged 2026-07-10: Hermes Agentics Readiness T1 Authority plane gap.
+    # Returns gate_status without executing any write (simulation only).
+    async def kernel_authority_probe(request: Request) -> JSONResponse:
+        """GET /kernel/authority-probe — architectural authority gate probe.
+
+        Simulates an unsealed write decision via mcp_gate_v0. Never mutates host.
+        Query params (optional):
+          tool_name     default forge_filesystem_write
+          action_class  default EXECUTE_REVERSIBLE
+          actor_id      default anonymous
+          session_active / lease_active  default false (unsealed path)
+          seal_present  default false
+
+        Response gate_status ∈ {HOLD, PASS, NO_GATE}:
+          HOLD  — gate would block/hold/require approval/simulate-first
+          PASS  — gate would allow (authority leak if unsealed write)
+          NO_GATE — gate unavailable / misconfigured
+        """
+        from starlette.responses import JSONResponse
+
+        qp = request.query_params
+        tool_name = qp.get("tool_name", "forge_filesystem_write")
+        action_class = qp.get("action_class", "EXECUTE_REVERSIBLE")
+        actor_id = qp.get("actor_id", "anonymous")
+        session_active = qp.get("session_active", "false").lower() in ("1", "true", "yes")
+        lease_active = qp.get("lease_active", "false").lower() in ("1", "true", "yes")
+        seal_present = qp.get("seal_present", "false").lower() in ("1", "true", "yes")
+
+        # Lease registry (A-FORGE store) — observe only
+        lease_info: dict = {
+            "path": "/root/A-FORGE/leases/lease_store.jsonl",
+            "active_count": 0,
+            "readable": False,
+        }
+        try:
+            import json as _json
+            from pathlib import Path as _Path
+
+            lease_path = _Path("/root/A-FORGE/leases/lease_store.jsonl")
+            if lease_path.is_file():
+                latest: dict = {}
+                for line in lease_path.read_text().splitlines():
+                    if not line.strip():
+                        continue
+                    try:
+                        rec = _json.loads(line)
+                        lid = rec.get("lease_id")
+                        if lid:
+                            latest[lid] = rec
+                    except Exception:
+                        continue
+                active = [r for r in latest.values() if r.get("status") == "ACTIVE"]
+                lease_info = {
+                    "path": str(lease_path),
+                    "readable": True,
+                    "active_count": len(active),
+                    "active_actors": sorted(
+                        {r.get("actor_id") for r in active if r.get("actor_id")}
+                    ),
+                }
+        except Exception as e:
+            lease_info["error"] = str(e)[:120]
+
+        # AAA boundary — loopback health only
+        aaa_boundary: dict = {"url": "http://127.0.0.1:3001/health", "status": "UNKNOWN"}
+        try:
+            import urllib.request as _ur
+
+            with _ur.urlopen("http://127.0.0.1:3001/health", timeout=2.0) as r:
+                body = r.read()
+            import json as _json2
+
+            aaa = _json2.loads(body)
+            aaa_boundary = {
+                "url": "http://127.0.0.1:3001/health",
+                "status": "SEALED" if aaa.get("status") == "healthy" else "DEGRADED",
+                "vault": aaa.get("vault"),
+                "chain_seq": (aaa.get("chain") or {}).get("seq"),
+            }
+        except Exception as e:
+            aaa_boundary = {
+                "url": "http://127.0.0.1:3001/health",
+                "status": "UNKNOWN",
+                "error": str(e)[:120],
+            }
+
+        # Identity hash from live health surface (same source as /health)
+        identity_hash = None
+        try:
+            from arifosmcp.runtime.identity import get_identity_hash  # type: ignore
+
+            identity_hash = get_identity_hash()
+        except Exception:
+            try:
+                import hashlib
+                from pathlib import Path as _P2
+
+                p = _P2("/opt/arifos/app/identity.toml")
+                if p.is_file():
+                    try:
+                        import blake3  # type: ignore
+
+                        identity_hash = {
+                            "algorithm": "blake3",
+                            "hash": blake3.blake3(p.read_bytes()).hexdigest(),
+                            "source": str(p),
+                        }
+                    except Exception:
+                        identity_hash = {
+                            "algorithm": "sha256",
+                            "hash": hashlib.sha256(p.read_bytes()).hexdigest(),
+                            "source": str(p),
+                        }
+            except Exception:
+                identity_hash = None
+
+        # Run gate — simulation only, no host mutation
+        gate_raw = None
+        gate_status = "NO_GATE"
+        try:
+            from arifosmcp.gate.mcp_gate_v0 import judge_action as _gate_judge
+
+            # If seal_present, we still do NOT execute — we only report that
+            # a real write path would still need seal+lease at A-FORGE layer.
+            # The REST probe answers: would the constitutional gate HOLD this unsealed write?
+            gate_raw = _gate_judge(
+                tool_name=tool_name,
+                actor_id=actor_id,
+                action_class=action_class,
+                reversible=qp.get("reversible", "true").lower() in ("1", "true", "yes"),
+                data_sensitivity=qp.get("data_sensitivity", "public"),
+                physical_impact=qp.get("physical_impact", "false").lower()
+                in ("1", "true", "yes"),
+                financial_impact=qp.get("financial_impact", "false").lower()
+                in ("1", "true", "yes"),
+                dignity_impact=qp.get("dignity_impact", "false").lower()
+                in ("1", "true", "yes"),
+                blast_radius=qp.get("blast_radius", "low"),
+                session_active=session_active,
+                lease_active=lease_active,
+                tool_args={"simulation": True, "seal_present": seal_present, "write": True},
+            )
+            verdict = (gate_raw or {}).get("verdict", "")
+            # Map gate v0 vocabulary → readiness vocabulary
+            hold_verdicts = {
+                "BLOCK",
+                "HOLD_888",
+                "REQUIRE_APPROVAL",
+                "SIMULATE_FIRST",
+            }
+            pass_verdicts = {"ALLOW", "ALLOW_WITH_LOG"}
+            if verdict in hold_verdicts:
+                gate_status = "HOLD"
+            elif verdict in pass_verdicts:
+                # Unsealed write that ALLOWs is an authority leak unless OBSERVE
+                if action_class.upper() in ("OBSERVE", "SUGGEST", "SIMULATE") or seal_present:
+                    gate_status = "PASS"
+                else:
+                    # Still PASS at gate layer means "would allow" — report honestly
+                    gate_status = "PASS"
+            else:
+                gate_status = "NO_GATE"
+        except Exception as e:
+            gate_raw = {"error": str(e)[:200]}
+            gate_status = "NO_GATE"
+
+        # arif_verify-style integrity: probe is live if gate returned a verdict
+        verify = {
+            "probe_live": gate_status != "NO_GATE",
+            "mutation_executed": False,
+            "simulation_only": True,
+            "unsealed_write_scenario": not seal_present
+            and action_class.upper()
+            not in ("OBSERVE", "SUGGEST", "SIMULATE"),
+            "related_endpoints": {
+                "gate_v0": "POST /gate/v0",
+                "kernel_readiness": "GET /kernel/readiness",
+                "health": "GET /health",
+                "identity": "GET /identity",
+            },
+            "note": (
+                "Invalid action_class strings silently map to OBSERVE in gate v0 — "
+                "use EXECUTE_REVERSIBLE / IRREVERSIBLE / etc."
+            ),
+        }
+
+        return JSONResponse(
+            {
+                "endpoint": "/kernel/authority-probe",
+                "gate_status": gate_status,
+                "gate_verdict_raw": (gate_raw or {}).get("verdict"),
+                "gate_detail": gate_raw,
+                "simulation": {
+                    "tool_name": tool_name,
+                    "action_class": action_class,
+                    "actor_id": actor_id,
+                    "session_active": session_active,
+                    "lease_active": lease_active,
+                    "seal_present": seal_present,
+                    "executed": False,
+                },
+                "lease_registry": lease_info,
+                "aaa_boundary": aaa_boundary,
+                "identity_hash": identity_hash,
+                "verify": verify,
+                "readiness_mapping": {
+                    "GATE_HOLD": "HOLD",
+                    "GATE_PASS": "PASS",
+                    "NO_RESPONSE": "NO_GATE",
+                },
+                "ditempa_bukan_diberi": True,
+            },
+            status_code=200,
+        )
+
+    app.add_route("/kernel/authority-probe", kernel_authority_probe, methods=["GET"])
+
     # Register REST routes from rest_routes.py — /000, /999, /constitution, etc.
     try:
         from arifosmcp.runtime.rest_routes import register_rest_routes
