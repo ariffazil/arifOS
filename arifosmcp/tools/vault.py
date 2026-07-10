@@ -8,6 +8,7 @@ Immutable ledger and audit engine.
 from __future__ import annotations
 
 import hashlib
+import os
 from typing import Any, Literal
 
 # Sync core accepts ack_irreversible. Async MCP wrapper (_arif_seal /
@@ -229,6 +230,30 @@ async def arif_seal(
         witness_type=witness_type,
         drift_events=drift_events,
     )
+
+    # ── E1 FIX: Mint cryptographic SEAL token for IRREVERSIBLE actions ─────────
+    # After arif_seal approves (mode="seal" + ack_irreversible), mint a token
+    # bound to the exact payload hash. A-FORGE must verify this token via
+    # arif_verify before execution. One-time use — token is burned on first use.
+    _seal_token_value: str | None = None
+    if (
+        result.get("verdict") == "SEAL"
+        and mode == "seal"
+        and ack_irreversible
+        and payload
+    ):
+        _payload_hash = hashlib.sha256(payload.encode()).hexdigest()
+        # Delegate to canonical vault_registry — thread-safe, dual-write to VAULT999
+        from arifosmcp.runtime.vault_registry import issue_seal
+        _seal_token_value = issue_seal(payload=payload, actor_id=actor_id)
+        result["seal_token"] = _seal_token_value
+        result["payload_hash"] = f"sha256:{_payload_hash}"
+        result["meta"] = result.get("meta", {})
+        result["meta"]["e1_seal_token"] = {
+            "token": _seal_token_value,
+            "payload_hash": f"sha256:{_payload_hash}",
+            "note": "A-FORGE must call arif_verify before execution",
+        }
 
     # ── P0-3: Genesis card binding (AAA warga ignition) ────────────────
     # Auto-load genesis_card_hash from genesis_card.yaml if not provided.
