@@ -2681,6 +2681,151 @@ if app:
 
     app.add_route("/kernel/authority-probe", kernel_authority_probe, methods=["GET"])
 
+    # ── POST /kernel/identity/verify — Ed25519 challenge response (read-only check) ──
+    # Forged 2026-07-10: Hermes Identity Verification Flow v1.
+    # Verifies signature over "{actor_id}:{constitution_hash}:{nonce}" without mutating host
+    # beyond optional session elevation via arif_init path (caller may chain separately).
+    async def kernel_identity_verify(request: Request) -> JSONResponse:
+        """POST /kernel/identity/verify — cryptographic actor verification.
+
+        Body JSON:
+          nonce, signature (base64), public_key (base64 raw OR ignored if sovereign path),
+          actor_id (default hermes-asi), constitution_hash (optional; defaults to live hash)
+
+        Returns:
+          verified, identity_hash, actor_class, authority_band, reason, mutation_allowed, seal_allowed
+        """
+        from starlette.responses import JSONResponse
+
+        try:
+            body = await request.json()
+        except Exception:
+            return JSONResponse(
+                {"verified": False, "reason": "invalid_json", "gate": "NO_RESPONSE"},
+                status_code=400,
+            )
+
+        nonce = body.get("nonce") or ""
+        signature = body.get("signature") or body.get("actor_signature") or ""
+        public_key = body.get("public_key") or body.get("public_key_base64") or ""
+        actor_id = body.get("actor_id") or "hermes-asi"
+        constitution_hash = body.get("constitution_hash")
+
+        if not constitution_hash:
+            try:
+                from arifosmcp.runtime.session_auth import get_constitution_hash  # type: ignore
+
+                constitution_hash = get_constitution_hash()
+            except Exception:
+                constitution_hash = "arifos-constitution-v2026.05.05-SSCT"
+
+        if not nonce or not signature:
+            return JSONResponse(
+                {
+                    "verified": False,
+                    "reason": "nonce_and_signature_required",
+                    "identity_hash": None,
+                    "actor_class": "UNVERIFIED",
+                    "authority_band": "OBSERVE_ONLY",
+                    "mutation_allowed": False,
+                    "seal_allowed": False,
+                },
+                status_code=400,
+            )
+
+        verified = False
+        reason = "not_attempted"
+        try:
+            from arifosmcp.runtime.sovereign_verify import (
+                verify_sovereign_signature,
+                resolve_authority_level,
+                pubkey_status,
+            )
+
+            verified, reason = verify_sovereign_signature(
+                actor_id=actor_id,
+                constitution_hash=constitution_hash,
+                nonce=nonce,
+                actor_signature=signature,
+            )
+            authority = resolve_authority_level(
+                actor_id=actor_id,
+                identity_verified=verified,
+                signature_provided=bool(signature),
+            )
+            pk_status = pubkey_status()
+        except Exception as e:
+            authority = "VOID"
+            pk_status = {"error": str(e)[:160]}
+            reason = f"verify_error:{type(e).__name__}"
+
+        # Identity hash (kernel identity.toml blake3 or health surface)
+        identity_hash = None
+        try:
+            import hashlib
+            from pathlib import Path as _P
+
+            p = _P("/opt/arifos/app/identity.toml")
+            if p.is_file():
+                try:
+                    import blake3  # type: ignore
+
+                    identity_hash = {
+                        "algorithm": "blake3",
+                        "hash": blake3.blake3(p.read_bytes()).hexdigest(),
+                        "source": str(p),
+                    }
+                except Exception:
+                    identity_hash = {
+                        "algorithm": "sha256",
+                        "hash": hashlib.sha256(p.read_bytes()).hexdigest(),
+                        "source": str(p),
+                    }
+        except Exception:
+            pass
+
+        # Optional public_key presence check (does not replace sovereign path)
+        public_key_note = None
+        if public_key:
+            public_key_note = (
+                "public_key accepted for receipt only; "
+                "verification uses kernel sovereign pubkey candidates"
+            )
+
+        actor_class = "SOVEREIGN_VERIFIED" if verified else "UNVERIFIED"
+        # Constitutional boundary: SOVEREIGN authority_band ≠ agent becomes F13 human.
+        # Session may hold SOVEREIGN *band* when Arif's key signed the actor claim.
+        mutation_allowed = bool(verified)
+        seal_allowed = bool(verified)  # still needs ack_irreversible on actual seal path
+
+        return JSONResponse(
+            {
+                "verified": verified,
+                "reason": reason,
+                "identity_hash": identity_hash,
+                "actor_id": actor_id,
+                "actor_class": actor_class,
+                "authority_band": authority if verified else "OBSERVE_ONLY",
+                "mutation_allowed": mutation_allowed,
+                "seal_allowed": seal_allowed,
+                "constitution_hash": constitution_hash,
+                "nonce_prefix": nonce[:12] + "..." if len(nonce) > 12 else nonce,
+                "public_key_note": public_key_note,
+                "pubkey_status": pk_status,
+                "signature_verified": verified,
+                "elevation_note": (
+                    "verified=true grants SOVEREIGN authority *band* for this actor claim "
+                    "because Arif's Ed25519 signed the challenge. F13 personhood remains Arif."
+                    if verified
+                    else "not elevated"
+                ),
+                "ditempa_bukan_diberi": True,
+            },
+            status_code=200 if verified else 401,
+        )
+
+    app.add_route("/kernel/identity/verify", kernel_identity_verify, methods=["POST"])
+
     # Register REST routes from rest_routes.py — /000, /999, /constitution, etc.
     try:
         from arifosmcp.runtime.rest_routes import register_rest_routes
