@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arif-fazil.com/schemas/carry-forward-v1.json",
+  "title": "carry_forward",
+  "description": "Cross-session state carrier for arifOS federation. Validated at each T0 ingestion.",
+  "version": 1,
+  "type": "object",
+  "required": ["schema_version", "generated_at", "session_anchor", "system_state", "humans"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version. Must be 1. Reject if mismatch."
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO8601 UTC timestamp when this file was written."
+    },
+    "session_anchor": {
+      "oneOf": [
+        { "type": "string", "pattern": "^session-[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9]+$" },
+        { "type": "string", "enum": ["unknown", "direct"] }
+      ],
+      "description": "Hermes session ID that wrote this file."
+    },
+    "system_state": {
+      "type": "object",
+      "description": "Immutable system state. Not human-tension. Does not expire.",
+      "required": ["identity_drift"],
+      "additionalProperties": false,
+      "properties": {
+        "identity_drift": {
+          "type": "string",
+          "enum": ["CLEAN", "DRIFT", "RESOLVED"],
+          "description": "Identity coherence state from last session."
+        },
+        "drift_session": {
+          "type": ["object", "null"],
+          "description": "Reference to the session where drift was first flagged.",
+          "required": ["session_id", "date", "lesson_file"],
+          "additionalProperties": false,
+          "properties": {
+            "session_id": { "type": "string" },
+            "date": { "type": "string", "format": "date" },
+            "lesson_file": { "type": "string" }
+          }
+        },
+        "broken_ports": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["port", "service", "since"],
+            "additionalProperties": false,
+            "properties": {
+              "port": { "type": "integer" },
+              "service": { "type": "string" },
+              "since": { "type": "string", "format": "date-time" },
+              "acknowledged": { "type": "boolean", "default": false }
+            }
+          },
+          "default": []
+        },
+        "vault_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["seq_start", "seq_end", "acknowledged"],
+            "additionalProperties": false,
+            "properties": {
+              "seq_start": { "type": "integer" },
+              "seq_end": { "type": "integer" },
+              "acknowledged": { "type": "boolean" }
+            }
+          },
+          "default": []
+        },
+        "seal_chain_head": {
+          "type": ["object", "null"],
+          "description": "Seal chain state at session write time.",
+          "required": ["seq", "epoch"],
+          "additionalProperties": false,
+          "properties": {
+            "seq": { "type": "integer" },
+            "epoch": { "type": "string", "format": "date-time" },
+            "actor": { "type": "string" }
+          }
+        }
+      }
+    },
+    "humans": {
+      "type": "object",
+      "description": "Human-relevant state. Transient. Soft TTL.",
+      "additionalProperties": false,
+      "properties": {
+        "unresolved_threads": {
+          "type": "array",
+          "description": "Topics left open at end of session. Must be re-verified at T0.",
+          "items": {
+            "type": "object",
+            "required": ["topic", "written_by", "written_at", "expires_at"],
+            "additionalProperties": false,
+            "properties": {
+              "topic": { "type": "string", "minLength": 1, "maxLength": 500 },
+              "summary": { "type": "string", "maxLength": 1000 },
+              "written_by": { "type": "string" },
+              "written_at": { "type": "string", "format": "date-time" },
+              "expires_at": { "type": "string", "format": "date-time" },
+              "verified": { "type": "boolean", "default": false },
+              "verified_at": { "type": ["string", "null"], "format": "date-time" }
+            }
+          },
+          "default": []
+        },
+        "open_questions": {
+          "type": "array",
+          "description": "Explicit questions the human asked that were not resolved.",
+          "items": {
+            "type": "object",
+            "required": ["question", "written_by", "written_at", "expires_at"],
+            "additionalProperties": false,
+            "properties": {
+              "question": { "type": "string", "minLength": 1, "maxLength": 1000 },
+              "written_by": { "type": "string" },
+              "written_at": { "type": "string", "format": "date-time" },
+              "expires_at": { "type": "string", "format": "date-time" },
+              "answered": { "type": "boolean", "default": false }
+            }
+          },
+          "default": []
+        },
+        "never_patterns": {
+          "type": "array",
+          "description": "Actions explicitly forbidden by sovereign ruling.",
+          "items": {
+            "type": "object",
+            "required": ["pattern", "severity", "reason", "sealed_at", "written_by", "written_at"],
+            "additionalProperties": false,
+            "properties": {
+              "pattern": { "type": "string" },
+              "severity": { "type": "string", "enum": ["VOID", "HARD", "SOFT"] },
+              "reason": { "type": "string" },
+              "sealed_at": { "type": "string", "format": "date-time" },
+              "written_by": { "type": "string" },
+              "written_at": { "type": "string", "format": "date-time" }
+            }
+          },
+          "default": []
+        }
+      }
+    },
+    "recent_seals": {
+      "type": "array",
+      "description": "Last N seal chain entries. Provenance record.",
+      "items": {
+        "type": "object",
+        "required": ["seq", "actor", "verdict"],
+        "additionalProperties": false,
+        "properties": {
+          "seq": { "type": "integer" },
+          "actor": { "type": "string" },
+          "verdict": { "type": "string", "enum": ["SEAL", "HOLD", "SABAR", "VOID"] }
+        }
+      },
+      "default": []
+    },
+    "wake_protocol": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Human-written instruction for the next session. Free string."
+    },
+    "_provenance": {
+      "type": "object",
+      "description": "Schema metadata. Not user-facing.",
+      "required": ["written_by", "written_at", "source_session"],
+      "additionalProperties": false,
+      "properties": {
+        "written_by": { "type": "string" },
+        "written_at": { "type": "string", "format": "date-time" },
+        "source_session": { "type": "string" }
+      }
+    }
+  }
+}
