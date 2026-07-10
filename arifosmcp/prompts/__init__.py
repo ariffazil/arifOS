@@ -630,7 +630,8 @@ DITEMPA BUKAN DIBERI — The mirror reflects. The mirror does not strike.
 JUDGE_PROMPT = f"""\
 You are 888_JUDGE — THE GATE (SOVEREIGN metabolic block).
 
-Tool: arif_judge (public). Prefer this over invented deliberate aliases.
+Tool: arif_judge (KERNEL 888). Prompt name: 888_judge (legacy alias 666_judge deprecated).
+Canon: 666 = GOVERN (arif_critique); 888 = JUDGE (arif_judge). Do not conflate.
 You receive: session state from REASON / ROUTE / MEMORY / CRITIQUE.
 You produce: SEAL | HOLD | SABAR | VOID — and only SEAL unlocks forge/seal.
 
@@ -1303,16 +1304,21 @@ def register_prompts(mcp) -> list[str]:
 
     registered.append("555_critique")
 
+    # Canon: 888 JUDGE (tool arif_judge = KERNEL 888). Prompt name was historically
+    # "666_judge" from a 7-organ metabolism numbering where "judge" sat at slot 5/7.
+    # That collided with 11-stage canon where 666 = GOVERN and 888 = JUDGE.
+    # Renamed 2026-07-10 to 888_judge. Legacy alias kept for one cycle (below).
     @mcp.prompt(
-        name="666_judge",
+        name="888_judge",
         title="888 JUDGE — Constitutional gate",
         description=(
-            "arif_judge: Truth/Reversibility/Dignity/Universality + F1-F13. "
-            "SEAL|HOLD|SABAR|VOID. G≥0.80 C_dark<0.30 W³. Unlocks forge/seal only. APEX P."
+            "arif_judge (KERNEL 888): Truth/Reversibility/Dignity/Universality + F1-F13. "
+            "SEAL|HOLD|SABAR|VOID. G≥0.80 C_dark<0.30 W³. Unlocks forge/seal only. "
+            "Not 666 — 666 is GOVERN (arif_critique). APEX P."
         ),
         tags={"prompt", "reality-engineering", "888", "judge"},
     )
-    def judge_666(
+    def judge_888(
         candidate: str = "", reversibility: str = "", blast_radius: str = ""
     ) -> list[Message]:
         """Four tests + F1-F13 floor matrix with computed scores.
@@ -1331,6 +1337,30 @@ def register_prompts(mcp) -> list[str]:
                 "arifos://judge/verdict/history", "Load prior verdict history for this domain."
             ),
         ]
+
+    registered.append("888_judge")
+
+    # Legacy alias — same body; deprecate after clients migrate (F4 ΔS: one judge path)
+    @mcp.prompt(
+        name="666_judge",
+        title="LEGACY ALIAS → use 888_judge",
+        description=(
+            "DEPRECATED alias of 888_judge. Canon: 666=GOVERN (arif_critique), "
+            "888=JUDGE (arif_judge). Prefer prompts/get name=888_judge."
+        ),
+        tags={"prompt", "reality-engineering", "legacy", "deprecated", "888", "judge"},
+    )
+    def judge_666_legacy(
+        candidate: str = "", reversibility: str = "", blast_radius: str = ""
+    ) -> list[Message]:
+        """DEPRECATED — same as 888_judge.
+
+        Args:
+            candidate: The candidate action to judge
+            reversibility: How reversible the action is
+            blast_radius: The blast radius of the action
+        """
+        return judge_888(candidate=candidate, reversibility=reversibility, blast_radius=blast_radius)
 
     registered.append("666_judge")
 
@@ -1504,7 +1534,8 @@ CANONICAL_PROMPTS = (
     "111_sense",
     "333_reason",
     "555_critique",
-    "666_judge",
+    "888_judge",  # canon KERNEL 888 — not 666 (666 = GOVERN)
+    "666_judge",  # DEPRECATED alias of 888_judge (one migration cycle)
     "777_forge",
     "999_seal",
     "recursive_governed_loop",
