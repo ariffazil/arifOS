@@ -100,16 +100,16 @@ def validate_value(val, schema_prop, path, errors, depth=0):
     # Handle oneOf — try all branches; only error if none match
     if "oneOf" in schema_prop:
         branch_errors = []
-        for sub_schema in schema_prop["oneOf"]:
+        for i, sub_schema in enumerate(schema_prop["oneOf"]):
             be = []
             validate_value(val, sub_schema, path, be, depth)
             if not be:
                 return  # Matched — no errors, done
-            branch_errors.append(be)
-        # None matched
+            branch_errors.append((i, be))
+        # None matched — surface first branch errors for debugging
+        detail = "; ".join(f"branch[{i}]={be[0][:80] if be else 'ok'}" for i, be in branch_errors[:2])
         errors.append(
-            f"{path}: no oneOf variant matched. "
-            f"Errors per branch: {len(branch_errors)} branches tried."
+            f"{path}: no oneOf variant matched. {detail}"
         )
         return
 
@@ -135,6 +135,8 @@ def validate_value(val, schema_prop, path, errors, depth=0):
         return
 
     # Type-specific validation
+    # Note: const is checked at top level in validate() for integers.
+    # validate_string handles enum + pattern + length — NOT const.
     if expected == "string":
         validate_string(val, schema_prop, path, errors)
     elif expected == "integer":
