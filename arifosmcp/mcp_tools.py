@@ -31,6 +31,13 @@ try:
 except ImportError:
     CANONICAL_AVAILABLE = False
 
+try:
+    from arifosmcp.arifos_vault.truth_enforcement import (
+        ARIF_CLAIM_GATE_TOOLS,
+    )
+except ImportError:
+    ARIF_CLAIM_GATE_TOOLS = None
+
 
 # =============================================================================
 # PERCEPTION AGENT — oracle_bio (WELL state)
@@ -205,6 +212,10 @@ def create_governance_mcp() -> FastMCP:
                 current_state=current_state,
                 ctx=ctx,
             )
+
+    # Wire arif_claim_gate — async MCP replacement for A-FORGE execSync subprocess bridge
+    if ARIF_CLAIM_GATE_TOOLS is not None:
+        mcp.add_tool(ARIF_CLAIM_GATE_TOOLS)
 
     return mcp
 

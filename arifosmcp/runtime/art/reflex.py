@@ -75,9 +75,13 @@ class ArtRequest:
     acknowledged_remote: bool = False
     silent_fallback_count: int = 0
 
+    # v3.3 — Content-gated evidence quality
+    referenced_result_content: str = ""  # actual tool result being cited as evidence
+    asserts_completion: bool = False  # claim uses done/fixed/verified/complete/resolved language
+
     # v3.2 — Cognitive Tier / ASI Firewall
     intent_text: str = ""  # natural language or tool-call text for ASI screening
-    target: str = ""       # file/path/target being acted upon
+    target: str = ""  # file/path/target being acted upon
 
 
 # ── RESULT ───────────────────────────────────────────────────────────
@@ -106,6 +110,39 @@ class ArtResult:
 # ═══════════════════════════════════════════════════════════════════════
 # THE REFLEX — ONE FUNCTION. ONE CALL. ONE DECISION.
 # ═══════════════════════════════════════════════════════════════════════
+
+
+def _is_empty_or_error_result(content: str) -> bool:
+    """Detect empty, whitespace-only, or error-pattern tool results.
+
+    Content-gated: examines actual result bytes, not caller-set flags.
+    Returns True if content is vacuous — cannot serve as downstream evidence.
+    """
+    stripped = content.strip()
+    if not stripped:
+        return True
+    # JSON error patterns: null, empty objects, error keys
+    if stripped in ("null", "{}", "[]", '""', "''"):
+        return True
+    lower = stripped.lower()
+    error_markers = (
+        '"error"',
+        '"status":"error"',
+        '"code":-',
+        '"status":"ERROR"',
+        "traceback (most recent call last)",
+        "permission denied",
+        "not found",
+        "500 internal server",
+        "502 bad gateway",
+        "connection refused",
+        "timeout",
+        "enoent",
+    )
+    for marker in error_markers:
+        if marker in lower:
+            return True
+    return False
 
 
 def art(request: ArtRequest) -> ArtResult:
@@ -251,6 +288,29 @@ def art(request: ArtRequest) -> ArtResult:
         return ArtResult(
             verdict=ArtVerdict.HOLD,
             reason=ArtReason.DEGRADED_MUTATION,
+            next_tool_state=ToolState.FALLBACK,
+            check_blocked=3,
+        )
+
+    # v3.3 — CONTENT-GATED: EMPTY_TOOL_RESULT (widened: mandatory, not conditional)
+    # CASE A: Claim asserts completion (done/fixed/verified/complete/resolved)
+    #         but cites zero evidence → HOLD. The wider, more common pattern.
+    # CASE B: Evidence IS cited but content is empty/error → HOLD.
+    #         Original narrower case, preserved.
+    if request.asserts_completion and not request.referenced_result_content:
+        return ArtResult(
+            verdict=ArtVerdict.HOLD,
+            reason=ArtReason.EMPTY_TOOL_RESULT,
+            next_tool_state=ToolState.FALLBACK,
+            check_blocked=3,
+        )
+
+    if request.referenced_result_content and _is_empty_or_error_result(
+        request.referenced_result_content
+    ):
+        return ArtResult(
+            verdict=ArtVerdict.HOLD,
+            reason=ArtReason.EMPTY_TOOL_RESULT,
             next_tool_state=ToolState.FALLBACK,
             check_blocked=3,
         )
