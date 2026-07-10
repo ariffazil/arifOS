@@ -19634,6 +19634,51 @@ async def _arif_memory_v5_router(
 
 
 from arifosmcp.tools.arif_kernel_intercept import _arif_kernel_intercept
+from arifosmcp.runtime.vault_registry import (
+    verify_seal as _verify_seal_from_registry,
+    get_seal as _get_seal_from_registry,
+)
+
+
+# ── E1 FORGE: arif_verify ────────────────────────────────────────────────────
+
+async def _arif_verify_tool(
+    token: str,
+    command: str,
+    actor_id: str = "ARIF",
+) -> dict[str, Any]:
+    """
+    F13 + F1: Cryptographic verification of SEAL token for IRREVERSIBLE shell actions.
+
+    arif_verify is the JITU pre-execution gate for A-FORGE. It atomically:
+      1. Checks token exists in kernel registry
+      2. Verifies token not expired
+      3. Confirms actor binding
+      4. Validates command_hash matches the sealed shell_command
+      5. Burns the token (marks used=True) — one-shot, no replay
+
+    A-FORGE must call arif_verify BEFORE executing any IRREVERSIBLE shell command,
+    passing the exact command string. A valid verification = SEAL envelope authorized.
+
+    Args:
+        token:     SEAL token from JITU approval (e.g. "SEAL-a1b2c3d4e5f6g7h8")
+        command:   Exact shell command string to verify (e.g. "git push --force origin main")
+        actor_id:  Sovereign actor claiming this seal (default "ARIF")
+
+    Returns:
+        dict:
+            token_valid   — kernel-minted, signature valid, not expired
+            scope_valid   — SHA256(command) matches vault command_hash
+            replay_safe   — token not yet consumed
+            violations    — list of failure reasons (empty on success)
+            entry         — full registry entry on success, None on failure
+    """
+    result = _verify_seal_from_registry(token=token, command=command, actor_id=actor_id)
+    return result
+
+
+# ── Backward-compat alias ────────────────────────────────────────────────────
+_arif_verify = _arif_verify_tool
 
 
 async def _arif_kernel_intercept_tool(
@@ -19838,6 +19883,7 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge": _arif_kernel_intercept_tool,  # constitutional verdict / 888 (uses kernel)
     "arif_act": _arif_act,
     "arif_seal": _arif_vault_seal_tool,
+    "arif_verify": _arif_verify_tool,  # E1 FORGE: JITU pre-execution gate
     # ── Internal aliases (still dispatchable, never advertised publicly) ───
     "arif_fetch": _arif_evidence_fetch,
     "arif_evidence_fetch": _arif_evidence_fetch,
