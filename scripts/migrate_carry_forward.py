@@ -173,16 +173,22 @@ def main():
     shutil.copy2(SOURCE, BACKUP)
     print(f"[MIGRATE] Backed up v0 → {BACKUP}")
 
-    # Write migrated
+    # Validate in-memory migrated data BEFORE writing
+    import importlib
+    from validate_carry_forward import validate as vc_validate
+    errors = vc_validate(migrated, json.loads(SCHEMA_PATH.read_text()))
+    if errors:
+        print(f"[MIGRATE] In-memory validation FAILED ({len(errors)} violations):")
+        for e in errors:
+            print(f"  ✗ {e}")
+        print("[MIGRATE] NOT writing — fix violations before retry.")
+        sys.exit(2)
+
+    # Atomic write (write to temp, rename)
     tmp = TARGET.with_suffix(".json.v1.tmp")
     tmp.write_text(json.dumps(migrated, indent=2, ensure_ascii=False))
     tmp.replace(TARGET)
     print(f"[MIGRATE] Wrote v1 → {TARGET}")
-
-    # Validate
-    sys.path.insert(0, str(Path(__file__).parent))
-    from validate_carry_forward import validate
-    errors = validate(migrated, json.loads(SCHEMA_PATH.read_text()))
     if errors:
         print(f"[MIGRATE] WARNING: migrated file has {len(errors)} schema violations:")
         for e in errors:
