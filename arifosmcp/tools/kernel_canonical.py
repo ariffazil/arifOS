@@ -915,7 +915,7 @@ def arif_bridge_connect(
 ) -> dict[str, Any]:
     """
     Low-level direct organ tool call.
-    Bypasses intent map — caller must know which organ and tool to call.
+    Requires server-side authorization — organ and tool must be known ahead of time.
 
     RULE 14: This is a direct bridge, not routing by intent.
     Use arif_route for intent-based routing. Use arif_bridge only when
@@ -924,11 +924,11 @@ def arif_bridge_connect(
     This is the internal bridge implementation also used by arif_route.
 
     Args:
-        organ:       "geox" | "wealth" | "well" | "geox" (case-insensitive)
+        organ:       "geox" | "wealth" | "well" (case-insensitive)
         tool_name:   MCP tool name on the target organ
         arguments:   Tool arguments dict
-        actor_id:    Calling actor (injected into envelope)
-        session_id:  Governing session
+        actor_id:    Server-derived actor (NOT model-asserted)
+        session_id:  Governing session from arif_init
 
     Returns:
         Kernel-wrapped organ output with envelope.

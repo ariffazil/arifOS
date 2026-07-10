@@ -213,7 +213,7 @@ ARIF_TOOL_DISCOVERY: dict[str, ArifToolDiscovery] = {
     ),
     "arif_bridge_connect": ArifToolDiscovery(
         name="arif_bridge_connect",
-        description="Direct organ tool call. Bypasses intent routing — caller must specify organ and tool_name.",
+        description="Direct organ tool call after server-side authorization. Requires organ + tool_name.",
         use_when="You know exactly which organ and tool to call. Keywords: 'call organ', 'bridge', 'direct call', 'GEOX tool', 'WEALTH tool'.",
         do_not_use_when="You're unsure which organ handles the task (use arif_route instead).",
         aliases=["arif_call_organ", "arif_direct_call", "bridge_connect", "call_tool"],
