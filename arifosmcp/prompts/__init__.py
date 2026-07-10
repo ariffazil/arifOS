@@ -1277,12 +1277,13 @@ def register_prompts(mcp) -> list[str]:
 
     @mcp.prompt(
         name="555_critique",
-        title="555/666 GOVERN — Critique",
+        title="555 CRITIQUE — Heart / maruah (→ 666 GOVERN path)",
         description=(
-            "EVALUATE block: arif_memory + arif_critique. Consequence scan, "
-            "dignity/maruah, FORGE_READY|HOLD|BLOCK. F5+F6. APEX X."
+            "EVALUATE block via arif_critique (KERNEL 555) + arif_memory. "
+            "Canon: 555 MEMORY/heart stress, 666 GOVERN floors, 888 JUDGE separate. "
+            "Consequence scan, dignity/maruah, FORGE_READY|HOLD|BLOCK. F5+F6. APEX X."
         ),
-        tags={"prompt", "reality-engineering", "555", "666", "critique"},
+        tags={"prompt", "reality-engineering", "555", "critique"},
     )
     def critique_555(proposal: str = "", stakeholders: str = "") -> list[Message]:
         """Consequence scan, perspective shift, dignity check.
