@@ -24,6 +24,7 @@ import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
@@ -238,31 +239,156 @@ def _consume_actor_challenge(actor_id: str, nonce: str) -> tuple[bool, str]:
 
 
 def verify_actor_signature(actor_id: str, nonce: str, signature_b64: str) -> bool:
-    """Verify Ed25519 signature over ``{actor_id}:{nonce}`` for any registered actor."""
+    """Verify Ed25519 signature over ``{actor_id}:{nonce}`` for any registered actor.
+
+    Prefer challenge-bound nonces from issue_actor_challenge(). For federation
+    compatibility, also accepts a cryptographically valid signature when the
+    nonce was not pre-issued (then marks it used — one-shot, no replay).
+    """
+    ok, _reason = verify_init_identity(
+        actor_id=actor_id,
+        nonce=nonce,
+        signature_b64=signature_b64,
+        constitution_hash=None,
+    )
+    return ok
+
+
+def verify_init_identity(
+    actor_id: str,
+    nonce: str,
+    signature_b64: str,
+    constitution_hash: str | None = None,
+) -> tuple[bool, str]:
+    """Verify init-path Ed25519 identity and consume nonce (one-shot).
+
+    Payload formats tried (first match wins):
+      1. ``{actor_id}:{nonce}`` — crypto_auth canonical
+      2. ``{actor_id}:{constitution_hash}:{nonce}`` — kernel /identity/verify compat
+
+    Returns:
+        (verified, reason) e.g. (True, "ed25519_signature_verified")
+    """
     if not actor_id:
-        return False
+        return False, "actor_id_missing"
     if not nonce:
-        logger.warning("Crypto Auth: Missing nonce.")
-        return False
+        return False, "nonce_missing"
+    if not signature_b64:
+        return False, "signature_missing"
 
     public_key = resolve_actor_public_key(actor_id)
     if public_key is None:
-        logger.warning("Crypto Auth: No public key for actor=%s", actor_id)
-        return False
+        return False, "public_key_unavailable"
 
     try:
         signature_bytes = base64.b64decode(signature_b64)
-        message_bytes = f"{actor_id}:{nonce}".encode()
+    except Exception:
+        return False, "signature_b64_invalid"
 
-        public_key.verify(signature_bytes, message_bytes)
-        challenge_ok, challenge_reason = _consume_actor_challenge(actor_id, nonce)
-        if not challenge_ok:
-            logger.warning("Crypto Auth: Nonce rejected — %s.", challenge_reason)
-            return False
-        return True
-    except InvalidSignature:
-        logger.warning("Crypto Auth: Invalid signature provided for actor=%s", actor_id)
-        return False
-    except Exception as e:
-        logger.error("Crypto Auth: Verification error - %s", e)
-        return False
+    payloads: list[tuple[str, bytes]] = [
+        ("actor_nonce", f"{actor_id}:{nonce}".encode()),
+    ]
+    # Case-normalize actor variants for signature message (common client drift)
+    aid_norm = _normalize_actor(actor_id)
+    if aid_norm != actor_id:
+        payloads.append(("actor_norm_nonce", f"{aid_norm}:{nonce}".encode()))
+    if constitution_hash:
+        payloads.append(
+            (
+                "actor_constitution_nonce",
+                f"{actor_id}:{constitution_hash}:{nonce}".encode(),
+            )
+        )
+        if aid_norm != actor_id:
+            payloads.append(
+                (
+                    "actor_norm_constitution_nonce",
+                    f"{aid_norm}:{constitution_hash}:{nonce}".encode(),
+                )
+            )
+        # sovereign_verify historical aliases
+        for alias in ("arif", "ariffazil", "888"):
+            if aid_norm in ("arif", "ariffazil", "888") and alias != aid_norm:
+                payloads.append(
+                    (
+                        f"alias_{alias}_constitution_nonce",
+                        f"{alias}:{constitution_hash}:{nonce}".encode(),
+                    )
+                )
+
+    matched_payload = None
+    for label, message_bytes in payloads:
+        try:
+            public_key.verify(signature_bytes, message_bytes)
+            matched_payload = label
+            break
+        except InvalidSignature:
+            continue
+        except Exception as e:
+            logger.error("Crypto Auth: Verification error - %s", e)
+            return False, f"verification_error:{type(e).__name__}"
+
+    if matched_payload is None:
+        logger.warning("Crypto Auth: Invalid signature for actor=%s", actor_id)
+        return False, "ed25519_signature_invalid"
+
+    # Challenge consume (preferred) or one-shot free-nonce consume
+    challenge_ok, challenge_reason = _consume_actor_challenge(actor_id, nonce)
+    if challenge_ok:
+        return True, f"ed25519_signature_verified:{matched_payload}"
+
+    if challenge_reason == "challenge_not_issued":
+        # Accept free-standing signed nonce once (federation /kernel/identity/verify compat)
+        now = time.time()
+        with _challenge_lock:
+            _purge_challenges(now)
+            if nonce in _used_challenges:
+                return False, "challenge_replayed"
+            _used_challenges[nonce] = now + _CHALLENGE_TTL_SECONDS
+        logger.info(
+            "Crypto Auth: free-nonce accepted for actor=%s payload=%s",
+            actor_id,
+            matched_payload,
+        )
+        return True, f"ed25519_signature_verified_free_nonce:{matched_payload}"
+
+    logger.warning("Crypto Auth: Nonce rejected — %s.", challenge_reason)
+    return False, challenge_reason
+
+
+def classify_actor_band(actor_id: str, signature_verified: bool) -> dict[str, Any]:
+    """Map verified crypto identity to authority band + agent_class (F13 safe).
+
+    SOVEREIGN principal band only for Arif human aliases.
+    Hermes and other agents → AGENT class, LIMITED_MUTATE when verified.
+    """
+    aid = _normalize_actor(actor_id)
+    is_sovereign_principal = aid in ("arif", "888", "ariffazil")
+    if not signature_verified:
+        return {
+            "actor_verified": False,
+            "signature_verified": False,
+            "actor_band": "OBSERVE_ONLY",
+            "agent_class": "UNVERIFIED",
+            "is_sovereign_principal": is_sovereign_principal,
+            "authority_level": "ANONYMOUS",
+        }
+    if is_sovereign_principal:
+        return {
+            "actor_verified": True,
+            "signature_verified": True,
+            "actor_band": "FULL",  # birth band; measured apex still separate
+            "agent_class": "SOVEREIGN_PRINCIPAL",
+            "is_sovereign_principal": True,
+            "authority_level": "SOVEREIGN",
+            "note": "Human sovereign. Hermes remains AGENT; does not become F13.",
+        }
+    return {
+        "actor_verified": True,
+        "signature_verified": True,
+        "actor_band": "LIMITED_MUTATE",
+        "agent_class": "AGENT",
+        "is_sovereign_principal": False,
+        "authority_level": "OPERATOR",
+        "note": "Verified agent — not SOVEREIGN principal (F13).",
+    }
