@@ -271,8 +271,8 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 
 | Read this | For | Link |
 |-----------|-----|------|
-| **arifOS** (this repo) | Constitutional kernel. 12 canonical (see public_surface.py). 13 floors. The judge. | ← you are here |
-| **A-FORGE** | Executor. 75 MCP tools. Gates + A-THINK law. | [`ariffazil/A-FORGE`](https://github.com/ariffazil/A-FORGE) |
+| **arifOS** (this repo) | Constitutional kernel. 11 canonical public verbs. 13 floors. The judge. | ← you are here |
+| **A-FORGE** | Executor. 98 MCP tools. Gates + A-THINK law. | [`ariffazil/A-FORGE`](https://github.com/ariffazil/A-FORGE) |
 | **AAA** | Cockpit. A2A mesh. Agent registry. React 19 dashboard. | [`ariffazil/AAA`](https://github.com/ariffazil/AAA) |
 
 ---
@@ -286,7 +286,7 @@ Connect to arifOS via the Model Context Protocol:
 | **Endpoint** | `https://mcp.arif-fazil.com/mcp` |
 | **Alternate** | `https://arif-fazil.com/mcp` |
 | **Transport** | Streamable HTTP (JSON-RPC 2.0) |
-| **Tools** | 45 exposed (17 canonical + 41 diagnostic) |
+| **Tools** | 11 canonical public verbs |
 | **Health** | `https://arifos.arif-fazil.com/health` |
 
 ### Claude Code / Cursor
@@ -329,7 +329,7 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
 <div align="center">
 
 ```
-arifOS · Port 8088 · 12 canonical (see public_surface.py) · 13 floors · 6 live organs
+arifOS · Port 8088 · 11 canonical public verbs · 13 floors · 6 live organs
 AGPL-3.0 · Sovereign: Arif Fazil · Federation: ALIVE
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 ```
