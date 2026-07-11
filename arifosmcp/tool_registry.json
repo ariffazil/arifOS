@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-ssct-v2026.07.09-spine-p0",
   "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH for disk vantage. canonical_order is the exposed 11-tool public facade (Spine P0 2026-07-09: arif_triage demoted to internal). Regenerated 2026-07-09.",
+  "_note": "SOLE SOURCE OF TRUTH for disk vantage. canonical_order is the exposed 12-tool public facade (Spine P0 2026-07-10: arif_triage demoted to internal, arif_verify restored to public count). Regenerated 2026-07-10.",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py \u2192 ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
     "diagnostic_tools": "constitutional_map.py \u2192 spec-inferred from tier + irreversible + access fields",
@@ -9,19 +9,19 @@
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "11 canonical public verbs + 6 internal supporting tools",
+    "arif_*": "12 canonical public tools + 6 internal supporting tools",
     "hermes_*": "GATED \u2014 Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
     "forge_*": "GATED/DEPRECATED \u2014 A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
     "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
     "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
   },
-  "canonical_count": 11,
+  "canonical_count": 12,
   "internal_canonical_count": 6,
   "diagnostic_count": 41,
-  "total_surface": 58,
+  "total_surface": 59,
   "tier_summary": {
     "internal": 0,
-    "canonical": 11,
+    "canonical": 12,
     "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
@@ -33,7 +33,7 @@
     "discovery": 1
   },
   "tier_legend": {
-    "canonical": "11 exposed public verbs on default MCP wire (Spine P0 2026-07-09)",
+    "canonical": "12 exposed public tools on default MCP wire (Spine P0 2026-07-10)",
     "internal": "None (all surfaced in canonical for registration match; gating still applies)",
     "hermes": "Cross-verification, fact-checking, vault query, and epistemic checks",
     "canary": "Transport and protocol echo/probe tools",
@@ -54,7 +54,8 @@
     "arif_judge",
     "arif_forge",
     "arif_compose",
-    "arif_seal"
+    "arif_seal",
+    "arif_verify"
   ],
   "internal_canonical_order": [
     "arif_triage",
@@ -343,13 +344,12 @@
         "empathy"
       ],
       "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 no biological or artificial emotional substrate. F9 Doctrine (arifOS\u00d7MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
-      "tier": "internal",
-      "namespace": "arif_* (internal supporting alias)",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical public prefix)",
       "tags": [
-        "internal",
-        "non-public"
+        "canonical"
       ],
-      "public_exposed": false,
+      "public_exposed": true,
       "affordance_contract": {
         "action_class": "ANALYZE",
         "risk_tier": "LOW",
@@ -448,13 +448,12 @@
         "connect"
       ],
       "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 \u2014 arif_bridge retained as deprecated alias.",
-      "tier": "internal",
-      "namespace": "arif_* (internal supporting alias)",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical public prefix)",
       "tags": [
-        "internal",
-        "non-public"
+        "canonical"
       ],
-      "public_exposed": false,
+      "public_exposed": true,
       "affordance_contract": {
         "action_class": "ANALYZE",
         "risk_tier": "MEDIUM",
@@ -486,13 +485,12 @@
         "tone_shift"
       ],
       "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
-      "tier": "internal",
-      "namespace": "arif_* (internal supporting alias)",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical public prefix)",
       "tags": [
-        "internal",
-        "non-public"
+        "canonical"
       ],
-      "public_exposed": false,
+      "public_exposed": true,
       "affordance_contract": {
         "action_class": "ANALYZE",
         "risk_tier": "LOW",
@@ -530,13 +528,12 @@
         "forget"
       ],
       "eureka_insight": "F1: every memory op is reversible via supersede (revise) or tombstone (forget \u2192 vault). F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. F4: hybrid recall cascade (vector\u2192graph\u2192vault) reduces entropy per mode. F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. F11: every write carries actor_id + session_id + receipt (forensic traceability). F13: forget mode requires explicit human ack \u2014 L13 SOVEREIGN. Direction 1 (memory kernel v5) \u2014 ratified 2026-06-21. ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage.",
-      "tier": "internal",
-      "namespace": "arif_* (internal supporting alias)",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical public prefix)",
       "tags": [
-        "internal",
-        "non-public"
+        "canonical"
       ],
-      "public_exposed": false,
+      "public_exposed": true,
       "affordance_contract": {
         "action_class": "IRREVERSIBLE",
         "risk_tier": "MEDIUM",
@@ -663,6 +660,39 @@
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
+    "arif_verify": {
+      "stage": "E1",
+      "lane": "APEX",
+      "floors": [
+        "L01",
+        "L11",
+        "L13"
+      ],
+      "risk_tier": "high",
+      "irreversible": false,
+      "access": "authenticated",
+      "requires_auth": true,
+      "modes": [
+        "verify"
+      ],
+      "eureka_insight": "ART→KERNEL→ACT padlock: ART classifies, arif_judge SEALs, arif_verify unlocks ACT. Without arif_verify the cage has a hasp but no padlock.",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical public prefix)",
+      "tags": [
+        "canonical"
+      ],
+      "public_exposed": true,
+      "affordance_contract": {
+        "action_class": "DRAFT",
+        "risk_tier": "MEDIUM",
+        "blast_radius": "ORG",
+        "reversibility": 0.85,
+        "requires_lease": true,
+        "autonomy_floor": "PROPOSE_ONLY",
+        "rationale": "SEAL verification gates execution but does not execute. It verifies actor-bound, one-shot approval before irreversible work.",
+        "_derived_from": "tool_risk_registry.py (canonical)"
+      }
+    },
     "arif_act": {
       "stage": "010",
       "lane": "AGI",
@@ -685,12 +715,13 @@
         "dry_run"
       ],
       "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
-      "tier": "canonical",
-      "namespace": "arif_* (canonical public prefix)",
+      "tier": "internal",
+      "namespace": "arif_* (internal supporting alias)",
       "tags": [
-        "canonical"
+        "internal",
+        "non-public"
       ],
-      "public_exposed": true,
+      "public_exposed": false,
       "affordance_contract": {
         "action_class": "IRREVERSIBLE",
         "risk_tier": "CRITICAL",
@@ -725,13 +756,12 @@
         "dry_run"
       ],
       "eureka_insight": "arif_act is the public surface for the Verdict-Gated Action Bus (action_bus.py). Cognition petitions; kernel + bus decide + execute + learn precedent.",
-      "tier": "internal",
-      "namespace": "arif_* (internal supporting alias)",
+      "tier": "canonical",
+      "namespace": "arif_* (canonical public prefix)",
       "tags": [
-        "internal",
-        "non-public"
+        "canonical"
       ],
-      "public_exposed": false,
+      "public_exposed": true,
       "affordance_contract": {
         "action_class": "MUTATE",
         "risk_tier": "HIGH",

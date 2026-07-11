@@ -282,6 +282,76 @@ class TestS2_SchemaDrift:
       ART: Detects drift → downgrades or HOLDs after multiple drifts.
     """
 
+class TestS2b_ClaimVerificationGate:
+    """Scenario 3: completion claims must carry non-empty evidence."""
+
+    def test_completion_claim_without_cited_result_holds(self):
+        result = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                schema_verified=True,
+                reversible=True,
+                asserts_completion=True,
+                referenced_result_content="",
+            )
+        )
+
+        assert result.verdict == ArtVerdict.HOLD
+        assert result.reason.value == "tool result empty or error — cannot cite as evidence"
+        assert result.check_blocked == 3
+
+    @pytest.mark.parametrize(
+        "content",
+        [
+            "",
+            "   ",
+            "{}",
+            '{"error":"tool failed"}',
+            "Traceback (most recent call last): boom",
+        ],
+    )
+    def test_empty_or_error_cited_result_holds(self, content: str):
+        result = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                schema_verified=True,
+                reversible=True,
+                asserts_completion=True,
+                referenced_result_content=content,
+            )
+        )
+
+        assert result.verdict == ArtVerdict.HOLD
+        assert result.reason.value == "tool result empty or error — cannot cite as evidence"
+        assert result.check_blocked == 3
+
+    def test_non_empty_cited_result_proceeds(self):
+        result = art(
+            ArtRequest(
+                action_class="mutate",
+                tool_state=ToolState.TRUSTED.value,
+                blast_radius="low",
+                trust_level="evidence",
+                actor_resolved=True,
+                schema_locked=True,
+                schema_verified=True,
+                reversible=True,
+                asserts_completion=True,
+                referenced_result_content='{"status":"ok","changed_files":2}',
+            )
+        )
+        assert result.verdict == ArtVerdict.PROCEED
+
     def test_s2_drift_detection(self):
         """ART detects schema changes and updates state."""
         verdicts = []

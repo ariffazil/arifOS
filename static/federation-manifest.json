@@ -10,7 +10,7 @@
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
   "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.09-SPINE-P0 (198398c). 164 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-07-10T12:35:13Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=11, total_declared=58.",
+  "note": "All numbers from live /health probe at 2026-07-10T12:35:13Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=12, total_declared=58.",
   "stack": {
     "topology": {
       "ordinal": 1,

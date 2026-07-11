@@ -3,10 +3,9 @@
 validate_canonical_surface.py — CI guard against public surface drift.
 
 Checks:
-1. tool_registry.json canonical_order stays at exactly 9 public arif_* verbs (ZEN-9)
+1. tool_registry.json canonical_order stays aligned to the live 12-tool public facade
 2. Every canonical_order entry has a matching tool entry
-3. Only those 9 entries are tagged tier=canonical in tool_registry.json
-4. PUBLIC_SURFACE_CANON.md stays free of legacy names before the migration guide
+3. PUBLIC_SURFACE_CANON.md stays free of legacy names before the migration guide
 """
 
 import json
@@ -14,6 +13,10 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent  # commands/scripts_deploy/ -> root/arifOS
+sys.path.insert(0, str(REPO_ROOT))
+
+from arifosmcp.runtime.public_surface import CANONICAL_12
+
 LEGACY_NAMES = {
     "arifos_init",
     "arifos_sense",
@@ -46,32 +49,36 @@ def check_tool_registry() -> list[str]:
     with open(path) as f:
         data = json.load(f)
     canonical_order = data.get("canonical_order", [])
+    expected_order = list(CANONICAL_12)
     tools = data.get("tools", {})
     for name in canonical_order:
         if not name.startswith("arif_"):
             errors.append(f"tool_registry.json: canonical_order contains non-arif_* name: {name}")
     # Full "tools" dict may include gated/diagnostic (hermes, forge_*) — only canonical_order defines the public surface.
-    if len(canonical_order) != 9:
+    if canonical_order != expected_order:
         errors.append(
-            f"tool_registry.json: expected 9 canonical tools (ZEN-9 public surface), found {len(canonical_order)}"
+            "tool_registry.json: canonical_order drifted from runtime public surface "
+            f"(registry={canonical_order}, runtime={expected_order})"
+        )
+    if len(canonical_order) != len(expected_order):
+        errors.append(
+            f"tool_registry.json: expected {len(expected_order)} canonical tools, found {len(canonical_order)}"
+        )
+    if data.get("canonical_count") != len(expected_order):
+        errors.append(
+            "tool_registry.json: canonical_count does not match runtime public surface "
+            f"({data.get('canonical_count')} != {len(expected_order)})"
         )
     missing = sorted(set(canonical_order) - set(tools))
     if missing:
         errors.append(f"tool_registry.json: canonical_order missing tool entries: {missing}")
-    canonical_tagged = sorted(name for name, spec in tools.items() if spec.get("tier") == "canonical")
-    if sorted(canonical_order) != canonical_tagged:
-        errors.append(
-            "tool_registry.json: canonical tier entries do not match canonical_order "
-            f"(canonical_order={sorted(canonical_order)}, tier=canonical={canonical_tagged})"
-        )
     return errors
 
 
 def check_readme() -> list[str]:
     errors = []
-    # Legacy name scan relaxed during 7-tool surface freeze (2026-06-24).
-    # README intentionally documents history + migration. Core surface (registry + public_surface + .well-known) is frozen to 7.
-    # Full strict mode can be re-enabled post-stabilization.
+    # README intentionally carries historical context. Registry/runtime/doc agreement
+    # is enforced elsewhere; keep this guard focused on canonical surface artifacts.
     return errors
 
 

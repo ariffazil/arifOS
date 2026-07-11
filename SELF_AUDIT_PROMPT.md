@@ -20,7 +20,7 @@ CODING/FORGE LOOP (OpenCode):  000→111→333→666→888→010→999
 | 000 | Clarify Task | Orient + Session + Preflight |
 | 111 | Gather Evidence | Observe + Label Truth |
 | 333 | Draft Change | Plan + DAG + Humility |
-| 555/666 | Self-Critique (555) | Consequence Critique (666) |
+| 555 | Self-Critique (555) | Consequence Critique (666) |
 | 777/010 | Compare & Decide (777) | Execute with Warrant (010) |
 | 888 | Audit Trail | Constitutional Verdict |
 | 999 | Self-Improvement | Seal + Cleanup + Health |

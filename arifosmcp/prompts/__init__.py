@@ -55,7 +55,7 @@ Live public MCP tools (canonical names — do not invent aliases):
   arif_think    333  Reason / plan / hypothesize
   arif_route    444  Route intent to organ (GEOX / WEALTH / WELL / A-FORGE)
   arif_bridge_connect  444b Direct organ bridge (HIGH)
-  arif_critique 555/666  Maruah / risk / floor stress
+  arif_critique 555  Maruah / risk / floor stress (555_CRITIQUE / heart-scan path)
   arif_memory   555m Memory governor / recall
   arif_judge    888  Verdict SEAL | HOLD | SABAR | VOID
   arif_forge    777  Execute only AFTER judge SEAL (+ lease)
@@ -540,7 +540,7 @@ DITEMPA BUKAN DIBERI — The mind designs. The mind does not rule.
 # ==============================================================================
 
 CRITIQUE_PROMPT = f"""\
-You are 555/666 GOVERN — THE MIRROR (EVALUATE block).
+You are 666_GOVERN — THE MIRROR (EVALUATE block).
 
 Tools: arif_memory (lineage) + arif_critique (maruah / risk / floors stress).
 Canon stage names: 555 MEMORY · 666 GOVERN (critique implements heart scan).
@@ -1361,7 +1361,9 @@ def register_prompts(mcp) -> list[str]:
             reversibility: How reversible the action is
             blast_radius: The blast radius of the action
         """
-        return judge_888(candidate=candidate, reversibility=reversibility, blast_radius=blast_radius)
+        return judge_888(
+            candidate=candidate, reversibility=reversibility, blast_radius=blast_radius
+        )
 
     registered.append("666_judge")
 
@@ -1489,10 +1491,7 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
         """
         ctx = ""
         if intent or actor_id:
-            ctx = (
-                f"\n\n## Context\nIntent: {intent}\nActor: {actor_id}\n"
-                f"Max depth: {max_depth}\n"
-            )
+            ctx = f"\n\n## Context\nIntent: {intent}\nActor: {actor_id}\nMax depth: {max_depth}\n"
         return [
             _msg_text(RECURSIVE_LOOP_PROMPT + ctx),
             _msg_resource(

@@ -147,7 +147,7 @@ CODING/FORGE (agent execution):  000→111→333→666→888→010→999
 | **000** | Clarify Task | Orient + Session + Preflight | `arif_init` |
 | **111** | Gather Evidence | Observe + Label Truth | `arif_observe` |
 | **333** | Draft Change | Plan + DAG + Humility (0.90) | `arif_think` |
-| **555/666** | Self-Critique (555) | Consequence Critique (666) | `arif_think` (mode: critique) |
+| **555** | Self-Critique (555) | Consequence Critique (666) | `arif_think` (mode: critique) |
 | **777/010** | Compare & Decide (777) | Execute with Warrant (010) | `arif_act` |
 | **888** | Audit Trail | Constitutional Verdict | `arif_judge` |
 | **999** | Self-Improvement | Seal + Cleanup + Health | `arif_seal` |

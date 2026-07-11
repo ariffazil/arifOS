@@ -58,27 +58,40 @@ curl -s http://localhost:8088/health | python3 -m json.tool | grep -E 'floors|fl
 ```
 Arif (F13 SOVEREIGN)
     ↓
-arifOS (17 canonical + 41 diagnostic = 58 total declared tools; 7 public canonical verbs, 48 exposed via MCP)
-    ├── 000 arif_session_init      — start or resume a governed session
-    ├── 111 arif_sense_observe     — search/ingest/observe reality
-    ├── 222 arif_evidence_fetch    — fetch + cite external evidence
-    ├── 333 arif_mind_reason       — multi-step reasoning + planning + critique
-    ├── 444 arif_reply_compose     — compose final response with citations
-    ├── 555 arif_kernel_route      — route intent to correct tool/organ
-    ├── 555 arif_route             — simplified intent router (mode-first naming)
-    ├── 555 arif_triage            — constitutional preflight + holds check
-    ├── 555 arif_kernel_status     — kernel telemetry + discovery + prediction
-    ├── 555 arif_bridge_connect    — canonical cross-organ bridge (arif_<noun>_<verb>)
-    ├── 555 arif_bridge            — [DEPRECATED] legacy alias for arif_bridge_connect
-    ├── 555 arif_kernel_attest     — live organ attestation (single/all)
-    ├── 555 arif_kernel_health     — lightweight kernel liveness probe
-    ├── 555m arif_memory_recall     — search/store session memory (+ agentic search)
-    ├── 666 arif_heart_critique    — ethical risk + empathy audit + redteam
-    ├── 666g arif_gateway_connect   — bridge to federation organs (GEOX/WEALTH/WELL/A-FORGE)
-    ├── 777 arif_ops_measure       — health + vitals + cost + drift + topology
-    ├── 888 arif_judge             — render constitutional verdict (SEAL/SABAR/HOLD/VOID)
-    ├── 900 arif_act               — execute approved plans (LEASE REQUIRED for mutation)
-    └── 999 arif_seal              — seal to immutable append-only ledger
+arifOS (12 canonical public + 46 internal = 58 total declared tools; 12 public canonical verbs via MCP)
+    │
+    ├── 🟢 PUBLIC SURFACE (12 canonical — SATU PERMUKAAN Spine P0)
+    │   ├── 000 arif_init          — start/resume session (modes: init|light|preflight|triage)
+    │   ├── 111 arif_observe       — sense reality (search|fetch|vitals|atlas)
+    │   ├── 333 arif_think         — reason/plan/reflect
+    │   ├── 444 arif_route         — route intent to organ
+    │   ├── 444d arif_bridge_connect — direct organ bridge (HIGH auth)
+    │   ├── 555 arif_critique      — maruah/risk/stress before irreversible
+    │   ├── 555m arif_memory       — constitutional memory governor
+    │   ├── 888 arif_judge         — verdict SEAL|HOLD|SABAR|VOID
+    │   ├── 777 arif_forge         — guarded execution (requires SEAL)
+    │   ├── 888r arif_compose      — final human-facing response
+    │   ├── 999 arif_seal          — VAULT999 immutable ledger
+    │   └── E1  arif_verify        — JITU pre-execution gate (IRREVERSIBLE shell)
+    │
+    └── 🔵 INTERNAL / ALIAS (for runtime development)
+        ├── 000 arif_session_init   — legacy alias → arif_init
+        ├── 111 arif_sense_observe  — legacy alias → arif_observe
+        ├── 222 arif_evidence_fetch — internal fetch
+        ├── 333 arif_mind_reason    — internal reason
+        ├── 444 arif_reply_compose  — internal compose
+        ├── 555 arif_kernel_route   — internal route
+        ├── 555 arif_triage         — DEPRECATED → arif_init(mode=preflight|triage)
+        ├── 555 arif_kernel_status  — internal telemetry
+        ├── 555 arif_bridge         — DEPRECATED alias for arif_bridge_connect
+        ├── 555 arif_kernel_attest  — internal attest
+        ├── 555 arif_kernel_health  — internal health
+        ├── 555m arif_memory_recall — internal memory
+        ├── 666 arif_heart_critique  — internal critique
+        ├── 666g arif_gateway_connect — internal gateway
+        ├── 777 arif_ops_measure    — internal ops
+        ├── 900 arif_act            — internal → arif_forge
+        └── 999 arif_vault_seal      — legacy alias → arif_seal
 ```
 
 **Golden path:** `arif_init → arif_observe → arif_think → arif_heart_critique → arif_judge → arif_seal`

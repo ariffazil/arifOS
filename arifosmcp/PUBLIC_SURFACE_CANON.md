@@ -1,12 +1,12 @@
 # PUBLIC SURFACE CANON — arifOS Canonical Surface (SATU PERMUKAAN 2026-07-09 Spine P0)
 
-**Current (2026-07-09 Spine P0):** 11 canonical public verbs (`runtime/public_surface.py:CANONICAL_12`).
+**Current (2026-07-09 Spine P0):** 12 canonical public verbs (`runtime/public_surface.py:CANONICAL_12`).
 `arif_triage` demoted to deprecated wire alias → `arif_init(mode=preflight|triage)`.
 Standing rides signed **`sct_v1`** session capability tokens (store = optional cache).
 
 One intent = one public tool (F4 CLARITY / MCP convergence). Kernel is a constitutional switchboard, not a warehouse.
 
-## The 11 Canonical Public Tools (live)
+## The 12 Canonical Public Tools (live)
 
 | # | Verb | Stage | Role | Agentic Selection — When to Choose This Tool |
 |---|------|-------|------|------------------------------------------------|
@@ -14,19 +14,20 @@ One intent = one public tool (F4 CLARITY / MCP convergence). Kernel is a constit
 | 2 | `arif_observe` | 111 | Reality sensing | Ground in reality. Modes: `search`, `fetch`, `ingest`, `compass`, `atlas`, `vitals`. Absorbs fetch as `mode=fetch` (no live aliases). |
 | 3 | `arif_think` | 333 | Cognitive engine | Reason, plan, reflect. Internal impl name `arif_mind_reason` is not public. |
 | 4 | `arif_route` | 444 | Organ router | Route intent to organ. Modes: `route`, `bridge`. No `arif_triage`/`arif_delegate` aliases. |
-| 5 | `arif_bridge_connect` | 444b | Direct organ bridge | HIGH path; prefer `arif_route` for default. |
+| 5 | `arif_bridge_connect` | 444-direct | Direct organ bridge | HIGH path; prefer `arif_route` for default. |
 | 6 | `arif_critique` | 555 | Maruah / risk | Ethical risk before irreversible. |
 | 7 | `arif_memory` | 555m | Memory governor | Constitutional memory gate. |
-| 8 | `arif_judge` | 666 | Constitutional verdict | SEAL/HOLD/SABAR/VOID. Structured returns; SCT standing. |
+| 8 | `arif_judge` | 888 | Constitutional verdict | SEAL/HOLD/SABAR/VOID. Structured returns; SCT standing. |
 | 9 | `arif_forge` | 777 | Guarded execution | After SEAL. `arif_act` internal-only (never in `allowed_next_verbs`). Prefer `dry_run`. |
-| 10 | `arif_compose` | 888 | Response composer | Final human reply LAST. |
+| 10 | `arif_compose` | reply | Response composer | Final human reply LAST. |
 | 11 | `arif_seal` | 999 | VAULT999 seal | Immutable ledger. Prefer `verify`/`dry_run` until SOVEREIGN. |
+| 12 | `arif_verify` | E1 | SEAL verification gate | Confirms the actor-bound approval path before guarded execution. |
 
 ## Metabolic Loop
 
 ```
-000 → 111 → 333 → 444 → 555 → 555m → 666 → 777 → 888 → 999
-init  observe think route critique memory judge  forge  compose seal
+000 → 111 → 333 → 444 → 444-direct → 555 → 555m → 777 → 888 → reply → 999 → E1
+init  observe think route bridge       critique memory forge  judge reply  seal  verify
 ```
 
 One stage = one public verb. Absorbed verbs become modes on their parent tool.
@@ -38,8 +39,6 @@ One stage = one public verb. Absorbed verbs become modes on their parent tool.
 | `arif_canary` | `arif_init` | `mode=canary` | Transport diagnostic belongs at session entry |
 | `arif_triage` | `arif_init` / `arif_route` | `mode=triage` | Preflight belongs at session entry or routing |
 | `arif_fetch` | `arif_observe` | `mode=fetch` | Evidence fetch is a sensing activity |
-| `arif_bridge_connect` | `arif_route` | `mode=bridge` | Direct organ call is a routing decision |
-
 ## Deprecated Aliases
 
 | Alias | Resolves To |
@@ -58,7 +57,6 @@ One stage = one public verb. Absorbed verbs become modes on their parent tool.
 | `arif_canary` | `arif_init(mode=canary)` |
 | `arif_triage` | `arif_init(mode=triage)` |
 | `arif_fetch` | `arif_observe(mode=fetch)` |
-| `arif_bridge_connect` | `arif_route(mode=bridge)` |
 | `arif_conformance_report` | `arif_init(mode=canary)` with report |
 
 ## Domain-Specific Compute → Owns-Organ
@@ -71,13 +69,13 @@ One stage = one public verb. Absorbed verbs become modes on their parent tool.
 
 ## Source of Truth
 
-- `arifosmcp/runtime/public_surface.py` : `CANONICAL_12` (11 public verbs after triage demotion)
+- `arifosmcp/runtime/public_surface.py` : `CANONICAL_12` (12 canonical public verbs)
 - `arifosmcp/runtime/sct.py` : signed session capability (`sct_v1`)
 - `arifosmcp/constitutional_map.py` : `CANONICAL_TOOLS` (full registry)
 - `arifosmcp/resources/schema.py` : `SCHEMA_TEXT` (blueprint resource)
 - `static/.well-known/mcp/server.json` : MCP server card
 
-## Legacy Names
+## Legacy Name Migration Guide
 
 All previous "7 canonical", "12 canonical", "13 canonical", `arifos_*`, long SDK aliases
 (`arif_session_init`, `arif_gateway_connect`, `arif_forge_execute`, etc), `agi_mind`,

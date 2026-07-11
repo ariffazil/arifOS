@@ -1,8 +1,8 @@
 # arifOS — 5 Minutes to First Governed Tool Call
 
-arifOS is the constitutional MCP kernel for the federation. The **public MCP surface is exactly 7 verbs**:
+arifOS is the constitutional MCP kernel for the federation. The **public MCP surface is 12 canonical verbs** (Spine P0 — 2026-07-10):
 
-`arif_init` → `arif_observe` → `arif_think` → `arif_route` → `arif_judge` → `arif_act` → `arif_seal`
+`arif_init` → `arif_observe` → `arif_think` → `arif_route` → `arif_bridge_connect` → `arif_critique` → `arif_memory` → `arif_judge` → `arif_forge` → `arif_compose` → `arif_seal` → `arif_verify`
 
 ## Connect
 
@@ -41,25 +41,43 @@ arif_think(mode="plan", query="analyze portfolio risk")
 
 # 4. Route if the next tool or organ is unclear
 arif_route(mode="route", intent="I want to analyze portfolio risk")
+
+# 5. Get a constitutional verdict before any action
+arif_judge(actor="your_name", intent="analyze portfolio", ...)  # returns SEAL / HOLD / SABAR / VOID
+
+# 6. Execute after SEAL
+arif_forge(mode="engineer", ...)  # only after judge SEAL
+
+# 7. Seal the result for the immutable ledger
+arif_seal(mode="seal", payload="...", ack_irreversible=True)
 ```
 
-## The public tools
+## The 12 Canonical Public Tools
 
-| Tool | Use when |
-|---|---|
-| `arif_init` | Start or resume a governed session |
-| `arif_observe` | Need external data, search, ingest, vitals |
-| `arif_think` | Need reasoning, verification, or planning |
-| `arif_route` | Unsure which governed step or organ is next |
-| `arif_judge` | Need a constitutional verdict |
-| `arif_act` | Need to execute an approved action |
-| `arif_seal` | Need an immutable final record |
+| # | Tool | Stage | Use When |
+|---|------|-------|----------|
+| 1 | `arif_init` | 000 | Start or resume a governed session |
+| 2 | `arif_observe` | 111 | Need external data, search, ingest, vitals |
+| 3 | `arif_think` | 333 | Need reasoning, verification, or planning |
+| 4 | `arif_route` | 444 | Unsure which governed step or organ is next |
+| 5 | `arif_bridge_connect` | 444-direct | Direct call to a known organ (HIGH auth) |
+| 6 | `arif_critique` | 555 | Maruah / risk / ethical stress-test before irreversible action |
+| 7 | `arif_memory` | 555m | Constitutional memory: recall, remember, promote |
+| 8 | `arif_judge` | 888 | Need a constitutional verdict (SEAL/HOLD/SABAR/VOID) |
+| 9 | `arif_forge` | 777 | Execute an approved action (requires prior SEAL) |
+| 10 | `arif_compose` | reply | Format final human-facing response. Call LAST. |
+| 11 | `arif_seal` | 999 | Immutable VAULT999 record |
+| 12 | `arif_verify` | E1 | JITU pre-execution gate — SEAL token check for IRREVERSIBLE shell |
+
+**Demoted / internal:** `arif_triage` → `arif_init(mode=preflight|triage)`; `arif_act` → `arif_forge`; `arif_fetch` → `arif_observe(mode=fetch)`.
 
 ## Invariants
 
-1. The public wire surface is **7 verbs only**.
-2. `arif_act` is downstream of prior governed approval.
-3. Runtime truth is the live MCP facade plus:
+1. The public wire surface is **12 verbs only** (Spine P0 — SATU PERMUKAAN).
+2. `arif_forge` is downstream of `arif_judge` SEAL — no action skips judgment.
+3. No organ self-authorizes. A-FORGE executes; arifOS judges.
+4. Pass `session_token` every hop — do not re-interrogate store-only `session_id`.
+5. Runtime truth is the live MCP facade plus:
    - `arifosmcp/runtime/public_surface.py`
    - `arifosmcp/tool_registry.json`
    - `static/.well-known/mcp/server.json`

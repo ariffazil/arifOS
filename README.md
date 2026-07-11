@@ -7,9 +7,9 @@ live_version: kanon-2fc0089
 runtime_path: /opt/arifos/app
 runtime_drift: false
 owner_summary: GREEN
-tools_exposed_via_mcp: 11
-canonical_tools_loaded: 17
-total_declared_tools: 58
+tools_exposed_via_mcp: 12
+canonical_tools_loaded: 12
+total_declared_tools: 59
 spine_p0_sct: live (sct_v1 mint; store-delete full loop; apex UNMEASURED at birth)
 arif_triage: DEPRECATED_ALIAS → arif_init(mode=preflight|triage)
 arif_act: internal_only (never in allowed_next_verbs)
@@ -41,6 +41,8 @@ machine_sot: /root/A-FORGE/forge_work/2026-07-09/MACHINE-SOT-2026-07-09.json
 
 [![Unified CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml)
+[![MCP Surface](https://img.shields.io/badge/MCP%20surface-12%20canonical%20tools-0a7b83)](arifosmcp/PUBLIC_SURFACE_CANON.md)
+[![Federation](https://img.shields.io/badge/Federation-6%20organs-1f6feb)](#1-what-is-arifos)
 [![PyPI](https://img.shields.io/pypi/v/arifos?label=PyPI)](https://pypi.org/project/arifos/)
 [![License](https://img.shields.io/github/license/ariffazil/arifos?label=License)](LICENSE)
 
@@ -58,7 +60,7 @@ machine_sot: /root/A-FORGE/forge_work/2026-07-09/MACHINE-SOT-2026-07-09.json
 > **arifOS is a constitutional governance kernel that sits between AI agents and their tools, enforcing 13 floors before any irreversible action.**
 
 - **The law layer** — decides what agents must NOT do, so they can be trusted with what they CAN do
-- **An MCP server** — 11 canonical public verbs (SATU PERMUKAAN 2026-07-09 Spine P0; source: `arifosmcp/runtime/public_surface.py` CANONICAL_12). Session standing rides signed `sct_v1` capability tokens. One intent = one public tool. See `arifosmcp/PUBLIC_SURFACE_CANON.md`.
+- **An MCP server** — 12 canonical public verbs (SATU PERMUKAAN 2026-07-09 Spine P0; source: `arifosmcp/runtime/public_surface.py` CANONICAL_12). Session standing rides signed `sct_v1` capability tokens. One intent = one public tool. See `arifosmcp/PUBLIC_SURFACE_CANON.md`.
 - **A federation hub** — 6 live organs (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL) plus the VAULT999 immutable ledger under one contract
 - **An immutable ledger** — VAULT999: append-only, hash-chained. Every decision sealed forever
 - **Built for one sovereign** — Muhammad Arif bin Fazil. F13 veto is absolute
@@ -120,9 +122,9 @@ python -m pytest tests/ -q --tb=short
 
 ---
 
-## 3. The 11 Canonical Public Tools (Spine P0 — 2026-07-09)
+## 3. The 12 Canonical Public Tools (Spine P0 — 2026-07-10)
 
-Default `tools/list` is the **11-verb public facade** (`arifosmcp/PUBLIC_SURFACE_CANON.md`).
+Default `tools/list` is the **12-verb public facade** (`arifosmcp/PUBLIC_SURFACE_CANON.md`).
 Session standing rides signed **`sct_v1`** tokens (store = optional cache). Birth apex is **UNMEASURED**.
 
 | # | Tool | Stage | What It Does |
@@ -131,19 +133,20 @@ Session standing rides signed **`sct_v1`** tokens (store = optional cache). Birt
 | 2 | `arif_observe` | 111 | Reality sensing — search, fetch, vitals, compass. (`arif_fetch` = mode, not public verb.) |
 | 3 | `arif_think` | 333 | Reason, plan, reflect. (`arif_mind_reason` = internal only.) |
 | 4 | `arif_route` | 444 | Route intent to federation organ. Modes: `route`, `bridge`. |
-| 5 | `arif_bridge_connect` | 444b | Direct organ call (HIGH). Prefer `arif_route` by default. |
+| 5 | `arif_bridge_connect` | 444-direct | Direct organ call (HIGH). Prefer `arif_route` by default. |
 | 6 | `arif_critique` | 555 | Maruah / risk before irreversible action. |
 | 7 | `arif_memory` | 555m | Constitutional memory governor. |
-| 8 | `arif_judge` | 666 | Verdict — SEAL / HOLD / SABAR / VOID. Kernel judges; does not seal. |
+| 8 | `arif_judge` | 888 | Verdict — SEAL / HOLD / SABAR / VOID. Kernel judges; does not seal. |
 | 9 | `arif_forge` | 777 | Guarded execution after SEAL. (`arif_act` internal-only — never in `allowed_next_verbs`.) |
-| 10 | `arif_compose` | 888 | Final human reply. Call LAST. |
+| 10 | `arif_compose` | reply | Final human reply. Call LAST. |
 | 11 | `arif_seal` | 999 | VAULT999 immutable ledger. Prefer `verify`/`dry_run` until SOVEREIGN. |
+| 12 | `arif_verify` | E1 | JITU pre-execution gate — SEAL token verification for IRREVERSIBLE shell. |
 
 ```
-000 → 111 → 333 → 444 → 555 → 555m → 666 → 777 → 888 → 999
-init  observe think route critique memory judge forge compose seal
-```
 
+000 → 111 → 333 → 444 → 444-direct → 555 → 555m → 777 → 888 → reply → 999 → E1
+init  observe think route bridge       critique memory forge judge compose seal verify
+```
 **Demoted / not public:** `arif_triage` → `arif_init(mode=preflight|triage)`; `arif_fetch` → `arif_observe(mode=fetch)`; `arif_act` → `arif_forge`.
 
 **Iron rules:**
@@ -271,7 +274,7 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 
 | Read this | For | Link |
 |-----------|-----|------|
-| **arifOS** (this repo) | Constitutional kernel. 11 canonical public verbs. 13 floors. The judge. | ← you are here |
+| **arifOS** (this repo) | Constitutional kernel. 12 canonical public verbs. 13 floors. The judge. | ← you are here |
 | **A-FORGE** | Executor. 98 MCP tools. Gates + A-THINK law. | [`ariffazil/A-FORGE`](https://github.com/ariffazil/A-FORGE) |
 | **AAA** | Cockpit. A2A mesh. Agent registry. React 19 dashboard. | [`ariffazil/AAA`](https://github.com/ariffazil/AAA) |
 
@@ -286,7 +289,7 @@ Connect to arifOS via the Model Context Protocol:
 | **Endpoint** | `https://mcp.arif-fazil.com/mcp` |
 | **Alternate** | `https://arif-fazil.com/mcp` |
 | **Transport** | Streamable HTTP (JSON-RPC 2.0) |
-| **Tools** | 11 canonical public verbs |
+| **Tools** | 12 canonical public verbs |
 | **Health** | `https://arifos.arif-fazil.com/health` |
 
 ### Claude Code / Cursor
@@ -329,7 +332,7 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
 <div align="center">
 
 ```
-arifOS · Port 8088 · 11 canonical public verbs · 13 floors · 6 live organs
+arifOS · Port 8088 · 12 canonical public verbs · 13 floors · 6 live organs
 AGPL-3.0 · Sovereign: Arif Fazil · Federation: ALIVE
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 ```
