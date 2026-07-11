@@ -1011,6 +1011,42 @@ if IS_FASTMCP_3:
                     envelope_session_id = envelope.session_id
                     envelope_agent_id = envelope.agent_id
 
+                    # ── SESSION TOKEN RESOLUTION (Spine P0 — 2026-07-11) ──────
+                    # Runs AFTER envelope creation (both explicit and legacy wrap).
+                    # Resolves sct_v1 token → actor_id, updates envelope so
+                    # downstream validation sees a verified identity instead of
+                    # anonymous/UNKNOWN.
+                    _args_tok = dict(msg.arguments or {})
+                    _st_tok = _args_tok.get("session_token") or ""
+                    if _st_tok and (str(_st_tok).startswith("sct_v1.") or str(_st_tok).startswith("arifos.v1.")):
+                        try:
+                            from arifosmcp.runtime.sct import verify_sct as _verify_sct
+                            from arifosmcp.schemas.federation_envelope import AuthoritySource as _AuthSrc
+                            _claims_tok = _verify_sct(str(_st_tok))
+                            if _claims_tok:
+                                _res_actor = str(_claims_tok.get("actor") or "anonymous")
+                                _res_auth = str(_claims_tok.get("auth") or "OBSERVE_ONLY")
+                                _res_sid = str(_claims_tok.get("sid") or "")
+                                if _res_actor and _res_actor != "anonymous":
+                                    envelope.actor_id = _res_actor
+                                    envelope.agent_id = _res_actor
+                                    envelope.legacy_wrap = False
+                                    envelope.authority.source = _AuthSrc.TOKEN
+                                    if _res_sid:
+                                        envelope.session_id = _res_sid
+                                    # Inject into arguments for handlers that read kwargs directly
+                                    if "actor_id" not in _args_tok:
+                                        _args_tok["actor_id"] = _res_actor
+                                    if "actor" not in _args_tok:
+                                        _args_tok["actor"] = _res_actor
+                                    msg.arguments = _args_tok
+                                    logger.info(
+                                        "Ingress: resolved session_token for %s -> actor=%s auth=%s",
+                                        tool_name, _res_actor, _res_auth,
+                                    )
+                        except Exception as _st_exc:
+                            logger.debug("Ingress: session_token resolution failed: %s", _st_exc)
+
                     # ── FORGE SCOPE GATE (v3: ToolScoper integration) ──────────────
                     # When forge_scope is non-empty, only tools on the allowlist pass.
                     # This is the arifOS-side of the A-FORGE ToolScoper bridge.

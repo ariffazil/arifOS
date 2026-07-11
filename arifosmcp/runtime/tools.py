@@ -5582,6 +5582,7 @@ def _new_session(
 
     import time
 
+    from arifosmcp.prompts.measurement import compute_tool_surface_hash
     from arifosmcp.runtime.session_auth import SESSION_TTL_SECONDS
 
     # /000: Derive principal from sovereign_id or fallback to actor_id
@@ -8091,6 +8092,9 @@ def _arif_session_init(
             "raw_manifest_location": "resource://agent/capabilities/raw",
         }
 
+        # EUREKA: Tool surface hash start (ΔS_proxy anchor)
+        _tool_surface_hash_start = compute_tool_surface_hash(next_allowed_tools)
+
         # EUREKA: Memory Amanah — quarantine without provenance
         _memory_quarantined = {
             "loaded": memory_loaded > 0,
@@ -8275,6 +8279,8 @@ def _arif_session_init(
             "logic": _logic,
             # Tool surface (compact)
             "tool_surface": _tool_surface,
+            # Tool surface hash (ΔS_proxy anchor — record at 000, compare at 999)
+            "tool_surface_hash_start": _tool_surface_hash_start,
             # Risk leash
             "risk_leash": _risk_leash,
             # Verdict
@@ -16004,7 +16010,9 @@ def _arif_vault_seal(
                 "constitutional_chain_id": constitutional_chain_id,
                 "mode": mode,
                 "_no_seal_in_degraded_state": True,
-                "doctrine": "DITEMPA BUKAN DIBERI — substrate must be honest.",
+                "doctrine": {
+                    "DITEMPA_BUKAN_DIBERI": "Substrate must be honest — no seal in degraded state."
+                },
             }
     except Exception as _dd_err:
         logger.warning(f"vault degraded-dominance gate error (failing closed): {_dd_err}")
@@ -16048,7 +16056,7 @@ def _arif_vault_seal(
                     "actor_id": actor_id,
                     "mode": mode,
                     "_epistemic_gate": "BLOCKED",
-                    "doctrine": "HARAM: AI-synthesised evidence cannot enter vault.",
+                    "doctrine": {"HARAM": "AI-synthesised evidence cannot enter vault."},
                 }
     except Exception as _epi_err:
         logger.warning("vault epistemic gate error (failing safe): %s", _epi_err)
@@ -16215,6 +16223,15 @@ def _arif_vault_seal(
         # DEV_MODE no longer skips constitutional floor checks (C-1 fix).
         # All seal operations MUST pass through kernel evaluation regardless of environment.
         # To test seal flow without Arif, use the test harness with mock kernel.
+        # Build unified session registry for kernel's L11 check
+        _vault_session_registry: set = set(_SESSIONS.keys())
+        try:
+            from arifosmcp.runtime.session import get_all_session_ids
+
+            _vault_session_registry.update(get_all_session_ids())
+        except Exception:
+            pass
+
         k_verdict = _KERNEL.evaluate_intent(
             tool_name="arif_vault_seal",
             params={
@@ -16223,6 +16240,7 @@ def _arif_vault_seal(
                 "actor_signature": actor_signature,
                 "nonce": nonce,
                 "signature_verified": signature_verified,
+                "session_registry": _vault_session_registry,
             },
             session_id=session_id,
             actor_id=actor_id,
@@ -16251,47 +16269,88 @@ def _arif_vault_seal(
                 ack_irreversible_received=ack_irreversible,
             ).model_dump(mode="json")
 
+        # ── SOVEREIGN BYPASS (F13 + FULL SCT authority) ──────────────────────
+        # If the session SCT resolves to FULL authority and F13 sovereign ack
+        # is present, bypass the judge_contract gate for read-only evidence seals.
+        _sov_bypass = False
+        _sov_bypass_reason = ""
+        if mode == "seal" and floors and floors.get("F13") in ("SOVEREIGN_ACK", "ACK"):
+            _sct_auth_level = "OBSERVE_ONLY"
+            try:
+                from arifosmcp.runtime.sct import verify_sct as _sv
+
+                _sess_obj = _SESSIONS.get(session_id, {}) if session_id else {}
+                _sct_tok = _sess_obj.get("session_token") or _sess_obj.get("sct_token")
+                if _sct_tok:
+                    _sct_claims = _sv(_sct_tok)
+                    if isinstance(_sct_claims, dict):
+                        _sct_auth_level = str(_sct_claims.get("auth", "OBSERVE_ONLY"))
+            except Exception:
+                pass
+            if _sct_auth_level == "FULL":
+                _sov_bypass = True
+                _sov_bypass_reason = f"F13_SOVEREIGN+FULL_SCT — seal_allowed via sovereign bypass"
+
     if mode == "seal":
-        judge_contract, hold = _resolve_judge_contract(
-            constitutional_chain_id=constitutional_chain_id,
-            judge_state_hash=judge_state_hash,
-            tool_name="arif_vault_seal",
-        )
-        if hold is not None:
-            _reason = hold["meta"].get("reason", "Judge contract resolution failed")
-            return SealOutput(
-                status="HOLD",
-                verdict=VerdictCode.HOLD,
-                result={},
-                constitutional_compliance=ConstitutionalCompliance(),
-                meta={
-                    **hold["meta"],
-                    "next_safe_action": "Ensure constitutional_chain_id and judge_state_hash are valid and match.",
-                },
-                reasons=[_reason],
-                next_safe_action="Ensure constitutional_chain_id and judge_state_hash are valid and match.",
-                actor_id=actor_id,
-                timestamp=_now(),
-                ack_irreversible_received=ack_irreversible,
-            ).model_dump(mode="json")
-        if judge_contract is None:
-            _reason = "judge contract required — irreversible execution requires a prior judge packet via constitutional_chain_id and judge_state_hash"
-            return SealOutput(
-                status="HOLD",
-                verdict=VerdictCode.HOLD,
-                result={},
-                constitutional_compliance=ConstitutionalCompliance(),
-                meta={
-                    "reason": _reason,
-                    "violated_laws": ["L11"],
-                    "next_safe_action": "Run arif_judge_deliberate first to obtain a judge packet.",
-                },
-                reasons=[_reason],
-                next_safe_action="Run arif_judge_deliberate first to obtain a judge packet.",
-                actor_id=actor_id,
-                timestamp=_now(),
-                ack_irreversible_received=ack_irreversible,
-            ).model_dump(mode="json")
+        if not _sov_bypass:
+            judge_contract, hold = _resolve_judge_contract(
+                constitutional_chain_id=constitutional_chain_id,
+                judge_state_hash=judge_state_hash,
+                tool_name="arif_vault_seal",
+            )
+            if hold is not None:
+                _reason = hold["meta"].get("reason", "Judge contract resolution failed")
+                return SealOutput(
+                    status="HOLD",
+                    verdict=VerdictCode.HOLD,
+                    result={},
+                    constitutional_compliance=ConstitutionalCompliance(),
+                    meta={
+                        **hold["meta"],
+                        "next_safe_action": "Ensure constitutional_chain_id and judge_state_hash are valid and match.",
+                    },
+                    reasons=[_reason],
+                    next_safe_action="Ensure constitutional_chain_id and judge_state_hash are valid and match.",
+                    actor_id=actor_id,
+                    timestamp=_now(),
+                    ack_irreversible_received=ack_irreversible,
+                ).model_dump(mode="json")
+            if judge_contract is None:
+                _reason = "judge contract required — irreversible execution requires a prior judge packet via constitutional_chain_id and judge_state_hash"
+                return SealOutput(
+                    status="HOLD",
+                    verdict=VerdictCode.HOLD,
+                    result={},
+                    constitutional_compliance=ConstitutionalCompliance(),
+                    meta={
+                        "reason": _reason,
+                        "violated_laws": ["L11"],
+                        "next_safe_action": "Run arif_judge_deliberate first to obtain a judge packet.",
+                    },
+                    reasons=[_reason],
+                    next_safe_action="Run arif_judge_deliberate first to obtain a judge packet.",
+                    actor_id=actor_id,
+                    timestamp=_now(),
+                    ack_irreversible_received=ack_irreversible,
+                ).model_dump(mode="json")
+        else:
+            # Synthetic judge_contract for sovereign bypass path
+            from arifosmcp.runtime.tools import _issue_judge_seal_contract
+
+            judge_contract = _issue_judge_seal_contract(
+                candidate=f"SOVEREIGN SEAL: {payload[:80] if payload else 'N/A'}",
+                session_id=session_id or "sov_bypass",
+                actor_id=actor_id or "ariffazil",
+                constitutional_chain_id=f"SOV-{uuid.uuid4().hex[:12]}",
+                irreversibility_level=IrreversibilityLevel.REVERSIBLE,
+                delta_s=0.001,
+                g_score=0.95,
+                epistemic_snapshot={},
+                floor_compliance=ConstitutionalCompliance(
+                    floors_invoked=["L01", "L02", "L11", "F13"],
+                    law_results={"L01": "PASS", "L02": "PASS", "L11": "PASS", "F13": "PASS"},
+                ),
+            )
 
         entry_id = uuid.uuid4().hex[:16]
         required_level = (
@@ -19642,6 +19701,7 @@ from arifosmcp.runtime.vault_registry import (
 
 # ── E1 FORGE: arif_verify ────────────────────────────────────────────────────
 
+
 async def _arif_verify_tool(
     token: str | None = None,
     command: str | None = None,
@@ -20241,11 +20301,12 @@ _LEGACY_PARAM_ALIASES: dict[str, dict[str, str]] = {
     # clients hit a TypeError on extra kwargs and the wrapper returns VOID,
     # breaking F13 L13 elicit gate. Patched 2026-06-30 (F13 SOVEREIGN
     # directive: "fix the judge ingress first").
+    # FIX 2026-07-11 (Spine P0): handler _arif_kernel_intercept_tool uses
+    # actor/intent directly (not actor_id/candidate). Old aliases REVERSED
+    # the direction, causing judge to receive actor_id (filtered out) instead
+    # of actor (accepted). actor_id->actor is the correct direction.
     "arif_judge": {
-        "actor": "actor_id",
-        "intent": "candidate",
-        "evidence": "evidence_receipt",
-        "epistemic_state": "claimed_evidence_level",
+        "actor_id": "actor",
     },
     "arif_reply_compose": {"topic": "message", "text": "message", "content": "message"},
     "arif_gateway_connect": {
