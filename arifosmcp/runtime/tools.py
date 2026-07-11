@@ -27,6 +27,18 @@ except ImportError:
     _APEX_AVAILABLE = False
     _build_apex_envelope = None  # type: ignore
 
+# ── Nine-Signal functions (extracted to tools/nine_signal.py, Phase 5 — 2026-07-11) ──
+from arifosmcp.tools.nine_signal import (
+    nine_signal_from_status as _nine_signal_from_status,
+    nine_signal_from_apex as _nine_signal_from_apex,
+    inject_nine_signal as _inject_nine_signal,
+    domain_for_tool as _domain_for_tool,
+    DOMAIN_MEANINGS as _DOMAIN_MEANINGS,
+    annotate_nine_signal as _annotate_nine_signal,
+    output_policy_for_verdict as _output_policy_for_verdict,
+    truth_band_from_confidence as _truth_band_from_confidence,
+)
+
 # ── Constitutional Doctrine (F9 Anti-Hallucination: witness, not authority) ─────
 # CODED CONSTANT. Never LLM-generated. Never affects verdict, status, or execution.
 ARIF_DOCTRINE: dict = {
@@ -2246,16 +2258,6 @@ class Stage:
     VAULT_999 = "999_VAULT"
 
 
-class Verdict(Enum):
-    SEAL = "SEAL"
-    PROVISIONAL = "PROVISIONAL"
-    PARTIAL = "PARTIAL"
-    SABAR = "SABAR"
-    HOLD = "HOLD"
-    HOLD_888 = "HOLD_888"
-    VOID = "VOID"
-
-
 class RuntimeStatus(Enum):
     SUCCESS = "SUCCESS"
     ERROR = "ERROR"
@@ -2828,7 +2830,9 @@ def _attach_sct_continuity(
         pass
 
 
-def _output_policy_for_verdict(verdict: str) -> str:
+# ── Output Policy + Truth Band (DEPRECATED — import from tools/nine_signal.py) ──
+# Phase 5 extraction 2026-07-11. Kept for backward compat. Remove after verification.
+def _output_policy_for_verdict(verdict: str) -> str:  # noqa: F811
     if verdict == "DRY_RUN":
         return "SIMULATION_ONLY"
     if verdict == "HOLD":
@@ -2884,10 +2888,12 @@ def _kernel_eval(
 # This is not optional — without it, the Nine-Signal contract is a doc, not a guarantee.
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── Nine-Signal Construction (DEPRECATED — import from tools/nine_signal.py) ──
+# Phase 5 extraction 2026-07-11. Kept for backward compat. Remove after verification.
 _VIOLATION_COUNTER = 0  # Per-process contract-violation count — exported to OPS telemetry
 
 
-def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
+def _nine_signal_from_status(status: str) -> dict[str, str | dict]:  # noqa: F811
     """Build Nine-Signal block from response status field.
 
     Three planes × three states = 9 perceptual signals:
@@ -3012,7 +3018,8 @@ def _nine_signal_from_status(status: str) -> dict[str, str | dict]:
     )
 
 
-def _nine_signal_from_apex(
+# ── _nine_signal_from_apex (DEPRECATED — import from tools/nine_signal.py) ──
+def _nine_signal_from_apex(  # noqa: F811
     G: float,
     C_dark: float,
     system_health: float = 1.0,
@@ -3079,7 +3086,8 @@ def _nine_signal_from_apex(
     }
 
 
-def _inject_nine_signal(model_dump_json: dict, status: str, tool: str = "") -> dict:
+# ── _inject_nine_signal (DEPRECATED — import from tools/nine_signal.py) ──
+def _inject_nine_signal(model_dump_json: dict, status: str, tool: str = "") -> dict:  # noqa: F811
     """Inject nine_signal block into a raw model_dump(mode='json') dict.
 
     MEMBRANE-01: Kernel does NOT compute APEX. It accepts what A-FORGE passes.
@@ -3465,6 +3473,13 @@ def _enforce_nine_signal(
         )
 
         status = str(out.get("status") or "OK")
+        # BANGANG #1 fix: Normalize transport status "SEAL" → "OK".
+        # "SEAL" is a constitutional verdict (from arif_judge 888), NOT a
+        # transport status. Using it as transport status collides with the
+        # sesat_event drift detector which keys off verdict. Tools that
+        # return status="SEAL" are returning a verdict value by mistake.
+        if status in ("SEAL", "seal"):
+            status = "OK"
 
         # ── Build result_payload from out dict ─────────────────────────────
         envelope_keys = {
@@ -3583,13 +3598,16 @@ def _enforce_nine_signal(
                 "Constitutional floors passed",
                 "No irreversible state change",
             ]
-        if verdict != "SEAL" and not reasons:
-            reasons = [f"{verdict} — tool returned a non-SEAL status"]
+        if verdict not in ("SEAL", "OBSERVE_ONLY") and not reasons:
+            reasons = [f"{verdict} — tool returned a restricted verdict"]
+        if verdict == "OBSERVE_ONLY" and not reasons:
+            reasons = ["OBSERVE_ONLY — identity not verified, operation restricted to observe-only"]
 
-        # PHASE A BIRTH-FIX (2026-07-10): Emit sesat_event for all non-SEAL
-        # verdicts. Previously only emitted in _hold() for explicit HOLD responses.
-        # Now extends to arif_judge / arif_forge / arif_seal and all other tools.
-        if verdict != "SEAL":
+        # PHASE A BIRTH-FIX (2026-07-10): Emit sesat_event for failure verdicts.
+        # OBSERVE_ONLY is exempt — it is a valid operational mode for unverified
+        # sessions, not a failure. Firing sesat on OBSERVE_ONLY pollutes the malu
+        # ledger with false-positive scars (Bangang #1 fix 2026-07-11).
+        if verdict not in ("SEAL", "OBSERVE_ONLY"):
             try:
                 from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
 
@@ -3603,7 +3621,7 @@ def _enforce_nine_signal(
                     failure_code=fc.value,
                     failed_claim=f"{verdict}: {'; '.join(reasons[:3])}",
                     observed_reality=f"verdict={verdict}, status={status}",
-                    severity="YELLOW" if verdict in ("HOLD", "DEGRADED", "OBSERVE_ONLY") else "RED",
+                    severity="YELLOW" if verdict in ("HOLD", "DEGRADED") else "RED",
                     lantai=[],
                 )
                 meta_payload["sesat_event"] = sesat.to_dict()
@@ -3667,9 +3685,25 @@ def _enforce_nine_signal(
         _audit_call_hash = out.get("call_hash") or (
             out["result"].get("call_hash") if isinstance(out.get("result"), dict) else None
         )
+        # Bangang #2 fix (2026-07-11): Generate call_hash in wrapper if tool
+        # didn't provide one. Ensures every verb has cryptographic anchoring.
+        if _audit_call_hash is None and isinstance(result_payload, dict):
+            try:
+                _audit_call_hash = _compute_call_hash(
+                    tool=tool_name,
+                    payload=result_payload,
+                    timestamp=str(time.time()),
+                    session_id=resolved_session_id,
+                    salt=_CALL_HASH_SALT,
+                )
+            except Exception:
+                _audit_call_hash = None
         _audit_trace_id = out.get("trace_id") or (
             out["result"].get("trace_id") if isinstance(out.get("result"), dict) else None
         )
+        # Bangang #2 fix: Generate trace_id in wrapper if tool didn't provide one
+        if _audit_trace_id is None:
+            _audit_trace_id = f"trc-{uuid.uuid4().hex[:12]}"
         _audit_called_from_kernel = out.get("called_from_kernel")
         if _audit_called_from_kernel is None:
             _audit_called_from_kernel = (
@@ -3684,6 +3718,18 @@ def _enforce_nine_signal(
                 if isinstance(out.get("result"), dict)
                 else None
             )
+        # Bangang #2 fix: Fall back to session store for invocation_count
+        if _audit_invocation_count is None and resolved_session_id:
+            _sess_for_count = _SESSIONS.get(resolved_session_id)
+            if _sess_for_count and isinstance(_sess_for_count, dict):
+                _audit_invocation_count = _sess_for_count.get("invocation_count")
+        # Bangang #2 fix: Final fallback — called_from_kernel defaults to True
+        # (all public MCP tools are kernel-governed), invocation_count to 0
+        # (unknown call ordinal better than null).
+        if _audit_called_from_kernel is None:
+            _audit_called_from_kernel = True
+        if _audit_invocation_count is None:
+            _audit_invocation_count = 0
         # PHASE A BIRTH-FIX (2026-07-10): SCT token is PRIMARY source of truth
         # for runtime_authority. If SCT token is present and valid, its authority
         # is the single source — no fallback chain can override it.
@@ -3774,7 +3820,15 @@ def _enforce_nine_signal(
             "stage_progression": _compute_stage_progression(tool_name, verdict),
             # /000 principal-agent separation: surface delegation chain in
             # every MCP response envelope (not buried in result).
-            "actor": out.get("actor") if isinstance(out.get("actor"), dict) else None,
+            # Bangang #4 fix: If tool didn't return actor dict, synthesize
+            # one from resolved_actor_id so actor and actor_id agree.
+            "actor": (
+                out.get("actor")
+                if isinstance(out.get("actor"), dict)
+                else {"actor_id": resolved_actor_id, "source": "envelope_derived"}
+                if resolved_actor_id
+                else None
+            ),
         }
 
         # F2 FIX (2026-07-07): When actor_verified=False, add prominent
@@ -3788,6 +3842,24 @@ def _enforce_nine_signal(
                 "All verdicts are OBSERVE_ONLY. Do not treat as authoritative. "
                 "Call arif_init(mode='init') to establish a governed session."
             )
+
+        # Bangang #4 fix (2026-07-11): Harmonize actor_id across all layers.
+        # Single source of truth: envelope.actor_id. If result_payload has
+        # 'actor' or 'actor_id', reconcile to match the envelope value.
+        # Do NOT overwrite structured dicts — only fix null/mismatched strings.
+        _envelope_actor = envelope.get("actor_id")
+        if isinstance(result_payload, dict) and _envelope_actor:
+            # Fix: result_payload "actor" field — only if null or string mismatch
+            _rp_actor = result_payload.get("actor")
+            if _rp_actor is None or (isinstance(_rp_actor, str) and _rp_actor != _envelope_actor):
+                result_payload["actor"] = _envelope_actor
+            # Fix: result_payload "actor_id" field (used by some tools)
+            if result_payload.get("actor_id") != _envelope_actor:
+                result_payload["actor_id"] = _envelope_actor
+        # Also fix meta.actor_id
+        if isinstance(meta_payload, dict) and _envelope_actor:
+            if meta_payload.get("actor_id") != _envelope_actor:
+                meta_payload["actor_id"] = _envelope_actor
 
         # ── METACOGNITIVE STANDARD ENVELOPE (ChatGPT 2026 feedback)
         # Guarantee every tool answers:
@@ -5898,7 +5970,8 @@ def _wisdom_for_tool(tool: str) -> dict[str, str]:
     return dict(quotes[idx])  # stable per tool
 
 
-def _domain_for_tool(tool: str) -> str:
+# ── _domain_for_tool + _DOMAIN_MEANINGS (DEPRECATED — import from tools/nine_signal.py) ──
+def _domain_for_tool(tool: str) -> str:  # noqa: F811
     """Map canonical tool name to domain for nine-signal domain_meaning."""
     if tool in (
         "arif_session_init",
@@ -6014,7 +6087,8 @@ _DOMAIN_MEANINGS: dict[str, dict[str, str]] = {
 }
 
 
-def _annotate_nine_signal(nine: dict, domain: str) -> dict:
+# ── _annotate_nine_signal (DEPRECATED — import from tools/nine_signal.py) ──
+def _annotate_nine_signal(nine: dict, domain: str) -> dict:  # noqa: F811
     """Add domain_meaning to each plane in nine_signal."""
     meanings = _DOMAIN_MEANINGS.get(domain, _DOMAIN_MEANINGS["governance"])
     out = dict(nine)
@@ -7348,9 +7422,52 @@ def _arif_session_init(
                 verbose=verbose,
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
-            return (
+            _result_dict = (
                 _init_result.model_dump() if hasattr(_init_result, "model_dump") else _init_result
             )
+
+            # ── Ed25519 sovereign identity bridge (governance_identity) ──
+            # Wire MCP actor_signature + nonce to _verify_ed25519_proof for
+            # SOVEREIGN authority upgrade. The delegate (session.py) uses
+            # crypto_auth; this adds the governance_identity verification
+            # path so the proof dict reaches _verify_ed25519_proof().
+            if actor_signature and nonce and actor_id and mode in ("init", "full"):
+                try:
+                    from arifosmcp.runtime.governance_identity import _verify_ed25519_proof
+
+                    _proof = {"nonce": nonce, "signature": actor_signature}
+                    _ed25519_ok = _verify_ed25519_proof(actor_id, _proof)
+                    if _ed25519_ok:
+                        # Update session store with SOVEREIGN authority
+                        _sid = _result_dict.get("session_id") or (
+                            _result_dict.get("session", {}).get("session_id")
+                            if isinstance(_result_dict.get("session"), dict)
+                            else None
+                        )
+                        if _sid and _sid in _SESSIONS:
+                            _sess = _SESSIONS[_sid]
+                            _sess["actor_verified"] = True
+                            _sess["signature_verified"] = True
+                            _sess["identity_verified"] = True
+                            _sess["authority_level"] = "SOVEREIGN"
+                            _sess["authority"] = "FULL"
+                            _sess["ed25519_governance_verified"] = True
+                        # Update result dict for caller
+                        if isinstance(_result_dict.get("session"), dict):
+                            _result_dict["session"]["actor_verified"] = True
+                            _result_dict["session"]["authority"] = "SOVEREIGN"
+                        if isinstance(_result_dict.get("actor"), dict):
+                            _result_dict["actor"]["identity_verified"] = True
+                            _result_dict["actor"]["authority_level"] = "SOVEREIGN"
+                        _result_dict["actor_verified"] = True
+                        logger.info(
+                            "Ed25519 governance_identity verified — actor=%s authority=SOVEREIGN",
+                            actor_id,
+                        )
+                except Exception as exc:
+                    logger.warning("governance_identity Ed25519 bridge error: %s", exc)
+
+            return _result_dict
         except Exception as e:
             return _hold(
                 "arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id
@@ -10883,6 +11000,29 @@ def _arif_mind_reason(
             "overall_confidence": 0.65,
         }
         llm_confidence = synthesis_dict["overall_confidence"]
+
+        # Bangang #3 fix (2026-07-11): When P1 degraded mode (template synthesis
+        # bypassed LLM), the confidence trajectory and coherence MUST reflect the
+        # actual synthesis quality, not the hardcoded template trajectory.
+        # Override trace values with real synthesis confidence.
+        _is_degraded = "degraded" in str(synthesis_dict.get("what_remains_unknown", [])).lower()
+        _confidence_provenance = "OBSERVED"
+        if _is_degraded:
+            trace.final_confidence = llm_confidence
+            # Flat trajectory — no real reasoning steps occurred, so no
+            # meaningful progression exists. Single-point is truthful.
+            trace.confidence_trajectory = [llm_confidence]
+            trace.coherence_score = 0.35  # template synthesis has low coherence
+            trace.reasoning_depth = "shallow"
+            # Mark all steps as degraded template, not computed reasoning
+            for step in trace.steps:
+                step.confidence_before = 0.3
+                step.confidence_after = llm_confidence
+                step.confidence_delta = llm_confidence - 0.3
+                step.reasoning_mode = ReasoningMode.DEDUCTIVE
+                step.axiom_used = "P1_TEMPLATE_DEGRADED"
+            _confidence_provenance = "COMPUTED_NOT_OBSERVED"
+
         scars_list = _detect_scars(query, synthesis_text)
         output = MindOutput(
             status="OK",
@@ -10899,6 +11039,9 @@ def _arif_mind_reason(
                 "what_is_supported": synthesis_dict.get("what_is_supported", []),
                 "what_is_not_supported": synthesis_dict.get("what_is_not_supported", []),
                 "what_remains_unknown": synthesis_dict.get("what_remains_unknown", []),
+                # Bangang #3: confidence provenance — OBSERVED if real LLM reasoning,
+                # COMPUTED_NOT_OBSERVED if P1 degraded template synthesis.
+                "confidence_provenance": _confidence_provenance,
                 # APEX AKAL: transition candidates (hardened 2026-06-20)
                 # Shows what was considered, what was rejected, and why.
                 # Makes reasoning auditable — not opaque.
@@ -13207,6 +13350,7 @@ def _arif_memory_recall(
         if not text:
             return _hold("arif_memory_recall", "store mode requires query or metadata.text")
         resolved_tier = tier or (metadata or {}).get("tier")
+        constitutional = (metadata or {}).get("constitutional")  # Δ Axis 3
         try:
             from arifosmcp.runtime.memory_store import store as _ms_store
 
@@ -13217,6 +13361,7 @@ def _arif_memory_recall(
                 actor_id=actor_id,
                 session_id=session_id,
                 tier=resolved_tier,
+                constitutional=constitutional,
             )
             return _ok("arif_memory_recall", {"stored": True, **_result}, delta_S=0.002)
         except Exception as exc:
@@ -13257,6 +13402,44 @@ def _arif_memory_recall(
             {"memory_id": memory_id, "entry": None, "found": False},
             delta_S=0.0,
         )
+
+    # ── recall_constitutional (Δ Axis 3 — floor-constrained recall) ──
+    if mode == "recall_constitutional":
+        try:
+            from arifosmcp.runtime.memory_store import recall_constitutional as _ms_recall_const
+
+            recall_intent = (metadata or {}).get("recall_intent", "")
+            result = _ms_recall_const(
+                memory_id=memory_id or "",
+                recall_intent=recall_intent,
+                actor_id=actor_id or "",
+            )
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "memory_id": memory_id,
+                    "verdict": result["verdict"],
+                    "entry": result["memory"],
+                    "constitutional": result["constitutional"],
+                    "violation": result["violation"],
+                    "found": result["memory"] is not None,
+                },
+                delta_S=0.0,
+            )
+        except Exception as exc:
+            logger.warning("recall_constitutional failed: %s", exc)
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "memory_id": memory_id,
+                    "verdict": "ERROR",
+                    "entry": None,
+                    "constitutional": None,
+                    "violation": str(exc),
+                    "found": False,
+                },
+                delta_S=0.0,
+            )
 
     # ── list ────────────────────────────────────────────────
     if mode == "list":
@@ -13717,6 +13900,21 @@ async def _arif_heart_critique(
         result["tool"] = "arif_heart_critique"
         result["status"] = result.get("status", "OK")
         result["nine_signal"] = _nine_signal_from_status(result["status"])
+
+        # ── AKAL I2: Shadow validation ───────────────────────────────────────
+        from arifosmcp.core.akal_wiring import akal_post_critique as _akal_shadow
+
+        try:
+            _akal_shd = _akal_shadow(
+                critique_output=result if isinstance(result, dict) else {},
+                session_id=session_id,
+                friction_level="low",  # Will be overridden by context
+            )
+            if not _akal_shd.get("shadow_valid") and _akal_shd.get("blocking"):
+                # Shadow trace invalid for high-friction — add warning
+                pass
+        except Exception:
+            pass  # AKAL shadow validation is advisory
 
         # Derive output_policy from action_risk_verdict + risk_tier
         # This is the ONLY field agents should read for action approval.
@@ -15981,6 +16179,7 @@ def _arif_vault_seal(
     verification_state: dict[str, Any] | None = None,
     witness_type: str = "ai",
     drift_events: list[dict[str, Any]] | None = None,
+    constitutional: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     999_VAULT: Immutable ledger anchoring and cryptographic seal.
@@ -15989,6 +16188,10 @@ def _arif_vault_seal(
     decision time — delta_m, svs, entropy_band, liability_owner, wealth_score.
     These are stored in the ledger entry for future drift analysis, post-mortems,
     and civilization capital memory.
+
+    constitutional (optional): Δ Axis 3 — moral provenance for the seal.
+    {"value_anchor": [...], "floor_constraint": [...], "care_provenance": "..."}
+    When present, the seal carries irreversible moral meaning.
     """
     # ── DEGRADED-DOMINANCE GATE (Phase 5, 2026-06-21) ──────────────────────
     # Same gate as judge_deliberate. If any critical subsystem is degraded,
@@ -16481,6 +16684,8 @@ def _arif_vault_seal(
             "signature_verified": signature_verified,
             "authority_level": authority_level,
             "actor_signature": actor_signature if signature_verified else None,
+            # ── Constitutional Memory (Δ Axis 3) — moral provenance ──────
+            "constitutional": constitutional,
         }
         _VAULT_LEDGER.append(entry)
         _VAULT_ENTRY_REGISTRY[entry_id] = entry
@@ -17171,6 +17376,7 @@ async def _arif_vault_seal_tool(
     judge_state_hash: str | None = None,
     witness_type: str = "ai",
     drift_events: list[dict[str, Any]] | None = None,
+    constitutional: dict[str, Any] | None = None,
     ctx: Context | None = None,
 ) -> dict[str, Any]:
     """
@@ -17242,6 +17448,7 @@ async def _arif_vault_seal_tool(
             constitutional_chain_id=constitutional_chain_id,
             judge_state_hash=judge_state_hash,
             witness_type=witness_type,
+            constitutional=constitutional,
         )
 
         if trace:
@@ -19990,13 +20197,10 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_measure": _arif_ops_measure,
     "arif_ops_measure": _arif_ops_measure,
     "arif_explore": _arif_sense_observe,
-    "arif_kernel_intercept": _arif_kernel_intercept_tool,
-    "arifos_kernel_intercept": _arif_kernel_intercept_tool,  # canonical name in public surface
     "arif_forge": _arif_forge_execute_tool,
     "arif_forge_execute": _arif_forge_execute_tool,
     "arif_judge_deliberate": _arif_judge_deliberate_tool,
     "arif_vault_seal": _arif_vault_seal_tool,
-    "arif_session_init": _arif_session_init,
     "arif_mind_reason": _arif_mind_reason_tool,
 }
 
@@ -20075,6 +20279,8 @@ try:
     _CANONICAL_HANDLERS["arif_route"] = _arif_route_tool
     # Ensure the public 7 facade points to it
     _CANONICAL_HANDLERS["arif_route"] = _arif_route_tool
+    # Spine P0 / WELL import fix 2026-07-11: register triage (was imported but
+    # never bound — broke CANONICAL_TOOLS subset check and WELL boot).
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_triage"] = _arif_triage_tool
     # Ensure 7-tool public names are always bound even if import order varies
     _CANONICAL_HANDLERS.setdefault("arif_route", _arif_route_tool)
@@ -20082,6 +20288,8 @@ try:
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_fetch"] = _arif_evidence_fetch
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_attest"] = _arif_kernel_attest_tool
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_health"] = _arif_kernel_health_tool
+    # Internal kernel intercept alias (CANONICAL_TOOLS still lists it)
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_kernel_intercept"] = _arif_kernel_intercept_tool
     # SDK long-name alias for arif_bridge_connect (2026-06-23 unification)
     # REMOVED 2026-06-28: SDK aliases not registered as MCP tools.
     # arif_gateway_connect routes internally via pre_execution_gate.py LEGACY_ALIASES.
@@ -20099,6 +20307,16 @@ try:
     from arifosmcp.tools.paradox import arif_paradox_status as _arif_paradox_status
 
     _RUNTIME_DIAGNOSTIC_HANDLERS["arif_paradox_status"] = _arif_paradox_status
+except ImportError as _e:
+    pass
+
+# Somatic Paradox Engine — agent-facing somatic state (2026-07-11)
+# Wires A-FORGE Paradox Engine into arifOS kernel.
+# Signal: DSP/text/WELL → MotifState → ParadoxEngine → SomaticSnapshot → Agent
+try:
+    from arifosmcp.tools.somatic import arif_somatic as _arif_somatic
+
+    _RUNTIME_DIAGNOSTIC_HANDLERS["arif_somatic"] = _arif_somatic
 except ImportError as _e:
     pass
 
@@ -20251,7 +20469,7 @@ def _build_enriched_signature(handler: Any) -> inspect.Signature:
             "_envelope",
             inspect.Parameter.KEYWORD_ONLY,
             default=None,
-            annotation=Any,
+            annotation=dict[str, Any] | None,
         )
         new_params.append(envelope_param)
 
