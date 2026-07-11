@@ -1715,23 +1715,6 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "_chatgpt_compat": True,
         "_routes_to": "arif_observe",
     },
-    "arif_fetch": {
-        "name": "arif_fetch",
-        "description": (
-            "Fetch content from a URL. Use when you need to read the contents "
-            "of a specific webpage or document. Returns the page content as text."
-        ),
-        "access": "public",
-        "tier": "chatgpt-shim",
-        "namespace": "arif_*",
-        "risk_tier": "low",
-        "irreversible": False,
-        "floors": [Law.L02_TRUTH, Law.L03_WITNESS, Law.L05_PEACE, Law.L12_INJECTION],
-        "modes": ["fetch"],
-        "tags": ["chatgpt-shim", "observe"],
-        "_chatgpt_compat": True,
-        "_routes_to": "arif_fetch",
-    },
     # ── Tool Discovery ──
     "arif_resolve_tool": {
         "name": "arif_resolve_tool",
