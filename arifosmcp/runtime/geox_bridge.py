@@ -202,9 +202,20 @@ async def call_geox_tool(
         },
     }
     result = await _post_json_rpc("/mcp/", payload)
+    # DEBUG: what does GEOX return before structuredContent extraction?
+    _has_sc = isinstance(result, dict) and "structuredContent" in result
+    _sc_keys = list(result.get("structuredContent", {}).keys())[:10] if _has_sc else []
+    _sid = (
+        result.get("structuredContent", {}).get("session_id")
+        if _has_sc
+        else result.get("session_id")
+    )
+    logger.warning(
+        f"BRIDGE_RAW: has_structuredContent={_has_sc} keys={_sc_keys} session_id={_sid!r}"
+    )
     # GEOX legacy handler wraps tool output in structuredContent.
     # Extract it so callers receive the actual tool data, not the wrapper.
-    if isinstance(result, dict) and "structuredContent" in result:
+    if _has_sc:
         return result["structuredContent"]
     return result
 

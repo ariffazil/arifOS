@@ -2,21 +2,28 @@
 
 `arifosmcp/` is the **live MCP runtime package** inside this repository. It is the packaging and server layer for the arifOS constitutional kernel; it is **not** a separate public doctrine surface.
 
-## Current truth (SATU PERMUKAAN 2026-07-08 — F13 approved consolidation)
+## Current truth (SATU PERMUKAAN 2026-07-10 — F13 approved consolidation)
 
-- Public MCP wire surface: **exactly 12 canonical verbs** (live + tool_registry.json + runtime/public_surface.py:CANONICAL_12)
+- Public MCP wire surface: **exactly 12 canonical tools** (live + tool_registry.json + runtime/public_surface.py:CANONICAL_12)
   - `arif_init` (000)
-  - `arif_triage` (000t)
   - `arif_observe` (111)
   - `arif_think` (333)
   - `arif_route` (444)
-  - `arif_bridge_connect` (444b)
+  - `arif_bridge_connect` (444-direct)
   - `arif_critique` (555)
   - `arif_memory` (555m)
-  - `arif_judge` (666)
   - `arif_forge` (777)
-  - `arif_compose` (888)
+  - `arif_judge` (888)
+  - `arif_compose` (reply)
   - `arif_seal` (999)
+  - `arif_verify` (E1)
+- Public federation reality behind that facade is **6 organs**:
+  - `arifOS` — constitutional kernel
+  - `AAA` — control plane / identity / state
+  - `A-FORGE` — governed execution
+  - `GEOX` — earth intelligence
+  - `WEALTH` — capital intelligence
+  - `WELL` — human readiness
 - Canonical public endpoint: `https://mcp.arif-fazil.com/mcp`
 - Canonical local runtime entrypoint: `uv run python -m arifosmcp.runtime.server`
 - Packaged server authority: `arifosmcp.server`

@@ -44,7 +44,7 @@
     "note": "Pass session_token every hop; do not re-interrogate store-only session_id"
   },
   "public_surface": {
-    "canonical_public_verbs": 11,
+    "canonical_public_verbs": 12,
     "arif_triage": "DEPRECATED \u2192 arif_init(mode=preflight|triage)",
     "arif_act": "internal_only"
   }

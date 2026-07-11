@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -477,7 +478,7 @@ def arif_route(
     actor_id: str | None = None,
     session_id: str | None = None,
     organ_tool: str | None = None,
-    arguments: dict[str, Any] | None = None,
+    arguments: dict[str, Any] | str | None = None,
 ) -> dict[str, Any]:
     """
     Canonical routing entry point. Routes an intent to the correct organ.
@@ -509,6 +510,16 @@ def arif_route(
                    arguments={"mode": "stress"})
         → routes to WEALTH, calls wealth_portfolio(mode="stress"), returns result
     """
+    # F1 AMANAH: Parse arguments if received as JSON string (MCP transport issue)
+    if isinstance(arguments, str):
+        try:
+            arguments = json.loads(arguments)
+        except (json.JSONDecodeError, TypeError):
+            logger.warning(
+                f"arif_route: arguments received as unparseable string: {arguments[:100]}"
+            )
+            arguments = None
+
     actor_id, session_id = _bind_identity(actor_id, session_id)
     # Prefer identity inside arguments._envelope if tool args lost top-level fields
     if arguments and isinstance(arguments, dict):
@@ -531,7 +542,7 @@ def arif_route(
 
     # Kernel dispatch gate: if _envelope provided (cross-organ), session must match live issued one
     # (This is before organ runs — wall, not policy)
-    if arguments and "_envelope" in (arguments or {}):
+    if arguments and isinstance(arguments, dict) and "_envelope" in arguments:
         env = arguments.get("_envelope") or {}
         if session_id and env.get("session_id") and env.get("session_id") != session_id:
             return _hold(
@@ -1127,6 +1138,17 @@ def _bridge_geox(
         return hold
     _envelope = arguments.get("_envelope")
     call_args = {k: v for k, v in (arguments or {}).items() if k != "_envelope"}
+    # P1 IDENTITY FIX (2026-07-11): inject arifOS-governed session_id/actor_id
+    # into call_args so GEOX tools receive identity. FastMCP passes these as
+    # function params when they match the tool signature. Verified 2026-07-11:
+    # direct MCP calls with session_id/actor_id in arguments propagate correctly.
+    if isinstance(_envelope, dict):
+        for _ik in ("session_id", "actor_id", "trace_id"):
+            if _envelope.get(_ik) and _ik not in call_args:
+                call_args[_ik] = _envelope[_ik]
+                logger.debug(
+                    f"BRIDGE_IDENTITY: injected {_ik}={_envelope[_ik]} into call_args for {tool_name}"
+                )
     try:
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
         from arifosmcp.runtime.epistemic_injector import (

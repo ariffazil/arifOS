@@ -92,12 +92,12 @@ jobs:
           uv run python3 - <<'PY'
           import sys
           sys.path.insert(0, '.')
-          from arifosmcp.runtime.public_surface import CANONICAL_7, public_tool_names_for_mode
+          from arifosmcp.runtime.public_surface import CANONICAL_12, public_tool_names_for_mode
           import arifosmcp.runtime.tools  # noqa: F401 -- import proves runtime registry loads
 
           public_tools = tuple(public_tool_names_for_mode(None))
-          if public_tools != CANONICAL_7:
-            print(f'FAIL: public surface drifted: {public_tools} != {CANONICAL_7}')
+          if public_tools != CANONICAL_12:
+            print(f'FAIL: public surface drifted: {public_tools} != {CANONICAL_12}')
             sys.exit(1)
           print(f'PASS: canonical public facade = {public_tools}')
           PY
@@ -107,27 +107,25 @@ jobs:
           cd "$WORKDIR"
           uv run python3 - <<'PY'
           import json, sys
+          from arifosmcp.runtime.public_surface import CANONICAL_12
+
           with open('arifosmcp/tool_registry.json') as f:
             reg = json.load(f)
           tools = reg.get('tools', {})
-          # ZEN-9 metabolic loop: 9 canonical public tools.
-          # canonical_order declares: init→observe→think→route→critique→judge→forge→compose→seal
-          canonical_9 = ['arif_init', 'arif_observe', 'arif_think', 'arif_route',
-                         'arif_critique', 'arif_judge', 'arif_forge', 'arif_compose',
-                         'arif_seal']
+          canonical_12 = list(CANONICAL_12)
           total = len(tools)
           if total < 50:
             print(f'ERROR: expected at least 50 tools total, got {total}')
             sys.exit(1)
-          missing = [c for c in canonical_9 if c not in tools]
+          missing = [c for c in canonical_12 if c not in tools]
           if missing:
             print(f'ERROR: missing canonical tools: {missing}')
             sys.exit(1)
-          if reg.get('canonical_order') != canonical_9:
-            print(f'ERROR: canonical_order drift: {reg.get("canonical_order")} != {canonical_9}')
+          if reg.get('canonical_order') != canonical_12:
+            print(f'ERROR: canonical_order drift: {reg.get("canonical_order")} != {canonical_12}')
             sys.exit(1)
-          if reg.get('canonical_count') != len(canonical_9):
-            print(f'ERROR: canonical_count drift: {reg.get("canonical_count")} != {len(canonical_9)}')
+          if reg.get('canonical_count') != len(canonical_12):
+            print(f'ERROR: canonical_count drift: {reg.get("canonical_count")} != {len(canonical_12)}')
             sys.exit(1)
           # All tools must use arif_* or hermes_* or forge_* or mcp_* naming
           allowed = ('arif_', 'arifos_', 'hermes_', 'forge_', 'mcp_')
@@ -135,8 +133,8 @@ jobs:
             if not any(name.startswith(p) for p in allowed):
               print(f'ERROR: bad name {name}')
               sys.exit(1)
-          canon_count = reg.get('canonical_count', len(canonical_9))
-          print(f'PASS: {total} tools registered, {canon_count} canonical, all {len(canonical_9)} present')
+          canon_count = reg.get('canonical_count', len(canonical_12))
+          print(f'PASS: {total} tools registered, {canon_count} canonical, all {len(canonical_12)} present')
           PY
 
       - name: Canonical surface drift guard

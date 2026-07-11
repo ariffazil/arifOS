@@ -78,10 +78,13 @@ jobs:
         run: |
           cd "$WORKDIR"
           python3 -c "
-          import json
+          import json, sys
+          sys.path.insert(0, '.')
+          from arifosmcp.runtime.public_surface import CANONICAL_12
           with open('arifosmcp/tool_registry.json') as f:
               reg = json.load(f)
           tools = reg.get('tools', {})
+          canonical = list(CANONICAL_12)
           # tools is a dict: {name: spec}
           names = sorted(tools.keys())
           # Verify all tools have required MCP fields
@@ -89,7 +92,10 @@ jobs:
           for name, spec in tools.items():
               assert 'description' in spec, f'Missing description in {name}'
               assert any(name.startswith(p) for p in allowed), f'Bad prefix: {name}'
-          print(f'PASS: {len(tools)} tools, all MCP-compliant')
+          assert reg.get('canonical_order') == canonical, f'canonical_order drift: {reg.get(\"canonical_order\")}'
+          assert reg.get('canonical_count') == len(canonical), f'canonical_count drift: {reg.get(\"canonical_count\")}'
+          assert 'arif_verify' in tools, 'Missing arif_verify from registry'
+          print(f'PASS: {len(tools)} tools, {len(canonical)} canonical, all MCP-compliant')
           for n in names: print(f'  {n}')
           "
 

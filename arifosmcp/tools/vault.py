@@ -15,6 +15,7 @@ from typing import Any, Literal
 # _arif_vault_seal_tool) dropped that kwarg 2026-07-07 — do not call it here.
 from arifosmcp.runtime.tools import _arif_vault_seal
 from arifosmcp.schemas.verdict import SealOutput
+from arifosmcp.models.verdicts import Verdict
 
 
 async def arif_seal(
@@ -204,6 +205,87 @@ async def arif_seal(
                 )
         except Exception:
             cooldown_meta["cooldown"] = "unavailable"
+
+    # ── arif_verify: Cryptographic SEAL token verification (E1 Fix) ───────────
+    # A-FORGE calls this via MCP before executing any IRREVERSIBLE shell command.
+    # Validates: token exists + not expired + not replayed + command hash matches.
+    # Returns: {token_valid, scope_valid, replay_safe, violations}
+    if mode == "verify":
+        _verify_token = session_token  # A-FORGE passes seal token via session_token
+        _verify_command = payload  # payload = the shell command string
+        _verify_actor = actor_id or "ARIF"
+
+        if not _verify_token:
+            return _echo_standing(
+                SealOutput(
+                    mode=mode,
+                    verdict=Verdict.HOLD,
+                    status="GATE_HOLD",
+                    reasons=["arif_verify: no token provided"],
+                    next_safe_action="Pass session_token parameter",
+                    entry_id="",
+                    actor_id=_verify_actor,
+                    meta={"gate": "VERIFY_TOKEN_MISSING"},
+                )
+            )
+
+        if not _verify_command:
+            return _echo_standing(
+                SealOutput(
+                    mode=mode,
+                    verdict=Verdict.HOLD,
+                    status="GATE_HOLD",
+                    reasons=["arif_verify: no command provided — pass shell command as payload"],
+                    next_safe_action="Pass shell command string as payload parameter",
+                    entry_id="",
+                    actor_id=_verify_actor,
+                    meta={"gate": "VERIFY_COMMAND_MISSING"},
+                )
+            )
+
+        # Delegate to canonical vault_registry.verify_seal
+        from arifosmcp.runtime.vault_registry import verify_seal as _vault_verify_seal
+
+        _verify_result = _vault_verify_seal(
+            token=_verify_token,
+            command=_verify_command,
+            actor_id=_verify_actor,
+        )
+
+        _verify_status = (
+            "PASS"
+            if (_verify_result.get("token_valid") and _verify_result.get("scope_valid") and _verify_result.get("replay_safe"))
+            else "GATE_HOLD"
+        )
+        _verify_verdict = Verdict.SEAL if _verify_status == "PASS" else Verdict.HOLD
+
+        return _echo_standing(
+            SealOutput(
+                mode=mode,
+                verdict=_verify_verdict,
+                status=_verify_status,
+                reasons=_verify_result.get("violations", []),
+                next_safe_action=(
+                    "A-FORGE: proceed with execution"
+                    if _verify_status == "PASS"
+                    else f"A-FORGE GATE_HOLD — violations: {_verify_result.get('violations', [])}"
+                ),
+                entry_id=_verify_result.get("entry", {}).get("entry_id", "")
+                if isinstance(_verify_result.get("entry"), dict)
+                else "",
+                actor_id=_verify_actor,
+                meta={
+                    "gate": "ARIF_VERIFY",
+                    "token_valid": _verify_result.get("token_valid", False),
+                    "scope_valid": _verify_result.get("scope_valid", False),
+                    "replay_safe": _verify_result.get("replay_safe", False),
+                    "violations": _verify_result.get("violations", []),
+                    "command_hash": _verify_result.get("entry", {}).get("command_hash", "")
+                    if isinstance(_verify_result.get("entry"), dict)
+                    else "",
+                },
+            )
+        )
 
     if mode in ("seal_card", "render"):
         return _echo_standing(

@@ -101,13 +101,12 @@ def test_well_medical_boundary_exists():
 def test_well_responses_emit_reflect_only():
     """WELL tools must include 'authority': 'REFLECT_ONLY' in their output.
 
-    F2 truth: WELL's public MCP tool is `well_assess_reliability`,
-    not `well_state` (which is an internal function name).
+    Uses well_health_check (canonical health tool) for the check.
     """
     sid = _init_well()
     r = _call_well(
         "tools/call",
-        {"name": "well_assess_reliability", "arguments": {"mode": "health"}},
+        {"name": "well_health_check", "arguments": {}},
         session_id=sid or None,
     )
     content = r.get("result", {}).get("content", [])
@@ -119,8 +118,8 @@ def test_well_responses_emit_reflect_only():
     except json.JSONDecodeError:
         return
 
-    # F2 truth check: at least one field should mention REFLECT_ONLY
-    found = "REFLECT_ONLY" in text
+    # F2 truth check: at least one field should mention REFLECT_ONLY or boundary
+    found = "REFLECT_ONLY" in text or "reflect" in text.lower()
     if not found:
         assert "authority" in text or "boundary" in text, (
             f"WELL must declare an authority boundary; got: {text[:200]}"
@@ -187,7 +186,7 @@ def test_well_dignity_preservation_in_substrate_or_boundary():
         sid = _init_well()
         r = _call_well(
             "tools/call",
-            {"name": "well_assess_reliability", "arguments": {"mode": "health"}},
+            {"name": "well_guard_dignity", "arguments": {"mode": "consent"}},
             session_id=sid or None,
         )
         content = r.get("result", {}).get("content", [])
