@@ -2,10 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://arifos.arif-fazil.com/schemas/apex/v1.0.0",
   "title": "APEX Decision Geometry — Canonical Contract",
-  "description": "Machine-readable APEX: when uncertain possibilities may collapse into one authorised action. Theory lives in GENESIS/040 and docs/APEX_CANON.md. This schema is the executable contract all organs consume. Version 1.0.0 — 2026-07-12 consolidation.",
+  "description": "Machine-readable APEX admissibility framework for decisions under uncertainty. NOT a completed scientific theory (HOLD). IS a governance research programme (SEAL) with partial operational architecture. Does not unify all knowledge. See docs/APEX_SCIENTIFIC_STATUS.md. Version 1.0.1 — 2026-07-12 hard correction.",
   "type": "object",
   "required": [
     "schema",
+    "epistemic_status",
     "decision_id",
     "timestamp",
     "variables",
@@ -15,9 +16,44 @@
   ],
   "properties": {
     "schema": { "const": "apex.v1" },
+    "epistemic_status": {
+      "type": "object",
+      "description": "Hard correction: APEX is not yet a scientific theory.",
+      "required": ["scientific_theory", "governance_programme", "operational_architecture"],
+      "properties": {
+        "scientific_theory": {
+          "type": "string",
+          "enum": ["HOLD"],
+          "description": "HOLD until measurable variables, units, calibration, falsifiable predictions, experiments exist."
+        },
+        "governance_programme": {
+          "type": "string",
+          "enum": ["SEAL"],
+          "description": "Defensible synthesis of decision theory, control, safety, law, assurance."
+        },
+        "operational_architecture": {
+          "type": "string",
+          "enum": ["PARTIAL", "GREEN", "YELLOW", "RED"],
+          "default": "PARTIAL"
+        },
+        "unifies_all_knowledge": {
+          "type": "string",
+          "enum": ["VOID"],
+          "const": "VOID"
+        },
+        "permanent_correction": {
+          "type": "string",
+          "const": "APEX unifies conditions under which domain knowledge may legitimately become action — not all knowledge into one equation."
+        }
+      }
+    },
     "decision_id": { "type": "string" },
     "timestamp": { "type": "string", "format": "date-time" },
     "intent": { "type": "string" },
+    "falsification_criterion": {
+      "type": "string",
+      "description": "Pre-registered: what evidence would disprove APEX value for this deployment context."
+    },
     "variables": {
       "type": "object",
       "description": "Primary APEX variables with owners. Multiplicative / veto — not average.",

@@ -1,9 +1,24 @@
 # APEX CANON — Grand Equation, Axioms, and Verification
 
-**Version:** v2026.07.06 (ZEN Phase 1)
-**SEAL:** DITEMPA BUKAN DIBERI
-**Authority:** F13 SOVEREIGN — Muhammad Arif bin Fazil
-**Status:** FORMAL CORE — all dimension docs, ops modes, and paradox anchors are corollaries of this document.
+**Version:** v2026.07.12 (hard scientific humility)  
+**SEAL:** DITEMPA BUKAN DIBERI  
+**Authority:** F13 SOVEREIGN — Muhammad Arif bin Fazil  
+**Status:** FORMAL *operational* CORE for governed trajectories — **not** a completed natural-science theory.
+
+### Epistemic banner (binding — 2026-07-12)
+
+| Claim | Verdict |
+|-------|---------|
+| Scientific theory | **HOLD** |
+| Governance research programme | **SEAL** |
+| Operational architecture | **PARTIAL** |
+| Unifies all knowledge | **VOID** |
+
+Full status: [`APEX_SCIENTIFIC_STATUS.md`](./APEX_SCIENTIFIC_STATUS.md)  
+Schema: `contracts/apex.schema.json` (requires `epistemic_status`)
+
+**Permanent correction:** APEX unifies *admissibility of action under uncertainty*, not all domain knowledge into one physics equation.  
+Dials below are **control/governance constructs** (often `CONTROL_ANALOGY` or `GOVERNANCE_METAPHOR`) unless a metric card tags them otherwise. Shannon entropy ≠ moral disorder. LLM ≠ APEX ≠ arifOS.
 
 **v2026.07.06 deltas (APEX_STACK_Forge_2026-07-06_v1 Phase 1 applied live):**
 - 5 dials (A·P·E·X·Φ) with Φ witness in genius.py + envelope.
@@ -16,13 +31,14 @@
 
 ## 0. The One-Line Law
 
-> **For any agent trajectory in time, the lawfulness of intelligence is
+> **For any agent trajectory in time, the *operational lawfulness* of intelligence is
 > measured by G = E[A·P·H·√(S·U)·E²] subject to six axiom families and
 > a fail-closed verdict lattice where the most restrictive verdict wins.**
 
 Or in plain language:
 
-**APEX = all six dials (AKAL, PRESENT, AUTHORITY, ENTROPY, EXPLORATION×AMANAH, ENERGY) non-violated, multiplied together over the life of an agent, with any violation collapsing the trajectory to HOLD or VOID.**
+**APEX (ops) = all six dials (AKAL, PRESENT, AUTHORITY, ENTROPY-integrity, EXPLORATION×AMANAH, ENERGY) non-violated for an *admissible action*, multiplied over a trajectory, with any hard violation → HOLD or VOID.**  
+This is **constrained action selection**, not quantum collapse and not a claim of unique scientific discovery.
 
 ---
 
