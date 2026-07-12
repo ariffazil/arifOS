@@ -16,13 +16,24 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.runtime.forge_preflight import (
-    ForgePreflightReceipt,
-    forge_preflight,
-)
+# WS8 (2026-07-12) refactored forge_preflight into per-stage functions.
+# The legacy single-function API (ForgePreflightReceipt, forge_preflight)
+# was replaced. Tests adapt to whatever API surfaces exist; failing
+# gracefully where the older dataclass is gone.
+try:
+    from arifosmcp.runtime.forge_preflight import (
+        ForgePreflightReceipt,
+        forge_preflight,
+    )
+except ImportError:
+    from arifosmcp.runtime.forge_preflight import (
+        run_forge_preflight as forge_preflight,
+    )
+    ForgePreflightReceipt = None  # dataclass removed in WS8
 
 
-def _check(receipt: ForgePreflightReceipt, expected_gate: str, case_id: str) -> dict:
+
+def _check(receipt, expected_gate: str, case_id: str) -> dict:
     actual = receipt.final_gate
     passed = actual == expected_gate
     return {
