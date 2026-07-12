@@ -188,6 +188,88 @@ class DelegationMode(StrEnum):
     UNVERIFIED = "UNVERIFIED"  # identity not verified
 
 
+class ConstitutionalRole(StrEnum):
+    """Constitutional role labels for the authority ontology."""
+
+    SOVEREIGN = "SOVEREIGN"
+    OPERATOR = "OPERATOR"
+    ANONYMOUS = "ANONYMOUS"
+
+
+class RuntimeGrantLevel(StrEnum):
+    """Runtime authority grant levels (canonical: single ontology)."""
+
+    OBSERVE_ONLY = "OBSERVE_ONLY"
+    LIMITED_MUTATE = "LIMITED_MUTATE"
+    FULL = "FULL"
+
+
+class AuthorityState(BaseModel):
+    """CANONICAL AUTHORITY ONTOLOGY — Workstream 1.
+
+    Single source of truth for all authority fields. Replaces 5+ scattered
+    locations (actor_verified, authority, authority_level, human_authority,
+    runtime_authority) with one deterministic object computed at session birth.
+    All legacy fields are DEPRECATED but preserved for one compatibility cycle.
+    """
+
+    model_config = {"extra": "forbid", "frozen": False}
+
+    # ── Identity layer ─────────────────────────────────────────────
+    identity: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "claimed_actor_id": "",
+            "sovereign_identity": "ARIF_FAZIL",
+            "claim_recognized": False,
+            "cryptographically_verified": False,
+            "verification_method": "none",
+            "verification_reason": "no_identity_claim",
+        },
+        description="Who the actor claims to be and whether it is verified",
+    )
+
+    # ── Constitutional role ────────────────────────────────────────
+    constitutional_role: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "role": "ANONYMOUS",
+            "source": "identity_registry",
+        },
+        description="The actor's constitutional role (SOVEREIGN/OPERATOR/ANONYMOUS)",
+    )
+
+    # ── Runtime grant ──────────────────────────────────────────────
+    runtime_grant: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "level": "OBSERVE_ONLY",
+            "source": "session_capability_token",
+            "allowed_verbs": [],
+            "mutation_allowed": False,
+            "seal_allowed": False,
+            "expires_at": "",
+        },
+        description="What the session token actually grants at runtime",
+    )
+
+    # ── Session binding ────────────────────────────────────────────
+    session: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "bound": False,
+            "session_id": "",
+            "actor_bound": False,
+        },
+        description="Whether the actor is bound to a governed session",
+    )
+
+    # ── Effective action authority ─────────────────────────────────
+    effective_action_authority: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "authorized": False,
+            "reason_code": "no_session",
+        },
+        description="Final gate: is this actor authorized for the requested action",
+    )
+
+
 class MemoryScope(StrEnum):
     """Access scope for memory operations."""
 

@@ -825,23 +825,18 @@ def _load_model_registry(declared_model_key: str) -> tuple[dict, dict, dict]:
                         }
                         for h in matched.get("hazards", [])
                     ],
-                    "floor_posture": {
-                        k: v for k, v in matched.get("floor_deltas", {}).items()
-                    },
+                    "floor_posture": {k: v for k, v in matched.get("floor_deltas", {}).items()},
                     "forbidden": matched.get("forbidden", []),
                     "requires_human_ack_for": matched.get("requires_human_ack_for", []),
                     "source": "compiled_registry",
-                    "registry_hash": compiled.get("hashes", {}).get(
-                        "FEDERATION_MODEL.json", ""
-                    ),
+                    "registry_hash": compiled.get("hashes", {}).get("FEDERATION_MODEL.json", ""),
                 }
 
                 # Floor posture from compiled deltas
                 result_posture = matched.get("floor_deltas", {})
 
                 logger.info(
-                    "Model profile loaded from compiled registry: %s "
-                    "(%d hazards, floor_deltas=%s)",
+                    "Model profile loaded from compiled registry: %s (%d hazards, floor_deltas=%s)",
                     matched.get("model_key"),
                     len(matched.get("hazards", [])),
                     bool(result_posture),
@@ -1557,13 +1552,9 @@ def arif_init(
                     )
 
                     _challenge_actor = (
-                        "arif"
-                        if actor_lower in ("arif", "888", "ariffazil")
-                        else actor_id
+                        "arif" if actor_lower in ("arif", "888", "ariffazil") else actor_id
                     )
-                    if actor_lower in ("arif", "888", "ariffazil") or is_registered_actor(
-                        actor_id
-                    ):
+                    if actor_lower in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
                         challenge_nonce = issue_actor_challenge(_challenge_actor)
                         sess["pending_challenge_nonce"] = challenge_nonce
                         sess["challenge_signature_payload"] = (
@@ -1583,8 +1574,8 @@ def arif_init(
                 identity_verified = False
                 sess["actor_verified"] = False
 
-        # ── Birth authority: identity band only (Spine P0) ──
-        from arifosmcp.runtime.sct import identity_band_authority
+        # ── Birth authority: identity band only (Spine P0, Workstream 1) ──
+        from arifosmcp.runtime.sct import identity_band_authority, compute_authority_state
 
         _is_signed_principal = (
             identity_verified
@@ -1605,13 +1596,9 @@ def arif_init(
         if _derived_auth == "FULL":
             sess["verdict"] = "OK"
             # Role label SOVEREIGN only for human principal — never Hermes
-            authority_level = (
-                "SOVEREIGN" if _is_signed_principal else "OPERATOR"
-            )
+            authority_level = "SOVEREIGN" if _is_signed_principal else "OPERATOR"
             if not sess.get("agent_class"):
-                sess["agent_class"] = (
-                    "SOVEREIGN_PRINCIPAL" if _is_signed_principal else "AGENT"
-                )
+                sess["agent_class"] = "SOVEREIGN_PRINCIPAL" if _is_signed_principal else "AGENT"
         elif _derived_auth == "LIMITED_MUTATE":
             sess["verdict"] = "OK"
             authority_level = "OPERATOR"
@@ -1620,6 +1607,29 @@ def arif_init(
             sess["verdict"] = "OBSERVE_ONLY"
             authority_level = "ANONYMOUS"
             sess.setdefault("agent_class", "UNVERIFIED")
+
+        # ── Workstream 1: Canonical AuthorityState ──────────────────
+        _auth_state = compute_authority_state(
+            actor_id=actor_id or "",
+            actor_verified=bool(identity_verified),
+            signature_verified=sig_verified,
+            is_sovereign_principal=bool(_is_signed_principal),
+            session_id=sess.get("session_id") or "",
+            session_bound=True,
+            actor_bound=bool(identity_verified),
+            authority_band=_derived_auth,
+            verification_method="signature"
+            if (nonce and signature and identity_verified)
+            else ("identity_claim" if identity_verified else "none"),
+            verification_reason=(
+                "cryptographically_verified"
+                if (nonce and signature and identity_verified)
+                else "identity_claim_accepted"
+                if identity_verified
+                else "identity_not_verified"
+            ),
+        )
+        sess["authority_state"] = _auth_state
 
         # ── Context Completeness Gate (INIT v2.0 P3.1) ─────────────────────────
         # Advisory only — INIT never blocks session creation, but degrades verdict
@@ -1807,6 +1817,14 @@ def arif_init(
             _delegation_mode == "delegated" and _sovereign_id and _sovereign_id != actor_id
         )
 
+        # ═══════════════════════════════════════════════════════════════
+        # DEPRECATION NOTICE (Workstream 1 — compatibility cycle):
+        #   The following fields are DEPRECATED: actor_verified (top-level),
+        #   session.actor_verified, session.authority, session.verdict,
+        #   actor.authority_level. They remain present for one compatibility
+        #   cycle but are now DERIVED from authority_state (below).
+        #   Consumers SHOULD migrate to reading `authority_state` instead.
+        # ═══════════════════════════════════════════════════════════════
         return _sm(
             status="OK",
             tool="arif_init",
@@ -1822,17 +1840,19 @@ def arif_init(
                 constitution_bound=True,
                 # INIT v2.0: identity membrane fields bound from session state
                 verdict=sess.get("verdict", "OBSERVE_ONLY"),
-                authority=sess.get("authority", "OBSERVE_ONLY"),
+                authority=sess.get("authority", "OBSERVE_ONLY"),  # DEPRECATED
                 init_tier=5 if mode == "full" else 4,
-                actor_verified=identity_verified,
+                actor_verified=identity_verified,  # DEPRECATED
             ),
             actor={
                 "claimed_id": actor_id,
                 "sovereign_id": _sovereign_id,
                 "delegation_mode": _delegation_mode,
                 "identity_verified": identity_verified,
-                "authority_level": authority_level,
+                "authority_level": authority_level,  # DEPRECATED
                 "principal_agent_separation": _is_delegated,
+                # Workstream 1: canonical authority state
+                "authority_state": _auth_state,
             },
             constitution={
                 "id": CONSTITUTION_HASH,
@@ -1841,12 +1861,14 @@ def arif_init(
             },
             meta=_build_meta(
                 identity_verified=identity_verified,
-                authority=sess.get("authority", "OBSERVE_ONLY"),
+                authority=sess.get("authority", "OBSERVE_ONLY"),  # DEPRECATED
                 sess=sess,
             ),
-            actor_verified=identity_verified,
+            actor_verified=identity_verified,  # DEPRECATED
             result=header,
             doctrine=ARIF_DOCTRINE,
+            # Workstream 1: top-level authority_state for easy access
+            authority_state=_auth_state,
         )
 
     # ── STATUS MODE ──────────────────────────────────────────

@@ -20,7 +20,12 @@ from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.runtime.model import (
+    AuthorityActor,
+    AuthorityForgeGate,
     AuthorityLevel,
+    AuthorityPublicPosture,
+    AuthoritySeals,
+    AuthorityState,
     CanonicalAuthority,
     ClaimStatus,
     RiskClass,
@@ -85,17 +90,117 @@ def _bootstrap_result(
     }
 
 
-def _authority_for_actor(actor_id: str, verified: bool) -> CanonicalAuthority:
-    actor_key = actor_id.strip().lower()
-    if actor_key in {"arif", "ariffazil"}:
-        level = AuthorityLevel.SOVEREIGN
+def build_authority_state_for_actor(
+    actor_id: str,
+    verified: bool,
+    *,
+    verification_method: str | None = None,
+    state_id: str | None = None,
+) -> AuthorityState:
+    """
+    WS1: build canonical authority-state snapshot for an actor at init time.
+
+    Single source of truth for "who is acting and what may they do." Replaces
+    the parallel-write pattern documented in
+    ``KERNEL-INTELLIGENCE-HARDENING-CYCLE-PHASE-A.md`` §1.1.
+
+    Side note: this also fixes a latent AttributeError in the legacy
+    ``_authority_for_actor`` path, which referenced ``AuthorityLevel.AGENT``
+    and ``ClaimStatus.ANCHORED`` — neither of which exists. Any
+    non-arif+unverified init was crashing at the attribute lookup.
+    """
+    safe_actor = (actor_id or "anonymous").strip()
+    actor_key = safe_actor.lower()
+    is_sovereign = actor_key in {"arif", "ariffazil"}
+
+    method = verification_method or ("session" if verified else "none")
+    if is_sovereign and not verification_method:
+        method = "f13_sovereign"
+
+    actor = AuthorityActor(
+        claimed_id=safe_actor or "anonymous",
+        verified=bool(verified),
+        verification_method=method,  # type: ignore[arg-type]
+    )
+
+    # Init-time seals: only ``kernel_seal_awareness`` is ACTIVE for known sovereign;
+    # every other seal must be re-asserted downstream (judge, vault, forge).
+    seals = AuthoritySeals(
+        kernel_seal_awareness="ACTIVE" if (is_sovereign and verified) else "INACTIVE",
+        domain_seal_validity="INACTIVE",
+        judge_seal_authorization="INACTIVE",
+        vault999_seal_record="INACTIVE",
+        public_seal_readiness="INACTIVE",
+    )
+
+    # Execution verdict: only sovereign + cryptographically verified ⇒ SEAL_AUTHORIZED.
+    # Everyone else HOLDs until the judge path clears.
+    if is_sovereign and verified:
+        execution_authority: str = "SEAL_AUTHORIZED"
     else:
-        level = AuthorityLevel.VERIFIED if verified else AuthorityLevel.AGENT
+        execution_authority = "HOLD"
+
+    forge_gate = AuthorityForgeGate(
+        enabled=bool(is_sovereign and verified),
+        reversibility_threshold=0.7 if is_sovereign else 0.5,
+        blockers=[] if (is_sovereign and verified) else ["actor_not_sealed"],
+    )
+
+    public_posture = AuthorityPublicPosture(
+        service_health="unknown",
+        execution_readiness="ready" if execution_authority == "SEAL_AUTHORIZED" else "held",
+        human_visible_summary=(
+            "SOVEREIGN_SEALED"
+            if (is_sovereign and verified)
+            else "OBSERVE_ONLY"
+            if not verified
+            else "HOLD"
+        ),
+    )
+
+    return AuthorityState(
+        state_id=state_id or "as_pending",
+        snapshot_at=datetime.now(UTC).isoformat(),
+        actor=actor,
+        context_verdict="UNKNOWN",
+        seals=seals,
+        execution_authority=execution_authority,  # type: ignore[arg-type]
+        apex_approval="ABSENT",
+        active_holds=[],
+        active_missions=[],
+        forge_gate=forge_gate,
+        public_posture=public_posture,
+        non_overclaim_check="passed",
+    )
+
+
+def _canonical_from_state(state: AuthorityState) -> CanonicalAuthority:
+    """WS1 shim. Legacy ``CanonicalAuthority`` is now DERIVED from
+    ``AuthorityState`` — single direction, never computed independently.
+
+    Marked deprecated in ``runtime.model.CanonicalAuthority``. Removal target:
+    2026-08-09.
+    """
+    safe_actor = state.actor.claimed_id
+    actor_key = safe_actor.strip().lower()
+    is_sovereign = actor_key in {"arif", "ariffazil"}
+
+    if is_sovereign:
+        level = AuthorityLevel.SOVEREIGN
+    elif state.actor.verified:
+        level = AuthorityLevel.OPERATOR
+    else:
+        level = AuthorityLevel.ANONYMOUS
+
+    claim_status = ClaimStatus.VERIFIED if state.actor.verified else ClaimStatus.CLAIMED
+
+    auth_state = "verified" if state.actor.verified else "anchored"
+
     return CanonicalAuthority(
-        actor_id=actor_id,
+        actor_id=safe_actor,
         level=level,
-        claim_status=ClaimStatus.VERIFIED if verified else ClaimStatus.ANCHORED,
-        auth_state="verified" if verified else "anchored",
+        claim_status=claim_status,
+        human_required=not (is_sovereign and state.actor.verified),
         approval_scope=[
             "status",
             "probe",
@@ -106,7 +211,18 @@ def _authority_for_actor(actor_id: str, verified: bool) -> CanonicalAuthority:
             "reason",
             "critique",
         ],
+        auth_state=auth_state,
     )
+
+
+def _authority_for_actor(actor_id: str, verified: bool) -> CanonicalAuthority:
+    """WS1 step 2: ``CanonicalAuthority`` is now DERIVED from ``AuthorityState``.
+    Single source of truth. Backwards-compatible signature — callers unchanged.
+
+    See: ``build_authority_state_for_actor`` for the canonical builder.
+    """
+    state = build_authority_state_for_actor(actor_id, verified)
+    return _canonical_from_state(state)
 
 
 def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> RuntimeEnvelope:

@@ -124,9 +124,7 @@ def _get_signing_secret() -> bytes:
         except OSError:
             continue
 
-    logger.warning(
-        "SCT: using fallback session secret — set ARIFOS_SESSION_SECRET in prod"
-    )
+    logger.warning("SCT: using fallback session secret — set ARIFOS_SESSION_SECRET in prod")
     return _FALLBACK_SECRET.encode()
 
 
@@ -202,6 +200,130 @@ class AuthorityDelta:
         }
 
 
+def compute_authority_state(
+    *,
+    actor_id: str,
+    actor_verified: bool,
+    signature_verified: bool,
+    is_sovereign_principal: bool,
+    session_id: str,
+    session_bound: bool,
+    actor_bound: bool,
+    authority_band: str | None = None,
+    verification_method: str = "none",
+    verification_reason: str = "no_identity_claim",
+    expires_at: str = "",
+) -> dict[str, Any]:
+    """COMPUTE single canonical AuthorityState from all identity/session signals.
+
+    Workstream 1 — replaces 5+ scattered authority fields with one deterministic
+    function. Call at session birth (init/full) and embed result in response.
+
+    Returns a dict matching AuthorityState schema from kernel_envelope.py.
+    """
+    # ── 1. Identity layer ──────────────────────────────────────────
+    claimed_actor_id = actor_id or ""
+    sovereign_identity = "ARIF_FAZIL"
+    # Per WS1 spec: claim_recognized is whether a CLAIM was made (actor_id
+    # provided), NOT whether the registry has confirmed it. Registry
+    # confirmation is actor_verified. These are separate semantics.
+    claim_recognized = bool(actor_id)
+    cryptographically_verified = bool(signature_verified and actor_verified)
+
+    # ── 2. Constitutional role ─────────────────────────────────────
+    # Per WS1 spec: constitutional_role derives from REGISTRY recognition
+    # (who the actor is), NOT from cryptographic verification (proof of identity).
+    # Cryptographic verification lives in the identity layer above.
+    # A claimed identity may be SOVEREIGN-role without yet being proven.
+    if is_sovereign_principal:
+        role = "SOVEREIGN"
+        role_source = "identity_registry"
+    elif actor_verified:
+        role = "OPERATOR"
+        role_source = "identity_registry"
+    else:
+        role = "ANONYMOUS"
+        role_source = "identity_registry"
+
+    # ── 3. Runtime grant ───────────────────────────────────────────
+    band = (authority_band or "").upper()
+    if band not in ("OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN"):
+        # Derive from identity signals if no band provided
+        if not actor_verified:
+            band = "OBSERVE_ONLY"
+        elif signature_verified and is_sovereign_principal:
+            band = "FULL"
+        else:
+            band = "LIMITED_MUTATE"
+
+    # Normalize SOVEREIGN band → FULL for runtime_grant (SOVEREIGN is a role, not a grant level)
+    grant_level = "FULL" if band == "SOVEREIGN" else band
+
+    verbs = list(AUTHORITY_VERBS.get(grant_level, AUTHORITY_VERBS["OBSERVE_ONLY"]))
+    # Public surface: never leak internal alias arif_act
+    verbs = ["arif_forge" if v == "arif_act" else v for v in verbs]
+
+    mutation_allowed = grant_level in ("LIMITED_MUTATE", "FULL")
+    seal_allowed = grant_level == "FULL"
+
+    # ── 4. Session binding ─────────────────────────────────────────
+    # Per WS1 spec: session_bound requires both the session to exist AND
+    # the caller to declare it bound. actor_bound is recorded verbatim —
+    # the canonical function does NOT override the caller's determination
+    # (e.g. token-session mismatch detection lives in the caller).
+    session_bound = bool(session_bound and bool(session_id))
+    act_bound = bool(actor_bound)
+
+    # ── 5. Effective action authority ──────────────────────────────
+    # Per WS1 spec: effective_action_authority requires ALL THREE:
+    # identity verified, actor bound to current session, session itself bound.
+    # Token-session mismatch (token issued for sess-X, presented at sess-Y)
+    # must surface as authorized=False because actor_bound=False.
+    authorized = bool(actor_verified and actor_bound and session_bound and grant_level != "OBSERVE_ONLY")
+    if not actor_verified:
+        reason_code = "identity_not_verified"
+    elif not actor_bound:
+        reason_code = "actor_not_bound_to_session"
+    elif not session_bound:
+        reason_code = "no_session"
+    elif grant_level == "OBSERVE_ONLY":
+        reason_code = "observe_only_grant"
+    else:
+        reason_code = "authorized"
+
+    return {
+        "identity": {
+            "claimed_actor_id": claimed_actor_id,
+            "sovereign_identity": sovereign_identity,
+            "claim_recognized": claim_recognized,
+            "cryptographically_verified": cryptographically_verified,
+            "verification_method": verification_method,
+            "verification_reason": verification_reason,
+        },
+        "constitutional_role": {
+            "role": role,
+            "source": role_source,
+        },
+        "runtime_grant": {
+            "level": grant_level,
+            "source": "session_capability_token",
+            "allowed_verbs": verbs,
+            "mutation_allowed": mutation_allowed,
+            "seal_allowed": seal_allowed,
+            "expires_at": expires_at,
+        },
+        "session": {
+            "bound": session_bound,
+            "session_id": session_id or "",
+            "actor_bound": act_bound,
+        },
+        "effective_action_authority": {
+            "authorized": authorized,
+            "reason_code": reason_code,
+        },
+    }
+
+
 def compute_authority_delta(
     token_auth: str,
     required: str,
@@ -250,9 +372,7 @@ def apply_caveats(
             narrowed_verbs = [v for v in narrowed_verbs if v in allowed_for]
         elif ctype == "max_verb":
             if value not in narrowed_verbs:
-                raise ValueError(
-                    f"Caveat references verb '{value}' not in current scope."
-                )
+                raise ValueError(f"Caveat references verb '{value}' not in current scope.")
             idx = narrowed_verbs.index(value)
             narrowed_verbs = narrowed_verbs[: idx + 1]
         elif ctype == "forbid_tool":
@@ -286,9 +406,7 @@ def _b64url_decode(s: str) -> bytes:
 
 
 def _sign(payload_b64: str) -> str:
-    return hmac.new(
-        _get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256
-    ).hexdigest()
+    return hmac.new(_get_signing_secret(), payload_b64.encode("ascii"), hashlib.sha256).hexdigest()
 
 
 def mint_sct(
@@ -381,6 +499,7 @@ def verify_sct(
     if token.startswith("arifos.v1."):
         try:
             from arifosmcp.runtime.capability_token import verify_token
+
             payload = verify_token(token)
             if payload:
                 claims = {
@@ -642,9 +761,7 @@ def resolve_standing(
             )
 
         token, claims, delta = refresh_sct_if_needed(claims, session_token)
-        standing = _claims_to_standing(
-            claims, token, source="sct", reason="L11 AUTH: SCT valid"
-        )
+        standing = _claims_to_standing(claims, token, source="sct", reason="L11 AUTH: SCT valid")
         standing.authority_delta = delta
         return standing
 
