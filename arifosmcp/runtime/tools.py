@@ -3615,11 +3615,7 @@ def _enforce_nine_signal(
             try:
                 from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
 
-                fc = (
-                    FailureCode.JALAN_KUASA
-                    if verdict == "VOID"
-                    else FailureCode.JALAN_BENAR
-                )
+                fc = FailureCode.JALAN_KUASA if verdict == "VOID" else FailureCode.JALAN_BENAR
                 sesat = emit_sesat(
                     source_node=tool_name,
                     failure_code=fc.value,
@@ -5091,6 +5087,29 @@ def get_public_surface_state() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+def _json_default_pydantic(obj: Any) -> Any:
+    """WS1 (2026-07-12): JSON-dump default handler for Pydantic models.
+
+    Sessions persist AuthorityState (Pydantic v2) alongside legacy mirror
+    fields. ``json.dump`` cannot natively serialize them. This handler
+    detects ``hasattr(obj, "model_dump")`` and routes accordingly.
+
+    NOTE: Pydantic models in session storage are present process-local and
+    will be re-reconstructed from legacy mirror fields on disk load (see
+    ``read_authority_state``'s reconstruction path). They are NOT the
+    source-of-truth for cross-process persistence — only the legacy
+    mirror fields are. The canonical store is arifOS runtime memory.
+    """
+    if hasattr(obj, "model_dump"):
+        try:
+            return obj.model_dump()
+        except Exception:
+            pass
+    if hasattr(obj, "__getstate__"):
+        return obj.__getstate__()
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+
 class _FileSessionStore:
     """Persistent session store backed by JSON on disk.
 
@@ -5164,7 +5183,13 @@ class _FileSessionStore:
             with open(self._path, "w", encoding="utf-8") as f:
                 _lock_exclusive(f)
                 try:
-                    json.dump(data, f, ensure_ascii=True, separators=(",", ":"))
+                    json.dump(
+                        data,
+                        f,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        default=_json_default_pydantic,
+                    )
                     f.flush()
                     os.fsync(f.fileno())
                 finally:
@@ -5176,7 +5201,13 @@ class _FileSessionStore:
             with open(self._path, "w", encoding="utf-8") as f:
                 _lock_exclusive(f)
                 try:
-                    json.dump(data, f, ensure_ascii=True, separators=(",", ":"))
+                    json.dump(
+                        data,
+                        f,
+                        ensure_ascii=True,
+                        separators=(",", ":"),
+                        default=_json_default_pydantic,
+                    )
                     f.flush()
                     os.fsync(f.fileno())
                 finally:
@@ -6743,29 +6774,34 @@ def _ok(
 
 
 def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
-    """P0 fix 2026-07-04: removed hardcoded return True that bypassed
-    the real session check below. This was the root cause of the
-    actor_verified contradiction (envelope=False, wrapper=True).
-    Session check is the single source of truth.
+    """WS1 (2026-07-12): single-source read of actor verification.
+
+    Reads from canonical ``AuthorityState`` stored at ``sess["authority_state"]``
+    via ``read_authority_state()``. Falls back to legacy multi-key
+    reconstruction only for sessions that pre-date WS1 (one compat cycle).
+
+    Replaces the prior 2026-07-04 P0 fix which OR-chained 4 legacy keys and
+    could disagree with the envelope's own flag (the ChatGPT-flagged
+    MEDIUM-vs-OBSERVE_ONLY contradiction).
+
+    See: arifosmcp/runtime/authority.py + cycle §1.1.
     """
     try:
+        from arifosmcp.runtime.authority import read_authority_state
+
         sess = _SESSIONS.get(session_id)
-        if isinstance(sess, dict):
-            # P0 fix 2026-07-04: session stores identity_verified — check all three keys.
-            # Root cause of actor_verified flip: init sets identity_verified=true,
-            # but downstream calls checked actor_verified which was never set.
-            return bool(
-                sess.get("actor_verified")
-                or sess.get("signature_verified")
-                or sess.get("verified")
-                or sess.get("identity_verified")
-            )
+        if not isinstance(sess, dict):
+            return False
+        state = read_authority_state(sess)
+        return bool(state.actor.verified)
     except Exception:
         pass
     # Fallback: check file-backed session store (matches live_kernel.py lookup)
     try:
         import json
         import os
+
+        from arifosmcp.runtime.authority import read_authority_state
 
         store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
         for p in (store_path, "/tmp/arifos/sessions.json"):
@@ -6777,7 +6813,8 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
                     data.get(session_id) if isinstance(data, dict) else None
                 )
                 if isinstance(sess, dict):
-                    return bool(sess.get("actor_verified") or sess.get("signature_verified"))
+                    state = read_authority_state(sess)
+                    return bool(state.actor.verified)
     except Exception:
         pass
     return False
@@ -7460,12 +7497,19 @@ def _arif_session_init(
                         )
                         if _sid and _sid in _SESSIONS:
                             _sess = _SESSIONS[_sid]
-                            _sess["actor_verified"] = True
-                            _sess["signature_verified"] = True
-                            _sess["identity_verified"] = True
-                            _sess["authority_level"] = "SOVEREIGN"
-                            _sess["authority"] = "FULL"
-                            _sess["ed25519_governance_verified"] = True
+                            # WS1 (2026-07-12): single-source authority write.
+                            # All 5 legacy fields are now derived mirror of
+                            # ``AuthorityState`` (compat ends 2026-08-09).
+                            # See arifosmcp/runtime/authority.py.
+                            from arifosmcp.runtime.authority import bind_authority_state
+                            from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                build_authority_state_for_actor,
+                            )
+
+                            bind_authority_state(
+                                _sess,
+                                build_authority_state_for_actor(actor_id, verified=True),
+                            )
                         # Update result dict for caller
                         if isinstance(_result_dict.get("session"), dict):
                             _result_dict["session"]["actor_verified"] = True
