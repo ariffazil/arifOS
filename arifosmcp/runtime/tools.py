@@ -2837,7 +2837,7 @@ def _output_policy_for_verdict(verdict: str) -> str:  # noqa: F811
         return "SIMULATION_ONLY"
     if verdict == "HOLD":
         return "DOMAIN_HOLD"
-    if verdict in ("VOID", "SABAR"):
+    if verdict == "VOID":
         return "DOMAIN_VOID"
     if verdict == "OBSERVE_ONLY":
         return "DOMAIN_OBSERVE_ONLY"
@@ -3607,13 +3607,17 @@ def _enforce_nine_signal(
         # OBSERVE_ONLY is exempt — it is a valid operational mode for unverified
         # sessions, not a failure. Firing sesat on OBSERVE_ONLY pollutes the malu
         # ledger with false-positive scars (Bangang #1 fix 2026-07-11).
-        if verdict not in ("SEAL", "OBSERVE_ONLY"):
+        # Only true failure verdicts (VOID, HOLD) should mint sesat events.
+        # SABAR is a valid patience verdict — handled by _sabar() with YELLOW severity.
+        # PARTIAL is a derived warning, not a failure.
+        _FAILURE_VERDICTS = {"VOID", "HOLD"}
+        if verdict in _FAILURE_VERDICTS:
             try:
                 from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
 
                 fc = (
                     FailureCode.JALAN_KUASA
-                    if verdict in ("VOID", "SABAR")
+                    if verdict == "VOID"
                     else FailureCode.JALAN_BENAR
                 )
                 sesat = emit_sesat(
