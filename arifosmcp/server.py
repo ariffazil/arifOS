@@ -49,10 +49,12 @@ if os.path.exists(_env_path):
     load_dotenv(_env_path, override=False)  # systemd EnvironmentFile wins
 
 
-# ── Entropy Integrity Mesh — add to path ───────────────────────────
-_entropy_integrity_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "entropy-integrity")
-if os.path.isdir(_entropy_integrity_path):
-    sys.path.insert(0, _entropy_integrity_path)
+# ── Entropy Integrity Mesh ─────────────────────────────────────────
+# NEVER insert /root/entropy-integrity at sys.path[0] — its top-level
+# package name `mcp/` shadows the official MCP SDK (`mcp.types`) and
+# crashes FastMCP boot (2026-07-12). Entropy tools load via explicit
+# path import inside the registration try/except below.
+_entropy_integrity_path = "/root/entropy-integrity"
 _llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
 if _llm_client is not None:
     _llm_client.SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")  # pyright: ignore[reportAttributeAccessIssue]

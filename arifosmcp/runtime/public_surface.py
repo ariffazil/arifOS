@@ -33,6 +33,9 @@ CANONICAL_12: tuple[str, ...] = (
     "arif_compose",  # 888  — Response composer
     "arif_seal",  # 999  — VAULT999 seal
     "arif_verify",  # E1   — JITU pre-execution gate (SEAL token verification)
+    # Entropy mesh tools are NOT public surface. They register optionally when
+    # importable without shadowing the MCP SDK (`mcp.types`). Do not list them
+    # here — that boot-loops arifOS when entropy_kernel is unavailable.
 )
 
 # ── DEPRECATED ALIASES (backward compat only) ─────────────────────────────
