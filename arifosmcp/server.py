@@ -1885,33 +1885,40 @@ async def horizon_metadata(request: Request) -> JSONResponse:
 
 
 async def webmcp_discovery(request: Request) -> JSONResponse:
-    """MCP Server Card — SEP-2127 HTTP discovery document (7-tool facade)."""
+    """MCP Server Card — SEP-2127 HTTP discovery document (public facade)."""
+    from arifosmcp.runtime.public_registry import public_tool_names
+    from arifosmcp.runtime.build import get_build_info
+
+    _bi = get_build_info()
+    _commit = (_bi.get("build") or {}).get("commit") or "unknown"
+    _kanon = f"kanon-{_commit}" if _commit != "unknown" else _DEPLOY_VERSION
+    names = list(public_tool_names())
     return JSONResponse(
         {
-            "name": "arifos",
+            "name": "ARIFOS MCP",
             "displayName": "arifOS Constitutional Kernel",
             "url": "https://mcp.arif-fazil.com/mcp",
-            "version": _DEPLOY_VERSION.lstrip("v"),
+            "version": _kanon,
+            "release_name": _bi.get("version"),
             "capabilities": {"tools": True, "resources": True, "prompts": True},
             "authentication": {"type": "bearer"},
-            "tools": [
-                "arif_init",
-                "arif_observe",
-                "arif_think",
-                "arif_route",
-                "arif_judge",
-                "arif_act",
-                "arif_seal",
-            ],
+            "tools": names,
+            "tool_count": len(names),
             "floors_active": 13,
-            "irreversible_gate": "arif_act requires seal_verdict_id + approved_action_hash from prior arif_judge + arif_seal",
+            "irreversible_gate": "arif_seal is the public commitment gate; arif_act is internal after SEAL",
+            "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json",
         }
     )
 
 
 async def tools_with_meta(request: Request) -> JSONResponse:
+    """GET /tools — public facade only. Registered here and wins over rest_routes."""
     from arifosmcp.runtime.public_registry import public_tool_specs
+    from arifosmcp.runtime.build import get_build_info
 
+    _bi = get_build_info()
+    _commit = (_bi.get("build") or {}).get("commit") or "unknown"
+    _kanon = f"kanon-{_commit}" if _commit != "unknown" else _DEPLOY_VERSION
     tools_payload = [
         {
             "name": spec.name,
@@ -1927,9 +1934,13 @@ async def tools_with_meta(request: Request) -> JSONResponse:
     ]
     return JSONResponse(
         {
+            "service": "ARIFOS MCP",
             "tools": tools_payload,
             "count": len(tools_payload),
-            "version": _DEPLOY_VERSION,
+            "version": _kanon,
+            "release_name": _bi.get("version"),
+            "git_commit": _commit,
+            "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json",
         }
     )
 
