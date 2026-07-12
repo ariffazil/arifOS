@@ -157,8 +157,15 @@ def forge_preflight(
     try:
         from arifosmcp.runtime.session_auth import validate_session
 
-        sess_check = validate_session(session_id, required=True)
-        step_pass["1_session_token"] = sess_check.get("valid", False)
+        # WS3 (2026-07-12): session_auth.validate_session does not accept
+        # ``required=``; pass valid session_id and check the dict ``code``
+        # field for the L11_* reasons. Empty session_id is treated as
+        # missing here.
+        if not session_id:
+            sess_check = {"valid": False, "code": "L11_MISSING"}
+        else:
+            sess_check = validate_session(session_id, actor_id)
+        step_pass["1_session_token"] = bool(sess_check.get("valid", False))
     except Exception as exc:
         logger.warning("step 1 session-token validation failed: %s", exc)
         step_pass["1_session_token"] = False
