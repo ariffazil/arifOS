@@ -138,6 +138,17 @@ organ_routes:
       - A2A gateway
       - identity anchor
       - throttle
+      # ROUTING-CALIBRATION FIX (2026-07-12): federation state/topology + broadcast
+      - federation state
+      - federation topology
+      - agent topology
+      - agent map
+      - organ map
+      - federation map
+      - broadcast message
+      - broadcast to all
+      - topology map
+      - state and topology
       # G14 FIX (2026-07-04): Add explicit organ-qualified keywords
       # so "AAA state", "AAA governance", "AAA Supabase" route to AAA
       # not back to arifOS.
@@ -202,6 +213,10 @@ organ_routes:
       - restart systemd service
       - restart service
       - restart the service
+      - restart the arifos service
+      - restart arifos service
+      - restart the well service
+      - restart well service
       - make deploy
       - code deploy
       - rollback
@@ -209,6 +224,9 @@ organ_routes:
       - forge execute
       - forge plan
       - forge dryrun
+      - staged code change
+      - staged deploy
+      - deploy with rollback
       # G14 FIX (2026-07-04): Add organ-qualified + status-only keywords
       # so A-FORGE status/health routes correctly. Critical: "forge status"
       # and "forge health" must NOT require sovereign authority (the kernel
@@ -420,6 +438,8 @@ organ_routes:
       # machine/federation/kernel health queries. Now only human/vitality
       # health keywords route to WELL. "health" alone defaults to arifOS.
       # Specific human-health phrases (longer match) still route here:
+      # ROUTING-CALIBRATION FIX (2026-07-12): added explicit human-state
+      # phrases for cognitive clarity, decision readiness, stress load
       - human health
       - personal health
       - wellness
@@ -454,10 +474,15 @@ organ_routes:
       # HARDEN-C calibration 2026-07-12 — human readiness phrasing
       - cognitive clarity
       - clarity trend
-      - operator fatigue
-      - substrate readiness
+      - stress load
+      - decision readiness
+      - fit to decide
       - human readiness
       - human fatigue
+      - operator readiness
+      - operator fatigue
+      - substrate readiness
+      - human decision readiness
       - dignity
       # G14 FIX (2026-07-04): Add organ-qualified + bridge-specific keywords
       # so "WELL organ health", "cooling bridge status", "entropy seal" etc.

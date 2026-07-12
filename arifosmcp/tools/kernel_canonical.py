@@ -193,6 +193,9 @@ def _load_intent_map() -> dict[str, Any]:
                 "organ": "AAA",
                 "port": 3001,
                 "intent_keywords": [
+                    # ROUTING-CALIBRATION FIX (2026-07-12): added federation
+                    # state/topology and broadcast keywords so AAA domain queries
+                    # route correctly instead of falling through to arifOS default
                     "cockpit",
                     "dashboard",
                     "control plane",
@@ -208,12 +211,26 @@ def _load_intent_map() -> dict[str, Any]:
                     "A2A gateway",
                     "identity anchor",
                     "throttle",
+                    "federation state",
+                    "federation topology",
+                    "agent topology",
+                    "agent map",
+                    "organ map",
+                    "federation map",
+                    "broadcast message",
+                    "broadcast to all",
+                    "topology map",
+                    "state and topology",
                 ],
             },
             "a_forge": {
                 "organ": "A-FORGE",
                 "port": 7071,
                 "intent_keywords": [
+                    # ROUTING-CALIBRATION FIX (2026-07-12): added explicit
+                    # service-restart phrases so "restart the arifos service"
+                    # routes to A-FORGE despite "arifos" being in the intent.
+                    # These are longer than any arifOS keyword for the same text.
                     "build",
                     "deploy",
                     "forge",
@@ -242,6 +259,11 @@ def _load_intent_map() -> dict[str, Any]:
                     "systemctl restart",
                     "systemd unit",
                     "service restart",
+                    "restart the service",
+                    "restart the arifos service",
+                    "restart arifos service",
+                    "restart the well service",
+                    "restart well service",
                     "make deploy",
                     "code deploy",
                     "rollback",
@@ -249,6 +271,9 @@ def _load_intent_map() -> dict[str, Any]:
                     "forge execute",
                     "forge plan",
                     "forge dryrun",
+                    "staged code change",
+                    "staged deploy",
+                    "deploy with rollback",
                 ],
             },
             "geox": {
@@ -300,6 +325,7 @@ def _load_intent_map() -> dict[str, Any]:
                     "capital",
                     "hedge",
                     "risk metric",
+                    "risk assessment",
                     "allocation",
                     "stress test",
                     # SERP API: finance/commerce/trends domain (2026-07-07)
@@ -329,6 +355,8 @@ def _load_intent_map() -> dict[str, Any]:
                 "port": 18083,
                 "intent_keywords": [
                     # G13 FIX: human-vitality-only keywords
+                    # ROUTING-CALIBRATION FIX (2026-07-12): added explicit
+                    # human-state phrases so WELL matches without being stolen
                     "human health",
                     "personal health",
                     "wellness",
@@ -345,6 +373,18 @@ def _load_intent_map() -> dict[str, Any]:
                     "maruah",
                     "fatigue",
                     "cognition load",
+                    "cognitive clarity",
+                    "stress load",
+                    "decision readiness",
+                    "fit to decide",
+                    "human readiness",
+                    "operator readiness",
+                    "operator fatigue",
+                    "substrate readiness",
+                    "human decision readiness",
+                    "feeling tired",
+                    "feeling stressed",
+                    "high stakes decision",
                     # SERP API: travel domain (2026-07-07)
                     "flight search",
                     "hotel search",
