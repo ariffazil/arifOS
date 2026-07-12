@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/organ-evidence/v1.0.0",
+  "title": "Cross-Organ Evidence Envelope",
+  "description": "Outer constitutional wrapper every organ must emit. Domain payload differs; wrapper does not. Complements federation_envelope.schema.json (metabolic loop) and well_readiness_envelope.v1.",
+  "type": "object",
+  "required": [
+    "schema",
+    "organ",
+    "claim_type",
+    "evidence_layer",
+    "confidence",
+    "measured_at",
+    "authority",
+    "payload"
+  ],
+  "properties": {
+    "schema": { "const": "organ_evidence.v1" },
+    "organ": {
+      "type": "string",
+      "enum": ["GEOX", "WELL", "WEALTH", "arifOS", "AAA", "A-FORGE", "VAULT999", "EXTERNAL"]
+    },
+    "claim_type": {
+      "type": "string",
+      "enum": [
+        "OBSERVATION",
+        "DERIVATION",
+        "INTERPRETATION",
+        "SPECULATION",
+        "RECOMMENDATION",
+        "STATUS",
+        "UNKNOWN"
+      ]
+    },
+    "evidence_layer": {
+      "type": "string",
+      "description": "L1 sealed canon · L2 live verified · L3 cached · L4 inference",
+      "enum": ["L1", "L2", "L3", "L4"]
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "measured_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": ["string", "null"], "format": "date-time" },
+    "inputs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Hashes or refs of source artifacts"
+    },
+    "missing_evidence": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "contradictions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": [
+        "PROCEED",
+        "SIMPLIFY",
+        "HOLD",
+        "DEFER",
+        "EVIDENCE_NEEDED",
+        "VOID",
+        "NONE"
+      ]
+    },
+    "authority": {
+      "type": "string",
+      "enum": ["ADVISORY_ONLY", "EVIDENCE", "COMPUTE", "EXECUTE_UNDER_LEASE", "JUDGE", "SOVEREIGN"]
+    },
+    "term_tag": {
+      "type": "string",
+      "enum": [
+        "PHYSICAL_MEASUREMENT",
+        "MATHEMATICAL_MODEL",
+        "CONTROL_ANALOGY",
+        "GOVERNANCE_METAPHOR",
+        "NONE"
+      ],
+      "default": "NONE"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Domain-specific body (prospect claim, readiness, NPV, etc.)"
+    },
+    "trace_id": { "type": "string" },
+    "actor_id": { "type": "string" }
+  }
+}
