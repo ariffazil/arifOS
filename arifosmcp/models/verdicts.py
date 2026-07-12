@@ -18,15 +18,21 @@ from pydantic import BaseModel, Field, field_validator
 
 class SealType(StrEnum):
     """
-    The FIVE canonical seals of arifOS v2.0 (v1.0 ratified 2026-07-07).
+    The SEVEN canonical seals of arifOS v2.0 (v1.0 ratified 2026-07-07, extended 2026-07-11).
     Only SEAL allows progression to Tier 05 (Execution).
-    Monotonicity ordering: VOID > HOLD > SABAR > PARTIAL > SEAL.
+    Monotonicity ordering: VOID > HOLD_888 > HOLD > SABAR > PARTIAL > PROVISIONAL > SEAL.
+
+    PROVISIONAL and HOLD_888 were added 2026-07-11 during Phase 1 Verdict Unification
+    (APEX Refactor Directive). They were previously defined only in runtime/model.py
+    VerdictEnvelope and runtime/tools.py (dead enum). Now canonical.
     """
 
-    VOID = "VOID"  # HARD floor violation — blocked permanently (rank 4)
-    HOLD = "HOLD"  # 888_HOLD — human veto/review required (rank 3)
-    SABAR = "SABAR"  # SOFT caution — wait, retry allowed (rank 2)
-    PARTIAL = "PARTIAL"  # DERIVED warning — proceed with cooling (rank 1)
+    VOID = "VOID"  # HARD floor violation — blocked permanently (rank 6)
+    HOLD_888 = "HOLD_888"  # 888_HOLD — immediate sovereign escalation (rank 5)
+    HOLD = "HOLD"  # Human veto/review required (rank 4)
+    SABAR = "SABAR"  # SOFT caution — wait, retry allowed (rank 3)
+    PARTIAL = "PARTIAL"  # DERIVED warning — proceed with cooling (rank 2)
+    PROVISIONAL = "PROVISIONAL"  # Contract variant — interim state (rank 1)
     SEAL = "SEAL"  # all floors pass; W³ ≥ 0.95 — proceed (rank 0)
 
 

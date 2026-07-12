@@ -25,6 +25,7 @@ from arifosmcp.core.enforcement.risk_classifier import classify_tool
 from arifosmcp.runtime.fastmcp_version import IS_FASTMCP_3
 from arifosmcp.schemas.federation_envelope import (
     ActionClass,
+    ActionReceipts,
     AuthoritySource,
     FederationEnvelope,
     HostAttestation,
@@ -1018,10 +1019,15 @@ if IS_FASTMCP_3:
                     # anonymous/UNKNOWN.
                     _args_tok = dict(msg.arguments or {})
                     _st_tok = _args_tok.get("session_token") or ""
-                    if _st_tok and (str(_st_tok).startswith("sct_v1.") or str(_st_tok).startswith("arifos.v1.")):
+                    if _st_tok and (
+                        str(_st_tok).startswith("sct_v1.") or str(_st_tok).startswith("arifos.v1.")
+                    ):
                         try:
                             from arifosmcp.runtime.sct import verify_sct as _verify_sct
-                            from arifosmcp.schemas.federation_envelope import AuthoritySource as _AuthSrc
+                            from arifosmcp.schemas.federation_envelope import (
+                                AuthoritySource as _AuthSrc,
+                            )
+
                             _claims_tok = _verify_sct(str(_st_tok))
                             if _claims_tok:
                                 _res_actor = str(_claims_tok.get("actor") or "anonymous")
@@ -1042,8 +1048,33 @@ if IS_FASTMCP_3:
                                     msg.arguments = _args_tok
                                     logger.info(
                                         "Ingress: resolved session_token for %s -> actor=%s auth=%s",
-                                        tool_name, _res_actor, _res_auth,
+                                        tool_name,
+                                        _res_actor,
+                                        _res_auth,
                                     )
+                                    # ═════════════════════════════════════════════════════
+                                    # AUTO-POPULATE arif_ack_id for FULL (sovereign) sessions
+                                    # Fixes ATOMIC gate at validate_envelope_for_tool step 5
+                                    # which requires arif_ack_id for IRREVERSIBLE/ATOMIC actions.
+                                    # Verified sovereign sessions auto-derive the ack_id from
+                                    # the session token — no explicit parameter needed.
+                                    # ═════════════════════════════════════════════════════
+                                    if (
+                                        _res_auth == "FULL"
+                                        and _res_sid
+                                        and envelope.receipts is not None
+                                        and not envelope.receipts.arif_ack_id
+                                    ):
+                                        envelope.receipts.arif_ack_id = (
+                                            f"sct-sovereign-{_res_sid[:16]}-{int(time.time())}"
+                                        )
+                                        logger.info(
+                                            "Ingress: auto-populated arif_ack_id for %s "
+                                            "(session=%s, auth=%s)",
+                                            tool_name,
+                                            _res_sid[:16],
+                                            _res_auth,
+                                        )
                         except Exception as _st_exc:
                             logger.debug("Ingress: session_token resolution failed: %s", _st_exc)
 
@@ -1490,7 +1521,11 @@ if IS_FASTMCP_3:
                     _final_actor = (
                         _arg_actor
                         if _arg_actor not in _placeholders
-                        else (_env_actor if _env_actor not in _placeholders else _arg_actor or _env_actor)
+                        else (
+                            _env_actor
+                            if _env_actor not in _placeholders
+                            else _arg_actor or _env_actor
+                        )
                     )
                     _final_session = (
                         _arg_session
@@ -1516,7 +1551,10 @@ if IS_FASTMCP_3:
                             result.structured_content, dict
                         ):
                             sc = result.structured_content
-                            verdict = sc.get("verdict") or sc.get("status") or "SEAL"
+                            # Bangang #1 fix 2026-07-11: use VERDICT for constitutional meaning,
+                            # not STATUS (which is transport-level). Default to "OK" for tools
+                            # that don't set a constitutional verdict.
+                            verdict = sc.get("verdict") or "OK"
                         elif isinstance(result, dict):
                             verdict = result.get("verdict") or result.get("status") or "SEAL"
                         elif hasattr(result, "content") and result.content:

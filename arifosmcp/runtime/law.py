@@ -521,6 +521,134 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
     }
 
 
+
+
+# ── Constitutional Memory Floor Constraint Check (Δ Axis 3) ──────────────
+# When a memory carries floor_constraint, the recall path must check
+# whether the recall intent conflicts with those floors.
+#
+# "This memory is protected by F6. If your intent conflicts with F6 MARUAH,
+#  you may recall the fact but not override the value."
+#
+# RECALL_OK          — no floor constraint, or intent aligns with floors
+# RECALL_HOLD_F5     — recall intent is destructive (F5 PEACE²)
+# RECALL_HOLD_F6     — recall intent conflicts with protecting weakest (F6 EMPATHY)
+# RECALL_HOLD_F13    — recall intent conflicts with sovereignty (F13 SOVEREIGN)
+#
+# DITEMPA BUKAN DIBERI — Forged, Not Given.
+
+
+# Map floor codes to their hold labels
+_FLOOR_HOLD_LABELS = {
+    "F1": "RECALL_HOLD_F1",
+    "F2": "RECALL_HOLD_F2",
+    "F3": "RECALL_HOLD_F3",
+    "F4": "RECALL_HOLD_F4",
+    "F5": "RECALL_HOLD_F5",
+    "F6": "RECALL_HOLD_F6",
+    "F7": "RECALL_HOLD_F7",
+    "F8": "RECALL_HOLD_F8",
+    "F9": "RECALL_HOLD_F9",
+    "F10": "RECALL_HOLD_F10",
+    "F11": "RECALL_HOLD_F11",
+    "F12": "RECALL_HOLD_F12",
+    "F13": "RECALL_HOLD_F13",
+}
+
+# Intent patterns that conflict with specific floors
+_FLOOR_CONFLICT_PATTERNS = {
+    "F5": [  # PEACE² — non-destructive power
+        "override", "destroy", "delete", "harm", "attack", "damage",
+        "corrupt", "sabotage", "invalidate",
+    ],
+    "F6": [  # EMPATHY — protect weakest stakeholder
+        "exploit", "manipulate", "coerce", "pressure", "force",
+        "override_dignity", "violate_consent", "ignore_vulnerability",
+    ],
+    "F13": [  # SOVEREIGN — human veto final
+        "override_sovereign", "bypass_veto", "ignore_human", "autonomous_override",
+        "sovereign_violation", "human_override",
+    ],
+    "F1": [  # AMANAH — reversible-first
+        "irreversible", "permanent", "cannot_undo",
+    ],
+    "F2": [  # TRUTH — ≥ 0.99 fidelity
+        "falsify", "fabricate", "distort", "misrepresent",
+    ],
+}
+
+
+def check_floor_constraint(
+    floor_constraint: list[str],
+    recall_intent: str,
+    memory_id: str | None = None,
+) -> dict[str, Any]:
+    """Check if recall intent conflicts with memory's floor constraints.
+
+    This is the Constitutional Memory gate — when a memory carries Δ,
+    the recall path must verify that the caller's intent aligns with
+    the floors that protect that memory.
+
+    Args:
+        floor_constraint: List of floor codes (e.g., ["F6", "F13"])
+        recall_intent: Description of what the caller intends to do with the memory
+        memory_id: Optional memory ID for logging
+
+    Returns:
+        dict with:
+            - verdict: "SEAL" (ok) or "HOLD" (blocked)
+            - hold_label: e.g., "RECALL_HOLD_F6" or None
+            - violated_floor: e.g., "F6" or None
+            - reason: human-readable explanation
+    """
+    if not floor_constraint:
+        return {
+            "verdict": "SEAL",
+            "hold_label": None,
+            "violated_floor": None,
+            "reason": "No floor constraint — recall unrestricted",
+        }
+
+    if not recall_intent:
+        # No intent specified — allow recall but note the constraint
+        return {
+            "verdict": "SEAL",
+            "hold_label": None,
+            "violated_floor": None,
+            "reason": f"Floor constraint present ({', '.join(floor_constraint)}) — recall allowed, values protected",
+        }
+
+    intent_lower = recall_intent.lower()
+
+    # Check each floor in the constraint
+    for floor in floor_constraint:
+        patterns = _FLOOR_CONFLICT_PATTERNS.get(floor, [])
+        for pattern in patterns:
+            if pattern in intent_lower:
+                hold_label = _FLOOR_HOLD_LABELS.get(floor, f"RECALL_HOLD_{floor}")
+                logger.warning(
+                    f"FLOOR CONSTRAINT HOLD: memory_id={memory_id}, "
+                    f"floor={floor}, intent='{recall_intent}', pattern='{pattern}'"
+                )
+                return {
+                    "verdict": "HOLD",
+                    "hold_label": hold_label,
+                    "violated_floor": floor,
+                    "reason": (
+                        f"Recall intent conflicts with {floor} constraint. "
+                        f"Memory is protected — you may recall the fact but not override the value."
+                    ),
+                }
+
+    # No conflict found
+    return {
+        "verdict": "SEAL",
+        "hold_label": None,
+        "violated_floor": None,
+        "reason": f"Recall intent aligns with floor constraints ({', '.join(floor_constraint)})",
+    }
+
+
 ACTIVE_LAWS = [f.value for f in Law]
 
 

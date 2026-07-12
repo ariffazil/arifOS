@@ -78,4 +78,9 @@ class MemoryOutput(BaseModel):
     actor_verified: bool | None = None
     authority_delta: dict[str, Any] | None = None
 
+    # ── Constitutional Memory (Δ Axis 3) ────────────────────────────────────
+    # Moral provenance for significant memories.
+    # Included in recall output when the memory has Δ fields.
+    constitutional: dict[str, Any] | None = None
+
     model_config = {"extra": "forbid"}

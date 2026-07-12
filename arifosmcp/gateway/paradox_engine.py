@@ -1,4 +1,5 @@
 """
+⚠️ DEPRECATED (2026-07-11 Phase 6 APEX Refactor) — DEAD CODE, zero importers.
 Paradox Engine — arifOS Constitutional Perception Pipeline
 ═════════════════════════════════════════════════════════════
 

@@ -1,7 +1,7 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
-federation_release: v2026.07.09-SPINE-P0
-last_verified: 2026-07-10T11:10Z
+federation_release: v2026.07.11-MATURITY-PIPELINE
+last_verified: 2026-07-11T12:53Z
 live_commit: 2fc0089
 live_version: kanon-2fc0089
 runtime_path: /opt/arifos/app
@@ -17,7 +17,8 @@ changelog: /root/arifOS/CHANGELOG.md
 p0_actor_id_binding: live (kernel reads JWT lineage first; self-report caps MEDIUM)
 floor_11b_amanah_replay: live (nonce required for IRREVERSIBLE mutations; 24h cache)
 a2a_agent_json: /root/arifOS/.well-known/agent.json
-machine_sot: /root/A-FORGE/forge_work/2026-07-09/MACHINE-SOT-2026-07-09.json
+machine_sot: /root/A-FORGE/forge_work/2026-07-11/FEDERATION-MATURITY-EXECUTION-RECEIPT.md
+maturity_pipeline: EXECUTED 2026-07-11 (promote 7, incubate 5, park 4, kill APEX as live track)
 -->
 
 <div align="center">

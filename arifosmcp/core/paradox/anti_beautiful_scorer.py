@@ -1,4 +1,5 @@
-"""Concrete scorer for the Anti-Beautiful-One Lock.
+"""⚠️ DEPRECATED (2026-07-11 Phase 6 APEX Refactor) — DEAD CODE, zero importers.
+Concrete scorer for the Anti-Beautiful-One Lock.
 
 Takes raw LLM-generated text and computes:
 - beauty_score: how polished / abstract / confident / metaphorical

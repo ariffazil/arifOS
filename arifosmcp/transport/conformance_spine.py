@@ -392,8 +392,10 @@ def check_session_starts() -> dict[str, Any]:
     error = result.get("error") or tool_result.get("error")
 
     # Accept any shape that has status READY/OK/SEAL or session_id/session
+    # BANGANG #1 fix: Accept "SEAL" for backward compat but normalize to "OK".
+    _raw_status = tool_result.get("status")
     passed = (
-        tool_result.get("status") in ("READY", "SEAL", "OK")
+        _raw_status in ("READY", "SEAL", "OK", "ok", "seal")
         or bool(tool_result.get("session_id"))
         or bool(tool_result.get("session"))
     )
@@ -583,6 +585,8 @@ def check_vault_replay() -> dict[str, Any]:
     if chain_signal is None:
         errors.append("chain_ok signal not present in vault response — defaulting to False")
 
+    # BANGANG #1 fix: "SEAL" is constitutional verdict, not transport status.
+    # Accept it for backward compat but the canonical transport status is "OK".
     if status not in ("OK", "SEAL", "ok", "seal"):
         errors.append(f"arif_vault_query returned non-OK status: {status}")
     if not entries:

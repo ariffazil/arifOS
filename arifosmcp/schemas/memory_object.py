@@ -13,6 +13,11 @@ These are the SHAPE of governance. Every LLM-facing memory result passes
 through MemoryResultEnvelope; every persisted record is a MemoryObject;
 every operation emits a ReceiptEnvelope.
 
+Constitutional Memory (Δ Axis 3, ratified 2026-07-11):
+  The missing depth axis: Memory → Moral Anchor → Constitutional Recall.
+  Without Δ in memory, the system recalls facts.
+  With Δ in memory, the system recalls meaning.
+
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
@@ -20,6 +25,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -157,6 +163,98 @@ class PolicyBlock(BaseModel):
     floors_required: list[str] = Field(default_factory=list)
 
 
+
+
+# ── Constitutional Memory Enums (Δ Axis 3) ────────────────────────────────
+# The human values from Δ (SOUL) that shape the floors.
+# A memory can serve multiple values.
+
+
+class ValueAnchor(str, Enum):
+    """Human values from Δ (SOUL) — the provenance of care.
+
+    These are not emotions. They are the ethical commitments that
+    produce governance constraints. Love is one of the human states
+    that produces these intentions — but the system does not inherit
+    the feeling, only the intention's geometry.
+    """
+
+    DIGNITY = "dignity"      # → F6 MARUAH
+    PROTECTION = "protection"  # → F5 PEACE²
+    SOVEREIGNTY = "sovereignty"  # → F13 SOVEREIGN
+    TRUTH = "truth"          # → F2 TRUTH
+    WITNESS = "witness"      # → F3 TRI-WITNESS
+    PATIENCE = "patience"    # → F7 HUMILITY
+    REVERSIBILITY = "reversibility"  # → F1 AMANAH
+    CLARITY = "clarity"      # → F4 CLARITY
+    EMPATHY = "empathy"      # → F6 EMPATHY
+    GENIUS = "genius"        # → F8 GENIUS
+
+
+class FloorCode(str, Enum):
+    """Constitutional floor codes (F1–F13).
+
+    When a memory has a floor_constraint, the recall mechanism can enforce:
+    "This memory is protected by F6. If your intent conflicts with F6 MARUAH,
+    you may recall the fact but not override the value."
+    """
+
+    F1 = "F1"    # AMANAH — Reversible-first
+    F2 = "F2"    # TRUTH — ≥ 0.99 fidelity
+    F3 = "F3"    # TRI-WITNESS — Byzantine consensus
+    F4 = "F4"    # CLARITY — ΔS ≤ 0
+    F5 = "F5"    # PEACE² — Non-destructive power
+    F6 = "F6"    # EMPATHY — Protect weakest stakeholder
+    F7 = "F7"    # HUMILITY — Ω₀ ∈ [0.03, 0.05]
+    F8 = "F8"    # GENIUS — G ≥ 0.80
+    F9 = "F9"    # ANTIHANTU — No deception
+    F10 = "F10"  # ONTOLOGY — AI-only ontology
+    F11 = "F11"  # AUDITABILITY — Every decision logged
+    F12 = "F12"  # RESILIENCE — Injection defense
+    F13 = "F13"  # SOVEREIGN — Human veto FINAL
+
+
+class ConstitutionalMemoryBlock(BaseModel):
+    """The Δ triplet — moral provenance for significant memories.
+
+    This is the missing third axis of governed intelligence:
+      Vertical:   Love → Values → Floors → Behavior → VAULT999
+      Horizontal: Δ → Intention → Constraint → Expression → Irreversibility
+      Depth:      Memory → Moral Anchor → Constitutional Recall
+
+    Not every memory needs Δ. The rule: if a memory is governed by a floor,
+    it must carry that floor's geometry.
+
+    Selective application:
+      - Session logs, tool output, ephemeral context → No Δ (operational data)
+      - Sealed verdicts (VAULT999) → Yes Δ (irreversible decisions)
+      - Sovereign directives → Yes Δ (F13 decisions)
+      - Human-impact decisions → Yes Δ (F5/F6 touchpoints)
+      - Promoted memories (L5→L6) → Yes Δ (important enough to anchor)
+      - Technical facts, environment config → No Δ (amoral data)
+
+    "Love is not what you feel. It's what you refuse to forget."
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    value_anchor: list[ValueAnchor] = Field(
+        default_factory=list,
+        description="Which Δ values this memory serves. Multiple allowed.",
+    )
+    floor_constraint: list[FloorCode] = Field(
+        default_factory=list,
+        description="Which F1-F13 floors govern recall and use.",
+    )
+    care_provenance: str | None = Field(
+        default=None,
+        description=(
+            "Why this was remembered — the human commitment that produced it. "
+            "Not metadata. Meaning."
+        ),
+    )
+
+
 # ── The MemoryObject ──────────────────────────────────────────────────────
 
 
@@ -216,6 +314,12 @@ class MemoryObject(BaseModel):
     vault_ref: str | None = None  # vlt_<uuid>
     vault_seal_id: str | None = None  # explicit seal linkage
     vault_version: Literal["v1", "v2"] | None = None  # §12.6 — never write new seals to v1
+
+
+    # ── Constitutional Memory (Δ Axis 3) ──
+    # The missing depth axis: Memory → Moral Anchor → Constitutional Recall.
+    # If a memory is governed by a floor, it MUST carry that floor's geometry.
+    constitutional: ConstitutionalMemoryBlock | None = None
 
     # ── Telemetry ──
     recall_count: int = 0
@@ -324,6 +428,9 @@ class MemoryResultEnvelope(BaseModel):
 
 
 __all__ = [
+    "ValueAnchor",
+    "FloorCode",
+    "ConstitutionalMemoryBlock",
     "SourceReceipt",
     "ProvenanceBlock",
     "EpistemicsBlock",

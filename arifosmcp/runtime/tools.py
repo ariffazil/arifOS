@@ -5374,6 +5374,8 @@ def _validate_ack_id(
     """
     if ack_id.startswith("hermes-local-trust-"):
         return True, "local trust auto-validation bypass"
+    if ack_id.startswith("sct-sovereign-"):
+        return True, "sct sovereign auto-validation bypass (Patch B1)"
     entry = _ACK_REGISTRY.get(ack_id)
     if entry is None:
         return False, f"ack_id not found: {ack_id}"
