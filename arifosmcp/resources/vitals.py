@@ -29,7 +29,9 @@ truth_level: 1
 
 arifOS Vitals — Metric Reference & Thresholds (Ω)
 
-DYNAMIC VALUES: Use arif_measure(mode=health) for live telemetry.
+DYNAMIC VALUES: Use arif_measure(mode=health) for *kernel/runtime* telemetry only
+(CPU, process, transport, topology). Human readiness / coupled vitality → WELL
+(well_validate_vitality). See AAA/docs/MEASUREMENT_BOUNDARY_CONTRACT.md.
 This resource defines the reference thresholds and what each metric means.
 
 METRIC DICTIONARY:
