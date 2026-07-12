@@ -828,6 +828,143 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# MODEL HAZARD GATE — checks compiled registry for model-specific restrictions
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _model_hazard_check(
+    envelope: KernelEnvelope,
+    requested_action: ActionClass,
+) -> GateResult | None:
+    """Check model hazard profile from compiled registry.
+
+    If the model has known hazards that match the requested action,
+    enforce stricter controls: HOLD for destructive actions, require
+    explicit authority for credential operations, etc.
+
+    FAIL-OPEN: if registry unavailable or model not found, returns None.
+    The gate pipeline continues with standard checks.
+    """
+    import json as _json
+    from pathlib import Path as _Path
+
+    model_key = envelope.kernel.declared_model_key
+    if not model_key:
+        return None
+
+    compiled_path = _Path("/root/AAA/registry/compiled/FEDERATION_MODEL.json")
+    if not compiled_path.is_file():
+        return None
+
+    try:
+        with open(compiled_path) as f:
+            compiled = _json.load(f)
+    except Exception:
+        return None
+
+    # Find matching model
+    key_lower = model_key.lower().strip()
+    matched = None
+    for model in compiled.get("models", []):
+        mk = model.get("model_key", "").lower()
+        family = model.get("family", "").lower()
+        if key_lower in mk or mk in key_lower or key_lower in family or family in key_lower:
+            matched = model
+            break
+
+    if not matched:
+        return None
+
+    hazards = matched.get("hazards", [])
+    floor_deltas = matched.get("floor_deltas", {})
+    forbidden = matched.get("forbidden", [])
+    requires_ack = matched.get("requires_human_ack_for", [])
+
+    if not hazards and not floor_deltas and not forbidden:
+        return None
+
+    reasons: list[str] = []
+    violations: list[str] = []
+    trigger_hold = False
+
+    # ── Check forbidden actions ────────────────────────────────────
+    # Map action classes to forbidden keywords
+    action_forbidden_map = {
+        ActionClass.IRREVERSIBLE: ["irreversible_commit", "self_authorize"],
+        ActionClass.MUTATE: ["self_authorize"],
+        ActionClass.EXTERNAL_SIDE_EFFECT: ["self_authorize", "scope_expansion_without_approval"],
+    }
+
+    for forbidden_key in forbidden:
+        if requested_action in action_forbidden_map:
+            if forbidden_key in action_forbidden_map[requested_action]:
+                reasons.append(
+                    f"Action {requested_action.value} forbidden by model policy: "
+                    f"'{forbidden_key}'"
+                )
+                violations.append(f"MODEL_HAZARD — forbidden: {forbidden_key}")
+                trigger_hold = True
+
+    # ── Check floor deltas for stricter posture ────────────────────
+    # If floor_deltas include reversibility_strict or human_hold_for_irreversible,
+    # enforce HOLD on IRREVERSIBLE actions
+    if requested_action == ActionClass.IRREVERSIBLE:
+        if "F01" in floor_deltas and floor_deltas["F01"] in (
+            "reversibility_strict", "human_hold_for_irreversible"
+        ):
+            reasons.append(
+                f"Model hazard floor F01={floor_deltas['F01']}: "
+                f"IRREVERSIBLE actions require explicit human hold"
+            )
+            violations.append("MODEL_HAZARD — F01 reversibility_strict")
+            trigger_hold = True
+
+        if "F13" in floor_deltas and floor_deltas["F13"] == "human_hold_for_irreversible":
+            reasons.append(
+                "Model hazard floor F13=human_hold_for_irreversible: "
+                "sovereign hold required"
+            )
+            violations.append("MODEL_HAZARD — F13 human_hold")
+            trigger_hold = True
+
+    # ── Check requires_human_ack_for ──────────────────────────────
+    ack_triggers = {
+        ActionClass.IRREVERSIBLE: ["irreversible_delete", "destructive_cleanup"],
+        ActionClass.MUTATE: ["credential_movement", "git_push"],
+        ActionClass.EXTERNAL_SIDE_EFFECT: ["external_relay"],
+    }
+    if requested_action in ack_triggers:
+        for ack_key in ack_triggers[requested_action]:
+            if ack_key in requires_ack:
+                if not envelope.authority.f13_sovereign_required:
+                    reasons.append(
+                        f"Model policy requires human ack for '{ack_key}' "
+                        f"on action {requested_action.value}"
+                    )
+                    violations.append(f"MODEL_HAZARD — requires_ack: {ack_key}")
+                    trigger_hold = True
+
+    if trigger_hold:
+        logger.warning(
+            "MODEL_HAZARD_GATE: model=%s action=%s hazards=%s hold_reasons=%s",
+            model_key,
+            requested_action.value,
+            hazards,
+            reasons,
+        )
+        return GateResult(
+            envelope=envelope,
+            verdict=GateVerdict.HOLD,
+            reasons=reasons,
+            violations=violations,
+            blocked_action_class=requested_action,
+            required_human_ack=True,
+        )
+
+    return None
+
+
 def pre_execution_gate(
     envelope: KernelEnvelope,
     requested_action: ActionClass,
@@ -928,6 +1065,14 @@ def pre_execution_gate(
     asi_gate = _asi_firewall_check(envelope, requested_action)
     if asi_gate is not None:
         return asi_gate
+
+    # ── Gate 2.75: Model Hazard Profile Check ──────────────────────────
+    # Checks compiled registry for model-specific hazards and floor deltas.
+    # Enforces stricter controls on models with known failure modes (e.g.
+    # GPT-5.6 mandate_drift). FAIL-OPEN if registry unavailable.
+    model_hazard_gate = _model_hazard_check(envelope, requested_action)
+    if model_hazard_gate is not None:
+        return model_hazard_gate
 
     # ── Gate 2.5: ART reflex advisory check ────────────────────────────
     # Calls the stateless ART reflex (4 tool states × 3 checks) and maps

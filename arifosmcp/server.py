@@ -1377,6 +1377,30 @@ try:
                 exc,
             )
 
+    # ── Model Registry Query — compiled registry MCP surface ────────────────
+    # Read-only query tool for the model registry. No session required.
+    from arifosmcp.tools.registry_query import arif_model_registry as _registry_query
+
+    mcp.tool(
+        name="arif_model_registry",
+        description=(
+            "Query the arifOS model registry. Modes: "
+            "list (all models with status/hazard count), "
+            "profile (full model profile — hazards, floor posture, forbidden actions), "
+            "check (is an action allowed for a model?), "
+            "manifest (registry hashes and metadata). "
+            "Read-only. No session required. Source: compiled registry from aaa-registry compile."
+        ),
+        tags={"registry", "model", "read-only", "governance"},
+        annotations={
+            "readOnlyHint": True,
+            "destructiveHint": False,
+            "openWorldHint": False,
+            "idempotentHint": True,
+        },
+    )(_registry_query)
+    logger.info("Model registry query tool registered — arif_model_registry.")
+
     # ── Hermes Agent diagnostic tools (expanded45 surface) ─────────────────────
     # GATED: only registered when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true (F13 canonical13 enforcement).
     # Conformance spine runs via arif_canary(mode="conformance_report") which is also gated.
