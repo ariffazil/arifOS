@@ -344,6 +344,7 @@ from .tool_discovery import register_tool_discovery
 from .retrieve_tools import register_retrieve_tools
 from .vault999_template import register_vault999_template
 from .surface_map import register_surface_map
+from .wisdom_resources import register_wisdom_resources
 
 CANONICAL_RESOURCES = (
     "arifos://doctrine",
@@ -441,4 +442,5 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_retrieve_tools(mcp))
     registered.extend(register_vault999_template(mcp))
     registered.extend(register_surface_map(mcp))
+    registered.extend(register_wisdom_resources(mcp))
     return registered

@@ -2041,6 +2041,16 @@ async def arif_critique(
                 "dominant_reason": result.get("degraded_reason"),
             }
 
+        # Zen Apex witness AFTER analysis complete.
+        # Paradox anchors remain legacy cultural layer; zen witness is the
+        # single provenance-gated presentation path (WITNESS_NOT_EVIDENCE).
+        try:
+            from arifosmcp.composer import attach_zen_witness_to_result
+
+            result = attach_zen_witness_to_result(result, stage="555_HEART")
+        except Exception:
+            result.setdefault("meta", {})["quote_resolution_status"] = "UNAVAILABLE"
+
     return result
 
 
