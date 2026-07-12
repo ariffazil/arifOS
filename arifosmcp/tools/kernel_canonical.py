@@ -358,11 +358,42 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # and route to that organ BEFORE the kernel guard fires.
     _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS")
 
-    # Step 1: organ-qualified phrases win. If intent starts with an organ
-    # name OR contains "<organ> organ" / "<organ> health", route to it.
+    # Step 1: organ-qualified phrases win.
+    # HARDEN-C P0 (2026-07-12): bare " well " must NOT match geoscience
+    # "seismic well tie" / "well log" — only explicit WELL-organ phrases.
     for organ_name in _ORGAN_NAMES:
-        # "WELL organ health" → WELL; "GEOX earth evidence" → GEOX; etc.
         organ_lower = organ_name.lower().replace("-", " ").replace("a forge", "a_forge")
+        if organ_name == "WELL":
+            _well_organ_phrases = (
+                "well organ",
+                "well readiness",
+                "well vitality",
+                "well substrate",
+                "well mcp",
+                "well health check",
+                "well homeostasis",
+                "well dignity",
+                "well fatigue",  # organ context when paired with well organ language
+                " the well organ",
+                "well://",
+            )
+            if any(p in intent_lower for p in _well_organ_phrases) or intent_lower.startswith(
+                "well organ"
+            ):
+                # Still exclude pure geoscience if "well log/tie/desurvey" dominates
+                _geo_well = (
+                    "well log",
+                    "well tie",
+                    "well_qc",
+                    "well_desurvey",
+                    "well_ingest",
+                    "seismic well",
+                    "well logs",
+                )
+                if any(g in intent_lower for g in _geo_well) and "well organ" not in intent_lower:
+                    continue
+                return "well"
+            continue  # never bare-token match WELL
         if (
             intent_lower.startswith(organ_lower + " ")
             or f" {organ_lower} " in intent_lower
@@ -429,17 +460,37 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
         if pattern in intent_lower:
             return "arifOS"
 
-    # Step 3: YAML intent map — longest keyword match wins
+    # Step 3: YAML intent map — scored match (HARDEN-C 2026-07-12)
+    # Longest-only failed: "prospect" (8) beat "npv" (3) for "NPV of a prospect".
+    # Score = sum of matched keyword lengths; capital verbs get a boost when
+    # explicit capital tokens appear; geo "well *" no longer steals WELL organ.
     intent_map = _load_intent_map()
     organ_routes = intent_map.get("organ_routes", {})
-    best_match = None
-    best_len = 0
+    _CAPITAL_TOKENS = ("npv", "irr", "emv", "cash flow", "portfolio", "capital", "investment")
+    _has_capital = any(t in intent_lower for t in _CAPITAL_TOKENS)
+    scores: dict[str, int] = {}
     for organ_key, organ_config in organ_routes.items():
+        organ_label = str(organ_config.get("organ", organ_key.upper()))
+        score = 0
         for kw in organ_config.get("intent_keywords", []):
-            if kw.lower() in intent_lower and len(kw) > best_len:
-                best_len = len(kw)
-                best_match = organ_config.get("organ", organ_key.upper())
-    return best_match or "arifOS"
+            kl = kw.lower()
+            if kl in intent_lower:
+                score += len(kl)
+                # Prefer multi-word / exact phrases
+                if " " in kl:
+                    score += 2
+        if score <= 0:
+            continue
+        if organ_label.upper() == "WEALTH" and _has_capital:
+            score += 12  # capital verb outweighs lone geology noun "prospect"
+        if organ_label.upper() == "GEOX" and _has_capital and "prospect" in intent_lower:
+            # demote pure prospect hit when capital terms present
+            score = max(0, score - 6)
+        scores[organ_label] = scores.get(organ_label, 0) + score
+    if scores:
+        best_match = max(scores.items(), key=lambda kv: kv[1])[0]
+        return best_match
+    return "arifOS"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

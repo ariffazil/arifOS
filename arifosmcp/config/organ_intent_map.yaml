@@ -191,6 +191,10 @@ organ_routes:
       - systemctl restart
       - systemd unit
       - service restart
+      - restart systemd
+      - restart systemd service
+      - restart service
+      - restart the service
       - make deploy
       - code deploy
       - rollback
@@ -330,6 +334,11 @@ organ_routes:
       - npv
       - irr
       - emv
+      - npv of a prospect
+      - npv of prospect
+      - prospect npv
+      - prospect emv
+      - emv of a prospect
       - option
       - derivative
       - pricing
