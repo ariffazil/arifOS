@@ -1084,6 +1084,14 @@ async def arif_judge(
             "REMOVED_2026-07-04_FORGE - see docs/canon/paradox_anchors.md. "
             "Enforceability comes from floor gates, not quote anchors."
         )
+        # Zen Apex: freeze DecisionCore + optional witness AFTER verdict.
+        # Witness is presentation only — never mutates verdict/floors.
+        try:
+            from arifosmcp.composer import attach_zen_witness_to_result
+
+            result = attach_zen_witness_to_result(result, stage="999_RECEIPT")
+        except Exception:
+            result.setdefault("meta", {})["quote_resolution_status"] = "UNAVAILABLE"
 
     # ── Conflict Resolution (P0 wiring — I1 bridge) ──────────────────────
     # After verdict is rendered, run conflict resolution to determine if this

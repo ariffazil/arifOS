@@ -48,6 +48,11 @@ _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 if os.path.exists(_env_path):
     load_dotenv(_env_path, override=False)  # systemd EnvironmentFile wins
 
+
+# ── Entropy Integrity Mesh — add to path ───────────────────────────
+_entropy_integrity_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "..", "entropy-integrity")
+if os.path.isdir(_entropy_integrity_path):
+    sys.path.insert(0, _entropy_integrity_path)
 _llm_client = sys.modules.get("arifosmcp.runtime.llm_client")
 if _llm_client is not None:
     _llm_client.SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")  # pyright: ignore[reportAttributeAccessIssue]
@@ -850,8 +855,9 @@ try:
     )(_arif_canary_handler)
     v2_tools_registered.append("arif_canary")
 
-    # NOW run surface assertion — all CANONICAL_12 tools registered
-    _assert_registered_surface(v2_tools_registered)
+    # Surface assertion runs AFTER all optional/entropy mesh tools register
+    # (see below). Asserting here was a boot-loop bug when CANONICAL surface
+    # grew before late registrations completed.
 
     # ── Deprecation aliases — ghost tool redirect (SESAT fix 2026-07-05) ────
     # arif_kernel_intercept is a retired internal name. Its role is now split
@@ -1219,6 +1225,88 @@ try:
             "Federation attest/lease/heartbeat/peer-contract tools gated — "
             "set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
         )
+
+
+    # ── Entropy Integrity Mesh — Kernel tools ──────────────────────────
+    try:
+        from mcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe
+        from mcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess
+        from mcp.entropy_kernel.correction_probe import arif_correction_probe as _correction_probe
+        from mcp.entropy_kernel.consequence_trace import arif_consequence_trace as _consequence_trace
+        from mcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route
+        from mcp.entropy_kernel.j_gate import arif_j_gate as _j_gate
+
+        mcp.tool(
+            name="arif_entropy_observe",
+            description=(
+                "Register a structured entropy observation from an authorised organ. "
+                "Collects observations WITHOUT producing a verdict. Validates against "
+                "prohibited-inference policy. Enters J-state pipeline after validation."
+            ),
+            tags={"entropy", "kernel", "observe", "phase1"},
+        )(_entropy_observe)
+        v2_tools_registered.append("arif_entropy_observe")
+
+        mcp.tool(
+            name="arif_j_state_assess",
+            description=(
+                "Fuse organ observations into a judgment-integrity map. "
+                "Computes 5 J-planes using MINIMUM-FLOOR aggregation. "
+                "Never outputs a diagnosis or moral identity."
+            ),
+            tags={"entropy", "kernel", "assess", "phase1"},
+        )(_j_state_assess)
+        v2_tools_registered.append("arif_j_state_assess")
+
+        mcp.tool(
+            name="arif_correction_probe",
+            description=(
+                "Generate a neutral challenge and record the response. "
+                "Modes: draft_probe, record_response, classify_response, close_probe."
+            ),
+            tags={"entropy", "kernel", "probe", "phase1"},
+        )(_correction_probe)
+        v2_tools_registered.append("arif_correction_probe")
+
+        mcp.tool(
+            name="arif_consequence_trace",
+            description=(
+                "Trace who makes the decision, who receives benefits, "
+                "who bears harm, and who can reverse it."
+            ),
+            tags={"entropy", "kernel", "trace", "phase1"},
+        )(_consequence_trace)
+        v2_tools_registered.append("arif_consequence_trace")
+
+        mcp.tool(
+            name="arif_entropy_route",
+            description=(
+                "Route domain questions to the correct organ. "
+                "Human stress → WELL; capital → WEALTH; physical → GEOX; runtime → A-FORGE."
+            ),
+            tags={"entropy", "kernel", "route", "phase1"},
+        )(_entropy_route)
+        v2_tools_registered.append("arif_entropy_route")
+
+        mcp.tool(
+            name="arif_j_gate",
+            description=(
+                "Convert J-state evidence into action posture. "
+                "J0→VOID, J1→HOLD, J2→reversible only, J3→bounded, J4→witnessed. "
+                "Never issues VAULT999 SEAL autonomously."
+            ),
+            tags={"entropy", "kernel", "gate", "phase1"},
+        )(_j_gate)
+        v2_tools_registered.append("arif_j_gate")
+
+        logger.info("Entropy Integrity Mesh kernel tools registered: 6 tools")
+    except ImportError as _entropy_err:
+        logger.warning("Entropy Integrity Mesh not available: %s", _entropy_err)
+    except Exception as _entropy_err:
+        logger.error("Entropy Integrity Mesh registration failed: %s", _entropy_err)
+
+    # NOW run surface assertion — full public + optional mesh registrations done
+    _assert_registered_surface(v2_tools_registered)
 
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)

@@ -244,6 +244,9 @@ reports/
 rendered/
 logs/
 data/
+# Canonical quote registry must be versioned (zen-witness doctrine)
+!arifosmcp/data/
+!arifosmcp/data/quote_registry_v2.json
 research/
 
 # Root-level working files
