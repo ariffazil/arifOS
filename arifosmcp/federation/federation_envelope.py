@@ -391,18 +391,20 @@ def finalize_response_envelope(
     }
 
     # Echo request envelope for parity check (if available)
+    # Handle two shapes:
+    #   1. envelope is the raw federation_envelope (has __federation_envelope_version)
+    #   2. envelope is call_args["_envelope"] (has __federation_envelope as sub-key)
     if envelope and isinstance(envelope, dict):
-        fed_env = envelope.get("__federation_envelope") if isinstance(envelope, dict) else envelope
+        fed_env: dict[str, Any] | None = None
+        if "__federation_envelope_version" in envelope:
+            fed_env = envelope
+        elif "__federation_envelope" in envelope:
+            fed_env = envelope["__federation_envelope"]
         if isinstance(fed_env, dict):
-            resp_section["response"]["request_hash"] = fed_env.get("request", {}).get(
-                "request_hash", ""
-            )
-            resp_section["response"]["target_organ"] = fed_env.get("request", {}).get(
-                "target_organ", ""
-            )
-            resp_section["response"]["target_tool"] = fed_env.get("request", {}).get(
-                "target_tool", ""
-            )
+            req = fed_env.get("request", {})
+            resp_section["response"]["request_hash"] = req.get("request_hash", "")
+            resp_section["response"]["target_organ"] = req.get("target_organ", "")
+            resp_section["response"]["target_tool"] = req.get("target_tool", "")
 
     response.update(resp_section)
 
