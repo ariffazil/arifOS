@@ -589,15 +589,17 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
         registered_set.discard(_sdk_alias)
     # Optional Entropy Integrity Mesh — may register when importable; never
     # public surface. Discard so boot neither requires nor rejects them.
-    for _mesh in (
+    _MESH = {
         "arif_entropy_observe",
         "arif_j_state_assess",
         "arif_correction_probe",
         "arif_consequence_trace",
         "arif_entropy_route",
         "arif_j_gate",
-    ):
+    }
+    for _mesh in _MESH:
         registered_set.discard(_mesh)
+        expected_set.discard(_mesh)
     if registered_set != expected_set:
         missing = expected_set - registered_set
         unexpected = registered_set - expected_set
@@ -1306,7 +1308,15 @@ try:
             tags={"entropy", "kernel", "gate", "phase1"},
         )(_j_gate)
 
-        logger.info("Entropy Integrity Mesh kernel tools registered: 6 tools (optional surface)")
+        v2_tools_registered.extend([
+            "arif_entropy_observe",
+            "arif_j_state_assess",
+            "arif_correction_probe",
+            "arif_consequence_trace",
+            "arif_entropy_route",
+            "arif_j_gate",
+        ])
+        logger.info("Entropy Integrity Mesh kernel tools registered: 6 tools")
     except ImportError as _entropy_err:
         logger.warning("Entropy Integrity Mesh not available: %s", _entropy_err)
     except Exception as _entropy_err:
