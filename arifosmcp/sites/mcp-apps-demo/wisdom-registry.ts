@@ -1,19 +1,17 @@
 /**
- * arifOS MCP Apps — Governed Wisdom Registry v3
- * 
- * CANONICAL SOURCE: /root/arifOS/arifosmcp/data/quote-registry-v1.json
- * RESOLVER: arifosmcp.runtime.quote_registry.wisdom_quote_resolve
- * 
- * This is the AAA PRESENTATION LAYER. The canonical registry lives in Python.
- * Display badges must match the 8 provenance classes from the spec.
- * 
- * v3 additions (2026-07-12):
- *  - 8 provenance classes with epistemic badges
- *  - PRIMARY_VERIFIED | SECONDARY_VERIFIED | PARAPHRASE | DISPUTED_ATTRIBUTION
- *  - PROVERB | SCRIPTURAL_TRANSLATION | FICTIONAL_VOICE | ARIFOS_DOCTRINE
- *  - Quotes are resources, not tools
- *  - Display badge function for AAA UI
+ * arifOS MCP Apps — Wisdom Presentation Layer (zen seal 2026-07-12)
+ *
+ * CANONICAL SOURCE: arifosmcp/data/quote_registry_v2.json
+ * RESOLVER:         arifosmcp.runtime.quote_registry.wisdom_quote_resolve
+ * COMPOSER:         arifosmcp.composer.compose_zen_apex
+ *
+ * This file is AAA DISPLAY ONLY. Embedded quotes below are a UI cache —
+ * not an authority. Intelligence decisions never load this file.
+ *
+ * Provenance badges must match the 8 classes on the Python registry.
+ * Quotes are resources, not tools. WITNESS_NOT_EVIDENCE.
  */
+
  
 // ═══════════════════════════════════════════════════════════════════════════════
 // PROVENANCE — Epistemic Display Badges (2026-07-12 spec)

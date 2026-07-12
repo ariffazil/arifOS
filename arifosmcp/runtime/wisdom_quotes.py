@@ -1,20 +1,14 @@
 """
-arifosmcp/runtime/wisdom_quotes.py — Governed Wisdom Registry v2
+arifosmcp/runtime/wisdom_quotes.py — LEGACY Governed Wisdom Registry
 
-Unified quote corpus mapped from real VPS sources:
-  - /root/arifOS/arifosmcp/runtime/constitutional_quotes.json (100 tool-mapped quotes)
-  - /root/arifOS/wiki/raw/wisdom_quotes.json (arifOS Foundry corpus)
-  - /root/arifOS/wiki/pages/ (philosophy atlas — see wiki/pages/RECURSIVE_IMPROVEMENT_LOG.md)
+**DEPRECATED 2026-07-12 — FORGET as intelligence path.**
 
-v2 additions:
-  - attribution_confidence
-  - scar_weight / shadow_weight / paradox_weight
-  - contrast_pair / polarity
-  - verdict-aware selection with deterministic fallback
-  - audit logging of quote injection
+Canonical path:
+  - arifosmcp/data/quote_registry_v2.json
+  - arifosmcp.runtime.quote_registry.wisdom_quote_resolve
+  - arifosmcp.composer.compose_zen_apex
 
-Categories: truth | humility | restraint | judgment | memory | discipline |
-            responsibility | peribahasa | founder | seal | love | paradox | scar
+This module may still serve old call sites; do not extend.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

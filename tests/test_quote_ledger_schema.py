@@ -18,7 +18,14 @@ from arifosmcp.runtime.quote_ledger import (
     QuoteSchemaError,
 )
 
-LEDGER_PATH = Path(__file__).resolve().parents[1] / "arifosmcp" / "data" / "wisdom_quotes_99.json"
+# Forensic archive only — canonical intelligence path is quote_registry_v2.json
+LEDGER_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "arifosmcp"
+    / "data"
+    / ".archive-pre-zen-2026-07-12"
+    / "wisdom_quotes_99.json"
+)
 
 
 class TestLoadLedger:
