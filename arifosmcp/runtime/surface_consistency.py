@@ -119,7 +119,12 @@ def verify_surface_consistency() -> dict[str, Any]:
         from arifosmcp.runtime.public_registry import public_tool_specs
 
         specs = public_tool_specs()
-        spec_names = sorted(s["name"] for s in specs)
+        # Specs are SimpleNamespace (.name) not dicts — never use s["name"].
+        spec_names = sorted(
+            (getattr(s, "name", None) or (s.get("name") if isinstance(s, dict) else None) or "")
+            for s in specs
+        )
+        spec_names = [n for n in spec_names if n]
         _add_vantage("public_tool_specs", spec_names)
     except Exception as e:
         vantages.append(

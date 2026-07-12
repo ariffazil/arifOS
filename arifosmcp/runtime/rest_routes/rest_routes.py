@@ -1967,6 +1967,60 @@ def _count_mcp_tools(fmcp: Any) -> int:
     return 9
 
 
+def _kanon_version() -> str:
+    """Single pin used by /health, GET /mcp, /tools, /tools.json, initialize-adjacent cards."""
+    commit = (BUILD_INFO.get("build") or {}).get("commit") or ""
+    if commit and commit != "unknown":
+        return f"kanon-{commit}"
+    return f"kanon-{BUILD_VERSION}"
+
+
+def _mcp_discovery_payload(
+    tool_registry: dict[str, Any],
+    mcp: Any,
+    fastmcp_instance: Any = None,
+) -> dict[str, Any]:
+    """SOT discovery card for GET /mcp and root JSON.
+
+    Field meanings are locked to /health + tools/list:
+      tool_count / tools_exposed_via_mcp / tools_loaded = public wire count
+      tools_registry_size = internal registry callables (aliases included)
+      total_declared_tools = public + diagnostic declared surface
+    """
+    exposed = _count_mcp_tools(fastmcp_instance or mcp)
+    diagnostic = _get_diagnostic_tool_count(mcp)
+    commit = (BUILD_INFO.get("build") or {}).get("commit") or "unknown"
+    return {
+        "service": "ARIFOS MCP",
+        "version": _kanon_version(),
+        "release_name": BUILD_INFO["version"],
+        "git_commit": commit,
+        "protocol_version": MCP_PROTOCOL_VERSION,
+        "supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
+        "mcp_endpoint": "/mcp",
+        "tools_endpoint": "/tools",
+        "health_endpoint": "/health",
+        "documentation": "https://arifos.arif-fazil.com",
+        "canonical_mcp": "https://mcp.arif-fazil.com/mcp",
+        "tool_count": exposed,
+        "tools_exposed_via_mcp": exposed,
+        "tools_loaded": exposed,
+        "canonical_tools_loaded": exposed,
+        "tools_registry_size": len(tool_registry),
+        "diagnostic_tools": diagnostic,
+        "total_declared_tools": exposed + diagnostic,
+        "tool_count_semantics": {
+            "tool_count": "Public MCP tools/list facade (same as /tools and /tools.json)",
+            "tools_loaded": "Same as tool_count — public wire tools currently loaded",
+            "tools_exposed_via_mcp": "Same as tool_count — default tools/list public facade",
+            "canonical_tools_loaded": "Same as tool_count — public constitutional surface",
+            "tools_registry_size": "Internal registry callables (canonical + aliases)",
+            "diagnostic_tools": "Declared DIAGNOSTIC_TOOLS (not on default public wire)",
+            "total_declared_tools": "public wire + diagnostic declared surface",
+        },
+    }
+
+
 def _get_diagnostic_tool_count(mcp: Any) -> int:
     """Return the count of diagnostic tools from the live DIAGNOSTIC_TOOLS dict.
 
@@ -2429,30 +2483,9 @@ def register_rest_routes(
         finally:
             federation_ledger.close()
 
-        # F2: tool_count = public MCP facade (/tools, tools/list), NOT full registry.
-        exposed = _count_mcp_tools(fastmcp_instance or mcp)
+        # F2: discovery card must match /health + tools/list public facade.
         return JSONResponse(
-            {
-                "service": "arifOS AAA MCP Server",
-                "version": BUILD_INFO["version"],
-                "protocol_version": MCP_PROTOCOL_VERSION,
-                "supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
-                "mcp_endpoint": "/mcp",
-                "tools_endpoint": "/tools",
-                "health_endpoint": "/health",
-                "tool_count": exposed,
-                "tools_exposed_via_mcp": exposed,
-                "tools_loaded": len(tool_registry),
-                "total_declared_tools": (
-                    getattr(mcp, "_tool_count", len(tool_registry))
-                    + _get_diagnostic_tool_count(mcp)
-                ),
-                "tool_count_semantics": {
-                    "tool_count": "Public MCP tools/list facade (same as /tools)",
-                    "tools_loaded": "Internal registry callables (canonical + aliases)",
-                    "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS",
-                },
-            }
+            _mcp_discovery_payload(tool_registry, mcp, fastmcp_instance)
         )
 
     # Load AAA landing page HTML
@@ -2475,32 +2508,9 @@ def register_rest_routes(
         accept = request.headers.get("Accept", "")
         if "text/html" in accept:
             return HTMLResponse(aaa_landing_html, headers={"Cache-Control": "max-age=60"})
-        # For MCP clients requesting JSON
-        # F2 (2026-07-08): tool_count must match /tools + tools/list public facade.
-        # Previously len(tool_registry) advertised 52 while /tools returned 12.
-        exposed = _count_mcp_tools(fastmcp_instance or mcp)
+        # For MCP clients requesting JSON — same SOT payload as root + /health counts.
         return JSONResponse(
-            {
-                "service": "arifOS AAA MCP Server",
-                "version": BUILD_INFO["version"],
-                "protocol_version": MCP_PROTOCOL_VERSION,
-                "mcp_endpoint": "/mcp",
-                "tools_endpoint": "/tools",
-                "health_endpoint": "/health",
-                "documentation": "https://arifos.arif-fazil.com",
-                "tool_count": exposed,
-                "tools_exposed_via_mcp": exposed,
-                "tools_loaded": len(tool_registry),
-                "total_declared_tools": (
-                    getattr(mcp, "_tool_count", len(tool_registry))
-                    + _get_diagnostic_tool_count(mcp)
-                ),
-                "tool_count_semantics": {
-                    "tool_count": "Public MCP tools/list facade (same as /tools)",
-                    "tools_loaded": "Internal registry callables (canonical + aliases)",
-                    "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS",
-                },
-            }
+            _mcp_discovery_payload(tool_registry, mcp, fastmcp_instance)
         )
 
     @route("/docs", methods=["GET"])
@@ -2603,19 +2613,16 @@ def register_rest_routes(
                 "error": str(_tp_err)[:200],
             }
 
+        _exposed = _count_mcp_tools(fastmcp_instance or mcp)
+        _diagnostic = _get_diagnostic_tool_count(mcp)
         payload = {
             "status": "healthy",
             "identity_hash": identity_hash,
-            "service": "arifOS-mcp",
+            "service": "ARIFOS MCP",
             "mcp_protocol_version": MCP_PROTOCOL_VERSION,
             "mcp_supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
             "release_name": BUILD_INFO["version"],
-            "version": (
-                f"kanon-{BUILD_INFO['build']['commit']}"
-                if BUILD_INFO.get("build", {}).get("commit")
-                and BUILD_INFO["build"]["commit"] != "unknown"
-                else f"kanon-{BUILD_VERSION}"
-            ),
+            "version": _kanon_version(),
             "git_commit": BUILD_INFO["build"].get("commit") or BUILD_VERSION,
             "git_branch": BUILD_INFO["build"].get("branch"),
             "build_time": BUILD_INFO["build"].get("built_at"),
@@ -2629,38 +2636,22 @@ def register_rest_routes(
             "deployment_marker_exists": os.path.exists("/opt/arifos/app/.git_commit"),
             "runtime_path": str(Path(__file__).resolve().parents[3]),
             "transport": "streamable-http",
-            "tools_loaded": getattr(
-                mcp,
-                "_tool_count",
-                len(tool_registry),
-            ),
-            "canonical_tools_loaded": getattr(
-                mcp,
-                "_tool_count",
-                len(tool_registry),
-            ),
-            "tools_exposed_via_mcp": _count_mcp_tools(fastmcp_instance or mcp),
-            "canonical_tools": getattr(
-                mcp,
-                "_tool_count",
-                len(tool_registry),
-            ),
-            # Derive counts from the live CANONICAL_TOOLS + DIAGNOSTIC_TOOLS dicts.
-            # No hardcoded fallbacks. No attribute roulette. Single source of truth.
-            "diagnostic_tools": _get_diagnostic_tool_count(mcp),
-            "total_declared_tools": (
-                getattr(mcp, "_tool_count", len(tool_registry)) + _get_diagnostic_tool_count(mcp)
-            ),
-            "operational_tools": max(
-                0,
-                _count_mcp_tools(fastmcp_instance or mcp)
-                - getattr(mcp, "_tool_count", len(tool_registry)),
-            ),
+            # SOT: tools_loaded == tools_exposed_via_mcp == public tools/list count
+            "tools_loaded": _exposed,
+            "canonical_tools_loaded": _exposed,
+            "tools_exposed_via_mcp": _exposed,
+            "canonical_tools": _exposed,
+            "tools_registry_size": len(tool_registry),
+            "diagnostic_tools": _diagnostic,
+            "total_declared_tools": _exposed + _diagnostic,
+            "operational_tools": 0,
             "tool_count_semantics": {
-                "canonical_tools_loaded": "Constitutional core tools from CANONICAL_TOOLS (dynamically derived)",
-                "diagnostic_tools": "Supporting MCP tools (leases, probes, Hermes, forge helpers, attestation, diagnostics) from DIAGNOSTIC_TOOLS",
+                "tools_loaded": "Public MCP tools/list facade (same as GET /mcp tool_count)",
+                "canonical_tools_loaded": "Same as tools_loaded — public constitutional surface",
                 "tools_exposed_via_mcp": "Total tools returned by default MCP tools/list public facade",
-                "total_declared_tools": "CANONICAL_TOOLS + DIAGNOSTIC_TOOLS (the full declared surface)",
+                "tools_registry_size": "Internal registry callables (canonical + aliases)",
+                "diagnostic_tools": "Declared DIAGNOSTIC_TOOLS (not on default public wire)",
+                "total_declared_tools": "public wire + diagnostic declared surface",
             },
             "tool_manifest_url": "https://arifos.arif-fazil.com/tools.json",
             "tool_manifest_hash": "auto-generated",
@@ -3640,7 +3631,16 @@ def register_rest_routes(
             if meta:
                 entry["meta"] = meta
             tool_list.append(entry)
-        return JSONResponse({"tools": tool_list, "count": len(tool_list)})
+        return JSONResponse(
+            {
+                "tools": tool_list,
+                "count": len(tool_list),
+                "service": "ARIFOS MCP",
+                "version": _kanon_version(),
+                "release_name": BUILD_INFO["version"],
+                "source_of_truth": "public_tool_names() == tools/list == /tools.json",
+            }
+        )
 
     @route("/tools/", methods=["GET"])
     async def list_tools_slash(request: Request) -> Response:
@@ -6675,68 +6675,95 @@ setInterval(refreshSot, 30000);
 
     @route("/tools.json", methods=["GET"])
     async def tools_json_endpoint(request: Request) -> JSONResponse:
-        """P1: Machine-readable tool charter — real JSON Schema, risk labels, floor bindings."""
+        """Machine-readable tool charter — public facade only (SOT with tools/list).
+
+        Primary `tools` list is exactly public_tool_names() order.
+        Internal CANONICAL_TOOLS (expose=False) are listed under `internal_tools`
+        for operator audit — never counted as public.
+        """
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
         from arifosmcp.tool_charter import TOOL_CHARTER
 
+        public_names = list(public_tool_names())
+        public_set = set(public_names)
         spec_by_name = {spec.name: spec for spec in public_tool_specs()}
-        tools_out = []
-        for name, spec in CANONICAL_TOOLS.items():
+
+        def _tool_entry(name: str, spec: dict[str, Any]) -> dict[str, Any]:
             runtime_spec = spec_by_name.get(name)
             manifest_spec = TOOL_CHARTER.get(name, {})
-            tools_out.append(
-                {
-                    "name": name,
-                    "description": (
-                        runtime_spec.description if runtime_spec else spec.get("description", "")
+            stage = spec.get("stage", "")
+            if hasattr(stage, "value"):
+                stage = stage.value
+            lane = spec.get("lane", "")
+            if hasattr(lane, "value"):
+                lane = lane.value
+            floors = spec.get("floors", [])
+            floor_out = []
+            for f in floors:
+                floor_out.append(f.value if hasattr(f, "value") else f)
+            return {
+                "name": name,
+                "description": (
+                    runtime_spec.description if runtime_spec else spec.get("description", "")
+                ),
+                "inputSchema": (
+                    runtime_spec.input_schema
+                    if runtime_spec is not None
+                    else {"type": "object", "properties": {}, "additionalProperties": False}
+                ),
+                "outputSchema": (
+                    runtime_spec.output_schema if runtime_spec is not None else None
+                ),
+                "stage": stage,
+                "lane": lane,
+                "risk": {
+                    "tier": manifest_spec.get("risk", {}).get(
+                        "tier", spec.get("risk_tier", "low")
                     ),
-                    "inputSchema": (
-                        runtime_spec.input_schema
-                        if runtime_spec is not None
-                        else {"type": "object", "properties": {}, "additionalProperties": False}
+                    "irreversible": manifest_spec.get("risk", {}).get(
+                        "irreversible", spec.get("irreversible", False)
                     ),
-                    "outputSchema": (
-                        runtime_spec.output_schema if runtime_spec is not None else None
+                    "requires_human_ack": manifest_spec.get("risk", {}).get(
+                        "requires_human_ack",
+                        spec.get("requires_auth") or False,
                     ),
-                    "stage": spec.get("stage", ""),
-                    "lane": spec.get("lane", ""),
-                    "risk": {
-                        # TOOL_CHARTER is authoritative; fall back to CANONICAL_TOOLS for tools
-                        # not yet registered in the charter (e.g. arif_act).
-                        "tier": manifest_spec.get("risk", {}).get(
-                            "tier", spec.get("risk_tier", "low")
-                        ),
-                        "irreversible": manifest_spec.get("risk", {}).get(
-                            "irreversible", spec.get("irreversible", False)
-                        ),
-                        "requires_human_ack": manifest_spec.get("risk", {}).get(
-                            "requires_human_ack",
-                            spec.get("requires_auth") or False,
-                        ),
-                    },
-                    "floors": spec.get("floors", []),
-                    "access": spec.get("access", "public"),
-                }
-            )
+                },
+                "floors": floor_out,
+                "access": spec.get("access", "public"),
+                "expose": bool(spec.get("expose", True)),
+            }
 
-        # schema_valid: check the 7 canonical registered tools only.
-        # The 7 are the MCP-registered surface regardless of access level
-        # (public/authenticated/sovereign). Internal tools (expose=false) are
-        # access-controlled and not MCP-client-facing — excluded from this check.
-        canonical_names = set(public_tool_names())
-        canonical_tools = [t for t in tools_out if t["name"] in canonical_names]
+        tools_out = []
+        for name in public_names:
+            tools_out.append(_tool_entry(name, CANONICAL_TOOLS.get(name, {"name": name})))
+
+        internal_out = []
+        for name, spec in CANONICAL_TOOLS.items():
+            if name in public_set:
+                continue
+            if spec.get("access") == "internal_only" or not spec.get("expose", True):
+                internal_out.append(_tool_entry(name, spec))
+
         schema_valid = all(
-            "properties" in t["inputSchema"] and t.get("outputSchema") is not None
-            for t in canonical_tools
+            isinstance(t.get("inputSchema"), dict)
+            and "properties" in t["inputSchema"]
+            and t.get("outputSchema") is not None
+            for t in tools_out
         )
 
         return JSONResponse(
             {
+                "service": "ARIFOS MCP",
                 "tools": tools_out,
                 "count": len(tools_out),
-                "canonical_count": len(canonical_tools),
+                "canonical_count": len(tools_out),
+                "internal_tools": internal_out,
+                "internal_count": len(internal_out),
                 "schema_valid": schema_valid,
-                "version": f"kanon-{os.environ.get('DEPLOY_GIT_COMMIT', 'dev')}",
+                "version": _kanon_version(),
+                "release_name": BUILD_INFO["version"],
+                "git_commit": (BUILD_INFO.get("build") or {}).get("commit") or "unknown",
+                "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json",
             }
         )
 

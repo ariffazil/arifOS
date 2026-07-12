@@ -1026,18 +1026,124 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "vitality",
         "expose": False,
     },
+    # ── Entropy Integrity Mesh — public wire (v2026.07.12) ──────────
+    # Must live in CANONICAL_TOOLS (not ONE_SKILL classification).
+    # Matches public_surface.CANONICAL_12 public facade.
+    "arif_entropy_observe": {
+        "name": "arif_entropy_observe",
+        "description": (
+            "Register a structured entropy observation from an authorised organ. "
+            "Collects observations WITHOUT producing a verdict. Validates against "
+            "prohibited-inference policy. Enters J-state pipeline after validation."
+        ),
+        "access": "public",
+        "stage": ToolStage.OBSERVE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L09_ANTIHANTU, Law.L02_TRUTH, Law.L11_AUDIT],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["observe"],
+        "eureka_insight": "F9: never infer hidden niat. Observe behavior, not character.",
+        "cognitive_axis": "observe",
+        "expose": True,
+    },
+    "arif_j_state_assess": {
+        "name": "arif_j_state_assess",
+        "description": (
+            "Fuse organ observations into a judgment-integrity map. "
+            "Computes 5 J-planes using MINIMUM-FLOOR aggregation. "
+            "Never outputs a diagnosis or moral identity."
+        ),
+        "access": "public",
+        "stage": ToolStage.JUDGE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L09_ANTIHANTU, Law.L02_TRUTH, Law.L04_CLARITY],
+        "risk_tier": "medium",
+        "irreversible": False,
+        "modes": ["assess"],
+        "eureka_insight": "J-state uses MINIMUM-FLOOR: weakest plane determines overall state.",
+        "cognitive_axis": "judge",
+        "expose": True,
+    },
+    "arif_correction_probe": {
+        "name": "arif_correction_probe",
+        "description": (
+            "Generate a neutral challenge and record the response. "
+            "Modes: draft_probe, record_response, classify_response, close_probe."
+        ),
+        "access": "public",
+        "stage": ToolStage.JUDGE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L11_AUDIT],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["draft_probe", "record_response", "classify_response", "close_probe"],
+        "eureka_insight": "Correction response is behavior evidence, not character judgment.",
+        "cognitive_axis": "judge",
+        "expose": True,
+    },
+    "arif_consequence_trace": {
+        "name": "arif_consequence_trace",
+        "description": (
+            "Trace who makes the decision, who receives benefits, "
+            "who bears harm, and who can reverse it."
+        ),
+        "access": "public",
+        "stage": ToolStage.OBSERVE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L06_EMPATHY, Law.L11_AUDIT],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["trace"],
+        "eureka_insight": "Consequence gap = power * benefit_capture * harm_distance * non_accountability.",
+        "cognitive_axis": "observe",
+        "expose": True,
+    },
+    "arif_entropy_route": {
+        "name": "arif_entropy_route",
+        "description": (
+            "Route domain questions to the correct organ. "
+            "Human stress -> WELL; capital -> WEALTH; physical -> GEOX; runtime -> A-FORGE."
+        ),
+        "access": "public",
+        "stage": ToolStage.ROUTE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L04_CLARITY],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["route"],
+        "eureka_insight": "Each organ measures only what it owns. arifOS combines signals.",
+        "cognitive_axis": "route",
+        "expose": True,
+    },
+    "arif_j_gate": {
+        "name": "arif_j_gate",
+        "description": (
+            "Convert J-state evidence into action posture. "
+            "J0->VOID, J1->HOLD, J2->reversible only, J3->bounded, J4->witnessed. "
+            "Never issues VAULT999 SEAL autonomously."
+        ),
+        "access": "public",
+        "stage": ToolStage.JUDGE,
+        "lane": TrinityLane.AGI,
+        "floors": [Law.L01_AMANAH, Law.L13_SOVEREIGN, Law.L09_ANTIHANTU],
+        "risk_tier": "high",
+        "irreversible": False,
+        "modes": ["gate"],
+        "eureka_insight": "F13: J-gate NEVER permits autonomous SEAL. Human veto is absolute.",
+        "cognitive_axis": "judge",
+        "expose": True,
+    },
 }
 
 
-# ═─ 12-Tool Public Surface (CANONICAL-12 2026-07-07) ──────
-# Public surface is 12 canonical tools: 9 stages + preflight + bridge + memory.
-# arif_fetch remains as mode=fetch on arif_observe (handler lives in _CANONICAL_HANDLERS
-# but registration fights the installed package — keeping as mode is cleaner).
+# ═─ Public wire surface (metabolic 12 + entropy mesh 6 = 18) ──────
+# SOT order/names live in public_surface.CANONICAL_12. This frozenset is the
+# expose=True filter for CANONICAL_TOOLS. Must stay set-equal to that tuple.
 # Tools not in this set are force-set to access="internal_only", expose=False.
 _PUBLIC_12: frozenset[str] = frozenset(
     {
         "arif_init",
-        "arif_triage",
         "arif_observe",
         "arif_think",
         "arif_route",
@@ -1048,7 +1154,13 @@ _PUBLIC_12: frozenset[str] = frozenset(
         "arif_forge",
         "arif_compose",
         "arif_seal",
-        "arif_verify",  # E1 JITU pre-execution gate — public padlock for ACT
+        "arif_verify",
+        "arif_entropy_observe",
+        "arif_j_state_assess",
+        "arif_correction_probe",
+        "arif_consequence_trace",
+        "arif_entropy_route",
+        "arif_j_gate",
     }
 )
 # Backward-compat aliases (DEPRECATED).

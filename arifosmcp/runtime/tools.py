@@ -20227,7 +20227,8 @@ _arif_think = _arif_mind_reason_tool
 
 _LEGACY_CANONICAL = 24
 _RULE14_CANONICAL_ALLOWANCE = 6  # arif_route, arif_triage, arif_kernel_status, arif_bridge, arif_kernel_attest, arif_kernel_health
-_MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE
+_ENTROPY_MESH_ALLOWANCE = 6  # arif_entropy_observe, j_state_assess, correction_probe, consequence_trace, entropy_route, j_gate
+_MAX_CANONICAL = _LEGACY_CANONICAL + _RULE14_CANONICAL_ALLOWANCE + _ENTROPY_MESH_ALLOWANCE
 
 _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     # ── RSI CONSOLIDATED PROBES (2026-06-22) ─────────────────────────────
@@ -20401,12 +20402,37 @@ except ImportError as _e:
         "C2-1 fabrication defense (arif_tool_exists / arif_cross_attest) not loaded: %s", _e
     )
 
+# Entropy Integrity Mesh (v2026.07.12) — public wire tools must bind handlers
+# so CANONICAL_TOOLS SOT and _CANONICAL_HANDLERS stay set-complete.
+try:
+    from arifosmcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe_h
+    from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess_h
+    from arifosmcp.entropy_kernel.correction_probe import arif_correction_probe as _correction_probe_h
+    from arifosmcp.entropy_kernel.consequence_trace import arif_consequence_trace as _consequence_trace_h
+    from arifosmcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route_h
+    from arifosmcp.entropy_kernel.j_gate import arif_j_gate as _j_gate_h
+
+    _CANONICAL_HANDLERS["arif_entropy_observe"] = _entropy_observe_h
+    _CANONICAL_HANDLERS["arif_j_state_assess"] = _j_state_assess_h
+    _CANONICAL_HANDLERS["arif_correction_probe"] = _correction_probe_h
+    _CANONICAL_HANDLERS["arif_consequence_trace"] = _consequence_trace_h
+    _CANONICAL_HANDLERS["arif_entropy_route"] = _entropy_route_h
+    _CANONICAL_HANDLERS["arif_j_gate"] = _j_gate_h
+except ImportError as _entropy_bind_err:
+    import logging as _logging
+
+    _logging.getLogger(__name__).warning(
+        "Entropy Integrity Mesh handlers not bound into _CANONICAL_HANDLERS: %s",
+        _entropy_bind_err,
+    )
+
 # Validation checks on canonical handlers after all registrations are completed
 if len(_CANONICAL_HANDLERS) != 13:
     # RULE 14 allows canonical expansion up to _MAX_CANONICAL
     if len(_CANONICAL_HANDLERS) > _MAX_CANONICAL:
         raise RuntimeError(
-            f"Expected <= {_MAX_CANONICAL} canonical handlers (13 legacy + 6 rule-14), found {len(_CANONICAL_HANDLERS)}"
+            f"Expected <= {_MAX_CANONICAL} canonical handlers "
+            f"(legacy + rule-14 + entropy mesh), found {len(_CANONICAL_HANDLERS)}"
         )
 
 # RULE 14: canonical handlers are stored in _CANONICAL_HANDLERS (legacy 13) +

@@ -33,6 +33,13 @@ CANONICAL_12: tuple[str, ...] = (
     "arif_compose",  # 888  — Response composer
     "arif_seal",  # 999  — VAULT999 seal
     "arif_verify",  # E1   — JITU pre-execution gate (SEAL token verification)
+    # ── Entropy Integrity Mesh — Kernel tools (v2026.07.12) ─────────
+    "arif_entropy_observe",  # E2 — Register entropy observations
+    "arif_j_state_assess",  # E3 — Fuse observations into J-state
+    "arif_correction_probe",  # E4 — Generate challenges, classify responses
+    "arif_consequence_trace",  # E5 — Trace decision consequences
+    "arif_entropy_route",  # E6 — Route entropy questions to organs
+    "arif_j_gate",  # E7 — Convert J-state to action posture
 )
 
 # ── DEPRECATED ALIASES (backward compat only) ─────────────────────────────
