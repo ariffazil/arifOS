@@ -989,6 +989,25 @@ def arif_think(
                 env.setdefault("apex_scalars", _standing_auth["apex"])
         return env
 
+    if session_id:
+        from arifosmcp.runtime.work_spine import consume
+
+        for resource in ("reasoning_cycle", "model_call"):
+            budget_state = consume(session_id, resource)
+            if not budget_state["allowed"]:
+                hold = _hold(
+                    "arif_think",
+                    budget_state["reason"],
+                    session_id=session_id,
+                    extra_meta={"work_budget": budget_state["snapshot"]},
+                )
+                hold["result"] = {
+                    "partial_result_preserved": True,
+                    "mutation_allowed": False,
+                    "termination_reason": budget_state["reason"],
+                }
+                return Synthesis(**_echo_standing(hold))
+
     # ── AKAL I1: Friction gate ────────────────────────────────────────────────
     from arifosmcp.core.akal_wiring import akal_pre_think as _akal_friction
 

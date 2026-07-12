@@ -186,10 +186,21 @@ def arif_measure(
             )
         )
     if mode == "cost":
+        from arifosmcp.runtime.work_spine import snapshot
+
+        work_snapshot = snapshot(session_id) if session_id else None
         return TelemetryBlock(
             **_ok(
                 "arif_measure",
-                {"estimate": estimate or 0.0, "currency": "USD"},
+                {
+                    "estimate": (
+                        work_snapshot["usage"]["estimated_cost_usd"]
+                        if work_snapshot
+                        else estimate or 0.0
+                    ),
+                    "currency": "USD",
+                    "work": work_snapshot,
+                },
                 session_id=session_id,
             )
         )

@@ -108,6 +108,10 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     tier_hint = payload.get("tier_hint", "L3")
     idempotency_key = payload.get("idempotency_key")
     constitutional = payload.get("constitutional")  # Δ Axis 3: moral provenance
+    applicability = payload.get("applicability", {})
+    future_value = payload.get("future_value", {})
+    memory_authority = payload.get("authority", {})
+    decision_lifecycle = payload.get("decision_lifecycle", {})
 
     # ── Validate ──
     if not content:
@@ -163,8 +167,12 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "content_hash": content_hash,
         "summary": summary,
         "tier_hint": tier_hint,
-        "schema_version": 5,
+        "schema_version": 6,
         "constitutional": constitutional,  # Δ Axis 3: moral provenance
+        "applicability": applicability,
+        "future_value": future_value,
+        "authority": memory_authority,
+        "decision_lifecycle": decision_lifecycle,
     }
 
     # ── Insert into L4 memory_store ──
@@ -249,6 +257,9 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "constitutional_seal": _sealed,
         "constitutional": constitutional,  # Δ Axis 3: moral provenance
     }
+    from arifosmcp.runtime.decision_memory import predicted_value
+
+    receipt["predicted_decision_value"] = predicted_value(future_value)
 
     return {
         "mode": "remember",
@@ -264,6 +275,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
             "constitutionally_sealed": _sealed,
             "remember_receipt": receipt,
             "constitutional": constitutional,  # Δ Axis 3: moral provenance
+            "predicted_decision_value": receipt["predicted_decision_value"],
         },
     }
 

@@ -1769,6 +1769,17 @@ def arif_init(
         except Exception:
             pass
 
+        from arifosmcp.runtime.work_spine import create_work_contract
+
+        header["work_contract"] = create_work_contract(
+            session_id=sid,
+            objective=objective or intent or "governed session work",
+            success_criteria=success_criteria,
+            budgets=work_budget,
+            autonomy_band=autonomy_band,
+            verification_criteria=verification_requirements,
+        )
+
         # ── Verbose=audit: only path that inlines statics (seal only) ─────
         if verbose == "audit":
             header["audit_full"] = _build_audit_full(
@@ -1881,7 +1892,6 @@ def arif_init(
             "A-FORGE": _probe("http://127.0.0.1:7071/health"),
             "A-FORGE-MCP": _probe("http://127.0.0.1:7072/health"),
             "AAA": _probe("http://127.0.0.1:3001/health"),
-            "APEX": _probe("http://127.0.0.1:3002/health"),
         }
         live = [k for k, v in organs.items() if v.get("reachable")]
         down = [k for k, v in organs.items() if not v.get("reachable")]

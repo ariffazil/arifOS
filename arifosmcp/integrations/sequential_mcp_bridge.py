@@ -40,7 +40,7 @@ from core.shared.laws import get_law_threshold
 # ═══════════════════════════════════════════════════════════════════════════════
 
 MCP_SEQUENTIAL_ENABLED = os.getenv("ARIFOS_MCP_SEQUENTIAL_ENABLED", "false").lower() == "true"
-MCP_SEQUENTIAL_URL = os.getenv("ARIFOS_MCP_SEQUENTIAL_URL", "http://localhost:3002")
+MCP_SEQUENTIAL_URL = os.getenv("ARIFOS_MCP_SEQUENTIAL_URL", "").rstrip("/")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -133,6 +133,8 @@ async def run_external_sequence(
     """
     if not MCP_SEQUENTIAL_ENABLED:
         return None, "MCP sequential disabled (ARIFOS_MCP_SEQUENTIAL_ENABLED=false)"
+    if not MCP_SEQUENTIAL_URL:
+        return None, "MCP sequential enabled but ARIFOS_MCP_SEQUENTIAL_URL is unset"
 
     try:
         import aiohttp

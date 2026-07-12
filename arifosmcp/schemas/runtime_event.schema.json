@@ -1,0 +1,155 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "arifos://schemas/runtime-event/v1.0.0",
+  "title": "RuntimeEvent",
+  "description": "Append-only event record for governed task execution",
+  "type": "object",
+  "required": ["event_id", "task_id", "session_id", "timestamp", "stage", "event_type"],
+  "properties": {
+    "event_id": { "type": "string" },
+    "task_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "actor": { "type": "string" },
+    "model_key": { "type": "string" },
+    "stage": {
+      "type": "string",
+      "enum": ["INIT", "OBSERVE", "THINK", "ROUTE", "ACT", "VERIFY", "CLOSE"]
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "budget_created", "budget_consumed", "budget_exhausted",
+        "context_selected", "context_rejected", "context_conflict",
+        "memory_retrieved", "memory_promoted", "memory_decayed", "memory_immuned",
+        "proposal_generated", "proposal_tested", "proposal_verified", "proposal_falsified",
+        "delegation_started", "delegation_completed", "delegation_failed",
+        "delegation_rejected",
+        "tool_call_started", "tool_call_completed", "tool_call_failed",
+        "model_call_started", "model_call_completed",
+        "verification_started", "verification_completed",
+        "task_completed", "task_budget_hold",
+        "prediction_recorded", "prediction_resolved",
+        "reality_observed", "reality_derived", "reality_interpreted", "reality_speculated",
+        "witness_recorded", "seal_issued", "seal_rejected"
+      ]
+    },
+    "budget": {
+      "type": "object",
+      "properties": {
+        "before": { "$ref": "#/definitions/budget_state" },
+        "consumed": { "$ref": "#/definitions/budget_consumption" },
+        "after": { "$ref": "#/definitions/budget_state" }
+      }
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "manifest_hash": { "type": "string" },
+        "selected_refs": { "type": "array", "items": { "type": "string" } },
+        "rejected_refs": { "type": "array", "items": { "type": "string" } },
+        "conflicts_detected": { "type": "integer" },
+        "token_estimate": { "type": "integer" },
+        "token_actual": { "type": "integer" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "input_refs": { "type": "array", "items": { "type": "string" } },
+        "output_refs": { "type": "array", "items": { "type": "string" } },
+        "epistemic_class": {
+          "type": "string",
+          "enum": ["OBS", "DER", "INT", "SPEC"]
+        }
+      }
+    },
+    "coordination": {
+      "type": "object",
+      "properties": {
+        "parent_task": { "type": ["string", "null"] },
+        "delegate": { "type": ["string", "null"] },
+        "expected_benefit": { "type": "number" },
+        "actual_overhead": {
+          "type": "object",
+          "properties": {
+            "messages": { "type": "integer" },
+            "tokens": { "type": "integer" },
+            "elapsed_seconds": { "type": "number" },
+            "monetary_usd": { "type": "number" }
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "machine": {
+          "type": "object",
+          "properties": {
+            "cpu_load": { "type": "number" },
+            "memory_pressure": { "type": "number" }
+          }
+        },
+        "financial": {
+          "type": "object",
+          "properties": {
+            "session_cost_usd": { "type": "number" },
+            "daily_budget_remaining_usd": { "type": "number" }
+          }
+        },
+        "human": {
+          "type": "object",
+          "properties": {
+            "decision_load": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+            "readiness": { "type": "string" }
+          }
+        }
+      }
+    },
+    "outcome": {
+      "type": "object",
+      "properties": {
+        "proposal_id": { "type": ["string", "null"] },
+        "verification_state": {
+          "type": "string",
+          "enum": ["DRAFT_ONLY", "UNVERIFIED", "VERIFIED", "FALSIFIED"]
+        },
+        "value_score": { "type": ["number", "null"] },
+        "objective_met": { "type": "boolean" },
+        "termination_reason": { "type": "string" },
+        "partial_result": {
+          "type": "object",
+          "description": "Preserved when budget exhausted mid-task",
+          "properties": {
+            "confidence": { "type": "number" },
+            "summary": { "type": "string" },
+            "uncertainty_reduction_achieved": { "type": "number" },
+            "cycles_used": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "checksum": { "type": "string", "description": "SHA-256 of event content for integrity" }
+  },
+  "definitions": {
+    "budget_state": {
+      "type": "object",
+      "properties": {
+        "reasoning_cycles_remaining": { "type": "integer" },
+        "tool_calls_remaining": { "type": "integer" },
+        "cost_remaining_usd": { "type": "number" },
+        "delegations_remaining": { "type": "integer" },
+        "elapsed_seconds": { "type": "number" }
+      }
+    },
+    "budget_consumption": {
+      "type": "object",
+      "properties": {
+        "resource": { "type": "string" },
+        "amount": { "type": "number" },
+        "unit": { "type": "string" }
+      }
+    }
+  }
+}

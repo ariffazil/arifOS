@@ -148,6 +148,13 @@ def arif_compose(
         elif isinstance(_standing_auth.get("apex"), dict):
             _authority_headers["apex_scalars"] = _standing_auth["apex"]
 
+    if session_id:
+        from arifosmcp.runtime.work_spine import snapshot
+
+        work_snapshot = snapshot(session_id)
+        if work_snapshot:
+            _authority_headers["work_budget_remaining"] = work_snapshot["remaining"]
+
     # ── Reply Boundary Check (v2 Deepening — Task 4) ──
     from arifosmcp.runtime.tools import _arif_seal, get_session
 

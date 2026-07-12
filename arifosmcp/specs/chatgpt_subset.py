@@ -78,12 +78,12 @@ CHATGPT_TOOL_ALIASES: dict[str, dict[str, str]] = {
         "mode": "floor_status",
         "rationale": "Floor status is a read-only view of the F1-L13 kernel state.",
     },
-    # apex_judge → gateway_connect routing to APEX deliberation engine
+    # apex_judge legacy alias → gateway_connect routing to AAA deliberation
     "arif_apex_judge": {
         "canonical_tool": "arif_gateway_connect",
-        "target_agent": "apex",
+        "target_agent": "aaa",
         "mode": "route",
-        "rationale": "APEX 888 JUDGE is reachable via gateway_connect (port 3002).",
+        "rationale": "The legacy APEX judgment capability now lives in AAA deliberation (:3001).",
     },
     # vault_integrity → memory_recall with read-only dry_run trace
     "arif_vault_integrity": {

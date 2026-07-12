@@ -639,6 +639,18 @@ def calculate_genius(
             f"Need ≥{_MIN_PCA_OBSERVATIONS} verdicts for eigendecomposition.",
         }
 
+    # Dalio 17x probe-vs-act signals (F8 GENIUS)
+    probe_signal = final_g < 0.80
+    confidence_gap = round(max(0.0, 0.80 - final_g), 4)
+    if final_g >= 0.80:
+        recommended_action = "ACT"
+    elif final_g >= 0.60:
+        recommended_action = "PROBE"
+    else:
+        recommended_action = "REJECT"
+    # 17× multiplier from Dalio: raising from 51%→85% is 17× more valuable than 49%→51%
+    information_ev_multiplier = round(min(17.0, 17.0 * confidence_gap), 4) if probe_signal else 0.0
+
     return {
         "genius_score": round(final_g, 4),
         "dials": dials.to_dict(),
@@ -649,6 +661,11 @@ def calculate_genius(
         "derivation_meta": derivation_meta,
         "provenance": "constitutional_measurement",
         "phi_witness": phi,  # ZEN explicit
+        # Dalio 17x probe-vs-act signals (F8 GENIUS enforcement)
+        "probe_signal": probe_signal,
+        "confidence_gap": confidence_gap,
+        "recommended_action": recommended_action,
+        "information_ev_multiplier": information_ev_multiplier,
     }
 
 

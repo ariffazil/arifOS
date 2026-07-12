@@ -163,6 +163,71 @@ class PolicyBlock(BaseModel):
     floors_required: list[str] = Field(default_factory=list)
 
 
+class ApplicabilityBlock(BaseModel):
+    """Conditions under which a memory may influence a decision."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    actors: list[str] = Field(default_factory=list)
+    models: list[str] = Field(default_factory=list)
+    harnesses: list[str] = Field(default_factory=list)
+    tools: list[str] = Field(default_factory=list)
+    organs: list[str] = Field(default_factory=list)
+    task_classes: list[str] = Field(default_factory=list)
+    environments: list[str] = Field(default_factory=list)
+    valid_until: datetime | None = None
+    expires_on_model_change: bool = False
+
+
+class FutureValueBlock(BaseModel):
+    """Predicted utility and retrieval risks for future decisions."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    recurrence_probability: float = Field(default=0.0, ge=0.0, le=1.0)
+    decision_impact: float = Field(default=0.0, ge=0.0, le=1.0)
+    evidence_reliability: float = Field(default=0.0, ge=0.0, le=1.0)
+    retrieval_specificity: float = Field(default=0.0, ge=0.0, le=1.0)
+    maintenance_cost: float = Field(default=0.0, ge=0.0, le=1.0)
+    privacy_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+    staleness_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+    anchoring_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+    misapplication_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+    token_cost_normalized: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
+class MemoryAuthorityBlock(BaseModel):
+    """Authority effects are asymmetric: memory may restrict, never expand."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    epistemic_status: Literal["OBS", "DER", "INT", "SPEC"] = "OBS"
+    authority_status: Literal["descriptive", "advisory", "approved", "prohibited"] = (
+        "descriptive"
+    )
+    may_inform_reasoning: bool = True
+    may_change_routing: bool = False
+    may_restrict_tools: bool = False
+    may_expand_tools: Literal[False] = False
+    may_lower_autonomy: bool = False
+    may_raise_autonomy: Literal[False] = False
+
+
+class DecisionValueLifecycle(BaseModel):
+    """Review and observed-value state for a candidate memory."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    state: Literal["candidate", "temporary", "promoted", "revised", "decayed", "expired"] = (
+        "candidate"
+    )
+    review_after: datetime | None = None
+    confidence_decay_per_month: float = Field(default=0.05, ge=0.0, le=1.0)
+    observed_decision_value: float | None = Field(default=None, ge=-1.0, le=1.0)
+    useful_outcomes: int = 0
+    harmful_outcomes: int = 0
+
+
 
 
 # ── Constitutional Memory Enums (Δ Axis 3) ────────────────────────────────
@@ -271,7 +336,7 @@ class MemoryObject(BaseModel):
 
     # ── Identity ──
     memory_id: str = Field(default_factory=lambda: _new_id("mem"))
-    schema_version: int = 5
+    schema_version: int = 6
 
     # ── Identity & lineage ──
     actor_id: str  # who created
@@ -304,6 +369,12 @@ class MemoryObject(BaseModel):
 
     # ── Policy ──
     policy: PolicyBlock = Field(default_factory=PolicyBlock)
+
+    # ── Decision-value memory ──
+    applicability: ApplicabilityBlock = Field(default_factory=ApplicabilityBlock)
+    future_value: FutureValueBlock = Field(default_factory=FutureValueBlock)
+    authority: MemoryAuthorityBlock = Field(default_factory=MemoryAuthorityBlock)
+    decision_lifecycle: DecisionValueLifecycle = Field(default_factory=DecisionValueLifecycle)
 
     # ── Lineage ──
     supersedes: list[str] = Field(default_factory=list)  # prior memory_ids

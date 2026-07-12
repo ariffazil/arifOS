@@ -803,6 +803,17 @@ def arif_route(
             )
         return _route_ok(routing)
 
+    if session_id:
+        from arifosmcp.runtime.work_spine import consume
+
+        for resource, name in (("delegation", None), ("tool_call", organ_tool)):
+            budget_state = consume(session_id, resource, name=name)
+            if not budget_state["allowed"]:
+                return _route_hold(
+                    budget_state["reason"],
+                    {"work_budget": budget_state["snapshot"]},
+                )
+
     # Build transport _envelope from live session state (ALWAYS populated, never re-typed by caller)
     _envelope = {
         "session_id": session_id,
