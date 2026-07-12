@@ -44,6 +44,7 @@ _PUBKEY_CANDIDATES = [
 
 # Authority level constants
 AUTHORITY_SOVEREIGN = "SOVEREIGN"
+AUTHORITY_VERIFIED = "VERIFIED"
 AUTHORITY_OBSERVER = "OBSERVER"
 AUTHORITY_VOID = "VOID"
 AUTHORITY_HMAC = "HMAC_VERIFIED"
@@ -185,12 +186,16 @@ def resolve_authority_level(
     """
     Resolve authority level based on verification result.
 
-    SOVEREIGN — Ed25519 verified
+    SOVEREIGN — Ed25519 verified sovereign actor
+    VERIFIED  — Ed25519 verified bounded non-sovereign actor
     OBSERVER  — No signature (anonymous read-only access)
     VOID      — Signature provided but failed (reject)
     """
     if identity_verified:
-        return AUTHORITY_SOVEREIGN
+        from arifosmcp.runtime.governance_identity import is_protected_sovereign_id
+        if is_protected_sovereign_id(actor_id):
+            return AUTHORITY_SOVEREIGN
+        return AUTHORITY_VERIFIED
     if signature_provided and not identity_verified:
         return AUTHORITY_VOID
     return AUTHORITY_OBSERVER
