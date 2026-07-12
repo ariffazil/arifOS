@@ -2821,6 +2821,17 @@ def register_rest_routes(
                 # signal that may be unset; consumers should fall back to
                 # service_health / execution_readiness instead of inferring SEAL.
                 "verdict": telemetry.get("verdict"),
+                # WS2: explicit service_health field — PASS/HEALTHY/DEGRADED/FAIL.
+                # Derived from substrate health signals, never SEAL.
+                "service_health": (
+                    "PASS"
+                    if _vault_health == "healthy"
+                    and not runtime_drift_val
+                    and not contract_drift_val
+                    else "DEGRADED"
+                    if _vault_health == "healthy"
+                    else "FAIL"
+                ),
                 "metabolic_stage": thermo.get("metabolic_stage", 444),
                 "witness": thermo.get("witness", _WITNESS_DEFAULTS),
             },
