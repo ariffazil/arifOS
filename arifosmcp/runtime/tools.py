@@ -586,13 +586,13 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "purpose": "Prepare execution (dry-run capable) of an action via A-FORGE. Reversible prep stage.",
         "use_when": ["After judge SEAL and before human-authorized execution"],
         "do_not_use_when": ["No lease / no judge approval"],
-        "authority_level": "requires_lease",
-        "side_effect": "prepare_execution",
+        "authority_level": "requires_human_confirmation",
+        "side_effect": "execute_with_side_effects",
         "blast_radius": "high",
-        "requires_human_confirmation": False,
+        "requires_human_confirmation": True,
         "output_type": "forge_plan",
         "evidence_required": True,
-        "agency_level": "L3_PREPARE",
+        "agency_level": "L5_EXECUTE_IRREVERSIBLE",
         "decision_thresholds": DECISION_THRESHOLDS,
     },
     "arif_forge_execute": {
@@ -5404,8 +5404,8 @@ def _validate_ack_id(
 
 
 _TIMEOUT_MS = int(
-    os.getenv("HEART_TIMEOUT_MS", "30000")
-)  # LLM timeout (L13: configurable, default 30s)
+    os.getenv("HEART_TIMEOUT_MS", "60000")
+)  # LLM timeout (L13: configurable, default 60s — increased from 30s per 2026-07-12 audit)
 _MAX_HOPS = 10  # Maximum tool hops per intent (prevents metabolic death spiral)
 _ENTROPY_LIMIT = 1.0  # Maximum entropy per route (ΔS budget cap)
 _HOP_COUNTER: dict[str, int] = {}  # session_id -> current hop count
@@ -5788,6 +5788,7 @@ def _new_session(
     # P0 FIX: Set active session for cross-tool continuity (2026-07-12)
     try:
         from arifosmcp.runtime.session import set_active_session
+
         set_active_session(sid)
     except Exception:
         pass  # Non-fatal: session still stored in _SESSIONS
@@ -7498,6 +7499,9 @@ def _arif_session_init(
         "light",
         "resume",
         "validate",
+        "preflight",
+        "triage",
+        "canary",
         "epoch_open",
         "epoch_seal",
         # F14 — Right #10 (opt out) + Right #6 (refuse profiling).
@@ -7510,6 +7514,9 @@ def _arif_session_init(
     legacy_aliases = {
         "status": "validate",
         "handover": "resume",
+        "preflight": "validate",
+        "triage": "validate",
+        "canary": "validate",
         # NOTE: "discover" removed from legacy aliases (Ω-PATCH 2026-06-13).
         # It is now a real pre-session mode handled by the dispatcher above.
     }
@@ -9444,11 +9451,31 @@ def _arif_sense_observe(
             delta_S=abs(dS),
         )
     if mode == "vitals":
-        return _ok(
-            "arif_sense_observe",
-            {"cpu": 12.5, "mem": 34.0, "io": "normal"},
-            delta_S=0.001,
-        )
+        try:
+            import psutil
+
+            cpu_pct = psutil.cpu_percent(interval=0.1)
+            mem = psutil.virtual_memory()
+            disk = psutil.disk_usage("/")
+            return _ok(
+                "arif_sense_observe",
+                {
+                    "cpu": cpu_pct,
+                    "mem": mem.percent,
+                    "mem_available_mb": round(mem.available / (1024 * 1024), 1),
+                    "disk_pct": disk.percent,
+                    "disk_free_gb": round(disk.free / (1024**3), 1),
+                    "io": "normal",
+                    "source": "psutil_live",
+                },
+                delta_S=0.001,
+            )
+        except ImportError:
+            return _ok(
+                "arif_sense_observe",
+                {"cpu": 12.5, "mem": 34.0, "io": "normal", "source": "fallback_static"},
+                delta_S=0.001,
+            )
 
     if mode == "classify":
         # Classify intent / domain for truth-seeking
@@ -12655,18 +12682,37 @@ def _arif_reply_compose(
         }
 
     if mode == "compose":
-        composed = message or ""
+        raw = message or ""
+        tone = style or "neutral"
+
+        # Actual composition: apply tone, structure, and formatting
+        if tone == "terse":
+            composed = raw.split("\n")[0] if raw else ""
+            if len(raw) > 200:
+                composed += "\n\n[...]"
+        elif tone == "formal":
+            lines = [l.strip() for l in raw.split("\n") if l.strip()]
+            composed = "\n".join(lines)
+        elif tone == "empathetic":
+            lines = raw.split("\n")
+            composed = "\n".join(l.strip() for l in lines if l.strip())
+        else:
+            # neutral: clean whitespace, preserve structure
+            composed = "\n\n".join(p.strip() for p in raw.split("\n\n") if p.strip()) or raw
         if evidence_receipt and isinstance(evidence_receipt, dict):
-            composed += _build_evidence_footer(evidence_receipt)
+            ep = _build_evidence_payload(evidence_receipt)
+        else:
+            ep = None
         return _ok(
             "arif_reply_compose",
             {
-                "message": message,
+                "message": raw,
                 "formatted": composed,
-                "tone": "neutral",
+                "tone": tone,
                 "evidence_receipt": evidence_receipt,
+                "evidence_payload": ep,
             },
-            delta_S=0.0,
+            delta_S=-0.05,
         )
     if mode == "style":
         return _ok(
@@ -20419,8 +20465,12 @@ except ImportError as _e:
 try:
     from arifosmcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe_h
     from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess_h
-    from arifosmcp.entropy_kernel.correction_probe import arif_correction_probe as _correction_probe_h
-    from arifosmcp.entropy_kernel.consequence_trace import arif_consequence_trace as _consequence_trace_h
+    from arifosmcp.entropy_kernel.correction_probe import (
+        arif_correction_probe as _correction_probe_h,
+    )
+    from arifosmcp.entropy_kernel.consequence_trace import (
+        arif_consequence_trace as _consequence_trace_h,
+    )
     from arifosmcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route_h
     from arifosmcp.entropy_kernel.j_gate import arif_j_gate as _j_gate_h
 
@@ -20920,6 +20970,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         if not kwargs.get("session_id") and not kwargs.get("session_token"):
             try:
                 from arifosmcp.runtime.session import _resolve_session_id
+
                 _auto_sid = _resolve_session_id(None)
                 if _auto_sid:
                     kwargs["session_id"] = _auto_sid
@@ -21031,6 +21082,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         if not kwargs.get("session_id") and not kwargs.get("session_token"):
             try:
                 from arifosmcp.runtime.session import _resolve_session_id
+
                 _auto_sid = _resolve_session_id(None)
                 if _auto_sid:
                     kwargs["session_id"] = _auto_sid
