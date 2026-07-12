@@ -559,19 +559,31 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface matches the canonical public set.
+    """Assert the registered surface matches the active canonical public set.
 
-    ZEN-9 collapse 2026-07-04: the default public wire surface is the 9-stage
-    metabolic loop. Absorbed tools and internal-only aliases are subtracted.
+    ZEN-9 collapse 2026-07-04 + F13 SOVEREIGN collapse 2026-07-12:
+    The active surface is read from the env (ARIFOS_PUBLIC_SURFACE_MODE)
+    via public_surface.normalize_public_surface_mode(). Default (forge_next_8)
+    yields the 8-verb wire surface. Legacy modes (canonical13/9/12/7/expanded45)
+    remain available for backward compat callers.
 
-    SDK alias shims (arif_session_init, arif_gateway_connect) are also
-    subtracted — they live on the wire for SDK compat but are NOT canonical.
-    Their `_redirect_to` payload teaches callers to migrate.
+    Absorbed tools and internal-only aliases are subtracted. SDK alias shims
+    (arif_session_init, arif_gateway_connect) are also subtracted — they
+    live on the wire for SDK compat but are NOT canonical.
     """
     from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS as CONST_DIAG
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_9
+    from arifosmcp.runtime.public_surface import (
+        CANARY_PROBES,
+        normalize_public_surface_mode,
+        public_tool_names_for_mode,
+        FORGE_NEXT_8,
+    )
 
-    expected_set = set(CANONICAL_9)
+    # F13 SOVEREIGN 2026-07-12: resolve the active surface. forge_next_8 is
+    # the new canonical default; legacy modes fall back to CANONICAL_12.
+    resolved_mode = normalize_public_surface_mode(None)
+    active_tuple = public_tool_names_for_mode(None)
+    expected_set = set(active_tuple)
     registered_set = set(registered_names)
     # Subtract all non-public tools: internal-only canonical + all diagnostic tools
     non_public = {
