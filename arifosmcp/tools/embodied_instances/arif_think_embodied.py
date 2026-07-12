@@ -97,6 +97,15 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         session_id = params.get("session_id")
         actor_id = params.get("actor_id")
 
+        # ── AKAL I1: Friction scoring before reasoning ────────────────
+        akal_friction = None
+        if query:
+            try:
+                from arifosmcp.core.akal_wiring import akal_pre_think
+                akal_friction = akal_pre_think(query, blast_radius=params.get("blast_radius", "low"))
+            except Exception:
+                pass  # AKAL is advisory — never blocks reasoning
+
         # ── P1 2026-06-30: bypass heavy LLM pipeline for all modes except metabolize ──
         # The v3.3 reasoning engine in tools/reason.py calls arif_think_structured which
         # blocks on SEA-LION/Ollama for 30-60s. Route deterministic/structural modes
@@ -118,6 +127,22 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                 witness_type=params.get("witness_type", "ai"),
                 attention_context=attention_context,
             )
+
+            # ── AKAL I2: Shadow trace validation after reasoning ──────
+            if akal_friction and akal_friction.get("escalation_required"):
+                if isinstance(result, dict):
+                    result.setdefault("akal", {})
+                    result["akal"]["friction"] = {
+                        "friction_score": akal_friction.get("friction_score"),
+                        "friction_level": akal_friction.get("friction_level"),
+                        "required_depth": akal_friction.get("required_depth"),
+                        "reasons": akal_friction.get("reasons", []),
+                        "present_state": akal_friction.get("present_state"),
+                        "present_epistemic": akal_friction.get("present_epistemic"),
+                    }
+                    result["akal"]["escalation_recommended"] = True
+                    result["akal"]["recommended_pipeline"] = akal_friction.get("required_pipeline", [])
+
             if hasattr(result, "model_dump"):
                 return result.model_dump()  # type: ignore[attr-defined]
             if hasattr(result, "dict"):

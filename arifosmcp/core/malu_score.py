@@ -1,4 +1,6 @@
 """
+⚠️ DEPRECATED (2026-07-11 Phase 3 Entropy Consolidation) — DEAD CODE, zero importers.
+Canonical version: arifosmcp.runtime.malu_score (527 lines, 6 importers).
 arifosmcp/core/malu_score.py — Multiplicative moral-accountability scoring.
 
 Forged: 2026-06-30 by Hermes ASI.
@@ -36,19 +38,19 @@ from arifosmcp.runtime.fiqh_of_floors import FiqhTier, FLOOR_TIER
 # Per-floor share ceiling: how many weighted points fully saturate a floor.
 # WAJIB/HARAM floors saturate faster because their blast radius is larger.
 FLOOR_CEILING: dict[str, float] = {
-    "F01": 15.0,   # AMANAH — irreversible without ack
-    "F02": 15.0,   # TRUTH — false certainty
-    "F03": 10.0,   # WITNESS — tri-witness gaps
-    "F04": 15.0,   # CLARITY — entropy inflation
-    "F05": 10.0,   # PEACE — escalation
-    "F06": 15.0,   # EMPATHY — dignity
-    "F07": 10.0,   # HUMILITY — omega band
-    "F08": 10.0,   # GENIUS — system health
-    "F09": 10.0,   # ANTIHANTU — consciousness claim
-    "F10": 15.0,   # ONTOLOGY — soul claim
-    "F11": 15.0,   # AUTH — identity
-    "F12": 10.0,   # INJECTION — prompt attack
-    "F13": 15.0,   # SOVEREIGN — veto
+    "F01": 15.0,  # AMANAH — irreversible without ack
+    "F02": 15.0,  # TRUTH — false certainty
+    "F03": 10.0,  # WITNESS — tri-witness gaps
+    "F04": 15.0,  # CLARITY — entropy inflation
+    "F05": 10.0,  # PEACE — escalation
+    "F06": 15.0,  # EMPATHY — dignity
+    "F07": 10.0,  # HUMILITY — omega band
+    "F08": 10.0,  # GENIUS — system health
+    "F09": 10.0,  # ANTIHANTU — consciousness claim
+    "F10": 15.0,  # ONTOLOGY — soul claim
+    "F11": 15.0,  # AUTH — identity
+    "F12": 10.0,  # INJECTION — prompt attack
+    "F13": 15.0,  # SOVEREIGN — veto
 }
 
 # Weight of each tiered violation when contributing to a floor's share.
@@ -76,10 +78,10 @@ class FloorScore:
 
     floor_id: str
     tier: FiqhTier
-    raw_delta: float          # weighted violation points
+    raw_delta: float  # weighted violation points
     ceiling: float
-    share: float              # raw_delta / ceiling, clamped to [0, 1]
-    contribution: float       # 1 - share
+    share: float  # raw_delta / ceiling, clamped to [0, 1]
+    contribution: float  # 1 - share
 
     def to_dict(self) -> dict[str, Any]:
         return {

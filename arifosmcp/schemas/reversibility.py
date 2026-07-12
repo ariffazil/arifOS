@@ -13,10 +13,15 @@ from enum import StrEnum
 
 
 class ReversibilityClass(StrEnum):
-    """Machine-readable reversibility scale for constitutional enforcement."""
+    """Machine-readable reversibility scale for constitutional enforcement.
+
+    Canonical source — unified 2026-07-11 (Phase 2 Gate Consolidation).
+    Supersedes: core/reversibility_engine.py ReversibilityClass (same semantic order).
+    Mapping: R0↔TRIVIAL, R1↔REVERSIBLE, R2↔PARTIAL, R3↔COSTLY, R4↔IRREVERSIBLE, R5↔CRITICAL.
+    """
 
     R0_OBSERVATION = "R0"
-    # Meaning: Pure observation, read-only.
+    # Meaning: Pure observation, read-only. No side effects.
     # Trigger: None. Logged.
 
     R1_SIMULATION = "R1"
@@ -38,6 +43,14 @@ class ReversibilityClass(StrEnum):
     R5_SOVEREIGN = "R5"
     # Meaning: High-blast-radius sovereign action. Capital transfer, constitution edit.
     # Trigger: 888 HOLD automatically triggered. Requires F13 cryptographic signature.
+
+    # ── Legacy aliases (Phase 2 unification — backward compat) ──
+    TRIVIAL = "R0"
+    REVERSIBLE = "R1"
+    PARTIAL = "R2"
+    COSTLY = "R3"
+    IRREVERSIBLE = "R4"
+    CRITICAL = "R5"
 
     @classmethod
     def triggers_hold(cls, r_class: "ReversibilityClass") -> bool:

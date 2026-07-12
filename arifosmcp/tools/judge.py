@@ -45,6 +45,10 @@ from arifosmcp.core.enforcement.somatic_loop import (
     classify_somatic_state,
     TelemetrySample,
 )
+from arifosmcp.core.enforcement.paradox_gate import (
+    evaluate_paradox_gate,
+)
+from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
@@ -394,6 +398,20 @@ async def arif_judge(
                 )
             actor_id = _sess_actor
 
+    # ── AKAL I4: Dual evaluation gate ────────────────────────────────────────
+    from arifosmcp.core.akal_wiring import akal_pre_judge as _akal_dual
+
+    try:
+        _akal_dual_result = _akal_dual(
+            session_id=session_id,
+            blast_radius=action_tier if action_tier in ("sovereign", "c4", "c5") else "low",
+        )
+        if _akal_dual_result.get("blocked_reason"):
+            # L5b required but sovereign not engaged — will be added to meta
+            _evidence.setdefault("akal_dual_eval", _akal_dual_result)
+    except Exception:
+        pass  # AKAL dual-eval is advisory
+
     if mode != "history":
         if _evidence.get("vitals") is None:
             try:
@@ -704,6 +722,58 @@ async def arif_judge(
                     "well_substrate": _evidence.get("well_substrate", {}),
                 },
             )
+
+        # ── PARADOX GATE (somatic intelligence → resolution risk flags) ────────
+        # After somatic state gate, check if output would resolve active paradoxes.
+        # Reads paradox state from A-FORGE engine (cross-organ wiring).
+        # This is a FLAG, not a BLOCK. (F5 PEACE: de-escalate, don't choke.)
+        # F9 ANTIHANTU: reads structural state, not "feelings."
+        _candidate_text = ""
+        if isinstance(candidate, str):
+            _candidate_text = candidate
+        elif isinstance(candidate, dict):
+            _candidate_text = str(candidate.get("content", candidate.get("target_path", "")))
+
+        _paradox_result = evaluate_paradox_gate(
+            output_text=_candidate_text,
+            evidence=_evidence,
+        )
+        _evidence["paradox_gate"] = _paradox_result.to_dict()
+
+        if _paradox_result.gate_verdict == "FLAGGED":
+            # Append paradox flags to reasons but do NOT auto-block
+            for _pf in _paradox_result.flags:
+                _evidence.setdefault("paradox_flags", []).append({
+                    "paradox_id": _pf.paradox_id,
+                    "flag": _pf.flag,
+                    "detail": _pf.detail,
+                    "tension": _pf.tension,
+                })
+
+            # FORGE-FIX P1 (2026-07-11): Escalate to PARADOX_HOLD when gate is FLAGGED
+            # with a resolution-risk flag (not just maturation). This populates the
+            # `paradox_hold` field of UnifiedGovernanceReceipt, which the composite
+            # verdict rules use to override SEAL → HOLD. Without this, the
+            # PARADOX_HOLD verdict type exists in schema but never fires in prod.
+            # Threshold: tension > 0.3 (matches gate's RESOLUTION_RISK bar).
+            _rr_flags = [
+                _pf for _pf in _paradox_result.flags
+                if _pf.flag == "RESOLUTION_RISK" and _pf.tension > 0.3
+            ]
+            if _rr_flags:
+                _primary = _rr_flags[0]
+                _evidence["paradox_hold"] = ParadoxHoldReceipt(
+                    claim_a=_primary.motif_a,
+                    claim_b=_primary.motif_b,
+                    conflict_description=_primary.detail,
+                    both_verified=True,
+                    resolution_attempted=False,
+                    reason=(
+                        f"PARADOX_HOLD escalation: paradox_score="
+                        f"{_paradox_result.paradox_score:.3f}, gate=FLAGGED, "
+                        f"{len(_rr_flags)} resolution-risk flag(s)"
+                    ),
+                ).model_dump(mode="json")
 
         # ── SELF-MODIFICATION LOCK (Gap 5) ──────────────────────────────────────
     if isinstance(candidate, str) or isinstance(candidate, dict):

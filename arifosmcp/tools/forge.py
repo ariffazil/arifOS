@@ -529,6 +529,24 @@ async def arif_forge(
     result_dict = await asyncio.to_thread(_run_forge)
     result = ForgeOutput(**result_dict)
 
+    # ── AKAL I3: Novelty gate ────────────────────────────────────────────────
+    from arifosmcp.core.akal_wiring import akal_pre_forge as _akal_novelty
+
+    try:
+        _akal_nov = _akal_novelty(
+            output_text=str(result.result)[:2000] if result.result else "",
+            session_id=session_id,
+            friction_level="low",  # arif_forge has no context param — friction from arif_think unavailable
+        )
+        if _akal_nov.get("enforced") and _akal_nov.get("action") == "HOLD":
+            # Novelty check failed — add warning to result but dont block
+            if hasattr(result, "meta") and isinstance(result.meta, dict):
+                result.meta.setdefault("akal_novelty", _akal_nov)
+            elif hasattr(result, "result") and isinstance(result.result, dict):
+                result.result.setdefault("akal_novelty", _akal_nov)
+    except Exception:
+        pass  # AKAL novelty is advisory — never blocks forge
+
     # ── P0 WIRING (2026-06-28): Seal forge execution to VAULT999 ──
     # Every successful forge execution must leave an auditable receipt.
     # The create_and_seal_receipt function exists in core/vault_receipt.py

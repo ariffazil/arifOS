@@ -138,6 +138,17 @@ organ_routes:
       - A2A gateway
       - identity anchor
       - throttle
+      # ROUTING-CALIBRATION FIX (2026-07-12): federation state/topology + broadcast
+      - federation state
+      - federation topology
+      - agent topology
+      - agent map
+      - organ map
+      - federation map
+      - broadcast message
+      - broadcast to all
+      - topology map
+      - state and topology
       # G14 FIX (2026-07-04): Add explicit organ-qualified keywords
       # so "AAA state", "AAA governance", "AAA Supabase" route to AAA
       # not back to arifOS.
@@ -157,6 +168,13 @@ organ_routes:
       - A2A mesh
       - agent card
       - agent registry
+      # HARDEN-C calibration 2026-07-12 — under-served AAA intents
+      - federation state
+      - federation topology
+      - topology
+      - state and topology
+      - broadcast
+      - agent mesh
     organ: AAA
     port: 3001
     tool_prefix: ""
@@ -191,6 +209,14 @@ organ_routes:
       - systemctl restart
       - systemd unit
       - service restart
+      - restart systemd
+      - restart systemd service
+      - restart service
+      - restart the service
+      - restart the arifos service
+      - restart arifos service
+      - restart the well service
+      - restart well service
       - make deploy
       - code deploy
       - rollback
@@ -198,6 +224,9 @@ organ_routes:
       - forge execute
       - forge plan
       - forge dryrun
+      - staged code change
+      - staged deploy
+      - deploy with rollback
       # G14 FIX (2026-07-04): Add organ-qualified + status-only keywords
       # so A-FORGE status/health routes correctly. Critical: "forge status"
       # and "forge health" must NOT require sovereign authority (the kernel
@@ -210,6 +239,14 @@ organ_routes:
       - forge health
       - forge readiness
       - forge probe
+      # HARDEN-C calibration 2026-07-12 — shell/sandbox execution intents
+      - shell command
+      - execute shell
+      - shell in sandbox
+      - sandbox
+      - shell
+      - staged code
+      - code change
     organ: A-FORGE
     # G15 FIX (2026-07-04): A-FORGE MCP gateway is :7072; tool prefix is forge_
     # :7071 is the HTTP API /health /api/federation-probe endpoint.
@@ -308,6 +345,10 @@ organ_routes:
       - seismic attribute
       - seismic forward
       - seismic well tie
+      - well tie
+      - well-tie
+      - time-depth
+      - time depth
       - basin analysis
       - structural geology
       - well log analysis
@@ -330,6 +371,11 @@ organ_routes:
       - npv
       - irr
       - emv
+      - npv of a prospect
+      - npv of prospect
+      - prospect npv
+      - prospect emv
+      - emv of a prospect
       - option
       - derivative
       - pricing
@@ -376,6 +422,12 @@ organ_routes:
       - market data
       - fiscal breakeven
       - collapse signature
+      # HARDEN-C calibration 2026-07-12 — runway / burn capital intents
+      - cash runway
+      - runway
+      - burn rate
+      - capital risk
+      - risk exposure
     organ: WEALTH
     port: 18082
     tool_prefix: wealth_
@@ -386,6 +438,8 @@ organ_routes:
       # machine/federation/kernel health queries. Now only human/vitality
       # health keywords route to WELL. "health" alone defaults to arifOS.
       # Specific human-health phrases (longer match) still route here:
+      # ROUTING-CALIBRATION FIX (2026-07-12): added explicit human-state
+      # phrases for cognitive clarity, decision readiness, stress load
       - human health
       - personal health
       - wellness
@@ -417,6 +471,19 @@ organ_routes:
       - maruah
       - fatigue
       - cognition load
+      # HARDEN-C calibration 2026-07-12 — human readiness phrasing
+      - cognitive clarity
+      - clarity trend
+      - stress load
+      - decision readiness
+      - fit to decide
+      - human readiness
+      - human fatigue
+      - operator readiness
+      - operator fatigue
+      - substrate readiness
+      - human decision readiness
+      - dignity
       # G14 FIX (2026-07-04): Add organ-qualified + bridge-specific keywords
       # so "WELL organ health", "cooling bridge status", "entropy seal" etc.
       # route to WELL even when kernel guard catches "organ health".

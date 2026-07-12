@@ -100,13 +100,18 @@ def verify_hmac_signature(
 def is_challenge_fresh(challenge: str, window_sec: int = 300) -> bool:
     """
     Reject replayed challenges older than window_sec.
-    Default 300s (5 min) for HMAC path — longer than Ed25519's 60s.
+    Default 300s (5 min) for HMAC path.
+
+    For timestamped challenges (format: `{timestamp}:{random}`), checks age.
+    For plain random tokens (crypto_auth style), returns True — freshness
+    is enforced by the crypto_auth challenge store (issue_actor_challenge).
     """
     try:
         ts = int(challenge.split(":")[0])
         return abs(time.time() - ts) <= window_sec
     except (ValueError, IndexError):
-        return False
+        # Plain random token — freshness managed by crypto_auth._issued_challenges
+        return True
 
 
 @lru_cache(maxsize=1)

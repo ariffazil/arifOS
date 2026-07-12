@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/apex/v1.0.0",
+  "title": "APEX Decision Geometry — Canonical Contract",
+  "description": "Machine-readable APEX admissibility framework for decisions under uncertainty. NOT a completed scientific theory (HOLD). IS a governance research programme (SEAL) with partial operational architecture. Does not unify all knowledge. See docs/APEX_SCIENTIFIC_STATUS.md. Version 1.0.1 — 2026-07-12 hard correction.",
+  "type": "object",
+  "required": [
+    "schema",
+    "epistemic_status",
+    "decision_id",
+    "timestamp",
+    "variables",
+    "floors",
+    "verdict_logic",
+    "action_allowed"
+  ],
+  "properties": {
+    "schema": { "const": "apex.v1" },
+    "epistemic_status": {
+      "type": "object",
+      "description": "Hard correction: APEX is not yet a scientific theory.",
+      "required": ["scientific_theory", "governance_programme", "operational_architecture"],
+      "properties": {
+        "scientific_theory": {
+          "type": "string",
+          "enum": ["HOLD"],
+          "description": "HOLD until measurable variables, units, calibration, falsifiable predictions, experiments exist."
+        },
+        "governance_programme": {
+          "type": "string",
+          "enum": ["SEAL"],
+          "description": "Defensible synthesis of decision theory, control, safety, law, assurance."
+        },
+        "operational_architecture": {
+          "type": "string",
+          "enum": ["PARTIAL", "GREEN", "YELLOW", "RED"],
+          "default": "PARTIAL"
+        },
+        "unifies_all_knowledge": {
+          "type": "string",
+          "enum": ["VOID"],
+          "const": "VOID"
+        },
+        "permanent_correction": {
+          "type": "string",
+          "const": "APEX unifies conditions under which domain knowledge may legitimately become action — not all knowledge into one equation."
+        }
+      }
+    },
+    "decision_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "intent": { "type": "string" },
+    "falsification_criterion": {
+      "type": "string",
+      "description": "Pre-registered: what evidence would disprove APEX value for this deployment context."
+    },
+    "variables": {
+      "type": "object",
+      "description": "Primary APEX variables with owners. Multiplicative / veto — not average.",
+      "properties": {
+        "E": {
+          "type": "object",
+          "description": "Evidence strength",
+          "properties": {
+            "value": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "owner": { "type": "string", "enum": ["GEOX", "WELL", "WEALTH", "EXTERNAL", "MULTI"] },
+            "freshness": { "type": "string", "enum": ["FRESH", "AGING", "STALE", "UNKNOWN"] },
+            "layer": {
+              "type": "string",
+              "enum": ["OBSERVED", "DERIVED", "INTERPRETED", "SPECULATED", "UNKNOWN"]
+            }
+          },
+          "required": ["value", "owner", "layer"]
+        },
+        "Omega": {
+          "type": "object",
+          "description": "Uncertainty / humility (Ω₀ band)",
+          "properties": {
+            "value": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "owner": { "const": "arifOS" }
+          }
+        },
+        "Psi": {
+          "type": "object",
+          "description": "Governance coherence",
+          "properties": {
+            "value": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "owner": { "const": "arifOS" }
+          }
+        },
+        "delta_S": {
+          "type": "object",
+          "description": "Disorder / entropy change (control metaphor unless tagged PHYSICAL)",
+          "properties": {
+            "value": { "type": ["number", "null"] },
+            "tag": {
+              "type": "string",
+              "enum": ["PHYSICAL_MEASUREMENT", "MATHEMATICAL_MODEL", "CONTROL_ANALOGY", "GOVERNANCE_METAPHOR"]
+            },
+            "owner": { "type": "string", "enum": ["WELL", "WEALTH", "arifOS", "MULTI"] }
+          }
+        },
+        "R": {
+          "type": "object",
+          "description": "Reversibility",
+          "properties": {
+            "value": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "class": { "type": "string", "enum": ["FULL", "PARTIAL", "NONE", "UNKNOWN"] },
+            "owner": { "type": "string", "enum": ["arifOS", "A-FORGE"] }
+          }
+        },
+        "V": {
+          "type": "object",
+          "description": "Vitality / substrate fitness (H/M/G/C)",
+          "properties": {
+            "V_h": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "V_m": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "V_g": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "V_c": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "owner": { "const": "WELL" }
+          }
+        },
+        "C": {
+          "type": "object",
+          "description": "Capital / downside / optionality",
+          "properties": {
+            "capital": { "type": ["number", "null"] },
+            "downside": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL", "UNKNOWN"] },
+            "optionality": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "owner": { "const": "WEALTH" }
+          }
+        },
+        "G_earth": {
+          "type": "object",
+          "description": "Earth / physical grounding (GEOX)",
+          "properties": {
+            "value": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "owner": { "const": "GEOX" },
+            "physics_bounded": { "type": "boolean" }
+          }
+        },
+        "W": {
+          "type": "object",
+          "description": "Witness strength W³",
+          "properties": {
+            "value": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "human": { "type": ["number", "null"] },
+            "ai": { "type": ["number", "null"] },
+            "external": { "type": ["number", "null"] },
+            "owner": { "type": "string", "enum": ["arifOS", "AAA", "MULTI"] }
+          }
+        },
+        "H_sovereign": {
+          "type": "object",
+          "description": "Human sovereign judgment present",
+          "properties": {
+            "present": { "type": "boolean" },
+            "owner": { "const": "ARIF" }
+          }
+        },
+        "T": {
+          "type": "object",
+          "description": "Time horizon / path dependence",
+          "properties": {
+            "horizon": { "type": "string", "enum": ["TACTICAL", "OPERATIONAL", "STRATEGIC", "CIVILISATIONAL", "UNKNOWN"] },
+            "owner": { "type": "string", "enum": ["WEALTH", "VAULT999", "MULTI"] }
+          }
+        }
+      }
+    },
+    "floors": {
+      "type": "object",
+      "description": "F1–F13 status for this decision",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["PASS", "SOFT", "FAIL", "UNKNOWN"]
+      }
+    },
+    "verdict_logic": {
+      "type": "object",
+      "description": "Critical failure dominates — no averaging away fatal contradiction",
+      "properties": {
+        "rule": {
+          "const": "Action_Allowed = Authority ∧ Evidence_Floor ∧ Reversibility_Rule ∧ Substrate_Fitness ∧ Domain_Integrity"
+        },
+        "combination": {
+          "type": "string",
+          "enum": ["MULTIPLICATIVE_VETO", "MOST_RESTRICTIVE_WINS"]
+        },
+        "veto_examples": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "Strong capital + weak geology → HOLD",
+            "Strong geology + degraded human + irreversible → HOLD|DEFER",
+            "All green + no authority → HOLD",
+            "Human authority + fabricated evidence → VOID"
+          ]
+        }
+      },
+      "required": ["rule", "combination"]
+    },
+    "action_allowed": {
+      "type": "boolean",
+      "description": "Whether APEX region admits the proposed action class"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEAL", "PROCEED", "REDUCE", "HOLD", "DEFER", "VOID", "UNKNOWN"]
+    },
+    "blocking_factors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "admissible_action_class_max": {
+      "type": "string",
+      "enum": [
+        "OBSERVE",
+        "SUGGEST",
+        "SIMULATE",
+        "DRAFT",
+        "QUEUE",
+        "EXECUTE_REVERSIBLE",
+        "EXECUTE_HIGH_IMPACT",
+        "IRREVERSIBLE"
+      ]
+    },
+    "term_tags": {
+      "type": "object",
+      "description": "Tag metaphors vs measurements used in this decision",
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "PHYSICAL_MEASUREMENT",
+          "MATHEMATICAL_MODEL",
+          "CONTROL_ANALOGY",
+          "GOVERNANCE_METAPHOR"
+        ]
+      }
+    },
+    "doctrine_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": [
+        "arifOS/docs/APEX_CANON.md",
+        "arifOS/GENESIS/040_APEX_STACK.md",
+        "AAA/docs/MEASUREMENT_BOUNDARY_CONTRACT.md"
+      ]
+    }
+  }
+}

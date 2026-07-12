@@ -53,7 +53,7 @@ One stage = one public verb. Absorbed verbs become modes on their parent tool.
 | `arif_sense_observe` | `arif_observe` |
 | `arif_memory_recall` | `arif_memory(mode=recall)` |
 | `arif_kernel_route` | `arif_route` |
-| `arif_measure` | internal-only (organ health via arif_observe(mode=vitals)) |
+| `arif_runtime_health` | internal-only (kernel runtime telemetry — CPU, mem, disk, topology, drift). Replaces deprecated `arif_measure`. NOT human/machine vitality (WELL owns that). |
 | `arif_canary` | `arif_init(mode=canary)` |
 | `arif_triage` | `arif_init(mode=triage)` |
 | `arif_fetch` | `arif_observe(mode=fetch)` |

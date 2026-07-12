@@ -160,6 +160,56 @@ class TestAForgeRoute:
         assert _route("rollback") == "a-forge"
 
 
+class TestHardenCCalibration20260712:
+    """HARDEN-C P0 + calibration residual set — 2026-07-12.
+
+    Guards: bare 'well' hijack, capital irr≠irreversible, short-token rs,
+    under-served WELL/WEALTH/AAA/A-FORGE intents.
+    """
+
+    def test_seismic_well_tie_routes_to_geox_not_well(self):
+        assert _route("seismic well tie") == "geox"
+
+    def test_well_tie_time_depth_routes_to_geox(self):
+        assert _route("well tie time-depth") == "geox"
+
+    def test_npv_of_a_prospect_routes_to_wealth_not_geox(self):
+        assert _route("NPV of a prospect") == "wealth"
+
+    def test_compute_npv_prospect_routes_to_wealth(self):
+        assert _route("compute NPV for prospect X") == "wealth"
+
+    def test_irreversible_does_not_trigger_irr_capital(self):
+        # irr must NOT match inside irreversible
+        assert _route("check substrate readiness before irreversible action") == "well"
+
+    def test_operator_fatigue_routes_to_well(self):
+        assert _route("assess operator fatigue for C4 decision") == "well"
+
+    def test_cognitive_clarity_routes_to_well(self):
+        assert _route("evaluate cognitive clarity trend") == "well"
+
+    def test_cash_runway_routes_to_wealth(self):
+        assert _route("evaluate cash runway at $500k burn") == "wealth"
+
+    def test_shell_sandbox_routes_to_aforge(self):
+        assert _route("execute shell command in sandbox") == "a-forge"
+
+    def test_restart_systemd_service_routes_to_aforge(self):
+        assert _route("restart systemd service") == "a-forge"
+
+    def test_federation_topology_routes_to_aaa(self):
+        assert _route("show federation state and topology") == "aaa"
+
+    def test_human_readiness_fatigue_routes_to_well(self):
+        assert _route("check human readiness and fatigue") == "well"
+
+    def test_token_boundary_irr_not_in_irreversible(self):
+        assert kernel_canonical._token_in("irr", "irreversible action") is False
+        assert kernel_canonical._token_in("irr", "compute irr of project") is True
+        assert kernel_canonical._token_in("rs", "irreversible") is False
+
+
 if __name__ == "__main__":
     # Manual smoke run
     import json

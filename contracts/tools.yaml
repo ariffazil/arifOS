@@ -281,6 +281,20 @@ canonical_tools:
       witness_requirements: [], contract_version: "1.0.0",
       notes: "Resolve a tool name or alias to its canonical registration. Use when 'Unknown tool' is returned." }
 
+  # FORGE-FIX P2 (2026-07-11): arif_somatic was previously internal-only with no
+  # SSOT entry. Now canonical — exposes the paradox engine + somatic loop to
+  # external MCP clients. Subordinate to paradox engine (substrate) and
+  # somatic_loop.py (machine telemetry). Modes mirror A-FORGE kernel_bridge.py.
+  - { canonical_name: arif_somatic, role: somatic_paradox_state, axis: "666_HEART", pipeline_stage: receipt,
+      contract_class: ordinary, mutation_class: read, requires_plan: false,
+      modes: [state, feed, text_scan, gate, paradoxes, emergence, relation, motifs, bridge, score],
+      reversibility: reversible, blast_radius: low, authority_required: public,
+      channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY, ENVELOPE_MISSING],
+      audit_events: [response_emitted], witness_requirements: [],
+      contract_version: "1.0.0",
+      notes: "Somatic paradox engine + somatic loop wire. Read/write to /tmp/paradox_engine_state.json (cross-organ bridge from A-FORGE paradox-engine). 11 modes: state, feed, text_scan, gate, paradoxes, emergence, relation, motifs, bridge, score. text_scan and feed mutate the engine state in /tmp. No plan required — mutation_class=read because /tmp state file is not VAULT999." }
+
   # arif_seal — SPECIAL contract_class=seal. Sealing tools have stricter rules.
   - { canonical_name: arif_seal, role: vault_sealing, axis: "999_SEAL", pipeline_stage: seal,
       contract_class: seal, mutation_class: seal, requires_plan: true,
@@ -385,6 +399,10 @@ federated_organs:
       denial_codes: [AUTHORITY_INSUFFICIENT, PLAN_MISSING],
       audit_events: [tool_called, execution_completed], witness_requirements: [ai],
       contract_version: "1.0.0" }
+
+  # FORGE-FIX P2 (2026-07-11) — federated-side entry kept for reference;
+  # canonical registration lives in canonical_tools block above.
+  # (See canonical_name: arif_somatic in canonical_tools.)
 
   - { canonical_name: arif_canary, role: transport_canary, axis: "000_KERNEL", pipeline_stage: intake,
       contract_class: ordinary, mutation_class: read, requires_plan: false,

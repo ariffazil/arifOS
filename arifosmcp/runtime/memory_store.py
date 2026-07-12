@@ -50,6 +50,15 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# P3: Retrieval trace accumulator (per-call, consumed by search return)
+_retrieval_trace: dict[str, Any] = {}
+
+# Constitutional Memory floor constraint check (Δ Axis 3)
+try:
+    from arifosmcp.runtime.law import check_floor_constraint
+except ImportError:
+    check_floor_constraint = None
+
 
 def enforce_memory_routing(tier: str, content: dict, actor: str) -> bool:
     """Central gate. Classify, check band, provenance, floors. Reject bypass.
@@ -111,7 +120,7 @@ _INDEX_FILE = _MEMORY_DIR / ".qdrant_index.json"
 _LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
 
 _QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
-_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
+_QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory_v2")
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 # ADR-010: L4 canonical store is LOCAL Postgres (port 5432), not Supabase pooler.
@@ -210,11 +219,15 @@ async def _pg_write(
     distillation_metadata: dict | None = None,
     valid_at: datetime | None = None,
     recorded_at: datetime | None = None,
+    value_anchor: list[str] | None = None,
+    floor_constraint: list[str] | None = None,
+    care_provenance: str | None = None,
 ) -> bool:
     """Insert a memory record into Postgres memory_store table.
 
     Phase 1b: Extended to include entity_tags (F4) and distillation metadata.
     Phase 1d: Extended to include valid_at (world-time of fact) and recorded_at.
+    Phase 1e: Extended to include Constitutional Memory (Δ Axis 3).
     """
     try:
         import asyncpg  # noqa: PLC0415
@@ -226,8 +239,10 @@ async def _pg_write(
                 INSERT INTO memory_store
                     (id, tier, text, metadata, qdrant_id, session_id,
                      entity_tags, distillation_status, distillation_metadata,
-                     valid_at, recorded_at)
-                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb, $10, $11)
+                     valid_at, recorded_at,
+                     value_anchor, floor_constraint, care_provenance)
+                VALUES ($1::uuid, $2, $3, $4::jsonb, $5::uuid, $6, $7, $8, $9::jsonb, $10, $11,
+                        $12, $13, $14)
                 ON CONFLICT (id) DO NOTHING
                 """,
                 memory_id,
@@ -241,6 +256,9 @@ async def _pg_write(
                 (json.dumps(distillation_metadata, default=str) if distillation_metadata else None),
                 valid_at,
                 recorded_at,
+                value_anchor or [],
+                floor_constraint or [],
+                care_provenance,
             )
             return True
         finally:
@@ -410,6 +428,31 @@ def _generate_embedding(text: str) -> list[float]:
     raise RuntimeError(
         "All embedding backends exhausted (Ollama bge-m3 + Azure text-embedding-3-small)"
     )
+
+
+def _get_sparse_model():
+    """Lazy-load Qdrant/bm25 sparse embedding model (fastembed)."""
+    if not hasattr(_get_sparse_model, "_model"):
+        from fastembed import SparseTextEmbedding  # noqa: PLC0415
+        _get_sparse_model._model = SparseTextEmbedding("Qdrant/bm25")
+    return _get_sparse_model._model
+
+
+def _generate_sparse_embedding(text: str) -> dict | None:
+    """Generate BM25 sparse vector for query.
+    Returns SparseVector-compatible dict with 'indices' and 'values' lists.
+    Falls back with warning if fastembed unavailable."""
+    try:
+        model = _get_sparse_model()
+        vec = next(iter(model.embed([text])))
+        return {
+            "indices": vec.indices.tolist() if hasattr(vec.indices, "tolist") else list(vec.indices),
+            "values": vec.values.tolist() if hasattr(vec.values, "tolist") else list(vec.values),
+        }
+    except Exception as exc:
+        logger.warning("Sparse embedding unavailable (fastembed may not be installed): %s", exc)
+        return {"indices": [0], "values": [1.0]}  # passthrough fallback
+
 
 
 def _summarize(content: Any) -> str:
@@ -625,6 +668,7 @@ def store(
     session_id: str | None = None,
     summary: str | None = None,
     tier: str | None = None,
+    constitutional: dict | None = None,
 ) -> dict[str, Any]:
     """Dual-write to Qdrant (search) + Postgres (durable record).
 
@@ -632,6 +676,9 @@ def store(
     - HARAM patterns (F9 Anti-Hantu, reasoning scratchpads, ephemeral state) → rejected
     - WAJIB attestation (actor_id, session_id for Tier 3+) → required
     - Abstraction (>2000 chars without summary) → rejected
+
+    Args:
+        constitutional: Optional Δ triplet — {"value_anchor": [...], "floor_constraint": [...], "care_provenance": "..."}
     """
     # --- MEMORY TRIAGE GATE ---
     triage_result = _memory_triage_gate(
@@ -694,6 +741,8 @@ def store(
         "created_at": now.isoformat(),
         "tier": normalised_tier,
         "version": "v3",
+        # Constitutional Memory (Δ Axis 3) — moral provenance
+        "constitutional": constitutional,
         # Include memory_id so recall() can look up by memory_id directly in Qdrant
         "memory_id": memory_id,
         "pg_id": pg_memory_id,
@@ -912,6 +961,23 @@ def recall(memory_id: str) -> dict[str, Any] | None:
 
     # Helper: build return dict from Qdrant payload
     def _from_payload(p: dict, point_id: str) -> dict:
+        # Get constitutional fields
+        constitutional = p.get("constitutional")
+        floor_constraint = constitutional.get("floor_constraint", []) if constitutional else []
+
+        # Check floor constraint (Δ Axis 3)
+        # This is informational — the actual enforcement happens at the tool level
+        floor_check = None
+        if floor_constraint and check_floor_constraint:
+            try:
+                floor_check = check_floor_constraint(
+                    floor_constraint=floor_constraint,
+                    recall_intent="recall",  # Default intent for basic recall
+                    memory_id=p.get("memory_id") or memory_id,
+                )
+            except Exception as e:
+                logger.warning(f"Floor constraint check failed (non-blocking): {e}")
+
         result = {
             "memory_id": p.get("memory_id") or memory_id,
             "content": p.get("content"),
@@ -939,6 +1005,10 @@ def recall(memory_id: str) -> dict[str, Any] | None:
             "superseded_by": p.get("superseded_by"),
             "superseded_at": p.get("superseded_at"),
             "extraction_metadata": p.get("extraction_metadata"),
+            # Phase 1e: Constitutional Memory (Δ Axis 3)
+            "constitutional": constitutional,
+            "floor_constraint": floor_constraint,
+            "floor_check": floor_check,  # Δ Axis 3: floor-constrained recall
         }
         # Attach live Phoenix summary
         if p.get("phoenix_id"):
@@ -1088,8 +1158,132 @@ def recall(memory_id: str) -> dict[str, Any] | None:
 
 
 # ============================================================================
-# ARIF MEMORY AUDIT: Retrieve all memories for escalation queue processing
+# CONSTITUTIONAL MEMORY — Floor-Constrained Recall (Δ Axis 3)
 # ============================================================================
+
+# Recall verdicts — governed recall is not a database query
+RECALL_OK = "RECALL_OK"  # Memory retrieved, no floor conflict
+RECALL_HOLD_F5 = "RECALL_HOLD_F5"  # Recall would violate F5 PEACE
+RECALL_HOLD_F6 = "RECALL_HOLD_F6"  # Recall would violate F6 MARUAH
+RECALL_HOLD_F13 = "RECALL_HOLD_F13"  # Recall would violate F13 SOVEREIGN
+RECALL_BLOCKED = "RECALL_BLOCKED"  # Floor constraint prevents recall
+
+
+def recall_constitutional(
+    memory_id: str,
+    recall_intent: str = "",
+    actor_id: str = "",
+) -> dict[str, Any]:
+    """
+    Floor-constrained recall. Not a database query — a governed act.
+
+    If the memory carries a ConstitutionalMemoryBlock (Δ triplet):
+      1. Check floor_constraint against recall_intent
+      2. If conflict → HOLD with floor violation reason
+      3. If no conflict → RECALL_OK with constitutional metadata
+
+    Args:
+        memory_id: memory to recall
+        recall_intent: what the caller intends to do with this memory
+        actor_id: who is recalling
+
+    Returns:
+        {
+            "verdict": RECALL_OK | RECALL_HOLD_F5 | RECALL_HOLD_F6 | RECALL_HOLD_F13,
+            "memory": { ... } or None,
+            "constitutional": { "value_anchor": [...], "floor_constraint": [...], "care_provenance": "..." },
+            "violation": "reason" or None,
+        }
+    """
+    # Step 1: Retrieve the memory
+    memory = recall(memory_id)
+
+    if memory is None:
+        return {
+            "verdict": RECALL_BLOCKED,
+            "memory": None,
+            "constitutional": None,
+            "violation": f"Memory {memory_id} not found or soft-deleted.",
+        }
+
+    # Step 2: Check for constitutional metadata
+    constitutional = memory.get("constitutional")
+
+    if constitutional is None:
+        # No Δ — recall freely (operational data)
+        return {
+            "verdict": RECALL_OK,
+            "memory": memory,
+            "constitutional": None,
+            "violation": None,
+        }
+
+    # Step 3: Check floor constraints (F13 first — highest priority)
+    floor_constraints = constitutional.get("floor_constraint", [])
+    value_anchors = constitutional.get("value_anchor", [])
+    care_provenance = constitutional.get("care_provenance")
+
+    violation = None
+    verdict = RECALL_OK
+
+    # F13 SOVEREIGN — protect sovereignty (highest priority)
+    if "F13" in floor_constraints:
+        if actor_id and actor_id not in ("ARIF", "arif", "888", "sovereign"):
+            violation = (
+                "F13 SOVEREIGN: This memory is sovereign-protected. "
+                "Only the sovereign may recall with full access."
+            )
+            verdict = RECALL_HOLD_F13
+
+    # F6 MARUAH — protect dignity
+    if verdict == RECALL_OK and "F6" in floor_constraints:
+        dignity_keywords = ["expose", "reveal", "public", "share", "broadcast"]
+        if any(kw in recall_intent.lower() for kw in dignity_keywords):
+            violation = (
+                "F6 MARUAH: This memory carries dignity constraints. "
+                "Recall intent may expose protected information."
+            )
+            verdict = RECALL_HOLD_F6
+
+    # F5 PEACE — block destructive recall
+    if verdict == RECALL_OK and "F5" in floor_constraints:
+        destructive_keywords = ["delete", "destroy", "override", "replace", "erase", "void"]
+        if any(kw in recall_intent.lower() for kw in destructive_keywords):
+            violation = (
+                "F5 PEACE: This memory is protected. "
+                "Recall intent is destructive. "
+                "The weakest stakeholder must be guarded."
+            )
+            verdict = RECALL_HOLD_F5
+
+    return {
+        "verdict": verdict,
+        "memory": memory,
+        "constitutional": {
+            "value_anchor": value_anchors,
+            "floor_constraint": floor_constraints,
+            "care_provenance": care_provenance,
+        },
+        "violation": violation,
+    }
+
+
+def enrich_with_constitutional(
+    memory: dict[str, Any],
+    value_anchor: list[str],
+    floor_constraint: list[str],
+    care_provenance: str,
+) -> dict[str, Any]:
+    """
+    Enrich an existing memory with Δ triplet.
+    Used for backfilling legacy memories or adding constitutional metadata.
+    """
+    memory["constitutional"] = {
+        "value_anchor": value_anchor,
+        "floor_constraint": floor_constraint,
+        "care_provenance": care_provenance,
+    }
+    return memory
 
 
 def get_all_memories_for_audit(
@@ -1249,39 +1443,78 @@ def search(
 
     if query and query.strip():
         try:
-            vector = _generate_embedding(query)
+            from qdrant_client.models import Condition, FieldCondition, Filter, MatchValue, MatchAny  # noqa: PLC0415
+
             client = _get_qdrant_client()
-            response = client.query_points(
+
+            # Build Qdrant payload filters (P0: push filters to engine, not Python loop)
+            filter_conditions: list[Condition] = []
+            if mode:
+                filter_conditions.append(FieldCondition(key="mode", match=MatchValue(value=mode)))
+            if session_id:
+                filter_conditions.append(
+                    FieldCondition(key="session_id", match=MatchValue(value=session_id))
+                )
+            if tags:
+                filter_conditions.append(FieldCondition(key="tags", match=MatchAny(any=tags)))
+            if entity_filter:
+                filter_conditions.append(
+                    FieldCondition(key="entity_tags", match=MatchAny(any=entity_filter))
+                )
+            if not include_historical:
+                filter_conditions.append(
+                    FieldCondition(key="temporal_marker", match=MatchValue(value="active"))
+                )
+
+            qdrant_filter = Filter(must=filter_conditions) if filter_conditions else None
+
+            # P1: Hybrid dense+sparse query with RRF fusion
+            dense_vec = _generate_embedding(query)
+            sparse_vec_or_none = _generate_sparse_embedding(query)
+
+            # Dense query
+            prefetch_limit = limit * 4
+            dense_resp = client.query_points(
                 collection_name=_QDRANT_COLLECTION,
-                query=vector,
-                limit=limit * 2,
+                query=dense_vec,
+                query_filter=qdrant_filter,
+                limit=prefetch_limit,
                 with_payload=True,
             )
-            for hit in response.points:
-                p = hit.payload or {}
-                if mode and p.get("mode") != mode:
-                    continue
-                if session_id and p.get("session_id") != session_id:
-                    continue
-                if tags and not all(t in p.get("tags", []) for t in tags):
-                    continue
 
-                # Phase 1c: F4 entity filter
-                if entity_filter:
-                    entry_tags = set(p.get("entity_tags", []) or [])
-                    if not entry_tags.intersection(entity_filter):
-                        continue  # No matching entity tag
+            # Sparse BM25 query (skip if fallback passthrough)
+            has_sparse = len(sparse_vec_or_none.get("indices", [])) > 1 or sparse_vec_or_none.get("indices", []) != [0]
+            if has_sparse:
+                from qdrant_client.models import SparseVector  # noqa: PLC0415
+                sparse_vec = SparseVector(
+                    indices=sparse_vec_or_none["indices"],
+                    values=sparse_vec_or_none["values"],
+                )
+                sparse_resp = client.query_points(
+                    collection_name=_QDRANT_COLLECTION,
+                    query=sparse_vec,
+                    using="bm25",
+                    query_filter=qdrant_filter,
+                    limit=prefetch_limit,
+                    with_payload=True,
+                )
+            else:
+                sparse_resp = None
 
-                # Phase 1c: Temporal filter — exclude historical unless asked
-                temporal_marker = p.get("temporal_marker", "unknown")
-                if not include_historical and temporal_marker == "historical":
-                    continue
+            # RRF fusion: fuse dense + sparse rankings
+            RRF_K = 60.0  # SOTA constant
+            rrf_scores: dict[str, float] = {}
+            dedup_map: dict[str, dict] = {}
 
-                results.append(
-                    (
-                        hit.score,
-                        {
-                            "memory_id": p.get("memory_id") or str(hit.id),
+            def _add_ranked(pts, weight=1.0):
+                for rank, hit in enumerate(pts):
+                    p = hit.payload or {}
+                    pid = str(hit.id)
+                    rrf_scores[pid] = rrf_scores.get(pid, 0.0) + weight / (RRF_K + rank + 1)
+                    if pid not in dedup_map:
+                        temporal_marker = p.get("temporal_marker", "unknown")
+                        dedup_map[pid] = {
+                            "memory_id": p.get("memory_id") or pid,
                             "content": p.get("content"),
                             "mode": p.get("mode"),
                             "tags": p.get("tags", []),
@@ -1291,26 +1524,43 @@ def search(
                             "content_hash": p.get("content_hash"),
                             "created_at": p.get("created_at"),
                             "tier": p.get("tier", TIER_CANONICAL),
-                            "point_id": str(hit.id),
+                            "point_id": pid,
                             "score": hit.score,
+                            "rrf_score": rrf_scores[pid],
                             "version": p.get("version", "v3"),
-                            # Phoenix-72 fields
                             "phoenix_id": p.get("phoenix_id"),
                             "phoenix_state": p.get("phoenix_state"),
                             "phoenix_psi_utility": p.get("phoenix_psi_utility", 0),
                             "phoenix_tri_witness": p.get("phoenix_tri_witness", {}),
                             "phoenix_anti_hantu_flag": p.get("phoenix_anti_hantu_flag", False),
-                            # Phase 1c: F4 temporal fields
                             "entity_tags": p.get("entity_tags", []),
                             "temporal_marker": temporal_marker,
                             "superseded_by": p.get("superseded_by"),
                             "superseded_at": p.get("superseded_at"),
                             "extraction_metadata": p.get("extraction_metadata"),
-                        },
-                    )
-                )
+                            "constitutional": p.get("constitutional"),
+                        }
+                    else:
+                        dedup_map[pid]["rrf_score"] = rrf_scores[pid]
+
+            _add_ranked(dense_resp.points, weight=1.0)
+            if sparse_resp is not None:
+                _add_ranked(sparse_resp.points, weight=1.0)
+
+            # Sort by RRF score descending
+            fused = sorted(dedup_map.values(), key=lambda r: r.get("rrf_score", 0), reverse=True)
+            # P3: Store intermediate trace
+            _retrieval_trace.clear()
+            _retrieval_trace["hybrid"] = {
+                "dense_candidates": len(dense_resp.points),
+                "sparse_candidates": len(sparse_resp.points) if sparse_resp else 0,
+                "fused_total": len(fused),
+                "query_prefix": query[:80],
+            }
+            results = [(r["rrf_score"], r) for r in fused]
+
         except Exception as exc:
-            logger.warning("Vector search failed: %s", exc)
+            logger.warning("Hybrid vector search failed: %s", exc)
     else:
         for memory_id, meta in idx.items():
             if mode and meta.get("mode") != mode:
@@ -1342,19 +1592,11 @@ def search(
     if not include_historical:
         results = _deduplicate_superseded(results)
 
-    # F4 Retrieval Governance Gate — filter before returning to caller
-    # integrate_with_search_results applies:
-    #   - Tier isolation (session vs sacred vs canon)
-    #   - Evidence confidence floor
-    #   - Relevance threshold
-    #   - Temporal staleness (historical block unless asked)
-    #   - Emotional exaggeration / scar-hijack guard
-    #   - Privacy sensitivity (private memories)
-    #   - Scar distortion detection
-    #   - Contradiction ESCALATE for Arif review
-    raw_mems = [r for _, r in results[:limit]]
-    filtered_mems, _policy_report = integrate_with_search_results(
-        raw_results=raw_mems,
+    # P0b: Governance gate BEFORE top-k cut — run on full candidate set
+    # This ensures we never lose survivors due to pre-governance truncation
+    all_mems = [r for _, r in results]
+    governance_filtered, _policy_report = integrate_with_search_results(
+        raw_results=all_mems,
         actor_id=actor_id,
         session_id=session_id,
         query=query or "",
@@ -1363,12 +1605,15 @@ def search(
     if _policy_report.total_candidates > 0:
         logger.debug(
             "F4 Retrieval Governance: %s/%s passed | flagged=%s blocked=%s escalated=%s",
-            len(filtered_mems),
+            len(governance_filtered),
             _policy_report.total_candidates,
             _policy_report.flagged,
             _policy_report.blocked,
             _policy_report.escalated,
         )
+
+    # Apply limit AFTER governance — caller always gets up to `limit` usable results
+    final_mems = governance_filtered[:limit]
 
     # RG-01: Surface escalation queue and governance report to caller
     escalation_queue = [
@@ -1376,9 +1621,10 @@ def search(
     ]
 
     return {
-        "results": filtered_mems,
+        "results": final_mems,
         "_governance_report": _policy_report.as_dict(),
         "_escalation_queue": escalation_queue,
+        "_retrieval_trace": dict(_retrieval_trace),
     }
 
 

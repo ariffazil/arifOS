@@ -111,6 +111,61 @@ No organ may authorize its own execution. Only `arif_judge → arif_forge → ar
 - **OWNS:** Build, deploy, code execution, orchestration
 - **NEVER:** Adjudicate, compute domain logic (NumPy/Pandas), self-authorize
 
+### §5.5 Measurement Ownership Boundary (F13 SOVEREIGN — Ratified 2026-07-12)
+
+> *"Kernel measures the machine. WELL measures the substrate. Neither crosses."*
+
+The kernel-vs-WELL seam is non-negotiable. Two adjacent organs can both
+be called "measurement"; without an explicit contract, capabilities drift
+into ambiguous duplication and agents lose trust in the substrate gate.
+
+#### kernel_owns — runtime self-measurement only
+
+- MCP transport health (`/health` liveness, protocol negotiation, schema round-trip)
+- Session health (governed session lifecycle, authority classification)
+- Constitutional floor state (F1–F13 surface, sovereign ruling propagation)
+- Routing health (cross-organ bridge liveness, latency bands)
+- VAULT999 connectivity (sealed-chain `chain_integrity`, replay OK/FAIL, NOT substrate readiness)
+- MCP process liveness (CPU, memory, I/O of the kernel process)
+
+#### well_owns — substrate sensing only
+
+- Human readiness (sleep debt, cognitive clarity, fatigue, stress, emotional state, accumulated session fatigue, chronic fatigue, C1–C5 decision class)
+- Machine substrate reliability (broker reliability, operational stability — **NOT kernel runtime**)
+- Coupled human–machine homeostasis (regulation under change, empathic balance)
+- Repair and recovery intelligence (preconditions, intervention, outcome)
+- Substrate classification (biological / machine / institutional / coupled / unknown — **categorization, not measurement-of-the-kernel**)
+- Dignity, coercion, reductionism, medical-boundary (F6, F9 ground)
+- Lineage and evidence-trace (raw observations + provenance — not constitutional interpretation)
+- Sovereign-entropy protection (preventing optimization of the operator into predictability)
+
+#### kernel_must_not
+
+- diagnose humans
+- fabricate biometric state
+- compute a competing human-readiness score
+- silently re-interpret WELL evidence (e.g., inject a "freshness inferred" stamp)
+- treat its own MCP process measurement as substrate evidence
+
+#### well_must_not
+
+- issue constitutional verdicts (SEAL/HOLD/VOID/SABAR)
+- authorize mutations
+- execute repairs directly (it surfaces, arifOS judges, A-FORGE executes)
+- silently expand `well_measure_gradient` into kernel-runtime metrics
+- impersonate kernel-owned classification authority over machine governance
+
+#### Conflict resolution
+
+- If the kernel needs substrate readiness, it ROUTES (arif_route) to WELL.
+- If WELL needs runtime health of its own MCP, it queries its own `/health`, never kernel.
+- Edge cases (coupled human-machine strain under kernel degradation) cross to a third surface (WELL's `well_compute_metabolic_flux` — advisory only, never verdict).
+- Disputes of ownership are arifOS 888 HOLD territory, not negotiation.
+
+#### Re-classification of `arif_measure`
+
+If and while the kernel surface exposes an `arif_measure` tool, it is renamed/narrowed to `arif_runtime_health` — measuring **only** the kernel's own MCP process, transport, and authority state. No substrate crossover. WELL's `well_assess_reliability` covers machine substrate reliability.
+
 ---
 
 ## 6. The SEAL Disambiguation
@@ -240,3 +295,48 @@ Canonical implementation: `arifosmcp/runtime/tools.py` (get_full_affordance, bui
 
 Organs (GEOX/WEALTH/WELL/A-FORGE) should align their public tool surfaces to this grammar in subsequent forges.
 
+
+---
+
+## 13. APEX Cross-Organ Envelope Binding (Ratified 2026-07-12)
+
+Every organ (GEOX, WEALTH, WELL, AAA, A-FORGE, arifOS) **MUST** emit, at every tool-emit boundary, an envelope conforming to:
+
+```
+schema_version: "apex-envelope/1.0"
+```
+
+### Canonical binding
+
+| Doc | Path | Purpose |
+|---|---|---|
+| Schema (JSON Schema 2020-12) | `/root/arifOS/theory/apex/apex-envelope.schema.v1.json` | Machine-readable type contract |
+| Vocabulary glossary | `/root/arifOS/theory/apex/apex-vocabulary.v1.md` | Re-labeling dictionary + retention policy |
+| Three-layer verdict | (inside schema) `verdict_layers.{layer1_gates, layer2_robustness, layer3_preference}` | Hard gates + robustness + sovereignty-respecting preference |
+
+### The five binding rules
+
+1. **One fatal contradiction dominates.** `verdict_layers.layer1_gates.{authority,rights,physical,safety}` — any 0 ⇒ VOID. `layer2_robustness.verdict = HOLD` ⇒ HOLD. These are non-averaging. A single fatal failure overrides an otherwise promising envelope.
+2. **Domain organ recommends; arifOS 888 judges.** `recommended_verdict` is the organ's recommendation. Only `arif_judge` issues a binding SEAL/HOLD/VOID.
+3. **Confidence must declare its discipline.** `confidence.discipline` is required — `confidence.value` alone is unparseable across organs.
+4. **Provenance must list its transforms.** Pure observation has empty `transform_chain`; computed claim must list the chain (Vsh→Φ→Sw, refresh-rollup, etc.).
+5. **Freshness auto-expires.** After `expires_at`, downstream tools must treat the envelope as UNKNOWN regardless of source-stated validity.
+
+### Migration phases
+
+| Phase | Action | Status |
+|---|---|---|
+| 1 | Publish schema + glossary | ✅ 2026-07-12 |
+| 2 | Each organ emits v1.0 outer wrapper at boundary | queued (T2 territory per organ) |
+| 3 | Internal organ envelope shapes deprecate; cross-organ surfaces conform | queued |
+| 4 | Drift detection operational | queued |
+
+Until Phase 2 lands, organ internal envelopes continue to exist but organ-emit boundaries MUST wrap them in v1.0.
+
+### Standing cross-reference
+
+- §5.5 — Measurement Ownership Boundary (kernel measures machine, WELL measures substrate)
+- §11 — MCP Boundary (MCP exposes capability; arifOS produces authority)
+- **§13 — APEX Cross-Organ Envelope Binding (this section; ratified 2026-07-12)**
+
+Signed off in the FORGE session of 2026-07-12. F13 SOVEREIGN signature pending ratification.

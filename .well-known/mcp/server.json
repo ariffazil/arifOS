@@ -24,7 +24,7 @@
     "tools": {
       "listChanged": true,
       "count": 12,
-      "note": "12 public tools. 5 internal tools (arif_act, arif_fetch, arif_judge_deliberate, arif_kernel_intercept, arif_measure) hidden per F13 ratification."
+      "note": "12 public tools. 5 internal tools (arif_act, arif_fetch, arif_judge_deliberate, arif_kernel_intercept, arif_runtime_health) hidden per F13 ratification."
     },
     "resources": {
       "subscribe": false,
@@ -78,7 +78,7 @@
       "arif_fetch",
       "arif_judge_deliberate",
       "arif_kernel_intercept",
-      "arif_measure"
+      "arif_runtime_health"
     ]
   },
   "governance": {

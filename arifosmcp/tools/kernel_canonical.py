@@ -27,12 +27,36 @@ import asyncio
 import concurrent.futures
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
 from arifosmcp.core.federation_contracts import validate_organ_output
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
+
+
+def _token_in(token: str, text: str) -> bool:
+    """Substring match with word boundaries for short / single-token keywords.
+
+    HARDEN-C calibration (2026-07-12): bare ``in`` matching let capital token
+    ``irr`` fire inside ``irreversible`` and GEOX token ``rs`` fire inside the
+    same word — WEALTH won over WELL for substrate-readiness intents.
+
+    Multi-word phrases stay pure substring (specific enough). Tokens shorter
+    than 5 chars, or single tokens of any length that are pure alphanumerics,
+    require non-alnum boundaries on both sides.
+    """
+    if not token:
+        return False
+    t = token.lower()
+    if " " in t or "-" in t or "_" in t or "/" in t:
+        return t in text
+    if len(t) >= 6 and t.isalpha():
+        # Long pure words: still boundary-aware to avoid mid-word hits
+        return re.search(rf"(?<![a-z0-9]){re.escape(t)}(?![a-z0-9])", text) is not None
+    return re.search(rf"(?<![a-z0-9]){re.escape(t)}(?![a-z0-9])", text) is not None
+
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +193,9 @@ def _load_intent_map() -> dict[str, Any]:
                 "organ": "AAA",
                 "port": 3001,
                 "intent_keywords": [
+                    # ROUTING-CALIBRATION FIX (2026-07-12): added federation
+                    # state/topology and broadcast keywords so AAA domain queries
+                    # route correctly instead of falling through to arifOS default
                     "cockpit",
                     "dashboard",
                     "control plane",
@@ -184,12 +211,26 @@ def _load_intent_map() -> dict[str, Any]:
                     "A2A gateway",
                     "identity anchor",
                     "throttle",
+                    "federation state",
+                    "federation topology",
+                    "agent topology",
+                    "agent map",
+                    "organ map",
+                    "federation map",
+                    "broadcast message",
+                    "broadcast to all",
+                    "topology map",
+                    "state and topology",
                 ],
             },
             "a_forge": {
                 "organ": "A-FORGE",
                 "port": 7071,
                 "intent_keywords": [
+                    # ROUTING-CALIBRATION FIX (2026-07-12): added explicit
+                    # service-restart phrases so "restart the arifos service"
+                    # routes to A-FORGE despite "arifos" being in the intent.
+                    # These are longer than any arifOS keyword for the same text.
                     "build",
                     "deploy",
                     "forge",
@@ -218,6 +259,16 @@ def _load_intent_map() -> dict[str, Any]:
                     "systemctl restart",
                     "systemd unit",
                     "service restart",
+                    "service stop",
+                    "restart the service",
+                    "restart the arifos service",
+                    "restart arifos service",
+                    "restart the well service",
+                    "restart well service",
+                    "stop the service",
+                    "stop the well service",
+                    "stop the arifos service",
+                    "stop service",
                     "make deploy",
                     "code deploy",
                     "rollback",
@@ -225,6 +276,9 @@ def _load_intent_map() -> dict[str, Any]:
                     "forge execute",
                     "forge plan",
                     "forge dryrun",
+                    "staged code change",
+                    "staged deploy",
+                    "deploy with rollback",
                 ],
             },
             "geox": {
@@ -276,6 +330,7 @@ def _load_intent_map() -> dict[str, Any]:
                     "capital",
                     "hedge",
                     "risk metric",
+                    "risk assessment",
                     "allocation",
                     "stress test",
                     # SERP API: finance/commerce/trends domain (2026-07-07)
@@ -305,6 +360,8 @@ def _load_intent_map() -> dict[str, Any]:
                 "port": 18083,
                 "intent_keywords": [
                     # G13 FIX: human-vitality-only keywords
+                    # ROUTING-CALIBRATION FIX (2026-07-12): added explicit
+                    # human-state phrases so WELL matches without being stolen
                     "human health",
                     "personal health",
                     "wellness",
@@ -321,6 +378,18 @@ def _load_intent_map() -> dict[str, Any]:
                     "maruah",
                     "fatigue",
                     "cognition load",
+                    "cognitive clarity",
+                    "stress load",
+                    "decision readiness",
+                    "fit to decide",
+                    "human readiness",
+                    "operator readiness",
+                    "operator fatigue",
+                    "substrate readiness",
+                    "human decision readiness",
+                    "feeling tired",
+                    "feeling stressed",
+                    "high stakes decision",
                     # SERP API: travel domain (2026-07-07)
                     "flight search",
                     "hotel search",
@@ -358,18 +427,67 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # and route to that organ BEFORE the kernel guard fires.
     _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS")
 
-    # Step 1: organ-qualified phrases win. If intent starts with an organ
-    # name OR contains "<organ> organ" / "<organ> health", route to it.
+    # Step 1: organ-qualified phrases win — ONLY for explicit organ queries.
+    # HARDEN-C P0 (2026-07-12): bare " well " must NOT match geoscience
+    # "seismic well tie" / "well log" — only explicit WELL-organ phrases.
+    # ROUTING-CALIBRATION FIX (2026-07-12): bare organ name in intent (e.g.
+    # "restart the arifos service") must NOT trigger Step 1 — only explicit
+    # organ-query patterns (organ at start or followed by organ/health/status).
     for organ_name in _ORGAN_NAMES:
-        # "WELL organ health" → WELL; "GEOX earth evidence" → GEOX; etc.
         organ_lower = organ_name.lower().replace("-", " ").replace("a forge", "a_forge")
-        if (
-            intent_lower.startswith(organ_lower + " ")
-            or f" {organ_lower} " in intent_lower
-            or f" {organ_lower} organ " in intent_lower
-            or f" {organ_lower} health" in intent_lower
+        if organ_name == "WELL":
+            _well_organ_phrases = (
+                "well organ",
+                "well readiness",
+                "well vitality",
+                "well substrate",
+                "well mcp",
+                "well health check",
+                "well homeostasis",
+                "well dignity",
+                "well fatigue",  # organ context when paired with well organ language
+                " the well organ",
+                "well://",
+            )
+            if any(p in intent_lower for p in _well_organ_phrases) or intent_lower.startswith(
+                "well organ"
+            ):
+                # Still exclude pure geoscience if "well log/tie/desurvey" dominates
+                _geo_well = (
+                    "well log",
+                    "well tie",
+                    "well_qc",
+                    "well_desurvey",
+                    "well_ingest",
+                    "seismic well",
+                    "well logs",
+                )
+                if any(g in intent_lower for g in _geo_well) and "well organ" not in intent_lower:
+                    continue
+                return "well"
+            continue  # never bare-token match WELL
+        # ROUTING-CALIBRATION FIX: only match explicit organ queries, not bare
+        # mentions like "restart the arifos service" (should route to A-FORGE).
+        # Bare " arifos " in mid-intent now requires organ/health/status qualifier.
+        if not (
+            intent_lower.startswith(organ_lower + " ") or f" {organ_lower} organ " in intent_lower
         ):
-            return organ_lower.replace(" ", "_").replace("a_forge", "a-forge")
+            # Mid-intent bare match: only if followed by health/status/state/kernel
+            mid_patterns = (
+                f" {organ_lower} health",
+                f" {organ_lower} status",
+                f" {organ_lower} state",
+                f" {organ_lower} kernel",
+                f" {organ_lower} organ ",
+            )
+            if not any(p in intent_lower for p in mid_patterns):
+                continue
+            # Additional guard: if the intent contains execution verbs like
+            # "restart", "deploy", "build" — don't route to the mentioned organ.
+            _exec_verbs = ("restart", "deploy", "stop", "start", "build")
+            if any(v in intent_lower for v in _exec_verbs):
+                continue
+        return organ_lower.replace(" ", "_").replace("a_forge", "a-forge")
 
     # Step 2: kernel guard for kernel-level concerns (MCP / constitutional / governance)
     _KERNEL_GUARD_PATTERNS: list[str] = [
@@ -429,17 +547,49 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
         if pattern in intent_lower:
             return "arifOS"
 
-    # Step 3: YAML intent map — longest keyword match wins
+    # Step 3: YAML intent map — scored match (HARDEN-C 2026-07-12)
+    # Longest-only failed: "prospect" (8) beat "npv" (3) for "NPV of a prospect".
+    # Score = sum of matched keyword lengths; capital verbs get a boost when
+    # explicit capital tokens appear; geo "well *" no longer steals WELL organ.
+    # 2026-07-12 calibration: word-boundary matching for short tokens so
+    # "irr"/"rs" no longer hijack "irreversible" / readiness intents.
     intent_map = _load_intent_map()
     organ_routes = intent_map.get("organ_routes", {})
-    best_match = None
-    best_len = 0
+    _CAPITAL_TOKENS = (
+        "npv",
+        "irr",
+        "emv",
+        "cash flow",
+        "cash runway",
+        "runway",
+        "portfolio",
+        "capital",
+        "investment",
+    )
+    _has_capital = any(_token_in(t, intent_lower) for t in _CAPITAL_TOKENS)
+    scores: dict[str, int] = {}
     for organ_key, organ_config in organ_routes.items():
+        organ_label = str(organ_config.get("organ", organ_key.upper()))
+        score = 0
         for kw in organ_config.get("intent_keywords", []):
-            if kw.lower() in intent_lower and len(kw) > best_len:
-                best_len = len(kw)
-                best_match = organ_config.get("organ", organ_key.upper())
-    return best_match or "arifOS"
+            kl = kw.lower()
+            if _token_in(kl, intent_lower):
+                score += len(kl)
+                # Prefer multi-word / exact phrases
+                if " " in kl or "-" in kl:
+                    score += 2
+        if score <= 0:
+            continue
+        if organ_label.upper() == "WEALTH" and _has_capital:
+            score += 12  # capital verb outweighs lone geology noun "prospect"
+        if organ_label.upper() == "GEOX" and _has_capital and _token_in("prospect", intent_lower):
+            # demote pure prospect hit when capital terms present
+            score = max(0, score - 6)
+        scores[organ_label] = scores.get(organ_label, 0) + score
+    if scores:
+        best_match = max(scores.items(), key=lambda kv: kv[1])[0]
+        return best_match
+    return "arifOS"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
