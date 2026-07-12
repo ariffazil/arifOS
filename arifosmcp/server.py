@@ -587,6 +587,17 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
     # but must not count toward the canonical surface (forged 2026-07-04).
     for _sdk_alias in ("arif_session_init", "arif_gateway_connect"):
         registered_set.discard(_sdk_alias)
+    # Optional Entropy Integrity Mesh — may register when importable; never
+    # public surface. Discard so boot neither requires nor rejects them.
+    for _mesh in (
+        "arif_entropy_observe",
+        "arif_j_state_assess",
+        "arif_correction_probe",
+        "arif_consequence_trace",
+        "arif_entropy_route",
+        "arif_j_gate",
+    ):
+        registered_set.discard(_mesh)
     if registered_set != expected_set:
         missing = expected_set - registered_set
         unexpected = registered_set - expected_set
@@ -1231,12 +1242,12 @@ try:
 
     # ── Entropy Integrity Mesh — Kernel tools ──────────────────────────
     try:
-        from mcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe
-        from mcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess
-        from mcp.entropy_kernel.correction_probe import arif_correction_probe as _correction_probe
-        from mcp.entropy_kernel.consequence_trace import arif_consequence_trace as _consequence_trace
-        from mcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route
-        from mcp.entropy_kernel.j_gate import arif_j_gate as _j_gate
+        from arifosmcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe
+        from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess
+        from arifosmcp.entropy_kernel.correction_probe import arif_correction_probe as _correction_probe
+        from arifosmcp.entropy_kernel.consequence_trace import arif_consequence_trace as _consequence_trace
+        from arifosmcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route
+        from arifosmcp.entropy_kernel.j_gate import arif_j_gate as _j_gate
 
         mcp.tool(
             name="arif_entropy_observe",
@@ -1247,7 +1258,6 @@ try:
             ),
             tags={"entropy", "kernel", "observe", "phase1"},
         )(_entropy_observe)
-        v2_tools_registered.append("arif_entropy_observe")
 
         mcp.tool(
             name="arif_j_state_assess",
@@ -1258,7 +1268,6 @@ try:
             ),
             tags={"entropy", "kernel", "assess", "phase1"},
         )(_j_state_assess)
-        v2_tools_registered.append("arif_j_state_assess")
 
         mcp.tool(
             name="arif_correction_probe",
@@ -1268,7 +1277,6 @@ try:
             ),
             tags={"entropy", "kernel", "probe", "phase1"},
         )(_correction_probe)
-        v2_tools_registered.append("arif_correction_probe")
 
         mcp.tool(
             name="arif_consequence_trace",
@@ -1278,7 +1286,6 @@ try:
             ),
             tags={"entropy", "kernel", "trace", "phase1"},
         )(_consequence_trace)
-        v2_tools_registered.append("arif_consequence_trace")
 
         mcp.tool(
             name="arif_entropy_route",
@@ -1288,7 +1295,6 @@ try:
             ),
             tags={"entropy", "kernel", "route", "phase1"},
         )(_entropy_route)
-        v2_tools_registered.append("arif_entropy_route")
 
         mcp.tool(
             name="arif_j_gate",
@@ -1299,9 +1305,8 @@ try:
             ),
             tags={"entropy", "kernel", "gate", "phase1"},
         )(_j_gate)
-        v2_tools_registered.append("arif_j_gate")
 
-        logger.info("Entropy Integrity Mesh kernel tools registered: 6 tools")
+        logger.info("Entropy Integrity Mesh kernel tools registered: 6 tools (optional surface)")
     except ImportError as _entropy_err:
         logger.warning("Entropy Integrity Mesh not available: %s", _entropy_err)
     except Exception as _entropy_err:
