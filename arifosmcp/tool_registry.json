@@ -44,18 +44,24 @@
     "diagnostic": "Health probes, drift checks, floor status, budget telemetry, and scanners"
   },
   "canonical_order": [
+    "arif_kernel_intercept",
     "arif_init",
     "arif_observe",
+    "arif_fetch",
     "arif_think",
-    "arif_route",
-    "arif_bridge_connect",
     "arif_critique",
+    "arif_route",
+    "arif_triage",
+    "arif_bridge_connect",
+    "arif_compose",
     "arif_memory",
     "arif_judge",
-    "arif_forge",
-    "arif_compose",
+    "arif_judge_deliberate",
     "arif_seal",
-    "arif_verify"
+    "arif_verify",
+    "arif_act",
+    "arif_forge",
+    "arif_measure"
   ],
   "internal_canonical_order": [
     "arif_triage",
@@ -429,8 +435,9 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "expose": false,
-      "deprecated": true,
-      "migration": "arif_init(mode=preflight|triage)"
+      "deprecated": false,
+      "migration": "arif_init(mode=preflight|triage)",
+      "deprecation_reason": null
     },
     "arif_bridge_connect": {
       "stage": "555",
@@ -675,7 +682,7 @@
       "modes": [
         "verify"
       ],
-      "eureka_insight": "ART→KERNEL→ACT padlock: ART classifies, arif_judge SEALs, arif_verify unlocks ACT. Without arif_verify the cage has a hasp but no padlock.",
+      "eureka_insight": "ART\u2192KERNEL\u2192ACT padlock: ART classifies, arif_judge SEALs, arif_verify unlocks ACT. Without arif_verify the cage has a hasp but no padlock.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -843,7 +850,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=hermes, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_vault_query": {
       "tier": "hermes",
@@ -875,7 +884,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=hermes, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_epistemic_check": {
       "tier": "hermes",
@@ -906,7 +917,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=hermes, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_fact_check": {
       "tier": "hermes",
@@ -938,7 +951,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=hermes, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_cross_verify": {
       "tier": "hermes",
@@ -967,7 +982,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=hermes, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_plan_review": {
       "tier": "hermes",
@@ -998,7 +1015,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=hermes, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_memory_steward": {
       "tier": "hermes",
@@ -1028,7 +1047,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=hermes, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_canary": {
       "tier": "canary",
@@ -1061,7 +1082,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_ping": {
       "tier": "canary",
@@ -1088,7 +1111,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_schema_echo": {
       "tier": "canary",
@@ -1115,7 +1140,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_version_echo": {
       "tier": "canary",
@@ -1142,7 +1169,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_transport_echo": {
       "tier": "canary",
@@ -1169,7 +1198,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_initialize_probe": {
       "tier": "canary",
@@ -1196,7 +1227,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_conformance_report": {
       "tier": "canary",
@@ -1225,7 +1258,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=canary, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_lease_inspect": {
       "tier": "lease",
@@ -1254,7 +1289,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=lease, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_lease_issue": {
       "tier": "lease",
@@ -1284,7 +1321,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=lease, irreversible=False, access=authenticated",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_lease_revoke": {
       "tier": "lease",
@@ -1314,7 +1353,9 @@
         "autonomy_floor": "PRINCIPAL_APPROVAL_REQUIRED",
         "rationale": "Spec-inferred: tier=lease, irreversible=True, access=authenticated",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_os_attest": {
       "tier": "attest",
@@ -1342,7 +1383,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=attest, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_organ_attest": {
       "tier": "attest",
@@ -1372,7 +1415,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=attest, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_organ_attest_all": {
       "tier": "attest",
@@ -1402,7 +1447,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=attest, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_heartbeat": {
       "tier": "attest",
@@ -1432,7 +1479,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=attest, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_peer_contract_validate": {
       "tier": "attest",
@@ -1463,7 +1512,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=attest, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_peer_contract_attest": {
       "tier": "attest",
@@ -1493,7 +1544,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=attest, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_peer_contract_forbid": {
       "tier": "attest",
@@ -1525,7 +1578,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=attest, irreversible=False, access=authenticated",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "forge_dry_run": {
       "tier": "forge-sub",
@@ -1553,7 +1608,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=forge-sub, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "forge_plan": {
       "tier": "forge-sub",
@@ -1582,7 +1639,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=forge-sub, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "forge_query": {
       "tier": "forge-sub",
@@ -1610,7 +1669,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=forge-sub, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_detect_institutional_shadow_drift": {
       "tier": "narrative",
@@ -1640,7 +1701,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=narrative, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_detect_narrative_tension": {
       "tier": "narrative",
@@ -1671,7 +1734,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=narrative, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_stack_health_probe": {
       "tier": "diagnostic",
@@ -1701,7 +1766,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_scan_local_instructions": {
       "tier": "diagnostic",
@@ -1730,7 +1797,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_organ_consensus": {
       "tier": "diagnostic",
@@ -1760,7 +1829,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_session_budget": {
       "tier": "diagnostic",
@@ -1789,7 +1860,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_floor_status": {
       "tier": "diagnostic",
@@ -1819,7 +1892,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "mcp_drift_check": {
       "tier": "diagnostic",
@@ -1851,7 +1926,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_gate_judge": {
       "tier": "diagnostic",
@@ -1886,7 +1963,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=low, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_self_evaluate": {
       "tier": "diagnostic",
@@ -1916,7 +1995,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_model_compare": {
       "tier": "diagnostic",
@@ -1946,7 +2027,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=diagnostic, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_search": {
       "tier": "chatgpt-shim",
@@ -1975,7 +2058,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=chatgpt-shim, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_resolve_tool": {
       "tier": "discovery",
@@ -2002,7 +2087,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Spec-inferred: tier=discovery, irreversible=False, access=public",
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
-      }
+      },
+      "deprecated": true,
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     }
   },
   "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",

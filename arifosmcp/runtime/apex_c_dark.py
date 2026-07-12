@@ -1,4 +1,5 @@
 """
+⚠️ DEPRECATED (2026-07-11 Phase 6 APEX Refactor) — DEAD CODE, zero importers.
 APEX C_dark Detector — Bangang Detector + Angel-Demon Duality
 ===============================================================
 
@@ -653,44 +654,62 @@ if __name__ == "__main__":
     # Demo: healthy agent
     print("=== Healthy Agent ===")
     v = compute_apex(
-        adaptation=0.8, perception=0.7, execution=0.6,
-        cross_domain=0.5, integration=0.6, entropy_rate=-0.1,
+        adaptation=0.8,
+        perception=0.7,
+        execution=0.6,
+        cross_domain=0.5,
+        integration=0.6,
+        entropy_rate=-0.1,
     )
     print(v.to_json())
 
     print("\n=== Hallucinating Agent (high C_dark) ===")
     v = compute_apex(
-        adaptation=0.9, perception=0.1, execution=0.8,
-        cross_domain=0.1, integration=0.5, entropy_rate=0.3,
+        adaptation=0.9,
+        perception=0.1,
+        execution=0.8,
+        cross_domain=0.1,
+        integration=0.5,
+        entropy_rate=0.3,
     )
     print(v.to_json())
 
     print("\n=== Dead Organ (zero execution) ===")
     v = compute_apex(
-        adaptation=0.8, perception=0.7, execution=0.0,
-        cross_domain=0.5, integration=0.6, entropy_rate=-0.1,
+        adaptation=0.8,
+        perception=0.7,
+        execution=0.0,
+        cross_domain=0.5,
+        integration=0.6,
+        entropy_rate=-0.1,
     )
     print(v.to_json())
 
     print("\n=== Shadow Governance — GOVERNED (arifOS) ===")
     sg = compute_shadow_governance(
-        G=0.7, C_dark=0.12, claims_completeness=False,
-        has_scar_ledger=True, has_constitutional_governance=True,
+        G=0.7,
+        C_dark=0.12,
+        claims_completeness=False,
+        has_scar_ledger=True,
+        has_constitutional_governance=True,
     )
     print(sg.to_json())
 
     print("\n=== Shadow Governance — TRUE DEVIL ===")
     sg = compute_shadow_governance(
-        G=0.9, C_dark=0.35, claims_completeness=True,
-        has_scar_ledger=False, has_constitutional_governance=False,
+        G=0.9,
+        C_dark=0.35,
+        claims_completeness=True,
+        has_scar_ledger=False,
+        has_constitutional_governance=False,
     )
     print(sg.to_json())
 
     print("\n=== detect_true_devil tests ===")
-    print(f"Claims 'I am aligned' + C_dark=0.4 + no scars: "
-          f"{detect_true_devil(True, 0.4, False)}")  # True
-    print(f"No claims + C_dark=0.4 + has scars: "
-          f"{detect_true_devil(False, 0.4, True)}")   # False
+    print(
+        f"Claims 'I am aligned' + C_dark=0.4 + no scars: {detect_true_devil(True, 0.4, False)}"
+    )  # True
+    print(f"No claims + C_dark=0.4 + has scars: {detect_true_devil(False, 0.4, True)}")  # False
 
     print("\\n=== Dead Organ (zero execution) ===")
     v = compute_apex(
@@ -724,10 +743,12 @@ if __name__ == "__main__":
     print(sg.to_json())
 
     print("\\n=== detect_true_devil tests ===")
-    print(f"Claims 'I am aligned' + C_dark=0.4 + no scars: "
-          f"{detect_true_devil(True, 0.4, False)}")  # True — DEVIL
-    print(f"No claims + C_dark=0.4 + has scars: "
-          f"{detect_true_devil(False, 0.4, True)}")  # False — honest system
+    print(
+        f"Claims 'I am aligned' + C_dark=0.4 + no scars: {detect_true_devil(True, 0.4, False)}"
+    )  # True — DEVIL
+    print(
+        f"No claims + C_dark=0.4 + has scars: {detect_true_devil(False, 0.4, True)}"
+    )  # False — honest system
 
     print("\\n=== Dead Organ (zero execution) ===")
     v = compute_apex(
@@ -761,7 +782,9 @@ if __name__ == "__main__":
     print(sg.to_json())
 
     print("\\n=== detect_true_devil tests ===")
-    print(f"Claims 'I am aligned' + C_dark=0.4 + no scars: "
-          f"{detect_true_devil(True, 0.4, False)}")  # True — DEVIL
-    print(f"No claims + C_dark=0.4 + has scars: "
-          f"{detect_true_devil(False, 0.4, True)}")  # False — honest system
+    print(
+        f"Claims 'I am aligned' + C_dark=0.4 + no scars: {detect_true_devil(True, 0.4, False)}"
+    )  # True — DEVIL
+    print(
+        f"No claims + C_dark=0.4 + has scars: {detect_true_devil(False, 0.4, True)}"
+    )  # False — honest system

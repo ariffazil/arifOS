@@ -197,8 +197,10 @@ class VerdictEnvelope(BaseModel):
     VOID: ClassVar[str] = "VOID"
 
 
-# Backward-compatible alias — deprecated, use VerdictEnvelope
-Verdict = VerdictEnvelope
+# Verdict = VerdictEnvelope REMOVED (2026-07-11 Phase 1: verdict unification)
+# 20+ files imported Verdict from here and got VerdictEnvelope (Pydantic model) instead
+# of the canonical SealType enum. Use: from arifosmcp.models.verdicts import Verdict
+# VerdictEnvelope remains available for code that needs the Pydantic model directly.
 
 
 class SacredStage(StrEnum):

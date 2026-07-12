@@ -597,6 +597,37 @@ def _ensure_confidence(conf: dict | None) -> dict:
     return conf
 
 
+def _cap_confidence_if_degraded(
+    conf: dict,
+    llm_available: bool | None = True,
+    degraded: bool | None = False,
+    context_degraded: bool | None = False,
+) -> dict:
+    """Bangang #3 fix 2026-07-11: cap confidence at 0.5 when system is in degraded mode.
+
+    Checks three signals:
+      - _llm_available is explicitly False (LLM bypassed)
+      - result has degraded=True
+      - context has degraded=True
+
+    When degraded, overall is capped at 0.5 and label becomes DEGRADED_CONFIDENCE.
+    This prevents fabricated confidence trajectories (0.5→0.72→0.85) when
+    the reasoning engine was operating in fallback mode.
+    """
+    if not isinstance(conf, dict):
+        conf = {}
+    is_degraded = (llm_available is False) or bool(degraded) or bool(context_degraded)
+    if is_degraded:
+        raw_overall = conf.get("overall", conf.get("overall_confidence", 0.5))
+        if isinstance(raw_overall, (int, float)) and raw_overall > 0.5:
+            conf["overall"] = 0.5
+            if "overall_confidence" in conf:
+                conf["overall_confidence"] = 0.5
+        conf["label"] = "DEGRADED_CONFIDENCE"
+        conf["degraded"] = True
+    return conf
+
+
 def _ensure_synthesis(synthesis: str | None, reasoning_status: str) -> str:
     """Ensure synthesis is never empty — empty synthesis creates false completion."""
     if synthesis and isinstance(synthesis, str) and synthesis.strip():
@@ -663,9 +694,11 @@ def _build_delta_bundle(
 
     # ── Compute separate verdict planes ──────────────────────
     # Transport: did the tool execute without error?
-    transport_verdict = "SEAL"
+    # NOTE: "OK" = transport success. "SEAL" is reserved for constitutional verdict.
+    # Bangang #1 fix 2026-07-11: transport/execution are NOT constitutional seals.
+    transport_verdict = "OK"
     # Execution: did the tool run safely (no crash, no mutation)?
-    execution_verdict = "SEAL"
+    execution_verdict = "OK"
     # Reasoning: what did the inner reasoning conclude?
     reasoning_verdict = status  # HOLD, HYPOTHESIS, REASONED, etc.
     # Truth: is the claim proven based on evidence?
@@ -956,6 +989,26 @@ def arif_think(
                 env.setdefault("apex_scalars", _standing_auth["apex"])
         return env
 
+    # ── AKAL I1: Friction gate ────────────────────────────────────────────────
+    from arifosmcp.core.akal_wiring import akal_pre_think as _akal_friction
+
+    try:
+        _akal_result = _akal_friction(
+            query=query,
+            session_id=session_id,
+            blast_radius=(context or {}).get("blast_radius", "low"),
+            has_prior_receipts=bool(context and context.get("prior_receipts")),
+            cross_organ=bool(context and context.get("cross_organ")),
+        )
+        if _akal_result.get("escalation_required"):
+            if context is None:
+                context = {}
+            context = dict(context)
+            context["akal_friction"] = _akal_result
+            context["akal_required_depth"] = _akal_result["required_depth"]
+    except Exception:
+        pass  # AKAL friction is advisory — never blocks reasoning
+
     # ── CONVERGE MODE: recursive convergence loop with marginal gain collapse ──
     if mode == "converge":
         from arifosmcp.runtime.convergence import ConvergenceController
@@ -1146,6 +1199,20 @@ def arif_think(
         else {}
     )
 
+    # ── F11 audit spine — populate provenance fields from session context ──
+    # Bangang #2 fix 2026-07-11: arif_think must emit call_hash, trace_id,
+    # called_from_kernel, invocation_count (like arif_init does in _project_light).
+    import hashlib as _hl
+    import time as _tm
+    import uuid as _uuid
+
+    _think_ts = _tm.time()
+    _call_payload = f"arif_think|{mode}|{session_id or ''}|{actor_id or ''}|{_think_ts:.6f}"
+    _call_hash = f"sha256:{_hl.sha256(_call_payload.encode()).hexdigest()}"
+    _trace_id = f"trc-{_uuid.uuid4().hex[:12]}"
+    _called_from_kernel = True
+    _invocation_count = _routing.get("_invocation_count", 1)
+
     # ── AGI KERNEL READINESS GATE 001 FIELDS ──
     # ZEN LAYER SEPARATION: five distinct sections.
     # No overlapping verdicts. governance_check.verdict = PASS/HOLD/BLOCK (not SEAL).
@@ -1170,10 +1237,17 @@ def arif_think(
             "missing_evidence": reasoning_data.get("missing_evidence", [])
             if isinstance(reasoning_data.get("missing_evidence"), list)
             else [],
-            "confidence": {
-                "overall": float(raw_conf.get("overall_confidence", raw_conf.get("overall", 0.0))),
-                "label": str(raw_conf.get("label", "low")),
-            },
+            "confidence": _cap_confidence_if_degraded(
+                {
+                    "overall": float(
+                        raw_conf.get("overall_confidence", raw_conf.get("overall", 0.0))
+                    ),
+                    "label": str(raw_conf.get("label", "low")),
+                },
+                reason_result.get("_llm_available", True),
+                reason_result.get("degraded", False),
+                bool(context and context.get("degraded")),
+            ),
             "synthesis": reason_result.get("synthesis")
             if isinstance(reason_result.get("synthesis"), str)
             else None,
@@ -1192,6 +1266,11 @@ def arif_think(
             "note": "Not final authority. This is advisory reasoning. Route to arif_judge for SEAL.",
         },
         "mind_routing": _routing["_mind_routing"],
+        # ── F11 audit spine (Bangang #2 fix 2026-07-11) ──
+        "call_hash": _call_hash,
+        "trace_id": _trace_id,
+        "called_from_kernel": _called_from_kernel,
+        "invocation_count": _invocation_count,
     }
 
     if floor_verdict != "SEAL":

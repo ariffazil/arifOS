@@ -294,6 +294,11 @@ def tags_to_meaning(tags: list[str]) -> str:
     return " ⊗ ".join(names)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# INJECT PHILOSOPHY + SELECT PHILOSOPHY STATE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
 def inject_philosophy(envelope: Any) -> dict[str, Any]:
     """
     Inject philosophical quote into output envelope as metadata.
@@ -332,6 +337,65 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
         return {}
 
 
+
+def select_philosophy_state(
+    confidence: float = 0.88,
+    dS: float = 0.0,
+    intervention: float = 0.5,
+    session_id: str = "global",
+    locks: list[str] | None = None,
+) -> dict[str, Any]:
+    """
+    Select philosophy state based on confidence, entropy, and Gödel locks.
+
+    Returns a dict with at least 'confidence_cap' — the maximum confidence
+    the reasoning engine may claim, given current epistemic conditions.
+
+    Called by sensing_protocol._derive_intelligence_state() at line 1901.
+
+    Philosophy:
+      - F7 HUMILITY: confidence can never exceed 0.90 (base cap)
+      - Gödel locks reduce the cap further (structural incompleteness)
+      - High entropy (dS) reduces the cap (uncertain environment)
+      - Intervention level modifies exploration posture
+    """
+    locks = locks or []
+
+    # Base cap: F7 HUMILITY — never claim 1.0 confidence
+    cap = 0.90
+
+    # Gödel lock penalties
+    lock_penalties = {
+        "G1": 0.15,  # Incompleteness — grounding gap
+        "G2": 0.10,  # Contradiction
+        "G3": 0.10,  # Self-reference
+        "G4": 0.05,  # Undecidability
+        "V1": 0.20,  # Void — no evidence at all
+        "V2": 0.15,  # Void — hallucination risk
+    }
+    for lock in locks:
+        penalty = lock_penalties.get(lock, 0.05)
+        cap -= penalty
+
+    # Entropy penalty — high dS means uncertain environment
+    if dS > 0.7:
+        cap -= 0.10
+    elif dS > 0.5:
+        cap -= 0.05
+
+    # Floor: never below 0.30 (still allow some signal through)
+    cap = max(0.30, min(cap, 0.90))
+
+    return {
+        "confidence_cap": cap,
+        "locks_active": locks,
+        "entropy_dS": dS,
+        "intervention": intervention,
+        "session_id": session_id,
+        "base_cap": 0.90,
+        "lock_penalty_total": sum(lock_penalties.get(l, 0.05) for l in locks),
+    }
+
 __all__ = [
     "SYMBOLIC_TAGS",
     "CONTEXT_DIMENSION_MAP",
@@ -342,4 +406,5 @@ __all__ = [
     "resolve_symbolic_tag",
     "tags_to_meaning",
     "inject_philosophy",
+    "select_philosophy_state",
 ]

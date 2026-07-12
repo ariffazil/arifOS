@@ -33,6 +33,12 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# Constitutional Memory floor constraint check (Δ Axis 3)
+try:
+    from arifosmcp.runtime.law import check_floor_constraint
+except ImportError:
+    check_floor_constraint = None
+
 
 def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -101,6 +107,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     policy = payload.get("policy", {})
     tier_hint = payload.get("tier_hint", "L3")
     idempotency_key = payload.get("idempotency_key")
+    constitutional = payload.get("constitutional")  # Δ Axis 3: moral provenance
 
     # ── Validate ──
     if not content:
@@ -157,11 +164,17 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "summary": summary,
         "tier_hint": tier_hint,
         "schema_version": 5,
+        "constitutional": constitutional,  # Δ Axis 3: moral provenance
     }
 
     # ── Insert into L4 memory_store ──
     session_id = provenance.get("session_id") or "anon"
     valid_at = _utc_now()  # NOT NULL constraint per memory_store schema
+
+    # Extract constitutional fields for dedicated columns (Δ Axis 3)
+    _value_anchor = constitutional.get("value_anchor", []) if constitutional else []
+    _floor_constraint = constitutional.get("floor_constraint", []) if constitutional else []
+    _care_provenance = constitutional.get("care_provenance") if constitutional else None
 
     try:
         ok = await _pg_write(
@@ -180,6 +193,9 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
             },
             valid_at=valid_at,
             recorded_at=valid_at,
+            value_anchor=_value_anchor,
+            floor_constraint=_floor_constraint,
+            care_provenance=_care_provenance,
         )
     except Exception as exc:
         return _sabar_remember(f"remember: L4 write failed: {exc}")
@@ -208,6 +224,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                 "actor_id": actor_id,
                 "session_id": session_id,
                 "summary": summary[:200],
+                "constitutional": constitutional,  # Δ Axis 3: moral provenance sealed
             }
             with open(_vault_path, "a") as _vf:
                 _vf.write(json.dumps(_vault_entry) + "\n")
@@ -230,6 +247,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "provenance_actor_id": actor_id,
         "operation_at": _utc_now().isoformat(),
         "constitutional_seal": _sealed,
+        "constitutional": constitutional,  # Δ Axis 3: moral provenance
     }
 
     return {
@@ -245,6 +263,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
             "summary": summary,
             "constitutionally_sealed": _sealed,
             "remember_receipt": receipt,
+            "constitutional": constitutional,  # Δ Axis 3: moral provenance
         },
     }
 
@@ -382,6 +401,12 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     truth_class = qdrant_payload.get("truth_class", "observed")
     confidence = float(qdrant_payload.get("confidence", 0.5))
 
+    # Extract constitutional fields (Δ Axis 3) — carry through promotion unchanged
+    constitutional = qdrant_payload.get("constitutional") or {}
+    _value_anchor = constitutional.get("value_anchor", [])
+    _floor_constraint = constitutional.get("floor_constraint", [])
+    _care_provenance = constitutional.get("care_provenance")
+
     # ── Validate truth_class is allowed at L4 ──
     from arifosmcp.schemas import TruthClass, tier_allowed
 
@@ -454,6 +479,7 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "content_hash": content_hash,
         "vault_seal_id": None,  # to be set by vault999-writer
         "operation_at": _utc_now().isoformat(),
+        "constitutional": constitutional,  # Δ Axis 3: carried through promotion
     }
 
     return {
@@ -467,6 +493,7 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
             "promotion_receipt": receipt,
             "l4_record_id": memory_id,
             "actor_id": actor_id,
+            "constitutional": constitutional,  # Δ Axis 3: carried through promotion
         },
     }
 
@@ -898,7 +925,8 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                 pg_row = await conn.fetchrow(
                     """
                     SELECT id, tier, text, metadata, qdrant_id, session_id,
-                           created_at, deleted_at
+                           created_at, deleted_at,
+                           value_anchor, floor_constraint, care_provenance
                     FROM memory_store
                     WHERE id = $1 AND deleted_at IS NULL
                     """,
@@ -920,6 +948,31 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                     except (json.JSONDecodeError, TypeError):
                         meta = {}
 
+                # Extract constitutional fields (Δ Axis 3)
+                # Priority: dedicated columns > metadata fallback
+                constitutional = None
+                _va = pg_row.get("value_anchor") or meta.get("constitutional", {}).get("value_anchor", [])
+                _fc = pg_row.get("floor_constraint") or meta.get("constitutional", {}).get("floor_constraint", [])
+                _cp = pg_row.get("care_provenance") or meta.get("constitutional", {}).get("care_provenance")
+                if _va or _fc or _cp:
+                    constitutional = {
+                        "value_anchor": _va,
+                        "floor_constraint": _fc,
+                        "care_provenance": _cp,
+                    }
+
+                # Floor constraint check (Δ Axis 3)
+                floor_check = None
+                if _fc and check_floor_constraint:
+                    try:
+                        floor_check = check_floor_constraint(
+                            floor_constraint=_fc,
+                            recall_intent="inspect",
+                            memory_id=query,
+                        )
+                    except Exception as e:
+                        logger.warning(f"Floor constraint check failed (non-blocking): {e}")
+
                 return {
                     "ok": True,
                     "verdict": "SEAL",
@@ -940,6 +993,8 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                         "provenance": meta.get("provenance"),
                         "source": "postgres_direct",
                         "note": "inspect by UUID — direct Postgres lookup per ADR-010",
+                        "constitutional": constitutional,  # Δ Axis 3: moral provenance
+                        "floor_check": floor_check,  # Δ Axis 3: floor-constrained recall
                     },
                 }
             else:

@@ -1,8 +1,8 @@
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-07-10
+last_verified: 2026-07-11
 valid_from: 2026-06-27
-valid_until: 2026-08-09
+valid_until: 2026-08-10
 confidence: high
 scope: /root/arifOS
 epistemic_status: SOURCE_OF_TRUTH

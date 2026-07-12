@@ -27,7 +27,7 @@ from typing import Annotated, Any, Literal, Union
 from pydantic import BaseModel, ConfigDict, Field
 
 from .memory_modes import MemoryMode
-from .memory_object import EpistemicsBlock, PolicyBlock, ProvenanceBlock, SourceReceipt
+from .memory_object import ConstitutionalMemoryBlock, EpistemicsBlock, PolicyBlock, ProvenanceBlock, SourceReceipt
 from .memory_truth import MemoryClassName, TierCode, TruthClassName
 
 
@@ -148,6 +148,7 @@ class RememberPayload(BaseModel):
     policy: PolicyBlock = Field(default_factory=PolicyBlock)
     tier_hint: TierCode = "L3"  # requested; floors may downgrade
     idempotency_key: str | None = None
+    constitutional: ConstitutionalMemoryBlock | None = None  # Δ Axis 3: moral provenance
 
 
 # ── PromotePayload (MUTATE) ───────────────────────────────────────────────

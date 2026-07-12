@@ -35,10 +35,10 @@ from arifosmcp.models.verdicts import (
 # ── LATTICE SHAPE ───────────────────────────────────────────────────────────
 
 
-def test_seal_type_has_exactly_5_states():
-    """SealType must be the canonical 5-state lattice."""
+def test_seal_type_has_exactly_7_states():
+    """SealType must be the canonical 7-state lattice (extended 2026-07-11)."""
     states = {s.value for s in SealType}
-    assert states == {"VOID", "HOLD", "SABAR", "PARTIAL", "SEAL"}
+    assert states == {"VOID", "HOLD_888", "HOLD", "SABAR", "PARTIAL", "PROVISIONAL", "SEAL"}
 
 
 def test_verdict_state_has_14_substates():

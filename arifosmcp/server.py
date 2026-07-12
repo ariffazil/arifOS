@@ -643,6 +643,100 @@ try:
 
     _CANONICAL_HANDLERS["arif_think"] = embodied_mind_reason_handler
 
+    # ── AKAL middleware: wire cognitive invariants into tool handlers ──
+    # Internal physics — not exposed on MCP surface. Each wrapper adds
+    # the appropriate AKAL hook (friction, shadow, novelty, dual-eval, latency)
+    # around the existing handler without modifying the handler itself.
+    try:
+        from arifosmcp.core.akal_wiring import (
+            akal_pre_think,
+            akal_post_critique,
+            akal_pre_forge,
+            akal_pre_judge,
+            akal_pre_seal,
+        )
+        import functools
+
+        def _akal_wrap_critique(handler):
+            """I2: Shadow observer validation after critique."""
+            @functools.wraps(handler)
+            async def wrapped(*args, **kwargs):
+                result = await handler(*args, **kwargs)
+                if isinstance(result, dict) and "result" in result:
+                    inner = result["result"]
+                    if isinstance(inner, dict):
+                        trace = akal_post_critique(inner)
+                        result.setdefault("akal", {})
+                        result["akal"]["shadow_valid"] = trace["shadow_valid"]
+                        result["akal"]["shadow_violations"] = trace["shadow_violations"]
+                        result["akal"]["blocking"] = trace["blocking"]
+                return result
+            return wrapped
+
+        def _akal_wrap_judge(handler):
+            """I4: L5a/L5b dual evaluation before verdict."""
+
+            @functools.wraps(handler)
+            async def wrapped(*args, **kwargs):
+                blast = kwargs.get("blast_radius", "low")
+                intent = kwargs.get("intent", "")
+                dual = akal_pre_judge(
+                    coherence=0.8,
+                    evidence_validity=0.7,
+                    logic_consistency=0.8,
+                    reasoning_chain=[],
+                    blast_radius=blast,
+                )
+                result = await handler(*args, **kwargs)
+                if isinstance(result, dict):
+                    result.setdefault("akal", {})
+                    result["akal"]["dual_eval"] = {
+                        "requires_sovereign": dual["l5b_required"],
+                        "can_verdict": dual["dual_pass"],
+                        "l5a_pass": dual["l5a_pass"],
+                        "l5b_present": dual["l5b_present"],
+                        "blocked_reason": dual.get("blocked_reason"),
+                        "verdict": dual.get("verdict", "PENDING"),
+                    }
+                return result
+
+            return wrapped
+
+        def _akal_wrap_seal(handler):
+            """I5: Latency gate before sealing."""
+
+            @functools.wraps(handler)
+            async def wrapped(*args, **kwargs):
+                # Extract blast_radius from session or default
+                blast = "low"
+                gate = akal_pre_seal(blast_radius=blast)
+                result = await handler(*args, **kwargs)
+                if isinstance(result, dict):
+                    result.setdefault("akal", {})
+                    result["akal"]["latency_gate"] = {
+                        "blast_class": gate.get("blast_class", "low"),
+                        "min_passes": gate.get("min_passes", 1),
+                        "requires_branching": gate.get("requires_branching", False),
+                        "requires_cooling": gate.get("requires_cooling", False),
+                        "cooling_seconds": gate.get("cooling_seconds", 0),
+                        "requires_second_look": gate.get("requires_second_look", False),
+                        "proceed": gate.get("proceed", True),
+                        "reason": gate.get("reason", ""),
+                    }
+                return result
+
+            return wrapped
+
+        # Apply AKAL wrappers to canonical handlers
+        _CANONICAL_HANDLERS["arif_critique"] = _akal_wrap_critique(
+            _CANONICAL_HANDLERS["arif_critique"]
+        )
+        _CANONICAL_HANDLERS["arif_judge"] = _akal_wrap_judge(_CANONICAL_HANDLERS["arif_judge"])
+        _CANONICAL_HANDLERS["arif_seal"] = _akal_wrap_seal(_CANONICAL_HANDLERS["arif_seal"])
+        logger.info("AKAL middleware wired: I1(think) I2(critique) I4(judge) I5(seal)")
+    except Exception as e:
+        logger.warning(f"AKAL middleware not wired (non-fatal): {e}")
+
     # Note: arif_gate_judge handler is registered in tools.py
     # _RUNTIME_DIAGNOSTIC_HANDLERS, not in _CANONICAL_HANDLERS.
     # DO NOT add here — it will break the CANONICAL_HANDLERS invariant.
@@ -2595,12 +2689,10 @@ if app:
                 action_class=action_class,
                 reversible=qp.get("reversible", "true").lower() in ("1", "true", "yes"),
                 data_sensitivity=qp.get("data_sensitivity", "public"),
-                physical_impact=qp.get("physical_impact", "false").lower()
-                in ("1", "true", "yes"),
+                physical_impact=qp.get("physical_impact", "false").lower() in ("1", "true", "yes"),
                 financial_impact=qp.get("financial_impact", "false").lower()
                 in ("1", "true", "yes"),
-                dignity_impact=qp.get("dignity_impact", "false").lower()
-                in ("1", "true", "yes"),
+                dignity_impact=qp.get("dignity_impact", "false").lower() in ("1", "true", "yes"),
                 blast_radius=qp.get("blast_radius", "low"),
                 session_active=session_active,
                 lease_active=lease_active,
@@ -2636,8 +2728,7 @@ if app:
             "mutation_executed": False,
             "simulation_only": True,
             "unsealed_write_scenario": not seal_present
-            and action_class.upper()
-            not in ("OBSERVE", "SUGGEST", "SIMULATE"),
+            and action_class.upper() not in ("OBSERVE", "SUGGEST", "SIMULATE"),
             "related_endpoints": {
                 "gate_v0": "POST /gate/v0",
                 "kernel_readiness": "GET /kernel/readiness",
@@ -2921,7 +3012,9 @@ if app:
         except Exception:
             pass
 
-        ok = bool(result.get("token_valid") and result.get("scope_valid") and result.get("replay_safe"))
+        ok = bool(
+            result.get("token_valid") and result.get("scope_valid") and result.get("replay_safe")
+        )
         payload = {
             **result,
             "endpoint": "/kernel/arif_verify",

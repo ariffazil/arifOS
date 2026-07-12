@@ -90,15 +90,54 @@ def get_claim_ladder() -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-@mcp.prompt()
+@mcp.prompt(
+    name="mind_metabolize",
+    description=(
+        "Digest query into structured arifOS context — explicit F2/F4/F7/F9 anchoring. "
+        "v2 forged 2026-07-11 (F-08 expansion + F-10 floors_referenced metadata)."
+    ),
+)
 def mind_metabolize(query: str) -> str:
-    """Prompt to digest input into structured arifOS context."""
-    return f"Metabolize this query: {query}. Identify core problem and constitutional relevance."
+    """Metabolize a query into structured arifOS context.
+
+    floors_referenced: F2,F4,F7,F9
+    """
+    return f"""Metabolize this query: {query}
+
+Required steps:
+1. Classify the core problem (epistemic rung: OBS / DER / INT / SPEC).
+2. Identify constitutional relevance (which F1-F13 floors does it touch?).
+3. State the epistemic state explicitly — τ and Ω₀ (F2 TRUTH, F7 HUMILITY).
+4. Identify missing evidence (what would resolve uncertainty?).
+5. Mark C_dark risk — any hallucination or dark-pattern path? (F9 ANTI-HANTU)
+6. Estimate ΔS impact of the proposed metabolisation (F4 CLARITY).
+
+Output: structured context with {{epistemic_rung, tau, omega_0, floors_touched, missing_evidence, c_dark_risk, delta_s}}.
+"""
 
 
-@mcp.prompt()
+@mcp.prompt(
+    name="mind_first_principles",
+    description=(
+        "First-principles decomposition with explicit F1/F2/F3/F4/F8/F9 grounding. "
+        "v2 forged 2026-07-11 (F-08 expansion + F-10 floors_referenced metadata)."
+    ),
+)
 def mind_first_principles(problem: str) -> str:
-    """Template for first-principles reasoning under F-floors."""
-    return (
-        f"Break down this problem using first principles: {problem}. Ground every axiom in F1-L13."
-    )
+    """First-principles reasoning under F1-F13 floors.
+
+    floors_referenced: F1,F2,F3,F4,F8,F9
+    """
+    return f"""Break down this problem using first principles: {problem}
+
+Required grounding:
+1. Axiom enumeration — list every axiom in F1-F13 that applies.
+2. Entropy budget — ΔS impact of the proposed solution (F4 CLARITY).
+3. Precision budget — τ threshold for each axiom's claim (F2 TRUTH).
+4. C_dark check — any plausible hallucination or dark-pattern path? (F9 ANTI-HANTU)
+5. Reversibility check — is each axiom-step reversible? (F1 AMANAH)
+6. Witness plan — what human / AI / earth signal would corroborate each step? (F3 WITNESS)
+7. Genius test — is the simplest correct path being taken? (F8 GENIUS, G ≥ 0.80)
+
+Output: decomposition tree with axiom attribution per node.
+"""
