@@ -74,16 +74,14 @@ def test_all_tools_have_stage():
     """Every tool must have a Trinity lane and stage."""
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
+    allowed_lanes = {"AGI", "ASI", "APEX", "SOVEREIGN"}
     for name, spec in CANONICAL_TOOLS.items():
         stage = spec.get("stage")
         lane = spec.get("lane")
         assert stage is not None, f"Tool {name} missing stage. VOID."
         assert lane is not None, f"Tool {name} missing lane. VOID."
-        assert lane in (
-            "AGI",
-            "ASI",
-            "APEX",
-        ), f"Tool {name} has invalid lane {lane}. VOID."
+        lane_val = getattr(lane, "value", lane)
+        assert lane_val in allowed_lanes, f"Tool {name} has invalid lane {lane}. VOID."
 
 
 def test_meta_skills_registered():

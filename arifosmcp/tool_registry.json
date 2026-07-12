@@ -1,27 +1,27 @@
 {
-  "_schema": "arifos-ssct-v2026.07.09-spine-p0",
-  "_source": "arifosmcp.constitutional_map (CANONICAL_TOOLS + DIAGNOSTIC_TOOLS)",
-  "_note": "SOLE SOURCE OF TRUTH for disk vantage. canonical_order is the exposed 12-tool public facade (Spine P0 2026-07-10: arif_triage demoted to internal, arif_verify restored to public count). Regenerated 2026-07-10.",
+  "_schema": "arifos-ssct-v2026.07.12-public-sot",
+  "_source": "arifosmcp.runtime.public_surface.CANONICAL_12 + constitutional_map.CANONICAL_TOOLS",
+  "_note": "SOLE SOURCE OF TRUTH for disk vantage. canonical_order = public facade (18 tools). Regenerated 2026-07-12 SOT fix.",
   "_affordance_contract_derivation": {
-    "canonical_tools": "tool_risk_registry.py \u2192 ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
-    "diagnostic_tools": "constitutional_map.py \u2192 spec-inferred from tier + irreversible + access fields",
-    "rule": "AAA Agent Invariant #6: HINTS \u2260 CONTRACTS. Affordance contracts are derived from action_class, not self-declared by the tool.",
+    "canonical_tools": "tool_risk_registry.py → ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
+    "diagnostic_tools": "constitutional_map.py → spec-inferred from tier + irreversible + access fields",
+    "rule": "AAA Agent Invariant #6: HINTS ≠ CONTRACTS. Affordance contracts are derived from action_class, not self-declared by the tool.",
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "12 canonical public tools + 6 internal supporting tools",
-    "hermes_*": "GATED \u2014 Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
-    "forge_*": "GATED/DEPRECATED \u2014 A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
-    "arifos_*": "BLOCKED \u2014 internal-only prefix, never exposed on public MCP surface",
-    "mcp_*": "GATED \u2014 Utility namespace for operational diagnostics"
+    "arif_*": "18 canonical public tools + 6 internal supporting tools",
+    "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
+    "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
+    "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
+    "mcp_*": "GATED — Utility namespace for operational diagnostics"
   },
-  "canonical_count": 12,
+  "canonical_count": 18,
   "internal_canonical_count": 6,
-  "diagnostic_count": 41,
-  "total_surface": 59,
+  "diagnostic_count": 40,
+  "total_surface": 64,
   "tier_summary": {
-    "internal": 0,
-    "canonical": 12,
+    "internal": 6,
+    "canonical": 18,
     "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
@@ -33,7 +33,7 @@
     "discovery": 1
   },
   "tier_legend": {
-    "canonical": "12 exposed public tools on default MCP wire (Spine P0 2026-07-10)",
+    "canonical": "18 exposed public tools on default MCP wire (2026-07-12 SOT)",
     "internal": "None (all surfaced in canonical for registration match; gating still applies)",
     "hermes": "Cross-verification, fact-checking, vault query, and epistemic checks",
     "canary": "Transport and protocol echo/probe tools",
@@ -44,75 +44,74 @@
     "diagnostic": "Health probes, drift checks, floor status, budget telemetry, and scanners"
   },
   "canonical_order": [
-    "arif_kernel_intercept",
     "arif_init",
     "arif_observe",
-    "arif_fetch",
     "arif_think",
-    "arif_critique",
     "arif_route",
-    "arif_triage",
     "arif_bridge_connect",
-    "arif_compose",
+    "arif_critique",
     "arif_memory",
     "arif_judge",
-    "arif_judge_deliberate",
+    "arif_forge",
+    "arif_compose",
     "arif_seal",
     "arif_verify",
-    "arif_act",
-    "arif_forge",
-    "arif_runtime_health"
+    "arif_entropy_observe",
+    "arif_j_state_assess",
+    "arif_correction_probe",
+    "arif_consequence_trace",
+    "arif_entropy_route",
+    "arif_j_gate"
   ],
   "internal_canonical_order": [
-    "arif_triage",
     "arif_act",
     "arif_fetch",
     "arif_judge_deliberate",
     "arif_kernel_intercept",
-    "arif_runtime_health"
+    "arif_measure",
+    "arif_triage"
   ],
   "diagnostic_order": [
-    "hermes_system_status",
-    "arif_vault_query",
-    "hermes_epistemic_check",
-    "hermes_fact_check",
-    "hermes_cross_verify",
-    "hermes_plan_review",
-    "hermes_memory_steward",
     "arif_canary",
-    "arif_ping",
-    "arif_schema_echo",
-    "arif_version_echo",
-    "arif_transport_echo",
-    "arif_initialize_probe",
     "arif_conformance_report",
+    "arif_detect_institutional_shadow_drift",
+    "arif_detect_narrative_tension",
+    "arif_floor_status",
+    "arif_gate_judge",
+    "arif_heartbeat",
+    "arif_initialize_probe",
     "arif_lease_inspect",
     "arif_lease_issue",
     "arif_lease_revoke",
-    "arif_os_attest",
+    "arif_model_compare",
     "arif_organ_attest",
     "arif_organ_attest_all",
-    "arif_heartbeat",
-    "arif_peer_contract_validate",
+    "arif_organ_consensus",
+    "arif_os_attest",
     "arif_peer_contract_attest",
     "arif_peer_contract_forbid",
+    "arif_peer_contract_validate",
+    "arif_ping",
+    "arif_resolve_tool",
+    "arif_scan_local_instructions",
+    "arif_schema_echo",
+    "arif_search",
+    "arif_self_evaluate",
+    "arif_session_budget",
+    "arif_stack_health_probe",
+    "arif_transport_echo",
+    "arif_vault_query",
+    "arif_version_echo",
     "forge_dry_run",
     "forge_plan",
     "forge_query",
-    "arif_detect_institutional_shadow_drift",
-    "arif_detect_narrative_tension",
-    "arif_stack_health_probe",
-    "arif_scan_local_instructions",
-    "arif_organ_consensus",
-    "arif_session_budget",
-    "arif_floor_status",
-    "mcp_drift_check",
-    "arif_gate_judge",
-    "arif_self_evaluate",
-    "arif_model_compare",
-    "arif_search",
-    "arif_fetch",
-    "arif_resolve_tool"
+    "hermes_cross_verify",
+    "hermes_epistemic_check",
+    "hermes_fact_check",
+    "hermes_memory_steward",
+    "hermes_plan_review",
+    "hermes_system_status",
+    "mcp_drift_check"
   ],
   "laws": [
     "L01",
@@ -199,7 +198,7 @@
         "opt_out",
         "opt_out_profiling"
       ],
-      "eureka_insight": "F1: \u2203 undo(a) \u2014 irreversibility requires explicit human ack.",
+      "eureka_insight": "F1: ∃ undo(a) — irreversibility requires explicit human ack.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -237,7 +236,7 @@
         "entropy_dS",
         "vitals"
       ],
-      "eureka_insight": "F2: \u03c4 \u2265 0.95 required. F7: \u03a9 \u2208 [0.03, 0.05] = humble.",
+      "eureka_insight": "F2: τ ≥ 0.95 required. F7: Ω ∈ [0.03, 0.05] = humble.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -311,7 +310,7 @@
         "refactor_plan",
         "metabolize"
       ],
-      "eureka_insight": "F2: \u03c4 \u2265 0.99. F7: \u03a9 \u2208 [0.03, 0.05]. F8: G = capability \u00d7 ethics \u00d7 continuity \u00d7 resilience\u00b2 \u2265 0.80. L10: ambiguity is permanent; expose assumptions before reasoning. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "eureka_insight": "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. F8: G = capability × ethics × continuity × resilience² ≥ 0.80. L10: ambiguity is permanent; expose assumptions before reasoning. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -349,7 +348,7 @@
         "deescalate",
         "empathy"
       ],
-      "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 no biological or artificial emotional substrate. F9 Doctrine (arifOS\u00d7MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
+      "eureka_insight": "F5: P² ≥ 1.0. F6: κᵣ ≥ 0.70 (RASA). F9: C_dark ≤ 0.30 — no biological or artificial emotional substrate. F9 Doctrine (arifOS×MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -363,7 +362,7 @@
         "reversibility": 1.0,
         "requires_lease": false,
         "autonomy_floor": "FULL_AUTO",
-        "rationale": "Heart critique is advisory only \u2014 computes risk, does not block. F1 reversible.",
+        "rationale": "Heart critique is advisory only — computes risk, does not block. F1 reversible.",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
@@ -416,7 +415,7 @@
         "preflight",
         "triage"
       ],
-      "eureka_insight": "RULE 14: Mode-first. One tool, three related modes (status, preflight, triage) \u2014 all act on session state.",
+      "eureka_insight": "RULE 14: Mode-first. One tool, three related modes (status, preflight, triage) — all act on session state.",
       "tier": "internal",
       "namespace": "arif_* (internal supporting alias)",
       "tags": [
@@ -454,7 +453,7 @@
       "modes": [
         "connect"
       ],
-      "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 \u2014 arif_bridge retained as deprecated alias.",
+      "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 — arif_bridge retained as deprecated alias.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -468,7 +467,7 @@
         "reversibility": 0.9,
         "requires_lease": false,
         "autonomy_floor": "FULL_AUTO",
-        "rationale": "Bridge connect is cross-organ routing. No local mutation \u2014 delegates to target organ. F1 AMANAH: reversible at arifOS level (target organ action may not be). Canonical name follows arif_<noun>_<verb> convention (forged 2026-06-21).",
+        "rationale": "Bridge connect is cross-organ routing. No local mutation — delegates to target organ. F1 AMANAH: reversible at arifOS level (target organ action may not be). Canonical name follows arif_<noun>_<verb> convention (forged 2026-06-21).",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
@@ -491,7 +490,7 @@
         "cite",
         "tone_shift"
       ],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
+      "eureka_insight": "F4: ΔS ≤ 0 — reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark ≤ 0.30 — no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -534,7 +533,7 @@
         "revise",
         "forget"
       ],
-      "eureka_insight": "F1: every memory op is reversible via supersede (revise) or tombstone (forget \u2192 vault). F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. F4: hybrid recall cascade (vector\u2192graph\u2192vault) reduces entropy per mode. F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. F11: every write carries actor_id + session_id + receipt (forensic traceability). F13: forget mode requires explicit human ack \u2014 L13 SOVEREIGN. Direction 1 (memory kernel v5) \u2014 ratified 2026-06-21. ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage.",
+      "eureka_insight": "F1: every memory op is reversible via supersede (revise) or tombstone (forget → vault). F2: 7 truth-classes (observed|claimed|derived|approved|sealed|contested|deprecated) gate recall. F4: hybrid recall cascade (vector→graph→vault) reduces entropy per mode. F8: per-mode floor pre-checks (L01..L13) preserve governance integrity. F11: every write carries actor_id + session_id + receipt (forensic traceability). F13: forget mode requires explicit human ack — L13 SOVEREIGN. Direction 1 (memory kernel v5) — ratified 2026-06-21. ADR-010 baked in: L4 canonical band, no-bypass rule, vault seal lineage.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -572,7 +571,7 @@
         "hold",
         "escalate"
       ],
-      "eureka_insight": "F13 SOVEREIGN: human veto absolute. F01 AMANAH: reversibility required unless explicitly acked. F02 TRUTH: evidence threshold \u03c4 \u2265 0.99 for claims.",
+      "eureka_insight": "F13 SOVEREIGN: human veto absolute. F01 AMANAH: reversibility required unless explicitly acked. F02 TRUTH: evidence threshold τ ≥ 0.99 for claims.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -649,7 +648,7 @@
         "changelog",
         "audit"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
+      "eureka_insight": "F1: irreversible — ack_irreversible=True mandatory. L11: author identity verified. L13: human approved.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -663,7 +662,7 @@
         "reversibility": 0.0,
         "requires_lease": true,
         "autonomy_floor": "PRINCIPAL_APPROVAL_REQUIRED",
-        "rationale": "VAULT999 seal is IRREVERSIBLE by design. SEAL writes permanently to append-only ledger. E7 hard floor: reversibility 0.0 < 0.3 \u2192 HOLD unless principal.",
+        "rationale": "VAULT999 seal is IRREVERSIBLE by design. SEAL writes permanently to append-only ledger. E7 hard floor: reversibility 0.0 < 0.3 → HOLD unless principal.",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
     },
@@ -682,7 +681,7 @@
       "modes": [
         "verify"
       ],
-      "eureka_insight": "ART\u2192KERNEL\u2192ACT padlock: ART classifies, arif_judge SEALs, arif_verify unlocks ACT. Without arif_verify the cage has a hasp but no padlock.",
+      "eureka_insight": "ART→KERNEL→ACT padlock: ART classifies, arif_judge SEALs, arif_verify unlocks ACT. Without arif_verify the cage has a hasp but no padlock.",
       "tier": "canonical",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
@@ -721,7 +720,7 @@
         "recall",
         "dry_run"
       ],
-      "eureka_insight": "F1: irreversible \u2014 ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
+      "eureka_insight": "F1: irreversible — ack_irreversible=True mandatory. L11: actor verified. L12: fail safely; no unsafe continuation when substrate confidence drops. L13: judge SEAL required before execution.",
       "tier": "internal",
       "namespace": "arif_* (internal supporting alias)",
       "tags": [
@@ -802,7 +801,7 @@
         "topology",
         "drift"
       ],
-      "eureka_insight": "F4: \u0394S \u2264 0 \u2014 ops must contribute to entropy reduction. Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics.",
+      "eureka_insight": "F4: ΔS ≤ 0 — ops must contribute to entropy reduction. Eureka: health is trajectory, not binary; measure delta_S, omega_band, tri_witness, and drift trend. Eureka: what is declared must be registered and callable; registry not matching reality is HOLD. F8: measured intelligence is not useful intelligence; prefer local workflow evals over leaderboard metrics.",
       "tier": "internal",
       "namespace": "arif_* (internal supporting alias)",
       "tags": [
@@ -829,7 +828,7 @@
     },
     "hermes_system_status": {
       "tier": "hermes",
-      "namespace": "hermes_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
+      "namespace": "hermes_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
       "floors": [
         "L02"
       ],
@@ -858,7 +857,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_vault_query": {
       "tier": "hermes",
@@ -892,7 +891,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_epistemic_check": {
       "tier": "hermes",
@@ -925,7 +924,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_fact_check": {
       "tier": "hermes",
@@ -959,7 +958,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_cross_verify": {
       "tier": "hermes",
@@ -990,7 +989,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_plan_review": {
       "tier": "hermes",
@@ -1023,7 +1022,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "hermes_memory_steward": {
       "tier": "hermes",
@@ -1055,7 +1054,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_canary": {
       "tier": "canary",
@@ -1090,7 +1089,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_ping": {
       "tier": "canary",
@@ -1119,7 +1118,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_schema_echo": {
       "tier": "canary",
@@ -1148,7 +1147,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_version_echo": {
       "tier": "canary",
@@ -1177,7 +1176,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_transport_echo": {
       "tier": "canary",
@@ -1206,7 +1205,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_initialize_probe": {
       "tier": "canary",
@@ -1235,7 +1234,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_conformance_report": {
       "tier": "canary",
@@ -1266,7 +1265,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_lease_inspect": {
       "tier": "lease",
@@ -1297,7 +1296,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_lease_issue": {
       "tier": "lease",
@@ -1329,7 +1328,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_lease_revoke": {
       "tier": "lease",
@@ -1361,7 +1360,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_os_attest": {
       "tier": "attest",
@@ -1391,7 +1390,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_organ_attest": {
       "tier": "attest",
@@ -1423,7 +1422,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_organ_attest_all": {
       "tier": "attest",
@@ -1455,7 +1454,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_heartbeat": {
       "tier": "attest",
@@ -1487,7 +1486,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_peer_contract_validate": {
       "tier": "attest",
@@ -1520,7 +1519,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_peer_contract_attest": {
       "tier": "attest",
@@ -1552,7 +1551,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_peer_contract_forbid": {
       "tier": "attest",
@@ -1586,11 +1585,11 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "forge_dry_run": {
       "tier": "forge-sub",
-      "namespace": "forge_* (sanctioned non-arif_ prefix \u2014 F13 SOVEREIGN 2026-06-14)",
+      "namespace": "forge_* (sanctioned non-arif_ prefix — F13 SOVEREIGN 2026-06-14)",
       "floors": [
         "L01"
       ],
@@ -1616,7 +1615,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "forge_plan": {
       "tier": "forge-sub",
@@ -1647,7 +1646,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "forge_query": {
       "tier": "forge-sub",
@@ -1677,7 +1676,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_detect_institutional_shadow_drift": {
       "tier": "narrative",
@@ -1709,7 +1708,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_detect_narrative_tension": {
       "tier": "narrative",
@@ -1742,7 +1741,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_stack_health_probe": {
       "tier": "diagnostic",
@@ -1774,7 +1773,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_scan_local_instructions": {
       "tier": "diagnostic",
@@ -1805,7 +1804,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_organ_consensus": {
       "tier": "diagnostic",
@@ -1837,7 +1836,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_session_budget": {
       "tier": "diagnostic",
@@ -1868,7 +1867,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_floor_status": {
       "tier": "diagnostic",
@@ -1900,7 +1899,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "mcp_drift_check": {
       "tier": "diagnostic",
@@ -1934,7 +1933,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_gate_judge": {
       "tier": "diagnostic",
@@ -1971,7 +1970,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_self_evaluate": {
       "tier": "diagnostic",
@@ -2003,7 +2002,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_model_compare": {
       "tier": "diagnostic",
@@ -2035,7 +2034,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_search": {
       "tier": "chatgpt-shim",
@@ -2066,7 +2065,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_resolve_tool": {
       "tier": "discovery",
@@ -2095,7 +2094,7 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS — Phase 2 registry cleanup 2026-07-11"
     },
     "arif_runtime_health": {
       "stage": "777",
@@ -2141,7 +2140,7 @@
       }
     }
   },
-  "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",
+  "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given",
   "_surface_sync": {
     "regenerated_at": "2026-07-09T11:11:46.634367+00:00",
     "source": "public_surface.CANONICAL_12 + constitutional_map internal tools",
