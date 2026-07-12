@@ -96,6 +96,7 @@ def build_authority_state_for_actor(
     *,
     verification_method: str | None = None,
     state_id: str | None = None,
+    verified_key_id: str | None = None,
 ) -> AuthorityState:
     """
     WS1: build canonical authority-state snapshot for an actor at init time.
@@ -111,7 +112,12 @@ def build_authority_state_for_actor(
     """
     safe_actor = (actor_id or "anonymous").strip()
     actor_key = safe_actor.lower()
-    is_sovereign = actor_key in {"arif", "ariffazil"}
+    # SECURITY P0 2026-07-12: SOVEREIGN authority binds to verified_key_id,
+    # never to the actor string. SOVEREIGN_KEY_IDS is empty by default
+    # until the production key registry is wired with an explicit binding
+    # ceremony — until then, no actor receives SOVEREIGN automatically.
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    is_sovereign = bool(verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS)
 
     method = verification_method or ("session" if verified else "none")
     if is_sovereign and not verification_method:
@@ -183,7 +189,12 @@ def _canonical_from_state(state: AuthorityState) -> CanonicalAuthority:
     """
     safe_actor = state.actor.claimed_id
     actor_key = safe_actor.strip().lower()
-    is_sovereign = actor_key in {"arif", "ariffazil"}
+    # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
+    is_sovereign = bool(
+        state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS
+    )
 
     if is_sovereign:
         level = AuthorityLevel.SOVEREIGN
@@ -215,13 +226,13 @@ def _canonical_from_state(state: AuthorityState) -> CanonicalAuthority:
     )
 
 
-def _authority_for_actor(actor_id: str, verified: bool) -> CanonicalAuthority:
+def _authority_for_actor(actor_id: str, verified: bool, verified_key_id: str | None = None) -> CanonicalAuthority:
     """WS1 step 2: ``CanonicalAuthority`` is now DERIVED from ``AuthorityState``.
     Single source of truth. Backwards-compatible signature — callers unchanged.
 
     See: ``build_authority_state_for_actor`` for the canonical builder.
     """
-    state = build_authority_state_for_actor(actor_id, verified)
+    state = build_authority_state_for_actor(actor_id, verified, verified_key_id=verified_key_id)
     return _canonical_from_state(state)
 
 
@@ -423,7 +434,43 @@ async def init_anchor(
     )
     phi_result = select_atlas_philosophy(init_scores, session_id=_session_id)
 
-    verified = _dn.strip().lower() != "anonymous"
+    # ── Identity Hotfix 2026-07-12: Ed25519 cryptographic verification ──
+    # SECURITY P0: never infer verification from actor_id string. Fail closed.
+    verified = False
+    verification_method: str | None = None
+    verified_key_id: str | None = None
+
+    # Pull nonce + signature from auth_context (provided by the MCP client)
+    _nonce = (auth_context or {}).get("nonce")
+    _actor_signature = (auth_context or {}).get("actor_signature") or (auth_context or {}).get("signature")
+
+    if _actor_signature and _nonce:
+        try:
+            from arifosmcp.runtime.governance_identity import _verify_ed25519_proof
+            proof = {"nonce": _nonce, "signature": _actor_signature}
+            if _verify_ed25519_proof(_dn, proof):
+                verified = True
+                verification_method = "ed25519"
+                # SECURITY P0: key_id is the SHA256 fingerprint of the public
+                # key bytes used for verification. Sovereign authority binds
+                # to this fingerprint, never to the actor_id string.
+                try:
+                    from arifosmcp.runtime.sovereign_verify import (
+                        _PUBKEY_CANDIDATES,
+                    )
+                    import hashlib
+                    for _pk_path in _PUBKEY_CANDIDATES:
+                        if _pk_path and _pk_path.exists():
+                            verified_key_id = "ed25519:sha256:" + hashlib.sha256(
+                                _pk_path.read_bytes()
+                            ).hexdigest()[:16]
+                            break
+                except Exception:
+                    verified_key_id = None
+        except Exception as _e:
+            logger.warning("Ed25519 verification path failed: %s", _e)
+            verified = False
+
     risk_tier = "medium" if risk_tier == "low" and verified else risk_tier
     auth_state = "verified" if verified else "anonymous"
     auth_ctx = {
@@ -431,7 +478,11 @@ async def init_anchor(
         "actor_id": _dn,
         "session_id": _session_id,
         "verified": verified,
-        "signature": (auth_context or {}).get("signature") or f"init:{uuid.uuid4().hex[:12]}",
+        "verification_method": verification_method,
+        "verified_key_id": verified_key_id,
+        # Do NOT generate a fake signature. None means unproven.
+        "actor_signature": _actor_signature if verified else None,
+        "nonce": _nonce,
         "risk_tier": risk_tier,
         "platform": "mcp",
     }
@@ -524,10 +575,19 @@ async def init_anchor(
     # Bind Identity to Runtime
     try:
         # H2: Generate signed session ID for distributed continuity
+        # SECURITY P0 2026-07-12: SOVEREIGN binding moves from string to verified_key_id.
+        # Until we have a SOVEREIGN_KEY_IDS registry wired here, fall back to
+        # "verified" — never grant SOVEREIGN on string match alone.
+        from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+        _authority_level = (
+            "sovereign"
+            if verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
+            else "verified" if verified else "anonymous"
+        )
         _signed_session_id = bind_session_identity(
             _session_id,
             _dn,
-            "sovereign" if _dn.strip().lower() in {"arif", "ariffazil"} else "verified",
+            _authority_level,
             auth_ctx,
             ["query", "reflect"],
             bool(human_approval),
@@ -551,7 +611,7 @@ async def init_anchor(
     duration_ms = int((time.monotonic() - t0) * 1000)
 
     # Authority and Verdict Mapping
-    authority_obj = _authority_for_actor(_dn, verified)
+    authority_obj = _authority_for_actor(_dn, verified, verified_key_id=verified_key_id)
     authority_obj.approval_scope = [
         "status",
         "probe",

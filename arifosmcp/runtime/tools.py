@@ -2214,16 +2214,18 @@ def _compute_scoped_verdicts(
 
     # ── Action scope: was this specific action authorized? ──────────────
     # Derived from: canonical verdict, gate sub-verdicts, affordance narrowing
-    _action_state = "APPROVED"
-    if verdict in ("VOID",):
+    # P1 FIX (2026-07-12): action is NOT_EVALUATED by default.
+    # Only arif_judge (888) should produce APPROVED/HOLD/VOID.
+    # A routine observe/init/query/memory call must not claim action approval.
+    _action_state = "NOT_EVALUATED"
+    if verdict in ("SEAL",):
+        _action_state = "APPROVED"
+    elif verdict in ("VOID",):
         _action_state = "VOID"
     elif verdict in ("HOLD",):
         _action_state = "HOLD"
     elif verdict in ("DENIED", "REJECTED"):
         _action_state = "DENIED"
-    elif verdict in ("DEGRADED", "OBSERVE_ONLY"):
-        # Degraded/restricted actions are still approved for what they allow
-        _action_state = "APPROVED"
 
     _meta = out.get("meta", {}) if isinstance(out.get("meta"), dict) else {}
     _post_obs = _meta.get("post_observe_gate", {})
@@ -3753,7 +3755,7 @@ def _enforce_nine_signal(
         #      still mint sesat events for the failure ledger.
         #   4. Historical sesat events are NOT deleted — marked with
         #      correction_status: FALSE_POSITIVE_SESSION_SCOPE if applicable.
-        _action_state = _scoped_verdicts.get("action", {}).get("state", "APPROVED")
+        _action_state = _scoped_verdicts.get("action", {}).get("state", "NOT_EVALUATED")
         _substrate_state = _scoped_verdicts.get("substrate", {}).get("state", "HEALTHY")
         _session_state = _scoped_verdicts.get("session", {}).get("state", "OBSERVE_ONLY")
         _action_or_substrate_failed = _action_state in (
@@ -11946,7 +11948,7 @@ def _kernel_reversibility_gate(task: str | None) -> bool:
     return any(k in tl for k in irreversible)
 
 
-def _kernel_authority_gate(task: str | None, actor_id: str | None) -> dict[str, Any]:
+def _kernel_authority_gate(task: str | None, actor_id: str | None, verified_key_id: str | None = None) -> dict[str, Any]:
     """Return authority boundary assessment."""
     sovereign_tasks = [
         "seal",
@@ -11958,9 +11960,13 @@ def _kernel_authority_gate(task: str | None, actor_id: str | None) -> dict[str, 
     ]
     tl = (task or "").lower()
     required = "SOVEREIGN" if any(k in tl for k in sovereign_tasks) else "OPERATOR"
+    # SECURITY P0 2026-07-12: SOVEREIGN tier binds to verified_key_id,
+    # never to actor string. Empty SOVEREIGN_KEY_IDS means no actor is
+    # automatically SOVEREIGN until the production key registry is wired.
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
     actor_tier = (
         "SOVEREIGN"
-        if actor_id and actor_id.lower() in {"arif", "ariffazil", "admin", "sovereign"}
+        if verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
         else "OPERATOR"
     )
     passed = actor_tier == required or actor_tier == "SOVEREIGN"
@@ -22290,7 +22296,9 @@ def _f14_entanglement_for_session(session_id: str | None) -> dict[str, Any]:
 # APEX_VERIFY_1783324528
 
 
-def _ws1_authority_envelope(session_id, actor_id, *, actor_verified_flag=None, _runtime_auth_hint=None):
+def _ws1_authority_envelope(
+    session_id, actor_id, *, actor_verified_flag=None, _runtime_auth_hint=None
+):
     """WS1 (2026-07-12): build the 5-field legacy authority envelope from
     canonical AuthorityState. Single source of truth.
 
@@ -22300,23 +22308,30 @@ def _ws1_authority_envelope(session_id, actor_id, *, actor_verified_flag=None, _
     """
     try:
         from arifosmcp.runtime.authority import authority_envelope_for_session
+
         return authority_envelope_for_session(
-            session_id, actor_id,
+            session_id,
+            actor_id,
             actor_verified_flag=actor_verified_flag,
             _runtime_auth_hint=_runtime_auth_hint,
         )
     except Exception:
         runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
         actor_key = (actor_id or "").strip().lower()
+        # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
+        from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
         h_authority = (
-            "SOVEREIGN" if actor_key in {"arif", "ariffazil"}
-            else "OPERATOR" if actor_verified_flag
+            "OPERATOR"
+            if actor_verified_flag
             else "OBSERVER"
         )
         return {
-            "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
+            "actor_verified": bool(actor_verified_flag)
+            if actor_verified_flag is not None
+            else False,
             "human_authority": h_authority,
             "runtime_authority": runtime_band,
             "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN"),
-            "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and runtime_band != "OBSERVE_ONLY",
+            "seal_allowed": runtime_band in ("FULL", "SOVEREIGN")
+            and runtime_band != "OBSERVE_ONLY",
         }
