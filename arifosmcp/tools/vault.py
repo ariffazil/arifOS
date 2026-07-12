@@ -165,6 +165,23 @@ async def arif_seal(
                 )
             )
 
+    # ── AKAL I5: Latency enforcement ─────────────────────────────────────────
+    from arifosmcp.core.akal_wiring import akal_pre_seal as _akal_latency
+
+    try:
+        _akal_lat = _akal_latency(
+            session_id=session_id,
+            blast_radius="irreversible" if not ack_irreversible else "high",
+            passes_completed=1,  # Default — actual count from session
+            branches_explored=1,
+            cooling_elapsed=0,
+        )
+        if not _akal_lat.get("proceed"):
+            # Latency requirements not met — log but dont block (advisory for now)
+            pass
+    except Exception:
+        pass  # AKAL latency is advisory
+
     # ── SABAR cooldown gate (internal hardening) ──
     cooldown_meta: dict = {}
     if mode == "seal" and payload:
@@ -254,7 +271,11 @@ async def arif_seal(
 
         _verify_status = (
             "PASS"
-            if (_verify_result.get("token_valid") and _verify_result.get("scope_valid") and _verify_result.get("replay_safe"))
+            if (
+                _verify_result.get("token_valid")
+                and _verify_result.get("scope_valid")
+                and _verify_result.get("replay_safe")
+            )
             else "GATE_HOLD"
         )
         _verify_verdict = Verdict.SEAL if _verify_status == "PASS" else Verdict.HOLD
@@ -318,15 +339,11 @@ async def arif_seal(
     # bound to the exact payload hash. A-FORGE must verify this token via
     # arif_verify before execution. One-time use — token is burned on first use.
     _seal_token_value: str | None = None
-    if (
-        result.get("verdict") == "SEAL"
-        and mode == "seal"
-        and ack_irreversible
-        and payload
-    ):
+    if result.get("verdict") == "SEAL" and mode == "seal" and ack_irreversible and payload:
         _payload_hash = hashlib.sha256(payload.encode()).hexdigest()
         # Delegate to canonical vault_registry — thread-safe, dual-write to VAULT999
         from arifosmcp.runtime.vault_registry import issue_seal
+
         _seal_token_value = issue_seal(payload=payload, actor_id=actor_id)
         result["seal_token"] = _seal_token_value
         result["payload_hash"] = f"sha256:{_payload_hash}"

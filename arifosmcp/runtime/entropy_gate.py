@@ -1,4 +1,5 @@
 """
+⚠️ DEPRECATED (2026-07-11 Phase 3 Entropy Consolidation) — DEAD CODE, zero importers.
 arifosmcp/runtime/entropy_gate.py
 ═══════════════════════════════════════════════════════════════════════════════
 EUREKA 4: Entropy Gate

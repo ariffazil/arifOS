@@ -1000,8 +1000,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_measure": {
         "name": "arif_measure",
         "description": (
-            "INTERNAL: Check system health, thermodynamic state, and resource metrics. "
-            "Not on public surface. Use federation monitoring tools."
+            "INTERNAL: Kernel *runtime* health only (process, transport, topology, "
+            "resource metrics). NOT human readiness or coupled vitality — those are "
+            "WELL (well_validate_vitality). Alias intent: arif_runtime_health. "
+            "Boundary: AAA/docs/MEASUREMENT_BOUNDARY_CONTRACT.md."
         ),
         "access": "internal_only",
         "stage": ToolStage.OBSERVE,
@@ -1714,23 +1716,6 @@ DIAGNOSTIC_TOOLS: dict[str, dict[str, Any]] = {
         "tags": ["chatgpt-shim", "observe"],
         "_chatgpt_compat": True,
         "_routes_to": "arif_observe",
-    },
-    "arif_fetch": {
-        "name": "arif_fetch",
-        "description": (
-            "Fetch content from a URL. Use when you need to read the contents "
-            "of a specific webpage or document. Returns the page content as text."
-        ),
-        "access": "public",
-        "tier": "chatgpt-shim",
-        "namespace": "arif_*",
-        "risk_tier": "low",
-        "irreversible": False,
-        "floors": [Law.L02_TRUTH, Law.L03_WITNESS, Law.L05_PEACE, Law.L12_INJECTION],
-        "modes": ["fetch"],
-        "tags": ["chatgpt-shim", "observe"],
-        "_chatgpt_compat": True,
-        "_routes_to": "arif_fetch",
     },
     # ── Tool Discovery ──
     "arif_resolve_tool": {

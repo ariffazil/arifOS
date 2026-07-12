@@ -23,13 +23,33 @@ from typing import Any
 
 
 class ReversibilityClass(StrEnum):
-    """Reversibility classes ordered by severity."""
+    """Reversibility classes ordered by severity.
+
+    NOTE: Phase 2 consolidation target (2026-07-11).
+    Canonical source is now arifosmcp.schemas.reversibility (R-scale).
+    This local enum uses legacy lowercase values. Migrate callers to
+    schema's ReversibilityClass (R0-R5) when touching this file next.
+    R-scale mapping: TRIVIAL=R0, REVERSIBLE=R1, PARTIAL=R2,
+                     IRREVERSIBLE=R4, CRITICAL=R5.
+    """
 
     TRIVIAL = "trivial"  # No state change
     REVERSIBLE = "reversible"  # Easily undone
     PARTIAL = "partial"  # Undoable with effort
     IRREVERSIBLE = "irreversible"  # Cannot be undone
     CRITICAL = "critical"  # Cannot be undone — catastrophic
+
+
+# Canonical R-scale alias (Phase 2 — backward compat bridge)
+# New code should import from arifosmcp.schemas.reversibility
+# Engine's internal logic still uses legacy names until full migration.
+R_SCALE_MAP = {
+    "trivial": "R0",
+    "reversible": "R1",
+    "partial": "R2",
+    "irreversible": "R4",
+    "critical": "R5",
+}
 
 
 # Static reversibility map — words that indicate irreversible patterns

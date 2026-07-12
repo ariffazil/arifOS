@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifos://theoretical/apex-envelope.schema.v1.json",
+  "title": "APEX Cross-Organ Evidence Envelope",
+  "description": "Canonical constitutional envelope emitted by every organ (GEOX, WEALTH, WELL, AAA, A-FORGE, arifOS). Defines typed state vector X, three-layer verdict semantics, and the rule that a single high score cannot hide one fatal contradiction.",
+  "version": "apex-envelope/1.0",
+  "owner": "APEX theory; ratified by arifOS constitutional runtime",
+  "ratified_on": "2026-07-12",
+  "supersedes": "per-organ ad-hoc envelopes (wellness-envelope.v1, geox-claim.v1, etc.)",
+  "stability": "stable",
+  "federation_binding": true,
+  "type": "object",
+  "required": [
+    "schema_version",
+    "organ",
+    "claim_id",
+    "claim_class",
+    "evidence_level",
+    "confidence",
+    "observed_at",
+    "expires_at",
+    "provenance",
+    "missing_evidence",
+    "recommended_verdict",
+    "authority",
+    "verdict_layers"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "apex-envelope/1.0",
+      "description": "Lock-step binding. Any other value signals vendor fork."
+    },
+    "organ": {
+      "type": "string",
+      "enum": ["GEOX", "WEALTH", "WELL", "AAA", "A-FORGE", "arifOS"],
+      "description": "Source organ. Lowercase or unknown values are rejected at boundary."
+    },
+    "claim_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "UUIDv4 — collision-free across federation. Aliyyah generates this; never reused."
+    },
+    "claim_class": {
+      "type": "string",
+      "enum": [
+        "OBSERVATION",
+        "INTERPRETATION_LOCAL",
+        "PROCESS_HYPOTHESIS",
+        "EARTHMODEL",
+        "DECISIONSUPPORT",
+        "CLAIM",
+        "HYPOTHESIS",
+        "UNMEASURED",
+        "RECOMMENDATION",
+        "CONSTITUTIONAL_VERDICT"
+      ],
+      "description": "Epistemic rung per geox-claim-grammar v1.1+ / well-substrate-readiness."
+    },
+    "evidence_level": {
+      "type": "string",
+      "enum": ["L0", "L1", "L2", "L3", "L4", "L5", "L6"],
+      "description": "Layer 0-6 memory architecture (L1 ephemeral → L6 VAULT999 sealed)."
+    },
+    "confidence": {
+      "type": "object",
+      "required": ["value", "calibration_model"],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 0.95,
+          "description": "Cap at 0.95 unless APEX theory has been formally calibrated (F7 HUMILITY)."
+        },
+        "calibration_model": {
+          "type": "string",
+          "description": "Identifier of the organ-specific calibration source. Each organ names its own model (e.g. 'geox-cal-v1', 'wealth-mc-1000', 'well-wavelet-freshness')."
+        },
+        "discipline": {
+          "type": "string",
+          "description": "What the confidence number measures — required because cross-organ confidence=0.78 is not equivalent. Examples: 'probability_of_reservoir_presence', 'runway_survival_probability', 'human_readiness_adequacy_for_C4'."
+        }
+      }
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC3339 timestamp. The point at which the evidence was measured, not when the envelope was emitted."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Hard expiry. After this moment, freshness is automatically UNKNOWN regardless of source-stated validity."
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source", "uri_or_hash", "ts"],
+        "properties": {
+          "source": {"type": "string", "description": "Reference label or DOI."},
+          "uri_or_hash": {"type": "string", "description": "sha256:hex or canonical URI."},
+          "ts": {"type": "string", "format": "date-time"},
+          "transform_chain": {"type": "array", "items": {"type": "string"}, "description": "Optional record of transforms applied (Vsh→Φ→Sw etc.)."}
+        }
+      },
+      "minItems": 1
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Bounded assumptions. If any is later falsified, the envelope enters contradiction stream."
+    },
+    "contradictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_envelope", "summary"],
+        "properties": {
+          "source_envelope": {"type": "string", "description": "UUID of competing claim."},
+          "summary": {"type": "string", "description": "Plain-language contradiction."}
+        }
+      },
+      "description": "Active conflicts with peer envelopes. Empty does NOT mean none possible — only none resolved yet."
+    },
+    "missing_evidence": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Specific tests or measurements whose absence prevents stronger claim_class. Distinct from assumptions: this is what we'd need to upgrade the claim; assumptions are what we accepted to make it."
+    },
+    "state_vector": {
+      "type": "object",
+      "description": "Typed APEX variable model — replaces scalar single-score.",
+      "properties": {
+        "E": {"type": "number", "minimum": 0, "maximum": 1, "description": "Evidence adequacy (provenance + replication + sample)."},
+        "U": {"type": "number", "minimum": 0, "maximum": 1, "description": "Residual uncertainty (1 − normalised credible interval width)."},
+        "C": {"type": "number", "minimum": 0, "description": "Consequence severity in expected loss units (organ-defined)."},
+        "R": {"type": "number", "minimum": 0, "maximum": 1, "description": "Reversibility (probability recovery at bounded cost)."},
+        "V": {"type": "number", "minimum": 0, "maximum": 1, "description": "Substrate viability — HUMAN and MACHINE separately."},
+        "P": {"type": "number", "minimum": 0, "maximum": 1, "description": "Physical feasibility given domain constraints."},
+        "A": {"type": "number", "minimum": 0, "maximum": 1, "description": "Authority validity (signed mandate in scope and in time)."},
+        "W": {"type": "number", "minimum": 0, "maximum": 1, "description": "Witness independence (geometric mean of independent channels)."},
+        "T": {"type": "number", "minimum": 0, "maximum": 1, "description": "Temporal fitness (1 − decay from expires_at)."},
+        "D": {"type": "number", "minimum": 0, "maximum": 1, "description": "Dignity and rights status (constraint, not utility)."},
+        "O": {"type": "number", "minimum": 0, "description": "Remaining optionality — feasible future actions after this commitment."}
+      }
+    },
+    "verdict_layers": {
+      "type": "object",
+      "description": "Three-layer decision structure: hard gates → robustness → preference. ANY gate failure dominates the score.",
+      "required": ["layer1_gates", "layer2_robustness", "layer3_preference"],
+      "properties": {
+        "layer1_gates": {
+          "type": "object",
+          "description": "Hard gates — any 0 fails. Returns VOID.",
+          "required": ["authority", "rights", "physical", "safety"],
+          "properties": {
+            "authority": {"type": "integer", "minimum": 0, "maximum": 1, "description": "0 → VOID (no signed actor or expired mandate)."},
+            "rights": {"type": "integer", "minimum": 0, "maximum": 1, "description": "0 → VOID (F6 MARUAH violated)."},
+            "physical": {"type": "integer", "minimum": 0, "maximum": 1, "description": "0 → VOID (physically infeasible per physics guard)."},
+            "safety": {"type": "integer", "minimum": 0, "maximum": 1, "description": "0 → VOID (catastrophic-harm probability exceeds ε)."}
+          }
+        },
+        "layer2_robustness": {
+          "type": "object",
+          "description": "Robustness across alternative models, parameter ranges, adversarial cases, stakeholder perspectives, delayed consequences, common-mode failures. Any failure → HOLD.",
+          "properties": {
+            "verdict": {"type": "string", "enum": ["ROBUST", "ROBUST_WITH_CAVEATS", "HOLD"]},
+            "failures": {"type": "array", "items": {"type": "string"}},
+            "robustness_score": {"type": "number", "minimum": 0, "maximum": 1}
+          }
+        },
+        "layer3_preference": {
+          "type": "object",
+          "description": "After admissible set is established, human preference selects among Pareto-optimal options. Sovereignty is preserved.",
+          "properties": {
+            "pareto_options": {"type": "array", "items": {"type": "object"}},
+            "human_select_required": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "recommended_verdict": {
+      "type": "string",
+      "enum": ["SEAL", "HOLD", "SABAR", "VOID"],
+      "description": "Organ's RECOMMENDED verdict. arifOS 888 is the only organ that ISSUES verdicts; everyone else recommends. SEALS are not auto-issued."
+    },
+    "authority": {
+      "type": "string",
+      "enum": ["REFLECT_ONLY", "ADVISORY_ONLY", "EVIDENCE_ONLY", "COMPUTE_ONLY"],
+      "description": "Authority scope. Domain organs are REFLECT_ONLY/ADVISORY_ONLY/EVIDENCE_ONLY. No organ is SEAL-emitting except arifOS."
+    },
+    "fast_path_annotation": {
+      "type": "object",
+      "description": "Optional chain-ruling annotation for fast-path emissions (matching AGENTS.md known anomaly: pre-migration gap pattern is sovereign-ruled NON-ISSUE).",
+      "properties": {
+        "sovereign_ruling": {"type": "string"},
+        "ruling_date": {"type": "string", "format": "date-time"},
+        "ruling_pattern": {"type": "string"},
+        "blocks_substrate_gate": {"type": "boolean"}
+      }
+    }
+  },
+  "_documentation": {
+    "principle": "ONE high score cannot hide ONE fatal contradiction. Layer 1 gates dominate. Layer 2 HOLD/SEAL. Layer 3 PRESERVES sovereignty.",
+    "replaces_phrases": {
+      "wavefunction_collapse": "admissible-set reduction or posterior update (decision geometry, not quantum)",
+      "sovereign_entropy": "behavioural-model dependence + profiling exposure + prediction confidence (auditable, not metaphysical)",
+      "thermodynamic_entropy_governance": "policy drift + state divergence + coordination cost (governance metrics, not heat microstates)",
+      "human_readiness_score": "vitality vector V_h with subsystem breakdown (multi-observation, never single scalar)",
+      "single_apex_score": "three-layer verdict (gates + robustness + preference) — no single scalar"
+    },
+    "migration_path": {
+      "phase_1": "Per-organ envelopes continue to exist but MUST emit apex-envelope/1.0 outer wrapper at boundary.",
+      "phase_2": "Per-organ envelope shapes deprecate. Organ internal APIs may keep their native shape; cross-organ surfaces MUST conform to v1.0.",
+      "phase_3": "Phase 3 evaluation gate: every organ tested on v1.0 compliance; schema_version drift detection in operation."
+    },
+    "consumers": [
+      "arifOS 888 JUDGE — consumes verdict_layers to issue SEAL/HOLD/VOID",
+      "AAA cockpit — displays envelopes with provenance",
+      "A-FORGE — refuses to execute on envelopes with expired_at < now or verdict_layers.layer1_gates != 1",
+      "VAULT999 — seals envelopes as L6 records with schema_version pinned"
+    ]
+  }
+}

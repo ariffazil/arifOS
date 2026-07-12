@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/constitutional-transition/v1.0.0",
+  "title": "Constitutional Transition Protocol (CTP) v1",
+  "description": "Transport-neutral object above MCP/A2A/HTTP/queues. MCP is a wire; CTP is the constitutional meaning. Unit of completion: verified governed transition.",
+  "type": "object",
+  "required": [
+    "schema",
+    "transition_id",
+    "actor",
+    "intent",
+    "evidence",
+    "uncertainty",
+    "authority",
+    "target_state",
+    "proposed_transition",
+    "reversibility",
+    "blast_radius",
+    "witnesses",
+    "verdict",
+    "timestamp"
+  ],
+  "properties": {
+    "schema": { "const": "ctp.v1" },
+    "transition_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "transport": {
+      "type": "string",
+      "enum": ["MCP", "A2A", "HTTP", "QUEUE", "EVENT", "IPC", "OTHER"],
+      "description": "Wire that carried this CTP — must not change verdict semantics"
+    },
+    "actor": {
+      "type": "object",
+      "required": ["actor_id", "verified"],
+      "properties": {
+        "actor_id": { "type": "string" },
+        "verified": { "type": "boolean" },
+        "session_id": { "type": ["string", "null"] },
+        "band": { "type": "string" },
+        "delegation_chain": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Arif → organ → agent → action → expiry refs"
+        }
+      }
+    },
+    "intent": {
+      "type": "object",
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string" },
+        "purpose": { "type": ["string", "null"] }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "https://arifos.arif-fazil.com/schemas/organ-evidence/v1.0.0" }
+    },
+    "uncertainty": {
+      "type": "object",
+      "properties": {
+        "omega": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "unknowns": { "type": "array", "items": { "type": "string" } },
+        "contradictions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "authority": {
+      "type": "object",
+      "required": ["valid", "max_action_class"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "max_action_class": { "type": "string" },
+        "lease_id": { "type": ["string", "null"] },
+        "expires_at": { "type": ["string", "null"] },
+        "f13_required": { "type": "boolean" }
+      }
+    },
+    "target_state": {
+      "type": "object",
+      "description": "Named world/system state sought",
+      "additionalProperties": true
+    },
+    "proposed_transition": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": { "type": "string" },
+        "parameters": { "type": "object" },
+        "organ": { "type": "string" }
+      }
+    },
+    "reversibility": {
+      "type": "string",
+      "enum": ["FULL", "PARTIAL", "NONE", "UNKNOWN"]
+    },
+    "blast_radius": {
+      "type": "string",
+      "enum": ["LOCAL", "ORGAN", "FEDERATION", "EXTERNAL", "CRITICAL"]
+    },
+    "witnesses": {
+      "type": "object",
+      "properties": {
+        "human": { "type": ["number", "null"] },
+        "ai": { "type": ["number", "null"] },
+        "external": { "type": ["number", "null"] },
+        "diversity_note": { "type": "string" },
+        "correlated_risk": { "type": "boolean" }
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["SEAL", "HOLD", "SABAR", "VOID", "OBSERVE_ONLY", "UNKNOWN"]
+    },
+    "verdict_scope": {
+      "type": "string",
+      "description": "Verdict attaches to claim/action — not whole project",
+      "examples": ["claim:repair_worker", "action:restart_allowlisted"]
+    },
+    "execution_receipt": {
+      "type": ["object", "null"],
+      "properties": {
+        "mutated": { "type": "boolean" },
+        "mutation_count": { "type": "integer" },
+        "pre_state_ref": { "type": "string" },
+        "post_state_ref": { "type": "string" },
+        "verify_ok": { "type": ["boolean", "null"] },
+        "rollback_attempted": { "type": "boolean" },
+        "rollback_ok": { "type": ["boolean", "null"] }
+      }
+    },
+    "observed_outcome": {
+      "type": ["object", "null"]
+    },
+    "emergency_envelope_id": {
+      "type": ["string", "null"],
+      "description": "If set, pre-authorised containment path (shutdown/isolate/rollback only)"
+    }
+  }
+}

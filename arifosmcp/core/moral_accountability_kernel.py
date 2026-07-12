@@ -1,4 +1,6 @@
 """
+⚠️ DEPRECATED (2026-07-11 Phase 4 Kernel Triage) — DEAD CODE, zero importers.
+Canonical kernel: arifosmcp.core.constitution_kernel (609 lines, 5 importers).
 arifOS — Moral Accountability Kernel
 ═══════════════════════════════════════════════════════
 

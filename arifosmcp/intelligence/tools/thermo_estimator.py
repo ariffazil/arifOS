@@ -1,3 +1,4 @@
+# ⚠️ DEPRECATED (2026-07-11 Phase 3 Entropy Consolidation) — DEAD CODE, zero importers.
 from __future__ import annotations
 
 import math

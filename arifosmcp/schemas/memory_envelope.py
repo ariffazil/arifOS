@@ -21,6 +21,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from .memory_object import ConstitutionalMemoryBlock
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # MEMORY RISK TIERS (M0–M4)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -249,6 +251,14 @@ class MemoryEventEnvelope(BaseModel):
     capability_ref: dict[str, Any] | None = Field(
         default=None,
         description="Capability reference — agent_visible_secret must be false",
+    )
+
+
+    # Constitutional Memory (Δ Axis 3) — moral provenance for significant memories.
+    # If a memory is governed by a floor, it must carry that floor's geometry.
+    constitutional: ConstitutionalMemoryBlock | None = Field(
+        default=None,
+        description="Δ triplet: value_anchor, floor_constraint, care_provenance",
     )
 
     @field_validator("capability_ref")
