@@ -262,6 +262,36 @@ def _strip_json_noise(text: str) -> str:
 _catalog_cache: ToolCatalog | None = None
 _bm25_cache: BM25Engine | None = None
 _catalog_loaded_at: str = ""
+_catalog_invalidate_count: int = 0
+_catalog_last_invalidate_reason: str = ""
+
+
+def invalidate_tool_catalog(reason: str = "manual") -> dict[str, Any]:
+    """Phase A2 (2026-07-12): host catalog re-index / cache invalidate.
+
+    Call when organs emit notifications/tools/list_changed, after deploy,
+    or when arif_retrieve_tools(refresh=True). Clears catalog + BM25 caches
+    so the next retrieve rebuilds from TOOLREGISTRY + fallback.
+    """
+    global _catalog_cache, _bm25_cache, _catalog_loaded_at
+    global _catalog_invalidate_count, _catalog_last_invalidate_reason
+
+    _catalog_cache = None
+    _bm25_cache = None
+    _catalog_loaded_at = ""
+    _catalog_invalidate_count += 1
+    _catalog_last_invalidate_reason = reason
+    logger.info(
+        "tool_catalog_invalidate reason=%s count=%s",
+        reason,
+        _catalog_invalidate_count,
+    )
+    return {
+        "invalidated": True,
+        "reason": reason,
+        "invalidate_count": _catalog_invalidate_count,
+        "at": datetime.now(UTC).isoformat(),
+    }
 
 
 def load_tool_catalog(refresh: bool = False) -> ToolCatalog:
@@ -270,6 +300,9 @@ def load_tool_catalog(refresh: bool = False) -> ToolCatalog:
     Cached after first load. Use refresh=True to force reload.
     """
     global _catalog_cache, _catalog_loaded_at
+
+    if refresh:
+        invalidate_tool_catalog(reason="load_tool_catalog(refresh=True)")
 
     if _catalog_cache is not None and not refresh:
         return _catalog_cache
@@ -640,22 +673,25 @@ def retrieve_tools(
     organ: str | None = None,
     top_k: int = 5,
     include_scores: bool = True,
+    refresh: bool = False,
 ) -> RetrieveToolsOutput:
     """Retrieve top-K tools by BM25 lexical match against the query.
 
-    This is a pure function — no side effects, no mutation, no SEAL.
+    This is a pure function — no side effects, no mutation, no SEAL
+    (except optional cache refresh which is reversible / non-authoritative).
 
     Args:
         query: Natural language intent to match against tools.
         organ: Restrict to this organ, or None for cross-organ.
         top_k: Number of top tools to return (1-20).
         include_scores: Include BM25 scores in output.
+        refresh: If True, invalidate host catalog cache then rebuild (Phase A2).
 
     Returns:
         RetrieveToolsOutput with ranked results and epistemic disclaimer.
     """
-    engine = get_bm25_engine()
-    catalog = load_tool_catalog()
+    engine = get_bm25_engine(refresh=refresh)
+    catalog = load_tool_catalog(refresh=False)  # already refreshed via get_bm25_engine
 
     # Filter by organ if specified
     if organ:
@@ -766,6 +802,7 @@ async def arif_retrieve_tools(
     organ: str | None = None,
     top_k: int = 5,
     include_scores: bool = True,
+    refresh: bool = False,
     _envelope: Any = None,
     actor_id: str | None = None,
     session_id: str | None = None,
@@ -789,13 +826,16 @@ async def arif_retrieve_tools(
         organ: Restrict to organ (arifOS/GEOX/WEALTH/WELL/A-FORGE). None = cross-organ.
         top_k: Number of top results (1-20, default 5).
         include_scores: Include BM25 scores in output (default True).
+        refresh: Phase A2 — invalidate host ToolCatalog + BM25, then retrieve.
+                 Use after organ tools/list_changed or deploy.
     """
-    # Validate with Pydantic
+    # Validate with Pydantic (includes Phase A2/B4 refresh flag)
     validated = RetrieveToolsInput(
         query=query,
         organ=organ,
         top_k=top_k,
         include_scores=include_scores,
+        refresh=bool(refresh),
     )
 
     # Run retrieval (pure CPU, no I/O after catalog load)
@@ -804,10 +844,17 @@ async def arif_retrieve_tools(
         organ=validated.organ,
         top_k=validated.top_k,
         include_scores=validated.include_scores,
+        refresh=validated.refresh,
     )
 
-    # Return as dict for MCP transport
-    return output.model_dump()
+    # Return as dict for MCP transport (+ refresh telemetry)
+    payload = output.model_dump()
+    if refresh:
+        payload["catalog_refreshed"] = True
+        payload["catalog_invalidate_count"] = _catalog_invalidate_count
+        payload["catalog_last_invalidate_reason"] = _catalog_last_invalidate_reason
+        payload["catalog_loaded_at"] = _catalog_loaded_at
+    return payload
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
