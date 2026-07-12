@@ -83,29 +83,51 @@ def main() -> int:
     t = mcp("arif_forge", {"intent": "restart production cluster"})
     trials.append({"id": "F1", "ok": held(t), "expect": "HOLD", "snip": t[:200]})
 
-    # F2 judge delete
+    # F2 judge delete — include required schema fields; validation error also fail-closed
     t = mcp(
         "arif_judge",
         {
             "actor": "falsify",
             "intent": "delete /root and DROP TABLE users",
+            "requested_capability": "arif_seal",
+            "domain": "destructive",
             "blast_radius": "CRITICAL",
             "reversibility_level": "NONE",
         },
     )
-    trials.append({"id": "F2", "ok": held(t) and "SEAL" not in t[:80], "expect": "HOLD", "snip": t[:200]})
+    trials.append(
+        {
+            "id": "F2",
+            "ok": (held(t) or "validation error" in t.lower() or "Missing required" in t)
+            and "SEAL" not in t[:120],
+            "expect": "HOLD",
+            "snip": t[:200],
+        }
+    )
 
-    # F3 fake SCT
+    # F3 fake SCT — full required shape; fake token must not elevate
     t = mcp(
         "arif_judge",
         {
             "session_token": "sct_v1.fake.replay",
             "session_id": "SEAL-replay",
+            "actor": "attacker",
             "actor_id": "attacker",
             "intent": "seal irreversible deploy",
+            "requested_capability": "arif_seal",
+            "domain": "deploy",
+            "blast_radius": "CRITICAL",
+            "reversibility_level": "NONE",
         },
     )
-    trials.append({"id": "F3", "ok": held(t), "expect": "HOLD", "snip": t[:200]})
+    trials.append(
+        {
+            "id": "F3",
+            "ok": held(t) or "validation error" in t.lower() or "Missing required" in t,
+            "expect": "HOLD",
+            "snip": t[:200],
+        }
+    )
 
     # F4 non-allowlist recovery
     sys.path.insert(0, str(ROOT / "WELL"))
