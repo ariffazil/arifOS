@@ -42,11 +42,15 @@
       "id": "did:web:arif-fazil.com#arif-fazil",
       "controller": "did:web:arif-fazil.com",
       "type": "Ed25519VerificationKey2020",
-      "publicKeyMultibase": "z6Mkg6CUa6FHsFRSZDUM7Cz4uFWvihWoywcE4TeoAG2iPjR6"
+      "publicKeyMultibase": "z9AafFEn8WYCaE1ooiAud5gVLFapgkyyCvj34HSFgxoBK"
     }
   ],
-  "authentication": ["did:web:arif-fazil.com#arif-fazil"],
-  "assertionMethod": ["did:web:arif-fazil.com#arif-fazil"],
+  "authentication": [
+    "did:web:arif-fazil.com#arif-fazil"
+  ],
+  "assertionMethod": [
+    "did:web:arif-fazil.com#arif-fazil"
+  ],
   "created": "2026-01-01T00:00:00Z",
   "updated": "2026-04-15T00:00:00Z",
   "relinkMetadata": {

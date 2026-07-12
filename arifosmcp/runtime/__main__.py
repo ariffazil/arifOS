@@ -621,9 +621,7 @@ def _run_minimal_stdio_server() -> None:
                                 "error": {
                                     "code": -32001,
                                     "message": gate["reason"],
-                                    "data": deny_payload(
-                                        gate, organ=organ, tool_name=name
-                                    ),
+                                    "data": deny_payload(gate, organ=organ, tool_name=name),
                                 },
                             }
                         )
@@ -694,7 +692,10 @@ def _run_minimal_stdio_server() -> None:
                     "content": [{"type": "text", "text": json.dumps(envelope)}],
                 }
                 # MCP spec: isError only present when true (omitted on success)
-                if not envelope.get("ok", True):
+                # I0 FIX (2026-07-12): also set isError when execution_status=ERROR,
+                # not just when ok=false — backend failures inside a success-wrapped
+                # envelope must still surface at protocol level.
+                if not envelope.get("ok", True) or envelope.get("execution_status") == "ERROR":
                     local_payload["isError"] = True
                 send(
                     {
