@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.local/schemas/work_contract.schema.json",
+  "title": "arifOS Work Contract",
+  "type": "object",
+  "required": ["task_id", "session_id", "objective", "success_criteria", "budgets", "verification", "autonomy_band", "termination"],
+  "properties": {
+    "task_id": {"type": "string", "minLength": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "objective": {"type": "string", "minLength": 1},
+    "success_criteria": {"type": "array", "items": {"type": "string"}},
+    "autonomy_band": {"enum": ["GREEN", "ORANGE", "RED"]},
+    "budgets": {
+      "type": "object",
+      "required": ["reasoning", "tools", "coordination", "cost"],
+      "properties": {
+        "reasoning": {"type": "object", "required": ["max_cycles", "max_model_calls", "max_elapsed_seconds"]},
+        "tools": {"type": "object", "required": ["max_calls_total", "max_calls_per_tool", "max_failed_calls"]},
+        "coordination": {"type": "object", "required": ["max_delegations", "max_depth"]},
+        "cost": {"type": "object", "required": ["max_usd"]}
+      }
+    },
+    "verification": {"type": "object", "required": ["required", "criteria"]},
+    "termination": {"type": "object", "required": ["confidence_target", "minimum_uncertainty_reduction", "stop_on_repeated_evidence"]}
+  },
+  "additionalProperties": false
+}

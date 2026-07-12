@@ -70,11 +70,10 @@ KAMUS: dict[str, str] = {
     # ── 7 federation organs (per ESTATE_MANIFEST.yaml) ──────────────────
     "arifOS": "Constitutional Kernel, :8088",
     "A-FORGE": "Execution Shell, :7071",
-    "AAA": "Control Plane, :3001",
+    "AAA": "Control Plane + Deliberation, :3001",
     "GEOX": "Earth Intelligence, :8081",
     "WEALTH": "Capital Intelligence, :18082",
     "WELL": "Vitality Intelligence, :18083",
-    "APEX": "Verdict Engine (Legacy), :3002",
     # ── Verdict lattice (per APEX_CANON.md §2.4) ────────────────────────
     "G≥0.80": "PROCEED (SEAL-grade)",
     "0.50≤G<0.80": "SABAR (gather evidence)",

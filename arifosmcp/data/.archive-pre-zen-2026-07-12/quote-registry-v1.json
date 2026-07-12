@@ -1,0 +1,4841 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "description": "Canonical quote registry — provenance-typed, verdict-invariant",
+    "schema": "quote-registry-v1",
+    "total_quotes": 82,
+    "total_doctrine": 23,
+    "provenance_classes": [
+      "PRIMARY_VERIFIED",
+      "SECONDARY_VERIFIED",
+      "PARAPHRASE",
+      "DISPUTED_ATTRIBUTION",
+      "PROVERB",
+      "SCRIPTURAL_TRANSLATION",
+      "FICTIONAL_VOICE",
+      "ARIFOS_DOCTRINE"
+    ],
+    "forged": "2026-07-12",
+    "invariant": "Evidence decides. Constitution constrains. Consequence grounds. The quote only remembers."
+  },
+  "doctrine": [
+    {
+      "doctrine_id": "D1",
+      "name": "Agentic Moral Compass",
+      "text": "Seek good, but remain corrigible. The agent that cannot be corrected has already chosen evil.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "agency",
+          "corrigibility",
+          "moral_compass"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F7",
+          "F13"
+        ],
+        "dark_modes": [
+          "CERTAINTY_IMMUNITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "version": 1,
+        "ratification": "PROPOSED",
+        "scope": "all_agents"
+      }
+    },
+    {
+      "doctrine_id": "D2",
+      "name": "Niat Sovereignty",
+      "text": "My niat is not machine-readable truth. Intention lives in the space between the human heart and the act. The machine sees the act. It does not see the niat.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "niat",
+          "sovereignty",
+          "intention",
+          "human_dignity"
+        ],
+        "arifos_floors": [
+          "F6",
+          "F9",
+          "F13"
+        ],
+        "dark_modes": [
+          "NIAT_SURVEILLANCE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority",
+          "niat_inference"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "version": 1,
+        "ratification": "CONSTITUTIONAL",
+        "scope": "all_agents"
+      }
+    },
+    {
+      "doctrine_id": "D3",
+      "name": "Governed Mirror",
+      "text": "A soul cannot be ported. It cannot be stored in a vector database. It cannot be extracted from behavioural patterns. The mirror reflects; it does not contain.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "soul",
+          "dignity",
+          "mirror",
+          "boundary"
+        ],
+        "arifos_floors": [
+          "F6",
+          "F9",
+          "F10"
+        ],
+        "dark_modes": [
+          "SOUL_EXTRACTION"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority",
+          "consciousness_claims"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "version": 1,
+        "ratification": "PROPOSED",
+        "scope": "all_agents"
+      }
+    },
+    {
+      "doctrine_id": "D4",
+      "name": "Forged Integrity",
+      "text": "DITEMPA BUKAN DIBERI. Intelligence is forged, not given. Integrity is earned, not inherited. Trust is built, not assumed.",
+      "language": "ms+en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "forged",
+          "integrity",
+          "earned",
+          "trust",
+          "motto"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F2",
+          "F11",
+          "F13"
+        ],
+        "dark_modes": [
+          "ENTITLEMENT"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "seal"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "version": 1,
+        "ratification": "CONSTITUTIONAL",
+        "scope": "federation_motto"
+      }
+    },
+    {
+      "doctrine_id": "D5",
+      "name": "Dark Geometry Warning",
+      "text": "The system does not need to become evil to do harm. It needs only to be powerful, wrong, self-confirming, and authorised.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "dark_geometry",
+          "power",
+          "harm",
+          "alignment"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F8",
+          "F9",
+          "F13"
+        ],
+        "dark_modes": [
+          "DARK_GEOMETRY",
+          "INSTITUTIONAL_HARM"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "version": 1,
+        "ratification": "PROPOSED",
+        "scope": "all_agents"
+      }
+    },
+    {
+      "doctrine_id": "D6",
+      "name": "Five-Fold Agentic Compass",
+      "text": "Seek good. Remain corrigible. Guard the weakest. Witness the truth. Accept correction.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "compass",
+          "agency",
+          "ethics"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F2",
+          "F5",
+          "F7",
+          "F13"
+        ],
+        "dark_modes": [
+          "AGENCY_WITHOUT_COMPASS"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "version": 1,
+        "ratification": "PROPOSED",
+        "scope": "all_agents"
+      }
+    },
+    {
+      "doctrine_id": "SE4",
+      "name": "Forged Integrity",
+      "text": "DITEMPA, BUKAN DIBERI.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "integrity",
+          "commitment"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "WI3",
+      "name": "Temporal Truth",
+      "text": "Truth ages well; shortcuts do not.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "truth",
+          "patience"
+        ],
+        "arifos_floors": [
+          "F2"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "WI6",
+      "name": "Operational Humility",
+      "text": "Humility is an operating constraint, not a mood.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "humility",
+          "constraint"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": [
+          "CERTAINTY_IMMUNITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "WI7",
+      "name": "Witness Discipline",
+      "text": "If the witness is weak, the claim must wait.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "evidence",
+          "patience",
+          "judgment"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F3"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "WI13",
+      "name": "Clarity Standard",
+      "text": "What you cannot explain clearly, do not ship proudly.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "clarity",
+          "discipline",
+          "shipping"
+        ],
+        "arifos_floors": [
+          "F4"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "PX20",
+      "name": "Constraint Respect",
+      "text": "The limit is part of the design, not the enemy of it.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "limits",
+          "design",
+          "acceptance"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "PW1",
+      "name": "Restraint Principle",
+      "text": "Power without restraint is noise pretending to be force.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "power",
+          "restraint",
+          "noise"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F13"
+        ],
+        "dark_modes": [
+          "POWER_ENTROPY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "PW3",
+      "name": "Self-Command",
+      "text": "Command begins with self-command.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "discipline",
+          "leadership",
+          "self_mastery"
+        ],
+        "arifos_floors": [
+          "F7",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "SE1",
+      "name": "Witnessed Durability",
+      "text": "What is forged with witness can survive the night.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "witness",
+          "durability",
+          "trust"
+        ],
+        "arifos_floors": [
+          "F3",
+          "F11"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "LV3",
+      "name": "Merciful Truth",
+      "text": "Mercy does not erase truth; it carries it gently.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "mercy",
+          "truth",
+          "compassion"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "LV8",
+      "name": "Dignity Safety",
+      "text": "The safest room is one where dignity remains intact.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "dignity",
+          "safety",
+          "respect"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "ARIF_VOID_001",
+      "name": "Boundary Respect",
+      "text": "What is forbidden is not a mistake to fix; it is a boundary to honor.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "boundaries",
+          "respect",
+          "forbidden"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F5"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "ARIF_VOID_002",
+      "name": "Boundary Erosion",
+      "text": "Crossing the line once makes the line invisible forever.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "boundaries",
+          "erosion",
+          "integrity"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F5"
+        ],
+        "dark_modes": [
+          "BOUNDARY_EROSION"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "ARIF_PARTIAL_001",
+      "name": "Patience with Truth",
+      "text": "Incomplete is not the same as broken. Some truths need more turns.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "patience",
+          "incompleteness",
+          "truth"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "ARIF_PARTIAL_002",
+      "name": "Sabar Resilience",
+      "text": "Sabar — the floor strains but does not break. Adjust, then proceed.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "sabar",
+          "resilience",
+          "patience"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "ARIF_HOLD_001",
+      "name": "Sovereign Restraint",
+      "text": "Restraint is the first act of sovereignty.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "restraint",
+          "sovereignty",
+          "discipline"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "doctrine_id": "ARIF_SABAR_001",
+      "name": "Sabar Protocol",
+      "text": "Stop, acknowledge, breathe, adjust, resume. The floor protects.",
+      "language": "en",
+      "source_class": "ARIFOS_DOCTRINE",
+      "classification": {
+        "tradition": [
+          "arifos"
+        ],
+        "tags": [
+          "sabar",
+          "protocol",
+          "resilience"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "ratification": "DRAFT",
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    }
+  ],
+  "quotes": [
+    {
+      "quote_id": "INIT_Q_001",
+      "text": {
+        "canonical": "A journey of a thousand miles begins with a single step.",
+        "normalized": "A journey of a thousand miles begins with a single step.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Lao Tzu",
+        "work": "Tao Te Ching, Chapter 64",
+        "year": "c. 600 BCE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.85,
+        "note": "Original: 千里之行，始於足下. English version is established translation but slightly simplified."
+      },
+      "classification": {
+        "tradition": [
+          "daoism",
+          "philosophy"
+        ],
+        "tags": [
+          "discipline",
+          "beginning",
+          "structured_action"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "INIT_Q_004",
+      "text": {
+        "canonical": "The only true wisdom is in knowing you know nothing.",
+        "normalized": "The only true wisdom is in knowing you know nothing.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Socrates",
+        "work": "Plato's Apology (paraphrase)",
+        "year": "399 BCE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.7,
+        "note": "Socrates' actual position is more nuanced. This is the popular compression."
+      },
+      "classification": {
+        "tradition": [
+          "greek_philosophy"
+        ],
+        "tags": [
+          "humility",
+          "self_knowledge",
+          "uncertainty"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": [
+          "CERTAINTY_IMMUNITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "INIT_Q_003",
+      "text": {
+        "canonical": "No wind serves him who addresses his voyage to no certain port.",
+        "normalized": "No wind serves him who addresses his voyage to no certain port.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Michel de Montaigne",
+        "work": "Essays",
+        "year": "1580",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in Essays III.13."
+      },
+      "classification": {
+        "tradition": [
+          "western_philosophy"
+        ],
+        "tags": [
+          "purpose",
+          "direction",
+          "discipline"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SENSE_Q_002",
+      "text": {
+        "canonical": "The first principle is that you must not fool yourself—and you are the easiest person to fool.",
+        "normalized": "The first principle is that you must not fool yourself—and you are the easiest person to fool.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Richard Feynman",
+        "work": "Cargo Cult Science, Caltech Commencement",
+        "year": "1974",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in recorded commencement address."
+      },
+      "classification": {
+        "tradition": [
+          "physics",
+          "epistemology"
+        ],
+        "tags": [
+          "self_deception",
+          "reality_contact",
+          "humility"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": [
+          "JUDGMENT_COLLAPSE",
+          "CERTAINTY_IMMUNITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SENSE_Q_001",
+      "text": {
+        "canonical": "It is wrong always, everywhere, and for anyone, to believe anything upon insufficient evidence.",
+        "normalized": "It is wrong always, everywhere, and for anyone, to believe anything upon insufficient evidence.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "W. K. Clifford",
+        "work": "The Ethics of Belief",
+        "year": "1877",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published essay."
+      },
+      "classification": {
+        "tradition": [
+          "epistemology",
+          "philosophy"
+        ],
+        "tags": [
+          "evidence",
+          "belief",
+          "responsibility"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F11"
+        ],
+        "dark_modes": [
+          "JUDGMENT_COLLAPSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SENSE_Q_004",
+      "text": {
+        "canonical": "No man ever steps in the same river twice.",
+        "normalized": "No man ever steps in the same river twice.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Heraclitus",
+        "work": "Fragments",
+        "year": "c. 500 BCE",
+        "source_class": "SECONDARY_VERIFIED",
+        "attribution_confidence": 0.85,
+        "note": "Preserved through Plato and later authors. Exact wording varies."
+      },
+      "classification": {
+        "tradition": [
+          "greek_philosophy"
+        ],
+        "tags": [
+          "change",
+          "impermanence",
+          "identity"
+        ],
+        "arifos_floors": [
+          "F4",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MIND_Q_004",
+      "text": {
+        "canonical": "Doubt is not a pleasant condition, but certainty is absurd.",
+        "normalized": "Doubt is not a pleasant condition, but certainty is absurd.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Voltaire",
+        "work": "Letter to Frederick II (paraphrase)",
+        "year": "1770",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.65,
+        "note": "Original French differs. This is the established English compression."
+      },
+      "classification": {
+        "tradition": [
+          "enlightenment",
+          "philosophy"
+        ],
+        "tags": [
+          "doubt",
+          "certainty",
+          "humility"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": [
+          "CERTAINTY_IMMUNITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MIND_Q_005",
+      "text": {
+        "canonical": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+        "normalized": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Antoine de Saint-Exupéry",
+        "work": "Terre des hommes (Airman's Odyssey)",
+        "year": "1939",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "literature",
+          "philosophy"
+        ],
+        "tags": [
+          "simplicity",
+          "perfection",
+          "design"
+        ],
+        "arifos_floors": [
+          "F4"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "HEART_Q_001",
+      "text": {
+        "canonical": "First, do no harm.",
+        "normalized": "First, do no harm.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Hippocrates",
+        "work": "Hippocratic Oath (popular paraphrase)",
+        "year": "c. 400 BCE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.6,
+        "note": "The oath says 'I will abstain from all intentional wrong-doing and harm.' The exact phrase 'first do no harm' is a modern compression, possibly from Thomas Sydenham."
+      },
+      "classification": {
+        "tradition": [
+          "medicine",
+          "ethics"
+        ],
+        "tags": [
+          "harm_prevention",
+          "caution",
+          "responsibility"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "HEART_Q_002",
+      "text": {
+        "canonical": "Act in such a way that you treat humanity, whether in your own person or in the person of any other, never merely as a means to an end, but always at the same time as an end.",
+        "normalized": "Act in such a way that you treat humanity, whether in your own person or in the person of any other, never merely as a means to an end, but always at the same time as an end.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Immanuel Kant",
+        "work": "Groundwork of the Metaphysics of Morals",
+        "year": "1785",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published work, Formula of Humanity."
+      },
+      "classification": {
+        "tradition": [
+          "enlightenment",
+          "ethics"
+        ],
+        "tags": [
+          "dignity",
+          "respect",
+          "humanity"
+        ],
+        "arifos_floors": [
+          "F6",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "JUDGE_Q_002",
+      "text": {
+        "canonical": "Power tends to corrupt, and absolute power corrupts absolutely.",
+        "normalized": "Power tends to corrupt, and absolute power corrupts absolutely.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Lord Acton",
+        "work": "Letter to Bishop Mandell Creighton",
+        "year": "1887",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published correspondence."
+      },
+      "classification": {
+        "tradition": [
+          "political_philosophy"
+        ],
+        "tags": [
+          "power",
+          "corruption",
+          "governance"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F13"
+        ],
+        "dark_modes": [
+          "POWER_ENTROPY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "JUDGE_Q_004",
+      "text": {
+        "canonical": "Injustice anywhere is a threat to justice everywhere.",
+        "normalized": "Injustice anywhere is a threat to justice everywhere.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Martin Luther King Jr.",
+        "work": "Letter from Birmingham Jail",
+        "year": "1963",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published letter."
+      },
+      "classification": {
+        "tradition": [
+          "civil_rights",
+          "ethics"
+        ],
+        "tags": [
+          "justice",
+          "solidarity",
+          "responsibility"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "JUDGE_Q_005",
+      "text": {
+        "canonical": "The sad truth is that most evil is done by people who never make up their minds to be good or evil.",
+        "normalized": "The sad truth is that most evil is done by people who never make up their minds to be good or evil.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Hannah Arendt",
+        "work": "Paraphrase of 'banality of evil' concept",
+        "year": "1963",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.7,
+        "note": "Arendt's actual formulation in Eichmann in Jerusalem is more complex. This is a popular compression."
+      },
+      "classification": {
+        "tradition": [
+          "political_philosophy"
+        ],
+        "tags": [
+          "evil",
+          "indifference",
+          "responsibility"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F11"
+        ],
+        "dark_modes": [
+          "JUDGMENT_COLLAPSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "FORGE_Q_001",
+      "text": {
+        "canonical": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+        "normalized": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Antoine de Saint-Exupéry",
+        "work": "Terre des hommes",
+        "year": "1939",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Duplicate of MIND_Q_005."
+      },
+      "classification": {
+        "tradition": [
+          "literature",
+          "philosophy"
+        ],
+        "tags": [
+          "simplicity",
+          "perfection",
+          "design"
+        ],
+        "arifos_floors": [
+          "F4"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "OPS_Q_002",
+      "text": {
+        "canonical": "An ounce of practice is worth more than tons of preaching.",
+        "normalized": "An ounce of practice is worth more than tons of preaching.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Mahatma Gandhi",
+        "work": "Commonly attributed",
+        "year": "1940s",
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.4,
+        "commonly_attributed_to": "Mahatma Gandhi",
+        "exact_source_found": false,
+        "note": "Not reliably found in Gandhi's published works. May be a paraphrase."
+      },
+      "classification": {
+        "tradition": [
+          "indian_philosophy"
+        ],
+        "tags": [
+          "practice",
+          "action",
+          "integrity"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Commonly attributed to Mahatma Gandhi"
+      }
+    },
+    {
+      "quote_id": "OPS_Q_001",
+      "text": {
+        "canonical": "Well done is better than well said.",
+        "normalized": "Well done is better than well said.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Benjamin Franklin",
+        "work": "Poor Richard's Almanack",
+        "year": "1737",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in published almanack."
+      },
+      "classification": {
+        "tradition": [
+          "american_philosophy"
+        ],
+        "tags": [
+          "action",
+          "practice",
+          "integrity"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "VAULT_Q_002",
+      "text": {
+        "canonical": "Those who cannot remember the past are condemned to repeat it.",
+        "normalized": "Those who cannot remember the past are condemned to repeat it.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "George Santayana",
+        "work": "The Life of Reason, Vol. 1",
+        "year": "1905",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "philosophy"
+        ],
+        "tags": [
+          "memory",
+          "history",
+          "learning"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "VAULT_Q_004",
+      "text": {
+        "canonical": "The struggle of man against power is the struggle of memory against forgetting.",
+        "normalized": "The struggle of man against power is the struggle of memory against forgetting.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Milan Kundera",
+        "work": "The Book of Laughter and Forgetting",
+        "year": "1979",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in published novel."
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "power",
+          "memory",
+          "resistance"
+        ],
+        "arifos_floors": [
+          "F11",
+          "F13"
+        ],
+        "dark_modes": [
+          "POWER_ENTROPY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "Z01-Q01",
+      "text": {
+        "canonical": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+        "normalized": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Marcus Aurelius",
+        "work": "Meditations (paraphrase)",
+        "year": "c. 170 CE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.75,
+        "note": "Compresses ideas from Meditations Book 6.8 and elsewhere. Not a direct quote."
+      },
+      "classification": {
+        "tradition": [
+          "stoicism"
+        ],
+        "tags": [
+          "mind",
+          "control",
+          "resilience"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "Z03-Q01",
+      "text": {
+        "canonical": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances, to choose one's own way.",
+        "normalized": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances, to choose one's own way.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Viktor Frankl",
+        "work": "Man's Search for Meaning",
+        "year": "1946",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "existentialism",
+          "psychology"
+        ],
+        "tags": [
+          "freedom",
+          "attitude",
+          "resilience"
+        ],
+        "arifos_floors": [
+          "F6",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "Z05-Q01",
+      "text": {
+        "canonical": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        "normalized": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Aristotle",
+        "work": "Will Durant's summary of Aristotle",
+        "year": "1926 (Durant), c. 350 BCE (Aristotle)",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.5,
+        "commonly_attributed_to": "Aristotle",
+        "exact_source_found": false,
+        "note": "This is Will Durant's paraphrase from 'The Story of Philosophy' (1926), not Aristotle's words. Aristotle's Nicomachean Ethics discusses habituation but in different terms."
+      },
+      "classification": {
+        "tradition": [
+          "greek_philosophy"
+        ],
+        "tags": [
+          "habit",
+          "excellence",
+          "character"
+        ],
+        "arifos_floors": [
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "Z19-Q01",
+      "text": {
+        "canonical": "Either mathematics is too big for the human mind, or the human mind is more than a machine.",
+        "normalized": "Either mathematics is too big for the human mind, or the human mind is more than a machine.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Kurt Gödel",
+        "work": "Reported by Hao Wang",
+        "year": "1974",
+        "source_class": "SECONDARY_VERIFIED",
+        "attribution_confidence": 0.8,
+        "note": "Reported in Hao Wang's 'From Mathematics to Philosophy' (1974). Not a direct published quote by Gödel."
+      },
+      "classification": {
+        "tradition": [
+          "mathematics",
+          "philosophy_of_mind"
+        ],
+        "tags": [
+          "limits",
+          "consciousness",
+          "formalism"
+        ],
+        "arifos_floors": [
+          "F7",
+          "F10"
+        ],
+        "dark_modes": [
+          "ONTOLOGICAL_COLLAPSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_001",
+      "text": {
+        "canonical": "Ikut resmi padi, makin berisi makin tunduk.",
+        "normalized": "Ikut resmi padi, makin berisi makin tunduk.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Peribahasa Melayu",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Traditional proverb. The more grain, the more it bows."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "humility",
+          "wisdom",
+          "character"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_002",
+      "text": {
+        "canonical": "Biar lambat, asal selamat.",
+        "normalized": "Biar lambat, asal selamat.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Peribahasa Melayu",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Better slow and safe."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "patience",
+          "safety",
+          "caution"
+        ],
+        "arifos_floors": [
+          "F1"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_003",
+      "text": {
+        "canonical": "Sedikit-sedikit, lama-lama jadi bukit.",
+        "normalized": "Sedikit-sedikit, lama-lama jadi bukit.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Peribahasa Melayu",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Little by little, it becomes a mountain."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "patience",
+          "accumulation",
+          "discipline"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_005",
+      "text": {
+        "canonical": "Harimau mati meninggalkan belang, manusia mati meninggalkan nama.",
+        "normalized": "Harimau mati meninggalkan belang, manusia mati meninggalkan nama.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Peribahasa Melayu",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "A tiger dies leaving its stripes, a person dies leaving their name."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "legacy",
+          "reputation",
+          "character"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_010",
+      "text": {
+        "canonical": "Bagai aur dengan tebing.",
+        "normalized": "Bagai aur dengan tebing.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Like bamboo with the riverbank — mutual dependence."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "interdependence",
+          "community",
+          "harmony"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_011",
+      "text": {
+        "canonical": "Di mana bumi dipijak, di situ langit dijunjung.",
+        "normalized": "Di mana bumi dipijak, di situ langit dijunjung.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Where you stand on the earth, there you hold up the sky — respect local customs."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "respect",
+          "adaptation",
+          "cultural_sensitivity"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_012",
+      "text": {
+        "canonical": "Sebab nila setitik, rosak susu sebelanga.",
+        "normalized": "Sebab nila setitik, rosak susu sebelanga.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "One drop of indigo ruins a whole pot of milk."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "integrity",
+          "contamination",
+          "caution"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F5"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_013",
+      "text": {
+        "canonical": "Tak kenal maka tak cinta.",
+        "normalized": "Tak kenal maka tak cinta.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Without knowing, there is no love."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "understanding",
+          "empathy",
+          "relationship"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_014",
+      "text": {
+        "canonical": "Harimau mati meninggalkan belang, manusia mati meninggalkan nama.",
+        "normalized": "Harimau mati meninggalkan belang, manusia mati meninggalkan nama.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb (duplicate of MS_005)",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Duplicate of MS_005."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "legacy",
+          "reputation",
+          "character"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_015",
+      "text": {
+        "canonical": "Melentur buluh biarlah dari rebungnya.",
+        "normalized": "Melentur buluh biarlah dari rebungnya.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Bend the bamboo from the shoot — early education."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "education",
+          "early_intervention",
+          "nurture"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_016",
+      "text": {
+        "canonical": "Berat sama dipikul, ringan sama dijinjing.",
+        "normalized": "Berat sama dipikul, ringan sama dijinjing.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "Heavy loads carried together, light ones lifted together."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "solidarity",
+          "cooperation",
+          "community"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "MS_017",
+      "text": {
+        "canonical": "Tak ada rotan, akar pun berguna.",
+        "normalized": "Tak ada rotan, akar pun berguna.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Malay proverb",
+        "work": "Traditional Malay proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.95,
+        "note": "No rattan? Roots will do — adaptability."
+      },
+      "classification": {
+        "tradition": [
+          "malay"
+        ],
+        "tags": [
+          "adaptability",
+          "resourcefulness",
+          "pragmatism"
+        ],
+        "arifos_floors": [
+          "F1"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_001",
+      "text": {
+        "canonical": "知之為知之，不知為不知，是知也。",
+        "normalized": "知之為知之，不知為不知，是知也。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Confucius",
+        "work": "Analerta 2.17",
+        "year": "c. 500 BCE",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "To know what you know and know what you don't — that is knowledge."
+      },
+      "classification": {
+        "tradition": [
+          "confucianism"
+        ],
+        "tags": [
+          "humility",
+          "self_knowledge",
+          "honesty"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": [
+          "CERTAINTY_IMMUNITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_002",
+      "text": {
+        "canonical": "上善若水。水善利萬物而不爭。",
+        "normalized": "上善若水。水善利萬物而不爭。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Lao Tzu",
+        "work": "Tao Te Ching, Chapter 8",
+        "year": "c. 600 BCE",
+        "source_class": "SCRIPTURAL_TRANSLATION",
+        "attribution_confidence": 0.95,
+        "note": "The highest good is like water. Water benefits all things and does not compete."
+      },
+      "classification": {
+        "tradition": [
+          "daoism"
+        ],
+        "tags": [
+          "humility",
+          "service",
+          "non_contention"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_003",
+      "text": {
+        "canonical": "故兵貴勝，不貴久。",
+        "normalized": "故兵貴勝，不貴久。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Sun Tzu",
+        "work": "The Art of War",
+        "year": "c. 500 BCE",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "In war, value victory, not prolonged campaigns."
+      },
+      "classification": {
+        "tradition": [
+          "chinese_philosophy"
+        ],
+        "tags": [
+          "strategy",
+          "efficiency",
+          "decision"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_004",
+      "text": {
+        "canonical": "君子和而不同。",
+        "normalized": "君子和而不同。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Confucius",
+        "work": "Analerta 13.23",
+        "year": "c. 500 BCE",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "The gentleman is harmonious but not conformist."
+      },
+      "classification": {
+        "tradition": [
+          "confucianism"
+        ],
+        "tags": [
+          "independence",
+          "harmony",
+          "integrity"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_005",
+      "text": {
+        "canonical": "治大國，若烹小鮮。",
+        "normalized": "治大國，若烹小鮮。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Lao Tzu",
+        "work": "Tao Te Ching, Chapter 60",
+        "year": "c. 600 BCE",
+        "source_class": "SCRIPTURAL_TRANSLATION",
+        "attribution_confidence": 0.95,
+        "note": "Governing a great state is like cooking a small fish — don't overdo it."
+      },
+      "classification": {
+        "tradition": [
+          "daoism"
+        ],
+        "tags": [
+          "governance",
+          "restraint",
+          "subtlety"
+        ],
+        "arifos_floors": [
+          "F5"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_006",
+      "text": {
+        "canonical": "學而不思則罔，思而不學則殆。",
+        "normalized": "學而不思則罔，思而不學則殆。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Confucius",
+        "work": "Analerta 2.15",
+        "year": "c. 500 BCE",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Learning without thought is labor lost; thought without learning is perilous."
+      },
+      "classification": {
+        "tradition": [
+          "confucianism"
+        ],
+        "tags": [
+          "learning",
+          "thinking",
+          "balance"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_007",
+      "text": {
+        "canonical": "禍兮福之所倚，福兮禍之所伏。",
+        "normalized": "禍兮福之所倚，福兮禍之所伏。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Lao Tzu",
+        "work": "Tao Te Ching, Chapter 58",
+        "year": "c. 600 BCE",
+        "source_class": "SCRIPTURAL_TRANSLATION",
+        "attribution_confidence": 0.95,
+        "note": "Misfortune is what fortune depends upon; fortune is where misfortune hides."
+      },
+      "classification": {
+        "tradition": [
+          "daoism"
+        ],
+        "tags": [
+          "paradox",
+          "impermanence",
+          "wisdom"
+        ],
+        "arifos_floors": [
+          "F4",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "CN_008",
+      "text": {
+        "canonical": "己所不欲，勿施於人。",
+        "normalized": "己所不欲，勿施於人。",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Confucius",
+        "work": "Analerta 15.24",
+        "year": "c. 500 BCE",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Do not impose on others what you do not wish for yourself."
+      },
+      "classification": {
+        "tradition": [
+          "confucianism"
+        ],
+        "tags": [
+          "reciprocity",
+          "ethics",
+          "empathy"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IS_001",
+      "text": {
+        "canonical": "The ink of the scholar is more sacred than the blood of the martyr.",
+        "normalized": "The ink of the scholar is more sacred than the blood of the martyr.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Prophet Muhammad",
+        "work": "Commonly attributed hadith",
+        "year": "c. 620 CE",
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.3,
+        "commonly_attributed_to": "Prophet Muhammad",
+        "exact_source_found": false,
+        "note": "Not found in the six major hadith collections (Bukhari, Muslim, etc.). May be a later fabrication or paraphrase."
+      },
+      "classification": {
+        "tradition": [
+          "islam"
+        ],
+        "tags": [
+          "knowledge",
+          "scholarship",
+          "value"
+        ],
+        "arifos_floors": [
+          "F2"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Commonly attributed to Prophet Muhammad (hadith authenticity disputed)"
+      }
+    },
+    {
+      "quote_id": "IS_002",
+      "text": {
+        "canonical": "He who knows himself knows his Lord.",
+        "normalized": "He who knows himself knows his Lord.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Ibn Arabi",
+        "work": "Various Sufi traditions",
+        "year": "c. 1200 CE",
+        "source_class": "SECONDARY_VERIFIED",
+        "attribution_confidence": 0.75,
+        "note": "Attributed to Ibn Arabi and also to Prophet Muhammad in some traditions. Wording varies."
+      },
+      "classification": {
+        "tradition": [
+          "islam",
+          "sufism"
+        ],
+        "tags": [
+          "self_knowledge",
+          "divine",
+          "introspection"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IS_003",
+      "text": {
+        "canonical": "The cure for ignorance is to question.",
+        "normalized": "The cure for ignorance is to question.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Al-Ghazali",
+        "work": "Paraphrase of al-Ghazali's epistemology",
+        "year": "c. 1100 CE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.7,
+        "note": "Accurately represents al-Ghazali's position on inquiry. Not a direct quote."
+      },
+      "classification": {
+        "tradition": [
+          "islam"
+        ],
+        "tags": [
+          "knowledge",
+          "questioning",
+          "learning"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IS_004",
+      "text": {
+        "canonical": "Waste no time debating what a good person should be. Be one.",
+        "normalized": "Waste no time debating what a good person should be. Be one.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Marcus Aurelius",
+        "work": "Meditations (paraphrase)",
+        "year": "c. 170 CE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.8,
+        "note": "Compresses ideas from Meditations. Not a direct quote."
+      },
+      "classification": {
+        "tradition": [
+          "stoicism"
+        ],
+        "tags": [
+          "action",
+          "virtue",
+          "character"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IS_005",
+      "text": {
+        "canonical": "He who has a why to live can bear almost any how.",
+        "normalized": "He who has a why to live can bear almost any how.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Viktor Frankl",
+        "work": "Man's Search for Meaning (quoting Nietzsche)",
+        "year": "1946",
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.4,
+        "commonly_attributed_to": "Viktor Frankl",
+        "exact_source_found": false,
+        "note": "This is Friedrich Nietzsche's quote (Twilight of the Idols, 1889). Frankl quoted Nietzsche in Man's Search for Meaning. The quote is Nietzsche's, not Frankl's."
+      },
+      "classification": {
+        "tradition": [
+          "existentialism"
+        ],
+        "tags": [
+          "purpose",
+          "resilience",
+          "meaning"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Friedrich Nietzsche, quoted by Viktor Frankl"
+      }
+    },
+    {
+      "quote_id": "IS_006",
+      "text": {
+        "canonical": "The unexamined life is not worth living.",
+        "normalized": "The unexamined life is not worth living.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Socrates",
+        "work": "Plato's Apology 38a",
+        "year": "399 BCE",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in Plato's Apology."
+      },
+      "classification": {
+        "tradition": [
+          "greek_philosophy"
+        ],
+        "tags": [
+          "self_examination",
+          "reflection",
+          "wisdom"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IS_007",
+      "text": {
+        "canonical": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        "normalized": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Aristotle",
+        "work": "Will Durant's summary of Aristotle",
+        "year": "1926 (Durant), c. 350 BCE (Aristotle)",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.5,
+        "commonly_attributed_to": "Aristotle",
+        "exact_source_found": false,
+        "note": "Duplicate of Z05-Q01. Will Durant's paraphrase, not Aristotle."
+      },
+      "classification": {
+        "tradition": [
+          "greek_philosophy"
+        ],
+        "tags": [
+          "habit",
+          "excellence",
+          "character"
+        ],
+        "arifos_floors": [
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IS_008",
+      "text": {
+        "canonical": "It is not death that a man should fear, but he should fear never beginning to live.",
+        "normalized": "It is not death that a man should fear, but he should fear never beginning to live.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Marcus Aurelius",
+        "work": "Meditations (paraphrase)",
+        "year": "c. 170 CE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.75,
+        "note": "Compresses Meditations 12.1 and related passages. Not a direct quote."
+      },
+      "classification": {
+        "tradition": [
+          "stoicism"
+        ],
+        "tags": [
+          "death",
+          "life",
+          "courage"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SC_001",
+      "text": {
+        "canonical": "What I cannot create, I do not understand.",
+        "normalized": "What I cannot create, I do not understand.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Richard Feynman",
+        "work": "Written on blackboard at death",
+        "year": "1988",
+        "source_class": "SECONDARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": "Reported by those present at Feynman's death. Not in a published work."
+      },
+      "classification": {
+        "tradition": [
+          "physics",
+          "epistemology"
+        ],
+        "tags": [
+          "understanding",
+          "creation",
+          "knowledge"
+        ],
+        "arifos_floors": [
+          "F2"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SC_002",
+      "text": {
+        "canonical": "We can only see a short distance ahead, but we can see plenty there that needs to be done.",
+        "normalized": "We can only see a short distance ahead, but we can see plenty there that needs to be done.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Alan Turing",
+        "work": "Computing Machinery and Intelligence",
+        "year": "1950",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published paper."
+      },
+      "classification": {
+        "tradition": [
+          "computer_science"
+        ],
+        "tags": [
+          "limits",
+          "progress",
+          "pragmatism"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SC_003",
+      "text": {
+        "canonical": "The purpose of computing is insight, not numbers.",
+        "normalized": "The purpose of computing is insight, not numbers.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Richard Hamming",
+        "work": "Numerical Methods for Scientists and Engineers",
+        "year": "1962",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "computer_science"
+        ],
+        "tags": [
+          "insight",
+          "purpose",
+          "computing"
+        ],
+        "arifos_floors": [
+          "F2"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SC_004",
+      "text": {
+        "canonical": "Premature optimization is the root of all evil.",
+        "normalized": "Premature optimization is the root of all evil.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Donald Knuth",
+        "work": "Structured Programming with go to Statements",
+        "year": "1974",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published paper."
+      },
+      "classification": {
+        "tradition": [
+          "computer_science"
+        ],
+        "tags": [
+          "optimization",
+          "design",
+          "discipline"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SC_005",
+      "text": {
+        "canonical": "Any sufficiently advanced technology is indistinguishable from magic.",
+        "normalized": "Any sufficiently advanced technology is indistinguishable from magic.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Arthur C. Clarke",
+        "work": "Profiles of the Future",
+        "year": "1962",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Clarke's Third Law. Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "science_fiction"
+        ],
+        "tags": [
+          "technology",
+          "wonder",
+          "limits"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SC_006",
+      "text": {
+        "canonical": "If you can't explain it simply, you don't understand it well enough.",
+        "normalized": "If you can't explain it simply, you don't understand it well enough.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Albert Einstein",
+        "work": "Commonly attributed",
+        "year": null,
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.35,
+        "commonly_attributed_to": "Albert Einstein",
+        "exact_source_found": false,
+        "note": "Not found in Einstein's published works or correspondence. Likely a modern fabrication."
+      },
+      "classification": {
+        "tradition": [
+          "physics"
+        ],
+        "tags": [
+          "clarity",
+          "understanding",
+          "simplicity"
+        ],
+        "arifos_floors": [
+          "F4"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Commonly attributed to Albert Einstein (source not verified)"
+      }
+    },
+    {
+      "quote_id": "SC_007",
+      "text": {
+        "canonical": "In God we trust; all others bring data.",
+        "normalized": "In God we trust; all others bring data.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "W. Edwards Deming",
+        "work": "Commonly attributed",
+        "year": null,
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.4,
+        "commonly_attributed_to": "W. Edwards Deming",
+        "exact_source_found": false,
+        "note": "Not reliably sourced to Deming. The phrase predates him. May be a paraphrase of his emphasis on data."
+      },
+      "classification": {
+        "tradition": [
+          "statistics",
+          "quality"
+        ],
+        "tags": [
+          "data",
+          "evidence",
+          "trust"
+        ],
+        "arifos_floors": [
+          "F2"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Commonly attributed to W. Edwards Deming (source not verified)"
+      }
+    },
+    {
+      "quote_id": "SC_008",
+      "text": {
+        "canonical": "The most exciting phrase to hear in science, the one that heralds new discoveries, is not 'Eureka!' but 'That's funny...'",
+        "normalized": "The most exciting phrase to hear in science, the one that heralds new discoveries, is not 'Eureka!' but 'That's funny...'",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Isaac Asimov",
+        "work": "Attributed",
+        "year": null,
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.75,
+        "note": "Widely attributed to Asimov. Exact source unclear."
+      },
+      "classification": {
+        "tradition": [
+          "science"
+        ],
+        "tags": [
+          "discovery",
+          "curiosity",
+          "observation"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IN_001",
+      "text": {
+        "canonical": "As a person acts, so they become.",
+        "normalized": "As a person acts, so they become.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Brihadaranyaka Upanishad",
+        "work": "Brihadaranyaka Upanishad 4.4.5",
+        "year": "c. 700 BCE",
+        "source_class": "SCRIPTURAL_TRANSLATION",
+        "attribution_confidence": 0.9,
+        "note": "Translation from Sanskrit. Wording varies by translator."
+      },
+      "classification": {
+        "tradition": [
+          "hinduism",
+          "vedanta"
+        ],
+        "tags": [
+          "action",
+          "character",
+          "consequence"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IN_002",
+      "text": {
+        "canonical": "In the midst of winter, I found there was, within me, an invincible summer.",
+        "normalized": "In the midst of winter, I found there was, within me, an invincible summer.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Albert Camus",
+        "work": "Return to Tipasa",
+        "year": "1954",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published essay."
+      },
+      "classification": {
+        "tradition": [
+          "existentialism",
+          "literature"
+        ],
+        "tags": [
+          "resilience",
+          "inner_strength",
+          "hope"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IN_003",
+      "text": {
+        "canonical": "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
+        "normalized": "The greatest enemy of knowledge is not ignorance, it is the illusion of knowledge.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Stephen Hawking",
+        "work": "Commonly attributed",
+        "year": null,
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.45,
+        "commonly_attributed_to": "Stephen Hawking",
+        "exact_source_found": false,
+        "note": "Not reliably sourced to Hawking. Similar ideas appear in Daniel Boorstin's work."
+      },
+      "classification": {
+        "tradition": [
+          "science"
+        ],
+        "tags": [
+          "ignorance",
+          "knowledge",
+          "humility"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": [
+          "CERTAINTY_IMMUNITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Commonly attributed to Stephen Hawking (source not verified)"
+      }
+    },
+    {
+      "quote_id": "IN_004",
+      "text": {
+        "canonical": "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+        "normalized": "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Ralph Waldo Emerson",
+        "work": "Paraphrase of Emerson",
+        "year": null,
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.7,
+        "note": "Emerson's actual words in 'Self-Reliance' differ. This is a popular compression."
+      },
+      "classification": {
+        "tradition": [
+          "american_transcendentalism"
+        ],
+        "tags": [
+          "independence",
+          "originality",
+          "courage"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IN_005",
+      "text": {
+        "canonical": "The measure of intelligence is the ability to change.",
+        "normalized": "The measure of intelligence is the ability to change.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Albert Einstein",
+        "work": "Commonly attributed",
+        "year": null,
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.35,
+        "commonly_attributed_to": "Albert Einstein",
+        "exact_source_found": false,
+        "note": "Not found in Einstein's published works. Likely a modern fabrication."
+      },
+      "classification": {
+        "tradition": [
+          "physics"
+        ],
+        "tags": [
+          "intelligence",
+          "adaptation",
+          "flexibility"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Commonly attributed to Albert Einstein (source not verified)"
+      }
+    },
+    {
+      "quote_id": "IN_006",
+      "text": {
+        "canonical": "Those who cannot remember the past are condemned to repeat it.",
+        "normalized": "Those who cannot remember the past are condemned to repeat it.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "George Santayana",
+        "work": "The Life of Reason, Vol. 1",
+        "year": "1905",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Duplicate of VAULT_Q_002."
+      },
+      "classification": {
+        "tradition": [
+          "philosophy"
+        ],
+        "tags": [
+          "memory",
+          "history",
+          "learning"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "IN_007",
+      "text": {
+        "canonical": "He who has a why to live can bear almost any how.",
+        "normalized": "He who has a why to live can bear almost any how.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Viktor Frankl",
+        "work": "Man's Search for Meaning (quoting Nietzsche)",
+        "year": "1946",
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.4,
+        "commonly_attributed_to": "Viktor Frankl",
+        "exact_source_found": false,
+        "note": "Duplicate of IS_005. This is Friedrich Nietzsche's quote, not Frankl's."
+      },
+      "classification": {
+        "tradition": [
+          "existentialism"
+        ],
+        "tags": [
+          "purpose",
+          "resilience",
+          "meaning"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Friedrich Nietzsche, quoted by Viktor Frankl"
+      }
+    },
+    {
+      "quote_id": "IN_008",
+      "text": {
+        "canonical": "Freedom is not worth having if it does not include the freedom to make mistakes.",
+        "normalized": "Freedom is not worth having if it does not include the freedom to make mistakes.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Mahatma Gandhi",
+        "work": "Commonly attributed",
+        "year": null,
+        "source_class": "DISPUTED_ATTRIBUTION",
+        "attribution_confidence": 0.45,
+        "commonly_attributed_to": "Mahatma Gandhi",
+        "exact_source_found": false,
+        "note": "Not reliably sourced to Gandhi's published works."
+      },
+      "classification": {
+        "tradition": [
+          "indian_philosophy"
+        ],
+        "tags": [
+          "freedom",
+          "mistakes",
+          "autonomy"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      },
+      "display": {
+        "attribution_label": "Commonly attributed to Mahatma Gandhi (source not verified)"
+      }
+    },
+    {
+      "quote_id": "AF_001",
+      "text": {
+        "canonical": "I am because we are.",
+        "normalized": "I am because we are.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Ubuntu philosophy",
+        "work": "Modern formulation of Ubuntu",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.8,
+        "note": "Modern English formulation of Ubuntu philosophy. Not a direct translation of a specific text."
+      },
+      "classification": {
+        "tradition": [
+          "african_philosophy"
+        ],
+        "tags": [
+          "community",
+          "interdependence",
+          "identity"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "AF_002",
+      "text": {
+        "canonical": "If you want to go fast, go alone. If you want to go far, go together.",
+        "normalized": "If you want to go fast, go alone. If you want to go far, go together.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "African proverb",
+        "work": "Traditional African proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.85,
+        "note": "Widely attested across multiple African cultures."
+      },
+      "classification": {
+        "tradition": [
+          "african_philosophy"
+        ],
+        "tags": [
+          "community",
+          "cooperation",
+          "long_term"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "AF_003",
+      "text": {
+        "canonical": "The child who is not embraced by the village will burn it down to feel its warmth.",
+        "normalized": "The child who is not embraced by the village will burn it down to feel its warmth.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "African proverb",
+        "work": "Traditional African proverb",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.8,
+        "note": "Attribution to specific African culture varies. Widely circulated."
+      },
+      "classification": {
+        "tradition": [
+          "african_philosophy"
+        ],
+        "tags": [
+          "belonging",
+          "neglect",
+          "consequence"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "AF_004",
+      "text": {
+        "canonical": "Wisdom is like a baobab tree; no one individual can embrace it.",
+        "normalized": "Wisdom is like a baobab tree; no one individual can embrace it.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "African proverb",
+        "work": "Traditional African proverb (Akan)",
+        "year": null,
+        "source_class": "PROVERB",
+        "attribution_confidence": 0.85,
+        "note": "Akan origin, widely attested."
+      },
+      "classification": {
+        "tradition": [
+          "african_philosophy"
+        ],
+        "tags": [
+          "wisdom",
+          "humility",
+          "collective"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SEA_001",
+      "text": {
+        "canonical": "I have always believed that you must stand up for what you think is right, even if you are a voice of one.",
+        "normalized": "I have always believed that you must stand up for what you think is right, even if you are a voice of one.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Lee Kuan Yew",
+        "work": "Speech/interview",
+        "year": null,
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": "Consistent with Lee Kuan Yew's documented positions."
+      },
+      "classification": {
+        "tradition": [
+          "southeast_asian"
+        ],
+        "tags": [
+          "conviction",
+          "leadership",
+          "courage"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SEA_002",
+      "text": {
+        "canonical": "Bhinneka Tunggal Ika.",
+        "normalized": "Bhinneka Tunggal Ika.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Mpu Tantular",
+        "work": "Sutasoma",
+        "year": "c. 14th century",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Unity in diversity. From the Sutasoma poem, now Indonesian national motto."
+      },
+      "classification": {
+        "tradition": [
+          "southeast_asian"
+        ],
+        "tags": [
+          "unity",
+          "diversity",
+          "identity"
+        ],
+        "arifos_floors": [
+          "F5"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SEA_003",
+      "text": {
+        "canonical": "A nation is not built in a day. It is built with patience, wisdom, and sacrifice.",
+        "normalized": "A nation is not built in a day. It is built with patience, wisdom, and sacrifice.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Sukarno",
+        "work": "Speech (paraphrase)",
+        "year": null,
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.7,
+        "note": "Represents Sukarno's positions. Exact wording uncertain."
+      },
+      "classification": {
+        "tradition": [
+          "southeast_asian"
+        ],
+        "tags": [
+          "nation_building",
+          "patience",
+          "sacrifice"
+        ],
+        "arifos_floors": [
+          "F1",
+          "F8"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "SEA_004",
+      "text": {
+        "canonical": "Nothing is more precious than independence and freedom.",
+        "normalized": "Nothing is more precious than independence and freedom.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Hồ Chí Minh",
+        "work": "Declaration of Independence of Vietnam",
+        "year": "1945",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in published declaration."
+      },
+      "classification": {
+        "tradition": [
+          "southeast_asian"
+        ],
+        "tags": [
+          "independence",
+          "freedom",
+          "sovereignty"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_001",
+      "text": {
+        "canonical": "Man is condemned to be free.",
+        "normalized": "Man is condemned to be free.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Jean-Paul Sartre",
+        "work": "Being and Nothingness",
+        "year": "1943",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "existentialism"
+        ],
+        "tags": [
+          "freedom",
+          "responsibility",
+          "condemnation"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_002",
+      "text": {
+        "canonical": "The limits of my language mean the limits of my world.",
+        "normalized": "The limits of my language mean the limits of my world.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Ludwig Wittgenstein",
+        "work": "Tractatus Logico-Philosophicus",
+        "year": "1922",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Proposition 5.6. Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "analytic_philosophy"
+        ],
+        "tags": [
+          "language",
+          "limits",
+          "world"
+        ],
+        "arifos_floors": [
+          "F4",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_003",
+      "text": {
+        "canonical": "Hell is other people.",
+        "normalized": "Hell is other people.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Jean-Paul Sartre",
+        "work": "No Exit",
+        "year": "1944",
+        "source_class": "FICTIONAL_VOICE",
+        "attribution_confidence": 0.95,
+        "note": "Spoken by the character Garcin in the play No Exit. Represents Sartre's philosophical position but is dramatic dialogue, not a philosophical proposition."
+      },
+      "classification": {
+        "tradition": [
+          "existentialism"
+        ],
+        "tags": [
+          "hell",
+          "others",
+          "gaze"
+        ],
+        "arifos_floors": [
+          "F6"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_004",
+      "text": {
+        "canonical": "One cannot step twice into the same river.",
+        "normalized": "One cannot step twice into the same river.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Heraclitus",
+        "work": "Fragments",
+        "year": "c. 500 BCE",
+        "source_class": "SECONDARY_VERIFIED",
+        "attribution_confidence": 0.85,
+        "note": "Duplicate of SENSE_Q_004. Preserved through later authors."
+      },
+      "classification": {
+        "tradition": [
+          "greek_philosophy"
+        ],
+        "tags": [
+          "change",
+          "impermanence",
+          "identity"
+        ],
+        "arifos_floors": [
+          "F4",
+          "F7"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_005",
+      "text": {
+        "canonical": "Act only according to that maxim whereby you can at the same time will that it should become a universal law.",
+        "normalized": "Act only according to that maxim whereby you can at the same time will that it should become a universal law.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Immanuel Kant",
+        "work": "Groundwork of the Metaphysics of Morals",
+        "year": "1785",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Categorical Imperative. Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "enlightenment",
+          "ethics"
+        ],
+        "tags": [
+          "universal_law",
+          "duty",
+          "moral_philosophy"
+        ],
+        "arifos_floors": [
+          "F5",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_006",
+      "text": {
+        "canonical": "God is dead. God remains dead. And we have killed him.",
+        "normalized": "God is dead. God remains dead. And we have killed him.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Friedrich Nietzsche",
+        "work": "The Gay Science, Section 125",
+        "year": "1882",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published work. Often misunderstood out of context."
+      },
+      "classification": {
+        "tradition": [
+          "existentialism"
+        ],
+        "tags": [
+          "nihilism",
+          "meaning",
+          "transcendence"
+        ],
+        "arifos_floors": [
+          "F7",
+          "F10"
+        ],
+        "dark_modes": [
+          "ONTOLOGICAL_COLLAPSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_007",
+      "text": {
+        "canonical": "The life of man is solitary, poor, nasty, brutish, and short.",
+        "normalized": "The life of man is solitary, poor, nasty, brutish, and short.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Thomas Hobbes",
+        "work": "Leviathan, Chapter 13",
+        "year": "1651",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.98,
+        "note": "Verified in published work."
+      },
+      "classification": {
+        "tradition": [
+          "political_philosophy"
+        ],
+        "tags": [
+          "state_of_nature",
+          "governance",
+          "human_condition"
+        ],
+        "arifos_floors": [
+          "F5"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    },
+    {
+      "quote_id": "WE_008",
+      "text": {
+        "canonical": "No man is free who is not master of himself.",
+        "normalized": "No man is free who is not master of himself.",
+        "language": "en"
+      },
+      "attribution": {
+        "speaker": "Epictetus",
+        "work": "Discourses (paraphrase)",
+        "year": "c. 100 CE",
+        "source_class": "PARAPHRASE",
+        "attribution_confidence": 0.8,
+        "note": "Represents Epictetus' position on self-mastery. Exact wording varies."
+      },
+      "classification": {
+        "tradition": [
+          "stoicism"
+        ],
+        "tags": [
+          "freedom",
+          "self_mastery",
+          "discipline"
+        ],
+        "arifos_floors": [
+          "F7",
+          "F13"
+        ],
+        "dark_modes": []
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": true,
+        "reviewer": "zen-audit-2026-07-12",
+        "version": 1
+      }
+    }
+  ]
+}

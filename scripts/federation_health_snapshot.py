@@ -29,7 +29,6 @@ ORGANS = [
     {"name": "WELL", "port": 18083, "path": "/health"},
     {"name": "A-FORGE", "port": 7071, "path": "/health"},
     {"name": "AAA", "port": 3001, "path": "/health"},
-    {"name": "APEX", "port": 3002, "path": "/health"},
     {"name": "OpenClaw", "port": 18789, "path": "/health"},
     {"name": "vault999-api", "port": 8100, "path": "/health"},
     {"name": "vault999-writer", "port": 5001, "path": "/health"},

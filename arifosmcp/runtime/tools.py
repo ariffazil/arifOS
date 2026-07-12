@@ -19723,6 +19723,10 @@ async def _arif_memory_v5_router(
     provenance: dict[str, Any] | None = None,
     source_receipts: list[dict[str, Any]] | None = None,
     policy: dict[str, Any] | None = None,
+    applicability: dict[str, Any] | None = None,
+    future_value: dict[str, Any] | None = None,
+    memory_authority: dict[str, Any] | None = None,
+    decision_lifecycle: dict[str, Any] | None = None,
     structured: dict[str, Any] | None = None,
     correction_event: str | None = None,
     new_content: str | None = None,
@@ -19810,6 +19814,14 @@ async def _arif_memory_v5_router(
             payload.setdefault("source_receipts", source_receipts)
         if policy is not None:
             payload.setdefault("policy", policy)
+        if applicability is not None:
+            payload.setdefault("applicability", applicability)
+        if future_value is not None:
+            payload.setdefault("future_value", future_value)
+        if memory_authority is not None:
+            payload.setdefault("authority", memory_authority)
+        if decision_lifecycle is not None:
+            payload.setdefault("decision_lifecycle", decision_lifecycle)
         if idempotency_key is not None:
             payload.setdefault("idempotency_key", idempotency_key)
         # Revise fields

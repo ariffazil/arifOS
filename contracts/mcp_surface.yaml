@@ -27,7 +27,6 @@ runtime_surface:
     - aaa-a2a.service:3001
     - openclaw-gateway.service:18789
     - cn-organ.service:18795
-    - apex-prime.service:3002
     - vault999-api.service:8100
     - vault999-writer.service:5001
     - cloudflared.service

@@ -42,6 +42,9 @@ class CognitionResult:
     evidence_sources: list[dict] = field(default_factory=list)
     evidence_records: list[EvidenceRecord] = field(default_factory=list)
     provenance: ScoreProvenance | None = None  # EUREKA Layer 1: auditable score decomposition
+    # Dalio 17x probe-vs-act signals (F8 GENIUS enforcement)
+    probe_signal: bool = False
+    recommended_action: str = "ACT"
     error: str | None = None
 
 
@@ -292,6 +295,9 @@ class JudgmentKernel:
             floor_scores=partial_floors.model_dump(),
             module_results={"omega": safety_omega},
             provenance=provenance,
+            # Dalio 17x probe-vs-act signals (F8 GENIUS enforcement)
+            probe_signal=genius_res.get("probe_signal", True),
+            recommended_action=genius_res.get("recommended_action", "PROBE"),
         )
 
     def judge_empathy(

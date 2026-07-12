@@ -47,8 +47,7 @@
     "wealth":  {"host": "127.0.0.1", "port": 18082, "transport": "systemd bare-metal", "path": "/mcp"},
     "well":    {"host": "127.0.0.1", "port": 18083, "transport": "systemd bare-metal", "path": "/mcp"},
     "a_forge": {"host": "127.0.0.1", "port": 7071, "transport": "systemd bare-metal (bridge)", "note": "MCP server port 7072 documented separately"},
-    "aaa":     {"host": "127.0.0.1", "port": 3001, "transport": "systemd bare-metal", "path": "/a2a"},
-    "apex":    {"host": "127.0.0.1", "port": 3002, "transport": "systemd bare-metal (legacy)", "path": "/"}
+    "aaa":     {"host": "127.0.0.1", "port": 3001, "transport": "systemd bare-metal", "path": "/a2a"}
   },
 
   "error_envelope": {

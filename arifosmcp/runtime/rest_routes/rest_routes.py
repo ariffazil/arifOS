@@ -3415,7 +3415,6 @@ def register_rest_routes(
             _probe_http("/health", timeout=3.0, base="http://localhost:18083"),
             _probe_http("/health", timeout=3.0, base="http://localhost:7071"),
             _probe_http("/health", timeout=3.0, base="http://localhost:3001"),
-            _probe_http("/health", timeout=3.0, base="http://localhost:3002"),
             _probe_tcp_port("localhost", 11434),
         ]
 
@@ -3475,12 +3474,6 @@ def register_rest_routes(
                 "host": "aaa-a2a",
                 "port": 3001,
                 **mcp_http[5],
-            },
-            {
-                "name": "Apex",
-                "host": "apex-prime",
-                "port": 3002,
-                **mcp_http[6],
             },
             {**ollama_result, "name": "Ollama", "type": "llm", "host": "ollama"},
         ]

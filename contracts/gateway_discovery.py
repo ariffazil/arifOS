@@ -121,13 +121,6 @@ CANONICAL_ORGANS: list[OrganDescriptor] = [
         health_endpoint="http://localhost:3001/health",
         agent_card_endpoint="http://localhost:3001/.well-known/agent-card.json",
     ),
-    OrganDescriptor(
-        name="APEX",
-        port=3002,
-        role="888 JUDGE",
-        health_endpoint="http://localhost:3002/health",
-        agent_card_endpoint="http://localhost:3002/.well-known/agent-card.json",
-    ),
 ]
 
 
