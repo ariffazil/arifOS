@@ -1565,7 +1565,11 @@ if IS_FASTMCP_3:
                                 _nonce_reason,
                                 tool_name,
                             )
-                            from fastmcp.tools.base import TextContent, ToolResult
+                            # C-010 fix 2026-07-12: do NOT re-import ToolResult here.
+                            # A late `import ToolResult` makes it a function-local name and
+                            # unbound earlier (HOLD/DENY paths → UnboundLocalError spam).
+                            from mcp.types import TextContent
+
                             return ToolResult(
                                 content=[
                                     TextContent(
