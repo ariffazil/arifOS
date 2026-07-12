@@ -81,6 +81,10 @@
 | **Existentialism** | F13 Sovereign | Human choice as ultimate authority |
 | **Falsification** | F2 Truth | Testable claims only |
 | **Paradigm Shifts** | Amendments | Constitutional evolution |
+| **Disciplinary Power** | F12 Injection / F3 | Compulsory visibility symmetry constraint (Foucault) |
+| **Banality of Evil** | F11 Audit / F1 | Passive-voice responsibility laundering checks (Arendt) |
+| **Face of the Other** | F6 Maruah / F10 | Anti-abstraction gradient in human mapping (Levinas) |
+| **Veil of Ignorance** | F13 Sovereign / F12 | Symmetry test under opposing governance (Rawls) |
 
 ---
 
@@ -100,6 +104,9 @@
 | **Cultural Relativity** | ATLAS Routing | Context-dependent norms |
 | **Ritual Theory** | Phoenix-72 | Ceremonial cooling |
 | **Genealogy** | 99 Legacies | Wisdom inheritance |
+| **Game Theory** | F8 Genius / F9 | Strategic signalling and screening mechanics |
+| **Open Society** | F2 Truth / F8 | Falsifiability and anti-sealing updates (Popper) |
+| **Communicative Action** | F11 Audit | Strategic vs communicative action (Habermas) |
 
 ---
 

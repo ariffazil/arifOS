@@ -1,18 +1,116 @@
 /**
- * arifOS MCP Apps — Governed Wisdom Registry v2
- *
- * Sources mapped from actual VPS files:
- *  - /root/arifOS/arifosmcp/runtime/constitutional_quotes.json (100 tool-mapped quotes)
- *  - /root/arifOS/archive/DATA/wisdom_quotes.json (arifOS Foundry corpus)
- *  - /root/arifOS/archive/DATA/philosophy_atlas.json (27-zone S×G×Ω atlas)
- *
- * v2 additions:
- *  - attributionConfidence
- *  - scarWeight / shadowWeight / paradoxWeight
- *  - contrastPair / polarity
- *  - void, partial, sabar surfaces
+ * arifOS MCP Apps — Governed Wisdom Registry v3
+ * 
+ * CANONICAL SOURCE: /root/arifOS/arifosmcp/data/quote-registry-v1.json
+ * RESOLVER: arifosmcp.runtime.quote_registry.wisdom_quote_resolve
+ * 
+ * This is the AAA PRESENTATION LAYER. The canonical registry lives in Python.
+ * Display badges must match the 8 provenance classes from the spec.
+ * 
+ * v3 additions (2026-07-12):
+ *  - 8 provenance classes with epistemic badges
+ *  - PRIMARY_VERIFIED | SECONDARY_VERIFIED | PARAPHRASE | DISPUTED_ATTRIBUTION
+ *  - PROVERB | SCRIPTURAL_TRANSLATION | FICTIONAL_VOICE | ARIFOS_DOCTRINE
+ *  - Quotes are resources, not tools
+ *  - Display badge function for AAA UI
  */
+ 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PROVENANCE — Epistemic Display Badges (2026-07-12 spec)
+// ═══════════════════════════════════════════════════════════════════════════════
 
+export type ProvenanceClass =
+  | "PRIMARY_VERIFIED"
+  | "SECONDARY_VERIFIED"
+  | "PARAPHRASE"
+  | "DISPUTED_ATTRIBUTION"
+  | "PROVERB"
+  | "SCRIPTURAL_TRANSLATION"
+  | "FICTIONAL_VOICE"
+  | "ARIFOS_DOCTRINE";
+
+export interface ProvenanceBadge {
+  label: string;
+  cssClass: string;
+  role: string;        // What this class means for the reader
+  confidenceCap: number;
+}
+
+export const PROVENANCE_BADGES: Record<ProvenanceClass, ProvenanceBadge> = {
+  PRIMARY_VERIFIED: {
+    label: "PRIMARY_VERIFIED",
+    cssClass: "badge-verified",
+    role: "Exact wording confirmed in primary work, speech, or recording",
+    confidenceCap: 0.99,
+  },
+  SECONDARY_VERIFIED: {
+    label: "SECONDARY_VERIFIED",
+    cssClass: "badge-secondary",
+    role: "Reliably documented through reputable secondary source",
+    confidenceCap: 0.90,
+  },
+  PARAPHRASE: {
+    label: "PARAPHRASE",
+    cssClass: "badge-paraphrase",
+    role: "Accurately represents the idea, not exact wording",
+    confidenceCap: 0.75,
+  },
+  DISPUTED_ATTRIBUTION: {
+    label: "DISPUTED",
+    cssClass: "badge-disputed",
+    role: "Commonly attributed but primary evidence absent or conflicting",
+    confidenceCap: 0.40,
+  },
+  PROVERB: {
+    label: "PROVERB",
+    cssClass: "badge-proverb",
+    role: "Traditional saying without a single confirmed author",
+    confidenceCap: 0.85,
+  },
+  SCRIPTURAL_TRANSLATION: {
+    label: "SCRIPTURE",
+    cssClass: "badge-scripture",
+    role: "Translation from a religious text; version must be stated",
+    confidenceCap: 0.85,
+  },
+  FICTIONAL_VOICE: {
+    label: "FICTIONAL",
+    cssClass: "badge-fictional",
+    role: "Spoken by a fictional character — literary, not empirical",
+    confidenceCap: 0.60,
+  },
+  ARIFOS_DOCTRINE: {
+    label: "DOCTRINE",
+    cssClass: "badge-doctrine",
+    role: "Original arifOS constitutional language — not inherited quotation",
+    confidenceCap: 1.0,
+  },
+};
+
+/**
+ * Render a provenance badge for AAA display.
+ * Example output: "PRIMARY_VERIFIED · Reflection, not evidence"
+ */
+export function renderProvenanceBadge(
+  sourceClass: ProvenanceClass,
+  intendedUse: "reflection" | "receipt" | "education" | "red_team" = "reflection"
+): string {
+  const badge = PROVENANCE_BADGES[sourceClass];
+  if (!badge) return sourceClass;
+  return `${badge.label} · ${intendedUseLabel(intendedUse)}, not evidence`;
+}
+
+function intendedUseLabel(use: string): string {
+  const map: Record<string, string> = {
+    reflection: "Reflection",
+    receipt: "Receipt",
+    education: "Educational explanation",
+    red_team: "Red team",
+  };
+  return map[use] || "Reflection";
+}
+
+// Legacy type preserved for backward compat
 export type WisdomSurface =
   | "anchor"
   | "monitor"

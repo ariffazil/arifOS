@@ -11,6 +11,7 @@ class MemoryType(str, Enum):
     SEMANTIC = "semantic"
     PROCEDURAL = "procedural"
     POLICY = "policy"
+    SOVEREIGN_GEOMETRY = "sovereign_geometry"
 
 
 class RetentionClass(str, Enum):
