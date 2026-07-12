@@ -40,6 +40,13 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
     "muhammad_arif",
 }
 
+# SECURITY P0 2026-07-12: Sovereign authority binds to a verified key, not a name.
+# Until the production key registry is wired, this set is EMPTY — no actor
+# automatically receives SOVEREIGN authority even with a valid Ed25519 signature.
+# Operators must explicitly add a registered sovereign public-key fingerprint here.
+# Verified sessions that are NOT in this set get OPERATOR authority, never SOVEREIGN.
+SOVEREIGN_KEY_IDS: set[str] = set()
+
 # Semantic identity phrases (NLP input parsing ONLY — NOT authentication)
 # These parse natural language identity claims from user input.
 # They do NOT grant verification or authority.

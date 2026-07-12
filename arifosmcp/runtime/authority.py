@@ -83,9 +83,19 @@ def bind_authority_state(
     sess["verified"] = state.actor.verified
 
     actor_key = (state.actor.claimed_id or "").strip().lower()
-    is_sovereign = actor_key in {"arif", "ariffazil"}
+    # SECURITY P0 2026-07-12: SOVEREIGN authority binds to verified_key_id,
+    # never to the actor string. Empty SOVEREIGN_KEY_IDS means NO actor gets
+    # SOVEREIGN automatically until the key registry is wired.
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    verified_key_id = (
+        (state.actor.verified_key_id if hasattr(state.actor, "verified_key_id") else None)
+        or sess.get("verified_key_id")
+    )
+    is_sovereign = bool(
+        state.actor.verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
+    )
 
-    if is_sovereign and state.actor.verified:
+    if is_sovereign:
         sess["authority_level"] = "SOVEREIGN"
         sess["authority"] = "FULL"
     elif state.actor.verified:
@@ -171,7 +181,12 @@ def _reconstruct_authority_state(sess: dict[str, Any]) -> AuthorityState:
         else "none"
     )
     actor_key = str(actor_id).strip().lower()
-    is_sovereign = actor_key in {"arif", "ariffazil"}
+    # SECURITY P0 2026-07-12: SOVEREIGN by key_id, not by name.
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    verified_key_id = sess.get("verified_key_id") if isinstance(sess, dict) else None
+    is_sovereign = bool(
+        verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
+    )
     is_sealed = is_sovereign and verified
 
     actor = AuthorityActor(
@@ -223,7 +238,18 @@ def derive_canonical_from_authority(state: AuthorityState) -> CanonicalAuthority
     """
     safe_actor = state.actor.claimed_id or "anonymous"
     actor_key = safe_actor.strip().lower()
-    is_sovereign = actor_key in {"arif", "ariffazil"}
+    # SECURITY P0 2026-07-12: SOVEREIGN authority binds to verified_key_id,
+    # never to the actor string. Empty SOVEREIGN_KEY_IDS means NO actor gets
+    # SOVEREIGN automatically until the key registry is wired.
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    verified_key_id = (
+        getattr(state.actor, "verified_key_id", None) if state.actor else None
+    )
+    is_sovereign = bool(
+        state.actor.verified
+        and verified_key_id
+        and verified_key_id in SOVEREIGN_KEY_IDS
+    )
 
     if is_sovereign:
         level = AuthorityLevel.SOVEREIGN
@@ -287,8 +313,11 @@ def authority_envelope_for_session(
         runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
         sealed = runtime_band in ("FULL", "SOVEREIGN")
         actor_key = (actor_id or "").strip().lower()
+        # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
+        from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+        _vkey = (actor_verified_key_id if isinstance(actor_verified_flag, bool) else None)
         h_authority = (
-            "SOVEREIGN" if actor_key in {"arif", "ariffazil"}
+            "SOVEREIGN" if (actor_verified_flag and _vkey and _vkey in SOVEREIGN_KEY_IDS)
             else "OPERATOR" if actor_verified_flag
             else "OPERATOR_CLAIMED" if actor_id and actor_id != "anonymous"
             else "OBSERVER"
@@ -303,8 +332,11 @@ def authority_envelope_for_session(
 
     runtime_band = _runtime_auth_hint or ("FULL" if state.is_sealed() else "OBSERVE_ONLY")
     actor_key = (state.actor.claimed_id or "").strip().lower()
+    # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
+    from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
     h_authority = (
-        "SOVEREIGN" if actor_key in {"arif", "ariffazil"}
+        "SOVEREIGN" if (state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
         else "OPERATOR" if state.actor.verified
         else "OPERATOR_CLAIMED" if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
         else "OBSERVER"
