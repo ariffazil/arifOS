@@ -673,13 +673,25 @@ def _floor_passes(law_id: str, score: float) -> bool:
 
 
 def _build_governance_status_payload() -> dict[str, Any]:
+    """Build /health governance status payload.
+
+    WS2 (2026-07-12): no top-level ``verdict`` field. WS1+WS2 doctrine split
+    substrate signal from execution readiness. ``service_health`` is liveness;
+    ``execution_readiness`` is the gate state. Both are wired through
+    ``substrate_health.degraded_dominance_gate()`` and ``substrate_health_check``
+    — never defaulted to ``SEAL``.
+
+    The cycle doc acceptance test (WS2 §2.3 #6) requires the response shape
+    to expose ``{substrate_conformance, session_authority, action_authorization,
+    receipt_state}`` and NOT carry a top-level ``verdict`` field.
+    """
     session_id: str | None = None
     floors: dict[str, Any] = {}
     telemetry: dict[str, Any] = {}
     witness: dict[str, float] = {}
     qdf: float = 0.0
     metabolic_stage: int = 0
-    verdict: str = "SEAL"
+    verdict: str | None = None  # WS2: no default SEAL — substrate signal only
 
     try:
         from core.governance_kernel import get_governance_kernel
@@ -848,18 +860,42 @@ def _build_governance_status_payload() -> dict[str, Any]:
     except Exception:
         pass
 
-    # Observatory seal-readiness guard: if all canonical floors pass and the
-    # vault is reachable, force verdict to SEAL and confidence to ≥0.99 so the
-    # trinity matrix can reach POSITIVE. Stale kernel state should not block
-    # a healthy runtime from reporting its true status.
-    all_floors_pass = all(
-        _floor_passes(fid, float(resolved_floors.get(fid, 0.0))) for fid in LAW_SPEC_KEYS
-    )
-    if all_floors_pass:
-        resolved_telemetry["verdict"] = "SEAL"
-        resolved_telemetry["confidence"] = max(
-            float(resolved_telemetry.get("confidence") or 0.0), 0.99
+    # WS2 (2026-07-12): removed Observatory seal-readiness guard.
+    # A green /health does NOT imply execution readiness. The previous
+    # version force-overrode verdict to ``SEAL`` whenever all floors passed,
+    # contradicting CORE_INVARIANTS §3 and creating a "green implies
+    # authorized" overclaim class. execution_readiness + service_health
+    # are computed below via substrate_health instead of flippling ``SEAL``.
+    #
+    # The cycle doc §2.3 acceptance test #6 requires no top-level SEAL field.
+
+    # ── Substrate + execution_readiness (WS2) ────────────────────────────────
+    # service_health = substrate liveness (cheap, in-process)
+    # execution_readiness = substrate + identity + judge chain combined
+    try:
+        from arifosmcp.runtime.substrate_health import (
+            substrate_health_check as _substrate_health_check,
+            degraded_dominance_gate as _degraded_dominance_gate,
         )
+
+        substrate_health = _substrate_health_check()
+        substrate_degraded, _degrade_reason, _sub_detail = _degraded_dominance_gate()
+    except Exception:
+        substrate_health = {}
+        substrate_degraded = True
+
+    if substrate_degraded:
+        service_health = "red"
+        execution_readiness = "void"
+    else:
+        # All critical subsystems OK → substrate is live.
+        service_health = "green"
+        # execution_readiness stays "held" until JUDGE_SEAL_AUTHORIZATION
+        # is asserted on the kernel. It is NEVER just "ready" from a bare
+        # health probe — that is exactly the overclaim this WS2 closes.
+        execution_readiness = "held"
+
+    # Fall through: substrate dictates; floor scores do NOT set readiness.
 
     return {
         "telemetry": resolved_telemetry,
@@ -870,6 +906,13 @@ def _build_governance_status_payload() -> dict[str, Any]:
         "session_id": session_id or f"sess_{uuid.uuid4().hex[:8]}",
         "timestamp": datetime.now(UTC).isoformat(),
         "metabolic_stage": metabolic_stage or _DEFAULT_METABOLIC_STAGE,
+        # WS2: substrate + execution signal live at the top level (no
+        # top-level ``verdict`` SEAL field).
+        "service_health": service_health,
+        "execution_readiness": execution_readiness,
+        "substrate_conformance": "PASS" if not substrate_degraded else "FAIL",
+        "substrate_health": substrate_health,
+        # NOTE: no top-level ``verdict`` field by WS2 doctrine.
     }
 
 
@@ -2174,6 +2217,7 @@ def _probe_vault999_health() -> str:
     # 1. Live writer (canonical active path)
     try:
         import urllib.request
+
         with urllib.request.urlopen("http://localhost:5001/health", timeout=2) as resp:
             data = json.loads(resp.read().decode())
             if data.get("status") == "healthy":
@@ -2196,6 +2240,7 @@ def _probe_vault999_health() -> str:
         chain_p = "/root/.local/share/arifos/vault999/seal_chain.jsonl"
         if os.path.exists(head_p) and os.path.exists(chain_p):
             import time as _t
+
             if _t.time() - os.path.getmtime(head_p) < 86400:  # within 24h
                 return "healthy"
             return "degraded"  # exists but stale
@@ -2484,9 +2529,7 @@ def register_rest_routes(
             federation_ledger.close()
 
         # F2: discovery card must match /health + tools/list public facade.
-        return JSONResponse(
-            _mcp_discovery_payload(tool_registry, mcp, fastmcp_instance)
-        )
+        return JSONResponse(_mcp_discovery_payload(tool_registry, mcp, fastmcp_instance))
 
     # Load AAA landing page HTML
     aaa_landing_html_path = "/usr/src/app/static/aaa-landing/index.html"
@@ -2509,9 +2552,7 @@ def register_rest_routes(
         if "text/html" in accept:
             return HTMLResponse(aaa_landing_html, headers={"Cache-Control": "max-age=60"})
         # For MCP clients requesting JSON — same SOT payload as root + /health counts.
-        return JSONResponse(
-            _mcp_discovery_payload(tool_registry, mcp, fastmcp_instance)
-        )
+        return JSONResponse(_mcp_discovery_payload(tool_registry, mcp, fastmcp_instance))
 
     @route("/docs", methods=["GET"])
     async def docs(request: Request) -> Response:
@@ -2776,7 +2817,10 @@ def register_rest_routes(
                 "echo_debt": telemetry.get("echoDebt", 0.4),
                 "shadow": telemetry.get("shadow", 0.3),
                 "confidence": telemetry.get("confidence", 0.88),
-                "verdict": telemetry.get("verdict", "SEAL"),
+                # WS2 (2026-07-12): no default SEAL. verdict is substrate-side
+                # signal that may be unset; consumers should fall back to
+                # service_health / execution_readiness instead of inferring SEAL.
+                "verdict": telemetry.get("verdict"),
                 "metabolic_stage": thermo.get("metabolic_stage", 444),
                 "witness": thermo.get("witness", _WITNESS_DEFAULTS),
             },
@@ -5352,9 +5396,7 @@ def register_rest_routes(
         from starlette.responses import PlainTextResponse
 
         # Prefer generated static SOT (tools + resources map) when present.
-        _static_llms = os.path.join(
-            os.path.dirname(__file__), "..", "..", "static", "llms.txt"
-        )
+        _static_llms = os.path.join(os.path.dirname(__file__), "..", "..", "static", "llms.txt")
         if os.path.isfile(_static_llms):
             try:
                 with open(_static_llms, encoding="utf-8") as _sf:
@@ -6704,15 +6746,11 @@ setInterval(refreshSot, 30000);
                     if runtime_spec is not None
                     else {"type": "object", "properties": {}, "additionalProperties": False}
                 ),
-                "outputSchema": (
-                    runtime_spec.output_schema if runtime_spec is not None else None
-                ),
+                "outputSchema": (runtime_spec.output_schema if runtime_spec is not None else None),
                 "stage": stage,
                 "lane": lane,
                 "risk": {
-                    "tier": manifest_spec.get("risk", {}).get(
-                        "tier", spec.get("risk_tier", "low")
-                    ),
+                    "tier": manifest_spec.get("risk", {}).get("tier", spec.get("risk_tier", "low")),
                     "irreversible": manifest_spec.get("risk", {}).get(
                         "irreversible", spec.get("irreversible", False)
                     ),
@@ -6784,9 +6822,7 @@ setInterval(refreshSot, 30000);
             payload = _json.loads(response.body.decode("utf-8"))
             payload["deprecated_path"] = "/manifest.txt"
             payload["canonical_path"] = "/tools.json"
-            payload["note"] = (
-                "manifest.txt is a compatibility alias. Prefer GET /tools.json."
-            )
+            payload["note"] = "manifest.txt is a compatibility alias. Prefer GET /tools.json."
             return JSONResponse(
                 payload,
                 headers={
