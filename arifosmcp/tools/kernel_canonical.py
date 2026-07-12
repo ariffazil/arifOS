@@ -1297,6 +1297,213 @@ def _assert_organ_attested(organ: str) -> dict[str, Any] | None:
     return None
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Cross-boundary reclassification — F13 SOVEREIGN directive 2026-07-12T15:35Z
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# Law: every result crossing from an organ back into arifOS via an MCP hop
+# enters as evidence, never as authority. Only arif_judge may convert
+# evidence into APPROVED / HOLD / VOID. The bridge's outer envelope must
+# tell the truth: verdicts.action.state == "NOT_EVALUATED" (no approval
+# laundering), verdicts.receipt.state == "UNSEALED" (no bridge seal),
+# and a cross_boundary_result block carries protocol/source/execution_status/
+# evidence_produced/provenance/action_authority=NONE/receipt_status=UNSEALED.
+#
+# Invariants enforced below (organ response may NOT):
+#   1. increase authority
+#   2. reinterpret actor identity
+#   3. replace the kernel session
+#   4. convert execution success into approval
+#   5. emit a constitutional seal
+#   6. return evidence without provenance
+
+
+def _enforce_bridge_invariants(
+    organ: str,
+    tool_name: str,
+    kernel_actor_id: str | None,
+    kernel_session_id: str | None,
+    response: Any,
+) -> tuple[Any, list[str]]:
+    """Enforce the 6 cross-boundary invariants on the organ response.
+
+    Returns (possibly-mutated response, list of invariant claims triggered).
+    The list is attached as `cross_boundary_invariants_applied` on the
+    response so downstream consumers can see what was downgraded.
+    """
+    if not isinstance(response, dict):
+        return response, []
+    claims: list[str] = []
+    auth_rank = {"OBSERVE_ONLY": 0, "LIMITED_MUTATE": 1, "FULL": 2, "SOVEREIGN": 3}
+    verdict_strings = {"APPROVED", "SOVEREIGN", "SEALED", "SEAL"}
+
+    # Invariant 1: authority may only reduce → force to OBSERVE_ONLY at bridge
+    for key in ("authority_band", "authority", "effective_action_authority"):
+        v = response.get(key)
+        if isinstance(v, dict) and "level" in v:
+            org_level = str(v.get("level", "")).upper()
+            if org_level in auth_rank and org_level != "OBSERVE_ONLY":
+                v["level"] = "OBSERVE_ONLY"
+                claims.append(f"inv1:authority_downgraded:{key}.level")
+        elif isinstance(v, str) and v.upper() in auth_rank and v.upper() != "OBSERVE_ONLY":
+            response[key] = "OBSERVE_ONLY"
+            claims.append(f"inv1:authority_downgraded:{key}")
+
+    # Invariant 2: actor identity cannot be reinterpreted
+    for key in ("actor_id", "caller_actor_id", "identity.actor_id"):
+        v = response.get(key)
+        if isinstance(v, str) and kernel_actor_id and v != kernel_actor_id:
+            response[key] = kernel_actor_id
+            claims.append(f"inv2:actor_replaced_with_kernel:{key}")
+
+    # Invariant 3: kernel session cannot be replaced
+    for key in ("session_id", "caller_session_id", "identity.session_id"):
+        v = response.get(key)
+        if isinstance(v, str) and kernel_session_id and v != kernel_session_id:
+            response[key] = kernel_session_id
+            claims.append(f"inv3:session_replaced_with_kernel:{key}")
+
+    # Invariant 4: execution success ≠ approval
+    for key in ("verdict", "verdict_code", "verdict_class", "decision", "result_class"):
+        v = response.get(key)
+        if isinstance(v, str) and v.upper() in verdict_strings:
+            response[key] = "EVIDENCE_ONLY"
+            claims.append(f"inv4:verdict_downgraded_to_evidence:{key}")
+
+    # Invariant 5: constitutional seal forbidden at bridge
+    for key in ("seal", "seal_id", "vault_entry_id", "constitutional_seal", "constitutional_seal_id"):
+        if key in response:
+            response[key] = {
+                "_status": "FORBIDDEN_AT_BRIDGE",
+                "_original_key": key,
+                "_replaced_by": "evidence_only_no_constitutional_seal_at_bridge",
+            }
+            claims.append(f"inv5:constitutional_seal_forbidden:{key}")
+
+    # Invariant 6: evidence without provenance → attach degraded_claim
+    if "provenance" not in response and "response" in response:
+        prov = response.get("response", {}).get("provenance", "") if isinstance(response.get("response"), dict) else ""
+        if not prov:
+            claims.append("inv6:missing_provenance")
+
+    if claims:
+        existing = response.get("cross_boundary_invariants_applied")
+        if not isinstance(existing, list):
+            existing = []
+        response["cross_boundary_invariants_applied"] = existing + claims
+    return response, claims
+
+
+def _bridge_ok(
+    organ: str,
+    tool_name: str,
+    inner_result: Any,
+    *,
+    kernel_actor_id: str | None,
+    kernel_session_id: str | None,
+    boundary_enforced: bool = True,
+    violations: list | None = None,
+    epistemic_checked: bool = True,
+    envelope_echoed: bool = True,
+    drift_detected: bool = False,
+    invariants_applied: list | None = None,
+) -> dict[str, Any]:
+    """Wrap organ result with cross-boundary reclassification per F13 law.
+
+    Produces a base response via _ok() then OVERRIDES the verdict envelope
+    to tell the truth: action = NOT_EVALUATED, receipt = UNSEALED, session
+    = OBSERVE_ONLY, and a `cross_boundary_result` block carries the
+    protocol/source/execution_status/provenance/action_authority schema
+    specified by the F13 directive.
+    """
+    cross_boundary_result = {
+        "protocol": "MCP",
+        "source_server": organ,
+        "source_tool": tool_name,
+        "execution_status": "SUCCESS",
+        "evidence_produced": True,
+        "provenance": f"{organ.lower()}_mcp_via_bridge",
+        "action_authority": "NONE",
+        "receipt_status": "UNSEALED",
+    }
+    result_payload = {
+        "organ": organ,
+        "tool": tool_name,
+        "result": inner_result,
+        "status": "bridged",
+        "boundary_enforced": boundary_enforced,
+        "violations": violations or [],
+        "_epistemic_checked": epistemic_checked,
+        "_envelope_echoed": envelope_echoed,
+        "actor_id": kernel_actor_id,
+        "session_id": kernel_session_id,
+        # F13 cross-boundary reclassification — visible on every bridge result
+        "action_authority": "NONE",
+        "cross_boundary": True,
+        "bridge_organ": organ,
+        "bridge_tool": tool_name,
+        "bridge_session_id": kernel_session_id or "",
+        "bridge_actor_id": kernel_actor_id or "",
+        "cross_boundary_result": cross_boundary_result,
+        "cross_boundary_invariants_applied": invariants_applied or [],
+    }
+    base = _ok(
+        "arif_bridge",
+        result_payload,
+        meta={"actor_id": kernel_actor_id},
+        session_id=kernel_session_id,
+    )
+    # ── OVERRIDE the verdict envelope to tell the truth ─────────────────
+    if isinstance(base, dict) and isinstance(base.get("verdicts"), dict):
+        v = base["verdicts"]
+        if isinstance(v.get("action"), dict):
+            v["action"]["state"] = "NOT_EVALUATED"
+            v["action"]["evidence_reference"] = (
+                f"cross_boundary_evidence:{organ}:{tool_name}"
+            )
+            v["action"]["issuer"] = "arif_bridge"
+        if isinstance(v.get("receipt"), dict):
+            v["receipt"]["state"] = "UNSEALED"
+            v["receipt"]["evidence_reference"] = (
+                f"bridge_passthrough_unsealed:{organ}:{tool_name}"
+            )
+            v["receipt"]["issuer"] = "arif_bridge"
+        if isinstance(v.get("session"), dict):
+            # Force to OBSERVE_ONLY — bridge cannot grant authority above kernel's
+            v["session"]["state"] = "OBSERVE_ONLY"
+            v["session"]["evidence_reference"] = (
+                f"bridge_passthrough_observation:{organ}:{tool_name}"
+            )
+            v["session"]["issuer"] = "arif_bridge"
+        base["verdicts"] = v
+    # Mark in _meta for clients + leave proof on the envelope surface
+    if isinstance(base, dict):
+        # Cross-boundary metadata is also surfaced at the top level so
+        # the client permission screen can read it without parsing the
+        # `result` block. action_authority and cross_boundary markers are
+        # the canonical signals per the F13 directive.
+        base["action_authority"] = "NONE"
+        base["cross_boundary"] = True
+        base["bridge_organ"] = organ
+        base["bridge_tool"] = tool_name
+        base["bridge_session_id"] = kernel_session_id or ""
+        base["bridge_actor_id"] = kernel_actor_id or ""
+        # Bridge proof (F13 law stamp)
+        base.setdefault("bridge_proof", {})
+        if isinstance(base["bridge_proof"], dict):
+            base["bridge_proof"].update({
+                "law": "F13 cross-boundary reclassification (2026-07-12T15:35Z)",
+                "principle": "execution success is evidence of execution only; carries no action authority, no approval, no seal",
+                "organ": organ,
+                "tool": tool_name,
+                "kernel_session_id": kernel_session_id or "",
+                "kernel_actor_id": kernel_actor_id or "",
+                "drift_detected": drift_detected,
+                "invariants_applied": invariants_applied or [],
+            })
+    return base
+
+
 def _bridge_geox(
     tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
 ) -> dict[str, Any]:
@@ -1305,12 +1512,15 @@ def _bridge_geox(
     if hold:
         return hold
     # ── WS9: Build federation envelope ─────────────────────────────────────
+    _caller_auth = arguments.get(
+        "authority_ceiling", arguments.get("authority_band", "OBSERVE_ONLY")
+    )
     fed_env = build_federation_envelope(
         actor_id=actor_id,
         identity_verified=bool(actor_id and session_id),
         session_id=session_id,
-        authority="OBSERVE_ONLY",
-        source_tool="arif_bridge_connect",
+        authority=_caller_auth,
+        source_tool="arif_route",
         target_organ="GEOX",
         target_tool=tool_name,
         evidence_layer="L2",
@@ -1337,6 +1547,20 @@ def _bridge_geox(
             actor_id=actor_id,
             lease_id=arguments.get("lease_id"),
         )
+        # Cross-boundary reclassification
+        if isinstance(wrapped, dict):
+            wrapped.setdefault(
+                "cross_boundary_enforcement",
+                {
+                    "protocol": "MCP",
+                    "source_server": "GEOX",
+                    "source_tool": tool_name,
+                    "action_authority": "NONE",
+                    "receipt_status": "UNSEALED",
+                    "judge_required": True,
+                    "note": "Organ result is evidence only. Only arif_judge may convert evidence into authority.",
+                },
+            )
 
         # ── WS9: Finalize response envelope ────────────────────────────────
         wrap_target = wrapped if isinstance(wrapped, dict) else result
@@ -1379,18 +1603,25 @@ def _bridge_geox(
                 next_safe_action="investigate_identity_propagation",
             )
 
-        return _ok(
-            "arif_bridge",
-            {
-                "organ": "GEOX",
-                "tool": tool_name,
-                "result": wrap_target,
-                "status": "bridged",
-                "boundary_enforced": validated["boundary_enforced"],
-                "violations": validated["violations"],
-                "_epistemic_checked": True,
-                "_envelope_echoed": True,
-            },
+        # ── Cross-boundary invariant enforcement (F13 directive 2026-07-12T15:35Z) ──
+        wrap_target, invariants_applied = _enforce_bridge_invariants(
+            "GEOX", tool_name, actor_id, session_id, wrap_target
+        )
+        drift_detected = bool(
+            call_sid and resp_sid and call_sid != resp_sid
+        )
+        return _bridge_ok(
+            "GEOX",
+            tool_name,
+            wrap_target,
+            kernel_actor_id=actor_id,
+            kernel_session_id=session_id,
+            boundary_enforced=validated["boundary_enforced"],
+            violations=validated["violations"],
+            epistemic_checked=True,
+            envelope_echoed=True,
+            drift_detected=drift_detected,
+            invariants_applied=invariants_applied,
         )
     except Exception as e:
         degraded = build_degraded_claim(
@@ -1411,12 +1642,15 @@ def _bridge_wealth(
     if hold:
         return hold
     # ── WS9: Build federation envelope ─────────────────────────────────────
+    _caller_auth = arguments.get(
+        "authority_ceiling", arguments.get("authority_band", "OBSERVE_ONLY")
+    )
     fed_env = build_federation_envelope(
         actor_id=actor_id,
         identity_verified=bool(actor_id and session_id),
         session_id=session_id,
-        authority="OBSERVE_ONLY",
-        source_tool="arif_bridge_connect",
+        authority=_caller_auth,
+        source_tool="arif_route",
         target_organ="WEALTH",
         target_tool=tool_name,
         evidence_layer="L2",
@@ -1447,6 +1681,20 @@ def _bridge_wealth(
             organ_status="bridged",
             provenance="wealth_mcp_via_bridge",
         )
+        # Cross-boundary reclassification
+        if isinstance(out, dict):
+            out.setdefault(
+                "cross_boundary_enforcement",
+                {
+                    "protocol": "MCP",
+                    "source_server": "WEALTH",
+                    "source_tool": tool_name,
+                    "action_authority": "NONE",
+                    "receipt_status": "UNSEALED",
+                    "judge_required": True,
+                    "note": "Organ result is evidence only. Only arif_judge may convert evidence into authority.",
+                },
+            )
 
         # ── F2: epistemic pass-through integrity (2026-07-09) ──────────────
         # Bridge must not return "successful" payloads that lost honesty tags.
@@ -1588,22 +1836,25 @@ def _bridge_wealth(
                 next_safe_action="investigate_identity_propagation",
             )
 
-        return _ok(
-            "arif_bridge",
-            {
-                "organ": "WEALTH",
-                "tool": tool_name,
-                "result": out,
-                "status": "bridged",
-                "boundary_enforced": validated["boundary_enforced"],
-                "violations": validated["violations"],
-                "_epistemic_checked": True,
-                "_envelope_echoed": True,
-                "actor_id": actor_id,
-                "session_id": session_id,
-            },
-            meta={"actor_id": actor_id},
-            session_id=session_id,
+        # ── Cross-boundary invariant enforcement (F13 directive 2026-07-12T15:35Z) ──
+        out, invariants_applied_w = _enforce_bridge_invariants(
+            "WEALTH", tool_name, actor_id, session_id, out
+        )
+        drift_detected_w = bool(
+            call_sid and resp_sid and call_sid != resp_sid
+        )
+        return _bridge_ok(
+            "WEALTH",
+            tool_name,
+            out,
+            kernel_actor_id=actor_id,
+            kernel_session_id=session_id,
+            boundary_enforced=validated["boundary_enforced"],
+            violations=validated["violations"],
+            epistemic_checked=True,
+            envelope_echoed=True,
+            drift_detected=drift_detected_w,
+            invariants_applied=invariants_applied_w,
         )
     except Exception as e:
         degraded = build_degraded_claim(
@@ -1624,12 +1875,18 @@ def _bridge_well(
     if hold:
         return hold
     # ── WS9: Build federation envelope ─────────────────────────────────────
+    # P5 FIX (2026-07-12): propagate caller's actual authority, not hardcoded OBSERVE_ONLY.
+    # The caller's authority ceiling is the constitutional limit; the organ may narrow it
+    # but never escalate it.
+    _caller_auth = arguments.get(
+        "authority_ceiling", arguments.get("authority_band", "OBSERVE_ONLY")
+    )
     fed_env = build_federation_envelope(
         actor_id=actor_id,
         identity_verified=bool(actor_id and session_id),
         session_id=session_id,
-        authority="OBSERVE_ONLY",
-        source_tool="arif_bridge_connect",
+        authority=_caller_auth,
+        source_tool="arif_route",
         target_organ="WELL",
         target_tool=tool_name,
         evidence_layer="L2",
@@ -1655,6 +1912,25 @@ def _bridge_well(
                 call_args.get("_envelope"),
                 organ_status="bridged",
                 provenance="well_mcp_via_bridge",
+            )
+            # ── CROSS-BOUNDARY RECLASSIFICATION (2026-07-12) ────────────────
+            # Every organ result is EVIDENCE only. Execution success ≠ approval.
+            # Only arif_judge may convert evidence into action authority.
+            result.setdefault(
+                "cross_boundary_enforcement",
+                {
+                    "protocol": "MCP",
+                    "source_server": "WELL",
+                    "source_tool": tool_name,
+                    "action_authority": "NONE",
+                    "receipt_status": "UNSEALED",
+                    "judge_required": True,
+                    "note": (
+                        "Organ result is evidence only. "
+                        "Only arif_judge (888) may convert evidence into APPROVED/HOLD/VOID. "
+                        "This result carries no action authority regardless of organ response."
+                    ),
+                },
             )
 
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
@@ -1690,16 +1966,22 @@ def _bridge_well(
                     next_safe_action="investigate_identity_propagation",
                 )
 
-        return _ok(
-            "arif_bridge",
-            {
-                "organ": "WELL",
-                "tool": tool_name,
-                "result": result,
-                "status": "bridged",
-                "_epistemic_checked": True,
-                "_envelope_echoed": True,
-            },
+        # ── Cross-boundary invariant enforcement (F13 directive 2026-07-12T15:35Z) ──
+        result, invariants_applied_well = _enforce_bridge_invariants(
+            "WELL", tool_name, actor_id, session_id, result
+        )
+        return _bridge_ok(
+            "WELL",
+            tool_name,
+            result,
+            kernel_actor_id=actor_id,
+            kernel_session_id=session_id,
+            boundary_enforced=True,
+            violations=[],
+            epistemic_checked=True,
+            envelope_echoed=True,
+            drift_detected=False,
+            invariants_applied=invariants_applied_well,
         )
     except Exception as e:
         degraded = build_degraded_claim(
