@@ -1,0 +1,42 @@
+{
+  "schema": "emergency_envelopes.v1",
+  "description": "Pre-authorised sub-second containment paths. Exploration stays cheap; emergency mutation is narrow. F13 retains constitutional change — not routine isolation.",
+  "envelopes": [
+    {
+      "id": "EMRG-CONTAIN-STOP-ALLOWLIST",
+      "purpose": "Stop a named allowlisted non-critical service",
+      "max_action_class": "EXECUTE_REVERSIBLE",
+      "allowed_actions": ["systemctl_stop_allowlisted"],
+      "allowlist": ["well-heartbeat.service"],
+      "forbidden": ["rm", "drop", "force_push", "seal_constitution", "rotate_secrets"],
+      "max_mutations": 1,
+      "ttl_seconds": 300,
+      "verify": "is-active != active OR explicit stop receipt",
+      "rollback": "systemctl_start_allowlisted",
+      "requires_f13": false,
+      "requires_session": true,
+      "note": "Speed path for loss prevention only"
+    },
+    {
+      "id": "EMRG-ROLLBACK-ALLOWLIST",
+      "purpose": "Start allowlisted service after failed repair",
+      "max_action_class": "EXECUTE_REVERSIBLE",
+      "allowed_actions": ["systemctl_start_allowlisted"],
+      "allowlist": ["well-heartbeat.service"],
+      "max_mutations": 1,
+      "ttl_seconds": 300,
+      "requires_f13": false,
+      "requires_session": true
+    },
+    {
+      "id": "EMRG-ISOLATE-OBSERVE",
+      "purpose": "Force OBSERVE_ONLY — no mutation",
+      "max_action_class": "OBSERVE",
+      "allowed_actions": ["health", "read_logs", "hold_notify"],
+      "max_mutations": 0,
+      "ttl_seconds": 3600,
+      "requires_f13": false
+    }
+  ],
+  "invariant": "Emergency envelopes never expand authority; they only shrink time-to-contain within pre-declared allowlists."
+}
