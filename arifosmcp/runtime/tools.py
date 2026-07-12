@@ -2130,6 +2130,130 @@ def _compute_canonical_verdict(
     return verdict, degradation
 
 
+# ── WS2: Scoped Verdict Decomposition ──────────────────────────────────────
+
+
+def _compute_scoped_verdicts(
+    *,
+    tool_name: str,
+    status: str,
+    verdict: str,
+    degradation: list[str],
+    out: dict[str, Any],
+    result_payload: dict[str, Any],
+    actor_verified: bool | None,
+    runtime_authority: str = "OBSERVE_ONLY",
+) -> dict[str, Any]:
+    """WS2: Decompose the merged canonical verdict into four independent scopes.
+
+    Each scope is computed from a different kernel subsystem:
+      - substrate:  Kernel conformance health — are the underlying systems OK?
+      - session:    Session token authority — what does the SCT grant?
+      - action:     Specific action authorization — was this call allowed?
+      - receipt:    Vault seal status — was a seal produced?
+
+    Returns dict matching VerdictScopes schema from kernel_envelope.py.
+    """
+    from arifosmcp.schemas.kernel_envelope import (
+        ScopeEvidence,
+        VerdictScopes,
+    )
+
+    vs = VerdictScopes()
+
+    # ── Substrate scope: kernel conformance health ──────────────────────
+    # Derived from: status STALE/ERROR → DEGRADED, presence of degradation flags
+    _is_healthy = status in ("OK", "SEAL")
+    _has_degradation = bool(degradation)
+    _has_error = status in ("ERROR", "STALE", "TIMEOUT")
+
+    if _has_error:
+        vs.substrate = ScopeEvidence(
+            state="FAIL",
+            issuer="arifos_conformance",
+            evidence_reference="transport_error" if "error" in str(degradation).lower() else "",
+        )
+    elif _has_degradation and not _is_healthy:
+        vs.substrate = ScopeEvidence(
+            state="DEGRADED",
+            issuer="arifos_conformance",
+            evidence_reference="; ".join(degradation[:3]) if degradation else "",
+        )
+    elif _is_healthy and not _has_degradation:
+        vs.substrate = ScopeEvidence(
+            state="PASS",
+            issuer="arifos_conformance",
+            evidence_reference="",
+        )
+    else:
+        vs.substrate = ScopeEvidence(
+            state="HEALTHY",
+            issuer="arifos_conformance",
+            evidence_reference="",
+        )
+
+    # ── Session scope: what the session token grants ────────────────────
+    # Derived from: actor_verified flag, runtime_authority from SCT
+    _sess_state = "OBSERVE_ONLY"
+    if runtime_authority == "FULL":
+        _sess_state = "FULL"
+    elif runtime_authority == "LIMITED_MUTATE":
+        _sess_state = "LIMITED_MUTATE"
+    elif actor_verified is False:
+        _sess_state = "OBSERVE_ONLY"
+
+    # SABAR override: if the verdict field itself is SABAR, reflect in session
+    if verdict == "SABAR":
+        _sess_state = "SABAR"
+
+    vs.session = ScopeEvidence(
+        state=_sess_state,
+        issuer="session_capability_token",
+        evidence_reference=f"actor_verified={actor_verified}" if actor_verified is not None else "",
+    )
+
+    # ── Action scope: was this specific action authorized? ──────────────
+    # Derived from: canonical verdict, gate sub-verdicts, affordance narrowing
+    _action_state = "APPROVED"
+    if verdict in ("VOID",):
+        _action_state = "VOID"
+    elif verdict in ("HOLD",):
+        _action_state = "HOLD"
+    elif verdict in ("DENIED", "REJECTED"):
+        _action_state = "DENIED"
+    elif verdict in ("DEGRADED", "OBSERVE_ONLY"):
+        # Degraded/restricted actions are still approved for what they allow
+        _action_state = "APPROVED"
+
+    _meta = out.get("meta", {}) if isinstance(out.get("meta"), dict) else {}
+    _post_obs = _meta.get("post_observe_gate", {})
+    if isinstance(_post_obs, dict) and _post_obs.get("verdict") in ("HOLD", "FAIL", "VOID"):
+        _action_state = "DENIED"
+
+    vs.action = ScopeEvidence(
+        state=_action_state,
+        issuer="effective_decision",
+        evidence_reference=f"canonical_verdict={verdict}" if verdict else "",
+    )
+
+    # ── Receipt scope: was a vault seal produced? ──────────────────────
+    # Derived from: vault status, sink/seal fields in result
+    _vault_seal_id = (
+        result_payload.get("vault_seal_id")
+        or result_payload.get("seal_id")
+        or result_payload.get("seal_verdict_id")
+        or out.get("vault_entry_id")
+    )
+    _sealed = bool(_vault_seal_id) or verdict == "SEAL"
+    vs.receipt = ScopeEvidence(
+        state="SEALED" if _sealed else "UNSEALED",
+        issuer="vault999",
+        evidence_reference=str(_vault_seal_id) if _vault_seal_id else "",
+    )
+
+    return vs.model_dump()
+
+
 def _compute_stage_progression(tool_name: str, verdict: str) -> dict[str, Any] | None:
     """Compute the next stage, tool, and prompt for golden path auto-chaining.
 
@@ -3551,6 +3675,23 @@ def _enforce_nine_signal(
                 "Degradation signals listed in _wrapper_degradation."
             )
 
+        # ── WS2: Compute scoped verdicts ──────────────────────────────────
+        # Decompose the single merged verdict into four independent scope
+        # verdicts: substrate, session, action, receipt.
+        # This runs AFTER _compute_canonical_verdict so all signals are available.
+        # _runtime_auth may not be computed yet (computed later) — pass None
+        # to let _compute_scoped_verdicts derive session scope from actor_verified.
+        _scoped_verdicts = _compute_scoped_verdicts(
+            tool_name=tool_name,
+            status=status,
+            verdict=verdict,
+            degradation=degradation,
+            out=out,
+            result_payload=result_payload,
+            actor_verified=actor_verified_flag,
+            runtime_authority="OBSERVE_ONLY",  # placeholder; recomputed after SCT resolve
+        )
+
         # result_payload already built above before reactive wrapper
 
         # Fix 2026-07-06: verdict is set at envelope level only, not duplicated
@@ -3603,30 +3744,79 @@ def _enforce_nine_signal(
         if verdict == "OBSERVE_ONLY" and not reasons:
             reasons = ["OBSERVE_ONLY — identity not verified, operation restricted to observe-only"]
 
-        # PHASE A BIRTH-FIX (2026-07-10): Emit sesat_event for failure verdicts.
-        # OBSERVE_ONLY is exempt — it is a valid operational mode for unverified
-        # sessions, not a failure. Firing sesat on OBSERVE_ONLY pollutes the malu
-        # ledger with false-positive scars (Bangang #1 fix 2026-07-11).
-        # Only true failure verdicts (VOID, HOLD) should mint sesat events.
-        # SABAR is a valid patience verdict — handled by _sabar() with YELLOW severity.
-        # PARTIAL is a derived warning, not a failure.
-        _FAILURE_VERDICTS = {"VOID", "HOLD"}
-        if verdict in _FAILURE_VERDICTS:
+        # ── WS8: Sesat/Malu Ledger Repair — scoped-verdict-aware sesat emission ──
+        # Rules:
+        #   1. Sesat fires on action-scope or substrate-scope failure ONLY.
+        #   2. Session-scope restriction (OBSERVE_ONLY/SABAR) NEVER produces sesat.
+        #      Instead emit YELLOW SessionNotice with malu_delta=0.
+        #   3. TRUE failure verdicts (VOID, HOLD) from action/substrate scope
+        #      still mint sesat events for the failure ledger.
+        #   4. Historical sesat events are NOT deleted — marked with
+        #      correction_status: FALSE_POSITIVE_SESSION_SCOPE if applicable.
+        _action_state = _scoped_verdicts.get("action", {}).get("state", "APPROVED")
+        _substrate_state = _scoped_verdicts.get("substrate", {}).get("state", "HEALTHY")
+        _session_state = _scoped_verdicts.get("session", {}).get("state", "OBSERVE_ONLY")
+        _action_or_substrate_failed = _action_state in (
+            "DENIED",
+            "HOLD",
+            "VOID",
+        ) or _substrate_state in ("FAIL",)
+        _session_only_restricted = (
+            _session_state in ("OBSERVE_ONLY", "SABAR") and not _action_or_substrate_failed
+        )
+
+        if verdict in ("VOID", "HOLD") and _action_or_substrate_failed:
+            # TRUE failure — mint sesat event for the failure ledger
             try:
-                from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
+                from arifosmcp.runtime.sesat_event import (
+                    emit_sesat,
+                    FailureCode,
+                    Severity as SesatSeverity,
+                )
 
                 fc = FailureCode.JALAN_KUASA if verdict == "VOID" else FailureCode.JALAN_BENAR
                 sesat = emit_sesat(
                     source_node=tool_name,
                     failure_code=fc.value,
                     failed_claim=f"{verdict}: {'; '.join(reasons[:3])}",
-                    observed_reality=f"verdict={verdict}, status={status}",
+                    observed_reality=f"verdict={verdict}, status={status}, "
+                    f"action_scope={_action_state}, substrate_scope={_substrate_state}",
                     severity="YELLOW" if verdict in ("HOLD", "DEGRADED") else "RED",
                     lantai=[],
                 )
+                # Annotate with WS8 fields
+                sesat.tags.append("ws8:action_or_substrate_failure")
                 meta_payload["sesat_event"] = sesat.to_dict()
             except Exception:
                 pass  # SESAT is best-effort, not blocking
+        elif _session_only_restricted and verdict in ("OBSERVE_ONLY", "SABAR", "SEAL"):
+            # Session-only restriction — emit YELLOW SessionNotice, NOT sesat
+            # This is the core WS8 fix: session restriction is NOT a failure.
+            try:
+                from arifosmcp.runtime.sesat_event import emit_sesat
+
+                # We emit a GREEN/YELLOW session notice with malu_delta=0
+                # by calling emit_sesat with session-specific parameters
+                _notice_severity = "YELLOW" if _session_state == "SABAR" else "GREEN"
+                notice = emit_sesat(
+                    source_node=tool_name,
+                    failure_code="JALAN_KUASA",  # authority-related, not a real failure
+                    failed_claim=f"SessionNotice: session={_session_state}",
+                    observed_reality=f"Session scope restricted to {_session_state}. "
+                    f"Action scope={_action_state}. Not a failure — "
+                    f"informational notice only.",
+                    severity=_notice_severity,
+                    lantai=[],
+                )
+                # WS8: zero malu for session-only restrictions
+                notice.malu_delta = 0.0
+                notice.tags.append("ws8:session_restriction_only")
+                meta_payload["session_notice"] = notice.to_dict()
+            except Exception:
+                pass  # SessionNotice is best-effort, not blocking
+        # Note: for OBSERVE_ONLY cases that were previously generating FALSE
+        # RED sesat events, the correction is applied at the ledger repair layer
+        # (WS8: historical events marked with correction_status).
 
         # ── APEX Runtime Governance Envelope (APEX-MCP-001) ──────────────────
         # 10 gates → 6 dials → G → verdict. Injected into every tool response.
@@ -3767,6 +3957,25 @@ def _enforce_nine_signal(
                     _runtime_auth = "LIMITED_MUTATE"  # identity band, not FULL theater
         except Exception:
             _runtime_auth = "LIMITED_MUTATE" if actor_verified_flag else "OBSERVE_ONLY"
+
+        # ── WS2: Recompute scoped verdicts with resolved runtime_authority ────
+        # The initial computation used a placeholder. Now we have the real
+        # runtime_authority from SCT resolution — recompute session scope.
+        if _runtime_auth != "OBSERVE_ONLY" or _sct_authority_resolved:
+            try:
+                _scoped_verdicts = _compute_scoped_verdicts(
+                    tool_name=tool_name,
+                    status=status,
+                    verdict=verdict,
+                    degradation=degradation,
+                    out=out,
+                    result_payload=result_payload,
+                    actor_verified=actor_verified_flag,
+                    runtime_authority=_runtime_auth,
+                )
+            except Exception:
+                pass  # scoped verdicts are advisory — best-effort
+
         _human_auth = (
             "SOVEREIGN"
             if (
@@ -3779,6 +3988,10 @@ def _enforce_nine_signal(
             "status": status,
             "tool": tool_name,
             "verdict": verdict,
+            # WS2: Scoped verdict decomposition alongside legacy merged verdict.
+            # Legacy `verdict` field is DEPRECATED but preserved for one
+            # compatibility cycle. New consumers should read `verdicts.`
+            "verdicts": _scoped_verdicts,
             "result": result_payload,
             "meta": meta_payload,
             "delta_S": float(delta_s),

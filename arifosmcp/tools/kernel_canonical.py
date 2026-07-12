@@ -32,6 +32,13 @@ from pathlib import Path
 from typing import Any
 
 from arifosmcp.core.federation_contracts import validate_organ_output
+from arifosmcp.federation.federation_envelope import (
+    build_federation_envelope,
+    finalize_response_envelope,
+    inject_envelope_into_call_args,
+    build_degraded_claim,
+    attach_degraded_claim,
+)
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
 
@@ -1297,19 +1304,22 @@ def _bridge_geox(
     hold = _assert_organ_attested("geox")
     if hold:
         return hold
-    _envelope = arguments.get("_envelope")
+    # ── WS9: Build federation envelope ─────────────────────────────────────
+    fed_env = build_federation_envelope(
+        actor_id=actor_id,
+        identity_verified=bool(actor_id and session_id),
+        session_id=session_id,
+        authority="OBSERVE_ONLY",
+        source_tool="arif_bridge_connect",
+        target_organ="GEOX",
+        target_tool=tool_name,
+        evidence_layer="L2",
+        reversibility="reversible",
+        constitutional_chain_id=arguments.get("constitutional_chain_id", session_id),
+        trace_id=arguments.get("trace_id"),
+    )
     call_args = {k: v for k, v in (arguments or {}).items() if k != "_envelope"}
-    # P1 IDENTITY FIX (2026-07-11): inject arifOS-governed session_id/actor_id
-    # into call_args so GEOX tools receive identity. FastMCP passes these as
-    # function params when they match the tool signature. Verified 2026-07-11:
-    # direct MCP calls with session_id/actor_id in arguments propagate correctly.
-    if isinstance(_envelope, dict):
-        for _ik in ("session_id", "actor_id", "trace_id"):
-            if _envelope.get(_ik) and _ik not in call_args:
-                call_args[_ik] = _envelope[_ik]
-                logger.debug(
-                    f"BRIDGE_IDENTITY: injected {_ik}={_envelope[_ik]} into call_args for {tool_name}"
-                )
+    call_args = inject_envelope_into_call_args(call_args, fed_env)
     try:
         from arifosmcp.federation.kernel_envelope import wrap_geox_output
         from arifosmcp.runtime.epistemic_injector import (
@@ -1327,15 +1337,17 @@ def _bridge_geox(
             actor_id=actor_id,
             lease_id=arguments.get("lease_id"),
         )
-        # Echo _envelope unchanged for integrity check (free drift detector)
-        if isinstance(wrapped, dict) and _envelope:
-            wrapped.setdefault("_envelope", _envelope)
-        elif isinstance(result, dict) and _envelope:
-            result.setdefault("_envelope", _envelope)
+
+        # ── WS9: Finalize response envelope ────────────────────────────────
+        wrap_target = wrapped if isinstance(wrapped, dict) else result
+        finalize_response_envelope(
+            wrap_target,
+            call_args.get("_envelope"),
+            organ_status="bridged",
+            provenance="geox_mcp_via_bridge",
+        )
 
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
-        # Check if the bridged result claims executive authority but is AI-generated.
-        # AI may recommend action, not self-approve action.
         _source_epi = read_epistemic(wrapped) if isinstance(wrapped, dict) else None
         if _source_epi:
             _eligible, _reason = verify_route_eligibility(_source_epi, "EXECUTIVE")
@@ -1347,28 +1359,48 @@ def _bridge_geox(
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
-        # Kernel-side: if echoed _envelope.session_id does not match sent, flag (drift detector)
-        echoed = (wrapped or result) if isinstance(wrapped or result, dict) else {}
-        echoed_env = echoed.get("_envelope") or echoed.get("envelope") or {}
-        if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
+        # Kernel-side: envelope session_id drift detection
+        call_env = call_args.get("_envelope", {})
+        resp_env = wrap_target.get("_envelope_echo", {}) if isinstance(wrap_target, dict) else {}
+        call_sid = (
+            call_env.get("__federation_envelope", {}).get("session", {}).get("session_id")
+            if isinstance(call_env, dict)
+            else None
+        )
+        resp_sid = resp_env.get("session_id") if isinstance(resp_env, dict) else None
+        if call_sid and resp_sid and call_sid != resp_sid:
             logger.warning("ENVELOPE DRIFT DETECTED in GEOX response")
-            return _hold("arif_bridge", "Envelope session_id mismatch — identity rewrite suspected")
+            attach_degraded_claim(
+                wrap_target,
+                what_degraded="envelope_session_id_mismatch",
+                where_degraded="GEOX_bridge_response",
+                evidence_produced=True,
+                result_usable=False,
+                next_safe_action="investigate_identity_propagation",
+            )
 
         return _ok(
             "arif_bridge",
             {
                 "organ": "GEOX",
                 "tool": tool_name,
-                "result": wrapped,
+                "result": wrap_target,
                 "status": "bridged",
                 "boundary_enforced": validated["boundary_enforced"],
                 "violations": validated["violations"],
                 "_epistemic_checked": True,
-                "_envelope_echoed": bool(_envelope),
+                "_envelope_echoed": True,
             },
         )
     except Exception as e:
-        return _hold("arif_bridge", f"GEOX bridge failed: {e}")
+        degraded = build_degraded_claim(
+            what_degraded=str(e),
+            where_degraded="GEOX_bridge_dispatch",
+            evidence_produced=False,
+            result_usable=False,
+            next_safe_action="check_geox_organ_health_and_retry",
+        )
+        return _hold("arif_bridge", f"GEOX bridge failed: {e}", extra_meta=degraded)
 
 
 def _bridge_wealth(
@@ -1378,9 +1410,23 @@ def _bridge_wealth(
     hold = _assert_organ_attested("wealth")
     if hold:
         return hold
-    _envelope = arguments.get("_envelope")
+    # ── WS9: Build federation envelope ─────────────────────────────────────
+    fed_env = build_federation_envelope(
+        actor_id=actor_id,
+        identity_verified=bool(actor_id and session_id),
+        session_id=session_id,
+        authority="OBSERVE_ONLY",
+        source_tool="arif_bridge_connect",
+        target_organ="WEALTH",
+        target_tool=tool_name,
+        evidence_layer="L2",
+        reversibility="reversible",
+        constitutional_chain_id=arguments.get("constitutional_chain_id", session_id),
+        trace_id=arguments.get("trace_id"),
+    )
     # Organ MCP schemas reject unknown kwargs — strip kernel envelope before call
     call_args = {k: v for k, v in (arguments or {}).items() if k != "_envelope"}
+    call_args = inject_envelope_into_call_args(call_args, fed_env)
     try:
         from arifosmcp.runtime.epistemic_injector import (
             read_epistemic,
@@ -1393,8 +1439,14 @@ def _bridge_wealth(
 
         # Echo unchanged
         out = validated.get("output", result)
-        if isinstance(out, dict) and _envelope:
-            out.setdefault("_envelope", _envelope)
+
+        # ── WS9: Finalize response envelope ────────────────────────────────
+        finalize_response_envelope(
+            out if isinstance(out, dict) else {},
+            call_args.get("_envelope"),
+            organ_status="bridged",
+            provenance="wealth_mcp_via_bridge",
+        )
 
         # ── F2: epistemic pass-through integrity (2026-07-09) ──────────────
         # Bridge must not return "successful" payloads that lost honesty tags.
@@ -1464,8 +1516,15 @@ def _bridge_wealth(
                     "Witness incomplete and/or claim_state DRAFT — "
                     "kernel may OBSERVE/ADVISE only; EXECUTIVE/SEAL requires HOLD"
                 )
-                # Surface as soft HOLD on executive paths only (already gated);
-                # do not null the solver result (truth over sanitization).
+                # Surface as degraded on the bridge response
+                attach_degraded_claim(
+                    out if isinstance(out, dict) else {},
+                    what_degraded="witness_incomplete_or_claim_draft",
+                    where_degraded="WEALTH_output_validation",
+                    evidence_produced=True,
+                    result_usable=True,
+                    next_safe_action="evaluate_advisory_only_do_not_execute",
+                )
             # Re-embed stamped payload if MCP text wrapper
             if isinstance(out, dict) and out.get("content"):
                 try:
@@ -1509,13 +1568,24 @@ def _bridge_wealth(
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
-        # Kernel check for echo match
-        echoed_env = (
-            out.get("_envelope") or out.get("envelope") or {} if isinstance(out, dict) else {}
+        # Kernel check for envelope identity consistency
+        call_env = call_args.get("_envelope", {})
+        resp_env = out.get("_envelope_echo", {}) if isinstance(out, dict) else {}
+        call_sid = (
+            call_env.get("__federation_envelope", {}).get("session", {}).get("session_id")
+            if isinstance(call_env, dict)
+            else None
         )
-        if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
-            return _hold(
-                "arif_bridge", "Envelope session_id mismatch — identity rewrite suspected (WEALTH)"
+        resp_sid = resp_env.get("session_id") if isinstance(resp_env, dict) else None
+        if call_sid and resp_sid and call_sid != resp_sid:
+            logger.warning("ENVELOPE DRIFT DETECTED in WEALTH response")
+            attach_degraded_claim(
+                out if isinstance(out, dict) else {},
+                what_degraded="envelope_session_id_mismatch",
+                where_degraded="WEALTH_bridge_response",
+                evidence_produced=True,
+                result_usable=False,
+                next_safe_action="investigate_identity_propagation",
             )
 
         return _ok(
@@ -1528,7 +1598,7 @@ def _bridge_wealth(
                 "boundary_enforced": validated["boundary_enforced"],
                 "violations": validated["violations"],
                 "_epistemic_checked": True,
-                "_envelope_echoed": bool(_envelope),
+                "_envelope_echoed": True,
                 "actor_id": actor_id,
                 "session_id": session_id,
             },
@@ -1536,7 +1606,14 @@ def _bridge_wealth(
             session_id=session_id,
         )
     except Exception as e:
-        return _hold("arif_bridge", f"WEALTH bridge failed: {e}")
+        degraded = build_degraded_claim(
+            what_degraded=str(e),
+            where_degraded="WEALTH_bridge_dispatch",
+            evidence_produced=False,
+            result_usable=False,
+            next_safe_action="check_wealth_organ_health_and_retry",
+        )
+        return _hold("arif_bridge", f"WEALTH bridge failed: {e}", extra_meta=degraded)
 
 
 def _bridge_well(
@@ -1546,8 +1623,22 @@ def _bridge_well(
     hold = _assert_organ_attested("well")
     if hold:
         return hold
-    _envelope = arguments.get("_envelope")
+    # ── WS9: Build federation envelope ─────────────────────────────────────
+    fed_env = build_federation_envelope(
+        actor_id=actor_id,
+        identity_verified=bool(actor_id and session_id),
+        session_id=session_id,
+        authority="OBSERVE_ONLY",
+        source_tool="arif_bridge_connect",
+        target_organ="WELL",
+        target_tool=tool_name,
+        evidence_layer="L2",
+        reversibility="reversible",
+        constitutional_chain_id=arguments.get("constitutional_chain_id", session_id),
+        trace_id=arguments.get("trace_id"),
+    )
     call_args = {k: v for k, v in (arguments or {}).items() if k != "_envelope"}
+    call_args = inject_envelope_into_call_args(call_args, fed_env)
     try:
         from arifosmcp.runtime.epistemic_injector import (
             read_epistemic,
@@ -1557,19 +1648,13 @@ def _bridge_well(
 
         result = _run_async(call_well_tool(tool_name, call_args))
 
-        # Echo _envelope
-        if isinstance(result, dict) and _envelope:
-            result.setdefault("_envelope", _envelope)
-
-        # Kernel echo match check
-        echoed_env = (
-            result.get("_envelope") or result.get("envelope") or {}
-            if isinstance(result, dict)
-            else {}
-        )
-        if _envelope and echoed_env.get("session_id") != _envelope.get("session_id"):
-            return _hold(
-                "arif_bridge", "Envelope session_id mismatch — identity rewrite suspected (WELL)"
+        # ── WS9: Finalize response envelope ────────────────────────────────
+        if isinstance(result, dict):
+            finalize_response_envelope(
+                result,
+                call_args.get("_envelope"),
+                organ_status="bridged",
+                provenance="well_mcp_via_bridge",
             )
 
         # ── Epistemic route gate (2026-06-21) ─────────────────────────────
@@ -1584,6 +1669,27 @@ def _bridge_well(
                 )
                 return _hold("arif_bridge", f"Epistemic route gate: {_reason}", ["F2_TRUTH"])
 
+        # Kernel check for envelope identity consistency
+        call_env = call_args.get("_envelope", {})
+        resp_env = result.get("_envelope_echo", {}) if isinstance(result, dict) else {}
+        call_sid = (
+            call_env.get("__federation_envelope", {}).get("session", {}).get("session_id")
+            if isinstance(call_env, dict)
+            else None
+        )
+        resp_sid = resp_env.get("session_id") if isinstance(resp_env, dict) else None
+        if call_sid and resp_sid and call_sid != resp_sid:
+            logger.warning("ENVELOPE DRIFT DETECTED in WELL response")
+            if isinstance(result, dict):
+                attach_degraded_claim(
+                    result,
+                    what_degraded="envelope_session_id_mismatch",
+                    where_degraded="WELL_bridge_response",
+                    evidence_produced=True,
+                    result_usable=False,
+                    next_safe_action="investigate_identity_propagation",
+                )
+
         return _ok(
             "arif_bridge",
             {
@@ -1592,11 +1698,18 @@ def _bridge_well(
                 "result": result,
                 "status": "bridged",
                 "_epistemic_checked": True,
-                "_envelope_echoed": bool(_envelope),
+                "_envelope_echoed": True,
             },
         )
     except Exception as e:
-        return _hold("arif_bridge", f"WELL bridge failed: {e}")
+        degraded = build_degraded_claim(
+            what_degraded=str(e),
+            where_degraded="WELL_bridge_dispatch",
+            evidence_produced=False,
+            result_usable=False,
+            next_safe_action="check_well_organ_health_and_retry",
+        )
+        return _hold("arif_bridge", f"WELL bridge failed: {e}", extra_meta=degraded)
 
 
 def _get_prediction_health() -> dict[str, Any]:
