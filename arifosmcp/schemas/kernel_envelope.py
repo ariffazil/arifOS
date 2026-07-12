@@ -476,6 +476,170 @@ class AuditBlock(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# VERDICT SCOPES — WS2: Scoped Verdict Model
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class SubstrateVerdictState(StrEnum):
+    """Substrate health verdict: kernel/conformance layer state."""
+
+    PASS = "PASS"
+    HEALTHY = "HEALTHY"
+    DEGRADED = "DEGRADED"
+    FAIL = "FAIL"
+
+
+class SessionVerdictState(StrEnum):
+    """Session authority verdict: what the session token allows."""
+
+    OBSERVE_ONLY = "OBSERVE_ONLY"
+    LIMITED_MUTATE = "LIMITED_MUTATE"
+    FULL = "FULL"
+    SABAR = "SABAR"
+
+
+class ActionVerdictState(StrEnum):
+    """Action authorization verdict: was this specific action allowed."""
+
+    DENIED = "DENIED"
+    APPROVED = "APPROVED"
+    HOLD = "HOLD"
+    VOID = "VOID"
+
+
+class ReceiptVerdictState(StrEnum):
+    """Receipt/vault verdict: was the action sealed."""
+
+    UNSEALED = "UNSEALED"
+    SEALED = "SEALED"
+
+
+class ScopeEvidence(BaseModel):
+    """A single scoped verdict with issuer and evidence reference."""
+
+    model_config = {"extra": "forbid", "frozen": False}
+
+    state: str = Field(
+        default="UNKNOWN",
+        description="Verdict state string (scope-specific enum value)",
+    )
+    issuer: str = Field(
+        default="unknown",
+        description="Issuer of this verdict (e.g. arifos_conformance, session_capability_token)",
+    )
+    evidence_reference: str = Field(
+        default="",
+        description="Optional reference to supporting evidence (hash, log ID, vault entry)",
+    )
+
+
+class VerdictScopes(BaseModel):
+    """Four-scope verdict decomposition (WS2).
+
+    Replaces the single merged verdict with four independent scope verdicts:
+      - substrate:  Kernel/conformance health (PASS/HEALTHY/DEGRADED/FAIL)
+      - session:    Session authority restriction (OBSERVE_ONLY/LIMITED_MUTATE/FULL/SABAR)
+      - action:     Specific action authorization (DENIED/APPROVED/HOLD/VOID)
+      - receipt:    Vault seal status (UNSEALED/SEALED)
+
+    The legacy single `verdict` field is preserved as the worst-scope derivation
+    for one compatibility cycle.
+    """
+
+    model_config = {"extra": "forbid", "frozen": False}
+
+    substrate: ScopeEvidence = Field(
+        default_factory=lambda: ScopeEvidence(
+            state="HEALTHY",
+            issuer="arifos_conformance",
+            evidence_reference="",
+        ),
+        description="Kernel/conformance substrate health",
+    )
+    session: ScopeEvidence = Field(
+        default_factory=lambda: ScopeEvidence(
+            state="OBSERVE_ONLY",
+            issuer="session_capability_token",
+            evidence_reference="",
+        ),
+        description="Session authority restriction",
+    )
+    action: ScopeEvidence = Field(
+        default_factory=lambda: ScopeEvidence(
+            state="APPROVED",
+            issuer="effective_decision",
+            evidence_reference="",
+        ),
+        description="Specific action authorization",
+    )
+    receipt: ScopeEvidence = Field(
+        default_factory=lambda: ScopeEvidence(
+            state="UNSEALED",
+            issuer="vault999",
+            evidence_reference="",
+        ),
+        description="Vault seal status",
+    )
+
+    # ── Scope weight maps for worst-scope derivation ─────────────
+
+    SUBSTRATE_WEIGHT: dict[str, int] = {
+        "PASS": 0,
+        "HEALTHY": 1,
+        "DEGRADED": 2,
+        "FAIL": 3,
+    }
+
+    SESSION_WEIGHT: dict[str, int] = {
+        "OBSERVE_ONLY": 0,
+        "LIMITED_MUTATE": 1,
+        "FULL": 2,
+        "SABAR": -1,  # Special: SABAR is a caution, mapped to SABAR in legacy
+    }
+
+    ACTION_WEIGHT: dict[str, int] = {
+        "APPROVED": 0,
+        "DENIED": 2,
+        "HOLD": 3,
+        "VOID": 4,
+    }
+
+    RECEIPT_WEIGHT: dict[str, int] = {
+        "SEALED": 0,
+        "UNSEALED": 1,
+    }
+
+    def worst_legacy_verdict(self) -> GateVerdict:
+        """Derive legacy single verdict from the worst scope.
+
+        Maps: substrate=FAIL or action=VOID → VOID
+              action=HOLD or session=SABAR → HOLD
+              action=DENIED or substrate=DEGRADED → HOLD
+              session=OBSERVE_ONLY → OBSERVE_ONLY (handled specially)
+              all ok → SEAL
+        """
+        # Action scope is authoritative — VOID overrides everything
+        if self.action.state == "VOID":
+            return GateVerdict.VOID
+        if self.action.state == "HOLD":
+            return GateVerdict.HOLD
+        if self.substrate.state == "FAIL":
+            return GateVerdict.VOID
+        if self.substrate.state == "DEGRADED":
+            return GateVerdict.HOLD
+        if self.action.state == "DENIED":
+            return GateVerdict.HOLD
+        if self.session.state == "SABAR":
+            return GateVerdict.SABAR
+        if self.session.state == "OBSERVE_ONLY":
+            # OBSERVE_ONLY is a valid session restriction — not HOLD
+            # but the legacy system maps it to its own string, not a GateVerdict.
+            # We preserve it as SEAL since the action itself is not blocked.
+            return GateVerdict.SEAL
+        return GateVerdict.SEAL
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # THE CANONICAL KERNEL ENVELOPE
 # ═══════════════════════════════════════════════════════════════════════════════
 

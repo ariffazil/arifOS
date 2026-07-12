@@ -227,7 +227,13 @@ def validate_session(
                         "via": "env_var_fallback",
                     },
                     stage="000",
-                    governance={"verdict": "SEAL", "trace_packet": None},
+                    # WS2 (2026-07-12): removed default SEAL on auto-bootstrap.
+                    # Auto-bootstrap sessions start as verdict=None and
+                    # gain verdict only when the judge path CLEARs them. An
+                    # unfilled verdict is substrate-conservative; a default
+                    # SEAL was a substrate-overclaim that polluted every
+                    # warm-boot session.
+                    governance={"verdict": None, "trace_packet": None},
                 )
                 # Re-fetch the freshly created session
                 try:
