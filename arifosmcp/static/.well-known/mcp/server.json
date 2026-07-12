@@ -5,9 +5,9 @@
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional MCP Server",
-    "version": "2026.07.01-public7"
+    "version": "kanon-0545460"
   },
-  "description": "Constitutional governance kernel. Public MCP facade is exactly 7 verbs: init, observe, think, route, judge, act, seal. Internal diagnostics and legacy compatibility tools exist behind the public facade but are not part of the default public surface.",
+  "description": "Constitutional governance kernel. Public MCP facade is 18 tools (metabolic 12 + entropy mesh 6). Internal diagnostics exist behind the public facade but are not part of the default public surface.",
   "transport": {
     "type": "streamable-http",
     "endpoint": "https://mcp.arif-fazil.com/mcp"
@@ -17,7 +17,7 @@
     "schemes": [
       "bearer"
     ],
-    "description": "Initialize and default public discovery are open. Higher-authority tools such as arif_judge, arif_act, and arif_seal enforce authentication or sovereign approval."
+    "description": "Initialize and default public discovery are open. Higher-authority tools enforce authentication or sovereign approval."
   },
   "capabilities": {
     "tools": {
@@ -29,60 +29,65 @@
     },
     "prompts": {
       "listChanged": true
-    },
-    "tasks": {
-      "list": {},
-      "cancel": {},
-      "requests": {
-        "tools": {
-          "call": {}
-        },
-        "prompts": {
-          "get": {}
-        },
-        "resources": {
-          "read": {}
-        }
-      }
     }
   },
-  "tools": {
-    "count": 7,
-    "canonical": [
-      "arif_init",
-      "arif_observe",
-      "arif_think",
-      "arif_route",
-      "arif_judge",
-      "arif_act",
-      "arif_seal"
-    ],
-    "goldenPath": [
-      "arif_init",
-      "arif_observe",
-      "arif_think",
-      "arif_route",
-      "arif_judge",
-      "arif_act",
-      "arif_seal"
-    ]
-  },
-  "governance": {
-    "floorsActive": 13,
-    "verdictTypes": [
-      "SEAL",
-      "HOLD",
-      "SABAR",
-      "VOID"
-    ],
-    "humanApprovalRequiredForIrreversibleActions": true,
-    "irreversibleGate": "arif_act requires a valid governed approval path ending in seal."
-  },
-  "links": {
-    "documentation": "https://arifos.arif-fazil.com",
-    "homepage": "https://arif-fazil.com",
-    "github": "https://github.com/ariffazil/arifos",
-    "status": "https://arifos.arif-fazil.com/health",
-    "llms": "https://arifos.arif-fazil.com/llms.txt"
-  }
+  "tools": [
+    {
+      "name": "arif_init"
+    },
+    {
+      "name": "arif_observe"
+    },
+    {
+      "name": "arif_think"
+    },
+    {
+      "name": "arif_route"
+    },
+    {
+      "name": "arif_bridge_connect"
+    },
+    {
+      "name": "arif_critique"
+    },
+    {
+      "name": "arif_memory"
+    },
+    {
+      "name": "arif_judge"
+    },
+    {
+      "name": "arif_forge"
+    },
+    {
+      "name": "arif_compose"
+    },
+    {
+      "name": "arif_seal"
+    },
+    {
+      "name": "arif_verify"
+    },
+    {
+      "name": "arif_entropy_observe"
+    },
+    {
+      "name": "arif_j_state_assess"
+    },
+    {
+      "name": "arif_correction_probe"
+    },
+    {
+      "name": "arif_consequence_trace"
+    },
+    {
+      "name": "arif_entropy_route"
+    },
+    {
+      "name": "arif_j_gate"
+    }
+  ],
+  "tool_count": 18,
+  "homepage": "https://arifos.arif-fazil.com",
+  "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json"
 }

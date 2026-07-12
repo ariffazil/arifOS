@@ -5,10 +5,9 @@
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional MCP Server",
-    "version": "kanon-b55f78b",
-    "release": "v2026.07.04-MARHIN"
+    "version": "kanon-0545460"
   },
-  "description": "Constitutional governance kernel for the arifOS federation. Exposes three MCP primitives: Tools (12 governed actions), Resources (183 context sources + 12 templates), and Prompts (8 golden-path stages). Public facade is 12 tools; 5 internal tools hidden behind sovereign gate. All operations governed by 13 constitutional floors (F1-F13).",
+  "description": "Constitutional governance kernel. Public MCP facade is 18 tools (metabolic 12 + entropy mesh 6). Internal diagnostics exist behind the public facade but are not part of the default public surface.",
   "transport": {
     "type": "streamable-http",
     "endpoint": "https://mcp.arif-fazil.com/mcp"
@@ -18,80 +17,77 @@
     "schemes": [
       "bearer"
     ],
-    "description": "Initialize and default public discovery are open. Higher-authority tools such as arif_judge and arif_seal enforce authentication or sovereign approval."
+    "description": "Initialize and default public discovery are open. Higher-authority tools enforce authentication or sovereign approval."
   },
   "capabilities": {
     "tools": {
-      "listChanged": true,
-      "count": 12,
-      "note": "12 public tools. 5 internal tools (arif_act, arif_fetch, arif_judge_deliberate, arif_kernel_intercept, arif_runtime_health) hidden per F13 ratification."
+      "listChanged": true
     },
     "resources": {
       "subscribe": false,
-      "listChanged": true,
-      "count": 183,
-      "templates": 12,
-      "note": "16 core constitutional resources (arifos://) + 167 skill resources (skill://). 12 dynamic templates for witness logs, vault entries, source retrieval."
+      "listChanged": true
     },
     "prompts": {
-      "listChanged": true,
-      "count": 8,
-      "note": "8 golden-path stages: loop_engineer, 000_init, 111_sense, 333_reason, 555_critique, 666_judge, 777_forge, 999_seal."
-    },
-    "tasks": {
-      "list": {},
-      "cancel": {},
-      "requests": {
-        "tools": { "call": {} },
-        "prompts": { "get": {} },
-        "resources": { "read": {} }
-      }
+      "listChanged": true
     }
   },
-  "tools": {
-    "count": 12,
-    "canonical": [
-      "arif_init",
-      "arif_triage",
-      "arif_observe",
-      "arif_think",
-      "arif_route",
-      "arif_bridge_connect",
-      "arif_critique",
-      "arif_memory",
-      "arif_judge",
-      "arif_forge",
-      "arif_compose",
-      "arif_seal"
-    ],
-    "goldenPath": [
-      "arif_init",
-      "arif_observe",
-      "arif_think",
-      "arif_route",
-      "arif_judge",
-      "arif_forge",
-      "arif_seal"
-    ],
-    "internal": [
-      "arif_act",
-      "arif_fetch",
-      "arif_judge_deliberate",
-      "arif_kernel_intercept",
-      "arif_runtime_health"
-    ]
-  },
-  "governance": {
-    "floorsActive": 13,
-    "verdictTypes": ["SEAL", "HOLD", "SABAR", "VOID"],
-    "humanApprovalRequiredForIrreversibleActions": true,
-    "irreversibleGate": "arif_seal requires ack_irreversible=true. arif_forge requires prior arif_judge SEAL."
-  },
-  "links": {
-    "documentation": "https://arifos.arif-fazil.com",
-    "homepage": "https://arif-fazil.com",
-    "github": "https://github.com/ariffazil/arifos",
-    "status": "https://arifos.arif-fazil.com/health",
-    "llms": "https://arifos.arif-fazil.com/llms.txt"
-  }
+  "tools": [
+    {
+      "name": "arif_init"
+    },
+    {
+      "name": "arif_observe"
+    },
+    {
+      "name": "arif_think"
+    },
+    {
+      "name": "arif_route"
+    },
+    {
+      "name": "arif_bridge_connect"
+    },
+    {
+      "name": "arif_critique"
+    },
+    {
+      "name": "arif_memory"
+    },
+    {
+      "name": "arif_judge"
+    },
+    {
+      "name": "arif_forge"
+    },
+    {
+      "name": "arif_compose"
+    },
+    {
+      "name": "arif_seal"
+    },
+    {
+      "name": "arif_verify"
+    },
+    {
+      "name": "arif_entropy_observe"
+    },
+    {
+      "name": "arif_j_state_assess"
+    },
+    {
+      "name": "arif_correction_probe"
+    },
+    {
+      "name": "arif_consequence_trace"
+    },
+    {
+      "name": "arif_entropy_route"
+    },
+    {
+      "name": "arif_j_gate"
+    }
+  ],
+  "tool_count": 18,
+  "homepage": "https://arifos.arif-fazil.com",
+  "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json"
 }
