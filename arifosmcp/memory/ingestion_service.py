@@ -57,6 +57,9 @@ class MemoryIngestionService:
             record.expires_at = None
             record.retention_class = RetentionClass.IMMUTABLE_AUDIT
             record.revocable = False
+        elif record.type == MemoryType.SOVEREIGN_GEOMETRY:
+            record.expires_at = None
+            record.retention_class = RetentionClass.DURABLE
 
     async def ingest(
         self, session_turn: dict[str, Any], ctx: dict[str, Any]

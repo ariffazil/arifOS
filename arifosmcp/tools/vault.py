@@ -332,6 +332,7 @@ async def arif_seal(
         judge_state_hash=judge_state_hash,
         witness_type=witness_type,
         drift_events=drift_events,
+        floors=floors,
     )
 
     # ── E1 FIX: Mint cryptographic SEAL token for IRREVERSIBLE actions ─────────

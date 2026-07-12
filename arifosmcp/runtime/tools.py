@@ -16189,6 +16189,7 @@ def _arif_vault_seal(
     witness_type: str = "ai",
     drift_events: list[dict[str, Any]] | None = None,
     constitutional: dict[str, Any] | None = None,
+    floors: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     999_VAULT: Immutable ledger anchoring and cryptographic seal.
