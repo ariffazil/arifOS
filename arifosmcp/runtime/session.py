@@ -554,6 +554,7 @@ def get_session_identity(session_id: str) -> dict[str, Any] | None:
     if session_id and str(session_id).startswith("arifos.v1."):
         try:
             from arifosmcp.runtime.capability_token import verify_token
+
             payload = verify_token(session_id)
             if payload:
                 record = {
@@ -744,7 +745,11 @@ def record_session_tool_event(
         {
             "stage": stage or record.get("stage") or "000_INIT",
             "governance": {
-                "verdict": verdict or _deep_get(record, "governance", "verdict") or "SEAL"
+                # WS2 (2026-07-12): no default SEAL on write. Verdict stays
+                # unfilled until judge path clears. Consumers should treat
+                # None as "no verdict yet" (substrate-conservative) and
+                # fall back to execution_readiness service-side.
+                "verdict": verdict or _deep_get(record, "governance", "verdict")
             },
             "activity": activity_update,
         },
