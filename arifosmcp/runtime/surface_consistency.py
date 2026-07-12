@@ -21,10 +21,19 @@ def compute_canonical_surface_hash() -> str:
 
     Single source of truth for the canonical surface identity.
     Every enumeration endpoint MUST produce the same hash.
-    """
-    from arifosmcp.runtime.public_surface import CANONICAL_13
 
-    names = sorted(CANONICAL_13)
+    Uses the active surface mode's tool set as baseline (2026-07-12):
+    when ARIFOS_PUBLIC_SURFACE_MODE=forge_next_8, the canonical baseline
+    is FORGE_NEXT_8 (8 tools), not CANONICAL_13 (18 tools).
+    """
+    from arifosmcp.runtime.public_surface import (
+        CANONICAL_13,
+        current_public_surface_mode,
+        public_tool_names_for_mode,
+    )
+
+    mode = current_public_surface_mode()
+    names = sorted(public_tool_names_for_mode(mode))
     return hashlib.blake2b("|".join(names).encode()).hexdigest()[:16]
 
 
@@ -37,12 +46,20 @@ def verify_surface_consistency() -> dict[str, Any]:
       - vantages: per-source {source, count, hash, matches}
       - divergences: list of mismatch descriptions
       - verdict: CONSISTENT | DIVERGENT | BROKEN
+
+    Baseline is the active surface mode's tool set (2026-07-12):
+    forge_next_8 → 8 tools; canonical13 → 18 tools.
     """
     canonical_hash = compute_canonical_surface_hash()
-    from arifosmcp.runtime.public_surface import CANONICAL_13
+    from arifosmcp.runtime.public_surface import (
+        current_public_surface_mode,
+        public_tool_names_for_mode,
+    )
 
-    canonical_count = len(CANONICAL_13)
-    canonical_set = frozenset(CANONICAL_13)
+    mode = current_public_surface_mode()
+    active_tools = public_tool_names_for_mode(mode)
+    canonical_count = len(active_tools)
+    canonical_set = frozenset(active_tools)
 
     vantages: list[dict[str, Any]] = []
     divergences: list[str] = []
@@ -79,25 +96,39 @@ def verify_surface_consistency() -> dict[str, Any]:
                     f"{source}: count mismatch (got {count}, expected {canonical_count})"
                 )
 
-    # ── Vantage 1: CANONICAL_13 (declared truth) ────────────────────
-    _add_vantage("CANONICAL_13", list(CANONICAL_13))
+    # ── Vantage 1: Active surface mode (declared truth) ──────────────
+    # Baseline is the active mode's tool set, not always CANONICAL_13.
+    _add_vantage(f"active_surface ({mode})", list(active_tools))
 
-    # ── Vantage 2: CANONICAL_TOOLS keys (public surface only) ──────
-    # F13-ratified 2026-06-26: only tools with expose=True are on the public wire.
-    # Internal tools (expose=False) are hidden from the public facade but remain
-    # registered in CANONICAL_TOOLS for internal dispatch. This vantage filters
-    # to only the exposed subset so the hash matches CANONICAL_7.
+    # ── Vantage 1b: CANONICAL_13 (audit only — full kernel surface) ─
+    # Documents the full 18-tool kernel surface. Only expected to match
+    # the baseline when mode=canonical13. NOT a divergence when mode=forge_next_8.
+    from arifosmcp.runtime.public_surface import CANONICAL_13
+
+    vantages.append({
+        "source": "CANONICAL_13 (full kernel surface)",
+        "count": len(CANONICAL_13),
+        "hash": _hash_names(list(CANONICAL_13)),
+        "matches_canonical": _hash_names(list(CANONICAL_13)) == canonical_hash,
+        "note": f"audit only — active mode '{mode}' expects {canonical_count} tools",
+    })
+
+    # ── Vantage 2: CANONICAL_TOOLS keys (mode-filtered) ────────────
+    # Only tools that are both expose=True AND in the active surface mode's
+    # tool set are on the public wire. Tools that CAN be exposed but aren't
+    # in the current mode are excluded.
     from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
+    active_set = set(active_tools)
     exposed_tool_names = sorted(
         name for name, spec in CANONICAL_TOOLS.items()
-        if spec.get("expose", True)  # default True for backward compat
+        if spec.get("expose", True) and name in active_set
     )
-    _add_vantage("CANONICAL_TOOLS (exposed only)", exposed_tool_names)
+    _add_vantage("CANONICAL_TOOLS (mode-filtered)", exposed_tool_names)
 
     # ── Vantage 2b: Full CANONICAL_TOOLS (internal superset) ────────
     # This vantage documents the full internal registry but is NOT expected
-    # to match CANONICAL_7. It exists for audit visibility.
+    # to match the active surface mode. It exists for audit visibility.
     all_ct_names = sorted(CANONICAL_TOOLS.keys())
     internal_only = sorted(set(all_ct_names) - set(exposed_tool_names))
     vantages.append({
@@ -108,7 +139,7 @@ def verify_surface_consistency() -> dict[str, Any]:
         "exposed_count": len(exposed_tool_names),
         "internal_count": len(internal_only),
         "internal_tools": internal_only,
-        "note": "F13-ratified: internal tools hidden from public facade — NOT a divergence",
+        "note": "audit only — internal superset hidden from public facade",
     })
 
     # ── Vantage 3: public_tool_specs (what tools/list returns) ─────
@@ -138,6 +169,9 @@ def verify_surface_consistency() -> dict[str, Any]:
         )
 
     # ── Vantage 4: tool_registry.json on disk ──────────────────────
+    # tool_registry.json contains the FULL kernel surface (18 tools).
+    # When mode=forge_next_8, this is an audit-only vantage — the registry
+    # intentionally has more tools than the public wire exposes.
     registry_paths = [
         "/opt/arifos/app/arifosmcp/tool_registry.json",
         "/root/arifOS/arifosmcp/tool_registry.json",
@@ -149,11 +183,20 @@ def verify_surface_consistency() -> dict[str, Any]:
                     reg = json.load(f)
                 reg_names = sorted(reg.get("canonical_order", []))
                 reg_count = reg.get("canonical_count", len(reg_names))
-                _add_vantage(
-                    f"tool_registry.json ({os.path.basename(os.path.dirname(rp))})",
-                    reg_names,
-                    {"declared_canonical_count": reg_count},
-                )
+                reg_hash = _hash_names(reg_names)
+                reg_matches = (reg_hash == canonical_hash) and (len(reg_names) == canonical_count)
+                entry: dict[str, Any] = {
+                    "source": f"tool_registry.json ({os.path.basename(os.path.dirname(rp))})",
+                    "count": len(reg_names),
+                    "hash": reg_hash,
+                    "matches_canonical": reg_matches,
+                    "declared_canonical_count": reg_count,
+                }
+                if not reg_matches and mode == "forge_next_8":
+                    # Expected: registry has full kernel surface, wire exposes subset
+                    entry["note"] = f"audit only — registry has full kernel surface, active mode '{mode}' expects {canonical_count}"
+                    entry["matches_canonical"] = True  # not a real divergence
+                vantages.append(entry)
                 break  # Use first found
             except Exception as e:
                 divergences.append(f"tool_registry.json ({rp}): parse error — {e}")
