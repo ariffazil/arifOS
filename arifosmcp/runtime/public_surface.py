@@ -42,6 +42,34 @@ CANONICAL_12: tuple[str, ...] = (
     "arif_j_gate",  # E7 — Convert J-state to action posture
 )
 
+# ── FORGE_NEXT_8 — F13 SOVEREIGN surface collapse (2026-07-12) ──────────
+# WS4 cycle-end. 8 canonical verbs the kernel serves to MCP clients.
+# CONSENSUS (AUDITOR + OPS + PLANNER, 2026-07-12 14:00Z):
+#   - memory IN (F1/F11 backbone: recall, promote, forget; scar continuity)
+#   - compose OUT (cosmetic formatting — every LLM composes its own replies)
+# 10 retired verbs map INTO the 8 via modes/internalisation:
+#   arif_critique           → arif_think(mode=redteam|critique)
+#   arif_bridge_connect     → arif_route(mode=bridge)
+#   arif_entropy_observe    → arif_observe(mode=entropy_dS)
+#   arif_entropy_route      → arif_observe(mode=entropy_dS)
+#   arif_j_state_assess     → arif_judge (internal stage)
+#   arif_correction_probe   → arif_think (internal)
+#   arif_consequence_trace  → arif_forge preflight (internal)
+#   arif_j_gate             → arif_forge gate (internal)
+#   arif_verify             → hardcoded first step in arif_forge (was JITU gate)
+#   arif_compose            → DELETED (agent composes)
+# Pending: AGENTS.md canonical-8 doc update (memory-above-compose).
+FORGE_NEXT_8: tuple[str, ...] = (
+    "arif_init",  # 000 — Session bootstrap
+    "arif_observe",  # 111 — Reality sensing
+    "arif_think",  # 333 — Cognitive engine (absorbs redteam/critique)
+    "arif_route",  # 444 — Organ router (absorbs bridge)
+    "arif_judge",  # 666 — Constitutional verdict (absorbs j_state_assess)
+    "arif_forge",  # 777 — Guarded execution (absorbs verify, j_gate, consequence_trace)
+    "arif_seal",  # 999 — VAULT999 append
+    "arif_memory",  # 555m — Memory governor (cross-cutting DAG)
+)
+
 # ── DEPRECATED ALIASES (backward compat only) ─────────────────────────────
 CANONICAL_13: tuple[str, ...] = (
     CANONICAL_12  # DEPRECATED — use CANONICAL_12 (registry.py, surface_consistency.py)
@@ -209,14 +237,20 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
         raw = (os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "") or "").strip().lower()
 
     profile_map = {
+        # F13 SOVEREIGN — 2026-07-12: forge_next_8 is the new canonical
+        # default public surface for the arifOS MCP wire. WS4 cycle-end
+        # surface collapse. Legacy modes still resolve to canonical13
+        # (18-tool) for backward compat callers.
+        "forge_next_8": "forge_next_8",
+        "forge-next-8": "forge_next_8",
         "canonical13": "canonical13",
         "canonical9": "canonical13",  # deprecated alias
         "canonical12": "canonical13",  # deprecated alias
         "canonical7": "canonical13",  # deprecated alias
         "canonical15": "canonical13",  # deprecated alias
-        "public": "canonical13",
-        "chatgpt": "canonical13",
-        "agnostic_public": "canonical13",
+        "public": "forge_next_8",  # F13 default
+        "chatgpt": "forge_next_8",
+        "agnostic_public": "forge_next_8",
         "internal": "expanded45",
         "expanded45": "expanded45",
     }
@@ -225,6 +259,15 @@ def normalize_public_surface_mode(mode: str | None = None) -> str:
 
 def current_public_surface_mode() -> str:
     return normalize_public_surface_mode(None)
+
+
+# Lookup table: resolved surface profile name → tuple of canonical verbs.
+# FORGE_NEXT_8 (8) is the default — per F13 SOVEREIGN directive 2026-07-12.
+_SURFACE_VERB_TABLE: dict[str, tuple[str, ...]] = {
+    "forge_next_8": FORGE_NEXT_8,
+    "canonical13": CANONICAL_12,
+    "expanded45": EXPANDED_45,
+}
 
 
 def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
@@ -249,8 +292,14 @@ def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
             "on",
         )
         candidates = EXPANDED_45 if expose_dev_tools else CANONICAL_12
+    elif resolved == "forge_next_8":
+        # F13 SOVEREIGN 2026-07-12: 8-verb wire surface. The 10 retired
+        # verbs continue to live in CANONICAL_TOOLS (kernel handlers
+        # remain wired) but are now hidden from tools/list output unless
+        # the caller explicitly switches back to canonical13 / expanded45.
+        candidates = FORGE_NEXT_8
     else:
-        # canonical13 (default): the 13 canonical tools.
+        # canonical13 (legacy default): the 13-tool wire surface.
         candidates = CANONICAL_12
     # Filter out internal_only tools regardless of mode.
     return tuple(
