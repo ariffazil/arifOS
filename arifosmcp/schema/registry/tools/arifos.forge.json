@@ -115,9 +115,10 @@
     "plain_english": "Use this ONLY to execute actions that have passed ALL governance gates. It requires a SEAL verdict and cryptographic proof. This is the ONLY way to change state.",
     "key_phrases": ["execute", "run", "deploy", "write file", "spawn process"],
     "ask_before_use_if": [
-      "you have a SEAL verdict",
-      "you have the HMAC attestation envelope",
-      "all upstream stages completed"
+      "ALWAYS — forge mutates state; requires prior SEAL from arif_judge",
+      "you do not have a valid seal_verdict_id from arif_judge",
+      "the action is irreversible or has high blast radius",
+      "you are about to execute shell, filesystem write, or git push"
     ],
     "do_not_assume": [
       "you can use forge directly - you cannot",
