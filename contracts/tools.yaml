@@ -350,6 +350,75 @@ diagnostic:
       witness_requirements: [], contract_version: "1.0.0",
       notes: "Conformance spine: checks kernel_alive, initialize_lifecycle, tools_list_matches_callable, alias_resolution, session_init, unknown_tool_error_is_self_correctable." }
 
+  # ── CYCLE 1 WS4: Entropy Integrity Mesh (6 tools, surface_class: DIAGNOSTIC) ──
+  # Previously ADVERTISED_BUT_UNREGISTERED (Path-B gap). Now registered in capability graph.
+  # These tools are policy-routed — normal agents default to cognitive spine.
+  # Internal governance: consumed by arif_judge, not independently callable by agents.
+
+  - { canonical_name: arif_entropy_observe, role: entropy_observation, axis: "111_SENSE", pipeline_stage: intake,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [observe], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      surface_class: DIAGNOSTIC, policy_routed: true,
+      notes: "Collects entropy observation packets from organs. Enters J-state pipeline. Superseded by arif_observe(mode=entropy_dS) for agent-facing use." }
+
+  - { canonical_name: arif_entropy_route, role: entropy_domain_router, axis: "444_ROUTE", pipeline_stage: intent,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [route], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      surface_class: DIAGNOSTIC, policy_routed: true,
+      notes: "Routes entropy-domain questions to correct organ. Superseded by arif_route for agent-facing use." }
+
+  - { canonical_name: arif_j_state_assess, role: judgment_integrity_fusion, axis: "666_HEART", pipeline_stage: verdict,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [assess], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      surface_class: DIAGNOSTIC, policy_routed: true,
+      notes: "Fuses organ observations into 5 J-planes. Consumed internally by arif_judge. Never separately callable by agents." }
+
+  - { canonical_name: arif_j_gate, role: action_posture_gate, axis: "666_HEART", pipeline_stage: verdict,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [gate], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      surface_class: DIAGNOSTIC, policy_routed: true,
+      notes: "J0→VOID, J1→HOLD, J2→reversible only. Consumed internally by arif_judge. Never separately callable." }
+
+  - { canonical_name: arif_consequence_trace, role: decision_consequence_tracing, axis: "111_SENSE", pipeline_stage: intake,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [trace], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      surface_class: DIAGNOSTIC, policy_routed: true,
+      notes: "Traces who decides, who benefits, who bears harm. Consumed internally by arif_judge. Never separately callable." }
+
+  - { canonical_name: arif_correction_probe, role: correction_challenge, axis: "666_HEART", pipeline_stage: verdict,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [draft_probe, record_response, classify_response, close_probe], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      surface_class: DIAGNOSTIC, policy_routed: true,
+      notes: "Generates neutral challenge; records response. Consumed as critique layer. Never separately callable by agents." }
+
+  # ── CYCLE 1 WS4: Internal Governance (1 tool) ──
+  - { canonical_name: arif_verify, role: jitu_pre_execution_gate, axis: "000Ω_FORGE", pipeline_stage: execute,
+      contract_class: diagnostic, mutation_class: read, requires_plan: false,
+      modes: [verify], reversibility: reversible, blast_radius: low,
+      authority_required: public, channel: stable, hold_conditions: [],
+      denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
+      witness_requirements: [], contract_version: "1.0.0",
+      surface_class: INTERNAL_GOVERNANCE, policy_routed: true,
+      notes: "JITU pre-execution gate — cryptographic SEAL token verification. ABSORBED as mandatory stage 6 of arif_forge internal chain. Never independently callable." }
+
 # ── 7 FEDERATED organ boundary tools ─────────────────────────────────────────
 federated_organs:
   - { canonical_name: arif_route, role: intent_routing, axis: "555_ROUTE", pipeline_stage: intent,
