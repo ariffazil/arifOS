@@ -43,7 +43,7 @@
       "arif_judge",
       "arif_seal",
       "arif_forge",
-      "arif_measure"
+      "arif_runtime_health"
     ]
   },
   "governed_discovery_kernel": {

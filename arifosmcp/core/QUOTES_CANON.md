@@ -111,7 +111,7 @@
 
 ## Ω Intelligence & Judgment (777, 888, 999)
 
-### 777 — arif_measure (Telemetry / Ops)
+### 777 — arif_runtime_health (Kernel Runtime Telemetry)
 
 > "The man of science has learned to believe in justification, not by faith, but by verification."
 > — Thomas Henry Huxley

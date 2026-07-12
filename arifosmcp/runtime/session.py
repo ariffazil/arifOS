@@ -20,7 +20,9 @@ import logging
 import os
 import re
 import tempfile
+import time
 import uuid
+from collections import OrderedDict
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from threading import RLock
@@ -29,6 +31,72 @@ from typing import Any
 from core.shared.types import ActorIdentity
 
 logger = logging.getLogger(__name__)
+# ── Replay / Nonce Detection ────────────────────────────────────────────
+# LRU cache of recently seen request IDs (trace_id / jti).
+# Rejects duplicate usage within the TTL window — simple replay defense.
+_NONCE_CACHE_MAX = int(os.getenv("ARIFOS_NONCE_CACHE_MAX", "4096"))
+_NONCE_TTL_SECONDS = int(os.getenv("ARIFOS_NONCE_TTL_SECONDS", "600"))  # 10 min
+
+
+class _NonceCache:
+    """Thread-safe LRU nonce cache with TTL expiry.
+
+    Entries older than TTL are lazily evicted on access.  The cache is bounded
+    to max_size entries; when full, the oldest entry is evicted regardless
+    of TTL.
+    """
+
+    def __init__(self, max_size: int = _NONCE_CACHE_MAX, ttl: int = _NONCE_TTL_SECONDS):
+        self._max = max_size
+        self._ttl = ttl
+        self._lock = RLock()
+        self._seen: OrderedDict[str, float] = OrderedDict()  # nonce -> timestamp
+
+    def check_and_record(self, nonce: str) -> tuple[bool, str]:
+        """Return (is_fresh, reason).
+
+        If the nonce was seen within TTL, returns (False, "replay_detected").
+        Otherwise records it and returns (True, "ok").
+        """
+        if not nonce:
+            return True, "no_nonce"
+        now = time.time()
+        with self._lock:
+            # Lazy evict expired entries (amortized, check at most 16)
+            evicted = 0
+            while self._seen and evicted < 16:
+                oldest_key, oldest_ts = next(iter(self._seen.items()))
+                if now - oldest_ts > self._ttl:
+                    self._seen.pop(oldest_key)
+                    evicted += 1
+                else:
+                    break
+
+            if nonce in self._seen:
+                age = now - self._seen[nonce]
+                return False, f"replay_detected: nonce={nonce[:16]}... age={age:.0f}s"
+
+            # Record and enforce max size
+            self._seen[nonce] = now
+            self._seen.move_to_end(nonce)
+            while len(self._seen) > self._max:
+                self._seen.popitem(last=False)
+
+            return True, "ok"
+
+    def __len__(self) -> int:
+        with self._lock:
+            return len(self._seen)
+
+
+# Module-level singleton — one cache per process
+_request_nonce_cache = _NonceCache()
+
+
+def check_request_nonce(nonce: str) -> tuple[bool, str]:
+    """Public API: check a request nonce against the replay cache."""
+    return _request_nonce_cache.check_and_record(nonce)
+
 
 # Global Session Registry (In-memory fallback for stateless bridge)
 _ACTOR_IDENTITIES: dict[str, ActorIdentity] = {}
@@ -104,7 +172,11 @@ def _sign_session_payload(payload: dict[str, Any]) -> str:
 
 
 def _verify_session_token(token: str) -> dict[str, Any] | None:
-    """Verify and decode a signed session token."""
+    """Verify and decode a signed session token.
+
+    Checks HMAC signature AND expiry (exp claim).  Returns None if the token
+    is tampered, malformed, or expired.
+    """
     try:
         if "." not in token:
             return None
@@ -121,7 +193,23 @@ def _verify_session_token(token: str) -> dict[str, Any] | None:
             b64_payload += "=" * (4 - missing_padding)
 
         decoded = base64.urlsafe_b64decode(b64_payload).decode()
-        return json.loads(decoded)
+        payload = json.loads(decoded)
+
+        # ── Replay defense: verify exp claim ──────────────────────────────
+        exp = payload.get("exp")
+        if exp is not None:
+            try:
+                if int(exp) < int(time.time()):
+                    logger.warning(
+                        "Session token expired: exp=%s now=%s",
+                        exp,
+                        int(time.time()),
+                    )
+                    return None
+            except (TypeError, ValueError):
+                return None
+
+        return payload
     except Exception:
         return None
 
@@ -260,7 +348,7 @@ def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
                 _, token = session_id.split("--", 1)
                 recovered = _verify_session_token(token)
                 if recovered:
-                    # Session expired check within token if needed, but for now trust signed sig
+                    # _verify_session_token already validates exp claim — expired tokens return None
                     # Reconstruct ephemeral record
                     record = {
                         "session_id": session_id,

@@ -27,12 +27,36 @@ import asyncio
 import concurrent.futures
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
 from arifosmcp.core.federation_contracts import validate_organ_output
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
+
+
+def _token_in(token: str, text: str) -> bool:
+    """Substring match with word boundaries for short / single-token keywords.
+
+    HARDEN-C calibration (2026-07-12): bare ``in`` matching let capital token
+    ``irr`` fire inside ``irreversible`` and GEOX token ``rs`` fire inside the
+    same word — WEALTH won over WELL for substrate-readiness intents.
+
+    Multi-word phrases stay pure substring (specific enough). Tokens shorter
+    than 5 chars, or single tokens of any length that are pure alphanumerics,
+    require non-alnum boundaries on both sides.
+    """
+    if not token:
+        return False
+    t = token.lower()
+    if " " in t or "-" in t or "_" in t or "/" in t:
+        return t in text
+    if len(t) >= 6 and t.isalpha():
+        # Long pure words: still boundary-aware to avoid mid-word hits
+        return re.search(rf"(?<![a-z0-9]){re.escape(t)}(?![a-z0-9])", text) is not None
+    return re.search(rf"(?<![a-z0-9]){re.escape(t)}(?![a-z0-9])", text) is not None
+
 
 logger = logging.getLogger(__name__)
 
@@ -358,9 +382,12 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # and route to that organ BEFORE the kernel guard fires.
     _ORGAN_NAMES = ("WELL", "GEOX", "WEALTH", "AAA", "A-FORGE", "AFORGE", "ARIFOS")
 
-    # Step 1: organ-qualified phrases win.
+    # Step 1: organ-qualified phrases win — ONLY for explicit organ queries.
     # HARDEN-C P0 (2026-07-12): bare " well " must NOT match geoscience
     # "seismic well tie" / "well log" — only explicit WELL-organ phrases.
+    # ROUTING-CALIBRATION FIX (2026-07-12): bare organ name in intent (e.g.
+    # "restart the arifos service") must NOT trigger Step 1 — only explicit
+    # organ-query patterns (organ at start or followed by organ/health/status).
     for organ_name in _ORGAN_NAMES:
         organ_lower = organ_name.lower().replace("-", " ").replace("a forge", "a_forge")
         if organ_name == "WELL":
@@ -394,13 +421,28 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
                     continue
                 return "well"
             continue  # never bare-token match WELL
-        if (
-            intent_lower.startswith(organ_lower + " ")
-            or f" {organ_lower} " in intent_lower
-            or f" {organ_lower} organ " in intent_lower
-            or f" {organ_lower} health" in intent_lower
+        # ROUTING-CALIBRATION FIX: only match explicit organ queries, not bare
+        # mentions like "restart the arifos service" (should route to A-FORGE).
+        # Bare " arifos " in mid-intent now requires organ/health/status qualifier.
+        if not (
+            intent_lower.startswith(organ_lower + " ") or f" {organ_lower} organ " in intent_lower
         ):
-            return organ_lower.replace(" ", "_").replace("a_forge", "a-forge")
+            # Mid-intent bare match: only if followed by health/status/state/kernel
+            mid_patterns = (
+                f" {organ_lower} health",
+                f" {organ_lower} status",
+                f" {organ_lower} state",
+                f" {organ_lower} kernel",
+                f" {organ_lower} organ ",
+            )
+            if not any(p in intent_lower for p in mid_patterns):
+                continue
+            # Additional guard: if the intent contains execution verbs like
+            # "restart", "deploy", "build" — don't route to the mentioned organ.
+            _exec_verbs = ("restart", "deploy", "stop", "start", "build")
+            if any(v in intent_lower for v in _exec_verbs):
+                continue
+        return organ_lower.replace(" ", "_").replace("a_forge", "a-forge")
 
     # Step 2: kernel guard for kernel-level concerns (MCP / constitutional / governance)
     _KERNEL_GUARD_PATTERNS: list[str] = [
@@ -464,26 +506,38 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # Longest-only failed: "prospect" (8) beat "npv" (3) for "NPV of a prospect".
     # Score = sum of matched keyword lengths; capital verbs get a boost when
     # explicit capital tokens appear; geo "well *" no longer steals WELL organ.
+    # 2026-07-12 calibration: word-boundary matching for short tokens so
+    # "irr"/"rs" no longer hijack "irreversible" / readiness intents.
     intent_map = _load_intent_map()
     organ_routes = intent_map.get("organ_routes", {})
-    _CAPITAL_TOKENS = ("npv", "irr", "emv", "cash flow", "portfolio", "capital", "investment")
-    _has_capital = any(t in intent_lower for t in _CAPITAL_TOKENS)
+    _CAPITAL_TOKENS = (
+        "npv",
+        "irr",
+        "emv",
+        "cash flow",
+        "cash runway",
+        "runway",
+        "portfolio",
+        "capital",
+        "investment",
+    )
+    _has_capital = any(_token_in(t, intent_lower) for t in _CAPITAL_TOKENS)
     scores: dict[str, int] = {}
     for organ_key, organ_config in organ_routes.items():
         organ_label = str(organ_config.get("organ", organ_key.upper()))
         score = 0
         for kw in organ_config.get("intent_keywords", []):
             kl = kw.lower()
-            if kl in intent_lower:
+            if _token_in(kl, intent_lower):
                 score += len(kl)
                 # Prefer multi-word / exact phrases
-                if " " in kl:
+                if " " in kl or "-" in kl:
                     score += 2
         if score <= 0:
             continue
         if organ_label.upper() == "WEALTH" and _has_capital:
             score += 12  # capital verb outweighs lone geology noun "prospect"
-        if organ_label.upper() == "GEOX" and _has_capital and "prospect" in intent_lower:
+        if organ_label.upper() == "GEOX" and _has_capital and _token_in("prospect", intent_lower):
             # demote pure prospect hit when capital terms present
             score = max(0, score - 6)
         scores[organ_label] = scores.get(organ_label, 0) + score
