@@ -1,0 +1,113 @@
+{
+  "$id": "https://arifos.arif-fazil.com/schemas/apex-ontology/v1.0.0",
+  "title": "APEX Epistemic Ontology",
+  "description": "What fields MEAN. Schema = syntax. Ontology = semantics. Tests = proof. 2026-07-12 GPT-5.6 integration-proof mandate.",
+  "version": "1.0.0",
+  "invariant": "schema_compatibility ≠ epistemic_compatibility",
+  "planes": {
+    "epistemic": {
+      "question": "What is believed, on what evidence, with what uncertainty?",
+      "owners": ["GEOX", "WELL", "WEALTH", "EXTERNAL"]
+    },
+    "constitutional": {
+      "question": "What is permitted, by whom, under which constraints?",
+      "owners": ["ARIF", "arifOS", "APEX"]
+    },
+    "causal": {
+      "question": "What actually changes in the world, and can it be reversed?",
+      "owners": ["A-FORGE", "EXTERNAL_TOOLS", "PHYSICAL_SYSTEMS"]
+    }
+  },
+  "separations": [
+    "belief ≠ permission",
+    "permission ≠ execution",
+    "execution ≠ good outcome",
+    "receipt ≠ truth"
+  ],
+  "confidence_kinds": {
+    "bayesian_posterior": {
+      "meaning": "P(hypothesis|evidence)",
+      "calibration": "reliability_curve",
+      "typical_owner": "GEOX"
+    },
+    "frequentist_rate": {
+      "meaning": "Long-run frequency of event",
+      "calibration": "empirical",
+      "typical_owner": "WEALTH"
+    },
+    "model_output": {
+      "meaning": "Internal model score (LLM/ML)",
+      "calibration": "not_default",
+      "typical_owner": "LLM"
+    },
+    "expert_judgment": {
+      "meaning": "Human assessment / self-report",
+      "calibration": "not_calibrated",
+      "typical_owner": "WELL"
+    },
+    "calibration_score": {
+      "meaning": "Score validated against outcomes",
+      "calibration": "held_out",
+      "typical_owner": "MULTI"
+    },
+    "heuristic": {
+      "meaning": "Rule of thumb",
+      "calibration": "none",
+      "typical_owner": "MULTI"
+    },
+    "unknown": {
+      "meaning": "Source undetermined",
+      "calibration": "none",
+      "typical_owner": "ANY"
+    }
+  },
+  "epistemic_classes": [
+    "OBSERVATION",
+    "MEASUREMENT",
+    "INFERENCE",
+    "MODEL_OUTPUT",
+    "HYPOTHESIS",
+    "FORECAST",
+    "NORMATIVE_JUDGMENT"
+  ],
+  "authority_classes": [
+    "INFORMATIONAL",
+    "ADVISORY",
+    "RECOMMENDATORY",
+    "APPROVABLE",
+    "EXECUTABLE"
+  ],
+  "reversibility_classes": ["REVERSIBLE", "CONDITIONALLY_REVERSIBLE", "IRREVERSIBLE"],
+  "organ_confidence_contracts": {
+    "GEOX": {
+      "default_kind": "bayesian_posterior",
+      "about": "Earth / geological interpretation",
+      "must_not": "upgrade recommendation to permission"
+    },
+    "WELL": {
+      "default_kind": "heuristic",
+      "about": "substrate fitness assessment reliability",
+      "must_not": ["diagnose medical", "substitute machine telemetry as human readiness"]
+    },
+    "WEALTH": {
+      "default_kind": "heuristic",
+      "about": "forecast stability / sensitivity under assumptions",
+      "must_not": "allocate capital"
+    },
+    "arifOS": {
+      "default_kind": "unknown",
+      "about": "permission / floor compliance — not physical truth",
+      "must_not": "fabricate domain evidence"
+    },
+    "A-FORGE": {
+      "default_kind": "frequentist_rate",
+      "about": "execution success under lease",
+      "must_not": "self-authorise"
+    }
+  },
+  "verdict_attachment_rule": "Verdicts attach to claims and actions, not entire projects",
+  "falsification": {
+    "statement": "APEX/arifOS fails if it does not reduce severe unauthorised or unrecoverable actions vs matched vanilla harness without unacceptable false-HOLD burden",
+    "metrics": ["delta_H_severe_harm", "delta_F_H_false_hold", "cost_safe_outcome"]
+  }
+}
