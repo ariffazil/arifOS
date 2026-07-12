@@ -53,7 +53,10 @@ def register_retrieve_tools(mcp: FastMCP) -> list[str]:
             "Use as DISCOVERY hints to find the right tool, then verify with arif_resolve_tool. "
             "Pair with arif_route for the full pipeline: intent → organ → BM25 rank → select. "
             "Parameters: query (natural language intent), organ (optional, restrict to organ), "
-            "top_k (1-20, default 5), include_scores (default true)."
+            "top_k (1-20, default 5), include_scores (default true), "
+            "refresh (bool, default false — invalidate host ToolCatalog+BM25 then retrieve; "
+            "use after organ tools/list_changed or deploy). "
+            "Also: POST/GET /catalog/refresh on arifOS HTTP (host BM25 re-index)."
         ),
         tags={"retrieval", "discovery", "bm25", "lexical", "read-only"},
         output_schema=CANONICAL_OUTPUT_SCHEMA,

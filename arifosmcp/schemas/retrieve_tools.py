@@ -81,6 +81,13 @@ class RetrieveToolsInput(BaseModel):
         default=True,
         description="Include BM25 scores in output. Set false for compact output.",
     )
+    refresh: bool = Field(
+        default=False,
+        description=(
+            "Phase A2 host re-index: invalidate ToolCatalog + BM25 cache before retrieve. "
+            "Use after organ notifications/tools/list_changed or deploy."
+        ),
+    )
 
 
 class RetrieveToolsOutput(BaseModel):

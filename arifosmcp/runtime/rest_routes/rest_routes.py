@@ -6740,6 +6740,80 @@ setInterval(refreshSot, 30000);
             }
         )
 
+    @route("/manifest.txt", methods=["GET"])
+    async def manifest_txt_compat(request: Request) -> JSONResponse:
+        """Phase B3: legacy path — same payload as /tools.json (not plain text).
+
+        Historical clients requested /manifest.txt (404). Canonical manifest is
+        /tools.json. This alias returns JSON with deprecation headers so health
+        and old bookmarks resolve honestly.
+        """
+        # Reuse tools.json builder by calling the same endpoint logic via redirect-style
+        # internal call: build through tools_json_endpoint.
+        response = await tools_json_endpoint(request)
+        # Starlette JSONResponse is mutable for headers
+        response.headers["X-Deprecated-Path"] = "true"
+        response.headers["X-Canonical-Manifest"] = "/tools.json"
+        response.headers["Link"] = '</tools.json>; rel="canonical"'
+        if isinstance(response.body, (bytes, bytearray)):
+            pass
+        # Attach deprecation note in body if JSON
+        try:
+            import json as _json
+
+            payload = _json.loads(response.body.decode("utf-8"))
+            payload["deprecated_path"] = "/manifest.txt"
+            payload["canonical_path"] = "/tools.json"
+            payload["note"] = (
+                "manifest.txt is a compatibility alias. Prefer GET /tools.json."
+            )
+            return JSONResponse(
+                payload,
+                headers={
+                    "X-Deprecated-Path": "true",
+                    "X-Canonical-Manifest": "/tools.json",
+                    "Link": '</tools.json>; rel="canonical"',
+                },
+            )
+        except Exception:
+            return response
+
+    # NOTE: path must NOT be under /tools/{name} — that path-param route steals
+    # /tools/catalog/refresh. Use /catalog/refresh (Phase B4).
+    @route("/catalog/refresh", methods=["POST", "GET"])
+    async def tools_catalog_refresh(request: Request) -> JSONResponse:
+        """Phase B4: host ToolCatalog re-index (A2 invalidate + rebuild).
+
+        Call after organ tools/list_changed or deploy. Read-only cache bust —
+        does not mutate organ surfaces.
+        """
+        try:
+            from arifosmcp.tools.retrieve_tools import (
+                get_bm25_engine,
+                invalidate_tool_catalog,
+                load_tool_catalog,
+            )
+
+            inv = invalidate_tool_catalog(reason="http:/catalog/refresh")
+            catalog = load_tool_catalog(refresh=True)
+            engine = get_bm25_engine(refresh=True)
+            return JSONResponse(
+                {
+                    "ok": True,
+                    "invalidated": inv,
+                    "tools_indexed": len(catalog.tools),
+                    "bm25_documents": getattr(engine, "document_count", None)
+                    or getattr(engine, "_N", None),
+                    "catalog_loaded_at": catalog.loaded_at,
+                    "source": catalog.source,
+                }
+            )
+        except Exception as exc:
+            return JSONResponse(
+                {"ok": False, "error": str(exc), "error_class": "CATALOG_REFRESH_FAILED"},
+                status_code=500,
+            )
+
     @route("/mcp/status", methods=["GET"])
     async def mcp_status_endpoint(request: Request) -> JSONResponse:
         """P1: Live production truth — deployment identity, MCP surface, security posture."""
