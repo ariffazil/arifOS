@@ -2,9 +2,9 @@
 
 <!-- SOT-MANIFEST
 owner: Arif
-last_verified: 2026-07-11
+last_verified: 2026-07-12
 valid_from: 2026-05-22
-valid_until: 2026-08-10
+valid_until: 2026-08-11
 confidence: high
 scope: /
 -->
