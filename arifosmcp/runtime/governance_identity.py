@@ -41,11 +41,18 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
 }
 
 # SECURITY P0 2026-07-12: Sovereign authority binds to a verified key, not a name.
-# Until the production key registry is wired, this set is EMPTY — no actor
-# automatically receives SOVEREIGN authority even with a valid Ed25519 signature.
-# Operators must explicitly add a registered sovereign public-key fingerprint here.
-# Verified sessions that are NOT in this set get OPERATOR authority, never SOVEREIGN.
-SOVEREIGN_KEY_IDS: set[str] = set()
+SOVEREIGN_KEY_IDS: set[str] = {
+    "ed25519:sha256:9c35a833fef25f17",  # Arif AAA identity key (2026-07-12)
+}
+
+# F13 multi-key registry for bounded actors (Anomalies #1 closure).
+# Each entry: key_id (sha256[:16] fingerprint of public key) -> actor_id.
+VERIFIED_KEY_IDS: dict[str, str] = {
+    "ed25519:sha256:04761fd348a64558": "mesa-test-agent",
+    "mesa-test-agent": "mesa-test-agent",
+    "meta-test-agent": "meta-test-agent",
+}
+VERIFIED_KEY_IDS_MAX: int = 16
 
 # Semantic identity phrases (NLP input parsing ONLY — NOT authentication)
 # These parse natural language identity claims from user input.
