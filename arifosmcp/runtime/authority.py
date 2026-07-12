@@ -256,9 +256,72 @@ def derive_canonical_from_authority(state: AuthorityState) -> CanonicalAuthority
     )
 
 
+def authority_envelope_for_session(
+    session_id,
+    actor_id,
+    *,
+    actor_verified_flag=None,
+    _runtime_auth_hint=None,
+):
+    """WS1 (2026-07-12): build the legacy 5-field ``authority`` dict from
+    canonical AuthorityState.
+
+    The legacy shape used by ``arifosmcp.runtime.tools._wrap_handler`` is
+    now DERIVED. The shape is preserved (legacy consumers may keep
+    reading ``authority.runtime_authority`` etc.) for one compat cycle,
+    but never computed independently.
+
+    Compat retirement: 2026-08-09.
+    """
+    state = None
+    try:
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        sess = _SESSIONS.get(session_id or "")
+        if isinstance(sess, dict):
+            state = read_authority_state(sess)
+    except Exception:
+        state = None
+
+    if state is None:
+        runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
+        sealed = runtime_band in ("FULL", "SOVEREIGN")
+        actor_key = (actor_id or "").strip().lower()
+        h_authority = (
+            "SOVEREIGN" if actor_key in {"arif", "ariffazil"}
+            else "OPERATOR" if actor_verified_flag
+            else "OPERATOR_CLAIMED" if actor_id and actor_id != "anonymous"
+            else "OBSERVER"
+        )
+        return {
+            "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
+            "human_authority": h_authority,
+            "runtime_authority": runtime_band,
+            "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN"),
+            "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and sealed,
+        }
+
+    runtime_band = _runtime_auth_hint or ("FULL" if state.is_sealed() else "OBSERVE_ONLY")
+    actor_key = (state.actor.claimed_id or "").strip().lower()
+    h_authority = (
+        "SOVEREIGN" if actor_key in {"arif", "ariffazil"}
+        else "OPERATOR" if state.actor.verified
+        else "OPERATOR_CLAIMED" if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
+        else "OBSERVER"
+    )
+    return {
+        "actor_verified": bool(state.actor.verified),
+        "human_authority": h_authority,
+        "runtime_authority": runtime_band,
+        "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN") and not state.is_held(),
+        "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and state.is_sealed(),
+    }
+
+
 __all__ = [
     "bind_authority_state",
     "read_authority_state",
     "derive_canonical_from_authority",
+    "authority_envelope_for_session",
     "_LEGACY_MIRROR_RETIREMENT_DATE",
 ]
