@@ -2041,15 +2041,26 @@ async def arif_critique(
                 "dominant_reason": result.get("degraded_reason"),
             }
 
-        # Zen Apex witness AFTER analysis complete.
-        # Paradox anchors remain legacy cultural layer; zen witness is the
-        # single provenance-gated presentation path (WITNESS_NOT_EVIDENCE).
+        # Zen Apex witness AFTER analysis complete — sole presentation quote path.
+        # Paradox anchors are fractal-lens geometry only; demote to legacy so they
+        # never compete with provenance-gated zen witness (WITNESS_NOT_EVIDENCE).
         try:
             from arifosmcp.composer import attach_zen_witness_to_result
 
             result = attach_zen_witness_to_result(result, stage="555_HEART")
         except Exception:
             result.setdefault("meta", {})["quote_resolution_status"] = "UNAVAILABLE"
+
+        meta = result.setdefault("meta", {})
+        if result.get("paradox_anchor") is not None:
+            meta["legacy_paradox_anchor"] = result.pop("paradox_anchor")
+            meta["legacy_paradox_status"] = (
+                "NON_AUTHORITATIVE — fractal lens / cultural layer only. "
+                "Presentation witness is meta.zen_apex / meta.zen_witness."
+            )
+        # Any nested fractal hits stay audit-only under meta
+        if result.get("paradox_anchors") is not None:
+            meta["legacy_paradox_anchors"] = result.pop("paradox_anchors")
 
     return result
 

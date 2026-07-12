@@ -1,9 +1,15 @@
 """
-arifosmcp/runtime/quote_ledger.py — Locked Quote Ledger v1
+arifosmcp/runtime/quote_ledger.py — LEGACY Locked Quote Ledger v1
 
-The canonical, append-only registry of approved wisdom quotes.
-All entries are validated at load time.
-No quote may be used unless allow_use=true and source_status != "uncertain".
+**DEPRECATED 2026-07-12 — FORGET.** Not the intelligence path.
+
+Canonical path (use these):
+  - arifosmcp/data/quote_registry_v2.json
+  - arifosmcp.runtime.quote_registry.wisdom_quote_resolve
+  - arifosmcp.composer.compose_zen_apex / attach_zen_witness_to_result
+
+This module remains only for historical test compatibility with the archived
+lite/99 ledgers. Do not wire new call sites.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -61,7 +67,13 @@ VALID_SOURCE_STATUSES: set[str] = {
 
 _ARIFOS_MAPPING_FIELDS: set[str] = {"physics", "math", "linguistic"}
 
-_LEDGER_PATH = Path(__file__).resolve().parent.parent / "data" / "wisdom_quotes_lite.json"
+# Archived 2026-07-12 — forensic only. Canonical: quote_registry_v2.json
+_LEDGER_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "data"
+    / ".archive-pre-zen-2026-07-12"
+    / "wisdom_quotes_lite.json"
+)
 _loaded_ledger: list[dict[str, Any]] | None = None
 
 
