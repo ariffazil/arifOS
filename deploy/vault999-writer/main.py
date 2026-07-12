@@ -275,10 +275,14 @@ class VaultDB:
         GENESIS_CHAIN_HASH = "9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43"  # pragma: allowlist secret
 
         async with self.pool.acquire() as conn:
+            # Acquire advisory lock to prevent concurrent writer races
+            await conn.execute("SELECT pg_advisory_xact_lock(999)")
+            # Read current head with FOR UPDATE to block concurrent readers
             prev_row = await conn.fetchrow(
                 """SELECT id, seal_hash, chain_hash FROM vault_seals
                    WHERE event_type = 'SOVEREIGN_SEAL' OR event_type IS NULL
-                   ORDER BY epoch DESC LIMIT 1"""
+                   ORDER BY epoch DESC LIMIT 1
+                   FOR UPDATE"""
             )
             # prev_seal_id is VARCHAR in DB — cast to string
             prev_seal_id = str(prev_row["id"]) if prev_row else None
@@ -340,11 +344,14 @@ class VaultDB:
         GENESIS_CHAIN_HASH = "9dab04abd3e39c3d5ae90f9f90f838f17403208e24b852007c757773e8f36d43"  # pragma: allowlist secret
 
         async with self.pool.acquire() as conn:
+            # Acquire advisory lock to prevent concurrent writer races
+            await conn.execute("SELECT pg_advisory_xact_lock(999)")
             # Audit receipts chain independently or append to main chain
             # For simplicity, they still chain to the last seal for append-only property
             prev_row = await conn.fetchrow(
                 """SELECT id, seal_hash, chain_hash FROM vault_seals
-                   ORDER BY epoch DESC LIMIT 1"""
+                   ORDER BY epoch DESC LIMIT 1
+                   FOR UPDATE"""
             )
             # prev_seal_id is VARCHAR in DB — cast to string
             prev_seal_id = str(prev_row["id"]) if prev_row else None
