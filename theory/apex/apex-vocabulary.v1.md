@@ -3,7 +3,7 @@
 **Forged:** 2026-07-12
 **Owner:** APEX theory through arifOS constitutional runtime
 **Bound to:** `/root/arifOS/theory/apex/apex-envelope.schema.v1.json`
-**Ratification:** pending F13 SOVEREIGN signature
+**Ratification:** Batch A approved F13 signal `A` / `lanjut A` — 2026-07-12 (doc/README header substitution). Full skill-file Phase 2 still pending (2026-07-19 plan).
 
 This document records vocabulary **deprecations and reclassifications** triggered by the external ChatGPT hard-truth audit (2026-07-12). These are not stylistic preferences — they are precision corrections. Each entry names a phrase that has done real explanatory work, AND names the phrase that does the same work without metaphysical or scientific overreach.
 
@@ -157,3 +157,15 @@ Phase 2 candidates (the eight live occurrences of removed phrases):
 *Forged 2026-07-12 by FORGE (000Ω) under F13 SOVEREIGN directive.*
 *The protection goal is preserved. The vocabulary is corrected.*
 *DITEMPA BUKAN DIBERI — even the labels get forged, not given.*
+
+
+---
+
+## Batch A execution receipt (2026-07-12)
+
+**Signal:** F13 `A` (vocabulary relabel only)  
+**Scope applied:** organ `README.md` federation blurb + WELL sovereignty-entropy header lines + AAA role table cell.  
+**Not in this batch:** skill files (Phase 2), code, deletions, AGI assessment essays kept as historical analysis.  
+**Reversible:** git history on each organ README.  
+**Old phrases intentionally remain** in deep docs for 7-day literature grep / observation.
+

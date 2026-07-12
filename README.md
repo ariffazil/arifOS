@@ -1,7 +1,7 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
 federation_release: v2026.07.11-MATURITY-PIPELINE
-last_verified: 2026-07-11T12:53Z
+last_verified: 2026-07-12T12:53Z
 live_commit: 2fc0089
 live_version: kanon-2fc0089
 runtime_path: /opt/arifos/app
@@ -72,7 +72,7 @@ maturity_pipeline: EXECUTED 2026-07-11 (promote 7, incubate 5, park 4, kill APEX
 
 ## APEX STACK Bridge
 
-> APEX THEORY defines the constitutional dynamics of governed intelligence through ΔΩΨ. arifOS compiles those dynamics into an AGI substrate kernel. AAA renders the substrate as visible ASI civilization state. A-FORGE gives the system governed hands. GEOX, WEALTH, and WELL anchor those hands to earth, capital, and human reality. VAULT999 preserves consequence. Arif/F13 remains the sovereign witness and final veto.
+> APEX is the admissibility framework for decisions under uncertainty (ΔΩΨ). arifOS compiles those dynamics into a constitutional orchestration substrate. AAA renders federation-state and coordination (display layer — not ASI-civilisation claims). A-FORGE gives the system governed hands. GEOX, WEALTH, and WELL anchor those hands to earth, capital, and human reality. VAULT999 preserves consequence. Arif/F13 remains the sovereign witness and final veto.
 
 **arifOS must never:** replace human judgment, self-authorize a SEAL, skip 888_JUDGE, or issue verdicts without a constitutional chain.
 
