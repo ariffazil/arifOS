@@ -133,7 +133,14 @@ def resolve_tokenrouter_model(
         return preferred
     o = (organ or "").lower()
     t = (task_type or "").lower()
-    if o == "geox" or "geox" in t or "petrophys" in t or "well_log" in t or "basin" in t or "seismic" in t:
+    if (
+        o == "geox"
+        or "geox" in t
+        or "petrophys" in t
+        or "well_log" in t
+        or "basin" in t
+        or "seismic" in t
+    ):
         if any(k in t for k in ("petrophys", "well log", "full log", "qc", "interpretation")):
             return "deepseek-v4-pro"  # quality, 1M ctx for full well logs
         if any(k in t for k in ("quick", "screen", "basin screen", "fast")):
@@ -514,7 +521,8 @@ async def _call_tokenrouter(
     }
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        # P2 FIX (2026-07-12): 10s timeout — fail fast so cascade reaches MiniMax within 30s budget
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(
                 f"{TOKENROUTER_BASE_URL}/chat/completions",
                 headers={
@@ -613,8 +621,8 @@ async def _call_minimax(
 
     t0 = time.monotonic()
     try:
-        # M3 with thinking enabled can be slower than typical LLMs (60s+)
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        # P2 FIX (2026-07-12): 20s timeout — cascade budget: TokenRouter(10s) + MiniMax(20s) = 30s
+        async with httpx.AsyncClient(timeout=20.0) as client:
             response = await client.post(
                 f"{MINIMAX_BASE_URL}/v1/chat/completions",
                 headers={
