@@ -9,7 +9,7 @@ DITEMPA BUKAN DIBERI.
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -237,6 +237,19 @@ class CallerContext(BaseModel):
 
 
 class CanonicalAuthority(BaseModel):
+    """
+    DEPRECATED 2026-07-12 — superseded by ``AuthorityState`` (see below; mirrors
+    ``/schemas/authority-state.schema.json``).
+
+    Retained for one compat cycle as a derived view. Do NOT write new fields here.
+    Existing parallel legacy fields (``actor_verified``, ``identity_verified``,
+    ``authority_level``, ``human_authority``, ``runtime_authority``) must derive
+    from ``AuthorityState`` rather than be computed independently.
+
+    Reference: ``forge_work/2026-07-12/KERNEL-INTELLIGENCE-HARDENING-CYCLE-PHASE-A.md``
+    §1 (WS1, Phase B, step 1.2). Removal target: 2026-08-09 (one compat cycle).
+    """
+
     model_config = ConfigDict(populate_by_name=True)
 
     actor_id: str = "anonymous"
@@ -245,6 +258,105 @@ class CanonicalAuthority(BaseModel):
     human_required: bool = False
     approval_scope: list[str] = Field(default_factory=list)
     auth_state: str = "unverified"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AUTHORITY STATE — WS1 (KERNEL HARDENING CYCLE PHASE A)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Single source of truth for "who is acting and what may they do."
+# Replaces parallel legacy fields: actor_verified, identity_verified,
+# authority_level, human_authority, runtime_authority.
+# Schema mirror: /root/arifOS/schemas/authority-state.schema.json
+# Forged 2026-07-12 under F13 SOVEREIGN directive.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class AuthorityActor(BaseModel):
+    """Identity layer of an ``AuthorityState`` snapshot (WS1 spec §1.1)."""
+
+    claimed_id: str = "anonymous"
+    verified: bool = False
+    verification_method: Literal[
+        "none", "session", "signature", "oauth", "hardware", "f13_sovereign"
+    ] = "none"
+
+
+class AuthoritySeals(BaseModel):
+    """Namespaced seal states (WS1 spec §1.1). Each is independent."""
+
+    kernel_seal_awareness: Literal["ACTIVE", "INACTIVE", "STALE"] = "INACTIVE"
+    domain_seal_validity: Literal["ACTIVE", "INACTIVE", "STALE"] = "INACTIVE"
+    judge_seal_authorization: Literal["ACTIVE", "INACTIVE", "STALE", "REVOKED"] = "INACTIVE"
+    vault999_seal_record: Literal["ACTIVE", "INACTIVE", "STALE"] = "INACTIVE"
+    public_seal_readiness: Literal["ACTIVE", "INACTIVE", "STALE"] = "INACTIVE"
+
+
+class AuthorityForgeGate(BaseModel):
+    """The state of the A-FORGE gate (WS1 spec §1.1). ``enabled=false`` means
+    A-FORGE is disabled regardless of any other signal."""
+
+    enabled: bool = False
+    reversibility_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
+    blockers: list[str] = Field(default_factory=list)
+
+
+class AuthorityPublicPosture(BaseModel):
+    """Receipt-bound public view. ``service_health`` (liveness) is deliberately
+    separated from ``execution_readiness`` (gate state)."""
+
+    service_health: Literal["green", "yellow", "red", "unknown"] = "unknown"
+    execution_readiness: Literal["ready", "held", "void", "unknown"] = "unknown"
+    human_visible_summary: str | None = None
+
+
+class AuthorityState(BaseModel):
+    """
+    Canonical authority posture — single source of truth for "who is acting and
+    what may they do." Mirrors
+    ``/root/arifOS/schemas/authority-state.schema.json`` (WS1 spec §1.1).
+
+    Forged 2026-07-12 under F13 SOVEREIGN directive.
+
+    Replaces the legacy parallel-write pattern where ``actor_verified``,
+    ``identity_verified``, ``authority_level``, ``human_authority``, and
+    ``runtime_authority`` were each computed by independent code paths and
+    could disagree (the ``MEDIUM-vs-OBSERVE_ONLY`` split documented in
+    ``KERNEL-INTELLIGENCE-HARDENING-CYCLE-PHASE-A.md`` §1.1).
+
+    Acceptance: every ``arif_init`` response must carry exactly one
+    ``AuthorityState`` instance. Legacy fields may be derived from it for one
+    compat cycle only — never computed independently.
+    """
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    state_id: str = Field(
+        default="as_pending",
+        pattern=r"^as(_pending|_[0-9]{4}_[0-9]{2}_[0-9]{2}_[0-9]{6})$",
+        description="Globally unique authority-state identifier (date-based).",
+    )
+    snapshot_at: str = Field(
+        default="1970-01-01T00:00:00Z",
+        description="When this state was captured (ISO 8601 UTC).",
+    )
+    actor: AuthorityActor = Field(default_factory=AuthorityActor)
+    context_verdict: Literal["STABLE", "DEGRADED_CONTEXT", "UNKNOWN"] = "UNKNOWN"
+    seals: AuthoritySeals = Field(default_factory=AuthoritySeals)
+    execution_authority: Literal["HOLD", "SEAL_AUTHORIZED", "VOID"] = "HOLD"
+    apex_approval: Literal["ABSENT", "PRESENT", "REJECTED"] = "ABSENT"
+    active_holds: list[str] = Field(default_factory=list)
+    active_missions: list[str] = Field(default_factory=list)
+    forge_gate: AuthorityForgeGate = Field(default_factory=AuthorityForgeGate)
+    public_posture: AuthorityPublicPosture = Field(default_factory=AuthorityPublicPosture)
+    non_overclaim_check: Literal["passed", "failed"] = "failed"
+
+    def is_sealed(self) -> bool:
+        """Top-level verdict for downstream actuators: any unauthorized mutation
+        must check this before acting."""
+        return self.execution_authority == "SEAL_AUTHORIZED"
+
+    def is_held(self) -> bool:
+        return self.execution_authority == "HOLD" or len(self.active_holds) > 0
 
 
 class IdentityContext(BaseModel):
