@@ -20,10 +20,15 @@ from __future__ import annotations
 import sys
 from typing import Any
 
-# Add A-FORGE paradox-engine to path
-sys.path.insert(0, "/root/A-FORGE/paradox-engine")
-
-from kernel_bridge import get_somatic_kernel
+# Add A-FORGE paradox-engine to path (graceful degradation if unavailable)
+try:
+    _paradox_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "A-FORGE", "paradox-engine")
+    _paradox_path = os.path.normpath(_paradox_path)
+    if os.path.isdir(_paradox_path):
+        sys.path.insert(0, _paradox_path)
+    from kernel_bridge import get_somatic_kernel
+except ImportError:
+    get_somatic_kernel = None  # type: ignore[assignment]
 
 
 def arif_somatic(
@@ -63,6 +68,8 @@ def arif_somatic(
       motif_a: first motif (relation mode)
       motif_b: second motif (relation mode)
     """
+    if get_somatic_kernel is None:
+        return {"status": "UNAVAILABLE", "reason": "A-FORGE paradox-engine not accessible"}
     kernel = get_somatic_kernel()
 
     if mode == "state":
