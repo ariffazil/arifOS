@@ -1000,8 +1000,10 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_measure": {
         "name": "arif_measure",
         "description": (
-            "INTERNAL: Check system health, thermodynamic state, and resource metrics. "
-            "Not on public surface. Use federation monitoring tools."
+            "INTERNAL: Kernel *runtime* health only (process, transport, topology, "
+            "resource metrics). NOT human readiness or coupled vitality — those are "
+            "WELL (well_validate_vitality). Alias intent: arif_runtime_health. "
+            "Boundary: AAA/docs/MEASUREMENT_BOUNDARY_CONTRACT.md."
         ),
         "access": "internal_only",
         "stage": ToolStage.OBSERVE,
