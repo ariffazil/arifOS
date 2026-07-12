@@ -491,6 +491,11 @@ class SessionState(BaseModel):
         default=None,
         description="0=ping, 1=discover, 2=birth, 3=light, 4=init, 5=full, 6=audit",
     )
+    # Workstream 1: Canonical Authority State
+    authority_state: dict[str, Any] | None = Field(
+        default=None,
+        description="Canonical authority ontology — single source of truth for all authority fields",
+    )
 
 
 class SessionManifest(BaseModel):
@@ -536,8 +541,14 @@ class SessionManifest(BaseModel):
     actor_signature: str | None = None
     nonce: str | None = None
     actor_verified: bool = Field(
-        default=False, description="Whether the actor_id was cryptographically verified"
+        default=False,
+        description="[DEPRECATED] Use authority_state.identity.claim_recognized instead",
     )
     signature_verified: bool = False
     constitution_bound: bool = False
     invariants_checked: list[str] = Field(default_factory=list)
+    # Workstream 1: Canonical Authority State
+    authority_state: dict[str, Any] | None = Field(
+        default=None,
+        description="Canonical authority ontology — single source of truth for all authority fields",
+    )
