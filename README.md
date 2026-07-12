@@ -1,15 +1,19 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
 federation_release: v2026.07.12-CONSOLIDATION-EPOCH
-last_verified: 2026-07-12T12:53Z
-live_commit: 2fc0089
-live_version: kanon-2fc0089
+last_verified: 2026-07-12T23:38Z
+deployed_commit: 192b20da
+deployed_branch: main
+dev_commit: 182266c
+dev_branch: security/identity-multikey-2026-07-12
+live_version: kanon-1403cac
 runtime_path: /opt/arifos/app
-runtime_drift: false
-owner_summary: GREEN
-tools_exposed_via_mcp: 12
-canonical_tools_loaded: 12
-total_declared_tools: 59
+runtime_drift: true
+drift_detail: build=1403cac vs deployed=192b20da (marker corrected)
+owner_summary: YELLOW (runtime drift)
+tools_exposed_via_mcp: 8
+canonical_tools_loaded: 8
+total_declared_tools: 48
 spine_p0_sct: live (sct_v1 mint; store-delete full loop; apex UNMEASURED at birth)
 arif_triage: DEPRECATED_ALIAS → arif_init(mode=preflight|triage)
 arif_act: internal_only (never in allowed_next_verbs)
@@ -17,8 +21,9 @@ changelog: /root/arifOS/CHANGELOG.md
 p0_actor_id_binding: live (kernel reads JWT lineage first; self-report caps MEDIUM)
 floor_11b_amanah_replay: live (nonce required for IRREVERSIBLE mutations; 24h cache)
 a2a_agent_json: /root/arifOS/.well-known/agent.json
-machine_sot: /root/A-FORGE/forge_work/2026-07-09/MACHINE-SOT-2026-07-09.json
+machine_sot: /root/.claude/jobs/5d0ce6b2/tmp/artifacts/FEDERATION-SOT-20260712/MACHINE-SOT-2026-07-12.json
 maturity_pipeline: EXECUTED 2026-07-11 (promote 7, incubate 5, park 4, kill APEX as live track)
+truth_rule: /health + MCP tools/list beat any static count in prose
 -->
 
 <div align="center">
