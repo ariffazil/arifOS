@@ -39,6 +39,16 @@ from arifosmcp.schemas.sovereignty_checkpoint import (
 
 logger = logging.getLogger(__name__)
 
+
+# ── Replay defense: nonce check (imported lazily to avoid circular deps) ─
+def _check_nonce(trace_id: str) -> tuple[bool, str]:
+    """Check request nonce against replay cache.  Lazy import avoids circular deps."""
+    try:
+        from arifosmcp.runtime.session import check_request_nonce
+        return check_request_nonce(trace_id)
+    except ImportError:
+        return True, "nonce_module_unavailable"
+
 # ── Supabase Receipt Mode ─────────────────────────────────────────────
 # Controls whether the kernel hook writes receipts to Supabase.
 #   off       → no write, log only
@@ -1543,6 +1553,34 @@ if IS_FASTMCP_3:
                                 "session_id": str(_final_session) if _final_session else None,
                             }
                         )
+
+                    # ── Replay defense: reject duplicate trace_id within TTL ──
+                    _trace_id = getattr(envelope, "trace_id", None) if envelope else None
+                    if _trace_id:
+                        _nonce_ok, _nonce_reason = _check_nonce(_trace_id)
+                        if not _nonce_ok:
+                            logger.warning(
+                                "REPLAY BLOCKED: trace_id=%s reason=%s tool=%s",
+                                _trace_id[:32],
+                                _nonce_reason,
+                                tool_name,
+                            )
+                            from fastmcp.tools.base import TextContent, ToolResult
+                            return ToolResult(
+                                content=[
+                                    TextContent(
+                                        type="text",
+                                        text=json.dumps(
+                                            {
+                                                "error": "replay_detected",
+                                                "reason": _nonce_reason,
+                                                "trace_id": _trace_id[:32],
+                                            }
+                                        ),
+                                    )
+                                ],
+                                isError=True,
+                            )
 
                     result = await call_next(context)
 

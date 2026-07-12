@@ -157,6 +157,13 @@ organ_routes:
       - A2A mesh
       - agent card
       - agent registry
+      # HARDEN-C calibration 2026-07-12 — under-served AAA intents
+      - federation state
+      - federation topology
+      - topology
+      - state and topology
+      - broadcast
+      - agent mesh
     organ: AAA
     port: 3001
     tool_prefix: ""
@@ -214,6 +221,14 @@ organ_routes:
       - forge health
       - forge readiness
       - forge probe
+      # HARDEN-C calibration 2026-07-12 — shell/sandbox execution intents
+      - shell command
+      - execute shell
+      - shell in sandbox
+      - sandbox
+      - shell
+      - staged code
+      - code change
     organ: A-FORGE
     # G15 FIX (2026-07-04): A-FORGE MCP gateway is :7072; tool prefix is forge_
     # :7071 is the HTTP API /health /api/federation-probe endpoint.
@@ -312,6 +327,10 @@ organ_routes:
       - seismic attribute
       - seismic forward
       - seismic well tie
+      - well tie
+      - well-tie
+      - time-depth
+      - time depth
       - basin analysis
       - structural geology
       - well log analysis
@@ -385,6 +404,12 @@ organ_routes:
       - market data
       - fiscal breakeven
       - collapse signature
+      # HARDEN-C calibration 2026-07-12 — runway / burn capital intents
+      - cash runway
+      - runway
+      - burn rate
+      - capital risk
+      - risk exposure
     organ: WEALTH
     port: 18082
     tool_prefix: wealth_
@@ -426,6 +451,14 @@ organ_routes:
       - maruah
       - fatigue
       - cognition load
+      # HARDEN-C calibration 2026-07-12 — human readiness phrasing
+      - cognitive clarity
+      - clarity trend
+      - operator fatigue
+      - substrate readiness
+      - human readiness
+      - human fatigue
+      - dignity
       # G14 FIX (2026-07-04): Add organ-qualified + bridge-specific keywords
       # so "WELL organ health", "cooling bridge status", "entropy seal" etc.
       # route to WELL even when kernel guard catches "organ health".

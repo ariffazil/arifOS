@@ -5785,6 +5785,13 @@ def _new_session(
             "sealed_at": None,
             "status": "open",
         }
+    # P0 FIX: Set active session for cross-tool continuity (2026-07-12)
+    try:
+        from arifosmcp.runtime.session import set_active_session
+        set_active_session(sid)
+    except Exception:
+        pass  # Non-fatal: session still stored in _SESSIONS
+
     return sess
 
 
@@ -20868,6 +20875,18 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
 
+        # Session continuity fix (2026-07-12): auto-inject active session
+        # when caller omits session_id. Preserves constitutional identity
+        # across tool calls without requiring explicit passing.
+        if not kwargs.get("session_id") and not kwargs.get("session_token"):
+            try:
+                from arifosmcp.runtime.session import _resolve_session_id
+                _auto_sid = _resolve_session_id(None)
+                if _auto_sid:
+                    kwargs["session_id"] = _auto_sid
+            except Exception:
+                pass  # Non-fatal: handler will see session_id=None
+
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
         if not ok:
@@ -20968,6 +20987,16 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     # Async wrapper
     async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
+
+        # ── P0 FIX: Session context propagation (2026-07-12) ─────────────────────
+        if not kwargs.get("session_id") and not kwargs.get("session_token"):
+            try:
+                from arifosmcp.runtime.session import _resolve_session_id
+                _auto_sid = _resolve_session_id(None)
+                if _auto_sid:
+                    kwargs["session_id"] = _auto_sid
+            except Exception:
+                pass  # Non-fatal: handler will see session_id=None
 
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)

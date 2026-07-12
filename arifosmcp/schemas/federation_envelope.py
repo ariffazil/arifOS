@@ -413,6 +413,11 @@ class FederationEnvelope(BaseModel):
         default=None,
         description="When this envelope expires (default: 5 min from creation)",
     )
+    # ── Replay defense: envelope freshness ───────────────────────────────
+    created_at: datetime | None = Field(
+        default=None,
+        description="When this envelope was created (set by sender, checked by kernel)",
+    )
     # Sovereignty checkpoint for high-impact actions
     sovereignty_checkpoint: SovereigntyCheckpoint | None = Field(
         default=None,
@@ -538,9 +543,23 @@ class FederationEnvelope(BaseModel):
         if self.authority.delegator and not self.authority.is_delegation_valid():
             return False, "Delegation expired or missing expiry"
 
-        # Envelope expiry check (v2)
+        # ── v2: Envelope expiry check ────────────────────────────────────
         if self.expires_at and datetime.now(UTC) > self.expires_at:
             return False, "Envelope expired — reissue with fresh authority"
+
+        # ── Replay defense: envelope freshness ───────────────────────────
+        # Reject envelopes older than ENVELOPE_MAX_AGE_SECONDS (default 30 min).
+        # Catches replayed envelopes even if expires_at hasn't been set.
+        _FRESHNESS_MAX_AGE = int(
+            __import__("os").getenv("ARIFOS_ENVELOPE_MAX_AGE_SECONDS", "1800")
+        )
+        if self.created_at:
+            _age = (datetime.now(UTC) - self.created_at).total_seconds()
+            if _age > _FRESHNESS_MAX_AGE:
+                return False, (
+                    f"Envelope too old ({_age:.0f}s > {_FRESHNESS_MAX_AGE}s max). "
+                    "Replay detected — reissue with fresh authority."
+                )
 
         # Receipt check
         receipt_ok, receipt_reason = self.receipts.validate_for_action(self.risk.action_class)
