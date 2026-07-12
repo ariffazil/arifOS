@@ -42,6 +42,7 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
 
 # SECURITY P0 2026-07-12: Sovereign authority binds to a verified key, not a name.
 SOVEREIGN_KEY_IDS: set[str] = {
+    "ed25519:sha256:a8fbb5ae8b4772b0",  # Arif /000/ DID key (did:web:arif-fazil.com)
     "ed25519:sha256:9c35a833fef25f17",  # Arif AAA identity key (2026-07-12)
 }
 

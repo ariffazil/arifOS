@@ -272,6 +272,142 @@ class ForgeOutput(BaseModel):
         description="Authority delta between token band and tool requirement",
     )
 
+    # ── WS3: Forge Preflight Receipt (mandatory verification pipeline) ──────────
+    forge_preflight: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "WS3 mandatory internal forge verification receipt. "
+            "Every boolean is RECOMPUTED from authoritative sources — "
+            "never trusted from caller input. "
+            "See ForgePreflightSchema for field definitions."
+        ),
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WS3: FORGE PREFLIGHT SCHEMA (Workstream 3 — Mandatory Internal Verification)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+STAGE_NAMES = [
+    "session_token_validation",
+    "actor_session_binding",
+    "authority_recomputation",
+    "judge_state_retrieval",
+    "judge_hash_recomputation",
+    "constitutional_chain_validation",
+    "vault_receipt_integrity",
+    "plan_manifest_binding",
+    "reversibility_classification",
+    "human_acknowledgement_check",
+    "dry_run_simulation",
+    "execution_or_hold",
+]
+
+PREFLIGHT_FIELDS = [
+    "session_valid",
+    "actor_bound",
+    "authority_recomputed",
+    "authority_gap_detected",
+    "judge_state_valid",
+    "judge_hash_match",
+    "constitutional_chain_valid",
+    "vault_receipt_valid",
+    "plan_manifest_bound",
+    "scar_consulted",
+    "forge_precheck_schema_valid",
+    "sealed_forge_plan_valid",
+    "reversibility",
+    "human_ack_required",
+    "human_ack_valid",
+    "replay_detected",
+    "final_gate",
+    "reason_codes",
+]
+
+
+class ForgePreflightSchema(BaseModel):
+    """
+    WS3 mandatory forge verification receipt.
+
+    CRITICAL INVARIANT: Every boolean is RECOMPUTED from authoritative sources
+    (session store, SCT, judge state hash, vault chain, plan registry).
+    Caller-supplied values are IGNORED for gating.
+    """
+
+    session_valid: bool = Field(
+        default=False,
+        description="Recomputed from SCT signature+exp + store lookup — NOT from caller assertion",
+    )
+    actor_bound: bool = Field(
+        default=False,
+        description="Recomputed from session store actor binding — NOT from caller",
+    )
+    authority_recomputed: bool = Field(
+        default=True,
+        description="Always true — authority is always internally recomputed",
+    )
+    authority_gap_detected: bool = Field(
+        default=False,
+        description="SCT authority_delta shows insufficient grant for requested mode (G1 fix)",
+    )
+    judge_state_valid: bool = Field(
+        default=False,
+        description="Judge state exists in registry and is not stale",
+    )
+    judge_hash_match: bool = Field(
+        default=False,
+        description="Hash recomputed from judge state, compared to caller-supplied hash",
+    )
+    constitutional_chain_valid: bool = Field(
+        default=False,
+        description="Constitutional chain ID resolves to a valid SEAL chain",
+    )
+    vault_receipt_valid: bool = Field(
+        default=False,
+        description="VAULT999 receipt exists and has matching chain/judge hashes (G8 fix)",
+    )
+    plan_manifest_bound: bool = Field(
+        default=False,
+        description="Plan exists, is approved, and manifest hash matches plan record",
+    )
+    scar_consulted: bool = Field(
+        default=False,
+        description="Scar database consulted for this operation domain (G6 fix)",
+    )
+    forge_precheck_schema_valid: bool = Field(
+        default=False,
+        description="Validated against forge_precheck.schema.json (G5 fix)",
+    )
+    sealed_forge_plan_valid: bool = Field(
+        default=False,
+        description="Forge dispatch plan passes SealedForgePlan validation (G4 fix)",
+    )
+    reversibility: str = Field(
+        default="REVERSIBLE",
+        description="REVERSIBLE | PARTIAL | IRREVERSIBLE — internally classified",
+    )
+    human_ack_required: bool = Field(
+        default=False,
+        description="Whether human acknowledgment is required for this action",
+    )
+    human_ack_valid: bool = Field(
+        default=False,
+        description="Human acknowledgment present and valid (not copied from another action)",
+    )
+    replay_detected: bool = Field(
+        default=False,
+        description="Vault receipt or approval token has been used before",
+    )
+    final_gate: str = Field(
+        default="HOLD",
+        description="PASS | HOLD | VOID — final verdict of the 12-stage pipeline",
+    )
+    reason_codes: list[str] = Field(
+        default_factory=list,
+        description="Exact reason codes for any HOLD/VOID decisions",
+    )
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # BACKWARD-COMPATIBLE ENVELOPE

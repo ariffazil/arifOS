@@ -18,9 +18,22 @@
     }
 }
 
+# Security headers — imported by all public sites
+(security_headers) {
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://api.fontshare.com https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://api.fontshare.com https://fonts.googleapis.com; font-src 'self' https://api.fontshare.com https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://arifos.arif-fazil.com https://mcp.arif-fazil.com https://geox.arif-fazil.com https://wealth.arif-fazil.com https://well.arif-fazil.com https://aaa.arif-fazil.com; frame-ancestors 'self'"
+    }
+}
+
 arif-fazil.com, www.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/arif
     file_server
@@ -30,6 +43,7 @@ arif-fazil.com, www.arif-fazil.com {
 arifos.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/arifos
     handle /mcp* {
@@ -42,6 +56,7 @@ arifos.arif-fazil.com {
 forge.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/forge
     file_server
@@ -51,6 +66,7 @@ forge.arif-fazil.com {
 waw.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/waw
     file_server
@@ -65,6 +81,7 @@ wawa.arif-fazil.com {
 wiki.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/wiki
     file_server
@@ -74,6 +91,7 @@ wiki.arif-fazil.com {
 mcp.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/mcp
 
@@ -118,6 +136,9 @@ mcp.arif-fazil.com {
     handle /apps* {
         file_server
     }
+    handle /proof* {
+        file_server
+    }
 
     # Fallback
     handle {
@@ -133,6 +154,7 @@ arifosmcp.arif-fazil.com {
 aaa.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/aaa
     handle /a2a/* {
@@ -153,6 +175,7 @@ aaa.arif-fazil.com {
 geox.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/geox
     handle /mcp* {
@@ -167,6 +190,7 @@ geox.arif-fazil.com {
 wealth.arif-fazil.com {
     import tls_origin
     import shared_assets
+    import security_headers
     encode zstd gzip
     root * /var/www/html/wealth
     handle /mcp* {

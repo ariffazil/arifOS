@@ -106,7 +106,16 @@ def forge_verdict(
         message = message or f"Blocked SEAL due to inner degradation: {contradiction_flags}"
 
     # 4. Determine status fields (Unified V2)
-    exec_status = ExecutionStatus.SUCCESS if code != VerdictCode.VOID else ExecutionStatus.ERROR
+    # I0 FIX (2026-07-12): execution_status reflects ACTUAL success/failure,
+    # not just verdict code. A tool with ok=false, errors present, or
+    # status=ERROR is a failed execution regardless of constitutional verdict.
+    _inner_ok = bool(payload.get("ok", True)) if isinstance(payload, dict) else True
+    _inner_errors = bool(payload.get("errors")) if isinstance(payload, dict) else False
+    _inner_status_is_error = isinstance(payload, dict) and payload.get("status", "") == "ERROR"
+    _is_actual_failure = (
+        (code == VerdictCode.VOID) or (not _inner_ok) or _inner_errors or _inner_status_is_error
+    )
+    exec_status = ExecutionStatus.ERROR if _is_actual_failure else ExecutionStatus.SUCCESS
     # Map VerdictCode to GovernanceStatus
     gov_status_map = {
         VerdictCode.SEAL: GovernanceStatus.APPROVED,
@@ -155,15 +164,15 @@ def forge_verdict(
 
     runtime_status = (
         RuntimeStatus.ERROR
-        if code == VerdictCode.VOID
+        if _is_actual_failure
         else RuntimeStatus.SABAR
-        if code == VerdictCode.SABAR
+        if code in (VerdictCode.SABAR, VerdictCode.PARTIAL)
         else RuntimeStatus.SUCCESS
     )
 
     # 6. Wrap in RuntimeEnvelope for FastMCP compatibility
     return RuntimeEnvelope(
-        ok=(code != VerdictCode.VOID),
+        ok=(code != VerdictCode.VOID and _inner_ok and not _inner_errors),
         tool=tool_id,
         canonical_tool_name=canonical_tool_name or tool_id,
         stage=stage,

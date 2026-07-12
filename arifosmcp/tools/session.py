@@ -935,7 +935,8 @@ def arif_init(
     embodiment_request: dict | None = None,
     capability_disclosure: dict | None = None,
     nonce: str | None = None,
-    signature: str | None = None,
+    actor_signature: str | None = None,
+    signature: str | None = None,  # legacy alias — prefer actor_signature
     # ── Pre-session identity lineage (forged 2026-06-12) ─────────────────
     idempotency_key: str | None = None,
     trace_id: str | None = None,
@@ -1059,6 +1060,12 @@ def arif_init(
             },
             doctrine=ARIF_DOCTRINE,
         )
+
+    # ── MCP WIRE FIX (2026-07-12): MCP transports send 'actor_signature',
+    # but the legacy parameter is named 'signature'. Resolve the alias so
+    # the signature reaches the kernel verification path.
+    if actor_signature is not None and signature is None:
+        signature = actor_signature
 
     if mode == "cleanup":
         from arifosmcp.runtime.session import list_active_sessions_count

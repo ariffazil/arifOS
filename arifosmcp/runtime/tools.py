@@ -7903,7 +7903,13 @@ def _arif_session_init(
         except Exception as exc:
             logger.warning("Nonce purge failed: %s", exc)
 
-        # F1/L11: Nonce replay prevention
+        # F1/L11: Nonce replay gate — check freshness ONLY (do NOT consume yet)
+        # Order matters: arif_init(nonce) → verify_init_identity(nonce, sig) → FULL.
+        # Consuming the nonce before verification would burn it on a malformed
+        # signature and force the caller to re-init (replay-protect vs. retry-cost
+        # trade). The nonce is bound to the session at T=0 (line 8034: sess["nonce"]
+        # = nonce) and only moved into _NONCE_STORE AFTER signature verification
+        # succeeds — see the post-verify consume block below.
         if nonce:
             if nonce in _NONCE_STORE:
                 return _hold(
@@ -7912,8 +7918,9 @@ def _arif_session_init(
                     ["L01", "L11"],
                     session_id=session_id,
                 )
-            _NONCE_STORE[nonce] = time.time()
-            invariants_checked.append("nonce_fresh")
+            # PENDING state — nonce is associated with this in-flight init.
+            # We do NOT add to _NONCE_STORE here; consume happens post-verify.
+            invariants_checked.append("nonce_pending")
 
         # F1/L11: HMAC-rootkey verification (Telegram-native path)
         # Shared secret: ARIFOS_ROOTKEY (canonical) / ARIF_ROOTKEY (legacy alias).
@@ -7995,6 +8002,23 @@ def _arif_session_init(
             except Exception as exc:
                 logger.warning("Signature verification error: %s", exc)
                 invariants_checked.append(f"signature_verification_error: {type(exc).__name__}")
+
+        # F1/L11: POST-VERIFY nonce consume — only NOW do we move the nonce
+        # from "pending" to "consumed" in _NONCE_STORE. This is the canonical
+        # nonce flow: arif_init(nonce) → sign(nonce) → verify → FULL → consume.
+        # If signature verification failed above (HOLD returned), this block
+        # is skipped and the nonce is left pending so the caller can retry
+        # with a corrected signature using the same nonce.
+        if signature_verified and nonce:
+            _NONCE_STORE[nonce] = time.time()
+            invariants_checked.append("nonce_fresh")
+            invariants_checked.append("nonce_consumed_post_verify")
+            logger.info(
+                "Nonce consumed POST-VERIFY — actor=%s authority=%s",
+                actor_id,
+                authority_level,
+            )
+
         elif actor_signature and not nonce:
             return _hold(
                 "arif_session_init",

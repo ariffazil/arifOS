@@ -499,12 +499,17 @@ class SessionVerdictState(StrEnum):
 
 
 class ActionVerdictState(StrEnum):
-    """Action authorization verdict: was this specific action allowed."""
+    """Action authorization verdict: was this specific action allowed.
 
+    Only arif_judge (888) may produce APPROVED, HOLD, or VOID.
+    All other tools must leave action as NOT_EVALUATED.
+    """
+
+    NOT_EVALUATED = "NOT_EVALUATED"  # Default — no judge has evaluated this action
     DENIED = "DENIED"
-    APPROVED = "APPROVED"
-    HOLD = "HOLD"
-    VOID = "VOID"
+    APPROVED = "APPROVED"  # Only from arif_judge SEAL
+    HOLD = "HOLD"  # Only from arif_judge
+    VOID = "VOID"  # Only from arif_judge
 
 
 class ReceiptVerdictState(StrEnum):

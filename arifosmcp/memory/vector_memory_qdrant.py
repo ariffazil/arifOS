@@ -36,7 +36,7 @@ _QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory")
 _VECTOR_SIZE = int(os.getenv("VECTOR_SIZE", "1024"))
 
 # Ollama embedding endpoint
-_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://ollama_engine:11434")
+_OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 _EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
 
 # Constitutional thresholds
