@@ -97,17 +97,55 @@ def append_cooling_entry(
     seal_id: str | None = None,
     extra: dict[str, Any] | None = None,
     ledger_path: Path | None = None,
+    # P1: Cooling recursion guard — origin, depth, parent tracking
+    origin: str = "external_failure",
+    cooling_depth: int = 0,
+    parent_cooling_id: str | None = None,
 ) -> dict[str, Any]:
     """Append one cooling-ledger entry with parent_hash + entry_seq.
 
+    P1 invariant: cooling_depth MUST be 0 or 1. Depth > 1 is blocked
+    with a HOLD response to prevent runaway recursive cooling.
+    Depth=0 = root cooling cycle. Depth=1 = permitted nested cooling
+    (one level, parent_cooling_id required).
+
     Old entries without chain fields remain readable; new entries always chain.
     """
+    # ── P1: Cooling recursion guard ──
+    if cooling_depth > 1:
+        return {
+            "status": "HOLD",
+            "reason": (
+                f"cooling_depth={cooling_depth} exceeds maximum of 1. "
+                "Recursive cooling beyond one level is blocked by P1 invariant. "
+                "If this is a genuine new failure, start a new root cycle "
+                "(cooling_depth=0). If this is a permitted nested correction, "
+                "use cooling_depth=1 with a valid parent_cooling_id."
+            ),
+            "cooling_depth": cooling_depth,
+            "max_cooling_depth": 1,
+            "invariant": "COOLING_RECURSION_GUARD_P1",
+        }
+    if cooling_depth < 0:
+        return {
+            "status": "HOLD",
+            "reason": f"cooling_depth={cooling_depth} must be >= 0.",
+            "cooling_depth": cooling_depth,
+            "invariant": "COOLING_RECURSION_GUARD_P1",
+        }
+    if cooling_depth == 1 and not parent_cooling_id:
+        return {
+            "status": "HOLD",
+            "reason": "cooling_depth=1 requires parent_cooling_id.",
+            "cooling_depth": cooling_depth,
+            "invariant": "COOLING_RECURSION_GUARD_P1",
+        }
+
     path = ledger_path or DEFAULT_LEDGER_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with _lock:
         existing = _read_all(path)
-        # only count well-formed prior entries for seq
         good = [e for e in existing if not e.get("_parse_error")]
         entry_seq = (good[-1].get("entry_seq") or len(good)) + 1 if good else 1
         if good and isinstance(good[-1].get("entry_seq"), int):
@@ -130,7 +168,11 @@ def append_cooling_entry(
             "delta_S": delta_S,
             "verified": verified,
             "seal_id": seal_id,
-            "schema": "cooling_ledger_entry.v1",
+            # P1 cooling recursion fields
+            "origin": origin,
+            "cooling_depth": cooling_depth,
+            "parent_cooling_id": parent_cooling_id,
+            "schema": "cooling_ledger_entry.v2",
         }
         if extra:
             entry["extra"] = extra

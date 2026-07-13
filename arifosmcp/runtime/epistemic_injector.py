@@ -285,6 +285,39 @@ def get_default_epistemic(tool_name: str) -> EpistemicTag | None:
     return None
 
 
+def _authority_claim_ceiling(
+    verdict: str,
+    session_authority: str | None = None,
+) -> str | None:
+    """P1: Enforce authority_claim <= session_authority ceiling.
+
+    Returns the downgraded authority_claim string, or None if no downgrade needed.
+
+    Session authority hierarchy (highest to lowest):
+      SOVEREIGN  → can claim EXECUTIVE
+      JUDGE      → can claim EXECUTIVE
+      FORGE      → can claim ADVISORY (not EXECUTIVE)
+      OBSERVE    → can claim INFORMATIONAL (not EXECUTIVE/ADVISORY)
+      none       → can claim INFORMATIONAL only
+
+    Verdict-based downgrades (from 2026-07-06 fix):
+      OBSERVE_ONLY verdict → authority_claim must be ≤ ADVISORY
+    """
+    # Verdict-based: OBSERVE_ONLY can never be EXECUTIVE
+    if verdict == "OBSERVE_ONLY":
+        return "ADVISORY"
+
+    # Session-authority-based: if session authority is known and bounded
+    if session_authority:
+        _auth_rank = {"SOVEREIGN": 3, "JUDGE": 3, "FORGE": 2, "OBSERVE": 1, "OBSERVE_ONLY": 1}
+        _claim_rank = {"EXECUTIVE": 3, "ADVISORY": 2, "INFORMATIONAL": 1}
+        sess_rank = _auth_rank.get(session_authority.upper(), 1)
+        for claim, rank in sorted(_claim_rank.items(), key=lambda x: -x[1]):
+            if rank > sess_rank:
+                return "ADVISORY" if sess_rank >= 2 else "INFORMATIONAL"
+    return None
+
+
 def inject_epistemic_for_tool(
     response: dict[str, Any],
     tool_name: str,
@@ -297,21 +330,43 @@ def inject_epistemic_for_tool(
     Fix 2026-07-06: OBSERVE_ONLY verdict → authority_claim downgraded to ADVISORY.
     An observe-only response must never claim EXECUTIVE authority, as the verdict
     explicitly denies authorization capability.
+
+    P1 (2026-07-13): authority_claim <= effective_session_authority enforcement.
+    The epistemic authority_claim must never exceed what the session permits.
     """
     tag = get_default_epistemic(tool_name)
     if tag is None:
-        # Unknown tool — safe default
         tag = EPISTEMIC_DETERMINISTIC
 
     result = inject_epistemic(response, tag, tagged_by=tagged_by)
 
-    # Fix 2026-07-06: OBSERVE_ONLY verdict → downgrade authority_claim to ADVISORY
-    # The epistemic tag and the verdict must not contradict each other.
     verdict = response.get("verdict", "")
+    session_authority = response.get("session_authority") or (
+        response.get("meta", {}).get("authority")
+        if isinstance(response.get("meta"), dict)
+        else None
+    )
+
+    # P1: Enforce authority_claim ceiling
+    downgraded = _authority_claim_ceiling(verdict, session_authority)
+    if downgraded:
+        current_claim = result.get("_epistemic", {}).get("authority_claim", "")
+        downgrade_rank = {"EXECUTIVE": 3, "ADVISORY": 2, "INFORMATIONAL": 1}
+        if downgrade_rank.get(current_claim, 0) > downgrade_rank.get(downgraded, 0):
+            result["_epistemic"]["original_authority_claim"] = current_claim
+            result["_epistemic"]["authority_claim"] = downgraded
+            result["_epistemic"]["authority_downgrade_reason"] = (
+                f"authority_claim {current_claim} exceeds session ceiling "
+                f"(verdict={verdict}, session_authority={session_authority})"
+            )
+
+    # Legacy: OBSERVE_ONLY verdict → check/adjust (now handled by _authority_claim_ceiling)
+    # Kept as belt-and-suspenders in case ceiling returns None
     if (
         verdict == "OBSERVE_ONLY"
         and result.get("_epistemic", {}).get("authority_claim") == "EXECUTIVE"
     ):
+        result["_epistemic"]["original_authority_claim"] = "EXECUTIVE"
         result["_epistemic"]["authority_claim"] = "ADVISORY"
 
     return result
