@@ -1,0 +1,5 @@
+include arifosmcp/registry/*.yaml
+include arifosmcp/registry/*.yml
+include arifosmcp/**/*.yaml
+include arifosmcp/**/*.json
+include arifosmcp/**/*.csv
