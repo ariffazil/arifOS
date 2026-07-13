@@ -746,15 +746,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["seal"],
         requires_lease=True,
         requires_f13_sovereign_ack=True,
-        # P2 2026-07-13: arif_seal is append-only to VAULT999 — it is the
-        # system's MEMORY, not a destructive action. Same blast class as a
-        # production deploy is wrong by design. HIGH reflects governance-positive
-        # (audit-trail) impact, not infrastructure-level disruption.
-        blast_radius=BlastRadius.HIGH,
-        # Kept as is_reversible=False intentionally — the seal record itself
-        # is immutable (append-only ledger). A counter-seal can compensate the
-        # EFFECT, but the system considers this an explicit rollback path that
-        # the caller must opt into via Stage-2 rollback workflow, not implicit.
+        blast_radius=BlastRadius.HIGH,  # Append-only vault write, not destructive infrastructure
         is_reversible=False,
     ),
     "arif_forge": ToolManifestEntry(
@@ -1052,32 +1044,12 @@ def pre_execution_gate(
         # If mode is dangerous and action is mutating, require higher authority
         if tool_mode in manifest_entry.dangerous_modes:
             if requested_action in (ActionClass.MUTATE, ActionClass.IRREVERSIBLE):
-                # P2 2026-07-13: arif_seal/forge_seal are append-only vault writes —
-                # verified sovereign identity satisfies the dangerous-mode ack
-                # requirement (matches the Gate 7 bypass below). Without this,
-                # the OBSERVE_ONLY bootstrap cap makes the seal-self-recursive
-                # deadlock unbreakable.
-                from arifosmcp.runtime.governance_identity import PROTECTED_SOVEREIGN_IDS
-                _kernel = envelope.kernel
-                _vault_seal_dangerous_bypass = (
-                    tool_name in ("arif_seal", "forge_seal")
-                    and bool(getattr(_kernel, "actor_verified", False))
-                    and (_kernel.actor_id or "").lower() in {p.lower() for p in PROTECTED_SOVEREIGN_IDS}
+                reasons.append(
+                    f"Dangerous mode '{tool_mode}' on tool '{tool_name}' "
+                    f"requires explicit human acknowledgement"
                 )
-                if _vault_seal_dangerous_bypass:
-                    logger.info(
-                        "Gate 2 dangerous-mode ack satisfied by verified sovereign identity "
-                        "for vault-seal tool=%s actor=%s",
-                        tool_name,
-                        _kernel.actor_id,
-                    )
-                else:
-                    reasons.append(
-                        f"Dangerous mode '{tool_mode}' on tool '{tool_name}' "
-                        f"requires explicit human acknowledgement"
-                    )
-                    violations.append("F1_AMANAH — dangerous mode without ack")
-                if not _vault_seal_dangerous_bypass and not envelope.authority.f13_sovereign_required:
+                violations.append("F1_AMANAH — dangerous mode without ack")
+                if not envelope.authority.f13_sovereign_required:
                     return GateResult(
                         envelope=envelope,
                         verdict=GateVerdict.HOLD,
@@ -1242,31 +1214,15 @@ def pre_execution_gate(
 
     # ── Gate 7: Human acknowledgement check ───────────────────────────
     if ActionClass.requires_f13_sovereign_ack(requested_action):
-        # P2 2026-07-13: arif_seal is the system's audit-trail write —
-        # append-only to VAULT999. Verified sovereign identity (Ed25519 +
-        # SOVEREIGN_KEY_IDS handshake already checked upstream in
-        # governance_identity._verify_ed25519_proof → sets
-        # envelope.kernel.actor_verified=True) IS the human acknowledgement
-        # for vault operations. Without this bypass, the OBSERVE_ONLY
-        # bootstrap cap made arif_seal impossible without a pre-sealed
-        # session — chicken-and-egg deadlock.
-        from arifosmcp.runtime.governance_identity import PROTECTED_SOVEREIGN_IDS
-        _kernel = envelope.kernel
-        _vault_seal_sovereign_bypass = (
-            tool_name in ("arif_seal", "forge_seal")
-            and bool(getattr(_kernel, "actor_verified", False))
-            and (_kernel.actor_id or "").lower() in {p.lower() for p in PROTECTED_SOVEREIGN_IDS}
-        )
-        if not _vault_seal_sovereign_bypass:
-            if not envelope.authority.f13_sovereign_required:
-                return GateResult(
-                    envelope=envelope,
-                    verdict=GateVerdict.HOLD,
-                    reasons=[f"{requested_action.value} requires human acknowledgement"],
-                    violations=["F13_SOVEREIGN — no human ack"],
-                    blocked_action_class=requested_action,
-                    required_human_ack=True,
-                )
+        if not envelope.authority.f13_sovereign_required:
+            return GateResult(
+                envelope=envelope,
+                verdict=GateVerdict.HOLD,
+                reasons=[f"{requested_action.value} requires human acknowledgement"],
+                violations=["F13_SOVEREIGN — no human ack"],
+                blocked_action_class=requested_action,
+                required_human_ack=True,
+            )
 
     # ── Gate 8: Constitution hash ─────────────────────────────────────
     if ActionClass.is_mutating(requested_action):

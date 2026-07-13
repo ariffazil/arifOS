@@ -7,6 +7,8 @@ This module provides runtime traceability back to that canonical repo.
 from __future__ import annotations
 
 import os
+import hashlib
+import json
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
@@ -16,6 +18,90 @@ from arifosmcp.runtime.DNA import VERSION as DNA_VERSION
 
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
+PROCESS_STARTED_AT = datetime.now(UTC).isoformat()
+
+_CRITICAL_MODULES = (
+    "arifosmcp/tools/session.py",
+    "arifosmcp/runtime/crypto_auth.py",
+    "arifosmcp/runtime/convergence_tracker.py",
+    "arifosmcp/runtime/cooling_verbs.py",
+    "arifosmcp/runtime/forge_session_runtime.py",
+    "arifosmcp/runtime/governance_identity.py",
+    "arifosmcp/runtime/rest_routes/rest_routes.py",
+)
+
+
+def _sha256_file(path: Path) -> str | None:
+    try:
+        return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+    except (OSError, PermissionError):
+        return None
+
+
+def _full_source_commit() -> str:
+    """Return the deployed full commit when available; never invent padding."""
+    stamp = Path("/opt/arifos/app/.git_commit")
+    try:
+        value = stamp.read_text().strip()
+        if len(value) >= 7:
+            return value
+    except OSError:
+        pass
+    git_head = Path("/root/arifOS/.git/HEAD")
+    try:
+        value = git_head.read_text().strip()
+        if value.startswith("ref: "):
+            ref = Path("/root/arifOS/.git") / value[5:]
+            return ref.read_text().strip()
+        if len(value) >= 7:
+            return value
+    except OSError:
+        pass
+    return "unknown"
+
+
+def _installation_manifest_hash() -> str | None:
+    """Hash the installed distribution RECORD (the reproducible install manifest)."""
+    candidates = sorted(
+        Path("/opt/arifos/venv/lib").glob("python*/site-packages/arifos-*.dist-info/RECORD")
+    )
+    return _sha256_file(candidates[-1]) if candidates else None
+
+
+def get_runtime_attestation() -> dict[str, Any]:
+    """Public, machine-readable binding from release to this live process."""
+    source_commit = _full_source_commit()
+    critical_module_hashes = {
+        rel: digest for rel in _CRITICAL_MODULES if (digest := _sha256_file(ROOT / rel)) is not None
+    }
+    wheel_hash = os.getenv("ARIFOS_WHEEL_SHA256", "").strip() or _installation_manifest_hash()
+    manifest = {
+        "source_commit": source_commit,
+        "wheel_hash": wheel_hash,
+        "critical_module_hashes": critical_module_hashes,
+    }
+    runtime_manifest_hash = (
+        "sha256:"
+        + hashlib.sha256(
+            json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+    )
+    release_id = os.getenv("ARIFOS_RELEASE_ID", "").strip() or (
+        f"arifos-{source_commit[:12]}" if source_commit != "unknown" else "unknown"
+    )
+    return {
+        "release_id": release_id,
+        "source_commit": source_commit,
+        "wheel_hash": wheel_hash,
+        "runtime_manifest_hash": runtime_manifest_hash,
+        "service_pid": os.getpid(),
+        "service_started_at": PROCESS_STARTED_AT,
+        "critical_module_hashes": critical_module_hashes,
+        "attestation_semantics": {
+            "kernel_epoch": "constitutional/protocol epoch; not a software build date",
+            "wheel_hash": "ARIFOS_WHEEL_SHA256 when injected, otherwise installed RECORD hash",
+        },
+    }
 
 
 def _git_sha_short() -> str:

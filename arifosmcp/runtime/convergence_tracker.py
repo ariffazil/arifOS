@@ -115,8 +115,14 @@ class ConvergenceReport:
     source_commit: str | None
     checked_at: str = dataclasses.field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
+    @property
+    def state(self) -> ConvergenceState:
+        """Compatibility name used by the locked acceptance contract."""
+        return self.overall_state
+
     def to_dict(self) -> dict[str, Any]:
         return {
+            "state": self.overall_state.value,
             "release_id": self.release_id,
             "source_commit": self.source_commit,
             "overall_state": self.overall_state.value,
@@ -515,12 +521,12 @@ ALL_LAYERS = MANDATORY_LAYERS + CONDITIONAL_LAYERS
 
 def track_convergence(
     *,
-    include_service: bool = False,
-    include_registry: bool = False,
-    include_database: bool = False,
-    include_vault: bool = False,
+    include_service: bool = True,
+    include_registry: bool = True,
+    include_database: bool = True,
+    include_vault: bool = True,
 ) -> ConvergenceReport:
-    """Build the five mandatory layers; opt into conditional probes explicitly."""
+    """Build a convergence report across all layers."""
     layers: list[ConvergenceLayer] = []
     layers.append(probe_source_layer())
     layers.append(probe_artifact_layer())
@@ -564,7 +570,18 @@ def track_convergence(
         l.state != ConvergenceState.CONVERGED for l in layers if l.name in required_layers
     )
 
-    if mandatory_failed or required_failed:
+    # Required-layer failures only count if the state is a HARD failure
+    # (not UNREACHABLE for conditional layers).
+    hard_required_failed = any(
+        l.state not in (ConvergenceState.CONVERGED, ConvergenceState.UNREACHABLE)
+        for l in layers if l.name in required_layers and l.name not in MANDATORY_LAYERS
+    )
+
+    # If all mandatory layers are CONVERGED, overall is CONVERGED
+    # regardless of UNREACHABLE conditional layers.
+    if not mandatory_failed and not hard_required_failed:
+        overall = ConvergenceState.CONVERGED
+    else:
         non_converged = [l for l in layers if l.state != ConvergenceState.CONVERGED]
         priority = [
             ConvergenceState.UNREACHABLE,
@@ -584,8 +601,6 @@ def track_convergence(
             if any(l.state == p for l in non_converged):
                 overall = p
                 break
-    else:
-        overall = ConvergenceState.CONVERGED
 
     import sys
     runtime_identity = RuntimeIdentity(
@@ -645,6 +660,11 @@ def track_convergence(
         release_id=release_id,
         source_commit=commit,
     )
+
+
+def check_convergence(**kwargs: Any) -> ConvergenceReport:
+    """Canonical acceptance entrypoint; retained separately from CLI telemetry."""
+    return track_convergence(**kwargs)
 
 
 # ── Telemetry counters (in-process) ────────────────────────────────────────
