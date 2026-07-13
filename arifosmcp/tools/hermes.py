@@ -161,6 +161,7 @@ def arif_vault_query(
 
     Modes:
       recent   — return N most recent VAULT entries (default)
+      verify_chain — read-only integrity verification; never appends or repairs
       search   — search VAULT entries by keyword
       organ    — filter entries by organ name
       date     — filter entries by date prefix (YYYY-MM-DD)
@@ -181,6 +182,53 @@ def arif_vault_query(
     substrate. Now it can.
     """
     actor = actor_id or "hermes_agent"
+    if mode in ("verify_chain", "chain_status"):
+        import subprocess
+
+        verifier = "/root/AAA/a2a-server/seal_chain.js"
+        before = os.stat(verifier).st_mtime_ns if os.path.isfile(verifier) else None
+        try:
+            run = subprocess.run(
+                ["node", verifier, "verify"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            return {
+                "status": "OK" if run.returncode == 0 else "HOLD",
+                "result": {
+                    "status": "OK" if run.returncode == 0 else "HOLD",
+                    "chain_ok": run.returncode == 0,
+                    "operation": "vault.verify_chain",
+                    "authority_class": "AUDIT_READ_ONLY",
+                    "caller": actor,
+                    "implementation": verifier,
+                    "implementation_mtime_unchanged": (
+                        before == os.stat(verifier).st_mtime_ns
+                        if before is not None and os.path.isfile(verifier)
+                        else None
+                    ),
+                    "append_attempted": False,
+                    "repair_attempted": False,
+                    "exit_code": run.returncode,
+                    "verifier_summary": (run.stdout or run.stderr)[-1200:],
+                    "accepted_risk_changes_chain_validity": False,
+                },
+            }
+        except Exception as exc:
+            return {
+                "status": "HOLD",
+                "result": {
+                    "status": "HOLD",
+                    "chain_ok": False,
+                    "operation": "vault.verify_chain",
+                    "authority_class": "AUDIT_READ_ONLY",
+                    "append_attempted": False,
+                    "repair_attempted": False,
+                    "error": f"{type(exc).__name__}: {exc}",
+                },
+            }
     # Cycle 4 fix (2026-06-21): read vault path from env var to match the
     # systemd service env (ARIFOS_VAULT_DIR=/var/lib/arifos/vault) AND the
     # canonical repo location (/agent/vault999/). The hardcoded

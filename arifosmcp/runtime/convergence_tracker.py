@@ -115,8 +115,14 @@ class ConvergenceReport:
     source_commit: str | None
     checked_at: str = dataclasses.field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
+    @property
+    def state(self) -> ConvergenceState:
+        """Compatibility name used by the locked acceptance contract."""
+        return self.overall_state
+
     def to_dict(self) -> dict[str, Any]:
         return {
+            "state": self.overall_state.value,
             "release_id": self.release_id,
             "source_commit": self.source_commit,
             "overall_state": self.overall_state.value,
@@ -654,6 +660,11 @@ def track_convergence(
         release_id=release_id,
         source_commit=commit,
     )
+
+
+def check_convergence(**kwargs: Any) -> ConvergenceReport:
+    """Canonical acceptance entrypoint; retained separately from CLI telemetry."""
+    return track_convergence(**kwargs)
 
 
 # ── Telemetry counters (in-process) ────────────────────────────────────────

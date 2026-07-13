@@ -492,6 +492,8 @@ def _project_light(
         "light_bootstrap" if session_mode == "light" else "constitutionally_bound_session"
     )
 
+    from arifosmcp.runtime.build import get_runtime_attestation
+
     out = {
         # GATING
         "session_id": sid,
@@ -503,6 +505,7 @@ def _project_light(
         "authority_scope": _authority,
         "actor_bound": actor_verified,
         "kernel_epoch": "2026-07-03",
+        "software_release": get_runtime_attestation(),
         "public_surface_version": "7",
         "tool_registry_version": "1.0.0",
         "allowed_next_verbs": _allowed_next,
