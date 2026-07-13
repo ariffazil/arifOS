@@ -19,7 +19,7 @@ SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(cd "$SELF_DIR/.." && pwd)"
 VENV_PYTHON="/opt/arifos/venv/bin/python"
 VENV_PIP="/opt/arifos/venv/bin/pip"
-VENV_SITE_PKG="$("$VENV_PYTHON" -c 'from pathlib import Path; import arifosmcp; print(str(Path(arifosmcp.__file__).parent))' 2>/dev/null || echo "/opt/arifos/venv/lib/python3.12/site-packages/arifosmcp")"
+VENV_SITE_PKG="$(cd / && "$VENV_PYTHON" -c 'from pathlib import Path; import arifosmcp; print(str(Path(arifosmcp.__file__).parent))' 2>/dev/null || echo "/opt/arifos/venv/lib/python3.12/site-packages/arifosmcp")"
 SERVICE_NAME="arifos.service"
 RELEASE_DIR="/opt/arifos/releases"
 BUILD_DIR="/tmp/arifos-build-$$"
@@ -90,7 +90,7 @@ echo ""
 
 # ── Step 4: Verify import path ───────────────────────────────────────
 echo "--- Step 4: Verify import path resolution ---"
-IMPORT_PATH=$("$VENV_PYTHON" -c "
+IMPORT_PATH=$(cd / && "$VENV_PYTHON" -c "
 import arifosmcp.runtime.build as b
 from pathlib import Path
 print(Path(b.__file__).resolve())
@@ -159,7 +159,7 @@ echo ""
 
 # ── Step 7: Verify runtime alignment ─────────────────────────────────
 echo "--- Step 7: Verify runtime alignment ---"
-ALIGNMENT=$("$VENV_PYTHON" -c "
+ALIGNMENT=$(cd / && "$VENV_PYTHON" -c "
 from arifosmcp.runtime.build import _git_sha_short
 s = _git_sha_short()
 print(f'running_commit={s}')
