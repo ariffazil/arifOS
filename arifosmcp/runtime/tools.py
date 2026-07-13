@@ -1703,17 +1703,43 @@ def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
     If a tool name is not in TOOL_AFFORDANCE_CONTRACTS, return a
     conservative UNKNOWN contract — fail-safe by default. Agents should
     treat unknown tools as if they require session + lease + ack.
+
+    P1 dual-affordance fix (2026-07-13): if the tool is registered in the
+    public tool list but missing from TOOL_AFFORDANCE_CONTRACTS, generate a
+    generic affordance with known=True so the tool_list and affordance contract
+    do not contradict each other (known:false + tool_list claiming known).
     """
-    # Resolve arifos_* → arif_* via legacy alias map (2026-06-22 migration)
     lookup_name = _LEGACY_ALIASES.get(tool_name, tool_name)
-    # P0-4 fix (2026-07-08): Try resolved name first, then original name.
-    # _LEGACY_ALIASES maps arif_judge → arifos_judge, but affordance dict
-    # has arif_judge. Without fallback, canonical names resolve to UNKNOWN.
     for candidate in (lookup_name, tool_name):
         if candidate in TOOL_AFFORDANCE_CONTRACTS:
             contract = dict(TOOL_AFFORDANCE_CONTRACTS[candidate])
             contract["known"] = True
             return contract
+
+    # P1: Check if tool is listed in public_tool_names() but missing affordance
+    try:
+        from arifosmcp.runtime.public_registry import public_tool_names
+
+        if tool_name in public_tool_names() or lookup_name in public_tool_names():
+            return {
+                "action_class": "OBSERVE",
+                "mutation": False,
+                "external_side_effect": False,
+                "irreversible": False,
+                "requires_session": True,
+                "requires_lease": False,
+                "requires_human_ack": False,
+                "expected_blast_radius": "LOW",
+                "output_is_evidence": True,
+                "output_is_approval": False,
+                "safe_autonomous_use": True,
+                "transport_constraint": "none",
+                "known": True,
+                "_note": "auto-generated affordance — tool is in public registry but missing from TOOL_AFFORDANCE_CONTRACTS",
+            }
+    except Exception:
+        pass
+
     return {
         "action_class": "UNKNOWN",
         "mutation": "unknown",
@@ -1726,8 +1752,8 @@ def _get_affordance_contract(tool_name: str) -> dict[str, Any]:
         "output_is_evidence": False,
         "output_is_approval": False,
         "safe_autonomous_use": False,
-        "transport_constraint": "unknown",  # P0-4b: fail-safe
-        "known": False,  # Mark as fallback so callers know to be cautious
+        "transport_constraint": "unknown",
+        "known": False,
     }
 
 
@@ -11975,7 +12001,9 @@ def _kernel_reversibility_gate(task: str | None) -> bool:
     return any(k in tl for k in irreversible)
 
 
-def _kernel_authority_gate(task: str | None, actor_id: str | None, verified_key_id: str | None = None) -> dict[str, Any]:
+def _kernel_authority_gate(
+    task: str | None, actor_id: str | None, verified_key_id: str | None = None
+) -> dict[str, Any]:
     """Return authority boundary assessment."""
     sovereign_tasks = [
         "seal",
@@ -11991,10 +12019,9 @@ def _kernel_authority_gate(task: str | None, actor_id: str | None, verified_key_
     # never to actor string. Empty SOVEREIGN_KEY_IDS means no actor is
     # automatically SOVEREIGN until the production key registry is wired.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+
     actor_tier = (
-        "SOVEREIGN"
-        if verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
-        else "OPERATOR"
+        "SOVEREIGN" if verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS else "OPERATOR"
     )
     passed = actor_tier == required or actor_tier == "SOVEREIGN"
     return {"required_authority": required, "actor_tier": actor_tier, "passed": passed}
@@ -13450,6 +13477,50 @@ def _arif_memory_recall(
         else:
             avg_relevance = 0.0
 
+        # ── P0-A: Memory truth audit — empty result ≠ SUCCESS ─────────────
+        # If no memories found after initial search + correction loop,
+        # return HOLD (not OK). Empty recall must propagate the truth.
+        if not memories and not correction_loop.get("new_results"):
+            return _hold(
+                "arif_memory_recall",
+                f"No memories found for query: {query or '(empty)'}",
+                floors=["F2"],
+                extra_meta={
+                    "memory_truth": "NOT_FOUND",
+                    "query": query,
+                    "confidence": 0.0,
+                    "correction_loop": correction_loop,
+                },
+                session_id=session_id,
+            )
+
+        # ── P0-A: Stale-memory detection ──────────────────────────────────
+        # Flag memories older than 24h so callers can discount stale evidence.
+        stale_warning: list[dict[str, Any]] = []
+        _now_ts = time.time()
+        for m in memories:
+            created = m.get("created_at")
+            if created:
+                try:
+                    if isinstance(created, str):
+                        from datetime import datetime as _dt
+
+                        created_ts = _dt.fromisoformat(created.replace("Z", "+00:00")).timestamp()
+                    else:
+                        created_ts = float(created)
+                    age_hours = (_now_ts - created_ts) / 3600
+                    if age_hours > 24:
+                        stale_warning.append(
+                            {
+                                "memory_id": m.get("id"),
+                                "age_hours": round(age_hours, 1),
+                                "threshold_hours": 24,
+                                "warning": "Memory exceeds 24h freshness threshold",
+                            }
+                        )
+                except Exception:
+                    pass
+
         return _ok(
             "arif_memory_recall",
             {
@@ -13459,6 +13530,7 @@ def _arif_memory_recall(
                 "relevance_scores": relevance_scores,
                 "avg_relevance": round(avg_relevance, 3),
                 "correction_loop": correction_loop,
+                "stale_warning": stale_warning or None,
             },
             delta_S=0.001,
         )
@@ -22348,11 +22420,8 @@ def _ws1_authority_envelope(
         actor_key = (actor_id or "").strip().lower()
         # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
-        h_authority = (
-            "OPERATOR"
-            if actor_verified_flag
-            else "OBSERVER"
-        )
+
+        h_authority = "OPERATOR" if actor_verified_flag else "OBSERVER"
         return {
             "actor_verified": bool(actor_verified_flag)
             if actor_verified_flag is not None
