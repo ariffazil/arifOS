@@ -241,8 +241,14 @@ def probe_duplicate_installations() -> list[dict[str, Any]]:
     duplicates: list[dict[str, Any]] = []
     seen_package_dirs: set[str] = set()
 
-    # Check for actual package directories first
+    # A directory is a live installation only when Python can import from its
+    # parent. Dormant deployment copies such as /opt/arifos/app are not dupes.
+    importable_roots = {str(Path(p or ".").resolve()) for p in sys.path}
+
+    # Check for actual importable package directories first
     for root in APPROVED_IMPORT_ROOTS:
+        if str(Path(root).resolve()) not in importable_roots:
+            continue
         p = Path(root) / "arifosmcp"
         if p.exists() and p.is_dir():
             key = str(p.resolve())
