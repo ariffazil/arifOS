@@ -304,7 +304,7 @@ justext==3.0.2
     # via trafilatura
 keyring==25.7.0
     # via py-key-value-aio
-langchain-core==1.4.8
+langchain-core==1.4.9
     # via
     #   langgraph
     #   langgraph-checkpoint
