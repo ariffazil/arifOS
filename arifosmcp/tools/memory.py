@@ -586,14 +586,19 @@ def _compute_memory_confidence(
 
     Separates backend health from relevance from content integrity from
     reasoning authority. Never collapses them into a single misleading number.
+
+    F2 TRUTH FIX (2026-07-13): Added overall_confidence = min(all planes).
+    Downstream gates MUST use overall_confidence, not backend_confidence.
+    backend_confidence means "Qdrant is up" — NOT "the recall is trustworthy".
     """
     total = len(results)
     if total == 0:
         return {
-            "backend_confidence": 0.85 if backend_ok else 0.0,
+            "backend_health": 0.85 if backend_ok else 0.0,
             "retrieval_relevance": 0.0,
             "content_integrity": 0.0,
             "reasoning_authority": 0.0,
+            "overall_confidence": 0.0,
             "calibration_note": "No memories retrieved.",
         }
 
@@ -613,15 +618,23 @@ def _compute_memory_confidence(
     else:
         reasoning_authority = round(min(avg_score, 0.5), 3)
 
+    # F2 TRUTH: overall_confidence is the floor of all planes.
+    # This is what downstream gates should use — not backend_health.
+    backend_health = 0.85 if backend_ok else 0.0
+    overall = round(min(backend_health, avg_score, content_integrity, reasoning_authority), 3)
+
     return {
-        "backend_confidence": 0.85 if backend_ok else 0.0,
+        "backend_health": backend_health,
         "retrieval_relevance": avg_score,
         "content_integrity": content_integrity,
         "reasoning_authority": reasoning_authority,
+        "overall_confidence": overall,
         "calibration_note": (
-            f"Backend OK. {usable}/{total} usable. "
+            f"Backend {'OK' if backend_ok else 'DOWN'}. "
+            f"{usable}/{total} usable. "
             f"Avg relevance {avg_score}. "
-            f"Quarantined {quarantined} due to null content."
+            f"Quarantined {quarantined} due to null/synthetic content. "
+            f"Overall confidence {overall} — use this for downstream gates."
         ),
     }
 
@@ -932,6 +945,7 @@ def arif_memory_recall(
                     continue
                 hit = {
                     "memory_id": r.get("memory_id", ""),
+                    "content": r.get("content") or r.get("text"),
                     "summary": r.get("summary"),
                     "tags": r.get("tags", []),
                     "mode": r.get("mode"),
@@ -941,8 +955,18 @@ def arif_memory_recall(
                     "provenance": r.get("provenance"),
                     "can_treat_as_proof": r.get("can_treat_as_proof", False),
                     "_governance": r.get("_governance"),
+                    "_constructed_text": r.get("_constructed_text", False),
                 }
-                if r.get("usable", True):
+                # F2 TRUTH: synthetic text from metadata is NOT real content.
+                # Quarantine it so callers don't treat metadata snippets as evidence.
+                if r.get("_constructed_text") and not r.get("_quarantine"):
+                    hit["tier"] = "quarantine"
+                    hit["_quarantine"] = {
+                        "quarantined": True,
+                        "reason": "synthetic_text_from_metadata",
+                        "action": "Content reconstructed from metadata fields — not a real memory recall.",
+                    }
+                if r.get("usable", True) and not r.get("_constructed_text"):
                     usable_hits.append(hit)
                 else:
                     quarantined_hits.append(hit)
@@ -979,30 +1003,47 @@ def arif_memory_recall(
                     "recommendation": "Tighten query or increase min_confidence",
                 }
 
-            return _ok(
-                "arif_memory_recall",
-                {
-                    "query": query,
-                    "results": usable_hits,
-                    "count": len(usable_hits),
-                    "memory_quality": {
-                        "total_retrieved": len(results),
-                        "usable_recall_hits": len(usable_hits),
-                        "quarantined_hits": len(quarantined_hits),
-                        "quarantine_reason": "null_content" if quarantined_hits else None,
-                        "memory_bloat_ratio": memory_bloat,
-                        "bloat_assessment": (
-                            "tight"
-                            if memory_bloat < 2.0
-                            else "acceptable"
-                            if memory_bloat < 5.0
-                            else "bloated"
-                        ),
-                    },
-                    "coverage_gap": _m_gap,
-                    "confidence": confidence,
+            # F2 TRUTH: if no usable content exists, this is not a success.
+            # Return HOLD so downstream gates don't treat empty recall as evidence.
+            recall_payload = {
+                "query": query,
+                "results": usable_hits,
+                "quarantined_results": quarantined_hits,
+                "count": len(usable_hits),
+                "memory_quality": {
+                    "total_retrieved": len(results),
+                    "usable_recall_hits": len(usable_hits),
+                    "quarantined_hits": len(quarantined_hits),
+                    "quarantine_reason": (
+                        "null_or_synthetic_content" if quarantined_hits else None
+                    ),
+                    "memory_bloat_ratio": memory_bloat,
+                    "bloat_assessment": (
+                        "tight"
+                        if memory_bloat < 2.0
+                        else "acceptable"
+                        if memory_bloat < 5.0
+                        else "bloated"
+                    ),
                 },
-            )
+                "coverage_gap": _m_gap,
+                "confidence": confidence,
+            }
+            if len(usable_hits) == 0 and len(results) > 0:
+                return _hold(
+                    "arif_memory_recall",
+                    f"F2 TRUTH: {len(results)} memories retrieved but 0 have usable content. "
+                    f"{len(quarantined_hits)} quarantined (null/synthetic). "
+                    f"Cannot provide evidence — memory layer is degraded.",
+                    ["F2"],
+                )
+            if len(usable_hits) == 0:
+                return _hold(
+                    "arif_memory_recall",
+                    "No memories found for query. Memory layer returned empty.",
+                    ["F2"],
+                )
+            return _ok("arif_memory_recall", recall_payload)
 
         return _hold("arif_memory_recall", "recall mode requires memory_id or query")
 
