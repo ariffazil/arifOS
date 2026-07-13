@@ -2396,6 +2396,34 @@ _RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
     default=None,
 )
 
+# ── Identity resolution: ingress context → kwargs → "unknown" ──────
+# F2 TRUTH: VAULT999 receipts must carry real identity, not "unknown".
+# The ingress middleware sets _RESPONSE_CONTEXT with actor_id/session_id
+# extracted from MCP arguments. Tool kwargs get stripped by
+# _filter_kwargs_for_handler. This helper reads from the context first.
+
+_ANON_PLACEHOLDERS = frozenset({
+    None, "", "anonymous", "openclaw-anon", "unknown", "null", "None",
+})
+
+
+def _resolve_identity(kwargs: dict, key: str) -> str:
+    """Resolve actor_id or session_id from response context, then kwargs.
+
+    Priority: _RESPONSE_CONTEXT -> kwargs -> "unknown"
+    The "unknown" default is a last resort -- every receipt without identity
+    is an F2 TRUTH violation.
+    """
+    ctx = _RESPONSE_CONTEXT.get()
+    if ctx:
+        val = ctx.get(key)
+        if val not in _ANON_PLACEHOLDERS:
+            return str(val)
+    val = kwargs.get(key)
+    if val not in _ANON_PLACEHOLDERS:
+        return str(val)
+    return "unknown"
+
 
 class Stage:
     INIT_000 = "000_INIT"
@@ -17152,13 +17180,39 @@ def _arif_vault_seal(
             content_hash = hashlib.sha256(
                 json.dumps(entry, sort_keys=True, default=str).encode()
             ).hexdigest()
+            # F2 TRUTH: determine actor_source from verification state
+            # (identity-propagation fix — 2026-07-13)
+            if signature_verified:
+                _chain_actor_source = "ed25519_verified"
+            elif _sov_bypass:
+                _chain_actor_source = "sovereign_directive"
+            elif auth_lineage:
+                _chain_actor_source = "jwt_verified"
+            else:
+                _chain_actor_source = "kernel_evaluated"
+
+            # F2 TRUTH: resolve real identity before writing to chain
+            _chain_sess_ctx = None
+            try:
+                _chain_sess_ctx = _SESSIONS.get(session_id) if session_id else None
+            except Exception:
+                pass
+            from arifosmcp.core.vault_receipt import resolve_receipt_identity as _rrid
+            _c_resolved_sid, _c_resolved_actor = _rrid(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_context=_chain_sess_ctx,
+            )
+
             chain_entry = {
                 "id": entry_id,
                 "previous_id": prev,
                 "timestamp": _now(),
                 "content_hash": content_hash,
-                "actor_id": actor_id,
-                "session_id": session_id,
+                "actor_id": _c_resolved_actor,
+                "session_id": _c_resolved_sid,
+                "actor_source": _chain_actor_source,
+                "kernel_verdict": "PASS" if k_verdict.get("passed") else "FAIL",
                 "type": "constitutional_seal",
             }
             with open(chain_path, "a", encoding="utf-8") as cf:
@@ -21589,8 +21643,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _outcome_entry = {
                 "ts": _dt.now(_UTC).isoformat(),
                 "event": "tool_call",
-                "actor": kwargs.get("actor_id") or "unknown",
-                "session": kwargs.get("session_id") or "unknown",
+                "actor": _resolve_identity(kwargs, "actor_id"),
+                "session": _resolve_identity(kwargs, "session_id"),
                 "tool": tool_name,
                 "verdict": _verdict,
                 "detail": final_resp.get("detail", final_resp.get("error", ""))[:500],
@@ -21698,8 +21752,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _outcome_entry = {
                 "ts": _dt.now(_UTC).isoformat(),
                 "event": "tool_call",
-                "actor": kwargs.get("actor_id") or "unknown",
-                "session": kwargs.get("session_id") or "unknown",
+                "actor": _resolve_identity(kwargs, "actor_id"),
+                "session": _resolve_identity(kwargs, "session_id"),
                 "tool": tool_name,
                 "verdict": _verdict,
                 "detail": final_resp.get("detail", final_resp.get("error", ""))[:500],
@@ -21793,8 +21847,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             schedule_state_transition_seal(
                 tool_name=tool_name,
                 response=response,
-                session_id=kwargs.get("session_id"),
-                actor_id=kwargs.get("actor_id"),
+                session_id=_resolve_identity(kwargs, "session_id"),
+                actor_id=_resolve_identity(kwargs, "actor_id"),
             )
         except Exception:
             # Sealing must never crash a tool call.
