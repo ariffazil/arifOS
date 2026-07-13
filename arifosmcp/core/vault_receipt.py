@@ -27,6 +27,84 @@ from uuid import uuid4
 logger = logging.getLogger(__name__)
 
 
+# ── Identity Resolution (F2 TRUTH fix — 2026-07-13) ─────────────
+# Every receipt MUST carry the real actor + session, not relay placeholders.
+# "openclaw-anon" / "anonymous" / "unknown" are NOT identities — they are
+# signals that identity was dropped. A governance system with anonymous
+# receipts is a mosque without qibla.
+
+_RELAY_PLACEHOLDERS = frozenset({
+    "anonymous", "openclaw-anon", "unknown", "null", "", "None",
+})
+
+
+def _is_placeholder(value: str | None) -> bool:
+    """Check if an actor/session value is a relay placeholder, not a real identity."""
+    return not value or str(value) in _RELAY_PLACEHOLDERS
+
+
+def resolve_receipt_identity(
+    session_id: str | None,
+    actor_id: str | None,
+    session_context: dict | None = None,
+) -> tuple[str, str]:
+    """Resolve real identity for a VAULT999 receipt.
+
+    Called by ALL receipt writers before minting. If the candidate actor_id
+    is a relay placeholder (openclaw-anon, anonymous, unknown), attempts
+    to resolve from session context. Falls back to "anonymous" only when
+    no real identity can be found — and that receipt is then F2-flagged.
+
+    Args:
+        session_id: The session_id being passed (may itself be a placeholder).
+        actor_id: The candidate actor_id (may be a placeholder from wrap_legacy_call).
+        session_context: Optional session dict from _SESSIONS.get(session_id).
+            When provided, actor_id is resolved from session fields.
+
+    Returns:
+        (resolved_session_id, resolved_actor_id) — real identities when available.
+    """
+    resolved_session = session_id or "unknown"
+    resolved_actor = actor_id or "anonymous"
+
+    # If actor_id is a real identity, trust it
+    if not _is_placeholder(actor_id):
+        resolved_actor = str(actor_id)
+    # Otherwise try to resolve from session context
+    elif session_context:
+        resolved_actor = (
+            session_context.get("actor_id")
+            or session_context.get("canonical_actor_id")
+            or session_context.get("declared_name")
+            or resolved_actor
+        )
+        if _is_placeholder(resolved_actor):
+            resolved_actor = "anonymous"  # No real identity found
+    else:
+        # No session context available — cannot resolve identity.
+        # Do NOT keep relay placeholder (openclaw-anon) as actor_id.
+        resolved_actor = "anonymous"
+
+    # If session_id is a placeholder, try to get real one from session context
+    if _is_placeholder(session_id) and session_context:
+        real_sid = (
+            session_context.get("session_id")
+            or session_context.get("canonical_session_id")
+        )
+        if real_sid and not _is_placeholder(real_sid):
+            resolved_session = real_sid
+
+    # Log when identity resolution fails (F2 observability)
+    if _is_placeholder(resolved_actor) or _is_placeholder(resolved_session):
+        logger.warning(
+            "VAULT999 receipt identity unresolved: actor=%s session=%s "
+            "(candidate was actor=%s session=%s) — receipt will be F2-flagged",
+            resolved_actor, resolved_session, actor_id, session_id,
+        )
+
+    return resolved_session, resolved_actor
+
+
 # ── Receipt Schema ───────────────────────────────────────────────
 
 
@@ -96,6 +174,14 @@ class VaultReceipt:
     view_key_id: str = ""  # Auditor with key can see intent/decision
     # Without it: only sees hash
 
+    # ── F2 Identity Gate (BREAK-004 fix, 2026-07-13) ──────────────
+    # RESOLVED when resolve_receipt_identity() found a real actor/session.
+    # UNRESOLVED when only a relay placeholder was available — receipt is
+    # evidentially void under F2 TRUTH (no actor_signature, no chain to a
+    # real human) but kept on disk for F1 AMANAH (never delete evidence).
+    f2_identity_status: str = "RESOLVED"  # RESOLVED | UNRESOLVED
+    f2_resolution_evidence: dict[str, Any] | None = None  # what was tried
+
     def to_dict(self) -> dict[str, Any]:
         """Canonical dict for serialization."""
         return asdict(self)
@@ -155,6 +241,15 @@ def compute_receipt_hash(r: VaultReceipt) -> str:
             "witness": {
                 "witness_count": r.witness_count,
                 "witness_dissent": sorted(r.witness_dissent),
+            },
+            "f2_identity": {
+                "status": r.f2_identity_status,
+                # Evidence hash only — keep payload minimal in canonical hash.
+                "evidence_hash": hashlib.sha256(
+                    json.dumps(
+                        r.f2_resolution_evidence or {}, sort_keys=True, separators=(",", ":")
+                    ).encode()
+                ).hexdigest(),
             },
         },
         sort_keys=True,
@@ -269,6 +364,7 @@ class SessionChain:
         self_modification_receipt: bool = False,
         amendment_target: str = "",
         judge_verdict_ref: str = "",
+        session_context: dict | None = None,
     ) -> VaultReceipt:
         """
         Create a new receipt in this session's chain.
@@ -280,22 +376,55 @@ class SessionChain:
 
         judge_verdict_ref: Hash of prior arif_judge verdict (v42.0 Dynamic Act).
         Required for arif_act receipts to prove the act was authorized.
+
+        F2 IDENTITY GATE (2026-07-13, BREAK-004 fix):
+          Every receipt passes through resolve_receipt_identity() before mint.
+          - If the candidate actor/session is a relay placeholder (openclaw-anon,
+            anonymous, unknown, …) and session_context contains a real identity,
+            the real identity is substituted.
+          - If no real identity can be resolved, the receipt is STILL WRITTEN
+            (F1 AMANAH: never drop evidence) but stamped with
+            f2_identity_status="UNRESOLVED" + f2_resolution_evidence showing
+            what was tried. Such receipts are evidentially void under F2 but
+            remain on disk for forensic audit.
+          - The session_context arg is optional — callers that already know the
+            real identity can pass it; callers that don't will get UNRESOLVED.
         """
+        # ── F2 Identity gate: resolve BEFORE minting ─────────────────
+        resolved_session, resolved_actor = resolve_receipt_identity(
+            session_id=self.session_id,
+            actor_id=actor_id,
+            session_context=session_context,
+        )
+        f2_status = (
+            "RESOLVED"
+            if not (_is_placeholder(resolved_actor) or _is_placeholder(resolved_session))
+            else "UNRESOLVED"
+        )
+        f2_evidence = {
+            "candidate_actor": str(actor_id) if actor_id else None,
+            "candidate_session": str(self.session_id) if self.session_id else None,
+            "resolved_actor": resolved_actor,
+            "resolved_session": resolved_session,
+            "session_context_keys": sorted(list((session_context or {}).keys()))[:20],
+            "resolution_epoch": datetime.now(UTC).isoformat(),
+        }
+
         # Compute fields
         receipt_id = str(uuid4())
         ts = datetime.now(UTC).isoformat()
         self.counter += 1
         merkle_root = self._compute_chain_hash()
 
-        # Create receipt
+        # Create receipt (using RESOLVED identity, not raw caller args)
         receipt = VaultReceipt(
             receipt_id=receipt_id,
             ts=ts,
             monotonic_counter=self.counter,
             parent_hash=self.parent_hash,
-            session_id=self.session_id,
+            session_id=resolved_session,
             session_merkle_root=merkle_root,
-            actor_id=actor_id,
+            actor_id=resolved_actor,
             organ_id=organ_id,
             actor_pubkey_epoch=0,  # Bootstrap epoch — no keys yet
             actor_signature="",  # Phase 1: unsigned
@@ -319,6 +448,8 @@ class SessionChain:
             judge_verdict_ref=judge_verdict_ref,
             receipt_hash="",  # Computed below
             view_key_id="",  # Phase 6: selective disclosure
+            f2_identity_status=f2_status,
+            f2_resolution_evidence=f2_evidence,
         )
 
         # Compute hash (merkle_root represents chain state BEFORE this receipt)
@@ -416,12 +547,16 @@ def create_and_seal_receipt(
     amendment_target: str = "",
     judge_verdict_ref: str = "",
     vault_path: str | Path | None = None,
+    session_context: dict | None = None,
 ) -> VaultReceipt:
     """
     Convenience: create receipt + append to vault in one call.
 
     Set self_modification_receipt=True for F14 constitutional amendment receipts.
     amendment_target should specify the target floor or content (e.g. "F14", "F3").
+
+    session_context: optional real-identity dict from the caller (used by the
+    F2 identity gate inside create_receipt to override relay placeholders).
     """
     # V5 fix: use in-process cache to avoid O(N) vault scan per receipt.
     # Cache hit: reuse existing SessionChain (already loaded from disk).
@@ -453,6 +588,7 @@ def create_and_seal_receipt(
         self_modification_receipt=self_modification_receipt,
         amendment_target=amendment_target,
         judge_verdict_ref=judge_verdict_ref,
+        session_context=session_context,
     )
     chain.append_to_vault(receipt)
     return receipt
