@@ -584,6 +584,19 @@ ARIFOS_TOOL_CHARTERS = {
         cognitive_axis=CognitiveAxis.SEAL,
         expose=True,
     ),
+    "arif_vault_verify": ToolManifest(
+        tool_id="arif_vault_verify",
+        tool_name="arif_vault_verify",
+        domain="AOS",
+        description="Read-only VAULT999 chain verifier — four-state anomaly audit, no seal authority required",
+        risk_tier="T1",
+        reversibility="reversible",
+        blast_radius=BlastRadius.NONE,
+        required_permissions=["observe"],
+        required_floors=["L02", "L11"],
+        cognitive_axis=CognitiveAxis.OBSERVE,
+        expose=True,
+    ),
     # REMOVED per orthogonal MCP alignment (2026-05-14):
     # WELL speaks ONLY biological substrate physics.
     # Constitutional functions moved to autonomic/internal-only in WELL.

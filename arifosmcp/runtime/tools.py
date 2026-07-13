@@ -17958,6 +17958,42 @@ async def _arif_vault_seal_tool(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# VAULT_VERIFY  →  arif_vault_verify  (P0: read-only, no seal authority)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+async def _arif_vault_verify_tool(
+    mode: str = "verify_chain",
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    limit: int = 50,
+    sovereign_receipt_ref: str = "",
+) -> dict[str, Any]:
+    """
+    VAULT_VERIFY: Read-only VAULT999 chain verifier.
+
+    P0 VAULT semantics: separated from arif_seal so that read-only
+    verification does not require seal-level SCT authority.
+
+    Modes:
+      verify_chain — four-state anomaly integrity check
+      chain_status — return chain head + last N entries
+      audit        — full audit report with four-state + receipt binding
+
+    F2 TRUTH — OBSERVE class, no mutation, no repair.
+    """
+    from arifosmcp.tools.vault import arif_vault_verify as _vault_verify_fn
+
+    return await _vault_verify_fn(
+        mode=mode,
+        session_id=session_id,
+        actor_id=actor_id,
+        limit=limit,
+        sovereign_receipt_ref=sovereign_receipt_ref,
+    )  # type: ignore[return-value]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 010_FORGE  →  arif_forge_execute
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -20772,6 +20808,7 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge": _arif_kernel_intercept_tool,  # constitutional verdict / 888 (uses kernel)
     "arif_act": _arif_act,
     "arif_seal": _arif_vault_seal_tool,
+    "arif_vault_verify": _arif_vault_verify_tool,  # P0: read-only vault verifier
     "arif_verify": _arif_verify_tool,  # E1 FORGE: JITU pre-execution gate
     # ── Internal aliases (still dispatchable, never advertised publicly) ───
     "arif_fetch": _arif_evidence_fetch,

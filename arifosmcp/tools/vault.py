@@ -1,8 +1,12 @@
 """
 arifosmcp/tools/vault_seal.py — 999_VAULT
-═════════════════════════════════════════
+═════════════════════════════════════
 
 Immutable ledger and audit engine.
+
+Contains:
+  - arif_seal:    Full seal authority (write + verify, requires SCT auth)
+  - arif_vault_verify: Read-only chain verifier (no seal authority required)
 """
 
 from __future__ import annotations
@@ -435,6 +439,92 @@ def _build_seal_card(
         mode=mode,
         seal_data=seal_data,
     )
+
+
+def arif_vault_verify(
+    mode: Literal["verify_chain", "chain_status", "audit"] = "verify_chain",
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    limit: int = 50,
+    sovereign_receipt_ref: str = "",
+) -> dict[str, Any]:
+    """
+    VAULT_VERIFY: Read-only chain verifier — independent of seal authority.
+
+    P0 VAULT semantics: separated from arif_seal so that read-only
+    verification does not require seal-level SCT authority.
+
+    Modes:
+      verify_chain — four-state anomaly integrity check of the vault ledger
+      chain_status — return cached chain head + last N entries (newest first)
+      audit        — full audit report with four-state + receipt binding
+
+    Args:
+      sovereign_receipt_ref: Optional citation of a sovereign decision
+          receipt that ratified historical anomalies as accepted risk.
+          Anomaly records carry this ref when provided.
+
+    Constitutional:
+      F2 TRUTH — OBSERVE class, no mutation, no repair
+      F11 AUDIT — every read verified against chain state
+    """
+    from arifosmcp.apps.command_center.vault_chain import (
+        read_vault_entries,
+        verify_chain,
+    )
+
+    actor = actor_id or "vault_auditor"
+
+    if mode in ("verify_chain", "audit"):
+        chain_report = verify_chain(sovereign_receipt_ref=sovereign_receipt_ref)
+        result: dict[str, Any] = {
+            "status": "OK",
+            "mode": "verify_chain",
+            "verifier_authority_class": "AUDIT_READ_ONLY",
+            "caller": actor,
+            "append_attempted": False,
+            "repair_attempted": False,
+            **chain_report,
+        }
+
+        if mode == "audit":
+            result["mode"] = "audit"
+            result["recent_entries"] = read_vault_entries(limit=min(limit, 50))
+
+        return result
+
+    if mode == "chain_status":
+        entries = read_vault_entries(limit=min(limit, 50))
+        chain_report = verify_chain(sovereign_receipt_ref=sovereign_receipt_ref)
+        return {
+            "status": "OK",
+            "mode": "chain_status",
+            "verifier_authority_class": "AUDIT_READ_ONLY",
+            "caller": actor,
+            "append_attempted": False,
+            "repair_attempted": False,
+            "entries_count": len(entries),
+            "entries": entries,
+            **{
+                k: v
+                for k, v in chain_report.items()
+                if k
+                in (
+                    "chain_physically_valid",
+                    "historical_anomaly",
+                    "accepted_risk",
+                    "anomaly_repaired",
+                    "sovereign_receipt_ref",
+                    "entries_checked",
+                )
+            },
+        }
+
+    return {
+        "status": "HOLD",
+        "mode": mode,
+        "error": f"Unknown mode: {mode}",
+    }
 
 
 # Backward compatibility alias

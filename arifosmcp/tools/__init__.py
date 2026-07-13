@@ -20,7 +20,7 @@ from arifosmcp.tools.sense import arif_observe
 from arifosmcp.tools.session import arif_init
 from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
 from arifosmcp.tools.retrieve_tools import arif_retrieve_tools
-from arifosmcp.tools.vault import arif_seal
+from arifosmcp.tools.vault import arif_seal, arif_vault_verify
 
 __all__ = [
     "arif_init",
@@ -41,6 +41,7 @@ __all__ = [
     "arif_measure",
     "arif_judge",
     "arif_seal",
+    "arif_vault_verify",  # P0: read-only vault verifier (no seal authority required)
     "arif_forge",
     "arif_self_evaluate",
     "arif_model_compare",
