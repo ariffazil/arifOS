@@ -656,7 +656,7 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "requires_human_confirmation": False,
         "output_type": "memory_record",
         "evidence_required": True,
-        "agency_level": "L4_EXECUTE_REVERSIBLE",  # forget is L5 in practice
+        "agency_level": "L0_OBSERVE",  # recall is OBSERVE; store/forget escalate per mode
         "decision_thresholds": DECISION_THRESHOLDS,
     },
     # ── P3 FIX 2026-06-30: Explicit contracts for tools previously hitting _default trap ──
@@ -3795,24 +3795,22 @@ def _enforce_nine_signal(
             # Session-only restriction — emit YELLOW SessionNotice, NOT sesat
             # This is the core WS8 fix: session restriction is NOT a failure.
             try:
-                from arifosmcp.runtime.sesat_event import emit_sesat
+                from arifosmcp.runtime.sesat_event import emit_session_notice
 
-                # We emit a GREEN/YELLOW session notice with malu_delta=0
-                # by calling emit_sesat with session-specific parameters
+                # emit_session_notice creates a proper SessionNotice (no malu_delta,
+                # no tebus_required). emit_sesat was incorrectly used here, causing
+                # GREEN informational notices to carry tebus_required=true.
                 _notice_severity = "YELLOW" if _session_state == "SABAR" else "GREEN"
-                notice = emit_sesat(
+                notice = emit_session_notice(
                     source_node=tool_name,
-                    failure_code="JALAN_KUASA",  # authority-related, not a real failure
-                    failed_claim=f"SessionNotice: session={_session_state}",
-                    observed_reality=f"Session scope restricted to {_session_state}. "
+                    session_state=_session_state,
+                    tool_name=tool_name,
+                    message=f"Session scope restricted to {_session_state}. "
                     f"Action scope={_action_state}. Not a failure — "
                     f"informational notice only.",
                     severity=_notice_severity,
-                    lantai=[],
+                    tags=["ws8:session_restriction_only"],
                 )
-                # WS8: zero malu for session-only restrictions
-                notice.malu_delta = 0.0
-                notice.tags.append("ws8:session_restriction_only")
                 meta_payload["session_notice"] = notice.to_dict()
             except Exception:
                 pass  # SessionNotice is best-effort, not blocking
