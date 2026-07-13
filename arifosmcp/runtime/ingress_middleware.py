@@ -1311,7 +1311,10 @@ if IS_FASTMCP_3:
                             AdmissibilityVerdict.ADMIT_SIMULATE,
                         ):
                             try:
-                                from arifosmcp.core.vault_receipt import create_and_seal_receipt
+                                from arifosmcp.core.vault_receipt import (
+                                    create_and_seal_receipt,
+                                    resolve_receipt_identity,
+                                )
                                 import hashlib
 
                                 # Use actual floors from interceptor, fall back to defaults
@@ -1333,9 +1336,24 @@ if IS_FASTMCP_3:
                                     )
                                 )
 
+                                # F2 TRUTH: resolve real identity before minting receipt.
+                                # Relay placeholders (openclaw-anon, anonymous, unknown) are
+                                # NOT identities — resolve from session context.
+                                _sess_ctx = None
+                                try:
+                                    from arifosmcp.runtime.tools import get_session
+                                    _sess_ctx = get_session(sid) if sid else None
+                                except Exception:
+                                    pass
+                                _resolved_sid, _resolved_actor = resolve_receipt_identity(
+                                    session_id=sid,
+                                    actor_id=decision.actor_id or envelope.actor_id,
+                                    session_context=_sess_ctx,
+                                )
+
                                 create_and_seal_receipt(
-                                    session_id=sid or "anonymous",
-                                    actor_id=decision.actor_id or envelope.actor_id or "anonymous",
+                                    session_id=_resolved_sid,
+                                    actor_id=_resolved_actor,
                                     organ_id="arifOS",
                                     intent_summary=f"INTERCEPTOR:{decision.verdict.value}:{tool_name}",
                                     intent_hash=hashlib.sha256(tool_name.encode()).hexdigest()[:16],
@@ -1505,6 +1523,18 @@ if IS_FASTMCP_3:
                     # Prefer tool-arg identity over envelope coercion (openclaw-anon).
                     # Envelope may be wrap_legacy_call after null actor; args often still
                     # carry the real actor_id/session_id from the client.
+                    #
+                    # BREAK-004 fix (2026-07-13): NEVER emit a relay placeholder
+                    # (openclaw-anon / anonymous / unknown / null) into the response
+                    # context. If neither args nor envelope carry a real identity,
+                    # set _final_actor = None so the receipt writer (vault_receipt)
+                    # records f2_identity_status=UNRESOLVED instead of minting under
+                    # an anonymous actor. A governance system with anonymous
+                    # receipts is a mosque without qibla.
+                    from arifosmcp.runtime.actor_verification_matrix import (
+                        DENIED_IDENTITIES,
+                    )
+
                     _args = getattr(msg, "arguments", None) or {}
                     if not isinstance(_args, dict):
                         _args = {}
@@ -1520,38 +1550,63 @@ if IS_FASTMCP_3:
                         if hasattr(envelope, "session_id") and envelope.session_id
                         else None
                     )
-                    _placeholders = {
+                    _placeholders = DENIED_IDENTITIES | {None}
+                    _real_actor = next(
+                        (v for v in (_arg_actor, _env_actor) if v not in _placeholders),
                         None,
-                        "",
-                        "anonymous",
-                        "openclaw-anon",
-                        "unknown",
-                        "null",
-                    }
-                    _final_actor = (
-                        _arg_actor
-                        if _arg_actor not in _placeholders
-                        else (
-                            _env_actor
-                            if _env_actor not in _placeholders
-                            else _arg_actor or _env_actor
-                        )
                     )
-                    _final_session = (
-                        _arg_session
-                        if _arg_session not in _placeholders
-                        else (
-                            _env_session
-                            if _env_session not in _placeholders
-                            else _arg_session or _env_session
-                        )
+                    _real_session = next(
+                        (v for v in (_arg_session, _env_session) if v not in _placeholders),
+                        None,
                     )
+                    # If we only found a placeholder, drop it — let the writer
+                    # stamp f2_identity_status=UNRESOLVED rather than mint under
+                    # an anonymous actor.
+                    _final_actor = _real_actor
+                    _final_session = _real_session
+                    if _final_actor is None or _final_session is None:
+                        # Try one more hop: session registry carries real identity
+                        # for active sessions.
+                        try:
+                            from arifosmcp.runtime.tools import _SESSIONS
+
+                            _probe_session = _real_session or _arg_session or _env_session
+                            if _probe_session and _probe_session not in _placeholders:
+                                _sctx = _SESSIONS.get(_probe_session) or {}
+                                if _final_actor is None:
+                                    _real_actor = _sctx.get("actor_id") or _sctx.get(
+                                        "canonical_actor_id"
+                                    )
+                                    if _real_actor and _real_actor not in _placeholders:
+                                        _final_actor = _real_actor
+                                if _final_session is None:
+                                    _real_session = _sctx.get("session_id") or _sctx.get(
+                                        "canonical_session_id"
+                                    )
+                                    if _real_session and _real_session not in _placeholders:
+                                        _final_session = _real_session
+                        except Exception:
+                            pass  # best-effort
                     if _final_actor or _final_session:
                         _RESPONSE_CONTEXT.set(
                             {
                                 "actor_id": str(_final_actor) if _final_actor else None,
                                 "session_id": str(_final_session) if _final_session else None,
                             }
+                        )
+                    elif _arg_actor in _placeholders and _arg_actor is not None:
+                        # BREAK-004: log when ingress sees only placeholders.
+                        # The receipt writer will stamp UNRESOLVED; this log
+                        # is the upstream signal for the kernel.
+                        import logging as _lg
+
+                        _lg.getLogger(__name__).warning(
+                            "INGRESS identity unresolved: tool=%s arg_actor=%s "
+                            "env_actor=%s env_session=%s — receipt will be F2-flagged",
+                            tool_name,
+                            _arg_actor,
+                            _env_actor,
+                            _env_session,
                         )
 
                     # ── Replay defense: reject duplicate trace_id within TTL ──

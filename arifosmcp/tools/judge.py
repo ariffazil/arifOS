@@ -34,7 +34,7 @@ from arifosmcp.core.conflict_resolver import (
 from arifosmcp.core.decision_contract import ConflictEnvelope
 from arifosmcp.core.latency_budget import LATENCY_BUDGETS
 from arifosmcp.core.latency_budget import DecisionClass as LatencyDecisionClass
-from arifosmcp.core.vault_receipt import create_and_seal_receipt
+from arifosmcp.core.vault_receipt import create_and_seal_receipt, resolve_receipt_identity
 
 from arifosmcp.core.enforcement.maruah_critic import (
     maruah_critic_check,
@@ -1169,9 +1169,21 @@ async def arif_judge(
                         sort_keys=True,
                     ).encode()
                 ).hexdigest()
+                # F2 TRUTH: resolve real identity before minting receipt.
+                _sess_ctx_j = None
+                try:
+                    from arifosmcp.runtime.tools import get_session as _gs_j
+                    _sess_ctx_j = _gs_j(session_id) if session_id else None
+                except Exception:
+                    pass
+                _rsid_j, _ractor_j = resolve_receipt_identity(
+                    session_id=session_id,
+                    actor_id=actor_id,
+                    session_context=_sess_ctx_j,
+                )
                 _receipt = create_and_seal_receipt(
-                    session_id=session_id or "unknown",
-                    actor_id=actor_id or "unknown",
+                    session_id=_rsid_j,
+                    actor_id=_ractor_j,
                     organ_id=organ_id or "arifOS",
                     intent_summary=(str(candidate)[:200] if candidate else "judge verdict"),
                     intent_hash=_intent_hash,
