@@ -42,10 +42,17 @@ PROTECTED_SOVEREIGN_IDS: set[str] = {
 }
 
 # SECURITY P0 2026-07-12: Sovereign authority binds to a verified key, not a name.
+# Keys are prefixed by verification method:
+#   "ed25519:sha256:..." — Ed25519 raw key (cryptography lib, PyNaCl)
+#   "ssh:SHA256:..."     — SSH Ed25519 key (ssh-keygen format)
 SOVEREIGN_KEY_IDS: set[str] = {
     "ed25519:sha256:a8fbb5ae8b4772b0",  # Arif /000/ DID key (did:web:arif-fazil.com)
     "ed25519:sha256:9c35a833fef25f17",  # Arif AAA identity key (2026-07-12)
 }
+
+# SSH sovereign key fingerprints are registered dynamically by forge_seal_init.sh
+# They are loaded from the file /root/AAA/IDENTITY/authorized_ssh_pubkey.pem
+# at runtime by ssh_proof.prove_sovereign()
 
 # F13 multi-key registry for bounded actors (Anomalies #1 closure).
 # Each entry: key_id (sha256[:16] fingerprint of public key) -> actor_id.
@@ -65,10 +72,9 @@ VERIFIED_KEY_IDS_MAX: int = 16
 # name directly. The canonical home is arifosmcp.runtime.human_intent.
 # Per D3 (2026-07-13): phrases never grant authority — they trigger a
 # confirmation workflow that ends with a bound cryptographic capability.
-SOVEREIGN_SIGNAL_PHRASES = (
-    __import__("arifosmcp.runtime.human_intent", fromlist=["CONFIRMATION_INTENT_PHRASES"])
-    .CONFIRMATION_INTENT_PHRASES
-)
+SOVEREIGN_SIGNAL_PHRASES = __import__(
+    "arifosmcp.runtime.human_intent", fromlist=["CONFIRMATION_INTENT_PHRASES"]
+).CONFIRMATION_INTENT_PHRASES
 
 # Semantic identity phrases (NLP input parsing ONLY — NOT authentication)
 # These parse natural language identity claims from user input.
@@ -171,14 +177,16 @@ def _verify_forge_session_proof(actor_id: str, proof: dict) -> bool:
     """
     try:
         from arifosmcp.runtime.forge_session_runtime import (
-            verify_forge_session_token, EXPECTED_TOKEN_VERSION,
+            verify_forge_session_token,
+            EXPECTED_TOKEN_VERSION,
             AUDIENCE_FORGE_SESSION,
         )
     except ImportError:
         logger.warning(
             "E1: forge_session_runtime import failed — forge_session path fail-closed "
             "(actor=%s, session_id=%s)",
-            actor_id, proof.get("session_id"),
+            actor_id,
+            proof.get("session_id"),
         )
         return False
 
@@ -186,12 +194,10 @@ def _verify_forge_session_proof(actor_id: str, proof: dict) -> bool:
     #   session_id, session_signature, nonce, timestamp
     # Canonical token adds: actor_id, audience, issued_at, expires_at, capability, token_version
     from datetime import datetime, timezone, timedelta
+
     now = datetime.now(timezone.utc)
     issued_at = proof.get("timestamp") or now.isoformat()
-    expires_at = (
-        proof.get("expires_at")
-        or (now + timedelta(minutes=5)).isoformat()
-    )
+    expires_at = proof.get("expires_at") or (now + timedelta(minutes=5)).isoformat()
 
     token = {
         "session_id": proof.get("session_id", ""),
@@ -209,7 +215,9 @@ def _verify_forge_session_proof(actor_id: str, proof: dict) -> bool:
     if not result.ok:
         logger.info(
             "E1 forge_session: reject — code=%s session=%s actor=%s",
-            result.code, result.session_id, result.actor_id,
+            result.code,
+            result.session_id,
+            result.actor_id,
         )
     return result.ok
 
@@ -245,15 +253,18 @@ def _verify_sovereign_signal_proof(actor_id: str, proof: dict) -> bool:
         return False
 
     try:
-        from arifosmcp.runtime.forge_session_runtime import verify_session_bound_assertion, EXPECTED_TOKEN_VERSION
+        from arifosmcp.runtime.forge_session_runtime import (
+            verify_session_bound_assertion,
+            EXPECTED_TOKEN_VERSION,
+        )
         from datetime import datetime, timezone, timedelta
+
         now = datetime.now(timezone.utc)
         assertion = {
             "session_id": session_id,
             "actor_id": actor_id,
-            "payload_hash": payload_hash or hashlib.sha256(
-                f"{session_id}:{actor_id}:{signal}".encode()
-            ).hexdigest(),
+            "payload_hash": payload_hash
+            or hashlib.sha256(f"{session_id}:{actor_id}:{signal}".encode()).hexdigest(),
             "purpose": purpose,
             "nonce": nonce,
             "issued_at": proof.get("issued_at") or now.isoformat(),
@@ -265,14 +276,17 @@ def _verify_sovereign_signal_proof(actor_id: str, proof: dict) -> bool:
         if not result.ok:
             logger.info(
                 "E1 sovereign_signal: reject — code=%s session=%s actor=%s",
-                result.code, result.session_id, result.actor_id,
+                result.code,
+                result.session_id,
+                result.actor_id,
             )
         return result.ok
     except ImportError:
         logger.warning(
             "E1: forge_session_runtime import failed — sovereign_signal path fail-closed "
             "(actor=%s, session_id=%s)",
-            actor_id, session_id,
+            actor_id,
+            session_id,
         )
         return False
 

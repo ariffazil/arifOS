@@ -297,6 +297,15 @@ async def arif_seal(
                 actor_id=_verify_actor,
                 meta={
                     "gate": "ARIF_VERIFY",
+                    "verification_path": [
+                        f"token:{_verify_token[:16] if _verify_token else 'none'}...",
+                        f"entry:{_verify_result.get('entry', {}).get('entry_id', 'none')}",
+                        f"command_hash:{_verify_result.get('entry', {}).get('command_hash', 'unknown')[:16] if isinstance(_verify_result.get('entry'), dict) else 'none'}...",
+                        f"token_valid:{_verify_result.get('token_valid', False)}",
+                        f"scope_valid:{_verify_result.get('scope_valid', False)}",
+                        f"replay_safe:{_verify_result.get('replay_safe', False)}",
+                        f"verdict:{_verify_verdict}",
+                    ],
                     "token_valid": _verify_result.get("token_valid", False),
                     "scope_valid": _verify_result.get("scope_valid", False),
                     "replay_safe": _verify_result.get("replay_safe", False),

@@ -20,6 +20,139 @@ from typing import Any, Optional
 from pydantic import BaseModel, Field
 
 
+# ── Session Key Signing ────────────────────────────────────────────────────
+
+
+try:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives import serialization
+
+    _HAS_CRYPTO = True
+except ImportError:
+    Ed25519PrivateKey = None  # type: ignore
+    serialization = None  # type: ignore
+    _HAS_CRYPTO = False
+
+
+def _canonical_json(obj: dict) -> str:
+    """Deterministic JSON serialization (RFC 8785 style) for signing."""
+    import json
+
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"))
+
+
+def sign_envelope(
+    envelope: dict,
+    session_private_key_pem: str,
+    key_id: str,
+) -> dict:
+    """
+    Sign an authorization envelope with a session Ed25519 private key.
+
+    Args:
+        envelope: dict representation of AuthorizationEnvelope
+        session_private_key_pem: PEM-encoded Ed25519 private key
+        key_id: identifier for the signing key (e.g. "ssh:SHA256:...")
+
+    Returns:
+        envelope dict with signature and signed_by populated
+    """
+    if not _HAS_CRYPTO or Ed25519PrivateKey is None:
+        envelope["signature"] = "unauthenticated:cryptography_not_available"
+        envelope["signed_by"] = key_id
+        return envelope
+
+    try:
+        private_key = serialization.load_pem_private_key(  # type: ignore
+            session_private_key_pem.encode()
+            if isinstance(session_private_key_pem, str)
+            else session_private_key_pem,
+            password=None,
+        )
+        if not isinstance(private_key, Ed25519PrivateKey):
+            envelope["signature"] = "error:key_not_ed25519"
+            envelope["signed_by"] = key_id
+            return envelope
+
+        # Build signing payload
+        signing_payload = _canonical_json(
+            {
+                "env_id": envelope.get("envelope_id", ""),
+                "actor": envelope.get("actor_id", ""),
+                "tool": envelope.get("tool_name", ""),
+                "action": envelope.get("action_class", ""),
+                "nonce": envelope.get("trace_id", envelope.get("envelope_id", "")),
+                "ts": envelope.get("timestamp", 0),
+            }
+        )
+
+        import base64
+
+        signature = private_key.sign(signing_payload.encode("utf-8"))
+        envelope["signature"] = base64.urlsafe_b64encode(signature).decode("ascii")
+        envelope["signed_by"] = key_id
+        return envelope
+
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).error(f"Envelope signing failed: {e}")
+        envelope["signature"] = f"error:{e}"
+        envelope["signed_by"] = key_id
+        return envelope
+
+
+def verify_envelope_signature(
+    envelope: dict,
+    public_key_pem: str,
+) -> bool:
+    """
+    Verify an envelope's signature against a known public key.
+
+    Args:
+        envelope: dict with signature and signed_by
+        public_key_pem: PEM-encoded Ed25519 public key
+
+    Returns:
+        True if signature is valid
+    """
+    if not _HAS_CRYPTO:
+        return False
+
+    sig_b64 = envelope.get("signature", "")
+    if not sig_b64 or sig_b64.startswith("unauthenticated:") or sig_b64.startswith("error:"):
+        return False
+
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+        public_key = serialization.load_pem_public_key(  # type: ignore
+            public_key_pem.encode() if isinstance(public_key_pem, str) else public_key_pem,
+        )
+        if not isinstance(public_key, Ed25519PublicKey):
+            return False
+
+        import base64
+
+        signature = base64.urlsafe_b64decode(sig_b64)
+
+        signing_payload = _canonical_json(
+            {
+                "env_id": envelope.get("envelope_id", ""),
+                "actor": envelope.get("actor_id", ""),
+                "tool": envelope.get("tool_name", ""),
+                "action": envelope.get("action_class", ""),
+                "nonce": envelope.get("trace_id", envelope.get("envelope_id", "")),
+                "ts": envelope.get("timestamp", 0),
+            }
+        )
+
+        public_key.verify(signature, signing_payload.encode("utf-8"))
+        return True
+    except Exception:
+        return False
+
+
 # ── Enums ──────────────────────────────────────────────────────────────
 
 

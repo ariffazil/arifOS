@@ -1,0 +1,95 @@
+{
+  "manifest_version": "1.0.0",
+  "forged": "2026-07-13",
+  "purpose": "Proof Epoch Acceptance Criteria — defines what constitutes a PASS for release attestation",
+  "authority": "F13 SOVEREIGN — Muhammad Arif bin Fazil (888)",
+  "phases": {
+    "P0": {
+      "description": "Release Attestation — blocking seal",
+      "gates": [
+        {
+          "id": "P0-1",
+          "name": "software_release in init payload",
+          "check": "curl :8088/health | jq .software_release.release_id != null",
+          "must_pass": true
+        },
+        {
+          "id": "P0-2",
+          "name": "critical_module_hashes present",
+          "check": "verify_attestation.py --strict --host localhost:8088",
+          "must_pass": true,
+          "expected_modules": [
+            "arifosmcp/tools/session.py",
+            "arifosmcp/runtime/crypto_auth.py",
+            "arifosmcp/runtime/convergence_tracker.py",
+            "arifosmcp/runtime/cooling_verbs.py",
+            "arifosmcp/runtime/forge_session_runtime.py",
+            "arifosmcp/runtime/governance_identity.py",
+            "arifosmcp/runtime/rest_routes/rest_routes.py"
+          ]
+        },
+        {
+          "id": "P0-3",
+          "name": "kernel_epoch != software_release",
+          "check": "kernel_epoch is a constitutional epoch, not a build date",
+          "must_pass": true
+        },
+        {
+          "id": "P0-4",
+          "name": "runtime_drift = false",
+          "check": "/health.runtime_drift == false",
+          "must_pass": true
+        },
+        {
+          "id": "P0-5",
+          "name": "contract_drift = false",
+          "check": "/health.contract_drift == false",
+          "must_pass": true
+        },
+        {
+          "id": "P0-6",
+          "name": "floors_active = 13",
+          "check": "/health.floors_active == 13",
+          "must_pass": true
+        },
+        {
+          "id": "P0-7",
+          "name": "Ed25519 ceremony functional",
+          "check": "crypto_auth issue_challenge + verify_signature round-trips",
+          "must_pass": true
+        }
+      ]
+    },
+    "P1": {
+      "description": "Operational integrity — non-blocking but required for full seal",
+      "gates": [
+        {
+          "id": "P1-1",
+          "name": "authority_claim <= session_authority",
+          "check": "No tool response claims higher authority than its session",
+          "must_pass": true
+        },
+        {
+          "id": "P1-2",
+          "name": "vault verify returns verification_path",
+          "check": "arif_seal(mode=verify).meta.verification_path is present",
+          "must_pass": true
+        },
+        {
+          "id": "P1-3",
+          "name": "Cooling recursion guard",
+          "check": "No infinite regress in cooling/RSI cycle",
+          "must_pass": true
+        }
+      ]
+    }
+  },
+  "exit_criteria": {
+    "P0_all_pass": "Release SEAL threshold — block until all P0 gates pass",
+    "P1_acceptable": "P1 gates may have exceptions with sovereign ack"
+  },
+  "sovereign_override": {
+    "rule": "Any gate may be overridden by F13 SOVEREIGN directive",
+    "requires": "Explicit ack_irreversible + actor_signature"
+  }
+}
