@@ -470,18 +470,78 @@ from .floors import (
     FIQH_TIERS,
 )
 
+# ── D1-D2: Action Classification, Outbox, Dependency Gate, Session Closure ──
+from arifosmcp.schemas.action_profile import (
+ActionProfile,
+BlastRadius as ActionBlastRadius,
+GovernanceImpact,
+InfrastructureImpact,
+MutationClass,
+ReceiptClass,
+RequiredCapability,
+Reversibility as ActionReversibility,
+classify_action,
+upgrade_to_sovereign,
+upgrade_to_session_closure,
+)
+
+from arifosmcp.schemas.vault_outbox import (
+    VaultOutbox,
+    VaultOutboxEntry,
+    VaultOutboxConsumer,
+    SessionClosure,
+    SessionClosureState,
+    OutboxStatus,
+    ReceiptClass as OutboxReceiptClass,
+)
+from arifosmcp.schemas.dependency_gate import (
+GateContext,
+GateResult,
+GateStatus,
+PipelineResult,
+run_pipeline,
+)
+
+from arifosmcp.schemas.session_closure import (
+    SessionClosureManager,
+    SessionManifest,
+    ServiceSigner,
+    determine_closure_level,
+)
+
 __all__.extend(
-    [
-        "FLOORS",
-        "FLOOR_IDS",
-        "FLOOR_NAMES",
-        "FLOOR_BY_ID",
-        "ConstitutionalFloor",
-        "get_floor",
-        "is_canonical_floor",
-        "validate_floors",
-        "as_dict_list",
-        "ADAT_TERAS",
-        "FIQH_TIERS",
-    ]
+[
+    # Action Profile (D1)
+    "ActionProfile",
+    "ActionBlastRadius",
+    "GovernanceImpact",
+    "InfrastructureImpact",
+    "MutationClass",
+    "ReceiptClass",
+    "RequiredCapability",
+    "ActionReversibility",
+    "classify_action",
+    "upgrade_to_sovereign",
+    "upgrade_to_session_closure",
+    # Vault Outbox (D2)
+    "VaultOutbox",
+    "VaultOutboxEntry",
+    "VaultOutboxConsumer",
+    "SessionClosure",
+    "SessionClosureState",
+    "OutboxStatus",
+    "OutboxReceiptClass",
+    "ServiceSigner",
+    # Dependency Gate (D1)
+    "GateContext",
+    "GateResult",
+    "GateStatus",
+    "PipelineResult",
+    "run_pipeline",
+    # Session Closure (D2)
+    "SessionClosureManager",
+    "SessionManifest",
+    "ServiceSigner",
+    "determine_closure_level",
+]
 )

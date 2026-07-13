@@ -1,18 +1,26 @@
 """
-arifOS Golden Path — Gate Enforcer
-═══════════════════════════════════
+[DEPRECATED] arifOS Golden Path — Gate Enforcer
+══════════════════════════════════════════════════
 
-Structural enforcement gates between constitutional organs.
-Not advisory. Not "should check." Load-bearing.
+⚠️  DEPRECATED 2026-07-13 — Arif's D1 directive.
 
-777_FORGE CANNOT execute without:
-  1. 555 verdict == "SEAL" in stage_history
-  2. 666 readiness == "FORGE_READY" in stage_history
-  3. All 5 prior stages (000, 111, 333, 555, 666) in stage_history
+REPLACED BY: arifosmcp.schemas.dependency_gate
+  (dependency-graph gate pipeline with classification phase)
 
-This is the F1 enforcement point. Removing it removes the constitution.
+REASON FOR DEPRECATION:
+  The serial chain (000→111→333→555→666→777→999) is structurally
+  wrong because later gates generate facts needed by earlier gates.
+  Gate 3.5 asks "is this dangerous?" but Gate 7 (sovereign authority)
+  never runs because 3.5 already blocks.
 
-DITEMPA BUKAN DIBERI 🔥⚒️
+  New pipeline: classification phase first → identity → capability →
+  infra → constitutional → payload → execute → verify
+
+  This module is preserved for backward compatibility during the
+  migration window (expires 2026-08-01). All new code must use
+  the dependency_gate pipeline.
+
+DITEMPA BUKAN DIBERI 🔥⚒️ — Replaced, not forgotten.
 """
 
 from __future__ import annotations
