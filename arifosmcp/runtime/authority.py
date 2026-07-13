@@ -320,9 +320,9 @@ def authority_envelope_for_session(
             else "OPERATOR_CLAIMED" if actor_id and actor_id != "anonymous"
             else "OBSERVER"
         )
-        # P2 2026-07-13: Sovereign key elevates runtime band automatically.
-        # Previously capped at OBSERVE_ONLY, blocking all mutation/seal.
-        runtime_band = _runtime_auth_hint or ("SOVEREIGN" if h_authority == "SOVEREIGN" else "OBSERVE_ONLY")
+        # SECURITY: sovereign key proves identity (h_authority=SOVEREIGN)
+        # but does NOT auto-elevate runtime_band. Ceremony required for seal/mutate.
+        runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
         sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
             "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
