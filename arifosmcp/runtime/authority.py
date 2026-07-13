@@ -310,8 +310,6 @@ def authority_envelope_for_session(
         state = None
 
     if state is None:
-        runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
-        sealed = runtime_band in ("FULL", "SOVEREIGN")
         actor_key = (actor_id or "").strip().lower()
         # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
@@ -322,6 +320,10 @@ def authority_envelope_for_session(
             else "OPERATOR_CLAIMED" if actor_id and actor_id != "anonymous"
             else "OBSERVER"
         )
+        # P2 2026-07-13: Sovereign key elevates runtime band automatically.
+        # Previously capped at OBSERVE_ONLY, blocking all mutation/seal.
+        runtime_band = _runtime_auth_hint or ("SOVEREIGN" if h_authority == "SOVEREIGN" else "OBSERVE_ONLY")
+        sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
             "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
             "human_authority": h_authority,
