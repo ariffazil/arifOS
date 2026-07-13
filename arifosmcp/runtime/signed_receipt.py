@@ -23,6 +23,7 @@ import logging
 import secrets
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -204,9 +205,11 @@ def verify_receipt_signature(receipt: SignedReceipt | dict[str, Any]) -> Verific
 def _sign_with_key(message: str, *, use_sovereign: bool = False) -> str | None:
     """Sign a message with Ed25519. Returns base64 signature or None."""
     try:
-        from arifosmcp.runtime.sovereign_signer import load_private_key
-
-        key_bytes = load_private_key()
+        if use_sovereign:
+            from arifosmcp.runtime.sovereign_signer import load_private_key
+            key_bytes = load_private_key()
+        else:
+            key_bytes = bytes.fromhex(Path("/root/AAA/auth/keys/arifos_private.key").read_text().strip())
         if not key_bytes:
             return None
 
@@ -256,41 +259,16 @@ def _verify_signature(message: str, signature_b64: str, *, key_id: str = "servic
 
 def _get_public_key(key_id: str) -> bytes | None:
     """Get the public key bytes for a given key_id."""
-    # For now, load from the sovereign key file
-    # In production, this would be a key registry
     try:
-        from pathlib import Path
-
-        key_paths = [
-            Path("/root/compose/sekrits/arifos_sovereign.key"),
-            Path("/root/arifos/secrets/arifos_sovereign.key"),
-        ]
-
-        for key_path in key_paths:
-            if key_path.exists():
-                from cryptography.hazmat.primitives.serialization import (
-                    load_pem_private_key,
-                    Encoding,
-                    PublicFormat,
-                )
-
-                key_data = key_path.read_bytes()
-                try:
-                    private_key = load_pem_private_key(key_data, password=None)
-                    public_key = private_key.public_key()
-                    return public_key.public_bytes(
-                        Encoding.Raw,
-                        PublicFormat.Raw,
-                    )
-                except Exception:
-                    # Try raw format
-                    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-                    private_key = Ed25519PrivateKey.from_private_bytes(key_data[:32])
-                    public_key = private_key.public_key()
-                    return public_key.public_bytes(
-                        Encoding.Raw,
-                        PublicFormat.Raw,
-                    )
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        if key_id == "sovereign":
+            from arifosmcp.runtime.sovereign_signer import load_private_key
+            key_bytes = load_private_key()
+        else:
+            key_bytes = bytes.fromhex(Path("/root/AAA/auth/keys/arifos_private.key").read_text().strip())
+        private_key = Ed25519PrivateKey.from_private_bytes(key_bytes)
+        return private_key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
 
     except Exception as e:
         logger.error("Failed to load public key for %s: %s", key_id, e)

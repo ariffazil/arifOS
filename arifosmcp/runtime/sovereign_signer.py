@@ -53,13 +53,27 @@ def get_constitution_hash() -> str:
 
 
 def load_private_key() -> bytes:
-    """Load raw 32-byte Ed25519 key from PKCS#8, PEM, or raw format."""
+    """Load raw 32-byte Ed25519 key from PKCS#8, PEM, raw, or hex format.
+
+    Search order — sovereign-sovereign paths first, service fallback paths after:
+      - /root/compose/sekrits/arifos_sovereign.key (canonical sovereign location)
+      - /run/sekrits/arifos_sovereign.key          (runtime secrets)
+      - /run/secrets/arifos_sovereign.key          (Docker/K8s secrets)
+      - /root/AAA/auth/keys/arifos_private.key     (service key fallback — 0600)
+      - /root/AAA/auth/keys/a-forge_private.key    (A-FORGE service key fallback)
+
+    Distinction: sovereign key proves identity for sovereign-class events.
+    Service keys sign routine receipts. Both are Ed25519, but only the
+    sovereign key (in /root/compose/sekrits/) is reserved for F13 ceremonies.
+    """
     from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
     key_paths = [
         Path("/root/compose/sekrits/arifos_sovereign.key"),
         Path("/run/sekrits/arifos_sovereign.key"),
         Path("/run/secrets/arifos_sovereign.key"),
+        Path("/root/AAA/auth/keys/arifos_private.key"),
+        Path("/root/AAA/auth/keys/a-forge_private.key"),
     ]
     for key_path in key_paths:
         if key_path.exists() and key_path.stat().st_mode & 0o600:
@@ -77,7 +91,15 @@ def load_private_key() -> bytes:
             # 2. Try PKCS#8: 7-byte header + 32-byte raw key
             if len(key_data) == 39 and key_data[0] == 0x30:
                 return key_data[7:]  # Skip 7-byte header
-            # 3. Try raw 32-byte key
+            # 3. Try hex-encoded 32-byte key (64 ASCII chars)
+            if len(key_data) == 64:
+                try:
+                    decoded = bytes.fromhex(key_data.decode().strip())
+                    if len(decoded) == 32:
+                        return decoded
+                except Exception:
+                    pass
+            # 4. Try raw 32-byte key
             elif len(key_data) == 32:
                 return key_data  # Raw 32-byte key
     raise FileNotFoundError(

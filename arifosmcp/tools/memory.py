@@ -140,6 +140,15 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
         if parts:
             text = " | ".join(parts)
             record["_constructed_text"] = True
+            classification["quarantined"] = True
+            record["_quarantine"] = {
+                "quarantined": True,
+                "reason": "synthetic_text_from_metadata",
+                "original_tier": record.get("tier", "unknown"),
+                "action": "Metadata reconstruction is diagnostic only and cannot be recall evidence.",
+            }
+            record["tier"] = "quarantine"
+            record["usable"] = False
     if text is None or str(text).strip() == "":
         classification["quarantined"] = True
         record["_quarantine"] = {
@@ -150,7 +159,7 @@ def _classify_recall_result(record: dict[str, Any]) -> dict[str, Any]:
         }
         record["tier"] = "quarantine"
         record["usable"] = False
-    else:
+    elif not record.get("_constructed_text"):
         record["_quarantine"] = {"quarantined": False}
         record["usable"] = True
 
@@ -956,16 +965,8 @@ def arif_memory_recall(
                     "can_treat_as_proof": r.get("can_treat_as_proof", False),
                     "_governance": r.get("_governance"),
                     "_constructed_text": r.get("_constructed_text", False),
+                    "_quarantine": r.get("_quarantine"),
                 }
-                # F2 TRUTH: synthetic text from metadata is NOT real content.
-                # Quarantine it so callers don't treat metadata snippets as evidence.
-                if r.get("_constructed_text") and not r.get("_quarantine"):
-                    hit["tier"] = "quarantine"
-                    hit["_quarantine"] = {
-                        "quarantined": True,
-                        "reason": "synthetic_text_from_metadata",
-                        "action": "Content reconstructed from metadata fields — not a real memory recall.",
-                    }
                 if r.get("usable", True) and not r.get("_constructed_text"):
                     usable_hits.append(hit)
                 else:
@@ -1004,7 +1005,6 @@ def arif_memory_recall(
                 }
 
             # F2 TRUTH: if no usable content exists, this is not a success.
-            # Return HOLD so downstream gates don't treat empty recall as evidence.
             recall_payload = {
                 "query": query,
                 "results": usable_hits,
@@ -1036,12 +1036,14 @@ def arif_memory_recall(
                     f"{len(quarantined_hits)} quarantined (null/synthetic). "
                     f"Cannot provide evidence — memory layer is degraded.",
                     ["F2"],
+                    extra_meta=recall_payload,
                 )
             if len(usable_hits) == 0:
                 return _hold(
                     "arif_memory_recall",
                     "No memories found for query. Memory layer returned empty.",
                     ["F2"],
+                    extra_meta=recall_payload,
                 )
             return _ok("arif_memory_recall", recall_payload)
 

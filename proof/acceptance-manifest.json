@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "policy": "locked-denominator-no-dynamic-skips",
+  "mandatory_gates": [
+    {"id": "runtime_attestation", "test": "tests/test_proof_epoch.py::test_runtime_attestation_is_complete_and_self_consistent"},
+    {"id": "ed25519_acceptance", "test": "tests/test_proof_epoch.py::test_valid_ed25519_ceremony_capability_consumption_and_replay"},
+    {"id": "cooling_recursion", "test": "tests/test_proof_epoch.py::test_cooling_recursion_is_structurally_bounded"},
+    {"id": "authority_semantics", "test": "tests/test_proof_epoch.py::test_epistemic_claim_never_exceeds_session_authority"},
+    {"id": "live_health_attestation", "test": "tests/test_proof_epoch.py::test_live_health_endpoint_surfaces_software_release_attestation"},
+    {"id": "live_arif_init_attestation", "test": "tests/test_proof_epoch.py::test_live_arif_init_surfaces_software_release_attestation"},
+    {"id": "kernel_epoch_semantics", "test": "tests/test_proof_epoch.py::test_kernel_epoch_semantics_are_not_ambiguous"},
+    {"id": "authority_negative_paths", "test": "tests/test_project_light_authority.py"},
+    {"id": "convergence_nine_layers", "test": "tests/test_p1_modules.py"},
+    {"id": "memory_truth", "test": "tests/test_memory_tier_action_fix.py"}
+  ],
+  "extended_checks": [
+    {"id": "health_truth", "test": "tests/test_health_endpoint_truth.py"},
+    {"id": "vault_liveness", "test": "tests/test_vault_liveness.py"}
+  ]
+}
