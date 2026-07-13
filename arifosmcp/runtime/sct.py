@@ -41,13 +41,16 @@ VALID_AUTH = frozenset(
 
 # Metabolic verbs by authority band (no arif_act — public surface uses arif_forge)
 AUTHORITY_VERBS: dict[str, list[str]] = {
+    # Canonical surface = FORGE_NEXT_8 (2026-07-12):
+    # init, observe, think, route, judge, forge, seal, memory
+    # arif_critique → arif_think(mode=critique|redteam)
+    # arif_compose → DELETED (agent composes own replies)
+    # arif_bridge_connect → arif_route(mode=bridge)
     "OBSERVE_ONLY": [
         "arif_init",
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_compose",
-        "arif_critique",
         "arif_memory",
     ],
     "LIMITED_MUTATE": [
@@ -55,8 +58,6 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_compose",
-        "arif_critique",
         "arif_memory",
         "arif_judge",
         "arif_forge",
@@ -66,8 +67,6 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_compose",
-        "arif_critique",
         "arif_memory",
         "arif_judge",
         "arif_forge",
@@ -78,8 +77,6 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_compose",
-        "arif_critique",
         "arif_memory",
         "arif_judge",
         "arif_forge",
@@ -279,7 +276,9 @@ def compute_authority_state(
     # identity verified, actor bound to current session, session itself bound.
     # Token-session mismatch (token issued for sess-X, presented at sess-Y)
     # must surface as authorized=False because actor_bound=False.
-    authorized = bool(actor_verified and actor_bound and session_bound and grant_level != "OBSERVE_ONLY")
+    authorized = bool(
+        actor_verified and actor_bound and session_bound and grant_level != "OBSERVE_ONLY"
+    )
     if not actor_verified:
         reason_code = "identity_not_verified"
     elif not actor_bound:

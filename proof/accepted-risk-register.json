@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "accepted_risks": [
+    {
+      "anomaly_id": "VAULT-PREV-HASH-MISMATCH-HISTORICAL",
+      "decision_receipt_id": null,
+      "decided_by": "human_sovereign_reported",
+      "decision_timestamp": "2026-06-05",
+      "scope": "historical migration gaps only",
+      "expiry_or_review_date": null,
+      "does_not_repair_chain": true,
+      "current_verifier_state": "HOLD",
+      "reason": "No immutable decision receipt was independently located during Proof Epoch; risk acceptance cannot be treated as cryptographic repair."
+    }
+  ]
+}

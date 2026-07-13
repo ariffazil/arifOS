@@ -2663,6 +2663,9 @@ def register_rest_routes(
             "mcp_protocol_version": MCP_PROTOCOL_VERSION,
             "mcp_supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
             "release_name": BUILD_INFO["version"],
+            "software_release": __import__(
+                "arifosmcp.runtime.build", fromlist=["get_runtime_attestation"]
+            ).get_runtime_attestation(),
             "version": _kanon_version(),
             "git_commit": BUILD_INFO["build"].get("commit") or BUILD_VERSION,
             "git_branch": BUILD_INFO["build"].get("branch"),

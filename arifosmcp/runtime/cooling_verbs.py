@@ -78,10 +78,21 @@ class CoolingEvent:
     failure_id: str  # links to the original failure
     timestamp: str
     actor_id: str
+    origin: str = "external_failure"
+    cooling_depth: int = 0
+    parent_cooling_id: str | None = None
     evidence: dict[str, Any] = field(default_factory=dict)
     proposal: dict[str, Any] = field(default_factory=dict)
     approval: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.cooling_depth < 0 or self.cooling_depth > 1:
+            raise ValueError("cooling_depth must be 0 or 1")
+        if self.cooling_depth == 1 and not self.parent_cooling_id:
+            raise ValueError("parent_cooling_id is required when cooling_depth=1")
+        if self.cooling_depth == 0 and self.parent_cooling_id:
+            raise ValueError("parent_cooling_id is only valid for nested cooling")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -90,6 +101,9 @@ class CoolingEvent:
             "failure_id": self.failure_id,
             "timestamp": self.timestamp,
             "actor_id": self.actor_id,
+            "origin": self.origin,
+            "cooling_depth": self.cooling_depth,
+            "parent_cooling_id": self.parent_cooling_id,
             "evidence": self.evidence,
             "proposal": self.proposal,
             "approval": self.approval,
@@ -107,6 +121,9 @@ class CoolingCycle:
     """A complete cooling cycle from observe to receipt (or decay)."""
     cycle_id: str
     failure_id: str
+    origin: str = "external_failure"
+    cooling_depth: int = 0
+    parent_cooling_id: str | None = None
     events: list[CoolingEvent] = field(default_factory=list)
     state: str = "OPEN"  # OPEN | APPROVED | INSTALLED | VERIFIED | SEALED | DECAYED
     created_at: str = ""
@@ -116,6 +133,9 @@ class CoolingCycle:
         return {
             "cycle_id": self.cycle_id,
             "failure_id": self.failure_id,
+            "origin": self.origin,
+            "cooling_depth": self.cooling_depth,
+            "parent_cooling_id": self.parent_cooling_id,
             "events": [e.to_dict() for e in self.events],
             "state": self.state,
             "created_at": self.created_at,
@@ -307,17 +327,37 @@ def decay(
     return event
 
 
-def create_cycle(failure_id: str) -> CoolingCycle:
+def create_cycle(
+    failure_id: str,
+    *,
+    origin: str = "external_failure",
+    cooling_depth: int = 0,
+    parent_cooling_id: str | None = None,
+) -> CoolingCycle:
     """Create a new cooling cycle for a failure."""
+    if cooling_depth < 0 or cooling_depth > 1:
+        raise ValueError("cooling_depth must be 0 or 1; recursive cooling is blocked")
+    if cooling_depth == 1 and not parent_cooling_id:
+        raise ValueError("parent_cooling_id is required when cooling_depth=1")
+    if cooling_depth == 0 and parent_cooling_id:
+        raise ValueError("parent_cooling_id is only valid for nested cooling")
     return CoolingCycle(
         cycle_id=_generate_cycle_id(),
         failure_id=failure_id,
+        origin=origin,
+        cooling_depth=cooling_depth,
+        parent_cooling_id=parent_cooling_id,
         created_at=datetime.now(UTC).isoformat(),
     )
 
 
 def append_event(cycle: CoolingCycle, event: CoolingEvent) -> CoolingCycle:
     """Append an event to a cooling cycle and update state."""
+    if event.failure_id != cycle.failure_id:
+        raise ValueError("event failure_id does not match cooling cycle")
+    event.origin = cycle.origin
+    event.cooling_depth = cycle.cooling_depth
+    event.parent_cooling_id = cycle.parent_cooling_id
     cycle.events.append(event)
 
     # Update cycle state based on verb
