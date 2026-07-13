@@ -735,6 +735,14 @@ def main() -> None:
 
     _bootstrap_environment()
 
+    # ── Release 1: Boot-time runtime truth attestation ────────────────
+    try:
+        from arifosmcp.runtime.release_attestation import fail_closed_check
+
+        fail_closed_check()
+    except Exception:
+        pass  # attestation never blocks startup
+
     # P0 FIX: Robust mode detection
     mode = os.getenv("AAA_MCP_TRANSPORT", "stdio")
     if "--mode" in sys.argv:

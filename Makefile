@@ -6,7 +6,7 @@ DIR := /root/arifOS
 
 include /root/arifOS/scripts/security_audit.mk
 
-.PHONY: status forge seal health conformance sync sot-check prove deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public verify-live reality-replay constitutional-benchmark reality install-all update-all test-all health-all status-all system-deps
+.PHONY: status forge seal health conformance sync sot-check prove deploy-release deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public verify-live reality-replay constitutional-benchmark reality install-all update-all test-all health-all status-all system-deps
 
 # ══════════════════════════════════════════════════════════════════════════
 # Federation targets — unified dependency management for all 4 Python organs
@@ -56,6 +56,10 @@ conformance:
 deploy-bridge:
 	@echo "Deploying local source to app runtime via bridge..."
 	@bash scripts/deploy-bridge.sh
+
+deploy-release:
+	@echo "═══ Release 1 — Runtime Truth ═══"
+	@bash scripts/deploy-release.sh
 
 deploy-local:
 	@echo "Deploying current arifOS HEAD to native bare-metal runtime..."

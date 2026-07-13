@@ -38,6 +38,30 @@ class Readiness(str, Enum):
     PENDING = "PENDING"
 
 
+class SessionClosureState(str, Enum):
+    """
+    D2 CLOSURE STATES (forged 2026-07-13).
+
+    A session should not be kept artificially active because VAULT
+    is unavailable. Close its operational authority, but mark
+    audit closure pending.
+
+    CLOSING                       — Shutdown initiated
+    CLOSED_PENDING_RECEIPT        — Operational authority closed,
+                                    waiting for VAULT outbox
+    CLOSED_SEALED                 — Full closure, VAULT receipt verified
+    CLOSED_UNSEALED               — Closed without VAULT seal
+                                    (SESSION_OBSERVED class only)
+    CLOSURE_HOLD                  — Closure blocked
+    """
+
+    CLOSING = "CLOSING"
+    CLOSED_PENDING_RECEIPT = "CLOSED_PENDING_RECEIPT"
+    CLOSED_SEALED = "CLOSED_SEALED"
+    CLOSED_UNSEALED = "CLOSED_UNSEALED"
+    CLOSURE_HOLD = "CLOSURE_HOLD"
+
+
 class FloorStatus(str, Enum):
     """Floor evaluation status."""
 
@@ -48,7 +72,11 @@ class FloorStatus(str, Enum):
 
 
 class Reversibility(str, Enum):
-    """Reversibility classification."""
+    """
+    [DEPRECATED 2026-07-13] Use arifosmcp.schemas.action_profile.Reversibility instead.
+    This enum is preserved for backward compatibility with legacy golden path code.
+    Migration deadline: 2026-08-01.
+    """
 
     FULL = "FULL"
     PARTIAL = "PARTIAL"
@@ -56,7 +84,11 @@ class Reversibility(str, Enum):
 
 
 class BlastRadius(str, Enum):
-    """Blast radius estimate."""
+    """
+    [DEPRECATED 2026-07-13] Use arifosmcp.schemas.action_profile.BlastRadius instead.
+    This enum is preserved for backward compatibility with legacy golden path code.
+    Migration deadline: 2026-08-01.
+    """
 
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -261,6 +293,7 @@ def create_session(
 
 __all__ = [
     "SessionState",
+    "SessionClosureState",
     "StageRecord",
     "FloorScore",
     "Assumption",
