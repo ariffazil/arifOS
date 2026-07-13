@@ -18,6 +18,7 @@ import fcntl
 import hashlib
 import json
 import logging
+import os
 import threading
 import time
 import uuid
@@ -33,7 +34,8 @@ _REGISTRY_LOCK = threading.RLock()
 
 # ── Vault Paths ─────────────────────────────────────────────────────────────
 
-VAULT_DIR = Path("/root/.local/share/arifos/vault999")
+_data_home = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+VAULT_DIR = Path(os.environ.get("ARIFOS_VAULT_DIR", _data_home / "arifos" / "vault999"))
 VAULT_PATH = VAULT_DIR / "seal_chain.jsonl"
 LOCK_PATH = VAULT_DIR / ".seal_verify.lock"
 

@@ -1,3 +1,7 @@
+import os
+import subprocess
+import sys
+
 from arifosmcp.tools import memory
 
 
@@ -31,3 +35,20 @@ def test_empty_usable_recall_hold_preserves_quarantine_diagnostics(monkeypatch):
     assert result["meta"]["memory_quality"]["quarantined_hits"] == 1
     quarantined = result["meta"]["quarantined_results"][0]
     assert quarantined["_quarantine"]["reason"] == "synthetic_text_from_metadata"
+
+
+def test_vault_registry_import_respects_user_data_home(tmp_path):
+    env = os.environ.copy()
+    env.pop("ARIFOS_VAULT_DIR", None)
+    env["XDG_DATA_HOME"] = str(tmp_path)
+
+    completed = subprocess.run(
+        [sys.executable, "-c", "import arifosmcp.runtime.vault_registry"],
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert (tmp_path / "arifos" / "vault999").is_dir()
