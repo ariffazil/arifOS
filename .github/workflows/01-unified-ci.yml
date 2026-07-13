@@ -140,7 +140,7 @@ jobs:
       - name: Canonical surface drift guard
         run: |
           cd "$WORKDIR"
-          python3 commands/scripts_deploy/validate_canonical_surface.py
+          uv run python commands/scripts_deploy/validate_canonical_surface.py
 
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Constitutional Import Chain — 888_JUDGE, SEAL, FLOORS
