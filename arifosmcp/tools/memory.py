@@ -979,6 +979,37 @@ def arif_memory_recall(
                     "recommendation": "Tighten query or increase min_confidence",
                 }
 
+            # ── P0-A: empty recall must not return SUCCESS ──
+            if len(usable_hits) == 0 and query:
+                from arifosmcp.runtime.tools import _hold as _recall_hold
+
+                return _recall_hold(
+                    "arif_memory_recall",
+                    "EMPTY_RECALL: zero usable results returned — query produced no content",
+                    floors=["F2"],
+                    extra_meta={
+                        "query": query,
+                        "results": usable_hits,
+                        "count": 0,
+                        "memory_quality": {
+                            "total_retrieved": len(results),
+                            "usable_recall_hits": 0,
+                            "quarantined_hits": len(quarantined_hits),
+                            "quarantine_reason": "null_content" if quarantined_hits else None,
+                            "memory_bloat_ratio": memory_bloat,
+                            "bloat_assessment": (
+                                "tight"
+                                if memory_bloat < 2.0
+                                else "acceptable"
+                                if memory_bloat < 5.0
+                                else "bloated"
+                            ),
+                        },
+                        "coverage_gap": _m_gap,
+                        "confidence": confidence,
+                    },
+                )
+
             return _ok(
                 "arif_memory_recall",
                 {
