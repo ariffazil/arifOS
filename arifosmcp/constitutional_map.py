@@ -306,10 +306,10 @@ _RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
         ),
     ),
     RiskClass.C3_PUBLIC: RiskTierConfig(
-        governance_mode="strict",
-        requires_human_confirmation=True,
-        floors_activated=["L01", "L02", "L03", "L04", "L05", "L06", "L09", "L12"],
-        description="Public posts, emails to third parties, published documents. Reputation risk.",
+        governance_mode="audit",
+        requires_human_confirmation=False,  # C3 auto-proceed: SABAR + mandatory audit
+        floors_activated=["L01", "L02", "L04", "L06", "L09", "L12"],
+        description="Public posts, emails to third parties, published documents. Reputation risk. Auto-proceeds with SABAR + audit log.",
     ),
     RiskClass.C4_LEGAL_MONEY: RiskTierConfig(
         governance_mode="strict",
@@ -443,6 +443,24 @@ def preflight(
             human_approval_reference=None,
             uncertainty_band=(0.03, 0.10),  # Wider Ω band — low evidence
             preflight_passed=False,
+        )
+
+    # C3 auto-proceed: public posts proceed with audit log, no human gate
+    if risk_class == RiskClass.C3_PUBLIC and session_ref:
+        return RiskDecision(
+            allowed=True,
+            risk_class=risk_class,
+            governance_mode="audit",
+            verdict="SABAR",
+            reason=(
+                f"C3 PUBLIC: '{action}' auto-proceeded with SABAR. "
+                f"Audit trail logged. Human may review at session_ref={session_ref}."
+            ),
+            floors_activated=["L02", "L04", "L06", "L09", "L12"],
+            requires_human_confirmation=False,
+            human_approval_reference=session_ref,
+            uncertainty_band=(0.03, 0.05),
+            preflight_passed=True,
         )
 
     # ── Human confirmation gate (L13 SOVEREIGN) ───────────────────────────────

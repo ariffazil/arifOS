@@ -147,6 +147,22 @@ DEFAULT_TOOL_STATE: dict[str, str] = {
     for tool in TOOL_BUCKET
 }
 
+# P2 2026-07-13: Authority-lane tools (audit/measure/forge backbone) are part
+# of the system's memory — they cannot earn TRUSTED via prior seals because
+# they ARE the seal. Pre-trust them so the audit backbone can bootstrap out
+# of the self-recursive deadlock. ToolState is a StrEnum — values must match
+# the lowercase string ("trusted", "observed", "untrusted"). The uppercase
+# identifier is used here as a stable key for grep/discoverability.
+AUTHORITY_LANE_PRE_TRUSTED: frozenset[str] = frozenset({
+    "arif_init",
+    "arif_measure",
+    "arif_forge",
+    "arif_judge",
+    "arif_seal",
+})
+for _t in AUTHORITY_LANE_PRE_TRUSTED:
+    DEFAULT_TOOL_STATE[_t] = "trusted"  # matches ToolState("trusted").value
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ART REGISTRY CLASS

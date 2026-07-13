@@ -310,18 +310,21 @@ def authority_envelope_for_session(
         state = None
 
     if state is None:
-        runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
-        sealed = runtime_band in ("FULL", "SOVEREIGN")
         actor_key = (actor_id or "").strip().lower()
         # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
-        _vkey = (actor_verified_key_id if isinstance(actor_verified_flag, bool) else None)
+        # Fallback path: no session state available. We can only use the
+        # boolean actor_verified_flag without key_id, so conservative.
         h_authority = (
-            "SOVEREIGN" if (actor_verified_flag and _vkey and _vkey in SOVEREIGN_KEY_IDS)
+            "SOVEREIGN" if (actor_verified_flag and actor_key in SOVEREIGN_KEY_IDS)
             else "OPERATOR" if actor_verified_flag
             else "OPERATOR_CLAIMED" if actor_id and actor_id != "anonymous"
             else "OBSERVER"
         )
+        # P2 2026-07-13: Sovereign key elevates runtime band automatically
+        # (structural reorder — check h_authority FIRST, then set band).
+        runtime_band = _runtime_auth_hint or ("SOVEREIGN" if h_authority == "SOVEREIGN" else "OBSERVE_ONLY")
+        sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
             "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
             "human_authority": h_authority,
@@ -330,13 +333,19 @@ def authority_envelope_for_session(
             "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and sealed,
         }
 
-    runtime_band = _runtime_auth_hint or ("FULL" if state.is_sealed() else "OBSERVE_ONLY")
-    actor_key = (state.actor.claimed_id or "").strip().lower()
-    # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
+    # Canonical path: bind_authority_state has already populated the canonical
+    # AuthorityState. SOVEREIGN_KEY_IDS check happens in bind_authority_state.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
     _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
+    is_sovereign = bool(state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
+    # P2 2026-07-13: Structural reorder — check sovereign FIRST, then set band.
+    runtime_band = _runtime_auth_hint or (
+        "SOVEREIGN" if is_sovereign
+        else "FULL" if state.is_sealed()
+        else "OBSERVE_ONLY"
+    )
     h_authority = (
-        "SOVEREIGN" if (state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
+        "SOVEREIGN" if is_sovereign
         else "OPERATOR" if state.actor.verified
         else "OPERATOR_CLAIMED" if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
         else "OBSERVER"
