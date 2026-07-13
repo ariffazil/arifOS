@@ -74,7 +74,7 @@ cffi==2.0.0
     #   pynacl
 chardet==7.4.3
     # via readability-lxml
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via
     #   htmldate
     #   pdfminer-six
@@ -108,7 +108,7 @@ cuda-pathfinder==1.5.6
     # via cuda-bindings
 cuda-toolkit==13.0.2
     # via torch
-cyclopts==4.20.0
+cyclopts==4.21.0
     # via fastmcp-slim
 dateparser==1.4.1
     # via htmldate
@@ -142,7 +142,7 @@ executing==2.2.1
     # via logfire
 fastapi==0.139.0
     # via arifos (pyproject.toml)
-fastmcp==3.4.2
+fastmcp==3.4.4
     # via arifos (pyproject.toml)
 fastmcp-slim==3.4.2
     # via
@@ -304,7 +304,7 @@ justext==3.0.2
     # via trafilatura
 keyring==25.7.0
     # via py-key-value-aio
-langchain-core==1.4.8
+langchain-core==1.4.9
     # via
     #   langgraph
     #   langgraph-checkpoint
@@ -398,7 +398,7 @@ nvidia-cuda-runtime==13.0.96
     # via cuda-toolkit
 nvidia-cudnn-cu13==9.20.0.48
     # via torch
-nvidia-cufft==12.0.0.61
+nvidia-cufft==12.3.0.29
     # via cuda-toolkit
 nvidia-cufile==1.15.1.6
     # via cuda-toolkit
@@ -422,7 +422,7 @@ nvidia-nvjitlink==13.0.88
     #   nvidia-cusparse
 nvidia-nvshmem-cu13==3.4.5
     # via torch
-nvidia-nvtx==13.0.85
+nvidia-nvtx==13.3.29
     # via cuda-toolkit
 oauthlib==3.3.1
     # via requests-oauthlib
@@ -434,7 +434,7 @@ openapi-pydantic==0.5.1
     # via fastmcp-slim
 openpyxl==3.1.5
     # via arifos (pyproject.toml)
-opentelemetry-api==1.42.1
+opentelemetry-api==1.43.0
     # via
     #   arifos (pyproject.toml)
     #   fastmcp-slim
@@ -445,31 +445,31 @@ opentelemetry-api==1.42.1
     #   opentelemetry-semantic-conventions
     #   pydantic-ai-slim
     #   pydocket
-opentelemetry-exporter-otlp-proto-common==1.42.1
+opentelemetry-exporter-otlp-proto-common==1.43.0
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-proto-http==1.42.1
+opentelemetry-exporter-otlp-proto-http==1.43.0
     # via logfire
-opentelemetry-instrumentation==0.63b1
+opentelemetry-instrumentation==0.64b0
     # via
     #   logfire
     #   opentelemetry-instrumentation-httpx
-opentelemetry-instrumentation-httpx==0.63b1
+opentelemetry-instrumentation-httpx==0.64b0
     # via logfire
-opentelemetry-proto==1.42.1
+opentelemetry-proto==1.43.0
     # via
     #   opentelemetry-exporter-otlp-proto-common
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-sdk==1.42.1
+opentelemetry-sdk==1.43.0
     # via
     #   arifos (pyproject.toml)
     #   logfire
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-semantic-conventions==0.63b1
+opentelemetry-semantic-conventions==0.64b0
     # via
     #   opentelemetry-instrumentation
     #   opentelemetry-instrumentation-httpx
     #   opentelemetry-sdk
-opentelemetry-util-http==0.63b1
+opentelemetry-util-http==0.64b0
     # via opentelemetry-instrumentation-httpx
 orjson==3.11.9
     # via
@@ -520,7 +520,7 @@ propcache==0.5.2
     # via
     #   aiohttp
     #   yarl
-proto-plus==1.28.0
+proto-plus==1.28.1
     # via google-api-core
 protobuf==6.33.6
     # via
@@ -699,7 +699,7 @@ scikit-learn==1.9.0
     # via
     #   arifos (pyproject.toml)
     #   sentence-transformers
-scipy==1.17.1
+scipy==1.18.0
     # via
     #   arifos (pyproject.toml)
     #   scikit-learn
@@ -861,7 +861,7 @@ uuid-utils==0.16.2
     # via
     #   langchain-core
     #   langsmith
-uvicorn==0.50.0
+uvicorn==0.51.0
     # via
     #   arifos (pyproject.toml)
     #   fastmcp-slim

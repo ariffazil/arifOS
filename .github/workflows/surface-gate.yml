@@ -4,7 +4,7 @@ jobs:
   surface-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install dependencies
         run: pip install pyyaml
       - name: Check surface-map against live MCP

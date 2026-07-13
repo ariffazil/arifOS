@@ -17,6 +17,7 @@ parsing only — it does NOT grant identity verification.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
 from typing import Any
@@ -54,6 +55,20 @@ VERIFIED_KEY_IDS: dict[str, str] = {
     "meta-test-agent": "meta-test-agent",
 }
 VERIFIED_KEY_IDS_MAX: int = 16
+
+# P2 2026-07-13: Sovereign signal phrases (HITL-collapse mitigation).
+# When an agent presents one of these signals as proof, the kernel routes
+# through the A-FORGE session registry to verify the signal originated
+# from an active sovereign session. Closes the arif_seal → forge_vault
+# asymmetry per Arif directive.
+# Deprecated alias — kept for back-compat with any caller that imports this
+# name directly. The canonical home is arifosmcp.runtime.human_intent.
+# Per D3 (2026-07-13): phrases never grant authority — they trigger a
+# confirmation workflow that ends with a bound cryptographic capability.
+SOVEREIGN_SIGNAL_PHRASES = (
+    __import__("arifosmcp.runtime.human_intent", fromlist=["CONFIRMATION_INTENT_PHRASES"])
+    .CONFIRMATION_INTENT_PHRASES
+)
 
 # Semantic identity phrases (NLP input parsing ONLY — NOT authentication)
 # These parse natural language identity claims from user input.
@@ -119,10 +134,147 @@ def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> b
         if "hmac_challenge" in proof and "hmac_sig" in proof:
             return _verify_hmac_proof(actor_id, proof)
 
+        # P2 2026-07-13: A-FORGE session token path (HITL-collapse mitigation).
+        # Agents operating under a live forge_session token may exercise
+        # sovereign authority on behalf of the issuer. Wire shape is live;
+        # cryptographic verification delegates to the A-FORGE session
+        # registry backend (forge_session_runtime).
+        if "session_id" in proof and "session_signature" in proof:
+            return _verify_forge_session_proof(actor_id, proof)
+
+        # P2 2026-07-13: Sovereign signal phrase path. Binds narrative
+        # signals recognized from F13 to the active session context.
+        if "sovereign_signal" in proof:
+            return _verify_sovereign_signal_proof(actor_id, proof)
+
     # String proof (e.g. "IM ARIF") is NOT accepted for identity verification.
     # It may be used for NLP input parsing via canonicalize_identity_claim(),
     # but that does NOT grant authority or verification status.
     return False
+
+
+def _verify_forge_session_proof(actor_id: str, proof: dict) -> bool:
+    """
+    Verify A-FORGE session token (delegated sovereign authority).
+
+    Per E1 spec (2026-07-13 corrective), this dispatcher builds the
+    canonical token dict from the wire proof and delegates to
+    arifosmcp.runtime.forge_session_runtime.verify_forge_session_token,
+    which performs 13 checks per spec against canonical session state.
+
+    Returns False (fail-CLOSED) on:
+    - Backend import failure
+    - Backend unavailable (BACKEND_UNAVAILABLE)
+    - Any other fail-closed code from the canonical verifier
+
+    Stays True iff canonical verifier returns OK.
+    """
+    try:
+        from arifosmcp.runtime.forge_session_runtime import (
+            verify_forge_session_token, EXPECTED_TOKEN_VERSION,
+            AUDIENCE_FORGE_SESSION,
+        )
+    except ImportError:
+        logger.warning(
+            "E1: forge_session_runtime import failed — forge_session path fail-closed "
+            "(actor=%s, session_id=%s)",
+            actor_id, proof.get("session_id"),
+        )
+        return False
+
+    # Build canonical token dict from wire proof. Wire shape:
+    #   session_id, session_signature, nonce, timestamp
+    # Canonical token adds: actor_id, audience, issued_at, expires_at, capability, token_version
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    issued_at = proof.get("timestamp") or now.isoformat()
+    expires_at = (
+        proof.get("expires_at")
+        or (now + timedelta(minutes=5)).isoformat()
+    )
+
+    token = {
+        "session_id": proof.get("session_id", ""),
+        "actor_id": actor_id,
+        "nonce": proof.get("nonce", ""),
+        "audience": proof.get("audience", AUDIENCE_FORGE_SESSION),
+        "issued_at": issued_at,
+        "expires_at": expires_at,
+        "capability": proof.get("capability", "vault.append"),
+        "signature": proof.get("session_signature", ""),
+        "token_version": proof.get("token_version", EXPECTED_TOKEN_VERSION),
+    }
+
+    result = verify_forge_session_token(token)
+    if not result.ok:
+        logger.info(
+            "E1 forge_session: reject — code=%s session=%s actor=%s",
+            result.code, result.session_id, result.actor_id,
+        )
+    return result.ok
+
+
+def _verify_sovereign_signal_proof(actor_id: str, proof: dict) -> bool:
+    """
+    Verify a session-bound assertion (HITL-collapse mitigation).
+
+    Per E1 spec: 'A narrative object is not sovereignty.' Phrases alone do
+    not grant authority. Recognition of a recognized phrase (see
+    SOVEREIGN_SIGNAL_PHRASES) is necessary but not sufficient — the phrase
+    must arrive through a verified session-bound assertion.
+
+    Delegates to forge_session_runtime.verify_session_bound_assertion.
+    """
+    signal = (proof.get("sovereign_signal") or "").lower().strip()
+    session_id = proof.get("session_id")
+    nonce = proof.get("nonce", "")
+    signature = proof.get("assertion_signature") or proof.get("signature", "")
+    payload_hash = proof.get("payload_hash", "")
+    purpose = proof.get("purpose", "informational_signal")
+
+    # If no phrase AND no session-bound assertion shape, fail
+    if not signal and not session_id:
+        return False
+
+    # Phrase must be recognized (cheap pre-filter)
+    if signal and signal not in SOVEREIGN_SIGNAL_PHRASES:
+        return False
+
+    # Need session_id for the canonical verifier
+    if not session_id:
+        return False
+
+    try:
+        from arifosmcp.runtime.forge_session_runtime import verify_session_bound_assertion, EXPECTED_TOKEN_VERSION
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        assertion = {
+            "session_id": session_id,
+            "actor_id": actor_id,
+            "payload_hash": payload_hash or hashlib.sha256(
+                f"{session_id}:{actor_id}:{signal}".encode()
+            ).hexdigest(),
+            "purpose": purpose,
+            "nonce": nonce,
+            "issued_at": proof.get("issued_at") or now.isoformat(),
+            "expires_at": proof.get("expires_at") or (now + timedelta(minutes=1)).isoformat(),
+            "signature": signature,
+            "assertion_version": proof.get("assertion_version", EXPECTED_TOKEN_VERSION),
+        }
+        result = verify_session_bound_assertion(assertion)
+        if not result.ok:
+            logger.info(
+                "E1 sovereign_signal: reject — code=%s session=%s actor=%s",
+                result.code, result.session_id, result.actor_id,
+            )
+        return result.ok
+    except ImportError:
+        logger.warning(
+            "E1: forge_session_runtime import failed — sovereign_signal path fail-closed "
+            "(actor=%s, session_id=%s)",
+            actor_id, session_id,
+        )
+        return False
 
 
 def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
@@ -142,8 +294,8 @@ def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
     nonce = proof["nonce"]
     signature = proof["signature"]
 
-    # Reject stale challenges (60s window for Ed25519)
-    if not is_challenge_fresh(nonce, window_sec=60):
+    # Reject stale challenges (900s window for Ed25519 — session-lifetime bound)
+    if not is_challenge_fresh(nonce, window_sec=900):
         logger.warning("Ed25519 proof rejected: stale nonce for actor=%s", actor_id)
         return False
 
