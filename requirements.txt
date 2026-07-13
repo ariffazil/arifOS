@@ -74,7 +74,7 @@ cffi==2.0.0
     #   pynacl
 chardet==7.4.3
     # via readability-lxml
-charset-normalizer==3.4.7
+charset-normalizer==3.4.9
     # via
     #   htmldate
     #   pdfminer-six
