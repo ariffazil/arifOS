@@ -861,7 +861,7 @@ uuid-utils==0.16.2
     # via
     #   langchain-core
     #   langsmith
-uvicorn==0.50.0
+uvicorn==0.51.0
     # via
     #   arifos (pyproject.toml)
     #   fastmcp-slim
