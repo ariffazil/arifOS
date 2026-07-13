@@ -746,7 +746,7 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         dangerous_modes=["seal"],
         requires_lease=True,
         requires_f13_sovereign_ack=True,
-        blast_radius=BlastRadius.INFRASTRUCTURE,
+        blast_radius=BlastRadius.HIGH,  # Append-only vault write, not destructive infrastructure
         is_reversible=False,
     ),
     "arif_forge": ToolManifestEntry(
