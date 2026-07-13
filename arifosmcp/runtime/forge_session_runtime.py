@@ -22,9 +22,11 @@ NEVER trust supplied data when the canonical backend is unavailable.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any, Optional
 
+logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FAIL-CLOSED CODES
@@ -501,8 +503,48 @@ def verify_session_bound_assertion(assertion: Any) -> VerificationResult:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# HIGH-LEVEL PROOF PATH LOOKUPS (fail-closed stubs)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def sovereign_signal(session_id: str) -> dict | None:
+    """Look up the sovereign signal associated with a session.
+
+    FAIL-CLOSED stub: returns None (not found / backend unavailable).
+    Full implementation delegated to a separate task — this resolves the
+    import-time failure in governance_identity.py while emitting a clear
+    log trace so operators know the backend isn't wired yet.
+    """
+    logger.debug("E1 sovereign_signal: stub — session_id=%s (fail-closed None)", session_id)
+    return None
+
+
+def forge_session(session_id: str) -> dict | None:
+    """Look up a forge session record by session ID.
+
+    FAIL-CLOSED stub: returns None (not found / backend unavailable).
+    Full implementation delegated to a separate task — this resolves the
+    import-time failure in governance_identity.py while emitting a clear
+    log trace so operators know the backend isn't wired yet.
+    """
+    logger.debug("E1 forge_session: stub — session_id=%s (fail-closed None)", session_id)
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # BACKWARDS-COMPAT SHIM (governance_identity already imports these names)
 # ═══════════════════════════════════════════════════════════════════════════════
+
+def sovereign_signal(session_id: str) -> dict | None:
+    """EUREKA API: Return sovereign signal for session if available.
+    Fail-closed: returns None until A-FORGE session registry is wired."""
+    return None  # fail-closed: not implemented
+
+
+def forge_session(session_id: str) -> dict | None:
+    """EUREKA API: Return forge session proof path if available.
+    Fail-closed: returns None until A-FORGE session registry is wired."""
+    return None  # fail-closed: not implemented
+
 
 def verify_sovereign_signal_origin(
     actor_id: str, signal: str, session_id: Optional[str] = None,
@@ -525,6 +567,8 @@ __all__ = [
     "verify_forge_session_token",
     "verify_session_bound_assertion",
     "verify_sovereign_signal_origin",  # deprecated alias
+    "sovereign_signal",
+    "forge_session",
     # codes
     "CODE_OK",
     "CODE_MALFORMED_TOKEN",
