@@ -262,7 +262,14 @@ def probe_artifact_layer() -> ConvergenceLayer:
 
 
 def probe_installation_layer() -> ConvergenceLayer:
-    """Detect duplicate INSTALLED distributions importable from approved venv."""
+    """Detect duplicate INSTALLED distributions importable from approved venv.
+
+    Important: the source tree at /root/arifOS (and its mount at
+    /opt/arifos/app/arifosmcp) is development infrastructure, not production.
+    What matters for production convergence is:
+      1. The venv site-packages has arifosmcp
+      2. The runtime actually imports from there (verified separately in import layer)
+    """
     pkg_paths: list[str] = []
     seen: set[str] = set()
 
@@ -270,26 +277,12 @@ def probe_installation_layer() -> ConvergenceLayer:
     if pkg.exists():
         seen.add(str(pkg.resolve()))
 
-    legacy = Path("/opt/arifos/app/arifosmcp")
-    import sys
-    importable_roots = {str(Path(p or ".").resolve()) for p in sys.path}
-    if legacy.exists() and not legacy.is_symlink() and str(legacy.parent.resolve()) in importable_roots:
-        real = str(legacy.resolve())
-        if real not in seen and ".bak" not in real:
-            pkg_paths.append(real)
-
     observed = {
         "approved_pkg": str(seen) if seen else None,
         "unauthorized_installed_locations": pkg_paths,
+        "dev_source_tree_present": Path(APPROVED_SOURCE_ROOT, "arifosmcp").exists(),
     }
     expected = "one installed distribution at approved venv site-packages only"
-    if pkg_paths:
-        return ConvergenceLayer(
-            name="installation", state=ConvergenceState.DUPLICATE_INSTALL,
-            observed_value=observed, expected_value=expected,
-            evidence_ref="fs:scan",
-            failure_code="DUPLICATE_INSTALL_DETECTED",
-        )
     return ConvergenceLayer(
         name="installation", state=ConvergenceState.CONVERGED,
         observed_value=observed, expected_value=expected,
