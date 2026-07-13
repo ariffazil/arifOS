@@ -325,6 +325,17 @@ def authority_envelope_for_session(
         # (structural reorder — check h_authority FIRST, then set band).
         runtime_band = _runtime_auth_hint or ("SOVEREIGN" if h_authority == "SOVEREIGN" else "OBSERVE_ONLY")
         sealed = runtime_band in ("FULL", "SOVEREIGN")
+        # E1 2026-07-13: Register session anchor for sovereign chain.
+        try:
+            from arifosmcp.runtime.forge_session_runtime import register_session_anchor
+            register_session_anchor(
+                session_id=session_id or "",
+                actor_id=actor_id,
+                verified_key_id=actor_key if h_authority == "SOVEREIGN" else None,
+                verification_method="ed25519" if h_authority == "SOVEREIGN" else "none",
+            )
+        except Exception:
+            pass  # Non-blocking — anchor registration is advisory at this stage
         return {
             "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
             "human_authority": h_authority,
@@ -350,6 +361,17 @@ def authority_envelope_for_session(
         else "OPERATOR_CLAIMED" if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
         else "OBSERVER"
     )
+    # E1 2026-07-13: Register session anchor for sovereign chain (canonical path).
+    try:
+        from arifosmcp.runtime.forge_session_runtime import register_session_anchor
+        register_session_anchor(
+            session_id=session_id or "",
+            actor_id=getattr(state.actor, "claimed_id", None) or state.actor.claimed_id,
+            verified_key_id=_vkey if is_sovereign else None,
+            verification_method="ed25519" if is_sovereign else "none",
+        )
+    except Exception:
+        pass
     return {
         "actor_verified": bool(state.actor.verified),
         "human_authority": h_authority,

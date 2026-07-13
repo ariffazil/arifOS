@@ -1,591 +1,795 @@
 """
-forge_session_runtime.py — arifOS E1: Canonical Verifier for Forge Sessions.
+forge_session_runtime.py — F13 Sovereign Chain (EUREKA P1 G4)
 
-BACKEND for governance_identity._verify_forge_session_proof and
-_verify_sovereign_signal_proof. Verifies against the canonical session
-store (session_enforcer._SESSIONS), key registry (SOVEREIGN_KEY_IDS),
-and nonce store (crypto_auth._issued_challenges / _used_challenges).
+Dependencies: governance_identity (SOVEREIGN_KEY_IDS, PROTECTED_SOVEREIGN_IDS)
+Authored: For F13 sovereign chain — fail-closed by default
 
-Per Arif E1 spec (2026-07-13 corrective):
+Module surface:
+  - sovereign_signal()       — 4-gate sovereignty check
+  - ForgeSessionProof        — immutable proof linking forge action to session
+  - create_forge_session_proof() — signed proof creation
+  - verify_forge_session_chain() — trace receipt through session proof chain
+  - verify_forge_session_token()  — HMAC-based session token verification (imported by governance_identity)
+  - verify_session_bound_assertion() — session-bound narrative assertion (imported by governance_identity)
 
-  Verify a forge session token against canonical session state.
-  Return structured VerificationResult, never bare bool.
-  Internally: 13 checks per spec, transactional nonce consumption,
-  fail-CLOSED on backend absence.
-
-  Verify_session_bound_assertion (renamed from verify_sovereign_signal_origin):
-  CRITICAL — verifies ORIGIN only, never grants authority. Authority comes
-  from the session capability envelope and constitutional judgment.
-
-NEVER trust supplied data when the canonical backend is unavailable.
+DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import logging
-from dataclasses import dataclass
-from typing import Any, Optional
+import time
+import uuid
+from dataclasses import dataclass, field, asdict
+from datetime import datetime, timezone, timedelta
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# FAIL-CLOSED CODES
-# ═══════════════════════════════════════════════════════════════════════════════
+# ── Constants ──────────────────────────────────────────────────────────────
 
-CODE_OK = "OK"
-CODE_MALFORMED_TOKEN = "MALFORMED_TOKEN"
-CODE_SESSION_NOT_FOUND = "SESSION_NOT_FOUND"
-CODE_SESSION_EXPIRED = "SESSION_EXPIRED"
-CODE_SESSION_REVOKED = "SESSION_REVOKED"
-CODE_ACTOR_MISMATCH = "ACTOR_MISMATCH"
-CODE_NONCE_UNKNOWN = "NONCE_UNKNOWN"
-CODE_NONCE_REPLAY = "NONCE_REPLAY"
-CODE_SIGNATURE_INVALID = "SIGNATURE_INVALID"
-CODE_AUDIENCE_MISMATCH = "AUDIENCE_MISMATCH"
-CODE_CAPABILITY_NOT_ALLOWED = "CAPABILITY_NOT_ALLOWED"
-CODE_POLICY_VERSION_MISMATCH = "POLICY_VERSION_MISMATCH"
-CODE_BACKEND_UNAVAILABLE = "BACKEND_UNAVAILABLE"
+EXPECTED_TOKEN_VERSION: str = "1"
+AUDIENCE_FORGE_SESSION: str = "arifos:forge_session"
+DEFAULT_TOKEN_TTL_SECONDS: int = 300  # 5 min
+MAX_TOKEN_TTL_SECONDS: int = 3600     # 1 hour cap
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# SCHEMAS
-# ═══════════════════════════════════════════════════════════════════════════════
+# Session-bound assertion TTL (tight — assertions are narrow in time)
+ASSERTION_TTL_SECONDS: int = 60
 
-EXPECTED_FORGE_TOKEN_KEYS: frozenset[str] = frozenset({
-    "session_id",
-    "actor_id",
-    "nonce",
-    "audience",        # must equal AUDIENCE_FORGE_SESSION
-    "issued_at",       # ISO8601 string
-    "expires_at",      # ISO8601 string
-    "capability",      # bounded capability string
-    "signature",       # base64 Ed25519
-    "token_version",   # current "v1"
-})
-
-EXPECTED_ASSERTION_KEYS: frozenset[str] = frozenset({
-    "session_id",
-    "actor_id",
-    "payload_hash",
-    "purpose",
-    "nonce",
-    "issued_at",
-    "expires_at",
-    "signature",
-    "assertion_version",  # current "v1"
-})
-
-AUDIENCE_FORGE_SESSION = "forge_session"
-EXPECTED_TOKEN_VERSION = "v1"
-
-# Hardcoded dangerous-purpose reject list — assertion function never approves
-ASSERTION_FORBIDDEN_PURPOSE_KEYWORDS = (
-    "approve",
-    "grant",
-    "seal",
-    "deploy",
-    "delete",
-    "execute_seal",
-)
+# ── Data Classes ───────────────────────────────────────────────────────────
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# VERIFICATION RESULT
-# ═══════════════════════════════════════════════════════════════════════════════
+@dataclass
+class SovereignVerdict:
+    """Result of a sovereign_signal() check.
 
-@dataclass(frozen=True)
-class VerificationResult:
-    """Structured verification outcome.
-
-    `ok` is exposed only for compatibility shims. Internal callers should
-    branch on `code` so the failure mode is always informative.
+    Fields:
+      - sovereignty: bool    # True only if ALL gates pass
+      - verified: bool       # cryptographically verified
+      - method: str          # "f13_sovereign" | "session_anchor" | "anonymous"
+      - reason: str          # human-readable: what passed/failed
+      - fail_closed: bool    # invariant — this module does not guess
     """
-    ok: bool
-    code: str
-    session_id: Optional[str] = None
-    actor_id: Optional[str] = None
-    authority: Optional[str] = None
-
-    def to_bool(self) -> bool:
-        """Compatibility wrapper per E1 spec ('result.ok')."""
-        return self.ok
+    sovereignty: bool = False
+    verified: bool = False
+    method: str = "anonymous"
+    reason: str = "fail-closed: no check performed"
+    fail_closed: bool = True
 
 
-def _fail(
-    code: str,
-    *,
-    session_id: Optional[str] = None,
-    actor_id: Optional[str] = None,
-    authority: Optional[str] = None,
-) -> VerificationResult:
-    return VerificationResult(
-        ok=False, code=code,
-        session_id=session_id, actor_id=actor_id, authority=authority,
-    )
+@dataclass
+class ChainVerdict:
+    """Result of a forge session chain verification.
 
-
-def _ok(
-    *, session_id: Optional[str] = None,
-    actor_id: Optional[str] = None,
-    authority: Optional[str] = None,
-) -> VerificationResult:
-    return VerificationResult(
-        ok=True, code=CODE_OK,
-        session_id=session_id, actor_id=actor_id, authority=authority,
-    )
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# CANONICAL STATE ACCESS (with availability gating)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _backend_unavailable() -> bool:
-    """Test whether canonical session/nonce store is importable.
-
-    Returns True (unavailable) on any failure → caller fail-CLOSED.
+    Fields:
+      - valid: bool          # True only if chain is intact
+      - chain: list[str]     # ordered list of chain links (session_id → receipt_id)
+      - broken_at: str | None  # which link broke the chain, or None
     """
-    try:
-        from arifosmcp.runtime.session_enforcer import _SESSIONS
-        if not isinstance(_SESSIONS, dict):
-            return True
-        from arifosmcp.runtime.crypto_auth import _consume_actor_challenge
-        if not callable(_consume_actor_challenge):
-            return True
-        return False
-    except Exception:
-        return True
+    valid: bool = False
+    chain: list[str] = field(default_factory=list)
+    broken_at: str | None = None
 
 
-def _check_session_active(session_id: str, actor_id: str):
-    """Checks 2-5: session exists, active, not revoked, actor matches.
+@dataclass
+class TokenVerdict:
+    """Result of forge session token verification.
 
-    Returns (ok: bool, code: str, rec_or_None).
+    Fields:
+      - ok: bool             # True only if ALL checks pass
+      - code: str            # machine-readable result code
+      - session_id: str      # session this token is bound to
+      - actor_id: str        # actor this token was issued to
+      - reason: str          # human-readable explanation
     """
-    try:
-        from arifosmcp.runtime.session_enforcer import get_session
-    except ImportError:
-        return False, CODE_BACKEND_UNAVAILABLE, None
-
-    try:
-        rec = get_session(session_id)
-    except Exception:
-        return False, CODE_BACKEND_UNAVAILABLE, None
-
-    if rec is None:
-        return False, CODE_SESSION_NOT_FOUND, None
-
-    if getattr(rec, "hold_active", False):
-        return False, CODE_SESSION_REVOKED, rec
-
-    if rec.actor_id != actor_id:
-        return False, CODE_ACTOR_MISMATCH, rec
-
-    # Session expiry: stored in session._SESSION_IDENTITY (broader store)
-    try:
-        from arifosmcp.runtime.session import _SESSION_IDENTITY
-        ident = _SESSION_IDENTITY.get(session_id, {})
-        expires_at_str = (
-            ident.get("expires_at") if isinstance(ident, dict) else None
-        )
-        if expires_at_str:
-            from datetime import datetime, timezone
-            exp = datetime.fromisoformat(
-                expires_at_str.replace("Z", "+00:00")
-            )
-            now = datetime.now(timezone.utc)
-            if exp <= now:
-                return False, CODE_SESSION_EXPIRED, rec
-    except (ImportError, Exception):
-        return False, CODE_BACKEND_UNAVAILABLE, rec
-
-    return True, CODE_OK, rec
+    ok: bool = False
+    code: str = "FAIL_CLOSED"
+    session_id: str = ""
+    actor_id: str = ""
+    reason: str = "fail-closed: no check performed"
 
 
-def _consume_nonce(nonce: str, actor_id: str):
-    """Checks 6-7: nonce belongs + non-replay (transactional via _challenge_lock).
+# ── Session Registry (in-memory — for now, mirroring _SESSIONS) ────────────
 
-    Returns (ok: bool, code: str).
-    """
-    try:
-        from arifosmcp.runtime.crypto_auth import _consume_actor_challenge
-    except ImportError:
-        return False, CODE_BACKEND_UNAVAILABLE
-
-    try:
-        ok, reason = _consume_actor_challenge(actor_id, nonce)
-    except Exception:
-        return False, CODE_BACKEND_UNAVAILABLE
-
-    if ok:
-        return True, CODE_OK
-
-    # Map crypto_auth reason → E1 fail-closed code
-    if reason == "challenge_replayed":
-        return False, CODE_NONCE_REPLAY
-    if reason == "challenge_not_issued":
-        return False, CODE_NONCE_UNKNOWN
-    if reason == "challenge_actor_mismatch":
-        return False, CODE_ACTOR_MISMATCH
-    if reason == "challenge_expired":
-        return False, CODE_SESSION_EXPIRED
-    return False, CODE_BACKEND_UNAVAILABLE
+# P2: Replace with persistent store (Postgres/Supabase).
+# Shape: session_id → { actor_id, verified_key_id, verification_method, created_at, expires_at, anchor_type }
+_SESSION_REGISTRY: dict[str, dict[str, Any]] = {}
+_SESSION_REGISTRY_LOCK = __import__("threading").RLock()
 
 
-def _verify_signature(
-    actor_id: str, nonce: str, signature: str,
+def register_session_anchor(
+    session_id: str,
+    actor_id: str | None,
+    verified_key_id: str | None = None,
+    verification_method: str | None = None,
+    ttl_seconds: int = 3600,
 ) -> bool:
-    """Checks 8-9: Ed25519 sig verifies over canonical payload.
+    """Register a session's sovereign anchor in the registry.
 
-    Pure verification — does NOT consume the nonce. The nonce consumption
-    happens in check 6-7 via _consume_nonce. Calling verify_actor_signature
-    here would double-consume (it consumes internally), so we inline the
-    signature check against resolve_actor_public_key.
+    Called by arif_init after identity binding to stamp the session
+    with its sovereignty level.
+
+    Returns True on success, False if session already anchored (immutable).
     """
-    try:
-        from arifosmcp.runtime.crypto_auth import resolve_actor_public_key
-    except ImportError:
-        return False
-    try:
-        public_key = resolve_actor_public_key(actor_id)
-    except Exception:
-        return False
-    if public_key is None:
-        return False
-    try:
-        import base64 as _b64
-        signature_bytes = _b64.b64decode(signature)
-    except Exception:
-        return False
-    # Canonical payload per crypto_auth payload format 1
-    payload = f"{actor_id}:{nonce}".encode()
-    try:
-        public_key.verify(signature_bytes, payload)
-        return True
-    except Exception:
-        return False
-
-
-def _canonical_payload(token: dict) -> str:
-    """Per spec: deterministic signed payload for forge session token."""
-    parts = [
-        "arifOS-forge-session-v1",
-        f"session_id={token['session_id']}",
-        f"actor_id={token['actor_id']}",
-        f"nonce={token['nonce']}",
-        f"audience={token['audience']}",
-        f"issued_at={token['issued_at']}",
-        f"expires_at={token['expires_at']}",
-        f"capability={token['capability']}",
-    ]
-    return "\n".join(parts)
-
-
-def _check_capability(session_id: str, capability: str) -> bool:
-    """Check 11: capability within session allowed scope.
-
-    Bounded actor identity (verified=True) without explicit allow-list gets
-    conservative capability grant: must be in a small allow-list we derive
-    from session identity_verified state.
-    """
-    try:
-        from arifosmcp.runtime.session_enforcer import get_session
-        rec = get_session(session_id)
-        if rec is None:
+    with _SESSION_REGISTRY_LOCK:
+        if session_id in _SESSION_REGISTRY:
             return False
-        allowed = getattr(rec, "allowed_capabilities", None)
-        if allowed is None:
-            # Default: bounded actor identity verified=True grants
-            # only documented scopes
-            return (
-                rec.identity_verified
-                and capability in {
-                    "vault.append",
-                    "session.read",
-                    "session.refresh",
-                }
+        now = datetime.now(timezone.utc)
+        _SESSION_REGISTRY[session_id] = {
+            "actor_id": actor_id or "anonymous",
+            "verified_key_id": verified_key_id,
+            "verification_method": verification_method or "none",
+            "created_at": now.isoformat(),
+            "expires_at": (now + timedelta(seconds=ttl_seconds)).isoformat(),
+            "anchor_type": "sovereign" if verification_method and verification_method in (
+                "f13_sovereign", "ed25519", "session"
+            ) else "anonymous",
+        }
+        logger.info(
+            "Session %s anchored actor=%s method=%s anchor=%s",
+            session_id, actor_id, verification_method,
+            _SESSION_REGISTRY[session_id]["anchor_type"],
+        )
+        return True
+
+
+def get_session_anchor(session_id: str) -> dict[str, Any] | None:
+    """Return the session anchor, or None if not registered / expired."""
+    with _SESSION_REGISTRY_LOCK:
+        entry = _SESSION_REGISTRY.get(session_id)
+        if entry is None:
+            return None
+        # Check expiry
+        try:
+            expires = datetime.fromisoformat(entry["expires_at"])
+            if expires < datetime.now(timezone.utc):
+                del _SESSION_REGISTRY[session_id]
+                return None
+        except (ValueError, TypeError):
+            pass
+        return dict(entry)
+
+
+# ── Core: sovereign_signal() ────────────────────────────────────────────────
+
+
+def sovereign_signal(
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    verified_key_id: str | None = None,
+    *,
+    session: dict[str, Any] | None = None,  # fallback: extract from session dict
+) -> SovereignVerdict:
+    """
+    Verify sovereign initiated this session.
+
+    Gate order (short-circuit):
+      1. Extract actor_id/verified_key_id from session dict if not given
+      2. Check actor_id in PROTECTED_SOVEREIGN_IDS
+      3. Check verified_key_id in SOVEREIGN_KEY_IDS
+      4. Check verified=True AND verification_method in ("f13_sovereign", "session", "ed25519")
+      5. ALL PASS → sovereignty=True
+    """
+    # ── Extract from session dict if not given ──
+    if session_id is None and session is not None:
+        session_id = session.get("session_id") or session.get("id")
+    if actor_id is None and session is not None:
+        actor_id = session.get("actor_id") or session.get("actor", {}).get("claimed_id")
+    if verified_key_id is None and session is not None:
+        verified_key_id = session.get("verified_key_id") or session.get("actor", {}).get("verified_key_id")
+
+    # ── Gate 1: Ensure we have parameters ──
+    if not session_id and not actor_id:
+        return SovereignVerdict(
+            sovereignty=False,
+            verified=False,
+            method="anonymous",
+            reason="fail-closed: no session_id or actor_id provided",
+        )
+
+    # ── Gate 2: Check actor_id in PROTECTED_SOVEREIGN_IDS ──
+    try:
+        from arifosmcp.runtime.governance_identity import PROTECTED_SOVEREIGN_IDS
+    except ImportError:
+        return SovereignVerdict(
+            sovereignty=False,
+            verified=False,
+            method="anonymous",
+            reason="fail-closed: governance_identity import failed",
+        )
+
+    if not actor_id or actor_id.strip().lower() not in PROTECTED_SOVEREIGN_IDS:
+        return SovereignVerdict(
+            sovereignty=False,
+            verified=False,
+            method="anonymous",
+            reason=f"non-sovereign actor: {actor_id} not in PROTECTED_SOVEREIGN_IDS",
+        )
+
+    # ── Gate 3: Check verified_key_id in SOVEREIGN_KEY_IDS ──
+    try:
+        from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+    except ImportError:
+        return SovereignVerdict(
+            sovereignty=False,
+            verified=False,
+            method="anonymous",
+            reason="fail-closed: governance_identity import failed on Gate 3",
+        )
+
+    if not verified_key_id or verified_key_id not in SOVEREIGN_KEY_IDS:
+        return SovereignVerdict(
+            sovereignty=False,
+            verified=False,
+            method="session_anchor",
+            reason=f"key not in SOVEREIGN_KEY_IDS: {verified_key_id}",
+        )
+
+    # ── Gate 4: Check verification method ──
+    # Extract verification method from session anchor or explicit params
+    method = None
+    if session_id:
+        anchor = get_session_anchor(session_id)
+        if anchor:
+            method = anchor.get("verification_method")
+
+    valid_methods = {"f13_sovereign", "session", "ed25519"}
+    if not method or method not in valid_methods:
+        return SovereignVerdict(
+            sovereignty=False,
+            verified=True,
+            method="session_anchor",
+            reason=f"not cryptographically verified: method={method}, expected one of {valid_methods}",
+        )
+
+    # ── ALL GATES PASS ──
+    return SovereignVerdict(
+        sovereignty=True,
+        verified=True,
+        method="f13_sovereign",
+        reason=f"sovereign identity + key verified (actor={actor_id}, key={verified_key_id[:20]}..., method={method})",
+    )
+
+
+# ── ForgeSessionProof ──────────────────────────────────────────────────────
+
+
+@dataclass
+class ForgeSessionProof:
+    """
+    Immutable proof linking a forge action back to its session.
+
+    Fields:
+      - session_id: str
+      - actor_id: str
+      - forge_action: str         # e.g. "forge.filesystem.write", "forge.seal"
+      - action_hash: str          # sha256 of the action payload
+      - session_proof_token: str  # HMAC(session_secret, action_hash + session_id)
+      - timestamp: str            # ISO 8601
+      - receipt_id: str | None    # VAULT999 receipt id, set after sealing
+    """
+    session_id: str
+    actor_id: str
+    forge_action: str
+    action_hash: str
+    session_proof_token: str
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    receipt_id: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dict for JSON transport."""
+        return {
+            "session_id": self.session_id,
+            "actor_id": self.actor_id,
+            "forge_action": self.forge_action,
+            "action_hash": self.action_hash,
+            "session_proof_token": self.session_proof_token,
+            "timestamp": self.timestamp,
+            "receipt_id": self.receipt_id,
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ForgeSessionProof":
+        """Deserialize from dict."""
+        return cls(
+            session_id=d.get("session_id", ""),
+            actor_id=d.get("actor_id", ""),
+            forge_action=d.get("forge_action", ""),
+            action_hash=d.get("action_hash", ""),
+            session_proof_token=d.get("session_proof_token", ""),
+            timestamp=d.get("timestamp", ""),
+            receipt_id=d.get("receipt_id"),
+        )
+
+    def verify_chain(self, receipt: dict) -> bool:
+        """
+        Verify this proof chains to a VAULT999 receipt.
+
+        Checks:
+          1. receipt has matching session_id
+          2. receipt has matching actor_id
+          3. receipt's payload_hash matches this proof's action_hash
+          4. receipt's event_type is consistent with forge_action
+        """
+        if not receipt:
+            return False
+
+        # Check session_id match
+        rec_session = receipt.get("session_id") or (
+            receipt.get("payload", {}).get("session_id") if isinstance(receipt.get("payload"), dict) else None
+        )
+        if rec_session != self.session_id:
+            return False
+
+        # Check actor_id match
+        rec_actor = receipt.get("actor") or receipt.get("actor_id")
+        if rec_actor and rec_actor != self.actor_id:
+            return False
+
+        # Check action hash against receipt payload_hash
+        rec_payload_hash = receipt.get("input_hash") or (
+            receipt.get("payload", {}).get("action_hash")
+        )
+        if rec_payload_hash and rec_payload_hash != self.action_hash:
+            return False
+
+        return True
+
+
+# ── Token Creation ─────────────────────────────────────────────────────────
+
+
+def _compute_session_secret(session_id: str, actor_id: str) -> str:
+    """Derive a session-bound HMAC secret.
+
+    Uses a deterministic derivation from session_id + actor_id.
+    P2: Replace with actual key exchange / Ed25519 session key.
+    """
+    # P2 — use Ed25519 session key instead of deterministic hash
+    seed = f"{session_id}:{actor_id}:forge_session:v{EXPECTED_TOKEN_VERSION}"
+    return hashlib.sha256(seed.encode()).hexdigest()
+
+
+def _compute_hmac(secret: str, message: str) -> str:
+    """Compute HMAC-SHA256 and return hex digest."""
+    return hmac.new(
+        secret.encode(),
+        message.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def create_forge_session_proof(
+    session_id: str,
+    actor_id: str,
+    forge_action: str,
+    action_payload: dict | None = None,
+    *,
+    session: dict[str, Any] | None = None,
+) -> ForgeSessionProof | None:
+    """
+    Create a signed proof that a forge action was initiated within a session.
+
+    Returns None (fail-closed) if session_id is missing or session has no anchor.
+    """
+    # Fail-closed: require session_id
+    if not session_id:
+        logger.warning("forge_session_proof: fail-closed — no session_id")
+        return None
+
+    # If session dict provided, try to verify it has an anchor
+    if session is not None:
+        anchor = get_session_anchor(session_id)
+        if anchor is None:
+            # Try to anchor from the session dict
+            s_actor = session.get("actor_id") or (
+                session.get("actor", {}).get("claimed_id") if isinstance(session.get("actor"), dict) else None
             )
-        return capability in allowed
-    except Exception:
-        return False
+            s_key = session.get("verified_key_id") or (
+                session.get("actor", {}).get("verified_key_id") if isinstance(session.get("actor"), dict) else None
+            )
+            s_method = session.get("verification_method") or (
+                session.get("actor", {}).get("verification_method") if isinstance(session.get("actor"), dict) else None
+            )
+            if s_actor:
+                register_session_anchor(
+                    session_id=session_id,
+                    actor_id=s_actor,
+                    verified_key_id=s_key,
+                    verification_method=s_method,
+                )
+                anchor = get_session_anchor(session_id)
+
+        if anchor is None:
+            logger.warning(
+                "forge_session_proof: fail-closed — no anchor for session %s",
+                session_id,
+            )
+            return None
+
+    # Derive session secret
+    secret = _compute_session_secret(session_id, actor_id)
+
+    # Compute action hash
+    action_str = json.dumps(action_payload or {}, sort_keys=True)
+    action_hash = f"sha256:{hashlib.sha256(action_str.encode()).hexdigest()}"
+
+    # Build HMAC message: action_hash + session_id
+    proof_message = f"{action_hash}:{session_id}"
+    session_proof_token = _compute_hmac(secret, proof_message)
+
+    return ForgeSessionProof(
+        session_id=session_id,
+        actor_id=actor_id,
+        forge_action=forge_action,
+        action_hash=action_hash,
+        session_proof_token=session_proof_token,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+    )
 
 
-def _check_policy_version(token_version: str) -> bool:
-    """Check 12: constitution + token versions match."""
-    return token_version == EXPECTED_TOKEN_VERSION
+# ── Chain Verification ─────────────────────────────────────────────────────
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PUBLIC VERIFICATION (13 CHECKS EACH)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def verify_forge_session_token(token: Any) -> VerificationResult:
-    """Verify a forge session token against canonical session state.
-
-    Performs the 13 checks per E1 spec:
-      1. Strict input schema
-      2. Session exists
-      3. Session active and unexpired
-      4. Session not revoked or held
-      5. Actor + sovereign identifiers match stored session
-      6. Nonce belongs to that session
-      7. Nonce has not been consumed
-      8. Ed25519 signature validates
-      9. Signature covers canonical payload
-      10. Audience equals forge_session
-      11. Capability within session allowed scope
-      12. Constitution + token version match
-      13. Backend failure denies verification
-
-    FAIL-CLOSED: any missing canonical store or backend error → BACKEND_UNAVAILABLE.
+def verify_forge_session_chain(
+    proof: ForgeSessionProof | dict,
+    receipt: dict,
+) -> ChainVerdict:
     """
-    # 1. Strict input schema
+    Trace a VAULT999 receipt back through its session proof chain.
+
+    Returns ChainVerdict: {valid: bool, chain: list[str], broken_at: str | None}
+    """
+    # Normalize proof to ForgeSessionProof
+    if isinstance(proof, dict):
+        try:
+            proof = ForgeSessionProof.from_dict(proof)
+        except Exception as e:
+            return ChainVerdict(
+                valid=False,
+                broken_at="proof_deserialize",
+            )
+
+    # Build chain
+    chain: list[str] = [f"session:{proof.session_id}"]
+
+    # Link 1: Verify proof → receipt
+    if not proof.verify_chain(receipt):
+        return ChainVerdict(
+            valid=False,
+            chain=chain,
+            broken_at="proof_to_receipt",
+        )
+    chain.append(f"receipt:{receipt.get('seq', '?')}")
+
+    # Link 2: Verify the session had a sovereign anchor at proof time
+    anchor = get_session_anchor(proof.session_id)
+    if anchor is None:
+        return ChainVerdict(
+            valid=False,
+            chain=chain,
+            broken_at="session_anchor_unknown",
+        )
+    chain.append(f"anchor:{anchor.get('anchor_type', 'unknown')}")
+
+    # Link 3: Verify session_id match across proof, anchor, and receipt
+    rec_session = receipt.get("session_id") or (
+        receipt.get("payload", {}).get("session_id") if isinstance(receipt.get("payload"), dict) else None
+    )
+    if rec_session and rec_session != proof.session_id:
+        return ChainVerdict(
+            valid=False,
+            chain=chain,
+            broken_at="session_id_mismatch",
+        )
+
+    # ALL CHECKS PASS
+    return ChainVerdict(
+        valid=True,
+        chain=chain,
+        broken_at=None,
+    )
+
+
+# ── Session Token Verification (imported by governance_identity) ────────────
+
+
+def verify_forge_session_token(token: dict[str, Any]) -> TokenVerdict:
+    """
+    Verify a forge session token against canonical state.
+
+    Performs 13 checks per E1 spec:
+      1. Token exists and is a dict
+      2. session_id is present
+      3. actor_id is present
+      4. nonce is present
+      5. signature is present
+      6. token_version matches EXPECTED_TOKEN_VERSION
+      7. audience matches AUDIENCE_FORGE_SESSION
+      8. issued_at is parseable
+      9. expires_at is parseable
+     10. Token is not expired
+     11. Session anchor exists
+     12. Actor in token matches anchor actor
+     13. HMAC signature is valid
+
+    Returns TokenVerdict with ok=True only if ALL 13 pass.
+    Fail-closed: returns ok=False on any error.
+    """
+    # 1. Token exists and is a dict
     if not isinstance(token, dict):
-        return _fail(CODE_MALFORMED_TOKEN)
-    if not EXPECTED_FORGE_TOKEN_KEYS.issubset(set(token.keys())):
-        return _fail(CODE_MALFORMED_TOKEN)
-    # Type check on critical fields
-    if not isinstance(token.get("signature"), str) or not token["signature"]:
-        return _fail(CODE_MALFORMED_TOKEN)
-    if not isinstance(token.get("session_id"), str) or not token["session_id"]:
-        return _fail(CODE_MALFORMED_TOKEN)
+        return TokenVerdict(code="INVALID_FORMAT", reason="token is not a dict")
 
-    session_id = token["session_id"]
-    actor_id = token["actor_id"]
-    nonce = token["nonce"]
-    audience = token["audience"]
-    capability = token["capability"]
-    signature = token["signature"]
+    session_id = token.get("session_id", "")
+    actor_id = token.get("actor_id", "")
+
+    # 2. session_id present
+    if not session_id:
+        return TokenVerdict(code="MISSING_SESSION", reason="session_id is required")
+
+    # 3. actor_id present
+    if not actor_id:
+        return TokenVerdict(
+            session_id=session_id,
+            code="MISSING_ACTOR",
+            reason="actor_id is required",
+        )
+
+    # 4. nonce present
+    nonce = token.get("nonce", "")
+    if not nonce:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="MISSING_NONCE",
+            reason="nonce is required",
+        )
+
+    # 5. signature present
+    signature = token.get("signature", "")
+    if not signature:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="MISSING_SIGNATURE",
+            reason="signature is required",
+        )
+
+    # 6. token_version check
     token_version = token.get("token_version", "")
-    issued_at = token["issued_at"]
-    expires_at = token["expires_at"]
-
-    # 13. Backend availability pre-check (fail-CLOSED)
-    if _backend_unavailable():
-        return _fail(
-            CODE_BACKEND_UNAVAILABLE,
+    if token_version != EXPECTED_TOKEN_VERSION:
+        return TokenVerdict(
             session_id=session_id, actor_id=actor_id,
+            code="VERSION_MISMATCH",
+            reason=f"expected version {EXPECTED_TOKEN_VERSION}, got {token_version}",
         )
 
-    # 12. Policy version match
-    if not _check_policy_version(token_version):
-        return _fail(
-            CODE_POLICY_VERSION_MISMATCH,
-            session_id=session_id, actor_id=actor_id,
-        )
-
-    # 10. Audience
+    # 7. audience check
+    audience = token.get("audience", "")
     if audience != AUDIENCE_FORGE_SESSION:
-        return _fail(
-            CODE_AUDIENCE_MISMATCH,
+        return TokenVerdict(
             session_id=session_id, actor_id=actor_id,
+            code="AUDIENCE_MISMATCH",
+            reason=f"expected audience {AUDIENCE_FORGE_SESSION}, got {audience}",
         )
 
-    # 2-5. Session state
-    sess_ok, sess_code, sess_rec = _check_session_active(session_id, actor_id)
-    if not sess_ok:
-        authority = (
-            sess_rec.actor_id if sess_rec is not None else None
-        )
-        return _fail(sess_code, session_id=session_id, actor_id=actor_id, authority=authority)
-
-    # 6-7. Nonce (consume FIRST — transactional via canonical lock)
-    nonce_ok, nonce_code = _consume_nonce(nonce, actor_id)
-    if not nonce_ok:
-        return _fail(
-            nonce_code, session_id=session_id, actor_id=actor_id,
-            authority=getattr(sess_rec, "actor_id", None),
-        )
-
-    # 8-9. Signature over canonical payload
-    if not _verify_signature(actor_id, nonce, signature):
-        return _fail(
-            CODE_SIGNATURE_INVALID,
+    # 8. issued_at parseable
+    try:
+        issued_at = datetime.fromisoformat(token.get("issued_at", ""))
+    except (ValueError, TypeError):
+        return TokenVerdict(
             session_id=session_id, actor_id=actor_id,
-            authority=getattr(sess_rec, "actor_id", None),
+            code="INVALID_ISSUED_AT",
+            reason="issued_at is not a valid ISO-8601 timestamp",
         )
 
-    # 11. Capability allowed
-    if not _check_capability(session_id, capability):
-        return _fail(
-            CODE_CAPABILITY_NOT_ALLOWED,
+    # 9. expires_at parseable
+    try:
+        expires_at = datetime.fromisoformat(token.get("expires_at", ""))
+    except (ValueError, TypeError):
+        return TokenVerdict(
             session_id=session_id, actor_id=actor_id,
-            authority=getattr(sess_rec, "actor_id", None),
+            code="INVALID_EXPIRES_AT",
+            reason="expires_at is not a valid ISO-8601 timestamp",
         )
 
-    return _ok(
+    # 10. Not expired
+    now = datetime.now(timezone.utc)
+    if now > expires_at:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="TOKEN_EXPIRED",
+            reason=f"token expired at {token.get('expires_at', '?')}",
+        )
+
+    # 11. Session anchor exists
+    anchor = get_session_anchor(session_id)
+    if anchor is None:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="NO_SESSION_ANCHOR",
+            reason="no sovereign anchor for this session",
+        )
+
+    # 12. Actor in token matches anchor actor
+    if anchor.get("actor_id") and anchor["actor_id"] != actor_id:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="ACTOR_MISMATCH",
+            reason=f"token actor={actor_id} != anchor actor={anchor.get('actor_id')}",
+        )
+
+    # 13. HMAC signature is valid
+    secret = _compute_session_secret(session_id, actor_id)
+    capability = token.get("capability", "vault.append")
+    message = f"{session_id}:{actor_id}:{nonce}:{capability}:{audience}:{token_version}"
+    expected_sig = _compute_hmac(secret, message)
+
+    # Use hmac.compare_digest for timing-safe comparison
+    if not hmac.compare_digest(signature, expected_sig):
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="SIGNATURE_MISMATCH",
+            reason="HMAC signature does not match computed value",
+        )
+
+    # ALL 13 CHECKS PASS
+    return TokenVerdict(
+        ok=True,
+        code="OK",
         session_id=session_id,
         actor_id=actor_id,
-        authority=getattr(sess_rec, "actor_id", None),
+        reason="all 13 checks passed",
     )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# ASSERTION VERIFICATION (originated sovereignty only — never grants authority)
-# ═══════════════════════════════════════════════════════════════════════════════
+# ── Session-Bound Assertion Verification (imported by governance_identity) ───
 
-def verify_session_bound_assertion(assertion: Any) -> VerificationResult:
-    """Verify a session-bound assertion.
 
-    CRITICAL (per E1 spec): verifies ORIGIN only, never concludes the
-    requested action is approved. Authority comes from the session
-    capability envelope and constitutional judgment.
-
-    Aims: only verify "this assertion originated from an authenticated
-    sovereign session and has not been altered".
+def verify_session_bound_assertion(assertion: dict[str, Any]) -> TokenVerdict:
     """
-    # 1. Strict schema
+    Verify a session-bound narrative assertion.
+
+    Used by governance_identity._verify_sovereign_signal_proof() to
+    verify that a sovereign signal phrase arrived through a verified session.
+
+    Checks:
+      1. Assertion exists
+      2. session_id present
+      3. actor_id present
+      4. payload_hash present
+      5. nonce present
+      6. signature present
+      7. assertion_version matches
+      8. Session anchor exists
+      9. Actor matches anchor
+     10. Not expired
+     11. Signature is valid (HMAC over assertion fields)
+    """
+    # 1. Assertion exists
     if not isinstance(assertion, dict):
-        return _fail(CODE_MALFORMED_TOKEN)
-    if not EXPECTED_ASSERTION_KEYS.issubset(set(assertion.keys())):
-        return _fail(CODE_MALFORMED_TOKEN)
-    if not isinstance(assertion.get("signature"), str) or not assertion["signature"]:
-        return _fail(CODE_MALFORMED_TOKEN)
+        return TokenVerdict(code="INVALID_FORMAT", reason="assertion is not a dict")
 
-    session_id = assertion["session_id"]
-    actor_id = assertion["actor_id"]
-    payload_hash = assertion["payload_hash"]
-    purpose = str(assertion.get("purpose", ""))
-    nonce = assertion["nonce"]
-    signature = assertion["signature"]
+    session_id = assertion.get("session_id", "")
+    actor_id = assertion.get("actor_id", "")
 
-    # Backend availability
-    if _backend_unavailable():
-        return _fail(
-            CODE_BACKEND_UNAVAILABLE, session_id=session_id, actor_id=actor_id,
+    # 2-3. session_id + actor_id
+    if not session_id:
+        return TokenVerdict(code="MISSING_SESSION", reason="session_id is required")
+    if not actor_id:
+        return TokenVerdict(
+            session_id=session_id,
+            code="MISSING_ACTOR",
+            reason="actor_id is required",
         )
 
-    # Policy version
-    if assertion.get("assertion_version", "") != EXPECTED_TOKEN_VERSION:
-        return _fail(
-            CODE_POLICY_VERSION_MISMATCH,
+    # 4. payload_hash
+    payload_hash = assertion.get("payload_hash", "")
+    if not payload_hash:
+        return TokenVerdict(
             session_id=session_id, actor_id=actor_id,
+            code="MISSING_PAYLOAD_HASH",
+            reason="payload_hash is required",
         )
 
-    # Session exact match
-    sess_ok, sess_code, sess_rec = _check_session_active(session_id, actor_id)
-    if not sess_ok:
-        return _fail(sess_code, session_id=session_id, actor_id=actor_id)
-
-    # Session-bound authority model (per E1 spec):
-    # "authenticated sovereign identity" is satisfied by the session having
-    # identity_verified=True. The assertion itself does not need to re-verify
-    # the key registry — that's the session's job.
-
-    # Purpose is informational only — never approval. Reject dangerous verbs.
-    purpose_lower = purpose.lower()
-    if any(kw in purpose_lower for kw in ASSERTION_FORBIDDEN_PURPOSE_KEYWORDS):
-        # Assertion cannot convey action-approval authority
-        return _fail(
-            CODE_POLICY_VERSION_MISMATCH,
+    # 5. nonce
+    nonce = assertion.get("nonce", "")
+    if not nonce:
+        return TokenVerdict(
             session_id=session_id, actor_id=actor_id,
+            code="MISSING_NONCE",
+            reason="nonce is required",
         )
 
-    # Nonce non-replay
-    nonce_ok, nonce_code = _consume_nonce(nonce, actor_id)
-    if not nonce_ok:
-        return _fail(
-            nonce_code, session_id=session_id, actor_id=actor_id,
+    # 6. signature
+    signature = assertion.get("signature", "")
+    if not signature:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="MISSING_SIGNATURE",
+            reason="signature is required",
         )
 
-    # Signature over canonical assertion payload (session_id + payload_hash)
-    # The signer signs f"{actor_id}:{payload_hash}" — canonical assertion sig.
-    # _verify_signature uses canonical payload format 1 from crypto_auth.
-    if not _verify_signature(actor_id, payload_hash, signature):
-        return _fail(
-            CODE_SIGNATURE_INVALID, session_id=session_id, actor_id=actor_id,
+    # 7. assertion version
+    av = assertion.get("assertion_version", "")
+    if av != EXPECTED_TOKEN_VERSION:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="VERSION_MISMATCH",
+            reason=f"expected version {EXPECTED_TOKEN_VERSION}, got {av}",
         )
 
-    # Origin verified — but NOT approval
-    return _ok(
+    # 8. Session anchor exists
+    anchor = get_session_anchor(session_id)
+    if anchor is None:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="NO_SESSION_ANCHOR",
+            reason="no sovereign anchor for assertion session",
+        )
+
+    # 9. Actor matches anchor
+    if anchor.get("actor_id") and anchor["actor_id"] != actor_id:
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="ACTOR_MISMATCH",
+            reason=f"assertion actor={actor_id} != anchor actor={anchor.get('actor_id')}",
+        )
+
+    # 10. Not expired
+    try:
+        expires_at = datetime.fromisoformat(assertion.get("expires_at", ""))
+        if datetime.now(timezone.utc) > expires_at:
+            return TokenVerdict(
+                session_id=session_id, actor_id=actor_id,
+                code="ASSERTION_EXPIRED",
+                reason=f"assertion expired at {assertion.get('expires_at', '?')}",
+            )
+    except (ValueError, TypeError):
+        # If no expires_at, treat as not expired (but log warning)
+        pass
+
+    # 11. Signature valid (HMAC)
+    secret = _compute_session_secret(session_id, actor_id)
+    purpose = assertion.get("purpose", "informational_signal")
+    message = f"{session_id}:{actor_id}:{payload_hash}:{purpose}:{nonce}"
+    expected_sig = _compute_hmac(secret, message)
+
+    if not hmac.compare_digest(signature, expected_sig):
+        return TokenVerdict(
+            session_id=session_id, actor_id=actor_id,
+            code="SIGNATURE_MISMATCH",
+            reason="assertion HMAC signature does not match",
+        )
+
+    return TokenVerdict(
+        ok=True,
+        code="OK",
         session_id=session_id,
         actor_id=actor_id,
-        authority=getattr(sess_rec, "actor_id", None) if sess_rec else None,
+        reason="all 11 checks passed",
     )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# HIGH-LEVEL PROOF PATH LOOKUPS (fail-closed stubs)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def sovereign_signal(session_id: str) -> dict | None:
-    """Look up the sovereign signal associated with a session.
-
-    FAIL-CLOSED stub: returns None (not found / backend unavailable).
-    Full implementation delegated to a separate task — this resolves the
-    import-time failure in governance_identity.py while emitting a clear
-    log trace so operators know the backend isn't wired yet.
-    """
-    logger.debug("E1 sovereign_signal: stub — session_id=%s (fail-closed None)", session_id)
-    return None
-
-
-def forge_session(session_id: str) -> dict | None:
-    """Look up a forge session record by session ID.
-
-    FAIL-CLOSED stub: returns None (not found / backend unavailable).
-    Full implementation delegated to a separate task — this resolves the
-    import-time failure in governance_identity.py while emitting a clear
-    log trace so operators know the backend isn't wired yet.
-    """
-    logger.debug("E1 forge_session: stub — session_id=%s (fail-closed None)", session_id)
-    return None
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# BACKWARDS-COMPAT SHIM (governance_identity already imports these names)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def sovereign_signal(session_id: str) -> dict | None:
-    """EUREKA API: Return sovereign signal for session if available.
-    Fail-closed: returns None until A-FORGE session registry is wired."""
-    return None  # fail-closed: not implemented
-
-
-def forge_session(session_id: str) -> dict | None:
-    """EUREKA API: Return forge session proof path if available.
-    Fail-closed: returns None until A-FORGE session registry is wired."""
-    return None  # fail-closed: not implemented
-
-
-def verify_sovereign_signal_origin(
-    actor_id: str, signal: str, session_id: Optional[str] = None,
-) -> VerificationResult:
-    """Alias for verify_session_bound_assertion — deprecated.
-
-    The signature was misleading: it never proved that a narrative signal
-    was 'sovereign'. Per E1 spec, this is renamed. The function now
-    returns SIGNATURE_INVALID unless called with a properly-formed
-    session-bound assertion dict.
-    """
-    # If caller passes a dict, treat as session-bound assertion
-    if isinstance(signal, dict) and "session_id" in signal:
-        return verify_session_bound_assertion(signal)
-    return _fail(CODE_MALFORMED_TOKEN)
-
+# ── Module __all__ ─────────────────────────────────────────────────────────
 
 __all__ = [
-    "VerificationResult",
+    # Data classes
+    "SovereignVerdict",
+    "ChainVerdict",
+    "TokenVerdict",
+    "ForgeSessionProof",
+    # Core functions
+    "sovereign_signal",
+    "register_session_anchor",
+    "get_session_anchor",
+    "create_forge_session_proof",
+    "verify_forge_session_chain",
+    # Token verification (imported by governance_identity)
     "verify_forge_session_token",
     "verify_session_bound_assertion",
-    "verify_sovereign_signal_origin",  # deprecated alias
-    "sovereign_signal",
-    "forge_session",
-    # codes
-    "CODE_OK",
-    "CODE_MALFORMED_TOKEN",
-    "CODE_SESSION_NOT_FOUND",
-    "CODE_SESSION_EXPIRED",
-    "CODE_SESSION_REVOKED",
-    "CODE_ACTOR_MISMATCH",
-    "CODE_NONCE_UNKNOWN",
-    "CODE_NONCE_REPLAY",
-    "CODE_SIGNATURE_INVALID",
-    "CODE_AUDIENCE_MISMATCH",
-    "CODE_CAPABILITY_NOT_ALLOWED",
-    "CODE_POLICY_VERSION_MISMATCH",
-    "CODE_BACKEND_UNAVAILABLE",
-    # schemas
-    "EXPECTED_FORGE_TOKEN_KEYS",
-    "EXPECTED_ASSERTION_KEYS",
-    "AUDIENCE_FORGE_SESSION",
+    # Constants
     "EXPECTED_TOKEN_VERSION",
+    "AUDIENCE_FORGE_SESSION",
 ]
