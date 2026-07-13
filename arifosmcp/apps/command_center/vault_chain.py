@@ -145,21 +145,50 @@ def read_vault_entries(limit: int = 20) -> list[dict[str, Any]]:
         return []
 
 
-def verify_chain() -> dict[str, Any]:
+def verify_chain(
+    sovereign_receipt_ref: str = "",
+) -> dict[str, Any]:
     """Verify hash-chain integrity of the entire VAULT999 ledger.
 
-    Returns a report: {"valid": bool, "entries_checked": int, "breaks": list[str]}.
+    Uses four-state anomaly classification instead of boolean:
+      - chain_physically_valid: hash links are intact (bool)
+      - historical_anomaly: a prior break was detected but accepted (bool)
+      - accepted_risk: the break was ratified by sovereign decision (bool)
+      - anomaly_repaired: the break was subsequently repaired (bool)
+
+    Args:
+        sovereign_receipt_ref: Optional reference to a sovereign decision
+            receipt that ratified any historical anomaly as accepted risk.
+
+    Returns a report with four-state anomaly record and optional
+    sovereign_receipt_ref citation.
     """
     _ensure_vault_dir()
     if not os.path.exists(_VAULT_PATH):
-        return {"valid": True, "entries_checked": 0, "breaks": []}
+        return {
+            "chain_physically_valid": True,
+            "entries_checked": 0,
+            "breaks": [],
+            "historical_anomaly": False,
+            "accepted_risk": False,
+            "anomaly_repaired": False,
+            "sovereign_receipt_ref": sovereign_receipt_ref or "",
+        }
 
     breaks: list[str] = []
     try:
         with open(_VAULT_PATH) as f:
             lines = [json.loads(line.strip()) for line in f if line.strip()]
     except (json.JSONDecodeError, OSError) as e:
-        return {"valid": False, "entries_checked": 0, "breaks": [str(e)]}
+        return {
+            "chain_physically_valid": False,
+            "entries_checked": 0,
+            "breaks": [str(e)],
+            "historical_anomaly": True,
+            "accepted_risk": False,
+            "anomaly_repaired": False,
+            "sovereign_receipt_ref": sovereign_receipt_ref or "",
+        }
 
     for i, entry in enumerate(lines):
         if i == 0:
@@ -180,8 +209,13 @@ def verify_chain() -> dict[str, Any]:
         if entry.get("chain_hash", "") != expected_chain:
             breaks.append(f"Entry {entry.get('entry_id', '?')}: chain_hash mismatch")
 
+    chain_valid = len(breaks) == 0
     return {
-        "valid": len(breaks) == 0,
+        "chain_physically_valid": chain_valid,
         "entries_checked": len(lines),
         "breaks": breaks,
+        "historical_anomaly": not chain_valid,
+        "accepted_risk": not chain_valid if sovereign_receipt_ref else False,
+        "anomaly_repaired": False,
+        "sovereign_receipt_ref": sovereign_receipt_ref or "",
     }
