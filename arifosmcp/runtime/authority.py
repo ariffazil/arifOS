@@ -313,29 +313,17 @@ def authority_envelope_for_session(
         actor_key = (actor_id or "").strip().lower()
         # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
-        # Fallback path: no session state available. We can only use the
-        # boolean actor_verified_flag without key_id, so conservative.
+        _vkey = (actor_verified_key_id if isinstance(actor_verified_flag, bool) else None)
         h_authority = (
-            "SOVEREIGN" if (actor_verified_flag and actor_key in SOVEREIGN_KEY_IDS)
+            "SOVEREIGN" if (actor_verified_flag and _vkey and _vkey in SOVEREIGN_KEY_IDS)
             else "OPERATOR" if actor_verified_flag
             else "OPERATOR_CLAIMED" if actor_id and actor_id != "anonymous"
             else "OBSERVER"
         )
-        # P2 2026-07-13: Sovereign key elevates runtime band automatically
-        # (structural reorder — check h_authority FIRST, then set band).
-        runtime_band = _runtime_auth_hint or ("SOVEREIGN" if h_authority == "SOVEREIGN" else "OBSERVE_ONLY")
+        # SECURITY: sovereign key proves identity (h_authority=SOVEREIGN)
+        # but does NOT auto-elevate runtime_band. Ceremony required for seal/mutate.
+        runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
         sealed = runtime_band in ("FULL", "SOVEREIGN")
-        # E1 2026-07-13: Register session anchor for sovereign chain.
-        try:
-            from arifosmcp.runtime.forge_session_runtime import register_session_anchor
-            register_session_anchor(
-                session_id=session_id or "",
-                actor_id=actor_id,
-                verified_key_id=actor_key if h_authority == "SOVEREIGN" else None,
-                verification_method="ed25519" if h_authority == "SOVEREIGN" else "none",
-            )
-        except Exception:
-            pass  # Non-blocking — anchor registration is advisory at this stage
         return {
             "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
             "human_authority": h_authority,
@@ -344,34 +332,17 @@ def authority_envelope_for_session(
             "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and sealed,
         }
 
-    # Canonical path: bind_authority_state has already populated the canonical
-    # AuthorityState. SOVEREIGN_KEY_IDS check happens in bind_authority_state.
+    runtime_band = _runtime_auth_hint or ("FULL" if state.is_sealed() else "OBSERVE_ONLY")
+    actor_key = (state.actor.claimed_id or "").strip().lower()
+    # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
     _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
-    is_sovereign = bool(state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
-    # P2 2026-07-13: Structural reorder — check sovereign FIRST, then set band.
-    runtime_band = _runtime_auth_hint or (
-        "SOVEREIGN" if is_sovereign
-        else "FULL" if state.is_sealed()
-        else "OBSERVE_ONLY"
-    )
     h_authority = (
-        "SOVEREIGN" if is_sovereign
+        "SOVEREIGN" if (state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
         else "OPERATOR" if state.actor.verified
         else "OPERATOR_CLAIMED" if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
         else "OBSERVER"
     )
-    # E1 2026-07-13: Register session anchor for sovereign chain (canonical path).
-    try:
-        from arifosmcp.runtime.forge_session_runtime import register_session_anchor
-        register_session_anchor(
-            session_id=session_id or "",
-            actor_id=getattr(state.actor, "claimed_id", None) or state.actor.claimed_id,
-            verified_key_id=_vkey if is_sovereign else None,
-            verification_method="ed25519" if is_sovereign else "none",
-        )
-    except Exception:
-        pass
     return {
         "actor_verified": bool(state.actor.verified),
         "human_authority": h_authority,

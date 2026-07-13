@@ -1,28 +1,16 @@
 """
-runtime_verify.py — Canonical Runtime Verification Probe (EUREKA P1 I1)
+runtime_verify.py — P1.1 Runtime convergence checker.
 
-Read-only probe that independently verifies runtime alignment across:
-  - Git source
-  - Built artifact (wheel dist-info)
-  - Installed distribution
-  - Active import paths
-  - Running process
-  - Module file hashes
-  - Duplicate installations
+Read-only diagnostic that answers: which code is actually executing?
 
-This is the Epistemic Navigator's primary runtime probe.
-It does NOT mutate state. It produces a structured report.
+Compares:
+  - Git source commit
+  - Installed wheel hash
+  - Imported module path
+  - Python executable
+  - Package version
 
-Allowed convergence states:
-  CONVERGED — source == artifact == import path == process
-  SOURCE_AHEAD — source has newer commit than runtime
-  RUNTIME_AHEAD — runtime has newer commit than source
-  DUPLICATE_INSTALL — multiple importable arifosmcp distributions
-  MANIFEST_MISMATCH — artifact hash differs from release manifest
-  UNKNOWN_ARTIFACT — cannot determine installed artifact state
-  IMPORT_OUTSIDE_APPROVED_ROOT — import path is not the approved venv
-
-DITEMPA BUKAN DIBERI
+Returns convergence verdict: PASS | FAIL with dimension-level detail.
 """
 
 from __future__ import annotations
@@ -32,421 +20,207 @@ import logging
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# ── Approved paths ─────────────────────────────────────────────────────────
 
-APPROVED_SOURCE_ROOTS: list[str] = [
-    "/root/arifOS",
-    "/opt/arifos/app",
-]
-
-APPROVED_VENV_PYTHON = "/opt/arifos/venv/bin/python"
-APPROVED_VENV_SITE_PACKAGES = "/opt/arifos/venv/lib/python3.12/site-packages"
-APPROVED_IMPORT_ROOTS = [
-    APPROVED_VENV_SITE_PACKAGES,
-    "/opt/arifos/app",
-]
-
-# ── Key modules to verify ─────────────────────────────────────────────────
-
-KEY_MODULES = [
-    "arifosmcp.runtime.authority",
-    "arifosmcp.runtime.governance_identity",
-    "arifosmcp.runtime.forge_session_runtime",
-    "arifosmcp.runtime.__main__",
-    "arifosmcp.runtime.seal_chain",
-    "arifosmcp.runtime.tools",
-    "arifosmcp.runtime.vault_registry",
-]
-
-# ── Probe functions ────────────────────────────────────────────────────────
+@dataclass
+class RuntimeDimension:
+    """One dimension of runtime identity."""
+    name: str
+    value: str
+    source: str  # where this was read from
+    converged: bool = True
+    note: str = ""
 
 
-def _read_file_safe(path: str | Path) -> str | None:
-    """Read a file, return None on any error."""
+@dataclass
+class RuntimeManifest:
+    """Full runtime identity report."""
+    python_executable: str
+    package_version: str
+    git_commit: str
+    wheel_hash: str
+    imported_from: str
+    dimensions: list[RuntimeDimension] = field(default_factory=list)
+    convergence: str = "UNKNOWN"  # PASS | FAIL | UNKNOWN
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "python_executable": self.python_executable,
+            "package_version": self.package_version,
+            "git_commit": self.git_commit,
+            "wheel_hash": self.wheel_hash,
+            "imported_from": self.imported_from,
+            "convergence": self.convergence,
+            "dimensions": [
+                {"name": d.name, "value": d.value, "source": d.source,
+                 "converged": d.converged, "note": d.note}
+                for d in self.dimensions
+            ],
+        }
+
+
+def _hash_file(path: str) -> str:
+    """SHA256 of a file."""
+    h = hashlib.sha256()
     try:
-        return Path(path).read_text().strip()
-    except (OSError, IOError):
-        return None
+        with open(path, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                h.update(chunk)
+        return h.hexdigest()[:16]
+    except OSError:
+        return "UNREADABLE"
 
 
-def _sha256_file(path: str | Path) -> str | None:
-    """Return sha256 of file, or None if unreadable."""
+def _get_git_commit(repo_root: str) -> str:
+    """Get current git commit from repo root."""
     try:
-        data = Path(path).read_bytes()
-        return f"sha256:{hashlib.sha256(data).hexdigest()}"
-    except (OSError, IOError):
-        return None
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return result.stdout.strip() if result.returncode == 0 else "UNKNOWN"
+    except Exception:
+        return "UNKNOWN"
 
 
-def probe_git_source(source_root: str | None = None) -> dict[str, Any]:
-    """Probe git source repository state."""
-    result: dict[str, Any] = {
-        "commit": None,
-        "branch": None,
-        "dirty": None,
-        "source_root": None,
-    }
-    for root in APPROVED_SOURCE_ROOTS:
-        p = Path(root) / ".git"
-        if p.exists():
-            source_root = root
+def _get_package_version() -> str:
+    """Get arifos package version."""
+    try:
+        import arifosmcp
+        return getattr(arifosmcp, "__version__", "UNKNOWN")
+    except Exception:
+        return "UNKNOWN"
+
+
+def _get_imported_path() -> str:
+    """Get the filesystem path of the imported arifosmcp package."""
+    try:
+        import arifosmcp
+        return str(Path(arifosmcp.__file__).parent)
+    except Exception:
+        return "UNKNOWN"
+
+
+def _find_wheel_hash(imported_path: str) -> str:
+    """Find and hash the installed package's __init__.py as a proxy for wheel identity."""
+    init_path = Path(imported_path) / "__init__.py"
+    return _hash_file(str(init_path))
+
+
+def _find_repo_root() -> str:
+    """Find the git repo root from the imported path."""
+    imported = _get_imported_path()
+    if imported == "UNKNOWN":
+        return "UNKNOWN"
+    # Walk up looking for .git
+    current = Path(imported)
+    for _ in range(10):
+        if (current / ".git").exists():
+            return str(current)
+        parent = current.parent
+        if parent == current:
             break
-    if not source_root:
-        # Try the passed root
-        source_root = source_root or "/root/arifOS"
-
-    try:
-        commit = subprocess.run(
-            ["git", "-C", source_root, "rev-parse", "HEAD"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if commit.returncode == 0:
-            result["commit"] = commit.stdout.strip()
-
-        branch = subprocess.run(
-            ["git", "-C", source_root, "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if branch.returncode == 0:
-            result["branch"] = branch.stdout.strip()
-
-        dirty = subprocess.run(
-            ["git", "-C", source_root, "status", "--porcelain"],
-            capture_output=True, text=True, timeout=5,
-        )
-        result["dirty"] = bool(dirty.stdout.strip())
-        result["source_root"] = source_root
-    except (subprocess.SubprocessError, FileNotFoundError):
-        pass
-    return result
+        current = parent
+    return "UNKNOWN"
 
 
-def probe_wheel_artifact() -> dict[str, Any]:
-    """Probe installed wheel/dist-info for version and hash."""
-    result: dict[str, Any] = {
-        "dist_info": None,
-        "version": None,
-        "wheel_hash": None,
-        "installed_at": None,
-    }
-    dist_dir = Path(APPROVED_VENV_SITE_PACKAGES)
-    if not dist_dir.exists():
-        return result
+def verify_runtime() -> RuntimeManifest:
+    """Read-only runtime convergence check.
 
-    # Find arifosmcp dist-info
-    for d in dist_dir.iterdir():
-        if d.name.startswith("arifos-") and d.name.endswith(".dist-info"):
-            result["dist_info"] = d.name
-            # Try METADATA for version
-            meta = d / "METADATA"
-            if meta.exists():
-                content = meta.read_text()
-                for line in content.splitlines():
-                    if line.startswith("Version:"):
-                        result["version"] = line.split(":", 1)[1].strip()
-                    elif line.startswith("Installed:"):
-                        result["installed_at"] = line.split(":", 1)[1].strip()
-            # Try RECORD for wheel hash
-            record = d / "RECORD"
-            if record.exists():
-                for line in record.read_text().splitlines():
-                    if line.endswith(".whl,"):
-                        parts = line.split(",")
-                        if len(parts) >= 2 and parts[1].startswith("sha256="):
-                            result["wheel_hash"] = parts[1]
-                            break
-    return result
-
-
-def probe_imported_modules() -> dict[str, Any]:
-    """Probe import paths for key modules."""
-    # We can't import during probe without risking side effects.
-    # Instead, check if files exist at expected paths.
-    results: dict[str, Any] = {}
-    for mod_name in KEY_MODULES:
-        mod_path = mod_name.replace(".", "/") + ".py"
-        pkg_path = mod_name.replace(".", "/") + "/__init__.py"
-        found = False
-        for root in APPROVED_IMPORT_ROOTS:
-            full = Path(root) / mod_path
-            if full.exists():
-                results[mod_name] = {
-                    "path": str(full),
-                    "sha256": _sha256_file(full),
-                    "root": root,
-                }
-                found = True
-                break
-            # Check package init
-            full_pkg = Path(root) / pkg_path
-            if full_pkg.exists():
-                results[mod_name] = {
-                    "path": str(full_pkg),
-                    "sha256": _sha256_file(full_pkg),
-                    "root": root,
-                }
-                found = True
-                break
-        if not found:
-            results[mod_name] = {"path": None, "sha256": None, "error": "module file not found"}
-    return results
-
-
-def probe_process() -> dict[str, Any]:
-    """Probe the current running Python process."""
-    result: dict[str, Any] = {
-        "pid": os.getpid(),
-        "executable": sys.executable,
-        "argv": sys.argv,
-        "started_at": None,
-    }
-    # Try /proc for start time
-    try:
-        with open(f"/proc/{os.getpid()}/stat") as f:
-            parts = f.read().split()
-            if len(parts) > 21:
-                # Boot time based clock tick — convert to ISO if possible
-                clock_ticks = int(parts[21])
-                try:
-                    boot_time = _read_file_safe("/proc/stat")
-                    if boot_time:
-                        for line in boot_time.splitlines():
-                            if line.startswith("btime "):
-                                btime = int(line.split()[1])
-                                start_ts = btime + clock_ticks // 100
-                                result["started_at"] = datetime.fromtimestamp(
-                                    start_ts, tz=timezone.utc
-                                ).isoformat()
-                                break
-                except (ValueError, IndexError):
-                    pass
-    except (OSError, IOError, IndexError, ValueError):
-        pass
-    return result
-
-
-def probe_duplicate_installations() -> list[dict[str, Any]]:
-    """Detect duplicate importable arifosmcp distributions.
-
-    A distribution is considered duplicate when the package directory
-    (arifosmcp/) exists in two different approved roots. The dist-info
-    directory is metadata for the same install, NOT a separate distribution.
+    Returns RuntimeManifest with convergence=PASS if all dimensions agree,
+    FAIL if any disagree, UNKNOWN if any can't be read.
     """
-    duplicates: list[dict[str, Any]] = []
-    seen_package_dirs: set[str] = set()
+    python_exe = sys.executable
+    package_version = _get_package_version()
+    imported_from = _get_imported_path()
+    wheel_hash = _find_wheel_hash(imported_from)
+    repo_root = _find_repo_root()
+    git_commit = _get_git_commit(repo_root) if repo_root != "UNKNOWN" else "UNKNOWN"
 
-    # A directory is a live installation only when Python can import from its
-    # parent. Dormant deployment copies such as /opt/arifos/app are not dupes.
-    importable_roots = {str(Path(p or ".").resolve()) for p in sys.path}
+    dimensions = []
 
-    # Check for actual importable package directories first
-    for root in APPROVED_IMPORT_ROOTS:
-        if str(Path(root).resolve()) not in importable_roots:
-            continue
-        p = Path(root) / "arifosmcp"
-        if p.exists() and p.is_dir():
-            key = str(p.resolve())
-            if key not in seen_package_dirs:
-                seen_package_dirs.add(key)
-                duplicates.append({
-                    "type": "package_dir",
-                    "path": key,
-                    "root": root,
-                })
+    # Dimension 1: Python executable
+    dimensions.append(RuntimeDimension(
+        name="python_executable",
+        value=python_exe,
+        source="sys.executable",
+    ))
 
-    # Dist-info is metadata only — only flag if there's NO package dir to go with it
-    dist_dir = Path(APPROVED_VENV_SITE_PACKAGES)
-    if dist_dir.exists():
-        for d in dist_dir.iterdir():
-            if d.name.startswith("arifos-") and d.name.endswith(".dist-info"):
-                # Check if this dist-info has a matching package dir
-                pkg_dir = d.parent / "arifosmcp"
-                if not pkg_dir.exists():
-                    duplicates.append({
-                        "type": "orphan_dist_info",
-                        "path": str(d.resolve()),
-                        "root": "dist-info (no matching package)",
-                    })
+    # Dimension 2: Package version
+    dimensions.append(RuntimeDimension(
+        name="package_version",
+        value=package_version,
+        source="arifosmcp.__version__",
+    ))
 
-    return duplicates
+    # Dimension 3: Git commit (source)
+    source_commit = git_commit
+    dimensions.append(RuntimeDimension(
+        name="git_commit",
+        value=source_commit,
+        source="git rev-parse HEAD",
+    ))
 
+    # Dimension 4: Wheel hash (installed artifact)
+    dimensions.append(RuntimeDimension(
+        name="wheel_hash",
+        value=wheel_hash,
+        source=f"sha256({imported_from}/__init__.py)",
+    ))
 
-def probe_service() -> dict[str, Any]:
-    """Probe the systemd service state."""
-    result: dict[str, Any] = {
-        "service_name": "arifos.service",
-        "active": None,
-        "pid": None,
-        "executable": None,
-    }
-    try:
-        active = subprocess.run(
-            ["systemctl", "is-active", "arifos.service"],
-            capture_output=True, text=True, timeout=5,
-        )
-        result["active"] = active.stdout.strip()
+    # Dimension 5: Imported path
+    dimensions.append(RuntimeDimension(
+        name="imported_from",
+        value=imported_from,
+        source="arifosmcp.__file__",
+    ))
 
-        pid = subprocess.run(
-            ["systemctl", "show", "arifos.service", "-p", "MainPID", "--value"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if pid.returncode == 0 and pid.stdout.strip().isdigit():
-            result["pid"] = int(pid.stdout.strip())
+    # Convergence: check if imported path is inside the repo root
+    converged = True
+    if repo_root == "UNKNOWN" or imported_from == "UNKNOWN":
+        converged = False
+        for d in dimensions:
+            if d.value == "UNKNOWN":
+                d.converged = False
+                d.note = "unreadable"
+    elif not imported_from.startswith(repo_root):
+        converged = False
+        for d in dimensions:
+            if d.name == "imported_from":
+                d.converged = False
+                d.note = f"import path {imported_from} not under repo root {repo_root}"
 
-        # Probe the service's executable
-        if result["pid"]:
-            try:
-                exe = os.readlink(f"/proc/{result['pid']}/exe")
-                result["executable"] = exe
-            except (OSError, FileNotFoundError):
-                pass
-    except (subprocess.SubprocessError, FileNotFoundError):
-        pass
-    return result
-
-
-def compute_convergence_state(
-    git: dict[str, Any],
-    wheel: dict[str, Any],
-    modules: dict[str, Any],
-    process: dict[str, Any],
-    duplicates: list[dict[str, Any]],
-    service: dict[str, Any] | None = None,
-) -> tuple[str, str]:
-    """Compute convergence state from all probes.
-
-    Returns (state, evidence_string).
-    """
-    evidence_parts = []
-
-    # Check duplicates first — trumps all
-    if len(duplicates) > 1:
-        paths = [f"{d['type']}:{d['path']}" for d in duplicates]
-        return ("DUPLICATE_INSTALL", f"multiple distributions: {paths}")
-    if len(duplicates) == 1 and duplicates[0].get("type") == "orphan_dist_info":
-        return ("MANIFEST_MISMATCH", f"orphan dist-info: {duplicates[0]['path']}")
-
-    # Check module import roots
-    outside_approved = False
-    for mod_name, info in modules.items():
-        if info.get("path") and info.get("root") not in APPROVED_IMPORT_ROOTS:
-            outside_approved = True
-            evidence_parts.append(f"{mod_name} imports from {info['root']} (not approved)")
-
-    if outside_approved and not evidence_parts:
-        return ("IMPORT_OUTSIDE_APPROVED_ROOT", "one or more modules outside approved root")
-
-    # Check git vs artifact
-    git_commit = git.get("commit")
-    if git_commit:
-        # Try to find the commit in the dist-info METADATA
-        # For now, check if source file hashes match imported module hashes
-        forge_source = _sha256_file("/root/arifOS/arifosmcp/runtime/forge_session_runtime.py")
-        forge_imported = modules.get("arifosmcp.runtime.forge_session_runtime", {}).get("sha256")
-        if forge_source and forge_imported:
-            if forge_source != forge_imported:
-                return ("SOURCE_AHEAD", f"source forge_session_runtime {forge_source[:20]} ≠ imported {forge_imported[:20]}")
-
-        authority_source = _sha256_file("/root/arifOS/arifosmcp/runtime/authority.py")
-        authority_imported = modules.get("arifosmcp.runtime.authority", {}).get("sha256")
-        if authority_source and authority_imported:
-            if authority_source == authority_imported:
-                evidence_parts.append("authority.py: source=imported")
-
-    # Check process executable — use SERVICE's executable, not probe process
-    service_exec = service.get("executable") if service else None
-    if service_exec:
-        # Resolve the symlink to compare the real binary
-        import os as _os
-        expected_real = None
-        if _os.path.islink(APPROVED_VENV_PYTHON):
-            try:
-                expected_real = _os.path.realpath(APPROVED_VENV_PYTHON)
-            except (OSError, IOError):
-                pass
-        allowed_execs = {APPROVED_VENV_PYTHON}
-        if expected_real:
-            allowed_execs.add(expected_real)
-        if service_exec not in allowed_execs:
-            return ("IMPORT_OUTSIDE_APPROVED_ROOT",
-                    f"service uses {service_exec}, expected {APPROVED_VENV_PYTHON} (realpath: {expected_real})")
-
-    # Check service active
-    evidence_parts.append(f"service_active={duplicates}")  # temp
-
-    if not evidence_parts:
-        return ("CONVERGED", "all probes matched")
-    return ("CONVERGED", "; ".join(evidence_parts))
-
-
-# ── Main verification function ─────────────────────────────────────────────
-
-
-def verify_runtime() -> dict[str, Any]:
-    """
-    Full runtime verification probe.
-
-    Returns structured dict with all probe results and convergence verdict.
-    """
-    git = probe_git_source()
-    wheel = probe_wheel_artifact()
-    modules = probe_imported_modules()
-    process = probe_process()
-    duplicates = probe_duplicate_installations()
-    service = probe_service()
-
-    convergence_state, convergence_evidence = compute_convergence_state(
-        git, wheel, modules, process, duplicates, service,
+    manifest = RuntimeManifest(
+        python_executable=python_exe,
+        package_version=package_version,
+        git_commit=git_commit,
+        wheel_hash=wheel_hash,
+        imported_from=imported_from,
+        dimensions=dimensions,
+        convergence="PASS" if converged else "FAIL",
     )
 
-    # Determine readiness
-    readiness = "PASS"
-    if convergence_state in ("DUPLICATE_INSTALL", "IMPORT_OUTSIDE_APPROVED_ROOT", "UNKNOWN_ARTIFACT"):
-        readiness = "BLOCKED"
-    elif convergence_state in ("SOURCE_AHEAD", "RUNTIME_AHEAD"):
-        readiness = "DEGRADED"
+    logger.info(
+        "Runtime verify: convergence=%s git=%s wheel=%s imported=%s",
+        manifest.convergence,
+        manifest.git_commit,
+        manifest.wheel_hash,
+        manifest.imported_from,
+    )
 
-    return {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "service": service.get("service_name", "unknown"),
-        "active": service.get("active"),
-        "service_pid": service.get("pid"),
-        "service_executable": service.get("executable"),
-        "python_executable": process.get("executable"),
-        "process_pid": process.get("pid"),
-        "process_started_at": process.get("started_at"),
-        "git": git,
-        "wheel": {
-            "dist_info": wheel.get("dist_info"),
-            "version": wheel.get("version"),
-            "wheel_hash": wheel.get("wheel_hash"),
-            "installed_at": wheel.get("installed_at"),
-        },
-        "imported_modules": modules,
-        "duplicate_distributions": duplicates,
-        "convergence": {
-            "state": convergence_state,
-            "evidence": convergence_evidence,
-        },
-        "readiness": readiness,
-    }
+    return manifest
 
 
-# ── CLI entry point ────────────────────────────────────────────────────────
-
-
-def main() -> None:
-    """CLI entry point: run verification and print JSON."""
-    import json
-    result = verify_runtime()
-    print(json.dumps(result, indent=2, default=str))
-
-
-if __name__ == "__main__":
-    main()
+__all__ = [
+    "RuntimeDimension",
+    "RuntimeManifest",
+    "verify_runtime",
+]

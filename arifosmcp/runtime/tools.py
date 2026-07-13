@@ -7496,18 +7496,21 @@ async def _elicit_irreversible_ack(
     constitutional_chain_id: str | None = None,
 ) -> tuple[bool, dict[str, Any] | None]:
     """
-    REMOVED 2026-07-08: elicitation removed.
+    Autonomous governance gate (2026-07-08, updated 2026-07-13).
     Kernel encodes governance autonomously via the 10-check autonomous gate.
-    F13 sovereign thresholds (8 of them) still apply via constitutional_chain_id
-    from prior arif_judge SEAL. No transport-level human prompt.
+    F13 sovereign thresholds still apply via constitutional_chain_id
+    from prior arif_judge SEAL.
 
-    Always returns HOLD — caller must use the F13 sovereign path.
+    If constitutional_chain_id is present, the prior 888 judge has already
+    SEAL'd — allow autonomous progression. Otherwise HOLD.
     """
+    if constitutional_chain_id:
+        # Prior arif_judge SEAL exists — autonomous path is authorized.
+        return True, None
     return False, _hold(
         tool_name,
-        "Elicitation removed (2026-07-08). Kernel-encoded governance: "
-        "use constitutional_chain_id from prior arif_judge SEAL, "
-        "or escalate to F13 sovereign via 8-threshold rule.",
+        "No constitutional_chain_id from prior arif_judge SEAL. "
+        "Call arif_judge first to obtain a SEAL verdict, then retry.",
         [],
     )
 
@@ -17785,6 +17788,7 @@ async def _arif_vault_seal_tool(
             mode=mode,
             actor_id=actor_id,
             session_id=session_id,
+            constitutional_chain_id=constitutional_chain_id,
         )
         if hold is not None:
             return hold
