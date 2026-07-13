@@ -18,7 +18,7 @@
   "canonical_count": 18,
   "internal_canonical_count": 6,
   "diagnostic_count": 40,
-  "total_surface": 64,
+  "total_surface": 65,
   "tier_summary": {
     "internal": 6,
     "canonical": 18,
@@ -698,6 +698,54 @@
         "rationale": "SEAL verification gates execution but does not execute. It verifies actor-bound, one-shot approval before irreversible work.",
         "_derived_from": "tool_risk_registry.py (canonical)"
       }
+    },
+    "arif_entropy_observe": {
+      "stage": "E2", "lane": "AGI", "floors": ["L02", "L04", "L11"],
+      "risk_tier": "low", "irreversible": false, "access": "public",
+      "requires_auth": false, "modes": ["observe"],
+      "tier": "canonical", "namespace": "arif_* (canonical public prefix)",
+      "tags": ["canonical", "entropy"], "public_exposed": true,
+      "affordance_contract": {"action_class": "OBSERVE", "risk_tier": "LOW", "blast_radius": "LOCAL", "reversibility": 1.0, "requires_lease": false, "autonomy_floor": "FULL_AUTO", "rationale": "Records entropy observations without mutating governed state.", "_derived_from": "entropy_kernel"}
+    },
+    "arif_j_state_assess": {
+      "stage": "E3", "lane": "AGI", "floors": ["L02", "L07", "L08"],
+      "risk_tier": "low", "irreversible": false, "access": "public",
+      "requires_auth": false, "modes": ["assess"],
+      "tier": "canonical", "namespace": "arif_* (canonical public prefix)",
+      "tags": ["canonical", "entropy"], "public_exposed": true,
+      "affordance_contract": {"action_class": "ANALYZE", "risk_tier": "LOW", "blast_radius": "LOCAL", "reversibility": 1.0, "requires_lease": false, "autonomy_floor": "FULL_AUTO", "rationale": "Fuses observations into a read-only J-state assessment.", "_derived_from": "entropy_kernel"}
+    },
+    "arif_correction_probe": {
+      "stage": "E4", "lane": "AGI", "floors": ["L02", "L03", "L07"],
+      "risk_tier": "low", "irreversible": false, "access": "public",
+      "requires_auth": false, "modes": ["probe"],
+      "tier": "canonical", "namespace": "arif_* (canonical public prefix)",
+      "tags": ["canonical", "entropy"], "public_exposed": true,
+      "affordance_contract": {"action_class": "ANALYZE", "risk_tier": "LOW", "blast_radius": "LOCAL", "reversibility": 1.0, "requires_lease": false, "autonomy_floor": "FULL_AUTO", "rationale": "Generates reversible correction probes and classifies responses.", "_derived_from": "entropy_kernel"}
+    },
+    "arif_consequence_trace": {
+      "stage": "E5", "lane": "APEX", "floors": ["L01", "L02", "L11"],
+      "risk_tier": "medium", "irreversible": false, "access": "public",
+      "requires_auth": false, "modes": ["trace"],
+      "tier": "canonical", "namespace": "arif_* (canonical public prefix)",
+      "tags": ["canonical", "entropy"], "public_exposed": true,
+      "affordance_contract": {"action_class": "ANALYZE", "risk_tier": "MEDIUM", "blast_radius": "ORG", "reversibility": 1.0, "requires_lease": false, "autonomy_floor": "FULL_AUTO", "rationale": "Traces consequences without executing the proposed action.", "_derived_from": "entropy_kernel"}
+    },
+    "arif_entropy_route": {
+      "stage": "E6", "lane": "AGI", "floors": ["L02", "L08", "L10"],
+      "risk_tier": "low", "irreversible": false, "access": "public",
+      "requires_auth": false, "modes": ["route"],
+      "tier": "canonical", "namespace": "arif_* (canonical public prefix)",
+      "tags": ["canonical", "entropy"], "public_exposed": true,
+      "affordance_contract": {"action_class": "OBSERVE", "risk_tier": "LOW", "blast_radius": "LOCAL", "reversibility": 1.0, "requires_lease": false, "autonomy_floor": "FULL_AUTO", "rationale": "Routes entropy questions to evidence organs without execution.", "_derived_from": "entropy_kernel"}
+    },
+    "arif_j_gate": {
+      "stage": "E7", "lane": "APEX", "floors": ["L01", "L08", "L13"],
+      "risk_tier": "high", "irreversible": false, "access": "authenticated",
+      "requires_auth": true, "modes": ["gate"],
+      "tier": "canonical", "namespace": "arif_* (canonical public prefix)",
+      "tags": ["canonical", "entropy"], "public_exposed": true,
+      "affordance_contract": {"action_class": "ADJUDICATE", "risk_tier": "HIGH", "blast_radius": "ORG", "reversibility": 1.0, "requires_lease": false, "autonomy_floor": "PROPOSE_ONLY", "rationale": "Converts J-state into an action posture but does not execute.", "_derived_from": "entropy_kernel"}
     },
     "arif_act": {
       "stage": "010",

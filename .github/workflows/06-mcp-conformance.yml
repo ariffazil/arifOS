@@ -102,4 +102,4 @@ jobs:
       - name: Public surface drift guard
         run: |
           cd "$WORKDIR"
-          python3 commands/scripts_deploy/validate_canonical_surface.py
+          uv run python commands/scripts_deploy/validate_canonical_surface.py
