@@ -184,13 +184,17 @@ def fail_closed_check() -> None:
     """
     result = attest_runtime()
     for err in result.errors:
-        print(f"RELEASE ATTESTATION ERROR: {err}", flush=True)
+        print(f"RELEASE ATTESTATION ERROR: {err}", file=sys.stderr, flush=True)
     for warn in result.warnings:
-        print(f"RELEASE ATTESTATION WARNING: {warn}", flush=True)
+        print(f"RELEASE ATTESTATION WARNING: {warn}", file=sys.stderr, flush=True)
     if result.passed:
-        print(f"RELEASE ATTESTATION PASSED — runtime aligned", flush=True)
+        print("RELEASE ATTESTATION PASSED — runtime aligned", file=sys.stderr, flush=True)
     else:
-        print(f"RELEASE ATTESTATION: {len(result.errors)} error(s)", flush=True)
+        print(
+            f"RELEASE ATTESTATION: {len(result.errors)} error(s)",
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 if __name__ == "__main__":
