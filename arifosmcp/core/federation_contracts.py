@@ -54,6 +54,36 @@ class VerdictType(StrEnum):
     SABAR = "SABAR"
 
 
+
+class ActorSource(StrEnum):
+    """How was the actor's identity verified before sealing?
+
+    Canonical enum for seal_chain.jsonl actor_source field.
+    Every receipt MUST carry one of these -- no bare strings.
+    """
+
+    ED25519_VERIFIED = "ed25519_verified"  # Cryptographic signature verified
+    SOVEREIGN_DIRECTIVE = "sovereign_directive"  # F13 sovereign bypass + FULL SCT
+    JWT_VERIFIED = "jwt_verified"  # JWT/session token verified
+    KERNEL_EVALUATED = "kernel_evaluated"  # Kernel evaluated but no crypto proof
+    SELF_REPORT = "self_report"  # Actor claims identity, no verification (HOLD)
+
+
+class KernelVerdict(StrEnum):
+    """Kernel evaluation result for seal chain entries."""
+
+    PASS = "PASS"
+    FAIL = "FAIL"
+    UNKNOWN = "UNKNOWN"
+
+
+class SealAuthority(StrEnum):
+    """Authority level at time of seal. From sovereign_verify.py."""
+
+    SOVEREIGN = "SOVEREIGN"  # Ed25519 verified -- Arif only
+    OPERATOR = "OPERATOR"  # Default -- no cryptographic proof
+
+
 class OrganContract(BaseModel):
     """
     Federation contract for a single organ.

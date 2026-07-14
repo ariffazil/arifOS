@@ -8789,11 +8789,12 @@ def _arif_session_init(
             try:
                 from arifosmcp.boot.swarm_ignition import run_swarm_ignition
 
+                from arifosmcp.core.federation_contracts import SealAuthority
                 _swarm_manifest = run_swarm_ignition(
                     actor_receipt={
                         "actor_id": actor_id,
                         "identity_verified": identity_verified,
-                        "authority_level": authority_level,
+                        "authority_level": SealAuthority(authority_level) if authority_level in ("SOVEREIGN", "OPERATOR") else SealAuthority.OPERATOR,
                     },
                     constitution_receipt={
                         "constitution_hash": constitution_hash,
@@ -17183,13 +17184,13 @@ def _arif_vault_seal(
             # F2 TRUTH: determine actor_source from verification state
             # (identity-propagation fix — 2026-07-13)
             if signature_verified:
-                _chain_actor_source = "ed25519_verified"
+                _chain_actor_source = ActorSource.ED25519_VERIFIED
             elif _sov_bypass:
-                _chain_actor_source = "sovereign_directive"
+                _chain_actor_source = ActorSource.SOVEREIGN_DIRECTIVE
             elif auth_lineage:
-                _chain_actor_source = "jwt_verified"
+                _chain_actor_source = ActorSource.JWT_VERIFIED
             else:
-                _chain_actor_source = "kernel_evaluated"
+                _chain_actor_source = ActorSource.KERNEL_EVALUATED
 
             # F2 TRUTH: resolve real identity before writing to chain
             _chain_sess_ctx = None
@@ -17198,6 +17199,11 @@ def _arif_vault_seal(
             except Exception:
                 pass
             from arifosmcp.core.vault_receipt import resolve_receipt_identity as _rrid
+            from arifosmcp.core.federation_contracts import (
+                ActorSource,
+                KernelVerdict,
+                SealAuthority,
+            )
             _c_resolved_sid, _c_resolved_actor = _rrid(
                 session_id=session_id,
                 actor_id=actor_id,
@@ -17212,7 +17218,7 @@ def _arif_vault_seal(
                 "actor_id": _c_resolved_actor,
                 "session_id": _c_resolved_sid,
                 "actor_source": _chain_actor_source,
-                "kernel_verdict": "PASS" if k_verdict.get("passed") else "FAIL",
+                "kernel_verdict": KernelVerdict.PASS if k_verdict.get("passed") else KernelVerdict.FAIL,
                 "signature_verified": signature_verified,
                 "authority_level": authority_level,
                 "type": "constitutional_seal",
