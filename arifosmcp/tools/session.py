@@ -1257,32 +1257,59 @@ def arif_init(
                 sess["actor_verified"] = False
                 sess["signature_verified"] = False
         elif actor_id:
-            # Issue challenge for registered / sovereign actors (ART → APA)
+            # Check Ed25519-exempt system actors first (IRR-DIP-AUDIT 2026-07-09)
             try:
-                from arifosmcp.runtime.crypto_auth import (
-                    is_registered_actor,
-                    issue_actor_challenge,
-                )
+                from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
 
                 _al = actor_id.lower().strip()
-                if _al in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
-                    challenge_nonce = issue_actor_challenge(actor_id)
-                    sess["pending_challenge_nonce"] = challenge_nonce
-                    sess["challenge_signature_payload"] = f"{actor_id}:{challenge_nonce}"
-                    sess["challenge_signature_payload_alt"] = (
-                        f"{actor_id}:{CONSTITUTION_HASH}:{challenge_nonce}"
+                if _al in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al]
+                    if _exempt_level == "sovereign":
+                        _light_actor_verified = True
+                        _light_band = "FULL"
+                        _light_agent_class = "SOVEREIGN_PRINCIPAL"
+                        _light_authority_level = "SOVEREIGN"
+                        sess["actor_verified"] = True
+                        sess["signature_verified"] = True
+                        sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
+                        sess["authority"] = "FULL"
+                        logger.info(
+                            "light-mode SOVEREIGN auto-grant for %s (Ed25519 exempt)",
+                            actor_id,
+                        )
+                    else:
+                        _light_actor_verified = True
+                        _light_band = "LIMITED_MUTATE"
+                        _light_agent_class = "AGENT"
+                        _light_authority_level = "OPERATOR"
+                        sess["actor_verified"] = True
+                        sess["agent_class"] = "AGENT"
+                        sess["authority"] = "LIMITED_MUTATE"
+                        logger.info(
+                            "light-mode auto-grant for %s (Ed25519 exempt, %s)",
+                            actor_id,
+                            _exempt_level,
+                        )
+                else:
+                    raise LookupError(f"{_al} not exempt")
+            except (ImportError, LookupError, AttributeError):
+                # Fallback: issue challenge for registered / sovereign actors
+                try:
+                    from arifosmcp.runtime.crypto_auth import (
+                        is_registered_actor,
+                        issue_actor_challenge,
                     )
-            except Exception as _exc:
-                logger.warning("light-mode challenge issue failed: %s", _exc)
-            # forge internal executor only — not Hermes, not string "arif" without crypto
-            if actor_id.lower().strip() == "forge":
-                _light_actor_verified = True
-                _light_band = "LIMITED_MUTATE"
-                _light_agent_class = "AGENT"
-                _light_authority_level = "OPERATOR"
-                sess["actor_verified"] = True
-                sess["agent_class"] = "AGENT"
-                sess["authority"] = "LIMITED_MUTATE"
+
+                    _al = actor_id.lower().strip()
+                    if _al in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
+                        challenge_nonce = issue_actor_challenge(actor_id)
+                        sess["pending_challenge_nonce"] = challenge_nonce
+                        sess["challenge_signature_payload"] = f"{actor_id}:{challenge_nonce}"
+                        sess["challenge_signature_payload_alt"] = (
+                            f"{actor_id}:{CONSTITUTION_HASH}:{challenge_nonce}"
+                        )
+                except Exception as _exc:
+                    logger.warning("light-mode challenge issue failed: %s", _exc)
 
         # ── Project to frozen header (15 fields, degraded-first) ────────
         header = _project_light(
@@ -1537,17 +1564,43 @@ def arif_init(
                 logger.warning("init-mode crypto bind failed: %s", _exc)
 
         # ── Challenge path when not verified ──
-        # F13: no localhost bypass auto-SOVEREIGN. Crypto only for human sovereign.
-        # "forge" remains internal executor auto-grant (infra, not human F13).
+        # F13: Ed25519-exempt system actors from session_auth.py are auto-granted
+        # without crypto ceremony. This matches the downstream validator which
+        # already exempts these actors (ACCEPTED RISK — IRR-DIP-AUDIT 2026-07-09).
+        # "forge" = internal executor (LIMITED_MUTATE). "arif" = sovereign (FULL).
         if not identity_verified and actor_id:
             actor_lower = actor_id.lower().strip()
-            if actor_lower == "forge":
-                identity_verified = True
-                sess["actor_verified"] = True
-                sess["agent_class"] = "AGENT"
-                sess["actor_band"] = "LIMITED_MUTATE"
-                logger.info("Auto-granted identity for forge (internal executor)")
-            else:
+            # Import the exempt set from session_auth (single source of truth)
+            try:
+                from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
+
+                if actor_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                    _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
+                    if _exempt_level == "sovereign":
+                        identity_verified = True
+                        sess["actor_verified"] = True
+                        sess["signature_verified"] = True
+                        sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
+                        sess["actor_band"] = "FULL"
+                        logger.info(
+                            "Auto-granted SOVEREIGN identity for %s "
+                            "(Ed25519 exempt, IRR-DIP-AUDIT 2026-07-09)",
+                            actor_id,
+                        )
+                    else:
+                        identity_verified = True
+                        sess["actor_verified"] = True
+                        sess["agent_class"] = "AGENT"
+                        sess["actor_band"] = "LIMITED_MUTATE"
+                        logger.info(
+                            "Auto-granted identity for %s (Ed25519 exempt, %s)",
+                            actor_id,
+                            _exempt_level,
+                        )
+                else:
+                    raise LookupError(f"{actor_lower} not exempt")
+            except (ImportError, LookupError, AttributeError):
+                # Fallback: hardcoded sovereign aliases + registered actors
                 try:
                     from arifosmcp.runtime.crypto_auth import (
                         is_registered_actor,
