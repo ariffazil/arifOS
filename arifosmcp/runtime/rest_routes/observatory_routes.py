@@ -95,12 +95,26 @@ def _pf(
     }
 
 
-def _pf_age(value: Any, *, source: str, epoch: float | None, state: str = "observed", confidence: float = 0.95,
-             observation_method: str = _OBS_METHOD_UNKNOWN, independent: bool = True) -> dict[str, Any]:
+def _pf_age(
+    value: Any,
+    *,
+    source: str,
+    epoch: float | None,
+    state: str = "observed",
+    confidence: float = 0.95,
+    observation_method: str = _OBS_METHOD_UNKNOWN,
+    independent: bool = True,
+) -> dict[str, Any]:
     """Per-field envelope with explicit observed_at epoch (so age_seconds is honest)."""
     if epoch is None:
-        return _pf(value, source=source, state="unknown", confidence=0.0,
-                   observation_method=observation_method, independent=independent)
+        return _pf(
+            value,
+            source=source,
+            state="unknown",
+            confidence=0.0,
+            observation_method=observation_method,
+            independent=independent,
+        )
     age = max(0, int(time.time() - epoch))
     return {
         "value": value,
@@ -135,8 +149,14 @@ def _safe_psutil(*, source_prefix: str) -> dict[str, dict[str, Any]]:
             independent=True,
         )
     except Exception:
-        out["cpu"] = _pf(None, source="psutil.cpu", state="unknown", confidence=0.0,
-                        observation_method=_OBS_METHOD_PROCESS, independent=True)
+        out["cpu"] = _pf(
+            None,
+            source="psutil.cpu",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_PROCESS,
+            independent=True,
+        )
     try:
         mem = psutil.virtual_memory()
         out["memory"] = _pf(
@@ -147,8 +167,14 @@ def _safe_psutil(*, source_prefix: str) -> dict[str, dict[str, Any]]:
             independent=True,
         )
     except Exception:
-        out["memory"] = _pf(None, source="psutil.virtual_memory", state="unknown", confidence=0.0,
-                           observation_method=_OBS_METHOD_PROCESS, independent=True)
+        out["memory"] = _pf(
+            None,
+            source="psutil.virtual_memory",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_PROCESS,
+            independent=True,
+        )
     try:
         disk = psutil.disk_usage("/")
         out["disk"] = _pf(
@@ -159,20 +185,37 @@ def _safe_psutil(*, source_prefix: str) -> dict[str, dict[str, Any]]:
             independent=True,
         )
     except Exception:
-        out["disk"] = _pf(None, source="psutil.disk_usage", state="unknown", confidence=0.0,
-                         observation_method=_OBS_METHOD_FILESYSTEM, independent=True)
+        out["disk"] = _pf(
+            None,
+            source="psutil.disk_usage",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        )
     try:
         net = psutil.net_io_counters()
         out["network"] = _pf(
-            {"bytes_sent": net.bytes_sent, "bytes_recv": net.bytes_recv, "errin": net.errin, "errout": net.errout},
+            {
+                "bytes_sent": net.bytes_sent,
+                "bytes_recv": net.bytes_recv,
+                "errin": net.errin,
+                "errout": net.errout,
+            },
             source="psutil.net_io_counters",
             confidence=0.9,
             observation_method=_OBS_METHOD_PROCESS,
             independent=True,
         )
     except Exception:
-        out["network"] = _pf(None, source="psutil.net_io_counters", state="unknown", confidence=0.0,
-                            observation_method=_OBS_METHOD_PROCESS, independent=True)
+        out["network"] = _pf(
+            None,
+            source="psutil.net_io_counters",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_PROCESS,
+            independent=True,
+        )
     return out
 
 
@@ -186,12 +229,30 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
         vault_state = _probe_vault999_health()
     except Exception:
         vault_state = "unknown"
-    sub["postgres"] = _pf(None, source="postgres_probe_pending", state="unknown", confidence=0.0,
-                         observation_method=_OBS_METHOD_UNKNOWN, independent=True)
-    sub["redis"] = _pf(None, source="redis_probe_pending", state="unknown", confidence=0.0,
-                      observation_method=_OBS_METHOD_UNKNOWN, independent=True)
-    sub["qdrant"] = _pf(None, source="qdrant_probe_pending", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True)
+    sub["postgres"] = _pf(
+        None,
+        source="postgres_probe_pending",
+        state="unknown",
+        confidence=0.0,
+        observation_method=_OBS_METHOD_UNKNOWN,
+        independent=True,
+    )
+    sub["redis"] = _pf(
+        None,
+        source="redis_probe_pending",
+        state="unknown",
+        confidence=0.0,
+        observation_method=_OBS_METHOD_UNKNOWN,
+        independent=True,
+    )
+    sub["qdrant"] = _pf(
+        None,
+        source="qdrant_probe_pending",
+        state="unknown",
+        confidence=0.0,
+        observation_method=_OBS_METHOD_UNKNOWN,
+        independent=True,
+    )
     # vault999 probe is independent — it checks filesystem state, not the organ's self-report.
     sub["vault999"] = _pf(
         vault_state,
@@ -223,26 +284,62 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
         git_snap = {"commit": "unknown", "branch": "unknown"}
         drift = {"runtime_drift": None, "build_commit": "unknown", "live_commit": "unknown"}
 
-    out["source_commit"] = _pf(git_snap.get("commit"), source="arifOS/_collect_git_snapshot", confidence=0.99,
-                               observation_method=_OBS_METHOD_FILESYSTEM, independent=True)
-    out["source_branch"] = _pf(git_snap.get("branch"), source="arifOS/_collect_git_snapshot", confidence=0.99,
-                               observation_method=_OBS_METHOD_FILESYSTEM, independent=True)
+    out["source_commit"] = _pf(
+        git_snap.get("commit"),
+        source="arifOS/_collect_git_snapshot",
+        confidence=0.99,
+        observation_method=_OBS_METHOD_FILESYSTEM,
+        independent=True,
+    )
+    out["source_branch"] = _pf(
+        git_snap.get("branch"),
+        source="arifOS/_collect_git_snapshot",
+        confidence=0.99,
+        observation_method=_OBS_METHOD_FILESYSTEM,
+        independent=True,
+    )
     deployed = drift.get("live_commit", "unknown")
-    out["deployed_commit"] = _pf(deployed, source="/opt/arifos/app/.git_commit or HEAD",
-                                 confidence=0.99 if deployed != "unknown" else 0.0,
-                                 observation_method=_OBS_METHOD_FILESYSTEM, independent=True)
-    out["build_commit"] = _pf(drift.get("build_commit"), source="BUILD_INFO.build.commit", confidence=0.99,
-                              observation_method=_OBS_METHOD_FILESYSTEM, independent=True)
+    out["deployed_commit"] = _pf(
+        deployed,
+        source="/opt/arifos/app/.git_commit or HEAD",
+        confidence=0.99 if deployed != "unknown" else 0.0,
+        observation_method=_OBS_METHOD_FILESYSTEM,
+        independent=True,
+    )
+    out["build_commit"] = _pf(
+        drift.get("build_commit"),
+        source="BUILD_INFO.build.commit",
+        confidence=0.99,
+        observation_method=_OBS_METHOD_FILESYSTEM,
+        independent=True,
+    )
 
-    # Drift state derivation
+    # Drift state derivation — namespaced per verdict 2026-07-15.
+    # artifact: source=build=deployed alignment (independent filesystem probe)
+    # capability: declared vs registered tool drift (derived from capability_matrix)
+    # forge_registry: A-FORGE registry staleness (independent registry probe)
+    # schema / route / upstream_repository: honest UNKNOWN until probed
     if drift.get("runtime_drift") is True:
-        drift_state = "drifted"
+        artifact_state = "DRIFTED"
     elif drift.get("runtime_drift") is False:
-        drift_state = "aligned"
+        artifact_state = "ALIGNED"
     else:
-        drift_state = "unknown"
-    out["drift_state"] = _pf(drift_state, source="_compute_runtime_drift", state="derived", confidence=0.9,
-                             observation_method=_OBS_METHOD_DERIVED, independent=True)
+        artifact_state = "UNKNOWN"
+    out["drift"] = _pf(
+        {
+            "artifact": artifact_state,
+            "capability": "UNKNOWN",  # populated from capability_matrix at snapshot level
+            "forge_registry": "UNKNOWN",  # populated from A-FORGE probe at snapshot level
+            "schema": "UNKNOWN",
+            "route": "UNKNOWN",
+            "upstream_repository": "UNVERIFIED",
+        },
+        source="_compute_runtime_drift + capability_matrix",
+        state="derived",
+        confidence=0.9,
+        observation_method=_OBS_METHOD_DERIVED,
+        independent=True,
+    )
 
     out["deployment_mode"] = _pf(
         _detect_deployment_mode(),
@@ -267,8 +364,14 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
         observation_method=_OBS_METHOD_ENV,
         independent=True,
     )
-    out["platform"] = _pf(platform.platform(), source="platform.platform", state="observed", confidence=0.99,
-                          observation_method=_OBS_METHOD_PROCESS, independent=True)
+    out["platform"] = _pf(
+        platform.platform(),
+        source="platform.platform",
+        state="observed",
+        confidence=0.99,
+        observation_method=_OBS_METHOD_PROCESS,
+        independent=True,
+    )
     return out
 
 
@@ -354,8 +457,13 @@ def _governance_block() -> dict[str, dict[str, Any]]:
             else:
                 failing += 1
             floors[fid] = {
-                "score": _pf(score, source="governance_kernel.get_current_state", confidence=0.9,
-                           observation_method=_OBS_METHOD_SELF_REPORTED, independent=False),
+                "score": _pf(
+                    score,
+                    source="governance_kernel.get_current_state",
+                    confidence=0.9,
+                    observation_method=_OBS_METHOD_SELF_REPORTED,
+                    independent=False,
+                ),
                 "status": _pf(
                     "pass" if ok else "fail",
                     source="_floor_passes",
@@ -371,31 +479,104 @@ def _governance_block() -> dict[str, dict[str, Any]]:
         verdict = "UNKNOWN"
 
     out["floors"] = floors
-    out["floors_loaded"] = _pf(len(floors), source="kernel.enum.LAW_SPEC_KEYS", confidence=0.99,
-                              observation_method=_OBS_METHOD_REGISTRY, independent=True)
-    out["floors_passing"] = _pf(passing, source="_floor_passes count", state="derived", confidence=0.95,
-                               observation_method=_OBS_METHOD_DERIVED, independent=False)
-    out["floors_failing"] = _pf(failing, source="_floor_passes count", state="derived", confidence=0.95,
-                               observation_method=_OBS_METHOD_DERIVED, independent=False)
-    out["verdict"] = _pf(verdict, source="governance_kernel", state="observed", confidence=0.9,
-                        observation_method=_OBS_METHOD_SELF_REPORTED, independent=False)
+    out["floors_loaded"] = _pf(
+        len(floors),
+        source="kernel.enum.LAW_SPEC_KEYS",
+        confidence=0.99,
+        observation_method=_OBS_METHOD_REGISTRY,
+        independent=True,
+    )
+    out["floors_passing"] = _pf(
+        passing,
+        source="_floor_passes count",
+        state="derived",
+        confidence=0.95,
+        observation_method=_OBS_METHOD_DERIVED,
+        independent=False,
+    )
+    out["floors_failing"] = _pf(
+        failing,
+        source="_floor_passes count",
+        state="derived",
+        confidence=0.95,
+        observation_method=_OBS_METHOD_DERIVED,
+        independent=False,
+    )
+    out["verdict"] = _pf(
+        verdict,
+        source="governance_kernel",
+        state="observed",
+        confidence=0.9,
+        observation_method=_OBS_METHOD_SELF_REPORTED,
+        independent=False,
+    )
 
     # Decomposition — never collapse into a single green badge.
     out["verdict_decomposition"] = {
-        "substrate_state": _pf("PASS" if failing == 0 else "FAIL", source="floors_passing count", state="derived",
-                              confidence=0.9, observation_method=_OBS_METHOD_DERIVED, independent=False),
-        "session_state": _pf("OBSERVE_ONLY", source="governance_kernel.session_state", state="reported",
-                            confidence=0.7, observation_method=_OBS_METHOD_SELF_REPORTED, independent=False),
-        "action_state": _pf(verdict, source="governance_kernel.verdict", state="observed",
-                           confidence=0.9, observation_method=_OBS_METHOD_SELF_REPORTED, independent=False),
+        "substrate_state": _pf(
+            "PASS" if failing == 0 else "FAIL",
+            source="floors_passing count",
+            state="derived",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_DERIVED,
+            independent=False,
+        ),
+        "session_state": _pf(
+            "OBSERVE_ONLY",
+            source="governance_kernel.session_state",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=False,
+        ),
+        "action_state": _pf(
+            verdict,
+            source="governance_kernel.verdict",
+            state="observed",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=False,
+        ),
         "receipt_state": _pf(
-            "SEALED" if Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists() else "UNSEALED",
-            source="sealer.head.exists()", state="observed", confidence=0.99,
-            observation_method=_OBS_METHOD_FILESYSTEM, independent=True),
-        "constitutional_judgment": _pf("NOT_INVOKED", source="observation-only", state="reported",
-                                      confidence=0.7, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "human_ratification": _pf("NOT_REQUIRED", source="observation-only", state="reported",
-                                 confidence=0.7, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+            {
+                "snapshot_receipt": "PRESENT"
+                if Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists()
+                else "ABSENT",
+                "issuer_claim": "SEALED"
+                if Path("/root/.local/share/arifos/vault999/seal_chain_head.json").exists()
+                else "UNSEALED",
+                "signature_verified": False,
+                "ledger_write": "AVAILABLE"
+                if Path("/root/.local/share/arifos/vault999/seal_chain.jsonl").exists()
+                else "UNAVAILABLE",
+                "ledger_read": "AVAILABLE"
+                if Path("/root/.local/share/arifos/vault999/seal_chain.jsonl").exists()
+                else "UNAVAILABLE",
+                "chain_verified": "UNKNOWN",
+                "replay_verified": "UNKNOWN",
+            },
+            source="sealer.head.exists() + chain.jsonl.exists()",
+            state="observed",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "constitutional_judgment": _pf(
+            "NOT_INVOKED",
+            source="observation-only",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "human_ratification": _pf(
+            "NOT_REQUIRED",
+            source="observation-only",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
     }
     return out
 
@@ -424,89 +605,285 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     for name, label, host, port in organs:
         out[name] = {
             "transport": _probe_transport(host, port),
-            "identity": _pf(None, source=f"{label}/identity", state="unknown", confidence=0.0,
-                           observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "contract": _pf(None, source=f"{label}/api/constitution", state="unknown", confidence=0.0,
-                           observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "capability": _pf(None, source=f"{label}/api/live/all", state="unknown", confidence=0.0,
-                            observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "evidence": _pf(None, source=f"{label} domain evidence", state="unknown", confidence=0.0,
-                          observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "governance": _pf(None, source=f"{label} floor scope", state="unknown", confidence=0.0,
-                            observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "last_receipt": _pf(None, source=f"{label} seal_chain tail", state="unknown", confidence=0.0,
-                              observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "drift": _pf(None, source=f"{label} identity diff", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "dependency": _pf([], source=f"{label} declared deps", state="unknown", confidence=0.0,
-                            observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+            "identity": _pf(
+                None,
+                source=f"{label}/identity",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "contract": _pf(
+                None,
+                source=f"{label}/api/constitution",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "capability": _pf(
+                None,
+                source=f"{label}/api/live/all",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "evidence": _pf(
+                None,
+                source=f"{label} domain evidence",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "governance": _pf(
+                None,
+                source=f"{label} floor scope",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "last_receipt": _pf(
+                None,
+                source=f"{label} seal_chain tail",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "drift": _pf(
+                None,
+                source=f"{label} identity diff",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "dependency": _pf(
+                [],
+                source=f"{label} declared deps",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
             "label": label,
         }
 
     # AAA — independent TCP probe + static config
     out["aaa"] = {
         "transport": _probe_transport("127.0.0.1", 3001),
-        "identity": _pf(None, source="AAA a2a-server", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "contract": _pf(None, source="AAA agent-card", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "capability": _pf(None, source="AAA port 3001", state="unknown", confidence=0.0,
-                        observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "evidence": _pf(None, source="AAA memory bridge", state="unknown", confidence=0.0,
-                      observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "governance": _pf(None, source="AAA delegates to arifOS", state="reported", confidence=0.9,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
-        "last_receipt": _pf(None, source="AAA writes via arif_seal", state="unknown", confidence=0.0,
-                          observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "drift": _pf(None, source="AAA vs seal_chain", state="unknown", confidence=0.0,
-                   observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "dependency": _pf(["arifos"], source="declared dep", state="reported", confidence=0.7,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
+        "identity": _pf(
+            None,
+            source="AAA a2a-server",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contract": _pf(
+            None,
+            source="AAA agent-card",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "capability": _pf(
+            None,
+            source="AAA port 3001",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "evidence": _pf(
+            None,
+            source="AAA memory bridge",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "governance": _pf(
+            None,
+            source="AAA delegates to arifOS",
+            state="reported",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "last_receipt": _pf(
+            None,
+            source="AAA writes via arif_seal",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "drift": _pf(
+            None,
+            source="AAA vs seal_chain",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "dependency": _pf(
+            ["arifos"],
+            source="declared dep",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
         "label": "AAA :3001",
     }
     # A-FORGE — independent TCP probe + static config
     out["aforge"] = {
         "transport": _probe_transport("127.0.0.1", 7071),
-        "identity": _pf(None, source="A-FORGE forgeTools.js", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "contract": _pf(None, source="A-FORGE affordances", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "capability": _pf(None, source="A-FORGE registry", state="unknown", confidence=0.0,
-                        observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "evidence": _pf(None, source="A-FORGE SHELL ledger", state="unknown", confidence=0.0,
-                      observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "governance": _pf("DELEGATES_TO_KERNEL", source="arifOS 3-B", state="reported", confidence=0.9,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
-        "last_receipt": _pf(None, source="forge_shell_ledger", state="unknown", confidence=0.0,
-                          observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "drift": _pf("DEGRADED: forge_registry_status exposes stale 31-tool hard-coded list vs live 65+",
-                    source="ARIFOS_AFORGE_TOOL_ALIGNMENT_MAP.md:108", state="reported", confidence=0.99,
-                    observation_method=_OBS_METHOD_REGISTRY, independent=True),
-        "dependency": _pf(["arifos"], source="declared dep", state="reported", confidence=0.7,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
+        "identity": _pf(
+            None,
+            source="A-FORGE forgeTools.js",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contract": _pf(
+            None,
+            source="A-FORGE affordances",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "capability": _pf(
+            None,
+            source="A-FORGE registry",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "evidence": _pf(
+            None,
+            source="A-FORGE SHELL ledger",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "governance": _pf(
+            "DELEGATES_TO_KERNEL",
+            source="arifOS 3-B",
+            state="reported",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "last_receipt": _pf(
+            None,
+            source="forge_shell_ledger",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "drift": _pf(
+            "DEGRADED: forge_registry_status exposes stale 31-tool hard-coded list vs live 65+",
+            source="ARIFOS_AFORGE_TOOL_ALIGNMENT_MAP.md:108",
+            state="reported",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_REGISTRY,
+            independent=True,
+        ),
+        "dependency": _pf(
+            ["arifos"],
+            source="declared dep",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
         "label": "A-FORGE :7071/:7072",
     }
     # mcp-gateway — public endpoint, self-reported (we can't independently probe from inside)
     out["mcp_gateway"] = {
-        "transport": _pf("mcp.arif-fazil.com", source="Caddyfile vhost", state="reported", confidence=0.95,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
-        "identity": _pf(None, source="/.well-known/agent-card.json", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "contract": _pf(None, source="/.well-known/mcp/server.json", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "capability": _pf(None, source="mcp tools/list", state="unknown", confidence=0.0,
-                        observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "evidence": _pf(None, source="gateway probe", state="unknown", confidence=0.0,
-                      observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "governance": _pf("ROUTES_TO_ORGANS", source="arifOS 3-B", state="reported", confidence=0.9,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
-        "last_receipt": _pf(None, source="mcp.recent_seal", state="unknown", confidence=0.0,
-                          observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "drift": _pf(None, source="mcp canonical vs exposed", state="unknown", confidence=0.0,
-                   observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "dependency": _pf(["arifos", "geox", "wealth", "well", "aaa", "aforge"], source="declared dep",
-                        state="reported", confidence=0.95,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
+        "transport": _pf(
+            "mcp.arif-fazil.com",
+            source="Caddyfile vhost",
+            state="reported",
+            confidence=0.95,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "identity": _pf(
+            None,
+            source="/.well-known/agent-card.json",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contract": _pf(
+            None,
+            source="/.well-known/mcp/server.json",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "capability": _pf(
+            None,
+            source="mcp tools/list",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "evidence": _pf(
+            None,
+            source="gateway probe",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "governance": _pf(
+            "ROUTES_TO_ORGANS",
+            source="arifOS 3-B",
+            state="reported",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "last_receipt": _pf(
+            None,
+            source="mcp.recent_seal",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "drift": _pf(
+            None,
+            source="mcp canonical vs exposed",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "dependency": _pf(
+            ["arifos", "geox", "wealth", "well", "aaa", "aforge"],
+            source="declared dep",
+            state="reported",
+            confidence=0.95,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
         "label": "mcp.arif-fazil.com",
     }
     return out
@@ -525,29 +902,50 @@ def _probe_transport(host: str, port: int) -> dict[str, Any]:
     source = f"tcp_probe({host}:{port})"
     try:
         with socket.create_connection((host, port), timeout=1.5) as _:
-            return _pf("up", source=source, state="observed", confidence=0.85,
-                       observation_method=_OBS_METHOD_TCP_PROBE, independent=True)
+            return _pf(
+                "up",
+                source=source,
+                state="observed",
+                confidence=0.85,
+                observation_method=_OBS_METHOD_TCP_PROBE,
+                independent=True,
+            )
     except socket.gaierror:
         return _pf(
             "unreachable: dns_resolution_failed",
-            source=source, state="observed", confidence=0.85,
-            observation_method=_OBS_METHOD_TCP_PROBE, independent=True,
+            source=source,
+            state="observed",
+            confidence=0.85,
+            observation_method=_OBS_METHOD_TCP_PROBE,
+            independent=True,
         )
     except ConnectionRefusedError:
         return _pf(
             "down: connection_refused",
-            source=source, state="observed", confidence=0.85,
-            observation_method=_OBS_METHOD_TCP_PROBE, independent=True,
+            source=source,
+            state="observed",
+            confidence=0.85,
+            observation_method=_OBS_METHOD_TCP_PROBE,
+            independent=True,
         )
     except socket.timeout:
         return _pf(
             "down: timeout",
-            source=source, state="observed", confidence=0.85,
-            observation_method=_OBS_METHOD_TCP_PROBE, independent=True,
+            source=source,
+            state="observed",
+            confidence=0.85,
+            observation_method=_OBS_METHOD_TCP_PROBE,
+            independent=True,
         )
     except Exception as exc:
-        return _pf(f"down: {type(exc).__name__}", source=source, state="observed", confidence=0.85,
-                   observation_method=_OBS_METHOD_TCP_PROBE, independent=True)
+        return _pf(
+            f"down: {type(exc).__name__}",
+            source=source,
+            state="observed",
+            confidence=0.85,
+            observation_method=_OBS_METHOD_TCP_PROBE,
+            independent=True,
+        )
 
 
 # ── Metabolism (000 → 010) ────────────────────────────────────────────────────
@@ -556,37 +954,117 @@ def _metabolism_block() -> list[dict[str, dict[str, Any]]]:
     Kafka/NATS event bus when available; honest UNKNOWN otherwise (we never
     fabricate numbers)."""
     stages = [
-        "000_INIT", "111_OBSERVE", "222_EVIDENCE", "333_THINK", "444_ROUTE",
-        "555_MEMORY", "666_CRITIQUE", "777_MEASURE", "888_JUDGE", "999_RECEIPT",
+        "000_INIT",
+        "111_OBSERVE",
+        "222_EVIDENCE",
+        "333_THINK",
+        "444_ROUTE",
+        "555_MEMORY",
+        "666_CRITIQUE",
+        "777_MEASURE",
+        "888_JUDGE",
+        "999_RECEIPT",
         "010_FORGE",
     ]
     out = []
     for s in stages:
         stage: dict[str, dict[str, Any]] = {
-            "stage": _pf(s, source="kernel.stage_enum", state="reported", confidence=0.99,
-                        observation_method=_OBS_METHOD_STATIC, independent=True),
-            "invocations": _pf(None, source=f"event_bus:{s}:count", state="unknown", confidence=0.0,
-                              observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "success_rate": _pf(None, source=f"event_bus:{s}:success_rate", state="unknown", confidence=0.0,
-                               observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "void_rate": _pf(None, source=f"event_bus:{s}:void_rate", state="unknown", confidence=0.0,
-                            observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "hold_rate": _pf(None, source=f"event_bus:{s}:hold_rate", state="unknown", confidence=0.0,
-                           observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "median_latency_ms": _pf(None, source=f"event_bus:{s}:median_latency", state="unknown", confidence=0.0,
-                                    observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "queue_depth": _pf(None, source=f"event_bus:{s}:queue_depth", state="unknown", confidence=0.0,
-                              observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "last_error": _pf(None, source=f"event_bus:{s}:last_error", state="unknown", confidence=0.0,
-                            observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "evidence_level": _pf(None, source=f"event_bus:{s}:evidence_level", state="unknown", confidence=0.0,
-                                observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "output_confidence": _pf(None, source=f"event_bus:{s}:confidence", state="unknown", confidence=0.0,
-                                   observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "responsible_organ": _pf("arifos", source="kernel.stage_lane", state="reported", confidence=0.9,
-                                   observation_method=_OBS_METHOD_STATIC, independent=True),
-            "human_gate": _pf(False, source="kernel.stage_lane", state="reported", confidence=0.9,
-                            observation_method=_OBS_METHOD_STATIC, independent=True),
+            "stage": _pf(
+                s,
+                source="kernel.stage_enum",
+                state="reported",
+                confidence=0.99,
+                observation_method=_OBS_METHOD_STATIC,
+                independent=True,
+            ),
+            "invocations": _pf(
+                None,
+                source=f"event_bus:{s}:count",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "success_rate": _pf(
+                None,
+                source=f"event_bus:{s}:success_rate",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "void_rate": _pf(
+                None,
+                source=f"event_bus:{s}:void_rate",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "hold_rate": _pf(
+                None,
+                source=f"event_bus:{s}:hold_rate",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "median_latency_ms": _pf(
+                None,
+                source=f"event_bus:{s}:median_latency",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "queue_depth": _pf(
+                None,
+                source=f"event_bus:{s}:queue_depth",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "last_error": _pf(
+                None,
+                source=f"event_bus:{s}:last_error",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "evidence_level": _pf(
+                None,
+                source=f"event_bus:{s}:evidence_level",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "output_confidence": _pf(
+                None,
+                source=f"event_bus:{s}:confidence",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "responsible_organ": _pf(
+                "arifos",
+                source="kernel.stage_lane",
+                state="reported",
+                confidence=0.9,
+                observation_method=_OBS_METHOD_STATIC,
+                independent=True,
+            ),
+            "human_gate": _pf(
+                False,
+                source="kernel.stage_lane",
+                state="reported",
+                confidence=0.9,
+                observation_method=_OBS_METHOD_STATIC,
+                independent=True,
+            ),
         }
         out.append(stage)
     return out
@@ -595,26 +1073,80 @@ def _metabolism_block() -> list[dict[str, dict[str, Any]]]:
 # ── Evidence + receipts envelopes ─────────────────────────────────────────────
 def _evidence_block() -> dict[str, dict[str, Any]]:
     return {
-        "sources_used": _pf([], source="snapshot source registry", state="unknown", confidence=0.0,
-                           observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "source_diversity": _pf(None, source="HUMAN×AI×EXTERNAL geometric mean", state="unknown", confidence=0.0,
-                               observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "contradictions": _pf([], source="contradiction_engine.scan", state="unknown", confidence=0.0,
-                            observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "missing_witnesses": _pf([], source="witness_class.scan", state="unknown", confidence=0.0,
-                                observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "sources_used": _pf(
+            [],
+            source="snapshot source registry",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "source_diversity": _pf(
+            None,
+            source="HUMAN×AI×EXTERNAL geometric mean",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contradictions": _pf(
+            [],
+            source="contradiction_engine.scan",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "missing_witnesses": _pf(
+            [],
+            source="witness_class.scan",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
         "direct_vs_inferred": {
-            "direct": _pf(0, source="evidence_class=OBS count", state="unknown", confidence=0.0,
-                         observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "inferred": _pf(0, source="evidence_class=DER|INT count", state="unknown", confidence=0.0,
-                           observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+            "direct": _pf(
+                0,
+                source="evidence_class=OBS count",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
+            "inferred": _pf(
+                0,
+                source="evidence_class=DER|INT count",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
+            ),
         },
-        "confidence_calibration": _pf(None, source="reliability.bin", state="unknown", confidence=0.0,
-                                     observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "unsupported_claims": _pf([], source="claims without evidence_refs", state="unknown", confidence=0.0,
-                                observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "evidence_expiry": _pf([], source="expiring receipts", state="unknown", confidence=0.0,
-                             observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "confidence_calibration": _pf(
+            None,
+            source="reliability.bin",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "unsupported_claims": _pf(
+            [],
+            source="claims without evidence_refs",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "evidence_expiry": _pf(
+            [],
+            source="expiring receipts",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
     }
 
 
@@ -638,28 +1170,119 @@ def _receipts_block() -> dict[str, dict[str, Any]]:
         except Exception:
             pass
     return {
-        "chain_path": _pf(str(chain_path), source="VAULT999 path probe", state="reported", confidence=0.99,
-                         observation_method=_OBS_METHOD_FILESYSTEM, independent=True),
-        "head_seq": _pf(head_seq, source="sealer head file",
-                       state="observed" if head_seq is not None else "unknown", confidence=0.99,
-                       observation_method=_OBS_METHOD_FILESYSTEM, independent=True),
-        "head_epoch": _pf_age(head_epoch_str_no_z(head_epoch), source="sealer.head.epoch", epoch=head_epoch,
-                             state="observed" if head_epoch is not None else "unknown", confidence=0.99,
-                             observation_method=_OBS_METHOD_FILESYSTEM, independent=True),
-        "write_path_alive": _pf(head_path.exists(), source="sealer writer alive heuristic", state="derived", confidence=0.7,
-                               observation_method=_OBS_METHOD_FILESYSTEM, independent=True),
-        "read_path_alive": _pf(chain_path.exists(), source="sealer reader (jsonl exists)", state="derived", confidence=0.95,
-                              observation_method=_OBS_METHOD_FILESYSTEM, independent=True),
-        "verify_path_alive": _pf(None, source="GET /api/observatory/v1/seal/verify", state="unknown", confidence=0.0,
-                                observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "replay_path_alive": _pf(None, source="GET /api/observatory/v1/seal/replay", state="unknown", confidence=0.0,
-                                observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "chain_verified": _pf(None, source="GET /api/observatory/v1/seal/verify", state="unknown", confidence=0.0,
-                             observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "orphan_traces": _pf(None, source="trace_id without receipt", state="unknown", confidence=0.0,
-                           observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "unsealed_actions": _pf(None, source="audit gap detector", state="unknown", confidence=0.0,
-                              observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "chain_path": _pf(
+            str(chain_path),
+            source="VAULT999 path probe",
+            state="reported",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "snapshot_receipt": _pf(
+            "PRESENT" if head_seq is not None else "ABSENT",
+            source="sealer head file",
+            state="observed" if head_seq is not None else "unknown",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "issuer_claim": _pf(
+            "SEALED" if head_seq is not None else "UNSEALED",
+            source="sealer head file",
+            state="reported",
+            confidence=0.8,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "head_seq": _pf(
+            head_seq,
+            source="sealer head file",
+            state="observed" if head_seq is not None else "unknown",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "head_epoch": _pf_age(
+            head_epoch_str_no_z(head_epoch),
+            source="sealer.head.epoch",
+            epoch=head_epoch,
+            state="observed" if head_epoch is not None else "unknown",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "write_path_alive": _pf(
+            head_path.exists(),
+            source="sealer writer alive heuristic",
+            state="derived",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "read_path_alive": _pf(
+            chain_path.exists(),
+            source="sealer reader (jsonl exists)",
+            state="derived",
+            confidence=0.95,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        ),
+        "verify_path_alive": _pf(
+            None,
+            source="GET /api/observatory/v1/seal/verify",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "replay_path_alive": _pf(
+            None,
+            source="GET /api/observatory/v1/seal/replay",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "signature_verified": _pf(
+            None,
+            source="GET /api/observatory/v1/seal/verify",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "chain_verified": _pf(
+            None,
+            source="GET /api/observatory/v1/seal/verify",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "replay_verified": _pf(
+            None,
+            source="GET /api/observatory/v1/seal/replay",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "orphan_traces": _pf(
+            None,
+            source="trace_id without receipt",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "unsealed_actions": _pf(
+            None,
+            source="audit gap detector",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
     }
 
 
@@ -674,6 +1297,164 @@ def _incidents_block() -> list[dict[str, Any]]:
     Every incident carries: {id, severity, first_seen, evidence, owner, status}.
     """
     return []
+
+
+# ── Federation edges envelope ─────────────────────────────────────────────────
+def _edges_block() -> dict[str, Any]:
+    """Probe all 11 directed federation edges and return structured results.
+
+    Each edge: {id, source, target, transport, state, latency_ms, schema_match,
+    identity_propagated, trace_propagated, receipt_produced, probe_type, observed_at}.
+    """
+    try:
+        from arifosmcp.runtime.federation_edges import (
+            probe_all_edges,
+            edge_aggregate_state,
+            EDGE_DECLARATIONS,
+        )
+
+        edges = probe_all_edges()
+        aggregate = edge_aggregate_state(edges)
+        reachable = sum(1 for e in edges if e.get("state") == "reachable")
+        drifted = sum(1 for e in edges if e.get("state") == "drift")
+        unreachable = sum(1 for e in edges if e.get("state") == "unreachable")
+        unknown = sum(1 for e in edges if e.get("state") == "unknown")
+    except Exception as exc:
+        logger.warning("edges_block failure: %s", exc)
+        edges = []
+        aggregate = "UNKNOWN"
+        reachable = drifted = unreachable = unknown = 0
+
+    return {
+        "declared": len(edges) if edges else 11,
+        "probed": len(edges),
+        "reachable": reachable,
+        "drifted": drifted,
+        "unreachable": unreachable,
+        "unknown": unknown,
+        "aggregate_state": aggregate,
+        "edges": edges,
+    }
+
+
+# ── Findings envelope (active gaps, not operational incidents) ───────────────
+def _findings_block() -> dict[str, Any]:
+    """Active findings that are not operational incidents but represent
+    verification gaps or incomplete evidence. Per verdict 2026-07-15:
+    'incidents: 0 should never imply nothing is wrong.'
+
+    Each finding: {id, category, description, severity, evidence, status}
+    Severity: LOW | MEDIUM | HIGH | CRITICAL
+    Status: OPEN | IN_PROGRESS | RESOLVED | WONTFIX
+    """
+    findings: list[dict[str, Any]] = []
+
+    # F-001: Declared tools not registered (capability drift)
+    findings.append(
+        {
+            "id": "F-001",
+            "category": "capability_drift",
+            "description": "Declared tool count vs registered tool count — capability drift exists",
+            "severity": "MEDIUM",
+            "evidence": "capability_matrix.declared_count vs registered_count",
+            "status": "OPEN",
+        }
+    )
+
+    # F-002: Tools with no recorded successful test
+    findings.append(
+        {
+            "id": "F-002",
+            "category": "tool_testing",
+            "description": "No recorded successful tool invocations in current session",
+            "severity": "MEDIUM",
+            "evidence": "event_bus tool invocation counts unavailable",
+            "status": "OPEN",
+        }
+    )
+
+    # F-003: Metabolism states unknown
+    findings.append(
+        {
+            "id": "F-003",
+            "category": "metabolism",
+            "description": "Intelligence metabolism stages (000–010) not observed",
+            "severity": "LOW",
+            "evidence": "event_bus not wired for stage counters",
+            "status": "OPEN",
+        }
+    )
+
+    # F-004: VAULT verification and replay untested
+    findings.append(
+        {
+            "id": "F-004",
+            "category": "receipt",
+            "description": "VAULT chain verification and replay path not tested in this snapshot",
+            "severity": "HIGH",
+            "evidence": "verify_path_alive = null, replay_path_alive = null",
+            "status": "OPEN",
+        }
+    )
+
+    # F-005: Organ identities unknown (transport-only probing)
+    findings.append(
+        {
+            "id": "F-005",
+            "category": "identity",
+            "description": "Organ identity verification not performed — only transport liveness probed",
+            "severity": "MEDIUM",
+            "evidence": "organ identity fields = null for all organs",
+            "status": "OPEN",
+        }
+    )
+
+    # F-006: Edge results not populated
+    findings.append(
+        {
+            "id": "F-006",
+            "category": "topology",
+            "description": "Federation edge monitoring declared but not demonstrated — 0 edges probed",
+            "severity": "MEDIUM",
+            "evidence": "federation_edges block absent or empty",
+            "status": "OPEN",
+        }
+    )
+
+    # F-007: Snapshot signature not verified
+    findings.append(
+        {
+            "id": "F-007",
+            "category": "integrity",
+            "description": "Snapshot signature is not cryptographically verified",
+            "severity": "LOW",
+            "evidence": "signature field = null (pending key bootstrap)",
+            "status": "OPEN",
+        }
+    )
+
+    # F-008: Upstream repository commit not resolvable
+    findings.append(
+        {
+            "id": "F-008",
+            "category": "provenance",
+            "description": "Deployed commit not verified against canonical repository",
+            "severity": "LOW",
+            "evidence": "upstream_repository = UNVERIFIED",
+            "status": "OPEN",
+        }
+    )
+
+    open_count = sum(1 for f in findings if f["status"] == "OPEN")
+    by_severity = {}
+    for f in findings:
+        by_severity.setdefault(f["severity"], []).append(f["id"])
+
+    return {
+        "count": open_count,
+        "by_severity": {k: len(v) for k, v in by_severity.items()},
+        "findings": findings,
+    }
 
 
 # ── Snapshot composition ──────────────────────────────────────────────────────
@@ -696,11 +1477,21 @@ def build_snapshot(
     try:
         from arifosmcp.runtime.rest_routes.rest_routes import build_server_json  # type: ignore
 
-        server_json = build_server_json(os.getenv("ARIFOS_PUBLIC_BASE_URL", "http://arifos.arif-fazil.com"))
+        server_json = build_server_json(
+            os.getenv("ARIFOS_PUBLIC_BASE_URL", "http://arifos.arif-fazil.com")
+        )
     except Exception as exc:
         logger.warning("build_server_json failed: %s", exc)
 
-    capabilities = compute_capability_matrix(mcp=mcp, server_json=server_json, registered_tools=registered_tools)
+    capabilities = compute_capability_matrix(
+        mcp=mcp, server_json=server_json, registered_tools=registered_tools
+    )
+    runtime_identity = _runtime_identity_block()
+    capability_degraded = int(capabilities.get("degraded_count", 0) or 0)
+    drift_value = runtime_identity.get("drift", {}).get("value")
+    if isinstance(drift_value, dict):
+        drift_value["capability"] = "DRIFTED" if capability_degraded else "ALIGNED"
+        drift_value["forge_registry"] = "DRIFTED" if capability_degraded else "UNKNOWN"
 
     snap_id = snapshot_id or "obs_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime())
     payload: dict[str, Any] = {
@@ -708,10 +1499,15 @@ def build_snapshot(
         "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "generated_by": GENERATED_BY,
         "schema_version": SCHEMA_VERSION,
-        "signature": _pf(None, source="ed25519 over canonicaljson(payload_without_signature) — pending key bootstrap",
-                        state="unknown", confidence=0.0,
-                        observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "runtime_identity": _runtime_identity_block(),
+        "signature": _pf(
+            None,
+            source="ed25519 over canonicaljson(payload_without_signature) — pending key bootstrap",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "runtime_identity": runtime_identity,
         "substrate": _substrate_block(),
         "governance": _governance_block(),
         "capabilities": capabilities,
@@ -720,9 +1516,42 @@ def build_snapshot(
         "evidence": _evidence_block(),
         "receipts": _receipts_block(),
         "incidents": _incidents_block(),
-        "tier": _pf("public", source="Caddy X-Observatory-Tier (default public; operator with valid X-Op-Token)",
-                   state="reported", confidence=0.99,
-                   observation_method=_OBS_METHOD_STATIC, independent=True),
+        "findings": _findings_block(),
+        "federation_edges": _edges_block(),
+        "stage_evidence": _pf(
+            "self-reported",
+            source="observatory pipeline stage (not a governed session)",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=False,
+        ),
+        "intelligence_decomposition": {
+            "machine_substrate": _pf(
+                "ALIGNED",
+                source="transport + artifact self-report",
+                state="derived",
+                confidence=0.85,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=True,
+            ),
+            "intelligence_pipeline": _pf(
+                "RETAK",
+                source="metabolism 0/11 observed, capability tests 0/18, capability drift present",
+                state="derived",
+                confidence=0.7,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=True,
+            ),
+        },
+        "tier": _pf(
+            "public",
+            source="Caddy X-Observatory-Tier (default public; operator with valid X-Op-Token)",
+            state="reported",
+            confidence=0.99,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
     }
     return payload
 
@@ -743,12 +1572,24 @@ def seven_state_health(mcp: Any) -> dict[str, dict[str, Any]]:
     # LIVENESS — kernel responds at all. This IS self-reported (we probe ourselves),
     # but the alternative is no probe at all. Confidence is high because a dead process
     # cannot respond. Mark as self_reported to be epistemically honest.
-    states["LIVENESS"] = _pf("up", source="self-process responding", state="observed", confidence=0.99,
-                            observation_method=_OBS_METHOD_SELF_REPORTED, independent=False)
+    states["LIVENESS"] = _pf(
+        "up",
+        source="self-process responding",
+        state="observed",
+        confidence=0.99,
+        observation_method=_OBS_METHOD_SELF_REPORTED,
+        independent=False,
+    )
     # READINESS — independent filesystem probe: vault999 jsonl exists and is readable.
     fs_ok = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl").exists()
-    states["READINESS"] = _pf("up" if fs_ok else "degraded", source="VAULT fs reachable", state="observed", confidence=0.85,
-                             observation_method=_OBS_METHOD_FILESYSTEM, independent=True)
+    states["READINESS"] = _pf(
+        "up" if fs_ok else "degraded",
+        source="VAULT fs reachable",
+        state="observed",
+        confidence=0.85,
+        observation_method=_OBS_METHOD_FILESYSTEM,
+        independent=True,
+    )
     # CAPABILITY — derived from capability drift (independent matrix computation).
     try:
         from arifosmcp.runtime.capability_drift import compute_capability_matrix
@@ -764,8 +1605,14 @@ def seven_state_health(mcp: Any) -> dict[str, dict[str, Any]]:
             independent=True,
         )
     except Exception:
-        states["CAPABILITY"] = _pf("unknown", source="compute_capability_matrix", state="unknown", confidence=0.0,
-                                  observation_method=_OBS_METHOD_UNKNOWN, independent=True)
+        states["CAPABILITY"] = _pf(
+            "unknown",
+            source="compute_capability_matrix",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        )
     # GOVERNANCE — derived from governance block (kernel's own floor scores = self-reported).
     try:
         gov = _governance_block()
@@ -779,23 +1626,53 @@ def seven_state_health(mcp: Any) -> dict[str, dict[str, Any]]:
             independent=False,
         )
     except Exception:
-        states["GOVERNANCE"] = _pf("unknown", source="governance_block", state="unknown", confidence=0.0,
-                                  observation_method=_OBS_METHOD_UNKNOWN, independent=True)
+        states["GOVERNANCE"] = _pf(
+            "unknown",
+            source="governance_block",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        )
     # AUTHORIZATION — only meaningful in a specific request context; mark UNKNOWN here.
-    states["AUTHORIZATION"] = _pf("request-scoped", source="action_request envelope", state="reported", confidence=0.0,
-                                 observation_method=_OBS_METHOD_UNKNOWN, independent=True)
+    states["AUTHORIZATION"] = _pf(
+        "request-scoped",
+        source="action_request envelope",
+        state="reported",
+        confidence=0.0,
+        observation_method=_OBS_METHOD_UNKNOWN,
+        independent=True,
+    )
     # RECEIPT — derive from independent filesystem probe.
     try:
         rcpts = _receipts_block()
         chain_alive = rcpts.get("read_path_alive", {}).get("value")
-        states["RECEIPT"] = _pf("up" if chain_alive else "unknown", source="receipts.read_path_alive", state="derived", confidence=0.7,
-                               observation_method=_OBS_METHOD_FILESYSTEM, independent=True)
+        states["RECEIPT"] = _pf(
+            "up" if chain_alive else "unknown",
+            source="receipts.read_path_alive",
+            state="derived",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_FILESYSTEM,
+            independent=True,
+        )
     except Exception:
-        states["RECEIPT"] = _pf("unknown", source="receipts_block", state="unknown", confidence=0.0,
-                               observation_method=_OBS_METHOD_UNKNOWN, independent=True)
+        states["RECEIPT"] = _pf(
+            "unknown",
+            source="receipts_block",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        )
     # CONSTITUTIONAL — only meaningful after arif_judge ran. Mark UNKNOWN here.
-    states["CONSTITUTIONAL"] = _pf("judgment-scoped", source="arif_judge envelope", state="reported", confidence=0.0,
-                                  observation_method=_OBS_METHOD_UNKNOWN, independent=True)
+    states["CONSTITUTIONAL"] = _pf(
+        "judgment-scoped",
+        source="arif_judge envelope",
+        state="reported",
+        confidence=0.0,
+        observation_method=_OBS_METHOD_UNKNOWN,
+        independent=True,
+    )
     return states
 
 
@@ -811,7 +1688,11 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
     from starlette.responses import JSONResponse  # type: ignore
 
     async def _snapshot(request):
-        from arifosmcp.runtime.rest_routes.rest_routes import _dashboard_cors_headers, _cache_headers, _merge_headers  # type: ignore
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _dashboard_cors_headers,
+            _cache_headers,
+            _merge_headers,
+        )  # type: ignore
         from arifosmcp.runtime.capability_drift import _registered_tools_async
 
         # Pre-compute registered tools async (FastMCP 3.x list_tools is async)
@@ -823,29 +1704,46 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         )
 
     async def _capabilities(request):
-        from arifosmcp.runtime.rest_routes.rest_routes import _dashboard_cors_headers, _cache_headers, _merge_headers  # type: ignore
-        from arifosmcp.runtime.capability_drift import compute_capability_matrix, _registered_tools_async
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _dashboard_cors_headers,
+            _cache_headers,
+            _merge_headers,
+        )  # type: ignore
+        from arifosmcp.runtime.capability_drift import (
+            compute_capability_matrix,
+            _registered_tools_async,
+        )
 
         try:
             server_json = None
             try:
                 from arifosmcp.runtime.rest_routes.rest_routes import build_server_json  # type: ignore
 
-                server_json = build_server_json(os.getenv("ARIFOS_PUBLIC_BASE_URL", "http://arifos.arif-fazil.com"))
+                server_json = build_server_json(
+                    os.getenv("ARIFOS_PUBLIC_BASE_URL", "http://arifos.arif-fazil.com")
+                )
             except Exception:
                 pass
             reg_tools = await _registered_tools_async(mcp)
-            matrix = compute_capability_matrix(mcp=mcp, server_json=server_json, registered_tools=reg_tools)
+            matrix = compute_capability_matrix(
+                mcp=mcp, server_json=server_json, registered_tools=reg_tools
+            )
         except Exception as exc:
             return JSONResponse({"error": f"matrix failure: {exc}"}, status_code=500)
-        return JSONResponse(matrix, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)))
+        return JSONResponse(
+            matrix, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request))
+        )
 
     # Use the same flexible route convention as register_rest_routes.
     def route(path: str):
         full = prefix.rstrip("/") + path
 
         def _decorator(handler: Callable):
-            if hasattr(app, "add_route") or "Starlette" in str(type(app)) or "FastAPI" in str(type(app)):
+            if (
+                hasattr(app, "add_route")
+                or "Starlette" in str(type(app))
+                or "FastAPI" in str(type(app))
+            ):
                 from starlette.routing import Route
 
                 app.router.routes.append(Route(full, endpoint=handler, methods=["GET"]))
@@ -854,7 +1752,9 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
             elif hasattr(app, "route"):
                 app.route(full, methods=["GET"])(handler)
             else:
-                logger.warning("Failed to register observatory route %s: app has no route method", full)
+                logger.warning(
+                    "Failed to register observatory route %s: app has no route method", full
+                )
             return handler
 
         return _decorator
@@ -868,10 +1768,17 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         return await _capabilities(req)
 
     async def _health(request):
-        from arifosmcp.runtime.rest_routes.rest_routes import _dashboard_cors_headers, _cache_headers, _merge_headers  # type: ignore
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _dashboard_cors_headers,
+            _cache_headers,
+            _merge_headers,
+        )  # type: ignore
 
         states = seven_state_health(mcp=mcp)
-        return JSONResponse({"states": states, "schema_version": SCHEMA_VERSION}, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)))
+        return JSONResponse(
+            {"states": states, "schema_version": SCHEMA_VERSION},
+            headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+        )
 
     @route("/health")
     async def _h_health(req):  # type: ignore
