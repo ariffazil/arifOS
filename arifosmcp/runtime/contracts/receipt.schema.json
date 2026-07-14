@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/receipt.schema.v1",
+  "title": "arifOS Receipt (4 enum variants)",
+  "description": "Four disjoint receipt types. Never collapsed into one SEAL.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["receipt_type", "input_hash", "output_hash", "wealth_version", "tool_versions", "status"],
+      "properties": {
+        "receipt_type": { "const": "COMPUTATION" },
+        "input_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" },
+        "output_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" },
+        "wealth_version": { "type": "string" },
+        "tool_versions": { "type": "object", "additionalProperties": { "type": "string" } },
+        "status": { "const": "COMPUTED" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["receipt_type", "evidence_hash", "judgment", "active_holds", "judge_state_hash"],
+      "properties": {
+        "receipt_type": { "const": "JUDGMENT" },
+        "evidence_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" },
+        "judgment": { "type": "string", "enum": ["PROCEED", "HOLD", "DENY"] },
+        "active_holds": { "type": "array", "items": { "type": "string" } },
+        "judge_state_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["receipt_type", "actor", "decision", "scope", "timestamp"],
+      "properties": {
+        "receipt_type": { "const": "HUMAN_RATIFICATION" },
+        "actor": { "type": "string" },
+        "decision": { "type": "string", "enum": ["approve", "reject"] },
+        "scope": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["receipt_type", "approved_action_hash", "execution_result_hash", "rollback_reference"],
+      "properties": {
+        "receipt_type": { "const": "EXECUTION" },
+        "approved_action_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" },
+        "execution_result_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" },
+        "rollback_reference": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

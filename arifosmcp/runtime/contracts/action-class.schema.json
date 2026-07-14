@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/action-class.schema.v1",
+  "title": "arifOS Action Class Taxonomy",
+  "description": "Closed enum. Action class determines reversibility + ratification requirements.",
+  "type": "string",
+  "enum": [
+    "OBSERVE",
+    "ADVISE",
+    "ADVISE_CAPITAL",
+    "COMPUTE",
+    "JUDGE",
+    "GOVERN",
+    "EXECUTE",
+    "RATIFY"
+  ],
+  "additionalProperties": false
+}

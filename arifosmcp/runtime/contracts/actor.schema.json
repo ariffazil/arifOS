@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/actor.schema.v1",
+  "title": "arifOS Actor",
+  "type": "object",
+  "required": ["actor_id", "did", "role"],
+  "properties": {
+    "actor_id": { "type": "string", "minLength": 1, "description": "canonical identifier inside a session" },
+    "did": { "type": "string", "pattern": "^did:web:" },
+    "role": { "type": "string", "enum": ["OPERATOR", "SOVEREIGN", "AGENT", "OBSERVER"] },
+    "scope": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}
