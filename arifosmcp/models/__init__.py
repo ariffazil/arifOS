@@ -12,11 +12,17 @@ GovernanceInterface = MGIBaseResponse
 # Verdict models (v2.0 canonical)
 from .verdicts import FloorName, SealType, VerdictResult, VerdictState
 
+# QQQ Recommendation Envelope (v1.0 — 2026-07-14)
+from .verdicts import PathOption, QuantumAnalysis, RecommendationEnvelope
+
 __all__ = [
     "SealType",
     "VerdictState",
     "FloorName",
     "VerdictResult",
+    "PathOption",
+    "QuantumAnalysis",
+    "RecommendationEnvelope",
     "Cycle3E",
     "MetabolicPhase",
     "MGI",

@@ -11,7 +11,10 @@ qualified substates, the 13 constitutional floors, and the metabolic telemetry s
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE · canon anchored at /root/A-FORGE/proto/verdict/
 """
 
+from __future__ import annotations
+
 from enum import Enum, StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -189,6 +192,204 @@ class VerdictResult(BaseModel):
     def is_void(self) -> bool:
         """Check if constitution is breached."""
         return self.verdict == SealType.VOID
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QQQ RECOMMENDATION ENVELOPE (v1.0 — 2026-07-14)
+# ═══════════════════════════════════════════════════════════════════════════════
+# QQQ Recommendation Doctrine: operational protocol expressing F2+F4+F7.
+# Every RECOMMENDATION/DECISION/VERDICT must carry this envelope.
+# Doctrine: /root/AAA/governance/QQQ_RECOMMENDATION_PROTOCOL.md
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class PathOption(BaseModel):
+    """A single path in the QQQ option space (Q1 layer).
+
+    Every path must carry: name, description, category, and Q2 metrics.
+    Minimum 5 paths per envelope. NULL and INVERSE are mandatory.
+    """
+
+    path_id: str = Field(description="Unique path identifier (e.g., P1, P2)")
+    name: str = Field(description="Short name for the path")
+    description: str = Field(description="One-line description of what this path does")
+    category: str = Field(
+        description="Path category: CONSERVATIVE | AGGRESSIVE | NULL | INVERSE | LATERAL"
+    )
+
+    # Q2 metrics — all required
+    blast_radius: int = Field(
+        ge=0, le=5,
+        description="BR-0..5. How many systems/organs are affected? 0=none, 5=federation-wide"
+    )
+    reversibility: int = Field(
+        ge=0, le=5,
+        description="REV-0..5. How reversible is this path? 0=irreversible, 5=fully reversible"
+    )
+    time_cost: str = Field(
+        description="Estimated time with units (e.g., '~15min', '~2hr', '0min')"
+    )
+    confidence: float = Field(
+        ge=0.0, le=1.0,
+        description="Confidence in outcome (0.0-1.0). Must have evidence basis."
+    )
+    prior_art: str = Field(
+        description="Prior-art availability: STRONG | WEAK | NONE"
+    )
+
+
+class QuantumAnalysis(BaseModel):
+    """Q3 quantum analysis — second-order effects (Q3 layer).
+
+    Every recommendation must answer all four quantum questions.
+    These surface effects not visible in local reasoning.
+    """
+
+    precedent_effect: str = Field(
+        description="If this path becomes canonical, what future decisions does it force?"
+    )
+    interference_effect: str = Field(
+        description="What other organs/agents/sessions get affected that are not obvious?"
+    )
+    superposition_effect: str = Field(
+        description="Are we collapsing options that should have stayed open?"
+    )
+    observer_effect: str = Field(
+        description="How does the act of choosing change the choice space itself?"
+    )
+
+
+class RecommendationEnvelope(BaseModel):
+    """QQQ Recommendation Envelope v1.0.
+
+    Every RECOMMENDATION/DECISION/VERDICT must carry this envelope.
+    Missing any section → qqq_compliance = INADMISSIBLE-Q*.
+
+    This is NOT a new constitutional floor. It is jurisprudence —
+    the operational protocol that enforces F2 TRUTH + F4 CLARITY + F7 HUMILITY
+    on recommendations.
+
+    Doctrine: /root/AAA/governance/QQQ_RECOMMENDATION_PROTOCOL.md
+    """
+
+    # Q1 — Qualitative: option space
+    paths: list[PathOption] = Field(
+        min_length=5,
+        description="Minimum 5 paths. Must include NULL and INVERSE categories."
+    )
+
+    # Q2 — Quantitative: dominance analysis
+    dominance_analysis: list[str] = Field(
+        default_factory=list,
+        description="Which paths dominate on which metrics"
+    )
+
+    # Q3 — Quantum: second-order effects
+    quantum: QuantumAnalysis = Field(
+        description="Four quantum questions: precedent, interference, superposition, observer"
+    )
+
+    # Verdict
+    recommended_path_id: str = Field(
+        description="Which path is recommended (must match a path_id in paths)"
+    )
+    reasoning_trace: list[str] = Field(
+        default_factory=list,
+        description="Q1 → Q2 → Q3 → verdict reasoning chain"
+    )
+    refusal_surface: list[str] = Field(
+        default_factory=list,
+        description="What this recommendation refuses to do"
+    )
+    sovereign_gate_required: bool = Field(
+        default=False,
+        description="Does this recommendation require F13 approval?"
+    )
+
+    # Compliance
+    qqq_compliance: str = Field(
+        default="COMPLETE",
+        description="COMPLETE | INADMISSIBLE-Q1 | INADMISSIBLE-Q2 | INADMISSIBLE-Q3"
+    )
+
+    # Identity
+    human_final_authority: str = Field(
+        default="Arif",
+        description="Who has final say. Always 'Arif' — F13 veto is absolute."
+    )
+
+    @field_validator("paths")
+    @classmethod
+    def validate_mandatory_categories(cls, v: list[PathOption]) -> list[PathOption]:
+        """Q1 rule: NULL and INVERSE categories must be present."""
+        categories = {p.category for p in v}
+        if "NULL" not in categories:
+            raise ValueError("Q1 violation: NULL path is mandatory (do-nothing option)")
+        if "INVERSE" not in categories:
+            raise ValueError("Q1 violation: INVERSE path is mandatory (do-opposite option)")
+        return v
+
+    @field_validator("recommended_path_id")
+    @classmethod
+    def validate_recommended_path_exists(cls, v: str, info) -> str:
+        """Verdict must reference a valid path_id."""
+        paths = info.data.get("paths", [])
+        if paths and v not in {p.path_id for p in paths}:
+            raise ValueError(f"recommended_path_id '{v}' not found in paths")
+        return v
+
+    def to_receipt(self) -> dict[str, Any]:
+        """Convert to VAULT999 receipt dict.
+
+        Returns structured data (not JSON blob) for VAULT999 sealing.
+        Queryable by path_id, category, decision_reason.
+
+        This is the historical value of QQQ: past recommendations become
+        the prior-art corpus for future Q2 confidence scoring.
+        """
+        from datetime import datetime, UTC
+
+        recommended_path = next(
+            (p for p in self.paths if p.path_id == self.recommended_path_id),
+            None,
+        )
+
+        return {
+            "receipt_type": "QQQ_RECOMMENDATION",
+            "version": "1.0",
+            "sealed_at": datetime.now(UTC).isoformat(),
+            "paths": [
+                {
+                    "path_id": p.path_id,
+                    "name": p.name,
+                    "category": p.category,
+                    "blast_radius": p.blast_radius,
+                    "reversibility": p.reversibility,
+                    "time_cost": p.time_cost,
+                    "confidence": p.confidence,
+                    "prior_art": p.prior_art,
+                }
+                for p in self.paths
+            ],
+            "recommended_path_id": self.recommended_path_id,
+            "recommended_path_name": recommended_path.name if recommended_path else None,
+            "decision_reason": (
+                f"Recommended {self.recommended_path_id}: "
+                + "; ".join(self.reasoning_trace)
+                if self.reasoning_trace
+                else "No reasoning trace provided"
+            ),
+            "quantum_analysis": {
+                "precedent_effect": self.quantum.precedent_effect,
+                "interference_effect": self.quantum.interference_effect,
+                "superposition_effect": self.quantum.superposition_effect,
+                "observer_effect": self.quantum.observer_effect,
+            },
+            "qqq_compliance": self.qqq_compliance,
+            "refusal_surface": self.refusal_surface,
+            "sovereign_gate_required": self.sovereign_gate_required,
+            "human_final_authority": self.human_final_authority,
+        }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

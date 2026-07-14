@@ -62,6 +62,19 @@ class ActorSpec:
 
 # ── Canonical actor registry (ratified 2026-07-04, G14 FIX) ──────────────────
 
+# ── Denied identities (BREAK-004 fix 2026-07-13) ─────────────────────────────
+# These are relay placeholders that the kernel must NEVER accept as a real
+# actor. Lookup returns None for these; the existing OBSERVE-only fallback
+# rejects mutate-class tools. Kept as a named set so audit logs can distinguish
+# "unknown" from "explicitly denied".
+DENIED_IDENTITIES: frozenset[str] = frozenset({
+    "openclaw-anon",
+    "anonymous",
+    "unknown",
+    "null",
+    "",
+})
+
 ACTOR_REGISTRY: dict[str, ActorSpec] = {
     # ── External instruments (degrade to OBSERVE_ONLY by design) ─────────
     "chatgpt-adapter": ActorSpec(
@@ -218,30 +231,27 @@ ACTOR_REGISTRY: dict[str, ActorSpec] = {
         receipt_required=True,
         description="Hermes local bridge — auto-promoted via localhost trust",
     ),
-    "openclaw-anon": ActorSpec(
-        actor_id="openclaw-anon",
-        role="local_anonymous",
-        authority_band="OBSERVE",
-        allowed_tools=("arif_*",),
-        forbidden_tools=(
-            "arif_seal",
-            "arif_judge",
-            "arif_forge",
-            "arif_lease_issue",
-        ),
-        lease_required=False,
-        session_required=True,
-        receipt_required=False,
-        description="Anonymous local caller — degraded to OBSERVE",
-    ),
+    # ── BREAK-004 fix (2026-07-13): openclaw-anon REMOVED from registry. ─────
+    # It was registered as a legitimate "degraded to OBSERVE" actor, which let
+    # the kernel mint receipts under an anonymous identity. That bypassed F2
+    # TRUTH (no actor_signature, no chain to a real human) — see receipts_v2
+    # audit: 8,670 anonymous receipts on disk. The relay must be RESOLVED to a
+    # real actor before any receipt is minted. See vault_receipt.resolve_receipt_identity.
 }
 
 
 def lookup_actor(actor_id: str | None) -> ActorSpec | None:
-    """Look up an actor by ID. Returns None if unknown."""
+    """Look up an actor by ID. Returns None if unknown or DENIED."""
     if not actor_id:
         return None
+    if actor_id in DENIED_IDENTITIES:
+        return None  # BREAK-004: relay placeholders are NOT valid identities.
     return ACTOR_REGISTRY.get(actor_id)
+
+
+def is_denied_identity(actor_id: str | None) -> bool:
+    """Return True iff actor_id is an explicitly DENIED relay placeholder."""
+    return bool(actor_id) and actor_id in DENIED_IDENTITIES
 
 
 def is_known_actor(actor_id: str | None) -> bool:
@@ -267,6 +277,20 @@ def actor_allows(actor_id: str | None, tool_name: str) -> bool:
 
 def actor_summary(actor_id: str) -> dict[str, Any]:
     """Return a dict summary of an actor's permissions."""
+    if is_denied_identity(actor_id):
+        # BREAK-004: relay placeholders are explicitly denied — receipts
+        # minted under these identities are F2-void and the kernel should
+        # reject at ingress.
+        return {
+            "actor_id": actor_id,
+            "known": False,
+            "denied": True,
+            "authority_band": "DENIED",
+            "note": (
+                "Relay placeholder — explicitly denied (BREAK-004 fix 2026-07-13). "
+                "Resolver required before any receipt can be minted."
+            ),
+        }
     spec = lookup_actor(actor_id)
     if spec is None:
         return {
@@ -289,8 +313,10 @@ def actor_summary(actor_id: str) -> dict[str, Any]:
 __all__ = [
     "ActorSpec",
     "ACTOR_REGISTRY",
+    "DENIED_IDENTITIES",
     "lookup_actor",
     "is_known_actor",
+    "is_denied_identity",
     "authority_band_for",
     "actor_allows",
     "actor_summary",

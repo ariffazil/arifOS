@@ -900,8 +900,7 @@ def _model_hazard_check(
         if requested_action in action_forbidden_map:
             if forbidden_key in action_forbidden_map[requested_action]:
                 reasons.append(
-                    f"Action {requested_action.value} forbidden by model policy: "
-                    f"'{forbidden_key}'"
+                    f"Action {requested_action.value} forbidden by model policy: '{forbidden_key}'"
                 )
                 violations.append(f"MODEL_HAZARD — forbidden: {forbidden_key}")
                 trigger_hold = True
@@ -911,7 +910,8 @@ def _model_hazard_check(
     # enforce HOLD on IRREVERSIBLE actions
     if requested_action == ActionClass.IRREVERSIBLE:
         if "F01" in floor_deltas and floor_deltas["F01"] in (
-            "reversibility_strict", "human_hold_for_irreversible"
+            "reversibility_strict",
+            "human_hold_for_irreversible",
         ):
             reasons.append(
                 f"Model hazard floor F01={floor_deltas['F01']}: "
@@ -922,8 +922,7 @@ def _model_hazard_check(
 
         if "F13" in floor_deltas and floor_deltas["F13"] == "human_hold_for_irreversible":
             reasons.append(
-                "Model hazard floor F13=human_hold_for_irreversible: "
-                "sovereign hold required"
+                "Model hazard floor F13=human_hold_for_irreversible: sovereign hold required"
             )
             violations.append("MODEL_HAZARD — F13 human_hold")
             trigger_hold = True
@@ -1135,7 +1134,33 @@ def pre_execution_gate(
             required_human_ack=True,
         )
 
-    # ── Gate 4: Actor verification ────────────────────────────────────
+    # ── Gate 4: SCT verification (identity propagation) ────────────
+    # Every action with a session_token must carry a cryptographically valid SCT.
+    # This ensures identity binding survives the kernel→organ bridge.
+    _sct = (envelope.session_token or "").strip()
+    if _sct:
+        try:
+            from arifosmcp.runtime.sct import verify_token
+
+            _sct_claims = verify_token(_sct)
+            if not _sct_claims or not _sct_claims.get("session", {}).get("actor_bound"):
+                return GateResult(
+                    envelope=envelope,
+                    verdict=GateVerdict.HOLD,
+                    reasons=["SCT present but actor not bound — identity propagation blocked"],
+                    violations=["F11_AUDIT — unbound SCT on cross-organ call"],
+                    blocked_action_class=requested_action,
+                )
+        except Exception as _sct_err:
+            return GateResult(
+                envelope=envelope,
+                verdict=GateVerdict.HOLD,
+                reasons=[f"SCT verification failed: {_sct_err}"],
+                violations=["F11_AUDIT — SCT invalid"],
+                blocked_action_class=requested_action,
+            )
+
+    # ── Gate 5: Actor verification ────────────────────────────────────
     if ActionClass.is_mutating(requested_action):
         if not envelope.kernel.actor_verified:
             return GateResult(

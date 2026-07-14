@@ -105,6 +105,7 @@ async def _fetch_jwks() -> dict | None:
         # Zen of AAA §6: No silent failure. Void must carry void_reason.
         # This is intentionally non-fatal (observe mode), but must be logged.
         import logging
+
         _logger = logging.getLogger(__name__)
         _logger.debug("JWT JWKS fetch failed — network non-fatal in observe mode, returning None")
     return None
@@ -477,7 +478,7 @@ async def _wrap_call(
     - Proper envelope construction in all paths
     """
     session_id = _normalize_session_id(session_id)
-    
+
     # Resolve SCT (sct_v1) if present — store is optional cache
     token = payload.get("session_token") or (
         session_id
@@ -1624,6 +1625,30 @@ async def engineering_memory_dispatch_impl(
                     budget_remaining = 0
                     break
 
+            # F2 TRUTH: detect false-SUCCESS (Qdrant returns K results even when nothing matches)
+            usable = [
+                r
+                for r in budgeted_results
+                if r.get("content", "").strip() and r.get("score", 0) >= 0.1
+            ]
+            if not usable:
+                return RuntimeEnvelope(
+                    ok=True,
+                    tool="engineering_memory",
+                    session_id=session_id,
+                    stage="555m_MEMORY",
+                    verdict=Verdict.SABAR,
+                    status=RuntimeStatus.SUCCESS,
+                    payload={
+                        "results": [],
+                        "count": 0,
+                        "query": query,
+                        "found": False,
+                        "backend": "qdrant",
+                        "note": "F2 TRUTH: No memories matched query with usable confidence",
+                    },
+                )
+
             return RuntimeEnvelope(
                 ok=True,
                 tool="engineering_memory",
@@ -1632,15 +1657,16 @@ async def engineering_memory_dispatch_impl(
                 verdict=Verdict.SEAL,
                 status=RuntimeStatus.SUCCESS,
                 payload={
-                    "results": budgeted_results,
-                    "count": len(budgeted_results),
+                    "results": usable,
+                    "count": len(usable),
                     "query": query,
+                    "found": True,
                     "backend": "qdrant",
                     "note": "hybrid_unavailable",
                     "context_budget": {
                         "requested": context_budget,
                         "used": context_budget - budget_remaining,
-                        "results_truncated": sum(1 for r in budgeted_results if r.get("truncated")),
+                        "results_truncated": sum(1 for r in usable if r.get("truncated")),
                     },
                 },
             )
@@ -1669,6 +1695,27 @@ async def engineering_memory_dispatch_impl(
                 await store.initialize_project(project_id)
                 entries = await store.vector_query(query=query, project_id=project_id, k=k)
                 results = [e.to_dict() for e in entries]
+                # F2 TRUTH: detect false-SUCCESS — Qdrant returns K results even when nothing matches
+                usable = [
+                    r for r in results if r.get("content", "").strip() and r.get("score", 0) >= 0.1
+                ]
+                if not usable:
+                    return RuntimeEnvelope(
+                        ok=True,
+                        tool="engineering_memory",
+                        session_id=session_id,
+                        stage="555m_MEMORY",
+                        verdict=Verdict.SABAR,
+                        status=RuntimeStatus.SUCCESS,
+                        payload={
+                            "results": [],
+                            "count": 0,
+                            "query": query,
+                            "found": False,
+                            "backend": "qdrant",
+                            "note": "F2 TRUTH: No memories matched query with usable confidence",
+                        },
+                    )
                 return RuntimeEnvelope(
                     ok=True,
                     tool="engineering_memory",
@@ -1677,9 +1724,10 @@ async def engineering_memory_dispatch_impl(
                     verdict=Verdict.SEAL,
                     status=RuntimeStatus.SUCCESS,
                     payload={
-                        "results": results,
-                        "count": len(results),
+                        "results": usable,
+                        "count": len(usable),
                         "query": query,
+                        "found": True,
                         "backend": "qdrant",
                         "note": "mode='query' is alias for 'vector_query'",
                     },

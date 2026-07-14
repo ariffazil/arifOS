@@ -379,6 +379,7 @@ class Gate(StrEnum):
     Gate  3: RISK         — Does the action exceed the risk ceiling?
     Gate  4: VAULT        — Is the audit trail fresh enough?
     Gate  5: FLOORS       — Do F1-F13 constitutional floors pass?
+    Gate 5b: QQQ          — Is the recommendation envelope QQQ-compliant?
     Gate  6: DRIFT        — Does the tool surface match the manifest?
     Gate  7: ENVELOPE     — Is the FederationEnvelope v2 valid?
     """
@@ -394,6 +395,7 @@ class Gate(StrEnum):
     RISK = "GATE_3_RISK"
     VAULT = "GATE_4_VAULT_LIVENESS"
     FLOORS = "GATE_5_FLOORS"
+    QQQ = "GATE_5B_QQQ"  # QQQ recommendation discipline (F2+F4+F7 operationalization)
     DRIFT = "GATE_6_DRIFT"
     ENVELOPE = "GATE_7_ENVELOPE"
 
@@ -848,6 +850,18 @@ class GovernancePipeline:
                 result.total_latency_ms = (time.perf_counter() - t0) * 1000
                 self._publish_to_mesh(ctx, result)
                 return result
+
+        # Gate 5b: QQQ Recommendation Discipline
+        # QQQ never blocks — it labels. INADMISSIBLE is informational, not a failure.
+        # Recommendations always reach Arif. Weak ones carry a scar.
+        gate = self._gate_qqq(ctx)
+        result.gate_results.append(gate)
+        # QQQ compliance is recorded in metadata, not used for blocking.
+        # The sovereign decides what to do with INADMISSIBLE recommendations.
+        if gate.metadata.get("qqq_compliance", "").startswith("INADMISSIBLE"):
+            result.metadata["qqq_inadmissible"] = True
+            result.metadata["qqq_compliance"] = gate.metadata.get("qqq_compliance")
+            result.metadata["qqq_reasons"] = gate.reason
 
         # Gate 6: Drift
         if self.drift_enabled:
@@ -1724,6 +1738,94 @@ class GovernancePipeline:
                 gate=Gate.FLOORS,
                 passed=False,
                 reason=f"Floor check error: {e}",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # GATE 5b: QQQ RECOMMENDATION DISCIPLINE
+    # ═══════════════════════════════════════════════════════════════════════
+    # QQQ is jurisprudence: operational protocol expressing F2+F4+F7.
+    # Triggers ONLY on RECOMMENDATION/DECISION/VERDICT intent classes.
+    # INADMISSIBLE label, never suppression. Recommendations always reach Arif.
+    # Doctrine: /root/AAA/governance/QQQ_RECOMMENDATION_PROTOCOL.md
+
+    def _gate_qqq(self, ctx: ToolCallContext) -> GateResult:
+        """Gate 5b: QQQ recommendation discipline check.
+
+        Validates recommendation envelopes against QQQ Doctrine v1.0.
+        Only triggers on RECOMMENDATION/DECISION/VERDICT intent classes.
+        Returns INADMISSIBLE label (never blocks) for incomplete envelopes.
+        """
+        t0 = time.perf_counter()
+
+        # ── Determine intent class from context ────────────────────────────
+        # Intent class can come from:
+        # 1. Explicit intent_class in params
+        # 2. Tool name heuristic (arif_judge → VERDICT, arif_critique → RECOMMENDATION)
+        # 3. Default: NOT_REQUIRED (safe fallback)
+        params = getattr(ctx, "params", {}) or {}
+        intent_class = params.get("intent_class", "")
+
+        if not intent_class:
+            # Heuristic from tool name
+            tool_name = getattr(ctx, "tool_name", "")
+            if "judge" in tool_name or "verdict" in tool_name:
+                intent_class = "VERDICT"
+            elif "critique" in tool_name or "recommend" in tool_name:
+                intent_class = "RECOMMENDATION"
+            elif "think" in tool_name or "plan" in tool_name:
+                intent_class = "DECISION"
+
+        # ── Extract QQQ envelope from context ──────────────────────────────
+        # Envelope can come from:
+        # 1. Explicit qqq_envelope in params
+        # 2. Nested in payload.qqq_envelope
+        # 3. None (will be caught by validator if QQQ required)
+        envelope = params.get("qqq_envelope")
+        if not envelope:
+            payload = params.get("payload", {})
+            if isinstance(payload, dict):
+                envelope = payload.get("qqq_envelope")
+
+        # ── Validate ───────────────────────────────────────────────────────
+        try:
+            from arifosmcp.runtime.qqq_validator import gate_qqq
+
+            check = gate_qqq(envelope, intent_class)
+
+            # QQQ never blocks — it labels
+            # NOT_REQUIRED and COMPLETE are passes
+            # INADMISSIBLE-Q* and ENVELOPE_MISSING are informational (not failures)
+            passed = check.verdict.value in {"COMPLETE", "NOT_REQUIRED"}
+
+            return GateResult(
+                gate=Gate.QQQ,
+                passed=passed,
+                reason=f"QQQ {check.verdict.value}: {'; '.join(check.reasons) if check.reasons else 'OK'}",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+                metadata={
+                    "qqq_compliance": check.metadata.get("qqq_compliance", check.verdict.value),
+                    "qqq_required": check.qqq_required,
+                    "paths_count": check.paths_count,
+                    "intent_class": intent_class,
+                },
+            )
+
+        except ImportError:
+            # qqq_validator not available — soft pass (degraded mode)
+            return GateResult(
+                gate=Gate.QQQ,
+                passed=True,
+                reason="qqq_validator not available — soft pass (degraded mode)",
+                latency_ms=(time.perf_counter() - t0) * 1000,
+            )
+        except Exception as e:
+            logger.warning(f"QQQ check failed: {e}")
+            # QQQ failures are informational, not blocking
+            return GateResult(
+                gate=Gate.QQQ,
+                passed=True,
+                reason=f"QQQ check error (non-blocking): {e}",
                 latency_ms=(time.perf_counter() - t0) * 1000,
             )
 

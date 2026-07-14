@@ -460,6 +460,11 @@ class RuntimeEnvelope(BaseModel):
     lane: str = "AGI"
     session_id: str | None = None
     actor_id: str | None = None
+    # Patched 2026-07-14 (FEDERATION-ALIGN audit Step 3): was missing,
+    # causing RuntimeEnvelope "object has no field platform_context"
+    # when __main__.py:160 set result.platform_context = "stdio" and
+    # output_formatter.py:63,471 read envelope.platform_context.
+    platform_context: str | None = None
 
     verdict: Verdict | str | None = None
     status: RuntimeStatus = RuntimeStatus.SUCCESS

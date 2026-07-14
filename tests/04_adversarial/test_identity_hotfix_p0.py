@@ -24,11 +24,8 @@ import pytest
 
 from arifosmcp.runtime.megaTools.tool_01_init_anchor import init_anchor
 from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
-from arifosmcp.runtime.authority import (
-    _mirror_to_legacy_session,
-    _canonical_from_state,
-    build_authority_state_for_actor,
-)
+from arifosmcp.runtime.authority import derive_canonical_from_authority
+from arifosmcp.runtime.model import AuthorityActor, AuthorityState
 
 
 # ─────────────────────────────────────────────────────────────────────
@@ -93,15 +90,14 @@ async def test_valid_nonsovereign_key_never_becomes_sovereign():
 
     # If verification succeeded (in a test fixture with a real key), check
     # the canonical authority level is OPERATOR, not SOVEREIGN.
-    from arifosmcp.runtime.authority import AuthorityState, ActorIdentity
+    # NOTE: verified_key_id is passed via session dict, not AuthorityActor.
     state = AuthorityState(
-        actor=ActorIdentity(
+        actor=AuthorityActor(
             claimed_id="arif",
             verified=True,
-            verified_key_id="ed25519:sha256:0123456789abcdef",  # not in SOVEREIGN_KEY_IDS
         )
     )
-    canonical = _canonical_from_state(state)
+    canonical = derive_canonical_from_authority(state)
     assert canonical.level.value != "SOVEREIGN", (
         "P0 REGRESSION: non-registered key became SOVEREIGN"
     )
@@ -114,17 +110,15 @@ async def test_valid_nonsovereign_key_never_becomes_sovereign():
 async def test_valid_sovereign_signature_does_not_auto_seal_action():
     """A verified sovereign session proves IDENTITY. It does not authorize
     specific actions. SEAL is a constitutional outcome, not an identity event."""
-    from arifosmcp.runtime.authority import AuthorityState, ActorIdentity
     state = AuthorityState(
-        actor=ActorIdentity(
+        actor=AuthorityActor(
             claimed_id="arif",
             verified=True,
-            verified_key_id="ed25519:fake-sovereign-key",  # placeholder
         )
     )
     # Even if this key were registered, authority level would be SOVEREIGN
     # but action authorization MUST be separately evaluated.
-    canonical = _canonical_from_state(state)
+    canonical = derive_canonical_from_authority(state)
     # The point: identity authority is one signal, action authorization
     # is a separate concern. arif_judge, arif_seal, etc. remain gates.
     # We assert that actor_verified only proves identity, not action approval.

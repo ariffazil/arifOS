@@ -69,6 +69,7 @@ from arifosmcp.runtime.contracts import (
 )
 from arifosmcp.runtime.federation_epistemology import FederationEpistemicLedger
 from arifosmcp.runtime.law import get_floor_count
+from arifosmcp.schemas.federation_enums import FEDERATION_ENUMS_SCHEMA_VERSION
 
 # External MCP tool name → internal contract name
 # This is the authoritative mapping for stage/lane lookups
@@ -2656,9 +2657,15 @@ def register_rest_routes(
 
         _exposed = _count_mcp_tools(fastmcp_instance or mcp)
         _diagnostic = _get_diagnostic_tool_count(mcp)
+        # FEDERATION SCHEMA ALIGNMENT L2 (canonical: arifOS/arifosmcp/schemas/federation_enums.py)
+        # See: /root/AAA/governance/FEDERATION_SCHEMA_ALIGNMENT.md
         payload = {
             "status": "healthy",
             "identity_hash": identity_hash,
+            # ── Federation enum schema version (federation-wide handshake) ──
+            # Bump FEDERATION_ENUMS_SCHEMA_VERSION in the canonical file when
+            # enum values change. Every organ's /health must echo this string.
+            "federation_schema_version": FEDERATION_ENUMS_SCHEMA_VERSION,
             "service": "ARIFOS MCP",
             "mcp_protocol_version": MCP_PROTOCOL_VERSION,
             "mcp_supported_protocol_versions": MCP_SUPPORTED_PROTOCOL_VERSIONS,
@@ -3733,6 +3740,27 @@ def register_rest_routes(
         """REST-style tool calling for ChatGPT and other HTTP clients."""
         if err := _auth_error_response(request):
             return err
+
+        # ── L2→L3: Federation schema version gate ───────────────────────────
+        # Cross-organ callers (A-FORGE bridge) MUST send X-Federation-Schema-Version.
+        # If present and mismatched → 403. If absent → allow (external agents, backwards compat).
+        _caller_schema = request.headers.get("x-federation-schema-version")
+        if _caller_schema is not None and _caller_schema != FEDERATION_ENUMS_SCHEMA_VERSION:
+            return JSONResponse(
+                {
+                    "status": "error",
+                    "error": "FEDERATION_SCHEMA_MISMATCH",
+                    "verdict": "HOLD",
+                    "expected": FEDERATION_ENUMS_SCHEMA_VERSION,
+                    "received": _caller_schema,
+                    "reason": (
+                        f"Caller schema '{_caller_schema}' does not match "
+                        f"arifOS schema '{FEDERATION_ENUMS_SCHEMA_VERSION}'. "
+                        "Re-sync federation_enums.py across organs."
+                    ),
+                },
+                status_code=403,
+            )
 
         incoming_name = _normalize_tool_name(request.path_params.get("tool_name", ""))
         canonical_name = TOOL_ALIASES.get(incoming_name, incoming_name)

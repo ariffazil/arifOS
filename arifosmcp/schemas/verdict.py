@@ -29,6 +29,14 @@ from arifosmcp.schemas.cognition import UncertaintyGeometry
 from arifosmcp.schemas.forge import ConstitutionalCompliance, IrreversibilityBond
 from arifosmcp.schemas.lineage import JudgeSealContract
 
+# QQQ Recommendation Envelope (v1.0 — 2026-07-14)
+# Forward reference to avoid circular import with models/verdicts.py
+# Actual import happens at runtime when qqq_envelope field is accessed.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from arifosmcp.models.verdicts import RecommendationEnvelope
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # VERDICT CODES — CANONICAL SOURCE
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -776,13 +784,23 @@ class VerdictOutput(BaseModel):
     # ── Sovereignty Boundary (Eureka 8 — from metabolize internal) ──────────────────
     # AI proposes. Tools compute. Memory records. Constraints guard. Arif judges.
     # These flags are set TRUE only when Arif has ratified the action.
+    #
+    # DEPRECATION NOTICE (2026-07-14, QQQ Doctrine v1.0):
+    #   recommendation_only and execution_authorized are DEPRECATED.
+    #   Canonical location is now RecommendationEnvelope.sovereign_gate_required
+    #   and RecommendationEnvelope.qqq_compliance.
+    #   These fields remain for backward compatibility with 12+ call sites.
+    #   New code should use RecommendationEnvelope from arifosmcp.models.verdicts.
+    #   Migration tracked: Phase 4 of QQQ Doctrine adoption.
     recommendation_only: bool = Field(
         default=True,
-        description="AI proposes only. Has not been ratified by human. True until L13 sign-off.",
+        description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required instead. "
+                    "AI proposes only. Has not been ratified by human. True until L13 sign-off.",
     )
     execution_authorized: bool = Field(
         default=False,
-        description="Has a human authorized execution? False until L13 SOVEREIGN sign-off.",
+        description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required instead. "
+                    "Has a human authorized execution? False until L13 SOVEREIGN sign-off.",
     )
     human_final_authority: str = Field(
         default="Arif",
@@ -791,6 +809,18 @@ class VerdictOutput(BaseModel):
     requires_888_judge: bool = Field(
         default=False,
         description="Does this candidate require 888_JUDGE re-review before action?",
+    )
+
+    # ── QQQ Recommendation Envelope (v1.0 — 2026-07-14) ──────────────────────
+    # Canonical location for recommendation sovereignty state.
+    # Replaces recommendation_only + execution_authorized (deprecated above).
+    # QQQ is jurisprudence: operational protocol expressing F2+F4+F7.
+    # Doctrine: /root/AAA/governance/QQQ_RECOMMENDATION_PROTOCOL.md
+    qqq_envelope: Any | None = Field(
+        default=None,
+        description="QQQ RecommendationEnvelope. Canonical recommendation state. "
+                    "Replaces deprecated recommendation_only + execution_authorized. "
+                    "COMPLETE = admissible. INADMISSIBLE-Q* = labeled, not suppressed.",
     )
 
     # ── v3.1 Degrade Modes (ChatGPT Deep Research integration) ──────────────
@@ -1064,6 +1094,19 @@ class SealOutput(BaseModel):
     confidence_note: str | None = Field(
         default=None,
         description="F2 human-readable confidence declaration at seal time",
+    )
+
+    # ── QQQ Recommendation Receipt (v1.0 — 2026-07-14) ─────────────────────
+    # Structured data from QQQ envelope, preserved in VAULT999.
+    # Queryable by path_id, category, decision_reason.
+    # Historical value: past recommendations become prior-art corpus.
+    # Doctrine: /root/AAA/governance/QQQ_RECOMMENDATION_PROTOCOL.md
+    qqq_receipt: dict[str, Any] | None = Field(
+        default=None,
+        description="QQQ recommendation receipt for VAULT999. "
+                    "Structured data (not JSON blob). Queryable by path_id, category, decision_reason. "
+                    "Contains: paths[], recommended_path_id, quantum_analysis, qqq_compliance, "
+                    "refusal_surface, decision_reason.",
     )
 
     # ── Constitutional Doctrine (F9 Anti-Hallucination: witness, not authority) ──
