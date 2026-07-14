@@ -1457,6 +1457,61 @@ def _findings_block() -> dict[str, Any]:
     }
 
 
+# ── Conformance levels block ─────────────────────────────────────────────────
+def _conformance_block() -> dict[str, Any]:
+    """Three-level conformance using the PR7 conformance levels module.
+
+    FAST: schemas + policy files + declared registry
+    LIVE_TRANSPORT: MCP initialize + protocol version + schema echo
+    FULL_CONFORMANCE: session binding + mutation hold + organ call + judgment + vault + capability
+
+    Each level has its own verdict vocabulary. The substrate gate is AMBER when
+    any check is skipped — GREEN requires all checks to have actually passed.
+    """
+    from arifosmcp.runtime.conformance import run_fast, run_full, run_live_transport
+
+    try:
+        fast = run_fast()
+        transport = run_live_transport()
+        full = run_full()
+        return {
+            "fast": _pf(
+                fast.to_dict(),
+                source="conformance.run_fast",
+                state="observed",
+                confidence=0.95,
+                observation_method=_OBS_METHOD_SELF_REPORTED,
+                independent=False,
+            ),
+            "live_transport": _pf(
+                transport.to_dict(),
+                source="conformance.run_live_transport",
+                state="observed",
+                confidence=0.9,
+                observation_method=_OBS_METHOD_SELF_REPORTED,
+                independent=False,
+            ),
+            "full_conformance": _pf(
+                full.to_dict(),
+                source="conformance.run_full",
+                state="observed",
+                confidence=0.85,
+                observation_method=_OBS_METHOD_SELF_REPORTED,
+                independent=False,
+            ),
+        }
+    except Exception as exc:
+        logger.warning("conformance_block failure: %s", exc)
+        return {
+            "fast": _pf(None, source="conformance.run_fast", state="unknown", confidence=0.0,
+                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+            "live_transport": _pf(None, source="conformance.run_live_transport", state="unknown", confidence=0.0,
+                                observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+            "full_conformance": _pf(None, source="conformance.run_full", state="unknown", confidence=0.0,
+                                  observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        }
+
+
 # ── Snapshot composition ──────────────────────────────────────────────────────
 def build_snapshot(
     mcp: Any,
@@ -1518,6 +1573,7 @@ def build_snapshot(
         "incidents": _incidents_block(),
         "findings": _findings_block(),
         "federation_edges": _edges_block(),
+        "conformance": _conformance_block(),
         "stage_evidence": _pf(
             "self-reported",
             source="observatory pipeline stage (not a governed session)",

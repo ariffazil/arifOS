@@ -33,6 +33,7 @@ KERNEL_URL = "http://127.0.0.1:8088"
 MCP_URL = f"{KERNEL_URL}/mcp"
 PASS = "PASS"
 FAIL = "FAIL"
+SKIPPED = "SKIPPED"
 
 
 # ── Sovereign Ruling Annotation (2026-06-05) ─────────────────────────────────
@@ -813,6 +814,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     results = []
     passed = 0
     failed = 0
+    skipped = 0
 
     for name, fn in SPINE:
         if fast and name in (
@@ -826,7 +828,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         ):
             r = {
                 "check": name,
-                "verdict": PASS,
+                "verdict": SKIPPED,
                 "evidence": {"mode": "fast", "reason": "Live check skipped in fast mode"},
             }
         else:
@@ -841,15 +843,17 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         results.append(r)
         if r["verdict"] == PASS:
             passed += 1
+        elif r["verdict"] == SKIPPED:
+            skipped += 1
         else:
             failed += 1
 
     total_ms = round((time.monotonic() - t_start) * 1000, 1)
-    score = f"{passed}/{len(SPINE)}"
+    score = f"{passed}/{len(SPINE)} ({skipped} skipped)"
     # all_green must reflect the REAL gate, not just pass/fail.
     # A BROKEN chain with sovereign_ruling is not GREEN even if no check failed.
-    # Compute preliminary gate to determine all_green.
-    all_green = failed == 0
+    # Skipped checks also block GREEN — AMBER is the honest gate.
+    all_green = failed == 0 and skipped == 0
 
     # ── Verifier honesty gate ─────────────────────────────────────────────
     # Scan all check evidence for critical-broken signals.
