@@ -100,9 +100,8 @@ def test_llms_txt_contains_canonical_context(client):
     response = client.get("/llms.txt")
     assert response.status_code == 200
     text = response.text
-    assert "arifOS MCP — Constitutional AI Gateway" in text
-    assert "DITEMPA BUKAN DIBERI" in text
-    assert "## Official MCP Endpoint" in text
+    assert "arifOS — Constitutional AI Governance Kernel" in text
+    assert "## Federation Organs - MCP Endpoints" in text
 
 
 def test_ready_alias_reachable(client):
