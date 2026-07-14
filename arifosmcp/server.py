@@ -3194,6 +3194,62 @@ if app:
     except Exception as e:
         logger.warning(f"REST routes registration failed: {e}")
 
+    # PHASE A / Reality Observatory (F13 2026-07-14) — additive routes.
+    # One signed snapshot, capability-drift matrix, VAULT999 witness.
+    # F1 AMANAH: removes with the deletion of these two try blocks.
+    try:
+        from arifosmcp.runtime.rest_routes.observatory_routes import (
+            register_observatory_routes,
+        )
+
+        register_observatory_routes(app, mcp)
+        logger.info("Observatory routes registered on ASGI app: /api/observatory/v1/*")
+    except Exception as e:
+        logger.warning(f"Observatory routes registration failed (non-fatal): {e}")
+
+    try:
+        from arifosmcp.runtime.rest_routes.vault_witness_routes import (
+            register_vault_witness_routes,
+        )
+
+        register_vault_witness_routes(app)
+        logger.info("VAULT999 witness routes registered on ASGI app: /api/observatory/v1/seal/*")
+
+    except Exception as e:
+        logger.warning(f"VAULT witness routes registration failed (non-fatal): {e}")
+
+    try:
+        from arifosmcp.runtime.rest_routes.federation_probe_routes import (
+            register_federation_probe_routes,
+        )
+
+        register_federation_probe_routes(app)
+        logger.info("Federation probe layered contract registered on /api/federation-probe + /api/observatory/v1/federation-manifest")
+    except Exception as e:
+        logger.warning(f"Federation probe route registration failed (non-fatal): {e}")
+
+    try:
+        from arifosmcp.runtime.rest_routes.topology_routes import (
+            register_topology_routes,
+        )
+
+        register_topology_routes(app)
+        logger.info("Topology drift route registered on /api/topology")
+    except Exception as e:
+        logger.warning(f"Topology route registration failed (non-fatal): {e}")
+
+    try:
+        from arifosmcp.runtime.rest_routes.health_routes import (
+            register_health_routes,
+        )
+
+        register_health_routes(app)
+        logger.info(
+            "PR3 health routes registered on /api/observatory/v1/health-public, /api/observatory/v1/ready, /api/observatory/v1/capabilities, /api/observatory/v1/capabilities/full"
+        )
+    except Exception as e:
+        logger.warning(f"PR3 health routes registration failed (non-fatal): {e}")
+
     # Register constitutional webhook intake + Observatory SSE feed
     # Mounted as FastAPI sub-apps because mcp.http_app() returns Starlette
     try:

@@ -1304,3 +1304,9 @@ def arif_think(
         return Synthesis(**_echo_standing(hold_env))
 
     return Synthesis(**_echo_standing(_ok("arif_think", bundle)))
+
+
+# Backward compatibility aliases for regression tests & legacy callers
+arif_mind_reason = arif_think
+arif_mind_reason_structured = arif_think
+arif_mind_reason_v2 = arif_think
