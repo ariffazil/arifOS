@@ -17213,6 +17213,8 @@ def _arif_vault_seal(
                 "session_id": _c_resolved_sid,
                 "actor_source": _chain_actor_source,
                 "kernel_verdict": "PASS" if k_verdict.get("passed") else "FAIL",
+                "signature_verified": signature_verified,
+                "authority_level": authority_level,
                 "type": "constitutional_seal",
             }
             with open(chain_path, "a", encoding="utf-8") as cf:
@@ -20565,7 +20567,11 @@ async def _arif_memory_v5_router(
         )
 
     # Legacy modes → original _arif_memory_recall
-    return await _arif_memory_recall(
+    # P1 FIX 2026-07-14: _arif_memory_recall is a SYNC function. The previous
+    # `await _arif_memory_recall(...)` awaited the returned dict, raising
+    # `TypeError: object dict can't be used in 'await' expression` on every
+    # legacy-mode call (store/write/seed/forget etc). Drop the `await`.
+    return _arif_memory_recall(
         mode=mode,
         query=query,
         memory_id=memory_id,
@@ -20659,17 +20665,24 @@ _arif_verify = _arif_verify_tool
 
 
 async def _arif_kernel_intercept_tool(
-    actor: str,
-    intent: str,
-    requested_capability: str,
-    domain: str,
-    reversibility_level: str,
-    blast_radius: str,
+    actor: str | None = None,
+    intent: str | None = None,
+    requested_capability: str | None = None,
+    domain: str | None = None,
+    reversibility_level: str | None = None,
+    blast_radius: str | None = None,
     epistemic_state: str = "UNKNOWN",
     evidence: list[dict[str, Any]] | None = None,
     authority_token: str | None = None,
     measurement: dict[str, Any] | None = None,
     session_token: str | None = None,
+    # ── P1 FIX 2026-07-14: MCP kwarg-name tolerance ──
+    # The MCP client sends natural-language keys (candidate, mode, action_tier,
+    # context_source, actor_id, session_id) while the kernel intercept expects
+    # its internal canonical names. Translate synonyms here so the constitutional
+    # gate never rejects on kwargs. Any unrecognized kwarg is forwarded as
+    # `intent` text so the kernel still sees *some* proposal to judge.
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """Wrapper for the minimum constitutional kernel interceptor.
 
@@ -20678,7 +20691,73 @@ async def _arif_kernel_intercept_tool(
 
     MEMBRANE-03: Accepts optional measurement dict (MeasurementPacket from A-FORGE).
     When present, passes to kernel for floor checks. Kernel reads, never recomputes.
+
+    P1 FIX 2026-07-14: Accept MCP-natural kwarg names (candidate, mode,
+    action_tier, context_source, actor_id, session_id) and translate to the
+    canonical kernel intercept params. Previously any unknown kwarg raised
+    `TypeError: unexpected keyword argument 'candidate'` from MCP clients.
     """
+    # ── Kwarg translation (MCP-natural → kernel-canonical) ──────────────
+    if actor is None:
+        actor = kwargs.pop("actor_id", None) or "anonymous"
+    if intent is None:
+        # Common MCP-natural names: candidate, proposal, action, request, message
+        intent = (
+            kwargs.pop("candidate", None)
+            or kwargs.pop("proposal", None)
+            or kwargs.pop("action", None)
+            or kwargs.pop("request", None)
+            or kwargs.pop("message", None)
+            or ""
+        )
+    if requested_capability is None:
+        # Mode from MCP usually means the capability being requested
+        requested_capability = (
+            kwargs.pop("requested_capability", None)
+            or kwargs.pop("mode", None)
+            or kwargs.pop("capability", None)
+            or "arif_judge"
+        )
+    if domain is None:
+        domain = (
+            kwargs.pop("domain", None)
+            or kwargs.pop("context_source", None)
+            or "general"
+        )
+    if reversibility_level is None:
+        reversibility_level = (
+            kwargs.pop("reversibility_level", None)
+            or kwargs.pop("reversibility", None)
+            or "unknown"
+        )
+    if blast_radius is None:
+        blast_radius = (
+            kwargs.pop("blast_radius", None)
+            or "low"
+        )
+    if session_token is None:
+        session_token = kwargs.pop("session_id", None)
+    if measurement is None:
+        measurement = kwargs.pop("prediction_context", None) or kwargs.pop("payload", None)
+
+    # F2 TRUTH: empty intent with no proposal is still a HOLD — never invent.
+    if not intent:
+        intent = "(no proposal text supplied — caller passed only mode/structural kwargs)"
+
+    # Drop any remaining unknown kwargs so the inner kernel call is clean
+    kwargs.pop("action_tier", None)
+    kwargs.pop("peer_contract_id", None)
+    kwargs.pop("niat_params", None)
+    kwargs.pop("cooldown_entry_id", None)
+    kwargs.pop("vault_entry_id", None)
+    kwargs.pop("heart_critique", None)
+    if kwargs:
+        # Surface unknown kwargs in intent as a structured footer so the kernel
+        # judge sees them but the strict signature stays clean.
+        try:
+            intent = f"{intent}\n[extras: " + ", ".join(f"{k}={v!r}" for k, v in kwargs.items()) + "]"
+        except Exception:
+            pass
     raw = await _arif_kernel_intercept(
         actor=actor,
         intent=intent,
