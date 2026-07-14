@@ -37,8 +37,8 @@ from arifosmcp.schemas.mind_metabolism import (
 
 logger = logging.getLogger(__name__)
 
-CANONICAL_EVIDENCE_TOOL = "arif_fetch"
-CANONICAL_JUDGE_TOOL = "arif_judge"
+CANONICAL_EVIDENCE_TOOL = "arif_evidence_fetch"
+CANONICAL_JUDGE_TOOL = "arif_judge_deliberate"
 
 # ── Thinking Session Manager ──────────────────────────────────────────────────
 thinking_manager = ThinkingSessionManager()
@@ -831,10 +831,19 @@ async def arif_mind_handoff_prepare(session_id: str, target_organ: str) -> dict[
     }
 
 
+# Backward-compatibility aliases for legacy callers and regression tests
+arif_mind_reason = arif_think
+arif_mind_reason_v2 = arif_think_v2
+arif_mind_reason_structured = arif_think_structured
+
+
 __all__ = [
     "arif_think",
     "arif_think_v2",
     "arif_think_structured",
+    "arif_mind_reason",
+    "arif_mind_reason_v2",
+    "arif_mind_reason_structured",
     "arif_mind_step",
     "arif_mind_trace_get",
     "arif_mind_claim_attest",

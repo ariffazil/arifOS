@@ -833,7 +833,10 @@ def _extract_envelope_from_arguments(
     # Try flattened fields
     flat_fields = {
         "actor_id",
+        "actor",
         "session_id",
+        "session_token",
+        "session",
         "agent_id",
         "tool_id",
         "trace_id",
@@ -849,8 +852,8 @@ def _extract_envelope_from_arguments(
             # Build minimal envelope from whatever fields exist
             return FederationEnvelope(
                 trace_id=arguments.get("trace_id", f"auto-{time.time()}"),
-                actor_id=arguments.get("actor_id", "anonymous"),
-                session_id=arguments.get("session_id", "unknown"),
+                actor_id=arguments.get("actor_id") or arguments.get("actor") or "anonymous",
+                session_id=arguments.get("session_id") or arguments.get("session_token") or arguments.get("session") or "unknown",
                 agent_id=arguments.get("agent_id"),
                 tool_id=arguments.get("tool_id", tool_name),
                 organ=arguments.get("organ", "arifOS"),
@@ -1010,9 +1013,17 @@ if IS_FASTMCP_3:
                         )
 
                         mcp_sid = get_current_mcp_session_id()
+                        _args_dict = dict(msg.arguments or {})
+                        _arg_actor = _args_dict.get("actor_id") or _args_dict.get("actor")
+                        _arg_sid = (
+                            _args_dict.get("session_id")
+                            or _args_dict.get("session_token")
+                            or _args_dict.get("session")
+                            or mcp_sid
+                        )
                         envelope = wrap_legacy_call(
-                            actor_id=None,
-                            session_id=mcp_sid,
+                            actor_id=_arg_actor,
+                            session_id=_arg_sid,
                             tool_name=tool_name,
                         )
                         logger.debug(
@@ -1028,7 +1039,13 @@ if IS_FASTMCP_3:
                     # downstream validation sees a verified identity instead of
                     # anonymous/UNKNOWN.
                     _args_tok = dict(msg.arguments or {})
-                    _st_tok = _args_tok.get("session_token") or ""
+                    _st_tok = (
+                        _args_tok.get("session_token")
+                        or _args_tok.get("session_id")
+                        or _args_tok.get("session")
+                        or envelope_session_id
+                        or ""
+                    )
                     if _st_tok and (
                         str(_st_tok).startswith("sct_v1.") or str(_st_tok).startswith("arifos.v1.")
                     ):
@@ -1087,6 +1104,29 @@ if IS_FASTMCP_3:
                                         )
                         except Exception as _st_exc:
                             logger.debug("Ingress: session_token resolution failed: %s", _st_exc)
+
+                    from arifosmcp.runtime.actor_verification_matrix import DENIED_IDENTITIES
+                    _probe_sid = _st_tok or envelope.session_id
+                    if _probe_sid and str(_probe_sid) != "unknown" and envelope.actor_id in (DENIED_IDENTITIES | {"openclaw-anon", "anonymous", "unknown", None}):
+                        try:
+                            from arifosmcp.runtime.tools import _SESSIONS
+                            _sctx = _SESSIONS.get(str(_probe_sid)) or {}
+                            _real_actor = _sctx.get("actor_id") or _sctx.get("canonical_actor_id") or _sctx.get("declared_name")
+                            if _real_actor and _real_actor not in (DENIED_IDENTITIES | {"openclaw-anon", "anonymous", "unknown", None}):
+                                envelope.actor_id = str(_real_actor)
+                                envelope.agent_id = str(_real_actor)
+                                envelope.legacy_wrap = False
+                                if "actor_id" not in _args_tok:
+                                    _args_tok["actor_id"] = str(_real_actor)
+                                msg.arguments = _args_tok
+                                logger.info(
+                                    "Ingress: resolved session context for %s -> actor=%s (session=%s)",
+                                    tool_name,
+                                    _real_actor,
+                                    str(_probe_sid)[:16],
+                                )
+                        except Exception as _ctx_exc:
+                            logger.debug("Ingress: session context lookup failed: %s", _ctx_exc)
 
                     # ── FORGE SCOPE GATE (v3: ToolScoper integration) ──────────────
                     # When forge_scope is non-empty, only tools on the allowlist pass.

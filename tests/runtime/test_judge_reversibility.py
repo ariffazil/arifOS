@@ -16,7 +16,7 @@ from arifosmcp.runtime.tools import _arif_session_init, _arif_judge_deliberate
 @pytest.fixture
 def session_id():
     result = _arif_session_init(mode="init", actor_id="test-agent")
-    return result["result"]["session"]["session_id"]
+    return result.get("session_id") or result.get("session", {}).get("session_id") or result["result"]["session_id"]
 
 
 class TestJudgeReversibilityNoContradiction:

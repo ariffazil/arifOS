@@ -5,6 +5,8 @@ Verifies that root-level discovery files (agent.json, ai.json, etc.)
 are correctly registered and accessible without being shadowed by mounts.
 """
 
+from pathlib import Path
+
 import pytest
 from arifosmcp.runtime.server import app
 from tests.conftest import SyncASGIClient
@@ -24,6 +26,11 @@ def test_well_known_agent_reachable(client):
     assert "name" in data
     assert "endpoints" in data
     assert data["name"] == "arifOS MCP Server"
+
+
+def test_agent_card_static_alias_exists():
+    assert Path("/root/arifOS/static/.well-known/agent-card.json").exists()
+    assert Path("/root/arifOS/arifosmcp/static/.well-known/agent-card.json").exists()
 
 
 def test_ai_plugin_manifest_reachable(client):

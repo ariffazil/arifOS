@@ -983,6 +983,19 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,
         "safe_autonomous_use": True,
     },
+    "arif_system_registry_status": {
+        "action_class": "OBSERVE",
+        "mutation": False,
+        "external_side_effect": False,
+        "irreversible": False,
+        "requires_session": False,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "LOW",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,
+    },
     "arif_kernel_status": {
         "action_class": "OBSERVE",
         "mutation": False,
@@ -2071,6 +2084,12 @@ def _compute_canonical_verdict(
                     f"session_actor_mismatch: passed actor_id={_passed_actor} "
                     f"≠ session actor_id={_sess_actor} for session={_session_id}"
                 )
+                if verdict not in ("OBSERVE_ONLY", "HOLD", "VOID"):
+                    verdict = "HOLD"
+                    degradation.append(
+                        "identity_conflict — wrapper actor and canonical session actor differ. "
+                        "Execution held until the caller uses the bound session identity."
+                    )
 
     # ── Step 5b: Actor verification (P0-3 identity gating) ───────────────
     # Uses session-derived authority, not per-tool args.
@@ -4099,6 +4118,22 @@ def _enforce_nine_signal(
             ),
         }
 
+        # Federation identity contract: expose the canonical effective gate at
+        # top level and bind the same identity view into the tool result. This
+        # is derived from ``authority`` only; no parallel authority decision.
+        _authority_view = envelope.get("authority", {})
+        envelope["effective_authority"] = _authority_view.get(
+            "effective_authority", "OBSERVE_ONLY"
+        )
+        envelope["identity_band"] = _authority_view.get("identity_band", "OBSERVER")
+        if isinstance(result_payload, dict):
+            result_payload["identity"] = {
+                "actor_id": resolved_actor_id,
+                "actor_verified": bool(envelope.get("actor_verified")),
+                "identity_band": envelope["identity_band"],
+                "effective_authority": envelope["effective_authority"],
+            }
+
         # F2 FIX (2026-07-07): When actor_verified=False, add prominent
         # _ATTENTION field. Claude feedback: the JSON "looks complete" even
         # when unauthenticated, creating false sense of security. The
@@ -5975,6 +6010,7 @@ def _new_session(
     _delegation = delegation_mode or (
         "delegated" if sovereign_id and actor_id and actor_id != sovereign_id else "direct"
     )
+    _session_token_hash = f"sha256:{hashlib.sha256(sid.encode('utf-8')).hexdigest()}"
 
     sess = {
         "session_id": sid,
@@ -5984,6 +6020,16 @@ def _new_session(
         "caller_actor_id": caller_actor_id or actor_id,
         "executor_actor_id": executor_actor_id or actor_id,
         "delegation_mode": _delegation,
+        "session_token_hash": _session_token_hash,
+        "identity": {
+            "actor_id": actor_id or "anonymous",
+            "sovereign_id": _principal,
+            "caller_actor_id": caller_actor_id or actor_id,
+            "executor_actor_id": executor_actor_id or actor_id,
+            "session_id": sid,
+            "session_token_hash": _session_token_hash,
+            "delegation_mode": _delegation,
+        },
         "created_at": _now(),
         "created_at_unix": time.time(),
         "expires_at_unix": time.time() + SESSION_TTL_SECONDS,
@@ -11037,6 +11083,8 @@ def _arif_mind_reason(
     plan_id: str | None = None,
     witness_type: str = "ai",
     attention_context: dict | None = None,
+    intent: str | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     333_MIND: Symbolic constitutional reasoning kernel.
@@ -11801,6 +11849,8 @@ async def _arif_mind_reason_tool(
     plan_id: str | None = None,
     witness_type: str = "ai",
     ctx: Context | None = None,
+    intent: str | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     """
     333_MIND async tool — routes cognitive modes through LLM inference.
@@ -11813,6 +11863,7 @@ async def _arif_mind_reason_tool(
     L13 SOVEREIGN: plan_approve remains deterministic — LLM must never
     adjudicate sovereign approval.
     """
+    query = query or intent
     trace = None
     if _LANGFUSE_TRACER is not None:
         try:
@@ -11850,6 +11901,8 @@ async def _arif_mind_reason_tool(
                 actor_id=actor_id,
                 plan_id=plan_id,
                 witness_type=witness_type,
+                intent=intent,
+                **kwargs,
             )
             # P1 telemetry: deterministic bypass must expose handler_entered,
             # model_started=false, handler_returned=true so callers can diagnose
@@ -20997,6 +21050,7 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_transport_echo": _runtime_transport_echo,
     "arif_initialize_probe": _runtime_initialize_probe,
     "arif_conformance_report": _runtime_conformance_report,
+    "arif_system_registry_status": _runtime_conformance_report,
     "arif_selftest": _runtime_selftest,
 }
 
@@ -22475,6 +22529,7 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arif_ping": "arifos_ping",
     "arif_canary": "arifos_canary",
     "arif_conformance_report": "arifos_conformance_report",
+    "arif_system_registry_status": "arifos_system_registry_status",
     "arif_schema_echo": "arifos_schema_echo",
     "arif_version_echo": "arifos_version_echo",
     "arif_transport_echo": "arifos_transport_echo",
@@ -22505,6 +22560,7 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arifos_ping": "arif_ping",
     "arifos_canary": "arif_canary",
     "arifos_conformance_report": "arif_conformance_report",
+    "arifos_system_registry_status": "arif_system_registry_status",
     "arifos_schema_echo": "arif_schema_echo",
     "arifos_version_echo": "arif_version_echo",
     "arifos_transport_echo": "arif_transport_echo",
@@ -22602,6 +22658,9 @@ def _ws1_authority_envelope(
             else False,
             "human_authority": h_authority,
             "runtime_authority": runtime_band,
+            "identity_band": h_authority,
+            "session_band": runtime_band,
+            "effective_authority": runtime_band,
             "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN"),
             "seal_allowed": runtime_band in ("FULL", "SOVEREIGN")
             and runtime_band != "OBSERVE_ONLY",

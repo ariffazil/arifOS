@@ -122,6 +122,7 @@ def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
         known_organs = {
             "geox_": "geox",
             "wealth_": "wealth",
+            "capital_": "wealth",
             "well_": "well",
             "aforge_": "a-forge",
             "aaa_": "aaa",
@@ -164,9 +165,13 @@ TOOL_ALIASES: dict[str, str] = {
     "arif_deliberate": "arif_judge",
     "deliberate": "arif_judge",
     "judge": "arif_judge",
+    "arif_judge_deliberate": "arif_judge",
+    "arifos_judge_deliberate": "arif_judge",
     # Seal family
     "vault_seal": "arif_seal",
     "seal": "arif_seal",
+    "arif_vault_seal": "arif_seal",
+    "arifos_vault_seal": "arif_seal",
     # Think family
     "reason": "arif_think",
     "arif_reason": "arif_think",
@@ -843,6 +848,33 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
         actor_id=req.actor_id,
         authority=authority,
     )
+
+    # Dynamic capability adjustment for multi-mode tools (e.g. read-only modes of arif_seal)
+    if capability and canonical_tool in ("arif_seal", "arif_vault_seal", "arifos_seal"):
+        _mode = str(
+            req.raw_arguments.get("mode") or req.raw_arguments.get("action") or ""
+        ).lower().strip()
+        if _mode in (
+            "verify",
+            "ledger",
+            "chain",
+            "list",
+            "audit",
+            "changelog",
+            "dry_run",
+            "retrieve_audit",
+        ):
+            capability = capability.model_copy(
+                update={
+                    "mutation_class": MutationClass.NONE,
+                    "irreversible": False,
+                    "requires_888_hold": False,
+                    "requires_external_anchor": False,
+                    "requires_sovereign_actor": False,
+                    "authority_required": AuthorityTier.LOW,
+                    "allowed_actors": [],
+                }
+            )
 
     # Determine decision class from capability mutation class
     if capability and capability.mutation_class in (
