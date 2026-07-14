@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/audience.schema.v1",
+  "title": "arifOS Audience",
+  "type": "object",
+  "required": ["organ"],
+  "properties": {
+    "organ": { "type": "string", "enum": ["arifOS", "geox", "wealth", "well", "aforge", "aaa", "mcp_gateway", "vault999"] }
+  },
+  "additionalProperties": false
+}

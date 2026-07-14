@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/session.schema.v1",
+  "title": "arifOS Governed Session",
+  "type": "object",
+  "required": ["session_id", "issuer", "subject_did", "audience", "allowed_capabilities", "issued_at", "expires_at", "actor_id", "jti"],
+  "properties": {
+    "session_id": { "type": "string", "description": "server-issued session identifier" },
+    "issuer": { "type": "string", "pattern": "^did:web:arif-fazil\\.com$" },
+    "subject_did": { "type": "string", "description": "actor DID — did:web:arif-fazil.com or did:web:arif-fazil.com:agents:<n>" },
+    "audience": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "enum": ["arifOS", "geox", "wealth", "well", "aforge", "aaa", "mcp_gateway", "vault999"] }
+    },
+    "actor_id": { "type": "string", "minLength": 1 },
+    "allowed_capabilities": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }
+    },
+    "authority_band": { "type": "string", "enum": ["OBSERVER", "OPERATOR", "SOVEREIGN"] },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "not_before": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "jti": { "type": "string", "description": "unique token id for replay protection" },
+    "trace_id": { "type": "string" }
+  },
+  "additionalProperties": false
+}
