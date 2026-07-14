@@ -413,6 +413,12 @@ def register_resources(mcp: FastMCP) -> list[str]:
     dynamic URI patterns. MCP resources = domain data AI needs for work, not
     metadata about metadata or filesystem mirrors.
     """
+    # ── Hash/seal anchoring (2026-07-15 — Reality Verdict P1) ──────────────
+    # Patch TextResource.__init__ to auto-inject _meta (content_hash, provenance,
+    # seal_seq) on every resource construction. This runs BEFORE any register_*
+    # call, so every TextResource created below automatically carries _meta.
+    _install_textresource_meta_patch()
+
     registered: list[str] = []
     registered.extend(register_doctrine(mcp))
     registered.extend(register_trinity(mcp))
@@ -427,14 +433,9 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_loop_engineering(mcp))
     registered.extend(register_quickstart(mcp))
     registered.extend(register_mcp_alignment(mcp))
-    # DISABLED 2026-06-28 — catalog-of-catalog, not domain operational data:
-    # registered.extend(register_resources_index(mcp))    # arifos://resources/index
-    # registered.extend(register_skills_catalog(mcp))   # arifos://skills-catalog
     registered.extend(register_evidence_resources(mcp))
     registered.extend(register_embodied_resources(mcp))
     registered.extend(register_tree777_resources(mcp))
-    # DISABLED 2026-06-28 — indices, not domain operational data:
-    # registered.extend(register_runner_resources(mcp))   # runner://*
     registered.extend(register_sovereign_resources(mcp))
     registered.extend(register_human_context(mcp))
     registered.extend(register_reality_state(mcp))
@@ -443,4 +444,37 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_vault999_template(mcp))
     registered.extend(register_surface_map(mcp))
     registered.extend(register_wisdom_resources(mcp))
+
     return registered
+
+
+def _install_textresource_meta_patch() -> None:
+    """Monkey-patch TextResource.__init__ to auto-inject hash/seal _meta.
+
+    Every TextResource created after this patch automatically carries:
+      _meta.content_hash: blake3/sha256 of text content
+      _meta.seal_seq: latest VAULT999 seal seq
+      _meta.seal_anchored: bool
+      _meta.observed_at: ISO-8601 UTC
+      _meta.schema_version: "resource-meta/v1"
+      _meta.provenance: from _RESOURCE_PROVENANCE (if available)
+
+    This is the migration path from inline boilerplate to structured _meta.
+    """
+    from fastmcp.resources.types import TextResource as TR
+    from .hash_anchor import anchor_resource_meta
+
+    _original_init = TR.__init__
+    _patched = getattr(TR, "_arifos_meta_patched", False)
+
+    def _patched_init(self, *args, **kwargs):
+        _original_init(self, *args, **kwargs)
+        if self.meta is None and self.text:
+            uri = str(self.uri) if hasattr(self, "uri") else ""
+            prov = _RESOURCE_PROVENANCE.get(uri)
+            self.meta = anchor_resource_meta(self.text, uri, provenance=prov)
+
+    if not _patched:
+        TR.__init__ = _patched_init
+        TR._arifos_meta_patched = True
+        logger.info("anchor: TextResource.__init__ patched for auto _meta injection")
