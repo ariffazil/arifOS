@@ -11,12 +11,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def test_canonical13_count_is_21():
-    """canonical13 must expose exactly 21 canonical tools."""
-    from arifosmcp.constitutional_map import list_canonical_tools
+def test_kernel_abi_count_is_eight():
+    from arifosmcp.runtime.public_surface import KERNEL_ABI_8
 
-    tools = list_canonical_tools()
-    assert len(tools) == 21, f"Expected 21 canonical tools, got {len(tools)}"
+    assert len(KERNEL_ABI_8) == 8
 
 
 def test_canonical13_names_are_arif_prefix():
@@ -118,9 +116,9 @@ def test_no_stale_port_8080_in_docs():
         text = readme.read_text()
         # Allow 8080 in historical or Docker-internal contexts, but not as live port
         lines_with_8080 = [
-            l
-            for l in text.splitlines()
-            if "8080" in l and "Docker" not in l and "container" not in l.lower()
+            line
+            for line in text.splitlines()
+            if "8080" in line and "Docker" not in line and "container" not in line.lower()
         ]
         # This is a soft check — we just note it, not fail hard
         assert len(lines_with_8080) <= 3, (

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from arifosmcp.runtime.public_registry import build_mcp_manifest, build_server_json
-from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES, CANONICAL_13
+from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES, PUBLIC_AGENT_6
 
 
-def test_public_manifests_lock_to_canonical13() -> None:
-    expected = set(CANONICAL_13)
-    server_json = build_server_json()
-    manifest_json = build_mcp_manifest()
+def test_public_manifests_lock_to_public_agent_profile() -> None:
+    expected = set(PUBLIC_AGENT_6)
+    server_json = build_server_json(surface_mode="public_agent")
+    manifest_json = build_mcp_manifest(surface_mode="public_agent")
 
     assert {tool["name"] for tool in server_json["tools"]} == expected
     assert {tool["name"] for tool in manifest_json["tools"]} == expected

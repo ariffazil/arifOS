@@ -14,27 +14,27 @@ from arifosmcp.runtime.public_registry import (
 from arifosmcp.runtime.public_surface import BLOCKED_PUBLIC_PREFIXES
 
 
-def test_server_json_matches_canonical7_registry() -> None:
-    server_json = build_server_json()
+def test_server_json_matches_public_agent_registry() -> None:
+    server_json = build_server_json(surface_mode="public_agent")
     tool_names = {tool["name"] for tool in server_json["tools"]}
 
     assert tool_names == CANONICAL_PUBLIC_TOOLS
-    # canonical7 is the preferred public mode name; canonical13 remains an alias.
-    assert server_json["capabilities"]["public_surface"] == "canonical7"
+    assert server_json["capabilities"]["public_surface"] == "public_agent"
+    assert server_json["capabilities"]["kernel_abi"]["canonical_count"] == 8
     assert server_json["protocolVersion"] == "2025-11-25"
     assert server_json["serverUrl"] == "https://mcp.arif-fazil.com/mcp"
     assert server_json["homepage"] == "https://arifos.arif-fazil.com"
     assert server_json["repository"] == "https://github.com/ariffazil/arifos"
 
 
-def test_mcp_manifest_matches_canonical7_registry() -> None:
-    manifest_json = build_mcp_manifest()
+def test_mcp_manifest_matches_public_agent_registry() -> None:
+    manifest_json = build_mcp_manifest(surface_mode="public_agent")
     tool_names = {tool["name"] for tool in manifest_json["tools"]}
 
     assert tool_names == CANONICAL_PUBLIC_TOOLS
 
 
-def test_public_profile_stays_canonical7() -> None:
+def test_public_profile_stays_public_agent() -> None:
     public_names = tool_names_for_profile("public")
 
     assert len(public_names) == EXPECTED_TOOL_COUNT
@@ -65,5 +65,5 @@ def test_public_registry_publishes_input_and_output_schemas() -> None:
     assert contract_status_summary()["schemas_complete"] is True
     assert all("properties" in tool["inputSchema"] for tool in tools.values())
     assert all(tool.get("outputSchema", {}).get("properties") for tool in tools.values())
-    assert "ground" in tools["arif_observe"]["description"].lower()
+    assert "reality" in tools["arif_observe"]["description"].lower()
     assert "verdict" in tools["arif_judge"]["description"].lower()

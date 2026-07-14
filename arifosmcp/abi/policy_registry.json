@@ -1,0 +1,53 @@
+{
+  "$schema": "arifos://schema/policy-registry/v1",
+  "registry_version": "1.0.0",
+  "default_profile": "public_agent",
+  "profiles": {
+    "public_agent": {
+      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge"],
+      "mode_limits": {"memory.govern": ["recall", "inspect", "attest"], "authority.judge": ["explain", "floor_status"]},
+      "diagnostics": false
+    },
+    "trusted_agent": {
+      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge"],
+      "mode_limits": {},
+      "diagnostics": false
+    },
+    "executor": {
+      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute"],
+      "mode_limits": {},
+      "diagnostics": false
+    },
+    "sovereign": {
+      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
+      "mode_limits": {},
+      "diagnostics": false
+    },
+    "operator": {
+      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
+      "mode_limits": {},
+      "diagnostics": true
+    },
+    "legacy": {
+      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
+      "mode_limits": {},
+      "diagnostics": false,
+      "advertised": false
+    }
+  },
+  "profile_aliases": {
+    "public": "public_agent",
+    "agnostic_public": "public_agent",
+    "chatgpt": "public_agent",
+    "canonical7": "public_agent",
+    "canonical9": "public_agent",
+    "canonical12": "public_agent",
+    "canonical13": "public_agent",
+    "forge_next_8": "sovereign",
+    "forge-next-8": "sovereign",
+    "expanded45": "operator",
+    "internal": "operator",
+    "full": "operator"
+  },
+  "decision_rule": "actor + capability + risk + evidence determines eligibility; model or transport identity never grants authority"
+}

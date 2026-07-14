@@ -35,10 +35,15 @@ class TestToolSurfaceInvariants:
             the observe sense — a legitimate sibling pair.
         """
         _KNOWN_DUPLICATE_STAGES: set[str] = {
+            "000",  # arif_init + internal compatibility/preflight stages
             "111",  # arif_explore + arif_sense_observe (L2 exploration extends observe)
+            "444",  # route + absorbed bridge compatibility stages
             "555",  # routing siblings
-            "888",  # arif_judge + arif_kernel_intercept (ASI lane siblings)
+            "666",  # arif_judge + arif_kernel_intercept (ASI lane siblings)
+            "888",  # legacy judgment-stage siblings
+            "999",  # seal + absorbed pre-execution verification stage
             "010",  # arif_forge + arif_act (execute siblings)
+            "777",  # current forge + internal act stage
             # arif_route, arif_triage, arif_kernel_status (deprecated),
             # arif_bridge_connect, arif_bridge (deprecated),
             # arif_kernel_attest (deprecated), arif_kernel_health (deprecated).
@@ -82,4 +87,4 @@ class TestDiagnosticToolsCount:
 
         # After 7-tool freeze, public canonical is small; diagnostics are separate gated set.
         assert len(DIAGNOSTIC_TOOLS) >= 0
-        assert len(CANONICAL_7) == 7, f"Public facade must be exactly 7, got {len(CANONICAL_7)}"
+        assert len(CANONICAL_7) == 8, f"Kernel ABI must be exactly 8, got {len(CANONICAL_7)}"

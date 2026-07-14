@@ -12,8 +12,11 @@ on:
       - 'arifosmcp/tool_registry.json'
       - 'arifosmcp/runtime/public_surface.py'
       - 'arifosmcp/runtime/public_registry.py'
+      - 'arifosmcp/abi/**'
       - 'static/.well-known/mcp/server.json'
       - 'mcp-arifos.json'
+      - 'smithery.yaml'
+      - 'scripts/sync_kernel_abi.py'
       - '.github/workflows/06-mcp-conformance.yml'
   pull_request:
   merge_group:
@@ -80,11 +83,11 @@ jobs:
           python3 -c "
           import json, sys
           sys.path.insert(0, '.')
-          from arifosmcp.runtime.public_surface import CANONICAL_12
+          from arifosmcp.runtime.public_surface import KERNEL_ABI_8
           with open('arifosmcp/tool_registry.json') as f:
               reg = json.load(f)
           tools = reg.get('tools', {})
-          canonical = list(CANONICAL_12)
+          canonical = list(KERNEL_ABI_8)
           # tools is a dict: {name: spec}
           names = sorted(tools.keys())
           # Verify all tools have required MCP fields
@@ -99,7 +102,12 @@ jobs:
           for n in names: print(f'  {n}')
           "
 
-      - name: Public surface drift guard
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: false
+
+      - name: Kernel ABI generated-surface drift guard
         run: |
           cd "$WORKDIR"
-          uv run python commands/scripts_deploy/validate_canonical_surface.py
+          uv run python scripts/sync_kernel_abi.py --check

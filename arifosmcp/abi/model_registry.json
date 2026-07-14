@@ -1,0 +1,16 @@
+{
+  "$schema": "arifos://schema/model-registry/v1",
+  "registry_version": "1.0.0",
+  "description": "Measured model competence only. Model identity never grants authority.",
+  "models": [],
+  "required_declarations": [
+    "provider",
+    "model_id",
+    "reasoning",
+    "tool_use",
+    "context_window",
+    "calibration_evidence"
+  ],
+  "admission_rule": "A model may propose intent only for measured competencies; policy_registry remains authoritative.",
+  "provider_special_cases": []
+}

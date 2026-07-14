@@ -86,18 +86,23 @@ jobs:
           mkdir -p "$WORKDIR/arifos-model-registry/models"
           echo '{"models":[],"soul_archetypes":[],"runtime_profiles":[]}' > "$WORKDIR/arifos-model-registry/catalog.json"
 
+      - name: Kernel ABI generated-surface drift guard
+        run: |
+          cd "$WORKDIR"
+          uv run python scripts/sync_kernel_abi.py --check
+
       - name: Verify canonical public facade loads
         run: |
           cd "$WORKDIR"
           uv run python3 - <<'PY'
           import sys
           sys.path.insert(0, '.')
-          from arifosmcp.runtime.public_surface import CANONICAL_12, public_tool_names_for_mode
+          from arifosmcp.runtime.public_surface import PUBLIC_AGENT_6, public_tool_names_for_mode
           import arifosmcp.runtime.tools  # noqa: F401 -- import proves runtime registry loads
 
-          public_tools = tuple(public_tool_names_for_mode(None))
-          if public_tools != CANONICAL_12:
-            print(f'FAIL: public surface drifted: {public_tools} != {CANONICAL_12}')
+          public_tools = tuple(public_tool_names_for_mode('public_agent'))
+          if public_tools != PUBLIC_AGENT_6:
+            print(f'FAIL: public profile drifted: {public_tools} != {PUBLIC_AGENT_6}')
             sys.exit(1)
           print(f'PASS: canonical public facade = {public_tools}')
           PY

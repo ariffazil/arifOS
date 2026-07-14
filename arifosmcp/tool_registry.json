@@ -1,7 +1,7 @@
 {
   "_schema": "arifos-ssct-v2026.07.12-public-sot",
-  "_source": "arifosmcp.runtime.public_surface.CANONICAL_12 + constitutional_map.CANONICAL_TOOLS",
-  "_note": "SOLE SOURCE OF TRUTH for disk vantage. canonical_order = public facade (18 tools). Regenerated 2026-07-12 SOT fix.",
+  "_source": "arifosmcp.abi.capability_registry + constitutional_map.CANONICAL_TOOLS",
+  "_note": "Implementation registry. Semantic authority lives in the eight-capability Kernel ABI; canonical_order contains its MCP provider bindings.",
   "_affordance_contract_derivation": {
     "canonical_tools": "tool_risk_registry.py → ToolRiskProfile (action_class, risk_tier, blast_radius, reversibility, requires_lease, autonomy_floor)",
     "diagnostic_tools": "constitutional_map.py → spec-inferred from tier + irreversible + access fields",
@@ -9,19 +9,19 @@
     "forged": "2026-06-21"
   },
   "_namespace_ruling": {
-    "arif_*": "18 canonical public tools + 6 internal supporting tools",
+    "arif_*": "8 Kernel ABI provider bindings + internal supporting tools",
     "hermes_*": "GATED — Hermes ASI cross-verification tools (requires ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)",
     "forge_*": "GATED/DEPRECATED — A-FORGE pre-execution sub-tools (use A-FORGE MCP directly; removed 2026-07-15)",
     "arifos_*": "BLOCKED — internal-only prefix, never exposed on public MCP surface",
     "mcp_*": "GATED — Utility namespace for operational diagnostics"
   },
-  "canonical_count": 18,
+  "canonical_count": 8,
   "internal_canonical_count": 6,
   "diagnostic_count": 40,
   "total_surface": 65,
   "tier_summary": {
     "internal": 6,
-    "canonical": 18,
+    "canonical": 8,
     "chatgpt-shim": 2,
     "hermes": 7,
     "canary": 7,
@@ -33,7 +33,7 @@
     "discovery": 1
   },
   "tier_legend": {
-    "canonical": "18 exposed public tools on default MCP wire (2026-07-12 SOT)",
+    "canonical": "8 provider bindings for the platform-neutral Kernel Capability ABI",
     "internal": "None (all surfaced in canonical for registration match; gating still applies)",
     "hermes": "Cross-verification, fact-checking, vault query, and epistemic checks",
     "canary": "Transport and protocol echo/probe tools",
@@ -48,20 +48,10 @@
     "arif_observe",
     "arif_think",
     "arif_route",
-    "arif_bridge_connect",
-    "arif_critique",
     "arif_memory",
     "arif_judge",
     "arif_forge",
-    "arif_compose",
-    "arif_seal",
-    "arif_verify",
-    "arif_entropy_observe",
-    "arif_j_state_assess",
-    "arif_correction_probe",
-    "arif_consequence_trace",
-    "arif_entropy_route",
-    "arif_j_gate"
+    "arif_seal"
   ],
   "internal_canonical_order": [
     "arif_act",
@@ -2191,7 +2181,7 @@
   "motto": "DITEMPA BUKAN DIBERI — Forged, Not Given",
   "_surface_sync": {
     "regenerated_at": "2026-07-09T11:11:46.634367+00:00",
-    "source": "public_surface.CANONICAL_12 + constitutional_map internal tools",
-    "public_count": 11
+    "source": "abi/capability_registry.json + constitutional_map internal tools",
+    "public_count": 8
   }
 }

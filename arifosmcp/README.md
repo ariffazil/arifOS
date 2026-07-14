@@ -4,7 +4,7 @@
 
 ## Current truth (SATU PERMUKAAN 2026-07-10 — F13 approved consolidation)
 
-- Public MCP wire surface: **exactly 12 canonical tools** (live + tool_registry.json + runtime/public_surface.py:CANONICAL_12)
+- Kernel contract: **exactly 8 semantic capabilities**; the generated `public_agent` profile exposes 6 MCP bindings.
   - `arif_init` (000)
   - `arif_observe` (111)
   - `arif_think` (333)
@@ -28,7 +28,7 @@
 - Canonical local runtime entrypoint: `uv run python -m arifosmcp.runtime.server`
 - Packaged server authority: `arifosmcp.server`
 
-**Source of truth (live > code > docs):** runtime/public_surface.py CANONICAL_12 + tool_registry.json + :8088/tools + :8088/health. Older claims (7/10/13/20) are HISTORICAL.
+**Source of truth:** `abi/capability_registry.json` + `abi/policy_registry.json` → generated manifests → runtime profile → live `tools/list`. Numeric legacy constants are compatibility imports only.
 
 ## Source of truth order
 
@@ -46,7 +46,8 @@ When docs or manifests disagree, trust these first:
 - `server.py` and `runtime/server.py` — packaged and local runtime entrypoints
 - `runtime/tools.py` — handler implementations and execution gates
 - `runtime/public_registry.py` — machine-readable public discovery payloads
-- `runtime/public_surface.py` — the 12-verb public facade (CANONICAL_12)
+- `abi/capability_registry.json` — the stable 8-capability semantic ABI
+- `runtime/public_surface.py` — profile-to-provider projection
 - `runtime/` bridges, leases, memory, and health/reporting infrastructure
 
 ## What this package does not mean
