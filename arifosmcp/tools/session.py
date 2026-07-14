@@ -939,7 +939,6 @@ def arif_init(
     capability_disclosure: dict | None = None,
     nonce: str | None = None,
     actor_signature: str | None = None,
-    signature: str | None = None,  # legacy alias — prefer actor_signature
     # ── Pre-session identity lineage (forged 2026-06-12) ─────────────────
     idempotency_key: str | None = None,
     trace_id: str | None = None,
@@ -1040,7 +1039,7 @@ def arif_init(
                 "required_for_init": {
                     "actor_id": "string (non-null)",
                     "ack_irreversible": "boolean (default false)",
-                    "optional": ["declared_model_key", "deployment_id", "nonce", "signature"],
+                    "optional": ["declared_model_key", "deployment_id", "nonce", "actor_signature"],
                 },
                 "active_sessions": len(_SESSIONS),
                 "tool_surface": tool_surface.model_dump(),
@@ -1063,12 +1062,6 @@ def arif_init(
             },
             doctrine=ARIF_DOCTRINE,
         )
-
-    # ── MCP WIRE FIX (2026-07-12): MCP transports send 'actor_signature',
-    # but the legacy parameter is named 'signature'. Resolve the alias so
-    # the signature reaches the kernel verification path.
-    if actor_signature is not None and signature is None:
-        signature = actor_signature
 
     if mode == "cleanup":
         from arifosmcp.runtime.session import list_active_sessions_count
@@ -1226,7 +1219,7 @@ def arif_init(
         _light_band = "OBSERVE_ONLY"
         _light_agent_class = "UNVERIFIED"
         _light_authority_level = "ANONYMOUS"
-        _sig = signature
+        _sig = actor_signature
         if actor_id and nonce and _sig:
             try:
                 from arifosmcp.runtime.crypto_auth import (
@@ -1509,7 +1502,7 @@ def arif_init(
         identity_verified = False
         # Wire_ArifInit_Signature_To_Session_v1: unified crypto bind
         # Accepts both crypto_auth payload and kernel identity/verify payload.
-        if actor_id and nonce and signature:
+        if actor_id and nonce and actor_signature:
             try:
                 from arifosmcp.runtime.crypto_auth import (
                     classify_actor_band,
@@ -1629,11 +1622,11 @@ def arif_init(
             actor_bound=bool(identity_verified),
             authority_band=_derived_auth,
             verification_method="signature"
-            if (nonce and signature and identity_verified)
+            if (nonce and actor_signature and identity_verified)
             else ("identity_claim" if identity_verified else "none"),
             verification_reason=(
                 "cryptographically_verified"
-                if (nonce and signature and identity_verified)
+                if (nonce and actor_signature and identity_verified)
                 else "identity_claim_accepted"
                 if identity_verified
                 else "identity_not_verified"

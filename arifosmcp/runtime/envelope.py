@@ -562,6 +562,12 @@ class GovernanceReceipt(BaseModel):
     execution_authorized: bool = False
     recommendation_only: bool = True
     human_final_authority: str = "Arif"
+    # DEPRECATION NOTICE (2026-07-14, QQQ Doctrine v1.0):
+    #   execution_authorized and recommendation_only are DEPRECATED.
+    #   Canonical location: RecommendationEnvelope.sovereign_gate_required
+    #   and RecommendationEnvelope.qqq_compliance (arifosmcp.models.verdicts).
+    #   These fields remain for backward compatibility.
+    #   New code should use RecommendationEnvelope.
     forbidden_output: list[str] = Field(default_factory=list)
     missing_questions: list[str] = Field(default_factory=list)
     timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())

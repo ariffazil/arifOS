@@ -224,4 +224,4 @@ F11 AUDITABILITY . F12 RESILIENCE . F13 SOVEREIGN (human veto FINAL)
 - Manifest hash: 9416c2697d90ea1a
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-07-12T09:32:05.121683+00:00 ---
+--- Auto-generated 2026-07-14T10:02:50.752475+00:00 ---

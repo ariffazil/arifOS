@@ -656,10 +656,12 @@ class MetabolicOutput(BaseModel):
     #   public disclosure, employment action, financial allocation,
     #   health decision, legal escalation, irreversible deployment
     recommendation_only: bool = Field(
-        default=True, description="AI proposes only — has not been ratified by human"
+        default=True, description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required. "
+                                  "AI proposes only — has not been ratified by human"
     )
     execution_authorized: bool = Field(
-        default=False, description="Has a human authorized execution? False until L13 ratification."
+        default=False, description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required. "
+                                   "Has a human authorized execution? False until L13 ratification."
     )
     human_final_authority: str = Field(
         default="Arif", description="Who has final say on this output?"
@@ -714,7 +716,7 @@ class MetabolicCycle(BaseModel):
     final_output: MetabolicOutput | None = None
     claim_state: ClaimState = ClaimState.HYPOTHESIS
 
-    # Sovereignty
+    # Sovereignty [DEPRECATED — use RecommendationEnvelope for new code]
     recommendation_only: bool = True
     execution_authorized: bool = False
     human_final_authority: str = "Arif"

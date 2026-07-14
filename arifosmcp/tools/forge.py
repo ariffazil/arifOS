@@ -552,12 +552,28 @@ async def arif_forge(
     # The create_and_seal_receipt function exists in core/vault_receipt.py
     # and is proven in judge.py — it was never called from forge.py.
     try:
-        from arifosmcp.core.vault_receipt import create_and_seal_receipt
+        from arifosmcp.core.vault_receipt import (
+            create_and_seal_receipt,
+            resolve_receipt_identity,
+        )
         import hashlib
 
+        # F2 TRUTH: resolve real identity before minting receipt.
+        _sess_ctx = None
+        try:
+            from arifosmcp.runtime.tools import get_session
+            _sess_ctx = get_session(session_id) if session_id else None
+        except Exception:
+            pass
+        _resolved_sid, _resolved_actor = resolve_receipt_identity(
+            session_id=session_id,
+            actor_id=actor_id,
+            session_context=_sess_ctx,
+        )
+
         create_and_seal_receipt(
-            session_id=session_id or "anon",
-            actor_id=actor_id or "anonymous",
+            session_id=_resolved_sid,
+            actor_id=_resolved_actor,
             organ_id="arifOS",
             intent_summary=f"forge:{mode}:{manifest[:80] if manifest else ''}",
             intent_hash=hashlib.sha256(f"{mode}:{manifest}".encode()).hexdigest()[:16],
