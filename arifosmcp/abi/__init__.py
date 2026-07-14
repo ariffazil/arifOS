@@ -2,7 +2,7 @@
 arifOS ABI - Application Binary Interface
 =========================================
 
-Canonical schemas for all arifOS tools.
+Canonical request schemas plus the platform-neutral Kernel Capability ABI.
 """
 
 from .v1_0 import (
@@ -37,6 +37,15 @@ from .v1_0 import (
     validate_request,
     validate_response,
 )
+from .kernel_abi import (
+    KERNEL_ABI_VERSION,
+    capability_ids,
+    capability_registry,
+    profile_names,
+    semantic_tool_names,
+    tool_names_for_profile,
+    validate_abi,
+)
 
 __all__ = [
     "ABI_SCHEMAS",
@@ -69,4 +78,11 @@ __all__ = [
     "get_response_schema",
     "validate_request",
     "validate_response",
+    "KERNEL_ABI_VERSION",
+    "capability_ids",
+    "capability_registry",
+    "profile_names",
+    "semantic_tool_names",
+    "tool_names_for_profile",
+    "validate_abi",
 ]

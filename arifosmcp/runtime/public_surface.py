@@ -12,71 +12,26 @@ from arifosmcp.resources import (
     TREE777_RESOURCES,
 )
 from arifosmcp.runtime.build import get_build_info
-
-# ══ Metabolic public surface (F4 CLARITY: one stage = one public verb) ══════
-# Audit 2026-07-09 (Spine P0 cleanup):
-#   - arif_triage REMOVED from public wire — absorbed into arif_init(mode=preflight|triage|status)
-#   - arif_fetch / arif_search / arif_explore → modes of arif_observe (no live aliases)
-#   - arif_delegate → not an alias of arif_route
-#   - arif_bridge_connect / arif_memory retained (HIGH path + memory governor)
-# One intent = one canonical name. Deprecated names = thin log wrappers only.
-CANONICAL_12: tuple[str, ...] = (
-    "arif_init",  # 000  — Session bootstrap (+ modes: preflight, triage, status)
-    "arif_observe",  # 111  — Reality sensing (modes: search, fetch, ingest, vitals, atlas)
-    "arif_think",  # 333  — Cognitive engine
-    "arif_route",  # 444  — Organ router (modes: route, bridge)
-    "arif_bridge_connect",  # 444b — Direct organ bridge (HIGH)
-    "arif_critique",  # 555  — Maruah/risk assessment
-    "arif_memory",  # 555m — Memory governor
-    "arif_judge",  # 666  — Constitutional verdict
-    "arif_forge",  # 777  — Guarded execution
-    "arif_compose",  # 888  — Response composer
-    "arif_seal",  # 999  — VAULT999 seal
-    "arif_verify",  # E1   — JITU pre-execution gate (SEAL token verification)
-    # ── Entropy Integrity Mesh — Kernel tools (v2026.07.12) ─────────
-    "arif_entropy_observe",  # E2 — Register entropy observations
-    "arif_j_state_assess",  # E3 — Fuse observations into J-state
-    "arif_correction_probe",  # E4 — Generate challenges, classify responses
-    "arif_consequence_trace",  # E5 — Trace decision consequences
-    "arif_entropy_route",  # E6 — Route entropy questions to organs
-    "arif_j_gate",  # E7 — Convert J-state to action posture
+from arifosmcp.abi.kernel_abi import (
+    normalize_profile,
+    profile_contract,
+    semantic_tool_names,
+    tool_names_for_profile as abi_tool_names_for_profile,
 )
 
-# ── FORGE_NEXT_8 — F13 SOVEREIGN surface collapse (2026-07-12) ──────────
-# WS4 cycle-end. 8 canonical verbs the kernel serves to MCP clients.
-# CONSENSUS (AUDITOR + OPS + PLANNER, 2026-07-12 14:00Z):
-#   - memory IN (F1/F11 backbone: recall, promote, forget; scar continuity)
-#   - compose OUT (cosmetic formatting — every LLM composes its own replies)
-# 10 retired verbs map INTO the 8 via modes/internalisation:
-#   arif_critique           → arif_think(mode=redteam|critique)
-#   arif_bridge_connect     → arif_route(mode=bridge)
-#   arif_entropy_observe    → arif_observe(mode=entropy_dS)
-#   arif_entropy_route      → arif_observe(mode=entropy_dS)
-#   arif_j_state_assess     → arif_judge (internal stage)
-#   arif_correction_probe   → arif_think (internal)
-#   arif_consequence_trace  → arif_forge preflight (internal)
-#   arif_j_gate             → arif_forge gate (internal)
-#   arif_verify             → hardcoded first step in arif_forge (was JITU gate)
-#   arif_compose            → DELETED (agent composes)
-# Pending: AGENTS.md canonical-8 doc update (memory-above-compose).
-FORGE_NEXT_8: tuple[str, ...] = (
-    "arif_init",  # 000 — Session bootstrap
-    "arif_observe",  # 111 — Reality sensing
-    "arif_think",  # 333 — Cognitive engine (absorbs redteam/critique)
-    "arif_route",  # 444 — Organ router (absorbs bridge)
-    "arif_judge",  # 666 — Constitutional verdict (absorbs j_state_assess)
-    "arif_forge",  # 777 — Guarded execution (absorbs verify, j_gate, consequence_trace)
-    "arif_seal",  # 999 — VAULT999 append
-    "arif_memory",  # 555m — Memory governor (cross-cutting DAG)
-)
+# The permanent contract is semantic: eight capability IDs in
+# abi/capability_registry.json. MCP tool names are replaceable provider bindings.
+KERNEL_ABI_8: tuple[str, ...] = semantic_tool_names()
+PUBLIC_AGENT_6: tuple[str, ...] = abi_tool_names_for_profile("public_agent")
 
-# ── DEPRECATED ALIASES (backward compat only) ─────────────────────────────
-CANONICAL_13: tuple[str, ...] = (
-    CANONICAL_12  # DEPRECATED — use CANONICAL_12 (registry.py, surface_consistency.py)
-)
-CANONICAL_9: tuple[str, ...] = CANONICAL_12  # DEPRECATED — use CANONICAL_12
-CANONICAL_7: tuple[str, ...] = CANONICAL_12  # DEPRECATED — use CANONICAL_12
-CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = CANONICAL_12  # DEPRECATED alias
+# Compatibility constants remain importable for one migration cycle, but no
+# runtime or generated manifest may treat their numeric suffix as authority.
+FORGE_NEXT_8: tuple[str, ...] = KERNEL_ABI_8
+CANONICAL_12: tuple[str, ...] = KERNEL_ABI_8
+CANONICAL_13: tuple[str, ...] = KERNEL_ABI_8
+CANONICAL_9: tuple[str, ...] = KERNEL_ABI_8
+CANONICAL_7: tuple[str, ...] = KERNEL_ABI_8
+CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = KERNEL_ABI_8
 
 # ── Canary Probe — transport diagnostic, absorbed into arif_init(mode=canary) ──
 # arif_canary remains absorbed as a mode of arif_init. Its 6 child names are
@@ -99,23 +54,13 @@ DEPRECATED_CANARY_CHILDREN: tuple[str, ...] = (
 # See: forge_work/BANGANG-ALIAS-PURGE-2026-06-30.md and the 2026-07-04 YELLOW re-purge.
 CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = ()  # intentionally empty
 
-# ── Canonical 13 Public Surface (CANONICAL-13 2026-07-07) ─────────────
-# The public surface is exactly 13 tools = 9 stages + 3 evidence/preflight/bridge + memory.
-# The name CANONICAL_9 is retained as deprecated alias for backward compat.
-
-
-# Preferred canonical names for surface modes (2026-07-07 CANONICAL-13):
-#   "canonical13" → 13 canonical tools (default public)
-#   "canonical9"  → DEPRECATED alias for "canonical13"
-#   "canonical12" → DEPRECATED alias for "canonical13"
-#   "canonical7"  → DEPRECATED alias for "canonical13"
-#   "expanded45"  → canonical13 + all diagnostics (operator/debug)
 VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
-    "canonical13",  # preferred — 13 canonical tools
-    "canonical9",  # deprecated alias — maps to canonical13
-    "canonical12",  # deprecated alias — maps to canonical13
-    "canonical7",  # deprecated alias — maps to canonical13
-    "expanded45",  # operator/debug surface
+    "public_agent",
+    "trusted_agent",
+    "executor",
+    "sovereign",
+    "operator",
+    "legacy",
 )
 
 BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
@@ -215,9 +160,8 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arifos_retrieve_tools",
 )
 
-# EXPANDED_45 — the honest expanded public surface (FROZEN 2026-06-23).
-# Diagnostics are appended to the canonical 13 tools.
-EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_12, *DIAGNOSTIC_TOOLS])))
+# Operator diagnostics are a separate layer, never a ninth kernel capability.
+EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*KERNEL_ABI_8, *DIAGNOSTIC_TOOLS])))
 
 # DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
 # with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
@@ -225,82 +169,32 @@ EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*CANONICAL_12, *DIAGNOS
 
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
-    """Resolve surface mode. canonical13 (default) = 13 canonical tools. expanded45 = canonical13 + diagnostics.
-
-    canonical9 / canonical12 / canonical7 are deprecated aliases that always
-    mean the canonical public set — now the 13-tool surface.
-    """
+    """Resolve a host-supplied name to a platform-neutral policy profile."""
     raw = (mode or "").strip().lower()
     if not raw:
         raw = (os.getenv("ARIFOS_PUBLIC_SURFACE_MODE", "") or "").strip().lower()
     if not raw:
         raw = (os.getenv("ARIFOS_PUBLIC_TOOL_PROFILE", "") or "").strip().lower()
-
-    profile_map = {
-        # F13 SOVEREIGN — 2026-07-12: forge_next_8 is the new canonical
-        # default public surface for the arifOS MCP wire. WS4 cycle-end
-        # surface collapse. Legacy modes still resolve to canonical13
-        # (18-tool) for backward compat callers.
-        "forge_next_8": "forge_next_8",
-        "forge-next-8": "forge_next_8",
-        "canonical13": "canonical13",
-        "canonical9": "canonical13",  # deprecated alias
-        "canonical12": "canonical13",  # deprecated alias
-        "canonical7": "canonical13",  # deprecated alias
-        "canonical15": "canonical13",  # deprecated alias
-        "public": "forge_next_8",  # F13 default
-        "chatgpt": "forge_next_8",
-        "agnostic_public": "forge_next_8",
-        "internal": "expanded45",
-        "expanded45": "expanded45",
-    }
-    return profile_map.get(raw, "canonical13")
+    return normalize_profile(raw or None)
 
 
 def current_public_surface_mode() -> str:
     return normalize_public_surface_mode(None)
 
 
-# Lookup table: resolved surface profile name → tuple of canonical verbs.
-# FORGE_NEXT_8 (8) is the default — per F13 SOVEREIGN directive 2026-07-12.
-_SURFACE_VERB_TABLE: dict[str, tuple[str, ...]] = {
-    "forge_next_8": FORGE_NEXT_8,
-    "canonical13": CANONICAL_12,
-    "expanded45": EXPANDED_45,
-}
-
-
 def public_tool_names_for_mode(mode: str | None = None) -> tuple[str, ...]:
-    """
-    Return the public tool names for a given surface mode.
-
-    canonical13 (default): CANONICAL_12 (13 canonical tools).
-        CANONICAL-13 2026-07-07: 9 stages + 3 evidence/preflight/bridge + memory governor.
-        One intent = one public verb.
-    expanded45: CANONICAL_12 + DIAGNOSTIC_TOOLS (operator/debug surface).
-        Only active when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
-
-    INTERNAL_ONLY filter: tools registered in CANONICAL_TOOLS with
-    access == "internal_only" are NEVER exposed via any public mode.
-    """
+    """Return MCP provider bindings for the requested semantic profile."""
     resolved = normalize_public_surface_mode(mode)
-    if resolved == "expanded45":
+    contract = profile_contract(resolved)
+    candidates = abi_tool_names_for_profile(resolved)
+    if contract.get("diagnostics"):
         expose_dev_tools = os.getenv("ARIFOS_MCP_EXPOSE_DEV_TOOLS", "false").lower() in (
             "1",
             "true",
             "yes",
             "on",
         )
-        candidates = EXPANDED_45 if expose_dev_tools else CANONICAL_12
-    elif resolved == "forge_next_8":
-        # F13 SOVEREIGN 2026-07-12: 8-verb wire surface. The 10 retired
-        # verbs continue to live in CANONICAL_TOOLS (kernel handlers
-        # remain wired) but are now hidden from tools/list output unless
-        # the caller explicitly switches back to canonical13 / expanded45.
-        candidates = FORGE_NEXT_8
-    else:
-        # canonical13 (legacy default): the 13-tool wire surface.
-        candidates = CANONICAL_12
+        candidates = EXPANDED_45 if expose_dev_tools else PUBLIC_AGENT_6
     # Filter out internal_only tools regardless of mode.
     return tuple(
         name
@@ -317,24 +211,15 @@ def public_boundary_allows(name: str, mode: str | None = None) -> bool:
 
 
 def public_surface_state(mode: str | None = None) -> dict[str, Any]:
-    """Report the public tool surface state for the given mode.
-
-    Two profiles (2026-07-07 CANONICAL-13):
-      canonical13 — 13 canonical tools (13 tools, public default)
-      expanded45  — canonical13 + diagnostics (operator/debug, ARIFOS_MCP_EXPOSE_DEV_TOOLS=true)
-    """
+    """Report the resolved ABI profile and its provider bindings."""
     resolved = normalize_public_surface_mode(mode)
     tool_names = list(public_tool_names_for_mode(resolved))
     diagnostic_names = [name for name in tool_names if name in set(DIAGNOSTIC_TOOLS)]
     return {
         "mode": resolved,
-        "mode_aliases": {
-            "canonical12": "12 canonical tools (public default; CANONICAL-12 2026-07-07)",
-            "canonical9": "DEPRECATED alias for canonical13",
-            "canonical12": "DEPRECATED alias for canonical13",
-            "canonical7": "DEPRECATED alias for canonical13",
-            "expanded45": "canonical13 + diagnostics (operator/debug)",
-        },
+        "abi_version": "1.0.0",
+        "capability_count": len(KERNEL_ABI_8),
+        "profile": resolved,
         "tools_registered": len(tool_names),
         "kernel_tools": len(tool_names),
         "canonical_count": len(tool_names),

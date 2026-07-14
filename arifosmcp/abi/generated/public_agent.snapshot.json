@@ -1,0 +1,51 @@
+{
+  "$schema": "arifos://schema/profile-snapshot/v1",
+  "abi_version": "1.0.0",
+  "kernel_capabilities": [
+    "session.bind",
+    "reality.observe",
+    "cognition.think",
+    "intent.route",
+    "memory.govern",
+    "authority.judge",
+    "action.execute",
+    "history.seal"
+  ],
+  "kernel_provider_tools": [
+    "arif_init",
+    "arif_observe",
+    "arif_think",
+    "arif_route",
+    "arif_memory",
+    "arif_judge",
+    "arif_forge",
+    "arif_seal"
+  ],
+  "profile": "public_agent",
+  "profile_capabilities": [
+    "session.bind",
+    "reality.observe",
+    "cognition.think",
+    "intent.route",
+    "memory.govern",
+    "authority.judge"
+  ],
+  "profile_provider_tools": [
+    "arif_init",
+    "arif_observe",
+    "arif_think",
+    "arif_route",
+    "arif_memory",
+    "arif_judge"
+  ],
+  "semantic_hashes": {
+    "action.execute": "sha256:3ce5463279351e0c8c371dc046cc4062c796540516bb1f31c79c712299db07f3",
+    "authority.judge": "sha256:b1c58a6eeeeacb8ed8dd771295c24aeb28649b8dd4b8c3aa251cf4cd6a759abd",
+    "cognition.think": "sha256:88dcc1c39b6f59f9a0ef3b2f028b6891a0cb9f751915c948846820e95a527546",
+    "history.seal": "sha256:22ecfcb626b9c4fe1bedb8e9c31dbf79862588736177149c8492a8d35f2e4119",
+    "intent.route": "sha256:a0d24c437488bc1521d1f0170071665177b7a55a80c5e96e79b5a4cba4ff04bd",
+    "memory.govern": "sha256:9fd0dae38007619f6f2092e2bdb0d55ddf4327018c940052fd0c436e8dc810af",
+    "reality.observe": "sha256:6bb61ee5140a9e784ccdd6d3cafeabc34b20390e59cddece0c1d95076df0bce7",
+    "session.bind": "sha256:2a947992f413a8c969df2383c230f665c374f761de7618f5cf8f7a0e4299a5a5"
+  }
+}

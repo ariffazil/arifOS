@@ -1,70 +1,56 @@
 {
   "$schema": "https://modelcontextprotocol.io/specification",
-  "server_info": {
-    "name": "arifOS MCP",
-    "version": "2026.07.05-canonical9",
-    "description": "Compatibility manifest for the arifOS MCP public facade. Canonical discovery is the live MCP server card."
-  },
+  "abi_version": "1.0.0",
   "canonical_discovery": {
-    "server_manifest": "https://mcp.arif-fazil.com/.well-known/mcp/server.json",
     "endpoint": "https://mcp.arif-fazil.com/mcp",
     "transport": "streamable-http"
   },
-  "capabilities": {
-    "public_tools": {
-      "count": 9,
-      "description": "Exactly 9 public verbs: init, observe, think, route, critique, judge, forge, compose, seal."
+  "generated_from": "arifosmcp/abi/capability_registry.json",
+  "kernel_abi": {
+    "capability_count": 8,
+    "version": "1.0.0"
+  },
+  "profile": "public_agent",
+  "server_info": {
+    "description": "Six-tool public profile projected from the eight-capability platform-neutral Kernel ABI.",
+    "name": "arifOS MCP"
+  },
+  "tools": [
+    {
+      "capability_id": "session.bind",
+      "name": "arif_init",
+      "semantic_hash": "sha256:2a947992f413a8c969df2383c230f665c374f761de7618f5cf8f7a0e4299a5a5",
+      "version": "1.0.0"
     },
-    "constitutional_organs": {
-      "count": 13,
-      "description": "Internal constitutional organs exist behind the governed public surface."
+    {
+      "capability_id": "reality.observe",
+      "name": "arif_observe",
+      "semantic_hash": "sha256:6bb61ee5140a9e784ccdd6d3cafeabc34b20390e59cddece0c1d95076df0bce7",
+      "version": "1.0.0"
     },
-    "legacy_aliases": {
-      "supported": true,
-      "advertised": false,
-      "description": "Long-name aliases such as arif_session_init may still route, but they are not in tools/list."
+    {
+      "capability_id": "cognition.think",
+      "name": "arif_think",
+      "semantic_hash": "sha256:88dcc1c39b6f59f9a0ef3b2f028b6891a0cb9f751915c948846820e95a527546",
+      "version": "1.0.0"
     },
-    "prompts": {
-      "count": 10,
-      "golden_path_order": [
-        "arifosmcp_loop_engineer",
-        "000_init",
-        "111_observe",
-        "333_think",
-        "444_route",
-        "555_critique",
-        "666_judge",
-        "777_forge",
-        "888_compose",
-        "999_seal"
-      ]
+    {
+      "capability_id": "intent.route",
+      "name": "arif_route",
+      "semantic_hash": "sha256:a0d24c437488bc1521d1f0170071665177b7a55a80c5e96e79b5a4cba4ff04bd",
+      "version": "1.0.0"
+    },
+    {
+      "capability_id": "memory.govern",
+      "name": "arif_memory",
+      "semantic_hash": "sha256:9fd0dae38007619f6f2092e2bdb0d55ddf4327018c940052fd0c436e8dc810af",
+      "version": "1.0.0"
+    },
+    {
+      "capability_id": "authority.judge",
+      "name": "arif_judge",
+      "semantic_hash": "sha256:b1c58a6eeeeacb8ed8dd771295c24aeb28649b8dd4b8c3aa251cf4cd6a759abd",
+      "version": "1.0.0"
     }
-  },
-  "tools": {
-    "public_verbs": [
-      "arif_init",
-      "arif_observe",
-      "arif_think",
-      "arif_route",
-      "arif_critique",
-      "arif_judge",
-      "arif_forge",
-      "arif_compose",
-      "arif_seal"
-    ]
-  },
-  "golden_path": {
-    "order": "000→111→333→444→555→666→777→888→999",
-    "enforcement": {
-      "777_forge_blocked_without_prior_judge": true,
-      "777_forge_blocked_without_prior_seal": true,
-      "sabar_returns_to_333": true
-    }
-  },
-  "governance": {
-    "floors_active": 13,
-    "authority": "Human 888 Judge",
-    "self_approval_allowed": false,
-    "irreversible_actions_require_ack": true
-  }
+  ]
 }

@@ -721,7 +721,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Use when: a proposal has human/dignity impact, ethical risk, blast_radius MEDIUM+, "
             "or needs red-team stress-testing before judgment."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.CRITIQUE,
         "lane": TrinityLane.ASI,
         "floors": [Law.L05_PEACE, Law.L06_EMPATHY, Law.L09_ANTIHANTU],
@@ -734,7 +734,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "F9 Doctrine: The machine is an instrument, not a person."
         ),
         "cognitive_axis": "critique",
-        "expose": True,  # CANONICAL-9 2026-07-04: promoted from arif_think mode to own public tool at 555
+        "expose": False,  # absorbed into cognition.think(mode=critique)
     },
     # ── CANONICAL TOOLS (RULE 14 MODE-FIRST NAMING, 2026-06-20) ──
     "arif_route": {
@@ -784,7 +784,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Use when: you already know the exact organ and tool name and need a direct "
             "bridge call (bypasses intent routing). Requires session + lease."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L10_ONTOLOGY],
@@ -793,7 +793,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["connect"],
         "eureka_insight": "Direct organ bridge enables cross-organ federation without routing overhead.",
         "cognitive_axis": "boundary",
-        "expose": True,
+        "expose": False,
     },
     "arif_compose": {
         "name": "arif_compose",
@@ -804,7 +804,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Use when: the pipeline is complete and you need to format the final response "
             "for the human — adding citations, adjusting tone, or restructuring output."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
         "floors": [Law.L02_TRUTH, Law.L04_CLARITY, Law.L06_EMPATHY, Law.L09_ANTIHANTU],
@@ -818,7 +818,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable."
         ),
         "cognitive_axis": "reflect",
-        "expose": True,  # F13-ratified 2026-07-04: 12-tool kernel trim — promoted (response composer)
+        "expose": False,  # host/model adapter composes; not a kernel capability
     },
     "arif_memory": {
         "name": "arif_memory",
@@ -946,7 +946,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Payload: token (or seal), command (exact string), actor_id, optional signature. "
             "Use when: verifying a SEAL before execute; never invent SEAL validity without this tool."
         ),
-        "access": "authenticated",
+        "access": "internal_only",
         "stage": ToolStage.SEAL,
         "lane": TrinityLane.SOVEREIGN,
         "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
@@ -958,7 +958,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Without arif_verify the cage has a hasp but no padlock."
         ),
         "cognitive_axis": "verify",
-        "expose": True,
+        "expose": False,
     },
     "arif_act": {
         "name": "arif_act",
@@ -1054,7 +1054,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Collects observations WITHOUT producing a verdict. Validates against "
             "prohibited-inference policy. Enters J-state pipeline after validation."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L09_ANTIHANTU, Law.L02_TRUTH, Law.L11_AUDIT],
@@ -1063,7 +1063,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["observe"],
         "eureka_insight": "F9: never infer hidden niat. Observe behavior, not character.",
         "cognitive_axis": "observe",
-        "expose": True,
+        "expose": False,
     },
     "arif_j_state_assess": {
         "name": "arif_j_state_assess",
@@ -1072,7 +1072,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Computes 5 J-planes using MINIMUM-FLOOR aggregation. "
             "Never outputs a diagnosis or moral identity."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L09_ANTIHANTU, Law.L02_TRUTH, Law.L04_CLARITY],
@@ -1081,7 +1081,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["assess"],
         "eureka_insight": "J-state uses MINIMUM-FLOOR: weakest plane determines overall state.",
         "cognitive_axis": "judge",
-        "expose": True,
+        "expose": False,
     },
     "arif_correction_probe": {
         "name": "arif_correction_probe",
@@ -1089,7 +1089,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Generate a neutral challenge and record the response. "
             "Modes: draft_probe, record_response, classify_response, close_probe."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L02_TRUTH, Law.L11_AUDIT],
@@ -1098,7 +1098,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["draft_probe", "record_response", "classify_response", "close_probe"],
         "eureka_insight": "Correction response is behavior evidence, not character judgment.",
         "cognitive_axis": "judge",
-        "expose": True,
+        "expose": False,
     },
     "arif_consequence_trace": {
         "name": "arif_consequence_trace",
@@ -1106,7 +1106,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Trace who makes the decision, who receives benefits, "
             "who bears harm, and who can reverse it."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L06_EMPATHY, Law.L11_AUDIT],
@@ -1115,7 +1115,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["trace"],
         "eureka_insight": "Consequence gap = power * benefit_capture * harm_distance * non_accountability.",
         "cognitive_axis": "observe",
-        "expose": True,
+        "expose": False,
     },
     "arif_entropy_route": {
         "name": "arif_entropy_route",
@@ -1123,7 +1123,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Route domain questions to the correct organ. "
             "Human stress -> WELL; capital -> WEALTH; physical -> GEOX; runtime -> A-FORGE."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L04_CLARITY],
@@ -1132,7 +1132,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["route"],
         "eureka_insight": "Each organ measures only what it owns. arifOS combines signals.",
         "cognitive_axis": "route",
-        "expose": True,
+        "expose": False,
     },
     "arif_j_gate": {
         "name": "arif_j_gate",
@@ -1141,7 +1141,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "J0->VOID, J1->HOLD, J2->reversible only, J3->bounded, J4->witnessed. "
             "Never issues VAULT999 SEAL autonomously."
         ),
-        "access": "public",
+        "access": "internal_only",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.AGI,
         "floors": [Law.L01_AMANAH, Law.L13_SOVEREIGN, Law.L09_ANTIHANTU],
@@ -1150,7 +1150,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "modes": ["gate"],
         "eureka_insight": "F13: J-gate NEVER permits autonomous SEAL. Human veto is absolute.",
         "cognitive_axis": "judge",
-        "expose": True,
+        "expose": False,
     },
 }
 

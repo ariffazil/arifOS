@@ -1,0 +1,14 @@
+{
+  "$schema": "arifos://schema/receipt-registry/v1",
+  "registry_version": "1.0.0",
+  "receipts": {
+    "session.bind": {"required": true, "evidence": ["session_id", "actor_source", "authority_band"], "disposition": "session_log"},
+    "reality.observe": {"required": false, "evidence": ["source", "observed_at", "epistemic_status"], "disposition": "evidence_log"},
+    "cognition.think": {"required": false, "evidence": ["input_evidence_ids", "confidence", "unknowns"], "disposition": "session_log"},
+    "intent.route": {"required": false, "evidence": ["selected_organ", "capability_id", "policy_result"], "disposition": "session_log"},
+    "memory.govern": {"required_on_mutation": true, "evidence": ["memory_id", "before_hash", "after_hash", "actor"], "disposition": "memory_ledger"},
+    "authority.judge": {"required": true, "evidence": ["verdict", "floors", "witnesses", "actor"], "disposition": "decision_log"},
+    "action.execute": {"required": true, "evidence": ["approval_id", "action_hash", "result", "rollback"], "disposition": "execution_log"},
+    "history.seal": {"required": true, "evidence": ["human_ratifier", "signature", "content_hash", "previous_hash"], "disposition": "vault999"}
+  }
+}

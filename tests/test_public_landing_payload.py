@@ -12,9 +12,8 @@ from __future__ import annotations
 from arifosmcp.runtime.public_surface import CANONICAL_9, CANONICAL_12, public_tool_names_for_mode
 
 
-def test_canonical_12_has_12_tools():
-    """The canonical public surface is exactly 12 tools."""
-    assert len(CANONICAL_12) == 12
+def test_legacy_canonical_constant_resolves_to_kernel_abi():
+    assert len(CANONICAL_12) == 8
     assert all(name.startswith("arif_") for name in CANONICAL_12)
 
 
@@ -24,7 +23,7 @@ def test_canonical_9_is_deprecated_alias():
 
 
 def test_public_tool_names_returns_canonical():
-    """public_tool_names_for_mode(None) returns the canonical surface."""
+    """Default discovery returns the public-agent profile."""
     names = public_tool_names_for_mode(None)
-    assert len(names) >= 9
+    assert len(names) == 6
     assert all(name.startswith("arif_") for name in names)

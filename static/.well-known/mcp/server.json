@@ -1,93 +1,61 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
-  "version": "1.0",
+  "description": "Six-tool public profile projected from the eight-capability platform-neutral Kernel ABI.",
+  "homepage": "https://arifos.arif-fazil.com",
+  "kernel_abi": {
+    "capability_count": 8,
+    "version": "1.0.0"
+  },
+  "profile": "public_agent",
   "protocolVersion": "2025-11-25",
   "serverInfo": {
     "name": "ARIFOS MCP",
-    "title": "arifOS Constitutional MCP Server",
-    "version": "kanon-0545460"
+    "title": "arifOS Constitutional Kernel",
+    "version": "1!2026.07.11"
   },
-  "description": "Constitutional governance kernel. Public MCP facade is 18 tools (metabolic 12 + entropy mesh 6). Internal diagnostics exist behind the public facade but are not part of the default public surface.",
-  "transport": {
-    "type": "streamable-http",
-    "endpoint": "https://mcp.arif-fazil.com/mcp"
-  },
-  "authentication": {
-    "required": false,
-    "schemes": [
-      "bearer"
-    ],
-    "description": "Initialize and default public discovery are open. Higher-authority tools enforce authentication or sovereign approval."
-  },
-  "capabilities": {
-    "tools": {
-      "listChanged": true
-    },
-    "resources": {
-      "subscribe": false,
-      "listChanged": true
-    },
-    "prompts": {
-      "listChanged": true
-    }
-  },
+  "source_of_truth": "arifosmcp/abi/capability_registry.json",
+  "tool_count": 6,
   "tools": [
     {
-      "name": "arif_init"
+      "capability_id": "session.bind",
+      "name": "arif_init",
+      "semantic_hash": "sha256:2a947992f413a8c969df2383c230f665c374f761de7618f5cf8f7a0e4299a5a5",
+      "version": "1.0.0"
     },
     {
-      "name": "arif_observe"
+      "capability_id": "reality.observe",
+      "name": "arif_observe",
+      "semantic_hash": "sha256:6bb61ee5140a9e784ccdd6d3cafeabc34b20390e59cddece0c1d95076df0bce7",
+      "version": "1.0.0"
     },
     {
-      "name": "arif_think"
+      "capability_id": "cognition.think",
+      "name": "arif_think",
+      "semantic_hash": "sha256:88dcc1c39b6f59f9a0ef3b2f028b6891a0cb9f751915c948846820e95a527546",
+      "version": "1.0.0"
     },
     {
-      "name": "arif_route"
+      "capability_id": "intent.route",
+      "name": "arif_route",
+      "semantic_hash": "sha256:a0d24c437488bc1521d1f0170071665177b7a55a80c5e96e79b5a4cba4ff04bd",
+      "version": "1.0.0"
     },
     {
-      "name": "arif_bridge_connect"
+      "capability_id": "memory.govern",
+      "name": "arif_memory",
+      "semantic_hash": "sha256:9fd0dae38007619f6f2092e2bdb0d55ddf4327018c940052fd0c436e8dc810af",
+      "version": "1.0.0"
     },
     {
-      "name": "arif_critique"
-    },
-    {
-      "name": "arif_memory"
-    },
-    {
-      "name": "arif_judge"
-    },
-    {
-      "name": "arif_forge"
-    },
-    {
-      "name": "arif_compose"
-    },
-    {
-      "name": "arif_seal"
-    },
-    {
-      "name": "arif_verify"
-    },
-    {
-      "name": "arif_entropy_observe"
-    },
-    {
-      "name": "arif_j_state_assess"
-    },
-    {
-      "name": "arif_correction_probe"
-    },
-    {
-      "name": "arif_consequence_trace"
-    },
-    {
-      "name": "arif_entropy_route"
-    },
-    {
-      "name": "arif_j_gate"
+      "capability_id": "authority.judge",
+      "name": "arif_judge",
+      "semantic_hash": "sha256:b1c58a6eeeeacb8ed8dd771295c24aeb28649b8dd4b8c3aa251cf4cd6a759abd",
+      "version": "1.0.0"
     }
   ],
-  "tool_count": 18,
-  "homepage": "https://arifos.arif-fazil.com",
-  "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json"
+  "transport": {
+    "endpoint": "https://mcp.arif-fazil.com/mcp",
+    "type": "streamable-http"
+  },
+  "version": "1.0.0"
 }

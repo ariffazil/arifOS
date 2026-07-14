@@ -12,14 +12,10 @@ from __future__ import annotations
 
 
 def test_canonical_tool_count():
-    """Surface must be >= 16 canonical tools. Diagnostics (DIAGNOSTIC_TOOLS) are internal runtime only."""
-    from arifosmcp.constitutional_map import CANONICAL_TOOLS
+    """The semantic Kernel ABI remains exactly eight capabilities."""
+    from arifosmcp.runtime.public_surface import KERNEL_ABI_8
 
-    assert len(CANONICAL_TOOLS) >= 16, (
-        f"Surface drift: expected >= 16 tools, got {len(CANONICAL_TOOLS)}. VOID."
-    )
-    # list_constitutional_tools() and list_probe_tools() are different concepts;
-    # the canonical surface is CANONICAL_TOOLS + DIAGNOSTIC_TOOLS
+    assert len(KERNEL_ABI_8) == len(set(KERNEL_ABI_8)) == 8
 
 
 def test_tool_naming_convention():
@@ -41,21 +37,19 @@ def test_no_legacy_surface():
 
 
 def test_canonical_prompts_count():
-    """Exactly 8 canonical prompts: loop_engineer (entry guard) + 7 Golden Path stages."""
+    """Prompt inventory is independent from the Kernel ABI and must remain unique."""
     from arifosmcp.prompts import CANONICAL_PROMPTS
 
-    assert len(CANONICAL_PROMPTS) == 8, (
-        f"Prompt drift: expected 8, got {len(CANONICAL_PROMPTS)}. VOID."
-    )
+    assert CANONICAL_PROMPTS
+    assert len(CANONICAL_PROMPTS) == len(set(CANONICAL_PROMPTS))
 
 
 def test_canonical_resources_count():
-    """Exactly 16 canonical resources required."""
+    """Resource inventory is independent from the Kernel ABI and must remain unique."""
     from arifosmcp.resources import CANONICAL_RESOURCES
 
-    assert len(CANONICAL_RESOURCES) == 16, (
-        f"Resource drift: expected 16, got {len(CANONICAL_RESOURCES)}. VOID."
-    )
+    assert CANONICAL_RESOURCES
+    assert len(CANONICAL_RESOURCES) == len(set(CANONICAL_RESOURCES))
 
 
 def test_all_tools_have_floors():

@@ -13,26 +13,25 @@ from pydantic import TypeAdapter
 from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
 
 from arifosmcp.registry import get_prompt_specs_for_charter as _get_prompt_specs_for_charter
-
-V2_PROMPT_SPECS = _get_prompt_specs_for_charter()  # sourced from single-source-of-truth registry
+from arifosmcp.abi.kernel_abi import capability_ids, normalize_profile, validate_abi
 from .public_surface import (
-    CANONICAL_7,
+    KERNEL_ABI_8,
+    PUBLIC_AGENT_6,
     current_public_surface_mode,
     normalize_public_surface_mode,
     public_tool_names_for_mode,
 )
 from .tool_spec import PUBLIC_RESOURCE_SPECS
 
+V2_PROMPT_SPECS = _get_prompt_specs_for_charter()  # sourced from single-source-of-truth registry
+
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT_PATH = ROOT / "pyproject.toml"
 TOOL_REGISTRY_PATH = ROOT / "arifosmcp" / "tool_registry.json"
 DEFAULT_PUBLIC_BASE_URL = "https://mcp.arif-fazil.com/mcp"
 
-CANONICAL_PUBLIC_TOOLS = frozenset(CANONICAL_7)
-# EXPECTED_TOOL_COUNT is the default public wire surface (canonical7 mode):
-# FROZEN 2026-06-23: exactly 7 public canonical verbs.
-# SDK aliases and canary probes removed from wire surface — one name per function.
-EXPECTED_TOOL_COUNT = len(CANONICAL_7)
+CANONICAL_PUBLIC_TOOLS = frozenset(PUBLIC_AGENT_6)
+EXPECTED_TOOL_COUNT = len(PUBLIC_AGENT_6)
 
 RUNTIME_ENVELOPE_SCHEMA = {
     "type": "object",
@@ -559,13 +558,11 @@ def public_prompt_specs() -> tuple[Any, ...]:
 
 
 def is_public_profile(profile: str) -> bool:
-    return normalize_tool_profile(profile) in {"public", "chatgpt", "agnostic_public"}
+    return normalize_profile(profile) == "public_agent"
 
 
 def normalize_tool_profile(profile: str | None) -> str:
-    if not profile:
-        return "public"
-    return profile.lower().strip()
+    return normalize_profile(profile)
 
 
 def _resources_payload() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -614,6 +611,11 @@ def build_server_json(
         "homepage": urls.get("Homepage", "https://arifos.arif-fazil.com"),
         "repository": urls.get("Repository", "https://github.com/ariffazil/arifos"),
         "capabilities": {
+            "kernel_abi": {
+                "version": "1.0.0",
+                "semantic_capabilities": list(capability_ids()),
+                "canonical_count": len(KERNEL_ABI_8),
+            },
             "constitutional_floors": 13,
             "public_surface": resolved_surface_mode,
             "metabolic_routing": True,
@@ -654,12 +656,7 @@ def get_legacy_redirect(name: str) -> tuple[str, str] | None:
 
 
 def tool_names_for_profile(profile: str) -> list[str]:
-    normalized = normalize_tool_profile(profile)
-    if normalized in {"internal", "expanded45"}:
-        return list(public_tool_names("expanded45"))
-    if normalized == "canonical13":
-        return list(public_tool_names("canonical13"))
-    return list(public_tool_names("canonical13"))
+    return list(public_tool_names(normalize_tool_profile(profile)))
 
 
 def build_internal_server_json(
@@ -713,12 +710,14 @@ def verify_no_drift(mode: str | None = None) -> dict[str, Any]:
     actual = {spec.name for spec in public_tool_specs(mode)}
     missing = expected - actual
     extra = actual - expected
+    abi = validate_abi()
     return {
-        "ok": not missing and not extra and len(actual) == len(expected),
+        "ok": not missing and not extra and len(actual) == len(expected) and abi["ok"],
         "actual_count": len(actual),
         "expected_count": len(expected),
         "missing": sorted(missing),
         "extra": sorted(extra),
+        "abi": abi,
     }
 
 

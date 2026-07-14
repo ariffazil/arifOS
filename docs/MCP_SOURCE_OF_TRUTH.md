@@ -1,8 +1,8 @@
 # arifOS MCP Source of Truth
 
-**Status:** CURRENT SOT | RUNTIME COUNTS VERIFIED | GDK TEST SEAL PENDING
-**Last verified:** 2026-07-01
-**Valid until:** 2026-07-31
+**Status:** CURRENT SOT | RUNTIME COUNTS VERIFIED | FEDERATION-SOT-20260714
+**Last verified:** 2026-07-14
+**Valid until:** 2026-08-14
 **Scope:** arifOS MCP surface, federation MCP endpoints, and discovery boundaries.
 
 This file is the human-readable MCP SOT. Machine-readable surfaces remain:
@@ -16,37 +16,24 @@ This file is the human-readable MCP SOT. Machine-readable surfaces remain:
 
 ## Runtime Truth
 
-Verified against live `/health` endpoints on 2026-07-01:
+Verified against live `/health` endpoints on 2026-07-14 (FEDERATION-SOT-20260714-a840f2ae):
 
 | Organ | Public MCP URL | Health | Verified tool count | Notes |
 |---|---|---:|---:|---|
-| arifOS | `https://mcp.arif-fazil.com/mcp` | healthy | 7 public / 17 canonical / 48 via MCP | Canonical governance surface. |
-| GEOX | `https://geox.arif-fazil.com/mcp` | healthy | 31 canonical | MCP session required for full enumeration. |
-| WEALTH | `https://wealth.arif-fazil.com/mcp` | healthy | 32 live | MCP session required for enumeration. Includes aliases. |
-| WELL | `https://well.arif-fazil.com/mcp` | healthy | 22 live | REFLECT_ONLY substrate monitor. |
-| AAA | no canonical MCP endpoint | healthy | — | Control plane and A2A gateway surface at `https://aaa.arif-fazil.com`. |
-| A-FORGE | `https://forge.arif-fazil.com/mcp` | healthy | 72 via MCP | Execution/metabolism repo. Connect via A-FORGE MCP gateway. |
-| Wiki | static knowledge site | unknown | 0 | Static surface, not an MCP server. |
+| arifOS | `https://mcp.arif-fazil.com/mcp` | healthy | 8 deployed / 6 generated public profile | 8-capability Kernel ABI; deployed profile currently exposes all bindings. |
+| GEOX | `https://geox.arif-fazil.com/mcp` | healthy | 15 canonical (ZEN-15) | Earth intelligence. Mode-based tools. |
+| WEALTH | `https://wealth.arif-fazil.com/mcp` | ALIVE | 12 live | Capital intelligence. Mode-dispatched canonical tools. |
+| WELL | `https://well.arif-fazil.com/mcp` | degraded | 27 live | REFLECT_ONLY substrate monitor. WELL_HOLD signal. |
+| AAA | no canonical MCP endpoint | healthy | — | Federation state and operator cockpit. A2A gateway at `https://aaa.arif-fazil.com`. |
+| A-FORGE | `https://mcp.arif-fazil.com/mcp` | healthy | 52 live (30 stateless + 22 session-bound) | Governed execution shell. All `forge_*` prefixed. |
 
-## arifOS Canonical Tools
+## arifOS Kernel ABI
 
-The public arifOS MCP surface is exactly 7 canonical verbs:
+The permanent contract is **8 semantic capabilities**: `session.bind`, `reality.observe`, `cognition.think`, `intent.route`, `memory.govern`, `authority.judge`, `action.execute`, and `history.seal`.
 
-1. `arif_init`
-2. `arif_observe`
-3. `arif_think`
-4. `arif_route`
-5. `arif_judge`
-6. `arif_act`
-7. `arif_seal`
+The generated `public_agent` profile exposes 6 MCP bindings; `executor` adds execution and `sovereign` adds final sealing. The deployed service still reports 8 because its explicit legacy `forge_next_8` environment value normalizes to the sovereign profile; that is a profile selection, not a second canon.
 
-The full internal canonical surface has 17 names (including legacy aliases such as `arif_session_init`, `arif_sense_observe`, `arif_evidence_fetch`, etc.); see `arifosmcp/tool_registry.json` and `arifosmcp/PUBLIC_SURFACE_CANON.md` for the machine-readable breakdown.
-
-Do not add an 8th public canonical verb for discovery. The governed discovery loop belongs under:
-
-```text
-arif_observe(mode="compass")
-```
+Machine authority: `arifosmcp/abi/capability_registry.json` and `policy_registry.json`. Generated views: `docs/KERNEL_CAPABILITY_ABI.md`, `smithery.yaml`, `mcp-arifos.json`, and `static/.well-known/mcp/server.json`.
 
 The standalone wiki utilities may exist as implementation helpers or non-canonical utility tools:
 

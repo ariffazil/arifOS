@@ -54,34 +54,12 @@ class TestVisibility:
 
     @pytest.mark.asyncio
     async def test_canonical_tools_are_model_visible(self) -> None:
-        """The main MCP server exposes the 21 canonical arif_* tools as public surface."""
+        """The model sees only the selected public-agent profile."""
         from arifosmcp.server import mcp
+        from arifosmcp.runtime.public_surface import PUBLIC_AGENT_6
 
         names = await self._tool_names(mcp)
-        # All 21 canonical tools must be visible
-        canonical_13 = {
-            "arif_evidence_fetch",
-            "arif_forge_execute",
-            "arif_gateway_connect",
-            "arif_heart_critique",
-            "arif_judge_deliberate",
-            "arif_kernel_route",
-            "arif_memory_recall",
-            "arif_mind_reason",
-            "arif_ops_measure",
-            "arif_reply_compose",
-            "arif_sense_observe",
-            "arif_session_init",
-            "arif_vault_seal",
-            # Rule-14 canonical tools
-            "arif_route",
-            "arif_triage",
-            "arif_kernel_status",
-            "arif_bridge",
-            "arif_kernel_attest",
-            "arif_kernel_health",
-        }
-        assert canonical_13.issubset(names), f"Missing canonical tools: {canonical_13 - names}"
+        assert set(PUBLIC_AGENT_6) == names
         # Backend/internal tools must NOT leak to model scope
         backend_tools = {
             "session_status",
