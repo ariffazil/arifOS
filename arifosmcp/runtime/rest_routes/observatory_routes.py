@@ -67,6 +67,182 @@ _OBS_METHOD_STATIC = "static_configuration"
 _OBS_METHOD_UNKNOWN = "unknown"
 
 
+# ── Explanation vocabulary (2026-07-14) ──────────────────────────────────────
+# Every technical failure carries three layers:
+#   machine_code  — the canonical identifier (e.g., DNS_RESOLUTION_FAILED)
+#   human         — what this means for a non-technical reader
+#   builder       — what an engineer should check or do
+#
+# This is NOT auto-generated. Each entry is manually written to be truthful
+# about what the failure means and what can be done about it.
+# "Never show more certainty than the underlying machine state has earned."
+
+_EXPLAIN: dict[str, dict[str, str]] = {
+    # Transport failures
+    "TRANSPORT_UNREACHABLE": {
+        "human": "The Observatory could not reach this service over the network. The service may be stopped, starting up, or running on a different address.",
+        "builder": "Check: systemctl status <service>, verify the port with ss -tlnp, confirm the probe target is 127.0.0.1:<port>.",
+    },
+    "TRANSPORT_TIMEOUT": {
+        "human": "The service was found on the network but did not respond in time. It may be overloaded or blocked.",
+        "builder": "Check: service logs for errors, resource usage (CPU/memory), firewall rules, and whether the process is hung.",
+    },
+    "TRANSPORT_CONNECTION_REFUSED": {
+        "human": "The address exists but the service is not accepting connections. It may be stopped or crashed.",
+        "builder": "Check: systemctl status <service>, dmesg for OOM kills, service logs for startup failures.",
+    },
+    "TRANSPORT_DNS_FAILED": {
+        "human": "The Observatory could not find the configured network address. The service may still be running but the address is wrong.",
+        "builder": "Check: service hostname in Caddyfile, /etc/hosts, network namespace, and whether the probe target uses 127.0.0.1 instead of a hostname.",
+    },
+    # Capability failures
+    "CAPABILITY_DRIFTED": {
+        "human": "Some tools that were expected to be available are missing or changed. The service may have been updated without restarting, or a dependency is not loaded.",
+        "builder": "Check: the capability drift matrix in the Observatory snapshot, restart the service to reload the tool registry, verify MCP tool registration.",
+    },
+    "CAPABILITY_DEGRADED": {
+        "human": "Some tools are not fully working. The service is running but not all features are available.",
+        "builder": "Check: which tools are degraded in /api/observatory/v1/snapshot/capabilities, verify tool input/output schemas match the registry.",
+    },
+    "CAPABILITY_UNKNOWN": {
+        "human": "The Observatory could not determine which tools are available. The service may not have started yet.",
+        "builder": "Check: service startup logs, MCP tool registry initialization, FastMCP list_tools() availability.",
+    },
+    # Conformance failures
+    "CONFORMANCE_UNVERIFIED": {
+        "human": "The Observatory has not yet verified this aspect of the service. This does not mean it is broken — just that no check has run.",
+        "builder": "Run the conformance checks: POST /api/observatory/v1/conformance/run. Check conformance_spine.py for available checks.",
+    },
+    "CONFORMANCE_TRANSPORT_FAIL": {
+        "human": "The service is not reachable over the network. Some checks require a running service.",
+        "builder": "Check: service status, port availability, Caddy reverse proxy configuration.",
+    },
+    "CONFORMANCE_STATIC_FAIL": {
+        "human": "A basic configuration check failed. The service may be misconfigured.",
+        "builder": "Check: the conformance check details in the Observatory snapshot, verify environment variables and configuration files.",
+    },
+    # Edge failures
+    "EDGE_UNREACHABLE": {
+        "human": "The Observatory could not verify that this service can communicate with another service. The connection between them may be broken.",
+        "builder": "Check: both services are running, network connectivity between them, reverse proxy configuration for the edge.",
+    },
+    "EDGE_DRIFTED": {
+        "human": "The connection between two services has changed from what was expected. One service may have been updated.",
+        "builder": "Check: schema compatibility between the two services, verify tool registration on both ends.",
+    },
+    # Governance failures
+    "GOVERNANCE_DEGRADED": {
+        "human": "Some governance checks are not passing. The service is running but may not be enforcing all rules correctly.",
+        "builder": "Check: which floors are failing in the governance block, verify floor computation in core/shared/floors.py.",
+    },
+    # Receipt failures
+    "RECEIPT_CHAIN_BROKEN": {
+        "human": "The audit trail has a gap. Some events may not have been recorded properly.",
+        "builder": "Check: VAULT999 chain integrity via /api/observatory/v1/seal/verify, verify seal_chain.jsonl is writable.",
+    },
+    "RECEIPT_UNAVAILABLE": {
+        "human": "The audit system is not responding. Events may not be being recorded.",
+        "builder": "Check: vault999 service status, Postgres connectivity, seal_chain.jsonl file permissions.",
+    },
+    # Generic
+    "PROBE_FAILED": {
+        "human": "A health check did not complete. This may be temporary.",
+        "builder": "Check: service logs, try the probe again, verify the probe target is correct.",
+    },
+    "UNKNOWN": {
+        "human": "The Observatory encountered an unexpected condition. This needs investigation.",
+        "builder": "Check: Observatory logs for exceptions, verify all dependencies are running.",
+    },
+}
+
+
+def _explain(code: str) -> dict[str, str]:
+    """Return {machine_code, human, builder} for a failure code.
+
+    Unknown codes get a generic explanation — never silent, never empty.
+    """
+    entry = _EXPLAIN.get(code, _EXPLAIN["UNKNOWN"])
+    return {
+        "machine_code": code,
+        "human": entry["human"],
+        "builder": entry["builder"],
+    }
+
+
+def _enrich_with_explanation(envelope: dict[str, Any]) -> dict[str, Any]:
+    """Add explanation to a per-field envelope if it represents a failure.
+
+    Non-failure states (value in GOOD_VALUES) get no explanation —
+    we don't explain things that are working. Only failures get the
+    three-layer treatment.
+    """
+    GOOD_VALUES = {"up", "ALIGNED", "STATIC_PASS", "TRANSPORT_PASS",
+                   "GOVERNED_RUNTIME_PASS", "GREEN", "reachable", "aligned"}
+    value = envelope.get("value")
+    if value in GOOD_VALUES:
+        return envelope
+    # Derive a failure code from the value or state
+    code = _derive_failure_code(envelope)
+    if code:
+        envelope["explanation"] = _explain(code)
+    return envelope
+
+
+def _derive_failure_code(envelope: dict[str, Any]) -> str | None:
+    """Derive a machine failure code from an envelope's value and source."""
+    value = envelope.get("value")
+    source = envelope.get("source", "")
+    state = envelope.get("state", "")
+
+    # Transport failures
+    if value == "unreachable" or "unreachable" in str(value).lower():
+        return "TRANSPORT_UNREACHABLE"
+    if value == "timeout" or "timeout" in str(value).lower():
+        return "TRANSPORT_TIMEOUT"
+    if value == "connection_refused" or "refused" in str(value).lower():
+        return "TRANSPORT_CONNECTION_REFUSED"
+    if "dns" in str(value).lower() or "gaierror" in str(source).lower():
+        return "TRANSPORT_DNS_FAILED"
+
+    # Capability failures
+    if "capability" in source.lower() and value == "degraded":
+        return "CAPABILITY_DEGRADED"
+    if "capability" in source.lower() and value == "DRIFTED":
+        return "CAPABILITY_DRIFTED"
+    if "capability" in source.lower() and value == "unknown":
+        return "CAPABILITY_UNKNOWN"
+
+    # Conformance failures
+    if "conformance" in source.lower() and value == "UNVERIFIED":
+        return "CONFORMANCE_UNVERIFIED"
+    if "conformance" in source.lower() and value in ("TRANSPORT_FAIL", "STATIC_FAIL"):
+        return f"CONFORMANCE_{value}"
+
+    # Edge failures
+    if "edge" in source.lower() and value == "unreachable":
+        return "EDGE_UNREACHABLE"
+    if "edge" in source.lower() and value == "drifted":
+        return "EDGE_DRIFTED"
+
+    # Governance failures
+    if "governance" in source.lower() and value == "degraded":
+        return "GOVERNANCE_DEGRADED"
+
+    # Receipt failures
+    if "receipt" in source.lower() and not envelope.get("value"):
+        return "RECEIPT_UNAVAILABLE"
+    if "chain" in source.lower() and value == "broken":
+        return "RECEIPT_CHAIN_BROKEN"
+
+    # Generic
+    if state == "unknown":
+        return "UNKNOWN"
+    if value in (None, "unknown", "degraded", "unreachable"):
+        return "PROBE_FAILED"
+
+    return None
+
+
 # ── Per-field envelope helper ─────────────────────────────────────────────────
 def _pf(
     value: Any,
@@ -1512,6 +1688,25 @@ def _conformance_block() -> dict[str, Any]:
         }
 
 
+# ── Explanation enrichment (2026-07-14) ──────────────────────────────────────
+def _enrich_snapshot(obj: Any) -> Any:
+    """Walk the snapshot tree and add explanations to all failure envelopes.
+
+    An envelope is identified by having 'value', 'state', and 'source' keys.
+    Non-failure envelopes are left untouched. This runs once at the end of
+    build_snapshot — it's the explanation layer.
+    """
+    if isinstance(obj, dict):
+        # Check if this is a per-field envelope
+        if "value" in obj and "state" in obj and "source" in obj:
+            return _enrich_with_explanation(obj)
+        # Otherwise recurse into children
+        return {k: _enrich_snapshot(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_enrich_snapshot(item) for item in obj]
+    return obj
+
+
 # ── Snapshot composition ──────────────────────────────────────────────────────
 def build_snapshot(
     mcp: Any,
@@ -1609,7 +1804,8 @@ def build_snapshot(
             independent=True,
         ),
     }
-    return payload
+    # Enrich all failure envelopes with human/builder explanations
+    return _enrich_snapshot(payload)
 
 
 # ── Seven-state vocabulary health endpoint ────────────────────────────────────

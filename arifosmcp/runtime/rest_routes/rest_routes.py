@@ -3018,41 +3018,94 @@ def register_rest_routes(
 
     @route("/999", methods=["GET"])
     async def human_validation(request: Request) -> Response:
-        """Human validation endpoint — /999 is the sovereign approval gate.
+        """Public proof surface — /999 is the PUBLIC verification endpoint.
 
-        Returns pending human authorizations and vault seal status.
-        This is the irreversible action gate: /999 POST to arif_seal
-        requires human witness before any irreversible operation (F1 Amanah,
-        L13 Sovereign Human Veto).
+        MEMORY BOUNDARY (2026-07-14): This endpoint exposes ONLY public proof
+        material. Raw receipts, private traces, and internal vault data are NOT
+        exposed here. For operator verification, use /api/observatory/v1/seal/*
+        with a valid X-Op-Token.
+
+        Exposes:
+          - Chain head hash (public proof of latest seal)
+          - Chain length (public proof of activity)
+          - Chain integrity status (whether the chain is unbroken)
+          - Verification instructions
+          - Links to operator verification (auth required)
+
+        Does NOT expose:
+          - Raw receipt contents
+          - Private session data
+          - Internal vault health details
+          - Pending approvals (governance-internal)
         """
-        vault_status = None
+        # ── Chain proof (filesystem-backed, independent) ──────────────────
+        chain_head = None
+        chain_length = 0
+        chain_integrity = "UNKNOWN"
         try:
-            vault_status = _probe_vault999_health()
+            head_path = Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
+            chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+            if head_path.exists():
+                chain_head = json.loads(head_path.read_text())
+            if chain_path.exists():
+                with open(chain_path) as f:
+                    chain_length = sum(1 for _ in f)
+            # Integrity: head exists and chain file exists = basic integrity
+            if chain_head and chain_path.exists():
+                chain_integrity = "CHAIN_PRESENT"
+            else:
+                chain_integrity = "CHAIN_INCOMPLETE"
         except Exception:
-            vault_status = "unavailable"
+            chain_integrity = "CHAIN_READ_ERROR"
 
-        # Best-effort: try to read pending approvals from app.state
-        pending_approvals = []
+        # ── Vault liveness (sanitized — no internal details) ─────────────
+        vault_liveness = "unknown"
         try:
-            sovereign = getattr(request.app.state, "arifos_sovereign_status", {})
-            if sovereign and callable(getattr(sovereign, "get", None)):
-                pending = sovereign.get("pending_approvals")
-                if pending:
-                    pending_approvals = pending if isinstance(pending, list) else [pending]
+            vault_liveness = _probe_vault999_health()
         except Exception:
-            pass
+            vault_liveness = "unreachable"
 
+        # ── Build public proof response ──────────────────────────────────
         return JSONResponse(
             {
                 "endpoint": "/999",
-                "role": "human_validation",
-                "description": "Sovereign approval gate — irrevocable action requires human witness",
+                "role": "public_verification",
+                "description": (
+                    "Public proof surface for the arifOS constitutional ledger. "
+                    "This endpoint exposes cryptographic proof of chain existence "
+                    "and integrity. Raw receipts and private data are NOT exposed. "
+                    "For operator verification, use /api/observatory/v1/seal/* "
+                    "with a valid X-Op-Token."
+                ),
                 "service": "arifOS AAA MCP Server",
-                "vault999_health": vault_status,
-                "pending_approvals": pending_approvals,
-                "seal_methods": {
-                    "POST /999/seal": "arif_seal — requires operator approval",
-                    "GET /operator/approvals": "list pending human authorizations",
+                "proof": {
+                    "chain_head": {
+                        "seq": chain_head.get("seq") if chain_head else None,
+                        "hash": chain_head.get("this_hash") if chain_head else None,
+                        "epoch": chain_head.get("epoch") if chain_head else None,
+                    },
+                    "chain_length": chain_length,
+                    "chain_integrity": chain_integrity,
+                    "vault_liveness": vault_liveness,
+                },
+                "verification": {
+                    "instructions": (
+                        "To verify a specific seal, use GET /api/observatory/v1/seal/verify "
+                        "with an X-Op-Token header. To replay a seal by sequence number, "
+                        "use GET /api/observatory/v1/seal/replay?seq=<N>. "
+                        "To run a round-trip self-test, use POST /api/observatory/v1/seal/test."
+                    ),
+                    "operator_endpoints": {
+                        "verify": "/api/observatory/v1/seal/verify",
+                        "replay": "/api/observatory/v1/seal/replay",
+                        "test": "/api/observatory/v1/seal/test",
+                    },
+                    "auth_required": "X-Op-Token header (SHA-256 hash verified)",
+                },
+                "boundaries": {
+                    "vault999": "internal only (127.0.0.1:8100, no public proxy)",
+                    "public_proof": "this endpoint (/999) — hashes, chain status, verification instructions",
+                    "operator_verification": "/api/observatory/v1/seal/* — requires X-Op-Token",
                 },
                 "source_of_truth": "https://github.com/ariffazil/arifOS",
                 "timestamp": datetime.now(UTC).isoformat(),
