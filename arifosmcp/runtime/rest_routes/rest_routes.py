@@ -5984,9 +5984,6 @@ def register_rest_routes(
     async def webmcp_discovery(request: Request) -> Response:
         """WebMCP discovery document."""
         try:
-            from arifosmcp.runtime.webmcp.server import create_webmcp_app
-
-            create_webmcp_app(mcp)
             base = _public_base_url(request)
             return JSONResponse(
                 {
@@ -6101,9 +6098,6 @@ setInterval(refreshSot, 30000);
     async def webmcp_sdk(request: Request) -> Response:
         """Browser SDK — drop-in script for web apps."""
         try:
-            from arifosmcp.runtime.webmcp.server import create_webmcp_app
-
-            create_webmcp_app(mcp)
             base = _public_base_url(request)
             sdk = f"""// arifOS WebMCP SDK v2026.04.11
 (function(w){{
