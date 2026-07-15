@@ -217,15 +217,164 @@ def nine_signal_from_apex(
     }
 
 
-def inject_nine_signal(model_dump_json: dict, status: str, tool: str = "") -> dict:
+def nine_signal_from_session(
+    status: str,
+    session: dict | None = None,
+    degraded: list[str] | None = None,
+    floor_violations: list[str] | None = None,
+    confidence: float | None = None,
+) -> dict[str, str | dict]:
+    """Build Nine-Signal from real session state — not just status lookup.
+
+    Computes delta/psi/omega from actual system state:
+    - delta: tool surface health, degraded items, session binding
+    - psi: authority verification, floor compliance, governance integrity
+    - omega: confidence score, epistemic discipline
+
+    Falls back to nine_signal_from_status when session context is absent.
+    """
+    degraded = degraded or []
+    floor_violations = floor_violations or []
+    session = session or {}
+
+    # ── DELTA (Machine/Physical) ──
+    if degraded:
+        critical_degraded = [
+            d for d in degraded if "critical" in d.lower() or "broken" in d.lower()
+        ]
+        if critical_degraded:
+            delta_state, delta_en = "ROSAK", "BROKEN"
+        else:
+            delta_state, delta_en = "RETAK", "CRACKED"
+    elif not session.get("session_id"):
+        delta_state, delta_en = "TIDAK_PASTI", "UNMEASURED"
+    else:
+        delta_state, delta_en = "KUKUH", "SOLID"
+
+    # ── PSI (Governance) ──
+    actor_verified = session.get("actor_verified", False)
+    authority = session.get("authority", "OBSERVE_ONLY")
+    if floor_violations:
+        critical_floors = [f for f in floor_violations if f in ("F1", "F9", "F13")]
+        if critical_floors:
+            psi_state, psi_en = "KHIANAT", "BETRAYED"
+        else:
+            psi_state, psi_en = "SYUBHAH", "DOUBTFUL"
+    elif actor_verified and authority in ("FULL", "SOVEREIGN"):
+        psi_state, psi_en = "AMANAH", "TRUSTED"
+    elif actor_verified:
+        psi_state, psi_en = "AMANAH", "TRUSTED"
+    else:
+        psi_state, psi_en = "SYUBHAH", "DOUBTFUL"
+
+    # ── OMEGA (Intelligence) ──
+    if confidence is not None:
+        if confidence >= 0.85:
+            omega_state, omega_en = "BIJAKSANA", "WISE"
+        elif confidence >= 0.60:
+            omega_state, omega_en = "BIJAK", "SMART"
+        else:
+            omega_state, omega_en = "BANGANG", "FOOLISH"
+    else:
+        # Default based on status
+        if status in ("OK", "SEAL"):
+            omega_state, omega_en = "BIJAKSANA", "WISE"
+        elif status in ("HOLD", "SABAR", "DEGRADED"):
+            omega_state, omega_en = "BIJAK", "SMART"
+        else:
+            omega_state, omega_en = "BIJAK", "SMART"
+
+    # ── OVERALL ──
+    state_rank = {"KUKUH": 3, "RETAK": 2, "ROSAK": 1, "TIDAK_PASTI": 1}
+    psi_rank = {"AMANAH": 3, "SYUBHAH": 2, "KHIANAT": 1}
+    omega_rank = {"BIJAKSANA": 3, "BIJAK": 2, "BANGANG": 1}
+    worst = min(
+        state_rank.get(delta_state, 0),
+        psi_rank.get(psi_state, 0),
+        omega_rank.get(omega_state, 0),
+    )
+    if worst >= 3:
+        overall_state, overall_en = "SELAMAT", "SAFE"
+    elif worst == 2:
+        overall_state, overall_en = "SABAR", "PATIENCE"
+    else:
+        overall_state, overall_en = "RETAK", "CRACKED"
+
+    return _build_nine_signal(
+        {"plane": "machine_physical_state", "state": delta_state, "en": delta_en},
+        {"plane": "governance_integrity", "state": psi_state, "en": psi_en},
+        {"plane": "intelligence_discipline", "state": omega_state, "en": omega_en},
+        {"state": overall_state, "en": overall_en},
+    )
+
+
+def _build_nine_signal(delta_d, psi_d, omega_d, overall_d):
+    """Build nine_signal with dominant-plane detection."""
+    _SEV = {
+        "ROSAK": 0,
+        "KHIANAT": 0,
+        "BANGANG": 0,
+        "RETAK": 1,
+        "TIDAK_PASTI": 1,
+        "BELUM_IKAT": 1,
+        "SYUBHAH": 2,
+        "BIJAK": 3,
+        "KUKUH": 5,
+        "AMANAH": 5,
+        "BIJAKSANA": 5,
+        "SELAMAT": 5,
+    }
+    planes = {"delta": delta_d, "psi": psi_d, "omega": omega_d}
+    worst_plane = min(planes, key=lambda p: _SEV.get(planes[p]["state"], 99))
+    worst_state = planes[worst_plane]["state"]
+    overall_state = overall_d["state"]
+    if _SEV.get(worst_state, 99) < _SEV.get(overall_state, 99):
+        dominant_meta = {
+            "_dominant_plane": worst_plane,
+            "_dominant_state": worst_state,
+            "_dominance_rule": (
+                f"Sub-signal floor dominates aggregate: "
+                f"{worst_plane}={worst_state} overrides overall."
+            ),
+        }
+    else:
+        dominant_meta = {}
+    return {
+        "overall": overall_d,
+        "delta": delta_d,
+        "psi": psi_d,
+        "omega": omega_d,
+        **dominant_meta,
+    }
+
+
+def inject_nine_signal(
+    model_dump_json: dict,
+    status: str,
+    tool: str = "",
+    session: dict | None = None,
+    degraded: list[str] | None = None,
+    floor_violations: list[str] | None = None,
+    confidence: float | None = None,
+) -> dict:
     """Inject nine_signal block into a raw model_dump(mode='json') dict.
 
-    MEMBRANE-01: Kernel does NOT compute APEX. It accepts what A-FORGE passes.
+    When session context is provided, computes from real state.
+    Otherwise falls back to status-based lookup.
     """
     out = dict(model_dump_json)
     pre_computed = out.get("nine_signal")
     if pre_computed and isinstance(pre_computed, dict) and "omega" in pre_computed:
         ns = pre_computed
+    elif session or degraded or floor_violations or confidence is not None:
+        # Compute from real session state
+        ns = nine_signal_from_session(
+            status=status,
+            session=session,
+            degraded=degraded,
+            floor_violations=floor_violations,
+            confidence=confidence,
+        )
     else:
         ns = nine_signal_from_status(status)
     if tool:
