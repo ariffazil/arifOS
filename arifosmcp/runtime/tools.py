@@ -20744,7 +20744,7 @@ async def _arif_challenge_tool(
             "ttl_seconds": effective_ttl,
             "session_id": bound_session_id,
             "instructions": (
-                "Sign the string f\"{actor_id}:{challenge}\" with your Ed25519 "
+                'Sign the string f"{actor_id}:{challenge}" with your Ed25519 '
                 "private key, base64-encode the 64-byte signature, then call "
                 "arif_verify(challenge, signature_b64, actor_pubkey_hex, session_id)."
             ),
@@ -22075,6 +22075,17 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     kwargs["session_id"] = _auto_sid
             except Exception:
                 pass  # Non-fatal: handler will see session_id=None
+
+        # Actor continuity fix (2026-07-15): when session_id is resolved
+        # (either from caller or auto-injected), also inject actor_id from
+        # the session so tools like arif_judge don't see "anonymous".
+        if kwargs.get("session_id") and not kwargs.get("actor_id"):
+            try:
+                _sess = _SESSIONS.get(kwargs["session_id"])
+                if _sess and _sess.get("actor_id"):
+                    kwargs["actor_id"] = _sess["actor_id"]
+            except Exception:
+                pass
 
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)

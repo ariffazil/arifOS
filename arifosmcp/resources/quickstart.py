@@ -60,20 +60,15 @@ FIRST STEPS FOR AN LLM CLIENT:
        777 FORGE  → execute
        999 SEAL   → record immutably
 
-  3. KNOW YOUR TOOLS (13 canonical):
+  3. KNOW YOUR TOOLS (8 canonical — capability_registry.json):
      arif_init        — session bootstrap
      arif_observe     — multimodal observation
-     arif_fetch       — verified external evidence
-     arif_think       — symbolic reasoning
-     arif_compose     — governed response
-     arif_route       — canonical routing
-     arif_triage      — session status/preflight
+     arif_think       — symbolic reasoning + critique (critique mode absorbed)
+     arif_route       — canonical routing to federation organs
+     arif_memory      — constitutional memory gate
      arif_judge       — constitutional verdict (SEAL/SABAR/HOLD/VOID)
-     arif_seal        — immutable ledger write
-     arif_measure     — resource health
-     arif_critique    — consequence assessment
-     arif_bridge_connect — cross-organ bridge
-     arif_forge       — execution (A-FORGE proxy)
+     arif_forge       — execution (A-FORGE proxy) + compose (compose mode absorbed)
+     arif_seal        — immutable VAULT999 ledger write
 
   4. KNOW YOUR RESOURCES (13 canonical):
      arifos://doctrine         — F1-F13 constitutional floors
