@@ -192,6 +192,12 @@ TOOL_ALIASES: dict[str, str] = {
     "arifOS.arif_kernel_status": "arif_kernel_status",
     "kernel_status": "arif_kernel_status",
     "arif_status": "arif_kernel_status",
+    # D5: GEOX claim surface is mode-dispatched on geox_claim (not 5 separate tools)
+    "geox_claim_create": "geox_claim",
+    "geox_claim_validate": "geox_claim",
+    "geox_claim_challenge": "geox_claim",
+    "geox_claim_seal": "geox_claim",
+    "geox_evidence_attach": "geox_claim",
     "status": "arif_kernel_status",
     # Memory recall
     "arif_recall": "arif_memory_recall",

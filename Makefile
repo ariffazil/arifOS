@@ -68,7 +68,10 @@ deploy-local:
 		(echo "888_HOLD: local HEAD is not origin/main; push or rebase before deploy-local" && exit 1)
 	@cd $(DIR) && GIT_SHA=$$(git rev-parse --short=7 HEAD); \
 	echo "Syncing canonical code to /opt/arifos/app..."; \
-	rsync -av --exclude='.git' --exclude='.venv' $(DIR)/ /opt/arifos/app/; \
+	rsync -av --exclude='.git' --exclude='.venv' --exclude='.claude' \
+		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
+		--exclude='node_modules' --exclude='build' --exclude='.mypy_cache' \
+		$(DIR)/ /opt/arifos/app/; \
 	chmod -R u+rwX,go+rX /opt/arifos/app/arifosmcp/; \
 	chmod 644 /opt/arifos/app/.env; \
 	chown arifos:arifos /opt/arifos/app/.env 2>/dev/null; \

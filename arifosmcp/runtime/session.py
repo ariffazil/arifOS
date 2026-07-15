@@ -627,6 +627,13 @@ def mark_session_ed25519_verified(
     identity["ed25519_pubkey"] = actor_pubkey_hex
     identity["ed25519_verified_at"] = _utcnow().isoformat()
 
+    # D3: top-level actor_verified must stick across tool hops.
+    # Nested identity.ed25519_verified alone left mid-session re-reads as false.
+    record["actor_verified"] = True
+    record["verified_actor_id"] = actor_id
+    if not record.get("actor_id"):
+        record["actor_id"] = actor_id
+
     # Append to event log for F11 AUDIT traceability.
     events = record.setdefault("events", [])
     if isinstance(events, list):

@@ -72,6 +72,62 @@ from arifosmcp.runtime.memory_store import (
 )
 from arifosmcp.runtime.tools import _hold, _ok
 
+
+def _probe_memory_substrate_boot() -> dict[str, Any]:
+    """D6: live L3/L4 substrate snapshot for session boot (best-effort, fail-open)."""
+    out: dict[str, Any] = {
+        "l3_qdrant": {"status": "unknown"},
+        "l3_federation_shared": {"status": "unknown"},
+        "l3_arifos_memory": {"status": "unknown"},
+        "l4_postgres": {"status": "unknown"},
+    }
+    try:
+        import httpx
+
+        base = __import__("os").environ.get("QDRANT_URL", "http://127.0.0.1:6333")
+        # normalize docker hostname for local probe
+        if "qdrant:" in base:
+            base = "http://127.0.0.1:6333"
+        with httpx.Client(timeout=2.0) as client:
+            for name, key in (
+                ("arifos_memory", "l3_arifos_memory"),
+                ("federation_shared", "l3_federation_shared"),
+            ):
+                try:
+                    r = client.get(f"{base}/collections/{name}")
+                    if r.status_code == 200:
+                        res = r.json().get("result", {})
+                        out[key] = {
+                            "status": res.get("status", "ok"),
+                            "points_count": res.get("points_count"),
+                        }
+                    else:
+                        out[key] = {"status": "missing", "http": r.status_code}
+                except Exception as exc:  # noqa: BLE001
+                    out[key] = {"status": "error", "error": str(exc)[:120]}
+            out["l3_qdrant"] = {"status": "up", "url": base}
+    except Exception as exc:  # noqa: BLE001
+        out["l3_qdrant"] = {"status": "error", "error": str(exc)[:120]}
+
+    # L4: best-effort TCP/URL presence (do not leak credentials)
+    try:
+        import os
+        import socket
+        from urllib.parse import urlparse
+
+        pg = os.environ.get("POSTGRES_URL") or os.environ.get(
+            "ARIFOS_MEMORY_POSTGRES_URL", "postgresql://127.0.0.1:5432/vault999"
+        )
+        host = urlparse(pg).hostname or "127.0.0.1"
+        port = urlparse(pg).port or 5432
+        s = socket.create_connection((host, port), timeout=1.5)
+        s.close()
+        out["l4_postgres"] = {"status": "up", "host": host, "port": port}
+    except Exception as exc:  # noqa: BLE001
+        out["l4_postgres"] = {"status": "down", "error": str(exc)[:120]}
+    return out
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SABAR COOLDOWN ANNOTATION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -800,56 +856,9 @@ def arif_memory_recall(
     if floor_check["verdict"] != "SEAL":
         return _hold("arif_memory_recall", floor_check["reason"], floor_check["violated_laws"])
 
-    # ── init_recall ──────────────────────────────────────────────────────────
-    if mode == "init_recall":
-        from arifosmcp.constitutional_map import CANONICAL_TOOLS
-
-        sacred_resources = [
-            {"uri": "arifos://doctrine", "label": "Immutable Law (Ψ)", "tier": "sacred"},
-            {"uri": "arifos://vitals", "label": "Living Pulse (Ω)", "tier": "sacred"},
-            {"uri": "arifos://schema", "label": "Complete Blueprint (Δ)", "tier": "sacred"},
-            {
-                "uri": "arifos://session/" + (session_id or "new"),
-                "label": "Ephemeral Instance",
-                "tier": "ephemeral",
-            },
-            {"uri": "arifos://forge", "label": "Execution Bridge", "tier": "operational"},
-        ]
-        floor_summary = [
-            {
-                "floor": "L01",
-                "name": "AMANAH",
-                "purpose": "Trustworthiness — every action accountable",
-            },
-            {"floor": "L02", "name": "TRUTH", "purpose": "Truthfulness — no fabrication"},
-            {"floor": "L03", "name": "WITNESS", "purpose": "Evidence must be verifiable"},
-            {"floor": "L04", "name": "CLARITY", "purpose": "Transparent intent"},
-            {"floor": "L05", "name": "PEACE", "purpose": "Human dignity"},
-            {"floor": "L06", "name": "EMPATHY", "purpose": "Consider consequence"},
-            {"floor": "L07", "name": "HUMILITY", "purpose": "Acknowledge limits"},
-            {"floor": "L08", "name": "GENIUS", "purpose": "Elegant correctness (G ≥ 0.80)"},
-            {"floor": "L09", "name": "ANTIHANTU", "purpose": "Reject manipulation"},
-            {"floor": "L10", "name": "ONTOLOGY", "purpose": "Structural coherence"},
-            {"floor": "L11", "name": "AUTH", "purpose": "Verify identity before sensitive ops"},
-            {"floor": "L12", "name": "INJECTION", "purpose": "Sanitize inputs"},
-            {"floor": "L13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
-        ]
-        return _ok(
-            "arif_memory_recall",
-            {
-                "init_recall": True,
-                "session_id": session_id,
-                "sacred_resources": sacred_resources,
-                "floor_summary": floor_summary,
-                "tool_surface": list(CANONICAL_TOOLS.keys()),
-                "tool_count": len(CANONICAL_TOOLS),
-                "memory_contract_version": "v2",
-            },
-        )
-
     # ── recall (v4 — unified: by-ID, semantic, cognitive, cross-session, graph) ──
     if mode == "recall":
-        # ── init_recall (legacy alias — sacred constitutional context) ──
+        # ── init_recall (canonical boot path — D6 L3/L4 substrate probe) ──
         if _original_mode in ("init_recall",):
             from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
@@ -883,6 +892,7 @@ def arif_memory_recall(
                 {"floor": "L12", "name": "INJECTION", "purpose": "Sanitize inputs"},
                 {"floor": "L13", "name": "SOVEREIGN", "purpose": "Human veto is absolute"},
             ]
+            memory_substrate = _probe_memory_substrate_boot()
             return _ok(
                 "arif_memory_recall",
                 {
@@ -893,6 +903,11 @@ def arif_memory_recall(
                     "tool_surface": list(CANONICAL_TOOLS.keys()),
                     "tool_count": len(CANONICAL_TOOLS),
                     "memory_contract_version": "v4",
+                    "memory_substrate": memory_substrate,
+                    "boot_hint": (
+                        "Session boot: arif_init → arif_memory(mode=init_recall). "
+                        "L3 SOT=arifos_memory; federation_shared is shared lane."
+                    ),
                 },
             )
 

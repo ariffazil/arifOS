@@ -1,3 +1,7 @@
+<!-- ARCHIVED / NOT_ACTIVE 2026-07-15T06:10Z by Grok Build under F13 SCRAPE KILL -->
+<!-- Apr-2026 KANON fossil queue. Not binding on 2026-07 kernel. Scrape set: arifOS Apr TODO. -->
+<!-- Canonical remaining map: /root/A-FORGE/forge_work/2026-07-15/TODO-SCRAPE-MAP-000-111.md -->
+
 # arifOS TODO — Active Work Queue
 
 **Version:** 2026.04.24-KANON

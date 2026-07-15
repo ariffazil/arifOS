@@ -21026,10 +21026,28 @@ async def _arif_identity_verify_tool(
 
         if verified:
             band = classify_actor_band(actor_id, signature_verified=True)
+            # D2/D3: bind verification to session so actor_verified persists
+            if session_id:
+                try:
+                    from arifosmcp.runtime.session import mark_session_ed25519_verified
+
+                    # pubkey hex best-effort from band or empty (crypto already passed)
+                    pub = str(band.get("pubkey_hex") or band.get("actor_pubkey") or "verified")
+                    mark_session_ed25519_verified(
+                        session_id=session_id,
+                        actor_id=actor_id,
+                        actor_pubkey_hex=pub if len(pub) >= 16 else (pub + "0" * 16)[:16],
+                    )
+                except Exception as bind_exc:
+                    logger.warning(
+                        "identity_verify: mark_session_ed25519_verified failed: %s",
+                        bind_exc,
+                    )
             return {
                 "status": "IDENTITY_VERIFIED",
                 "actor_id": actor_id,
                 "actor_verified": True,
+                "session_id": session_id or "",
                 "authority_band": band.get("authority_mode", "GOVERNED"),
                 "nonce_consumed": True,
                 "tool": "arif_identity_verify",
