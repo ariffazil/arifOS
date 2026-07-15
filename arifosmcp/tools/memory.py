@@ -42,6 +42,10 @@ from typing import Any
 
 from arifosmcp.paradox import build_organ_anchors, register_organ
 from arifosmcp.runtime.law import check_laws
+from arifosmcp.runtime.memory_gate import (
+    gate_to_envelope,
+    pre_execution_floor_gate,
+)
 from arifosmcp.runtime.memory_store import (
     audit_governance,
     context_for_session,
@@ -733,14 +737,35 @@ def arif_memory_recall(
     if mode in _mode_aliases:
         mode = _mode_aliases[mode]
 
-    # ── Floor L11 AUTH Gate ───────────────────────────────────────────────────
-    if mode in ("store", "import", "quarantine", "seal", "update"):
+    # ── Floor L11 AUTH Gate (legacy L-shape check) ─────────────────────────
+    if mode in ("store", "import", "quarantine", "seal", "update", "forget", "learn"):
         if not actor_id or actor_id == "anonymous":
             return _hold(
                 "arif_memory_recall",
-                "L11 AUTH: actor_id is mandatory (WAJIB) for storage operations.",
+                "L11 AUTH: actor_id is mandatory (WAJIB) for mutation operations.",
                 ["L11"],
             )
+
+    # ── P0-01a Pre-Execution Floor Gate (F1 / F11 / F13) ──────────────────
+    # Hooks BEFORE check_laws() so the gate verdict carries specific floor
+    # citations (F1 / F11 / F13) and never falls through to a generic error.
+    # Issue #598: arif_memory had no pre-execution constitutional gate.
+    # - F1: session binding missing -> SABAR (empty result)
+    # - F11: actor missing OR OBSERVE_ONLY session on MUTATE -> SABAR / VOID
+    # - F13: IRREVERSIBLE (forget/prune) without arif_judge trace -> 888_HOLD
+    # - Reversible mutations (store / update) proceed with FLOOR verdict
+    #   attached via the gate_to_envelope receipt.
+    gate_verdict = pre_execution_floor_gate(
+        mode=mode,
+        session_id=session_id,
+        actor_id=actor_id,
+        memory_id=memory_id,
+    )
+    envelope = gate_to_envelope(gate_verdict, tool="arif_memory_recall")
+    if envelope is not None:
+        # The gate emitted a SABAR/VOID/888_HOLD envelope; return it verbatim.
+        # Downstream execution is NOT invoked when envelope is non-None.
+        return envelope
 
     floor_check = check_laws(
         "arif_memory_recall",

@@ -156,48 +156,32 @@ def test_arif_memory_recall_store_returns_qdrant_write_failed_not_exception():
 # ─────────────────────────────────────────────────────────────────────
 
 
-def test_vector_query_raises_unhandled_on_qdrant_offline_finding():
-    """Known finding: vector_memory_qdrant.vector_query does NOT catch the
-    Qdrant-unreachable exception. This is a real F9/F11 violation because
-    the exception bypasses the floor verdict chain and can crash callers.
+def test_vector_query_returns_sabar_on_qdrant_offline():
+    """FIXED (P0-01b): vector_memory_qdrant.vector_query now catches the
+    Qdrant-unreachable exception and returns {"ok": False, "verdict": "SABAR",
+    "evidence_honesty": True} instead of raising.
 
-    This test is a regression guard. It records the current (broken) state
-    and a future fix should flip the assertion: the call must return
-    {"ok": False, "error": ..., "qdrant_unavailable": True} or similar.
+    This is the F9/F11 compliance fix: the exception no longer bypasses the
+    floor verdict chain.
     """
     from arifosmcp.memory import vector_memory_qdrant
 
     _install_broken_qdrant(vector_memory_qdrant)
     vector_memory_qdrant._qdrant_client = None
 
-    # Run the async function. The function should not raise, per F9 + F11.
-    # We capture the actual current behaviour for the audit report.
-    raised: Exception | None = None
-    result: dict | None = None
-    try:
-        result = asyncio.run(vector_memory_qdrant.vector_query(query="audit-probe-p1-04"))
-    except Exception as exc:
-        raised = exc
+    result = asyncio.run(vector_memory_qdrant.vector_query(query="audit-probe-p1-04"))
 
-    if raised is not None:
-        # Current state: unhandled exception. Audit finding logged.
-        assert isinstance(raised, _QdrantOfflineError) or "Qdrant" in str(raised), (
-            f"Unexpected exception type: {type(raised).__name__}: {raised}"
-        )
-        # Document the finding — do not auto-fail; the test exists to lock in
-        # current behaviour and to be flipped to PASS once a guard is added.
-        pytest.xfail(
-            f"KNOWN BUG: vector_query raises unhandled {type(raised).__name__} "
-            f"when Qdrant is offline. Tracked in audit report docs/memory_audit.md "
-            f"and GitHub issue [BUG] Memory module unhandled exception on qdrant_offline."
-        )
-    else:
-        # Once the bug is fixed, the result must signal failure cleanly.
-        assert result is not None
-        assert result.get("ok") is False, (
-            "Once fixed, vector_query must return ok=False on Qdrant offline"
-        )
-        assert "qdrant_unavailable" in result or "error" in result
+    assert result is not None, "Must return a dict, not None"
+    assert isinstance(result, dict)
+    assert result.get("ok") is False, "Must return ok=False on Qdrant offline"
+    assert result.get("verdict") == "SABAR", (
+        f"Verdict must be SABAR (soft floor), got {result.get('verdict')!r}"
+    )
+    assert result.get("evidence_honesty") is True, (
+        "Must flag evidence_honesty=True — no fabrication"
+    )
+    assert result.get("backend_status") == "qdrant_offline"
+    assert result.get("results") == [], "Must return empty results"
 
 
 def test_vector_health_gracefully_reports_unhealthy_on_qdrant_offline():
