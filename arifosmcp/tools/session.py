@@ -492,8 +492,6 @@ def _project_light(
         "light_bootstrap" if session_mode == "light" else "constitutionally_bound_session"
     )
 
-    from arifosmcp.runtime.build import get_runtime_attestation
-
     out = {
         # GATING
         "session_id": sid,
@@ -505,7 +503,6 @@ def _project_light(
         "authority_scope": _authority,
         "actor_bound": actor_verified,
         "kernel_epoch": "2026-07-03",
-        "software_release": get_runtime_attestation(),
         "public_surface_version": "7",
         "tool_registry_version": "1.0.0",
         "allowed_next_verbs": _allowed_next,
@@ -938,7 +935,7 @@ def arif_init(
     embodiment_request: dict | None = None,
     capability_disclosure: dict | None = None,
     nonce: str | None = None,
-    actor_signature: str | None = None,
+    signature: str | None = None,
     # ── Pre-session identity lineage (forged 2026-06-12) ─────────────────
     idempotency_key: str | None = None,
     trace_id: str | None = None,
@@ -1039,7 +1036,7 @@ def arif_init(
                 "required_for_init": {
                     "actor_id": "string (non-null)",
                     "ack_irreversible": "boolean (default false)",
-                    "optional": ["declared_model_key", "deployment_id", "nonce", "actor_signature"],
+                    "optional": ["declared_model_key", "deployment_id", "nonce", "signature"],
                 },
                 "active_sessions": len(_SESSIONS),
                 "tool_surface": tool_surface.model_dump(),
@@ -1219,7 +1216,7 @@ def arif_init(
         _light_band = "OBSERVE_ONLY"
         _light_agent_class = "UNVERIFIED"
         _light_authority_level = "ANONYMOUS"
-        _sig = actor_signature
+        _sig = signature
         if actor_id and nonce and _sig:
             try:
                 from arifosmcp.runtime.crypto_auth import (
@@ -1257,7 +1254,24 @@ def arif_init(
                 sess["actor_verified"] = False
                 sess["signature_verified"] = False
         elif actor_id:
-            # Check Ed25519-exempt system actors first (IRR-DIP-AUDIT 2026-07-09)
+            # Issue challenge for registered / sovereign actors (ART → APA)
+            try:
+                from arifosmcp.runtime.crypto_auth import (
+                    is_registered_actor,
+                    issue_actor_challenge,
+                )
+
+                _al = actor_id.lower().strip()
+                if _al in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
+                    challenge_nonce = issue_actor_challenge(actor_id)
+                    sess["pending_challenge_nonce"] = challenge_nonce
+                    sess["challenge_signature_payload"] = f"{actor_id}:{challenge_nonce}"
+                    sess["challenge_signature_payload_alt"] = (
+                        f"{actor_id}:{CONSTITUTION_HASH}:{challenge_nonce}"
+                    )
+            except Exception as _exc:
+                logger.warning("light-mode challenge issue failed: %s", _exc)
+            # Check Ed25519-exempt system actors (IRR-DIP-AUDIT 2026-07-09)
             try:
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
 
@@ -1293,23 +1307,7 @@ def arif_init(
                 else:
                     raise LookupError(f"{_al} not exempt")
             except (ImportError, LookupError, AttributeError):
-                # Fallback: issue challenge for registered / sovereign actors
-                try:
-                    from arifosmcp.runtime.crypto_auth import (
-                        is_registered_actor,
-                        issue_actor_challenge,
-                    )
-
-                    _al = actor_id.lower().strip()
-                    if _al in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
-                        challenge_nonce = issue_actor_challenge(actor_id)
-                        sess["pending_challenge_nonce"] = challenge_nonce
-                        sess["challenge_signature_payload"] = f"{actor_id}:{challenge_nonce}"
-                        sess["challenge_signature_payload_alt"] = (
-                            f"{actor_id}:{CONSTITUTION_HASH}:{challenge_nonce}"
-                        )
-                except Exception as _exc:
-                    logger.warning("light-mode challenge issue failed: %s", _exc)
+                pass  # fallback: no grant, stays OBSERVE_ONLY
 
         # ── Project to frozen header (15 fields, degraded-first) ────────
         header = _project_light(
@@ -1529,7 +1527,7 @@ def arif_init(
         identity_verified = False
         # Wire_ArifInit_Signature_To_Session_v1: unified crypto bind
         # Accepts both crypto_auth payload and kernel identity/verify payload.
-        if actor_id and nonce and actor_signature:
+        if actor_id and nonce and signature:
             try:
                 from arifosmcp.runtime.crypto_auth import (
                     classify_actor_band,
@@ -1675,11 +1673,11 @@ def arif_init(
             actor_bound=bool(identity_verified),
             authority_band=_derived_auth,
             verification_method="signature"
-            if (nonce and actor_signature and identity_verified)
+            if (nonce and signature and identity_verified)
             else ("identity_claim" if identity_verified else "none"),
             verification_reason=(
                 "cryptographically_verified"
-                if (nonce and actor_signature and identity_verified)
+                if (nonce and signature and identity_verified)
                 else "identity_claim_accepted"
                 if identity_verified
                 else "identity_not_verified"
