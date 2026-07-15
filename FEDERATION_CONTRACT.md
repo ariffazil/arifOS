@@ -111,6 +111,84 @@ No organ may authorize its own execution. Only `arif_judge → arif_forge → ar
 - **OWNS:** Build, deploy, code execution, orchestration
 - **NEVER:** Adjudicate, compute domain logic (NumPy/Pandas), self-authorize
 
+### §5.4.5 A2A Discovery Surface Ownership (F13 SOVEREIGN — Ratified on this forge)
+
+> *"AAA publishes the federation card. arifOS executes the task. The card does not live twice."*
+
+The A2A spec defines `/.well-known/agent.json` and `/.well-known/agent-card.json` as
+the canonical discovery surface for every agent. To prevent drift, divergence,
+and federation-wide re-binding whenever a single organ rotates a card, the
+discovery surface is **owned exactly once** — by AAA — and all other organs
+**MUST NOT** publish a local agent card body. This rule is binding on all
+organs, all branches, all deploys.
+
+#### aaa_owns — canonical A2A discovery surface
+
+- `GET https://aaa.arif-fazil.com/.well-known/agent.json` — A2A v1.0 base card
+- `GET https://aaa.arif-fazil.com/.well-known/agent-card.json` — A2A v2.x extended card (authenticated)
+- Federation-wide skill catalog aggregation, capability-based service discovery, A2A-native authN/Z (`/.well-known/oauth-*`, `/.well-known/jwks.json` at AAA)
+- The single edge through which an external A2A-native peer discovers the entire federation (one card → six organs).
+
+#### arifos_owns — execution, not discovery
+
+- `GET https://mcp.arif-fazil.com/.well-known/mcp/server.json` — **MCP** manifest (NOT an A2A agent card)
+- `GET https://arifos.arif-fazil.com/health` — runtime health (substrate + execution readiness)
+- `POST https://arifos.arif-fazil.com/a2a/task` and sibling routes (`/a2a/status/{id}`, `/a2a/subscribe/{id}`, `/a2a/cancel/{id}`) — internal A2A **execution** endpoints; reachable only by AAA-routed traffic and authenticated peers
+- `GET https://arifos.arif-fazil.com/.well-known/oauth-protected-resource` and `/.well-known/jwks.json` — its own MCP OAuth surface (independent of AAA's A2A OAuth surface; both are valid because they are separate protocols on separate transports)
+- Tool registry, session identity, VAULT999, leases, routing, F1–F13 enforcement
+
+#### kernel_must_not
+
+- Publish an A2A agent card body at `/.well-known/agent.json` or `/.well-known/agent-card.json`. These paths are reserved for AAA on the arifOS kernel.
+- Serve `/agent-card`, `/agent-card/skills`, or any other local "summary card" endpoint. Peers fetch the canonical card from AAA.
+- Vendor a `static/agent-card.json`, `static/.well-known/agent.json`, or `/root/arifOS/.well-known/agent*.json` file. A local card file is a binding contract violation.
+- Bind a peer or partner to a local card URL. All A2A peer bindings point to AAA.
+
+#### aaa_must_not
+
+- Adjudicate constitutional floors (no SEAL/HOLD/VOID from AAA).
+- Execute engineering mutations (no `forge_*`, no irreversible calls).
+- Republish arifOS MCP tool bodies in the A2A card. The card is a discovery surface, not a tool registry mirror.
+
+#### Discovery vs. execution — the permanent rule
+
+| Surface                                              | Owner | Purpose                          |
+| ----------------------------------------------------- | ----- | -------------------------------- |
+| `aaa.arif-fazil.com/.well-known/agent.json`           | AAA   | A2A discovery — peer negotiation |
+| `aaa.arif-fazil.com/.well-known/agent-card.json`      | AAA   | A2A extended card — auth'd catalog |
+| `mcp.arif-fazil.com/.well-known/mcp/server.json`      | arifOS | MCP manifest — tool surface     |
+| `arifos.arif-fazil.com/health`                        | arifOS | Runtime health — liveness       |
+| `arifos.arif-fazil.com/a2a/task`                      | arifOS | A2A execution (after AAA routes) |
+
+A peer that wants to discover the federation hits AAA. A peer that wants to
+invoke a tool or submit a task hits arifOS, and reaches arifOS through the
+route AAA negotiated. Discovery and execution are separate surfaces; they are
+not duplicated across organs.
+
+#### Re-classification of legacy paths
+
+The following local paths on the arifOS kernel are **DEPRECATED** and MUST
+return either a 410 Gone with a pointer to `https://aaa.arif-fazil.com/.well-known/agent-card.json`
+or be removed outright:
+
+- `GET /agent-card`
+- `GET /agent-card/skills`
+- Local fallback `static/.well-known/agent.json`
+- Local `static/agent-card.json`
+- `/root/arifOS/.well-known/agent.json` and `/root/arifOS/.well-known/agent-card.json`
+
+The A2A card factory module (`arifosmcp/runtime/a2a/agent_card_v2.py`) and
+its `get_arifOS_agent_card()` / `get_axos_summary()` helpers are retained for
+AAA import only — they MUST NOT be wired to a kernel route.
+
+#### Conflict resolution
+
+A conflict between AAA's card and any organ's local card is **F13 SOVEREIGN**
+territory. The sovereign decides which surface wins. Until then, AAA's card
+is the federation's only A2A discovery document.
+
+---
+
 ### §5.5 Measurement Ownership Boundary (F13 SOVEREIGN — Ratified 2026-07-12)
 
 > *"Kernel measures the machine. WELL measures the substrate. Neither crosses."*

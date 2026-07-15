@@ -14,7 +14,9 @@
   "needs_a2a_card": true,
   "needs_llms": true,
   "llms_path": "llms.txt",
-  "a2a_card_path": ".well-known/agent.json",
+  "a2a_card_path": "https://aaa.arif-fazil.com/.well-known/agent-card.json",
+  "a2a_card_owner": "AAA",
+  "a2a_card_note": "Per FEDERATION_CONTRACT §5.4.5, AAA owns the canonical A2A card.",
   "related_sites": [
     {
       "name": "arifos — THE MIND",
