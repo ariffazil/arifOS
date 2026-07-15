@@ -1116,6 +1116,116 @@ def get_triggered_quotes(organ: Organ | str, context: dict[str, Any]) -> list[Pa
     return triggered[:2]  # Max 2 per invocation
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# GPV-AWARE TRIGGERING — ATLAS333 Bridge §4
+# ═══════════════════════════════════════════════════════════════════════════════
+# Maps paradox axis IDs (1-33) from atlas.py's PARADOX_GPV_MAP to quote IDs.
+# This is the bridge between the 4-lane GPV router and the 33 philosophical quotes.
+
+# Paradox ID → Quote ID mapping (from ATLAS333_BRIDGE.md §2)
+# Each paradox axis maps to 1-3 quotes across organs.
+PARADOX_QUOTE_MAP: dict[int, list[str]] = {
+    # ZONE I: TRUTH (paradoxes 1-5)
+    1: ["R1", "R2"],       # Truth ↔ Comfort
+    2: ["R1", "R6", "R10"], # Certainty ↔ Humility
+    3: ["R6", "J6"],       # Evidence ↔ Story
+    4: ["R8"],             # Precision ↔ Clarity
+    5: ["J8", "M9"],       # Facts ↔ Meaning
+    # ZONE II: GOVERNANCE (paradoxes 6-10)
+    6: ["J2", "J3"],       # Freedom ↔ Law
+    7: ["J11"],            # Autonomy ↔ Permission
+    8: ["J5", "J6"],       # Speed ↔ Safety
+    9: ["M7", "J7"],       # Power ↔ Restraint
+    10: ["J4", "J1"],      # Judge ↔ Actor
+    # ZONE III: AGENT (paradoxes 11-15)
+    11: ["M4", "R5"],      # Self ↔ System
+    12: ["M1", "M3", "M8"], # Memory ↔ Context
+    13: ["M5"],            # Identity ↔ Function
+    14: [],                # One ↔ Many (subagent paradox — no direct quote)
+    15: ["M11"],           # Presence ↔ Absence
+    # ZONE IV: GROWTH (paradoxes 16-20)
+    16: ["M2", "M11"],     # Learning ↔ Forgetting
+    17: ["M6", "M10"],     # Scar ↔ Healing
+    18: ["M9", "R8"],      # Knowledge ↔ Wisdom
+    19: [],                # Novelty ↔ Pattern (emerges from R4)
+    20: ["M10"],           # Beginner ↔ Expert
+    # ZONE V: CONNECTION (paradoxes 21-25)
+    21: [],                # Map ↔ Territory (meta-paradox)
+    22: ["R4", "R7"],      # Path ↔ Destination
+    23: ["J4"],            # Whole ↔ Part
+    24: ["M4"],            # Connection ↔ Isolation
+    25: ["R9", "R11"],     # Signal ↔ Noise
+    # ZONE VI: SYSTEM (paradoxes 26-30)
+    26: ["J2", "J3"],      # Order ↔ Chaos
+    27: ["M6"],            # Robustness ↔ Adaptability
+    28: ["R11"],           # Simplicity ↔ Completeness
+    29: [],                # Efficiency ↔ Resilience (emerges from risk)
+    30: ["J2", "J8"],      # Structure ↔ Flow
+    # ZONE VII: WITNESS (paradoxes 31-33)
+    31: ["J10"],           # Witness ↔ Action
+    32: ["R3", "J9"],      # Internal ↔ External
+    33: ["J10", "R7"],     # Proof ↔ Trust
+}
+
+
+def get_triggered_quotes_by_gpv(
+    paradox_axes: list[int],
+    organ: Organ | str | None = None,
+    action_class: str | None = None,
+) -> list[ParadoxQuote]:
+    """Get quotes triggered by GPV paradox axes (ATLAS333 Bridge §4).
+
+    Uses the paradox_axes field from GPV (resolved by atlas.py's PARADOX_GPV_MAP)
+    to find the corresponding philosophical quotes. This is the GPV-aware replacement
+    for the string-matching get_triggered_quotes().
+
+    Args:
+        paradox_axes: List of paradox IDs (1-33) from GPV.paradox_axes
+        organ: Optional filter by organ (memory/mind/judge). None = all organs.
+        action_class: Optional action class for SEAL/MUTATE gates.
+            "SEAL" → adds Zone VII paradoxes (31, 32, 33)
+            "MUTATE" → adds Zone VI paradoxes (26-30) if rho >= 0.2
+
+    Returns:
+        List of ParadoxQuote objects, sorted by norm priority (WAJIB first),
+        deduplicated, max 5 per invocation.
+    """
+    quote_ids: set[str] = set()
+
+    # Add quotes from GPV-resolved paradox axes
+    for pid in paradox_axes:
+        quote_ids.update(PARADOX_QUOTE_MAP.get(pid, []))
+
+    # Action-class gates (from bridge map §3 — not in GPV, added at judge time)
+    if action_class == "SEAL":
+        # Zone VII mandatory for irreversible actions
+        for pid in [31, 32, 33]:
+            quote_ids.update(PARADOX_QUOTE_MAP.get(pid, []))
+    elif action_class == "MUTATE":
+        # Zone VI check for any mutation
+        for pid in [26, 27, 28, 29, 30]:
+            quote_ids.update(PARADOX_QUOTE_MAP.get(pid, []))
+
+    # Resolve quote IDs to ParadoxQuote objects
+    resolved: list[ParadoxQuote] = []
+    for qid in quote_ids:
+        q = ALL_PARADOX_QUOTES.get(qid)
+        if q is None:
+            continue
+        # Filter by organ if specified
+        if organ is not None:
+            target_organ = Organ(organ) if isinstance(organ, str) else organ
+            if q.organ != target_organ:
+                continue
+        resolved.append(q)
+
+    # Sort: WAJIB first, then HARUS, then SUNAT
+    norm_order = {Norm.WAJIB: 0, Norm.HARUS: 1, Norm.SUNAT: 2}
+    resolved.sort(key=lambda q: norm_order.get(q.norm, 99))
+
+    return resolved[:5]  # Max 5 per invocation (increased from 2 for GPV-awareness)
+
+
 def format_paradox_tension(quote_id: str) -> str:
     """Format a quote's paradox tension pair for display."""
     q = get_quote_by_id(quote_id)
@@ -1234,6 +1344,8 @@ __all__ = [
     "get_quotes_by_norm",
     "get_wajib_quotes",
     "get_triggered_quotes",
+    "get_triggered_quotes_by_gpv",
+    "PARADOX_QUOTE_MAP",
     "format_paradox_tension",
     "get_tension_map",
     "embed_quote_in_output",

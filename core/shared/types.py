@@ -51,6 +51,10 @@ class GPV(BaseModel):
     tau: float = Field(default=0.5, ge=0.0, le=1.0, alias="\u03c4")
     kappa: float = Field(default=0.5, ge=0.0, le=1.0, alias="\u03ba")
     rho: float = Field(default=0.0, ge=0.0, le=1.0, alias="\u03c1")
+    paradox_axes: list[int] = Field(
+        default_factory=list,
+        description="ATLAS-333 paradox axes activated by this query (\u00a73 bridge map)",
+    )
 
     model_config = ConfigDict(validate_by_name=True)
 
@@ -452,6 +456,38 @@ class FloorScores(BaseModel):
         """Geometric mean of H, A, E witnesses (v60 definition)."""
         # H = Sovereign, A = Truth, E = Earth
         return (self.f13_sovereign * self.f2_truth * self.f3_earth_witness) ** (1 / 3)
+
+    # ── TEARFRAME Aliases (ATLAS333 Bridge §5) ──────────────────────────
+    # These map 333_MIND_ATLAS.md theory thresholds to runtime fields.
+    # Not new storage — property aliases for theory↔runtime bridging.
+
+    @property
+    def trm(self) -> float:
+        """Truth-Reliability Metric — TEARFRAME threshold ≥ 0.94.
+
+        Maps to F2 truth score. The theory demands TRM ≥ 0.94 for any
+        factual claim to pass the constitutional gate.
+        """
+        return self.f2_truth
+
+    @property
+    def echo(self) -> float:
+        """Evidence Coherence — TEARFRAME threshold ≥ 0.87.
+
+        Geometric mean of tri-witness (F3), truth (F2), and sovereignty (F13).
+        Measures how coherently evidence supports a claim across witness types.
+        """
+        return (self.f3_tri_witness * self.f2_truth * self.f13_sovereign) ** (1 / 3)
+
+    @property
+    def rasa(self) -> float:
+        """Resonance-Autonomy-Sovereignty-Alignment — TEARFRAME threshold ≥ 0.85.
+
+        Composite of empathy (F6), peace (F5), and sovereignty (F13).
+        Measures whether the action resonates with human values while
+        preserving autonomy and constitutional alignment.
+        """
+        return (self.f6_empathy * self.f5_peace * self.f13_sovereign) ** (1 / 3)
 
 
 # ============================================================================
