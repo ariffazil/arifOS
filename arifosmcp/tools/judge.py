@@ -800,12 +800,12 @@ async def arif_judge(
             if _triggered_quotes:
                 _evidence["paradox_quotes"] = [
                     {
-                        "id": q.id,
+                        "id": q.quote_id,
                         "organ": q.organ.value,
-                        "quote": q.quote,
+                        "quote": q.quote_text,
                         "author": q.author,
                         "norm": q.norm.value,
-                        "trigger_reason": q.trigger_reason,
+                        "trigger_reason": q.trigger_condition,
                     }
                     for q in _triggered_quotes
                 ]
