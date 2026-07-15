@@ -136,11 +136,10 @@ METABOLIC_LOOP: dict[str, dict[str, str | None]] = {
     "000": {"next": "111", "verb": "observe"},
     "111": {"next": "333", "verb": "think"},
     "333": {"next": "444", "verb": "route"},
-    "444": {"next": "555", "verb": "critique"},
+    "444": {"next": "555", "verb": "memory"},
     "555": {"next": "666", "verb": "judge"},
     "666": {"next": "777", "verb": "forge"},
-    "777": {"next": "888", "verb": "compose"},
-    "888": {"next": "999", "verb": "seal"},
+    "777": {"next": "999", "verb": "seal"},
     "999": {"next": None},  # Gödel break — only sovereign can authorize 000
 }
 
@@ -158,34 +157,32 @@ STAGE_PROGRESSION: dict[str, dict[str, str | None]] = METABOLIC_LOOP
 #   - Absorbed into arif_observe: arif_fetch (mode=fetch)
 #   - Absorbed into arif_route: arif_bridge_connect (mode=bridge)
 #   - Restored: arif_seal (999 — stage needs its verb)
-#   - Promoted: arif_critique (555 — separated from arif_think to own public tool)
-#   - arif_compose at 888, arif_forge at 777, arif_judge at 666
+#   - Absorbed: arif_critique → arif_think(mode=critique), arif_compose → arif_forge(mode=compose)
+#   - 8 canonical tools (KERNEL_ABI_8), capability_registry.json is source of truth
 # See /root/forge_work/2026-07-04/ZEN-9-VERB-METABOLIC-LOOP.md for doctrine.
 #
 # This is the expressive core. There are more tools (internals + diagnostics),
-# but these are the public 9-stage loop. These are the ones that must be cognitively perfect.
+# but these are the public 8. These are the ones that must be cognitively perfect.
 
 CORE_NINE: list[str] = [
-    "arif_init",  # 000 — Session bootstrap. Modes: init, resume, canary, preflight, triage
+    "arif_init",  # 000 — Session bootstrap. Modes: init, light, resume, canary, preflight, triage
     "arif_observe",  # 111 — Sense reality. Modes: search, fetch, ingest, vitals, atlas
-    "arif_think",  # 333 — Cognitive engine. Modes: reason, plan, reflect, verify
+    "arif_think",  # 333 — Cognitive engine. Modes: reason, plan, reflect, verify, critique
     "arif_route",  # 444 — Route intent to organ. Modes: route, bridge, triage
-    "arif_critique",  # 555 — Adversarial critique. Modes: critique, redteam, maruah, shadow
-    "arif_judge",  # 666 — Constitutional verdict. SEAL/CANDIDATE/HOLD/SABAR/VOID
+    "arif_memory",  # 555 — Memory governor. Modes: recall, inspect, attest, remember, promote, revise, forget, audit
+    "arif_judge",  # 666 — Constitutional verdict. SEAL/HOLD/SABAR/VOID
     "arif_forge",  # 777 — Guarded execution. Modes: engineer, query, write, generate, commit
-    "arif_compose",  # 888 — Response composition. Modes: compose, summarize, cite, tone_shift
     "arif_seal",  # 999 — Append to VAULT999. Modes: seal, verify, ledger
 ]
 
 CORE_NINE_WITH_ENGINE = {
-    "arif_init": "arif_init (modes: init, resume, canary, preflight, triage)",
+    "arif_init": "arif_init (modes: init, light, resume, canary, preflight, triage)",
     "arif_observe": "arif_observe (modes: search, fetch, ingest, vitals, atlas)",
-    "arif_think": "arif_think (modes: reason, plan, reflect, verify)",
+    "arif_think": "arif_think (modes: reason, plan, reflect, verify, critique)",
     "arif_route": "arif_route (modes: route, bridge, dispatch)",
-    "arif_critique": "arif_critique (modes: critique, redteam, maruah, shadow, deescalate, empathy)",
+    "arif_memory": "arif_memory (modes: recall, inspect, attest, remember, promote, revise, forget, audit)",
     "arif_judge": "arif_judge (kernel: arif_kernel_intercept)",
     "arif_forge": "arif_forge (modes: engineer, query, write, generate, commit; arif_act is internal alias)",
-    "arif_compose": "arif_compose (modes: compose, summarize, cite, tone_shift)",
     "arif_seal": "arif_seal (modes: seal, verify, ledger; VAULT999 seal anchor)",
 }
 
@@ -207,10 +204,10 @@ CORE_NINE_STAGE_MAP: dict[str, str] = {
     "111": "arif_observe",
     "333": "arif_think",
     "444": "arif_route",
-    "555": "arif_critique",
+    "555": "arif_memory",
     "666": "arif_judge",
     "777": "arif_forge",
-    "888": "arif_compose",
+    "888": "arif_forge",  # legacy stage — compose absorbed into forge
     "999": "arif_seal",
 }
 
@@ -982,7 +979,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "Input: actor_id (required), session_id? (optional binding), ttl_seconds? (default 300). "
             "Output: challenge (b64 nonce), issued_at (ISO-8601 UTC), ttl_seconds, session_id. "
             "Use when: starting an Ed25519 identity ceremony; the actor signs "
-            "f\"{actor_id}:{challenge}\" with its Ed25519 private key and submits via arif_verify."
+            'f"{actor_id}:{challenge}" with its Ed25519 private key and submits via arif_verify.'
         ),
         "access": "public",
         "stage": ToolStage.INIT,

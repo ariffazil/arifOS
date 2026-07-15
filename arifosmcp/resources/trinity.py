@@ -42,27 +42,22 @@ THREE LANES:
     Domain language: SELAMAT / KUKUH / AMANAH / BIJAKSANA
 
   111 — AGI (Tactical Intelligence)
-    Role: PROPOSE. Abstract, abduce, synthesize.
-    Tools: arif_observe, arif_fetch, arif_think,
-           arif_kernel_route, arif_memory_recall, arif_measure,
-           arif_compose, arif_gateway_connect
+    Role: PROPOSE. Observe, reason, route, remember.
+    Tools: arif_observe, arif_think, arif_route, arif_memory
     Domain language: OBSERVED / COMPUTED / INFERRED / HYPOTHESIZED / ESTIMATED / UNKNOWN
     NEVER: judge, authorize, seal
 
-  444 — ASI (Strategic Judgment)
+  666 — ASI (Strategic Judgment)
     Role: JUDGE. Attest. Floor-check. Deliberate. Emit verdict.
-    Tools: arif_critique
-    Domain language: CONSISTENT / NEEDS_CORRECTION / INSUFFICIENT
+    Tool: arif_judge
+    Domain language: SEAL / SABAR / HOLD / VOID
     NEVER: execute, authorize, seal
 
-  888 — APEX (Authority Resolution)
-    Role: AUTHORIZE. Verify verdict. Check sovereignty. Authorize or block.
-    Tools: arif_judge
-    Domain language: SEAL / SABAR / HOLD / VOID
-    SEAL = constitutional approval, irreversibly sealed
-    SABAR = held — needs more evidence or human review
-    HOLD = blocked — constitutional violation
-    VOID = rejected or self-contradictory
+  777 — FORGE (Execution)
+    Role: EXECUTE. Governed mutation after judge SEAL.
+    Tool: arif_forge
+    Domain language: EXECUTED / ROLLED_BACK / SEALED
+    NEVER: judge, authorize
 
   999 — GATEWAY (Exit)
     Verify path. Write immutable record. Terminate session.

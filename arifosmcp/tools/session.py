@@ -979,7 +979,29 @@ def arif_init(
 
     Audit 2026-07-09: standalone arif_triage removed from public surface.
     Session preflight lives here as mode=preflight|triage|status.
+
+    Alias normalization 2026-07-15: natural-language actor_id variants
+    ("Salam ARIF", "Hi Arif", "Saya Arif") are normalized to canonical form
+    before any identity resolution. See governance_identity.normalize_actor_id.
     """
+    # ── Sovereign alias normalization (FORGED 2026-07-15) ──
+    # Normalize natural-language actor_id variants to canonical form.
+    # "Salam ARIF" → "arif", "Hi Arif" → "arif", "Saya Arif" → "arif"
+    if actor_id:
+        try:
+            from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+            _normalized = normalize_actor_id(actor_id)
+            if _normalized and _normalized != actor_id:
+                logger.info(
+                    "arif_init: actor_id normalized '%s' → '%s'",
+                    actor_id,
+                    _normalized,
+                )
+                actor_id = _normalized
+        except ImportError:
+            pass  # governance_identity unavailable — proceed with raw
+
     # ── PREFLIGHT / TRIAGE (absorbed from standalone arif_triage) ──
     if mode in ("preflight", "triage"):
         from arifosmcp.tools.kernel_canonical import arif_triage as _session_preflight
@@ -1381,6 +1403,14 @@ def arif_init(
                 sess["session_token"] = header["session_token"]
                 sess["apex"] = header.get("apex_scalars")
             _SESSIONS[sess["session_id"]] = sess
+            # Session continuity: set global active session so subsequent
+            # tool calls auto-resolve session context (2026-07-15 fix)
+            try:
+                from arifosmcp.runtime.session import set_active_session
+
+                set_active_session(sess["session_id"])
+            except Exception:
+                pass
         except Exception:
             pass
         return _sm(
@@ -1832,6 +1862,14 @@ def arif_init(
                 sess["apex"] = header.get("apex_scalars")
                 sess["allowed_next_verbs"] = header.get("allowed_next_verbs")
             _SESSIONS[sess["session_id"]] = sess
+            # Session continuity: set global active session so subsequent
+            # tool calls auto-resolve session context (2026-07-15 fix)
+            try:
+                from arifosmcp.runtime.session import set_active_session
+
+                set_active_session(sess["session_id"])
+            except Exception:
+                pass
         except Exception:
             pass
 
