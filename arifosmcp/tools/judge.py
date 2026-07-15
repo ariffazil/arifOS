@@ -48,6 +48,8 @@ from arifosmcp.core.enforcement.somatic_loop import (
 from arifosmcp.core.enforcement.paradox_gate import (
     evaluate_paradox_gate,
 )
+from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
+from core.shared.atlas import Φ
 from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
@@ -775,6 +777,42 @@ async def arif_judge(
                     ),
                 ).model_dump(mode="json")
 
+        # ── PARADOX QUOTE ENRICHMENT (ATLAS333 Bridge §4) ──────────────────────
+        # After paradox gate, pull philosophical tension quotes for the activated
+        # paradox zones. These are advisory (F5 PEACE) — they enrich the judge's
+        # reasoning context, never block or alter the verdict.
+        # Wires get_triggered_quotes_by_gpv() from constitution/paradox_quotes.py
+        # into the 666 JUDGE pipeline as specified in ATLAS333_INTELLIGENCE_FLOW.md §2.
+        try:
+            _gpv = Φ(_candidate_text)
+            _pq_action_class = None
+            _cand_mode = ""
+            if isinstance(candidate, dict):
+                _cand_mode = str(candidate.get("mode", candidate.get("action_type", "")))
+            if _cand_mode in ("seal", "irreversible") or action_tier == "sovereign":
+                _pq_action_class = "SEAL"
+            elif _cand_mode in ("mutate", "forge", "write", "commit"):
+                _pq_action_class = "MUTATE"
+            _triggered_quotes = get_triggered_quotes_by_gpv(
+                paradox_axes=_gpv.paradox_axes,
+                action_class=_pq_action_class,
+            )
+            if _triggered_quotes:
+                _evidence["paradox_quotes"] = [
+                    {
+                        "id": q.id,
+                        "organ": q.organ.value,
+                        "quote": q.quote,
+                        "author": q.author,
+                        "norm": q.norm.value,
+                        "trigger_reason": q.trigger_reason,
+                    }
+                    for q in _triggered_quotes
+                ]
+        except Exception:
+            # Fail-soft: quote enrichment must never crash the judge (F1 AMANAH)
+            pass
+
         # ── SELF-MODIFICATION LOCK (Gap 5) ──────────────────────────────────────
     if isinstance(candidate, str) or isinstance(candidate, dict):
         _target = ""
@@ -1030,6 +1068,11 @@ async def arif_judge(
         _maruah_gate_val = _evidence.get("maruah_gate")
         if _maruah_gate_val:
             result["meta"]["maruah_gate"] = _maruah_gate_val
+
+        # ── Paradox quote enrichment attachment (ATLAS333 Bridge §4) ──────
+        _paradox_quotes_val = _evidence.get("paradox_quotes")
+        if _paradox_quotes_val:
+            result["meta"]["paradox_quotes"] = _paradox_quotes_val
 
         # ── SCALAR FEED PROTOCOL (TASK-P2-03) ─────────────────────────────
         # Live measurement of the 5 canonical APEX scalars (G, C_dark, W³,
