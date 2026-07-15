@@ -248,7 +248,7 @@ def generate_llms_txt() -> str:
     lines.append("- `tasks/subscribe` — Real-time event subscription for task state changes.")
     lines.append("")
     lines.append("### 2. A2A Transactional Layer (The Meaning-Exchange)")
-    lines.append("- **Agent Cards** (`/.well-known/agent-card.json`) — Declares agent capabilities, static/JWT auth schemes, and autonomy boundaries (`canDo`/`cannotDo`).")
+    lines.append("- **Agent Cards** (`https://aaa.arif-fazil.com/.well-known/agent-card.json`) — Canonical A2A card owned by AAA (FEDERATION_CONTRACT §5.4.5). Declares agent capabilities, static/JWT auth schemes, and autonomy boundaries (`canDo`/`cannotDo`).")
     lines.append("- **Autonomy Tiers** — Strict boundary constraints defined per agent card:")
     lines.append("  - **T1 (Execution)** — Routine, local operations (no HOLD).")
     lines.append("  - **T2 (Negotiation)** — Refactoring/deployment tasks (announce, medium risk).")

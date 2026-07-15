@@ -940,25 +940,67 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_verify": {
         "name": "arif_verify",
         "description": (
-            "KERNEL E1 · JITU pre-execution gate — cryptographic SEAL token verification. "
-            "A-FORGE must call before IRREVERSIBLE shell/mutation. Atomically checks token "
-            "exists, not expired, actor-bound, command_hash match, then burns token (one-shot). "
-            "Payload: token (or seal), command (exact string), actor_id, optional signature. "
-            "Use when: verifying a SEAL before execute; never invent SEAL validity without this tool."
+            "KERNEL · Ed25519 signature verification (live MCP, AAA Wave 2 / Phase 5). "
+            "Completes the identity ceremony started by arif_challenge. Validates a "
+            "base64 Ed25519 signature against a hex-encoded actor public key over the "
+            "payload {actor_id}:{challenge}. Consumes the challenge (one-shot, no replay). "
+            "On success, marks the session as ed25519_verified. "
+            "Input: challenge (b64), signature (b64), actor_pubkey (64-hex), session_id, actor_id?. "
+            "Output: verified, actor_id, challenge_age_seconds, message. "
+            "Use when: verifying actor identity after arif_challenge; never trust a claimed "
+            "actor_id without cryptographic binding. "
+            "Note: the legacy JITU SEAL-token gate (_arif_verify_tool) remains reachable "
+            "via HTTP /kernel/arif_verify — that semantics is preserved."
         ),
-        "access": "internal_only",
-        "stage": ToolStage.SEAL,
-        "lane": TrinityLane.SOVEREIGN,
-        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
-        "risk_tier": "high",
+        "access": "public",
+        "stage": ToolStage.INIT,
+        "lane": TrinityLane.AGI,
+        "floors": [
+            Law.L01_AMANAH,
+            Law.L02_TRUTH,
+            Law.L11_AUDIT,
+            Law.L12_INJECTION,
+            Law.L13_SOVEREIGN,
+        ],
+        "risk_tier": "medium",
         "irreversible": False,
-        "modes": ["verify"],
+        "modes": ["ed25519_verify"],
         "eureka_insight": (
-            "ART→KERNEL→ACT padlock: ART classifies, arif_judge SEALs, arif_verify unlocks ACT. "
-            "Without arif_verify the cage has a hasp but no padlock."
+            "Identity = cryptographic, not declarative. arif_verify closes the gap between "
+            "claimed and proven actor identity. Without it, authority bands are theatre."
         ),
         "cognitive_axis": "verify",
-        "expose": False,
+        "expose": True,  # AAA Wave 2: live MCP surface for Ed25519 ceremony
+    },
+    "arif_challenge": {
+        "name": "arif_challenge",
+        "description": (
+            "KERNEL · Issue an Ed25519 identity challenge nonce (live MCP, AAA Wave 2 / Phase 5). "
+            "Generates a cryptographically random 32-byte nonce, base64-encoded, with a TTL "
+            "(default 300s). The nonce is single-use and registered in the issued-challenges "
+            "registry; arif_verify must consume it. "
+            "Input: actor_id (required), session_id? (optional binding), ttl_seconds? (default 300). "
+            "Output: challenge (b64 nonce), issued_at (ISO-8601 UTC), ttl_seconds, session_id. "
+            "Use when: starting an Ed25519 identity ceremony; the actor signs "
+            "f\"{actor_id}:{challenge}\" with its Ed25519 private key and submits via arif_verify."
+        ),
+        "access": "public",
+        "stage": ToolStage.INIT,
+        "lane": TrinityLane.AGI,
+        "floors": [
+            Law.L01_AMANAH,
+            Law.L02_TRUTH,
+            Law.L11_AUDIT,
+            Law.L12_INJECTION,
+        ],
+        "risk_tier": "low",
+        "irreversible": False,
+        "modes": ["challenge"],
+        "eureka_insight": (
+            "One-shot nonce = no replay. Every arif_challenge birth = one arif_verify death."
+        ),
+        "cognitive_axis": "identity",
+        "expose": True,  # AAA Wave 2: live MCP surface for Ed25519 ceremony
     },
     "arif_act": {
         "name": "arif_act",
