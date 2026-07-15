@@ -45,6 +45,16 @@ logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# FORGET ENFORCEMENT FLAG — disabled until F13 flow is ratified
+# ═══════════════════════════════════════════════════════════════════════════
+# When False: forget/prune pass the gate (if judge trace + ack present)
+#   but the actual erase is NOT executed — receipt is prepared only.
+# When True: forget/prune execute the actual erase after gate passes.
+# Sovereign directive: keep False until F13 forget flow is fully ratified.
+FORGET_ENFORCEMENT_ENABLED = False
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # OPERATION CLASS TAXONOMY — drives gate strictness
 # ═══════════════════════════════════════════════════════════════════════════
 
