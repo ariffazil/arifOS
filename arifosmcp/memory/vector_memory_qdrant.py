@@ -63,7 +63,11 @@ def _get_qdrant_client():
 
 def _ensure_collection():
     """Ensure the memory collection exists and has the correct vector schema."""
-    client = _get_qdrant_client()
+    try:
+        client = _get_qdrant_client()
+    except Exception as exc:
+        logger.warning(f"Qdrant unavailable for _ensure_collection: {exc}")
+        raise  # Let callers handle via their SABAR wrappers
     try:
         info = client.get_collection(_QDRANT_COLLECTION)
         existing_size = info.config.params.vectors.size
@@ -174,7 +178,18 @@ async def vector_store(
     **kwargs,
 ) -> dict:
     """Store content with L10 ontology + F2 truth ≥ 0.99."""
-    _ensure_collection()
+    try:
+        _ensure_collection()
+    except Exception as exc:
+        logger.warning(f"Qdrant unavailable for vector_store: {exc}")
+        return {
+            "ok": False,
+            "error": f"SABAR: Qdrant offline — cannot store vector. {exc}",
+            "verdict": "SABAR",
+            "floor_violation": "F9",
+            "evidence_honesty": True,
+            "backend_status": "qdrant_offline",
+        }
     metadata = metadata or {}
     truth_score = _compute_truth_score(content, metadata)
     if truth_score < _F2_TRUTH_THRESHOLD:
@@ -241,7 +256,19 @@ async def vector_query(
     **kwargs,
 ) -> dict:
     """Query vector memory with L10/F2 constitutional filtering."""
-    _ensure_collection()
+    try:
+        _ensure_collection()
+    except Exception as exc:
+        logger.warning(f"Qdrant unavailable for vector_query: {exc}")
+        return {
+            "ok": False,
+            "error": f"SABAR: Qdrant offline — cannot query vector. {exc}",
+            "verdict": "SABAR",
+            "floor_violation": "F9",
+            "evidence_honesty": True,
+            "backend_status": "qdrant_offline",
+            "results": [],
+        }
     try:
         vector = _generate_embedding(query)
     except RuntimeError as exc:
@@ -267,7 +294,19 @@ async def vector_query(
             )
         if conditions:
             query_filter = Filter(must=conditions)
-    client = _get_qdrant_client()
+    try:
+        client = _get_qdrant_client()
+    except Exception as exc:
+        logger.warning(f"Qdrant unavailable for vector_query: {exc}")
+        return {
+            "ok": False,
+            "error": f"SABAR: Qdrant offline — cannot query vector. {exc}",
+            "verdict": "SABAR",
+            "floor_violation": "F9",
+            "evidence_honesty": True,
+            "backend_status": "qdrant_offline",
+            "results": [],
+        }
     hits = client.query_points(
         collection_name=_QDRANT_COLLECTION,
         query=vector,
@@ -307,7 +346,18 @@ async def vector_forget(
     **kwargs,
 ) -> dict:
     """Remove vector with F1 reversibility + L13 sovereign check."""
-    client = _get_qdrant_client()
+    try:
+        client = _get_qdrant_client()
+    except Exception as exc:
+        logger.warning(f"Qdrant unavailable for vector_forget: {exc}")
+        return {
+            "ok": False,
+            "error": f"SABAR: Qdrant offline — cannot forget vector. {exc}",
+            "verdict": "SABAR",
+            "floor_violation": "F9",
+            "evidence_honesty": True,
+            "backend_status": "qdrant_offline",
+        }
     if not point_id and not content_hash:
         return {"ok": False, "error": "Must provide point_id or content_hash"}
     try:
