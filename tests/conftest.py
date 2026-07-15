@@ -157,6 +157,8 @@ warnings.filterwarnings(
 # Ensure legacy spec bypass is active during import/collection
 os.environ.setdefault("ARIFOS_ALLOW_LEGACY_SPEC", "1")
 os.environ.setdefault("ARIFOS_PHYSICS_DISABLED", "1")
+# Default to forge_next_8 (sovereign) surface profile to expose all 8 canonical tools in test environment
+os.environ.setdefault("ARIFOS_PUBLIC_SURFACE_MODE", "forge_next_8")
 # Default to debug output in tests to preserve rich contracts for assertions.
 os.environ.setdefault("AAA_MCP_OUTPUT_MODE", "debug")
 # Include the legacy arifos.supabase.co issuer for JWT acceptance tests

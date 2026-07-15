@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-07-10T12:35:13Z",
+  "generated": "2026-07-15T10:07:05Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.09-SPINE-P0 (198398c). 164 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-07-10T12:35:13Z. arifOS canonical_tools=17, diagnostic_tools=41, mcp_exposed=12, total_declared=58.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=alive, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.09-SPINE-P0 (ef9d328). 102 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-07-15T10:07:05Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -60,16 +60,16 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 58,
+        "tools": 48,
         "release": "v2026.07.09-SPINE-P0",
-        "version": "kanon-198398c",
-        "commit": "198398c",
-        "canonical_tools": 17,
-        "diagnostic_tools": 41,
-        "tools_exposed_mcp": 11,
+        "version": "kanon-ef9d328",
+        "commit": "ef9d328",
+        "canonical_tools": 8,
+        "diagnostic_tools": 40,
+        "tools_exposed_mcp": 8,
         "floors_active": 13,
         "vault_health": "healthy",
-        "manifest_hash": "b26e699dd74cc85c"
+        "manifest_hash": "d00212fccf333c20"
       },
       "geox": {
         "name": "GEOX",
@@ -80,9 +80,9 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "healthy",
-        "tools": 81,
+        "tools": 15,
         "version": "v2026.07.06-phase3.1-rsi-pipeline",
-        "git_version": "geox-7c779feb"
+        "git_version": "geox-4aa92421"
       },
       "wealth": {
         "name": "WEALTH",
@@ -93,8 +93,8 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "alive",
-        "tools": 7,
-        "version": "2026.06.15"
+        "tools": 12,
+        "version": "2026.07.12"
       },
       "well": {
         "name": "WELL",
@@ -105,7 +105,7 @@
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
         "status": "degraded",
-        "tools": 18,
+        "tools": 27,
         "version": "2026.05.15-ΩWELL+GWELL+FEDERATION"
       },
       "aaa": {
@@ -119,7 +119,7 @@
         "status": "healthy",
         "tools": 0,
         "version": "1.0.0",
-        "agent_cards": 26
+        "agent_cards": 0
       },
       "forge": {
         "name": "A-FORGE",

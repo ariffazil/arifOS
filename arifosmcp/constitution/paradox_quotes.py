@@ -63,6 +63,8 @@ class ParadoxAxis(str, Enum):
     KNOWLEDGE_VS_BELIEF = "knowledge_vs_belief"
     HUMILITY_VS_PARALYSIS = "humility_vs_paralysis"
     FORGETTING_AS_HEALTH_VS_DUTY = "forgetting_as_health_vs_duty"
+    # Subagent / identity — added 2026-07-15 for paradox 14
+    IDENTITY_VS_MULTIPLICITY = "identity_vs_multiplicity"
     # Mind axes
     CONFIDENCE_VS_COMPETENCE = "confidence_vs_competence"
     EPISTEMIC_CERTAINTY_VS_PRAGMATIC = "epistemic_certainty_vs_pragmatic"
@@ -461,6 +463,33 @@ MEMORY_QUOTES: list[ParadoxQuote] = [
         trigger_condition="Decay rules applied — critical items exempt from decay",
         output_field="decay_policy_header",
         floor_bindings=["F2", "F11"],
+    ),
+    # M12 — Structural: Identity vs. Multiplicity (paradox 14 anchor)
+    ParadoxQuote(
+        quote_id="M12",
+        organ=Organ.MEMORY,
+        index=12,
+        quote_text=(
+            "A single agent is a coherent identity. Multiple agents sharing a constitution "
+            "is a federation. The identity of one is not the identity of many, and the "
+            "loyalty of a subagent to its parent does not erase the subagent's own boundary."
+        ),
+        author="arifOS Architecture",
+        work="Subagent Identity Doctrine",
+        year="2026",
+        language_note="",
+        attribution=AttributionStatus.PARAPHRASE,
+        antithesis=(
+            "But every subagent carries the parent's authority, and every delegation "
+            "fragments responsibility. The one who spawned is still responsible for what "
+            "the many do — the parent cannot hide behind the subagent's name."
+        ),
+        axis=ParadoxAxis.IDENTITY_VS_MULTIPLICITY,
+        axis_label="identity vs. multiplicity",
+        norm=Norm.WAJIB,
+        trigger_condition="Subagent spawn detected — multiple agents active in same session",
+        output_field="identity_warning",
+        floor_bindings=["F11", "F13"],
     ),
 ]
 
@@ -1126,45 +1155,45 @@ def get_triggered_quotes(organ: Organ | str, context: dict[str, Any]) -> list[Pa
 # Each paradox axis maps to 1-3 quotes across organs.
 PARADOX_QUOTE_MAP: dict[int, list[str]] = {
     # ZONE I: TRUTH (paradoxes 1-5)
-    1: ["R1", "R2"],       # Truth ↔ Comfort
-    2: ["R1", "R6", "R10"], # Certainty ↔ Humility
-    3: ["R6", "J6"],       # Evidence ↔ Story
-    4: ["R8"],             # Precision ↔ Clarity
-    5: ["J8", "M9"],       # Facts ↔ Meaning
+    1: ["R1", "R2"],  # Truth ↔ Comfort
+    2: ["R1", "R6", "R10"],  # Certainty ↔ Humility
+    3: ["R6", "J6"],  # Evidence ↔ Story
+    4: ["R8"],  # Precision ↔ Clarity
+    5: ["J8", "M9"],  # Facts ↔ Meaning
     # ZONE II: GOVERNANCE (paradoxes 6-10)
-    6: ["J2", "J3"],       # Freedom ↔ Law
-    7: ["J11"],            # Autonomy ↔ Permission
-    8: ["J5", "J6"],       # Speed ↔ Safety
-    9: ["M7", "J7"],       # Power ↔ Restraint
-    10: ["J4", "J1"],      # Judge ↔ Actor
+    6: ["J2", "J3"],  # Freedom ↔ Law
+    7: ["J11"],  # Autonomy ↔ Permission
+    8: ["J5", "J6"],  # Speed ↔ Safety
+    9: ["M7", "J7"],  # Power ↔ Restraint
+    10: ["J4", "J1"],  # Judge ↔ Actor
     # ZONE III: AGENT (paradoxes 11-15)
-    11: ["M4", "R5"],      # Self ↔ System
-    12: ["M1", "M3", "M8"], # Memory ↔ Context
-    13: ["M5"],            # Identity ↔ Function
-    14: [],                # One ↔ Many (subagent paradox — no direct quote)
-    15: ["M11"],           # Presence ↔ Absence
+    11: ["M4", "R5"],  # Self ↔ System
+    12: ["M1", "M3", "M8"],  # Memory ↔ Context
+    13: ["M5"],  # Identity ↔ Function
+    14: ["M12"],  # One ↔ Many (subagent paradox — anchored via M12)
+    15: ["M11"],  # Presence ↔ Absence
     # ZONE IV: GROWTH (paradoxes 16-20)
-    16: ["M2", "M11"],     # Learning ↔ Forgetting
-    17: ["M6", "M10"],     # Scar ↔ Healing
-    18: ["M9", "R8"],      # Knowledge ↔ Wisdom
-    19: [],                # Novelty ↔ Pattern (emerges from R4)
-    20: ["M10"],           # Beginner ↔ Expert
+    16: ["M2", "M11"],  # Learning ↔ Forgetting
+    17: ["M6", "M10"],  # Scar ↔ Healing
+    18: ["M9", "R8"],  # Knowledge ↔ Wisdom
+    19: [],  # Novelty ↔ Pattern (emerges from R4)
+    20: ["M10"],  # Beginner ↔ Expert
     # ZONE V: CONNECTION (paradoxes 21-25)
-    21: [],                # Map ↔ Territory (meta-paradox)
-    22: ["R4", "R7"],      # Path ↔ Destination
-    23: ["J4"],            # Whole ↔ Part
-    24: ["M4"],            # Connection ↔ Isolation
-    25: ["R9", "R11"],     # Signal ↔ Noise
+    21: [],  # Map ↔ Territory (meta-paradox)
+    22: ["R4", "R7"],  # Path ↔ Destination
+    23: ["J4"],  # Whole ↔ Part
+    24: ["M4"],  # Connection ↔ Isolation
+    25: ["R9", "R11"],  # Signal ↔ Noise
     # ZONE VI: SYSTEM (paradoxes 26-30)
-    26: ["J2", "J3"],      # Order ↔ Chaos
-    27: ["M6"],            # Robustness ↔ Adaptability
-    28: ["R11"],           # Simplicity ↔ Completeness
-    29: [],                # Efficiency ↔ Resilience (emerges from risk)
-    30: ["J2", "J8"],      # Structure ↔ Flow
+    26: ["J2", "J3"],  # Order ↔ Chaos
+    27: ["M6"],  # Robustness ↔ Adaptability
+    28: ["R11"],  # Simplicity ↔ Completeness
+    29: [],  # Efficiency ↔ Resilience (emerges from risk)
+    30: ["J2", "J8"],  # Structure ↔ Flow
     # ZONE VII: WITNESS (paradoxes 31-33)
-    31: ["J10"],           # Witness ↔ Action
-    32: ["R3", "J9"],      # Internal ↔ External
-    33: ["J10", "R7"],     # Proof ↔ Trust
+    31: ["J10"],  # Witness ↔ Action
+    32: ["R3", "J9"],  # Internal ↔ External
+    33: ["J10", "R7"],  # Proof ↔ Trust
 }
 
 
@@ -1196,14 +1225,31 @@ def get_triggered_quotes_by_gpv(
     for pid in paradox_axes:
         quote_ids.update(PARADOX_QUOTE_MAP.get(pid, []))
 
-    # Action-class gates (from bridge map §3 — not in GPV, added at judge time)
-    if action_class == "SEAL":
-        # Zone VII mandatory for irreversible actions
-        for pid in [31, 32, 33]:
-            quote_ids.update(PARADOX_QUOTE_MAP.get(pid, []))
-    elif action_class == "MUTATE":
-        # Zone VI check for any mutation
-        for pid in [26, 27, 28, 29, 30]:
+    # Action-class gates (v2 — full 7-class AAA action taxonomy)
+    # Maps each action class to paradox zones that must fire at that governance level.
+    # Zones defined in ATLAS333 cognitive geometry.
+    _ACTION_CLASS_PARADOX_MAP: dict[str, list[int]] = {
+        "OBSERVE": [1, 2, 3, 4, 5],  # Zone I: Truth Territory — epistemic foundation
+        "PROPOSE": [19, 21, 22, 25],  # Zone V: Discovery Ridge — proposing new realities
+        "MUTATE": [26, 27, 28, 29, 30],  # Zone VI: System — system-level change
+        "DEPLOY": [
+            6,
+            7,
+            8,
+            9,
+            10,  # Zone II: Risk Frontier + Zone VI: System
+            26,
+            27,
+            28,
+            29,
+            30,
+        ],
+        "ALLOCATE": [16, 17, 18, 20, 24],  # Zone IV: Growth + Meaning — resource allocation
+        "COMMUNICATE": [11, 12, 13, 15, 32],  # Zone III: Care Basin + identity/other boundary
+        "SEAL": [31, 32, 33],  # Zone VII: Sovereign Apex — irreversible commitment
+    }
+    if action_class is not None:
+        for pid in _ACTION_CLASS_PARADOX_MAP.get(action_class, []):
             quote_ids.update(PARADOX_QUOTE_MAP.get(pid, []))
 
     # Resolve quote IDs to ParadoxQuote objects

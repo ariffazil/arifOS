@@ -42,6 +42,9 @@ from arifosmcp.federation.federation_envelope import (
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
 
+# ATLAS333 Cognitive Geometry — 222_MAP bridge
+from core.shared.atlas import Φ
+
 
 def _token_in(token: str, text: str) -> bool:
     """Substring match with word boundaries for short / single-token keywords.
@@ -763,6 +766,34 @@ def arif_route(
         },
     }
 
+    # ── ATLAS333 Cognitive Geometry Enrichment (222_MAP) ──────────────────────
+    # Φ(intent) → GPV(lane, τ, κ, ρ, paradox_axes, query_type)
+    # Enriches route context with cognitive geometry for downstream tools.
+    # Fail-soft: GPV enrichment never breaks routing (F1 AMANAH).
+    try:
+        _gpv = Φ(intent)
+        routing["gpv"] = {
+            "lane": _gpv.lane,
+            "τ": _gpv.tau,
+            "κ": _gpv.kappa,
+            "ρ": _gpv.rho,
+            "paradox_axes": _gpv.paradox_axes,
+            "query_type": _gpv.query_type.value,
+        }
+        routing["source_of_truth"]["chain"].append(
+            {
+                "step": "atlas333_gpv_resolved",
+                "lane": _gpv.lane,
+                "τ": _gpv.tau,
+                "κ": _gpv.kappa,
+                "ρ": _gpv.rho,
+                "paradox_axes": _gpv.paradox_axes,
+                "timestamp": __import__("time").time(),
+            }
+        )
+    except Exception:
+        pass
+
     # P2 FIX 2026-06-30: Verdict monotonicity — HOLD > DEGRADED > SEAL.
     # ChatGPT audit caught: arif_route returned verdict: SEAL while inner signals
     # said hold_required: true + floor_passed: false. That is a contradiction.
@@ -1371,7 +1402,13 @@ def _enforce_bridge_invariants(
             claims.append(f"inv4:verdict_downgraded_to_evidence:{key}")
 
     # Invariant 5: constitutional seal forbidden at bridge
-    for key in ("seal", "seal_id", "vault_entry_id", "constitutional_seal", "constitutional_seal_id"):
+    for key in (
+        "seal",
+        "seal_id",
+        "vault_entry_id",
+        "constitutional_seal",
+        "constitutional_seal_id",
+    ):
         if key in response:
             response[key] = {
                 "_status": "FORBIDDEN_AT_BRIDGE",
@@ -1382,7 +1419,11 @@ def _enforce_bridge_invariants(
 
     # Invariant 6: evidence without provenance → attach degraded_claim
     if "provenance" not in response and "response" in response:
-        prov = response.get("response", {}).get("provenance", "") if isinstance(response.get("response"), dict) else ""
+        prov = (
+            response.get("response", {}).get("provenance", "")
+            if isinstance(response.get("response"), dict)
+            else ""
+        )
         if not prov:
             claims.append("inv6:missing_provenance")
 
@@ -1458,15 +1499,11 @@ def _bridge_ok(
         v = base["verdicts"]
         if isinstance(v.get("action"), dict):
             v["action"]["state"] = "NOT_EVALUATED"
-            v["action"]["evidence_reference"] = (
-                f"cross_boundary_evidence:{organ}:{tool_name}"
-            )
+            v["action"]["evidence_reference"] = f"cross_boundary_evidence:{organ}:{tool_name}"
             v["action"]["issuer"] = "arif_bridge"
         if isinstance(v.get("receipt"), dict):
             v["receipt"]["state"] = "UNSEALED"
-            v["receipt"]["evidence_reference"] = (
-                f"bridge_passthrough_unsealed:{organ}:{tool_name}"
-            )
+            v["receipt"]["evidence_reference"] = f"bridge_passthrough_unsealed:{organ}:{tool_name}"
             v["receipt"]["issuer"] = "arif_bridge"
         if isinstance(v.get("session"), dict):
             # Force to OBSERVE_ONLY — bridge cannot grant authority above kernel's
@@ -1491,16 +1528,18 @@ def _bridge_ok(
         # Bridge proof (F13 law stamp)
         base.setdefault("bridge_proof", {})
         if isinstance(base["bridge_proof"], dict):
-            base["bridge_proof"].update({
-                "law": "F13 cross-boundary reclassification (2026-07-12T15:35Z)",
-                "principle": "execution success is evidence of execution only; carries no action authority, no approval, no seal",
-                "organ": organ,
-                "tool": tool_name,
-                "kernel_session_id": kernel_session_id or "",
-                "kernel_actor_id": kernel_actor_id or "",
-                "drift_detected": drift_detected,
-                "invariants_applied": invariants_applied or [],
-            })
+            base["bridge_proof"].update(
+                {
+                    "law": "F13 cross-boundary reclassification (2026-07-12T15:35Z)",
+                    "principle": "execution success is evidence of execution only; carries no action authority, no approval, no seal",
+                    "organ": organ,
+                    "tool": tool_name,
+                    "kernel_session_id": kernel_session_id or "",
+                    "kernel_actor_id": kernel_actor_id or "",
+                    "drift_detected": drift_detected,
+                    "invariants_applied": invariants_applied or [],
+                }
+            )
     return base
 
 
@@ -1607,9 +1646,7 @@ def _bridge_geox(
         wrap_target, invariants_applied = _enforce_bridge_invariants(
             "GEOX", tool_name, actor_id, session_id, wrap_target
         )
-        drift_detected = bool(
-            call_sid and resp_sid and call_sid != resp_sid
-        )
+        drift_detected = bool(call_sid and resp_sid and call_sid != resp_sid)
         return _bridge_ok(
             "GEOX",
             tool_name,
@@ -1840,9 +1877,7 @@ def _bridge_wealth(
         out, invariants_applied_w = _enforce_bridge_invariants(
             "WEALTH", tool_name, actor_id, session_id, out
         )
-        drift_detected_w = bool(
-            call_sid and resp_sid and call_sid != resp_sid
-        )
+        drift_detected_w = bool(call_sid and resp_sid and call_sid != resp_sid)
         return _bridge_ok(
             "WEALTH",
             tool_name,

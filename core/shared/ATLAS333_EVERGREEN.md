@@ -1,5 +1,6 @@
 # 🌍 ATLAS333 — Evergreen Cognitive Geometry Registry
 
+> **SOURCE OF TRUTH — ATLAS333 cognitive substrate (evergreen registry).**
 > **Status:** LIVING DOCUMENT — never finished, always updated
 > **Analogy:** Like geological mapping — the earth is never "done," neither is this
 > **Owner:** ARIF (F13 SOVEREIGN)

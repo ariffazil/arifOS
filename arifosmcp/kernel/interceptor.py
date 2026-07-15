@@ -232,6 +232,13 @@ TOOL_ALIASES: dict[str, str] = {
     "arifos_gateway_connect": "arif_gateway_connect",
     "hermes_vault_query_legacy": "arif_vault_query",
     "hermes_vault_query": "arif_vault_query",  # P3 fix 2026-06-30: canonical alias
+    # ── Compatibility aliases from capability_registry.json ──
+    "arif_judge_deliberate": "arif_judge",
+    "arif_forge_execute": "arif_forge",
+    "arif_vault_seal": "arif_seal",
+    "arif_reply_compose": "arif_compose",
+    "arif_evidence_fetch": "arif_observe",
+    "arif_sense_observe": "arif_observe",
 }
 
 

@@ -237,39 +237,33 @@ class SignedIntentEnvelope(BaseModel):
 # ============================================================================
 # VERDICT ENUM — Constitutional Outcomes
 # ============================================================================
-# Phase 3 verdict unification (2026-07-07): canonical source is arifosmcp.models.verdicts
-# Extra members (PROVISIONAL, PARTIAL, PAUSED, ALIVE, DEGRADED) are backward-compatible
-# string aliases — they will be migrated to VerdictState sub-states in Phase 3b.
+# Core Verdict definition — self-contained, no arifOS runtime dependency.
+# Canonical runtime enrichment (SealType, VerdictState) lives in
+# arifosmcp.models.verdicts — this is the minimal core substrate.
+class Verdict(str, Enum):
+    """
+    Canonical governance verdicts + backward-compatible transport aliases.
 
-from arifosmcp.models.verdicts import Verdict  # Canonical: SEAL, HOLD, SABAR, VOID
+    SEAL / HOLD / SABAR / VOID are constitutional floor outcomes.
+    PROVISIONAL / PARTIAL / HOLD_888 are SealType substates.
+    PAUSED / ALIVE / DEGRADED are transport status markers (not governance).
 
+    5-state monotonic lattice (core):
+        VOID > HOLD > SABAR > PARTIAL > SEAL
+    """
 
-class _ExpandedVerdict:
-    """Backward-compatible extra verdict members. Not governance — transport/status only."""
+    SEAL = "SEAL"
+    HOLD = "HOLD"
+    SABAR = "SABAR"
+    VOID = "VOID"
 
-    PROVISIONAL = "PROVISIONAL"  # → VerdictState.SEAL_QUALIFIED
-    PARTIAL = "PARTIAL"  # → VerdictState.SABAR_EPISTEMIC
-    HOLD_888 = "HOLD_888"  # → VerdictState.HOLD_888
-    PAUSED = "PAUSED"  # → transport status, not governance
-    ALIVE = "ALIVE"  # → transport status, not governance
-    DEGRADED = "DEGRADED"  # → transport status, not governance
-
-
-# Backward compatibility: Verdict.PROVISIONAL etc. still resolve
-# These are NOT canonical governance verdicts — they are transport/status aliases.
-# New code MUST use: from arifosmcp.models.verdicts import Verdict, VerdictState
-# (v1.0 ratified 2026-07-07: Verdict.PARTIAL is now canonical SealType.PARTIAL — patch removed.)
-# (2026-07-11 Phase 1: PROVISIONAL + HOLD_888 moved into SealType — no longer need monkey-patch)
-if not hasattr(Verdict, "PROVISIONAL"):
-    Verdict.PROVISIONAL = "PROVISIONAL"  # type: ignore[attr-defined]
-if not hasattr(Verdict, "HOLD_888"):
-    Verdict.HOLD_888 = "HOLD_888"  # type: ignore[attr-defined]
-if not hasattr(Verdict, "PAUSED"):
-    Verdict.PAUSED = "PAUSED"  # type: ignore[attr-defined]
-if not hasattr(Verdict, "ALIVE"):
-    Verdict.ALIVE = "ALIVE"  # type: ignore[attr-defined]
-if not hasattr(Verdict, "DEGRADED"):
-    Verdict.DEGRADED = "DEGRADED"  # type: ignore[attr-defined]
+    # Backward-compatible transport/status aliases (Phase 3b migration target)
+    PROVISIONAL = "PROVISIONAL"
+    PARTIAL = "PARTIAL"
+    HOLD_888 = "HOLD_888"
+    PAUSED = "PAUSED"
+    ALIVE = "ALIVE"
+    DEGRADED = "DEGRADED"
 
 
 # =============================================================================

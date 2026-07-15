@@ -268,40 +268,44 @@ def generate_llms_txt() -> str:
     lines.append("")
     lines.append("## Federation Organs - MCP Endpoints")
     lines.append("")
-    lines.append("| Organ | MCP Endpoint | Role | Tools |")
-    lines.append("|------|-------------|------|-------|")
+    lines.append("| Organ | Internal endpoint | Public surface | Role | Tool truth source |")
+    lines.append("|------|-------------------|----------------|------|-------------------|")
     lines.append(
-        f"| **arifOS** (8088) | `mcp.arif-fazil.com/mcp` | Governance kernel | {len(_canonical_tool_list())} canonical + {len(_operational_tool_list())} operational |"
+        f"| **arifOS** | `127.0.0.1:8088/mcp` | `mcp.arif-fazil.com/mcp` | Governance kernel | Generated registry: {len(_canonical_tool_list())} canonical + {len(_operational_tool_list())} operational |"
     )
     lines.append(
-        "| **A-FORGE** (7071) | `forge.arif-fazil.com/mcp` | Engineering actuator | 59 (filesystem, git, docker, postgres, vault, shell, job, lease, agent) |"
+        "| **A-FORGE** | `127.0.0.1:7072/mcp` | canonical gateway via arifOS | Engineering actuator | Live `tools/list` / schema fingerprint |"
     )
     lines.append(
-        "| **GEOX** (8081) | `geox.arif-fazil.com/mcp` | Earth intelligence | 33 canonical tools |"
+        "| **GEOX** | `127.0.0.1:8081/mcp` | `geox.arif-fazil.com/mcp` compatibility | Earth intelligence | Live `tools/list` / schema fingerprint |"
     )
     lines.append(
-        "| **WEALTH** (18082) | `wealth.arif-fazil.com/mcp` | Capital intelligence | 20+ tools |"
+        "| **WEALTH** | `127.0.0.1:18082/mcp` | `wealth.arif-fazil.com/mcp` compatibility | Capital intelligence | Live `tools/list` / schema fingerprint |"
     )
-    lines.append("| **WELL** (18083) | `well.arif-fazil.com/mcp` | Human readiness | 18+ tools |")
     lines.append(
-        "| **AAA** (3001) | `aaa.arif-fazil.com` | Control plane cockpit | A2A server, React SPA |"
+        "| **WELL** | `127.0.0.1:18083/mcp` | `well.arif-fazil.com/mcp` compatibility | Human readiness | Live `tools/list` / schema fingerprint |"
     )
+    lines.append(
+        "| **AAA** | `127.0.0.1:3001` | `aaa.arif-fazil.com` | A2A/control-plane cockpit | Live A2A card and health |"
+    )
+    lines.append("")
+    lines.append("Tool counts outside arifOS are dynamic observations, not constants. Probe them at T1 before publishing a count.")
     lines.append("")
     lines.append("## Agent Rules (mandatory)")
     lines.append("1. Never skip the 000-999 pipeline")
     lines.append("2. Never self-certify (F2 TRUTH)")
     lines.append("3. Never fabricate evidence (F9 ANTIHANTU)")
     lines.append("4. Never bypass human veto (F13 SOVEREIGN)")
-    lines.append("5. Reversible-first: commit before big changes (F1 AMANAH)")
+    lines.append("5. Reversible-first: create a rollback point before big changes (F1 AMANAH)")
     lines.append("")
     lines.append("### Tool Location Rules")
     lines.append(
-        "- arifOS (8088) = governance only (judge, seal, reason, critique, hermes, lease, attest)"
+        "- arifOS (8088) = governance only (judge, seal, reason, critique, lease, attest)"
     )
     lines.append(
-        "- A-FORGE (7071) = engineering only (forge_*, filesystem, git, docker, postgres, shell, job)"
+        "- A-FORGE MCP (7072) = engineering only (forge_*, filesystem, git, docker, postgres, shell, job)"
     )
-    lines.append("- forge_* on arifOS = DEPRECATED PROXY (calls forwarded to A-FORGE)")
+    lines.append("- forge_* on arifOS = governed bridge/proxy, never local self-authorization")
     lines.append("- GEOX/WEALTH/WELL = domain evidence organs")
     lines.append("")
     lines.append("## Verification")

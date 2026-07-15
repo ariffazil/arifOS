@@ -1,5 +1,6 @@
 # ⧉ ATLAS333 — COGNITIVE GEOMETRY
 
+> **SOURCE OF TRUTH — ATLAS333 cognitive substrate (10-stage geometry).**
 > **The 10-stage intelligence flow: from existence → understanding → action → accountability**
 > **DITEMPA BUKAN DIBERI — Forged, not given.**
 

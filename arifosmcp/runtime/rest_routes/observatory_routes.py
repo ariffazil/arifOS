@@ -179,7 +179,9 @@ def _enrich_with_explanation(envelope: dict[str, Any]) -> dict[str, Any]:
     GOOD_VALUES = {"up", "ALIGNED", "STATIC_PASS", "TRANSPORT_PASS",
                    "GOVERNED_RUNTIME_PASS", "GREEN", "reachable", "aligned"}
     value = envelope.get("value")
-    if value in GOOD_VALUES:
+    # Only check membership for hashable scalar types. dict/list values (e.g.
+    # nested envelopes) bypass the good-values check and proceed to explanation.
+    if isinstance(value, (str, int, float, bool)) and value in GOOD_VALUES:
         return envelope
     # Derive a failure code from the value or state
     code = _derive_failure_code(envelope)
@@ -1643,10 +1645,18 @@ def _conformance_block() -> dict[str, Any]:
 
     Each level has its own verdict vocabulary. The substrate gate is AMBER when
     any check is skipped — GREEN requires all checks to have actually passed.
-    """
-    from arifosmcp.runtime.conformance import run_fast, run_full, run_live_transport
 
+    Defensive: if `arifosmcp.runtime.conformance` or its runner functions are
+    missing (regression in some builds), return UNKNOWN envelopes instead of
+    failing the entire snapshot. F2: never silently drop evidence.
+    """
     try:
+        from arifosmcp.runtime.conformance import (
+            run_fast,
+            run_full,
+            run_live_transport,
+        )
+
         fast = run_fast()
         transport = run_live_transport()
         full = run_full()
@@ -1947,9 +1957,32 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         )  # type: ignore
         from arifosmcp.runtime.capability_drift import _registered_tools_async
 
-        # Pre-compute registered tools async (FastMCP 3.x list_tools is async)
-        reg_tools = await _registered_tools_async(mcp)
-        snap = build_snapshot(mcp=mcp, registered_tools=reg_tools)
+        # Defensive: build_snapshot is a composition of many blocks (substrate,
+        # governance, organs, conformance, edges). A single failing block should
+        # not yield 500 on the page — return a partial snapshot with an
+        # `_error` field instead. F2: never silently drop evidence.
+        try:
+            # Pre-compute registered tools async (FastMCP 3.x list_tools is async)
+            reg_tools = await _registered_tools_async(mcp)
+            snap = build_snapshot(mcp=mcp, registered_tools=reg_tools)
+        except Exception as exc:
+            logger.exception("observatory snapshot partial failure")
+            snap = {
+                "snapshot_id": "obs_partial_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime()),
+                "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "schema_version": SCHEMA_VERSION,
+                "generated_by": GENERATED_BY,
+                "_partial": True,
+                "_error": f"{type(exc).__name__}: {exc}",
+                "signature": _pf(
+                    None,
+                    source="ed25519 over canonicaljson — pending key bootstrap",
+                    state="unknown",
+                    confidence=0.0,
+                    observation_method=_OBS_METHOD_UNKNOWN,
+                    independent=True,
+                ),
+            }
         return JSONResponse(
             snap,
             headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
