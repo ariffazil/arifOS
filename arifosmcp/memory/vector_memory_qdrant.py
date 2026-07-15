@@ -61,13 +61,93 @@ def _get_qdrant_client():
     return _qdrant_client
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Connection-failure handling (F9 + F11 compliance — P0-01b)
+# ─────────────────────────────────────────────────────────────────────
+#
+# Qdrant may become unreachable mid-operation. We treat that as a soft
+# floor (SABAR) — not a hard VOID — because the failure is reversible
+# (operator can restart Qdrant and retry). The verdict envelope MUST:
+#
+#   * Never hallucinate an empty vector or fabricate a recall result.
+#   * Never raise an unhandled exception that bypasses FloorEnforcer.
+#   * Stamp `evidence_honesty: "QDRANT_UNREACHABLE"` so F2 + F9 consumers
+#     can detect the failure mode without ambiguity.
+#   * Set `overall_confidence: 0.0` — never partial confidence on missing
+#     data (that would be a fabrication).
+#
+# RuntimeError is intentionally included in the caught tuple because
+# qdrant-client frequently wraps connection failures in RuntimeError
+# (e.g. UnexpectedResponse with no transport). Catching RuntimeError
+# here is narrowly scoped: the only RuntimeError sources in this file
+# are the Qdrant connection layer (`_get_qdrant_client`) and the
+# embedding layer (`_generate_embedding`, already handled separately).
+_QDRANT_OFFLINE_REASON = "vector store offline; recall returned as empty result with SABAR"
+_QDRANT_OFFLINE_REMEDIATION = "verify Qdrant availability; retry when online"
+_QDRANT_CONNECTION_EXCEPTIONS: tuple = (
+    ConnectionError,
+    TimeoutError,
+    OSError,
+    RuntimeError,
+)
+
+
+def _sabar_qdrant_unreachable(exc: Exception, op: str = "vector_query") -> dict:
+    """Build a SABAR verdict for a Qdrant-unreachable failure.
+
+    F9 ANTI-HANTU + F11 AUDIT contract:
+      - No hallucinated empty vectors (`results` is an honest empty list).
+      - `overall_confidence: 0.0` (no fabrication on missing data).
+      - Explicit `evidence_honesty: "QDRANT_UNREACHABLE"` tag so downstream
+        F2/F9 consumers can detect the failure mode without ambiguity.
+      - `empty_count: 0` and `total_outputs: 0` are honest zeros — NOT
+        partial-data-with-warning. Per F9, returning a partial match
+        with a warning tag is forbidden.
+
+    Args:
+        exc: The originating connection exception.
+        op: Operation name (vector_query / vector_store / vector_forget)
+            for the audit trail.
+
+    Returns:
+        Dict matching the memory module SABAR envelope shape. Callers
+        return this directly — never re-raise.
+    """
+    return {
+        "ok": False,
+        "error": f"SABAR: Qdrant offline — {op} unavailable. {exc}",
+        "verdict": "SABAR",
+        "floor_violation": "F9",
+        "evidence_honesty": "QDRANT_UNREACHABLE",
+        "reason": _QDRANT_OFFLINE_REASON,
+        "remediation": _QDRANT_OFFLINE_REMEDIATION,
+        "operation": op,
+        "backend_status": "qdrant_offline",
+        "qdrant_unavailable": True,
+        # Honest zero scalars — never partial confidence on missing data.
+        "overall_confidence": 0.0,
+        "empty_count": 0,
+        "total_outputs": 0,
+        # Empty list is honest (no vectors because backend is down),
+        # NOT a hallucinated placeholder / zero-vector trick.
+        "results": [],
+    }
+
+
 def _ensure_collection():
-    """Ensure the memory collection exists and has the correct vector schema."""
+    """Ensure the memory collection exists and has the correct vector schema.
+
+    Re-raises connection exceptions so public wrappers (vector_query /
+    vector_store / vector_forget) can route them through
+    `_sabar_qdrant_unreachable()`. Schema-mismatch RuntimeErrors are
+    propagated unchanged so callers can distinguish Qdrant-down (soft
+    SABAR) from misconfiguration (hard floor violation).
+    """
     try:
         client = _get_qdrant_client()
-    except Exception as exc:
+    except _QDRANT_CONNECTION_EXCEPTIONS as exc:
         logger.warning(f"Qdrant unavailable for _ensure_collection: {exc}")
-        raise  # Let callers handle via their SABAR wrappers
+        raise  # Public wrappers handle via _sabar_qdrant_unreachable()
     try:
         info = client.get_collection(_QDRANT_COLLECTION)
         existing_size = info.config.params.vectors.size
@@ -177,19 +257,17 @@ async def vector_store(
     actor_id: str = "",
     **kwargs,
 ) -> dict:
-    """Store content with L10 ontology + F2 truth ≥ 0.99."""
+    """Store content with L10 ontology + F2 truth ≥ 0.99.
+
+    On Qdrant-unreachable failure (any point in the connection-establish
+    / upsert path), returns a SABAR verdict via `_sabar_qdrant_unreachable`
+    instead of raising. F9 + F11 compliance (P0-01b).
+    """
     try:
         _ensure_collection()
-    except Exception as exc:
+    except _QDRANT_CONNECTION_EXCEPTIONS as exc:
         logger.warning(f"Qdrant unavailable for vector_store: {exc}")
-        return {
-            "ok": False,
-            "error": f"SABAR: Qdrant offline — cannot store vector. {exc}",
-            "verdict": "SABAR",
-            "floor_violation": "F9",
-            "evidence_honesty": True,
-            "backend_status": "qdrant_offline",
-        }
+        return _sabar_qdrant_unreachable(exc, op="vector_store")
     metadata = metadata or {}
     truth_score = _compute_truth_score(content, metadata)
     if truth_score < _F2_TRUTH_THRESHOLD:
@@ -228,11 +306,18 @@ async def vector_store(
             "timestamp": time.time(),
         },
     }
-    client = _get_qdrant_client()
-    client.upsert(
-        collection_name=_QDRANT_COLLECTION,
-        points=[{"id": point_id, "vector": vector, "payload": payload}],
-    )
+    try:
+        client = _get_qdrant_client()
+        client.upsert(
+            collection_name=_QDRANT_COLLECTION,
+            points=[{"id": point_id, "vector": vector, "payload": payload}],
+        )
+    except _QDRANT_CONNECTION_EXCEPTIONS as exc:
+        # Connection dropped between client init and upsert — F9 SABAR,
+        # NOT an unhandled exception. Do not silently lose the point_id
+        # into the void: the verdict says the write never landed.
+        logger.warning(f"Qdrant unavailable for vector_store upsert: {exc}")
+        return _sabar_qdrant_unreachable(exc, op="vector_store")
     logger.info(
         f"Vector stored: {point_id[:8]}... "
         f"(class={ontology['ontology_class']}, τ={truth_score:.4f})"
@@ -255,20 +340,17 @@ async def vector_query(
     filters: dict | None = None,
     **kwargs,
 ) -> dict:
-    """Query vector memory with L10/F2 constitutional filtering."""
+    """Query vector memory with L10/F2 constitutional filtering.
+
+    On Qdrant-unreachable failure (any point in the connection-establish
+    / query path), returns a SABAR verdict via `_sabar_qdrant_unreachable`
+    instead of raising. F9 + F11 compliance (P0-01b).
+    """
     try:
         _ensure_collection()
-    except Exception as exc:
+    except _QDRANT_CONNECTION_EXCEPTIONS as exc:
         logger.warning(f"Qdrant unavailable for vector_query: {exc}")
-        return {
-            "ok": False,
-            "error": f"SABAR: Qdrant offline — cannot query vector. {exc}",
-            "verdict": "SABAR",
-            "floor_violation": "F9",
-            "evidence_honesty": True,
-            "backend_status": "qdrant_offline",
-            "results": [],
-        }
+        return _sabar_qdrant_unreachable(exc, op="vector_query")
     try:
         vector = _generate_embedding(query)
     except RuntimeError as exc:
@@ -296,24 +378,21 @@ async def vector_query(
             query_filter = Filter(must=conditions)
     try:
         client = _get_qdrant_client()
-    except Exception as exc:
-        logger.warning(f"Qdrant unavailable for vector_query: {exc}")
-        return {
-            "ok": False,
-            "error": f"SABAR: Qdrant offline — cannot query vector. {exc}",
-            "verdict": "SABAR",
-            "floor_violation": "F9",
-            "evidence_honesty": True,
-            "backend_status": "qdrant_offline",
-            "results": [],
-        }
-    hits = client.query_points(
-        collection_name=_QDRANT_COLLECTION,
-        query=vector,
-        limit=top_k,
-        query_filter=query_filter,
-        with_payload=True,
-    ).points
+        hits = client.query_points(
+            collection_name=_QDRANT_COLLECTION,
+            query=vector,
+            limit=top_k,
+            query_filter=query_filter,
+            with_payload=True,
+        ).points
+    except _QDRANT_CONNECTION_EXCEPTIONS as exc:
+        # Connection dropped between client init and query_points — F9
+        # SABAR, NOT an unhandled exception. The empty `results` list is
+        # honest (no records fetched) and `overall_confidence: 0.0` is
+        # explicit; downstream consumers must not interpret this as a
+        # "no-match" success.
+        logger.warning(f"Qdrant unavailable for vector_query search: {exc}")
+        return _sabar_qdrant_unreachable(exc, op="vector_query")
     filtered_results = []
     for hit in hits:
         md = hit.payload.get("metadata", {})
@@ -345,19 +424,16 @@ async def vector_forget(
     actor_id: str = "",
     **kwargs,
 ) -> dict:
-    """Remove vector with F1 reversibility + L13 sovereign check."""
+    """Remove vector with F1 reversibility + L13 sovereign check.
+
+    On Qdrant-unreachable failure, returns a SABAR verdict via
+    `_sabar_qdrant_unreachable` instead of raising. F9 + F11 compliance.
+    """
     try:
         client = _get_qdrant_client()
-    except Exception as exc:
+    except _QDRANT_CONNECTION_EXCEPTIONS as exc:
         logger.warning(f"Qdrant unavailable for vector_forget: {exc}")
-        return {
-            "ok": False,
-            "error": f"SABAR: Qdrant offline — cannot forget vector. {exc}",
-            "verdict": "SABAR",
-            "floor_violation": "F9",
-            "evidence_honesty": True,
-            "backend_status": "qdrant_offline",
-        }
+        return _sabar_qdrant_unreachable(exc, op="vector_forget")
     if not point_id and not content_hash:
         return {"ok": False, "error": "Must provide point_id or content_hash"}
     try:

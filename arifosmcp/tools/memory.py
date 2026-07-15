@@ -1202,6 +1202,33 @@ def arif_memory_recall(
     if mode == "forget":
         if not memory_id:
             return _hold("arif_memory_recall", "memory_id required for forget mode")
+
+        # F1 AMANAH + F13 SOVEREIGN: forget enforcement flag
+        from arifosmcp.runtime.memory_gate import FORGET_ENFORCEMENT_ENABLED
+
+        if not FORGET_ENFORCEMENT_ENABLED:
+            # Gate passed (judge trace + ack present) but enforcement disabled.
+            # Prepare receipt but do NOT execute the actual erase.
+            return _ok(
+                "arif_memory_recall",
+                {
+                    "forget_simulated": True,
+                    "memory_id": memory_id,
+                    "method": method or "soft_delete",
+                    "reason": reason or "user request",
+                    "actor_id": actor_id,
+                    "enforcement": "DISABLED",
+                    "note": (
+                        "F13 SOVEREIGN: forget enforcement is disabled. "
+                        "Gate passed (judge trace + ack verified) but actual "
+                        "erase is NOT executed. Receipt prepared for audit. "
+                        "Set FORGET_ENFORCEMENT_ENABLED=True to execute."
+                    ),
+                    "mutation_applied": False,
+                },
+            )
+
+        # Enforcement enabled — execute the actual forget
         result = memory_forget(
             memory_id=memory_id,
             method=method or "soft_delete",

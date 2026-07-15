@@ -158,11 +158,18 @@ def test_arif_memory_recall_store_returns_qdrant_write_failed_not_exception():
 
 def test_vector_query_returns_sabar_on_qdrant_offline():
     """FIXED (P0-01b): vector_memory_qdrant.vector_query now catches the
-    Qdrant-unreachable exception and returns {"ok": False, "verdict": "SABAR",
-    "evidence_honesty": True} instead of raising.
+    Qdrant-unreachable exception and returns a structured SABAR verdict
+    instead of raising.
 
-    This is the F9/F11 compliance fix: the exception no longer bypasses the
-    floor verdict chain.
+    Verdict envelope (F9 ANTI-HANTU + F11 AUDIT contract):
+      - ok=False, verdict="SABAR", floor_violation="F9"
+      - evidence_honesty="QDRANT_UNREACHABLE" (explicit string tag)
+      - reason: human-readable failure explanation
+      - remediation: operator-facing fix instruction
+      - overall_confidence: 0.0 (no fabrication on missing data)
+      - empty_count: 0, total_outputs: 0 (honest zeros)
+      - results: [] (empty list, NOT a hallucinated zero-vector)
+      - backend_status: "qdrant_offline"
     """
     from arifosmcp.memory import vector_memory_qdrant
 
@@ -177,11 +184,84 @@ def test_vector_query_returns_sabar_on_qdrant_offline():
     assert result.get("verdict") == "SABAR", (
         f"Verdict must be SABAR (soft floor), got {result.get('verdict')!r}"
     )
-    assert result.get("evidence_honesty") is True, (
-        "Must flag evidence_honesty=True — no fabrication"
+    # F9 ANTI-HANTU — explicit string tag (P0-01b envelope shape).
+    assert result.get("evidence_honesty") == "QDRANT_UNREACHABLE", (
+        f"Must flag evidence_honesty='QDRANT_UNREACHABLE' — no fabrication, "
+        f"got {result.get('evidence_honesty')!r}"
+    )
+    assert result.get("floor_violation") == "F9"
+    assert "reason" in result and "vector store offline" in result["reason"].lower()
+    assert "remediation" in result and "qdrant" in result["remediation"].lower()
+    # F2 TRUTH — honest zeros, not fabricated confidence.
+    assert result.get("overall_confidence") == 0.0, (
+        "F2 TRUTH: overall_confidence must be 0.0 on missing data, "
+        f"got {result.get('overall_confidence')!r}"
+    )
+    assert result.get("empty_count") == 0
+    assert result.get("total_outputs") == 0
+    # F9 — no hallucinated vectors / placeholder results.
+    assert result.get("results") == [], (
+        "F9 ANTI-HANTU: must return empty results, NOT a zero-vector "
+        "placeholder or fabricated partial data"
     )
     assert result.get("backend_status") == "qdrant_offline"
-    assert result.get("results") == [], "Must return empty results"
+
+
+@pytest.mark.parametrize(
+    "op_call",
+    [
+        pytest.param(
+            lambda m: m.vector_query(query="audit-probe-p0-01b-store"),
+            id="vector_query",
+        ),
+        pytest.param(
+            lambda m: m.vector_store(content="audit-probe-p0-01b-store-content"),
+            id="vector_store",
+        ),
+    ],
+)
+def test_vector_query_and_store_return_sabar_with_evidence_honesty_on_qdrant_offline(op_call):
+    """P0-01b: Both vector_query and vector_store MUST return a SABAR
+    verdict (not raise) when Qdrant is unreachable. The verdict MUST
+    carry the explicit `evidence_honesty: "QDRANT_UNREACHABLE"` tag so
+    F2/F9 consumers can detect the failure mode without ambiguity.
+
+    Covers the issue #585 regression surface for both public entry points.
+    """
+    from arifosmcp.memory import vector_memory_qdrant
+
+    _install_broken_qdrant(vector_memory_qdrant)
+    vector_memory_qdrant._qdrant_client = None
+
+    # MUST NOT raise — the wrapper swallows connection failures into
+    # a structured SABAR verdict.
+    raised: BaseException | None = None
+    result: dict | None = None
+    try:
+        result = asyncio.run(op_call(vector_memory_qdrant))
+    except BaseException as exc:  # noqa: BLE001 — we explicitly want to catch
+        raised = exc
+
+    assert raised is None, (
+        f"F9/F11 violation: {op_call.__doc__ or 'op'} raised "
+        f"{type(raised).__name__}: {raised} — wrapper MUST return SABAR "
+        "verdict, not propagate the exception"
+    )
+    assert isinstance(result, dict)
+    # Core SABAR envelope — see _sabar_qdrant_unreachable() in the
+    # production module for the canonical shape.
+    assert result.get("ok") is False
+    assert result.get("verdict") == "SABAR"
+    assert result.get("evidence_honesty") == "QDRANT_UNREACHABLE", (
+        "evidence_honesty tag MUST be the explicit string "
+        "'QDRANT_UNREACHABLE' per P0-01b spec (not boolean True, not "
+        f"None) — got {result.get('evidence_honesty')!r}"
+    )
+    assert result.get("floor_violation") == "F9"
+    assert result.get("backend_status") == "qdrant_offline"
+    # No fabricated content.
+    assert result.get("results") == []
+    assert result.get("overall_confidence") == 0.0
 
 
 def test_vector_health_gracefully_reports_unhealthy_on_qdrant_offline():
