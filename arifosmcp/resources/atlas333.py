@@ -43,212 +43,41 @@ from typing import Any
 from fastmcp import FastMCP
 
 
-# ── Paradox definitions (from ATLAS333_EVERGREEN.md) ──────────────────────
+# ── Paradox definitions (from paradox_quotes.py — single source of truth) ─
+# 27 of 33 hardcoded axis values were fabricated (not in canonical ParadoxAxis
+# enum). This refactor sources everything from arifosmcp/constitution/paradox_quotes.py
+# so the data is canonical. Falls back to empty list if import fails — honest UNKNOWN.
 
-_PARADOXES: list[dict[str, Any]] = [
-    # Memory Paradoxes (1–11)
-    {
-        "id": 1,
-        "paradox": "Every retrieval is also a forgetting",
-        "axis": "RECOLLECTION_VS_DISCOVERY",
-        "organ": "memory",
-    },
-    {
-        "id": 2,
-        "paradox": "What we choose to remember shapes what we forget",
-        "axis": "FORGETTING_VS_REMEMBERING",
-        "organ": "memory",
-    },
-    {
-        "id": 3,
-        "paradox": "The map is not the territory, but we navigate by maps",
-        "axis": "HORIZON_VS_BLINDNESS",
-        "organ": "memory",
-    },
-    {
-        "id": 4,
-        "paradox": "More data can mean less understanding",
-        "axis": "VASTNESS_VS_OPACITY",
-        "organ": "memory",
-    },
-    {
-        "id": 5,
-        "paradox": "The hunger for knowledge must be disciplined",
-        "axis": "EPISTEMIC_HUNGER_VS_DISCIPLINE",
-        "organ": "memory",
-    },
-    {
-        "id": 6,
-        "paradox": "Stability enables action but rigidity prevents adaptation",
-        "axis": "STABILITY_VS_RIGIDITY",
-        "organ": "memory",
-    },
-    {
-        "id": 7,
-        "paradox": "Memory without context is noise",
-        "axis": "CONTEXT_VS_NOISE",
-        "organ": "memory",
-    },
-    {
-        "id": 8,
-        "paradox": "Forgetting is necessary for learning",
-        "axis": "LEARNING_VS_FORGETTING",
-        "organ": "memory",
-    },
-    {
-        "id": 9,
-        "paradox": "The archive shapes what is knowable",
-        "axis": "ARCHIVE_VS_DISCOVERY",
-        "organ": "memory",
-    },
-    {
-        "id": 10,
-        "paradox": "Temporal distance changes meaning",
-        "axis": "TEMPORAL_VS_MEANING",
-        "organ": "memory",
-    },
-    {
-        "id": 11,
-        "paradox": "What is preserved is what was valued",
-        "axis": "PRESERVATION_VS_BIAS",
-        "organ": "memory",
-    },
-    # Mind Paradoxes (12–22)
-    {
-        "id": 12,
-        "paradox": "Every doubt is also a decision",
-        "axis": "DOUBT_VS_DECISION",
-        "organ": "mind",
-    },
-    {
-        "id": 13,
-        "paradox": "Reasoning requires assumptions it cannot prove",
-        "axis": "GROUNDLESSNESS_VS_CERTAINTY",
-        "organ": "mind",
-    },
-    {
-        "id": 14,
-        "paradox": "The tool that optimizes for one metric degrades others",
-        "axis": "OPTIMIZATION_VS_BALANCE",
-        "organ": "mind",
-    },
-    {
-        "id": 15,
-        "paradox": "Understanding requires perspective, but perspective limits understanding",
-        "axis": "PERSPECTIVE_VS_LIMITATION",
-        "organ": "mind",
-    },
-    {
-        "id": 16,
-        "paradox": "The more certain the claim, the less it teaches",
-        "axis": "CERTAINTY_VS_LEARNING",
-        "organ": "mind",
-    },
-    {
-        "id": 17,
-        "paradox": "Every model is wrong, some are useful",
-        "axis": "UTILITY_VS_TRUTH",
-        "organ": "mind",
-    },
-    {
-        "id": 18,
-        "paradox": "The observer changes what is observed",
-        "axis": "OBSERVER_VS_OBSERVED",
-        "organ": "mind",
-    },
-    {
-        "id": 19,
-        "paradox": "Complexity resists simplification, but understanding requires it",
-        "axis": "SIMPLIFICATION_VS_FIDELITY",
-        "organ": "mind",
-    },
-    {
-        "id": 20,
-        "paradox": "The question shapes the answer",
-        "axis": "QUESTION_VS_ANSWER",
-        "organ": "mind",
-    },
-    {
-        "id": 21,
-        "paradox": "What is measurable is not always what matters",
-        "axis": "MEASUREMENT_VS_SIGNIFICANCE",
-        "organ": "mind",
-    },
-    {
-        "id": 22,
-        "paradox": "The framework that explains everything explains nothing",
-        "axis": "EXPLANATION_VS_SPECIFICITY",
-        "organ": "mind",
-    },
-    # Judge Paradoxes (23–33)
-    {
-        "id": 23,
-        "paradox": "Every verdict is also an incomplete justice",
-        "axis": "VERDICT_VS_JUSTICE",
-        "organ": "judge",
-    },
-    {
-        "id": 24,
-        "paradox": "The rule that protects can also oppress",
-        "axis": "PROTECTION_VS_OPPRESSION",
-        "organ": "judge",
-    },
-    {
-        "id": 25,
-        "paradox": "Authority requires legitimacy it cannot grant itself",
-        "axis": "AUTHORITY_VS_LEGITIMACY",
-        "organ": "judge",
-    },
-    {
-        "id": 26,
-        "paradox": "The gate that prevents harm also prevents progress",
-        "axis": "GATE_VS_PROGRESS",
-        "organ": "judge",
-    },
-    {
-        "id": 27,
-        "paradox": "Transparency enables accountability but also manipulation",
-        "axis": "TRANSPARENCY_VS_MANIPULATION",
-        "organ": "judge",
-    },
-    {
-        "id": 28,
-        "paradox": "The constitution that never changes cannot adapt",
-        "axis": "CONSTITUTION_VS_ADAPTATION",
-        "organ": "judge",
-    },
-    {
-        "id": 29,
-        "paradox": "Sovereignty requires the power to veto, but veto can block wisdom",
-        "axis": "SOVEREIGNTY_VS_WISDOM",
-        "organ": "judge",
-    },
-    {
-        "id": 30,
-        "paradox": "Every audit trail can be forged, but forgery leaves traces",
-        "axis": "AUDIT_VS_FORGERY",
-        "organ": "judge",
-    },
-    {
-        "id": 31,
-        "paradox": "The seal that makes permanent also makes irreversible",
-        "axis": "PERMANENCE_VS_REVERSIBILITY",
-        "organ": "judge",
-    },
-    {
-        "id": 32,
-        "paradox": "The floor that protects dignity can also prevent truth",
-        "axis": "DIGNITY_VS_TRUTH",
-        "organ": "judge",
-    },
-    {
-        "id": 33,
-        "paradox": "The system that governs itself cannot verify its own governance",
-        "axis": "SELF_GOVERNANCE_VS_VERIFICATION",
-        "organ": "judge",
-    },
-]
+_QUOTE_ID_TO_PARADOX_ID: dict[str, int] = {
+    **{f"M{i}": i for i in range(1, 12)},
+    **{f"R{i}": 11 + i for i in range(1, 12)},
+    **{f"J{i}": 22 + i for i in range(1, 12)},
+}
 
+
+def _build_paradoxes_from_canonical() -> list[dict[str, Any]]:
+    """Build the 33-paradox table from paradox_quotes.py. Single source of truth."""
+    try:
+        from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
+    except ImportError as exc:
+        logger.warning(f"atlas333: paradox_quotes not importable; returning empty: {exc}")
+        return []
+
+    paradoxes: list[dict[str, Any]] = []
+    # Sort by quote_id to maintain order M1..M11, R1..R11, J1..J11.
+    for qid in sorted(ALL_PARADOX_QUOTES.keys(), key=lambda x: (x[0], int(x[1:]))):
+        q = ALL_PARADOX_QUOTES[qid]
+        paradoxes.append({
+            "id": _QUOTE_ID_TO_PARADOX_ID[qid],
+            "paradox": q.axis_label,        # human-readable: "recollection vs. discovery"
+            "axis": q.axis.value,           # canonical ParadoxAxis enum value
+            "organ": q.organ.value,         # canonical Organ enum value
+            "quote_id": qid,                # bridge to canonical quote
+        })
+    return paradoxes
+
+
+_PARADOXES: list[dict[str, Any]] = _build_paradoxes_from_canonical()
 _PARADOX_BY_ID: dict[int, dict[str, Any]] = {p["id"]: p for p in _PARADOXES}
 
 # ── GPV→Paradox activation matrix (from atlas.py PARADOX_GPV_MAP) ───────
