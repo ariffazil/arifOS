@@ -334,6 +334,27 @@ class DPoPAuthMiddleware(BaseHTTPMiddleware):
 
         request.state.dpop_claims = result.claims
         request.state.dpop_jkt = result.jwk_thumbprint
+        # ── Bind JWT identity into request auth lineage (2026-07-15) ──
+        # DPoP proves possession of the bearer. JWT.sub is the identity.
+        # Without this, kernel interceptor stays self_report/MEDIUM and
+        # arif_judge can never reach SOVEREIGN even with valid F13 tokens.
+        try:
+            from arifosmcp.runtime.jwt_auth import set_request_auth_lineage, verify_jwt
+
+            jwt_result = verify_jwt(access_token)
+            if jwt_result.valid:
+                lineage = jwt_result.to_auth_lineage() or {}
+                # Prefer human actor from sub system:arif → arif for SOVEREIGN ladder
+                sub = str(lineage.get("sub") or "")
+                if sub.startswith("system:") and "arif" in sub.lower():
+                    lineage = {**lineage, "sub": "arif", "auth_method": lineage.get("auth_method") or "jwt_internal+dpop", "raw_sub": sub}
+                elif not lineage.get("auth_method"):
+                    lineage["auth_method"] = "jwt_internal+dpop"
+                set_request_auth_lineage(lineage)
+                request.state.arifos_auth_lineage = lineage
+                request.state.arifos_actor_id = lineage.get("sub")
+        except Exception as _bind_exc:
+            logger.warning("JWT lineage bind after DPoP failed: %s", _bind_exc)
         response = await call_next(request)
         response.headers["X-DPoP-Status"] = "VERIFIED"
         return response
@@ -679,6 +700,7 @@ try:
 
         def _akal_wrap_critique(handler):
             """I2: Shadow observer validation after critique."""
+
             @functools.wraps(handler)
             async def wrapped(*args, **kwargs):
                 result = await handler(*args, **kwargs)
@@ -691,6 +713,7 @@ try:
                         result["akal"]["shadow_violations"] = trace["shadow_violations"]
                         result["akal"]["blocking"] = trace["blocking"]
                 return result
+
             return wrapped
 
         def _akal_wrap_judge(handler):
@@ -947,6 +970,13 @@ try:
     try:
         from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
 
+        # FIX 2026-07-15: Use functools.wraps to preserve the original handler's
+        # signature for FastMCP schema generation. Without this, the wrapper's
+        # **kwargs hides all named params (mode, priority, etc.) from the MCP
+        # tool schema, causing "unexpected keyword argument" on the live surface.
+        import functools
+
+        @functools.wraps(_arif_triage)
         def _triage_deprecated_wrapper(**kwargs):  # type: ignore[no-untyped-def]
             logger.warning(
                 "DEPRECATED tool arif_triage called — use arif_init(mode='preflight'|'triage')"
@@ -1279,13 +1309,18 @@ try:
             "set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true to expose."
         )
 
-
     # ── Entropy Integrity Mesh — Kernel tools ──────────────────────────
     try:
-        from arifosmcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe
+        from arifosmcp.entropy_kernel.entropy_observe import (
+            arif_entropy_observe as _entropy_observe,
+        )
         from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess
-        from arifosmcp.entropy_kernel.correction_probe import arif_correction_probe as _correction_probe
-        from arifosmcp.entropy_kernel.consequence_trace import arif_consequence_trace as _consequence_trace
+        from arifosmcp.entropy_kernel.correction_probe import (
+            arif_correction_probe as _correction_probe,
+        )
+        from arifosmcp.entropy_kernel.consequence_trace import (
+            arif_consequence_trace as _consequence_trace,
+        )
         from arifosmcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route
         from arifosmcp.entropy_kernel.j_gate import arif_j_gate as _j_gate
 
@@ -1346,14 +1381,16 @@ try:
             tags={"entropy", "kernel", "gate", "phase1"},
         )(_j_gate)
 
-        v2_tools_registered.extend([
-            "arif_entropy_observe",
-            "arif_j_state_assess",
-            "arif_correction_probe",
-            "arif_consequence_trace",
-            "arif_entropy_route",
-            "arif_j_gate",
-        ])
+        v2_tools_registered.extend(
+            [
+                "arif_entropy_observe",
+                "arif_j_state_assess",
+                "arif_correction_probe",
+                "arif_consequence_trace",
+                "arif_entropy_route",
+                "arif_j_gate",
+            ]
+        )
         logger.info("Entropy Integrity Mesh kernel tools registered: 6 tools")
     except ImportError as _entropy_err:
         logger.warning("Entropy Integrity Mesh not available: %s", _entropy_err)

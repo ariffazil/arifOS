@@ -49,6 +49,13 @@ from arifosmcp.runtime.model import (
 
 logger = logging.getLogger(__name__)
 
+# L4 Warga constants — §10 Node 3 registration
+from arifosmcp.runtime.governance_identity import (
+    L4_ALLOWED_VERBS,
+    L4_BLOCKED_VERBS,
+    L4_WARGA_ACTORS,
+)
+
 # Compat-cycle end. After this date the legacy mirror fields can be dropped.
 _LEGACY_MIRROR_RETIREMENT_DATE = "2026-08-09"
 
@@ -87,10 +94,10 @@ def bind_authority_state(
     # never to the actor string. Empty SOVEREIGN_KEY_IDS means NO actor gets
     # SOVEREIGN automatically until the key registry is wired.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+
     verified_key_id = (
-        (state.actor.verified_key_id if hasattr(state.actor, "verified_key_id") else None)
-        or sess.get("verified_key_id")
-    )
+        state.actor.verified_key_id if hasattr(state.actor, "verified_key_id") else None
+    ) or sess.get("verified_key_id")
     is_sovereign = bool(
         state.actor.verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
     )
@@ -98,6 +105,13 @@ def bind_authority_state(
     if is_sovereign:
         sess["authority_level"] = "SOVEREIGN"
         sess["authority"] = "FULL"
+    elif actor_key in L4_WARGA_ACTORS:
+        # L4 Warga: OBSERVE_ONLY — cannot mutate, seal, or judge.
+        # §10 Node 3 registration: agent anchor registered, AI instance borrows ceiling.
+        sess["authority_level"] = "L4_WARGA"
+        sess["authority"] = "OBSERVE_ONLY"
+        sess["l4_allowed_verbs"] = sorted(L4_ALLOWED_VERBS)
+        sess["l4_blocked_verbs"] = sorted(L4_BLOCKED_VERBS)
     elif state.actor.verified:
         sess["authority_level"] = "OPERATOR"
         sess["authority"] = "OBSERVER_MUTATE"
@@ -183,10 +197,9 @@ def _reconstruct_authority_state(sess: dict[str, Any]) -> AuthorityState:
     actor_key = str(actor_id).strip().lower()
     # SECURITY P0 2026-07-12: SOVEREIGN by key_id, not by name.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+
     verified_key_id = sess.get("verified_key_id") if isinstance(sess, dict) else None
-    is_sovereign = bool(
-        verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
-    )
+    is_sovereign = bool(verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS)
     is_sealed = is_sovereign and verified
 
     actor = AuthorityActor(
@@ -242,13 +255,10 @@ def derive_canonical_from_authority(state: AuthorityState) -> CanonicalAuthority
     # never to the actor string. Empty SOVEREIGN_KEY_IDS means NO actor gets
     # SOVEREIGN automatically until the key registry is wired.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
-    verified_key_id = (
-        getattr(state.actor, "verified_key_id", None) if state.actor else None
-    )
+
+    verified_key_id = getattr(state.actor, "verified_key_id", None) if state.actor else None
     is_sovereign = bool(
-        state.actor.verified
-        and verified_key_id
-        and verified_key_id in SOVEREIGN_KEY_IDS
+        state.actor.verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
     )
 
     if is_sovereign:
@@ -300,6 +310,7 @@ def authority_envelope_for_session(
     Compat retirement: 2026-08-09.
     """
     state = None
+    sess = None
     try:
         from arifosmcp.runtime.tools import _SESSIONS
 
@@ -313,11 +324,15 @@ def authority_envelope_for_session(
         actor_key = (actor_id or "").strip().lower()
         # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
-        _vkey = (actor_verified_key_id if isinstance(actor_verified_flag, bool) else None)
+
+        _vkey = actor_verified_key_id if isinstance(actor_verified_flag, bool) else None
         h_authority = (
-            "SOVEREIGN" if (actor_verified_flag and _vkey and _vkey in SOVEREIGN_KEY_IDS)
-            else "OPERATOR" if actor_verified_flag
-            else "OPERATOR_CLAIMED" if actor_id and actor_id != "anonymous"
+            "SOVEREIGN"
+            if (actor_verified_flag and _vkey and _vkey in SOVEREIGN_KEY_IDS)
+            else "OPERATOR"
+            if actor_verified_flag
+            else "OPERATOR_CLAIMED"
+            if actor_id and actor_id != "anonymous"
             else "OBSERVER"
         )
         # SECURITY: sovereign key proves identity (h_authority=SOVEREIGN)
@@ -325,29 +340,49 @@ def authority_envelope_for_session(
         runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
         sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
-            "actor_verified": bool(actor_verified_flag) if actor_verified_flag is not None else False,
+            "actor_verified": bool(actor_verified_flag)
+            if actor_verified_flag is not None
+            else False,
             "human_authority": h_authority,
             "runtime_authority": runtime_band,
             "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN"),
             "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and sealed,
         }
 
-    runtime_band = _runtime_auth_hint or ("FULL" if state.is_sealed() else "OBSERVE_ONLY")
+    # WS1 FIX (2026-07-15): Derive runtime_band from session authority (source of
+    # truth) when available. _runtime_auth_hint is a legacy override; session
+    # authority was set by bind_authority_state which verified the actor.
+    # Previously: _runtime_auth_hint or (FULL if sealed else OBSERVE_ONLY)
+    #   → caused authority=FULL but runtime_band=OBSERVE_ONLY contradiction.
+    sess_authority = sess.get("authority") if isinstance(sess, dict) else None
+    if sess_authority in ("FULL", "SOVEREIGN"):
+        runtime_band = sess_authority
+    elif sess_authority in ("OBSERVER_MUTATE", "LIMITED_MUTATE"):
+        runtime_band = "LIMITED_MUTATE"
+    elif _runtime_auth_hint:
+        runtime_band = _runtime_auth_hint
+    else:
+        runtime_band = "FULL" if state.is_sealed() else "OBSERVE_ONLY"
     actor_key = (state.actor.claimed_id or "").strip().lower()
     # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+
     _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
     h_authority = (
-        "SOVEREIGN" if (state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
-        else "OPERATOR" if state.actor.verified
-        else "OPERATOR_CLAIMED" if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
+        "SOVEREIGN"
+        if (state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
+        else "OPERATOR"
+        if state.actor.verified
+        else "OPERATOR_CLAIMED"
+        if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
         else "OBSERVER"
     )
     return {
         "actor_verified": bool(state.actor.verified),
         "human_authority": h_authority,
         "runtime_authority": runtime_band,
-        "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN") and not state.is_held(),
+        "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN")
+        and not state.is_held(),
         "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and state.is_sealed(),
     }
 
