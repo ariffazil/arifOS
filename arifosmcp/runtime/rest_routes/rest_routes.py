@@ -7,7 +7,14 @@ These run alongside the standard MCP protocol at /mcp, providing:
   GET  /version                    Build info
   GET  /tools                      Tool listing (REST-style)
   POST /tools/{tool_name}          REST tool calling (ChatGPT adapter)
-  GET  /.well-known/mcp/server.json  MCP registry discovery
+  GET  /.well-known/mcp/server.json  MCP registry discovery (NOT an A2A card)
+
+A2A NOTE (FEDERATION_CONTRACT §5.4.5): arifOS DOES NOT serve an A2A agent
+card body. Canonical A2A discovery lives at AAA — `/.well-known/agent.json`
+and `/.well-known/agent-card.json` here return 410 Gone with a pointer.
+Internal A2A execution routes (`/a2a/task`, `/a2a/status/{id}`,
+`/a2a/subscribe/{id}`, `/a2a/cancel/{id}`, `/a2a/health`) remain live
+because arifOS is the kernel that executes the tasks AAA routes to it.
 
 DITEMPA BUKAN DIBERI
 """
@@ -898,11 +905,38 @@ def _build_governance_status_payload() -> dict[str, Any]:
 
     # Fall through: substrate dictates; floor scores do NOT set readiness.
 
+    # ── APEX scalars (P4-01) ───────────────────────────────────────────────
+    apex_scalars: dict[str, Any] = {}
+    try:
+        from arifosmcp.runtime.apex_primitives import compute_apex_from_metrics
+
+        _apex = compute_apex_from_metrics()
+        for scalar in ("G", "C_dark"):
+            val = _apex.get(scalar)
+            apex_scalars[scalar] = {
+                "value": val,
+                "status": "MEASURED" if val is not None else "UNMEASURED",
+            }
+        # W3 and h are not yet wired from live data — mark UNMEASURED
+        for scalar in ("W3", "h"):
+            apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
+        # Derive QDF
+        g_val = _apex.get("G", 0.0) or 0.0
+        c_val = _apex.get("C_dark", 0.0) or 0.0
+        apex_scalars["QDF"] = {
+            "value": round(g_val * (1 - c_val), 4),
+            "status": "MEASURED" if _apex.get("sample_size", 0) > 0 else "UNMEASURED",
+        }
+    except Exception:
+        for scalar in ("G", "C_dark", "W3", "h", "QDF"):
+            apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
+
     return {
         "telemetry": resolved_telemetry,
         "witness": resolved_witness,
         "qdf": qdf or _DEFAULT_QDF,
         "floors": resolved_floors,
+        "apex_scalars": apex_scalars,
         "machine_vitals": machine_vitals,
         "session_id": session_id or f"sess_{uuid.uuid4().hex[:8]}",
         "timestamp": datetime.now(UTC).isoformat(),
@@ -4418,33 +4452,38 @@ def register_rest_routes(
 
     @route("/.well-known/agent.json", methods=["GET"])
     async def agent_well_known(request: Request) -> Response:
-        base_url = _public_base_url(request)
-        payload = {
-            "schema": "agent-manifest/v1",
-            "name": "arifOS MCP Server",
-            "description": (
-                "Constitutional AI Governance server with 13 floors (F1-L13) and Trinity Architecture (ΔΩΨ)."
-            ),
-            "version": BUILD_INFO.get("version", "unknown"),
-            "url": base_url,
-            "endpoints": {
-                "mcp": f"{base_url}/mcp",
-                "health": f"{base_url}/health",
-                "tools": f"{base_url}/tools",
-                "openapi": f"{base_url}/openapi.json",
-                "server_json": f"{base_url}/.well-known/mcp/server.json",
-                "a2a_task": f"{base_url}/a2a/task",
-                "a2a_status": f"{base_url}/a2a/status/{{task_id}}",
-                "a2a_cancel": f"{base_url}/a2a/cancel/{{task_id}}",
-                "a2a_subscribe": f"{base_url}/a2a/subscribe/{{task_id}}",
-                "webmcp": f"{base_url}/webmcp",
-                "webmcp_manifest": f"{base_url}/.well-known/webmcp",
-                "webmcp_tools": f"{base_url}/webmcp/tools.json",
-                "webmcp_sdk": f"{base_url}/webmcp/sdk.js",
+        """A2A discovery path — DEPRECATED on arifOS; AAA owns the canonical card.
+
+        Per FEDERATION_CONTRACT §5.4.5, arifOS MUST NOT publish an A2A agent
+        card body. This route returns a 410 Gone with a pointer to AAA so
+        peers configured against the kernel URL can find the canonical card.
+        """
+        return JSONResponse(
+            {
+                "deprecation": "moved",
+                "moved_to": "https://aaa.arif-fazil.com/.well-known/agent.json",
+                "owner": "AAA",
+                "federation_contract_section": "§5.4.5",
+                "discovery_owner": "AAA",
+                "execution_owner": "arifOS",
+                "kernel_role": "MCP tooling + A2A task execution; not A2A discovery",
+                "execution_endpoints": {
+                    "mcp": str(request.url_for("root"))
+                    if False
+                    else f"{request.url.scheme}://{request.url.netloc}/mcp",
+                    "health": f"{request.url.scheme}://{request.url.netloc}/health",
+                    "tools": f"{request.url.scheme}://{request.url.netloc}/tools",
+                    "openapi": f"{request.url.scheme}://{request.url.netloc}/openapi.json",
+                    "server_json": f"{request.url.scheme}://{request.url.netloc}/.well-known/mcp/server.json",
+                    "a2a_task": f"{request.url.scheme}://{request.url.netloc}/a2a/task",
+                    "a2a_status": f"{request.url.scheme}://{request.url.netloc}/a2a/status/{{task_id}}",
+                    "a2a_cancel": f"{request.url.scheme}://{request.url.netloc}/a2a/cancel/{{task_id}}",
+                    "a2a_subscribe": f"{request.url.scheme}://{request.url.netloc}/a2a/subscribe/{{task_id}}",
+                },
             },
-            "auth": {"type": "none"},
-        }
-        return JSONResponse(payload)
+            status_code=410,
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
 
     @route("/discovery", methods=["GET"])
     async def discovery_alias(request: Request) -> Response:
@@ -5587,45 +5626,53 @@ def register_rest_routes(
     async def llms_json(_request: Request) -> Response:
         return JSONResponse(LLMS_JSON, headers={"Access-Control-Allow-Origin": "*"})
 
+    # ── A2A Discovery Surface (DEPRECATED — owned by AAA) ────────────────────
+    # FEDERATION_CONTRACT §5.4.5: AAA OWNS canonical A2A agent card discovery.
+    # arifOS exposes MCP tooling, health, OAuth, and internal A2A execution
+    # routes — NOT agent card bodies. The card factory at
+    # arifosmcp.runtime.a2a.agent_card_v2 is retained for AAA import only and
+    # MUST NOT be wired back to a kernel route.
+    AAA_A2A_CARD_POINTER = {
+        "deprecation": "moved",
+        "moved_to": "https://aaa.arif-fazil.com/.well-known/agent-card.json",
+        "owner": "AAA",
+        "federation_contract_section": "§5.4.5",
+        "discovery_owner": "AAA",
+        "execution_owner": "arifOS",
+    }
+
     @route("/.well-known/agent.json", methods=["GET"])
     async def agent_json(_request: Request) -> Response:
-        """A2A Spec v1.0 — Agent discovery document at standard well-known location."""
-        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
-
-        card = get_arifOS_agent_card()
-        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
+        """A2A Spec v1.0 — Agent card discovery. DEPRECATED on arifOS; AAA owns it."""
+        return JSONResponse(
+            AAA_A2A_CARD_POINTER,
+            status_code=410,
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
 
     @route("/.well-known/agent-card.json", methods=["GET"])
     async def agent_card_v2(_request: Request) -> Response:
-        """arifOS Agent Card v2.0 — full 6-axis skill registry (23 agents across P/T/V/G/E/M)."""
-        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
-
-        card = get_arifOS_agent_card()
-        return JSONResponse(card.model_dump(), headers={"Access-Control-Allow-Origin": "*"})
+        """arifOS Agent Card v2.0 — DEPRECATED; AAA owns the canonical card."""
+        return JSONResponse(
+            AAA_A2A_CARD_POINTER,
+            status_code=410,
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
 
     @route("/agent-card", methods=["GET"])
     async def agent_card_summary(_request: Request) -> Response:
-        """Compact summary for quick discovery."""
-        from arifosmcp.runtime.a2a.agent_card_v2 import get_axos_summary
-
-        return JSONResponse(get_axos_summary())
+        """Compact summary — DEPRECATED on arifOS; AAA owns the canonical card."""
+        return JSONResponse(
+            AAA_A2A_CARD_POINTER,
+            status_code=410,
+        )
 
     @route("/agent-card/skills", methods=["GET"])
     async def agent_card_skills(_request: Request) -> Response:
-        """All 23 skills across 6 axes."""
-        from arifosmcp.runtime.a2a.agent_card_v2 import get_arifOS_agent_card
-
-        card = get_arifOS_agent_card()
-        by_axis = {
-            ax: [s.model_dump() for s in card.skills if s.axis == ax]
-            for ax in ["P", "T", "V", "G", "E", "M"]
-        }
+        """Skills axis dump — DEPRECATED on arifOS; AAA owns the canonical card."""
         return JSONResponse(
-            {
-                "total": len(card.skills),
-                "by_axis": by_axis,
-                "entry_point": card.routing["entry_point"],
-            }
+            AAA_A2A_CARD_POINTER,
+            status_code=410,
         )
 
     @route("/meta/omega", methods=["GET"])
@@ -6329,13 +6376,14 @@ setInterval(refreshSot, 30000);
             return FileResponse(_path)
         return JSONResponse({"error": "wells.json not found"}, status_code=404)
 
-    @route("/.well-known/agent.json", methods=["GET"])
-    async def static_well_known_agent(request: Request) -> Response:
-        """Discovery: A2A agent manifest from static/.well-known/agent.json."""
-        _path = os.path.join(_static_dir, ".well-known", "agent.json")
-        if os.path.exists(_path):
-            return FileResponse(_path)
-        return JSONResponse({"error": "agent.json not found"}, status_code=404)
+    # ── A2A static-file fallback — REMOVED (FEDERATION_CONTRACT §5.4.5) ───
+    # arifOS no longer serves a local A2A agent card body. AAA owns the
+    # canonical card at https://aaa.arif-fazil.com/.well-known/agent-card.json.
+    # The path is intentionally NOT registered here so peers get a 404 and
+    # discover they must reach AAA. See agent_well_known (410 Gone pointer)
+    # in the discovery routes block above for an explicit migration signal
+    # if a peer is misconfigured.
+    # (previous static_well_known_agent handler removed)
 
     @route("/.well-known/ai-plugin.json", methods=["GET"])
     async def static_well_known_ai_plugin(request: Request) -> Response:
