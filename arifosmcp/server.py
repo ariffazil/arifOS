@@ -559,31 +559,19 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface matches the active canonical public set.
+    """Assert the registered surface matches the canonical public set.
 
-    ZEN-9 collapse 2026-07-04 + F13 SOVEREIGN collapse 2026-07-12:
-    The active surface is read from the env (ARIFOS_PUBLIC_SURFACE_MODE)
-    via public_surface.normalize_public_surface_mode(). Default (forge_next_8)
-    yields the 8-verb wire surface. Legacy modes (canonical13/9/12/7/expanded45)
-    remain available for backward compat callers.
+    ZEN-9 collapse 2026-07-04: the default public wire surface is the 9-stage
+    metabolic loop. Absorbed tools and internal-only aliases are subtracted.
 
-    Absorbed tools and internal-only aliases are subtracted. SDK alias shims
-    (arif_session_init, arif_gateway_connect) are also subtracted — they
-    live on the wire for SDK compat but are NOT canonical.
+    SDK alias shims (arif_session_init, arif_gateway_connect) are also
+    subtracted — they live on the wire for SDK compat but are NOT canonical.
+    Their `_redirect_to` payload teaches callers to migrate.
     """
     from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS as CONST_DIAG
-    from arifosmcp.runtime.public_surface import (
-        CANARY_PROBES,
-        normalize_public_surface_mode,
-        public_tool_names_for_mode,
-        FORGE_NEXT_8,
-    )
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_9
 
-    # F13 SOVEREIGN 2026-07-12: resolve the active surface. forge_next_8 is
-    # the new canonical default; legacy modes fall back to CANONICAL_12.
-    resolved_mode = normalize_public_surface_mode(None)
-    active_tuple = public_tool_names_for_mode(None)
-    expected_set = set(active_tuple)
+    expected_set = set(CANONICAL_9)
     registered_set = set(registered_names)
     # Subtract all non-public tools: internal-only canonical + all diagnostic tools
     non_public = {
@@ -706,7 +694,7 @@ try:
             return wrapped
 
         def _akal_wrap_judge(handler):
-            """I4: L5a/L5b dual evaluation before verdict."""
+            """I4: L5a/L5b dual evaluation before verdict + Gödel lock."""
 
             @functools.wraps(handler)
             async def wrapped(*args, **kwargs):
@@ -730,6 +718,44 @@ try:
                         "blocked_reason": dual.get("blocked_reason"),
                         "verdict": dual.get("verdict", "PENDING"),
                     }
+                    # ── Gödel Lock: External witness check ──
+                    try:
+                        from arifosmcp.runtime.godel_lock_enforcement import (
+                            compute_phi_external,
+                        )
+
+                        # Map blast_radius to claim_severity
+                        severity_map = {
+                            "low": "observation",
+                            "medium": "reasoning",
+                            "high": "consequential",
+                            "critical": "seal_bound",
+                        }
+                        claim_severity = severity_map.get(blast, "reasoning")
+
+                        # Check if external auditor attested (from session or kwargs)
+                        auditor_validated = kwargs.get("_external_auditor_validated")
+
+                        phi_result = compute_phi_external(
+                            claim_severity=claim_severity,
+                            auditor_validated=auditor_validated,
+                        )
+                        result["akal"]["godel_lock"] = {
+                            "claim_severity": claim_severity,
+                            "phi_external": phi_result["phi_external"],
+                            "phi_status": phi_result["status"],
+                            "requires_external": phi_result["requires_external"],
+                            "reason": phi_result["reason"],
+                        }
+
+                        # If SEAL-bound with no external witness, annotate HOLD
+                        if claim_severity == "seal_bound" and phi_result["phi_external"] < 0.5:
+                            result["akal"]["godel_lock"]["warning"] = (
+                                "GODEL_LOCK: SEAL-bound claim without external witness. "
+                                "Φ_effective halved. Route to external auditor before sealing."
+                            )
+                    except Exception:
+                        pass  # Never break judge on middleware failure
                 return result
 
             return wrapped
