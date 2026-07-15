@@ -289,6 +289,64 @@ _atlas = ATLAS()
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# ATLAS-333 PARADOX BRIDGE — GPV → Paradox Axis Map
+# ═════════════════════════════════════════════════════════════════════════════
+# Maps each GPV configuration pattern to the ATLAS-333 paradox axes it activates.
+# Reference: ATLAS333_BRIDGE.md §3
+# Each key describes a GPV state pattern; value is list of paradox IDs (1-33).
+
+PARADOX_GPV_MAP: dict[str, list[int]] = {
+    # τ ≥ 0.9, ρ ≤ 0.2, lane=FACTUAL — Pure truth-seeking (Zone I + V)
+    "tau_high_rho_low": [1, 2, 3, 4, 21, 22, 25],
+    # ρ ≥ 0.3, lane=CRISIS — Risk detected (Zone II + VI)
+    "rho_crisis": [6, 7, 8, 9, 23, 26, 30],
+    # κ ≥ 0.5, lane=CARE — Care/identity context (Zone III + IV)
+    "kappa_care": [11, 12, 13, 15, 16, 17, 20],
+    # τ ≥ 0.8, κ ≥ 0.3, lane=FACTUAL — Facts meet meaning (Zone I + IV)
+    "tau_kappa_factual": [5, 18, 24],
+    # ρ ≥ 0.6, any lane — High risk hard gate (Zone II + VI)
+    "rho_high": [8, 9, 10, 28, 29],
+    # query_type=EXPLORATORY — Open-ended exploration (Zone IV + V)
+    "query_exploratory": [19, 22, 25],
+}
+
+
+def resolve_paradox_axes(gpv: GPV) -> list[int]:
+    """Resolve ATLAS-333 paradox axes activated by a GPV configuration.
+
+    Checks each pattern in PARADOX_GPV_MAP against the GPV state.
+    Returns merged, deduplicated list of activated paradox IDs.
+    """
+    activated: set[int] = set()
+
+    # 1. tau_high_rho_low: τ ≥ 0.9, ρ ≤ 0.2, lane=FACTUAL
+    if gpv.tau >= 0.9 and gpv.rho <= 0.2 and gpv.lane == "FACTUAL":
+        activated.update(PARADOX_GPV_MAP["tau_high_rho_low"])
+
+    # 2. rho_crisis: ρ ≥ 0.3, lane=CRISIS
+    if gpv.rho >= 0.3 and gpv.lane == "CRISIS":
+        activated.update(PARADOX_GPV_MAP["rho_crisis"])
+
+    # 3. kappa_care: κ ≥ 0.5, lane=CARE
+    if gpv.kappa >= 0.5 and gpv.lane == "CARE":
+        activated.update(PARADOX_GPV_MAP["kappa_care"])
+
+    # 4. tau_kappa_factual: τ ≥ 0.8, κ ≥ 0.3, lane=FACTUAL
+    if gpv.tau >= 0.8 and gpv.kappa >= 0.3 and gpv.lane == "FACTUAL":
+        activated.update(PARADOX_GPV_MAP["tau_kappa_factual"])
+
+    # 5. rho_high: ρ ≥ 0.6, any lane
+    if gpv.rho >= 0.6:
+        activated.update(PARADOX_GPV_MAP["rho_high"])
+
+    # 6. query_exploratory: query_type=EXPLORATORY
+    if gpv.query_type == QueryType.EXPLORATORY:
+        activated.update(PARADOX_GPV_MAP["query_exploratory"])
+
+    return sorted(activated)
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # THE 3 FUNCTIONS: Λ, Θ, Φ
 # ═════════════════════════════════════════════════════════════════════════════
 
@@ -419,6 +477,9 @@ def Φ(text: str) -> GPV:
         kappa=κ_base,
         rho=ρ,
     )
+
+    # ATLAS-333 bridge: resolve paradox axes from GPV configuration
+    gpv.paradox_axes = resolve_paradox_axes(gpv)
 
     logger.info(
         f"Lane: {gpv.lane} | "
