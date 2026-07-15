@@ -31,11 +31,7 @@ from typing import Any
 
 import httpx
 
-from arifosmcp.runtime.llm_envelope import (
-    LLMOutputEnvelope,
-    wrap_llm_error,
-    wrap_llm_output,
-)
+from arifosmcp.runtime.llm_envelope import LLMOutputEnvelope, wrap_llm_output
 from arifosmcp.runtime.m3_agentic import (
     AgentRole,
     get_m3_header,
@@ -93,10 +89,10 @@ MIMO_API_KEY = os.getenv("MIMO_API_KEY")
 MIMO_BASE_URL = os.getenv("MIMO_BASE_URL", "https://token-plan-sgp.xiaomimimo.com/v1")
 MIMO_MODEL = os.getenv("MIMO_DEFAULT_MODEL", "mimo-v2.5-pro")
 
-# Ollama — EMBEDDING ONLY (bge-m3). NOT used for text generation.
-# Removed 2026-06-16: llava:7b generation tier was a ghost reference (never pulled).
-# Ollama is retained solely for bge-m3 embeddings (arifbrain, L3 ingest, AAA).
+# Ollama — local text-generation fallback after SEA-LION.
+# bge-m3 embedding use remains independent of this guarded fallback path.
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
 
 # Tier 2.5 — ILMU hosted fallback (2026-06-03, replaces ollama as Tier 2)
 # BLOCKED per FFF 2026-06-15. Removed from cascade.
@@ -115,7 +111,7 @@ ILMU_API_KEY = os.getenv("ILMU_API_KEY")
 ILMU_BASE_URL = os.getenv("ILMU_BASE_URL", "https://api.ilmu.ai/v1")
 ILMU_MODEL = os.getenv("ILMU_MODEL", "ilmu-nemo-nano")
 
-# Legacy — SEA-LION retained in env for reactivation, no longer in cascade
+# SEA-LION — remote fallback before local Ollama and deterministic rules.
 SEA_LION_API_KEY = os.getenv("SEA_LION_API_KEY")
 SEA_LION_BASE_URL = os.getenv("SEA_LION_BASE_URL", "https://api.sea-lion.ai/v1")
 SEA_LION_MODEL = os.getenv("SEA_LION_MEANING_MODEL", "aisingapore/Qwen-SEA-LION-v4-32B-IT")
@@ -163,7 +159,7 @@ def resolve_tokenrouter_model(
 
 
 class LLMUnavailableError(Exception):
-    """Raised when both MiniMax M3 and Ollama are unavailable."""
+    """Raised when one LLM provider cannot return a usable response."""
 
     pass
 
@@ -1091,10 +1087,11 @@ async def call_llm(
     task_type: str = "",
 ) -> LLMOutputEnvelope:
     """
-    Call TokenRouter (Tier 0 primary) → direct fallbacks.
+    Call TokenRouter (Tier 0 primary) → remote providers → SEA-LION → Ollama → rules.
 
     APEX Theory applied (per pasted spec):
     - TokenRouter as unified gateway for redundancy (survives single provider failure).
+    - The final SEA-LION/Ollama/rule tail guarantees a valid governed HOLD on outage.
     - Organ/task-specific routing (quality/cost/latency modes):
       GEOX: petrophysics=DeepSeek V4 Pro (1M), quick basin=Flash (cost), seismic=GLM 5.1 (spatial)
       WEALTH: EMV/NPV=cost fast, risk=quality deep, market=latency
@@ -1247,18 +1244,51 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Ollama removed 2026-06-16 — retained for bge-m3 embeddings only.
-    # Text generation cascade: MiniMax M3 → MiMo → SEA-LION (trinity).
-    # ILMU BLOCKED per FFF 2026-06-15.
+    # Tier 2.5 — local Ollama text-generation fallback.
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_ollama(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "ollama",
+            OLLAMA_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
 
-    # Tier 3 — no LLM available
-    return wrap_llm_error(
-        provider="none",
-        model="none",
-        tool_origin=tool_origin,
-        mode=mode,
-        prompt=combined_prompt,
-        error_message="All LLM tiers exhausted (MiniMax M3 + MiMo + SEA-LION). ILMU BLOCKED per FFF.",
+    # Tier 3 — deterministic rule fallback. Provider outages are not floor violations,
+    # so fail closed with HOLD; VOID remains reserved for a hard-floor decision.
+    t0 = time.monotonic()
+    parsed = {
+        "status": "HOLD",
+        "verdict": "HOLD",
+        "reason": "all_llm_providers_unavailable",
+        "reasons": ["No LLM provider returned a usable response."],
+        "human_decision_required": True,
+        "violated_floors": [],
+        "confidence": 0.0,
+        "confidence_status": "UNMEASURED",
+    }
+    return _make_envelope(
+        json.dumps(parsed),
+        parsed,
+        "deterministic_fallback",
+        "constitutional-rule-v1",
+        tool_origin,
+        mode,
+        combined_prompt,
+        (time.monotonic() - t0) * 1000,
+        None,
+        trace_recursion_depth,
     )
 
 
@@ -1313,7 +1343,7 @@ async def check_provider_health() -> dict[str, Any]:
             status["sea_lion"] = "unreachable"
             status["errors"].append(f"SEA-LION: {exc}")
 
-    # Check Ollama (Tier 2)
+    # Check Ollama (local text fallback)
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             r = await client.get(f"{OLLAMA_BASE_URL}/api/tags")
@@ -1345,7 +1375,7 @@ async def check_provider_health() -> dict[str, Any]:
             status["mimo"] = "unreachable"
             status["errors"].append(f"MiMo: {exc}")
 
-    # Determine active provider (match cascade: M3 → MiMo → SEA-LION)
+    # Determine active provider (match cascade: M3 → MiMo → SEA-LION → Ollama)
     # ILMU BLOCKED per FFF 2026-06-15 — not in cascade
     if status["primary"] == "reachable":
         status["active_provider"] = "minimax"
