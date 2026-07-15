@@ -48,6 +48,8 @@ truth_rule: /health + MCP tools/list beat any static count in prose
 
 </div>
 
+> **New agents:** Read `ZEN.md` first — it is the minimum viable context.
+
 [![Unified CI](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/01-unified-ci.yml)
 [![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml)
 [![Kernel ABI](https://img.shields.io/badge/Kernel%20ABI-8%20capabilities-0a7b83)](docs/KERNEL_CAPABILITY_ABI.md)
