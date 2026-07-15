@@ -14,7 +14,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import fcntl
+try:
+    import fcntl  # type: ignore
+except ImportError:  # Windows
+    fcntl = None  # type: ignore
+
 import hashlib
 import json
 import logging
@@ -54,13 +58,15 @@ def _vault_append(entry: dict[str, Any]) -> None:
     vault_path = str(VAULT_PATH)
 
     with open(lock_path, "a") as lockf:
-        fcntl.flock(lockf.fileno(), fcntl.LOCK_EX)
+        if fcntl is not None:
+            fcntl.flock(lockf.fileno(), fcntl.LOCK_EX)
         try:
             with open(vault_path, "a") as f:
                 f.write(json.dumps(entry) + "\n")
                 f.flush()
         finally:
-            fcntl.flock(lockf.fileno(), fcntl.LOCK_UN)
+            if fcntl is not None:
+                fcntl.flock(lockf.fileno(), fcntl.LOCK_UN)
 
 
 def _compute_sha256_hex(data: str) -> str:

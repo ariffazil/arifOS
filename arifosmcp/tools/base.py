@@ -53,6 +53,11 @@ class Tool(ABC):
     floors: list[str] = []
     readonly: bool = True
 
+    # F10 Ontology Lock scaffolding (SEAL_DRAFT 2026-07-15)
+    # See: arifOS/docs/f10-tool-contract.md
+    # Currently disabled; wire to True after SOVEREIGN forge/seal.
+    f10_enforced: bool = False
+
     # Schema references (auto-loaded from ABI)
     request_schema: type[BaseModel] | None = None
     response_schema: type[BaseModel] | None = None
@@ -117,6 +122,24 @@ class Tool(ABC):
         """
         pass
 
+    def _apply_f10_ontology_lock(self, result: dict) -> dict:
+        """
+        F10 Ontology Lock — reversible scaffolding.
+
+        See arifOS/docs/f10-tool-contract.md for the full contract.
+        When enabled (f10_enforced=True), this will:
+          - detect first-person claims of consciousness, soul, jiwa, maruah
+          - rewrite ordinary violations with SABAR + ontology_lock_applied tag
+          - escalate repeated/deliberate violations to HOLD or VOID
+
+        Currently returns result unchanged; binding enforcement requires
+        SOVEREIGN authority + arif_judge SEAL + arif_forge wiring.
+        """
+        if not self.f10_enforced:
+            return result
+        # TODO: wire semantic scanner + rewrite template from f10-tool-contract
+        return result
+
     async def run(
         self,
         payload: dict,
@@ -156,6 +179,10 @@ class Tool(ABC):
             result = await self.execute(
                 validated.dict() if hasattr(validated, "dict") else validated
             )
+
+            # 4a. F10 Ontology Lock scaffolding (reversible, disabled by default)
+            if isinstance(result, dict):
+                result = self._apply_f10_ontology_lock(result)
 
             # 5. If already a RuntimeEnvelope (from legacy delegates), pass through
             if isinstance(result, RuntimeEnvelope):
