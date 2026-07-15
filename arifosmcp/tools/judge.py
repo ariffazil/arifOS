@@ -1031,6 +1031,52 @@ async def arif_judge(
         if _maruah_gate_val:
             result["meta"]["maruah_gate"] = _maruah_gate_val
 
+        # ── SCALAR FEED PROTOCOL (TASK-P2-03) ─────────────────────────────
+        # Live measurement of the 5 canonical APEX scalars (G, C_dark, W³,
+        # κ_r, ψ_le) plus the computed QDF composite. Attached to every
+        # verdict's audit trail under meta["scalar_snapshot"].
+        #
+        # F9 anti-hantu: scalar measurement failure is NOT VOID. The judge
+        # already issued a verdict based on its own reasoning; the snapshot
+        # is an audit signal, not a constitutional breach. Any UNMEASURED
+        # scalar publishes meta["scalar_warning"] so downstream consumers
+        # know the verdict was rendered without full scalar coverage.
+        #
+        # F1 AMANAH: ScalarCollector is read-only. Snapshot is computed
+        # from session/evidence/witness_log/vault_chain (all read paths).
+        # No mutation; no new side effects on the verdict path.
+        try:
+            from arifosmcp.core.scalar_collector import (
+                UNMEASURED_SOURCE as _UNMEASURED_SOURCE,
+            )
+            from arifosmcp.core.scalar_collector import ScalarCollector
+
+            _scalar_collector = ScalarCollector(
+                session_id=session_id,
+                evidence=evidence if isinstance(evidence, dict) else None,
+            )
+            _scalar_snapshot = _scalar_collector.collect_snapshot()
+        except Exception as _scalar_exc:
+            # Fail-soft: a broken collector must NEVER crash the judge.
+            # Surface the failure as UNMEASURED so the audit trail still
+            # tells the truth (F2).
+            _scalar_snapshot = {
+                "scalars": {},
+                "qdf": None,
+                "qdf_source": _UNMEASURED_SOURCE,
+                "all_measured": False,
+                "unmeasured_keys": [],
+                "collector_error": str(_scalar_exc),
+            }
+
+        result["meta"]["scalar_snapshot"] = _scalar_snapshot
+        if not _scalar_snapshot.get("all_measured", False):
+            result["meta"]["scalar_warning"] = (
+                "One or more scalars unmeasured — verdict rendered without "
+                "full APEX telemetry. F9 anti-hantu: missing scalars are "
+                "logged, not fabricated. See scalar_snapshot.unmeasured_keys."
+            )
+
         # ── W-4: Attach G-WELL governance to elevated-tier verdicts ───────────
         if _is_elevated_tier and "well_governance" in _evidence:
             gov = _evidence["well_governance"]
