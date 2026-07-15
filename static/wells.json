@@ -67,7 +67,10 @@
     "llms_txt": "https://arif-fazil.com/llms.txt",
     "llms_json": "https://arif-fazil.com/llms.json",
     "canonical": "https://arif-fazil.com/.well-known/arifos.json",
-    "agent_json": "https://arif-fazil.com/.well-known/agent.json",
-    "wells_json": "https://arif-fazil.com/wells.json"
+    "agent_json": "https://aaa.arif-fazil.com/.well-known/agent.json",
+    "agent_card_v2": "https://aaa.arif-fazil.com/.well-known/agent-card.json",
+    "agent_json_owner": "AAA",
+    "wells_json": "https://arif-fazil.com/wells.json",
+    "_federation_contract_section": "§5.4.5"
   }
 }

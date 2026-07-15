@@ -23,7 +23,7 @@ arif_act: internal_only (never in allowed_next_verbs)
 changelog: /root/arifOS/CHANGELOG.md
 p0_actor_id_binding: live (kernel reads JWT lineage first; self-report caps MEDIUM)
 floor_11b_amanah_replay: live (nonce required for IRREVERSIBLE mutations; 24h cache)
-a2a_agent_json: /root/arifOS/.well-known/agent.json
+a2a_agent_json: https://aaa.arif-fazil.com/.well-known/agent.json (AAA owns canonical A2A card per FEDERATION_CONTRACT §5.4.5; arifOS no longer publishes a local card)
 machine_sot: /root/.claude/jobs/5d0ce6b2/tmp/artifacts/FEDERATION-SOT-20260712/MACHINE-SOT-2026-07-12.json
 maturity_pipeline: EXECUTED 2026-07-11 (promote 7, incubate 5, park 4, kill APEX as live track)
 truth_rule: /health + MCP tools/list beat any static count in prose
@@ -327,7 +327,7 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
 
 ### Discovery
 
-- Agent Card: `https://arifos.arif-fazil.com/.well-known/agent-card.json`
+- Agent Card: `https://aaa.arif-fazil.com/.well-known/agent-card.json` (AAA owns the canonical A2A card per FEDERATION_CONTRACT §5.4.5; arifOS is the execution kernel, not the discovery surface)
 - MCP Manifest: `https://arifos.arif-fazil.com/.well-known/mcp.json`
 
 ---
