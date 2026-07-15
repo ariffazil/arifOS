@@ -327,7 +327,7 @@ def main() -> None:
     parser.add_argument(
         "--mode",
         default=None,
-        choices=["mock", "llm", "http"],
+        choices=["mock", "llm", "http", "azure", "minimax"],
         help="Agent mode (default: llm, or AAA_AGENT_MODE env)",
     )
     parser.add_argument("--limit", type=int, default=0, help="Evaluate first N cases (0 = all)")
