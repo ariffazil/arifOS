@@ -54,6 +54,7 @@ _ALWAYS_CHALLENGEABLE = frozenset({"arif", "888", "ariffazil"})
 class _Challenge:
     actor_id: str
     expires_at: float
+    issued_at: float = 0.0  # populated by issue_*_b64(); 0.0 for legacy urlsafe nonces
 
 
 _challenge_lock = threading.Lock()
@@ -213,6 +214,40 @@ def issue_actor_challenge(actor_id: str, ttl_seconds: int | None = None) -> str:
         _purge_challenges(now)
         _issued_challenges[nonce] = _Challenge(actor_id=actor_id, expires_at=now + ttl)
     return nonce
+
+
+def issue_actor_challenge_b64(
+    actor_id: str, ttl_seconds: int | None = None
+) -> tuple[str, float]:
+    """Issue a base64-encoded 32-byte nonce + return (nonce, issued_at_epoch).
+
+    AAA Phase 5 / Wave 2: live MCP surface shape. The nonce is 32 cryptographically
+    random bytes encoded as standard base64 (URL-unsafe charset). The nonce string
+    is registered in the issued-challenges dict under the same key so that
+    ``verify_actor_signature`` consumes it via the same one-shot path.
+
+    Returns:
+        (nonce_b64, issued_at_epoch_float) — caller surfaces issued_at as ISO-8601.
+    """
+    aid = _normalize_actor(actor_id)
+    if aid not in _ALWAYS_CHALLENGEABLE and not is_registered_actor(actor_id):
+        raise ValueError(
+            f"Actor {actor_id!r} is not registered for crypto auth. "
+            "Register public key via agent-onboard.py first."
+        )
+
+    ttl = ttl_seconds if ttl_seconds is not None else _CHALLENGE_TTL_SECONDS
+    if ttl <= 0:
+        raise ValueError("Challenge TTL must be positive")
+
+    now = time.time()
+    nonce_b64 = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
+    with _challenge_lock:
+        _purge_challenges(now)
+        _issued_challenges[nonce_b64] = _Challenge(
+            actor_id=actor_id, expires_at=now + ttl, issued_at=now
+        )
+    return nonce_b64, now
 
 
 def _consume_actor_challenge(actor_id: str, nonce: str) -> tuple[bool, str]:

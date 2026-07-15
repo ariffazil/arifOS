@@ -3,6 +3,13 @@ tests/runtime/test_discovery_routes.py — Discovery Route Tests
 
 Verifies that root-level discovery files (agent.json, ai.json, etc.)
 are correctly registered and accessible without being shadowed by mounts.
+
+A2A consolidation (FEDERATION_CONTRACT §5.4.5):
+- `/.well-known/agent.json` and `/.well-known/agent-card.json` MUST NOT
+  serve a local card body. They return 410 Gone with a pointer to the
+  AAA-owned canonical card at `https://aaa.arif-fazil.com/.well-known/agent-card.json`.
+- MCP discovery (`/.well-known/mcp/server.json`), OAuth, health, tools,
+  and `/a2a/*` execution routes MUST remain live.
 """
 
 import pytest
@@ -15,15 +22,48 @@ def client():
     return SyncASGIClient(app)
 
 
-def test_well_known_agent_reachable(client):
-    """Test that /.well-known/agent.json is reachable and returns JSON."""
+def test_well_known_agent_json_is_a2a_card_pointer(client):
+    """FEDERATION_CONTRACT §5.4.5 — /.well-known/agent.json is owned by AAA.
+
+    arifOS MUST NOT publish a local A2A agent card body. The route returns
+    410 Gone with a pointer to the canonical AAA card.
+    """
     response = client.get("/.well-known/agent.json")
-    assert response.status_code == 200
+    assert response.status_code == 410
     data = response.json()
-    assert data.get("schema") == "agent-manifest/v1"
-    assert "name" in data
-    assert "endpoints" in data
-    assert data["name"] == "arifOS MCP Server"
+    assert data.get("deprecation") == "moved"
+    assert data.get("owner") == "AAA"
+    assert "aaa.arif-fazil.com" in data.get("moved_to", "")
+    # execution endpoints MUST still be advertised so peers can route via AAA
+    assert "execution_endpoints" in data
+    assert "mcp" in data["execution_endpoints"]
+    assert "a2a_task" in data["execution_endpoints"]
+
+
+def test_well_known_agent_card_json_is_410_with_pointer(client):
+    """FEDERATION_CONTRACT §5.4.5 — /.well-known/agent-card.json is owned by AAA."""
+    response = client.get("/.well-known/agent-card.json")
+    assert response.status_code == 410
+    data = response.json()
+    assert data.get("deprecation") == "moved"
+    assert data.get("owner") == "AAA"
+    assert "agent-card.json" in data.get("moved_to", "")
+
+
+def test_agent_card_summary_is_410(client):
+    """/agent-card summary is removed; AAA owns the canonical card."""
+    response = client.get("/agent-card")
+    assert response.status_code == 410
+    data = response.json()
+    assert data.get("owner") == "AAA"
+
+
+def test_agent_card_skills_is_410(client):
+    """/agent-card/skills dump is removed; AAA owns the canonical card."""
+    response = client.get("/agent-card/skills")
+    assert response.status_code == 410
+    data = response.json()
+    assert data.get("owner") == "AAA"
 
 
 def test_ai_plugin_manifest_reachable(client):

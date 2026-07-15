@@ -2402,9 +2402,17 @@ _RESPONSE_CONTEXT: ContextVar[dict[str, str | None] | None] = ContextVar(
 # extracted from MCP arguments. Tool kwargs get stripped by
 # _filter_kwargs_for_handler. This helper reads from the context first.
 
-_ANON_PLACEHOLDERS = frozenset({
-    None, "", "anonymous", "openclaw-anon", "unknown", "null", "None",
-})
+_ANON_PLACEHOLDERS = frozenset(
+    {
+        None,
+        "",
+        "anonymous",
+        "openclaw-anon",
+        "unknown",
+        "null",
+        "None",
+    }
+)
 
 
 def _resolve_identity(kwargs: dict, key: str) -> str:
@@ -8790,11 +8798,14 @@ def _arif_session_init(
                 from arifosmcp.boot.swarm_ignition import run_swarm_ignition
 
                 from arifosmcp.core.federation_contracts import SealAuthority
+
                 _swarm_manifest = run_swarm_ignition(
                     actor_receipt={
                         "actor_id": actor_id,
                         "identity_verified": identity_verified,
-                        "authority_level": SealAuthority(authority_level) if authority_level in ("SOVEREIGN", "OPERATOR") else SealAuthority.OPERATOR,
+                        "authority_level": SealAuthority(authority_level)
+                        if authority_level in ("SOVEREIGN", "OPERATOR")
+                        else SealAuthority.OPERATOR,
                     },
                     constitution_receipt={
                         "constitution_hash": constitution_hash,
@@ -17204,6 +17215,7 @@ def _arif_vault_seal(
                 KernelVerdict,
                 SealAuthority,
             )
+
             _c_resolved_sid, _c_resolved_actor = _rrid(
                 session_id=session_id,
                 actor_id=actor_id,
@@ -17218,7 +17230,9 @@ def _arif_vault_seal(
                 "actor_id": _c_resolved_actor,
                 "session_id": _c_resolved_sid,
                 "actor_source": _chain_actor_source,
-                "kernel_verdict": KernelVerdict.PASS if k_verdict.get("passed") else KernelVerdict.FAIL,
+                "kernel_verdict": KernelVerdict.PASS
+                if k_verdict.get("passed")
+                else KernelVerdict.FAIL,
                 "signature_verified": signature_verified,
                 "authority_level": authority_level,
                 "type": "constitutional_seal",
@@ -20670,6 +20684,377 @@ async def _arif_verify_tool(
 _arif_verify = _arif_verify_tool
 
 
+# ── IDENTITY CEREMONY: arif_challenge ────────────────────────────────────────
+
+
+async def _arif_challenge_tool(
+    actor_id: str = "ARIF",
+    session_id: str | None = None,
+    ttl_seconds: int | None = None,
+) -> dict[str, Any]:
+    """
+    F1 AMANAH + F11 AUDIT: Issue an Ed25519 identity challenge for actor verification.
+
+    AAA Wave 2 / Phase 5 live MCP surface. Spec contract:
+      Input : {actor_id: str, session_id?: str, ttl_seconds?: int = 300}
+      Output: {challenge: str (base64 32-byte nonce), issued_at: str (ISO-8601 UTC),
+               ttl_seconds: int, session_id: str, actor_id: str, tool: str}
+
+    The identity ceremony flow:
+      1. Agent calls arif_challenge(actor_id, session_id?) → challenge (b64 nonce)
+      2. Agent signs {actor_id}:{challenge} with its Ed25519 private key → sig_b64
+      3. Agent calls arif_verify(challenge, sig_b64, actor_pubkey_hex, session_id)
+         → verified: bool
+      4. If verified=true → session is marked ed25519_verified (F11 AUDIT trace)
+
+    Challenge is single-use (consumed on first valid verify); replay or expiry
+    returns verified=false.
+    """
+    try:
+        from arifosmcp.runtime.crypto_auth import issue_actor_challenge_b64
+
+        effective_ttl = int(ttl_seconds) if ttl_seconds is not None else 300
+        if effective_ttl <= 0:
+            return {
+                "status": "ERROR",
+                "error": "ttl_seconds must be positive",
+                "tool": "arif_challenge",
+            }
+
+        challenge_b64, issued_at_epoch = issue_actor_challenge_b64(
+            actor_id, ttl_seconds=effective_ttl
+        )
+
+        # ISO-8601 UTC timestamp with millisecond precision
+        from datetime import datetime, timezone
+
+        issued_at_iso = (
+            datetime.fromtimestamp(issued_at_epoch, tz=timezone.utc)
+            .isoformat(timespec="milliseconds")
+            .replace("+00:00", "Z")
+        )
+
+        bound_session_id = session_id or ""
+
+        return {
+            "status": "CHALLENGE_ISSUED",
+            "actor_id": actor_id,
+            "challenge": challenge_b64,
+            "issued_at": issued_at_iso,
+            "ttl_seconds": effective_ttl,
+            "session_id": bound_session_id,
+            "instructions": (
+                "Sign the string f\"{actor_id}:{challenge}\" with your Ed25519 "
+                "private key, base64-encode the 64-byte signature, then call "
+                "arif_verify(challenge, signature_b64, actor_pubkey_hex, session_id)."
+            ),
+            "tool": "arif_challenge",
+        }
+    except ValueError as ve:
+        # F12 INJECTION: surface validation failures without leaking internals
+        return {
+            "status": "ERROR",
+            "error": f"validation_error: {ve}",
+            "actor_id": actor_id,
+            "tool": "arif_challenge",
+        }
+    except Exception as e:  # noqa: BLE001 — surface all failures for F11 audit
+        return {
+            "status": "ERROR",
+            "error": f"{type(e).__name__}: {e}",
+            "actor_id": actor_id,
+            "tool": "arif_challenge",
+        }
+
+
+async def _arif_ed25519_verify_tool(
+    challenge: str = "",
+    signature: str = "",
+    actor_pubkey: str = "",
+    session_id: str = "",
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """
+    F1 AMANAH + F11 AUDIT: Ed25519 signature verification against a challenge nonce.
+
+    AAA Wave 2 / Phase 5 live MCP surface. Spec contract:
+      Input : {challenge: str (base64 nonce from arif_challenge),
+               signature: str (base64 Ed25519 signature, 64 bytes → ~88 b64 chars),
+               actor_pubkey: str (hex Ed25519 public key, 32 bytes → 64 hex chars),
+               session_id: str,
+               actor_id?: str (optional — defaults to public-key-derived fingerprint)}
+      Output: {verified: bool, actor_id: str, challenge_age_seconds: int,
+               message: str, tool: str, ed25519_verified?: bool (on success)}
+
+    Cryptographic payload signed by the actor is the byte string
+    ``f"{actor_id}:{challenge}".encode()``. ``actor_id`` is supplied by the
+    caller; if omitted, a stable fingerprint derived from the public key is
+    used (sha256(pubkey_raw).hexdigest()[:16]).
+
+    F11 AUDIT: every verify attempt is logged via the standard logger; success
+    marks the session as ed25519_verified if the session store is reachable.
+
+    F12 INJECTION: all inputs are validated for type, length, and charset BEFORE
+    any cryptographic operation. Invalid inputs return verified=false with a
+    machine-readable reason — no exception escapes.
+    """
+    import base64
+    import logging as _logging
+    import re
+    import time
+
+    _log = _logging.getLogger(__name__)
+    tool_name = "arif_verify"
+
+    # ── F12 INJECTION: input validation ──────────────────────────────────────
+    # challenge: non-empty base64 string of length 16–128 chars
+    if not isinstance(challenge, str) or not challenge.strip():
+        return _verify_fail_response(
+            tool_name, actor_id or "", session_id, reason="challenge_missing"
+        )
+    challenge = challenge.strip()
+    if len(challenge) < 16 or len(challenge) > 128:
+        return _verify_fail_response(
+            tool_name, actor_id or "", session_id, reason="challenge_malformed"
+        )
+    if not re.fullmatch(r"[A-Za-z0-9+/=_-]+", challenge):
+        return _verify_fail_response(
+            tool_name, actor_id or "", session_id, reason="challenge_charset_invalid"
+        )
+
+    # signature: base64 string, exactly 64 raw bytes when decoded (88 b64 chars)
+    if not isinstance(signature, str) or not signature.strip():
+        return _verify_fail_response(
+            tool_name, actor_id or "", session_id, reason="signature_missing"
+        )
+    signature_b64 = signature.strip()
+    try:
+        sig_raw = base64.b64decode(signature_b64, validate=True)
+    except Exception:
+        return _verify_fail_response(
+            tool_name, actor_id or "", session_id, reason="signature_b64_invalid"
+        )
+    if len(sig_raw) != 64:
+        return _verify_fail_response(
+            tool_name,
+            actor_id or "",
+            session_id,
+            reason=f"signature_length_invalid (got {len(sig_raw)} bytes, expected 64)",
+        )
+
+    # actor_pubkey: hex string of exactly 64 hex chars (32 raw bytes)
+    if not isinstance(actor_pubkey, str) or not actor_pubkey.strip():
+        return _verify_fail_response(
+            tool_name, actor_id or "", session_id, reason="actor_pubkey_missing"
+        )
+    pubkey_hex = actor_pubkey.strip().lower().removeprefix("0x")
+    if len(pubkey_hex) != 64 or not re.fullmatch(r"[0-9a-f]{64}", pubkey_hex):
+        return _verify_fail_response(
+            tool_name,
+            actor_id or "",
+            session_id,
+            reason="actor_pubkey_hex_invalid (must be 64 hex chars = 32 bytes)",
+        )
+
+    # ── F11 AUDIT: log the verify attempt (input hash, not raw key/sig) ──────
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    except ImportError:
+        return _verify_fail_response(
+            tool_name, actor_id or "", session_id, reason="cryptography_lib_unavailable"
+        )
+
+    try:
+        pubkey = Ed25519PublicKey.from_public_bytes(bytes.fromhex(pubkey_hex))
+    except Exception as e:  # noqa: BLE001
+        return _verify_fail_response(
+            tool_name,
+            actor_id or "",
+            session_id,
+            reason=f"actor_pubkey_load_failed: {type(e).__name__}",
+        )
+
+    # Derive default actor_id from public key if not provided
+    import hashlib as _hashlib
+
+    effective_actor_id = (
+        actor_id.strip()
+        if isinstance(actor_id, str) and actor_id.strip()
+        else f"anon:{_hashlib.sha256(bytes.fromhex(pubkey_hex)).hexdigest()[:16]}"
+    )
+
+    # Verify Ed25519 signature over payload bytes
+    payload = f"{effective_actor_id}:{challenge}".encode("utf-8")
+    try:
+        pubkey.verify(sig_raw, payload)
+    except Exception as e:  # noqa: BLE001 — InvalidSignature is expected for bad sigs
+        _log.info(
+            "arif_verify: signature rejected actor=%s reason=%s",
+            effective_actor_id,
+            type(e).__name__,
+        )
+        return _verify_fail_response(
+            tool_name,
+            effective_actor_id,
+            session_id,
+            reason=f"ed25519_signature_invalid ({type(e).__name__})",
+        )
+
+    # ── Signature is cryptographically valid. Now bind to challenge + consume. ──
+    # Use the registered consume path so replay is impossible.
+    from arifosmcp.runtime.crypto_auth import (
+        _CHALLENGE_TTL_SECONDS,
+        _consume_actor_challenge,
+        _issued_challenges,
+    )
+
+    now = time.time()
+    challenge_record = _issued_challenges.get(challenge)
+    if challenge_record is None:
+        # Signature valid but challenge was not issued by us (or already consumed)
+        _log.warning(
+            "arif_verify: signature OK but challenge not found in issued set — "
+            "actor=%s challenge_prefix=%s",
+            effective_actor_id,
+            challenge[:8],
+        )
+        return _verify_fail_response(
+            tool_name,
+            effective_actor_id,
+            session_id,
+            reason="challenge_not_issued (or already consumed)",
+        )
+
+    issued_at = float(getattr(challenge_record, "issued_at", 0.0)) or (
+        float(challenge_record.expires_at) - float(_CHALLENGE_TTL_SECONDS)
+    )
+    challenge_age_seconds = max(0, int(now - issued_at))
+
+    ok, consume_reason = _consume_actor_challenge(effective_actor_id, challenge)
+    if not ok:
+        return _verify_fail_response(
+            tool_name,
+            effective_actor_id,
+            session_id,
+            reason=f"challenge_{consume_reason}",
+            challenge_age_seconds=challenge_age_seconds,
+        )
+
+    # ── F11 AUDIT: best-effort session binding ───────────────────────────────
+    ed25519_verified_session = False
+    try:
+        from arifosmcp.runtime.session import mark_session_ed25519_verified
+
+        if session_id and isinstance(session_id, str) and session_id.strip():
+            ed25519_verified_session = mark_session_ed25519_verified(
+                session_id.strip(), effective_actor_id, pubkey_hex
+            )
+    except Exception as e:  # noqa: BLE001 — session binding is best-effort
+        _log.debug(
+            "arif_verify: session binding best-effort failed (%s) — non-fatal",
+            type(e).__name__,
+        )
+
+    _log.info(
+        "arif_verify: VERIFIED actor=%s challenge_age=%ds session=%s",
+        effective_actor_id,
+        challenge_age_seconds,
+        session_id or "(none)",
+    )
+
+    return {
+        "verified": True,
+        "actor_id": effective_actor_id,
+        "challenge_age_seconds": challenge_age_seconds,
+        "message": (
+            f"Ed25519 signature verified for actor {effective_actor_id}; "
+            f"challenge consumed (age {challenge_age_seconds}s)."
+        ),
+        "ed25519_verified": ed25519_verified_session,
+        "tool": tool_name,
+    }
+
+
+def _verify_fail_response(
+    tool_name: str,
+    actor_id: str,
+    session_id: str,
+    reason: str,
+    challenge_age_seconds: int = 0,
+) -> dict[str, Any]:
+    """Standard error envelope for arif_verify failures."""
+    return {
+        "verified": False,
+        "actor_id": actor_id or "",
+        "challenge_age_seconds": challenge_age_seconds,
+        "message": f"verification_failed: {reason}",
+        "reason": reason,
+        "session_id": session_id or "",
+        "tool": tool_name,
+    }
+
+
+async def _arif_identity_verify_tool(
+    actor_id: str = "ARIF",
+    nonce: str = "",
+    signature_b64: str = "",
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """
+    F1 AMANAH + F11 AUDIT: Verify Ed25519 signature for actor identity ceremony.
+
+    Completes the identity ceremony started by arif_challenge:
+      1. Verifies signature_b64 is a valid Ed25519 signature of nonce by actor_id's public key
+      2. On success: returns actor_verified=true + authority band
+      3. On failure: returns actor_verified=false + reason
+
+    This is the LIVE MCP surface for IDENTITY_BINDING_SPEC.md.
+
+    Args:
+        actor_id: The actor whose identity is being verified
+        nonce: The challenge nonce from arif_challenge
+        signature_b64: Base64-encoded Ed25519 signature of the nonce
+        session_id: Optional session ID for binding
+
+    Returns:
+        dict with actor_verified, authority_band, actor_id
+    """
+    try:
+        from arifosmcp.runtime.crypto_auth import verify_actor_signature, classify_actor_band
+
+        verified = verify_actor_signature(actor_id, nonce, signature_b64)
+
+        if verified:
+            band = classify_actor_band(actor_id, signature_verified=True)
+            return {
+                "status": "IDENTITY_VERIFIED",
+                "actor_id": actor_id,
+                "actor_verified": True,
+                "authority_band": band.get("authority_mode", "GOVERNED"),
+                "nonce_consumed": True,
+                "tool": "arif_identity_verify",
+            }
+        else:
+            return {
+                "status": "IDENTITY_FAILED",
+                "actor_id": actor_id,
+                "actor_verified": False,
+                "reason": "Signature verification failed — invalid signature or expired nonce",
+                "tool": "arif_identity_verify",
+            }
+    except Exception as e:
+        return {
+            "status": "ERROR",
+            "error": str(e),
+            "actor_verified": False,
+            "tool": "arif_identity_verify",
+        }
+
+
+_arif_challenge = _arif_challenge_tool
+_arif_identity_verify = _arif_identity_verify_tool
+
+
 async def _arif_kernel_intercept_tool(
     actor: str | None = None,
     intent: str | None = None,
@@ -20725,11 +21110,7 @@ async def _arif_kernel_intercept_tool(
             or "arif_judge"
         )
     if domain is None:
-        domain = (
-            kwargs.pop("domain", None)
-            or kwargs.pop("context_source", None)
-            or "general"
-        )
+        domain = kwargs.pop("domain", None) or kwargs.pop("context_source", None) or "general"
     if reversibility_level is None:
         reversibility_level = (
             kwargs.pop("reversibility_level", None)
@@ -20737,10 +21118,7 @@ async def _arif_kernel_intercept_tool(
             or "unknown"
         )
     if blast_radius is None:
-        blast_radius = (
-            kwargs.pop("blast_radius", None)
-            or "low"
-        )
+        blast_radius = kwargs.pop("blast_radius", None) or "low"
     if session_token is None:
         session_token = kwargs.pop("session_id", None)
     if measurement is None:
@@ -20761,7 +21139,9 @@ async def _arif_kernel_intercept_tool(
         # Surface unknown kwargs in intent as a structured footer so the kernel
         # judge sees them but the strict signature stays clean.
         try:
-            intent = f"{intent}\n[extras: " + ", ".join(f"{k}={v!r}" for k, v in kwargs.items()) + "]"
+            intent = (
+                f"{intent}\n[extras: " + ", ".join(f"{k}={v!r}" for k, v in kwargs.items()) + "]"
+            )
         except Exception:
             pass
     raw = await _arif_kernel_intercept(
@@ -20946,7 +21326,13 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_act": _arif_act,
     "arif_seal": _arif_vault_seal_tool,
     "arif_vault_verify": _arif_vault_verify_tool,  # P0: read-only vault verifier
-    "arif_verify": _arif_verify_tool,  # E1 FORGE: JITU pre-execution gate
+    "arif_verify": _arif_ed25519_verify_tool,  # AAA Wave 2: Ed25519 signature verification (live MCP)
+    # The legacy JITU SEAL-token gate (_arif_verify_tool) remains accessible via
+    # the Python handle ``_arif_verify`` and the HTTP endpoint /kernel/arif_verify.
+    # Repurposing the public MCP name `arif_verify` to mean Ed25519 has zero
+    # blast radius: no MCP caller was reaching it (it was access: internal_only).
+    "arif_challenge": _arif_challenge_tool,  # IDENTITY: Ed25519 challenge issuance (live MCP)
+    "arif_identity_verify": _arif_identity_verify_tool,  # IDENTITY: legacy Ed25519 verify alias
     # ── Internal aliases (still dispatchable, never advertised publicly) ───
     "arif_fetch": _arif_evidence_fetch,
     "arif_evidence_fetch": _arif_evidence_fetch,

@@ -226,6 +226,44 @@ class TestGatewayDiscovery:
                 "capabilities",
             }
 
+    def test_aaa_a2a_gateway_is_listed(self):
+        """The AAA A2A Gateway entry must be in the canonical organ list.
+
+        FEDERATION_CONTRACT §5.4.5: AAA is the canonical A2A peer-discovery
+        surface. The gateway entry makes the consolidation first-class.
+        """
+        names = [o.name for o in CANONICAL_ORGANS]
+        assert "AAA" in names
+        assert "AAA A2A Gateway" in names
+
+    def test_aaa_a2a_card_url_is_centralised(self):
+        """Every A2A card endpoint that points at arifOS kernel MUST point at AAA.
+
+        Per FEDERATION_CONTRACT §5.4.5, only AAA owns the canonical A2A agent
+        card. Organs may advertise MCP manifests at their local
+        `/.well-known/mcp/server.json`, but any `/.well-known/agent.json`
+        pointer must be the AAA URL.
+        """
+        from contracts.gateway_discovery import AAA_A2A_CARD_URL, AAA_A2A_CARD_URL_V2
+
+        aaa_card = next(o for o in CANONICAL_ORGANS if o.name == "AAA")
+        gateway = next(o for o in CANONICAL_ORGANS if o.name == "AAA A2A Gateway")
+        assert aaa_card.agent_card_endpoint == AAA_A2A_CARD_URL_V2
+        assert gateway.agent_card_endpoint == AAA_A2A_CARD_URL_V2
+        assert "aaa.arif-fazil.com" in aaa_card.agent_card_endpoint
+        assert "aaa.arif-fazil.com" in gateway.agent_card_endpoint
+
+    def test_arifos_kernel_does_not_advertise_local_card_body(self):
+        """arifOS kernel MUST advertise the central AAA URL, not a local card."""
+        from contracts.gateway_discovery import AAA_A2A_CARD_URL
+
+        arifos = CANONICAL_ORGANS[0]
+        assert arifos.name == "arifOS"
+        # arifOS kernel's agent_card_endpoint must NOT be a local path.
+        # It must point at the canonical AAA URL (which serves the card
+        # that includes arifOS's skill catalog).
+        assert arifos.agent_card_endpoint == AAA_A2A_CARD_URL
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # P1.2 — Independent Attestation

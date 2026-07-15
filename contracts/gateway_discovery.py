@@ -12,6 +12,15 @@ it tells you what organs exist and what they expose, without routing
 any traffic through them.
 
 DITEMPA BUKAN DIBERI — Knowing the map is not the same as crossing the border.
+
+A2A Discovery Consolidation (FEDERATION_CONTRACT §5.4.5):
+Canonical A2A agent card discovery is owned exactly once — by AAA — and
+is served at `https://aaa.arif-fazil.com/.well-known/agent.json` (v1.0)
+and `https://aaa.arif-fazil.com/.well-known/agent-card.json` (v2.x
+extended, authenticated). arifOS no longer publishes a local card body;
+its `/.well-known/agent.json` returns 410 Gone with a pointer. Organs
+listed below advertise their discovery endpoints through this contract;
+only the AAA A2A Gateway entry is the binding peer-discovery surface.
 """
 
 from __future__ import annotations
@@ -67,13 +76,26 @@ class OrganDescriptor:
     status: str = "unknown"
 
 
+# Central A2A discovery URLs (FEDERATION_CONTRACT §5.4.5).
+# AAA owns the canonical A2A agent card; every organ's local `/.well-known/agent.json`
+# is either an MCP manifest (for arifOS / WEALTH / WELL / GEOX) or a deprecated
+# pointer (for arifOS, see `rest_routes.py:agent_well_known`). The single binding
+# peer-discovery URL is the AAA A2A Gateway card below.
+AAA_A2A_GATEWAY_BASE = "https://aaa.arif-fazil.com"
+AAA_A2A_CARD_URL = f"{AAA_A2A_GATEWAY_BASE}/.well-known/agent.json"
+AAA_A2A_CARD_URL_V2 = f"{AAA_A2A_GATEWAY_BASE}/.well-known/agent-card.json"
+
+
 CANONICAL_ORGANS: list[OrganDescriptor] = [
     OrganDescriptor(
         name="arifOS",
         port=8088,
         role="Constitutional Kernel",
         health_endpoint="http://localhost:8088/health",
-        agent_card_endpoint="http://localhost:8088/.well-known/mcp/server.json",
+        # arifOS does NOT publish a local A2A card. Its `/.well-known/mcp/server.json`
+        # is the MCP manifest (different protocol). The A2A card for arifOS is
+        # served by AAA at the URL below.
+        agent_card_endpoint=AAA_A2A_CARD_URL,
         mcp_endpoint="http://localhost:8088/mcp",
     ),
     OrganDescriptor(
@@ -81,7 +103,7 @@ CANONICAL_ORGANS: list[OrganDescriptor] = [
         port=18081,
         role="Constitutional Daemon",
         health_endpoint="http://localhost:18081/health",
-        agent_card_endpoint="http://localhost:18081/.well-known/agent-card.json",
+        agent_card_endpoint=AAA_A2A_CARD_URL,
     ),
     OrganDescriptor(
         name="WEALTH",
@@ -117,9 +139,21 @@ CANONICAL_ORGANS: list[OrganDescriptor] = [
     OrganDescriptor(
         name="AAA",
         port=3001,
-        role="Control Plane",
+        role="Control Plane + A2A Gateway",
         health_endpoint="http://localhost:3001/health",
-        agent_card_endpoint="http://localhost:3001/.well-known/agent-card.json",
+        # AAA publishes the canonical federation A2A card (binding peer discovery).
+        agent_card_endpoint=AAA_A2A_CARD_URL_V2,
+    ),
+    # AAA A2A Gateway — the explicit consolidated discovery surface added
+    # 2026-07-15 to make the canonical A2A peer-discovery endpoint first-class
+    # in the organ list. Peers that want to discover the federation hit this
+    # entry; routing then goes through AAA to arifOS / A-FORGE / organs.
+    OrganDescriptor(
+        name="AAA A2A Gateway",
+        port=3001,
+        role="Canonical A2A Peer Discovery (consolidation)",
+        health_endpoint="http://localhost:3001/health",
+        agent_card_endpoint=AAA_A2A_CARD_URL_V2,
     ),
 ]
 

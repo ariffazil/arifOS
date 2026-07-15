@@ -76,8 +76,20 @@
     { "path": "/attest",  "purpose": "Identity attestation. Returns organ_id, role, version, tool_count, schema_hash, identity_anchor, health_status, attestation_status, attested_at, expires_at." },
     { "path": "/contract","purpose": "Canonical contract endpoint. Returns supported protocol versions, required headers, error envelope schema." },
     { "path": "/mcp",     "purpose": "MCP Streamable HTTP endpoint. JSON-RPC 2.0 over HTTP POST with session management." },
-    { "path": "/.well-known/agent.json", "purpose": "A2A Agent Card for agent discovery (per A2A v1.0.1 spec)." }
+    { "path": "/.well-known/mcp/server.json", "purpose": "MCP registry discovery. This is the MCP server card, NOT an A2A agent card." }
   ],
+
+  "_federation_contract_5_4_5": {
+    "a2a_discovery_owner": "AAA",
+    "a2a_discovery_paths": [
+      "https://aaa.arif-fazil.com/.well-known/agent.json",
+      "https://aaa.arif-fazil.com/.well-known/agent-card.json"
+    ],
+    "arifos_well_known_agent_json": {
+      "purpose": "DEPRECATED on arifOS. Returns 410 Gone with pointer to AAA. arifOS is the A2A execution kernel, not the A2A discovery surface.",
+      "redirect_target": "https://aaa.arif-fazil.com/.well-known/agent.json"
+    }
+  },
 
   "required_headers": {
     "traceparent": "W3C trace context for distributed tracing (SEP-414)",

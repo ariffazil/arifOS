@@ -60,8 +60,27 @@ VERIFIED_KEY_IDS: dict[str, str] = {
     "ed25519:sha256:04761fd348a64558": "mesa-test-agent",
     "mesa-test-agent": "mesa-test-agent",
     "meta-test-agent": "meta-test-agent",
+    # Node 3 — ariffazil-windows (L4 warga, OBSERVE_ONLY)
+    # ed25519 fingerprint: PENDING_FIRST_CONNECT
+    # IP binding: 100.64.0.3 (Tailscale)
+    # Session model: SHARED_CEILING
+    # Offline grace: NO_AUTO_EXPIRY
+    # F13 decisions: ed25519 rotation = F13 gate, multi-session = shared
+    "node3-ariffazil-windows": "node3-ariffazil-windows",
 }
 VERIFIED_KEY_IDS_MAX: int = 16
+
+# L4 Warga Authority Ceiling — OBSERVE_ONLY actors
+# These actors cannot mutate, seal, or judge. They observe and route only.
+L4_WARGA_ACTORS: set[str] = {
+    "node3-ariffazil-windows",
+}
+L4_ALLOWED_VERBS: set[str] = {
+    "arif_init", "arif_observe", "arif_think", "arif_route",
+}
+L4_BLOCKED_VERBS: set[str] = {
+    "arif_forge", "arif_seal", "arif_judge", "arif_act",
+}
 
 # P2 2026-07-13: Sovereign signal phrases (HITL-collapse mitigation).
 # When an agent presents one of these signals as proof, the kernel routes

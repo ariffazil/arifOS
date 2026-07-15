@@ -592,6 +592,58 @@ def clear_session_identity(session_id: str) -> None:
         _persist_store()
 
 
+def mark_session_ed25519_verified(
+    session_id: str,
+    actor_id: str,
+    actor_pubkey_hex: str,
+) -> bool:
+    """Mark a session as Ed25519-verified (AAA Wave 2 / Phase 5).
+
+    Idempotent: repeated calls update the ``ed25519_verified_at`` timestamp and
+    ``ed25519_pubkey`` but do not downgrade. F11 AUDIT: every call appends a
+    marker event to the session record.
+
+    Returns True on success, False if the session_id is not recognized (the
+    caller — arif_verify — should NOT fail the verification in that case; the
+    cryptographic check has already passed and session binding is best-effort).
+    """
+    _load_store()
+    record = _SESSION_IDENTITY.get(session_id)
+    if record is None:
+        # Try resolving via _resolve_lookup_session_id (handles canonical alias)
+        resolved = _resolve_lookup_session_id(session_id)
+        if resolved:
+            record = _SESSION_IDENTITY.get(resolved)
+    if record is None:
+        return False
+
+    identity = record.setdefault("identity", {})
+    if not isinstance(identity, dict):
+        identity = {}
+        record["identity"] = identity
+
+    identity["ed25519_verified"] = True
+    identity["ed25519_actor_id"] = actor_id
+    identity["ed25519_pubkey"] = actor_pubkey_hex
+    identity["ed25519_verified_at"] = _utcnow().isoformat()
+
+    # Append to event log for F11 AUDIT traceability.
+    events = record.setdefault("events", [])
+    if isinstance(events, list):
+        events.append(
+            {
+                "type": "ed25519_verified",
+                "actor_id": actor_id,
+                "actor_pubkey_prefix": actor_pubkey_hex[:16],
+                "at": identity["ed25519_verified_at"],
+            }
+        )
+
+    with _STORE_LOCK:
+        _persist_store()
+    return True
+
+
 def list_active_sessions_count() -> int:
     """Return the total number of currently anchored sessions."""
     _load_store()

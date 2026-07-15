@@ -569,8 +569,15 @@ class TestTrinityProtocolStatus:
             pytest.skip("A2A not available - aiofiles dependency missing")
 
         # A2A is mounted - run full test
+        # FEDERATION_CONTRACT §5.4.5: arifOS does NOT publish a local A2A agent
+        # card body. /.well-known/agent.json returns 410 Gone with a pointer to
+        # the canonical AAA card. A2A execution routes (/a2a/task, /a2a/status)
+        # remain live on the kernel.
         card = test_client.get("/.well-known/agent.json")
-        assert card.status_code == 200
+        assert card.status_code == 410
+        pointer = card.json()
+        assert pointer.get("owner") == "AAA"
+        assert "aaa.arif-fazil.com" in pointer.get("moved_to", "")
 
         assert health.status_code == 200, f"A2A health failed: {health.status_code}"
 
