@@ -122,7 +122,7 @@ _LEGACY_INDEX_FILE = _MEMORY_DIR / ".index.json"
 _QDRANT_URL = os.getenv("QDRANT_URL", "http://qdrant:6333")
 _QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "arifos_memory_v2")
 _OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "bge-m3:latest")
+_EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest")
 # ADR-010: L4 canonical store is LOCAL Postgres (port 5432), not Supabase pooler.
 # ARIFOS_MEMORY_POSTGRES_URL was pointing to Supabase, causing recall failures.
 # Priority: POSTGRES_URL (local) > ARIFOS_MEMORY_POSTGRES_URL (env) > default (local)
@@ -434,7 +434,6 @@ def _get_sparse_model():
     """Lazy-load Qdrant/bm25 sparse embedding model (fastembed)."""
     if not hasattr(_get_sparse_model, "_model"):
         from fastembed import SparseTextEmbedding  # noqa: PLC0415
-
         _get_sparse_model._model = SparseTextEmbedding("Qdrant/bm25")
     return _get_sparse_model._model
 
@@ -447,14 +446,13 @@ def _generate_sparse_embedding(text: str) -> dict | None:
         model = _get_sparse_model()
         vec = next(iter(model.embed([text])))
         return {
-            "indices": vec.indices.tolist()
-            if hasattr(vec.indices, "tolist")
-            else list(vec.indices),
+            "indices": vec.indices.tolist() if hasattr(vec.indices, "tolist") else list(vec.indices),
             "values": vec.values.tolist() if hasattr(vec.values, "tolist") else list(vec.values),
         }
     except Exception as exc:
         logger.warning("Sparse embedding unavailable (fastembed may not be installed): %s", exc)
         return {"indices": [0], "values": [1.0]}  # passthrough fallback
+
 
 
 def _summarize(content: Any) -> str:
@@ -1485,12 +1483,9 @@ def search(
             )
 
             # Sparse BM25 query (skip if fallback passthrough)
-            has_sparse = len(sparse_vec_or_none.get("indices", [])) > 1 or sparse_vec_or_none.get(
-                "indices", []
-            ) != [0]
+            has_sparse = len(sparse_vec_or_none.get("indices", [])) > 1 or sparse_vec_or_none.get("indices", []) != [0]
             if has_sparse:
                 from qdrant_client.models import SparseVector  # noqa: PLC0415
-
                 sparse_vec = SparseVector(
                     indices=sparse_vec_or_none["indices"],
                     values=sparse_vec_or_none["values"],
