@@ -483,6 +483,8 @@ CANONICAL_RESOURCES = (
     "arifos://quickstart",
     "arifos://mcp-alignment",  # MCP spec conformance — useful for debugging
     "arifos://mcp/surface-map",
+    # ATLAS333 — cognitive geometry (paradoxes, quotes, zones, thresholds)
+    "arifos://atlas333/index",
 )  # REMOVED 2026-06-28 (zen of resources — indices to indices):
 #   tree777://index         — wiki index, not domain operational data
 #   runner://policy/v1      — runner policy metadata, not AI operational data

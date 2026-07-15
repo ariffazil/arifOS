@@ -76,10 +76,16 @@ L4_WARGA_ACTORS: set[str] = {
     "node3-ariffazil-windows",
 }
 L4_ALLOWED_VERBS: set[str] = {
-    "arif_init", "arif_observe", "arif_think", "arif_route",
+    "arif_init",
+    "arif_observe",
+    "arif_think",
+    "arif_route",
 }
 L4_BLOCKED_VERBS: set[str] = {
-    "arif_forge", "arif_seal", "arif_judge", "arif_act",
+    "arif_forge",
+    "arif_seal",
+    "arif_judge",
+    "arif_act",
 }
 
 # P2 2026-07-13: Sovereign signal phrases (HITL-collapse mitigation).
@@ -94,6 +100,135 @@ L4_BLOCKED_VERBS: set[str] = {
 SOVEREIGN_SIGNAL_PHRASES = __import__(
     "arifosmcp.runtime.human_intent", fromlist=["CONFIRMATION_INTENT_PHRASES"]
 ).CONFIRMATION_INTENT_PHRASES
+
+# ── Sovereign Alias Normalization (FORGED 2026-07-15) ─────────────────────────
+# F13 SOVEREIGN: Any natural-language prefix + "ARIF" resolves to the
+# sovereign principal.  Greetings are stripped, core identity is extracted.
+# This is NOT authentication — it is NLP normalization so the sovereign
+# doesn't have to type a machine-exact string.
+#
+# "Salam ARIF" → "arif"   "Hi Arif" → "arif"   "Saya Arif" → "arif"
+# "AKU ARIF" → "arif"     "Yang Arif" → "arif"  "ARIF F." → "arif"
+# Security: only extracts to known canonical IDs. Unknown → returned as-is.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Greeting / prefix words to strip (case-insensitive, multilingual).
+# Order matters: longer prefixes first to avoid partial strip.
+_IDENTITY_STRIP_PREFIXES: tuple[str, ...] = (
+    # Malay / BM greetings
+    "salam",
+    "assalamualaikum",
+    "assalamu",
+    # English greetings
+    "hello",
+    "hi",
+    "hey",
+    "yo",
+    "howdy",
+    # Malay pronouns / introductions
+    "saya",
+    "aku",
+    "hamba",
+    "yang",
+    # English pronouns / introductions
+    "i am",
+    "i'm",
+    "im",
+    "it's",
+    "its",
+    "this is",
+)
+
+# Core identity variants → canonical actor_id.
+# Checked AFTER prefix stripping and lowercasing.
+_SOVEREIGN_CORE_VARIANTS: dict[str, str] = {
+    "arif": "arif",
+    "arif fazil": "arif",
+    "arif_fazil": "arif",
+    "arif-fazil": "arif",
+    "ariffazil": "arif",
+    "arif f": "arif",
+    "arif f.": "arif",
+    "muhammad arif": "arif",
+    "muhammad arif bin fazil": "arif",
+    "muhammad_arif": "arif",
+    "888": "arif",
+    "f13": "arif",
+    "sovereign": "arif",
+}
+
+
+def normalize_actor_id(raw: str | None) -> str | None:
+    """
+    Normalize a natural-language actor_id to its canonical form.
+
+    Strips greeting prefixes, lowercases, and maps known sovereign variants
+    to their canonical actor_id.  Returns the original value if no known
+    variant matches — this is safe because downstream code already handles
+    unknown actor_ids by defaulting to OBSERVE_ONLY.
+
+    NOT authentication. This is NLP convenience only.
+
+    Examples:
+        "Salam ARIF"     → "arif"
+        "Hi Arif"        → "arif"
+        "Saya Arif"      → "arif"
+        "AKU ARIF"       → "arif"
+        "Yang Arif"      → "arif"
+        "ARIF F."        → "arif"
+        "arif"           → "arif"
+        "ARIF_FAZIL"     → "arif"
+        "SALAM"          → "SALAM"  (unknown → unchanged)
+        None             → None
+    """
+    if not raw:
+        return None
+
+    text = raw.strip()
+    if not text:
+        return None
+
+    lower = text.lower()
+
+    # 1. Direct match first (fast path — most callers pass exact IDs)
+    if lower in _SOVEREIGN_CORE_VARIANTS:
+        return _SOVEREIGN_CORE_VARIANTS[lower]
+
+    # 2. Strip greeting/prefix words
+    stripped = lower
+    for prefix in _IDENTITY_STRIP_PREFIXES:
+        if stripped.startswith(prefix + " "):
+            stripped = stripped[len(prefix) :].strip()
+            break  # only strip one prefix layer
+
+    # Remove trailing punctuation
+    stripped = stripped.rstrip(".!?")
+
+    # 3. Check stripped form against known variants
+    if stripped in _SOVEREIGN_CORE_VARIANTS:
+        return _SOVEREIGN_CORE_VARIANTS[stripped]
+
+    # 4. Check if "arif" appears as a standalone word in the input
+    #    (catches "Salam ARIF", "Hello there ARIF", etc.)
+    import re
+
+    if re.search(r"\barif\b", lower):
+        # Only resolve if the remainder is purely greeting/prefix noise
+        remainder = re.sub(r"\barif\b", "", lower).strip().rstrip(".!?")
+        # Check if remainder is empty or composed of known prefix words
+        remainder_words = set(remainder.split())
+        prefix_words = set()
+        for p in _IDENTITY_STRIP_PREFIXES:
+            prefix_words.update(p.split())
+        # Also allow filler words
+        filler_words = {"there", "dear", "bro", "boss", "man", "sir", "the", "one"}
+        allowed_noise = prefix_words | filler_words
+        if not remainder_words or remainder_words.issubset(allowed_noise):
+            return "arif"
+
+    # 5. No match — return original (downstream handles unknown safely)
+    return raw
+
 
 # Semantic identity phrases (NLP input parsing ONLY — NOT authentication)
 # These parse natural language identity claims from user input.

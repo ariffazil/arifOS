@@ -44,12 +44,15 @@ from fastmcp import FastMCP
 
 
 # ── Paradox definitions (from paradox_quotes.py — single source of truth) ─
-# 27 of 33 hardcoded axis values were fabricated (not in canonical ParadoxAxis
-# enum). This refactor sources everything from arifosmcp/constitution/paradox_quotes.py
-# so the data is canonical. Falls back to empty list if import fails — honest UNKNOWN.
+# Refactored 2026-07-15 from 33 hardcoded entries to canonical import.
+# 27 of the original hardcoded axis values were fabricated (not in canonical
+# ParadoxAxis enum); this loader sources everything from
+# arifosmcp.constitution.paradox_quotes.py so data is canonical.
+# Falls back to empty list if import fails — honest UNKNOWN rather than fabrication.
 
 _QUOTE_ID_TO_PARADOX_ID: dict[str, int] = {
     **{f"M{i}": i for i in range(1, 12)},
+    "M12": 14,  # Structural anchor for paradox 14 (One↔Many)
     **{f"R{i}": 11 + i for i in range(1, 12)},
     **{f"J{i}": 22 + i for i in range(1, 12)},
 }
@@ -67,13 +70,15 @@ def _build_paradoxes_from_canonical() -> list[dict[str, Any]]:
     # Sort by quote_id to maintain order M1..M11, R1..R11, J1..J11.
     for qid in sorted(ALL_PARADOX_QUOTES.keys(), key=lambda x: (x[0], int(x[1:]))):
         q = ALL_PARADOX_QUOTES[qid]
-        paradoxes.append({
-            "id": _QUOTE_ID_TO_PARADOX_ID[qid],
-            "paradox": q.axis_label,        # human-readable: "recollection vs. discovery"
-            "axis": q.axis.value,           # canonical ParadoxAxis enum value
-            "organ": q.organ.value,         # canonical Organ enum value
-            "quote_id": qid,                # bridge to canonical quote
-        })
+        paradoxes.append(
+            {
+                "id": _QUOTE_ID_TO_PARADOX_ID[qid],
+                "paradox": q.axis_label,  # human-readable: "recollection vs. discovery"
+                "axis": q.axis.value,  # canonical ParadoxAxis enum value
+                "organ": q.organ.value,  # canonical Organ enum value
+                "quote_id": qid,  # bridge to canonical quote
+            }
+        )
     return paradoxes
 
 

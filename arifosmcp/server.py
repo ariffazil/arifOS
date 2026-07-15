@@ -144,7 +144,7 @@ _EXPOSE_ORGAN_BRIDGE = os.getenv("ARIFOS_EXPOSE_ORGAN_BRIDGE", "false").lower() 
 # These are thin single-string-param wrappers that route to arif_observe
 # and arif_fetch. Satisfies ChatGPT's mandatory search/fetch discovery
 # requirement without touching kernel logic.
-_CHATGPT_COMPAT = os.getenv("ARIFOS_CHATGPT_COMPAT", "false").lower() in (
+_CHATGPT_COMPAT = os.getenv("ARIFOS_CHATGPT_COMPAT", "true").lower() in (
     "true",
     "1",
     "yes",
@@ -347,7 +347,12 @@ class DPoPAuthMiddleware(BaseHTTPMiddleware):
                 # Prefer human actor from sub system:arif → arif for SOVEREIGN ladder
                 sub = str(lineage.get("sub") or "")
                 if sub.startswith("system:") and "arif" in sub.lower():
-                    lineage = {**lineage, "sub": "arif", "auth_method": lineage.get("auth_method") or "jwt_internal+dpop", "raw_sub": sub}
+                    lineage = {
+                        **lineage,
+                        "sub": "arif",
+                        "auth_method": lineage.get("auth_method") or "jwt_internal+dpop",
+                        "raw_sub": sub,
+                    }
                 elif not lineage.get("auth_method"):
                     lineage["auth_method"] = "jwt_internal+dpop"
                 set_request_auth_lineage(lineage)

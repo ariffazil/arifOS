@@ -1,5 +1,6 @@
 # ⧉ ATLAS333 — Agent Init / Evergreen Maintenance Protocol
 
+> **SOURCE OF TRUTH — ATLAS333 cognitive substrate (init protocol).**
 > **DITEMPA BUKAN DIBERI — The atlas is forged, not given.**
 > **Purpose:** This file is the init prompt for any agent that maintains ATLAS333.
 > **Rule:** The atlas is never finished. Like mapping the earth, every agent adds one contour line.

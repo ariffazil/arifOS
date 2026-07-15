@@ -26,7 +26,7 @@ try:
     from sklearn.metrics.pairwise import cosine_similarity
 
     SBERT_AVAILABLE = True
-except ImportError:
+except Exception:
     SBERT_AVAILABLE = False
 
 

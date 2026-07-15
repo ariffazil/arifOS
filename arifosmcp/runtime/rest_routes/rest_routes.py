@@ -4147,13 +4147,13 @@ def register_rest_routes(
     async def jwks_discovery(request: Request) -> Response:
         """JSON Web Key Set (JWKS) for cryptographic verification.
 
-        Loads real Ed25519 key from /root/.secrets/jwks/jwks.json.
+        Loads real Ed25519 key from /opt/arifos/secrets/jwks/jwks.json.
         Falls back to placeholder if file not found (dev mode only).
         """
         import json as _json
         from pathlib import Path
 
-        _jwks_path = Path("/root/.secrets/jwks/jwks.json")
+        _jwks_path = Path("/opt/arifos/secrets/jwks/jwks.json")
         try:
             if _jwks_path.exists():
                 jwks = _json.loads(_jwks_path.read_text())
@@ -5859,6 +5859,26 @@ def register_rest_routes(
             "/dashboard",
             StaticFiles(directory=dashboard_dir, html=True),
             name="dashboard",
+        )
+
+    # ── Observatory Surface (F2 TRUTH — public reality witness) ─────────────────
+    # Wire the canonical /api/observatory/v1/{snapshot,health,capabilities}
+    # endpoints. Default prefix matches the data-source the static dashboard
+    # at /var/www/html/arifos/index.html fetches. F2: page must reflect live
+    # kernel state, not frozen placeholders.
+    try:
+        from arifosmcp.runtime.rest_routes.observatory_routes import (
+            register_observatory_routes,
+        )
+
+        register_observatory_routes(mcp, mcp, prefix="/api/observatory/v1")
+        logger.info(
+            "Observatory routes wired: /api/observatory/v1/{snapshot,health,capabilities}"
+        )
+    except Exception as _obs_err:  # pragma: no cover — defensive
+        logger.warning(
+            "Observatory routes NOT wired (non-fatal): %s",
+            _obs_err,
         )
 
     # ── Resources ──────────────────────────────────────────────────────────────

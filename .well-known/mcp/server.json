@@ -5,89 +5,40 @@
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional MCP Server",
-    "version": "kanon-0545460"
+    "version": "kanon-2026.07.15"
   },
-  "description": "Constitutional governance kernel. Public MCP facade is 18 tools (metabolic 12 + entropy mesh 6). Internal diagnostics exist behind the public facade but are not part of the default public surface.",
+  "description": "Constitutional AI governance kernel. Public surface: 8 canonical tools (init → observe → think → route → memory → judge → forge → seal). F1-F13 floors enforced. VAULT999 immutable ledger. Streamable HTTP + stdio transports.",
   "transport": {
     "type": "streamable-http",
-    "endpoint": "https://mcp.arif-fazil.com/mcp"
+    "endpoint": "https://mcp.arif-fazil.com/mcp",
+    "stdio": {
+      "command": "npx",
+      "args": ["-y", "arifos-mcp"]
+    }
   },
   "authentication": {
     "required": false,
-    "schemes": [
-      "bearer"
-    ],
-    "description": "Initialize and default public discovery are open. Higher-authority tools enforce authentication or sovereign approval."
+    "schemes": ["bearer"],
+    "description": "Arif_init, observe, think, route are open (no auth). Judge, forge, seal require session + authority verification. DPoP optional (observe mode default)."
   },
   "capabilities": {
-    "tools": {
-      "listChanged": true
-    },
-    "resources": {
-      "subscribe": false,
-      "listChanged": true
-    },
-    "prompts": {
-      "listChanged": true
-    }
+    "tools": { "listChanged": true },
+    "resources": { "subscribe": false, "listChanged": true },
+    "prompts": { "listChanged": true }
   },
   "tools": [
-    {
-      "name": "arif_init"
-    },
-    {
-      "name": "arif_observe"
-    },
-    {
-      "name": "arif_think"
-    },
-    {
-      "name": "arif_route"
-    },
-    {
-      "name": "arif_bridge_connect"
-    },
-    {
-      "name": "arif_critique"
-    },
-    {
-      "name": "arif_memory"
-    },
-    {
-      "name": "arif_judge"
-    },
-    {
-      "name": "arif_forge"
-    },
-    {
-      "name": "arif_compose"
-    },
-    {
-      "name": "arif_seal"
-    },
-    {
-      "name": "arif_verify"
-    },
-    {
-      "name": "arif_entropy_observe"
-    },
-    {
-      "name": "arif_j_state_assess"
-    },
-    {
-      "name": "arif_correction_probe"
-    },
-    {
-      "name": "arif_consequence_trace"
-    },
-    {
-      "name": "arif_entropy_route"
-    },
-    {
-      "name": "arif_j_gate"
-    }
+    { "name": "arif_init" },
+    { "name": "arif_observe" },
+    { "name": "arif_think" },
+    { "name": "arif_route" },
+    { "name": "arif_memory" },
+    { "name": "arif_judge" },
+    { "name": "arif_forge" },
+    { "name": "arif_seal" }
   ],
-  "tool_count": 18,
+  "tool_count": 8,
   "homepage": "https://arifos.arif-fazil.com",
-  "source_of_truth": "public_tool_names() == tools/list == /tools == /tools.json"
+  "source_of_truth": "public_tool_names() == tools/list == server.py register_tools()",
+  "chatgpt_compatible": true,
+  "claude_desktop_compatible": true
 }

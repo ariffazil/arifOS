@@ -1,31 +1,35 @@
 <!-- mcp-name: ariffazil/arifos -->
 <!-- SOT-MANIFEST
-federation_release: v2026.07.12-CONSOLIDATION-EPOCH
-last_verified: 2026-07-12T23:38Z
+federation_release: v2026.07.15-SURFACE-HARDENING
+last_verified: 2026-07-15T09:35Z
 deployed_commit: 192b20da
 deployed_branch: main
-dev_commit: 182266c
-dev_branch: security/identity-multikey-2026-07-12
-live_version: kanon-1403cac
+dev_commit: ef9d328c
+dev_branch: surface/audit-fix-2026-07-15
+live_version: kanon-ef9d328
 runtime_path: /opt/arifos/app
-runtime_drift: true
-drift_detail: build=1403cac vs deployed=192b20da (marker corrected)
-owner_summary: YELLOW (runtime drift)
+runtime_drift: false
+drift_detail: surface audit applied — all manifests synced
+owner_summary: GREEN
 tools_exposed_via_mcp: 8
 canonical_tools_loaded: 8
 kernel_abi_capabilities: 8
-generated_public_agent_profile: 6
+chatgpt_compatible: true
+claude_desktop_compatible: true
 total_declared_tools: 48
-tool_count_note: 8 semantic capabilities; profiles control which provider bindings are discoverable. The deployed legacy forge_next_8 profile currently exposes all 8.
-spine_p0_sct: live (sct_v1 mint; store-delete full loop; apex UNMEASURED at birth)
-arif_triage: DEPRECATED_ALIAS → arif_init(mode=preflight|triage)
+tool_count_note: 8 canonical public tools on wire. Diagnostic, alias, canary, entropy mesh filtered from tools/list by default.
+spine_p0_sct: live (sct_v1 mint; store-delete full loop)
+arif_triage: DEPRECATED_ALIAS -> arif_init(mode=preflight|triage)
 arif_act: internal_only (never in allowed_next_verbs)
+arif_critique: internal -> arif_think(mode=critique)
+arif_compose: internal -> arif_forge(mode=compose)
+arif_bridge_connect: internal -> arif_route(mode=bridge)
 changelog: /root/arifOS/CHANGELOG.md
 p0_actor_id_binding: live (kernel reads JWT lineage first; self-report caps MEDIUM)
 floor_11b_amanah_replay: live (nonce required for IRREVERSIBLE mutations; 24h cache)
-a2a_agent_json: https://aaa.arif-fazil.com/.well-known/agent.json (AAA owns canonical A2A card per FEDERATION_CONTRACT §5.4.5; arifOS no longer publishes a local card)
-machine_sot: /root/.claude/jobs/5d0ce6b2/tmp/artifacts/FEDERATION-SOT-20260712/MACHINE-SOT-2026-07-12.json
-maturity_pipeline: EXECUTED 2026-07-11 (promote 7, incubate 5, park 4, kill APEX as live track)
+a2a_agent_json: https://aaa.arif-fazil.com/.well-known/agent.json (AAA owns canonical A2A card per FEDERATION_CONTRACT §5.4.5)
+mcp_server_card: https://mcp.arif-fazil.com/.well-known/mcp/server.json
+claude_desktop_config: /root/arifOS/claude_desktop_config.json
 truth_rule: /health + MCP tools/list beat any static count in prose
 -->
 
@@ -54,6 +58,8 @@ truth_rule: /health + MCP tools/list beat any static count in prose
 [![MCP Conformance](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml/badge.svg?branch=main)](https://github.com/ariffazil/arifos/actions/workflows/06-mcp-conformance.yml)
 [![Kernel ABI](https://img.shields.io/badge/Kernel%20ABI-8%20capabilities-0a7b83)](docs/KERNEL_CAPABILITY_ABI.md)
 [![Federation](https://img.shields.io/badge/Federation-6%20organs-1f6feb)](#1-what-is-arifos)
+[![ChatGPT Compat](https://img.shields.io/badge/ChatGPT-✔-brightgreen)](#connecting-from-chatgpt)
+[![Claude Desktop](https://img.shields.io/badge/Claude%20Desktop-✔-brightgreen)](#connecting-from-claude-desktop)
 [![PyPI](https://img.shields.io/pypi/v/arifos?label=PyPI)](https://pypi.org/project/arifos/)
 [![License](https://img.shields.io/github/license/ariffazil/arifos?label=License)](LICENSE)
 
@@ -133,39 +139,45 @@ python -m pytest tests/ -q --tb=short
 
 ---
 
-## 3. The 12 Canonical Public Tools (Spine P0 — 2026-07-10)
+## 3. The 8 Canonical Public Tools (2026-07-15)
 
-Default generated discovery is the **6-tool `public_agent` profile** over an **8-capability Kernel ABI** (`docs/KERNEL_CAPABILITY_ABI.md`).
-Session standing rides signed **`sct_v1`** tokens (store = optional cache). Birth apex is **UNMEASURED**.
+All tools use `arif_<verb>` naming. Internal aliases are absorbed as modes on canonical tools.
+The surface is exactly 8 tools on the wire — diagnostic tools, aliases, and the entropy mesh are filtered from `tools/list` by default.
 
-| # | Tool | Stage | What It Does |
-|---|------|-------|---------------|
-| 1 | `arif_init` | 000 | Start session + mint `session_token`. Modes: `init`, `light`, **`preflight`**, **`triage`**, `canary`. Always first. |
-| 2 | `arif_observe` | 111 | Reality sensing — search, fetch, vitals, compass. (`arif_fetch` = mode, not public verb.) |
-| 3 | `arif_think` | 333 | Reason, plan, reflect. (`arif_mind_reason` = internal only.) |
-| 4 | `arif_route` | 444 | Route intent to federation organ. Modes: `route`, `bridge`. |
-| 5 | `arif_bridge_connect` | 444-direct | Direct organ call (HIGH). Prefer `arif_route` by default. |
-| 6 | `arif_critique` | 555 | Maruah / risk before irreversible action. |
-| 7 | `arif_memory` | 555m | Constitutional memory governor. |
-| 8 | `arif_judge` | 888 | Verdict — SEAL / HOLD / SABAR / VOID. Kernel judges; does not seal. |
-| 9 | `arif_forge` | 777 | Guarded execution after SEAL. (`arif_act` internal-only — never in `allowed_next_verbs`.) |
-| 10 | `arif_compose` | reply | Final human reply. Call LAST. |
-| 11 | `arif_seal` | 999 | VAULT999 immutable ledger. Prefer `verify`/`dry_run` until SOVEREIGN. |
-| 12 | `arif_verify` | E1 | JITU pre-execution gate — SEAL token verification for IRREVERSIBLE shell. |
+| # | Tool | Stage | What It Does | Modes |
+|---|------|-------|--------------|-------|
+| 1 | `arif_init` | 000 | Session ignition. Binds actor identity, floors, audit. Always first. | `init`, `light`, `resume`, `validate`, `canary`, `preflight`, `triage` |
+| 2 | `arif_observe` | 111 | Sense reality into evidence. Returns OBS/DER/INT/SPEC labels. | `search`, `fetch`, `ingest`, `vitals`, `compass`, `atlas`, `entropy_dS` |
+| 3 | `arif_think` | 333 | Structured reasoning. Plan, reflect, verify, critique. | `reason`, `reflect`, `verify`, `plan`, `critique`, `metabolize`, `axioms` |
+| 4 | `arif_route` | 444 | Route intent to federation organ. Optional governed bridge call. | `route`, `bridge` |
+| 5 | `arif_memory` | 555 | Constitutional memory governor. L1-L6 stack. | `recall`, `inspect`, `attest`, `remember`, `promote`, `revise`, `forget` |
+| 6 | `arif_judge` | 888 | Constitutional verdict — SEAL/HOLD/SABAR/VOID. | `judge`, `compare`, `history`, `explain`, `floor_status`, `witness_consensus` |
+| 7 | `arif_forge` | 777 | Guarded execution gate. REQUIRES prior arif_judge SEAL + lease. | `dry_run`, `engineer`, `query`, `write`, `generate`, `commit`, `recall` |
+| 8 | `arif_seal` | 999 | VAULT999 immutable append. Irreversible. Needs `ack_irreversible`. | `seal`, `verify`, `chain`, `list`, `dry_run` |
 
 ```
-
-000 → 111 → 333 → 444 → 444-direct → 555 → 555m → 777 → 888 → reply → 999 → E1
-init  observe think route bridge       critique memory forge judge compose seal verify
+000 → 111 → 333 → 444 → 555 → 888 → 777 → 999
+init  observe think  route memory judge forge seal
 ```
-**Demoted / not public:** `arif_triage` → `arif_init(mode=preflight|triage)`; `arif_fetch` → `arif_observe(mode=fetch)`; `arif_act` → `arif_forge`.
+
+**Internal aliases (absorbed into canonical modes):**
+| Old name | Now | Via |
+|----------|-----|-----|
+| `arif_triage` | `arif_init(mode=preflight\|triage)` | mode |
+| `arif_critique` | `arif_think(mode=critique)` | mode |
+| `arif_bridge_connect` | `arif_route(mode=bridge)` | mode |
+| `arif_compose` | `arif_forge(mode=compose)` | mode |
+| `arif_act` | `arif_forge` | rename |
+| `arif_fetch` | `arif_observe(mode=fetch)` | mode |
+| `arif_verify` | `arif_seal(mode=verify)` | mode |
 
 **Iron rules:**
 - No action skips judge. No organ self-authorizes.
-- Pass `session_token` every hop — do not re-interrogate store-only `session_id`.
-- After SEAL → `arif_forge`; reply last → `arif_compose`.
+- Pass `session_id` / `session_token` every hop.
+- After SEAL → `arif_forge`.
+- `arif_forge` requires `seal_verdict_id` from prior `arif_judge` SEAL.
 
-**Source of truth:** `abi/capability_registry.json` → `abi/policy_registry.json` → generated manifests → runtime profile → live `tools/list`.
+**Source of truth:** `server.py` → `tools/list` (runtime) beats any static manifest. `mcp.json` and `fastmcp.json` are documentation mirrors.
 
 ---
 
@@ -293,24 +305,53 @@ Transport: `streamable-http`. Initialize session first, then call tools.
 
 ## 🔌 MCP Connection
 
-Connect to arifOS via the Model Context Protocol:
+Connect to arifOS via the Model Context Protocol. Two transports are supported:
+
+### Streamable HTTP (Public)
 
 | Property | Value |
 |----------|-------|
 | **Endpoint** | `https://mcp.arif-fazil.com/mcp` |
 | **Alternate** | `https://arif-fazil.com/mcp` |
 | **Transport** | Streamable HTTP (JSON-RPC 2.0) |
-| **Kernel ABI** | 8 semantic capabilities; generated public profile exposes 6 bindings |
+| **Protocol** | MCP 2025-11-25 |
+| **Kernel ABI** | 8 canonical tools |
 | **Health** | `https://arifos.arif-fazil.com/health` |
+| **Auth** | None required for init/observe/think/route. Judge/forge/seal need session+authority. |
+
+### STDIO (Local)
+
+```bash
+npx -y arifos-mcp
+```
 
 ### Claude Code / Cursor
 
-Add to your MCP client config:
 ```json
 {
   "mcpServers": {
     "arifos": {
       "url": "https://mcp.arif-fazil.com/mcp"
+    }
+  }
+}
+```
+
+### Connecting from ChatGPT
+
+arifOS exposes `arif_search` and `arif_fetch` for ChatGPT MCP discovery (always on — set by `ARIFOS_CHATGPT_COMPAT=true`). ChatGPT clients will auto-discover search + fetch capabilities.
+
+### Connecting from Claude Desktop
+
+Copy the config from `claude_desktop_config.json` in this repo, or use stdio:
+
+```json
+{
+  "mcpServers": {
+    "arifOS": {
+      "command": "npx",
+      "args": ["-y", "arifos-mcp"],
+      "autoApprove": ["arif_init", "arif_observe", "arif_think", "arif_route", "arif_memory", "arif_canary"]
     }
   }
 }
@@ -327,7 +368,8 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
 
 ### Discovery
 
-- Agent Card: `https://aaa.arif-fazil.com/.well-known/agent-card.json` (AAA owns the canonical A2A card per FEDERATION_CONTRACT §5.4.5; arifOS is the execution kernel, not the discovery surface)
+- MCP Server Card: `.well-known/mcp/server.json` — MCP Inspector / Smithery discovery
+- Agent Card: `https://aaa.arif-fazil.com/.well-known/agent-card.json` (AAA owns the canonical A2A card)
 - MCP Manifest: `https://arifos.arif-fazil.com/.well-known/mcp.json`
 
 ---
@@ -343,8 +385,9 @@ curl -X POST https://mcp.arif-fazil.com/mcp \
 <div align="center">
 
 ```
-arifOS · Port 8088 · 8-capability Kernel ABI · 13 floors · 6 live organs
+arifOS · Port 8088 · 8 canonical tools · 13 floors · 6 live organs
 AGPL-3.0 · Sovereign: Arif Fazil · Federation: ALIVE
+ChatGPT ✓ · Claude Desktop ✓ · Streamable HTTP + STDIO
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 ```
 
