@@ -926,6 +926,50 @@ CRITIQUE_SCHEMA = {
             },
             "description": "Critique humility penalty — how much Heart should lower its confidence",
         },
+        "behavioral_sink_scan": {
+            "type": "object",
+            "description": (
+                "Anti-Calhoun behavioral sink detection (P2-04). "
+                "Counts empty/minimal outputs in the supplied session_history. "
+                "SOFT signal (F5 PEACE) — SABAR, never escalates action verdict."
+            ),
+            "properties": {
+                "sink_ratio": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Fraction of outputs classified as empty/minimal.",
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["CLEAR", "WARNING"],
+                    "description": "CLEAR when sink_ratio ≤ 0.40; WARNING above.",
+                },
+                "empty_count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Count of outputs classified as empty/minimal.",
+                },
+                "total_outputs": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Size of session_history supplied to the scan.",
+                },
+                "anticalhoun": {
+                    "type": ["string", "null"],
+                    "enum": ["SINK_WARNING", None],
+                    "description": "SINK_WARNING when status=WARNING; null when CLEAR.",
+                },
+                "floor": {
+                    "type": "string",
+                    "description": "Floor cited on WARNING. Currently F5.",
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "Human-readable reason attached on WARNING.",
+                },
+            },
+        },
     },
 }
 
@@ -1685,6 +1729,137 @@ def _compute_omega_state(result: dict[str, Any], target: str) -> dict[str, Any]:
     }
 
 
+# ── Anti-Calhoun Behavioral Sink Scan (P2-04, 2026-07-15) ────────────────────
+# Calhoun (1842) projected civilizational decline via silence and withdrawal —
+# the system that optimizes for "pass" / empty output / no event emission.
+# Anti-Calhoun invariant: an agent must NOT trend toward density or silence.
+#
+# If an agent's recent tool outputs are >=40% empty/minimal, the critique
+# surfaces a SINK_WARNING as a SOFT signal (F5 PEACE). SABAR, never VOID —
+# this is a posture flag, not a verdict.
+#
+# F2 TRUTH: counts are exact, sink_ratio is computed (not fabricated).
+# F9 ANTI-HANTU: empty history is CLEAR, not 0.0 with hidden bias.
+
+
+# Threshold (T-α): sink_ratio > 0.40 → WARNING.
+# Rationale: streaks of <60% substantive output indicate a behavioral pattern,
+# not a transient lull (which would clear within 2-3 outputs).
+_ANTI_CALHOUN_SINK_THRESHOLD = 0.40
+
+# Stub tokens that count as "minimal output" — i.e. an organ emitting
+# no_real signal, just a pass token without downstream event/evidence.
+_PASS_TOKENS: frozenset[str] = frozenset(
+    {
+        "pass",
+        "ok",
+        "no-op",
+        "noop",
+        "skip",
+        "skipped",
+        "n/a",
+        "none",
+        "...",
+        "null",
+        "~",
+        "—",
+    }
+)
+
+
+def _is_empty_output(out: Any) -> bool:
+    """Classify a single tool output as empty/minimal for Anti-Calhoun scan.
+
+    An output counts as empty/minimal when:
+      - it is None;
+      - it is an empty/blank string;
+      - it is an empty dict or list;
+      - it is a short (<24 char) string matching a known "pass" stub token;
+      - it is a dict whose values are all empty (recursively).
+
+    Otherwise the output is substantive. Booleans, ints, floats with content,
+    and non-trivial dicts / lists count as substantive.
+    """
+    if out is None:
+        return True
+    if isinstance(out, str):
+        s = out.strip()
+        if not s:
+            return True
+        if len(s) < 24 and s.lower() in _PASS_TOKENS:
+            return True
+        return False
+    if isinstance(out, dict):
+        if not out:
+            return True
+        return all(_is_empty_output(v) for v in out.values())
+    if isinstance(out, (list, tuple, set, frozenset)):
+        if not out:
+            return True
+        return all(_is_empty_output(v) for v in out)
+    return False
+
+
+def _behavioral_sink_scan(session_history: list[Any] | None) -> dict[str, Any]:
+    """Anti-Calhoun behavioral sink detection (P2-04, gate F5+F6, 2026-07-15).
+
+    Detects when an agent's recent tool outputs trend toward empty/minimal —
+    the Calhoun pattern. Counts (not infers) empty outputs from
+    ``session_history`` (last N tool outputs, oldest → newest). When more
+    than ``_ANTI_CALHOUN_SINK_THRESHOLD`` (40%) of outputs are empty/minimal,
+    the scan returns ``status="WARNING"`` with an Anti-Calhoun risk entry.
+
+    SOFT SIGNAL: Always SABAR. This scan NEVER escalates the action
+    verdict to VOID; it only surfaces a posture flag for the operator
+    and a risk entry into ``risks_found`` so Judge can compose downstream.
+
+    Args:
+        session_history: List of prior tool outputs, oldest → newest.
+            Each item may be ``str``, ``dict``, ``list``, ``None``.
+            Optional / unknown shapes are tolerated.
+
+    Returns:
+        Dict with ``sink_ratio``, ``status``, ``empty_count``,
+        ``total_outputs``, and (when WARNING) ``anticalhoun``,
+        ``floor``, ``reason``. ``CLEAR`` when history is empty/absent.
+    """
+    if not session_history:
+        return {
+            "sink_ratio": 0.0,
+            "status": "CLEAR",
+            "empty_count": 0,
+            "total_outputs": 0,
+            "anticalhoun": None,
+        }
+
+    total = len(session_history)
+    empty_count = sum(1 for o in session_history if _is_empty_output(o))
+    sink_ratio = round(empty_count / total, 4) if total else 0.0
+    is_warning = sink_ratio > _ANTI_CALHOUN_SINK_THRESHOLD
+
+    if is_warning:
+        return {
+            "sink_ratio": sink_ratio,
+            "status": "WARNING",
+            "empty_count": empty_count,
+            "total_outputs": total,
+            "anticalhoun": "SINK_WARNING",
+            "floor": "F5",
+            "reason": (
+                f"Agent producing >40% empty/minimal outputs "
+                f"({empty_count}/{total}, sink_ratio={sink_ratio:.2f}) "
+                f"— behavioral sink detected"
+            ),
+        }
+    return {
+        "sink_ratio": sink_ratio,
+        "status": "CLEAR",
+        "empty_count": empty_count,
+        "total_outputs": total,
+        "anticalhoun": None,
+    }
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 
@@ -1697,6 +1872,7 @@ async def arif_critique(
     context_type: str | None = None,
     trace_recursion_depth: int = 0,
     fractal_auto: bool = True,
+    session_history: list[Any] | None = None,
 ) -> dict[str, Any]:
     """
     666_HEART v3.2: Constitutional ethical critique with fractal recursion.
@@ -1733,6 +1909,11 @@ async def arif_critique(
         trace_recursion_depth: Manual recursion depth override (0 = auto).
         fractal_auto: If True, automatically run fractal recursion for
                       critique mode when risk_tier >= AMBER.
+        session_history: Optional list of last N tool outputs for the
+                         Anti-Calhoun behavioral sink scan (P2-04). When
+                         ``>40%`` of outputs are empty/minimal, the scan
+                         returns ``WARNING`` with a risk entry surfaced
+                         under ``risks_found``. SOFT signal — never VOID.
     """
     _ct = context_type or "external_action"
     is_internal = _ct == "internal_audit"
@@ -2021,6 +2202,29 @@ async def arif_critique(
     if _arif_substrate is not None:
         result.setdefault("meta", {})["arif_substrate"] = _arif_substrate
 
+    # ── Anti-Calhoun behavioral sink scan (P2-04, 2026-07-15) ──────────────
+    # SOFT signal (F5 PEACE). SABAR — never escalates to VOID.
+    # Attaches scan summary to result and adds risk entry when WARNING.
+    sink_scan = _behavioral_sink_scan(session_history)
+    if isinstance(result, dict):
+        result["behavioral_sink_scan"] = sink_scan
+        if sink_scan.get("status") == "WARNING":
+            risks_list = result.get("risks_found")
+            if isinstance(risks_list, list):
+                risks_list.append(
+                    {
+                        "type": "anti_calhoun_sink",
+                        "severity": "medium",
+                        "floor_cited": "F5",
+                        "reason": sink_scan["reason"],
+                        "mitigation": (
+                            "Inject diverse evidence, force non-trivial outputs, "
+                            "ensure downstream organ event emission per heartbeat"
+                        ),
+                    }
+                )
+                result["risks_found"] = risks_list
+
     if isinstance(result, dict):
         if _standing_token:
             result["session_token"] = _standing_token
@@ -2065,7 +2269,13 @@ async def arif_critique(
     return result
 
 
-__all__ = ["arif_critique", "CRITIQUE_SCHEMA"]
+__all__ = [
+    "arif_critique",
+    "arif_heart_critique",
+    "CRITIQUE_SCHEMA",
+    "_behavioral_sink_scan",
+    "_is_empty_output",
+]
 
 # Backward compatibility alias
 arif_heart_critique = arif_critique
