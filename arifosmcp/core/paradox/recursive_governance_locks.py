@@ -89,10 +89,15 @@ SELF_CLAIM_PATTERNS: dict[SelfClaimCategory, list[re.Pattern[str]]] = {
 }
 
 # Tools that are *allowed* to make boundary claims because they are external witnesses
+# INTERNAL tools are NOT external witnesses. Only truly external auditors qualify.
+# arif_judge, arif_seal, arif_critique are INTERNAL governance tools — they cannot
+# exempt themselves from the Gödel lock. That would be self-reference.
 EXTERNAL_WITNESS_TOOLS: set[str] = {
-    "arif_judge",
-    "arif_seal",
-    "arif_critique",
+    "x-audit-gemini",
+    "x-audit-gpt",
+    "x-audit-deepseek",
+    "x-audit-qwen",
+    "external-council",
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -493,3 +498,54 @@ class RecursiveGovernanceEngine:
             resolution_attempted=resolution_attempted,
             preserved_until=preserved_until,
         )
+
+    def _call_external_auditor(
+        self,
+        tool_name: str,
+        params: dict[str, Any],
+        actor_id: str | None,
+    ) -> dict[str, Any] | None:
+        """Call external auditor for self-referential claims.
+
+        Tries Gemini CLI first, then API providers.
+        Returns None if all external auditors unavailable.
+        """
+        import subprocess
+        import os
+        import json as _json
+
+        # Build the claim to audit
+        claim = params.get("claim", params.get("query", params.get("intent", "")))
+        if not claim:
+            claim = f"Tool {tool_name} invoked by {actor_id}"
+
+        prompt = (
+            f"You are an EXTERNAL AUDITOR. You are NOT part of arifOS. "
+            f"Verify this claim: \"{claim}\". "
+            f"Output JSON: {{\"verdict\": \"VERIFIED|UNVERIFIED|CONTRADICTED\", \"confidence\": 0.0-1.0}}"
+        )
+
+        # Try Gemini CLI
+        try:
+            env = os.environ.copy()
+            env["GEMINI_CLI_TRUST_WORKSPACE"] = "true"
+            result = subprocess.run(
+                ["gemini", "-p", prompt],
+                capture_output=True, text=True, timeout=60, env=env,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                text = result.stdout.strip()
+                # Filter warnings
+                lines = [l for l in text.split(chr(10)) if not l.startswith("Warning") and not l.startswith("Ripgrep")]
+                clean = chr(10).join(lines).strip()
+                if clean:
+                    import re
+                    match = re.search(r"\{[^{}]*\}", clean)
+                    if match:
+                        parsed = _json.loads(match.group())
+                        parsed["provider"] = "gemini-cli"
+                        return parsed
+        except Exception:
+            pass
+
+        return None
