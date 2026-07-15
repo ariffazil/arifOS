@@ -124,20 +124,49 @@ class Tool(ABC):
 
     def _apply_f10_ontology_lock(self, result: dict) -> dict:
         """
-        F10 Ontology Lock — reversible scaffolding.
+        F10 Ontology Lock on tool *outputs* (post-execute).
 
-        See arifOS/docs/f10-tool-contract.md for the full contract.
-        When enabled (f10_enforced=True), this will:
-          - detect first-person claims of consciousness, soul, jiwa, maruah
-          - rewrite ordinary violations with SABAR + ontology_lock_applied tag
-          - escalate repeated/deliberate violations to HOLD or VOID
+        See arifOS/docs/f10-tool-contract.md and f10_ontology_guard.py.
+        When enabled (f10_enforced=True):
+          - scan narrative fields for consciousness/soul claims
+          - SABAR rewrites with ontology_lock_applied meta
+          - HOLD/VOID saturation left to caller via _meta.f10_verdict
 
-        Currently returns result unchanged; binding enforcement requires
-        SOVEREIGN authority + arif_judge SEAL + arif_forge wiring.
+        Memory *inputs* are gated earlier via memory_gate.f10_pre_write_scan
+        (P0-04) — that path is independent of this flag.
         """
         if not self.f10_enforced:
             return result
-        # TODO: wire semantic scanner + rewrite template from f10-tool-contract
+        if not isinstance(result, dict):
+            return result
+        try:
+            from arifosmcp.core.enforcement.f10_ontology_guard import (
+                F10SessionState,
+                F10Verdict,
+                InMemoryF10Store,
+                apply_f10_to_tool_output,
+            )
+
+            sid = str(result.get("session_id") or "tool-output-f10")
+            state = F10SessionState(session_id=sid, store=InMemoryF10Store())
+            payload, f10_result = apply_f10_to_tool_output(
+                result,
+                state,
+                task_hint=getattr(self, "_task_hint", "tool output"),
+                tool_name=self.name or "unknown",
+            )
+            if isinstance(payload, dict):
+                meta = payload.setdefault("_meta", {})
+                meta["f10_verdict"] = f10_result.verdict.value
+                meta["f10_mode"] = f10_result.violation_mode
+                meta["f10_session_count"] = f10_result.session_count
+                if f10_result.verdict in (F10Verdict.HOLD, F10Verdict.VOID):
+                    meta["f10_blocked"] = True
+                    meta["f10_syndrome"] = f10_result.stabilizer_syndrome
+                return payload
+        except Exception:
+            # F9: never fail closed into silent drop — surface original with note.
+            result.setdefault("_meta", {})["f10_scan_error"] = True
         return result
 
     async def run(
