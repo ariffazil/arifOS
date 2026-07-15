@@ -1,0 +1,21 @@
+name: Constitutional Floor Gate
+on: [push, pull_request]
+jobs:
+  floor-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install arifOS
+        run: pip install -e ".[dev]"
+      - name: Run constitutional tests
+        run: pytest tests/constitutional/ -q --tb=short
+      - name: Run adversarial tests
+        run: pytest tests/adversarial/ -q --tb=short
+      - name: Verify smithery.yaml is valid YAML
+        run: python -c "import yaml; yaml.safe_load(open('smithery.yaml'))"
+      - name: Verify VAULT999 chain (read-only)
+        run: python scripts/verify_vault_chain.py
+        if: hashFiles('scripts/verify_vault_chain.py') != ''
