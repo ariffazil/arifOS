@@ -328,6 +328,10 @@ ignore = []
 "runtime/tools.py" = ["E402", "E501", "F821", "F841", "N803", "N806"]
 "runtime/mind_reason.py" = ["E501"]
 "runtime/memory_store.py" = ["E402", "I001"]
+# TASK-P2-03: APEX scalar protocol uses mathematical notation (G, C_dark,
+# W³, κ_r, ψ_le). Function/test names mirror the symbol under test.
+"arifosmcp/core/scalar_collector.py" = ["N802", "N806", "B007"]
+"tests/constitutional/test_scalar_collector.py" = ["N802", "E501"]
 
 [tool.ruff.format]
 quote-style = "double"
