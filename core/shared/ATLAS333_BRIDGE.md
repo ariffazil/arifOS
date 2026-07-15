@@ -327,3 +327,8 @@ An external knowledge corpus for ATLAS333 has been researched via M365 Copilot. 
 **Status:** Research complete. Not yet ingested into the runtime knowledge base.
 **Next:** When the ATLAS333 knowledge engine is built (P2+), ingest Core 33 first.
 **Reference path:** `/root/arifOS/core/shared/ATLAS333_external/` (store artifacts here)
+
+
+---
+
+*Updated: 2026-07-15 — activation rules exposed in `arifosmcp/resources/atlas333.py` now derive from `core.shared.atlas.PARADOX_GPV_MAP`; falsified by `tests/core/test_atlas333_crosswalk.py` (5/5 PASS).*
