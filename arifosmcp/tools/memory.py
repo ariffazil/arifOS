@@ -43,6 +43,8 @@ from typing import Any
 from arifosmcp.paradox import build_organ_anchors, register_organ
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.memory_gate import (
+    F10_WRITE_MODES,
+    f10_pre_write_scan,
     gate_to_envelope,
     pre_execution_floor_gate,
 )
@@ -766,6 +768,29 @@ def arif_memory_recall(
         # The gate emitted a SABAR/VOID/888_HOLD envelope; return it verbatim.
         # Downstream execution is NOT invoked when envelope is non-None.
         return envelope
+
+    # ── P0-04 F10 Ontology pre-write scan (after gate, before durable write) ─
+    # Closes issue #598 remainder: check + witness + ontological proof before
+    # Qdrant / Supabase / legacy store. SABAR rewrites content in-place;
+    # HOLD/VOID block the write when F10_MEMORY_ENFORCED=true.
+    _f10_meta: dict | None = None
+    if mode in F10_WRITE_MODES:
+        _write_body = content if content is not None else query
+        f10_verdict = f10_pre_write_scan(
+            _write_body,
+            session_id=session_id,
+            mode=mode,
+            task_hint="arif_memory durable store",
+        )
+        _f10_meta = f10_verdict.get("f10")
+        f10_envelope = gate_to_envelope(f10_verdict, tool="arif_memory_recall")
+        if f10_envelope is not None:
+            return f10_envelope
+        # SEAL path: may carry rewritten content (SABAR→rewrite under enforce).
+        if f10_verdict.get("content") is not None and f10_verdict.get("f10", {}).get(
+            "rewritten"
+        ):
+            content = f10_verdict["content"]
 
     floor_check = check_laws(
         "arif_memory_recall",

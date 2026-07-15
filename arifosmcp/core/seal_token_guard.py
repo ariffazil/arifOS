@@ -89,6 +89,21 @@ _QUALIFIER_ADJ_RE = re.compile(
 
 _QUALIFIER_WINDOW = 64
 
+# Operational prose markers — when prose_mode=True, bare "seal" tokens near these
+# phrases are treated as audit/receipt language, not ambiguous bare seals.
+# Distinguishes: "seal this trap" (needs domain) vs "vault seal receipt notes F13"
+# (operational prose about an already-qualified act).
+_OPERATIONAL_PROSE_RE = re.compile(
+    r"\b("
+    r"receipt|audit(\s+trail)?|floor|floors|f1[0-3]|f13|sovereign|"
+    r"vault999|vaul?t\s*999|arif_seal|arif_judge|constitutional|"
+    r"credential|api[_\s-]?key|token|secret|"  # meta-mention in receipts, not exfil
+    r"witness|lineage|append-?only|hash[_\s-]?chain|"
+    r"operational|prose|dispatch|round\s*\d+"
+    r")\b",
+    re.IGNORECASE,
+)
+
 
 class GuardMode(str, Enum):
     STRICT = "strict"
@@ -149,7 +164,11 @@ def _find_domains(text: str) -> set[str]:
     return found
 
 
-def _classify(text: str) -> tuple[tuple[SealTokenHit, ...], tuple[str, ...]]:
+def _classify(
+    text: str,
+    *,
+    prose_mode: bool = False,
+) -> tuple[tuple[SealTokenHit, ...], tuple[str, ...]]:
     if not text:
         return (), ()
     detected = _find_domains(text)
@@ -171,6 +190,13 @@ def _classify(text: str) -> tuple[tuple[SealTokenHit, ...], tuple[str, ...]]:
             or _QUALIFIER_ADJ_RE.search(window)
         )
         if window_has_qualifier:
+            continue
+        # prose_mode: operational audit/receipt language mentioning seal + floors/keys
+        # is not a bare ambiguous seal — it is meta-discourse about a seal act.
+        if prose_mode and _OPERATIONAL_PROSE_RE.search(window):
+            continue
+        if prose_mode and _OPERATIONAL_PROSE_RE.search(text):
+            # Whole-text operational context (e.g. long seal receipt with F13 note).
             continue
         tok = m.group(0)
         offset = m.start()
@@ -198,8 +224,17 @@ def scan(
     mode: GuardMode = DEFAULT_MODE,
     actor_id: str | None = None,
     session_id: str | None = None,
+    prose_mode: bool = False,
 ) -> SealGuardVerdict:
-    bare_hits, detected = _classify(text)
+    """Scan text for bare `seal` tokens.
+
+    Args:
+        prose_mode: When True, operational/audit prose that mentions seal
+            alongside floors, receipts, credentials-as-meta, F13, etc. is
+            not quarantined. Use for seal *receipts* and ops logs — not for
+            free-form geological/constitutional input that still needs domain.
+    """
+    bare_hits, detected = _classify(text, prose_mode=prose_mode)
     hits = tuple(
         SealTokenHit(
             surface=surface,
@@ -219,6 +254,7 @@ def scan(
         "session_id": session_id,
         "surface": surface,
         "mode": mode.value,
+        "prose_mode": prose_mode,
         "text_sha256": text_sha,
         "bare_seal_hits": [
             {

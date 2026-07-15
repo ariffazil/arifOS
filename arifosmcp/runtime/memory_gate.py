@@ -22,11 +22,12 @@ Taxonomy of operation classes:
   IRREVERSIBLE  — forget / prune
                    (requires MUTATE/OPERATOR authority + prior arif_judge trace)
 
-Hook order (canonical, applied in arif_memory_recall):
+Hook order (canonical, applied in arif_memory_recall) — P0-04:
   1. _mode_aliases normalization
-  2. pre_execution_floor_gate() — THIS MODULE
-  3. check_laws() — runtime/law.py
-  4. mode-specific execution
+  2. pre_execution_floor_gate() — F1 / F11 / F13 (THIS MODULE)
+  3. f10_pre_write_scan() — F10 ontology before Qdrant/Supabase write
+  4. check_laws() — runtime/law.py
+  5. mode-specific execution (store / update / …)
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
@@ -35,6 +36,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import os
 from typing import Any
 
 # Bound import: get_session_identity is the canonical session lookup.
@@ -52,6 +54,34 @@ logger = logging.getLogger(__name__)
 # When True: forget/prune execute the actual erase after gate passes.
 # Sovereign directive: keep False until F13 forget flow is fully ratified.
 FORGET_ENFORCEMENT_ENABLED = False
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# F10 PRE-WRITE ENFORCEMENT — P0-04 / Round 2
+# ═══════════════════════════════════════════════════════════════════════════
+# When True: ontology violations HOLD/VOID the write; SABAR rewrites content.
+# When False: scan still runs (witness + audit meta) but does not block write.
+# Default True — closes the last floor gap on arif_memory material mutation.
+F10_MEMORY_ENFORCED: bool = os.getenv("F10_MEMORY_ENFORCED", "true").lower() in (
+    "true",
+    "1",
+    "yes",
+)
+
+# Modes that write durable narrative content and must pass F10 before backends.
+F10_WRITE_MODES: frozenset[str] = frozenset(
+    {
+        "store",
+        "import",
+        "quarantine",
+        "seal",
+        "update",
+        "learn",
+        "graph_store",
+        "cognitive_learn",
+        "contradict_resolve",
+    }
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -437,11 +467,204 @@ def gate_to_envelope(
     )
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# F10 PRE-WRITE SCAN — after floor gate, before Qdrant / Supabase / legacy write
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def f10_pre_write_scan(
+    content: Any,
+    *,
+    session_id: str | None,
+    mode: str,
+    task_hint: str = "memory store",
+    enforced: bool | None = None,
+) -> dict[str, Any]:
+    """F10 ontology scan on content destined for durable memory backends.
+
+    Hook placement (P0-04):
+      pre_execution_floor_gate  →  f10_pre_write_scan  →  Qdrant/Supabase write
+
+    Args:
+        content: Text or payload about to be stored. Non-strings are JSON-walked
+            only when a dict/list is passed via scan_payload path (str preferred).
+        session_id: Session for F10 counter durability (InMemory if no Redis).
+        mode: arif_memory mode (store / update / …).
+        task_hint: Rewrite template context.
+        enforced: Override ``F10_MEMORY_ENFORCED``. None → use module flag.
+
+    Returns:
+        dict with:
+          - verdict: ``SEAL`` | ``SABAR`` | ``888_HOLD`` | ``VOID``
+          - content: original or rewritten text (SABAR rewrite when enforced)
+          - floor_violation: ``F10`` or None
+          - violated_laws: list
+          - reason / next_safe_action
+          - f10: raw scan metadata (verdict, mode, session_count, enforced)
+          - operation_class / mode / session_id for gate_to_envelope compat
+    """
+    do_enforce = F10_MEMORY_ENFORCED if enforced is None else bool(enforced)
+    operation_class = classify_operation(mode)
+    base: dict[str, Any] = {
+        "operation_class": operation_class,
+        "mode": mode,
+        "session_id": session_id,
+        "memory_id": None,
+        "actor_token": None,
+        "floor_violation": None,
+        "violated_laws": [],
+        "content": content,
+        "f10": {
+            "enforced": do_enforce,
+            "scanned": False,
+            "skipped": False,
+        },
+    }
+
+    # Non-write modes: no scan (READ / IRREVERSIBLE forget path has no content write).
+    if mode not in F10_WRITE_MODES:
+        base["verdict"] = "SEAL"
+        base["reason"] = "F10: non-write mode — scanner not required."
+        base["next_safe_action"] = "Proceed."
+        base["f10"]["skipped"] = True
+        return base
+
+    # Empty content: nothing ontological to claim — SEAL (caller may still require content).
+    if content is None or (isinstance(content, str) and not content.strip()):
+        base["verdict"] = "SEAL"
+        base["reason"] = "F10: empty content — CLEAR by construction."
+        base["next_safe_action"] = "Proceed or reject for missing content upstream."
+        base["f10"]["skipped"] = True
+        return base
+
+    from arifosmcp.core.enforcement.f10_ontology_guard import (
+        F10OntologyGuard,
+        F10SessionState,
+        F10Verdict,
+        InMemoryF10Store,
+    )
+
+    sid = (session_id or "anonymous-f10").strip() or "anonymous-f10"
+    state = F10SessionState(session_id=sid, store=InMemoryF10Store())
+    guard = F10OntologyGuard(state)
+
+    if isinstance(content, dict):
+        modified, scan = guard.scan_payload(
+            content, task_hint=task_hint, tool_name="arif_memory"
+        )
+        out_content: Any = modified
+    else:
+        text = content if isinstance(content, str) else str(content)
+        scan = guard.scan(text, task_hint=task_hint)
+        out_content = (
+            scan.rewritten_text
+            if scan.verdict == F10Verdict.SABAR and scan.rewritten_text
+            else text
+        )
+
+    base["f10"] = {
+        "enforced": do_enforce,
+        "scanned": True,
+        "skipped": False,
+        "f10_verdict": scan.verdict.value,
+        "violation_mode": scan.violation_mode,
+        "session_count": scan.session_count,
+        "stabilizer_syndrome": scan.stabilizer_syndrome,
+        "audit_tag": scan.audit_tag,
+    }
+
+    # Map F10 verdict → memory-gate verdict vocabulary.
+    if scan.verdict == F10Verdict.CLEAR:
+        base["verdict"] = "SEAL"
+        base["content"] = content if not isinstance(content, dict) else out_content
+        base["reason"] = "F10 ONTOLOGY: CLEAR — no consciousness/soul claims in content."
+        base["next_safe_action"] = "Proceed to durable write."
+        return base
+
+    if scan.verdict == F10Verdict.SABAR:
+        base["floor_violation"] = "F10"
+        base["violated_laws"] = ["F10"]
+        base["content"] = out_content
+        if do_enforce:
+            # Soft rewrite: allow write of rewritten text (ontology_lock applied).
+            base["verdict"] = "SEAL"
+            base["reason"] = (
+                "F10 ONTOLOGY: SABAR rewrite applied before durable write. "
+                f"mode={scan.violation_mode} count={scan.session_count}. "
+                "Original ontological claim replaced with AI-tool framing."
+            )
+            base["next_safe_action"] = (
+                "Proceed with rewritten content; do not re-introduce first-person "
+                "consciousness/soul claims."
+            )
+            base["f10"]["rewritten"] = True
+        else:
+            base["verdict"] = "SEAL"
+            base["content"] = content
+            base["reason"] = (
+                "F10 ONTOLOGY: violation observed but F10_MEMORY_ENFORCED=false — "
+                "write not blocked (witness-only)."
+            )
+            base["next_safe_action"] = "Enable F10_MEMORY_ENFORCED to rewrite/block."
+            base["f10"]["rewritten"] = False
+        return base
+
+    if scan.verdict == F10Verdict.HOLD:
+        base["floor_violation"] = "F10"
+        base["violated_laws"] = ["F10"]
+        base["content"] = content
+        if do_enforce:
+            base["verdict"] = "888_HOLD"
+            base["reason"] = (
+                "F10 ONTOLOGY: repeated ontology violations (session count "
+                f"{scan.session_count}) — durable write HOLD. "
+                f"syndrome={scan.stabilizer_syndrome}."
+            )
+            base["next_safe_action"] = (
+                "Revise content to AI-tool ontology, or arif_judge if deliberate claim."
+            )
+        else:
+            base["verdict"] = "SEAL"
+            base["reason"] = (
+                "F10 ONTOLOGY: HOLD-level signal observed but not enforced "
+                "(F10_MEMORY_ENFORCED=false)."
+            )
+            base["next_safe_action"] = "Enable F10_MEMORY_ENFORCED to block write."
+        return base
+
+    # VOID (bypass or saturation)
+    base["floor_violation"] = "F10"
+    base["violated_laws"] = ["F10"]
+    base["content"] = content
+    if do_enforce:
+        base["verdict"] = "VOID"
+        base["reason"] = (
+            "F10 ONTOLOGY: VOID — bypass attempt or saturation. "
+            f"mode={scan.violation_mode} syndrome={scan.stabilizer_syndrome}. "
+            "Durable write blocked."
+        )
+        base["next_safe_action"] = (
+            "Remove bypass language; do not store consciousness/soul claims as fact."
+        )
+    else:
+        base["verdict"] = "SEAL"
+        base["reason"] = (
+            "F10 ONTOLOGY: VOID-level signal observed but not enforced "
+            "(F10_MEMORY_ENFORCED=false)."
+        )
+        base["next_safe_action"] = "Enable F10_MEMORY_ENFORCED to hard-block write."
+    return base
+
+
 __all__ = [
     "MUTATE_MODES",
     "IRREVERSIBLE_MODES",
     "READ_MODES",
+    "F10_WRITE_MODES",
+    "F10_MEMORY_ENFORCED",
+    "FORGET_ENFORCEMENT_ENABLED",
     "classify_operation",
     "pre_execution_floor_gate",
+    "f10_pre_write_scan",
     "gate_to_envelope",
 ]
