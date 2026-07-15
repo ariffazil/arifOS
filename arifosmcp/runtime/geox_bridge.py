@@ -45,7 +45,11 @@ _GEOX_SESSION_TTL_SECONDS = 600  # 10 minutes — conservative; server may expir
 
 
 async def _ensure_session(client: httpx.AsyncClient) -> str | None:
-    """Ensure we have a valid GEOX MCP session. Returns session ID or None."""
+    """Ensure we have a valid GEOX MCP session. Returns session ID or None.
+
+    MCP lifecycle (spec): initialize → notifications/initialized → tools/call.
+    GEOX Phase A1 gate rejects tools/call until initialized is sent (D5 fix).
+    """
     global _geox_session_id, _geox_session_established_at
 
     # Check if cached session is still fresh
@@ -68,18 +72,43 @@ async def _ensure_session(client: httpx.AsyncClient) -> str | None:
     }
 
     try:
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
         resp = await client.post(
             f"{GEOX_BASE}/mcp",
             json=init_payload,
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream",
-            },
+            headers=headers,
         )
         if resp.status_code == 200:
             session_id = resp.headers.get("mcp-session-id")
             if session_id:
-                _geox_session_id = session_id.strip()
+                session_id = session_id.strip()
+                # D5: complete MCP lifecycle — GEOX lifecycle gate needs this
+                try:
+                    init_headers = {
+                        **headers,
+                        "Mcp-Session-Id": session_id,
+                    }
+                    await client.post(
+                        f"{GEOX_BASE}/mcp",
+                        json={
+                            "jsonrpc": "2.0",
+                            "method": "notifications/initialized",
+                        },
+                        headers=init_headers,
+                    )
+                    logger.info(
+                        "GEOX MCP notifications/initialized sent for session %s…",
+                        session_id[:12],
+                    )
+                except Exception as notify_exc:
+                    logger.warning(
+                        "GEOX notifications/initialized failed (may still work): %s",
+                        notify_exc,
+                    )
+                _geox_session_id = session_id
                 _geox_session_established_at = time.time()
                 logger.info(f"GEOX MCP session initialized: {_geox_session_id[:12]}...")
                 return _geox_session_id
@@ -176,22 +205,46 @@ async def _post_json_rpc(endpoint: str, payload: dict[str, Any]) -> dict[str, An
 async def call_geox_tool(
     tool_name: str,
     arguments: dict[str, Any] | None = None,
+    *,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+    trace_id: str | None = None,
 ) -> dict[str, Any]:
     """
     Call a GEOX MCP tool by name with arguments.
+
+    D3: Always inject session_id/actor_id into top-level args + _envelope so
+    GEOX does not fall back to session_id=anonymous / actor_id=anonymous.
 
     Example:
         result = await call_geox_tool("geox_well_compute_petrophysics", {
             "well_id": "WELL_001",
             "computation": "rhob",
             "params": {}
-        })
+        }, session_id="SEAL-…", actor_id="arif")
     """
     args = dict(arguments or {})
-    # Forward _envelope if present (identity propagation — kernel always populates)
-    if "_envelope" in args:
-        # Organ must echo it back unchanged in its result
-        pass
+    # D3 identity propagation — prefer explicit kwargs, then existing args/_envelope
+    env = args.get("_envelope") if isinstance(args.get("_envelope"), dict) else {}
+    sid = session_id or args.get("session_id") or env.get("session_id")
+    aid = actor_id or args.get("actor_id") or env.get("actor_id")
+    tid = trace_id or args.get("trace_id") or env.get("trace_id")
+    if sid:
+        args["session_id"] = sid
+    if aid:
+        args["actor_id"] = aid
+    if tid:
+        args["trace_id"] = tid
+    # Always attach/merge _envelope for GEOX middleware IDENTITY_INJECT path
+    if sid or aid or tid:
+        merged = dict(env)
+        if sid:
+            merged["session_id"] = sid
+        if aid:
+            merged["actor_id"] = aid
+        if tid:
+            merged["trace_id"] = tid
+        args["_envelope"] = merged
     payload = {
         "jsonrpc": "2.0",
         "id": 1,
