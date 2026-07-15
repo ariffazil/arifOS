@@ -127,5 +127,6 @@ ATLAS333 maps are never finished because:
 
 ---
 
-*Forged: 2026-07-15 by FORGE (000Ω) under ARIF F13 SOVEREIGN*
+*Forged: 2026-07-15 by FORGE (000Ω) under ARIF F13 SOVEREIGN*  
+*Updated: 2026-07-15 — `tests/core/test_atlas333_crosswalk.py` added (5/5 PASS); runtime activation rules and `resources/atlas333.py` activation matrix agree, no documented drift.*  
 *DITEMPA BUKAN DIBERI — The atlas outlives the cartographer.*

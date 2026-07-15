@@ -171,3 +171,8 @@ This document is updated when:
 
 *Like geological mapping — the earth is never "done." Neither is this.*
 *DITEMPA BUKAN DIBERI*
+
+
+---
+
+*Updated: 2026-07-15 — no paradox #34 added; activation matrix now references the runtime `PARADOX_GPV_MAP` and is cross-checked by `tests/core/test_atlas333_crosswalk.py`.*

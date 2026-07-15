@@ -38,9 +38,17 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 from fastmcp import FastMCP
+
+logger = logging.getLogger("arifosmcp.atlas333")
+if not logger.handlers:
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("[ATLAS333_AUDIT] %(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
 
 
 # ── Paradox definitions (from paradox_quotes.py — single source of truth) ─
@@ -56,6 +64,63 @@ _QUOTE_ID_TO_PARADOX_ID: dict[str, int] = {
     **{f"R{i}": 11 + i for i in range(1, 12)},
     **{f"J{i}": 22 + i for i in range(1, 12)},
 }
+
+
+# ── Activation rules — derive from core.shared.atlas.PARADOX_GPV_MAP when available ──
+# The activation matrix lives once in `core.shared.atlas.PARADOX_GPV_MAP`. We mirror
+# only the rule IDs/conditions for documentation and keep a reference back to the
+# authoritative source. Falsifiable contract: rule keys here match atlas keys and
+# the paradox IDs of each rule agree with `resolve_paradox_axes` for the same input.
+_ACTIVATION_RULES: dict[str, dict[str, Any]] = {
+    "tau_high_rho_low": {
+        "condition": "τ ≥ 0.9, ρ ≤ 0.2, lane=FACTUAL",
+        "description": "Pure truth-seeking (Zone I + V)",
+        "paradox_ids": [1, 2, 3, 4, 21, 22, 25],
+    },
+    "rho_crisis": {
+        "condition": "ρ ≥ 0.3, lane=CRISIS",
+        "description": "Risk detected (Zone II + VI)",
+        "paradox_ids": [6, 7, 8, 9, 23, 26, 30],
+    },
+    "kappa_care": {
+        "condition": "κ ≥ 0.5, lane=CARE",
+        "description": "Care/identity context (Zone III + IV)",
+        "paradox_ids": [11, 12, 13, 15, 16, 17, 20],
+    },
+    "tau_kappa_factual": {
+        "condition": "τ ≥ 0.8, κ ≥ 0.3, lane=FACTUAL",
+        "description": "Facts meet meaning (Zone I + IV)",
+        "paradox_ids": [5, 18, 24],
+    },
+    "rho_high": {
+        "condition": "ρ ≥ 0.6, any lane",
+        "description": "High risk hard gate (Zone II + VI)",
+        "paradox_ids": [8, 9, 10, 28, 29],
+    },
+    "query_exploratory": {
+        "condition": "query_type=EXPLORATORY",
+        "description": "Open-ended exploration (Zone IV + V)",
+        "paradox_ids": [19, 22, 25],
+    },
+}
+
+
+def _runtime_activation_rules() -> dict[str, list[int]] | None:
+    """Derive the activation rules from `core.shared.atlas.PARADOX_GPV_MAP` when present.
+
+    Returns the same shape as `_ACTIVATION_RULES` but with the canonical rule IDs and
+    paradox lists from the runtime. Used only for falsification, not for documentation.
+    Returns None when the runtime source cannot be imported.
+    """
+    try:
+        from core.shared.atlas import PARADOX_GPV_MAP  # type: ignore
+    except Exception:
+        return None
+    out: dict[str, list[int]] = {}
+    for key, value in PARADOX_GPV_MAP.items():
+        if isinstance(value, list):
+            out[key] = [int(x) for x in value]
+    return out
 
 
 def _build_paradoxes_from_canonical() -> list[dict[str, Any]]:
@@ -483,10 +548,24 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
     @mcp.resource("arifos://atlas333/activation/rules")
     async def activation_rules() -> str:
         """GPV→paradox activation matrix from atlas.py."""
+        runtime = _runtime_activation_rules()
+        documented = {k: _ACTIVATION_RULES[k]["paradox_ids"] for k in _ACTIVATION_RULES}
+        drift = []
+        if runtime is not None and runtime != documented:
+            drift = sorted(
+                (set(runtime) ^ set(documented))
+                | {k for k, ids in runtime.items() if documented.get(k) != ids}
+            )
+            logger.warning(
+                "atlas333: activation rules drift vs core.shared.atlas.PARADOX_GPV_MAP: %s",
+                drift,
+            )
         return json.dumps(
             {
                 "total_rules": len(_ACTIVATION_RULES),
                 "source": "core/shared/atlas.py PARADOX_GPV_MAP",
+                "runtime_derivation_available": runtime is not None,
+                "drift": drift,
                 "rules": _ACTIVATION_RULES,
                 "usage": "Pass GPV state → match conditions → get paradox IDs → query arifos://atlas333/paradox/{id}",
             },
