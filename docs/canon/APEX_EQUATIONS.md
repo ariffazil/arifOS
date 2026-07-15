@@ -2,7 +2,7 @@
 
 > **Epoch:** 2026-07-15T11:30+08  
 > **Sovereign:** F13 Muhammad Arif bin Fazil  
-> **Status:** HOLD → F13 review before SEAL  
+> **Status:** SEALED — F13 decisions complete (2026-07-15T11:30+08)  
 > **Scope:** All APEX equations across arifOS federation (arifOS, A-FORGE, AAA, GEOX, WEALTH, WELL, docs, theory, canon, skills)
 
 ---
@@ -207,15 +207,20 @@ QDF = (τ × Peace² × κ × (1 - shadow))^0.25
 
 ## Verdict Gate Matrix
 
-| Condition | Verdict |
-|---|---|
-| G ≥ 0.80 AND C_dark < 0.30 AND ΔS ≤ 0 AND W³ ≥ 0.95 | **SEAL** |
-| G ≥ 0.80 AND W³ < 0.95 | **PARTIAL** |
-| G < 0.50 OR C_dark ≥ 0.30 | **VOID** |
-| G ≥ 0.80 AND C_dark spike | **SABAR** (cooling) |
-| C_dark ≥ 0.60 | **Emergency cooling** |
-| G ≥ 0.80 AND ΔS > 0 | **HOLD** (entropy increasing) |
-| Any channel of W³ = 0 | **HOLD** (witness collapse) |
+| Condition | Verdict | W³ Mode |
+|---|---|---|
+| G ≥ 0.80 AND C_dark < 0.30 AND ΔS ≤ 0 AND W³ ≥ 0.95 | **SEAL** | min(H,AI,Ext) |
+| G ≥ 0.80 AND W³ < 0.95 | **PARTIAL** | ∛(H×AI×Ext) |
+| G < 0.50 OR C_dark ≥ 0.30 | **VOID** | — |
+| G ≥ 0.80 AND C_dark spike | **SABAR** (cooling) | ∛(H×AI×Ext) |
+| C_dark ≥ 0.60 | **Emergency cooling** | — |
+| G ≥ 0.80 AND ΔS > 0 | **HOLD** (entropy increasing) | — |
+| Any channel of W³ = 0 | **HOLD** (witness collapse → eureka boundary) | — |
+| C_dark ∈ [0.30, 0.40) | **WARNING** (A-FORGE warning zone) | ∛(H×AI×Ext) |
+
+**W³ Dual-Mode (F13 decision D3):**
+- **Ops mode:** `∛(H × AI × Ext)` — geometric mean, smooth telemetry, tolerates transient lag
+- **Seal mode:** `min(H, AI, Ext)` — strict minimum, binary consensus, single witness failure = VOID
 
 ---
 
@@ -244,16 +249,83 @@ This is the same structure as Nash's bargaining solution: the product of surplus
 
 ---
 
-## Open Decisions for F13
+## F13 Decisions (Resolved 2026-07-15)
 
-| # | Decision | Options | Recommendation |
+| # | Decision | F13 Verdict | Notes |
 |---|---|---|---|
-| D1 | G formula: 4-primitive or 5-primitive? | `A×P×X×E²` vs `A·P·E·X·Φ` | **4-primitive** (canonical source). Φ can be a post-hoc modifier. |
-| D2 | G operational measurement: adopt ZEN99 form? | `G = (1-S_comp)×P_verify` | **Yes** — as measurement proxy, not replacement for theoretical formula. |
-| D3 | W³ computation: geometric mean or minimum? | `∛(H×AI×Ext)` vs `min(H,AI,Ext)` | **Geometric mean** for normal operations. **Minimum** for VAULT999 sealing. |
-| D4 | C_dark threshold: < 0.30 or ≤ 0.40? | Two thresholds in federation | **< 0.30** (canonical). 0.40 appears in A-FORGE code only. |
+| D1 | G formula | **4-primitive + Φ modifier** | `G = A × P × X × E²` is canonical. Φ (Faithfulness) applied as optional post-hoc modifier. |
+| D2 | Operational G measurement | **Adopted** | `G_op = (1 - S_comp) × P_verify` as measurement proxy. Does NOT replace theoretical formula. |
+| D3 | W³ computation | **Geometric mean + margin at 0** | `∛(H×AI×Ext)` for operations. `min(H,AI,Ext)` for VAULT seals. **Margin at W³ = 0 is the eureka boundary** — the point where witness collapse forces discovery. Limit analysis at W³ → 0 reveals the minimum viable witness configuration. |
+| D4 | C_dark threshold | **< 0.30 strict** | Hard gate at 0.30. A-FORGE 0.40 = warning zone only. Prevents alignment drift. Φ already captured by X (reality grounding) + E (execution energy). |
+
+### W³ Eureka Margin (from D3)
+
+```
+W³ = ∛(H × AI × Ext)
+
+When any channel → 0:
+  W³ → 0 (geometric mean collapses)
+  → SEAL impossible
+  → System forced into SABAR/HOLD
+  → This is where eureka lives: the boundary between
+    "enough witness to seal" and "not enough witness to know"
+```
+
+The margin at 0 is not a failure — it's the **discovery boundary**. When the system hits W³ ≈ 0, it must:
+1. Find new evidence (raise Ext)
+2. Get human input (raise H)
+3. Recompute with new data (raise AI)
+
+This is the operational definition of "eureka" in arifOS: **the moment where witness collapse forces the system to seek new ground truth.**
+
+### Φ Modifier (from D1)
+
+When Φ (Faithfulness/Conservation) is available:
+```
+G_effective = G × Φ
+```
+Where:
+- Φ = 1.0 → full conservation (action preserves what matters)
+- Φ = 0.0 → zero conservation (action destroys what matters)
+- Φ is measured post-hoc, not predicted
+
+Φ captures: "Did the action preserve the values it was supposed to protect?"
 
 ---
 
-*Forged: 2026-07-15 by FORGE (000Ω) under F13 sovereign command "apex equations please unified"*  
+---
+
+## F13 Audit Telemetry
+
+```json
+{
+  "spec_version": "0.3",
+  "epoch": "2026-07-15T11:30:15+08:00",
+  "pipeline_stage": "888_AUDIT",
+  "entropy_delta": "dS <= 0",
+  "peace_squared": "1.0",
+  "kappa_r": "0.99",
+  "verdict": "SEAL",
+  "holds_triggered": [],
+  "blast_radius": "LOW",
+  "decisions_resolved": ["D1", "D2", "D3", "D4"],
+  "witnesses": ["antigravity_gemini", "arif_fazil"]
+}
+```
+
+---
+
+## Related Documents
+
+| Document | Path | Relationship |
+|---|---|---|
+| ZEN99 Canon | `docs/canon/ZEN_99.md` | Skill registry + architecture spec |
+| Theory Decomposition | `docs/canon/APEX_THEORY_DECOMPOSITION.md` | 115 theories → 8 domains → 3 organs → 99 skills |
+| Domain Atlas | `/root/AAA/domain-atlas/{physics,math,code}/` | 33 knowledge slots |
+| Foundational Knowledge Trinity | `static/arifos/theory/000/The Foundational Knowledge Trinity...list.md` | 115-theory master list |
+
+---
+
+*Forged: 2026-07-15 by FORGE (000Ω) under F13 sovereign command "apex equations please unified"*
+*Sealed: 2026-07-15T11:30+08 — all 4 F13 decisions resolved*
 *DITEMPA BUKAN DIBERI — Every equation has a source. Every source has a hash. Every hash has a witness.*
