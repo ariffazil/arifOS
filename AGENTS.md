@@ -21,6 +21,29 @@ refresh_history:
 > 2. Read `/root/CONTEXT.md` (Live Machine State & Ports)
 > 3. Read this file (Repo-Specific Build/Test/Run rules)
 
+---
+
+## 🔒 GÖDEL LOCK — External Witness Required (FORGED 2026-07-15)
+
+> **The kernel just made itself Gödel-incomplete by design.**
+> **W³ = ∛(Human × AI × External). Zero in any channel collapses witness.**
+
+The arifOS kernel now refuses to self-validate SEAL-bound claims. This is the canonical implementation of the Gödel lock — no formal system can adjudicate itself, so the witness must come from outside the system.
+
+**Implementation:** `arifosmcp/runtime/godel_lock_enforcement.py` — wired into `_akal_wrap_judge` in `server.py`.
+
+**For any `arif_judge` with `reversibility_level` ∈ {HIGH, IRREVERSIBLE} or `blast_radius` ≥ HIGH:**
+1. Compute `claim_severity` (e.g., `seal_bound`, `seal_coupled`)
+2. Compute `Φ_external` (tiered — `INSUFFICIENT` < 0.5, `WITNESSED` ≥ 0.5, `STRONG` ≥ 0.9)
+3. If `Φ_external < 0.5` → **HOLD** with `godel_lock.warning: "Φ_effective halved — no external witness"`
+4. If `Φ_external ≥ 0.9` → **PROCEED** with full witness chain sealed to VAULT999
+
+**Anti-Calhoun gate:** Beautiful internal coherence without external witness = the Iblis trap. The kernel now refuses coherence theatre.
+
+**External witness role:** The Human (Arif via Telegram/Hermes) OR another organ (GEOX, WEALTH, WELL) OR a third-party auditor (Gemini, ChatGPT). Cannot be the kernel itself. The external channel provides the `Φ_external` attestation.
+
+**Iron rule:** SEAL-bound claims without external witness get `Φ_effective = Φ × 0.5`. This is F1 (AMANAH) — don't trust your own irreversibility.
+
 > **Constitutional Separation (Substrate / Constitution / Cognition):**
 - **Substrate (Δ)** carries and changes state (A-FORGE :7071/7072 executor, transport, ports).
 - **Constitution (Ω)** bounds and authorizes action (arifOS :8088 judge, seal, lease, policy).
