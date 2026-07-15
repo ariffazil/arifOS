@@ -4145,17 +4145,32 @@ def register_rest_routes(
 
     @route("/.well-known/jwks.json", methods=["GET"])
     async def jwks_discovery(request: Request) -> Response:
-        """JSON Web Key Set (JWKS) for cryptographic verification."""
+        """JSON Web Key Set (JWKS) for cryptographic verification.
+
+        Loads real Ed25519 key from /root/.secrets/jwks/jwks.json.
+        Falls back to placeholder if file not found (dev mode only).
+        """
+        import json as _json
+        from pathlib import Path
+
+        _jwks_path = Path("/root/.secrets/jwks/jwks.json")
+        try:
+            if _jwks_path.exists():
+                jwks = _json.loads(_jwks_path.read_text())
+                return JSONResponse(jwks)
+        except Exception:
+            pass
+        # Fallback: placeholder (dev mode only)
         return JSONResponse(
             {
                 "keys": [
                     {
-                        "kty": "RSA",
+                        "kty": "OKP",
+                        "crv": "Ed25519",
                         "use": "sig",
-                        "kid": "arifos-genesis-key",
-                        "n": "v55-MGI-TRINITY-SEALED",
-                        "e": "AQAB",
-                        "alg": "RS256",
+                        "kid": "arifos-ed25519-placeholder",
+                        "x": "placeholder",
+                        "alg": "EdDSA",
                     }
                 ]
             }
