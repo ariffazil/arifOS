@@ -35,6 +35,21 @@ SUPPLEMENTAL (3):
   arifos://resources/index   — Machine-readable JSON catalog of all resources
   arifos://skills-catalog    — Machine-readable skill registry (dynamic from filesystem)
 
+ATLAS333 RESOURCES (13):
+  arifos://atlas333/index            — Root index (all available ATLAS333 resources)
+  arifos://atlas333/paradox/list     — All 33 paradoxes with axes, zones, organs
+  arifos://atlas333/paradox/{id}     — Single paradox (1-33) with full context
+  arifos://atlas333/quote/list       — All 33 quotes (M1-M11, R1-R11, J1-J11)
+  arifos://atlas333/quote/{id}       — Single quote with author, organ, trigger
+  arifos://atlas333/zones            — 7 paradox zones with paradox ranges
+  arifos://atlas333/organs           — 3 quote organs (Memory/Mind/Judge)
+  arifos://atlas333/thresholds       — TEARFRAME (trm≥0.94, echo≥0.87, rasa≥0.85)
+  arifos://atlas333/activation/rules — GPV→paradox activation matrix
+  arifos://atlas333/flow             — 10-stage pipeline
+  arifos://atlas333/geometry         — Full cognitive geometry map
+  arifos://atlas333/scar/{id}        — Sealed scar by ID (read-only)
+  arifos://atlas333/seal/head        — VAULT999 chain head (cache-friendly)
+
 GOVERNANCE RESOURCE:
   arifos://resources/audit   — Governed resource audit with hashes, truth levels, authority
 
@@ -306,6 +321,111 @@ _RESOURCE_PROVENANCE: dict[str, dict[str, Any]] = {
         "staleness": "real_time",
         "evidence_layer": "operational",
     },
+    # ATLAS333 — Cognitive Geometry Resources
+    "arifos://atlas333/index": {
+        "source": "atlas333_cognitive_geometry",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/paradox/list": {
+        "source": "atlas333_evergreen",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/paradox/{id}": {
+        "source": "paradox_quotes_py",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/quote/list": {
+        "source": "paradox_quotes_py",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/quote/{id}": {
+        "source": "paradox_quotes_py",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/zones": {
+        "source": "atlas333_cognitive_geometry",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/organs": {
+        "source": "paradox_quotes_py",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/thresholds": {
+        "source": "types_py",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/activation/rules": {
+        "source": "atlas_py",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/flow": {
+        "source": "atlas333_cognitive_geometry",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/geometry": {
+        "source": "atlas333_cognitive_geometry",
+        "truth_level": 3,
+        "truth_label": "TRUSTED_REPO",
+        "mutability": "version_controlled",
+        "staleness": "refresh_on_deploy",
+        "evidence_layer": "cognitive_geometry",
+    },
+    "arifos://atlas333/scar/{id}": {
+        "source": "scar_registry",
+        "truth_level": 2,
+        "truth_label": "SEALED_VAULT",
+        "mutability": "append_only",
+        "staleness": "never_stale",
+        "evidence_layer": "scar",
+    },
+    "arifos://atlas333/seal/head": {
+        "source": "vault999",
+        "truth_level": 2,
+        "truth_label": "SEALED_VAULT",
+        "mutability": "append_only",
+        "staleness": "real_time",
+        "evidence_layer": "audit",
+    },
 }
 
 
@@ -345,6 +465,7 @@ from .retrieve_tools import register_retrieve_tools
 from .vault999_template import register_vault999_template
 from .surface_map import register_surface_map
 from .wisdom_resources import register_wisdom_resources
+from .atlas333 import attach_to_mcp_resource as _atlas333_attach
 
 CANONICAL_RESOURCES = (
     "arifos://doctrine",
@@ -443,4 +564,6 @@ def register_resources(mcp: FastMCP) -> list[str]:
     registered.extend(register_vault999_template(mcp))
     registered.extend(register_surface_map(mcp))
     registered.extend(register_wisdom_resources(mcp))
+    if _atlas333_attach:
+        registered.extend(_atlas333_attach(mcp))
     return registered
