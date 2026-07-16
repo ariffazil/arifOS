@@ -7636,8 +7636,30 @@ def _inject_atlas333_boot(result_dict: Any) -> Any:
     
     ATLAS333 is governance substrate — not optional skill.
     """
-    if not isinstance(result_dict, dict):
+    if result_dict is None:
         return result_dict
+    
+    # Build the ATLAS333 payload
+    atlas333 = _build_atlas333_payload()
+    
+    # Handle Pydantic model (SessionManifest)
+    if hasattr(result_dict, "model_dump") and hasattr(result_dict, "atlas333"):
+        try:
+            result_dict.atlas333 = atlas333
+            return result_dict
+        except Exception:
+            pass
+    
+    # Handle dict result
+    if isinstance(result_dict, dict):
+        result_dict["atlas333"] = atlas333
+        return result_dict
+    
+    return result_dict
+
+
+def _build_atlas333_payload() -> dict[str, Any]:
+    """Build the ATLAS333 boot context payload."""
     try:
         from arifosmcp.resources.atlas333 import (
             _build_paradoxes_from_canonical,
@@ -7649,7 +7671,7 @@ def _inject_atlas333_boot(result_dict: Any) -> Any:
         paradoxes = []
         activation = {}
 
-    result_dict["atlas333"] = {
+    return {
         "paradox_count": len(paradoxes),
         "organs": {"memory": "1-11", "mind": "12-22", "judge": "23-33"},
         "demand_tensor": {
@@ -7690,7 +7712,6 @@ def _inject_atlas333_boot(result_dict: Any) -> Any:
         },
         "boot_note": "ATLAS333 is governance substrate. Every session starts with paradox gravity.",
     }
-    return result_dict
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -8031,6 +8052,8 @@ def _arif_session_init(
                 delegation_mode=delegation_mode or "internal_executor",
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
+            # Inject ATLAS333 onto the Pydantic model BEFORE dump so it survives.
+            _inject_atlas333_boot(_init_result)
             _result_dict = (
                 _init_result.model_dump() if hasattr(_init_result, "model_dump") else _init_result
             )
