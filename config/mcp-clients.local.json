@@ -1,0 +1,21 @@
+{
+  "_comment": "Blessed local-machine MCP client config for arifOS. Remote works immediately; local requires arifOS runtime on 127.0.0.1:8088.",
+  "_protocolVersion": "2025-11-25",
+  "_source_of_truth": [
+    "arifosmcp/runtime/public_surface.py",
+    "arifosmcp/tool_registry.json",
+    "static/.well-known/mcp/server.json"
+  ],
+  "mcpServers": {
+    "arifos-remote": {
+      "_comment": "Recommended default for Copilot and any MCP client with remote streamable-http support.",
+      "transport": "streamable-http",
+      "url": "https://mcp.arif-fazil.com/mcp"
+    },
+    "arifos-local": {
+      "_comment": "Use when this machine runs uv run python -m arifosmcp.runtime.server.",
+      "transport": "streamable-http",
+      "url": "http://127.0.0.1:8088/mcp"
+    }
+  }
+}

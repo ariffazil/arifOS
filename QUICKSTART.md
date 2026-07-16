@@ -27,6 +27,35 @@ uv run python -m arifosmcp.runtime.server
 # server listens on http://127.0.0.1:8088
 ```
 
+Microsoft 365 / Teams path:
+
+Preferred when your Teams/Copilot surface is backed by Copilot Studio MCP onboarding:
+
+```text
+Server URL: https://mcp.arif-fazil.com/mcp
+Transport: streamable-http
+```
+
+Bridge scaffold fallback when direct MCP onboarding is blocked or you need an OpenAPI/REST adapter:
+
+```bash
+set ARIFOS_M365_UPSTREAM_URL=https://mcp.arif-fazil.com/mcp
+uv run arifos-teams-bridge
+# bridge listens on http://127.0.0.1:8091 and exposes OpenAPI/REST routes
+```
+
+Windows bootstrap for this machine:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\bootstrap_local_agent_connectivity.ps1 -InstallDeps
+```
+
+Blessed client template:
+
+```text
+CONFIG\mcp-clients.local.json
+```
+
 ## First governed flow
 
 ```python
