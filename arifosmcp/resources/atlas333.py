@@ -355,6 +355,9 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
                     "arifos://atlas333/scar/{id}",
                     "arifos://atlas333/seal/head",
                     "arifos://atlas333/agent/init",
+                    "arifos://atlas333/eureka/schema",
+                    "arifos://atlas333/eureka/list",
+                    "arifos://atlas333/eureka/{session_id}",
                 ],
                 "data_sources": [
                     "constitution/paradox_quotes.py",
@@ -694,6 +697,122 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
         )
 
     registered.append("arifos://atlas333/agent/init")
+
+    # ── arifos://atlas333/eureka/schema — Eureka ledger schema definition ───
+
+    @mcp.resource("arifos://atlas333/eureka/schema")
+    async def eureka_schema() -> str:
+        """EUREKA777 ledger schema — canonical field definitions for atlas eureka capture."""
+        return json.dumps(
+            {
+                "description": "EUREKA777 ledger — bridges contradiction capture to ATLAS333 geometry update",
+                "chain": "EUREKA777 -> CUBE777 -> ATLAS333",
+                "fields": {
+                    "id": "str — unique ledger entry ID (eureka-<uuid12>)",
+                    "session_id": "str — session that produced this eureka",
+                    "created_at": "str — ISO-8601 UTC timestamp",
+                    "source": "session | epochal | manual",
+                    "contradiction_class": "int 1-8 — see ContradictionClass enum",
+                    "ladder_state": "TENSION | CONTRADICTION | COMPRESSION_FAILURE | EUREKA",
+                    "commitment_a": "str — first commitment in contradiction pair",
+                    "commitment_b": "str — second commitment in contradiction pair",
+                    "why_old_frame_failed": "str — why existing frame cannot absorb this",
+                    "new_structure": "str — the eureka insight itself",
+                    "paradox_axis_ids": "list[int] 1-33 — affected paradox axes",
+                    "affected_stage": "str 000-999 — primary affected pipeline stage",
+                    "affected_lane": "str | null — GPV lane (FACTUAL|CARE|SOCIAL|CRISIS)",
+                    "affected_geometry": "str | null — cognitive geometry",
+                    "cube777_cell": "Cube777Cell{i,j,k} — tensor engine coordinate",
+                    "proposed_delta": "ProposedDelta — TEARFRAME/lane/tensor/paradox changes",
+                    "delta_classification": "ACCEPTABLE_DELTA | REQUIRES_WITNESS | REJECTED",
+                    "witnesses": "list[LedgerWitness] — tri-witness config",
+                    "seal_candidate_ref": "str | null — VAULT999 receipt link",
+                    "seal_verdict": "str | null — SEAL|HOLD|SABAR|VOID",
+                    "recurrence_count": "int — how many times this pattern observed",
+                    "first_seen": "str — ISO-8601 of first observation",
+                    "last_seen": "str — ISO-8601 of most recent",
+                },
+                "storage": "/root/.local/share/arifos/atlas333/eureka/{session_id}.json",
+                "constitutional_floors": ["F2", "F4", "F7", "F8", "F9", "F11", "F13"],
+                "seal": "DITEMPA BUKAN DIBERI",
+            },
+            indent=2,
+        )
+
+    registered.append("arifos://atlas333/eureka/schema")
+
+    # ── arifos://atlas333/eureka/list — List all eureka ledger entries ──────
+
+    @mcp.resource("arifos://atlas333/eureka/list")
+    async def eureka_list() -> str:
+        """All eureka ledger entries grouped by source and state."""
+        import pathlib
+
+        eureka_dir = pathlib.Path("/root/.local/share/arifos/atlas333/eureka")
+        entries: list[dict[str, Any]] = []
+        if eureka_dir.exists():
+            for fpath in sorted(eureka_dir.glob("*.json"), reverse=True)[:200]:
+                try:
+                    data = json.loads(fpath.read_text())
+                    entries.append(
+                        {
+                            "session_id": data.get("session_id", fpath.stem),
+                            "id": data.get("id"),
+                            "contradiction_class": data.get("contradiction_class"),
+                            "ladder_state": data.get("ladder_state"),
+                            "cube777_cell": data.get("cube777_cell"),
+                            "created_at": data.get("created_at"),
+                            "delta_classification": data.get("delta_classification"),
+                            "seal_verdict": data.get("seal_verdict"),
+                        }
+                    )
+                except Exception:
+                    entries.append({"session_id": fpath.stem, "error": "unparseable"})
+
+        return json.dumps(
+            {
+                "total_entries": len(entries),
+                "description": "EUREKA777 ledger — summaries only. Read full entry at arifos://atlas333/eureka/{session_id}",
+                "entries": entries[:100],
+                "storage_path": str(eureka_dir),
+            },
+            indent=2,
+        )
+
+    registered.append("arifos://atlas333/eureka/list")
+
+    # ── arifos://atlas333/eureka/{session_id} — Single eureka entry ────────
+
+    @mcp.resource("arifos://atlas333/eureka/{session_id}")
+    async def eureka_by_session(session_id: str) -> str:
+        """Single eureka ledger entry by session_id."""
+        import pathlib
+
+        eureka_dir = pathlib.Path("/root/.local/share/arifos/atlas333/eureka")
+        try:
+            safe_name = session_id.replace("/", "_").replace("..", "")
+            fpath = eureka_dir / f"{safe_name}.json"
+            if fpath.exists():
+                return fpath.read_text()
+            # Try without .json
+            fpath2 = eureka_dir / safe_name
+            if fpath2.exists():
+                return fpath2.read_text()
+            # Try glob for partial match
+            matches = list(eureka_dir.glob(f"{safe_name}*.json"))
+            if matches:
+                return matches[0].read_text()
+        except Exception as exc:
+            return json.dumps({"error": f"Failed to read eureka entry: {exc}"})
+
+        return json.dumps(
+            {
+                "error": f"Eureka entry not found for session_id: {session_id}",
+                "note": "Entries are stored at /root/.local/share/arifos/atlas333/eureka/{session_id}.json",
+            }
+        )
+
+    registered.append("arifos://atlas333/eureka/{session_id}")
 
     return registered
 
