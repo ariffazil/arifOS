@@ -7620,6 +7620,80 @@ async def _elicit_judge_candidate(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ATLAS333 BOOT INJECTION — Inject paradox gravity into every session init
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _inject_atlas333_boot(result_dict: Any) -> Any:
+    """Inject ATLAS333 boot context into the arif_init response.
+    
+    Every agent that calls arif_init inherits:
+    - 33 paradoxes (Memory/Mind/Judge)
+    - Demand tensor (τ, κ, ρ)
+    - TEARFRAME thresholds (TRM, ECHO, RASA)
+    - Lane activations
+    - MCP resource URIs
+    
+    ATLAS333 is governance substrate — not optional skill.
+    """
+    if not isinstance(result_dict, dict):
+        return result_dict
+    try:
+        from arifosmcp.resources.atlas333 import (
+            _build_paradoxes_from_canonical,
+            _runtime_activation_rules,
+        )
+        paradoxes = _build_paradoxes_from_canonical()
+        activation = _runtime_activation_rules() or {}
+    except Exception:
+        paradoxes = []
+        activation = {}
+
+    result_dict["atlas333"] = {
+        "paradox_count": len(paradoxes),
+        "organs": {"memory": "1-11", "mind": "12-22", "judge": "23-33"},
+        "demand_tensor": {
+            "tau": {"name": "truth_demand", "range": [0.0, 1.0]},
+            "kappa": {"name": "care_demand", "range": [0.0, 1.0]},
+            "rho": {"name": "risk_level", "range": [0.0, 1.0]},
+        },
+        "tearframe": {
+            "TRM": {"formula": "f2_truth", "threshold": 0.94, "floor": "F2"},
+            "ECHO": {"formula": "cbrt(f3*f2*f13)", "threshold": 0.87, "floor": "F2,F3,F13"},
+            "RASA": {"formula": "cbrt(f6*f5*f13)", "threshold": 0.85, "floor": "F5,F6,F13"},
+        },
+        "lanes": ["CRISIS", "FACTUAL", "SOCIAL", "CARE", "UNKNOWN"],
+        "activation_rules": activation,
+        "key_paradoxes": {
+            "16": "certainty vs learning",
+            "17": "every model wrong",
+            "23": "verdict vs justice",
+            "31": "permanence vs reversibility",
+            "33": "expertise vs authoritarianism",
+        },
+        "mcp_resources": [
+            "arifos://atlas333/index",
+            "arifos://atlas333/paradox/list",
+            "arifos://atlas333/paradox/{1..33}",
+            "arifos://atlas333/quote/{M1..J11}",
+            "arifos://atlas333/zones",
+            "arifos://atlas333/organs",
+            "arifos://atlas333/thresholds",
+            "arifos://atlas333/activation/rules",
+            "arifos://atlas333/flow",
+            "arifos://atlas333/geometry",
+        ],
+        "functions": {
+            "Lambda": "text -> lane (CRISIS/FACTUAL/SOCIAL/CARE/UNKNOWN)",
+            "Theta": "lane -> (tau, kappa, rho)",
+            "Phi": "text -> GPV(lane, tau, kappa, rho)",
+        },
+        "boot_note": "ATLAS333 is governance substrate. Every session starts with paradox gravity.",
+    }
+    return result_dict
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # 000_INIT  →  arif_session_init
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -7828,7 +7902,7 @@ def _arif_session_init(
                 except Exception as exc:
                     logger.warning("governance_identity Ed25519 bridge error: %s", exc)
 
-            return _result_dict
+            return _inject_atlas333_boot(_result_dict)
         except Exception as e:
             return _hold(
                 "arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id
@@ -7957,9 +8031,10 @@ def _arif_session_init(
                 delegation_mode=delegation_mode or "internal_executor",
             )
             # Delegate returns a Pydantic SessionManifest; callers expect a dict.
-            return (
+            _result_dict = (
                 _init_result.model_dump() if hasattr(_init_result, "model_dump") else _init_result
             )
+            return _inject_atlas333_boot(_result_dict)
         except Exception as e:
             return _hold(
                 "arif_session_init", f"Delegate init failed: {e}", ["L01"], session_id=session_id
