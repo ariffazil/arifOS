@@ -72,7 +72,7 @@ import time
 import uuid
 from contextvars import ContextVar
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 
 
 def _lock_shared(handle: Any) -> None:
@@ -7796,6 +7796,7 @@ def _arif_session_init(
     #   (F13 ratified 2026-06-13.)
     # DITEMPA 2026-06-22 — Layered init: forward verbose to delegate
     verbose: str | None = None,
+    verbosity: Literal["minimal", "standard", "full"] = "standard",
     idempotency_key: str | None = None,
     #   Client-generated or server-issued. Prevents duplicate session birth
     #   on retry after timeout. If a birth was already issued for this key,
@@ -22507,6 +22508,10 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         # Attach continuity + authority delta from SCT claims
         _attach_sct_continuity(final_resp, payload, tool_name)
 
+        # P4/F11: trim only at the final wire boundary. The audit ledger,
+        # scheduled seal, epistemic tag, and continuity calculation above all
+        # consume the complete response, never the compact client view.
+        final_resp = _trim_client_view(final_resp, kwargs)
         return _sanitize_envelope(final_resp)
 
     # Async wrapper
@@ -22661,7 +22666,21 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         # Attach continuity + authority delta from SCT claims
         _attach_sct_continuity(final_resp, payload, tool_name)
 
+        final_resp = _trim_client_view(final_resp, kwargs)
         return _sanitize_envelope(final_resp)
+
+    def _trim_client_view(
+        response: dict[str, Any], call_kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Return a compact wire view without weakening the internal receipt."""
+        try:
+            from arifosmcp.runtime.verbosity import trim_for_verbosity
+
+            level = call_kwargs.get("verbosity") or call_kwargs.get("verbose")
+            return trim_for_verbosity(response, level)
+        except Exception as exc:
+            logger.debug("verbosity trim skipped: %s", exc)
+            return response
 
     def _attach_live_kernel_envelope(
         response: dict[str, Any], tool_name: str, kwargs: dict[str, Any]
@@ -23405,4 +23424,33 @@ except Exception as _ic_final_exc:
 
     _logging_final.getLogger(__name__).warning(
         "identity_consistency final post-process failed: %s", _ic_final_exc
+    )
+
+
+# ── P1h FIX (2026-07-16): monkey-patch module-level aliases ────────────────
+# server.py imports specific handlers by NAME for SDK alias registration:
+#   `from arifosmcp.runtime.tools import _arif_session_init as _sdk_alias_session_init`
+# These imports bind at module-load time — BEFORE the post-process wraps
+# the dict values. So `_sdk_alias_session_init` still points to the ORIGINAL
+# handler. Without this monkey-patch, SDK aliases bypass identity_consistency.
+import sys as _ic_module_sys  # noqa: E402
+
+_ic_module = _ic_module_sys.modules.get("arifosmcp.runtime.tools")
+if _ic_module is not None:
+    _ic_patch_count = 0
+    for _ic_tool_name, _ic_handler in list(_CANONICAL_HANDLERS.items()):
+        if _ic_handler is None:
+            continue
+        if not getattr(_ic_handler, "_identity_consistency_wrapped", False):
+            continue
+        _ic_orig_name = getattr(_ic_handler, "__name__", None)
+        if _ic_orig_name and hasattr(_ic_module, _ic_orig_name):
+            if getattr(_ic_module, _ic_orig_name) is not _ic_handler:
+                setattr(_ic_module, _ic_orig_name, _ic_handler)
+                _ic_patch_count += 1
+    import logging as _ic_log_final
+
+    _ic_log_final.getLogger(__name__).info(
+        "identity_consistency: monkey-patched %d module attributes for SDK aliases",
+        _ic_patch_count,
     )
