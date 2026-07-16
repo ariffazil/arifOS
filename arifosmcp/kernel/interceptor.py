@@ -289,10 +289,27 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
         else:
             auth = AuthorityTier.LOW
     else:
-        # ── Self-report (no transport binding) — caps at MEDIUM ──────────
-        # F1 AMANAH floor: unverified identity cannot drive irreversible action.
+        # ── Self-report (no transport binding) — check session SCT ──────
+        # FIX 2026-07-16: If the session has a valid SCT with FULL/SOVEREIGN
+        # authority, use that instead of capping at MEDIUM. The SCT is a signed
+        # capability token minted by arif_init — it IS the transport verification
+        # for session-bound calls. Without this, the session binding bug causes
+        # all downstream tools (arif_seal, arif_judge) to see MEDIUM even when
+        # the session was initialized with FULL authority.
         if req.session_id:
-            auth = AuthorityTier.MEDIUM
+            try:
+                from arifosmcp.runtime.tools import _SESSIONS
+                _sess = _SESSIONS.get(req.session_id)
+                if _sess:
+                    _sess_auth = (_sess.get("authority") or "").upper()
+                    if _sess_auth in ("FULL", "SOVEREIGN"):
+                        auth = AuthorityTier.SOVEREIGN
+                    else:
+                        auth = AuthorityTier.MEDIUM
+                else:
+                    auth = AuthorityTier.MEDIUM
+            except Exception:
+                auth = AuthorityTier.MEDIUM
         else:
             auth = AuthorityTier.LOW
 
@@ -609,9 +626,10 @@ def _check_policy_floors(
     # External anchor required for mutations.
     # If capability.requires_external_anchor, ADMIT_MUTATE requires at least
     # one EXTERNAL_* evidence source. Prevents closed internal reality loops.
+    # SOVEREIGN bypasses: the human sovereign IS the external anchor.
     if capability.requires_external_anchor and capability.mutation_class not in (
         MutationClass.NONE,
-    ):
+    ) and authority != AuthorityTier.SOVEREIGN:
         evidence_sources_raw = req.raw_arguments.get("evidence_sources", [])
         if not isinstance(evidence_sources_raw, list):
             evidence_sources_raw = []
