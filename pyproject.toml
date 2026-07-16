@@ -10,7 +10,7 @@ version = "2026.06.19"
 # 2026.06.11 — previous release (arifosmcp on PyPI)
 description = "arifOS v2026.06.19 — Constitutional AI Governance Kernel. 13 canonical tools (arif_verb_noun), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport. Kernel substrate for AGI/ASI federation."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.15"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 keywords = [
@@ -103,6 +103,7 @@ dependencies = [
     "psycopg2-binary>=2.9.12",  # Postgres adapter (binary)
     "aiofiles>=23.2.1",  # Async file operations for Vault999 logging
     "structlog>=24.4.0",  # Structured logging
+    "blake3>=1.0.0",  # Required by intent_envelope import path at runtime
 ]
 
 [project.optional-dependencies]
@@ -197,7 +198,7 @@ wealth = [
 ]
 well = []  # WELL is kernel-only; its substrate deps are covered by the mandatory tier
 aaa = [
-    "nats-py>=2.29.3",
+    "nats-py>=2.15.0",
 ]
 openai = [
     "openai>=1.60.0",
