@@ -4074,6 +4074,11 @@ def _enforce_nine_signal(
             "verdicts": _scoped_verdicts,
             "result": result_payload,
             "meta": meta_payload,
+            # ATLAS333 boot context passthrough (FORGED 2026-07-16)
+            # Propagate atlas333 from handler result to top-level envelope
+            **({"atlas333": result_payload["atlas333"]}
+               if isinstance(result_payload, dict) and "atlas333" in result_payload
+               else {}),
             "delta_S": float(delta_s),
             "timestamp": out.get("timestamp") or _now(),
             "call_hash": _audit_call_hash,
