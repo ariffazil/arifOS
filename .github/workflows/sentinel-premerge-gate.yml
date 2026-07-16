@@ -83,27 +83,87 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check SOT drift
+      - name: Check README count vs live discovery
         id: sot
+        env:
+          ARIFOS_DISCOVERY_URL: https://mcp.arif-fazil.com/mcp
         run: |
           DRIFT_FOUND="no"
 
-          # Check if README has SOT markers
-          if grep -q "SOT:tool_surface\|SOT:version_info" README.md 2>/dev/null; then
-            echo "README has SOT markers — running audit..."
+          set +e
+          python3 << 'PYEOF'
+          import json
+          import os
+          import re
+          import sys
+          from urllib.request import Request, urlopen
 
-            # Check tool_registry.json exists
-            if [[ -f "arifosmcp/tool_registry.json" ]]; then
-              README_TOOLS=$(grep -oP 'arif_\w+' README.md | sort -u | wc -l)
-              REGISTRY_TOOLS=$(python3 -c "import json; d=json.load(open('arifosmcp/tool_registry.json')); print(len(d) if isinstance(d,dict) else len(d.get('tools',[])))" 2>/dev/null || echo "0")
+          readme = open("README.md", encoding="utf-8").read()
 
-              if [[ "$README_TOOLS" != "$REGISTRY_TOOLS" ]]; then
-                echo "DRIFT: README has $README_TOOLS tools, registry has $REGISTRY_TOOLS"
-                DRIFT_FOUND="yes"
-              fi
-            fi
-          else
-            echo "No SOT markers in README — skipping"
+          # Primary source of truth in README (table row):
+          # | **Tools (live default wire)** | 8 (verified ...) |
+          m = re.search(r"Tools \(live default wire\)\*\*\s*\|\s*(\d+)", readme)
+          if not m:
+              # Fallback badge pattern: MCP live wire-8 tools
+              m = re.search(r"MCP%20live%20wire-(\d+)%20tools", readme)
+
+          if not m:
+              print("Q2 FAIL: README missing live-wire tool count claim")
+              print("::error::Q2 FAIL: README missing live-wire tool count claim")
+              print("DRIFT=yes")
+              sys.exit(10)
+
+          readme_count = int(m.group(1))
+
+          endpoint = os.getenv("ARIFOS_DISCOVERY_URL", "https://mcp.arif-fazil.com/mcp")
+          payload = {
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "tools/list",
+              "params": {},
+          }
+
+          req = Request(
+              endpoint,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json", "Accept": "application/json"},
+              method="POST",
+          )
+
+          try:
+              with urlopen(req, timeout=20) as resp:
+                  body = json.loads(resp.read().decode("utf-8"))
+          except Exception as e:
+              print(f"Q2 FAIL: live discovery unavailable: {e}")
+              print(f"::error::Q2 FAIL: live discovery unavailable: {e}")
+              print("DRIFT=yes")
+              sys.exit(11)
+
+          tools = body.get("result", {}).get("tools", [])
+          live_count = len(tools)
+
+          print(f"README live count: {readme_count}")
+          print(f"Live tools/list count: {live_count}")
+
+          if readme_count != live_count:
+              print(
+                  f"Q2 FAIL: README/live mismatch (README={readme_count}, live={live_count})"
+              )
+              print(
+                  f"::error::Q2 FAIL: README/live mismatch (README={readme_count}, live={live_count})"
+              )
+              print("DRIFT=yes")
+              sys.exit(12)
+
+          print("Q2 PASS: README live-wire count matches tools/list")
+          print("DRIFT=no")
+          PYEOF
+
+          PY_STATUS=$?
+          set -e
+
+          if [[ "$PY_STATUS" -ne 0 ]]; then
+            DRIFT_FOUND="yes"
           fi
 
           echo "drift_found=$DRIFT_FOUND" >> "$GITHUB_OUTPUT"
