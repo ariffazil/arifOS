@@ -37,16 +37,36 @@ _SOURCES_DIR = VAULT999_EVIDENCE / "sources"
 _CONTRASTS_DIR = VAULT999_EVIDENCE / "contrasts"
 _VOIDS_DIR = VAULT999_EVIDENCE / "voids"
 
-_QDRANT_AVAILABLE = False
-try:
-    from qdrant_client import QdrantClient
-
-    _QDRANT_AVAILABLE = True
-except ImportError:
-    pass
-
 _QDRANT_URL = os.environ.get("QDRANT_URL", "http://qdrant:6333")
 _QDRANT_COLLECTION = "arif_evidence"
+
+# LAZY: qdrant_client import was previously eager at module load — it transitively
+# imports fastembed + huggingface_hub + ONNX, costing ~1.9s on cold path. Since
+# qdrant is only consulted at runtime (via _qdrant()) and is non-essential (file
+# backend is the source of truth), defer the import until first call.
+_QdrantClientRef: Any = None
+_qdrant_probe_done: bool = False
+
+
+def _qdrant_available() -> bool:
+    """Lazy qdrant availability probe. Cached after first call.
+
+    Returns True iff the qdrant_client package is importable. The actual
+    QdrantClient class is resolved lazily inside _qdrant() so import cost
+    is paid only on first use.
+    """
+    global _qdrant_probe_done
+    if _qdrant_probe_done:
+        return _QdrantClientRef is not None
+    try:
+        from qdrant_client import QdrantClient as _QdrantClientRefLocal  # noqa: PLC0415
+
+        globals()["_QdrantClientRef"] = _QdrantClientRefLocal
+        _qdrant_probe_done = True
+        return True
+    except ImportError:
+        _qdrant_probe_done = True
+        return False
 
 
 class EvidenceStore:
@@ -90,11 +110,11 @@ class EvidenceStore:
             d.mkdir(parents=True, exist_ok=True)
 
     def _qdrant(self) -> Any:
-        if not _QDRANT_AVAILABLE:
+        if not _qdrant_available():
             return None
         if self._qdrant_client is None:
             try:
-                self._qdrant_client = QdrantClient(url=self._qdrant_url)
+                self._qdrant_client = _QdrantClientRef(url=self._qdrant_url)
                 self._ensure_qdrant_collection()
             except Exception as exc:
                 logger.warning(f"Qdrant connection failed: {exc}")

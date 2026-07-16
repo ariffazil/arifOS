@@ -99,20 +99,47 @@ def enforce_memory_routing(tier: str, content: dict, actor: str) -> bool:
     return True
 
 
-# Phoenix-72 Band Middleware
-from arifosmcp.runtime.phoenix_72 import (  # noqa: E402, PLC0415
-    is_tri_witness_complete,
-    phoenix_summary,
-)
-from arifosmcp.runtime.phoenix_72 import (
-    phoenix_entry as _phoenix_entry,
-)
-from arifosmcp.runtime.f4_contradiction_handler import (  # noqa: E402, PLC0415
-    f4_write_path_hook,
-)
-from arifosmcp.runtime.f4_retrieval_policy import (  # noqa: E402, PLC0415
-    integrate_with_search_results,
-)
+# Phoenix-72 Band Middleware + F4 contradiction handler — LAZY.
+# These each transitively import qdrant_client + fastembed + huggingface_hub,
+# which costs ~5s on cold path. They are only used inside store()/recall()/search(),
+# so we defer the import until first call (Python caches in sys.modules, so repeat
+# calls are free). This brings cold-boot of any non-memory tool under 1s.
+#
+# Pattern: `_load_memory_policies()` is invoked at the top of each function that
+# needs them (store/recall/search). It binds the imported callables to module-level
+# globals (e.g. `_phoenix_entry`, `phoenix_summary`, `f4_write_path_hook`,
+# `is_tri_witness_complete`, `integrate_with_search_results`) so existing call sites
+# inside those functions continue to work unchanged. Sentinel `_policies_loaded`
+# gates the load; the names themselves are placeholders until first call.
+
+_policies_loaded: bool = False
+
+
+def _load_memory_policies() -> None:
+    """Lazy import of Phoenix-72 + F4 modules. Cached after first call.
+
+    Binds the loaded callables to module-level globals so call sites inside
+    store()/recall()/search() can reference them as if they were eagerly imported.
+    Safe to call multiple times — subsequent calls are a single boolean check.
+    """
+    global _policies_loaded, _phoenix_entry, phoenix_summary
+    global is_tri_witness_complete, f4_write_path_hook, integrate_with_search_results
+    if _policies_loaded:
+        return
+    from arifosmcp.runtime.phoenix_72 import (  # noqa: PLC0415
+        is_tri_witness_complete,
+        phoenix_summary,
+    )
+    from arifosmcp.runtime.phoenix_72 import (  # noqa: PLC0415
+        phoenix_entry as _phoenix_entry,
+    )
+    from arifosmcp.runtime.f4_contradiction_handler import (  # noqa: PLC0415
+        f4_write_path_hook,
+    )
+    from arifosmcp.runtime.f4_retrieval_policy import (  # noqa: PLC0415
+        integrate_with_search_results,
+    )
+    _policies_loaded = True
 
 # ADR-010 + Agentic Filesystem: canonical memory path is /agent/memory/
 _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/agent/memory"))
@@ -682,6 +709,8 @@ def store(
     Args:
         constitutional: Optional Δ triplet — {"value_anchor": [...], "floor_constraint": [...], "care_provenance": "..."}
     """
+    # Lazy: Phoenix-72 + F4 policies (5s saved on cold path; deferred to first call).
+    _load_memory_policies()
     # --- MEMORY TRIAGE GATE ---
     triage_result = _memory_triage_gate(
         content=content,
@@ -920,6 +949,8 @@ def recall(memory_id: str) -> dict[str, Any] | None:
     The Qdrant store is append-only for audit integrity. Postgres holds the mutable
     soft-delete flag (deleted_at). We verify soft-delete status before returning.
     """
+    # Lazy: Phoenix-72 + F4 policies (5s saved on cold path; deferred to first call).
+    _load_memory_policies()
     if not memory_id:
         return None
 
@@ -1439,6 +1470,8 @@ def search(
 
     Without entity_filter + include_historical, behaves identically to prior version.
     """
+    # Lazy: Phoenix-72 + F4 policies (5s saved on cold path; deferred to first call).
+    _load_memory_policies()
     _ensure_dir()
     idx = _index_read()
     results: list[tuple[float, dict[str, Any]]] = []

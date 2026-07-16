@@ -201,10 +201,12 @@ def get_langfuse_tracer() -> LangfuseTrace:
 
 # ── Deprecated MemoryEngine — do not use ────────────────────────────────────
 
+# Module-level deprecation warning removed 2026-07-16: it fired on every import
+# of this module (e.g. via arifosmcp.runtime.tools eager import), polluting
+# stderr with noise even when MemoryEngine was never instantiated. The class
+# itself still warns in __init__ and raises RuntimeError on any actual method
+# call — defense in depth, without spamming cold-path logs.
 _deprecated_logger = logging.getLogger("memory_engine")
-_deprecated_logger.warning(
-    "MemoryEngine is deprecated. Use arifosmcp.runtime.memory_store instead."
-)
 
 
 class MemoryEngine:
