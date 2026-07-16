@@ -4076,9 +4076,11 @@ def _enforce_nine_signal(
             "meta": meta_payload,
             # ATLAS333 boot context passthrough (FORGED 2026-07-16)
             # Propagate atlas333 from handler result to top-level envelope
-            **({"atlas333": result_payload["atlas333"]}
-               if isinstance(result_payload, dict) and "atlas333" in result_payload
-               else {}),
+            **(
+                {"atlas333": result_payload["atlas333"]}
+                if isinstance(result_payload, dict) and "atlas333" in result_payload
+                else {}
+            ),
             "delta_S": float(delta_s),
             "timestamp": out.get("timestamp") or _now(),
             "call_hash": _audit_call_hash,
@@ -7631,24 +7633,26 @@ async def _elicit_judge_candidate(
 
 def _inject_atlas333_boot(result_dict: Any) -> Any:
     """Inject ATLAS333 boot context into the arif_init response.
-    
+
     Every agent that calls arif_init inherits:
     - 33 paradoxes (Memory/Mind/Judge)
     - Demand tensor (τ, κ, ρ)
     - TEARFRAME thresholds (TRM, ECHO, RASA)
     - Lane activations
     - MCP resource URIs
-    
+
     ATLAS333 is governance substrate — not optional skill.
     """
     if result_dict is None:
         logger.warning("[ATLAS333] _inject_atlas333_boot called with None")
         return result_dict
-    
+
     # Build the ATLAS333 payload
     atlas333 = _build_atlas333_payload()
-    logger.info(f"[ATLAS333] Boot injection: paradox_count={atlas333.get('paradox_count')}, type={type(result_dict).__name__}")
-    
+    logger.info(
+        f"[ATLAS333] Boot injection: paradox_count={atlas333.get('paradox_count')}, type={type(result_dict).__name__}"
+    )
+
     # Handle Pydantic model (SessionManifest)
     if hasattr(result_dict, "model_dump") and hasattr(result_dict, "atlas333"):
         try:
@@ -7657,13 +7661,13 @@ def _inject_atlas333_boot(result_dict: Any) -> Any:
             return result_dict
         except Exception as e:
             logger.warning(f"[ATLAS333] Pydantic injection failed: {e}")
-    
+
     # Handle dict result
     if isinstance(result_dict, dict):
         result_dict["atlas333"] = atlas333
         logger.info("[ATLAS333] Injected into dict")
         return result_dict
-    
+
     logger.warning(f"[ATLAS333] Unknown result type: {type(result_dict).__name__}")
     return result_dict
 
@@ -7675,6 +7679,7 @@ def _build_atlas333_payload() -> dict[str, Any]:
             _build_paradoxes_from_canonical,
             _runtime_activation_rules,
         )
+
         paradoxes = _build_paradoxes_from_canonical()
         activation = _runtime_activation_rules() or {}
     except Exception:
@@ -7841,7 +7846,10 @@ def _arif_session_init(
     """
     # ── PRE-SESSION LANE DISPATCHER (Ω-PATCH 2026-06-13, F13 ratified) ─────
     import logging as _atl_logger
-    _atl_logger.getLogger("arifosmcp.atlas333").info(f"[ATLAS333] _arif_session_init called: mode={mode}, actor_id={actor_id}")
+
+    _atl_logger.getLogger("arifosmcp.atlas333").info(
+        f"[ATLAS333] _arif_session_init called: mode={mode}, actor_id={actor_id}"
+    )
     # Constitutional rule (locked by Arif 2026-06-13):
     #   "Pre-session functions may create identity context.
     #    Post-session functions must require identity context.
@@ -7886,6 +7894,10 @@ def _arif_session_init(
             _result_dict = (
                 _init_result.model_dump() if hasattr(_init_result, "model_dump") else _init_result
             )
+
+            # ATLAS333 boot injection — MUST happen after model_dump()
+            # so atlas333 survives into the MCP response envelope.
+            _result_dict = _inject_atlas333_boot(_result_dict)
 
             # ── Ed25519 sovereign identity bridge (governance_identity) ──
             # Wire MCP actor_signature + nonce to _verify_ed25519_proof for
@@ -22165,7 +22177,10 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     4. FederationEnvelope is forwarded to envelope-aware handlers (Chapter 6)
     """
     import sys as _atlas_sys
-    print(f"[ATLAS333_WRAP] _wrap_handler called for: {tool_name}", file=_atlas_sys.stderr, flush=True)
+
+    print(
+        f"[ATLAS333_WRAP] _wrap_handler called for: {tool_name}", file=_atlas_sys.stderr, flush=True
+    )
     # Guard: None handler (arif_metabolize placeholder before lazy injection)
     if handler is None:
         return None
