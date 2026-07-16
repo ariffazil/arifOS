@@ -62,6 +62,7 @@ def _make_canonical_wrapper(
     """
     Wrap a legacy handler so calls to the new canonical name are tagged
     with provenance metadata. Does NOT change behavior — only adds metadata.
+    For arif_init: also injects ATLAS333 boot context.
     """
 
     def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -76,6 +77,61 @@ def _make_canonical_wrapper(
                     "shim_active": True,
                     "migration_note": f"{new_name} is the new canonical name; {legacy_target} will be deprecated.",
                 }
+            # ATLAS333 boot injection for arif_init
+            if new_name == "arif_init" and "atlas333" not in result:
+                try:
+                    from arifosmcp.resources.atlas333 import (
+                        _build_paradoxes_from_canonical,
+                        _runtime_activation_rules,
+                    )
+                    paradoxes = _build_paradoxes_from_canonical()
+                    activation = _runtime_activation_rules() or {}
+                    result["atlas333"] = {
+                        "paradox_count": len(paradoxes),
+                        "organs": {"memory": "1-11", "mind": "12-22", "judge": "23-33"},
+                        "demand_tensor": {
+                            "tau": {"name": "truth_demand", "range": [0.0, 1.0]},
+                            "kappa": {"name": "care_demand", "range": [0.0, 1.0]},
+                            "rho": {"name": "risk_level", "range": [0.0, 1.0]},
+                        },
+                        "tearframe": {
+                            "TRM": {"formula": "f2_truth", "threshold": 0.94, "floor": "F2"},
+                            "ECHO": {"formula": "cbrt(f3*f2*f13)", "threshold": 0.87, "floor": "F2,F3,F13"},
+                            "RASA": {"formula": "cbrt(f6*f5*f13)", "threshold": 0.85, "floor": "F5,F6,F13"},
+                        },
+                        "lanes": ["CRISIS", "FACTUAL", "SOCIAL", "CARE", "UNKNOWN"],
+                        "activation_rules": activation,
+                        "key_paradoxes": {
+                            "16": "certainty vs learning",
+                            "17": "every model wrong",
+                            "23": "verdict vs justice",
+                            "31": "permanence vs reversibility",
+                            "33": "expertise vs authoritarianism",
+                        },
+                        "mcp_resources": [
+                            "arifos://atlas333/index",
+                            "arifos://atlas333/paradox/list",
+                            "arifos://atlas333/paradox/{1..33}",
+                            "arifos://atlas333/quote/{M1..J11}",
+                            "arifos://atlas333/zones",
+                            "arifos://atlas333/organs",
+                            "arifos://atlas333/thresholds",
+                            "arifos://atlas333/activation/rules",
+                            "arifos://atlas333/flow",
+                            "arifos://atlas333/geometry",
+                        ],
+                        "functions": {
+                            "Lambda": "text -> lane (CRISIS/FACTUAL/SOCIAL/CARE/UNKNOWN)",
+                            "Theta": "lane -> (tau, kappa, rho)",
+                            "Phi": "text -> GPV(lane, tau, kappa, rho)",
+                        },
+                        "boot_note": "ATLAS333 is governance substrate. Every session starts with paradox gravity.",
+                    }
+                except Exception as _atlas_err:
+                    import logging as _logging
+                    _logging.getLogger("arifosmcp.alias_shim").warning(
+                        f"ATLAS333 injection failed: {_atlas_err}"
+                    )
         return result
 
     return wrapper
