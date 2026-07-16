@@ -864,7 +864,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_judge": {
         "name": "arif_judge",
         "description": (
-            "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
+            "KERNEL 666 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
             "Not advice; binding floor + authority arbitration. Requires actor, intent, "
             "domain, reversibility_level, blast_radius. Authority: SOVEREIGN session for "
             "real adjudicate. Returns verdict + receipts + next_safe_action. "

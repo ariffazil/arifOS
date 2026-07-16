@@ -1280,59 +1280,10 @@ def register_prompts(mcp) -> list[str]:
 
     registered = []
 
-    @mcp.prompt(
-        name="arifosmcp_loop_engineer",
-        title="Loop Engineer (ART classifier)",
-        description=(
-            "ART entry: classify intent into METABOLIC/OBSERVE/REASON/ROUTE/"
-            "CRITIQUE/JUDGE/FORGE/SEAL/COMPOSITE. Live tool names only. "
-            "Routes organs. Max 3 SABAR before HOLD. Requires actor_verified "
-            "for SEAL paths. MCP Prompts 2025-11-25."
-        ),
-        tags={"prompt", "reality-engineering", "loop", "classifier", "art"},
-    )
-    def loop_engineer(intent: str = "", domain: str = "") -> list[Message]:
-        """Intent classification + session init.
-
-        Args:
-            intent: The user's raw intent to classify
-            domain: The domain hint for routing
-        """
-        ctx = f"\n\n## Context\nIntent: {intent}\nDomain: {domain}\n" if intent or domain else ""
-        return [
-            _msg_text(LOOP_ENGINEER_PROMPT + ctx),
-            _msg_resource("arifos://constitution/floors", SHARED_FLOORS),
-        ]
-
-    registered.append("arifosmcp_loop_engineer")
-
-    @mcp.prompt(
-        name="000_init",
-        title="000 INIT — Identity anchor",
-        description=(
-            "000_INIT via arif_init: Ed25519 bind (actor_verified), F1-F13 accept, "
-            "session_token sct_v1, carry_forward gaps. ART entry. APEX A."
-        ),
-        tags={"prompt", "reality-engineering", "000", "anchor", "identity"},
-    )
-    def init_000(actor_id: str = "", intent: str = "") -> list[Message]:
-        """Anchor identity, frame reality, accept F1-F13.
-
-        Args:
-            actor_id: Who is initiating this session
-            intent: The primary intent for this session
-        """
-        ctx = f"\n\n## Context\nActor: {actor_id}\nIntent: {intent}\n" if actor_id or intent else ""
-        return [
-            _msg_text(INIT_PROMPT + ctx),
-            _msg_resource("arifos://doctrine", SHARED_FLOORS),
-            _msg_resource(
-                "arifos://session/identity",
-                f"actor_id={actor_id}\nintent={intent}",
-            ),
-        ]
-
-    registered.append("000_init")
+    # ZEN REMOVED (2026-07-16):
+    #   arifosmcp_loop_engineer → merged into recursive_governed_loop
+    #   000_init → superseded by arif_init_prompt_v3 (canonical boot contract)
+    # Code preserved in archive; MCP surface no longer exposes them.
 
     @mcp.prompt(
         name="111_sense",
@@ -1459,31 +1410,8 @@ def register_prompts(mcp) -> list[str]:
 
     registered.append("888_judge")
 
-    # Legacy alias — same body; deprecate after clients migrate (F4 ΔS: one judge path)
-    @mcp.prompt(
-        name="666_judge",
-        title="LEGACY ALIAS → use 888_judge",
-        description=(
-            "DEPRECATED alias of 888_judge. Canon: 666=GOVERN (arif_critique), "
-            "888=JUDGE (arif_judge). Prefer prompts/get name=888_judge."
-        ),
-        tags={"prompt", "reality-engineering", "legacy", "deprecated", "888", "judge"},
-    )
-    def judge_666_legacy(
-        candidate: str = "", reversibility: str = "", blast_radius: str = ""
-    ) -> list[Message]:
-        """DEPRECATED — same as 888_judge.
-
-        Args:
-            candidate: The candidate action to judge
-            reversibility: How reversible the action is
-            blast_radius: The blast radius of the action
-        """
-        return judge_888(
-            candidate=candidate, reversibility=reversibility, blast_radius=blast_radius
-        )
-
-    registered.append("666_judge")
+    # ZEN REMOVED (2026-07-16): 666_judge legacy alias → use 888_judge directly.
+    # Code preserved; MCP surface no longer exposes the deprecated alias.
 
     @mcp.prompt(
         name="777_forge",

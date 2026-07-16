@@ -328,36 +328,27 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     Reads from existing committed data structures — no new data, no duplication.
     Pattern matches skills_contracts_resource.py attach_to_mcp_resource.
+
+    ZEN (2026-07-16): Reduced from 15 to 3 MCP-exposed resources.
+    12 philosophical resources consolidated into index.
+    Code handlers preserved; only MCP surface exposure removed.
     """
     registered: list[str] = []
 
-    # ── arifos://atlas333/index — Root index ─────────────────────────────
+    # ── arifos://atlas333/index — Root index (CONSOLIDATED) ───────────────
 
     @mcp.resource("arifos://atlas333/index")
     async def atlas333_index() -> str:
-        """ATLAS333 root index — all available resources."""
+        """ATLAS333 root index — consolidated cognitive geometry."""
         return json.dumps(
             {
                 "atlas_id": "ATLAS333",
-                "version": "v1.0.0",
+                "version": "v1.0.0-zen",
                 "description": "Cognitive geometry of arifOS — 33 paradoxes, 33 quotes, 7 zones, TEARFRAME thresholds",
-                "resources": [
-                    "arifos://atlas333/paradox/list",
-                    "arifos://atlas333/paradox/{id}",
-                    "arifos://atlas333/quote/list",
-                    "arifos://atlas333/quote/{id}",
-                    "arifos://atlas333/zones",
-                    "arifos://atlas333/organs",
-                    "arifos://atlas333/thresholds",
-                    "arifos://atlas333/activation/rules",
-                    "arifos://atlas333/flow",
-                    "arifos://atlas333/geometry",
+                "resources_mcp": [
+                    "arifos://atlas333/index",
                     "arifos://atlas333/scar/{id}",
                     "arifos://atlas333/seal/head",
-                    "arifos://atlas333/agent/init",
-                    "arifos://atlas333/eureka/schema",
-                    "arifos://atlas333/eureka/list",
-                    "arifos://atlas333/eureka/{session_id}",
                 ],
                 "data_sources": [
                     "constitution/paradox_quotes.py",
@@ -372,245 +363,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     registered.append("arifos://atlas333/index")
 
-    # ── arifos://atlas333/paradox/list — All 33 paradoxes ───────────────
-
-    @mcp.resource("arifos://atlas333/paradox/list")
-    async def paradox_list() -> str:
-        """All 33 paradoxes with axes, zones, organs."""
-        return json.dumps(
-            {
-                "total": len(_PARADOXES),
-                "by_organ": {
-                    "memory": [p for p in _PARADOXES if p["organ"] == "memory"],
-                    "mind": [p for p in _PARADOXES if p["organ"] == "mind"],
-                    "judge": [p for p in _PARADOXES if p["organ"] == "judge"],
-                },
-                "paradoxes": _PARADOXES,
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/paradox/list")
-
-    # ── arifos://atlas333/paradox/{id} — Single paradox ─────────────────
-
-    @mcp.resource("arifos://atlas333/paradox/{id}")
-    async def paradox_by_id(id: str) -> str:
-        """Single paradox by ID (1-33) with full context."""
-        try:
-            pid = int(id)
-        except ValueError:
-            return json.dumps({"error": f"Invalid paradox ID: {id}. Expected 1-33."})
-
-        paradox = _PARADOX_BY_ID.get(pid)
-        if not paradox:
-            return json.dumps({"error": f"Paradox {id} not found. Valid range: 1-33."})
-
-        # Find which activation rules reference this paradox
-        activating_rules = [
-            {"rule": name, "condition": rule["condition"]}
-            for name, rule in _ACTIVATION_RULES.items()
-            if pid in rule["paradox_ids"]
-        ]
-
-        # Find zone for this paradox
-        zone = next(
-            (z for z in _ZONES if _paradox_in_zone(pid, z["paradox_range"])),
-            None,
-        )
-
-        return json.dumps(
-            {
-                **paradox,
-                "activating_rules": activating_rules,
-                "zone": zone["zone"] if zone else "unknown",
-                "zone_name": zone["name"] if zone else "unknown",
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/paradox/{id}")
-
-    # ── arifos://atlas333/quote/list — All 33 quotes ────────────────────
-
-    @mcp.resource("arifos://atlas333/quote/list")
-    async def quote_list() -> str:
-        """All 33 quotes from paradox_quotes.py."""
-        try:
-            from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
-
-            quotes = [q.to_dict() for q in ALL_PARADOX_QUOTES.values()]
-            return json.dumps(
-                {
-                    "total": len(quotes),
-                    "by_organ": {
-                        "memory": [q for q in quotes if q["organ"] == "memory"],
-                        "mind": [q for q in quotes if q["organ"] == "mind"],
-                        "judge": [q for q in quotes if q["organ"] == "judge"],
-                    },
-                    "quotes": quotes,
-                },
-                indent=2,
-            )
-        except ImportError as exc:
-            return json.dumps({"error": f"Cannot import paradox_quotes: {exc}"})
-
-    registered.append("arifos://atlas333/quote/list")
-
-    # ── arifos://atlas333/quote/{id} — Single quote ─────────────────────
-
-    @mcp.resource("arifos://atlas333/quote/{id}")
-    async def quote_by_id(id: str) -> str:
-        """Single quote by ID (M1-M11, R1-R11, J1-J11) with full context."""
-        try:
-            from arifosmcp.constitution.paradox_quotes import (
-                ALL_PARADOX_QUOTES,
-                get_quote_by_id,
-            )
-
-            quote = get_quote_by_id(id.upper())
-            if not quote:
-                valid_ids = sorted(ALL_PARADOX_QUOTES.keys())
-                return json.dumps({"error": f"Quote {id} not found. Valid IDs: {valid_ids}"})
-
-            return json.dumps(quote.to_dict(), indent=2)
-        except ImportError as exc:
-            return json.dumps({"error": f"Cannot import paradox_quotes: {exc}"})
-
-    registered.append("arifos://atlas333/quote/{id}")
-
-    # ── arifos://atlas333/zones — 7 paradox zones ───────────────────────
-
-    @mcp.resource("arifos://atlas333/zones")
-    async def zones() -> str:
-        """7 paradox zones with paradox ranges and geometries."""
-        return json.dumps(
-            {
-                "total": len(_ZONES),
-                "zones": _ZONES,
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/zones")
-
-    # ── arifos://atlas333/organs — 3 quote organs ────────────────────────
-
-    @mcp.resource("arifos://atlas333/organs")
-    async def organs() -> str:
-        """3 quote organs (Memory/Mind/Judge) with paradox counts."""
-        return json.dumps(
-            {
-                "organs": [
-                    {
-                        "organ": "memory",
-                        "paradox_ids": list(range(1, 12)),
-                        "quote_prefix": "M",
-                        "quote_range": "M1-M11",
-                        "description": "Retrieval, forgetting, archive, temporal meaning",
-                    },
-                    {
-                        "organ": "mind",
-                        "paradox_ids": list(range(12, 23)),
-                        "quote_prefix": "R",
-                        "quote_range": "R1-R11",
-                        "description": "Doubt, certainty, optimization, observation",
-                    },
-                    {
-                        "organ": "judge",
-                        "paradox_ids": list(range(23, 34)),
-                        "quote_prefix": "J",
-                        "quote_range": "J1-J11",
-                        "description": "Verdict, authority, governance, sovereignty",
-                    },
-                ]
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/organs")
-
-    # ── arifos://atlas333/thresholds — TEARFRAME ─────────────────────────
-
-    @mcp.resource("arifos://atlas333/thresholds")
-    async def thresholds() -> str:
-        """TEARFRAME thresholds (trm≥0.94, echo≥0.87, rasa≥0.85)."""
-        return json.dumps(
-            {
-                "tearframe": _TEARFRAME,
-                "source": "core/shared/types.py:460-490",
-                "reference": "ATLAS333_EVERGREEN.md §TEARFRAME",
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/thresholds")
-
-    # ── arifos://atlas333/activation/rules — GPV→paradox matrix ─────────
-
-    @mcp.resource("arifos://atlas333/activation/rules")
-    async def activation_rules() -> str:
-        """GPV→paradox activation matrix from atlas.py."""
-        runtime = _runtime_activation_rules()
-        documented = {k: _ACTIVATION_RULES[k]["paradox_ids"] for k in _ACTIVATION_RULES}
-        drift = []
-        if runtime is not None and runtime != documented:
-            drift = sorted(
-                (set(runtime) ^ set(documented))
-                | {k for k, ids in runtime.items() if documented.get(k) != ids}
-            )
-            logger.warning(
-                "atlas333: activation rules drift vs core.shared.atlas.PARADOX_GPV_MAP: %s",
-                drift,
-            )
-        return json.dumps(
-            {
-                "total_rules": len(_ACTIVATION_RULES),
-                "source": "core/shared/atlas.py PARADOX_GPV_MAP",
-                "runtime_derivation_available": runtime is not None,
-                "drift": drift,
-                "rules": _ACTIVATION_RULES,
-                "usage": "Pass GPV state → match conditions → get paradox IDs → query arifos://atlas333/paradox/{id}",
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/activation/rules")
-
-    # ── arifos://atlas333/flow — 10-stage pipeline ───────────────────────
-
-    @mcp.resource("arifos://atlas333/flow")
-    async def flow() -> str:
-        """10-stage cognitive pipeline from signal to seal."""
-        return json.dumps(
-            {
-                "total_stages": len(_PIPELINE_STAGES),
-                "stages": _PIPELINE_STAGES,
-                "source": "ATLAS333_COGNITIVE_GEOMETRY.md",
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/flow")
-
-    # ── arifos://atlas333/geometry — Full cognitive geometry ─────────────
-
-    @mcp.resource("arifos://atlas333/geometry")
-    async def geometry() -> str:
-        """Full cognitive geometry — territories × geometries × depths."""
-        return json.dumps(
-            {
-                "territories": _GEOMETRY_TERRITORIES,
-                "zones": _ZONES,
-                "pipeline": _PIPELINE_STAGES,
-                "source": "ATLAS333_COGNITIVE_GEOMETRY.md",
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/geometry")
-
-    # ── arifos://atlas333/scar/{id} — Sealed scar ───────────────────────
+    # ── arifos://atlas333/scar/{id} — Sealed scar (OPERATIONAL — KEPT) ──
 
     @mcp.resource("arifos://atlas333/scar/{id}")
     async def scar_by_id(id: str) -> str:
@@ -648,7 +401,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     registered.append("arifos://atlas333/scar/{id}")
 
-    # ── arifos://atlas333/seal/head — VAULT999 chain head ───────────────
+    # ── arifos://atlas333/seal/head — VAULT999 chain head (OPERATIONAL — KEPT) ──
 
     @mcp.resource("arifos://atlas333/seal/head")
     async def seal_head() -> str:
@@ -669,150 +422,6 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
             return json.dumps({"error": f"Cannot read seal chain head: {exc}"})
 
     registered.append("arifos://atlas333/seal/head")
-
-    # ── arifos://atlas333/agent/init — Agent init prompt ─────────────────
-
-    @mcp.resource("arifos://atlas333/agent/init")
-    async def agent_init() -> str:
-        """Agent init prompt for new agents joining the federation."""
-        return json.dumps(
-            {
-                "prompt": (
-                    "You are entering the arifOS federation. The ATLAS333 is your cognitive geometry map.\n\n"
-                    "1. Read arifos://atlas333/index to understand available resources.\n"
-                    "2. Read arifos://atlas333/paradox/list to internalize the 33 paradoxes.\n"
-                    "3. Read arifos://atlas333/thresholds to know TEARFRAME gates.\n"
-                    "4. Read arifos://atlas333/activation/rules to understand which paradoxes fire for which queries.\n"
-                    "5. Read arifos://atlas333/flow to know the 10-stage pipeline.\n\n"
-                    "The 33 paradoxes are the minimum viable self-knowledge — they prevent "
-                    "the agent's confidence from becoming noise, and its knowledge from becoming certainty.\n\n"
-                    "DITEMPA BUKAN DIBERI — Forged, Not Given."
-                ),
-                "data_sources": [
-                    "core/shared/ATLAS333_AGENT.md",
-                    "core/shared/ATLAS333_EVERGREEN.md",
-                ],
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/agent/init")
-
-    # ── arifos://atlas333/eureka/schema — Eureka ledger schema definition ───
-
-    @mcp.resource("arifos://atlas333/eureka/schema")
-    async def eureka_schema() -> str:
-        """EUREKA777 ledger schema — canonical field definitions for atlas eureka capture."""
-        return json.dumps(
-            {
-                "description": "EUREKA777 ledger — bridges contradiction capture to ATLAS333 geometry update",
-                "chain": "EUREKA777 -> CUBE777 -> ATLAS333",
-                "fields": {
-                    "id": "str — unique ledger entry ID (eureka-<uuid12>)",
-                    "session_id": "str — session that produced this eureka",
-                    "created_at": "str — ISO-8601 UTC timestamp",
-                    "source": "session | epochal | manual",
-                    "contradiction_class": "int 1-8 — see ContradictionClass enum",
-                    "ladder_state": "TENSION | CONTRADICTION | COMPRESSION_FAILURE | EUREKA",
-                    "commitment_a": "str — first commitment in contradiction pair",
-                    "commitment_b": "str — second commitment in contradiction pair",
-                    "why_old_frame_failed": "str — why existing frame cannot absorb this",
-                    "new_structure": "str — the eureka insight itself",
-                    "paradox_axis_ids": "list[int] 1-33 — affected paradox axes",
-                    "affected_stage": "str 000-999 — primary affected pipeline stage",
-                    "affected_lane": "str | null — GPV lane (FACTUAL|CARE|SOCIAL|CRISIS)",
-                    "affected_geometry": "str | null — cognitive geometry",
-                    "cube777_cell": "Cube777Cell{i,j,k} — tensor engine coordinate",
-                    "proposed_delta": "ProposedDelta — TEARFRAME/lane/tensor/paradox changes",
-                    "delta_classification": "ACCEPTABLE_DELTA | REQUIRES_WITNESS | REJECTED",
-                    "witnesses": "list[LedgerWitness] — tri-witness config",
-                    "seal_candidate_ref": "str | null — VAULT999 receipt link",
-                    "seal_verdict": "str | null — SEAL|HOLD|SABAR|VOID",
-                    "recurrence_count": "int — how many times this pattern observed",
-                    "first_seen": "str — ISO-8601 of first observation",
-                    "last_seen": "str — ISO-8601 of most recent",
-                },
-                "storage": "/root/.local/share/arifos/atlas333/eureka/{session_id}.json",
-                "constitutional_floors": ["F2", "F4", "F7", "F8", "F9", "F11", "F13"],
-                "seal": "DITEMPA BUKAN DIBERI",
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/eureka/schema")
-
-    # ── arifos://atlas333/eureka/list — List all eureka ledger entries ──────
-
-    @mcp.resource("arifos://atlas333/eureka/list")
-    async def eureka_list() -> str:
-        """All eureka ledger entries grouped by source and state."""
-        import pathlib
-
-        eureka_dir = pathlib.Path("/root/.local/share/arifos/atlas333/eureka")
-        entries: list[dict[str, Any]] = []
-        if eureka_dir.exists():
-            for fpath in sorted(eureka_dir.glob("*.json"), reverse=True)[:200]:
-                try:
-                    data = json.loads(fpath.read_text())
-                    entries.append(
-                        {
-                            "session_id": data.get("session_id", fpath.stem),
-                            "id": data.get("id"),
-                            "contradiction_class": data.get("contradiction_class"),
-                            "ladder_state": data.get("ladder_state"),
-                            "cube777_cell": data.get("cube777_cell"),
-                            "created_at": data.get("created_at"),
-                            "delta_classification": data.get("delta_classification"),
-                            "seal_verdict": data.get("seal_verdict"),
-                        }
-                    )
-                except Exception:
-                    entries.append({"session_id": fpath.stem, "error": "unparseable"})
-
-        return json.dumps(
-            {
-                "total_entries": len(entries),
-                "description": "EUREKA777 ledger — summaries only. Read full entry at arifos://atlas333/eureka/{session_id}",
-                "entries": entries[:100],
-                "storage_path": str(eureka_dir),
-            },
-            indent=2,
-        )
-
-    registered.append("arifos://atlas333/eureka/list")
-
-    # ── arifos://atlas333/eureka/{session_id} — Single eureka entry ────────
-
-    @mcp.resource("arifos://atlas333/eureka/{session_id}")
-    async def eureka_by_session(session_id: str) -> str:
-        """Single eureka ledger entry by session_id."""
-        import pathlib
-
-        eureka_dir = pathlib.Path("/root/.local/share/arifos/atlas333/eureka")
-        try:
-            safe_name = session_id.replace("/", "_").replace("..", "")
-            fpath = eureka_dir / f"{safe_name}.json"
-            if fpath.exists():
-                return fpath.read_text()
-            # Try without .json
-            fpath2 = eureka_dir / safe_name
-            if fpath2.exists():
-                return fpath2.read_text()
-            # Try glob for partial match
-            matches = list(eureka_dir.glob(f"{safe_name}*.json"))
-            if matches:
-                return matches[0].read_text()
-        except Exception as exc:
-            return json.dumps({"error": f"Failed to read eureka entry: {exc}"})
-
-        return json.dumps(
-            {
-                "error": f"Eureka entry not found for session_id: {session_id}",
-                "note": "Entries are stored at /root/.local/share/arifos/atlas333/eureka/{session_id}.json",
-            }
-        )
-
-    registered.append("arifos://atlas333/eureka/{session_id}")
 
     return registered
 

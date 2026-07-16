@@ -160,6 +160,19 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arifos_retrieve_tools",
 )
 
+# ZEN ABSORBED (2026-07-16) — tools whose code remains but surface is hidden.
+# These were absorbed into canonical public tools via modes. Code handlers intact.
+# See: forge_work/2026-07-16/MCP-ZEN-AUDIT.md
+ZEN_ABSORBED: frozenset[str] = frozenset(
+    {
+        "arif_triage",  # → arif_init(mode=preflight|triage)
+        "arif_act",  # → arif_forge (internal alias)
+        "arif_fetch",  # → arif_observe(mode=fetch)
+        "arif_critique",  # → arif_think(mode=critique)
+        "arif_bridge_connect",  # → arif_route(mode=bridge)
+    }
+)
+
 # Operator diagnostics are a separate layer, never a ninth kernel capability.
 EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*KERNEL_ABI_8, *DIAGNOSTIC_TOOLS])))
 
