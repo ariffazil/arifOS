@@ -927,7 +927,10 @@ def _build_governance_status_payload() -> dict[str, Any]:
             "value": round(g_val * (1 - c_val), 4),
             "status": "MEASURED" if _apex.get("sample_size", 0) > 0 else "UNMEASURED",
         }
-    except Exception:
+    except Exception as _apex_exc:
+        import logging as _log
+
+        _log.getLogger(__name__).warning("APEX scalars unavailable: %s", _apex_exc)
         for scalar in ("G", "C_dark", "W3", "h", "QDF"):
             apex_scalars[scalar] = {"value": None, "status": "UNMEASURED"}
 
@@ -2879,6 +2882,14 @@ def register_rest_routes(
                 "metabolic_stage": thermo.get("metabolic_stage", 444),
                 "witness": thermo.get("witness", _WITNESS_DEFAULTS),
             },
+            # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
+            # Computed from live tool call metrics over 24h window.
+            # G = A·P·E·X·Φ (canonical 5-primitive). Zero anywhere = collapse.
+            # C_dark = A·(1-P)·(1-X) — the "Bangang Detector".
+            "apex_scalars": thermo.get("apex_scalars", {}),
+            # WS2: substrate + execution readiness (not SEAL)
+            "service_health": thermo.get("service_health"),
+            "execution_readiness": thermo.get("execution_readiness"),
             # Auditability fields — F2 threshold and confidence semantics
             # All values below are live from governance kernel when available.
             # Fields marked _source are null when vault/telemetry is unavailable.
@@ -5872,9 +5883,7 @@ def register_rest_routes(
         )
 
         register_observatory_routes(mcp, mcp, prefix="/api/observatory/v1")
-        logger.info(
-            "Observatory routes wired: /api/observatory/v1/{snapshot,health,capabilities}"
-        )
+        logger.info("Observatory routes wired: /api/observatory/v1/{snapshot,health,capabilities}")
     except Exception as _obs_err:  # pragma: no cover — defensive
         logger.warning(
             "Observatory routes NOT wired (non-fatal): %s",
@@ -6940,10 +6949,16 @@ setInterval(refreshSot, 30000);
         for name in public_names:
             tools_out.append(_tool_entry(name, CANONICAL_TOOLS.get(name, {"name": name})))
 
+        # ZEN FILTER (2026-07-16): hide absorbed tools from internal surface.
+        # Code handlers remain intact — only MCP exposure is removed.
+        from arifosmcp.runtime.public_surface import ZEN_ABSORBED
+
         internal_out = []
         for name, spec in CANONICAL_TOOLS.items():
             if name in public_set:
                 continue
+            if name in ZEN_ABSORBED:
+                continue  # absorbed into canonical public tool via mode
             if spec.get("access") == "internal_only" or not spec.get("expose", True):
                 internal_out.append(_tool_entry(name, spec))
 

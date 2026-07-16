@@ -7002,14 +7002,31 @@ def _ok(
     try:
         from arifosmcp.runtime.apex_primitives import record_tool_call as _apex_record
 
+        # APEX P-signal: evidence detection (broadened 2026-07-16)
+        # Old check only matched evidence/sources/citations keys.
+        # Most tools return structured data under "result" — that IS evidence.
+        _has_evidence = bool(
+            result.get("evidence")
+            or result.get("sources")
+            or result.get("citations")
+            or result.get("verdict")  # arif_judge returns verdicts
+            or result.get("data")  # many tools return data
+            or result.get("output")  # compute tools return output
+            or (isinstance(result.get("result"), dict) and len(result["result"]) > 2)
+            or (isinstance(result.get("result"), list) and len(result["result"]) > 0)
+        )
+        # APEX X-signal: dry_run detection (broadened 2026-07-16)
+        # Check meta_payload dry_run flag OR read-only tools that don't mutate
+        _is_dry_run = bool(
+            meta_payload.get("dry_run")
+            or meta_payload.get("action_class") == "OBSERVE"
+        )
         _apex_record(
             tool_name=tool,
             success=True,
-            has_evidence=bool(
-                result.get("evidence") or result.get("sources") or result.get("citations")
-            ),
+            has_evidence=_has_evidence,
             within_lease=bool(session_id),
-            dry_run_first=bool(meta_payload.get("dry_run")),
+            dry_run_first=_is_dry_run,
             reversible=True,
             actor_id=actor_id or "",
             session_id=session_id or "",
@@ -7311,7 +7328,7 @@ def _sabar(
         _apex_record(
             tool_name=tool,
             success=False,
-            has_evidence=False,
+            has_evidence=bool(reason),
             within_lease=bool(session_id),
             dry_run_first=False,
             reversible=True,
