@@ -22164,6 +22164,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     3. Unknown / aliased parameters are filtered, not crashed on
     4. FederationEnvelope is forwarded to envelope-aware handlers (Chapter 6)
     """
+    import sys as _atlas_sys
+    print(f"[ATLAS333_WRAP] _wrap_handler called for: {tool_name}", file=_atlas_sys.stderr, flush=True)
     # Guard: None handler (arif_metabolize placeholder before lazy injection)
     if handler is None:
         return None
