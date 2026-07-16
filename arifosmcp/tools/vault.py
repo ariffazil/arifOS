@@ -402,6 +402,36 @@ async def arif_seal(
                 f"F{int(v[1:]):02d}" if v.startswith("L") and v[1:].isdigit() else v
                 for v in _meta["violated_laws"]
             ]
+
+    # ── EUREKA777 Post-Seal Hook (ATLAS333 closed loop) ──────────────────────
+    # After successful seal, check for eureka entry and run atlas333_update.
+    # This closes the loop: Θ_t → E_s → atlas333_update → Θ_{t+1}
+    # Only fires if: seal succeeded AND session_id exists AND eureka entry exists.
+    if result.get("verdict") == "SEAL" and session_id:
+        try:
+            import pathlib as _pathlib
+
+            _eureka_path = (
+                _pathlib.Path("/root/.local/share/arifos/atlas333/eureka") / f"{session_id}.json"
+            )
+            if _eureka_path.exists():
+                from arifosmcp.geometry.atlas333_update import (
+                    atlas333_update as _atlas_update,
+                )
+
+                _update_result = _atlas_update(session_id)
+                result["meta"] = result.get("meta", {})
+                result["meta"]["atlas333_update"] = {
+                    "classification": _update_result.get("classification"),
+                    "cube777_updated": _update_result.get("cube777_updated"),
+                    "receipt_path": _update_result.get("receipt_path"),
+                    "note": "EUREKA777 post-seal hook fired — ATLAS333 geometry updated",
+                }
+        except Exception as exc:
+            # Non-fatal — seal already succeeded; update is additive
+            result["meta"] = result.get("meta", {})
+            result["meta"]["atlas333_update_error"] = str(exc)
+
     return _echo_standing(SealOutput(**result))
 
 
