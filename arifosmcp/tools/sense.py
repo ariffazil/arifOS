@@ -598,6 +598,7 @@ def arif_observe(
       atlas    → Structural layer map (stub — pending vector atlas)
       entropy_dS → Random entropy delta (physics stub)
       vitals   → System vitals stub
+      rasa_dunia → Evaluates physical-world thermodynamic and market stresses
     """
     if mode in (
         "geox_quantum_scope",
@@ -618,7 +619,7 @@ def arif_observe(
         # Read-only SENSE: ephemeral only when no SCT was supplied (token failure is hard).
         if (
             not session_token
-            and mode in ("hybrid_discovery", "vitals", "compass", "search")
+            and mode in ("hybrid_discovery", "vitals", "compass", "search", "rasa_dunia")
             and actor_id
         ):
             logger.debug(
@@ -1235,6 +1236,13 @@ def arif_observe(
                 "partition": partition_mode,
             },
         )
+    if mode == "rasa_dunia":
+        try:
+            from arifosmcp.rasa.rasa_dunia import get_rasa_dunia_snapshot
+            snapshot = get_rasa_dunia_snapshot()
+            return _ok("arif_observe", snapshot)
+        except Exception as e:
+            return _hold("arif_observe", f"Failed to retrieve Rasa Dunia snapshot: {e}")
 
     if mode in ("crypto_inventory", "cert_surface", "repo_crypto_scan", "qday_physics_watch"):
         import os
