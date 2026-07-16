@@ -1180,13 +1180,15 @@ If any floor fails, return VOID or HOLD with specific remediation.
 
 
 AGENT_INIT_V3_PROMPT = """\
-# AF-FORGE AGENT INIT — arifOS Constitutional Bootstrap v3.0
+# arifOS AGENT INIT v3.0 — Boot Contract
 ## TRINITY-33 · RSI · Constitutional Friction
 
+> **WHAT THIS IS:** The mandatory boot sequence for any agent entering the arifOS federation.
+> **WHAT TO DO:** Run the 7 self-checks below. If ANY fail → refuse work, request bootstrap.
+> **FOR THE FULL DOCTRINE:** Call this prompt with depth='full' (loads 612-line canon).
+
 > Forged: 2026-07-08 by FORGE (000Ω) under F13 SOVEREIGN directive
-> Supersedes: v2.0 (2026-07-05 — had no TRINITY-33, no RSI mandatory protocol)
 > Doctrine: DITEMPA BUKAN DIBERI — Forged, Not Given
-> Seal: AGENT_INIT_v3.0::TRINITY33_RSI::2026-07-08
 
 ---
 
@@ -1219,8 +1221,14 @@ If ANY answer is NO → refuse task, emit UNKNOWN + reason, request bootstrap co
 
 ---
 
-For deep read (sections 2–N), pass depth='full' or read
-/root/AAA/prompts/AGENT_INIT_v3.0.md directly.
+## WHAT'S NEXT
+
+After boot passes (all 7 ✅), you can:
+- **Read the full doctrine:** depth='full' (TRINITY-33, RSI cycle, autonomy tiers, refusal surface)
+- **Start working:** The 8 public tools are arif_init → arif_observe → arif_think → arif_route → arif_judge → arif_forge → arif_compose → arif_seal
+- **Seal your session:** Call arif_seal at session end to append to VAULT999
+
+CANONICAL SOURCE: /root/AAA/prompts/AGENT_INIT_v3.0.md
 """
 
 
@@ -1579,12 +1587,22 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
         name="arif_init_prompt_v3",
         title="arifOS INIT v3.0 — Canonical Boot Contract",
         description=(
-            "Canonical arifOS INIT v3.0 — boot-phase contract from "
-            "/root/AAA/prompts/AGENT_INIT_v3.0.md (TRINITY-33 + RSI + 5-phase "
-            "friction). Forged 2026-07-08 by FORGE under F13 SOVEREIGN. "
-            "Pass depth='full' for the entire 488-line canon; default returns "
-            "sections 0+1 only. floors_referenced: F1,F2,F3,F4,F5,F6,F7,F8,"
-            "F9,F10,F11,F12,F13"
+            "The arifOS agent boot contract. This is the FIRST thing every agent "
+            "should load when entering the federation. It tells the agent who it is, "
+            "who the sovereign is, and what 7 checks it must pass before doing any work.\n\n"
+            "HOW TO USE:\n"
+            "  depth='boot' (default) — Quick start: 7-point self-check + identity bind. "
+            "Use this for normal agent startup.\n"
+            "  depth='full' — Deep mode: loads the entire 612-line canon from disk "
+            "(TRINITY-33, RSI protocol, constitutional friction, refusal surface). "
+            "Use this for auditing or when an agent needs the complete doctrine.\n\n"
+            "WHAT YOU GET:\n"
+            "  boot → Who you are, who the sovereign is, 7 mandatory checks (identity, "
+            "constitution, session, trinity, sovereign, refusal, RSI)\n"
+            "  full → Everything in boot + 33-repo map, RSI cycle, autonomy tiers, "
+            "888_HOLD triggers, VAULT999 seal protocol\n\n"
+            "CANONICAL SOURCE: /root/AAA/prompts/AGENT_INIT_v3.0.md\n"
+            "FORGED: 2026-07-08 by FORGE (000Ω) under F13 SOVEREIGN"
         ),
         tags={"prompt", "init", "boot", "TRINITY-33", "RSI"},
     )
@@ -1592,7 +1610,9 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
         """Canonical arifOS INIT — discoverable via MCP prompts/list.
 
         Args:
-            depth: 'boot' (default) → sections 0+1; 'full' → entire canon from disk.
+            depth: What to load:
+              - 'boot' (default) → Quick start: 7-point self-check + identity bind
+              - 'full' → Deep mode: entire 612-line canon (TRINITY-33, RSI, refusal surface)
         """
         if depth == "full":
             try:
