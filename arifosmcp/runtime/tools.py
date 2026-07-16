@@ -7835,6 +7835,8 @@ def _arif_session_init(
       receipt; Phase 3 produces the full STABLE/DEGRADED_* receipt.
     """
     # ── PRE-SESSION LANE DISPATCHER (Ω-PATCH 2026-06-13, F13 ratified) ─────
+    import logging as _atl_logger
+    _atl_logger.getLogger("arifosmcp.atlas333").info(f"[ATLAS333] _arif_session_init called: mode={mode}, actor_id={actor_id}")
     # Constitutional rule (locked by Arif 2026-06-13):
     #   "Pre-session functions may create identity context.
     #    Post-session functions must require identity context.
