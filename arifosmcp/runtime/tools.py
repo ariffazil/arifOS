@@ -7637,24 +7637,29 @@ def _inject_atlas333_boot(result_dict: Any) -> Any:
     ATLAS333 is governance substrate — not optional skill.
     """
     if result_dict is None:
+        logger.warning("[ATLAS333] _inject_atlas333_boot called with None")
         return result_dict
     
     # Build the ATLAS333 payload
     atlas333 = _build_atlas333_payload()
+    logger.info(f"[ATLAS333] Boot injection: paradox_count={atlas333.get('paradox_count')}, type={type(result_dict).__name__}")
     
     # Handle Pydantic model (SessionManifest)
     if hasattr(result_dict, "model_dump") and hasattr(result_dict, "atlas333"):
         try:
             result_dict.atlas333 = atlas333
+            logger.info("[ATLAS333] Injected onto Pydantic model")
             return result_dict
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"[ATLAS333] Pydantic injection failed: {e}")
     
     # Handle dict result
     if isinstance(result_dict, dict):
         result_dict["atlas333"] = atlas333
+        logger.info("[ATLAS333] Injected into dict")
         return result_dict
     
+    logger.warning(f"[ATLAS333] Unknown result type: {type(result_dict).__name__}")
     return result_dict
 
 
