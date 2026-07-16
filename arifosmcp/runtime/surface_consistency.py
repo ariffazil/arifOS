@@ -105,13 +105,15 @@ def verify_surface_consistency() -> dict[str, Any]:
     # the baseline when mode=canonical13. NOT a divergence when mode=forge_next_8.
     from arifosmcp.runtime.public_surface import CANONICAL_13
 
-    vantages.append({
-        "source": "CANONICAL_13 (full kernel surface)",
-        "count": len(CANONICAL_13),
-        "hash": _hash_names(list(CANONICAL_13)),
-        "matches_canonical": _hash_names(list(CANONICAL_13)) == canonical_hash,
-        "note": f"audit only — active mode '{mode}' expects {canonical_count} tools",
-    })
+    vantages.append(
+        {
+            "source": "CANONICAL_13 (full kernel surface)",
+            "count": len(CANONICAL_13),
+            "hash": _hash_names(list(CANONICAL_13)),
+            "matches_canonical": _hash_names(list(CANONICAL_13)) == canonical_hash,
+            "note": f"audit only — active mode '{mode}' expects {canonical_count} tools",
+        }
+    )
 
     # ── Vantage 2: CANONICAL_TOOLS keys (mode-filtered) ────────────
     # Only tools that are both expose=True AND in the active surface mode's
@@ -121,7 +123,8 @@ def verify_surface_consistency() -> dict[str, Any]:
 
     active_set = set(active_tools)
     exposed_tool_names = sorted(
-        name for name, spec in CANONICAL_TOOLS.items()
+        name
+        for name, spec in CANONICAL_TOOLS.items()
         if spec.get("expose", True) and name in active_set
     )
     _add_vantage("CANONICAL_TOOLS (mode-filtered)", exposed_tool_names)
@@ -129,18 +132,22 @@ def verify_surface_consistency() -> dict[str, Any]:
     # ── Vantage 2b: Full CANONICAL_TOOLS (internal superset) ────────
     # This vantage documents the full internal registry but is NOT expected
     # to match the active surface mode. It exists for audit visibility.
+    from arifosmcp.runtime.public_surface import ZEN_ABSORBED
+
     all_ct_names = sorted(CANONICAL_TOOLS.keys())
-    internal_only = sorted(set(all_ct_names) - set(exposed_tool_names))
-    vantages.append({
-        "source": "CANONICAL_TOOLS (full internal superset)",
-        "count": len(all_ct_names),
-        "hash": _hash_names(all_ct_names),
-        "matches_canonical": False,  # Expected: internal superset ≠ public facade
-        "exposed_count": len(exposed_tool_names),
-        "internal_count": len(internal_only),
-        "internal_tools": internal_only,
-        "note": "audit only — internal superset hidden from public facade",
-    })
+    internal_only = sorted(set(all_ct_names) - set(exposed_tool_names) - ZEN_ABSORBED)
+    vantages.append(
+        {
+            "source": "CANONICAL_TOOLS (full internal superset)",
+            "count": len(all_ct_names),
+            "hash": _hash_names(all_ct_names),
+            "matches_canonical": False,  # Expected: internal superset ≠ public facade
+            "exposed_count": len(exposed_tool_names),
+            "internal_count": len(internal_only),
+            "internal_tools": internal_only,
+            "note": "audit only — internal superset hidden from public facade (zen-absorbed filtered)",
+        }
+    )
 
     # ── Vantage 3: public_tool_specs (what tools/list returns) ─────
     # NOTE: public_tool_specs() requires the live FastMCP server context.
@@ -194,7 +201,9 @@ def verify_surface_consistency() -> dict[str, Any]:
                 }
                 if not reg_matches and mode == "forge_next_8":
                     # Expected: registry has full kernel surface, wire exposes subset
-                    entry["note"] = f"audit only — registry has full kernel surface, active mode '{mode}' expects {canonical_count}"
+                    entry["note"] = (
+                        f"audit only — registry has full kernel surface, active mode '{mode}' expects {canonical_count}"
+                    )
                     entry["matches_canonical"] = True  # not a real divergence
                 vantages.append(entry)
                 break  # Use first found
@@ -220,7 +229,8 @@ def verify_surface_consistency() -> dict[str, Any]:
     # Documentation-only vantages (internal superset) are excluded from
     # the consistency check — they exist for audit visibility only.
     active = [
-        v for v in vantages
+        v
+        for v in vantages
         if v.get("hash") not in ("UNAVAILABLE", "MISSING", "ERROR")
         and not v.get("note")  # documentation-only vantages have notes
     ]
