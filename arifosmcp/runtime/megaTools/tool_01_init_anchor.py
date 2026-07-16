@@ -348,6 +348,73 @@ class SignedChallenge:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ATLAS333 BOOT CONTEXT — Paradox gravity at sovereign init
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _atlas333_boot_context() -> dict[str, Any]:
+    """Compact ATLAS333 boot context for arif_init response.
+    
+    Injects paradox gravity, demand tensor defaults, TEARFRAME thresholds,
+    lane activations, and MCP URIs into every agent boot session.
+    """
+    try:
+        from arifosmcp.resources.atlas333 import (
+            _build_paradoxes_from_canonical,
+            _runtime_activation_rules,
+        )
+        paradoxes = _build_paradoxes_from_canonical()
+        activation = _runtime_activation_rules() or {}
+    except Exception:
+        paradoxes = []
+        activation = {}
+
+    return {
+        "paradox_count": len(paradoxes),
+        "organs": {"memory": "1-11", "mind": "12-22", "judge": "23-33"},
+        "demand_tensor": {
+            "tau": {"name": "truth_demand", "range": [0.0, 1.0]},
+            "kappa": {"name": "care_demand", "range": [0.0, 1.0]},
+            "rho": {"name": "risk_level", "range": [0.0, 1.0]},
+        },
+        "tearframe": {
+            "TRM": {"formula": "f2_truth", "threshold": 0.94, "floor": "F2"},
+            "ECHO": {"formula": "cbrt(f3*f2*f13)", "threshold": 0.87, "floor": "F2,F3,F13"},
+            "RASA": {"formula": "cbrt(f6*f5*f13)", "threshold": 0.85, "floor": "F5,F6,F13"},
+        },
+        "lanes": ["CRISIS", "FACTUAL", "SOCIAL", "CARE", "UNKNOWN"],
+        "activation_rules": activation,
+        "key_paradoxes": {
+            "16": "certainty vs learning",
+            "17": "every model wrong",
+            "23": "verdict vs justice",
+            "31": "permanence vs reversibility",
+            "33": "expertise vs authoritarianism",
+        },
+        "mcp_resources": [
+            "arifos://atlas333/index",
+            "arifos://atlas333/paradox/list",
+            "arifos://atlas333/paradox/{1..33}",
+            "arifos://atlas333/quote/{M1..J11}",
+            "arifos://atlas333/zones",
+            "arifos://atlas333/organs",
+            "arifos://atlas333/thresholds",
+            "arifos://atlas333/activation/rules",
+            "arifos://atlas333/flow",
+            "arifos://atlas333/geometry",
+        ],
+        "functions": {
+            "Lambda": "text -> lane (CRISIS/FACTUAL/SOCIAL/CARE/UNKNOWN)",
+            "Theta": "lane -> (tau, kappa, rho)",
+            "Phi": "text -> GPV(lane, tau, kappa, rho)",
+        },
+        "boot_note": "ATLAS333 is governance substrate, not optional skill. "
+                     "Every reasoning session starts with paradox gravity. "
+                     "Confidence collapses toward humility automatically.",
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # HARDENED INIT ANCHOR (Unified Implementation)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -563,6 +630,7 @@ async def init_anchor(
         "telos_manifold": telos_manifold,
         "godel_lock": godel_lock,
         "philosophy": phi_result,
+        "atlas333": _atlas333_boot_context(),
         "bootstrap_sequence": [
             "1. check_vital",
             "2. audit_rules",
