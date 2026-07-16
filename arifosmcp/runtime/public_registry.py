@@ -161,7 +161,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
-        "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
+        "KERNEL 666 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
         "Not advice; binding arbitration of floors + authority. "
         "Authority: 888_HOLD / SOVEREIGN session required for real adjudicate. "
         "REQUIRES: actor, intent, domain, reversibility_level, blast_radius (+ evidence). "
