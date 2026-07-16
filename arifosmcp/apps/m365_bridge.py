@@ -70,7 +70,9 @@ class ArifM365Bridge:
         self.upstream_url = upstream_url
         self.timeout_seconds = DEFAULT_TIMEOUT_SECONDS
 
-    async def _call_mcp(self, method: str, params: dict[str, Any], mcp_session_id: str) -> dict[str, Any]:
+    async def _call_mcp(
+        self, method: str, params: dict[str, Any], mcp_session_id: str
+    ) -> dict[str, Any]:
         payload = {
             "jsonrpc": "2.0",
             "id": 1,
@@ -90,16 +92,24 @@ class ArifM365Bridge:
                 detail = response.json().get("error", {}).get("message", detail)
             except Exception:
                 pass
-            raise HTTPException(status_code=502, detail=f"Upstream MCP HTTP {response.status_code}: {detail}")
+            raise HTTPException(
+                status_code=502,
+                detail=f"Upstream MCP HTTP {response.status_code}: {detail}",
+            )
         try:
             parsed = response.json()
         except ValueError as exc:
-            raise HTTPException(status_code=502, detail=f"Upstream MCP returned non-JSON: {exc}") from exc
+            raise HTTPException(
+                status_code=502, detail=f"Upstream MCP returned non-JSON: {exc}"
+            ) from exc
         if parsed.get("error"):
             raise HTTPException(status_code=502, detail=parsed["error"])
         result = parsed.get("result")
         if not isinstance(result, dict):
-            raise HTTPException(status_code=502, detail="Upstream MCP returned malformed result payload")
+            raise HTTPException(
+                status_code=502,
+                detail="Upstream MCP returned malformed result payload",
+            )
         return result
 
     async def call_tool(self, tool_name: str, request: ToolInvokeRequest) -> ToolInvokeEnvelope:
@@ -129,7 +139,10 @@ class ArifM365Bridge:
         result = await self._call_mcp("tools/list", {}, mcp_session_id=mcp_session_id)
         tools = result.get("tools", [])
         if not isinstance(tools, list):
-            raise HTTPException(status_code=502, detail="Upstream MCP tools/list returned malformed tools payload")
+            raise HTTPException(
+                status_code=502,
+                detail="Upstream MCP tools/list returned malformed tools payload",
+            )
         return {
             "upstream": self.upstream_url,
             "mcp_session_id": mcp_session_id,
@@ -155,7 +168,10 @@ class ArifM365Bridge:
         try:
             upstream_health = response.json()
         except ValueError as exc:
-            raise HTTPException(status_code=502, detail=f"Upstream health returned non-JSON: {exc}") from exc
+            raise HTTPException(
+                status_code=502,
+                detail=f"Upstream health returned non-JSON: {exc}",
+            ) from exc
         return {
             "status": "ok",
             "bridge": "m365",
