@@ -64,15 +64,49 @@ class SimpleArifOSClient:
         return False
 
 
-# Singletons for performance and continuity
-_CLIENT = SimpleArifOSClient()
-_ARMOR = PromptArmor()
-_ASI = ConstitutionalMemoryStore()  # 555-ASI (Ω HEART memory)
-_HOLD_MANAGER = HoldStateManager()
+# Singletons for performance and continuity — LAZY via PEP 562 __getattr__.
+# Eager instantiation pulls qdrant_client → fastembed → huggingface_hub
+# (~5s cold cost via ConstitutionalMemoryStore()). Defer to first attribute
+# access (i.e. first hexagon_* tool invocation). This brings tools/list
+# latency under the 30s MCP client timeout budget.
+import threading as _threading
 
-_APEX = APEXAgent(agent_id="apex.mcp", arifos_client=_CLIENT)  # 888-APEX (ΦΙ JUDGE)
-_AGI = AGIAgent(agent_id="agi.mcp", arifos_client=_CLIENT)  # 333-AGI (Δ MIND — was EngineerAgent Ω)
-_AGI.set_validator(_APEX)  # method name kept for backward compat
+_SINGLES: dict[str, Any] | None = None
+_SINGLES_LOCK = _threading.Lock()
+_SINGLE_KEYS = ("_CLIENT", "_ARMOR", "_ASI", "_HOLD_MANAGER", "_APEX", "_AGI")
+
+
+def __getattr__(name: str) -> Any:
+    """PEP 562 lazy module attribute. Triggers on first access to a singleton.
+
+    Initializes all six HEXAGON singletons once on first access, caches them,
+    and returns the requested one. Subsequent attribute accesses are a single
+    dict lookup — no reinit. Other (non-singleton) attribute access raises
+    AttributeError as expected.
+    """
+    if name not in _SINGLE_KEYS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    global _SINGLES
+    if _SINGLES is not None:
+        return _SINGLES[name]
+    with _SINGLES_LOCK:
+        if _SINGLES is None:
+            client = SimpleArifOSClient()
+            armor = PromptArmor()
+            asi = ConstitutionalMemoryStore()  # 555-ASI (Ω HEART memory) — qdrant init here
+            hold = HoldStateManager()
+            apex = APEXAgent(agent_id="apex.mcp", arifos_client=client)  # 888-APEX (ΦΙ JUDGE)
+            agi = AGIAgent(agent_id="agi.mcp", arifos_client=client)  # 333-AGI (Δ MIND)
+            agi.set_validator(apex)  # method name kept for backward compat
+            _SINGLES = {
+                "_CLIENT": client,
+                "_ARMOR": armor,
+                "_ASI": asi,
+                "_HOLD_MANAGER": hold,
+                "_APEX": apex,
+                "_AGI": agi,
+            }
+    return _SINGLES[name]
 
 
 def _nine_signal(status: str) -> dict:

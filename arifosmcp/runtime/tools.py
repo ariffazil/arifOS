@@ -2604,13 +2604,31 @@ from arifosmcp.core.constitution_kernel import (
 _CORE = get_kernel()
 _KERNEL = _CORE  # Maintain compatibility if needed
 
-# Langfuse tracing — wire 333_MIND and 666_HEART to cloud tracing
-try:
-    from arifosmcp.memory_engine import get_langfuse_tracer
+# Langfuse tracing — wire 333_MIND and 666_HEART to cloud tracing.
+# LAZY: importing arifosmcp.memory_engine at module load fires a noisy
+# deprecation warning (the class is a stub) and pulls in transitive deps.
+# Initialize on first access instead.
+_LANGFUSE_TRACER: Any = None
 
-    _LANGFUSE_TRACER = get_langfuse_tracer()
-except Exception:
-    _LANGFUSE_TRACER = None
+
+def _ensure_langfuse_tracer() -> Any:
+    """Lazy singleton — loads arifosmcp.memory_engine on first use.
+
+    Returns the Langfuse tracer instance or None if unavailable. Cached after
+    first call (subsequent calls are a single None check).
+    """
+    global _LANGFUSE_TRACER
+    if _LANGFUSE_TRACER is not None and not (
+        isinstance(_LANGFUSE_TRACER, type(_LANGFUSE_TRACER)) and _LANGFUSE_TRACER is type(None)
+    ):
+        return _LANGFUSE_TRACER
+    try:
+        from arifosmcp.memory_engine import get_langfuse_tracer
+
+        _LANGFUSE_TRACER = get_langfuse_tracer()
+    except Exception:
+        _LANGFUSE_TRACER = None
+    return _LANGFUSE_TRACER
 
 
 # ── Sync Langfuse tracer for use in non-async tool functions ──────────────────
@@ -11825,9 +11843,9 @@ async def _arif_mind_reason_tool(
     adjudicate sovereign approval.
     """
     trace = None
-    if _LANGFUSE_TRACER is not None:
+    if _ensure_langfuse_tracer() is not None:
         try:
-            trace = await _LANGFUSE_TRACER.trace(
+            trace = await _ensure_langfuse_tracer().trace(
                 name=f"arif_mind_reason/{mode}",
                 session_id=session_id,
                 metadata={
@@ -13154,9 +13172,9 @@ async def _arif_reply_compose_tool(
     The LLM actually composes/rewrites the message rather than echoing it back.
     """
     trace = None
-    if _LANGFUSE_TRACER is not None:
+    if _ensure_langfuse_tracer() is not None:
         try:
-            trace = await _LANGFUSE_TRACER.trace(
+            trace = await _ensure_langfuse_tracer().trace(
                 name=f"arif_reply_compose/{mode}",
                 session_id=session_id,
                 metadata={
@@ -13319,8 +13337,10 @@ def _arif_memory_recall(
     tier: str | None = None,
 ) -> dict[str, Any]:
     """
-    555_MEMORY: Live associative memory via MemoryEngine
-    (Postgres + Qdrant dual-write, BGE-M3 embeddings).
+    555_MEMORY: Live associative memory via arifosmcp.runtime.memory_store v3
+    (Postgres + Qdrant dual-write, BGE-M3 embeddings via Ollama).
+    NOTE: The legacy `MemoryEngine` class (arifosmcp.memory_engine) is deprecated
+    as of 2026-05-11 and raises RuntimeError on any method call. Do not import it.
 
     Modes:
       recall  — Semantic search across stored memories.
@@ -14200,9 +14220,9 @@ async def _arif_heart_critique(
             }
 
     trace = None
-    if _LANGFUSE_TRACER is not None:
+    if _ensure_langfuse_tracer() is not None:
         try:
-            trace = await _LANGFUSE_TRACER.trace(
+            trace = await _ensure_langfuse_tracer().trace(
                 name=f"arif_heart_critique/{mode}",
                 session_id=session_id,
                 metadata={
@@ -16460,9 +16480,9 @@ async def _arif_judge_deliberate_tool(
         )
 
     trace = None
-    if _LANGFUSE_TRACER is not None:
+    if _ensure_langfuse_tracer() is not None:
         try:
-            trace = await _LANGFUSE_TRACER.trace(
+            trace = await _ensure_langfuse_tracer().trace(
                 name=f"arif_judge_deliberate/{mode}",
                 session_id=session_id,
                 metadata={
@@ -17912,9 +17932,9 @@ async def _arif_vault_seal_tool(
       SealOutput with entry_id, chain_hash, timestamp, and permanence flag.
     """
     trace = None
-    if _LANGFUSE_TRACER is not None:
+    if _ensure_langfuse_tracer() is not None:
         try:
-            trace = await _LANGFUSE_TRACER.trace(
+            trace = await _ensure_langfuse_tracer().trace(
                 name=f"arif_vault_seal/{mode}",
                 session_id=session_id,
                 metadata={
@@ -18961,9 +18981,9 @@ async def _arif_forge_execute_tool(
         }
 
     trace = None
-    if _LANGFUSE_TRACER is not None:
+    if _ensure_langfuse_tracer() is not None:
         try:
-            trace = await _LANGFUSE_TRACER.trace(
+            trace = await _ensure_langfuse_tracer().trace(
                 name=f"arif_forge_execute/{mode}",
                 session_id=session_id,
                 metadata={
