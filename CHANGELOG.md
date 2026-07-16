@@ -6,6 +6,41 @@ semver). See AGENTS.md §7 for the rationale and iron rules.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 
+## v2026.07.16 — MCP cold-boot optimization (perf + housekeeping)
+
+### Cold-boot collapse (commit 731b65bbc)
+- **arifOS MCP** end-to-end cold boot: **>30s (timeout) → 15.0s** — well under
+  30s MCP client timeout budget (50% headroom).
+- `arifosmcp.runtime.memory_store` cold import: 6.2s → 4.5s.
+- Both stderr warnings silenced on cold path:
+  `MemoryEngine is deprecated. Use arifosmcp.runtime.memory_store instead.`
+  and `HF_HUB_ENABLE_HF_TRANSFER FutureWarning` from `huggingface_hub/constants.py`.
+
+### Six surgical lazy-load fixes (5 files, +165 / -56)
+- `arifosmcp/runtime/memory_store.py` — `_load_memory_policies()` defers
+  `phoenix_72` + `f4_*` imports until first `store/recall/search` call.
+- `arifosmcp/runtime/tools.py` — `_ensure_langfuse_tracer()` lazy singleton
+  replaces eager `memory_engine` import at module level (6 call sites).
+- `arifosmcp/runtime/tools.py:13322` — stale docstring updated.
+- `arifosmcp/memory_engine.py` — module-level deprecation warning removed
+  (class still warns in `__init__` + raises on use).
+- `arifosmcp/evidence/store.py` — `_qdrant_available()` lazy probe; defers
+  `qdrant_client` import until first `_qdrant()` call.
+- `arifosmcp/tools/hexagon.py` — PEP 562 module-level `__getattr__` for
+  HEXAGON singletons. `_ASI = ConstitutionalMemoryStore()` was the heaviest
+  single cold-path cost (qdrant cascade).
+
+### Verification (REAL layer)
+- `qdrant_client` / `fastembed` / `huggingface_hub` / `phoenix_72` / `f4_*` /
+  `memory_engine` — all **absent from `sys.modules`** on cold path.
+- AAA re-registration: `REGISTERED with AAA (stage=COMPLETE, stages: ['RECEIVED',
+  'SCHEMA_VALID', 'HEALTH_PROBED', 'REGISTERED'])`.
+- First `POST /mcp` 200 OK at T+22s (real client tool call succeeded).
+- Surface-gate: `✅ Surface pinned — Live tools match surface-map declarations.`
+
+### Receipt
+- `/root/forge_work/2026-07-16/ARIFOS_MCP_COLD_BOOT_OPTIMIZATION.md`
+
 ## v2026.07.09 — Spine P0 inhabit + audit removal
 
 ### Session capability (`sct_v1`)
