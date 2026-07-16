@@ -71,13 +71,22 @@ def streamable_http_adapter(request: dict[str, Any]) -> AirlockResult:
         and tool_name not in CANARY_TOOLS
         and not mcp_session_id
     ):
+        # Build a diagnostic error that tells the caller exactly how to fix it
+        hint = (
+            f"arif_init(mode='init', actor_id='{request.get('actor', '<your-actor-id>')}')"
+            if tool_name not in ("arif_init", "arif_ping")
+            else "Ensure the MCP session ID is propagated from the initial 'initialize' handshake."
+        )
         return AirlockResult(
             transport_error=build_transport_error_envelope(
                 TransportFaultCode.ARIF_SESSION_NOT_FOUND,
-                "Session ID is required for all remote operations.",
+                "Session ID is required for all remote operations. "
+                f"Call {hint} first, then pass the returned session_id "
+                "as the mcp-session-id header on subsequent requests.",
                 transport="streamable_http",
                 request_id=request.get("id"),
                 trace_id=trace_id,
+                next_probe="arif_init",
             ),
             envelope=None,
             dialect_used="streamable_http",

@@ -323,12 +323,18 @@ def authority_envelope_for_session(
     if state is None:
         actor_key = (actor_id or "").strip().lower()
         # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
+        # P1c FIX (2026-07-16): when no session is bound, there is no verified
+        # key_id available, so the SOVEREIGN path is unreachable in this branch.
+        # Previously this line referenced an undefined `actor_verified_key_id`
+        # — latent NameError that surfaced once identity_consistency started
+        # exercising the no-session fallback. Fix is conservative: NO SOVEREIGN
+        # without a key_id on file.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
 
-        _vkey = actor_verified_key_id if isinstance(actor_verified_flag, bool) else None
+        _vkey = None
         h_authority = (
             "SOVEREIGN"
-            if (actor_verified_flag and _vkey and _vkey in SOVEREIGN_KEY_IDS)
+            if False  # SOVEREIGN requires session-bound verified_key_id; fallback cannot grant it
             else "OPERATOR"
             if actor_verified_flag
             else "OPERATOR_CLAIMED"
