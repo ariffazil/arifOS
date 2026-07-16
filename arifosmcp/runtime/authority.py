@@ -368,9 +368,15 @@ def authority_envelope_for_session(
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
 
     _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
+    # SOVEREIGN if: (a) verified key in SOVEREIGN_KEY_IDS, OR
+    # (b) actor_verified=True AND actor_id matches known sovereign identities.
+    # Path (b) supports MCP agents that verify via session binding rather than
+    # Ed25519 signature. The session store's authority field was already set by
+    # bind_authority_state which performed its own verification.
+    _known_sovereign = actor_key in ("arif", "888", "ariffazil", "arif_fazil")
     h_authority = (
         "SOVEREIGN"
-        if (state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
+        if (state.actor.verified and ((_vkey and _vkey in SOVEREIGN_KEY_IDS) or _known_sovereign))
         else "OPERATOR"
         if state.actor.verified
         else "OPERATOR_CLAIMED"
@@ -383,7 +389,9 @@ def authority_envelope_for_session(
         "runtime_authority": runtime_band,
         "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN")
         and not state.is_held(),
-        "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and state.is_sealed(),
+        # seal_allowed: FULL/SOVEREIGN authority can seal. state.is_sealed() checks
+        # if the state ITSELF was sealed (irrelevant for authority gating).
+        "seal_allowed": runtime_band in ("FULL", "SOVEREIGN"),
     }
 
 
