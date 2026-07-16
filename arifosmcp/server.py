@@ -647,6 +647,8 @@ IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
+    from arifosmcp.runtime.fastmcp_ext.prompts import register_arifos_prompts
+    from arifosmcp.runtime.fastmcp_ext.resources import register_arifos_resources
     from arifosmcp.runtime.heartbeat_registry import arif_heartbeat as _arif_heartbeat
     from arifosmcp.runtime.institutional_shadow import (
         arif_detect_institutional_shadow_drift as _arif_detect_institutional_shadow_drift,
@@ -1407,6 +1409,18 @@ try:
 
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
+    # Register additional prompts (constitutional_pre_flight, arif_init_prompt_v3, agi_reply_protocol_v3)
+    try:
+        v2_prompts_registered += register_arifos_prompts(mcp)
+        logger.info("Extended prompts registered: %s", v2_prompts_registered[-3:])
+    except Exception as _prompt_err:
+        logger.warning("Extended prompt registration failed: %s", _prompt_err)
+    # Register additional resources (verdict, continuity, vitals, init prompts)
+    try:
+        v2_resources_registered += register_arifos_resources(mcp)
+        logger.info("Extended resources registered: count=%s", len(v2_resources_registered))
+    except Exception as _res_err:
+        logger.warning("Extended resource registration failed: %s", _res_err)
 
     # Default HTTP tools/list must reflect the canonical public facade exactly.
     # Keep aliases and diagnostics registered for compatibility and direct calls,
