@@ -33,6 +33,47 @@ DialectHandler = Callable[[dict[str, Any]], AirlockResult]
 DIALECT_REGISTRY: dict[str, DialectHandler] = {}
 READ_LIKE_ACTIONS = frozenset({ActionClass.PROBE, ActionClass.READ, ActionClass.QUERY})
 
+# ── SHADOW Rate Limiter ──────────────────────────────────────────────────────
+# Tracks last warning timestamp per caller key to avoid 218/hr log floods.
+# Key format: "<tool_name>::<actor>"
+# Reset on process restart or via _reset_shadow_throttle().
+_SHADOW_THROTTLE: dict[str, float] = {}
+_SHADOW_THROTTLE_SECONDS: float = 3600.0  # 1 hour silence per unique caller
+
+
+def _shadow_caller_key(request: dict[str, Any]) -> str:
+    """Build a unique caller key from request metadata."""
+    method = request.get("method", "unknown")
+    params = request.get("params", {})
+    tool_name = method
+    if method == "tools/call" and isinstance(params, dict):
+        tool_name = str(params.get("name", method))
+    actor = str(request.get("actor", request.get("user_id", "anonymous")))
+    client_info = request.get("client_info", {})
+    if isinstance(client_info, dict):
+        client_name = str(client_info.get("name", ""))
+        if client_name:
+            return f"{tool_name}::{actor}::{client_name}"
+    return f"{tool_name}::{actor}"
+
+
+def _should_throttle_shadow(key: str) -> bool:
+    """True if this caller should be silenced (already warned recently)."""
+    import time as _time
+
+    now = _time.time()
+    last = _SHADOW_THROTTLE.get(key, 0.0)
+    if now - last < _SHADOW_THROTTLE_SECONDS:
+        return True
+    _SHADOW_THROTTLE[key] = now
+    return False
+
+
+def _reset_shadow_throttle() -> None:
+    """Reset the shadow throttle (for testing)."""
+    _SHADOW_THROTTLE.clear()
+
+
 AIRLOCK_METRICS: dict[str, Any] = {
     "total_requests": 0,
     "normalized_ok": 0,
@@ -571,11 +612,20 @@ class AirlockASGIMiddleware:
         if airlock_mode == "shadow":
             record_airlock_result(airlock_res, mode=airlock_mode)
             if airlock_res.transport_error:
-                log.warning(
-                    "Airlock SHADOW error: trace_id=%s error=%s",
-                    airlock_res.trace_id,
-                    airlock_res.transport_error,
-                )
+                # Rate-limited SHADOW warning: 1 warning per unique caller per hour
+                caller_key = _shadow_caller_key(rpc_data)
+                if _should_throttle_shadow(caller_key):
+                    # Suppressed — already warned for this caller
+                    AIRLOCK_METRICS["shadow_suppressed"] = (
+                        AIRLOCK_METRICS.get("shadow_suppressed", 0) + 1
+                    )
+                else:
+                    log.warning(
+                        "Airlock SHADOW error: trace_id=%s caller=%s error=%s",
+                        airlock_res.trace_id,
+                        caller_key,
+                        airlock_res.transport_error,
+                    )
             else:
                 log.info(
                     "Airlock SHADOW success: trace_id=%s tool=%s",

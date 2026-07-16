@@ -550,14 +550,12 @@ class FederationEnvelope(BaseModel):
         # ── Replay defense: envelope freshness ───────────────────────────
         # Reject envelopes older than ENVELOPE_MAX_AGE_SECONDS (default 30 min).
         # Catches replayed envelopes even if expires_at hasn't been set.
-        _FRESHNESS_MAX_AGE = int(
-            __import__("os").getenv("ARIFOS_ENVELOPE_MAX_AGE_SECONDS", "1800")
-        )
+        freshness_max_age = int(__import__("os").getenv("ARIFOS_ENVELOPE_MAX_AGE_SECONDS", "1800"))
         if self.created_at:
             _age = (datetime.now(UTC) - self.created_at).total_seconds()
-            if _age > _FRESHNESS_MAX_AGE:
+            if _age > freshness_max_age:
                 return False, (
-                    f"Envelope too old ({_age:.0f}s > {_FRESHNESS_MAX_AGE}s max). "
+                    f"Envelope too old ({_age:.0f}s > {freshness_max_age}s max). "
                     "Replay detected — reissue with fresh authority."
                 )
 
@@ -644,6 +642,10 @@ def wrap_legacy_call(
             f"wrap_legacy_call: null actor_id coerced to 'openclaw-anon' "
             f"(tool={tool_name}, organ={organ.value}, action_class={action_class.value})"
         )
+    # Authority: FALLBACK source ensures LOW authority (not MEDIUM/HIGH).
+    # "openclaw-anon" is distinct from "anonymous" so it passes the
+    # anonymous-MUTATE gate in validate_for_execution, but FALLBACK
+    # source + legacy_wrap=True restricts to OBSERVE-only.
     return FederationEnvelope(
         trace_id=f"legacy-{datetime.now(UTC).isoformat()}",
         actor_id=effective_actor,
