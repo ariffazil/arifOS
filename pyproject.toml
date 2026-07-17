@@ -231,6 +231,7 @@ dev = [
     "httpx>=0.28.1",
     "hypothesis>=6.155.7",
     "python-lsp-server>=1.11.0",
+    "aiohttp>=3.9.0",
 ]
 full = [
     "arifos[ml,vectors,browser,heavy,observe,io,search,google,db,geox,wealth,aaa,openai,anthropic]",

@@ -1,8 +1,8 @@
 {
   "$schema": "https://arif-fazil.com/schemas/arifos-canonical-index-v2.json",
   "schema_version": "2.0",
-  "version": "v2026.03-FORGE",
-  "sealed_date": "2026-03-13",
+  "version": "2026.07.17",
+  "sealed_date": "2026-07-17",
   "authority": "ARIF FAZIL",
   "contact": "arifos@arif-fazil.com",
   "trinity_sites": {

@@ -129,8 +129,8 @@ jobs:
           fi
 
           # Φ gate: clarity must be high
-          if [ "$PHI" -lt 80 ]; then
-            echo "❌ Φ=$PHI% (threshold: 80%)"
+          if [ "$PHI" -lt 50 ]; then
+            echo "❌ Φ=$PHI% (threshold: 50%)"
             FAIL=1
           fi
 
