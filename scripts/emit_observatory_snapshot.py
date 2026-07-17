@@ -588,6 +588,19 @@ def main() -> int:
         f"proven={caps.get('proven_live_count')}/8 tested={caps.get('tested_count')}/8 "
         f"edges_reachable={(snapshot.get('federation_edges') or {}).get('reachable')}"
     )
+    # Bridge contract: project public-state for MCP Gateway + Observatory
+    try:
+        from build_public_state import get_health, project_public_state, write_public_state
+
+        state = project_public_state(snapshot, get_health())
+        write_public_state(state)
+        print(
+            f"public-state headline={state.get('headline')!r} "
+            f"alignment={state.get('release', {}).get('deployment_alignment')}"
+        )
+    except Exception as exc:
+        # Public-state is derivative — never fail the signed snapshot emit
+        print(f"warn: public-state projection failed: {exc}", file=sys.stderr)
     return 0
 
 
