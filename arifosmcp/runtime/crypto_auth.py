@@ -373,19 +373,15 @@ def verify_init_identity(
         return True, f"ed25519_signature_verified:{matched_payload}"
 
     if challenge_reason == "challenge_not_issued":
-        # Accept free-standing signed nonce once (federation /kernel/identity/verify compat)
-        now = time.time()
-        with _challenge_lock:
-            _purge_challenges(now)
-            if nonce in _used_challenges:
-                return False, "challenge_replayed"
-            _used_challenges[nonce] = now + _CHALLENGE_TTL_SECONDS
-        logger.info(
-            "Crypto Auth: free-nonce accepted for actor=%s payload=%s",
+        # REJECT free-standing nonces — must be issued by issue_actor_challenge.
+        # (Prior federation compat accepted them; this was NEG.3 bypass — fixed 2026-07-17.)
+        logger.warning(
+            "Crypto Auth: free-nonce REJECTED for actor=%s payload=%s — "
+            "nonce must be issued by issue_actor_challenge",
             actor_id,
             matched_payload,
         )
-        return True, f"ed25519_signature_verified_free_nonce:{matched_payload}"
+        return False, "challenge_not_issued"
 
     logger.warning("Crypto Auth: Nonce rejected — %s.", challenge_reason)
     return False, challenge_reason
