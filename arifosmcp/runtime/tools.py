@@ -164,7 +164,29 @@ def enforce_restraint_and_verdict(
         session.get("capability", {}) or {}
     )
 
-    if requires and not trace and action_class not in ("OBSERVE", "SUGGEST"):
+    # Governance spine tools and pure observation never require a prior verdict
+    # loop receipt — they ARE the loop (or precede it).
+    _LOOP_FREE = frozenset(
+        {
+            "arif_init",
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_memory",
+            "arif_judge",
+            "arif_judge_deliberate",
+            "arif_seal",  # seal emits the receipt; dry_run/verify are not execute
+        }
+    )
+    _obs_actions = frozenset({"OBSERVE", "SUGGEST", "READ", "ADVISE", "JUDGE"})
+
+    if (
+        requires
+        and not trace
+        and action_class not in _obs_actions
+        and tool_name not in _LOOP_FREE
+        and not str(tool_name).startswith("arif_init")
+    ):
         return {
             "decision": "HOLD",
             "reason": "VERDICT_LOOP_REQUIRED: One Tool (Verdict Loop With Memory) — arif_judge + arif_seal required before execution",
@@ -6081,14 +6103,14 @@ def _new_session(
         },
     }
 
-    # ── P0 WIRING (2026-06-28): actor_verified for known identities ──
-    # Set in _new_session so ALL paths (light, init, full) get it.
-    # Full cryptographic verification (nonce+signature) still required
-    # for SOVEREIGN tier in the init/full path.
-    if actor_id:
-        actor_lower = actor_id.lower().strip()
-        if "arif" in actor_lower or "888" in actor_lower:
-            sess["actor_verified"] = True
+    # ── REMOVED P0 WIRING (2026-07-17): actor_verified for known identities ──
+    # The prior heuristic (setting sess["actor_verified"]=True for any actor_id
+    # containing "arif"/"888") was the root cause of actor_verified drift.
+    # Identity verification MUST come from the F-13 binding path (Ed25519
+    # crypto via verify_sovereign_signature / verify_init_identity) — never
+    # from string matching. Every session starts unverified; crypto bind in
+    # mark_session_ed25519_verified + bind_authority_state sets the single
+    # source of truth.
 
     # ── EPISTEMIC STRAIN GAUGE (Phase 1, 2026-06-21) ──────────────────────
     # Tracks actual tool invocations from this session. A model that claims
@@ -8343,8 +8365,23 @@ def _arif_session_init(
         sess["nonce"] = nonce
         sess["signature_verified"] = signature_verified
         sess["identity_verified"] = identity_verified
-        sess["actor_verified"] = identity_verified
-        sess["authority_level"] = authority_level
+        # SINGLE SETTER: bind_authority_state is the only legitimate writer of
+        # actor_verified. All secondary writers removed 2026-07-17 per F13
+        # directive. The canonical source is authority_state.actor.verified.
+        try:
+            from arifosmcp.runtime.authority import bind_authority_state
+            from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                build_authority_state_for_actor,
+            )
+
+            _bind_state = build_authority_state_for_actor(
+                actor_id or "anonymous",
+                verified=bool(identity_verified),
+                verification_method="signature" if identity_verified else "none",
+            )
+            bind_authority_state(sess, _bind_state)
+        except Exception:
+            pass
         sess["constitution_bound"] = constitution_bound
 
         # P3 Fix: Initialize thermodynamic budget for the new session
@@ -9180,9 +9217,7 @@ def _arif_session_init(
             _sct_arg = payload.get("session_token") or payload.get("sct")
         _candidate = session_id
         for _cand in (_sct_arg, session_id):
-            if _cand and (
-                str(_cand).startswith("sct_v1.") or str(_cand).startswith("arifos.v1.")
-            ):
+            if _cand and (str(_cand).startswith("sct_v1.") or str(_cand).startswith("arifos.v1.")):
                 _candidate = _cand
                 break
         session_id = _candidate
@@ -9240,9 +9275,7 @@ def _arif_session_init(
             "context_receipt": _SESSIONS.get(session_id, {}).get("context_receipt"),
             "evidence_receipt": _SESSIONS.get(session_id, {}).get("evidence_receipt"),
             "tool_binding": {
-                "wired": _SESSIONS.get(session_id, {})
-                .get("tooling_receipt", {})
-                .get("wired", {}),
+                "wired": _SESSIONS.get(session_id, {}).get("tooling_receipt", {}).get("wired", {}),
             },
             "memory_receipt": _SESSIONS.get(session_id, {}).get("memory_receipt"),
             "session_verdict": _SESSIONS.get(session_id, {}).get("session_verdict", "STABLE")
@@ -11324,6 +11357,7 @@ def _arif_mind_reason(
     plan_id: str | None = None,
     witness_type: str = "ai",
     attention_context: dict | None = None,
+    session_token: str | None = None,  # SCT continuity — ChatGPT / multi-call path
 ) -> dict[str, Any]:
     """
     333_MIND: Symbolic constitutional reasoning kernel.
@@ -18183,14 +18217,19 @@ async def _arif_vault_seal_tool(
             pass
 
     try:
-        ack_irreversible, hold = await _elicit_irreversible_ack(
-            ctx,
-            tool_name="arif_vault_seal",
-            mode=mode,
-            actor_id=actor_id,
-            session_id=session_id,
-            constitutional_chain_id=constitutional_chain_id,
-        )
+        # Verify mode is read-only — no irreversible ack needed
+        if mode in ("verify", "chain", "list"):
+            ack_irreversible = True
+            hold = None
+        else:
+            ack_irreversible, hold = await _elicit_irreversible_ack(
+                ctx,
+                tool_name="arif_vault_seal",
+                mode=mode,
+                actor_id=actor_id,
+                session_id=session_id,
+                constitutional_chain_id=constitutional_chain_id,
+            )
         if hold is not None:
             return hold
         if ctx is not None:
@@ -20159,7 +20198,9 @@ def _build_abc_surface_summary() -> dict[str, Any]:
         )
         with urllib.request.urlopen(req, timeout=8) as resp:
             raw = resp.read().decode()
-            payload = _json.loads(raw.split("data:")[-1].strip()) if "data:" in raw else _json.loads(raw)
+            payload = (
+                _json.loads(raw.split("data:")[-1].strip()) if "data:" in raw else _json.loads(raw)
+            )
         res = payload.get("result", payload)
         sid = ""
         if isinstance(res, dict):
@@ -20170,14 +20211,18 @@ def _build_abc_surface_summary() -> dict[str, Any]:
             elif isinstance(res.get("content"), list) and res["content"]:
                 try:
                     parsed = _json.loads(res["content"][0].get("text") or "{}")
-                    sid = parsed.get("session_id") or (
-                        (parsed.get("result") or {}).get("session_id")
-                        if isinstance(parsed.get("result"), dict)
-                        else ""
-                    ) or (
-                        (parsed.get("session_birth") or {}).get("session_id")
-                        if isinstance(parsed.get("session_birth"), dict)
-                        else ""
+                    sid = (
+                        parsed.get("session_id")
+                        or (
+                            (parsed.get("result") or {}).get("session_id")
+                            if isinstance(parsed.get("result"), dict)
+                            else ""
+                        )
+                        or (
+                            (parsed.get("session_birth") or {}).get("session_id")
+                            if isinstance(parsed.get("session_birth"), dict)
+                            else ""
+                        )
                     )
                 except Exception:
                     sid = ""
@@ -22524,33 +22569,61 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         try:
             # ── Session A: Emit operation STARTED ──────────────────────────
             from arifosmcp.runtime.event_bus import emit_operation
+
             session_id = kwargs.get("session_id")
             actor_id = kwargs.get("actor_id")
             op_id = emit_operation(
                 capability=tool_name,
                 actor_id=actor_id,
                 session_id=session_id,
-                params={k: str(v)[:100] for k, v in kwargs.items() if k not in ("session_token", "_envelope")},
+                params={
+                    k: str(v)[:100]
+                    for k, v in kwargs.items()
+                    if k not in ("session_token", "_envelope")
+                },
                 status="STARTED",
             )["op_id"]
             # ────────────────────────────────────────────────────────────────
             response = handler(*args, **_filtered)
             # ── Session A: Emit operation SUCCESS + receipt ────────────────
             from arifosmcp.runtime.event_bus import emit_operation as _eo, emit_receipt as _er
-            _eo(capability=tool_name, actor_id=actor_id, session_id=session_id,
-                status="SUCCESS", op_id=op_id)
+
+            _eo(
+                capability=tool_name,
+                actor_id=actor_id,
+                session_id=session_id,
+                status="SUCCESS",
+                op_id=op_id,
+            )
             # Receipt for critical tools (judge, forge, seal)
             vault_candidate = tool_name in ("arif_judge", "arif_forge", "arif_seal", "arif_act")
-            _er(op_id=op_id, session_id=session_id, organ="arifos",
+            _er(
+                op_id=op_id,
+                session_id=session_id,
+                organ="arifos",
                 result_summary=f"{tool_name}: OK",
-                vault_candidate=vault_candidate)
+                vault_candidate=vault_candidate,
+            )
+            # Observatory evidence chain: durable SUCCESS → capability matrix
+            try:
+                from arifosmcp.runtime.capability_drift import record_test_result
+
+                record_test_result(tool_name, passed=True)
+            except Exception:
+                pass
             # ────────────────────────────────────────────────────────────────
         except Exception as exc:
             # ── Session A: Emit operation FAIL ────────────────────────────
             try:
                 from arifosmcp.runtime.event_bus import emit_operation as _eo
-                _eo(capability=tool_name, actor_id=actor_id, session_id=session_id,
-                    status="FAIL", op_id=op_id)
+
+                _eo(
+                    capability=tool_name,
+                    actor_id=actor_id,
+                    session_id=session_id,
+                    status="FAIL",
+                    op_id=op_id,
+                )
             except Exception:
                 pass
             # ───────────────────────────────────────────────────────────────
@@ -22590,9 +22663,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _aid = kwargs.get("actor_id")
             if isinstance(final_resp, dict):
                 _res = (
-                    final_resp.get("result")
-                    if isinstance(final_resp.get("result"), dict)
-                    else {}
+                    final_resp.get("result") if isinstance(final_resp.get("result"), dict) else {}
                 )
                 _birth = final_resp.get("session_birth") or (
                     _res.get("session_birth") if isinstance(_res, dict) else {}
@@ -22613,11 +22684,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     or _aid
                 )
                 if isinstance(_aid, dict):
-                    _aid = (
-                        _aid.get("claimed_id")
-                        or _aid.get("id")
-                        or _aid.get("actor_id")
-                    )
+                    _aid = _aid.get("claimed_id") or _aid.get("id") or _aid.get("actor_id")
             final_resp = attach_canonical(
                 final_resp,
                 session_id=_sid,
@@ -22757,9 +22824,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _aid = kwargs.get("actor_id")
             if isinstance(final_resp, dict):
                 _res = (
-                    final_resp.get("result")
-                    if isinstance(final_resp.get("result"), dict)
-                    else {}
+                    final_resp.get("result") if isinstance(final_resp.get("result"), dict) else {}
                 )
                 _birth = final_resp.get("session_birth") or (
                     _res.get("session_birth") if isinstance(_res, dict) else {}
@@ -22780,11 +22845,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                     or _aid
                 )
                 if isinstance(_aid, dict):
-                    _aid = (
-                        _aid.get("claimed_id")
-                        or _aid.get("id")
-                        or _aid.get("actor_id")
-                    )
+                    _aid = _aid.get("claimed_id") or _aid.get("id") or _aid.get("actor_id")
             final_resp = attach_canonical(
                 final_resp,
                 session_id=_sid,

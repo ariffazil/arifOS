@@ -299,26 +299,117 @@ def _finalize_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
     """Enrich + sign. Signature always last so hash excludes prior signature."""
     payload = _enrich_snapshot(payload)
     payload["signature"] = _sign_observatory_snapshot(payload)
-    # Keep F-007 honest relative to live signature
+    # Keep F-007 honest relative to live signature; recompute OPEN count.
     findings = payload.get("findings")
     if isinstance(findings, dict):
-        items = findings.get("items") or findings.get("list") or []
+        items = findings.get("findings") or findings.get("items") or findings.get("list") or []
         if isinstance(items, list):
             sig = payload.get("signature") or {}
-            signed = bool(sig.get("value"))
+            signed = bool(isinstance(sig, dict) and sig.get("value"))
             for f in items:
                 if isinstance(f, dict) and f.get("id") == "F-007":
                     f["status"] = "RESOLVED" if signed else "OPEN"
+                    f["description"] = (
+                        "Snapshot signature verified (ed25519)"
+                        if signed
+                        else "Snapshot signature is not cryptographically verified"
+                    )
                     f["evidence"] = (
                         f"signature.state={sig.get('state')} key_id={sig.get('key_id')}"
                         if signed
                         else "signature.value=null (signing failed or key missing)"
                     )
-            if signed:
-                findings["count"] = sum(
-                    1 for f in items if isinstance(f, dict) and f.get("status") == "OPEN"
-                )
+            open_items = [f for f in items if isinstance(f, dict) and f.get("status") == "OPEN"]
+            findings["count"] = len(open_items)
+            by_sev: dict[str, int] = {}
+            for f in open_items:
+                sev = str(f.get("severity") or "LOW")
+                by_sev[sev] = by_sev.get(sev, 0) + 1
+            findings["by_severity"] = by_sev
+            findings["findings"] = items
+    # Intelligence decomposition from live capability + metabolism numbers
+    try:
+        payload["intelligence_decomposition"] = _intelligence_decomposition(payload)
+    except Exception:
+        pass
     return payload
+
+
+def _edge_transport_ok(edge: dict[str, Any]) -> bool:
+    """Transport-reachable if transport field or state says so (never confuse with semantic)."""
+    transport = edge.get("transport")
+    if transport in ("reachable", "up", "ok"):
+        return True
+    state = edge.get("state")
+    return state in (
+        "reachable",
+        "TRANSPORT_ONLY",
+        "TRANSPORT_IDENTITY_OK",
+        "aligned",
+        "ALIGNED",
+    )
+
+
+def _edge_semantic_proven(edge: dict[str, Any]) -> bool:
+    fields = (
+        "session_propagated",
+        "actor_propagated",
+        "trace_propagated",
+        "receipt_produced",
+    )
+    return all(edge.get(f) is True for f in fields)
+
+
+def _intelligence_decomposition(payload: dict[str, Any]) -> dict[str, Any]:
+    """Separate machine substrate from intelligence pipeline (no collapsed label)."""
+    caps = payload.get("capabilities") if isinstance(payload.get("capabilities"), dict) else {}
+    tested = int(caps.get("tested_count") or 0)
+    proven = int(caps.get("proven_live_count") or 0)
+    invocable = int(caps.get("invocable_count") or caps.get("callable_public") or 0)
+    degraded = int(caps.get("degraded_count") or 0)
+    metabolism = payload.get("metabolism") if isinstance(payload.get("metabolism"), list) else []
+    stages_observed = 0
+    for row in metabolism:
+        if not isinstance(row, dict):
+            continue
+        inv = row.get("invocations")
+        val = inv.get("value") if isinstance(inv, dict) else inv
+        if isinstance(val, int) and val > 0:
+            stages_observed += 1
+    edges = payload.get("federation_edges") if isinstance(payload.get("federation_edges"), dict) else {}
+    transport_n = int(edges.get("reachable") or 0)
+    semantic_n = int(edges.get("semantic_proven") or 0)
+
+    if invocable >= 8 and proven >= 8 and semantic_n > 0 and stages_observed >= 8:
+        pipeline = "PARTIAL"
+    elif proven >= 1 or tested >= 1 or stages_observed >= 1:
+        pipeline = "RETAK"
+    else:
+        pipeline = "RETAK"
+
+    substrate = "ALIGNED" if transport_n > 0 or invocable >= 8 else "UNKNOWN"
+    return {
+        "machine_substrate": _pf(
+            substrate,
+            source="transport + public wire invocable",
+            state="derived",
+            confidence=0.85,
+            observation_method=_OBS_METHOD_DERIVED,
+            independent=True,
+        ),
+        "intelligence_pipeline": _pf(
+            pipeline,
+            source=(
+                f"proven_live={proven}/{invocable or 8} tested_fresh={tested} "
+                f"stages_observed={stages_observed}/11 semantic_edges={semantic_n} "
+                f"degraded={degraded}"
+            ),
+            state="derived",
+            confidence=0.75,
+            observation_method=_OBS_METHOD_DERIVED,
+            independent=True,
+        ),
+    }
 
 
 def _pf_age(
@@ -1661,20 +1752,41 @@ def _edges_block() -> dict[str, Any]:
 
         edges = probe_all_edges()
         aggregate = edge_aggregate_state(edges)
-        reachable = sum(1 for e in edges if e.get("state") == "reachable")
+        reachable = sum(1 for e in edges if isinstance(e, dict) and _edge_transport_ok(e))
+        semantic_proven = sum(
+            1 for e in edges if isinstance(e, dict) and _edge_semantic_proven(e)
+        )
         drifted = sum(1 for e in edges if e.get("state") == "drift")
-        unreachable = sum(1 for e in edges if e.get("state") == "unreachable")
-        unknown = sum(1 for e in edges if e.get("state") == "unknown")
+        unreachable = sum(
+            1
+            for e in edges
+            if isinstance(e, dict)
+            and e.get("transport") in ("unreachable", "timeout", "connection_refused", "error")
+        )
+        unknown = max(0, len(edges) - reachable - unreachable)
     except Exception as exc:
         logger.warning("edges_block failure: %s", exc)
         edges = []
         aggregate = "UNKNOWN"
-        reachable = drifted = unreachable = unknown = 0
+        reachable = drifted = unreachable = unknown = semantic_proven = 0
+
+    # Aggregate honesty: transport success ≠ semantic federation.
+    if edges and reachable == len(edges) and semantic_proven == len(edges):
+        aggregate = "ALIGNED"
+    elif edges and reachable == len(edges):
+        aggregate = "TRANSPORT_ALIGNED"
+    elif reachable > 0:
+        aggregate = "PARTIAL" if reachable >= max(1, int(len(edges) * 0.7)) else "DEGRADED"
+    else:
+        aggregate = aggregate or "UNKNOWN"
 
     return {
         "declared": len(edges) if edges else 11,
         "probed": len(edges),
         "reachable": reachable,
+        "transport_reachable": reachable,
+        "semantic_proven": semantic_proven,
+        "authority_propagated": semantic_proven,
         "drifted": drifted,
         "unreachable": unreachable,
         "unknown": unknown,
@@ -1718,20 +1830,40 @@ async def _edges_block_async() -> dict[str, Any]:
 
         edges = await probe_all_edges_async(self_endpoint_health=self_health)
         aggregate = edge_aggregate_state(edges)
-        reachable = sum(1 for e in edges if e.get("state") == "reachable")
+        reachable = sum(1 for e in edges if isinstance(e, dict) and _edge_transport_ok(e))
+        semantic_proven = sum(
+            1 for e in edges if isinstance(e, dict) and _edge_semantic_proven(e)
+        )
         drifted = sum(1 for e in edges if e.get("state") == "drift")
-        unreachable = sum(1 for e in edges if e.get("state") == "unreachable")
-        unknown = sum(1 for e in edges if e.get("state") == "unknown")
+        unreachable = sum(
+            1
+            for e in edges
+            if isinstance(e, dict)
+            and e.get("transport") in ("unreachable", "timeout", "connection_refused", "error")
+        )
+        unknown = max(0, len(edges) - reachable - unreachable)
     except Exception as exc:
         logger.warning("edges_block_async failure: %s", exc)
         edges = []
         aggregate = "UNKNOWN"
-        reachable = drifted = unreachable = unknown = 0
+        reachable = drifted = unreachable = unknown = semantic_proven = 0
+
+    if edges and reachable == len(edges) and semantic_proven == len(edges):
+        aggregate = "ALIGNED"
+    elif edges and reachable == len(edges):
+        aggregate = "TRANSPORT_ALIGNED"
+    elif reachable > 0:
+        aggregate = "PARTIAL" if reachable >= max(1, int(len(edges) * 0.7)) else "DEGRADED"
+    else:
+        aggregate = aggregate or "UNKNOWN"
 
     return {
         "declared": len(edges) if edges else 11,
         "probed": len(edges),
         "reachable": reachable,
+        "transport_reachable": reachable,
+        "semantic_proven": semantic_proven,
+        "authority_propagated": semantic_proven,
         "drifted": drifted,
         "unreachable": unreachable,
         "unknown": unknown,
@@ -1741,121 +1873,268 @@ async def _edges_block_async() -> dict[str, Any]:
 
 
 # ── Findings envelope (active gaps, not operational incidents) ───────────────
-def _findings_block() -> dict[str, Any]:
-    """Active findings that are not operational incidents but represent
-    verification gaps or incomplete evidence. Per verdict 2026-07-15:
-    'incidents: 0 should never imply nothing is wrong.'
+def _findings_block(
+    *,
+    capabilities: dict[str, Any] | None = None,
+    federation_edges: dict[str, Any] | None = None,
+    organs: dict[str, Any] | None = None,
+    receipts: dict[str, Any] | None = None,
+    runtime_identity: dict[str, Any] | None = None,
+    metabolism: list[Any] | None = None,
+) -> dict[str, Any]:
+    """Active findings recomputed from the same snapshot object (no stale static text).
 
     Each finding: {id, category, description, severity, evidence, status}
     Severity: LOW | MEDIUM | HIGH | CRITICAL
     Status: OPEN | IN_PROGRESS | RESOLVED | WONTFIX
+    by_severity counts OPEN only (parity with count).
     """
-    findings: list[dict[str, Any]] = []
+    caps = capabilities if isinstance(capabilities, dict) else {}
+    edges = federation_edges if isinstance(federation_edges, dict) else {}
+    organs = organs if isinstance(organs, dict) else {}
+    receipts = receipts if isinstance(receipts, dict) else {}
+    runtime_identity = runtime_identity if isinstance(runtime_identity, dict) else {}
+    metabolism = metabolism if isinstance(metabolism, list) else []
 
-    # F-001: Declared tools not registered (capability drift)
-    findings.append(
+    declared = int(caps.get("declared_count") or 0)
+    registered = int(caps.get("registered_count") or 0)
+    exposed = int(caps.get("exposed_count") or 0)
+    proven = int(caps.get("proven_live_count") or 0)
+    tested = int(caps.get("tested_count") or 0)
+    invocable = int(caps.get("invocable_count") or caps.get("callable_public") or 0)
+
+    # F-001 public wire only
+    if declared == registered == exposed == 8 or (declared == registered and declared >= 8):
+        f001_status, f001_ev = "RESOLVED", f"public wire declared={declared} registered={registered} exposed={exposed}"
+        f001_desc = "Public tool surface consistent (8-wire)"
+    else:
+        f001_status, f001_ev = (
+            "OPEN",
+            f"public wire declared={declared} registered={registered} exposed={exposed}",
+        )
+        f001_desc = "Declared tool count vs registered tool count — capability drift exists"
+
+    # F-002 durable bus / proven live
+    if proven >= 8:
+        f002_status, f002_ev = "RESOLVED", f"proven_live={proven}/8 tested_fresh={tested}"
+        f002_desc = "Successful tool invocations recorded for full public wire"
+    elif proven >= 1:
+        f002_status, f002_ev = (
+            "OPEN",
+            f"proven_live={proven}/8 tested_fresh={tested} invocable={invocable} — partial proof",
+        )
+        f002_desc = f"Partial tool proof: {proven}/8 proven live (not full canary yet)"
+    else:
+        f002_status, f002_ev = "OPEN", "no durable SUCCESS for public tools in PROVEN_LIVE window"
+        f002_desc = "No recorded successful tool invocations in durable bus window"
+
+    # F-003 metabolism stages
+    stages_obs = 0
+    for row in metabolism:
+        if not isinstance(row, dict):
+            continue
+        inv = row.get("invocations")
+        val = inv.get("value") if isinstance(inv, dict) else inv
+        if isinstance(val, int) and val > 0:
+            stages_obs += 1
+    if stages_obs >= 8:
+        f003_status, f003_ev = "RESOLVED", f"stages_with_invocations={stages_obs}/11"
+        f003_desc = "Intelligence metabolism stages observed on durable bus"
+    elif stages_obs >= 1:
+        f003_status, f003_ev = "OPEN", f"stages_with_invocations={stages_obs}/11 (partial)"
+        f003_desc = "Intelligence metabolism stages partially observed"
+    else:
+        f003_status, f003_ev = "OPEN", "stages_with_invocations=0/11"
+        f003_desc = "Intelligence metabolism stages (000–010) not observed"
+
+    # F-004 receipts
+    def _rv(key: str) -> Any:
+        cell = receipts.get(key)
+        if isinstance(cell, dict) and "value" in cell:
+            return cell.get("value")
+        return cell
+
+    verify_alive = _rv("verify_path_alive")
+    replay_alive = _rv("replay_path_alive")
+    chain_verified = _rv("chain_verified")
+    if verify_alive is True and replay_alive is True and chain_verified is True:
+        f004_status, f004_ev = "RESOLVED", "verify+replay alive; chain_verified=true"
+        f004_desc = "VAULT verify/replay paths live and chain verified"
+    elif verify_alive is True or replay_alive is True:
+        f004_status, f004_ev = (
+            "OPEN",
+            f"verify={verify_alive} replay={replay_alive} chain_verified={chain_verified} (gaps may be declared)",
+        )
+        f004_desc = "VAULT paths live; chain not fully green (gaps declared allowed)"
+    else:
+        f004_status, f004_ev = "OPEN", f"verify={verify_alive} replay={replay_alive}"
+        f004_desc = "VAULT chain verification and replay path not proven in this snapshot"
+
+    # F-005 organ identity
+    identity_present = 0
+    identity_total = 0
+    for name, block in organs.items():
+        if not isinstance(block, dict):
+            continue
+        identity_total += 1
+        ident = block.get("identity")
+        val = ident.get("value") if isinstance(ident, dict) else ident
+        if val:
+            identity_present += 1
+    if identity_total and identity_present == identity_total:
+        f005_status, f005_ev = "RESOLVED", f"identity present {identity_present}/{identity_total}"
+        f005_desc = "Organ identity verified from live /health"
+    elif identity_present > 0:
+        f005_status, f005_ev = "OPEN", f"identity present {identity_present}/{identity_total}"
+        f005_desc = "Organ identity partially verified"
+    else:
+        f005_status, f005_ev = "OPEN", "organ identity fields empty"
+        f005_desc = "Organ identity verification not performed — only transport liveness probed"
+
+    # F-006 topology
+    probed = int(edges.get("probed") or 0)
+    transport_n = int(edges.get("reachable") or edges.get("transport_reachable") or 0)
+    semantic_n = int(edges.get("semantic_proven") or 0)
+    aggregate = edges.get("aggregate_state") or "UNKNOWN"
+    edge_rows = edges.get("edges") if isinstance(edges.get("edges"), list) else []
+    if probed > 0 and transport_n > 0 and semantic_n == probed:
+        f006_status, f006_ev = (
+            "RESOLVED",
+            f"transport={transport_n}/{probed} semantic={semantic_n}/{probed} aggregate={aggregate}",
+        )
+        f006_desc = "Federation edges transport+semantic proven"
+    elif probed > 0 and transport_n > 0:
+        f006_status, f006_ev = (
+            "OPEN",
+            f"transport={transport_n}/{probed} semantic={semantic_n}/{probed} "
+            f"rows={len(edge_rows)} aggregate={aggregate} — transport only",
+        )
+        f006_desc = "Federation edges transport-reachable; authority propagation unproven"
+    else:
+        f006_status, f006_ev = "OPEN", f"probed={probed} reachable={transport_n}"
+        f006_desc = "Federation edge monitoring declared but not demonstrated"
+
+    # F-007 filled in finalize after sign; start OPEN
+    f007_status, f007_ev = "OPEN", "signature pending finalize"
+    f007_desc = "Snapshot signature is not cryptographically verified"
+
+    # F-008 deploy vs source
+    def _commit_val(block: Any) -> str | None:
+        if isinstance(block, dict) and "value" in block:
+            block = block.get("value")
+        if isinstance(block, dict):
+            block = block.get("value") or block.get("commit") or block.get("sha")
+        return str(block)[:12] if block else None
+
+    source_c = _commit_val(runtime_identity.get("source_commit"))
+    deploy_c = _commit_val(runtime_identity.get("deployed_commit"))
+    if not source_c or not deploy_c:
+        # fall back to filesystem
+        try:
+            import subprocess as _sp
+
+            source_c = source_c or (
+                _sp.run(
+                    ["git", "-C", "/root/arifOS", "rev-parse", "--short", "HEAD"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                ).stdout.strip()
+                or None
+            )
+            deploy_c = deploy_c or (
+                _sp.run(
+                    ["git", "-C", "/opt/arifos/app", "rev-parse", "--short", "HEAD"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                ).stdout.strip()
+                or None
+            )
+        except Exception:
+            pass
+    if source_c and deploy_c and source_c == deploy_c:
+        f008_status, f008_ev = "RESOLVED", f"source={source_c} deployed={deploy_c}"
+        f008_desc = "Deployed commit matches source HEAD"
+    else:
+        f008_status, f008_ev = "OPEN", f"source={source_c} deployed={deploy_c}"
+        f008_desc = "Deployed commit not aligned with source HEAD"
+
+    findings: list[dict[str, Any]] = [
         {
             "id": "F-001",
             "category": "capability_drift",
-            "description": "Declared tool count vs registered tool count — capability drift exists",
+            "description": f001_desc,
             "severity": "MEDIUM",
-            "evidence": "capability_matrix.declared_count vs registered_count",
-            "status": "OPEN",
-        }
-    )
-
-    # F-002: Tools with no recorded successful test
-    findings.append(
+            "evidence": f001_ev,
+            "status": f001_status,
+        },
         {
             "id": "F-002",
             "category": "tool_testing",
-            "description": "No recorded successful tool invocations in current session",
+            "description": f002_desc,
             "severity": "MEDIUM",
-            "evidence": "event_bus tool invocation counts unavailable",
-            "status": "OPEN",
-        }
-    )
-
-    # F-003: Metabolism states unknown
-    findings.append(
+            "evidence": f002_ev,
+            "status": f002_status,
+        },
         {
             "id": "F-003",
             "category": "metabolism",
-            "description": "Intelligence metabolism stages (000–010) not observed",
+            "description": f003_desc,
             "severity": "LOW",
-            "evidence": "event_bus not wired for stage counters",
-            "status": "OPEN",
-        }
-    )
-
-    # F-004: VAULT verification and replay untested
-    findings.append(
+            "evidence": f003_ev,
+            "status": f003_status,
+        },
         {
             "id": "F-004",
             "category": "receipt",
-            "description": "VAULT chain verification and replay path not tested in this snapshot",
+            "description": f004_desc,
             "severity": "HIGH",
-            "evidence": "verify_path_alive = null, replay_path_alive = null",
-            "status": "OPEN",
-        }
-    )
-
-    # F-005: Organ identities unknown (transport-only probing)
-    findings.append(
+            "evidence": f004_ev,
+            "status": f004_status,
+        },
         {
             "id": "F-005",
             "category": "identity",
-            "description": "Organ identity verification not performed — only transport liveness probed",
+            "description": f005_desc,
             "severity": "MEDIUM",
-            "evidence": "organ identity fields = null for all organs",
-            "status": "OPEN",
-        }
-    )
-
-    # F-006: Edge results not populated
-    findings.append(
+            "evidence": f005_ev,
+            "status": f005_status,
+        },
         {
             "id": "F-006",
             "category": "topology",
-            "description": "Federation edge monitoring declared but not demonstrated — 0 edges probed",
+            "description": f006_desc,
             "severity": "MEDIUM",
-            "evidence": "federation_edges block absent or empty",
-            "status": "OPEN",
-        }
-    )
-
-    # F-007: Snapshot signature not verified
-    findings.append(
+            "evidence": f006_ev,
+            "status": f006_status,
+        },
         {
             "id": "F-007",
             "category": "integrity",
-            "description": "Snapshot signature is not cryptographically verified",
+            "description": f007_desc,
             "severity": "LOW",
-            "evidence": "signature field = null (pending key bootstrap)",
-            "status": "OPEN",
-        }
-    )
-
-    # F-008: Upstream repository commit not resolvable
-    findings.append(
+            "evidence": f007_ev,
+            "status": f007_status,
+        },
         {
             "id": "F-008",
             "category": "provenance",
-            "description": "Deployed commit not verified against canonical repository",
+            "description": f008_desc,
             "severity": "LOW",
-            "evidence": "upstream_repository = UNVERIFIED",
-            "status": "OPEN",
-        }
-    )
+            "evidence": f008_ev,
+            "status": f008_status,
+        },
+    ]
 
-    open_count = sum(1 for f in findings if f["status"] == "OPEN")
-    by_severity = {}
-    for f in findings:
-        by_severity.setdefault(f["severity"], []).append(f["id"])
+    open_items = [f for f in findings if f["status"] == "OPEN"]
+    by_severity: dict[str, int] = {}
+    for f in open_items:
+        by_severity[f["severity"]] = by_severity.get(f["severity"], 0) + 1
 
     return {
-        "count": open_count,
-        "by_severity": {k: len(v) for k, v in by_severity.items()},
+        "count": len(open_items),
+        "by_severity": by_severity,
         "findings": findings,
     }
 
@@ -1953,6 +2232,19 @@ def build_snapshot(
         drift_value["capability"] = "DRIFTED" if capability_degraded else "ALIGNED"
         drift_value["forge_registry"] = "DRIFTED" if capability_degraded else "UNKNOWN"
 
+    organs = _organs_block(mcp)
+    metabolism = _metabolism_block()
+    receipts = _receipts_block()
+    federation_edges = _edges_block()  # sync path — async callers use build_snapshot_async()
+    findings = _findings_block(
+        capabilities=capabilities,
+        federation_edges=federation_edges,
+        organs=organs,
+        receipts=receipts,
+        runtime_identity=runtime_identity,
+        metabolism=metabolism,
+    )
+
     snap_id = snapshot_id or "obs_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime())
     payload: dict[str, Any] = {
         "snapshot_id": snap_id,
@@ -1971,13 +2263,13 @@ def build_snapshot(
         "substrate": _substrate_block(),
         "governance": _governance_block(),
         "capabilities": capabilities,
-        "organs": _organs_block(mcp),
-        "metabolism": _metabolism_block(),
+        "organs": organs,
+        "metabolism": metabolism,
         "evidence": _evidence_block(),
-        "receipts": _receipts_block(),
+        "receipts": receipts,
         "incidents": _incidents_block(),
-        "findings": _findings_block(),
-        "federation_edges": _edges_block(),  # sync path — callers from async context should use build_snapshot_async()
+        "findings": findings,
+        "federation_edges": federation_edges,
         "conformance": _conformance_block(),
         "stage_evidence": _pf(
             "self-reported",
@@ -1998,7 +2290,7 @@ def build_snapshot(
             ),
             "intelligence_pipeline": _pf(
                 "RETAK",
-                source="metabolism 0/11 observed, capability tests 0/18, capability drift present",
+                source="placeholder — replaced in _finalize_snapshot",
                 state="derived",
                 confidence=0.7,
                 observation_method=_OBS_METHOD_DERIVED,
@@ -2013,6 +2305,12 @@ def build_snapshot(
             observation_method=_OBS_METHOD_STATIC,
             independent=True,
         ),
+        "authority_dimensions": {
+            "access_tier": "PUBLIC",
+            "session_standing": "OBSERVE_ONLY_unless_bound",
+            "action_judgment": "per_call_via_arif_judge",
+            "note": "access_tier ≠ session_standing ≠ action verdict",
+        },
     }
     # Enrich + Ed25519 sign (key: /root/.arifos/observatory/keys/)
     return _finalize_snapshot(payload)
@@ -2058,6 +2356,18 @@ async def build_snapshot_async(
         drift_value["capability"] = "DRIFTED" if capability_degraded else "ALIGNED"
         drift_value["forge_registry"] = "DRIFTED" if capability_degraded else "UNKNOWN"
 
+    organs = _organs_block(mcp)
+    metabolism = _metabolism_block()
+    receipts = _receipts_block()
+    findings = _findings_block(
+        capabilities=capabilities,
+        federation_edges=federation_edges,
+        organs=organs,
+        receipts=receipts,
+        runtime_identity=runtime_identity,
+        metabolism=metabolism,
+    )
+
     snap_id = snapshot_id or "obs_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime())
     payload: dict[str, Any] = {
         "snapshot_id": snap_id,
@@ -2076,12 +2386,12 @@ async def build_snapshot_async(
         "substrate": _substrate_block(),
         "governance": _governance_block(),
         "capabilities": capabilities,
-        "organs": _organs_block(mcp),
-        "metabolism": _metabolism_block(),
+        "organs": organs,
+        "metabolism": metabolism,
         "evidence": _evidence_block(),
-        "receipts": _receipts_block(),
+        "receipts": receipts,
         "incidents": _incidents_block(),
-        "findings": _findings_block(),
+        "findings": findings,
         "federation_edges": federation_edges,
         "conformance": _conformance_block(),
         "stage_evidence": _pf(
@@ -2103,12 +2413,18 @@ async def build_snapshot_async(
             ),
             "intelligence_pipeline": _pf(
                 "RETAK",
-                source="metabolism 0/11 observed, capability tests 0/18, capability drift present",
+                source="placeholder — replaced in _finalize_snapshot",
                 state="derived",
                 confidence=0.7,
                 observation_method=_OBS_METHOD_DERIVED,
                 independent=True,
             ),
+        },
+        "authority_dimensions": {
+            "access_tier": "PUBLIC",
+            "session_standing": "OBSERVE_ONLY_unless_bound",
+            "action_judgment": "per_call_via_arif_judge",
+            "note": "access_tier ≠ session_standing ≠ action verdict",
         },
         "tier": _pf(
             "public",

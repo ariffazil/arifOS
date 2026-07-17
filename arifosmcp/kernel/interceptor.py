@@ -739,7 +739,19 @@ def _check_policy_floors(
     # Irreversible mutations require a fresh `nonce` to defeat
     # HTTP/SSE retry-induced double-fire. Nonces are remembered in an
     # in-memory cache for 24h; replays are DENIED with a clear reason.
-    if capability.mutation_class == MutationClass.IRREVERSIBLE:
+    #
+    # Mode-aware: read/diagnostic modes on arif_seal are NOT irreversible.
+    # Without this, mode=verify/list/ledger wrongly demanded a seal nonce.
+    _READ_MODES = frozenset({
+        "verify", "list", "ledger", "chain", "audit", "dry_run", "history", "read",
+    })
+    _mode_arg = str(req.raw_arguments.get("mode") or "").strip().lower()
+    _is_read_mode = (
+        capability.tool_name in {"arif_seal", "arif_vault_seal"}
+        and _mode_arg in _READ_MODES
+    )
+
+    if capability.mutation_class == MutationClass.IRREVERSIBLE and not _is_read_mode:
         nonce_raw = req.raw_arguments.get("nonce")
         if not isinstance(nonce_raw, str) or not nonce_raw:
             return InterceptorDecision(

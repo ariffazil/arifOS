@@ -471,6 +471,7 @@ def _project_light(
             "arif_observe",
             "arif_think",
             "arif_route",
+            "arif_memory",
             "arif_judge",
             "arif_forge",
             "arif_seal",
@@ -1260,7 +1261,21 @@ def arif_init(
                 _light_band = str(_band["actor_band"])
                 _light_agent_class = str(_band["agent_class"])
                 _light_authority_level = str(_band["authority_level"])
-                sess["actor_verified"] = _light_actor_verified
+                # SINGLE SETTER: bind_authority_state replaces sess["actor_verified"] direct write
+                try:
+                    from arifosmcp.runtime.authority import bind_authority_state
+                    from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                        build_authority_state_for_actor,
+                    )
+
+                    _av_state = build_authority_state_for_actor(
+                        actor_id,
+                        verified=bool(_light_actor_verified),
+                        verification_method="signature",
+                    )
+                    bind_authority_state(sess, _av_state)
+                except Exception:
+                    pass
                 sess["signature_verified"] = bool(_band["signature_verified"])
                 sess["actor_band"] = _light_band
                 sess["agent_class"] = _light_agent_class
@@ -1276,7 +1291,18 @@ def arif_init(
                 )
             except Exception as _exc:
                 logger.warning("light-mode crypto bind failed: %s", _exc)
-                sess["actor_verified"] = False
+                try:
+                    from arifosmcp.runtime.authority import bind_authority_state
+                    from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                        build_authority_state_for_actor,
+                    )
+
+                    _av_state = build_authority_state_for_actor(
+                        actor_id, verified=False, verification_method="none"
+                    )
+                    bind_authority_state(sess, _av_state)
+                except Exception:
+                    pass
                 sess["signature_verified"] = False
         elif actor_id:
             # Check Ed25519-exempt system actors first (IRR-DIP-AUDIT 2026-07-09)
@@ -1291,7 +1317,18 @@ def arif_init(
                         _light_band = "FULL"
                         _light_agent_class = "SOVEREIGN_PRINCIPAL"
                         _light_authority_level = "SOVEREIGN"
-                        sess["actor_verified"] = True
+                        try:
+                            from arifosmcp.runtime.authority import bind_authority_state
+                            from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                build_authority_state_for_actor,
+                            )
+
+                            _av_state = build_authority_state_for_actor(
+                                actor_id, verified=True, verification_method="session"
+                            )
+                            bind_authority_state(sess, _av_state)
+                        except Exception:
+                            pass
                         sess["signature_verified"] = True
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                         sess["authority"] = "FULL"
@@ -1304,7 +1341,18 @@ def arif_init(
                         _light_band = "LIMITED_MUTATE"
                         _light_agent_class = "AGENT"
                         _light_authority_level = "OPERATOR"
-                        sess["actor_verified"] = True
+                        try:
+                            from arifosmcp.runtime.authority import bind_authority_state
+                            from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                build_authority_state_for_actor,
+                            )
+
+                            _av_state = build_authority_state_for_actor(
+                                actor_id, verified=True, verification_method="session"
+                            )
+                            bind_authority_state(sess, _av_state)
+                        except Exception:
+                            pass
                         sess["agent_class"] = "AGENT"
                         sess["authority"] = "LIMITED_MUTATE"
                         logger.info(
@@ -1580,7 +1628,21 @@ def arif_init(
                     _band = classify_actor_band(actor_id, _ok)
                     identity_verified = bool(_band["actor_verified"])
                     sess["signature_verified"] = bool(_band["signature_verified"])
-                    sess["actor_verified"] = identity_verified
+                    # SINGLE SETTER: bind_authority_state replaces direct sess["actor_verified"] write
+                    try:
+                        from arifosmcp.runtime.authority import bind_authority_state
+                        from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                            build_authority_state_for_actor,
+                        )
+
+                        _av_state = build_authority_state_for_actor(
+                            actor_id,
+                            verified=bool(identity_verified),
+                            verification_method="signature" if identity_verified else "none",
+                        )
+                        bind_authority_state(sess, _av_state)
+                    except Exception:
+                        pass
                     sess["actor_band"] = _band["actor_band"]
                     sess["agent_class"] = _band["agent_class"]
                     sess["identity_verify_reason"] = _reason
@@ -1630,7 +1692,18 @@ def arif_init(
                     _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
                     if _exempt_level == "sovereign":
                         identity_verified = True
-                        sess["actor_verified"] = True
+                        try:
+                            from arifosmcp.runtime.authority import bind_authority_state
+                            from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                build_authority_state_for_actor,
+                            )
+
+                            _av_state = build_authority_state_for_actor(
+                                actor_id, verified=True, verification_method="session"
+                            )
+                            bind_authority_state(sess, _av_state)
+                        except Exception:
+                            pass
                         sess["signature_verified"] = True
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                         sess["actor_band"] = "FULL"
@@ -1641,7 +1714,18 @@ def arif_init(
                         )
                     else:
                         identity_verified = True
-                        sess["actor_verified"] = True
+                        try:
+                            from arifosmcp.runtime.authority import bind_authority_state
+                            from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                build_authority_state_for_actor,
+                            )
+
+                            _av_state = build_authority_state_for_actor(
+                                actor_id, verified=True, verification_method="session"
+                            )
+                            bind_authority_state(sess, _av_state)
+                        except Exception:
+                            pass
                         sess["agent_class"] = "AGENT"
                         sess["actor_band"] = "LIMITED_MUTATE"
                         logger.info(
@@ -1680,7 +1764,18 @@ def arif_init(
                 except Exception as exc:
                     logger.warning("Failed to issue challenge for %s: %s", actor_id, exc)
                 identity_verified = False
-                sess["actor_verified"] = False
+                try:
+                    from arifosmcp.runtime.authority import bind_authority_state
+                    from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                        build_authority_state_for_actor,
+                    )
+
+                    _av_state = build_authority_state_for_actor(
+                        actor_id, verified=False, verification_method="none"
+                    )
+                    bind_authority_state(sess, _av_state)
+                except Exception:
+                    pass
 
         # ── Birth authority: identity band only (Spine P0, Workstream 1) ──
         from arifosmcp.runtime.sct import identity_band_authority, compute_authority_state
@@ -1726,7 +1821,7 @@ def arif_init(
             session_bound=True,
             actor_bound=bool(identity_verified),
             authority_band=_derived_auth,
-            verification_method="ed25519"
+            verification_method="signature"
             if (nonce and actor_signature and identity_verified)
             else ("identity_claim" if identity_verified else "none"),
             verification_reason=(
@@ -2603,9 +2698,7 @@ def _build_operator_identity(
     return OperatorIdentity(
         claimed_id=actor_id,
         verified_id=actor_id if identity_verified else None,
-        verification_method="ed25519"
-        if (nonce and signature and identity_verified)
-        else "none",
+        verification_method="signature" if (nonce and signature and identity_verified) else "none",
         verification_provider="arifos_crypto_auth" if identity_verified else None,
         trust_level=trust_level,
         delegation_chain=[],

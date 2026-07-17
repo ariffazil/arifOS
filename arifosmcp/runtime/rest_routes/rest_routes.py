@@ -2172,6 +2172,24 @@ def _get_surface_consistency() -> dict[str, Any]:
         }
 
 
+def _proven_live_count() -> int:
+    """Count public tools with durable SUCCESS in the proven_live window.
+
+    Used by /health operational_tools — never confuses 'callable' with 'proven'.
+    """
+    try:
+        from arifosmcp.runtime.capability_drift import compute_capability_matrix
+
+        matrix = compute_capability_matrix(
+            mcp=None,
+            server_json=None,
+            registered_tools=None,
+        )
+        return int(matrix.get("proven_live_count") or 0)
+    except Exception:
+        return 0
+
+
 def _compute_tool_registry_hash(tool_registry: dict[str, Any]) -> str:
     """SHA-256 of canonical tool names."""
     names = sorted(tool_registry.keys())
@@ -2818,7 +2836,9 @@ def register_rest_routes(
             "tools_registry_size": len(tool_registry),
             "diagnostic_tools": _diagnostic,
             "total_declared_tools": _exposed + _diagnostic,
-            "operational_tools": 0,
+            # operational_tools = proven_live from durable bus (not invocable alone)
+            "operational_tools": _proven_live_count(),
+            "callable_public": _exposed,
             "tool_count_semantics": {
                 "tools_loaded": "Public MCP tools/list facade (same as GET /mcp tool_count)",
                 "canonical_tools_loaded": "Same as tools_loaded — public constitutional surface",
@@ -2826,6 +2846,8 @@ def register_rest_routes(
                 "tools_registry_size": "Internal registry callables (canonical + aliases)",
                 "diagnostic_tools": "Declared DIAGNOSTIC_TOOLS (not on default public wire)",
                 "total_declared_tools": "public wire + diagnostic declared surface",
+                "operational_tools": "proven_live_count — durable SUCCESS within 24h (not merely invocable)",
+                "callable_public": "public wire tools that are declared+registered+exposed",
             },
             "tool_manifest_url": "https://arifos.arif-fazil.com/tools.json",
             "tool_manifest_hash": "auto-generated",
