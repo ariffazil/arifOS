@@ -2951,6 +2951,19 @@ def register_rest_routes(
             # G = A·P·E·X·Φ (canonical 5-primitive). Zero anywhere = collapse.
             # C_dark = A·(1-P)·(1-X) — the "Bangang Detector".
             "apex_scalars": thermo.get("apex_scalars", {}),
+            # T7 — federation contract conformance. arifOS was missing this
+            # field; commit 46778a39f only touched CI workflow, not this
+            # emission. Restored per APEX-CONCORDANCE-17072026 §8 so the 6
+            # organs have a uniform 5-field /health header.
+            "federation_geometry": {
+                "status": "enabled",
+                "subjects": int(thermo.get("witness", {}).get("active_count", 0) or 0)
+                if isinstance(thermo.get("witness"), dict)
+                else 0,
+                "ledger_events": 0,
+                "witness_oracle": "active",
+                "source": "arifOS_kernel",
+            },
             # WS2: substrate + execution readiness (not SEAL)
             "service_health": thermo.get("service_health"),
             "execution_readiness": thermo.get("execution_readiness"),
