@@ -19,6 +19,50 @@ OUT_RUNTIME = Path("/root/.arifos/observatory/public-state.json")
 OUT_WEBROOT = Path("/var/www/html/arifos/public-state.json")
 PROOF_JSON = Path("/var/www/html/mcp/proof/index.json")
 MCP_HEALTH_URL = "http://127.0.0.1:8088/health"
+ORGAN_PORTS = {
+    "arifos": 8088,
+    "geox": 8081,
+    "wealth": 18082,
+    "well": 18083,
+    "aforge": 7072,
+}
+ORGAN_META = {
+    "arifos": {
+        "label": "arifOS",
+        "domain": "governance",
+        "website": "https://arifos.arif-fazil.com/",
+        "mcp": "https://mcp.arif-fazil.com/mcp",
+        "evidence_url": "https://arifos.arif-fazil.com/#sec-identity",
+    },
+    "geox": {
+        "label": "GEOX",
+        "domain": "earth",
+        "website": "https://geox.arif-fazil.com/",
+        "mcp": "https://geox.arif-fazil.com/mcp",
+        "evidence_url": "https://arifos.arif-fazil.com/#sec-organs",
+    },
+    "wealth": {
+        "label": "WEALTH",
+        "domain": "capital",
+        "website": "https://wealth.arif-fazil.com/",
+        "mcp": "https://wealth.arif-fazil.com/mcp",
+        "evidence_url": "https://arifos.arif-fazil.com/#sec-organs",
+    },
+    "well": {
+        "label": "WELL",
+        "domain": "human-substrate",
+        "website": "https://well.arif-fazil.com/",
+        "mcp": "https://well.arif-fazil.com/mcp",
+        "evidence_url": "https://arifos.arif-fazil.com/#sec-organs",
+    },
+    "aforge": {
+        "label": "A-FORGE",
+        "domain": "execution",
+        "website": "https://forge.arif-fazil.com/",
+        "mcp": "https://forge.arif-fazil.com/mcp",
+        "evidence_url": "https://arifos.arif-fazil.com/#sec-organs",
+    },
+}
 
 
 def now_iso() -> str:
@@ -38,14 +82,78 @@ def short_commit(value: Any, n: int = 7) -> str | None:
     return s[:n] if s else None
 
 
-def get_health() -> dict[str, Any] | None:
+def get_json(url: str, timeout: float = 3.0) -> dict[str, Any] | None:
     try:
-        req = urllib.request.Request(MCP_HEALTH_URL, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=4) as resp:
+        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return data if isinstance(data, dict) else None
     except Exception:
         return None
+
+
+def get_health() -> dict[str, Any] | None:
+    return get_json(MCP_HEALTH_URL, timeout=4.0)
+
+
+def tool_count_from_payload(data: dict[str, Any] | None) -> int | None:
+    if not data:
+        return None
+    for key in (
+        "tools_exposed_via_mcp",
+        "count",
+        "tool_count",
+        "public_tools",
+        "stateless_tools",
+        "callable_public",
+        "canonical_tools_loaded",
+        "tools_loaded",
+    ):
+        val = data.get(key)
+        if isinstance(val, int):
+            return val
+    tools = data.get("tools")
+    if isinstance(tools, list):
+        return len(tools)
+    return None
+
+
+def probe_organ(organ_id: str) -> dict[str, Any]:
+    meta = ORGAN_META.get(organ_id, {})
+    port = ORGAN_PORTS.get(organ_id)
+    health = get_json(f"http://127.0.0.1:{port}/health") if port else None
+    tools = get_json(f"http://127.0.0.1:{port}/tools") if port else None
+    count = tool_count_from_payload(tools)
+    if count is None:
+        count = tool_count_from_payload(health)
+    # Prefer exposed public facade for arifOS
+    if organ_id == "arifos" and health and isinstance(health.get("tools_exposed_via_mcp"), int):
+        count = health["tools_exposed_via_mcp"]
+    transport = "UP" if health and (
+        health.get("status") in ("healthy", "ok", "up", "ready") or health
+    ) else ("DOWN" if port else "UNKNOWN")
+    if health is None and tools is None:
+        transport = "DOWN"
+    elif health is None and tools is not None:
+        transport = "UP"
+    release = None
+    if health:
+        release = health.get("release_name") or health.get("version") or health.get("git_commit")
+    return {
+        "organ": meta.get("label") or organ_id.upper(),
+        "id": organ_id,
+        "domain": meta.get("domain"),
+        "transport": transport,
+        "public_tools": count,
+        "release": release,
+        "identity_state": "VERIFIED" if health and (health.get("identity_hash") or health.get("status")) else (
+            "PRESENT" if health or tools else "UNKNOWN"
+        ),
+        "last_observed": now_iso(),
+        "website": meta.get("website"),
+        "mcp": meta.get("mcp"),
+        "evidence_url": meta.get("evidence_url"),
+    }
 
 
 def load_snapshot(path: Path | None = None) -> dict[str, Any] | None:
@@ -213,11 +321,39 @@ def project_public_state(
     connect_url = "https://mcp.arif-fazil.com/"
     snap_id = snap.get("snapshot_id") or "unknown"
 
+    # Live organ rows — kill hand-written tool counts on organ sites
+    organs: dict[str, Any] = {}
+    for organ_id in ("arifos", "geox", "wealth", "well", "aforge"):
+        try:
+            organs[organ_id] = probe_organ(organ_id)
+        except Exception as exc:
+            organs[organ_id] = {
+                "organ": organ_id.upper(),
+                "id": organ_id,
+                "transport": "UNKNOWN",
+                "public_tools": None,
+                "error": str(exc),
+                "evidence_url": ORGAN_META.get(organ_id, {}).get("evidence_url"),
+            }
+    # Prefer snapshot organ liveness when probe fails
+    snap_organs = snap.get("organs") if isinstance(snap.get("organs"), dict) else {}
+    for organ_id, row in organs.items():
+        if row.get("public_tools") is not None:
+            continue
+        so = snap_organs.get(organ_id)
+        if isinstance(so, dict):
+            # common shapes: {tools: N} or nested health
+            for key in ("tools", "tool_count", "public_tools", "exposed_count"):
+                if isinstance(so.get(key), int):
+                    row["public_tools"] = so[key]
+                    break
+
     return {
         "schema": "arifos.public-state.v1",
         "generated_at": now_iso(),
         "headline": headline,
         "planes": planes,
+        "organs": organs,
         "release": {
             "release_id": release_id,
             "release_name": release_name,
