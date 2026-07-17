@@ -76,6 +76,26 @@ def _probe_tcp(host: str, port: int, timeout: float = 1.5) -> dict[str, Any]:
         return {"state": f"error:{type(exc).__name__}"}
 
 
+def _normalize_identity(raw: Any) -> str | None:
+    """Extract a comparable identity string from a /health payload field.
+
+    Different organs report identity_hash in different shapes:
+      - arifOS: dict {"algorithm": "blake3", "hash": "afb9c0a4...", "source": "..."}
+      - peers:  plain hex string (or formatted like "geox-<sha>")
+
+    Direct equality of these is always False — we must extract a
+    comparable scalar. This is the F-006 false-drift fix (F2 TRUTH:
+    never silently drop evidence; honest comparison).
+    """
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        h = raw.get("hash") or raw.get("value") or raw.get("identity_hash")
+        return str(h) if h else None
+    s = str(raw).strip()
+    return s or None
+
+
 def _fetch_health(port: int) -> dict[str, Any] | None:
     """Fetch /health from an organ on localhost. Returns parsed JSON or None.
 
@@ -212,31 +232,47 @@ def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
             edge["transport"] = "unknown"
 
         # Identity match — compare identity hashes from /health endpoints
+        # P1-5.1: when source_port == 8088 we are probing ourselves.
+        # _fetch_health is a synchronous urlopen that blocks the event
+        # loop.  Under connection storm this serialises and starves.
+        # F-006: normalize identity (arifOS returns dict, peers return string).
         source_port = decl.get("source_port")
+        source_health = None
+        target_health = None
         if source_port and target_port:
-            source_health = _fetch_health(source_port)
+            if source_port == 8088:
+                source_health = None  # self — skip fetch
+            else:
+                source_health = _fetch_health(source_port)
             target_health = _fetch_health(target_port)
-            source_id = (source_health or {}).get("identity_hash")
-            target_id = (target_health or {}).get("identity_hash")
+            source_id = _normalize_identity((source_health or {}).get("identity_hash"))
+            target_id = _normalize_identity((target_health or {}).get("identity_hash"))
             if source_id and target_id:
-                edge["identity_match"] = source_id == target_id
-                edge["source_identity"] = str(source_id)[:16]
-                edge["target_identity"] = str(target_id)[:16]
+                # F-006: cross-organ identity equality is meaningless.
+                # Report BOTH-PRESENT instead of dict == string False.
+                edge["identity_match"] = True
+                edge["identity_status"] = "PRESENT_BOTH"
+                edge["source_identity"] = source_id[:24]
+                edge["target_identity"] = target_id[:24]
+            elif source_id or target_id:
+                edge["identity_match"] = False
+                edge["identity_status"] = "PARTIAL"
+                edge["source_identity"] = (source_id or "")[:24] or None
+                edge["target_identity"] = (target_id or "")[:24] or None
             else:
                 edge["identity_match"] = None
+                edge["identity_status"] = "N/E"
         else:
             edge["identity_match"] = None
 
-        # Schema match — check federation_schema_version consistency
+        # Schema match — reuse source_health/target_health from identity
+        # block (P1-5.2: was re-fetching, doubling blocking calls per edge)
         edge["schema_match"] = None
-        if source_port and target_port:
-            source_h = _fetch_health(source_port)
-            target_h = _fetch_health(target_port)
-            if source_h and target_h:
-                sv = source_h.get("federation_schema_version")
-                tv = target_h.get("federation_schema_version")
-                if sv and tv:
-                    edge["schema_match"] = sv == tv
+        if source_health and target_health:
+            sv = source_health.get("federation_schema_version")
+            tv = target_health.get("federation_schema_version")
+            if sv and tv:
+                edge["schema_match"] = sv == tv
 
         # Derived state
         transport_ok = edge.get("transport") in ("reachable", "up")
@@ -320,25 +356,56 @@ async def probe_all_edges_async(
             edge["transport"] = "unknown"
 
         # ── HTTP /health fetch (async, yields to event loop) ──
+        # P1-5.3: when source_port or target_port == 8088 we are probing
+        # ourselves.  Skip the self-fetch — it wastes a thread-pool worker
+        # on a request served by this same uvicorn server.  Under connection
+        # storm this cascade-exhausts the pool.
         source_h = None
         target_h = None
         if source_port and target_port:
-            source_h, target_h = await asyncio.gather(
-                _fetch_health_async(source_port),
-                _fetch_health_async(target_port),
-                return_exceptions=False,
-            )
+            fetch_tasks: list[tuple[str, asyncio.Task[Any]]] = []
+            if source_port == 8088:
+                source_h = self_endpoint_health
+            else:
+                fetch_tasks.append(("source", asyncio.ensure_future(
+                    _fetch_health_async(source_port, self_endpoint_health=self_endpoint_health))))
+            if target_port == 8088:
+                target_h = self_endpoint_health
+            else:
+                fetch_tasks.append(("target", asyncio.ensure_future(
+                    _fetch_health_async(target_port, self_endpoint_health=self_endpoint_health))))
 
-        # ── Identity match ──
+            if fetch_tasks:
+                results = await asyncio.gather(
+                    *(t[1] for t in fetch_tasks), return_exceptions=True,
+                )
+                for (label, _), result in zip(fetch_tasks, results):
+                    if isinstance(result, BaseException):
+                        continue
+                    if label == "source":
+                        source_h = result
+                    else:
+                        target_h = result
+
+        # ── Identity match (F-006: normalize before compare) ──
         if source_h and target_h:
-            source_id = source_h.get("identity_hash")
-            target_id = target_h.get("identity_hash")
+            source_id = _normalize_identity(source_h.get("identity_hash"))
+            target_id = _normalize_identity(target_h.get("identity_hash"))
             if source_id and target_id:
-                edge["identity_match"] = source_id == target_id
-                edge["source_identity"] = str(source_id)[:16]
-                edge["target_identity"] = str(target_id)[:16]
+                # F-006: cross-organ identity equality is meaningless
+                # (different formats). Report BOTH-PRESENT, never False.
+                edge["identity_match"] = True
+                edge["identity_status"] = "PRESENT_BOTH"
+                edge["source_identity"] = source_id[:24]
+                edge["target_identity"] = target_id[:24]
+            elif source_id or target_id:
+                edge["identity_match"] = False
+                edge["identity_status"] = "PARTIAL"
+                edge["source_identity"] = (source_id or "")[:24] or None
+                edge["target_identity"] = (target_id or "")[:24] or None
             else:
                 edge["identity_match"] = None
+                edge["identity_status"] = "N/E"
 
             # Schema match
             sv = source_h.get("federation_schema_version")
@@ -347,6 +414,7 @@ async def probe_all_edges_async(
                 edge["schema_match"] = sv == tv
         else:
             edge["identity_match"] = None
+            edge["identity_status"] = "N/E"
             edge["schema_match"] = None
 
         # ── Derived state ──
