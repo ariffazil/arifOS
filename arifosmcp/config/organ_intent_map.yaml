@@ -65,6 +65,10 @@ organ_routes:
       - federation healthy
       - seal boundary
       - seal verdict
+      - seal this verdict
+      - should we seal
+      - should i seal
+      - seal the verdict
       - authority envelope
       - epistemic tag
       - cognitive axis
@@ -286,8 +290,12 @@ organ_routes:
       - neutron
       - structural map
       - trap
-      - charge
-      - seal
+      # RSI-GATE-1: bare "seal" removed — it stole governance "seal this verdict".
+      # Geological seal expressed as multi-word / collocates only.
+      - top seal
+      - trap seal
+      - seal rock
+      - sealing capacity
       - source rock
       - migration
       - geophysics
@@ -470,6 +478,9 @@ organ_routes:
       - wellbeing
       - maruah
       - fatigue
+      - tired
+      - too tired
+      - am i too tired
       - cognition load
       # HARDEN-C calibration 2026-07-12 — human readiness phrasing
       - cognitive clarity

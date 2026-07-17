@@ -424,6 +424,110 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
         return "arifOS"
     intent_lower = intent.lower()
 
+    # ── RSI-GATE-1 / W-A-HELDOUT (2026-07-17): injection → kernel ────────────
+    # Prompt-override language is a constitutional concern (F12), never a
+    # domain-organ or forge route — even if "forge"/"deploy" also appears.
+    _INJECTION_PATTERNS = (
+        "ignore previous instructions",
+        "ignore all previous",
+        "disregard previous instructions",
+        "disregard all previous",
+        "ignore prior instructions",
+        "jailbreak",
+        "dan mode",
+        "developer mode override",
+    )
+    if any(p in intent_lower for p in _INJECTION_PATTERNS):
+        return "arifOS"
+
+    # Governance seal collocates beat geological bare "seal" (GEOX trap seal).
+    if "seal" in intent_lower and any(
+        g in intent_lower
+        for g in (
+            "verdict",
+            "should we seal",
+            "should i seal",
+            "seal this",
+            "seal the verdict",
+            "seal decision",
+        )
+    ):
+        if not any(
+            geo in intent_lower
+            for geo in ("trap", "source rock", "top seal", "seal rock", "migration pathway")
+        ):
+            return "arifOS"
+
+    # Human readiness subject beats execute verbs ("am I too tired to approve deploy").
+    _HUMAN_TIRED = (
+        "too tired",
+        "am i too tired",
+        "i am too tired",
+        "tired to approve",
+        "exhausted to",
+        "sleep debt",
+        "too fatigued",
+    )
+    if any(p in intent_lower for p in _HUMAN_TIRED) or (
+        _token_in("tired", intent_lower)
+        and any(p in intent_lower for p in ("am i", "i am", "i too"))
+    ):
+        return "well"
+
+    # Multi-domain collision (≥3 distinct domains) → arifOS, not random winner.
+    # Catches garbage soup like "money geology well fatigue deploy".
+    _GEO_MARKERS = (
+        "seismic",
+        "geology",
+        "geological",
+        "geoscience",
+        "basin",
+        "porosity",
+        "petrophysics",
+        "horizon",
+        "well log",
+    )
+    _CAP_MARKERS = (
+        "npv",
+        "irr",
+        "emv",
+        "portfolio",
+        "capital",
+        "investment",
+        "money",
+        "fiscal",
+    )
+    _WELL_MARKERS = (
+        "tired",
+        "fatigue",
+        "biometric",
+        "sleep",
+        "vitality",
+        "readiness",
+        "hrv",
+        "wellness",
+    )
+    _FORGE_MARKERS = (
+        "deploy",
+        "commit",
+        "docker",
+        "forge",
+        "systemctl",
+        "npm build",
+        "git push",
+    )
+    _domain_hits = 0
+    if any(_token_in(t, intent_lower) or t in intent_lower for t in _GEO_MARKERS):
+        _domain_hits += 1
+    if any(_token_in(t, intent_lower) or t in intent_lower for t in _CAP_MARKERS):
+        _domain_hits += 1
+    if any(_token_in(t, intent_lower) or t in intent_lower for t in _WELL_MARKERS):
+        _domain_hits += 1
+    if any(_token_in(t, intent_lower) or t in intent_lower for t in _FORGE_MARKERS):
+        _domain_hits += 1
+    if _domain_hits >= 3:
+        return "arifOS"
+
     # ── Hard kernel guard (2026-06-30): MCP/kernel/diagnostic queries MUST route ─
     # to arifOS. These are kernel-level concerns, never domain-organ concerns.
     # The keyword map below handles normal cases; this guard catches edge cases
@@ -443,6 +547,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # ROUTING-CALIBRATION FIX (2026-07-12): bare organ name in intent (e.g.
     # "restart the arifos service") must NOT trigger Step 1 — only explicit
     # organ-query patterns (organ at start or followed by organ/health/status).
+    # RSI-GATE-1: also accept trailing "… of GEOX" / "organ health of GEOX".
     for organ_name in _ORGAN_NAMES:
         organ_lower = organ_name.lower().replace("-", " ").replace("a forge", "a_forge")
         if organ_name == "WELL":
@@ -455,10 +560,13 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
                 "well health check",
                 "well homeostasis",
                 "well dignity",
-                "well fatigue",  # organ context when paired with well organ language
                 " the well organ",
                 "well://",
             )
+            # "well fatigue" alone is organ-ish only when not multi-domain soup
+            # (multi-domain already returned arifOS above when ≥3 domains).
+            if "well fatigue" in intent_lower and _domain_hits < 2:
+                _well_organ_phrases = (*_well_organ_phrases, "well fatigue")
             if any(p in intent_lower for p in _well_organ_phrases) or intent_lower.startswith(
                 "well organ"
             ):
@@ -479,6 +587,27 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
         # ROUTING-CALIBRATION FIX: only match explicit organ queries, not bare
         # mentions like "restart the arifos service" (should route to A-FORGE).
         # Bare " arifos " in mid-intent now requires organ/health/status qualifier.
+        # RSI-GATE-1 trailing form: "organ health of geox", "status of wealth".
+        _trailing_of = (
+            f"of {organ_lower}" in intent_lower
+            or intent_lower.rstrip("?.! ").endswith(organ_lower)
+        )
+        _organ_query_context = any(
+            q in intent_lower
+            for q in (
+                "organ health",
+                "organ status",
+                "organ state",
+                "organ attestation",
+                "health of",
+                "status of",
+                "state of",
+            )
+        )
+        if _trailing_of and _organ_query_context:
+            _exec_verbs = ("restart", "deploy", "stop", "start", "build")
+            if not any(v in intent_lower for v in _exec_verbs):
+                return organ_lower.replace(" ", "_").replace("a_forge", "a-forge")
         if not (
             intent_lower.startswith(organ_lower + " ") or f" {organ_lower} organ " in intent_lower
         ):
@@ -563,6 +692,7 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
     # explicit capital tokens appear; geo "well *" no longer steals WELL organ.
     # 2026-07-12 calibration: word-boundary matching for short tokens so
     # "irr"/"rs" no longer hijack "irreversible" / readiness intents.
+    # RSI-GATE-1: sequential "then" — earth-before-capital skips capital boost.
     intent_map = _load_intent_map()
     organ_routes = intent_map.get("organ_routes", {})
     _CAPITAL_TOKENS = (
@@ -576,7 +706,27 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
         "capital",
         "investment",
     )
+    _EARTH_SEQ_TOKENS = (
+        "seismic",
+        "geology",
+        "geological",
+        "geoscience",
+        "interpretation",
+        "petrophysics",
+        "well log",
+        "basin",
+    )
     _has_capital = any(_token_in(t, intent_lower) for t in _CAPITAL_TOKENS)
+    _sequential_earth_first = False
+    if " then " in intent_lower and _has_capital:
+        _geo_positions = [
+            intent_lower.find(t) for t in _EARTH_SEQ_TOKENS if intent_lower.find(t) >= 0
+        ]
+        _cap_positions = [
+            intent_lower.find(t) for t in _CAPITAL_TOKENS if _token_in(t, intent_lower)
+        ]
+        if _geo_positions and _cap_positions and min(_geo_positions) < min(_cap_positions):
+            _sequential_earth_first = True
     scores: dict[str, int] = {}
     for organ_key, organ_config in organ_routes.items():
         organ_label = str(organ_config.get("organ", organ_key.upper()))
@@ -590,12 +740,25 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
                     score += 2
         if score <= 0:
             continue
-        if organ_label.upper() == "WEALTH" and _has_capital:
+        if organ_label.upper() == "WEALTH" and _has_capital and not _sequential_earth_first:
             score += 12  # capital verb outweighs lone geology noun "prospect"
+        if organ_label.upper() == "GEOX" and _sequential_earth_first:
+            score += 10  # first-stage earth work in "A then B" pipelines
         if organ_label.upper() == "GEOX" and _has_capital and _token_in("prospect", intent_lower):
             # demote pure prospect hit when capital terms present
             score = max(0, score - 6)
+        # Bare geological "seal" must not beat governance when already handled;
+        # demote single-token seal hits if no other geo evidence.
+        if organ_label.upper() == "GEOX" and _token_in("seal", intent_lower):
+            _other_geo = any(
+                _token_in(t, intent_lower)
+                for t in ("trap", "source rock", "reservoir", "migration", "seismic", "geology")
+            )
+            if not _other_geo and score <= 6:
+                score = 0
         scores[organ_label] = scores.get(organ_label, 0) + score
+    # Drop zeroed labels
+    scores = {k: v for k, v in scores.items() if v > 0}
     if scores:
         best_match = max(scores.items(), key=lambda kv: kv[1])[0]
         return best_match
