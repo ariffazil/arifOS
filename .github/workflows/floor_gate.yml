@@ -10,6 +10,9 @@ jobs:
           python-version: "3.12"
       - name: Install arifOS
         run: pip install -e ".[dev]"
+      - name: Fix broken symlinks for CI
+        run: |
+          [ -L TOOL_MANIFEST.json ] && rm TOOL_MANIFEST.json && echo '{}' > TOOL_MANIFEST.json || true
       - name: Run constitutional tests
         env:
           ARIFOS_SKIP_PROTOCOL_SENTINEL: "1"
