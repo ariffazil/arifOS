@@ -55,6 +55,9 @@ _TIER_AUTHORITY_MAP: dict[str, str] = {
 _ED25519_EXEMPT_SYSTEM_ACTORS: dict[str, str] = {
     "arif": "sovereign",
     "a-forge": "operator",
+    "forge": "operator",
+    "opencode": "operator",
+    "hermes": "operator",
 }
 
 
