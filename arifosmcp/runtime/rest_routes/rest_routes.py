@@ -2367,6 +2367,44 @@ def _probe_provider_status() -> dict[str, Any]:
     return status
 
 
+# ── P1 FIX 2026-07-17: health-path probes must never block the event loop ──
+# Root cause of conformance-spine intermittent failures (arifos_alive,
+# mcp_initialize, protocol_version, schema_echo_stable, session_starts,
+# vault_replay) and watchdog ZOMBIE states: the async /health handler called
+# synchronous urllib probes directly on the event loop —
+#   _probe_langfuse_tracing()  → external HTTPS (jp.cloud.langfuse.com)
+#   _probe_vault999_health()   → 2 × 2s local urlopen
+#   _probe_provider_status()   → external HTTPS (SEA-LION 5s + Ollama 3s)
+# Worst case ~15s total event-loop freeze per /health call, observed live via
+# py-spy (MainThread stuck in ssl.do_handshake under health→_probe_provider_status).
+# Strategy: TTL cache (60s) + refresh in a worker thread (asyncio.to_thread).
+_HEALTH_PROBE_TTL_S = 60.0
+_health_probe_cache: dict[str, tuple[float, Any]] = {}
+
+
+async def _cached_offloaded_probe(
+    key: str,
+    fn: Callable[[], Any],
+    fallback: Any,
+    ttl_s: float = _HEALTH_PROBE_TTL_S,
+) -> Any:
+    """Run a synchronous probe in a worker thread with a TTL cache.
+
+    Never blocks the event loop; never raises. On probe failure returns the
+    last cached value if present, else the provided conservative fallback.
+    """
+    now = time.monotonic()
+    hit = _health_probe_cache.get(key)
+    if hit is not None and (now - hit[0]) < ttl_s:
+        return hit[1]
+    try:
+        data = await asyncio.to_thread(fn)
+    except Exception:  # defensive — health must degrade, not fail
+        return hit[1] if hit is not None else fallback
+    _health_probe_cache[key] = (time.monotonic(), data)
+    return data
+
+
 def _probe_graphiti_enabled() -> bool:
     """Best-effort Graphiti reachability probe."""
     try:
@@ -2664,9 +2702,15 @@ def register_rest_routes(
             federation_ledger.close()
 
         # ── RSI: Call expensive probes ONCE, reuse results ──
-        _vault_health = _probe_vault999_health()
+        _vault_health = await _cached_offloaded_probe(
+            "vault999", _probe_vault999_health, fallback="unreachable"
+        )
         _drift = _compute_runtime_drift()
-        _langfuse = _probe_langfuse_tracing()
+        _langfuse = await _cached_offloaded_probe(
+            "langfuse",
+            _probe_langfuse_tracing,
+            fallback={"status": "unknown", "note": "probe offloaded; no cache yet"},
+        )
         runtime_drift_val = _drift.get("runtime_drift", False)
         contract_drift_val = contracts.get("contract_drift", True)
 
@@ -2817,7 +2861,16 @@ def register_rest_routes(
                 contract_status=contracts,
             ),
             "capability_map": build_runtime_capability_map(),
-            "provider_status": _probe_provider_status(),
+            "provider_status": await _cached_offloaded_probe(
+                "provider_status",
+                _probe_provider_status,
+                fallback={
+                    "primary_provider": None,
+                    "deterministic_fallback_available": True,
+                    "deterministic_fallback_used": True,
+                    "last_fallback_reason": "PROBE_WARMING",
+                },
+            ),
             "timestamp": datetime.now(UTC).isoformat(),
             # ── Freshness & Owner Summary (Phase 2 Hardening) ─────────────────
             # Freshness: answers "can you trust my current state?"
@@ -2958,7 +3011,9 @@ def register_rest_routes(
         Derived from /opt/arifos/app/identity.toml — single source of truth.
         """
         runtime_drift = _compute_runtime_drift()
-        vault_health = _probe_vault999_health()
+        vault_health = await _cached_offloaded_probe(
+            "vault999", _probe_vault999_health, fallback="unreachable"
+        )
         identity_data = get_identity(running_commit=BUILD_INFO["build"]["commit"])
         identity_data["runtime_drift"] = runtime_drift.get("runtime_drift", False)
         identity_data["vault999_health"] = vault_health
@@ -3117,7 +3172,9 @@ def register_rest_routes(
         # ── Vault liveness (sanitized — no internal details) ─────────────
         vault_liveness = "unknown"
         try:
-            vault_liveness = _probe_vault999_health()
+            vault_liveness = await _cached_offloaded_probe(
+                "vault999", _probe_vault999_health, fallback="unreachable"
+            )
         except Exception:
             vault_liveness = "unreachable"
 
@@ -6582,10 +6639,13 @@ setInterval(refreshSot, 30000);
             "verdicts": ["SEAL", "HOLD", "SABAR", "VOID"],
             "sovereign": "Arif — F13",
         }
-        return JSONResponse(context, headers={
-            "Access-Control-Allow-Origin": "*",
-            "Content-Type": "application/ld+json",
-        })
+        return JSONResponse(
+            context,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Content-Type": "application/ld+json",
+            },
+        )
 
     # ── Federation Status Spine ────────────────────────────────────────────────
     @route("/status.json", methods=["GET"])
