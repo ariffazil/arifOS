@@ -20046,33 +20046,23 @@ def _build_abc_surface_summary() -> dict[str, Any]:
     # Map to floor letters per ARIF ratification:
     result["hard_gates_present"] = ["F1", "F2", "F6", "F9", "F11", "F13"]
 
-    # 7. vault_query pass — try live probe of arif_vault_query / hermes_vault_query
+    # 7. vault_query pass — VAULT999 API :8100 (public MCP has no arif_vault_query)
     try:
         req = urllib.request.Request(
-            "http://127.0.0.1:8088/mcp",
-            data=_json.dumps(
-                {
-                    "jsonrpc": "2.0",
-                    "id": 1,
-                    "method": "tools/call",
-                    "params": {"name": "hermes_vault_query", "arguments": {"mode": "chain_status"}},
-                }
-            ).encode(),
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json, text/event-stream",
-            },
-            method="POST",
+            "http://127.0.0.1:8100/vault/status",
+            headers={"Accept": "application/json"},
+            method="GET",
         )
         with urllib.request.urlopen(req, timeout=3) as resp:
-            raw = resp.read().decode()
-            payload = _json.loads(raw.split("data:")[-1].strip())
-            err = payload.get("result", {}).get("isError", True)
-            result["vault_query_pass"] = not err
+            payload = _json.loads(resp.read().decode())
+        result["vault_query_pass"] = bool(
+            payload.get("status") in ("ok", "healthy", "OK")
+            or int(payload.get("vault_seals_total") or 0) > 0
+        )
     except Exception:
         result["vault_query_pass"] = False
 
-    # 8. session_binding pass — try live arif_init probe
+    # 8. session_binding pass — live arif_init must return a SEAL-* session_id
     try:
         req = urllib.request.Request(
             "http://127.0.0.1:8088/mcp",
@@ -20083,7 +20073,11 @@ def _build_abc_surface_summary() -> dict[str, Any]:
                     "method": "tools/call",
                     "params": {
                         "name": "arif_init",
-                        "arguments": {"mode": "ping", "actor_id": "conformance-probe"},
+                        "arguments": {
+                            "mode": "init",
+                            "actor_id": "conformance-probe",
+                            "intent": "session_binding_probe",
+                        },
                     },
                 }
             ).encode(),
@@ -20093,13 +20087,33 @@ def _build_abc_surface_summary() -> dict[str, Any]:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=8) as resp:
             raw = resp.read().decode()
-            payload = _json.loads(raw.split("data:")[-1].strip())
-            err = payload.get("result", {}).get("isError", True)
-            sc = payload.get("result", {}).get("structuredContent") or {}
-            sid = sc.get("session_id", "") if isinstance(sc, dict) else ""
-            result["session_binding_pass"] = (not err) and bool(sid)
+            payload = _json.loads(raw.split("data:")[-1].strip()) if "data:" in raw else _json.loads(raw)
+        res = payload.get("result", payload)
+        sid = ""
+        if isinstance(res, dict):
+            if res.get("isError"):
+                sid = ""
+            elif isinstance(res.get("structuredContent"), dict):
+                sid = res["structuredContent"].get("session_id") or ""
+            elif isinstance(res.get("content"), list) and res["content"]:
+                try:
+                    parsed = _json.loads(res["content"][0].get("text") or "{}")
+                    sid = parsed.get("session_id") or (
+                        (parsed.get("result") or {}).get("session_id")
+                        if isinstance(parsed.get("result"), dict)
+                        else ""
+                    ) or (
+                        (parsed.get("session_birth") or {}).get("session_id")
+                        if isinstance(parsed.get("session_birth"), dict)
+                        else ""
+                    )
+                except Exception:
+                    sid = ""
+            else:
+                sid = res.get("session_id") or ""
+        result["session_binding_pass"] = bool(sid) and str(sid).startswith("SEAL-")
     except Exception:
         result["session_binding_pass"] = False
 

@@ -573,3 +573,44 @@ def test_strong_method_can_grant_full(monkeypatch):
     assert standing.authority.band == ss.BAND_FULL
     assert standing.authority.mutation_allowed is True
     assert standing.authority.seal_allowed is False  # FULL ≠ SOVEREIGN
+
+
+def test_attach_canonical_kills_session_birth_dual_claim():
+    """P0: session_birth must not claim FULL while standing is OBSERVE_ONLY."""
+    from arifosmcp.runtime.session_standing import attach_canonical
+
+    response = {
+        "session_id": "SEAL-sync-test",
+        "actor_id": "ARIF",
+        "actor_verified": True,
+        "authority": "FULL",
+        "authority_scope": "FULL",
+        "session_birth": {
+            "session_id": "SEAL-sync-test",
+            "actor_id": "arif",
+            "actor_verified": True,
+            "authority_mode": "FULL",
+            "verdict": "FULL",
+            "mutation_allowed": True,
+            "authority_source": "identity_band",
+        },
+        "clarity_contract": {
+            "authority_band": "FULL",
+            "mutation_allowed": True,
+            "actor_bound": True,
+            "evidence_honesty": "CLEAR",
+        },
+        "sct_claims": {"auth": "FULL", "av": True},
+    }
+    out = attach_canonical(response, session_id="SEAL-sync-test", actor_id="ARIF")
+    st = out["standing"]
+    assert st["authority"]["band"] == "OBSERVE_ONLY"
+    assert st["authority"]["mutation_allowed"] is False
+    assert out["session_birth"]["authority_mode"] == "OBSERVE_ONLY"
+    assert out["session_birth"]["mutation_allowed"] is False
+    assert out["session_birth"]["actor_verified"] is False
+    assert out["session_birth"]["authority_source"] == "standing"
+    assert out["clarity_contract"]["mutation_allowed"] is False
+    assert out["clarity_contract"]["authority_band"] == "OBSERVE_ONLY"
+    assert out.get("authority_scope") == "OBSERVE_ONLY"
+    assert out["sct_claims"]["av"] is False
