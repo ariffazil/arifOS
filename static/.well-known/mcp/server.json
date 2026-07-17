@@ -14,7 +14,7 @@
     "version": "2026.06.19"
   },
   "source_of_truth": "arifosmcp/abi/capability_registry.json",
-  "tool_count": 6,
+  "tool_count": 8,
   "tools": [
     {
       "capability_id": "session.bind",
@@ -50,6 +50,18 @@
       "capability_id": "authority.judge",
       "name": "arif_judge",
       "semantic_hash": "sha256:b1c58a6eeeeacb8ed8dd771295c24aeb28649b8dd4b8c3aa251cf4cd6a759abd",
+      "version": "1.0.0"
+    },
+    {
+      "capability_id": "action.execute",
+      "name": "arif_forge",
+      "semantic_hash": "sha256:3ce5463279351e0c8c371dc046cc4062c796540516bb1f31c79c712299db07f3",
+      "version": "1.0.0"
+    },
+    {
+      "capability_id": "history.seal",
+      "name": "arif_seal",
+      "semantic_hash": "sha256:22ecfcb626b9c4fe1bedb8e9c31dbf79862588736177149c8492a8d35f2e4119",
       "version": "1.0.0"
     }
   ],
