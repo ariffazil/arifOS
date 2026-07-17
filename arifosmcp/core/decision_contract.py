@@ -61,11 +61,15 @@ class AuthorityClass(str, Enum):
 # ── Risk Class ───────────────────────────────────────────────────
 
 
-class RiskClass(str, Enum):
+class DecisionRiskClass(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     ATOMIC = "atomic"
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = DecisionRiskClass  # DEPRECATED — use DecisionRiskClass
 
 
 # ── Reversibility Class ─────────────────────────────────────────

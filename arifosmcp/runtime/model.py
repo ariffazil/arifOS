@@ -30,13 +30,17 @@ class ExecutionState(StrEnum):
     SEAL = "SEAL"
 
 
-class RiskClass(StrEnum):
+class ActionRiskTier(StrEnum):
     """Constitutional risk classification for tool actions."""
 
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 class ClaimStatus(StrEnum):

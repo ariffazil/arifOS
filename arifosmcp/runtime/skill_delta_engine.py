@@ -91,11 +91,15 @@ HARD_RULES: tuple[str, ...] = (
 # ── Vocabulary ───────────────────────────────────────────────────────────────
 
 
-class RiskClass(StrEnum):
+class ActionRiskTier(StrEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 @dataclass(frozen=True)
@@ -124,12 +128,12 @@ class SkillDelta:
 
     def risk_class(self) -> RiskClass:
         if self.in_extinction_ledger:
-            return RiskClass.CRITICAL
+            return ActionRiskTier.CRITICAL
         if self.weakening_detected:
-            return RiskClass.HIGH
+            return ActionRiskTier.HIGH
         if self.strengthening_detected:
-            return RiskClass.LOW
-        return RiskClass.MEDIUM
+            return ActionRiskTier.LOW
+        return ActionRiskTier.MEDIUM
 
 
 @dataclass(frozen=True)
@@ -147,7 +151,7 @@ class SkillDeltaProposal:
     proposed_at: str
     proposed_changes: tuple[SkillDelta, ...]
     affected_organs: tuple[str, ...]
-    risk_class: RiskClass
+    risk_class: ActionRiskTier
     tests_required: tuple[str, ...]
     judge_required: bool
     cooling_required: bool
@@ -257,8 +261,8 @@ def _affected_organs(
 
 
 def _worst_risk(deltas: tuple[SkillDelta, ...]) -> RiskClass:
-    order = {RiskClass.LOW: 0, RiskClass.MEDIUM: 1, RiskClass.HIGH: 2, RiskClass.CRITICAL: 3}
-    worst = RiskClass.LOW
+    order = {ActionRiskTier.LOW: 0, ActionRiskTier.MEDIUM: 1, ActionRiskTier.HIGH: 2, ActionRiskTier.CRITICAL: 3}
+    worst = ActionRiskTier.LOW
     for d in deltas:
         r = d.risk_class()
         if order[r] > order[worst]:
@@ -335,7 +339,7 @@ def propose_skill_delta(
         not extinct_blockers
         and not cooling_required
         and not judge_required
-        and risk in (RiskClass.LOW, RiskClass.MEDIUM)
+        and risk in (ActionRiskTier.LOW, ActionRiskTier.MEDIUM)
     )
 
     proposal = SkillDeltaProposal(
@@ -506,7 +510,7 @@ def _check_extinct_blocked() -> tuple[bool, str]:
     return (
         "old_skill" in p.extinct_blockers
         and not p.resume_allowed
-        and p.risk_class == RiskClass.CRITICAL,
+        and p.risk_class == ActionRiskTier.CRITICAL,
         f"blockers={p.extinct_blockers} risk={p.risk_class.value}",
     )
 

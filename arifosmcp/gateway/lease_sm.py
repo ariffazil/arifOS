@@ -68,7 +68,7 @@ ACTIVE_STATES = {
 # ── Risk classes ─────────────────────────────────────────────────────────────
 
 
-class RiskClass(Enum):
+class LeaseRiskClass(Enum):
     LOW = "LOW"
     MEDIUM_MUTATION = "MEDIUM_MUTATION"
     HIGH_IRREVERSIBLE = "HIGH_IRREVERSIBLE"
@@ -79,13 +79,17 @@ class RiskClass(Enum):
     SOVEREIGN = "SOVEREIGN"
 
 
-REQUIRES_888: set[RiskClass] = {
-    RiskClass.HIGH_IRREVERSIBLE,
-    RiskClass.HIGH_EXTERNAL,
-    RiskClass.HIGH_SECRET,
-    RiskClass.HIGH_CAPITAL,
-    RiskClass.HIGH_PRODUCTION_MUTATION,
-    RiskClass.SOVEREIGN,
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = LeaseRiskClass  # DEPRECATED — use LeaseRiskClass
+
+
+REQUIRES_888: set[LeaseRiskClass] = {
+    LeaseRiskClass.HIGH_IRREVERSIBLE,
+    LeaseRiskClass.HIGH_EXTERNAL,
+    LeaseRiskClass.HIGH_SECRET,
+    LeaseRiskClass.HIGH_CAPITAL,
+    LeaseRiskClass.HIGH_PRODUCTION_MUTATION,
+    LeaseRiskClass.SOVEREIGN,
 }
 
 
@@ -101,7 +105,7 @@ class LeaseScope:
 
 @dataclass
 class LeaseRisk:
-    risk_class: RiskClass = RiskClass.LOW
+    risk_class: LeaseRiskClass = LeaseRiskClass.LOW
     reversibility: str = "FULL"  # FULL | PARTIAL | NONE
     blast_radius: str = "LOW"  # LOW | MEDIUM | HIGH | SOVEREIGN
     require_888_hold: bool = False
@@ -323,7 +327,7 @@ def create_lease(
     tool_name: str,
     upstream_id: str,
     policy_id: str,
-    risk_class: RiskClass = RiskClass.LOW,
+    risk_class: LeaseRiskClass = LeaseRiskClass.LOW,
     reversibility: str = "FULL",
     blast_radius: str = "LOW",
     max_invocations: int = 1,

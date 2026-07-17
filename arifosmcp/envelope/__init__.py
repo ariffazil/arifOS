@@ -76,11 +76,15 @@ class ReversibilityClass(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class RiskClass(str, Enum):
+class ActionRiskTier(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 class ExecutionStatus(str, Enum):
@@ -205,7 +209,7 @@ class FederationEnvelope(BaseModel):
     evidence_layer: EvidenceLayer = EvidenceLayer.UNKNOWN
     autonomy_band: AutonomyBand = AutonomyBand.T2_ANNOUNCE
     reversibility_class: ReversibilityClass = ReversibilityClass.UNKNOWN
-    risk_class: RiskClass = RiskClass.MEDIUM
+    risk_class: ActionRiskTier = ActionRiskTier.MEDIUM
     required_floor_checks: list[Floor] = Field(default_factory=list)
     proposed_action: dict[str, Any]
     execution_status: ExecutionStatus = ExecutionStatus.PENDING
@@ -273,8 +277,8 @@ def validate_envelope(envelope: FederationEnvelope | dict[str, Any]) -> list[str
         )
 
     if envelope.reversibility_class == ReversibilityClass.NONE and envelope.risk_class in (
-        RiskClass.HIGH,
-        RiskClass.CRITICAL,
+        ActionRiskTier.HIGH,
+        ActionRiskTier.CRITICAL,
     ):
         errors.append(
             "HARD_RULE: Irreversible action with HIGH/CRITICAL risk. Requires F13 sovereign approval."
@@ -327,7 +331,7 @@ def sabah_basin_envelope() -> FederationEnvelope:
         evidence_layer=EvidenceLayer.OBSERVED,
         autonomy_band=AutonomyBand.F13_SOVEREIGN,
         reversibility_class=ReversibilityClass.FULL,
-        risk_class=RiskClass.MEDIUM,
+        risk_class=ActionRiskTier.MEDIUM,
         required_floor_checks=[
             Floor.F1,
             Floor.F2,

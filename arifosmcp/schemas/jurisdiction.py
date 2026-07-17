@@ -41,7 +41,7 @@ class AutonomyBand(StrEnum):
     BLACK = "black"  # Irreversible destructive — default VOID
 
 
-class RiskClass(StrEnum):
+class JurisdictionRiskClass(StrEnum):
     """Risk classification for a tool invocation."""
 
     OBSERVE = "observe"
@@ -49,6 +49,10 @@ class RiskClass(StrEnum):
     MUTATE = "mutate"
     ATOMIC = "atomic"
     IRREVERSIBLE = "irreversible"
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = JurisdictionRiskClass  # DEPRECATED — use JurisdictionRiskClass
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -68,7 +72,7 @@ class CapabilityGrant(BaseModel):
     actor_id: str = Field(description="Agent or organ holding this grant")
     tool_name: str = Field(description="Canonical MCP tool name")
     band: AutonomyBand = Field(description="Maximum autonomy band for this grant")
-    risk_ceiling: RiskClass = Field(default=RiskClass.OBSERVE)
+    risk_ceiling: JurisdictionRiskClass = Field(default=JurisdictionRiskClass.OBSERVE)
     issued_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     expires_at: str | None = Field(default=None, description="ISO timestamp or None for perpetual")
     issuer: str = Field(default="L13_SOVEREIGN", description="Who issued this grant")
@@ -103,7 +107,7 @@ class JurisdictionEnvelope(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict)
     grant_id: str | None = Field(default=None, description="Capability grant if pre-authorized")
     claimed_band: AutonomyBand = Field(default=AutonomyBand.GREEN)
-    risk_class: RiskClass = Field(default=RiskClass.OBSERVE)
+    risk_class: JurisdictionRiskClass = Field(default=JurisdictionRiskClass.OBSERVE)
     rollback_plan: str | None = Field(default=None, description="Required for ORANGE+")
     observe_receipt_id: str | None = Field(
         default=None, description="Receipt proving prior observation (required for MUTATE+)"
@@ -122,7 +126,7 @@ class BandRoutingResult(BaseModel):
     tool_name: str
     actor_id: str
     assigned_band: AutonomyBand
-    risk_class: RiskClass
+    risk_class: JurisdictionRiskClass
     reason: str
     requires_grant: bool
     requires_rollback: bool
