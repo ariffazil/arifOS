@@ -23,11 +23,11 @@ refresh_history:
 > 2. Read `/root/CONTEXT.md` (Live Machine State & Ports)
 > 3. Read this file (Repo-Specific Build/Test/Run rules)
 
-> **Constitutional Separation (Substrate / Constitution / Cognition):**
-- **Substrate (Δ)** carries and changes state (A-FORGE :7071/7072 executor, transport, ports).
-- **Constitution (Ω)** bounds and authorizes action (arifOS :8088 judge, seal, lease, policy).
-- **Cognition (Ψ)** interprets and reduces uncertainty (AAA :3001 cockpit, A2A, reasoning).
-Each layer has a bounded function. No layer may impersonate another: never let Ψ execute, never let Δ judge, never let Ω hallucinate. All high-risk execution requires lease + prior arifOS judgment path. See `docs/philosophy/THREE_LAYER_ONTOLOGY.md`.
+> **Constitutional Separation (Trinity — canonical per FEDERATION_CONTRACT.md):**
+- **Δ (Delta) — AAA** :3001 : cockpit · identity · state · A2A · display (never judge, never execute).
+- **Ω (Omega) — arifOS** :8088 : constitution · kernel · judge · seal · VAULT999 (never executes).
+- **Ψ (Psi) — A-FORGE** :7071 sense / :7072 mcp : execution · actuator · forge · tools · lease-bound.
+Each plane has a bounded function. No plane may impersonate another: never let Δ judge, never let Ω execute, never let Ψ self-authorize. (A-FORGE's own *substrate* role — carrying execution state — is distinct from the Δ letter; do not conflate.) All high-risk execution requires lease + prior arifOS judgment path. See `docs/philosophy/THREE_LAYER_ONTOLOGY.md`.
 >
 > **Load-bearing pair:** One Skill (Knowing What NOT To Do / restraint) + One Tool (Verdict Loop With Memory).
 >
