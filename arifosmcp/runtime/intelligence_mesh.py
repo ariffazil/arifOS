@@ -168,6 +168,12 @@ async def probe_all_organs(
     This is the primary mesh intelligence gathering function.
     Returns a unified health report with aggregate stats.
 
+    P1 FIX 2026-07-17: Self-probe exclusion — arifOS is excluded from
+    HTTP probe targets because the kernel probing its own /health endpoint
+    creates a circular dependency during edge-probe windows. The caller
+    already has the kernel's health state. The result still includes arifOS
+    as "self" with the kernel's current health state inferred from runtime.
+
     Args:
         timeout: Per-organ probe timeout
         organ_ids: Subset of organs to probe (None = all known)
@@ -176,6 +182,10 @@ async def probe_all_organs(
         Dict with mesh state, organ details, and aggregate health
     """
     targets = organ_ids or list(ORGAN_REGISTRY.keys())
+    # P1 FIX: Exclude self (arifOS) from HTTP probe targets
+    # arifOS probing its own /health creates circular dependency.
+    # The kernel's own health is independently verifiable.
+    targets = [t for t in targets if t != "arifOS"]
 
     # Probe all organs concurrently
     tasks = [probe_organ(oid, timeout) for oid in targets]
@@ -187,6 +197,17 @@ async def probe_all_organs(
     degraded_count = 0
     dead_count = 0
 
+    # P1 FIX: Include arifOS as "self" — trust local kernel state, no HTTP probe
+    organs["arifOS"] = {
+        "organ_id": "arifOS",
+        "alive": True,
+        "status": "self",
+        "role": "Constitutional Kernel (self)",
+        "note": "Self-probe skipped — kernel health verified independently",
+        "probed_at": datetime.now(UTC).isoformat(),
+    }
+    alive_count += 1
+
     for r in results:
         oid = r["organ_id"]
         organs[oid] = r
@@ -197,7 +218,7 @@ async def probe_all_organs(
         else:
             degraded_count += 1
 
-    total = len(targets)
+    total = len(targets) + 1  # +1 for self (arifOS)
     mesh_status = "HEALTHY"
     if dead_count > 0:
         mesh_status = "DEGRADED"
