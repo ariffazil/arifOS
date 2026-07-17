@@ -69,10 +69,16 @@ def _resolve_authority_from_registry(actor_id: str | None) -> str:
     (see module constant _ED25519_EXEMPT_SYSTEM_ACTORS and docs/
     ED25519_REGISTRY_BOOTSTRAP_EXEMPTION.md). All other agents need Ed25519
     identity_proof in the registry or they resolve as anonymous.
+
+    T3a 2026-07-17: Case-insensitive lookup. External MCP hosts may send
+    "ARIF" or "Arif" — the exempt list keys are lowercase "arif".
     """
     # Hardcoded system actors — Ed25519 registry bootstrap exemption
-    if actor_id in _ED25519_EXEMPT_SYSTEM_ACTORS:
-        return _ED25519_EXEMPT_SYSTEM_ACTORS[actor_id]
+    # Case-insensitive: external hosts may send "ARIF" or "Arif"
+    if actor_id:
+        _key = actor_id.strip().lower()
+        if _key in _ED25519_EXEMPT_SYSTEM_ACTORS:
+            return _ED25519_EXEMPT_SYSTEM_ACTORS[_key]
 
     # Look up in registry
     if actor_id and _AGENT_IDENTITIES_PATH.exists():
@@ -302,19 +308,29 @@ def validate_session(
     # ── 4. Protected sovereign ID must be signature-verified ─────────────────
     sess_actor = sess.get("actor_id", "")
     if is_protected_sovereign_id(sess_actor) and not sess.get("signature_verified", False):
-        return {
-            "valid": False,
-            "session": sess,
-            "reason": (
-                "L11 AUTH: Protected sovereign ID claimed without verified signature. "
-                "Actor IDs matching PROTECTED_SOVEREIGN_IDS require Ed25519 signature "
-                "verification through arif_session_init. Use a valid actor_signature "
-                "or use an unprivileged actor_id."
-            ),
-            "actor_id_claimed": sess_actor,
-            "signature_verified": False,
-            "required_action": "arif_session_init with valid actor_signature",
-        }
+        # T3a 2026-07-17: Ed25519-exempt system actors bypass the signature
+        # requirement. The exempt list declares these actors as bootstrap
+        # principals that can claim their identity without cryptographic proof.
+        sess_actor_key = sess_actor.strip().lower() if sess_actor else ""
+        if sess_actor_key in _ED25519_EXEMPT_SYSTEM_ACTORS:
+            logger.info(
+                "T3a: Ed25519-exempt actor %s bypasses protected ID signature check",
+                sess_actor,
+            )
+        else:
+            return {
+                "valid": False,
+                "session": sess,
+                "reason": (
+                    "L11 AUTH: Protected sovereign ID claimed without verified signature. "
+                    "Actor IDs matching PROTECTED_SOVEREIGN_IDS require Ed25519 signature "
+                    "verification through arif_session_init. Use a valid actor_signature "
+                    "or use an unprivileged actor_id."
+                ),
+                "actor_id_claimed": sess_actor,
+                "signature_verified": False,
+                "required_action": "arif_session_init with valid actor_signature",
+            }
 
     # ── 5. Actor ID mismatch ──────────────────────────────────────────────────
     if actor_id and sess.get("actor_id") != actor_id:

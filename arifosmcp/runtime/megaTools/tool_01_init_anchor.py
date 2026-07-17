@@ -117,6 +117,7 @@ def build_authority_state_for_actor(
     # until the production key registry is wired with an explicit binding
     # ceremony — until then, no actor receives SOVEREIGN automatically.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+
     is_sovereign = bool(verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS)
 
     method = verification_method or ("session" if verified else "none")
@@ -191,10 +192,9 @@ def _canonical_from_state(state: AuthorityState) -> CanonicalAuthority:
     actor_key = safe_actor.strip().lower()
     # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
     from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+
     _vkey = getattr(state.actor, "verified_key_id", None) if state.actor else None
-    is_sovereign = bool(
-        state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS
-    )
+    is_sovereign = bool(state.actor.verified and _vkey and _vkey in SOVEREIGN_KEY_IDS)
 
     if is_sovereign:
         level = AuthorityLevel.SOVEREIGN
@@ -226,7 +226,9 @@ def _canonical_from_state(state: AuthorityState) -> CanonicalAuthority:
     )
 
 
-def _authority_for_actor(actor_id: str, verified: bool, verified_key_id: str | None = None) -> CanonicalAuthority:
+def _authority_for_actor(
+    actor_id: str, verified: bool, verified_key_id: str | None = None
+) -> CanonicalAuthority:
     """WS1 step 2: ``CanonicalAuthority`` is now DERIVED from ``AuthorityState``.
     Single source of truth. Backwards-compatible signature — callers unchanged.
 
@@ -354,7 +356,7 @@ class SignedChallenge:
 
 def _atlas333_boot_context() -> dict[str, Any]:
     """Compact ATLAS333 boot context for arif_init response.
-    
+
     Injects paradox gravity, demand tensor defaults, TEARFRAME thresholds,
     lane activations, and MCP URIs into every agent boot session.
     """
@@ -363,6 +365,7 @@ def _atlas333_boot_context() -> dict[str, Any]:
             _build_paradoxes_from_canonical,
             _runtime_activation_rules,
         )
+
         paradoxes = _build_paradoxes_from_canonical()
         activation = _runtime_activation_rules() or {}
     except Exception:
@@ -409,8 +412,8 @@ def _atlas333_boot_context() -> dict[str, Any]:
             "Phi": "text -> GPV(lane, tau, kappa, rho)",
         },
         "boot_note": "ATLAS333 is governance substrate, not optional skill. "
-                     "Every reasoning session starts with paradox gravity. "
-                     "Confidence collapses toward humility automatically.",
+        "Every reasoning session starts with paradox gravity. "
+        "Confidence collapses toward humility automatically.",
     }
 
 
@@ -509,11 +512,14 @@ async def init_anchor(
 
     # Pull nonce + signature from auth_context (provided by the MCP client)
     _nonce = (auth_context or {}).get("nonce")
-    _actor_signature = (auth_context or {}).get("actor_signature") or (auth_context or {}).get("signature")
+    _actor_signature = (auth_context or {}).get("actor_signature") or (auth_context or {}).get(
+        "signature"
+    )
 
     if _actor_signature and _nonce:
         try:
             from arifosmcp.runtime.governance_identity import _verify_ed25519_proof
+
             proof = {"nonce": _nonce, "signature": _actor_signature}
             if _verify_ed25519_proof(_dn, proof):
                 verified = True
@@ -526,11 +532,13 @@ async def init_anchor(
                         _PUBKEY_CANDIDATES,
                     )
                     import hashlib
+
                     for _pk_path in _PUBKEY_CANDIDATES:
                         if _pk_path and _pk_path.exists():
-                            verified_key_id = "ed25519:sha256:" + hashlib.sha256(
-                                _pk_path.read_bytes()
-                            ).hexdigest()[:16]
+                            verified_key_id = (
+                                "ed25519:sha256:"
+                                + hashlib.sha256(_pk_path.read_bytes()).hexdigest()[:16]
+                            )
                             break
                 except Exception:
                     verified_key_id = None
@@ -647,10 +655,26 @@ async def init_anchor(
         # Until we have a SOVEREIGN_KEY_IDS registry wired here, fall back to
         # "verified" — never grant SOVEREIGN on string match alone.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+        from arifosmcp.runtime.session_auth import (
+            _ED25519_EXEMPT_SYSTEM_ACTORS as _EXEMPT_ACTORS_T3A,
+        )
+
+        # T3a 2026-07-17: Ed25519-exempt system actors get their exempt
+        # authority level even without cryptographic proof. This bridges the
+        # bootstrap gap: arif can claim SOVEREIGN, forge/opencode/hermes can
+        # claim operator, without Ed25519 registration.
+        _actor_key_t3a = _dn.strip().lower() if _dn else ""
+        _exempt_authority = _EXEMPT_ACTORS_T3A.get(_actor_key_t3a) if _EXEMPT_ACTORS_T3A else None
         _authority_level = (
-            "sovereign"
-            if verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
-            else "verified" if verified else "anonymous"
+            _exempt_authority  # T3a: exempt actors get their listed level
+            if _exempt_authority
+            else (
+                "sovereign"
+                if verified and verified_key_id and verified_key_id in SOVEREIGN_KEY_IDS
+                else "verified"
+                if verified
+                else "anonymous"
+            )
         )
         _signed_session_id = bind_session_identity(
             _session_id,
