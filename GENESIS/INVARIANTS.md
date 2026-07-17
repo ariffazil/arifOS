@@ -593,7 +593,7 @@ Every agent session MUST load these 7 files in order:
 cat /root/AAA/CLAUDE.md
 
 # 2. THIS FILE — MCP invariants and Zen
-cat /root/AAA/docs/INVARIANTS.md
+cat /root/arifOS/GENESIS/INVARIANTS.md
 
 # 3. Current focus + blockers
 cat /root/CONTEXT.md
