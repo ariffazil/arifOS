@@ -273,6 +273,54 @@ def _pf(
     }
 
 
+def _sign_observatory_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
+    """Ed25519-sign snapshot. Key lives at /root/.arifos/observatory/keys/.
+
+    Returns a signature envelope with value/state/verification_url for SPA.
+    On failure: honest UNSIGNED (value=null, state=unknown) — never fake-green.
+    """
+    try:
+        from arifosmcp.runtime.observatory_signing import sign_snapshot_payload
+
+        return sign_snapshot_payload(payload)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("observatory snapshot signing failed: %s", exc)
+        return _pf(
+            None,
+            source=f"ed25519 signing failed: {type(exc).__name__}: {exc}",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        )
+
+
+def _finalize_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
+    """Enrich + sign. Signature always last so hash excludes prior signature."""
+    payload = _enrich_snapshot(payload)
+    payload["signature"] = _sign_observatory_snapshot(payload)
+    # Keep F-007 honest relative to live signature
+    findings = payload.get("findings")
+    if isinstance(findings, dict):
+        items = findings.get("items") or findings.get("list") or []
+        if isinstance(items, list):
+            sig = payload.get("signature") or {}
+            signed = bool(sig.get("value"))
+            for f in items:
+                if isinstance(f, dict) and f.get("id") == "F-007":
+                    f["status"] = "RESOLVED" if signed else "OPEN"
+                    f["evidence"] = (
+                        f"signature.state={sig.get('state')} key_id={sig.get('key_id')}"
+                        if signed
+                        else "signature.value=null (signing failed or key missing)"
+                    )
+            if signed:
+                findings["count"] = sum(
+                    1 for f in items if isinstance(f, dict) and f.get("status") == "OPEN"
+                )
+    return payload
+
+
 def _pf_age(
     value: Any,
     *,
@@ -1913,7 +1961,7 @@ def build_snapshot(
         "schema_version": SCHEMA_VERSION,
         "signature": _pf(
             None,
-            source="ed25519 over canonicaljson(payload_without_signature) — pending key bootstrap",
+            source="placeholder — replaced by _finalize_snapshot Ed25519 sign",
             state="unknown",
             confidence=0.0,
             observation_method=_OBS_METHOD_UNKNOWN,
@@ -1966,8 +2014,8 @@ def build_snapshot(
             independent=True,
         ),
     }
-    # Enrich all failure envelopes with human/builder explanations
-    return _enrich_snapshot(payload)
+    # Enrich + Ed25519 sign (key: /root/.arifos/observatory/keys/)
+    return _finalize_snapshot(payload)
 
 
 # ── Async-safe snapshot builder (P1-5 fix) ─────────────────────────────────────
@@ -2018,7 +2066,7 @@ async def build_snapshot_async(
         "schema_version": SCHEMA_VERSION,
         "signature": _pf(
             None,
-            source="ed25519 over canonicaljson(payload_without_signature) — pending key bootstrap",
+            source="placeholder — replaced by _finalize_snapshot Ed25519 sign",
             state="unknown",
             confidence=0.0,
             observation_method=_OBS_METHOD_UNKNOWN,
@@ -2081,7 +2129,7 @@ async def build_snapshot_async(
         "canonical_tools_loaded": len(registered_tools) if registered_tools else 0,
         "narrative": {"age_seconds": 0, "incidents_count": 0, "findings_count": 0},
     }
-    return _enrich_snapshot(payload)
+    return _finalize_snapshot(payload)
 
 
 # ── Seven-state vocabulary health endpoint ────────────────────────────────────
