@@ -111,13 +111,17 @@ class IntentAction(StrEnum):
     ADVISORY = "advisory"  # emit readiness/reflection signal (WELL)
 
 
-class RiskClass(StrEnum):
+class ActionRiskTier(StrEnum):
     """Blast-radius classification. Maps directly to Tier."""
 
     LOW = "low"  # T1-T2 — drafts, internal analysis
     MEDIUM = "medium"  # T3 — external claims
     HIGH = "high"  # T4 — consequential
     ATOMIC = "atomic"  # T5 — irreversible, high blast radius
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 class Reversibility(StrEnum):
@@ -127,7 +131,7 @@ class Reversibility(StrEnum):
 
 
 class Tier(StrEnum):
-    """Five-tier boundary classification. Maps to RiskClass."""
+    """Five-tier boundary classification. Maps to ActionRiskTier."""
 
     DRAFT = "draft"  # T1
     INTERNAL = "internal"  # T2
@@ -148,11 +152,11 @@ CANONICAL_HUMAN_ROOT = "did:web:arif-fazil.com"
 """The F13 SOVEREIGN human root. All authority chains must terminate here."""
 
 # Map RiskClass → Tier
-RISK_TO_TIER: dict[RiskClass, Tier] = {
-    RiskClass.LOW: Tier.DRAFT,  # default for low is DRAFT; explicit intent sets higher
-    RiskClass.MEDIUM: Tier.EXTERNAL_CLAIM,
-    RiskClass.HIGH: Tier.CONSEQUENTIAL,
-    RiskClass.ATOMIC: Tier.ATOMIC,
+RISK_TO_TIER: dict[ActionRiskTier, Tier] = {
+    ActionRiskTier.LOW: Tier.DRAFT,  # default for low is DRAFT; explicit intent sets higher
+    ActionRiskTier.MEDIUM: Tier.EXTERNAL_CLAIM,
+    ActionRiskTier.HIGH: Tier.CONSEQUENTIAL,
+    ActionRiskTier.ATOMIC: Tier.ATOMIC,
 }
 
 # Map IntentAction → minimum Tier required
@@ -204,7 +208,7 @@ class PAIIntent(BaseModel):
 
     action: IntentAction
     scope: str  # bounded description, e.g. "claim:horizon_contrast_layang_layang"
-    risk_class: RiskClass
+    risk_class: ActionRiskTier
     external_effect: bool  # does this cross the federation boundary?
     reversibility: Reversibility = Reversibility.FULL
     requires_human_intent: bool = False  # true if T4+
@@ -316,7 +320,7 @@ def mint_pai_receipt(
     organ: Organ,
     action: IntentAction,
     scope: str,
-    risk_class: RiskClass,
+    risk_class: ActionRiskTier,
     external_effect: bool = False,
     reversibility: Reversibility = Reversibility.FULL,
     delegate: str = "anonymous",

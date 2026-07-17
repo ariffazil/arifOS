@@ -68,11 +68,15 @@ from arifosmcp.models.verdicts import Verdict
 LEGACY_GATEWAY_ESCALATE = Verdict.HOLD
 
 
-class RiskClass(str, Enum):
+class ActionRiskTier(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     SOVEREIGN = "SOVEREIGN"
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 class ActionClass(str, Enum):
@@ -129,7 +133,7 @@ class ArticleNode(KernelNode):
     full_text_hash: str = ""
     article_id: str = Field(default_factory=lambda: f"ARTICLE-{uuid.uuid4().hex[:8]}")
     tags: list[str] = Field(default_factory=list)
-    public_interest: RiskClass = RiskClass.MEDIUM
+    public_interest: ActionRiskTier = ActionRiskTier.MEDIUM
 
 
 class ActorNode(KernelNode):
