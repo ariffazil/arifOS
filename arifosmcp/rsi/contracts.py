@@ -52,11 +52,48 @@ TWELVE_SKILLS: tuple[str, ...] = (
 # ── Risk classification (tied to constitutional floors, not preference) ─────
 
 
-# ── RiskClass imported from constitutional_map (canonical) ──────────
+# ── Canonical consequence scale (DeltaIrreversibilityClass) ──────────────
+# Imported from constitutional_map. C0..C5 with semantic names:
+#   C0_GRAMMAR, C1_DRAFT, C2_REVIEW, C3_PUBLIC, C4_LEGAL_MONEY, C5_IRREVERSIBLE
 from arifosmcp.constitutional_map import DeltaIrreversibilityClass
 
-RiskClass = DeltaIrreversibilityClass  # backward-compat alias
-# C0-C5 member names unchanged: C0_GRAMMAR, C1_DOCS, C2_CONTRACT_DESCRIPTION, etc.
+
+class RSIRiskClass(str, enum.Enum):
+    """RSI-specific risk labels.
+
+    The RSI engine classifies skills with semantic labels that DO NOT map
+    1:1 to the canonical DeltaIrreversibilityClass. For example, what RSI
+    calls "C2_CONTRACT_DESCRIPTION" (a contract surface change) is not the
+    same ontology as canonical "C2_REVIEW" (a review-stage action).
+
+    Use ``to_delta_class()`` to convert at the boundary when crossing into
+    the constitutional consequence scale. Never assume the scalar value
+    ("C0".."C5") implies semantic equivalence.
+    """
+
+    C0_GRAMMAR = "C0"
+    C1_DOCS = "C1"
+    C2_CONTRACT_DESCRIPTION = "C2"
+    C3_PUBLIC_SURFACE = "C3"
+    C4_FLOOR_LOGIC = "C4"
+    C5_EXECUTION_AUTHORITY = "C5"
+
+    def to_delta_class(self) -> DeltaIrreversibilityClass:
+        """Convert to canonical DeltaIrreversibilityClass at the boundary.
+
+        This is an explicit conversion — the scalar values match, but the
+        semantic meaning differs. Callers MUST be aware they are crossing
+        into the canonical consequence scale.
+        """
+        return DeltaIrreversibilityClass(self.value)
+
+
+# ── RiskClass alias — RSI-specific (RSI semantic labels, not canonical) ────
+# Backward-compat: code that imports `RiskClass` from this module gets the
+# RSI-specific enum so the existing `RiskClass.C2_CONTRACT_DESCRIPTION` etc.
+# references continue to resolve. The conversion to the canonical scale is
+# explicit via ``.to_delta_class()``.
+RiskClass = RSIRiskClass
 
 
 # ── A skill contract, versioned ─────────────────────────────────────────────
@@ -126,7 +163,7 @@ class SkillDiff:
     skill_name: str
     old_version: str
     new_version: str
-    risk_class: DeltaIrreversibilityClass
+    risk_class: RSIRiskClass
     drift_signals: tuple[str, ...] = ()
     # Names of detected constitutional drifts:
     #   "weakened_gate"      — must_never_weaken entry removed
@@ -167,7 +204,7 @@ class GateDecision:
 
     verdict: str  # "APPROVE_C0_C3" | "HOLD_C4" | "HOLD_C5" | "VOID"
     skill_name: str
-    risk_class: DeltaIrreversibilityClass
+    risk_class: RSIRiskClass
     rationale: str
     diff: SkillDiff
     required_tests: tuple[str, ...] = ()
@@ -249,6 +286,7 @@ def seed_12_contracts() -> dict[str, SkillContract]:
 __all__ = [
     "GateDecision",
     "DeltaIrreversibilityClass",
+    "RSIRiskClass",
     "SkillContract",
     "SkillDelta",
     "SkillDiff",
