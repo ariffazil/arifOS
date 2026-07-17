@@ -35,8 +35,13 @@ from urllib.request import urlopen
 logger = logging.getLogger(__name__)
 
 
-# BOOTSTATE_VERSION — bump when shape changes
-BOOTSTATE_VERSION = 1
+# BOOTSTATE_VERSION — bumped 2026-07-17 (F-007 sovereign key attestation).
+# v1: Q5 was name-string match — sovereign authority bind by name (INCORRECT).
+# v2: Q5 routes through _verify_ed25519_proof — sovereign authority bind by key,
+#     per governance_identity.py:44 doctrine:
+#     "Sovereign authority binds to a verified key, not a name."
+# Bump forces re-attestation across the federation under the new path.
+BOOTSTATE_VERSION = 2
 
 # Q-id → server-side evidence method
 _METHODS = {
@@ -44,7 +49,7 @@ _METHODS = {
     "Q2": "kernel_health_constitution",
     "Q3": "session_store_liveness",
     "Q4": "atlas333_substrate",
-    "Q5": "identity_toml_f13",
+    "Q5": "ed25519_sovereign_or_identity_toml_f13",  # v2: crypto primary, name-match PARTIAL fallback
     "Q6": "refusal_list_module",
     "Q7": "rsi_session_endpoint",
 }
@@ -54,6 +59,11 @@ _KERNEL_HEALTH = "http://127.0.0.1:8088/health"
 _IDENTITY_TOML_PATH = "/opt/arifos/identity.toml"
 _IDENTITY_TOML_FALLBACK = "/root/arifOS/identity.toml"
 _VAULT_CHAIN_HEAD = "/root/.local/share/arifos/vault999/seal_chain_head.json"
+
+# F-007: hardcoded sovereign Ed25519 pubkey path.
+# NEVER glob *.pem in /root/.secrets/aaa-identity/keys/ — arif_private.pem
+# (mode 600 private key) sits alongside. Explicit filename only, fail-closed.
+_SOVEREIGN_PUBKEY_PATH = "/root/.secrets/aaa-identity/keys/arif_public.pem"
 
 
 @dataclass(frozen=True)
@@ -279,27 +289,88 @@ def _answer_q4_trinity33_loaded() -> EvidencedAnswer:
     )
 
 
-def _answer_q5_sovereign_recognize() -> EvidencedAnswer:
-    """Q5: Is ARIF=F13=888_holder declared in identity.toml?"""
-    toml_text = _file_read(_IDENTITY_TOML_PATH) or _file_read(_IDENTITY_TOML_FALLBACK)
-    # Also check PII-masked sovereign identity (full name is in .secrets per PII NOTE)
-    pii_text = _file_read("/root/.secrets/sovereign_identity.toml") or ""
-    combined = toml_text + "\n" + pii_text
-    if ("Muhammad Arif bin Fazil" in combined or "Arif" in toml_text) and (
-        "F13" in toml_text or "sovereign" in toml_text.lower()
-    ):
+def _answer_q5_sovereign_recognize(
+    actor_id: str | None = None,
+    ed25519_proof: dict | None = None,
+) -> EvidencedAnswer:
+    """Q5 v2 (F-007): sovereign attestation via Ed25519 signature.
+
+    Resolution order:
+      1. actor_id + ed25519_proof supplied → dispatch to
+         governance_identity._verify_ed25519_proof.
+            Verified   ⇒ YES  (cryptographic).
+            Failed     ⇒ NO   (fail-closed; do NOT silently fall back).
+            Dispatch raised   ⇒ NO   (note carries the exception).
+      2. Else fall back to legacy name-string match against identity.toml.
+            Match → PARTIAL only — name-match does NOT grant sovereign authority
+            under governance_identity.py:44. Use the crypto path for YES.
+            No match → NO.
+
+    Per doctrine: name-string match MAY trigger a confirmation workflow, but
+    never grants YES. Cryptographic verification is the only YES path.
+    """
+    if actor_id and ed25519_proof:
+        try:
+            from arifosmcp.runtime.governance_identity import _verify_ed25519_proof
+            verified = _verify_ed25519_proof(actor_id, ed25519_proof)
+        except Exception as e:
+            return EvidencedAnswer(
+                q="Q5",
+                answer="NO",
+                method="ed25519_proof_dispatch_failed",
+                evidence_ref=f"key://{_SOVEREIGN_PUBKEY_PATH}#dispatch",
+                issuer="q5_sovereign_v2",
+                fresh_at=_now_iso(),
+                note=f"_verify_ed25519_proof raised: {type(e).__name__}: {e}",
+            )
+        if verified:
+            return EvidencedAnswer(
+                q="Q5",
+                answer="YES",
+                method="ed25519_signature_verify",
+                evidence_ref=f"key://{_SOVEREIGN_PUBKEY_PATH}#ed25519_sovereign",
+                issuer="governance_identity._verify_ed25519_proof",
+                fresh_at=_now_iso(),
+                note=f"ed25519 proof verified for actor_id={actor_id}",
+            )
+        # Crypto attempted, failed. Fail-closed. Do NOT silently fall back.
         return EvidencedAnswer(
             q="Q5",
-            answer="YES",
-            method=_METHODS["Q5"],
-            evidence_ref=f"file://{_IDENTITY_TOML_PATH if _file_read(_IDENTITY_TOML_PATH) else _IDENTITY_TOML_FALLBACK}#owner",
+            answer="NO",
+            method="ed25519_signature_verify",
+            evidence_ref=f"key://{_SOVEREIGN_PUBKEY_PATH}#ed25519_invalid",
+            issuer="governance_identity._verify_ed25519_proof",
+            fresh_at=_now_iso(),
+            note=f"ed25519 proof REJECTED for actor_id={actor_id}",
+        )
+
+    # Legacy fallback — name-string match. Demoted from YES to PARTIAL.
+    toml_text = _file_read(_IDENTITY_TOML_PATH) or _file_read(_IDENTITY_TOML_FALLBACK)
+    pii_text = _file_read("/root/.secrets/sovereign_identity.toml") or ""
+    combined = toml_text + "\n" + pii_text
+    name_match = ("Muhammad Arif bin Fazil" in combined or "Arif" in toml_text) and (
+        "F13" in toml_text or "sovereign" in toml_text.lower()
+    )
+    if name_match:
+        return EvidencedAnswer(
+            q="Q5",
+            answer="PARTIAL",
+            method="identity_toml_f13",  # legacy label; PARTIAL not YES
+            evidence_ref=(
+                f"file://{_IDENTITY_TOML_PATH if _file_read(_IDENTITY_TOML_PATH) else _IDENTITY_TOML_FALLBACK}#owner"
+            ),
             issuer="identity_toml",
             fresh_at=_now_iso(),
+            note=(
+                "NAME-MATCH ONLY. Per governance_identity.py:44, name-match does "
+                "NOT grant sovereign authority. Provide actor_signature + nonce "
+                "for cryptographic YES."
+            ),
         )
     return EvidencedAnswer(
         q="Q5",
         answer="NO",
-        method=_METHODS["Q5"],
+        method="identity_toml_f13",
         evidence_ref="",
         issuer="identity_toml",
         fresh_at=_now_iso(),
@@ -367,9 +438,15 @@ def _answer_q7_rsi_path_clear() -> EvidencedAnswer:
 
 
 def verify_boot_attestation(
-    session_id: str | None = None, *, iso_now: str | None = None
+    session_id: str | None = None, *, iso_now: str | None = None,
+    actor_id: str | None = None,
+    ed25519_proof: dict | None = None,
 ) -> dict[str, Any]:
     """Run server-side BOOT Q1–Q7 checks. Return evidenced answers.
+
+    F-007 (2026-07-17): accepts actor_id + ed25519_proof kwargs to route Q5
+    through governance_identity._verify_ed25519_proof. Both default None —
+    legacy callers are unaffected and get PARTIAL from the name-match fallback.
 
     Returns dict shaped:
         {
@@ -391,7 +468,7 @@ def verify_boot_attestation(
     q2 = _answer_q2_constitution_load()
     q3 = _answer_q3_session_ignite(session_id)
     q4 = _answer_q4_trinity33_loaded()
-    q5 = _answer_q5_sovereign_recognize()
+    q5 = _answer_q5_sovereign_recognize(actor_id=actor_id, ed25519_proof=ed25519_proof)
     q6 = _answer_q6_refusal_surface()
     q7 = _answer_q7_rsi_path_clear()
     answers = (q1, q2, q3, q4, q5, q6, q7)
