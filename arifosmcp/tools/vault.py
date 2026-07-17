@@ -403,6 +403,56 @@ async def arif_seal(
                 for v in _meta["violated_laws"]
             ]
 
+    # ── F2 TRUTH repair 2026-07-17: Receipt sealing (#2)
+    # Wire create_and_seal_receipt() into arif_seal path. Previously only
+    # arif_judge called this; arif_seal wrote outcomes.jsonl but never
+    # created a structured VaultReceipt. This left receipts_v2.jsonl empty
+    # and all receipt states UNSEALED. Now every SEAL verdict also mints
+    # a hash-chained receipt with identity resolution.
+    _receipt_id: str | None = None
+    _receipt_hash: str | None = None
+    if result.get("verdict") == "SEAL" and mode in ("seal",) and session_id:
+        try:
+            from arifosmcp.core.vault_receipt import (
+                create_and_seal_receipt,
+                resolve_receipt_identity,
+            )
+            _payload_for_hash = payload if payload else json.dumps(result, sort_keys=True)
+            _intent_hash = hashlib.sha256(
+                json.dumps(_payload_for_hash, sort_keys=True).encode()
+            ).hexdigest()
+            _verdict_hash = hashlib.sha256(
+                json.dumps(result.get("verdict", "SEAL"), sort_keys=True).encode()
+            ).hexdigest()
+            _rsid, _ractor = resolve_receipt_identity(
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+            _receipt = create_and_seal_receipt(
+                session_id=_rsid,
+                actor_id=_ractor,
+                organ_id="arifOS",
+                intent_summary=(payload[:200] if payload else "arif_seal"),
+                intent_hash=_intent_hash,
+                requested_authority=_standing_authority or "OBSERVE_ONLY",
+                pre_state_hash=result.get("meta", {}).get("state_hash", ""),
+                decision=result.get("verdict", "UNKNOWN"),
+                verdict_hash=_verdict_hash,
+                floors_evaluated=list((floors or {}).keys()),
+                floors_violated=[],
+                witness_count=1 if witness else 0,
+            )
+            _receipt_id = _receipt.receipt_id
+            _receipt_hash = _receipt.receipt_hash
+            result["meta"] = result.get("meta", {})
+            result["meta"]["vault_receipt_id"] = _receipt_id
+            result["meta"]["vault_receipt_hash"] = _receipt_hash
+            result["meta"]["receipt_state"] = "SEALED"
+        except Exception as _rx:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["receipt_state"] = "UNSEALED"
+            result["meta"]["receipt_error"] = str(_rx)[:200]
+
     # ── EUREKA777 Post-Seal Hook (ATLAS333 closed loop) ──────────────────────
     # After successful seal, check for eureka entry and run atlas333_update.
     # This closes the loop: Θ_t → E_s → atlas333_update → Θ_{t+1}
