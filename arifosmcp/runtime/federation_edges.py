@@ -131,12 +131,16 @@ def _self_identity_health() -> dict[str, Any]:
 
 
 def _finish_edge_fields(edge: dict[str, Any]) -> None:
-    """Apply N/E higher spine + overall derived from transport depth only."""
+    """Apply N/E higher spine + overall derived from transport depth only.
+
+    Also attach semantic_state (P1): transport green ≠ governed green.
+    """
     for field in (
         "session_propagated",
         "actor_propagated",
         "trace_propagated",
         "receipt_produced",
+        "epistemic_preserved",
     ):
         if edge.get(field) is None:
             edge[field] = "N/E"
@@ -160,6 +164,15 @@ def _finish_edge_fields(edge: dict[str, Any]) -> None:
     else:
         edge["state"] = edge.get("state") or "unknown"
         edge["overall"] = edge.get("overall") or "unknown"
+
+    # P1 semantic classification — never collapse transport to GOVERNED
+    try:
+        from arifosmcp.runtime.semantic_edge import enrich_edge_semantic_state
+
+        enrich_edge_semantic_state(edge)
+    except Exception:
+        edge.setdefault("semantic_state", "TRANSPORT_ONLY" if transport_ok else "UNTESTED")
+        edge.setdefault("color_hint", "blue" if transport_ok else "grey")
 
 
 def _fetch_health(port: int) -> dict[str, Any] | None:

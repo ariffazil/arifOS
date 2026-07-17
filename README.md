@@ -1,3 +1,4 @@
+mcp-name: io.github.ariffazil/arifos
 <!-- SOT-MANIFEST
 federation_release: v2026.07.17-ZEN-CONVERGENCE
 last_verified: 2026-07-17T16:06Z
@@ -15,7 +16,6 @@ owner_summary: GREEN
 truth_rule: /health + MCP tools/list beat any static count in prose
 -->
 
-mcp-name: io.github.ariffazil/arifos
 <div align="center">
 
 ```

@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arif-fazil.com/schemas/arifos.handoff.v1.json",
+  "title": "arifOS inter-organ handoff",
+  "description": "Shared semantic envelope for GEOX→WEALTH→WELL→arifOS judgment. One federation identity; distinct organ identities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "handoff_id",
+    "source_organ",
+    "target_organ",
+    "intent",
+    "actor",
+    "session",
+    "claim",
+    "evidence",
+    "uncertainty",
+    "requested_output",
+    "trace_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema": {
+      "const": "arifos.handoff.v1"
+    },
+    "handoff_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "source_organ": {
+      "type": "string",
+      "enum": ["GEOX", "WEALTH", "WELL", "ARIFOS", "AAA", "AFORGE", "A-FORGE"]
+    },
+    "target_organ": {
+      "type": "string",
+      "enum": ["GEOX", "WEALTH", "WELL", "ARIFOS", "AAA", "AFORGE", "A-FORGE"]
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "verified"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "verified": { "type": "boolean" }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "authority"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "authority": {
+          "type": "string",
+          "enum": [
+            "OBSERVE_ONLY",
+            "ADVISORY",
+            "COMPUTE",
+            "REFLECT_ONLY",
+            "JUDGE",
+            "EXECUTE_LEASED"
+          ]
+        },
+        "parent_session_id": { "type": ["string", "null"] }
+      }
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "epistemic_state", "confidence"],
+      "properties": {
+        "summary": { "type": "string" },
+        "epistemic_state": {
+          "type": "string",
+          "enum": ["OBSERVED", "DERIVED", "INTERPRETED", "SPECULATIVE", "PLAUSIBLE", "CLAIM"]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "non_revision_bound": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Fields the target must not overwrite (e.g. geology owned by GEOX)"
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ref", "type", "hash"],
+        "properties": {
+          "ref": { "type": "string" },
+          "type": { "type": "string" },
+          "hash": { "type": "string" },
+          "owner_organ": { "type": "string" }
+        }
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["known", "unknown", "conflicts"],
+      "properties": {
+        "known": { "type": "array", "items": { "type": "string" } },
+        "unknown": { "type": "array", "items": { "type": "string" } },
+        "conflicts": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "requested_output": { "type": "string" },
+    "trace_id": { "type": "string", "minLength": 4 },
+    "created_at": { "type": "string" },
+    "expires_at": { "type": ["string", "null"] },
+    "judgment": {
+      "type": ["object", "null"],
+      "description": "Filled only by arifOS judge — never by source organ",
+      "properties": {
+        "verdict": { "type": "string", "enum": ["SEAL", "HOLD", "SABAR", "VOID"] },
+        "reasons": { "type": "array", "items": { "type": "string" } },
+        "receipt_ref": { "type": ["string", "null"] }
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "description": "Non-ownership boundaries — what this handoff must not claim",
+      "properties": {
+        "source_owns": { "type": "array", "items": { "type": "string" } },
+        "target_must_not_revise": { "type": "array", "items": { "type": "string" } },
+        "aforge_requires": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Typically judgment_evidence + lease"
+        }
+      }
+    }
+  }
+}
