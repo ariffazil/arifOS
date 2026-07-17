@@ -79,14 +79,18 @@ async def test_probe_all_edges_async_self_edges():
     assert isinstance(edges, list)
     assert len(edges) >= 11  # 11 declared edges
 
-    # All self-edges (target_port=8088) should be marked reachable without note
+    # All self-edges (target_port=8088) should be marked reachable without note.
+    # F-006: state can be "reachable" or "TRANSPORT_IDENTITY_OK" depending on
+    # whether identity_status is set; both are valid reachable states.
     self_edges = [
         e for e in edges
         if e["id"].endswith("→arifos") and not e["id"].startswith("mcp")
     ]
     assert len(self_edges) >= 5, f"Expected >=5 self-edges, got {len(self_edges)}"
     for e in self_edges:
-        assert e["state"] == "reachable"
+        assert e["state"] in ("reachable", "TRANSPORT_IDENTITY_OK"), (
+            f"Self-edge {e['id']} state={e['state']!r}, expected reachable or TRANSPORT_IDENTITY_OK"
+        )
         assert e["transport"] == "reachable"
         assert "skipped" in e.get("note", ""), (
             f"Self-edge {e['id']} should be marked skipped: {e.get('note')}"

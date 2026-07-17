@@ -33,13 +33,16 @@ _event_buffer: deque[dict[str, Any]] = deque(maxlen=_MAX_BUFFER)
 _listeners: set[asyncio.Queue[dict[str, Any]]] = set()
 _listener_lock = asyncio.Lock()
 
-# Durable append-only JSONL bus (F-002 / F-003 substrate)
-_DURABLE_BUS_PATH = Path(
+# Durable append-only JSONL buses (Session A — separate operation/receipt logs)
+_DURABLE_BUS_DIR = Path(
     os.environ.get(
-        "ARIFOS_DURABLE_EVENT_BUS",
-        "/root/.local/share/arifos/event_bus/events.jsonl",
+        "ARIFOS_DURABLE_EVENT_BUS_DIR",
+        "/root/.local/share/arifos/event_bus",
     )
 )
+_OPERATIONS_LOG = _DURABLE_BUS_DIR / "operations.log"
+_RECEIPTS_LOG = _DURABLE_BUS_DIR / "receipts.log"
+_LEGACY_LOG = _DURABLE_BUS_DIR / "events.jsonl"  # backward compat
 _STAGE_ALIASES = {
     "000": "000_INIT",
     "000_INIT": "000_INIT",
@@ -194,14 +197,125 @@ def _sanitize_event(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def _append_durable(event: dict[str, Any]) -> None:
-    """Append-only JSONL durable bus. Best-effort; never raises to callers."""
+    """Append-only JSONL durable bus. Routes to operations.log or receipts.log."""
     try:
-        _DURABLE_BUS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _DURABLE_BUS_DIR.mkdir(parents=True, exist_ok=True)
         line = json.dumps(event, separators=(",", ":"), default=str) + "\n"
-        with open(_DURABLE_BUS_PATH, "a", encoding="utf-8") as fh:
+        # Route to correct log based on event type
+        event_type = event.get("event_type", "")
+        if "receipt" in event_type or event.get("vault_candidate"):
+            log_path = _RECEIPTS_LOG
+        elif "operation" in event_type or event.get("op_id"):
+            log_path = _OPERATIONS_LOG
+        else:
+            log_path = _LEGACY_LOG
+        with open(log_path, "a", encoding="utf-8") as fh:
             fh.write(line)
     except Exception as exc:
         logger.debug("durable bus append failed: %s", exc)
+
+
+# ── Session A: Operation/Receipt emission ──────────────────────────────────
+
+def emit_operation(
+    capability: str,
+    *,
+    actor_id: str | None = None,
+    session_id: str | None = None,
+    trace_id: str | None = None,
+    organ: str = "arifos",
+    params: dict[str, Any] | None = None,
+    status: str = "STARTED",
+    op_id: str | None = None,
+) -> dict[str, Any]:
+    """Emit an OperationEvent to the durable bus."""
+    from arifosmcp.schemas.operation import OperationEvent
+
+    op = OperationEvent(
+        op_id=op_id or str(uuid.uuid4()),
+        actor_id=actor_id,
+        session_id=session_id,
+        trace_id=trace_id,
+        organ=organ,
+        capability=capability,
+        params=params or {},
+        status=status,
+    )
+    event = op.model_dump()
+    event["event_type"] = "operation"
+    return emit_durable_event(event)
+
+
+def emit_receipt(
+    op_id: str,
+    *,
+    session_id: str | None = None,
+    trace_id: str | None = None,
+    organ: str = "arifos",
+    result_summary: str = "",
+    evidence_uri: str | None = None,
+    vault_candidate: bool = False,
+) -> dict[str, Any]:
+    """Emit a ReceiptEvent to the durable bus. vault_candidate=True for lineage-worthy ops."""
+    from arifosmcp.schemas.operation import ReceiptEvent
+
+    receipt = ReceiptEvent(
+        op_id=op_id,
+        session_id=session_id,
+        trace_id=trace_id,
+        organ=organ,
+        result_summary=result_summary,
+        evidence_uri=evidence_uri,
+        vault_candidate=vault_candidate,
+    )
+    event = receipt.model_dump()
+    event["event_type"] = "receipt"
+    return emit_durable_event(event)
+
+
+# ── Session A: Replay ─────────────────────────────────────────────────────
+
+def replay_operations(limit: int = 1000) -> list[dict[str, Any]]:
+    """Replay operations.log in order."""
+    ops: list[dict[str, Any]] = []
+    try:
+        if _OPERATIONS_LOG.exists():
+            with open(_OPERATIONS_LOG, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line:
+                        ops.append(json.loads(line))
+    except Exception as exc:
+        logger.error("replay_operations failed: %s", exc)
+    return ops[-limit:]
+
+
+def replay_receipts(limit: int = 1000) -> list[dict[str, Any]]:
+    """Replay receipts.log in order."""
+    receipts: list[dict[str, Any]] = []
+    try:
+        if _RECEIPTS_LOG.exists():
+            with open(_RECEIPTS_LOG, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line:
+                        receipts.append(json.loads(line))
+    except Exception as exc:
+        logger.error("replay_receipts failed: %s", exc)
+    return receipts[-limit:]
+
+
+def bus_stats() -> dict[str, Any]:
+    """Return bus health statistics."""
+    ops = replay_operations(limit=10000)
+    receipts = replay_receipts(limit=10000)
+    return {
+        "operations_total": len(ops),
+        "receipts_total": len(receipts),
+        "vault_candidates": sum(1 for r in receipts if r.get("vault_candidate")),
+        "operations_log_bytes": _OPERATIONS_LOG.stat().st_size if _OPERATIONS_LOG.exists() else 0,
+        "receipts_log_bytes": _RECEIPTS_LOG.stat().st_size if _RECEIPTS_LOG.exists() else 0,
+    }
 
 
 def emit_durable_event(event: dict[str, Any]) -> dict[str, Any]:
