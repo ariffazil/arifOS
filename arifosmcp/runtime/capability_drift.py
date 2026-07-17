@@ -19,6 +19,7 @@ Forged 2026-07-14 — companion to /api/observatory/v1/snapshot.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -157,33 +158,34 @@ def _registered_tools(mcp: Any) -> set[str]:
             return out
 
     # ── 2) FastMCP 3.x: list_tools() is async ──
+    # P1-5 deadlock fix: when asyncio.get_running_loop() succeeds, we are ON
+    # the event loop thread.  run_coroutine_threadsafe followed by
+    # future.result() blocks the loop for the timeout because the submitted
+    # coroutine cannot execute until *this thread yields* — which it won't
+    # while blocked on result().  Under connection storm this serialises
+    # across concurrent callers (e.g. /api/observatory/v1/health →
+    # seven_state_health → compute_capability_matrix → _registered_tools),
+    # starving the loop.
+    #
+    # Strategy: detect event-loop-thread context and skip immediately to the
+    # non-blocking fallback (public_tool_names_for_mode).  In a worker thread
+    # (RuntimeError) we can safely spin a temporary event loop.
     try:
-        import asyncio
-
         loop = asyncio.get_running_loop()
-        if loop and not loop.is_closed():
-            import concurrent.futures
-
+        # Event-loop thread detected.  DO NOT block with run_coroutine_threadsafe.
+        # Fall through to fallback 3 (public_surface).
+    except RuntimeError:
+        # No event loop running — we are in a worker thread or sync context.
+        # Safe to create a temporary event loop.
+        try:
             async def _get_tools():
                 tools = await mcp.list_tools()
                 return {t.name for t in tools if hasattr(t, "name")}
-
-            try:
-                future = asyncio.run_coroutine_threadsafe(_get_tools(), loop)
-                # Reduced timeout from 3s to 1s: if the loop is busy
-                # (e.g. blocked on a self-probe urlopen in _fetch_health),
-                # this thread blocks the event loop further. Fail fast
-                # and fall back to public_tool_names_for_mode().
-                result = future.result(timeout=1.0)
-                if result:
-                    return result
-            except concurrent.futures.TimeoutError:
-                # Loop is busy — fall through to next fallback.
-                pass
-            except Exception:
-                pass
-    except RuntimeError:
-        pass  # No event loop running
+            result = asyncio.run(_get_tools())
+            if result:
+                return result
+        except Exception:
+            pass
 
     # ── 3) Fallback: public_surface (same source as /health tools_loaded) ──
     try:
