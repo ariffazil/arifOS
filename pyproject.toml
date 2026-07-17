@@ -104,6 +104,7 @@ dependencies = [
     "aiofiles>=23.2.1",  # Async file operations for Vault999 logging
     "structlog>=24.4.0",  # Structured logging
     "blake3>=1.0.0",  # Required by intent_envelope import path at runtime
+    "qdrant-client>=1.18.0",
 ]
 
 [project.optional-dependencies]
