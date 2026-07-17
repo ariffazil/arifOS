@@ -403,13 +403,24 @@ def _index_write(idx: dict[str, dict[str, Any]]) -> None:
 
 
 def _get_qdrant_client():
+    """Return QdrantClient or None if Qdrant is unreachable.
+
+    P1-04 fix (2026-07-17): ConnectionError → None instead of unhandled
+    exception. Callers check for None and return SABAR-grade degraded
+    responses. F9 compliance: no bare exception that escapes the kernel.
+    """
     from qdrant_client import QdrantClient  # noqa: PLC0415
 
-    # Resolve QDRANT_URL: if ENC[...] (SOPS placeholder), use default
     qdrant_url = _QDRANT_URL
     if qdrant_url.startswith("ENC["):
         qdrant_url = "http://qdrant:6333"
-    return QdrantClient(url=qdrant_url)
+    try:
+        client = QdrantClient(url=qdrant_url, timeout=5)
+        # Verify connectivity with a lightweight health check
+        client.get_collections()
+        return client
+    except Exception:
+        return None
 
 
 def _generate_embedding(text: str) -> list[float]:
