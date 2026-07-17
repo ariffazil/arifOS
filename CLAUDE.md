@@ -95,7 +95,7 @@ no metabolism → repeating system.
 # === CONSTITUTIONAL PHYSICS (always first) ===
 
 # 1. Know the invariants — 7 Physics + 7 Zen:
-cat /root/AAA/docs/INVARIANTS.md | head -30
+cat /root/arifOS/GENESIS/INVARIANTS.md | head -30
 
 # 2. Know what layer you are in — L3 CIVILIZATION (kernel):
 cat /root/AAA/docs/MEANING.md | head -50
