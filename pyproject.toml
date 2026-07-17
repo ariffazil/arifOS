@@ -1,6 +1,6 @@
 [project]
 name = "arifos"
-version = "2026.06.19"
+version = "2026.07.17"
 
 # 2026.06.19 — Packaging Unification (FORGE SEAL)
 #   Package rename: arifosmcp → arifos (MCP is transport, not identity)
@@ -8,7 +8,7 @@ version = "2026.06.19"
 #   Domain coverage: [geox] [wealth] [well] [aaa] [io] [search] [google] [db] [heavy] [observe]
 #   Floor alignment: canonical matrix 2026-06-19 across all organs
 # 2026.06.11 — previous release (arifosmcp on PyPI)
-description = "arifOS v2026.06.19 — Constitutional AI Governance Kernel. 8 kernel ABI capabilities → 6 public tools (arif_verb_noun, generated from arifosmcp/abi/capability_registry.json), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport. Kernel substrate for AGI/ASI federation."
+description = "arifOS v2026.07.17 — Constitutional AI Governance Kernel. 8 kernel ABI capabilities → 6 public tools (arif_verb_noun, generated from arifosmcp/abi/capability_registry.json), dynamic F1-F13 enforcement via ConstitutionKernel + FloorEvaluator, VAULT999 immutable ledger, streamable-http MCP transport. Kernel substrate for AGI/ASI federation."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 license = "AGPL-3.0-only"
