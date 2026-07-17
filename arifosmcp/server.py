@@ -917,26 +917,35 @@ try:
 
     # ── Canary Multimode (replaces 6 individual canaries) ────────────────────
     # One tool, six modes. ART: OBSERVE-class, zero floors, read-only.
-    # CANONICAL: always registered — arif_canary is in CANONICAL_12 public surface.
+    # 2026-07-17 registry drift fix: NOT on KERNEL_ABI_8 public facade.
+    # tools/list hid it while tools/call still worked → ChatGPT saw phantom
+    # canary. Register only when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true so
+    # list == callable. Transport canary for public clients: arif_init + health.
     from arifosmcp.tools.canary_multimode import arif_canary as _arif_canary_handler
 
-    mcp.tool(
-        name="arif_canary",
-        description=(
-            "Unified transport diagnostic probe. One tool, six modes. "
-            "Use for liveness checks, protocol version verification, schema round-trip "
-            "testing, transport detail dumps, MCP handshake tests, and full conformance spine. "
-            "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report"
-        ),
-        tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
-        annotations={
-            "readOnlyHint": True,
-            "destructiveHint": False,
-            "openWorldHint": True,
-            "idempotentHint": True,
-        },
-    )(_arif_canary_handler)
-    v2_tools_registered.append("arif_canary")
+    if _EXPOSE_DEV_TOOLS:
+        mcp.tool(
+            name="arif_canary",
+            description=(
+                "Unified transport diagnostic probe (dev/operator surface). One tool, six modes. "
+                "Modes: ping | schema_echo | version_echo | transport_echo | initialize_probe | conformance_report. "
+                "Not part of KERNEL_ABI_8 public ChatGPT facade."
+            ),
+            tags={"canary", "read-only", "diagnostic", "transport", "multimode"},
+            annotations={
+                "readOnlyHint": True,
+                "destructiveHint": False,
+                "openWorldHint": True,
+                "idempotentHint": True,
+            },
+        )(_arif_canary_handler)
+        v2_tools_registered.append("arif_canary")
+        logger.info("arif_canary registered — EXPOSE_DEV_TOOLS surface.")
+    else:
+        logger.info(
+            "arif_canary gated — public facade is KERNEL_ABI_8 only "
+            "(set ARIFOS_MCP_EXPOSE_DEV_TOOLS=true for diagnostics)."
+        )
 
     # Surface assertion runs AFTER all optional/entropy mesh tools register
     # (see below). Asserting here was a boot-loop bug when CANONICAL surface
@@ -1423,9 +1432,8 @@ try:
         logger.warning("Extended resource registration failed: %s", _res_err)
 
     # Default HTTP tools/list must reflect the canonical public facade exactly.
-    # Keep aliases and diagnostics registered for compatibility and direct calls,
-    # but hide them from default discovery unless an explicit non-default
-    # surface mode is requested elsewhere.
+    # 2026-07-17: list filter alone is insufficient — call path also gated in
+    # ingress_middleware (list == callable). Diagnostics only when EXPOSE_DEV_TOOLS.
     try:
         _provider = getattr(mcp, "_local_provider", None)
         if _provider is not None and hasattr(_provider, "_list_tools"):
@@ -1438,7 +1446,8 @@ try:
 
             _provider._list_tools = _public_only_list_tools
             logger.info(
-                "Patched FastMCP local provider: default tools/list now returns canonical public facade only."
+                "Patched FastMCP local provider: tools/list = KERNEL_ABI_8 public facade "
+                "(call gate enforces list==callable)."
             )
     except Exception as _surface_patch_err:
         logger.warning("Failed to patch default tools/list public facade: %s", _surface_patch_err)

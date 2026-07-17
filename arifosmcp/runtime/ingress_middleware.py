@@ -881,7 +881,48 @@ if IS_FASTMCP_3:
                 msg = context.message
                 tool_name = msg.name
 
+                # ── PUBLIC SURFACE CALL GATE (2026-07-17 registry drift fix) ──
+                # tools/list was filtered to KERNEL_ABI_8 while tools/call still
+                # reached hidden handlers (arif_canary, arif_model_registry, …).
+                # ChatGPT scanned/callable surface ≠ tools/list → HOLD_REGISTRY_DRIFT.
+                # Law: on public wire, list == callable.
+                try:
+                    from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+                    _public_allowed = set(public_tool_names_for_mode())
+                    if tool_name not in _public_allowed:
+                        from mcp.types import TextContent
+
+                        _canonical = ", ".join(sorted(_public_allowed))
+                        logger.info(
+                            "Public surface HOLD: tools/call name=%s not in public list "
+                            "(list==callable enforcement)",
+                            tool_name,
+                        )
+                        return ToolResult(
+                            is_error=True,
+                            content=[
+                                TextContent(
+                                    type="text",
+                                    text=(
+                                        f"Unknown tool: '{tool_name}'. "
+                                        f"Not on canonical public surface. "
+                                        f"Callable tools: {_canonical}. "
+                                        f"Diagnostics (arif_canary etc.) require "
+                                        f"ARIFOS_MCP_EXPOSE_DEV_TOOLS=true and a "
+                                        f"non-default public surface mode."
+                                    ),
+                                )
+                            ],
+                        )
+                except Exception as _surface_err:
+                    logger.warning(
+                        "Public surface call gate unavailable (%s) — proceeding",
+                        _surface_err,
+                    )
+
                 # ── Bypass for Canary Ping Tool (no actor, no envelope, no policy) ──
+                # Only reachable when listed above (dev surface).
                 if tool_name == "arif_ping":
                     return await call_next(context)
 

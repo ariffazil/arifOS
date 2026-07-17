@@ -210,6 +210,34 @@ This document is updated when:
 
 ---
 
+## PARADOX 35 — POSITIVE ≠ CLOSED · 2026-07-17 (Session SEAL-c3ec39619ebc4f36)
+
+**Domain:** Judge (23-33+2) · **Zone:** Audit Epistemics
+
+**Statement:** A passing positive test proves the system can open. A passing defensive matrix (negative cases) proves the system fails closed. The T3a audit ran positive-only and declared progress; the full positive+negative matrix produced 11/13 with 2 real findings (key fragmentation, free_nonce bypass).
+
+**Trigger event:** 2026-07-17 P0 binding matrix (`/root/scripts/forge_p0_binding_test.py`). After the BOOT gate (fail-closed) was verified, the kernel was ready to declare T3a CLOSED. Sovereign verdict pointed out: the *success* path (an Ed25519-authenticated Arif session that binds correctly, preserves its session ID, and receives SOVEREIGN authority) had not been proven. Running the full positive+negative matrix produced 11/13 PASS, surfacing Finding B (key fragmentation) and Finding C (free_nonce bypass).
+
+**ΛΘΦ:** Λ=CRISIS · Θ: τ=0.92 κ=0.85 ρ=0.60
+
+**Tension (still open):**
+- A positive test is necessary but not sufficient — must pair with negative cases (missing, invalid, expired, replay, mismatch)
+- A passing audit script that doesn't probe the *specific* field claimed is worse than no audit (false confidence)
+- Contract tests that probe the actual claim catch audit-passed-but-broken cases (T7-M1 found arifOS missing `federation_geometry` despite a "5-field conformance" commit)
+- A passing build artefact is not the live system — `systemctl restart <right-service>` matters
+
+**Operational wisdom (for ATLAS next-time):**
+1. **The full positive+negative matrix is the unit of progress.** A binary "works / doesn't" verdict loses information. State it as `N/total PASS` with each FAIL classified (test bug vs real finding).
+2. **Trust the *probe*, not the *script returning PASS*.** A script that checks "is the organ healthy" cannot find a missing field. A probe that asserts "is field X present and well-formed" can.
+3. **Service topology matters.** A-FORGE has TWO systemd services (`a-forge` for REST, `a-forge-mcp` for MCP). Restarting one doesn't pick up changes to the other. Always check `ss -tlnp` to identify which process serves which port, then `systemctl restart <that-unit>`.
+4. **Key fragmentation is a constitutional surface gap.** Three different public keys claimed to be "arif" in three locations: `/root/compose/sekrits/arifos_sovereign.pub` (loaded by `sovereign_verify`), `/opt/arifos/secrets/did_arifos_public.key` (used by `bridging_seal`), `/root/AAA/IDENTITY/keys/arif_public.pem` (alias). The public keys had different fingerprints — the kernel could mint arif-signed seals and reject arif-signed arif_init, simultaneously, with no error.
+
+**Seal:** T3a-P0-SEAL-2026-07-17 · 11/13 PASS · 3 real findings (B, C, D) · T3a PARTIAL_CLOSED
+
+**Contour, don't excavate. Seal each contour. Never finish.**
+
+---
+
 ## 🖥 VPS LIBRARY — Always-Available Outage Reference
 
 > **Purpose:** Single source of truth for VPS facts during outages. No agent should guess IPs, ports, log paths, or safe commands.
@@ -596,3 +624,7 @@ After VPS boot, services come up in this dependency order:
 
 *VPS Library — Always available, always current. Update on every infra change.*
 *If an agent would need it during an outage, it belongs here.*
+
+---
+
+*Updated: 2026-07-17 16:45 UTC — Paradox 35 added (positive-≠-closed). Operational wisdom from T3a P0 binding matrix committed. See `/root/A-FORGE/forge_work/2026-07-17/SESSION-SEAL-c3ec39619ebc4f36.md` for session inventory.*
