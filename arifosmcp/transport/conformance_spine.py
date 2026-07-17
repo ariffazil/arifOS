@@ -33,6 +33,8 @@ KERNEL_URL = "http://127.0.0.1:8088"
 MCP_URL = f"{KERNEL_URL}/mcp"
 PASS = "PASS"
 FAIL = "FAIL"
+SKIPPED = "SKIPPED"  # T6: SKIPPED ≠ PASS — never counts toward GREEN
+PARTIAL = "PARTIAL"
 
 
 # ── Sovereign Ruling Annotation (2026-06-05) ─────────────────────────────────
@@ -808,11 +810,14 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
 
     Args:
         fast: If True, skip live HTTP checks (unit-level only).
+              T6 law: fast mode MUST NOT produce GREEN / SEAL / all_green.
+              Skipped checks are verdict=SKIPPED, never PASS.
     """
     t_start = time.monotonic()
     results = []
     passed = 0
     failed = 0
+    skipped = 0
 
     for name, fn in SPINE:
         if fast and name in (
@@ -824,10 +829,14 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
             "vault_replay",  # P3 fix 2026-06-30: recursive HTTP deadlock
             "cooling_ledger",  # P3 fix 2026-06-30: recursive HTTP + VAULT999 API
         ):
+            # T6 2026-07-17: SKIPPED ≠ PASS. Fast mode is diagnostic only.
             r = {
                 "check": name,
-                "verdict": PASS,
-                "evidence": {"mode": "fast", "reason": "Live check skipped in fast mode"},
+                "verdict": SKIPPED,
+                "evidence": {
+                    "mode": "fast",
+                    "reason": "Live check skipped in fast mode — SKIPPED ≠ PASS",
+                },
             }
         else:
             try:
@@ -841,15 +850,15 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         results.append(r)
         if r["verdict"] == PASS:
             passed += 1
+        elif r["verdict"] == SKIPPED:
+            skipped += 1
         else:
             failed += 1
 
     total_ms = round((time.monotonic() - t_start) * 1000, 1)
     score = f"{passed}/{len(SPINE)}"
-    # all_green must reflect the REAL gate, not just pass/fail.
-    # A BROKEN chain with sovereign_ruling is not GREEN even if no check failed.
-    # Compute preliminary gate to determine all_green.
-    all_green = failed == 0
+    # T6: all_green requires zero FAIL and zero SKIPPED.
+    all_green = failed == 0 and skipped == 0
 
     # ── Verifier honesty gate ─────────────────────────────────────────────
     # Scan all check evidence for critical-broken signals.
@@ -867,6 +876,8 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     #   Tier 3 — Current chain health FAIL (post-migration):
     #             Real issue, not historical.
     #             → HOLD.
+    #   Tier 4 — SKIPPED checks present (T6):
+    #             Fast/partial mode. NEVER GREEN. → PARTIAL / AMBER.
     unexplained = _scan_unexplained_critical(results)
     has_unexplained = len(unexplained) > 0
 
@@ -895,6 +906,10 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         # Current chain health is FAIL — real issue, not historical
         substrate_gate = "HOLD"
         verdict = "CHAIN_HEALTH_FAIL"
+    elif skipped > 0 or fast:
+        # T6: any skip or fast-mode run is constitutionally PARTIAL — never GREEN
+        substrate_gate = "AMBER"
+        verdict = PARTIAL
     elif has_historical_gap:
         # Historical gap explained + current chain OK = AMBER (honest, not GREEN)
         substrate_gate = "AMBER"
@@ -913,7 +928,8 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     # all_green == True means "no check failed AND no critical signal found"
     # (or signals are explained and gate is GREEN). AMBER is not green.
     # RED and HOLD are definitely not green.
-    all_green = substrate_gate == "GREEN"
+    # T6: SKIPPED and fast mode hard-block GREEN.
+    all_green = substrate_gate == "GREEN" and skipped == 0 and not fast
 
     # ── ANTI-SINK (A3): Constitutional contradiction check ──
     # "All green, no work" is a sterile system — same class as allgreen=true,
@@ -952,9 +968,14 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         "score": score,
         "passed": passed,
         "failed": failed,
+        "skipped": skipped,
         "total": len(SPINE),
         "all_green": all_green,
         "substrate_gate": substrate_gate,
+        "fast_mode": bool(fast),
+        "constitutional_grade": (
+            False if (fast or skipped > 0 or not all_green) else True
+        ),
         "constitutional_contradiction": constitutional_contradiction,
         "sink_warning": sink_warning,
         "total_latency_ms": total_ms,
@@ -965,7 +986,8 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         "doctrine": (
             "DITEMPA BUKAN DIBERI — Proved by trace, not by claim. "
             "A substrate whose verifier explains its warnings is honest. "
-            "A substrate whose verifier hides them is not."
+            "A substrate whose verifier hides them is not. "
+            "T6: SKIPPED ≠ PASS; UNKNOWN ≠ PASS; fast mode never GREEN."
         ),
         "engineering_law": (
             "A governed runtime that proves every intelligence flow. "

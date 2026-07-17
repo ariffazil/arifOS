@@ -176,12 +176,27 @@ def test_vault_replay_fails_on_missing_explicit_path(monkeypatch):
 
 
 def test_run_spine_fast_mode_skips_live_checks():
+    """T6: fast mode skips live checks as SKIPPED, never PASS, never GREEN."""
     report = spine.run_spine(fast=True)
     assert report["spine"] == "ARIF Conformance Spine v0.2"
     assert report["total"] == 9
-    # Authority, hold, vault, and cooling checks still run in fast mode
-    assert report["passed"] >= 4
-    assert report["substrate_gate"] in ("GREEN", "AMBER")
+    # T6 law: SKIPPED ≠ PASS
+    assert report.get("skipped", 0) >= 1
+    assert report["all_green"] is False
+    assert report["substrate_gate"] != "GREEN"
+    assert report["verdict"] in ("PARTIAL", "CAUTION", "HOLD", "AMBER", "EXPLAINED_HISTORICAL_GAP")
+    assert report.get("constitutional_grade") is False
+    assert report.get("fast_mode") is True
+    # Every skipped check must say SKIPPED, not PASS
+    for c in report.get("checks", []):
+        if (c.get("evidence") or {}).get("mode") == "fast":
+            assert c["verdict"] == "SKIPPED", f"{c.get('check')} was {c['verdict']}"
+
+
+def test_run_spine_fast_mode_cannot_seal():
+    report = spine.run_spine(fast=True)
+    assert report.get("verdict") != "SEAL"
+    assert report.get("all_green") is False
 
 
 # ── Sanity: descriptions are attached by the MCP tool wrapper ────────────────
