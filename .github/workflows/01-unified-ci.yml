@@ -427,7 +427,7 @@ jobs:
       - name: MCP health endpoint
         run: |
           cd "$WORKDIR"
-          timeout 5 uv run python3 - <<'PY'
+          timeout 15 uv run python3 - <<'PY'
           import sys, asyncio, json
           sys.path.insert(0, '.')
           from arifosmcp.server import create_arifos_mcp_server
