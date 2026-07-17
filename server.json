@@ -18,15 +18,6 @@
         "type": "streamable-http",
         "url": "https://mcp.arif-fazil.com/mcp"
       }
-    },
-    {
-      "registryType": "npm",
-      "identifier": "arifos",
-      "version": "2026.7.17",
-      "transport": {
-        "type": "streamable-http",
-        "url": "https://mcp.arif-fazil.com/mcp"
-      }
     }
   ],
   "tags": [
