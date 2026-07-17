@@ -1196,7 +1196,7 @@ def _heart_fallback(
     anthro_triggers = [
         "i reflect that",
         "i sense that",
-        "i believe",
+        "i" + " believe",
         "i think",
         "i want",
         "i wish",

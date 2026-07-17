@@ -30,11 +30,19 @@ logger = logging.getLogger(__name__)
 # Registry root — ARIFOS_REGISTRY_ROOT env var is authoritative.
 # Without it, attempts common deployment locations as best-effort fallbacks.
 # Sovereign deployments MUST set ARIFOS_REGISTRY_ROOT for reliable operation.
+def _safe_path_exists(path: Path) -> bool:
+    """os.stat wrapper — returns False on PermissionError (CI-safe)."""
+    try:
+        return path.exists()
+    except PermissionError:
+        return False
+
+
 def _detect_registry_root() -> Path:
     env = os.environ.get("ARIFOS_REGISTRY_ROOT")
     if env:
         root = Path(env)
-        if (root / "catalog.json").exists():
+        if _safe_path_exists(root / "catalog.json"):
             return root
         logger.warning(
             "ARIFOS_REGISTRY_ROOT=%s set but catalog.json not found. "
@@ -46,7 +54,7 @@ def _detect_registry_root() -> Path:
         "/app/registry",  # Docker container default
     ]:
         p = Path(candidate)
-        if (p / "catalog.json").exists():
+        if _safe_path_exists(p / "catalog.json"):
             return p
     logger.warning(
         "No model registry found. Set ARIFOS_REGISTRY_ROOT to the path "
