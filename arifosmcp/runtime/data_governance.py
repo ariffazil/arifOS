@@ -98,15 +98,31 @@ class SourceVerificationRecord:
 
 @dataclass
 class WitnessBundle:
-    """F3: Multi-source cross-validation — no blind single-source truth."""
+    """F3: Multi-source cross-validation — no blind single-source truth.
+
+    F2 TRUTH repair 2026-07-17: witness_count=0 previously meant both
+    "zero witnesses measured" and "no measurement taken." Added
+    witness_evaluated flag to distinguish NOT_EVALUATED from MEASURED_ZERO.
+    is_verified requires both evaluation AND passing thresholds.
+    """
 
     sources: list[SourceVerificationRecord] = field(default_factory=list)
     witness_count: int = 0
     consensus_score: float = 0.0  # 0.0-1.0
     dissenting_sources: list[str] = field(default_factory=list)
+    witness_evaluated: bool = False  # True only when real measurement occurred
 
     @property
     def is_verified(self) -> bool:
+        # Auto-detect evaluation: if caller provided sources or witness_count > 0,
+        # measurement occurred. False only for WitnessBundle() default constructor.
+        evaluated = (
+            self.witness_evaluated
+            or bool(self.sources)
+            or self.witness_count > 0
+        )
+        if not evaluated:
+            return False  # NOT_EVALUATED — no measurement taken
         return self.witness_count >= 2 and self.consensus_score >= 0.75
 
 
@@ -532,7 +548,15 @@ class DataGovernanceEnforcer:
         # ── F3 WITNESS: Require multi-source or high consensus ───────────────
         witness_bundle = witness_bundle or WitnessBundle(sources=[])
         if not witness_bundle.is_verified:
-            if witness_bundle.witness_count == 0 and not source_verification:
+            if not witness_bundle.witness_evaluated:
+                violated_laws.append("L03")
+                reasons["L03"] = (
+                    "L03 WITNESS: NOT_EVALUATED — no witness measurement was taken. "
+                    "witness_count=0 means \"no data,\" not \"zero witnesses.\" "
+                    "Wire organ attestations, sealed receipts, or external sources "
+                    "into WitnessBundle to resolve."
+                )
+            elif witness_bundle.witness_count == 0 and not source_verification:
                 violated_laws.append("L03")
                 reasons["L03"] = (
                     "L03 WITNESS: No independent sources — single-source ingestion is low-confidence"
