@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
@@ -38,11 +40,34 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 )
 from cryptography.exceptions import InvalidSignature
 
-# ─── Key paths ────────────────────────────────────────────────────────────────
+logger = logging.getLogger(__name__)
 
+# ─── Key paths (T3a Finding B — one sovereign keypair for mint + verify) ──────
+# Canonical = compose sekrits (same fingerprint as AAA IDENTITY arif_public.pem
+# and crypto_auth). did_arifos_* is legacy fallback only (different key; fragment).
 _SECRETS_DIR = Path("/opt/arifos/secrets")
-_PRIVATE_KEY_PATH = _SECRETS_DIR / "did_arifos_private.key"
-_PUBLIC_KEY_PATH = _SECRETS_DIR / "did_arifos_public.key"
+_PRIVATE_KEY_CANDIDATES = [
+    Path(p)
+    for p in (
+        os.environ.get("ARIFOS_SOVEREIGN_PRIVKEY_FILE", ""),
+        "/root/compose/sekrits/arifos_sovereign.key",
+        str(_SECRETS_DIR / "did_arifos_private.key"),  # legacy fragmented
+    )
+    if p
+]
+_PUBLIC_KEY_CANDIDATES = [
+    Path(p)
+    for p in (
+        os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE", ""),
+        "/root/compose/sekrits/arifos_sovereign.pub",
+        "/root/AAA/IDENTITY/keys/arif_public.pem",
+        str(_SECRETS_DIR / "did_arifos_public.key"),  # legacy fragmented
+    )
+    if p
+]
+# Back-compat aliases for callers/tests that still reference module-level paths
+_PRIVATE_KEY_PATH = _PRIVATE_KEY_CANDIDATES[0] if _PRIVATE_KEY_CANDIDATES else _SECRETS_DIR / "did_arifos_private.key"
+_PUBLIC_KEY_PATH = _PUBLIC_KEY_CANDIDATES[0] if _PUBLIC_KEY_CANDIDATES else _SECRETS_DIR / "did_arifos_public.key"
 
 # In-memory consumed seal cache (single-process; reset on restart)
 _consumed_seals: set[str] = set()
@@ -105,20 +130,80 @@ class BridgingSealReceipt:
 # ─── Key helpers ──────────────────────────────────────────────────────────────
 
 
-def _load_private_key() -> Ed25519PrivateKey:
-    pem = _PRIVATE_KEY_PATH.read_bytes()
-    key = serialization.load_pem_private_key(pem, password=None)
+def _load_private_key_from_path(path: Path) -> Ed25519PrivateKey:
+    """Load Ed25519 private from PEM or 32-byte hex seed (compose sekrits format)."""
+    raw = path.read_bytes().strip()
+    # Compose format: 64 hex chars = 32-byte Ed25519 seed
+    if len(raw) == 64 and all(c in b"0123456789abcdefABCDEF" for c in raw):
+        return Ed25519PrivateKey.from_private_bytes(bytes.fromhex(raw.decode("ascii")))
+    if len(raw) == 32:
+        return Ed25519PrivateKey.from_private_bytes(raw)
+    key = serialization.load_pem_private_key(raw, password=None)
     if not isinstance(key, Ed25519PrivateKey):
-        raise TypeError(f"Expected Ed25519PrivateKey, got {type(key).__name__}")
+        raise TypeError(f"Expected Ed25519PrivateKey from {path}, got {type(key).__name__}")
     return key
+
+
+def _load_public_key_from_path(path: Path) -> Ed25519PublicKey:
+    raw = path.read_bytes().strip()
+    if len(raw) == 32 and b"BEGIN" not in raw:
+        return Ed25519PublicKey.from_public_bytes(raw)
+    key = serialization.load_pem_public_key(raw)
+    if not isinstance(key, Ed25519PublicKey):
+        raise TypeError(f"Expected Ed25519PublicKey from {path}, got {type(key).__name__}")
+    return key
+
+
+def _load_private_key() -> Ed25519PrivateKey:
+    errors: list[str] = []
+    for path in _PRIVATE_KEY_CANDIDATES:
+        if not path.is_file():
+            continue
+        try:
+            key = _load_private_key_from_path(path)
+            logger.debug("bridging_seal private key loaded from %s", path)
+            return key
+        except Exception as exc:
+            errors.append(f"{path}: {exc}")
+    raise FileNotFoundError(
+        "No sovereign private key found for bridging_seal. Tried: "
+        + ", ".join(str(p) for p in _PRIVATE_KEY_CANDIDATES)
+        + (f" errors={errors}" if errors else "")
+    )
 
 
 def _load_public_key() -> Ed25519PublicKey:
-    pem = _PUBLIC_KEY_PATH.read_bytes()
-    key = serialization.load_pem_public_key(pem)
-    if not isinstance(key, Ed25519PublicKey):
-        raise TypeError(f"Expected Ed25519PublicKey, got {type(key).__name__}")
-    return key
+    errors: list[str] = []
+    for path in _PUBLIC_KEY_CANDIDATES:
+        if not path.is_file():
+            continue
+        try:
+            key = _load_public_key_from_path(path)
+            logger.debug("bridging_seal public key loaded from %s", path)
+            return key
+        except Exception as exc:
+            errors.append(f"{path}: {exc}")
+    raise FileNotFoundError(
+        "No sovereign public key found for bridging_seal. Tried: "
+        + ", ".join(str(p) for p in _PUBLIC_KEY_CANDIDATES)
+        + (f" errors={errors}" if errors else "")
+    )
+
+
+def canonical_key_fingerprint() -> dict[str, str]:
+    """Report which paths won and raw-pubkey sha256[:16] — for T3a receipts."""
+    from hashlib import sha256
+
+    priv_path = next((p for p in _PRIVATE_KEY_CANDIDATES if p.is_file()), None)
+    pub_path = next((p for p in _PUBLIC_KEY_CANDIDATES if p.is_file()), None)
+    pub = _load_public_key()
+    raw = pub.public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+    return {
+        "private_key_path": str(priv_path) if priv_path else "",
+        "public_key_path": str(pub_path) if pub_path else "",
+        "raw_pub_fp16": sha256(raw).hexdigest()[:16],
+        "unified_with_crypto_auth": True,  # compose/AAA first
+    }
 
 
 def _sign_payload(payload: str) -> str:
@@ -263,7 +348,8 @@ def verify_bridging_seal(
     if vault_entry is None:
         return False
 
-    # Check 2: verify signature
+    # Check 2: verify signature against the same payload that was signed at mint
+    # (vault_append adds seq + timestamp after sign; strip them for verify)
     payload = json.dumps(
         {k: v for k, v in vault_entry.items() if k not in ("seq", "timestamp")},
         sort_keys=True,
@@ -271,12 +357,11 @@ def verify_bridging_seal(
     if not _verify_signature(payload, receipt.sovereign_signature):
         return False
 
-    # Mark consumed if single_use or already consumed
-    if receipt.consumed or getattr(receipt, "_consumed", False):
-        _consumed_seals.add(receipt.seal_id)
-
-    # Always mark as seen — replay protection for all seals
-    if receipt.seal_id not in _consumed_seals:
+    # T3a NEG.6c: single_use → consume on FIRST successful verify.
+    # Prior bug only marked consumed when receipt.consumed was already True
+    # (always False from mint), so replay re-verified as True.
+    single_use = bool(vault_entry.get("single_use", True))
+    if single_use or receipt.consumed:
         _consumed_seals.add(receipt.seal_id)
 
     return True
