@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # ── INIT prompt files — canonical paths ──────────────────────────────────
 _INIT_PROMPT_DIR = "/root/AAA/agents/opencode"
-_AGENT_INIT_V3_PATH = "/root/AAA/prompts/AGENT_INIT_v3.0.md"
+_AGENT_INIT_V3_PATH = "/root/AAA/prompts/INIT.md"
 
 _INIT_PROMPT_FILES: dict[str, str] = {
     "AGENTS": os.path.join(_INIT_PROMPT_DIR, "AGENTS.md"),
@@ -48,7 +48,7 @@ def _read_file_safe(path: str) -> str:
 def register_arifos_resources(mcp: Any) -> list[str]:
     """Register canonical arifOS MCP resources on the given FastMCP server.
 
-    Includes: verdict, continuity, vitals, INIT prompts, and AGENT_INIT_v3.0.
+    Includes: verdict, continuity, vitals, INIT prompts, and agent_init (ex AGENT_INIT_v3.0).
     """
     registered: list[str] = []
 
@@ -142,20 +142,20 @@ def register_arifos_resources(mcp: Any) -> list[str]:
 
     # ── AGENT_INIT_v3.0 resource ──────────────────────────────────────────
     @mcp.resource(
-        "arifos://init/agent_init_v3",
+        "arifos://init/agent_init",
         description=(
-            "Canonical AGENT_INIT_v3.0.md — TRINITY-33 + RSI + Constitutional Friction. "
+            "Canonical INIT.md (zen-dated 2026.07.17, ex AGENT_INIT_v3.0) — TRINITY-33 + RSI + Constitutional Friction. "
             "Full 612-line boot-phase contract for all agents entering the arifOS federation. "
             "Forged 2026-07-08 by FORGE (000Ω) under F13 SOVEREIGN directive."
         ),
     )
-    async def agent_init_v3() -> str:
+    async def agent_init() -> str:
         return _read_file_safe(_AGENT_INIT_V3_PATH)
 
-    registered.append("arifos://init/agent_init_v3")
+    registered.append("arifos://init/agent_init")
 
     logger.info(
-        "Registered %d extended resources (incl. %d INIT prompts + agent_init_v3)",
+        "Registered %d extended resources (incl. %d INIT prompts + agent_init)",
         len(registered),
         len(_INIT_PROMPT_FILES),
     )

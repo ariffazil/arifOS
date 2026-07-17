@@ -193,7 +193,7 @@ Each floor is a **gate**, not a suggestion:
 
 | Skill | Connection |
 |-------|------------|
-| `recursive-self-improvement` | Governance prevents unsafe self-modification |
+| `RSI-recursive-improvement` | Governance prevents unsafe self-modification |
 | `orthogonal-abstraction` | Abstraction must respect governance boundaries |
 | `epistemic-integrity` | Truth is precondition for governance |
 | `entropy-optimization` | Efficiency must not violate governance |

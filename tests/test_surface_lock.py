@@ -86,7 +86,7 @@ def test_meta_skills_registered():
     skills = provider.list_skills()
 
     expected = {
-        "recursive-self-improvement",
+        "RSI-recursive-improvement",
         "orthogonal-abstraction",
         "epistemic-integrity",
         "constitutional-governance",

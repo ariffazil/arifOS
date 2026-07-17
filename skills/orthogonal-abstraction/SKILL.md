@@ -147,7 +147,7 @@ The 13 Floors are an invariant across all domains:
 
 | Skill | Connection |
 |-------|------------|
-| `recursive-self-improvement` | Guides which abstractions to prioritize |
+| `RSI-recursive-improvement` | Guides which abstractions to prioritize |
 | `epistemic-integrity` | Required for accurate invariant recognition |
 | `constitutional-governance` | Enables governance structure transfer |
 | `entropy-optimization` | Determines which abstractions yield best EVOI |
