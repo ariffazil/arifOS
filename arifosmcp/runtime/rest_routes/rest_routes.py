@@ -342,6 +342,37 @@ _DEFAULT_METABOLIC_STAGE: int = 333
 DEFAULT_VAULT_PATH = Path(__file__).parents[3] / "VAULT999" / "SEALED_EVENTS_v2.jsonl"
 
 
+def _se_stage_payload() -> dict[str, Any]:
+    """Seal-A R1: SE stage engine status (in-process, never HTTP self-call)."""
+    try:
+        from arifosmcp.runtime.se_stage_engine import get_se_stage
+
+        return get_se_stage()
+    except Exception as exc:
+        return {
+            "se_stage": "000",
+            "at_init": True,
+            "error": str(exc)[:200],
+            "law": "advance_only_on_proof_bundle",
+        }
+
+
+def _active_sot_payload() -> dict[str, Any]:
+    """Seal-A R2: active SOT v2 hash for live kernel probe."""
+    try:
+        from arifosmcp.runtime.sot_active import get_active_sot
+
+        return get_active_sot()
+    except Exception as exc:
+        return {
+            "active": False,
+            "sot_id": "apex-sot-v2",
+            "sot_hash": "",
+            "hold_reason": f"sot_probe_error:{exc}",
+            "operational": False,
+        }
+
+
 def _cache_headers() -> dict[str, str]:
     return {"Cache-Control": "no-store"}
 
@@ -2920,6 +2951,9 @@ def register_rest_routes(
                 "runtime": "/health and /tools on this server",
                 "canonical_index": "/.well-known/mcp/server.json",
             },
+            # Seal-A R1/R2 — SE stage engine + active SOT v2 (in-process only)
+            "se_stage": _se_stage_payload(),
+            "active_sot": _active_sot_payload(),
             # Thermodynamic Truth — Energy Dimension (F4 Clarity, F5 Peace², Ψ Vitality)
             "thermodynamic": {
                 "entropy_delta": telemetry.get("dS", -0.35),  # ΔS ≤ 0 for F4 Clarity
