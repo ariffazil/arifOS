@@ -1,0 +1,18 @@
+bijaksana:
+  baseline_phi: 0.59
+  baseline_date: "2026-07-17"
+  baseline_sha: "e36b4f46a"
+  checks:
+    required:
+      changed_files_ruff_clean: true
+      phi_not_below_baseline: true
+      no_new_type_errors: true
+  ratchet_epochs:
+    - { id: 1, threshold: 0.59, date: "2026-07-17" }
+    - { id: 2, threshold: 0.65, date: "2026-08-01" }
+    - { id: 3, threshold: 0.75, date: "2026-09-01" }
+    - { id: 4, threshold: 0.80, date: "2026-10-01" }
+    - { id: 5, threshold: 0.90, date: "2026-12-01" }
+  truth_policy:
+    ci_exit_blocking: true
+    deploy_gated_by_ci: true
