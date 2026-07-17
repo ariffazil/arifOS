@@ -2964,6 +2964,12 @@ def register_rest_routes(
                 "witness_oracle": "active",
                 "source": "arifOS_kernel",
             },
+            # T7 deliverable #5 — authority-ceiling declaration. arifOS is
+            # the constitutional judge (F13 SOVEREIGN), so its ceiling is
+            # SOVEREIGN — the apex band. The runtime enforcement is the
+            # _apply_boot_gate (T3a Item 3b, commit ddbcc4856): even
+            # SOVEREIGN gets demoted to OBSERVE_ONLY when boot_state != OK.
+            "authority_ceiling": "SOVEREIGN",
             # WS2: substrate + execution readiness (not SEAL)
             "service_health": thermo.get("service_health"),
             "execution_readiness": thermo.get("execution_readiness"),
