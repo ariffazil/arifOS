@@ -30,17 +30,17 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# T3a Finding B: one sovereign keypair. Prefer compose sekrits / AAA (same fp).
+# did_arifos_public.key is LEGACY FRAGMENT (different key) — last resort only.
 _PUBKEY_CANDIDATES = [
     Path(os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE", ""))
     if os.environ.get("ARIFOS_SOVEREIGN_PUBKEY_FILE")
     else None,
     Path("/run/sekrits/arifos_sovereign.pub"),
     Path("/run/secrets/arifos_sovereign.pub"),
-    Path("/root/compose/sekrits/arifos_sovereign.pub"),
-    # bridging_seal keypair (canonical did_arifos — must match /opt/arifos/secrets/)
-    Path("/opt/arifos/secrets/did_arifos_public.key"),
-    # Canonical AAA Arif identity public key (PEM Ed25519)
-    Path("/root/AAA/IDENTITY/keys/arif_public.pem"),
+    Path("/root/compose/sekrits/arifos_sovereign.pub"),  # canonical
+    Path("/root/AAA/IDENTITY/keys/arif_public.pem"),  # same fingerprint as compose
+    Path("/opt/arifos/secrets/did_arifos_public.key"),  # legacy fragment — do not prefer
     Path("/root/.ssh/operator_did_ed25519.pub"),
 ]
 
