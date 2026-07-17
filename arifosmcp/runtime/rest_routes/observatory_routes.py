@@ -1649,7 +1649,26 @@ async def _edges_block_async() -> dict[str, Any]:
             edge_aggregate_state,
         )
 
-        edges = await probe_all_edges_async()
+        # Build minimal self-health to short-circuit source=8088 fetches
+        # in probe_all_edges_async.  Without this, every edge where arifOS
+        # is the source hits its own /health via a thread-pool worker.
+        self_health = None
+        try:
+            identity_hash = None
+            for id_file in ("/opt/arifos/app/.identity_hash", "/root/arifOS/.identity_hash"):
+                if os.path.exists(id_file):
+                    with open(id_file) as f:
+                        identity_hash = f.read().strip()
+                    if identity_hash:
+                        break
+            self_health = {
+                "identity_hash": identity_hash or "UNKNOWN",
+                "federation_schema_version": SCHEMA_VERSION,
+            }
+        except Exception:
+            pass
+
+        edges = await probe_all_edges_async(self_endpoint_health=self_health)
         aggregate = edge_aggregate_state(edges)
         reachable = sum(1 for e in edges if e.get("state") == "reachable")
         drifted = sum(1 for e in edges if e.get("state") == "drift")

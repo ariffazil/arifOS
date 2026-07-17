@@ -38,12 +38,22 @@ _listener_lock = asyncio.Lock()
 _DURABLE_BUS_DIR = Path(
     os.environ.get(
         "ARIFOS_DURABLE_EVENT_BUS_DIR",
-        "/root/.local/share/arifos/event_bus",
+        os.environ.get(
+            "ARIFOS_DURABLE_EVENT_BUS",
+            "/var/lib/arifos/event_bus",
+        ),
     )
 )
+# If ARIFOS_DURABLE_EVENT_BUS points at a file path, use its parent as dir
+if _DURABLE_BUS_DIR.suffix in {".jsonl", ".log"}:
+    _LEGACY_LOG = _DURABLE_BUS_DIR
+    _DURABLE_BUS_DIR = _DURABLE_BUS_DIR.parent
+else:
+    _LEGACY_LOG = _DURABLE_BUS_DIR / "events.jsonl"
 _OPERATIONS_LOG = _DURABLE_BUS_DIR / "operations.log"
 _RECEIPTS_LOG = _DURABLE_BUS_DIR / "receipts.log"
-_LEGACY_LOG = _DURABLE_BUS_DIR / "events.jsonl"  # backward compat
+# alias for callers expecting a single path
+_DURABLE_BUS_PATH = _LEGACY_LOG
 _STAGE_ALIASES = {
     "000": "000_INIT",
     "000_INIT": "000_INIT",
@@ -380,25 +390,25 @@ def emit_stage_event(
 
 
 def read_durable_events(limit: int = 5000) -> list[dict[str, Any]]:
-    """Read durable JSONL events (newest-last). Tolerates corrupt lines."""
-    if not _DURABLE_BUS_PATH.exists():
-        return []
+    """Read durable JSONL events from all bus files (newest-last)."""
     out: list[dict[str, Any]] = []
-    try:
-        with open(_DURABLE_BUS_PATH, encoding="utf-8") as fh:
-            for line in fh:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    obj = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                if isinstance(obj, dict):
-                    out.append(obj)
-    except Exception as exc:
-        logger.debug("durable bus read failed: %s", exc)
-        return []
+    for path in (_LEGACY_LOG, _OPERATIONS_LOG, _RECEIPTS_LOG):
+        if not path.exists():
+            continue
+        try:
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        obj = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if isinstance(obj, dict):
+                        out.append(obj)
+        except Exception as exc:
+            logger.debug("durable bus read failed %s: %s", path, exc)
     if limit and len(out) > limit:
         return out[-limit:]
     return out
