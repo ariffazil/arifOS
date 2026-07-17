@@ -469,11 +469,14 @@ def bind_session_identity(
     _load_store()
     now = _utcnow()
     canonical_actor_id = _resolve_canonical_actor(actor_id, None)
+    # F2 TRUTH repair 2026-07-17: authority_level describes what an actor
+    # is ALLOWED to do, NOT whether their identity is cryptographically
+    # verified. "sovereign"/"operator" labels do not imply verified=True.
+    # Only explicit `verified` param or auth_context["verified"] can set this.
     verified_flag = bool(
         verified
         if verified is not None
-        else auth_context.get("verified")
-        or authority_level in {"verified", "sovereign", "operator"}
+        else auth_context.get("verified", False)
     )
 
     # H2: Distributed continuity signing
@@ -569,10 +572,27 @@ def get_session_identity(session_id: str) -> dict[str, Any] | None:
 
             payload = verify_token(session_id)
             if payload:
+                # Preserve actor_verified from any previously stored session identity.
+                # A SCT (Session Capability Token) may carry witness.active_count=0
+                # while a prior bind_identity() already set actor_verified=True.
+                # Overwriting would create state-envelope drift between verdict and birth.
+                _existing = _SESSION_IDENTITY.get(payload.sub, {})
+                _stored_verified = _existing.get("actor_verified")
+                _stored_verified_actor = _existing.get("verified_actor_id")
+                _witness_verified = payload.witness.active_count > 0
+                _actor_verified = (
+                    _stored_verified
+                    if _stored_verified is not None
+                    else _witness_verified
+                )
                 record = {
                     "actor_id": payload.act,
-                    "verified_actor_id": payload.act if payload.witness.active_count > 0 else None,
-                    "actor_verified": payload.witness.active_count > 0,
+                    "verified_actor_id": (
+                        _stored_verified_actor
+                        if _stored_verified_actor
+                        else (payload.act if _witness_verified else None)
+                    ),
+                    "actor_verified": _actor_verified,
                     "authority_level": payload.auth.lower(),
                     "session_token": session_id,
                     "verdict": payload.apex.verdict,
@@ -639,9 +659,12 @@ def mark_session_ed25519_verified(
     identity["ed25519_pubkey"] = actor_pubkey_hex
     identity["ed25519_verified_at"] = _utcnow().isoformat()
 
-    # D3: top-level actor_verified must stick across tool hops.
-    # Nested identity.ed25519_verified alone left mid-session re-reads as false.
-    record["actor_verified"] = True
+    # F2 TRUTH + bridging_seal contract: Ed25519 key binding proves key
+    # possession, NOT sovereign identity. actor_verified stays False until
+    # real crypto verification lands. actor_override (BRIDGING_SEAL) is the
+    # only bypass path. Setting actor_verified=True here was a state-envelope
+    # fabrication that caused the actor_verified drift (F-004 epoch defect).
+    # Repaired 2026-07-17 per F13 directive.
     record["verified_actor_id"] = actor_id
     if not record.get("actor_id"):
         record["actor_id"] = actor_id
