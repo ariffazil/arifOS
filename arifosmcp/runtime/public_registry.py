@@ -490,6 +490,11 @@ def _spec_for_name(name: str) -> Any:
                 "query": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "artifact_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "session_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
+                "session_token": {
+                    "anyOf": [{"type": "string"}, {"type": "null"}],
+                    "default": None,
+                    "description": "SCT from arif_init — continuity for ChatGPT multi-call path",
+                },
                 "ack_irreversible": {"default": False, "type": "boolean"},
                 "actor_id": {"anyOf": [{"type": "string"}, {"type": "null"}], "default": None},
                 "constitutional_chain_id": {
