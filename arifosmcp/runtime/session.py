@@ -511,6 +511,18 @@ def bind_session_identity(
         "actor_id": actor_id,
         "canonical_actor_id": canonical_actor_id,
         "authority_level": authority_level,
+        "verification_method": (
+            merged_auth_context.get("verification_method")
+            or merged_auth_context.get("auth_method")
+            or existing.get("verification_method")
+        ),
+        "evidence_ref": (
+            (f"key://{merged_auth_context['verified_key_id']}"
+             if merged_auth_context.get("verified_key_id") else None)
+            or existing.get("evidence_ref")
+            or f"session://{actual_session_id}"
+        ),
+        "actor_verified": verified_flag,
         "auth_context": merged_auth_context,
         "approval_scope": approval_scope or existing.get("approval_scope") or [],
         "caller_state": caller_state or ("verified" if verified_flag else "anchored"),
