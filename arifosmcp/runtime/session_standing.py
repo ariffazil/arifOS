@@ -11,7 +11,8 @@ Schema (from F13 epoch / audit spec):
         "claimed_id": "arif",
         "canonical_id": "ARIF_FAZIL",
         "verified": false,
-        "verification_method": null
+        "verification_method": null,
+        "evidence_ref": null
       },
       "authority": {
         "band": "OBSERVE_ONLY",
@@ -35,9 +36,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 # Bump when the canonical shape changes; consumers use this to detect drift.
@@ -49,9 +53,7 @@ BAND_LIMITED_MUTATE = "LIMITED_MUTATE"
 BAND_FULL = "FULL"
 BAND_SOVEREIGN = "SOVEREIGN"
 
-VALID_BANDS = frozenset(
-    {BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN}
-)
+VALID_BANDS = frozenset({BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN})
 
 
 @dataclass(frozen=True)
@@ -60,6 +62,32 @@ class ActorStanding:
     canonical_id: str
     verified: bool
     verification_method: str | None
+    evidence_ref: str | None = None
+
+    def __post_init__(self) -> None:
+        """Schema-level proof-integrity invariant (T3a.2 / Claude Point 2).
+
+        The system MUST NEVER emit ``verified=true`` without an attached
+        verification_method AND evidence_ref. A positive assertion without
+        evidence is ``C_dark`` — confidence exceeding proof.
+
+        Construction with ``verified=true, method=None, evidence_ref=None``
+        is structurally unrepresentable. Code that reaches this state must
+        be fixed, not caught at runtime.
+        """
+        if self.verified:
+            if not self.verification_method:
+                raise ValueError(
+                    f"ActorStanding invariant violation: "
+                    f"verified=True requires verification_method, got None "
+                    f"(claimed_id={self.claimed_id})"
+                )
+            if not self.evidence_ref:
+                raise ValueError(
+                    f"ActorStanding invariant violation: "
+                    f"verified=True requires evidence_ref, got None "
+                    f"(claimed_id={self.claimed_id})"
+                )
 
 
 @dataclass(frozen=True)
@@ -67,6 +95,14 @@ class AuthorityStanding:
     band: str
     mutation_allowed: bool
     seal_allowed: bool
+
+    def __post_init__(self) -> None:
+        """Seal authority requires SOVEREIGN band."""
+        if self.seal_allowed and self.band != "SOVEREIGN":
+            raise ValueError(
+                f"AuthorityStanding invariant violation: "
+                f"seal_allowed=True requires band=SOVEREIGN, got {self.band}"
+            )
 
 
 @dataclass(frozen=True)
@@ -118,9 +154,7 @@ def _derive_authority_band(record: dict[str, Any] | None, actor_id: str | None) 
     return _normalize_band(level)
 
 
-def _resolve_canonical_actor(
-    actor_id: str | None, record: dict[str, Any] | None
-) -> str:
+def _resolve_canonical_actor(actor_id: str | None, record: dict[str, Any] | None) -> str:
     """Resolve canonical_id from actor_id and session record."""
     if record:
         for key in ("canonical_actor_id", "verified_actor_id"):
@@ -145,13 +179,36 @@ def _resolve_verification_method(record: dict[str, Any] | None) -> str | None:
     return None
 
 
+def _resolve_evidence_ref(record: dict[str, Any] | None) -> str | None:
+    """Resolve evidence reference from session record.
+
+    Tries (in order):
+      1. record.evidence_ref — explicit evidence pointer
+      2. Ed25519 verified_key_id — cryptographic key fingerprint
+      3. session_id — fallback, always present on active sessions
+    Returns None only when no session record exists at all.
+    """
+    if not record:
+        return None
+    ref = record.get("evidence_ref")
+    if ref:
+        return str(ref)
+    auth_ctx = record.get("auth_context") or {}
+    if isinstance(auth_ctx, dict):
+        key_id = auth_ctx.get("verified_key_id")
+        if key_id:
+            return f"key://{key_id}"
+    sid = record.get("session_id")
+    if sid:
+        return f"session://{sid}"
+    return None
+
+
 def _utcnow_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def compose_standing(
-    session_id: str | None, actor_id: str | None = None
-) -> SessionStanding:
+def compose_standing(session_id: str | None, actor_id: str | None = None) -> SessionStanding:
     """Compose the canonical SessionStanding for a session.
 
     This is the ONLY function that derives actor.verified and authority.band.
@@ -163,21 +220,36 @@ def compose_standing(
     record = _read_session_record(session_id)
 
     if record:
-        resolved_actor_id = (
-            actor_id
-            or record.get("actor_id")
-            or "anonymous"
-        )
-        verified = bool(
+        resolved_actor_id = actor_id or record.get("actor_id") or "anonymous"
+        verification_method = _resolve_verification_method(record)
+        evidence_ref = _resolve_evidence_ref(record)
+        verified_raw = bool(
             record.get("verified")
             or record.get("actor_verified")
             or record.get("identity_verified")
         )
+        # T3a.2 / Claude Point 2: HONEST_HOLD — if the record claims verified
+        # but no verification_method or evidence_ref is available, SET
+        # verified=False rather than emitting the structural contradiction
+        # ``verified=true, method=null``. Same pattern as arif_memory's
+        # honest-failure shape: admit what cannot be proved.
+        if verified_raw and (not verification_method or not evidence_ref):
+            logger.warning(
+                "C_dark HONEST_HOLD: record claims verified=true but %s is "
+                "missing. Setting verified=false. (claimed_id=%s)",
+                "verification_method" if not verification_method else "evidence_ref",
+                resolved_actor_id,
+            )
+            verified = False
+        else:
+            verified = verified_raw
         issued_at = record.get("created_at") or _utcnow_iso()
         expires_at = record.get("expires_at") or _utcnow_iso()
     else:
         resolved_actor_id = actor_id or "anonymous"
         verified = False
+        verification_method = None
+        evidence_ref = None
         issued_at = _utcnow_iso()
         expires_at = _utcnow_iso()
 
@@ -188,7 +260,8 @@ def compose_standing(
         claimed_id=resolved_actor_id,
         canonical_id=canonical_id,
         verified=verified,
-        verification_method=_resolve_verification_method(record),
+        verification_method=verification_method,
+        evidence_ref=evidence_ref,
     )
     authority = AuthorityStanding(
         band=band,
@@ -367,9 +440,7 @@ def attach_canonical(
     # preserves verdict (it is not a legacy identity field), but reading
     # it now gives the verdict composer the tool's claim to reduce.
     inner_verdict = response.get("verdict") if isinstance(response, dict) else None
-    attach_canonical_standing(
-        response, session_id=session_id, actor_id=actor_id
-    )
+    attach_canonical_standing(response, session_id=session_id, actor_id=actor_id)
     standing = response.get("standing") if isinstance(response, dict) else None
     band: str | None = None
     if isinstance(standing, dict):
