@@ -316,7 +316,7 @@ def prepare_context(
                        uses the model window minus output_reserve and
                        safety margin.
         output_reserve_tokens: tokens reserved for the model's response
-        risk_class: one of RiskClass values (default routine)
+        risk_class: one of ContextRiskTier values (default routine)
         auto_compact_allowed: must be False (F8 default); the builder
                               does NOT auto-compact. If True, the builder
                               STILL refuses to compact (Phase 5 only).
@@ -839,12 +839,12 @@ def _task_value_from_query(query: str, seg: Segment) -> float:
 
 def _map_risk_class(risk: str):
     # Lazy import to avoid a cycle (eureka imports context_audit)
-    from arifosmcp.runtime.context_audit import RiskClass
+    from arifosmcp.runtime.context_audit import ContextRiskTier
 
     try:
-        return RiskClass(risk)
+        return ContextRiskTier(risk)
     except ValueError:
-        return RiskClass.ROUTINE
+        return ContextRiskTier.ROUTINE
 
 
 def _now_iso() -> str:

@@ -28,11 +28,11 @@ from arifosmcp.runtime.model import (
     AuthorityState,
     CanonicalAuthority,
     ClaimStatus,
-    RiskClass,
     RuntimeEnvelope,
     RuntimeStatus,
     Verdict,
 )
+from arifosmcp.schemas.change_authority import ChangeAuthorityClass
 from arifosmcp.runtime.registry_client import get_model_registry_client
 
 logger = logging.getLogger(__name__)
@@ -254,7 +254,7 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
             next_allowed_modes=["init", "status", "probe", "state"],
             anchor_state="denied",
             anchor_scope="stateless",
-            risk_class=RiskClass.LOW,
+            risk_class=ChangeAuthorityClass.C0_AUTO,
             payload={
                 "result": _bootstrap_result(
                     session_id, "anonymous", False, "low", "mcp", "000_INIT"
@@ -296,7 +296,7 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
         ],
         anchor_state="reused",
         anchor_scope="session",
-        risk_class=RiskClass(risk_tier),
+        risk_class=ChangeAuthorityClass(risk_tier),
         authority=_authority_for_actor(actor_id, verified),
         payload={
             "result": _bootstrap_result(session_id, actor_id, verified, risk_tier, platform, stage),
@@ -736,7 +736,7 @@ async def init_anchor(
         mode=mode or "init",
         anchor_state="created",
         anchor_scope="session",
-        risk_class=RiskClass(risk_tier),
+        risk_class=ChangeAuthorityClass(risk_tier),
         policy={
             "floors_checked": ["L11", "L12", "L13"],
             "floors_failed": [],

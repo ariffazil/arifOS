@@ -40,7 +40,6 @@ class ActionRiskTier(StrEnum):
 
 
 # ── Backward-compatible alias ──────────────────────────────────────────
-RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 class ClaimStatus(StrEnum):

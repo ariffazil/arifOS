@@ -99,7 +99,6 @@ class ActionRiskTier(StrEnum):
 
 
 # ── Backward-compatible alias ──────────────────────────────────────────
-RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 @dataclass(frozen=True)
@@ -126,7 +125,7 @@ class SkillDelta:
     judge_required: bool
     in_extinction_ledger: bool = False
 
-    def risk_class(self) -> RiskClass:
+    def risk_class(self) -> ActionRiskTier:
         if self.in_extinction_ledger:
             return ActionRiskTier.CRITICAL
         if self.weakening_detected:
@@ -260,7 +259,7 @@ def _affected_organs(
     return tuple(out)
 
 
-def _worst_risk(deltas: tuple[SkillDelta, ...]) -> RiskClass:
+def _worst_risk(deltas: tuple[SkillDelta, ...]) -> ActionRiskTier:
     order = {ActionRiskTier.LOW: 0, ActionRiskTier.MEDIUM: 1, ActionRiskTier.HIGH: 2, ActionRiskTier.CRITICAL: 3}
     worst = ActionRiskTier.LOW
     for d in deltas:
@@ -624,7 +623,7 @@ __all__ = [
     "ENGINE_VERSION",
     "PROPOSAL_DOMAIN",
     "HARD_RULES",
-    "RiskClass",
+    "ActionRiskTier",
     "SkillContract",
     "SkillDelta",
     "CoolingState",

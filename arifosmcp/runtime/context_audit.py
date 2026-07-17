@@ -77,7 +77,7 @@ class EventType(StrEnum):
 
 
 # Risk classes (per policy table)
-class RiskClass(StrEnum):
+class ContextRiskTier(StrEnum):
     PRIVATE = "private"
     FINANCIAL = "financial"
     LEGAL = "legal"
@@ -113,13 +113,13 @@ MODE_MAP: dict[EventType, AuditMode] = {
 # Risk classes that force SEAL (overrides DIGEST)
 HIGH_RISK_CLASSES = frozenset(
     {
-        RiskClass.PRIVATE,
-        RiskClass.FINANCIAL,
-        RiskClass.LEGAL,
-        RiskClass.IDENTITY,
-        RiskClass.COMMITMENT,
-        RiskClass.EXTERNAL_ACTION,
-        RiskClass.CANONICAL,
+        ContextRiskTier.PRIVATE,
+        ContextRiskTier.FINANCIAL,
+        ContextRiskTier.LEGAL,
+        ContextRiskTier.IDENTITY,
+        ContextRiskTier.COMMITMENT,
+        ContextRiskTier.EXTERNAL_ACTION,
+        ContextRiskTier.CANONICAL,
     }
 )
 
@@ -130,7 +130,7 @@ def audit_classify(event_type: str, risk_class: str = "routine") -> AuditMode:
 
     Args:
         event_type: one of EventType enum values
-        risk_class: one of RiskClass enum values (default: routine)
+        risk_class: one of ContextRiskTier enum values (default: routine)
 
     Returns:
         AuditMode enum value
@@ -148,9 +148,9 @@ def audit_classify(event_type: str, risk_class: str = "routine") -> AuditMode:
         return AuditMode.HOLD
 
     try:
-        rc = RiskClass(risk_class)
+        rc = ContextRiskTier(risk_class)
     except ValueError:
-        rc = RiskClass.ROUTINE
+        rc = ContextRiskTier.ROUTINE
 
     # Precedence: HOLD > SEAL > DIGEST > TRACE
     if et in (
@@ -505,7 +505,7 @@ __all__ = [
     "SOURCE_OF_TRUTH",
     "AuditMode",
     "EventType",
-    "RiskClass",
+    "ContextRiskTier",
     "audit_classify",
     "audit_trace",
     "audit_digest",
