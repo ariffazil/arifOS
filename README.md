@@ -1,5 +1,6 @@
 <!-- SOT-MANIFEST
 federation_release: v2026.07.17-ZEN-CONVERGENCE
+mcp-name: io.github.ariffazil/arifos
 last_verified: 2026-07-17T16:06Z
 live_commit: 283255823
 live_version: kanon-2832558
