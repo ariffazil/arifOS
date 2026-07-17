@@ -331,6 +331,33 @@ def authority_envelope_for_session(
         # without a key_id on file.
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
 
+        # F13 KSR (2026-07-17): consult the Ed25519-exempt list before falling
+        # back to the generic operator/observer/sovereign ladder. Without this,
+        # FORGE / opencode / hermes / a-forge resolve as OPERATOR_CLAIMED here
+        # even though session_auth.py correctly recognises them as "operator"
+        # — causing identity_drift and a HOLD verdict on every request. The
+        # canonical lookup is the single source; the fallback must agree.
+        try:
+            from arifosmcp.runtime.session_auth import (
+                _ED25519_EXEMPT_SYSTEM_ACTORS as _EXEMPT_ACTORS,
+            )
+        except ImportError:
+            _EXEMPT_ACTORS = {}
+        if actor_key and _EXEMPT_ACTORS and actor_key in _EXEMPT_ACTORS:
+            exempt_authority = str(_EXEMPT_ACTORS[actor_key]).upper()
+            if exempt_authority == "SOVEREIGN":
+                runtime_band = _runtime_auth_hint or "SOVEREIGN"
+            else:
+                # operator / operator-equivalent → full mutation, no seal
+                runtime_band = _runtime_auth_hint or "FULL"
+            return {
+                "actor_verified": True,  # exempt actors are verified by definition
+                "human_authority": exempt_authority,
+                "runtime_authority": runtime_band,
+                "mutation_allowed": True,
+                "seal_allowed": exempt_authority == "SOVEREIGN",
+            }
+
         _vkey = None
         h_authority = (
             "SOVEREIGN"
