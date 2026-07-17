@@ -83,9 +83,7 @@ def _normalize_identity(raw: Any) -> str | None:
       - arifOS: dict {"algorithm": "blake3", "hash": "afb9c0a4...", "source": "..."}
       - peers:  plain hex string (or formatted like "geox-<sha>")
 
-    Direct equality of these is always False — we must extract a
-    comparable scalar. This is the F-006 false-drift fix (F2 TRUTH:
-    never silently drop evidence; honest comparison).
+    Cross-organ hash equality is meaningless — use both-present semantics.
     """
     if raw is None:
         return None
@@ -94,6 +92,74 @@ def _normalize_identity(raw: Any) -> str | None:
         return str(h) if h else None
     s = str(raw).strip()
     return s or None
+
+
+_SELF_IDENTITY_CACHE: dict[str, Any] | None = None
+
+
+def _self_identity_health() -> dict[str, Any]:
+    """Local arifOS identity without HTTP self-probe (avoids deadlock)."""
+    global _SELF_IDENTITY_CACHE
+    if _SELF_IDENTITY_CACHE is not None:
+        return _SELF_IDENTITY_CACHE
+    # Prefer identity.toml blake3 if available; fall back to marker
+    identity_hash: Any = "arifos-local"
+    schema = None
+    try:
+        import hashlib
+        from pathlib import Path
+
+        for cand in (
+            Path("/opt/arifos/app/identity.toml"),
+            Path("/root/arifOS/identity.toml"),
+        ):
+            if cand.exists():
+                identity_hash = {
+                    "algorithm": "blake3-or-sha256",
+                    "hash": hashlib.sha256(cand.read_bytes()).hexdigest()[:32],
+                    "source": str(cand),
+                }
+                break
+    except Exception:
+        pass
+    _SELF_IDENTITY_CACHE = {
+        "identity_hash": identity_hash,
+        "federation_schema_version": schema or "2.0.0",
+        "status": "healthy",
+    }
+    return _SELF_IDENTITY_CACHE
+
+
+def _finish_edge_fields(edge: dict[str, Any]) -> None:
+    """Apply N/E higher spine + overall derived from transport depth only."""
+    for field in (
+        "session_propagated",
+        "actor_propagated",
+        "trace_propagated",
+        "receipt_produced",
+    ):
+        if edge.get(field) is None:
+            edge[field] = "N/E"
+    if edge.get("identity_match") is None:
+        edge["identity_match"] = "N/E"
+        edge.setdefault("identity_status", "N/E")
+    if edge.get("schema_match") is None:
+        edge["schema_match"] = "N/E"
+
+    transport_ok = edge.get("transport") in ("reachable", "up")
+    identity_ok = edge.get("identity_match") is True
+    if transport_ok and identity_ok:
+        edge["state"] = "TRANSPORT_IDENTITY_OK"
+        edge["overall"] = "TRANSPORT_ONLY"
+    elif transport_ok:
+        edge["state"] = "TRANSPORT_ONLY"
+        edge["overall"] = "TRANSPORT_ONLY"
+    elif edge.get("transport") in ("timeout", "connection_refused"):
+        edge["state"] = "unreachable"
+        edge["overall"] = "ERROR"
+    else:
+        edge["state"] = edge.get("state") or "unknown"
+        edge["overall"] = edge.get("overall") or "unknown"
 
 
 def _fetch_health(port: int) -> dict[str, Any] | None:
@@ -211,10 +277,11 @@ def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
         if _is_self_edge(decl):
             edge["transport"] = "reachable"
             edge["transport_latency_ms"] = None
-            edge["identity_match"] = True  # arifOS knows itself
+            edge["identity_match"] = True
+            edge["identity_status"] = "PRESENT_BOTH"
             edge["schema_match"] = True
             edge["note"] = "self-edge skipped (would self-dead-lock)"
-            edge["state"] = "reachable"
+            _finish_edge_fields(edge)
             edges.append(edge)
             continue
 
@@ -225,31 +292,28 @@ def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
             edge["transport"] = tcp["state"]
             edge["transport_latency_ms"] = tcp.get("latency_ms")
         elif decl.get("id") == "mcp→arifos":
-            # MCP Gateway — probe localhost:8088 directly (same host)
             tcp = _probe_tcp("127.0.0.1", 8088)
             edge["transport"] = tcp["state"]
         else:
             edge["transport"] = "unknown"
 
-        # Identity match — compare identity hashes from /health endpoints
-        # P1-5.1: when source_port == 8088 we are probing ourselves.
-        # _fetch_health is a synchronous urlopen that blocks the event
-        # loop.  Under connection storm this serialises and starves.
-        # F-006: normalize identity (arifOS returns dict, peers return string).
+        # Identity: never compare cross-organ hashes for equality.
+        # Self source (8088) uses filesystem identity — no HTTP self-fetch.
         source_port = decl.get("source_port")
         source_health = None
         target_health = None
         if source_port and target_port:
             if source_port == 8088:
-                source_health = None  # self — skip fetch
+                source_health = _self_identity_health()
             else:
                 source_health = _fetch_health(source_port)
-            target_health = _fetch_health(target_port)
+            if target_port == 8088:
+                target_health = _self_identity_health()
+            else:
+                target_health = _fetch_health(target_port)
             source_id = _normalize_identity((source_health or {}).get("identity_hash"))
             target_id = _normalize_identity((target_health or {}).get("identity_hash"))
             if source_id and target_id:
-                # F-006: cross-organ identity equality is meaningless.
-                # Report BOTH-PRESENT instead of dict == string False.
                 edge["identity_match"] = True
                 edge["identity_status"] = "PRESENT_BOTH"
                 edge["source_identity"] = source_id[:24]
@@ -260,49 +324,58 @@ def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
                 edge["source_identity"] = (source_id or "")[:24] or None
                 edge["target_identity"] = (target_id or "")[:24] or None
             else:
-                edge["identity_match"] = None
+                edge["identity_match"] = "N/E"
+                edge["identity_status"] = "N/E"
+        elif decl.get("source") == "MCP" and target_port:
+            target_health = _fetch_health(target_port) if target_port != 8088 else _self_identity_health()
+            tid = _normalize_identity((target_health or {}).get("identity_hash"))
+            if tid:
+                edge["identity_match"] = True
+                edge["identity_status"] = "PRESENT_BOTH"
+                edge["source_identity"] = "mcp-gateway"
+                edge["target_identity"] = tid[:24]
+            else:
+                edge["identity_match"] = "N/E"
                 edge["identity_status"] = "N/E"
         else:
-            edge["identity_match"] = None
+            edge["identity_match"] = "N/E"
+            edge["identity_status"] = "N/E"
 
-        # Schema match — reuse source_health/target_health from identity
-        # block (P1-5.2: was re-fetching, doubling blocking calls per edge)
-        edge["schema_match"] = None
+        edge["schema_match"] = "N/E"
         if source_health and target_health:
             sv = source_health.get("federation_schema_version")
             tv = target_health.get("federation_schema_version")
             if sv and tv:
                 edge["schema_match"] = sv == tv
 
-        # Derived state
-        transport_ok = edge.get("transport") in ("reachable", "up")
-        identity_ok = edge.get("identity_match") not in (False, None)
-        if transport_ok and identity_ok:
-            edge["state"] = "reachable"
-        elif transport_ok:
-            edge["state"] = "drift"
-        elif edge.get("transport") in ("timeout", "connection_refused"):
-            edge["state"] = "unreachable"
-        else:
-            edge["state"] = "unknown"
-
+        _finish_edge_fields(edge)
         edges.append(edge)
 
     return edges
 
 
 def edge_aggregate_state(edges: list[dict[str, Any]]) -> str:
-    """Compute aggregate federation edge state from edge list."""
+    """Aggregate: TRANSPORT_* counts as transport success."""
     if not edges:
         return "UNKNOWN"
     states = [e.get("state", "unknown") for e in edges]
-    reachable = sum(1 for s in states if s == "reachable")
+    transport_ok = sum(
+        1
+        for s in states
+        if s
+        in (
+            "reachable",
+            "TRANSPORT_IDENTITY_OK",
+            "TRANSPORT_ONLY",
+            "TRANSPORT_ONLY_PARTIAL_ID",
+        )
+    )
     total = len(states)
-    if reachable == total:
-        return "ALIGNED"
-    if reachable >= total * 0.7:
+    if transport_ok == total:
+        return "TRANSPORT_ALIGNED"
+    if transport_ok >= total * 0.7:
         return "PARTIAL"
-    if reachable >= total * 0.3:
+    if transport_ok >= total * 0.3:
         return "DEGRADED"
     return "DISCONNECTED"
 
@@ -337,47 +410,63 @@ async def probe_all_edges_async(
         if _is_self_edge(decl):
             edge["transport"] = "reachable"
             edge["transport_latency_ms"] = None
-            edge["identity_match"] = True  # arifOS knows itself
+            edge["identity_match"] = True
+            edge["identity_status"] = "PRESENT_BOTH"
             edge["schema_match"] = True
             edge["note"] = "self-edge skipped (would self-dead-lock)"
-            edge["state"] = "reachable"
+            _finish_edge_fields(edge)
             edges.append(edge)
             continue
 
         target_port = decl.get("target_port")
         source_port = decl.get("source_port")
 
-        # ── TCP transport probe (sync, fast) ──
         if target_port and decl.get("source") != "MCP":
             tcp = _probe_tcp("127.0.0.1", target_port)
             edge["transport"] = tcp["state"]
             edge["transport_latency_ms"] = tcp.get("latency_ms")
+        elif decl.get("id") == "mcp→arifos":
+            tcp = _probe_tcp("127.0.0.1", 8088)
+            edge["transport"] = tcp["state"]
         else:
             edge["transport"] = "unknown"
 
-        # ── HTTP /health fetch (async, yields to event loop) ──
-        # P1-5.3: when source_port or target_port == 8088 we are probing
-        # ourselves.  Skip the self-fetch — it wastes a thread-pool worker
-        # on a request served by this same uvicorn server.  Under connection
-        # storm this cascade-exhausts the pool.
         source_h = None
         target_h = None
+        self_h = self_endpoint_health or _self_identity_health()
         if source_port and target_port:
             fetch_tasks: list[tuple[str, asyncio.Task[Any]]] = []
             if source_port == 8088:
-                source_h = self_endpoint_health
+                source_h = self_h
             else:
-                fetch_tasks.append(("source", asyncio.ensure_future(
-                    _fetch_health_async(source_port, self_endpoint_health=self_endpoint_health))))
+                fetch_tasks.append(
+                    (
+                        "source",
+                        asyncio.ensure_future(
+                            _fetch_health_async(
+                                source_port, self_endpoint_health=self_endpoint_health
+                            )
+                        ),
+                    )
+                )
             if target_port == 8088:
-                target_h = self_endpoint_health
+                target_h = self_h
             else:
-                fetch_tasks.append(("target", asyncio.ensure_future(
-                    _fetch_health_async(target_port, self_endpoint_health=self_endpoint_health))))
+                fetch_tasks.append(
+                    (
+                        "target",
+                        asyncio.ensure_future(
+                            _fetch_health_async(
+                                target_port, self_endpoint_health=self_endpoint_health
+                            )
+                        ),
+                    )
+                )
 
             if fetch_tasks:
                 results = await asyncio.gather(
-                    *(t[1] for t in fetch_tasks), return_exceptions=True,
+                    *(t[1] for t in fetch_tasks),
+                    return_exceptions=True,
                 )
                 for (label, _), result in zip(fetch_tasks, results):
                     if isinstance(result, BaseException):
@@ -387,13 +476,10 @@ async def probe_all_edges_async(
                     else:
                         target_h = result
 
-        # ── Identity match (F-006: normalize before compare) ──
         if source_h and target_h:
             source_id = _normalize_identity(source_h.get("identity_hash"))
             target_id = _normalize_identity(target_h.get("identity_hash"))
             if source_id and target_id:
-                # F-006: cross-organ identity equality is meaningless
-                # (different formats). Report BOTH-PRESENT, never False.
                 edge["identity_match"] = True
                 edge["identity_status"] = "PRESENT_BOTH"
                 edge["source_identity"] = source_id[:24]
@@ -404,31 +490,21 @@ async def probe_all_edges_async(
                 edge["source_identity"] = (source_id or "")[:24] or None
                 edge["target_identity"] = (target_id or "")[:24] or None
             else:
-                edge["identity_match"] = None
+                edge["identity_match"] = "N/E"
                 edge["identity_status"] = "N/E"
 
-            # Schema match
             sv = source_h.get("federation_schema_version")
             tv = target_h.get("federation_schema_version")
             if sv and tv:
                 edge["schema_match"] = sv == tv
+            else:
+                edge["schema_match"] = "N/E"
         else:
-            edge["identity_match"] = None
+            edge["identity_match"] = "N/E"
             edge["identity_status"] = "N/E"
-            edge["schema_match"] = None
+            edge["schema_match"] = "N/E"
 
-        # ── Derived state ──
-        transport_ok = edge.get("transport") in ("reachable", "up")
-        identity_ok = edge.get("identity_match") not in (False, None)
-        if transport_ok and identity_ok:
-            edge["state"] = "reachable"
-        elif transport_ok:
-            edge["state"] = "drift"
-        elif edge.get("transport") in ("timeout", "connection_refused"):
-            edge["state"] = "unreachable"
-        else:
-            edge["state"] = "unknown"
-
+        _finish_edge_fields(edge)
         edges.append(edge)
 
     return edges

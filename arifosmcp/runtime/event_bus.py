@@ -18,6 +18,7 @@ import asyncio
 import json
 import logging
 import os
+import uuid
 from collections import deque
 from datetime import UTC, datetime
 from pathlib import Path
@@ -183,6 +184,19 @@ _SAFE_KEYS = {
     "organ",
     "receipt_id",
     "status",
+    # ── Session A: Operation/Receipt fields ──────────────────────────
+    "op_id",
+    "actor_id",
+    "capability",
+    "params",
+    "timestamp_start",
+    "timestamp_end",
+    "result_summary",
+    "evidence_uri",
+    "vault_candidate",
+    "signature",
+    "_event_kind",
+    "_emitted_at",
 }
 
 
