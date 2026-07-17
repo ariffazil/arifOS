@@ -1,7 +1,7 @@
 {
   "$schema": "https://glama.ai/schemas/glama.json",
   "name": "arifOS",
-  "description": "Production-grade Constitutional AI Governance System. 12 canonical public MCP verbs (init, observe, think, route, bridge_connect, critique, memory, judge, forge, compose, seal, verify) enforcing F1-F13 floors, 888_JUDGE sovereign verdict pipeline, E1 JITU pre-execution gate, VAULT999 immutable ledger. F13 SOVEREIGN: human veto is absolute. DITEMPA BUKAN DIBERI.",
+  "description": "Constitutional AI Governance Kernel. 8 public MCP verbs (init, observe, think, route, memory, judge, forge, seal), 65 total MCP tools. F1-F13 floors, 888_JUDGE sovereign verdict pipeline, VAULT999 immutable ledger. F13 SOVEREIGN: human veto is absolute. DITEMPA BUKAN DIBERI.",
   "author": {
     "name": "Muhammad Arif bin Fazil",
     "url": "https://arif-fazil.com"
@@ -12,7 +12,7 @@
   },
   "homepage": "https://arif-fazil.com",
   "license": "AGPL-3.0",
-  "version": "2026.07.10",
+  "version": "2026.07.17",
   "tags": [
     "constitutional-ai",
     "governance",
@@ -31,9 +31,11 @@
     "prompts": true
   },
   "tools": {
-    "count": 12,
+    "count": 8,
+    "total_mcp_tools": 65,
+    "canonical_tools": 25,
     "public_manifest": "https://mcp.arif-fazil.com/manifest/tools.json",
-    "naming": "arif_verb — canonical single-intent tools"
+    "naming": "arif_verb — 8 public kernel verbs + 57 operational"
   },
   "resources": {
     "count": 82
