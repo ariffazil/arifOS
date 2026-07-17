@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ariffazil/arifos",
+  "description": "Constitutional execution gate for AI agents \u2014 verifies identity, authority, evidence, reversibility.",
+  "repository": {
+    "url": "https://github.com/ariffazil/arifos",
+    "source": "github"
+  },
+  "homepage": "https://arif-fazil.com/mcp",
+  "version": "1!2026.7.17.post1",
+  "license": "AGPL-3.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "arifos",
+      "version": "1!2026.7.17.post1",
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://mcp.arif-fazil.com/mcp"
+      }
+    },
+    {
+      "registryType": "npm",
+      "identifier": "arifos",
+      "version": "2026.7.17",
+      "transport": {
+        "type": "streamable-http",
+        "url": "https://mcp.arif-fazil.com/mcp"
+      }
+    }
+  ],
+  "tags": [
+    "ai-governance",
+    "agent-safety",
+    "constitutional-ai",
+    "execution-gate",
+    "mcp-server"
+  ],
+  "categories": [
+    "security",
+    "governance",
+    "agent-tooling"
+  ]
+}

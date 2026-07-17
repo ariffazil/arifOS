@@ -33,6 +33,7 @@ import os
 import secrets
 import socket
 import subprocess  # nosec B404
+import sys
 import time
 import uuid
 from collections.abc import Callable
@@ -4725,6 +4726,59 @@ def register_rest_routes(
         except Exception:
             logger.exception("governance_status endpoint failed")
             return _rest_error("Failed to retrieve governance status", status_code=500)
+
+    @route("/api/public-state", methods=["GET"])
+    async def api_public_state(request: Request) -> Response:
+        """arifos.public-state.v1 — shared contract for MCP Gateway + Observatory.
+
+        Derived from the signed Observatory snapshot + live /health. Never hand-edited.
+        Bridge: action door (mcp) ↔ evidence room (observatory) around one release identity.
+        """
+        try:
+            from pathlib import Path
+
+            # Prefer pre-projected file (emit_observatory_snapshot + build_public_state)
+            candidates = [
+                Path("/root/.arifos/observatory/public-state.json"),
+                Path("/var/www/html/arifos/public-state.json"),
+            ]
+            for path in candidates:
+                if path.exists():
+                    try:
+                        payload = json.loads(path.read_text(encoding="utf-8"))
+                        if isinstance(payload, dict) and payload.get("schema") == "arifos.public-state.v1":
+                            return JSONResponse(
+                                payload,
+                                headers=_merge_headers(
+                                    _cache_headers(), _dashboard_cors_headers(request)
+                                ),
+                            )
+                    except Exception:
+                        logger.exception("public-state file read failed: %s", path)
+
+            # Live projection fallback
+            scripts_dir = Path("/root/arifOS/scripts")
+            if str(scripts_dir) not in sys.path:
+                sys.path.insert(0, str(scripts_dir))
+            from build_public_state import (  # type: ignore
+                get_health,
+                load_snapshot,
+                project_public_state,
+                write_public_state,
+            )
+
+            state = project_public_state(load_snapshot(), get_health())
+            try:
+                write_public_state(state)
+            except Exception:
+                pass
+            return JSONResponse(
+                state,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
+        except Exception:
+            logger.exception("api_public_state failed")
+            return _rest_error("Failed to project public-state", status_code=500)
 
     @route("/api/status", methods=["GET"])
     async def api_status(request: Request) -> Response:
