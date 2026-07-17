@@ -170,9 +170,16 @@ def _registered_tools(mcp: Any) -> set[str]:
 
             try:
                 future = asyncio.run_coroutine_threadsafe(_get_tools(), loop)
-                result = future.result(timeout=3)
+                # Reduced timeout from 3s to 1s: if the loop is busy
+                # (e.g. blocked on a self-probe urlopen in _fetch_health),
+                # this thread blocks the event loop further. Fail fast
+                # and fall back to public_tool_names_for_mode().
+                result = future.result(timeout=1.0)
                 if result:
                     return result
+            except concurrent.futures.TimeoutError:
+                # Loop is busy — fall through to next fallback.
+                pass
             except Exception:
                 pass
     except RuntimeError:

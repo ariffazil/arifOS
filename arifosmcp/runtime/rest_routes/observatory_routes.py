@@ -518,6 +518,17 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
         observation_method=_OBS_METHOD_DERIVED,
         independent=True,
     )
+    # Stable scalar retained for clients and tests that need one non-collapsed
+    # source/build/deployed verdict.  The namespaced `drift` object above is
+    # the detailed view; neither field claims schema or route alignment.
+    out["drift_state"] = _pf(
+        artifact_state.lower(),
+        source="_compute_runtime_drift.artifact",
+        state="derived",
+        confidence=0.9,
+        observation_method=_OBS_METHOD_DERIVED,
+        independent=True,
+    )
 
     out["deployment_mode"] = _pf(
         _detect_deployment_mode(),
@@ -1483,6 +1494,9 @@ def _edges_block() -> dict[str, Any]:
 
     Each edge: {id, source, target, transport, state, latency_ms, schema_match,
     identity_propagated, trace_propagated, receipt_produced, probe_type, observed_at}.
+
+    Sync version — uses blocking urlopen. Use `_edges_block_async()` from
+    async contexts to avoid blocking the event loop (P1-5 deadlock fix).
     """
     try:
         from arifosmcp.runtime.federation_edges import (
@@ -1499,6 +1513,44 @@ def _edges_block() -> dict[str, Any]:
         unknown = sum(1 for e in edges if e.get("state") == "unknown")
     except Exception as exc:
         logger.warning("edges_block failure: %s", exc)
+        edges = []
+        aggregate = "UNKNOWN"
+        reachable = drifted = unreachable = unknown = 0
+
+    return {
+        "declared": len(edges) if edges else 11,
+        "probed": len(edges),
+        "reachable": reachable,
+        "drifted": drifted,
+        "unreachable": unreachable,
+        "unknown": unknown,
+        "aggregate_state": aggregate,
+        "edges": edges,
+    }
+
+
+async def _edges_block_async() -> dict[str, Any]:
+    """Async version of _edges_block — yields to event loop while probing.
+
+    Uses `probe_all_edges_async` from federation_edges which runs each
+    HTTP fetch in a worker thread, preventing the self-deadlock where
+    arifOS probes its own /health while /health is computing the
+    snapshot (P1-5 observatory deadlock fix).
+    """
+    try:
+        from arifosmcp.runtime.federation_edges import (
+            probe_all_edges_async,
+            edge_aggregate_state,
+        )
+
+        edges = await probe_all_edges_async()
+        aggregate = edge_aggregate_state(edges)
+        reachable = sum(1 for e in edges if e.get("state") == "reachable")
+        drifted = sum(1 for e in edges if e.get("state") == "drift")
+        unreachable = sum(1 for e in edges if e.get("state") == "unreachable")
+        unknown = sum(1 for e in edges if e.get("state") == "unknown")
+    except Exception as exc:
+        logger.warning("edges_block_async failure: %s", exc)
         edges = []
         aggregate = "UNKNOWN"
         reachable = drifted = unreachable = unknown = 0
@@ -1752,7 +1804,7 @@ def build_snapshot(
         "receipts": _receipts_block(),
         "incidents": _incidents_block(),
         "findings": _findings_block(),
-        "federation_edges": _edges_block(),
+        "federation_edges": _edges_block(),  # sync path — callers from async context should use build_snapshot_async()
         "conformance": _conformance_block(),
         "stage_evidence": _pf(
             "self-reported",
@@ -1790,6 +1842,120 @@ def build_snapshot(
         ),
     }
     # Enrich all failure envelopes with human/builder explanations
+    return _enrich_snapshot(payload)
+
+
+# ── Async-safe snapshot builder (P1-5 fix) ─────────────────────────────────────
+async def build_snapshot_async(
+    mcp: Any,
+    *,
+    snapshot_id: str | None = None,
+    registered_tools: set[str] | None = None,
+) -> dict[str, Any]:
+    """Async variant of build_snapshot.
+
+    Pre-computes `_edges_block_async()` so HTTP probes run in worker
+    threads and the asyncio event loop stays free to serve other
+    requests. Use this from async route handlers (FastAPI/Starlette)
+    — calling sync `build_snapshot` from async context dead-locks
+    because probe_all_edges hits /health on the same server that's
+    computing the snapshot (P1-5 observatory deadlock fix).
+    """
+    federation_edges = await _edges_block_async()
+
+    from arifosmcp.runtime.capability_drift import compute_capability_matrix  # local import
+
+    server_json: dict[str, Any] | None = None
+    try:
+        from arifosmcp.runtime.rest_routes.rest_routes import build_server_json  # type: ignore
+
+        server_json = build_server_json(
+            os.getenv("ARIFOS_PUBLIC_BASE_URL", "http://arifos.arif-fazil.com")
+        )
+    except Exception as exc:
+        logger.warning("build_server_json failed: %s", exc)
+
+    capabilities = compute_capability_matrix(
+        mcp=mcp, server_json=server_json, registered_tools=registered_tools
+    )
+    runtime_identity = _runtime_identity_block()
+    capability_degraded = int(capabilities.get("degraded_count", 0) or 0)
+    drift_value = runtime_identity.get("drift", {}).get("value")
+    if isinstance(drift_value, dict):
+        drift_value["capability"] = "DRIFTED" if capability_degraded else "ALIGNED"
+        drift_value["forge_registry"] = "DRIFTED" if capability_degraded else "UNKNOWN"
+
+    snap_id = snapshot_id or "obs_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime())
+    payload: dict[str, Any] = {
+        "snapshot_id": snap_id,
+        "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "generated_by": GENERATED_BY,
+        "schema_version": SCHEMA_VERSION,
+        "signature": _pf(
+            None,
+            source="ed25519 over canonicaljson(payload_without_signature) — pending key bootstrap",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "runtime_identity": runtime_identity,
+        "substrate": _substrate_block(),
+        "governance": _governance_block(),
+        "capabilities": capabilities,
+        "organs": _organs_block(mcp),
+        "metabolism": _metabolism_block(),
+        "evidence": _evidence_block(),
+        "receipts": _receipts_block(),
+        "incidents": _incidents_block(),
+        "findings": _findings_block(),
+        "federation_edges": federation_edges,
+        "conformance": _conformance_block(),
+        "stage_evidence": _pf(
+            "self-reported",
+            source="observatory pipeline stage (not a governed session)",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=False,
+        ),
+        "intelligence_decomposition": {
+            "machine_substrate": _pf(
+                "ALIGNED",
+                source="transport + artifact self-report",
+                state="derived",
+                confidence=0.85,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=True,
+            ),
+            "intelligence_pipeline": _pf(
+                "RETAK",
+                source="metabolism 0/11 observed, capability tests 0/18, capability drift present",
+                state="derived",
+                confidence=0.7,
+                observation_method=_OBS_METHOD_DERIVED,
+                independent=True,
+            ),
+        },
+        "tier": _pf(
+            "public",
+            source="Caddy X-Observatory-Tier (default public; operator with valid X-Op-Token)",
+            state="reported",
+            confidence=1.0,
+            observation_method=_OBS_METHOD_SELF_REPORTED,
+            independent=False,
+        ),
+        "probe_source": {
+            "transport": "native",
+            "deployment_marker": "/opt/arifos/app/.git_commit",
+            "deployment_marker_exists": os.path.exists("/opt/arifos/app/.git_commit"),
+            "runtime_path": "/opt/arifos/app",
+            "image": None,
+        },
+        "tools_loaded": len(registered_tools) if registered_tools else 0,
+        "canonical_tools_loaded": len(registered_tools) if registered_tools else 0,
+        "narrative": {"age_seconds": 0, "incidents_count": 0, "findings_count": 0},
+    }
     return _enrich_snapshot(payload)
 
 
@@ -1939,7 +2105,9 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         try:
             # Pre-compute registered tools async (FastMCP 3.x list_tools is async)
             reg_tools = await _registered_tools_async(mcp)
-            snap = build_snapshot(mcp=mcp, registered_tools=reg_tools)
+            # P1-5 fix: use build_snapshot_async so _edges_block_async
+            # yields to the event loop instead of blocking it on urlopen.
+            snap = await build_snapshot_async(mcp=mcp, registered_tools=reg_tools)
         except Exception as exc:
             logger.exception("observatory snapshot partial failure")
             snap = {

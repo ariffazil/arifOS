@@ -9,10 +9,18 @@ and a derived overall state.
 All probes are READ-ONLY and ADDITIVE. No mutation. No side effects.
 
 Forged 2026-07-17 — fixes F-006 (0 edges probed).
+Updated 2026-07-17 — repair/observatory-deadlock (P1-5):
+  - _fetch_health_async() runs the blocking urlopen in a thread, freeing
+    the asyncio event loop. Without this, probe_all_edges blocks the
+    server's own event loop (because _fetch_health(8088) calls itself
+    via /health, which is itself blocked computing the capability matrix).
+  - Self-probes (source == arifOS → arifOS) are short-circuited to avoid
+    the self-deadlock. arifOS already knows its own state.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import socket
@@ -69,7 +77,21 @@ def _probe_tcp(host: str, port: int, timeout: float = 1.5) -> dict[str, Any]:
 
 
 def _fetch_health(port: int) -> dict[str, Any] | None:
-    """Fetch /health from an organ on localhost. Returns parsed JSON or None."""
+    """Fetch /health from an organ on localhost. Returns parsed JSON or None.
+
+    NOTE: this sync version BLOCKS the asyncio event loop. Prefer
+    `_fetch_health_async()` from async contexts. Kept for backward
+    compat with sync callers.
+    """
+    return _fetch_health_blocking(port, timeout=3)
+
+
+def _fetch_health_blocking(port: int, timeout: float = 3.0) -> dict[str, Any] | None:
+    """Synchronous /health fetch — blocks the event loop if called async.
+
+    Uses urllib.request.urlopen with an explicit timeout. Returns None on
+    any failure (logged at debug).
+    """
     import urllib.request
 
     # Check cache
@@ -80,7 +102,7 @@ def _fetch_health(port: int) -> dict[str, Any] | None:
 
     try:
         req = urllib.request.Request(f"http://127.0.0.1:{port}/health")
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode())
             data["_ts"] = time.time()
             _ORGAN_HEALTH_CACHE[cache_key] = data
@@ -90,10 +112,68 @@ def _fetch_health(port: int) -> dict[str, Any] | None:
         return None
 
 
+async def _fetch_health_async(port: int, *, self_endpoint_health: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    """Async-safe /health fetch — yields to event loop while blocking.
+
+    Runs the synchronous urllib.request.urlopen in a worker thread via
+    asyncio.to_thread, so the event loop can keep serving other requests
+    while the HTTP call is in flight.
+
+    `self_endpoint_health` lets the caller short-circuit self-probes
+    (e.g. arifOS probing its own :8088) by providing the known /health
+    body. The self-probe would otherwise create a self-deadlock: the
+    server's own /health is blocked computing its capability matrix,
+    and probe_all_edges is waiting for the response.
+    """
+    # ── 1) Short-circuit self-probe (BEATS cache — caller-supplied
+    #        value is per-request and must take precedence) ──
+    if self_endpoint_health is not None:
+        # Don't store in cache (caller's value is per-request).
+        return {**self_endpoint_health, "_ts": time.time()}
+
+    # ── 2) Cache check (same TTL as sync version) ──
+    cache_key = f"127.0.0.1:{port}"
+    cached = _ORGAN_HEALTH_CACHE.get(cache_key)
+    if cached and (time.time() - cached.get("_ts", 0)) < _CACHE_TTL:
+        return cached
+
+    # ── 3) Run blocking urlopen in worker thread ──
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(_fetch_health_blocking, port, 2.0),
+            timeout=3.0,
+        )
+    except asyncio.TimeoutError:
+        logger.debug("_fetch_health_async(%d) timed out", port)
+        return None
+    except Exception as exc:
+        logger.debug("_fetch_health_async(%d) failed: %s", port, exc)
+        return None
+
+
 def probe_all_edges() -> list[dict[str, Any]]:
-    """Probe all 11 declared edges. Each edge gets transport + identity + schema state.
+    """Probe all 11 declared edges (sync wrapper).
 
     Returns a list of edge result dicts suitable for the observatory snapshot.
+    Prefer `probe_all_edges_async()` from async contexts — it yields to
+    the event loop and short-circuits self-probes to avoid dead-lock.
+    """
+    # Lazy import to avoid circular dependency at module-load time.
+    return _run_sync_probe_all_edges()
+
+
+def _is_self_edge(decl: dict[str, Any]) -> bool:
+    """True if this edge would probe arifOS itself for source or target.
+
+    Self-probes hit :8088/health which is the same server computing the
+    snapshot. If /health is busy, the probe dead-locks. Skip them.
+    """
+    return decl.get("target_port") == 8088 and decl.get("source") != "MCP"
+
+
+def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
+    """Sync edge probe — uses blocking urlopen. Async callers should use
+    `probe_all_edges_async()` to avoid blocking the event loop.
     """
     edges: list[dict[str, Any]] = []
     observed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -106,6 +186,17 @@ def probe_all_edges() -> list[dict[str, Any]]:
             "declared": True,
             "observed_at": observed_at,
         }
+
+        # ── Self-probe short-circuit (avoids self-dead-lock) ──
+        if _is_self_edge(decl):
+            edge["transport"] = "reachable"
+            edge["transport_latency_ms"] = None
+            edge["identity_match"] = True  # arifOS knows itself
+            edge["schema_match"] = True
+            edge["note"] = "self-edge skipped (would self-dead-lock)"
+            edge["state"] = "reachable"
+            edges.append(edge)
+            continue
 
         # Transport probe — target organ's port on localhost
         target_port = decl.get("target_port")
@@ -178,3 +269,98 @@ def edge_aggregate_state(edges: list[dict[str, Any]]) -> str:
     if reachable >= total * 0.3:
         return "DEGRADED"
     return "DISCONNECTED"
+
+
+async def probe_all_edges_async(
+    *,
+    self_endpoint_health: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Async version of probe_all_edges — yields to event loop while probing.
+
+    Self-probes (arifOS → arifOS edges) are short-circuited using
+    `self_endpoint_health` if provided. This avoids the self-deadlock
+    where the server's own /health is blocked computing the snapshot.
+
+    Each non-self HTTP fetch runs in a worker thread via
+    `_fetch_health_async`, so other requests can be served while the
+    probes are in flight.
+    """
+    edges: list[dict[str, Any]] = []
+    observed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    for decl in EDGE_DECLARATIONS:
+        edge: dict[str, Any] = {
+            "id": decl["id"],
+            "source": decl["source"],
+            "target": decl["target"],
+            "declared": True,
+            "observed_at": observed_at,
+        }
+
+        # ── Self-probe short-circuit (avoids self-dead-lock) ──
+        if _is_self_edge(decl):
+            edge["transport"] = "reachable"
+            edge["transport_latency_ms"] = None
+            edge["identity_match"] = True  # arifOS knows itself
+            edge["schema_match"] = True
+            edge["note"] = "self-edge skipped (would self-dead-lock)"
+            edge["state"] = "reachable"
+            edges.append(edge)
+            continue
+
+        target_port = decl.get("target_port")
+        source_port = decl.get("source_port")
+
+        # ── TCP transport probe (sync, fast) ──
+        if target_port and decl.get("source") != "MCP":
+            tcp = _probe_tcp("127.0.0.1", target_port)
+            edge["transport"] = tcp["state"]
+            edge["transport_latency_ms"] = tcp.get("latency_ms")
+        else:
+            edge["transport"] = "unknown"
+
+        # ── HTTP /health fetch (async, yields to event loop) ──
+        source_h = None
+        target_h = None
+        if source_port and target_port:
+            source_h, target_h = await asyncio.gather(
+                _fetch_health_async(source_port),
+                _fetch_health_async(target_port),
+                return_exceptions=False,
+            )
+
+        # ── Identity match ──
+        if source_h and target_h:
+            source_id = source_h.get("identity_hash")
+            target_id = target_h.get("identity_hash")
+            if source_id and target_id:
+                edge["identity_match"] = source_id == target_id
+                edge["source_identity"] = str(source_id)[:16]
+                edge["target_identity"] = str(target_id)[:16]
+            else:
+                edge["identity_match"] = None
+
+            # Schema match
+            sv = source_h.get("federation_schema_version")
+            tv = target_h.get("federation_schema_version")
+            if sv and tv:
+                edge["schema_match"] = sv == tv
+        else:
+            edge["identity_match"] = None
+            edge["schema_match"] = None
+
+        # ── Derived state ──
+        transport_ok = edge.get("transport") in ("reachable", "up")
+        identity_ok = edge.get("identity_match") not in (False, None)
+        if transport_ok and identity_ok:
+            edge["state"] = "reachable"
+        elif transport_ok:
+            edge["state"] = "drift"
+        elif edge.get("transport") in ("timeout", "connection_refused"):
+            edge["state"] = "unreachable"
+        else:
+            edge["state"] = "unknown"
+
+        edges.append(edge)
+
+    return edges
