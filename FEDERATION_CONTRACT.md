@@ -31,7 +31,7 @@ All constitutional floors (F1-F13) derive from his sovereignty. No organ, agent,
 | 🌍 | **GEOX** | `ariffazil/geox` | 8081 | `https://geox.arif-fazil.com/mcp` | Earth intelligence | Evidence-only — never authorize drilling |
 | 💰 | **WEALTH** | `ariffazil/wealth` | 18082 | `https://wealth.arif-fazil.com/mcp` | Capital intelligence | Compute-only — never allocate capital |
 | 🫀 | **WELL** | `ariffazil/well` | 18083 | `https://well.arif-fazil.com/mcp` | Vitality guard | Reflect-only — never judge or diagnose |
-| ⚖️ | **APEX** | `ariffazil/apex` | 3002 | — | 888 JUDGE (legacy) | Decommissioned — deliberation in AAA a2a |
+| ⚖️ | **APEX_LEGACY_v3002** | `ariffazil/apex` | 3002 (retired 2026-06-27) | — | 888 JUDGE (legacy) | Decommissioned — deliberation in AAA a2a |
 
 ---
 
