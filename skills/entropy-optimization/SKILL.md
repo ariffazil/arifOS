@@ -214,7 +214,7 @@ Prioritize reversible computing where possible.
 
 | Skill | Connection |
 |-------|------------|
-| `recursive-self-improvement` | Determines which improvements have best EVOI |
+| `RSI-recursive-improvement` | Determines which improvements have best EVOI |
 | `orthogonal-abstraction` | Cross-domain efficiency gains |
 | `epistemic-integrity` | Accurate EVOI requires accurate uncertainty |
 | `constitutional-governance` | Efficiency cannot violate governance |

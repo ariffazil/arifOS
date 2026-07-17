@@ -146,7 +146,7 @@ Every consequential output must include:
 
 | Skill | Connection |
 |-------|------------|
-| `recursive-self-improvement` | Self-modeling requires epistemic integrity |
+| `RSI-recursive-improvement` | Self-modeling requires epistemic integrity |
 | `orthogonal-abstraction` | Invariant extraction requires accurate classification |
 | `constitutional-governance` | Judgment requires truth discipline |
 | `entropy-optimization` | EVOI calculation requires uncertainty quantification |

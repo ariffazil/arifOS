@@ -3,7 +3,7 @@ MetaSkillsProvider — AGI→ASI→APEX Meta-Skill Loader
 ══════════════════════════════════════════════════════════
 
 Loads the 5 canonical meta-skills:
-  1. recursive-self-improvement
+  1. RSI-recursive-improvement
   2. orthogonal-abstraction
   3. epistemic-integrity
   4. constitutional-governance
@@ -24,7 +24,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 META_SKILLS: dict[str, dict[str, Any]] = {
-    "recursive-self-improvement": {
+    "RSI-recursive-improvement": {
         "stage": "AGI→ASI",
         "trinity": "ASI_emergence",
         "required_for": [
@@ -167,7 +167,7 @@ class MetaSkillsProvider:
         This is used as pre-tool-call guidance.
         """
         hooks = {
-            "recursive-self-improvement": """
+            "RSI-recursive-improvement": """
 INVOKE BEFORE: Any self-modification or architecture upgrade
 1. Identity anchor check: Core values unchanged?
 2. Bottleneck identified: Measured, not assumed?

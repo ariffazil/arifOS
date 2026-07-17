@@ -1228,7 +1228,7 @@ After boot passes (all 7 ✅), you can:
 - **Start working:** The 8 public tools are arif_init → arif_observe → arif_think → arif_route → arif_judge → arif_forge → arif_compose → arif_seal
 - **Seal your session:** Call arif_seal at session end to append to VAULT999
 
-CANONICAL SOURCE: /root/AAA/prompts/AGENT_INIT_v3.0.md
+CANONICAL SOURCE: /root/AAA/prompts/INIT.md
 """
 
 
@@ -1253,7 +1253,7 @@ Constraints:
 
 
 # Module-level path for INIT canon (single source of truth).
-_AGENT_INIT_V3_CANON_PATH = "/root/AAA/prompts/AGENT_INIT_v3.0.md"
+_AGENT_INIT_V3_CANON_PATH = "/root/AAA/prompts/INIT.md"
 
 
 def register_prompts(mcp) -> list[str]:
@@ -1601,7 +1601,7 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
             "constitution, session, trinity, sovereign, refusal, RSI)\n"
             "  full → Everything in boot + 33-repo map, RSI cycle, autonomy tiers, "
             "888_HOLD triggers, VAULT999 seal protocol\n\n"
-            "CANONICAL SOURCE: /root/AAA/prompts/AGENT_INIT_v3.0.md\n"
+            "CANONICAL SOURCE: /root/AAA/prompts/INIT.md\n"
             "FORGED: 2026-07-08 by FORGE (000Ω) under F13 SOVEREIGN"
         ),
         tags={"prompt", "init", "boot", "TRINITY-33", "RSI"},
