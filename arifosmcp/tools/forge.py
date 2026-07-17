@@ -9,7 +9,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
+
+logger = logging.getLogger(__name__)
 
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _add_floor_compat, _arif_forge
@@ -544,8 +547,8 @@ async def arif_forge(
                 result.meta.setdefault("akal_novelty", _akal_nov)
             elif hasattr(result, "result") and isinstance(result.result, dict):
                 result.result.setdefault("akal_novelty", _akal_nov)
-    except Exception:
-        pass  # AKAL novelty is advisory — never blocks forge
+    except Exception as e:
+        logger.warning("AKAL novelty check failed (non-blocking): %s", e)
 
     # ── P0 WIRING (2026-06-28): Seal forge execution to VAULT999 ──
     # Every successful forge execution must leave an auditable receipt.
@@ -586,8 +589,15 @@ async def arif_forge(
             latency_ms=0.0,
             within_budget=True,
         )
-    except Exception:
-        pass  # Sealing must never block execution
+    except Exception as e:
+        logger.error("VAULT999 seal FAILED for forge:%s session:%s: %s", mode, session_id, e)
+        # F1 + F11: An unsealed execution is an unauditable mutation.
+        # Flip status to HOLD so the caller KNOWS the receipt was not written.
+        result.status = "HOLD"
+        if result.meta is None:
+            result.meta = {}
+        result.meta["vault_sealed"] = False
+        result.meta["vault_seal_error"] = str(e)[:200]
 
     _register_forge_cooldown(result, mode, manifest, artifact_id, session_id)
     # ── v3.1: actor_signature verification (Ed25519) ────────────────────────
