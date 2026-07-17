@@ -509,6 +509,70 @@ def _strip_legacy_identity(response: dict[str, Any]) -> None:
                 result.pop("authority_state", None)
 
 
+def _sync_authority_surfaces_from_standing(
+    response: dict[str, Any],
+    standing: SessionStanding,
+) -> None:
+    """P0: standing is the sole authority surface — kill dual narrative.
+
+    session_birth / clarity_contract / top-level authority must not claim
+    FULL/verified/mutation while standing says OBSERVE_ONLY/unverified.
+    Mutates response in place.
+    """
+    env = standing_to_envelope(standing)
+    actor = env["actor"]
+    authority = env["authority"]
+    band = authority["band"]
+    verified = bool(actor["verified"])
+    mutation = bool(authority["mutation_allowed"])
+
+    # Top-level mirrors (if present)
+    if "actor_verified" in response:
+        response["actor_verified"] = verified
+    if "authority" in response and isinstance(response["authority"], str):
+        response["authority"] = band
+    if "authority_scope" in response:
+        response["authority_scope"] = band
+    if "authority_mode" in response:
+        response["authority_mode"] = band
+
+    # session_birth — the dual-claim residual named by the auditor
+    birth = response.get("session_birth")
+    if isinstance(birth, dict):
+        birth["actor_verified"] = verified
+        birth["authority_mode"] = band
+        birth["verdict"] = band
+        birth["mutation_allowed"] = mutation
+        birth["authority_source"] = "standing"
+        # Align identity fields with standing
+        birth["claimed_id"] = actor["claimed_id"]
+        birth["canonical_id"] = actor["canonical_id"]
+        birth["verification_method"] = actor["verification_method"]
+        birth["evidence_ref"] = actor["evidence_ref"]
+        if standing.session_id and standing.session_id != "anonymous":
+            birth["session_id"] = standing.session_id
+
+    # Nested result.session_birth (some wrappers nest)
+    result = response.get("result")
+    if isinstance(result, dict) and isinstance(result.get("session_birth"), dict):
+        _sync_authority_surfaces_from_standing(result, standing)
+
+    # clarity_contract mutation_allowed must match standing
+    clarity = response.get("clarity_contract")
+    if isinstance(clarity, dict):
+        clarity["authority_band"] = band
+        clarity["mutation_allowed"] = mutation
+        clarity["actor_bound"] = verified
+        clarity["evidence_honesty"] = "CLEAR" if verified else "FUZZY"
+
+    # sct_claims.av must not claim verified if standing denies it
+    sct = response.get("sct_claims")
+    if isinstance(sct, dict) and "av" in sct:
+        sct["av"] = verified
+        if "auth" in sct:
+            sct["auth"] = band
+
+
 def attach_canonical_standing(
     response: Any,
     session_id: str | None = None,
@@ -521,14 +585,36 @@ def attach_canonical_standing(
     audit spec. No drift sentinels — the canonical composer is the only
     source, so contradiction is structurally impossible.
 
+    P0 2026-07-17: also syncs session_birth / clarity_contract / top-level
+    authority fields FROM standing so dual narrative is impossible.
+
     The response is mutated in place and returned. Non-dict inputs are
     returned unchanged.
     """
     if not isinstance(response, dict):
         return response
     _strip_legacy_identity(response)
-    standing = compose_standing(session_id, actor_id)
+    # Prefer response-born session if caller did not pass one
+    if not session_id:
+        birth = response.get("session_birth") if isinstance(response.get("session_birth"), dict) else {}
+        session_id = (
+            response.get("session_id")
+            or birth.get("session_id")
+            or session_id
+        )
+    if not actor_id:
+        birth = response.get("session_birth") if isinstance(response.get("session_birth"), dict) else {}
+        actor_id = (
+            response.get("actor_id")
+            or response.get("actor")
+            or birth.get("actor_id")
+            or actor_id
+        )
+        if isinstance(actor_id, dict):
+            actor_id = actor_id.get("claimed_id") or actor_id.get("id")
+    standing = compose_standing(session_id, actor_id if isinstance(actor_id, str) or actor_id is None else str(actor_id))
     response["standing"] = standing_to_envelope(standing)
+    _sync_authority_surfaces_from_standing(response, standing)
     return response
 
 
