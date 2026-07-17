@@ -20610,6 +20610,19 @@ async def _arif_memory_v5_router(
       - arif_memory         (canonical, new)
       - arif_memory_recall  (deprecated alias, also routed here for back-compat)
     """
+    # ═══════════════════════════════════════════════════════════════════════════
+    # F1/F2/F11 — Pre-execution constitutional gate
+    # ═══════════════════════════════════════════════════════════════════════════
+    # arif_memory(mode=remember|promote|revise|forget|attest) are MATERIAL
+    # mutations — they write to long-term memory substrate that influences
+    # future constitutional judgments. Must pass the same gate every other
+    # canonical tool uses. P0-01 fix 2026-07-17.
+    gate = _constitutional_gate(
+        "arif_memory", mode, actor_id, session_id=session_id
+    )
+    if gate is not None:
+        return gate
+
     v5_native_modes = {
         "recall",
         "inspect",
