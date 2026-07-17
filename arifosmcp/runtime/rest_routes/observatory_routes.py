@@ -2374,23 +2374,22 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
 
     @route("/seal/head")
     async def _h_seal_head(req):  # type: ignore
-        """Latest VAULT999 seal head."""
+        """Latest VAULT999 seal head — DERIVED from chain tail (F-004).
+
+        Never returns an independent freestyle head as authority.
+        """
         from arifosmcp.runtime.rest_routes.rest_routes import (
             _dashboard_cors_headers,
             _cache_headers,
             _merge_headers,
         )
-        head_path = Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
-        if not head_path.exists():
-            return JSONResponse(
-                {"head": None, "status": "no-seals"},
-                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
-            )
         try:
-            with open(head_path, encoding="utf-8") as fh:
-                head_data = json.load(fh)
+            from arifosmcp.runtime.canonical_vault_chain import derive_head
+
+            head_data = derive_head()
+            status = "genesis" if head_data.get("status") == "genesis" else "available"
             return JSONResponse(
-                {"head": head_data, "status": "available"},
+                {"head": head_data, "status": status, "derived": True},
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
             )
         except Exception as exc:
@@ -2402,56 +2401,39 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
 
     @route("/seal/verify")
     async def _h_seal_verify(req):  # type: ignore
-        """VAULT999 chain integrity verification.
+        """VAULT999 chain integrity verification (F-004 canonical model).
 
-        Verifies the hash chain by reading all entries from seal_chain.jsonl
-        and checking that each entry's hash matches the previous entry's recorded hash.
+        Walks seal_chain.jsonl, classifies every gap (HISTORICAL_* vs CHAIN_BREAK),
+        never rewrites ledger, never reports green when gaps exist.
         """
         from arifosmcp.runtime.rest_routes.rest_routes import (
             _dashboard_cors_headers,
             _cache_headers,
             _merge_headers,
         )
-        chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
-        if not chain_path.exists():
-            return JSONResponse(
-                {"verified": False, "status": "no-chain", "entries": 0},
-                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
-            )
         try:
-            entries = []
-            with open(chain_path, encoding="utf-8") as fh:
-                for line in fh:
-                    line = line.strip()
-                    if line:
-                        try:
-                            parsed = json.loads(line)
-                            if isinstance(parsed, dict):
-                                entries.append(parsed)
-                        except json.JSONDecodeError:
-                            continue
-            # Basic integrity: check each entry has required fields
-            # (entries already filtered to valid JSON dicts)
-            gaps = []
-            prev_hash = None
-            for i, entry in enumerate(entries):
-                # Canonical fields: this_hash / prev_hash (VAULT999 format)
-                entry_hash = entry.get("this_hash") or entry.get("hash") or entry.get("seal_hash")
-                entry_prev = entry.get("prev_hash")
-                if prev_hash and entry_prev and entry_prev != prev_hash:
-                    gaps.append({"index": i, "expected_prev": str(prev_hash)[:48], "got": str(entry_prev)[:48]})
-                if entry_hash:
-                    prev_hash = entry_hash
+            from arifosmcp.runtime.canonical_vault_chain import (
+                heads_agreement,
+                verify_chain,
+            )
 
-            verified = len(gaps) == 0 and len(entries) > 0
+            scope = (req.query_params.get("scope") or "full").strip().lower()
+            if scope not in ("full", "canonical"):
+                scope = "full"
+            result = verify_chain(scope=scope)
+            body = result.to_dict()
+            body["scope"] = scope
+            # Always include both scopes so SPA cannot false-green historical
+            try:
+                body["scope_canonical"] = verify_chain(scope="canonical").to_dict()
+            except Exception as sc_exc:  # noqa: BLE001
+                body["scope_canonical"] = {"error": str(sc_exc)}
+            try:
+                body["heads_agreement"] = heads_agreement()
+            except Exception as agr_exc:  # noqa: BLE001
+                body["heads_agreement"] = {"error": str(agr_exc)}
             return JSONResponse(
-                {
-                    "verified": verified,
-                    "status": "verified" if verified else "gaps-found",
-                    "entries": len(entries),
-                    "gaps": gaps[:50],
-                    "head_seq": entries[-1].get("seq") if entries else None,
-                },
+                body,
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
             )
         except Exception as exc:
@@ -2463,51 +2445,26 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
 
     @route("/seal/replay")
     async def _h_seal_replay(req):  # type: ignore
-        """VAULT999 chain replay — returns all sealed entries for audit replay."""
+        """VAULT999 chain replay — deterministic reconstruction (F-004).
+
+        Returns ordered accepted receipts + final_state_hash.
+        Corrupt lines counted, never silent. Gaps → status=partial.
+        """
         from arifosmcp.runtime.rest_routes.rest_routes import (
             _dashboard_cors_headers,
             _cache_headers,
             _merge_headers,
         )
-        chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
-        if not chain_path.exists():
-            return JSONResponse(
-                {"replay": [], "status": "no-chain", "entries": 0},
-                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
-            )
         try:
-            # Optional limit to keep response bounded (default 50 most recent valid)
+            from arifosmcp.runtime.canonical_vault_chain import replay_chain
+
             try:
                 limit = int(req.query_params.get("limit") or 50)
             except Exception:
                 limit = 50
-            limit = max(1, min(limit, 500))
-            entries: list[dict] = []
-            skipped = 0
-            with open(chain_path, encoding="utf-8") as fh:
-                for line in fh:
-                    line = line.strip()
-                    if not line or not line.startswith("{"):
-                        skipped += 1
-                        continue
-                    try:
-                        parsed = json.loads(line)
-                    except json.JSONDecodeError:
-                        skipped += 1
-                        continue
-                    if isinstance(parsed, dict):
-                        entries.append(parsed)
-            # return tail only
-            tail = entries[-limit:]
+            result = replay_chain(limit=limit)
             return JSONResponse(
-                {
-                    "replay": tail,
-                    "status": "available",
-                    "entries": len(entries),
-                    "returned": len(tail),
-                    "skipped_corrupt": skipped,
-                    "head_seq": entries[-1].get("seq") if entries else None,
-                },
+                result.to_dict(),
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
             )
         except Exception as exc:
