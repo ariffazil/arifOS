@@ -123,6 +123,13 @@ repos:
         language: system
         types: [python, sql]
 
+      - id: kernel-abi-sync-check
+        name: F12 Kernel ABI single-writer (sync_kernel_abi.py --check)
+        entry: python3 scripts/sync_kernel_abi.py --check
+        language: system
+        pass_filenames: false
+        files: '(arifosmcp/abi/capability_registry\.json|smithery\.yaml|mcp-arifos\.json|static/\.well-known/mcp/server\.json)'
+
 # Configuration for specific tools
 default_language_version:
   python: python3.13
