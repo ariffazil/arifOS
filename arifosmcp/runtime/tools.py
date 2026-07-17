@@ -4089,10 +4089,11 @@ def _enforce_nine_signal(
             "invocation_count": _audit_invocation_count,
             "session_id": resolved_session_id,
             "actor_id": resolved_actor_id,
-            # P0 fix 2026-07-04: actor_verified default is False, not True.
-            # Single source of truth: set once at 000_init, read-only downstream.
-            "actor_verified": actor_verified_flag
-            or bool(meta_payload.get("actor_verified", False)),
+            # P0 fix 2026-07-04 / Claude contradiction 2026-07-17:
+            # actor_verified MUST come only from session store (actor_verified_flag).
+            # NEVER OR with meta_payload — that reintroduced dual-truth
+            # (wrapper True while standing.verified False).
+            "actor_verified": bool(actor_verified_flag),
             # WS1 (2026-07-12): build the legacy 5-field authority dict from
             # the canonical AuthorityState (single source of truth). The
             # 5-field shape is preserved for one compat cycle (legacy

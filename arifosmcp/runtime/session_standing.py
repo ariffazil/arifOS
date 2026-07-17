@@ -280,8 +280,17 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
     record = _read_session_record(session_id)
 
     # Claimed id prefers the caller argument (THIS request), not a stale record.
+    # Case-normalize at intake (Claude audit 2026-07-17): ARIF → arif.
     claimed_id = (actor_id or (record.get("actor_id") if record else None) or "anonymous")
-    claimed_id = str(claimed_id)
+    claimed_id = str(claimed_id).strip()
+    try:
+        from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+        _norm = normalize_actor_id(claimed_id)
+        if _norm:
+            claimed_id = _norm
+    except Exception:
+        claimed_id = claimed_id.lower() if claimed_id else "anonymous"
 
     if record:
         verification_method = _resolve_verification_method(record)
