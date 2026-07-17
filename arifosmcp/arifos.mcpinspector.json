@@ -1,7 +1,7 @@
 {
   "$schema": "https://modelcontextprotocol.io/specification/2025-03-26/schema.json",
   "name": "arifOS MCP Kernel Inspector",
-  "version": "2026.06.19",
+  "version": "2026.07.17",
   "description": "MCP Inspector profile for arifOS - tests all transports and constitutional floors",
   "transports": {
     "stdio": {
