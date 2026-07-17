@@ -16,10 +16,12 @@ jobs:
       - name: Run constitutional tests
         env:
           ARIFOS_SKIP_PROTOCOL_SENTINEL: "1"
+          WELL_STATE_PATH: "/tmp/well_state.json"
         run: pytest tests/constitutional/ -q --tb=short
       - name: Run adversarial tests
         env:
           ARIFOS_SKIP_PROTOCOL_SENTINEL: "1"
+          WELL_STATE_PATH: "/tmp/well_state.json"
         run: pytest tests/adversarial/ -q --tb=short
       - name: Verify smithery.yaml is valid YAML
         run: python -c "import yaml; yaml.safe_load(open('smithery.yaml'))"

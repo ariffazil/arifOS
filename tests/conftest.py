@@ -251,13 +251,19 @@ def mock_well_state_for_tests(tmp_path_factory):
 
     if env_path:
         well_path = Path(env_path)
-    elif vps_path.parent.exists():
-        well_path = vps_path
     else:
-        # CI runner: create temp file and point WELL_STATE_PATH at it
-        tmp_dir = tmp_path_factory.mktemp("well_state")
-        well_path = tmp_dir / "state.json"
-        os.environ["WELL_STATE_PATH"] = str(well_path)
+        try:
+            if vps_path.parent.exists():
+                well_path = vps_path
+            else:
+                well_path = None
+        except (PermissionError, OSError):
+            well_path = None
+        if well_path is None:
+            # CI runner: create temp file and point WELL_STATE_PATH at it
+            tmp_dir = tmp_path_factory.mktemp("well_state")
+            well_path = tmp_dir / "state.json"
+            os.environ["WELL_STATE_PATH"] = str(well_path)
 
     original: str | None = None
     if well_path.exists():
