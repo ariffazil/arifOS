@@ -1,0 +1,405 @@
+"""
+arifOS Session Standing — canonical session/identity/authority object.
+
+Epoch 1 / Item 1 of the Kernel Senescence Reduction plan.
+The single composer of actor and authority. No wrapper may recompute.
+
+Schema (from F13 epoch / audit spec):
+    {
+      "session_id": "SEAL-...",
+      "actor": {
+        "claimed_id": "arif",
+        "canonical_id": "ARIF_FAZIL",
+        "verified": false,
+        "verification_method": null
+      },
+      "authority": {
+        "band": "OBSERVE_ONLY",
+        "mutation_allowed": false,
+        "seal_allowed": false
+      },
+      "issued_at": "...",
+      "expires_at": "...",
+      "state_version": 1
+    }
+
+This is the ONLY source of actor.verified and authority.band. Every wrapper
+that previously emitted actor_verified / authority_level / authority /
+human_authority / runtime_authority must consume this object instead.
+
+Net effect on the kernel: seven legacy identity fields collapse to four
+structured fields; four nesting levels collapse to one.
+
+DITEMPA BUKAN DIBERI — Forged, Not Given.
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from typing import Any
+
+
+# Bump when the canonical shape changes; consumers use this to detect drift.
+SESSION_STANDING_VERSION = 1
+
+# Authority bands. Only these four values are emitted.
+BAND_OBSERVE_ONLY = "OBSERVE_ONLY"
+BAND_LIMITED_MUTATE = "LIMITED_MUTATE"
+BAND_FULL = "FULL"
+BAND_SOVEREIGN = "SOVEREIGN"
+
+VALID_BANDS = frozenset(
+    {BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN}
+)
+
+
+@dataclass(frozen=True)
+class ActorStanding:
+    claimed_id: str
+    canonical_id: str
+    verified: bool
+    verification_method: str | None
+
+
+@dataclass(frozen=True)
+class AuthorityStanding:
+    band: str
+    mutation_allowed: bool
+    seal_allowed: bool
+
+
+@dataclass(frozen=True)
+class SessionStanding:
+    session_id: str
+    actor: ActorStanding
+    authority: AuthorityStanding
+    issued_at: str
+    expires_at: str
+    state_version: int = SESSION_STANDING_VERSION
+
+
+def _read_session_record(session_id: str | None) -> dict[str, Any] | None:
+    """Read the underlying session record. The only reader of legacy state."""
+    if not session_id:
+        return None
+    try:
+        from arifosmcp.runtime.session import get_session_identity
+
+        return get_session_identity(session_id)
+    except Exception:
+        return None
+
+
+def _normalize_band(level: Any) -> str:
+    """Collapse every legacy authority token to one of the four canonical bands.
+
+    This is the ONLY function that maps legacy authority strings to bands.
+    """
+    if not level:
+        return BAND_OBSERVE_ONLY
+    token = str(level).strip().upper()
+    if token in {"SOVEREIGN", "888"}:
+        return BAND_SOVEREIGN
+    if token in {"FULL", "OPERATOR", "OPERATOR_CLAIMED", "L4_WARGA"}:
+        return BAND_FULL if token == "FULL" else BAND_LIMITED_MUTATE
+    if token in {"LIMITED_MUTATE", "OBSERVER", "ANONYMOUS", "LOW"}:
+        return BAND_LIMITED_MUTATE if token == "LIMITED_MUTATE" else BAND_OBSERVE_ONLY
+    return BAND_OBSERVE_ONLY
+
+
+def _derive_authority_band(record: dict[str, Any] | None, actor_id: str | None) -> str:
+    """Compute the single authority band. No other code path may compute it."""
+    if not record:
+        return BAND_OBSERVE_ONLY
+    # Prefer runtime_authority (the canonical underlying field), then
+    # authority_level (legacy alias). Both must converge to the same band.
+    level = record.get("runtime_authority") or record.get("authority_level")
+    return _normalize_band(level)
+
+
+def _resolve_canonical_actor(
+    actor_id: str | None, record: dict[str, Any] | None
+) -> str:
+    """Resolve canonical_id from actor_id and session record."""
+    if record:
+        for key in ("canonical_actor_id", "verified_actor_id"):
+            cid = record.get(key)
+            if cid:
+                return str(cid)
+    return actor_id or "anonymous"
+
+
+def _resolve_verification_method(record: dict[str, Any] | None) -> str | None:
+    """Determine the verification method used, if any."""
+    if not record:
+        return None
+    auth_ctx = record.get("auth_context") or {}
+    if isinstance(auth_ctx, dict):
+        method = auth_ctx.get("verification_method") or auth_ctx.get("auth_method")
+        if method:
+            return str(method)
+    identity = record.get("identity") or {}
+    if isinstance(identity, dict) and identity.get("ed25519_verified"):
+        return "ed25519"
+    return None
+
+
+def _utcnow_iso() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def compose_standing(
+    session_id: str | None, actor_id: str | None = None
+) -> SessionStanding:
+    """Compose the canonical SessionStanding for a session.
+
+    This is the ONLY function that derives actor.verified and authority.band.
+    No other code path may compute these fields. Tools consume this object;
+    wrappers do not recompute.
+
+    Returns a frozen SessionStanding. state_version marks the schema.
+    """
+    record = _read_session_record(session_id)
+
+    if record:
+        resolved_actor_id = (
+            actor_id
+            or record.get("actor_id")
+            or "anonymous"
+        )
+        verified = bool(
+            record.get("verified")
+            or record.get("actor_verified")
+            or record.get("identity_verified")
+        )
+        issued_at = record.get("created_at") or _utcnow_iso()
+        expires_at = record.get("expires_at") or _utcnow_iso()
+    else:
+        resolved_actor_id = actor_id or "anonymous"
+        verified = False
+        issued_at = _utcnow_iso()
+        expires_at = _utcnow_iso()
+
+    canonical_id = _resolve_canonical_actor(actor_id, record)
+    band = _derive_authority_band(record, resolved_actor_id)
+
+    actor = ActorStanding(
+        claimed_id=resolved_actor_id,
+        canonical_id=canonical_id,
+        verified=verified,
+        verification_method=_resolve_verification_method(record),
+    )
+    authority = AuthorityStanding(
+        band=band,
+        mutation_allowed=band in {BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN},
+        seal_allowed=band == BAND_SOVEREIGN,
+    )
+
+    return SessionStanding(
+        session_id=session_id or "anonymous",
+        actor=actor,
+        authority=authority,
+        issued_at=issued_at,
+        expires_at=expires_at,
+        state_version=SESSION_STANDING_VERSION,
+    )
+
+
+def standing_to_envelope(standing: SessionStanding) -> dict[str, Any]:
+    """Serialize the SessionStanding into the canonical envelope shape.
+
+    The shape is exactly the audit spec. No extra fields.
+    """
+    return {
+        "session_id": standing.session_id,
+        "actor": asdict(standing.actor),
+        "authority": asdict(standing.authority),
+        "issued_at": standing.issued_at,
+        "expires_at": standing.expires_at,
+        "state_version": standing.state_version,
+    }
+
+
+# Legacy identity-bearing field names emitted by the previous Fable-5 wrapper
+# (identity_consistency.py, deleted). Kept as a single set so the wrapper
+# migration is one deletion pass, not five separate scans.
+_LEGACY_IDENTITY_TOP_LEVEL = (
+    "actor_verified",
+    "authority_level",
+    "authority",
+    "human_authority",
+    "runtime_authority",
+    "_identity_consistency_applied",
+    "_identity_drift_count",
+    "_identity_drift_first",
+    "_identity_drift_violations",
+    "authority_state",
+)
+
+_LEGACY_IDENTITY_NESTED = (
+    "actor_verified",
+    "authority_level",
+    "authority",
+    "human_authority",
+    "runtime_authority",
+    "_identity_consistency_applied",
+    "_identity_drift_count",
+)
+
+_LEGACY_ACTOR_BLOCK_FIELDS = (
+    "identity_verified",
+    "authority_level",
+    "claimed_id",
+)
+
+_LEGACY_AUTHORITY_DICT_KEYS = (
+    "actor_verified",
+    "human_authority",
+    "runtime_authority",
+    "AUTHORITY_LEVEL",
+    "RUNTIME_AUTHORITY",
+    "HUMAN_AUTHORITY",
+    "ACTOR_VERIFIED",
+)
+
+
+def _strip_legacy_identity(response: dict[str, Any]) -> None:
+    """Remove every legacy identity field from a response, at every nesting level.
+
+    Mutates in place. After this call, the response contains no legacy
+    identity-bearing field names — only the canonical standing block will
+    remain (attached separately). Empty legacy containers are removed
+    entirely so the response has no empty shell dicts either.
+    """
+    for key in _LEGACY_IDENTITY_TOP_LEVEL:
+        response.pop(key, None)
+
+    meta = response.get("meta")
+    if isinstance(meta, dict):
+        for key in _LEGACY_IDENTITY_NESTED:
+            meta.pop(key, None)
+
+    actor = response.get("actor")
+    if isinstance(actor, dict):
+        for key in _LEGACY_ACTOR_BLOCK_FIELDS:
+            actor.pop(key, None)
+        # If the legacy actor block is now empty, drop the block entirely.
+        if not actor:
+            response.pop("actor", None)
+
+    auth_state = response.get("authority_state")
+    if isinstance(auth_state, dict):
+        auth_state.pop("actor", None)
+        auth_state.pop("runtime_grant", None)
+        if not auth_state:
+            response.pop("authority_state", None)
+
+    result = response.get("result")
+    if isinstance(result, dict):
+        for key in _LEGACY_IDENTITY_TOP_LEVEL:
+            result.pop(key, None)
+        result_actor = result.get("actor")
+        if isinstance(result_actor, dict):
+            for key in _LEGACY_ACTOR_BLOCK_FIELDS:
+                result_actor.pop(key, None)
+            if not result_actor:
+                result.pop("actor", None)
+        result_authority = result.get("authority")
+        if isinstance(result_authority, dict):
+            for key in _LEGACY_AUTHORITY_DICT_KEYS:
+                result_authority.pop(key, None)
+            if not result_authority:
+                result.pop("authority", None)
+        result_auth_state = result.get("authority_state")
+        if isinstance(result_auth_state, dict):
+            result_auth_state.pop("actor", None)
+            result_auth_state.pop("runtime_grant", None)
+            if not result_auth_state:
+                result.pop("authority_state", None)
+
+
+def attach_canonical_standing(
+    response: Any,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+) -> Any:
+    """Attach the canonical SessionStanding to a response.
+
+    Replaces the entire legacy identity-field surface (seven field names at
+    four nesting levels) with one canonical `standing` block matching the
+    audit spec. No drift sentinels — the canonical composer is the only
+    source, so contradiction is structurally impossible.
+
+    The response is mutated in place and returned. Non-dict inputs are
+    returned unchanged.
+    """
+    if not isinstance(response, dict):
+        return response
+    _strip_legacy_identity(response)
+    standing = compose_standing(session_id, actor_id)
+    response["standing"] = standing_to_envelope(standing)
+    return response
+
+
+def attach_canonical(
+    response: Any,
+    *,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+) -> Any:
+    """One-call canonical normalization: standing + effective_verdict.
+
+    Replaces the legacy `apply_identity_consistency` shim. Sequences the
+    two passes in their constitutional order — identity first (so
+    OBSERVE_ONLY can downgrade a tool's self-reported SEAL), then verdict
+    (which reads the resulting standing's authority band).
+
+    Non-dict inputs are wrapped in {"result": response}, normalized, then
+    unwrapped. Pass-through is preserved.
+    """
+    if not isinstance(response, dict):
+        wrapped: dict[str, Any] = {"result": response}
+        attach_canonical(wrapped, session_id=session_id, actor_id=actor_id)
+        return wrapped.get("result")
+
+    # Read inner verdict BEFORE the identity strip; the standing composer
+    # preserves verdict (it is not a legacy identity field), but reading
+    # it now gives the verdict composer the tool's claim to reduce.
+    inner_verdict = response.get("verdict") if isinstance(response, dict) else None
+    attach_canonical_standing(
+        response, session_id=session_id, actor_id=actor_id
+    )
+    standing = response.get("standing") if isinstance(response, dict) else None
+    band: str | None = None
+    if isinstance(standing, dict):
+        authority = standing.get("authority")
+        if isinstance(authority, dict):
+            band_value = authority.get("band")
+            if isinstance(band_value, str):
+                band = band_value
+
+    from arifosmcp.runtime.verdict import attach_effective_verdict
+
+    return attach_effective_verdict(
+        response,
+        inner_verdict=inner_verdict,
+        session_authority_band=band,
+    )
+
+
+__all__ = [
+    "ActorStanding",
+    "AuthorityStanding",
+    "SessionStanding",
+    "SESSION_STANDING_VERSION",
+    "BAND_OBSERVE_ONLY",
+    "BAND_LIMITED_MUTATE",
+    "BAND_FULL",
+    "BAND_SOVEREIGN",
+    "VALID_BANDS",
+    "compose_standing",
+    "standing_to_envelope",
+    "attach_canonical_standing",
+    "attach_canonical",
+]

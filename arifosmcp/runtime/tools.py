@@ -21644,21 +21644,22 @@ except ImportError as _rule14_err:
     logging.getLogger(__name__).warning("RULE 14 canonical tools not loaded: %s", _rule14_err)
 
 
-# ── P1 FIX (2026-07-16): identity_consistency guard for canonical handlers ──
-# Forged from Fable-5 audit cycle. The canonical handlers (arif_route, arif_init,
-# arif_observe, arif_think, etc.) are mounted DIRECTLY by server.py — they bypass
-# `_wrap_handler` because FastMCP 3.x rejects *args/**kwargs wrappers. So we wrap
-# them here at registration time, after they're bound into _CANONICAL_HANDLERS
-# / _RUNTIME_DIAGNOSTIC_HANDLERS, with a post-process decorator that runs
-# `apply_identity_consistency` on every response and narrows to HOLD on drift.
-def _wrap_with_identity_consistency(handler, tool_name):
-    """P1 single-source-of-truth guard. Applied to every canonical/diagnostic
-    handler at registration time. Drift → verdict=HOLD + SCAR log.
-    Reversible: delete this block and the wire-up in server.py is dead again.
+# ── Epoch 1 / Items 1+3: canonical normalization for canonical handlers ─
+# The canonical handlers (arif_route, arif_init, arif_observe, arif_think, etc.)
+# are mounted DIRECTLY by server.py — they bypass `_wrap_handler` because
+# FastMCP 3.x rejects *args/**kwargs wrappers. So we wrap them here at
+# registration time, after they're bound into _CANONICAL_HANDLERS /
+# _RUNTIME_DIAGNOSTIC_HANDLERS, with a post-process decorator that runs
+# `attach_canonical` on every response. Identity and verdict collapse to
+# one canonical composer pair; drift is structurally impossible.
+def _wrap_with_canonical_normalization(handler, tool_name):
+    """Epoch 1 canonical normalization. Applied to every canonical/diagnostic
+    handler at registration time. Reversible: delete this block and the
+    wire-up at end-of-file is dead again.
     """
     import asyncio
     from functools import wraps
-    from arifosmcp.runtime.identity_consistency import apply_identity_consistency
+    from arifosmcp.runtime.session_standing import attach_canonical
 
     if asyncio.iscoroutinefunction(handler):
 
@@ -21666,29 +21667,11 @@ def _wrap_with_identity_consistency(handler, tool_name):
         async def _async_wrapped(*args, **kwargs):
             response = await handler(*args, **kwargs)
             try:
-                response, _drift = apply_identity_consistency(
+                response = attach_canonical(
                     response if isinstance(response, dict) else {"result": response},
                     session_id=kwargs.get("session_id"),
                     actor_id=kwargs.get("actor_id"),
                 )
-                if _drift:
-                    _existing = (
-                        response.get("verdict", "SEAL")
-                        if isinstance(response, dict)
-                        else "SEAL"
-                    )
-                    if isinstance(response, dict) and _existing in (
-                        "SEAL",
-                        "ALLOW",
-                        "DEGRADED",
-                    ):
-                        response["verdict"] = "HOLD"
-                        _meta = response.setdefault("meta", {})
-                        if isinstance(_meta, dict):
-                            _meta["_identity_drift_narrowed_from"] = _existing
-                            _meta["_identity_drift_count"] = len(_drift)
-                            _meta["_identity_drift_first"] = _drift[0]
-                            _meta["_identity_drift_tool"] = tool_name
             except Exception:
                 pass
             return response
@@ -21699,29 +21682,11 @@ def _wrap_with_identity_consistency(handler, tool_name):
     def _sync_wrapped(*args, **kwargs):
         response = handler(*args, **kwargs)
         try:
-            response, _drift = apply_identity_consistency(
+            response = attach_canonical(
                 response if isinstance(response, dict) else {"result": response},
                 session_id=kwargs.get("session_id"),
                 actor_id=kwargs.get("actor_id"),
             )
-            if _drift:
-                _existing = (
-                    response.get("verdict", "SEAL")
-                    if isinstance(response, dict)
-                    else "SEAL"
-                )
-                if isinstance(response, dict) and _existing in (
-                    "SEAL",
-                    "ALLOW",
-                    "DEGRADED",
-                ):
-                    response["verdict"] = "HOLD"
-                    _meta = response.setdefault("meta", {})
-                    if isinstance(_meta, dict):
-                        _meta["_identity_drift_narrowed_from"] = _existing
-                        _meta["_identity_drift_count"] = len(_drift)
-                        _meta["_identity_drift_first"] = _drift[0]
-                        _meta["_identity_drift_tool"] = tool_name
         except Exception:
             pass
         return response
@@ -21729,8 +21694,8 @@ def _wrap_with_identity_consistency(handler, tool_name):
     return _sync_wrapped
 
 
-def _apply_identity_consistency_to_all_canonical_handlers():
-    """P1 post-process: wrap every registered canonical/diagnostic handler.
+def _apply_canonical_normalization_to_all_handlers():
+    """Epoch 1 post-process: wrap every registered canonical/diagnostic handler.
     Called once at module-import time. Idempotent (safe to call twice).
     """
     import logging as _logging
@@ -21743,14 +21708,16 @@ def _apply_identity_consistency_to_all_canonical_handlers():
             if existing is None:
                 continue
             # Don't double-wrap — check a sentinel attribute.
-            if getattr(existing, "_identity_consistency_wrapped", False):
+            if getattr(existing, "_canonical_normalization_wrapped", False):
                 continue
-            registry[tool_name] = _wrap_with_identity_consistency(existing, tool_name)
-            registry[tool_name]._identity_consistency_wrapped = True
+            registry[tool_name] = _wrap_with_canonical_normalization(
+                existing, tool_name
+            )
+            registry[tool_name]._canonical_normalization_wrapped = True
             wrapped_count += 1
     if wrapped_count:
         _log.info(
-            "identity_consistency: wrapped %d canonical/diagnostic handlers",
+            "canonical_normalization: wrapped %d canonical/diagnostic handlers",
             wrapped_count,
         )
 
@@ -22418,51 +22385,19 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             actor_id=kwargs.get("actor_id"),
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
-        # P1 FIX (2026-07-16): single-source identity consistency guard.
-        # Forged from Fable-5 audit cycle. Detects drift between the
-        # canonical AuthorityState and any independently-derived identity
-        # field that may have slipped into the response from legacy
-        # writers. Drift narrows verdict to HOLD per WS1 P0-1 contract.
+        # Epoch 1 / Items 1+3: canonical normalization. One call replaces
+        # the legacy apply_identity_consistency shim. Drift is structurally
+        # impossible — the canonical composer is the only source.
         try:
-            from arifosmcp.runtime.identity_consistency import (
-                apply_identity_consistency,
-            )
+            from arifosmcp.runtime.session_standing import attach_canonical
 
-            final_resp, _id_drift = apply_identity_consistency(
+            final_resp = attach_canonical(
                 final_resp,
                 session_id=kwargs.get("session_id"),
                 actor_id=kwargs.get("actor_id"),
             )
-            if _id_drift:
-                _existing_verdict = final_resp.get("verdict", "SEAL")
-                if _existing_verdict in ("SEAL", "ALLOW", "DEGRADED"):
-                    final_resp["verdict"] = "HOLD"
-                    _meta_inner = final_resp.setdefault("meta", {})
-                    if isinstance(_meta_inner, dict):
-                        _meta_inner.setdefault(
-                            "_identity_drift_narrowed_from", _existing_verdict
-                        )
-                        _meta_inner.setdefault(
-                            "_identity_drift_count", len(_id_drift)
-                        )
-                        _meta_inner.setdefault(
-                            "_identity_drift_first", _id_drift[0]
-                        )
-                    _schedule_seal(
-                        {
-                            "event": "identity_drift",
-                            "tool": tool_name,
-                            "session_id": kwargs.get("session_id"),
-                            "actor_id": kwargs.get("actor_id"),
-                            "drift_count": len(_id_drift),
-                            "drift_first": _id_drift[0] if _id_drift else "",
-                            "verdict_narrowed_to": "HOLD",
-                        },
-                        tool_name,
-                        kwargs,
-                    )
-        except Exception as _id_exc:
-            logger.debug("identity_consistency skipped: %s", _id_exc)
+        except Exception as _canonical_exc:
+            logger.debug("canonical normalization skipped: %s", _canonical_exc)
         _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
         # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
@@ -22580,51 +22515,19 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             actor_id=kwargs.get("actor_id"),
         )
         _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
-        # P1 FIX (2026-07-16): single-source identity consistency guard.
-        # Forged from Fable-5 audit cycle. Detects drift between the
-        # canonical AuthorityState and any independently-derived identity
-        # field that may have slipped into the response from legacy
-        # writers. Drift narrows verdict to HOLD per WS1 P0-1 contract.
+        # Epoch 1 / Items 1+3: canonical normalization. One call replaces
+        # the legacy apply_identity_consistency shim. Drift is structurally
+        # impossible — the canonical composer is the only source.
         try:
-            from arifosmcp.runtime.identity_consistency import (
-                apply_identity_consistency,
-            )
+            from arifosmcp.runtime.session_standing import attach_canonical
 
-            final_resp, _id_drift = apply_identity_consistency(
+            final_resp = attach_canonical(
                 final_resp,
                 session_id=kwargs.get("session_id"),
                 actor_id=kwargs.get("actor_id"),
             )
-            if _id_drift:
-                _existing_verdict = final_resp.get("verdict", "SEAL")
-                if _existing_verdict in ("SEAL", "ALLOW", "DEGRADED"):
-                    final_resp["verdict"] = "HOLD"
-                    _meta_inner = final_resp.setdefault("meta", {})
-                    if isinstance(_meta_inner, dict):
-                        _meta_inner.setdefault(
-                            "_identity_drift_narrowed_from", _existing_verdict
-                        )
-                        _meta_inner.setdefault(
-                            "_identity_drift_count", len(_id_drift)
-                        )
-                        _meta_inner.setdefault(
-                            "_identity_drift_first", _id_drift[0]
-                        )
-                    _schedule_seal(
-                        {
-                            "event": "identity_drift",
-                            "tool": tool_name,
-                            "session_id": kwargs.get("session_id"),
-                            "actor_id": kwargs.get("actor_id"),
-                            "drift_count": len(_id_drift),
-                            "drift_first": _id_drift[0] if _id_drift else "",
-                            "verdict_narrowed_to": "HOLD",
-                        },
-                        tool_name,
-                        kwargs,
-                    )
-        except Exception as _id_exc:
-            logger.debug("identity_consistency skipped: %s", _id_exc)
+        except Exception as _canonical_exc:
+            logger.debug("canonical normalization skipped: %s", _canonical_exc)
         _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
         # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
@@ -23425,45 +23328,48 @@ def _ws1_authority_envelope(
         }
 
 
-# ── P1 FIX (2026-07-16): FINAL post-process — wrap canonical handlers ──────
+# ── Epoch 1 / Items 1+3: FINAL post-process — wrap canonical handlers ────
 # The earlier post-process call (right after the rule-14 import block) ran
 # BEFORE every canonical handler was registered. By the time module import
 # is complete, all `_CANONICAL_HANDLERS[...] = handler` assignments are done.
 # Fire the wrap here, at end-of-file, so we catch every handler.
 try:
-    _apply_identity_consistency_to_all_canonical_handlers()
-except Exception as _ic_final_exc:
+    _apply_canonical_normalization_to_all_handlers()
+except Exception as _canonical_final_exc:
     import logging as _logging_final
 
     _logging_final.getLogger(__name__).warning(
-        "identity_consistency final post-process failed: %s", _ic_final_exc
+        "canonical normalization final post-process failed: %s",
+        _canonical_final_exc,
     )
 
 
-# ── P1h FIX (2026-07-16): monkey-patch module-level aliases ────────────────
+# ── Epoch 1 / Items 1+3: monkey-patch module-level aliases ────────────────
 # server.py imports specific handlers by NAME for SDK alias registration:
 #   `from arifosmcp.runtime.tools import _arif_session_init as _sdk_alias_session_init`
 # These imports bind at module-load time — BEFORE the post-process wraps
 # the dict values. So `_sdk_alias_session_init` still points to the ORIGINAL
-# handler. Without this monkey-patch, SDK aliases bypass identity_consistency.
-import sys as _ic_module_sys  # noqa: E402
+# handler. Without this monkey-patch, SDK aliases bypass canonical
+# normalization. The sentinel attribute name has changed from
+# `_identity_consistency_wrapped` to `_canonical_normalization_wrapped`.
+import sys as _cn_module_sys  # noqa: E402
 
-_ic_module = _ic_module_sys.modules.get("arifosmcp.runtime.tools")
-if _ic_module is not None:
-    _ic_patch_count = 0
-    for _ic_tool_name, _ic_handler in list(_CANONICAL_HANDLERS.items()):
-        if _ic_handler is None:
+_cn_module = _cn_module_sys.modules.get("arifosmcp.runtime.tools")
+if _cn_module is not None:
+    _cn_patch_count = 0
+    for _cn_tool_name, _cn_handler in list(_CANONICAL_HANDLERS.items()):
+        if _cn_handler is None:
             continue
-        if not getattr(_ic_handler, "_identity_consistency_wrapped", False):
+        if not getattr(_cn_handler, "_canonical_normalization_wrapped", False):
             continue
-        _ic_orig_name = getattr(_ic_handler, "__name__", None)
-        if _ic_orig_name and hasattr(_ic_module, _ic_orig_name):
-            if getattr(_ic_module, _ic_orig_name) is not _ic_handler:
-                setattr(_ic_module, _ic_orig_name, _ic_handler)
-                _ic_patch_count += 1
-    import logging as _ic_log_final
+        _cn_orig_name = getattr(_cn_handler, "__name__", None)
+        if _cn_orig_name and hasattr(_cn_module, _cn_orig_name):
+            if getattr(_cn_module, _cn_orig_name) is not _cn_handler:
+                setattr(_cn_module, _cn_orig_name, _cn_handler)
+                _cn_patch_count += 1
+    import logging as _cn_log_final
 
-    _ic_log_final.getLogger(__name__).info(
-        "identity_consistency: monkey-patched %d module attributes for SDK aliases",
-        _ic_patch_count,
+    _cn_log_final.getLogger(__name__).info(
+        "canonical_normalization: monkey-patched %d module attributes for SDK aliases",
+        _cn_patch_count,
     )
