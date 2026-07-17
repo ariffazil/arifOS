@@ -32,6 +32,7 @@ concurrency:
 
 env:
   WORKDIR: "${{ github.workspace }}"
+  ARIFOS_REGISTRY_ROOT: "${{ github.workspace }}/arifos-model-registry"
 
 jobs:
   conformance:
@@ -51,6 +52,11 @@ jobs:
         run: |
           cd "$WORKDIR"
           pip install -e ".[dev]" 2>/dev/null || pip install -e .
+
+      - name: Create model registry stub for CI
+        run: |
+          mkdir -p "$WORKDIR/arifos-model-registry/models"
+          echo '{"models":[],"soul_archetypes":[],"runtime_profiles":[]}' > "$WORKDIR/arifos-model-registry/catalog.json"
 
       - name: Transport initialization
         run: |
