@@ -637,8 +637,11 @@ def arif_route(
     task: str | None = None,
     actor_id: str | None = None,
     session_id: str | None = None,
+    session_token: str | None = None,
     organ_tool: str | None = None,
     arguments: dict[str, Any] | str | None = None,
+    _envelope: Any = None,
+    contract_c_kwargs: dict | None = None,
 ) -> dict[str, Any]:
     """
     Canonical routing entry point. Routes an intent to the correct organ.
@@ -654,6 +657,7 @@ def arif_route(
         task:         Alias for intent (backward compat).
         actor_id:     Calling actor.
         session_id:   Governing session.
+        session_token: SCT from arif_init (ChatGPT continuity).
         organ_tool:   The tool name on the target organ to call.
                       If absent, returns routing decision only (no bridge call).
         arguments:    Arguments to pass to organ_tool.
@@ -689,7 +693,26 @@ def arif_route(
                 actor_id = env.get("actor_id")
             if not session_id and env.get("session_id"):
                 session_id = env.get("session_id")
+            if not session_token and env.get("session_token"):
+                session_token = env.get("session_token")
             actor_id, session_id = _bind_identity(actor_id, session_id)
+
+    # SCT continuity: recover session from token when ChatGPT only has SCT
+    if session_token and not session_id:
+        try:
+            from arifosmcp.runtime.sct import resolve_standing
+
+            st = resolve_standing(
+                session_token=session_token,
+                actor_id=actor_id,
+                allow_store=True,
+            )
+            if st.valid and st.session_id:
+                session_id = st.session_id
+            if st.valid and st.actor_id and not actor_id:
+                actor_id = st.actor_id
+        except Exception:
+            pass
 
     floor_check = check_laws("arif_route", {"intent": intent}, actor_id)
     if floor_check["verdict"] != "SEAL":

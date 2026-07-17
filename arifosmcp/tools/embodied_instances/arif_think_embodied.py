@@ -118,15 +118,24 @@ class ArifMindReasonEmbodied(EmbodiedTool):
             if isinstance(ctx_param, dict):
                 attention_context = ctx_param.get("attention_context")
 
-            result = _arif_mind_reason(
-                mode=mode,
-                query=query,
-                session_id=session_id,
-                actor_id=actor_id,
-                plan_id=params.get("plan_id"),
-                witness_type=params.get("witness_type", "ai"),
-                attention_context=attention_context,
-            )
+            # session_token accepted for SCT continuity (ChatGPT path) when kernel supports it
+            _mind_kwargs: dict = {
+                "mode": mode,
+                "query": query,
+                "session_id": session_id,
+                "actor_id": actor_id,
+                "plan_id": params.get("plan_id"),
+                "witness_type": params.get("witness_type", "ai"),
+                "attention_context": attention_context,
+            }
+            try:
+                import inspect as _insp
+
+                if "session_token" in _insp.signature(_arif_mind_reason).parameters:
+                    _mind_kwargs["session_token"] = params.get("session_token")
+            except Exception:
+                pass
+            result = _arif_mind_reason(**_mind_kwargs)
 
             # ── AKAL I2: Shadow trace validation after reasoning ──────
             if akal_friction and akal_friction.get("escalation_required"):
