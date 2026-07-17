@@ -22510,8 +22510,38 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
         _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
+            # ── Session A: Emit operation STARTED ──────────────────────────
+            from arifosmcp.runtime.event_bus import emit_operation
+            session_id = kwargs.get("session_id")
+            actor_id = kwargs.get("actor_id")
+            op_id = emit_operation(
+                capability=tool_name,
+                actor_id=actor_id,
+                session_id=session_id,
+                params={k: str(v)[:100] for k, v in kwargs.items() if k not in ("session_token", "_envelope")},
+                status="STARTED",
+            )["op_id"]
+            # ────────────────────────────────────────────────────────────────
             response = handler(*args, **_filtered)
+            # ── Session A: Emit operation SUCCESS + receipt ────────────────
+            from arifosmcp.runtime.event_bus import emit_operation as _eo, emit_receipt as _er
+            _eo(capability=tool_name, actor_id=actor_id, session_id=session_id,
+                status="SUCCESS", op_id=op_id)
+            # Receipt for critical tools (judge, forge, seal)
+            vault_candidate = tool_name in ("arif_judge", "arif_forge", "arif_seal", "arif_act")
+            _er(op_id=op_id, session_id=session_id, organ="arifos",
+                result_summary=f"{tool_name}: OK",
+                vault_candidate=vault_candidate)
+            # ────────────────────────────────────────────────────────────────
         except Exception as exc:
+            # ── Session A: Emit operation FAIL ────────────────────────────
+            try:
+                from arifosmcp.runtime.event_bus import emit_operation as _eo
+                _eo(capability=tool_name, actor_id=actor_id, session_id=session_id,
+                    status="FAIL", op_id=op_id)
+            except Exception:
+                pass
+            # ───────────────────────────────────────────────────────────────
             msg = str(exc)
             if handler.__name__ in msg:
                 msg = msg.replace(handler.__name__, tool_name)
