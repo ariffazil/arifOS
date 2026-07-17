@@ -5853,7 +5853,12 @@ DEGRADED_REASONING_STATES = {
 }
 
 
-def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
+def _safe_void_fallback(
+    tool_name: str,
+    reason: str,
+    session_id: str | None = None,
+    actor_id: str | None = None,
+) -> dict[str, Any]:
     """
     Deterministic SAFE_VOID fallback when LLM call times out or fails.
     L13 SOVEREIGN: This is not a generic error — it is a pre-signed safe state.
@@ -5867,11 +5872,16 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
 
     P1 2026-06-30: Adds degraded_state taxonomy so empty VOID is never mistaken
     for successful reasoning. Telemetry flags distinguish dispatch vs compute.
+
+    N5 2026-07-17: Canonical envelope convergence. When session_id/actor_id
+    are provided, the returned dict is wrapped through attach_canonical so
+    error paths produce the same standing+effective_verdict structure as
+    success paths. Callers with session context MUST pass both params.
     """
     _safe_reason = f"SAFE_VOID_FALLBACK: {reason}"
     _safe_reasons = [_safe_reason]
 
-    return {
+    fallback = {
         "status": "VOID",
         "tool": tool_name,
         "verdict": "VOID",
@@ -5924,6 +5934,22 @@ def _safe_void_fallback(tool_name: str, reason: str) -> dict[str, Any]:
             "guaranteed_by": "L13_SOVEREIGN_TIMEOUT_SAFE_VOID",
         },
     }
+
+    # N5: Canonical envelope convergence — error paths must produce the same
+    # standing+effective_verdict structure as success paths. When session
+    # context is available, wrap through attach_canonical before returning.
+    if session_id or actor_id:
+        try:
+            from arifosmcp.runtime.session_standing import attach_canonical
+
+            fallback = attach_canonical(
+                fallback,
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+        except Exception:
+            pass  # fallback is still structurally valid without canonical wrap
+    return fallback
 
 
 class IrreversibleConfirmation(BaseModel):
@@ -7018,8 +7044,7 @@ def _ok(
         # APEX X-signal: dry_run detection (broadened 2026-07-16)
         # Check meta_payload dry_run flag OR read-only tools that don't mutate
         _is_dry_run = bool(
-            meta_payload.get("dry_run")
-            or meta_payload.get("action_class") == "OBSERVE"
+            meta_payload.get("dry_run") or meta_payload.get("action_class") == "OBSERVE"
         )
         _apex_record(
             tool_name=tool,
@@ -20617,9 +20642,7 @@ async def _arif_memory_v5_router(
     # mutations — they write to long-term memory substrate that influences
     # future constitutional judgments. Must pass the same gate every other
     # canonical tool uses. P0-01 fix 2026-07-17.
-    gate = _constitutional_gate(
-        "arif_memory", mode, actor_id, session_id=session_id
-    )
+    gate = _constitutional_gate("arif_memory", mode, actor_id, session_id=session_id)
     if gate is not None:
         return gate
 
@@ -21710,9 +21733,7 @@ def _apply_canonical_normalization_to_all_handlers():
             # Don't double-wrap — check a sentinel attribute.
             if getattr(existing, "_canonical_normalization_wrapped", False):
                 continue
-            registry[tool_name] = _wrap_with_canonical_normalization(
-                existing, tool_name
-            )
+            registry[tool_name] = _wrap_with_canonical_normalization(existing, tool_name)
             registry[tool_name]._canonical_normalization_wrapped = True
             wrapped_count += 1
     if wrapped_count:
@@ -22370,7 +22391,12 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             logger.exception("Tool %s failed; returning schema-valid VOID fallback", tool_name)
             final_resp = _enforce_nine_signal(
                 tool_name,
-                _safe_void_fallback(tool_name, msg),
+                _safe_void_fallback(
+                    tool_name,
+                    msg,
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id"),
+                ),
                 session_id=kwargs.get("session_id"),
                 actor_id=kwargs.get("actor_id"),
             )
@@ -22499,7 +22525,12 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             logger.exception("Tool %s failed; returning schema-valid VOID fallback", tool_name)
             final_resp = _enforce_nine_signal(
                 tool_name,
-                _safe_void_fallback(tool_name, msg),
+                _safe_void_fallback(
+                    tool_name,
+                    msg,
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id"),
+                ),
                 session_id=kwargs.get("session_id"),
                 actor_id=kwargs.get("actor_id"),
             )
@@ -22585,9 +22616,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         final_resp = _trim_client_view(final_resp, kwargs)
         return _sanitize_envelope(final_resp)
 
-    def _trim_client_view(
-        response: dict[str, Any], call_kwargs: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _trim_client_view(response: dict[str, Any], call_kwargs: dict[str, Any]) -> dict[str, Any]:
         """Return a compact wire view without weakening the internal receipt."""
         try:
             from arifosmcp.runtime.verbosity import trim_for_verbosity
