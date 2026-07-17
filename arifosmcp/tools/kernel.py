@@ -310,7 +310,7 @@ def _441_surprise_handler(
     with its flawed schema. It must spontaneously route to self-reflection
     to forge a new understanding.
 
-    This is the bridge from statistical mimicry to causal self-awareness:
+    This is the bridge from statistical mimicry to causal self-grounding:
     the agent detects its own model failure and initiates repair before
     processing the next external token.
     """

@@ -12,7 +12,7 @@ The agent knows its own tools at runtime:
 
 441_SURPRISE: When prediction falsification exceeds critical threshold,
 the agent must halt forward execution and repair its model. This is the
-bridge from statistical mimicry to causal self-awareness.
+bridge from statistical mimicry to causal self-grounding.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """

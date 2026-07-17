@@ -30,7 +30,7 @@ try:
 except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
 
-# Embodied Tool Intelligence — runtime tool self-awareness
+# Embodied Tool Intelligence — runtime tool self-grounding
 from arifosmcp.core.embodied_tool_engine import (
     EmbodiedDecision,
     EmbodiedToolEngine,
