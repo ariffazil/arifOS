@@ -136,7 +136,11 @@ legacy_aliases:
   # Once the runtime is redeployed with these aliases, the legacy shim
   # can be retired.
   - { alias: arif_bridge_connect,       canonical: arif_bridge,             deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_bridge,         note: "legacy arif_bridge_connect — runtime exposes this old name; resolves to arif_bridge" }
-  - { alias: arif_conformance_report,   canonical: arif_kernel_status,     deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_kernel_status, note: "legacy arif_conformance_report — runtime exposes this old name; resolves to arif_kernel_status(mode=conformance_report)" }
+  # arif_conformance_report alias REMOVED 2026-07-17 (drift fix): phantom tool —
+  # declared here + in public_surface.py + in TOOL_INVARIANTS but not in runtime
+  # capability graph. Per audit verdict 2026-07-17: "advertised-but-uncallable is
+  # worse than absent." Canonical conformance interface is now arif_canary(mode=conformance_report).
+  # - { alias: arif_conformance_report,   canonical: arif_kernel_status,     deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_kernel_status, note: "REMOVED 2026-07-17 — see audit verdict" }
   - { alias: arif_explore,              canonical: arif_observe,            deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_observe,        note: "legacy arif_explore — runtime exposes this old name; resolves to arif_observe" }
   - { alias: arif_memory,               canonical: arif_memory_recall,     deprecated_after: "2026-09-30", shim_layer: true,  alias_of: arif_memory_recall, note: "legacy arif_memory — runtime exposes this old name; resolves to arif_memory_recall" }
   - { alias: arifos_fetch,              canonical: arif_fetch,              deprecated_after: "2026-12-31", shim_layer: true }
@@ -149,8 +153,13 @@ legacy_aliases:
   - { alias: arif_session_init,        canonical: arif_init,               deprecated_after: "2026-12-31", shim_layer: true,
       alias_of: arif_init, note: "long-name SDK alias for arif_init — resolves to arif_init via _CANONICAL_HANDLERS" }
   - { alias: arifos_act,               canonical: arif_act,                deprecated_after: "2026-12-31", shim_layer: true }
-  - { alias: arif_reply_compose,       canonical: arif_compose,            deprecated_after: "2026-09-30", shim_layer: true,
-      alias_of: arif_compose, note: "legacy arif_reply_compose — long-name SDK alias for arif_compose; runtime resolves via _SDK_LONG_NAME_ALIASES" }
+  # arif_reply_compose alias REMOVED 2026-07-17 (drift fix): phantom tool —
+  # long-name SDK alias for arif_compose, but arif_compose itself is not in the
+  # runtime capability graph. Per audit verdict 2026-07-17: alias chain that ends
+  # in an uncallable target is worse than no alias at all. Re-introduce only when
+  # arif_compose is genuinely registered in the runtime.
+  # - { alias: arif_reply_compose,       canonical: arif_compose,            deprecated_after: "2026-09-30", shim_layer: true,
+  #     alias_of: arif_compose, note: "REMOVED 2026-07-17 — see audit verdict" }
 
 # ════════════════════════════════════════════════════════════════════════════════
 # TOOL UNIVERSE — 13 canonical + 1 diagnostic + 7 federated + 1 sanctioned = 22
@@ -242,7 +251,8 @@ canonical_tools:
       reversibility: reversible, blast_radius: low, authority_required: public,
       channel: stable, hold_conditions: [], denial_codes: [UNKNOWN_CAPABILITY, HALLUCINATION_DETECTED],
       audit_events: [response_emitted], witness_requirements: [],
-      contract_version: "1.0.0" }
+      contract_version: "1.0.0",
+      notes: "DEPRECATED 2026-07-17 — declared canonical but not registered in runtime capability graph (drift fix per audit verdict). Use arif_init(mode=...) or arif_think(mode=...) instead. Re-introduce when registered." }
 
   - { canonical_name: arif_critique, role: ethical_critique, axis: "666_HEART", pipeline_stage: verdict,
       contract_class: verdict, mutation_class: read, requires_plan: false,
@@ -348,7 +358,7 @@ diagnostic:
       authority_required: public, channel: stable, hold_conditions: [],
       denial_codes: [UNKNOWN_CAPABILITY], audit_events: [response_emitted],
       witness_requirements: [], contract_version: "1.0.0",
-      notes: "Conformance spine: checks kernel_alive, initialize_lifecycle, tools_list_matches_callable, alias_resolution, session_init, unknown_tool_error_is_self_correctable." }
+      notes: "DEPRECATED 2026-07-17 — declared canonical but not registered in runtime capability graph (drift fix per audit verdict). Use arif_canary(mode=conformance_report) instead — that is the canonical conformance interface." }
 
   # ── CYCLE 1 WS4: Entropy Integrity Mesh (6 tools, surface_class: DIAGNOSTIC) ──
   # Previously ADVERTISED_BUT_UNREGISTERED (Path-B gap). Now registered in capability graph.

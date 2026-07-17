@@ -44,7 +44,11 @@ DEPRECATED_CANARY_CHILDREN: tuple[str, ...] = (
     "arif_version_echo",
     "arif_transport_echo",
     "arif_initialize_probe",
-    "arif_conformance_report",
+    # arif_conformance_report REMOVED 2026-07-17 (drift fix): was declared
+    # deprecated-but-resolvable, but runtime rejects it as "Unknown tool"
+    # because it is not in the capability graph. Per audit verdict:
+    # "advertised-but-uncallable is worse than absent." Canonical interface
+    # is now arif_canary(mode=conformance_report).
 )
 
 # ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────

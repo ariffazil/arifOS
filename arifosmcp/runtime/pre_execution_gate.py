@@ -633,16 +633,20 @@ CANONICAL_TOOL_MANIFEST: dict[str, ToolManifestEntry] = {
         blast_radius=BlastRadius.LOCAL,
         is_reversible=True,
     ),
-    "arif_compose": ToolManifestEntry(
-        tool_name="arif_compose",
-        action_class=ActionClass.DRAFT,
-        safe_modes=["compose"],
-        dangerous_modes=[],
-        requires_lease=False,
-        requires_f13_sovereign_ack=False,
-        blast_radius=BlastRadius.LOCAL,
-        is_reversible=True,
-    ),
+    # arif_compose ToolManifestEntry REMOVED 2026-07-17 (drift fix): declared in
+    # CANONICAL_TOOL_MANIFEST but not registered in runtime capability graph,
+    # so calls return "Unknown tool". Per audit verdict: "advertised-but-uncallable
+    # is worse than absent." Re-introduce only when runtime registers it.
+    # "arif_compose": ToolManifestEntry(
+    #     tool_name="arif_compose",
+    #     action_class=ActionClass.DRAFT,
+    #     safe_modes=["compose"],
+    #     dangerous_modes=[],
+    #     requires_lease=False,
+    #     requires_f13_sovereign_ack=False,
+    #     blast_radius=BlastRadius.LOCAL,
+    #     is_reversible=True,
+    # ),
     "arif_memory_recall": ToolManifestEntry(
         tool_name="arif_memory_recall",
         # v5 router handles mode-level classification: inspect/recall/attest = OBSERVE,
