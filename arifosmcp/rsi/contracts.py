@@ -52,23 +52,11 @@ TWELVE_SKILLS: tuple[str, ...] = (
 # ── Risk classification (tied to constitutional floors, not preference) ─────
 
 
-class RiskClass(str, enum.Enum):
-    """Where the proposed delta lands on the irreversibility spectrum.
+# ── RiskClass imported from constitutional_map (canonical) ──────────
+from arifosmcp.constitutional_map import DeltaIrreversibilityClass
 
-    C0 — grammar/formatting (ΔS-neutral)
-    C1 — invariant docs (reversible)
-    C2 — contract description (read-only)
-    C3 — public surface text (reversible)
-    C4 — floor logic or floor thresholds (HOLD/Judge gate)
-    C5 — execution / authority / irreversibility policy (JUDGE + F13)
-    """
-
-    C0_GRAMMAR = "C0"
-    C1_DOCS = "C1"
-    C2_CONTRACT_DESCRIPTION = "C2"
-    C3_PUBLIC_SURFACE = "C3"
-    C4_FLOOR_LOGIC = "C4"
-    C5_EXECUTION_AUTHORITY = "C5"
+RiskClass = DeltaIrreversibilityClass  # backward-compat alias
+# C0-C5 member names unchanged: C0_GRAMMAR, C1_DOCS, C2_CONTRACT_DESCRIPTION, etc.
 
 
 # ── A skill contract, versioned ─────────────────────────────────────────────
@@ -138,7 +126,7 @@ class SkillDiff:
     skill_name: str
     old_version: str
     new_version: str
-    risk_class: RiskClass
+    risk_class: DeltaIrreversibilityClass
     drift_signals: tuple[str, ...] = ()
     # Names of detected constitutional drifts:
     #   "weakened_gate"      — must_never_weaken entry removed
@@ -179,7 +167,7 @@ class GateDecision:
 
     verdict: str  # "APPROVE_C0_C3" | "HOLD_C4" | "HOLD_C5" | "VOID"
     skill_name: str
-    risk_class: RiskClass
+    risk_class: DeltaIrreversibilityClass
     rationale: str
     diff: SkillDiff
     required_tests: tuple[str, ...] = ()
@@ -260,7 +248,7 @@ def seed_12_contracts() -> dict[str, SkillContract]:
 
 __all__ = [
     "GateDecision",
-    "RiskClass",
+    "DeltaIrreversibilityClass",
     "SkillContract",
     "SkillDelta",
     "SkillDiff",
