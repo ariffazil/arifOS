@@ -2068,3 +2068,158 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
     @route("/health")
     async def _h_health(req):  # type: ignore
         return await _health(req)
+
+    # ── Aliases and stubs for AAA Observatory authority-gate probe table ─────────
+    # The authority gate on the observatory page live-probes these endpoints.
+    # We MUST return honest HTTP responses so the table reflects reality, not fiction.
+
+    @route("/health-public")
+    async def _h_health_public(req):  # type: ignore
+        """Public health alias — redirects to the same seven-state health endpoint."""
+        return await _health(req)
+
+    @route("/capabilities")
+    async def _h_capabilities_alias(req):  # type: ignore
+        """Alias for /snapshot/capabilities — capability drift matrix."""
+        return await _capabilities(req)
+
+    @route("/capabilities/full")
+    async def _h_capabilities_full(req):  # type: ignore
+        """Operator-tier capability matrix — requires X-Op-Token header.
+
+        Currently returns the same sanitized matrix as /capabilities.
+        Full operator surface is gated behind token validation (pending).
+        """
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _dashboard_cors_headers,
+            _cache_headers,
+            _merge_headers,
+        )
+        op_token = req.headers.get("X-Op-Token", "")
+        if not op_token:
+            return JSONResponse(
+                {"error": "X-Op-Token header required for full capability matrix"},
+                status_code=401,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+        return await _capabilities(req)
+
+    @route("/seal/head")
+    async def _h_seal_head(req):  # type: ignore
+        """Latest VAULT999 seal head."""
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _dashboard_cors_headers,
+            _cache_headers,
+            _merge_headers,
+        )
+        head_path = Path("/root/.local/share/arifos/vault999/seal_chain_head.json")
+        if not head_path.exists():
+            return JSONResponse(
+                {"head": None, "status": "no-seals"},
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+        try:
+            with open(head_path, encoding="utf-8") as fh:
+                head_data = json.load(fh)
+            return JSONResponse(
+                {"head": head_data, "status": "available"},
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+        except Exception as exc:
+            return JSONResponse(
+                {"head": None, "status": "error", "detail": str(exc)},
+                status_code=500,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+
+    @route("/seal/verify")
+    async def _h_seal_verify(req):  # type: ignore
+        """VAULT999 chain integrity verification.
+
+        Verifies the hash chain by reading all entries from seal_chain.jsonl
+        and checking that each entry's hash matches the previous entry's recorded hash.
+        """
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _dashboard_cors_headers,
+            _cache_headers,
+            _merge_headers,
+        )
+        chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+        if not chain_path.exists():
+            return JSONResponse(
+                {"verified": False, "status": "no-chain", "entries": 0},
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+        try:
+            entries = []
+            with open(chain_path, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line:
+                        try:
+                            parsed = json.loads(line)
+                            if isinstance(parsed, dict):
+                                entries.append(parsed)
+                        except json.JSONDecodeError:
+                            continue
+            # Basic integrity: check each entry has required fields
+            gaps = []
+            prev_hash = None
+            for i, entry in enumerate(entries):
+                # Canonical fields: this_hash / prev_hash (VAULT999 format)
+                entry_hash = entry.get("this_hash") or entry.get("hash") or entry.get("seal_hash")
+                entry_prev = entry.get("prev_hash")
+                if prev_hash and entry_prev and entry_prev != prev_hash:
+                    gaps.append({"index": i, "expected_prev": prev_hash, "got": entry_prev})
+                if entry_hash:
+                    prev_hash = entry_hash
+
+            verified = len(gaps) == 0 and len(entries) > 0
+            return JSONResponse(
+                {
+                    "verified": verified,
+                    "status": "verified" if verified else "gaps-found",
+                    "entries": len(entries),
+                    "gaps": gaps,
+                    "head_seq": entries[-1].get("seq") if entries else None,
+                },
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+        except Exception as exc:
+            return JSONResponse(
+                {"verified": False, "status": "error", "detail": str(exc)},
+                status_code=500,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+
+    @route("/seal/replay")
+    async def _h_seal_replay(req):  # type: ignore
+        """VAULT999 chain replay — returns all sealed entries for audit replay."""
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _dashboard_cors_headers,
+            _cache_headers,
+            _merge_headers,
+        )
+        chain_path = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
+        if not chain_path.exists():
+            return JSONResponse(
+                {"replay": [], "status": "no-chain", "entries": 0},
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+        try:
+            entries = []
+            with open(chain_path, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if line:
+                        entries.append(json.loads(line))
+            return JSONResponse(
+                {"replay": entries, "status": "available", "entries": len(entries)},
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )
+        except Exception as exc:
+            return JSONResponse(
+                {"replay": [], "status": "error", "detail": str(exc)},
+                status_code=500,
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+            )

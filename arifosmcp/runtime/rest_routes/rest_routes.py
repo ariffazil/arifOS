@@ -2189,46 +2189,57 @@ def _compute_schema_hash(mcp: Any, tool_registry: dict[str, Callable]) -> str:
 
 
 def _compute_runtime_drift() -> dict[str, Any]:
-    """Compare build-time git commit to mounted code commit."""
+    """Compare build-time git commit to mounted code commit.
+
+    Deployment marker (.git_commit) is the CANONICAL source — it is written by
+    ``make deploy-local`` and represents what was actually deployed. Git HEAD
+    at the runtime path can be stale (detached HEAD, pre-deploy snapshots, etc.)
+    and MUST NOT shadow the deployment marker.
+
+    Order: .git_commit first (canonical), then git repo HEAD (fallback).
+    """
     build_commit = BUILD_INFO.get("build", {}).get("commit", "unknown")
     live_commit = "unknown"
-    # Try mounted code paths (same order as build.py _git_sha_short)
-    for git_dir in [
-        "/opt/arifos/app/.git",
-        "/root/arifOS/.git",
-        "/app/.git",
-        "/usr/src/app/.git",
-        "/usr/src/app/arifOS/.git",
-        "/usr/src/project/.git",
-    ]:
-        # Skip /app/.git if /app is a symlink (bare-metal: /app -> /root/WELL)
-        if git_dir == "/app/.git" and os.path.islink("/app"):
-            continue
+
+    # ── 1) Canonical deployment marker (written by make deploy-local) ──
+    for commit_file in ["/opt/arifos/app/.git_commit", "/root/arifOS/.git_commit"]:
         try:
-            head_path = os.path.join(git_dir, "HEAD")
-            if os.path.exists(head_path):
-                with open(head_path) as hf:
-                    content = hf.read().strip()
-                if content.startswith("ref: refs/heads/"):
-                    branch = content.split("ref: refs/heads/", 1)[1].strip()
-                    ref_path = os.path.join(git_dir, "refs", "heads", branch)
-                    if os.path.exists(ref_path):
-                        with open(ref_path) as rf:
-                            live_commit = rf.read().strip()[:7]
-                elif len(content) >= 7:
-                    live_commit = content[:7]
-                break
+            if os.path.exists(commit_file):
+                with open(commit_file) as f:
+                    candidate = f.read().strip()[:7]
+                if candidate:
+                    live_commit = candidate
+                    break
         except Exception:
             continue
-    # Fallback: .git_commit files written by deploy-local Makefile target
+
+    # ── 2) Fallback: git repo HEAD (may be stale / detached) ──
     if live_commit == "unknown":
-        for commit_file in ["/opt/arifos/app/.git_commit", "/root/arifOS/.git_commit"]:
+        for git_dir in [
+            "/opt/arifos/app/.git",
+            "/root/arifOS/.git",
+            "/app/.git",
+            "/usr/src/app/.git",
+            "/usr/src/app/arifOS/.git",
+            "/usr/src/project/.git",
+        ]:
+            # Skip /app/.git if /app is a symlink (bare-metal: /app -> /root/WELL)
+            if git_dir == "/app/.git" and os.path.islink("/app"):
+                continue
             try:
-                if os.path.exists(commit_file):
-                    with open(commit_file) as f:
-                        live_commit = f.read().strip()[:7]
-                    if live_commit:
-                        break
+                head_path = os.path.join(git_dir, "HEAD")
+                if os.path.exists(head_path):
+                    with open(head_path) as hf:
+                        content = hf.read().strip()
+                    if content.startswith("ref: refs/heads/"):
+                        branch = content.split("ref: refs/heads/", 1)[1].strip()
+                        ref_path = os.path.join(git_dir, "refs", "heads", branch)
+                        if os.path.exists(ref_path):
+                            with open(ref_path) as rf:
+                                live_commit = rf.read().strip()[:7]
+                    elif len(content) >= 7:
+                        live_commit = content[:7]
+                    break
             except Exception:
                 continue
     # Build/runtime are comparable only when both SHAs are known and resolved.
@@ -6454,6 +6465,127 @@ setInterval(refreshSot, 30000);
         if os.path.exists(_path):
             return FileResponse(_path)
         return JSONResponse({"error": "arifos.json not found"}, status_code=404)
+
+    @route("/.well-known/did.json", methods=["GET"])
+    async def well_known_did(request: Request) -> Response:
+        """Decentralized Identity document — ed25519 public key + service endpoints.
+
+        Uses the same key material that signs observatory snapshots.
+        When the signing key is not yet bootstrapped, returns a valid DID document
+        with an empty verificationMethod array (honest about key state).
+        """
+        from arifosmcp.runtime import crypto_auth
+
+        did_doc: dict[str, Any] = {
+            "@context": [
+                "https://www.w3.org/ns/did/v1",
+                "https://w3id.org/security/suites/ed25519-2020/v1",
+            ],
+            "id": "did:web:arifos.arif-fazil.com",
+            "alsoKnownAs": ["did:web:arif-fazil.com"],
+            "verificationMethod": [],
+            "authentication": [],
+            "assertionMethod": [],
+            "service": [
+                {
+                    "id": "did:web:arifos.arif-fazil.com#observatory",
+                    "type": "ObservatorySnapshot",
+                    "serviceEndpoint": f"{_public_base_url(request)}/api/observatory/v1/snapshot",
+                },
+                {
+                    "id": "did:web:arifos.arif-fazil.com#mcp",
+                    "type": "MCP",
+                    "serviceEndpoint": f"{_public_base_url(request)}/mcp",
+                },
+            ],
+        }
+
+        # Include ed25519 public key if bootstrapped
+        try:
+            pubkey_hex = crypto_auth.get_public_key_hex()
+            if pubkey_hex:
+                vm = {
+                    "id": "did:web:arifos.arif-fazil.com#ed25519-key-1",
+                    "type": "Ed25519VerificationKey2020",
+                    "controller": "did:web:arifos.arif-fazil.com",
+                    "publicKeyMultibase": pubkey_hex,
+                }
+                did_doc["verificationMethod"].append(vm)
+                did_doc["authentication"].append(vm["id"])
+                did_doc["assertionMethod"].append(vm["id"])
+        except Exception:
+            pass  # Key not bootstrapped — honest empty verificationMethod
+
+        return JSONResponse(did_doc, headers={"Access-Control-Allow-Origin": "*"})
+
+    @route("/.well-known/arifos-federation.json", methods=["GET"])
+    async def well_known_federation(request: Request) -> Response:
+        """Federation manifest — organ topology, contract, and discovery endpoints."""
+        manifest: dict[str, Any] = {
+            "federation": "arifOS",
+            "schema_version": "2.0.0",
+            "organs": {
+                "arifos": {"port": 8088, "role": "governance", "mcp_endpoint": "/mcp"},
+                "aforge": {"port": 7071, "role": "execution", "mcp_endpoint": "/mcp"},
+                "geox": {"port": 8081, "role": "earth_intelligence", "mcp_endpoint": "/mcp"},
+                "wealth": {"port": 18082, "role": "capital_intelligence", "mcp_endpoint": "/mcp"},
+                "well": {"port": 18083, "role": "human_readiness", "mcp_endpoint": "/mcp"},
+                "aaa": {"port": 3001, "role": "control_plane", "web_endpoint": "/"},
+            },
+            "discovery": {
+                "llms_txt": f"{_public_base_url(request)}/llms.txt",
+                "server_json": f"{_public_base_url(request)}/.well-known/mcp/server.json",
+                "agent_json": "https://aaa.arif-fazil.com/.well-known/agent.json",
+                "observatory": f"{_public_base_url(request)}/api/observatory/v1/snapshot",
+            },
+            "governance": {
+                "floors": 13,
+                "judgment": "arif_judge",
+                "seal": "VAULT999",
+                "sovereign": "F13 — Arif",
+            },
+        }
+        return JSONResponse(manifest, headers={"Access-Control-Allow-Origin": "*"})
+
+    @route("/.well-known/governance.jsonld", methods=["GET"])
+    async def well_known_governance(request: Request) -> Response:
+        """JSON-LD governance context — constitutional floors and authority model."""
+        context: dict[str, Any] = {
+            "@context": {
+                "arifos": "https://arifos.arif-fazil.com/ns#",
+                "floors": "arifos:floors",
+                "verdict": "arifos:verdict",
+                "SEAL": "arifos:SEAL",
+                "HOLD": "arifos:HOLD",
+                "SABAR": "arifos:SABAR",
+                "VOID": "arifos:VOID",
+                "F13": "arifos:F13_SOVEREIGN",
+            },
+            "id": f"{_public_base_url(request)}/",
+            "type": "ConstitutionalKernel",
+            "name": "arifOS Constitutional Governance",
+            "floors": [
+                {"id": "F1", "name": "AMANAH", "type": "HARD"},
+                {"id": "F2", "name": "TRUTH", "type": "HARD"},
+                {"id": "F3", "name": "TRI-WITNESS", "type": "DERIVED"},
+                {"id": "F4", "name": "CLARITY", "type": "HARD"},
+                {"id": "F5", "name": "PEACE²", "type": "SOFT"},
+                {"id": "F6", "name": "MARUAH", "type": "SOFT"},
+                {"id": "F7", "name": "HUMILITY", "type": "HARD"},
+                {"id": "F8", "name": "GENIUS", "type": "DERIVED"},
+                {"id": "F9", "name": "ANTI-HANTU", "type": "HARD"},
+                {"id": "F10", "name": "ONTOLOGY", "type": "HARD"},
+                {"id": "F11", "name": "AUDITABILITY", "type": "HARD"},
+                {"id": "F12", "name": "RESILIENCE", "type": "HARD"},
+                {"id": "F13", "name": "SOVEREIGN", "type": "HARD"},
+            ],
+            "verdicts": ["SEAL", "HOLD", "SABAR", "VOID"],
+            "sovereign": "Arif — F13",
+        }
+        return JSONResponse(context, headers={
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/ld+json",
+        })
 
     # ── Federation Status Spine ────────────────────────────────────────────────
     @route("/status.json", methods=["GET"])
