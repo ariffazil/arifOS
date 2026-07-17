@@ -1637,20 +1637,44 @@ def _findings_block() -> dict[str, Any]:
 
 # ── Conformance levels block ─────────────────────────────────────────────────
 def _conformance_block() -> dict[str, Any]:
-    """Three-level conformance using the PR7 conformance levels module.
+    """Three-level conformance block.
 
-    FAST: schemas + policy files + declared registry
-    LIVE_TRANSPORT: MCP initialize + protocol version + schema echo
-    FULL_CONFORMANCE: session binding + mutation hold + organ call + judgment + vault + capability
+    FAST / LIVE_TRANSPORT / FULL_CONFORMANCE.
 
-    Each level has its own verdict vocabulary. The substrate gate is AMBER when
-    any check is skipped — GREEN requires all checks to have actually passed.
-
-    Defensive: if `arifosmcp.runtime.conformance` or its runner functions are
-    missing (regression in some builds), return UNKNOWN envelopes instead of
-    failing the entire snapshot. F2: never silently drop evidence.
+    Defensive: if `arifosmcp.runtime.conformance` is missing or hangs the event
+    loop, return UNKNOWN envelopes instead of failing the entire snapshot.
+    F2: never silently drop evidence.
     """
-    """Three-level conformance block — disabled pending module build.\n\n    The `arifosmcp.runtime.conformance` module does not exist yet.\n    Import attempts block the async event loop, causing MCP POST hangs.\n    Returning cached UNKNOWN until the module is built.\n    """\n    return {\n        "fast": _pf(None, source="conformance", state="unknown", confidence=0.0,\n                     observation_method="BLOCKED", independent=False),\n        "live_transport": _pf(None, source="conformance", state="unknown", confidence=0.0,\n                              observation_method="BLOCKED", independent=False),\n        "full_conformance": _pf(None, source="conformance", state="unknown", confidence=0.0,\n                                observation_method="BLOCKED", independent=False),\n    }\ndef _enrich_snapshot(obj: Any) -> Any:
+    # Module not built / import blocks event loop historically — fail soft.
+    return {
+        "fast": _pf(
+            None,
+            source="conformance",
+            state="unknown",
+            confidence=0.0,
+            observation_method="BLOCKED",
+            independent=False,
+        ),
+        "live_transport": _pf(
+            None,
+            source="conformance",
+            state="unknown",
+            confidence=0.0,
+            observation_method="BLOCKED",
+            independent=False,
+        ),
+        "full_conformance": _pf(
+            None,
+            source="conformance",
+            state="unknown",
+            confidence=0.0,
+            observation_method="BLOCKED",
+            independent=False,
+        ),
+    }
+
+
+def _enrich_snapshot(obj: Any) -> Any:
     """Walk the snapshot tree and add explanations to all failure envelopes.
 
     An envelope is identified by having 'value', 'state', and 'source' keys.
