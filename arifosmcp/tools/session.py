@@ -1458,7 +1458,9 @@ def arif_init(
         # Any actor_id in the sovereign map can request a crypto challenge.
         # This supports multi-sovereign federation without code changes.
         _SOVEREIGN_MAP: dict[str, str] = {
+            "arif": "arif",
             "ariffazil": "ariffazil",
+            "888": "888",
         }
         if actor_id not in _SOVEREIGN_MAP:
             return _make_init_hold(
@@ -1572,7 +1574,7 @@ def arif_init(
                     _ok, _reason = verify_init_identity(
                         actor_id=actor_id,
                         nonce=nonce,
-                        signature_b64=signature,
+                        signature_b64=actor_signature,  # F13 fix: was bare name 'signature' (NameError)
                         constitution_hash=CONSTITUTION_HASH,
                     )
                     _band = classify_actor_band(actor_id, _ok)
@@ -1582,6 +1584,26 @@ def arif_init(
                     sess["actor_band"] = _band["actor_band"]
                     sess["agent_class"] = _band["agent_class"]
                     sess["identity_verify_reason"] = _reason
+                    # F13 standing truth: verified=true requires method+evidence
+                    # (session_standing C_dark HONEST_HOLD otherwise collapses band)
+                    if identity_verified:
+                        sess["verified"] = True
+                        sess["verification_method"] = "ed25519"
+                        sess["evidence_ref"] = (
+                            f"ed25519://{_reason}"
+                            if _reason
+                            else f"session://{sess.get('session_id') or 'bound'}"
+                        )
+                        sess.setdefault(
+                            "auth_context",
+                            {},
+                        )
+                        if isinstance(sess.get("auth_context"), dict):
+                            sess["auth_context"]["verification_method"] = "ed25519"
+                            sess["auth_context"]["auth_method"] = "ed25519"
+                            sess["auth_context"]["verified_key_id"] = (
+                                "sha256:c843960f8c85d625bd0e8dc563beba331b4cfe6d0c08f71c2e6da80eb58b8c6a"
+                            )
                     logger.info(
                         "init-mode identity bind actor=%s verified=%s band=%s class=%s reason=%s",
                         actor_id,
@@ -1704,7 +1726,7 @@ def arif_init(
             session_bound=True,
             actor_bound=bool(identity_verified),
             authority_band=_derived_auth,
-            verification_method="signature"
+            verification_method="ed25519"
             if (nonce and actor_signature and identity_verified)
             else ("identity_claim" if identity_verified else "none"),
             verification_reason=(
@@ -1870,6 +1892,40 @@ def arif_init(
                 set_active_session(sess["session_id"])
             except Exception:
                 pass
+            # F13: bind into canonical identity store used by compose_standing
+            # (get_session_identity / _SESSION_IDENTITY — NOT tools._SESSIONS alone)
+            try:
+                from arifosmcp.runtime.session import bind_session_identity
+
+                _auth_lvl = (
+                    "sovereign"
+                    if identity_verified
+                    and (actor_id or "").lower().strip() in ("arif", "888", "ariffazil")
+                    else ("operator" if identity_verified else "observer")
+                )
+                bind_session_identity(
+                    session_id=sess["session_id"],
+                    actor_id=actor_id or "anonymous",
+                    authority_level=_auth_lvl,
+                    auth_context={
+                        "verified": bool(identity_verified),
+                        "verification_method": sess.get("verification_method")
+                        or ("ed25519" if identity_verified else None),
+                        "auth_method": sess.get("verification_method")
+                        or ("ed25519" if identity_verified else None),
+                        "verified_key_id": (
+                            "sha256:c843960f8c85d625bd0e8dc563beba331b4cfe6d0c08f71c2e6da80eb58b8c6a"
+                            if identity_verified
+                            else None
+                        ),
+                        "signature_verified": bool(sess.get("signature_verified")),
+                        "identity_verify_reason": sess.get("identity_verify_reason"),
+                    },
+                    verified=bool(identity_verified),
+                    stage=str(sess.get("stage") or "000"),
+                )
+            except Exception as _bind_exc:
+                logger.warning("bind_session_identity after init failed: %s", _bind_exc)
         except Exception:
             pass
 
@@ -2547,7 +2603,9 @@ def _build_operator_identity(
     return OperatorIdentity(
         claimed_id=actor_id,
         verified_id=actor_id if identity_verified else None,
-        verification_method="signature" if (nonce and signature and identity_verified) else "none",
+        verification_method="ed25519"
+        if (nonce and signature and identity_verified)
+        else "none",
         verification_provider="arifos_crypto_auth" if identity_verified else None,
         trust_level=trust_level,
         delegation_chain=[],

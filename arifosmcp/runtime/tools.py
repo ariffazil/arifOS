@@ -7910,7 +7910,17 @@ def _arif_session_init(
     #   - birth:   actor + idempotency_key required (not anonymous)
     # Both are FAIL-OPEN for session_id and PASS-OPEN for client safety gates
     # (thin payloads, no authority declarations).
-    if mode in {"ping", "discover", "birth", "init_light", "light", "full", "audit", "init"}:
+    if mode in {
+        "ping",
+        "discover",
+        "birth",
+        "init_light",
+        "light",
+        "full",
+        "audit",
+        "init",
+        "challenge",  # F13 crypto bind — issue single-use nonce
+    }:
         # Pre-session: no session required. Delegate to canonical session.py.
         from arifosmcp.tools.session import arif_session_init as _delegate_init
 
@@ -7955,8 +7965,23 @@ def _arif_session_init(
                 try:
                     from arifosmcp.runtime.governance_identity import _verify_ed25519_proof
 
+                    # Prefer session.py crypto bind result — do not re-consume single-use nonce
+                    _already = False
+                    if isinstance(_result_dict, dict):
+                        _already = bool(
+                            _result_dict.get("actor_verified")
+                            or (
+                                isinstance(_result_dict.get("session"), dict)
+                                and _result_dict["session"].get("actor_verified")
+                            )
+                            or (
+                                isinstance(_result_dict.get("result"), dict)
+                                and isinstance(_result_dict["result"].get("session_birth"), dict)
+                                and _result_dict["result"]["session_birth"].get("actor_verified")
+                            )
+                        )
                     _proof = {"nonce": nonce, "signature": actor_signature}
-                    _ed25519_ok = _verify_ed25519_proof(actor_id, _proof)
+                    _ed25519_ok = _already or _verify_ed25519_proof(actor_id, _proof)
                     if _ed25519_ok:
                         # Update session store with SOVEREIGN authority
                         _sid = _result_dict.get("session_id") or (
@@ -8021,6 +8046,8 @@ def _arif_session_init(
         "canary",
         "epoch_open",
         "epoch_seal",
+        # F13 crypto bind: issue single-use Ed25519 challenge nonce
+        "challenge",
         # F14 — Right #10 (opt out) + Right #6 (refuse profiling).
         # These modes reduce the session's capability set but
         # preserve equal constitucional protection. The civilian
@@ -8095,7 +8122,15 @@ def _arif_session_init(
     # actor_id null check at the top of this function. This block is now
     # unreachable for {ping, discover, birth, init_light, light, full} but
     # is kept as a defensive fallback in case the dispatcher is bypassed.
-    _PRE_SESSION_MODES = {"ping", "discover", "birth", "init_light", "light", "full"}
+    _PRE_SESSION_MODES = {
+        "ping",
+        "discover",
+        "birth",
+        "init_light",
+        "light",
+        "full",
+        "challenge",  # F13: issue nonce before session birth
+    }
 
     if normalized_mode in _PRE_SESSION_MODES:
         # Pre-session: no session required. Delegate to canonical session.py.
