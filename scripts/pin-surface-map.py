@@ -232,7 +232,23 @@ def main():
     parser = argparse.ArgumentParser(description="Surface Map Drift Detector")
     parser.add_argument("--fix", action="store_true", help="Auto-fix surface YAML (requires F13)")
     parser.add_argument("--ci", action="store_true", help="CI gate mode - exit 1 on any drift")
+    parser.add_argument(
+        "--require-live-mcp",
+        action="store_true",
+        default=False,
+        help=(
+            "T6 strict mode: fail closed when MCP servers are unreachable. "
+            "Also controlled by FORGE_SURFACE_GATE_STRICT=1 env var. "
+            "Default: off (fail-open for CI/offline dev). "
+            "Sovereign enables this with 'export FORGE_SURFACE_GATE_STRICT=1'"
+        ),
+    )
     args = parser.parse_args()
+
+    # T6: Respect env var FORGE_SURFACE_GATE_STRICT
+    env_strict = os.environ.get("FORGE_SURFACE_GATE_STRICT", "").strip()
+    if env_strict in ("1", "true", "yes", "on"):
+        args.require_live_mcp = True
 
     print("🔍 Probing live MCP surface...")
     live_tools = probe_mcp_tools()
@@ -262,14 +278,24 @@ def main():
     # live MCP), don't fail the gate on ghost/phantom drift — we simply
     # cannot verify against live state. Surface-YAML parsing still happens
     # and CRITICAL surface_yaml drift still fails.
+    #
+    # T6 2026-07-17: When --require-live-mcp is set (or FORGE_SURFACE_GATE_STRICT=1),
+    # this exemption is REVOKED. The gate fails closed if live MCP cannot be
+    # probed — a verifier that SKIPS live checks cannot certify PASS.
     live_unavailable = not live_tools and not health and severity > 0
     if args.ci and live_unavailable:
         any_critical = any(d.get("severity") == "CRITICAL" for d in drift)
         if any_critical:
             print("⚠️  Live MCP unreachable AND CRITICAL surface drift — failing CI gate.")
             sys.exit(1)
+        # T6: strict mode revokes the CI exemption
+        if args.require_live_mcp:
+            print("🔴 T6 STRICT MODE: Live MCP unreachable — failing closed.")
+            print("   FORGE_SURFACE_GATE_STRICT=1 set but no live MCP to verify against.")
+            print("   SKIPPED ≠ PASS. Set FORGE_SURFACE_GATE_STRICT=0 to bypass.")
+            sys.exit(1)
         print("ℹ️  Live MCP unreachable in CI — drift detection against live skipped.")
-        print("   (surface YAML parsed cleanly; ghost/phantom checks deferred to manual run)")
+        print("   (To fail closed on unreachable MCP, set FORGE_SURFACE_GATE_STRICT=1)")
         sys.exit(0)
 
     if args.ci and severity >= 1:
