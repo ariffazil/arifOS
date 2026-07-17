@@ -1650,56 +1650,7 @@ def _conformance_block() -> dict[str, Any]:
     missing (regression in some builds), return UNKNOWN envelopes instead of
     failing the entire snapshot. F2: never silently drop evidence.
     """
-    try:
-        from arifosmcp.runtime.conformance import (
-            run_fast,
-            run_full,
-            run_live_transport,
-        )
-
-        fast = run_fast()
-        transport = run_live_transport()
-        full = run_full()
-        return {
-            "fast": _pf(
-                fast.to_dict(),
-                source="conformance.run_fast",
-                state="observed",
-                confidence=0.95,
-                observation_method=_OBS_METHOD_SELF_REPORTED,
-                independent=False,
-            ),
-            "live_transport": _pf(
-                transport.to_dict(),
-                source="conformance.run_live_transport",
-                state="observed",
-                confidence=0.9,
-                observation_method=_OBS_METHOD_SELF_REPORTED,
-                independent=False,
-            ),
-            "full_conformance": _pf(
-                full.to_dict(),
-                source="conformance.run_full",
-                state="observed",
-                confidence=0.85,
-                observation_method=_OBS_METHOD_SELF_REPORTED,
-                independent=False,
-            ),
-        }
-    except Exception as exc:
-        logger.warning("conformance_block failure: %s", exc)
-        return {
-            "fast": _pf(None, source="conformance.run_fast", state="unknown", confidence=0.0,
-                       observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "live_transport": _pf(None, source="conformance.run_live_transport", state="unknown", confidence=0.0,
-                                observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-            "full_conformance": _pf(None, source="conformance.run_full", state="unknown", confidence=0.0,
-                                  observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        }
-
-
-# ── Explanation enrichment (2026-07-14) ──────────────────────────────────────
-def _enrich_snapshot(obj: Any) -> Any:
+    """Three-level conformance block — disabled pending module build.\n\n    The `arifosmcp.runtime.conformance` module does not exist yet.\n    Import attempts block the async event loop, causing MCP POST hangs.\n    Returning cached UNKNOWN until the module is built.\n    """\n    return {\n        "fast": _pf(None, source="conformance", state="unknown", confidence=0.0,\n                     observation_method="BLOCKED", independent=False),\n        "live_transport": _pf(None, source="conformance", state="unknown", confidence=0.0,\n                              observation_method="BLOCKED", independent=False),\n        "full_conformance": _pf(None, source="conformance", state="unknown", confidence=0.0,\n                                observation_method="BLOCKED", independent=False),\n    }\ndef _enrich_snapshot(obj: Any) -> Any:
     """Walk the snapshot tree and add explanations to all failure envelopes.
 
     An envelope is identified by having 'value', 'state', and 'source' keys.
