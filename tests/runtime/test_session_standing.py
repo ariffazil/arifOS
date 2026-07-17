@@ -36,8 +36,11 @@ def test_session_standing_is_frozen():
 
     s = SessionStanding(
         session_id="SEAL-test",
-        actor=ActorStanding("arif", "ARIF_FAZIL", True, "ed25519"),
-        authority=AuthorityStanding("FULL", True, True),
+        actor=ActorStanding(
+            "arif", "ARIF_FAZIL", True, "ed25519",
+            evidence_ref="local://test/evidence",
+        ),
+        authority=AuthorityStanding("SOVEREIGN", True, True),
         issued_at="2026-07-17T00:00:00+00:00",
         expires_at="2026-07-18T00:00:00+00:00",
     )
@@ -74,6 +77,7 @@ def test_canonical_envelope_has_exactly_audit_fields():
         "canonical_id",
         "verified",
         "verification_method",
+        "evidence_ref",
     }
     assert set(env["authority"].keys()) == {
         "band",
@@ -213,7 +217,8 @@ def test_mutation_allowed_excludes_observe_only():
 
     assert AuthorityStanding(BAND_OBSERVE_ONLY, False, False).mutation_allowed is False
     assert AuthorityStanding(BAND_LIMITED_MUTATE, True, False).mutation_allowed is True
-    assert AuthorityStanding(BAND_FULL, True, True).mutation_allowed is True
+    assert AuthorityStanding(BAND_FULL, True, False).mutation_allowed is True
+    # seal_allowed=True requires SOVEREIGN band (T3a schema law)
     assert AuthorityStanding(BAND_SOVEREIGN, True, True).mutation_allowed is True
 
 
