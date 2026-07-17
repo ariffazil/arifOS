@@ -37,6 +37,8 @@ _PUBKEY_CANDIDATES = [
     Path("/run/sekrits/arifos_sovereign.pub"),
     Path("/run/secrets/arifos_sovereign.pub"),
     Path("/root/compose/sekrits/arifos_sovereign.pub"),
+    # bridging_seal keypair (canonical did_arifos — must match /opt/arifos/secrets/)
+    Path("/opt/arifos/secrets/did_arifos_public.key"),
     # Canonical AAA Arif identity public key (PEM Ed25519)
     Path("/root/AAA/IDENTITY/keys/arif_public.pem"),
     Path("/root/.ssh/operator_did_ed25519.pub"),

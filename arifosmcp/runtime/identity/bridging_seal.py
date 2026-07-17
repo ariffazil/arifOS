@@ -199,12 +199,14 @@ def request_bridging_seal(req: BridgingSealRequest) -> BridgingSealReceipt:
         "expires_at": expires_at.isoformat(),
     }
 
-    # Persist to VAULT999 (fail-closed if unreachable)
-    seal_id = _vault_append(vault_entry)
-
-    # Sign the vault entry
+    # Sign the vault entry BEFORE appending to VAULT999
+    # (vault_append mutates the dict in-place, adding seq — if we sign after,
+    # the signed payload includes seq but verification strips it)
     payload = json.dumps(vault_entry, sort_keys=True)
     signature = _sign_payload(payload)
+
+    # Persist to VAULT999 (fail-closed if unreachable)
+    seal_id = _vault_append(vault_entry)
 
     return BridgingSealReceipt(
         seal_id=seal_id,
@@ -269,8 +271,12 @@ def verify_bridging_seal(
     if not _verify_signature(payload, receipt.sovereign_signature):
         return False
 
-    # Mark consumed if single_use
+    # Mark consumed if single_use or already consumed
     if receipt.consumed or getattr(receipt, "_consumed", False):
+        _consumed_seals.add(receipt.seal_id)
+
+    # Always mark as seen — replay protection for all seals
+    if receipt.seal_id not in _consumed_seals:
         _consumed_seals.add(receipt.seal_id)
 
     return True
