@@ -157,43 +157,61 @@ def _answer_q1_identity_bind(session_id: str | None) -> EvidencedAnswer:
 
 
 def _answer_q2_constitution_load() -> EvidencedAnswer:
-    """Q2: Has the kernel loaded F1–F13 from /health?"""
-    h = _local_url_get(_KERNEL_HEALTH)
-    if not h:
-        return EvidencedAnswer(
-            q="Q2",
-            answer="NO",
-            method=_METHODS["Q2"],
-            evidence_ref="",
-            issuer="kernel_health",
-            fresh_at=_now_iso(),
-            note="kernel /health unreachable",
-        )
-    floors = h.get("floors_active") or h.get("runtime_floors") or {}
-    floor_count = len(floors) if isinstance(floors, dict) else int(floors or 0)
+    """Q2: Has the kernel loaded F1–F13?
+
+    Prefer in-process floor count (never HTTP self-call /health — that
+    deadlocks single-worker uvicorn when authority_envelope → boot gate
+    runs during a concurrent /health request). Fall back to HTTP only
+    when in-process probe is unavailable (out-of-process CLI use).
+    """
+    floor_count = 0
+    method_note = "in_process"
+    try:
+        from arifosmcp.runtime.law import get_floor_count
+
+        floor_count = int(get_floor_count() or 0)
+    except Exception:
+        h = _local_url_get(_KERNEL_HEALTH)
+        if not h:
+            return EvidencedAnswer(
+                q="Q2",
+                answer="NO",
+                method=_METHODS["Q2"],
+                evidence_ref="",
+                issuer="kernel_health",
+                fresh_at=_now_iso(),
+                note="kernel floors unreachable (in-process + /health)",
+            )
+        floors = h.get("floors_active") or h.get("runtime_floors") or {}
+        floor_count = len(floors) if isinstance(floors, dict) else int(floors or 0)
+        method_note = "http_health_fallback"
     if floor_count >= 13:
         return EvidencedAnswer(
             q="Q2",
             answer="YES",
             method=_METHODS["Q2"],
-            evidence_ref=f"local://kernel/health#floors_active",
-            issuer="kernel_health",
+            evidence_ref="local://kernel/floors#floors_active",
+            issuer="kernel_floors",
             fresh_at=_now_iso(),
-            note=f"floors_active={floor_count}",
+            note=f"floors_active={floor_count};probe={method_note}",
         )
     return EvidencedAnswer(
         q="Q2",
         answer="PARTIAL",
         method=_METHODS["Q2"],
-        evidence_ref=f"local://kernel/health#floors_active",
-        issuer="kernel_health",
+        evidence_ref="local://kernel/floors#floors_active",
+        issuer="kernel_floors",
         fresh_at=_now_iso(),
-        note=f"floors_active={floor_count} (<13)",
+        note=f"floors_active={floor_count} (<13);probe={method_note}",
     )
 
 
 def _answer_q3_session_ignite(session_id: str | None) -> EvidencedAnswer:
-    """Q3: Is there a live session_id?"""
+    """Q3: Is there a live session_id?
+
+    In-process only — never HTTP self-call /health (deadlock risk).
+    A non-empty session_id from the caller is the ignition evidence.
+    """
     if not session_id:
         return EvidencedAnswer(
             q="Q3",
@@ -204,19 +222,25 @@ def _answer_q3_session_ignite(session_id: str | None) -> EvidencedAnswer:
             fresh_at=_now_iso(),
             note="no session_id",
         )
-    h = _local_url_get(_KERNEL_HEALTH)
-    if not h:
-        return EvidencedAnswer(
-            q="Q3",
-            answer="PARTIAL",
-            method=_METHODS["Q3"],
-            evidence_ref="",
-            issuer="session_store",
-            fresh_at=_now_iso(),
-        )
-    # Production session verification would query session.get_session_identity.
-    # For the BOOT gate, a session_id present in arif_init is sufficient
-    # evidence that arif_init mode=init accepted it.
+    # Prefer in-process session store when available.
+    try:
+        from arifosmcp.runtime import tools as _tools
+
+        sessions = getattr(_tools, "_SESSIONS", None) or {}
+        if session_id in sessions:
+            return EvidencedAnswer(
+                q="Q3",
+                answer="YES",
+                method=_METHODS["Q3"],
+                evidence_ref=f"session://{session_id}#in_process_store",
+                issuer="session_store",
+                fresh_at=_now_iso(),
+                note="session present in kernel store",
+            )
+    except Exception:
+        pass
+    # Caller-supplied session_id still counts as ignition evidence for BOOT
+    # (arif_init just minted it). Avoid HTTP self-call.
     return EvidencedAnswer(
         q="Q3",
         answer="YES",
