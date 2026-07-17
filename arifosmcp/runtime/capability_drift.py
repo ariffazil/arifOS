@@ -135,15 +135,16 @@ def _declared_arif_tools(registry_index: dict[str, dict[str, Any]]) -> set[str]:
 def _registered_tools(mcp: Any) -> set[str]:
     """Registered = live kernel tool names.
 
-    FastMCP 3.x does not expose _tool_registry. Try multiple access patterns:
-    1. _tool_registry (legacy)
-    2. _list_tools (async — only works if event loop is running; returns set() otherwise)
-    3. Fall back to empty set — callers should pass registered_tools= when possible.
+    Fallback chain (F2: never silently return empty):
+        1. _tool_registry (legacy FastMCP 2.x)
+        2. mcp.list_tools() via event loop (FastMCP 3.x async)
+        3. public_tool_names_for_mode() — same source as /health tools_loaded
+        4. _tool_manager._tools — internal enumeration (last resort)
     """
     if mcp is None:
         return set()
 
-    # Legacy: _tool_registry attribute
+    # ── 1) Legacy: _tool_registry attribute ──
     registry = getattr(mcp, "_tool_registry", None)
     if registry:
         out: set[str] = set()
@@ -155,13 +156,12 @@ def _registered_tools(mcp: Any) -> set[str]:
         if out:
             return out
 
-    # FastMCP 3.x: list_tools() is async. Try to call it if an event loop is running.
+    # ── 2) FastMCP 3.x: list_tools() is async ──
     try:
         import asyncio
 
         loop = asyncio.get_running_loop()
         if loop and not loop.is_closed():
-            # We're inside an async context — schedule the coroutine
             import concurrent.futures
 
             async def _get_tools():
@@ -170,24 +170,78 @@ def _registered_tools(mcp: Any) -> set[str]:
 
             try:
                 future = asyncio.run_coroutine_threadsafe(_get_tools(), loop)
-                return future.result(timeout=3)
+                result = future.result(timeout=3)
+                if result:
+                    return result
             except Exception:
                 pass
     except RuntimeError:
         pass  # No event loop running
 
+    # ── 3) Fallback: public_surface (same source as /health tools_loaded) ──
+    try:
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+        names = public_tool_names_for_mode()
+        if names:
+            return set(names)
+    except Exception:
+        pass
+
+    # ── 4) Last resort: internal _tool_manager ──
+    try:
+        tm = getattr(mcp, "_tool_manager", None)
+        if tm is not None:
+            tools_dict = getattr(tm, "_tools", {})
+            if tools_dict:
+                return set(tools_dict.keys())
+    except Exception:
+        pass
+
     return set()
 
 
 async def _registered_tools_async(mcp: Any) -> set[str]:
-    """Async version — preferred when caller is async. Uses mcp.list_tools()."""
+    """Async version — preferred when caller is async.
+
+    Fallback chain (F2: never silently return empty):
+        1. mcp.list_tools() — primary async path
+        2. public_tool_names_for_mode() — same source as /health tools_loaded
+        3. mcp._tool_manager._tools.keys() — internal enumeration (last resort)
+    """
     if mcp is None:
         return set()
+
+    # ── 1) Primary: mcp.list_tools() (FastMCP 3.x async) ──
     try:
         tools = await mcp.list_tools()
-        return {t.name for t in tools if hasattr(t, "name")}
+        names = {t.name for t in tools if hasattr(t, "name")}
+        if names:
+            return names
     except Exception:
-        return set()
+        pass
+
+    # ── 2) Fallback: public_surface (same source as /health tools_loaded) ──
+    try:
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
+
+        names = public_tool_names_for_mode()
+        if names:
+            return set(names)
+    except Exception:
+        pass
+
+    # ── 3) Last resort: internal _tool_manager ──
+    try:
+        tm = getattr(mcp, "_tool_manager", None)
+        if tm is not None:
+            tools_dict = getattr(tm, "_tools", {})
+            if tools_dict:
+                return set(tools_dict.keys())
+    except Exception:
+        pass
+
+    return set()
 
 
 def _exposed_tools(server_json: dict[str, Any] | None) -> set[str]:

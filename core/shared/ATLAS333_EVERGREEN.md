@@ -175,4 +175,35 @@ This document is updated when:
 
 ---
 
-*Updated: 2026-07-15 — no paradox #34 added; activation matrix now references the runtime `PARADOX_GPV_MAP` and is cross-checked by `tests/core/test_atlas333_crosswalk.py`.*
+---
+
+## PARADOX 34 — ROOT OUTRUNS KERNEL · 2026-07-17
+
+**Domain:** Judge (23-33+1) · **Zone:** Governance Sovereignty
+
+**Statement:** On a single VPS, root filesystem access bypasses all arifOS MCP governance. arif_judge SEAL is advisory when the executor has root. The forge is the real sovereign, not the constitution.
+
+**Trigger event:** 2026-07-17 P0-P2 sprint. PermitUserEnvironment flipped, authorized_keys rewritten (21 keys tagged with IDENTITY), .bashrc routing rewired. All technically correct, all ungoverned by arif_judge. Root sed outran the kernel.
+
+**ΛΘΦ:** Λ=CRISIS · Θ: τ=0.85 κ=0.90 ρ=0.75
+
+**Unsolved tension:**
+- The constitution governs MCP tools; the filesystem does not use MCP tools
+- Separating users (forge without sudo) moves the boundary but root still exists
+- Immutable config filesystem adds safety but risks operational lockout
+- Separate hosts (kernel vs executor) is absolute but adds complexity and cost
+- Audit-first approach logs violations without preventing them
+
+**Proposed resolution paths (none sealed):**
+1. Forge user without sudo + arif_forge as sole production write path
+2. Immutable config filesystem with SEAL-gated remount
+3. Separate VPS for kernel vs executor
+4. Audit-first: log all root mutations, flag unsealed changes as VIOLATION
+
+**Seal:** P0-SEAL-2026-07-17 · VAULT999 chain seq 185
+
+**Contour, don't excavate. Seal each contour. Never finish.**
+
+---
+
+*Updated: 2026-07-17 — Paradox 34 added (root-outruns-kernel). Activation matrix references runtime `PARADOX_GPV_MAP`; cross-checked by `tests/core/test_atlas333_crosswalk.py`.*
