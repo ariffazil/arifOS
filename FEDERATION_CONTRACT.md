@@ -26,7 +26,7 @@ All constitutional floors (F1-F13) derive from his sovereignty. No organ, agent,
 | # | Organ | Repo | Port | MCP Endpoint | Role | Authority |
 |---|-------|------|------|-------------|------|-----------|
 | Ω | **arifOS** | `ariffazil/arifos` | 8088 | `https://mcp.arif-fazil.com/mcp` | Governance kernel | F1-F13 enforcement, 888 JUDGE, VAULT999, routing |
-| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7072 | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
+| Ψ | **A-FORGE** | `ariffazil/A-FORGE` | 7071 sense · 7072 mcp | `https://forge.arif-fazil.com/mcp` | Engineering actuator | Plan, simulate, execute, rollback — only under SEAL |
 | Δ | **AAA** | `ariffazil/AAA` | 3001 | — | Cockpit / identity / A2A | Display, route, queue — never adjudicate |
 | 🌍 | **GEOX** | `ariffazil/geox` | 8081 | `https://geox.arif-fazil.com/mcp` | Earth intelligence | Evidence-only — never authorize drilling |
 | 💰 | **WEALTH** | `ariffazil/wealth` | 18082 | `https://wealth.arif-fazil.com/mcp` | Capital intelligence | Compute-only — never allocate capital |
