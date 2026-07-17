@@ -68,6 +68,7 @@ from arifosmcp.schemas.gateway import GatewayBlock
 from arifosmcp.schemas.intent_envelope import (
     DisplayCard,
     IntentEnvelopeV1,
+    IntentRiskClass,
     ProvenanceClass,
     Reversibility,
     RiskClass,

@@ -237,12 +237,14 @@ CORE_SEVEN_STAGE_MAP = CORE_NINE_STAGE_MAP
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-class RiskClass(StrEnum):
+class DeltaIrreversibilityClass(StrEnum):
     """
-    Risk consequence tier — governs HOW MUCH friction the kernel applies.
+    Constitutional irreversibility tier (C0–C5) — governs HOW MUCH friction the kernel applies.
 
     The kernel paradox: governance looks like drag when nothing goes wrong,
-    but genius when something could go wrong. RiskClass is how we right-size it.
+    but genius when something could go wrong. This class is how we right-size it.
+
+    Formerly: RiskClass (renamed 2026-07-17 to disambiguate from ActionRiskTier).
     """
 
     C0_GRAMMAR = "C0"  # Negligible — grammar, tone, formatting
@@ -273,6 +275,10 @@ class RiskClass(StrEnum):
         return _RISK_GOVERNANCE_TABLE[self].description
 
 
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = DeltaIrreversibilityClass  # DEPRECATED — use DeltaIrreversibilityClass
+
+
 @dataclass
 class RiskTierConfig:
     governance_mode: str  # "vanilla" | "light" | "standard" | "strict" | "seal"
@@ -281,20 +287,20 @@ class RiskTierConfig:
     description: str
 
 
-_RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
-    RiskClass.C0_GRAMMAR: RiskTierConfig(
+_RISK_GOVERNANCE_TABLE: dict[DeltaIrreversibilityClass, RiskTierConfig] = {
+    DeltaIrreversibilityClass.C0_GRAMMAR: RiskTierConfig(
         governance_mode="vanilla",
         requires_human_confirmation=False,
         floors_activated=["L09", "L10"],
         description="Grammar, spelling, tone, formatting. Zero irreversible consequence.",
     ),
-    RiskClass.C1_DRAFT: RiskTierConfig(
+    DeltaIrreversibilityClass.C1_DRAFT: RiskTierConfig(
         governance_mode="light",
         requires_human_confirmation=False,
         floors_activated=["L04", "L09", "L10"],
         description="Internal drafts, brainstorming, notes. Reversible. No external exposure.",
     ),
-    RiskClass.C2_REVIEW: RiskTierConfig(
+    DeltaIrreversibilityClass.C2_REVIEW: RiskTierConfig(
         governance_mode="standard",
         requires_human_confirmation=False,
         floors_activated=["L02", "L03", "L04", "L07", "L08"],
@@ -302,19 +308,19 @@ _RISK_GOVERNANCE_TABLE: dict[RiskClass, RiskTierConfig] = {
             "Code review, testing, analysis, summaries. Evidence-backed. Moderate exposure."
         ),
     ),
-    RiskClass.C3_PUBLIC: RiskTierConfig(
+    DeltaIrreversibilityClass.C3_PUBLIC: RiskTierConfig(
         governance_mode="audit",
         requires_human_confirmation=False,  # C3 auto-proceed: SABAR + mandatory audit
         floors_activated=["L01", "L02", "L04", "L06", "L09", "L12"],
         description="Public posts, emails to third parties, published documents. Reputation risk. Auto-proceeds with SABAR + audit log.",
     ),
-    RiskClass.C4_LEGAL_MONEY: RiskTierConfig(
+    DeltaIrreversibilityClass.C4_LEGAL_MONEY: RiskTierConfig(
         governance_mode="strict",
         requires_human_confirmation=True,
         floors_activated=["L01", "L02", "L03", "L05", "L06", "L11", "L12", "L13"],
         description="Legal claims, financial decisions, HR actions, investments. High consequence.",
     ),
-    RiskClass.C5_IRREVERSIBLE: RiskTierConfig(
+    DeltaIrreversibilityClass.C5_IRREVERSIBLE: RiskTierConfig(
         governance_mode="seal",
         requires_human_confirmation=True,
         floors_activated=["L01", "L02", "L03", "L05", "L06", "L11", "L12", "L13"],
@@ -331,7 +337,7 @@ class RiskDecision:
     Return type for preflight() — the kernel's pre-flight check result.
 
     This is what the external AI described as:
-        decision = kernel.preflight(action="send_email", risk=RiskClass.C3, reversible=False)
+        decision = kernel.preflight(action="send_email", risk=DeltaIrreversibilityClass.C3, reversible=False)
         if decision.allowed:
             result = send_email()
             kernel.audit(result)
@@ -340,7 +346,7 @@ class RiskDecision:
     """
 
     allowed: bool  # Can the action proceed?
-    risk_class: RiskClass  # What tier was assigned
+    risk_class: DeltaIrreversibilityClass  # What tier was assigned
     governance_mode: str  # "vanilla" | "light" | "standard" | "strict" | "seal"
     verdict: str  # "PROCEED" | "HOLD" | "VOID"
     reason: str  # Human-readable gate message
@@ -353,7 +359,7 @@ class RiskDecision:
 
 def preflight(
     action: str,
-    risk_class: RiskClass,
+    risk_class: DeltaIrreversibilityClass,
     reversible: bool,
     evidence_quality: float = 1.0,  # 0.0–1.0; 1.0 = full evidence
     user_intent: str | None = None,
@@ -363,12 +369,12 @@ def preflight(
     arifOS preflight check — the public API for right-sized governance.
 
     This is the function the external AI described:
-        from arifos import Kernel, RiskClass
+        from arifos import Kernel, DeltaIrreversibilityClass  # RiskClass alias still available
         kernel = Kernel(policy="arifos.yaml")
         decision = kernel.preflight(
             user_intent="Send this email to the CEO",
             action="send_email",
-            risk=RiskClass.C3,
+            risk=DeltaIrreversibilityClass.C3,
             reversible=False,
         )
 
@@ -384,7 +390,7 @@ def preflight(
     tier = _RISK_GOVERNANCE_TABLE[risk_class]
 
     # ── C5 special: vault seal required — check FIRST before L01 gate ───────
-    if risk_class == RiskClass.C5_IRREVERSIBLE:
+    if risk_class == DeltaIrreversibilityClass.C5_IRREVERSIBLE:
         return RiskDecision(
             allowed=False,
             risk_class=risk_class,
@@ -443,7 +449,7 @@ def preflight(
         )
 
     # C3 auto-proceed: public posts proceed with audit log, no human gate
-    if risk_class == RiskClass.C3_PUBLIC and session_ref:
+    if risk_class == DeltaIrreversibilityClass.C3_PUBLIC and session_ref:
         return RiskDecision(
             allowed=True,
             risk_class=risk_class,
@@ -480,7 +486,7 @@ def preflight(
         )
 
     # ── C5 special: vault seal required ──────────────────────────────────────
-    if risk_class == RiskClass.C5_IRREVERSIBLE:
+    if risk_class == DeltaIrreversibilityClass.C5_IRREVERSIBLE:
         return RiskDecision(
             allowed=False,
             risk_class=risk_class,
@@ -3288,7 +3294,7 @@ __all__ = [
     "Law",
     "TrinityLane",
     "ToolStage",
-    "RiskClass",
+    "DeltaIrreversibilityClass",
     "RiskDecision",
     "preflight",
     "CANONICAL_TOOLS",

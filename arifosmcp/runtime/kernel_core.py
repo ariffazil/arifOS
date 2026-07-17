@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.constitutional_map import RiskClass, RiskDecision, preflight
+from arifosmcp.constitutional_map import DeltaIrreversibilityClass as RiskClass, RiskDecision, preflight
 from arifosmcp.core.kernel.pattern_registry import PatternRegistry
 from arifosmcp.core.kernel.pattern_selector import PatternSelector
 from arifosmcp.core.kernel.planner import Planner

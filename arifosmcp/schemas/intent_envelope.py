@@ -90,8 +90,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # ============================================================================
 
 
-class RiskClass(str, Enum):
-    """Mirrors /root/arifOS/arifosmcp/constitutional_map.py:151-156."""
+class IntentRiskClass(str, Enum):
+    """Constitutional irreversibility tier for intent envelopes.
+    
+    C0-C5 aligns with DeltaIrreversibilityClass from constitutional_map.
+    Renamed from RiskClass (2026-07-17) to disambiguate from ActionRiskTier.
+    """
 
     C0 = "C0"  # Negligible — grammar, tone, formatting
     C1 = "C1"  # Low — internal drafts, notes, brainstorming
@@ -107,6 +111,10 @@ class RiskClass(str, Enum):
     @property
     def requires_zkpc_proof(self) -> bool:
         return self.value in ("C4", "C5")
+
+
+# ── Backward-compatible alias ──────────────────────────────────────────
+RiskClass = IntentRiskClass  # DEPRECATED — use IntentRiskClass
 
 
 class Reversibility(str, Enum):
@@ -259,7 +267,7 @@ class IntentEnvelopeV1(BaseModel):
     scope: dict[str, str] = Field(default_factory=dict)
 
     # L3 Risk
-    risk_class: RiskClass
+    risk_class: IntentRiskClass
     risk_external: bool
     risk_reversibility: Reversibility
     risk_blast_radius: str = Field(..., min_length=1, max_length=500)
@@ -309,7 +317,7 @@ class IntentEnvelopeV1(BaseModel):
         now = datetime.now(UTC)
         if self.expires_at.tzinfo is None:
             raise ValueError("expires_at must be timezone-aware (use UTC)")
-        if self.expires_at <= now and self.risk_class != RiskClass.C0:
+        if self.expires_at <= now and self.risk_class != IntentRiskClass.C0:
             raise ValueError(
                 f"expires_at {self.expires_at.isoformat()} is in the past; "
                 f"nonce is stale. C0 historical seals may bypass this."
@@ -364,7 +372,7 @@ class IntentEnvelopeV1(BaseModel):
         """
         # Rule 1: UNKNOWN_ORIGIN is fail-secure — cannot cross at all
         if self.provenance_class == ProvenanceClass.UNKNOWN_ORIGIN:
-            if self.risk_class != RiskClass.C0:
+            if self.risk_class != IntentRiskClass.C0:
                 raise ValueError(
                     f"KERNEL RULE: UNKNOWN_ORIGIN is fail-secure. Cannot "
                     f"cross into C{self.risk_class.value[-1]}. Must declare "
@@ -444,6 +452,6 @@ __all__ = [
     "IntentEnvelopeV1",
     "ProvenanceClass",
     "Reversibility",
-    "RiskClass",
+    "IntentRiskClass",
     "SovereignProvenance",
 ]

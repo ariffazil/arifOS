@@ -17,7 +17,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from arifosmcp.constitutional_map import RiskClass
+from arifosmcp.constitutional_map import DeltaIrreversibilityClass as RiskClass
 from arifosmcp.core.floors import evaluate_tool_call
 from arifosmcp.integrations.playwright_bridge import playwright_bridge
 from arifosmcp.runtime.model import RuntimeEnvelope as _RE
