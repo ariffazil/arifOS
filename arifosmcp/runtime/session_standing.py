@@ -509,6 +509,28 @@ def _strip_legacy_identity(response: dict[str, Any]) -> None:
                 result.pop("authority_state", None)
 
 
+def _allowed_verbs_for_band(band: str) -> list[str]:
+    """Verb allowlist derived from standing band only."""
+    if band in (BAND_FULL, BAND_SOVEREIGN):
+        return [
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_judge",
+            "arif_forge",
+            "arif_seal",
+        ]
+    if band == BAND_LIMITED_MUTATE:
+        return [
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_judge",
+            "arif_forge",
+        ]
+    return ["arif_observe", "arif_think", "arif_route"]
+
+
 def _sync_authority_surfaces_from_standing(
     response: dict[str, Any],
     standing: SessionStanding,
@@ -525,6 +547,7 @@ def _sync_authority_surfaces_from_standing(
     band = authority["band"]
     verified = bool(actor["verified"])
     mutation = bool(authority["mutation_allowed"])
+    allowed = _allowed_verbs_for_band(band)
 
     # Top-level mirrors (if present)
     if "actor_verified" in response:
@@ -535,6 +558,8 @@ def _sync_authority_surfaces_from_standing(
         response["authority_scope"] = band
     if "authority_mode" in response:
         response["authority_mode"] = band
+    if "allowed_next_verbs" in response:
+        response["allowed_next_verbs"] = list(allowed)
 
     # session_birth — the dual-claim residual named by the auditor
     birth = response.get("session_birth")
@@ -551,10 +576,15 @@ def _sync_authority_surfaces_from_standing(
         birth["evidence_ref"] = actor["evidence_ref"]
         if standing.session_id and standing.session_id != "anonymous":
             birth["session_id"] = standing.session_id
+        # Invalidate pre-collapse SCT in birth — token may still claim FULL
+        if birth.get("session_token") and not verified:
+            birth["session_token_status"] = "SUPERSEDED_BY_STANDING"
+            # Keep token for audit trail but mark non-authoritative
+            birth["session_token_authoritative"] = False
 
     # Nested result.session_birth (some wrappers nest)
     result = response.get("result")
-    if isinstance(result, dict) and isinstance(result.get("session_birth"), dict):
+    if isinstance(result, dict):
         _sync_authority_surfaces_from_standing(result, standing)
 
     # clarity_contract mutation_allowed must match standing
@@ -567,11 +597,48 @@ def _sync_authority_surfaces_from_standing(
 
     # sct_claims.av must not claim verified if standing denies it
     sct = response.get("sct_claims")
-    if isinstance(sct, dict) and "av" in sct:
+    if isinstance(sct, dict):
         sct["av"] = verified
-        if "auth" in sct:
-            sct["auth"] = band
+        sct["auth"] = band
 
+    # meta.authority_mode residual
+    meta = response.get("meta")
+    if isinstance(meta, dict) and "authority_mode" in meta:
+        meta["authority_mode"] = band
+
+    # Re-mint SCT from standing when weak/unverified so wire token matches law
+    if standing.session_id and standing.session_id != "anonymous":
+        try:
+            from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
+
+            token, claims = mint_sct(
+                sid=standing.session_id,
+                actor=str(actor["claimed_id"] or "anonymous"),
+                auth=band,
+                av=verified,
+                stage="000",
+                lane="AGI",
+                verdict_state=band,
+                dominant_reason=None,
+                allowed=allowed,
+                apex=unmeasured_apex(),
+                witness={"active": 1 if verified else 0, "diversity": "PARTIAL" if verified else "NONE"},
+            )
+            response["session_token"] = token
+            if isinstance(response.get("sct_claims"), dict) or "sct_claims" in response:
+                response["sct_claims"] = {
+                    "auth": claims.get("auth", band),
+                    "av": claims.get("av", verified),
+                    "exp": claims.get("exp"),
+                    "sid": claims.get("sid", standing.session_id),
+                    "sct_v": claims.get("sct_v"),
+                }
+            if isinstance(birth, dict):
+                birth["session_token"] = token
+                birth["session_token_authoritative"] = True
+                birth.pop("session_token_status", None)
+        except Exception as exc:
+            logger.debug("SCT re-mint from standing skipped: %s", exc)
 
 def attach_canonical_standing(
     response: Any,
