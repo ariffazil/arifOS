@@ -114,8 +114,38 @@ async def _arif_kernel_intercept(
     """
     evidence = evidence or []
 
+    # Normalize human-friendly reversibility aliases → R0..R5.
+    # Unknown tokens fail CLOSED to R4 (was already the case).
+    _rev_raw = (reversibility_level or "").strip().upper()
+    _REV_ALIASES = {
+        "R0": "R0",
+        "R0_OBSERVATION": "R0",
+        "OBSERVATION": "R0",
+        "OBSERVE": "R0",
+        "READ": "R0",
+        "R1": "R1",
+        "R1_SIMULATION": "R1",
+        "SIMULATION": "R1",
+        "DRY_RUN": "R1",
+        "R2": "R2",
+        "R2_REVERSIBLE_WRITE": "R2",
+        "REVERSIBLE": "R2",
+        "REVERSIBLE_WRITE": "R2",
+        "WRITE": "R2",
+        "R3": "R3",
+        "R3_COSTLY_REVERSIBLE": "R3",
+        "COSTLY": "R3",
+        "SEMI_IRREVERSIBLE": "R3",
+        "R4": "R4",
+        "R4_IRREVERSIBLE": "R4",
+        "IRREVERSIBLE": "R4",
+        "R5": "R5",
+        "R5_SOVEREIGN": "R5",
+        "SOVEREIGN": "R5",
+        "CATASTROPHIC": "R5",
+    }
     try:
-        r_class = ReversibilityClass(reversibility_level.upper())
+        r_class = ReversibilityClass(_REV_ALIASES.get(_rev_raw, _rev_raw))
     except ValueError:
         r_class = ReversibilityClass.R4_IRREVERSIBLE  # Fail closed
 

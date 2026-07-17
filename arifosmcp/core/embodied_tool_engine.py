@@ -244,17 +244,17 @@ class EmbodiedToolEngine:
 
         # Upgrade if irreversible
         if reversibility_verdict.is_irreversible:
-            radius_order = ["low", "medium", "high", "critical"]
-            current_idx = radius_order.index(manifest_radius.value)
+            radius_order = [BlastRadius.LOCAL, BlastRadius.ACCOUNT, BlastRadius.PUBLIC, BlastRadius.INFRASTRUCTURE, BlastRadius.CIVILIZATIONAL]
+            current_idx = radius_order.index(manifest_radius) if manifest_radius in radius_order else 0
             next_idx = min(current_idx + 1, len(radius_order) - 1)
-            manifest_radius = BlastRadius(radius_order[next_idx])
+            manifest_radius = radius_order[next_idx]
 
         # Upgrade if tool's model is contradicted (unreliable predictions → higher consequence)
         if entry.model_contradicted:
-            radius_order = ["low", "medium", "high", "critical"]
-            current_idx = radius_order.index(manifest_radius.value)
+            radius_order = [BlastRadius.LOCAL, BlastRadius.ACCOUNT, BlastRadius.PUBLIC, BlastRadius.INFRASTRUCTURE, BlastRadius.CIVILIZATIONAL]
+            current_idx = radius_order.index(manifest_radius) if manifest_radius in radius_order else 0
             next_idx = min(current_idx + 1, len(radius_order) - 1)
-            manifest_radius = BlastRadius(radius_order[next_idx])
+            manifest_radius = radius_order[next_idx]
 
         return manifest_radius, f"Blast radius: {manifest_radius.value}"
 

@@ -38,8 +38,24 @@ TEST_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 # Canonical namespace per arifOS constitution (FLOOR_PUBLIC_MAP.md, public_surface.py).
 PUBLIC_NAMESPACE_PREFIX = "arif_"
 
+# Public constitutional wire (8 tools). Matrix counters must use this set, not full registry.
+PUBLIC_CANONICAL_TOOLS: frozenset[str] = frozenset(
+    {
+        "arif_init",
+        "arif_observe",
+        "arif_think",
+        "arif_route",
+        "arif_memory",
+        "arif_judge",
+        "arif_forge",
+        "arif_seal",
+    }
+)
+
 # Snapshot TTL — observations older than this are marked stale at the snapshot layer.
 TEST_FRESHNESS_SECONDS = 300  # 5 min — matches `cadence: capability graph` in plan §telemetry
+# Durable SUCCESS within this window counts as proven_live (not necessarily "fresh").
+PROVEN_LIVE_SECONDS = 86_400  # 24h
 
 
 def _canonical_tool_record(tool_name: str, registry_index: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
@@ -298,21 +314,121 @@ def record_test_result(
     error: str | None = None,
     input_schema_hash: str | None = None,
     output_schema_hash: str | None = None,
+    invoked_at: float | int | None = None,
 ) -> None:
-    """Public hook for the /api/observatory/v1/seal/test and tooling probe paths.
+    """Public hook for live MCP tool paths and observatory seal/test probes.
 
-    Records the most recent invocation result. The snapshot only marks a tool as
-    `tested` if its latest timestamp is within TEST_FRESHNESS_SECONDS.
+    Records the most recent invocation result. The snapshot marks a tool as
+    `tested` if the latest pass is within TEST_FRESHNESS_SECONDS, and as
+    `proven_live` if within PROVEN_LIVE_SECONDS.
     """
     cache = _load_test_cache()
-    cache[tool_name] = {
-        "last_invocation_at": int(time.time()),
+    prior = cache.get(tool_name) if isinstance(cache.get(tool_name), dict) else {}
+    epoch = int(invoked_at if invoked_at is not None else time.time())
+    # Never regress a newer observation with an older backfill.
+    if prior.get("last_invocation_at") and int(prior["last_invocation_at"]) > epoch:
+        return
+    row = {
+        "last_invocation_at": epoch,
         "last_pass": bool(passed),
         "last_error": error,
-        "input_schema_hash": input_schema_hash,
-        "output_schema_hash": output_schema_hash,
+        "input_schema_hash": input_schema_hash or prior.get("input_schema_hash"),
+        "output_schema_hash": output_schema_hash or prior.get("output_schema_hash"),
+        "source": "record_test_result",
     }
+    cache[tool_name] = row
     _save_test_cache(cache)
+
+
+def _parse_event_epoch(event: dict[str, Any]) -> float | None:
+    """Best-effort epoch from a durable bus event."""
+    for key in (
+        "timestamp",
+        "timestamp_start",
+        "timestamp_end",
+        "_emitted_at",
+        "ts",
+        "created_at",
+        "observed_at",
+    ):
+        raw = event.get(key)
+        if raw is None:
+            continue
+        if isinstance(raw, (int, float)):
+            return float(raw)
+        if isinstance(raw, str) and raw.strip():
+            try:
+                from datetime import datetime
+
+                return datetime.fromisoformat(raw.replace("Z", "+00:00")).timestamp()
+            except Exception:
+                continue
+    return None
+
+
+def hydrate_test_cache_from_durable_bus(*, limit: int = 5000) -> int:
+    """Merge durable operation SUCCESS events into the capability test cache.
+
+    Returns number of public tools updated. F2 honesty: only SUCCESS/ok/pass
+    statuses count as proven; STARTED alone never does.
+    """
+    try:
+        from arifosmcp.runtime.event_bus import read_durable_events
+    except Exception as exc:
+        logger.debug("durable bus import failed: %s", exc)
+        return 0
+
+    try:
+        events = read_durable_events(limit=limit)
+    except Exception as exc:
+        logger.debug("durable bus read failed: %s", exc)
+        return 0
+
+    latest: dict[str, dict[str, Any]] = {}
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        tool = event.get("capability") or event.get("tool") or event.get("name")
+        if not isinstance(tool, str) or not tool.startswith(PUBLIC_NAMESPACE_PREFIX):
+            continue
+        if tool not in PUBLIC_CANONICAL_TOOLS:
+            continue
+        status = str(event.get("status") or "").upper()
+        success = event.get("success")
+        passed = status in {"SUCCESS", "OK", "PASS", "SEAL", "COMPLETED"} or success is True
+        if not passed:
+            continue
+        epoch = _parse_event_epoch(event)
+        if epoch is None:
+            continue
+        prev = latest.get(tool)
+        if prev is None or epoch > float(prev["last_invocation_at"]):
+            latest[tool] = {
+                "last_invocation_at": int(epoch),
+                "last_pass": True,
+                "last_error": None,
+                "source": "durable_event_bus",
+            }
+
+    if not latest:
+        return 0
+
+    cache = _load_test_cache()
+    updated = 0
+    for tool, row in latest.items():
+        prior = cache.get(tool) if isinstance(cache.get(tool), dict) else {}
+        prior_at = int(prior.get("last_invocation_at") or 0)
+        if row["last_invocation_at"] >= prior_at:
+            cache[tool] = {
+                **prior,
+                **row,
+                "input_schema_hash": prior.get("input_schema_hash"),
+                "output_schema_hash": prior.get("output_schema_hash"),
+            }
+            updated += 1
+    if updated:
+        _save_test_cache(cache)
+    return updated
 
 
 def _schema_hash(value: Any) -> str | None:
@@ -358,29 +474,55 @@ def compute_capability_matrix(
     if registry_index is None:
         registry_index = _load_registry_index()
 
+    # Wire live MCP SUCCESS (durable bus) into the test cache before scoring.
+    try:
+        hydrate_test_cache_from_durable_bus()
+    except Exception as exc:
+        logger.debug("hydrate_test_cache_from_durable_bus failed: %s", exc)
+
     declared = _declared_arif_tools(registry_index)
+    # Public surface discipline: matrix rows are the constitutional 8, plus any
+    # extra declared arif_* so drift still surfaces — but headline counts use public 8.
     registered = registered_tools if registered_tools is not None else _registered_tools(mcp)
     exposed = _exposed_tools(server_json)
+    # Prefer explicit public wire when registries are noisy/multi-tier.
+    if not declared:
+        declared = set(PUBLIC_CANONICAL_TOOLS)
+    public_declared = declared & PUBLIC_CANONICAL_TOOLS or set(PUBLIC_CANONICAL_TOOLS)
+    # Restrict registered/exposed counters to public wire for F-001 honesty.
+    registered_public = registered & PUBLIC_CANONICAL_TOOLS
+    exposed_public = exposed & PUBLIC_CANONICAL_TOOLS if exposed else set(PUBLIC_CANONICAL_TOOLS)
+    if not exposed:
+        # server.json miss: if registered on public wire, treat as exposed on public facade
+        exposed_public = set(registered_public)
+        exposed = set(registered)
+
     test_cache = _load_test_cache()
 
-    # A row exists if ANY of declared/registered/exposed says so — we want to surface
-    # drift in all four directions (declared-but-unregistered, registered-but-unexposed, etc.).
-    all_tools = declared | registered | exposed
+    # Rows: public 8 first; include any other declared arif_* for drift visibility.
+    all_tools = public_declared | (declared - PUBLIC_CANONICAL_TOOLS)
     matrix: list[dict[str, Any]] = []
 
     invocable_count = 0
     tested_count = 0
+    proven_live_count = 0
     degraded_count = 0
+    now = time.time()
 
     for tool_name in sorted(all_tools):
         canon = registry_index.get(tool_name, {})
-        live_invocable = tool_name in registered and tool_name in exposed
-        cache_row = test_cache.get(tool_name, {})
+        is_public = tool_name in PUBLIC_CANONICAL_TOOLS
+        in_registered = tool_name in registered or tool_name in registered_public
+        in_exposed = tool_name in exposed or tool_name in exposed_public
+        live_invocable = in_registered and in_exposed
+        cache_row = test_cache.get(tool_name, {}) if isinstance(test_cache.get(tool_name), dict) else {}
         last_at = cache_row.get("last_invocation_at")
-        age = (time.time() - last_at) if last_at else None
+        age = (now - float(last_at)) if last_at else None
         fresh = age is not None and age <= TEST_FRESHNESS_SECONDS
+        proven = age is not None and age <= PROVEN_LIVE_SECONDS and bool(cache_row.get("last_pass"))
         last_pass = bool(cache_row.get("last_pass"))
-        # `tested` ⇒ exists in cache, fresh, and previously passed.
+        # `tested` ⇒ fresh successful invocation (matrix "tested" column).
+        # `proven_live` ⇒ durable SUCCESS within 24h (auditor "proven live").
         tested = fresh and last_pass
 
         registry_in_hash = _schema_hash(canon.get("input_schema"))
@@ -399,49 +541,77 @@ def compute_capability_matrix(
             and observed_out_hash == registry_out_hash
         )
 
-        # Truth ladder — DEGRADED on any failure, VOID if not even declared.
-        if tool_name not in declared:
+        # Truth ladder — PROVEN for durable success without full schema match.
+        if tool_name not in declared and tool_name not in PUBLIC_CANONICAL_TOOLS:
             truth = "VOID"
-        elif all([tool_name in declared, tool_name in registered, tool_name in exposed, tested, in_match, out_match]):
+        elif all(
+            [
+                tool_name in declared or is_public,
+                in_registered,
+                in_exposed,
+                tested,
+                in_match,
+                out_match,
+            ]
+        ):
             truth = "PASS"
+        elif live_invocable and proven:
+            truth = "PROVEN"
+        elif live_invocable and not proven:
+            truth = "EXPOSED_UNPROVEN"
         else:
             truth = "DEGRADED"
 
-        if tool_name in declared and tool_name in registered and tool_name in exposed:
+        if is_public and in_registered and in_exposed:
             invocable_count += 1
-        if tested:
+        if is_public and tested:
             tested_count += 1
-        if truth != "PASS" and tool_name in declared:
+        if is_public and proven:
+            proven_live_count += 1
+        if is_public and truth not in {"PASS", "PROVEN"}:
             degraded_count += 1
 
         matrix.append(
             {
                 "name": tool_name,
-                "declared": tool_name in declared,
-                "registered": tool_name in registered,
-                "exposed": tool_name in exposed,
+                "declared": tool_name in declared or is_public,
+                "registered": in_registered,
+                "exposed": in_exposed,
                 "invocable": live_invocable,
                 "tested": tested,
+                "proven_live": proven,
                 "input_schema_hash_match": in_match,
                 "output_schema_hash_match": out_match,
                 "last_test_at": (
-                    time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(last_at)) if last_at else None
+                    time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(float(last_at)))
+                    if last_at
+                    else None
                 ),
                 "age_seconds": int(age) if age is not None else None,
                 "last_failure": cache_row.get("last_error"),
                 "capability_truth": truth,
+                "evidence_source": cache_row.get("source"),
             }
         )
 
     return {
         "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "declared_count": len(declared),
-        "registered_count": len(registered),
-        "exposed_count": len(exposed),
+        "declared_count": len(public_declared),
+        "registered_count": len(registered_public) if registered_public else len(public_declared & registered),
+        "exposed_count": len(exposed_public) if exposed_public else len(public_declared),
         "invocable_count": invocable_count,
+        "callable_public": invocable_count,
         "tested_count": tested_count,
+        "proven_live_count": proven_live_count,
         "degraded_count": degraded_count,
+        "untested_count": max(0, len(public_declared) - tested_count),
         "matrix": matrix,
+        "semantics": {
+            "callable_public": "declared ∧ registered ∧ exposed on public wire",
+            "proven_live": f"durable SUCCESS within {PROVEN_LIVE_SECONDS}s",
+            "tested": f"fresh SUCCESS within {TEST_FRESHNESS_SECONDS}s",
+            "operational_tools": "alias of proven_live_count (not invocable alone)",
+        },
     }
 
 

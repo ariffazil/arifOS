@@ -281,7 +281,7 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
 
     # Claimed id prefers the caller argument (THIS request), not a stale record.
     # Case-normalize at intake (Claude audit 2026-07-17): ARIF → arif.
-    claimed_id = (actor_id or (record.get("actor_id") if record else None) or "anonymous")
+    claimed_id = actor_id or (record.get("actor_id") if record else None) or "anonymous"
     claimed_id = str(claimed_id).strip()
     try:
         from arifosmcp.runtime.governance_identity import normalize_actor_id
@@ -317,9 +317,7 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
             verified = verified_raw
         issued_at = record.get("created_at") or _utcnow_iso()
         expires_at = record.get("expires_at") or _utcnow_iso()
-        record_actor = str(
-            record.get("actor_id") or record.get("canonical_actor_id") or ""
-        )
+        record_actor = str(record.get("actor_id") or record.get("canonical_actor_id") or "")
     else:
         verified = False
         verification_method = None
@@ -337,8 +335,8 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
         and record_actor.lower() != claimed_id.lower()
         and str(canonical_id).lower() != claimed_id.lower()
     )
-    component_leak = (
-        not _is_component_identity(claimed_id) and _is_component_identity(str(canonical_id))
+    component_leak = not _is_component_identity(claimed_id) and _is_component_identity(
+        str(canonical_id)
     )
     if record_mismatch or component_leak:
         logger.warning(
@@ -364,8 +362,7 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
     if not verified or not _is_strong_method(verification_method):
         if band != BAND_OBSERVE_ONLY:
             logger.info(
-                "Authority collapse: verified=%s method=%s band=%s→OBSERVE_ONLY "
-                "(claimed=%s)",
+                "Authority collapse: verified=%s method=%s band=%s→OBSERVE_ONLY (claimed=%s)",
                 verified,
                 verification_method,
                 band,
@@ -519,25 +516,32 @@ def _strip_legacy_identity(response: dict[str, Any]) -> None:
 
 
 def _allowed_verbs_for_band(band: str) -> list[str]:
-    """Verb allowlist derived from standing band only."""
+    """Verb allowlist derived from standing band only.
+
+    forge_next_8 public surface must be reachable under SOVEREIGN/FULL.
+    """
     if band in (BAND_FULL, BAND_SOVEREIGN):
         return [
+            "arif_init",
             "arif_observe",
             "arif_think",
             "arif_route",
+            "arif_memory",
             "arif_judge",
             "arif_forge",
             "arif_seal",
         ]
     if band == BAND_LIMITED_MUTATE:
         return [
+            "arif_init",
             "arif_observe",
             "arif_think",
             "arif_route",
+            "arif_memory",
             "arif_judge",
             "arif_forge",
         ]
-    return ["arif_observe", "arif_think", "arif_route"]
+    return ["arif_init", "arif_observe", "arif_think", "arif_route"]
 
 
 def _sync_authority_surfaces_from_standing(
@@ -631,7 +635,10 @@ def _sync_authority_surfaces_from_standing(
                 dominant_reason=None,
                 allowed=allowed,
                 apex=unmeasured_apex(),
-                witness={"active": 1 if verified else 0, "diversity": "PARTIAL" if verified else "NONE"},
+                witness={
+                    "active": 1 if verified else 0,
+                    "diversity": "PARTIAL" if verified else "NONE",
+                },
             )
             response["session_token"] = token
             if isinstance(response.get("sct_claims"), dict) or "sct_claims" in response:
@@ -648,6 +655,7 @@ def _sync_authority_surfaces_from_standing(
                 birth.pop("session_token_status", None)
         except Exception as exc:
             logger.debug("SCT re-mint from standing skipped: %s", exc)
+
 
 def attach_canonical_standing(
     response: Any,
@@ -672,23 +680,22 @@ def attach_canonical_standing(
     _strip_legacy_identity(response)
     # Prefer response-born session if caller did not pass one
     if not session_id:
-        birth = response.get("session_birth") if isinstance(response.get("session_birth"), dict) else {}
-        session_id = (
-            response.get("session_id")
-            or birth.get("session_id")
-            or session_id
+        birth = (
+            response.get("session_birth") if isinstance(response.get("session_birth"), dict) else {}
         )
+        session_id = response.get("session_id") or birth.get("session_id") or session_id
     if not actor_id:
-        birth = response.get("session_birth") if isinstance(response.get("session_birth"), dict) else {}
+        birth = (
+            response.get("session_birth") if isinstance(response.get("session_birth"), dict) else {}
+        )
         actor_id = (
-            response.get("actor_id")
-            or response.get("actor")
-            or birth.get("actor_id")
-            or actor_id
+            response.get("actor_id") or response.get("actor") or birth.get("actor_id") or actor_id
         )
         if isinstance(actor_id, dict):
             actor_id = actor_id.get("claimed_id") or actor_id.get("id")
-    standing = compose_standing(session_id, actor_id if isinstance(actor_id, str) or actor_id is None else str(actor_id))
+    standing = compose_standing(
+        session_id, actor_id if isinstance(actor_id, str) or actor_id is None else str(actor_id)
+    )
     response["standing"] = standing_to_envelope(standing)
     _sync_authority_surfaces_from_standing(response, standing)
     return response

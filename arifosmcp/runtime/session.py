@@ -473,11 +473,7 @@ def bind_session_identity(
     # is ALLOWED to do, NOT whether their identity is cryptographically
     # verified. "sovereign"/"operator" labels do not imply verified=True.
     # Only explicit `verified` param or auth_context["verified"] can set this.
-    verified_flag = bool(
-        verified
-        if verified is not None
-        else auth_context.get("verified", False)
-    )
+    verified_flag = bool(verified if verified is not None else auth_context.get("verified", False))
 
     # H2: Distributed continuity signing
     actual_session_id = session_id
@@ -520,8 +516,11 @@ def bind_session_identity(
             or existing.get("verification_method")
         ),
         "evidence_ref": (
-            (f"key://{merged_auth_context['verified_key_id']}"
-             if merged_auth_context.get("verified_key_id") else None)
+            (
+                f"key://{merged_auth_context['verified_key_id']}"
+                if merged_auth_context.get("verified_key_id")
+                else None
+            )
             or existing.get("evidence_ref")
             or f"session://{actual_session_id}"
         ),
@@ -581,9 +580,7 @@ def get_session_identity(session_id: str) -> dict[str, Any] | None:
                 _stored_verified_actor = _existing.get("verified_actor_id")
                 _witness_verified = payload.witness.active_count > 0
                 _actor_verified = (
-                    _stored_verified
-                    if _stored_verified is not None
-                    else _witness_verified
+                    _stored_verified if _stored_verified is not None else _witness_verified
                 )
                 record = {
                     "actor_id": payload.act,
@@ -665,6 +662,27 @@ def mark_session_ed25519_verified(
     # only bypass path. Setting actor_verified=True here was a state-envelope
     # fabrication that caused the actor_verified drift (F-004 epoch defect).
     # Repaired 2026-07-17 per F13 directive.
+
+    # SINGLE SETTER: bind the canonical authority_state so _is_actor_verified
+    # and all readers resolve from authority_state.actor.verified.
+    # This is the ONLY place in the kernel that promotes actor_verified from
+    # False → True based on cryptographic Ed25519 proof.
+    try:
+        from arifosmcp.runtime.authority import bind_authority_state
+        from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+            build_authority_state_for_actor,
+        )
+
+        _bind_state = build_authority_state_for_actor(
+            actor_id,
+            verified=True,  # Ed25519 proof → verified
+            verification_method="signature",
+            verified_key_id=actor_pubkey_hex,
+        )
+        bind_authority_state(record, _bind_state)
+    except Exception:
+        pass
+
     record["verified_actor_id"] = actor_id
     if not record.get("actor_id"):
         record["actor_id"] = actor_id
