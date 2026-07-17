@@ -76,7 +76,6 @@ class ActionRiskTier(str, Enum):
 
 
 # ── Backward-compatible alias ──────────────────────────────────────────
-RiskClass = ActionRiskTier  # DEPRECATED — use ActionRiskTier
 
 
 class ActionClass(str, Enum):

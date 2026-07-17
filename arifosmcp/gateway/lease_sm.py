@@ -80,7 +80,6 @@ class LeaseRiskClass(Enum):
 
 
 # ── Backward-compatible alias ──────────────────────────────────────────
-RiskClass = LeaseRiskClass  # DEPRECATED — use LeaseRiskClass
 
 
 REQUIRES_888: set[LeaseRiskClass] = {

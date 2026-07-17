@@ -33,7 +33,7 @@ from enum import IntEnum, StrEnum
 from typing import Any
 
 from arifosmcp.runtime.context_audit import (
-    RiskClass,
+    ContextRiskTier,
 )
 from arifosmcp.runtime.token_pressure import (
     PressureBand,
@@ -141,7 +141,7 @@ def marginal_value_per_token(
     task_value: float,
     marginal_compute_cost: float = 1.0,
     marginal_latency_cost: float = 0.5,
-    risk_band: RiskClass = RiskClass.ROUTINE,
+    risk_band: ContextRiskTier = ContextRiskTier.ROUTINE,
 ) -> dict[str, Any]:
     """
     Compute marginal value per token for a candidate context segment.
@@ -153,7 +153,7 @@ def marginal_value_per_token(
         task_value: V (0-1) — how much this task matters
         marginal_compute_cost: per-token compute cost (default 1.0)
         marginal_latency_cost: per-token latency cost (default 0.5)
-        risk_band: RiskClass (affects risk shadow price ρ)
+        risk_band: ContextRiskTier (affects risk shadow price ρ)
 
     Returns:
         dict with keys: value_per_token, recommendation, rationale
@@ -166,14 +166,14 @@ def marginal_value_per_token(
 
     # Risk shadow price: HIGH risk raises ρ, making token use more "expensive"
     risk_shadow_price = {
-        RiskClass.ROUTINE: 0.1,
-        RiskClass.PRIVATE: 1.0,
-        RiskClass.FINANCIAL: 0.8,
-        RiskClass.LEGAL: 0.9,
-        RiskClass.IDENTITY: 0.7,
-        RiskClass.COMMITMENT: 0.6,
-        RiskClass.EXTERNAL_ACTION: 0.5,
-        RiskClass.CANONICAL: 1.0,
+        ContextRiskTier.ROUTINE: 0.1,
+        ContextRiskTier.PRIVATE: 1.0,
+        ContextRiskTier.FINANCIAL: 0.8,
+        ContextRiskTier.LEGAL: 0.9,
+        ContextRiskTier.IDENTITY: 0.7,
+        ContextRiskTier.COMMITMENT: 0.6,
+        ContextRiskTier.EXTERNAL_ACTION: 0.5,
+        ContextRiskTier.CANONICAL: 1.0,
     }.get(risk_band, 0.5)
 
     # Quality gain: authority * relevance, discounted by staleness and dup

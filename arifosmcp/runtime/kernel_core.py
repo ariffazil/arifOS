@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.constitutional_map import DeltaIrreversibilityClass as RiskClass, RiskDecision, preflight
+from arifosmcp.constitutional_map import DeltaIrreversibilityClass, RiskDecision, preflight
 from arifosmcp.core.kernel.pattern_registry import PatternRegistry
 from arifosmcp.core.kernel.pattern_selector import PatternSelector
 from arifosmcp.core.kernel.planner import Planner
@@ -609,13 +609,13 @@ class KernelCore:
         return final_result
 
     # ══════════════════════════════════════════════════════════════════════════
-    # PREFLIGHT — Right-sized governance gate (C0–C5 RiskClass)
+    # PREFLIGHT — Right-sized governance gate (C0–C5 DeltaIrreversibilityClass)
     # ══════════════════════════════════════════════════════════════════════════
 
     def preflight(
         self,
         action: str,
-        risk_class: RiskClass,
+        risk_class: DeltaIrreversibilityClass,
         reversible: bool,
         evidence_quality: float = 1.0,
         user_intent: str | None = None,
@@ -632,7 +632,7 @@ class KernelCore:
             kernel = get_kernel_core()
             decision = kernel.preflight(
                 action="send_email",
-                risk_class=RiskClass.C3_PUBLIC,
+                risk_class=DeltaIrreversibilityClass.C3_PUBLIC,
                 reversible=False,
                 user_intent="Notify team of deployment",
                 session_ref="sess_abc123",
@@ -644,7 +644,7 @@ class KernelCore:
 
         Args:
             action:       Name of the operation being preflighted.
-            risk_class:   RiskClass enum (C0–C5) — consequence tier.
+            risk_class:   DeltaIrreversibilityClass enum (C0–C5) — consequence tier.
             reversible:   True if the action can be undone after execution.
             evidence_quality: 0.0–1.0. 1.0 = fully evidenced. <0.5 triggers HOLD
                               for strict/seal tiers.
