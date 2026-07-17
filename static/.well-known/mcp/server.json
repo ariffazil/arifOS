@@ -11,7 +11,7 @@
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional Kernel",
-    "version": "2026.06.19"
+    "version": "2026.07.17"
   },
   "source_of_truth": "arifosmcp/abi/capability_registry.json",
   "tool_count": 8,
