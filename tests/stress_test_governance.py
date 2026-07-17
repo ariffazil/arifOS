@@ -5,7 +5,7 @@ Sovereign Governance Stress-Test → executable Failure Tests 1–5.
 
 Source doctrine:
   - SFAG analysis (DRAFT_ONLY L4 → code reference, calibration pending)
-  - AAA/docs/INVARIANTS.md Margin Theorem (E* / cumulative cost)
+  - arifOS/GENESIS/INVARIANTS.md Margin Theorem (E* / cumulative cost)
   - KERNEL_INVARIANTS.md Gödel-lock / Anti-sink
   - F1 AMANAH, F4 ΔS≤0, F7 humility, F13 human veto
 

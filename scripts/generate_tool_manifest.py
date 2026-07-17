@@ -138,7 +138,7 @@ def generate_llms_txt() -> str:
     lines.append("- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)")
     lines.append("- [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context")
     lines.append("- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping")
-    lines.append("- [INVARIANTS.md](file:///root/AAA/docs/INVARIANTS.md): 11 Physics + 7 Zen principles")
+    lines.append("- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles")
     lines.append("")
     lines.append("## MCP Tools — Complete Surface")
     lines.append(
