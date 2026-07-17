@@ -462,3 +462,114 @@ def test_attach_canonical_passes_through_non_dict():
     assert out == [1, 2, 3]
     out = attach_canonical(None, session_id="S")
     assert out is None
+
+def test_unverified_collapses_to_observe_only():
+    """P0 AC: unverified identity must not receive mutation authority."""
+    from arifosmcp.runtime.session_standing import (
+        BAND_OBSERVE_ONLY,
+        compose_standing,
+    )
+
+    standing = compose_standing("SEAL-unknown", "ARIF")
+    assert standing.actor.verified is False
+    assert standing.authority.band == BAND_OBSERVE_ONLY
+    assert standing.authority.mutation_allowed is False
+    assert standing.authority.seal_allowed is False
+
+
+def test_verified_true_method_null_unrepresentable():
+    """P0 AC: ActorStanding raises when verified without method+evidence."""
+    from arifosmcp.runtime.session_standing import ActorStanding
+    import pytest
+
+    with pytest.raises(ValueError):
+        ActorStanding("arif", "arif", True, None, None)
+    with pytest.raises(ValueError):
+        ActorStanding("arif", "arif", True, "ed25519", None)
+
+
+def test_component_identity_cannot_absorb_human_claim(monkeypatch):
+    """P0 identity: arif claim must not inherit conformance-spine standing."""
+    from arifosmcp.runtime import session_standing as ss
+
+    fake_record = {
+        "session_id": "SEAL-component",
+        "actor_id": "conformance-spine",
+        "canonical_actor_id": "conformance-spine",
+        "verified": True,
+        "actor_verified": True,
+        "authority_level": "FULL",
+        "runtime_authority": "FULL",
+        "verification_method": "ed25519",
+        "evidence_ref": "session://SEAL-component",
+        "auth_context": {
+            "verification_method": "ed25519",
+            "verified_key_id": "ed25519:sha256:deadbeef",
+        },
+        "created_at": "2026-07-17T00:00:00+00:00",
+        "expires_at": "2026-07-18T00:00:00+00:00",
+    }
+    monkeypatch.setattr(ss, "_read_session_record", lambda sid: fake_record)
+    standing = ss.compose_standing("SEAL-component", "ARIF")
+    assert standing.actor.claimed_id == "ARIF"
+    # Must not keep component as canonical
+    assert standing.actor.canonical_id.lower() != "conformance-spine"
+    # Authority collapsed (claim/session mismatch)
+    assert standing.authority.band == ss.BAND_OBSERVE_ONLY
+    assert standing.authority.mutation_allowed is False
+
+
+def test_identity_claim_cannot_grant_mutation(monkeypatch):
+    """Option B constraint: identity_claim is weak — no mutation."""
+    from arifosmcp.runtime import session_standing as ss
+
+    fake_record = {
+        "session_id": "SEAL-arif",
+        "actor_id": "arif",
+        "canonical_actor_id": "arif",
+        "verified": True,
+        "actor_verified": True,
+        "authority_level": "FULL",
+        "runtime_authority": "FULL",
+        "verification_method": "identity_claim",
+        "evidence_ref": "session://SEAL-arif",
+        "auth_context": {"verification_method": "identity_claim"},
+        "created_at": "2026-07-17T00:00:00+00:00",
+        "expires_at": "2026-07-18T00:00:00+00:00",
+    }
+    monkeypatch.setattr(ss, "_read_session_record", lambda sid: fake_record)
+    standing = ss.compose_standing("SEAL-arif", "arif")
+    assert standing.actor.verified is True
+    assert standing.actor.verification_method == "identity_claim"
+    assert standing.authority.band == ss.BAND_OBSERVE_ONLY
+    assert standing.authority.mutation_allowed is False
+    assert standing.authority.seal_allowed is False
+
+
+def test_strong_method_can_grant_full(monkeypatch):
+    """Strong verification methods may elevate band from the session record."""
+    from arifosmcp.runtime import session_standing as ss
+
+    fake_record = {
+        "session_id": "SEAL-arif",
+        "actor_id": "arif",
+        "canonical_actor_id": "ARIF_FAZIL",
+        "verified": True,
+        "actor_verified": True,
+        "authority_level": "FULL",
+        "runtime_authority": "FULL",
+        "verification_method": "ed25519",
+        "evidence_ref": "key://ed25519:sha256:abcd",
+        "auth_context": {
+            "verification_method": "ed25519",
+            "verified_key_id": "ed25519:sha256:abcd",
+        },
+        "created_at": "2026-07-17T00:00:00+00:00",
+        "expires_at": "2026-07-18T00:00:00+00:00",
+    }
+    monkeypatch.setattr(ss, "_read_session_record", lambda sid: fake_record)
+    standing = ss.compose_standing("SEAL-arif", "arif")
+    assert standing.actor.verified is True
+    assert standing.authority.band == ss.BAND_FULL
+    assert standing.authority.mutation_allowed is True
+    assert standing.authority.seal_allowed is False  # FULL ≠ SOVEREIGN

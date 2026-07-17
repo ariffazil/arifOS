@@ -55,6 +55,51 @@ BAND_SOVEREIGN = "SOVEREIGN"
 
 VALID_BANDS = frozenset({BAND_OBSERVE_ONLY, BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN})
 
+# Methods strong enough to elevate mutation/seal authority.
+# identity_claim is a WEAK proof class: may bind name, never grant mutation.
+STRONG_VERIFICATION_METHODS = frozenset(
+    {
+        "ed25519",
+        "ed25519_signature",
+        "sct_sovereign",
+        "vault_seal",
+        "capability_token",
+    }
+)
+
+# Machine/component identities that must never absorb a human claim.
+_COMPONENT_IDENTITY_MARKERS = frozenset(
+    {
+        "conformance-spine",
+        "parent_agent",
+        "parent-agent",
+        "anonymous",
+        "system",
+        "kernel",
+        "mcp-host",
+    }
+)
+
+
+def _is_component_identity(actor: str | None) -> bool:
+    if not actor:
+        return True
+    token = str(actor).strip().lower()
+    if token in _COMPONENT_IDENTITY_MARKERS:
+        return True
+    # agi-gate-* cycle probes, forge component tags
+    if token.startswith("agi-gate-"):
+        return True
+    if token.startswith("conformance"):
+        return True
+    return False
+
+
+def _is_strong_method(method: str | None) -> bool:
+    if not method:
+        return False
+    return str(method).strip().lower() in STRONG_VERIFICATION_METHODS
+
 
 @dataclass(frozen=True)
 class ActorStanding:
@@ -168,6 +213,10 @@ def _resolve_verification_method(record: dict[str, Any] | None) -> str | None:
     """Determine the verification method used, if any."""
     if not record:
         return None
+    # Top-level first (bind_session_identity / T3a may set these)
+    top = record.get("verification_method")
+    if top:
+        return str(top)
     auth_ctx = record.get("auth_context") or {}
     if isinstance(auth_ctx, dict):
         method = auth_ctx.get("verification_method") or auth_ctx.get("auth_method")
@@ -176,6 +225,9 @@ def _resolve_verification_method(record: dict[str, Any] | None) -> str | None:
     identity = record.get("identity") or {}
     if isinstance(identity, dict) and identity.get("ed25519_verified"):
         return "ed25519"
+    # Explicit weak class — still a method (not null), never strong
+    if record.get("identity_claim_accepted") or auth_ctx.get("identity_claim_accepted"):
+        return "identity_claim"
     return None
 
 
@@ -215,12 +267,23 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
     No other code path may compute these fields. Tools consume this object;
     wrappers do not recompute.
 
+    P0 laws (2026-07-17 audit):
+      1. One request → one actor, one session, one band, one method, one evidence.
+      2. Unverified → OBSERVE_ONLY, mutation_allowed=false, seal_allowed=false.
+      3. identity_claim is WEAK — never grants mutation or seal.
+      4. Component identities (conformance-spine, agi-gate-*) cannot absorb a
+         human/sovereign claim.
+      5. verified=true without method+evidence is structurally unrepresentable.
+
     Returns a frozen SessionStanding. state_version marks the schema.
     """
     record = _read_session_record(session_id)
 
+    # Claimed id prefers the caller argument (THIS request), not a stale record.
+    claimed_id = (actor_id or (record.get("actor_id") if record else None) or "anonymous")
+    claimed_id = str(claimed_id)
+
     if record:
-        resolved_actor_id = actor_id or record.get("actor_id") or "anonymous"
         verification_method = _resolve_verification_method(record)
         evidence_ref = _resolve_evidence_ref(record)
         verified_raw = bool(
@@ -238,35 +301,89 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
                 "C_dark HONEST_HOLD: record claims verified=true but %s is "
                 "missing. Setting verified=false. (claimed_id=%s)",
                 "verification_method" if not verification_method else "evidence_ref",
-                resolved_actor_id,
+                claimed_id,
             )
             verified = False
         else:
             verified = verified_raw
         issued_at = record.get("created_at") or _utcnow_iso()
         expires_at = record.get("expires_at") or _utcnow_iso()
+        record_actor = str(
+            record.get("actor_id") or record.get("canonical_actor_id") or ""
+        )
     else:
-        resolved_actor_id = actor_id or "anonymous"
         verified = False
         verification_method = None
         evidence_ref = None
         issued_at = _utcnow_iso()
         expires_at = _utcnow_iso()
+        record_actor = ""
 
-    canonical_id = _resolve_canonical_actor(actor_id, record)
-    band = _derive_authority_band(record, resolved_actor_id)
+    canonical_id = _resolve_canonical_actor(claimed_id, record)
+
+    # Identity leakage guard: human claim must not inherit component standing.
+    record_mismatch = bool(
+        record_actor
+        and claimed_id
+        and record_actor.lower() != claimed_id.lower()
+        and str(canonical_id).lower() != claimed_id.lower()
+    )
+    component_leak = (
+        not _is_component_identity(claimed_id) and _is_component_identity(str(canonical_id))
+    )
+    if record_mismatch or component_leak:
+        logger.warning(
+            "Identity binding collapse: claimed=%s record_actor=%s canonical=%s "
+            "→ refuse component/session leakage",
+            claimed_id,
+            record_actor,
+            canonical_id,
+        )
+        canonical_id = claimed_id
+        verified = False
+        verification_method = None
+        # Keep evidence_ref only if it points at THIS session
+        if evidence_ref and session_id and f"session://{session_id}" not in str(evidence_ref):
+            evidence_ref = f"session://{session_id}" if session_id else None
+        elif session_id and not evidence_ref:
+            evidence_ref = None
+
+    band = _derive_authority_band(record, claimed_id)
+
+    # AC / Option B constraint: unverified OR weak method → OBSERVE_ONLY.
+    # identity_claim may bind a name; it must never elevate mutation/seal.
+    if not verified or not _is_strong_method(verification_method):
+        if band != BAND_OBSERVE_ONLY:
+            logger.info(
+                "Authority collapse: verified=%s method=%s band=%s→OBSERVE_ONLY "
+                "(claimed=%s)",
+                verified,
+                verification_method,
+                band,
+                claimed_id,
+            )
+        band = BAND_OBSERVE_ONLY
+
+    mutation_allowed = band in {BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN}
+    seal_allowed = band == BAND_SOVEREIGN and _is_strong_method(verification_method)
+
+    # Final AC belt: if somehow mutation_allowed with unverified, hard-deny
+    if not verified:
+        mutation_allowed = False
+        seal_allowed = False
+        band = BAND_OBSERVE_ONLY
 
     actor = ActorStanding(
-        claimed_id=resolved_actor_id,
-        canonical_id=canonical_id,
+        claimed_id=claimed_id,
+        canonical_id=str(canonical_id),
         verified=verified,
         verification_method=verification_method,
         evidence_ref=evidence_ref,
     )
     authority = AuthorityStanding(
         band=band,
-        mutation_allowed=band in {BAND_LIMITED_MUTATE, BAND_FULL, BAND_SOVEREIGN},
-        seal_allowed=band == BAND_SOVEREIGN,
+        mutation_allowed=mutation_allowed,
+        seal_allowed=seal_allowed,
     )
 
     return SessionStanding(

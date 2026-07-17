@@ -19911,6 +19911,31 @@ def _runtime_conformance_report(
     spine["hard_gates_present"] = summary.get("hard_gates_present", [])
     spine["vault_query_pass"] = summary.get("vault_query_pass", False)
     spine["session_binding_pass"] = summary.get("session_binding_pass", False)
+
+    # T6 2026-07-17 — production verdict hard gates. SKIPPED/fast already
+    # demote the spine; these surface-truth fields must also block GREEN.
+    _hard_fail_reasons: list[str] = []
+    if int(spine.get("live_tool_count") or 0) == 0:
+        _hard_fail_reasons.append("live_tool_count=0")
+    if spine.get("vault_query_pass") is False:
+        _hard_fail_reasons.append("vault_query_pass=false")
+    if spine.get("session_binding_pass") is False:
+        _hard_fail_reasons.append("session_binding_pass=false")
+    if int(spine.get("skipped") or 0) > 0:
+        _hard_fail_reasons.append(f"skipped={spine.get('skipped')}")
+    if spine.get("fast_mode"):
+        _hard_fail_reasons.append("fast_mode=true")
+    if _hard_fail_reasons:
+        spine["all_green"] = False
+        spine["constitutional_grade"] = False
+        if spine.get("substrate_gate") == "GREEN":
+            spine["substrate_gate"] = "AMBER"
+        if spine.get("verdict") in (None, "SEAL", "PASS"):
+            spine["verdict"] = "PARTIAL"
+        spine["status"] = "FAIL"
+        spine["proof_integrity_holds"] = _hard_fail_reasons
+    else:
+        spine["proof_integrity_holds"] = []
     return spine
 
 
@@ -21684,17 +21709,49 @@ def _wrap_with_canonical_normalization(handler, tool_name):
     from functools import wraps
     from arifosmcp.runtime.session_standing import attach_canonical
 
+    def _resolve_standing_ids(response: dict, kwargs: dict) -> tuple:
+        """Prefer THIS response's session over kwargs / stale host session.
+
+        Root cause of arif→conformance-spine leakage: attach_canonical used
+        kwargs.session_id (often None or a prior probe session) while the
+        tool just created a fresh SEAL-* session in the body.
+        """
+        sid = kwargs.get("session_id")
+        aid = kwargs.get("actor_id")
+        if isinstance(response, dict):
+            res = response.get("result") if isinstance(response.get("result"), dict) else {}
+            birth = response.get("session_birth") or (
+                res.get("session_birth") if isinstance(res, dict) else None
+            )
+            if not isinstance(birth, dict):
+                birth = {}
+            # Response-born session always wins over stale kwargs
+            sid = (
+                response.get("session_id")
+                or (res.get("session_id") if isinstance(res, dict) else None)
+                or birth.get("session_id")
+                or sid
+            )
+            aid = (
+                response.get("actor_id")
+                or response.get("actor")
+                or (res.get("actor_id") if isinstance(res, dict) else None)
+                or birth.get("actor_id")
+                or aid
+            )
+            if isinstance(aid, dict):
+                aid = aid.get("claimed_id") or aid.get("id") or aid.get("actor_id")
+        return sid, aid
+
     if asyncio.iscoroutinefunction(handler):
 
         @wraps(handler)
         async def _async_wrapped(*args, **kwargs):
             response = await handler(*args, **kwargs)
             try:
-                response = attach_canonical(
-                    response if isinstance(response, dict) else {"result": response},
-                    session_id=kwargs.get("session_id"),
-                    actor_id=kwargs.get("actor_id"),
-                )
+                body = response if isinstance(response, dict) else {"result": response}
+                sid, aid = _resolve_standing_ids(body, kwargs)
+                response = attach_canonical(body, session_id=sid, actor_id=aid)
             except Exception:
                 pass
             return response
@@ -21705,11 +21762,9 @@ def _wrap_with_canonical_normalization(handler, tool_name):
     def _sync_wrapped(*args, **kwargs):
         response = handler(*args, **kwargs)
         try:
-            response = attach_canonical(
-                response if isinstance(response, dict) else {"result": response},
-                session_id=kwargs.get("session_id"),
-                actor_id=kwargs.get("actor_id"),
-            )
+            body = response if isinstance(response, dict) else {"result": response}
+            sid, aid = _resolve_standing_ids(body, kwargs)
+            response = attach_canonical(body, session_id=sid, actor_id=aid)
         except Exception:
             pass
         return response
@@ -22417,10 +22472,42 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         try:
             from arifosmcp.runtime.session_standing import attach_canonical
 
+            _sid = kwargs.get("session_id")
+            _aid = kwargs.get("actor_id")
+            if isinstance(final_resp, dict):
+                _res = (
+                    final_resp.get("result")
+                    if isinstance(final_resp.get("result"), dict)
+                    else {}
+                )
+                _birth = final_resp.get("session_birth") or (
+                    _res.get("session_birth") if isinstance(_res, dict) else {}
+                )
+                if not isinstance(_birth, dict):
+                    _birth = {}
+                _sid = (
+                    final_resp.get("session_id")
+                    or (_res.get("session_id") if isinstance(_res, dict) else None)
+                    or _birth.get("session_id")
+                    or _sid
+                )
+                _aid = (
+                    final_resp.get("actor_id")
+                    or final_resp.get("actor")
+                    or (_res.get("actor_id") if isinstance(_res, dict) else None)
+                    or _birth.get("actor_id")
+                    or _aid
+                )
+                if isinstance(_aid, dict):
+                    _aid = (
+                        _aid.get("claimed_id")
+                        or _aid.get("id")
+                        or _aid.get("actor_id")
+                    )
             final_resp = attach_canonical(
                 final_resp,
-                session_id=kwargs.get("session_id"),
-                actor_id=kwargs.get("actor_id"),
+                session_id=_sid,
+                actor_id=_aid if isinstance(_aid, str) or _aid is None else str(_aid),
             )
         except Exception as _canonical_exc:
             logger.debug("canonical normalization skipped: %s", _canonical_exc)
@@ -22552,10 +22639,42 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         try:
             from arifosmcp.runtime.session_standing import attach_canonical
 
+            _sid = kwargs.get("session_id")
+            _aid = kwargs.get("actor_id")
+            if isinstance(final_resp, dict):
+                _res = (
+                    final_resp.get("result")
+                    if isinstance(final_resp.get("result"), dict)
+                    else {}
+                )
+                _birth = final_resp.get("session_birth") or (
+                    _res.get("session_birth") if isinstance(_res, dict) else {}
+                )
+                if not isinstance(_birth, dict):
+                    _birth = {}
+                _sid = (
+                    final_resp.get("session_id")
+                    or (_res.get("session_id") if isinstance(_res, dict) else None)
+                    or _birth.get("session_id")
+                    or _sid
+                )
+                _aid = (
+                    final_resp.get("actor_id")
+                    or final_resp.get("actor")
+                    or (_res.get("actor_id") if isinstance(_res, dict) else None)
+                    or _birth.get("actor_id")
+                    or _aid
+                )
+                if isinstance(_aid, dict):
+                    _aid = (
+                        _aid.get("claimed_id")
+                        or _aid.get("id")
+                        or _aid.get("actor_id")
+                    )
             final_resp = attach_canonical(
                 final_resp,
-                session_id=kwargs.get("session_id"),
-                actor_id=kwargs.get("actor_id"),
+                session_id=_sid,
+                actor_id=_aid if isinstance(_aid, str) or _aid is None else str(_aid),
             )
         except Exception as _canonical_exc:
             logger.debug("canonical normalization skipped: %s", _canonical_exc)
