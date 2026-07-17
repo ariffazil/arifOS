@@ -7,7 +7,7 @@
 - [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)
 - [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context
 - [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping
-- [INVARIANTS.md](file:///root/AAA/docs/INVARIANTS.md): 11 Physics + 7 Zen principles
+- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles
 
 ## MCP Tools — Complete Surface
 arifOS exposes 65 MCP tools: 25 canonical constitutional tools
@@ -228,4 +228,4 @@ Tool counts outside arifOS are dynamic observations, not constants. Probe them a
 - Manifest hash: 533da735865c2a06
 - Manifest URL: https://arifos.arif-fazil.com/tools.json
 
---- Auto-generated 2026-07-15T11:16:49.546528+00:00 ---
+--- Auto-generated 2026-07-17T07:31:32.215105+00:00 ---

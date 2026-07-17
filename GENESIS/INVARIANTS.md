@@ -84,7 +84,7 @@ If session state breaks, cognition collapses. This is the Strange Loop Paradox.
 **Agent rule:**
 - **On resume:** Read `/root/.claude/projects/-root/memory/session-state.md` FIRST
 - **Before compaction:** Update `session-state.md` with current task, blockers, discoveries, next action
-- **Every significant action:** Update `/root/CONTEXT_SESSION.md`
+- **Every significant action:** Update `/root/SESSION.md`
 - **Never:** rely on context memory alone — it dissolves on compaction
 
 **Floors:** F4 (CLARITY), F11 (AUDITABILITY)
@@ -151,7 +151,7 @@ Every MCP action MUST emit: receipt, errors (if any), warnings, blast radius not
 Silence = corruption.
 ```
 
-**Agent rule:** If a tool call returns nothing, it failed. If a tool call returns success but no receipt, it failed silently — escalate. Every action logged in CONTEXT_SESSION.md.
+**Agent rule:** If a tool call returns nothing, it failed. If a tool call returns success but no receipt, it failed silently — escalate. Every action logged in SESSION.md.
 
 **Floors:** F2 (TRUTH), F11 (AUDITABILITY), F12 (RESILIENCE)
 
@@ -608,7 +608,7 @@ cat /root/AAA/docs/deprecation-registry.json
 cat /root/AAA/docs/TOOLREGISTRY.json
 
 # 6. Federation organ map
-cat /root/AAA/docs/FEDERATION_ORGAN.md
+cat /root/AAA/docs/ORGAN.md
 
 # 7. Kernel invariants (Gödel-lock, Strange Loop, Anti-sink)
 cat /root/AAA/docs/KERNEL_INVARIANTS.md
@@ -626,7 +626,7 @@ cat /root/AAA/docs/KERNEL_INVARIANTS.md
 | 4. Session State = World | F4, F11 | Session State Memory + Tiered CONTEXT |
 | 5. Reversibility First | F1, F13 | Autonomy Tiers (CLAUDE.md §4) |
 | 6. Deprecation First-Class | F4, F11 | Deprecation Registry |
-| 7. No Silent Failure | F2, F11, F12 | CONTEXT_SESSION.md + VAULT999 |
+| 7. No Silent Failure | F2, F11, F12 | SESSION.md + VAULT999 |
 | 8. Tool DNA (Open=Immortal) | F1, F4, F13 | Essay 20 — Survival of the Fittest Tools |
 | 9. Bottleneck Shifted | F4, F7, F8 | Essay 19 — The Tool Is the Thought |
 | 10. The First Witness | F2, F5, F6, F13 | Essay 21 — Three Timelines, One Boundary |
