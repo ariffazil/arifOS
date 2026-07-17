@@ -199,6 +199,21 @@ wealth = [
 well = []  # WELL is kernel-only; its substrate deps are covered by the mandatory tier
 aaa = [
     "nats-py>=2.15.0",
+    "httpx>=0.28.1",   # arifos.aaa thin A2A client → :3001/a2a
+    "pyjwt>=2.9.0",    # A2A OAuth 2.1 bearer handling
+]
+forge = [
+    "httpx>=0.28.1",         # arifos.forge thin MCP client → :7072/mcp
+    "sse-starlette>=1.8.2",  # streamable-http SSE frames
+]
+federation = [
+    "arifos[geox]",
+    "arifos[wealth]",
+    "arifos[well]",
+    "arifos[aaa]",
+    "arifos[forge]",
+    "arifos[io]",
+    "arifos[search]",
 ]
 openai = [
     "openai>=1.60.0",
