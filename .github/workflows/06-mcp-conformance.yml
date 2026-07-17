@@ -77,16 +77,16 @@ jobs:
         run: |
           cd "$WORKDIR"
           python3 -c "
-            import json, sys
-            # Send a valid JSON-RPC initialize request
-            req = {
-              'jsonrpc': '2.0',
-              'id': 1,
-              'method': 'initialize',
-              'params': {'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'test', 'version': '1.0'}}
-            }
-            print('JSON-RPC 2.0 structure: OK')
-            print(f'Request: {json.dumps(req)}')
+          import json, sys
+          # Send a valid JSON-RPC initialize request
+          req = {
+            'jsonrpc': '2.0',
+            'id': 1,
+            'method': 'initialize',
+            'params': {'protocolVersion': '2025-11-25', 'capabilities': {}, 'clientInfo': {'name': 'test', 'version': '1.0'}}
+          }
+          print('JSON-RPC 2.0 structure: OK')
+          print(f'Request: {json.dumps(req)}')
           "
 
       - name: Registry compliance
