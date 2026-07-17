@@ -450,8 +450,45 @@ def build_snapshot() -> dict[str, Any]:
             }
         )
 
+    # Metabolism from durable bus stage counters (not static fossil list).
+    try:
+        from arifosmcp.runtime.event_bus import stage_counters
+
+        counters = stage_counters()
+        snapshot["metabolism"] = [
+            {
+                "stage": {
+                    "value": stage,
+                    "state": "reported",
+                    "source": "kernel.stage_enum",
+                },
+                "invocations": {
+                    "value": int(row.get("invocations") or 0),
+                    "state": "observed",
+                    "source": f"durable_event_bus:{stage}:count",
+                },
+                "success_rate": {
+                    "value": (
+                        float(row["success"]) / float(row["invocations"])
+                        if row.get("invocations")
+                        else 0.0
+                    ),
+                    "state": "observed",
+                    "source": f"durable_event_bus:{stage}:success_rate",
+                },
+            }
+            for stage, row in counters.items()
+        ]
+    except Exception:
+        pass
+
     snapshot["evidence"] = {
-        "sources": ["durable_event_bus", "capability_test_cache", "organ_health", "federation_edges"],
+        "sources": [
+            "durable_event_bus",
+            "capability_test_cache",
+            "organ_health",
+            "federation_edges",
+        ],
         "diversity": 4,
         "contradictions": 0,
     }
