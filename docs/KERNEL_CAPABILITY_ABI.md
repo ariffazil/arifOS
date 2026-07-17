@@ -19,7 +19,7 @@ arifOS has eight stable semantic capabilities. MCP, REST, A2A, model providers, 
 
 | Profile | Capabilities | Diagnostics |
 |---|---:|---:|
-| `public_agent` | 6 | false |
+| `public_agent` | 8 | false |
 | `trusted_agent` | 6 | false |
 | `executor` | 7 | false |
 | `sovereign` | 8 | false |

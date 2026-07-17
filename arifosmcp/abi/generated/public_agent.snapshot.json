@@ -28,7 +28,9 @@
     "cognition.think",
     "intent.route",
     "memory.govern",
-    "authority.judge"
+    "authority.judge",
+    "action.execute",
+    "history.seal"
   ],
   "profile_provider_tools": [
     "arif_init",
@@ -36,7 +38,9 @@
     "arif_think",
     "arif_route",
     "arif_memory",
-    "arif_judge"
+    "arif_judge",
+    "arif_forge",
+    "arif_seal"
   ],
   "semantic_hashes": {
     "action.execute": "sha256:3ce5463279351e0c8c371dc046cc4062c796540516bb1f31c79c712299db07f3",

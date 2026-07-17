@@ -4,8 +4,8 @@
   "default_profile": "public_agent",
   "profiles": {
     "public_agent": {
-      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge"],
-      "mode_limits": {"memory.govern": ["recall", "inspect", "attest"], "authority.judge": ["explain", "floor_status"]},
+      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
+      "mode_limits": {"memory.govern": ["recall", "inspect", "attest"], "authority.judge": ["explain", "floor_status"], "action.execute": ["dry_run", "query", "engineer"], "history.seal": ["verify", "ledger", "audit"]},
       "diagnostics": false
     },
     "trusted_agent": {
