@@ -17412,31 +17412,23 @@ def _arif_vault_seal(
             )
         except Exception:
             pass
-        # CORE KERNEL FIX (pre-deploy 2026-07-08): wire immutable seal_chain + head
-        # Previously only in-mem _VAULT_LEDGER + outcomes; now produces hash-chained
-        # append-only record matching doctrine (prev_id, content_hash, id).
-        # Matches ChatGPT analysis gap + AGENTS seal_chain requirement.
+        # F-004: canonical vault chain — single path, envelope, derived head.
+        # Does NOT write to arifOS/VAULT999 dual-ledger; only share path.
         try:
-            vault_dir = os.path.dirname(_get_vault_file_path()) or "/root/arifOS/VAULT999"
-            os.makedirs(vault_dir, exist_ok=True)
-            chain_path = os.path.join(vault_dir, "seal_chain.jsonl")
-            head_path = os.path.join(vault_dir, "seal_chain_head.json")
-            prev = "genesis"
-            if os.path.exists(chain_path):
-                with open(chain_path, encoding="utf-8") as cf:
-                    for line in cf:
-                        line = line.strip()
-                        if line:
-                            try:
-                                last = json.loads(line)
-                                prev = last.get("id", prev)
-                            except Exception:
-                                pass
-            content_hash = hashlib.sha256(
-                json.dumps(entry, sort_keys=True, default=str).encode()
-            ).hexdigest()
-            # F2 TRUTH: determine actor_source from verification state
-            # (identity-propagation fix — 2026-07-13)
+            from arifosmcp.runtime.canonical_vault_chain import append_receipt as _cvc_append
+            from arifosmcp.core.vault_receipt import resolve_receipt_identity as _rrid
+            from arifosmcp.core.federation_contracts import ActorSource
+
+            _chain_sess_ctx = None
+            try:
+                _chain_sess_ctx = _SESSIONS.get(session_id) if session_id else None
+            except Exception:
+                pass
+            _c_resolved_sid, _c_resolved_actor = _rrid(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_context=_chain_sess_ctx,
+            )
             if signature_verified:
                 _chain_actor_source = ActorSource.ED25519_VERIFIED
             elif _sov_bypass:
@@ -17446,48 +17438,33 @@ def _arif_vault_seal(
             else:
                 _chain_actor_source = ActorSource.KERNEL_EVALUATED
 
-            # F2 TRUTH: resolve real identity before writing to chain
-            _chain_sess_ctx = None
-            try:
-                _chain_sess_ctx = _SESSIONS.get(session_id) if session_id else None
-            except Exception:
-                pass
-            from arifosmcp.core.vault_receipt import resolve_receipt_identity as _rrid
-            from arifosmcp.core.federation_contracts import (
-                ActorSource,
-                KernelVerdict,
-                SealAuthority,
+            content_hash = hashlib.sha256(
+                json.dumps(entry, sort_keys=True, default=str).encode()
+            ).hexdigest()
+            _cvc_append(
+                actor_id=_c_resolved_actor or actor_id or "anonymous",
+                session_id=_c_resolved_sid or session_id or "",
+                operation_id=entry_id,
+                tool_name="arif_seal",
+                input_hash="sha256:" + content_hash
+                if not str(content_hash).startswith("sha256:")
+                else content_hash,
+                result_hash="sha256:" + content_hash
+                if not str(content_hash).startswith("sha256:")
+                else content_hash,
+                authority_state=str(authority_level or "SEAL"),
+                decision_reference=str(
+                    (judge_contract.constitutional_chain_id if judge_contract else "") or ""
+                ),
+                reversibility="IRREVERSIBLE",
+                actor_verification={
+                    "actor_verified": bool(signature_verified),
+                    "method": str(_chain_actor_source),
+                    "signature_verified": bool(signature_verified),
+                },
+                signature="" if not signature_verified else "verified",
+                verdict="SEAL",
             )
-
-            _c_resolved_sid, _c_resolved_actor = _rrid(
-                session_id=session_id,
-                actor_id=actor_id,
-                session_context=_chain_sess_ctx,
-            )
-
-            chain_entry = {
-                "id": entry_id,
-                "previous_id": prev,
-                "timestamp": _now(),
-                "content_hash": content_hash,
-                "actor_id": _c_resolved_actor,
-                "session_id": _c_resolved_sid,
-                "actor_source": _chain_actor_source,
-                "kernel_verdict": KernelVerdict.PASS
-                if k_verdict.get("passed")
-                else KernelVerdict.FAIL,
-                "signature_verified": signature_verified,
-                "authority_level": authority_level,
-                "type": "constitutional_seal",
-            }
-            with open(chain_path, "a", encoding="utf-8") as cf:
-                cf.write(json.dumps(chain_entry) + "\n")
-            with open(head_path, "w", encoding="utf-8") as hf:
-                hf.write(
-                    json.dumps(
-                        {"head": entry_id, "timestamp": _now(), "content_hash": content_hash}
-                    )
-                )
         except Exception as _chain_err:
             logger.warning(f"seal chain persist non-fatal: {_chain_err}")
         output = SealOutput(
