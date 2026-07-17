@@ -60,6 +60,42 @@ from arifosmcp.runtime.governance_identity import (
 _LEGACY_MIRROR_RETIREMENT_DATE = "2026-08-09"
 
 
+def _apply_boot_gate(runtime_band: str) -> str:
+    """T3a Item 3 (2026-07-17): refuse authority-grade band when server-side
+    BOOT attestation is not OK.
+
+    APEX-CONCORDANCE-17072026 §7: the BOOT protocol Q1..Q7 must be answered
+    from server-side state, not by agent self-attestation. When the kernel
+    cannot prove its own integrity, it MUST NOT issue any band above
+    OBSERVE_ONLY — even to SOVEREIGN — because every higher band can mutate
+    or seal state.
+
+    The gate is fail-closed:
+      - OBSERVE_ONLY  → no gate (caller did not request mutation)
+      - LIMITED_MUTATE / FULL / SOVEREIGN → requires boot_state=OK
+      - any failure  → demote to OBSERVE_ONLY
+
+    Import is deferred (kept inside the function) so the boot_attestation
+    module does not become a hard dependency of every authority import path.
+    """
+    if runtime_band in ("OBSERVE_ONLY", "", None):
+        return runtime_band
+    from arifosmcp.runtime.boot_attestation import boot_state_for_authority_grade
+
+    gate = boot_state_for_authority_grade(runtime_band)
+    if gate.get("gates_requested_band") and not gate.get("passes"):
+        logger.warning(
+            "T3a Item 3: BOOT gate demoted runtime_band=%s -> OBSERVE_ONLY "
+            "(boot_state=%s, yes=%s, no=%s)",
+            runtime_band,
+            gate.get("boot_state"),
+            gate.get("yes_count"),
+            gate.get("no_count"),
+        )
+        return "OBSERVE_ONLY"
+    return runtime_band
+
+
 def bind_authority_state(
     sess: dict[str, Any],
     state: AuthorityState,
@@ -350,12 +386,15 @@ def authority_envelope_for_session(
             else:
                 # operator / operator-equivalent → full mutation, no seal
                 runtime_band = _runtime_auth_hint or "FULL"
+            # T3a Item 3 (2026-07-17): server-side BOOT gate refuses any band
+            # above OBSERVE_ONLY when the kernel cannot prove its own integrity.
+            runtime_band = _apply_boot_gate(runtime_band)
             return {
                 "actor_verified": True,  # exempt actors are verified by definition
                 "human_authority": exempt_authority,
                 "runtime_authority": runtime_band,
-                "mutation_allowed": True,
-                "seal_allowed": exempt_authority == "SOVEREIGN",
+                "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN"),
+                "seal_allowed": exempt_authority == "SOVEREIGN" and runtime_band in ("FULL", "SOVEREIGN"),
             }
 
         _vkey = None
@@ -371,6 +410,11 @@ def authority_envelope_for_session(
         # SECURITY: sovereign key proves identity (h_authority=SOVEREIGN)
         # but does NOT auto-elevate runtime_band. Ceremony required for seal/mutate.
         runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
+        # T3a Item 3 (2026-07-17): server-side BOOT gate refuses any band above
+        # OBSERVE_ONLY when the kernel cannot prove its own integrity. Applied
+        # uniformly — even SOVEREIGN cannot bypass, because the gate is about the
+        # SERVER's integrity, not the actor's claim.
+        runtime_band = _apply_boot_gate(runtime_band)
         sealed = runtime_band in ("FULL", "SOVEREIGN")
         return {
             "actor_verified": bool(actor_verified_flag)
@@ -416,6 +460,11 @@ def authority_envelope_for_session(
         if state.actor.claimed_id and state.actor.claimed_id != "anonymous"
         else "OBSERVER"
     )
+    # T3a Item 3 (2026-07-17): server-side BOOT gate refuses any band above
+    # OBSERVE_ONLY when the kernel cannot prove its own integrity. Applied
+    # uniformly — even SOVEREIGN cannot bypass, because the gate is about the
+    # SERVER's integrity, not the actor's claim.
+    runtime_band = _apply_boot_gate(runtime_band)
     return {
         "actor_verified": bool(state.actor.verified),
         "human_authority": h_authority,

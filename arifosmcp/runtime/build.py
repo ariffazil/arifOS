@@ -28,6 +28,10 @@ _CRITICAL_MODULES = (
     "arifosmcp/runtime/forge_session_runtime.py",
     "arifosmcp/runtime/governance_identity.py",
     "arifosmcp/runtime/rest_routes/rest_routes.py",
+    # T3a Item 3 (2026-07-17): server-side BOOT attestation — the gate that
+    # refuses authority-grade bands when the kernel cannot prove its own
+    # integrity. Fail-closed by design.
+    "arifosmcp/runtime/boot_attestation.py",
 )
 
 
