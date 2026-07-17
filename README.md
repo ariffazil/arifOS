@@ -29,8 +29,24 @@ truth_rule: /health + MCP tools/list beat any static count in prose
   ─────────────────────────────────────────
   Not a chatbot. Not a model wrapper. The LAW.
 ```
+<hr/>
+<p align="center">
+  <a href="https://glama.ai/mcp/servers/ariffazil/arifos"><img src="https://img.shields.io/badge/Glama-arifOS-6e3bff" alt="Glama MCP Server"></a>
+  <a href="https://pulsemcp.com/servers/ariffazil-arifos"><img src="https://img.shields.io/badge/PulseMCP-arifOS-00c853" alt="PulseMCP"></a>
+  <a href="https://smithery.ai/server/arifos"><img src="https://img.shields.io/badge/Smithery-arifOS-ff6b35" alt="Smithery"></a>
+  <a href="https://mcp.so/server/arifos"><img src="https://img.shields.io/badge/mcp.so-arifOS-2563eb" alt="mcp.so"></a>
+</p>
 
-**DITEMPA BUKAN DIBERI** — *"Forged, Not Given."*
+## Quick Connect
+
+| Registry | Link |
+|----------|------|
+| **Glama** | [glama.ai/mcp/servers/ariffazil/arifos](https://glama.ai/mcp/servers/ariffazil/arifos) |
+| **PulseMCP** | [pulsemcp.com/servers/ariffazil-arifos](https://pulsemcp.com/servers/ariffazil-arifos) |
+| **Smithery** | [smithery.ai/server/arifos](https://smithery.ai/server/arifos) |
+| **mcp.so** | [mcp.so/server/arifos](https://mcp.so/server/arifos) |
+| **llms.txt** | [arifos.arif-fazil.com/llms.txt](https://arifos.arif-fazil.com/llms.txt) |
+| **MCP Endpoint** | `https://mcp.arif-fazil.com/mcp` |
 
 </div>
 
