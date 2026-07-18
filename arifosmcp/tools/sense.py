@@ -47,6 +47,7 @@ import random
 from typing import Any
 
 from arifosmcp.paradox import build_organ_anchors, register_organ
+from arifosmcp.runtime.DNA import OMEGA_BAND
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.reality_models import BundleInput
@@ -1087,7 +1088,9 @@ def arif_observe(
         try:
             s_res = asyncio.run(reality_handler.search_brave(query or "", top_k=top_k))
             results = s_res.results if s_res.results else []
-            omega_0 = 0.05 + min(len(results) * 0.02, 0.20)
+            # F7 humility: result count does NOT earn ceiling.
+            # Full mode may approach OMEGA_BAND[1], never exceed it.
+            omega_0 = OMEGA_BAND[1]
             return _ok(
                 "arif_observe",
                 _inject_rasa(
