@@ -68,6 +68,50 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _effective_arif_seal_flags(
+    req: InterceptorInput,
+    capability: CapabilityNode,
+) -> tuple[AuthorityTier, bool, bool, MutationClass]:
+    """Mode-aware override for arif_seal authority profile.
+
+    Per sovereign directive 2026-07-18 (Item 2 of the REDTEAM fix queue):
+    "Verify and replay should be the most public operations, write the gated
+    one." This helper downgrades the effective authority/irreversibility for
+    read-only and presentation modes so the kernel doesn't blanket-block every
+    arif_seal call behind SOVEREIGN.
+
+    Modes:
+      verify, chain, list, dry_run  → read-only, LOW authority, NONE mutation
+      seal_card, render              → presentation, MEDIUM, NONE mutation
+      seal                           → write, original SOVEREIGN + IRREVERSIBLE
+
+    Returns: (authority_required, irreversible, requires_888_hold, mutation_class)
+    """
+    if capability.tool_name != "arif_seal":
+        return (
+            capability.authority_required,
+            capability.irreversible,
+            capability.requires_888_hold,
+            capability.mutation_class,
+        )
+
+    mode = str((req.arguments or {}).get("mode", "seal")).lower()
+    read_modes = {"verify", "chain", "list", "dry_run"}
+    presentation_modes = {"seal_card", "render"}
+
+    if mode in read_modes:
+        return (AuthorityTier.LOW, False, False, MutationClass.NONE)
+    if mode in presentation_modes:
+        return (AuthorityTier.MEDIUM, False, False, MutationClass.NONE)
+    # Default: actual seal write — keep declared gate
+    return (
+        capability.authority_required,
+        capability.irreversible,
+        capability.requires_888_hold,
+        capability.mutation_class,
+    )
+
+
 # ── Normaliser ─────────────────────────────────────────────────────────────────
 
 
@@ -337,6 +381,15 @@ def _check_policy_floors(
     """
     graph = get_capability_graph()
 
+    # ── Mode-aware override for arif_seal (sovereign directive 2026-07-18)
+    # Apply effective authority/irreversibility/888_hold flags BEFORE the
+    # FLOOR 5/6/7 gates below, so read modes (verify/chain/list/dry_run) and
+    # presentation modes (seal_card/render) get the right gate, not the
+    # blanket SOVEREIGN the kernel.seal capability declares for seal().
+    _eff_authority_required, _eff_irreversible, _eff_requires_888_hold, _eff_mutation = (
+        _effective_arif_seal_flags(req, capability)
+    )
+
     # FLOOR 1: Unknown capability → DENY (safe default)
     if capability is None:
         # Help the caller recover: suggest canonical name if a near-alias exists
@@ -502,7 +555,8 @@ def _check_policy_floors(
             )
 
     # FLOOR 5: requires_888_hold AND not SOVEREIGN → HOLD_888 (structured, not bare text)
-    if capability.requires_888_hold and authority != AuthorityTier.SOVEREIGN:
+    # Mode-aware: arif_seal read/presentation modes have effective 888_hold=False.
+    if _eff_requires_888_hold and authority != AuthorityTier.SOVEREIGN:
         _actor = req.actor_id or "anonymous"
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.HOLD_888,
@@ -524,7 +578,8 @@ def _check_policy_floors(
 
     # FLOOR 6: Irreversible AND not SOVEREIGN → HOLD_888 (before authority check)
     # Irreversible with insufficient authority is an escalation prompt, not a hard block.
-    if capability.irreversible and authority != AuthorityTier.SOVEREIGN:
+    # Mode-aware: arif_seal read/presentation modes have effective irreversible=False.
+    if _eff_irreversible and authority != AuthorityTier.SOVEREIGN:
         _actor = req.actor_id or "anonymous"
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.HOLD_888,
@@ -545,16 +600,17 @@ def _check_policy_floors(
         )
 
     # FLOOR 7: Authority too low for the capability → DENY
+    # Mode-aware: arif_seal read modes require LOW, presentation MEDIUM, write SOVEREIGN.
     authority_rank = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "SOVEREIGN": 3}
     if authority_rank.get(authority.value, 0) < authority_rank.get(
-        capability.authority_required.value, 0
+        _eff_authority_required.value, 0
     ):
         return InterceptorDecision(
             verdict=AdmissibilityVerdict.DENY,
             reason=(
                 f"Authority '{authority.value}' insufficient for capability "
-                f"'{capability.capability_id}' which requires "
-                f"'{capability.authority_required.value}'."
+                f"'{capability.capability_id}' (mode={((req.arguments or {}).get('mode', 'seal'))!r}) "
+                f"which requires '{_eff_authority_required.value}'."
             ),
             capability_id=capability.capability_id,
             actor_id=req.actor_id,
