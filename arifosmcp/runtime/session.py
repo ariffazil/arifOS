@@ -415,20 +415,101 @@ def _touch_record(session_id: str, updates: dict[str, Any]) -> None:
     _write_record(session_id, record)
 
 
-def _resolve_session_id(provided_id: str | None) -> str | None:
-    """Resolve session_id from provided input or last active session."""
+def _canonical_actor_key(actor_id: str | None) -> str:
+    """Normalize actor_id for ownership comparison.
+
+    Lowercases and strips whitespace. Maps known sovereign variants
+    to a single canonical key so 'ARIF', 'Arif', 'arif' all compare equal.
+    """
+    if not actor_id:
+        return ""
+    raw = actor_id.strip().lower()
+    # Sovereign variants → canonical
+    _SOVEREIGN_MAP = {
+        "arif": "arif",
+        "ariffazil": "arif",
+        "arif_fazil": "arif",
+        "arif-fazil": "arif",
+        "arif fazil": "arif",
+        "muhammad arif": "arif",
+        "muhammad_arif": "arif",
+        "888": "arif",
+        "f13": "arif",
+        "sovereign": "arif",
+    }
+    return _SOVEREIGN_MAP.get(raw, raw)
+
+
+def _resolve_session_id(
+    provided_id: str | None, *, caller_actor_id: str | None = None
+) -> str | None:
+    """Resolve session_id from provided input or last active session.
+
+    P0-A SESSION ISOLATION (2026-07-17):
+    When falling back to the global _ACTIVE_SESSION_ID, validate that the
+    resolved session belongs to the calling actor (after canonical normalization).
+    If caller_actor_id is provided and does NOT match the session owner, return
+    None instead of silently inheriting another actor's session.
+
+    Every new invocation must either provide an explicit valid session_id/token
+    or create a new session. It must never silently inherit another actor's session.
+    """
     _load_store()
     if provided_id and str(provided_id).strip():
         return provided_id
-    return _ACTIVE_SESSION_ID
+
+    # Fallback to global active session — but ONLY if actor matches
+    candidate = _ACTIVE_SESSION_ID
+    if not candidate:
+        return None
+
+    # If no caller_actor_id specified, allow the fallback (backward compat)
+    if not caller_actor_id:
+        logger.debug(
+            "_resolve_session_id: no caller_actor_id, allowing fallback to %s",
+            candidate,
+        )
+        return candidate
+
+    # Actor ownership check: verify the active session belongs to this actor
+    _SESSION_IDENTITY  # noqa: B018 — ensure module-level dict is accessible
+    session_record = _SESSION_IDENTITY.get(candidate) or {}
+    session_actor = session_record.get("actor_id", "")
+
+    caller_key = _canonical_actor_key(caller_actor_id)
+    session_key = _canonical_actor_key(session_actor)
+
+    if caller_key and session_key and caller_key == session_key:
+        logger.debug(
+            "_resolve_session_id: actor match (caller=%s, session_actor=%s), returning %s",
+            caller_actor_id,
+            session_actor,
+            candidate,
+        )
+        return candidate
+
+    # Actor mismatch — do NOT inherit. Caller must create their own session.
+    logger.info(
+        "_resolve_session_id: ACTOR MISMATCH — caller=%s (canonical=%s), "
+        "active session %s belongs to %s (canonical=%s). Returning None to "
+        "prevent cross-actor session inheritance.",
+        caller_actor_id,
+        caller_key,
+        candidate,
+        session_actor,
+        session_key,
+    )
+    return None
 
 
-def _resolve_lookup_session_id(session_id: str | None) -> str | None:
+def _resolve_lookup_session_id(
+    session_id: str | None, *, caller_actor_id: str | None = None
+) -> str | None:
     if session_id is None:
-        return _resolve_session_id(None)
+        return _resolve_session_id(None, caller_actor_id=caller_actor_id)
     normalized = str(session_id).strip()
     if normalized in {"", "global"}:
-        return _resolve_session_id(None)
+        return _resolve_session_id(None, caller_actor_id=caller_actor_id)
     return normalized
 
 

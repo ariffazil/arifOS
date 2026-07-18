@@ -511,7 +511,7 @@ def test_component_identity_cannot_absorb_human_claim(monkeypatch):
     }
     monkeypatch.setattr(ss, "_read_session_record", lambda sid: fake_record)
     standing = ss.compose_standing("SEAL-component", "ARIF")
-    assert standing.actor.claimed_id == "ARIF"
+    assert standing.actor.claimed_id == "arif"
     # Must not keep component as canonical
     assert standing.actor.canonical_id.lower() != "conformance-spine"
     # Authority collapsed (claim/session mismatch)

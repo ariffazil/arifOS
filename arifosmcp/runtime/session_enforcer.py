@@ -37,6 +37,7 @@ class SessionVerdict(StrEnum):
     UNVERIFIED = "UNVERIFIED"  # Session exists but identity not verified
     HOLD = "HOLD"  # Active hold on session
     REVOKED = "REVOKED"  # Session explicitly revoked
+    ACTOR_MISMATCH = "ACTOR_MISMATCH"  # Session belongs to a different actor
 
 
 SESSION_TTL_HOURS = 24  # Sessions expire after 24h
@@ -178,6 +179,36 @@ def enforce_session(
             "session_id": session_id,
             "tier": tier,
         }
+
+    # P0-A SESSION ISOLATION (2026-07-17): actor ownership check.
+    # If caller provides actor_id, verify it matches the session owner
+    # (after canonical normalization). Prevents one actor from using
+    # another actor's session.
+    if actor_id and actor_id != "anonymous":
+        from arifosmcp.runtime.session import _canonical_actor_key
+
+        caller_key = _canonical_actor_key(actor_id)
+        session_key = _canonical_actor_key(rec.actor_id)
+        if caller_key and session_key and caller_key != session_key:
+            logger.warning(
+                "[session_enforcer] ACTOR MISMATCH: caller=%s (canonical=%s), "
+                "session %s belongs to %s (canonical=%s)",
+                actor_id,
+                caller_key,
+                session_id,
+                rec.actor_id,
+                session_key,
+            )
+            return {
+                "verdict": SessionVerdict.ACTOR_MISMATCH,
+                "session": rec,
+                "reason": (
+                    f"Session '{session_id}' belongs to actor '{rec.actor_id}', "
+                    f"not '{actor_id}' (F11 AUTH: cross-actor session blocked)"
+                ),
+                "session_id": session_id,
+                "tier": tier,
+            }
 
     # Check expiry
     age_hours = (time.time() - rec.created_at) / 3600

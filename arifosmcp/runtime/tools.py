@@ -22719,22 +22719,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
 
-        # Session continuity fix (2026-07-12): auto-inject active session
-        # when caller omits session_id. Preserves constitutional identity
-        # across tool calls without requiring explicit passing.
-        if not kwargs.get("session_id") and not kwargs.get("session_token"):
-            try:
-                from arifosmcp.runtime.session import _resolve_session_id
-
-                _auto_sid = _resolve_session_id(None)
-                if _auto_sid:
-                    kwargs["session_id"] = _auto_sid
-            except Exception:
-                pass  # Non-fatal: handler will see session_id=None
-
-        # Actor continuity fix (2026-07-15): when session_id is resolved
-        # (either from caller or auto-injected), also inject actor_id from
-        # the session so tools like arif_judge don't see "anonymous".
+        # Identity is request-scoped. A supplied session may recover its bound
+        # actor, but a missing session never inherits the last active session.
         if kwargs.get("session_id") and not kwargs.get("actor_id"):
             try:
                 _sess = _SESSIONS.get(kwargs["session_id"])
@@ -22951,15 +22937,9 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         kwargs = _inject_envelope_into_kwargs(handler, kwargs, tool_name)
 
         # ── P0 FIX: Session context propagation (2026-07-12) ─────────────────────
-        if not kwargs.get("session_id") and not kwargs.get("session_token"):
-            try:
-                from arifosmcp.runtime.session import _resolve_session_id
-
-                _auto_sid = _resolve_session_id(None)
-                if _auto_sid:
-                    kwargs["session_id"] = _auto_sid
-            except Exception:
-                pass  # Non-fatal: handler will see session_id=None
+        # P0-A SESSION ISOLATION (2026-07-17): pass caller actor_id
+        # No process-global session fallback. Missing identity remains an
+        # isolated anonymous OBSERVE_ONLY invocation.
 
         # Token verification middleware (Step 3)
         ok, err_resp, payload = verify_and_inject_token(kwargs, tool_name)
