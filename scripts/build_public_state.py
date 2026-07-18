@@ -438,13 +438,16 @@ def project_public_state(
             "head_sequence": pf_value(receipts.get("head_seq")),
             "verify": "PROVEN"
             if verify is True
-            else ("NOT_PROVEN" if verify is None else str(verify)),
+            else ("NOT_PROVEN" if verify is None else "FAILED"),
             "replay": "PROVEN"
             if replay is True
-            else ("NOT_PROVEN" if replay is None else str(replay)),
+            else ("NOT_PROVEN" if replay is None else "FAILED"),
             "chain_verified": pf_value(receipts.get("chain_verified")),
             "replay_verified": pf_value(receipts.get("replay_verified")),
-            "vault_status": receipts.get("VAULT999"),
+            "vault_status": (
+                receipts.get("VAULT999")
+                or ("HEALTHY" if verify is True else "DEGRADED" if verify is False else "UNKNOWN")
+            ),
             "verify_url": "https://arif-fazil.com/999/",
         },
         "findings": {
