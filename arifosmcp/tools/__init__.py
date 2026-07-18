@@ -41,7 +41,8 @@ __all__ = [
     "arif_measure",
     "arif_judge",
     "arif_seal",
-    "arif_vault_verify",  # P0: read-only vault verifier (no seal authority required)
+    # arif_vault_verify removed from __all__ 2026-07-18 — lower entropy
+    # (verifier available as arif_seal mode=verify_chain)
     "arif_forge",
     "arif_self_evaluate",
     "arif_model_compare",
