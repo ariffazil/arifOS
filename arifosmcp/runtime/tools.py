@@ -21881,17 +21881,14 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_observe": _arif_sense_observe,
     "arif_think": _arif_mind_reason_tool,
     "arif_judge": _arif_kernel_intercept_tool,  # constitutional verdict / 888 (uses kernel)
-    "arif_act": _arif_act,
     "arif_seal": _arif_vault_seal_tool,
-    # arif_vault_verify NOT exposed as separate tool — lowered to mode=verify_chain
-    # on arif_seal (sovereign directive 2026-07-18: "lower entropy, why need another tool")
-    "arif_verify": _arif_ed25519_verify_tool,  # AAA Wave 2: Ed25519 signature verification (live MCP)
-    # The legacy JITU SEAL-token gate (_arif_verify_tool) remains accessible via
-    # the Python handle ``_arif_verify`` and the HTTP endpoint /kernel/arif_verify.
-    # Repurposing the public MCP name `arif_verify` to mean Ed25519 has zero
-    # blast radius: no MCP caller was reaching it (it was access: internal_only).
-    "arif_challenge": _arif_challenge_tool,  # IDENTITY: Ed25519 challenge issuance (live MCP)
-    "arif_identity_verify": _arif_identity_verify_tool,  # IDENTITY: legacy Ed25519 verify alias
+    # ── arif_act fold (2026-07-18): handler moved out of _CANONICAL_HANDLERS ─
+    # arif_act is now reachable only via _LEGACY_ALIASES["arif_act"] = "arif_forge"
+    # (added below). Wire surface stays at 8. Zero behavioral change on the wire.
+    # ── Identity tools (2026-07-18 fold): moved to _RUNTIME_DIAGNOSTIC_HANDLERS ─
+    # arif_verify, arif_challenge, arif_identity_verify were re-classified as
+    # internal/diagnostic (only callable via Python handle or diagnostic probes,
+    # never on the public MCP wire). Reach via _RUNTIME_DIAGNOSTIC_HANDLERS below.
     # ── Internal aliases (still dispatchable, never advertised publicly) ───
     "arif_fetch": _arif_evidence_fetch,
     "arif_evidence_fetch": _arif_evidence_fetch,
@@ -21943,6 +21940,13 @@ _RUNTIME_DIAGNOSTIC_HANDLERS: dict[str, Any] = {
     "arif_initialize_probe": _runtime_initialize_probe,
     "arif_conformance_report": _runtime_conformance_report,
     "arif_selftest": _runtime_selftest,
+    # ── IDENTITY TOOLS (2026-07-18 fold): moved from _CANONICAL_HANDLERS ─
+    # These were re-classified as internal/diagnostic. They are reachable
+    # via Python handle or HTTP endpoint /kernel/<name> but NOT on the
+    # public MCP wire. Wire surface stays at 8.
+    "arif_verify": _arif_ed25519_verify_tool,
+    "arif_challenge": _arif_challenge_tool,
+    "arif_identity_verify": _arif_identity_verify_tool,
 }
 
 # Shadow Geometry Tools
@@ -23676,7 +23680,7 @@ _LEGACY_ALIASES: dict[str, str] = {
     "arif_think": "arifos_think",
     "arif_route": "arifos_route",
     "arif_judge": "arifos_judge",
-    "arif_act": "arifos_act",
+    "arif_act": "arif_forge",  # arif_act fold (2026-07-18): routes to arif_forge now
     "arif_seal": "arifos_seal",
     "arif_kernel_intercept": "arif_judge",  # ghost alias → canonical (SESAT fix 2026-07-05)
     "arif_critique": "arifos_critique",
