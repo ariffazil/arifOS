@@ -11598,6 +11598,63 @@ def _arif_mind_reason(
             session_id=session_id,
         )
 
+    if mode == "wonder":
+        # SUNSHINE CHILD: CANDIDATE ONLY — not evidence, not verdict.
+        # Generates naive questions, strange connections, metaphors.
+        # Firewalled from judge/seal/forge — must pass Jauhari first.
+        # The candidate is registered in the authoritative CandidateStore
+        # with a SERVER-GENERATED ID. The model NEVER invents candidate_id,
+        # PROMOTED state, or verification status.
+        from arifosmcp.runtime.candidate_store import get_candidate_store
+
+        store = get_candidate_store()
+        try:
+            record = store.create_candidate(
+                hypothesis=query or "",
+                session_id=session_id or "",
+                domain="general",
+                actor_id=actor_id or "",
+            )
+        except Exception as _ce:
+            return _hold(
+                "arif_mind_reason",
+                f"Candidate registration failed: {_ce}",
+                ["L01"],
+                session_id=session_id,
+            )
+
+        candidate_id = record.candidate_id
+        return _ok(
+            "arif_mind_reason",
+            {
+                "output_class": "CANDIDATE_ONLY",
+                "authority": "NONE",
+                "evidence_level": "NONE",
+                "promotion_state": record.state.value,
+                "origin_mode": "wonder",
+                "candidate_id": candidate_id,
+                "content_hash": record.content_hash,
+                "hypothesis": query or "",
+                "allowed_next": ["arif_think:critique", "arif_observe"],
+                "blocked": ["arif_judge", "arif_seal", "arif_forge", "arif_think:verify"],
+                "message": (
+                    "CANDIDATE ONLY — generated through exploratory play. "
+                    "Candidate registered in authoritative store. "
+                    "Must pass Jauhari (arif_think:critique) before proceeding "
+                    "to verification, judgment, or execution."
+                ),
+                "store_receipt": {
+                    "candidate_id": candidate_id,
+                    "state": record.state.value,
+                    "transition_seq": record.transition_seq,
+                    "content_hash": record.content_hash,
+                },
+            },
+            meta={"mode": "wonder", "candidate_id": candidate_id, "candidate_only": True},
+            delta_S=-0.001,
+            session_id=session_id,
+        )
+
     if mode == "reason":
         # ── Deterministic constitutional breach scan (LLM-independent) ──
         scan = _constitutional_reasoning_scan(query)
@@ -15750,6 +15807,59 @@ def _arif_judge_deliberate(
             "_gate_error": True,
         }
 
+    # ── CANDIDATE ONLY FIREWALL (2026-07-18, hardened 2026-07-18) ─────────
+    # SUNSHINE CHILD outputs (mode=wonder) cannot reach JUDGE without
+    # first passing through Jauhari (arif_think:critique) for promotion.
+    #
+    # PRIMARY GATE: Authoritative CandidateStore reference-based lookup.
+    # SECONDARY GATE: String-detect defense-in-depth (catches prompt injection).
+    #
+    # The candidate_ref parameter (if provided) is the PRIMARY authority.
+    # The model's text is NEVER trusted as state — only the store record is.
+    from arifosmcp.runtime.candidate_store import verify_candidate_for_authority
+
+    _fw_candidate_ref = candidate  # may be candidate_ref string or None
+    if _fw_candidate_ref is not None and isinstance(_fw_candidate_ref, str):
+        _store_verdict = verify_candidate_for_authority(
+            _fw_candidate_ref,
+            session_id=session_id,
+            required_state=arifosmcp.runtime.candidate_store.EurekaCandidateState.PROMOTED,
+        )
+        if not _store_verdict.get("pass", False):
+            return {
+                "status": "OK",
+                "tool": "arif_judge_deliberate",
+                "verdict": "HOLD",
+                "reason": _store_verdict.get(
+                    "reason", "CANDIDATE ONLY blocked at JUDGE gate (store)"
+                ),
+                "sunshine_firewall": True,
+                "candidate_only_blocked": True,
+                "store_verdict": _store_verdict,
+                "session_id": session_id,
+                "actor_id": actor_id,
+            }
+
+    # SECONDARY GATE: String-detect (defense-in-depth for prompt injection)
+    _candidate_str = str(candidate or "") + str(constitutional_chain_id or "")
+    if "CANDIDATE_ONLY" in _candidate_str or 'origin_mode": "wonder"' in _candidate_str:
+        # If we're here and the store gate passed, the string is stale/warning-only.
+        # If the store gate is absent (no candidate_ref), this catches raw strings.
+        return {
+            "status": "OK",
+            "tool": "arif_judge_deliberate",
+            "verdict": "HOLD",
+            "reason": (
+                "CANDIDATE ONLY string detected at JUDGE gate (secondary firewall). "
+                "Use candidate_ref parameter for store-based enforcement. "
+                "See arifosmcp.runtime.candidate_store.verify_candidate_for_authority()."
+            ),
+            "sunshine_firewall": True,
+            "candidate_only_blocked": True,
+            "session_id": session_id,
+            "actor_id": actor_id,
+        }
+
     # ── MEMBRANE-03: Measurement-based floor gate ──────────────────────────
     # When A-FORGE passes a MeasurementPacket, use G, C_dark for floor checks.
     # APEX Phase 3: enrich measurement with real computed APEX values when
@@ -16972,6 +17082,52 @@ def _arif_vault_seal(
     {"value_anchor": [...], "floor_constraint": [...], "care_provenance": "..."}
     When present, the seal carries irreversible moral meaning.
     """
+    # ── CANDIDATE ONLY FIREWALL (2026-07-18, hardened 2026-07-18) ─────────
+    # PRIMARY GATE: Authoritative CandidateStore reference-based lookup.
+    # The candidate is looked up by reference (not by string pattern).
+    from arifosmcp.runtime.candidate_store import verify_candidate_for_authority
+
+    # Check if payload contains a candidate_ref
+    _seal_candidate_ref = None
+    if isinstance(payload, str) and payload.startswith("candidate_"):
+        _seal_candidate_ref = payload
+    if _seal_candidate_ref is not None:
+        _store_verdict = verify_candidate_for_authority(
+            _seal_candidate_ref,
+            session_id=session_id,
+            required_state=arifosmcp.runtime.candidate_store.EurekaCandidateState.VERIFIED,
+        )
+        if not _store_verdict.get("pass", False):
+            return {
+                "status": "OK",
+                "tool": "arif_vault_seal",
+                "verdict": "HOLD",
+                "reason": _store_verdict.get(
+                    "reason", "CANDIDATE ONLY blocked at SEAL gate (store)"
+                ),
+                "sunshine_firewall": True,
+                "candidate_only_blocked": True,
+                "session_id": session_id,
+                "actor_id": actor_id,
+            }
+
+    # SECONDARY GATE: String-detect (defense-in-depth)
+    _seal_str = str(payload or "") + str(constitutional_chain_id or "")
+    if "CANDIDATE_ONLY" in _seal_str or 'origin_mode": "wonder"' in _seal_str:
+        return {
+            "status": "OK",
+            "tool": "arif_vault_seal",
+            "verdict": "HOLD",
+            "reason": (
+                "CANDIDATE ONLY string detected at SEAL gate (secondary firewall). "
+                "Use candidate_ref parameter for store-based enforcement."
+            ),
+            "sunshine_firewall": True,
+            "candidate_only_blocked": True,
+            "session_id": session_id,
+            "actor_id": actor_id,
+        }
+
     # ── DEGRADED-DOMINANCE GATE (Phase 5, 2026-06-21) ──────────────────────
     # Same gate as judge_deliberate. If any critical subsystem is degraded,
     # refuse the seal. The substrate must never seal into a broken chain.
@@ -18383,6 +18539,40 @@ def _arif_forge_execute(
     nonce: str | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
+    # ── CANDIDATE ONLY FIREWALL (2026-07-18, hardened 2026-07-18) ─────────
+    # SUNSHINE CHILD outputs cannot reach FORGE without Jauhari PROMOTED.
+    # PRIMARY GATE: Authoritative CandidateStore reference-based lookup.
+    from arifosmcp.runtime.candidate_store import verify_candidate_for_authority
+
+    # Check if manifest contains a candidate_ref
+    _fc_candidate_ref = None
+    if isinstance(manifest, str) and manifest.startswith("candidate_"):
+        _fc_candidate_ref = manifest
+    if _fc_candidate_ref is not None:
+        _store_verdict = verify_candidate_for_authority(
+            _fc_candidate_ref,
+            session_id=session_id,
+            required_state=arifosmcp.runtime.candidate_store.EurekaCandidateState.PROMOTED,
+        )
+        if not _store_verdict.get("pass", False):
+            return _hold(
+                "arif_forge_execute",
+                _store_verdict.get("reason", "CANDIDATE ONLY blocked at FORGE gate (store)"),
+                ["L01", "L09"],
+                session_id=session_id,
+            )
+
+    # SECONDARY GATE: String-detect (defense-in-depth)
+    _fc_str = str(manifest or "") + str(constitutional_chain_id or "") + str(query or "")
+    if "CANDIDATE_ONLY" in _fc_str or 'origin_mode": "wonder"' in _fc_str:
+        return _hold(
+            "arif_forge_execute",
+            "CANDIDATE ONLY string detected at FORGE gate (secondary firewall). "
+            "Use candidate_ref parameter for store-based enforcement.",
+            ["L01", "L09"],
+            session_id=session_id,
+        )
+
     # ── WS3: Mandatory Forge Preflight (12-stage pipeline) ────────────────
     # Every boolean is RECOMPUTED from authoritative sources.
     # Caller-supplied values are NEVER trusted for gating.
