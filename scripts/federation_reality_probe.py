@@ -356,6 +356,9 @@ def _overall_verdict(results: list[dict[str, Any]]) -> str:
 
 
 # ── reporters ──────────────────────────────────────────────────────────
+EDGE_CACHE = Path("/root/.arifos/observatory/snapshots/edge_cache.json")
+
+
 def _write_json(snapshot: dict[str, Any]) -> Path:
     VAR_DIR.mkdir(parents=True, exist_ok=True)
     ts = snapshot["timestamp"].replace(":", "-")
@@ -363,6 +366,19 @@ def _write_json(snapshot: dict[str, Any]) -> Path:
     path.write_text(
         json.dumps(snapshot, indent=2, ensure_ascii=False, default=str), encoding="utf-8"
     )
+    # Also update observatory edge_cache.json
+    EDGE_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    probed = sum(1 for o in snapshot["organs"] if o["health"].get("reachable"))
+    reachable = sum(1 for o in snapshot["organs"] if o["health"].get("reachable"))
+    edge_cache = {
+        "probed": probed,
+        "reachable": reachable,
+        "semantic_proven": 0,
+        "aggregate_state": snapshot["overall_verdict"],
+        "observed_at_epoch": time.time(),
+        "source": "federation_reality_probe.py",
+    }
+    EDGE_CACHE.write_text(json.dumps(edge_cache, indent=2), encoding="utf-8")
     return path
 
 
