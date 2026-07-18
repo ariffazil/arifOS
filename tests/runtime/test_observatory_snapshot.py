@@ -12,6 +12,8 @@ Forged 2026-07-14 — Phase A of Reality Observatory.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -77,8 +79,13 @@ def test_seven_state_health_returns_separate_states(stub_mcp) -> None:
     states = seven_state_health(mcp=stub_mcp)
     # All seven required states must be present and SEPARATE — never one green badge.
     assert set(states.keys()) == {
-        "LIVENESS", "READINESS", "CAPABILITY", "GOVERNANCE",
-        "AUTHORIZATION", "RECEIPT", "CONSTITUTIONAL",
+        "LIVENESS",
+        "READINESS",
+        "CAPABILITY",
+        "GOVERNANCE",
+        "AUTHORIZATION",
+        "RECEIPT",
+        "CONSTITUTIONAL",
     }
     for _key, v in states.items():
         assert "value" in v
@@ -100,11 +107,33 @@ def test_build_snapshot_envelope_invariants(stub_mcp) -> None:
 
     # Every block must exist.
     for key in (
-        "runtime_identity", "substrate", "governance",
-        "capabilities", "organs", "metabolism",
-        "evidence", "receipts", "incidents", "tier",
+        "runtime_identity",
+        "substrate",
+        "governance",
+        "capabilities",
+        "organs",
+        "metabolism",
+        "evidence",
+        "receipts",
+        "incidents",
+        "tier",
     ):
         assert key in snap, f"snapshot missing block: {key}"
+
+
+def test_finalized_snapshot_signature_hash_covers_final_payload(stub_mcp) -> None:
+    snap = build_snapshot(mcp=stub_mcp)
+    signature = snap["signature"]
+    assert signature["state"] == "signed"
+    unsigned = {key: value for key, value in snap.items() if key != "signature"}
+    canonical = json.dumps(
+        unsigned,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+    assert signature["payload_hash"] == hashlib.sha256(canonical).hexdigest()
 
 
 def test_build_snapshot_capabilities_populated(stub_mcp) -> None:
@@ -116,9 +145,20 @@ def test_build_snapshot_capabilities_populated(stub_mcp) -> None:
     # Stub has 3 tools registered, none declared (TOOLREGISTRY may not exist in CI).
     # Either way the structural keys exist.
     rows = {r["name"]: r for r in cap["matrix"]}
-    for k in ("name", "declared", "registered", "exposed", "invocable",
-              "tested", "input_schema_hash_match", "output_schema_hash_match",
-              "last_test_at", "age_seconds", "last_failure", "capability_truth"):
+    for k in (
+        "name",
+        "declared",
+        "registered",
+        "exposed",
+        "invocable",
+        "tested",
+        "input_schema_hash_match",
+        "output_schema_hash_match",
+        "last_test_at",
+        "age_seconds",
+        "last_failure",
+        "capability_truth",
+    ):
         # Each row should carry this key (first row if any)
         if rows:
             any_row = next(iter(rows.values()))
@@ -163,14 +203,31 @@ def test_f008_stays_open_when_matching_workspace_is_dirty() -> None:
     assert "workspace_dirty=True" in f008["evidence"]
 
 
+def test_f008_accepts_equivalent_short_git_prefixes() -> None:
+    findings = _findings_block(
+        runtime_identity={
+            "workspace_source_commit": {"value": "b7dbb69629e1"},
+            "workspace_dirty": {"value": False},
+            "deployed_commit": {"value": "b7dbb69"},
+        }
+    )
+    f008 = next(item for item in findings["findings"] if item["id"] == "F-008")
+
+    assert f008["status"] == "RESOLVED"
+
+
 def test_build_snapshot_governance_has_verdict_decomposition(stub_mcp) -> None:
     snap = build_snapshot(mcp=stub_mcp)
     gov = snap["governance"]
     assert "verdict_decomposition" in gov
     decomp = gov["verdict_decomposition"]
     for required in (
-        "substrate_state", "session_state", "action_state",
-        "receipt_state", "constitutional_judgment", "human_ratification",
+        "substrate_state",
+        "session_state",
+        "action_state",
+        "receipt_state",
+        "constitutional_judgment",
+        "human_ratification",
     ):
         assert required in decomp, f"verdict_decomposition missing {required}"
 
@@ -178,9 +235,19 @@ def test_build_snapshot_governance_has_verdict_decomposition(stub_mcp) -> None:
 def test_build_snapshot_metabolism_covers_all_eleven_stages(stub_mcp) -> None:
     snap = build_snapshot(mcp=stub_mcp)
     stages = [m["stage"]["value"] for m in snap["metabolism"]]
-    assert stages == ["000_INIT", "111_OBSERVE", "222_EVIDENCE", "333_THINK",
-                       "444_ROUTE", "555_MEMORY", "666_CRITIQUE", "777_MEASURE",
-                       "888_JUDGE", "999_RECEIPT", "010_FORGE"]
+    assert stages == [
+        "000_INIT",
+        "111_OBSERVE",
+        "222_EVIDENCE",
+        "333_THINK",
+        "444_ROUTE",
+        "555_MEMORY",
+        "666_CRITIQUE",
+        "777_MEASURE",
+        "888_JUDGE",
+        "999_RECEIPT",
+        "010_FORGE",
+    ]
 
 
 def test_build_snapshot_organs_covers_seven(stub_mcp) -> None:
@@ -216,8 +283,13 @@ def test_health_endpoint_returns_seven_states(fresh_observatory_app) -> None:
     payload = r.json()
     states = payload["states"]
     assert set(states.keys()) == {
-        "LIVENESS", "READINESS", "CAPABILITY", "GOVERNANCE",
-        "AUTHORIZATION", "RECEIPT", "CONSTITUTIONAL",
+        "LIVENESS",
+        "READINESS",
+        "CAPABILITY",
+        "GOVERNANCE",
+        "AUTHORIZATION",
+        "RECEIPT",
+        "CONSTITUTIONAL",
     }
 
 
