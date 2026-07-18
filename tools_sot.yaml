@@ -6,9 +6,9 @@ tools:
 - name: arif_kernel_intercept
   stage: '666'
   access: internal_only
-  description: Minimum Constitutional Kernel — brutalist interceptor for all agent
-    actions. Takes action details and returns ALLOW, DENY, ESCALATE, or SIMULATE verdict.
-    Use for any mutating or external action tha...
+  description: "Minimum Constitutional Kernel \u2014 brutalist interceptor for all\
+    \ agent actions. Takes action details and returns ALLOW, DENY, ESCALATE, or SIMULATE\
+    \ verdict. Use for any mutating or external action tha..."
   floors:
   - L13
   modes:
@@ -18,9 +18,9 @@ tools:
 - name: arif_init
   stage: '000'
   access: public
-  description: 'KERNEL 000 · Session ignition. Binds actor, floors, and audit before
-    any other arif_* verb can govern. Without session_id the kernel treats the caller
-    as anonymous (OBSERVE_ONLY). Modes: ping | lig...'
+  description: "KERNEL 000 \xB7 Session ignition. Binds actor, floors, and audit before\
+    \ any other arif_* verb can govern. Without session_id the kernel treats the caller\
+    \ as anonymous (OBSERVE_ONLY). Modes: ping | lig..."
   floors:
   - L01
   - L11
@@ -39,12 +39,13 @@ tools:
   - opt_out_profiling
   cognitive_axis: identity
   risk_tier: medium
+  tier: gated
 - name: arif_observe
   stage: '111'
   access: public
-  description: 'KERNEL 111 · Sense reality into evidence (not reasoning, not judgment).
-    Modes: search | fetch | ingest | vitals | compass | atlas | entropy_dS | repo_map
-    | hybrid_discovery. Returns evidence with s...'
+  description: "KERNEL 111 \xB7 Sense reality into evidence (not reasoning, not judgment).\
+    \ Modes: search | fetch | ingest | vitals | compass | atlas | entropy_dS | repo_map\
+    \ | hybrid_discovery. Returns evidence with s..."
   floors:
   - L02
   - L03
@@ -61,6 +62,7 @@ tools:
   - vitals
   cognitive_axis: observe
   risk_tier: low
+  tier: open
 - name: arif_fetch
   stage: '111'
   access: internal_only
@@ -81,9 +83,9 @@ tools:
 - name: arif_think
   stage: '333'
   access: public
-  description: 'KERNEL 333 · Mind — structured reasoning under F2/F7 (not chat, not
-    verdict). Modes: reason | reflect | verify | plan | plan_review | plan_approve
-    | refactor_plan | metabolize | axioms. Returns OBS...'
+  description: "KERNEL 333 \xB7 Mind \u2014 structured reasoning under F2/F7 (not\
+    \ chat, not verdict). Modes: reason | reflect | verify | plan | plan_review |\
+    \ plan_approve | refactor_plan | metabolize | axioms. Returns OBS..."
   floors:
   - L02
   - L05
@@ -106,12 +108,13 @@ tools:
   - wonder
   cognitive_axis: reason
   risk_tier: medium
+  tier: open
 - name: arif_critique
   stage: '555'
   access: internal_only
-  description: 'KERNEL 555 · Heart — ethical/dignity/risk stress before judgment (not
-    SEAL). Requires non-empty target. Modes: critique | redteam | maruah | deescalate
-    | empathize | simulate | shadow. Returns risk...'
+  description: "KERNEL 555 \xB7 Heart \u2014 ethical/dignity/risk stress before judgment\
+    \ (not SEAL). Requires non-empty target. Modes: critique | redteam | maruah |\
+    \ deescalate | empathize | simulate | shadow. Returns risk..."
   floors:
   - L05
   - L06
@@ -128,9 +131,9 @@ tools:
 - name: arif_route
   stage: '444'
   access: public
-  description: KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE).
-    Select when goal is known but organ/verb is not. Optional organ_tool = governed
-    bridge (prefer over arif_bridge_connect)...
+  description: "KERNEL 444 \xB7 Intent\u2192organ router (default path to GEOX/WEALTH/WELL/A-FORGE).\
+    \ Select when goal is known but organ/verb is not. Optional organ_tool = governed\
+    \ bridge (prefer over arif_bridge_connect)..."
   floors:
   - L01
   - L04
@@ -141,11 +144,12 @@ tools:
   - bridge
   cognitive_axis: boundary
   risk_tier: low
+  tier: open
 - name: arif_triage
   stage: '000'
   access: internal_only
-  description: DEPRECATED — use arif_init(mode='preflight'|'triage'|'status'). Internal
-    session preflight handler only; not on public tools/list.
+  description: "DEPRECATED \u2014 use arif_init(mode='preflight'|'triage'|'status').\
+    \ Internal session preflight handler only; not on public tools/list."
   floors:
   - L04
   - L10
@@ -158,8 +162,8 @@ tools:
 - name: arif_bridge_connect
   stage: '444'
   access: internal_only
-  description: KERNEL 444-direct · Low-level organ call (organ + tool_name required).
-    Authority HIGH/lease. Agents prefer arif_route. Not a free MCP proxy.
+  description: "KERNEL 444-direct \xB7 Low-level organ call (organ + tool_name required).\
+    \ Authority HIGH/lease. Agents prefer arif_route. Not a free MCP proxy."
   floors:
   - L01
   - L11
@@ -171,9 +175,9 @@ tools:
 - name: arif_compose
   stage: '888'
   access: internal_only
-  description: 'KERNEL reply · Final human-facing composition (citations, tone, ΔS≤0).
-    Call LAST after observe/think/judge. Modes: compose | summarize | cite | tone_shift
-    | style | format. Not a substitute for jud...'
+  description: "KERNEL reply \xB7 Final human-facing composition (citations, tone,\
+    \ \u0394S\u22640). Call LAST after observe/think/judge. Modes: compose | summarize\
+    \ | cite | tone_shift | style | format. Not a substitute for jud..."
   floors:
   - L02
   - L04
@@ -189,9 +193,9 @@ tools:
 - name: arif_memory
   stage: '000'
   access: authenticated
-  description: 'KERNEL memory governor · L1–L6 under F1/F2/F4/F11 (not a free notepad).
-    Modes: recall | inspect | attest | remember | promote | revise | forget. Writes
-    are J-space mutations; arifOS judges, storage...'
+  description: "KERNEL memory governor \xB7 L1\u2013L6 under F1/F2/F4/F11 (not a free\
+    \ notepad). Modes: recall | inspect | attest | remember | promote | revise | forget.\
+    \ Writes are J-space mutations; arifOS judges, storage..."
   floors:
   - L01
   - L02
@@ -211,12 +215,13 @@ tools:
   - audit
   cognitive_axis: trace
   risk_tier: medium
+  tier: open
 - name: arif_judge
   stage: '666'
   access: authenticated
-  description: KERNEL 666 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs.
-    Not advice; binding floor + authority arbitration. Requires actor, intent, domain,
-    reversibility_level, blast_radius. Au...
+  description: "KERNEL 666 \xB7 Constitutional verdict \u2014 only organ that SEAL/HOLD/SABAR/VOIDs.\
+    \ Not advice; binding floor + authority arbitration. Requires actor, intent, domain,\
+    \ reversibility_level, blast_radius. Au..."
   floors:
   - L01
   - L02
@@ -230,6 +235,7 @@ tools:
   - escalate
   cognitive_axis: judge
   risk_tier: critical
+  tier: open
 - name: arif_judge_deliberate
   stage: '666'
   access: internal_only
@@ -253,9 +259,9 @@ tools:
 - name: arif_seal
   stage: '999'
   access: authenticated
-  description: 'KERNEL 999 · VAULT999 immutable append — irreversible civilizational
-    memory. Modes: seal | verify | chain | list | dry_run. seal requires ack_irreversible.
-    Kernel judges; vault seals; Arif owns F13...'
+  description: "KERNEL 999 \xB7 VAULT999 immutable append \u2014 irreversible civilizational\
+    \ memory. Modes: seal | verify | chain | list | dry_run. seal requires ack_irreversible.\
+    \ Kernel judges; vault seals; Arif owns F13..."
   floors:
   - L01
   - L11
@@ -268,12 +274,13 @@ tools:
   - audit
   cognitive_axis: seal
   risk_tier: critical
+  tier: open
 - name: arif_challenge
   stage: '000'
   access: internal_only
-  description: KERNEL · Issue an Ed25519 identity challenge nonce (live MCP, AAA Wave
-    2 / Phase 5). Generates a cryptographically random 32-byte nonce, base64-encoded,
-    with a TTL (default 300s). The nonce is sing...
+  description: "KERNEL \xB7 Issue an Ed25519 identity challenge nonce (live MCP, AAA\
+    \ Wave 2 / Phase 5). Generates a cryptographically random 32-byte nonce, base64-encoded,\
+    \ with a TTL (default 300s). The nonce is sing..."
   floors:
   - L01
   - L02
@@ -305,9 +312,9 @@ tools:
 - name: arif_forge
   stage: '777'
   access: authenticated
-  description: 'KERNEL 777 · Execution gate via A-FORGE (hands, not law). Mutates
-    only after arif_judge SEAL + lease/chain IDs — no self-authorize. Modes: dry_run
-    | engineer | query | write | generate | commit | r...'
+  description: "KERNEL 777 \xB7 Execution gate via A-FORGE (hands, not law). Mutates\
+    \ only after arif_judge SEAL + lease/chain IDs \u2014 no self-authorize. Modes:\
+    \ dry_run | engineer | query | write | generate | commit | r..."
   floors:
   - L01
   - L11
@@ -322,12 +329,13 @@ tools:
   - dry_run
   cognitive_axis: execute
   risk_tier: critical
+  tier: open
 - name: arif_measure
   stage: '111'
   access: internal_only
-  description: 'INTERNAL: Kernel *runtime* health only (process, transport, topology,
-    resource metrics). NOT human readiness or coupled vitality — those are WELL (well_validate_vitality).
-    Alias intent: arif_runtim...'
+  description: "INTERNAL: Kernel *runtime* health only (process, transport, topology,\
+    \ resource metrics). NOT human readiness or coupled vitality \u2014 those are\
+    \ WELL (well_validate_vitality). Alias intent: arif_runtim..."
   floors:
   - L02
   - L04
@@ -420,3 +428,4 @@ tools:
   - gate
   cognitive_axis: judge
   risk_tier: high
+
