@@ -96,3 +96,23 @@ def test_projection_labels_failed_chain_without_false_green() -> None:
     assert state["receipt"]["verify"] == "FAILED"
     assert state["receipt"]["replay"] == "PROVEN"
     assert state["receipt"]["vault_status"] == "DEGRADED"
+
+
+def test_projection_accepts_equivalent_short_git_prefixes() -> None:
+    snapshot = {
+        "runtime_identity": {
+            "workspace_source_commit": _pf("b7dbb69629e1"),
+            "workspace_dirty": _pf(False),
+            "deployed_commit": _pf("b7dbb69"),
+        },
+        "capabilities": {"exposed_count": 8},
+        "federation_edges": {},
+        "receipts": {},
+        "governance": {},
+    }
+    health = {"status": "healthy", "release_name": "v2026.07.18-TEST"}
+
+    with patch.object(MODULE, "probe_organ", return_value={"transport": "UNKNOWN"}):
+        state = MODULE.project_public_state(snapshot, health)
+
+    assert state["release"]["deployment_alignment"] == "ALIGNED"

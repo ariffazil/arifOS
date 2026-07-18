@@ -176,8 +176,16 @@ def _enrich_with_explanation(envelope: dict[str, Any]) -> dict[str, Any]:
     we don't explain things that are working. Only failures get the
     three-layer treatment.
     """
-    GOOD_VALUES = {"up", "ALIGNED", "STATIC_PASS", "TRANSPORT_PASS",
-                   "GOVERNED_RUNTIME_PASS", "GREEN", "reachable", "aligned"}
+    GOOD_VALUES = {
+        "up",
+        "ALIGNED",
+        "STATIC_PASS",
+        "TRANSPORT_PASS",
+        "GOVERNED_RUNTIME_PASS",
+        "GREEN",
+        "reachable",
+        "aligned",
+    }
     value = envelope.get("value")
     # Only check membership for hashable scalar types. dict/list values (e.g.
     # nested envelopes) bypass the good-values check and proceed to explanation.
@@ -332,6 +340,10 @@ def _finalize_snapshot(payload: dict[str, Any]) -> dict[str, Any]:
         payload["intelligence_decomposition"] = _intelligence_decomposition(payload)
     except Exception:
         pass
+    # F-007 bookkeeping and intelligence decomposition mutate the payload.
+    # Re-sign only after those mutations so the published signature covers
+    # the exact bytes represented by payload_without_signature.
+    payload["signature"] = _sign_observatory_snapshot(payload)
     return payload
 
 
@@ -376,7 +388,9 @@ def _intelligence_decomposition(payload: dict[str, Any]) -> dict[str, Any]:
         val = inv.get("value") if isinstance(inv, dict) else inv
         if isinstance(val, int) and val > 0:
             stages_observed += 1
-    edges = payload.get("federation_edges") if isinstance(payload.get("federation_edges"), dict) else {}
+    edges = (
+        payload.get("federation_edges") if isinstance(payload.get("federation_edges"), dict) else {}
+    )
     transport_n = int(edges.get("reachable") or 0)
     semantic_n = int(edges.get("semantic_proven") or 0)
 
@@ -978,17 +992,32 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         dp = _deep_probe_organ(host, port, label)
         out[name] = {
             "transport": _probe_transport(host, port),
-            "identity": dp["identity"] or _pf(
-                None, source=f"{label}/identity", state="unknown",
-                confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True,
+            "identity": dp["identity"]
+            or _pf(
+                None,
+                source=f"{label}/identity",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
             ),
-            "contract": dp["contract"] or _pf(
-                None, source=f"{label}/api/constitution", state="unknown",
-                confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True,
+            "contract": dp["contract"]
+            or _pf(
+                None,
+                source=f"{label}/api/constitution",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
             ),
-            "capability": dp["capability"] or _pf(
-                None, source=f"{label}/api/live/all", state="unknown",
-                confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True,
+            "capability": dp["capability"]
+            or _pf(
+                None,
+                source=f"{label}/api/live/all",
+                state="unknown",
+                confidence=0.0,
+                observation_method=_OBS_METHOD_UNKNOWN,
+                independent=True,
             ),
             "evidence": _pf(
                 None,
@@ -1037,9 +1066,33 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     aaa_dp = _deep_probe_organ("127.0.0.1", 3001, "AAA :3001")
     out["aaa"] = {
         "transport": _probe_transport("127.0.0.1", 3001),
-        "identity": aaa_dp["identity"] or _pf(None, source="AAA a2a-server", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "contract": aaa_dp["contract"] or _pf(None, source="AAA agent-card", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "capability": aaa_dp["capability"] or _pf(None, source="AAA port 3001", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "identity": aaa_dp["identity"]
+        or _pf(
+            None,
+            source="AAA a2a-server",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contract": aaa_dp["contract"]
+        or _pf(
+            None,
+            source="AAA agent-card",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "capability": aaa_dp["capability"]
+        or _pf(
+            None,
+            source="AAA port 3001",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
         "evidence": _pf(
             None,
             source="AAA memory bridge",
@@ -1086,8 +1139,24 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
     forge_dp = _deep_probe_organ("127.0.0.1", 7071, "A-FORGE :7071")
     out["aforge"] = {
         "transport": _probe_transport("127.0.0.1", 7071),
-        "identity": forge_dp["identity"] or _pf(None, source="A-FORGE forgeTools.js", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
-        "contract": forge_dp["contract"] or _pf(None, source="A-FORGE affordances", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "identity": forge_dp["identity"]
+        or _pf(
+            None,
+            source="A-FORGE forgeTools.js",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contract": forge_dp["contract"]
+        or _pf(
+            None,
+            source="A-FORGE affordances",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
         "capability": _pf(
             None,
             source="A-FORGE registry",
@@ -1220,6 +1289,7 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
 def _deep_probe_organ(host: str, port: int, label: str) -> dict[str, Any]:
     """HTTP /health probe — extract identity + contract + capability from organ."""
     import urllib.request, json as _json
+
     result = {
         "identity": None,
         "contract": None,
@@ -1227,9 +1297,7 @@ def _deep_probe_organ(host: str, port: int, label: str) -> dict[str, Any]:
         "status": None,
     }
     try:
-        with urllib.request.urlopen(
-            f"http://{host}:{port}/health", timeout=3.0
-        ) as resp:
+        with urllib.request.urlopen(f"http://{host}:{port}/health", timeout=3.0) as resp:
             data = _json.loads(resp.read().decode("utf-8", errors="replace"))
     except Exception:
         return result
@@ -1600,7 +1668,9 @@ def _local_chain_verify() -> dict[str, Any]:
             if not entry_hash:
                 continue
             if prev_hash is not None and entry_prev and entry_prev != prev_hash:
-                gaps.append({"index": i, "expected_prev": str(prev_hash)[:24], "got": str(entry_prev)[:24]})
+                gaps.append(
+                    {"index": i, "expected_prev": str(prev_hash)[:24], "got": str(entry_prev)[:24]}
+                )
             prev_hash = entry_hash
             prev_index = i
         return {
@@ -1812,9 +1882,7 @@ def _edges_block() -> dict[str, Any]:
         edges = probe_all_edges()
         aggregate = edge_aggregate_state(edges)
         reachable = sum(1 for e in edges if isinstance(e, dict) and _edge_transport_ok(e))
-        semantic_proven = sum(
-            1 for e in edges if isinstance(e, dict) and _edge_semantic_proven(e)
-        )
+        semantic_proven = sum(1 for e in edges if isinstance(e, dict) and _edge_semantic_proven(e))
         drifted = sum(1 for e in edges if e.get("state") == "drift")
         unreachable = sum(
             1
@@ -1890,9 +1958,7 @@ async def _edges_block_async() -> dict[str, Any]:
         edges = await probe_all_edges_async(self_endpoint_health=self_health)
         aggregate = edge_aggregate_state(edges)
         reachable = sum(1 for e in edges if isinstance(e, dict) and _edge_transport_ok(e))
-        semantic_proven = sum(
-            1 for e in edges if isinstance(e, dict) and _edge_semantic_proven(e)
-        )
+        semantic_proven = sum(1 for e in edges if isinstance(e, dict) and _edge_semantic_proven(e))
         drifted = sum(1 for e in edges if e.get("state") == "drift")
         unreachable = sum(
             1
@@ -1933,6 +1999,7 @@ async def _edges_block_async() -> dict[str, Any]:
 
 # ── Findings envelope (active gaps, not operational incidents) ───────────────
 
+
 def _post_process_event_bus_findings(findings: dict[str, Any]) -> None:
     """Override F-002/F-003 from durable event bus if capability matrix lacks data."""
     for path in ["/root/.local/share/arifos/event_bus.jsonl", "/root/.arifos/event_bus.jsonl"]:
@@ -1944,9 +2011,12 @@ def _post_process_event_bus_findings(findings: dict[str, Any]) -> None:
             with open(path, encoding="utf-8") as fh:
                 for line in fh:
                     line = line.strip()
-                    if not line: continue
-                    try: evt = json.loads(line)
-                    except json.JSONDecodeError: continue
+                    if not line:
+                        continue
+                    try:
+                        evt = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
                     total += 1
                     t = str(evt.get("type", ""))
                     if t.startswith("tool.") and evt.get("outcome") == "success":
@@ -1965,6 +2035,7 @@ def _post_process_event_bus_findings(findings: dict[str, Any]) -> None:
             return
         except Exception:
             continue
+
 
 def _findings_block(
     *,
@@ -1998,7 +2069,10 @@ def _findings_block(
 
     # F-001 public wire only
     if declared == registered == exposed == 8 or (declared == registered and declared >= 8):
-        f001_status, f001_ev = "RESOLVED", f"public wire declared={declared} registered={registered} exposed={exposed}"
+        f001_status, f001_ev = (
+            "RESOLVED",
+            f"public wire declared={declared} registered={registered} exposed={exposed}",
+        )
         f001_desc = "Public tool surface consistent (8-wire)"
     else:
         f001_status, f001_ev = (
@@ -2148,7 +2222,10 @@ def _findings_block(
             )
         except Exception:
             pass
-    if source_c and deploy_c and source_c == deploy_c and source_dirty is False:
+    commits_match = bool(
+        source_c and deploy_c and (source_c.startswith(deploy_c) or deploy_c.startswith(source_c))
+    )
+    if commits_match and source_dirty is False:
         f008_status, f008_ev = "RESOLVED", f"source={source_c} deployed={deploy_c}"
         f008_desc = "Deployed commit matches source HEAD"
     else:
@@ -2828,6 +2905,7 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
             _cache_headers,
             _merge_headers,
         )
+
         op_token = req.headers.get("X-Op-Token", "")
         if not op_token:
             return JSONResponse(
@@ -2848,6 +2926,7 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
             _cache_headers,
             _merge_headers,
         )
+
         try:
             from arifosmcp.runtime.canonical_vault_chain import derive_head
 
@@ -2876,6 +2955,7 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
             _cache_headers,
             _merge_headers,
         )
+
         try:
             from arifosmcp.runtime.canonical_vault_chain import (
                 heads_agreement,
@@ -2920,6 +3000,7 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
             _cache_headers,
             _merge_headers,
         )
+
         try:
             from arifosmcp.runtime.canonical_vault_chain import replay_chain
 

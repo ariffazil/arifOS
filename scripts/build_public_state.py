@@ -226,7 +226,8 @@ def project_public_state(
         alignment = "UNKNOWN"
     workspace_dirty = pf_value(ri.get("workspace_dirty"))
     if source and deployed:
-        alignment = "ALIGNED" if source == deployed and workspace_dirty is False else "DRIFTED"
+        commits_match = source.startswith(deployed) or deployed.startswith(source)
+        alignment = "ALIGNED" if commits_match and workspace_dirty is False else "DRIFTED"
 
     release_name = health.get("release_name") or health.get("version") or "unknown"
     release_id = str(release_name).lstrip("v")
