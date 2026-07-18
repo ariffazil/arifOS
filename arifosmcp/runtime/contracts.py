@@ -19,6 +19,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from arifosmcp.runtime.DNA import OMEGA_CENTER
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENUMERATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -618,7 +620,7 @@ def make_telemetry_seed(session_id: str) -> TelemetryEnvelope:
         session_id=session_id,
         timestamp=datetime.now(UTC).isoformat(),
         tau_truth=1.0,
-        omega_0=0.05,
+        omega_0=OMEGA_CENTER,  # F7 humility: full mode must earn the band, not start at it
         delta_s=0.0,
         peace2=1.0,
         kappa_r=0.9,
