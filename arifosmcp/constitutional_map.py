@@ -80,7 +80,7 @@ class ToolStage(StrEnum):
     REASON = "333"  # Cognitive reasoning
     ROUTE = "444"  # Intent routing (absorbed: bridge_connect)
     CRITIQUE = "555"  # Adversarial critique (promoted from arif_think mode)
-    JUDGE = "666"  # Constitutional verdict
+    JUDGE = "888"  # Constitutional verdict
     FORGE_EXECUTE = "777"  # Guarded execution
     REPLY = "888"  # Response composition
     SEAL = "999"  # VAULT999 seal anchor
@@ -871,7 +871,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     "arif_judge": {
         "name": "arif_judge",
         "description": (
-            "KERNEL 666 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
+            "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
             "Not advice; binding floor + authority arbitration. Requires actor, intent, "
             "domain, reversibility_level, blast_radius. Authority: SOVEREIGN session for "
             "real adjudicate. Returns verdict + receipts + next_safe_action. "

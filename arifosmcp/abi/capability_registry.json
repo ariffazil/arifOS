@@ -26,7 +26,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_init"
-      }
+      },
+      "tier": "gated"
     },
     {
       "capability_id": "reality.observe",
@@ -51,7 +52,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_observe"
-      }
+      },
+      "tier": "open"
     },
     {
       "capability_id": "cognition.think",
@@ -77,7 +79,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_think"
-      }
+      },
+      "tier": "open"
     },
     {
       "capability_id": "intent.route",
@@ -102,7 +105,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_route"
-      }
+      },
+      "tier": "open"
     },
     {
       "capability_id": "memory.govern",
@@ -127,7 +131,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_memory"
-      }
+      },
+      "tier": "open"
     },
     {
       "capability_id": "authority.judge",
@@ -153,7 +158,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_judge"
-      }
+      },
+      "tier": "open"
     },
     {
       "capability_id": "action.execute",
@@ -180,7 +186,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_forge"
-      }
+      },
+      "tier": "open"
     },
     {
       "capability_id": "history.seal",
@@ -206,7 +213,8 @@
       "provider": {
         "type": "mcp",
         "tool": "arif_seal"
-      }
+      },
+      "tier": "open"
     }
   ],
   "compatibility_aliases": {
@@ -249,5 +257,7 @@
     "arif_vault_seal": {
       "capability_id": "history.seal"
     }
-  }
+  },
+  "tier_doctrine": "arifOS canon = 8 capabilities in 2 public tiers: 7 open (observe, think, route, memory, judge, forge, seal) \u00b7 1 acknowledgment-gated (session.bind \u2014 F1 Amanah, binding creates durable state). Constitutional_map.py adds 16 organ-authenticated entries (incl. kernel_intercept, entropy_*, j_gate, etc.) for a total of 24.",
+  "tier_doctrine_en": "Anonymous external probing must reproduce the public claim exactly: tools/list returns 7 unconditionally + 1 with ack_irreversible = 8 total. Exposure \u2260 execution: anonymous forge calls fail-closed to HOLD without a session. Organ-authenticated entries are reachable only via kernel internal endpoints."
 }

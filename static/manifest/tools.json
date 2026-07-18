@@ -2,22 +2,26 @@
   "$schema": "https://mcp.arif-fazil.com/manifest/tools.schema.json",
   "meta": {
     "server": "arifOS Constitutional MCP Server",
-    "version": "2026.06.30",
+    "version": "2026.07.18",
     "endpoint": "https://mcp.arif-fazil.com/mcp",
     "protocol": "2025-11-25",
     "transport": "streamable-http",
     "auth": "bearer (required for mutation tools; public tools accessible with session)",
     "documentation": "https://arifos.arif-fazil.com",
-    "github": "https://github.com/ariffazil/arifOS"
+    "github": "https://github.com/ariffazil/arifOS",
+    "sot": "arifosmcp/abi/capability_registry.json"
   },
   "tools": [
     {
       "name": "arif_init",
+      "capability_id": "session.bind",
       "description": "START HERE. Bootstrap a governed constitutional session and bind actor identity. Without a session_id, no governed action is possible.",
       "stage": "000",
-      "actionClass": "PREPARE",
-      "riskTier": "medium",
+      "actionClass": "OBSERVE",
+      "authority": "ANONYMOUS",
+      "mutation": false,
       "irreversible": false,
+      "floors": ["F1", "F2", "F4", "F11", "F13"],
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -31,26 +35,29 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["init", "light", "resume", "validate"],
+            "enum": ["init", "light", "resume", "validate", "canary", "preflight", "triage", "epoch_open", "epoch_seal", "opt_out"],
             "default": "init",
-            "description": "init (full), light (<1s), resume, validate"
+            "description": "init (full), light (<1s), resume, validate, canary, preflight, triage, epoch_open, epoch_seal, opt_out"
           }
         }
       }
     },
     {
       "name": "arif_observe",
-      "description": "Ground decisions in reality. Search web, fetch URLs, check system vitals, map repos. Use when the answer requires data not in context.",
+      "capability_id": "reality.observe",
+      "description": "Ground decisions in reality. Search web, fetch URLs, check system vitals, map repos, measure entropy. Use when the answer requires data not in context.",
       "stage": "111",
       "actionClass": "OBSERVE",
-      "riskTier": "low",
+      "authority": "OBSERVER",
+      "mutation": false,
       "irreversible": false,
+      "floors": ["F2", "F4", "F7", "F9", "F12"],
       "inputSchema": {
         "type": "object",
         "properties": {
           "mode": {
             "type": "string",
-            "enum": ["search", "hybrid_discovery", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+            "enum": ["search", "fetch", "hybrid_discovery", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
             "default": "search"
           },
           "query": {
@@ -66,17 +73,20 @@
     },
     {
       "name": "arif_think",
+      "capability_id": "cognition.think",
       "description": "Reason, plan, reflect, or critique. The cognitive engine. Decompose problems, generate plans, evaluate hypotheses, synthesize evidence.",
       "stage": "333",
-      "actionClass": "ANALYZE",
-      "riskTier": "medium",
+      "actionClass": "PREPARE",
+      "authority": "OBSERVER",
+      "mutation": false,
       "irreversible": false,
+      "floors": ["F2", "F3", "F4", "F7", "F8", "F9"],
       "inputSchema": {
         "type": "object",
         "properties": {
           "mode": {
             "type": "string",
-            "enum": ["reason", "reflect", "verify", "critique", "axioms", "plan", "plan_review", "metabolize"],
+            "enum": ["reason", "reflect", "verify", "axioms", "plan", "plan_review", "plan_approve", "refactor_plan", "metabolize", "simulate", "wonder"],
             "default": "reason"
           },
           "query": {
@@ -88,11 +98,14 @@
     },
     {
       "name": "arif_route",
+      "capability_id": "intent.route",
       "description": "Canonical intent router. Routes natural-language intent to the correct federation organ (GEOX, WEALTH, WELL, A-FORGE) or kernel tool.",
-      "stage": "555",
-      "actionClass": "ANALYZE",
-      "riskTier": "low",
+      "stage": "444",
+      "actionClass": "PREPARE",
+      "authority": "OBSERVER",
+      "mutation": false,
       "irreversible": false,
+      "floors": ["F2", "F4", "F8", "F10", "F12"],
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -104,17 +117,46 @@
             "type": "string",
             "description": "Optional explicit organ override"
           }
-        }
+        },
+        "required": ["intent"]
+      }
+    },
+    {
+      "name": "arif_memory",
+      "capability_id": "memory.govern",
+      "description": "Memory governor. L1-L6 tiered memory stack. Recall, inspect, attest, remember, promote, revise, forget, audit.",
+      "stage": "555",
+      "actionClass": "MATERIAL",
+      "authority": "TRUSTED_AGENT",
+      "mutation": true,
+      "irreversible": false,
+      "floors": ["F1", "F2", "F4", "F11", "F13"],
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["recall", "inspect", "attest", "remember", "promote", "revise", "forget", "audit"],
+            "default": "recall"
+          },
+          "query": {
+            "type": "string",
+            "description": "Memory query (for recall mode)"
+          }
+        },
+        "required": ["mode"]
       }
     },
     {
       "name": "arif_judge",
+      "capability_id": "authority.judge",
       "description": "Render final constitutional verdict. Returns SEAL (approved), HOLD (revise), SABAR (wait), or VOID (rejected) with violated floors and evidence receipts.",
       "stage": "888",
-      "actionClass": "DRAFT",
-      "riskTier": "critical",
+      "actionClass": "MATERIAL",
+      "authority": "TRUSTED_AGENT",
+      "mutation": false,
       "irreversible": false,
-      "requiresSession": true,
+      "floors": ["F1", "F2", "F3", "F4", "F11", "F13"],
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -143,36 +185,44 @@
       }
     },
     {
-      "name": "arif_act",
-      "description": "Execute an approved action after a valid SEAL from arif_judge + arif_seal. The 900 execution gate. Requires seal_verdict_id + approved_action_hash.",
-      "stage": "900",
-      "actionClass": "IRREVERSIBLE",
-      "riskTier": "critical",
-      "irreversible": true,
-      "requiresSession": true,
+      "name": "arif_forge",
+      "capability_id": "action.execute",
+      "description": "Execute an approved action. The 777 execution gate. Requires prior arif_judge SEAL. Supports engineer, query, write, generate, commit, recall, dry_run modes.",
+      "stage": "777",
+      "actionClass": "MATERIAL",
+      "authority": "EXECUTOR",
+      "mutation": true,
+      "irreversible": false,
+      "floors": ["F1", "F2", "F3", "F4", "F7", "F11", "F13"],
       "inputSchema": {
         "type": "object",
         "properties": {
+          "mode": {
+            "type": "string",
+            "enum": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
+            "default": "engineer"
+          },
+          "manifest": {
+            "type": "string",
+            "description": "Execution manifest or task description"
+          },
           "seal_verdict_id": {
             "type": "string",
             "description": "ID from prior arif_judge SEAL"
-          },
-          "approved_action_hash": {
-            "type": "string",
-            "description": "Hash of the approved action"
           }
-        },
-        "required": ["seal_verdict_id", "approved_action_hash"]
+        }
       }
     },
     {
       "name": "arif_seal",
+      "capability_id": "history.seal",
       "description": "Append a verdict to the immutable VAULT999 ledger. Irreversible. Cryptographic hash-chain anchoring for audit trails.",
       "stage": "999",
       "actionClass": "IRREVERSIBLE",
-      "riskTier": "critical",
+      "authority": "SOVEREIGN",
+      "mutation": true,
       "irreversible": true,
-      "requiresSession": true,
+      "floors": ["F1", "F2", "F3", "F4", "F11", "F13"],
       "inputSchema": {
         "type": "object",
         "properties": {
