@@ -77,17 +77,6 @@
         "previous_hash"
       ],
       "disposition": "vault999"
-    },
-    "vault.verify": {
-      "required": false,
-      "evidence": [
-        "verified_count",
-        "chain_head_seq",
-        "chain_head_hash",
-        "gaps_declared",
-        "verification_path"
-      ],
-      "disposition": "verification_log"
     }
   }
 }

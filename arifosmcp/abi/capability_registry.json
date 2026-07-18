@@ -207,29 +207,6 @@
         "type": "mcp",
         "tool": "arif_seal"
       }
-    },
-    {
-      "capability_id": "vault.verify",
-      "version": "1.0.0",
-      "semantic_hash": "sha256:569568c2140efe2b6189902a11430dcfb16a1b65f936ce9897c224001d1bb96b",
-      "input_schema_ref": "tool://arif_vault_verify/input",
-      "output_schema_ref": "tool://arif_vault_verify/output",
-      "action_class": "NONE",
-      "mutation": false,
-      "irreversible": false,
-      "authority_required": "LOW",
-      "evidence_required": false,
-      "idempotency": "pure",
-      "receipt_policy": "optional",
-      "constitutional_floors": [
-        "F2",
-        "F3",
-        "F4"
-      ],
-      "provider": {
-        "type": "mcp",
-        "tool": "arif_vault_verify"
-      }
     }
   ],
   "compatibility_aliases": {

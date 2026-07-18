@@ -90,10 +90,12 @@ def validate_abi() -> dict[str, Any]:
 
     if capability.get("abi_version") != KERNEL_ABI_VERSION:
         errors.append("ABI version mismatch")
-    # Surface-arity invariant: every id unique, but no hard-coded count.
-    # The kernel ABI grew from 8 → 9 with vault.verify on 2026-07-18.
-    if len(set(ids)) != len(ids):
-        errors.append("Kernel ABI capability ids must be unique")
+    # Surface-arity invariant: exactly 8 capabilities (KERNEL_ABI_8).
+    # The 8-tool constitutional surface is the long-standing contract.
+    # Per sovereign directive 2026-07-18: vault.verify is a mode of arif_seal,
+    # not a separate tool — keeping the surface at 8.
+    if len(ids) != 8 or len(set(ids)) != 8:
+        errors.append("Kernel ABI must contain exactly eight unique capabilities")
     if len(set(tools)) != len(tools):
         errors.append("Each semantic capability must have one unique public provider tool")
     for item in _capabilities():
