@@ -79,3 +79,20 @@ def test_projection_uses_workspace_source_and_reports_dirty_drift() -> None:
     assert state["release"]["source_commit_full"] == "operator-head"
     assert state["release"]["deployed_commit_full"] == "deployed-build"
     assert state["release"]["deployment_alignment"] == "DRIFTED"
+
+
+def test_projection_labels_failed_chain_without_false_green() -> None:
+    snapshot = {
+        "capabilities": {"exposed_count": 8},
+        "federation_edges": {},
+        "receipts": {"chain_verified": _pf(False), "replay_verified": _pf(True)},
+        "governance": {},
+    }
+    health = {"status": "healthy", "release_name": "v2026.07.18-TEST"}
+
+    with patch.object(MODULE, "probe_organ", return_value={"transport": "UNKNOWN"}):
+        state = MODULE.project_public_state(snapshot, health)
+
+    assert state["receipt"]["verify"] == "FAILED"
+    assert state["receipt"]["replay"] == "PROVEN"
+    assert state["receipt"]["vault_status"] == "DEGRADED"
