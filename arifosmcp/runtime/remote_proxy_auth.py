@@ -60,7 +60,7 @@ def extract_proxy_auth(
       1. arguments.session_id
       2. arguments._envelope.session_id
       3. headers mcp-session-id / x-mcp-session-id
-      4. (validate_session may still fall back to ARIFOS_SESSION_ID env)
+      No process environment or previous invocation is consulted.
     """
     args = dict(arguments or {})
     session_id = args.get("session_id")
@@ -138,7 +138,7 @@ def require_remote_proxy_session(
     if actor_id:
         aid = actor_id
 
-    # Prefer L11 validator (in-memory + persisted + env auto-bootstrap)
+    # Prefer L11 validator (explicit SCT/session; no implicit inheritance)
     try:
         from arifosmcp.runtime.session_auth import validate_session
 
@@ -245,8 +245,7 @@ def inject_session_params(input_schema: dict[str, Any] | None) -> dict[str, Any]
         {
             "type": "string",
             "description": (
-                "arifOS session_id from arif_init (REQUIRED for organ proxy Path B "
-                "unless ARIFOS_SESSION_ID env bootstrap is configured)."
+                "Explicit arifOS session_id from arif_init (REQUIRED for organ proxy Path B)."
             ),
         },
     )

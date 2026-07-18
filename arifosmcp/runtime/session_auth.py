@@ -7,7 +7,6 @@ Single L11 AUTH validator for all tools.
 
 import json
 import logging
-import os
 import time
 from pathlib import Path
 
@@ -115,14 +114,14 @@ SESSION_TTL_SECONDS = 3600  # 1 hour
 SESSION_GRACE_SECONDS = 300  # 5 min grace period after TTL
 
 
-def _get_env_actor() -> str | None:
-    """Fall back to env var for auto-ID when MCP client doesn't pass actor_id."""
-    return os.getenv("ARIFOS_ACTOR_ID") or os.getenv("ARIFOS_DEFAULT_ACTOR_ID")
+def _get_env_actor() -> None:
+    """Deprecated audit stub: implicit actor inheritance is disabled."""
+    return None
 
 
-def _get_env_session() -> str | None:
-    """Fall back to env var for auto-session when MCP client doesn't pass session_id."""
-    return os.getenv("ARIFOS_SESSION_ID") or os.getenv("ARIFOS_DEFAULT_SESSION_ID")
+def _get_env_session() -> None:
+    """Deprecated audit stub: implicit session inheritance is disabled."""
+    return None
 
 
 def validate_session(
@@ -138,17 +137,16 @@ def validate_session(
       2. session_id store lookup — legacy, mints SCT on hit
       3. deny
 
-    Auto-ID: if session_id or actor_id is None AND the corresponding
-    env var (ARIFOS_SESSION_ID / ARIFOS_ACTOR_ID) is set, use it.
+    Identity is request-scoped. Missing identity is never inherited from the
+    process environment or a previous invocation.
 
     Returns: {"valid": bool, "session": dict|None, "reason": str, "actor_id": str|None,
               "session_token": str|None, "source": str, ...}
     """
-    # ── Auto-ID: env var fallback for autonomous governance ───────────────────
-    if not session_id:
-        session_id = _get_env_session()
-    if not actor_id:
-        actor_id = _get_env_actor()
+    if actor_id:
+        from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+        actor_id = normalize_actor_id(actor_id) or actor_id.strip().lower()
 
     # ── SCT-first standing (inhabit path) ─────────────────────────────────────
     try:
@@ -164,7 +162,7 @@ def validate_session(
         # is authoritative — do not fall through to a different store identity.
         if standing.valid or session_token:
             return standing.as_auth_dict()
-        # No token: fall through to legacy for env auto-bootstrap edge cases.
+        # No token: fall through to the explicit legacy session lookup.
     except Exception as exc:
         logger.warning("SCT resolve_standing failed, legacy path: %s", exc)
 
@@ -211,6 +209,20 @@ def validate_session(
             pass
 
     if not sess:
+        return {
+            "valid": False,
+            "session": None,
+            "reason": "L11 AUTH: session_id not found or expired",
+            "received_session_id": session_id,
+            "session_lookup": "not_found",
+            "actor_id_received": actor_id,
+            "validator": "L11_AUDIT",
+            "session_store": "in_memory_and_persisted",
+            "implicit_inheritance": False,
+        }
+
+        # Legacy env auto-bootstrap intentionally unreachable: retained briefly
+        # for audit provenance while request-scoped isolation is deployed.
         # ── 2b. Auto-bootstrap: env var session with no prior record ────────────
         # If session_id came from env vars (ARIFOS_SESSION_ID / ARIFOS_DEFAULT_SESSION_ID)
         # AND actor_id came from env vars, the deployer explicitly configured this
@@ -333,7 +345,15 @@ def validate_session(
             }
 
     # ── 5. Actor ID mismatch ──────────────────────────────────────────────────
-    if actor_id and sess.get("actor_id") != actor_id:
+    sess_actor_normalized = sess.get("actor_id")
+    if sess_actor_normalized:
+        from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+        sess_actor_normalized = (
+            normalize_actor_id(str(sess_actor_normalized))
+            or str(sess_actor_normalized).strip().lower()
+        )
+    if actor_id and sess_actor_normalized != actor_id:
         return {
             "valid": False,
             "session": sess,

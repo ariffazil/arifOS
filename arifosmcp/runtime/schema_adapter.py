@@ -12,7 +12,7 @@ Pattern:
 
   The adapter:
     - Remaps common field name variations (query → question, scope → context)
-    - Auto-injects session_id and actor_id if missing (with warning)
+    - Keeps session_id and actor_id request-scoped; never reuses another call
     - Validates only what's needed for THIS call, not the full schema
     - Returns human-readable errors: "You need to start a session first."
 
@@ -169,15 +169,9 @@ def prepare_call(
     # Step 1: Normalize field names
     normalized = normalize_kwargs(kwargs)
 
-    # Step 2: Auto-inject session context
-    if _session_state.is_active():
-        if "session_id" not in normalized:
-            normalized["session_id"] = _session_state.active_session_id
-        if "actor_id" not in normalized:
-            normalized["actor_id"] = _session_state.active_actor_id
-
-    # Step 3: Check session requirement
-    if require_session and not _session_state.is_active():
+    # Step 2: Check the explicit request. Process-wide active state is retained
+    # only for status display/backward compatibility, never identity injection.
+    if require_session and not normalized.get("session_id"):
         raise SchemaAdapterError(
             f"This call requires an active session. "
             f"Call 'arif_init' first with your actor_id. "
@@ -185,7 +179,7 @@ def prepare_call(
             original_kwargs=kwargs,
         )
 
-    # Step 4: Filter to accepted fields if specified
+    # Step 3: Filter to accepted fields if specified
     if accepted_fields:
         normalized = {k: v for k, v in normalized.items() if k in accepted_fields}
 
