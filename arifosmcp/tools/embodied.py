@@ -595,7 +595,7 @@ ARIFOS_TOOL_CHARTERS = {
         required_permissions=["observe"],
         required_floors=["L02", "L11"],
         cognitive_axis=CognitiveAxis.OBSERVE,
-        expose=True,
+        expose=False,  # INTERNAL_ONLY: public verification via arif_seal mode=verify
     ),
     # REMOVED per orthogonal MCP alignment (2026-05-14):
     # WELL speaks ONLY biological substrate physics.

@@ -96,7 +96,15 @@ def _effective_arif_seal_flags(
         )
 
     mode = str((req.arguments or {}).get("mode", "seal")).lower()
-    read_modes = {"verify", "chain", "list", "dry_run"}
+    read_modes = {
+        "verify",
+        "chain",
+        "list",
+        "dry_run",
+        "verify_chain",   # PUBLIC chain verification (sovereign 2026-07-18)
+        "chain_status",   # PUBLIC chain head
+        "audit",          # PUBLIC full audit
+    }
     presentation_modes = {"seal_card", "render"}
 
     if mode in read_modes:
@@ -343,6 +351,7 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
         if req.session_id:
             try:
                 from arifosmcp.runtime.tools import _SESSIONS
+
                 _sess = _SESSIONS.get(req.session_id)
                 if _sess:
                     _sess_auth = (_sess.get("authority") or "").upper()
@@ -683,9 +692,13 @@ def _check_policy_floors(
     # If capability.requires_external_anchor, ADMIT_MUTATE requires at least
     # one EXTERNAL_* evidence source. Prevents closed internal reality loops.
     # SOVEREIGN bypasses: the human sovereign IS the external anchor.
-    if capability.requires_external_anchor and capability.mutation_class not in (
-        MutationClass.NONE,
-    ) and authority != AuthorityTier.SOVEREIGN:
+    # MODE-AWARE: use _eff_mutation (post-override), not capability.mutation_class,
+    # so arif_seal read modes (verify/chain/list) with NONE mutation pass through.
+    if (
+        capability.requires_external_anchor
+        and _eff_mutation not in (MutationClass.NONE,)
+        and authority != AuthorityTier.SOVEREIGN
+    ):
         evidence_sources_raw = req.raw_arguments.get("evidence_sources", [])
         if not isinstance(evidence_sources_raw, list):
             evidence_sources_raw = []
@@ -798,13 +811,23 @@ def _check_policy_floors(
     #
     # Mode-aware: read/diagnostic modes on arif_seal are NOT irreversible.
     # Without this, mode=verify/list/ledger wrongly demanded a seal nonce.
-    _READ_MODES = frozenset({
-        "verify", "list", "ledger", "chain", "audit", "dry_run", "history", "read",
-    })
+    _READ_MODES = frozenset(
+        {
+            "verify",
+            "list",
+            "ledger",
+            "chain",
+            "audit",
+            "dry_run",
+            "history",
+            "read",
+            "verify_chain",  # PUBLIC chain verification (sovereign 2026-07-18)
+            "chain_status",
+        }
+    )
     _mode_arg = str(req.raw_arguments.get("mode") or "").strip().lower()
     _is_read_mode = (
-        capability.tool_name in {"arif_seal", "arif_vault_seal"}
-        and _mode_arg in _READ_MODES
+        capability.tool_name in {"arif_seal", "arif_vault_seal"} and _mode_arg in _READ_MODES
     )
 
     if capability.mutation_class == MutationClass.IRREVERSIBLE and not _is_read_mode:
