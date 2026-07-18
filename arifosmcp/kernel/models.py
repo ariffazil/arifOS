@@ -514,6 +514,11 @@ class InterceptorInput(BaseModel):
         description="Transport auth method: jwt | dpop",
     )
 
+    @property
+    def arguments(self) -> dict:
+        """Alias for raw_arguments — interceptor code uses both names."""
+        return self.raw_arguments
+
 
 class InterceptorDecision(BaseModel):
     """The kernel's answer. Every MCP call produces exactly one."""
