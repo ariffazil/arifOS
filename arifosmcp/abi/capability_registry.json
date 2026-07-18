@@ -16,8 +16,17 @@
       "evidence_required": false,
       "idempotency": "conditional",
       "receipt_policy": "session",
-      "constitutional_floors": ["F1", "F2", "F4", "F11", "F13"],
-      "provider": {"type": "mcp", "tool": "arif_init"}
+      "constitutional_floors": [
+        "F1",
+        "F2",
+        "F4",
+        "F11",
+        "F13"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_init"
+      }
     },
     {
       "capability_id": "reality.observe",
@@ -32,8 +41,17 @@
       "evidence_required": false,
       "idempotency": "safe",
       "receipt_policy": "optional",
-      "constitutional_floors": ["F2", "F4", "F7", "F9", "F12"],
-      "provider": {"type": "mcp", "tool": "arif_observe"}
+      "constitutional_floors": [
+        "F2",
+        "F4",
+        "F7",
+        "F9",
+        "F12"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_observe"
+      }
     },
     {
       "capability_id": "cognition.think",
@@ -48,8 +66,18 @@
       "evidence_required": true,
       "idempotency": "safe",
       "receipt_policy": "optional",
-      "constitutional_floors": ["F2", "F3", "F4", "F7", "F8", "F9"],
-      "provider": {"type": "mcp", "tool": "arif_think"}
+      "constitutional_floors": [
+        "F2",
+        "F3",
+        "F4",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_think"
+      }
     },
     {
       "capability_id": "intent.route",
@@ -64,8 +92,17 @@
       "evidence_required": false,
       "idempotency": "safe",
       "receipt_policy": "optional",
-      "constitutional_floors": ["F2", "F4", "F8", "F10", "F12"],
-      "provider": {"type": "mcp", "tool": "arif_route"}
+      "constitutional_floors": [
+        "F2",
+        "F4",
+        "F8",
+        "F10",
+        "F12"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_route"
+      }
     },
     {
       "capability_id": "memory.govern",
@@ -80,8 +117,17 @@
       "evidence_required": true,
       "idempotency": "keyed",
       "receipt_policy": "required_on_write",
-      "constitutional_floors": ["F1", "F2", "F4", "F11", "F13"],
-      "provider": {"type": "mcp", "tool": "arif_memory"}
+      "constitutional_floors": [
+        "F1",
+        "F2",
+        "F4",
+        "F11",
+        "F13"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_memory"
+      }
     },
     {
       "capability_id": "authority.judge",
@@ -96,8 +142,18 @@
       "evidence_required": true,
       "idempotency": "keyed",
       "receipt_policy": "required",
-      "constitutional_floors": ["F1", "F2", "F3", "F4", "F11", "F13"],
-      "provider": {"type": "mcp", "tool": "arif_judge"}
+      "constitutional_floors": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F11",
+        "F13"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_judge"
+      }
     },
     {
       "capability_id": "action.execute",
@@ -112,8 +168,19 @@
       "evidence_required": true,
       "idempotency": "keyed",
       "receipt_policy": "required",
-      "constitutional_floors": ["F1", "F2", "F3", "F4", "F7", "F11", "F13"],
-      "provider": {"type": "mcp", "tool": "arif_forge"}
+      "constitutional_floors": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F7",
+        "F11",
+        "F13"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_forge"
+      }
     },
     {
       "capability_id": "history.seal",
@@ -128,21 +195,82 @@
       "evidence_required": true,
       "idempotency": "keyed",
       "receipt_policy": "required",
-      "constitutional_floors": ["F1", "F2", "F3", "F4", "F11", "F13"],
-      "provider": {"type": "mcp", "tool": "arif_seal"}
+      "constitutional_floors": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F11",
+        "F13"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_seal"
+      }
+    },
+    {
+      "capability_id": "vault.verify",
+      "version": "1.0.0",
+      "semantic_hash": "sha256:569568c2140efe2b6189902a11430dcfb16a1b65f936ce9897c224001d1bb96b",
+      "input_schema_ref": "tool://arif_vault_verify/input",
+      "output_schema_ref": "tool://arif_vault_verify/output",
+      "action_class": "NONE",
+      "mutation": false,
+      "irreversible": false,
+      "authority_required": "LOW",
+      "evidence_required": false,
+      "idempotency": "pure",
+      "receipt_policy": "optional",
+      "constitutional_floors": [
+        "F2",
+        "F3",
+        "F4"
+      ],
+      "provider": {
+        "type": "mcp",
+        "tool": "arif_vault_verify"
+      }
     }
   ],
   "compatibility_aliases": {
-    "arif_session_init": {"capability_id": "session.bind"},
-    "arif_sense_observe": {"capability_id": "reality.observe"},
-    "arif_fetch": {"capability_id": "reality.observe", "mode": "fetch"},
-    "arif_evidence_fetch": {"capability_id": "reality.observe", "mode": "fetch"},
-    "arif_critique": {"capability_id": "cognition.think", "mode": "critique"},
-    "arif_bridge_connect": {"capability_id": "intent.route", "mode": "bridge"},
-    "arif_memory_recall": {"capability_id": "memory.govern", "mode": "recall"},
-    "arif_judge_deliberate": {"capability_id": "authority.judge"},
-    "arif_forge_execute": {"capability_id": "action.execute"},
-    "arif_reply_compose": {"capability_id": "cognition.think", "mode": "compose"},
-    "arif_vault_seal": {"capability_id": "history.seal"}
+    "arif_session_init": {
+      "capability_id": "session.bind"
+    },
+    "arif_sense_observe": {
+      "capability_id": "reality.observe"
+    },
+    "arif_fetch": {
+      "capability_id": "reality.observe",
+      "mode": "fetch"
+    },
+    "arif_evidence_fetch": {
+      "capability_id": "reality.observe",
+      "mode": "fetch"
+    },
+    "arif_critique": {
+      "capability_id": "cognition.think",
+      "mode": "critique"
+    },
+    "arif_bridge_connect": {
+      "capability_id": "intent.route",
+      "mode": "bridge"
+    },
+    "arif_memory_recall": {
+      "capability_id": "memory.govern",
+      "mode": "recall"
+    },
+    "arif_judge_deliberate": {
+      "capability_id": "authority.judge"
+    },
+    "arif_forge_execute": {
+      "capability_id": "action.execute"
+    },
+    "arif_reply_compose": {
+      "capability_id": "cognition.think",
+      "mode": "compose"
+    },
+    "arif_vault_seal": {
+      "capability_id": "history.seal"
+    }
   }
 }

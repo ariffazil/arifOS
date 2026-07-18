@@ -4,32 +4,112 @@
   "default_profile": "public_agent",
   "profiles": {
     "public_agent": {
-      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
-      "mode_limits": {"memory.govern": ["recall", "inspect", "attest"], "authority.judge": ["explain", "floor_status"], "action.execute": ["dry_run", "query", "engineer"], "history.seal": ["verify", "ledger", "audit"]},
+      "capabilities": [
+        "session.bind",
+        "reality.observe",
+        "cognition.think",
+        "intent.route",
+        "memory.govern",
+        "authority.judge",
+        "action.execute",
+        "history.seal",
+        "vault.verify"
+      ],
+      "mode_limits": {
+        "memory.govern": [
+          "recall",
+          "inspect",
+          "attest"
+        ],
+        "authority.judge": [
+          "explain",
+          "floor_status"
+        ],
+        "action.execute": [
+          "dry_run",
+          "query",
+          "engineer"
+        ],
+        "history.seal": [
+          "verify",
+          "ledger",
+          "audit"
+        ],
+        "vault.verify": [
+          "verify_chain",
+          "chain_status",
+          "audit"
+        ]
+      },
       "diagnostics": false
     },
     "trusted_agent": {
-      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge"],
+      "capabilities": [
+        "session.bind",
+        "reality.observe",
+        "cognition.think",
+        "intent.route",
+        "memory.govern",
+        "authority.judge"
+      ],
       "mode_limits": {},
       "diagnostics": false
     },
     "executor": {
-      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute"],
+      "capabilities": [
+        "session.bind",
+        "reality.observe",
+        "cognition.think",
+        "intent.route",
+        "memory.govern",
+        "authority.judge",
+        "action.execute"
+      ],
       "mode_limits": {},
       "diagnostics": false
     },
     "sovereign": {
-      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
+      "capabilities": [
+        "session.bind",
+        "reality.observe",
+        "cognition.think",
+        "intent.route",
+        "memory.govern",
+        "authority.judge",
+        "action.execute",
+        "history.seal",
+        "vault.verify"
+      ],
       "mode_limits": {},
       "diagnostics": false
     },
     "operator": {
-      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
+      "capabilities": [
+        "session.bind",
+        "reality.observe",
+        "cognition.think",
+        "intent.route",
+        "memory.govern",
+        "authority.judge",
+        "action.execute",
+        "history.seal",
+        "vault.verify"
+      ],
       "mode_limits": {},
       "diagnostics": true
     },
     "legacy": {
-      "capabilities": ["session.bind", "reality.observe", "cognition.think", "intent.route", "memory.govern", "authority.judge", "action.execute", "history.seal"],
+      "capabilities": [
+        "session.bind",
+        "reality.observe",
+        "cognition.think",
+        "intent.route",
+        "memory.govern",
+        "authority.judge",
+        "action.execute",
+        "history.seal",
+        "vault.verify"
+      ],
       "mode_limits": {},
       "diagnostics": false,
       "advertised": false
