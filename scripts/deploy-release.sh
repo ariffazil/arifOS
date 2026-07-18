@@ -183,3 +183,46 @@ echo "  Commit: $GIT_COMMIT"
 echo "  Wheel:  $WHEEL_NAME"
 echo "  Hash:   $WHEEL_HASH"
 echo "  DITEMPA BUKAN DIBERI"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CANON GATE: tools/list == capability_registry.json (surface consistency)
+# Fail the build if tools don't match — don't let a 9th tool ship again.
+# ═══════════════════════════════════════════════════════════════════════════════
+echo "--- Step 5.5: Canon gate (surface consistency) ---"
+CANON_RESULT=$("$VENV_PYTHON" -c "
+import json, sys
+from arifosmcp.abi.kernel_abi import tool_names_for_profile, profile_contract
+
+profile = 'public_agent'
+abi_tools = set(tool_names_for_profile(profile))
+print(f'ABI profile tools ({len(abi_tools)}): {sorted(abi_tools)}')
+
+# Also check capability_registry
+with open('$REPO_DIR/arifosmcp/abi/capability_registry.json') as f:
+    cr = json.load(f)
+cr_ids = set(c['capability_id'] for c in cr['capabilities'])
+print(f'Capability registry ({len(cr_ids)}): {sorted(cr_ids)}')
+
+# Check policy_registry for public_agent
+with open('$REPO_DIR/arifosmcp/abi/policy_registry.json') as f:
+    pr = json.load(f)
+pa_caps = set(pr['profiles']['public_agent']['capabilities'])
+print(f'Policy public_agent ({len(pa_caps)}): {sorted(pa_caps)}')
+
+# All three must be consistent
+if abi_tools != pa_caps:
+    print(f'MISMATCH: ABI tools != policy caps')
+    print(f'  ABI - Policy: {abi_tools - pa_caps}')
+    print(f'  Policy - ABI: {pa_caps - abi_tools}')
+    sys.exit(1)
+
+print('✅ Canon gate: ABI, capability, and policy registries consistent')
+" 2>&1) || {
+    echo "ERROR: Canon gate failed — surface inconsistency detected"
+    echo "$CANON_RESULT"
+    echo "Aborting deploy. Fix the ABI registries before deploying."
+    rm -rf "$BUILD_DIR"
+    exit 1
+}
+echo "$CANON_RESULT"
+echo ""

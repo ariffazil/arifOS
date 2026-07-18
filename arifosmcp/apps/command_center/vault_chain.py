@@ -176,10 +176,19 @@ def verify_chain(
         }
 
     breaks: list[str] = []
+    lines: list[dict[str, Any]] = []
+    skipped_lines: list[int] = []
     try:
         with open(_VAULT_PATH) as f:
-            lines = [json.loads(line.strip()) for line in f if line.strip()]
-    except (json.JSONDecodeError, OSError) as e:
+            for lineno, raw in enumerate(f, 1):
+                stripped = raw.strip()
+                if not stripped:
+                    continue
+                try:
+                    lines.append(json.loads(stripped))
+                except (json.JSONDecodeError, ValueError):
+                    skipped_lines.append(lineno)
+    except OSError as e:
         return {
             "chain_physically_valid": False,
             "entries_checked": 0,
@@ -189,12 +198,29 @@ def verify_chain(
             "anomaly_repaired": False,
             "sovereign_receipt_ref": sovereign_receipt_ref or "",
         }
+    if skipped_lines:
+        breaks.append(f"Skipped {len(skipped_lines)} non-JSON lines: {skipped_lines[:5]}")
+
+    # Find first chain-linked entry (legacy entries lack payload_hash)
+    first_chain_idx = next(
+        (i for i, e in enumerate(lines) if "payload_hash" in e), len(lines)
+    )
 
     for i, entry in enumerate(lines):
-        if i == 0:
+        # Skip legacy entries without chain fields
+        if "payload_hash" not in entry:
+            continue
+
+        # Determine expected prev_hash
+        if i == first_chain_idx:
             expected_prev = "GENESIS"
         else:
-            expected_prev = lines[i - 1]["payload_hash"]
+            # Walk backwards to find the previous chain-linked entry
+            prev_entry = next(
+                (lines[j] for j in range(i - 1, -1, -1) if "payload_hash" in lines[j]),
+                None,
+            )
+            expected_prev = prev_entry["payload_hash"] if prev_entry else "GENESIS"
 
         actual_prev = entry.get("prev_hash", "")
         if actual_prev != expected_prev:
