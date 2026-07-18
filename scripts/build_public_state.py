@@ -24,7 +24,8 @@ ORGAN_PORTS = {
     "geox": 8081,
     "wealth": 18082,
     "well": 18083,
-    "aforge": 7072,
+    "aforge": 7071,
+    "aaa": 3001,
 }
 ORGAN_META = {
     "arifos": {
@@ -60,6 +61,13 @@ ORGAN_META = {
         "domain": "execution",
         "website": "https://forge.arif-fazil.com/",
         "mcp": "https://forge.arif-fazil.com/mcp",
+        "evidence_url": "https://arifos.arif-fazil.com/#sec-organs",
+    },
+    "aaa": {
+        "label": "AAA",
+        "domain": "routing",
+        "website": "https://aaa.arif-fazil.com/",
+        "mcp": None,
         "evidence_url": "https://arifos.arif-fazil.com/#sec-organs",
     },
 }
@@ -129,9 +137,7 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
     # Prefer exposed public facade for arifOS
     if organ_id == "arifos" and health and isinstance(health.get("tools_exposed_via_mcp"), int):
         count = health["tools_exposed_via_mcp"]
-    transport = "UP" if health and (
-        health.get("status") in ("healthy", "ok", "up", "ready") or health
-    ) else ("DOWN" if port else "UNKNOWN")
+    transport = "UP" if health else ("DOWN" if port else "UNKNOWN")
     if health is None and tools is None:
         transport = "DOWN"
     elif health is None and tools is not None:
@@ -146,9 +152,14 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
         "transport": transport,
         "public_tools": count,
         "release": release,
-        "identity_state": "VERIFIED" if health and (health.get("identity_hash") or health.get("status")) else (
-            "PRESENT" if health or tools else "UNKNOWN"
-        ),
+        "identity_state": "VERIFIED"
+        if health
+        and (
+            health.get("identity_hash")
+            or health.get("identity")
+            or health.get("substrate_manifest_hash")
+        )
+        else ("PRESENT" if health or tools else "UNKNOWN"),
         "last_observed": now_iso(),
         "website": meta.get("website"),
         "mcp": meta.get("mcp"),
@@ -192,34 +203,41 @@ def project_public_state(
     receipts = snap.get("receipts") if isinstance(snap.get("receipts"), dict) else {}
     gov = snap.get("governance") if isinstance(snap.get("governance"), dict) else {}
     findings_block = snap.get("findings") if isinstance(snap.get("findings"), dict) else {}
-    findings = findings_block.get("findings") if isinstance(findings_block.get("findings"), list) else []
+    findings = (
+        findings_block.get("findings") if isinstance(findings_block.get("findings"), list) else []
+    )
     sig = snap.get("signature") if isinstance(snap.get("signature"), dict) else {}
-    auth = snap.get("authority_dimensions") if isinstance(snap.get("authority_dimensions"), dict) else {}
+    auth = (
+        snap.get("authority_dimensions")
+        if isinstance(snap.get("authority_dimensions"), dict)
+        else {}
+    )
 
-    source = short_commit(pf_value(ri.get("source_commit")), 40)
+    source = short_commit(
+        pf_value(ri.get("workspace_source_commit")) or pf_value(ri.get("source_commit")),
+        40,
+    )
     deployed = short_commit(pf_value(ri.get("deployed_commit")), 40)
     build = short_commit(pf_value(ri.get("build_commit")), 40)
     drift_obj = pf_value(ri.get("drift"))
     if isinstance(drift_obj, dict):
         alignment = str(drift_obj.get("source_vs_deployed") or "UNKNOWN")
     else:
-        alignment = "ALIGNED" if source and deployed and source == deployed else (
-            "DRIFTED" if source and deployed else "UNKNOWN"
-        )
+        alignment = "UNKNOWN"
+    workspace_dirty = pf_value(ri.get("workspace_dirty"))
+    if source and deployed:
+        alignment = "ALIGNED" if source == deployed and workspace_dirty is False else "DRIFTED"
 
-    release_name = (
-        health.get("release_name")
-        or health.get("version")
-        or "unknown"
-    )
+    release_name = health.get("release_name") or health.get("version") or "unknown"
     release_id = str(release_name).lstrip("v")
 
-    exposed = (
-        caps.get("exposed_count")
-        or health.get("tools_exposed_via_mcp")
-        or health.get("tools_loaded")
-        or 0
-    )
+    exposed = caps.get("exposed_count")
+    if exposed is None:
+        exposed = health.get("tools_exposed_via_mcp")
+    if exposed is None:
+        exposed = health.get("tools_loaded")
+    if exposed is None:
+        exposed = 0
     proven = caps.get("proven_live_count")
     tested = caps.get("tested_count")
     public_tools = int(exposed) if exposed is not None else 0
@@ -232,12 +250,15 @@ def project_public_state(
     floors_passing = pf_value(gov.get("floors_passing"))
     floors_total = int(floors_loaded) if isinstance(floors_loaded, int) else 13
     floors_measured = int(floors_passing) if isinstance(floors_passing, int) else 0
-    gov_state = "UNKNOWN" if floors_passing is None else (
-        "MEASURED" if floors_measured > 0 else "UNMEASURED"
+    gov_state = (
+        "UNKNOWN"
+        if floors_passing is None
+        else ("MEASURED" if floors_measured > 0 else "UNMEASURED")
     )
 
     reachable = int(fed.get("reachable") or 0)
-    probed = int(fed.get("probed") or fed.get("declared") or 0)
+    declared = int(fed.get("declared") or 0)
+    probed = int(fed.get("probed") or 0)
     semantic = int(fed.get("semantic_proven") or 0)
     if probed and reachable == probed and semantic == probed:
         fed_state = "ALIGNED"
@@ -248,8 +269,16 @@ def project_public_state(
     else:
         fed_state = "UNKNOWN"
 
-    verify = receipts.get("verify")
-    replay = receipts.get("replay")
+    verify = pf_value(receipts.get("chain_verified"))
+    if verify is None:
+        verify = pf_value(receipts.get("verify_path_alive"))
+    if verify is None:
+        verify = receipts.get("verify")
+    replay = pf_value(receipts.get("replay_verified"))
+    if replay is None:
+        replay = pf_value(receipts.get("replay_path_alive"))
+    if replay is None:
+        replay = receipts.get("replay")
     if verify is True and replay is True:
         receipt_state = "PROVEN"
     elif verify is None and replay is None:
@@ -263,18 +292,21 @@ def project_public_state(
         sev = str(f.get("severity") or "LOW")
         by_sev[sev] = by_sev.get(sev, 0) + 1
     highest_hold = (
-        "HIGH" if by_sev.get("HIGH") else
-        "MEDIUM" if by_sev.get("MEDIUM") else
-        "LOW" if by_sev.get("LOW") else
-        "NONE"
+        "HIGH"
+        if by_sev.get("HIGH")
+        else "MEDIUM"
+        if by_sev.get("MEDIUM")
+        else "LOW"
+        if by_sev.get("LOW")
+        else "NONE"
     )
 
     # Plane vocabulary — never collapse to single HEALTHY
     planes = {
         "transport": "REACHABLE" if transport_ok else "UNREACHABLE",
-        "readiness": "PARTIAL" if alignment == "DRIFTED" or open_findings else (
-            "READY" if transport_ok else "NOT_READY"
-        ),
+        "readiness": "PARTIAL"
+        if alignment == "DRIFTED" or open_findings
+        else ("READY" if transport_ok else "NOT_READY"),
         "capability": (
             f"PROVEN · {proven if proven is not None else public_tools}/{public_tools or 8}"
             if (proven is not None and proven == public_tools and public_tools)
@@ -287,7 +319,8 @@ def project_public_state(
         ),
         "receipt": "UNPROVEN" if receipt_state == "NOT_PROVEN" else receipt_state,
         "constitutional": (
-            "HOLD" if highest_hold in ("HIGH", "MEDIUM")
+            "HOLD"
+            if highest_hold in ("HIGH", "MEDIUM")
             else ("CLEAR" if highest_hold == "NONE" else "HOLD")
         ),
     }
@@ -323,7 +356,7 @@ def project_public_state(
 
     # Live organ rows — kill hand-written tool counts on organ sites
     organs: dict[str, Any] = {}
-    for organ_id in ("arifos", "geox", "wealth", "well", "aforge"):
+    for organ_id in ("arifos", "geox", "wealth", "well", "aforge", "aaa"):
         try:
             organs[organ_id] = probe_organ(organ_id)
         except Exception as exc:
@@ -384,21 +417,33 @@ def project_public_state(
             "floors_total": floors_total,
             "floors_loaded": floors_loaded,
             "verdict": pf_value(gov.get("verdict")),
+            "floors": gov.get("floors") if isinstance(gov.get("floors"), dict) else {},
+            "verdict_decomposition": (
+                gov.get("verdict_decomposition")
+                if isinstance(gov.get("verdict_decomposition"), dict)
+                else {}
+            ),
         },
         "federation": {
-            "transport_edges": f"{reachable}/{probed or fed.get('declared') or 11}",
-            "semantic_edges": f"{semantic}/{probed or fed.get('declared') or 11}",
+            "declared": declared,
+            "probed": probed,
+            "reachable": reachable,
+            "semantic_proven": semantic,
+            "transport_edges": f"{reachable}/{probed or declared or 11}",
+            "semantic_edges": f"{semantic}/{probed or declared or 11}",
             "state": fed_state,
             "aggregate_state": fed.get("aggregate_state"),
         },
         "receipt": {
-            "head_sequence": receipts.get("head_seq"),
-            "verify": "PROVEN" if verify is True else (
-                "NOT_PROVEN" if verify is None else str(verify)
-            ),
-            "replay": "PROVEN" if replay is True else (
-                "NOT_PROVEN" if replay is None else str(replay)
-            ),
+            "head_sequence": pf_value(receipts.get("head_seq")),
+            "verify": "PROVEN"
+            if verify is True
+            else ("NOT_PROVEN" if verify is None else str(verify)),
+            "replay": "PROVEN"
+            if replay is True
+            else ("NOT_PROVEN" if replay is None else str(replay)),
+            "chain_verified": pf_value(receipts.get("chain_verified")),
+            "replay_verified": pf_value(receipts.get("replay_verified")),
             "vault_status": receipts.get("VAULT999"),
             "verify_url": "https://arif-fazil.com/999/",
         },
@@ -466,7 +511,8 @@ def main() -> int:
     paths = write_public_state(state)
     print(
         f"public-state {state['schema']} headline={state['headline']!r} "
-        f"tools={state['mcp']['public_tools']} alignment={state['release']['deployment_alignment']} "
+        f"tools={state['mcp']['public_tools']} "
+        f"alignment={state['release']['deployment_alignment']} "
         f"open_findings={state['findings']['open_count']} paths={[str(p) for p in paths]}"
     )
     return 0
