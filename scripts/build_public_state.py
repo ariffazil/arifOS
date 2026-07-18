@@ -100,6 +100,63 @@ def get_json(url: str, timeout: float = 3.0) -> dict[str, Any] | None:
         return None
 
 
+# ── Three-verdict probe (Prompt 2, sovereign directive 2026-07-18) ───────────
+# Per sovereign: a probe that can't distinguish "I couldn't reach it" from
+# "it doesn't exist" will eventually produce false green. So every URL probe
+# must report one of:
+#   PRESENT    — got a valid 2xx JSON response
+#   ABSENT     — got a definitive negative response (404, 410, 451)
+#   UNVERIFIED — probe failure (timeout, DNS, connection refused, decode error)
+#
+# get_json() above collapses everything to None — that's the bug. probe_url()
+# preserves the verdict so callers can render honest UNVERIFIED instead of
+# false ABSENT.
+def probe_url(url: str, timeout: float = 3.0) -> dict[str, Any]:
+    """Three-verdict probe. Returns dict with 'state' ∈ {PRESENT, ABSENT, UNVERIFIED}.
+
+    Never raises — every exception is captured into UNVERIFIED so callers can
+    render honestly without try/except.
+    """
+    try:
+        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if 200 <= resp.status < 300:
+                try:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    return {
+                        "state": "PRESENT",
+                        "data": data if isinstance(data, dict) else {},
+                        "status_code": resp.status,
+                    }
+                except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                    return {
+                        "state": "UNVERIFIED",
+                        "reason": f"decode_failed:{type(exc).__name__}:{exc}",
+                        "status_code": resp.status,
+                    }
+            # Non-2xx but got a response — distinguish ABSENT (definitive) from
+            # UNVERIFIED (transient server error).
+            return {
+                "state": "ABSENT" if resp.status in (404, 410, 451) else "UNVERIFIED",
+                "reason": f"http_{resp.status}",
+                "status_code": resp.status,
+            }
+    except urllib.error.HTTPError as exc:
+        # 404 / 410 / 451 = server says "no, definitively". Other 4xx/5xx
+        # = server is up but in trouble; UNVERIFIED.
+        return {
+            "state": "ABSENT" if exc.code in (404, 410, 451) else "UNVERIFIED",
+            "reason": f"http_{exc.code}",
+            "status_code": exc.code,
+        }
+    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
+        return {
+            "state": "UNVERIFIED",
+            "reason": f"{type(exc).__name__}:{str(exc)[:80]}",
+            "status_code": None,
+        }
+
+
 def get_health() -> dict[str, Any] | None:
     return get_json(MCP_HEALTH_URL, timeout=4.0)
 
@@ -127,40 +184,78 @@ def tool_count_from_payload(data: dict[str, Any] | None) -> int | None:
 
 
 def probe_organ(organ_id: str) -> dict[str, Any]:
+    """Probe an organ with three-verdict semantics.
+
+    Per sovereign directive 2026-07-18: distinguish PRESENT (reachable +
+    2xx JSON) from ABSENT (definitive negative response) from UNVERIFIED
+    (probe failure). The legacy "UP / DOWN / UNKNOWN" model collapsed ABSENT
+    and UNVERIFIED into the same UNKNOWN bucket — that's the bug.
+    """
     meta = ORGAN_META.get(organ_id, {})
     port = ORGAN_PORTS.get(organ_id)
-    health = get_json(f"http://127.0.0.1:{port}/health") if port else None
-    tools = get_json(f"http://127.0.0.1:{port}/tools") if port else None
-    count = tool_count_from_payload(tools)
-    if count is None:
-        count = tool_count_from_payload(health)
+
+    if not port:
+        # No port known for this organ — pure UNVERIFIED (we literally don't
+        # know how to probe it).
+        health_verdict = {"state": "UNVERIFIED", "reason": "no_port_configured", "status_code": None}
+        tools_verdict = {"state": "UNVERIFIED", "reason": "no_port_configured", "status_code": None}
+    else:
+        health_verdict = probe_url(f"http://127.0.0.1:{port}/health")
+        tools_verdict = probe_url(f"http://127.0.0.1:{port}/tools")
+
+    # Roll up: /health state determines transport
+    transport = health_verdict["state"]
+    health_data = health_verdict.get("data") if transport == "PRESENT" else None
+
+    # Tools count: PRESENT tools → PRESENT health → fall back to health
+    count = None
+    if tools_verdict["state"] == "PRESENT":
+        count = tool_count_from_payload(tools_verdict["data"])
+    if count is None and health_data:
+        count = tool_count_from_payload(health_data)
+
     # Prefer exposed public facade for arifOS
-    if organ_id == "arifos" and health and isinstance(health.get("tools_exposed_via_mcp"), int):
-        count = health["tools_exposed_via_mcp"]
-    transport = "UP" if health else ("DOWN" if port else "UNKNOWN")
-    if health is None and tools is None:
-        transport = "DOWN"
-    elif health is None and tools is not None:
-        transport = "UP"
+    if (
+        organ_id == "arifos"
+        and health_data
+        and isinstance(health_data.get("tools_exposed_via_mcp"), int)
+    ):
+        count = health_data["tools_exposed_via_mcp"]
+
+    # Identity state: 3-verdict (mirrors transport)
+    if transport == "PRESENT":
+        identity_state = (
+            "VERIFIED"
+            if health_data
+            and (
+                health_data.get("identity_hash")
+                or health_data.get("identity")
+                or health_data.get("substrate_manifest_hash")
+            )
+            else "PRESENT"
+        )
+    else:
+        identity_state = transport  # ABSENT or UNVERIFIED
+
     release = None
-    if health:
-        release = health.get("release_name") or health.get("version") or health.get("git_commit")
+    if health_data:
+        release = (
+            health_data.get("release_name")
+            or health_data.get("version")
+            or health_data.get("git_commit")
+        )
+
     return {
         "organ": meta.get("label") or organ_id.upper(),
         "id": organ_id,
         "domain": meta.get("domain"),
-        "transport": transport,
+        "transport": transport,  # PRESENT | ABSENT | UNVERIFIED
         "public_tools": count,
         "release": release,
-        "identity_state": "VERIFIED"
-        if health
-        and (
-            health.get("identity_hash")
-            or health.get("identity")
-            or health.get("substrate_manifest_hash")
-        )
-        else ("PRESENT" if health or tools else "UNKNOWN"),
+        "identity_state": identity_state,
         "last_observed": now_iso(),
+        "probe_reason": health_verdict.get("reason"),
+        "probe_status_code": health_verdict.get("status_code"),
         "website": meta.get("website"),
         "mcp": meta.get("mcp"),
         "evidence_url": meta.get("evidence_url"),
@@ -270,7 +365,11 @@ def project_public_state(
     else:
         fed_state = "UNKNOWN"
 
-    verify = pf_value(receipts.get("chain_verified"))
+    canonical_status = pf_value(receipts.get("canonical_status"))
+    historical_status = pf_value(receipts.get("historical_status"))
+    verify = canonical_status == "HEALTHY" if canonical_status is not None else None
+    if verify is None:
+        verify = pf_value(receipts.get("chain_verified"))
     if verify is None:
         verify = pf_value(receipts.get("verify_path_alive"))
     if verify is None:
@@ -280,7 +379,7 @@ def project_public_state(
         replay = pf_value(receipts.get("replay_path_alive"))
     if replay is None:
         replay = receipts.get("replay")
-    if verify is True and replay is True:
+    if verify is True and replay is True and historical_status != "SCARRED":
         receipt_state = "PROVEN"
     elif verify is None and replay is None:
         receipt_state = "NOT_PROVEN"
@@ -437,6 +536,9 @@ def project_public_state(
         },
         "receipt": {
             "head_sequence": pf_value(receipts.get("head_seq")),
+            "head_hash": pf_value(receipts.get("head_hash")),
+            "canonical_status": canonical_status,
+            "historical_status": historical_status,
             "verify": "PROVEN"
             if verify is True
             else ("NOT_PROVEN" if verify is None else "FAILED"),
