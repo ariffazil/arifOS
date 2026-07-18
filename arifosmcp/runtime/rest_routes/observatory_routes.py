@@ -931,31 +931,20 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         ("well", "WELL :18083", "127.0.0.1", 18083),
     ]
     for name, label, host, port in organs:
+        dp = _deep_probe_organ(host, port, label)
         out[name] = {
             "transport": _probe_transport(host, port),
-            "identity": _pf(
-                None,
-                source=f"{label}/identity",
-                state="unknown",
-                confidence=0.0,
-                observation_method=_OBS_METHOD_UNKNOWN,
-                independent=True,
+            "identity": dp["identity"] or _pf(
+                None, source=f"{label}/identity", state="unknown",
+                confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True,
             ),
-            "contract": _pf(
-                None,
-                source=f"{label}/api/constitution",
-                state="unknown",
-                confidence=0.0,
-                observation_method=_OBS_METHOD_UNKNOWN,
-                independent=True,
+            "contract": dp["contract"] or _pf(
+                None, source=f"{label}/api/constitution", state="unknown",
+                confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True,
             ),
-            "capability": _pf(
-                None,
-                source=f"{label}/api/live/all",
-                state="unknown",
-                confidence=0.0,
-                observation_method=_OBS_METHOD_UNKNOWN,
-                independent=True,
+            "capability": dp["capability"] or _pf(
+                None, source=f"{label}/api/live/all", state="unknown",
+                confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True,
             ),
             "evidence": _pf(
                 None,
@@ -1001,32 +990,12 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         }
 
     # AAA — independent TCP probe + static config
+    aaa_dp = _deep_probe_organ("127.0.0.1", 3001, "AAA :3001")
     out["aaa"] = {
         "transport": _probe_transport("127.0.0.1", 3001),
-        "identity": _pf(
-            None,
-            source="AAA a2a-server",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "contract": _pf(
-            None,
-            source="AAA agent-card",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "capability": _pf(
-            None,
-            source="AAA port 3001",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
+        "identity": aaa_dp["identity"] or _pf(None, source="AAA a2a-server", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "contract": aaa_dp["contract"] or _pf(None, source="AAA agent-card", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "capability": aaa_dp["capability"] or _pf(None, source="AAA port 3001", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
         "evidence": _pf(
             None,
             source="AAA memory bridge",
@@ -1070,24 +1039,11 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         "label": "AAA :3001",
     }
     # A-FORGE — independent TCP probe + static config
+    forge_dp = _deep_probe_organ("127.0.0.1", 7071, "A-FORGE :7071")
     out["aforge"] = {
         "transport": _probe_transport("127.0.0.1", 7071),
-        "identity": _pf(
-            None,
-            source="A-FORGE forgeTools.js",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
-        "contract": _pf(
-            None,
-            source="A-FORGE affordances",
-            state="unknown",
-            confidence=0.0,
-            observation_method=_OBS_METHOD_UNKNOWN,
-            independent=True,
-        ),
+        "identity": forge_dp["identity"] or _pf(None, source="A-FORGE forgeTools.js", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
+        "contract": forge_dp["contract"] or _pf(None, source="A-FORGE affordances", state="unknown", confidence=0.0, observation_method=_OBS_METHOD_UNKNOWN, independent=True),
         "capability": _pf(
             None,
             source="A-FORGE registry",
@@ -1215,6 +1171,57 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         "label": "mcp.arif-fazil.com",
     }
     return out
+
+
+def _deep_probe_organ(host: str, port: int, label: str) -> dict[str, Any]:
+    """HTTP /health probe — extract identity + contract + capability from organ."""
+    import urllib.request, json as _json
+    result = {
+        "identity": None,
+        "contract": None,
+        "capability": None,
+        "status": None,
+    }
+    try:
+        with urllib.request.urlopen(
+            f"http://{host}:{port}/health", timeout=3.0
+        ) as resp:
+            data = _json.loads(resp.read().decode("utf-8", errors="replace"))
+    except Exception:
+        return result
+    ihash = data.get("identity_hash")
+    version = data.get("version") or data.get("federation_schema_version")
+    status = data.get("status")
+    result["status"] = status
+    if ihash:
+        result["identity"] = _pf(
+            str(ihash)[:32],
+            source=f"GET {host}:{port}/health→identity_hash",
+            state="observed",
+            confidence=0.95,
+            observation_method="http_probe",
+            independent=True,
+        )
+    if version:
+        result["contract"] = _pf(
+            str(version),
+            source=f"GET {host}:{port}/health→version",
+            state="observed",
+            confidence=0.90,
+            observation_method="http_probe",
+            independent=True,
+        )
+    tools = data.get("tools_loaded") or data.get("tool_count")
+    if tools is not None:
+        result["capability"] = _pf(
+            int(tools),
+            source=f"GET {host}:{port}/health→tools_loaded",
+            state="observed",
+            confidence=0.90,
+            observation_method="http_probe",
+            independent=True,
+        )
+    return result
 
 
 def _probe_transport(host: str, port: int) -> dict[str, Any]:
