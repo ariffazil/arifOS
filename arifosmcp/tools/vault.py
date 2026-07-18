@@ -23,7 +23,18 @@ from arifosmcp.models.verdicts import Verdict
 
 
 async def arif_seal(
-    mode: Literal["seal", "verify", "chain", "list", "dry_run", "seal_card", "render"] = "seal",
+    mode: Literal[
+        "seal",
+        "verify",        # A-FORGE token verify (Ed25519)
+        "chain",
+        "list",
+        "dry_run",
+        "seal_card",
+        "render",
+        "verify_chain",  # Public chain verification — delegates to arif_vault_verify (sovereign 2026-07-18)
+        "chain_status",  # Public chain head + last N entries
+        "audit",         # Full audit report with receipts
+    ] = "seal",
     payload: str = "",
     session_id: str | None = None,
     session_token: str | None = None,
@@ -226,6 +237,38 @@ async def arif_seal(
                 )
         except Exception:
             cooldown_meta["cooldown"] = "unavailable"
+
+    # ── mode=verify_chain — PUBLIC chain verification (sovereign 2026-07-18) ─
+    # Lower-entropy way to expose vault verification: arif_seal mode=verify_chain
+    # delegates to arif_vault_verify (read-only chain verifier). This keeps the
+    # kernel ABI at 8 tools — vault.verify is a MODE of arif_seal, not a new tool.
+    if mode == "verify_chain":
+        from arifosmcp.tools.vault import arif_vault_verify as _vault_verify_fn
+        # Anonymous callers allowed (this is the PUBLIC verify tier)
+        _chain_verdict = await _vault_verify_fn(
+            mode="verify_chain",
+            actor_id=actor_id,
+            sovereign_receipt_ref="",
+        )
+        return _echo_standing(
+            SealOutput(
+                mode=mode,
+                verdict=Verdict.SEAL if _chain_verdict.get("chain_physically_valid") else Verdict.HOLD,
+                status=_chain_verdict.get("status", "OK"),
+                entry_id="",
+                actor_id=actor_id,
+                meta={
+                    "gate": "PUBLIC_VERIFY_CHAIN",
+                    "verifier_authority_class": _chain_verdict.get("verifier_authority_class", "AUDIT_READ_ONLY"),
+                    "chain_verified": _chain_verdict.get("chain_physically_valid"),
+                    "entries_checked": _chain_verdict.get("entries_checked"),
+                    "historical_anomaly": _chain_verdict.get("historical_anomaly"),
+                    "accepted_risk": _chain_verdict.get("accepted_risk"),
+                    "anomaly_repaired": _chain_verdict.get("anomaly_repaired"),
+                    "sovereign_receipt_ref": _chain_verdict.get("sovereign_receipt_ref"),
+                },
+            )
+        )
 
     # ── arif_verify: Cryptographic SEAL token verification (E1 Fix) ───────────
     # A-FORGE calls this via MCP before executing any IRREVERSIBLE shell command.

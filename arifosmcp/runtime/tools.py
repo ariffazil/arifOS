@@ -21874,8 +21874,8 @@ async def _arif_act(
 
 
 _CANONICAL_HANDLERS: dict[str, Any] = {
-    # ── 7-TOOL MCP FACADE (2026-06-23) ─────────────────────────────────────
-    # Public agents see only these 7 verbs. Everything else is an alias or
+    # ── 8-TOOL MCP FACADE (constitutional surface — sovereign-ratified 2026-07-18) ─
+    # Public agents see only these 8 verbs. Everything else is an alias or
     # internal helper. See AGENTIC_AFFORDANCE_GUIDE.md.
     "arif_init": _arif_session_init,
     "arif_observe": _arif_sense_observe,
@@ -21883,7 +21883,8 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_judge": _arif_kernel_intercept_tool,  # constitutional verdict / 888 (uses kernel)
     "arif_act": _arif_act,
     "arif_seal": _arif_vault_seal_tool,
-    "arif_vault_verify": _arif_vault_verify_tool,  # P0: read-only vault verifier
+    # arif_vault_verify NOT exposed as separate tool — lowered to mode=verify_chain
+    # on arif_seal (sovereign directive 2026-07-18: "lower entropy, why need another tool")
     "arif_verify": _arif_ed25519_verify_tool,  # AAA Wave 2: Ed25519 signature verification (live MCP)
     # The legacy JITU SEAL-token gate (_arif_verify_tool) remains accessible via
     # the Python handle ``_arif_verify`` and the HTTP endpoint /kernel/arif_verify.

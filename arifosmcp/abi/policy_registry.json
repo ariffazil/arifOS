@@ -12,8 +12,7 @@
         "memory.govern",
         "authority.judge",
         "action.execute",
-        "history.seal",
-        "vault.verify"
+        "history.seal"
       ],
       "mode_limits": {
         "memory.govern": [
@@ -77,8 +76,7 @@
         "memory.govern",
         "authority.judge",
         "action.execute",
-        "history.seal",
-        "vault.verify"
+        "history.seal"
       ],
       "mode_limits": {},
       "diagnostics": false
@@ -92,8 +90,7 @@
         "memory.govern",
         "authority.judge",
         "action.execute",
-        "history.seal",
-        "vault.verify"
+        "history.seal"
       ],
       "mode_limits": {},
       "diagnostics": true
@@ -107,8 +104,7 @@
         "memory.govern",
         "authority.judge",
         "action.execute",
-        "history.seal",
-        "vault.verify"
+        "history.seal"
       ],
       "mode_limits": {},
       "diagnostics": false,
