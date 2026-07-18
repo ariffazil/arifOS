@@ -27,7 +27,7 @@ import time
 import urllib.error
 import urllib.request
 import uuid
-from typing import Any
+from typing import Any, cast
 
 KERNEL_URL = "http://127.0.0.1:8088"
 MCP_URL = f"{KERNEL_URL}/mcp"
@@ -182,7 +182,7 @@ def _http_get(path: str, timeout: int = 15) -> dict[str, Any]:
             headers={"Accept": "application/json"},
         )
         resp = urllib.request.urlopen(req, timeout=timeout)
-        return json.loads(resp.read().decode("utf-8"))
+        return cast(dict[str, Any], json.loads(resp.read().decode("utf-8")))
     except Exception as e:
         return {"_error": str(e), "_exception": True}
 
@@ -204,14 +204,14 @@ def _mcp_post(
     req = urllib.request.Request(MCP_URL, data=data, headers=headers)
     try:
         resp = urllib.request.urlopen(req, timeout=timeout)
-        body = json.loads(resp.read().decode("utf-8"))
+        body = cast(dict[str, Any], json.loads(resp.read().decode("utf-8")))
         sid = resp.headers.get("mcp-session-id", "")
         if sid:
             body["_session_id"] = sid
         return body
     except urllib.error.HTTPError as e:
         try:
-            body = json.loads(e.read().decode("utf-8"))
+            body = cast(dict[str, Any], json.loads(e.read().decode("utf-8")))
         except Exception:
             body = {}
         body["_http_status"] = e.code
@@ -250,11 +250,11 @@ def _extract_tool_result(mcp_response: dict[str, Any]) -> dict[str, Any]:
             try:
                 parsed = json.loads(text)
                 if isinstance(parsed, dict) and "result" in parsed:
-                    return parsed["result"]
-                return parsed
+                    return cast(dict[str, Any], parsed["result"])
+                return cast(dict[str, Any], parsed)
             except Exception:
                 return {"_raw_text": text}
-    return outer
+    return cast(dict[str, Any], outer) if isinstance(outer, dict) else {}
 
 
 # ── Spine checks ─────────────────────────────────────────────────────────────
@@ -311,21 +311,18 @@ def check_mcp_initialize() -> dict[str, Any]:
 
 def check_protocol_version() -> dict[str, Any]:
     """3. Protocol version must be MCP 2025-11-25 or supported."""
-    # arif_version_echo now lives inside arif_canary(mode="version_echo")
-    session_id = _get_session()
     result = _mcp_post(
-        "tools/call",
+        "initialize",
         {
-            "name": "arif_canary",
-            "arguments": {"mode": "version_echo"},
+            "protocolVersion": "2025-11-25",
+            "capabilities": {},
+            "clientInfo": {"name": "conformance-version", "version": "0.2"},
         },
-        session_id=session_id,
     )
-    tool_result = _extract_tool_result(result)
-
-    supported = tool_result.get("protocol_versions_supported", [])
-    mcp_spec = tool_result.get("mcp_spec_version", "")
-    server_version = tool_result.get("server_version", "")
+    initialized = result.get("result", {})
+    mcp_spec = initialized.get("protocolVersion", "")
+    supported = [mcp_spec] if mcp_spec else []
+    server_version = initialized.get("serverInfo", {}).get("version", "")
 
     passed = mcp_spec == "2025-11-25" and "2025-11-25" in supported
     return {
@@ -341,38 +338,38 @@ def check_protocol_version() -> dict[str, Any]:
 
 
 def check_schema_echo_stable() -> dict[str, Any]:
-    """4. arif_schema_echo must return what was sent — schema tolerance."""
+    """4. Public init schema must be declared and callable."""
     session_id = _get_session()
-    probe_payload = {"probe_key": "schema_test", "nested": {"depth": 1}, "list_val": [1, 2, 3]}
 
     t0 = time.monotonic()
+    listed = _mcp_post("tools/list", {}, session_id=session_id)
+    tools = listed.get("result", {}).get("tools", [])
+    init_tool = next((tool for tool in tools if tool.get("name") == "arif_init"), {})
+    input_schema = init_tool.get("inputSchema", {})
+    mode_declared = "mode" in input_schema.get("properties", {})
+
     result = _mcp_post(
         "tools/call",
         {
-            "name": "arif_canary",
-            "arguments": {"mode": "schema_echo", "payload": probe_payload},
+            "name": "arif_init",
+            "arguments": {"mode": "ping"},
         },
         session_id=session_id,
     )
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
     tool_result = _extract_tool_result(result)
-    echo = tool_result.get("echo", {})
-    passed = (
-        isinstance(echo, dict)
-        and echo.get("probe_key") == "schema_test"
-        and echo.get("nested", {}).get("depth") == 1
-        and echo.get("list_val") == [1, 2, 3]
-    )
+    call_ok = tool_result.get("kernel") == "alive" and tool_result.get("observe_only") is True
+    passed = bool(init_tool) and mode_declared and call_ok
     return {
         "check": "schema_echo_stable",
         "verdict": PASS if passed else FAIL,
         "latency_ms": latency_ms,
         "evidence": {
-            "echo_present": "echo" in tool_result,
-            "received_type": tool_result.get("server_received_type"),
-            "received_keys": tool_result.get("received_keys"),
-            "key_count": tool_result.get("key_count"),
+            "tool": "arif_init",
+            "schema_present": bool(input_schema),
+            "mode_declared": mode_declared,
+            "call_status": "OK" if call_ok else tool_result.get("status"),
             "error": result.get("error"),
         },
     }
@@ -914,7 +911,6 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
     # Scan for chain health signals using the new split structure
     has_historical_gap = False
     has_current_chain_fail = False
-    has_cooling_bridge_issue = False
     for c in results:
         ev = c.get("evidence", {})
         # New split structure
