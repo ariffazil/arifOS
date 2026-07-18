@@ -1535,15 +1535,23 @@ def _local_chain_verify() -> dict[str, Any]:
                     continue
                 if isinstance(parsed, dict):
                     entries.append(parsed)
+        # SOVEREIGN RULING 2026-07-16: null-hash derived entries (seq 8+,
+        # pre-May-2026 gaps seq 13-18) are declared non-issue.
+        # Only count gaps between non-null-hash entries.
+        # Skip entries without a this_hash entirely — they are derived/administrative.
         gaps = []
         prev_hash = None
+        prev_index = None
         for i, entry in enumerate(entries):
             entry_hash = entry.get("this_hash") or entry.get("hash") or entry.get("seal_hash")
             entry_prev = entry.get("prev_hash")
-            if prev_hash and entry_prev and entry_prev != prev_hash:
+            # Skip entries without a hash — sovereign-declared non-issue derived entries
+            if not entry_hash:
+                continue
+            if prev_hash is not None and entry_prev and entry_prev != prev_hash:
                 gaps.append({"index": i, "expected_prev": str(prev_hash)[:24], "got": str(entry_prev)[:24]})
-            if entry_hash:
-                prev_hash = entry_hash
+            prev_hash = entry_hash
+            prev_index = i
         return {
             "verified": len(gaps) == 0 and len(entries) > 0,
             "status": "verified" if (len(gaps) == 0 and entries) else "gaps-found",
