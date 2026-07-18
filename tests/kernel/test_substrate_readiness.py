@@ -4,11 +4,14 @@ test_substrate_readiness — Tests for AGI Substrate Readiness Gate.
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
+import dataclasses
+
 import pytest
+
 from arifosmcp.kernel.substrate_readiness import (
-    assess_substrate_readiness,
     ReadinessCheck,
     SubstrateReadinessReport,
+    assess_substrate_readiness,
 )
 
 
@@ -42,7 +45,8 @@ class TestSubstrateReadiness:
         report = assess_substrate_readiness()
         if report.critical_failures > 0:
             assert report.overall_verdict == "FAIL", (
-                f"Critical failures ({report.critical_failures}) but verdict={report.overall_verdict}"
+                f"Critical failures ({report.critical_failures}) "
+                f"but verdict={report.overall_verdict}"
             )
 
     def test_all_checks_have_names(self):
@@ -62,6 +66,16 @@ class TestSubstrateReadiness:
         report = assess_substrate_readiness()
         names = {c.name for c in report.checks}
         assert "public_surface_exact" in names, f"Missing public_surface_exact check: {names}"
+
+    def test_current_eight_tool_canon_is_ready(self):
+        """The readiness gate must accept the ratified eight-tool public canon."""
+        report = assess_substrate_readiness()
+        checks = {check.name: check for check in report.checks}
+
+        assert checks["public_surface_exact"].passed
+        assert checks["capability_graph_core"].passed
+        assert checks["irreversible_tools_limited"].passed
+        assert report.overall_verdict == "PASS"
 
     def test_forbidden_tools_check_present(self):
         """Must include the forbidden_tools_blocked check."""
@@ -107,5 +121,5 @@ class TestSubstrateReadiness:
         )
         assert check.name == "test"
         assert check.passed is True
-        with pytest.raises(Exception):
+        with pytest.raises(dataclasses.FrozenInstanceError):
             check.passed = False  # frozen

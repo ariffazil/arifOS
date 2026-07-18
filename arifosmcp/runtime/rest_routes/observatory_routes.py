@@ -583,6 +583,33 @@ def _substrate_block() -> dict[str, dict[str, Any]]:
 
 
 # ── Runtime identity ───────────────────────────────────────────────────────────
+def _workspace_git_state() -> tuple[str | None, bool | None]:
+    """Read the operator source repository, not the deployed copy under /opt."""
+    import subprocess
+
+    source_repo = os.getenv("ARIFOS_SOURCE_REPO", "/root/arifOS")
+    try:
+        commit = subprocess.run(
+            ["git", "-C", source_repo, "rev-parse", "--short=12", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "-C", source_repo, "status", "--porcelain"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        if not commit or status.returncode != 0:
+            return None, None
+        return commit, bool(status.stdout.strip())
+    except Exception:
+        return None, None
+
+
 def _runtime_identity_block() -> dict[str, dict[str, Any]]:
     """Runtime identity envelope: commits, hashes, deployment mode, drift state."""
     out: dict[str, dict[str, Any]] = {}
@@ -612,6 +639,23 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
         git_snap.get("branch"),
         source="arifOS/_collect_git_snapshot",
         confidence=0.99,
+        observation_method=_OBS_METHOD_FILESYSTEM,
+        independent=True,
+    )
+    workspace_commit, workspace_dirty = _workspace_git_state()
+    out["workspace_source_commit"] = _pf(
+        workspace_commit,
+        source=os.getenv("ARIFOS_SOURCE_REPO", "/root/arifOS"),
+        state="observed" if workspace_commit else "unknown",
+        confidence=0.99 if workspace_commit else 0.0,
+        observation_method=_OBS_METHOD_FILESYSTEM,
+        independent=True,
+    )
+    out["workspace_dirty"] = _pf(
+        workspace_dirty,
+        source=f"git status --porcelain ({os.getenv('ARIFOS_SOURCE_REPO', '/root/arifOS')})",
+        state="observed" if workspace_dirty is not None else "unknown",
+        confidence=0.99 if workspace_dirty is not None else 0.0,
         observation_method=_OBS_METHOD_FILESYSTEM,
         independent=True,
     )
@@ -2075,8 +2119,10 @@ def _findings_block(
             block = block.get("value") or block.get("commit") or block.get("sha")
         return str(block)[:12] if block else None
 
-    source_c = _commit_val(runtime_identity.get("source_commit"))
+    source_c = _commit_val(runtime_identity.get("workspace_source_commit"))
     deploy_c = _commit_val(runtime_identity.get("deployed_commit"))
+    dirty_cell = runtime_identity.get("workspace_dirty")
+    source_dirty = dirty_cell.get("value") if isinstance(dirty_cell, dict) else dirty_cell
     if not source_c or not deploy_c:
         # fall back to filesystem
         try:
@@ -2102,11 +2148,14 @@ def _findings_block(
             )
         except Exception:
             pass
-    if source_c and deploy_c and source_c == deploy_c:
+    if source_c and deploy_c and source_c == deploy_c and source_dirty is False:
         f008_status, f008_ev = "RESOLVED", f"source={source_c} deployed={deploy_c}"
         f008_desc = "Deployed commit matches source HEAD"
     else:
-        f008_status, f008_ev = "OPEN", f"source={source_c} deployed={deploy_c}"
+        f008_status, f008_ev = (
+            "OPEN",
+            f"source={source_c} deployed={deploy_c} workspace_dirty={source_dirty}",
+        )
         f008_desc = "Deployed commit not aligned with source HEAD"
 
     findings: list[dict[str, Any]] = [
