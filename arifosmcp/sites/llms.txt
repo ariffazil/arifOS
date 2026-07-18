@@ -39,7 +39,7 @@ and 40 operational support tools.
 | `arif_bridge_connect` | 444 | internal_only | ✓ | connect |
 | `arif_compose` | 888 | internal_only | ✓ | compose, summarize, cite, tone_shift |
 | `arif_memory` | 000 | authenticated | ✗ HOLD | recall, inspect, attest, remember, promote, revise +2 more |
-| `arif_judge` | 666 | authenticated | ✓ | intercept, judge, validate, hold, escalate |
+| `arif_judge` | 888 | authenticated | ✓ | intercept, judge, validate, hold, escalate |
 | `arif_judge_deliberate` | 666 | internal_only | ✓ | judge, validate, hold, rules, armor, probe +1 more |
 | `arif_seal` | 999 | authenticated | ✗ HOLD | seal, verify, ledger, changelog, audit |
 | `arif_verify` | 000 | public | ✓ | ed25519_verify |

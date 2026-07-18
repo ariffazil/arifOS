@@ -1,0 +1,422 @@
+organ: arifOS
+version: 2026.07.18-r2
+sot_source: constitutional_map.py
+live_port: 8088
+tools:
+- name: arif_kernel_intercept
+  stage: '666'
+  access: internal_only
+  description: Minimum Constitutional Kernel — brutalist interceptor for all agent
+    actions. Takes action details and returns ALLOW, DENY, ESCALATE, or SIMULATE verdict.
+    Use for any mutating or external action tha...
+  floors:
+  - L13
+  modes:
+  - intercept
+  cognitive_axis: judge
+  risk_tier: critical
+- name: arif_init
+  stage: '000'
+  access: public
+  description: 'KERNEL 000 · Session ignition. Binds actor, floors, and audit before
+    any other arif_* verb can govern. Without session_id the kernel treats the caller
+    as anonymous (OBSERVE_ONLY). Modes: ping | lig...'
+  floors:
+  - L01
+  - L11
+  - L12
+  modes:
+  - init
+  - light
+  - resume
+  - validate
+  - canary
+  - preflight
+  - triage
+  - epoch_open
+  - epoch_seal
+  - opt_out
+  - opt_out_profiling
+  cognitive_axis: identity
+  risk_tier: medium
+- name: arif_observe
+  stage: '111'
+  access: public
+  description: 'KERNEL 111 · Sense reality into evidence (not reasoning, not judgment).
+    Modes: search | fetch | ingest | vitals | compass | atlas | entropy_dS | repo_map
+    | hybrid_discovery. Returns evidence with s...'
+  floors:
+  - L02
+  - L03
+  - L07
+  - L12
+  modes:
+  - search
+  - fetch
+  - hybrid_discovery
+  - ingest
+  - compass
+  - atlas
+  - entropy_dS
+  - vitals
+  cognitive_axis: observe
+  risk_tier: low
+- name: arif_fetch
+  stage: '111'
+  access: internal_only
+  description: 'Fetch and preserve external evidence with source citations and provenance
+    tags. Use for targeted URL/source retrieval. Modes: fetch (default), search, eureka.
+    For broad sensing use arif_observe; fo...'
+  floors:
+  - L02
+  - L03
+  - L05
+  - L12
+  modes:
+  - fetch
+  - search
+  - eureka
+  cognitive_axis: verify
+  risk_tier: medium
+- name: arif_think
+  stage: '333'
+  access: public
+  description: 'KERNEL 333 · Mind — structured reasoning under F2/F7 (not chat, not
+    verdict). Modes: reason | reflect | verify | plan | plan_review | plan_approve
+    | refactor_plan | metabolize | axioms. Returns OBS...'
+  floors:
+  - L02
+  - L05
+  - L06
+  - L07
+  - L08
+  - L09
+  - L10
+  modes:
+  - reason
+  - reflect
+  - verify
+  - axioms
+  - plan
+  - plan_review
+  - plan_approve
+  - refactor_plan
+  - metabolize
+  - simulate
+  - wonder
+  cognitive_axis: reason
+  risk_tier: medium
+- name: arif_critique
+  stage: '555'
+  access: internal_only
+  description: 'KERNEL 555 · Heart — ethical/dignity/risk stress before judgment (not
+    SEAL). Requires non-empty target. Modes: critique | redteam | maruah | deescalate
+    | empathize | simulate | shadow. Returns risk...'
+  floors:
+  - L05
+  - L06
+  - L09
+  modes:
+  - critique
+  - redteam
+  - maruah
+  - shadow
+  - deescalate
+  - empathy
+  cognitive_axis: critique
+  risk_tier: medium
+- name: arif_route
+  stage: '444'
+  access: public
+  description: KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE).
+    Select when goal is known but organ/verb is not. Optional organ_tool = governed
+    bridge (prefer over arif_bridge_connect)...
+  floors:
+  - L01
+  - L04
+  - L10
+  - L11
+  modes:
+  - route
+  - bridge
+  cognitive_axis: boundary
+  risk_tier: low
+- name: arif_triage
+  stage: '000'
+  access: internal_only
+  description: DEPRECATED — use arif_init(mode='preflight'|'triage'|'status'). Internal
+    session preflight handler only; not on public tools/list.
+  floors:
+  - L04
+  - L10
+  modes:
+  - status
+  - preflight
+  - triage
+  cognitive_axis: boundary
+  risk_tier: low
+- name: arif_bridge_connect
+  stage: '444'
+  access: internal_only
+  description: KERNEL 444-direct · Low-level organ call (organ + tool_name required).
+    Authority HIGH/lease. Agents prefer arif_route. Not a free MCP proxy.
+  floors:
+  - L01
+  - L11
+  - L10
+  modes:
+  - connect
+  cognitive_axis: boundary
+  risk_tier: medium
+- name: arif_compose
+  stage: '888'
+  access: internal_only
+  description: 'KERNEL reply · Final human-facing composition (citations, tone, ΔS≤0).
+    Call LAST after observe/think/judge. Modes: compose | summarize | cite | tone_shift
+    | style | format. Not a substitute for jud...'
+  floors:
+  - L02
+  - L04
+  - L06
+  - L09
+  modes:
+  - compose
+  - summarize
+  - cite
+  - tone_shift
+  cognitive_axis: reflect
+  risk_tier: low
+- name: arif_memory
+  stage: '000'
+  access: authenticated
+  description: 'KERNEL memory governor · L1–L6 under F1/F2/F4/F11 (not a free notepad).
+    Modes: recall | inspect | attest | remember | promote | revise | forget. Writes
+    are J-space mutations; arifOS judges, storage...'
+  floors:
+  - L01
+  - L02
+  - L04
+  - L08
+  - L11
+  - L12
+  - L13
+  modes:
+  - recall
+  - inspect
+  - attest
+  - remember
+  - promote
+  - revise
+  - forget
+  - audit
+  cognitive_axis: trace
+  risk_tier: medium
+- name: arif_judge
+  stage: '666'
+  access: authenticated
+  description: KERNEL 666 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs.
+    Not advice; binding floor + authority arbitration. Requires actor, intent, domain,
+    reversibility_level, blast_radius. Au...
+  floors:
+  - L01
+  - L02
+  - L11
+  - L13
+  modes:
+  - intercept
+  - judge
+  - validate
+  - hold
+  - escalate
+  cognitive_axis: judge
+  risk_tier: critical
+- name: arif_judge_deliberate
+  stage: '666'
+  access: internal_only
+  description: Internal AAA a2a-server deliberation tool. Render a nuanced constitutional
+    verdict with multi-floor reasoning. Not part of the public 7-tool facade; use
+    arif_judge for public constitutional arbitra...
+  floors:
+  - L01
+  - L11
+  - L13
+  modes:
+  - judge
+  - validate
+  - hold
+  - rules
+  - armor
+  - probe
+  - notify
+  cognitive_axis: judge
+  risk_tier: critical
+- name: arif_seal
+  stage: '999'
+  access: authenticated
+  description: 'KERNEL 999 · VAULT999 immutable append — irreversible civilizational
+    memory. Modes: seal | verify | chain | list | dry_run. seal requires ack_irreversible.
+    Kernel judges; vault seals; Arif owns F13...'
+  floors:
+  - L01
+  - L11
+  - L13
+  modes:
+  - seal
+  - verify
+  - ledger
+  - changelog
+  - audit
+  cognitive_axis: seal
+  risk_tier: critical
+- name: arif_challenge
+  stage: '000'
+  access: internal_only
+  description: KERNEL · Issue an Ed25519 identity challenge nonce (live MCP, AAA Wave
+    2 / Phase 5). Generates a cryptographically random 32-byte nonce, base64-encoded,
+    with a TTL (default 300s). The nonce is sing...
+  floors:
+  - L01
+  - L02
+  - L11
+  - L12
+  modes:
+  - challenge
+  cognitive_axis: identity
+  risk_tier: low
+- name: arif_act
+  stage: '777'
+  access: internal_only
+  description: INTERNAL alias for arif_forge. Retained for backward compatibility
+    with intercept routing tables. Not on public surface; call arif_forge instead.
+  floors:
+  - L01
+  - L11
+  - L13
+  modes:
+  - engineer
+  - query
+  - write
+  - generate
+  - commit
+  - recall
+  - dry_run
+  cognitive_axis: execute
+  risk_tier: critical
+- name: arif_forge
+  stage: '777'
+  access: authenticated
+  description: 'KERNEL 777 · Execution gate via A-FORGE (hands, not law). Mutates
+    only after arif_judge SEAL + lease/chain IDs — no self-authorize. Modes: dry_run
+    | engineer | query | write | generate | commit | r...'
+  floors:
+  - L01
+  - L11
+  - L13
+  modes:
+  - engineer
+  - query
+  - write
+  - generate
+  - commit
+  - recall
+  - dry_run
+  cognitive_axis: execute
+  risk_tier: critical
+- name: arif_measure
+  stage: '111'
+  access: internal_only
+  description: 'INTERNAL: Kernel *runtime* health only (process, transport, topology,
+    resource metrics). NOT human readiness or coupled vitality — those are WELL (well_validate_vitality).
+    Alias intent: arif_runtim...'
+  floors:
+  - L02
+  - L04
+  modes:
+  - health
+  - vitals
+  - cost
+  - genius
+  - topology
+  - drift
+  cognitive_axis: vitality
+  risk_tier: low
+- name: arif_entropy_observe
+  stage: '111'
+  access: internal_only
+  description: Register a structured entropy observation from an authorised organ.
+    Collects observations WITHOUT producing a verdict. Validates against prohibited-inference
+    policy. Enters J-state pipeline after v...
+  floors:
+  - L09
+  - L02
+  - L11
+  modes:
+  - observe
+  cognitive_axis: observe
+  risk_tier: low
+- name: arif_j_state_assess
+  stage: '666'
+  access: internal_only
+  description: Fuse organ observations into a judgment-integrity map. Computes 5 J-planes
+    using MINIMUM-FLOOR aggregation. Never outputs a diagnosis or moral identity.
+  floors:
+  - L09
+  - L02
+  - L04
+  modes:
+  - assess
+  cognitive_axis: judge
+  risk_tier: medium
+- name: arif_correction_probe
+  stage: '666'
+  access: internal_only
+  description: 'Generate a neutral challenge and record the response. Modes: draft_probe,
+    record_response, classify_response, close_probe.'
+  floors:
+  - L01
+  - L02
+  - L11
+  modes:
+  - draft_probe
+  - record_response
+  - classify_response
+  - close_probe
+  cognitive_axis: judge
+  risk_tier: low
+- name: arif_consequence_trace
+  stage: '111'
+  access: internal_only
+  description: Trace who makes the decision, who receives benefits, who bears harm,
+    and who can reverse it.
+  floors:
+  - L01
+  - L06
+  - L11
+  modes:
+  - trace
+  cognitive_axis: observe
+  risk_tier: low
+- name: arif_entropy_route
+  stage: '444'
+  access: internal_only
+  description: Route domain questions to the correct organ. Human stress -> WELL;
+    capital -> WEALTH; physical -> GEOX; runtime -> A-FORGE.
+  floors:
+  - L04
+  modes:
+  - route
+  cognitive_axis: route
+  risk_tier: low
+- name: arif_j_gate
+  stage: '666'
+  access: internal_only
+  description: Convert J-state evidence into action posture. J0->VOID, J1->HOLD, J2->reversible
+    only, J3->bounded, J4->witnessed. Never issues VAULT999 SEAL autonomously.
+  floors:
+  - L01
+  - L13
+  - L09
+  modes:
+  - gate
+  cognitive_axis: judge
+  risk_tier: high
