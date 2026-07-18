@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 
+from arifosmcp.runtime import mind_mcp, mind_reason
 from arifosmcp.runtime.ingress_middleware import _try_promote_local_service
 from arifosmcp.schemas.federation_envelope import (
     AuthorityEnvelope,
@@ -21,6 +22,44 @@ from arifosmcp.schemas.federation_envelope import (
 )
 from arifosmcp.tools.kernel import arif_kernel_route
 from arifosmcp.tools.session import arif_session_init
+
+
+@pytest.mark.asyncio
+async def test_mind_trace_wrapper_delegates_without_recursion() -> None:
+    result = await mind_mcp.arif_mind_trace_get("__missing_session__")
+
+    assert result == {"error": "Session __missing_session__ not found"}
+
+
+@pytest.mark.asyncio
+async def test_mind_step_wrapper_delegates_without_recursion() -> None:
+    session = mind_reason.thinking_manager.start_session(problem="wrapper regression")
+    result = await mind_mcp.arif_mind_step(
+        session.session_id,
+        "analysis",
+        "bounded step",
+    )
+
+    assert result["step_number"] == 1
+    assert result["step_type"] == "analysis"
+
+
+@pytest.mark.asyncio
+async def test_mind_claim_wrapper_delegates_without_recursion(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _Attestation:
+        def model_dump(self) -> dict[str, str]:
+            return {"claim": "bounded"}
+
+    async def _fake_attest(_claim: str, _receipts: list[dict]) -> _Attestation:
+        return _Attestation()
+
+    monkeypatch.setattr(mind_mcp, "_arif_mind_claim_attest_impl", _fake_attest)
+
+    result = await mind_mcp.arif_mind_claim_attest("bounded", [])
+
+    assert result == {"claim": "bounded"}
 
 
 @pytest.mark.asyncio
