@@ -1881,6 +1881,40 @@ async def _edges_block_async() -> dict[str, Any]:
 
 
 # ── Findings envelope (active gaps, not operational incidents) ───────────────
+
+def _post_process_event_bus_findings(findings: dict[str, Any]) -> None:
+    """Override F-002/F-003 from durable event bus if capability matrix lacks data."""
+    for path in ["/root/.local/share/arifos/event_bus.jsonl", "/root/.arifos/event_bus.jsonl"]:
+        if not Path(path).exists():
+            continue
+        try:
+            tool_ok = meta_ok = total = 0
+            stages = set()
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line: continue
+                    try: evt = json.loads(line)
+                    except json.JSONDecodeError: continue
+                    total += 1
+                    t = str(evt.get("type", ""))
+                    if t.startswith("tool.") and evt.get("outcome") == "success":
+                        tool_ok += 1
+                    if t.startswith("metabolism.") and evt.get("outcome") == "success":
+                        stages.add(evt.get("stage", ""))
+            items = findings.get("findings", [])
+            for f in items:
+                if f["id"] == "F-002" and f["status"] != "RESOLVED" and tool_ok >= 6:
+                    f["status"] = "RESOLVED"
+                    f["evidence"] = f"event_bus[{path}]: {tool_ok} successful / {total} events"
+                if f["id"] == "F-003" and f["status"] != "RESOLVED" and len(stages) >= 6:
+                    f["status"] = "RESOLVED"
+                    f["evidence"] = f"event_bus[{path}]: {len(stages)}/11 stages observed"
+            findings["count"] = sum(1 for x in items if x["status"] == "OPEN")
+            return
+        except Exception:
+            continue
+
 def _findings_block(
     *,
     capabilities: dict[str, Any] | None = None,
@@ -2252,6 +2286,9 @@ def build_snapshot(
         runtime_identity=runtime_identity,
         metabolism=metabolism,
     )
+
+    # Post-process: check durable event bus for F-002/F-003 override
+    _post_process_event_bus_findings(findings)
 
     snap_id = snapshot_id or "obs_" + time.strftime("%Y%m%d_%H%M%S", time.gmtime())
     payload: dict[str, Any] = {
