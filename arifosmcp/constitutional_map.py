@@ -941,23 +941,15 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "seal",
         "expose": True,  # ZEN-9 collapse 2026-07-04: restored to public surface
     },
-    "arif_verify": {
-        "name": "arif_verify",
-        "description": (
-            "KERNEL · Ed25519 signature verification (live MCP, AAA Wave 2 / Phase 5). "
-            "Completes the identity ceremony started by arif_challenge. Validates a "
-            "base64 Ed25519 signature against a hex-encoded actor public key over the "
-            "payload {actor_id}:{challenge}. Consumes the challenge (one-shot, no replay). "
-            "On success, marks the session as ed25519_verified. "
-            "Input: challenge (b64), signature (b64), actor_pubkey (64-hex), session_id, actor_id?. "
-            "Output: verified, actor_id, challenge_age_seconds, message. "
-            "Use when: verifying actor identity after arif_challenge; never trust a claimed "
-            "actor_id without cryptographic binding. "
-            "Note: the legacy JITU SEAL-token gate (_arif_verify_tool) remains reachable "
-            "via HTTP /kernel/arif_verify — that semantics is preserved."
-        ),
-        "access": "public",
-        "stage": ToolStage.INIT,
+    # ── arif_verify removed from CANONICAL_TOOLS 2026-07-18 (F-003) ──
+    # arif_verify is NOT a separate constitutional capability. It is the
+    # `_arif_ed25519_verify_tool` Python function (live MCP) which is a
+    # callable, but the canonical capability is reached via
+    # `arif_seal mode="verify"` for SEAL-token verification. The live
+    # `_arif_verify_tool` (JITU SEAL-token gate) lives only as a Python
+    # handle and HTTP /kernel/arif_verify, never on the canonical surface.
+
+    "arif_seal": {
         "lane": TrinityLane.AGI,
         "floors": [
             Law.L01_AMANAH,
@@ -1006,34 +998,13 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "cognitive_axis": "identity",
         "expose": True,  # AAA Wave 2: live MCP surface for Ed25519 ceremony
     },
-    "arif_act": {
-        "name": "arif_act",
-        "description": (
-            "INTERNAL alias for arif_forge. Retained for backward compatibility with "
-            "intercept routing tables. Not on public surface; call arif_forge instead."
-        ),
-        "access": "internal_only",
-        "stage": ToolStage.FORGE_EXECUTE,
-        "lane": TrinityLane.AGI,
-        "floors": [Law.L01_AMANAH, Law.L11_AUDIT, Law.L13_SOVEREIGN],
-        "risk_tier": "critical",
-        "irreversible": True,
-        "modes": [
-            "engineer",
-            "query",
-            "write",
-            "generate",
-            "commit",
-            "recall",
-            "dry_run",
-        ],
-        "eureka_insight": (
-            "F13-ratified 2026-07-04: arif_forge replaces arif_act on the public wire. "
-            "arif_act retained internally for backwards compatibility."
-        ),
-        "cognitive_axis": "execute",
-        "expose": False,  # F13-ratified 2026-07-04: arif_forge is now the canonical public name
-    },
+    # ── arif_act removed 2026-07-18 (F-003 fold completion) ──
+    # arif_act was the 7th public tool that aliased arif_forge. Per 888
+    # ratification, it now lives ONLY as _LEGACY_ALIASES["arif_act"] =
+    # "arif_forge" routing — not in CANONICAL_TOOLS. The handler
+    # _arif_act is still defined for legacy Python callers but is no
+    # longer in _CANONICAL_HANDLERS (so the runtime check passes).
+
     "arif_forge": {
         "name": "arif_forge",
         "description": (
