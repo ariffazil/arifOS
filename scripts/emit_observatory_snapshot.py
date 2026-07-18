@@ -40,14 +40,23 @@ SCHEMA_VERSION = "observatory.v1"
 
 
 def _canon_json(obj):
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    return json.dumps(
+        obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    ).encode("utf-8")
 
 
 def _now_iso():
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
-def _pf(value, source, state="observed", confidence=0.95, observation_method="process_introspection", independent=True):
+def _pf(
+    value,
+    source,
+    state="observed",
+    confidence=0.95,
+    observation_method="process_introspection",
+    independent=True,
+):
     return {
         "value": value,
         "state": state,
@@ -80,7 +89,10 @@ def http_health(host, port, timeout=2):
         with socket.create_connection((host, port), timeout=1.5):
             pass
         import urllib.request
-        req = urllib.request.Request(f"http://{host}:{port}/health", headers={"Accept": "application/json"})
+
+        req = urllib.request.Request(
+            f"http://{host}:{port}/health", headers={"Accept": "application/json"}
+        )
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode("utf-8", errors="replace"))
     except Exception as exc:
@@ -93,7 +105,9 @@ def check_capability_drift():
     try:
         with open(aff_path, encoding="utf-8") as fh:
             registry = json.load(fh)
-        canonical = [name for name in registry.get("canonical_order", []) if str(name).startswith("arif_")]
+        canonical = [
+            name for name in registry.get("canonical_order", []) if str(name).startswith("arif_")
+        ]
         contracts = registry.get("tools", {})
         missing = [name for name in canonical if name not in contracts]
         if len(canonical) == 8 and not missing:
@@ -104,7 +118,11 @@ def check_capability_drift():
 
 
 def check_tool_invocations():
-    for path in ["/root/.local/share/arifos/event_bus.jsonl", "/root/.arifos/event_bus.jsonl", "/var/lib/arifos/event_bus.jsonl"]:
+    for path in [
+        "/root/.local/share/arifos/event_bus.jsonl",
+        "/root/.arifos/event_bus.jsonl",
+        "/var/lib/arifos/event_bus.jsonl",
+    ]:
         if Path(path).exists():
             try:
                 tool_success = total = 0
@@ -118,42 +136,71 @@ def check_tool_invocations():
                         except json.JSONDecodeError:
                             continue
                         total += 1
-                        if isinstance(evt, dict) and str(evt.get("type", "")).startswith("tool.") and evt.get("outcome") == "success":
-                            tool_success += 1
+                        if isinstance(evt, dict):
+                            # Normalise: accept both 'type' and 'event_type'; 'outcome', 'status', and 'SUCCESS/FAILURE'
+                            ev_type = evt.get("type") or evt.get("event_type", "")
+                            ev_outcome = evt.get("outcome") or evt.get("status", "")
+                            if (
+                                str(ev_type).startswith("tool.")
+                                or str(ev_type).startswith("invocation.")
+                            ) and str(ev_outcome).lower() == "success":
+                                tool_success += 1
                 if tool_success > 0:
-                    return "RESOLVED", f"event_bus[{path}]: {tool_success} successful tool invocations / {total} events"
+                    return (
+                        "RESOLVED",
+                        f"event_bus[{path}]: {tool_success} successful tool invocations / {total} events",
+                    )
                 return "OPEN", f"event_bus[{path}]: 0 successful / {total} events"
             except Exception as exc:
                 return "OPEN", f"event_bus read failed: {exc}"
-    return "OPEN", "durable tool-invocation event stream not found; runtime event bus is in-memory only"
+    return (
+        "OPEN",
+        "durable tool-invocation event stream not found; runtime event bus is in-memory only",
+    )
 
 
 def check_metabolism():
-    stages = {"000_INIT", "111_OBSERVE", "222_EVIDENCE", "333_THINK", "444_ROUTE", "555_MEMORY", "666_CRITIQUE", "777_MEASURE", "888_JUDGE", "999_RECEIPT", "010_FORGE"}
+    stages = {
+        "000_INIT",
+        "111_OBSERVE",
+        "222_EVIDENCE",
+        "333_THINK",
+        "444_ROUTE",
+        "555_MEMORY",
+        "666_CRITIQUE",
+        "777_MEASURE",
+        "888_JUDGE",
+        "999_RECEIPT",
+        "010_FORGE",
+    }
     for path in ["/root/.local/share/arifos/event_bus.jsonl", "/root/.arifos/event_bus.jsonl"]:
-        if Path(path).exists():
-            try:
-                seen = set()
-                with open(path, encoding="utf-8") as fh:
-                    for line in fh:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        try:
-                            evt = json.loads(line)
-                        except json.JSONDecodeError:
-                            continue
-                        if not isinstance(evt, dict):
-                            continue
-                        stage = evt.get("stage") or str(evt.get("type", "")).split(".")[-1]
-                        if stage in stages:
-                            seen.add(stage)
-                if seen:
-                    return "RESOLVED", f"event_bus[{path}]: {len(seen)}/11 stages observed"
-                return "OPEN", f"event_bus[{path}]: 0/{len(stages)} stages"
-            except Exception as exc:
-                return "OPEN", f"metabolism check failed: {exc}"
-    return "OPEN", "durable metabolism-stage event stream not found; runtime event bus is in-memory only"
+        if not Path(path).exists():
+            continue
+        seen = set()
+        try:
+            with open(path, encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        evt = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if not isinstance(evt, dict):
+                        continue
+                    stage = evt.get("stage") or str(evt.get("type", "")).split(".")[-1]
+                    if stage in stages:
+                        seen.add(stage)
+            if seen:
+                return "RESOLVED", f"event_bus[{path}]: {len(seen)}/11 stages observed"
+            return "OPEN", f"event_bus[{path}]: 0/{len(stages)} stages"
+        except Exception as exc:
+            return "OPEN", f"metabolism check failed: {exc}"
+    return (
+        "OPEN",
+        "durable metabolism-stage event stream not found; runtime event bus is in-memory only",
+    )
 
 
 def check_vault():
@@ -256,14 +303,21 @@ def check_organ_identity():
         data = http_health(host, port, timeout=1.5)
         if not isinstance(data, dict):
             # try identity.toml fallback (A-FORGE doesn't have a /health with identity)
-            toml_candidates = [f"/root/{name}/identity.toml", f"/root/{name.lower()}/identity.toml", f"/opt/{name.lower()}/identity.toml"]
+            toml_candidates = [
+                f"/root/{name}/identity.toml",
+                f"/root/{name.lower()}/identity.toml",
+                f"/opt/{name.lower()}/identity.toml",
+            ]
             for tc in toml_candidates:
                 if Path(tc).exists():
                     try:
                         with open(tc, encoding="utf-8") as fh:
                             text = fh.read()
                         import re
-                        m = re.search(r'(?:identity|hash|key)[\s=:]+\s*["\']?([a-f0-9:]{16,80})', text)
+
+                        m = re.search(
+                            r'(?:identity|hash|key)[\s=:]+\s*["\']?([a-f0-9:]{16,80})', text
+                        )
                         if m:
                             results.append(f"{name}={m.group(1)[:24]}")
                             break
@@ -273,7 +327,12 @@ def check_organ_identity():
                 results.append(f"{name}=DOWN")
                 missing += 1
             continue
-        identity = data.get("identity_hash") or data.get("identity") or data.get("git_version") or data.get("substrate_manifest_hash")
+        identity = (
+            data.get("identity_hash")
+            or data.get("identity")
+            or data.get("git_version")
+            or data.get("substrate_manifest_hash")
+        )
         if identity:
             short = str(identity)[:24]
             results.append(f"{name}={short}")
@@ -287,6 +346,7 @@ def check_organ_identity():
         try:
             text = arif_id_path.read_text(encoding="utf-8")
             import re
+
             m = re.search(r'"(ed25519:sha256:[0-9a-f]+)"', text)
             if m:
                 arif_id = m.group(1)[:24]
@@ -298,8 +358,14 @@ def check_organ_identity():
         results.append("arifOS=NULL")
         missing += 1
     if missing == 0:
-        return "RESOLVED", f"organ identity proven for {len(results)}/{len(results)} organs: " + ", ".join(results)
-    return "OPEN", f"organ identity missing for {missing}/{len(results)} organs: " + ", ".join(results)
+        return (
+            "RESOLVED",
+            f"organ identity proven for {len(results)}/{len(results)} organs: "
+            + ", ".join(results),
+        )
+    return "OPEN", f"organ identity missing for {missing}/{len(results)} organs: " + ", ".join(
+        results
+    )
 
 
 def check_federation_edges():
@@ -318,17 +384,30 @@ def check_federation_edges():
         ts = cache.get("observed_at_epoch")
         if ts is not None and (time.time() - float(ts)) > 300:
             age = int(time.time() - float(ts))
-            return "OPEN", f"federation_edges: probed={probed} reachable={reachable} aggregate={aggregate} — cache {age}s old"
+            return (
+                "OPEN",
+                f"federation_edges: probed={probed} reachable={reachable} aggregate={aggregate} — cache {age}s old",
+            )
         if probed > 0 and reachable > 0:
-            return "RESOLVED", f"federation_edges: probed={probed} reachable={reachable} aggregate={aggregate}"
-        return "OPEN", f"federation_edges: probed={probed} reachable={reachable} aggregate={aggregate}"
+            return (
+                "RESOLVED",
+                f"federation_edges: probed={probed} reachable={reachable} aggregate={aggregate}",
+            )
+        return (
+            "OPEN",
+            f"federation_edges: probed={probed} reachable={reachable} aggregate={aggregate}",
+        )
     except Exception as exc:
         return "OPEN", f"edge_cache read failed: {exc}"
 
 
 def check_signature():
     try:
-        from arifosmcp.runtime.observatory_signing import get_public_key_fingerprint, _load_or_generate_key
+        from arifosmcp.runtime.observatory_signing import (
+            get_public_key_fingerprint,
+            _load_or_generate_key,
+        )
+
         fingerprint = get_public_key_fingerprint()
         if not fingerprint:
             return "OPEN", "signature key not bootstrapped"
@@ -337,7 +416,10 @@ def check_signature():
         canonical = _canon_json(test)
         sig = key.sign(canonical)
         pub.verify(sig, canonical)
-        return "RESOLVED", f"signature bootstrapped: {fingerprint}; ed25519 sign+verify OK ({len(sig)}-byte sig)"
+        return (
+            "RESOLVED",
+            f"signature bootstrapped: {fingerprint}; ed25519 sign+verify OK ({len(sig)}-byte sig)",
+        )
     except Exception as exc:
         return "OPEN", f"signature failed: {type(exc).__name__}: {exc}"
 
@@ -346,18 +428,33 @@ def check_deployed_commit():
     workspace = "/opt/arifos/app"
     source_workspace = "/root/arifOS"
     try:
-        local = subprocess.run(["git", "-C", workspace, "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5)
+        local = subprocess.run(
+            ["git", "-C", workspace, "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5
+        )
         local_sha = local.stdout.strip()
         if not local_sha:
             return "OPEN", f"git rev-parse HEAD empty: {local.stderr.strip()[:80]}"
-        source = subprocess.run(["git", "-C", source_workspace, "rev-parse", "HEAD"], capture_output=True, text=True, timeout=5)
+        source = subprocess.run(
+            ["git", "-C", source_workspace, "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
         remote_sha = source.stdout.strip()
-        url = subprocess.run(["git", "-C", source_workspace, "config", "--get", "remote.origin.url"], capture_output=True, text=True, timeout=5)
+        url = subprocess.run(
+            ["git", "-C", source_workspace, "config", "--get", "remote.origin.url"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
         url_str = url.stdout.strip()
         if remote_sha and local_sha == remote_sha:
             return "RESOLVED", f"deployed {local_sha[:12]} matches source HEAD {remote_sha[:12]}"
         if remote_sha:
-            return "OPEN", f"deployed {local_sha[:12]} != source HEAD {remote_sha[:12]} (origin: {url_str})"
+            return (
+                "OPEN",
+                f"deployed {local_sha[:12]} != source HEAD {remote_sha[:12]} (origin: {url_str})",
+            )
         return "OPEN", f"deployed {local_sha[:12]} — source HEAD unavailable (origin: {url_str})"
     except Exception as exc:
         return "OPEN", f"deployed commit check failed: {type(exc).__name__}: {exc}"
@@ -366,17 +463,44 @@ def check_deployed_commit():
 def build_findings():
     findings = []
     for fid, name, sev, desc, fn in [
-        ("F-001", "capability_drift", "MEDIUM", "Declared vs registered tool count", check_capability_drift),
-        ("F-002", "tool_testing", "MEDIUM", "Successful tool invocations recorded", check_tool_invocations),
+        (
+            "F-001",
+            "capability_drift",
+            "MEDIUM",
+            "Declared vs registered tool count",
+            check_capability_drift,
+        ),
+        (
+            "F-002",
+            "tool_testing",
+            "MEDIUM",
+            "Successful tool invocations recorded",
+            check_tool_invocations,
+        ),
         ("F-003", "metabolism", "LOW", "Intelligence metabolism stages observed", check_metabolism),
         ("F-004", "receipt", "HIGH", "VAULT verify/replay paths alive", check_vault),
         ("F-005", "identity", "MEDIUM", "Organ identity proven", check_organ_identity),
         ("F-006", "topology", "MEDIUM", "Federation edges probed", check_federation_edges),
         ("F-007", "integrity", "LOW", "Snapshot signature verified", check_signature),
-        ("F-008", "provenance", "LOW", "Deployed commit matches origin/main", check_deployed_commit),
+        (
+            "F-008",
+            "provenance",
+            "LOW",
+            "Deployed commit matches origin/main",
+            check_deployed_commit,
+        ),
     ]:
         status, evidence = fn()
-        findings.append({"id": fid, "category": name, "description": desc, "severity": sev, "evidence": evidence, "status": status})
+        findings.append(
+            {
+                "id": fid,
+                "category": name,
+                "description": desc,
+                "severity": sev,
+                "evidence": evidence,
+                "status": status,
+            }
+        )
     return findings
 
 
@@ -389,15 +513,36 @@ def build_organs():
     ]
     out = {}
     for name, label, host, port in organs:
-        transport = _pf(tcp_probe(host, port), source=f"tcp_probe({host}:{port})", observation_method="tcp_connect_probe")
+        transport = _pf(
+            tcp_probe(host, port),
+            source=f"tcp_probe({host}:{port})",
+            observation_method="tcp_connect_probe",
+        )
         # Try to get identity from /health (skip arifOS to avoid recursion)
-        identity_env = _pf(None, source=f"{label}/identity (skipped to avoid recursion)", state="unknown", confidence=0.0, observation_method="static_configuration")
+        identity_env = _pf(
+            None,
+            source=f"{label}/identity (skipped to avoid recursion)",
+            state="unknown",
+            confidence=0.0,
+            observation_method="static_configuration",
+        )
         if name != "arifos":
             data = http_health(host, port, timeout=1.5)
             if isinstance(data, dict):
-                ident = data.get("identity_hash") or data.get("identity") or data.get("git_version") or data.get("substrate_manifest_hash")
+                ident = (
+                    data.get("identity_hash")
+                    or data.get("identity")
+                    or data.get("git_version")
+                    or data.get("substrate_manifest_hash")
+                )
                 if ident:
-                    identity_env = _pf(str(ident)[:64], source=f"{label}/health.identity_hash", state="observed", confidence=0.9, observation_method="http_get_probe")
+                    identity_env = _pf(
+                        str(ident)[:64],
+                        source=f"{label}/health.identity_hash",
+                        state="observed",
+                        confidence=0.9,
+                        observation_method="http_get_probe",
+                    )
         out[name] = {"transport": transport, "identity": identity_env}
     return out
 
@@ -408,7 +553,13 @@ def build_observatory():
     organs = build_organs()
 
     # load edge cache
-    fed_edges = {"declared": 11, "probed": 0, "reachable": 0, "aggregate_state": "UNKNOWN", "edges": []}
+    fed_edges = {
+        "declared": 11,
+        "probed": 0,
+        "reachable": 0,
+        "aggregate_state": "UNKNOWN",
+        "edges": [],
+    }
     cache_path = Path("/root/.arifos/observatory/snapshots/edge_cache.json")
     if cache_path.exists():
         try:
@@ -422,28 +573,76 @@ def build_observatory():
     canonical = registry.get("canonical_order", [])
     tool_contracts = registry.get("tools", {})
     registered = [name for name in canonical if name in tool_contracts]
-    source_commit = subprocess.run(
-        ["git", "-C", "/opt/arifos/app", "rev-parse", "HEAD"],
-        capture_output=True, text=True, timeout=5,
-    ).stdout.strip() or None
+    source_commit = (
+        subprocess.run(
+            ["git", "-C", "/opt/arifos/app", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
+        or None
+    )
 
     payload = {
         "snapshot_id": snap_id,
         "observed_at": _now_iso(),
         "generated_by": GENERATED_BY,
         "schema_version": SCHEMA_VERSION,
-        "signature": _pf(None, source="ed25519 — to be signed after assembly", state="unsigned", confidence=0.0, observation_method="unknown", independent=True),
+        "signature": _pf(
+            None,
+            source="ed25519 — to be signed after assembly",
+            state="unsigned",
+            confidence=0.0,
+            observation_method="unknown",
+            independent=True,
+        ),
         "runtime_identity": {
-            "source_commit": _pf(source_commit, source="git -C /opt/arifos/app rev-parse HEAD", state="observed" if source_commit else "unknown", confidence=0.99 if source_commit else 0.0, observation_method="filesystem_probe"),
-            "deployment_mode": _pf("systemd", source="/etc/systemd/system/arifos.service", state="reported", confidence=0.85, observation_method="filesystem_probe"),
-            "platform": _pf("Linux-6.17.0-40-generic-x86_64", source="platform.platform", state="observed", confidence=0.99, observation_method="process_introspection"),
+            "source_commit": _pf(
+                source_commit,
+                source="git -C /opt/arifos/app rev-parse HEAD",
+                state="observed" if source_commit else "unknown",
+                confidence=0.99 if source_commit else 0.0,
+                observation_method="filesystem_probe",
+            ),
+            "deployment_mode": _pf(
+                "systemd",
+                source="/etc/systemd/system/arifos.service",
+                state="reported",
+                confidence=0.85,
+                observation_method="filesystem_probe",
+            ),
+            "platform": _pf(
+                "Linux-6.17.0-40-generic-x86_64",
+                source="platform.platform",
+                state="observed",
+                confidence=0.99,
+                observation_method="process_introspection",
+            ),
         },
         "substrate": {
-            "cpu": _pf({"percent": 21, "count": 8}, source="psutil.cpu", state="observed", confidence=0.95, observation_method="process_introspection"),
-            "memory": _pf({"percent": 58, "available": True}, source="psutil.virtual_memory", state="observed", confidence=0.95, observation_method="process_introspection"),
+            "cpu": _pf(
+                {"percent": 21, "count": 8},
+                source="psutil.cpu",
+                state="observed",
+                confidence=0.95,
+                observation_method="process_introspection",
+            ),
+            "memory": _pf(
+                {"percent": 58, "available": True},
+                source="psutil.virtual_memory",
+                state="observed",
+                confidence=0.95,
+                observation_method="process_introspection",
+            ),
         },
         "governance": {
-            "floors_passing": _pf(13, source="13/13 floors loaded", state="reported", confidence=0.9, observation_method="static_configuration"),
+            "floors_passing": _pf(
+                13,
+                source="13/13 floors loaded",
+                state="reported",
+                confidence=0.9,
+                observation_method="static_configuration",
+            ),
         },
         "capabilities": {
             "as_of": _now_iso(),
@@ -454,14 +653,42 @@ def build_observatory():
             "tested_count": 0,
             "degraded_count": 8,
             "matrix": [
-                {"name": name, "declared": True, "registered": name in registered, "exposed": True, "invocable": False, "tested": False, "capability_truth": "DEGRADED"}
+                {
+                    "name": name,
+                    "declared": True,
+                    "registered": name in registered,
+                    "exposed": True,
+                    "invocable": False,
+                    "tested": False,
+                    "capability_truth": "DEGRADED",
+                }
                 for name in canonical
             ],
         },
         "organs": organs,
         "metabolism": [
-            {"stage": _pf(s, source="kernel.stage_enum", state="reported", confidence=0.99, observation_method="static_configuration")}
-            for s in ["000_INIT", "111_OBSERVE", "222_EVIDENCE", "333_THINK", "444_ROUTE", "555_MEMORY", "666_CRITIQUE", "777_MEASURE", "888_JUDGE", "999_RECEIPT", "010_FORGE"]
+            {
+                "stage": _pf(
+                    s,
+                    source="kernel.stage_enum",
+                    state="reported",
+                    confidence=0.99,
+                    observation_method="static_configuration",
+                )
+            }
+            for s in [
+                "000_INIT",
+                "111_OBSERVE",
+                "222_EVIDENCE",
+                "333_THINK",
+                "444_ROUTE",
+                "555_MEMORY",
+                "666_CRITIQUE",
+                "777_MEASURE",
+                "888_JUDGE",
+                "999_RECEIPT",
+                "010_FORGE",
+            ]
         ],
         "evidence": {
             "sources": 0,
@@ -472,11 +699,20 @@ def build_observatory():
         "incidents": [],
         "findings": {
             "count": sum(1 for f in findings if f["status"] == "OPEN"),
-            "by_severity": {k: sum(1 for f in findings if f["severity"] == k and f["status"] == "OPEN") for k in ("HIGH", "MEDIUM", "LOW")},
+            "by_severity": {
+                k: sum(1 for f in findings if f["severity"] == k and f["status"] == "OPEN")
+                for k in ("HIGH", "MEDIUM", "LOW")
+            },
             "findings": findings,
         },
         "federation_edges": fed_edges,
-        "tier": _pf("public", source="Caddy X-Observatory-Tier", state="reported", confidence=0.99, observation_method="static_configuration"),
+        "tier": _pf(
+            "public",
+            source="Caddy X-Observatory-Tier",
+            state="reported",
+            confidence=0.99,
+            observation_method="static_configuration",
+        ),
     }
 
     # Sign
@@ -498,7 +734,10 @@ def main():
     print(f"  signature.key_id: {snap['signature'].get('key_id')}", file=sys.stderr)
     findings = snap.get("findings", {}).get("findings", [])
     for f in findings:
-        print(f"    {f['id']} | {f['severity']:6s} | {f['status']:10s} | {f['evidence'][:80]}", file=sys.stderr)
+        print(
+            f"    {f['id']} | {f['severity']:6s} | {f['status']:10s} | {f['evidence'][:80]}",
+            file=sys.stderr,
+        )
     return 0
 
 

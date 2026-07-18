@@ -2082,10 +2082,7 @@ def _count_mcp_tools(fmcp: Any) -> int:
 
 def _kanon_version() -> str:
     """Single pin used by /health, GET /mcp, /tools, /tools.json, initialize-adjacent cards."""
-    commit = (BUILD_INFO.get("build") or {}).get("commit") or ""
-    if commit and commit != "unknown":
-        return f"kanon-{commit}"
-    return f"kanon-{BUILD_VERSION}"
+    return BUILD_INFO.get("release_tag", BUILD_INFO["version"])
 
 
 def _mcp_discovery_payload(
@@ -4746,7 +4743,10 @@ def register_rest_routes(
                 if path.exists():
                     try:
                         payload = json.loads(path.read_text(encoding="utf-8"))
-                        if isinstance(payload, dict) and payload.get("schema") == "arifos.public-state.v1":
+                        if (
+                            isinstance(payload, dict)
+                            and payload.get("schema") == "arifos.public-state.v1"
+                        ):
                             return JSONResponse(
                                 payload,
                                 headers=_merge_headers(
@@ -5266,7 +5266,9 @@ def register_rest_routes(
     async def _probe_well(client: httpx.AsyncClient) -> str:
         """Probe WELL organ health. Returns 'active' or 'offline'."""
         try:
-            r = await client.get("http://localhost:18083/health", timeout=3.0, follow_redirects=True)
+            r = await client.get(
+                "http://localhost:18083/health", timeout=3.0, follow_redirects=True
+            )
             return "active" if r.status_code == 200 else "offline"
         except Exception:
             return "offline"
