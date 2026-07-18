@@ -12,7 +12,6 @@ Forged 2026-07-14 — Phase A of Reality Observatory.
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -20,15 +19,15 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tests.conftest import SyncASGIClient  # noqa: E402
-
 from arifosmcp.runtime.capability_drift import per_field, per_field_age  # noqa: E402
 from arifosmcp.runtime.rest_routes.observatory_routes import (  # noqa: E402
     SCHEMA_VERSION,
+    _findings_block,
     build_snapshot,
     register_observatory_routes,
     seven_state_health,
 )
+from tests.conftest import SyncASGIClient  # noqa: E402
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -81,7 +80,7 @@ def test_seven_state_health_returns_separate_states(stub_mcp) -> None:
         "LIVENESS", "READINESS", "CAPABILITY", "GOVERNANCE",
         "AUTHORIZATION", "RECEIPT", "CONSTITUTIONAL",
     }
-    for k, v in states.items():
+    for _key, v in states.items():
         assert "value" in v
         assert "state" in v
         assert "source" in v
@@ -96,8 +95,8 @@ def test_build_snapshot_envelope_invariants(stub_mcp) -> None:
     assert "snapshot_id" in snap
     assert "observed_at" in snap
 
-    # Signature is honestly marked unknown until key bootstrap.
-    assert snap["signature"]["state"] == "unknown"
+    # A local signing key may already be bootstrapped; never claim another state.
+    assert snap["signature"]["state"] in {"unknown", "signed"}
 
     # Every block must exist.
     for key in (
@@ -133,6 +132,35 @@ def test_build_snapshot_runtime_identity_carries_drft_state(stub_mcp) -> None:
     assert rid["drift_state"]["value"] in {"aligned", "drifted", "unknown"}
     assert "source_commit" in rid
     assert "deployed_commit" in rid
+
+
+def test_f008_compares_operator_workspace_to_deployed_commit() -> None:
+    findings = _findings_block(
+        runtime_identity={
+            "workspace_source_commit": {"value": "source123"},
+            "workspace_dirty": {"value": False},
+            "deployed_commit": {"value": "deploy456"},
+        }
+    )
+    f008 = next(item for item in findings["findings"] if item["id"] == "F-008")
+
+    assert f008["status"] == "OPEN"
+    assert "source=source123" in f008["evidence"]
+    assert "deployed=deploy456" in f008["evidence"]
+
+
+def test_f008_stays_open_when_matching_workspace_is_dirty() -> None:
+    findings = _findings_block(
+        runtime_identity={
+            "workspace_source_commit": {"value": "same123"},
+            "workspace_dirty": {"value": True},
+            "deployed_commit": {"value": "same123"},
+        }
+    )
+    f008 = next(item for item in findings["findings"] if item["id"] == "F-008")
+
+    assert f008["status"] == "OPEN"
+    assert "workspace_dirty=True" in f008["evidence"]
 
 
 def test_build_snapshot_governance_has_verdict_decomposition(stub_mcp) -> None:

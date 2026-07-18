@@ -75,20 +75,18 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
     failed = 0
     critical_failures = 0
 
-    # ── Check 1: Public MCP surface is exactly canonical 7 ───────────────
+    # ── Check 1: Public MCP surface matches the eight-capability ABI ─────
     try:
-        from arifosmcp.runtime.public_surface import (
-            CANONICAL_7,
-            public_tool_names_for_mode,
-        )
+        from arifosmcp.abi.kernel_abi import semantic_tool_names
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
         public_tools = set(public_tool_names_for_mode(None))
-        expected = set(CANONICAL_7)
+        expected = set(semantic_tool_names())
         if public_tools == expected:
             checks.append(
                 ReadinessCheck(
                     name="public_surface_exact",
-                    description="Default public tools/list returns exactly CANONICAL_7",
+                    description="Default public tools/list matches the eight-capability Kernel ABI",
                     passed=True,
                     severity="critical",
                 )
@@ -105,7 +103,9 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
             checks.append(
                 ReadinessCheck(
                     name="public_surface_exact",
-                    description="Default public tools/list must return exactly CANONICAL_7",
+                    description=(
+                        "Default public tools/list must match the eight-capability Kernel ABI"
+                    ),
                     passed=False,
                     severity="critical",
                     details="; ".join(details),
@@ -137,9 +137,7 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
         forbidden = {
             "arif_bridge_connect",
             "arif_gateway_connect",
-            "arif_forge",
             "arif_forge_execute",
-            "arif_memory",
             "arif_memory_recall",
             "arif_vault_seal",
             "hermes_vault_query",
@@ -187,7 +185,7 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
         failed += 1
         critical_failures += 1
 
-    # ── Check 3: Capability graph covers the core seven ──────────────────
+    # ── Check 3: Capability graph covers the canonical eight ─────────────
     try:
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
@@ -197,8 +195,9 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
             "arif_observe",
             "arif_think",
             "arif_route",
+            "arif_memory",
             "arif_judge",
-            "arif_act",
+            "arif_forge",
             "arif_seal",
         }
         missing_core = expected_core - canonical_names
@@ -206,7 +205,7 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
             checks.append(
                 ReadinessCheck(
                     name="capability_graph_core",
-                    description="All 7 core tools registered in CANONICAL_TOOLS",
+                    description="All 8 canonical tools registered in CANONICAL_TOOLS",
                     passed=True,
                     severity="critical",
                 )
@@ -216,7 +215,7 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
             checks.append(
                 ReadinessCheck(
                     name="capability_graph_core",
-                    description="All 7 core tools must be registered",
+                    description="All 8 canonical tools must be registered",
                     passed=False,
                     severity="critical",
                     details=f"Missing: {missing_core}",
@@ -237,7 +236,7 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
         failed += 1
         critical_failures += 1
 
-    # ── Check 4: Only arif_act and arif_seal may commit irreversible ─────
+    # ── Check 4: Only governed state-changing tools are irreversible ─────
     try:
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
 
@@ -247,14 +246,14 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
             if spec.get("access") in ("public", "authenticated", "sovereign")
             and spec.get("irreversible", False)
         ]
-        expected_irreversible = {"arif_act", "arif_seal"}
+        expected_irreversible = {"arif_memory", "arif_forge", "arif_seal"}
         actual_irreversible = set(irreversible_public)
 
         if actual_irreversible == expected_irreversible:
             checks.append(
                 ReadinessCheck(
                     name="irreversible_tools_limited",
-                    description="Only arif_act and arif_seal are public-irreversible",
+                    description="Only memory, forge, and seal are public-irreversible",
                     passed=True,
                     severity="critical",
                 )
@@ -265,7 +264,7 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
             checks.append(
                 ReadinessCheck(
                     name="irreversible_tools_limited",
-                    description="Only arif_act and arif_seal should be public-irreversible",
+                    description="Only memory, forge, and seal should be public-irreversible",
                     passed=False,
                     severity="critical",
                     details=f"Unexpected irreversible: {extra}" if extra else "Missing expected",
@@ -388,8 +387,8 @@ def assess_substrate_readiness() -> SubstrateReadinessReport:
 
     # ── Check 7: All tools have concrete implementations (no generic fallback) ─
     try:
-        from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, _RUNTIME_DIAGNOSTIC_HANDLERS
         from arifosmcp.constitutional_map import CANONICAL_TOOLS
+        from arifosmcp.runtime.tools import _CANONICAL_HANDLERS, _RUNTIME_DIAGNOSTIC_HANDLERS
 
         # Check canonical tools have handlers. DIAGNOSTIC_TOOLS use multiple
         # registration paths (@mcp.tool, canary_multimode.py, server.py).
