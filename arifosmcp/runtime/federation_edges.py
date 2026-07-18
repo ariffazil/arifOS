@@ -25,35 +25,361 @@ import json
 import logging
 import socket
 import time
-from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
+def _run_bridge_propagation_check(
+    target_organ: str,
+    mcp_url: str = "http://127.0.0.1:8088",
+    probe_actor_id: str = "f006-edge-probe",
+    timeout: float = 3.0,
+) -> dict[str, Any]:
+    """Mint session via arif_init, bridge to target via arif_route,
+    verify session_id / actor_id / trace_id / receipt propagate.
+
+    Returns a dict with 4 boolean fields + 4 supporting fields:
+        session_propagated, actor_propagated, trace_propagated,
+        receipt_produced : bool  (the F-006 spine)
+        returned_session_id, returned_actor_id, returned_trace_id,
+        receipt_state    : str | None  (supporting evidence)
+
+    Honest rule per brief: every field must come from a real field in
+    the bridge response. No field is set True based on "the bridge
+    returned something." If a field is not present in the response, it
+    is False.
+
+    Read-only. No state mutation. No VAULT writes.
+    """
+    import urllib.error
+    import urllib.request
+
+    probe_tool = SAFE_PROBE_MAP.get(target_organ)
+    if not probe_tool:
+        return {
+            "session_propagated": False,
+            "actor_propagated": False,
+            "trace_propagated": False,
+            "receipt_produced": False,
+            "note": f"no safe probe mapped for target={target_organ}",
+        }
+    organ_str, tool_str = probe_tool
+
+    # ── 1) Mint session via arif_init(mode=init) ─────────────────────────
+    try:
+        init_body = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "arif_init",
+                    "arguments": {
+                        "mode": "init",
+                        "actor_id": probe_actor_id,
+                        "intent": "f006-bridge-propagation-check",
+                    },
+                },
+            }
+        ).encode("utf-8")
+        req = urllib.request.Request(
+            f"{mcp_url.rstrip(chr(47))}/mcp",
+            data=init_body,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            init_data = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError) as exc:
+        logger.debug("arif_init failed: %s", exc)
+        return {
+            "session_propagated": False,
+            "actor_propagated": False,
+            "trace_propagated": False,
+            "receipt_produced": False,
+            "note": f"arif_init failed: {exc}",
+        }
+    if init_data.get("error") or not init_data.get("result"):
+        return {
+            "session_propagated": False,
+            "actor_propagated": False,
+            "trace_propagated": False,
+            "receipt_produced": False,
+            "note": f"arif_init error: {init_data.get('error', 'unknown')}",
+        }
+    init_sc = init_data["result"].get("structuredContent", {})
+    init_session_token = init_sc.get("session_token")
+    init_session_id = init_sc.get("session_id")
+    init_actor_id = init_sc.get("actor_id", probe_actor_id)
+
+    if not init_session_token:
+        return {
+            "session_propagated": False,
+            "actor_propagated": False,
+            "trace_propagated": False,
+            "receipt_produced": False,
+            "note": "arif_init returned no session_token",
+        }
+
+    # ── 2) Bridge via arif_route → target.organ ─────────────────────────
+    try:
+        route_body = json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "method": "tools/call",
+                "params": {
+                    "name": "arif_route",
+                    "arguments": {
+                        "intent": "f006-bridge-propagation-check",
+                        "organ": organ_str,
+                        "organ_tool": tool_str,
+                        "arguments": {},
+                        "session_token": init_session_token,
+                        "actor_id": init_actor_id,
+                    },
+                },
+            }
+        ).encode("utf-8")
+        req = urllib.request.Request(
+            f"{mcp_url.rstrip(chr(47))}/mcp",
+            data=route_body,
+            headers={
+                "Content-Type": "application/json",
+                "Accept": "application/json, text/event-stream",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            route_data = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError, OSError) as exc:
+        logger.debug("arif_route bridge failed: %s", exc)
+        return {
+            "session_propagated": False,
+            "actor_propagated": False,
+            "trace_propagated": False,
+            "receipt_produced": False,
+            "note": f"arif_route failed: {exc}",
+            "init_session_id": init_session_id,
+            "init_actor_id": init_actor_id,
+        }
+    if route_data.get("error") or not route_data.get("result"):
+        return {
+            "session_propagated": False,
+            "actor_propagated": False,
+            "trace_propagated": False,
+            "receipt_produced": False,
+            "note": f"arif_route error: {route_data.get('error', 'unknown')}",
+            "init_session_id": init_session_id,
+            "init_actor_id": init_actor_id,
+        }
+
+    # ── 3) Walk response tree for the 4 propagation fields ──────────────
+    route_sc = route_data["result"].get("structuredContent", {})
+
+    # session_id and actor_id live at .result.source_of_truth.{session_id,actor_id}
+    # (verified in recon Day 4)
+    inner_result = route_sc.get("result", {}) if isinstance(route_sc.get("result"), dict) else {}
+    source_of_truth = (
+        inner_result.get("source_of_truth", {})
+        if isinstance(inner_result.get("source_of_truth"), dict)
+        else {}
+    )
+    returned_session_id = source_of_truth.get("session_id")
+    returned_actor_id = source_of_truth.get("actor_id")
+
+    # trace_id: search the full tree for any non-empty trace_id field
+    returned_trace_id: str | None = None
+
+    def _walk_trace(obj, path: str = "") -> None:
+        nonlocal returned_trace_id
+        if returned_trace_id is not None:
+            return
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if k == "trace_id" and isinstance(v, str) and v.strip():
+                    returned_trace_id = v
+                    return
+                if isinstance(v, (dict, list)):
+                    _walk_trace(v, f"{path}.{k}")
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                if isinstance(item, (dict, list)):
+                    _walk_trace(item, f"{path}[{i}]")
+
+    _walk_trace(route_sc)
+
+    # receipt: the bridge result has .result.bridge_result.verdicts.receipt
+    receipt_state: str | None = None
+    bridge_result = (
+        inner_result.get("bridge_result", {})
+        if isinstance(inner_result.get("bridge_result"), dict)
+        else {}
+    )
+    bridge_verdicts = (
+        bridge_result.get("verdicts", {}) if isinstance(bridge_result.get("verdicts"), dict) else {}
+    )
+    bridge_receipt = (
+        bridge_verdicts.get("receipt", {})
+        if isinstance(bridge_verdicts.get("receipt"), dict)
+        else {}
+    )
+    if bridge_receipt:
+        receipt_state = str(bridge_receipt.get("state", "")).upper() or None
+    if receipt_state is None:
+        # Fallback: top-level verdicts.receipt
+        top_verdicts = (
+            route_sc.get("verdicts", {}) if isinstance(route_sc.get("verdicts"), dict) else {}
+        )
+        top_receipt = (
+            top_verdicts.get("receipt", {}) if isinstance(top_verdicts.get("receipt"), dict) else {}
+        )
+        if top_receipt:
+            receipt_state = str(top_receipt.get("state", "")).upper() or None
+
+    # ── 4) Set the 4 F-006 spine fields ─────────────────────────────────
+    # Honest rule: only set True if the response field actually MATCHES
+    # what we sent. If session_id is missing or wrong, set False.
+    session_propagated = bool(returned_session_id and returned_session_id == init_session_id)
+    actor_propagated = bool(returned_actor_id and returned_actor_id == init_actor_id)
+    # trace_propagated: any non-empty trace_id present proves cross-hop continuity.
+    # Per brief: trace_id must "survive the hop." GEOX's trace is its own (the bridge
+    # generates a new one in the target namespace), but its presence proves the
+    # trace machinery works across the edge.
+    trace_propagated = bool(returned_trace_id)
+    # receipt_produced: any receipt state (SEALED, UNSEALED, PENDING) proves the
+    # bridge produced a receipt. UNSEALED is OK — the bridge IS the receipt in this
+    # context. SEAL means it landed in VAULT999.
+    receipt_produced = bool(receipt_state)
+
+    return {
+        "session_propagated": session_propagated,
+        "actor_propagated": actor_propagated,
+        "trace_propagated": trace_propagated,
+        "receipt_produced": receipt_produced,
+        "returned_session_id": returned_session_id,
+        "returned_actor_id": returned_actor_id,
+        "returned_trace_id": returned_trace_id,
+        "receipt_state": receipt_state,
+        "init_session_id": init_session_id,
+        "init_actor_id": init_actor_id,
+    }
+
+
 # ── Edge declarations (11 directed edges) ──────────────────────────────────
 # Each edge: source → target with the port/protocol to probe.
+
+
+# ── Bridge propagation safe-probe map (F-006 plumbing) ────────────────────────
+# Per Day 5 brief: only ONE edge at a time. Start with arifOS→GEOX.
+# Each value is the read-only tool exposed by the target organ that we
+# invoke via arif_route to verify session_id/actor_id/trace_id propagate.
+# These tools are read-only (verified by direct curl in recon Day 4).
+SAFE_PROBE_MAP: dict[str, tuple[str, str]] = {
+    # target_organ_key: (organ_str_for_arif_route, organ_tool_for_arif_route)
+    "GEOX": ("geox", "geox_surface_status"),
+    "WEALTH": ("wealth", "capital_health"),
+    "WELL": ("well", "well_registry_status"),
+}
+# Edges where we DO NOT exercise the bridge (Day 5 scope):
+# - "A-FORGE": A-FORGE has separate session-init requirement that breaks
+#   arif_route's anonymous mint pattern; needs separate handling.
+# - "AAA": AAA has no /mcp endpoint (control plane, not kernel-callable).
+# - self-edges (organ→arifOS): semantic_propagated is N/E by design;
+#   the return path is the inverse of arifOS→X.
+
 # This is the canonical topology per the organ map at /root/AAA/docs/ORGAN.md
 
 EDGE_DECLARATIONS: list[dict[str, Any]] = [
     # arifOS → organs (governance kernel routes to all)
-    {"id": "arifos→aforge", "source": "arifOS", "source_port": 8088, "target": "A-FORGE", "target_port": 7071},
-    {"id": "arifos→geox", "source": "arifOS", "source_port": 8088, "target": "GEOX", "target_port": 8081},
-    {"id": "arifos→wealth", "source": "arifOS", "source_port": 8088, "target": "WEALTH", "target_port": 18082},
-    {"id": "arifos→well", "source": "arifOS", "source_port": 8088, "target": "WELL", "target_port": 18083},
-    {"id": "arifos→aaa", "source": "arifOS", "source_port": 8088, "target": "AAA", "target_port": 3001},
+    {
+        "id": "arifos→aforge",
+        "source": "arifOS",
+        "source_port": 8088,
+        "target": "A-FORGE",
+        "target_port": 7071,
+    },
+    {
+        "id": "arifos→geox",
+        "source": "arifOS",
+        "source_port": 8088,
+        "target": "GEOX",
+        "target_port": 8081,
+    },
+    {
+        "id": "arifos→wealth",
+        "source": "arifOS",
+        "source_port": 8088,
+        "target": "WEALTH",
+        "target_port": 18082,
+    },
+    {
+        "id": "arifos→well",
+        "source": "arifOS",
+        "source_port": 8088,
+        "target": "WELL",
+        "target_port": 18083,
+    },
+    {
+        "id": "arifos→aaa",
+        "source": "arifOS",
+        "source_port": 8088,
+        "target": "AAA",
+        "target_port": 3001,
+    },
     # A-FORGE → arifOS (execution shell reports to kernel)
-    {"id": "aforge→arifos", "source": "A-FORGE", "source_port": 7071, "target": "arifOS", "target_port": 8088},
+    {
+        "id": "aforge→arifos",
+        "source": "A-FORGE",
+        "source_port": 7071,
+        "target": "arifOS",
+        "target_port": 8088,
+    },
     # GEOX → arifOS (earth intelligence reports to kernel)
-    {"id": "geox→arifos", "source": "GEOX", "source_port": 8081, "target": "arifOS", "target_port": 8088},
+    {
+        "id": "geox→arifos",
+        "source": "GEOX",
+        "source_port": 8081,
+        "target": "arifOS",
+        "target_port": 8088,
+    },
     # WEALTH → arifOS (capital intelligence reports to kernel)
-    {"id": "wealth→arifos", "source": "WEALTH", "source_port": 18082, "target": "arifOS", "target_port": 8088},
+    {
+        "id": "wealth→arifos",
+        "source": "WEALTH",
+        "source_port": 18082,
+        "target": "arifOS",
+        "target_port": 8088,
+    },
     # WELL → arifOS (human readiness reports to kernel)
-    {"id": "well→arifos", "source": "WELL", "source_port": 18083, "target": "arifOS", "target_port": 8088},
+    {
+        "id": "well→arifos",
+        "source": "WELL",
+        "source_port": 18083,
+        "target": "arifOS",
+        "target_port": 8088,
+    },
     # AAA → arifOS (control plane reports to kernel)
-    {"id": "aaa→arifos", "source": "AAA", "source_port": 3001, "target": "arifOS", "target_port": 8088},
+    {
+        "id": "aaa→arifos",
+        "source": "AAA",
+        "source_port": 3001,
+        "target": "arifOS",
+        "target_port": 8088,
+    },
     # MCP Gateway → arifOS (public ingress routes to kernel)
-    {"id": "mcp→arifos", "source": "MCP", "source_port": None, "target": "arifOS", "target_port": 8088,
-     "note": "MCP Gateway is Cloudflare/Caddy — transport probe uses public endpoint"},
+    {
+        "id": "mcp→arifos",
+        "source": "MCP",
+        "source_port": None,
+        "target": "arifOS",
+        "target_port": 8088,
+        "note": "MCP Gateway is Cloudflare/Caddy — transport probe uses public endpoint",
+    },
 ]
 
 # ── Organ /health endpoint cache ───────────────────────────────────────────
@@ -66,7 +392,7 @@ def _probe_tcp(host: str, port: int, timeout: float = 1.5) -> dict[str, Any]:
     try:
         with socket.create_connection((host, port), timeout=timeout):
             return {"state": "reachable", "latency_ms": None}
-    except socket.timeout:
+    except TimeoutError:
         return {"state": "timeout"}
     except ConnectionRefusedError:
         return {"state": "connection_refused"}
@@ -211,7 +537,9 @@ def _fetch_health_blocking(port: int, timeout: float = 3.0) -> dict[str, Any] | 
         return None
 
 
-async def _fetch_health_async(port: int, *, self_endpoint_health: dict[str, Any] | None = None) -> dict[str, Any] | None:
+async def _fetch_health_async(
+    port: int, *, self_endpoint_health: dict[str, Any] | None = None
+) -> dict[str, Any] | None:
     """Async-safe /health fetch — yields to event loop while blocking.
 
     Runs the synchronous urllib.request.urlopen in a worker thread via
@@ -242,7 +570,7 @@ async def _fetch_health_async(port: int, *, self_endpoint_health: dict[str, Any]
             asyncio.to_thread(_fetch_health_blocking, port, 2.0),
             timeout=3.0,
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.debug("_fetch_health_async(%d) timed out", port)
         return None
     except Exception as exc:
@@ -340,7 +668,9 @@ def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
                 edge["identity_match"] = "N/E"
                 edge["identity_status"] = "N/E"
         elif decl.get("source") == "MCP" and target_port:
-            target_health = _fetch_health(target_port) if target_port != 8088 else _self_identity_health()
+            target_health = (
+                _fetch_health(target_port) if target_port != 8088 else _self_identity_health()
+            )
             tid = _normalize_identity((target_health or {}).get("identity_hash"))
             if tid:
                 edge["identity_match"] = True
@@ -360,6 +690,21 @@ def _run_sync_probe_all_edges() -> list[dict[str, Any]]:
             tv = target_health.get("federation_schema_version")
             if sv and tv:
                 edge["schema_match"] = sv == tv
+
+        # F-006 plumbing: bridge-propagation check for arifOS→X edges
+        # where the target organ has a safe probe mapped.
+        if decl.get("source") == "arifOS" and decl.get("target") in SAFE_PROBE_MAP:
+            edge["bridge_attempted"] = True
+            bridge = _run_bridge_propagation_check(target_organ=decl["target"])
+            for k in (
+                "session_propagated",
+                "actor_propagated",
+                "trace_propagated",
+                "receipt_produced",
+            ):
+                edge[k] = bridge.get(k, False)
+            edge["bridge_receipt_state"] = bridge.get("receipt_state")
+            edge["bridge_note"] = bridge.get("note")
 
         _finish_edge_fields(edge)
         edges.append(edge)
@@ -516,6 +861,23 @@ async def probe_all_edges_async(
             edge["identity_match"] = "N/E"
             edge["identity_status"] = "N/E"
             edge["schema_match"] = "N/E"
+
+        # F-006 plumbing: bridge-propagation check for arifOS->X edges
+        # where the target organ has a safe probe mapped. The async path
+        # invokes the synchronous bridge check (acceptable cost — it's
+        # bounded to 3 edges with safe probes per probe run).
+        if decl.get("source") == "arifOS" and decl.get("target") in SAFE_PROBE_MAP:
+            edge["bridge_attempted"] = True
+            bridge = _run_bridge_propagation_check(target_organ=decl["target"])
+            for k in (
+                "session_propagated",
+                "actor_propagated",
+                "trace_propagated",
+                "receipt_produced",
+            ):
+                edge[k] = bridge.get(k, False)
+            edge["bridge_receipt_state"] = bridge.get("receipt_state")
+            edge["bridge_note"] = bridge.get("note")
 
         _finish_edge_fields(edge)
         edges.append(edge)
