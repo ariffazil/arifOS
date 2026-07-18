@@ -178,7 +178,7 @@ CORE_NINE: list[str] = [
 CORE_NINE_WITH_ENGINE = {
     "arif_init": "arif_init (modes: init, light, resume, canary, preflight, triage)",
     "arif_observe": "arif_observe (modes: search, fetch, ingest, vitals, atlas)",
-    "arif_think": "arif_think (modes: reason, plan, reflect, verify, critique)",
+    "arif_think": "arif_think (modes: reason, plan, reflect, verify, critique, simulate, wonder)",
     "arif_route": "arif_route (modes: route, bridge, dispatch)",
     "arif_memory": "arif_memory (modes: recall, inspect, attest, remember, promote, revise, forget, audit)",
     "arif_judge": "arif_judge (kernel: arif_kernel_intercept)",
@@ -704,6 +704,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "refactor_plan",
             "metabolize",
             "simulate",
+            "wonder",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
