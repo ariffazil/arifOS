@@ -8,15 +8,25 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from fastmcp import FastMCP
 
+# Import implementations under aliased names so the @mcp.tool() wrappers below
+# don't shadow them. Each wrapper redefines the public name locally; calling that
+# name inside the wrapper body would recurse infinitely. The aliased names always
+# resolve to the real implementation in mind_reason.py.
 from arifosmcp.runtime.mind_reason import (
-    arif_mind_claim_attest,
+    arif_mind_claim_attest as _arif_mind_claim_attest_impl,
+)
+from arifosmcp.runtime.mind_reason import (
+    arif_mind_step as _arif_mind_step_impl,
+)
+from arifosmcp.runtime.mind_reason import (
+    arif_mind_trace_get as _arif_mind_trace_get_impl,
+)
+from arifosmcp.runtime.mind_reason import (
     arif_think_v2,
-    arif_mind_step,
-    arif_mind_trace_get,
 )
 from arifosmcp.schemas.mind_metabolism import MindRequest
 
@@ -35,7 +45,7 @@ async def arif_think(
     """Execute constitutional reasoning and cognitive metabolism."""
     request = MindRequest(query=query, mode=mode, session_id=session_id)
     result = await arif_think_v2(request)
-    return result.model_dump()
+    return cast(dict[str, Any], result.model_dump())
 
 
 @mcp.tool()
@@ -43,7 +53,10 @@ async def arif_mind_step(
     session_id: str, step_type: str, content: str, parent_step: int | None = None
 ) -> dict[str, Any]:
     """Execute a single bounded reasoning step within a session."""
-    return await arif_mind_step(session_id, step_type, content, parent_step)
+    return cast(
+        dict[str, Any],
+        await _arif_mind_step_impl(session_id, step_type, content, parent_step),
+    )
 
 
 @mcp.tool()
@@ -51,14 +64,14 @@ async def arif_mind_claim_attest(
     claim: str, evidence_receipts: list[dict[str, Any]]
 ) -> dict[str, Any]:
     """Bind a claim to evidence receipts and determine language strength."""
-    result = await arif_mind_claim_attest(claim, evidence_receipts)
-    return result.model_dump()
+    result = await _arif_mind_claim_attest_impl(claim, evidence_receipts)
+    return cast(dict[str, Any], result.model_dump())
 
 
 @mcp.tool()
 async def arif_mind_trace_get(session_id: str) -> dict[str, Any]:
     """Retrieve the full reasoning trace for a cognitive session."""
-    return await arif_mind_trace_get(session_id)
+    return cast(dict[str, Any], await _arif_mind_trace_get_impl(session_id))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -112,7 +125,8 @@ Required steps:
 5. Mark C_dark risk — any hallucination or dark-pattern path? (F9 ANTI-HANTU)
 6. Estimate ΔS impact of the proposed metabolisation (F4 CLARITY).
 
-Output: structured context with {{epistemic_rung, tau, omega_0, floors_touched, missing_evidence, c_dark_risk, delta_s}}.
+Output: structured context with
+{{epistemic_rung, tau, omega_0, floors_touched, missing_evidence, c_dark_risk, delta_s}}.
 """
 
 
