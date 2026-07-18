@@ -5248,7 +5248,7 @@ def register_rest_routes(
     async def _probe_geox(client: httpx.AsyncClient) -> str:
         """Probe GEOX organ health. Returns 'active' or 'offline'."""
         try:
-            r = await client.get("http://geox_eic:8081/health", timeout=3.0, follow_redirects=True)
+            r = await client.get("http://localhost:8081/health", timeout=3.0, follow_redirects=True)
             return "active" if r.status_code == 200 else "offline"
         except Exception:
             return "offline"
@@ -5257,7 +5257,7 @@ def register_rest_routes(
         """Probe WEALTH organ health. Returns 'active' or 'offline'."""
         try:
             r = await client.get(
-                "http://wealth-organ:8082/health", timeout=3.0, follow_redirects=True
+                "http://localhost:18082/health", timeout=3.0, follow_redirects=True
             )
             return "active" if r.status_code == 200 else "offline"
         except Exception:
@@ -5266,7 +5266,7 @@ def register_rest_routes(
     async def _probe_well(client: httpx.AsyncClient) -> str:
         """Probe WELL organ health. Returns 'active' or 'offline'."""
         try:
-            r = await client.get("http://well:8083/health", timeout=3.0, follow_redirects=True)
+            r = await client.get("http://localhost:18083/health", timeout=3.0, follow_redirects=True)
             return "active" if r.status_code == 200 else "offline"
         except Exception:
             return "offline"
