@@ -767,14 +767,16 @@ def _extract_envelope_from_arguments(
 def _validate_envelope_for_tool(
     envelope: FederationEnvelope,
     tool_name: str,
+    mode: str | None = None,
 ) -> tuple[bool, str]:
     """
     Validate envelope against tool risk classification.
 
     Returns (ok, reason).
+    Mode-aware: read-only modes of IRREVERSIBLE tools are downgraded to OBSERVE.
     """
     # 1. Classify tool risk and upgrade envelope if needed
-    tool_risk = classify_tool(tool_name)
+    tool_risk = classify_tool(tool_name, mode=mode)
     if (
         envelope.risk.action_class == ActionClass.OBSERVE
         and tool_risk.action_class != ActionClass.OBSERVE
@@ -1001,7 +1003,7 @@ if IS_FASTMCP_3:
                     # ────────────────────────────────────────────────────────────────
 
                     # ── UPGRADE ACTION CLASS BEFORE PROMOTION (2026-06-12) ─────────
-                    _tool_risk = classify_tool(tool_name)
+                    _tool_risk = classify_tool(tool_name, mode=_tool_mode)
                     if (
                         envelope.risk.action_class == ActionClass.OBSERVE
                         and _tool_risk.action_class != ActionClass.OBSERVE
@@ -1019,7 +1021,9 @@ if IS_FASTMCP_3:
                             f"→ actor={envelope.actor_id}"
                         )
 
-                    envelope_ok, envelope_reason = _validate_envelope_for_tool(envelope, tool_name)
+                    # Extract mode from arguments for mode-aware risk classification
+                    _tool_mode = (msg.arguments or {}).get("mode")
+                    envelope_ok, envelope_reason = _validate_envelope_for_tool(envelope, tool_name, mode=_tool_mode)
                     if not envelope_ok:
                         logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
                         from mcp.types import TextContent

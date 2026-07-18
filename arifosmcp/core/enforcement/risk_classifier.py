@@ -400,11 +400,16 @@ _CANONICAL_TOOL_RISKS: dict[str, RiskPassport] = {
 }
 
 
-def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPassport:
+def classify_tool(
+    tool_name: str,
+    tool_description: str | None = None,
+    mode: str | None = None,
+) -> RiskPassport:
     """
-    Classify a tool by its name and description.
+    Classify a tool by its name, description, and optional mode.
 
     First checks explicit canonical mappings, then falls back to heuristic.
+    Mode-aware: read-only modes of multi-mode tools are downgraded to OBSERVE.
     """
     name = tool_name.lower()
     desc = (tool_description or "").lower()
@@ -412,7 +417,22 @@ def classify_tool(tool_name: str, tool_description: str | None = None) -> RiskPa
 
     # Explicit mapping for canonical tools
     if name in _CANONICAL_TOOL_RISKS:
-        return _CANONICAL_TOOL_RISKS[name]
+        passport = _CANONICAL_TOOL_RISKS[name]
+        # Mode-aware downgrade: read-only modes of IRREVERSIBLE tools
+        if mode and passport.action_class in (ActionClass.ATOMIC, ActionClass.IRREVERSIBLE):
+            _READ_ONLY_MODES = {
+                "arif_seal": {"verify", "chain", "list", "chain_status", "audit"},
+            }
+            read_only = _READ_ONLY_MODES.get(name, set())
+            if mode.lower() in read_only:
+                return RiskPassport(
+                    tier=RiskTier.T2,
+                    action_class=ActionClass.OBSERVE,
+                    tool_class=ToolClass.OBSERVE,
+                    blast_radius=BlastRadius.NONE,
+                    reversibility=ReversibilityLevel.HIGH,
+                )
+        return passport
 
     # T5 ATOMIC: infrastructure-scoped atomic
     if any(
