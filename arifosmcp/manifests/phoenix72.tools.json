@@ -13,7 +13,7 @@
     {"name": "arif_think",       "organ": "arifos", "stage": "333", "emd": "D", "trinity": "AGI", "floors": ["L03", "L07"], "mutation": false, "status": "implemented"},
     {"name": "arif_critique",    "organ": "arifos", "stage": "444", "emd": "D", "trinity": "AGI", "floors": ["L06", "L09"], "mutation": false, "status": "implemented"},
     {"name": "arif_kernel_route",      "organ": "arifos", "stage": "555", "emd": "D", "trinity": "AGI", "floors": ["L04", "L08"], "mutation": false, "status": "implemented"},
-    {"name": "arif_compose",     "organ": "arifos", "stage": "444r", "emd": "D", "trinity": "AGI", "floors": ["L04", "L10"], "mutation": false, "status": "implemented"},
+    {"name": "arif_compose",     "organ": "arifos", "stage": "444r", "emd": "D", "trinity": "AGI", "floors": ["L04", "L10"], "mutation": false, "status": "absorbed", "absorbed_into": "arif_forge(mode=compose)"},
     {"name": "arif_memory_recall",     "organ": "arifos", "stage": "555m", "emd": "D", "trinity": "AGI", "floors": ["L02", "L11"], "mutation": false, "status": "implemented"},
     {"name": "arif_gateway_connect",   "organ": "arifos", "stage": "666g", "emd": "D", "trinity": "AGI", "floors": ["L05", "L12"], "mutation": false, "status": "implemented"},
     {"name": "arif_judge",  "organ": "arifos", "stage": "888", "emd": "D", "trinity": "ASI", "floors": ["L01", "L13"], "mutation": false, "status": "implemented"},

@@ -1057,8 +1057,12 @@ def arif_route(
                 )
 
     # Build transport _envelope from live session state (ALWAYS populated, never re-typed by caller)
+    # Vector #7 (2026-07-20): SCT propagation — session_token was previously dropped
+    # here, breaking cross-organ authority parity. GEOX/WEALTH/WELL received no SCT
+    # and defaulted to OBSERVE_ONLY regardless of the caller's actual session authority.
     _envelope = {
         "session_id": session_id,
+        "session_token": session_token,
         "constitutional_chain_id": session_id or "cc-none",
         "actor_id": actor_id,
         "trace_id": f"trace_{int(__import__('time').time() * 1000)}_{actor_id or 'anon'}",
@@ -1070,7 +1074,7 @@ def arif_route(
 
     # Bridge call to organ
     if target_organ.lower() == "geox":
-        result = _bridge_geox(organ_tool, call_args, session_id, actor_id)
+        result = _bridge_geox(organ_tool, call_args, session_id, actor_id, session_token)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
@@ -1078,7 +1082,7 @@ def arif_route(
         return _route_ok(routing)
 
     if target_organ.lower() == "wealth":
-        result = _bridge_wealth(organ_tool, call_args, session_id, actor_id)
+        result = _bridge_wealth(organ_tool, call_args, session_id, actor_id, session_token)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
@@ -1086,7 +1090,7 @@ def arif_route(
         return _route_ok(routing)
 
     if target_organ.lower() == "well":
-        result = _bridge_well(organ_tool, call_args, session_id, actor_id)
+        result = _bridge_well(organ_tool, call_args, session_id, actor_id, session_token)
         routing["bridge_result"] = result
         routing["bridge_status"] = "called"
         if _routing_hold_required(routing):
@@ -1748,7 +1752,7 @@ def _bridge_ok(
 
 
 def _bridge_geox(
-    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
+    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None, session_token: str | None = None
 ) -> dict[str, Any]:
     """Bridge a call to GEOX organ. Populates and expects echo of _envelope."""
     hold = _assert_organ_attested("geox")
@@ -1762,6 +1766,7 @@ def _bridge_geox(
         actor_id=actor_id,
         identity_verified=bool(actor_id and session_id),
         session_id=session_id,
+        session_token=session_token or arguments.get("session_token"),
         authority=_caller_auth,
         source_tool="arif_route",
         target_organ="GEOX",
@@ -1876,7 +1881,7 @@ def _bridge_geox(
 
 
 def _bridge_wealth(
-    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
+    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None, session_token: str | None = None
 ) -> dict[str, Any]:
     """Bridge a call to WEALTH organ. Echo _envelope for identity integrity."""
     hold = _assert_organ_attested("wealth")
@@ -1890,6 +1895,7 @@ def _bridge_wealth(
         actor_id=actor_id,
         identity_verified=bool(actor_id and session_id),
         session_id=session_id,
+        session_token=session_token or arguments.get("session_token"),
         authority=_caller_auth,
         source_tool="arif_route",
         target_organ="WEALTH",
@@ -2107,7 +2113,7 @@ def _bridge_wealth(
 
 
 def _bridge_well(
-    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None
+    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None, session_token: str | None = None
 ) -> dict[str, Any]:
     """Bridge a call to WELL organ. Echo _envelope unchanged."""
     hold = _assert_organ_attested("well")
@@ -2124,6 +2130,7 @@ def _bridge_well(
         actor_id=actor_id,
         identity_verified=bool(actor_id and session_id),
         session_id=session_id,
+        session_token=session_token or arguments.get("session_token"),
         authority=_caller_auth,
         source_tool="arif_route",
         target_organ="WELL",

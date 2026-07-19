@@ -595,20 +595,20 @@ def _assert_registered_surface(registered_names: list[str]) -> None:
     subtracted — they live on the wire for SDK compat but are NOT canonical.
     Their `_redirect_to` payload teaches callers to migrate.
     """
-    from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS as CONST_DIAG
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
+    from arifosmcp import constitutional_map as _constitutional_map
+    from arifosmcp.runtime import public_surface as _public_surface
 
-    expected_set = set(public_tool_names_for_mode())
+    expected_set = set(_public_surface.public_tool_names_for_mode())
     registered_set = set(registered_names)
     # Subtract all non-public tools: internal-only canonical + all diagnostic tools
     non_public = {
         name
-        for name, spec in CANONICAL_TOOLS.items()
+        for name, spec in _constitutional_map.CANONICAL_TOOLS.items()
         if spec.get("access") == "internal_only" or not spec.get("expose", True)
     }
-    non_public.update(CONST_DIAG.keys())
+    non_public.update(_constitutional_map.DIAGNOSTIC_TOOLS.keys())
     registered_set -= non_public
-    for probe in CANARY_PROBES:
+    for probe in _public_surface.CANARY_PROBES:
         registered_set.discard(probe)
     # Subtract deprecated SDK aliases — they live on the wire for back-compat
     # but must not count toward the canonical surface (forged 2026-07-04).
