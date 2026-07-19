@@ -1,0 +1,89 @@
+# ═══════════════════════════════════════════════════════════════════
+# arifOS — GitHub App Manifest (Deployment Protection Rule)
+# ═══════════════════════════════════════════════════════════════════
+# Phase 7: Install as GitHub App → arifOS becomes deploy-time gate.
+# This manifest is the registration template for the GitHub App.
+# ═══════════════════════════════════════════════════════════════════
+
+name: arifOS Constitutional Deploy Gate
+description: |
+  Constitutional deployment protection rule for the arifOS Federation.
+  arifOS evaluates every deployment request against F1-F13 floors,
+  returning ALLOW or DENY before any artifact reaches production.
+url: https://arifos.arif-fazil.com
+hook_attributes:
+  url: https://arifos.arif-fazil.com/api/github/deploy-gate
+  active: true
+
+# Required permissions for deployment protection
+permissions:
+  # Read-only access to deployment metadata
+  actions: read
+  checks: read
+  contents: read
+  deployments: write       # Required to approve/deny deployments
+  metadata: read
+  pull_requests: read
+
+# Events the app subscribes to
+events:
+  - deployment_protection_rule  # Custom deployment protection rule
+  - deployment_status           # Track deployment status
+  - check_run                   # CI evidence
+  - workflow_run                # Build attestation completion
+
+# Default permissions (least privilege)
+default_permissions:
+  actions: read
+  checks: read
+  contents: read
+  metadata: read
+
+# The deployment protection ABI
+# GitHub calls: POST https://arifos.arif-fazil.com/api/github/deploy-gate
+# Request body:
+# {
+#   "action": "deployment_protection_rule",
+#   "environment": "production",
+#   "deployment_callback_url": "https://api.github.com/...",
+#   "deployment": {
+#     "sha": "abc123...",
+#     "ref": "refs/heads/main",
+#     "environment": "production"
+#   },
+#   "repository": {
+#     "full_name": "ariffazil/arifos"
+#   }
+# }
+#
+# arifOS response (approve):
+# POST deployment_callback_url with { "state": "approved", "comment": "F1-F13 ADMISSIBLE" }
+#
+# arifOS response (deny):
+# POST deployment_callback_url with { "state": "rejected", "comment": "F1 AMANAH VOID: no reversible rollback path" }
+# ═══════════════════════════════════════════════════════════════════
+
+# Setup instructions
+setup:
+  url: https://github.com/settings/apps/new
+  notes: |
+    1. Copy this manifest
+    2. Go to GitHub → Settings → Developer Settings → GitHub Apps → New
+    3. Fill in the fields above
+    4. Generate a private key
+    5. Set ARIFOS_GITHUB_APP_ID and ARIFOS_GITHUB_APP_PRIVATE_KEY in /root/.secrets/vault.env
+    6. Install the app on the organization or personal account
+    7. Add "arifOS Constitutional Deploy Gate" as a deployment protection rule in each environment
+
+# Environment configuration per repo
+environments:
+  production:
+    protection_rules:
+      - type: required_reviewers
+        reviewers: ["ariffazil"]  # F13 SOVEREIGN
+      - type: custom_deployment_protection_rule
+        app_name: "arifOS Constitutional Deploy Gate"
+  staging:
+    protection_rules:
+      - type: custom_deployment_protection_rule
+        app_name: "arifOS Constitutional Deploy Gate"
