@@ -19,9 +19,27 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def _reset_health_cache():
+    """Clear the /health 30s response cache before AND after each test.
+
+    Prevents test ordering from contaminating the cache and breaking
+    subsequent tests (e.g. test_rest_health_endpoint from test_health_metrics
+    integration suite) that rely on a fresh /health composition.
+    """
+    from arifosmcp.runtime.rest_routes import rest_routes as rr
+
+    rr._health_cache["payload"] = None
+    rr._health_cache["ts"] = 0.0
+    yield
+    rr._health_cache["payload"] = None
+    rr._health_cache["ts"] = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -263,7 +281,6 @@ def test_api_live_all_kappa_r_not_echo_debt(monkeypatch):
     distinguishable values.
     """
 
-    import time as _t
 
     from arifosmcp.runtime.rest_routes import rest_routes as rr
     from arifosmcp.runtime.server import app as server_app
@@ -297,7 +314,7 @@ def test_api_live_all_kappa_r_not_echo_debt(monkeypatch):
     # to monkey-patch the closure-defined health() function. /health will
     # return this cached payload verbatim.
     rr._health_cache["payload"] = fake_health_payload
-    rr._health_cache["ts"] = _t.monotonic()
+    rr._health_cache["ts"] = time.monotonic()
 
     client = SyncASGIClient(server_app)
     response = client.get("/api/live/all")
@@ -323,7 +340,6 @@ def test_api_live_all_kappa_r_not_echo_debt(monkeypatch):
 
 def test_api_live_all_unavailable_scalar_remains_none(monkeypatch):
     """When vitals lacks a scalar, /api/live/all returns None (no zero-fill)."""
-    import time as _t
 
     from arifosmcp.runtime.rest_routes import rest_routes as rr
     from arifosmcp.runtime.server import app as server_app
@@ -349,7 +365,7 @@ def test_api_live_all_unavailable_scalar_remains_none(monkeypatch):
     }
 
     rr._health_cache["payload"] = fake_health_payload
-    rr._health_cache["ts"] = _t.monotonic()
+    rr._health_cache["ts"] = time.monotonic()
 
     client = SyncASGIClient(server_app)
     response = client.get("/api/live/all")

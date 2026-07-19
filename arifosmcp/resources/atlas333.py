@@ -13,7 +13,7 @@ Data sources:
 
 Resource URIs (arifos:// namespace):
   arifos://atlas333/index            — Root index
-  arifos://atlas333/paradox/list     — All 35 paradoxes
+  arifos://atlas333/paradox/list     — 36 crosswalk rows (35 unique paradox IDs)
   arifos://atlas333/paradox/{id}     — Single paradox (1-35)
   arifos://atlas333/quote/list       — All 36 quote rows (35 unique paradox IDs)
   arifos://atlas333/quote/{id}       — Single quote (M1-M12, R1-R11, J1-J11, C1-C2)
@@ -465,7 +465,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     @mcp.resource("arifos://atlas333/paradox/list")
     async def paradox_list() -> str:
-        """All 35 paradoxes with axes, zones, organs."""
+        """36 quote crosswalk rows spanning all 35 paradox IDs."""
         return json.dumps(_PARADOXES, indent=2)
 
     registered.append("arifos://atlas333/paradox/list")

@@ -26,6 +26,18 @@ from typing import Any
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _reset_health_cache():
+    """Clear the /health 30s response cache before AND after each test."""
+    from arifosmcp.runtime.rest_routes import rest_routes as rr
+
+    rr._health_cache["payload"] = None
+    rr._health_cache["ts"] = 0.0
+    yield
+    rr._health_cache["payload"] = None
+    rr._health_cache["ts"] = 0.0
+
+
 def _read_semantic_readiness(monkeypatch) -> dict[str, Any] | None:
     """Hit /health and return semantic_readiness dict, or None if unreachable.
 

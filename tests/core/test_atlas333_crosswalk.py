@@ -155,6 +155,14 @@ class TestAtlas333Crosswalk(unittest.TestCase):
             len(ALL_PARADOX_QUOTES),
             "resource paradox table size must match quote count",
         )
+        self.assertEqual(len(paradox_table), 36, "resource must expose all canonical quote rows")
+        paradox_ids = [row["id"] for row in paradox_table]
+        self.assertEqual(set(paradox_ids), set(range(1, 36)))
+        self.assertEqual(paradox_ids.count(14), 2, "P14 duplicate is an intentional crosswalk")
+        self.assertEqual(
+            {row["quote_id"] for row in paradox_table if row["id"] == 14},
+            {"M12", "R3"},
+        )
 
     def test_resource_does_not_silently_drop_drift(self) -> None:
         """The activation rules resource must register and call back into the runtime source."""
