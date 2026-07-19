@@ -10259,7 +10259,127 @@ def _arif_sense_observe(
                 delta_S=0.001,
             )
     if mode == "atlas":
-        return _ok("arif_sense_observe", {"map": {}, "layers": layers or []}, delta_S=0.0)
+        # ATLAS333 Active Gate (2026-07-19) — GPV → paradoxes → quotes → calibration
+        # Replaces empty stub with live cognitive geometry resolution.
+        # F2 TRUTH: deterministic from canonical data. F4 CLARITY: structured payload.
+        try:
+            from core.shared.atlas import Φ
+            from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
+            from arifosmcp.resources.atlas333 import (
+                _PARADOXES,
+                _ZONES,
+                _ACTIVATION_RULES,
+                _TEARFRAME,
+                _PARADOX_BY_ID,
+            )
+
+            _q = query or ""
+            _gpv = Φ(_q)
+            _pids = _gpv.paradox_axes or []
+
+            # Activated paradox details
+            _activated = [_PARADOX_BY_ID[pid] for pid in _pids if pid in _PARADOX_BY_ID]
+
+            # Triggered quotes as rational cues (AUQ pattern)
+            _quotes = []
+            try:
+                _tq = get_triggered_quotes_by_gpv(paradox_axes=_pids)
+                for q in _tq or []:
+                    _quotes.append(
+                        {
+                            "quote_id": q.quote_id,
+                            "organ": q.organ.value if hasattr(q.organ, "value") else str(q.organ),
+                            "quote_text": getattr(q, "quote_text", ""),
+                            "author": getattr(q, "author", ""),
+                            "norm": q.norm.value if hasattr(q.norm, "value") else str(q.norm),
+                            "trigger": q.trigger_condition,
+                        }
+                    )
+            except Exception:
+                pass  # fail-soft: quotes enrich, never gate
+
+            # Active zones
+            _active_zones = []
+            for z in _ZONES:
+                pr = z.get("paradox_range", "")
+                for pid in _pids:
+                    for part in pr.split(","):
+                        part = part.strip()
+                        if "-" in part:
+                            lo, hi = part.split("-", 1)
+                            if int(lo) <= pid <= int(hi):
+                                if z["zone"] not in [az["zone"] for az in _active_zones]:
+                                    _active_zones.append(z)
+                                break
+                        elif part.isdigit() and int(part) == pid:
+                            if z["zone"] not in [az["zone"] for az in _active_zones]:
+                                _active_zones.append(z)
+                            break
+
+            # Calibration guidance from paradox activation
+            _cal = {
+                "confidence_cap": 0.90,
+                "requires_witness": False,
+                "requires_authority_chain": False,
+                "gate_verdict": "PROCEED",
+                "guidance": [],
+            }
+            if 16 in _pids:
+                _cal["confidence_cap"] = 0.85
+                _cal["guidance"].append(
+                    "P16: Certainty teaches less — prefer declared uncertainty."
+                )
+            if 31 in _pids:
+                _cal["requires_witness"] = True
+                _cal["guidance"].append("P31: Seal is permanent — require W³ tri-witness.")
+            if 25 in _pids:
+                _cal["requires_authority_chain"] = True
+                _cal["guidance"].append(
+                    "P25: Legitimacy cannot self-grant — verify authority chain."
+                )
+            if 33 in _pids:
+                _cal["guidance"].append(
+                    "P33: System cannot self-verify governance — external witness needed."
+                )
+            if 23 in _pids:
+                _cal["guidance"].append("P23: Every verdict is incomplete justice — state the gap.")
+            if _gpv.rho >= 0.6:
+                _cal["gate_verdict"] = "CONSTRAIN"
+                _cal["guidance"].append(
+                    f"High risk ρ={_gpv.rho:.2f} — F1 reversible-only, F13 awareness."
+                )
+
+            _payload = {
+                "query": _q,
+                "gpv": {
+                    "lane": _gpv.lane,
+                    "tau": _gpv.tau,
+                    "kappa": _gpv.kappa,
+                    "rho": _gpv.rho,
+                    "query_type": _gpv.query_type.value
+                    if hasattr(_gpv.query_type, "value")
+                    else str(_gpv.query_type),
+                },
+                "activated_paradoxes": _activated,
+                "activated_paradox_ids": _pids,
+                "triggered_quotes": _quotes,
+                "active_zones": _active_zones,
+                "tearframe_thresholds": _TEARFRAME,
+                "activation_rules": _ACTIVATION_RULES,
+                "calibration": _cal,
+                "_meta": {
+                    "atlas_version": "v1.0.0-active-gate",
+                    "mode": "active_gate",
+                    "doctrine": "DITEMPA BUKAN DIBERI",
+                },
+            }
+            return _ok("arif_sense_observe", _payload, delta_S=-0.01)
+        except Exception as _e:
+            return _ok(
+                "arif_sense_observe",
+                {"map": {}, "error": f"ATLAS333 resolution: {_e}", "mode": "atlas_fallback"},
+                delta_S=0.0,
+            )
     if mode == "entropy_dS":
         dS = random.uniform(-0.1, 0.1)
         return _ok(

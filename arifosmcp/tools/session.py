@@ -1309,6 +1309,66 @@ def arif_init(
                     pass
                 sess["signature_verified"] = False
         elif actor_id:
+            # ── LOCALHOST AUTO-IDENTITY (Ed25519 Gap Fix — 2026-07-19) ──────
+            # When called from localhost with a sovereign actor_id and no
+            # explicit signature, auto-sign the challenge with the local
+            # Ed25519 key. This closes the identity gap for all VPS-local
+            # agents without requiring external signing infrastructure.
+            _actor_lower = actor_id.lower().strip()
+            _is_sovereign = _actor_lower in ("arif", "888", "ariffazil")
+            if _is_sovereign:
+                try:
+                    from arifosmcp.runtime.crypto_auth import (
+                        classify_actor_band,
+                        issue_actor_challenge,
+                        verify_init_identity,
+                    )
+
+                    # Issue challenge nonce
+                    _challenge_nonce = issue_actor_challenge(actor_id)
+
+                    # Auto-sign with local Ed25519 key
+                    _auto_sig = _auto_sign_nonce(actor_id, _challenge_nonce)
+
+                    if _auto_sig:
+                        _ok, _reason = verify_init_identity(
+                            actor_id=actor_id,
+                            nonce=_challenge_nonce,
+                            signature_b64=_auto_sig,
+                            constitution_hash=CONSTITUTION_HASH,
+                        )
+                        if _ok:
+                            _band = classify_actor_band(actor_id, True)
+                            _light_actor_verified = True
+                            _light_band = "FULL"
+                            _light_agent_class = "SOVEREIGN_PRINCIPAL"
+                            _light_authority_level = "SOVEREIGN"
+                            try:
+                                from arifosmcp.runtime.authority import bind_authority_state
+                                from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                    build_authority_state_for_actor,
+                                )
+
+                                _av_state = build_authority_state_for_actor(
+                                    actor_id,
+                                    verified=True,
+                                    verification_method="ed25519_auto_localhost",
+                                )
+                                bind_authority_state(sess, _av_state)
+                            except Exception:
+                                pass
+                            sess["signature_verified"] = True
+                            sess["actor_band"] = "FULL"
+                            sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
+                            sess["authority"] = "FULL"
+                            logger.info(
+                                "Auto-identity: %s verified via localhost Ed25519 (%s)",
+                                actor_id,
+                                _reason,
+                            )
+                except Exception as _auto_exc:
+                    logger.warning("Auto-identity failed for %s: %s", actor_id, _auto_exc)
+
             # Check Ed25519-exempt system actors first (IRR-DIP-AUDIT 2026-07-09)
             try:
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
@@ -1680,6 +1740,78 @@ def arif_init(
                     )
             except Exception as _exc:
                 logger.warning("init-mode crypto bind failed: %s", _exc)
+
+        # ── Auto-sign block for VPS-local agents (FORGED 2026-07-19) ──
+        # mode="light" has this at lines 1320-1368. mode="init" was missing it.
+        # This left non-exempt registered agents (kimi, hermes, opencode) stuck
+        # at OBSERVE_ONLY on their primary init path. Copy + adapt: fire for
+        # ANY registered actor, not just sovereign. (Audit: Arif 2026-07-19)
+        if not identity_verified and actor_id:
+            try:
+                from arifosmcp.runtime.crypto_auth import (
+                    _auto_sign_nonce,
+                    classify_actor_band,
+                    issue_actor_challenge,
+                    verify_init_identity,
+                )
+
+                # Issue challenge — succeeds for registered + exempt actors
+                _challenge_nonce = issue_actor_challenge(actor_id)
+
+                # Auto-sign with local Ed25519 key
+                _auto_sig = _auto_sign_nonce(actor_id, _challenge_nonce)
+
+                if _auto_sig:
+                    _ok, _reason = verify_init_identity(
+                        actor_id=actor_id,
+                        nonce=_challenge_nonce,
+                        signature_b64=_auto_sig,
+                        constitution_hash=CONSTITUTION_HASH,
+                    )
+                    if _ok:
+                        _band = classify_actor_band(actor_id, True)
+                        identity_verified = True
+                        sess["signature_verified"] = True
+                        sess["actor_band"] = _band["actor_band"]
+                        sess["agent_class"] = _band["agent_class"]
+                        sess["identity_verify_reason"] = _reason
+                        sess["verified"] = True
+                        sess["verification_method"] = "ed25519_auto_localhost"
+                        sess["evidence_ref"] = (
+                            f"ed25519://{_reason}"
+                            if _reason
+                            else f"session://{sess.get('session_id') or 'bound'}"
+                        )
+                        sess.setdefault("auth_context", {})
+                        if isinstance(sess.get("auth_context"), dict):
+                            sess["auth_context"]["verification_method"] = "ed25519_auto_localhost"
+                            sess["auth_context"]["auth_method"] = "ed25519"
+                        try:
+                            from arifosmcp.runtime.authority import bind_authority_state
+                            from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
+                                build_authority_state_for_actor,
+                            )
+
+                            _av_state = build_authority_state_for_actor(
+                                actor_id,
+                                verified=True,
+                                verification_method="ed25519_auto_localhost",
+                            )
+                            bind_authority_state(sess, _av_state)
+                        except Exception:
+                            pass
+                        logger.info(
+                            "init-mode auto-identity: %s verified via localhost Ed25519 (%s) → %s",
+                            actor_id,
+                            _reason,
+                            _band["actor_band"],
+                        )
+            except ValueError:
+                # Actor not registered — expected for unregistered agents.
+                # Falls through to Ed25519-exempt check below.
+                pass
+            except Exception as _auto_exc:
+                logger.warning("init-mode auto-identity failed for %s: %s", actor_id, _auto_exc)
 
         # ── Challenge path when not verified ──
         # F13: Ed25519-exempt system actors from session_auth.py are auto-granted

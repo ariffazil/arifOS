@@ -46,6 +46,7 @@ class Organ(str, Enum):
     MEMORY = "memory"
     MIND = "mind"
     JUDGE = "judge"
+    CONTOUR = "contour"  # Active contours (34+35, 2026-07-17)
 
 
 class ParadoxAxis(str, Enum):
@@ -89,6 +90,9 @@ class ParadoxAxis(str, Enum):
     UNIVERSAL_MORAL_VS_DIVERSITY = "universal_moral_vs_diversity"
     UNIVERSALIZABILITY_VS_COMPUTABILITY = "universalizability_vs_computability"
     EXPERTISE_VS_AUTHORITARIANISM = "expertise_vs_authoritarianism"
+    # Active Contour axes (Paradox 34-35, 2026-07-17)
+    ROOT_VS_KERNEL = "root_vs_kernel"  # P34: root filesystem access vs MCP governance
+    POSITIVE_VS_CLOSED = "positive_vs_closed"  # P35: passing positive test vs defensive matrix
 
 
 class Norm(str, Enum):
@@ -1072,11 +1076,64 @@ JUDGE_QUOTES: list[ParadoxQuote] = [
 ]
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ACTIVE CONTOURS — 2 Emergent Paradoxes (34-35, 2026-07-17)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ACTIVE_CONTOURS_QUOTES: list[ParadoxQuote] = [
+    # C1 — P34: Root Outruns Kernel
+    # On a single VPS, root filesystem access bypasses MCP governance.
+    # The forge is the real sovereign, not the constitution.
+    ParadoxQuote(
+        quote_id="C1",
+        organ=Organ.CONTOUR,
+        index=1,
+        quote_text="We shape our tools and thereafter our tools shape us.",
+        author="John M. Culkin",
+        work="A Schoolman's Guide to Marshall McLuhan",
+        year="1967",
+        language_note="",
+        attribution=AttributionStatus.TRADITIONAL,
+        antithesis="The constitution constrains every tool that the root can wield — governance must extend to the substrate.",
+        axis=ParadoxAxis.ROOT_VS_KERNEL,
+        axis_label="root access vs. kernel governance",
+        norm=Norm.WAJIB,
+        trigger_condition="Action tier is 'sovereign' OR action_class is 'IRREVERSIBLE' OR GPV.rho >= 0.8",
+        output_field="paradox_hold",
+        floor_bindings=["F1", "F11", "F13"],
+        embed_levels=[EmbedLevel.CODE, EmbedLevel.PROMPT, EmbedLevel.TELEMETRY],
+        use_modes=["judge", "forge"],
+    ),
+    # C2 — P35: Positive ≠ Closed
+    # A passing positive test proves opening; only defensive matrix testing
+    # (positive + negative) proves failing closed.
+    ParadoxQuote(
+        quote_id="C2",
+        organ=Organ.CONTOUR,
+        index=2,
+        quote_text="No amount of experimentation can ever prove me right; a single experiment can prove me wrong.",
+        author="Albert Einstein",
+        work="Letter to Max Born",
+        year="1926",
+        language_note="",
+        attribution=AttributionStatus.TRADITIONAL,
+        antithesis="A passing test is evidence of function, not proof of safety — safety requires the test that breaks.",
+        axis=ParadoxAxis.POSITIVE_VS_CLOSED,
+        axis_label="positive test vs. defensive closure",
+        norm=Norm.WAJIB,
+        trigger_condition="Verdict is 'SEAL' without defensive matrix OR test_pass_count > 0 AND test_fail_count == 0",
+        output_field="paradox_hold",
+        floor_bindings=["F2", "F3", "F11"],
+        embed_levels=[EmbedLevel.CODE, EmbedLevel.PROMPT, EmbedLevel.TELEMETRY],
+        use_modes=["judge", "forge", "verify"],
+    ),
+]
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # MASTER REGISTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
 ALL_PARADOX_QUOTES: dict[str, ParadoxQuote] = {}
-for q in MEMORY_QUOTES + MIND_QUOTES + JUDGE_QUOTES:
+for q in MEMORY_QUOTES + MIND_QUOTES + JUDGE_QUOTES + ACTIVE_CONTOURS_QUOTES:
     ALL_PARADOX_QUOTES[q.quote_id] = q
 
 
@@ -1084,6 +1141,7 @@ QUOTES_BY_ORGAN: dict[Organ, list[ParadoxQuote]] = {
     Organ.MEMORY: MEMORY_QUOTES,
     Organ.MIND: MIND_QUOTES,
     Organ.JUDGE: JUDGE_QUOTES,
+    Organ.CONTOUR: ACTIVE_CONTOURS_QUOTES,
 }
 
 

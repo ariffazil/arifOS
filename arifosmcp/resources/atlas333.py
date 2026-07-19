@@ -63,6 +63,8 @@ _QUOTE_ID_TO_PARADOX_ID: dict[str, int] = {
     "M12": 14,  # Structural anchor for paradox 14 (One↔Many)
     **{f"R{i}": 11 + i for i in range(1, 12)},
     **{f"J{i}": 22 + i for i in range(1, 12)},
+    "C1": 34,  # P34: Root Outruns Kernel (2026-07-17)
+    "C2": 35,  # P35: Positive ≠ Closed (2026-07-17)
 }
 
 
@@ -101,6 +103,16 @@ _ACTIVATION_RULES: dict[str, dict[str, Any]] = {
         "condition": "query_type=EXPLORATORY",
         "description": "Open-ended exploration (Zone IV + V)",
         "paradox_ids": [19, 22, 25],
+    },
+    "rho_sovereign": {
+        "condition": "ρ ≥ 0.8, any lane",
+        "description": "Root privilege + irreversibility — P34 Root Outruns Kernel (Zone VII)",
+        "paradox_ids": [28, 29, 31, 34],
+    },
+    "seal_no_defense": {
+        "condition": "ρ ≥ 0.5, lane∈{CRISIS,FACTUAL} — P35 Positive≠Closed",
+        "description": "SEAL without defensive matrix (Zone VII)",
+        "paradox_ids": [30, 33, 35],
     },
 }
 
@@ -183,6 +195,16 @@ _ACTIVATION_RULES: dict[str, dict[str, Any]] = {
         "description": "Open-ended exploration (Zone IV + V)",
         "paradox_ids": [19, 22, 25],
     },
+    "rho_sovereign": {
+        "condition": "ρ ≥ 0.8, any lane",
+        "description": "Root privilege + irreversibility — P34 Root Outruns Kernel (Zone VII)",
+        "paradox_ids": [28, 29, 31, 34],
+    },
+    "seal_no_defense": {
+        "condition": "ρ ≥ 0.5, lane∈{CRISIS,FACTUAL} — P35 Positive≠Closed",
+        "description": "SEAL without defensive matrix (Zone VII)",
+        "paradox_ids": [30, 33, 35],
+    },
 }
 
 # ── Zones (from ATLAS333_COGNITIVE_GEOMETRY.md) ──────────────────────────
@@ -235,7 +257,7 @@ _ZONES: list[dict[str, Any]] = [
         "name": "Sovereign Apex",
         "geometry": "singular",
         "depth": "absolute",
-        "paradox_range": "29, 31, 33",
+        "paradox_range": "29, 31, 33, 34, 35",
     },
 ]
 
@@ -330,8 +352,8 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
     Pattern matches skills_contracts_resource.py attach_to_mcp_resource.
 
     ZEN (2026-07-16): Reduced from 15 to 3 MCP-exposed resources.
-    12 philosophical resources consolidated into index.
-    Code handlers preserved; only MCP surface exposure removed.
+    RESTORED (2026-07-19): 10 resources re-exposed. Code handlers always
+    preserved; MCP surface re-enabled post ATLAS333-BOOT-20260719 audit.
     """
     registered: list[str] = []
 
@@ -347,6 +369,16 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
                 "description": "Cognitive geometry of arifOS — 33 paradoxes, 33 quotes, 7 zones, TEARFRAME thresholds",
                 "resources_mcp": [
                     "arifos://atlas333/index",
+                    "arifos://atlas333/paradox/list",
+                    "arifos://atlas333/paradox/{id}",
+                    "arifos://atlas333/quote/list",
+                    "arifos://atlas333/quote/{id}",
+                    "arifos://atlas333/zones",
+                    "arifos://atlas333/organs",
+                    "arifos://atlas333/thresholds",
+                    "arifos://atlas333/activation/rules",
+                    "arifos://atlas333/flow",
+                    "arifos://atlas333/geometry",
                     "arifos://atlas333/scar/{id}",
                     "arifos://atlas333/seal/head",
                 ],
@@ -422,6 +454,134 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
             return json.dumps({"error": f"Cannot read seal chain head: {exc}"})
 
     registered.append("arifos://atlas333/seal/head")
+
+    # ── RESTORED (2026-07-19): 10 resources re-exposed post-ZEN ──────────
+    # Data sources already live in _PARADOXES, _ZONES, _ACTIVATION_RULES,
+    # _TEARFRAME, _PIPELINE_STAGES, _GEOMETRY_TERRITORIES.
+    # Quotes are dynamically built from paradox_quotes canon (single source).
+
+    @mcp.resource("arifos://atlas333/paradox/list")
+    async def paradox_list() -> str:
+        """All 33 paradoxes with axes, zones, organs."""
+        return json.dumps(_PARADOXES, indent=2)
+
+    registered.append("arifos://atlas333/paradox/list")
+
+    @mcp.resource("arifos://atlas333/paradox/{id}")
+    async def paradox_by_id(id: str) -> str:
+        """Single paradox by ID (1-33) with full context."""
+        try:
+            pid = int(id)
+            if pid in _PARADOX_BY_ID:
+                return json.dumps(_PARADOX_BY_ID[pid], indent=2)
+            return json.dumps({"error": f"Paradox {id} not found. Valid: 1-33."})
+        except ValueError:
+            return json.dumps({"error": f"Invalid paradox ID: {id}"})
+
+    registered.append("arifos://atlas333/paradox/{id}")
+
+    @mcp.resource("arifos://atlas333/zones")
+    async def zones() -> str:
+        """7 paradox zones with paradox ranges."""
+        return json.dumps(_ZONES, indent=2)
+
+    registered.append("arifos://atlas333/zones")
+
+    @mcp.resource("arifos://atlas333/organs")
+    async def organs() -> str:
+        """3 quote organs (Memory/Mind/Judge)."""
+        return json.dumps(
+            [
+                {"organ": "Memory", "quote_range": "M1-M11", "paradox_range": "1-11"},
+                {"organ": "Mind", "quote_range": "R1-R11", "paradox_range": "12-22"},
+                {"organ": "Judge", "quote_range": "J1-J11", "paradox_range": "23-33"},
+            ],
+            indent=2,
+        )
+
+    registered.append("arifos://atlas333/organs")
+
+    @mcp.resource("arifos://atlas333/thresholds")
+    async def thresholds() -> str:
+        """TEARFRAME thresholds (TRM ≥ 0.94, ECHO ≥ 0.87, RASA ≥ 0.85)."""
+        return json.dumps(_TEARFRAME, indent=2)
+
+    registered.append("arifos://atlas333/thresholds")
+
+    @mcp.resource("arifos://atlas333/activation/rules")
+    async def activation_rules() -> str:
+        """GPV→paradox activation matrix (6 canonical patterns)."""
+        return json.dumps(_ACTIVATION_RULES, indent=2)
+
+    registered.append("arifos://atlas333/activation/rules")
+
+    @mcp.resource("arifos://atlas333/flow")
+    async def flow() -> str:
+        """10-stage ATLAS333 intelligence pipeline (INGEST→SEAL)."""
+        return json.dumps(_PIPELINE_STAGES, indent=2)
+
+    registered.append("arifos://atlas333/flow")
+
+    @mcp.resource("arifos://atlas333/geometry")
+    async def geometry() -> str:
+        """Full cognitive geometry map (territories × geometries × depths)."""
+        return json.dumps(_GEOMETRY_TERRITORIES, indent=2)
+
+    registered.append("arifos://atlas333/geometry")
+
+    @mcp.resource("arifos://atlas333/quote/list")
+    async def quote_list() -> str:
+        """All 33 quotes (M1-M11, R1-R11, J1-J11) with author, organ, trigger."""
+        try:
+            from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
+
+            quotes = []
+            for qid in sorted(ALL_PARADOX_QUOTES.keys(), key=lambda x: (x[0], int(x[1:]))):
+                q = ALL_PARADOX_QUOTES[qid]
+                quotes.append(
+                    {
+                        "quote_id": qid,
+                        "paradox_id": _QUOTE_ID_TO_PARADOX_ID.get(qid),
+                        "organ": q.organ.value,
+                        "axis": q.axis.value,
+                        "axis_label": q.axis_label,
+                        "trigger_condition": q.trigger_condition,
+                        "norm": q.norm.value,
+                    }
+                )
+            return json.dumps(quotes, indent=2)
+        except Exception as exc:
+            return json.dumps({"error": f"Cannot build quote list: {exc}"})
+
+    registered.append("arifos://atlas333/quote/list")
+
+    @mcp.resource("arifos://atlas333/quote/{id}")
+    async def quote_by_id(id: str) -> str:
+        """Single quote by ID (M1-M11, R1-R11, J1-J11) with full context."""
+        try:
+            from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
+
+            qid = id.upper()
+            if qid in ALL_PARADOX_QUOTES:
+                q = ALL_PARADOX_QUOTES[qid]
+                return json.dumps(
+                    {
+                        "quote_id": qid,
+                        "paradox_id": _QUOTE_ID_TO_PARADOX_ID.get(qid),
+                        "organ": q.organ.value,
+                        "axis": q.axis.value,
+                        "axis_label": q.axis_label,
+                        "trigger_condition": q.trigger_condition,
+                        "norm": q.norm.value,
+                        "full_quote": q.to_dict(),
+                    },
+                    indent=2,
+                )
+            return json.dumps({"error": f"Quote {id} not found. Valid: M1-M11, R1-R11, J1-J11."})
+        except Exception as exc:
+            return json.dumps({"error": f"Cannot read quote: {exc}"})
+
+    registered.append("arifos://atlas333/quote/{id}")
 
     return registered
 

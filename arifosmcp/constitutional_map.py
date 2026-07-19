@@ -674,10 +674,14 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
         "description": (
             "KERNEL 333 · Mind — structured reasoning under F2/F7 (not chat, not verdict). "
             "Modes: reason | reflect | verify | plan | plan_review | plan_approve | "
-            "refactor_plan | metabolize | axioms. Returns OBS/DER/INT/SPEC labels. "
+            "refactor_plan | metabolize | axioms | atlas. "
+            "Mode 'atlas' returns ATLAS333 cognitive geometry: GPV, activated paradoxes, "
+            "triggered quotes, zone map, TEARFRAME thresholds, and calibration guidance. "
+            "Returns OBS/DER/INT/SPEC labels. "
             "Maruah/ethics → arif_critique. Binding decision → arif_judge. "
             "Use when: the user needs structured reasoning, plan generation, plan review, "
-            "reflection on past actions, verification of claims, or axiom exploration."
+            "reflection on past actions, verification of claims, axiom exploration, "
+            "or ATLAS333 paradox-aware cognitive geometry mapping."
         ),
         "access": "public",
         "stage": ToolStage.REASON,
@@ -705,6 +709,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
             "metabolize",
             "simulate",
             "wonder",
+            "atlas",
         ],
         "eureka_insight": (
             "F2: τ ≥ 0.99. F7: Ω ∈ [0.03, 0.05]. "
@@ -948,7 +953,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     # `arif_seal mode="verify"` for SEAL-token verification. The live
     # `_arif_verify_tool` (JITU SEAL-token gate) lives only as a Python
     # handle and HTTP /kernel/arif_verify, never on the canonical surface.
-
     "arif_seal": {
         "lane": TrinityLane.AGI,
         "floors": [
@@ -1004,7 +1008,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     # "arif_forge" routing — not in CANONICAL_TOOLS. The handler
     # _arif_act is still defined for legacy Python callers but is no
     # longer in _CANONICAL_HANDLERS (so the runtime check passes).
-
     "arif_forge": {
         "name": "arif_forge",
         "description": (
