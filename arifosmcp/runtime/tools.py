@@ -23820,20 +23820,24 @@ def register_tools(
                             if spec and spec.input_schema:
                                 _ft.parameters = dict(spec.input_schema)
                             _params = _ft.parameters
-                            if (
-                                _modes
-                                and "properties" in _params
-                                and "mode" in _params["properties"]
-                            ):
-                                _params["properties"]["mode"]["enum"] = _modes
-                                logger.info("INJECTED enum for %s: %s", name, _modes)
-                            else:
-                                logger.warning(
-                                    "INJECTION FAILED: %s has mode=%s, props=%s",
-                                    name,
-                                    _modes,
-                                    list(_params.get("properties", {}).keys()),
-                                )
+                            if _modes and "properties" in _params:
+                                if "mode" in _params["properties"]:
+                                    _params["properties"]["mode"]["enum"] = _modes
+                                    logger.info("INJECTED enum for %s: %s", name, _modes)
+                                else:
+                                    # J2 FIX: mode declared in constitutional_map but
+                                    # missing from input_schema (Optional[str] default
+                                    # stripped by FastMCP's schema generator). Inject it.
+                                    _params["properties"]["mode"] = {
+                                        "type": "string",
+                                        "enum": _modes,
+                                        "default": _modes[0],
+                                        "description": f"Operation mode: {', '.join(_modes)}",
+                                    }
+                                    logger.info(
+                                        "INJECTED mode property for %s: %s (was missing from schema)",
+                                        name, _modes,
+                                    )
                         else:
                             logger.warning(
                                 "INJECTION FAILED: tool key '%s' not found. Available: %s",
