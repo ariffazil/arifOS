@@ -5,7 +5,7 @@
 > **Analogy:** Like geological mapping — the earth is never "done," neither is this
 > **Owner:** ARIF (F13 SOVEREIGN)
 > **Steward:** OpenCode (auto-updates on every session)
-> **Last Updated:** 2026-07-15
+> **Last Updated:** 2026-07-19
 
 ---
 
@@ -660,3 +660,22 @@ After VPS boot, services come up in this dependency order:
 ### SCAR ENTRY — 2026-07-19T11:10:00.331788+00:00
 **Input Log**: Executing Gap 6 Qdrant Vector Scar Memory indexing
 **Metabolic Output**: Ingested by AGY CLI. Entropy reduced. Grounding contour updated.
+
+---
+
+## 🔥 Skills Substrate Regeneration — 2026-07-19 17:27 UTC
+
+### State After Regeneration
+- **Skills on disk:** 158 active, 308 archived (466 total)
+- **skills.yaml:** 145 entries (regenerated from disk scan, was 67)
+- **OpenCode profile:** 10 dead references removed, 30 active remain
+- **Skill mesh:** 194 ok, 1 extra (Codex atlas333), 0 broken
+- **Grok harness:** 9 new substrate links created
+- **Codex harness:** All 9 substrate links exist
+- **ATLAS333 MCP resources:** 13 live, all accessible
+- **ATLAS333 tests:** 11/11 passed
+- **Domains:** substrate, knowledge, warga, meta, general, .system, constitutional
+
+### Verdict
+Skills substrate federated. All agent harnesses aligned. ATLAS333 paradox engine healthy.
+Next: Golden Path live-test across all 9 repos.
