@@ -6838,9 +6838,21 @@ def build_standard_mcp_result(
         # P0 wrapper fix (2026-07-19, Fable5): REASONING_EMPTY marker
         # propagated from inner engine to outer metacognition so downstream
         # agents don't need to inspect internal provenance fields.
-        "reasoning_state": raw_result.get("reasoning_state", "")
-        if isinstance(raw_result, dict)
-        else "",
+        # Falls back: raw_result → nested result.reasoning_state → provenance → "UNKNOWN".
+        "reasoning_state": (
+            raw_result.get("reasoning_state", "")
+            if isinstance(raw_result, dict)
+            else ""
+        ) or (
+            raw_result.get("result", {}).get("reasoning_state", "")
+            if isinstance(raw_result, dict) and isinstance(raw_result.get("result"), dict)
+            else ""
+        ) or (
+            "REASONING_EMPTY"
+            if isinstance(raw_result, dict)
+            and raw_result.get("confidence_provenance", "") == "REASONING_EMPTY_FORCED_CAP"
+            else ""
+        ) or "UNKNOWN",
         "next_safe_action": next_safe_action
         if next_safe_action
         else "Call get_full_affordance or tool discovery resource then decide",
