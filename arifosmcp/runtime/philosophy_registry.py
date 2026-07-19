@@ -25,10 +25,49 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-# ── Registry paths (v3.0 unified, v2.0 fallback) ──────────────────────────
-_REGISTRY_PATH = Path(__file__).resolve().parents[2] / "data" / "unified_quotes_registry.json"
-_FALLBACK_PATH = Path(__file__).resolve().parents[2] / "data" / "tool_quote_registry.json"
+# ── Registry paths (unified → tool_quote → quote_registry_v2 → philosophy_atlas) ─
+# Per audit 2026-07-19: chain the loaders so the canonical injection path
+# actually has a source. unified_quotes_registry.json and tool_quote_registry.json
+# were archived in /root/.backups/2026-07-04-registry-unification/ but never
+# copied to runtime. quote_registry_v2.json IS in runtime. Without this chain,
+# philosophy_anchor is empty in every tool response.
+#
+# NOTE: this file lives at arifosmcp/runtime/philosophy_registry.py.
+# The data directory is arifosmcp/data/ — parents[1], not parents[2].
+# The previous parents[2] path was a bug; data files at /opt/arifos/app/data/
+# never existed. This commit corrects the path.
+_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+_REGISTRY_PATH = _DATA_DIR / "unified_quotes_registry.json"
+_FALLBACK_PATH = _DATA_DIR / "tool_quote_registry.json"
+_V2_REGISTRY_PATH = _DATA_DIR / "quote_registry_v2.json"
 _REGISTRY_CACHE: dict[str, Any] | None = None
+_V2_REGISTRY_CACHE: dict[str, Any] | None = None
+
+# ── Tool → quote_id mapping (2026-07-19 unification) ─────────────────────────
+# Each canonical tool gets a curated quote from quote_registry_v2.json.
+# IDs verified against the runtime registry on 2026-07-19.
+_TOOL_QUOTE_MAP: dict[str, str] = {
+    "arif_init": "INIT_Q_001",  # Lao Tzu: "A journey of a thousand miles begins with a single step."
+    "arif_observe": "SENSE_Q_002",  # Feynman: "The first principle is that you must not fool yourself…"
+    "arif_think": "INIT_Q_004",  # Socrates: "The only true wisdom is in knowing you know nothing."
+    "arif_route": "COUNCIL_GOV_01",  # Bacon: "Nature, to be commanded, must be obeyed."
+    "arif_judge": "COUNCIL_GOV_02",  # Madison: "If men were angels, no government would be necessary."
+    "arif_forge": "COUNCIL_GOV_04",  # Popper: knowledge finite, ignorance infinite
+    "arif_seal": "COUNCIL_GOV_05",  # Wiener: the purpose put into the machine is the purpose we really desire
+    "arif_memory": "COUNCIL_PAR_05",  # Al-Ghazali: Knowledge without action is worthless
+}
+# Aliases for legacy / aliased tool names
+_TOOL_ALIAS_MAP: dict[str, str] = {
+    "arif_session_init": "arif_init",
+    "arif_sense_observe": "arif_observe",
+    "arif_kernel_route": "arif_route",
+    "arif_kernel_attest": "arif_judge",
+    "arif_canary": "arif_init",
+    "arif_triage": "arif_init",
+    "arif_fetch": "arif_observe",
+    "arif_critique": "arif_think",
+    "arif_compose": "arif_forge",
+}
 
 # ── Symbolic Tag Lexicon (synced with registry _enriched.tag_lexicon) ─────────
 SYMBOLIC_TAGS: dict[str, dict[str, str]] = {
@@ -89,6 +128,86 @@ def _load_registry() -> dict[str, Any]:
         logger.warning("Failed to load registry: %s", exc)
         _REGISTRY_CACHE = {}
     return _REGISTRY_CACHE if _REGISTRY_CACHE is not None else {}
+
+
+def _load_v2_registry() -> dict[str, Any]:
+    """Load quote_registry_v2.json with caching.
+
+    Per audit 2026-07-19: this is the CANONICAL runtime registry because
+    unified_quotes_registry.json and tool_quote_registry.json are not in
+    runtime. The flat-quotes array schema is v3.0-compatible.
+    """
+    global _V2_REGISTRY_CACHE
+    if _V2_REGISTRY_CACHE is not None:
+        return _V2_REGISTRY_CACHE
+    if not _V2_REGISTRY_PATH.exists():
+        logger.debug("quote_registry_v2.json missing")
+        _V2_REGISTRY_CACHE = {}
+        return _V2_REGISTRY_CACHE
+    try:
+        raw = json.loads(_V2_REGISTRY_PATH.read_text())
+        # Build a flat v3.0-style quotes array from v2 records
+        quotes = []
+        by_id = {}
+        for q in raw.get("quotes", []):
+            adapted = _adapt_v2_quote_to_v3(q)
+            if adapted:
+                quotes.append(adapted)
+                by_id[adapted["id"]] = adapted
+        _V2_REGISTRY_CACHE = {
+            "quotes": quotes,
+            "by_id": by_id,
+            "source": "quote_registry_v2.json",
+            "version": raw.get("_metadata", {}).get("version", "2.0.0"),
+        }
+        logger.info("Loaded quote_registry_v2.json (%s quotes)", len(quotes))
+    except Exception as exc:
+        logger.warning("Failed to load quote_registry_v2.json: %s", exc)
+        _V2_REGISTRY_CACHE = {}
+    return _V2_REGISTRY_CACHE
+
+
+def _adapt_v2_quote_to_v3(v2: dict[str, Any]) -> dict[str, Any] | None:
+    """Convert a quote_registry_v2.json entry to v3.0 unified schema.
+
+    Maps:
+      text            → quote
+      attribution.speaker → author
+      classification.tags → symbolic_tags
+      status.council  → source
+      status.reviewer → source_status
+      category        → category
+    """
+    if not isinstance(v2, dict):
+        return None
+    attribution = v2.get("attribution", {}) or {}
+    classification = v2.get("classification", {}) or {}
+    status = v2.get("status", {}) or {}
+    text = v2.get("text") or v2.get("quote")
+    if not text:
+        return None
+    speaker = attribution.get("speaker") or attribution.get("author") or "arifOS"
+    work = attribution.get("work") or ""
+    council = status.get("council") or ""
+    author_str = f"{speaker}, {work}" if work else speaker
+    return {
+        "id": v2.get("id", ""),
+        "text": text,
+        "quote": text,
+        "author": author_str,
+        "speaker": speaker,
+        "source": council or "quote_registry_v2",
+        "source_status": status.get("reviewer", "PENDING") if status.get("reviewed") else "PENDING",
+        "symbolic_tags": classification.get("tags", []) or [],
+        "dimension_scores": {},
+        "dims": [],
+        "category": v2.get("category", "generated_reflection"),
+        "rigor": 1.0 if attribution.get("attribution_confidence", 0) >= 0.9 else 0.7,
+        "tradition": classification.get("tradition", []) or [],
+        "arifos_floors": classification.get("arifos_floors", []) or [],
+        "dark_modes": classification.get("dark_modes", []) or [],
+        "_trigger": "always",
+    }
 
 
 # ── Match Scoring Engine ──────────────────────────────────────────────────────
@@ -186,36 +305,50 @@ def lookup_tool_quote(
         symbolic_tags, dimension_scores, match_score, source_status
         or None if no tool-specific quote found
     """
-    registry = _load_registry()
-    if not registry:
-        return None
+    # Resolve aliases first
+    canonical_tool = _TOOL_ALIAS_MAP.get(tool_name, tool_name)
 
     # Resolve context keywords
     if context_keywords is None and context:
         context_keywords = resolve_context(context)
 
     # ── v3.0 unified: flat quotes array (dimension-indexed) ──
-    quotes = registry.get("quotes", [])
-    if quotes and isinstance(quotes, list) and quotes:
-        return _pick_best_quote(quotes, context_keywords)
+    registry = _load_registry()
+    if registry:
+        quotes = registry.get("quotes", [])
+        if quotes and isinstance(quotes, list) and quotes:
+            return _pick_best_quote(quotes, context_keywords)
 
-    # ── v2.0 tool_registry: organ/tools structure ──
-    for organ_key in ("arifos", "geox", "well", "wealth"):
-        organ = registry.get(organ_key, {})
-        if not isinstance(organ, dict):
-            continue
-        tools = organ.get("tools", {})
-        if tool_name in tools:
-            return _pick_best_quote(tools[tool_name].get("quotes", []), context_keywords)
-        sys_tools = organ.get("system_tools", {})
-        if tool_name in sys_tools:
-            return _pick_best_quote(sys_tools[tool_name].get("quotes", []), context_keywords)
+        # ── v2.0 tool_registry: organ/tools structure ──
+        for organ_key in ("arifos", "geox", "well", "wealth"):
+            organ = registry.get(organ_key, {})
+            if not isinstance(organ, dict):
+                continue
+            tools = organ.get("tools", {})
+            if tool_name in tools:
+                return _pick_best_quote(tools[tool_name].get("quotes", []), context_keywords)
+            sys_tools = organ.get("system_tools", {})
+            if tool_name in sys_tools:
+                return _pick_best_quote(sys_tools[tool_name].get("quotes", []), context_keywords)
 
-    # ── Cross-cutting ──
-    cross = registry.get("cross_cutting", {})
-    for section in cross.values():
-        if isinstance(section, dict) and section.get("quote"):
-            return _format_quote(section["quote"], context_keywords)
+        # ── Cross-cutting ──
+        cross = registry.get("cross_cutting", {})
+        for section in cross.values():
+            if isinstance(section, dict) and section.get("quote"):
+                return _format_quote(section["quote"], context_keywords)
+
+    # ── v2 fallback (2026-07-19 unification) — quote_registry_v2.json ──
+    # Per audit: this is the registry actually present in runtime. Map tool
+    # → curated quote, fall back to match_score selection across all quotes.
+    v2 = _load_v2_registry()
+    if v2 and v2.get("by_id"):
+        # 1) Curated per-tool mapping wins
+        curated_id = _TOOL_QUOTE_MAP.get(canonical_tool)
+        if curated_id and curated_id in v2["by_id"]:
+            return _format_quote(v2["by_id"][curated_id], context_keywords)
+        # 2) Fall back to highest-scoring quote across all 99 entries
+        if v2.get("quotes"):
+            return _pick_best_quote(v2["quotes"], context_keywords)
 
     return None
 
@@ -337,7 +470,6 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
         return {}
 
 
-
 def select_philosophy_state(
     confidence: float = 0.88,
     dS: float = 0.0,
@@ -395,6 +527,7 @@ def select_philosophy_state(
         "base_cap": 0.90,
         "lock_penalty_total": sum(lock_penalties.get(l, 0.05) for l in locks),
     }
+
 
 __all__ = [
     "SYMBOLIC_TAGS",
