@@ -293,7 +293,7 @@ _atlas = ATLAS()
 # ═════════════════════════════════════════════════════════════════════════════
 # Maps each GPV configuration pattern to the ATLAS-333 paradox axes it activates.
 # Reference: ATLAS333_BRIDGE.md §3
-# Each key describes a GPV state pattern; value is list of paradox IDs (1-33).
+# Each key describes a GPV state pattern; value is list of paradox IDs (1-35).
 
 PARADOX_GPV_MAP: dict[str, list[int]] = {
     # τ ≥ 0.9, ρ ≤ 0.2, lane=FACTUAL — Pure truth-seeking (Zone I + V)

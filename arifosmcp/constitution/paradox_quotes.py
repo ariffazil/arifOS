@@ -1,10 +1,12 @@
 """
-constitution/paradox_quotes.py — The 33 Paradox Anchors
+constitution/paradox_quotes.py — The 35 Paradox Anchors
 ═══════════════════════════════════════════════════════════
 
-Linguistic invariants for Memory·Mind·Judge. Each quote (Q) encodes one pole
-of a paradox. Its antithesis (Q′) encodes the opposite pole. Together they
-create a tension vector that the tool uses to calibrate its behavior.
+Linguistic invariants for Memory·Mind·Judge plus active contours. The registry
+contains 36 quote rows across 35 unique paradox IDs; P14 intentionally has two
+quote rows. Each quote (Q) encodes one pole of a paradox. Its antithesis (Q′)
+encodes the opposite pole. Together they create a tension vector that the tool
+uses to calibrate its behavior.
 
 FORMAT:
   Q  = verified quote (exact wording, author, work, date)
@@ -20,11 +22,11 @@ tool's execution. Each quote is embedded at three levels:
   Level 3 (Telemetry): Logged in audit trail with tension metadata
 
 Canonical one-sentence:
-  The 33 quotes do not decorate the system — they are the linguistic
-  compression of the paradox geometry that Memory, Mind, and Judge must
-  navigate: every retrieval is also a forgetting, every doubt is also
-  a decision, every verdict is also an incomplete justice, and the
-  tool that forgets this will drift from truth into the confidence of fools.
+  The 35 paradox anchors do not decorate the system — they are the linguistic
+  compression of the paradox geometry that Memory, Mind, Judge, and active
+  contours must navigate: every retrieval is also a forgetting, every doubt is
+  also a decision, every verdict is also an incomplete justice, and the tool
+  that forgets this will drift from truth into the confidence of fools.
 
 DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 """
@@ -128,9 +130,9 @@ class EmbedLevel(str, Enum):
 class ParadoxQuote:
     """A verified philosophical quote with full paradox tension geometry."""
 
-    quote_id: str  # e.g. "M1", "R4", "J7"
-    organ: Organ  # memory | mind | judge
-    index: int  # 1-11 within organ
+    quote_id: str  # e.g. "M1", "R4", "J7", "C1"
+    organ: Organ  # memory | mind | judge | contour
+    index: int  # Numeric index within organ
 
     # The quote itself
     quote_text: str  # Exact wording
@@ -1390,7 +1392,7 @@ def embed_quote_in_output(
 
 
 def get_organ_tension_summary() -> dict[str, Any]:
-    """Get a complete tension summary across all three organs.
+    """Get a complete tension summary across all four organs.
 
     Returns a dict suitable for the constitutional health dashboard.
     """

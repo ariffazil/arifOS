@@ -19,7 +19,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -208,36 +207,21 @@ def test_rasa_events_counter_does_not_increment_when_disabled(
 # ---------------------------------------------------------------------------
 # SCAR CANDIDATES COUNTER
 # ---------------------------------------------------------------------------
-def test_scar_candidates_counter_increments_only_after_persistence(
-    tmp_path: Path, monkeypatch
-):
+def test_scar_candidates_counter_increments_only_after_persistence():
     """arifos_scar_candidates_total increments only after JSON write to disk.
 
-    We monkeypatch the scar destination dir to a tmp_path, fire a high-
-    tension paradox, and assert the counter went up + file exists.
+    We exercise the record_scar_candidate() helper directly — that's the
+    unit under test. The judge call site is responsible for invoking it
+    ONLY after JSON durability. This test verifies the helper honors the
+    label contract.
     """
-    from arifosmcp.runtime.metrics import SCAR_CANDIDATES_TOTAL
+    from arifosmcp.runtime.metrics import SCAR_CANDIDATES_TOTAL, record_scar_candidate
 
-    # Repoint the scar destination for this test
-    monkeypatch.setattr(
-        "pathlib.Path",
-        # Not a real override — we monkeypatch the module-level path below.
-        Path,
-    )
-
-    # Patch the scar dir path used by judge.py. We do this by writing a
-    # tiny wrapper that monkey-patches `_build_scar_path` indirectly via
-    # filesystem redirection. The simplest: monkeypatch os.makedirs +
-    # open write to redirect to tmp.
-    # Instead, we just exercise the record_scar_candidate() helper
-    # directly — that's the unit under test.
     baseline = _read_counter_value(
         SCAR_CANDIDATES_TOTAL,
         stage="arif_judge::paradox_gate",
         severity="high",
     )
-
-    from arifosmcp.runtime.metrics import record_scar_candidate
 
     record_scar_candidate(stage="arif_judge::paradox_gate", severity="high")
 
@@ -247,9 +231,7 @@ def test_scar_candidates_counter_increments_only_after_persistence(
         severity="high",
     )
     assert after > baseline, (
-        "record_scar_candidate must increment counter at call time (the "
-        "judge call site is responsible for invoking it ONLY after JSON "
-        "durability; this test verifies the helper honors that contract)."
+        "record_scar_candidate must increment counter at call time"
     )
 
 
@@ -272,66 +254,117 @@ def test_scar_candidates_severity_labels_distinct():
 # /api/live/all kappa_r mapping
 # ---------------------------------------------------------------------------
 def test_api_live_all_kappa_r_not_echo_debt(monkeypatch):
-    """Ensure kappa_r is read from kappa_r, not from echo_debt.
+    """kappa_r is read from kappa_r, NOT aliased to echo_debt.
 
-    This test patches _build_governance_status_payload and health() to
-    return a deterministic thermodynamic payload with BOTH kappa_r and
-    echo_debt set to distinguishable values, then asserts the api_live_all
-    endpoint surfaces kappa_r correctly (not echoed from echo_debt).
+    The legacy bug aliased kappa_r ← echo_debt. The fix reads kappa_r from
+    its own field, returning None when unavailable. We patch the /health
+    function so the api_live_all endpoint receives a payload where
+    vitals.thermodynamic contains BOTH echo_debt AND kappa_r with
+    distinguishable values.
     """
-    from arifosmcp.runtime.server import app as server_app
 
+    import time as _t
+
+    from arifosmcp.runtime.rest_routes import rest_routes as rr
+    from arifosmcp.runtime.server import app as server_app
     from tests.conftest import SyncASGIClient
 
-    # Provide distinct values via the governance payload
+    fake_health_payload = {
+        "status": "healthy",
+        "thermodynamic": {
+            "entropy_delta": -0.35,
+            "peace_squared": 1.04,
+            "vitality_index": 0.82,
+            "echo_debt": 0.42,
+            "kappa_r": 0.97,  # distinct from echo_debt
+            "psi_vitality": 0.82,
+            "shadow": 0.3,
+            "confidence": 0.88,
+            "verdict": None,
+            "service_health": "PASS",
+            "metabolic_stage": 444,
+            "witness": {"human": 0.42, "ai": 0.32, "earth": 0.26},
+        },
+        "tools_loaded": 8,
+        "floors_active": 13,
+        "version": "test",
+        "source_commit": "test",
+        "vault999_health": "healthy",
+        "runtime_drift": False,
+    }
 
-    def _fake_payload():
-        return {
-            "telemetry": {
-                "dS": None,
-                "peace2": None,
-                "psi_le": None,
-                "echoDebt": 0.42,  # legacy key
-                "kappa_r": 0.97,
-                "shadow": None,
-                "confidence": None,
-                "verdict": None,
-            },
-            "floors": {},
-            "machine_vitals": {},
-            "verdict": "HOLD",
-            "session_id": "test",
-            "tau_confidence_system": None,
-            "f2_threshold": 0.99,
-            "psi_vitality": None,
-            "peace2": None,
-        }
+    # Seed the /health 30s cache directly with the fake payload — no need
+    # to monkey-patch the closure-defined health() function. /health will
+    # return this cached payload verbatim.
+    rr._health_cache["payload"] = fake_health_payload
+    rr._health_cache["ts"] = _t.monotonic()
 
-    monkeypatch.setattr(
-        "arifosmcp.runtime.rest_routes.rest_routes._build_governance_status_payload",
-        _fake_payload,
-    )
-
-    # Probe directly via /api/live/all
     client = SyncASGIClient(server_app)
     response = client.get("/api/live/all")
     if response.status_code != 200:
-        # If /api/live/all isn't reachable in this test env (cold boot), skip.
         pytest.skip(f"/api/live/all not reachable: {response.status_code}")
     data = response.json()
 
-    captured["vitals"] = data.get("vitals", {})
-    # The mapping must:
-    #  - return kappa_r (not echo_debt) for the kappa_r key
-    #  - return echo_debt (its own field) for the echo_debt key
-    #  - return None for unavailable scalars (truthfulness)
-    v = captured["vitals"]
+    v = data.get("vitals", {})
+    # Truthfulness contract:
+    # 1. kappa_r is read from its own field, NOT aliased to echo_debt.
     assert v.get("kappa_r") == 0.97, (
-        f"kappa_r must come from kappa_r source (got {v.get('kappa_r')})"
+        f"kappa_r must come from kappa_r source (got {v.get('kappa_r')!r})"
     )
+    # 2. echo_debt is its own field, not collapsed into kappa_r.
     assert v.get("echo_debt") == 0.42, (
         "echo_debt must remain its own field, distinct from kappa_r"
     )
+    # 3. They are NOT the same value (proves the alias bug is gone).
+    assert v.get("kappa_r") != v.get("echo_debt"), (
+        "kappa_r must not be aliased to echo_debt"
+    )
+
+
+def test_api_live_all_unavailable_scalar_remains_none(monkeypatch):
+    """When vitals lacks a scalar, /api/live/all returns None (no zero-fill)."""
+    import time as _t
+
+    from arifosmcp.runtime.rest_routes import rest_routes as rr
+    from arifosmcp.runtime.server import app as server_app
+    from tests.conftest import SyncASGIClient
+
+    fake_health_payload = {
+        "status": "healthy",
+        "thermodynamic": {
+            "entropy_delta": -0.35,
+            "peace_squared": 1.04,
+            "vitality_index": 0.82,
+            # NOTE: no kappa_r, no echo_debt, no psi_vitality
+            "service_health": "PASS",
+            "metabolic_stage": 444,
+            "witness": {"human": 0.42, "ai": 0.32, "earth": 0.26},
+        },
+        "tools_loaded": 8,
+        "floors_active": 13,
+        "version": "test",
+        "source_commit": "test",
+        "vault999_health": "healthy",
+        "runtime_drift": False,
+    }
+
+    rr._health_cache["payload"] = fake_health_payload
+    rr._health_cache["ts"] = _t.monotonic()
+
+    client = SyncASGIClient(server_app)
+    response = client.get("/api/live/all")
+    if response.status_code != 200:
+        pytest.skip(f"/api/live/all not reachable: {response.status_code}")
+    data = response.json()
+    v = data.get("vitals", {})
+    # Truthfulness: None for unavailable, not 0.0
+    assert v.get("kappa_r") is None, (
+        f"kappa_r must be None when upstream doesn't provide it (got {v.get('kappa_r')!r})"
+    )
+    assert v.get("echo_debt") is None, (
+        f"echo_debt must be None when upstream doesn't provide it (got {v.get('echo_debt')!r})"
+    )
+    assert v.get("psi_le") is None
 
 
 # ---------------------------------------------------------------------------
@@ -340,26 +373,24 @@ def test_api_live_all_kappa_r_not_echo_debt(monkeypatch):
 def test_graphiti_embedding_runtime_unverified_when_not_probed(monkeypatch):
     """graphiti_embedding_runtime starts as 'unverified' regardless of ML toggle.
 
-    This is the F2 TRUTH guarantee: embedding status is reported only
-    AFTER a real semantic probe completes. The legacy behavior of binding
-    it to ARIFOS_ML_FLOORS+ml_runtime_ready is removed.
+    The F2 TRUTH guarantee: embedding status is reported only AFTER a real
+    semantic probe completes. The legacy behavior of binding it to
+    ARIFOS_ML_FLOORS+ml_runtime_ready is removed.
     """
+    from arifosmcp.runtime.rest_routes import rest_routes as rr
     from arifosmcp.runtime.server import app as server_app
-
     from tests.conftest import SyncASGIClient
 
+    # Bypass /health 30s cache
+    monkeypatch.setattr(rr, "_health_cache", {"payload": None, "ts": 0.0})
+
     monkeypatch.setattr(
-        "arifosmcp.runtime.rest_routes.rest_routes._build_governance_status_payload",
+        rr, "_build_governance_status_payload",
         lambda: {
-            "telemetry": {},
-            "floors": {},
-            "machine_vitals": {},
-            "verdict": "HOLD",
-            "session_id": "t",
-            "tau_confidence_system": None,
-            "f2_threshold": 0.99,
-            "psi_vitality": None,
-            "peace2": None,
+            "telemetry": {}, "floors": {}, "machine_vitals": {},
+            "verdict": "HOLD", "session_id": "t",
+            "tau_confidence_system": None, "f2_threshold": 0.99,
+            "psi_vitality": None, "peace2": None,
         },
     )
     # ML floors DISABLED — must NOT affect graphiti_embedding_runtime.
