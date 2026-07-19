@@ -38,3 +38,4 @@ rollback:
 witness:
   required_for: [IRREVERSIBLE]
   min_external_confidence: 0.5
+# Federation CI test — 2026-07-19T18:18:51Z
