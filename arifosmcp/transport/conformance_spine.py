@@ -860,7 +860,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
             r = {
                 "check": name,
                 "verdict": SKIPPED,
-                "evidence": {
+"evidence": {
                     "mode": "fast",
                     "reason": "Live check skipped in fast mode — SKIPPED ≠ PASS",
                 },
@@ -883,8 +883,10 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
             failed += 1
 
     total_ms = round((time.monotonic() - t_start) * 1000, 1)
-    score = f"{passed}/{len(SPINE)}"
+score = f"{passed}/{len(SPINE)} ({skipped} skipped)"
     # T6: all_green requires zero FAIL and zero SKIPPED.
+    # A BROKEN chain with sovereign_ruling is not GREEN even if no check failed.
+    # Skipped checks also block GREEN — AMBER is the honest gate.
     all_green = failed == 0 and skipped == 0
 
     # ── Verifier honesty gate ─────────────────────────────────────────────

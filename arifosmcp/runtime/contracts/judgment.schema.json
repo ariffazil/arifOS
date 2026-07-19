@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/judgment.schema.v1",
+  "title": "arifOS / APEX Judgment",
+  "type": "object",
+  "required": ["verdict", "evidence_hash", "active_holds", "judge_state_hash"],
+  "properties": {
+    "verdict": { "type": "string", "enum": ["PROCEED", "HOLD", "DENY"] },
+    "evidence_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" },
+    "active_holds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["F1_AMANAH", "F2_TRUTH", "F3_WITNESS", "F4_CLARITY", "F5_PEACE", "F6_MARUAH", "F7_HUMILITY", "F8_GENIUS", "F9_ANTI_HANTU", "F10_ONTOLOGY", "F11_AUDIT", "F12_INJECTION", "F13_SOVEREIGN"]
+      }
+    },
+    "judge_state_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{16,}$" },
+    "issued_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

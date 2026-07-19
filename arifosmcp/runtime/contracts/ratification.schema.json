@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/ratification.schema.v1",
+  "title": "arifOS Human/Operator Ratification",
+  "type": "object",
+  "required": ["actor", "decision", "scope", "timestamp", "revocation_window"],
+  "properties": {
+    "actor": { "type": "string", "minLength": 1 },
+    "decision": { "type": "string", "enum": ["approve", "reject"] },
+    "scope": { "type": "string", "description": "case_id or action_id being ratified or rejected" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "signature": { "type": "object", "description": "Ed25519 signature over canonicalized payload" },
+    "revocation_window": { "type": "integer", "default": 3600, "description": "seconds before ratification can be revoked" },
+    "rationale": { "type": "string" }
+  },
+  "additionalProperties": false
+}
