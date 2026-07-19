@@ -39,6 +39,12 @@ import time as _time_mod
 
 _well_tools_fail_until: float = 0.0
 
+# WAJIB 6 FIX (2026-07-19): MCP session management for WELL bridge.
+# Pattern: same as GEOX bridge — initialize → notifications/initialized → tools/call.
+_well_session_id: str | None = None
+_well_session_established_at: float = 0.0
+_WELL_SESSION_TTL_SECONDS = 600  # 10 minutes
+
 
 def get_biological_readiness() -> dict[str, Any]:
     """
@@ -287,22 +293,118 @@ async def anchor_well_to_vault(
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # WELL MCP HTTP Bridge (2026-06-13 — organ attestation)
+# WAJIB 6 FIX (2026-07-19): Session-aware MCP bridge
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-async def _post_json_rpc_well(payload: dict[str, Any]) -> dict[str, Any]:
-    """Send a JSON-RPC request to WELL MCP and return the result."""
-    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+async def _ensure_well_session(client: httpx.AsyncClient) -> str | None:
+    """Ensure we have a valid WELL MCP session. Returns session ID or None.
+
+    MCP lifecycle: initialize → notifications/initialized → tools/call.
+    WELL requires Mcp-Session-Id for tools/list (same as GEOX).
+    """
+    global _well_session_id, _well_session_established_at
+
+    # Check if cached session is still fresh
+    if (
+        _well_session_id
+        and (_time_mod.time() - _well_session_established_at) < _WELL_SESSION_TTL_SECONDS
+    ):
+        return _well_session_id
+
+    # Initialize a new session with WELL
+    init_payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2025-03-26",
+            "capabilities": {},
+            "clientInfo": {"name": "arifos-well-bridge", "version": "1.0"},
+        },
+    }
+
+    try:
         resp = await client.post(
             f"{WELL_BASE}/mcp",
-            json=payload,
+            json=init_payload,
             headers={
                 "Content-Type": "application/json",
                 "Accept": "application/json, text/event-stream",
             },
         )
+        if resp.status_code == 200:
+            session_id = resp.headers.get("mcp-session-id")
+            if session_id:
+                session_id = session_id.strip()
+                # Complete MCP lifecycle — send initialized notification
+                try:
+                    await client.post(
+                        f"{WELL_BASE}/mcp",
+                        json={
+                            "jsonrpc": "2.0",
+                            "method": "notifications/initialized",
+                        },
+                        headers={
+                            "Content-Type": "application/json",
+                            "Mcp-Session-Id": session_id,
+                        },
+                    )
+                    logger.info(
+                        "WELL MCP session established: %s…", session_id[:12]
+                    )
+                except Exception as notify_exc:
+                    logger.warning(
+                        "WELL notifications/initialized failed (may still work): %s",
+                        notify_exc,
+                    )
+                _well_session_id = session_id
+                _well_session_established_at = _time_mod.time()
+                return session_id
+            else:
+                # WELL might be stateless like WEALTH — proceed without session
+                logger.info("WELL returned no session ID — proceeding stateless")
+                _well_session_id = None
+                _well_session_established_at = _time_mod.time()
+                return None
+    except Exception as e:
+        logger.warning("WELL MCP session init failed: %s", e)
+        return None
+
+    return None
+
+
+async def _post_json_rpc_well(payload: dict[str, Any]) -> dict[str, Any]:
+    """Send a JSON-RPC request to WELL MCP and return the result.
+    WAJIB 6: Uses MCP session when available."""
+    async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+        # Establish session if needed
+        session_id = await _ensure_well_session(client)
+        headers: dict[str, str] = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        if session_id:
+            headers["Mcp-Session-Id"] = session_id
+
+        resp = await client.post(
+            f"{WELL_BASE}/mcp",
+            json=payload,
+            headers=headers,
+        )
         if resp.status_code >= 400:
-            raise ConnectionError(f"WELL HTTP {resp.status_code}: {resp.text[:200]}")
+            # If session expired, clear cache and retry once
+            if resp.status_code == 400 and session_id:
+                _well_session_id = None
+                _well_session_established_at = 0.0
+                session_id = await _ensure_well_session(client)
+                if session_id:
+                    headers["Mcp-Session-Id"] = session_id
+                    resp = await client.post(
+                        f"{WELL_BASE}/mcp", json=payload, headers=headers
+                    )
+            if resp.status_code >= 400:
+                raise ConnectionError(f"WELL HTTP {resp.status_code}: {resp.text[:200]}")
         parsed = resp.json()
         if parsed.get("error"):
             raise ConnectionError(f"WELL JSON-RPC error: {parsed['error']}")
