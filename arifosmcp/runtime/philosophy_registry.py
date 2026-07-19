@@ -675,6 +675,22 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
         if not result.quote:
             return {}
 
+        # Layer B enforcement (2026-07-19 Fork B): refuse to inject if the
+        # resolver did not issue a deploy_warrant. Quotes that fail contract
+        # verification (e.g. DRAFT council quotes, disputed attributions) must
+        # not ride along in envelopes even as metadata. This closes the chain:
+        # resolver computes warrant → injector enforces it.
+        if not getattr(result, "deploy_warrant", False):
+            logger.warning(
+                "inject_philosophy: refusing quote %s — deploy_warrant=False "
+                "(canon_status=%s, tool=%s, stage=%s)",
+                result.quote.quote_id,
+                getattr(result, "canon_status", "UNKNOWN"),
+                canonical_tool,
+                stage,
+            )
+            return {}
+
         q = result.quote
         return {
             # ── Layer A: APEX fingerprint ──
