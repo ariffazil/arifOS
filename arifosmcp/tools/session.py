@@ -992,6 +992,7 @@ def arif_init(
     # ── Sovereign alias normalization (FORGED 2026-07-15) ──
     # Normalize natural-language actor_id variants to canonical form.
     # "Salam ARIF" → "arif", "Hi Arif" → "arif", "Saya Arif" → "arif"
+    _canonical_actor_id: str | None = None
     if actor_id:
         try:
             from arifosmcp.runtime.governance_identity import normalize_actor_id
@@ -1006,6 +1007,42 @@ def arif_init(
                 actor_id = _normalized
         except ImportError:
             pass  # governance_identity unavailable — proceed with raw
+
+        # ── CANONICAL IDENTITY RESOLUTION (P0-RT — 2026-07-19) ──
+        # Map arif → ARIF, forge → FORGE, hermes → HERMES.
+        # Normalization does NOT imply verification.
+        # REJECTED identities return HOLD with ACTOR_UNRECOGNISED.
+        try:
+            from contracts.identity import normalize_actor_identity
+
+            _canon = normalize_actor_identity(actor_id)
+            if _canon.get("normalized"):
+                _canonical_actor_id = str(_canon["normalized"])
+                if _canonical_actor_id != actor_id:
+                    logger.info(
+                        "arif_init: canonical identity '%s' → '%s'",
+                        actor_id,
+                        _canonical_actor_id,
+                    )
+                    actor_id = _canonical_actor_id
+            else:
+                # Unknown actor — return HOLD
+                logger.warning(
+                    "arif_init: unrecognised actor_id '%s' rejected",
+                    actor_id,
+                )
+                return _sm(
+                    status="HOLD",
+                    result={},
+                    meta={
+                        "reason": "actor_id not recognised — canonical identity resolution failed",
+                        "reason_code": "ACTOR_UNRECOGNISED",
+                        "hint": "Use one of: ARIF, FORGE, AUDITOR, OPS, PLAN, AAAGW, HERMES",
+                    },
+                    doctrine=ARIF_DOCTRINE,
+                )
+        except ImportError:
+            pass  # contracts.identity unavailable — proceed with raw actor_id
 
     # ── PREFLIGHT / TRIAGE (absorbed from standalone arif_triage) ──
     if mode in ("preflight", "triage"):
@@ -1313,8 +1350,10 @@ def arif_init(
             try:
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
 
-                _al = actor_id.lower().strip()
-                if _al in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                _al = normalize_actor_id(actor_id) or (
+                    actor_id.lower().strip() if actor_id else None
+                )
+                if _al and _al in _ED25519_EXEMPT_SYSTEM_ACTORS:
                     _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[_al]
                     if _exempt_level == "sovereign":
                         _light_actor_verified = True
@@ -1374,8 +1413,12 @@ def arif_init(
                         issue_actor_challenge,
                     )
 
-                    _al = actor_id.lower().strip()
-                    if _al in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
+                    _al = normalize_actor_id(actor_id) or (
+                        actor_id.lower().strip() if actor_id else None
+                    )
+                    if _al and (
+                        _al in ("arif", "888", "ariffazil") or is_registered_actor(actor_id)
+                    ):
                         challenge_nonce = issue_actor_challenge(actor_id)
                         sess["pending_challenge_nonce"] = challenge_nonce
                         sess["challenge_signature_payload"] = f"{actor_id}:{challenge_nonce}"
@@ -1621,8 +1664,10 @@ def arif_init(
                     verify_init_identity,
                 )
 
-                _aid = actor_id.lower().strip()
-                if _aid in ("arif", "888", "ariffazil") or is_registered_actor(actor_id):
+                _aid = normalize_actor_id(actor_id) or (
+                    actor_id.lower().strip() if actor_id else None
+                )
+                if _aid and (_aid in ("arif", "888", "ariffazil") or is_registered_actor(actor_id)):
                     _ok, _reason = verify_init_identity(
                         actor_id=actor_id,
                         nonce=nonce,
@@ -1687,12 +1732,14 @@ def arif_init(
         # already exempts these actors (ACCEPTED RISK — IRR-DIP-AUDIT 2026-07-09).
         # "forge" = internal executor (LIMITED_MUTATE). "arif" = sovereign (FULL).
         if not identity_verified and actor_id:
-            actor_lower = actor_id.lower().strip()
+            actor_lower = normalize_actor_id(actor_id) or (
+                actor_id.lower().strip() if actor_id else None
+            )
             # Import the exempt set from session_auth (single source of truth)
             try:
                 from arifosmcp.runtime.session_auth import _ED25519_EXEMPT_SYSTEM_ACTORS
 
-                if actor_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
+                if actor_lower and actor_lower in _ED25519_EXEMPT_SYSTEM_ACTORS:
                     _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
                     if _exempt_level == "sovereign":
                         identity_verified = True
@@ -1788,7 +1835,8 @@ def arif_init(
             identity_verified
             and sess.get("signature_verified")
             and actor_id
-            and actor_id.lower().strip() in ("arif", "888", "ariffazil")
+            and (normalize_actor_id(actor_id) or actor_id.lower().strip())
+            in ("arif", "888", "ariffazil")
         )
         sig_verified = bool(sess.get("signature_verified", False))
         _derived_auth = identity_band_authority(
@@ -1999,7 +2047,10 @@ def arif_init(
                 _auth_lvl = (
                     "sovereign"
                     if identity_verified
-                    and (actor_id or "").lower().strip() in ("arif", "888", "ariffazil")
+                    and (
+                        (normalize_actor_id(actor_id) or (actor_id or "").lower().strip())
+                        in ("arif", "888", "ariffazil")
+                    )
                     else ("operator" if identity_verified else "observer")
                 )
                 bind_session_identity(

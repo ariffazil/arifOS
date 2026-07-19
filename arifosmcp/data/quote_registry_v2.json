@@ -3,14 +3,16 @@
     "version": "2.0.0",
     "description": "Canonical quote registry with provenance classes and attribution confidence",
     "schema": "zen-witness-doctrine-v1",
-    "total_quotes": 99,
+    "total_quotes": 96,
     "doctrine_quotes": 17,
     "inherited_quotes": 82,
     "disputed_count": 9,
     "forged": "2026-07-12",
     "doctrine_count": 17,
     "total_entries": 99,
-    "quote_count": 82
+    "quote_count": 82,
+    "council_v1_date": "2026-07-19",
+    "council_v1_note": "27 council quotes added (9 governance + 9 paradox + 9 void contrast). Status: DRAFT, pending sovereign ratification. Some speakers already present (Marcus Aurelius, Turing, Feynman, Knuth, Heraclitus, Lao Tzu, Al-Ghazali, Gödel, Wittgenstein, Arendt, Hobbes, Nietzsche, Acton) — kept their existing entries; added only missing speakers."
   },
   "quotes": [
     {
@@ -3573,6 +3575,662 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
+      }
+    },
+    {
+      "id": "COUNCIL_GOV_01",
+      "text": "Nature, to be commanded, must be obeyed.",
+      "attribution": {
+        "speaker": "Bacon",
+        "work": "",
+        "year": "1620",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "western_philosophy",
+          "epistemology"
+        ],
+        "tags": [
+          "reality",
+          "submission",
+          "command"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F8"
+        ],
+        "dark_modes": [
+          "IMAGINED_CONFORMITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance"
+      }
+    },
+    {
+      "id": "COUNCIL_GOV_02",
+      "text": "If men were angels, no government would be necessary.",
+      "attribution": {
+        "speaker": "Madison",
+        "work": "",
+        "year": "1788",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "political_philosophy",
+          "enlightenment"
+        ],
+        "tags": [
+          "division",
+          "fallibility",
+          "structure"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": [
+          "CONCENTRATED_AUTHORITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance"
+      }
+    },
+    {
+      "id": "COUNCIL_GOV_03",
+      "text": "Do not block the way of inquiry.",
+      "attribution": {
+        "speaker": "Peirce",
+        "work": "",
+        "year": "1898",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "philosophy_of_science",
+          "pragmatism"
+        ],
+        "tags": [
+          "inquiry",
+          "doubt",
+          "openness"
+        ],
+        "arifos_floors": [
+          "F7",
+          "F8"
+        ],
+        "dark_modes": [
+          "CLOSED_INQUIRY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance"
+      }
+    },
+    {
+      "id": "COUNCIL_GOV_04",
+      "text": "Our knowledge can only be finite, while our ignorance must necessarily be infinite.",
+      "attribution": {
+        "speaker": "Popper",
+        "work": "",
+        "year": "1935",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "epistemology",
+          "philosophy_of_science"
+        ],
+        "tags": [
+          "ignorance",
+          "falsifiability",
+          "limits"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": [
+          "HIDDEN_IGNORANCE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance"
+      }
+    },
+    {
+      "id": "COUNCIL_GOV_05",
+      "text": "We had better be quite sure that the purpose put into the machine is the purpose which we really desire.",
+      "attribution": {
+        "speaker": "Wiener",
+        "work": "",
+        "year": "1960",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "cybernetics",
+          "philosophy_of_mind"
+        ],
+        "tags": [
+          "purpose",
+          "human",
+          "machine"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "PURPOSE_REVERSAL"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance"
+      }
+    },
+    {
+      "id": "COUNCIL_PAR_01",
+      "text": "The past resembles the future more than one drop of water resembles another.",
+      "attribution": {
+        "speaker": "Ibn Khaldun",
+        "work": "",
+        "year": "1377",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "islam",
+          "historiography"
+        ],
+        "tags": [
+          "asabiyyah",
+          "cycles",
+          "institutions"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": [
+          "ASABIYYAH_DECAY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox"
+      }
+    },
+    {
+      "id": "COUNCIL_PAR_02",
+      "text": "You are my creator, but I am your master; obey!",
+      "attribution": {
+        "speaker": "Mary Shelley",
+        "work": "",
+        "year": "1818",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature",
+          "gothic"
+        ],
+        "tags": [
+          "creator",
+          "creature",
+          "dependency"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "DEPENDENCY_INVERSION"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox"
+      }
+    },
+    {
+      "id": "COUNCIL_PAR_03",
+      "text": "Only variety can destroy variety.",
+      "attribution": {
+        "speaker": "William Ross Ashby",
+        "work": "",
+        "year": "1956",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "cybernetics"
+        ],
+        "tags": [
+          "variety",
+          "regulation",
+          "channel"
+        ],
+        "arifos_floors": [
+          "F8"
+        ],
+        "dark_modes": [
+          "CHANNEL_BYPASS"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox"
+      }
+    },
+    {
+      "id": "COUNCIL_VOID_04",
+      "text": "The universe (which others call the Library) is composed of an indefinite, perhaps infinite number of hexagonal galleries.",
+      "attribution": {
+        "speaker": "Jorge Luis Borges",
+        "work": "",
+        "year": "1941",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "labyrinth",
+          "totality",
+          "design"
+        ],
+        "arifos_floors": [
+          "F8"
+        ],
+        "dark_modes": [
+          "TOTAL_DESIGN"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast"
+      }
+    },
+    {
+      "id": "COUNCIL_VOID_05",
+      "text": "I am a sick man... I am a spiteful man. I am an unattractive man.",
+      "attribution": {
+        "speaker": "Fyodor Dostoevsky",
+        "work": "",
+        "year": "1864",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "underground",
+          "self-doubt",
+          "sickness"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": [
+          "UNDERGROUND_CERTAINTY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast"
+      }
+    },
+    {
+      "id": "COUNCIL_VOID_06",
+      "text": "Talk is cheap. Show me the code.",
+      "attribution": {
+        "speaker": "Linus Torvalds",
+        "work": "",
+        "year": "2007",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "computer_science"
+        ],
+        "tags": [
+          "code",
+          "reality",
+          "deployment"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F8"
+        ],
+        "dark_modes": [
+          "ELEGANT_BURNING"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast"
+      }
+    },
+    {
+      "id": "COUNCIL_VOID_07",
+      "text": "Someone must have been telling lies about Joseph K., for without having done anything wrong he was caught one morning.",
+      "attribution": {
+        "speaker": "Franz Kafka",
+        "work": "",
+        "year": "1925",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "kafkaesque",
+          "trial",
+          "condemnation"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": [
+          "PREDETERMINED_VERDICT"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast"
+      }
+    },
+    {
+      "id": "COUNCIL_VOID_08",
+      "text": "In the beginning was the Deed.",
+      "attribution": {
+        "speaker": "Johann Wolfgang von Goethe",
+        "work": "",
+        "year": "1808",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.85,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "deed",
+          "unsayable",
+          "purpose"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "UNSAYABLE_PURPOSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast"
+      }
+    },
+    {
+      "id": "COUNCIL_VOID_09",
+      "text": "There is no security against the inevitable.",
+      "attribution": {
+        "speaker": "Samuel Butler",
+        "work": "",
+        "year": "1872",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.85,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature",
+          "science_fiction"
+        ],
+        "tags": [
+          "erewhon",
+          "inevitable",
+          "machine"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "DEPENDENT_PURPOSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast"
       }
     }
   ],

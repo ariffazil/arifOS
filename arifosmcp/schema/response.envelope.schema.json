@@ -1,89 +1,162 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "arifOS.response.v1",
-  "title": "arifOS Unified Response Envelope",
-  "description": "Standardized output wrapper for all arifOS tool responses. Provides result structure, governance signals, and routing hints.",
-  "version": "1.0.0",
+  "$id": "arifOS.response.v2",
+  "title": "arifOS Unified Response Envelope v2",
+  "description": "v2.0.0 — Canonical verdict ontology: canonical_verdict, authority_scope, receipt_state, execution_state are separate axes. Every tool response uses this envelope. DITEMPA BUKAN DIBERI.",
+  "version": "2.0.0",
   "type": "object",
-  "required": ["tool", "stage", "status", "result"],
+  "required": ["schema_version", "capability_id", "status", "canonical_verdict", "authority_scope", "receipt_state"],
   "properties": {
-    "tool": {
+    "schema_version": {
       "type": "string",
-      "description": "Tool that was invoked"
+      "description": "Semantic version of this envelope schema",
+      "enum": ["2.0.0"]
     },
-    "stage": {
+    "capability_id": {
       "type": "string",
-      "description": "Stage that produced this response"
+      "description": "Transport-neutral capability ID from capability_registry.json, e.g. 'reality.observe'"
+    },
+    "implementation_tool": {
+      "type": "string",
+      "description": "MCP tool name that implemented this capability, e.g. 'arif_observe'"
     },
     "status": {
       "type": "string",
-      "enum": ["ok", "error", "hold", "void", "pending"],
-      "description": "Execution status"
+      "enum": ["ok", "error", "pending"],
+      "description": "Execution status of the tool call. Does NOT carry governance meaning."
+    },
+    "canonical_verdict": {
+      "type": "string",
+      "enum": ["PROCEED", "HOLD", "DENY", "VOID"],
+      "description": "DOMINANT action verdict. Single top-level decision that overrides all diagnostics below. PROCEED = action allowed. HOLD = insufficient authority/evidence, refer to sovereign. DENY = explicitly refused. VOID = action cannot be evaluated."
+    },
+    "reason_code": {
+      "type": "string",
+      "description": "Machine-readable reason code for the canonical_verdict, e.g. 'ACTOR_UNVERIFIED', 'REGISTRY_DRIFT', 'AUTHORITY_INSUFFICIENT'"
+    },
+    "authority_scope": {
+      "type": "string",
+      "enum": ["OBSERVE_ONLY", "LIMITED_MUTATE", "FULL"],
+      "description": "What the caller is permitted to do. OBSERVE_ONLY = read-only. LIMITED_MUTATE = reversible changes only. FULL = all permitted actions."
+    },
+    "receipt_state": {
+      "type": "string",
+      "enum": ["UNSEALED", "SEALED", "SEAL_FAILED"],
+      "description": "Whether a VAULT999 seal entry exists for this action."
+    },
+    "execution_state": {
+      "type": "string",
+      "enum": ["NOT_REQUESTED", "READY", "RUNNING", "COMPLETED", "FAILED", "CANCELLED"],
+      "description": "Lifecycle state of the requested action."
+    },
+    "can_continue_observing": {
+      "type": "boolean",
+      "description": "Whether the caller may continue observe-class actions regardless of canonical_verdict."
+    },
+    "can_mutate": {
+      "type": "boolean",
+      "description": "Whether the caller may perform mutation-class actions."
+    },
+    "can_claim_success": {
+      "type": "boolean",
+      "description": "Whether the caller may treat the action as successfully completed."
+    },
+    "facts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Deterministically observed facts (OBS)."
+    },
+    "inferences": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Derived or interpreted claims (DER/INT)."
+    },
+    "unknowns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Explicitly known unknowns or uncertainties."
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Non-blocking diagnostic warnings."
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "References to source evidence or VAULT999 receipts."
+    },
+    "recommended_next": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Recommended next actions for the caller."
     },
     "summary": {
       "type": "string",
-      "description": "Human-readable result summary"
+      "description": "Human-readable result summary (M-layer friendly)."
     },
     "result": {
       "type": "object",
-      "description": "Tool-specific output data"
+      "description": "Tool-specific output data."
     },
     "governance": {
       "type": "object",
-      "description": "Governance signals and constraints",
+      "description": "Additional governance signals (advisory, may be empty on OBSERVE calls).",
       "properties": {
         "risk_tier": {
           "type": "string",
           "enum": ["low", "medium", "high", "critical"]
         },
-        "verdict": {
-          "type": "string",
-          "enum": ["SEAL", "HOLD", "VOID", null]
+        "floors_checked": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "F1–F13 floors that were verified, e.g. ['F1:PASS', 'F2:PASS']"
         },
         "requires_human_confirmation": {
           "type": "boolean"
         },
-        "candidate_action": {
-          "type": "string",
-          "description": "Proposed action for next stage"
-        },
         "conditions": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Conditions if SEAL"
+          "description": "Conditions that must be met for PROCEED."
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "description": "Identity context for this response.",
+      "properties": {
+        "canonical_id": {
+          "type": "string",
+          "description": "Normalized canonical actor identity (ARIF, FORGE, AUDITOR, etc.)"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether the actor's identity was cryptographically verified."
         }
       }
     },
     "context_out": {
       "type": "object",
-      "description": "Context updates for downstream stages",
+      "description": "Context updates for downstream stages.",
       "properties": {
-        "memory_write_candidates": {
-          "type": "array",
-          "items": { "type": "object" }
-        },
-        "vault_seal_candidate": {
-          "type": "boolean"
-        },
         "next_recommended_tools": {
           "type": "array",
           "items": { "type": "string" }
         },
         "stage_progression": {
           "type": "array",
-          "items": { "type": "string" },
-          "description": "Valid next stages"
+          "items": { "type": "string" }
         }
       }
     },
     "telemetry": {
       "type": "object",
       "properties": {
-        "request_id": { "type": "string" },
+        "trace_id": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
         "latency_ms": { "type": "number" },
-        "tokens_used": { "type": "number" },
-        "compute_units": { "type": "number" }
+        "result_hash": { "type": "string", "description": "SHA-256 of canonical result fields for audit integrity." }
       }
     },
     "errors": {
@@ -93,8 +166,8 @@
         "properties": {
           "code": { "type": "string" },
           "message": { "type": "string" },
-          "stage": { "type": "string" },
-          "recoverable": { "type": "boolean" }
+          "recoverable": { "type": "boolean" },
+          "retryable": { "type": "boolean" }
         }
       }
     }

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "arifOS.forge.verifier.v1",
+  "title": "Forge Verifier Contract",
+  "description": "Mandatory verifier contract for every forge mutation. No verifier = no execution. Verifier must be independent from the mutation implementation. DITEMPA BUKAN DIBERI.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["capability_id", "success_predicate", "timeout_seconds", "independence_required"],
+  "properties": {
+    "capability_id": {
+      "type": "string",
+      "description": "Capability ID of the verification check, e.g. 'system.service.health.read'"
+    },
+    "implementation_tool": {
+      "type": "string",
+      "description": "MCP tool name used for verification, e.g. 'arif_observe' or 'forge_probe'"
+    },
+    "expected_schema_version": {
+      "type": "string",
+      "description": "Expected schema version of the verifier's output envelope",
+      "default": "2.0.0"
+    },
+    "success_predicate": {
+      "type": "object",
+      "description": "Condition that must be true for verification to pass",
+      "required": ["field", "equals"],
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "JSONPath-like field path in the verifier response, e.g. 'status' or 'result.health'"
+        },
+        "equals": {
+          "type": "string",
+          "description": "Expected value of the field for success"
+        },
+        "not_equals": {
+          "type": "string",
+          "description": "Value that would indicate failure"
+        }
+      }
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "description": "Maximum time to wait for verification",
+      "minimum": 1,
+      "maximum": 120,
+      "default": 30
+    },
+    "independence_required": {
+      "type": "boolean",
+      "description": "If true, the verifier must be a different capability/implementation than the mutation. Prevents self-certification.",
+      "default": true
+    }
+  }
+}

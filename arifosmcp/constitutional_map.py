@@ -1,17 +1,16 @@
 """
-ARIFOS CONSTITUTIONAL MAP (v2026.07.04-CANONICAL-9)
+ARIFOS CONSTITUTIONAL MAP (v2026.07.19-CANONICAL-8)
 ═══════════════════════════════════════════════════════════════════════════════
 
-SOLE SOURCE OF TRUTH for the canonical MCP tools.
-Public canonical surface: the 9-stage metabolic loop (CANONICAL-9 2026-07-04:
-9 stages = 9 public tools. arif_critique promoted from arif_think mode to
-its own public tool at stage 555).
+SOURCE OF TRUTH for canonical MCP tools. Public surface: 8 capabilities
+(KERNEL_ABI_8). arif_critique → arif_think(mode=critique). arif_compose is
+absorbed into arif_forge(mode=compose). Both are internal_only, not public.
 
-Canonical 9 stages = arif_init (000), arif_observe (111), arif_think (333),
-arif_route (444), arif_critique (555), arif_judge (666), arif_forge (777),
-arif_compose (888), arif_seal (999). arif_canary, arif_triage → modes of
-arif_init. arif_fetch → mode of arif_observe. arif_bridge_connect → mode of
-arif_route. arif_critique is now its own public tool at 555.
+Canonical 8 stages = arif_init (000), arif_observe (111), arif_think (333),
+arif_route (444), arif_memory (555), arif_judge (666), arif_forge (777),
+arif_seal (999). arif_canary, arif_triage → modes of arif_init.
+arif_fetch → mode of arif_observe. arif_bridge_connect → mode of arif_route.
+Source of truth: capability_registry.json → KERNEL_ABI_8.
 
 Full CANONICAL_TOOLS dict registers the public verbs + supporting internal tools.
 All arif_* naming. One stage = one canonical verb (F4 CLARITY).
@@ -948,7 +947,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     # `arif_seal mode="verify"` for SEAL-token verification. The live
     # `_arif_verify_tool` (JITU SEAL-token gate) lives only as a Python
     # handle and HTTP /kernel/arif_verify, never on the canonical surface.
-
     "arif_seal": {
         "lane": TrinityLane.AGI,
         "floors": [
@@ -1004,7 +1002,6 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     # "arif_forge" routing — not in CANONICAL_TOOLS. The handler
     # _arif_act is still defined for legacy Python callers but is no
     # longer in _CANONICAL_HANDLERS (so the runtime check passes).
-
     "arif_forge": {
         "name": "arif_forge",
         "description": (
