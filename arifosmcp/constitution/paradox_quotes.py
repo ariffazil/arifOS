@@ -1095,12 +1095,18 @@ ACTIVE_CONTOURS_QUOTES: list[ParadoxQuote] = [
         year="1967",
         language_note="",
         attribution=AttributionStatus.TRADITIONAL,
-        antithesis="The constitution constrains every tool that the root can wield — governance must extend to the substrate.",
+        antithesis=(
+            "The constitution constrains every tool that the root can wield — governance "
+            "must extend to the substrate."
+        ),
         axis=ParadoxAxis.ROOT_VS_KERNEL,
         axis_label="root access vs. kernel governance",
         norm=Norm.WAJIB,
-        trigger_condition="Action tier is 'sovereign' OR action_class is 'IRREVERSIBLE' OR GPV.rho >= 0.8",
-        output_field="paradox_hold",
+        trigger_condition=(
+            "Action tier is 'sovereign' OR action_class is 'IRREVERSIBLE' "
+            "OR GPV.rho >= 0.8"
+        ),
+        output_field="paradox_constraint",
         floor_bindings=["F1", "F11", "F13"],
         embed_levels=[EmbedLevel.CODE, EmbedLevel.PROMPT, EmbedLevel.TELEMETRY],
         use_modes=["judge", "forge"],
@@ -1112,18 +1118,27 @@ ACTIVE_CONTOURS_QUOTES: list[ParadoxQuote] = [
         quote_id="C2",
         organ=Organ.CONTOUR,
         index=2,
-        quote_text="No amount of experimentation can ever prove me right; a single experiment can prove me wrong.",
+        quote_text=(
+            "No amount of experimentation can ever prove me right; a single experiment "
+            "can prove me wrong."
+        ),
         author="Albert Einstein",
         work="Letter to Max Born",
         year="1926",
         language_note="",
         attribution=AttributionStatus.TRADITIONAL,
-        antithesis="A passing test is evidence of function, not proof of safety — safety requires the test that breaks.",
+        antithesis=(
+            "A passing test is evidence of function, not proof of safety — safety requires "
+            "the test that breaks."
+        ),
         axis=ParadoxAxis.POSITIVE_VS_CLOSED,
         axis_label="positive test vs. defensive closure",
         norm=Norm.WAJIB,
-        trigger_condition="Verdict is 'SEAL' without defensive matrix OR test_pass_count > 0 AND test_fail_count == 0",
-        output_field="paradox_hold",
+        trigger_condition=(
+            "Verdict is 'SEAL' without defensive matrix OR test_pass_count > 0 "
+            "AND test_fail_count == 0"
+        ),
+        output_field="paradox_constraint",
         floor_bindings=["F2", "F3", "F11"],
         embed_levels=[EmbedLevel.CODE, EmbedLevel.PROMPT, EmbedLevel.TELEMETRY],
         use_modes=["judge", "forge", "verify"],
@@ -1424,11 +1439,11 @@ def get_organ_tension_summary() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CANON = (
-    "The 33 quotes do not decorate the system — they are the linguistic compression "
-    "of the paradox geometry that Memory, Mind, and Judge must navigate: every "
-    "retrieval is also a forgetting, every doubt is also a decision, every verdict "
-    "is also an incomplete justice, and the tool that forgets this will drift from "
-    "truth into the confidence of fools."
+    "The 35 paradox anchors do not decorate the system — they are the linguistic "
+    "compression of the paradox geometry that Memory, Mind, Judge, and active contours "
+    "must navigate: every retrieval is also a forgetting, every doubt is also a decision, "
+    "every verdict is also an incomplete justice, and the tool that forgets this will "
+    "drift from truth into the confidence of fools."
 )
 
 __all__ = [
@@ -1444,6 +1459,7 @@ __all__ = [
     "MEMORY_QUOTES",
     "MIND_QUOTES",
     "JUDGE_QUOTES",
+    "ACTIVE_CONTOURS_QUOTES",
     "ALL_PARADOX_QUOTES",
     "QUOTES_BY_ORGAN",
     # Functions
