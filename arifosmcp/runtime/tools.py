@@ -12691,11 +12691,19 @@ async def _arif_mind_reason_tool(
         # _arif_mind_reason (threat_engine.classify, axioms dict, plan
         # registry). Only reason | debate | socratic | metabolize genuinely
         # require the LLM inference pipeline (v2 / SEA-LION / Ollama).
+        #
+        # P0 FIX (2026-07-19, Fable5): reflect | verify | critique
+        # were ALSO excluded, causing all three to produce template-synthesized
+        # hollow reasoning. Re-enable LLM for ALL cognitive modes.
+        # The 30s timeout was a June infra issue — TokenRouter resolves it.
         if mode not in (
             "reason",
             "debate",
             "socratic",
             "metabolize",
+            "reflect",
+            "verify",
+            "critique",
         ):
             result = _arif_mind_reason(
                 mode=mode,
@@ -12732,22 +12740,33 @@ async def _arif_mind_reason_tool(
                 await trace.span("result", input=result)
             return result
 
-        # Cognitive modes: delegate to LLM-aware module (SEA-LION → Ollama → rule)
+        # Cognitive modes: delegate to LLM (TokenRouter → MiniMax → MiMo → SEA-LION → Ollama → template)
         # L13: Deterministic timeout — no dead zones allowed
+        # P0 FIX 2026-07-19: arifosmcp.runtime.mind_reason module does not exist.
+        # Instead of importing a non-existent module, call _synthesize_async directly
+        # which already wraps call_llm with the correct constitutional prompt and schema.
         try:
-            from arifosmcp.runtime.mind_reason import (
-                arif_mind_reason as _llm_mind_reason,
-            )
-
-            result = await asyncio.wait_for(
-                _llm_mind_reason(
-                    mode=mode,
-                    query=query,
-                    actor_id=actor_id,
-                    session_id=session_id,
-                ),
+            synthesis = await asyncio.wait_for(
+                _synthesize_async(query or "", reasoning_mode=mode),
                 timeout=_TIMEOUT_MS / 1000.0,
             )
+            # Build result from real LLM synthesis
+            result = {
+                "status": "OK",
+                "tool": "arif_mind_reason",
+                "verdict": synthesis.get("verdict", "CLAIM"),
+                "result": {
+                    "query": query,
+                    "synthesis": synthesis.get("bounded_answer", ""),
+                    "confidence": synthesis.get("overall_confidence", 0.65),
+                    "what_is_supported": synthesis.get("what_is_supported", []),
+                    "what_is_not_supported": synthesis.get("what_is_not_supported", []),
+                    "what_remains_unknown": synthesis.get("what_remains_unknown", []),
+                    "confidence_reasoning": synthesis.get("confidence_reasoning", 0.5),
+                    "confidence_evidence": synthesis.get("confidence_evidence", 0.3),
+                    "confidence_provenance": "OBSERVED",
+                },
+            }
         except TimeoutError:
             logger.warning("333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
             return _safe_void_fallback(
