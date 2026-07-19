@@ -60,6 +60,20 @@ env:
 
 jobs:
 
+  federation-check:
+    name: 🗺️ Federation Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate FEDERATION.md
+        run: |
+          test -f FEDERATION.md || (echo "❌ Missing FEDERATION.md" && exit 1)
+          grep -q "role: ROOT" FEDERATION.md
+          grep -q "layer: L1" FEDERATION.md
+          grep -q "mcp:" FEDERATION.md
+          echo "✅ arifOS FEDERATION.md valid — L1 ROOT"
+
   # ─────────────────────────────────────────────────────────────
   # JOB 1: Fast Signal — tool registry, imports, shim resolution
   # ─────────────────────────────────────────────────────────────
