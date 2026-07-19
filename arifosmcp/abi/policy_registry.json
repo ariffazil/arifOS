@@ -10,9 +10,7 @@
         "cognition.think",
         "intent.route",
         "memory.govern",
-        "authority.judge",
-        "action.execute",
-        "history.seal"
+        "authority.judge"
       ],
       "mode_limits": {
         "memory.govern": [

@@ -335,6 +335,32 @@ class TestAdr001Migration:
 
 
 class TestForgeExecuteLeaseGate:
+    @pytest.fixture(autouse=True)
+    def _pass_forge_preflight(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(
+            "arifosmcp.runtime.forge_preflight.run_forge_preflight",
+            lambda **kwargs: {
+                "session_valid": True,
+                "actor_bound": True,
+                "authority_recomputed": True,
+                "authority_gap_detected": False,
+                "judge_state_valid": True,
+                "judge_hash_match": True,
+                "constitutional_chain_valid": True,
+                "vault_receipt_valid": True,
+                "plan_manifest_bound": True,
+                "scar_consulted": True,
+                "forge_precheck_schema_valid": True,
+                "sealed_forge_plan_valid": True,
+                "reversibility": "REVERSIBLE",
+                "human_ack_required": False,
+                "human_ack_valid": True,
+                "replay_detected": False,
+                "final_gate": "PASS",
+                "reason_codes": ["TEST_PRECHECK_PASS"],
+            },
+        )
+
     def test_engineer_without_lease_or_plan_holds(self) -> None:
         from arifosmcp.runtime.tools import _arif_forge_execute
 

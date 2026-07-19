@@ -518,7 +518,7 @@ def _strip_legacy_identity(response: dict[str, Any]) -> None:
 def _allowed_verbs_for_band(band: str) -> list[str]:
     """Verb allowlist derived from standing band only.
 
-    forge_next_8 public surface must be reachable under SOVEREIGN/FULL.
+    The full public surface must be reachable under SOVEREIGN/FULL.
     """
     if band in (BAND_FULL, BAND_SOVEREIGN):
         return [

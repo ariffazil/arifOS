@@ -20,12 +20,12 @@ from arifosmcp.abi.kernel_abi import (
 )
 
 # The permanent contract is semantic: eight capability IDs in
-# abi/capability_registry.json. MCP tool names are replaceable provider bindings.
+# abi/capability_registry.json.
 KERNEL_ABI_8: tuple[str, ...] = semantic_tool_names()
 PUBLIC_AGENT_6: tuple[str, ...] = abi_tool_names_for_profile("public_agent")
 
-# Compatibility constants remain importable for one migration cycle, but no
-# runtime or generated manifest may treat their numeric suffix as authority.
+# Compatibility constants remain importable, but their numeric suffixes are
+# not authoritative.
 FORGE_NEXT_8: tuple[str, ...] = KERNEL_ABI_8
 CANONICAL_12: tuple[str, ...] = KERNEL_ABI_8
 CANONICAL_13: tuple[str, ...] = KERNEL_ABI_8
@@ -33,10 +33,7 @@ CANONICAL_9: tuple[str, ...] = KERNEL_ABI_8
 CANONICAL_7: tuple[str, ...] = KERNEL_ABI_8
 CANONICAL13_PUBLIC_SURFACE: tuple[str, ...] = KERNEL_ABI_8
 
-# ── Canary Probe — transport diagnostic, absorbed into arif_init(mode=canary) ──
-# arif_canary remains absorbed as a mode of arif_init. Its 6 child names are
-# DEPRECATED → use arif_init(mode=canary). They are kept as internal aliases
-# for backward compatibility only.
+# Canary probe absorbed into arif_init(mode=canary).
 CANARY_PROBES: tuple[str, ...] = ()
 DEPRECATED_CANARY_CHILDREN: tuple[str, ...] = (
     "arif_ping",
@@ -51,11 +48,7 @@ DEPRECATED_CANARY_CHILDREN: tuple[str, ...] = (
     # is now arif_canary(mode=conformance_report).
 )
 
-# ── SDK long-name aliases (DEPRECATED 2026-06-23 — kernel freeze) ─────────────
-# FROZEN 2026-06-23 + PURGED 2026-06-30 + RE-PURGED 2026-07-04: aliases removed
-# from public wire surface. Backend handlers still resolve via _LEGACY_ALIASES for
-# backward compatibility, but tools/list returns ONLY canonical 13 names.
-# See: forge_work/BANGANG-ALIAS-PURGE-2026-06-30.md and the 2026-07-04 YELLOW re-purge.
+# SDK long-name aliases stay empty on the public wire surface.
 CANONICAL_LONG_NAME_ALIASES: tuple[str, ...] = ()  # intentionally empty
 
 VALID_PUBLIC_SURFACE_MODES: tuple[str, ...] = (
@@ -78,62 +71,16 @@ BLOCKED_PUBLIC_PREFIXES: tuple[str, ...] = (
 )
 
 
-# ══ ARIFOS ↔ A-FORGE Namespace Separation (F4 CLARITY) ══════════════════════
-# arifOS and A-FORGE share verb collisions on: judge, seal, execute, act.
-# The delegation table below makes explicit which tool runs where, and why.
-# Option A (route-only) was ratified 2026-07-01: arifOS = governance facade,
-# A-FORGE = execution engine. No tool removal — explicit delegation clarifies roles.
-#
-# ┌──────────────────────┬───────────────────────────┬─────────────────────┐
-# │ arifOS (this repo)   │ A-FORGE (:7071/:7072)    │ Delegation          │
-# ├──────────────────────┼───────────────────────────┼─────────────────────┤
-# │ arif_judge          │ forge_judge_proxy         │ arifOS = local      │
-# │   888 constitutional │   (arifOS→A-FORGE bridge) │ governance/judgment │
-# │   verdict, SEAL/     │   A-FORGE cannot self-    │ No external call    │
-# │   HOLD/SABAR/VOID    │   authorize; arifOS holds │ for judge           │
-# │                      │   final veto               │                     │
-# ├──────────────────────┼───────────────────────────┼─────────────────────┤
-# │ arif_seal           │ forge_seal                │ arifOS = local      │
-# │   999 VAULT999       │   (A-FORGE vault seal)   │ Only arifOS writes  │
-# │   immutable ledger   │                           │ to VAULT999         │
-# │                      │                           │ No delegation       │
-# ├──────────────────────┼───────────────────────────┼─────────────────────┤
-# │ arif_act            │ (internal only)           │ arifOS = local      │
-# │   900 execution      │   wraps _arif_forge_      │ arif_act verifies   │
-# │   gate; requires     │   execute after SEAL      │ SEAL then calls     │
-# │   seal_verdict_id +  │   verification via         │ _arif_forge_execute │
-# │   approved_action_   │   A2ASealVerifier         │ locally             │
-# │   hash              │                           │                     │
-# ├──────────────────────┼───────────────────────────┼─────────────────────┤
-# │ arif_forge_execute  │ forge_execute             │ arifOS = local      │
-# │   (010 FORGE stage) │   (A-FORGE motor cortex)  │ Both run locally;   │
-# │   plan-gated build, │   REST/MCP execution,      │ arifOS has own      │
-# │   artifact produce  │   lease + SCAR + witness   │ forge_exec handler  │
-# ├──────────────────────┼───────────────────────────┼─────────────────────┤
-# │ (none — arifOS does │ forge_dry_run, forge_*    │ A-FORGE owns        │
-# │  not expose these   │  filesystem, git, docker,  │ engineering tools    │
-# │  on public surface) │  postgres, etc.            │ arifOS has deprec.  │
-# │                      │                           │ proxy → A-FORGE     │
-# │                      │                           │ (removal 2026-07-15)│
-# └──────────────────────┴───────────────────────────┴─────────────────────┘
-#
-# Blast radius of collision: NONE. Infrastructure already separates the two
-# namespaces. The deprecation proxy for forge_* (server.py §forge-ladder)
-# routes external callers to A-FORGE MCP automatically when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true.
-# The only remaining "collision" is documentation ambiguity — fixed by this table.
-# See: forge_work/AFORGE-ARIFOS-COLLISION-AUDIT-2026-07-01.md
+# A-FORGE owns execution; arifOS keeps governance and can route to it.
 
 
-# Diagnostic tools — reversible governance inspectors, not canonical constitutional tools.
-# These are the ONLY non-canonical tools that have live FastMCP handlers.
+# Diagnostic tools are reversible inspectors, not canonical constitutional tools.
 DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arifos_ping",
-    # ── Transport Canary Layer (Phase 0, 2026-06-14) ──
     "arifos_schema_echo",
     "arifos_version_echo",
     "arifos_transport_echo",
     "arifos_initialize_probe",
-    # ── Legacy diagnostics ──
     "arifos_stack_health_probe",
     "arifos_scan_local_instructions",
     "arifos_organ_consensus",
@@ -141,10 +88,8 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arifos_floor_status",
     "mcp_drift_check",
     "arifos_vault_query",
-    # ── Shadow Geometry Tools (Phase 2, 2026-06-16) ──
     "arifos_self_evaluate",
     "arifos_model_compare",
-    # ── Internal helpers (non-deprecated) ──
     "arifos_bridge_connect",
     "arifos_gate_judge",
     "arifos_gateway_connect",
@@ -156,17 +101,13 @@ DIAGNOSTIC_TOOLS: tuple[str, ...] = (
     "arifos_selftest",
     "arifos_tool_exists",
     "arifos_resolve_tool",
-    # ── Eureka Margin Discovery Substrate (Phase 2, 2026-06-29) ──
     "arifos_discover_margins",
     "arifos_bridge_mcp_server",
     "arifos_synthesize_canon",
-    # ── BM25 Tool Retrieval (Ratel insight, 2026-06-29) ──
     "arifos_retrieve_tools",
 )
 
-# ZEN ABSORBED (2026-07-16) — tools whose code remains but surface is hidden.
-# These were absorbed into canonical public tools via modes. Code handlers intact.
-# See: forge_work/2026-07-16/MCP-ZEN-AUDIT.md
+# ZEN absorbed into canonical modes; handlers remain for compatibility.
 ZEN_ABSORBED: frozenset[str] = frozenset(
     {
         "arif_triage",  # → arif_init(mode=preflight|triage)
@@ -177,13 +118,8 @@ ZEN_ABSORBED: frozenset[str] = frozenset(
     }
 )
 
-# Operator diagnostics are a separate layer, never a ninth kernel capability.
+# Operator diagnostics are a separate layer, not a ninth kernel capability.
 EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*KERNEL_ABI_8, *DIAGNOSTIC_TOOLS])))
-
-# DOMAIN_ALIASES were removed 2026-06-21 — TOOL_ALIAS_MAP was dead code
-# with 84 ghost aliases that had no FastMCP handlers. Cleared by FORGE audit.
-# See: forge_work/arifos-mcp-tool-audit-2026-06-21.md
-
 
 def normalize_public_surface_mode(mode: str | None = None) -> str:
     """Resolve a host-supplied name to a platform-neutral policy profile."""
@@ -246,9 +182,7 @@ def public_surface_state(mode: str | None = None) -> dict[str, Any]:
     }
 
 
-# ─── Federation Status Spine ─────────────────────────────────────────────────
 # Canonical public endpoints for the arifOS Federation.
-# All public-facing metadata derives from here — no manual duplication.
 
 SYSTEM_NAME = "arifOS Federation"
 SYSTEM_ROLE = "constitutional_kernel"

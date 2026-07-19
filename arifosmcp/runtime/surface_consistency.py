@@ -22,9 +22,8 @@ def compute_canonical_surface_hash() -> str:
     Single source of truth for the canonical surface identity.
     Every enumeration endpoint MUST produce the same hash.
 
-    Uses the active surface mode's tool set as baseline (2026-07-12):
-    when ARIFOS_PUBLIC_SURFACE_MODE=forge_next_8, the canonical baseline
-    is FORGE_NEXT_8 (8 tools), not CANONICAL_13 (18 tools).
+    Uses the active surface mode's tool set as baseline. In the default
+    public_agent profile, the baseline is the six-tool public surface.
     """
     from arifosmcp.runtime.public_surface import (
         CANONICAL_13,
@@ -47,8 +46,7 @@ def verify_surface_consistency() -> dict[str, Any]:
       - divergences: list of mismatch descriptions
       - verdict: CONSISTENT | DIVERGENT | BROKEN
 
-    Baseline is the active surface mode's tool set (2026-07-12):
-    forge_next_8 → 8 tools; canonical13 → 18 tools.
+    Baseline is the active surface mode's tool set.
     """
     canonical_hash = compute_canonical_surface_hash()
     from arifosmcp.runtime.public_surface import (
@@ -102,7 +100,7 @@ def verify_surface_consistency() -> dict[str, Any]:
 
     # ── Vantage 1b: CANONICAL_13 (audit only — full kernel surface) ─
     # Documents the full 18-tool kernel surface. Only expected to match
-    # the baseline when mode=canonical13. NOT a divergence when mode=forge_next_8.
+    # the baseline when mode=canonical13.
     from arifosmcp.runtime.public_surface import CANONICAL_13
 
     vantages.append(
@@ -177,8 +175,8 @@ def verify_surface_consistency() -> dict[str, Any]:
 
     # ── Vantage 4: tool_registry.json on disk ──────────────────────
     # tool_registry.json contains the FULL kernel surface (18 tools).
-    # When mode=forge_next_8, this is an audit-only vantage — the registry
-    # intentionally has more tools than the public wire exposes.
+    # This is an audit-only vantage when the active surface is narrower
+    # than the full kernel set.
     registry_paths = [
         "/opt/arifos/app/arifosmcp/tool_registry.json",
         "/root/arifOS/arifosmcp/tool_registry.json",
@@ -199,8 +197,8 @@ def verify_surface_consistency() -> dict[str, Any]:
                     "matches_canonical": reg_matches,
                     "declared_canonical_count": reg_count,
                 }
-                if not reg_matches and mode == "forge_next_8":
-                    # Expected: registry has full kernel surface, wire exposes subset
+                if not reg_matches and mode != "canonical13":
+                    # Expected: registry may expose a superset of the active wire surface.
                     entry["note"] = (
                         f"audit only — registry has full kernel surface, active mode '{mode}' expects {canonical_count}"
                     )
