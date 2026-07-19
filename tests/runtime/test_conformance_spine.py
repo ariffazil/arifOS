@@ -226,6 +226,7 @@ def test_vault_replay_fails_on_empty_vault(tmp_path, monkeypatch):
         _mock_urlopen_vault_api(None, fail=True),
     )
     monkeypatch.setenv("ARIFOS_VAULT_PATH", str(vault_dir))
+    monkeypatch.delenv("VAULT999_PATH", raising=False)
 
     result = spine.check_vault_replay()
     assert result["verdict"] == "FAIL"

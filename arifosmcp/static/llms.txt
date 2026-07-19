@@ -35,7 +35,7 @@ and 40 operational support tools.
 | `arif_think` | 333 | public | ✓ | reason, reflect, verify, axioms, plan, plan_review +4 more |
 | `arif_critique` | 555 | internal_only | ✓ | critique, redteam, maruah, shadow, deescalate, empathy |
 | `arif_route` | 444 | public | ✓ | route, bridge |
-| `arif_triage` | 000 | internal_only | ✓ | status, preflight, triage |
+| `arif_triage` | 000 | **deprecated** | → | → arif_init(mode=preflight|triage) |
 | `arif_bridge_connect` | 444 | internal_only | ✓ | connect |
 | `arif_compose` | 888 | internal_only | ✓ | compose, summarize, cite, tone_shift |
 | `arif_memory` | 000 | authenticated | ✗ HOLD | recall, inspect, attest, remember, promote, revise +2 more |

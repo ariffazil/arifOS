@@ -271,10 +271,10 @@ all = [
 
 [project.urls]
 Homepage      = "https://arifos.arif-fazil.com"
-Documentation = "https://github.com/ariffazil/arifOS"
-Repository    = "https://github.com/ariffazil/arifOS"
-Issues        = "https://github.com/ariffazil/arifOS/issues"
-Trinity       = "https://github.com/ariffazil/arifOS/blob/main/KERNEL/TRINITY_ARCHITECTURE.md"
+Documentation = "https://github.com/ariffazil/arifos"
+Repository    = "https://github.com/ariffazil/arifos"
+Issues        = "https://github.com/ariffazil/arifos/issues"
+Trinity       = "https://github.com/ariffazil/arifos/blob/main/KERNEL/TRINITY_ARCHITECTURE.md"
 PyPI          = "https://pypi.org/project/arifos/"
 
 [project.scripts]

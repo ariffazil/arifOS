@@ -128,3 +128,86 @@ def test_drift_field_includes_known_alias_anomaly() -> None:
     m = compose_manifest()
     deps = m["manifest_drift"]["deprecated_aliases"]
     assert any("arif_init" in s for s in deps)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# P1 bidirectional manifest ⇔ runtime invariant (2026-07-19, Fable5 audit)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_manifest_tool_iff_runtime_callable() -> None:
+    """Bidirectional: manifest tool exists ⇔ runtime tool callable.
+
+    A tool present only on one side must fail CI — not surprise the agent at runtime.
+    Covers both arif_compose and arif_triage drift cases.
+    """
+    from arifosmcp.runtime.tools import _CANONICAL_HANDLERS
+
+    m = compose_manifest()
+    manifest_names = {t["name"] for t in m["tools"]}
+    runtime_names = set(_CANONICAL_HANDLERS.keys())
+
+    # Determine which tools are "callable" in the manifest
+    callable_manifest = {
+        t["name"]
+        for t in m["tools"]
+        if t["runtime"].get("callable") and t["runtime"].get("status") != "absent"
+    }
+
+    # 1. Every callable manifest tool must have a runtime handler
+    callable_without_handler = callable_manifest - runtime_names
+    assert not callable_without_handler, (
+        f"Manifest claims callable but no runtime handler: {callable_without_handler}"
+    )
+
+    # 2. Every runtime handler should be in the manifest (or be an internal alias)
+    # Exclude legacy/alias names that are intentional redirects
+    _known_aliases = {
+        "arif_act",          # → arif_forge
+        "arif_fetch",        # → arif_observe mode=fetch
+        "arif_critique",     # → arif_think mode=critique
+        "arif_compose",      # → arif_forge mode=compose (absorbed, handler kept for compat)
+        "arif_memory_recall",# → arif_memory
+        "arif_evidence_fetch",
+        "arif_sense_observe",
+        "arif_heart_critique",
+        "arif_reply_compose",
+        "arif_explore",
+        "arif_forge_execute",
+        "arif_judge_deliberate",
+        "arif_vault_seal",
+        "arif_mind_reason",
+        "arif_entropy_observe",
+        "arif_j_state_assess",
+        "arif_correction_probe",
+        "arif_consequence_trace",
+        "arif_entropy_route",
+        "arif_j_gate",
+        "arif_challenge",
+        "arif_identity_verify",
+        "arif_verify",
+        "arif_ops_measure",
+        "arif_measure",
+        "arif_triage",       # → arif_init(mode=preflight|triage), deprecated
+    }
+    handler_without_manifest = runtime_names - manifest_names - _known_aliases
+    assert not handler_without_manifest, (
+        f"Runtime handler exists but not in manifest: {handler_without_manifest}"
+    )
+
+
+def test_absorbed_tools_not_marked_callable() -> None:
+    """Tools absorbed into other tools must not be marked callable in manifests."""
+    m = compose_manifest()
+    absorbed_tools = {
+        t["name"]
+        for t in m["tools"]
+        if t["runtime"].get("status") in ("absorbed", "deprecated")
+    }
+    for tool_name in absorbed_tools:
+        for t in m["tools"]:
+            if t["name"] == tool_name:
+                assert not t["runtime"].get("callable", False), (
+                    f"Absorbed/deprecated tool {tool_name} still marked callable in manifest. "
+                    f"Agents see it advertised but can't actually use it."
+                )

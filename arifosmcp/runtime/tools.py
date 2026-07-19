@@ -5526,10 +5526,10 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
         if parsed.get("bounded_answer"):
             return parsed
 
-    except LLMUnavailableError:
-        pass
-    except Exception:
-        pass
+    except LLMUnavailableError as e:
+        logger.warning("_synthesize_async LLM unavailable: %s", e)
+    except Exception as e:
+        logger.warning("_synthesize_async failed (%s): %s", type(e).__name__, e)
 
     # Template fallback — degraded quality, REASONING_EMPTY
     # FIX 2026-07-19 (P0-REASONING_EMPTY): Template synthesis with no LLM
