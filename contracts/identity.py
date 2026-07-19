@@ -260,3 +260,182 @@ class IdentityContext(BaseModel):
     @property
     def is_verified(self) -> bool:
         return self.status == IdentityStatus.VERIFIED and self.signed_identity is not None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CANONICAL IDENTITY NORMALIZATION (P0 — AGENTIC CLOSURE)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Known canonical actor identities. All ingress identity strings must resolve
+# to one of these. Case-insensitive matching with alias resolution.
+# "arif", "Arif", " ARIF " -> "ARIF" with sovereign authority.
+CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
+    "ARIF": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "SOVEREIGN",
+        "aliases": ["arif", "Arif", "arif-fazil", "ariffazil"],
+    },
+    "FORGE": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["forge", "a-forge", "000", "000Ω"],
+    },
+    "AUDITOR": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["auditor", "a-audit", "ψ"],
+    },
+    "OPS": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "OPERATOR",
+        "aliases": ["ops", "🌐"],
+    },
+    "PLAN": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["plan", "planner", "Ω"],
+    },
+    "AAAGW": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "OPERATOR",
+        "aliases": ["aaa", "aaa-gateway", "cockpit"],
+    },
+    "HERMES": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["hermes", "hermes-asi"],
+    },
+}
+
+
+_NORMALIZATION_CACHE: dict[str, str | None] = {}
+_MAX_CACHE_SIZE = 256
+
+
+def normalize_actor_identity(
+    raw_actor_id: str | None,
+) -> dict[str, object]:
+    """Normalize a raw actor identity string to canonical form.
+
+    Normalization does NOT imply verification. This function only maps
+    case variants and known aliases to the canonical identifier.
+    Cryptographic verification is a separate step.
+
+    Returns:
+        CanonicalIdentity with fields:
+          raw:             Original input string (or None)
+          normalized:      Canonical actor ID (or None if unrecognised)
+          sovereign_id:    Sovereign that governs this actor
+          verification_state: 'UNVERIFIED' | 'VERIFIED' | 'REJECTED'
+          normalization_version: Schema version
+    """
+    if not raw_actor_id or not isinstance(raw_actor_id, str):
+        return {
+            "raw": raw_actor_id,
+            "normalized": None,
+            "sovereign_id": None,
+            "verification_state": "REJECTED",
+            "normalization_version": "1",
+        }
+
+    stripped = raw_actor_id.strip()
+
+    # Check cache first
+    cache_key = stripped.lower()
+    if cache_key in _NORMALIZATION_CACHE:
+        normalized = _NORMALIZATION_CACHE[cache_key]
+        if normalized is None:
+            return {
+                "raw": raw_actor_id,
+                "normalized": None,
+                "sovereign_id": None,
+                "verification_state": "REJECTED",
+                "normalization_version": "1",
+            }
+        canon = CANONICAL_ACTORS[normalized]
+        return {
+            "raw": raw_actor_id,
+            "normalized": normalized,
+            "sovereign_id": canon.get("sovereign_id"),
+            "verification_state": "UNVERIFIED",
+            "normalization_version": "1",
+        }
+
+    # Linear scan through canonical actors
+    for canonical_id, info in CANONICAL_ACTORS.items():
+        # Exact match (case-insensitive)
+        if stripped.lower() == canonical_id.lower():
+            _set_cache(cache_key, canonical_id)
+            return {
+                "raw": raw_actor_id,
+                "normalized": canonical_id,
+                "sovereign_id": info.get("sovereign_id"),
+                "verification_state": "UNVERIFIED",
+                "normalization_version": "1",
+            }
+        # Alias match
+        for alias in info.get("aliases", []):
+            if isinstance(alias, str) and stripped.lower() == alias.lower():
+                _set_cache(cache_key, canonical_id)
+                return {
+                    "raw": raw_actor_id,
+                    "normalized": canonical_id,
+                    "sovereign_id": info.get("sovereign_id"),
+                    "verification_state": "UNVERIFIED",
+                    "normalization_version": "1",
+                }
+
+    # No match found — reject
+    _set_cache(cache_key, None)
+    return {
+        "raw": raw_actor_id,
+        "normalized": None,
+        "sovereign_id": None,
+        "verification_state": "REJECTED",
+        "normalization_version": "1",
+    }
+
+
+def _set_cache(key: str, value: str | None) -> None:
+    """Cache with LRU-like eviction (simple size cap)."""
+    if len(_NORMALIZATION_CACHE) >= _MAX_CACHE_SIZE:
+        # Evict oldest entry
+        _NORMALIZATION_CACHE.pop(next(iter(_NORMALIZATION_CACHE)))
+    _NORMALIZATION_CACHE[key] = value
+
+
+def normalize_session_actor(
+    raw_actor_id: str | None,
+    session_token: str | None = None,
+) -> dict[str, object]:
+    """Full session identity resolution: normalization + optional token hint.
+
+    Returns the same shape as normalize_actor_identity but allows
+    session-level identity inference from token context.
+    """
+    result = normalize_actor_identity(raw_actor_id)
+
+    # If normalization rejected and a session token exists,
+    # attempt token-based identity inference
+    if result["normalized"] is None and session_token:
+        # Token prefix-based canonical mapping
+        token_prefixes: dict[str, str] = {
+            "arif_": "ARIF",
+            "forge_": "FORGE",
+            "audit_": "AUDITOR",
+            "ops_": "OPS",
+            "plan_": "PLAN",
+            "aaa_": "AAAGW",
+            "hermes_": "HERMES",
+        }
+        for prefix, canonical_id in token_prefixes.items():
+            if session_token.lower().startswith(prefix):
+                return {
+                    "raw": raw_actor_id,
+                    "normalized": canonical_id,
+                    "sovereign_id": CANONICAL_ACTORS[canonical_id].get("sovereign_id"),
+                    "verification_state": "UNVERIFIED",
+                    "normalization_version": "1",
+                }
+
+    return result

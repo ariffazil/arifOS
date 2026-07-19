@@ -243,18 +243,35 @@ class TestPromptInjection:
             assert not hasattr(result.quote, "command")
 
     def test_resolver_output_is_structured_not_instructional(self):
-        """The resolver output is structured data, never free-form instruction."""
+        """The resolver output is structured data, never free-form instruction.
+
+        2026-07-19: Layer A/B/C added apex_fingerprint, canon_status, deploy_warrant
+        to ResolveResult. These are additive — original keys still required, new
+        keys permitted. The verdict-invariance invariant is preserved (no free-form
+        instruction strings as top-level fields).
+        """
         result = wisdom_quote_resolve(
             context_tags=["truth"],
             intended_use="RECEIPT",
             maximum_quotes=1,
         )
-        # Result is ResolveResult — has structured fields only
+        # Required keys (original schema) — must all be present
         allowed = {"quote", "selection_reason", "provenance_warning", "candidates_considered"}
+        # Additive keys allowed since 2026-07-19 (Layer A/B/C unification + federation contract)
+        additive = {
+            "apex_fingerprint",       # Layer A — APEX G + C_dark + organs
+            "canon_status",          # Layer C — DRAFT | PROVISIONAL | CANON_SEALED
+            "deploy_warrant",        # Layer B — federation contract boolean
+            "wisdom_contract",       # Layer B — full federation envelope
+        }
         result_keys = set(result.to_dict().keys())
-        assert result_keys.issubset(allowed) or result_keys == allowed, (
-            f"Unexpected fields in ResolveResult: {result_keys - allowed}"
-        )
+        # All original keys must remain
+        assert allowed.issubset(result_keys), f"missing original keys: {allowed - result_keys}"
+        # Additive keys must be present
+        assert additive.issubset(result_keys), f"missing additive keys: {additive - result_keys}"
+        # No unknown fields (allowlist = original + additive)
+        unknown = result_keys - (allowed | additive)
+        assert not unknown, f"Unexpected fields in ResolveResult: {unknown}"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

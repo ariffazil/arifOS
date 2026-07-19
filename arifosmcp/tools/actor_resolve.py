@@ -18,6 +18,10 @@ import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+# P0 (2026-07-19): single canonical normalizer. No raw actor value compares
+# downstream without going through this function first.
+from arifosmcp.runtime.governance_identity import normalize_actor_id
+
 
 # Authority tiers — the substrate's trust levels
 AUTHORITY_TIERS = ("SOVEREIGN", "HIGH", "MEDIUM", "LOW", "UNKNOWN")
@@ -41,7 +45,7 @@ def _authority_tier_for_actor(actor_id: str) -> str:
     """Resolve the authority tier for a given actor_id."""
     if not actor_id or actor_id in ("anonymous", "openclaw-anon", "unknown"):
         return "UNKNOWN"
-    actor_lower = actor_id.lower().strip()
+    actor_lower = (normalize_actor_id(actor_id) or actor_id.lower().strip()) if actor_id else ""
     if actor_lower in SOVEREIGN_ACTORS or any(s in actor_lower for s in SOVEREIGN_ACTORS):
         return "SOVEREIGN"
     if actor_lower.startswith(("hermes", "forge", "root")):
