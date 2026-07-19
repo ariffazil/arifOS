@@ -447,10 +447,20 @@ def mint_sct(
                     apex_out[k] = v
                 # else leave UNMEASURED — refuse invented strings
 
+    # P0 BOUNDARY FIX (2026-07-19): canonicalize the actor at the issuance
+    # boundary. The canonical machine actor is lowercase ``arif``; "ARIF" /
+    # "Muhammad Arif" / greeting variants all collapse via the existing
+    # ``normalize_actor_id``. Without this, every claim minted by the
+    # kernel carries a different casing than the GEOX / WEALTH / WELL
+    # organ validators expect, and the federation rejects the call.
+    from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+    normalized_actor = normalize_actor_id(actor) or (actor or "anonymous")
+
     claims: dict[str, Any] = {
         "sct_v": SCT_VERSION,
         "sid": sid,
-        "actor": actor or "anonymous",
+        "actor": normalized_actor,
         "auth": auth_norm,
         "av": bool(av),
         "stage": stage or "000",
@@ -569,8 +579,17 @@ def verify_sct(
 
     if expected_actor:
         claim_actor = str(claims.get("actor") or "")
-        if claim_actor and claim_actor != expected_actor:
-            return None
+        # P0 BOUNDARY FIX (2026-07-19): compare canonicalized forms so
+        # "ARIF" ingress vs "arif" claim is a match, not a forgery. The
+        # claim is already normalized at mint time; we normalize the
+        # expected_actor here for defense-in-depth (handles tokens minted
+        # by older kernels or by organs that do not normalize themselves).
+        from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+        if claim_actor:
+            _expected_norm = normalize_actor_id(expected_actor) or expected_actor
+            if claim_actor != _expected_norm:
+                return None
 
     return claims
 

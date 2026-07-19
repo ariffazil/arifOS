@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-07-19T08:18:18Z",
+  "generated": "2026-07-19T08:27:58Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=healthy, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.17-ZEN-SURVIVAL (4bc2928). 80 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-07-19T08:18:18Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=healthy, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.17-ZEN-SURVIVAL (510919a). 80 tools live across 5/6 organs.",
+  "note": "All numbers from live /health probe at 2026-07-19T08:27:58Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -63,7 +63,7 @@
         "tools": 48,
         "release": "v2026.07.17-ZEN-SURVIVAL",
         "version": "v2026.07.17-ZEN-SURVIVAL",
-        "commit": "4bc2928",
+        "commit": "510919a",
         "canonical_tools": 8,
         "diagnostic_tools": 40,
         "tools_exposed_mcp": 8,

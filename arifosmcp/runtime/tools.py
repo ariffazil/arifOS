@@ -2219,11 +2219,32 @@ def _compute_canonical_verdict(
                 _passed_actor = out.get("actor_id") or (
                     result_payload.get("actor_id") if isinstance(result_payload, dict) else None
                 )
-                if _passed_actor and _passed_actor != _sess_actor:
-                    degradation.append(
-                        f"session_actor_mismatch: passed actor_id={_passed_actor} "
-                        f"≠ session actor_id={_sess_actor} for session={_session_id}"
-                    )
+                # P0 BOUNDARY FIX (2026-07-19): canonicalize both sides before
+                # comparing. Without this, a passed "arif" (normalized at ingress)
+                # vs a session-stored "ARIF" (raw at mint time) produces a false
+                # SCAR. The canonical machine actor is lowercase; display labels
+                # like "ARIF" are presentation only.
+                if _passed_actor:
+                    try:
+                        from arifosmcp.runtime.governance_identity import (
+                            normalize_actor_id,
+                        )
+
+                        _passed_norm = normalize_actor_id(_passed_actor) or _passed_actor
+                        _sess_norm = normalize_actor_id(_sess_actor) if _sess_actor else _sess_actor
+                        if _passed_norm and _sess_norm and _passed_norm != _sess_norm:
+                            degradation.append(
+                                f"session_actor_mismatch: passed actor_id={_passed_actor} "
+                                f"(canonical={_passed_norm}) ≠ session actor_id={_sess_actor} "
+                                f"(canonical={_sess_norm}) for session={_session_id}"
+                            )
+                    except Exception:
+                        # Fail-soft: keep the legacy raw comparison as SCAR backup
+                        if _passed_actor != _sess_actor:
+                            degradation.append(
+                                f"session_actor_mismatch: passed actor_id={_passed_actor} "
+                                f"≠ session actor_id={_sess_actor} for session={_session_id}"
+                            )
         except Exception:
             pass
 

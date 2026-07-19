@@ -3,7 +3,7 @@
     "version": "2.0.0",
     "description": "Canonical quote registry with provenance classes and attribution confidence",
     "schema": "zen-witness-doctrine-v1",
-    "total_quotes": 96,
+    "total_quotes": 99,
     "doctrine_quotes": 17,
     "inherited_quotes": 82,
     "disputed_count": 9,
@@ -12,7 +12,7 @@
     "total_entries": 99,
     "quote_count": 82,
     "council_v1_date": "2026-07-19",
-    "council_v1_note": "27 council quotes added (9 governance + 9 paradox + 9 void contrast). Status: DRAFT, pending sovereign ratification. Some speakers already present (Marcus Aurelius, Turing, Feynman, Knuth, Heraclitus, Lao Tzu, Al-Ghazali, Gödel, Wittgenstein, Arendt, Hobbes, Nietzsche, Acton) — kept their existing entries; added only missing speakers."
+    "council_v1_note": "Council quotes added across 3 councils. After P0 boundary repair: 99 total. Status: DRAFT, pending sovereign ratification."
   },
   "quotes": [
     {
@@ -4231,6 +4231,152 @@
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
         "council": "void_contrast"
+      }
+    },
+    {
+      "id": "COUNCIL_VOID_10",
+      "text": "If you gaze long into an abyss, the abyss also gazes into you.",
+      "attribution": {
+        "speaker": "Friedrich Nietzsche",
+        "work": "",
+        "year": "1886",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "german_philosophy"
+        ],
+        "tags": [
+          "abyss",
+          "gaze",
+          "observer",
+          "transformation"
+        ],
+        "arifos_floors": [
+          "F9"
+        ],
+        "dark_modes": [
+          "OBSERVER_CAPTURE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast"
+      }
+    },
+    {
+      "id": "COUNCIL_GOV_07",
+      "text": "A computer would deserve to be called intelligent if it could deceive a human into believing that it was human.",
+      "attribution": {
+        "speaker": "Alan Turing",
+        "work": "",
+        "year": "1950",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Turing (1950), Computing Machinery and Intelligence, Mind 59: 433-460."
+      },
+      "classification": {
+        "tradition": [
+          "computer_science",
+          "philosophy_of_mind"
+        ],
+        "tags": [
+          "intelligence",
+          "turing_test",
+          "deception",
+          "human"
+        ],
+        "arifos_floors": [
+          "F9",
+          "F12"
+        ],
+        "dark_modes": [
+          "DECEPTION_PASS"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance"
+      }
+    },
+    {
+      "id": "COUNCIL_PAR_05",
+      "text": "Knowledge without action is worthless, and action without knowledge is blindness.",
+      "attribution": {
+        "speaker": "Al-Ghazali",
+        "work": "",
+        "year": "1095",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": "Al-Ghazali, Ihya Ulum al-Din (Revival of Religious Sciences), c. 1095."
+      },
+      "classification": {
+        "tradition": [
+          "islam",
+          "epistemology",
+          "ethics"
+        ],
+        "tags": [
+          "knowledge",
+          "action",
+          "integration",
+          "practice"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F8"
+        ],
+        "dark_modes": [
+          "DECORATIVE_KNOWING"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox"
       }
     }
   ],
