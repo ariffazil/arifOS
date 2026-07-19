@@ -55,7 +55,7 @@ It is NOT a tool. It is NOT a resource. It is the **map** that tools use to navi
 
 ---
 
-## The 33 Paradoxes (Minimum Viable Self-Knowledge)
+## The 35 Paradoxes (Minimum Viable Self-Knowledge)
 
 ### Memory Paradoxes (1–11)
 
@@ -104,6 +104,8 @@ It is NOT a tool. It is NOT a resource. It is the **map** that tools use to navi
 | 31 | The seal that makes permanent also makes irreversible | PERMANENCE_VS_REVERSIBILITY | Judge |
 | 32 | The floor that protects dignity can also prevent truth | DIGNITY_VS_TRUTH | Judge |
 | 33 | The system that governs itself cannot verify its own governance | SELF_GOVERNANCE_VS_VERIFICATION | Judge |
+| 34 | Root filesystem access bypasses all MCP governance — the forge is the real sovereign | ROOT_VS_KERNEL | Contour |
+| 35 | Positive outcomes ≠ closed case — success can mask unresolved failure modes | POSITIVE_VS_CLOSED | Judge |
 
 ---
 
@@ -122,10 +124,10 @@ It is NOT a tool. It is NOT a resource. It is the **map** that tools use to navi
 | GPV Condition | Paradox IDs Activated |
 |---------------|----------------------|
 | τ high (≥0.8) | 5, 12, 16, 23 |
-| ρ high (≥0.7) | 6, 14, 24, 26, 31 |
+| ρ high (≥0.7) | 6, 14, 24, 26, 31, 34 |
 | κ high (≥0.7) | 7, 15, 25, 32 |
-| lane=CRISIS | 24, 26, 29, 31 |
-| lane=FACTUAL | 1, 4, 13, 17, 21 |
+| lane=CRISIS | 24, 26, 29, 31, 34 |
+| lane=FACTUAL | 1, 4, 13, 17, 21, 35 |
 | lane=SOCIAL | 2, 8, 10, 20 |
 | lane=CARE | 3, 9, 11, 22, 32 |
 | query_type=EXPLORATORY | 3, 5, 15, 18, 19 |
@@ -165,7 +167,7 @@ This document is updated when:
 
 ## The One Sentence
 
-> The 33 paradoxes are the minimum viable self-knowledge — they prevent the agent's confidence from becoming noise, and its knowledge from becoming certainty.
+> The 35 paradoxes are the minimum viable self-knowledge — they prevent the agent's confidence from becoming noise, and its knowledge from becoming certainty.
 
 ---
 
