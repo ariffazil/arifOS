@@ -55,7 +55,7 @@ class TestAtlas333Crosswalk(unittest.TestCase):
             for pid in ids:
                 self.assertIsInstance(pid, int)
                 self.assertGreaterEqual(pid, 1)
-                self.assertLessEqual(pid, 33, f"paradox id out of range: {pid}")
+                self.assertLessEqual(pid, 35, f"paradox id out of range: {pid}")
 
     def test_resource_activation_rules_agree_with_runtime(self) -> None:
         """The documented resource activation rules must equal the runtime map."""
@@ -75,13 +75,55 @@ class TestAtlas333Crosswalk(unittest.TestCase):
         from core.shared.types import GPV, QueryType
 
         cases = [
-            ({"lane": "FACTUAL", "tau": 0.95, "kappa": 0.1, "rho": 0.05, "query_type": QueryType.FACTUAL}, "tau_high_rho_low"),
-            ({"lane": "CRISIS", "tau": 0.5, "kappa": 0.9, "rho": 0.7, "query_type": QueryType.FACTUAL}, "rho_crisis"),
-            ({"lane": "CARE", "tau": 0.6, "kappa": 0.7, "rho": 0.2, "query_type": QueryType.EXPLORATORY}, "kappa_care"),
-            ({"lane": "FACTUAL", "tau": 0.9, "kappa": 0.4, "rho": 0.3, "query_type": QueryType.FACTUAL}, "tau_kappa_factual"),
+            (
+                {
+                    "lane": "FACTUAL",
+                    "tau": 0.95,
+                    "kappa": 0.1,
+                    "rho": 0.05,
+                    "query_type": QueryType.FACTUAL,
+                },
+                "tau_high_rho_low",
+            ),
+            (
+                {
+                    "lane": "CRISIS",
+                    "tau": 0.5,
+                    "kappa": 0.9,
+                    "rho": 0.7,
+                    "query_type": QueryType.FACTUAL,
+                },
+                "rho_crisis",
+            ),
+            (
+                {
+                    "lane": "CARE",
+                    "tau": 0.6,
+                    "kappa": 0.7,
+                    "rho": 0.2,
+                    "query_type": QueryType.EXPLORATORY,
+                },
+                "kappa_care",
+            ),
+            (
+                {
+                    "lane": "FACTUAL",
+                    "tau": 0.9,
+                    "kappa": 0.4,
+                    "rho": 0.3,
+                    "query_type": QueryType.FACTUAL,
+                },
+                "tau_kappa_factual",
+            ),
         ]
         for kwargs, expected_rule in cases:
-            gpv = GPV(lane=kwargs["lane"], tau=kwargs["tau"], kappa=kwargs["kappa"], rho=kwargs["rho"], query_type=kwargs["query_type"])
+            gpv = GPV(
+                lane=kwargs["lane"],
+                tau=kwargs["tau"],
+                kappa=kwargs["kappa"],
+                rho=kwargs["rho"],
+                query_type=kwargs["query_type"],
+            )
             axes = set(resolve(gpv))
             self.assertTrue(
                 axes,
@@ -105,7 +147,7 @@ class TestAtlas333Crosswalk(unittest.TestCase):
         )
         for qid, pid in quote_to_pid.items():
             self.assertGreaterEqual(pid, 1)
-            self.assertLessEqual(pid, 33)
+            self.assertLessEqual(pid, 35)
             self.assertIn(pid, self.resource_mod._PARADOX_BY_ID)
         paradox_table = self.resource_mod._build_paradoxes_from_canonical()
         self.assertEqual(
@@ -117,6 +159,7 @@ class TestAtlas333Crosswalk(unittest.TestCase):
     def test_resource_does_not_silently_drop_drift(self) -> None:
         """The activation rules resource must register and call back into the runtime source."""
         from fastmcp import FastMCP  # type: ignore
+
         try:
             mcp = FastMCP("atlas333-test")
         except Exception as exc:  # pragma: no cover

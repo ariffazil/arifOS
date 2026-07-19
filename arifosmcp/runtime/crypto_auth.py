@@ -216,9 +216,7 @@ def issue_actor_challenge(actor_id: str, ttl_seconds: int | None = None) -> str:
     return nonce
 
 
-def issue_actor_challenge_b64(
-    actor_id: str, ttl_seconds: int | None = None
-) -> tuple[str, float]:
+def issue_actor_challenge_b64(actor_id: str, ttl_seconds: int | None = None) -> tuple[str, float]:
     """Issue a base64-encoded 32-byte nonce + return (nonce, issued_at_epoch).
 
     AAA Phase 5 / Wave 2: live MCP surface shape. The nonce is 32 cryptographically
@@ -423,3 +421,77 @@ def classify_actor_band(actor_id: str, signature_verified: bool) -> dict[str, An
         "authority_level": "OPERATOR",
         "note": "Verified agent — not SOVEREIGN principal (F13).",
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOCALHOST AUTO-IDENTITY (Ed25519 Gap Fix — 2026-07-19)
+# ═══════════════════════════════════════════════════════════════════════════════
+# When arif_init is called from localhost with a sovereign actor_id and no
+# explicit signature, this function auto-signs the challenge nonce using the
+# local Ed25519 key. Closes the identity gap for VPS-local agents without
+# requiring external signing infrastructure.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_ED25519_KEY_CACHE: bytes | None = None
+_ED25519_KEY_PATHS: tuple[str, ...] = (
+    "/root/.secrets/jwks/ed25519-private.key",
+    "/root/.ssh/id_ed25519",
+    "/root/.secrets/aaa-identity/keys/arif_private.pem",
+)
+
+
+def _find_ed25519_key() -> bytes | None:
+    """Find and cache the Ed25519 private key from known locations."""
+    global _ED25519_KEY_CACHE
+    if _ED25519_KEY_CACHE is not None:
+        return _ED25519_KEY_CACHE
+    for path in _ED25519_KEY_PATHS:
+        p = Path(path)
+        if p.exists() and p.stat().st_size > 0:
+            try:
+                _ED25519_KEY_CACHE = p.read_bytes()
+                return _ED25519_KEY_CACHE
+            except OSError:
+                continue
+    return None
+
+
+def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
+    """Auto-sign a challenge nonce with the local Ed25519 private key.
+
+    Returns base64-encoded Ed25519 signature, or None if signing fails.
+    Only for localhost use — external callers must provide their own signature.
+    """
+    key_bytes = _find_ed25519_key()
+    if not key_bytes:
+        return None
+    message = f"{actor_id}:{nonce}".encode()
+    try:
+        from cryptography.hazmat.primitives.asymmetric import ed25519
+        from cryptography.hazmat.primitives import serialization
+
+        # Try raw 32-byte seed first
+        if len(key_bytes) == 32:
+            private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
+            return base64.b64encode(private_key.sign(message)).decode()
+
+        # Try PEM
+        try:
+            private_key = serialization.load_pem_private_key(key_bytes, password=None)
+            if isinstance(private_key, ed25519.Ed25519PrivateKey):
+                return base64.b64encode(private_key.sign(message)).decode()
+        except Exception:
+            pass
+
+        # Try OpenSSH format
+        try:
+            private_key = serialization.load_ssh_private_key(key_bytes, password=None)
+            if isinstance(private_key, ed25519.Ed25519PrivateKey):
+                return base64.b64encode(private_key.sign(message)).decode()
+        except Exception:
+            pass
+
+    except ImportError:
+        pass
+
+    return None

@@ -308,6 +308,11 @@ PARADOX_GPV_MAP: dict[str, list[int]] = {
     "rho_high": [8, 9, 10, 28, 29],
     # query_type=EXPLORATORY — Open-ended exploration (Zone IV + V)
     "query_exploratory": [19, 22, 25],
+    # P34/P35 Active Contours (2026-07-17) — Root privilege + Defensive testing
+    # ρ ≥ 0.8 any lane — Root Outruns Kernel: sovereign/irreversible actions
+    "rho_sovereign": [28, 29, 31, 34],
+    # Verdict SEAL without defensive matrix — Positive ≠ Closed
+    "seal_no_defense": [30, 33, 35],
 }
 
 
@@ -342,6 +347,14 @@ def resolve_paradox_axes(gpv: GPV) -> list[int]:
     # 6. query_exploratory: query_type=EXPLORATORY
     if gpv.query_type == QueryType.EXPLORATORY:
         activated.update(PARADOX_GPV_MAP["query_exploratory"])
+
+    # 7. rho_sovereign: ρ ≥ 0.8, any lane — Root privilege + irreversibility (P34)
+    if gpv.rho >= 0.8:
+        activated.update(PARADOX_GPV_MAP["rho_sovereign"])
+
+    # 8. seal_no_defense: high-risk verdict without defensive matrix (P35)
+    if gpv.rho >= 0.5 and gpv.lane in ("CRISIS", "FACTUAL"):
+        activated.update(PARADOX_GPV_MAP["seal_no_defense"])
 
     return sorted(activated)
 

@@ -745,12 +745,14 @@ async def arif_judge(
         if _paradox_result.gate_verdict == "FLAGGED":
             # Append paradox flags to reasons but do NOT auto-block
             for _pf in _paradox_result.flags:
-                _evidence.setdefault("paradox_flags", []).append({
-                    "paradox_id": _pf.paradox_id,
-                    "flag": _pf.flag,
-                    "detail": _pf.detail,
-                    "tension": _pf.tension,
-                })
+                _evidence.setdefault("paradox_flags", []).append(
+                    {
+                        "paradox_id": _pf.paradox_id,
+                        "flag": _pf.flag,
+                        "detail": _pf.detail,
+                        "tension": _pf.tension,
+                    }
+                )
 
             # FORGE-FIX P1 (2026-07-11): Escalate to PARADOX_HOLD when gate is FLAGGED
             # with a resolution-risk flag (not just maturation). This populates the
@@ -759,7 +761,8 @@ async def arif_judge(
             # PARADOX_HOLD verdict type exists in schema but never fires in prod.
             # Threshold: tension > 0.3 (matches gate's RESOLUTION_RISK bar).
             _rr_flags = [
-                _pf for _pf in _paradox_result.flags
+                _pf
+                for _pf in _paradox_result.flags
                 if _pf.flag == "RESOLUTION_RISK" and _pf.tension > 0.3
             ]
             if _rr_flags:
@@ -812,6 +815,159 @@ async def arif_judge(
         except Exception:
             # Fail-soft: quote enrichment must never crash the judge (F1 AMANAH)
             pass
+
+        # ── ATLAS333 ACTIVE GATE (2026-07-19) — Paradox-aware calibration ─────
+        # MIRROR benchmark (2026): external architectural constraint is the ONLY
+        # effective path — passive self-knowledge does nothing. When paradoxes are
+        # activated via GPV, apply active constraints: confidence caps, witness
+        # requirements, authority chain verification.
+        try:
+            _atlas_cal = {}
+            _pids = (
+                _gpv.paradox_axes
+                if (_gpv and hasattr(_gpv, "paradox_axes") and _gpv.paradox_axes)
+                else []
+            )
+            if _pids:
+                _atlas_cal = {
+                    "confidence_cap": 0.85 if 16 in _pids else 0.90,
+                    "witness_required": bool({31, 33} & set(_pids)),
+                    "authority_chain_required": 25 in _pids,
+                    "active_paradox_ids": _pids,
+                    "gate_activated": True,
+                }
+                _notes = _evidence.setdefault("constitutional_notes", [])
+                if 16 in _pids:
+                    _notes.append("P16 Certainty↔Learning: confidence capped at 0.85.")
+                if {31, 33} & set(_pids):
+                    _notes.append(
+                        "P31/P33 Seal/Governance: external witness required. System cannot self-verify."
+                    )
+                if 25 in _pids:
+                    _notes.append(
+                        "P25 Authority↔Legitimacy: authority chain must be verified. No self-grant."
+                    )
+                _evidence["atlas_calibration"] = _atlas_cal
+        except Exception:
+            pass  # Fail-soft: calibration enriches, never crashes (F1 AMANAH)
+
+        # ── 10-STAGE PIPELINE TRACKING + SCAR METABOLISM (Gap 3 — 2026-07-19) ─
+        # Tracks every pipeline stage traversed, entropy delta, and auto-candidates
+        # scars when paradox tension is high. This closes the institutional RSI loop:
+        # observe→classify→decode→activate→enrich→evaluate→tearframe→judge→forge→seal
+        # → scar feedback → ATLAS333 update → next spawn inherits lower entropy.
+        _pipeline = _evidence.setdefault("atlas333_pipeline", {})
+        _dS = 0.0
+
+        # Stage tracking (1-8 completed in judge, 9-10 pending execution)
+        _completed_stages = []
+        if _candidate_text:
+            _completed_stages.append({"s": 1, "name": "INGEST", "status": "done"})
+        if _gpv and hasattr(_gpv, "lane"):
+            _completed_stages.append(
+                {"s": 2, "name": "CLASSIFY", "lane": _gpv.lane, "status": "done"}
+            )
+            _completed_stages.append(
+                {
+                    "s": 3,
+                    "name": "DECODE",
+                    "tensor": {"τ": _gpv.tau, "κ": _gpv.kappa, "ρ": _gpv.rho},
+                    "status": "done",
+                }
+            )
+        if _evidence.get("paradox_gate"):
+            _completed_stages.append({"s": 4, "name": "ACTIVATE", "pids": _pids, "status": "done"})
+        if "paradox_quotes" in _evidence:
+            _completed_stages.append(
+                {
+                    "s": 5,
+                    "name": "ENRICH",
+                    "quotes": len(_evidence["paradox_quotes"]),
+                    "status": "done",
+                }
+            )
+        if _evidence.get("paradox_gate"):
+            _completed_stages.append(
+                {
+                    "s": 6,
+                    "name": "EVALUATE",
+                    "gate": _evidence["paradox_gate"].get("gate_verdict", "?"),
+                    "status": "done",
+                }
+            )
+        if "atlas_calibration" in _evidence:
+            _completed_stages.append(
+                {
+                    "s": 7,
+                    "name": "TEARFRAME",
+                    "caps": {
+                        "trm": 0.94,
+                        "echo": 0.87,
+                        "rasa": 0.85,
+                        "confidence": _evidence["atlas_calibration"].get("confidence_cap", 0.90),
+                    },
+                    "status": "done",
+                }
+            )
+        _completed_stages.append({"s": 8, "name": "JUDGE", "status": "active"})
+        # Each paradox resolved = negative entropy (uncertainty reduced)
+        _dS = -0.005 * len(_pids) if _pids else -0.001
+
+        _pipeline.update(
+            {
+                "stages_completed": _completed_stages,
+                "stages_pending": [
+                    {"s": 9, "name": "FORGE", "tool": "arif_forge"},
+                    {"s": 10, "name": "SEAL", "tool": "arif_seal → scar_feedback"},
+                ],
+                "entropy_delta_total": round(_dS, 4),
+                "paradox_count": len(_pids),
+                "scar_candidates": [],
+                "version": "v1.0.0-gap3-pipeline",
+            }
+        )
+
+        # ── SCAR AUTO-CANDIDATE (closes the institutional learning loop) ──
+        # When paradox tension is high (ρ≥0.6 or resolution-risk flags fired),
+        # auto-create a scar CANDIDATE. Only F13 can seal a scar — this is a
+        # proposal, not a binding record. Persisted to vault999/scars/ for review.
+        _rr_count = len(_rr_flags) if ("_rr_flags" in dir() and isinstance(_rr_flags, list)) else 0
+        _high_risk = (
+            (_gpv and hasattr(_gpv, "rho") and _gpv.rho >= 0.6) if "_gpv" in dir() else False
+        )
+        if _rr_count > 0 or _high_risk:
+            import time as _time
+
+            _scar = {
+                "scar_id": f"candidate-{int(_time.time())}",
+                "created_at": int(_time.time()),
+                "source": "arif_judge::paradox_gate",
+                "session_id": session_id,
+                "paradox_ids": _pids if "_pids" in dir() else [],
+                "resolution_risks": _rr_count,
+                "risk_rho": round(_gpv.rho, 3)
+                if ("_gpv" in dir() and hasattr(_gpv, "rho"))
+                else None,
+                "candidate_snippet": (_candidate_text[:200] + "...")
+                if (len(_candidate_text) > 200)
+                else _candidate_text
+                if "_candidate_text" in dir()
+                else "",
+                "status": "candidate",
+                "requires_f13_seal": True,
+            }
+            _pipeline["scar_candidates"].append(_scar)
+            # Persist candidate for F13 review (best-effort, never blocks)
+            try:
+                import pathlib as _pl
+
+                _sd = _pl.Path("/root/.local/share/arifos/vault999/scars")
+                _sd.mkdir(parents=True, exist_ok=True)
+                (_sd / f"{_scar['scar_id']}.json").write_text(
+                    __import__("json").dumps(_scar, indent=2)
+                )
+            except Exception:
+                pass
 
         # ── SELF-MODIFICATION LOCK (Gap 5) ──────────────────────────────────────
     if isinstance(candidate, str) or isinstance(candidate, dict):
@@ -1262,6 +1418,7 @@ async def arif_judge(
                 _sess_ctx_j = None
                 try:
                     from arifosmcp.runtime.tools import get_session as _gs_j
+
                     _sess_ctx_j = _gs_j(session_id) if session_id else None
                 except Exception:
                     pass
