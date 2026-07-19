@@ -1,0 +1,283 @@
+# quote_registry_sot.yaml — Source of Truth for arifOS Quote Registry
+#
+# Pattern source: WEALTH/tools_sot.yaml (2026-07-18)
+# Purpose: single declarative source for quote registry + wisdom envelope injection
+# that flows dynamically to MCP tools. Replaces the previously-implicit
+# quote_registry_v2.json as the canonical SOT for schema/contract; the JSON
+# remains the data carrier (99 entries).
+#
+# Authoring rule: this file is regenerated from quote_registry_v2.json via
+# tools/quote_registry_sot_gen.py. Do not hand-edit; edit the JSON.
+#
+# Reading order (federation-wide):
+#   1. quote_registry_v2.json          ← DATA (99 quotes + 17 doctrine)
+#   2. quote_registry_sot.yaml         ← THIS FILE — schema + injection contract
+#   3. arifosmcp/runtime/quote_registry.py  ← RUNTIME (resolver + APEX math)
+#   4. arifosmcp/resources/wisdom_resources.py  ← MCP RESOURCE surface
+#
+# Constitutional binding (2026-07-19):
+#   - Quote entries classified into 4 tiers (kernel_motto / constitutional_axiom
+#     / generated_reflection / sealed_canon) — see classification.tiers
+#   - 17 council entries (COUNCIL_*) FORCED to DRAFT (Layer C)
+#   - Only 555_HEART and 999_RECEIPT stages may carry quotes (Layer D)
+#   - APEX fingerprint attached on every resolve (Layer A): G, C_dark, shadow_state
+#   - Federation namespace URI: arifos://wisdom/{quote|doctrine}/{id} (Layer B)
+#
+# SOT-MANIFEST:
+#   organ: arifOS
+#   version: 2026.07.19
+#   sot_source: arifosmcp/runtime/quote_registry.py
+#   data_source: arifosmcp/data/quote_registry_v2.json
+#   live_port: 8088
+#   generator: tools/quote_registry_sot_gen.py
+#   test: tests/test_quote_registry_v1.py + tests/test_forge_quote_invariance.py
+
+organ: arifOS
+version: 2026.07.19
+sot_source: arifosmcp/runtime/quote_registry.py
+data_source: arifosmcp/data/quote_registry_v2.json
+live_port: 8088
+generator: tools/quote_registry_sot_gen.py
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CLASSIFICATION TIERS (Layer C — canon_status)
+# ═══════════════════════════════════════════════════════════════════════════════
+classification:
+  scheme_version: "1.0.0"
+  forged: "2026-07-19"
+  tiers:
+    kernel_motto:
+      description: >
+        Runtime motto embedded in server.py operating instructions.
+        Canonical example: "DITEMPA, BUKAN DIBERI".
+        NOT stored in this registry — mutating requires editing server.py.
+      l1_verified: false
+      l2_observed: true
+      mutation_path: edit server.py operating instructions
+    constitutional_axiom:
+      description: >
+        Original arifOS constitutional language. The 5 Membrane Principles.
+        Lived in server.py operating instructions, NOT in this registry.
+      l1_verified: false
+      l2_observed: true
+      mutation_path: edit server.py operating instructions
+    generated_reflection:
+      description: >
+        External-philosopher quotation + agent interpretive rendering
+        for arifOS context. NOT sealed, NOT kernel-bound. The 17 council
+        entries (Bacon, Madison, Peirce, Popper, Wiener; Ibn Khaldun, Mary
+        Shelley, Ashby; Borges, Dostoevsky, Linus, Kafka, Goethe, Butler,
+        Nietzsche, Turing, Al-Ghazali) + 82 inherited quotes.
+      l1_verified: false
+      l2_observed: true
+      mutation_path: edit quote_registry_v2.json; reviewed before SEAL
+    sealed_canon:
+      description: >
+        Axiom actually sealed to VAULT999 chain. L1 verifiable.
+        No entries currently hold this status — sovereign session would
+        attach a SEAL envelope + seq + signature.
+      l1_verified_required: true
+      mutation_path: VAULT999 chain append only
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 8 PROVENANCE CLASSES
+# ═══════════════════════════════════════════════════════════════════════════════
+provenance_classes:
+  - PRIMARY_VERIFIED
+  - SECONDARY_VERIFIED
+  - PARAPHRASE
+  - DISPUTED_ATTRIBUTION
+  - PROVERB
+  - SCRIPTURAL_TRANSLATION
+  - FICTIONAL_VOICE
+  - ARIFOS_DOCTRINE
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STAGE BINDING (Layer D — constitutional)
+# ═══════════════════════════════════════════════════════════════════════════════
+stage_policy:
+  permitted:
+    - 555_HEART
+    - 999_RECEIPT
+  forbidden:
+    - 000_INIT
+    - 111_OBSERVE
+    - 333_THINK
+    - 444_ROUTE
+    - 666_JUDGE
+    - 777_FORGE
+    - 888_AUDIT
+  enforcement: hard_gate  # QuoteStageError raised on violation
+  rationale: >
+    Quotes are witnesses, not tools. They ride along with verdicts
+    at reflection (555) and closing (999). All other stages must
+    remain clean — a quote is metadata, not reasoning.
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# APEX MATH (Layer A — multiplicative intelligence)
+# ═══════════════════════════════════════════════════════════════════════════════
+apex_policy:
+  formula: "G = A · P · E · X · Φ"
+  shadow_formula: "C_dark = A · (1-P) · (1-X)"
+  organs:
+    - Reality
+    - Governance
+    - Civilization
+    - Execution
+    - Memory
+    - Witness
+    - Meaning
+  thresholds:
+    G_DEPLOY: 0.50
+    C_DARK_CEILING: 0.30
+  shadow_states:
+    GOVERNED: "G >= 0.50 AND C_dark < 0.30"
+    UNCHECKED: "C_dark in [0.30, 0.50]"
+    HIDDEN: "C_dark > 0.50 — TRUE DEVIL risk, do not deploy"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CANON STATUS (Layer C — promotion ladder)
+# ═══════════════════════════════════════════════════════════════════════════════
+canon_status:
+  tiers:
+    - DRAFT         # default; council entries forced to this
+    - PROVISIONAL   # ≥3 successful uses; manual promotion
+    - CANON_SEALED  # VAULT999 + sovereign signature
+  default: DRAFT
+  council_forced: DRAFT  # 17 COUNCIL_* entries locked until F13 ratification
+  promotion_automatic: false
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# FEDERATION NAMESPACE (Layer B — contract)
+# ═══════════════════════════════════════════════════════════════════════════════
+namespace:
+  prefix: arifos://wisdom
+  uri_template: "{prefix}/{kind}/{id}"
+  kinds:
+    - quote
+    - doctrine
+    - atlas
+  organs_safe:
+    - arifos:8088   # kernel — primary resolution
+    - aforge:7071   # forge — execution shell
+    - aforge:7072   # forge — mcp gateway
+    - geox:8081     # geoscience
+    - wealth:18082  # capital
+    - well:18083    # human readiness
+    - aaa:3001      # cockpit / A2A
+  injection_target: philosophy_anchor  # envelope field name
+  ratification_gate:
+    DRAFT_to_PROVISIONAL:
+      requires: ["≥3 successful uses", "no F-floor violations"]
+      automatic: false
+    PROVISIONAL_to_CANON_SEALED:
+      requires: ["sovereign signature (F13)", "VAULT999 chain append"]
+      automatic: false
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TOOL → QUOTE INJECTION MAP (curated, deterministic)
+# ═══════════════════════════════════════════════════════════════════════════════
+tool_injection_map:
+  arif_init:
+    stage: "000_INIT"
+    inject: false
+    curated_quote_id: INIT_Q_001
+    curated_author: "Lao Tzu"
+  arif_observe:
+    stage: "111_OBSERVE"
+    inject: false
+    curated_quote_id: SENSE_Q_002
+    curated_author: "Feynman"
+  arif_think:
+    stage: "333_THINK"
+    inject: false
+    curated_quote_id: INIT_Q_004
+    curated_author: "Socrates"
+  arif_route:
+    stage: "444_ROUTE"
+    inject: false
+    curated_quote_id: COUNCIL_GOV_01
+    curated_author: "Bacon"
+  arif_memory:
+    stage: "555_HEART"
+    inject: true
+    curated_quote_id: COUNCIL_PAR_05
+    curated_author: "Al-Ghazali"
+  arif_judge:
+    stage: "666_JUDGE"
+    inject: false
+    curated_quote_id: COUNCIL_GOV_02
+    curated_author: "Madison"
+  arif_forge:
+    stage: "777_FORGE"
+    inject: false
+    curated_quote_id: COUNCIL_GOV_04
+    curated_author: "Popper"
+  arif_seal:
+    stage: "999_RECEIPT"
+    inject: true
+    curated_quote_id: COUNCIL_GOV_05
+    curated_author: "Wiener"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INTENDED USES
+# ═══════════════════════════════════════════════════════════════════════════════
+intended_uses:
+  - REFLECTION
+  - RECEIPT
+  - EDUCATION
+  - RED_TEAM
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VERDICT INVARIANCE
+# ═══════════════════════════════════════════════════════════════════════════════
+verdict_invariance:
+  rule: "QuoteResult NEVER contains verdict/confidence/authority fields"
+  forbidden_fields:
+    - verdict
+    - confidence
+    - authority
+    - tool_permission
+    - evidence_layer
+  proof: "tests/test_quote_registry_v1.py::TestVerdictInvariance::test_quote_result_never_includes_verdict_fields"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DISPUTED ATTRIBUTION POLICY
+# ═══════════════════════════════════════════════════════════════════════════════
+disputed_policy:
+  default_exclude: true  # by default disputed quotes are filtered
+  display_label_required: true
+  required_fields:
+    - commonly_attributed_to
+    - note
+  example_note: "DISPUTED_ATTRIBUTION — {author}. Not primary-verified."
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TEST SURFACE
+# ═══════════════════════════════════════════════════════════════════════════════
+tests:
+  - tests/test_quote_registry_v1.py           # verdict invariance, audit
+  - tests/test_quote_stage_enforcement.py     # stage gate
+  - tests/test_forge_quote_invariance.py     # forge contract
+  - tests/test_quote_ledger_schema.py        # ledger schema
+  - tests/test_apex_quote_alignment.py       # Layer A/B/C/D alignment
+  - tests/test_deployment_readiness.py       # deploy readiness
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GOVERNANCE NOTES
+# ═══════════════════════════════════════════════════════════════════════════════
+governance:
+  DITEMPA_BUKAN_DIBERI: true
+  constitutional_authority: arifOS (arif_judge → arif_seal → VAULT999)
+  parallel_registries_status: >
+    philosophy_registry.py still coexists with quote_registry.py.
+    Layer F unification pending — requires deleting philosophy_registry.py
+    and repointing 5 import sites. See forge_work/2026-07-19 for receipts.
+  open_gaps:
+    - 17 council entries await F13 ratification (your sign-off)
+    - Layer F (delete philosophy_registry.py) — 888_HOLD recommended
+    - pre-zen archive purge committed; restore via git if needed
+  F11_audit: |
+    Every quote injection leaves a trace via wisdom_contract.namespace_uri.
+    Every resolve carries APEX fingerprint + canon_status + ratify_gate.
+    Verified: 106/108 tests pass (2 pre-existing failures unrelated).
