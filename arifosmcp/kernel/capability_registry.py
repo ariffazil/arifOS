@@ -328,7 +328,7 @@ def _build_default_graph() -> CapabilityGraph:
         ),
         CapabilityNode(
             capability_id="kernel.triage",
-            tool_name="arif_triage",
+            tool_name="arif_triage",  # DEPRECATED → arif_init(mode=preflight|triage)
             server_id="local",
             description="Session status, preflight, and priority hinting (555_TRIAGE)",
             authority_required=AuthorityTier.LOW,
