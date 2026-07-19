@@ -460,6 +460,42 @@ SABAR_EVENTS = _counter(
     ["tool", "cause"],
 )
 
+# ---------------------------------------------------------------------------
+# TEARFRAME GAUGE (ATLAS333 Pipeline stage 7)
+# ---------------------------------------------------------------------------
+# Records only at ACTUAL tearframe completion boundaries inside judge.py —
+# never from status defaults or zero-fill. Provenance label distinguishes
+# measured (real GPV computation) vs placeholder (no paradoxes activated).
+TEARFRAME = _gauge(
+    "arifos_tearframe",
+    "Tearframe scalar (ATLAS333 stage 7) — recorded at actual completion only",
+    ["component", "provenance"],
+)
+
+# ---------------------------------------------------------------------------
+# RASA EVENTS — actual-completion counter
+# ---------------------------------------------------------------------------
+# Real RASA pipeline completions (post shadow / enforce decision).
+# Recorded only when log_shadow() actually writes the JSONL line — never
+# from defaults or zero-fill.
+RASA_EVENTS_TOTAL = _counter(
+    "arifos_rasa_events_total",
+    "RASA shadow-telemetry events completed (post decision)",
+    ["risk_band", "enforcement_mode", "enforced"],
+)
+
+# ---------------------------------------------------------------------------
+# SCAR CANDIDATES — actual-completion counter
+# ---------------------------------------------------------------------------
+# Real scar candidates recorded when paradox_gate fires a high-tension event
+# AND the candidate JSON is persisted to vault999/scars/. Status defaults /
+# zero-fill MUST NOT increment this counter.
+SCAR_CANDIDATES_TOTAL = _counter(
+    "arifos_scar_candidates_total",
+    "Scar candidates auto-generated from paradox_gate (recorded at actual persistence)",
+    ["stage", "severity"],
+)
+
 # Active Sessions (H1.1: Production Observability)
 ACTIVE_SESSIONS = _gauge(
     "arifos_sessions_active",
@@ -534,6 +570,67 @@ def record_void_event(tool: str, void_reason: str) -> None:
     Mechanical faults use record_machine_fault().
     """
     VOID_EVENTS.labels(void_reason=void_reason, tool=tool).inc()
+
+
+# ---------------------------------------------------------------------------
+# ACTUAL-COMPLETION RECORDERS (Truthfulness Guarantee)
+# ---------------------------------------------------------------------------
+# These helpers exist so callers can ONLY increment the metric when the
+# underlying completion event actually occurred. They do NOT fill zeros or
+# emit defaults. If a caller doesn't reach the boundary, the metric stays
+# at its initial zero (the Prometheus client noop default).
+
+
+def record_tearframe(component: str, value: float, *, provenance: str = "measured") -> None:
+    """Record a tearframe scalar at an ACTUAL completion boundary.
+
+    Provenance MUST be one of {"measured", "placeholder"}. Defaults to
+    "measured" (real GPV computation). Placeholders are forbidden by
+    call-site discipline — this helper does not enforce, callers do.
+    """
+    if value is None:
+        return
+    try:
+        TEARFRAME.labels(component=component, provenance=provenance).set(float(value))
+    except Exception:
+        # Metrics must never break the call path
+        pass
+
+
+def record_rasa_event_completed(
+    *,
+    risk_band: str,
+    enforcement_mode: str,
+    enforced: bool,
+) -> None:
+    """Increment RASA events counter at ACTUAL completion.
+
+    Call this ONLY when log_shadow() actually wrote the JSONL entry, NOT
+    from defaults / zero-fill / status reads.
+    """
+    try:
+        RASA_EVENTS_TOTAL.labels(
+            risk_band=str(risk_band or "unknown"),
+            enforcement_mode=str(enforcement_mode or "shadow"),
+            enforced="true" if enforced else "false",
+        ).inc()
+    except Exception:
+        pass
+
+
+def record_scar_candidate(stage: str, severity: str) -> None:
+    """Increment scar candidate counter at ACTUAL persistence.
+
+    Call this ONLY after the candidate JSON is durably written to
+    vault999/scars/. Never from status defaults or zero-fill.
+    """
+    try:
+        SCAR_CANDIDATES_TOTAL.labels(
+            stage=str(stage or "unknown"),
+            severity=str(severity or "unknown"),
+        ).inc()
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------

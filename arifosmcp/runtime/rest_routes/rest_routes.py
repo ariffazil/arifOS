@@ -2878,13 +2878,23 @@ def register_rest_routes(
             "ml_floors": ml_runtime,
             "federation_epistemology": federation_epistemology,
             "semantic_readiness": {
+                # F2 TRUTH (Truthfulness Guarantee): graphiti status has
+                # THREE independent dimensions. Never collapse them.
+                #   - transport: HTTP reachability of Graphiti MCP
+                #   - storage:   whether episodes are durably persisted
+                #   - embedding: semantic embedding runtime readiness —
+                #               unverified / degraded until a real probe
+                #               runs successfully. Decoupled from
+                #               ARIFOS_ML_FLOORS — graphiti may be live
+                #               while ML floors are off (and vice versa).
+                #   - semantic_floor: tied to ML toggle (the actual gate)
                 "graphiti_transport": "healthy" if graphiti_enabled else "degraded",
                 "graphiti_storage": "healthy" if graphiti_enabled else "degraded",
                 "graphiti_embedding_runtime": (
-                    "healthy"
-                    if ml_runtime["ml_runtime_ready"]
-                    else ("disabled" if not ml_runtime["ml_floors_enabled"] else "hold")
-                ),
+                    "unverified"
+                ),  # Decoupled from ARIFOS_ML_FLOORS — flips to
+                # "healthy" / "degraded" only after a real semantic probe
+                # completes. Default state is "unverified" (not "hold").
                 "graphiti_semantic_floor": (
                     "enabled"
                     if ml_runtime["ml_runtime_ready"]
@@ -5316,11 +5326,16 @@ def register_rest_routes(
             payload = {
                 "timestamp": datetime.now(UTC).isoformat(),
                 "vitals": {
-                    "G_star": vitals.get("vitality_index", 0.0),
-                    "dS": vitals.get("entropy_delta", 0.0),
-                    "peace2": vitals.get("peace_squared", 0.0),
-                    "kappa_r": vitals.get("echo_debt", 0.0),
-                    "psi_le": vitals.get("psi_vitality", 0.0),
+                    # F2 TRUTH (Truthfulness Guarantee):
+                    # Map each scalar to its OWN source field. Never echo one
+                    # scalar as another. Preserve None when kernel telemetry
+                    # is unavailable — do NOT zero-fill.
+                    "G_star": vitals.get("vitality_index"),
+                    "dS": vitals.get("entropy_delta"),
+                    "peace2": vitals.get("peace_squared"),
+                    "kappa_r": vitals.get("kappa_r"),
+                    "echo_debt": vitals.get("echo_debt"),
+                    "psi_le": vitals.get("psi_vitality"),
                 },
                 "verdict": governance_payload.get("verdict", "HOLD"),
                 "latency_ms": 0.0,

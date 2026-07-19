@@ -169,35 +169,87 @@ def _ensure_collection():
 
 
 def _generate_embedding(text: str) -> list[float]:
-    """Generate 1024-dim embedding via Ollama bge-m3 or deterministic feature hash fallback."""
+    """Generate 1024-dim embedding via Ollama bge-m3.
+
+    F9 ANTI-HANTU contract (scar-repair P0-01b hardening):
+
+      This function MUST raise ``RuntimeError`` whose message contains
+      ``"Embedding unavailable"`` on every failure path. It MUST NOT
+      return a deterministic / pseudo-vector fallback — hashing the input
+      tokens into a 1024-dim vector pollutes Qdrant cosine retrieval with
+      arbitrary similarities and is a textbook F9 hallucination.
+
+    Failure paths (all raise RuntimeError, never return fallback):
+      - Ollama unreachable / DNS / TLS / httpx transport error
+      - Non-200 HTTP response (404, 5xx, …)
+      - 200 response with non-JSON body
+      - 200 response with empty / falsy embedding
+      - 200 response with wrong-size embedding (≠ ``_VECTOR_SIZE``)
+
+    The 2.0-second timeout is bounded (F4 CLARITY) — long polls are not
+    tolerated at this layer; callers should retry with backoff instead.
+
+    Args:
+        text: Input text to embed.
+
+    Returns:
+        Exactly ``_VECTOR_SIZE`` floats from a real Ollama response.
+
+    Raises:
+        RuntimeError: Always. Message contains ``"Embedding unavailable"``,
+            describing the specific failure mode.
+    """
     import httpx
 
+    # ── Transport layer: network / DNS / TLS / connection refused ──
     try:
         response = httpx.post(
             f"{_OLLAMA_URL}/api/embeddings",
             json={"model": _EMBEDDING_MODEL, "prompt": text},
             timeout=2.0,
         )
-        if response.status_code == 200:
-            embedding = response.json().get("embedding", [])
-            if embedding and len(embedding) == _VECTOR_SIZE:
-                return embedding
     except Exception as exc:
-        logger.info(f"Ollama embedding unavailable ({exc}). Using deterministic feature-hash fallback...")
+        # ConnectionError, TimeoutError, OSError, httpx.HTTPError …
+        raise RuntimeError(
+            f"Embedding unavailable: Ollama unreachable at {_OLLAMA_URL} "
+            f"({type(exc).__name__}: {exc})"
+        ) from exc
 
-    # Deterministic 1024-dim feature hashing fallback
-    import math
-    vec = [0.0] * _VECTOR_SIZE
-    words = text.lower().split()
-    if not words:
-        words = ["empty"]
-    for i, word in enumerate(words):
-        h = int(hashlib.sha256(f"{word}_{i}".encode("utf-8")).hexdigest(), 16)
-        idx = h % _VECTOR_SIZE
-        val = ((h >> 16) % 1000) / 1000.0 - 0.5
-        vec[idx] += val
-    norm = math.sqrt(sum(x * x for x in vec)) or 1.0
-    return [x / norm for x in vec]
+    # ── HTTP status: anything other than 200 is a real failure ──
+    if response.status_code != 200:
+        raise RuntimeError(
+            f"Embedding unavailable: Ollama HTTP {response.status_code} "
+            f"from {_OLLAMA_URL}"
+        )
+
+    # ── Body parse: 200 OK must still be valid JSON ──
+    try:
+        payload = response.json()
+    except Exception as exc:
+        raise RuntimeError(
+            f"Embedding unavailable: Ollama returned non-JSON response "
+            f"({type(exc).__name__}: {exc})"
+        ) from exc
+
+    embedding = payload.get("embedding", []) if isinstance(payload, dict) else []
+
+    # ── Empty embedding (200 OK with []/missing key) ──
+    if not embedding:
+        raise RuntimeError(
+            "Embedding unavailable: Ollama returned empty embedding "
+            "(empty list or missing 'embedding' field)"
+        )
+
+    # ── Wrong-size embedding (model mismatch / misconfigured MODEL) ──
+    if len(embedding) != _VECTOR_SIZE:
+        raise RuntimeError(
+            f"Embedding unavailable: Ollama returned embedding of size "
+            f"{len(embedding)}, expected {_VECTOR_SIZE}. Check "
+            f"EMBEDDING_MODEL ({_EMBEDDING_MODEL}) vs VECTOR_SIZE "
+            f"({_VECTOR_SIZE})."
+        )
+
+    return list(embedding)
 
 
 def _compute_truth_score(content: str, context: dict | None = None) -> float:

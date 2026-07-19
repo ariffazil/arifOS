@@ -56,6 +56,82 @@ _PATH_PATTERN = re.compile(r"\b(/root/[\w/\-.]+|/etc/[\w/\-.]+)\b")
 _FILE_BLACKLIST = {"index.json", ".qdrant_index.json", "requirements.txt"}
 
 
+# JSON-RPC / Graphiti error sentinel — a 200 response with an embedded
+# error payload is NOT success. Hardened 2026-07-19: legacy bridge used to
+# treat HTTP 200 as success regardless of body.
+_ERROR_SENTINELS = frozenset(
+    (
+        "invalid_api_key",
+        "unauthorized",
+        "forbidden",
+        "authentication_failed",
+        "auth_failed",
+        "missing_credentials",
+    )
+)
+
+
+def _is_hardened_failure(
+    status_code: int, body_text: str, parsed_json: dict | None
+) -> tuple[bool, str]:
+    """Determine whether an HTTP response constitutes a real failure.
+
+    Returns (is_failure, reason). Reasons:
+      - "http_status": non-2xx HTTP code
+      - "embedded_error": HTTP 200 but body JSON-RPC `error` field present
+      - "invalid_api_key": HTTP 200 but body contains invalid_api_key sentinel
+      - "auth_sentinel": HTTP 200 but body contains other auth sentinel
+      - "unparseable": HTTP 200 but body is not valid JSON (still suspect)
+      - "": not a failure
+    """
+    if status_code < 200 or status_code >= 300:
+        return True, "http_status"
+
+    if not body_text:
+        return False, ""
+
+    # Try JSON parse. If unparseable on 200, suspect but not yet a failure.
+    try:
+        data = parsed_json if parsed_json is not None else json.loads(body_text)
+    except Exception:
+        # 200 with non-JSON body — legacy mode often returned HTML/error
+        # pages with 200. Treat as suspect failure.
+        return True, "unparseable"
+
+    if not isinstance(data, dict):
+        return True, "unparseable"
+
+    # JSON-RPC error envelope check
+    if data.get("error"):
+        err = data["error"]
+        # Drill into known auth sentinels
+        if isinstance(err, dict):
+            msg = (err.get("message") or "") + " " + json.dumps(err)
+        else:
+            msg = str(err)
+        msg_l = msg.lower()
+        if "invalid_api_key" in msg_l or "invalid api key" in msg_l:
+            return True, "invalid_api_key"
+        if "unauthorized" in msg_l or "forbidden" in msg_l:
+            return True, "auth_sentinel"
+        return True, "embedded_error"
+
+    # Result-shape auth sentinels (some proxies return 200 with error in
+    # the result body instead of the JSON-RPC error envelope).
+    result = data.get("result")
+    if isinstance(result, dict):
+        result_text = json.dumps(result).lower()
+    elif result is not None:
+        result_text = str(result).lower()
+    else:
+        result_text = ""
+    for sentinel in _ERROR_SENTINELS:
+        if sentinel in result_text:
+            return True, sentinel
+
+    return False, ""
+
+
 def _extract_entities(text: str, tags: list[str] | None) -> dict[str, list[str]]:
     """Pull lightweight entities out of memory text for L5 episode body."""
     if not text:
@@ -198,10 +274,31 @@ def bridge_forge_episode(
                     "mcp-session-id": sid,
                 },
             )
-            ok = r.status_code == 200
+            body_text = r.text or ""
+            try:
+                parsed = json.loads(body_text) if body_text else None
+            except Exception:
+                parsed = None
+            is_failure, fail_reason = _is_hardened_failure(
+                r.status_code, body_text, parsed
+            )
+            if is_failure:
+                logger.warning(
+                    "L5 Graphiti forge hardened-failure: http=%s reason=%s",
+                    r.status_code,
+                    fail_reason,
+                )
+                return {
+                    "federation_leg": "L5",
+                    "status": "deferred",
+                    "http_status": r.status_code,
+                    "reason": fail_reason,
+                    "memory_id": memory_id,
+                    "graphiti_group_id": _GRAPHITI_GROUP_ID,
+                }
             return {
                 "federation_leg": "L5",
-                "status": "queued" if ok else "deferred",
+                "status": "queued",
                 "http_status": r.status_code,
                 "memory_id": memory_id,
                 "graphiti_group_id": _GRAPHITI_GROUP_ID,
@@ -296,10 +393,31 @@ def bridge_search(
                     "mcp-session-id": sid,
                 },
             )
+            body_text = r.text or ""
+            try:
+                parsed = json.loads(body_text) if body_text else None
+            except Exception:
+                parsed = None
+            is_failure, fail_reason = _is_hardened_failure(
+                r.status_code, body_text, parsed
+            )
+            if is_failure:
+                logger.warning(
+                    "L5 Graphiti search hardened-failure: http=%s reason=%s",
+                    r.status_code,
+                    fail_reason,
+                )
+                return {
+                    "status": "degraded",
+                    "http_status": r.status_code,
+                    "reason": fail_reason,
+                    "raw": body_text[:800],
+                    "nodes": [],
+                }
             return {
-                "status": "ok" if r.status_code == 200 else "degraded",
+                "status": "ok",
                 "http_status": r.status_code,
-                "raw": r.text[:800],
+                "raw": body_text[:800],
             }
     except Exception as exc:
         return {"status": "skipped", "reason": f"{type(exc).__name__}: {exc}"}

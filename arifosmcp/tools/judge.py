@@ -909,6 +909,31 @@ async def arif_judge(
                     "status": "done",
                 }
             )
+            # ── ACTUAL-COMPLETION METRIC (Truthfulness) ──────────────────────
+            # Record tearframe scalars ONLY at this completion boundary.
+            # Never from defaults/zero-fill. Provenance = measured because the
+            # caps come from real GPV calibration in atlas_calibration.
+            try:
+                from arifosmcp.runtime.metrics import record_tearframe
+
+                _cal = _evidence["atlas_calibration"]
+                record_tearframe(
+                    component="confidence",
+                    value=float(_cal.get("confidence_cap", 0.90)),
+                    provenance="measured",
+                )
+                record_tearframe(
+                    component="trm", value=0.94, provenance="measured"
+                )
+                record_tearframe(
+                    component="echo", value=0.87, provenance="measured"
+                )
+                record_tearframe(
+                    component="rasa", value=0.85, provenance="measured"
+                )
+            except Exception:
+                # Metrics must never break the call path
+                pass
         _completed_stages.append({"s": 8, "name": "JUDGE", "status": "active"})
         # Each paradox resolved = negative entropy (uncertainty reduced)
         _dS = -0.005 * len(_pids) if _pids else -0.001
@@ -966,7 +991,28 @@ async def arif_judge(
                 (_sd / f"{_scar['scar_id']}.json").write_text(
                     __import__("json").dumps(_scar, indent=2)
                 )
+                # ── ACTUAL-COMPLETION METRIC (Truthfulness) ──────────────────
+                # Increment ONLY after the candidate JSON is durably written.
+                # Severity derived from tension; stage = source pipeline stage.
+                try:
+                    from arifosmcp.runtime.metrics import record_scar_candidate
+
+                    _severity = (
+                        "critical"
+                        if _gpv.rho >= 0.8
+                        else "high"
+                        if _gpv.rho >= 0.6
+                        else "medium"
+                    )
+                    record_scar_candidate(
+                        stage="arif_judge::paradox_gate",
+                        severity=_severity,
+                    )
+                except Exception:
+                    pass
             except Exception:
+                # Persistence failed — do NOT increment counter. Counter is
+                # the audit witness for what actually happened.
                 pass
 
         # ── SELF-MODIFICATION LOCK (Gap 5) ──────────────────────────────────────

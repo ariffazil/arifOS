@@ -158,6 +158,22 @@ class RasaTelemetry:
                 with open(self.log_path, "a") as f:
                     f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
+            # ── ACTUAL-COMPLETION METRIC (Truthfulness) ──────────────────────
+            # Increment ONLY when the JSONL entry is durably written. Never
+            # from defaults / status reads / zero-fill. Counter is the audit
+            # witness for what actually happened.
+            try:
+                from arifosmcp.runtime.metrics import record_rasa_event_completed
+
+                record_rasa_event_completed(
+                    risk_band=risk_band,
+                    enforcement_mode=enforcement_mode,
+                    enforced=enforced,
+                )
+            except Exception:
+                # Metrics must never break the call path
+                pass
+
         except Exception as e:
             # Telemetry must never block execution
             logger.debug(f"Telemetry write failed (non-blocking): {e}")
