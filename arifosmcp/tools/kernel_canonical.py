@@ -588,9 +588,8 @@ def _route_intent_to_organ(intent: str, explicit_organ: str | None = None) -> st
         # mentions like "restart the arifos service" (should route to A-FORGE).
         # Bare " arifos " in mid-intent now requires organ/health/status qualifier.
         # RSI-GATE-1 trailing form: "organ health of geox", "status of wealth".
-        _trailing_of = (
-            f"of {organ_lower}" in intent_lower
-            or intent_lower.rstrip("?.! ").endswith(organ_lower)
+        _trailing_of = f"of {organ_lower}" in intent_lower or intent_lower.rstrip("?.! ").endswith(
+            organ_lower
         )
         _organ_query_context = any(
             q in intent_lower
@@ -776,7 +775,17 @@ def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | 
     Explicit non-anon actor_id always wins. Session-bound actor fills gaps.
     Prevents wrap_legacy_call / outer envelope coercing to openclaw-anon when
     the caller already passed a verified session.
+
+    P0 FIX (2026-07-19): every ingress path runs through
+    ``normalize_actor_id`` so that aliases (``ARIF``, ``Muhammad Arif``,
+    greetings, sovereign variants) collapse to the canonical machine ID
+    before any comparison, dispatch, or bridge hand-off. The repository's
+    canonical machine ID remains lowercase ``arif``; sovereign identity may
+    be represented separately as ``ARIF_FAZIL`` downstream. Normalization
+    never grants verification — it is NLP convenience only.
     """
+    from arifosmcp.runtime.governance_identity import normalize_actor_id
+
     _ANON = frozenset({None, "", "anonymous", "openclaw-anon", "unknown", "null"})
     aid = actor_id if actor_id not in _ANON else None
     sid = session_id if session_id not in _ANON else None
@@ -791,6 +800,15 @@ def _bind_identity(actor_id: str | None, session_id: str | None) -> tuple[str | 
                     aid = str(cand)
         except Exception:
             pass
+    # P0 invariant: no raw actor value escapes this function unnormalized.
+    if aid is not None:
+        try:
+            _norm = normalize_actor_id(aid)
+            if _norm:
+                aid = _norm
+        except Exception:
+            # Fail-soft: lowercase fallback rather than crash the kernel.
+            aid = aid.lower()
     return aid, sid
 
 

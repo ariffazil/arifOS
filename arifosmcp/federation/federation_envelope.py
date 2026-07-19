@@ -125,8 +125,18 @@ def build_federation_envelope(
     """
     now_iso = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
 
-    # ── Resolve auth state ──────────────────────────────────────────
-    effective_actor = actor_id or "anonymous"
+    # P0 BOUNDARY FIX (2026-07-19): canonicalize the caller identity at the
+    # federation envelope boundary. Without this, an ingress "ARIF" arrives
+    # here unchanged and the GEOX / WEALTH / WELL validators compare against
+    # their canonical-lowercase forms and reject with ACTOR_MISMATCH. The
+    # canonical machine actor is lowercase ``arif``; "ARIF" / "Muhammad
+    # Arif" / greeting variants collapse via the existing normalizer.
+    from arifosmcp.runtime.governance_identity import normalize_actor_id
+
+    canonical_actor = normalize_actor_id(actor_id) if actor_id else None
+
+    # ── Resolve auth state ───────────────────────────────────────────
+    effective_actor = canonical_actor or "anonymous"
     effective_verified = bool(identity_verified)
     effective_auth = (authority or "OBSERVE_ONLY").upper()
     if effective_auth not in ("OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN"):

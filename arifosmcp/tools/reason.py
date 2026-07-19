@@ -48,6 +48,9 @@ from arifosmcp.runtime.mind_router import build_routing_envelope
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
 
+# P0 (2026-07-19): single canonical normalizer at every ingress path.
+from arifosmcp.runtime.governance_identity import normalize_actor_id
+
 
 def _reduce_verdict(*verdicts: str) -> str:
     """
@@ -739,7 +742,7 @@ def _build_delta_bundle(
     # Does the actor have permission to act on this claim?
     # Note: authority is about WHO acts, not WHERE the claim came from.
     # AI provenance is metadata, not authority (see core invariant).
-    if actor_id and actor_id.lower() in ("arif", "888", "f13"):
+    if actor_id and (normalize_actor_id(actor_id) or actor_id.lower()) in ("arif", "888", "f13"):
         authority_verdict = "SEAL"  # sovereign or named actor
     elif actor_id:
         authority_verdict = "HYPOTHESIS"  # identified but unverified actor

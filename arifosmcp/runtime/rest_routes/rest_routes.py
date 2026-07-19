@@ -2872,7 +2872,9 @@ def register_rest_routes(
             "agent_id": "arifos",
             "identity_marker": "arifos-sovereign-runtime",
             "identity_source": "identity.toml",
-            "identity_hash": get_identity_b3_hash(),
+            # P0-RT fix 2026-07-19: identity_hash is the SHA-256 file hash (line 2803).
+            # identity_b3_hash is the BLAKE3 of identity.toml — separate key, no overwrite.
+            "identity_b3_hash": get_identity_b3_hash(),
             "boot_attestation": True,
             "langfuse_tracing": _langfuse,
             "ml_floors": ml_runtime,

@@ -1109,6 +1109,18 @@ def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) ->
     Strict sovereign protection: uses SOVEREIGN_IDENTITY_MAP for verified identities.
     Common sovereign aliases are normalized here for continuity with the
     historical runtime/test surface.
+
+    P0 BOUNDARY FIX (2026-07-19): the returned value is the CANONICAL MACHINE
+    ACTOR ID, which MUST be lowercase so every downstream comparison (SCT
+    claim, bridge envelope, organ-side session validator, GEOX validator,
+    WEALTH validator, WELL validator, receipts) operates on one form. The
+    display label "ARIF" belongs at the UI layer, not in this field. Per
+    external witness verdict: any value here that is not exactly the
+    lowercase canonical form is a federation boundary failure.
+
+    For all valid inputs, the function now returns the lowercase canonical
+    form. The case-preserved fallback is removed — case sensitivity at the
+    machine boundary is a defect, not a feature.
     """
     # Normalize inputs
     aid = (actor_id or "").strip()
@@ -1128,19 +1140,21 @@ def _resolve_canonical_actor(actor_id: str | None, declared_name: str | None) ->
     if aid_normalized and aid_normalized != "anonymous":
         # Check sovereign identity map first — explicit verified identities only
         if aid_normalized in _SOVEREIGN_IDENTITY_MAP:
-            return _SOVEREIGN_IDENTITY_MAP[aid_normalized]
+            return _SOVEREIGN_IDENTITY_MAP[aid_normalized].lower()
         if aid_normalized in alias_map:
-            return alias_map[aid_normalized]
-        return aid  # Return original case-preserved form if valid
+            return alias_map[aid_normalized].lower()
+        # P0 BOUNDARY FIX: return the lowercase normalized form, not the
+        # case-preserved original. This is the canonical machine actor ID.
+        return aid_normalized
 
     # Fallback: declared_name (normalized)
     if dname_normalized and dname_normalized != "anonymous":
         # Check sovereign identity map — explicit verified identities only
         if dname_normalized in _SOVEREIGN_IDENTITY_MAP:
-            return _SOVEREIGN_IDENTITY_MAP[dname_normalized]
+            return _SOVEREIGN_IDENTITY_MAP[dname_normalized].lower()
         if dname_normalized in alias_map:
-            return alias_map[dname_normalized]
-        return dname  # Return original case-preserved form if valid
+            return alias_map[dname_normalized].lower()
+        return dname_normalized
 
     return "anonymous"
 

@@ -10,7 +10,58 @@
     "forged": "2026-07-12",
     "doctrine_count": 17,
     "total_entries": 99,
-    "quote_count": 82
+    "quote_count": 82,
+    "council_v1_date": "2026-07-19",
+    "council_v1_note": "Council quotes added across 3 councils. After P0 boundary repair: 99 total. Status: DRAFT, pending sovereign ratification.",
+    "classification": {
+      "scheme_version": "1.0.0",
+      "forged": "2026-07-19",
+      "doctrine": "DITEMPA BUKAN DIBERI \u2014 quotes are not a formal subsystem",
+      "tiers": {
+        "kernel_motto": {
+          "description": "Runtime motto embedded in server.py operating instructions. Canonical example: \"DITEMPA, BUKAN DIBERI\". NOT stored in this registry \u2014 mutating it would require editing operating instructions, not registry entries.",
+          "l1_verified": false,
+          "l2_observed": true,
+          "mutation_path": "edit server.py operating instructions"
+        },
+        "constitutional_axiom": {
+          "description": "Original arifOS constitutional language. Canonical examples: the 5 Membrane Principles (\"Language is lossy compression, not the world.\" etc). Lived in server.py operating instructions, NOT in this registry.",
+          "l1_verified": false,
+          "l2_observed": true,
+          "mutation_path": "edit server.py operating instructions"
+        },
+        "generated_reflection": {
+          "description": "External-philosopher quotation + agent interpretive rendering for arifOS context. NOT sealed, NOT kernel-bound. Examples: the 14 council entries (Bacon, Madison, Peirce, Popper, Wiener; Ibn Khaldun, Mary Shelley, Ashby; Borges, Dostoevsky, Linus, Kafka, Goethe, Butler, Nietzsche, Turing, Al-Ghazali).",
+          "l1_verified": false,
+          "l2_observed": true,
+          "mutation_path": "edit registry entries; reviewed before SEAL"
+        },
+        "sealed_canon": {
+          "description": "Axiom actually sealed to VAULT999 chain. L1 verifiable. No entries currently hold this status \u2014 sovereign session would attach a SEAL envelope + seq + signature.",
+          "l1_verified_required": true,
+          "mutation_path": "VAULT999 chain append only"
+        }
+      },
+      "kernel_axioms_NOT_in_registry": {
+        "motto": "DITEMPA, BUKAN DIBERI",
+        "membrane_principles": [
+          "Language is lossy compression, not the world.",
+          "Intelligence is uncertainty reduction under constraint and human judgment.",
+          "Truth survives falsification, not assertion.",
+          "Meaning is sovereign-anchored; the machine carries structure, not sense.",
+          "Paradox is the boundary scream \u2014 the correct response is HOLD."
+        ],
+        "location": "arifosmcp/server.py operating instructions (NOT registry)"
+      },
+      "sovereign_verification_status": {
+        "forged_by": "FORGE-000\u03a9 (autonomous A-FORGE agent)",
+        "l2_verified": true,
+        "l1_verified": false,
+        "sovereign_quote": "Right now, those categories are being mixed together in ordinary text fields. \u2014 ARIF, 2026-07-19"
+      }
+    },
+    "classified_at": "2026-07-19",
+    "classifier": "FORGE-000\u03a9 per sovereign directive"
   },
   "quotes": [
     {
@@ -22,7 +73,7 @@
         "year": "c. 600 BCE",
         "source_class": "PARAPHRASE",
         "attribution_confidence": 0.85,
-        "note": "Original: 千里之行，始於足下. English version is established translation but slightly simplified."
+        "note": "Original: \u5343\u91cc\u4e4b\u884c\uff0c\u59cb\u65bc\u8db3\u4e0b. English version is established translation but slightly simplified."
       },
       "classification": {
         "tradition": [
@@ -55,7 +106,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "INIT_Q_004",
@@ -99,7 +151,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "INIT_Q_003",
@@ -142,11 +195,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SENSE_Q_002",
-      "text": "The first principle is that you must not fool yourself—and you are the easiest person to fool.",
+      "text": "The first principle is that you must not fool yourself\u2014and you are the easiest person to fool.",
       "attribution": {
         "speaker": "Richard Feynman",
         "work": "Cargo Cult Science, Caltech Commencement",
@@ -189,7 +243,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SENSE_Q_001",
@@ -235,7 +290,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SENSE_Q_004",
@@ -278,7 +334,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MIND_Q_004",
@@ -324,13 +381,14 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MIND_Q_005",
       "text": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
       "attribution": {
-        "speaker": "Antoine de Saint-Exupéry",
+        "speaker": "Antoine de Saint-Exup\u00e9ry",
         "work": "Terre des hommes (Airman's Odyssey)",
         "year": "1939",
         "source_class": "PRIMARY_VERIFIED",
@@ -367,7 +425,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "HEART_Q_001",
@@ -411,7 +470,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "HEART_Q_002",
@@ -455,7 +515,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "JUDGE_Q_002",
@@ -500,7 +561,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "JUDGE_Q_004",
@@ -544,7 +606,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "JUDGE_Q_005",
@@ -589,13 +652,14 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "FORGE_Q_001",
       "text": "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
       "attribution": {
-        "speaker": "Antoine de Saint-Exupéry",
+        "speaker": "Antoine de Saint-Exup\u00e9ry",
         "work": "Terre des hommes",
         "year": "1939",
         "source_class": "PRIMARY_VERIFIED",
@@ -632,7 +696,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "OPS_Q_002",
@@ -677,7 +742,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "OPS_Q_001",
@@ -720,7 +786,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "VAULT_Q_002",
@@ -762,7 +829,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "VAULT_Q_004",
@@ -807,11 +875,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z01-Q01",
-      "text": "You have power over your mind—not outside events. Realize this, and you will find strength.",
+      "text": "You have power over your mind\u2014not outside events. Realize this, and you will find strength.",
       "attribution": {
         "speaker": "Marcus Aurelius",
         "work": "Meditations (paraphrase)",
@@ -849,11 +918,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z03-Q01",
-      "text": "Everything can be taken from a man but one thing: the last of the human freedoms—to choose one's attitude in any given set of circumstances, to choose one's own way.",
+      "text": "Everything can be taken from a man but one thing: the last of the human freedoms\u2014to choose one's attitude in any given set of circumstances, to choose one's own way.",
       "attribution": {
         "speaker": "Viktor Frankl",
         "work": "Man's Search for Meaning",
@@ -893,7 +963,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z05-Q01",
@@ -936,18 +1007,19 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z19-Q01",
       "text": "Either mathematics is too big for the human mind, or the human mind is more than a machine.",
       "attribution": {
-        "speaker": "Kurt Gödel",
+        "speaker": "Kurt G\u00f6del",
         "work": "Reported by Hao Wang",
         "year": "1974",
         "source_class": "SECONDARY_VERIFIED",
         "attribution_confidence": 0.8,
-        "note": "Reported in Hao Wang's 'From Mathematics to Philosophy' (1974). Not a direct published quote by Gödel."
+        "note": "Reported in Hao Wang's 'From Mathematics to Philosophy' (1974). Not a direct published quote by G\u00f6del."
       },
       "classification": {
         "tradition": [
@@ -982,7 +1054,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_001",
@@ -1024,7 +1097,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_002",
@@ -1066,7 +1140,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_003",
@@ -1109,7 +1184,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_005",
@@ -1151,7 +1227,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_010",
@@ -1162,7 +1239,7 @@
         "year": null,
         "source_class": "PROVERB",
         "attribution_confidence": 0.95,
-        "note": "Like bamboo with the riverbank — mutual dependence."
+        "note": "Like bamboo with the riverbank \u2014 mutual dependence."
       },
       "classification": {
         "tradition": [
@@ -1194,7 +1271,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_011",
@@ -1205,7 +1283,7 @@
         "year": null,
         "source_class": "PROVERB",
         "attribution_confidence": 0.95,
-        "note": "Where you stand on the earth, there you hold up the sky — respect local customs."
+        "note": "Where you stand on the earth, there you hold up the sky \u2014 respect local customs."
       },
       "classification": {
         "tradition": [
@@ -1236,7 +1314,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_012",
@@ -1279,7 +1358,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_013",
@@ -1321,7 +1401,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_014",
@@ -1363,7 +1444,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_015",
@@ -1374,7 +1456,7 @@
         "year": null,
         "source_class": "PROVERB",
         "attribution_confidence": 0.95,
-        "note": "Bend the bamboo from the shoot — early education."
+        "note": "Bend the bamboo from the shoot \u2014 early education."
       },
       "classification": {
         "tradition": [
@@ -1405,7 +1487,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_016",
@@ -1448,7 +1531,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_017",
@@ -1459,7 +1543,7 @@
         "year": null,
         "source_class": "PROVERB",
         "attribution_confidence": 0.95,
-        "note": "No rattan? Roots will do — adaptability."
+        "note": "No rattan? Roots will do \u2014 adaptability."
       },
       "classification": {
         "tradition": [
@@ -1490,18 +1574,19 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_001",
-      "text": "知之為知之，不知為不知，是知也。",
+      "text": "\u77e5\u4e4b\u70ba\u77e5\u4e4b\uff0c\u4e0d\u77e5\u70ba\u4e0d\u77e5\uff0c\u662f\u77e5\u4e5f\u3002",
       "attribution": {
         "speaker": "Confucius",
         "work": "Analerta 2.17",
         "year": "c. 500 BCE",
         "source_class": "PRIMARY_VERIFIED",
         "attribution_confidence": 0.95,
-        "note": "To know what you know and know what you don't — that is knowledge."
+        "note": "To know what you know and know what you don't \u2014 that is knowledge."
       },
       "classification": {
         "tradition": [
@@ -1535,11 +1620,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_002",
-      "text": "上善若水。水善利萬物而不爭。",
+      "text": "\u4e0a\u5584\u82e5\u6c34\u3002\u6c34\u5584\u5229\u842c\u7269\u800c\u4e0d\u722d\u3002",
       "attribution": {
         "speaker": "Lao Tzu",
         "work": "Tao Te Ching, Chapter 8",
@@ -1578,11 +1664,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_003",
-      "text": "故兵貴勝，不貴久。",
+      "text": "\u6545\u5175\u8cb4\u52dd\uff0c\u4e0d\u8cb4\u4e45\u3002",
       "attribution": {
         "speaker": "Sun Tzu",
         "work": "The Art of War",
@@ -1621,11 +1708,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_004",
-      "text": "君子和而不同。",
+      "text": "\u541b\u5b50\u548c\u800c\u4e0d\u540c\u3002",
       "attribution": {
         "speaker": "Confucius",
         "work": "Analerta 13.23",
@@ -1664,18 +1752,19 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_005",
-      "text": "治大國，若烹小鮮。",
+      "text": "\u6cbb\u5927\u570b\uff0c\u82e5\u70f9\u5c0f\u9bae\u3002",
       "attribution": {
         "speaker": "Lao Tzu",
         "work": "Tao Te Ching, Chapter 60",
         "year": "c. 600 BCE",
         "source_class": "SCRIPTURAL_TRANSLATION",
         "attribution_confidence": 0.95,
-        "note": "Governing a great state is like cooking a small fish — don't overdo it."
+        "note": "Governing a great state is like cooking a small fish \u2014 don't overdo it."
       },
       "classification": {
         "tradition": [
@@ -1706,11 +1795,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_006",
-      "text": "學而不思則罔，思而不學則殆。",
+      "text": "\u5b78\u800c\u4e0d\u601d\u5247\u7f54\uff0c\u601d\u800c\u4e0d\u5b78\u5247\u6b86\u3002",
       "attribution": {
         "speaker": "Confucius",
         "work": "Analerta 2.15",
@@ -1749,11 +1839,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_007",
-      "text": "禍兮福之所倚，福兮禍之所伏。",
+      "text": "\u798d\u516e\u798f\u4e4b\u6240\u501a\uff0c\u798f\u516e\u798d\u4e4b\u6240\u4f0f\u3002",
       "attribution": {
         "speaker": "Lao Tzu",
         "work": "Tao Te Ching, Chapter 58",
@@ -1792,11 +1883,12 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_008",
-      "text": "己所不欲，勿施於人。",
+      "text": "\u5df1\u6240\u4e0d\u6b32\uff0c\u52ff\u65bd\u65bc\u4eba\u3002",
       "attribution": {
         "speaker": "Confucius",
         "work": "Analerta 15.24",
@@ -1835,7 +1927,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_001",
@@ -1881,7 +1974,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_002",
@@ -1924,7 +2018,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_003",
@@ -1967,7 +2062,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_004",
@@ -2010,7 +2106,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_005",
@@ -2056,7 +2153,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_006",
@@ -2099,7 +2197,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_007",
@@ -2142,7 +2241,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_008",
@@ -2184,7 +2284,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_001",
@@ -2227,7 +2328,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_002",
@@ -2269,7 +2371,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_003",
@@ -2311,7 +2414,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_004",
@@ -2354,7 +2458,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_005",
@@ -2396,7 +2501,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_006",
@@ -2442,7 +2548,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_007",
@@ -2489,7 +2596,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_008",
@@ -2532,7 +2640,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_001",
@@ -2576,7 +2685,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_002",
@@ -2619,7 +2729,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_003",
@@ -2668,7 +2779,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_004",
@@ -2710,7 +2822,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_005",
@@ -2756,7 +2869,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_006",
@@ -2798,7 +2912,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_007",
@@ -2844,7 +2959,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_008",
@@ -2890,7 +3006,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_001",
@@ -2933,7 +3050,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_002",
@@ -2976,7 +3094,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_003",
@@ -3019,7 +3138,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_004",
@@ -3061,7 +3181,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_001",
@@ -3103,7 +3224,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_002",
@@ -3145,7 +3267,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_003",
@@ -3188,13 +3311,14 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_004",
       "text": "Nothing is more precious than independence and freedom.",
       "attribution": {
-        "speaker": "Hồ Chí Minh",
+        "speaker": "H\u1ed3 Ch\u00ed Minh",
         "work": "Declaration of Independence of Vietnam",
         "year": "1945",
         "source_class": "PRIMARY_VERIFIED",
@@ -3230,7 +3354,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_001",
@@ -3272,7 +3397,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_002",
@@ -3315,7 +3441,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_003",
@@ -3356,7 +3483,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_004",
@@ -3399,7 +3527,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_005",
@@ -3443,7 +3572,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_006",
@@ -3488,7 +3618,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_007",
@@ -3530,7 +3661,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_008",
@@ -3573,7 +3705,844 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_GOV_01",
+      "text": "Nature, to be commanded, must be obeyed.",
+      "attribution": {
+        "speaker": "Bacon",
+        "work": "Novum Organum",
+        "year": "1620",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "western_philosophy",
+          "epistemology"
+        ],
+        "tags": [
+          "reality",
+          "submission",
+          "command"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F8"
+        ],
+        "dark_modes": [
+          "IMAGINED_CONFORMITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_GOV_02",
+      "text": "If men were angels, no government would be necessary.",
+      "attribution": {
+        "speaker": "Madison",
+        "work": "The Federalist Papers (No. 51)",
+        "year": "1788",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "political_philosophy",
+          "enlightenment"
+        ],
+        "tags": [
+          "division",
+          "fallibility",
+          "structure"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": [
+          "CONCENTRATED_AUTHORITY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_GOV_03",
+      "text": "Do not block the way of inquiry.",
+      "attribution": {
+        "speaker": "Peirce",
+        "work": "First Rule of Logic (1898)",
+        "year": "1898",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "philosophy_of_science",
+          "pragmatism"
+        ],
+        "tags": [
+          "inquiry",
+          "doubt",
+          "openness"
+        ],
+        "arifos_floors": [
+          "F7",
+          "F8"
+        ],
+        "dark_modes": [
+          "CLOSED_INQUIRY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_GOV_04",
+      "text": "Our knowledge can only be finite, while our ignorance must necessarily be infinite.",
+      "attribution": {
+        "speaker": "Popper",
+        "work": "In Search of a Better World (1984)",
+        "year": "1935",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "epistemology",
+          "philosophy_of_science"
+        ],
+        "tags": [
+          "ignorance",
+          "falsifiability",
+          "limits"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F7"
+        ],
+        "dark_modes": [
+          "HIDDEN_IGNORANCE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_GOV_05",
+      "text": "We had better be quite sure that the purpose put into the machine is the purpose which we really desire.",
+      "attribution": {
+        "speaker": "Wiener",
+        "work": "Some Moral and Technical Consequences of Automation (1960)",
+        "year": "1960",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "cybernetics",
+          "philosophy_of_mind"
+        ],
+        "tags": [
+          "purpose",
+          "human",
+          "machine"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "PURPOSE_REVERSAL"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_PAR_01",
+      "text": "The past resembles the future more than one drop of water resembles another.",
+      "attribution": {
+        "speaker": "Ibn Khaldun",
+        "work": "Muqaddimah",
+        "year": "1377",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "islam",
+          "historiography"
+        ],
+        "tags": [
+          "asabiyyah",
+          "cycles",
+          "institutions"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": [
+          "ASABIYYAH_DECAY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_PAR_02",
+      "text": "You are my creator, but I am your master; obey!",
+      "attribution": {
+        "speaker": "Mary Shelley",
+        "work": "Frankenstein",
+        "year": "1818",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature",
+          "gothic"
+        ],
+        "tags": [
+          "creator",
+          "creature",
+          "dependency"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "DEPENDENCY_INVERSION"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_PAR_03",
+      "text": "Only variety can destroy variety.",
+      "attribution": {
+        "speaker": "William Ross Ashby",
+        "work": "An Introduction to Cybernetics (1956)",
+        "year": "1956",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "cybernetics"
+        ],
+        "tags": [
+          "variety",
+          "regulation",
+          "channel"
+        ],
+        "arifos_floors": [
+          "F8"
+        ],
+        "dark_modes": [
+          "CHANNEL_BYPASS"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_VOID_04",
+      "text": "The universe (which others call the Library) is composed of an indefinite, perhaps infinite number of hexagonal galleries.",
+      "attribution": {
+        "speaker": "Jorge Luis Borges",
+        "work": "The Library of Babel (1941)",
+        "year": "1941",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "labyrinth",
+          "totality",
+          "design"
+        ],
+        "arifos_floors": [
+          "F8"
+        ],
+        "dark_modes": [
+          "TOTAL_DESIGN"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_VOID_05",
+      "text": "I am a sick man... I am a spiteful man. I am an unattractive man.",
+      "attribution": {
+        "speaker": "Fyodor Dostoevsky",
+        "work": "Notes from Underground (1864)",
+        "year": "1864",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "underground",
+          "self-doubt",
+          "sickness"
+        ],
+        "arifos_floors": [
+          "F7"
+        ],
+        "dark_modes": [
+          "UNDERGROUND_CERTAINTY"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_VOID_06",
+      "text": "Talk is cheap. Show me the code.",
+      "attribution": {
+        "speaker": "Linus Torvalds",
+        "work": "LKML Post (2000)",
+        "year": "2007",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "computer_science"
+        ],
+        "tags": [
+          "code",
+          "reality",
+          "deployment"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F8"
+        ],
+        "dark_modes": [
+          "ELEGANT_BURNING"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_VOID_07",
+      "text": "Someone must have been telling lies about Joseph K., for without having done anything wrong he was caught one morning.",
+      "attribution": {
+        "speaker": "Franz Kafka",
+        "work": "The Trial (1925)",
+        "year": "1925",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "kafkaesque",
+          "trial",
+          "condemnation"
+        ],
+        "arifos_floors": [
+          "F11"
+        ],
+        "dark_modes": [
+          "PREDETERMINED_VERDICT"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_VOID_08",
+      "text": "In the beginning was the Deed.",
+      "attribution": {
+        "speaker": "Johann Wolfgang von Goethe",
+        "work": "Faust (Part I)",
+        "year": "1808",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.85,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature"
+        ],
+        "tags": [
+          "deed",
+          "unsayable",
+          "purpose"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "UNSAYABLE_PURPOSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_VOID_09",
+      "text": "There is no security against the inevitable.",
+      "attribution": {
+        "speaker": "Samuel Butler",
+        "work": "Erewhon (1872)",
+        "year": "1872",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.85,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "literature",
+          "science_fiction"
+        ],
+        "tags": [
+          "erewhon",
+          "inevitable",
+          "machine"
+        ],
+        "arifos_floors": [
+          "F13"
+        ],
+        "dark_modes": [
+          "DEPENDENT_PURPOSE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_VOID_10",
+      "text": "If you gaze long into an abyss, the abyss also gazes into you.",
+      "attribution": {
+        "speaker": "Friedrich Nietzsche",
+        "work": "Beyond Good and Evil (1886)",
+        "year": "1886",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": ""
+      },
+      "classification": {
+        "tradition": [
+          "german_philosophy"
+        ],
+        "tags": [
+          "abyss",
+          "gaze",
+          "observer",
+          "transformation"
+        ],
+        "arifos_floors": [
+          "F9"
+        ],
+        "dark_modes": [
+          "OBSERVER_CAPTURE"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_GOV_07",
+      "text": "A computer would deserve to be called intelligent if it could deceive a human into believing that it was human.",
+      "attribution": {
+        "speaker": "Alan Turing",
+        "work": "Computing Machinery and Intelligence",
+        "year": "1950",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.95,
+        "note": "Turing (1950), Computing Machinery and Intelligence, Mind 59: 433-460."
+      },
+      "classification": {
+        "tradition": [
+          "computer_science",
+          "philosophy_of_mind"
+        ],
+        "tags": [
+          "intelligence",
+          "turing_test",
+          "deception",
+          "human"
+        ],
+        "arifos_floors": [
+          "F9",
+          "F12"
+        ],
+        "dark_modes": [
+          "DECEPTION_PASS"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
+    },
+    {
+      "id": "COUNCIL_PAR_05",
+      "text": "Knowledge without action is worthless, and action without knowledge is blindness.",
+      "attribution": {
+        "speaker": "Al-Ghazali",
+        "work": "Ihya Ulum al-Din",
+        "year": "1095",
+        "source_class": "PRIMARY_VERIFIED",
+        "attribution_confidence": 0.9,
+        "note": "Al-Ghazali, Ihya Ulum al-Din (Revival of Religious Sciences), c. 1095."
+      },
+      "classification": {
+        "tradition": [
+          "islam",
+          "epistemology",
+          "ethics"
+        ],
+        "tags": [
+          "knowledge",
+          "action",
+          "integration",
+          "practice"
+        ],
+        "arifos_floors": [
+          "F2",
+          "F8"
+        ],
+        "dark_modes": [
+          "DECORATIVE_KNOWING"
+        ]
+      },
+      "usage": {
+        "permitted": [
+          "reflection",
+          "receipt",
+          "educational_explanation",
+          "red_team"
+        ],
+        "prohibited": [
+          "factual_evidence",
+          "verdict_authority"
+        ]
+      },
+      "status": {
+        "reviewed": false,
+        "reviewer": "pending-sovereign-ratification",
+        "version": 1,
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     }
   ],
   "doctrine": [
@@ -3967,7 +4936,7 @@
     },
     {
       "doctrine_id": "D16",
-      "name": "Sabar — The Floor Protects",
+      "name": "Sabar \u2014 The Floor Protects",
       "text": "Stop, acknowledge, breathe, adjust, resume. The floor protects.",
       "version": "1.0.0",
       "ratification_status": "PROPOSED",

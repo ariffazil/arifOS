@@ -825,6 +825,63 @@ try:
     except Exception as e:
         logger.warning(f"AKAL middleware not wired (non-fatal): {e}")
 
+    # ── V2 Response Envelope wrapper (P2-RT — 2026-07-19) ──
+    # Wraps all 8 canonical tool responses with deterministic V2 envelope
+    # fields: canonical_verdict, authority_scope, receipt_state, execution_state.
+    try:
+        import asyncio as _asyncio_v2
+        from arifosmcp.runtime.v2_envelope import (
+            build_v2_envelope,
+            CANONICAL_TOOL_NAMES,
+        )
+        import functools
+
+        def _v2_envelope_wrap(handler, *, tool_name: str = ""):
+            """Wrap handler response with V2 envelope.
+
+            Args:
+                handler: The handler function to wrap
+                tool_name: Explicit canonical tool name. If empty, falls back to
+                           handler.__name__ (which may fail through multiple wraps).
+            """
+
+            @functools.wraps(handler)
+            async def async_wrapped(*args, **kwargs):
+                result = await handler(*args, **kwargs)
+                if isinstance(result, dict):
+                    _name = tool_name or getattr(handler, "__name__", "")
+                    return build_v2_envelope(_name, result)
+                return result
+
+            @functools.wraps(handler)
+            def sync_wrapped(*args, **kwargs):
+                result = handler(*args, **kwargs)
+                if isinstance(result, dict):
+                    _name = tool_name or getattr(handler, "__name__", "")
+                    return build_v2_envelope(_name, result)
+                return result
+
+            # Return async or sync wrapper based on handler
+            if _asyncio_v2.iscoroutinefunction(handler):
+                return async_wrapped
+            return sync_wrapped
+
+        # Apply V2 envelope to all 8 canonical tools.
+        # Pass explicit tool_name so the closure captures the correct name
+        # even when handler.__name__ is lost through multiple wraps.
+        for _tool_name in list(_CANONICAL_HANDLERS.keys()):
+            if _tool_name in CANONICAL_TOOL_NAMES:
+                _CANONICAL_HANDLERS[_tool_name] = _v2_envelope_wrap(
+                    _CANONICAL_HANDLERS[_tool_name],
+                    tool_name=_tool_name,
+                )
+        logger.info(
+            "V2 envelope wired: %d canonical tools",
+            sum(1 for t in CANONICAL_TOOL_NAMES if t in _CANONICAL_HANDLERS),
+        )
+    except Exception as e:
+        logger.warning("V2 envelope not wired (non-fatal): %s", e)
+
     # Note: arif_gate_judge handler is registered in tools.py
     # _RUNTIME_DIAGNOSTIC_HANDLERS, not in _CANONICAL_HANDLERS.
     # DO NOT add here — it will break the CANONICAL_HANDLERS invariant.
