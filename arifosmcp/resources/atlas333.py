@@ -13,12 +13,12 @@ Data sources:
 
 Resource URIs (arifos:// namespace):
   arifos://atlas333/index            — Root index
-  arifos://atlas333/paradox/list     — All 33 paradoxes
-  arifos://atlas333/paradox/{id}     — Single paradox (1-33)
-  arifos://atlas333/quote/list       — All 33 quotes
-  arifos://atlas333/quote/{id}       — Single quote (M1-M11, R1-R11, J1-J11)
+  arifos://atlas333/paradox/list     — All 35 paradoxes
+  arifos://atlas333/paradox/{id}     — Single paradox (1-35)
+  arifos://atlas333/quote/list       — All 36 quote rows (35 unique paradox IDs)
+  arifos://atlas333/quote/{id}       — Single quote (M1-M12, R1-R11, J1-J11, C1-C2)
   arifos://atlas333/zones            — 7 paradox zones
-  arifos://atlas333/organs           — 3 quote organs (Memory/Mind/Judge)
+  arifos://atlas333/organs           — 4 quote organs (Memory/Mind/Judge/Contour)
   arifos://atlas333/thresholds       — TEARFRAME (trm≥0.94, echo≥0.87, rasa≥0.85)
   arifos://atlas333/activation/rules — GPV→paradox activation matrix
   arifos://atlas333/flow             — 10-stage pipeline
@@ -136,7 +136,7 @@ def _runtime_activation_rules() -> dict[str, list[int]] | None:
 
 
 def _build_paradoxes_from_canonical() -> list[dict[str, Any]]:
-    """Build the 33-paradox table from paradox_quotes.py. Single source of truth."""
+    """Build 36 canonical quote rows spanning 35 paradox IDs."""
     try:
         from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
     except ImportError as exc:
@@ -144,7 +144,7 @@ def _build_paradoxes_from_canonical() -> list[dict[str, Any]]:
         return []
 
     paradoxes: list[dict[str, Any]] = []
-    # Sort by quote_id to maintain order M1..M11, R1..R11, J1..J11.
+    # Sort by quote prefix and numeric index for deterministic resource output.
     for qid in sorted(ALL_PARADOX_QUOTES.keys(), key=lambda x: (x[0], int(x[1:]))):
         q = ALL_PARADOX_QUOTES[qid]
         paradoxes.append(
