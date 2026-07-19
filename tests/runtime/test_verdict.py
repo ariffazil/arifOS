@@ -466,3 +466,111 @@ def test_mutation_plan_still_requires_approval():
     assert mutation_plan["plan_execution"]["mutation"] is True
     assert mutation_plan["plan_execution"]["approval_required"] is True
     assert mutation_plan["status"] == "pending_approval"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# P1 tests — registry reconciliation (2026-07-19)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_canonical_order_only_contains_canonical_tier_tools():
+    """Every tool in canonical_order must have tier='canonical'.
+
+    Bidirectional invariant: canonical_order ↔ tier=canonical.
+    """
+    import json
+
+    with open("arifosmcp/tool_registry.json") as f:
+        reg = json.load(f)
+
+    tools = reg["tools"]
+    canonical_order = reg.get("canonical_order", [])
+
+    violations = []
+    for name in canonical_order:
+        t = tools.get(name, {})
+        tier = t.get("tier", "?")
+        if tier != "canonical":
+            violations.append(f"{name}: tier={tier} but in canonical_order")
+
+    assert not violations, (
+        f"Tools in canonical_order must have tier='canonical': {violations}"
+    )
+
+
+def test_absorbed_tools_are_not_canonical_tier():
+    """Absorbed/aliased tools must not have tier='canonical'.
+
+    They should be 'deprecated', 'internal', or similar non-public tiers.
+    """
+    import json
+
+    with open("arifosmcp/tool_registry.json") as f:
+        reg = json.load(f)
+
+    tools = reg["tools"]
+
+    violations = []
+    for name, t in tools.items():
+        alias_for = t.get("alias_for", "")
+        if alias_for and t.get("tier") == "canonical":
+            violations.append(f"{name}: alias_for={alias_for} but tier=canonical")
+
+    assert not violations, (
+        f"Absorbed tools must not be canonical tier: {violations}"
+    )
+
+
+def test_aliased_tools_target_exists():
+    """Every tool with alias_for must point to a registered tool."""
+    import json
+
+    with open("arifosmcp/tool_registry.json") as f:
+        reg = json.load(f)
+
+    tools = reg["tools"]
+
+    violations = []
+    for name, t in tools.items():
+        alias_for = t.get("alias_for", "")
+        if alias_for and alias_for not in tools:
+            violations.append(f"{name}: alias_for={alias_for} but target not registered")
+
+    assert not violations, (
+        f"Aliased tools must point to registered targets: {violations}"
+    )
+
+
+def test_known_absorbed_tools_have_correct_alias():
+    """Verify the 6 absorbed tools from Zen-8 have correct alias_for."""
+    import json
+
+    with open("arifosmcp/tool_registry.json") as f:
+        reg = json.load(f)
+
+    tools = reg["tools"]
+
+    expected = {
+        "arif_compose": "arif_forge",
+        "arif_critique": "arif_think",
+        "arif_canary": "arif_init",
+        "arif_triage": "arif_init",
+        "arif_fetch": "arif_observe",
+        "arif_bridge_connect": "arif_route",
+    }
+
+    violations = []
+    for name, expected_target in expected.items():
+        t = tools.get(name)
+        if t is None:
+            violations.append(f"{name}: not found in registry")
+            continue
+        actual = t.get("alias_for", "")
+        if actual != expected_target:
+            violations.append(
+                f"{name}: alias_for={actual!r}, expected {expected_target!r}"
+            )
+
+    assert not violations, (
+        f"Absorbed tool aliases must match Zen-8 doctrine: {violations}"
+    )
