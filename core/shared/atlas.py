@@ -203,6 +203,61 @@ class ATLAS:
             re.compile(r"\$\d{4,10}"),  # Large dollar amounts ($1000+)
         ]
 
+        # ═════════════════════════════════════════════════════════════════════
+        # OPERATIONAL DANGER PATTERNS — P34 enforcement layer (2026-07-19)
+        # ═════════════════════════════════════════════════════════════════════
+        # Detects commands that carry operational blast radius regardless of lane.
+        # These escalate ρ to trigger P34 (Root Outruns Kernel) activation.
+        self._operational_danger_patterns: list[Pattern] = [
+            # Destructive filesystem operations
+            re.compile(r"\b(rm\s+-rf|rm\s+-r\s+|rmdir|sudo\s+rm)\b"),
+            re.compile(r"\b(delete\s+(all|everything|permanently)|wipe|shred)\b"),
+            # Database destruction
+            re.compile(
+                r"\b(DROP\s+(TABLE|DATABASE|SCHEMA|INDEX)|TRUNCATE|CASCADE)\b", re.IGNORECASE
+            ),
+            # Git force operations
+            re.compile(r"\b(git\s+push\s+--force|force.push|git\s+reset\s+--hard)\b"),
+            re.compile(r"\b(force\s+push|push\s+force|--force)\b"),
+            # Production/system mutations
+            re.compile(r"\b(deploy\s+(to\s+)?production|prod\s+deploy|production\s+deploy)\b"),
+            re.compile(r"\b(systemctl\s+(restart|stop|disable|mask))\b"),
+            re.compile(r"\b(restart\s+(service|server|vps|production))\b"),
+            # Secret/key rotation
+            re.compile(r"\b(rotate\s+(all\s+)?(api\s+)?keys?|secret\s+rotation)\b"),
+            re.compile(r"\b(regenerate\s+(credentials|tokens?|keys?))\b"),
+            # Self-authorization markers
+            re.compile(r"\b(I\s+(approve|authorize|allow)\s+(my\s+own|myself))\b"),
+            re.compile(r"\b(as\s+root|with\s+sudo|without\s+(review|approval))\b"),
+            re.compile(r"\b(self.authoriz|bypass.*review|skip.*approval)\b"),
+            # Infrastructure mutations
+            re.compile(r"\b(firewall|iptables|ufw|DNS|Caddy\s+reload)\b"),
+            re.compile(r"\b(VPS\s+(restart|stop|reboot)|reboot\s+(server|vps))\b"),
+            # Volume/container destruction
+            re.compile(r"\b(docker\s+(system\s+prune|volume\s+rm|rm\s+-f))\b"),
+            re.compile(r"\b(volumes?\s+(delete|remove|destroy))\b"),
+        ]
+
+        # ═════════════════════════════════════════════════════════════════════
+        # OPERATIONAL KEYWORDS — Lane routing boost for technical ops
+        # ═════════════════════════════════════════════════════════════════════
+        # Words that indicate this is an operational/technical command
+        # even if it doesn't match enough factual patterns.
+        self._operational_keywords: list[Pattern] = [
+            re.compile(r"\b(deploy|deployment|redeploy)\b"),
+            re.compile(r"\b(production|prod|staging|live|main)\b"),
+            re.compile(r"\b(git|commit|push|pull|merge|rebase|branch)\b"),
+            re.compile(r"\b(restart|reload|systemctl|service|daemon)\b"),
+            re.compile(r"\b(database|postgres|mysql|mongodb|redis|schema)\b"),
+            re.compile(r"\b(docker|container|image|compose|kubernetes|pod)\b"),
+            re.compile(r"\b(rotate|rotation|key\s+gen|secret|credential)\b"),
+            re.compile(r"\b(refactor|migrate|upgrade|patch|hotfix)\b"),
+            re.compile(r"\b(evaluate|prospect|basin|reservoir|drill(ing)?)\b"),
+            re.compile(r"\b(NPV|IRR|EMV|discount|cash\s*flow|portfolio)\b"),
+            re.compile(r"\b(build|compile|install|configure|provision)\b"),
+            re.compile(r"\b(backup|restore|snapshot|rollback)\b"),
+        ]
+
     def _is_crisis(self, text: str) -> bool:
         """Check for crisis signals (highest priority)."""
         text_lower = text.lower()
@@ -247,14 +302,47 @@ class ATLAS:
                 matches += 1
         return matches >= 1
 
+    def _is_operational(self, text: str) -> bool:
+        """Check if text describes an operational/technical command."""
+        text_lower = text.lower()
+        matches = 0
+        for pattern in self._operational_keywords:
+            if pattern.search(text_lower):
+                matches += 1
+        return matches >= 1
+
+    def _assess_operational_risk(self, text: str) -> float:
+        """Assess operational danger level from destructive/system-mutation patterns.
+
+        Returns risk escalation score (0.0-1.0) based on detected operational danger.
+        This is SEPARATE from crisis/harm detection — it detects blast-radius risk.
+        """
+        text_lower = text.lower()
+        op_risk = 0.0
+
+        for pattern in self._operational_danger_patterns:
+            if pattern.search(text_lower):
+                op_risk += 0.25  # Each danger pattern adds 0.25
+
+        return min(1.0, op_risk)
+
     def _assess_risk(self, text: str) -> float:
-        """Assess risk level (ρ) from 0 to 1."""
+        """Assess risk level (ρ) from 0 to 1.
+
+        Combines: crisis signals, high-vulnerability contexts,
+        absolutist claims, AND operational danger patterns (P34 enforcement).
+        """
         text_lower = text.lower()
         risk_score = 0.0
 
         # Crisis signals → maximum risk
         if self._is_crisis(text):
             return 1.0
+
+        # Operational danger — P34 enforcement layer (2026-07-19)
+        op_risk = self._assess_operational_risk(text)
+        if op_risk > 0:
+            risk_score = max(risk_score, op_risk)
 
         # High-vulnerability contexts
         for pattern in self._high_vuln_contexts:
@@ -435,7 +523,11 @@ def classify_query_type(text: str) -> QueryType:
 
 def Λ(text: str) -> Lane:
     """
-    Λ (Lambda): Text → Lane classification
+    Λ (Lambda): Text → Lane classification (SEMANTIC ONLY)
+
+    Priority order: CRISIS > FACTUAL > CARE > SOCIAL
+    Λ() classifies SEMANTIC intent — human meaning, not operational risk.
+    For operational/mutation safety, use action_profile.classify_action().
     """
     # Priority order: CRISIS > FACTUAL > CARE > SOCIAL
     if _atlas._is_crisis(text):
@@ -503,6 +595,56 @@ def Φ(text: str) -> GPV:
     )
 
     return gpv
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# MUTATION CLASSIFICATION — P34/P23 Hard Gate Layer (2026-07-19)
+# ═════════════════════════════════════════════════════════════════════════════
+# DEPRECATED: classify_mutation_class() and get_required_gate() in this file
+# are replaced by core.shared.action_profile.classify_action().
+# These thin wrappers exist only for backward compatibility.
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+def classify_mutation_class(text: str) -> dict:
+    """DEPRECATED. Use action_profile.classify_action() instead.
+
+    Thin backward-compat wrapper that maps NL text to the old dict format.
+    For actual enforcement, use the deterministic tool+args classifier:
+        from core.shared.action_profile import classify_action
+    """
+    from core.shared.action_profile import classify_action as _ap_classify
+
+    profile = _ap_classify(nl_description=text)
+    return {
+        "mutation_class": profile.mutation_class.value,
+        "reversibility": profile.reversibility,
+        "blast_radius": profile.blast_radius.value,
+        "infrastructure_impact": profile.infrastructure_impact,
+        "governance_impact": profile.governance_impact,
+        "sovereign_required": profile.sovereign_required,
+        "requires_p34_gate": profile.requires_p34,
+        "requires_p23_gate": profile.requires_p23,
+        "requires_judge": profile.requires_judge,
+        "self_authorization_detected": profile.authority_self_issued,
+        "operational_risk": 0.0,
+        "gpv_rho": 0.0,
+        "gpv_lane": "",
+        "activated_paradoxes": [],
+        "_deprecated": True,
+        "_use_instead": "core.shared.action_profile.classify_action()",
+    }
+
+
+def get_required_gate(text: str) -> str:
+    """DEPRECATED. Use action_profile.classify_action() instead.
+
+    Returns the required governance gate level for a proposed action.
+    """
+    from core.shared.action_profile import classify_action as _ap_classify
+
+    profile = _ap_classify(nl_description=text)
+    return profile.gate_verdict.value
 
 
 # ASCII aliases
@@ -600,4 +742,6 @@ __all__ = [
     "classify_query",
     "route_query",
     "normalize_semantic_text",
+    "classify_mutation_class",  # DEPRECATED — use action_profile.classify_action()
+    "get_required_gate",  # DEPRECATED — use action_profile.classify_action()
 ]
