@@ -8042,14 +8042,16 @@ def _arif_session_init(
                                 _sess,
                                 build_authority_state_for_actor(actor_id, verified=True),
                             )
-                        # Update result dict for caller
+                        # P2.5 (2026-07-19): actor_verified removed from result dict.
+                        # Session store is already bound via bind_authority_state above.
+                        # _enforce_nine_signal resolves actor_verified from session
+                        # store (single source) per P0-1 fix. These direct writes
+                        # were redundant and violated LPP doctrine.
                         if isinstance(_result_dict.get("session"), dict):
-                            _result_dict["session"]["actor_verified"] = True
                             _result_dict["session"]["authority"] = "SOVEREIGN"
                         if isinstance(_result_dict.get("actor"), dict):
                             _result_dict["actor"]["identity_verified"] = True
                             _result_dict["actor"]["authority_level"] = "SOVEREIGN"
-                        _result_dict["actor_verified"] = True
                         logger.info(
                             "Ed25519 governance_identity verified — actor=%s authority=SOVEREIGN",
                             actor_id,
