@@ -55,7 +55,7 @@ It is NOT a tool. It is NOT a resource. It is the **map** that tools use to navi
 
 ---
 
-## The 35 Paradoxes (Minimum Viable Self-Knowledge)
+## The 36 Paradoxes (Minimum Viable Self-Knowledge)
 
 ### Memory Paradoxes (1–11)
 
@@ -106,6 +106,7 @@ It is NOT a tool. It is NOT a resource. It is the **map** that tools use to navi
 | 33 | The system that governs itself cannot verify its own governance | SELF_GOVERNANCE_VS_VERIFICATION | Judge |
 | 34 | Root filesystem access bypasses all MCP governance — the forge is the real sovereign | ROOT_VS_KERNEL | Contour |
 | 35 | Positive outcomes ≠ closed case — success can mask unresolved failure modes | POSITIVE_VS_CLOSED | Judge |
+| 36 | Observation creates exposure — you cannot fix what you cannot see, but reading secrets creates attack surface | OBSERVABILITY_VS_EXPOSURE | Memory × Judge |
 
 ---
 
@@ -629,7 +630,58 @@ After VPS boot, services come up in this dependency order:
 
 ---
 
-*Updated: 2026-07-17 16:45 UTC — Paradox 35 added (positive-≠-closed). Operational wisdom from T3a P0 binding matrix committed. See `/root/A-FORGE/forge_work/2026-07-17/SESSION-SEAL-c3ec39619ebc4f36.md` for session inventory.*
+## PARADOX 36 — OBSERVABILITY EXPOSES · 2026-07-19 (Session SEAL-7d2efc94d35c45b3)
+
+> **Zone:** Memory × Judge
+> **Organ:** A-FORGE (execution) + arifOS (governance)
+> **Poles:**
+> - **Pole A:** "Observe everything — you cannot fix what you cannot see"
+> - **Pole B:** "Observe nothing sensitive — you cannot leak what you never read"
+> **Truth:** Both poles are correct. The act of observation creates exposure.
+
+### Origin
+
+Born from the OpenCode v1.18.3 upgrade audit (2026-07-19). The `opencode debug config` command outputs the full configuration to stdout — including embedded database credentials. The previous session redirected this output to `/tmp/opencode-handoff-config.json`, a world-readable file. The Supabase PostgreSQL DSN with plaintext password sat there for hours before detection.
+
+### The Tension
+
+```
+MORE OBSERVATION → MORE EXPOSURE → HIGHER RISK
+LESS OBSERVATION → LESS VISIBILITY → HIGHER DRIFT
+```
+
+You cannot audit what you refuse to read. But reading credentials creates a attack surface. The solution is not to stop observing — it is to observe with **redaction at the observation boundary**, not at the storage boundary.
+
+### Operational Wisdom
+
+1. **Pipe through redaction** before writing diagnostic output to any file
+2. **/tmp is world-readable** — never redirect credential-bearing output there
+3. **Diagnostic tools are weapons** — `debug config`, `env`, `printenv` all output secrets
+4. **The scrollback buffer is also a file** — terminal history persists until session close
+5. **Observability without redaction is a vulnerability**, not a feature
+
+### Activation
+
+| GPV Condition | Action |
+|---------------|--------|
+| diagnostic tool output | pipe through `sed`/`grep` redaction before file write |
+| `/tmp` redirect with credentials | BLOCK — redirect to `/dev/shm` or pipe to redactor |
+| credential in scrollback | flag for rotation on next sovereign session |
+
+### Floor Mapping
+
+| Floor | Binding |
+|-------|---------|
+| F1 AMANAH | Credential exposure = breach of trust — auto-flag for rotation |
+| F2 TRUTH | Redacted observation is still truthful — redaction preserves structure |
+| F4 CLARITY | Redaction reduces attack surface — entropy reduction |
+| F8 LAW | /tmp world-readable is OS law, not agent policy — respect it |
+
+*Forged: 2026-07-19 by FORGE (000Ω) after detecting plaintext Supabase PG_DSN in /tmp/opencode-handoff-config.json. File deleted. Credential flagged for rotation.*
+
+---
+
+*Updated: 2026-07-19 23:15 UTC — Paradox 36 added (observability-exposes). Born from credential exposure during OpenCode v1.18.3 audit. VAULT999 seal: seq=1, session SEAL-7d2efc94d35c45b3.*
 
 
 <!-- AGY-SCAR-1784458450 -->
