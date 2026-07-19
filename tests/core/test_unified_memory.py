@@ -2,20 +2,27 @@
 tests/core/test_unified_memory.py — Tests for the Unified Memory (Stage 555)
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
+
 from core.organs.unified_memory import (
+    MemoryResult,
     UnifiedMemory,
     get_unified_memory,
     vault,
-    MemoryResult,
 )
 from core.shared.types import Verdict
 
 
 @pytest.fixture
-def memory():
-    return UnifiedMemory()
+def memory(monkeypatch):
+    monkeypatch.delenv("QDRANT_URL", raising=False)
+    from core.organs import unified_memory as unified_memory_module
+
+    unified_memory_module._unified_memory = None
+    yield UnifiedMemory()
+    unified_memory_module._unified_memory = None
 
 
 def test_memory_result_dataclass():
@@ -47,6 +54,9 @@ def test_unified_memory_with_client(mock_qdrant):
 
 
 def test_get_unified_memory_singleton():
+    from core.organs import unified_memory as unified_memory_module
+
+    unified_memory_module._unified_memory = None
     m1 = get_unified_memory()
     m2 = get_unified_memory()
     assert m1 is m2

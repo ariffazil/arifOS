@@ -217,21 +217,21 @@ def _compute_pca_dials(
 
     # Append current floor vector to the observation matrix
     current_vec = _floors_to_vector(floors)
-    X = np.vstack([observations, current_vec])  # (N+1, 13)
-    N = X.shape[0]
+    x_obs = np.vstack([observations, current_vec])  # (n+1, 13)
+    n_obs = x_obs.shape[0]
 
-    if N < _MIN_PCA_OBSERVATIONS + 1:
+    if n_obs < _MIN_PCA_OBSERVATIONS + 1:
         metadata["pca_sufficient"] = False
         return None, metadata
 
     # Center the data (zero mean per floor)
-    X_centered = X - np.mean(X, axis=0)  # (N, 13)
+    x_centered = x_obs - np.mean(x_obs, axis=0)  # (n, 13)
 
     # Compute covariance matrix
-    C = (X_centered.T @ X_centered) / (N - 1)  # (13, 13)
+    cov = (x_centered.T @ x_centered) / (n_obs - 1)  # (13, 13)
 
     # Eigenvalue decomposition
-    eigenvalues, eigenvectors = np.linalg.eig(C)  # eigenvalues(13,), eigenvectors(13,13)
+    eigenvalues, eigenvectors = np.linalg.eig(cov)  # eigenvalues(13,), eigenvectors(13,13)
 
     # Sort by decreasing eigenvalue (eigenvectors are columns)
     idx = np.argsort(eigenvalues)[::-1]
@@ -239,7 +239,7 @@ def _compute_pca_dials(
     eigenvectors = eigenvectors[:, idx]  # reorder columns
 
     # Take top 4 principal components (use np.real for pyright compat)
-    W: np.ndarray = np.real(eigenvectors[:, :4])  # (13, 4) — loading matrix
+    loadings: np.ndarray = np.real(eigenvectors[:, :4])  # (13, 4) — loading matrix
 
     # Explained variance
     total_var: float = float(np.sum(np.real(eigenvalues)))
@@ -254,12 +254,12 @@ def _compute_pca_dials(
     metadata["pca_sufficient"] = True
 
     # Project current floor vector onto the 4 PCs
-    current_centered = current_vec - np.mean(X, axis=0)
-    dials_raw = current_centered @ W  # (4,)
+    current_centered = current_vec - np.mean(x_obs, axis=0)
+    dials_raw = current_centered @ loadings  # (4,)
 
     # Normalize each dial to [0, 1]
     # Use historical min/max per dial for normalization
-    all_projected = X_centered @ W  # (N, 4)
+    all_projected = x_centered @ loadings  # (n, 4)
     dial_mins = np.min(all_projected, axis=0)
     dial_maxs = np.max(all_projected, axis=0)
 
@@ -391,13 +391,20 @@ class APEXDials(BaseModel):
         description="Energy: Vitality dimension (PC4 or L12/L13 + budget)",
     )
     PHI: float = Field(
+        default=0.0,
         ge=0.0,
         le=1.0,
-        description="Witness (Φ): tri-witness × (1 - ToAC contrast) × sovereign/f13. New 5th dial for full G = A·P·E·X·Φ",
+        description=(
+            "Witness (Φ): tri-witness × (1 - ToAC contrast) × sovereign/f13. "
+            "New 5th dial for full G = A·P·E·X·Φ"
+        ),
     )
 
-    def to_dict(self) -> dict[str, float]:
-        return {"A": self.A, "P": self.P, "X": self.X, "E": self.E, "PHI": self.PHI}
+    def to_dict(self, include_phi: bool = False) -> dict[str, float]:
+        dials = {"A": self.A, "P": self.P, "X": self.X, "E": self.E}
+        if include_phi:
+            dials["PHI"] = self.PHI
+        return dials
 
 
 def audit_result_to_floor_scores(audit_result: Any) -> FloorScores:
@@ -653,7 +660,7 @@ def calculate_genius(
 
     return {
         "genius_score": round(final_g, 4),
-        "dials": dials.to_dict(),
+        "dials": dials.to_dict(include_phi=True),
         "hysteresis": h,
         "passed": final_g >= 0.80,
         "verdict": ("SEAL" if final_g >= 0.80 else "PARTIAL" if final_g >= 0.60 else "VOID"),
