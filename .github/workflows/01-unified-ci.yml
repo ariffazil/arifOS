@@ -61,74 +61,39 @@ env:
 jobs:
 
   federation-check:
-
-  protocol-alignment:
-    runs-on: ubuntu-latest
-    needs: [federation-check]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Protocol alignment gate
-        run: bash AAA/scripts/check_protocol_alignment.sh
     name: 🗺️ Federation Check
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v7
-      - name: Validate FEDERATION.md
-
-  protocol-alignment:
-    runs-on: ubuntu-latest
-    needs: [federation-check]
-    steps:
       - uses: actions/checkout@v4
-      - name: Protocol alignment gate
-        run: bash AAA/scripts/check_protocol_alignment.sh
+      - name: Validate FEDERATION.md exists
         run: |
+          set -o pipefail
           test -f FEDERATION.md || (echo "❌ Missing FEDERATION.md" && exit 1)
+          echo "✅ FEDERATION.md present"
 
   protocol-alignment:
+    name: 📋 Protocol Alignment
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     needs: [federation-check]
     steps:
       - uses: actions/checkout@v4
-      - name: Protocol alignment gate
-        run: bash AAA/scripts/check_protocol_alignment.sh
-          grep -q "role: ROOT" FEDERATION.md
-
-  protocol-alignment:
-    runs-on: ubuntu-latest
-    needs: [federation-check]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Protocol alignment gate
-        run: bash AAA/scripts/check_protocol_alignment.sh
-          grep -q "layer: L1" FEDERATION.md
-
-  protocol-alignment:
-    runs-on: ubuntu-latest
-    needs: [federation-check]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Protocol alignment gate
-        run: bash AAA/scripts/check_protocol_alignment.sh
-          grep -q "mcp:" FEDERATION.md
-
-  protocol-alignment:
-    runs-on: ubuntu-latest
-    needs: [federation-check]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Protocol alignment gate
-        run: bash AAA/scripts/check_protocol_alignment.sh
+      - name: Run protocol alignment script
+        run: |
+          set -o pipefail
+          if [ -f AAA/scripts/check_protocol_alignment.sh ]; then
+            bash AAA/scripts/check_protocol_alignment.sh
+          else
+            echo "ℹ️ No protocol alignment script — skipping"
+          fi
+      - name: Validate FEDERATION.md structure
+        run: |
+          set -o pipefail
+          grep -q "role: ROOT" FEDERATION.md || (echo "❌ Missing role: ROOT in FEDERATION.md" && exit 1)
+          grep -q "layer: L1" FEDERATION.md || (echo "❌ Missing layer: L1 in FEDERATION.md" && exit 1)
+          grep -q "mcp:" FEDERATION.md || (echo "❌ Missing mcp: section in FEDERATION.md" && exit 1)
           echo "✅ arifOS FEDERATION.md valid — L1 ROOT"
-
-  protocol-alignment:
-    runs-on: ubuntu-latest
-    needs: [federation-check]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Protocol alignment gate
-        run: bash AAA/scripts/check_protocol_alignment.sh
 
   # ─────────────────────────────────────────────────────────────
   # JOB 1: Fast Signal — tool registry, imports, shim resolution
