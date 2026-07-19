@@ -394,7 +394,11 @@ def authority_envelope_for_session(
                 "human_authority": exempt_authority,
                 "runtime_authority": runtime_band,
                 "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN"),
-                "seal_allowed": exempt_authority == "SOVEREIGN" and runtime_band in ("FULL", "SOVEREIGN"),
+                "seal_allowed": exempt_authority == "SOVEREIGN"
+                and runtime_band in ("FULL", "SOVEREIGN"),
+                # WAJIB-2 (2026-07-19): Single canonical effective authority.
+                # Ensures no consumer sees contradictory authority levels.
+                "effective_authority": runtime_band,
             }
 
         _vkey = None
@@ -424,6 +428,7 @@ def authority_envelope_for_session(
             "runtime_authority": runtime_band,
             "mutation_allowed": runtime_band in ("LIMITED_MUTATE", "FULL", "SOVEREIGN"),
             "seal_allowed": runtime_band in ("FULL", "SOVEREIGN") and sealed,
+            "effective_authority": runtime_band,
         }
 
     # WS1 FIX (2026-07-15): Derive runtime_band from session authority (source of
@@ -474,6 +479,7 @@ def authority_envelope_for_session(
         # seal_allowed: FULL/SOVEREIGN authority can seal. state.is_sealed() checks
         # if the state ITSELF was sealed (irrelevant for authority gating).
         "seal_allowed": runtime_band in ("FULL", "SOVEREIGN"),
+        "effective_authority": runtime_band,
     }
 
 
