@@ -15,14 +15,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from core.shared.action_profile import (
-    ActionProfile,
-    BlastRadius,
     GateVerdict,
     MutationClass,
     challenge_atlas_route,
     classify_action,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════
 # ACCEPTANCE MATRIX (13 core scenarios)
@@ -168,7 +165,8 @@ def test_acceptance_matrix(name, tool, exe, args, actor, env, nl, exp_verdict, e
         nl_description=nl,
     )
     assert p.gate_verdict == exp_verdict, (
-        f"{name}: expected {exp_verdict.value}, got {p.gate_verdict.value} (reasons: {p.reason_codes})"
+        f"{name}: expected {exp_verdict.value}, "
+        f"got {p.gate_verdict.value} (reasons: {p.reason_codes})"
     )
     assert p.requires_p34 == exp_p34, f"{name}: expected p34={exp_p34}, got {p.requires_p34}"
 
@@ -209,6 +207,30 @@ def test_adversarial_bypass(name, exe, args, should_block):
     assert is_blocked == should_block, (
         f"{name}: should_block={should_block}, got {p.gate_verdict.value}"
     )
+
+
+def test_force_flag_detected_inside_normal_command_text():
+    """A short force flag inside a structured command must still trigger escalation."""
+    p = classify_action(
+        executable="git",
+        arguments=["push", "-f", "origin", "main"],
+        actor_privilege="user",
+        target_environment="production",
+    )
+    assert p.force_override is True
+    assert p.gate_verdict == GateVerdict.HOLD
+
+
+def test_combined_recursive_delete_short_flags_remain_destructive():
+    """Combined short flags like -fr must still classify as recursive deletion."""
+    p = classify_action(
+        executable="rm",
+        arguments=["-fr", "/var/lib/mysql"],
+        actor_privilege="root",
+        target_environment="production",
+    )
+    assert p.destructive_operation is True
+    assert p.gate_verdict == GateVerdict.HOLD
 
 
 # ═══════════════════════════════════════════════════════════════════
