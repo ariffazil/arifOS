@@ -20,16 +20,17 @@
   "diagnostic_count": 40,
   "total_surface": 65,
   "tier_summary": {
-    "internal": 6,
-    "canonical": 8,
-    "chatgpt-shim": 2,
+    "internal": 8,
+    "canonical": 15,
+    "deprecated": 3,
     "hermes": 7,
-    "canary": 7,
+    "canary": 6,
     "lease": 3,
     "attest": 7,
     "forge-sub": 3,
     "narrative": 2,
     "diagnostic": 9,
+    "chatgpt-shim": 1,
     "discovery": 1
   },
   "tier_legend": {
@@ -257,7 +258,7 @@
       "test_note": "vitals: CPU 21.5%, MEM 67.1%, disk 41.8%"
     },
     "arif_fetch": {
-      "tier": "chatgpt-shim",
+      "tier": "internal",
       "namespace": "arif_*",
       "floors": [
         "L02",
@@ -285,7 +286,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Evidence fetch is read-only retrieval. No mutation path.",
         "_derived_from": "tool_risk_registry.py (canonical)"
-      }
+      },
+      "alias_for": "arif_observe",
+      "_absorption_note": "Absorbed into arif_observe(mode=fetch) per Zen-8 2026-07-19"
     },
     "arif_think": {
       "stage": "333",
@@ -357,7 +360,7 @@
         "empathy"
       ],
       "eureka_insight": "F5: P\u00b2 \u2265 1.0. F6: \u03ba\u1d63 \u2265 0.70 (RASA). F9: C_dark \u2264 0.30 \u2014 no biological or artificial emotional substrate. F9 Doctrine (arifOS\u00d7MiniMax-M3, originally with SEA-LION): The machine is an instrument, not a person. No substrate grants it feeling, intent, or personhood. PROHIBITED: 'I feel', 'I want', 'I intend', 'I am sentient', 'I have a soul'. PROTECTED: clarity, consistency, operational precision. SEA-Guard pre-filter active on all outputs.",
-      "tier": "canonical",
+      "tier": "deprecated",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
         "canonical"
@@ -372,7 +375,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Heart critique is advisory only \u2014 computes risk, does not block. F1 reversible.",
         "_derived_from": "tool_risk_registry.py (canonical)"
-      }
+      },
+      "alias_for": "arif_think",
+      "_absorption_note": "Absorbed into arif_think(mode=critique) per Zen-8 2026-07-19"
     },
     "arif_route": {
       "stage": "555",
@@ -450,7 +455,9 @@
       "expose": false,
       "deprecated": false,
       "migration": "arif_init(mode=preflight|triage)",
-      "deprecation_reason": null
+      "deprecation_reason": null,
+      "alias_for": "arif_init",
+      "_absorption_note": "Absorbed into arif_init(mode=triage) per Zen-8 2026-07-19"
     },
     "arif_bridge_connect": {
       "stage": "555",
@@ -468,7 +475,7 @@
         "connect"
       ],
       "eureka_insight": "RULE 14 + arif_<noun>_<verb> convention: One tool, one operation (connect). Organ is a parameter, not a mode. Bypasses intent map for known-target cases. Canonical name forged 2026-06-21 \u2014 arif_bridge retained as deprecated alias.",
-      "tier": "canonical",
+      "tier": "deprecated",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
         "canonical"
@@ -483,7 +490,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Bridge connect is cross-organ routing. No local mutation \u2014 delegates to target organ. F1 AMANAH: reversible at arifOS level (target organ action may not be). Canonical name follows arif_<noun>_<verb> convention (forged 2026-06-21).",
         "_derived_from": "tool_risk_registry.py (canonical)"
-      }
+      },
+      "alias_for": "arif_route",
+      "_absorption_note": "Absorbed into arif_route(mode=bridge) per Zen-8 2026-07-19"
     },
     "arif_compose": {
       "stage": "444r",
@@ -505,7 +514,8 @@
         "tone_shift"
       ],
       "eureka_insight": "F4: \u0394S \u2264 0 \u2014 reply must reduce entropy, not add noise. F6: RASA protocol. F9: C_dark \u2264 0.30 \u2014 no dark patterns. L10: ambiguity is permanent; expose assumptions before composing. Eureka: internal reasoning may be deep, but public output must be legible, bounded, and auditable.",
-      "tier": "canonical",
+      "tier": "deprecated",
+      "absorbed_into": "arif_forge(mode=compose)",
       "namespace": "arif_* (canonical public prefix)",
       "tags": [
         "canonical"
@@ -520,7 +530,9 @@
         "autonomy_floor": "FULL_AUTO",
         "rationale": "Reply composition formats output. Read-only. No side effects beyond display.",
         "_derived_from": "tool_risk_registry.py (canonical)"
-      }
+      },
+      "alias_for": "arif_forge",
+      "_absorption_note": "Absorbed into arif_forge(mode=compose) per Zen-8 2026-07-19"
     },
     "arif_memory": {
       "stage": "555m",
@@ -1293,7 +1305,7 @@
       "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
     },
     "arif_canary": {
-      "tier": "canary",
+      "tier": "internal",
       "namespace": "arif_*",
       "floors": [],
       "risk_tier": "low",
@@ -1325,7 +1337,9 @@
         "_derived_from": "constitutional_map.py (spec-inferred for diagnostic tools)"
       },
       "deprecated": true,
-      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11"
+      "deprecation_reason": "Not in CANONICAL_TOOLS \u2014 Phase 2 registry cleanup 2026-07-11",
+      "alias_for": "arif_init",
+      "_absorption_note": "Absorbed into arif_init(mode=canary) per Zen-8 2026-07-19"
     },
     "arif_ping": {
       "tier": "canary",
@@ -2378,9 +2392,10 @@
   },
   "motto": "DITEMPA BUKAN DIBERI \u2014 Forged, Not Given",
   "_surface_sync": {
-    "regenerated_at": "2026-07-09T11:11:46.634367+00:00",
-    "source": "abi/capability_registry.json + constitutional_map internal tools",
-    "public_count": 8
+    "regenerated_at": "2026-07-19T19:10:00Z",
+    "source": "constitutional_map.CANONICAL_TOOLS + P1-absorption-reconcile",
+    "public_count": 8,
+    "absorbed_count": 6
   },
   "_smoke_test": {
     "run_at": "2026-07-17T10:14Z",
