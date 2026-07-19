@@ -366,7 +366,10 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
             {
                 "atlas_id": "ATLAS333",
                 "version": "v1.0.0-zen",
-                "description": "Cognitive geometry of arifOS — 33 paradoxes, 33 quotes, 7 zones, TEARFRAME thresholds",
+                "description": (
+                    "Cognitive geometry of arifOS — 35 paradoxes, 36 quote rows, "
+                    "7 zones, TEARFRAME thresholds"
+                ),
                 "resources_mcp": [
                     "arifos://atlas333/index",
                     "arifos://atlas333/paradox/list",
@@ -462,19 +465,19 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     @mcp.resource("arifos://atlas333/paradox/list")
     async def paradox_list() -> str:
-        """All 33 paradoxes with axes, zones, organs."""
+        """All 35 paradoxes with axes, zones, organs."""
         return json.dumps(_PARADOXES, indent=2)
 
     registered.append("arifos://atlas333/paradox/list")
 
     @mcp.resource("arifos://atlas333/paradox/{id}")
     async def paradox_by_id(id: str) -> str:
-        """Single paradox by ID (1-33) with full context."""
+        """Single paradox by ID (1-35) with full context."""
         try:
             pid = int(id)
             if pid in _PARADOX_BY_ID:
                 return json.dumps(_PARADOX_BY_ID[pid], indent=2)
-            return json.dumps({"error": f"Paradox {id} not found. Valid: 1-33."})
+            return json.dumps({"error": f"Paradox {id} not found. Valid: 1-35."})
         except ValueError:
             return json.dumps({"error": f"Invalid paradox ID: {id}"})
 
@@ -489,12 +492,13 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     @mcp.resource("arifos://atlas333/organs")
     async def organs() -> str:
-        """3 quote organs (Memory/Mind/Judge)."""
+        """4 quote organs (Memory/Mind/Judge/Contour)."""
         return json.dumps(
             [
-                {"organ": "Memory", "quote_range": "M1-M11", "paradox_range": "1-11"},
+                {"organ": "Memory", "quote_range": "M1-M12", "paradox_range": "1-11, 14"},
                 {"organ": "Mind", "quote_range": "R1-R11", "paradox_range": "12-22"},
                 {"organ": "Judge", "quote_range": "J1-J11", "paradox_range": "23-33"},
+                {"organ": "Contour", "quote_range": "C1-C2", "paradox_range": "34-35"},
             ],
             indent=2,
         )
@@ -510,7 +514,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     @mcp.resource("arifos://atlas333/activation/rules")
     async def activation_rules() -> str:
-        """GPV→paradox activation matrix (6 canonical patterns)."""
+        """GPV→paradox activation matrix (8 canonical patterns)."""
         return json.dumps(_ACTIVATION_RULES, indent=2)
 
     registered.append("arifos://atlas333/activation/rules")
@@ -531,7 +535,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     @mcp.resource("arifos://atlas333/quote/list")
     async def quote_list() -> str:
-        """All 33 quotes (M1-M11, R1-R11, J1-J11) with author, organ, trigger."""
+        """All 36 quote rows across 35 paradox IDs, with trigger metadata."""
         try:
             from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
 
@@ -557,7 +561,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
 
     @mcp.resource("arifos://atlas333/quote/{id}")
     async def quote_by_id(id: str) -> str:
-        """Single quote by ID (M1-M11, R1-R11, J1-J11) with full context."""
+        """Single quote by ID (M1-M12, R1-R11, J1-J11, C1-C2)."""
         try:
             from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
 
@@ -577,7 +581,14 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
                     },
                     indent=2,
                 )
-            return json.dumps({"error": f"Quote {id} not found. Valid: M1-M11, R1-R11, J1-J11."})
+            return json.dumps(
+                {
+                    "error": (
+                        f"Quote {id} not found. Valid: M1-M12, R1-R11, "
+                        "J1-J11, C1-C2."
+                    )
+                }
+            )
         except Exception as exc:
             return json.dumps({"error": f"Cannot read quote: {exc}"})
 

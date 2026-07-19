@@ -26,14 +26,18 @@ from typing import Any
 import pytest
 
 
-def _read_semantic_readiness() -> dict[str, Any] | None:
-    """Hit /health and return semantic_readiness dict, or None if unreachable."""
-    from arifosmcp.runtime.rest_routes.rest_routes import (
-        _build_governance_status_payload,
-    )
-    from arifosmcp.runtime.server import app as server_app
+def _read_semantic_readiness(monkeypatch) -> dict[str, Any] | None:
+    """Hit /health and return semantic_readiness dict, or None if unreachable.
 
+    Bypasses the /health 30s response cache so each call gets a fresh
+    payload composed from the current monkeypatches.
+    """
+    from arifosmcp.runtime.rest_routes import rest_routes as rr
+    from arifosmcp.runtime.server import app as server_app
     from tests.conftest import SyncASGIClient
+
+    # Bypass /health 30s cache so each test gets a fresh payload
+    monkeypatch.setattr(rr, "_health_cache", {"payload": None, "ts": 0.0})
 
     client = SyncASGIClient(server_app)
     try:
@@ -55,10 +59,6 @@ def test_graphiti_three_dimensions_independent_when_ml_disabled(monkeypatch):
     and storage are still driven by graphiti reachability probe — they
     remain independent.
     """
-    from arifosmcp.runtime.rest_routes.rest_routes import (
-        _build_governance_status_payload,
-    )
-
     monkeypatch.setattr(
         "arifosmcp.runtime.rest_routes.rest_routes._build_governance_status_payload",
         lambda: {
@@ -79,7 +79,7 @@ def test_graphiti_three_dimensions_independent_when_ml_disabled(monkeypatch):
     law_audit._probe_ml_embedding_runtime.cache_clear()
     law_audit._load_sbert_runtime.cache_clear()
 
-    sr = _read_semantic_readiness()
+    sr = _read_semantic_readiness(monkeypatch)
     if sr is None:
         pytest.skip("/health not reachable in test env")
 
@@ -123,12 +123,14 @@ def test_graphiti_semantic_floor_holds_when_ml_enabled_but_deps_missing(
         lambda: ["sentence_transformers", "torch"],
     )
 
-    sr = _read_semantic_readiness()
+    sr = _read_semantic_readiness(monkeypatch)
     if sr is None:
         pytest.skip("/health not reachable in test env")
 
     # Semantic floor = the gate → hold when deps missing
-    assert sr["graphiti_semantic_floor"] == "hold"
+    assert sr["graphiti_semantic_floor"] == "hold", (
+        f"expected 'hold' but got {sr['graphiti_semantic_floor']!r}"
+    )
     # Embedding runtime = independent witness → still unverified (no real probe)
     assert sr["graphiti_embedding_runtime"] == "unverified"
     # They MUST NOT collapse to the same value.
@@ -166,7 +168,7 @@ def test_graphiti_embedding_not_collapsed_to_transport(monkeypatch):
         lambda: False,
     )
 
-    sr = _read_semantic_readiness()
+    sr = _read_semantic_readiness(monkeypatch)
     if sr is None:
         pytest.skip("/health not reachable in test env")
 

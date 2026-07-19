@@ -19,8 +19,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 
 # ---------------------------------------------------------------------------
 # _is_hardened_failure unit tests
