@@ -764,6 +764,119 @@ TOOL_PURPOSE_CONTRACTS: dict[str, dict[str, Any]] = {
         "agency_level": "L0_OBSERVE",
         "decision_thresholds": DECISION_THRESHOLDS,
     },
+    # ── Alias tool purpose contracts (resolve to canonicals via _ALIAS_TO_CANON) ──
+    "arif_sense_observe": {
+        "purpose": "Sense reality via multimodal observation. Canonical alias of arif_observe. Grounds session in current reality — web, local repo, vitals, entropy, compass, atlas.",
+        "use_when": ["Prefer canonical name arif_observe"],
+        "do_not_use_when": ["Use canonical name arif_observe for new code"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only_with_external",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "evidence_bundle",
+        "evidence_required": True,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_observe",
+    },
+    "arif_evidence_fetch": {
+        "purpose": "Targeted evidence retrieval. Canonical alias of arif_observe(mode=fetch). Produces citable facts from specific URLs.",
+        "use_when": ["Prefer canonical mode arif_observe(mode=fetch)"],
+        "do_not_use_when": ["Use canonical name arif_observe(mode=fetch) for new code"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only_with_external",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "cited_evidence",
+        "evidence_required": True,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_observe",
+    },
+    "arif_bridge_connect": {
+        "purpose": "Connect to a federation organ. Canonical alias of arif_route(mode=bridge). Pure discovery — no mutation.",
+        "use_when": ["Prefer canonical mode arif_route(mode=bridge)"],
+        "do_not_use_when": ["Use canonical name arif_route(mode=bridge) for new code"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "routing_decision",
+        "evidence_required": False,
+        "agency_level": "L1_ANALYZE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_route",
+    },
+    "arif_memory_recall": {
+        "purpose": "Recall governed memory. Canonical alias of arif_memory(mode=recall). Returns stored decisions, facts, and context.",
+        "use_when": ["Prefer canonical mode arif_memory(mode=recall)"],
+        "do_not_use_when": ["Use canonical name arif_memory(mode=recall) for new code"],
+        "authority_level": "advisory_only_for_recall",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "memory_record",
+        "evidence_required": True,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_memory",
+    },
+    "arif_judge_deliberate": {
+        "purpose": "Deliberate constitutional verdict. Canonical alias of arif_judge. Renders SEAL/HOLD/VOID/SABAR.",
+        "use_when": ["Prefer canonical name arif_judge"],
+        "do_not_use_when": ["Use canonical name arif_judge for new code"],
+        "authority_level": "requires_human_confirmation_for_L5",
+        "side_effect": "judgment_only",
+        "blast_radius": "medium",
+        "requires_human_confirmation": False,
+        "output_type": "verdict",
+        "evidence_required": True,
+        "agency_level": "L2_RECOMMEND",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_judge",
+    },
+    "arif_reply_compose": {
+        "purpose": "Governed response composition. Canonical alias of arif_think. Formats final output with citations and tone.",
+        "use_when": ["Prefer canonical name arif_think"],
+        "do_not_use_when": ["Use canonical name arif_think for new code"],
+        "authority_level": "advisory_only",
+        "side_effect": "read_only",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "composed_message",
+        "evidence_required": False,
+        "agency_level": "L1_ANALYZE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_think",
+    },
+    "arif_vault_seal": {
+        "purpose": "Append-only cryptographic seal. Canonical alias of arif_seal. Immutable record in VAULT999.",
+        "use_when": ["Prefer canonical name arif_seal"],
+        "do_not_use_when": ["Use canonical name arif_seal for new code"],
+        "authority_level": "requires_human_confirmation",
+        "side_effect": "append_only_ledger",
+        "blast_radius": "high",
+        "requires_human_confirmation": True,
+        "output_type": "seal_receipt",
+        "evidence_required": True,
+        "agency_level": "L5_EXECUTE_IRREVERSIBLE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_seal",
+    },
+    "arif_session_init": {
+        "purpose": "Bootstrap governed session. Canonical alias of arif_init. Returns session_id, authority level, surface pointers.",
+        "use_when": ["Prefer canonical name arif_init"],
+        "do_not_use_when": ["Use canonical name arif_init for new code"],
+        "authority_level": "advisory_only",
+        "side_effect": "creates_and_binds_session",
+        "blast_radius": "low",
+        "requires_human_confirmation": False,
+        "output_type": "session_header_with_affordances",
+        "evidence_required": False,
+        "agency_level": "L0_OBSERVE",
+        "decision_thresholds": DECISION_THRESHOLDS,
+        "canonical_public_name": "arif_init",
+    },
     # Default fallbacks for other tools
     "_default": {
         "purpose": "Tool purpose not yet declared in constitutional contract. Treat conservatively.",
@@ -799,6 +912,14 @@ def get_full_affordance(tool_name: str) -> dict[str, Any]:
         "arif_fetch": "arif_observe",
         "arif_search": "arif_observe",
         "arif_explore": "arif_observe",
+        "arif_sense_observe": "arif_observe",
+        "arif_evidence_fetch": "arif_observe",
+        "arif_bridge_connect": "arif_route",
+        "arif_memory_recall": "arif_memory",
+        "arif_judge_deliberate": "arif_judge",
+        "arif_reply_compose": "arif_think",
+        "arif_vault_seal": "arif_seal",
+        "arif_session_init": "arif_init",
         "arif_triage": "arif_init",
         "arif_delegate": "arif_route",
     }
@@ -2797,15 +2918,23 @@ def _constitutional_gate(
     if tool_name in _TIER_3_IRREVERSIBLE_TOOLS:
         has_prior_seal = bool(constitutional_chain_id)
         sess = _SESSIONS.get(session_id) if session_id else None
-        authority = sess.get("authority_level", "anonymous") if sess else "anonymous"
-        is_sovereign = (authority == "sovereign") and sess.get("identity_verified", False)
+        # F1 FIX 2026-07-19: Read canonical authority_state (WS1) instead of legacy sess["authority_level"]
+        if sess:
+            from arifosmcp.runtime.authority import read_authority_state
+
+            auth_state = read_authority_state(sess)
+            is_sovereign = auth_state.actor.sovereign and auth_state.actor.verified
+            authority_str = auth_state.actor.effective or "anonymous"
+        else:
+            is_sovereign = False
+            authority_str = "anonymous"
 
         if not (has_prior_seal or is_sovereign):
             return _hold(
                 tool_name,
                 "L13 SOVEREIGN: Irreversible action requires prior arif_judge SEAL "
                 "(constitutional_chain_id) or sovereign session authorization. "
-                f"Current session authority={authority}, identity_verified={sess.get('identity_verified', False) if sess else False}. "
+                f"Current session authority={authority_str}, identity_verified={sess.get('identity_verified', False) if sess else False}. "
                 "Re-initiate with sovereign credentials or provide constitutional_chain_id from prior SEAL.",
                 ["L13"],
                 session_id=session_id,

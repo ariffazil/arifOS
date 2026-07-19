@@ -427,8 +427,12 @@ def _project_light(
         degraded.append("alignment_profile_not_loaded")
     if not components["adversarial_profile"]["loaded"]:
         degraded.append("adversarial_profile_not_loaded")
-    if components["belief"]["intent_model"].get("status") == "light_mode_deferred":
-        degraded.append("belief_scaffold_deferred")
+    # F4 FIX 2026-07-19: belief_scaffold_deferred suppressed from degraded list.
+    # Light-init defers belief scaffold by design (intentional, not a failure).
+    # Full-init defers it only when identity is not verified — the missing
+    # identity is the real signal, not the deferred scaffold. The degraded list
+    # should indicate anomalies, not design choices. The belief scaffold status
+    # is still visible via the response's structural fields for diagnostics.
 
     # F11 audit spine — was nulled by abd33817d refactor
     _now_ts = _time.time()

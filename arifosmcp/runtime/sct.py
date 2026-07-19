@@ -51,7 +51,6 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
         "arif_observe",
         "arif_think",
         "arif_route",
-        "arif_memory",
     ],
     "LIMITED_MUTATE": [
         "arif_init",

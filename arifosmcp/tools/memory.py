@@ -843,9 +843,7 @@ def arif_memory_recall(
         if f10_envelope is not None:
             return f10_envelope
         # SEAL path: may carry rewritten content (SABAR→rewrite under enforce).
-        if f10_verdict.get("content") is not None and f10_verdict.get("f10", {}).get(
-            "rewritten"
-        ):
+        if f10_verdict.get("content") is not None and f10_verdict.get("f10", {}).get("rewritten"):
             content = f10_verdict["content"]
 
     floor_check = check_laws(
@@ -1007,6 +1005,12 @@ def arif_memory_recall(
                 limit=limit,
             )
             results = search_result.get("results", []) if isinstance(search_result, dict) else []
+            governance_report = (
+                search_result.get("_governance_report", {})
+                if isinstance(search_result, dict)
+                else {}
+            )
+            n_blocked_by_policy = governance_report.get("blocked", 0)
             all_classified = []
             usable_hits = []
             quarantined_hits = []
@@ -1079,6 +1083,7 @@ def arif_memory_recall(
                     "total_retrieved": len(results),
                     "usable_recall_hits": len(usable_hits),
                     "quarantined_hits": len(quarantined_hits),
+                    "blocked_by_policy": n_blocked_by_policy,
                     "quarantine_reason": (
                         "null_or_synthetic_content" if quarantined_hits else None
                     ),
@@ -1104,6 +1109,14 @@ def arif_memory_recall(
                     extra_meta=recall_payload,
                 )
             if len(usable_hits) == 0:
+                if n_blocked_by_policy > 0:
+                    return _hold(
+                        "arif_memory_recall",
+                        f"No memories returned — {n_blocked_by_policy} result(s) blocked by retrieval policy "
+                        f"(sacred tier, session isolation, or authority gate). Try different actor scope.",
+                        ["F2", "F4"],
+                        extra_meta=recall_payload,
+                    )
                 return _hold(
                     "arif_memory_recall",
                     "No memories found for query. Memory layer returned empty.",
