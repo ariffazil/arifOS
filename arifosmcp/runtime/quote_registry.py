@@ -206,7 +206,10 @@ VALID_USES = frozenset({"REFLECTION", "RECEIPT", "EDUCATION", "RED_TEAM"})
 
 # Canonical registry: v2 (zen-witness-doctrine). v1 retained on disk as legacy only.
 _REGISTRY_PATH = Path(__file__).resolve().parent.parent / "data" / "quote_registry_v2.json"
+# SOT declaration (2026-07-19): schema + contract, regenerated from data.
+_REGISTRY_SOT_PATH = Path(__file__).resolve().parent.parent / "data" / "quote_registry_sot.yaml"
 _registry_cache: Optional[dict] = None
+_registry_sot_cache: Optional[dict] = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -295,6 +298,45 @@ def load_registry(force_reload: bool = False) -> dict:
         len(_registry_cache.get("quotes", [])),
     )
     return _registry_cache
+
+
+def load_registry_sot(force_reload: bool = False) -> dict:
+    """Load the quote registry SOT declaration (YAML).
+
+    The SOT (Source of Truth) describes the schema, contract, and injection
+    map. The DATA (JSON) holds the actual entries. Both are canonical;
+    SOT declares HOW the data flows to MCP tools.
+
+    Returns dict with keys: provenance_classes, stage_policy, apex_policy,
+    canon_status, namespace, tool_injection_map, intended_uses, tests, etc.
+
+    Returns {} if SOT file is missing (runtime falls back to legacy behavior).
+    """
+    global _registry_sot_cache
+    if _registry_sot_cache is not None and not force_reload:
+        return _registry_sot_cache
+
+    if not _REGISTRY_SOT_PATH.exists():
+        logger.debug("Quote registry SOT not found at %s", _REGISTRY_SOT_PATH)
+        _registry_sot_cache = {}
+        return _registry_sot_cache
+
+    try:
+        import yaml  # type: ignore[import-untyped]
+    except ImportError:
+        logger.debug("PyYAML not installed; SOT loader disabled")
+        _registry_sot_cache = {}
+        return _registry_sot_cache
+
+    try:
+        with _REGISTRY_SOT_PATH.open("r", encoding="utf-8") as fh:
+            _registry_sot_cache = yaml.safe_load(fh) or {}
+        logger.info("Loaded quote registry SOT: %s", _REGISTRY_SOT_PATH.name)
+    except Exception as exc:
+        logger.warning("Failed to load SOT %s: %s", _REGISTRY_SOT_PATH.name, exc)
+        _registry_sot_cache = {}
+
+    return _registry_sot_cache
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
