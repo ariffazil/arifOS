@@ -38,7 +38,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -46,6 +46,10 @@ logger = logging.getLogger(__name__)
 
 # Bump when the canonical shape changes; consumers use this to detect drift.
 SESSION_STANDING_VERSION = 1
+
+# Default session TTL (matches session.py _SESSION_TTL_SECONDS default 86400 = 24h)
+# Used when no expires_at is recorded, to prevent instant-expiry standing.
+_DEFAULT_SESSION_TTL_SECONDS = 86400
 
 # Authority bands. Only these four values are emitted.
 BAND_OBSERVE_ONLY = "OBSERVE_ONLY"
@@ -316,14 +320,31 @@ def compose_standing(session_id: str | None, actor_id: str | None = None) -> Ses
         else:
             verified = verified_raw
         issued_at = record.get("created_at") or _utcnow_iso()
-        expires_at = record.get("expires_at") or _utcnow_iso()
+        # P0-RT fix 2026-07-19: when expires_at is absent, use issued_at + default TTL
+        # instead of _utcnow_iso() (which produces instant-expiry standing).
+        _rec_expires = record.get("expires_at")
+        if _rec_expires:
+            expires_at = _rec_expires
+        else:
+            try:
+                _issued_dt = datetime.fromisoformat(issued_at)
+                expires_at = (
+                    _issued_dt + timedelta(seconds=_DEFAULT_SESSION_TTL_SECONDS)
+                ).isoformat()
+            except Exception:
+                expires_at = (
+                    datetime.now(UTC) + timedelta(seconds=_DEFAULT_SESSION_TTL_SECONDS)
+                ).isoformat()
         record_actor = str(record.get("actor_id") or record.get("canonical_actor_id") or "")
     else:
         verified = False
         verification_method = None
         evidence_ref = None
         issued_at = _utcnow_iso()
-        expires_at = _utcnow_iso()
+        # P0-RT fix 2026-07-19: no record → still give a reasonable TTL, not instant expiry.
+        expires_at = (
+            datetime.now(UTC) + timedelta(seconds=_DEFAULT_SESSION_TTL_SECONDS)
+        ).isoformat()
         record_actor = ""
 
     canonical_id = _resolve_canonical_actor(claimed_id, record)

@@ -2190,46 +2190,42 @@ def _compute_canonical_verdict(
         if verdict == "SEAL":
             verdict = "DEGRADED"
 
-    # ── Step 5: Session-bound authority resolution (fix 2026-07-06) ────
-    # ALL tools must derive identity+authority from the session store,
-    # not from per-tool args. If a session_id is present in the response,
-    # look up the session and use its stored authority as the single
-    # source of truth. Any mismatch between passed args and session data
-    # is logged as a SCAR (identity drift).
+    # ── Step 5: Authority resolution — P4 (2026-07-19) ─────────────────────
+    # DELETED parallel session-vs-tool override logic. The canonical chain is:
+    #
+    #   crypto_auth performs verification
+    #             ↓
+    #   session record stores verification evidence
+    #             ↓
+    #   compose_standing() emits the sole public identity truth
+    #             ↓
+    #   THIS wrapper trusts standing without recomputation
+    #
+    # The ``actor_verified`` parameter arriving here is the standing-derived
+    # value (single source of truth). Any session-vs-tool mismatch that the
+    # deleted block used to "resolve" is now surfaced as a SCAR elsewhere
+    # by attach_canonical_standing() / _sync_authority_surfaces_from_standing,
+    # which is the only legitimate site for authority reconciliation.
     _session_id = out.get("session_id") or (
         result_payload.get("session_id") if isinstance(result_payload, dict) else None
     )
-    _session_actor_verified = actor_verified  # default to passed value
+    _session_actor_verified = bool(actor_verified) if actor_verified is not None else False
+    # Legacy SCAR logging preserved at SCAR-rate (one per call, not per override)
     if _session_id and _session_id != "unknown":
-        _sess = get_session(_session_id)
-        if _sess and isinstance(_sess, dict):
-            _sess_av = _sess.get("actor_verified", False)
-            _sess_actor = _sess.get("actor_id", "anonymous")
-            # If session has a stronger verification than the per-tool check,
-            # use the session value (single source of truth).
-            if _sess_av and not actor_verified:
-                _session_actor_verified = True
-                degradation.append(
-                    f"session_bound_authority: session={_session_id} actor={_sess_actor} "
-                    f"verified=True (overrode per-tool actor_verified={actor_verified})"
+        try:
+            _sess = get_session(_session_id)
+            if _sess and isinstance(_sess, dict):
+                _sess_actor = _sess.get("actor_id", "anonymous")
+                _passed_actor = out.get("actor_id") or (
+                    result_payload.get("actor_id") if isinstance(result_payload, dict) else None
                 )
-            elif actor_verified and not _sess_av:
-                # Tool claims verification but session disagrees → SCAR
-                degradation.append(
-                    f"session_authority_SCAR: tool claims actor_verified=True but "
-                    f"session={_session_id} has actor_verified=False. "
-                    f"Session authority is sovereign."
-                )
-                _session_actor_verified = False
-            # Log if actor_id differs
-            _passed_actor = out.get("actor_id") or (
-                result_payload.get("actor_id") if isinstance(result_payload, dict) else None
-            )
-            if _passed_actor and _passed_actor != _sess_actor:
-                degradation.append(
-                    f"session_actor_mismatch: passed actor_id={_passed_actor} "
-                    f"≠ session actor_id={_sess_actor} for session={_session_id}"
-                )
+                if _passed_actor and _passed_actor != _sess_actor:
+                    degradation.append(
+                        f"session_actor_mismatch: passed actor_id={_passed_actor} "
+                        f"≠ session actor_id={_sess_actor} for session={_session_id}"
+                    )
+        except Exception:
+            pass
 
     # ── Step 5b: Actor verification (P0-3 identity gating) ───────────────
     # Uses session-derived authority, not per-tool args.
@@ -22985,6 +22981,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             )
             _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
             _schedule_seal(final_resp, tool_name, kwargs)
+            _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
         final_resp = _enforce_nine_signal(
@@ -23035,6 +23032,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             logger.debug("canonical normalization skipped: %s", _canonical_exc)
         _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
+        # P3 FIX (2026-07-19): V2 envelope guarantee on the sync-success path.
+        _attach_v2_envelope_guarantee(final_resp, tool_name)
         # ── outcomes.jsonl operational ledger (re-activated 2026-07-08) ──
         # Root cause: Supabase adapter (arifOS.supabase_adapter) was never
         # created. Old writer removed during incomplete migration. Silent
@@ -23140,6 +23139,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             _attach_live_kernel_envelope(final_resp, tool_name, kwargs)
             _inject_epistemic_tag(final_resp, tool_name)
             _schedule_seal(final_resp, tool_name, kwargs)
+            # P3 FIX: V2 envelope on async-success path.
+            _attach_v2_envelope_guarantee(final_resp, tool_name)
             return _sanitize_envelope(final_resp)
         # Nine-Signal enforcement on every response
         final_resp = _enforce_nine_signal(
@@ -23190,6 +23191,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             logger.debug("canonical normalization skipped: %s", _canonical_exc)
         _inject_epistemic_tag(final_resp, tool_name)
         _schedule_seal(final_resp, tool_name, kwargs)
+        # P3 FIX: V2 envelope on async-success path (post-attach_canonical).
+        _attach_v2_envelope_guarantee(final_resp, tool_name)
         # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
         try:
             from datetime import datetime as _dt, UTC as _UTC
@@ -23242,6 +23245,14 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         # Attach continuity + authority delta from SCT claims
         _attach_sct_continuity(final_resp, payload, tool_name)
 
+        # P3 FIX (2026-07-19): Guarantee V2 envelope fields on every canonical
+        # tool response. The server.py wiring at lines 828-883 may not fire
+        # on every boot (try/except swallows import errors silently). This
+        # innermost guarantee uses setdefault for idempotency — running on
+        # top of an existing V2 wrap is a no-op. Failure is fail-soft so
+        # _wrap_handler never crashes a tool call.
+        _attach_v2_envelope_guarantee(final_resp, tool_name)
+
         final_resp = _trim_client_view(final_resp, kwargs)
         return _sanitize_envelope(final_resp)
 
@@ -23273,6 +23284,23 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         except Exception:
             # Envelope attachment must never crash a tool call.
             pass
+
+    def _attach_v2_envelope_guarantee(response: dict[str, Any], tool_name: str) -> None:
+        """P3 guarantee (2026-07-19): attach canonical V2 envelope fields
+        directly to a tool response. Idempotent via setdefault — safe to
+        call on top of any other envelope layer. Fail-soft: never crashes
+        a tool call.
+        """
+        if not isinstance(response, dict):
+            return
+        try:
+            from arifosmcp.runtime.v2_envelope import build_v2_envelope
+
+            envelope = build_v2_envelope(tool_name, response)
+            for _key, _val in envelope.items():
+                response.setdefault(_key, _val)
+        except Exception as _v2_exc:
+            logger.debug("V2 envelope guarantee skipped for %s: %s", tool_name, _v2_exc)
 
     def _inject_epistemic_tag(response: dict[str, Any], tool_name: str) -> None:
         """Inject _epistemic halal/haram tag into every tool response.
