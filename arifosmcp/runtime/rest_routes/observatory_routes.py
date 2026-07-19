@@ -818,6 +818,43 @@ def _detect_deployment_mode() -> str:
     return "unknown"
 
 
+# ── Session state resolver (FIX 2026-07-19: was hardcoded OBSERVE_ONLY) ──────
+def _resolve_session_state_from_sessions() -> str:
+    """Probe active sessions to determine the highest authority session state.
+
+    Returns one of: FULL | LIMITED_MUTATE | OBSERVE_ONLY.
+    Previously hardcoded to OBSERVE_ONLY (masking SOVEREIGN/FULL sessions).
+    Root cause of F-006 semantic propagation gap in federation edge probes.
+    """
+    try:
+        from arifosmcp.runtime.tools import _SESSIONS as _active_sessions
+    except ImportError:
+        return "OBSERVE_ONLY"
+
+    if not _active_sessions:
+        return "OBSERVE_ONLY"
+
+    # Authority band priority: FULL > LIMITED_MUTATE > OBSERVE_ONLY
+    _band_rank = {"FULL": 3, "LIMITED_MUTATE": 2, "OBSERVE_ONLY": 1}
+    _max_rank = 1
+    for _sid, _sdata in _active_sessions.items():
+        if not isinstance(_sdata, dict):
+            continue
+        # Check multiple key locations used across session code paths
+        _band = (
+            _sdata.get("authority")
+            or _sdata.get("actor_band")
+            or _sdata.get("runtime_band")
+            or "OBSERVE_ONLY"
+        )
+        _rank = _band_rank.get(str(_band).upper(), 1)
+        if _rank > _max_rank:
+            _max_rank = _rank
+
+    _band_map = {3: "FULL", 2: "LIMITED_MUTATE", 1: "OBSERVE_ONLY"}
+    return _band_map.get(_max_rank, "OBSERVE_ONLY")
+
+
 # ── Governance envelope ────────────────────────────────────────────────────────
 def _governance_block() -> dict[str, dict[str, Any]]:
     """Governance verdict + 13-floor status + per-field envelopes."""
@@ -898,6 +935,10 @@ def _governance_block() -> dict[str, dict[str, Any]]:
     )
 
     # Decomposition — never collapse into a single green badge.
+    # FIX 2026-07-19: session_state derived from active sessions, not hardcoded.
+    # Previously hardcoded "OBSERVE_ONLY" which masked actual SOVEREIGN/FULL
+    # sessions from external hosts — root cause of F-006 semantic propagation gap.
+    _resolved_session_state = _resolve_session_state_from_sessions()
     out["verdict_decomposition"] = {
         "substrate_state": _pf(
             "PASS" if failing == 0 else "FAIL",
@@ -908,11 +949,11 @@ def _governance_block() -> dict[str, dict[str, Any]]:
             independent=False,
         ),
         "session_state": _pf(
-            "OBSERVE_ONLY",
-            source="governance_kernel.session_state",
-            state="reported",
-            confidence=0.7,
-            observation_method=_OBS_METHOD_SELF_REPORTED,
+            _resolved_session_state,
+            source="active_sessions authority scan",
+            state="derived",
+            confidence=0.85,
+            observation_method=_OBS_METHOD_DERIVED,
             independent=False,
         ),
         "action_state": _pf(

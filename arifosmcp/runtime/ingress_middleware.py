@@ -87,33 +87,81 @@ def _nine_signal_for_severity(severity: str) -> dict[str, Any]:
     """
     signals = {
         "breach": {
-            "delta": {"state": "ROSAK", "en": "BROKEN", "domain_meaning": "Governance breach detected."},
+            "delta": {
+                "state": "ROSAK",
+                "en": "BROKEN",
+                "domain_meaning": "Governance breach detected.",
+            },
             "psi": {"state": "KHIANAT", "en": "BETRAYED", "domain_meaning": "Integrity violation."},
-            "omega": {"state": "BANGANG", "en": "FOOLISH", "domain_meaning": "Reckless action detected."},
+            "omega": {
+                "state": "BANGANG",
+                "en": "FOOLISH",
+                "domain_meaning": "Reckless action detected.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "high": {
-            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Serious policy violation."},
-            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Authority or policy issue."},
-            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System caught the issue."},
+            "delta": {
+                "state": "RETAK",
+                "en": "CRACKED",
+                "domain_meaning": "Serious policy violation.",
+            },
+            "psi": {
+                "state": "SYUBHAH",
+                "en": "DOUBTFUL",
+                "domain_meaning": "Authority or policy issue.",
+            },
+            "omega": {
+                "state": "BIJAK",
+                "en": "PRUDENT",
+                "domain_meaning": "System caught the issue.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "medium": {
-            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Authority or configuration issue."},
-            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Configuration mismatch."},
-            "omega": {"state": "BIJAK", "en": "PRUDENT", "domain_meaning": "System held correctly."},
+            "delta": {
+                "state": "RETAK",
+                "en": "CRACKED",
+                "domain_meaning": "Authority or configuration issue.",
+            },
+            "psi": {
+                "state": "SYUBHAH",
+                "en": "DOUBTFUL",
+                "domain_meaning": "Configuration mismatch.",
+            },
+            "omega": {
+                "state": "BIJAK",
+                "en": "PRUDENT",
+                "domain_meaning": "System held correctly.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "low": {
-            "delta": {"state": "RETAK", "en": "CRACKED", "domain_meaning": "Config mismatch or missing field."},
-            "psi": {"state": "SYUBHAH", "en": "DOUBTFUL", "domain_meaning": "Classification drift, not breach."},
-            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System detected the issue early."},
+            "delta": {
+                "state": "RETAK",
+                "en": "CRACKED",
+                "domain_meaning": "Config mismatch or missing field.",
+            },
+            "psi": {
+                "state": "SYUBHAH",
+                "en": "DOUBTFUL",
+                "domain_meaning": "Classification drift, not breach.",
+            },
+            "omega": {
+                "state": "BIJAKSANA",
+                "en": "WISE",
+                "domain_meaning": "System detected the issue early.",
+            },
             "overall": {"state": "RETAK", "en": "FAILED"},
         },
         "advisory": {
             "delta": {"state": "KUKUH", "en": "SOLID", "domain_meaning": "Informational hold."},
             "psi": {"state": "AMANAH", "en": "TRUSTED", "domain_meaning": "No governance breach."},
-            "omega": {"state": "BIJAKSANA", "en": "WISE", "domain_meaning": "System held as designed."},
+            "omega": {
+                "state": "BIJAKSANA",
+                "en": "WISE",
+                "domain_meaning": "System held as designed.",
+            },
             "overall": {"state": "SELAMAT", "en": "SAFE"},
         },
     }
@@ -630,6 +678,7 @@ def _try_promote_local_service(
     # Note: for local-service promotion path, we skip request-based; middleware already tags.
     try:
         from arifosmcp.runtime.mcp_transport_bridge import get_host_platform_from_request
+
         # request not in scope here; use None — inference inside getter will be unknown
         # Real hosted platform tagging happens in MCPSessionBridgeMiddleware for HTTP ingress.
         _ = get_host_platform_from_request(None)
@@ -1002,6 +1051,10 @@ if IS_FASTMCP_3:
                         )
                     # ────────────────────────────────────────────────────────────────
 
+                    # Extract mode from arguments first (FIX: _tool_mode must exist
+                    # before classify_tool call on line ~1006 — was UnboundLocalError)
+                    _tool_mode = (msg.arguments or {}).get("mode")
+
                     # ── UPGRADE ACTION CLASS BEFORE PROMOTION (2026-06-12) ─────────
                     _tool_risk = classify_tool(tool_name, mode=_tool_mode)
                     if (
@@ -1020,10 +1073,9 @@ if IS_FASTMCP_3:
                             f"Ingress: local service trust promoted for {tool_name} "
                             f"→ actor={envelope.actor_id}"
                         )
-
-                    # Extract mode from arguments for mode-aware risk classification
-                    _tool_mode = (msg.arguments or {}).get("mode")
-                    envelope_ok, envelope_reason = _validate_envelope_for_tool(envelope, tool_name, mode=_tool_mode)
+                    envelope_ok, envelope_reason = _validate_envelope_for_tool(
+                        envelope, tool_name, mode=_tool_mode
+                    )
                     if not envelope_ok:
                         logger.warning(f"Ingress envelope HOLD for {tool_name}: {envelope_reason}")
                         from mcp.types import TextContent
@@ -1366,6 +1418,7 @@ if IS_FASTMCP_3:
                         # post-hook) so every consequential call is recorded regardless
                         # of which organ served it." Only seals CONSEQUENTIAL_TOOLS.
                         from arifosmcp.runtime.vault_sealer import schedule_state_transition_seal
+
                         _resp_dict: dict[str, Any] = {"verdict": verdict, "status": verdict}
                         if "result" in locals() and result is not None:
                             if hasattr(result, "structured_content") and isinstance(
