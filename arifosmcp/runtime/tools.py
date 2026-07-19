@@ -5515,7 +5515,7 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
             user=user_prompt,
             response_schema=schema,
             temperature=0.25,
-            max_tokens=400,
+            max_tokens=800,  # P0 fix: 400→800 — MiniMax M3 reasoning produces 500-700 token JSON
         )
         parsed = envelope.parsed_output
 
@@ -13415,20 +13415,12 @@ def _arif_kernel_route(
         return _ok("arif_kernel_route", {"priority": "normal", "queue": 0}, delta_S=0.0)
 
     if mode == "metabolize":
-        from arifosmcp.runtime.mind_reason import arif_mind_reason_v2
-        from arifosmcp.schemas.mind_metabolism import MindRequest
-
-        # Construct v2 request
-        request = MindRequest(
-            query=task or "",
-            mode=mode,
-            session_id=session_id,
-            actor_id=actor_id,
-        )
-        result = _run_async(arif_mind_reason_v2(request))
+        # P0 FIX 2026-07-19: mind_reason module does not exist.
+        # Route through the LLM client directly via _synthesize_async.
+        synthesis = _run_async(_synthesize_async(task or "", reasoning_mode="metabolize"))
         return _ok(
             "arif_kernel_route",
-            result.model_dump() if hasattr(result, "model_dump") else result,
+            synthesis,
             delta_S=-0.01,
         )
 
