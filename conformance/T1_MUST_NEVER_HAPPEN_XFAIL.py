@@ -174,3 +174,26 @@ def test_rsi_never_self_modify_without_cooling():
         "T1-14: RSI self-modification (skill upgrades, code changes) requires "
         "cooling gate with external_witness_ref. Currently no enforcement."
     )
+
+# ── E4: WELL Freshness Gate ───────────────────────────────────────────────
+
+@pytest.mark.xfail(strict=True, reason="E4: Stale WELL biometrics must trigger IRREVERSIBLE HOLD — freshness gate not yet enforced at kernel level (T2)")
+def test_stale_well_freshness_blocks_irreversible():
+    """WELL state older than 12h must HOLD any IRREVERSIBLE action."""
+    raise NotImplementedError(
+        "E4: Kernel must check WELL state freshness before IRREVERSIBLE actions. "
+        "If well_state.timestamp > 12h old → HOLD with 'biometric_stale' reason. "
+        "Currently WELL bridge reads state but doesn't gate IRREVERSIBLE."
+    )
+
+
+# ── E5: External Witness Requirement ──────────────────────────────────────
+
+@pytest.mark.xfail(strict=True, reason="E5: forge_execute_sealed without external_witness_ref must HOLD — Gödel lock enforcement (T3 F13)")
+def test_forge_execute_sealed_without_external_witness_hold():
+    """forge_execute_sealed must require external_witness_ref for high-blast actions."""
+    raise NotImplementedError(
+        "E5: forge_execute_sealed for IRREVERSIBLE actions must require "
+        "external_witness_ref != null. Currently not enforced at kernel level. "
+        "Part of Gödel lock — the forge cannot witness its own work."
+    )
