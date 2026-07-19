@@ -585,19 +585,20 @@ def create_arifos_mcp_server() -> FastMCP:
 
 
 def _assert_registered_surface(registered_names: list[str]) -> None:
-    """Assert the registered surface matches the canonical public set.
+    """Assert the registered surface matches the selected public profile.
 
-    ZEN-9 collapse 2026-07-04: the default public wire surface is the 9-stage
-    metabolic loop. Absorbed tools and internal-only aliases are subtracted.
+    The semantic ABI contains eight capabilities, while the default
+    ``public_agent`` profile intentionally exposes six.  Validate the active
+    profile rather than requiring sovereign-only capabilities at every boot.
 
     SDK alias shims (arif_session_init, arif_gateway_connect) are also
     subtracted — they live on the wire for SDK compat but are NOT canonical.
     Their `_redirect_to` payload teaches callers to migrate.
     """
     from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS as CONST_DIAG
-    from arifosmcp.runtime.public_surface import CANARY_PROBES, CANONICAL_9
+    from arifosmcp.runtime.public_surface import CANARY_PROBES, public_tool_names_for_mode
 
-    expected_set = set(CANONICAL_9)
+    expected_set = set(public_tool_names_for_mode())
     registered_set = set(registered_names)
     # Subtract all non-public tools: internal-only canonical + all diagnostic tools
     non_public = {
