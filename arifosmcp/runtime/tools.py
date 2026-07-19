@@ -1306,6 +1306,22 @@ TOOL_AFFORDANCE_CONTRACTS: dict[str, dict[str, Any]] = {
         "output_is_approval": False,  # verdict is advisory, not approval
         "safe_autonomous_use": True,
     },
+    # P2.1 (2026-07-19): arif_memory added — handles 6-layer memory operations
+    # with mixed read/write modes. Base contract: MUTATE (some modes write).
+    # recall/inspect modes are read-only; promote/remember/revise mutate.
+    "arif_memory": {
+        "action_class": "MUTATE",
+        "mutation": True,  # some modes (remember, promote, revise, forget)
+        "external_side_effect": False,
+        "irreversible": False,  # revise/forget require explicit ack via mode gate
+        "requires_session": True,
+        "requires_lease": False,
+        "requires_human_ack": False,
+        "expected_blast_radius": "MEDIUM",
+        "output_is_evidence": True,
+        "output_is_approval": False,
+        "safe_autonomous_use": True,  # recall is safe; mutate modes gated by arif_memory internally
+    },
     "arif_vault_seal": {
         "action_class": "SEAL",
         "mutation": True,  # appends to hash-chained vault
