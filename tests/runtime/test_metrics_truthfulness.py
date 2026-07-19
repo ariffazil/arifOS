@@ -279,15 +279,11 @@ def test_api_live_all_kappa_r_not_echo_debt(monkeypatch):
     echo_debt set to distinguishable values, then asserts the api_live_all
     endpoint surfaces kappa_r correctly (not echoed from echo_debt).
     """
-    import json as _json
-
-    from arifosmcp.runtime.rest_routes.rest_routes import _build_governance_status_payload
     from arifosmcp.runtime.server import app as server_app
 
     from tests.conftest import SyncASGIClient
 
     # Provide distinct values via the governance payload
-    captured = {}
 
     def _fake_payload():
         return {
@@ -348,7 +344,6 @@ def test_graphiti_embedding_runtime_unverified_when_not_probed(monkeypatch):
     AFTER a real semantic probe completes. The legacy behavior of binding
     it to ARIFOS_ML_FLOORS+ml_runtime_ready is removed.
     """
-    from arifosmcp.runtime.rest_routes.rest_routes import _build_governance_status_payload
     from arifosmcp.runtime.server import app as server_app
 
     from tests.conftest import SyncASGIClient
