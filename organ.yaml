@@ -1,0 +1,40 @@
+schema_version: 1
+organ: arifos
+repo: ariffazil/arifos
+role: governance_kernel
+authority_ceiling: JUDGE_ONLY
+default_branch: main
+
+interfaces:
+  mcp_manifest: arifosmcp/tool_registry.json
+  health_schema: contracts/health.schema.json
+
+owned_domains:
+  - constitutional_judgment
+  - session_identity
+  - floor_enforcement
+  - vault999_seal
+  - authority_interpretation
+  - receipt_law
+
+forbidden_domains:
+  - engineering_execution
+  - earth_evidence
+  - capital_allocation
+  - human_diagnosis
+  - self_authorization
+
+build:
+  runtime: python-3.12
+  install: uv sync --frozen
+  command: uv run python -m arifosmcp.runtime.server
+  test: uv run pytest tests/ -q --tb=short
+  lint: uv run ruff check . && uv run ruff format --check .
+  artifact: wheel
+
+rollback:
+  strategy: previous_verified_digest
+
+witness:
+  required_for: [IRREVERSIBLE]
+  min_external_confidence: 0.5
