@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # ATLAS LOADING
 # ═══════════════════════════════════════════════════════════════════════════════
 
-ATLAS_PATH = Path(__file__).resolve().parents[2] / "data" / "philosophy_atlas.json"
+ATLAS_PATH = Path(__file__).resolve().parents[1] / "data" / "philosophy_atlas.json"
 _ATLAS_CACHE: dict[str, Any] | None = None
 
 
