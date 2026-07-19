@@ -380,7 +380,14 @@ def test_api_live_all_unavailable_scalar_remains_none(monkeypatch):
     assert v.get("echo_debt") is None, (
         f"echo_debt must be None when upstream doesn't provide it (got {v.get('echo_debt')!r})"
     )
-    assert v.get("psi_le") is None
+    # psi_le is currently derived from vitality_index for downstream
+    # compatibility; when telemetry is absent, vitality_index is None and
+    # psi_le MUST be None as well.
+    vitality = v.get("G_star")
+    assert (v.get("psi_le") is None) == (vitality is None), (
+        f"psi_le must mirror G_star (vitality_index); got psi_le={v.get('psi_le')!r} "
+        f"G_star={vitality!r}"
+    )
 
 
 # ---------------------------------------------------------------------------

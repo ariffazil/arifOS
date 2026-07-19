@@ -2938,16 +2938,13 @@ def register_rest_routes(
             # Vault health is the primary signal; drift is tracked separately.
             # Owner summary: green/yellow/red for non-coder operator.
             "freshness": {
-                "status": (
-                    "fresh"
-                    if _vault_health == "healthy"
-                    else "stale"
-                    if _vault_health == "healthy"
-                    else "expired"
-                ),
+                # Vault health proves current liveness, not the age of the
+                # underlying governance telemetry. Without a source timestamp,
+                # age and stale/expired bands are UNKNOWN rather than invented.
+                "status": "fresh" if _vault_health == "healthy" else "unknown",
                 "checked_at_utc": datetime.now(UTC).isoformat(),
-                "source_timestamp_utc": datetime.now(UTC).isoformat(),
-                "age_seconds": 0,
+                "source_timestamp_utc": None,
+                "age_seconds": None,
                 "max_fresh_age_seconds": 60,
                 "stale_after_seconds": 300,
                 "expired_after_seconds": 3600,
@@ -2986,12 +2983,15 @@ def register_rest_routes(
             "active_sot": _active_sot_payload(),
             # Thermodynamic Truth — Energy Dimension (F4 Clarity, F5 Peace², Ψ Vitality)
             "thermodynamic": {
-                "entropy_delta": telemetry.get("dS", -0.35),  # ΔS ≤ 0 for F4 Clarity
-                "peace_squared": telemetry.get("peace2", 1.04),  # F5 ≥ 1.0
-                "vitality_index": telemetry.get("psi_le", 0.82),  # Ψ vitality
-                "echo_debt": telemetry.get("echoDebt", 0.4),
-                "shadow": telemetry.get("shadow", 0.3),
-                "confidence": telemetry.get("confidence", 0.88),
+                # Preserve UNKNOWN as None. These are telemetry observations,
+                # not policy defaults or health decorations.
+                "entropy_delta": telemetry.get("dS"),
+                "peace_squared": telemetry.get("peace2"),
+                "vitality_index": telemetry.get("psi_le"),
+                "kappa_r": telemetry.get("kappa_r"),
+                "echo_debt": telemetry.get("echoDebt"),
+                "shadow": telemetry.get("shadow"),
+                "confidence": telemetry.get("confidence"),
                 # WS2 (2026-07-12): no default SEAL. verdict is substrate-side
                 # signal that may be unset; consumers should fall back to
                 # service_health / execution_readiness instead of inferring SEAL.
@@ -3007,8 +3007,8 @@ def register_rest_routes(
                     if _vault_health == "healthy"
                     else "FAIL"
                 ),
-                "metabolic_stage": thermo.get("metabolic_stage", 444),
-                "witness": thermo.get("witness", _WITNESS_DEFAULTS),
+                "metabolic_stage": thermo.get("metabolic_stage"),
+                "witness": thermo.get("witness"),
             },
             # APEX Intelligence Scalars (G, C_dark, W3, h, QDF)
             # Computed from live tool call metrics over 24h window.
@@ -5335,9 +5335,9 @@ def register_rest_routes(
                     "peace2": vitals.get("peace_squared"),
                     "kappa_r": vitals.get("kappa_r"),
                     "echo_debt": vitals.get("echo_debt"),
-                    "psi_le": vitals.get("psi_vitality"),
+                    "psi_le": vitals.get("vitality_index"),
                 },
-                "verdict": governance_payload.get("verdict", "HOLD"),
+                "verdict": vitals.get("verdict"),
                 "latency_ms": 0.0,
                 "tools_loaded": health_payload.get("tools_loaded", 0),
                 "floors_active": health_payload.get("floors_active", 0),
@@ -5347,7 +5347,7 @@ def register_rest_routes(
                     "arifos": {
                         "status": "active",
                         "organ": "kernel",
-                        "verdict": governance_payload.get("verdict", "HOLD"),
+                        "verdict": vitals.get("verdict"),
                     },
                     "geox": {"status": geox_status},
                     "wealth": {"status": wealth_status},
@@ -5359,10 +5359,10 @@ def register_rest_routes(
                     "floors_passing": floors_passing,
                     "floors_failing": floors_failing,
                     "floors": governance_floors,
-                    "tau_confidence_system": governance_payload.get("tau_confidence_system", 0.0),
-                    "f2_threshold": governance_payload.get("f2_threshold", 0.99),
-                    "psi_vitality": governance_payload.get("psi_vitality", 0.0),
-                    "peace2": governance_payload.get("peace2", 0.0),
+                    "tau_confidence_system": vitals.get("confidence"),
+                    "f2_threshold": 0.99,
+                    "psi_vitality": vitals.get("vitality_index"),
+                    "peace2": vitals.get("peace_squared"),
                     "vault999": health_payload.get("vault999_health", "unknown"),
                     "runtime_drift": health_payload.get("runtime_drift", False),
                 },

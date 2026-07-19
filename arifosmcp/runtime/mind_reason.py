@@ -264,48 +264,45 @@ async def arif_think(
     if mode == "atlas":
         try:
             from core.shared.atlas import Phi
-            from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
+            from arifosmcp.constitution.paradox_quotes import (
+                PARADOX_QUOTE_MAP,
+                get_triggered_quotes_by_gpv,
+            )
+
             gpv = Phi(query)
-            lane_str = str(gpv.lane.value) if hasattr(gpv.lane, 'value') else str(gpv.lane)
+            lane_str = str(gpv.lane.value) if hasattr(gpv.lane, "value") else str(gpv.lane)
             tau, kappa, rho = float(gpv.tau), float(gpv.kappa), float(gpv.rho)
-        except Exception:
-            lane_str, tau, kappa, rho = "FACTUAL", 0.8, 0.3, 0.2
+            active_paradoxes = list(gpv.paradox_axes)
+            quote_anchors: list[dict[str, Any]] = []
+            for quote in get_triggered_quotes_by_gpv(active_paradoxes):
+                matching_ids = [
+                    pid
+                    for pid in active_paradoxes
+                    if quote.quote_id in PARADOX_QUOTE_MAP.get(pid, [])
+                ]
+                quote_anchors.append(
+                    {
+                        "id": quote.quote_id,
+                        "paradox_id": matching_ids[0] if matching_ids else None,
+                        "quote": quote.quote_text,
+                        "author": quote.author,
+                        "axis": quote.axis_label,
+                    }
+                )
+        except Exception as exc:
+            return {
+                "status": "DEGRADED",
+                "mode": "atlas",
+                "error": f"ATLAS333 evaluation unavailable: {exc}",
+                "epistemic_label": "UNKNOWN",
+                "timestamp": timestamp,
+                "session_id": session_id,
+                "actor_id": actor_id or "anonymous",
+            }
 
-        active_paradoxes: list[int] = []
-        if tau >= 0.8:
-            active_paradoxes.extend([5, 12, 16, 23])
-        if rho >= 0.7:
-            active_paradoxes.extend([6, 14, 24, 26, 31])
-        if kappa >= 0.7:
-            active_paradoxes.extend([7, 15, 25, 32])
-        if lane_str == "CRISIS":
-            active_paradoxes.extend([24, 26, 29, 31, 34])
-        elif lane_str == "FACTUAL":
-            active_paradoxes.extend([1, 4, 13, 17, 21])
-        elif lane_str == "CARE":
-            active_paradoxes.extend([3, 9, 11, 22, 32])
-
-        active_paradoxes = sorted(list(set(active_paradoxes))) or [3, 16, 23]
-
-        quote_anchors: list[dict[str, Any]] = []
-        try:
-            from arifosmcp.constitution.paradox_quotes import ALL_PARADOX_QUOTES
-            for p_id in active_paradoxes[:5]:
-                q_key = f"M{p_id}" if p_id <= 11 else (f"R{p_id-11}" if p_id <= 22 else f"J{p_id-22}")
-                if q_key in ALL_PARADOX_QUOTES:
-                    q_obj = ALL_PARADOX_QUOTES[q_key]
-                    quote_anchors.append({
-                        "id": q_key,
-                        "paradox_id": p_id,
-                        "quote": getattr(q_obj, "quote", str(q_obj)),
-                        "author": getattr(q_obj, "author", "ATLAS333"),
-                        "axis": str(getattr(q_obj, "axis", "TENSION")),
-                    })
-        except Exception:
-            pass
-
+        posture = "CONSTRAIN" if rho >= 0.6 else "OBSERVE"
         return {
-            "status": "PASS",
+            "status": posture,
             "mode": "atlas",
             "gpv": {
                 "lane": lane_str,
@@ -313,19 +310,24 @@ async def arif_think(
                 "kappa": kappa,
                 "rho": rho,
             },
-            "zone": "Zone VI (Governance)" if lane_str == "CRISIS" else ("Zone I (Truth)" if lane_str == "FACTUAL" else "Zone IV (Care)"),
+            "zone": "ATLAS333 canonical GPV",
             "active_paradoxes": active_paradoxes,
             "quote_anchors": quote_anchors,
             "tearframe": {
-                "trm": 0.96,
-                "echo": 0.89,
-                "rasa": 0.88,
-                "floor_status": "PASS",
+                "trm": 0.94,
+                "echo": 0.87,
+                "rasa": 0.85,
+                "provenance": "policy_constant",
+                "floor_status": "NOT_MEASURED",
             },
             "confidence_cap": round(min(0.90, 1.0 - (rho * 0.3)), 2),
-            "epistemic_label": "OBS" if tau >= 0.8 else "DER",
-            "calibration_verdict": "GOVERNED_PASS",
-            "synthesis": f"ATLAS333 mapped query under lane {lane_str} (τ={tau}, κ={kappa}, ρ={rho}) with {len(active_paradoxes)} active paradoxes.",
+            "epistemic_label": "DER",
+            "calibration_verdict": posture,
+            "synthesis": (
+                f"ATLAS333 mapped query under lane {lane_str} "
+                f"(τ={tau}, κ={kappa}, ρ={rho}) with "
+                f"{len(active_paradoxes)} canonical paradoxes."
+            ),
             "timestamp": timestamp,
             "session_id": session_id,
             "actor_id": actor_id or "anonymous",

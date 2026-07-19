@@ -910,26 +910,26 @@ async def arif_judge(
                 }
             )
             # ── ACTUAL-COMPLETION METRIC (Truthfulness) ──────────────────────
-            # Record tearframe scalars ONLY at this completion boundary.
-            # Never from defaults/zero-fill. Provenance = measured because the
-            # caps come from real GPV calibration in atlas_calibration.
+            # The confidence cap is derived from the completed GPV calibration.
+            # TRM/ECHO/RASA values below are policy thresholds, not measurements,
+            # and are labelled accordingly.
             try:
                 from arifosmcp.runtime.metrics import record_tearframe
 
                 _cal = _evidence["atlas_calibration"]
                 record_tearframe(
                     component="confidence",
-                    value=float(_cal.get("confidence_cap", 0.90)),
-                    provenance="measured",
+                    value=_cal.get("confidence_cap"),
+                    provenance="derived",
                 )
                 record_tearframe(
-                    component="trm", value=0.94, provenance="measured"
+                    component="trm_threshold", value=0.94, provenance="policy_constant"
                 )
                 record_tearframe(
-                    component="echo", value=0.87, provenance="measured"
+                    component="echo_threshold", value=0.87, provenance="policy_constant"
                 )
                 record_tearframe(
-                    component="rasa", value=0.85, provenance="measured"
+                    component="rasa_threshold", value=0.85, provenance="policy_constant"
                 )
             except Exception:
                 # Metrics must never break the call path
@@ -1392,7 +1392,7 @@ async def arif_judge(
     _conflict_result: dict[str, Any] = {"conflict_resolved": False, "conflict_resolution": "none"}
     try:
         _verdict = str(result.get("verdict", ""))
-        _organ = organ_id or _evidence.get("organ_id", "arifOS")
+        _organ = (_evidence.get("organ_id") if isinstance(_evidence, dict) else None) or "arifOS"
         _envelope = ConflictEnvelope(
             conflict_id=f"{session_id or 'sess'}:{_organ}:{_verdict[:8]}",
             organ_a=_organ,
@@ -1476,7 +1476,7 @@ async def arif_judge(
                 _receipt = create_and_seal_receipt(
                     session_id=_rsid_j,
                     actor_id=_ractor_j,
-                    organ_id=organ_id or "arifOS",
+                    organ_id=(_evidence.get("organ_id") if isinstance(_evidence, dict) else None) or "arifOS",
                     intent_summary=(str(candidate)[:200] if candidate else "judge verdict"),
                     intent_hash=_intent_hash,
                     requested_authority=action_tier or "standard",

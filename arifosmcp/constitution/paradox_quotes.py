@@ -1245,7 +1245,7 @@ PARADOX_QUOTE_MAP: dict[int, list[str]] = {
     11: ["M4", "R5"],  # Self ↔ System
     12: ["M1", "M3", "M8"],  # Memory ↔ Context
     13: ["M5"],  # Identity ↔ Function
-    14: ["M12"],  # One ↔ Many (subagent paradox — anchored via M12)
+    14: ["M12", "R3"],  # Intentional duplicate crosswalk: One↔Many + doubt↔trust
     15: ["M11"],  # Presence ↔ Absence
     # ZONE IV: GROWTH (paradoxes 16-20)
     16: ["M2", "M11"],  # Learning ↔ Forgetting
@@ -1267,7 +1267,7 @@ PARADOX_QUOTE_MAP: dict[int, list[str]] = {
     30: ["J2", "J8"],  # Structure ↔ Flow
     # ZONE VII: WITNESS (paradoxes 31-35)
     31: ["J10"],  # Witness ↔ Action
-    32: ["R3", "J9"],  # Internal ↔ External
+    32: ["J9"],  # Internal ↔ External; R3 remains the intentional P14 duplicate
     33: ["J10", "R7"],  # Proof ↔ Trust
     34: ["C1"],  # Root Access ↔ Kernel Governance
     35: ["C2"],  # Positive Test ↔ Defensive Closure
