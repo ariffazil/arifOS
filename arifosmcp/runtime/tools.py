@@ -12274,7 +12274,12 @@ async def _arif_mind_reason_tool(
             )
         except TimeoutError:
             logger.warning("333_MIND timeout after %dms — SAFE_VOID fallback", _TIMEOUT_MS)
-            return _safe_void_fallback("arif_mind_reason", f"LLM timeout after {_TIMEOUT_MS}ms")
+            return _safe_void_fallback(
+                "arif_mind_reason",
+                f"LLM timeout after {_TIMEOUT_MS}ms",
+                session_id=session_id,
+                actor_id=actor_id,
+            )
         except Exception as _exc:
             logger.warning(
                 "333_MIND cognitive module unavailable (%s); rule fallback active",
@@ -14619,7 +14624,12 @@ async def _arif_heart_critique(
             )
         except Exception as exc:
             logger.warning("Shadow diagnostic failed: %s", exc, exc_info=True)
-            return _safe_void_fallback("arif_heart_critique", f"Shadow diagnostic failed: {exc}")
+            return _safe_void_fallback(
+                "arif_heart_critique",
+                f"Shadow diagnostic failed: {exc}",
+                session_id=session_id,
+                actor_id=actor_id,
+            )
 
     # ── Absorbed diagnostic mode (PHOENIX-72 / canonical13) ────────────────────
     if mode == "instruction_scan":
