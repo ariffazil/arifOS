@@ -12,7 +12,56 @@
     "total_entries": 99,
     "quote_count": 82,
     "council_v1_date": "2026-07-19",
-    "council_v1_note": "Council quotes added across 3 councils. After P0 boundary repair: 99 total. Status: DRAFT, pending sovereign ratification."
+    "council_v1_note": "Council quotes added across 3 councils. After P0 boundary repair: 99 total. Status: DRAFT, pending sovereign ratification.",
+    "classification": {
+      "scheme_version": "1.0.0",
+      "forged": "2026-07-19",
+      "doctrine": "DITEMPA BUKAN DIBERI — quotes are not a formal subsystem",
+      "tiers": {
+        "kernel_motto": {
+          "description": "Runtime motto embedded in server.py operating instructions. Canonical example: \"DITEMPA, BUKAN DIBERI\". NOT stored in this registry — mutating it would require editing operating instructions, not registry entries.",
+          "l1_verified": false,
+          "l2_observed": true,
+          "mutation_path": "edit server.py operating instructions"
+        },
+        "constitutional_axiom": {
+          "description": "Original arifOS constitutional language. Canonical examples: the 5 Membrane Principles (\"Language is lossy compression, not the world.\" etc). Lived in server.py operating instructions, NOT in this registry.",
+          "l1_verified": false,
+          "l2_observed": true,
+          "mutation_path": "edit server.py operating instructions"
+        },
+        "generated_reflection": {
+          "description": "External-philosopher quotation + agent interpretive rendering for arifOS context. NOT sealed, NOT kernel-bound. Examples: the 14 council entries (Bacon, Madison, Peirce, Popper, Wiener; Ibn Khaldun, Mary Shelley, Ashby; Borges, Dostoevsky, Linus, Kafka, Goethe, Butler, Nietzsche, Turing, Al-Ghazali).",
+          "l1_verified": false,
+          "l2_observed": true,
+          "mutation_path": "edit registry entries; reviewed before SEAL"
+        },
+        "sealed_canon": {
+          "description": "Axiom actually sealed to VAULT999 chain. L1 verifiable. No entries currently hold this status — sovereign session would attach a SEAL envelope + seq + signature.",
+          "l1_verified_required": true,
+          "mutation_path": "VAULT999 chain append only"
+        }
+      },
+      "kernel_axioms_NOT_in_registry": {
+        "motto": "DITEMPA, BUKAN DIBERI",
+        "membrane_principles": [
+          "Language is lossy compression, not the world.",
+          "Intelligence is uncertainty reduction under constraint and human judgment.",
+          "Truth survives falsification, not assertion.",
+          "Meaning is sovereign-anchored; the machine carries structure, not sense.",
+          "Paradox is the boundary scream — the correct response is HOLD."
+        ],
+        "location": "arifosmcp/server.py operating instructions (NOT registry)"
+      },
+      "sovereign_verification_status": {
+        "forged_by": "FORGE-000Ω (autonomous A-FORGE agent)",
+        "l2_verified": true,
+        "l1_verified": false,
+        "sovereign_quote": "Right now, those categories are being mixed together in ordinary text fields. — ARIF, 2026-07-19"
+      }
+    },
+    "classified_at": "2026-07-19",
+    "classifier": "FORGE-000Ω per sovereign directive"
   },
   "quotes": [
     {
@@ -57,7 +106,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "INIT_Q_004",
@@ -101,7 +151,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "INIT_Q_003",
@@ -144,7 +195,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SENSE_Q_002",
@@ -191,7 +243,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SENSE_Q_001",
@@ -237,7 +290,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SENSE_Q_004",
@@ -280,7 +334,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MIND_Q_004",
@@ -326,7 +381,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MIND_Q_005",
@@ -369,7 +425,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "HEART_Q_001",
@@ -413,7 +470,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "HEART_Q_002",
@@ -457,7 +515,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "JUDGE_Q_002",
@@ -502,7 +561,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "JUDGE_Q_004",
@@ -546,7 +606,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "JUDGE_Q_005",
@@ -591,7 +652,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "FORGE_Q_001",
@@ -634,7 +696,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "OPS_Q_002",
@@ -679,7 +742,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "OPS_Q_001",
@@ -722,7 +786,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "VAULT_Q_002",
@@ -764,7 +829,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "VAULT_Q_004",
@@ -809,7 +875,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z01-Q01",
@@ -851,7 +918,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z03-Q01",
@@ -895,7 +963,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z05-Q01",
@@ -938,7 +1007,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "Z19-Q01",
@@ -984,7 +1054,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_001",
@@ -1026,7 +1097,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_002",
@@ -1068,7 +1140,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_003",
@@ -1111,7 +1184,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_005",
@@ -1153,7 +1227,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_010",
@@ -1196,7 +1271,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_011",
@@ -1238,7 +1314,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_012",
@@ -1281,7 +1358,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_013",
@@ -1323,7 +1401,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_014",
@@ -1365,7 +1444,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_015",
@@ -1407,7 +1487,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_016",
@@ -1450,7 +1531,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "MS_017",
@@ -1492,7 +1574,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_001",
@@ -1537,7 +1620,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_002",
@@ -1580,7 +1664,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_003",
@@ -1623,7 +1708,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_004",
@@ -1666,7 +1752,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_005",
@@ -1708,7 +1795,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_006",
@@ -1751,7 +1839,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_007",
@@ -1794,7 +1883,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "CN_008",
@@ -1837,7 +1927,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_001",
@@ -1883,7 +1974,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_002",
@@ -1926,7 +2018,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_003",
@@ -1969,7 +2062,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_004",
@@ -2012,7 +2106,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_005",
@@ -2058,7 +2153,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_006",
@@ -2101,7 +2197,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_007",
@@ -2144,7 +2241,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IS_008",
@@ -2186,7 +2284,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_001",
@@ -2229,7 +2328,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_002",
@@ -2271,7 +2371,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_003",
@@ -2313,7 +2414,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_004",
@@ -2356,7 +2458,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_005",
@@ -2398,7 +2501,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_006",
@@ -2444,7 +2548,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_007",
@@ -2491,7 +2596,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SC_008",
@@ -2534,7 +2640,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_001",
@@ -2578,7 +2685,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_002",
@@ -2621,7 +2729,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_003",
@@ -2670,7 +2779,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_004",
@@ -2712,7 +2822,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_005",
@@ -2758,7 +2869,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_006",
@@ -2800,7 +2912,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_007",
@@ -2846,7 +2959,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "IN_008",
@@ -2892,7 +3006,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_001",
@@ -2935,7 +3050,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_002",
@@ -2978,7 +3094,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_003",
@@ -3021,7 +3138,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "AF_004",
@@ -3063,7 +3181,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_001",
@@ -3105,7 +3224,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_002",
@@ -3147,7 +3267,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_003",
@@ -3190,7 +3311,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "SEA_004",
@@ -3232,7 +3354,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_001",
@@ -3274,7 +3397,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_002",
@@ -3317,7 +3441,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_003",
@@ -3358,7 +3483,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_004",
@@ -3401,7 +3527,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_005",
@@ -3445,7 +3572,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_006",
@@ -3490,7 +3618,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_007",
@@ -3532,7 +3661,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "WE_008",
@@ -3575,7 +3705,8 @@
         "reviewed": true,
         "reviewer": "zen-audit-2026-07-12",
         "version": 1
-      }
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_GOV_01",
@@ -3622,8 +3753,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "governance"
-      }
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_GOV_02",
@@ -3669,8 +3802,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "governance"
-      }
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_GOV_03",
@@ -3717,8 +3852,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "governance"
-      }
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_GOV_04",
@@ -3765,8 +3902,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "governance"
-      }
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_GOV_05",
@@ -3812,8 +3951,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "governance"
-      }
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_PAR_01",
@@ -3859,8 +4000,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "paradox"
-      }
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_PAR_02",
@@ -3906,8 +4049,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "paradox"
-      }
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_PAR_03",
@@ -3952,8 +4097,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "paradox"
-      }
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_VOID_04",
@@ -3998,8 +4145,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "void_contrast"
-      }
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_VOID_05",
@@ -4044,8 +4193,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "void_contrast"
-      }
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_VOID_06",
@@ -4091,8 +4242,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "void_contrast"
-      }
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_VOID_07",
@@ -4137,8 +4290,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "void_contrast"
-      }
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_VOID_08",
@@ -4183,8 +4338,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "void_contrast"
-      }
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_VOID_09",
@@ -4230,8 +4387,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "void_contrast"
-      }
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_VOID_10",
@@ -4277,8 +4436,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "void_contrast"
-      }
+        "council": "void_contrast",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_GOV_07",
@@ -4326,8 +4487,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "governance"
-      }
+        "council": "governance",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     },
     {
       "id": "COUNCIL_PAR_05",
@@ -4376,8 +4539,10 @@
         "reviewed": false,
         "reviewer": "pending-sovereign-ratification",
         "version": 1,
-        "council": "paradox"
-      }
+        "council": "paradox",
+        "category_provenance": "Council additions are external-philosopher quotations interpreted for arifOS context. They are reflections, not kernel axioms (those are in operating instructions)."
+      },
+      "category": "generated_reflection"
     }
   ],
   "doctrine": [
