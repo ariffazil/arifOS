@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/errors.schema.v1",
+  "title": "arifOS Structured Error Contract",
+  "description": "Every refusal returns this shape. Helps humans and agents recover safely.",
+  "type": "object",
+  "required": ["status", "error_code", "message", "retryable", "mutation_occurred"],
+  "properties": {
+    "status": { "type": "string", "enum": ["HOLD", "DENY", "ERROR"] },
+    "error_code": {
+      "type": "string",
+      "enum": [
+        "SESSION_REQUIRED",
+        "TOKEN_INVALID",
+        "TOKEN_EXPIRED",
+        "WRONG_AUDIENCE",
+        "CAPABILITY_NOT_GRANTED",
+        "ACTOR_NOT_BOUND",
+        "EVIDENCE_INSUFFICIENT",
+        "SCHEMA_MISMATCH",
+        "REGISTRY_DRIFT",
+        "HUMAN_RATIFICATION_REQUIRED",
+        "REPLAY_DETECTED",
+        "REVOKED",
+        "INTERNAL_ERROR"
+      ]
+    },
+    "message": { "type": "string" },
+    "required_action": { "type": "string", "description": "concrete next step the caller should take" },
+    "requested_capability": { "type": "string" },
+    "retryable": { "type": "boolean" },
+    "mutation_occurred": { "type": "boolean" },
+    "trace_id": { "type": "string" },
+    "actor_id": { "type": "string" },
+    "session_id": { "type": "string" }
+  },
+  "additionalProperties": false
+}

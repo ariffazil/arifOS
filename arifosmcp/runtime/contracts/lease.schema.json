@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/lease.schema.v1",
+  "title": "arifOS Capability Lease",
+  "type": "object",
+  "required": ["lease_id", "holder_did", "resources", "ceiling", "window", "issued_at", "expires_at"],
+  "properties": {
+    "lease_id": { "type": "string" },
+    "holder_did": { "type": "string" },
+    "resources": { "type": "array", "items": { "type": "string" } },
+    "ceiling": {
+      "type": "object",
+      "properties": {
+        "max_invocations": { "type": "integer", "minimum": 0 },
+        "max_output_bytes": { "type": "integer", "minimum": 0 },
+        "authority_band_max": { "type": "string", "enum": ["OBSERVER", "OPERATOR", "SOVEREIGN"] }
+      }
+    },
+    "window": {
+      "type": "object",
+      "properties": { "start": { "type": "string", "format": "date-time" }, "end": { "type": "string", "format": "date-time" } }
+    },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "revocable": { "type": "boolean", "default": true }
+  },
+  "additionalProperties": false
+}

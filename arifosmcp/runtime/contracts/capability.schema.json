@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "did:web:arif-fazil.com/contracts/capability.schema.v1",
+  "title": "arifOS Capability",
+  "type": "object",
+  "required": ["id", "resource", "action_class"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "resource": { "type": "string", "description": "the organ/namespace the capability acts on" },
+    "action_class": { "type": "string", "enum": ["OBSERVE", "ADVISE", "ADVISE_CAPITAL", "COMPUTE", "JUDGE", "GOVERN", "EXECUTE", "RATIFY"] },
+    "requires_judgment": { "type": "boolean", "default": true },
+    "requires_ratification": { "type": "boolean", "default": false },
+    "blast_radius": { "type": "string", "enum": ["NONE", "LOW", "MEDIUM", "HIGH"] },
+    "public_simulation": { "type": "boolean", "default": false },
+    "minimum_authority": { "type": "string", "enum": ["OBSERVER", "OPERATOR", "SOVEREIGN"] }
+  },
+  "additionalProperties": false
+}

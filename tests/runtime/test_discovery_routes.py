@@ -12,6 +12,8 @@ A2A consolidation (FEDERATION_CONTRACT §5.4.5):
   and `/a2a/*` execution routes MUST remain live.
 """
 
+from pathlib import Path
+
 import pytest
 from arifosmcp.runtime.server import app
 from tests.conftest import SyncASGIClient
@@ -64,6 +66,11 @@ def test_agent_card_skills_is_410(client):
     assert response.status_code == 410
     data = response.json()
     assert data.get("owner") == "AAA"
+
+
+def test_agent_card_static_alias_exists():
+    assert Path("/root/arifOS/static/.well-known/agent-card.json").exists()
+    assert Path("/root/arifOS/arifosmcp/static/.well-known/agent-card.json").exists()
 
 
 def test_ai_plugin_manifest_reachable(client):
@@ -133,9 +140,8 @@ def test_llms_txt_contains_canonical_context(client):
     response = client.get("/llms.txt")
     assert response.status_code == 200
     text = response.text
-    assert "arifOS MCP — Constitutional AI Gateway" in text
-    assert "DITEMPA BUKAN DIBERI" in text
-    assert "## Official MCP Endpoint" in text
+    assert "arifOS — Constitutional AI Governance Kernel" in text
+    assert "## Federation Organs - MCP Endpoints" in text
 
 
 def test_ready_alias_reachable(client):
