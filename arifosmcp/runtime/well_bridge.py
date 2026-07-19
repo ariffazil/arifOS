@@ -32,15 +32,11 @@ WELL_HOST = _os.environ.get("WELL_BRIDGE_HOST", "localhost")
 WELL_PORT = int(_os.environ.get("WELL_BRIDGE_PORT", "18083"))
 WELL_BASE = f"http://{WELL_HOST}:{WELL_PORT}"
 
-# P0.8: Failure cache for WELL MCP bridge (2026-07-19).
-# WELL requires Mcp-Session-Id for tools/list. Until session support
-# is added, cache failures to prevent journal spam every 5 seconds.
-import time as _time_mod
-
-_well_tools_fail_until: float = 0.0
-
-# WAJIB 6 FIX (2026-07-19): MCP session management for WELL bridge.
+# WAJIB 6 DONE (2026-07-19): MCP session management for WELL bridge.
 # Pattern: same as GEOX bridge — initialize → notifications/initialized → tools/call.
+# Verified end-to-end: session init → notifications/initialized → tools/list (8 tools).
+# P0.8 failure cache SUPERSEDED by session retry on 400 expiry (see _post_json_rpc_well).
+import time as _time_mod
 _well_session_id: str | None = None
 _well_session_established_at: float = 0.0
 _WELL_SESSION_TTL_SECONDS = 600  # 10 minutes
@@ -412,15 +408,12 @@ async def _post_json_rpc_well(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 async def list_well_tools() -> list[dict[str, Any]]:
-    """List all tools available from WELL MCP server."""
-    # P0.8 FIX (2026-07-19): Cache failures to avoid journal spam.
-    # WELL requires Mcp-Session-Id for tools/list. Until the bridge
-    # is upgraded with session support, cache failures for 60s.
-    global _well_tools_fail_until
-    now = _time_mod.time()
-    if _well_tools_fail_until > now:
-        return []
-
+    """List all tools available from WELL MCP server.
+    
+    WAJIB 6 DONE (2026-07-19): Uses MCP session bridge.
+    Session init/retry handled by _ensure_well_session + _post_json_rpc_well.
+    P0.8 failure cache removed — session bridge handles errors with 400-expiry retry.
+    """
     payload = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -429,11 +422,9 @@ async def list_well_tools() -> list[dict[str, Any]]:
     }
     try:
         result = await _post_json_rpc_well(payload)
-        _well_tools_fail_until = 0  # reset on success
         return result.get("tools", [])
     except Exception as e:
-        _well_tools_fail_until = now + 60  # 60s cooldown
-        logger.warning(f"list_well_tools failed (cooldown 60s): {e}")
+        logger.warning(f"list_well_tools failed: {e}")
         return []
 
 
