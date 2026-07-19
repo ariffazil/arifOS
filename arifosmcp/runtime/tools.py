@@ -6835,6 +6835,12 @@ def build_standard_mcp_result(
         else ["Outdated data", "Ambiguous input", "Missing domain evidence"],
         "why_this_tool": afford.get("purpose", "Purpose not declared"),
         "what_not_to_conclude": do_not_conclude,
+        # P0 wrapper fix (2026-07-19, Fable5): REASONING_EMPTY marker
+        # propagated from inner engine to outer metacognition so downstream
+        # agents don't need to inspect internal provenance fields.
+        "reasoning_state": raw_result.get("reasoning_state", "")
+        if isinstance(raw_result, dict)
+        else "",
         "next_safe_action": next_safe_action
         if next_safe_action
         else "Call get_full_affordance or tool discovery resource then decide",
@@ -6975,6 +6981,7 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     conf = (
         payload.get("confidence")
         or payload.get("meta", {}).get("confidence")
+        or (res.get("confidence") if isinstance(res, dict) else None)
         or _routing_conf
         or 0.65
     )
@@ -6984,6 +6991,62 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
         conf = float(conf)
     except Exception:
         conf = 0.65
+
+    # ── P0-REASONING_EMPTY confidence cap (2026-07-19) ─────────────────
+    # The wrapper must derive confidence from inner state, never default it.
+    # If the inner result has empty evidence and degraded provenance,
+    # cap confidence at 0.20 regardless of what was passed or defaulted.
+    _inner_result = payload.get("result", {}) if isinstance(payload, dict) else {}
+    _inner_facts = payload.get("facts", []) or _inner_result.get("facts", [])
+    _inner_inferences = payload.get("inferences", []) or _inner_result.get("inferences", [])
+    _inner_provenance = (
+        payload.get("confidence_provenance", "")
+        or _inner_result.get("confidence_provenance", "")
+    )
+    _inner_state = (
+        payload.get("reasoning_state", "")
+        or _inner_result.get("reasoning_state", "")
+    )
+    _evidence_empty = (not _inner_facts) and (not _inner_inferences)
+    _provenance_degraded = _inner_provenance in (
+        "COMPUTED_NOT_OBSERVED", "REASONING_EMPTY_FORCED_CAP"
+    )
+    _state_degraded = _inner_state in ("REASONING_EMPTY", "DEGRADED")
+    if _evidence_empty and (_provenance_degraded or _state_degraded) and conf > 0.20:
+        conf = 0.20
+    # ──────────────────────────────────────────────────────────────────
+
+    # ── P0 wrapper fix (2026-07-19, Fable5): REASONING_EMPTY propagation ──
+    # The inner engine correctly caps confidence at 0.20 when facts+inferences
+    # are empty, but the wrapper's metacognition defaulted to 0.65 without
+    # consulting the inner state. Fix: derive confidence from inner result,
+    # and when the inner reasoning_state is REASONING_EMPTY, reflect that in
+    # the outer metacognition — not just the inner engine.
+    _inner_reasoning_state = (
+        res.get("reasoning_state", "")
+        if isinstance(res, dict)
+        else ""
+    )
+    _inner_verdict = (
+        res.get("verdict", "")
+        if isinstance(res, dict)
+        else payload.get("verdict", "")
+    )
+    if _inner_reasoning_state == "REASONING_EMPTY" or _inner_verdict == "DEGRADED":
+        conf = min(conf, 0.20)
+    # Also check: empty facts with non-trivial confidence is always wrong
+    _inner_supported = (
+        res.get("what_is_supported", [])
+        if isinstance(res, dict)
+        else []
+    )
+    _inner_unsupported = (
+        res.get("what_is_not_supported", [])
+        if isinstance(res, dict)
+        else []
+    )
+    if not _inner_supported and not _inner_unsupported and conf > 0.20:
+        conf = 0.20
 
     facts = payload.get("facts") or (res.get("facts") if isinstance(res, dict) else None) or []
     if not facts and isinstance(res, (str, dict)):
@@ -7503,6 +7566,25 @@ def _hold(
         "output_policy": _output_policy_for_verdict("HOLD"),
         "reasons": reasons,
     }
+    # ── RSI stop-correctness recording (2026-07-19, Fable5 audit) ──────────
+    # Every HOLD decision is recorded for the confusion matrix.
+    try:
+        from arifosmcp.runtime.rsi_audit import record_rsi_decision
+
+        _rsi_reason_class = "AUTHORITY" if _is_identity_hold else (
+            "SAFETY" if floors and any(f in ("L01", "L02", "F1", "F2") for f in floors)
+            else "EVIDENCE" if floors and "L03" in floors
+            else "UNCERTAINTY"
+        )
+        record_rsi_decision(
+            tool=tool,
+            verdict="HOLD",
+            reason_class=_rsi_reason_class,
+            severity_weight=2.0 if _is_identity_hold else 1.0,
+            evidence_available=floors or [],
+        )
+    except Exception:
+        pass  # RSI audit is best-effort; never blocks a HOLD
     return _enforce_nine_signal(
         tool,
         response,

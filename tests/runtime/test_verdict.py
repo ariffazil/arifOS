@@ -574,3 +574,49 @@ def test_known_absorbed_tools_have_correct_alias():
     assert not violations, (
         f"Absorbed tool aliases must match Zen-8 doctrine: {violations}"
     )
+
+
+def test_wrapper_confidence_capped_when_inner_reasoning_empty():
+    """The wrapper must NOT default to 0.65 when inner reasoning is empty.
+
+    Regression test for the leak where ensure_standard_mcp_output
+    assigned confidence=0.65 and evidence_strength='medium' even when
+    facts + inferences were empty and provenance was degraded.
+
+    This is the public MCP surface test — the leak survived engine-layer
+    tests because the wrapper had its own default path.
+    """
+    from arifosmcp.runtime.tools import ensure_standard_mcp_output
+
+    # Simulate what arif_think returns when REASONING_EMPTY
+    hollow_payload = {
+        "confidence": 0.15,
+        "confidence_provenance": "COMPUTED_NOT_OBSERVED",
+        "reasoning_state": "REASONING_EMPTY",
+        "facts": [],
+        "inferences": [],
+        "result": {
+            "confidence": 0.15,
+            "verdict": "DEGRADED",
+            "what_is_supported": [],
+            "what_is_not_supported": [],
+            "reasoning_state": "REASONING_EMPTY",
+            "confidence_provenance": "COMPUTED_NOT_OBSERVED",
+        },
+    }
+
+    envelope = ensure_standard_mcp_output("arif_think", hollow_payload)
+
+    # The metacognition confidence must reflect the inner state
+    meta = envelope.get("metacognition", {})
+    wrapper_conf = meta.get("confidence", 1.0)
+    assert wrapper_conf <= 0.20, (
+        f"Wrapper confidence must be ≤0.20 for REASONING_EMPTY, got {wrapper_conf}. "
+        f"Full metacognition: {meta}"
+    )
+
+    # evidence_strength must be 'low', not 'medium'
+    assert meta.get("evidence_strength") == "low", (
+        f"evidence_strength must be 'low' for empty evidence, "
+        f"got '{meta.get('evidence_strength')}'"
+    )
