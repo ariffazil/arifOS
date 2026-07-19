@@ -234,7 +234,7 @@ def authorize_mutation(
         authorization_receipt=receipt_id,
         verdict=verdict.value,
         issued_at=time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
-        expires_at=time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 300)),  # 5 min TTL
+        expires_at=time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(time.time() + 30)),  # 30s TTL
         normalized_command=normalized,
         actor_id=actor_id,
         session_id=session_id,
