@@ -2101,6 +2101,24 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
     if inner_confidence is not None and inner_confidence < 0.5:
         found.append(f"inner confidence={inner_confidence:.2f}")
 
+    # ── P0-REASONING_EMPTY detection (2026-07-19) ──────────────────────
+    # Surface degradation when reasoning output has no evidence backbone.
+    # Empty supported + unsupported claims + non-trivial confidence = hollow.
+    _supported = result_payload.get("what_is_supported", [])
+    _unsupported = result_payload.get("what_is_not_supported", [])
+    _unknowns = result_payload.get("what_remains_unknown", [])
+    _provenance = result_payload.get("confidence_provenance", "")
+    _unknowns_str = " ".join(str(u) for u in _unknowns).lower() if _unknowns else ""
+
+    if _provenance in ("COMPUTED_NOT_OBSERVED", "REASONING_EMPTY_FORCED_CAP"):
+        found.append(f"degraded provenance={_provenance}")
+    if "reasoning_empty" in _unknowns_str:
+        found.append("REASONING_EMPTY detected in unknowns")
+    if not _supported and not _unsupported and inner_confidence is not None and inner_confidence > 0.20:
+        found.append(
+            f"REASONING_EMPTY: no supported/unsupported claims but confidence={inner_confidence:.2f}"
+        )
+
     # Deep scan: look for HOLD/FAIL/VOID in nested result fields
     def _scan(obj: Any, prefix: str = "") -> list[str]:
         hits: list[str] = []
@@ -5513,16 +5531,21 @@ async def _synthesize_async(query: str, reasoning_mode: str) -> dict[str, Any]:
     except Exception:
         pass
 
-    # Template fallback — degraded quality, no error
+    # Template fallback — degraded quality, REASONING_EMPTY
+    # FIX 2026-07-19 (P0-REASONING_EMPTY): Template synthesis with no LLM
+    # backing produces empty evidence. Confidence 0.65 → 0.15 cap.
     text = _synthesize(query, reasoning_mode)
     return {
         "bounded_answer": text,
         "what_is_supported": [],
         "what_is_not_supported": [],
-        "what_remains_unknown": ["LLM unavailable — template synthesis only"],
-        "confidence_reasoning": 0.5,
-        "confidence_evidence": 0.3,
-        "overall_confidence": 0.65,
+        "what_remains_unknown": [
+            "LLM unavailable — template synthesis only (degraded)",
+            "REASONING_EMPTY — no LLM reasoning occurred; template output only",
+        ],
+        "confidence_reasoning": 0.10,
+        "confidence_evidence": 0.05,
+        "overall_confidence": 0.15,
     }
 
 
@@ -11759,16 +11782,32 @@ def _arif_mind_reason(
                 }
             ]
         reversibility_map = {s["step"]: s["reversible"] for s in task_steps}
+        any_step_irreversible = any(not v for v in reversibility_map.values())
+        plan_is_mutation = any(
+            verb in (query or "").lower()
+            for verb in ("deploy", "commit", "delete", "drop", "seal", "prune", "remove")
+        )
         plan_receipt = {
             "plan_id": pid,
             "task_graph": task_steps,
             "reversibility_map": reversibility_map,
-            "all_reversible": all(reversibility_map.values()),
-            "any_irreversible": any(not v for v in reversibility_map.values()),
+            # P0 fix (2026-07-19): Separate plan execution state from proposed
+            # actions. An advisory plan (no mutation) must never require
+            # approval for the plan itself — only for executing its actions.
+            "plan_execution": {
+                "mutation": plan_is_mutation,
+                "approval_required": plan_is_mutation,
+            },
+            "proposed_actions": {
+                "contains_irreversible": any_step_irreversible,
+                "approval_required_before_execution": any_step_irreversible,
+            },
+            "all_reversible": not any_step_irreversible,
+            "any_irreversible": any_step_irreversible,
             "created_at": _now(),
             "session_id": session_id,
             "actor_id": actor_id,
-            "status": "pending_approval",
+            "status": "pending_approval" if plan_is_mutation else "ready_for_review",
         }
         _PLAN_REGISTRY[pid] = plan_receipt
         # Wire to vault: session-scoped plan receipt (not a constitutional SEAL)
@@ -12036,16 +12075,21 @@ def _arif_mind_reason(
         # P1 2026-06-30: bypass async LLM to eliminate 30s timeout on arif_think/reason.
         # Deterministic template synthesis preserves constitutional grounding.
         synthesis_text = _synthesize(query, "inductive")
+        # FIX 2026-07-19 (P1-REASONING_EMPTY): Template synthesis with no LLM
+        # backing produces empty evidence lists. Confidence must reflect this —
+        # 0.15 is the structural cap for "no reasoning occurred." This is a
+        # REASONING_EMPTY state, not a degraded-but-still-functional state.
         synthesis_dict = {
             "bounded_answer": synthesis_text,
             "what_is_supported": [],
             "what_is_not_supported": [],
             "what_remains_unknown": [
-                "P1 degraded mode — LLM synthesis bypassed for timeout resilience"
+                "P1 degraded mode — LLM synthesis bypassed for timeout resilience",
+                "REASONING_EMPTY — no LLM reasoning occurred; template output only",
             ],
-            "confidence_reasoning": 0.5,
-            "confidence_evidence": 0.3,
-            "overall_confidence": 0.65,
+            "confidence_reasoning": 0.10,
+            "confidence_evidence": 0.05,
+            "overall_confidence": 0.15,
         }
         llm_confidence = synthesis_dict["overall_confidence"]
 
@@ -12053,7 +12097,9 @@ def _arif_mind_reason(
         # bypassed LLM), the confidence trajectory and coherence MUST reflect the
         # actual synthesis quality, not the hardcoded template trajectory.
         # Override trace values with real synthesis confidence.
-        _is_degraded = "degraded" in str(synthesis_dict.get("what_remains_unknown", [])).lower()
+        _degraded_signals = ("degraded", "template synthesis", "LLM unavailable", "P1 degraded")
+        _unknowns_str = str(synthesis_dict.get("what_remains_unknown", [])).lower()
+        _is_degraded = any(sig.lower() in _unknowns_str for sig in _degraded_signals)
         _confidence_provenance = "OBSERVED"
         if _is_degraded:
             trace.final_confidence = llm_confidence
@@ -12062,6 +12108,14 @@ def _arif_mind_reason(
             trace.confidence_trajectory = [llm_confidence]
             trace.coherence_score = 0.35  # template synthesis has low coherence
             trace.reasoning_depth = "shallow"
+            # P0 fix (2026-07-19, Fable5 audit): trace.conclusion was hardcoded
+            # to "0.85" even after final_confidence was overridden to 0.65.
+            # This produced internally inconsistent output — the numeric field
+            # said 0.65 but the human-readable string said 0.85.
+            trace.conclusion = (
+                f"Verdict: CLAIM with confidence {llm_confidence:.2f}"
+                " [DEGRADED — template synthesis, no LLM reasoning]"
+            )
             # Mark all steps as degraded template, not computed reasoning
             for step in trace.steps:
                 step.confidence_before = 0.3
@@ -12071,25 +12125,63 @@ def _arif_mind_reason(
                 step.axiom_used = "P1_TEMPLATE_DEGRADED"
             _confidence_provenance = "COMPUTED_NOT_OBSERVED"
 
+        # ── Structural Guard: REASONING_EMPTY ───────────────────────────
+        # FIX 2026-07-19 (P0-REASONING_EMPTY): Empty evidence lists
+        # (what_is_supported + what_is_not_supported both empty) co-occurring
+        # with confidence > 0.20 is structurally invalid. This guard makes
+        # the defect impossible — not discouraged, IMPOSSIBLE.
+        # Also enforces: P1_TEMPLATE_DEGRADED → confidence ≤ 0.20.
+        _supported = synthesis_dict.get("what_is_supported", [])
+        _unsupported = synthesis_dict.get("what_is_not_supported", [])
+        _reasoning_empty = (not _supported) and (not _unsupported)
+        if _reasoning_empty and llm_confidence > 0.20:
+            llm_confidence = 0.20
+            _confidence_provenance = "REASONING_EMPTY_FORCED_CAP"
+            synthesis_dict["overall_confidence"] = llm_confidence
+            synthesis_dict["what_remains_unknown"].append(
+                "REASONING_EMPTY — no supported or unsupported claims; "
+                "confidence capped at 0.20 by structural guard (P0-2026-07-19)"
+            )
+
+        # ── P0-verdict: degraded reasoning must carry DEGRADED verdict ────
+        # P1_TEMPLATE_DEGRADED or REASONING_EMPTY → verdict != CLAIM.
+        # Downstream agents must be able to distinguish template hollow from
+        # real reasoning without inspecting internal provenance fields.
+        _any_degraded = (
+            _reasoning_empty
+            or _confidence_provenance in ("COMPUTED_NOT_OBSERVED", "REASONING_EMPTY_FORCED_CAP")
+            or any(s.axiom_used == "P1_TEMPLATE_DEGRADED" for s in trace.steps)
+        )
+        _verdict = "DEGRADED" if _any_degraded else "CLAIM"
+        synthesis_dict["reasoning_state"] = (
+            "REASONING_EMPTY" if _reasoning_empty
+            else "DEGRADED" if _any_degraded
+            else "COMPLETE"
+        )
+
         scars_list = _detect_scars(query, synthesis_text)
         output = MindOutput(
             status="OK",
             tool="arif_mind_reason",
             result={
                 "query": query,
-                "verdict": "CLAIM",
+                "verdict": _verdict,
                 "synthesis": synthesis_text,
                 "confidence": llm_confidence,
                 "scars": scars_list,
                 "omega_0": 0.04,  # F7 Humility calibration band
                 "confidence_reasoning": synthesis_dict.get("confidence_reasoning"),
                 "confidence_evidence": synthesis_dict.get("confidence_evidence"),
-                "what_is_supported": synthesis_dict.get("what_is_supported", []),
-                "what_is_not_supported": synthesis_dict.get("what_is_not_supported", []),
+                "what_is_supported": _supported,
+                "what_is_not_supported": _unsupported,
                 "what_remains_unknown": synthesis_dict.get("what_remains_unknown", []),
                 # Bangang #3: confidence provenance — OBSERVED if real LLM reasoning,
                 # COMPUTED_NOT_OBSERVED if P1 degraded template synthesis.
                 "confidence_provenance": _confidence_provenance,
+                # MIND INVARIANT: reasoning_state — required since P0-2026-07-19.
+                # One of: COMPLETE | DEGRADED | REASONING_EMPTY.
+                # When REASONING_EMPTY: confidence ≤ 0.20, verdict = DEGRADED.
+                "reasoning_state": synthesis_dict.get("reasoning_state", "COMPLETE"),
                 # APEX AKAL: transition candidates (hardened 2026-06-20)
                 # Shows what was considered, what was rejected, and why.
                 # Makes reasoning auditable — not opaque.
@@ -12098,14 +12190,20 @@ def _arif_mind_reason(
                         "candidate": "accept_synthesis",
                         "action": "proceed with synthesis as CLAIM",
                         "confidence": llm_confidence,
-                        "selected": True,
-                        "reason": "passed constitutional floors (F2, F7, F8)",
+                        "selected": not _any_degraded,
+                        "reason": (
+                            "REASONING_EMPTY — template produced no substantive claims"
+                            if _reasoning_empty
+                            else "DEGRADED — template synthesis, no LLM reasoning"
+                            if _any_degraded
+                            else "passed constitutional floors (F2, F7, F8)"
+                        ),
                     },
                     {
                         "candidate": "reject_synthesis",
                         "action": "reject as UNVERIFIED",
                         "confidence": round(1.0 - llm_confidence, 2),
-                        "selected": False,
+                        "selected": _any_degraded,
                         "reason": "confidence below threshold or floor violation",
                     },
                     {
@@ -12143,7 +12241,7 @@ def _arif_mind_reason(
                     "ignore_hypotheses": [],
                 },
             },
-            verdict="CLAIM",
+            verdict=_verdict,
             omega_0=0.04,
             axioms_used=default_axioms,
             reasoning_trace=trace,
