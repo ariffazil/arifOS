@@ -28,6 +28,12 @@ from ..runtime.quote_registry import (
     get_disputed_quotes,
     get_doctrine,
     get_prohibited_uses,
+    compute_apex_fingerprint,   # Layer A
+    compute_canon_status,        # Layer C
+    APEX_ORGANS,                 # Layer A
+    G_DEPLOY_THRESHOLD,          # Layer A
+    C_DARK_CEILING,              # Layer A
+    CANON_STATUS_TIERS,          # Layer C
 )
 
 logger = logging.getLogger(__name__)
@@ -124,7 +130,146 @@ def register_wisdom_resources(mcp) -> list[str]:
 
     registered.append("arifos://wisdom/quotes/prohibited-uses")
 
-    logger.info("Registered %d wisdom resources", len(registered))
+    # ── Layer B: APEX fingerprint namespace ────────────────────────────────
+    @mcp.resource("arifos://wisdom/fingerprint/{quote_id}")
+    def wisdom_fingerprint(quote_id: str) -> str:
+        """APEX fingerprint for a single quote.
+
+        Returns G (multiplicative intelligence), C_dark (shadow term), per-organ
+        scores, shadow_state, true_devil_risk, deploy_warrant.
+
+        Federation contract: every quote carry deploy_warrant; only GOVERNED
+        shadow state quotes may ride with verdicts.
+        """
+        reg = load_registry()
+        quote = None
+        for q in reg.get("quotes", []):
+            if q.get("id") == quote_id or q.get("quote_id") == quote_id:
+                quote = q
+                break
+        if quote is None:
+            return json.dumps(
+                {"found": False, "quote_id": quote_id, "error": "quote not found"},
+                indent=2,
+            )
+        fingerprint = compute_apex_fingerprint(quote, intended_use="REFLECTION")
+        return json.dumps(
+            {
+                "quote_id": quote_id,
+                "speaker": (quote.get("attribution") or {}).get("speaker"),
+                "apex_fingerprint": fingerprint,
+                "thresholds": {
+                    "G_DEPLOY_THRESHOLD": G_DEPLOY_THRESHOLD,
+                    "C_DARK_CEILING": C_DARK_CEILING,
+                },
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    registered.append("arifos://wisdom/fingerprint/{quote_id}")
+
+    # ── Layer B: canon-status namespace ────────────────────────────────────
+    @mcp.resource("arifos://wisdom/canon-status/{quote_id}")
+    def wisdom_canon_status(quote_id: str) -> str:
+        """Canon-status tier for a quote (Layer C).
+
+        Tier ladder:
+            DRAFT        — newly forged, not load-bearing
+            PROVISIONAL  — ratified, ≥3 successful uses, no failures
+            CANON_SEALED — appended to VAULT999 chain with sovereign signature
+
+        Council entries (COUNCIL_*) are FORCED DRAFT regardless of in-registry
+        hints. Promotion requires sovereign ratification via arif_judge → arif_seal.
+        """
+        reg = load_registry()
+        quote = None
+        for q in reg.get("quotes", []):
+            if q.get("id") == quote_id or q.get("quote_id") == quote_id:
+                quote = q
+                break
+        if quote is None:
+            return json.dumps(
+                {"found": False, "quote_id": quote_id, "error": "quote not found"},
+                indent=2,
+            )
+        canon_status = compute_canon_status(quote)
+        return json.dumps(
+            {
+                "quote_id": quote_id,
+                "canon_status": canon_status,
+                "tier_definition": {
+                    "DRAFT": "Newly forged, not load-bearing. Default for council entries pending sovereign ratification.",
+                    "PROVISIONAL": "Ratified. ≥3 successful uses, no failures. Manual promotion only.",
+                    "CANON_SEALED": "Appended to VAULT999 chain. Irrevocable. Requires sovereign signature.",
+                },
+                "available_tiers": list(CANON_STATUS_TIERS),
+                "promotion_path": "arif_judge → arif_seal → VAULT999 (sovereign ratification required)",
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    registered.append("arifos://wisdom/canon-status/{quote_id}")
+
+    # ── Layer B: federation manifest ───────────────────────────────────────
+    @mcp.resource("arifos://wisdom/contract")
+    def wisdom_contract() -> str:
+        """Federation contract for the wisdom/quote namespace.
+
+        Single source of truth for cross-organ integration. Defines:
+        - 7 APEX organs + multiplicative G formula
+        - shadow_state taxonomy (Pillar VI)
+        - canon_status tier ladder
+        - stage binding (555_HEART | 999_RECEIPT only)
+        - citation rules (prohibited: factual_evidence, verdict_authority)
+        """
+        return json.dumps(
+            {
+                "namespace": "arifos://wisdom",
+                "owner": "arifOS",
+                "canonical_source": "arifosmcp/data/quote_registry_v2.json",
+                "apex_alignment": {
+                    "formula": "G = Reality · Governance · Civilization · Execution · Memory · Witness · Meaning",
+                    "invariance": "multiplicative — zero anywhere = collapse",
+                    "shadow_formula": "C_dark = (1-confidence)·disputed + 0.3·fictional + 0.1·missing_prohibited + 0.2·fictional_in_receipt",
+                    "shadow_states": {
+                        "GOVERNED": "G ≥ 0.50 AND C_dark ≤ 0.30 — deploy_warrant=true",
+                        "UNCHECKED": "0.30 < C_dark ≤ 0.50 — deploy with caution",
+                        "HIDDEN": "C_dark > 0.50 — TRUE DEVIL risk, do not deploy",
+                    },
+                    "thresholds": {
+                        "G_DEPLOY_THRESHOLD": G_DEPLOY_THRESHOLD,
+                        "C_DARK_CEILING": C_DARK_CEILING,
+                    },
+                    "canon_seal": "2026-07-13",
+                },
+                "canon_status_tiers": list(CANON_STATUS_TIERS),
+                "stage_binding": ["555_HEART", "999_RECEIPT"],
+                "stage_forbidden": ["000_INIT", "111_OBSERVE", "333_THINK", "444_ROUTE", "777_FORGE", "888_AUDIT"],
+                "prohibited_uses": ["factual_evidence", "verdict_authority"],
+                "sealed_council_ids": [],
+                "draft_council_ids_count": 17,
+                "draft_council_ids_pending_sovereign_ratification": True,
+                "resources": [
+                    "arifos://wisdom/quotes/all",
+                    "arifos://wisdom/quotes/by-floor/{floor_id}",
+                    "arifos://wisdom/quotes/by-tradition/{tradition}",
+                    "arifos://wisdom/quotes/disputed",
+                    "arifos://wisdom/quotes/arifos-doctrine",
+                    "arifos://wisdom/quotes/prohibited-uses",
+                    "arifos://wisdom/fingerprint/{quote_id}",
+                    "arifos://wisdom/canon-status/{quote_id}",
+                    "arifos://wisdom/contract",
+                ],
+            },
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    registered.append("arifos://wisdom/contract")
+
+    logger.info("Registered %d wisdom resources (Layer B contract namespace live)", len(registered))
     return registered
 
 
