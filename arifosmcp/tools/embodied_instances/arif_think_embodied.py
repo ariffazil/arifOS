@@ -106,11 +106,33 @@ class ArifMindReasonEmbodied(EmbodiedTool):
             except Exception:
                 pass  # AKAL is advisory — never blocks reasoning
 
-        # ── P1 2026-06-30: bypass heavy LLM pipeline for all modes except metabolize ──
-        # The v3.3 reasoning engine in tools/reason.py calls arif_think_structured which
-        # blocks on SEA-LION/Ollama for 30-60s. Route deterministic/structural modes
-        # through the sync _arif_mind_reason kernel, which is LLM-free for these modes.
-        if mode != "metabolize":
+        # ── P0 FIX (2026-07-19, Fable5): Route cognitive modes through LLM ──
+        # The June-30 timeout workaround bypassed LLM for all modes except
+        # metabolize. This produced hollow template reasoning everywhere.
+        # Cognitive modes (reason/reflect/verify/critique) now route through
+        # _synthesize_async (TokenRouter → MiniMax). Structural modes (plan,
+        # axioms) stay deterministic.
+        COGNITIVE_MODES = {"reason", "reflect", "verify", "critique", "debate", "socratic", "metabolize"}
+        if mode in COGNITIVE_MODES:
+            from arifosmcp.runtime.tools import _synthesize_async
+            synthesis = await _synthesize_async(query or "", reasoning_mode=mode)
+            result = {
+                "status": "OK",
+                "tool": "arif_mind_reason",
+                "verdict": "CLAIM",
+                "result": {
+                    "query": query,
+                    "synthesis": synthesis.get("bounded_answer", ""),
+                    "confidence": synthesis.get("overall_confidence", 0.65),
+                    "what_is_supported": synthesis.get("what_is_supported", []),
+                    "what_is_not_supported": synthesis.get("what_is_not_supported", []),
+                    "what_remains_unknown": synthesis.get("what_remains_unknown", []),
+                    "confidence_reasoning": synthesis.get("confidence_reasoning"),
+                    "confidence_evidence": synthesis.get("confidence_evidence"),
+                    "confidence_provenance": "OBSERVED",
+                },
+            }
+        else:
             from arifosmcp.runtime.tools import _arif_mind_reason
 
             attention_context = None
