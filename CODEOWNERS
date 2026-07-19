@@ -1,0 +1,25 @@
+# CODEOWNERS — arifOS Federation Automation Governance
+# ================================================================
+# Owner: Muhammad Arif bin Fazil (ariffazil)
+# Purpose: Automation files are owned by sovereign, not the repo
+# ================================================================
+
+# Automation surfaces — Arif owns these
+.github/workflows/           @ariffazil
+.github/workflows.CANONICAL.yml  @ariffazil
+.github/repo-policy.yml     @ariffazil
+.github/dependabot.yml      @ariffazil
+.github/CODEOWNERS          @ariffazil
+
+# Constitution and agent contracts
+AGENTS.md                   @ariffazil
+*.AGENTS.md                 @ariffazil
+
+# Governance kernel — F1-F13
+core/                       @ariffazil
+arifosmcp/runtime/judge.py  @ariffazil
+arifosmcp/runtime/seal.py   @ariffazil
+
+# Vault and governance
+VAULT999/                   @ariffazil
+**/VAULT999/                @ariffazil
