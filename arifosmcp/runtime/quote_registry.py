@@ -16,9 +16,17 @@ from __future__ import annotations
 import json
 import logging
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+
+# Path Y dedup (2026-07-19): import constants from single source of truth
+from arifosmcp.runtime.quote_constants import (
+    APEX_ORGANS,
+    C_DARK_CEILING,
+    FORBIDDEN_STAGES,  # noqa: F401 — re-exported for external importers
+    G_DEPLOY_THRESHOLD,
+    PERMITTED_STAGES,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +53,13 @@ INJECTION_TARGET_FIELD = "philosophy_anchor"  # envelope field name (legacy comp
 # These organs expose the arifos://wisdom/{...} resources and accept philosophy_anchor.
 FEDERATION_ORGANS_SAFE = frozenset(
     {
-        "arifos:8088",   # kernel — primary resolution
-        "aforge:7071",   # forge — execution shell
-        "aforge:7072",   # forge — mcp gateway
-        "geox:8081",     # geoscience
+        "arifos:8088",  # kernel — primary resolution
+        "aforge:7071",  # forge — execution shell
+        "aforge:7072",  # forge — mcp gateway
+        "geox:8081",  # geoscience
         "wealth:18082",  # capital
-        "well:18083",    # human readiness
-        "aaa:3001",      # cockpit / A2A
+        "well:18083",  # human readiness
+        "aaa:3001",  # cockpit / A2A
     }
 )
 
@@ -162,19 +170,6 @@ def build_federation_contract(
 #   C_DARK_CEILING = 0.30 (Pillar VI GOVERNED state)
 #
 
-APEX_ORGANS = (
-    "Reality",
-    "Governance",
-    "Civilization",
-    "Execution",
-    "Memory",
-    "Witness",
-    "Meaning",
-)
-
-G_DEPLOY_THRESHOLD = 0.50
-C_DARK_CEILING = 0.30
-
 
 class QuoteStageError(Exception):
     """Raised when quote resolution is invoked at a forbidden stage."""
@@ -197,19 +192,14 @@ PROVENANCE_CLASSES = frozenset(
     }
 )
 
-PERMITTED_STAGES = frozenset({"555_HEART", "999_RECEIPT"})
-FORBIDDEN_STAGES = frozenset(
-    {"000_INIT", "111_OBSERVE", "333_THINK", "444_ROUTE", "777_FORGE", "888_AUDIT"}
-)
-
 VALID_USES = frozenset({"REFLECTION", "RECEIPT", "EDUCATION", "RED_TEAM"})
 
 # Canonical registry: v2 (zen-witness-doctrine). v1 retained on disk as legacy only.
 _REGISTRY_PATH = Path(__file__).resolve().parent.parent / "data" / "quote_registry_v2.json"
 # SOT declaration (2026-07-19): schema + contract, regenerated from data.
 _REGISTRY_SOT_PATH = Path(__file__).resolve().parent.parent / "data" / "quote_registry_sot.yaml"
-_registry_cache: Optional[dict] = None
-_registry_sot_cache: Optional[dict] = None
+_registry_cache: dict | None = None
+_registry_sot_cache: dict | None = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -232,7 +222,7 @@ class QuoteResult:
     dark_modes: list[str]
     permitted_uses: list[str]
     display_label: str = ""
-    provenance_warning: Optional[str] = None
+    provenance_warning: str | None = None
     disputed: bool = False
     is_doctrine: bool = False
 
@@ -247,18 +237,18 @@ class ResolveResult:
     along with a verdict without violating F2 TRUTH.
     """
 
-    quote: Optional[QuoteResult] = None
+    quote: QuoteResult | None = None
     selection_reason: str = ""
-    provenance_warning: Optional[str] = None
+    provenance_warning: str | None = None
     candidates_considered: int = 0
     # Layer A — APEX fingerprint (None if no quote)
-    apex_fingerprint: Optional[dict] = None
+    apex_fingerprint: dict | None = None
     # Layer C — canon_status tier
     canon_status: str = "DRAFT"
     # Layer B — federation contract: is this quote safe to deploy with a verdict?
     deploy_warrant: bool = False
     # Layer B — federation namespace contract (URI + organs_safe + ratify_gate)
-    wisdom_contract: Optional[dict] = None
+    wisdom_contract: dict | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -348,11 +338,11 @@ def wisdom_quote_resolve(
     context_tags: list[str],
     intended_use: str,
     stage: str = "555_HEART",  # Layer D: stage is now required positional
-    traditions_allowed: Optional[list[str]] = None,
+    traditions_allowed: list[str] | None = None,
     exclude_disputed: bool = True,
     maximum_quotes: int = 1,
-    arifos_floors: Optional[list[str]] = None,
-    dark_modes: Optional[list[str]] = None,
+    arifos_floors: list[str] | None = None,
+    dark_modes: list[str] | None = None,
     enforce_stage_binding: bool = True,  # Layer D: default ON
 ) -> ResolveResult:
     """[LEGACY-ENTRY-POINT — 2026-07-19 unification]
@@ -584,9 +574,13 @@ def wisdom_quote_resolve(
         # Layer C — canon_status tier
         canon_status=compute_canon_status(best_q),
         # Layer B — federation contract: GOVERNED shadow state only
-        deploy_warrant=compute_apex_fingerprint(best_q, intended_use=intended_use)["deploy_warrant"],
+        deploy_warrant=compute_apex_fingerprint(best_q, intended_use=intended_use)[
+            "deploy_warrant"
+        ],
         # Layer B — federation namespace contract (Layer B envelope)
-        wisdom_contract=build_federation_contract(best_q, quote_kind="quote", intended_use=intended_use),
+        wisdom_contract=build_federation_contract(
+            best_q, quote_kind="quote", intended_use=intended_use
+        ),
     )
 
 
@@ -595,7 +589,11 @@ def wisdom_quote_resolve(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def compute_apex_fingerprint(quote: dict, intended_use: str = "REFLECTION") -> dict:
+def compute_apex_fingerprint(
+    quote: dict,
+    intended_use: str = "REFLECTION",
+    verdict_context: dict | None = None,
+) -> dict:
     """APEX fingerprint for a quote in a deployment context.
 
     Maps the seven conservation organs to per-organ scores, then computes
@@ -617,7 +615,18 @@ def compute_apex_fingerprint(quote: dict, intended_use: str = "REFLECTION") -> d
         GOVERNED   — G >= 0.50, C_dark < 0.30  (safe to deploy)
         UNCHECKED  — C_dark in [0.30, 0.50]   (deploy with caution)
         HIDDEN     — C_dark > 0.50            (TRUE DEVIL risk — do not deploy)
+
+    Args:
+        quote: The quote dict.
+        intended_use: Primary use classification (default REFLECTION).
+        verdict_context: Optional verdict context dict. If provided,
+            mapped to intended_use via context.get("intended_use", intended_use).
+            This unifies the quote_registry and philosophy_registry call patterns.
     """
+    # If verdict_context provided, map to intended_use (Path Y unification)
+    if verdict_context is not None and isinstance(verdict_context, dict):
+        intended_use = verdict_context.get("intended_use", intended_use)
+
     classification = quote.get("classification", {}) or {}
     attr = quote.get("attribution", {}) or {}
     usage = quote.get("usage", {}) or {}

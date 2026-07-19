@@ -19,9 +19,11 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 from pathlib import Path
 from typing import Any
+
+# Path Y dedup (2026-07-19): import constants from single source of truth
+from arifosmcp.runtime.quote_constants import APEX_ORGANS, PERMITTED_STAGES
 
 logger = logging.getLogger(__name__)
 
@@ -42,21 +44,8 @@ _FALLBACK_PATH = _DATA_DIR / "tool_quote_registry.json"
 _V2_REGISTRY_PATH = _DATA_DIR / "quote_registry_v2.json"
 _ATLAS_PATH = _DATA_DIR / "philosophy_atlas.json"
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# APEX FINGERPRINT (Layer A — per ASI 💃 audit 2026-07-19)
-# ═══════════════════════════════════════════════════════════════════════════════
-APEX_ORGANS = [
-    "Reality",
-    "Governance",
-    "Civilization",
-    "Execution",
-    "Memory",
-    "Witness",
-    "Meaning",
-]  # 7 conservation laws
+# APEX_ORGANS and PERMITTED_STAGES imported at top from quote_constants
 
-# Stage binding — the load-bearing rule
-PERMITTED_STAGES = frozenset({"555_HEART", "999_RECEIPT"})
 FORBIDDEN_STAGE_VERDICT = {
     "verdict": "FORBIDDEN_STAGE",
     "verdict_code": "STAGE_BINDING_VIOLATION",
@@ -75,63 +64,24 @@ _ANCHOR_CACHE_MAX = 256
 
 
 def compute_apex_fingerprint(quote: dict, verdict_context: dict | None = None) -> dict:
-    """APEX G + C_dark fingerprint for a quote (Layer A — ASI 💃 audit).
+    """APEX G + C_dark fingerprint — thin adapter to canonical impl.
+
+    Path Y dedup (2026-07-19): canonical implementation lives in
+    arifosmcp.runtime.quote_registry. This adapter maps verdict_context
+    → intended_use for backward compatibility.
 
     Multiplicative G across 7 organs — zero anywhere collapses consensus.
     C_dark captures shadow governance risk (Pillar VI).
     """
-    if not isinstance(quote, dict):
-        return {
-            "G": 0.0,
-            "C_dark": 1.0,
-            "shadow_state": "INVALID",
-            "deploy_warrant": False,
-            "true_devil_risk": True,
-        }
-
-    classification = quote.get("classification", {}) or {}
-    attr = quote.get("attribution", {}) or {}
-    usage = quote.get("usage", {}) or {}
-    source_class = attr.get("source_class", "")
-    confidence = float(attr.get("attribution_confidence", 0.0) or 0.0)
-
-    G = {
-        "Reality": confidence if source_class == "PRIMARY_VERIFIED" else confidence * 0.6,
-        "Governance": 1.0 if "verdict_authority" not in (usage.get("prohibited") or []) else 0.0,
-        "Civilization": 1.0 if classification.get("tradition") else 0.0,
-        "Execution": 1.0 if "action_bias" in classification else 0.5,
-        "Memory": 1.0
-        if source_class in ("PRIMARY_VERIFIED", "SECONDARY_VERIFIED", "ARIFOS_DOCTRINE")
-        else 0.3,
-        "Witness": confidence,
-        "Meaning": 1.0 if classification.get("arifos_floors") else 0.0,
-    }
-    # Multiplicative composition — zero anywhere = collapse
-    G_score = 1.0
-    for v in G.values():
-        G_score *= max(0.0, min(1.0, float(v)))
-
-    C_dark = 0.0
-    if source_class == "DISPUTED_ATTRIBUTION":
-        C_dark += (1.0 - confidence) * 0.6
-    if source_class == "FICTIONAL_VOICE":
-        C_dark += 0.3
-    if not usage.get("prohibited"):
-        C_dark += 0.1  # missing prohibited list = hidden shadow
-
-    shadow_state = (
-        "GOVERNED"
-        if (G_score > 0.5 and C_dark < 0.30)
-        else ("HIDDEN" if C_dark > 0.50 else "UNCHECKED")
+    from arifosmcp.runtime.quote_registry import (
+        compute_apex_fingerprint as _canonical,
     )
-    return {
-        "G": round(G_score, 4),
-        "C_dark": round(C_dark, 4),
-        "organs": {k: round(v, 3) for k, v in G.items()},
-        "shadow_state": shadow_state,
-        "true_devil_risk": shadow_state == "HIDDEN",
-        "deploy_warrant": shadow_state == "GOVERNED",
-    }
+
+    # Map verdict_context → intended_use
+    intended_use = "REFLECTION"
+    if verdict_context is not None and isinstance(verdict_context, dict):
+        intended_use = verdict_context.get("intended_use", "REFLECTION")
+    return _canonical(quote, intended_use=intended_use, verdict_context=verdict_context)
 
 
 def stage_gate(stage: str | None, intended_use: str = "REFLECTION") -> dict | None:
@@ -196,14 +146,14 @@ _V2_REGISTRY_CACHE: dict[str, Any] | None = None
 #   888_AUDIT  — audit, no quote
 #   999_RECEIPT — close, quote allowed (closing resonance)
 _TOOL_STAGE_MAP: dict[str, str] = {
-    "arif_init": "000_INIT",       # boot — no quote
-    "arif_observe": "111_OBSERVE", # observe — no quote
-    "arif_think": "333_THINK",     # think — no quote
-    "arif_route": "444_ROUTE",     # route — no quote
-    "arif_memory": "555_HEART",    # memory = heart, reflection — quote allowed
-    "arif_judge": "666_JUDGE",     # judge — no quote (verdict must be clean)
-    "arif_forge": "777_FORGE",     # forge — no quote (execution, not contemplation)
-    "arif_seal": "999_RECEIPT",    # seal = receipt — quote allowed (closing resonance)
+    "arif_init": "000_INIT",  # boot — no quote
+    "arif_observe": "111_OBSERVE",  # observe — no quote
+    "arif_think": "333_THINK",  # think — no quote
+    "arif_route": "444_ROUTE",  # route — no quote
+    "arif_memory": "555_HEART",  # memory = heart, reflection — quote allowed
+    "arif_judge": "666_JUDGE",  # judge — no quote (verdict must be clean)
+    "arif_forge": "777_FORGE",  # forge — no quote (execution, not contemplation)
+    "arif_seal": "999_RECEIPT",  # seal = receipt — quote allowed (closing resonance)
     # Aliases
     "arif_session_init": "000_INIT",
     "arif_sense_observe": "111_OBSERVE",
@@ -631,9 +581,9 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
     # Lazy import to avoid circular: quote_registry → philosophy_registry → resources
     try:
         from arifosmcp.runtime.quote_registry import (
-            wisdom_quote_resolve,
             PERMITTED_STAGES,
             QuoteStageError,
+            wisdom_quote_resolve,
         )
     except Exception as exc:
         logger.debug(f"quote_registry import failed: {exc}")
@@ -679,15 +629,17 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
         # force-loading from the registry and computing its contract.
         if (not result.quote or result.quote.quote_id != curated_id) and curated_id:
             from arifosmcp.runtime.quote_registry import load_registry
+
             reg = load_registry()
             for q in reg.get("quotes", []):
                 if q.get("id") == curated_id:
                     from arifosmcp.runtime.quote_registry import (
-                        compute_apex_fingerprint,
-                        compute_canon_status,
                         QuoteResult,
                         build_federation_contract,
+                        compute_apex_fingerprint,
+                        compute_canon_status,
                     )
+
                     fp = compute_apex_fingerprint(q, intended_use="REFLECTION")
                     attr = q.get("attribution", {})
                     classification = q.get("classification", {})
@@ -714,7 +666,9 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
                         apex_fingerprint=fp,
                         canon_status=compute_canon_status(q),
                         deploy_warrant=fp["deploy_warrant"],
-                        wisdom_contract=build_federation_contract(q, quote_kind="quote", intended_use="REFLECTION"),
+                        wisdom_contract=build_federation_contract(
+                            q, quote_kind="quote", intended_use="REFLECTION"
+                        ),
                     )
                     break
 
@@ -726,7 +680,9 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
             # ── Layer A: APEX fingerprint ──
             "quote": q.text,
             "author": q.speaker,
-            "namespace_uri": result.wisdom_contract.get("namespace_uri") if result.wisdom_contract else None,
+            "namespace_uri": result.wisdom_contract.get("namespace_uri")
+            if result.wisdom_contract
+            else None,
             "canon_status": result.canon_status,  # Layer C
             "deploy_warrant": result.deploy_warrant,  # Layer B
             "apex_fingerprint": result.apex_fingerprint,  # Layer A
