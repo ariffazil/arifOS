@@ -1,36 +1,10 @@
-"""
-arifOS MCP Tool Discovery Resource
-═══════════════════════════════════════════════════════════════
-
-Exposes tool discovery metadata as an MCP resource so LLMs can
-find the right tool quickly.
-
-DITEMPA BUKAN DIBERI — Discovered, not guessed.
-"""
+"""Tool discovery metadata exposed as an MCP resource."""
 
 from __future__ import annotations
 
 from typing import Any
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# TOOL DISCOVERY METADATA
-# ═══════════════════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# TOOL DISCOVERY — PUBLIC SURFACE ONLY (PEP 20: explicit, flat, sparse)
-# ═══════════════════════════════════════════════════════════════════════════════
-# Live kernel exposes 7 public verbs. This file mirrors that surface.
-# Internal tools (arif_bridge, arif_memory, arif_measure, arif_forge,
-# arif_kernel_intercept) are NOT listed here.
-# arif_compose is listed — it is exposed via expanded45 surface.
-# They exist in capability_registry.py for kernel use only.
-#
-# PEP 20 applied:
-#   "One obvious way"    — each tool has ONE canonical name, aliases collapse to it
-#   "Explicit > implicit" — tier, decision_class, blast_radius declared
-#   "Sparse > dense"     — minimal fields, no philosophy
-#   "Flat > nested"      — 10 tools, not 19
-# ═══════════════════════════════════════════════════════════════════════════════
+# Public tool discovery only; canonical names collapse aliases.
 
 TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
     # ── CORE SEVEN (public verbs) ──────────────────────────────────────────
@@ -45,9 +19,8 @@ TOOL_DISCOVERY: dict[str, dict[str, Any]] = {
         "floor_enforced": "F1",
         "use_when": "Starting or resuming a governed constitutional session.",
         "do_not_use_when": "Session already active. Use other tools directly.",
-        # Aliases — deprecated 2026-07-04. Kept on the wire so clients that
-        # already discovered them get a working call (with `_redirect_to` hint),
-        # but the `deprecated` flag tells fresh clients to skip them.
+        # Compatibility aliases stay discoverable for older clients, but
+        # fresh clients should prefer the canonical name.
         "aliases": ["arif_session_init", "session_init"],
         "deprecated_aliases": ["arif_session_init", "session_init"],
         "keywords": ["start", "begin", "initialize", "session", "resume"],

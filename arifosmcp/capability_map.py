@@ -1,19 +1,4 @@
-"""
-arifOS Capability Map
-════════════════════
-
-This module re-exports compatibility symbols from the archived capability map
-for backward compatibility with existing tests and server.py.
-
-The canonical capability definitions live in constitutional_map.py.
-"""
-
-# ════════════════════════════════════════════════════════════════════
-# ZEN 2026-06-30: These aliases are REVERSE-COMPAT ONLY.
-# They do NOT appear on tools/list. The public surface is exactly 7 tools.
-# No new aliases should be added. Existing aliases will be removed
-# after a 30-day deprecation window (target: 2026-07-30).
-# ════════════════════════════════════════════════════════════════════
+"""Frozen compatibility symbols for the canonical capability map."""
 
 from __future__ import annotations
 
@@ -30,15 +15,7 @@ class InitAnchorMode(StrEnum):
     REFRESH = "refresh"
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# LEGACY_FROZEN — do not extend. Canonical surface lives in constitutional_map.py
-# These constants exist solely for backward-compat with tests written against the
-# old arifos_<name> naming scheme. No live MCP routing goes through these names.
-# Any new integration MUST use arif_<noun>_<verb> (13-tool canonical surface).
-# ════════════════════════════════════════════════════════════════════════════════
-
-# Maps old arifos_<name> → live arif_<noun>_<verb> canonical names.
-# get_legacy_redirect() in public_registry.py uses this for backward-compat resolution.
+# Old arifos_<name> aliases map to live canonical names.
 CANONICAL_TOOL_HANDLERS: dict[str, str] = {
     "arifos_init": "arif_init",
     "arifos_sense": "arif_observe",
@@ -59,9 +36,7 @@ MEGA_TOOL_MODES: dict[str, set[str]] = {name: {"default"} for name in MEGA_TOOLS
 
 FINAL_TOOL_IMPLEMENTATIONS: dict[str, str] = CANONICAL_TOOL_HANDLERS
 
-# LEGACY_FROZEN — dotted v1 aliases and semantic nicknames.
-# These resolve straight to the current arif_<noun>_<verb> canonical surface.
-# No intermediate arifos_* step; that layer was retired on 2026-06-23.
+# Dotted v1 aliases and semantic nicknames resolve straight to canonical names.
 LEGACY_TOOL_MAP: dict[str, str] = {
     "arifos.init": "arif_init",
     "arifos.sense": "arif_observe",
@@ -92,7 +67,7 @@ LEGACY_TOOL_MAP: dict[str, str] = {
 CAPABILITY_MAP: dict[str, str] = {**CANONICAL_TOOL_HANDLERS, **LEGACY_TOOL_MAP}
 LEGACY_TOOLS: dict[str, str] = LEGACY_TOOL_MAP
 
-# Substrate Capability Families
+# Substrate capability families
 SUBSTRATE_CAPABILITIES: dict[str, str] = {
     "substrate.git.audit": "git_bridge.get_repo_state",
     "substrate.git.propose": "git_bridge.propose_changes",
@@ -114,9 +89,7 @@ ALIGNED_STAGES: dict[str, str] = {
     "vault": "999_VAULT",
 }
 
-# ── One Skill + One Tool integration (restraint + verdict loop as first-class)
-# These turn "Knowing what NOT to do" and "Verdict loop with memory" into governed facts
-# for every session (via INIT) and every tool (via capability map).
+# One Skill + One Tool integration keeps restraint and verdict first-class.
 
 
 class RestraintLevel(StrEnum):
@@ -185,8 +158,7 @@ RESTRAINT_VERDICT_REQUIREMENTS: dict[str, dict[str, Any]] = {
 # Export for kernel and MCP to consume
 CAPABILITY_RESTRAINT_MAP = RESTRAINT_VERDICT_REQUIREMENTS
 
-# Deeper classification under One Skill + One Tool (from constitutional_map source of truth)
-# This makes the pair (Knowing What NOT To Do + Verdict Loop With Memory) the classification axis for every capability.
+# Deeper classification under One Skill + One Tool.
 ONE_SKILL_ONE_TOOL_MAP: dict[str, dict[str, Any]] = {
     "pair": {
         "skill": "Knowing What NOT To Do (restraint under uncertainty: HOLD when unclear, ASK one question, REFUSE if unsafe)",
@@ -197,10 +169,7 @@ ONE_SKILL_ONE_TOOL_MAP: dict[str, dict[str, Any]] = {
     "note": "If not in this map or constitutional classification, kernel must DENY. Makes bypass structurally impossible.",
 }
 
-# 999 SEAL — This classification is now part of the governed substrate. The pair is law.
-
-
-# LEGACY_FROZEN — iterator shims; always return empty (no live gap to report)
+# Iterator shims stay empty.
 
 
 def iter_unmapped_legacy_tools() -> list[str]:

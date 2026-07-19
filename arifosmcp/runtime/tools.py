@@ -13517,7 +13517,12 @@ def _arif_kernel_route(
             if organ == "geox":
                 from arifosmcp.runtime.geox_bridge import call_geox_tool
 
-                result = _run_async(call_geox_tool(tool_name, arguments or {}))
+                _args = arguments or {}
+                _sid = _args.get("session_id")
+                _aid = _args.get("actor_id")
+                result = _run_async(
+                    call_geox_tool(tool_name, _args, session_id=_sid, actor_id=_aid)
+                )
                 return _ok(
                     "arif_kernel_route",
                     {"organ": "GEOX", "tool": tool_name, "result": result, "status": "bridged"},
@@ -13525,7 +13530,12 @@ def _arif_kernel_route(
             if organ == "wealth":
                 from arifosmcp.runtime.wealth_bridge import call_wealth_tool
 
-                result = _run_async(call_wealth_tool(tool_name, arguments or {}))
+                _args_w = arguments or {}
+                _sid_w = _args_w.get("session_id")
+                _aid_w = _args_w.get("actor_id")
+                result = _run_async(
+                    call_wealth_tool(tool_name, _args_w, session_id=_sid_w, actor_id=_aid_w)
+                )
                 return _ok(
                     "arif_kernel_route",
                     {"organ": "WEALTH", "tool": tool_name, "result": result, "status": "bridged"},
@@ -23836,7 +23846,8 @@ def register_tools(
                                     }
                                     logger.info(
                                         "INJECTED mode property for %s: %s (was missing from schema)",
-                                        name, _modes,
+                                        name,
+                                        _modes,
                                     )
                         else:
                             logger.warning(
