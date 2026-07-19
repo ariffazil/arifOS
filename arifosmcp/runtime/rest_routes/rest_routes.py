@@ -6793,6 +6793,24 @@ setInterval(refreshSot, 30000);
             },
         )
 
+    # ── T3.2: VAULT Public Verification ───────────────────────────────────────
+    @route("/.well-known/arifos-vault-verify.json", methods=["GET"])
+    async def vault_verify_endpoint(request: Request) -> JSONResponse:
+        """Public VAULT verification manifest for external auditors (OBSERVE_ONLY).
+
+        No session or token required. Returns chain integrity status, head seq,
+        recent seals, and verification instructions for replaying receipts."""
+        from arifosmcp.runtime.rest_routes.vault_verify import get_vault_verification_manifest
+
+        manifest = get_vault_verification_manifest()
+        return JSONResponse(
+            manifest,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "public, max-age=300",
+            },
+        )
+
     # ── Federation Status Spine ────────────────────────────────────────────────
     @route("/status.json", methods=["GET"])
     async def federation_status(request: Request) -> JSONResponse:
