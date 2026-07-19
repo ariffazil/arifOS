@@ -105,6 +105,21 @@ def test_agent_cannot_self_canonize():
     )
 
 
+# WAJIB 8 enforcement: context_manifest validator exists at arifosmcp/runtime/context_manifest.py
+# The validator enforces 6 boot-context checks. This xfail remains until the loader
+# integration is wired into the INIT/boot path. T2 — no F13 needed for loader enforcement. 
+
+
+@pytest.mark.xfail(strict=True, reason="WAJIB-8: context_manifest loader integration — wired into boot sequence (T2)")
+def test_context_manifest_loader_integration():
+    """Boot path must scan agent-authored artifacts with context_manifest validator."""
+    raise NotImplementedError(
+        "WAJIB-8: context_manifest validator exists (context_manifest.py) but "
+        "is not yet integrated into the INIT/boot loading sequence. "
+        "Loader must call classify_artifact() before loading any durable file."
+    )
+
+
 # ── WAJIB 10: End-to-End Signed Canary ─────────────────────────────────────
 
 @pytest.mark.xfail(strict=True, reason="WAJIB-10: full federation canary requires all prior WAJIBs (T3, gated by WAJIB 2-9)")
