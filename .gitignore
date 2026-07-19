@@ -282,3 +282,5 @@ ESTATE_MANIFEST.yaml
 federation.manifest.yaml
 tools_sot.yaml
 tools_sot.yaml
+# Test keys
+forge_work/meta-mesa-harness/keys/
