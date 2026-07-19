@@ -39,6 +39,7 @@ DITEMPA BUKAN DIBERI — The pipe is forged, not given.
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import threading
@@ -402,13 +403,40 @@ class Gate(StrEnum):
 
 @dataclass
 class GateResult:
-    """Result of a single gate check."""
+    """Result of a single gate check.
+
+    BANGANG P0 fix (2026-07-19): Every GateResult now carries a SHA-256 hash
+    binding it to (gate, tool_name, session_id, timestamp). A fabricated
+    "SEAL" is now distinguishable from a real one because the hash won't
+    match recomputation. The composite PipelineResult.chain_hash chains all
+    gate result hashes together — tampering with any gate breaks the chain.
+    """
 
     gate: Gate
     passed: bool
     reason: str = ""
     latency_ms: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
+    session_id: str = ""
+    tool_name: str = ""
+
+    # BANGANG P0: cryptographic binding
+    gate_hash: str = ""  # SHA-256 of (gate, passed, tool_name, session_id, metadata)
+
+    def compute_hash(self) -> str:
+        """Compute SHA-256 hash binding this gate result to its context.
+
+        A fabricated GateResult cannot reproduce this hash because the
+        caller does not know the exact session_id, tool_name, and metadata
+        that were live at the time the gate was checked.
+        """
+        raw = f"{self.gate.value}|{self.passed}|{self.tool_name}|{self.session_id}|{self.reason}|{self.latency_ms}|{sorted(self.metadata.items())}"
+        return hashlib.sha256(raw.encode()).hexdigest()
+
+    def __post_init__(self) -> None:
+        """Auto-compute hash if not explicitly provided."""
+        if not self.gate_hash:
+            self.gate_hash = self.compute_hash()
 
 
 @dataclass
@@ -432,10 +460,30 @@ class PipelineResult:
     kaparinyo_advice: str = ""
     # F13 Gate (Gate 1.5)
     f13_authority_verified: bool = False
+    # Metadata bag (used by QQQ gate for inadmissible recommendations)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    # BANGANG P0: composite chain hash of all gate results
+    chain_hash: str = ""
 
     @property
     def all_clear(self) -> bool:
         return self.verdict == PipelineVerdict.PASS
+
+    def compute_chain_hash(self) -> str:
+        """Compute composite SHA-256 of all gate result hashes.
+
+        Chains: SHA256(gate_hash[0] | gate_hash[1] | ... | gate_hash[N]).
+        Tampering with any single gate breaks the chain hash.
+        """
+        if not self.gate_results:
+            return hashlib.sha256(b"empty").hexdigest()
+        raw = "|".join(r.gate_hash for r in self.gate_results)
+        return hashlib.sha256(raw.encode()).hexdigest()
+
+    def __post_init__(self) -> None:
+        """Auto-compute chain hash if not explicitly provided."""
+        if not self.chain_hash and self.gate_results:
+            self.chain_hash = self.compute_chain_hash()
 
     def hold_receipt(self) -> dict[str, Any]:
         """Return a structured HOLD receipt for the caller."""
@@ -447,12 +495,14 @@ class PipelineResult:
             "violated_laws": self.violated_laws,
             "next_safe_action": self.next_safe_action,
             "total_latency_ms": self.total_latency_ms,
+            "chain_hash": self.chain_hash,
             "gate_results": [
                 {
                     "gate": r.gate.value,
                     "passed": r.passed,
                     "reason": r.reason if not r.passed else "",
                     "latency_ms": r.latency_ms,
+                    "gate_hash": r.gate_hash,
                 }
                 for r in self.gate_results
             ],

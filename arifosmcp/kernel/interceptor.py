@@ -101,9 +101,9 @@ def _effective_arif_seal_flags(
         "chain",
         "list",
         "dry_run",
-        "verify_chain",   # PUBLIC chain verification (sovereign 2026-07-18)
-        "chain_status",   # PUBLIC chain head
-        "audit",          # PUBLIC full audit
+        "verify_chain",  # PUBLIC chain verification (sovereign 2026-07-18)
+        "chain_status",  # PUBLIC chain head
+        "audit",  # PUBLIC full audit
     }
     presentation_modes = {"seal_card", "render"}
 
@@ -342,12 +342,15 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
             auth = AuthorityTier.LOW
     else:
         # ── Self-report (no transport binding) — check session SCT ──────
-        # FIX 2026-07-16: If the session has a valid SCT with FULL/SOVEREIGN
-        # authority, use that instead of capping at MEDIUM. The SCT is a signed
-        # capability token minted by arif_init — it IS the transport verification
-        # for session-bound calls. Without this, the session binding bug causes
-        # all downstream tools (arif_seal, arif_judge) to see MEDIUM even when
-        # the session was initialized with FULL authority.
+        # BANGANG P0 FIX (2026-07-19): Authority fork — interceptor returned MEDIUM
+        # while session said OBSERVE_ONLY. Two computations disagreed about the
+        # same actor in the same flow. Fix: read session authority and map directly.
+        # OBSERVE_ONLY/absent → LOW, FULL/SOVEREIGN → SOVEREIGN.
+        # Default is LOW (was MEDIUM) — never overclaim authority.
+        #
+        # Without this fix, _resolve_authority() returned MEDIUM for ANY session
+        # that existed, even if initialized as OBSERVE_ONLY. The interceptor and
+        # session now agree because only one computation runs.
         if req.session_id:
             try:
                 from arifosmcp.runtime.tools import _SESSIONS
@@ -358,11 +361,11 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
                     if _sess_auth in ("FULL", "SOVEREIGN"):
                         auth = AuthorityTier.SOVEREIGN
                     else:
-                        auth = AuthorityTier.MEDIUM
+                        auth = AuthorityTier.LOW  # was MEDIUM — BANGANG P0
                 else:
-                    auth = AuthorityTier.MEDIUM
+                    auth = AuthorityTier.LOW  # was MEDIUM — no session, no authority
             except Exception:
-                auth = AuthorityTier.MEDIUM
+                auth = AuthorityTier.LOW  # was MEDIUM — degrade gracefully
         else:
             auth = AuthorityTier.LOW
 

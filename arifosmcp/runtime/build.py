@@ -32,6 +32,16 @@ _CRITICAL_MODULES = (
     # refuses authority-grade bands when the kernel cannot prove its own
     # integrity. Fail-closed by design.
     "arifosmcp/runtime/boot_attestation.py",
+    # BANGANG P0 FIX (2026-07-19): authority computation + governance gate chain.
+    # interceptor.py was hot-patched without the attestation hash moving — a
+    # change to the most security-critical component was invisible to boot
+    # attestation. Added by Fable's re-probe finding. Also covers authority.py
+    # (authority state read), phoenix_72.py (tri-witness with positional debt),
+    # and governance_pipeline.py (GateResult cryptographic hashing).
+    "arifosmcp/kernel/interceptor.py",
+    "arifosmcp/runtime/authority.py",
+    "arifosmcp/runtime/phoenix_72.py",
+    "arifosmcp/runtime/governance_pipeline.py",
 )
 
 

@@ -101,13 +101,27 @@ def is_cooldown_complete(cooldown_expiry: datetime | str) -> bool:
     return datetime.now(UTC) >= cooldown_expiry
 
 
-def compute_w3(tri_witness: dict[str, bool | float]) -> tuple[float, str]:
+def compute_w3(
+    tri_witness: dict[str, bool | float],
+    position_debt: int = 0,
+    narrator_debt: int = 0,
+) -> tuple[float, str]:
     """Compute W³ = ∛(H × AI × Ext) — Nash geometric mean.
 
     Supports both boolean (backward compatible) and numeric confidence [0,1].
     Boolean True → 1.0, False → 0.0.
     Any zero channel collapses W³ to 0.
 
+    POSITIONAL AWARENESS (witness_class.py integration — P0 BANGANG fix):
+    When `position_debt` > 0, receipts came from SELF or INTERNAL witnesses.
+    Even if all three substantive channels (human/ai/earth) are True,
+    the tri-witness is structurally DEGRADED — witnesses inside the loop
+    cannot independently verify the same claim.
+    - debt=0 → standard W³ computation
+    - debt=1 → effective witness count drops to 2/3_DEGRADED
+    - debt≥2 → effective witness count drops to 1/3_DEGRADED or worse
+
+    See: /root/arifOS/arifosmcp/runtime/witness_class.py
     See: /root/A-FORGE/forge_work/2026-07-06/APEX_REALITY_AUDIT.md
     """
     h_raw = tri_witness.get("human", False)
@@ -133,6 +147,31 @@ def compute_w3(tri_witness: dict[str, bool | float]) -> tuple[float, str]:
     # Nash (1950) geometric mean
     w3 = (h * ai * ext) ** (1 / 3)
 
+    # BANGANG P0: Positional debt degrades the verdict
+    # A session where all 3 substantive booleans are True but all are
+    # SELF position must not report CONSENSUS — it reports DEGRADED.
+    if position_debt > 0 or narrator_debt > 0:
+        debt = max(position_debt, narrator_debt)
+        # Penalty: each unit of debt reduces effective W³ by 0.15
+        # (one full confidence band per self-attestation)
+        penalty = min(debt * 0.15, 0.45)  # cap at 0.45 so 3+ SELF → ~0.30
+        w3_effective = max(0.0, w3 - penalty)
+
+        if w3_effective >= 0.75:
+            return (
+                w3_effective,
+                f"W³={w3_effective:.3f} ≥ 0.75 — DEGRADED_CONSENSUS (debt={debt}, penalty={penalty:.2f})",
+            )
+        if w3_effective >= 0.50:
+            return (
+                w3_effective,
+                f"W³={w3_effective:.3f} ≥ 0.50 — DEGRADED_WEAK (debt={debt}, penalty={penalty:.2f})",
+            )
+        return (
+            w3_effective,
+            f"W³={w3_effective:.3f} < 0.50 — DEGRADED_DIVERGENT (debt={debt}, penalty={penalty:.2f})",
+        )
+
     if w3 >= 0.75:
         return w3, f"W³={w3:.3f} ≥ 0.75 — CONSENSUS"
     if w3 >= 0.50:
@@ -147,8 +186,14 @@ def should_seal(
     tri_witness: dict[str, bool | float],
     anti_hantu_flag: bool,
     explicit_seal_requested: bool = False,
+    position_debt: int = 0,
 ) -> tuple[bool, str]:
     """Evaluate whether a Phoenix entry should be SEALED or VOIDED.
+
+    Args:
+        position_debt: Number of receipts from SELF/INTERNAL positions.
+                       Passed through to compute_w3() for positional honesty.
+                       See witness_class.py — BANGANG P0 fix.
 
     Returns (should_seal: bool, reason: str).
     """
@@ -168,12 +213,14 @@ def should_seal(
     if psi_utility <= PSI_UTILITY_THRESHOLD:
         return False, f"psi_utility={psi_utility} <= threshold={PSI_UTILITY_THRESHOLD}"
 
-    # Check Tri-Witness — real W³ geometric mean
-    w3, w3_reason = compute_w3(tri_witness)
+    # Check Tri-Witness — real W³ geometric mean WITH positional awareness
+    # BANGANG P0: position_debt downgrades CONSENSUS to DEGRADED_CONSENSUS,
+    # and the reason string carries the honest label through to the caller.
+    w3, w3_reason = compute_w3(tri_witness, position_debt=position_debt)
     if w3 < 0.50:
         return False, f"tri_witness DIVERGENT: {w3_reason}"
 
-    return True, "all SEAL conditions met"
+    return True, f"all SEAL conditions met (tri_witness: {w3_reason})"
 
 
 def should_void(
@@ -279,6 +326,10 @@ def phoenix_entry(
         "psi_decay_events": 0,
         # Tri-Witness matrix
         "tri_witness": tri_witness,
+        # Positional debt (witness_class.py — BANGANG P0)
+        # Tracks how many receipts in this entry came from SELF/INTERNAL witnesses.
+        # >0 means tri-witness is structurally degraded even if all 3 booleans are True.
+        "position_debt": 0,
         # F9 kill switch
         "anti_hantu_flag": anti_hantu,
         # Tier
@@ -441,6 +492,9 @@ def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
     """Evaluate state transition for a COOLING or CANDIDATE entry.
 
     Returns (new_state: str, reason: str).
+    Positional debt is extracted from entry['position_debt'] if set,
+    defaulting to 0 for backward compatibility. See witness_class.py
+    — BANGANG P0 fix.
     """
     now = datetime.now(UTC)
     state = entry.get("state", STATE_CANDIDATE)
@@ -449,6 +503,7 @@ def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
     tri_witness = entry.get("tri_witness", {})
     anti_hantu = entry.get("anti_hantu_flag", False)
     explicit_veto = entry.get("explicit_veto", False)
+    position_debt = entry.get("position_debt", 0)
 
     # Already in terminal state
     if state in (STATE_SEALED, STATE_VOID):
@@ -476,6 +531,7 @@ def evaluate_promotion(entry: dict[str, Any]) -> tuple[str, str]:
         psi_utility=psi_utility,
         tri_witness=tri_witness,
         anti_hantu_flag=anti_hantu,
+        position_debt=position_debt,
     )
 
     if sealable:
@@ -521,6 +577,7 @@ def phoenix_summary(entry: dict[str, Any]) -> dict[str, Any]:
         "psi_misses": entry.get("psi_misses", 0),
         "tri_witness": entry.get("tri_witness", {}),
         "tri_witness_complete": is_tri_witness_complete(entry),
+        "position_debt": entry.get("position_debt", 0),
         "anti_hantu_flag": entry.get("anti_hantu_flag", False),
         "cooldown_expiry": cooldown_expiry,
         "cooldown_remaining_hours": remaining_hours,

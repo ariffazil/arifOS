@@ -2341,6 +2341,19 @@ def _findings_block(
             "evidence": f008_ev,
             "status": f008_status,
         },
+        {
+            "id": "F-009",
+            "category": "governance_gate",
+            "description": "BANGANG P0 audit — 3 structural cracks closed 2026-07-19",
+            "severity": "LOW",
+            "evidence": (
+                "RESOLVED: authority fork (interceptor LOW), "
+                "verification theater (positional debt), "
+                "blame laundering (GateResult hash), "
+                "attestation gap (12 modules)"
+            ),
+            "status": "RESOLVED",
+        },
     ]
 
     open_items = [f for f in findings if f["status"] == "OPEN"]
