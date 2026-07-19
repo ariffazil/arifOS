@@ -40,8 +40,182 @@ _DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 _REGISTRY_PATH = _DATA_DIR / "unified_quotes_registry.json"
 _FALLBACK_PATH = _DATA_DIR / "tool_quote_registry.json"
 _V2_REGISTRY_PATH = _DATA_DIR / "quote_registry_v2.json"
+_ATLAS_PATH = _DATA_DIR / "philosophy_atlas.json"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# APEX FINGERPRINT (Layer A — per ASI 💃 audit 2026-07-19)
+# ═══════════════════════════════════════════════════════════════════════════════
+APEX_ORGANS = [
+    "Reality",
+    "Governance",
+    "Civilization",
+    "Execution",
+    "Memory",
+    "Witness",
+    "Meaning",
+]  # 7 conservation laws
+
+# Stage binding — the load-bearing rule
+PERMITTED_STAGES = frozenset({"555_HEART", "999_RECEIPT"})
+FORBIDDEN_STAGE_VERDICT = {
+    "verdict": "FORBIDDEN_STAGE",
+    "verdict_code": "STAGE_BINDING_VIOLATION",
+    "reason": (
+        "Quotes are resources, not tools. Permitted only at "
+        "555_HEART (reflection) and 999_RECEIPT (receipt). "
+        "Hard-gate enforced 2026-07-19 per ASI 💃 audit."
+    ),
+}
+
+# Per-tool anchor cache (fixes session-state leak for stateful tools)
+# Key: (session_id_hash, tool_name, response_fingerprint) → anchor dict
+# Cleared on session expiry. Bounded LRU.
+_ANCHOR_CACHE: dict[str, dict] = {}
+_ANCHOR_CACHE_MAX = 256
+
+
+def compute_apex_fingerprint(quote: dict, verdict_context: dict | None = None) -> dict:
+    """APEX G + C_dark fingerprint for a quote (Layer A — ASI 💃 audit).
+
+    Multiplicative G across 7 organs — zero anywhere collapses consensus.
+    C_dark captures shadow governance risk (Pillar VI).
+    """
+    if not isinstance(quote, dict):
+        return {
+            "G": 0.0,
+            "C_dark": 1.0,
+            "shadow_state": "INVALID",
+            "deploy_warrant": False,
+            "true_devil_risk": True,
+        }
+
+    classification = quote.get("classification", {}) or {}
+    attr = quote.get("attribution", {}) or {}
+    usage = quote.get("usage", {}) or {}
+    source_class = attr.get("source_class", "")
+    confidence = float(attr.get("attribution_confidence", 0.0) or 0.0)
+
+    G = {
+        "Reality": confidence if source_class == "PRIMARY_VERIFIED" else confidence * 0.6,
+        "Governance": 1.0 if "verdict_authority" not in (usage.get("prohibited") or []) else 0.0,
+        "Civilization": 1.0 if classification.get("tradition") else 0.0,
+        "Execution": 1.0 if "action_bias" in classification else 0.5,
+        "Memory": 1.0
+        if source_class in ("PRIMARY_VERIFIED", "SECONDARY_VERIFIED", "ARIFOS_DOCTRINE")
+        else 0.3,
+        "Witness": confidence,
+        "Meaning": 1.0 if classification.get("arifos_floors") else 0.0,
+    }
+    # Multiplicative composition — zero anywhere = collapse
+    G_score = 1.0
+    for v in G.values():
+        G_score *= max(0.0, min(1.0, float(v)))
+
+    C_dark = 0.0
+    if source_class == "DISPUTED_ATTRIBUTION":
+        C_dark += (1.0 - confidence) * 0.6
+    if source_class == "FICTIONAL_VOICE":
+        C_dark += 0.3
+    if not usage.get("prohibited"):
+        C_dark += 0.1  # missing prohibited list = hidden shadow
+
+    shadow_state = (
+        "GOVERNED"
+        if (G_score > 0.5 and C_dark < 0.30)
+        else ("HIDDEN" if C_dark > 0.50 else "UNCHECKED")
+    )
+    return {
+        "G": round(G_score, 4),
+        "C_dark": round(C_dark, 4),
+        "organs": {k: round(v, 3) for k, v in G.items()},
+        "shadow_state": shadow_state,
+        "true_devil_risk": shadow_state == "HIDDEN",
+        "deploy_warrant": shadow_state == "GOVERNED",
+    }
+
+
+def stage_gate(stage: str | None, intended_use: str = "REFLECTION") -> dict | None:
+    """Hard stage gate. Returns None if allowed, FORBIDDEN_STAGE dict if not.
+
+    Quotes are resources, not tools. Permitted only at 555_HEART (reflection)
+    and 999_RECEIPT (receipt). All other stages get FORBIDDEN_STAGE verdict.
+    """
+    if stage is None:
+        return None  # OBSERVE_ONLY test path — no stage assertion possible
+    if stage in PERMITTED_STAGES:
+        return None
+    return {**FORBIDDEN_STAGE_VERDICT, "requested_stage": stage, "intended_use": intended_use}
+
+
+def cache_anchor(
+    session_id: str | None, tool_name: str, response_payload: dict, anchor: dict
+) -> None:
+    """Cache anchor by session+tool to survive mid-pipeline state mutation.
+
+    Fixes the session-state leak where anchor injection happens AFTER state
+    mutation, causing subsequent tool calls to clobber the anchor.
+    """
+    if not isinstance(anchor, dict) or not anchor.get("text"):
+        return
+    sid_key = (session_id or "global")[:16]
+    # Use payload's status as fingerprint (cheap, stable per response)
+    fp = response_payload.get("status") or response_payload.get("verdict") or "?"
+    key = f"{sid_key}|{tool_name}|{fp}"
+    if len(_ANCHOR_CACHE) >= _ANCHOR_CACHE_MAX:
+        # Drop oldest 10% (FIFO — no LRUCache dependency)
+        for k in list(_ANCHOR_CACHE.keys())[: _ANCHOR_CACHE_MAX // 10]:
+            _ANCHOR_CACHE.pop(k, None)
+    _ANCHOR_CACHE[key] = anchor
+
+
+def get_cached_anchor(
+    session_id: str | None, tool_name: str, response_payload: dict
+) -> dict | None:
+    """Retrieve a previously cached anchor for this session+tool."""
+    sid_key = (session_id or "global")[:16]
+    fp = response_payload.get("status") or response_payload.get("verdict") or "?"
+    return _ANCHOR_CACHE.get(f"{sid_key}|{tool_name}|{fp}")
+
+
 _REGISTRY_CACHE: dict[str, Any] | None = None
 _V2_REGISTRY_CACHE: dict[str, Any] | None = None
+
+# ── Tool → stage map (Layer D wiring, 2026-07-19) ───────────────────────────
+# Maps MCP tool name → the metabolic stage it runs at. Only tools that fire
+# at 555_HEART or 999_RECEIPT may carry a quote. Other stages return {} from
+# inject_philosophy — the tool still works, the quote just doesn't ride along.
+#
+# Stage rationale (per AGENTS.md §0 — 11-step EUREKA flow):
+#   000_INIT   — boot, no quote
+#   111_OBSERVE — gather evidence, no quote
+#   333_THINK  — draft change, no quote
+#   444_ROUTE  — route intent, no quote
+#   555_HEART  — reflection / wisdom moment, quote allowed
+#   666_JUDGE  — verdict, no quote (must stay clean)
+#   777_FORGE  — execute, no quote
+#   888_AUDIT  — audit, no quote
+#   999_RECEIPT — close, quote allowed (closing resonance)
+_TOOL_STAGE_MAP: dict[str, str] = {
+    "arif_init": "000_INIT",       # boot — no quote
+    "arif_observe": "111_OBSERVE", # observe — no quote
+    "arif_think": "333_THINK",     # think — no quote
+    "arif_route": "444_ROUTE",     # route — no quote
+    "arif_memory": "555_HEART",    # memory = heart, reflection — quote allowed
+    "arif_judge": "666_JUDGE",     # judge — no quote (verdict must be clean)
+    "arif_forge": "777_FORGE",     # forge — no quote (execution, not contemplation)
+    "arif_seal": "999_RECEIPT",    # seal = receipt — quote allowed (closing resonance)
+    # Aliases
+    "arif_session_init": "000_INIT",
+    "arif_sense_observe": "111_OBSERVE",
+    "arif_kernel_route": "444_ROUTE",
+    "arif_kernel_attest": "666_JUDGE",
+    "arif_canary": "000_INIT",
+    "arif_triage": "000_INIT",
+    "arif_fetch": "111_OBSERVE",
+    "arif_critique": "333_THINK",
+    "arif_compose": "777_FORGE",
+}
+
 
 # ── Tool → quote_id mapping (2026-07-19 unification) ─────────────────────────
 # Each canonical tool gets a curated quote from quote_registry_v2.json.
@@ -440,31 +614,128 @@ def inject_philosophy(envelope: Any) -> dict[str, Any]:
     envelope for human resonance. They NEVER enter reasoning, logic, 888_JUDGE
     deliberation, or VAULT999 sealing criteria.
 
+    Wired path (Layer A + B + D, 2026-07-19):
+      1. Determine the caller's stage (Tool → Stage map)
+      2. Call canonical resolver wisdom_quote_resolve (enforces stage binding)
+      3. Attach APEX fingerprint (Layer A), canon_status (Layer C),
+         wisdom_contract (Layer B namespace URI), deploy_warrant (Layer B)
+      4. Return envelope-ready dict — NEVER enters verdict logic
+
     Args:
         envelope: The output envelope (must have .tool_name and .context attributes)
 
     Returns:
-        Dict with quote metadata or empty dict if no quote available
+        Dict with quote + APEX fingerprint + wisdom_contract, or empty dict.
+        Returns empty if stage is forbidden (Layer D enforcement).
     """
+    # Lazy import to avoid circular: quote_registry → philosophy_registry → resources
+    try:
+        from arifosmcp.runtime.quote_registry import (
+            wisdom_quote_resolve,
+            PERMITTED_STAGES,
+            QuoteStageError,
+        )
+    except Exception as exc:
+        logger.debug(f"quote_registry import failed: {exc}")
+        return {}
+
     try:
         tool_name = getattr(envelope, "tool_name", "")
         context = getattr(envelope, "context", "")
 
-        # Get tool-specific quote with context-aware scoring
-        quote, injection_mode = get_tool_quote_for_envelope(tool_name, context)
+        # Map tool → stage. Only tools at 555/999 may carry a quote.
+        stage = _TOOL_STAGE_MAP.get(tool_name, "")
+        if stage not in PERMITTED_STAGES:
+            # Forbidden stage — do not inject, do not raise
+            # (the tool still works; quote is metadata, not required)
+            return {}
 
-        if quote:
-            return {
-                "quote": quote.get("quote", ""),
-                "author": quote.get("author", ""),
-                "source": quote.get("source", ""),
-                "symbolic_tags": quote.get("symbolic_tags", []),
-                "dimension_scores": quote.get("dimension_scores", {}),
-                "match_score": quote.get("match_score", 0.5),
-                "injection_mode": injection_mode,
-                "metadata_only": True,  # Explicit flag: quotes are metadata, not reasoning
-            }
-        return {}
+        # Resolve context tags. Try tool-curated mapping first (deterministic),
+        # then fall back to dimension-derived tags.
+        canonical_tool = _TOOL_ALIAS_MAP.get(tool_name, tool_name)
+        curated_id = _TOOL_QUOTE_MAP.get(canonical_tool)
+
+        # Use canonical resolver. If curated_id is set, use it via context_tags
+        # by also passing tool_name as a hint (resolvers handle tag match).
+        # Otherwise fall back to dimension expansion.
+        context_tags = resolve_context(context) if context else ["high_uncertainty"]
+        # Always include the tool name as a hint to bias matching
+        if canonical_tool and canonical_tool not in context_tags:
+            context_tags = [canonical_tool] + context_tags
+
+        # Call the canonical resolver (Layer A + B + C + D all enforced)
+        try:
+            result = wisdom_quote_resolve(
+                context_tags=context_tags,
+                intended_use="REFLECTION",
+                stage=stage,
+                enforce_stage_binding=True,
+                maximum_quotes=1,
+            )
+        except QuoteStageError:
+            return {}  # silently skip — stage binding rejected
+
+        # If curated_id exists but resolver didn't pick it, override by
+        # force-loading from the registry and computing its contract.
+        if (not result.quote or result.quote.quote_id != curated_id) and curated_id:
+            from arifosmcp.runtime.quote_registry import load_registry
+            reg = load_registry()
+            for q in reg.get("quotes", []):
+                if q.get("id") == curated_id:
+                    from arifosmcp.runtime.quote_registry import (
+                        compute_apex_fingerprint,
+                        compute_canon_status,
+                        QuoteResult,
+                        build_federation_contract,
+                    )
+                    fp = compute_apex_fingerprint(q, intended_use="REFLECTION")
+                    attr = q.get("attribution", {})
+                    classification = q.get("classification", {})
+                    text = q.get("text", "")
+                    if isinstance(text, dict):
+                        text = text.get("canonical", text.get("normalized", ""))
+                    qres = QuoteResult(
+                        quote_id=curated_id,
+                        text=text,
+                        speaker=attr.get("speaker", "Unknown"),
+                        source_class=attr.get("source_class", ""),
+                        attribution_confidence=attr.get("attribution_confidence", 0.0),
+                        tradition=classification.get("tradition", []),
+                        tags=classification.get("tags", []),
+                        arifos_floors=classification.get("arifos_floors", []),
+                        dark_modes=classification.get("dark_modes", []),
+                        permitted_uses=q.get("usage", {}).get("permitted", []),
+                        disputed=attr.get("source_class") == "DISPUTED_ATTRIBUTION",
+                        is_doctrine=attr.get("source_class") == "ARIFOS_DOCTRINE",
+                    )
+                    result = type(result)(
+                        quote=qres,
+                        selection_reason=f"curated tool quote ({canonical_tool} → {curated_id})",
+                        apex_fingerprint=fp,
+                        canon_status=compute_canon_status(q),
+                        deploy_warrant=fp["deploy_warrant"],
+                        wisdom_contract=build_federation_contract(q, quote_kind="quote", intended_use="REFLECTION"),
+                    )
+                    break
+
+        if not result.quote:
+            return {}
+
+        q = result.quote
+        return {
+            # ── Layer A: APEX fingerprint ──
+            "quote": q.text,
+            "author": q.speaker,
+            "namespace_uri": result.wisdom_contract.get("namespace_uri") if result.wisdom_contract else None,
+            "canon_status": result.canon_status,  # Layer C
+            "deploy_warrant": result.deploy_warrant,  # Layer B
+            "apex_fingerprint": result.apex_fingerprint,  # Layer A
+            "wisdom_contract": result.wisdom_contract,  # Layer B namespace
+            "provenance_warning": result.provenance_warning,
+            "metadata_only": True,
+            "injection_stage": stage,
+            "curated_for_tool": canonical_tool,
+        }
     except Exception as exc:
         logger.debug(f"Philosophy injection failed: {exc}")
         return {}
@@ -532,6 +803,12 @@ def select_philosophy_state(
 __all__ = [
     "SYMBOLIC_TAGS",
     "CONTEXT_DIMENSION_MAP",
+    "APEX_ORGANS",
+    "PERMITTED_STAGES",
+    "compute_apex_fingerprint",
+    "stage_gate",
+    "cache_anchor",
+    "get_cached_anchor",
     "compute_match_score",
     "resolve_context",
     "lookup_tool_quote",
@@ -540,4 +817,194 @@ __all__ = [
     "tags_to_meaning",
     "inject_philosophy",
     "select_philosophy_state",
+    "resolve_quote",
+    "federation_uri",
 ]
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# UNIFIED RESOLVE — Layer A + Layer B + reflection/receipt modes (2026-07-19)
+# ═══════════════════════════════════════════════════════════════════════════════
+# This is the ONE canonical resolution path. Replaces direct calls to:
+#   - quote_registry.wisdom_quote_resolve  (legacy 555/999 stage-bound path)
+#   - philosophy_registry.get_tool_quote_for_envelope (current 8-tool path)
+#   - wisdom_quotes.CIVILIZATIONAL_CANON  (legacy hardcoded path)
+#   - tools.py:_WISDOM_QUOTES  (legacy hardcoded dict)
+# All entry points delegate here. Stage binding is hard-enforced.
+
+VALID_USES = frozenset({"REFLECTION", "RECEIPT", "EDUCATION", "RED_TEAM"})
+GLOBAL_FORBIDDEN_USES = frozenset({"factual_evidence", "verdict_authority"})
+
+
+def resolve_quote(
+    *,
+    quote_id: str | None = None,
+    tool_name: str | None = None,
+    context: str = "",
+    intended_use: str = "REFLECTION",
+    stage: str | None = None,
+    exclude_disputed: bool = False,
+    tradition: str | None = None,
+    verdict_context: dict | None = None,
+) -> dict[str, Any]:
+    """Unified quote resolution — THE ONE path.
+
+    Args:
+        quote_id: Direct lookup by id (highest priority)
+        tool_name: Lookup by tool (curated mapping)
+        context: Free-text context for match_score
+        intended_use: REFLECTION / RECEIPT / EDUCATION / RED_TEAM
+        stage: 555_HEART / 999_RECEIPT / None. Hard gate enforced when set.
+        exclude_disputed: Filter out DISPUTED_ATTRIBUTION entries
+        tradition: Filter by tradition (greek_philosophy, malay, etc.)
+        verdict_context: Optional verdict context for APEX fingerprint scoring
+
+    Returns:
+        {
+            "ok": True/False,
+            "verdict": "OK" | "FORBIDDEN_STAGE" | "NO_MATCH",
+            "quote": {...envelope...} | None,
+            "apex_fingerprint": {...} | None,
+            "stage_check": {"requested": stage, "permitted": bool},
+            "federation_uri": str,
+        }
+    """
+    # ── Stage gate (hard enforcement) ──────────────────────────────────────
+    stage_check = {
+        "requested": stage,
+        "permitted": stage is None or stage in PERMITTED_STAGES,
+    }
+    if stage is not None and stage not in PERMITTED_STAGES:
+        return {
+            "ok": False,
+            "verdict": "FORBIDDEN_STAGE",
+            "verdict_code": "STAGE_BINDING_VIOLATION",
+            "quote": None,
+            "apex_fingerprint": None,
+            "stage_check": stage_check,
+            "federation_uri": federation_uri(quote_id or tool_name or "unknown"),
+            "reason": FORBIDDEN_STAGE_VERDICT["reason"],
+            "requested_stage": stage,
+            "intended_use": intended_use,
+        }
+
+    # ── Validate intended_use ─────────────────────────────────────────────
+    if intended_use not in VALID_USES:
+        return {
+            "ok": False,
+            "verdict": "INVALID_USE",
+            "quote": None,
+            "apex_fingerprint": None,
+            "stage_check": stage_check,
+            "federation_uri": federation_uri(quote_id or tool_name or "unknown"),
+            "reason": f"intended_use must be one of {sorted(VALID_USES)}",
+        }
+
+    # ── Lookup by id (highest priority) ──────────────────────────────────
+    raw_quote = None
+    if quote_id:
+        v2 = _load_v2_registry()
+        if v2 and quote_id in v2.get("by_id", {}):
+            raw_quote = v2["by_id"][quote_id]
+        else:
+            # Check unified/tool registries if v2 misses
+            for reg in (_load_registry(),):
+                if reg and quote_id in {q.get("id"): q for q in reg.get("quotes", [])}:
+                    raw_quote = {q.get("id"): q for q in reg.get("quotes", [])}[quote_id]
+                    break
+
+    # ── Lookup by tool (curated) ─────────────────────────────────────────
+    if raw_quote is None and tool_name:
+        canonical_tool = _TOOL_ALIAS_MAP.get(tool_name, tool_name)
+        v2 = _load_v2_registry()
+        if v2 and v2.get("by_id"):
+            curated_id = _TOOL_QUOTE_MAP.get(canonical_tool)
+            if curated_id and curated_id in v2["by_id"]:
+                raw_quote = v2["by_id"][curated_id]
+        if raw_quote is None:
+            # Fallback: legacy registry lookup
+            legacy = lookup_tool_quote(tool_name, context)
+            if legacy:
+                raw_quote = legacy
+
+    # ── Filter & format ──────────────────────────────────────────────────
+    if raw_quote is None:
+        return {
+            "ok": False,
+            "verdict": "NO_MATCH",
+            "quote": None,
+            "apex_fingerprint": None,
+            "stage_check": stage_check,
+            "federation_uri": federation_uri(quote_id or tool_name or "unknown"),
+            "reason": "No quote found for the given criteria",
+        }
+
+    # Apply filters
+    if exclude_disputed:
+        attr = raw_quote.get("attribution", {}) or {}
+        if attr.get("source_class") == "DISPUTED_ATTRIBUTION":
+            return {
+                "ok": False,
+                "verdict": "NO_MATCH",
+                "quote": None,
+                "apex_fingerprint": None,
+                "stage_check": stage_check,
+                "federation_uri": federation_uri(quote_id or tool_name or "unknown"),
+                "reason": "DISPUTED_ATTRIBUTION excluded by caller",
+            }
+    if tradition:
+        classification = raw_quote.get("classification", {}) or {}
+        if tradition not in (classification.get("tradition") or []):
+            return {
+                "ok": False,
+                "verdict": "NO_MATCH",
+                "quote": None,
+                "apex_fingerprint": None,
+                "stage_check": stage_check,
+                "federation_uri": federation_uri(quote_id or tool_name or "unknown"),
+                "reason": f"tradition={tradition} not in {classification.get('tradition')}",
+            }
+
+    # Check usage permission
+    usage = raw_quote.get("usage", {}) or {}
+    permitted_uses = set(usage.get("permitted") or [])
+    if intended_use not in permitted_uses:
+        return {
+            "ok": False,
+            "verdict": "FORBIDDEN_USE",
+            "quote": None,
+            "apex_fingerprint": None,
+            "stage_check": stage_check,
+            "federation_uri": federation_uri(quote_id or tool_name or "unknown"),
+            "reason": f"intended_use={intended_use} not permitted for this quote",
+        }
+
+    # Format the quote
+    formatted = _format_quote(raw_quote, None)
+    apex = compute_apex_fingerprint(raw_quote, verdict_context)
+
+    return {
+        "ok": True,
+        "verdict": "OK",
+        "quote": formatted,
+        "apex_fingerprint": apex,
+        "stage_check": stage_check,
+        "federation_uri": federation_uri(formatted.get("quote_id", "?")),
+    }
+
+
+def federation_uri(quote_id: str) -> str:
+    """Layer B — federation contract URI scheme (ASI 💃 audit 2026-07-19).
+
+    arifos://wisdom/quotes/{id}
+    arifos://wisdom/fingerprint/{id}
+    arifos://wisdom/canon-status/{id}
+    """
+    if not quote_id or quote_id == "?":
+        return "arifos://wisdom/quotes/unknown"
+    return f"arifos://wisdom/quotes/{quote_id}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DELETE OLD DUAL-PATH CODE (2026-07-19 unification)
+# ═══════════════════════════════════════════════════════════════════════════════
