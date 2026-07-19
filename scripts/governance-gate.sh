@@ -53,14 +53,14 @@ else
     check "AGENTS.md present" FAIL "AGENTS.md missing — agents cannot bootstrap without it"
 fi
 
-# ─── Q3: README.md is comprehensive (≥500 lines)? ────────────────────────
+# ─── Q3: README.md present and honest (not bulk-scored) ───────────────
 README_LINES=$(wc -l < README.md 2>/dev/null || echo 0)
-if [ "$README_LINES" -ge 500 ]; then
-    check "README comprehensive (${README_LINES} lines)" PASS
-elif [ "$README_LINES" -ge 200 ]; then
-    check "README comprehensive (${README_LINES} lines)" WARN "Below 500-line threshold for AGI-level context"
+if [ "$README_LINES" -ge 50 ]; then
+    check "README present (${README_LINES} lines)" PASS
+elif [ "$README_LINES" -ge 20 ]; then
+    check "README present (${README_LINES} lines)" WARN "Sparse — consider expanding"
 else
-    check "README comprehensive (${README_LINES} lines)" FAIL "Too short — needs full AGI-level context"
+    check "README present (${README_LINES} lines)" FAIL "Missing or nearly empty"
 fi
 
 # ─── Q4: LICENSE exists? ────────────────────────────────────────────────
