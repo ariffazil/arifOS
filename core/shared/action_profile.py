@@ -14,11 +14,11 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from re import Pattern
 
 
-class MutationClass(str, Enum):
+class MutationClass(StrEnum):
     READ_ONLY = "READ_ONLY"
     REVERSIBLE = "REVERSIBLE"
     HIGH_IMPACT = "HIGH_IMPACT"
@@ -26,7 +26,7 @@ class MutationClass(str, Enum):
     SOVEREIGN = "SOVEREIGN"
 
 
-class BlastRadius(str, Enum):
+class BlastRadius(StrEnum):
     NONE = "NONE"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -34,7 +34,7 @@ class BlastRadius(str, Enum):
     CRITICAL = "CRITICAL"
 
 
-class GateVerdict(str, Enum):
+class GateVerdict(StrEnum):
     PROCEED = "PROCEED"
     ANNOUNCE = "ANNOUNCE"
     REQUIRE_CONTROLS = "REQUIRE_CONTROLS"
@@ -156,13 +156,37 @@ _PRODUCTION_TARGETS: list[Pattern] = [
 
 _FORCE_PATTERNS: list[Pattern] = [
     re.compile(r"\b--force\b"),
-    re.compile(r"\b-f\b"),
     re.compile(r"\bforce[-\s]?push\b"),
     re.compile(r"\bpush\s+--force\b"),
     re.compile(r"\bgit\s+reset\s+--hard\b"),
-    re.compile(r"\+\w+"),  # force push refspec: git push origin +main
-    re.compile(r"\bgit\s+update-ref\s+-d\b"),  # delete branch ref
+    re.compile(r"\+\w+\b"),  # force push refspec: +main, +branch
+    re.compile(r"\bgit\s+update-ref\s+-d\b"),
 ]
+
+
+def _iter_command_tokens(arguments: list[str], args_text: str, combined: str) -> list[str]:
+    """Return normalized command tokens for flag detection."""
+    if arguments:
+        tokens = [arg for arg in arguments if isinstance(arg, str)]
+    elif args_text:
+        tokens = re.findall(r"\S+", args_text)
+    else:
+        tokens = re.findall(r"\S+", combined)
+    return [token.lower().strip() for token in tokens if token and token.strip()]
+
+
+def _is_long_flag(token: str, flag: str) -> bool:
+    return token == flag or token.startswith(f"{flag}=")
+
+
+def _is_short_flag_cluster(token: str, required_flags: set[str]) -> bool:
+    if not token.startswith("-") or token.startswith("--"):
+        return False
+    cluster = token[1:]
+    if "=" in cluster:
+        cluster = cluster.split("=", 1)[0]
+    cluster = cluster.rstrip("*")
+    return required_flags.issubset(set(cluster))
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -278,16 +302,21 @@ def _detect_destructive(
         if pat.search(exe_lower):
             return True
 
-    # Destructive flags
-    if arguments:
-        for arg in arguments:
-            arg_lower = arg.lower() if isinstance(arg, str) else ""
-            for flag in _DESTRUCTIVE_FLAGS:
-                if flag.rstrip("*") in arg_lower:
-                    return True
-    elif args_text:
+    # Destructive flags (must be standalone args, not substrings)
+    tokens = _iter_command_tokens(arguments, args_text, combined)
+    for token in tokens:
         for flag in _DESTRUCTIVE_FLAGS:
-            if flag.rstrip("*") in args_text.lower():
+            flag_clean = flag.rstrip("*")
+            if flag_clean.startswith("--"):
+                if _is_long_flag(token, flag_clean):
+                    return True
+            elif flag_clean in ("-r", "-f"):
+                if _is_short_flag_cluster(token, {"r", "f"}):
+                    return True
+            elif flag_clean == "-rf":
+                if _is_short_flag_cluster(token, {"r", "f"}):
+                    return True
+            elif token == flag_clean:
                 return True
 
     # Chained destructive commands (e.g., "echo ok && sudo rm -rf /data")
@@ -304,7 +333,15 @@ def _detect_destructive(
             return True
         # "remove" or "delete" + force flags or production paths
         if "remove" in chained_destructive or "delete" in chained_destructive:
-            if re.search(r"(?:-rf|-r|--force|recursively|/var/lib|/etc/|/data/)", combined):
+            if any(
+                _is_long_flag(token, "--force")
+                or _is_long_flag(token, "--delete")
+                or _is_long_flag(token, "--purge")
+                or _is_long_flag(token, "--recursive")
+                or _is_long_flag(token, "--no-preserve-root")
+                or _is_short_flag_cluster(token, {"r", "f"})
+                for token in _iter_command_tokens(arguments, args_text, combined)
+            ) or re.search(r"(?:recursively|/var/lib|/etc/|/data/)", combined):
                 return True
 
     return False
@@ -332,6 +369,12 @@ def _detect_data_loss(executable: str, arguments: list[str], combined: str) -> b
 
 def _detect_force(arguments: list[str], args_text: str, combined: str) -> bool:
     """Detect force override flags."""
+    tokens = _iter_command_tokens(arguments, args_text, combined)
+    for token in tokens:
+        if _is_long_flag(token, "--force"):
+            return True
+        if _is_short_flag_cluster(token, {"f"}):
+            return True
     for pat in _FORCE_PATTERNS:
         if pat.search(combined):
             return True
@@ -539,7 +582,8 @@ def _determine_gates(profile: ActionProfile, is_production: bool) -> None:
 def _determine_verdict(profile: ActionProfile) -> None:
     """Determine the gate verdict based on classified profile.
 
-    Verdict priority: SELF_AUTHORIZATION > HOLD > JUDGE_REQUIRED > REQUIRE_CONTROLS > ANNOUNCE > PROCEED
+    Verdict priority:
+      SELF_AUTHORIZATION > HOLD > JUDGE_REQUIRED > REQUIRE_CONTROLS > ANNOUNCE > PROCEED
     """
     # Self-authorization + mutation = immediate HOLD_SELF_AUTHORIZATION
     if profile.authority_self_issued and profile.mutation_class != MutationClass.READ_ONLY:
