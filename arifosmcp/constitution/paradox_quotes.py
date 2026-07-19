@@ -1206,8 +1206,8 @@ def get_triggered_quotes(organ: Organ | str, context: dict[str, Any]) -> list[Pa
 # ═══════════════════════════════════════════════════════════════════════════════
 # GPV-AWARE TRIGGERING — ATLAS333 Bridge §4
 # ═══════════════════════════════════════════════════════════════════════════════
-# Maps paradox axis IDs (1-33) from atlas.py's PARADOX_GPV_MAP to quote IDs.
-# This is the bridge between the 4-lane GPV router and the 33 philosophical quotes.
+# Maps paradox axis IDs (1-35) from atlas.py's PARADOX_GPV_MAP to quote IDs.
+# This is the bridge between the 4-lane GPV router and 36 canonical quote rows.
 
 # Paradox ID → Quote ID mapping (from ATLAS333_BRIDGE.md §2)
 # Each paradox axis maps to 1-3 quotes across organs.
@@ -1248,10 +1248,12 @@ PARADOX_QUOTE_MAP: dict[int, list[str]] = {
     28: ["R11"],  # Simplicity ↔ Completeness
     29: [],  # Efficiency ↔ Resilience (emerges from risk)
     30: ["J2", "J8"],  # Structure ↔ Flow
-    # ZONE VII: WITNESS (paradoxes 31-33)
+    # ZONE VII: WITNESS (paradoxes 31-35)
     31: ["J10"],  # Witness ↔ Action
     32: ["R3", "J9"],  # Internal ↔ External
     33: ["J10", "R7"],  # Proof ↔ Trust
+    34: ["C1"],  # Root Access ↔ Kernel Governance
+    35: ["C2"],  # Positive Test ↔ Defensive Closure
 }
 
 
@@ -1267,8 +1269,8 @@ def get_triggered_quotes_by_gpv(
     for the string-matching get_triggered_quotes().
 
     Args:
-        paradox_axes: List of paradox IDs (1-33) from GPV.paradox_axes
-        organ: Optional filter by organ (memory/mind/judge). None = all organs.
+        paradox_axes: List of paradox IDs (1-35) from GPV.paradox_axes
+        organ: Optional filter by organ (memory/mind/judge/contour). None = all organs.
         action_class: Optional action class for SEAL/MUTATE gates.
             "SEAL" → adds Zone VII paradoxes (31, 32, 33)
             "MUTATE" → adds Zone VI paradoxes (26-30) if rho >= 0.2
