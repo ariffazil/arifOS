@@ -108,7 +108,7 @@ cuda-pathfinder==1.5.6
     # via cuda-bindings
 cuda-toolkit==13.0.2
     # via torch
-cyclopts==4.21.0
+cyclopts==4.22.0
     # via fastmcp-slim
 dateparser==1.4.1
     # via htmldate
