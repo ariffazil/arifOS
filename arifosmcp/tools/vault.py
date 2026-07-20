@@ -569,7 +569,7 @@ async def arif_seal(
     # After successful seal, index the sealed entry into arif_memory sacred tier.
     # Best-effort — seal already succeeded; index failure is non-fatal (Layer 3 is
     # disposable and rebuildable from the seal chain at any time).
-    if result.get("verdict") == "SEAL":
+    if result.get("verdict", "SEAL") == "SEAL":
         try:
             from arifosmcp.runtime.memory_store import store_v2 as _store
 
