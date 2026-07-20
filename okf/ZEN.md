@@ -123,4 +123,15 @@ APEX dials = the tuning
 Every fact, scar, or discovery has one address: `{primitive[], domain, layer}`.
 No knowledge is homeless. No coordinate is ambiguous.
 
-[type-taxonomy](type-taxonomy.md) · [graph-link](graph-link.md) · [apex-flow](apex-flow.md) · [ATLAS333](atlas333/index.md) · [EUREKA777](eureka777/index.md)
+## Distribution
+
+| Repo | Contains |
+|------|----------|
+| **arifOS/okf/** | ZEN · type-taxonomy · graph-link · apex-flow · ATLAS333 (35 paradoxes) · APEX dials |
+| **AAA/okf/** | EUREKA777 (5 classes, 5 scars) · skills · federation-map |
+| **GEOX/okf/** | Sabah Basin pilot bundle |
+| **A-FORGE/okf/** | Organ definitions |
+| **WEALTH/okf/** | Organ definition |
+| **WELL/okf/** | Organ definition |
+
+[type-taxonomy](type-taxonomy.md) · [graph-link](graph-link.md) · [apex-flow](apex-flow.md) · [ATLAS333](atlas333/index.md) · [EUREKA777 → AAA](/root/AAA/okf/eureka777/index.md)
