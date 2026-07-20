@@ -1,6 +1,7 @@
-> **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
-
 # arifOS Ontology — Governance Glossary
+
+> **UPDATED:** 2026-07-20 — Tool names corrected to current canonical surface.
+> **See also:** [`WISDOM_DISTILLATION.md`](../WISDOM_DISTILLATION.md) for extracted eurekas from archived docs.
 
 **DITEMPA BUKAN DIBERI**
 
@@ -68,23 +69,21 @@ A name must reveal the boundary of authority.
 
 ---
 
-## 5. arifOS 13-Tool Vocabulary
+## 5. arifOS Canonical Tool Vocabulary (8 verbs)
 
 | Stage | Tool | Meaning |
 |---|---|---|
-| 000 INIT | `arif_session_init` | Identity/session anchoring |
-| 111 SENSE | `arif_sense_observe` | Reality observation |
-| 222 FETCH | `arif_evidence_fetch` | Evidence acquisition |
-| 333 MIND | `arif_mind_reason` | Structured reasoning |
-| 444 KERNEL | `arif_kernel_route` | Routing/orchestration |
-| 444r | `arif_reply_compose` | Governed reply synthesis |
-| 555 MEMORY | `arif_memory_recall` | Associative recall |
-| 666 HEART | `arif_heart_critique` | Ethics, dignity, harm scan |
-| 666g GATEWAY | `arif_gateway_connect` | Cross-agent A2A bridge |
-| 777 OPS | `arif_ops_measure` | Resource and entropy telemetry |
-| 888 JUDGE | `arif_judge_deliberate` | Final constitutional arbitration |
-| 999 VAULT | `arif_vault_seal` | Immutable audit seal |
-| 010 FORGE | `arif_forge_execute` | Execution/build under governance |
+| 000 INIT | `arif_init` | Session ignition — binds actor, floors, audit |
+| 111 SENSE | `arif_observe` | Reality observation — search, fetch, vitals |
+| 333 MIND | `arif_think` | Structured reasoning — plan, critique, verify |
+| 444 ROUTE | `arif_route` | Intent→organ router — dispatch to GEOX/WEALTH/WELL |
+| 666 CRITIQUE | `arif_critique` | Ethics/dignity/harm scan |
+| 888 JUDGE | `arif_judge` | Constitutional verdict — SEAL/HOLD/SABAR/VOID |
+| 999 VAULT | `arif_seal` | Immutable VAULT999 append |
+| 010 FORGE | `arif_forge` | Execution gate — dry_run, engineer, query, write |
+
+> **Note:** `arif_memory` (memory governor) and `arif_compose` (response formatting) are auxiliary verbs.
+> The canonical public surface is 8 verbs. This replaces the legacy 13-tool vocabulary (2026-05 era).
 
 ---
 
