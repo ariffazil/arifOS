@@ -476,20 +476,23 @@ mcp = FastMCP(
         "- Truth survives falsification, not assertion.\n"
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
-        "Golden path: init → observe → think → route → critique → judge → forge → compose → seal\n\n"
-        # RSI 2026-06-27: Only advertise public surface tools. Hidden tools
-        # (arif_triage, arif_memory, arif_kernel_attest, etc.) must NOT appear
-        # in instructions — ChatGPT/external callers try to call them and get blocked.
+        "Golden path: init → observe → think → route → memory → judge → forge → seal\n\n"
+        # RSI 2026-07-19: Canonical 8 (was 9). arif_critique absorbed into
+        # arif_think(mode=critique); arif_compose absorbed into arif_forge(mode=compose);
+        # arif_memory promoted to public surface. Source of truth:
+        # constitutional_map.py → KERNEL_ABI_8.
+        # Only advertise public surface tools. Hidden tools
+        # (arif_triage, arif_kernel_attest, etc.) must NOT appear in
+        # instructions — ChatGPT/external callers try to call them and get blocked.
         # Agentic selection: each tool closes a specific gap in the intent→action pipeline.
-        "Canonical 9 — select by gap:\n"
-        "  arif_init   — No session yet? Start here. Binds actor identity.\n"
+        "Canonical 8 — select by gap:\n"
+        "  arif_init    — No session yet? Start here. Binds actor identity.\n"
         "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
-        "  arif_think   — Reasoning gap? Plan, critique, analyze, verify.\n"
+        "  arif_think   — Reasoning gap? Plan, analyze, verify. (arif_critique → mode=critique)\n"
         "  arif_route   — Tool uncertainty? Route intent to correct organ.\n"
-        "  arif_critique — Human risk gap? Run maruah, ethics, and red-team review.\n"
+        "  arif_memory  — Memory gap? Recall, inspect, attest, promote, revise.\n"
         "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
-        "  arif_forge   — Ready to stage execution? Prepare governed execution path.\n"
-        "  arif_compose — Need human-ready output? Format the governed response.\n"
+        "  arif_forge   — Ready to execute? Governed execution path. (arif_compose → mode=compose)\n"
         "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
