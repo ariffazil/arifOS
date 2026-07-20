@@ -351,3 +351,9 @@ The ASI skill `asi_presence_open` triggers a request to initialize a session, bu
 ---
 
 *DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*
+
+---
+## 🔗 See Also
+- [GENESIS Canon](../GENESIS/README.md) — Constitutional source texts
+- [ATLAS333 Intelligence Flow](ATLAS333_INTELLIGENCE_FLOW.md) — Cognitive geometry
+- [Governance Ontology](governance/ONTOLOGY.md)
