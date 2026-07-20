@@ -250,7 +250,9 @@
     "uri_schemes": ["arifos://", "skill://", "tree777://", "sovereign://", "contrast://", "void://", "source://", "receipt://"]
   },
   "prompts": {
-    "count": 8,
-    "names": ["arifosmcp_loop_engineer", "000_init", "111_sense", "333_reason", "555_critique", "666_judge", "777_forge", "999_seal"]
+    "count": 21,
+    "canonical_zen": ["🌱 BOOT", "🌊 WITNESS", "🧠 REASON", "⚖ MARUAH", "🔍 PREFLIGHT", "🔒 JUDGE", "🔥 FORGE", "💎 SEAL", "🌀 SABAR", "📜 REPLY"],
+    "legacy_aliases": ["arif_init_prompt", "constitutional_pre_flight", "agi_reply_protocol_v3", "111_sense", "333_reason", "555_critique", "888_judge", "777_forge", "999_seal", "recursive_governed_loop", "arif_init_prompt_v3"],
+    "registration_note": "Dual registration collapsed 2026-07-20. register_prompts() delegates to zen module (fastmcp_ext/prompts.py)."
   }
 }

@@ -1257,16 +1257,17 @@ _AGENT_INIT_V3_CANON_PATH = "/root/AAA/prompts/INIT.md"
 
 
 def register_prompts(mcp) -> list[str]:
-    """Register 8 Reality Engineering prompts with MCP.
+    """Register all arifOS MCP prompts — delegates to zen sigil module.
 
-    Zen-compact v2026.07.10:
-      - 52K chars → ~20K chars (62% reduction)
-      - 9,260 zen violations → 0
-      - All prompts return messages[] with embedded resources (Bindings #23-26)
-      - FastMCP infers PromptArgument[] from function signature
-      - Docstring Args: drives completion API
-      - Shared constants extracted (F1-F13, APEX, IRON_LAWS, etc.)
+    Consolidated 2026-07-20: dual registration collapsed.
+    Single source of truth: runtime/fastmcp_ext/prompts.py (🌱 BOOT →
+    📜 REPLY). Legacy numeric aliases kept for backward compat until
+    their declared removal epochs (2026-08-16 / 2026-09-16).
     """
+
+    from arifosmcp.runtime.fastmcp_ext.prompts import (
+        register_arifos_prompts as _register_zen,
+    )
 
     # ── Prompt helper: text message (Binding #23) ──
     def _msg_text(text: str, role: str = "user") -> Message:
@@ -1286,7 +1287,8 @@ def register_prompts(mcp) -> list[str]:
             role="user",
         )
 
-    registered = []
+    # Register zen sigil prompts first (10 canonical + 3 aliases)
+    registered = list(_register_zen(mcp))
 
     # ZEN REMOVED (2026-07-16):
     #   arifosmcp_loop_engineer → merged into recursive_governed_loop
@@ -1693,7 +1695,18 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
 
     registered.append("agi_reply_protocol_v3")
 
-    return registered
+    # Deduplicate — legacy numeric aliases may collide with zen module's
+    # transitional aliases (constitutional_pre_flight, agi_reply_protocol_v3).
+    # FastMCP provider handles this at the MCP level; we deduplicate here
+    # for clean return value parity with CANONICAL_PROMPTS.
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for name in registered:
+        if name not in seen:
+            seen.add(name)
+            deduped.append(name)
+
+    return deduped
 
 
 # Context Engine Runner — dry-run surface (compat export for runner burn-in tests)
@@ -1720,19 +1733,27 @@ DITEMPA BUKAN DIBERI — preview is forged carefully, not claimed as done.
 """
 
 CANONICAL_PROMPTS = (
-    "arifosmcp_loop_engineer",
-    "000_init",
+    # ── Zen sigil prompts (canonical — registered first) ──
+    "🌱 BOOT",
+    "arif_init_prompt",  # → 🌱 BOOT alias (removal 2026-08-16)
+    "🌊 WITNESS",
+    "🧠 REASON",
+    "⚖ MARUAH",
+    "🔍 PREFLIGHT",
+    "constitutional_pre_flight",  # → 🔍 PREFLIGHT alias (removal 2026-08-16)
+    "🔒 JUDGE",
+    "🔥 FORGE",
+    "💎 SEAL",
+    "🌀 SABAR",
+    "📜 REPLY",
+    "agi_reply_protocol_v3",  # → 📜 REPLY alias (removal 2026-08-16)
+    # ── Legacy numeric aliases (deprecated, removal 2026-09-16) ──
     "111_sense",
     "333_reason",
     "555_critique",
-    "888_judge",  # canon KERNEL 888 — not 666 (666 = GOVERN)
-    "666_judge",  # DEPRECATED alias of 888_judge (one migration cycle)
+    "888_judge",
     "777_forge",
     "999_seal",
     "recursive_governed_loop",
-    "runner_dry_run",
-    # Audit-driven additions (forged 2026-07-11 — see prompt-audit.md)
-    "constitutional_pre_flight",  # F-03 — single F1-F13 nomenclature
-    "arif_init_prompt_v3",  # F-01 — canonical INIT v3.0 boot contract
-    "agi_reply_protocol_v3",  # F-06/F-07 — version meta + recipient_id
+    "arif_init_prompt_v3",
 )

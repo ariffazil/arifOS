@@ -332,11 +332,11 @@ class TestPrompts:
         assert len(prompt_list) >= 3, f"Only {len(prompt_list)} prompts listed"
 
     def test_metabolic_loop_prompts_present(self, prompt_list: list):
-        """9-stage metabolic loop prompts must be present."""
+        """Zen sigil canonical prompts must be present."""
         prompt_names = {p.get("name", "") for p in prompt_list}
-        required = {"000_init", "111_sense", "333_reason", "888_judge", "999_seal"}
+        required = {"🌱 BOOT", "🌊 WITNESS", "🧠 REASON", "🔒 JUDGE", "💎 SEAL"}
         for name in required:
-            assert name in prompt_names, f"Metabolic prompt '{name}' missing"
+            assert name in prompt_names, f"Zen prompt '{name}' missing"
 
     def test_constitutional_pre_flight_present(self, prompt_list: list):
         """Constitutional pre-flight prompt must be present."""
