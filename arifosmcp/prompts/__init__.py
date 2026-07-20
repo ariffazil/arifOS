@@ -1590,35 +1590,10 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
 
     registered.append("recursive_governed_loop")
 
-    # ── Audit-driven additions (forged 2026-07-11 — see prompt-audit.md) ──
-
-    @mcp.prompt(
-        name="constitutional_pre_flight",
-        title="[LEGACY → 🔍 PREFLIGHT] Constitutional Pre-Flight",
-        description=(
-            "[LEGACY ALIAS → 🔍 PREFLIGHT] Pre-operation F1-F13 check. Deprecated after 2026-09-16. "
-            "Use 🔍 PREFLIGHT instead."
-        ),
-        tags={"prompt", "constitutional", "pre-flight", "F1-F13"},
-        meta={
-            "deprecated_alias_of": "🔍 PREFLIGHT",
-            "removal_epoch": "2026-09-16",
-            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-        },
-    )
-    def constitutional_pre_flight(operation: str = "") -> list[Message]:
-        """Constitutional pre-flight across all 13 floors.
-
-        Args:
-            operation: The operation about to be executed
-        """
-        ctx = f"\n\n## Operation under check\n{operation}\n" if operation else ""
-        return [
-            _msg_text(CONSTITUTIONAL_PRE_FLIGHT_PROMPT + ctx),
-            _msg_resource("arifos://constitution/floors", SHARED_FLOORS),
-        ]
-
-    registered.append("constitutional_pre_flight")
+    # ── Audit-driven alias (forged 2026-07-11 — see prompt-audit.md) ──
+    # constitutional_pre_flight and agi_reply_protocol_v3 are already registered
+    # by the zen module (fastmcp_ext/prompts.py) with earlier removal epochs
+    # (2026-08-16). Duplicate legacy declarations removed 2026-07-20.
 
     @mcp.prompt(
         name="arif_init_prompt_v3",
@@ -1662,43 +1637,10 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
 
     registered.append("arif_init_prompt_v3")
 
-    @mcp.prompt(
-        name="agi_reply_protocol_v3",
-        title="[LEGACY → 📜 REPLY] AGI Reply Protocol v3",
-        description=(
-            "[LEGACY ALIAS → 📜 REPLY] Governed AGI reply envelope. Deprecated after 2026-09-16. "
-            "Use 📜 REPLY instead."
-        ),
-        tags={"prompt", "reply", "RACI", "governed"},
-        meta={
-            "deprecated_alias_of": "📜 REPLY",
-            "removal_epoch": "2026-09-16",
-            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
-        },
-    )
-    def agi_reply_protocol_v3(query: str = "", recipient_id: str = "human") -> list[Message]:
-        """Governed AGI reply composition.
-
-        Args:
-            query: The user's query to address
-            recipient_id: Identifier for the reply recipient (e.g. 'human', or a tenant ID)
-        """
-        ctx = (
-            f"\n\n## Query\n{query}\n## Recipient\n{recipient_id}\n"
-            if query or recipient_id != "human"
-            else ""
-        )
-        return [
-            _msg_text(AGI_REPLY_PROTOCOL_PROMPT + ctx),
-            _msg_resource("arifos://constitution/floors", SHARED_FLOORS),
-        ]
-
-    registered.append("agi_reply_protocol_v3")
-
-    # Deduplicate — legacy numeric aliases may collide with zen module's
-    # transitional aliases (constitutional_pre_flight, agi_reply_protocol_v3).
-    # FastMCP provider handles this at the MCP level; we deduplicate here
-    # for clean return value parity with CANONICAL_PROMPTS.
+    # Deduplicate return list (safety net — prevents stale CANONICAL_PROMPTS
+    # from asserting duplicates if future registrations collide).
+    # constitutional_pre_flight + agi_reply_protocol_v3 duplicate source
+    # declarations were removed 2026-07-20; the zen module is the sole owner.
     seen: set[str] = set()
     deduped: list[str] = []
     for name in registered:

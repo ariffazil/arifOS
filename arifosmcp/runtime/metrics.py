@@ -239,6 +239,13 @@ VERDICT_TOTAL = _counter(
     ["verdict"],  # SEAL, VOID, HOLD_888, PARTIAL
 )
 
+# Prompt Usage Telemetry (2026-07-20 — prompt consolidation)
+PROMPT_GET_TOTAL = _counter(
+    "arifos_prompt_get_total",
+    "Total prompts/get calls — canonical vs legacy alias classification deferred to offline analysis",
+    ["name"],
+)
+
 # ---------------------------------------------------------------------------
 # M3 LLM Token Usage (F2 TRUTH observability)
 # ---------------------------------------------------------------------------
