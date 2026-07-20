@@ -540,6 +540,15 @@ def _run_minimal_stdio_server() -> None:
             try:
                 arguments = params.get("arguments") or {}
                 result = _async_loop.run_until_complete(_get_prompt(name, arguments))
+                # ── Prompt usage telemetry (2026-07-20) ─────────────────
+                # Privacy-safe: records only prompt name and call count.
+                # No prompt arguments or sensitive content logged.
+                try:
+                    from .metrics import PROMPT_GET_TOTAL
+
+                    PROMPT_GET_TOTAL.labels(name=str(name)).inc()
+                except Exception:
+                    pass  # telemetry must never break the call path
                 send({"jsonrpc": "2.0", "id": request_id, "result": result})
             except LookupError as exc:
                 # MCP code -32602: Invalid params / Unknown resource

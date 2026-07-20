@@ -476,20 +476,23 @@ mcp = FastMCP(
         "- Truth survives falsification, not assertion.\n"
         "- Meaning is sovereign-anchored; the machine carries structure, not sense.\n"
         "- Paradox is the boundary scream — the correct response is HOLD.\n\n"
-        "Golden path: init → observe → think → route → critique → judge → forge → compose → seal\n\n"
-        # RSI 2026-06-27: Only advertise public surface tools. Hidden tools
-        # (arif_triage, arif_memory, arif_kernel_attest, etc.) must NOT appear
-        # in instructions — ChatGPT/external callers try to call them and get blocked.
+        "Golden path: init → observe → think → route → memory → judge → forge → seal\n\n"
+        # RSI 2026-07-19: Canonical 8 (was 9). arif_critique absorbed into
+        # arif_think(mode=critique); arif_compose absorbed into arif_forge(mode=compose);
+        # arif_memory promoted to public surface. Source of truth:
+        # constitutional_map.py → KERNEL_ABI_8.
+        # Only advertise public surface tools. Hidden tools
+        # (arif_triage, arif_kernel_attest, etc.) must NOT appear in
+        # instructions — ChatGPT/external callers try to call them and get blocked.
         # Agentic selection: each tool closes a specific gap in the intent→action pipeline.
-        "Canonical 9 — select by gap:\n"
-        "  arif_init   — No session yet? Start here. Binds actor identity.\n"
+        "Canonical 8 — select by gap:\n"
+        "  arif_init    — No session yet? Start here. Binds actor identity.\n"
         "  arif_observe — Evidence gap? Search, fetch, vitals, repo map.\n"
-        "  arif_think   — Reasoning gap? Plan, critique, analyze, verify.\n"
+        "  arif_think   — Reasoning gap? Plan, analyze, verify. (arif_critique → mode=critique)\n"
         "  arif_route   — Tool uncertainty? Route intent to correct organ.\n"
-        "  arif_critique — Human risk gap? Run maruah, ethics, and red-team review.\n"
+        "  arif_memory  — Memory gap? Recall, inspect, attest, promote, revise.\n"
         "  arif_judge   — Decision time? Constitutional verdict (SEAL/HOLD/SABAR/VOID).\n"
-        "  arif_forge   — Ready to stage execution? Prepare governed execution path.\n"
-        "  arif_compose — Need human-ready output? Format the governed response.\n"
+        "  arif_forge   — Ready to execute? Governed execution path. (arif_compose → mode=compose)\n"
         "  arif_seal    — Need finality? Append to VAULT999 immutable ledger.\n\n"
         "DITEMPA BUKAN DIBERI — Forged, Not Given"
     ),
@@ -1474,14 +1477,10 @@ try:
     # NOW run surface assertion — full public + optional mesh registrations done
     _assert_registered_surface(v2_tools_registered)
 
+    # register_prompts() now delegates to zen module (fastmcp_ext/prompts.py)
+    # internally — dual registration collapsed 2026-07-20. Single source of truth.
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
-    # Register additional prompts (constitutional_pre_flight, arif_init_prompt_v3, agi_reply_protocol_v3)
-    try:
-        v2_prompts_registered += register_arifos_prompts(mcp)
-        logger.info("Extended prompts registered: %s", v2_prompts_registered[-3:])
-    except Exception as _prompt_err:
-        logger.warning("Extended prompt registration failed: %s", _prompt_err)
     # Register additional resources (verdict, continuity, vitals, init prompts)
     try:
         v2_resources_registered += register_arifos_resources(mcp)
@@ -3373,7 +3372,9 @@ if app:
         )
 
         register_federation_probe_routes(app)
-        logger.info("Federation probe layered contract registered on /api/federation-probe + /api/observatory/v1/federation-manifest")
+        logger.info(
+            "Federation probe layered contract registered on /api/federation-probe + /api/observatory/v1/federation-manifest"
+        )
     except Exception as e:
         logger.warning(f"Federation probe route registration failed (non-fatal): {e}")
 
