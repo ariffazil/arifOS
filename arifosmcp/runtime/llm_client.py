@@ -93,6 +93,9 @@ MIMO_MODEL = os.getenv("MIMO_DEFAULT_MODEL", "mimo-v2.5-pro")
 # bge-m3 embedding use remains independent of this guarded fallback path.
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
+# CPU-only local generation is too slow for the governed request path. Keep it
+# opt-in while retaining Ollama as the independent bge-m3 embedding backend.
+OLLAMA_TEXT_ENABLED = os.getenv("OLLAMA_TEXT_ENABLED", "false").lower() in {"1", "true", "yes"}
 
 # Tier 2.5 — ILMU hosted fallback (2026-06-03, replaces ollama as Tier 2)
 # BLOCKED per FFF 2026-06-15. Removed from cascade.
@@ -1244,26 +1247,28 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
-    # Tier 2.5 — local Ollama text-generation fallback.
-    try:
-        t0 = time.monotonic()
-        raw_output, parsed = await _call_ollama(
-            system, user, response_schema, temperature, max_tokens
-        )
-        return _make_envelope(
-            raw_output,
-            parsed,
-            "ollama",
-            OLLAMA_MODEL,
-            tool_origin,
-            mode,
-            combined_prompt,
-            (time.monotonic() - t0) * 1000,
-            response_schema,
-            trace_recursion_depth,
-        )
-    except LLMUnavailableError:
-        pass
+    # Tier 2.5 — opt-in local text generation. Ollama remains enabled for
+    # embeddings even when this CPU-bound generation path is disabled.
+    if OLLAMA_TEXT_ENABLED:
+        try:
+            t0 = time.monotonic()
+            raw_output, parsed = await _call_ollama(
+                system, user, response_schema, temperature, max_tokens
+            )
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "ollama",
+                OLLAMA_MODEL,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            pass
 
     # Tier 3 — deterministic rule fallback. Provider outages are not floor violations,
     # so fail closed with HOLD; VOID remains reserved for a hard-floor decision.
@@ -1302,6 +1307,8 @@ async def check_provider_health() -> dict[str, Any]:
     status: dict[str, Any] = {
         "primary": "unknown",
         "fallback": "unknown",
+        "ollama_embedding": "unknown",
+        "ollama_text": "enabled" if OLLAMA_TEXT_ENABLED else "disabled",
         "active_provider": "none",
         "errors": [],
     }
@@ -1343,18 +1350,36 @@ async def check_provider_health() -> dict[str, Any]:
             status["sea_lion"] = "unreachable"
             status["errors"].append(f"SEA-LION: {exc}")
 
-    # Check Ollama (local text fallback)
+    # Check Ollama. Embeddings are production-enabled independently from the
+    # opt-in CPU text fallback, so report their readiness separately.
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             r = await client.get(f"{OLLAMA_BASE_URL}/api/tags")
             if r.status_code == 200:
                 models = r.json().get("models", [])
-                status["fallback"] = "reachable"
-                status["ollama_models"] = [m.get("name") for m in models]
+                model_names = [m.get("name") for m in models]
+                status["ollama_models"] = model_names
+                status["ollama_embedding"] = (
+                    "reachable"
+                    if any(name in {"bge-m3", "bge-m3:latest"} for name in model_names)
+                    else "model_missing"
+                )
+                if OLLAMA_TEXT_ENABLED:
+                    status["fallback"] = (
+                        "reachable"
+                        if OLLAMA_MODEL in model_names
+                        else "model_missing"
+                    )
+                else:
+                    status["fallback"] = "disabled"
             else:
-                status["fallback"] = f"http_{r.status_code}"
+                status["ollama_embedding"] = f"http_{r.status_code}"
+                if OLLAMA_TEXT_ENABLED:
+                    status["fallback"] = f"http_{r.status_code}"
     except Exception as exc:
-        status["fallback"] = "unreachable"
+        status["ollama_embedding"] = "unreachable"
+        if OLLAMA_TEXT_ENABLED:
+            status["fallback"] = "unreachable"
         status["errors"].append(f"Ollama: {exc}")
 
     # Check MiMo (Tier 1.5 — TokenPlan mimo-v2.5-pro)
@@ -1375,7 +1400,8 @@ async def check_provider_health() -> dict[str, Any]:
             status["mimo"] = "unreachable"
             status["errors"].append(f"MiMo: {exc}")
 
-    # Determine active provider (match cascade: M3 → MiMo → SEA-LION → Ollama)
+    # Determine active provider (match cascade: M3 → MiMo → SEA-LION, then
+    # Ollama only when its CPU text path was explicitly enabled).
     # ILMU BLOCKED per FFF 2026-06-15 — not in cascade
     if status["primary"] == "reachable":
         status["active_provider"] = "minimax"
@@ -1386,7 +1412,7 @@ async def check_provider_health() -> dict[str, Any]:
     elif status.get("ilmu") == "reachable":
         status["active_provider"] = "ilmu_blocked_fff"
         status["ilmu_status"] = "BLOCKED per FFF 2026-06-15 — not in cascade"
-    elif status.get("fallback") == "reachable":
+    elif OLLAMA_TEXT_ENABLED and status.get("fallback") == "reachable":
         status["active_provider"] = "ollama"
     else:
         status["active_provider"] = "none"
