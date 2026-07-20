@@ -338,7 +338,14 @@ def check_protocol_version() -> dict[str, Any]:
 
 
 def check_schema_echo_stable() -> dict[str, Any]:
-    """4. Public init schema must be declared and callable."""
+    """4. Public init schema must be declared and callable (v2 envelope compat).
+
+    The v2 envelope no longer carries `kernel` / `observe_only` at the
+    top level.  Instead we verify:
+      - inputSchema declares ``mode``
+      - tools/call arif_init(mode=ping) completes without MCP-level error
+      - response carries ``called_from_kernel`` (proves the tool fired)
+    """
     session_id = _get_session()
 
     t0 = time.monotonic()
@@ -358,9 +365,29 @@ def check_schema_echo_stable() -> dict[str, Any]:
     )
     latency_ms = round((time.monotonic() - t0) * 1000, 1)
 
+    # v2 envelope: success = no MCP error + content present
+    mcp_error = result.get("error")
+    has_content = bool(result.get("result", {}).get("content", []))
+    call_ok = not mcp_error and has_content
+
+    # Secondary check: probe both extracted AND top-level for v2 signatures
     tool_result = _extract_tool_result(result)
-    call_ok = tool_result.get("kernel") == "alive" and tool_result.get("observe_only") is True
-    passed = bool(init_tool) and mode_declared and call_ok
+    kernel_signal = (
+        tool_result.get("called_from_kernel") is True
+    )
+
+    # If extraction stripped the top-level, re-parse from raw content
+    if not kernel_signal:
+        outer = result.get("result", {})
+        content = outer.get("content", [])
+        if content and isinstance(content[0], dict):
+            try:
+                raw_parsed = json.loads(content[0].get("text", "{}"))
+                kernel_signal = raw_parsed.get("called_from_kernel") is True
+            except Exception:
+                pass
+
+    passed = bool(init_tool) and mode_declared and call_ok and kernel_signal
     return {
         "check": "schema_echo_stable",
         "verdict": PASS if passed else FAIL,
@@ -369,14 +396,23 @@ def check_schema_echo_stable() -> dict[str, Any]:
             "tool": "arif_init",
             "schema_present": bool(input_schema),
             "mode_declared": mode_declared,
-            "call_status": "OK" if call_ok else tool_result.get("status"),
-            "error": result.get("error"),
+            "call_ok": call_ok,
+            "kernel_signal": kernel_signal,
+            "error": str(mcp_error) if mcp_error else None,
         },
     }
 
 
 def check_session_starts() -> dict[str, Any]:
-    """5. arif_init must return READY with a session ID."""
+    """5. arif_init(mode=light) must return a non-anonymous session_id.
+
+    The v2 envelope wraps the tool result.  ``_extract_tool_result``
+    may drill into a nested ``result`` key, so we check TWO levels:
+      - The extracted inner result (for status)
+      - The top-level parsed dict (for session_id / session_token)
+    A valid session has either a real session_id (not 'unknown')
+    or a session_token (sct_v1).
+    """
     session_id = _get_session()
     t0 = time.monotonic()
     result = _mcp_post(
@@ -396,21 +432,33 @@ def check_session_starts() -> dict[str, Any]:
     tool_result = _extract_tool_result(result)
     error = result.get("error") or tool_result.get("error")
 
-    # Accept any shape that has status READY/OK/SEAL or session_id/session
-    # BANGANG #1 fix: Accept "SEAL" for backward compat but normalize to "OK".
-    _raw_status = tool_result.get("status")
+    # Also parse the top-level content dict (before extraction) for session_id
+    top_level: dict[str, Any] = {}
+    outer = result.get("result", {})
+    content = outer.get("content", [])
+    if content and isinstance(content[0], dict):
+        try:
+            top_level = json.loads(content[0].get("text", "{}"))
+        except Exception:
+            pass
+
+    _raw_status = tool_result.get("status") or top_level.get("status")
+    _raw_sid = tool_result.get("session_id") or top_level.get("session_id") or ""
+    _raw_token = tool_result.get("session_token") or top_level.get("session_token") or ""
+
+    # Pass: status is READY/SEAL/OK, OR has a real session_id, OR has an sct token
     passed = (
         _raw_status in ("READY", "SEAL", "OK", "ok", "seal")
-        or bool(tool_result.get("session_id"))
-        or bool(tool_result.get("session"))
+        or (_raw_sid and _raw_sid not in ("unknown", "none", ""))
+        or (_raw_token.startswith("sct_v1.") if _raw_token else False)
     )
     return {
         "check": "session_starts",
         "verdict": PASS if passed else FAIL,
         "latency_ms": latency_ms,
         "evidence": {
-            "status": tool_result.get("status"),
-            "session_id": tool_result.get("session_id") or tool_result.get("session"),
+            "status": _raw_status,
+            "session_id": _raw_sid or _raw_token[:20],
             "error": error,
         },
     }
