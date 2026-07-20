@@ -30,6 +30,7 @@ def remote_providers_offline(monkeypatch: pytest.MonkeyPatch) -> dict[str, Async
 @pytest.fixture
 def ollama_response(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     """Serve a valid local response while all remote providers remain offline."""
+    monkeypatch.setattr(llm_client, "OLLAMA_TEXT_ENABLED", True)
     parsed = {
         "status": "HOLD",
         "verdict": "HOLD",
@@ -65,6 +66,7 @@ async def test_sea_lion_and_ollama_offline_use_deterministic_hold(
     remote_providers_offline: dict[str, AsyncMock],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(llm_client, "OLLAMA_TEXT_ENABLED", True)
     ollama = AsyncMock(side_effect=_provider_offline)
     monkeypatch.setattr(llm_client, "_call_ollama", ollama)
 
@@ -103,3 +105,23 @@ async def test_all_providers_offline_never_void_without_hard_floor(
     assert envelope.parsed_output["verdict"] != "VOID"
     assert envelope.parsed_output["verdict"] in {"HOLD", "SABAR"}
     assert envelope.parsed_output["violated_floors"] == []
+
+
+@pytest.mark.asyncio
+async def test_ollama_text_disabled_skips_cpu_generation(
+    remote_providers_offline: dict[str, AsyncMock],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(llm_client, "OLLAMA_TEXT_ENABLED", False)
+    ollama = AsyncMock(side_effect=_provider_offline)
+    monkeypatch.setattr(llm_client, "_call_ollama", ollama)
+
+    envelope = await llm_client.call_llm(
+        system="Return a constitutional provider verdict.",
+        user="Assess a reversible test action.",
+        tool_origin="333_REASON",
+        mode="reason",
+    )
+
+    ollama.assert_not_awaited()
+    assert envelope.provider == "deterministic_fallback"
