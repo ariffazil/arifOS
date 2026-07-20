@@ -875,11 +875,12 @@ def _build_delta_bundle(
     return bundle
 
 
-def _run_reasoning_sync(coro: Any, timeout: float = 70.0) -> Any:
+def _run_reasoning_sync(coro: Any, timeout: float = 35.0) -> Any:
     """Run coroutine in sync context, including when caller already has an active event loop.
 
     L13 TIMEOUT_SAFE: Hard timeout prevents indefinite hangs when LLM backends stall.
-    Default 15s balances SEA-LION latency (~1-3s) against CPU-Ollama slowness.
+    Default 35s covers the full cascade budget: TokenRouter(10s) + MiniMax(20s) + buffer.
+    Previous 70s was excessive — frozen event loop for 70s = effective outage.
     """
     try:
         asyncio.get_running_loop()
