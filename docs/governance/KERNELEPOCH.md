@@ -1,16 +1,16 @@
 > **⚠️ HISTORICAL RECORD** — Uses deprecated tool names (`arif_judge_deliberate`, `arif_vault_seal`). See [HISTORICAL_NOTICE.md](../../HISTORICAL_NOTICE.md). Names were correct at time of writing.
 
 # KERNEL EPOCH — Session Epoch Specification
-**Floor:** F11 IDENTITY | **Authority:** ARIF FAZIL (267378578)
-**Status:** OPERATIVE | **Sealed:** 2026-05-11
+**Floor:** F11 AUDIT | **Authority:** ARIF (888)
+**Status:** OPERATIVE | **Sealed:** 2026-05-11 | **Updated:** 2026-07-20 (tool names corrected)
 
 ---
 
 ## Purpose
 
 Defines the epoch contract for arifOS sessions. An epoch is the atomic unit of
-governed computation — it starts at `arif_session_init`, ends at `arif_vault_seal`,
-and is immutable once sealed. F11 ensures identity continuity across the epoch.
+governed computation — it starts at `arif_init`, ends at `arif_seal`,
+and is immutable once sealed. F11 ensures audit continuity across the epoch.
 
 ---
 
