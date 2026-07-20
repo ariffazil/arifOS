@@ -207,7 +207,7 @@ h11==0.16.0
     #   uvicorn
 h2==4.3.0
     # via httpx
-hf-xet==1.5.1
+hf-xet==1.5.2
     # via huggingface-hub
 hpack==4.2.0
     # via h2
