@@ -3,6 +3,12 @@
 > **DITEMPA BUKAN DIBERI** — Forged, Not Given.
 > **Graph-connected 2026-07-20 · All orphans resolved · ATLAS333-mapped**
 
+## 🔬 Wisdom Distillation
+
+> **Eurekas preserved from archived documentation.**
+> [`WISDOM_DISTILLATION.md`](WISDOM_DISTILLATION.md) — 13 key insights from 8 archived files, hardened into survival documents.
+> Original files → [`archive/cleanup-2026-07-20/`](archive/cleanup-2026-07-20/README.md)
+
 ## 🧭 Entry Points
 
 | Resource | Path | Description |
