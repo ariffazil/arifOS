@@ -979,6 +979,21 @@ class AttributionChain(BaseModel):
         return self
 
 
+class BlastRadius(StrEnum):
+    """PRL Consequence Classification — structural, NOT semantic.
+    
+    Tagged at seal time by the sovereign.  Payload-filtered by prl_gate.py
+    to prevent autoimmune misfire (L1 precedent never matches L3 query).
+    
+    These are NOT derived from embeddings.  They are sovereign-classified
+    consequence tiers that the PRL uses for compartmentalisation.
+    """
+    
+    L1_LOCAL = "L1_LOCAL"         # Reversible, single file/session scope
+    L2_SYSTEM = "L2_SYSTEM"       # Modifies config, multi-agent state
+    L3_CRITICAL = "L3_CRITICAL"   # Irreversible, data destruction, external-facing
+
+
 class SealOutput(BaseModel):
     """
     Full output for arif_seal (999_VAULT).
@@ -1130,6 +1145,16 @@ class SealOutput(BaseModel):
         "— the geological equivalent of a missing layer in the stratigraphic column. "
         "Named after Arif's Layang-Layang scar: work existed, truth was correct, "
         "but attribution was erased.",
+    )
+
+    # ── PRL: Precedent Retrieval Layer — Blast Radius Classification ────────
+    # Sovereign-classified consequence tier.  Payload-filtered by prl_gate.py.
+    # L1_LOCAL = reversible file/session.  L2_SYSTEM = config/multi-agent.
+    # L3_CRITICAL = irreversible, data-destruction, external-facing.
+    # Default L2 for backward compatibility with unclassified historical seals.
+    blast_radius: BlastRadius | str | None = Field(
+        default=None,
+        description="Sovereign-classified consequence tier for PRL payload filtering",
     )
 
     # ── DAG Bridge: Layer 1 → Layer 2 (evidence_sha + reversion_event) ──────
