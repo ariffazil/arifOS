@@ -1477,14 +1477,10 @@ try:
     # NOW run surface assertion — full public + optional mesh registrations done
     _assert_registered_surface(v2_tools_registered)
 
+    # register_prompts() now delegates to zen module (fastmcp_ext/prompts.py)
+    # internally — dual registration collapsed 2026-07-20. Single source of truth.
     v2_prompts_registered = register_prompts(mcp)
     v2_resources_registered = register_resources(mcp)
-    # Register additional prompts (constitutional_pre_flight, arif_init_prompt_v3, agi_reply_protocol_v3)
-    try:
-        v2_prompts_registered += register_arifos_prompts(mcp)
-        logger.info("Extended prompts registered: %s", v2_prompts_registered[-3:])
-    except Exception as _prompt_err:
-        logger.warning("Extended prompt registration failed: %s", _prompt_err)
     # Register additional resources (verdict, continuity, vitals, init prompts)
     try:
         v2_resources_registered += register_arifos_resources(mcp)
@@ -3376,7 +3372,9 @@ if app:
         )
 
         register_federation_probe_routes(app)
-        logger.info("Federation probe layered contract registered on /api/federation-probe + /api/observatory/v1/federation-manifest")
+        logger.info(
+            "Federation probe layered contract registered on /api/federation-probe + /api/observatory/v1/federation-manifest"
+        )
     except Exception as e:
         logger.warning(f"Federation probe route registration failed (non-fatal): {e}")
 
