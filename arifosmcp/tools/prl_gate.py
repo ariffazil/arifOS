@@ -137,14 +137,14 @@ def query_precedent(
             ],
         )
 
-        results = client.search(
+        results = client.query_points(
             collection_name=PRL_COLLECTION,
-            query_vector=vector,
+            query=vector,
             query_filter=payload_filter,
             limit=top_k,
-            with_payload=True,
             score_threshold=PRL_SCORE_THRESHOLD,
-        )
+            with_payload=True,
+        ).points
     except Exception as exc:
         logger.error("PRL gate: Qdrant search failed: %s", exc)
         return PrecedentResult(matched=False, hold_for_sovereign=False)
