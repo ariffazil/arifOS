@@ -140,6 +140,48 @@ When governance kernel returns 0.0 for witness scores, these defaults are applie
 - **Code**: <https://github.com/ariffazil/arifOS>
 
 
+## DAG Cognition Bridge — Tri-Layer Wiring (FORGED 2026-07-20)
+
+The arifOS kernel already embodies the tri-layer DAG cognition architecture.
+No new modules — just explicit bridge points between existing components.
+
+### Ontological Map
+
+| Temporal Domain | arifOS Component | DAG Equivalent | Bridge Point |
+|---|---|---|---|
+| **Execution** (Layer 1) | A-FORGE leases + session trails | Branchable execution DAG | `evidence_sha` param on `arif_seal` |
+| **Authority** (Layer 2) | VAULT999 seal chain | Immutable linear ledger | `SealOutput.evidence_sha` field |
+| **Semantics** (Layer 3) | `arif_memory` L1-L6 tiers | Disposable rebuildable index | `arif_memory(mode='seal')` → sacred tier |
+
+### Bridge Mechanics
+
+**L1 → L2 (Execution → Authority):**
+When A-FORGE completes a subagent lease, the terminal execution SHA is passed
+to `arif_seal(evidence_sha=<sha>, ...)` as evidence payload.
+VAULT999 stores the ruling; the SHA points back to the full execution trail.
+
+**L2 → L3 (Authority → Semantics):**
+After a successful seal, `arif_memory(mode='seal')` stores the sealed entry
+as sacred tier (L4), indexed for semantic recall.  The index is disposable —
+rebuildable from the seal chain at any time.
+
+**Rewind Bridge (F1 Amanah):**
+When an execution path is rewound, Layer 1 shifts the state pointer.
+Layer 2 seals a NEW entry with `reversion_event: {previous_sha, reason, new_sha}` —
+appending to history, not overwriting it.  The reversion IS the history.
+
+### Boundary Integrity
+
+- Layer 1 is mutable and rewindable (execution sandbox)
+- Layer 2 is immutable and append-only (constitutional ledger)
+- Layer 3 is disposable and rebuildable (semantic access)
+- No cross-layer mutation: Layer 2 never edits Layer 1 state,
+  Layer 3 never holds truth hostage
+
+See `arifosmcp/schemas/verdict.py:1135-1145` for the `evidence_sha` +
+`reversion_event` field definitions on `SealOutput`.
+
+
 ---
 
 **DITEMPA BUKAN DIBERI — Forged, Not Given**
