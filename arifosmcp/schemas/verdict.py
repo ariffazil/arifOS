@@ -1132,6 +1132,18 @@ class SealOutput(BaseModel):
         "but attribution was erased.",
     )
 
+    # ── DAG Bridge: Layer 1 → Layer 2 (evidence_sha + reversion_event) ──────
+    # No new files.  arif_seal entries ARE the DAG nodes — these fields
+    # just give the seal vocabulary to reference execution branches.
+    evidence_sha: str | None = Field(
+        default=None,
+        description="Terminal SHA of subagent execution branch.  F2 + F11.",
+    )
+    reversion_event: dict[str, Any] | None = Field(
+        default=None,
+        description="{previous_sha, reason, new_sha}.  Rewind is a new seal.  F1.",
+    )
+
     # ── Spine P0: SCT continuity echo ───────────────────────────────────────
     session_token: str | None = Field(
         default=None,

@@ -53,6 +53,8 @@ async def arif_seal(
     policy_digest: str | None = None,
     cooldown_entry_id: str | None = None,
     genesis_card_hash: str | None = None,
+    evidence_sha: str | None = None,
+    reversion_event: dict[str, Any] | None = None,
 ) -> SealOutput:
     """
     999_VAULT: Immutable ledger anchoring.
@@ -524,6 +526,12 @@ async def arif_seal(
             # Non-fatal — seal already succeeded; update is additive
             result["meta"] = result.get("meta", {})
             result["meta"]["atlas333_update_error"] = str(exc)
+
+    # ── DAG Bridge: inject evidence_sha + reversion_event into seal ──────
+    if evidence_sha:
+        result["evidence_sha"] = evidence_sha
+    if reversion_event:
+        result["reversion_event"] = reversion_event
 
     return _echo_standing(SealOutput(**result))
 
