@@ -527,11 +527,85 @@ async def arif_seal(
             result["meta"] = result.get("meta", {})
             result["meta"]["atlas333_update_error"] = str(exc)
 
+    # ── Route 3: L2 → L3 post-seal memory sync (Tri-Layer Protocol) ──────
+    # After every successful seal, synchronise the semantic index (L3)
+    # with the immutable ledger (L2).  Non-fatal — seal already succeeded.
+    # If the index corrupts, delete and rebuild from VAULT999 entries.
+    # F2: index is derived, not authoritative.  F4: ΔS < 0.
+    if result.get("verdict") == "SEAL" and session_id:
+        try:
+            from arifosmcp.runtime.megaTools.tool_13_arif_memory import arif_memory as _mem
+
+            _mem_result = await _mem(
+                mode="remember",
+                payload={
+                    "content": payload[:800] if payload else "seal",
+                    "tier": "L2",
+                    "memory_authority": {
+                        "provenance": "arif_seal",
+                        "source_receipts": [result.get("entry_id", "")],
+                        "truth_class": "DERIVED",
+                    },
+                },
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l3_sync"] = {
+                "synced": True,
+                "tier": "L2",
+            }
+        except Exception as _l3e:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l3_sync"] = {"synced": False, "error": str(_l3e)[:200]}
+
     # ── DAG Bridge: inject evidence_sha + reversion_event into seal ──────
     if evidence_sha:
         result["evidence_sha"] = evidence_sha
     if reversion_event:
         result["reversion_event"] = reversion_event
+
+    # ── DAG Bridge L2→L3: post-seal auto-index into semantic layer ──────
+    # After successful seal, index the sealed entry into arif_memory sacred tier.
+    # Best-effort — seal already succeeded; index failure is non-fatal (Layer 3 is
+    # disposable and rebuildable from the seal chain at any time).
+    if result.get("verdict") == "SEAL":
+        try:
+            from arifosmcp.runtime.memory_store import store_v2 as _store
+
+            _index_entry = {
+                "content": payload[:4096] if payload else "",
+                "tier": "sacred",
+                "provenance": "sealed",
+                "phoenix_state": "sealed",
+                "tags": ["sealed", "L4", "dag-bridge", "auto-index"],
+                "metadata": {
+                    "seal_timestamp": result.get("timestamp"),
+                    "receipt_id": result.get("receipt_id"),
+                    "evidence_sha": evidence_sha,
+                    "reversion_from": (
+                        reversion_event.get("previous_sha")
+                        if reversion_event else None
+                    ),
+                },
+            }
+            _store(_index_entry)
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l2_l3_bridge"] = {
+                "indexed": True,
+                "tier": "sacred",
+                "note": (
+                    "Auto-indexed to arif_memory sacred tier — "
+                    "disposable, rebuildable from seal chain."
+                ),
+            }
+        except Exception as exc:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l2_l3_bridge"] = {
+                "indexed": False,
+                "error": str(exc),
+                "note": "Index failure is non-fatal — Layer 3 is rebuildable from DAG.",
+            }
 
     return _echo_standing(SealOutput(**result))
 
