@@ -207,7 +207,7 @@ h11==0.16.0
     #   uvicorn
 h2==4.3.0
     # via httpx
-hf-xet==1.5.1
+hf-xet==1.5.2
     # via huggingface-hub
 hpack==4.2.0
     # via h2
@@ -434,7 +434,7 @@ openapi-pydantic==0.5.1
     # via fastmcp-slim
 openpyxl==3.1.5
     # via arifos (pyproject.toml)
-opentelemetry-api==1.43.0
+opentelemetry-api==1.44.0
     # via
     #   arifos (pyproject.toml)
     #   fastmcp-slim
@@ -445,31 +445,31 @@ opentelemetry-api==1.43.0
     #   opentelemetry-semantic-conventions
     #   pydantic-ai-slim
     #   pydocket
-opentelemetry-exporter-otlp-proto-common==1.43.0
+opentelemetry-exporter-otlp-proto-common==1.44.0
     # via opentelemetry-exporter-otlp-proto-http
-opentelemetry-exporter-otlp-proto-http==1.43.0
+opentelemetry-exporter-otlp-proto-http==1.44.0
     # via logfire
-opentelemetry-instrumentation==0.64b0
+opentelemetry-instrumentation==0.65b0
     # via
     #   logfire
     #   opentelemetry-instrumentation-httpx
-opentelemetry-instrumentation-httpx==0.64b0
+opentelemetry-instrumentation-httpx==0.65b0
     # via logfire
-opentelemetry-proto==1.43.0
+opentelemetry-proto==1.44.0
     # via
     #   opentelemetry-exporter-otlp-proto-common
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-sdk==1.43.0
+opentelemetry-sdk==1.44.0
     # via
     #   arifos (pyproject.toml)
     #   logfire
     #   opentelemetry-exporter-otlp-proto-http
-opentelemetry-semantic-conventions==0.64b0
+opentelemetry-semantic-conventions==0.65b0
     # via
     #   opentelemetry-instrumentation
     #   opentelemetry-instrumentation-httpx
     #   opentelemetry-sdk
-opentelemetry-util-http==0.64b0
+opentelemetry-util-http==0.65b0
     # via opentelemetry-instrumentation-httpx
 orjson==3.11.9
     # via
