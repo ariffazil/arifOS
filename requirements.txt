@@ -566,7 +566,7 @@ pydantic==2.13.4
     #   pydantic-graph
     #   pydantic-settings
     #   qdrant-client
-pydantic-ai==2.5.0
+pydantic-ai==2.13.0
     # via arifos (pyproject.toml)
 pydantic-ai-slim==2.5.0
     # via
@@ -574,7 +574,7 @@ pydantic-ai-slim==2.5.0
     #   pydantic-evals
 pydantic-core==2.47.0
     # via pydantic
-pydantic-evals==2.5.0
+pydantic-evals==2.13.0
     # via pydantic-ai-slim
 pydantic-graph==2.5.0
     # via pydantic-ai-slim

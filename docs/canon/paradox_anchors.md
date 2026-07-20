@@ -258,3 +258,8 @@ The 6 executable floors (F1, F2, F6, F9, F11, F13) are the runtime enforcement s
         "norm": "WAJIB",
     },
 ]
+
+---
+## 🔗 See Also
+- [ATLAS333 Intelligence Flow](../ATLAS333_INTELLIGENCE_FLOW.md) — Full paradox lattice
+- [ATLAS333 Evergreen](../../core/shared/ATLAS333_EVERGREEN.md) — Kernel definitions

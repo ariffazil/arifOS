@@ -491,3 +491,9 @@ This document is **evergreen**. Update it when:
 ---
 
 *Forged 2026-07-15 by ATLAS333 Bridge Session. DITEMPA BUKAN DIBERI.*
+
+---
+## 🔗 See Also
+- [ATLAS333 Evergreen (Kernel)](../core/shared/ATLAS333_EVERGREEN.md) — Canonical paradox definitions
+- [GENESIS Canon](../GENESIS/README.md) — Constitutional documents
+- [Governance Ontology](governance/ONTOLOGY.md) — Governance terms
