@@ -775,7 +775,7 @@ tqdm==4.69.0
     #   transformers
 trafilatura==2.1.0
     # via arifos (pyproject.toml)
-transformers==5.13.1
+transformers==5.14.1
     # via
     #   arifos (pyproject.toml)
     #   sentence-transformers
