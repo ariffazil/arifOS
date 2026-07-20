@@ -136,11 +136,54 @@ def vectorize_seal(
         return False
 
 
+def _embed_with_retry(text: str, dim: int, max_retries: int = 4) -> list[float]:
+    """Embed text with exponential backoff retry for Ollama timeouts.
+
+    Handles 408 (Timeout) and 503 (Service Unavailable) from local Ollama.
+    Exponential backoff: 2s → 4s → 8s → 16s.
+
+    Args:
+        text: Text to embed.
+        dim: Target vector dimension.
+        max_retries: Maximum retry attempts (default 4).
+
+    Returns:
+        Vector as list[float].
+
+    Raises:
+        RuntimeError if all retries exhausted.
+    """
+    last_error: Exception | None = None
+    for attempt in range(max_retries + 1):
+        try:
+            return embed(text, dim=dim)
+        except Exception as exc:
+            last_error = exc
+            if attempt < max_retries:
+                wait = 2 ** (attempt + 1)  # 2, 4, 8, 16 seconds
+                logger.warning(
+                    "PRL embed retry %d/%d after %.1fs: %s",
+                    attempt + 1,
+                    max_retries,
+                    wait,
+                    exc,
+                )
+                time.sleep(wait)
+    raise RuntimeError(f"Embed failed after {max_retries} retries: {last_error}")
+
+
 def backfill_historical(
     vault_dir: str | None = None,
     default_blast_radius: str = "L2_SYSTEM",
+    batch_size: int = 10,
+    batch_cooldown: float = 3.0,
+    show_progress: bool = True,
 ) -> dict[str, Any]:
     """Read existing VAULT999 entries and index them into the PRL Qdrant collection.
+
+    Processes entries in batches with cooldown between batches to avoid
+    overwhelming local Ollama embedding queues.  Uses exponential-backoff
+    retry for transient Ollama failures (408/503).
 
     Safe default blast_radius = L2_SYSTEM for unclassified historical seals.
     Skips entries already in the index (idempotent).
@@ -148,9 +191,12 @@ def backfill_historical(
     Args:
         vault_dir: Path to VAULT999 directory.  Defaults to canonical location.
         default_blast_radius: Blast radius to assign to backfilled entries.
+        batch_size: Entries to process per batch (default 10).
+        batch_cooldown: Seconds to wait between batches (default 3.0).
+        show_progress: Print progress to stderr (default True).
 
     Returns:
-        Dict with {indexed, skipped, errors, total}
+        Dict with {indexed, skipped, errors, total, batches, elapsed_s, status}
     """
     if vault_dir is None:
         vault_dir = os.environ.get(
@@ -164,6 +210,8 @@ def backfill_historical(
             "skipped": 0,
             "errors": 0,
             "total": 0,
+            "batches": 0,
+            "elapsed_s": 0.0,
             "status": "QDRANT_DOWN",
         }
 
@@ -174,20 +222,25 @@ def backfill_historical(
             "skipped": 0,
             "errors": 0,
             "total": 0,
+            "batches": 0,
+            "elapsed_s": 0.0,
             "status": "QDRANT_DOWN",
         }
 
     import json
+    import uuid
     from pathlib import Path
 
+    from qdrant_client.models import PointStruct  # noqa: PLC0415
+
     vault_path = Path(vault_dir)
-    outcomes_path = vault_path / "outcomes.jsonl"
     seal_chain_path = vault_path / "seal_chain.jsonl"
 
     entries: list[dict[str, Any]] = []
 
-    # Read seal_chain.jsonl first (newer format), fall back to outcomes.jsonl
-    for source_path in (seal_chain_path, outcomes_path):
+    # Read seal_chain.jsonl ONLY (canonical sealed entries).
+    # outcomes.jsonl is the legacy format — skip to avoid format divergence.
+    for source_path in (seal_chain_path,):
         if not source_path.exists():
             continue
         try:
@@ -198,7 +251,8 @@ def backfill_historical(
                         continue
                     try:
                         entry = json.loads(line)
-                        entries.append(entry)
+                        if isinstance(entry, dict):
+                            entries.append(entry)
                     except json.JSONDecodeError:
                         continue
         except Exception as exc:
@@ -210,6 +264,8 @@ def backfill_historical(
             "skipped": 0,
             "errors": 0,
             "total": 0,
+            "batches": 0,
+            "elapsed_s": 0.0,
             "status": "NO_ENTRIES",
         }
 
@@ -231,35 +287,96 @@ def backfill_historical(
     skipped = 0
     errors = 0
 
-    for entry in entries:
-        entry_id = str(entry.get("entry_id", entry.get("seq", "")))
-        if not entry_id:
-            errors += 1
-            continue
-        if entry_id in existing_ids:
-            skipped += 1
-            continue
+    start_time = time.monotonic()
 
-        payload_text = json.dumps(entry, sort_keys=True, default=str)
-        try:
-            vectorize_seal(
-                entry_id=entry_id,
-                payload_text=payload_text,
-                blast_radius=default_blast_radius,
-                session_id=str(entry.get("session_id", "")),
+    # Process entries in batches to avoid overwhelming local Ollama
+    total_entries = len(entries)
+    batch_count = (total_entries + batch_size - 1) // batch_size
+
+    for batch_idx in range(batch_count):
+        batch_start = batch_idx * batch_size
+        batch_end = min(batch_start + batch_size, total_entries)
+        batch_entries = entries[batch_start:batch_end]
+
+        if show_progress:
+            print(
+                f"\r[PRL BACKFILL] batch {batch_idx + 1}/{batch_count} "
+                f"({batch_start + 1}-{batch_end} of {total_entries}) "
+                f"| indexed={indexed} skipped={skipped} errors={errors}",
+                end="",
+                flush=True,
             )
-            indexed += 1
-            time.sleep(0.01)  # Light rate-limit to avoid overwhelming Qdrant
-        except Exception as exc:
-            logger.error("PRL backfill: failed for %s: %s", entry_id, exc)
-            errors += 1
+
+        for entry in batch_entries:
+            raw_id = entry.get("entry_id", entry.get("seq", ""))
+            if raw_id is None or raw_id == "":
+                errors += 1
+                continue
+
+            # Qdrant requires UUIDs or unsigned ints.  Convert int seqs
+            # to deterministic UUIDs so the same VAULT999 entry always
+            # maps to the same Qdrant point.
+            entry_id = str(raw_id)
+            try:
+                qdrant_point_id = str(uuid.uuid5(uuid.NAMESPACE_OID, f"vault999:{entry_id}"))
+            except Exception:
+                errors += 1
+                continue
+
+            if qdrant_point_id in existing_ids:
+                skipped += 1
+                continue
+
+            payload_text = json.dumps(entry, sort_keys=True, default=str)
+            try:
+                # Use retry-embed path for resilience against Ollama timeouts
+                vector = _embed_with_retry(payload_text, dim=PRL_VECTOR_DIM)
+
+                timestamp = datetime.now(UTC).isoformat()
+                client.upsert(
+                    collection_name=PRL_COLLECTION,
+                    points=[
+                        PointStruct(
+                            id=qdrant_point_id,
+                            vector=vector,
+                            payload={
+                                "entry_id": entry_id,
+                                "blast_radius": default_blast_radius,
+                                "session_id": str(entry.get("session_id", "")),
+                                "timestamp": timestamp,
+                                "payload_summary": payload_text[:500],
+                            },
+                        )
+                    ],
+                )
+                indexed += 1
+                existing_ids.add(qdrant_point_id)
+            except Exception as exc:
+                logger.error("PRL backfill: failed for %s: %s", entry_id, exc)
+                errors += 1
+
+        # Cooldown between batches — lets Ollama queue clear
+        if batch_idx < batch_count - 1:
+            time.sleep(batch_cooldown)
+
+    elapsed = time.monotonic() - start_time
+
+    if show_progress:
+        print()  # newline after progress line
+        print(
+            f"[PRL BACKFILL] DONE: {indexed} indexed, {skipped} skipped, "
+            f"{errors} errors of {total_entries} total "
+            f"in {elapsed:.1f}s ({batch_count} batches)"
+        )
 
     return {
         "indexed": indexed,
         "skipped": skipped,
         "errors": errors,
-        "total": len(entries),
-        "status": "OK",
+        "total": total_entries,
+        "batches": batch_count,
+        "elapsed_s": round(elapsed, 1),
+        "status": "OK" if errors == 0 else "PARTIAL",
     }
 
 
