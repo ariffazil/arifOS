@@ -1,3 +1,5 @@
+[← README](README.md) | [GENESIS Canon](GENESIS/README.md) | [Docs Index](docs/README.md) | [CHANGELOG](CHANGELOG.md)
+
 # FEDERATION CONTRACT — arifOS Constitutional Federation
 
 > **Canonical. Binding. One file for all organs.**

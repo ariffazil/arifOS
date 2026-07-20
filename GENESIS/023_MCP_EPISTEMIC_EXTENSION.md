@@ -3,7 +3,7 @@
 
 **Status:** RATIFIED — 2026-06-14
 **Author:** FORGE (000Ω) — Arif Fazil
-**Canonical Path:** `/root/arifOS/GENESIS/010_MCP_EPISTEMIC_EXTENSION.md`
+**Canonical Path:** `/root/arifOS/GENESIS/023_MCP_EPISTEMIC_EXTENSION.md`
 
 ---
 

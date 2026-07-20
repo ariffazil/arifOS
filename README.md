@@ -266,6 +266,18 @@ STDIO: `npx -y arifos-mcp`
 - **Agent Card:** `https://aaa.arif-fazil.com/.well-known/agent-card.json`
 - **MCP Manifest:** `https://arifos.arif-fazil.com/.well-known/mcp.json`
 
+### 📚 Documentation Index
+| Resource | Path |
+|----------|------|
+| **GENESIS Canon** | [`GENESIS/README.md`](GENESIS/README.md) — 37 constitutional documents, ATLAS333-mapped |
+| **Governance** | [`docs/governance/README.md`](docs/governance/README.md) — Ontology, manifesto, floors |
+| **Architecture (ADR)** | [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records |
+| **ATLAS333** | [`docs/ATLAS333_INTELLIGENCE_FLOW.md`](docs/ATLAS333_INTELLIGENCE_FLOW.md) — Cognitive geometry |
+| **Agent Surface** | [`AGENTS.md`](AGENTS.md) — Boot sequence, floors, autonomy |
+| **Changelog** | [`CHANGELOG.md`](CHANGELOG.md) — Release history |
+| **Runbook** | [`RUNBOOK.md`](RUNBOOK.md) — Ops commands |
+| **Invariants** | [`INVARIANTS.md`](INVARIANTS.md) — What must never change |
+
 ### Federation Context
 | Read this | For | Link |
 |-----------|-----|------|
