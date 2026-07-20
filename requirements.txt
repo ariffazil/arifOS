@@ -314,7 +314,7 @@ langchain-protocol==0.0.18
     # via
     #   langchain-core
     #   langgraph-sdk
-langgraph==1.2.7
+langgraph==1.2.9
     # via arifos (pyproject.toml)
 langgraph-checkpoint==4.1.1
     # via
@@ -566,7 +566,7 @@ pydantic==2.13.4
     #   pydantic-graph
     #   pydantic-settings
     #   qdrant-client
-pydantic-ai==2.5.0
+pydantic-ai==2.13.0
     # via arifos (pyproject.toml)
 pydantic-ai-slim==2.5.0
     # via
