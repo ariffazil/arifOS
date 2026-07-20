@@ -181,6 +181,32 @@ appending to history, not overwriting it.  The reversion IS the history.
 See `arifosmcp/schemas/verdict.py:1135-1145` for the `evidence_sha` +
 `reversion_event` field definitions on `SealOutput`.
 
+---
+
+## 🔬 Philosophy of Primitives (Wisdom Distillation 2026-07-20)
+
+> *Eureka preserved from archived ARIFOS_MCP_MANUAL.md*
+
+**Tools are Metabolic Organs.** They are not mere utilities. When an agent calls a
+tool, it is subjecting itself to the constitutional physics of the kernel. Every
+tool call is an act of metabolic ingestion — the agent takes in reality, processes
+it under governance, and emits evidence.
+
+**Resources are Epistemic Wealth.** They represent the accumulated knowledge of
+the system — not just data, but context, lineage, and provenance. Resources carry
+the weight of what has been learned and sealed.
+
+**Prompts are Execution Directives.** They are rigid framing mechanisms that force
+an LLM or agent to execute tasks within the boundaries of the Constitution. A prompt
+is not a suggestion — it is a governed instruction with constitutional force.
+
+**The Golden Path:** Every high-integrity operation must flow:
+```
+000_INIT → 111_OBSERVE → 333_THINK → 666_CRITIQUE → 888_JUDGE → 999_SEAL
+```
+Skipping stages = constitutional violation. Short-circuiting the path = HOLD.
+
+→ See also: [`docs/WISDOM_DISTILLATION.md`](../docs/WISDOM_DISTILLATION.md) for all preserved eurekas.
 
 ---
 
