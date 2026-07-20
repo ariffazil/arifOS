@@ -15,7 +15,7 @@ import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class VerificationVerdict(str, Enum):
@@ -28,6 +28,7 @@ class VerificationVerdict(str, Enum):
 @dataclass
 class VerificationRequest:
     """Evidence package submitted for independent verification."""
+
     original_intent_hash: str
     executor_id: str
     executor_session_id: str
@@ -41,6 +42,7 @@ class VerificationRequest:
 @dataclass
 class VerificationResult:
     """Result of independent verification."""
+
     verdict: VerificationVerdict
     verifier_id: str
     request_hash: str
@@ -91,8 +93,7 @@ def verify_independent(request: VerificationRequest, verifier_id: str) -> Verifi
     # Rule 5: No missing success criteria
     if not request.success_criteria:
         violations.append(
-            "R5: No success criteria defined. Cannot verify outcome "
-            "without explicit criteria."
+            "R5: No success criteria defined. Cannot verify outcome without explicit criteria."
         )
 
     # Check success criteria against mutation receipt
@@ -110,8 +111,7 @@ def verify_independent(request: VerificationRequest, verifier_id: str) -> Verifi
                     )
             elif criterion not in receipt_str:
                 violations.append(
-                    f"R5: Success criterion '{criterion[:40]}' not found "
-                    f"in mutation receipt."
+                    f"R5: Success criterion '{criterion[:40]}' not found in mutation receipt."
                 )
 
     # ── Compute verdict ──────────────────────────────────────────────

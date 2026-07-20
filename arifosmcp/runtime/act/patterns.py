@@ -8,6 +8,7 @@ DITEMPA BUKAN DIBERI — Patterns are forged, not configured.
 """
 
 from __future__ import annotations
+
 from enum import StrEnum
 
 from arifosmcp.schemas.act import ActPattern, ActPatternName, ActStage

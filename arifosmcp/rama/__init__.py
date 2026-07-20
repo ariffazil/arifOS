@@ -17,8 +17,8 @@ Runtime organs:
 
 from arifosmcp.rama.state_classifier import StateClassifier, get_state_classifier
 from arifosmcp.rama.state_classifier_governance import (
-    GovernedPosture,
     GovernanceCheck,
+    GovernedPosture,
     run_governance_loop,
 )
 from arifosmcp.rama.state_classifier_schemas import (

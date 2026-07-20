@@ -26,7 +26,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-
 # ── Result types ──────────────────────────────────────────────────────────
 
 ALIGNED = "ALIGNED"
@@ -102,8 +101,7 @@ class DriftReport:
         return {
             "state": self.state,
             "drift_fields": {
-                k: {"build_only": v[0], "runtime_only": v[1]}
-                for k, v in self.drift_fields.items()
+                k: {"build_only": v[0], "runtime_only": v[1]} for k, v in self.drift_fields.items()
             },
             "comparison_note": self.comparison_note,
             "build": self.build_manifest.to_dict() if self.build_manifest else None,
@@ -170,6 +168,7 @@ def _resource_uris_from_source(arifos_root: Path) -> tuple[str, ...]:
         text = resources_init.read_text()
         # Find CANONICAL_RESOURCES = ( ... ) and pull out quoted strings.
         import re
+
         match = re.search(r"CANONICAL_RESOURCES\s*=\s*\(([^)]*)\)", text, re.DOTALL)
         if not match:
             return ()
@@ -190,6 +189,7 @@ def _prompt_names_from_source(arifos_root: Path) -> tuple[str, ...]:
     try:
         text = prompts_path.read_text()
         import re
+
         # Find `@mcp.prompt(name="...")` patterns.
         return tuple(re.findall(r'@mcp\.prompt\(\s*name="([^"]+)"', text))
     except Exception:
@@ -206,13 +206,16 @@ def generate_build_manifest(arifos_root: Path | None = None) -> BuildManifest:
     tool_names = _canonical_tool_names_from_source(arifos_root)
     resource_uris = _resource_uris_from_source(arifos_root)
     prompt_names = _prompt_names_from_source(arifos_root)
-    build_hash_input = json.dumps({
-        "source_commit": source_commit,
-        "tool_names": list(tool_names),
-        "resource_uris": list(resource_uris),
-        "prompt_names": list(prompt_names),
-        "schemas_hash": schemas_hash,
-    }, sort_keys=True)
+    build_hash_input = json.dumps(
+        {
+            "source_commit": source_commit,
+            "tool_names": list(tool_names),
+            "resource_uris": list(resource_uris),
+            "prompt_names": list(prompt_names),
+            "schemas_hash": schemas_hash,
+        },
+        sort_keys=True,
+    )
     build_hash = hashlib.sha256(build_hash_input.encode("utf-8")).hexdigest()
     return BuildManifest(
         source_commit=source_commit,
@@ -237,6 +240,7 @@ def _kernel_url() -> str:
 def _kernel_reachable(timeout: float = 2.0) -> bool:
     import urllib.error
     import urllib.request
+
     try:
         req = urllib.request.Request(_kernel_url() + "/health", method="GET")
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -245,17 +249,18 @@ def _kernel_reachable(timeout: float = 2.0) -> bool:
         return False
 
 
-def _mcp_post(method: str, params: dict[str, Any] | None = None, timeout: float = 5.0) -> dict[str, Any]:
+def _mcp_post(
+    method: str, params: dict[str, Any] | None = None, timeout: float = 5.0
+) -> dict[str, Any]:
     import urllib.request
+
     payload = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}}
     body = json.dumps(payload).encode("utf-8")
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json, text/event-stream",
     }
-    req = urllib.request.Request(
-        _kernel_url() + "/mcp", data=body, headers=headers, method="POST"
-    )
+    req = urllib.request.Request(_kernel_url() + "/mcp", data=body, headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         raw = resp.read().decode("utf-8")
     if raw.startswith("data:"):
@@ -270,9 +275,9 @@ def gather_runtime_manifest() -> RuntimeManifest | None:
     try:
         tools = _mcp_post("tools/list", {}).get("result", {}).get("tools", [])
         resources = _mcp_post("resources/list", {}).get("result", {}).get("resources", [])
-        templates = _mcp_post("resources/templates/list", {}).get(
-            "result", {}
-        ).get("resourceTemplates", [])
+        templates = (
+            _mcp_post("resources/templates/list", {}).get("result", {}).get("resourceTemplates", [])
+        )
         prompts = _mcp_post("prompts/list", {}).get("result", {}).get("prompts", [])
         init = _mcp_post(
             "initialize",
@@ -284,9 +289,7 @@ def gather_runtime_manifest() -> RuntimeManifest | None:
         )
         info = init.get("result", {}).get("serverInfo", {})
         source_commit = (
-            info.get("version", "unknown")
-            if isinstance(info.get("version"), str)
-            else "unknown"
+            info.get("version", "unknown") if isinstance(info.get("version"), str) else "unknown"
         )
         # serverInfo.version is "kanon-2026.07.17+85f165d" — extract short commit.
         if "+" in source_commit:
@@ -299,7 +302,11 @@ def gather_runtime_manifest() -> RuntimeManifest | None:
                 sorted(r.get("uri") for r in resources if isinstance(r, dict) and r.get("uri"))
             ),
             resource_templates=tuple(
-                sorted(t.get("uriTemplate") for t in templates if isinstance(t, dict) and t.get("uriTemplate"))
+                sorted(
+                    t.get("uriTemplate")
+                    for t in templates
+                    if isinstance(t, dict) and t.get("uriTemplate")
+                )
             ),
             prompt_names=tuple(
                 sorted(p.get("name") for p in prompts if isinstance(p, dict) and p.get("name"))
@@ -315,9 +322,7 @@ def gather_runtime_manifest() -> RuntimeManifest | None:
 # ── Comparison ────────────────────────────────────────────────────────────
 
 
-def compare_manifests(
-    build: BuildManifest, runtime: RuntimeManifest | None
-) -> DriftReport:
+def compare_manifests(build: BuildManifest, runtime: RuntimeManifest | None) -> DriftReport:
     """Compare build vs runtime and report drift.
 
     build == runtime  -> ALIGNED
@@ -349,7 +354,8 @@ def compare_manifests(
 
     if build.source_commit != runtime.source_commit:
         drift["source_commit"] = (
-            [build.source_commit], [runtime.source_commit],
+            [build.source_commit],
+            [runtime.source_commit],
         )
 
     if drift:

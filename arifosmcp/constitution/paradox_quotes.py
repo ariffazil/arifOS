@@ -1103,8 +1103,7 @@ ACTIVE_CONTOURS_QUOTES: list[ParadoxQuote] = [
         axis_label="root access vs. kernel governance",
         norm=Norm.WAJIB,
         trigger_condition=(
-            "Action tier is 'sovereign' OR action_class is 'IRREVERSIBLE' "
-            "OR GPV.rho >= 0.8"
+            "Action tier is 'sovereign' OR action_class is 'IRREVERSIBLE' OR GPV.rho >= 0.8"
         ),
         output_field="paradox_constraint",
         floor_bindings=["F1", "F11", "F13"],

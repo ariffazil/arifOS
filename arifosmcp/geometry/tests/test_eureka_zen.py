@@ -16,12 +16,11 @@ import pytest
 
 from arifosmcp.geometry.eureka_zen import (
     C_DARK_HOLD,
-    EurekaCandidate,
     T_ABUNDANCE,
     T_CRITICAL,
     T_MARGIN,
-    ZEN_FIRST,
     EntropyFlux,
+    EurekaCandidate,
     ExportReceipt,
     MetabolicPhase,
     TankState,
@@ -32,13 +31,10 @@ from arifosmcp.geometry.eureka_zen import (
     compute_eureka_zen,
     jauhari_check,
     metabolic_balance,
-    preferred_mode,
     require_jauhari_before_judge,
     session_delta_s,
     should_force_zen,
     tank_step,
-    u_eureka,
-    u_zen,
     w3_verdict,
     w3_witness,
 )

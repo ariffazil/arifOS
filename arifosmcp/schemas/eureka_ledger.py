@@ -25,12 +25,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import IntEnum, StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Enums
@@ -259,7 +258,7 @@ class EurekaLedgerEntry(BaseModel):
     )
     session_id: str = Field(..., description="Session that produced this eureka")
     created_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        default_factory=lambda: datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         description="ISO-8601 UTC timestamp",
     )
     source: LedgerSource = Field(
@@ -268,18 +267,16 @@ class EurekaLedgerEntry(BaseModel):
     )
 
     # ── Contradiction ─────────────────────────────────────────────────────
-    contradiction_class: ContradictionClass = Field(
-        ..., description="Type of contradiction (1-8)"
-    )
-    ladder_state: LadderState = Field(
-        ..., description="Position on the 4-state eureka ladder"
-    )
+    contradiction_class: ContradictionClass = Field(..., description="Type of contradiction (1-8)")
+    ladder_state: LadderState = Field(..., description="Position on the 4-state eureka ladder")
     commitment_a: str = Field(
-        ..., description="First commitment in the contradiction pair",
+        ...,
+        description="First commitment in the contradiction pair",
         max_length=2000,
     )
     commitment_b: str = Field(
-        ..., description="Second commitment in the contradiction pair",
+        ...,
+        description="Second commitment in the contradiction pair",
         max_length=2000,
     )
     why_old_frame_failed: str = Field(
@@ -363,7 +360,7 @@ class EurekaLedgerEntry(BaseModel):
         description="ISO-8601 of first observation",
     )
     last_seen: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        default_factory=lambda: datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         description="ISO-8601 of most recent observation",
     )
 

@@ -34,7 +34,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from dataclasses import dataclass
 from typing import Literal
 
-
 # ── Backend Classification ────────────────────
 
 BackendType = Literal["qiskit", "cirq", "braket", "pennyLane", "simulator", "hybrid"]

@@ -45,8 +45,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Final
-
+from typing import Any
 
 # Schema version. Bump when the canonical shape changes.
 RECEIPT_STATE_VERSION = 1
@@ -243,7 +242,7 @@ class ReceiptStore:
         if not self.path.exists():
             return None
         last_line = None
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -256,7 +255,7 @@ class ReceiptStore:
         if not self.path.exists():
             return ()
         out: list[Receipt] = []
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -364,7 +363,7 @@ class ReceiptStore:
     def _find_by_id(self, receipt_id: str) -> dict[str, Any] | None:
         if not self.path.exists():
             return None
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:

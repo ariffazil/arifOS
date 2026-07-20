@@ -18,16 +18,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 import pyreadstat
 
-from . import governance
-from . import sandbox
-from . import seal
-
+from . import governance, sandbox, seal
 
 # ---------------------------------------------------------------------------
 # 1. list_data_files
@@ -128,7 +124,7 @@ def inspect_spss_metadata(file_path: str) -> dict:
     }
 
 
-def _csv_meta(df: pd.DataFrame) -> "object":
+def _csv_meta(df: pd.DataFrame) -> object:
     class M:
         pass
 
@@ -307,7 +303,7 @@ def convert_csv_to_sav(
     file_path: str,
     output_path: str,
     *,
-    column_labels: Optional[dict] = None,
+    column_labels: dict | None = None,
     f13_severity_acknowledged: bool = False,
 ) -> dict:
     src = sandbox.safe_resolve(file_path, mode="read")
@@ -432,7 +428,7 @@ def generate_basic_spss_syntax(
 # ---------------------------------------------------------------------------
 
 
-def _read_any(p: Path) -> Optional[pd.DataFrame]:
+def _read_any(p: Path) -> pd.DataFrame | None:
     """Read any allowed SPSS-compatible format into a DataFrame."""
     ext = p.suffix.lower()
     try:

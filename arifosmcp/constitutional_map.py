@@ -2477,6 +2477,8 @@ def build_tool_registry_manifest() -> dict[str, Any]:
     try:
         from arifosmcp.runtime.tool_risk_registry import (
             TOOL_RISK_REGISTRY,
+        )
+        from arifosmcp.runtime.tool_risk_registry import (
             classify_tool as _risk_classify,
         )
 

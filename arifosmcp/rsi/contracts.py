@@ -27,8 +27,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass, field
-from typing import Any, Iterable
-
+from typing import Any
 
 # ── The 12 canonical skills (frozen 2026-07-04) ──────────────────────────────
 # These are the irreducible categorical names. Each one has a contract below.
@@ -232,6 +231,7 @@ class GateDecision:
 # stages later. They exist so the diff engine has a baseline; without them
 # there is no "old" version to compare against, and that is itself a C5
 # condition.
+
 
 def _required_preservations() -> tuple[str, ...]:
     return (

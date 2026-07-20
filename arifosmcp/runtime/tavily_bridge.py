@@ -23,6 +23,7 @@ import os
 from typing import Any
 
 import httpx
+
 from core.shared.laws import get_law_threshold
 
 logger = logging.getLogger(__name__)

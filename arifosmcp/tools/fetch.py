@@ -91,6 +91,7 @@ async def arifos_fetch(
 
     import hashlib
     import time as _time
+
     _fetch_ts = _time.time()
     _fetch_hash = hashlib.sha256(content.encode("utf-8", errors="replace")).hexdigest()
 

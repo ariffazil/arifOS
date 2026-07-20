@@ -24,15 +24,24 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
 AMENDMENT_COOLING_DAYS = 7
 FLOOR_NAMES = {
-    "F1": "AMANAH", "F2": "TRUTH", "F3": "WITNESS", "F4": "CLARITY",
-    "F5": "PEACE", "F6": "MARUAH", "F7": "HUMILITY", "F8": "GENIUS",
-    "F9": "ANTI-HANTU", "F10": "ONTOLOGY", "F11": "AUDIT", "F12": "INJECTION",
+    "F1": "AMANAH",
+    "F2": "TRUTH",
+    "F3": "WITNESS",
+    "F4": "CLARITY",
+    "F5": "PEACE",
+    "F6": "MARUAH",
+    "F7": "HUMILITY",
+    "F8": "GENIUS",
+    "F9": "ANTI-HANTU",
+    "F10": "ONTOLOGY",
+    "F11": "AUDIT",
+    "F12": "INJECTION",
     "F13": "SOVEREIGN",
 }
 
@@ -78,22 +87,30 @@ class AmendmentGuard:
         # Check for active proposals on the same floor
         existing = self._active_for_floor(floor)
         if existing:
-            return False, (
-                f"Floor {floor} ({FLOOR_NAMES.get(floor, '?')}) has an active "
-                f"amendment (proposal {existing.proposal_id}, status {existing.status}). "
-                f"Wait for it to resolve before proposing a new change."
-            ), None
+            return (
+                False,
+                (
+                    f"Floor {floor} ({FLOOR_NAMES.get(floor, '?')}) has an active "
+                    f"amendment (proposal {existing.proposal_id}, status {existing.status}). "
+                    f"Wait for it to resolve before proposing a new change."
+                ),
+                None,
+            )
 
         # Check for any recently ratified amendment (stacking prevention)
         recent = self._recently_ratified(days=AMENDMENT_COOLING_DAYS)
         if recent:
-            return False, (
-                f"Amendment {recent.proposal_id} was ratified within the "
-                f"{AMENDMENT_COOLING_DAYS}-day cooling window. "
-                f"Constitution must cool before further amendment."
-            ), None
+            return (
+                False,
+                (
+                    f"Amendment {recent.proposal_id} was ratified within the "
+                    f"{AMENDMENT_COOLING_DAYS}-day cooling window. "
+                    f"Constitution must cool before further amendment."
+                ),
+                None,
+            )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         proposal = AmendmentProposal(
             proposal_id=f"amd-{floor}-{now.strftime('%Y%m%d-%H%M%S')}",
             floor=floor,
@@ -107,12 +124,16 @@ class AmendmentGuard:
         )
 
         self._write(proposal)
-        return True, (
-            f"Amendment {proposal.proposal_id} registered for {floor} "
-            f"({FLOOR_NAMES.get(floor, '?')}). Cooling until "
-            f"{proposal.cooling_until}. F13 sovereign ratification required "
-            f"after cooling completes."
-        ), proposal
+        return (
+            True,
+            (
+                f"Amendment {proposal.proposal_id} registered for {floor} "
+                f"({FLOOR_NAMES.get(floor, '?')}). Cooling until "
+                f"{proposal.cooling_until}. F13 sovereign ratification required "
+                f"after cooling completes."
+            ),
+            proposal,
+        )
 
     def check_ratification(self, proposal_id: str) -> tuple[bool, str]:
         """Check if an amendment has completed its cooling period and can be ratified.
@@ -130,11 +151,11 @@ class AmendmentGuard:
 
         if proposal.cooling_until:
             cooling_end = datetime.fromisoformat(proposal.cooling_until)
-            if datetime.now(timezone.utc) < cooling_end:
-                remaining = cooling_end - datetime.now(timezone.utc)
+            if datetime.now(UTC) < cooling_end:
+                remaining = cooling_end - datetime.now(UTC)
                 return False, (
                     f"Cooling period incomplete. "
-                    f"{remaining.days}d {remaining.seconds//3600}h remaining."
+                    f"{remaining.days}d {remaining.seconds // 3600}h remaining."
                 )
 
         return True, "Cooling complete. Ready for F13 sovereign ratification."
@@ -148,7 +169,7 @@ class AmendmentGuard:
         proposal = self._find(proposal_id)
         proposal.status = "RATIFIED"
         proposal.sovereign_verdict = f"RATIFIED by {sovereign}"
-        proposal.ratified_at = datetime.now(timezone.utc).isoformat()
+        proposal.ratified_at = datetime.now(UTC).isoformat()
         self._write(proposal, update=True)
         return True, f"Amendment {proposal_id} ratified by {sovereign}"
 
@@ -191,7 +212,7 @@ class AmendmentGuard:
         return None
 
     def _recently_ratified(self, days: int) -> AmendmentProposal | None:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         for p in self._all():
             if p.status == "RATIFIED" and p.ratified_at:
                 ratified_dt = datetime.fromisoformat(p.ratified_at)
@@ -213,19 +234,21 @@ class AmendmentGuard:
             for line in f:
                 try:
                     d = json.loads(line)
-                    proposals.append(AmendmentProposal(
-                        proposal_id=d["proposal_id"],
-                        floor=d["floor"],
-                        proposed_by=d["proposed_by"],
-                        proposed_at=d["proposed_at"],
-                        current_text=d["current_text"],
-                        proposed_text=d["proposed_text"],
-                        rationale=d["rationale"],
-                        status=d.get("status", "PROPOSED"),
-                        cooling_until=d.get("cooling_until"),
-                        sovereign_verdict=d.get("sovereign_verdict"),
-                        ratified_at=d.get("ratified_at"),
-                    ))
+                    proposals.append(
+                        AmendmentProposal(
+                            proposal_id=d["proposal_id"],
+                            floor=d["floor"],
+                            proposed_by=d["proposed_by"],
+                            proposed_at=d["proposed_at"],
+                            current_text=d["current_text"],
+                            proposed_text=d["proposed_text"],
+                            rationale=d["rationale"],
+                            status=d.get("status", "PROPOSED"),
+                            cooling_until=d.get("cooling_until"),
+                            sovereign_verdict=d.get("sovereign_verdict"),
+                            ratified_at=d.get("ratified_at"),
+                        )
+                    )
                 except (json.JSONDecodeError, KeyError):
                     continue
         return proposals

@@ -14,7 +14,6 @@ import hashlib
 import logging
 import secrets
 import time
-import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -32,8 +31,8 @@ from arifosmcp.runtime.model import (
     RuntimeStatus,
     Verdict,
 )
-from arifosmcp.schemas.change_authority import ChangeAuthorityClass
 from arifosmcp.runtime.registry_client import get_model_registry_client
+from arifosmcp.schemas.change_authority import ChangeAuthorityClass
 
 logger = logging.getLogger(__name__)
 
@@ -528,10 +527,11 @@ async def init_anchor(
                 # key bytes used for verification. Sovereign authority binds
                 # to this fingerprint, never to the actor_id string.
                 try:
+                    import hashlib
+
                     from arifosmcp.runtime.sovereign_verify import (
                         _PUBKEY_CANDIDATES,
                     )
-                    import hashlib
 
                     for _pk_path in _PUBKEY_CANDIDATES:
                         if _pk_path and _pk_path.exists():

@@ -5,10 +5,9 @@ from __future__ import annotations
 import json
 import logging
 
+from agent_bridge.models import AgentTelemetry
 from nats.aio.client import Client as NATS
 from nats.js.api import ConsumerConfig
-
-from agent_bridge.models import AgentTelemetry
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class TelemetryConsumer:
     @classmethod
     async def connect(
         cls, servers: list[str] | None = None, durable: str = CONSUMER_NAME
-    ) -> "TelemetryConsumer":
+    ) -> TelemetryConsumer:
         servers = servers or ["nats://localhost:4222"]
         nc = NATS()
         await nc.connect(servers=servers)

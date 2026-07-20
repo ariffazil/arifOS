@@ -23,8 +23,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -33,8 +32,8 @@ from typing import Any
 # ═══════════════════════════════════════════════════════════════════════════
 
 MAX_SESSION_AGE_HOURS = 24  # sessions older than this cannot authorize execution
-MAX_PLAN_AGE_HOURS = 72     # plans older than this require re-judgment
-LEASE_MAX_TTL_HOURS = 8     # no lease lives longer than 8 hours
+MAX_PLAN_AGE_HOURS = 72  # plans older than this require re-judgment
+LEASE_MAX_TTL_HOURS = 8  # no lease lives longer than 8 hours
 
 _VAULT = Path(os.environ.get("ARIFOS_HOME", "/root")) / "VAULT999"
 
@@ -42,6 +41,7 @@ _VAULT = Path(os.environ.get("ARIFOS_HOME", "/root")) / "VAULT999"
 @dataclass
 class DeferredAction:
     """A time-shifted action that needs judgment-at-execution."""
+
     action_id: str
     created_at: float  # epoch seconds
     created_by_session: str
@@ -99,7 +99,7 @@ class DeferredGuard:
         age = time.time() - action["created_at"]
         if age > self._max_session_age:
             return False, (
-                f"Session expired: action created {age/3600:.1f}h ago "
+                f"Session expired: action created {age / 3600:.1f}h ago "
                 f"(max {MAX_SESSION_AGE_HOURS}h). Re-authorization required."
             )
 
@@ -143,6 +143,7 @@ class DeferredGuard:
 @dataclass
 class LeaseRecord:
     """A tracked authority lease."""
+
     lease_id: str
     tool: str
     granted_at: float
@@ -194,10 +195,7 @@ class LeaseGuard:
         age_hours = (time.time() - rec.granted_at) / 3600
 
         if age_hours > rec.ttl_hours:
-            return False, (
-                f"Lease {lease_id} expired: {age_hours:.1f}h old "
-                f"(max {rec.ttl_hours}h)"
-            )
+            return False, (f"Lease {lease_id} expired: {age_hours:.1f}h old (max {rec.ttl_hours}h)")
 
         return True, "OK"
 

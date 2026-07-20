@@ -1,7 +1,8 @@
-import os
-import httpx
 import logging
+import os
 from dataclasses import dataclass
+
+import httpx
 
 logger = logging.getLogger("arifOS.Minimax")
 

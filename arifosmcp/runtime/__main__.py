@@ -195,9 +195,9 @@ def _run_minimal_stdio_server() -> None:
         list_well_tools,
     )
     from .geox_bridge import call_geox_tool, list_geox_tools
+    from .public_surface import public_tool_names_for_mode
     from .server import create_aaa_mcp_server
     from .tool_spec import LEGACY_NAME_MAP, TOOLS, normalize_tool_name
-    from .public_surface import CANONICAL_LONG_NAME_ALIASES, public_tool_names_for_mode
     from .tools import CANONICAL_TOOL_HANDLERS
 
     # FastMCP instance for resources + prompts (all three surfaces)

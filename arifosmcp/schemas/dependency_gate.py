@@ -49,13 +49,11 @@ DITEMPA BUKAN DIBERI — The gate is forged, not given.
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
-import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Callable
+from typing import Any
 
 from .action_profile import (
     ActionProfile,
@@ -64,11 +62,7 @@ from .action_profile import (
     InfrastructureImpact,
     MutationClass,
     ReceiptClass,
-    Reversibility,
-    RequiredCapability,
     classify_action,
-    upgrade_to_session_closure,
-    upgrade_to_sovereign,
 )
 from .vault_outbox import (
     SessionClosureState,
@@ -270,9 +264,7 @@ def gate_classify_action(ctx: GateContext) -> GateResult:
     profile = classify_action(
         tool=ctx.target_tool,
         verb=ctx.target_verb,
-        force_sovereign=True
-        if ctx.identity_band == "SOVEREIGN"
-        else False,
+        force_sovereign=True if ctx.identity_band == "SOVEREIGN" else False,
     )
 
     # Check for UNKNOWN classification
@@ -354,8 +346,7 @@ def gate_evaluate_identity(ctx: GateContext) -> GateResult:
             gate_name="G3_IDENTITY",
             status=GateStatus.HOLD,
             reason=(
-                f"Action requires SOVEREIGN identity (F13 key), "
-                f"but actor has {identity_band} band"
+                f"Action requires SOVEREIGN identity (F13 key), but actor has {identity_band} band"
             ),
             evidence_refs=evidence,
             obligations=[
@@ -388,10 +379,7 @@ def gate_evaluate_identity(ctx: GateContext) -> GateResult:
         return GateResult(
             gate_name="G3_IDENTITY",
             status=GateStatus.DENY,
-            reason=(
-                f"OBSERVER identity cannot perform "
-                f"{profile.mutation_class.value} mutations"
-            ),
+            reason=(f"OBSERVER identity cannot perform {profile.mutation_class.value} mutations"),
             evidence_refs=evidence,
             obligations=["Provide actor_id to elevate beyond OBSERVER"],
         )
@@ -465,7 +453,8 @@ def gate_evaluate_capability(ctx: GateContext) -> GateResult:
     return GateResult(
         gate_name="G4_CAPABILITY",
         status=GateStatus.PASS,
-        reason=f"Capability {required} granted, lease valid" if ctx.active_lease_id
+        reason=f"Capability {required} granted, lease valid"
+        if ctx.active_lease_id
         else f"Capability {required} granted (no lease required)",
         evidence_refs=evidence,
         detail={
@@ -667,8 +656,7 @@ def gate_execute_permission(ctx: GateContext) -> GateResult:
             obligations=[f"Resolve blocked gates before execution: {failed_gates}"],
             detail={
                 "prior_verdicts": {
-                    name: ctx.gate_results[name].status.value
-                    for name in failed_gates
+                    name: ctx.gate_results[name].status.value for name in failed_gates
                 }
             },
         )
@@ -721,9 +709,7 @@ class PipelineResult:
 
     def __init__(self, ctx: GateContext):
         self.ctx = ctx
-        self.all_pass: bool = all(
-            r.status == GateStatus.PASS for r in ctx.gate_results.values()
-        )
+        self.all_pass: bool = all(r.status == GateStatus.PASS for r in ctx.gate_results.values())
         self.first_failure: GateResult | None = None
         for r in ctx.gate_results.values():
             if r.status in (GateStatus.HOLD, GateStatus.DENY):
@@ -794,16 +780,12 @@ def run_pipeline(
             # Check for early termination
             if result.status == GateStatus.DENY and stop_on_deny:
                 ctx.pipeline_verdict = "DENY"
-                logger.warning(
-                    f"Pipeline DENY at {gate_name}: {result.reason}"
-                )
+                logger.warning(f"Pipeline DENY at {gate_name}: {result.reason}")
                 break
 
             if result.status == GateStatus.HOLD and stop_on_hold:
                 ctx.pipeline_verdict = "HOLD"
-                logger.info(
-                    f"Pipeline HOLD at {gate_name}: {result.reason}"
-                )
+                logger.info(f"Pipeline HOLD at {gate_name}: {result.reason}")
                 break
 
         except Exception as e:

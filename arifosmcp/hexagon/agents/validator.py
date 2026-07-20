@@ -25,8 +25,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from arifosmcp.schemas.floors import FLOOR_IDS  # canonical single source
-from .base import ConstitutionalAgent, FloorScore, TrinityRole, AgentVerdict as Verdict
+from .base import AgentVerdict as Verdict
+from .base import ConstitutionalAgent, FloorScore, TrinityRole
 
 logger = logging.getLogger(__name__)
 

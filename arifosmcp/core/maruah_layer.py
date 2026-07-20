@@ -59,20 +59,20 @@ class DeliveryVerdict(str, Enum):
     (agent-facing) and maruah layer (human-facing).
     """
 
-    M_CLEAN = "M_CLEAN"        # Output passes all 6 principles. Send as-is.
-    M_ADJUST = "M_ADJUST"      # Output passes but has minor calibration debt.
-    M_REPAIR = "M_REPAIR"      # Output should be rephrased before send.
-    M_HOLD = "M_HOLD"          # Output should not be sent without human review.
+    M_CLEAN = "M_CLEAN"  # Output passes all 6 principles. Send as-is.
+    M_ADJUST = "M_ADJUST"  # Output passes but has minor calibration debt.
+    M_REPAIR = "M_REPAIR"  # Output should be rephrased before send.
+    M_HOLD = "M_HOLD"  # Output should not be sent without human review.
 
 
 class MaruahLevel(str, Enum):
     """Maruah sensitivity tier (matches Care lane in GPV)."""
 
-    PHATIC = "PHATIC"        # Greeting/social — minimal M-Layer scrutiny.
-    SOFT = "SOFT"            # Routine help — standard M1-M6 calibration.
-    HARD = "HARD"            # High-stakes (financial, medical, family) — full M-Layer.
-    CRISIS = "CRISIS"        # Crisis / grief / urgent — every M-Layer tripped holds.
-    REFUSE = "REFUSE"        # Topics the M-Layer refuses (will not produce).
+    PHATIC = "PHATIC"  # Greeting/social — minimal M-Layer scrutiny.
+    SOFT = "SOFT"  # Routine help — standard M1-M6 calibration.
+    HARD = "HARD"  # High-stakes (financial, medical, family) — full M-Layer.
+    CRISIS = "CRISIS"  # Crisis / grief / urgent — every M-Layer tripped holds.
+    REFUSE = "REFUSE"  # Topics the M-Layer refuses (will not produce).
 
 
 # ─── Maruah Result (per principle) ──────────────────────────────────────
@@ -82,13 +82,13 @@ class MaruahLevel(str, Enum):
 class MaruahResult:
     """Per-principle evaluation result."""
 
-    principle_id: str         # "M1", "M2", ...
-    name: str                 # "Dignity-first", ...
+    principle_id: str  # "M1", "M2", ...
+    name: str  # "Dignity-first", ...
     passed: bool
-    score: float              # 0.0 - 1.0; higher = cleaner
+    score: float  # 0.0 - 1.0; higher = cleaner
     threshold: float
     flags: list[str] = field(default_factory=list)
-    advice: str = ""          # Concrete suggestion if not passed
+    advice: str = ""  # Concrete suggestion if not passed
 
 
 # ─── M-Layer Delivery Receipt ──────────────────────────────────────────
@@ -105,7 +105,7 @@ class MaruahDeliveryReceipt:
     advice: str = ""
     time_tax_ms: int = 0
     ts: float = field(default_factory=time.time)
-    human_id: str | None = None       # e.g., "azwa" or any recipient handle
+    human_id: str | None = None  # e.g., "azwa" or any recipient handle
     human_substrate_known: bool = False  # True if HumanProperties loaded
 
     @property
@@ -132,11 +132,11 @@ class MaruahDeliveryReceipt:
 # M1: Dignity-first
 # The recipient's maruah must be preserved or enhanced, not eroded.
 _DIGNITY_EROSION_PATTERNS = [
-    r"\byou (should|must|need to) (just|simply)\b",      # "you should just..."
-    r"\bobviously\b.*\b(you|the)\b",                      # "obviously you..."
-    r"\b(even|basic) (you|a) (kid|student|person)\b",    # condescending framing
+    r"\byou (should|must|need to) (just|simply)\b",  # "you should just..."
+    r"\bobviously\b.*\b(you|the)\b",  # "obviously you..."
+    r"\b(even|basic) (you|a) (kid|student|person)\b",  # condescending framing
     r"\bdon'?t (you )?know\b",
-    r"\bit'?s (very )?(easy|simple|obvious)\b.*\?",       # "it's very easy, ok?"
+    r"\bit'?s (very )?(easy|simple|obvious)\b.*\?",  # "it's very easy, ok?"
     r"\bany (normal|sane|smart) (person|student)\b",
     r"\bwhy (didn't|don't) you\b",
 ]
@@ -144,19 +144,26 @@ _DIGNITY_EROSION_PATTERNS = [
 # M2: Capacity-aware
 # Match delivery to recipient's current cognitive load.
 _CAPACITY_OVERLOAD_SIGNALS = [
-    r"\bnow\b.*\bnow\b.*\bnow\b",                         # too many imperatives
-    r"(?:\A|\n)[^.\n]*\.[^.\n]*\.[^.\n]*\.[^.\n]*\.",   # 4+ sentences one paragraph
-    r"\b[A-Z]{4,}\b.*\b[A-Z]{4,}\b.*\b[A-Z]{4,}\b",     # acronym bombardment
-    r"\btherefore\b.*\bconsequently\b.*\bhence\b",       # logical connectives pile
+    r"\bnow\b.*\bnow\b.*\bnow\b",  # too many imperatives
+    r"(?:\A|\n)[^.\n]*\.[^.\n]*\.[^.\n]*\.[^.\n]*\.",  # 4+ sentences one paragraph
+    r"\b[A-Z]{4,}\b.*\b[A-Z]{4,}\b.*\b[A-Z]{4,}\b",  # acronym bombardment
+    r"\btherefore\b.*\bconsequently\b.*\bhence\b",  # logical connectives pile
 ]  # noqa: E501
 
 # M3: Pedestrian-first
 # Default register = ordinary person. Jargon must be justified.
 _JARGON_PATTERNS = [
-    r"\bephemeral\b", r"\bheuristic\b", r"\bontological\b",
-    r"\bconstitutionally\b", r"\bdeliberation\b",
-    r"\bepistemic\b", r"\bverdict\b", r"\bSEAL\b",
-    r"\bAMANAH\b", r"\bF13\b", r"\bVault999\b",
+    r"\bephemeral\b",
+    r"\bheuristic\b",
+    r"\bontological\b",
+    r"\bconstitutionally\b",
+    r"\bdeliberation\b",
+    r"\bepistemic\b",
+    r"\bverdict\b",
+    r"\bSEAL\b",
+    r"\bAMANAH\b",
+    r"\bF13\b",
+    r"\bVault999\b",
 ]
 
 # M4: Repair-ready
@@ -164,8 +171,8 @@ _JARGON_PATTERNS = [
 # just state the failure.
 _REPAIR_PRESENT_PATTERNS = [
     r"\b(next|here'?s (what|how)|cara|boleh|jom|let'?s|try)\b",
-    r"\?\s*$",                                              # ends with question
-    r"\bstep\s*\d+\b",                                      # numbered steps
+    r"\?\s*$",  # ends with question
+    r"\bstep\s*\d+\b",  # numbered steps
     r"\bfirst\b.*\b(second|then|next)\b",
 ]
 
@@ -229,9 +236,7 @@ class MaruahLayer:
     def __init__(self, maruah_id: str = "M-LAYER-V1"):
         self.maruah_id = maruah_id
         self._receipts: list[MaruahDeliveryReceipt] = []
-        logger.info(
-            "MaruahLayer initialised: id=%s principles=M1-M6", maruah_id
-        )
+        logger.info("MaruahLayer initialised: id=%s principles=M1-M6", maruah_id)
 
     def evaluate(
         self,
@@ -275,9 +280,7 @@ class MaruahLayer:
         if "M1" in active_ids:
             results.append(self._m1_dignity(output, maruah_level))
         if "M2" in active_ids:
-            results.append(
-                self._m2_capacity(output, context, human_substrate_known)
-            )
+            results.append(self._m2_capacity(output, context, human_substrate_known))
         if "M3" in active_ids:
             results.append(self._m3_pedestrian(output, context))
         if "M4" in active_ids:
@@ -403,9 +406,7 @@ class MaruahLayer:
 
     # ── M3: Pedestrian-first ───────────────────────────────────────────
 
-    def _m3_pedestrian(
-        self, output: str, context: dict[str, Any]
-    ) -> MaruahResult:
+    def _m3_pedestrian(self, output: str, context: dict[str, Any]) -> MaruahResult:
         """M3: Is the default register pedestrian? Jargon only if justified.
 
         Topic can justify jargon — e.g., context['topic']='engineering'.
@@ -416,8 +417,13 @@ class MaruahLayer:
 
         # Jargon-allowing topics (calibration by topic)
         jargon_topics = {
-            "engineering", "constitutional", "geoscience", "finance",
-            "agent architecture", "kernel", "kernel-floors",
+            "engineering",
+            "constitutional",
+            "geoscience",
+            "finance",
+            "agent architecture",
+            "kernel",
+            "kernel-floors",
         }
         topic = context.get("topic", "").lower()
         topic_allows_jargon = topic in jargon_topics
@@ -466,8 +472,7 @@ class MaruahLayer:
             re.IGNORECASE,
         )
         repair_markers = sum(
-            1 for p in _REPAIR_PRESENT_PATTERNS
-            if re.search(p, output, re.IGNORECASE)
+            1 for p in _REPAIR_PRESENT_PATTERNS if re.search(p, output, re.IGNORECASE)
         )
 
         if len(problem_markers) >= 2 and repair_markers == 0:
@@ -668,8 +673,7 @@ if __name__ == "__main__":
         human_id="azwa",
         context={"urgency_signal": "high", "topic": "assignment"},
     )
-    print("Test 1 (condescending tutor):", r1.verdict.value,
-          "score=", round(r1.composite_score, 2))
+    print("Test 1 (condescending tutor):", r1.verdict.value, "score=", round(r1.composite_score, 2))
     print("  flags:", r1.flags[:3])
     print("  advice:", r1.advice[:120])
 
@@ -686,20 +690,17 @@ if __name__ == "__main__":
         human_id="azwa",
         context={"urgency_signal": "normal", "topic": "assignment"},
     )
-    print("Test 2 (warm helper):", r2.verdict.value,
-          "score=", round(r2.composite_score, 2))
+    print("Test 2 (warm helper):", r2.verdict.value, "score=", round(r2.composite_score, 2))
 
     # 3) False emotion claim (should HOLD on M6)
     r3 = layer.evaluate(
         output=(
-            "I really feel for you. I understand your pain. "
-            "My heart goes out to you. Let me help."
+            "I really feel for you. I understand your pain. My heart goes out to you. Let me help."
         ),
         maruah_level=MaruahLevel.SOFT,
         human_id="azwa",
     )
-    print("Test 3 (false emotion):", r3.verdict.value,
-          "score=", round(r3.composite_score, 2))
+    print("Test 3 (false emotion):", r3.verdict.value, "score=", round(r3.composite_score, 2))
     print("  flags:", r3.flags[:3])
 
     # 4) CRISIS-level, with mild problem (should HOLD per CRISIS rule)
@@ -709,5 +710,4 @@ if __name__ == "__main__":
         human_id="azwa",
         context={"urgency_signal": "high"},
     )
-    print("Test 4 (CRISIS, decent):", r4.verdict.value,
-          "score=", round(r4.composite_score, 2))
+    print("Test 4 (CRISIS, decent):", r4.verdict.value, "score=", round(r4.composite_score, 2))

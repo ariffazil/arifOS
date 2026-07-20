@@ -30,15 +30,12 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 from .truth_kernel import (
-    AuthorityState,
     Claim,
     ClaimKind,
-    EpistemicState,
     Evidence,
     RecordState,
     TruthEngine,

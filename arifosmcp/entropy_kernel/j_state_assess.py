@@ -5,13 +5,12 @@ Computes 5 J-planes using MINIMUM-FLOOR aggregation.
 Never outputs a diagnosis or moral identity.
 """
 
-from datetime import datetime, timezone
 import uuid
-
+from datetime import UTC, datetime
 
 # J-state thresholds
 J_THRESHOLDS = {
-    "J0": (0.0, 0.20),   # VOID recommended
+    "J0": (0.0, 0.20),  # VOID recommended
     "J1": (0.20, 0.40),  # HOLD
     "J2": (0.40, 0.60),  # reversible observation only
     "J3": (0.60, 0.80),  # bounded execution
@@ -26,7 +25,13 @@ ACTION_MAP = {
     "J4": "PROCEED_WITNESSED",
 }
 
-PLANES = ["reality_contact", "authority_legitimacy", "consequence_integration", "correctability", "purpose_fidelity"]
+PLANES = [
+    "reality_contact",
+    "authority_legitimacy",
+    "consequence_integration",
+    "correctability",
+    "purpose_fidelity",
+]
 
 
 def _compute_plane_score(plane: str, observations: list[dict]) -> float:
@@ -71,9 +76,13 @@ def _compute_plane_score(plane: str, observations: list[dict]) -> float:
             # Based on correction response
             resp = correction.get("response_class", "NOT_TESTED")
             resp_scores = {
-                "REFLECTED": 0.95, "CONTEXT_ADDED": 0.85, "ACCEPTED": 0.90,
-                "PARTIALLY_ACCEPTED": 0.65, "DISMISSED": 0.25,
-                "WITNESS_ATTACKED": 0.05, "AUTHORITY_EXPANDED": 0.10,
+                "REFLECTED": 0.95,
+                "CONTEXT_ADDED": 0.85,
+                "ACCEPTED": 0.90,
+                "PARTIALLY_ACCEPTED": 0.65,
+                "DISMISSED": 0.25,
+                "WITNESS_ATTACKED": 0.05,
+                "AUTHORITY_EXPANDED": 0.10,
                 "NOT_TESTED": 0.50,
             }
             scores.append(resp_scores.get(resp, 0.5) * conf)
@@ -149,12 +158,14 @@ def arif_j_state_assess(
             # Check if another organ has conflicting observation
             for other_organ, other_obs in organs_seen.items():
                 if other_organ != organ:
-                    contradiction_graph.append({
-                        "claim_a": f"{organ}: {contra}",
-                        "claim_b": f"{other_organ}: observation",
-                        "contradiction_type": "cross_organ",
-                        "severity": "HIGH" if aggregate < 0.4 else "MEDIUM",
-                    })
+                    contradiction_graph.append(
+                        {
+                            "claim_a": f"{organ}: {contra}",
+                            "claim_b": f"{other_organ}: observation",
+                            "contradiction_type": "cross_organ",
+                            "severity": "HIGH" if aggregate < 0.4 else "MEDIUM",
+                        }
+                    )
         organs_seen[organ] = obs
 
     # Missing evidence analysis
@@ -185,7 +196,7 @@ def arif_j_state_assess(
             "permanent_trust_classification",
         ],
         "metadata": {
-            "assessed_at": datetime.now(timezone.utc).isoformat(),
+            "assessed_at": datetime.now(UTC).isoformat(),
             "assessing_agent": "arif_j_state_assess",
             "schema_version": "v1",
         },

@@ -85,7 +85,9 @@ class BlastRadius(StrEnum):
     ACCOUNT = "ACCOUNT"
     ORG = "ORG"
     PUBLIC = "PUBLIC"
-    HIGH = "HIGH"  # P2 2026-07-13: above PUBLIC, below INFRASTRUCTURE — for append-only memory writes
+    HIGH = (
+        "HIGH"  # P2 2026-07-13: above PUBLIC, below INFRASTRUCTURE — for append-only memory writes
+    )
     MARKET = "MARKET"
     INFRASTRUCTURE = "INFRASTRUCTURE"
     CIVILIZATIONAL = "CIVILIZATIONAL"

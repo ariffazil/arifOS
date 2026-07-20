@@ -28,7 +28,6 @@ from __future__ import annotations
 from threading import Lock
 from typing import Any
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # BUCKET CLASSIFICATION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -153,13 +152,15 @@ DEFAULT_TOOL_STATE: dict[str, str] = {
 # of the self-recursive deadlock. ToolState is a StrEnum — values must match
 # the lowercase string ("trusted", "observed", "untrusted"). The uppercase
 # identifier is used here as a stable key for grep/discoverability.
-AUTHORITY_LANE_PRE_TRUSTED: frozenset[str] = frozenset({
-    "arif_init",
-    "arif_measure",
-    "arif_forge",
-    "arif_judge",
-    "arif_seal",
-})
+AUTHORITY_LANE_PRE_TRUSTED: frozenset[str] = frozenset(
+    {
+        "arif_init",
+        "arif_measure",
+        "arif_forge",
+        "arif_judge",
+        "arif_seal",
+    }
+)
 for _t in AUTHORITY_LANE_PRE_TRUSTED:
     DEFAULT_TOOL_STATE[_t] = "trusted"  # matches ToolState("trusted").value
 
@@ -175,14 +176,14 @@ for _t in AUTHORITY_LANE_PRE_TRUSTED:
 class ArtRegistry:
     """Per-tool persistent state + bucket classification."""
 
-    _instance: "ArtRegistry | None" = None
+    _instance: ArtRegistry | None = None
     _lock = Lock()
 
     def __init__(self) -> None:
         self._cache: dict[str, str] = {}  # tool_name → ToolState.value (cached)
 
     @classmethod
-    def instance(cls) -> "ArtRegistry":
+    def instance(cls) -> ArtRegistry:
         """Return process-wide singleton (thread-safe)."""
         with cls._lock:
             if cls._instance is None:

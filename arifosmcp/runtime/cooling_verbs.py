@@ -51,10 +51,11 @@ class CoolingVerb(str, Enum):
 
 class CoolingAuthority(str, Enum):
     """Authority level required for each verb."""
-    AUTONOMOUS = "autonomous"      # No ceremony needed
-    GATED = "gated"                # Requires approval
-    CEREMONY = "ceremony"          # Requires sovereign ceremony
-    CONDITIONAL = "conditional"    # Depends on read vs write
+
+    AUTONOMOUS = "autonomous"  # No ceremony needed
+    GATED = "gated"  # Requires approval
+    CEREMONY = "ceremony"  # Requires sovereign ceremony
+    CONDITIONAL = "conditional"  # Depends on read vs write
 
 
 # Authority mapping: which verbs need what level of approval
@@ -73,6 +74,7 @@ VERB_AUTHORITY: dict[CoolingVerb, CoolingAuthority] = {
 @dataclass
 class CoolingEvent:
     """A single cooling lifecycle event."""
+
     event_id: str
     verb: CoolingVerb
     failure_id: str  # links to the original failure
@@ -119,6 +121,7 @@ class CoolingEvent:
 @dataclass
 class CoolingCycle:
     """A complete cooling cycle from observe to receipt (or decay)."""
+
     cycle_id: str
     failure_id: str
     origin: str = "external_failure"

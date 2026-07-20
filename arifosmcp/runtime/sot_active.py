@@ -249,9 +249,7 @@ def seal_sot_supersession(
     receipt["vault_ref"] = vault_ref
     # rewrite with vault_ref
     try:
-        Path(written_to).write_text(
-            json.dumps(receipt, indent=2, sort_keys=True), encoding="utf-8"
-        )
+        Path(written_to).write_text(json.dumps(receipt, indent=2, sort_keys=True), encoding="utf-8")
     except OSError:
         pass
 

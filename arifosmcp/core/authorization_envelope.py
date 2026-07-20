@@ -15,17 +15,16 @@ import json
 import time
 import uuid
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ── Session Key Signing ────────────────────────────────────────────────────
 
 
 try:
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
     from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
     _HAS_CRYPTO = True
 except ImportError:
@@ -36,7 +35,6 @@ except ImportError:
 
 def _canonical_json(obj: dict) -> str:
     """Deterministic JSON serialization (RFC 8785 style) for signing."""
-    import json
 
     return json.dumps(obj, sort_keys=True, separators=(",", ":"))
 
@@ -235,7 +233,7 @@ class AuthorizationEnvelope(BaseModel):
     # Identity
     envelope_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     actor_id: str  # Who is acting (e.g., "opencode-333-agi")
-    principal_id: Optional[str] = None  # Delegating principal (if any)
+    principal_id: str | None = None  # Delegating principal (if any)
     session_id: str  # Constitutional session from arif_init
 
     # Intent
@@ -255,19 +253,19 @@ class AuthorizationEnvelope(BaseModel):
 
     # Governance
     requires_human_ack: bool = False  # F13 — needs Arif's approval
-    human_ack_token: Optional[str] = None  # F13 — approval token if granted
-    lease_id: Optional[str] = None  # A-FORGE lease if executing
-    constitutional_chain_id: Optional[str] = None  # cc_id from prior judge SEAL
+    human_ack_token: str | None = None  # F13 — approval token if granted
+    lease_id: str | None = None  # A-FORGE lease if executing
+    constitutional_chain_id: str | None = None  # cc_id from prior judge SEAL
 
     # Trace
     trace_id: str = Field(default_factory=lambda: f"trc-{uuid.uuid4().hex[:12]}")
     span_id: str = Field(default_factory=lambda: f"span-{uuid.uuid4().hex[:8]}")
-    parent_span_id: Optional[str] = None  # For nested calls
+    parent_span_id: str | None = None  # For nested calls
     timestamp: float = Field(default_factory=time.time)
 
     # Signature (placeholder — mTLS/DPoP will populate this)
-    signature: Optional[str] = None  # Cryptographic proof of envelope integrity
-    signed_by: Optional[str] = None  # Key ID that signed this envelope
+    signature: str | None = None  # Cryptographic proof of envelope integrity
+    signed_by: str | None = None  # Key ID that signed this envelope
 
     def compute_intent_hash(self) -> str:
         """Compute SHA-256 of the intent for tamper detection."""
@@ -324,8 +322,8 @@ def create_envelope(
     evidence_floor: EvidenceFloor = EvidenceFloor.NONE,
     confidence: float = 0.0,
     requires_human_ack: bool = False,
-    lease_id: Optional[str] = None,
-    trace_id: Optional[str] = None,
+    lease_id: str | None = None,
+    trace_id: str | None = None,
 ) -> AuthorizationEnvelope:
     """Create and seal an AuthorizationEnvelope."""
     env = AuthorizationEnvelope(

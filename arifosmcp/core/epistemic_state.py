@@ -4,6 +4,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 from __future__ import annotations
+
 from typing import Any
 
 _epistemic_cache: dict[str, dict[str, Any]] = {}

@@ -20,11 +20,10 @@ import argparse
 import logging
 from typing import Literal
 
+from capability_index.models import CapabilityRecord
+from capability_index.store import CapabilityStore
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
-
-from capability_index.store import CapabilityStore
-from capability_index.models import CapabilityRecord
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("capability-index-mcp")

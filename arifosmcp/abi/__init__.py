@@ -5,6 +5,15 @@ arifOS ABI - Application Binary Interface
 Canonical request schemas plus the platform-neutral Kernel Capability ABI.
 """
 
+from .kernel_abi import (
+    KERNEL_ABI_VERSION,
+    capability_ids,
+    capability_registry,
+    profile_names,
+    semantic_tool_names,
+    tool_names_for_profile,
+    validate_abi,
+)
 from .v1_0 import (
     ABI_SCHEMAS,
     AgiMindRequest,
@@ -36,15 +45,6 @@ from .v1_0 import (
     get_response_schema,
     validate_request,
     validate_response,
-)
-from .kernel_abi import (
-    KERNEL_ABI_VERSION,
-    capability_ids,
-    capability_registry,
-    profile_names,
-    semantic_tool_names,
-    tool_names_for_profile,
-    validate_abi,
 )
 
 __all__ = [

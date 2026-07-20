@@ -17,7 +17,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class ReauthVerdict(str, Enum):
@@ -29,19 +29,21 @@ class ReauthVerdict(str, Enum):
 @dataclass
 class DeferredAction:
     """A queued/scheduled action that needs fire-time reauthorization."""
+
     action_id: str
     action_type: str  # cron, queue, retry, renovate, long_running
     queued_at: float
     fire_at: float
     original_authority: str
     original_session_id: str
-    original_lease_id: Optional[str] = None
+    original_lease_id: str | None = None
     payload: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class ReauthResult:
     """Result of fire-time reauthorization check."""
+
     verdict: ReauthVerdict
     action_id: str
     reason: str = ""
@@ -71,8 +73,7 @@ def reauthorize_at_fire(
     # Check 2: Authority not degraded since write time?
     if current_authority != action.original_authority:
         failures.append(
-            f"F2: Authority degraded: was {action.original_authority}, "
-            f"now {current_authority}"
+            f"F2: Authority degraded: was {action.original_authority}, now {current_authority}"
         )
 
     # Check 3: Target organ healthy?
@@ -99,10 +100,7 @@ def reauthorize_at_fire(
         )
 
     # Authority revoked → VOID (action must be cancelled)
-    authority_revoked = any(
-        "authority" in f.lower() and "degraded" in f.lower()
-        for f in failures
-    )
+    authority_revoked = any("authority" in f.lower() and "degraded" in f.lower() for f in failures)
 
     if authority_revoked:
         return ReauthResult(

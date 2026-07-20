@@ -13,14 +13,12 @@ Constraints:
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
-import time
 import hashlib
 import json
+import time
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .types import GovernanceState, Phase
-
 
 # ── Seal Record ───────────────────────────────
 

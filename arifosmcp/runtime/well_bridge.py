@@ -37,6 +37,7 @@ WELL_BASE = f"http://{WELL_HOST}:{WELL_PORT}"
 # Verified end-to-end: session init → notifications/initialized → tools/list (8 tools).
 # P0.8 failure cache SUPERSEDED by session retry on 400 expiry (see _post_json_rpc_well).
 import time as _time_mod
+
 _well_session_id: str | None = None
 _well_session_established_at: float = 0.0
 _WELL_SESSION_TTL_SECONDS = 600  # 10 minutes
@@ -346,9 +347,7 @@ async def _ensure_well_session(client: httpx.AsyncClient) -> str | None:
                             "Mcp-Session-Id": session_id,
                         },
                     )
-                    logger.info(
-                        "WELL MCP session established: %s…", session_id[:12]
-                    )
+                    logger.info("WELL MCP session established: %s…", session_id[:12])
                 except Exception as notify_exc:
                     logger.warning(
                         "WELL notifications/initialized failed (may still work): %s",
@@ -396,9 +395,7 @@ async def _post_json_rpc_well(payload: dict[str, Any]) -> dict[str, Any]:
                 session_id = await _ensure_well_session(client)
                 if session_id:
                     headers["Mcp-Session-Id"] = session_id
-                    resp = await client.post(
-                        f"{WELL_BASE}/mcp", json=payload, headers=headers
-                    )
+                    resp = await client.post(f"{WELL_BASE}/mcp", json=payload, headers=headers)
             if resp.status_code >= 400:
                 raise ConnectionError(f"WELL HTTP {resp.status_code}: {resp.text[:200]}")
         parsed = resp.json()
@@ -409,7 +406,7 @@ async def _post_json_rpc_well(payload: dict[str, Any]) -> dict[str, Any]:
 
 async def list_well_tools() -> list[dict[str, Any]]:
     """List all tools available from WELL MCP server.
-    
+
     WAJIB 6 DONE (2026-07-19): Uses MCP session bridge.
     Session init/retry handled by _ensure_well_session + _post_json_rpc_well.
     P0.8 failure cache removed — session bridge handles errors with 400-expiry retry.

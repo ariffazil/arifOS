@@ -7,7 +7,6 @@ from typing import Any
 
 from arifosmcp.cli.common import CliError, http_get_json, run_git
 
-
 ACTION_CLASSES = [
     "observer",
     "interpreter",

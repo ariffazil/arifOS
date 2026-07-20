@@ -31,7 +31,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-from arifosmcp.rama.state_classifier import StateClassifier, get_state_classifier
+from arifosmcp.rama.state_classifier import get_state_classifier
 from arifosmcp.rama.state_classifier_schemas import (
     AgentPosture,
     PolyvagalState,
@@ -177,8 +177,7 @@ def check_f6_empathy(result: StateClassifierResult) -> GovernanceCheck:
         )
 
     # If human is in sympathetic state with high autonomy pressure
-    if (sv.polyvagal == PolyvagalState.SYMPATHETIC
-            and sv.sdt_pressure.autonomy == SDTPressure.HIGH):
+    if sv.polyvagal == PolyvagalState.SYMPATHETIC and sv.sdt_pressure.autonomy == SDTPressure.HIGH:
         return GovernanceCheck(
             floor="F6",
             floor_name="EMPATHY",

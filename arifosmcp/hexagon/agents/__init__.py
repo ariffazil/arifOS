@@ -9,7 +9,7 @@ HEXAGON Agent Classes (was: AgentZero Agent Classes)
 - A-ARCHIVE         → ArchiveAgent stub (deferred — wraps arif_seal)
 """
 
-from .base import ConstitutionalAgent, TrinityRole, AgentVerdict
+from .base import AgentVerdict, ConstitutionalAgent, TrinityRole
 from .engineer import AGIAgent  # was EngineerAgent
 from .validator import APEXAgent  # was ValidatorAgent
 

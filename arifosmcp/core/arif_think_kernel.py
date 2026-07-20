@@ -17,7 +17,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. CORE INVARIANTS (I1-I8)
 # ═══════════════════════════════════════════════════════════════════════════════

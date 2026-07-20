@@ -35,13 +35,14 @@ DITEMPA BUKAN DIBERI — Library is forged, not configured.
 """
 
 from __future__ import annotations
+
 import json
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger("arifosmcp.art_library")
 
@@ -100,14 +101,14 @@ class ArtVerdictRow:
     action_class: str
     tool_state: str
     verdict: str
-    witness: Optional[str] = None
-    blast_radius: Optional[str] = None
-    reversible: Optional[bool] = None
-    failure_rate: Optional[float] = None
-    drift_count: Optional[int] = None
-    days_since_use: Optional[int] = None
-    intent: Optional[str] = None
-    actor_id: Optional[str] = None
+    witness: str | None = None
+    blast_radius: str | None = None
+    reversible: bool | None = None
+    failure_rate: float | None = None
+    drift_count: int | None = None
+    days_since_use: int | None = None
+    intent: str | None = None
+    actor_id: str | None = None
     extras: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -170,12 +171,12 @@ class ArtLibrary:
 
     def __init__(
         self,
-        dsn: Optional[str] = None,
+        dsn: str | None = None,
         retention_days: int = DEFAULT_RETENTION_DAYS,
     ) -> None:
         self._dsn = dsn or os.getenv("ARIFOS_PG_DSN")
         self._retention_days = retention_days
-        self._pool: Optional[Any] = None
+        self._pool: Any | None = None
         self._schema_ready: bool = False
 
     async def _ensure_pool(self) -> bool:
@@ -253,7 +254,7 @@ class ArtLibrary:
         if not await self._ensure_pool() or self._pool is None:
             return []
         try:
-            since = datetime.now(timezone.utc) - timedelta(days=window_days)
+            since = datetime.now(UTC) - timedelta(days=window_days)
             async with self._pool.acquire() as conn:
                 rows = await conn.fetch(
                     """SELECT * FROM art_library
@@ -295,7 +296,7 @@ class ArtLibrary:
         self,
         tool: str,
         window_days: int = DEFAULT_LOOKBACK_DAYS,
-    ) -> Optional[float]:
+    ) -> float | None:
         """Compute PROCEED fraction for a tool over the window. None = no data."""
         recent = await self.recent_for_tool(tool, window_days=window_days, limit=1000)
         if not recent:
@@ -303,13 +304,13 @@ class ArtLibrary:
         proceeds = sum(1 for r in recent if r.verdict == VerdictLabel.PROCEED.value)
         return proceeds / len(recent)
 
-    async def prune(self, retention_days: Optional[int] = None) -> int:
+    async def prune(self, retention_days: int | None = None) -> int:
         """Delete rows older than retention window. Returns count deleted."""
         retention = retention_days if retention_days is not None else self._retention_days
         if not await self._ensure_pool() or self._pool is None:
             return 0
         try:
-            cutoff = datetime.now(timezone.utc) - timedelta(days=retention)
+            cutoff = datetime.now(UTC) - timedelta(days=retention)
             async with self._pool.acquire() as conn:
                 result = await conn.execute("DELETE FROM art_library WHERE ts < $1", cutoff)
             # asyncpg returns e.g. "DELETE 42"
@@ -382,7 +383,7 @@ def _row_to_art_verdict(row: Any) -> ArtVerdictRow:
     )
 
 
-_default_library: Optional[ArtLibrary] = None
+_default_library: ArtLibrary | None = None
 
 
 def get_library() -> ArtLibrary:

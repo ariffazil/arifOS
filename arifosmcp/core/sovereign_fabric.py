@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from arifosmcp.core.authorization_envelope import (
     ActionClass,
@@ -41,14 +41,11 @@ from arifosmcp.core.authorization_envelope import (
     create_envelope,
 )
 from arifosmcp.core.identity_binding import (
-    AuthMethod,
-    IdentityBinding,
-    register_identity,
     verify_identity,
 )
-from arifosmcp.core.policy_engine import PolicyEngine, PolicyVerdict, get_policy_engine
-from arifosmcp.core.sovereign_bridge import SovereignContext, get_sovereign_context
-from arifosmcp.core.trace_context import TraceCollector, TraceContext, get_trace_collector
+from arifosmcp.core.policy_engine import PolicyVerdict, get_policy_engine
+from arifosmcp.core.sovereign_bridge import get_sovereign_context
+from arifosmcp.core.trace_context import TraceContext, get_trace_collector
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +64,7 @@ class GovernedResult:
     envelope: AuthorizationEnvelope
     policy_verdict: PolicyVerdict
     trace: TraceContext
-    required_next_step: Optional[str] = None
+    required_next_step: str | None = None
 
     @property
     def hold(self) -> bool:
@@ -98,15 +95,15 @@ def govern(
     session_id: str,
     tool_name: str,
     intent: str = "",
-    action_class: Optional[ActionClass] = None,
+    action_class: ActionClass | None = None,
     reversibility: Reversibility = Reversibility.UNKNOWN,
     blast_radius: BlastRadius = BlastRadius.NONE,
     evidence_floor: EvidenceFloor = EvidenceFloor.NONE,
     confidence: float = 0.0,
     requires_human_ack: bool = False,
-    lease_id: Optional[str] = None,
-    trace_id: Optional[str] = None,
-    parent_span_id: Optional[str] = None,
+    lease_id: str | None = None,
+    trace_id: str | None = None,
+    parent_span_id: str | None = None,
     organ: str = "",
     **kwargs: Any,
 ) -> GovernedResult:

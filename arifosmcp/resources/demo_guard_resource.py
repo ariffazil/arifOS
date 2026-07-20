@@ -67,6 +67,4 @@ def get_demo_verdict(scenario_id: str) -> dict | None:
 
 def get_all_demo_scenarios() -> list[dict]:
     """Return all demo scenarios."""
-    return [
-        {"id": k, **v} for k, v in DEMO_SCENARIOS.items()
-    ]
+    return [{"id": k, **v} for k, v in DEMO_SCENARIOS.items()]

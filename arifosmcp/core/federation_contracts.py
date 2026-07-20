@@ -54,7 +54,6 @@ class VerdictType(StrEnum):
     SABAR = "SABAR"
 
 
-
 class ActorSource(StrEnum):
     """How was the actor's identity verified before sealing?
 

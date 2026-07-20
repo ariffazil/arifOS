@@ -12,14 +12,14 @@ Contains:
 from __future__ import annotations
 
 import hashlib
-import os
 from typing import Any, Literal
+
+from arifosmcp.models.verdicts import Verdict
 
 # Sync core accepts ack_irreversible. Async MCP wrapper (_arif_seal /
 # _arif_vault_seal_tool) dropped that kwarg 2026-07-07 — do not call it here.
 from arifosmcp.runtime.tools import _arif_vault_seal
 from arifosmcp.schemas.verdict import SealOutput
-from arifosmcp.models.verdicts import Verdict
 
 
 async def arif_seal(
@@ -432,7 +432,7 @@ async def arif_seal(
     if not _resolved_genesis_hash:
         try:
             _genesis_path = "/root/AAA/registries/genesis/genesis_card.yaml"
-            with open(_genesis_path, "r") as _gf:
+            with open(_genesis_path) as _gf:
                 _gdata = _gf.read()
                 import hashlib as _g_hashlib
 

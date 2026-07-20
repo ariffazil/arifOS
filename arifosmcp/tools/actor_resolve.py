@@ -22,7 +22,6 @@ from typing import Any
 # downstream without going through this function first.
 from arifosmcp.runtime.governance_identity import normalize_actor_id
 
-
 # Authority tiers — the substrate's trust levels
 AUTHORITY_TIERS = ("SOVEREIGN", "HIGH", "MEDIUM", "LOW", "UNKNOWN")
 

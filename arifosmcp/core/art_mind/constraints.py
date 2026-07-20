@@ -8,6 +8,7 @@ exists so future versions can drive the constraint engine from this table.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 

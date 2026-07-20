@@ -29,7 +29,6 @@ from arifosmcp.runtime.public_surface import (
     VALID_PUBLIC_SURFACE_MODES,
 )
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # THE LAW — public MCP tools arifOS exposes on default wire.
 # To add or remove a public tool, edit THIS constant AND ratify via 888.
@@ -130,9 +129,7 @@ def test_canonical_tools_includes_internal_support():
 
 @pytest.mark.parametrize("tool_name", sorted(EXPECTED_PUBLIC_TOOLS))
 def test_public_tool_name_starts_with_arif(tool_name: str):
-    assert tool_name.startswith("arif_"), (
-        f"Public tool '{tool_name}' must start with 'arif_'."
-    )
+    assert tool_name.startswith("arif_"), f"Public tool '{tool_name}' must start with 'arif_'."
 
 
 @pytest.mark.parametrize("tool_name", sorted(EXPECTED_PUBLIC_TOOLS))

@@ -46,6 +46,25 @@ from arifosmcp.schemas.cognition import (
     UncertaintyGeometry,
 )
 
+# Epistemic Tag (_epistemic response envelope — halal/haram boundary)
+from arifosmcp.schemas.epistemic_tag import (
+    EPISTEMIC_AI_ADVISORY,
+    EPISTEMIC_AI_FALLBACK,
+    EPISTEMIC_DETERMINISTIC,
+    EPISTEMIC_DOMAIN_ASSISTED,
+    EPISTEMIC_DOMAIN_COMPUTATION,
+    EPISTEMIC_GOVERNANCE_TEMPLATE,
+    EPISTEMIC_MEASURED,
+    EPISTEMIC_RETRIEVED,
+    AiInvolvement,
+    AuthorityClaim,
+    EpistemicTag,
+    EvidenceSource,
+    OutputClass,
+    assert_tag_valid,
+    validate_halal_haram,
+)
+
 # Forge (010_FORGE)
 from arifosmcp.schemas.forge import (
     ConstitutionalCompliance,
@@ -80,6 +99,40 @@ from arifosmcp.schemas.lineage import JudgeSealContract
 
 # Memory (555_MEMORY)
 from arifosmcp.schemas.memory import MemoryBlock
+from arifosmcp.schemas.memory_modes import (
+    LEGACY_MODE_ALIASES,
+    MODE_ACTION_CLASS,
+    MODE_BACKEND_TARGET,
+    MODE_POST_FLOORS,
+    MODE_PRE_FLOORS,
+    MODE_REQUIRES_HUMAN_ACK,
+    MODE_REQUIRES_LEASE,
+    MODE_STAGE,
+    MemoryMode,
+    MemoryModeName,
+    resolve_legacy_mode,
+)
+from arifosmcp.schemas.memory_object import (
+    EpistemicsBlock,
+    MemoryObject,
+    MemoryResultEnvelope,
+    PolicyBlock,
+    ProvenanceBlock,
+    ReceiptEnvelope,
+    SourceReceipt,
+    compute_call_hash,
+)
+from arifosmcp.schemas.memory_payload import (
+    AttestPayload,
+    ForgetPayload,
+    InspectPayload,
+    MemoryPayload,
+    MemoryToolRequest,
+    PromotePayload,
+    RecallPayload,
+    RememberPayload,
+    RevisePayload,
+)
 
 # Memory Kernel v5 — Direction 1, ratified 2026-06-21
 # Federated arif_memory tool: 7 modes × 13 floors × 7 truth-classes × 6 tiers
@@ -87,53 +140,19 @@ from arifosmcp.schemas.memory import MemoryBlock
 from arifosmcp.schemas.memory_truth import (
     # Enums
     MemoryClass,
-    TruthClass,
     # Type aliases
     MemoryClassName,
-    TruthClassName,
     TierCode,
+    TruthClass,
+    TruthClassName,
+    allowed_tiers,
+    can_transition,
+    default_recall_eligible,
+    default_ttl_hours,
+    floors_required,
+    legal_next,
     # Functions
     tier_allowed,
-    allowed_tiers,
-    default_ttl_hours,
-    default_recall_eligible,
-    can_transition,
-    legal_next,
-    floors_required,
-)
-from arifosmcp.schemas.memory_modes import (
-    MemoryMode,
-    MemoryModeName,
-    LEGACY_MODE_ALIASES,
-    resolve_legacy_mode,
-    MODE_ACTION_CLASS,
-    MODE_PRE_FLOORS,
-    MODE_POST_FLOORS,
-    MODE_REQUIRES_LEASE,
-    MODE_REQUIRES_HUMAN_ACK,
-    MODE_BACKEND_TARGET,
-    MODE_STAGE,
-)
-from arifosmcp.schemas.memory_object import (
-    SourceReceipt,
-    ProvenanceBlock,
-    EpistemicsBlock,
-    PolicyBlock,
-    MemoryObject,
-    ReceiptEnvelope,
-    MemoryResultEnvelope,
-    compute_call_hash,
-)
-from arifosmcp.schemas.memory_payload import (
-    RecallPayload,
-    InspectPayload,
-    AttestPayload,
-    RememberPayload,
-    PromotePayload,
-    RevisePayload,
-    ForgetPayload,
-    MemoryPayload,
-    MemoryToolRequest,
 )
 
 # ModelCard (F3 TRI_WITNESS — identity binding)
@@ -199,25 +218,6 @@ from arifosmcp.schemas.topology import (
 )
 from arifosmcp.schemas.topology import (
     Verdict as TopologyVerdict,
-)
-
-# Epistemic Tag (_epistemic response envelope — halal/haram boundary)
-from arifosmcp.schemas.epistemic_tag import (
-    AiInvolvement,
-    AuthorityClaim,
-    EpistemicTag,
-    EvidenceSource,
-    OutputClass,
-    EPISTEMIC_AI_ADVISORY,
-    EPISTEMIC_AI_FALLBACK,
-    EPISTEMIC_DETERMINISTIC,
-    EPISTEMIC_DOMAIN_ASSISTED,
-    EPISTEMIC_DOMAIN_COMPUTATION,
-    EPISTEMIC_GOVERNANCE_TEMPLATE,
-    EPISTEMIC_MEASURED,
-    EPISTEMIC_RETRIEVED,
-    assert_tag_valid,
-    validate_halal_haram,
 )
 
 # Vault Liveness (AAA-GOV-VAULT-LIVENESS-v1)
@@ -443,9 +443,9 @@ __all__ = [
 ]
 
 # ── Minimum Constitutional Kernel (F13 Forged) ───────────────────────────────
+from .minimum_kernel import KernelInput, KernelOutput
 from .reversibility import ReversibilityClass
 from .truth_state import TruthState
-from .minimum_kernel import KernelInput, KernelOutput
 
 __all__.extend(
     [
@@ -457,92 +457,96 @@ __all__.extend(
 )
 
 # ── Canonical Constitutional Floors (single source, 2026-06 alignment) ───────
+# ── D1-D2: Action Classification, Outbox, Dependency Gate, Session Closure ──
+from arifosmcp.schemas.action_profile import (
+    ActionProfile,
+    GovernanceImpact,
+    InfrastructureImpact,
+    MutationClass,
+    ReceiptClass,
+    RequiredCapability,
+    classify_action,
+    upgrade_to_session_closure,
+    upgrade_to_sovereign,
+)
+from arifosmcp.schemas.action_profile import (
+    BlastRadius as ActionBlastRadius,
+)
+from arifosmcp.schemas.action_profile import (
+    Reversibility as ActionReversibility,
+)
+from arifosmcp.schemas.dependency_gate import (
+    GateContext,
+    GateResult,
+    GateStatus,
+    PipelineResult,
+    run_pipeline,
+)
+from arifosmcp.schemas.session_closure import (
+    ServiceSigner,
+    SessionClosureManager,
+    SessionManifest,
+    determine_closure_level,
+)
+from arifosmcp.schemas.vault_outbox import (
+    OutboxStatus,
+    SessionClosure,
+    SessionClosureState,
+    VaultOutbox,
+    VaultOutboxConsumer,
+    VaultOutboxEntry,
+)
+from arifosmcp.schemas.vault_outbox import (
+    ReceiptClass as OutboxReceiptClass,
+)
+
 from .floors import (
-    FLOORS,
+    ADAT_TERAS,
+    FIQH_TIERS,
+    FLOOR_BY_ID,
     FLOOR_IDS,
     FLOOR_NAMES,
-    FLOOR_BY_ID,
+    FLOORS,
     ConstitutionalFloor,
+    as_dict_list,
     get_floor,
     is_canonical_floor,
     validate_floors,
-    as_dict_list,
-    ADAT_TERAS,
-    FIQH_TIERS,
-)
-
-# ── D1-D2: Action Classification, Outbox, Dependency Gate, Session Closure ──
-from arifosmcp.schemas.action_profile import (
-ActionProfile,
-BlastRadius as ActionBlastRadius,
-GovernanceImpact,
-InfrastructureImpact,
-MutationClass,
-ReceiptClass,
-RequiredCapability,
-Reversibility as ActionReversibility,
-classify_action,
-upgrade_to_sovereign,
-upgrade_to_session_closure,
-)
-
-from arifosmcp.schemas.vault_outbox import (
-    VaultOutbox,
-    VaultOutboxEntry,
-    VaultOutboxConsumer,
-    SessionClosure,
-    SessionClosureState,
-    OutboxStatus,
-    ReceiptClass as OutboxReceiptClass,
-)
-from arifosmcp.schemas.dependency_gate import (
-GateContext,
-GateResult,
-GateStatus,
-PipelineResult,
-run_pipeline,
-)
-
-from arifosmcp.schemas.session_closure import (
-    SessionClosureManager,
-    SessionManifest,
-    ServiceSigner,
-    determine_closure_level,
 )
 
 __all__.extend(
-[
-    # Action Profile (D1)
-    "ActionProfile",
-    "ActionBlastRadius",
-    "GovernanceImpact",
-    "InfrastructureImpact",
-    "MutationClass",
-    "ReceiptClass",
-    "RequiredCapability",
-    "ActionReversibility",
-    "classify_action",
-    "upgrade_to_sovereign",
-    "upgrade_to_session_closure",
-    # Vault Outbox (D2)
-    "VaultOutbox",
-    "VaultOutboxEntry",
-    "VaultOutboxConsumer",
-    "SessionClosure",
-    "SessionClosureState",
-    "OutboxStatus",
-    "OutboxReceiptClass",
-    "ServiceSigner",
-    # Dependency Gate (D1)
-    "GateContext",
-    "GateResult",
-    "GateStatus",
-    "PipelineResult",
-    "run_pipeline",
-    # Session Closure (D2)
-    "SessionClosureManager",
-    "SessionManifest",
-    "ServiceSigner",
-    "determine_closure_level",
-]
+    [
+        # Action Profile (D1)
+        "ActionProfile",
+        "ActionBlastRadius",
+        "GovernanceImpact",
+        "InfrastructureImpact",
+        "MutationClass",
+        "ReceiptClass",
+        "RequiredCapability",
+        "ActionReversibility",
+        "classify_action",
+        "upgrade_to_sovereign",
+        "upgrade_to_session_closure",
+        # Vault Outbox (D2)
+        "VaultOutbox",
+        "VaultOutboxEntry",
+        "VaultOutboxConsumer",
+        "SessionClosure",
+        "SessionClosureState",
+        "OutboxStatus",
+        "OutboxReceiptClass",
+        "ServiceSigner",
+        # Dependency Gate (D1)
+        "GateContext",
+        "GateResult",
+        "GateStatus",
+        "PipelineResult",
+        "run_pipeline",
+        # Session Closure (D2)
+        "SessionClosureManager",
+        "SessionManifest",
+        "ServiceSigner",
+        "determine_closure_level",
+    ]
 )

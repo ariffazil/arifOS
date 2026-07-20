@@ -83,13 +83,13 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from arifosmcp.runtime.vault_sealer import seal_transition
 from arifosmcp.schemas.transition_receipt import (
     AuthoritySource,
     TransitionEventType,
     TransitionReceipt,
     VerdictCode,
 )
-from arifosmcp.runtime.vault_sealer import seal_transition
 
 # APEX intelligence flow: dials carried through every transition
 # (hardened 2026-06-20 — A/P/X/E frozen into each TransitionReceipt)

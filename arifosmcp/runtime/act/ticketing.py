@@ -9,10 +9,10 @@ DITEMPA BUKAN DIBERI — Tickets are forged, not configured.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Literal
 
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Literal
 
 TicketUrgency = Literal["routine", "elevated", "urgent", "critical"]
 
@@ -49,7 +49,7 @@ class ApprovalTicket:
     default_if_silent: str = "HOLD"  # never auto-SEAL
 
     # Metadata
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     urgency: TicketUrgency = "routine"
 
 

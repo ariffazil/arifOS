@@ -15,7 +15,8 @@ import logging
 import re
 import sys
 import time
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 _stderr = logging.getLogger("arifos.mcp_log")
 if not _stderr.handlers:
@@ -195,10 +196,10 @@ async def emit_mcp_log(
     except Exception:
         pass
 
-
     # Protocol channel FREEZE (SEP-2577): default OFF — stderr + HOLD_CANDIDATE only.
     # Set MCP_PROTOCOL_LOGGING=1 only for legacy client compatibility during deprecation window.
     import os as _os
+
     _proto = _os.environ.get("MCP_PROTOCOL_LOGGING", "0").strip().lower() in ("1", "true", "yes")
     if not _proto:
         return

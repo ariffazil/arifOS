@@ -80,7 +80,7 @@ class TPCPState:
     ALPHA_DEFAULT: float = 0.15
 
 
-def run_tpcp_pipeline(contradictions: list | None = None, floors: dict | None = None) -> "TPCPState":
+def run_tpcp_pipeline(contradictions: list | None = None, floors: dict | None = None) -> TPCPState:
     """ZEN wrapper for TPCP. Enforces 4-phase + most restrictive.
     Returns state with phi_P and verdict.
     """

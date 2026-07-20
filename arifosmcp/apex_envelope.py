@@ -13,8 +13,6 @@ APEX-Law equation: g(t) = A(t) · P(t) · H(t) · √(S(t)·U(t)) · E(t)²
 
 from __future__ import annotations
 
-import math
-from datetime import datetime, timezone
 from typing import Any
 
 # ZEN Phase 1: ToAC + TPCP integration per APEX_STACK_Forge_2026-07-06_v1
@@ -46,8 +44,6 @@ PROOF_LEVELS = {"ZKPC_NONE", "ZKPC_OBSERVATION", "ZKPC_AUDIT", "ZKPC_CERTAINTY"}
 
 from arifosmcp.models.verdicts import (
     Verdict,  # Canonical: SEAL, HOLD, SABAR, VOID
-    VERDICT_ORDER,  # Canonical ordering: SEAL=0, SABAR=1, HOLD=2, VOID=3
-    enforce_verdict_monotonicity,
 )
 
 # Legacy string constants — kept for backward compatibility

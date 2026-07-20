@@ -43,6 +43,7 @@ def _get_qdrant() -> Any:
     """Return QdrantClient or None."""
     try:
         from qdrant_client import QdrantClient  # noqa: PLC0415
+
         return QdrantClient(url=os.getenv("QDRANT_URL", "http://localhost:6333"), timeout=10)
     except Exception as exc:
         logger.error("Qdrant unreachable: %s", exc)
@@ -66,16 +67,18 @@ def _fetch_vectors(client: Any) -> list[dict[str, Any]]:
         )
         for pt in scroll_result[0] or []:
             if pt.vector and pt.payload:
-                entries.append({
-                    "point_id": str(pt.id),
-                    "vector": np.array(pt.vector, dtype=np.float32),
-                    "entry_id": pt.payload.get("entry_id", ""),
-                    "blast_radius": pt.payload.get("blast_radius", "L2_SYSTEM"),
-                    "enriched_category": pt.payload.get("enriched_category", "UNCATEGORIZED"),
-                    "derived_semantic_text": pt.payload.get("derived_semantic_text", ""),
-                    "actor": pt.payload.get("actor", ""),
-                    "is_derived": pt.payload.get("is_derived", False),
-                })
+                entries.append(
+                    {
+                        "point_id": str(pt.id),
+                        "vector": np.array(pt.vector, dtype=np.float32),
+                        "entry_id": pt.payload.get("entry_id", ""),
+                        "blast_radius": pt.payload.get("blast_radius", "L2_SYSTEM"),
+                        "enriched_category": pt.payload.get("enriched_category", "UNCATEGORIZED"),
+                        "derived_semantic_text": pt.payload.get("derived_semantic_text", ""),
+                        "actor": pt.payload.get("actor", ""),
+                        "is_derived": pt.payload.get("is_derived", False),
+                    }
+                )
     except Exception as exc:
         logger.error("Failed to fetch vectors: %s", exc)
     return entries
@@ -131,17 +134,19 @@ def _detect_outliers(
     for e in deviants:
         sim = _cosine(e["vector"], centroid)
         if sim >= 0.70:  # Structurally similar — classification should match
-            outliers.append({
-                "entry_id": e["entry_id"],
-                "point_id": e["point_id"],
-                "blast_radius_current": e["blast_radius"],
-                "blast_radius_cluster_median": median_br,
-                "enriched_category": e["enriched_category"],
-                "cosine_to_centroid": round(sim, 4),
-                "actor": e["actor"],
-                "derived_text_preview": e["derived_semantic_text"][:200],
-                "recommendation": f"Review: current={e['blast_radius']}, cluster_median={median_br}",
-            })
+            outliers.append(
+                {
+                    "entry_id": e["entry_id"],
+                    "point_id": e["point_id"],
+                    "blast_radius_current": e["blast_radius"],
+                    "blast_radius_cluster_median": median_br,
+                    "enriched_category": e["enriched_category"],
+                    "cosine_to_centroid": round(sim, 4),
+                    "actor": e["actor"],
+                    "derived_text_preview": e["derived_semantic_text"][:200],
+                    "recommendation": f"Review: current={e['blast_radius']}, cluster_median={median_br}",
+                }
+            )
     return outliers
 
 
@@ -206,7 +211,10 @@ def run_meta_review(
 
     logger.info(
         "Meta-Precedent Review: %d vectors, %d clusters, %d outliers → %s",
-        len(entries), len(clusters), len(all_outliers), out_path,
+        len(entries),
+        len(clusters),
+        len(all_outliers),
+        out_path,
     )
 
     return report

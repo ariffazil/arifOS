@@ -5,18 +5,16 @@ single APA-flavored Markdown report. Read-only, no execution.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
-from typing import Optional
-
+from datetime import UTC, datetime
 
 from . import sandbox
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    return datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
-def _table(rows: list[dict], columns: Optional[list[str]] = None) -> str:
+def _table(rows: list[dict], columns: list[str] | None = None) -> str:
     if not rows:
         return "_(no rows)_\n"
     cols = columns or list(rows[0].keys())
@@ -33,7 +31,7 @@ def compose_report(
     title: str,
     file_path: str,
     blocks: list[dict],
-    output_path: Optional[str] = None,
+    output_path: str | None = None,
 ) -> dict:
     """Compose a Markdown report.
 

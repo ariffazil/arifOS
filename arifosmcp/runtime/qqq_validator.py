@@ -86,6 +86,8 @@ try:
     from arifosmcp.schemas.federation_enums import (
         IntentClass,
         QQQCompliance,
+    )
+    from arifosmcp.schemas.federation_enums import (
         requires_qqq as _requires_qqq,
     )
 except ImportError:
@@ -179,7 +181,12 @@ def _validate_q3(quantum: dict[str, Any] | None) -> tuple[bool, list[str]]:
         reasons.append("Q3: quantum_analysis missing entirely")
         return False, reasons
 
-    required = ["precedent_effect", "interference_effect", "superposition_effect", "observer_effect"]
+    required = [
+        "precedent_effect",
+        "interference_effect",
+        "superposition_effect",
+        "observer_effect",
+    ]
     for field_name in required:
         value = quantum.get(field_name, "")
         if not value or not isinstance(value, str) or len(value.strip()) < 5:
@@ -197,8 +204,7 @@ def _validate_recommended_path(
     path_ids = {p.get("path_id") for p in paths}
     if recommended_path_id not in path_ids:
         reasons.append(
-            f"Verdict: recommended_path_id '{recommended_path_id}' "
-            f"not in path_ids: {path_ids}"
+            f"Verdict: recommended_path_id '{recommended_path_id}' not in path_ids: {path_ids}"
         )
 
     return len(reasons) == 0, reasons
@@ -241,7 +247,7 @@ def validate_qqq(
         return QQQCheck(
             verdict=QQQVerdict.ENVELOPE_MISSING,
             qqq_required=True,
-            reasons=["QQQ required for intent '{}' but no envelope provided".format(intent_class)],
+            reasons=[f"QQQ required for intent '{intent_class}' but no envelope provided"],
             metadata={"intent_class": intent_class},
         )
 

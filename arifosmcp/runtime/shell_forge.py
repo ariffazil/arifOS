@@ -1,7 +1,7 @@
+import logging
 import os
 import shlex
 import subprocess
-import logging
 from datetime import UTC, datetime
 
 logger = logging.getLogger(__name__)
@@ -125,8 +125,8 @@ class HardenedShellForge:
         # pass through the constitutional chokepoint before subprocess.run().
         # Previously this path bypassed pre_execution_gate entirely.
         try:
-            from arifosmcp.schemas.kernel_envelope import ActionClass
             from arifosmcp.runtime.pre_execution_gate import quick_gate
+            from arifosmcp.schemas.kernel_envelope import ActionClass
 
             _shell_action = ActionClass.MUTATE if is_risk else ActionClass.OBSERVE
             _gate_result = quick_gate(

@@ -39,12 +39,12 @@ from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.schemas.epistemic_tag import (
-    EpistemicTag,
     EPISTEMIC_AI_ADVISORY,
     EPISTEMIC_DETERMINISTIC,
     EPISTEMIC_DOMAIN_COMPUTATION,
     EPISTEMIC_GOVERNANCE_TEMPLATE,
     EPISTEMIC_RETRIEVED,
+    EpistemicTag,
     assert_tag_valid,
 )
 

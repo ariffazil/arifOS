@@ -22,33 +22,34 @@ DITEMPA BUKAN DIBERI
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DEFAULT_QDF_THRESHOLD = 0.83  # APEX solver spec target
-MIN_QDF_THRESHOLD = 0.60      # Phase 1 starting threshold
-HOLD_QDF_THRESHOLD = 0.60     # Below this → HOLD
-VOID_QDF_THRESHOLD = 0.30     # Below this → VOID
+MIN_QDF_THRESHOLD = 0.60  # Phase 1 starting threshold
+HOLD_QDF_THRESHOLD = 0.60  # Below this → HOLD
+VOID_QDF_THRESHOLD = 0.30  # Below this → VOID
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EPISTEMIC LABELS (F2 TRUTH)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class EpistemicLabel(str, Enum):
     """Epistemic tier of evidence. F2 TRUTH: every claim must be labeled."""
-    OBSERVED = "OBSERVED"      # direct measurement
-    DERIVED = "DERIVED"        # computed from observations
-    INTERPRETED = "INTERPRETED" # inferred from patterns
+
+    OBSERVED = "OBSERVED"  # direct measurement
+    DERIVED = "DERIVED"  # computed from observations
+    INTERPRETED = "INTERPRETED"  # inferred from patterns
     SPECULATED = "SPECULATED"  # hypothesis without strong evidence
-    ASSUMED = "ASSUMED"        # taken as given, not verified
-    UNKNOWN = "UNKNOWN"        # no information
+    ASSUMED = "ASSUMED"  # taken as given, not verified
+    UNKNOWN = "UNKNOWN"  # no information
 
 
 # Amplitude for each epistemic label (Born-rule: |α|² = probability)
@@ -66,13 +67,15 @@ EPISTEMIC_AMPLITUDES: dict[EpistemicLabel, float] = {
 # CONFIDENCE BAND (F2 TRUTH + F7 HUMILITY)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ConfidenceBand(str, Enum):
     """Confidence level of evidence. F7 HUMILITY: acknowledge uncertainty."""
-    VERIFIED = "VERIFIED"      # independently confirmed
-    HIGH = "HIGH"              # strong evidence, minor gaps
-    MODERATE = "MODERATE"      # reasonable evidence, some uncertainty
-    LOW = "LOW"                # weak evidence, significant gaps
-    UNKNOWN = "UNKNOWN"        # no confidence data
+
+    VERIFIED = "VERIFIED"  # independently confirmed
+    HIGH = "HIGH"  # strong evidence, minor gaps
+    MODERATE = "MODERATE"  # reasonable evidence, some uncertainty
+    LOW = "LOW"  # weak evidence, significant gaps
+    UNKNOWN = "UNKNOWN"  # no confidence data
 
 
 CONFIDENCE_AMPLITUDES: dict[ConfidenceBand, float] = {
@@ -88,12 +91,14 @@ CONFIDENCE_AMPLITUDES: dict[ConfidenceBand, float] = {
 # WITNESS POSITION (F3 WITNESS)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class WitnessPosition(str, Enum):
     """Positional witness taxonomy. F3 WITNESS: who is attesting."""
-    HUMAN = "HUMAN"            # sovereign human attested
-    EXTERNAL = "EXTERNAL"      # outside the federation
-    INTERNAL = "INTERNAL"      # inside federation, different organ
-    SELF = "SELF"              # same agent attesting to itself
+
+    HUMAN = "HUMAN"  # sovereign human attested
+    EXTERNAL = "EXTERNAL"  # outside the federation
+    INTERNAL = "INTERNAL"  # inside federation, different organ
+    SELF = "SELF"  # same agent attesting to itself
 
 
 # Penalty for witness position (self-attestation is least reliable)
@@ -109,8 +114,10 @@ WITNESS_PENALTIES: dict[WitnessPosition, float] = {
 # BLAST RADIUS (F1 AMANAH)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class BlastRadius(str, Enum):
     """Blast radius of the action. F1 AMANAH: reversible-first."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -129,6 +136,7 @@ BLAST_MODIFIERS: dict[BlastRadius, float] = {
 # BORN-RULE AMPLITUDE VECTOR
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class AmplitudeVector:
     """
@@ -138,6 +146,7 @@ class AmplitudeVector:
     Normalization: Σ|α|² = 1
     Phase: each amplitude can be positive (constructive) or negative (destructive)
     """
+
     observed: float = 0.0
     derived: float = 0.0
     interpreted: float = 0.0
@@ -148,8 +157,12 @@ class AmplitudeVector:
     def normalize(self) -> AmplitudeVector:
         """Normalize so Σ|α|² = 1. Born-rule compliance."""
         norm = math.sqrt(
-            self.observed**2 + self.derived**2 + self.interpreted**2
-            + self.speculated**2 + self.assumed**2 + self.unknown**2
+            self.observed**2
+            + self.derived**2
+            + self.interpreted**2
+            + self.speculated**2
+            + self.assumed**2
+            + self.unknown**2
         )
         if norm < 1e-10:
             # All zeros → equal superposition (maximum uncertainty)
@@ -167,13 +180,17 @@ class AmplitudeVector:
     def probability(self, label: EpistemicLabel) -> float:
         """Born rule: P(x) = |⟨x|ψ⟩|²"""
         amp = getattr(self, label.value.lower(), 0.0)
-        return amp ** 2
+        return amp**2
 
     def total_probability(self) -> float:
         """Should be 1.0 after normalization."""
         return (
-            self.observed**2 + self.derived**2 + self.interpreted**2
-            + self.speculated**2 + self.assumed**2 + self.unknown**2
+            self.observed**2
+            + self.derived**2
+            + self.interpreted**2
+            + self.speculated**2
+            + self.assumed**2
+            + self.unknown**2
         )
 
     def dominant_label(self) -> EpistemicLabel:
@@ -196,8 +213,12 @@ class AmplitudeVector:
         """
         # Sum of signed amplitudes (not squared)
         return (
-            self.observed + self.derived + self.interpreted
-            + self.speculated + self.assumed + self.unknown
+            self.observed
+            + self.derived
+            + self.interpreted
+            + self.speculated
+            + self.assumed
+            + self.unknown
         )
 
 
@@ -241,18 +262,20 @@ def build_amplitude_vector(
 # QDF COMPUTATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class QDFResult:
     """Result of QDF computation."""
-    qdf: float                                    # final QDF score [0, 1]
-    amplitude_vector: AmplitudeVector             # Born-rule amplitudes
-    epistemic_contribution: float                 # epistemic label factor
-    confidence_contribution: float                # confidence band factor
-    witness_contribution: float                   # witness position factor
-    blast_contribution: float                     # blast radius factor
-    interference: float                           # constructive/destructive
-    threshold_met: bool                           # qdf >= threshold
-    verdict: str                                  # PROCEED / HOLD / VOID
+
+    qdf: float  # final QDF score [0, 1]
+    amplitude_vector: AmplitudeVector  # Born-rule amplitudes
+    epistemic_contribution: float  # epistemic label factor
+    confidence_contribution: float  # confidence band factor
+    witness_contribution: float  # witness position factor
+    blast_contribution: float  # blast radius factor
+    interference: float  # constructive/destructive
+    threshold_met: bool  # qdf >= threshold
+    verdict: str  # PROCEED / HOLD / VOID
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -320,7 +343,7 @@ def compute_qdf(
     epistemic_contrib = EPISTEMIC_AMPLITUDES[epistemic_label]
     confidence_contrib = CONFIDENCE_AMPLITUDES[confidence_band]
     witness_contrib = 1.0 + WITNESS_PENALTIES[witness_position]  # [0.80, 1.0]
-    blast_contrib = BLAST_MODIFIERS[blast_radius]                # [0.70, 1.0]
+    blast_contrib = BLAST_MODIFIERS[blast_radius]  # [0.70, 1.0]
 
     # Interference factor from amplitude vector
     # Normalize to [0.5, 1.5] range (destructive → constructive)

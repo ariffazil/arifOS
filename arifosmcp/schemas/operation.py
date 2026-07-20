@@ -16,8 +16,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-
 # ── Operation Status ──────────────────────────────────────────────────────
+
 
 class OperationStatus:
     STARTED = "STARTED"
@@ -26,6 +26,7 @@ class OperationStatus:
 
 
 # ── OperationEvent ────────────────────────────────────────────────────────
+
 
 class OperationEvent(BaseModel):
     """Emitted for every meaningful action in arifOS."""
@@ -46,6 +47,7 @@ class OperationEvent(BaseModel):
 
 # ── ReceiptEvent ──────────────────────────────────────────────────────────
 
+
 class ReceiptEvent(BaseModel):
     """Emitted for every sealed or completed operation."""
 
@@ -65,8 +67,10 @@ class ReceiptEvent(BaseModel):
 
 # ── Bus Replay Result ─────────────────────────────────────────────────────
 
+
 class BusReplayResult(BaseModel):
     """Result of replaying the durable bus."""
+
     operations: list[dict[str, Any]] = Field(default_factory=list)
     receipts: list[dict[str, Any]] = Field(default_factory=list)
     total_ops: int = 0

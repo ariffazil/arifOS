@@ -7,11 +7,13 @@ and returns structured data for mcp_gate_v0.py consumption.
 Forged: 2026-06-29 — EHT Repo Audit
 Sealed: 2026-06-29 — F13 SOVEREIGN (888)
 """
+
 from __future__ import annotations
 
-import yaml
-from pathlib import Path
 from dataclasses import dataclass, field
+from pathlib import Path
+
+import yaml
 
 FORBIDDEN_PATTERNS_PATH = Path(
     "/root/arifOS/forge_work/offsec_governance/ToolHazardV1/forbidden_patterns.yaml"

@@ -8,9 +8,7 @@ must produce these hashes EXACTLY on every replay. This is the audit's
 
 from __future__ import annotations
 
-import json
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .state_machine import CapitalCase, _hash
@@ -19,6 +17,7 @@ from .state_machine import CapitalCase, _hash
 @dataclass
 class CapitalJudgeFixture:
     """A reproducible capital case. Same fields → same hashes → same receipts."""
+
     case_id: str
     capital_case: CapitalCase
     expected_outputs: dict[str, Any]
@@ -38,13 +37,21 @@ def _synth_npv(cashflows: list[float], discount_rate: float, terminal: float = 0
     return round(npv, 2)
 
 
-def _synth_irr(cashflows: list[float], initial_capital: float, low: float = 0.0, high: float = 1.0, tol: float = 1e-5) -> float:
+def _synth_irr(
+    cashflows: list[float],
+    initial_capital: float,
+    low: float = 0.0,
+    high: float = 1.0,
+    tol: float = 1e-5,
+) -> float:
     """Hand-computed IRR via bisection. Reproducible to ±1e-4."""
+
     def f(rate: float) -> float:
         v = -initial_capital
         for t, cf in enumerate(cashflows, start=1):
             v += cf / ((1 + rate) ** t)
         return v
+
     for _ in range(200):
         mid = (low + high) / 2
         if f(mid) > 0:
@@ -74,12 +81,21 @@ def cap_2026_001() -> CapitalJudgeFixture:
     """Audit-mandated fixture: deterministic synthetic case."""
     case = CapitalCase(
         case_id="CAP-2026-001",
-        actor={"session_id": "session-fixture-001", "actor_id": "ARIF", "subject_did": "did:web:arif-fazil.com:agents:wealth"},
+        actor={
+            "session_id": "session-fixture-001",
+            "actor_id": "ARIF",
+            "subject_did": "did:web:arif-fazil.com:agents:wealth",
+        },
         purpose={
             "description": "Synthetic revenue ramp case for CI validation. Deterministic.",
             "decision_requested": "PROCEED_with_advisory",
         },
-        valuation={"currency": "MYR", "valuation_date": "2026-01-01", "horizon_years": 5, "discount_rate": 0.10},
+        valuation={
+            "currency": "MYR",
+            "valuation_date": "2026-01-01",
+            "horizon_years": 5,
+            "discount_rate": 0.10,
+        },
         inputs={
             "initial_capital": 1_000_000.00,
             "cashflows": _FCF,
@@ -126,11 +142,15 @@ def cap_2026_001() -> CapitalJudgeFixture:
         expected_input_hash=_hash(input_payload),
         expected_output_hash=_hash(output),
         expected_state_chain=[
-            "RECEIVED", "AUTHENTICATED", "VALIDATED", "COMPUTED", "JUDGED", "SEALED", "EXECUTED"
+            "RECEIVED",
+            "AUTHENTICATED",
+            "VALIDATED",
+            "COMPUTED",
+            "JUDGED",
+            "SEALED",
+            "EXECUTED",
         ],
-        expected_receipt_types=[
-            "COMPUTATION", "JUDGMENT", "SEAL", "EXECUTION"
-        ],
+        expected_receipt_types=["COMPUTATION", "JUDGMENT", "SEAL", "EXECUTION"],
     )
 
 

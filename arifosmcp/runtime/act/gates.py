@@ -7,6 +7,7 @@ DITEMPA BUKAN DIBERI — Gates are forged, not configured.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import StrEnum
 

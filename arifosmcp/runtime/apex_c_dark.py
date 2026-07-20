@@ -67,10 +67,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Optional
 
 from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
-
 
 # Verdict imported from canonical source (Phase 3 verdict unification, 2026-07-07)
 # Four-vertex verdict from APEX THEORY: SEAL, SABAR, HOLD, VOID
@@ -343,12 +341,12 @@ def compute_apex(
     integration: float,
     entropy_rate: float = 0.0,
     *,
-    reality: Optional[float] = None,
-    governance: Optional[float] = None,
-    civilization: Optional[float] = None,
-    memory: Optional[float] = None,
-    witness: Optional[float] = None,
-    meaning: Optional[float] = None,
+    reality: float | None = None,
+    governance: float | None = None,
+    civilization: float | None = None,
+    memory: float | None = None,
+    witness: float | None = None,
+    meaning: float | None = None,
 ) -> APEXVerdict:
     """
     Compute APEX intelligence score, shadow term, and verdict.

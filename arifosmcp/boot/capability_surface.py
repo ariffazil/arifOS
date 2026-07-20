@@ -229,7 +229,11 @@ AGENT_REGISTRY: dict[str, dict[str, Any]] = {
 
 ORGAN_REGISTRY: dict[str, dict[str, Any]] = {
     "arifOS": {"port": 8088, "tools": 13, "role": "kernel"},
-    "GEOX": {"port": 8081, "tools": 69, "role": "earth_witness"},  # live canonical ~69 (2026-07-09 GEOX-001)
+    "GEOX": {
+        "port": 8081,
+        "tools": 69,
+        "role": "earth_witness",
+    },  # live canonical ~69 (2026-07-09 GEOX-001)
     "WEALTH": {"port": 18082, "tools": 50, "role": "capital_witness"},
     "WELL": {"port": 18083, "tools": 18, "role": "substrate_witness"},
     "A-FORGE": {"port": 7071, "tools": 0, "role": "execution_broker"},

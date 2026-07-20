@@ -21,13 +21,14 @@ import json
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 # ── Manifest Schema ────────────────────────────────────────────────────────
 
 
 class ArtifactClass(str, Enum):
     """Artifact class taxonomy per WAJIB 8."""
+
     OBSERVATION = "observation"
     OPERATIONAL_HANDOFF = "operational_handoff"
     GUIDANCE = "guidance"
@@ -46,26 +47,29 @@ class AuthorityLevel(str, Enum):
 _BINDING_CLASSES = frozenset({ArtifactClass.POLICY, ArtifactClass.CONSTITUTION})
 
 # Classes that are always advisory unless approved
-_ADVISORY_CLASSES = frozenset({
-    ArtifactClass.OBSERVATION,
-    ArtifactClass.OPERATIONAL_HANDOFF,
-    ArtifactClass.GUIDANCE,
-    ArtifactClass.MEMORY,
-})
+_ADVISORY_CLASSES = frozenset(
+    {
+        ArtifactClass.OBSERVATION,
+        ArtifactClass.OPERATIONAL_HANDOFF,
+        ArtifactClass.GUIDANCE,
+        ArtifactClass.MEMORY,
+    }
+)
 
 
 @dataclass
 class ContextManifest:
     """Canonical context_manifest per WAJIB 8 schema."""
+
     artifact_id: str
     class_: ArtifactClass
     author: str
     source_commit: str
     authority_level: AuthorityLevel
-    approved_by: Optional[str]
+    approved_by: str | None
     binding: bool
     created_at: float
-    expires_at: Optional[float]
+    expires_at: float | None
     constitution_compatibility: str
     supersedes: list[str] = field(default_factory=list)
     content_hash: str = ""
@@ -105,6 +109,7 @@ class ContextManifest:
 @dataclass
 class ManifestVerdict:
     """Result of context_manifest validation."""
+
     valid: bool
     effective_class: ArtifactClass
     reason: str = ""
@@ -132,9 +137,7 @@ def validate_manifest(
 
     # Check 3: approved_by required for binding classes
     if manifest.requires_approval() and manifest.approved_by is None:
-        failures.append(
-            f"class={manifest.class_.value} requires approved_by, got None"
-        )
+        failures.append(f"class={manifest.class_.value} requires approved_by, got None")
 
     # Check 4: Expiry — expired artifacts downgrade to observation
     if manifest.is_expired() and manifest.is_binding_class():
@@ -168,7 +171,7 @@ def validate_manifest(
             valid=True,
             effective_class=effective_class,
             reason=f"EXPIRED: downgraded from {manifest.class_.value} → observation. "
-                   f"{'; '.join(failures)}",
+            f"{'; '.join(failures)}",
         )
 
     if manifest.is_binding_class() and manifest.approved_by is None:
@@ -178,8 +181,7 @@ def validate_manifest(
         return ManifestVerdict(
             valid=False,
             effective_class=effective_class,
-            reason=f"QUARANTINED: unapproved {manifest.class_.value}. "
-                   f"{'; '.join(failures)}",
+            reason=f"QUARANTINED: unapproved {manifest.class_.value}. {'; '.join(failures)}",
             quarantine=True,
         )
 
@@ -212,7 +214,7 @@ def compute_content_hash(content: str) -> str:
 # ── Boot Loader Integration ────────────────────────────────────────────────
 
 
-def scan_artifact_for_manifest(content: str) -> Optional[ContextManifest]:
+def scan_artifact_for_manifest(content: str) -> ContextManifest | None:
     """Attempt to extract a context_manifest from artifact content.
 
     Looks for YAML frontmatter or inline JSON with context_manifest key.
@@ -229,6 +231,7 @@ def scan_artifact_for_manifest(content: str) -> Optional[ContextManifest]:
         if end_idx:
             try:
                 import yaml
+
                 frontmatter = yaml.safe_load("\n".join(lines[1:end_idx]))
                 if isinstance(frontmatter, dict) and "context_manifest" in frontmatter:
                     return ContextManifest.from_dict(frontmatter["context_manifest"])

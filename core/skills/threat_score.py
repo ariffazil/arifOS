@@ -12,7 +12,6 @@ Spec reference: /root/arifOS/core/skills/THREAT_SCORE_SPEC.md
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 
 class RiskLevel(str, Enum):
@@ -42,10 +41,10 @@ class Anomaly:
     affected_tools: list = field(default_factory=list)
     affected_organs: list = field(default_factory=list)
     evidence_events: list = field(default_factory=list)
-    first_seen: Optional[datetime] = None
-    last_seen: Optional[datetime] = None
+    first_seen: datetime | None = None
+    last_seen: datetime | None = None
     count: int = 0
-    baseline: Optional[float] = None
+    baseline: float | None = None
 
 
 @dataclass
@@ -58,14 +57,12 @@ class ThreatAssessment:
     governance_health: str  # HEALTHY|WATCH|CONCERN|CRITICAL
     recommended_action: str  # CONTINUE|WATCH|INVESTIGATE|888_HOLD
     entropy_delta: float = 0.0
-    evidence_window_start: Optional[datetime] = None
-    evidence_window_end: Optional[datetime] = None
+    evidence_window_start: datetime | None = None
+    evidence_window_end: datetime | None = None
     events_analyzed: int = 0
 
 
-def detect_frequency_spike(
-    tool: str, current_rate: float, baseline_rate: float
-) -> Optional[Anomaly]:
+def detect_frequency_spike(tool: str, current_rate: float, baseline_rate: float) -> Anomaly | None:
     """Detect if a tool is being called unusually often."""
     if baseline_rate <= 0:
         return None
@@ -81,7 +78,7 @@ def detect_frequency_spike(
     return None
 
 
-def detect_novel_path(path: str, known_paths: set) -> Optional[Anomaly]:
+def detect_novel_path(path: str, known_paths: set) -> Anomaly | None:
     """Detect tool paths that have never been seen before."""
     if path not in known_paths:
         known_paths.add(path)
@@ -94,7 +91,7 @@ def detect_novel_path(path: str, known_paths: set) -> Optional[Anomaly]:
     return None
 
 
-def detect_hold_cluster(holds: list, window_seconds: int = 300) -> Optional[Anomaly]:
+def detect_hold_cluster(holds: list, window_seconds: int = 300) -> Anomaly | None:
     """Detect multiple HOLDs in a short time window."""
     if len(holds) < 3:
         return None

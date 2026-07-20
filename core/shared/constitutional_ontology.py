@@ -17,7 +17,6 @@ DITEMPA BUKAN DIBERI 🔥
 
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -185,13 +184,13 @@ class ConstitutionalOntologyPayload(BaseModel):
         default_factory=lambda: datetime.now(UTC), description="ISO-8601 timestamp"
     )
 
-    valid_until: Optional[datetime] = Field(
+    valid_until: datetime | None = Field(
         default=None, description="TTL for this output's authority"
     )
 
     # === TRACEABILITY ===
 
-    parent_trace_id: Optional[str] = Field(
+    parent_trace_id: str | None = Field(
         default=None, description="Parent trace for lineage tracking"
     )
 
@@ -370,8 +369,8 @@ class ValidationResult(BaseModel):
     """Result of ontology validation."""
 
     valid: bool
-    error: Optional[str] = None
-    payload: Optional[ConstitutionalOntologyPayload] = None
+    error: str | None = None
+    payload: ConstitutionalOntologyPayload | None = None
 
 
 class OntologyViolation(Exception):

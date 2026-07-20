@@ -30,7 +30,7 @@ from __future__ import annotations
 import json
 import logging
 import pathlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.schemas.eureka_ledger import (
@@ -57,10 +57,10 @@ _DELTAS_DIR = pathlib.Path("/root/.local/share/arifos/atlas333/deltas")
 
 # ── TEARFRAME Thresholds (from ATLAS333_EVERGREEN.md) ───────────────────────
 
-_TEARFRAME_TRM = 0.94   # Truth-Reliability Metric
-_TEARFRAME_ECHO = 0.87   # Evidence Coherence
-_TEARFRAME_RASA = 0.85   # Resonance-Alignment
-_AMANAH_MIN = 0.50        # Minimum evidence-bounded change score (Laplace-smoothed)
+_TEARFRAME_TRM = 0.94  # Truth-Reliability Metric
+_TEARFRAME_ECHO = 0.87  # Evidence Coherence
+_TEARFRAME_RASA = 0.85  # Resonance-Alignment
+_AMANAH_MIN = 0.50  # Minimum evidence-bounded change score (Laplace-smoothed)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -91,9 +91,7 @@ def _compute_tearframe(entry: EurekaLedgerEntry) -> dict[str, Any]:
         echo = quality_count / len(all_evidence)
 
     # RASA: human witness presence
-    human_conf = next(
-        (w.confidence for w in entry.witnesses if w.channel == "human"), 0.0
-    )
+    human_conf = next((w.confidence for w in entry.witnesses if w.channel == "human"), 0.0)
     rasa = human_conf
 
     return {
@@ -104,9 +102,7 @@ def _compute_tearframe(entry: EurekaLedgerEntry) -> dict[str, Any]:
         "echo_pass": echo >= _TEARFRAME_ECHO,
         "rasa_pass": rasa >= _TEARFRAME_RASA,
         "tearframe_pass": (
-            trm >= _TEARFRAME_TRM
-            and echo >= _TEARFRAME_ECHO
-            and rasa >= _TEARFRAME_RASA
+            trm >= _TEARFRAME_TRM and echo >= _TEARFRAME_ECHO and rasa >= _TEARFRAME_RASA
         ),
     }
 
@@ -163,9 +159,7 @@ def classify_delta(entry: EurekaLedgerEntry) -> tuple[DeltaClassification, dict[
 
     # Gate 3 (SOFT): Ladder state — EUREKA required for automatic acceptance
     if entry.ladder_state != LadderState.EUREKA:
-        diagnostics["rejection_reason"] = (
-            f"Ladder state is {entry.ladder_state.value}, not EUREKA"
-        )
+        diagnostics["rejection_reason"] = f"Ladder state is {entry.ladder_state.value}, not EUREKA"
         return DeltaClassification.REQUIRES_WITNESS, diagnostics
 
     # Gate 4 (SOFT): Witness completeness (all three channels)
@@ -183,9 +177,7 @@ def classify_delta(entry: EurekaLedgerEntry) -> tuple[DeltaClassification, dict[
 
     # Gate 6 (SOFT): Amanah
     if amanah < _AMANAH_MIN:
-        diagnostics["rejection_reason"] = (
-            f"Amanah {amanah:.3f} < {_AMANAH_MIN}"
-        )
+        diagnostics["rejection_reason"] = f"Amanah {amanah:.3f} < {_AMANAH_MIN}"
         return DeltaClassification.REQUIRES_WITNESS, diagnostics
 
     # All gates passed
@@ -251,7 +243,7 @@ def _apply_delta_to_cell(
             "kappa": 0.5,
             "rho": 0.5,
             "touch_count": 0,
-            "first_touch": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "first_touch": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "last_touch": None,
             "history": [],
         }
@@ -287,13 +279,15 @@ def _apply_delta_to_cell(
 
     # Update metadata
     cell_state["touch_count"] += 1
-    cell_state["last_touch"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    cell_state["history"].append({
-        "entry_id": entry.id,
-        "contradiction_class": cc,
-        "ladder_state": entry.ladder_state.value,
-        "timestamp": cell_state["last_touch"],
-    })
+    cell_state["last_touch"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    cell_state["history"].append(
+        {
+            "entry_id": entry.id,
+            "contradiction_class": cc,
+            "ladder_state": entry.ladder_state.value,
+            "timestamp": cell_state["last_touch"],
+        }
+    )
 
     # Keep history bounded (last 50 entries)
     if len(cell_state["history"]) > 50:
@@ -326,7 +320,7 @@ def _emit_receipt(
 
     receipt = {
         "receipt_id": f"atlas333-update-{entry.id}",
-        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "session_id": entry.session_id,
         "entry_id": entry.id,
         "classification": classification.value,
@@ -410,7 +404,7 @@ def atlas333_update(session_id: str) -> dict[str, Any]:
         }
 
         state["total_updates"] += 1
-        state["last_update"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        state["last_update"] = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         _save_cube777_state(state)
         logger.info(f"CUBE777 state updated: cell {_cell_key(cell)}")
@@ -422,7 +416,7 @@ def atlas333_update(session_id: str) -> dict[str, Any]:
         "entry_id": entry.id,
         "classification": classification.value,
         "diagnostics": diagnostics,
-        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     delta_path = _DELTAS_DIR / f"{session_id}.json"
     delta_path.write_text(json.dumps(delta_record, indent=2, default=str))
@@ -500,7 +494,7 @@ def write_eureka_entry(
 def _self_test() -> None:
     """Run basic self-test."""
     # Test 1: Classification with proper evidence and witnesses
-    from arifosmcp.schemas.eureka_ledger import build_eureka_entry, LedgerWitness
+    from arifosmcp.schemas.eureka_ledger import build_eureka_entry
 
     entry = build_eureka_entry(
         session_id="test-self-test-001",
@@ -517,7 +511,10 @@ def _self_test() -> None:
         ext_conf=0.96,
     )
     # Add evidence
-    entry.evidence_for_a = ["GEOX prospect evaluation: POS=0.72", "Seismic amplitude anomaly confirmed"]
+    entry.evidence_for_a = [
+        "GEOX prospect evaluation: POS=0.72",
+        "Seismic amplitude anomaly confirmed",
+    ]
     entry.evidence_for_b = ["WEALTH NPV analysis: negative at P50", "Capital asymmetry detected"]
 
     classification, diagnostics = classify_delta(entry)
@@ -526,13 +523,15 @@ def _self_test() -> None:
     )
     assert diagnostics["tearframe"]["tearframe_pass"] is True
     assert diagnostics["amanah_score"] >= _AMANAH_MIN
-    print(f"Test 1 PASS: {classification.value} (TRM={diagnostics['tearframe']['trm']}, Echo={diagnostics['tearframe']['echo']}, RASA={diagnostics['tearframe']['rasa']})")
+    print(
+        f"Test 1 PASS: {classification.value} (TRM={diagnostics['tearframe']['trm']}, Echo={diagnostics['tearframe']['echo']}, RASA={diagnostics['tearframe']['rasa']})"
+    )
 
     # Test 2: CUBE777 state load/save
     state = _load_cube777_state()
     assert state["version"] == "1.0.0"
     assert state["total_updates"] == 0
-    print(f"Test 2 PASS: CUBE777 state loaded")
+    print("Test 2 PASS: CUBE777 state loaded")
 
     # Test 3: Cell application
     cell = entry.cube777_cell
@@ -540,7 +539,9 @@ def _self_test() -> None:
     before = _apply_delta_to_cell(state, cell, entry.proposed_delta, entry)
     assert before["tau"] == 0.5
     assert state["cells"][f"{cell.i}/{cell.j}/{cell.k}"]["touch_count"] == 1
-    print(f"Test 3 PASS: Cell {_cell_key(cell)} updated (tau={state['cells'][_cell_key(cell)]['tau']})")
+    print(
+        f"Test 3 PASS: Cell {_cell_key(cell)} updated (tau={state['cells'][_cell_key(cell)]['tau']})"
+    )
 
     # Test 4: REQUIRES_WITNESS for incomplete witnesses
     entry2 = build_eureka_entry(

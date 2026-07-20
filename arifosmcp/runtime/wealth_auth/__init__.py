@@ -16,22 +16,22 @@ F1 AMANAH: additive module. The legacy WEALTH MCP endpoints still work
 unchanged; new tools adopt the middleware at their own pace.
 """
 
+from .authorize import authorize, error_to_envelope
 from .exceptions import (
-    AuthError,
-    SessionRequired,
-    TokenInvalid,
-    TokenExpired,
-    WrongAudience,
-    CapabilityNotGranted,
     ActorNotBound,
-    ReplayDetected,
-    Revoked,
+    AuthError,
+    CapabilityNotGranted,
     EvidenceInsufficient,
     HumanRatificationRequired,
+    ReplayDetected,
+    Revoked,
+    SessionRequired,
+    TokenExpired,
+    TokenInvalid,
+    WrongAudience,
 )
-from .token_validation import validate_token, extract_bearer, TokenClaims, issue_token
-from .authorize import authorize, error_to_envelope
 from .stateful_middleware import bound_call, extract_envelope
+from .token_validation import TokenClaims, extract_bearer, issue_token, validate_token
 
 __all__ = [
     "AuthError",

@@ -16,6 +16,7 @@ DITEMPA BUKAN DIBERI — Reflex is forged, not configured.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 from arifosmcp.runtime.art.lifecycle import (

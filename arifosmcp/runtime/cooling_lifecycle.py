@@ -27,9 +27,9 @@ Usage:
 import json
 import logging
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ ARCHIVE_PATH = Path(
 class DecayCandidate:
     """An entry that qualifies for memory decay."""
 
-    def __init__(self, entry: Dict[str, Any], age_days: float):
+    def __init__(self, entry: dict[str, Any], age_days: float):
         self.entry = entry
         self.age_days = age_days
         self.entry_id = entry.get("entry_id", entry.get("receipt_id", "unknown"))
@@ -77,7 +77,7 @@ class DecayCandidate:
 class ArchiveCandidate:
     """An entry that qualifies for archiving/compaction."""
 
-    def __init__(self, entries: List[Dict[str, Any]], pattern_key: str, age_days: float):
+    def __init__(self, entries: list[dict[str, Any]], pattern_key: str, age_days: float):
         self.entries = entries
         self.pattern_key = pattern_key
         self.age_days = age_days
@@ -89,12 +89,12 @@ class ArchiveCandidate:
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 
-def _load_jsonl(path: Path) -> List[Dict[str, Any]]:
+def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     """Load a JSONL file, returning list of dicts."""
     if not path.exists():
         return []
-    entries: List[Dict[str, Any]] = []
-    with open(path, "r") as f:
+    entries: list[dict[str, Any]] = []
+    with open(path) as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -110,20 +110,20 @@ def _get_age_days(timestamp_str: str) -> float:
     """Calculate age in days from a timestamp string."""
     try:
         ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return (now - ts).total_seconds() / 86400.0
     except (ValueError, TypeError):
         return 0.0
 
 
-def _extract_timestamp(entry: Dict[str, Any]) -> str:
+def _extract_timestamp(entry: dict[str, Any]) -> str:
     """Extract timestamp from various entry formats."""
     return entry.get("timestamp") or entry.get("created_at") or entry.get("epoch") or ""
 
 
-def _group_by_pattern(entries: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+def _group_by_pattern(entries: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     """Group entries by drift dimension + organ for pattern detection."""
-    groups: Dict[str, List[Dict[str, Any]]] = {}
+    groups: dict[str, list[dict[str, Any]]] = {}
     for entry in entries:
         dim = entry.get("drift_dimension", "other")
         organ = entry.get("organ", entry.get("governance_organ", "unknown"))
@@ -137,14 +137,14 @@ def _group_by_pattern(entries: List[Dict[str, Any]]) -> Dict[str, List[Dict[str,
 # ── T2.4: Memory Decay ─────────────────────────────────────────────────────
 
 
-def get_decay_candidates() -> List[DecayCandidate]:
+def get_decay_candidates() -> list[DecayCandidate]:
     """
     Find cooling entries older than DECAY_THRESHOLD_DAYS that need decay.
 
     Returns candidates sorted by age (oldest first).
     """
     entries = _load_jsonl(COOLING_LEDGER_PATH)
-    candidates: List[DecayCandidate] = []
+    candidates: list[DecayCandidate] = []
 
     for entry in entries:
         ts = _extract_timestamp(entry)
@@ -160,7 +160,7 @@ def get_decay_candidates() -> List[DecayCandidate]:
     return candidates
 
 
-def run_memory_decay(dry_run: bool = False) -> Dict[str, Any]:
+def run_memory_decay(dry_run: bool = False) -> dict[str, Any]:
     """
     Execute memory decay sweep on eligible entries.
 
@@ -172,9 +172,9 @@ def run_memory_decay(dry_run: bool = False) -> Dict[str, Any]:
     Returns summary dict.
     """
     candidates = get_decay_candidates()
-    decayed: List[str] = []
-    lowered: List[str] = []
-    errors: List[str] = []
+    decayed: list[str] = []
+    lowered: list[str] = []
+    errors: list[str] = []
 
     for c in candidates:
         try:
@@ -200,7 +200,7 @@ def run_memory_decay(dry_run: bool = False) -> Dict[str, Any]:
                     "old_temperature": round(c.temperature, 4),
                     "new_temperature": round(new_temp, 4),
                     "low_priority": new_temp < LOW_PRIORITY_TEMP_THRESHOLD,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "policy": "T2.4_memory_decay",
                 }
 
@@ -230,7 +230,7 @@ def run_memory_decay(dry_run: bool = False) -> Dict[str, Any]:
 # ── T2.5: Cooling Archive ──────────────────────────────────────────────────
 
 
-def get_archive_candidates() -> List[ArchiveCandidate]:
+def get_archive_candidates() -> list[ArchiveCandidate]:
     """
     Find cooling entries older than ARCHIVE_THRESHOLD_DAYS that can be compacted.
 
@@ -241,7 +241,7 @@ def get_archive_candidates() -> List[ArchiveCandidate]:
     stale = [e for e in entries if _get_age_days(_extract_timestamp(e)) >= ARCHIVE_THRESHOLD_DAYS]
 
     groups = _group_by_pattern(stale)
-    candidates: List[ArchiveCandidate] = []
+    candidates: list[ArchiveCandidate] = []
 
     for key, group in groups.items():
         if len(group) >= MIN_RECURRENCE_FOR_COMPACTION:
@@ -252,7 +252,7 @@ def get_archive_candidates() -> List[ArchiveCandidate]:
     return candidates
 
 
-def run_archive_sweep(dry_run: bool = False) -> Dict[str, Any]:
+def run_archive_sweep(dry_run: bool = False) -> dict[str, Any]:
     """
     Execute cooling archive compaction sweep.
 
@@ -264,8 +264,8 @@ def run_archive_sweep(dry_run: bool = False) -> Dict[str, Any]:
     Returns summary dict.
     """
     candidates = get_archive_candidates()
-    compacted: List[str] = []
-    errors: List[str] = []
+    compacted: list[str] = []
+    errors: list[str] = []
 
     for c in candidates:
         try:
@@ -289,7 +289,7 @@ def run_archive_sweep(dry_run: bool = False) -> Dict[str, Any]:
                     "original_entry_ids": [
                         e.get("entry_id", e.get("receipt_id", "?")) for e in c.entries
                     ],
-                    "compacted_at": datetime.now(timezone.utc).isoformat(),
+                    "compacted_at": datetime.now(UTC).isoformat(),
                     "policy": "T2.5_cooling_archive",
                     "note": "Original entries preserved in cooling_ledger.jsonl. This is a summary for retrieval efficiency.",
                 }
@@ -318,7 +318,7 @@ def run_archive_sweep(dry_run: bool = False) -> Dict[str, Any]:
 # ── Entropy Sweep Integration ──────────────────────────────────────────────
 
 
-def get_stale_entries_for_entropy_sweep() -> List[Dict[str, Any]]:
+def get_stale_entries_for_entropy_sweep() -> list[dict[str, Any]]:
     """
     Called by forge_entropy_sweep: returns list of stale cooling entries
     that are candidates for archiving. Flags them, never auto-deletes.
@@ -326,7 +326,7 @@ def get_stale_entries_for_entropy_sweep() -> List[Dict[str, Any]]:
     Returns entries with age > ARCHIVE_THRESHOLD_DAYS, sorted by age descending.
     """
     entries = _load_jsonl(COOLING_LEDGER_PATH)
-    stale_entries: List[Dict[str, Any]] = []
+    stale_entries: list[dict[str, Any]] = []
 
     for entry in entries:
         ts = _extract_timestamp(entry)
@@ -380,4 +380,4 @@ if __name__ == "__main__":
             )
         )
     else:
-        print(f"Usage: python cooling_lifecycle.py [decay|archive|status] [--dry-run]")
+        print("Usage: python cooling_lifecycle.py [decay|archive|status] [--dry-run]")

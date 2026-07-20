@@ -510,9 +510,9 @@ class RecursiveGovernanceEngine:
         Tries Gemini CLI first, then API providers.
         Returns None if all external auditors unavailable.
         """
-        import subprocess
-        import os
         import json as _json
+        import os
+        import subprocess
 
         # Build the claim to audit
         claim = params.get("claim", params.get("query", params.get("intent", "")))
@@ -521,8 +521,8 @@ class RecursiveGovernanceEngine:
 
         prompt = (
             f"You are an EXTERNAL AUDITOR. You are NOT part of arifOS. "
-            f"Verify this claim: \"{claim}\". "
-            f"Output JSON: {{\"verdict\": \"VERIFIED|UNVERIFIED|CONTRADICTED\", \"confidence\": 0.0-1.0}}"
+            f'Verify this claim: "{claim}". '
+            f'Output JSON: {{"verdict": "VERIFIED|UNVERIFIED|CONTRADICTED", "confidence": 0.0-1.0}}'
         )
 
         # Try Gemini CLI
@@ -531,15 +531,23 @@ class RecursiveGovernanceEngine:
             env["GEMINI_CLI_TRUST_WORKSPACE"] = "true"
             result = subprocess.run(
                 ["gemini", "-p", prompt],
-                capture_output=True, text=True, timeout=60, env=env,
+                capture_output=True,
+                text=True,
+                timeout=60,
+                env=env,
             )
             if result.returncode == 0 and result.stdout.strip():
                 text = result.stdout.strip()
                 # Filter warnings
-                lines = [l for l in text.split(chr(10)) if not l.startswith("Warning") and not l.startswith("Ripgrep")]
+                lines = [
+                    l
+                    for l in text.split(chr(10))
+                    if not l.startswith("Warning") and not l.startswith("Ripgrep")
+                ]
                 clean = chr(10).join(lines).strip()
                 if clean:
                     import re
+
                     match = re.search(r"\{[^{}]*\}", clean)
                     if match:
                         parsed = _json.loads(match.group())

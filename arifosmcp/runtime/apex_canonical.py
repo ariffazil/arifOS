@@ -27,11 +27,10 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
-
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTANTS
@@ -145,9 +144,7 @@ def compute_P(
     if w_total == 0:
         return 0.0
 
-    return clamp(
-        (w_well / w_total) * pw + (w_seis / w_total) * ps + (w_geo / w_total) * pg
-    )
+    return clamp((w_well / w_total) * pw + (w_seis / w_total) * ps + (w_geo / w_total) * pg)
 
 
 def compute_E(
@@ -342,7 +339,7 @@ class APEXResult:
             "equation": self.equation,
             "shadow": self.shadow,
             "conservation": self.conservation,
-            "timestamp": self.timestamp or datetime.now(timezone.utc).isoformat(),
+            "timestamp": self.timestamp or datetime.now(UTC).isoformat(),
         }
 
     def to_json(self, indent: int = 2) -> str:
@@ -491,7 +488,10 @@ def _determine_verdict(
 
     # HOLD: C_dark too high
     if C_dark >= C_DARK_THRESHOLD:
-        return Verdict.HOLD, f"C_dark = {C_dark:.4f} ≥ {C_DARK_THRESHOLD} — hallucination bound exceeded"
+        return (
+            Verdict.HOLD,
+            f"C_dark = {C_dark:.4f} ≥ {C_DARK_THRESHOLD} — hallucination bound exceeded",
+        )
 
     # SEAL: all conditions met
     if G >= SEAL_THRESHOLD and C_dark < C_DARK_THRESHOLD and dS_dt <= 0:
@@ -503,9 +503,7 @@ def _determine_verdict(
 
     # SABAR: partial intelligence
     if G >= SABAR_THRESHOLD and C_dark < C_DARK_THRESHOLD:
-        return Verdict.SABAR, (
-            f"G = {G:.4f} ≥ {SABAR_THRESHOLD} but < {SEAL_THRESHOLD} — patience"
-        )
+        return Verdict.SABAR, (f"G = {G:.4f} ≥ {SABAR_THRESHOLD} but < {SEAL_THRESHOLD} — patience")
 
     # HOLD: below SABAR threshold
     return Verdict.HOLD, f"G = {G:.4f} < {SABAR_THRESHOLD} — insufficient intelligence"
@@ -526,9 +524,7 @@ def compute_C_dark(A: float, P: float, X: float) -> float:
     return clamp(A) * (1 - clamp(P)) * (1 - clamp(X))
 
 
-def quick_verdict(
-    A: float, P: float, E: float, X: float, Phi: float
-) -> tuple[Verdict, str]:
+def quick_verdict(A: float, P: float, E: float, X: float, Phi: float) -> tuple[Verdict, str]:
     """Quick verdict from pre-computed primitives."""
     G = compute_G(A, P, E, X, Phi)
     C_dark = compute_C_dark(A, P, X)

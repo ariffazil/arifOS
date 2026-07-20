@@ -241,6 +241,7 @@ def _append_durable(event: dict[str, Any]) -> None:
 
 # ── Session A: Operation/Receipt emission ──────────────────────────────────
 
+
 def emit_operation(
     capability: str,
     *,
@@ -298,6 +299,7 @@ def emit_receipt(
 
 
 # ── Session A: Replay ─────────────────────────────────────────────────────
+
 
 def replay_operations(limit: int = 1000) -> list[dict[str, Any]]:
     """Replay operations.log in order."""

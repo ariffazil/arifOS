@@ -14,7 +14,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
 import time
 from typing import Any
 
@@ -25,10 +24,24 @@ logger = logging.getLogger(__name__)
 # Includes the four audit-4 named WEALTH capabilities so the manifest reflects
 # the cross-organ call surface that /aaa/ documents.
 CANONICAL_TOOLS_18 = {
-    "arif_init", "arif_observe", "arif_think", "arif_critique", "arif_route",
-    "arif_triage", "arif_bridge_connect", "arif_compose", "arif_memory",
-    "arif_measure", "arif_judge", "arif_seal", "arif_forge", "arif_kernel_intercept",
-    "wealth_npv_reward", "wealth_irr_yield", "wealth_dscr_leverage", "wealth_emv_downside",
+    "arif_init",
+    "arif_observe",
+    "arif_think",
+    "arif_critique",
+    "arif_route",
+    "arif_triage",
+    "arif_bridge_connect",
+    "arif_compose",
+    "arif_memory",
+    "arif_measure",
+    "arif_judge",
+    "arif_seal",
+    "arif_forge",
+    "arif_kernel_intercept",
+    "wealth_npv_reward",
+    "wealth_irr_yield",
+    "wealth_dscr_leverage",
+    "wealth_emv_downside",
 }
 
 
@@ -99,7 +112,10 @@ def compose_tool_record(name: str) -> dict[str, Any]:
             "last_smoke_test": None,
             "status": "available" if callable_ else ("declared_only" if declared else "absent"),
         },
-        "schemas": {"input_hash": _hash({"type": "object", "title": name}), "output_hash": _hash({"type": "object", "title": f"{name}_out"})},
+        "schemas": {
+            "input_hash": _hash({"type": "object", "title": name}),
+            "output_hash": _hash({"type": "object", "title": f"{name}_out"}),
+        },
         "authority": {
             "public_simulation": public_simulation,
             "governed_use_requires_session": not public_simulation,
@@ -140,7 +156,12 @@ def compose_manifest(*, kernel: Any | None = None) -> dict[str, Any]:
             "registered_tools": registered,
             "callable_tools": callable_,
             "schema_valid_tools": callable_,  # honest until PR5
-            "governance_mapped_tools": sum(1 for t in tools if t["governance"]["may_request_judgment"] or t["governance"]["may_issue_final_judgment"] is False),
+            "governance_mapped_tools": sum(
+                1
+                for t in tools
+                if t["governance"]["may_request_judgment"]
+                or t["governance"]["may_issue_final_judgment"] is False
+            ),
             "drift": drift,
         },
         "manifest_drift": {

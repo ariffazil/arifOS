@@ -15,23 +15,25 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from .session_state import SessionState, Verdict, Readiness
+from .session_state import Readiness, SessionState, Verdict
 
 
 class RouteAction(str, Enum):
     """What the router decides to do."""
-    ADVANCE = "ADVANCE"             # Move to next organ
-    RETURN_TO_333 = "RETURN_TO_333" # SABAR: go back to REASON
-    RETURN_TO_111 = "RETURN_TO_111" # Critique says re-observe
+
+    ADVANCE = "ADVANCE"  # Move to next organ
+    RETURN_TO_333 = "RETURN_TO_333"  # SABAR: go back to REASON
+    RETURN_TO_111 = "RETURN_TO_111"  # Critique says re-observe
     ESCALATE_SOVEREIGN = "ESCALATE_SOVEREIGN"  # HOLD: needs Arif
-    TERMINATE_VOID = "TERMINATE_VOID"          # VOID: session ends
-    TERMINATE_SEAL = "TERMINATE_SEAL"          # Sealed: session complete
-    FORCE_HOLD = "FORCE_HOLD"      # Metabolic exhaustion
+    TERMINATE_VOID = "TERMINATE_VOID"  # VOID: session ends
+    TERMINATE_SEAL = "TERMINATE_SEAL"  # Sealed: session complete
+    FORCE_HOLD = "FORCE_HOLD"  # Metabolic exhaustion
 
 
 @dataclass
 class RoutingDecision:
     """The router's decision on what happens next."""
+
     action: RouteAction
     current_stage: str
     next_stage: str | None
@@ -207,8 +209,7 @@ def route(state: SessionState) -> RoutingDecision:
         current_stage=current,
         next_stage=None,
         reason=(
-            f"Unexpected state: at stage {current} with no routing rule. "
-            f"Escalating to sovereign."
+            f"Unexpected state: at stage {current} with no routing rule. Escalating to sovereign."
         ),
         revision_cycle=state.revision_cycle,
         loop_count=state.loop_count,

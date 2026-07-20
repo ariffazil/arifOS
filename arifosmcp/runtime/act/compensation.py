@@ -14,6 +14,7 @@ DITEMPA BUKAN DIBERI — Compensation is forged, not configured.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 

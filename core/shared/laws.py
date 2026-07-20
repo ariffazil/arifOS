@@ -25,6 +25,7 @@ import json
 import re
 import unicodedata
 from dataclasses import dataclass, field
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
@@ -1525,10 +1526,10 @@ class ReplayGuard:
         # Reject: old timestamp (older than 5 minutes).
         ts = incoming.get("timestamp", "")
         try:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             inc_time = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-            if (datetime.now(timezone.utc) - inc_time).total_seconds() > 300:
+            if (datetime.now(UTC) - inc_time).total_seconds() > 300:
                 return {
                     "accepted": False,
                     "verdict": "VOID",

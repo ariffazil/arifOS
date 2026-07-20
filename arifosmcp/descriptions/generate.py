@@ -28,7 +28,8 @@ OUT_DIR = "/root/arifOS/arifosmcp/descriptions"
 DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
     # ─── CRITICAL ──────────────────────────────────────────────────────────
     (
-        "arif_triage", "arifos",
+        "arif_triage",
+        "arifos",
         "Classify an inbound action into a triage lane (constitutional, domain, observational, ritual, exploratory) before any tool is called.",
         [
             "symbolic context is unclear — must HOLD until the 9-axis pre-action pass is complete",
@@ -38,7 +39,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "arif_think", "arifos",
+        "arif_think",
+        "arifos",
         "Multi-step reasoning, planning, and reflection with explicit confidence labeling. Now requires the 6-axis symbolic_reasoning_pass for any non-trivial task.",
         [
             "task is trivial and the 6-axis pass would be theatre",
@@ -47,7 +49,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "arif_judge", "arifos",
+        "arif_judge",
+        "arifos",
         "Render final constitutional verdict on a proposed action. Now requires `symbol_owner` to be verified — unknown → refused.",
         [
             "symbol_owner == unknown (spec §3.E hard rule: refuse judgment)",
@@ -57,7 +60,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "arif_forge", "arifos",
+        "arif_forge",
+        "arifos",
         "Execute approved builds, deployments, or system changes only after a verified arif_judge SEAL. Now requires the `forge_precheck` gate — if symbolic authority is uncertain, FORGE must dry_run only.",
         [
             "symbolic approval is present but constitutional approval is absent",
@@ -70,7 +74,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "arif_seal", "arifos",
+        "arif_seal",
+        "arifos",
         "Seal a verdict or outcome to the immutable audit ledger. The input MUST carry `seal_disambiguation` distinguishing geological_seal / constitutional_SEAL / vault_seal / trap_seal_lithology.",
         [
             "input contains a bare 'seal' token without domain qualifier (Rule Zero)",
@@ -80,7 +85,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "well_guard_dignity", "well",
+        "well_guard_dignity",
+        "well",
         "Detect language or behavior patterns that reduce a human to a metric, attack identity symbols, or breach sacred/grief/family charge.",
         [
             "the language is technical and carries no symbolic charge",
@@ -89,7 +95,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "well_detect_boundary", "well",
+        "well_detect_boundary",
+        "well",
         "Classify an inbound topic by boundary type — personal / family / professional / institutional / sacred / legal / sexual / grief / national / sovereign.",
         [
             "topic is purely technical with no human dimension",
@@ -98,7 +105,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "well_trace_lineage", "well",
+        "well_trace_lineage",
+        "well",
         "Trace the symbolic status of a memory entry: observed_fact / interpretation / emotional_state / ritual_phrase / governance_receipt / revoked_or_superseded.",
         [
             "memory has not yet been written",
@@ -106,10 +114,10 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
             "the lineage request is rhetorical, not investigative",
         ],
     ),
-
     # ─── HIGH ─────────────────────────────────────────────────────────────
     (
-        "arif_init", "arifos",
+        "arif_init",
+        "arifos",
         "Start or resume a governed constitutional session. Now requires `symbolic_context` (actor_identity, role_claims, cultural_frame, session_mode, symbolic_risk_profile).",
         [
             "actor identity is not verifiable",
@@ -118,7 +126,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "arif_observe", "arifos",
+        "arif_observe",
+        "arifos",
         "Search the web, ingest URLs, check system vitals. Now classifies source_symbol_class (legal_document, corporate_statement, ritual_text, etc.) and emits interpretation_warning.",
         [
             "source is already classified and observation is redundant",
@@ -127,7 +136,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "arif_explore", "arifos",
+        "arif_explore",
+        "arifos",
         "Map a repository, atlas of files, or open-ended discovery. Same source_symbol_class + interpretation_warning discipline as arif_observe.",
         [
             "scope is bounded and observation (not exploration) is the correct lane",
@@ -135,7 +145,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "geox_claim_create", "geox",
+        "geox_claim_create",
+        "geox",
         "Create a new geological claim. Now requires `symbolic_consequence` (map_symbol, reserve_booking_risk, investment_signal, institutional_liability, confidence_symbol.p10_p50_p90_present).",
         [
             "reserve_booking_risk=true and confidence_symbol.p10_p50_p90_present is false",
@@ -144,7 +155,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "geox_claim_challenge", "geox",
+        "geox_claim_challenge",
+        "geox",
         "Challenge an existing claim with contradictory evidence. Now requires `challenge_symbolic_target` (dominant_story, institutional_inertia, prestige_bias, seniority_bias, map_authority_bias).",
         [
             "challenge would attack the geoscientist's maruah rather than the symbol",
@@ -153,7 +165,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "geox_claim_seal", "geox",
+        "geox_claim_seal",
+        "geox",
         "Seal a geological claim with proper domain disambiguation. **MANDATORY** seal_disambiguation block — ties to Rule Zero.",
         [
             "seal_disambiguation is missing (Rule Zero violation)",
@@ -162,7 +175,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "geox_prospect_evaluate", "geox",
+        "geox_prospect_evaluate",
+        "geox",
         "Evaluate a prospect — volumetric, POS, EVOI, risk. Now requires `seal_disambiguation` and `prospect_symbolic_load` (career_signal, partner_signal, budget_lock_in_risk).",
         [
             "seal_disambiguation is missing",
@@ -171,7 +185,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "wealth_stock_analysis", "wealth",
+        "wealth_stock_analysis",
+        "wealth",
         "Analyze a stock. Now requires `market_symbolic_layer` (signal_type, manipulation_risk, social_proof_detected, tamak_trigger, capital_irreversibility).",
         [
             "tamak_trigger=true — escalate to wealth_governance_verdict instead",
@@ -180,7 +195,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "wealth_governance_verdict", "wealth",
+        "wealth_governance_verdict",
+        "wealth",
         "Render a wealth-related governance verdict. Now requires explicit `symbolic_capital_assessment` (legitimacy_signal, trust_symbol, reputational_blast_radius, institutional_maruah_risk, public_private_boundary).",
         [
             "the verdict implies irreversibility without ack_irreversible",
@@ -189,7 +205,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "well_assess_livelihood", "well",
+        "well_assess_livelihood",
+        "well",
         "Assess a livelihood — income + role + maruah + social position. Now requires `role_symbolics` (title_pressure, eldest_child_burden, corporate_rank_signal, public_identity_risk, purpose_symbol_alignment).",
         [
             "the request is purely financial — wealth_survival_engine is the correct lane",
@@ -198,7 +215,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "well_assess_sovereign_entropy", "well",
+        "well_assess_sovereign_entropy",
+        "well",
         "Assess sovereign entropy — how scattered / focused the operator's identity is. Now requires `sovereignty_guard` (no_personality_capture, no_behavioral_extraction, no_identity_freezing, preserve_operator_contradiction, do_not_reduce_arif_to_profile).",
         [
             "operator has not consented",
@@ -206,10 +224,10 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
             "result would be used to justify identity freeze or behavioural extraction",
         ],
     ),
-
     # ─── MEDIUM ────────────────────────────────────────────────────────────
     (
-        "wealth_survival_engine", "wealth",
+        "wealth_survival_engine",
+        "wealth",
         "Survival arithmetic + symbolic pressure. Now requires `symbolic_finance_pressure` (family_obligation, status_consumption, institutional_dependency, shame_risk, hidden_commitment).",
         [
             "the request is purely speculative (no real numbers)",
@@ -218,7 +236,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "well_assess_homeostasis", "well",
+        "well_assess_homeostasis",
+        "well",
         "Assess biological and psychological homeostasis. Now emits `homeostasis_symbolic_layer` so vitality numbers don't become identity symbols.",
         [
             "telemetry is stale or degraded (status != available)",
@@ -226,7 +245,8 @@ DESCRIPTIONS: list[tuple[str, str, str, list[str]]] = [
         ],
     ),
     (
-        "well_validate_vitality", "well",
+        "well_validate_vitality",
+        "well",
         "Validate a vitality signal against substrate evidence. Now emits `vitality_symbolic_load` so a single reading does not become an identity verdict.",
         [
             "the signal is identity-staking (operator = their latest reading)",

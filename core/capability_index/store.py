@@ -7,12 +7,11 @@ Lightweight, local, no API keys.
 from __future__ import annotations
 
 import logging
-from typing import Sequence
-
-from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from collections.abc import Sequence
 
 from capability_index.models import CapabilityRecord
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, PointStruct, VectorParams
 
 logger = logging.getLogger(__name__)
 

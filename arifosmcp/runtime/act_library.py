@@ -22,10 +22,11 @@ DITEMPA BUKAN DIBERI — Library is forged, not configured.
 """
 
 from __future__ import annotations
+
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger("arifosmcp.act_library")
@@ -201,7 +202,7 @@ class ActLibrary:
                     VALUES
                         ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
                     """,
-                    entry.ts or datetime.now(timezone.utc).isoformat(),
+                    entry.ts or datetime.now(UTC).isoformat(),
                     entry.session_id,
                     entry.program_id,
                     entry.action_class,

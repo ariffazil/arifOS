@@ -11,8 +11,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from typing import Any
-
 from fastmcp import FastMCP
 
 

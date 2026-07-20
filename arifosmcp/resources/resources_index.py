@@ -40,10 +40,10 @@ def _build_resource_catalog() -> dict[str, Any]:
     """
     from arifosmcp.resources import (  # noqa: PLC0415 — lazy to break circular import
         CANONICAL_RESOURCES,
-        SUPPLEMENTAL_RESOURCES,
         EMBODIED_RESOURCES,
         EVIDENCE_RESOURCES,
         RUNNER_RESOURCES,
+        SUPPLEMENTAL_RESOURCES,
         TREE777_RESOURCES,
     )
 
@@ -125,7 +125,9 @@ def _build_resource_catalog() -> dict[str, Any]:
             {
                 "uri": uri,
                 "family": "supplemental",
-                "mime_type": "application/json" if "catalog" in uri or "index" in uri else "text/plain",
+                "mime_type": "application/json"
+                if "catalog" in uri or "index" in uri
+                else "text/plain",
                 "dynamic": False,
                 "description": _SUPPLEMENTAL_DESCRIPTIONS.get(uri, "Supplemental resource"),
                 "floors": ["F2", "F4", "F11"],

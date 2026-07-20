@@ -26,11 +26,10 @@ import pytest  # noqa: F401 — used implicitly via monkeypatch fixture typing
 
 from arifosmcp.runtime.marhin_discovery import (
     ENGINE_VERSION,
+    _self_check,
     attach_to_event_bus,
     discover_next_state,
-    _self_check,
 )
-
 
 GOOD_STATE = {
     "actor": "ARIF",

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import logging
 
+from agent_bridge.models import AgentTelemetry
 from nats.aio.client import Client as NATS
 from nats.js.api import StreamConfig
-
-from agent_bridge.models import AgentTelemetry
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ class TelemetryPublisher:
         self.js = js
 
     @classmethod
-    async def connect(cls, servers: list[str] | None = None) -> "TelemetryPublisher":
+    async def connect(cls, servers: list[str] | None = None) -> TelemetryPublisher:
         servers = servers or ["nats://localhost:4222"]
         nc = NATS()
         await nc.connect(servers=servers)

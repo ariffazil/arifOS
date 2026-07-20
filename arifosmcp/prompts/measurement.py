@@ -17,7 +17,7 @@ import json
 import math
 import os
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -172,7 +172,7 @@ def compute_fisher_proxy(seal_entry: dict, baseline_entries: list[dict]) -> dict
     session_dist = {v: 1.0}
 
     # Baseline verdict distribution
-    baseline_counts: "dict[str, float]" = {}
+    baseline_counts: dict[str, float] = {}
     for e in baseline_entries:
         v = e.get("verdict", "UNKNOWN")
         baseline_counts[v] = baseline_counts.get(v, 0.0) + 1.0
@@ -442,7 +442,7 @@ def read_carry_forward() -> dict:
     try:
         with open(CARRY_FORWARD_PATH) as f:
             return json.load(f)
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return {}
 
 
@@ -471,7 +471,7 @@ def measure_seal(
         metrics dict with all computed values
         (appended to shadow registry if dry_run, canon registry otherwise)
     """
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
 
     # 1. ΔS
     pre = pre_state or {}
@@ -594,8 +594,12 @@ def attach_thermodynamic_pulse(
                 or (result.get("result") or {}).get("verdict")
                 or "SEAL"
             ),
-            "epoch": result.get("created_at") or content.get("epoch") or datetime.now(timezone.utc).isoformat(),
-            "violated_floors": content.get("violated_floors") or content.get("floors_violated") or [],
+            "epoch": result.get("created_at")
+            or content.get("epoch")
+            or datetime.now(UTC).isoformat(),
+            "violated_floors": content.get("violated_floors")
+            or content.get("floors_violated")
+            or [],
             "tool_surface_hash_start": content.get("tool_surface_hash_start"),
             "tool_surface_hash_end": content.get("tool_surface_hash_end"),
             "gaps_remaining": content.get("gaps_remaining"),
@@ -610,7 +614,9 @@ def attach_thermodynamic_pulse(
             seal_entry,
             pre_state=pre if isinstance(pre, dict) else {},
             post_state=post if isinstance(post, dict) else {},
-            session_logs=content.get("session_logs") if isinstance(content.get("session_logs"), dict) else None,
+            session_logs=content.get("session_logs")
+            if isinstance(content.get("session_logs"), dict)
+            else None,
             dry_run=dry_run,
         )
         pulse = summary_line(metrics)

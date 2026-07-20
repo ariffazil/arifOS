@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -30,6 +29,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RuntimeDimension:
     """One dimension of runtime identity."""
+
     name: str
     value: str
     source: str  # where this was read from
@@ -40,6 +40,7 @@ class RuntimeDimension:
 @dataclass
 class RuntimeManifest:
     """Full runtime identity report."""
+
     python_executable: str
     package_version: str
     git_commit: str
@@ -57,8 +58,13 @@ class RuntimeManifest:
             "imported_from": self.imported_from,
             "convergence": self.convergence,
             "dimensions": [
-                {"name": d.name, "value": d.value, "source": d.source,
-                 "converged": d.converged, "note": d.note}
+                {
+                    "name": d.name,
+                    "value": d.value,
+                    "source": d.source,
+                    "converged": d.converged,
+                    "note": d.note,
+                }
                 for d in self.dimensions
             ],
         }
@@ -95,6 +101,7 @@ def _get_package_version() -> str:
     """Get arifos package version."""
     try:
         import arifosmcp
+
         return getattr(arifosmcp, "__version__", "UNKNOWN")
     except Exception:
         return "UNKNOWN"
@@ -104,6 +111,7 @@ def _get_imported_path() -> str:
     """Get the filesystem path of the imported arifosmcp package."""
     try:
         import arifosmcp
+
         return str(Path(arifosmcp.__file__).parent)
     except Exception:
         return "UNKNOWN"
@@ -148,40 +156,50 @@ def verify_runtime() -> RuntimeManifest:
     dimensions = []
 
     # Dimension 1: Python executable
-    dimensions.append(RuntimeDimension(
-        name="python_executable",
-        value=python_exe,
-        source="sys.executable",
-    ))
+    dimensions.append(
+        RuntimeDimension(
+            name="python_executable",
+            value=python_exe,
+            source="sys.executable",
+        )
+    )
 
     # Dimension 2: Package version
-    dimensions.append(RuntimeDimension(
-        name="package_version",
-        value=package_version,
-        source="arifosmcp.__version__",
-    ))
+    dimensions.append(
+        RuntimeDimension(
+            name="package_version",
+            value=package_version,
+            source="arifosmcp.__version__",
+        )
+    )
 
     # Dimension 3: Git commit (source)
     source_commit = git_commit
-    dimensions.append(RuntimeDimension(
-        name="git_commit",
-        value=source_commit,
-        source="git rev-parse HEAD",
-    ))
+    dimensions.append(
+        RuntimeDimension(
+            name="git_commit",
+            value=source_commit,
+            source="git rev-parse HEAD",
+        )
+    )
 
     # Dimension 4: Wheel hash (installed artifact)
-    dimensions.append(RuntimeDimension(
-        name="wheel_hash",
-        value=wheel_hash,
-        source=f"sha256({imported_from}/__init__.py)",
-    ))
+    dimensions.append(
+        RuntimeDimension(
+            name="wheel_hash",
+            value=wheel_hash,
+            source=f"sha256({imported_from}/__init__.py)",
+        )
+    )
 
     # Dimension 5: Imported path
-    dimensions.append(RuntimeDimension(
-        name="imported_from",
-        value=imported_from,
-        source="arifosmcp.__file__",
-    ))
+    dimensions.append(
+        RuntimeDimension(
+            name="imported_from",
+            value=imported_from,
+            source="arifosmcp.__file__",
+        )
+    )
 
     # Convergence: check if imported path is inside the repo root
     converged = True

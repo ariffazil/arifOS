@@ -7,15 +7,19 @@ This is a governance indicator, not a scientific constant.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def _compute_consequence_gap(trace: dict) -> float:
     """Compute the consequence gap composite metric."""
     # Decision power: based on authority class
     authority_map = {
-        "SOVEREIGN": 1.0, "EXECUTIVE": 0.8, "MANAGERIAL": 0.6,
-        "ADVISORY": 0.3, "OPERATIONAL": 0.2, "OBSERVER": 0.1,
+        "SOVEREIGN": 1.0,
+        "EXECUTIVE": 0.8,
+        "MANAGERIAL": 0.6,
+        "ADVISORY": 0.3,
+        "OPERATIONAL": 0.2,
+        "OBSERVER": 0.1,
     }
     owner = trace.get("decision_owner", {})
     decision_power = authority_map.get(owner.get("authority_class", "OPERATIONAL"), 0.5)
@@ -31,8 +35,11 @@ def _compute_consequence_gap(trace: dict) -> float:
     costs = trace.get("cost_bearers", [])
     if costs:
         harm_distance = sum(
-            1.0 if c.get("reversibility") == "IRREVERSIBLE" else
-            0.6 if c.get("reversibility") == "COSTLY" else 0.2
+            1.0
+            if c.get("reversibility") == "IRREVERSIBLE"
+            else 0.6
+            if c.get("reversibility") == "COSTLY"
+            else 0.2
             for c in costs
         ) / len(costs)
     else:
@@ -75,11 +82,12 @@ def arif_consequence_trace(
         "benefit_bearers": benefit_bearers or [],
         "cost_bearers": cost_bearers or [],
         "distance_score": 0.0,
-        "reversal_owner": reversal_owner or {"ref": "unknown", "can_reverse": False, "reversal_cost": "UNKNOWN"},
+        "reversal_owner": reversal_owner
+        or {"ref": "unknown", "can_reverse": False, "reversal_cost": "UNKNOWN"},
         "responsibility_gaps": responsibility_gaps or [],
         "consequence_gap": 0.0,
         "metadata": {
-            "traced_at": datetime.now(timezone.utc).isoformat(),
+            "traced_at": datetime.now(UTC).isoformat(),
             "tracing_agent": "arif_consequence_trace",
         },
     }
@@ -91,7 +99,7 @@ def arif_consequence_trace(
         awareness_map = {"AWARE": 0.1, "PARTIALLY_AWARE": 0.4, "UNAWARE": 0.7, "SUPPRESSED": 0.95}
         trace["distance_score"] = round(
             sum(awareness_map.get(c.get("awareness", "UNAWARE"), 0.5) for c in costs) / len(costs),
-            4
+            4,
         )
 
     # Compute consequence gap

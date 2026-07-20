@@ -263,11 +263,11 @@ async def arif_think(
 
     if mode == "atlas":
         try:
-            from core.shared.atlas import Phi
             from arifosmcp.constitution.paradox_quotes import (
                 PARADOX_QUOTE_MAP,
                 get_triggered_quotes_by_gpv,
             )
+            from core.shared.atlas import Phi
 
             gpv = Phi(query)
             lane_str = str(gpv.lane.value) if hasattr(gpv.lane, "value") else str(gpv.lane)

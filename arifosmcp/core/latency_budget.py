@@ -21,8 +21,9 @@ from __future__ import annotations
 import concurrent.futures
 import hashlib
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from arifosmcp.core.decision_contract import (
     DecisionClass,
@@ -31,7 +32,6 @@ from arifosmcp.core.decision_contract import (
     VerdictClass,
     classify_decision,
 )
-
 
 # ── Module Constants ────────────────────────────────────────────
 
@@ -44,9 +44,10 @@ VALID_DECISION_CLASSES: frozenset[str] = frozenset(e.value for e in DecisionClas
 @dataclass(frozen=True)
 class LatencyBudget:
     """Hard ceiling per decision class."""
+
     decision_class: DecisionClass
-    max_latency_ms: int          # 0 = unbounded (C4_SOVEREIGN)
-    degradation_verdict: str     # What to emit if timeout
+    max_latency_ms: int  # 0 = unbounded (C4_SOVEREIGN)
+    degradation_verdict: str  # What to emit if timeout
     reasoning: str
 
 
@@ -90,11 +91,12 @@ LATENCY_BUDGETS: dict[DecisionClass, LatencyBudget] = {
 @dataclass
 class SubBudget:
     """Tracks time spent in each phase of the judge pipeline."""
-    verify_ms: float = 0.0      # Receipt/context verification
-    policy_ms: float = 0.0      # Floor compliance check
-    conflict_ms: float = 0.0    # Conflict resolution
-    emit_ms: float = 0.0        # Receipt emission
-    judge_ms: float = 0.0       # Actual judge reasoning
+
+    verify_ms: float = 0.0  # Receipt/context verification
+    policy_ms: float = 0.0  # Floor compliance check
+    conflict_ms: float = 0.0  # Conflict resolution
+    emit_ms: float = 0.0  # Receipt emission
+    judge_ms: float = 0.0  # Actual judge reasoning
     total_ms: float = 0.0
 
     def to_dict(self) -> dict[str, float]:
@@ -178,6 +180,7 @@ class CacheEntry:
 @dataclass
 class JudgePipelineResult:
     """Full result from the budget-aware judge pipeline."""
+
     judge_result: JudgeResult
     sub_budget: SubBudget
     from_cache: bool
@@ -206,7 +209,9 @@ def judge_with_budget(
         JudgePipelineResult with verdict, sub-budget, and cache status.
     """
     budget = LATENCY_BUDGETS.get(
-        DecisionClass(decision_class) if decision_class in VALID_DECISION_CLASSES else DecisionClass.C3_DEEP,
+        DecisionClass(decision_class)
+        if decision_class in VALID_DECISION_CLASSES
+        else DecisionClass.C3_DEEP,
         LATENCY_BUDGETS[DecisionClass.C3_DEEP],  # default: conservative
     )
 
@@ -253,7 +258,8 @@ def judge_with_budget(
     # This is preventive, not retroactive: if the timeout fires, we degrade immediately
     # rather than measuring elapsed time after judge_fn returns.
     timeout_seconds = (
-        None if (budget.max_latency_ms == 0 or budget.decision_class == DecisionClass.C4_SOVEREIGN)
+        None
+        if (budget.max_latency_ms == 0 or budget.decision_class == DecisionClass.C4_SOVEREIGN)
         else (budget.max_latency_ms / 1000.0) * 1.0  # 100% of budget as hard deadline
     )
     judge_output: dict[str, Any]
@@ -368,6 +374,7 @@ def classify_and_judge(
 @dataclass
 class LatencyMetrics:
     """Track latency discipline across decisions."""
+
     total_decisions: int = 0
     within_budget: int = 0
     breaches: int = 0
@@ -436,7 +443,9 @@ class LatencyMetrics:
         warnings: list[str] = []
 
         if self.breach_rate > 0.30:
-            warnings.append(f"HIGH_BREACH_RATE: {self.breach_rate:.1%} — system too strict or underbudgeting")
+            warnings.append(
+                f"HIGH_BREACH_RATE: {self.breach_rate:.1%} — system too strict or underbudgeting"
+            )
         if self.total_decisions > 10 and self.cache_hits == 0:
             warnings.append("ZERO_CACHE_HITS — cache is blind or disabled")
         if self.degradations > self.breaches:

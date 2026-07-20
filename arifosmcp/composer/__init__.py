@@ -73,7 +73,7 @@ class ZenApexInput:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def _registry_meta() -> tuple[Optional[str], Optional[str]]:
+def _registry_meta() -> tuple[str | None, str | None]:
     """Return (version, sha256) of the loaded registry."""
     try:
         reg = load_registry()
@@ -90,9 +90,7 @@ def json_canonical_ids(reg: dict) -> str:
     """Stable short fingerprint material for registry (not full body)."""
     import json
 
-    qids = sorted(
-        (q.get("id") or q.get("quote_id") or "") for q in reg.get("quotes", [])
-    )
+    qids = sorted((q.get("id") or q.get("quote_id") or "") for q in reg.get("quotes", []))
     dids = sorted((d.get("doctrine_id") or "") for d in reg.get("doctrine", []))
     return json.dumps(
         {"q": qids, "d": dids, "v": (reg.get("_metadata") or {}).get("version")},
@@ -250,7 +248,7 @@ def attach_zen_witness_to_result(
     fracture: str = "",
     consequence: str = "",
     choice: str = "",
-    context_tags: Optional[list[str]] = None,
+    context_tags: list[str] | None = None,
 ) -> dict[str, Any]:
     """Attach frozen DecisionCore + optional witness to a tool result.
 
@@ -263,16 +261,10 @@ def attach_zen_witness_to_result(
     try:
         verdict = _extract_verdict_str(result)
         evidence = str(
-            result.get("evidence_layer")
-            or (result.get("meta") or {}).get("evidence_layer")
-            or "L2"
+            result.get("evidence_layer") or (result.get("meta") or {}).get("evidence_layer") or "L2"
         )
         tags = context_tags if context_tags is not None else _infer_tags(result)
-        weakest = str(
-            result.get("weakest_stakeholder")
-            or result.get("weakest_plane")
-            or ""
-        )
+        weakest = str(result.get("weakest_stakeholder") or result.get("weakest_plane") or "")
 
         # Map rough bands from risk_tier if present
         risk = str(result.get("risk_tier") or "GREEN").upper()
@@ -296,12 +288,9 @@ def attach_zen_witness_to_result(
         z_in = ZenApexInput(
             verdict=verdict,
             evidence_layer=evidence,
-            reality=reality
-            or str(result.get("summary") or result.get("reality") or verdict),
-            fracture=fracture
-            or str(result.get("fracture") or weakest or "none named"),
-            consequence=consequence
-            or str(result.get("consequence") or f"Risk tier {risk}"),
+            reality=reality or str(result.get("summary") or result.get("reality") or verdict),
+            fracture=fracture or str(result.get("fracture") or weakest or "none named"),
+            consequence=consequence or str(result.get("consequence") or f"Risk tier {risk}"),
             choice=choice
             or str(result.get("choice") or result.get("next_action") or "respect verdict"),
             authority_band=authority,

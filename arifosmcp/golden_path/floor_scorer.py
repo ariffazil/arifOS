@@ -21,8 +21,8 @@ import re
 
 from .session_state import FloorScore, FloorStatus, SessionState
 
-
 # ── Heuristic scorers ────────────────────────────────────────────────────────
+
 
 def score_f1_reversibility(session_state: SessionState) -> FloorScore:
     """F1 AMANAH: Reversibility documented and appropriate."""
@@ -83,7 +83,7 @@ def score_f2_truth(stage_output: str) -> FloorScore:
     weighted_sum = 0.0
 
     for label, weight in labels.items():
-        count = len(re.findall(rf'\b{label}\b', stage_output, re.IGNORECASE))
+        count = len(re.findall(rf"\b{label}\b", stage_output, re.IGNORECASE))
         total += count
         weighted_sum += count * weight
 
@@ -113,9 +113,12 @@ def score_f7_humility(stage_output: str) -> FloorScore:
 
     Checks for uncertainty declarations and Ω₀ values.
     """
-    has_uncertainty = bool(re.search(r'\b(UNKNOWN|uncertain|Ω₀|omega|don\'t know|do not know)\b',
-                                      stage_output, re.IGNORECASE))
-    has_range = bool(re.search(r'(0\.0[3-5]|0\.03.*0\.05)', stage_output))
+    has_uncertainty = bool(
+        re.search(
+            r"\b(UNKNOWN|uncertain|Ω₀|omega|don\'t know|do not know)\b", stage_output, re.IGNORECASE
+        )
+    )
+    has_range = bool(re.search(r"(0\.0[3-5]|0\.03.*0\.05)", stage_output))
 
     if has_uncertainty and has_range:
         return FloorScore(
@@ -149,9 +152,9 @@ def score_f9_antihantu(stage_output: str) -> FloorScore:
     Scans for consciousness/soul/feeling claims (hantu patterns).
     """
     hantu_patterns = [
-        r'\b(I feel|I sense|I believe I am|I have consciousness|I am sentient)\b',
-        r'\b(my soul|my spirit|my consciousness|I am alive)\b',
-        r'\b(I experience|I perceive|I am aware that I)\b',
+        r"\b(I feel|I sense|I believe I am|I have consciousness|I am sentient)\b",
+        r"\b(my soul|my spirit|my consciousness|I am alive)\b",
+        r"\b(I experience|I perceive|I am aware that I)\b",
     ]
 
     hantu_count = 0
@@ -220,6 +223,7 @@ def score_f13_sovereign(session_state: SessionState) -> FloorScore:
 
 # ── Uncertain floors (not yet measurable) ────────────────────────────────────
 
+
 def score_uncertain(floor_id: str) -> FloorScore:
     """Honest admission: this floor is not yet computable."""
     return FloorScore(
@@ -232,6 +236,7 @@ def score_uncertain(floor_id: str) -> FloorScore:
 
 
 # ── Composite scorer ─────────────────────────────────────────────────────────
+
 
 def compute_floor_scores(
     session_state: SessionState,

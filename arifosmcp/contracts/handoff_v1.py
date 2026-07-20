@@ -16,7 +16,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-
 SCHEMA_ID = "arifos.handoff.v1"
 
 # What each organ owns — target must not revise source ownership
@@ -99,9 +98,7 @@ class Judgment(BaseModel):
 class Ownership(BaseModel):
     source_owns: list[str] = Field(default_factory=list)
     target_must_not_revise: list[str] = Field(default_factory=list)
-    aforge_requires: list[str] = Field(
-        default_factory=lambda: ["judgment_evidence", "lease"]
-    )
+    aforge_requires: list[str] = Field(default_factory=lambda: ["judgment_evidence", "lease"])
 
 
 class HandoffV1(BaseModel):
@@ -140,9 +137,7 @@ class HandoffV1(BaseModel):
             raise ValueError("source_organ and target_organ must differ")
         path = (self.source_organ, self.target_organ)
         if path not in ALLOWED_PATHS:
-            raise ValueError(
-                f"handoff path not allowed: {self.source_organ}→{self.target_organ}"
-            )
+            raise ValueError(f"handoff path not allowed: {self.source_organ}→{self.target_organ}")
         if not self.evidence:
             # missing evidence is valid structure but must HOLD on admit
             pass
@@ -159,9 +154,7 @@ class HandoffV1(BaseModel):
             )
         # GEOX evidence must not be revisable by WEALTH
         if self.source_organ == "GEOX" and self.target_organ == "WEALTH":
-            bound = set(self.claim.non_revision_bound) | set(
-                ORGAN_OWNERSHIP.get("GEOX", [])
-            )
+            bound = set(self.claim.non_revision_bound) | set(ORGAN_OWNERSHIP.get("GEOX", []))
             self.claim.non_revision_bound = sorted(bound)
         return self
 
@@ -227,9 +220,7 @@ def new_handoff(
             "requested_output": requested_output,
             "trace_id": trace_id or uuid.uuid4().hex[:16],
             "created_at": now_iso(),
-            "expires_at": (
-                datetime.now(UTC) + timedelta(hours=24)
-            ).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "expires_at": (datetime.now(UTC) + timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
     )
 
@@ -303,9 +294,7 @@ def wealth_must_not_overwrite_geology(
 ) -> list[str]:
     """Return violations if WEALTH output mutates GEOX-owned keys."""
     violations: list[str] = []
-    forbidden = set(incoming.claim.non_revision_bound) | set(
-        ORGAN_OWNERSHIP.get("GEOX", [])
-    )
+    forbidden = set(incoming.claim.non_revision_bound) | set(ORGAN_OWNERSHIP.get("GEOX", []))
     for key in forbidden:
         if key in wealth_output and wealth_output.get(key) is not None:
             # wealth may nest under capital_consequence only

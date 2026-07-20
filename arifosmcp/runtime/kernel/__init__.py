@@ -29,76 +29,72 @@ No domain physics. No solver code. No execution logic.
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
-from .types import (
-    UncertaintyTag,
-    Verdict,
-    Phase,
-    EvidenceItem,
-    SourceConsensus,
-    GovernanceScalars,
-    CollapseResult,
-    EvidenceFusion,
-    TripwireResult,
-    TripwireId,
-    GovernanceState,
-    Organ,
-    OMEGA_MAX,
-    PSI_MIN,
-    DELTA_CRITICAL,
-    OMEGA_WARN,
-    OMEGA_HARD_LIMIT,
-    PHASES,
-    PHASE_LABELS,
-    PHASE_ORDER,
-    SOURCE_WEIGHTS,
-    BLAST_WEIGHTS,
-    BlastRadius,
-    RiskProfile,
-)
-
 from .compute import (
     compute_delta,
     compute_omega,
     compute_psi,
-    compute_source_consensus,
     compute_scalars,
-)
-
-from .judge import judge, judge_with_reason
-
-from .pipeline import (
-    ingest_intent,
-    ingest_evidence,
-    think,
-    critique,
-    prepare_action,
-    run_judge,
-    cool,
-    pipeline_seal,
-    run_pipeline,
-    validate_transition,
-    PhaseTransitionError,
-    PipelineResult,
-)
-
-from .seal import (
-    SealRecord,
-    SealChain,
-    seal,
-    empty_chain,
-    append_to_chain,
-    verify_chain,
+    compute_source_consensus,
 )
 
 # ── Governance Contracts (not execution) ──
 from .contracts import (
+    QUANTUM_ADAPTER_CONTRACT,
+    BackendClass,
+    EvidenceRank,
     QuantumComputeReceipt,
     QuantumEvidenceFloor,
     QuantumReversibility,
-    QUANTUM_ADAPTER_CONTRACT,
     validate_receipt,
-    BackendClass,
-    EvidenceRank,
+)
+from .judge import judge, judge_with_reason
+from .pipeline import (
+    PhaseTransitionError,
+    PipelineResult,
+    cool,
+    critique,
+    ingest_evidence,
+    ingest_intent,
+    pipeline_seal,
+    prepare_action,
+    run_judge,
+    run_pipeline,
+    think,
+    validate_transition,
+)
+from .seal import (
+    SealChain,
+    SealRecord,
+    append_to_chain,
+    empty_chain,
+    seal,
+    verify_chain,
+)
+from .types import (
+    BLAST_WEIGHTS,
+    DELTA_CRITICAL,
+    OMEGA_HARD_LIMIT,
+    OMEGA_MAX,
+    OMEGA_WARN,
+    PHASE_LABELS,
+    PHASE_ORDER,
+    PHASES,
+    PSI_MIN,
+    SOURCE_WEIGHTS,
+    BlastRadius,
+    CollapseResult,
+    EvidenceFusion,
+    EvidenceItem,
+    GovernanceScalars,
+    GovernanceState,
+    Organ,
+    Phase,
+    RiskProfile,
+    SourceConsensus,
+    TripwireId,
+    TripwireResult,
+    UncertaintyTag,
+    Verdict,
 )
 
 __all__ = [

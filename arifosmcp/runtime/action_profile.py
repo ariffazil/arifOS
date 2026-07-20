@@ -48,12 +48,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ENUMS — orthogonal axes per A1.R2 + D1
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class MutationClass(str, Enum):
     NONE = "none"
@@ -97,17 +96,19 @@ class GovernanceImpact(str, Enum):
 class ReceiptClass(str, Enum):
     """Closure classes — SESSION_OBSERVED / SESSION_CLOSURE are operational;
     SOVEREIGN_DECISION / RECOVERY_CHECKPOINT are sovereign-grade; etc."""
-    SESSION_OBSERVED = "session_observed"          # session existed but not fully governed
-    SESSION_CLOSURE = "session_closure"            # governed session completed
-    OPERATIONAL = "operational"                   # routine receipt (signed by service)
-    AUDIT_FINDING = "audit_finding"               # A-AUDIT-delivered
-    RECOVERY_CHECKPOINT = "recovery_checkpoint"   # sovereign + recovery quorum
-    SOVEREIGN_DECISION = "sovereign_decision"     # F13-only
+
+    SESSION_OBSERVED = "session_observed"  # session existed but not fully governed
+    SESSION_CLOSURE = "session_closure"  # governed session completed
+    OPERATIONAL = "operational"  # routine receipt (signed by service)
+    AUDIT_FINDING = "audit_finding"  # A-AUDIT-delivered
+    RECOVERY_CHECKPOINT = "recovery_checkpoint"  # sovereign + recovery quorum
+    SOVEREIGN_DECISION = "sovereign_decision"  # F13-only
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # IMMUTABLE ACTION_PROFILE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @dataclass(frozen=True)
 class ActionProfile:
@@ -117,6 +118,7 @@ class ActionProfile:
     IMMUTABLE — no gate may mutate fields after creation. Subsequent gates
     consume this profile but never produce new values that earlier gates need.
     """
+
     tool: str
     mutation: MutationClass
     reversibility: Reversibility
@@ -129,12 +131,13 @@ class ActionProfile:
 
     def requires_infrastructure_gate(self) -> bool:
         """True if Gate 5 (infrastructure consequence) MUST run."""
-        return (
-            self.blast_radius in {BlastRadius.INFRASTRUCTURE, BlastRadius.FEDERATION}
-            or self.infrastructure_impact in {
-                InfrastructureImpact.HIGH, InfrastructureImpact.CRITICAL,
-            }
-        )
+        return self.blast_radius in {
+            BlastRadius.INFRASTRUCTURE,
+            BlastRadius.FEDERATION,
+        } or self.infrastructure_impact in {
+            InfrastructureImpact.HIGH,
+            InfrastructureImpact.CRITICAL,
+        }
 
     def requires_irreversible_governance_gate(self) -> bool:
         """True if Gate 6 (constitutional / irreversibility governance) MUST run."""
@@ -147,17 +150,24 @@ class ActionProfile:
     def profile_hash(self) -> str:
         """Stable hash of the profile — used for vault.append payload binding."""
         import hashlib
-        canonical = repr(tuple(sorted({
-            "tool": self.tool,
-            "mutation": self.mutation.value,
-            "reversibility": self.reversibility.value,
-            "blast_radius": self.blast_radius.value,
-            "infrastructure_impact": self.infrastructure_impact.value,
-            "governance_impact": self.governance_impact.value,
-            "receipt_class": self.receipt_class.value,
-            "required_capability": self.required_capability,
-            "sovereign_required": self.sovereign_required,
-        }.items())))
+
+        canonical = repr(
+            tuple(
+                sorted(
+                    {
+                        "tool": self.tool,
+                        "mutation": self.mutation.value,
+                        "reversibility": self.reversibility.value,
+                        "blast_radius": self.blast_radius.value,
+                        "infrastructure_impact": self.infrastructure_impact.value,
+                        "governance_impact": self.governance_impact.value,
+                        "receipt_class": self.receipt_class.value,
+                        "required_capability": self.required_capability,
+                        "sovereign_required": self.sovereign_required,
+                    }.items()
+                )
+            )
+        )
         return f"sha256:{hashlib.sha256(canonical.encode()).hexdigest()}"
 
     def to_dict(self) -> dict:
@@ -253,21 +263,22 @@ TOOL_ACTION_PROFILE_TABLE: dict[str, dict] = {
 # CLASSIFICATION FUNCTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def classify_action(
     tool: str,
     *,
     # Optional overrides from request context (otherwise use canonical table)
-    mutation: Optional[MutationClass] = None,
-    reversibility: Optional[Reversibility] = None,
-    blast_radius: Optional[BlastRadius] = None,
-    infrastructure_impact: Optional[InfrastructureImpact] = None,
-    governance_impact: Optional[GovernanceImpact] = None,
-    receipt_class: Optional[ReceiptClass] = None,
-    required_capability: Optional[str] = None,
-    sovereign_required: Optional[bool] = None,
+    mutation: MutationClass | None = None,
+    reversibility: Reversibility | None = None,
+    blast_radius: BlastRadius | None = None,
+    infrastructure_impact: InfrastructureImpact | None = None,
+    governance_impact: GovernanceImpact | None = None,
+    receipt_class: ReceiptClass | None = None,
+    required_capability: str | None = None,
+    sovereign_required: bool | None = None,
     # Request-context hints
-    actor_id: Optional[str] = None,
-    session_id: Optional[str] = None,
+    actor_id: str | None = None,
+    session_id: str | None = None,
 ) -> ActionProfile:
     """Produce an immutable ActionProfile for the request.
 
@@ -281,9 +292,7 @@ def classify_action(
     """
     base = TOOL_ACTION_PROFILE_TABLE.get(tool)
     if base is None and mutation is None:
-        raise ValueError(
-            f"Tool {tool!r} has no canonical profile and no mutation override"
-        )
+        raise ValueError(f"Tool {tool!r} has no canonical profile and no mutation override")
     if base is None:
         # Pure override path
         base = {
@@ -294,7 +303,9 @@ def classify_action(
             "governance_impact": governance_impact or GovernanceImpact.LOW,
             "receipt_class_default": ReceiptClass.OPERATIONAL,
             "required_capability_default": required_capability or f"tool.{tool}",
-            "sovereign_required_default": sovereign_required if sovereign_required is not None else False,
+            "sovereign_required_default": sovereign_required
+            if sovereign_required is not None
+            else False,
         }
 
     return ActionProfile(
@@ -306,7 +317,9 @@ def classify_action(
         governance_impact=governance_impact or base["governance_impact"],
         receipt_class=receipt_class or base["receipt_class_default"],
         required_capability=required_capability or base["required_capability_default"],
-        sovereign_required=sovereign_required if sovereign_required is not None else base["sovereign_required_default"],
+        sovereign_required=sovereign_required
+        if sovereign_required is not None
+        else base["sovereign_required_default"],
     )
 
 
@@ -326,6 +339,7 @@ class GateStatus(str, _Enum):
 @dataclass(frozen=True)
 class GateOutput:
     """Structured gate result per D1 — no bare bool, no fact-propagation."""
+
     status: GateStatus
     reason: str = ""
     evidence_refs: list[str] = field(default_factory=list)
@@ -340,22 +354,22 @@ class GateOutput:
         }
 
 
-def gate_pass(reason: str = "", evidence_refs: Optional[list[str]] = None,
-              obligations: Optional[list[str]] = None) -> GateOutput:
-    return GateOutput(GateStatus.PASS, reason, list(evidence_refs or []),
-                     list(obligations or []))
+def gate_pass(
+    reason: str = "", evidence_refs: list[str] | None = None, obligations: list[str] | None = None
+) -> GateOutput:
+    return GateOutput(GateStatus.PASS, reason, list(evidence_refs or []), list(obligations or []))
 
 
-def gate_hold(reason: str = "", evidence_refs: Optional[list[str]] = None,
-              obligations: Optional[list[str]] = None) -> GateOutput:
-    return GateOutput(GateStatus.HOLD, reason, list(evidence_refs or []),
-                     list(obligations or []))
+def gate_hold(
+    reason: str = "", evidence_refs: list[str] | None = None, obligations: list[str] | None = None
+) -> GateOutput:
+    return GateOutput(GateStatus.HOLD, reason, list(evidence_refs or []), list(obligations or []))
 
 
-def gate_deny(reason: str = "", evidence_refs: Optional[list[str]] = None,
-              obligations: Optional[list[str]] = None) -> GateOutput:
-    return GateOutput(GateStatus.DENY, reason, list(evidence_refs or []),
-                     list(obligations or []))
+def gate_deny(
+    reason: str = "", evidence_refs: list[str] | None = None, obligations: list[str] | None = None
+) -> GateOutput:
+    return GateOutput(GateStatus.DENY, reason, list(evidence_refs or []), list(obligations or []))
 
 
 __all__ = [

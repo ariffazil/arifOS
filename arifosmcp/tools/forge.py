@@ -391,8 +391,9 @@ async def arif_forge(
     # The floor check is a constitutional gate, not just a performance concern.
     # Record latency and flag if it exceeds the decision-class budget.
     import time as _time
-    from arifosmcp.core.latency_budget import LATENCY_BUDGETS
+
     from arifosmcp.core.decision_contract import DecisionClass
+    from arifosmcp.core.latency_budget import LATENCY_BUDGETS
 
     _t_check = _time.monotonic()
     floor_check = check_laws(
@@ -555,16 +556,18 @@ async def arif_forge(
     # The create_and_seal_receipt function exists in core/vault_receipt.py
     # and is proven in judge.py — it was never called from forge.py.
     try:
+        import hashlib
+
         from arifosmcp.core.vault_receipt import (
             create_and_seal_receipt,
             resolve_receipt_identity,
         )
-        import hashlib
 
         # F2 TRUTH: resolve real identity before minting receipt.
         _sess_ctx = None
         try:
             from arifosmcp.runtime.tools import get_session
+
             _sess_ctx = get_session(session_id) if session_id else None
         except Exception:
             pass
@@ -604,9 +607,10 @@ async def arif_forge(
     if actor_signature and nonce:
         # Verify Ed25519 signature over (nonce + actor_id + mode)
         try:
+            from pathlib import Path
+
             from cryptography.hazmat.primitives import serialization
             from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-            from pathlib import Path
 
             _pub_pem = Path("/opt/arifos/secrets/did_arifos_public.key").read_bytes()
             _pub_key = serialization.load_pem_public_key(_pub_pem)

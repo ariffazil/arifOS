@@ -49,6 +49,7 @@ from prefab_ui.components import (
     Text,
 )
 from prefab_ui.rx import RESULT, STATE
+
 from skills.wealth.invariant_surface import (
     wealth_boundary_governance,
     wealth_conservation_capital,

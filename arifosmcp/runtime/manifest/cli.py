@@ -10,8 +10,8 @@ import argparse
 import json
 import sys
 
-from arifosmcp.runtime.manifest.generator import compose_manifest, CANONICAL_TOOLS_18
-from arifosmcp.runtime.manifest.diff import manifest_drift, exit_with_drift
+from arifosmcp.runtime.manifest.diff import exit_with_drift, manifest_drift
+from arifosmcp.runtime.manifest.generator import compose_manifest
 
 
 def emit_mcp() -> dict:
@@ -37,7 +37,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="arifosmcp.runtime.manifest.cli")
     parser.add_argument("--emit-mcp", action="store_true", help="emit /server.json shape")
     parser.add_argument("--emit-agent-card", action="store_true", help="emit agent-card shape")
-    parser.add_argument("--check-drift-against", type=str, help="path to a published manifest; exit 1 on drift")
+    parser.add_argument(
+        "--check-drift-against", type=str, help="path to a published manifest; exit 1 on drift"
+    )
     args = parser.parse_args(argv)
     if args.emit_mcp:
         print(json.dumps(emit_mcp(), indent=2))

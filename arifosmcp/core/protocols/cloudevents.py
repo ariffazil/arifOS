@@ -14,8 +14,8 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 # ── CloudEvents v1.0.2 Required Attributes ──────────────────────────
 # specversion: "1.0" (fixed)
@@ -42,18 +42,18 @@ class CloudEvent:
         source: str,
         data: Any = None,
         *,
-        subject: Optional[str] = None,
+        subject: str | None = None,
         datacontenttype: str = "application/json",
-        dataschema: Optional[str] = None,
-        dataref: Optional[str] = None,
-        time: Optional[str] = None,
-        id: Optional[str] = None,
+        dataschema: str | None = None,
+        dataref: str | None = None,
+        time: str | None = None,
+        id: str | None = None,
     ):
         self.specversion = self.SPEC_VERSION
         self.type = event_type
         self.source = source
         self.id = id or str(uuid.uuid4())
-        self.time = time or datetime.now(timezone.utc).isoformat()
+        self.time = time or datetime.now(UTC).isoformat()
         self.datacontenttype = datacontenttype
         self.subject = subject
         self.dataschema = dataschema
@@ -85,7 +85,7 @@ class CloudEvent:
         return json.dumps(self.to_dict(), ensure_ascii=False)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "CloudEvent":
+    def from_dict(cls, d: dict) -> CloudEvent:
         return cls(
             event_type=d["type"],
             source=d["source"],
@@ -99,7 +99,7 @@ class CloudEvent:
         )
 
     @classmethod
-    def from_json(cls, s: str) -> "CloudEvent":
+    def from_json(cls, s: str) -> CloudEvent:
         return cls.from_dict(json.loads(s))
 
 
@@ -137,7 +137,7 @@ def federation_event(
     event_type: str,
     source_organ: str,
     data: Any = None,
-    subject: Optional[str] = None,
+    subject: str | None = None,
 ) -> CloudEvent:
     """Create a federation-standard CloudEvent.
 

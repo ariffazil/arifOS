@@ -29,6 +29,7 @@ try:
         Ed25519PrivateKey,
         Ed25519PublicKey,
     )
+
     _ED25519_AVAILABLE = True
 except ImportError:
     _ED25519_AVAILABLE = False
@@ -193,7 +194,7 @@ GENESIS_PREV_HASH: str = "GENESIS"
 def seal_entry(
     prev_hash: str,
     payload: dict[str, Any],
-    private_key: "Ed25519PrivateKey",
+    private_key: Ed25519PrivateKey,
 ) -> tuple[str, str]:
     """
     Compute hash and Ed25519 signature for a vault chain entry.
@@ -203,8 +204,7 @@ def seal_entry(
     """
     if not _ED25519_AVAILABLE:
         raise ImportError(
-            "cryptography library required for Ed25519 seal. "
-            "Install with: pip install cryptography"
+            "cryptography library required for Ed25519 seal. Install with: pip install cryptography"
         )
     canonical = _json.dumps(payload, sort_keys=True, default=str)
     raw = (prev_hash + canonical).encode()
@@ -216,7 +216,7 @@ def seal_entry(
 def verify_entry_signature(
     curr_hash: str,
     signature: str,
-    public_key: "Ed25519PublicKey",
+    public_key: Ed25519PublicKey,
 ) -> bool:
     """
     Verify an Ed25519 signature over curr_hash.
@@ -237,7 +237,7 @@ def build_seal_receipt(
     seq: int,
     prev_hash: str,
     payload: dict[str, Any],
-    private_key: "Ed25519PrivateKey",
+    private_key: Ed25519PrivateKey,
     pubkey_id: str = "arifOS-kernel",
 ) -> dict[str, Any]:
     """

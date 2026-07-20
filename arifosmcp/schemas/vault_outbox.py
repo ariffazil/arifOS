@@ -34,9 +34,7 @@ from __future__ import annotations
 
 import json
 import logging
-import time
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
@@ -175,9 +173,7 @@ class VaultOutboxEntry:
             "status": self.status.value,
             "attempts": self.attempts,
         }
-        return hashlib.sha256(
-            json.dumps(canonical, sort_keys=True).encode()
-        ).hexdigest()[:16]
+        return hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()[:16]
 
     def to_dict(self) -> dict[str, Any]:
         """Serialise to dict for storage."""
@@ -262,9 +258,7 @@ class VaultOutbox:
                 with open(self._index_path) as f:
                     data = json.load(f)
                     for event_id, entry_data in data.items():
-                        self._entries[event_id] = VaultOutboxEntry.from_dict(
-                            entry_data
-                        )
+                        self._entries[event_id] = VaultOutboxEntry.from_dict(entry_data)
             except (json.JSONDecodeError, KeyError):
                 # Index corrupted — rebuild from JSONL
                 self._rebuild_from_jsonl()
@@ -331,9 +325,7 @@ class VaultOutbox:
                 OutboxStatus.FAILED_RETRYABLE,
                 OutboxStatus.VOID,
             ):
-                logger.info(
-                    f"VaultOutbox: idempotency hit for {key} — returning existing entry"
-                )
+                logger.info(f"VaultOutbox: idempotency hit for {key} — returning existing entry")
                 return existing
 
         entry = VaultOutboxEntry(
@@ -348,14 +340,11 @@ class VaultOutbox:
         self._append_jsonl(entry)
         self._save_index()
         logger.info(
-            f"VaultOutbox: enqueued {event_id} [{receipt_class.value}] "
-            f"for session {session_id}"
+            f"VaultOutbox: enqueued {event_id} [{receipt_class.value}] for session {session_id}"
         )
         return entry
 
-    def claim_next(
-        self, claimer: str = "outbox_consumer"
-    ) -> VaultOutboxEntry | None:
+    def claim_next(self, claimer: str = "outbox_consumer") -> VaultOutboxEntry | None:
         """
         Claim the next PENDING entry for processing.
 
@@ -370,9 +359,7 @@ class VaultOutbox:
                 entry.attempts += 1
                 self._modified = True
                 self._save_index()
-                logger.info(
-                    f"VaultOutbox: claimed {entry.event_id} by {claimer}"
-                )
+                logger.info(f"VaultOutbox: claimed {entry.event_id} by {claimer}")
                 return entry
         return None
 
@@ -416,9 +403,7 @@ class VaultOutbox:
         entry.last_error_at = datetime.now(UTC).isoformat()
         if entry.attempts >= entry.max_attempts:
             entry.status = OutboxStatus.HOLD
-            logger.error(
-                f"VaultOutbox: HOLD {event_id} after {entry.attempts} attempts: {error}"
-            )
+            logger.error(f"VaultOutbox: HOLD {event_id} after {entry.attempts} attempts: {error}")
         else:
             entry.status = OutboxStatus.FAILED_RETRYABLE
             logger.warning(
@@ -442,17 +427,12 @@ class VaultOutbox:
         return sum(
             1
             for e in self._entries.values()
-            if e.status
-            in (OutboxStatus.PENDING, OutboxStatus.FAILED_RETRYABLE)
+            if e.status in (OutboxStatus.PENDING, OutboxStatus.FAILED_RETRYABLE)
         )
 
     def get_by_session(self, session_id: str) -> list[VaultOutboxEntry]:
         """Get all entries for a session."""
-        return [
-            e
-            for e in self._entries.values()
-            if e.session_id == session_id
-        ]
+        return [e for e in self._entries.values() if e.session_id == session_id]
 
     def get_by_status(self, status: OutboxStatus) -> list[VaultOutboxEntry]:
         """Get all entries with a given status."""
@@ -580,9 +560,7 @@ class VaultOutboxConsumer:
         try:
             # Step 3: Write to VAULT999
             if not self.vault_writer:
-                self.outbox.mark_failed(
-                    entry.event_id, "No vault_writer configured"
-                )
+                self.outbox.mark_failed(entry.event_id, "No vault_writer configured")
                 return entry.event_id
 
             result = self._write_to_vault(entry)
@@ -591,9 +569,7 @@ class VaultOutboxConsumer:
                 return entry.event_id
 
             seal_id, receipt_hash = result
-            self.outbox.mark_appended(
-                entry.event_id, seal_id, receipt_hash
-            )
+            self.outbox.mark_appended(entry.event_id, seal_id, receipt_hash)
 
             # Step 5: Verify chain head
             chain_head = self._verify_chain_head()
@@ -604,10 +580,7 @@ class VaultOutboxConsumer:
             if self.cooling_ledger:
                 self._write_cooling_ledger(entry, seal_id)
 
-            logger.info(
-                f"VaultOutboxConsumer: processed {entry.event_id} "
-                f"→ VAULT seal {seal_id}"
-            )
+            logger.info(f"VaultOutboxConsumer: processed {entry.event_id} → VAULT seal {seal_id}")
             return entry.event_id
 
         except Exception as e:
@@ -630,9 +603,7 @@ class VaultOutboxConsumer:
             return self.vault_writer.verify_chain_head()
         return None
 
-    def _write_cooling_ledger(
-        self, entry: VaultOutboxEntry, seal_id: str
-    ) -> None:
+    def _write_cooling_ledger(self, entry: VaultOutboxEntry, seal_id: str) -> None:
         """Write receipt reference to cooling ledger."""
         if hasattr(self.cooling_ledger, "write"):
             self.cooling_ledger.write(

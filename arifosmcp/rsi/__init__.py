@@ -14,12 +14,12 @@ Sovereign 999_HOLD correction, 2026-07-04:
 """
 
 from arifosmcp.rsi.contracts import (
+    TWELVE_SKILLS,
     GateDecision,
     RiskClass,
     SkillContract,
     SkillDelta,
     SkillDiff,
-    TWELVE_SKILLS,
     seed_12_contracts,
 )
 from arifosmcp.rsi.diff_engine import (

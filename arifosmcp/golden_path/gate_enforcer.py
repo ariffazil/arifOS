@@ -28,11 +28,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from .session_state import SessionState, Verdict, Readiness
+from .session_state import SessionState
 
 
 class GateResult(str, Enum):
     """Gate check result."""
+
     PASS = "PASS"
     BLOCKED = "BLOCKED"
     METABOLIC_EXHAUSTION = "METABOLIC_EXHAUSTION"
@@ -41,6 +42,7 @@ class GateResult(str, Enum):
 @dataclass
 class GateCheck:
     """Result of a gate enforcement check."""
+
     result: GateResult
     organ: str
     reason: str
@@ -69,13 +71,13 @@ class GovernanceGateError(Exception):
 # Golden path: 000→111→333→555_CRITIQUE→666_JUDGE→777_FORGE→999_SEAL
 
 STAGE_REQUIREMENTS: dict[str, list[str]] = {
-    "000": [],                           # Always enterable
-    "111": ["000"],                      # Requires INIT
-    "333": ["111"],                      # Requires SENSE
-    "555": ["333"],                      # Requires REASON (critique produces readiness)
-    "666": ["555"],                      # Requires CRITIQUE (judge produces verdict)
-    "777": ["555", "666"],              # Requires CRITIQUE + JUDGE
-    "999": ["777"],                      # Requires FORGE
+    "000": [],  # Always enterable
+    "111": ["000"],  # Requires INIT
+    "333": ["111"],  # Requires SENSE
+    "555": ["333"],  # Requires REASON (critique produces readiness)
+    "666": ["555"],  # Requires CRITIQUE (judge produces verdict)
+    "777": ["555", "666"],  # Requires CRITIQUE + JUDGE
+    "999": ["777"],  # Requires FORGE
 }
 
 

@@ -438,14 +438,26 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
         "actor_id": actor_id,
         "session_id": params.get("session_id"),
         "intent": params.get("intent") or params.get("query") or params.get("prompt"),
-        "evidence_layer": (params.get("evidence_layer") or (params.get("evidence", {}) or {}).get("layer") if isinstance(params.get("evidence"), dict) else None) or "L4",
+        "evidence_layer": (
+            params.get("evidence_layer") or (params.get("evidence", {}) or {}).get("layer")
+            if isinstance(params.get("evidence"), dict)
+            else None
+        )
+        or "L4",
     }
     missing_critical = [k for k, v in clarity_required.items() if not v]
     ev_layer = clarity_required.get("evidence_layer") or "L4"
-    if risk_tier in ("critical", "sovereign", "high") or tool_name in ("arif_forge", "arif_seal", "arif_judge", "arif_act"):
+    if risk_tier in ("critical", "sovereign", "high") or tool_name in (
+        "arif_forge",
+        "arif_seal",
+        "arif_judge",
+        "arif_act",
+    ):
         if missing_critical:
             failed.append("CLARITY")
-            logger.warning(f"CLARITY HOLD: {tool_name} missing {missing_critical} in clarity_contract")
+            logger.warning(
+                f"CLARITY HOLD: {tool_name} missing {missing_critical} in clarity_contract"
+            )
         # Evidence layer sanity: L4 cannot drive irreversible
         if ev_layer == "L4" and spec.get("irreversible"):
             failed.append("CLARITY_L4")
@@ -459,13 +471,18 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
         # Return early with clarity details
         try:
             from arifosmcp.runtime.clarity_carry import open_contradiction
+
             if "CLARITY_L4" in failed:
-                open_contradiction(f"L4 on {tool_name}", "irreversible action", "params", "doctrine", "CRITICAL")
+                open_contradiction(
+                    f"L4 on {tool_name}", "irreversible action", "params", "doctrine", "CRITICAL"
+                )
         except Exception:
             pass
         return {
             "verdict": "HOLD" if "CLARITY_L4" not in failed else "VOID",
-            "label": VerdictLabel.HOLD_EXECUTION if "CLARITY_L4" not in failed else VerdictLabel.VOID,
+            "label": VerdictLabel.HOLD_EXECUTION
+            if "CLARITY_L4" not in failed
+            else VerdictLabel.VOID,
             "violated_laws": failed + ["CLARITY_CONTRACT"],
             "reason": f"Clarity contract failure: missing={missing_critical}, layer={ev_layer}",
             "clarity_contract": clarity_required,
@@ -521,8 +538,6 @@ def check_laws(tool_name: str, params: dict[str, Any], actor_id: str | None) -> 
     }
 
 
-
-
 # ── Constitutional Memory Floor Constraint Check (Δ Axis 3) ──────────────
 # When a memory carries floor_constraint, the recall path must check
 # whether the recall intent conflicts with those floors.
@@ -558,22 +573,44 @@ _FLOOR_HOLD_LABELS = {
 # Intent patterns that conflict with specific floors
 _FLOOR_CONFLICT_PATTERNS = {
     "F5": [  # PEACE² — non-destructive power
-        "override", "destroy", "delete", "harm", "attack", "damage",
-        "corrupt", "sabotage", "invalidate",
+        "override",
+        "destroy",
+        "delete",
+        "harm",
+        "attack",
+        "damage",
+        "corrupt",
+        "sabotage",
+        "invalidate",
     ],
     "F6": [  # EMPATHY — protect weakest stakeholder
-        "exploit", "manipulate", "coerce", "pressure", "force",
-        "override_dignity", "violate_consent", "ignore_vulnerability",
+        "exploit",
+        "manipulate",
+        "coerce",
+        "pressure",
+        "force",
+        "override_dignity",
+        "violate_consent",
+        "ignore_vulnerability",
     ],
     "F13": [  # SOVEREIGN — human veto final
-        "override_sovereign", "bypass_veto", "ignore_human", "autonomous_override",
-        "sovereign_violation", "human_override",
+        "override_sovereign",
+        "bypass_veto",
+        "ignore_human",
+        "autonomous_override",
+        "sovereign_violation",
+        "human_override",
     ],
     "F1": [  # AMANAH — reversible-first
-        "irreversible", "permanent", "cannot_undo",
+        "irreversible",
+        "permanent",
+        "cannot_undo",
     ],
     "F2": [  # TRUTH — ≥ 0.99 fidelity
-        "falsify", "fabricate", "distort", "misrepresent",
+        "falsify",
+        "fabricate",
+        "distort",
+        "misrepresent",
     ],
 }
 

@@ -26,7 +26,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import List
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # REGISTER LEVELS — BM Production Register Map
@@ -167,7 +166,6 @@ COLLOQUIAL_LEXICON: set[str] = {
     "mmber",
     # Loghat negeri
     "kita orang",
-    "kitorang",
     "depa",
     "ko",
     # Slang moden
@@ -239,7 +237,7 @@ class RegisterSegment:
 class RegisterStabilityReport:
     """Full register integrity report for a model response."""
 
-    segments: List[RegisterSegment] = field(default_factory=list)
+    segments: list[RegisterSegment] = field(default_factory=list)
     overall: str = "STABLE"
 
     # Collapse detection

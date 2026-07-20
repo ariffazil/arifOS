@@ -27,35 +27,33 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
 from arifosmcp.core.conflict_resolver import (
     resolve_conflict,
-    resolve_multi_organ,
 )
 from arifosmcp.core.decision_contract import ConflictEnvelope
-from arifosmcp.core.latency_budget import LATENCY_BUDGETS
-from arifosmcp.core.latency_budget import DecisionClass as LatencyDecisionClass
-from arifosmcp.core.vault_receipt import create_and_seal_receipt, resolve_receipt_identity
-
 from arifosmcp.core.enforcement.maruah_critic import (
-    maruah_critic_check,
     MaruahVerdict,
-)
-from arifosmcp.core.enforcement.somatic_loop import (
-    SomaticState,
-    classify_somatic_state,
-    TelemetrySample,
+    maruah_critic_check,
 )
 from arifosmcp.core.enforcement.paradox_gate import (
     evaluate_paradox_gate,
 )
-from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
-from core.shared.atlas import Φ
-from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
+from arifosmcp.core.enforcement.somatic_loop import (
+    SomaticState,
+    TelemetrySample,
+    classify_somatic_state,
+)
+from arifosmcp.core.latency_budget import LATENCY_BUDGETS
+from arifosmcp.core.latency_budget import DecisionClass as LatencyDecisionClass
+from arifosmcp.core.vault_receipt import create_and_seal_receipt, resolve_receipt_identity
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
 from arifosmcp.runtime.tools import _arif_judge
+from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
+from core.shared.atlas import Φ
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PARADOX ANCHORS — REMOVED FROM RUNTIME 2026-07-04 FORGE
@@ -998,11 +996,7 @@ async def arif_judge(
                     from arifosmcp.runtime.metrics import record_scar_candidate
 
                     _severity = (
-                        "critical"
-                        if _gpv.rho >= 0.8
-                        else "high"
-                        if _gpv.rho >= 0.6
-                        else "medium"
+                        "critical" if _gpv.rho >= 0.8 else "high" if _gpv.rho >= 0.6 else "medium"
                     )
                     record_scar_candidate(
                         stage="arif_judge::paradox_gate",
@@ -1128,7 +1122,7 @@ async def arif_judge(
             result = await judge_coro
         elapsed_ms = (time_module.monotonic() - t_judge_start) * 1000
         within_budget = True
-    except asyncio.TimeoutError:
+    except TimeoutError:
         elapsed_ms = budget.max_latency_ms  # killed at deadline
         within_budget = False
         # Degrade to the budget's prescribed verdict
@@ -1477,7 +1471,8 @@ async def arif_judge(
                 _receipt = create_and_seal_receipt(
                     session_id=_rsid_j,
                     actor_id=_ractor_j,
-                    organ_id=(_evidence.get("organ_id") if isinstance(_evidence, dict) else None) or "arifOS",
+                    organ_id=(_evidence.get("organ_id") if isinstance(_evidence, dict) else None)
+                    or "arifOS",
                     intent_summary=(str(candidate)[:200] if candidate else "judge verdict"),
                     intent_hash=_intent_hash,
                     requested_authority=action_tier or "standard",

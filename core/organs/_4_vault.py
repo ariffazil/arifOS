@@ -542,8 +542,9 @@ async def seal(
     _pg_url = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
     if _pg_url and seal_mode == "final":
         try:
-            import asyncpg
             import json as _json
+
+            import asyncpg
 
             async def _pg_write():
                 import uuid

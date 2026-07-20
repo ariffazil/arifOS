@@ -32,9 +32,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from typing import Any
-
 
 # Schema version. Bump when the canonical shape changes.
 VERDICT_STATE_VERSION = 1
@@ -47,9 +46,7 @@ VOID = "VOID"
 HOLD = "HOLD"
 HOLD_888 = "888_HOLD"
 
-CANONICAL_VERDICTS = frozenset(
-    {OBSERVE_ONLY, SEAL, SABAR, VOID, HOLD, HOLD_888}
-)
+CANONICAL_VERDICTS = frozenset({OBSERVE_ONLY, SEAL, SABAR, VOID, HOLD, HOLD_888})
 
 
 # Status values. Closed taxonomy.
@@ -58,9 +55,7 @@ STATUS_FAILED = "failed"
 STATUS_BLOCKED = "blocked"
 STATUS_PENDING = "pending"
 
-CANONICAL_STATUSES = frozenset(
-    {STATUS_COMPLETED, STATUS_FAILED, STATUS_BLOCKED, STATUS_PENDING}
-)
+CANONICAL_STATUSES = frozenset({STATUS_COMPLETED, STATUS_FAILED, STATUS_BLOCKED, STATUS_PENDING})
 
 
 # Legacy verdict tokens emitted by tools prior to Epoch 1.

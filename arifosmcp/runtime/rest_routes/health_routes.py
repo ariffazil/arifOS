@@ -18,12 +18,12 @@ served under its prior path.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import socket
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,10 @@ def _enforce_tier(request, required: str) -> tuple[bool, str | None]:
             return False, "X-Op-Token required (tier=operator)"
         expected = os.getenv("ARIFOS_OP_TOKEN_HASH", "").strip()
         if not expected:
-            return False, "operator tier not bootstrapped on this server (missing ARIFOS_OP_TOKEN_HASH)"
+            return (
+                False,
+                "operator tier not bootstrapped on this server (missing ARIFOS_OP_TOKEN_HASH)",
+            )
         got_hash = _hashlib.sha256(token.encode("utf-8")).hexdigest()
         if not hmac.compare_digest(got_hash, expected):
             return False, "X-Op-Token hash mismatch"
@@ -58,7 +61,14 @@ def _enforce_tier(request, required: str) -> tuple[bool, str | None]:
     return False, f"unknown required tier: {required}"
 
 
-def _struct_error(code: str, message: str, *, retryable: bool = True, mutation_occurred: bool = False, **extra: Any) -> dict:
+def _struct_error(
+    code: str,
+    message: str,
+    *,
+    retryable: bool = True,
+    mutation_occurred: bool = False,
+    **extra: Any,
+) -> dict:
     return {
         "status": "HOLD",
         "error_code": code,
@@ -145,7 +155,9 @@ def _capabilities_envelope() -> dict[str, Any]:
             "observed_at": m["issued_at"],
         }
     except Exception as exc:
-        return _struct_error("INTERNAL_ERROR", f"capabilities compose failed: {exc}", retryable=False)
+        return _struct_error(
+            "INTERNAL_ERROR", f"capabilities compose failed: {exc}", retryable=False
+        )
 
 
 def _capabilities_full_envelope() -> dict[str, Any]:
@@ -166,7 +178,9 @@ def _capabilities_full_envelope() -> dict[str, Any]:
             "observed_at": m["issued_at"],
         }
     except Exception as exc:
-        return _struct_error("INTERNAL_ERROR", f"capabilities/full compose failed: {exc}", retryable=False)
+        return _struct_error(
+            "INTERNAL_ERROR", f"capabilities/full compose failed: {exc}", retryable=False
+        )
 
 
 def register_health_routes(app: Any) -> None:
@@ -186,7 +200,9 @@ def register_health_routes(app: Any) -> None:
         ok, reason = _enforce_tier(request, required="operator")
         if not ok:
             return JSONResponse(
-                _struct_error("SESSION_REQUIRED", reason or "tier=operator required", retryable=True),
+                _struct_error(
+                    "SESSION_REQUIRED", reason or "tier=operator required", retryable=True
+                ),
                 status_code=403,
             )
         return JSONResponse(_capabilities_full_envelope())
@@ -195,7 +211,11 @@ def register_health_routes(app: Any) -> None:
         full = path
 
         def _decorator(handler: Callable):
-            if hasattr(app, "add_route") or "Starlette" in str(type(app)) or "FastAPI" in str(type(app)):
+            if (
+                hasattr(app, "add_route")
+                or "Starlette" in str(type(app))
+                or "FastAPI" in str(type(app))
+            ):
                 from starlette.routing import Route
 
                 full_clean = full.rstrip("/")

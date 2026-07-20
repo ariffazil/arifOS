@@ -9,18 +9,20 @@ Do not add a second birth path here. Merge new features into sct.py.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from arifosmcp.runtime.sct import (
     AUTHORITY_VERBS,
     AuthorityDelta,
-    apply_caveats as _apply_caveats_claims,
     compute_authority_delta,
     derive_authority,
     derive_verbs,
     mint_sct,
     unmeasured_apex,
     verify_sct,
+)
+from arifosmcp.runtime.sct import (
+    apply_caveats as _apply_caveats_claims,
 )
 
 # Re-export names used by older call sites
@@ -135,7 +137,7 @@ def sign_token(payload: Any) -> str:
     raise TypeError("sign_token expects claims dict or token string")
 
 
-def verify_token(token: str) -> Optional[dict]:
+def verify_token(token: str) -> dict | None:
     """Return normalized sct claims dict, or None."""
     return verify_sct(token)
 

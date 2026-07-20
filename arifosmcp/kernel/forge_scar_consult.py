@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -174,17 +173,11 @@ def consult_scar(
 
     severity = str(match.get("severity") or match.get("scar_severity") or "MEDIUM").upper()
     constraint = (
-        match.get("constraint_imposed")
-        or match.get("constraint")
-        or match.get("reason")
-        or ""
+        match.get("constraint_imposed") or match.get("constraint") or match.get("reason") or ""
     )
-    scar_id = (
-        match.get("scar_id")
-        or _fingerprint_text(
-            match.get("tool_name") or match.get("failure_mode") or "",
-            match.get("sealed_at") or "",
-        )
+    scar_id = match.get("scar_id") or _fingerprint_text(
+        match.get("tool_name") or match.get("failure_mode") or "",
+        match.get("sealed_at") or "",
     )
     return ScarConsultResult(
         present=True,
@@ -232,7 +225,9 @@ if __name__ == "__main__":
 
     # 2. Health check
     scars = list_active_scars()
-    print(f"  scar dir → {len(scars)} entries ({sum(1 for s in scars if 'present' not in str(s))} parsed)")
+    print(
+        f"  scar dir → {len(scars)} entries ({sum(1 for s in scars if 'present' not in str(s))} parsed)"
+    )
 
     # 3. Determinism: same inputs → same fingerprint
     a = consult_scar(tool_name="foo", intent="bar")

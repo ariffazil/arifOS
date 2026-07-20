@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -106,7 +106,7 @@ class SesatEvent:
     id: str = field(default_factory=lambda: f"sesat-{uuid.uuid4().hex[:12]}")
     source_node: str = ""
     source_surface: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     severity: Severity = Severity.YELLOW
 
     failure_code: FailureCode = FailureCode.JALAN_ALAT
@@ -215,7 +215,7 @@ class SessionNotice:
 
     id: str = field(default_factory=lambda: f"sn-{uuid.uuid4().hex[:12]}")
     source_node: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     severity: Severity = Severity.GREEN
 
     session_state: str = "OBSERVE_ONLY"

@@ -23,14 +23,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import hashlib
-import json
 import threading
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
-
 
 # ── State Machine ─────────────────────────────────────────────────────────────
 

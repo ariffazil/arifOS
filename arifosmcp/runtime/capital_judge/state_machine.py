@@ -47,16 +47,16 @@ class State(str, Enum):
 
 # Legal transitions. Anything not in this set raises TransitionError.
 _LEGAL_TRANSITIONS: dict[State, set[State]] = {
-    State.RECEIVED:        {State.AUTHENTICATED, State.TERMINATED},
-    State.AUTHENTICATED:   {State.VALIDATED, State.TERMINATED},
-    State.VALIDATED:       {State.COMPUTED, State.TERMINATED},
-    State.COMPUTED:        {State.JUDGED, State.TERMINATED},
-    State.JUDGED:          {State.HUMAN_HOLD, State.TERMINATED, State.SEALED, State.RATIFIED},
-    State.HUMAN_HOLD:      {State.RATIFIED, State.TERMINATED},
-    State.RATIFIED:        {State.SEALED, State.TERMINATED},
-    State.SEALED:          {State.EXECUTED, State.TERMINATED},
-    State.EXECUTED:        set(),  # terminal
-    State.TERMINATED:      set(),  # terminal
+    State.RECEIVED: {State.AUTHENTICATED, State.TERMINATED},
+    State.AUTHENTICATED: {State.VALIDATED, State.TERMINATED},
+    State.VALIDATED: {State.COMPUTED, State.TERMINATED},
+    State.COMPUTED: {State.JUDGED, State.TERMINATED},
+    State.JUDGED: {State.HUMAN_HOLD, State.TERMINATED, State.SEALED, State.RATIFIED},
+    State.HUMAN_HOLD: {State.RATIFIED, State.TERMINATED},
+    State.RATIFIED: {State.SEALED, State.TERMINATED},
+    State.SEALED: {State.EXECUTED, State.TERMINATED},
+    State.EXECUTED: set(),  # terminal
+    State.TERMINATED: set(),  # terminal
 }
 
 
@@ -85,6 +85,7 @@ def _now() -> str:
 @dataclass
 class CapitalCase:
     """A typed capital case the audit mandates."""
+
     case_id: str
     actor: dict[str, Any]
     purpose: dict[str, Any]
@@ -100,6 +101,7 @@ class CapitalCase:
 @dataclass
 class Receipt:
     """Generic receipt — one of the four audit-mandated types."""
+
     receipt_type: str
     data: dict[str, Any]
     emitted_at: str = field(default_factory=_now)

@@ -22,9 +22,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Mapping
+from typing import Any
 
 from arifosmcp.kernel.apex_decision_field import (
     ApexDecisionField,
@@ -67,9 +68,9 @@ class ForgeSkillDenyCode(StrEnum):
     APEX_DECISION_FIELD_VOID = "APEX_DECISION_FIELD_VOID"
     # Stage 2 (2026-07-05) — TOOLCREATIONGATE 3-check enforcement.
     # The 3 deny codes below correspond to TOOLCREATIONGATE §1.
-    TOOL_ALREADY_EXISTS = "TOOL_ALREADY_EXISTS"        # Check 1: retrieval
-    YAML_INVARIANT_DRIFT = "YAML_INVARIANT_DRIFT"      # Check 2: hard-block
-    SCAR_BLOCKS_CREATION = "SCAR_BLOCKS_CREATION"      # Check 3: scar consult
+    TOOL_ALREADY_EXISTS = "TOOL_ALREADY_EXISTS"  # Check 1: retrieval
+    YAML_INVARIANT_DRIFT = "YAML_INVARIANT_DRIFT"  # Check 2: hard-block
+    SCAR_BLOCKS_CREATION = "SCAR_BLOCKS_CREATION"  # Check 3: scar consult
 
 
 SELF_MODIFICATION_TARGETS: frozenset[str] = frozenset(
@@ -197,6 +198,7 @@ def _load_canonical_tool_names() -> set[str]:
 
     try:
         import yaml
+
         with open(_INVARIANTS_PATH) as f:
             data = yaml.safe_load(f) or {}
         names: set[str] = set()

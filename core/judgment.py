@@ -417,7 +417,7 @@ class JudgmentKernel:
         )
 
         # P6: Canonical Circuit Breaker evaluation (PARADOX_DOCTRINE_V1 Section 7)
-        from core.paradox.circuit_breakers import evaluate_all_breakers, CircuitBreakerState
+        from core.paradox.circuit_breakers import CircuitBreakerState, evaluate_all_breakers
 
         omega_0 = getattr(agi_result, "uncertainty", agi_result.safety_omega)
         evidence_count = getattr(

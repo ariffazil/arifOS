@@ -14,7 +14,8 @@ __license__ = "AGPL-3.0-only"
 # External consumers (GEOX, WEALTH, WELL) may have their own `core/` package
 # that shadows arifOS's core/shared/. Ensure arifOS root is at sys.path[0]
 # so `from core.shared.*` resolves to arifOS's core, not the consumer's.
-import os as _ns_os, sys as _ns_sys
+import os as _ns_os
+import sys as _ns_sys
 
 _arifos_root = _ns_os.path.dirname(_ns_os.path.dirname(_ns_os.path.abspath(__file__)))
 if _arifos_root not in _ns_sys.path or _ns_sys.path.index(_arifos_root) > 0:

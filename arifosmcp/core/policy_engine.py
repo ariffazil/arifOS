@@ -16,7 +16,6 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Optional
 
 from arifosmcp.core.authorization_envelope import (
     ActionClass,
@@ -40,7 +39,7 @@ class PolicyVerdict:
     verdict: Verdict
     reason: str
     violated_floors: list[str] = field(default_factory=list)
-    required_next_step: Optional[str] = None
+    required_next_step: str | None = None
     receipt_required: bool = False
     vault_seal_required: bool = False
     trace_id: str = ""
@@ -243,7 +242,7 @@ class PolicyEngine:
 
 # ── Singleton ──────────────────────────────────────────────────────────
 
-_engine: Optional[PolicyEngine] = None
+_engine: PolicyEngine | None = None
 
 
 def get_policy_engine() -> PolicyEngine:

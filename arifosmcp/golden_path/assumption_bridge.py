@@ -23,7 +23,6 @@ from pathlib import Path
 
 from .session_state import Assumption, SessionState
 
-
 # ── VAULT999 paths ──────────────────────────────────────────────────────────
 
 DEFAULT_VAULT_DIR = Path("/var/lib/arifos/vault")
@@ -37,6 +36,7 @@ def _get_assumptions_path(vault_dir: Path | None = None) -> Path:
 
 
 # ── Write assumptions ────────────────────────────────────────────────────────
+
 
 def write_assumptions(
     session_state: SessionState,
@@ -72,6 +72,7 @@ def write_assumptions(
 
 # ── Read prior assumptions ───────────────────────────────────────────────────
 
+
 def load_prior_assumptions(
     prior_session_id: str | None = None,
     vault_dir: Path | None = None,
@@ -92,7 +93,7 @@ def load_prior_assumptions(
 
     assumptions: list[Assumption] = []
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -101,15 +102,17 @@ def load_prior_assumptions(
                 record = json.loads(line)
                 if prior_session_id and record.get("session_id") != prior_session_id:
                     continue
-                assumptions.append(Assumption(
-                    id=record.get("id", ""),
-                    statement=record.get("statement", ""),
-                    implication_if_wrong=record.get("implication_if_wrong", ""),
-                    session_id=record.get("session_id", ""),
-                    stage=record.get("stage", ""),
-                    invalidated=record.get("invalidated", False),
-                    invalidated_in_session=record.get("invalidated_in_session"),
-                ))
+                assumptions.append(
+                    Assumption(
+                        id=record.get("id", ""),
+                        statement=record.get("statement", ""),
+                        implication_if_wrong=record.get("implication_if_wrong", ""),
+                        session_id=record.get("session_id", ""),
+                        stage=record.get("stage", ""),
+                        invalidated=record.get("invalidated", False),
+                        invalidated_in_session=record.get("invalidated_in_session"),
+                    )
+                )
             except json.JSONDecodeError:
                 continue
 
@@ -132,22 +135,24 @@ def load_latest_assumptions(
 
     assumptions: list[Assumption] = []
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
             try:
                 record = json.loads(line)
-                assumptions.append(Assumption(
-                    id=record.get("id", ""),
-                    statement=record.get("statement", ""),
-                    implication_if_wrong=record.get("implication_if_wrong", ""),
-                    session_id=record.get("session_id", ""),
-                    stage=record.get("stage", ""),
-                    invalidated=record.get("invalidated", False),
-                    invalidated_in_session=record.get("invalidated_in_session"),
-                ))
+                assumptions.append(
+                    Assumption(
+                        id=record.get("id", ""),
+                        statement=record.get("statement", ""),
+                        implication_if_wrong=record.get("implication_if_wrong", ""),
+                        session_id=record.get("session_id", ""),
+                        stage=record.get("stage", ""),
+                        invalidated=record.get("invalidated", False),
+                        invalidated_in_session=record.get("invalidated_in_session"),
+                    )
+                )
             except json.JSONDecodeError:
                 continue
 

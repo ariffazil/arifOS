@@ -40,16 +40,14 @@ from __future__ import annotations
 
 import hashlib
 import os
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STATE MACHINES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class OutboxStatus(str, Enum):
     PENDING = "pending"
@@ -71,6 +69,7 @@ class ClosureState(str, Enum):
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLOSURE RECEIPT SCHEMA (per D2 spec)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @dataclass(frozen=True)
 class ClosureReceipt:
@@ -94,6 +93,7 @@ class ClosureReceipt:
       constitution_hash       — sha256:<hex>
       runtime_manifest_hash   — sha256:<hex>
     """
+
     event_type: str = "SESSION_CLOSURE"
     session_id: str = ""
     principal_id: str = ""
@@ -124,28 +124,31 @@ class ClosureReceipt:
 # OUTBOX ENTRY
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class OutboxEntry:
     """One outbox entry — appended to VAULT999 transactionally."""
+
     event_id: str
     session_id: str
-    receipt_class: str           # ReceiptClass value
-    payload_hash: str            # exact payload hash bound to capability
-    required_capability: str     # what capability is needed
+    receipt_class: str  # ReceiptClass value
+    payload_hash: str  # exact payload hash bound to capability
+    required_capability: str  # what capability is needed
     idempotency_key: str
     status: OutboxStatus = OutboxStatus.PENDING
     attempts: int = 0
     created_at: str = ""
-    last_attempt_at: Optional[str] = None
-    appended_at: Optional[str] = None
-    last_error: Optional[str] = None
-    va_chain_hash: Optional[str] = None
-    closure_receipt: Optional[ClosureReceipt] = None
+    last_attempt_at: str | None = None
+    appended_at: str | None = None
+    last_error: str | None = None
+    va_chain_hash: str | None = None
+    closure_receipt: ClosureReceipt | None = None
     max_attempts: int = 5
 
     def is_terminal(self) -> bool:
         return self.status in (
-            OutboxStatus.VERIFIED, OutboxStatus.HOLD,
+            OutboxStatus.VERIFIED,
+            OutboxStatus.HOLD,
         )
 
 
@@ -155,13 +158,13 @@ class OutboxEntry:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 _OUTBOX: dict[str, OutboxEntry] = {}
-_IDEMPOTENCY_INDEX: dict[str, str] = {}        # idempotency_key → event_id
+_IDEMPOTENCY_INDEX: dict[str, str] = {}  # idempotency_key → event_id
 _SESSION_CLOUT: dict[str, ClosureState] = {}  # session_id → state
-_VERIFIED_IDS: set[str] = set()                # idempotency keys already appended (no retry)
+_VERIFIED_IDS: set[str] = set()  # idempotency keys already appended (no retry)
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _fresh_event_id() -> str:
@@ -169,7 +172,9 @@ def _fresh_event_id() -> str:
 
 
 def _compute_idempotency_key(
-    session_id: str, receipt_class: str, payload_hash: str,
+    session_id: str,
+    receipt_class: str,
+    payload_hash: str,
 ) -> str:
     """Deterministic idempotency key — same triple always → same key."""
     canonical = f"{session_id}:{receipt_class}:{payload_hash}"
@@ -180,12 +185,13 @@ def _compute_idempotency_key(
 # OUTBOX API
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def enqueue(
     session_id: str,
     receipt_class: str,
     payload_hash: str,
     required_capability: str,
-    closure_receipt: Optional[ClosureReceipt] = None,
+    closure_receipt: ClosureReceipt | None = None,
 ) -> OutboxEntry:
     """Enqueue an outbox event. Idempotent on (session_id, receipt_class, payload_hash)."""
     idem = _compute_idempotency_key(session_id, receipt_class, payload_hash)
@@ -288,20 +294,22 @@ def reset_to_pending(event_id: str) -> bool:
     if entry is None:
         return False
     if entry.status not in (
-        OutboxStatus.FAILED_RETRYABLE, OutboxStatus.CLAIMED,
+        OutboxStatus.FAILED_RETRYABLE,
+        OutboxStatus.CLAIMED,
     ):
         return False
     entry.status = OutboxStatus.PENDING
     return True
 
 
-def get_entry(event_id: str) -> Optional[OutboxEntry]:
+def get_entry(event_id: str) -> OutboxEntry | None:
     return _OUTBOX.get(event_id)
 
 
 def list_pending() -> list[OutboxEntry]:
     return [
-        e for e in _OUTBOX.values()
+        e
+        for e in _OUTBOX.values()
         if e.status in (OutboxStatus.PENDING, OutboxStatus.FAILED_RETRYABLE)
     ]
 
@@ -313,6 +321,7 @@ def list_verified() -> list[OutboxEntry]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLOSURE STATE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def begin_closure(session_id: str) -> ClosureState:
     """Session enters CLOSING — operational freeze begins."""
@@ -352,6 +361,7 @@ def get_closure_state(session_id: str) -> ClosureState:
 # ═══════════════════════════════════════════════════════════════════════════════
 # IDEMPOTENCY PROTECTION (retry-safe)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def is_already_verified(idempotency_key: str) -> bool:
     return idempotency_key in _VERIFIED_IDS

@@ -24,8 +24,6 @@ Freshness. This module is the single source for that proof at BOOT.
 from __future__ import annotations
 
 import logging
-import os
-import socket
 from dataclasses import dataclass
 from typing import Any
 from urllib.error import URLError
@@ -113,7 +111,7 @@ def _local_url_get(url: str, timeout_s: float = 1.5) -> dict[str, Any] | None:
             import json
 
             return json.loads(resp.read().decode("utf-8"))
-    except (URLError, TimeoutError, socket.timeout, ValueError, ConnectionError):
+    except (URLError, TimeoutError, ValueError, ConnectionError):
         return None
 
 
@@ -312,6 +310,7 @@ def _answer_q5_sovereign_recognize(
     if actor_id and ed25519_proof:
         try:
             from arifosmcp.runtime.governance_identity import _verify_ed25519_proof
+
             verified = _verify_ed25519_proof(actor_id, ed25519_proof)
         except Exception as e:
             return EvidencedAnswer(
@@ -438,7 +437,9 @@ def _answer_q7_rsi_path_clear() -> EvidencedAnswer:
 
 
 def verify_boot_attestation(
-    session_id: str | None = None, *, iso_now: str | None = None,
+    session_id: str | None = None,
+    *,
+    iso_now: str | None = None,
     actor_id: str | None = None,
     ed25519_proof: dict | None = None,
 ) -> dict[str, Any]:

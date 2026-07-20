@@ -7,7 +7,9 @@ as one of several inputs.
 """
 
 from __future__ import annotations
-from typing import Any, Optional
+
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -31,7 +33,7 @@ class ThinkRequest(BaseModel):
         default_factory=dict,
         description="New evidence to fold into belief",
     )
-    prior_belief: Optional[dict[str, Any]] = Field(
+    prior_belief: dict[str, Any] | None = Field(
         None,
         description="Optional prior BeliefState as dict (for belief chaining)",
     )
@@ -55,7 +57,7 @@ class ScoredPlan(BaseModel):
     actions: list[str]
     outcome: dict[str, float]
     hold_888: bool = False
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 class ThinkResponse(BaseModel):
@@ -80,7 +82,7 @@ class ThinkResponse(BaseModel):
     confidence_band: tuple[float, float]
     risk_envelope: dict[str, float]
     hold_888: bool
-    hold_reason: Optional[str] = None
+    hold_reason: str | None = None
     ranked: list[ScoredPlan]
     posterior_uncertainty: float
     provenance: dict[str, str] = Field(

@@ -20,12 +20,12 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from core.shared.types import GPV
+    pass
 
 
 # State file written by A-FORGE paradox engine, read by arifOS kernel.
@@ -73,7 +73,7 @@ class ParadoxGateResult:
         }
 
 
-def _load_paradox_state() -> Optional[dict]:
+def _load_paradox_state() -> dict | None:
     """Load current paradox engine state from disk."""
     try:
         if os.path.exists(_PARADOX_STATE_PATH):
@@ -164,7 +164,7 @@ def _try_create_gpv(output_text: str) -> Any | None:
 
 def evaluate_paradox_gate(
     output_text: str = "",
-    evidence: Optional[dict] = None,
+    evidence: dict | None = None,
 ) -> ParadoxGateResult:
     """
     Evaluate the paradox gate before arif_judge deliberation.

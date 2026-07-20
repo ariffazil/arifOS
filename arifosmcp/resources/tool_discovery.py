@@ -14,10 +14,8 @@ from typing import Any
 from fastmcp import FastMCP
 
 from .tool_discovery_resource import (
-    get_tool_discovery_resource_text,
-    get_full_affordance_resource_text,
-    resolve_tool_name,
     find_tools_by_query,
+    resolve_tool_name,
 )
 
 
@@ -105,6 +103,7 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
                 "registered_in_graph": False,
                 "authority_class": "unknown",
             }
+
         registered.append("arif_resolve_tool")
 
     # DISABLED 2026-06-28 (zen of resources — tool affordance metadata, not domain data).
@@ -127,7 +126,9 @@ def register_tool_discovery(mcp: FastMCP) -> list[str]:
             ),
             tags={"discovery", "governance", "metacognition", "read-only"},
         )
-        def get_affordance(name: str, _envelope: Any = None, actor_id: str = "", session_id: str = "") -> dict:
+        def get_affordance(
+            name: str, _envelope: Any = None, actor_id: str = "", session_id: str = ""
+        ) -> dict:
             try:
                 from arifosmcp.runtime.tools import get_full_affordance
 

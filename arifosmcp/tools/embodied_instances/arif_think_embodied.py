@@ -102,7 +102,10 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         if query:
             try:
                 from arifosmcp.core.akal_wiring import akal_pre_think
-                akal_friction = akal_pre_think(query, blast_radius=params.get("blast_radius", "low"))
+
+                akal_friction = akal_pre_think(
+                    query, blast_radius=params.get("blast_radius", "low")
+                )
             except Exception:
                 pass  # AKAL is advisory — never blocks reasoning
 
@@ -112,9 +115,18 @@ class ArifMindReasonEmbodied(EmbodiedTool):
         # Cognitive modes (reason/reflect/verify/critique) now route through
         # _synthesize_async (TokenRouter → MiniMax). Structural modes (plan,
         # axioms) stay deterministic.
-        COGNITIVE_MODES = {"reason", "reflect", "verify", "critique", "debate", "socratic", "metabolize"}
+        COGNITIVE_MODES = {
+            "reason",
+            "reflect",
+            "verify",
+            "critique",
+            "debate",
+            "socratic",
+            "metabolize",
+        }
         if mode in COGNITIVE_MODES:
             from arifosmcp.runtime.tools import _synthesize_async
+
             synthesis = await _synthesize_async(query or "", reasoning_mode=mode)
             result = {
                 "status": "OK",
@@ -172,7 +184,9 @@ class ArifMindReasonEmbodied(EmbodiedTool):
                         "present_epistemic": akal_friction.get("present_epistemic"),
                     }
                     result["akal"]["escalation_recommended"] = True
-                    result["akal"]["recommended_pipeline"] = akal_friction.get("required_pipeline", [])
+                    result["akal"]["recommended_pipeline"] = akal_friction.get(
+                        "required_pipeline", []
+                    )
 
             if hasattr(result, "model_dump"):
                 return result.model_dump()  # type: ignore[attr-defined]

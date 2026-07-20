@@ -253,7 +253,6 @@ class MemoryEventEnvelope(BaseModel):
         description="Capability reference — agent_visible_secret must be false",
     )
 
-
     # Constitutional Memory (Δ Axis 3) — moral provenance for significant memories.
     # If a memory is governed by a floor, it must carry that floor's geometry.
     constitutional: ConstitutionalMemoryBlock | None = Field(

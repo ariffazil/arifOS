@@ -12,7 +12,6 @@ from typing import Any
 
 from arifosmcp.contracts.handoff_v1 import (
     EpistemicState,
-    HandoffV1,
     SessionAuthority,
     admit_handoff,
     chain_continuity,

@@ -16,8 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass, field
-from typing import Any, Optional
-
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DECISION CORE — frozen, hashable, immutable
@@ -80,17 +79,17 @@ class ZenApexOutput:
     weakest_plane: str = ""
 
     # Witness layer — optional, post-verdict (WITNESS_NOT_EVIDENCE)
-    witness_quote: Optional[str] = None
-    witness_attribution: Optional[str] = None
-    witness_status: Optional[str] = None
+    witness_quote: str | None = None
+    witness_attribution: str | None = None
+    witness_status: str | None = None
     witness_role: str = "WITNESS_NOT_EVIDENCE"
-    witness_source_class: Optional[str] = None
-    witness_quote_id: Optional[str] = None
+    witness_source_class: str | None = None
+    witness_quote_id: str | None = None
 
     # Metadata
     quote_resolution_status: str = "NO_QUOTE"
-    registry_version: Optional[str] = None
-    registry_sha256: Optional[str] = None
+    registry_version: str | None = None
+    registry_sha256: str | None = None
     zen_compression: str = ""
 
     def verify_decision_integrity(self) -> bool:
@@ -189,13 +188,13 @@ class QuoteResolution:
 
     status: str  # SELECTED | NO_SUITABLE_WITNESS | REJECTED | UNAVAILABLE
     decision_core_hash: str
-    quote_id: Optional[str] = None
-    quote_text: Optional[str] = None
-    quote_attribution: Optional[str] = None
-    provenance_class: Optional[str] = None
+    quote_id: str | None = None
+    quote_text: str | None = None
+    quote_attribution: str | None = None
+    provenance_class: str | None = None
     role: str = "WITNESS_NOT_EVIDENCE"
     selection_policy_version: str = "quote-resolver-v1"
-    provenance_warning: Optional[str] = None
+    provenance_warning: str | None = None
 
 
 def freeze_decision(

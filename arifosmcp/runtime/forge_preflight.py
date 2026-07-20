@@ -839,7 +839,7 @@ def g4_validate_sealed_forge_plan(
         return False, reasons
 
     try:
-        from arifosmcp.runtime.forge_dispatch import validate_forge_dispatch, build_dispatch_plan
+        from arifosmcp.runtime.forge_dispatch import build_dispatch_plan, validate_forge_dispatch
 
         # Use a simple precheck dict — build_dispatch_plan accepts ArtPrecheckResult
         # but for the preflight gate we just need the verdict check

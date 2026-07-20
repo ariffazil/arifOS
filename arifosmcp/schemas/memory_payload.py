@@ -21,8 +21,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Annotated, Any, Literal, Union
+from datetime import UTC, datetime
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -42,7 +42,7 @@ from .memory_truth import MemoryClassName, TierCode, TruthClassName
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_id(prefix: str) -> str:
@@ -255,15 +255,7 @@ class ForgetPayload(BaseModel):
 # Pydantic v2 native discriminator. The kernel dispatcher matches on `mode`.
 
 MemoryPayload = Annotated[
-    Union[
-        RecallPayload,
-        InspectPayload,
-        AttestPayload,
-        RememberPayload,
-        PromotePayload,
-        RevisePayload,
-        ForgetPayload,
-    ],
+    RecallPayload | InspectPayload | AttestPayload | RememberPayload | PromotePayload | RevisePayload | ForgetPayload,
     Field(discriminator="mode"),
 ]
 

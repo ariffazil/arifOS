@@ -23,7 +23,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, FrozenSet
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +46,13 @@ class RuntimeBand(str, Enum):
 @dataclass(frozen=True)
 class AuthorityEnvelope:
     """Derived authority: identity + capabilities. Not auto-elevated."""
+
     human_authority: HumanAuthority
     runtime_band: RuntimeBand
     actor_verified: bool
     session_bound: bool
     lease_valid: bool
-    capabilities: FrozenSet[str] = field(default_factory=frozenset)
+    capabilities: frozenset[str] = field(default_factory=frozenset)
 
     def allows(self, capability: str) -> bool:
         return capability in self.capabilities
@@ -60,6 +61,7 @@ class AuthorityEnvelope:
 @dataclass
 class SovereignVerdict:
     """Result of sovereign_signal() — fail-closed by default."""
+
     sovereignty: bool = False
     verified: bool = False
     method: str = "anonymous"
@@ -70,6 +72,7 @@ class SovereignVerdict:
 @dataclass
 class ForgeSessionProof:
     """Immutable proof linking a forge action to its session."""
+
     session_id: str
     actor_id: str
     forge_action: str
@@ -102,6 +105,7 @@ class ForgeSessionProof:
 @dataclass
 class ChainVerdict:
     """Result of verify_forge_session_chain()."""
+
     valid: bool = False
     chain: list[str] = field(default_factory=list)
     broken_at: str | None = None
@@ -110,6 +114,7 @@ class ChainVerdict:
 @dataclass
 class SovereignCapability:
     """Narrow capability issued after ceremony. Single-use, payload-bound."""
+
     capability_id: str
     action: str
     payload_hash: str
@@ -155,6 +160,7 @@ def sovereign_signal(
 
         # Gate 1: actor in PROTECTED_SOVEREIGN_IDS?
         from arifosmcp.runtime.governance_identity import PROTECTED_SOVEREIGN_IDS
+
         if actor_id.lower().strip() not in PROTECTED_SOVEREIGN_IDS:
             return SovereignVerdict(
                 method="anonymous",
@@ -163,6 +169,7 @@ def sovereign_signal(
 
         # Gate 2: key in SOVEREIGN_KEY_IDS?
         from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
+
         if not verified_key_id or verified_key_id not in SOVEREIGN_KEY_IDS:
             return SovereignVerdict(
                 method="session_anchor",

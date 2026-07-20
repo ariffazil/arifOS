@@ -1,8 +1,9 @@
-import os
 import hashlib
 import json
+import os
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
+
 from supabase import create_client
 
 
@@ -34,10 +35,10 @@ class VaultClient:
         tool_name: str,
         session_id: str,
         actor_id: str,
-        payload: Dict[str, Any],
-        law_results: List[Dict[str, Any]],
+        payload: dict[str, Any],
+        law_results: list[dict[str, Any]],
         g_star: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if not self.client:
             return {"ok": False, "error": "Supabase client not initialized"}
 
@@ -63,7 +64,7 @@ class VaultClient:
             print(f"ERROR: Vault seal failed: {e}")
             return {"ok": False, "error": str(e)}
 
-    def _merkle_hash(self, record: Dict[str, Any]) -> str:
+    def _merkle_hash(self, record: dict[str, Any]) -> str:
         content = json.dumps(record, sort_keys=True)
         return hashlib.sha256(content.encode()).hexdigest()
 

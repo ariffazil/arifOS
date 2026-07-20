@@ -35,13 +35,13 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from arifosmcp.schemas.act import ActPatternName, ActReceipt
-from arifosmcp.schemas.kernel_envelope import ActionClass, KernelEnvelope
 from arifosmcp.runtime.pre_execution_gate import (
     GateResult,
     GateVerdict,
     pre_execution_gate,
 )
+from arifosmcp.schemas.act import ActPatternName, ActReceipt
+from arifosmcp.schemas.kernel_envelope import ActionClass, KernelEnvelope
 
 logger = logging.getLogger("arifosmcp.agentic_bridge")
 
@@ -175,9 +175,11 @@ def run_agentic_bridge(
             from arifosmcp.schemas.art import (
                 ArtPrecheckResult,
                 ArtToolState,
-                ArtVerdict as SchemaArtVerdict,
                 ToolLifecycle,
                 TrustBand,
+            )
+            from arifosmcp.schemas.art import (
+                ArtVerdict as SchemaArtVerdict,
             )
 
             # Map gate context to ART precheck result
@@ -249,6 +251,7 @@ def classify_and_bridge(
     Returns:
         BridgeResult with verdict and receipt.
     """
+    from arifosmcp.runtime.tools import _is_actor_verified
     from arifosmcp.schemas.kernel_envelope import (
         AuthorityBlock,
         BlastRadius,
@@ -257,7 +260,6 @@ def classify_and_bridge(
         RiskBlock,
         StateBlock,
     )
-    from arifosmcp.runtime.tools import _is_actor_verified
 
     ac = ActionClass(action_class)
 

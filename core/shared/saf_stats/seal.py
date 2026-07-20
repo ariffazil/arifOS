@@ -11,14 +11,13 @@ schema so a future migration is a straight port.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
-import time
-import hashlib
 import threading
-from dataclasses import dataclass, asdict, field
+import time
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Optional
 
 DEFAULT_VAULT_PATH = os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl"
 
@@ -78,15 +77,15 @@ class SealRecord:
     method: str
     input_hash: str
     result_summary: dict
-    effect_size: Optional[float] = None
-    p_value: Optional[float] = None
-    confidence_interval: Optional[list] = None
-    assumptions_check: Optional[dict] = None
+    effect_size: float | None = None
+    p_value: float | None = None
+    confidence_interval: list | None = None
+    assumptions_check: dict | None = None
     timestamp: str = ""
     session_id: str = ""
     irreversibility: str = "reversible"
     notes: str = ""
-    spss_syntax: Optional[str] = None
+    spss_syntax: str | None = None
     prev_leaf: str = "GENESIS"
     merkle_leaf: str = ""
     raw: dict = field(default_factory=dict)
@@ -99,7 +98,7 @@ class SealRecord:
 
 def _compute_leaf(prev: str, payload: dict) -> str:
     canonical = json.dumps(payload, sort_keys=True, default=str, ensure_ascii=False)
-    return hashlib.sha256(f"{prev}|{canonical}".encode("utf-8")).hexdigest()
+    return hashlib.sha256(f"{prev}|{canonical}".encode()).hexdigest()
 
 
 def seal(
@@ -111,13 +110,13 @@ def seal(
     method: str,
     input_hash: str,
     result_summary: dict,
-    effect_size: Optional[float] = None,
-    p_value: Optional[float] = None,
-    confidence_interval: Optional[list] = None,
-    assumptions_check: Optional[dict] = None,
+    effect_size: float | None = None,
+    p_value: float | None = None,
+    confidence_interval: list | None = None,
+    assumptions_check: dict | None = None,
     irreversibility: str = "reversible",
     notes: str = "",
-    spss_syntax: Optional[str] = None,
+    spss_syntax: str | None = None,
     session_id: str = "",
 ) -> SealRecord:
     """Append a seal record. Thread-safe. Returns the record written."""

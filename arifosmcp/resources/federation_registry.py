@@ -35,7 +35,7 @@ _DEPRECATION_PATH = "/root/AAA/docs/deprecation-registry.json"
 
 def _load_json_or_error(path: str, registry_name: str = "unknown") -> dict[str, Any]:
     """Load a JSON file, returning content + full provenance metadata.
-    
+
     Per CANONICAL_REGISTRY_GOVERNANCE.md: every response carries authority, hash, freshness.
     This makes the read path auditable and drift-detectable.
     """
@@ -97,7 +97,7 @@ def register_federation_registry(mcp: FastMCP) -> list[str]:
         """THE SINGLE READ PATH for federation tool registry.
 
         Per CANONICAL_REGISTRY_GOVERNANCE.md + FEDERATION_MEMORY.md: this is the bureaucratic/institutional memory layer in the ladder.
-        Kernel (arifos_registry.MCPToolRegistry) ONLY canonical source. Write only via register(). 
+        Kernel (arifos_registry.MCPToolRegistry) ONLY canonical source. Write only via register().
         All organs/agents use this for federation view. Part of agentic flow: institutionalise before act.
         """
         # TODO: replace load with live from MCPToolRegistry.get_federation_view() + stores

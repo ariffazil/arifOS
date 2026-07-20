@@ -35,14 +35,8 @@ from typing import Any
 
 from arifosmcp.core.akal import (
     AkalState,
-    BlastClass,
     ChunkType,
-    DualVerdict,
-    FrictionResult,
-    LatencyRequirement,
     NoveltyChunk,
-    NoveltyResult,
-    ShadowTrace,
     blast_class,
     cooling_requirement,
     dual_evaluate,
@@ -51,7 +45,6 @@ from arifosmcp.core.akal import (
     enforce_novelty,
     score_friction,
     tag_novelty,
-    validate_shadow,
 )
 
 # APEX dial imports — wrapped in try/except for graceful degradation
@@ -62,9 +55,9 @@ except ImportError:
 
 try:
     from arifosmcp.core.physics.thermodynamics_hardened import (
-        get_thermodynamic_budget,
-        check_landauer_bound,
         ThermodynamicBudget,
+        check_landauer_bound,
+        get_thermodynamic_budget,
     )
 except ImportError:
     get_thermodynamic_budget = None  # ENERGY-ENTROPY not available — graceful degradation

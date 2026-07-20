@@ -121,6 +121,7 @@ ZEN_ABSORBED: frozenset[str] = frozenset(
 # Operator diagnostics are a separate layer, not a ninth kernel capability.
 EXPANDED_45: tuple[str, ...] = tuple(list(dict.fromkeys([*KERNEL_ABI_8, *DIAGNOSTIC_TOOLS])))
 
+
 def normalize_public_surface_mode(mode: str | None = None) -> str:
     """Resolve a host-supplied name to a platform-neutral policy profile."""
     raw = (mode or "").strip().lower()

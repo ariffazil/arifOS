@@ -18,8 +18,8 @@ from .levels import (
     LiveVerdict,
     SubstrateGate,
     run_fast,
-    run_live_transport,
     run_full,
+    run_live_transport,
 )
 
 __all__ = [

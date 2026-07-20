@@ -15,9 +15,8 @@ import socket
 import sys
 import threading
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 LOG_FILE = Path("/root/arifOS/core/mcp_telemetry/proxy.log")
 LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -85,7 +84,7 @@ class SessionMapper:
         self.map: dict = {}
         self._l = threading.Lock()
         self._stop = threading.Event()
-        self._t: Optional[threading.Thread] = None
+        self._t: threading.Thread | None = None
         self._pos = 0
 
     def _extract(self, line: str):
@@ -153,7 +152,7 @@ class SessionMapper:
             return sorted(set(self.map.values()))
 
 
-_mapper: Optional[SessionMapper] = None
+_mapper: SessionMapper | None = None
 
 ROUTES = {
     "arifos": ("127.0.0.1", 8088, "/mcp"),
@@ -187,11 +186,11 @@ def _sync_http_post(
     sid: str,
     agent: str,
     method: str,
-    tool: Optional[str],
+    tool: str | None,
     cid,
 ) -> tuple:
     """Run in thread pool — pure socket HTTP/1.1, never blocks event loop."""
-    start = datetime.now(timezone.utc)
+    start = datetime.now(UTC)
     s = None
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -236,7 +235,7 @@ def _sync_http_post(
                     body_received = len(resp) - body_start
                     if body_received >= cl:
                         break
-            except socket.timeout:
+            except TimeoutError:
                 break
 
         if not resp:
@@ -252,13 +251,13 @@ def _sync_http_post(
         except Exception:
             resp_json = {"raw": body_bytes.decode(errors="replace")[:500]}
 
-        duration_ms = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+        duration_ms = (datetime.now(UTC) - start).total_seconds() * 1000
         is_err = status_code >= 400 or "error" in resp_json
         err_msg = resp_json.get("error", {}).get("message") if isinstance(resp_json, dict) else None
 
         record = {
             "schema": "mcp_telemetry/v1",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "mcp_server": srv,
             "method": method,
             "tool": tool,
@@ -278,11 +277,11 @@ def _sync_http_post(
         )
         return status_code, resp_json, duration_ms, err_msg
 
-    except socket.timeout:
-        dur = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+    except TimeoutError:
+        dur = (datetime.now(UTC) - start).total_seconds() * 1000
         return 504, {"error": {"code": -32000, "message": "Upstream timeout"}}, dur, "timeout"
     except Exception as e:
-        dur = (datetime.now(timezone.utc) - start).total_seconds() * 1000
+        dur = (datetime.now(UTC) - start).total_seconds() * 1000
         return 502, {"error": {"code": -32000, "message": str(e)}}, dur, str(e)
     finally:
         if s:
@@ -305,7 +304,7 @@ async def handle_client(reader, writer):
                 data += chunk
                 if b"\r\n\r\n" in data:
                     break
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return
 
         if not data:

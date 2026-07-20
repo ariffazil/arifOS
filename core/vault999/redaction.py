@@ -18,7 +18,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class DataTier:
@@ -94,7 +94,7 @@ def redact_entry(
             redacted_content=content,
             redaction_reason="T0_PUBLIC — no restriction",
             data_tier=tier,
-            redaction_timestamp=datetime.now(timezone.utc).isoformat(),
+            redaction_timestamp=datetime.now(UTC).isoformat(),
         )
 
     # Compute original hash before destruction
@@ -116,7 +116,7 @@ def redact_entry(
         redacted_content=redacted,
         redaction_reason=redaction_reason,
         data_tier=tier,
-        redaction_timestamp=datetime.now(timezone.utc).isoformat(),
+        redaction_timestamp=datetime.now(UTC).isoformat(),
     )
 
 

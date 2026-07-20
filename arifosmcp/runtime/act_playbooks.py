@@ -20,9 +20,9 @@ DITEMPA BUKAN DIBERI — Playbook is forged, not given.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # EXECUTION PATTERNS — the "cara manusia buat"

@@ -26,8 +26,9 @@ import os
 import subprocess
 import time
 import uuid
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +104,9 @@ def _compute_this_hash(prev_hash: str, payload: Any, seq: int, epoch: str) -> st
 
 
 # ── Verify ─────────────────────────────────────────────────────────────────────
-def verify_chain_window(*, from_seq: int | None = None, to_seq: int | None = None) -> dict[str, Any]:
+def verify_chain_window(
+    *, from_seq: int | None = None, to_seq: int | None = None
+) -> dict[str, Any]:
     """Return the integrity verdict for entries [from_seq, to_seq] (or whole chain).
 
     Honest result includes:
@@ -154,12 +157,14 @@ def verify_chain_window(*, from_seq: int | None = None, to_seq: int | None = Non
         # prev_hash continuity — entry's `prev_hash` must equal prior entry's `this_hash`.
         declared_prev = entry.get("prev_hash")
         if declared_prev and declared_prev != expected_prev:
-            mismatches.append({
-                "seq": seq,
-                "reason": "prev_hash-mismatch",
-                "expected": expected_prev,
-                "got": declared_prev,
-            })
+            mismatches.append(
+                {
+                    "seq": seq,
+                    "reason": "prev_hash-mismatch",
+                    "expected": expected_prev,
+                    "got": declared_prev,
+                }
+            )
             if first_mismatch_seq is None:
                 first_mismatch_seq = seq
         payload = entry.get("payload") if "payload" in entry else entry
@@ -176,12 +181,14 @@ def verify_chain_window(*, from_seq: int | None = None, to_seq: int | None = Non
         else:
             expected_hex = recomputed.split(":", 1)[-1]
             if not hmac.compare_digest(recorded[: len(expected_hex)], expected_hex):
-                mismatches.append({
-                    "seq": seq,
-                    "reason": "this-hash-mismatch",
-                    "recomputed": recomputed,
-                    "recorded": entry.get("this_hash"),
-                })
+                mismatches.append(
+                    {
+                        "seq": seq,
+                        "reason": "this-hash-mismatch",
+                        "recomputed": recomputed,
+                        "recorded": entry.get("this_hash"),
+                    }
+                )
                 if first_mismatch_seq is None:
                     first_mismatch_seq = seq
 
@@ -315,7 +322,11 @@ def self_test() -> dict[str, Any]:
         read_back_ok = bool(read_back) and read_back.get("this_hash") == test_this_hash
 
         # 4) Verify (post-write)
-        verify_post = verify_chain_window(from_seq=test_seq, to_seq=test_seq) if isinstance(test_seq, int) else {"status": "broken_chain"}
+        verify_post = (
+            verify_chain_window(from_seq=test_seq, to_seq=test_seq)
+            if isinstance(test_seq, int)
+            else {"status": "broken_chain"}
+        )
         verify_ok = verify_post.get("status") in ("ok", "empty")
 
         # 5) Replay
@@ -368,7 +379,10 @@ def _enforce_tier(request, required: str) -> tuple[bool, str | None]:
             return False, "X-Op-Token required (tier=operator)"
         expected = _os.getenv("ARIFOS_OP_TOKEN_HASH", "").strip()
         if not expected:
-            return False, "operator tier not bootstrapped on this server (missing ARIFOS_OP_TOKEN_HASH in vault.env)"
+            return (
+                False,
+                "operator tier not bootstrapped on this server (missing ARIFOS_OP_TOKEN_HASH in vault.env)",
+            )
         got_hash = _hashlib.sha256(token.encode("utf-8")).hexdigest()
         if not hmac.compare_digest(got_hash, expected):
             return False, "X-Op-Token hash mismatch"
@@ -387,7 +401,9 @@ def register_vault_witness_routes(app: Any, prefix: str = "/api/observatory/v1/s
     async def _verify(request):
         ok, reason = _enforce_tier(request, required="operator")
         if not ok:
-            return JSONResponse({"error": reason or "tier denied", "tier_required": "operator"}, status_code=403)
+            return JSONResponse(
+                {"error": reason or "tier denied", "tier_required": "operator"}, status_code=403
+            )
         try:
             from_seq = int(request.query_params.get("from", "0"))
         except (TypeError, ValueError):
@@ -406,7 +422,9 @@ def register_vault_witness_routes(app: Any, prefix: str = "/api/observatory/v1/s
     async def _replay(request):
         ok, reason = _enforce_tier(request, required="operator")
         if not ok:
-            return JSONResponse({"error": reason or "tier denied", "tier_required": "operator"}, status_code=403)
+            return JSONResponse(
+                {"error": reason or "tier denied", "tier_required": "operator"}, status_code=403
+            )
         try:
             seq = int(request.query_params.get("seq", "0"))
         except (TypeError, ValueError):
@@ -424,23 +442,33 @@ def register_vault_witness_routes(app: Any, prefix: str = "/api/observatory/v1/s
     async def _test(request):
         ok, reason = _enforce_tier(request, required="operator")
         if not ok:
-            return JSONResponse({"error": reason or "tier denied", "tier_required": "operator"}, status_code=403)
+            return JSONResponse(
+                {"error": reason or "tier denied", "tier_required": "operator"}, status_code=403
+            )
         try:
             payload = self_test()
         except Exception as exc:
-            return JSONResponse({"status": "FAIL", "reason": f"{type(exc).__name__}: {exc}"}, status_code=500)
+            return JSONResponse(
+                {"status": "FAIL", "reason": f"{type(exc).__name__}: {exc}"}, status_code=500
+            )
         # Record a per-tool cap-drift entry for the test actor (heuristic).
         if payload.get("status") == "PASS":
             record_test_result("observatory_self_test", passed=True, error=None)
         else:
-            record_test_result("observatory_self_test", passed=False, error=str(payload.get("reason") or payload))
+            record_test_result(
+                "observatory_self_test", passed=False, error=str(payload.get("reason") or payload)
+            )
         return JSONResponse(payload, status_code=200 if payload.get("status") == "PASS" else 503)
 
     def route(path: str, methods: list[str]):
         full = prefix.rstrip("/") + path
 
         def _decorator(handler: Callable):
-            if hasattr(app, "add_route") or "Starlette" in str(type(app)) or "FastAPI" in str(type(app)):
+            if (
+                hasattr(app, "add_route")
+                or "Starlette" in str(type(app))
+                or "FastAPI" in str(type(app))
+            ):
                 from starlette.routing import Route
 
                 app.router.routes.append(Route(full, endpoint=handler, methods=methods))
@@ -449,7 +477,9 @@ def register_vault_witness_routes(app: Any, prefix: str = "/api/observatory/v1/s
             elif hasattr(app, "route"):
                 app.route(full, methods=methods)(handler)
             else:
-                logger.warning("Failed to register vault_witness route %s: app has no route method", full)
+                logger.warning(
+                    "Failed to register vault_witness route %s: app has no route method", full
+                )
             return handler
 
         return _decorator

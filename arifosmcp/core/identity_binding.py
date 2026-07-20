@@ -17,7 +17,6 @@ import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class AuthMethod(str, Enum):
@@ -46,7 +45,7 @@ class IdentityBinding:
     session_id: str
     auth_method: AuthMethod = AuthMethod.SESSION
     verified_at: float = field(default_factory=time.time)
-    expires_at: Optional[float] = None
+    expires_at: float | None = None
     scope: list[str] = field(default_factory=list)  # What this identity can access
     audience: str = ""  # Intended recipient (MCP server)
     issuer: str = "arifos-kernel"  # Who issued this binding
@@ -112,7 +111,7 @@ def verify_identity(session_id: str, actor_id: str) -> bool:
     return True
 
 
-def get_identity(session_id: str) -> Optional[IdentityBinding]:
+def get_identity(session_id: str) -> IdentityBinding | None:
     """Get the identity binding for a session."""
     return _bindings.get(session_id)
 

@@ -23,7 +23,6 @@ from arifosmcp.core.decision_contract import (
     ResolutionResult,
 )
 
-
 # ── Verdict dominance (total order) ──────────────────────────────
 # Higher rank = more authoritative / more restrictive
 

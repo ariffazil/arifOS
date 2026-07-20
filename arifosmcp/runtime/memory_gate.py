@@ -549,9 +549,7 @@ def f10_pre_write_scan(
     guard = F10OntologyGuard(state)
 
     if isinstance(content, dict):
-        modified, scan = guard.scan_payload(
-            content, task_hint=task_hint, tool_name="arif_memory"
-        )
+        modified, scan = guard.scan_payload(content, task_hint=task_hint, tool_name="arif_memory")
         out_content: Any = modified
     else:
         text = content if isinstance(content, str) else str(content)
@@ -649,8 +647,7 @@ def f10_pre_write_scan(
     else:
         base["verdict"] = "SEAL"
         base["reason"] = (
-            "F10 ONTOLOGY: VOID-level signal observed but not enforced "
-            "(F10_MEMORY_ENFORCED=false)."
+            "F10 ONTOLOGY: VOID-level signal observed but not enforced (F10_MEMORY_ENFORCED=false)."
         )
         base["next_safe_action"] = "Enable F10_MEMORY_ENFORCED to hard-block write."
     return base

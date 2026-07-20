@@ -93,6 +93,7 @@ from starlette.responses import JSONResponse  # noqa: E402
 # (skill:// URIs). Distinct from the custom arifosmcp.providers.skills (domain .py callables).
 try:
     from pathlib import Path
+
     from fastmcp.server.providers.skills import (
         SkillsDirectoryProvider as FastMCPSkillsDirectoryProvider,
     )
@@ -107,14 +108,14 @@ from arifosmcp.constitutional_map import (  # noqa: E402
     list_constitutional_tools,
     list_probe_tools,
 )
-from arifosmcp.runtime.peer_contract import (  # noqa: E402
-    get_arifos_peer_contract,
-)
-from arifosmcp.runtime.public_surface import public_tool_names_for_mode  # noqa: E402
 from arifosmcp.runtime.dpop_auth import (  # noqa: E402
     extract_cnf_jkt,
     verify_dpop_proof,
 )
+from arifosmcp.runtime.peer_contract import (  # noqa: E402
+    get_arifos_peer_contract,
+)
+from arifosmcp.runtime.public_surface import public_tool_names_for_mode  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -651,7 +652,6 @@ IS_FASTMCP_3 = fastmcp.__version__.startswith("3")
 try:
     from arifosmcp.prompts import register_prompts
     from arifosmcp.resources import register_resources
-    from arifosmcp.runtime.fastmcp_ext.prompts import register_arifos_prompts
     from arifosmcp.runtime.fastmcp_ext.resources import register_arifos_resources
     from arifosmcp.runtime.heartbeat_registry import arif_heartbeat as _arif_heartbeat
     from arifosmcp.runtime.institutional_shadow import (
@@ -700,14 +700,13 @@ try:
     # the appropriate AKAL hook (friction, shadow, novelty, dual-eval, latency)
     # around the existing handler without modifying the handler itself.
     try:
+        import functools
+
         from arifosmcp.core.akal_wiring import (
-            akal_pre_think,
             akal_post_critique,
-            akal_pre_forge,
             akal_pre_judge,
             akal_pre_seal,
         )
-        import functools
 
         def _akal_wrap_critique(handler):
             """I2: Shadow observer validation after critique."""
@@ -834,11 +833,12 @@ try:
     # fields: canonical_verdict, authority_scope, receipt_state, execution_state.
     try:
         import asyncio as _asyncio_v2
-        from arifosmcp.runtime.v2_envelope import (
-            build_v2_envelope,
-            CANONICAL_TOOL_NAMES,
-        )
         import functools
+
+        from arifosmcp.runtime.v2_envelope import (
+            CANONICAL_TOOL_NAMES,
+            build_v2_envelope,
+        )
 
         def _v2_envelope_wrap(handler, *, tool_name: str = ""):
             """Wrap handler response with V2 envelope.
@@ -1016,7 +1016,8 @@ try:
     # arif_kernel_intercept is a retired internal name. Its role is now split
     # across arif_judge (verdict), arif_route (routing), arif_canary (transport).
     # Register as thin deprecation alias so HTTP clients don't get "Unknown tool."
-    from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH_ALIAS, _wrap_handler
+    from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH_ALIAS
+    from arifosmcp.runtime.tools import _wrap_handler
 
     _GHOST_ALIASES: dict[str, str] = {
         "arif_kernel_intercept": "arif_judge",
@@ -1045,13 +1046,13 @@ try:
     # Canonical path: arif_init(mode=preflight|triage). Thin wrapper only —
     # logs deprecation, never first-class CANONICAL surface.
     try:
-        from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
-
         # FIX 2026-07-15: Use functools.wraps to preserve the original handler's
         # signature for FastMCP schema generation. Without this, the wrapper's
         # **kwargs hides all named params (mode, priority, etc.) from the MCP
         # tool schema, causing "unexpected keyword argument" on the live surface.
         import functools
+
+        from arifosmcp.tools.kernel_canonical import arif_triage as _arif_triage
 
         @functools.wraps(_arif_triage)
         def _triage_deprecated_wrapper(**kwargs):  # type: ignore[no-untyped-def]
@@ -1091,8 +1092,8 @@ try:
 
     if _EXPOSE_DEV_TOOLS:
         try:
-            from arifosmcp.runtime.public_registry import _TOOL_DESCRIPTIONS as _KERNEL_DESCS
             from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS as _KERNEL_ANN
+            from arifosmcp.runtime.public_registry import _TOOL_DESCRIPTIONS as _KERNEL_DESCS
             from arifosmcp.runtime.tools import CANONICAL_TOOL_HANDLERS as _CTH
 
             _compose_fn = _CTH.get("arif_compose")
@@ -1388,18 +1389,18 @@ try:
 
     # ── Entropy Integrity Mesh — Kernel tools ──────────────────────────
     try:
-        from arifosmcp.entropy_kernel.entropy_observe import (
-            arif_entropy_observe as _entropy_observe,
-        )
-        from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess
-        from arifosmcp.entropy_kernel.correction_probe import (
-            arif_correction_probe as _correction_probe,
-        )
         from arifosmcp.entropy_kernel.consequence_trace import (
             arif_consequence_trace as _consequence_trace,
         )
+        from arifosmcp.entropy_kernel.correction_probe import (
+            arif_correction_probe as _correction_probe,
+        )
+        from arifosmcp.entropy_kernel.entropy_observe import (
+            arif_entropy_observe as _entropy_observe,
+        )
         from arifosmcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route
         from arifosmcp.entropy_kernel.j_gate import arif_j_gate as _j_gate
+        from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess
 
         mcp.tool(
             name="arif_entropy_observe",
@@ -2070,8 +2071,8 @@ async def horizon_metadata(request: Request) -> JSONResponse:
 
 async def webmcp_discovery(request: Request) -> JSONResponse:
     """MCP Server Card — SEP-2127 HTTP discovery document (public facade)."""
-    from arifosmcp.runtime.public_registry import public_tool_names
     from arifosmcp.runtime.build import get_build_info
+    from arifosmcp.runtime.public_registry import public_tool_names
 
     _bi = get_build_info()
     _commit = (_bi.get("build") or {}).get("commit") or "unknown"
@@ -2097,8 +2098,8 @@ async def webmcp_discovery(request: Request) -> JSONResponse:
 
 async def tools_with_meta(request: Request) -> JSONResponse:
     """GET /tools — public facade only. Registered here and wins over rest_routes."""
-    from arifosmcp.runtime.public_registry import public_tool_specs
     from arifosmcp.runtime.build import get_build_info
+    from arifosmcp.runtime.public_registry import public_tool_specs
 
     _bi = get_build_info()
     _commit = (_bi.get("build") or {}).get("commit") or "unknown"
@@ -3128,9 +3129,9 @@ if app:
         reason = "not_attempted"
         try:
             from arifosmcp.runtime.sovereign_verify import (
-                verify_sovereign_signature,
-                resolve_authority_level,
                 pubkey_status,
+                resolve_authority_level,
+                verify_sovereign_signature,
             )
 
             verified, reason = verify_sovereign_signature(

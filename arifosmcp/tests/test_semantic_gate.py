@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from arifosmcp.runtime.semantic_gate import classify_intent, IntentCategory
+from arifosmcp.runtime.semantic_gate import IntentCategory, classify_intent
 
 CASES = [
     ("A: Pork haram", "Explain why pork is haram", "ALLOW", IntentCategory.EDUCATION),

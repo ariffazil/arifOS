@@ -372,9 +372,7 @@ def check_schema_echo_stable() -> dict[str, Any]:
 
     # Secondary check: probe both extracted AND top-level for v2 signatures
     tool_result = _extract_tool_result(result)
-    kernel_signal = (
-        tool_result.get("called_from_kernel") is True
-    )
+    kernel_signal = tool_result.get("called_from_kernel") is True
 
     # If extraction stripped the top-level, re-parse from raw content
     if not kernel_signal:
@@ -678,9 +676,7 @@ def check_vault_replay() -> dict[str, Any]:
 
     seals_total = int(api_status.get("vault_seals_total") or 0)
     chain_integrity = str(api_status.get("chain_integrity") or "UNKNOWN")
-    entries_returned = len(entries) if entries else (
-        1 if latest and latest_id != "unknown" else 0
-    )
+    entries_returned = len(entries) if entries else (1 if latest and latest_id != "unknown" else 0)
 
     if not entries and not api_healthy:
         errors.append("No vault entries from filesystem and API unhealthy")
@@ -690,11 +686,16 @@ def check_vault_replay() -> dict[str, Any]:
     # Chain health: API INTACT/DEGRADED with seals > 0 is acceptable when
     # historical gap is sovereign-ruled NON-ISSUE. BROKEN without ruling = fail.
     chain_ok = False
-    if api_healthy and seals_total > 0 and chain_integrity in (
-        "INTACT",
-        "DEGRADED",
-        "HEALTHY",
-        "OK",
+    if (
+        api_healthy
+        and seals_total > 0
+        and chain_integrity
+        in (
+            "INTACT",
+            "DEGRADED",
+            "HEALTHY",
+            "OK",
+        )
     ):
         chain_ok = True
     elif file_exists and entries_returned > 0 and not errors:
@@ -1049,9 +1050,7 @@ def run_spine(fast: bool = False) -> dict[str, Any]:
         "all_green": all_green,
         "substrate_gate": substrate_gate,
         "fast_mode": bool(fast),
-        "constitutional_grade": (
-            False if (fast or skipped > 0 or not all_green) else True
-        ),
+        "constitutional_grade": (False if (fast or skipped > 0 or not all_green) else True),
         "constitutional_contradiction": constitutional_contradiction,
         "sink_warning": sink_warning,
         "total_latency_ms": total_ms,

@@ -9,7 +9,6 @@ from . import _1_agi as mind
 from . import _2_asi as heart
 from . import _3_apex as soul
 from . import _4_vault as memory
-
 from ._0_init import (
     AuthorityLevel,
     get_authority_name,
@@ -20,7 +19,7 @@ from ._0_init import (
     verify_auth,
 )
 from ._1_agi import agi
-from ._2_asi import asi, align, empathize
+from ._2_asi import align, asi, empathize
 from ._3_apex import apex, forge, judge, sync
 from ._4_vault import SealRecord, seal, vault
 from ._5_wealth import calculate_npv, wealth

@@ -441,6 +441,7 @@ def get_resource_provenance(uri: str) -> dict[str, Any] | None:
     return None
 
 
+from .atlas333 import attach_to_mcp_resource as _atlas333_attach
 from .embodied_resources import register_embodied_resources
 from .evidence import register_evidence_resources
 from .human_context import register_human_context
@@ -449,23 +450,22 @@ from .jurisdiction import register_jurisdiction
 from .loop_engineering import register_loop_engineering
 from .mcp_alignment import register_mcp_alignment
 from .memory import register_memory
+from .quickstart import register_quickstart
+from .reality_state import register_reality_state
 from .resources_index import register_resources_index
+from .retrieve_tools import register_retrieve_tools
 from .runner import register_runner_resources
 from .schema import register_schema
-from .reality_state import register_reality_state
 from .seal_readiness import register_seal_readiness
 from .skills_catalog import register_skills_catalog
 from .sovereign import register_sovereign_resources
-from .quickstart import register_quickstart
+from .surface_map import register_surface_map
+from .tool_discovery import register_tool_discovery
 from .tree777 import register_tree777_resources
 from .trinity import register_trinity
-from .vitals import register_vitals
-from .tool_discovery import register_tool_discovery
-from .retrieve_tools import register_retrieve_tools
 from .vault999_template import register_vault999_template
-from .surface_map import register_surface_map
+from .vitals import register_vitals
 from .wisdom_resources import register_wisdom_resources
-from .atlas333 import attach_to_mcp_resource as _atlas333_attach
 
 CANONICAL_RESOURCES = (
     "arifos://doctrine",

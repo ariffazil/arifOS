@@ -30,9 +30,9 @@ import json
 import logging
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
@@ -60,12 +60,28 @@ _CATEGORY_RULES: list[tuple[str, str, str]] = [
     (r"wealth|capital|npv|irr|market|trade|gold|oil", "domain.capital", "Capital intelligence"),
     (r"well|vitality|fatigue|readiness|dignity|human|bio", "domain.human_readiness", "WELL organ"),
     (r"aaa|cockpit|a2a|agent.?card|warga", "governance.aaa_control_plane", "AAA control plane"),
-    (r"forge|file.?write|file.?mutate|aforge|artifact", "system.code_generation", "Code/forge mutations"),
-    (r"rs[ei]|recursive|self.?improv|meta.?learn|cooling", "architecture.rsi_meta_learning", "RSI cycles"),
-    (r"reality|observe|fetch|sense|search|vitals", "intelligence.reality_grounding", "Reality sensing"),
+    (
+        r"forge|file.?write|file.?mutate|aforge|artifact",
+        "system.code_generation",
+        "Code/forge mutations",
+    ),
+    (
+        r"rs[ei]|recursive|self.?improv|meta.?learn|cooling",
+        "architecture.rsi_meta_learning",
+        "RSI cycles",
+    ),
+    (
+        r"reality|observe|fetch|sense|search|vitals",
+        "intelligence.reality_grounding",
+        "Reality sensing",
+    ),
     (r"judge|verdict|hold|sabar|void|adjudicate", "governance.judge", "Constitutional verdicts"),
     (r"seal|vault|ledger|999|immutable|chain", "governance.seal_chain", "VAULT999 operations"),
-    (r"prl|emd|precedent.?retriev|gate.?intercept", "architecture.emd_pipeline", "EMD/PRL pipeline"),
+    (
+        r"prl|emd|precedent.?retriev|gate.?intercept",
+        "architecture.emd_pipeline",
+        "EMD/PRL pipeline",
+    ),
     (r"session|init|boot|ignite|wake", "governance.session", "Session lifecycle"),
     (r"telegram|hermes|bot|message|chat", "infrastructure.communication", "Hermes/Telegram"),
     (r"docker|container|deploy|compose|image", "infrastructure.deployment", "Deployment"),
@@ -114,8 +130,18 @@ def _build_embedding_text(entry: dict[str, Any]) -> str:
     actor = entry.get("actor_id", "") or payload.get("agent_id", "") or "UNKNOWN"
 
     context_parts: list[str] = []
-    for key in ("tool", "source", "protocol", "routing", "tool_name",
-                "target_file", "query", "intent", "domain", "task_id"):
+    for key in (
+        "tool",
+        "source",
+        "protocol",
+        "routing",
+        "tool_name",
+        "target_file",
+        "query",
+        "intent",
+        "domain",
+        "task_id",
+    ):
         val = metadata.get(key, "")
         if val:
             context_parts.append(f"{key}: {str(val)[:80]}")
@@ -182,6 +208,7 @@ def _build_payload(entry: dict[str, Any], point_id: int) -> dict[str, Any]:
 
 # ── PrecedentVectorizer class ──────────────────────────────────────────────
 
+
 class PrecedentVectorizer:
     """Create, seed, and search the VAULT999 precedent vector index in Qdrant."""
 
@@ -192,6 +219,7 @@ class PrecedentVectorizer:
     def _get_encoder(self):
         if self._encoder is None:
             from sentence_transformers import SentenceTransformer
+
             logger.info("Loading embedding model %s ...", EMBEDDING_MODEL)
             self._encoder = SentenceTransformer(EMBEDDING_MODEL, trust_remote_code=True)
         return self._encoder
@@ -227,7 +255,11 @@ class PrecedentVectorizer:
                             entry["_line"] = lineno
                             entries.append(entry)
                         else:
-                            logger.debug("Skipping non-dict entry at line %d: %s", lineno, type(entry).__name__)
+                            logger.debug(
+                                "Skipping non-dict entry at line %d: %s",
+                                lineno,
+                                type(entry).__name__,
+                            )
                     except json.JSONDecodeError:
                         logger.warning("Skipping non-JSON line %d", lineno)
         except OSError as exc:
@@ -264,8 +296,12 @@ class PrecedentVectorizer:
             except Exception as exc:
                 errors.append(f"Batch {batch_start}: {exc}")
                 logger.error("Backfill batch failed: %s", exc)
-        report = {"status": "OK" if not errors else "PARTIAL", "indexed": total_indexed,
-                  "total_entries": len(entries), "errors": errors[:10]}
+        report = {
+            "status": "OK" if not errors else "PARTIAL",
+            "indexed": total_indexed,
+            "total_entries": len(entries),
+            "errors": errors[:10],
+        }
         try:
             report["collection_size"] = self.client.count(collection_name=COLLECTION_NAME).count
         except Exception:
@@ -282,52 +318,71 @@ class PrecedentVectorizer:
             try:
                 point_id = self.client.count(collection_name=COLLECTION_NAME).count
             except Exception:
-                point_id = int(datetime.now(timezone.utc).timestamp() * 1000)
+                point_id = int(datetime.now(UTC).timestamp() * 1000)
         payload = _build_payload(entry, point_id)
         try:
-            self.client.upsert(collection_name=COLLECTION_NAME, points=[
-                PointStruct(id=point_id, vector=embedding.tolist(), payload=payload),
-            ])
+            self.client.upsert(
+                collection_name=COLLECTION_NAME,
+                points=[
+                    PointStruct(id=point_id, vector=embedding.tolist(), payload=payload),
+                ],
+            )
             return True
         except Exception as exc:
             logger.error("Failed to index entry: %s", exc)
             return False
 
-    def search(self, query_text: str, blast_radius: str | None = None,
-               score_threshold: float = PRL_TAU_THRESHOLD, limit: int = 5) -> list[dict[str, Any]]:
+    def search(
+        self,
+        query_text: str,
+        blast_radius: str | None = None,
+        score_threshold: float = PRL_TAU_THRESHOLD,
+        limit: int = 5,
+    ) -> list[dict[str, Any]]:
         encoder = self._get_encoder()
         query_vector = encoder.encode([query_text], show_progress_bar=False)[0].tolist()
         query_filter = None
         if blast_radius and blast_radius in BLAST_RADIUS_VALUES:
             from qdrant_client.models import FieldCondition, Filter, MatchValue
-            query_filter = Filter(must=[FieldCondition(key="blast_radius", match=MatchValue(value=blast_radius))])
+
+            query_filter = Filter(
+                must=[FieldCondition(key="blast_radius", match=MatchValue(value=blast_radius))]
+            )
         try:
             response = self.client.query_points(
-                collection_name=COLLECTION_NAME, query=query_vector,
-                query_filter=query_filter, limit=limit, score_threshold=score_threshold,
+                collection_name=COLLECTION_NAME,
+                query=query_vector,
+                query_filter=query_filter,
+                limit=limit,
+                score_threshold=score_threshold,
             )
         except Exception as exc:
             logger.error("PRL search failed: %s", exc)
             return []
         results = []
         for point in response.points:
-            results.append({
-                "score": round(point.score, 4),
-                "seal_id": point.payload.get("seal_id", ""),
-                "blast_radius": point.payload.get("blast_radius", ""),
-                "enriched_category": point.payload.get("enriched_category", ""),
-                "verdict": point.payload.get("verdict", ""),
-                "timestamp": point.payload.get("timestamp", ""),
-                "payload_summary": point.payload.get("payload_summary", "")[:256],
-                "session_id": point.payload.get("session_id", ""),
-            })
+            results.append(
+                {
+                    "score": round(point.score, 4),
+                    "seal_id": point.payload.get("seal_id", ""),
+                    "blast_radius": point.payload.get("blast_radius", ""),
+                    "enriched_category": point.payload.get("enriched_category", ""),
+                    "verdict": point.payload.get("verdict", ""),
+                    "timestamp": point.payload.get("timestamp", ""),
+                    "payload_summary": point.payload.get("payload_summary", "")[:256],
+                    "session_id": point.payload.get("session_id", ""),
+                }
+            )
         return results
 
     def collection_stats(self) -> dict[str, Any]:
         try:
-            return {"collection": COLLECTION_NAME, "vector_size": VECTOR_SIZE,
-                    "model": EMBEDDING_MODEL,
-                    "point_count": self.client.count(collection_name=COLLECTION_NAME).count,
-                    "tau_threshold": PRL_TAU_THRESHOLD}
+            return {
+                "collection": COLLECTION_NAME,
+                "vector_size": VECTOR_SIZE,
+                "model": EMBEDDING_MODEL,
+                "point_count": self.client.count(collection_name=COLLECTION_NAME).count,
+                "tau_threshold": PRL_TAU_THRESHOLD,
+            }
         except Exception as exc:
             return {"error": str(exc), "collection": COLLECTION_NAME}

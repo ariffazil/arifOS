@@ -9,10 +9,10 @@ Route: GET /.well-known/arifos-vault-verify.json
 Access: PUBLIC (no session/token required)
 """
 
-from pathlib import Path
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from pathlib import Path
 
 VAULT_SEAL_CHAIN = Path("/root/.local/share/arifos/vault999/seal_chain.jsonl")
 
@@ -22,7 +22,7 @@ def get_vault_verification_manifest() -> dict:
     manifest = {
         "endpoint": "/.well-known/arifos-vault-verify.json",
         "spec_version": "vault-verify.v1",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "access": "PUBLIC — OBSERVE_ONLY, no session or token required",
     }
 
@@ -40,15 +40,15 @@ def get_vault_verification_manifest() -> dict:
                 except json.JSONDecodeError:
                     parse_errors += 1
 
-            chain_hash = hashlib.sha256(
-                "\n".join(lines).encode()
-            ).hexdigest()[:16]
+            chain_hash = hashlib.sha256("\n".join(lines).encode()).hexdigest()[:16]
 
             manifest["chain"] = {
                 "total_lines": len(lines),
                 "valid_entries": len(entries),
                 "parse_errors": parse_errors,
-                "chain_integrity": "VERIFIED" if parse_errors == 0 else f"DEGRADED ({parse_errors} errors)",
+                "chain_integrity": "VERIFIED"
+                if parse_errors == 0
+                else f"DEGRADED ({parse_errors} errors)",
                 "chain_hash": chain_hash,
                 "head_seq": entries[-1].get("seq", "unknown") if entries else "empty",
                 "head_actor": entries[-1].get("actor", "unknown") if entries else "empty",
@@ -100,8 +100,12 @@ def get_vault_verification_manifest() -> dict:
 async def vault_verify_endpoint(request):
     """ASGI endpoint for GET /.well-known/arifos-vault-verify.json"""
     from starlette.responses import JSONResponse
+
     manifest = get_vault_verification_manifest()
-    return JSONResponse(manifest, headers={
-        "Cache-Control": "public, max-age=300",
-        "Access-Control-Allow-Origin": "*",
-    })
+    return JSONResponse(
+        manifest,
+        headers={
+            "Cache-Control": "public, max-age=300",
+            "Access-Control-Allow-Origin": "*",
+        },
+    )

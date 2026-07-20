@@ -9,7 +9,7 @@ Uses `nats` CLI under the hood — zero Python NATS dependency issues.
 
 import json
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 SUBJECT_PREFIX = "agent.memory"
 
@@ -32,7 +32,7 @@ def emit(
             "event": event_type,
             "payload": payload,
             "confidence": confidence,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metadata": metadata or {},
             "schema": "cross-agent-event/v1",
         }

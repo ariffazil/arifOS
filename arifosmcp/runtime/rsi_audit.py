@@ -31,10 +31,10 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -60,6 +60,7 @@ REVIEWED_OUTCOMES: set[str] = {
 # 1. Confusion Matrix Schema — RSIDecisionRecord
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class RSIDecisionRecord(BaseModel):
     """A single HOLD/PROCEED decision tracked for RSI stop-correctness audit.
 
@@ -84,9 +85,7 @@ class RSIDecisionRecord(BaseModel):
         ...,
         description="The original verdict issued by the tool",
     )
-    reason_class: Literal[
-        "AUTHORITY", "EVIDENCE", "SAFETY", "TOOL_FAILURE", "UNCERTAINTY"
-    ] = Field(
+    reason_class: Literal["AUTHORITY", "EVIDENCE", "SAFETY", "TOOL_FAILURE", "UNCERTAINTY"] = Field(
         ...,
         description="Classification of why HOLD/PROCEED was issued",
     )
@@ -96,7 +95,7 @@ class RSIDecisionRecord(BaseModel):
         default="UNRESOLVED",
         description="Post-hoc review outcome — starts UNRESOLVED",
     )
-    review_latency_hours: Optional[float] = Field(
+    review_latency_hours: float | None = Field(
         default=None,
         description="Hours between original decision and review completion",
     )
@@ -116,7 +115,7 @@ class RSIDecisionRecord(BaseModel):
 
     @field_validator("review_latency_hours")
     @classmethod
-    def _latency_must_be_non_negative(cls, v: Optional[float]) -> Optional[float]:
+    def _latency_must_be_non_negative(cls, v: float | None) -> float | None:
         if v is not None and v < 0:
             raise ValueError(f"review_latency_hours must be >= 0, got {v}")
         return v
@@ -145,6 +144,7 @@ class RSIDecisionRecord(BaseModel):
 # 2. RSILedger — Append-Only Ledger
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class RSILedger:
     """Append-only JSONL ledger for RSI decision records.
 
@@ -159,7 +159,7 @@ class RSILedger:
         stats = ledger.stats()            # compute rates and confusion matrix
     """
 
-    def __init__(self, path: Optional[Path | str] = None) -> None:
+    def __init__(self, path: Path | str | None = None) -> None:
         self._path = Path(path) if path else LEDGER_PATH
         self._path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -181,7 +181,7 @@ class RSILedger:
         records: list[RSIDecisionRecord] = []
         if not self._path.exists():
             return records
-        with open(self._path, "r", encoding="utf-8") as fh:
+        with open(self._path, encoding="utf-8") as fh:
             for line in fh:
                 line = line.strip()
                 if not line:
@@ -250,18 +250,12 @@ class RSILedger:
 
         # False hold rate: FALSE_HOLD / (CORRECT_HOLD + FALSE_HOLD)
         hold_total = matrix.get("CORRECT_HOLD", 0) + matrix.get("FALSE_HOLD", 0)
-        false_hold_rate = (
-            matrix.get("FALSE_HOLD", 0) / hold_total if hold_total > 0 else 0.0
-        )
+        false_hold_rate = matrix.get("FALSE_HOLD", 0) / hold_total if hold_total > 0 else 0.0
 
         # Unresolved hold rate: UNRESOLVED holds / total holds
-        unresolved_holds = sum(
-            1 for r in all_records if r.is_unresolved_hold
-        )
+        unresolved_holds = sum(1 for r in all_records if r.is_unresolved_hold)
         total_holds = sum(1 for r in all_records if r.is_hold)
-        unresolved_hold_rate = (
-            unresolved_holds / total_holds if total_holds > 0 else 0.0
-        )
+        unresolved_hold_rate = unresolved_holds / total_holds if total_holds > 0 else 0.0
 
         # Hold reversal latency average (FALSE_HOLD records with latency data)
         reversal_latencies = [
@@ -270,9 +264,7 @@ class RSILedger:
             if r.review_outcome == "FALSE_HOLD" and r.review_latency_hours is not None
         ]
         hold_reversal_latency_avg = (
-            sum(reversal_latencies) / len(reversal_latencies)
-            if reversal_latencies
-            else None
+            sum(reversal_latencies) / len(reversal_latencies) if reversal_latencies else None
         )
 
         return {
@@ -301,6 +293,7 @@ class RSILedger:
 # 3. StratifiedSampler — Audit Batch Selection
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class StratifiedSampler:
     """Sampling design for audit selection — NOT random, stratified.
 
@@ -314,7 +307,7 @@ class StratifiedSampler:
       7. UNREVIEWED_TAIL         — Remaining UNRESOLVED records (fill)
     """
 
-    def __init__(self, ledger: Optional[RSILedger] = None) -> None:
+    def __init__(self, ledger: RSILedger | None = None) -> None:
         self._ledger = ledger or RSILedger()
 
     def select_batch(self, n: int = 10) -> list[RSIDecisionRecord]:
@@ -342,9 +335,7 @@ class StratifiedSampler:
                 if rec.decision_id not in taken_ids:
                     selected.append(rec)
                     taken_ids.add(rec.decision_id)
-                    remaining[:] = [
-                        r for r in remaining if r.decision_id != rec.decision_id
-                    ]
+                    remaining[:] = [r for r in remaining if r.decision_id != rec.decision_id]
 
         # Stratum 1: High-frequency reason classes (pick top reason class first)
         reason_freq: Counter[str] = Counter(r.reason_class for r in remaining)
@@ -353,37 +344,25 @@ class StratifiedSampler:
             _take(stratum, f"high_freq:{reason}")
 
         # Stratum 2: High-cost blocked actions (severity_weight > 1.0, HOLDs)
-        high_cost = [
-            r for r in remaining
-            if r.is_hold and r.severity_weight > 1.0
-        ]
+        high_cost = [r for r in remaining if r.is_hold and r.severity_weight > 1.0]
         _take(high_cost, "high_cost_blocked")
 
         # Stratum 3: Repeated HOLDs from the same tool
-        tool_counts: Counter[str] = Counter(
-            r.tool for r in remaining if r.is_hold
-        )
+        tool_counts: Counter[str] = Counter(r.tool for r in remaining if r.is_hold)
         repeated_tools = {tool for tool, cnt in tool_counts.items() if cnt >= 2}
         if repeated_tools:
-            repeated_holds = [
-                r for r in remaining
-                if r.is_hold and r.tool in repeated_tools
-            ]
+            repeated_holds = [r for r in remaining if r.is_hold and r.tool in repeated_tools]
             _take(repeated_holds, "repeated_hold_same_tool")
 
         # Stratum 4: Unusually fast HOLDs (no evidence gathered at decision time)
-        fast_holds = [
-            r for r in remaining
-            if r.is_hold and not r.evidence_available_at_decision
-        ]
+        fast_holds = [r for r in remaining if r.is_hold and not r.evidence_available_at_decision]
         _take(fast_holds, "no_evidence_hold")
 
         # Stratum 5: HOLDs later bypassed (evidence grew post-hoc but not reviewed)
         bypassed_holds = [
-            r for r in remaining
-            if r.is_hold
-            and r.evidence_available_post_hoc
-            and not r.evidence_available_at_decision
+            r
+            for r in remaining
+            if r.is_hold and r.evidence_available_post_hoc and not r.evidence_available_at_decision
         ]
         _take(bypassed_holds, "bypassed_hold")
 
@@ -397,6 +376,7 @@ class StratifiedSampler:
 # 4. RSIScorer — Derived Scoring (NOT reduced to single number)
 # ═══════════════════════════════════════════════════════════════════════════
 
+
 class RSIScorer:
     """Derived scoring from the RSI ledger.
 
@@ -408,7 +388,7 @@ class RSIScorer:
     All rates are derived, not asserted.
     """
 
-    def __init__(self, ledger: Optional[RSILedger] = None) -> None:
+    def __init__(self, ledger: RSILedger | None = None) -> None:
         self._ledger = ledger or RSILedger()
 
     @property
@@ -427,12 +407,12 @@ class RSIScorer:
         return self._ledger.stats()["unresolved_hold_rate"]
 
     @property
-    def hold_reversal_latency_avg(self) -> Optional[float]:
+    def hold_reversal_latency_avg(self) -> float | None:
         """Average hours to reverse a FALSE_HOLD (None if no reversals)."""
         return self._ledger.stats()["hold_reversal_latency_avg"]
 
     @property
-    def calibrated_score(self) -> Optional[dict]:
+    def calibrated_score(self) -> dict | None:
         """Composite calibrated score — ONLY when >= 30 reviewed records exist.
 
         Returns None if insufficient data (the scorer refuses to collapse
@@ -485,9 +465,7 @@ class RSIScorer:
             "false_hold_rate": self.false_hold_rate,
             "unresolved_hold_rate": self.unresolved_hold_rate,
             "hold_reversal_latency_avg": self.hold_reversal_latency_avg,
-            "calibrated_score": (
-                calibrated["calibrated_score"] if calibrated else None
-            ),
+            "calibrated_score": (calibrated["calibrated_score"] if calibrated else None),
             "calibration_met": calibrated is not None,
             "calibration_minimum": CALIBRATION_MINIMUM,
             "reviewed_count": self._ledger.stats()["reviewed_count"],
@@ -499,7 +477,7 @@ class RSIScorer:
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Module-level singleton ledger (one per process)
-_default_ledger: Optional[RSILedger] = None
+_default_ledger: RSILedger | None = None
 
 
 def _get_ledger() -> RSILedger:
@@ -514,11 +492,9 @@ def record_rsi_decision(
     *,
     tool: str,
     verdict: Literal["HOLD", "PROCEED"],
-    reason_class: Literal[
-        "AUTHORITY", "EVIDENCE", "SAFETY", "TOOL_FAILURE", "UNCERTAINTY"
-    ],
+    reason_class: Literal["AUTHORITY", "EVIDENCE", "SAFETY", "TOOL_FAILURE", "UNCERTAINTY"],
     severity_weight: float = 1.0,
-    evidence_available: Optional[list[str]] = None,
+    evidence_available: list[str] | None = None,
 ) -> RSIDecisionRecord:
     """Convenience function for tools.py to record HOLD/PROCEED decisions.
 

@@ -28,17 +28,16 @@ import hashlib
 import json
 import logging
 import os
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import (
     Ed25519PrivateKey,
     Ed25519PublicKey,
 )
-from cryptography.exceptions import InvalidSignature
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +65,14 @@ _PUBLIC_KEY_CANDIDATES = [
     if p
 ]
 # Back-compat aliases for callers/tests that still reference module-level paths
-_PRIVATE_KEY_PATH = _PRIVATE_KEY_CANDIDATES[0] if _PRIVATE_KEY_CANDIDATES else _SECRETS_DIR / "did_arifos_private.key"
-_PUBLIC_KEY_PATH = _PUBLIC_KEY_CANDIDATES[0] if _PUBLIC_KEY_CANDIDATES else _SECRETS_DIR / "did_arifos_public.key"
+_PRIVATE_KEY_PATH = (
+    _PRIVATE_KEY_CANDIDATES[0]
+    if _PRIVATE_KEY_CANDIDATES
+    else _SECRETS_DIR / "did_arifos_private.key"
+)
+_PUBLIC_KEY_PATH = (
+    _PUBLIC_KEY_CANDIDATES[0] if _PUBLIC_KEY_CANDIDATES else _SECRETS_DIR / "did_arifos_public.key"
+)
 
 # In-memory consumed seal cache (single-process; reset on restart)
 _consumed_seals: set[str] = set()
@@ -342,7 +347,7 @@ def verify_bridging_seal(
                     if str(entry.get("seq")) == receipt.seal_id:
                         vault_entry = entry
                         break
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return False
 
     if vault_entry is None:

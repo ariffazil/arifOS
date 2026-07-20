@@ -18,15 +18,7 @@ logger = logging.getLogger(__name__)
 
 # ── Enforcement Envelope (AOB P0 — 2026-07-03) ──
 from arifosmcp.schemas.enforcement_envelope import (
-    AuthorityScope,
-    CanonicalVerdict,
-    EnforcementEnvelope,
-    SessionMode,
-    TraceBlock,
-    VerdictReason,
-    WitnessBlock,
     make_ephemeral_envelope,
-    make_persistent_envelope,
 )
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -1525,7 +1517,7 @@ def arif_init(
         try:
             import yaml as _g_yaml  # type: ignore
 
-            with open(_genesis_card_path, "r") as _gf:
+            with open(_genesis_card_path) as _gf:
                 _gc = _g_yaml.safe_load(_gf)
             _g_hash = _gc.get("content_hash_sha256", "")
             header["genesis"] = {
@@ -1961,7 +1953,7 @@ def arif_init(
                     pass
 
         # ── Birth authority: identity band only (Spine P0, Workstream 1) ──
-        from arifosmcp.runtime.sct import identity_band_authority, compute_authority_state
+        from arifosmcp.runtime.sct import compute_authority_state, identity_band_authority
 
         _is_signed_principal = (
             identity_verified
@@ -2048,7 +2040,6 @@ def arif_init(
         _init_memory_recall: list[dict] = []
         try:
             from arifosmcp.runtime.memory_store import _get_qdrant_client
-            from qdrant_client.http import models
 
             qclient = _get_qdrant_client()
             if qclient is not None:

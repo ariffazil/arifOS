@@ -27,12 +27,11 @@ import pytest  # noqa: F401 — used implicitly via monkeypatch fixture typing
 from arifosmcp.runtime.skills_contracts_resource import (
     RESOURCE_URI,
     RESOURCE_VERSION,
+    _self_check,
     list_skill_gene_names,
     serve_skill_gene,
     serve_skills_contracts,
-    _self_check,
 )
-
 
 CANONICAL_12 = (
     "boundary_sensing",

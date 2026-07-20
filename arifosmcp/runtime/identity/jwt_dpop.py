@@ -14,10 +14,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-import os
 import time
 import uuid
-from datetime import UTC, datetime
 from pathlib import Path
 
 from cryptography.exceptions import InvalidSignature
@@ -260,7 +258,7 @@ def verify_dpop_proof(
 
     now = int(time.time())
     if abs(claims["iat"] - now) > leeway_seconds:
-        raise ValueError(f"DPoP iat outside leeway window")
+        raise ValueError("DPoP iat outside leeway window")
 
     if expected_ath and claims.get("ath") != expected_ath:
         raise ValueError("DPoP ath mismatch")

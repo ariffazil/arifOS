@@ -7,6 +7,7 @@ This is the beating heart of arifOS. Every module must pass through this.
 """
 
 from typing import Any, Literal
+
 from pydantic import BaseModel, Field
 
 from .reversibility import ReversibilityClass

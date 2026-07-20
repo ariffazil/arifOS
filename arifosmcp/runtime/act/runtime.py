@@ -15,6 +15,7 @@ DITEMPA BUKAN DIBERI — Runtime is forged, not configured.
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 from arifosmcp.runtime.act.gates import (
@@ -24,7 +25,6 @@ from arifosmcp.runtime.act.gates import (
     StageStatus,
 )
 from arifosmcp.runtime.act.patterns import ExecutionPattern, suggest_pattern
-
 
 # ── REQUEST ──────────────────────────────────────────────────────────
 

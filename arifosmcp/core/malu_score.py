@@ -28,8 +28,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from arifosmcp.runtime.fiqh_of_floors import FiqhTier, FLOOR_TIER
-
+from arifosmcp.runtime.fiqh_of_floors import FLOOR_TIER, FiqhTier
 
 # ──────────────────────────────────────────────────────────────────────
 # Tunables

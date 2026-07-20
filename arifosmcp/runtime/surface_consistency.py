@@ -26,7 +26,6 @@ def compute_canonical_surface_hash() -> str:
     public_agent profile, the baseline is the six-tool public surface.
     """
     from arifosmcp.runtime.public_surface import (
-        CANONICAL_13,
         current_public_surface_mode,
         public_tool_names_for_mode,
     )

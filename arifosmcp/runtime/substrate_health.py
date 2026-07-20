@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import os
 
-
 # Critical subsystems that block SEAL when degraded
 # If any of these is False/MISSING/EMPTY, we suppress positive verdicts.
 CRITICAL_SUBSYSTEMS = (
@@ -110,7 +109,7 @@ def _probe_federation_health() -> str:
         try:
             with socket.create_connection(("127.0.0.1", port), timeout=0.05):
                 reachable += 1
-        except (OSError, socket.timeout):
+        except (TimeoutError, OSError):
             pass
     if reachable == len(organ_ports):
         return "OK"

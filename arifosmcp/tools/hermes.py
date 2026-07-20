@@ -475,7 +475,9 @@ def hermes_epistemic_check(
             # New: receipt-bound truth layer + agent contract
             "truth_enforcement": enforcement,
             "evidence_layer": enforcement.get("layer") if enforcement else "L4",
-            "receipt_id": (enforcement.get("receipt") or {}).get("claim_id") if enforcement else None,
+            "receipt_id": (enforcement.get("receipt") or {}).get("claim_id")
+            if enforcement
+            else None,
             "agent_must_obey": "verified claims within authority (L4 prepare-only for irreversible)",
         },
     }
@@ -612,7 +614,12 @@ def hermes_fact_check(
             "recommendation": recommendation,
             "heuristic_score": round(heuristic_score, 3),
             # Truth receipt enforcement (L1-L4 + agent contract per 020 verdict)
-            "truth_enforcement": hermes_claim_to_receipt(claim=claim, evidence_context="fact_check+"+str(len(evidence)), actor_id=actor, irreversible=False),
+            "truth_enforcement": hermes_claim_to_receipt(
+                claim=claim,
+                evidence_context="fact_check+" + str(len(evidence)),
+                actor_id=actor,
+                irreversible=False,
+            ),
             "evidence_layer": "L2" if verdict in ("CONFIRMED", "REFUTED") else "L4",
             "agent_contract_note": "Agents obey the attached contract, not the claim text.",
         },

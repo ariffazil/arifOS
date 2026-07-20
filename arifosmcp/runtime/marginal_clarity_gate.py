@@ -9,10 +9,10 @@ DITEMPA BUKAN DIBERI — ArifOS Federation.
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Literal
-import json
 
+import json
+from dataclasses import dataclass
+from typing import Literal
 
 # ── Verdicts ──────────────────────────────────────────────────────────
 Verdict = Literal["CONTINUE", "CAUTION", "HOLD", "VOID"]
@@ -22,44 +22,47 @@ Verdict = Literal["CONTINUE", "CAUTION", "HOLD", "VOID"]
 @dataclass(frozen=True)
 class Constraints:
     """Hard floors for the constraint multiplier Φ."""
-    amanah_min: float = 0.99       # F1: information conservation
+
+    amanah_min: float = 0.99  # F1: information conservation
     humility_range: tuple = (0.03, 0.15)  # F7: entropy honesty
-    signal_non_decrease: bool = True      # F2: evidence quality
+    signal_non_decrease: bool = True  # F2: evidence quality
     understanding_non_decrease: bool = True  # F3: causal coherence
-    energy_budget: float = 1.0     # Landauer bound (normalised)
+    energy_budget: float = 1.0  # Landauer bound (normalised)
 
 
 DEFAULT_CONSTRAINTS = Constraints()
 
 
 # ── Tripwire Thresholds (ε per 1k tokens) ────────────────────────────
-EPSILON_HIGH = 0.15      # CONTINUE — active entropy reduction
-EPSILON_CAUTION = 0.05   # CAUTION — slowing, shift to synthesis
-EPSILON_HOLD = 0.01      # HOLD — Zen Tripwire, seal and yield
-EPSILON_VOID = 0.0       # VOID — entropy increasing
+EPSILON_HIGH = 0.15  # CONTINUE — active entropy reduction
+EPSILON_CAUTION = 0.05  # CAUTION — slowing, shift to synthesis
+EPSILON_HOLD = 0.01  # HOLD — Zen Tripwire, seal and yield
+EPSILON_VOID = 0.0  # VOID — entropy increasing
 
 
 # ── State Snapshot ───────────────────────────────────────────────────
 @dataclass
 class ClarityState:
     """Single-iteration measurement."""
+
     step: int
-    score_ct: float          # clarity score [0,1]
-    entropy_st: float        # Shannon proxy [0,1]
-    signal_st: float         # signal-to-noise [0,1]
+    score_ct: float  # clarity score [0,1]
+    entropy_st: float  # Shannon proxy [0,1]
+    signal_st: float  # signal-to-noise [0,1]
     understanding_st: float  # causal coherence [0,1]
     tokens: int = 0
     compute_flops: float = 0.0
     time_ms: float = 0.0
-    presence: str = "LIVE"   # LIVE | CACHED
+    presence: str = "LIVE"  # LIVE | CACHED
     amanah: float = 1.0
     humility: float = 0.08
-    energy: float = 0.0      # fraction of budget consumed
+    energy: float = 0.0  # fraction of budget consumed
 
 
 @dataclass
 class GateVerdict:
     """The output of one tripwire evaluation."""
+
     step: int
     verdict: Verdict
     delta_c: float
@@ -71,14 +74,17 @@ class GateVerdict:
     narrative: str
 
     def to_json(self, indent: int = 2) -> str:
-        return json.dumps({
-            "step": self.step,
-            "clarity": self.clarity,
-            "cost": self.cost,
-            "aph_sue": self.constraints,
-            "verdict": self.verdict,
-            "narrative": self.narrative,
-        }, indent=indent)
+        return json.dumps(
+            {
+                "step": self.step,
+                "clarity": self.clarity,
+                "cost": self.cost,
+                "aph_sue": self.constraints,
+                "verdict": self.verdict,
+                "narrative": self.narrative,
+            },
+            indent=indent,
+        )
 
 
 # ── The Gate ─────────────────────────────────────────────────────────
@@ -116,9 +122,7 @@ class MarginalClarityGate:
         if len(self.history) >= 2:
             prev = self.history[-2]
             checks.append(
-                s.signal_st >= prev.signal_st
-                if self.constraints.signal_non_decrease
-                else True
+                s.signal_st >= prev.signal_st if self.constraints.signal_non_decrease else True
             )
         else:
             checks.append(True)  # no baseline yet
@@ -157,9 +161,7 @@ class MarginalClarityGate:
         return delta_c > 0 and (signal_dropped or understanding_dropped)
 
     # ── Effective Marginal Clarity ──
-    def _compute_delta_star(
-        self, delta_c: float, cost: float, phi: float
-    ) -> float:
+    def _compute_delta_star(self, delta_c: float, cost: float, phi: float) -> float:
         if cost <= 0:
             return 0.0
         # Use signed delta_c — negative delta means entropy increasing

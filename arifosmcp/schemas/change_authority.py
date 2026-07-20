@@ -9,6 +9,7 @@ All runtime modules should import from here, not redefine locally.
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 from enum import StrEnum
@@ -24,6 +25,7 @@ class ChangeAuthorityClass(StrEnum):
     C4 – floor/constitutional logic (needs F13)
     C5 – execution authority changes (needs F13 + witness)
     """
+
     C0_GRAMMAR = "C0"
     C1_DOCS = "C1"
     C2_CONTRACT = "C2"
@@ -40,6 +42,7 @@ class OperationalRiskTier(StrEnum):
     HIGH   – partially reversible, significant blast radius
     CRITICAL – irreversible, maximum blast radius → 888_HOLD
     """
+
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"

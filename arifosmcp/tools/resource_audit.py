@@ -37,7 +37,6 @@ from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok, _sabar
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # P0 LINT RULES (from Arif's resource governance spec, 2026-06-21)
 # ═══════════════════════════════════════════════════════════════════════════════

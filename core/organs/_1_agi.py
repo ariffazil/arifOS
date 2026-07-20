@@ -84,10 +84,10 @@ async def agi(
 
     # 2. Initialize Physics/Thermodynamics
     from core.physics.thermodynamics_hardened import (
+        ThermodynamicError,
         consume_reason_energy,
         init_thermodynamic_budget,
         shannon_entropy,
-        ThermodynamicError,
     )
 
     # Baseline entropy (input)

@@ -19,7 +19,6 @@ Authority levels:
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 import logging
@@ -195,6 +194,7 @@ def resolve_authority_level(
     """
     if identity_verified:
         from arifosmcp.runtime.governance_identity import is_protected_sovereign_id
+
         if is_protected_sovereign_id(actor_id):
             return AUTHORITY_SOVEREIGN
         return AUTHORITY_VERIFIED
