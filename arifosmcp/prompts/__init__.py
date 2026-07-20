@@ -1295,12 +1295,17 @@ def register_prompts(mcp) -> list[str]:
 
     @mcp.prompt(
         name="111_sense",
-        title="111 SENSE — Witness reality",
+        title="[LEGACY → 🌊 WITNESS] 111 SENSE — Witness reality",
         description=(
-            "111_SENSE via arif_observe: epistemic labels OBS/DER/INT/SPEC/ESTIMATE/UNKNOWN. "
-            "Framings N≥2. F2 score. Organ evidence via arif_route. APEX A."
+            "[LEGACY ALIAS → 🌊 WITNESS] 111_SENSE via arif_observe. Deprecated after 2026-09-16. "
+            "Use 🌊 WITNESS instead."
         ),
         tags={"prompt", "reality-engineering", "111", "observe"},
+        meta={
+            "deprecated_alias_of": "🌊 WITNESS",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def sense_111(domain: str = "", evidence_refs: str = "") -> list[Message]:
         """Witness reality as it IS — observe, don't interpret.
@@ -1323,12 +1328,17 @@ def register_prompts(mcp) -> list[str]:
 
     @mcp.prompt(
         name="333_reason",
-        title="333 REASON — Propose",
+        title="[LEGACY → 🧠 REASON] 333 REASON — Propose",
         description=(
-            "333_REASON via arif_think + arif_route: hypotheses N≥3, scenarios, "
-            "EVOI. Proposes only — arif_judge decides. APEX P."
+            "[LEGACY ALIAS → 🧠 REASON] 333_REASON via arif_think + arif_route. Deprecated after 2026-09-16. "
+            "Use 🧠 REASON instead."
         ),
         tags={"prompt", "reality-engineering", "333", "reason"},
+        meta={
+            "deprecated_alias_of": "🧠 REASON",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def reason_333(
         domain: str = "", decision_context: str = "", evidence_refs: str = ""
@@ -1354,13 +1364,17 @@ def register_prompts(mcp) -> list[str]:
 
     @mcp.prompt(
         name="555_critique",
-        title="555 CRITIQUE — Heart / maruah (→ 666 GOVERN path)",
+        title="[LEGACY → ⚖ MARUAH] 555 CRITIQUE — Heart / maruah",
         description=(
-            "EVALUATE block via arif_critique (KERNEL 555) + arif_memory. "
-            "Canon: 555 MEMORY/heart stress, 666 GOVERN floors, 888 JUDGE separate. "
-            "Consequence scan, dignity/maruah, FORGE_READY|HOLD|BLOCK. F5+F6. APEX X."
+            "[LEGACY ALIAS → ⚖ MARUAH] 555_CRITIQUE via arif_critique + arif_memory. Deprecated after 2026-09-16. "
+            "Use ⚖ MARUAH instead."
         ),
         tags={"prompt", "reality-engineering", "555", "critique"},
+        meta={
+            "deprecated_alias_of": "⚖ MARUAH",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def critique_555(proposal: str = "", stakeholders: str = "") -> list[Message]:
         """Consequence scan, perspective shift, dignity check.
@@ -1388,13 +1402,17 @@ def register_prompts(mcp) -> list[str]:
     # Renamed 2026-07-10 to 888_judge. Legacy alias kept for one cycle (below).
     @mcp.prompt(
         name="888_judge",
-        title="888 JUDGE — Constitutional gate",
+        title="[LEGACY → 🔒 JUDGE] 888 JUDGE — Constitutional gate",
         description=(
-            "arif_judge (KERNEL 888): Truth/Reversibility/Dignity/Universality + F1-F13. "
-            "SEAL|HOLD|SABAR|VOID. G≥0.80 C_dark<0.30 W³. Unlocks forge/seal only. "
-            "Not 666 — 666 is GOVERN (arif_critique). APEX P."
+            "[LEGACY ALIAS → 🔒 JUDGE] arif_judge (KERNEL 888). Deprecated after 2026-09-16. "
+            "Use 🔒 JUDGE instead."
         ),
         tags={"prompt", "reality-engineering", "888", "judge"},
+        meta={
+            "deprecated_alias_of": "🔒 JUDGE",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def judge_888(
         candidate: str = "", reversibility: str = "", blast_radius: str = ""
@@ -1423,12 +1441,17 @@ def register_prompts(mcp) -> list[str]:
 
     @mcp.prompt(
         name="777_forge",
-        title="777 FORGE — ACT (A-FORGE)",
+        title="[LEGACY → 🔥 FORGE] 777 FORGE — ACT (A-FORGE)",
         description=(
-            "arif_forge AFTER arif_judge SEAL. IRREVERSIBLE shell needs arif_verify. "
-            "Smallest reversible step first. Rollback. ACT hands only. APEX E."
+            "[LEGACY ALIAS → 🔥 FORGE] arif_forge AFTER arif_judge SEAL. Deprecated after 2026-09-16. "
+            "Use 🔥 FORGE instead."
         ),
-        tags={"prompt", "reality-engineering", "777", "forge", "act"},
+        tags={"prompt", "reality-engineering", "777", "act", "forge"},
+        meta={
+            "deprecated_alias_of": "🔥 FORGE",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def forge_777(seal_verdict_id: str = "", action_plan: str = "") -> list[Message]:
         """Pre-forge checklist, step-by-step execution.
@@ -1451,12 +1474,17 @@ def register_prompts(mcp) -> list[str]:
 
     @mcp.prompt(
         name="999_seal",
-        title="999 SEAL — VAULT999",
+        title="[LEGACY → 💎 SEAL] 999 SEAL — VAULT999",
         description=(
-            "arif_seal terminus: golden path, receipt, carry_forward, recursive armour. "
-            "Requires judge SEAL + ack_irreversible for append. IRREVERSIBLE. APEX X."
+            "[LEGACY ALIAS → 💎 SEAL] arif_seal terminus. Deprecated after 2026-09-16. "
+            "Use 💎 SEAL instead."
         ),
         tags={"prompt", "reality-engineering", "999", "seal"},
+        meta={
+            "deprecated_alias_of": "💎 SEAL",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def seal_999(receipt: str = "", actor_id: str = "") -> list[Message]:
         """Golden path verification, reality change receipt.
@@ -1525,13 +1553,17 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
 
     @mcp.prompt(
         name="recursive_governed_loop",
-        title="Recursive Governed Loop (INIT→SEAL)",
+        title="[LEGACY → 🌀 SABAR] Recursive Governed Loop",
         description=(
-            "Full recursive INIT→SEAL circuit: ART→APA→ACT, live tool names, "
-            "Ed25519 bind, arif_judge gate, arif_verify padlock, arif_seal terminus. "
-            "Recurses on HOLD/SABAR (max depth). MCP Prompts spec 2025-11-25."
+            "[LEGACY ALIAS → 🌀 SABAR] Full recursive INIT→SEAL circuit. Deprecated after 2026-09-16. "
+            "Use 🌀 SABAR instead."
         ),
-        tags={"prompt", "reality-engineering", "recursive", "000-999", "art-apa-act"},
+        tags={"prompt", "reality-engineering", "000-999", "art-apa-act", "recursive"},
+        meta={
+            "deprecated_alias_of": "🌀 SABAR",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def recursive_governed_loop(
         intent: str = "", actor_id: str = "arif", max_depth: str = "2"
@@ -1560,14 +1592,17 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
 
     @mcp.prompt(
         name="constitutional_pre_flight",
-        title="Constitutional Pre-Flight (F1-F13)",
+        title="[LEGACY → 🔍 PREFLIGHT] Constitutional Pre-Flight",
         description=(
-            "Pre-operation constitutional check against F1-F13 floors "
-            "(single F-nomenclature; v2 forged 2026-07-11; supersedes the "
-            "F↔L mixed form). floors_referenced: F1,F2,F3,F4,F5,F6,F7,F8,"
-            "F9,F10,F11,F12,F13"
+            "[LEGACY ALIAS → 🔍 PREFLIGHT] Pre-operation F1-F13 check. Deprecated after 2026-09-16. "
+            "Use 🔍 PREFLIGHT instead."
         ),
         tags={"prompt", "constitutional", "pre-flight", "F1-F13"},
+        meta={
+            "deprecated_alias_of": "🔍 PREFLIGHT",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def constitutional_pre_flight(operation: str = "") -> list[Message]:
         """Constitutional pre-flight across all 13 floors.
@@ -1585,26 +1620,18 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
 
     @mcp.prompt(
         name="arif_init_prompt_v3",
-        title="arifOS INIT v3.0 — Canonical Boot Contract",
+        title="[LEGACY → 🌱 BOOT] arifOS INIT v3.0 — Canonical Boot Contract",
         description=(
-            "The arifOS agent boot contract. This is the FIRST thing every agent "
-            "should load when entering the federation. It tells the agent who it is, "
-            "who the sovereign is, and what 7 checks it must pass before doing any work.\n\n"
-            "HOW TO USE:\n"
-            "  depth='boot' (default) — Quick start: 7-point self-check + identity bind. "
-            "Use this for normal agent startup.\n"
-            "  depth='full' — Deep mode: loads the entire 612-line canon from disk "
-            "(TRINITY-33, RSI protocol, constitutional friction, refusal surface). "
-            "Use this for auditing or when an agent needs the complete doctrine.\n\n"
-            "WHAT YOU GET:\n"
-            "  boot → Who you are, who the sovereign is, 7 mandatory checks (identity, "
-            "constitution, session, trinity, sovereign, refusal, RSI)\n"
-            "  full → Everything in boot + 33-repo map, RSI cycle, autonomy tiers, "
-            "888_HOLD triggers, VAULT999 seal protocol\n\n"
-            "CANONICAL SOURCE: /root/AAA/prompts/INIT.md\n"
-            "FORGED: 2026-07-08 by FORGE (000Ω) under F13 SOVEREIGN"
+            "[LEGACY ALIAS → 🌱 BOOT] The arifOS agent boot contract. Deprecated after 2026-09-16. "
+            "Use 🌱 BOOT instead."
         ),
         tags={"prompt", "init", "boot", "TRINITY-33", "RSI"},
+        meta={
+            "deprecated_alias_of": "🌱 BOOT",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+            "supersedes_note": "Use 🌱 BOOT (zen sigil convention) for all new integrations",
+        },
     )
     def arif_init_prompt_v3(depth: str = "boot") -> list[Message]:
         """Canonical arifOS INIT — discoverable via MCP prompts/list.
@@ -1635,15 +1662,17 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
 
     @mcp.prompt(
         name="agi_reply_protocol_v3",
-        title="AGI Reply Protocol v3 — Governed Reply Envelope",
+        title="[LEGACY → 📜 REPLY] AGI Reply Protocol v3",
         description=(
-            "Governed AGI reply envelope — TO/CC/TITLE/RACI/τ/floors/SEAL. "
-            "v3 forged 2026-07-11 (F-06 metadata); recipient_id parameterised "
-            "(F-07); F1+F13 require SOVEREIGN ratification; F11 AUTH is "
-            "non-negotiable for destructive recommendations. "
-            "floors_referenced: F1,F2,F4,F6,F7,F9,F10,F11,F12,F13"
+            "[LEGACY ALIAS → 📜 REPLY] Governed AGI reply envelope. Deprecated after 2026-09-16. "
+            "Use 📜 REPLY instead."
         ),
         tags={"prompt", "reply", "RACI", "governed"},
+        meta={
+            "deprecated_alias_of": "📜 REPLY",
+            "removal_epoch": "2026-09-16",
+            "federation_layer": "arifOS.kernel.prompts.legacy_alias",
+        },
     )
     def agi_reply_protocol_v3(query: str = "", recipient_id: str = "human") -> list[Message]:
         """Governed AGI reply composition.

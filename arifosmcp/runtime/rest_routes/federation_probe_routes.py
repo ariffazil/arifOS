@@ -68,10 +68,9 @@ def _compose_federation_snapshot() -> dict[str, Any]:
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
     from arifosmcp.runtime.organs_standards import ORGAN_PROBES, overall_aggregate_state, ORGAN_MAP
-    from arifosmcp.runtime.federation_edges import EDGE_PROBES, edge_aggregate_state
+    from arifosmcp.runtime.federation_edges import probe_all_edges, edge_aggregate_state
 
     organs: list[dict[str, Any]] = []
-    edges: list[dict[str, Any]] = []
 
     with ThreadPoolExecutor(max_workers=24) as ex:
         # One future PER organ, each calling that organ's specific probe.
@@ -79,28 +78,20 @@ def _compose_federation_snapshot() -> dict[str, Any]:
             ex.submit(_safe_organ_probe, name): name
             for name in ORGAN_PROBES
         }
-        # One future PER edge.
-        edge_futures = {
-            ex.submit(_safe_edge_probe, idx): idx
-            for idx in range(len(EDGE_PROBES))
-        }
 
-        for fut in as_completed(list(organ_futures.keys()) + list(edge_futures.keys()), timeout=18.0):
+        for fut in as_completed(list(organ_futures.keys()), timeout=18.0):
             try:
                 result = fut.result(timeout=0.5)
             except Exception:
                 continue
-            if isinstance(result, dict) and "id" in result and "source" in result:
-                edges.append(result)
+            if isinstance(result, tuple) and len(result) == 2:
+                kind, payload = result
+                if kind == "organ":
+                    organs.append(payload)
             elif isinstance(result, dict) and "organ" in result:
                 organs.append(result)
-            elif isinstance(result, tuple) and len(result) == 2:
-                # (kind, dict) tuple to disambiguate without relying on shape
-                kind, payload = result
-                if kind == "edge":
-                    edges.append(payload)
-                elif kind == "organ":
-                    organs.append(payload)
+
+    edges = probe_all_edges()
 
     drift = _manifest_drift()
 
@@ -266,13 +257,14 @@ def _safe_organ_probe(organ_name: str) -> dict[str, Any]:
         return ("organ", {"organ": organ_name, "overall_state": "UNKNOWN", "error": f"{type(exc).__name__}: {exc}"})
 
 
-def _safe_edge_probe(idx: int) -> dict[str, Any]:
-    """Run a single edge probe (by index into EDGE_PROBES) — no aggregate fan-out."""
-    from arifosmcp.runtime.federation_edges import EDGE_PROBES
-    if idx >= len(EDGE_PROBES):
+def _safe_edge_probe(idx: int) -> tuple[str, dict[str, Any]]:
+    """Run a single edge probe (by index into EDGE_DECLARATIONS) — no aggregate fan-out."""
+    from arifosmcp.runtime.federation_edges import EDGE_DECLARATIONS
+    if idx >= len(EDGE_DECLARATIONS):
         return ("edge", {"id": f"unknown-{idx}", "state": "unknown"})
     try:
-        return ("edge", EDGE_PROBES[idx]().to_dict())
+        decl = EDGE_DECLARATIONS[idx]
+        return ("edge", {"id": decl["id"], "source": decl["source"], "target": decl["target"], "state": "declared"})
     except Exception as exc:
         return ("edge", {"id": f"edge-{idx}", "state": "unknown", "error": f"{type(exc).__name__}: {exc}"})
 
