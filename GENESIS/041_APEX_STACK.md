@@ -342,7 +342,7 @@ This repo is one organ of the arifOS federation. The canonical bridge doctrine i
 > earth, capital, and human reality. VAULT999 preserves consequence.
 > Arif/F13 remains the sovereign witness and final veto.
 
-Full doctrine: [arifOS/GENESIS/040_APEX_STACK.md](https://github.com/ariffazil/arifos/blob/main/GENESIS/040_APEX_STACK.md)
+Full doctrine: [arifOS/GENESIS/041_APEX_STACK.md](https://github.com/ariffazil/arifos/blob/main/GENESIS/041_APEX_STACK.md)
 ```
 
 ---

@@ -731,3 +731,9 @@ You cannot audit what you refuse to read. But reading credentials creates a atta
 ### Verdict
 Skills substrate federated. All agent harnesses aligned. ATLAS333 paradox engine healthy.
 Next: Golden Path live-test across all 9 repos.
+
+---
+## 🔗 See Also
+- [ATLAS333 Intelligence Flow](../docs/ATLAS333_INTELLIGENCE_FLOW.md) — How ATLAS333 routes cognition
+- [GENESIS Canon](../GENESIS/README.md) — Constitutional source texts
+- [AKAL Gate](../docs/AKAL.md) — Reason/intuition boundary

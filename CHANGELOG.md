@@ -1,3 +1,5 @@
+[← Back to README](README.md) | [GENESIS Canon](GENESIS/README.md) | [Docs Index](docs/README.md)
+
 # CHANGELOG — arifOS / arifosmcp
 
 All notable changes to this project are documented in this file. Versions

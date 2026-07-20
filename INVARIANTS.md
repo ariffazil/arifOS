@@ -1,3 +1,5 @@
+[← README](README.md) | [GENESIS Canon](GENESIS/README.md) | [Docs Index](docs/README.md)
+
 # INVARIANTS.md — REDIRECT
 
 > **Canonical location:** `/root/arifOS/GENESIS/INVARIANTS.md`

@@ -395,7 +395,7 @@ This kernel spec may be amended only by:
 ## XVI. Receipts
 
 - **005 doctrine:** `/root/arifOS/GENESIS/005_POST_AGI_ECONOMICS.md` (7926 B, sealed-by-doctrine)
-- **006 kernel spec:** this file, `/root/arifOS/GENESIS/006_POST_AGI_ECONOMICS_KERNEL.md` (draft)
+- **006 kernel spec:** this file, `/root/arifOS/GENESIS/005b_POST_AGI_ECONOMICS_KERNEL.md` (draft)
 - **Memory:** `/root/.openclaw/workspace/memory/2026-06-12-post-agi-kernel-forged.md` (writing)
 - **Auto-load F11:** `/root/.arifos/auto_load_receipt.json` (shipped)
 - **Soa key:** `/root/compose/sekrits/arifos_sovereign.key` (canonical)
