@@ -1132,35 +1132,6 @@ class SealOutput(BaseModel):
         "but attribution was erased.",
     )
 
-    # ── DAG Cognition Model: Layer 1 → Layer 2 Bridge (FORGED 2026-07-20) ──
-    # Terminal Git SHA of subagent execution branch (Layer 1 DAG).
-    # Layer 2 (VAULT999) stores this as evidence payload — the ruling,
-    # not the debate transcript.  SHA → full audit trail in Layer 1.
-    # Epistemic: DER.  Architecture: arifosmcp/runtime/dag_cognition.py
-    evidence_sha: str | None = Field(
-        default=None,
-        description=(
-            "Terminal Git SHA of the subagent execution branch (Layer 1 DAG). "
-            "Pointer to full reasoning trail — VAULT999 stores the ruling, "
-            "SHA points to trial transcript. F2 TRUTH + F11 AUDIT."
-        ),
-    )
-
-    # ── Rewind-as-Seal: Layer 1 rewinds state, Layer 2 logs the rewind ──────
-    # When execution is reverted: Layer 1 shifts head pointer, Layer 2
-    # seals a NEW entry documenting the reversion event. Original seal
-    # never mutated — double-entry accounting for agent state.
-    # F1 AMANAH: immutable chain shows sealed → reverted → re-sealed.
-    reversion_event: dict[str, Any] | None = Field(
-        default=None,
-        description=(
-            "Reversion event documenting a Layer 1 rewind. "
-            "Contains: {previous_sha, reason, new_sha, reverted_at}. "
-            "Original seal never mutated — this is a NEW seal entry "
-            "recording the correction. F1 AMANAH + F11 AUDIT."
-        ),
-    )
-
     # ── Spine P0: SCT continuity echo ───────────────────────────────────────
     session_token: str | None = Field(
         default=None,
