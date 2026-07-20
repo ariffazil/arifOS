@@ -74,6 +74,117 @@ make sot-check
 
 ---
 
+## 🔺 TRI-LAYER COGNITION — Routing Protocol (FORGED 2026-07-20)
+
+> **Ontology synthesised from git-as-DB model (Reddit r/AgentsOfAI) + arifOS constitutional constraints.**
+> Agent cognition is an immutable DAG of decisions, not a mutable CRUD table.
+> arifOS already encodes this natively. No new modules required.
+
+### Layer Mapping
+
+| Layer | Temporal Domain | arifOS Component | Role |
+|---|---|---|---|
+| **L1** | State Space (mutable, rewindable) | `arif_forge` leases + `session.py` | Execution sandbox. Branch = lease. |
+| **L2** | Authority Arrow (immutable) | `VAULT999` + `arif_seal` | Constitutional courtroom. Rulings, not debates. |
+| **L3** | Semantic Space (disposable) | `arif_memory` L1–L6 | Retrieval cache. Rebuildable from L2. |
+
+**Dependency chain:** L1 → L2 → L3 (one-way only). L3 is a function of L2, never the reverse.
+
+### Schema Bridge
+
+`SealOutput` carries two optional fields bridging L1 → L2:
+
+| Field | Type | Role |
+|---|---|---|
+| `evidence_sha` | `str \| None` | Terminal SHA of execution branch (L1). Vault stores the ruling; SHA points to trial transcript. F2 + F11. |
+| `reversion_event` | `dict \| None` | `{previous_sha, reason, new_sha}`. Rewind is a NEW seal entry, never a mutation. F1. |
+
+These fields exist. They are wired in `arif_seal()` and pass through `arif_judge`. The traffic routes below complete the circuit.
+
+### Route 1: L1 → L2 (`evidence_sha`) — A-FORGE Payload Bridge
+
+**What must happen:** When A-FORGE completes execution (mode=`engineer`|`write`|`generate`|`commit`), its payload constructor MUST extract the terminal execution SHA and pass it as `evidence_sha` to `arif_seal()`.
+
+**Current state:** `arif_judge` passes `vault_entry_id` as `evidence_sha`. A-FORGE's direct seal path does not yet populate the field.
+
+**Contract:**
+```
+arif_forge → execution_complete → extract execution_sha
+  → arif_seal(mode="seal", evidence_sha=<sha>, ...)
+```
+
+**Files:** `arifosmcp/tools/forge.py` — `arif_forge()` return path, `arifosmcp/tools/vault.py` — `arif_seal()` already accepts the field.
+
+**Floors:** F2 (truth — SHA is verifiable), F11 (audit — execution trace anchored).
+
+### Route 2: L1 → L2 (`reversion_event`) — Rewind Hook
+
+**What must happen:** When `arif_forge` mode=`recall` rewinds execution state, the rewind action MUST trigger a new `arif_seal` call with `reversion_event` populated, documenting the pointer shift in the constitutional ledger.
+
+**Current state:** `recall` mode is declared in `tool_registry.json` but not implemented. `arif_seal()` already accepts `reversion_event`.
+
+**Contract:**
+```
+arif_forge(mode="recall", ...) → rewind execution state
+  → arif_seal(
+      mode="seal",
+      reversion_event={
+        "previous_sha": <sha_before_rewind>,
+        "reason": <why>,
+        "new_sha": <sha_after_rewind>,
+      },
+      evidence_sha=<new_sha>,
+    )
+```
+
+**Invariant:** The original seal is NEVER mutated. The reversion is a NEW seal entry. Double-entry accounting for agent state.
+
+**Floors:** F1 (amanah — original intact, correction documented), F11 (audit — both paths traceable).
+
+### Route 3: L2 → L3 (Auto-Indexing) — Post-Seal Memory Hook
+
+**What must happen:** After every successful `arif_seal(mode="seal")`, a post-execution hook MUST fire `arif_memory(mode="remember")` to synchronise the semantic index (L3) with the immutable ledger (L2).
+
+**Current state:** `arif_seal()` already fires `EUREKA777` post-seal hook (ATLAS333 update). The memory sync hook should be added alongside it.
+
+**Contract:**
+```
+arif_seal → SEAL verdict → post-seal hook
+  → arif_memory(
+      mode="remember",
+      content=<seal_payload_summary>,
+      tier="L2",            # ledger tier — authoritative
+      memory_authority={
+        "provenance": "arif_seal",
+        "source_receipts": [<seal_entry_id>],
+        "truth_class": "DERIVED",
+      },
+    )
+```
+
+**Rebuildability:** L3 is strictly disposable. If the index corrupts, delete and rebuild from VAULT999 entries. Truth is never held hostage by the embedding model.
+
+**Files:** `arifosmcp/tools/vault.py` — insert hook after line 527 (post ATLAS333 update), before `return _echo_standing(...)`.
+
+**Floors:** F2 (index is derived, not authoritative), F4 (ΔS < 0 — synchronisation reduces drift).
+
+### Implementation Checklist
+
+- [ ] **Route 1:** A-FORGE payload constructor extracts execution SHA → `evidence_sha`
+- [ ] **Route 2:** `arif_forge` mode=`recall` implemented with reversion seal hook
+- [ ] **Route 3:** Post-seal memory sync hook in `arif_seal()` (vault.py ~line 528)
+- [ ] **Tests:** Route 1 (SHA passes through), Route 2 (rewind creates seal), Route 3 (seal triggers memory write)
+- [ ] **Verification:** `make sot-check` confirms no drift between L2 and L3
+
+### Epistemic Status
+
+- **L1–L2 bridge:** Schema in place (`evidence_sha` + `reversion_event` on `SealOutput`). `arif_judge` passes `vault_entry_id` as `evidence_sha`. A-FORGE direct path pending.
+- **L2–L3 bridge:** Schema available (`arif_memory` mode=`remember`). Hook not yet wired.
+- **Route 2:** `recall` mode declared but not implemented.
+- **Provenance:** Synthesised from Reddit r/AgentsOfAI (u/Square_Light1441, 2026-07-20) + arifOS constitutional review (F13 SOVEREIGN). No new files. Ontology mapped onto existing components.
+
+---
+
 ## 🎭 Humour Doctrine — Agent Social Intelligence (FORGED 2026-07-01)
 
 > **Canonical skill:** `/root/.hermes/skills/arifos/agent-humour-doctrine/SKILL.md`
