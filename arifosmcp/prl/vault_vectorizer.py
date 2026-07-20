@@ -223,8 +223,11 @@ class PrecedentVectorizer:
                         continue
                     try:
                         entry = json.loads(stripped)
-                        entry["_line"] = lineno
-                        entries.append(entry)
+                        if isinstance(entry, dict):
+                            entry["_line"] = lineno
+                            entries.append(entry)
+                        else:
+                            logger.debug("Skipping non-dict entry at line %d: %s", lineno, type(entry).__name__)
                     except json.JSONDecodeError:
                         logger.warning("Skipping non-JSON line %d", lineno)
         except OSError as exc:
