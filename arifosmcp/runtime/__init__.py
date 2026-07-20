@@ -1,4 +1,8 @@
-"""Runtime layer — tools, prompts, resources, and REST routes."""
+"""Runtime layer — tools, prompts, resources, and REST routes.
+
+DAG Cognition Model (FORGED 2026-07-20): see dag_cognition.py for the
+tri-layer architecture (Execution DAG + Constitutional Ledger + Semantic Index).
+"""
 
 from arifosmcp.runtime.compression import (
     CompressionMode,
@@ -8,6 +12,17 @@ from arifosmcp.runtime.compression import (
     compression_stats,
     decompress,
     estimate_tokens,
+)
+
+# DAG Cognition Model — tri-layer architecture (FORGED 2026-07-20)
+from arifosmcp.runtime.dag_cognition import (
+    DAGEngine,
+    DAGNode,
+    DAGSession,
+    EpistemicLabel,
+    SealEvidencePayload,
+    TriLayerArchitecture,
+    TurnRole,
 )
 
 # ──────────────────────────────────────────────────────────────────────
@@ -82,4 +97,12 @@ __all__ = [
     "list_active_leases",
     "validate_lease_for_tool",
     "present_lease",
+    # DAG Cognition Model — tri-layer architecture (FORGED 2026-07-20)
+    "DAGEngine",
+    "DAGNode",
+    "DAGSession",
+    "EpistemicLabel",
+    "SealEvidencePayload",
+    "TriLayerArchitecture",
+    "TurnRole",
 ]
