@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Validate FEDERATION.md exists
         run: |
           set -o pipefail
@@ -78,7 +78,7 @@ jobs:
     timeout-minutes: 2
     needs: [federation-check]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run protocol alignment script
         run: |
           set -o pipefail
