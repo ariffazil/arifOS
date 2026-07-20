@@ -105,7 +105,9 @@ def vectorize_seal(
     try:
         from qdrant_client.models import PointStruct  # noqa: PLC0415
 
-        vector = embed(payload_text, dim=PRL_VECTOR_DIM)
+        # Build semantic summary for embedding
+        summary_text = f"[ENTRY_ID:{entry_id}] [BLAST_RADIUS:{blast_radius}] {payload_text[:500]}"
+        vector = embed(summary_text, dim=PRL_VECTOR_DIM)
         timestamp = datetime.now(UTC).isoformat()
 
         client.upsert(
@@ -170,6 +172,170 @@ def _embed_with_retry(text: str, dim: int, max_retries: int = 4) -> list[float]:
                 )
                 time.sleep(wait)
     raise RuntimeError(f"Embed failed after {max_retries} retries: {last_error}")
+
+
+def _infer_category(action: str, metadata: dict[str, Any] | None = None) -> str:
+    """Derive a domain category from the action string using structural heuristics.
+
+    This allows sparse historical seals (which lack explicit category tags)
+    to be enriched with meaningful domain classifications for PRL matching.
+    """
+    meta = metadata or {}
+    action_lower = str(action).lower()
+
+    # surface_gate patterns
+    if any(kw in action_lower for kw in ("surface_gate", "surface.pin", "surface.lock", "surface_gate.pin")):
+        return "security.surface_control"
+
+    # vector / qdrant patterns
+    if any(kw in action_lower for kw in ("vector", "qdrant", "embed", "upsert", "index", "collection")):
+        return "database.vector_index"
+
+    # EMD / PRL patterns
+    if any(kw in action_lower for kw in ("emd", "prl", "gate", "precedent", "encode", "metabolize", "intercept")):
+        return "architecture.emd_pipeline"
+
+    # file / forge / mutation patterns
+    if any(kw in action_lower for kw in ("file_write", "forge", "mutate", "patch", "commit", "deploy")):
+        return "system.code_generation"
+
+    # session / init patterns
+    if any(kw in action_lower for kw in ("init", "session", "arif_init", "bootstrap", "handshake")):
+        return "governance.session_lifecycle"
+
+    # seal / verdict / judge patterns
+    if any(kw in action_lower for kw in ("seal", "judge", "verdict", "hold", "sabar", "void")):
+        return "governance.constitutional"
+
+    # geoscience / basin / geological patterns
+    if any(kw in action_lower for kw in ("geox", "basin", "seismic", "well", "geolog", "petrophys")):
+        return "geoscience.earth_model"
+
+    # capital / wealth patterns
+    if any(kw in action_lower for kw in ("wealth", "capital", "npv", "irr", "trade", "portfolio")):
+        return "finance.capital_intelligence"
+
+    # Fallback: check metadata for hints
+    tool_name = str(meta.get("tool_name", "")).lower()
+    if "prl" in tool_name or "gate" in tool_name:
+        return "architecture.emd_pipeline"
+    if "vector" in tool_name or "qdrant" in tool_name:
+        return "database.vector_index"
+
+    return "UNCATEGORIZED"
+
+
+def _synthesize_vector_text(entry: dict[str, Any]) -> str:
+    """Build a semantically dense document for BGE-M3 embedding.
+
+    Extracts signal from seal mechanics WITHOUT modifying the vault ledger.
+    The derived text is what gets embedded; the original JSON stays
+    in the Qdrant payload for audit.
+
+    Returns a multi-line structured document optimized for cosine matching.
+    """
+    payload = entry.get("payload", {})
+    if isinstance(payload, str):
+        try:
+            import json as _json
+            payload = _json.loads(payload)
+        except Exception:
+            payload = {}
+
+    # Extract core fields
+    action = str(payload.get("action", entry.get("action", entry.get("event", ""))))
+    verdict = str(entry.get("verdict", payload.get("verdict", "SEAL")))
+    blast_radius = str(entry.get("blast_radius", payload.get("blast_radius", "L2_SYSTEM")))
+    actor = str(entry.get("actor", payload.get("actor", entry.get("actor_id", payload.get("actor_id", "")))))
+    category = str(entry.get("category", payload.get("category", payload.get("domain", ""))))
+
+    # Metadata — the WHY
+    metadata = payload.get("metadata", {})
+    if isinstance(metadata, str):
+        try:
+            import json as _json
+            metadata = _json.loads(metadata)
+        except Exception:
+            metadata = {}
+
+    # Infer category if missing
+    if not category or category in ("UNCATEGORIZED", ""):
+        category = _infer_category(action, metadata)
+
+    # Extract contextual signals from metadata
+    context_parts = []
+    for key in ("reason", "query", "tool_name", "target_file", "rule_override", "intent"):
+        val = metadata.get(key, entry.get(key, payload.get(key, "")))
+        if val and str(val).strip():
+            context_parts.append(f"{key}: {str(val)[:200]}")
+
+    # If no metadata context, try top-level reason/description
+    if not context_parts:
+        reason = str(entry.get("reason", payload.get("reason", payload.get("description", ""))))
+        if reason:
+            context_parts.append(f"reason: {reason[:300]}")
+
+    context_str = " | ".join(context_parts) if context_parts else "no_context_available"
+
+    # Build the dense semantic document
+    dense_text = (
+        f"Domain Category: {category}\n"
+        f"Execution Action: {action}\n"
+        f"Operational Context: {context_str}\n"
+        f"Blast Radius Authority: {blast_radius}\n"
+        f"Institutional Verdict: {verdict}\n"
+        f"Actor: {actor}"
+    )
+    return dense_text
+
+
+def _build_enriched_payload(
+    entry: dict[str, Any],
+    entry_id: str,
+    blast_radius: str,
+    session_id: str,
+    derived_text: str,
+    raw_json: str,
+) -> dict[str, Any]:
+    """Build the enhanced Qdrant payload with derived semantic fields.
+
+    The original seal data is preserved under 'raw_payload'. Derived fields
+    (enriched_category, derived_semantic_text, is_derived) allow prl_gate.py
+    to inject high-density context into the EMD pipeline.
+    """
+    payload = entry.get("payload", {})
+    if isinstance(payload, str):
+        try:
+            import json as _json
+            payload = _json.loads(payload)
+        except Exception:
+            payload = {}
+
+    action = str(payload.get("action", entry.get("action", "")))
+    category = str(entry.get("category", payload.get("category", "")))
+    if not category or category == "UNCATEGORIZED":
+        category = _infer_category(action, payload.get("metadata", {}))
+
+    actor = str(entry.get("actor", payload.get("actor", entry.get("actor_id", ""))))
+    verdict = str(entry.get("verdict", payload.get("verdict", "SEAL")))
+    vault_seq = entry.get("seq", entry.get("entry_id", ""))
+    vault_hash = entry.get("sha256_hash", entry.get("hash", ""))
+
+    return {
+        "entry_id": entry_id,
+        "blast_radius": blast_radius,
+        "session_id": session_id or "",
+        "timestamp": datetime.now(UTC).isoformat(),
+        "payload_summary": raw_json[:500],
+        # ── Derived semantic fields (P6 enrichment) ──
+        "vault_seq": str(vault_seq),
+        "vault_hash": str(vault_hash),
+        "raw_verdict": verdict,
+        "enriched_category": category,
+        "derived_semantic_text": derived_text,
+        "actor": actor,
+        "is_derived": True,
+    }
 
 
 def backfill_historical(
@@ -328,9 +494,14 @@ def backfill_historical(
                 continue
 
             payload_text = json.dumps(entry, sort_keys=True, default=str)
+            derived_text = _synthesize_vector_text(entry)
+            enriched_payload = _build_enriched_payload(
+                entry, entry_id, default_blast_radius,
+                str(entry.get("session_id", "")), derived_text, payload_text,
+            )
             try:
-                # Use retry-embed path for resilience against Ollama timeouts
-                vector = _embed_with_retry(payload_text, dim=PRL_VECTOR_DIM)
+                # Embed the DERIVED SEMANTIC DOCUMENT, not the raw JSON
+                vector = _embed_with_retry(derived_text, dim=PRL_VECTOR_DIM)
 
                 timestamp = datetime.now(UTC).isoformat()
                 client.upsert(
@@ -339,13 +510,7 @@ def backfill_historical(
                         PointStruct(
                             id=qdrant_point_id,
                             vector=vector,
-                            payload={
-                                "entry_id": entry_id,
-                                "blast_radius": default_blast_radius,
-                                "session_id": str(entry.get("session_id", "")),
-                                "timestamp": timestamp,
-                                "payload_summary": payload_text[:500],
-                            },
+                            payload=enriched_payload,
                         )
                     ],
                 )
