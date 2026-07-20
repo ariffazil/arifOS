@@ -10,7 +10,7 @@ APEX Theory applied (TokenRouter primary gateway):
 - Direct fallbacks (MiniMax/MiMo) for redundancy: federation survives single provider failure.
 - TokenRouter + direct = sovereignty + resilience.
 
-Tier 0 (TokenRouter) → Tier 1 (MiniMax) → etc. as fallback.
+Tier 0 (TokenRouter) → Tier 1 (MiniMax) → Tier 1.5 (MiMo) → Tier 2 (Groq FREE → Gemini FREE) → etc. as fallback.
 
 ILMU BLOCKED. Ollama EMBEDDING only.
 
@@ -89,6 +89,30 @@ MIMO_API_KEY = os.getenv("MIMO_API_KEY")
 MIMO_BASE_URL = os.getenv("MIMO_BASE_URL", "https://token-plan-sgp.xiaomimimo.com/v1")
 MIMO_MODEL = os.getenv("MIMO_DEFAULT_MODEL", "mimo-v2.5-pro")
 
+# Tier 2 — Groq LPU (FREE tier, ultra-fast inference, no credit card required)
+# All models included in free tier: 560-1000 t/s, 128K context.
+# Rate limits: llama-3.1-8b-instant = 14,400 req/day (most generous),
+#              llama-3.3-70b = 1,000 req/day, gpt-oss-120b = 1,000 req/day.
+# OpenAI-compatible /v1/chat/completions endpoint.
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_BASE_URL = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+
+# Tier 2 — Google Gemini (FREE tier, 1,500 req/day, 250K TPM, no credit card)
+# OpenAI-compatible at v1beta/openai endpoint.
+# Best free-tier model: gemini-2.5-flash (1M ctx, multimodal, reasoning).
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_BASE_URL = os.getenv(
+    "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai"
+)
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+# Tier 2 — Cerebras ($5 free credit, expires Aug 20 2026, OpenAI-compatible)
+# Fast inference on wafer-scale hardware. Models: gemma-4-31b, gpt-oss-120b, zai-glm-4.7.
+CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
+CEREBRAS_BASE_URL = os.getenv("CEREBRAS_BASE_URL", "https://api.cerebras.ai/v1")
+CEREBRAS_MODEL = os.getenv("CEREBRAS_MODEL", "gpt-oss-120b")
+
 # Ollama — local text-generation fallback after SEA-LION.
 # bge-m3 embedding use remains independent of this guarded fallback path.
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL") or os.getenv("OLLAMA_URL", "http://localhost:11434")
@@ -127,6 +151,15 @@ def resolve_tokenrouter_model(
 
     Uses the pasted spec for GEOX/WEALTH/WELL + fallbacks.
     All via TokenRouter for unified key + redundancy (TokenRouter + direct providers).
+
+    CANONICAL SOURCE: /root/AAA/registries/models/AGENT_MODEL_MAP.json
+    routing_rules[] section defines domain-based model overrides.
+    TODO: Replace hardcoded branches with registry query:
+        rules = json.load(open('/root/AAA/registries/models/AGENT_MODEL_MAP.json'))
+        for r in rules['routing_rules']:
+            if re.search(r['task_pattern'], task_type):
+                return r['preferred_model']
+    This ensures organ routing stays in sync with the canonical registry.
     """
     if preferred:
         return preferred
@@ -748,6 +781,266 @@ async def _call_minimax(
     return raw_output, parsed
 
 
+async def _call_groq(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 2 — call Groq LPU (FREE tier, ultra-fast) via OpenAI-compatible API.
+
+    Pure OpenAI-compatible — no agentic headers, no role injection.
+    560-1000 t/s, 128K context, all models free (rate-limited).
+    Returns (raw_output_str, parsed_output_dict).
+    """
+    if not GROQ_API_KEY:
+        raise LLMUnavailableError("GROQ_API_KEY not configured")
+
+    messages = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": GROQ_MODEL,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    t0 = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{GROQ_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("Groq LPU transport error: %s", exc)
+        raise LLMUnavailableError(f"Groq LPU transport error: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning("Groq LPU HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"Groq LPU HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "")
+    except Exception as exc:
+        logger.warning("Groq LPU parse error: %s", exc)
+        raise LLMUnavailableError(f"Groq LPU response parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            logger.info("Groq LPU JSON repaired after truncation (keys: %s)", list(repaired.keys()))
+            parsed = repaired
+            raw_output = json.dumps(repaired)
+        else:
+            logger.warning("Groq LPU returned invalid JSON (first 100 chars): %s", raw_output[:100])
+            parsed = {
+                "status": "HOLD",
+                "verdict": "HOLD",
+                "reason": "llm_schema_violation",
+                "reasoning": raw_output,
+                "answer": raw_output,
+                "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
+            }
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(
+            f"Groq LPU output must be a JSON object, got {type(parsed).__name__}"
+        )
+
+    if not parsed:
+        raise LLMUnavailableError("Groq LPU returned empty JSON object")
+
+    logger.debug("Groq LPU inference complete (model=%s)", GROQ_MODEL)
+    return raw_output, parsed
+
+
+async def _call_gemini(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 2 — call Google Gemini (FREE tier) via OpenAI-compatible v1beta endpoint.
+
+    1,500 req/day free, 250K TPM, 1M context, multimodal.
+    Returns (raw_output_str, parsed_output_dict).
+    """
+    if not GEMINI_API_KEY:
+        raise LLMUnavailableError("GEMINI_API_KEY not configured")
+
+    messages = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": GEMINI_MODEL,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    t0 = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{GEMINI_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GEMINI_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("Gemini transport error: %s", exc)
+        raise LLMUnavailableError(f"Gemini transport error: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning("Gemini HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"Gemini HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "")
+    except Exception as exc:
+        logger.warning("Gemini parse error: %s", exc)
+        raise LLMUnavailableError(f"Gemini response parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            logger.info("Gemini JSON repaired (keys: %s)", list(repaired.keys()))
+            parsed = repaired
+            raw_output = json.dumps(repaired)
+        else:
+            logger.warning("Gemini invalid JSON (first 100 chars): %s", raw_output[:100])
+            parsed = {
+                "status": "HOLD",
+                "verdict": "HOLD",
+                "reason": "llm_schema_violation",
+                "reasoning": raw_output,
+                "answer": raw_output,
+                "_raw_output_hash": hashlib.sha256(raw_output.encode()).hexdigest()[:16],
+            }
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(
+            f"Gemini output must be a JSON object, got {type(parsed).__name__}"
+        )
+
+    if not parsed:
+        raise LLMUnavailableError("Gemini returned empty JSON object")
+
+    logger.debug("Gemini inference complete (model=%s)", GEMINI_MODEL)
+    return raw_output, parsed
+
+
+async def _call_cerebras(
+    system: str,
+    user: str,
+    response_schema: dict[str, Any] | None,
+    temperature: float,
+    max_tokens: int = 1200,
+) -> tuple[str, dict[str, Any]]:
+    """
+    Tier 2 — call Cerebras ($5 free credit) via OpenAI-compatible API.
+
+    Wafer-scale hardware, fast inference. Models: gpt-oss-120b, gemma-4-31b, zai-glm-4.7.
+    Returns (raw_output_str, parsed_output_dict).
+    """
+    if not CEREBRAS_API_KEY:
+        raise LLMUnavailableError("CEREBRAS_API_KEY not configured")
+
+    messages = [{"role": "system", "content": system}]
+    if user:
+        messages.append({"role": "user", "content": user})
+
+    payload: dict[str, Any] = {
+        "model": CEREBRAS_MODEL,
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+
+    t0 = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                f"{CEREBRAS_BASE_URL}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {CEREBRAS_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+            )
+    except Exception as exc:
+        logger.warning("Cerebras transport error: %s", exc)
+        raise LLMUnavailableError(f"Cerebras transport error: {exc}") from exc
+
+    if response.status_code != 200:
+        logger.warning("Cerebras HTTP %s: %s", response.status_code, response.text[:200])
+        raise LLMUnavailableError(f"Cerebras HTTP {response.status_code}")
+
+    try:
+        data = response.json()
+        msg = data["choices"][0]["message"]
+        content = msg.get("content", "")
+    except Exception as exc:
+        logger.warning("Cerebras parse error: %s", exc)
+        raise LLMUnavailableError(f"Cerebras response parse error: {exc}") from exc
+
+    raw_output = _strip_markdown(content)
+
+    try:
+        parsed = json.loads(raw_output)
+    except json.JSONDecodeError:
+        repaired = _repair_truncated_json(raw_output)
+        if repaired is not None:
+            logger.info("Cerebras JSON repaired (keys: %s)", list(repaired.keys()))
+            parsed = repaired
+            raw_output = json.dumps(repaired)
+        else:
+            parsed = {
+                "status": "HOLD",
+                "verdict": "HOLD",
+                "reason": "llm_schema_violation",
+                "reasoning": raw_output,
+                "answer": raw_output,
+            }
+
+    if not isinstance(parsed, dict):
+        raise LLMUnavailableError(
+            f"Cerebras output must be a JSON object, got {type(parsed).__name__}"
+        )
+
+    if not parsed:
+        raise LLMUnavailableError("Cerebras returned empty JSON object")
+
+    logger.debug("Cerebras inference complete (model=%s)", CEREBRAS_MODEL)
+    return raw_output, parsed
+
+
 async def _call_mimo(
     system: str,
     user: str,
@@ -1201,6 +1494,74 @@ async def call_llm(
     except LLMUnavailableError:
         pass
 
+    # Tier 2 — Groq LPU (FREE tier, ultra-fast 560-1000 t/s, 128K context)
+    # Inserted after MiMo, before ILMU/SEA-LION.
+    # Pure OpenAI-compatible, no special headers needed.
+    # Rate limits are generous on free tier (14,400 req/day for llama-3.1-8b).
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_groq(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "groq",
+            GROQ_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
+
+    # Tier 2 — Google Gemini (FREE tier, 1,500 req/day, 1M ctx, multimodal)
+    # OpenAI-compatible v1beta endpoint. Best free general-purpose model.
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_gemini(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "gemini",
+            GEMINI_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
+
+    # Tier 2 — Cerebras ($5 free credit, expires Aug 20 2026)
+    # Wafer-scale hardware, fast. Models: gpt-oss-120b, gemma-4-31b, zai-glm-4.7.
+    try:
+        t0 = time.monotonic()
+        raw_output, parsed = await _call_cerebras(
+            system, user, response_schema, temperature, max_tokens
+        )
+        return _make_envelope(
+            raw_output,
+            parsed,
+            "cerebras",
+            CEREBRAS_MODEL,
+            tool_origin,
+            mode,
+            combined_prompt,
+            (time.monotonic() - t0) * 1000,
+            response_schema,
+            trace_recursion_depth,
+        )
+    except LLMUnavailableError:
+        pass
+
     # Tier 2 — ILMU BLOCKED per FFF 2026-06-15 (never in trinity loop).
     # F13 inversion, register-dependent hallucination, L02A parse failure.
     # Removed from cascade. See ariffazil/BBB, CCC, DDD, FFF for full receipts.
@@ -1366,9 +1727,7 @@ async def check_provider_health() -> dict[str, Any]:
                 )
                 if OLLAMA_TEXT_ENABLED:
                     status["fallback"] = (
-                        "reachable"
-                        if OLLAMA_MODEL in model_names
-                        else "model_missing"
+                        "reachable" if OLLAMA_MODEL in model_names else "model_missing"
                     )
                 else:
                     status["fallback"] = "disabled"
