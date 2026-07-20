@@ -767,7 +767,7 @@ torch==2.13.0
     # via
     #   arifos (pyproject.toml)
     #   sentence-transformers
-tqdm==4.68.3
+tqdm==4.69.0
     # via
     #   huggingface-hub
     #   openai
