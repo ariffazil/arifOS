@@ -1,59 +1,74 @@
 # arifOS Prompt Registry — Single Source of Truth
-# Schema version 2026.07.07 — forged by FORGE under F13 SOVEREIGN
-# Supersedes: runtime/prompt.py (deleted 2026-07-07), runtime/prompts.py (deleted 2026-07-07)
+# Schema version 2026.07.20 — zen consolidation (dual registration collapsed)
+# Supersedes: 2026.07.07 version
 # Validates against: jsonschema in registry/prompt_registry.py
-# Mutations require: 666 SEAL → 999 vault entry
+# Mutations require: 888 JUDGE SEAL → 999 vault entry
 #
 # This file is the canonical metadata source for all prompts transported
 # through arifOS MCP. The actual prompt CONTENT (templates) lives in
-# arifosmcp/prompts/__init__.py:register_prompts() — that file is the
-# render engine; this YAML is the metadata catalog.
+# arifosmcp/runtime/fastmcp_ext/prompts.py (zen sigil, canonical) with
+# legacy aliases in arifosmcp/prompts/__init__.py (numeric, deprecated).
+# register_prompts() delegates to zen module as of 2026-07-20.
 
-schema_version: "2026.07.07"
-registry_id: "arifos.prompt_registry.v1"
-registry_forged_at: "2026-07-07T20:23Z"
-registry_forged_by: "FORGE (000Ω) — F13 SOVEREIGN directive"
+schema_version: "2026.07.20"
+registry_id: "arifos.prompt_registry.v2"
+registry_forged_at: "2026-07-20T15:11Z"
+registry_forged_by: "FORGE (000Ω) — F13 SOVEREIGN directive · dual registration collapse"
+lineage:
+  sealed_at: "2026-07-20T15:11Z"
+  supersedes:
+    - path: "arifosmcp/runtime/prompt.py"
+      removed: true
+      reason: "Consolidated into prompt_registry.yaml 2026-07-07"
+    - path: "arifosmcp/runtime/prompts.py"
+      removed: true
+      reason: "Consolidated into prompt_registry.yaml 2026-07-07"
+    - path: "arifosmcp/server.py dual registration"
+      removed: true
+      reason: "server.py no longer calls register_arifos_prompts() separately; register_prompts() is the sole entry point as of 2026-07-20"
 
 # Constitutional binding — values come from arifosmcp.constitutional_map.CANONICAL_FLOORS
 floors_ref: "arifosmcp.constitutional_map.CANONICAL_FLOORS"
 
-# Sequence is the post-RSI-fix ordering: critique (555) before judge (666).
-# This matches arifosmcp/prompts/__init__.py:180 and is the only correct order.
+# Post-zen-consolidation sequence: 10 canonical sigil prompts.
+# Legacy numeric aliases are registered for backward compat but NOT part
+# of the canonical sequence (they route to sigil prompts internally).
 canonical_sequence:
-  - "arifosmcp_loop_engineer"   # Entry guard: intent → loop classifier
-  - "000_init"                 # Session bootstrap: identity binding, floor acceptance
-  - "111_sense"                # Reality sensing: observation, pattern detection, evidence
-  - "333_reason"               # Cognitive engine: abduction (N≥3), synthesis, proposal
-  - "555_critique"             # Pre-forge mirror: consequence scan, blast radius, dignity
-  - "666_judge"                # Constitutional verdict: 4 tests + F1-F13 matrix
-  - "777_forge"                # Guarded execution: smallest reversible step + rollback
-  - "999_seal"                 # VAULT999 close: append-only immutable record
+  - "🌱 BOOT"       # Session bootstrap — identity binding, floor acceptance
+  - "🌊 WITNESS"    # Reality sensing — observation, pattern detection, evidence
+  - "🧠 REASON"     # Cognitive engine — abduction (N≥3), synthesis, proposal
+  - "⚖ MARUAH"     # Dignity check — consequence scan, blast radius, dignity
+  - "🔍 PREFLIGHT"  # F1-F13 pre-operation check
+  - "🔒 JUDGE"      # Constitutional verdict — 4 tests + F1-F13 matrix
+  - "🔥 FORGE"      # Guarded execution — smallest reversible step + rollback
+  - "💎 SEAL"       # VAULT999 close — append-only immutable record
+  - "🌀 SABAR"      # Recursive governed loop orchestrator
+  - "📜 REPLY"      # Governed AGI reply envelope
 
 prompts:
 
-  - id: "arifosmcp_loop_engineer"
-    semantic_name: "intake"
-    title: "Loop Engineer — Entry Guard"
-    description: "Intent classification + loop routing. Runs first when intent arrives. Converts raw intent into a governed loop circuit, stays repo-agnostic, reduces entropy, and names how reality will be re-checked before seal."
+  - id: "🌀 SABAR"
+    semantic_name: "orchestrator"
+    title: "🌀 SABAR — Recursive Governed Loop"
+    description: "Intent classification + 6-stage reality loop orchestrator. Drives 🌊 WITNESS → 🧠 REASON → ⚖ MARUAH → 🔒 JUDGE → 🔥 FORGE → 💎 SEAL autonomously. Supersedes arifosmcp_loop_engineer + recursive_governed_loop."
     floor_binding: ["L01", "L11"]
     inputs_schema:
       type: "object"
       required: ["intent"]
       properties:
         intent: { type: "string", minLength: 1, maxLength: 4096 }
-        actor_id: { type: "string" }
-        context: { type: "object" }
+        session_id: { type: "string" }
+        depth: { enum: ["auto", "stage"], default: "stage" }
     expected_contracts:
-      - "loop_classification returned (METABOLIC|OBSERVE|REASON|CRITIQUE|JUDGE|FORGE|SEAL|COMPOSITE)"
-      - "routing_decision returned"
-      - "session_state initialized if first stage"
-      - "reality_recheck_path named before downstream execution"
+      - "loop_classification returned"
+      - "stage_history recorded"
+      - "ΔS ≤ 0 per iteration"
     entropy_budget_tokens: 400
 
-  - id: "000_init"
+  - id: "🌱 BOOT"
     semantic_name: "anchor"
-    title: "000_INIT — The Anchor"
-    description: "Identity binding, reality grounding, floor acceptance, cross-session memory load, and prior seal-gap inheritance. Bootstrap stage for restoring clarity and lawful direction."
+    title: "🌱 BOOT — Constitutional Bootstrap"
+    description: "Identity binding, reality grounding, floor acceptance, cross-session memory load. 7-point self-check before any work. Supersedes 000_init + arif_init_prompt_v3."
     floor_binding: ["L01", "L11", "L12"]
     inputs_schema:
       type: "object"
@@ -61,169 +76,151 @@ prompts:
       properties:
         actor_id: { type: "string", pattern: "^[a-zA-Z0-9_-]{3,64}$" }
         intent: { type: "string", minLength: 1, maxLength: 4096 }
-        ack_irreversible: { type: "boolean", default: false }
-        mode: { enum: ["init", "resume", "canary", "preflight", "triage"], default: "init" }
+        depth: { enum: ["boot", "full"], default: "boot" }
     expected_contracts:
       - "session_id returned"
-      - "actor_signature recorded"
-      - "session_state.entropy_baseline captured"
-      - "prior seal assumptions/gaps loaded or explicitly absent"
+      - "Q1-Q7 self-check completed"
+      - "TRINITY-33 + RSI loaded"
     entropy_budget_tokens: 800
 
-  - id: "111_sense"
+  - id: "🌊 WITNESS"
     semantic_name: "witness"
-    title: "111_SENSE — The Witness"
-    description: "Open observation, pattern detection, evidence gathering with epistemic labels (F2), and definition of the next reality check needed after execution. Must lower ambiguity, not just add volume."
+    title: "🌊 WITNESS — Reality Sensing"
+    description: "Open observation, pattern detection, evidence gathering with epistemic labels (F2). Calls arif_observe + geox_evidence + well_validate_vitality. Supersedes 111_sense."
     floor_binding: ["L02", "L03", "L07", "L12"]
+    inputs_schema:
+      type: "object"
+      required: ["intent"]
+      properties:
+        intent: { type: "string", minLength: 1 }
+        focus: { type: "string" }
+    expected_contracts:
+      - "evidence labeled OBS/DER/INT/SPEC"
+      - "confidence capped at 0.90"
+      - "WITNESS block returned"
+    entropy_budget_tokens: 600
+
+  - id: "🧠 REASON"
+    semantic_name: "mind"
+    title: "🧠 REASON — Hypothesis Engine"
+    description: "Abstraction, abduction (N≥3 hypotheses), synthesis, proposal. Calls arif_think. F7 HUMILITY enforced. Supersedes 333_reason."
+    floor_binding: ["L02", "L05", "L06", "L07", "L08", "L09", "L10"]
+    inputs_schema:
+      type: "object"
+      required: ["witness_block"]
+      properties:
+        witness_block: { type: "string" }
+        hypothesis_count: { type: "integer", minimum: 2, maximum: 7, default: 3 }
+    expected_contracts:
+      - "hypothesis_set returned (N≥2)"
+      - "Ω₀ ∈ [0.03, 0.05] declared"
+      - "REASON block returned"
+    entropy_budget_tokens: 1200
+
+  - id: "⚖ MARUAH"
+    semantic_name: "mirror"
+    title: "⚖ MARUAH — Dignity Check"
+    description: "Consequence scan, blast radius, dignity check. Calls arif_heart_critique + well_guard_dignity. κᵣ ≥ 0.70 required. Supersedes 555_critique."
+    floor_binding: ["L05", "L06", "L12"]
+    inputs_schema:
+      type: "object"
+      required: ["reason_block"]
+      properties:
+        reason_block: { type: "string" }
+    expected_contracts:
+      - "dignity_score returned"
+      - "weakest_stakeholder identified"
+      - "MARUAH block returned"
+    entropy_budget_tokens: 800
+
+  - id: "🔍 PREFLIGHT"
+    semantic_name: "precheck"
+    title: "🔍 PREFLIGHT — Constitutional Check"
+    description: "Pre-operation F1-F13 floor check. Use BEFORE any irreversible action. Supersedes constitutional_pre_flight."
+    floor_binding: ["L01", "L02", "L03", "L04", "L05", "L06", "L07", "L08", "L09", "L10", "L11", "L12", "L13"]
+    inputs_schema:
+      type: "object"
+      required: ["operation"]
+      properties:
+        operation: { type: "string" }
+    expected_contracts:
+      - "per-floor verdict returned"
+      - "remediation for failed floors"
+    entropy_budget_tokens: 600
+
+  - id: "🔒 JUDGE"
+    semantic_name: "gate"
+    title: "🔒 JUDGE — Constitutional Gate"
+    description: "Constitutional verdict — four tests + F1-F13 floor matrix. SEAL/HOLD/SABAR/VOID. Calls arif_judge. Supersedes 666_judge."
+    floor_binding: ["L01", "L02", "L11", "L13"]
+    inputs_schema:
+      type: "object"
+      required: ["maruah_block"]
+      properties:
+        maruah_block: { type: "string" }
+        candidate: { type: "string" }
+        reversibility: { type: "string" }
+        blast_radius: { type: "string" }
+    expected_contracts:
+      - "verdict returned (SEAL/SABAR/HOLD/VOID)"
+      - "violated_floors[] if not SEAL"
+      - "JUDGE block returned"
+    entropy_budget_tokens: 600
+
+  - id: "🔥 FORGE"
+    semantic_name: "hammer"
+    title: "🔥 FORGE — Guarded Execution"
+    description: "Structural enforcement gate. Execute smallest reversible step, verify AFTER state. Requires prior 🔒 JUDGE SEAL. Supersedes 777_forge."
+    floor_binding: ["L01", "L11", "L13"]
+    inputs_schema:
+      type: "object"
+      required: ["judge_block"]
+      properties:
+        judge_block: { type: "string" }
+        seal_verdict_id: { type: "string" }
+    expected_contracts:
+      - "execution_receipt returned"
+      - "FORGE block with audit trail"
+      - "ΔS ≤ 0 verified"
+    entropy_budget_tokens: 1000
+
+  - id: "💎 SEAL"
+    semantic_name: "fossil"
+    title: "💎 SEAL — VAULT999 Record"
+    description: "Golden path verification, immutable VAULT999 write, recursive MCP stack hardening. Terminal stage. Supersedes 999_seal."
+    floor_binding: ["L01", "L11", "L13"]
+    inputs_schema:
+      type: "object"
+      required: ["forge_block"]
+      properties:
+        forge_block: { type: "string" }
+    expected_contracts:
+      - "seal_id returned"
+      - "chain_position returned"
+      - "SEAL block returned"
+    entropy_budget_tokens: 400
+
+  - id: "📜 REPLY"
+    semantic_name: "envelope"
+    title: "📜 REPLY — Governed Reply Envelope"
+    description: "TO/CC/TITLE/RACI/τ/floors/SEAL envelope for AGI replies. Supersedes agi_reply_protocol_v3."
+    floor_binding: ["L01", "L02", "L04", "L06", "L07", "L09", "L10", "L11", "L12", "L13"]
     inputs_schema:
       type: "object"
       required: ["query"]
       properties:
-        query: { type: "string", minLength: 1 }
-        mode: { enum: ["search", "fetch", "ingest", "vitals", "atlas", "hybrid_discovery"], default: "search" }
-        scope: { enum: ["web", "federation", "memory", "atlas", "all"], default: "all" }
-        max_results: { type: "integer", minimum: 1, maximum: 50, default: 10 }
-        recency_filter: { enum: ["hour", "day", "week", "month", "year", null] }
+        query: { type: "string" }
+        recipient_id: { type: "string", default: "human" }
     expected_contracts:
-      - "evidence_receipt returned (F-WEB)"
-      - "epistemic_label attached (OBS/DER/INT/SPEC)"
-      - "void_classification if MNAR detected"
-      - "post_execution_recheck condition defined"
-    entropy_budget_tokens: 600
-
-  - id: "333_reason"
-    semantic_name: "mind"
-    title: "333_REASON — The Mind"
-    description: "Abstraction, abduction (N≥3 hypotheses), synthesis, proposal, and explicit re-check plan for observed AFTER state. F7 computed. Invariant, orthogonal, and cross-domain."
-    floor_binding: ["L02", "L05", "L06", "L07", "L08", "L09", "L10"]
-    inputs_schema:
-      type: "object"
-      required: ["problem"]
-      properties:
-        problem: { type: "string", minLength: 1 }
-        mode: { enum: ["reason", "plan", "reflect", "verify", "simulate", "metabolize", "axioms"], default: "reason" }
-        n_hypotheses: { type: "integer", minimum: 3, maximum: 7, default: 3 }
-    expected_contracts:
-      - "hypothesis_set returned (N≥3)"
-      - "humility_band asserted (Ω₀ ∈ [0.03, 0.05])"
-      - "C_dark computed (< 0.30 for SEAL eligibility)"
-      - "recheck_plan returned for each proposed option"
-    entropy_budget_tokens: 1200
-
-  - id: "555_critique"
-    semantic_name: "mirror"
-    title: "555_CRITIQUE — The Mirror"
-    description: "Consequence scan, blast radius, perspective shift, dignity check, alternatives, and reality-return readiness. F5/F6 computed. Preserves optionality and human clarity before action."
-    floor_binding: ["L05", "L06", "L12"]
-    inputs_schema:
-      type: "object"
-      required: ["plan"]
-      properties:
-        plan: { type: "string", minLength: 1 }
-        mode: { enum: ["critique", "redteam", "maruah", "shadow", "deescalate", "empathy"], default: "critique" }
-        target: { type: "string" }
-        maruah_level: { enum: ["PHATIC", "SOFT", "HARD", "CRISIS", "REFUSE"], default: "SOFT" }
-        coercion_signals: { type: "array", items: { type: "string" } }
-    expected_contracts:
-      - "maruah_verdict returned (M_CLEAN/M_ADJUST/M_REPAIR/M_HOLD)"
-      - "blast_radius returned (LOW/MED/HIGH/CRITICAL)"
-      - "alternatives ≥ 1"
-      - "forge_readiness denied if post-execution reality check is weak"
-    entropy_budget_tokens: 800
-
-  - id: "666_judge"
-    semantic_name: "gate"
-    title: "666_JUDGE — The Gate"
-    description: "Constitutional verdict — four tests (Truth, Reversibility, Dignity, Universality) + F1-F13 floor matrix. Clean SEAL requires a concrete path back to observed reality. General principles over local preference."
-    floor_binding: ["L01", "L02", "L11", "L13"]
-    inputs_schema:
-      type: "object"
-      required:
-        - "actor"
-        - "intent"
-        - "requested_capability"
-        - "domain"
-        - "reversibility_level"
-        - "blast_radius"
-      properties:
-        actor: { type: "string" }
-        intent: { type: "string" }
-        requested_capability: { type: "string" }
-        domain: { type: "string" }
-        reversibility_level: { enum: ["FULL", "PARTIAL", "NONE"] }
-        blast_radius: { enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"] }
-        epistemic_state: { enum: ["OBSERVED", "DERIVED", "INTERPRETED", "SPECULATED", "UNKNOWN"], default: "UNKNOWN" }
-        evidence: { type: "array" }
-        measurement: { type: "object" }
-    expected_contracts:
-      - "verdict returned (SEAL/SABAR/HOLD/VOID/PARTIAL)"
-      - "violated_floors[] if not SEAL"
-      - "constitutional_chain_id (cc_id) for SEAL"
-      - "receipts[] with provenance"
-      - "reality_return_gate enforced before clean SEAL"
-    entropy_budget_tokens: 600
-
-  - id: "777_forge"
-    semantic_name: "hammer"
-    title: "777_FORGE — The Hammer"
-    description: "Structural enforcement gate. Execute smallest reversible step, verify actual AFTER state, rollback on failure, and return to reality if intended vs observed diverge. Must reduce uncertainty, not merely mutate state."
-    floor_binding: ["L01", "L11", "L13"]
-    inputs_schema:
-      type: "object"
-      required: ["task"]
-      properties:
-        task: { type: "string" }
-        mode: { enum: ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"], default: "engineer" }
-        constitutional_chain_id: { type: "string", description: "cc_id from prior 666 SEAL — required for MUTATE-class" }
-        lease_id: { type: "string", description: "Governed lease ID" }
-        session_id: { type: "string" }
-        artifact_id: { type: "string" }
-        plan_id: { type: "string" }
-        arif_ack_id: { type: "string", description: "F13 sovereign approval token — required for irreversible" }
-    expected_contracts:
-      - "execution_receipt returned"
-      - "changed_files[] returned"
-      - "verification_result returned"
-      - "rollback_plan returned"
-      - "reality_delta recorded (intended AFTER vs observed AFTER)"
-    entropy_budget_tokens: 1000
-
-  - id: "999_seal"
-    semantic_name: "fossil"
-    title: "999_SEAL — The Record"
-    description: "Golden path verification, immutable VAULT999 write, recursive MCP stack hardening, remaining-gap scaffold, and future INIT seal pack. Preserves invariants across repo, project, and domain boundaries."
-    floor_binding: ["L01", "L11", "L13"]
-    inputs_schema:
-      type: "object"
-      required: ["payload"]
-      properties:
-        payload: { type: "string" }
-        ack_irreversible: { type: "boolean", const: true }
-        actor_id: { type: "string" }
-        actor_signature: { type: "string" }
-        constitutional_chain_id: { type: "string" }
-        judge_state_hash: { type: "string" }
-        witness_type: { enum: ["ai", "human", "earth"], default: "ai" }
-        nonce: { type: "string" }
-    expected_contracts:
-      - "seal_id returned"
-      - "chain_position returned"
-      - "VAULT999 entry confirmed"
-      - "ack_irreversible = true asserted"
-      - "recursive_hardening_report returned (skills/kernel/tools/prompts/resources)"
-      - "gaps_remaining scaffolded with severity + proof + smallest_lawful_fix"
-      - "future_init_seal_pack returned for next 000_INIT"
+      - "TO/CC/TITLE header"
+      - "RACI block"
+      - "τ truth score"
+      - "floor tags"
     entropy_budget_tokens: 400
 
-# ── LINEAGE ──────────────────────────────────────────────────────────
-# Supersession history — never delete, always append.
-lineage:
-  supersedes:
-    - path: "arifosmcp/runtime/prompt.py"
-      removed: "2026-07-07"
-      reason: "Stale 555/666 swap bug; consolidated into registry"
-      sha256_before: "6fe55389abab0a2a515619ac2873cc31b11dc86ed14076c7bf40d1faf4c7948b"
-    - path: "arifosmcp/runtime/prompts.py"
-      removed: "2026-07-07"
-      reason: "Triple source-of-truth; consolidated into registry"
-  sealed_at: "PENDING_999_SEAL"
+# ── LINEAGE (appended) ─────────────────────────────────────────────────
+# See header lineage for sealed_at and current supersession entries.
+# Historical entries preserved from v1:
+#   - runtime/prompt.py: removed 2026-07-07 (555/666 swap bug)
+#   - runtime/prompts.py: removed 2026-07-07 (triple SSoT collapse)
+#   - server.py dual registration: removed 2026-07-20 (zen consolidation)

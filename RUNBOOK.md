@@ -1,3 +1,5 @@
+[← README](README.md) | [GENESIS Canon](GENESIS/README.md) | [Docs Index](docs/README.md)
+
 # RUNBOOK.md — arifOS Federation Operations
 
 > **Authority:** F13 SOVEREIGN (Muhammad Arif bin Fazil)  
