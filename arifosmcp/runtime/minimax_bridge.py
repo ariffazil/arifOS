@@ -14,6 +14,7 @@ import logging
 import os
 import shutil
 import subprocess  # nosec B404
+import threading
 from typing import Any
 
 from core.shared.laws import get_law_threshold
@@ -22,6 +23,39 @@ logger = logging.getLogger(__name__)
 
 _MINIMAX_API_KEY = os.getenv("MINIMAX_API_KEY", "")
 _MINIMAX_API_HOST = os.getenv("MINIMAX_API_HOST", "https://api.minimax.io")
+
+# P1 fix (2026-07-20): readline timeouts to prevent permanent bridge block
+_MCP_INIT_TIMEOUT_S = float(os.getenv("MINIMAX_INIT_TIMEOUT_S", "5.0"))
+_MCP_CALL_TIMEOUT_S = float(os.getenv("MINIMAX_CALL_TIMEOUT_S", "15.0"))
+
+
+def _readline_timeout(proc: subprocess.Popen, timeout_s: float) -> str:
+    """Read a line from proc.stdout with a timeout.
+
+    If the subprocess hangs during init or a call, this prevents
+    the bridge from blocking the arifOS event loop permanently (F2, F4).
+    """
+    result: list[str | None] = [None]
+    exc: list[Exception | None] = [None]
+
+    def _read() -> None:
+        try:
+            result[0] = proc.stdout.readline()
+        except Exception as e:
+            exc[0] = e
+
+    t = threading.Thread(target=_read, daemon=True)
+    t.start()
+    t.join(timeout_s)
+
+    if t.is_alive():
+        raise TimeoutError(
+            f"MiniMax MCP readline timed out after {timeout_s:.0f}s — "
+            f"subprocess may be hung (PID {proc.pid})"
+        )
+    if exc[0] is not None:
+        raise exc[0]
+    return result[0] if result[0] is not None else ""
 
 
 class _RawMinimaxBridge:
@@ -86,10 +120,10 @@ class _RawMinimaxBridge:
         proc.stdin.write(json.dumps(init_req) + "\n")
         proc.stdin.flush()
 
-        # Read init response (skip any startup log lines)
-        line = proc.stdout.readline()
+        # Read init response (skip any startup log lines) — P1: 5s timeout
+        line = _readline_timeout(proc, _MCP_INIT_TIMEOUT_S)
         while line and not line.strip().startswith("{"):
-            line = proc.stdout.readline()
+            line = _readline_timeout(proc, _MCP_INIT_TIMEOUT_S)
         if not line:
             raise RuntimeError("MiniMax MCP closed stdout during init")
 
@@ -113,7 +147,8 @@ class _RawMinimaxBridge:
         self._proc.stdin.write(json.dumps(req) + "\n")
         self._proc.stdin.flush()
 
-        line = self._proc.stdout.readline()
+        # P1: 15s timeout on tool call readline
+        line = _readline_timeout(self._proc, _MCP_CALL_TIMEOUT_S)
         if not line:
             raise RuntimeError("MiniMax MCP closed stdout")
 
