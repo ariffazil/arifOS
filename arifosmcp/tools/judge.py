@@ -1439,6 +1439,7 @@ async def arif_judge(
                 constitutional_chain_id=constitutional_chain_id,
                 judge_state_hash=result.get("meta", {}).get("state_hash"),
                 cooldown_entry_id=cooldown_entry_id,
+                evidence_sha=vault_entry_id,  # L1→L2 bridge: vault entry IS the execution DAG node
             )
             if "meta" not in result:
                 result["meta"] = {}
