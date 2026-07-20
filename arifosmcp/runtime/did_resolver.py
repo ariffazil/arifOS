@@ -6,7 +6,7 @@ Resolves did:key and did:arifos identifiers to standard W3C DID Documents.
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any
 
 logger = os.getenv("ARIFOS_LOG_LEVEL", "INFO")
 
@@ -27,7 +27,7 @@ def base58_decode(s: str) -> bytes:
     return b"\x00" * num_zeros + combined
 
 
-def resolve_did(did: str) -> Optional[dict[str, Any]]:
+def resolve_did(did: str) -> dict[str, Any] | None:
     """
     Resolve a DID identifier to a standard W3C DID Document.
     Supports did:key (Ed25519) and did:arifos custom methods.
@@ -43,7 +43,7 @@ def resolve_did(did: str) -> Optional[dict[str, Any]]:
     return None
 
 
-def _resolve_did_key(did: str) -> Optional[dict[str, Any]]:
+def _resolve_did_key(did: str) -> dict[str, Any] | None:
     """Resolve did:key to a DID Document."""
     # Format: did:key:z<base58btc-multicodec>
     method_specific = did[8:]
@@ -93,7 +93,7 @@ def _resolve_did_key(did: str) -> Optional[dict[str, Any]]:
     }
 
 
-def _resolve_did_arifos(did: str) -> Optional[dict[str, Any]]:
+def _resolve_did_arifos(did: str) -> dict[str, Any] | None:
     """Resolve did:arifos:<actor_id> using local keys/registry."""
     actor_id = did[11:]
     if not actor_id:
@@ -107,7 +107,7 @@ def _resolve_did_arifos(did: str) -> Optional[dict[str, Any]]:
 
     if os.path.exists(key_path):
         try:
-            with open(key_path, "r", encoding="utf-8") as f:
+            with open(key_path, encoding="utf-8") as f:
                 pem_data = f.read()
 
             return {

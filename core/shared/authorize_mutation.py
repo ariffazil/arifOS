@@ -26,7 +26,6 @@ from dataclasses import dataclass, field
 from .action_profile import (
     ActionProfile,
     GateVerdict,
-    MutationClass,
     classify_action,
 )
 

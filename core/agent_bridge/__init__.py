@@ -8,8 +8,8 @@ DITEMPA BUKAN DIBERI — Forged, not given.
 
 from __future__ import annotations
 
+from agent_bridge.consumer import TelemetryConsumer
 from agent_bridge.models import AgentTelemetry
 from agent_bridge.publisher import TelemetryPublisher
-from agent_bridge.consumer import TelemetryConsumer
 
 __all__ = ["AgentTelemetry", "TelemetryPublisher", "TelemetryConsumer"]

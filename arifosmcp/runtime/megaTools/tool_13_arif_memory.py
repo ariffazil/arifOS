@@ -357,8 +357,7 @@ async def arif_memory(
                 session_id=session_id,
                 override_code=VerdictCode.HOLD,
                 message=(
-                    f"arif_memory: mode='{mode}' requires human_approval=True "
-                    f"(L13 SOVEREIGN)"
+                    f"arif_memory: mode='{mode}' requires human_approval=True (L13 SOVEREIGN)"
                 ),
             )
         )
@@ -442,12 +441,12 @@ async def arif_memory(
     # Day 5 (2026-07-07): audit — JITU contradiction engine
     if mode in ("remember", "promote", "forget", "attest", "inspect", "audit"):
         from arifosmcp.runtime.memory_handlers_v5 import (
-            _handle_remember,
-            _handle_promote,
-            _handle_forget,
             _handle_attest,
-            _handle_inspect,
             _handle_audit,
+            _handle_forget,
+            _handle_inspect,
+            _handle_promote,
+            _handle_remember,
         )
 
         handler = {
@@ -460,9 +459,7 @@ async def arif_memory(
         }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)
-            return _echo_standing(
-                _wrap_result(res_dict, mode=mode, session_id=session_id)
-            )
+            return _echo_standing(_wrap_result(res_dict, mode=mode, session_id=session_id))
         except Exception as exc:
             logger.exception(f"[ARIF_MEMORY] {mode} handler failed: {exc}")
             return _echo_standing(

@@ -23,7 +23,6 @@ import asyncio
 import hashlib
 import json
 import logging
-import os
 import time
 from pathlib import Path
 from typing import Any
@@ -58,7 +57,9 @@ TEST_FRESHNESS_SECONDS = 300  # 5 min — matches `cadence: capability graph` in
 PROVEN_LIVE_SECONDS = 86_400  # 24h
 
 
-def _canonical_tool_record(tool_name: str, registry_index: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
+def _canonical_tool_record(
+    tool_name: str, registry_index: dict[str, dict[str, Any]]
+) -> dict[str, Any] | None:
     """Return the canonical record for `tool_name` from TOOLREGISTRY.json shape, or None."""
     return registry_index.get(tool_name)
 
@@ -95,7 +96,7 @@ def _load_registry_index() -> dict[str, dict[str, Any]]:
 
     if isinstance(raw, dict):
         sots_index = raw.get("_index") or {}
-        for entry in (raw.get("skills") or []):
+        for entry in raw.get("skills") or []:
             if isinstance(entry, dict) and entry.get("name"):
                 name = entry["name"]
                 out[name] = {**out.get(name, {}), **entry, "_source": "TOOLREGISTRY.json"}
@@ -126,7 +127,14 @@ def _load_registry_index() -> dict[str, dict[str, Any]]:
             for name, entry in tools_dict.items():
                 if not isinstance(entry, dict):
                     continue
-                merged = {**out.get(name, {}), **entry, "_source": out.get(name, {}).get("_source", "tool_registry.json") + " + tool_registry.json" if name in out else "tool_registry.json"}
+                merged = {
+                    **out.get(name, {}),
+                    **entry,
+                    "_source": out.get(name, {}).get("_source", "tool_registry.json")
+                    + " + tool_registry.json"
+                    if name in out
+                    else "tool_registry.json",
+                }
                 merged["canonical"] = name in canonical_set
                 out[name] = merged
         elif isinstance(tools_dict, list):
@@ -194,9 +202,11 @@ def _registered_tools(mcp: Any) -> set[str]:
         # No event loop running — we are in a worker thread or sync context.
         # Safe to create a temporary event loop.
         try:
+
             async def _get_tools():
                 tools = await mcp.list_tools()
                 return {t.name for t in tools if hasattr(t, "name")}
+
             result = asyncio.run(_get_tools())
             if result:
                 return result
@@ -515,7 +525,9 @@ def compute_capability_matrix(
         in_registered = tool_name in registered or tool_name in registered_public
         in_exposed = tool_name in exposed or tool_name in exposed_public
         live_invocable = in_registered and in_exposed
-        cache_row = test_cache.get(tool_name, {}) if isinstance(test_cache.get(tool_name), dict) else {}
+        cache_row = (
+            test_cache.get(tool_name, {}) if isinstance(test_cache.get(tool_name), dict) else {}
+        )
         last_at = cache_row.get("last_invocation_at")
         age = (now - float(last_at)) if last_at else None
         fresh = age is not None and age <= TEST_FRESHNESS_SECONDS
@@ -597,7 +609,9 @@ def compute_capability_matrix(
     return {
         "as_of": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "declared_count": len(public_declared),
-        "registered_count": len(registered_public) if registered_public else len(public_declared & registered),
+        "registered_count": len(registered_public)
+        if registered_public
+        else len(public_declared & registered),
         "exposed_count": len(exposed_public) if exposed_public else len(public_declared),
         "invocable_count": invocable_count,
         "callable_public": invocable_count,
@@ -615,7 +629,14 @@ def compute_capability_matrix(
     }
 
 
-def per_field(value: Any, *, source: str, observed_at: str | None = None, state: str = "observed", confidence: float = 0.95) -> dict[str, Any]:
+def per_field(
+    value: Any,
+    *,
+    source: str,
+    observed_at: str | None = None,
+    state: str = "observed",
+    confidence: float = 0.95,
+) -> dict[str, Any]:
     """Envelope helper: every cell of the snapshot uses this shape.
 
     `state` is one of: observed | derived | reported | unknown.
@@ -631,7 +652,14 @@ def per_field(value: Any, *, source: str, observed_at: str | None = None, state:
     }
 
 
-def per_field_age(value: Any, *, source: str, observed_at_epoch: float | None, state: str = "observed", confidence: float = 0.95) -> dict[str, Any]:
+def per_field_age(
+    value: Any,
+    *,
+    source: str,
+    observed_at_epoch: float | None,
+    state: str = "observed",
+    confidence: float = 0.95,
+) -> dict[str, Any]:
     """Like per_field() but computes age_seconds from a past epoch.
 
     When `observed_at_epoch` is None we fall back to per_field() with state="unknown".

@@ -19,14 +19,13 @@ Doctrine:
 """
 
 from __future__ import annotations
-from typing import Optional
 
 from .belief import BeliefEngine, BeliefState
+from .config import MindConfig
 from .generator import CandidateGenerator
 from .rollout import RolloutEngine
+from .schemas import ScoredPlan, ThinkRequest, ThinkResponse
 from .utility import UtilityEngine
-from .config import MindConfig
-from .schemas import ThinkRequest, ThinkResponse, ScoredPlan
 
 
 class MindaService:
@@ -36,7 +35,7 @@ class MindaService:
     CONFIDENCE_BAND_FLOOR = 0.0
     CONFIDENCE_BAND_CEILING = 1.0
 
-    def __init__(self, config: Optional[MindConfig] = None):
+    def __init__(self, config: MindConfig | None = None):
         self.config = config or MindConfig()
         self.belief_engine = BeliefEngine()
         self.generator = CandidateGenerator()
@@ -68,7 +67,7 @@ class MindaService:
             # F1 AMANAH + F13 SOVEREIGN: 888_HOLD on irreversible
             has_irreversible = any(not a.reversible for a in plan.actions)
             hold_888 = has_irreversible and self.config.irreversible_hold
-            hold_reason: Optional[str] = None
+            hold_reason: str | None = None
             if hold_888:
                 hold_reason = f"F1+F13: irreversible action in plan {plan.id}"
 

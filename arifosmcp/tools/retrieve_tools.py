@@ -43,9 +43,9 @@ from pathlib import Path
 from typing import Any
 
 from arifosmcp.schemas.retrieve_tools import (
+    RetrievedTool,
     RetrieveToolsInput,
     RetrieveToolsOutput,
-    RetrievedTool,
     ToolCatalog,
     ToolCatalogEntry,
     ToolDocument,
@@ -58,7 +58,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 K1 = 0.9  # term saturation (Ratel ADR-0004)
-B = 0.4   # length normalization (tuned for short tool descriptions)
+B = 0.4  # length normalization (tuned for short tool descriptions)
 
 
 class BM25Engine:
@@ -223,30 +223,30 @@ def _strip_json_noise(text: str) -> str:
     """
     # Remove JSON structural tokens
     noise_patterns = [
-        (r'\btype\b', ' '),
-        (r'\brequired\b', ' '),
-        (r'\bproperties\b', ' '),
-        (r'\b\$ref\b', ' '),
-        (r'\bitems\b', ' '),
-        (r'\bconst\b', ' '),
-        (r'\bdefault\b', ' '),
-        (r'\banyOf\b', ' '),
-        (r'\boneOf\b', ' '),
-        (r'\ballOf\b', ' '),
-        (r'\benum\b', ' '),
-        (r'\bnull\b', ' '),
-        (r'\bboolean\b', ' '),
-        (r'\bstring\b', ' '),
-        (r'\binteger\b', ' '),
-        (r'\bnumber\b', ' '),
-        (r'\bobject\b', ' '),
-        (r'\barray\b', ' '),
-        (r'\btrue\b', ' '),
-        (r'\bfalse\b', ' '),
-        (r'\bdescription\b', ' '),
-        (r'\btitle\b', ' '),
-        (r'[{}\[\]"\'<>]', ' '),
-        (r'\s+', ' '),
+        (r"\btype\b", " "),
+        (r"\brequired\b", " "),
+        (r"\bproperties\b", " "),
+        (r"\b\$ref\b", " "),
+        (r"\bitems\b", " "),
+        (r"\bconst\b", " "),
+        (r"\bdefault\b", " "),
+        (r"\banyOf\b", " "),
+        (r"\boneOf\b", " "),
+        (r"\ballOf\b", " "),
+        (r"\benum\b", " "),
+        (r"\bnull\b", " "),
+        (r"\bboolean\b", " "),
+        (r"\bstring\b", " "),
+        (r"\binteger\b", " "),
+        (r"\bnumber\b", " "),
+        (r"\bobject\b", " "),
+        (r"\barray\b", " "),
+        (r"\btrue\b", " "),
+        (r"\bfalse\b", " "),
+        (r"\bdescription\b", " "),
+        (r"\btitle\b", " "),
+        (r'[{}\[\]"\'<>]', " "),
+        (r"\s+", " "),
     ]
     cleaned = text
     for pattern, replacement in noise_patterns:
@@ -707,7 +707,9 @@ def retrieve_tools(
         canonical_organ = organ_map.get(organ.lower(), organ)
 
         # Build organ-filtered index
-        organ_docs = [d for d, t in zip(engine._documents, catalog.tools) if t.organ == canonical_organ]
+        organ_docs = [
+            d for d, t in zip(engine._documents, catalog.tools) if t.organ == canonical_organ
+        ]
         if not organ_docs:
             return RetrieveToolsOutput(
                 query=query,
@@ -862,6 +864,8 @@ async def arif_retrieve_tools(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def retrieve_tools_sync(query: str, organ: str | None = None, top_k: int = 5) -> RetrieveToolsOutput:
+def retrieve_tools_sync(
+    query: str, organ: str | None = None, top_k: int = 5
+) -> RetrieveToolsOutput:
     """Direct retrieval for testing — no async, no MCP transport."""
     return retrieve_tools(query=query, organ=organ, top_k=top_k)

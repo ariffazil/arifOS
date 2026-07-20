@@ -19,7 +19,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-
 # ── Decision Class (latency budget assignment) ───────────────────
 
 
@@ -28,11 +27,12 @@ class DecisionClass(str, Enum):
     Not all decisions are equal.
     Some must be instant, some can afford deep reasoning.
     """
-    C0_AUTO = "C0_AUTO"          # No judge needed — rule engine
-    C1_FAST = "C1_FAST"          # Cached or heuristic
+
+    C0_AUTO = "C0_AUTO"  # No judge needed — rule engine
+    C1_FAST = "C1_FAST"  # Cached or heuristic
     C2_STANDARD = "C2_STANDARD"  # Single-pass reasoning
-    C3_DEEP = "C3_DEEP"          # Multi-stage validation
-    C4_SOVEREIGN = "C4_SOVEREIGN" # Requires F13 / human
+    C3_DEEP = "C3_DEEP"  # Multi-stage validation
+    C4_SOVEREIGN = "C4_SOVEREIGN"  # Requires F13 / human
 
 
 # ── Verdict Class (constitutional outcome) ───────────────────────
@@ -76,9 +76,9 @@ RiskClass = DecisionRiskClass  # DEPRECATED — use DecisionRiskClass
 
 
 class ReversibilityClass(str, Enum):
-    FULL = "FULL"          # Can be undone completely
-    PARTIAL = "PARTIAL"    # Can be undone with cost
-    NONE = "NONE"          # Cannot be undone → F13 required
+    FULL = "FULL"  # Can be undone completely
+    PARTIAL = "PARTIAL"  # Can be undone with cost
+    NONE = "NONE"  # Cannot be undone → F13 required
 
 
 # ── Organ Type ───────────────────────────────────────────────────
@@ -109,29 +109,29 @@ class DecisionContract:
     """
 
     # ── Identity ──────────────────────────────────────────────────
-    contract_id: str             # UUIDv7 or deterministic hash
-    session_id: str              # Which session this belongs to
-    actor_id: str                # Who initiated this decision
-    organ_id: str                # Which organ is primary
-    tool_name: str               # Which MCP tool generated this
+    contract_id: str  # UUIDv7 or deterministic hash
+    session_id: str  # Which session this belongs to
+    actor_id: str  # Who initiated this decision
+    organ_id: str  # Which organ is primary
+    tool_name: str  # Which MCP tool generated this
 
     # ── Classification ────────────────────────────────────────────
-    action_class: str            # OBSERVE | REASON | DRAFT | MUTATE | EXTERNAL | ATOMIC
-    decision_class: str          # C0_AUTO | C1_FAST | C2_STANDARD | C3_DEEP | C4_SOVEREIGN
-    risk_class: str              # low | medium | high | atomic
-    reversibility_class: str     # FULL | PARTIAL | NONE
+    action_class: str  # OBSERVE | REASON | DRAFT | MUTATE | EXTERNAL | ATOMIC
+    decision_class: str  # C0_AUTO | C1_FAST | C2_STANDARD | C3_DEEP | C4_SOVEREIGN
+    risk_class: str  # low | medium | high | atomic
+    reversibility_class: str  # FULL | PARTIAL | NONE
 
     # ── Intent ────────────────────────────────────────────────────
-    intent_summary: str          # Human-readable summary (for receipts)
-    intent_hash: str             # SHA256 of full intent payload
+    intent_summary: str  # Human-readable summary (for receipts)
+    intent_hash: str  # SHA256 of full intent payload
 
     # ── Context ───────────────────────────────────────────────────
-    context_hash: str            # SHA256 of frozen input envelope
-    conflict_domain: str         # earth | wealth | governance | health | law | system
+    context_hash: str  # SHA256 of frozen input envelope
+    conflict_domain: str  # earth | wealth | governance | health | law | system
 
     # ── State ─────────────────────────────────────────────────────
-    is_irreversible: bool        # True → always escalate to 888_HOLD
-    has_cached_verdict: bool     # True → can use fast path
+    is_irreversible: bool  # True → always escalate to 888_HOLD
+    has_cached_verdict: bool  # True → can use fast path
 
     def to_dict(self) -> dict[str, Any]:
         """Canonical dict for hashing and serialization."""
@@ -171,6 +171,7 @@ class ConflictEnvelope:
     A conflict between two organ conclusions.
     Fed into the resolver (#422).
     """
+
     conflict_id: str
     organ_a: str
     verdict_a: str
@@ -186,12 +187,13 @@ class ConflictEnvelope:
 @dataclass(frozen=True)
 class ResolutionResult:
     """Immutable result of conflict resolution."""
+
     winner_organ: str
     winner_verdict: str
-    resolution_method: str       # dominance | authority | escalate
+    resolution_method: str  # dominance | authority | escalate
     reason: str
     requires_888_hold: bool
-    latency_us: int              # microseconds — for latency budget tracking
+    latency_us: int  # microseconds — for latency budget tracking
 
 
 # ── Judge Result ─────────────────────────────────────────────────
@@ -200,11 +202,12 @@ class ResolutionResult:
 @dataclass(frozen=True)
 class JudgeResult:
     """Immutable result of a judge decision."""
-    verdict: str                 # VerdictClass value
-    decision_class: str          # Which class was used
-    latency_ms: float            # Actual latency
-    within_budget: bool          # Did it stay within budget?
-    reason: str                  # Why this verdict
+
+    verdict: str  # VerdictClass value
+    decision_class: str  # Which class was used
+    latency_ms: float  # Actual latency
+    within_budget: bool  # Did it stay within budget?
+    reason: str  # Why this verdict
     resolution: ResolutionResult | None = None  # If conflict was resolved
 
 

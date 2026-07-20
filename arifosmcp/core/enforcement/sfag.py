@@ -22,9 +22,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 
 class SFAGVerdict(StrEnum):
@@ -380,9 +381,7 @@ def evaluate_sfag(
         )
         raised = alert is not None
         if raised:
-            reasons.append(
-                f"AUDIT: G_threshold raised → {g_th:.4f} (logged governance_alerts.log)"
-            )
+            reasons.append(f"AUDIT: G_threshold raised → {g_th:.4f} (logged governance_alerts.log)")
 
     return SFAGDecision(
         verdict=verdict,
@@ -429,7 +428,9 @@ def kernel_bridge_context(proposal: ActionProposal, decision: SFAGDecision) -> d
     return {
         "action": proposal.purpose,
         "query": proposal.purpose,
-        "evidence_quality": 0.85 if decision.falsification is FalsificationStrength.STRONG else 0.45,
+        "evidence_quality": 0.85
+        if decision.falsification is FalsificationStrength.STRONG
+        else 0.45,
         "reversibility": "irreversible" if irreversible else "reversible",
         "irreversible": irreversible,
         "authority_mode": "OBSERVE",

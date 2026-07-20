@@ -31,12 +31,10 @@ Permanent invariants:
 from __future__ import annotations
 
 import hashlib
-import hmac
 import os
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Iterable
-
+from collections.abc import Iterable
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONFIRMATION_INTENT_PHRASES (renamed from SOVEREIGN_SIGNAL_PHRASES)
@@ -46,20 +44,23 @@ from typing import Optional, Iterable
 # Only the channel holding a valid bound session may start a challenge.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-CONFIRMATION_INTENT_PHRASES: frozenset[str] = frozenset({
-    "buat ja la",
-    "yes confirm",
-    "execute x",
-    "i'm the architect",
-    "im the architect",
-    "jalan terus",
-    "seal it",
-})
+CONFIRMATION_INTENT_PHRASES: frozenset[str] = frozenset(
+    {
+        "buat ja la",
+        "yes confirm",
+        "execute x",
+        "i'm the architect",
+        "im the architect",
+        "jalan terus",
+        "seal it",
+    }
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # STRUCTURED RESULT TYPES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @dataclass(frozen=True)
 class SignalResult:
@@ -67,19 +68,21 @@ class SignalResult:
 
     authority_changed is always False — phrases never grant authority.
     """
+
     intent_detected: bool = False
-    intent_class: str = ""           # CONFIRMATION | ORDINARY | AMBIGUOUS_CONFIRMATION_TARGET
-    pending_action_id: Optional[str] = None
+    intent_class: str = ""  # CONFIRMATION | ORDINARY | AMBIGUOUS_CONFIRMATION_TARGET
+    pending_action_id: str | None = None
     requires_cryptographic_confirmation: bool = False
-    authority_changed: bool = False    # PERMANENT: always False
-    confirmation_challenge: Optional[dict] = None  # only when confirmation triggered
-    ambiguity_note: Optional[str] = None
-    matched_phrase: Optional[str] = None
+    authority_changed: bool = False  # PERMANENT: always False
+    confirmation_challenge: dict | None = None  # only when confirmation triggered
+    ambiguity_note: str | None = None
+    matched_phrase: str | None = None
 
 
 @dataclass(frozen=True)
 class ConfirmationChallenge:
     """Session-bound challenge payload — caller signs canonical fields."""
+
     session_id: str
     action_id: str
     action_hash: str
@@ -90,16 +93,18 @@ class ConfirmationChallenge:
 
     def canonical_payload(self) -> str:
         """Deterministic payload that the Ed25519 signature must cover."""
-        return "\n".join([
-            "arifOS-confirmation-v1",
-            f"session_id={self.session_id}",
-            f"action_id={self.action_id}",
-            f"action_hash={self.action_hash}",
-            f"consequence_summary_hash={self.consequence_summary_hash}",
-            f"nonce={self.nonce}",
-            f"audience={self.audience}",
-            f"expires_at={self.expires_at}",
-        ])
+        return "\n".join(
+            [
+                "arifOS-confirmation-v1",
+                f"session_id={self.session_id}",
+                f"action_id={self.action_id}",
+                f"action_hash={self.action_hash}",
+                f"consequence_summary_hash={self.consequence_summary_hash}",
+                f"nonce={self.nonce}",
+                f"audience={self.audience}",
+                f"expires_at={self.expires_at}",
+            ]
+        )
 
 
 @dataclass(frozen=True)
@@ -110,19 +115,20 @@ class NarrowCapability:
     Cannot redelegate. Cannot outlive its expires_at.
     Cannot apply to a payload_hash other than the one bound at issue.
     """
-    capability: str           # e.g. "vault.append.sovereign"
+
+    capability: str  # e.g. "vault.append.sovereign"
     action_id: str
     session_id: str
-    channel: str              # "telegram" | "opencode" | "tui" | "system" | ...
-    payload_hash: str         # exact hash the capability is bound to
+    channel: str  # "telegram" | "opencode" | "tui" | "system" | ...
+    payload_hash: str  # exact hash the capability is bound to
     single_use: bool = True
     redelegation: bool = False
-    expires_at: str = ""      # ISO8601
-    issued_at: str = ""       # ISO8601
-    issued_by: str = ""       # actor_id
-    nonce: str = ""           # tied to confirmation
-    consumed: bool = False    # single-use enforcement
-    consumed_at: Optional[str] = None
+    expires_at: str = ""  # ISO8601
+    issued_at: str = ""  # ISO8601
+    issued_by: str = ""  # actor_id
+    nonce: str = ""  # tied to confirmation
+    consumed: bool = False  # single-use enforcement
+    consumed_at: str | None = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -145,12 +151,16 @@ _USED_NONCES: set[str] = set()
 # with valid bound session may start challenge."
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def register_channel_session_binding(session_id: str, channel: str,
-                                    capability_scope: str = "all") -> None:
+
+def register_channel_session_binding(
+    session_id: str, channel: str, capability_scope: str = "all"
+) -> None:
     """Bind a session to a channel — only bound channels may request challenges."""
-    _PENDING_ACTIONS.setdefault("__channel_bindings__", {})[
-        (session_id, channel)
-    ] = {"session_id": session_id, "channel": channel, "scope": capability_scope}
+    _PENDING_ACTIONS.setdefault("__channel_bindings__", {})[(session_id, channel)] = {
+        "session_id": session_id,
+        "channel": channel,
+        "scope": capability_scope,
+    }
 
 
 def channel_bound_to_session(session_id: str, channel: str) -> bool:
@@ -164,11 +174,11 @@ def register_pending_action(action_id: str, action_profile: dict) -> None:
     _PENDING_ACTIONS[action_id] = action_profile
 
 
-def get_pending_action(action_id: str) -> Optional[dict]:
+def get_pending_action(action_id: str) -> dict | None:
     return _PENDING_ACTIONS.get(action_id)
 
 
-def list_pending_actions(session_id: Optional[str] = None) -> list[dict]:
+def list_pending_actions(session_id: str | None = None) -> list[dict]:
     """List pending actions, optionally filtered by session."""
     out = []
     for k, v in _PENDING_ACTIONS.items():
@@ -191,12 +201,13 @@ def list_pending_actions(session_id: Optional[str] = None) -> list[dict]:
 #   - returns AMBIGUOUS_CONFIRMATION_TARGET (multiple pending actions).
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def handle_human_signal(
     text: str,
     session_id: str,
     channel: str,
-    pending_action_id: Optional[str] = None,
-    allowed_pending_actions: Optional[Iterable[str]] = None,
+    pending_action_id: str | None = None,
+    allowed_pending_actions: Iterable[str] | None = None,
 ) -> SignalResult:
     """Process a human-channel signal.
 
@@ -234,9 +245,7 @@ def handle_human_signal(
     elif allowed_pending_actions is not None:
         candidates = list(allowed_pending_actions)
     else:
-        candidates = [
-            p["action_id"] for p in list_pending_actions(session_id=session_id)
-        ]
+        candidates = [p["action_id"] for p in list_pending_actions(session_id=session_id)]
 
     # Filter by session
     filtered = []
@@ -301,8 +310,9 @@ def handle_human_signal(
 # CONFIRMATION CHALLENGE / SIGNATURE BINDING / CAPABILITY ISSUANCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _action_hash(profile: dict) -> str:
@@ -334,7 +344,8 @@ def _consequence_summary(profile: dict) -> str:
 
 
 def issue_confirmation_challenge(
-    session_id: str, action_id: str,
+    session_id: str,
+    action_id: str,
 ) -> ConfirmationChallenge:
     """Build a session-bound confirmation challenge for one pending action."""
     prof = get_pending_action(action_id)
@@ -347,7 +358,7 @@ def issue_confirmation_challenge(
     consequence = _consequence_summary(prof)
     consequence_hash = f"sha256:{hashlib.sha256(consequence.encode()).hexdigest()}"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires = now + timedelta(minutes=2)
     return ConfirmationChallenge(
         session_id=session_id,
@@ -361,7 +372,8 @@ def issue_confirmation_challenge(
 
 
 def bind_signature_to_challenge(
-    challenge: ConfirmationChallenge, signature_b64: str,
+    challenge: ConfirmationChallenge,
+    signature_b64: str,
 ) -> bool:
     """Verify Ed25519 signature over challenge.canonical_payload().
 
@@ -387,7 +399,7 @@ def issue_narrow_capability(
     channel: str,
     signature_b64: str,
     capability_class: str = "vault.append.sovereign",
-) -> Optional[NarrowCapability]:
+) -> NarrowCapability | None:
     """Issue a single-use payload-bound capability for one action.
 
     Returns None if any of the following fails:
@@ -429,7 +441,7 @@ def issue_narrow_capability(
     return cap
 
 
-def get_capability(cap_id: str) -> Optional[NarrowCapability]:
+def get_capability(cap_id: str) -> NarrowCapability | None:
     return _ISSUED_CAPABILITIES.get(cap_id)
 
 
@@ -453,14 +465,12 @@ def consume_capability(cap_id: str, presented_payload_hash: str) -> bool:
     # Expiry
     try:
         exp = datetime.fromisoformat(cap.expires_at.replace("Z", "+00:00"))
-        if datetime.now(timezone.utc) >= exp:
+        if datetime.now(UTC) >= exp:
             return False
     except Exception:
         return False
     # Single-use: mark consumed (immutable copy)
-    consumed_cap = NarrowCapability(
-        **{**cap.__dict__, "consumed": True, "consumed_at": _now_iso()}
-    )
+    consumed_cap = NarrowCapability(**{**cap.__dict__, "consumed": True, "consumed_at": _now_iso()})
     _ISSUED_CAPABILITIES[cap_id] = consumed_cap
     return True
 

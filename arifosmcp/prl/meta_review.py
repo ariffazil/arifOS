@@ -22,7 +22,7 @@ import os
 import sys
 import time
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 REPORT_PATH = os.path.expanduser("~/.local/share/arifos/prl/review_required.json")
@@ -49,15 +49,17 @@ def load_all_points() -> list[dict[str, Any]]:
         )
         for record in records:
             payload = record.payload or {}
-            points.append({
-                "id": record.id,
-                "vector": record.vector,
-                "blast_radius": payload.get("blast_radius", "L2_SYSTEM"),
-                "enriched_category": payload.get("enriched_category", "system.general"),
-                "verdict": payload.get("verdict", ""),
-                "timestamp": payload.get("timestamp", ""),
-                "seal_id": payload.get("seal_id", str(record.id)),
-            })
+            points.append(
+                {
+                    "id": record.id,
+                    "vector": record.vector,
+                    "blast_radius": payload.get("blast_radius", "L2_SYSTEM"),
+                    "enriched_category": payload.get("enriched_category", "system.general"),
+                    "verdict": payload.get("verdict", ""),
+                    "timestamp": payload.get("timestamp", ""),
+                    "seal_id": payload.get("seal_id", str(record.id)),
+                }
+            )
     except Exception as e:
         print(f"[ERROR] Failed to scroll Qdrant: {e}", file=sys.stderr)
         return []
@@ -94,9 +96,7 @@ def cluster_by_similarity(points: list[dict]) -> list[list[int]]:
             # Check similarity against ALL existing members
             all_similar = True
             for member_idx in cluster:
-                sim = cosine_similarity(
-                    points[i]["vector"], points[j]["vector"]
-                )
+                sim = cosine_similarity(points[i]["vector"], points[j]["vector"])
                 if sim < ANOMALY_THRESHOLD:
                     all_similar = False
                     break
@@ -144,8 +144,11 @@ def detect_anomalies(points: list[dict], clusters: list[list[int]]) -> list[dict
                     "verdict": points[idx]["verdict"],
                     "timestamp": points[idx]["timestamp"],
                     "severity": (
-                        "HIGH" if br == "L1_LOCAL" and majority_br == "L3_CRITICAL"
-                        else "MEDIUM" if br != majority_br else "LOW"
+                        "HIGH"
+                        if br == "L1_LOCAL" and majority_br == "L3_CRITICAL"
+                        else "MEDIUM"
+                        if br != majority_br
+                        else "LOW"
                     ),
                     "recommendation": (
                         f"Review: L1_LOCAL in L3_CRITICAL cluster. "
@@ -172,7 +175,7 @@ def generate_report(points: list[dict], anomalies: list[dict]) -> dict:
         "meta": {
             "tool": "prl_meta_precedent_review",
             "phase": "2",
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "total_points": len(points),
             "anomalies_found": len(anomalies),
             "anomaly_threshold": ANOMALY_THRESHOLD,
@@ -186,12 +189,14 @@ def generate_report(points: list[dict], anomalies: list[dict]) -> dict:
             "Review anomalies above. For each HIGH severity: "
             "verify blast_radius classification. For misclassified: "
             "re-seal with correct blast_radius or ratify as accepted risk."
-        ) if anomalies else "No anomalies detected. All blast_radius tags consistent with cluster membership.",
+        )
+        if anomalies
+        else "No anomalies detected. All blast_radius tags consistent with cluster membership.",
     }
 
 
 def main():
-    print(f"[{datetime.now(timezone.utc).isoformat()}] PRL Phase 2: Meta-Precedent Review")
+    print(f"[{datetime.now(UTC).isoformat()}] PRL Phase 2: Meta-Precedent Review")
 
     points = load_all_points()
     if not points:
@@ -204,8 +209,10 @@ def main():
     t0 = time.time()
     clusters = cluster_by_similarity(points)
     cluster_time = time.time() - t0
-    print(f"  Clustered into {len(clusters)} groups "
-          f"(took {cluster_time:.1f}s, threshold={ANOMALY_THRESHOLD})")
+    print(
+        f"  Clustered into {len(clusters)} groups "
+        f"(took {cluster_time:.1f}s, threshold={ANOMALY_THRESHOLD})"
+    )
 
     # Anomaly detection
     anomalies = detect_anomalies(points, clusters)

@@ -27,10 +27,11 @@ See also:
 """
 
 from __future__ import annotations
+
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # Make sure package resolves when run directly
 HERE = Path(__file__).parent
@@ -60,9 +61,9 @@ ROOT = Path(os.environ.get("REPO_ROOT", "/root"))
 
 
 @mcp.tool()
-def arif_kernel_health() -> Dict[str, Any]:
+def arif_kernel_health() -> dict[str, Any]:
     """Light kernel health using core if available, else FS signals."""
-    info: Dict[str, Any] = {"status": "ok", "source": "arifosmcp/kernel_mcp (reference)"}
+    info: dict[str, Any] = {"status": "ok", "source": "arifosmcp/kernel_mcp (reference)"}
     if get_kernel:
         try:
             k = get_kernel()
@@ -79,7 +80,7 @@ def arif_kernel_health() -> Dict[str, Any]:
 
 
 @mcp.tool()
-def arif_kernel_check(action: str) -> Dict[str, Any]:
+def arif_kernel_check(action: str) -> dict[str, Any]:
     """Pre-flight floor hint. Real 888 is arif_judge + human."""
     risky = any(w in action.lower() for w in ["delete", "deploy", "seal", "prod", "force"])
     return {

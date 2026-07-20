@@ -184,19 +184,29 @@ def _infer_category(action: str, metadata: dict[str, Any] | None = None) -> str:
     action_lower = str(action).lower()
 
     # surface_gate patterns
-    if any(kw in action_lower for kw in ("surface_gate", "surface.pin", "surface.lock", "surface_gate.pin")):
+    if any(
+        kw in action_lower
+        for kw in ("surface_gate", "surface.pin", "surface.lock", "surface_gate.pin")
+    ):
         return "security.surface_control"
 
     # vector / qdrant patterns
-    if any(kw in action_lower for kw in ("vector", "qdrant", "embed", "upsert", "index", "collection")):
+    if any(
+        kw in action_lower for kw in ("vector", "qdrant", "embed", "upsert", "index", "collection")
+    ):
         return "database.vector_index"
 
     # EMD / PRL patterns
-    if any(kw in action_lower for kw in ("emd", "prl", "gate", "precedent", "encode", "metabolize", "intercept")):
+    if any(
+        kw in action_lower
+        for kw in ("emd", "prl", "gate", "precedent", "encode", "metabolize", "intercept")
+    ):
         return "architecture.emd_pipeline"
 
     # file / forge / mutation patterns
-    if any(kw in action_lower for kw in ("file_write", "forge", "mutate", "patch", "commit", "deploy")):
+    if any(
+        kw in action_lower for kw in ("file_write", "forge", "mutate", "patch", "commit", "deploy")
+    ):
         return "system.code_generation"
 
     # session / init patterns
@@ -208,7 +218,9 @@ def _infer_category(action: str, metadata: dict[str, Any] | None = None) -> str:
         return "governance.constitutional"
 
     # geoscience / basin / geological patterns
-    if any(kw in action_lower for kw in ("geox", "basin", "seismic", "well", "geolog", "petrophys")):
+    if any(
+        kw in action_lower for kw in ("geox", "basin", "seismic", "well", "geolog", "petrophys")
+    ):
         return "geoscience.earth_model"
 
     # capital / wealth patterns
@@ -238,6 +250,7 @@ def _synthesize_vector_text(entry: dict[str, Any]) -> str:
     if isinstance(payload, str):
         try:
             import json as _json
+
             payload = _json.loads(payload)
         except Exception:
             payload = {}
@@ -246,7 +259,9 @@ def _synthesize_vector_text(entry: dict[str, Any]) -> str:
     action = str(payload.get("action", entry.get("action", entry.get("event", ""))))
     verdict = str(entry.get("verdict", payload.get("verdict", "SEAL")))
     blast_radius = str(entry.get("blast_radius", payload.get("blast_radius", "L2_SYSTEM")))
-    actor = str(entry.get("actor", payload.get("actor", entry.get("actor_id", payload.get("actor_id", "")))))
+    actor = str(
+        entry.get("actor", payload.get("actor", entry.get("actor_id", payload.get("actor_id", ""))))
+    )
     category = str(entry.get("category", payload.get("category", payload.get("domain", ""))))
 
     # Metadata — the WHY
@@ -254,6 +269,7 @@ def _synthesize_vector_text(entry: dict[str, Any]) -> str:
     if isinstance(metadata, str):
         try:
             import json as _json
+
             metadata = _json.loads(metadata)
         except Exception:
             metadata = {}
@@ -307,6 +323,7 @@ def _build_enriched_payload(
     if isinstance(payload, str):
         try:
             import json as _json
+
             payload = _json.loads(payload)
         except Exception:
             payload = {}
@@ -496,8 +513,12 @@ def backfill_historical(
             payload_text = json.dumps(entry, sort_keys=True, default=str)
             derived_text = _synthesize_vector_text(entry)
             enriched_payload = _build_enriched_payload(
-                entry, entry_id, default_blast_radius,
-                str(entry.get("session_id", "")), derived_text, payload_text,
+                entry,
+                entry_id,
+                default_blast_radius,
+                str(entry.get("session_id", "")),
+                derived_text,
+                payload_text,
             )
             try:
                 # Embed the DERIVED SEMANTIC DOCUMENT, not the raw JSON

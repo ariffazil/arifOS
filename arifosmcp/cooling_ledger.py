@@ -14,9 +14,8 @@ Doctrine: DITEMPA BUKAN DIBERI.
 """
 
 import os
-import uuid as _uuid
 from contextlib import contextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import psycopg2
 import psycopg2.extras
@@ -26,7 +25,7 @@ import psycopg2.sql
 # Module-level constants
 # ---------------------------------------------------------------------------
 
-ORGAN_DECAY_COEFFICIENT: Dict[str, float] = {
+ORGAN_DECAY_COEFFICIENT: dict[str, float] = {
     "GEOX": 0.05,
     "A-FORGE": 0.02,
     "arifOS": 0.01,
@@ -52,7 +51,7 @@ _POSTGRES_URL_ENV = "POSTGRES_URL"
 class CoolingLedgerError(Exception):
     """Raised when a cooling-ledger Postgres operation fails."""
 
-    def __init__(self, message: str, original: Optional[Exception] = None) -> None:
+    def __init__(self, message: str, original: Exception | None = None) -> None:
         self.original = original
         detail = f"{message}"
         if original:
@@ -83,13 +82,13 @@ class CoolingLedgerClient:
 
     def write(
         self,
-        event: Dict[str, Any],
+        event: dict[str, Any],
         organ: str,
         entry_type: str,
         principal_id: str,
         agent_role: str,
-        lease_id: Optional[str] = None,
-        epoch_id: Optional[str] = None,
+        lease_id: str | None = None,
+        epoch_id: str | None = None,
     ) -> str:
         """Insert a new cooling-ledger entry and return its ``entry_id``.
 
@@ -163,7 +162,7 @@ class CoolingLedgerClient:
     # 2. decay_tick
     # ------------------------------------------------------------------
 
-    def decay_tick(self, entry_id: str) -> Dict[str, Any]:
+    def decay_tick(self, entry_id: str) -> dict[str, Any]:
         """Apply one decay cycle to a single entry.
 
         Calls the server-side ``apply_decay`` function which computes
@@ -204,7 +203,7 @@ class CoolingLedgerClient:
     # 3. decay_sweep
     # ------------------------------------------------------------------
 
-    def decay_sweep(self, organ: Optional[str] = None, min_temp: float = 0.0) -> int:
+    def decay_sweep(self, organ: str | None = None, min_temp: float = 0.0) -> int:
         """Apply ``apply_decay`` to every entry that matches the filter.
 
         Parameters
@@ -295,11 +294,11 @@ class CoolingLedgerClient:
     def _query(
         self,
         *,
-        organ: Optional[str] = None,
+        organ: str | None = None,
         limit: int,
         where_clause: str,
-        params: Optional[List[Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        params: list[Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Generic query helper used by all ``query_*`` methods."""
         query_parts = ["SELECT * FROM cooling_ledger_entries WHERE"]
         query_params: list[Any] = []
@@ -325,7 +324,7 @@ class CoolingLedgerClient:
         except psycopg2.Error as exc:
             raise CoolingLedgerError("query failed", original=exc) from exc
 
-    def query_hot(self, organ: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    def query_hot(self, organ: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Entries with ``temperature >= 0.5`` (still hot / unmodified)."""
         return self._query(
             organ=organ,
@@ -333,7 +332,7 @@ class CoolingLedgerClient:
             where_clause="temperature >= 0.5",
         )
 
-    def query_cool(self, organ: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    def query_cool(self, organ: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Entries with ``temperature < 0.5`` (substantially cooled)."""
         return self._query(
             organ=organ,
@@ -341,7 +340,7 @@ class CoolingLedgerClient:
             where_clause="temperature < 0.5",
         )
 
-    def query_pending(self, organ: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    def query_pending(self, organ: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Entries still in ``PENDING`` verdict state."""
         return self._query(
             organ=organ,
@@ -349,9 +348,7 @@ class CoolingLedgerClient:
             where_clause="verdict_state = 'PENDING'",
         )
 
-    def query_seal_ready(
-        self, organ: Optional[str] = None, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    def query_seal_ready(self, organ: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Entries that have graduated to ``SEAL_READY``."""
         return self._query(
             organ=organ,
@@ -399,7 +396,7 @@ def CoolingLedgerSession(
     actor: str,
     epoch_id: str,
     *,
-    dsn: Optional[str] = None,
+    dsn: str | None = None,
     autocommit: bool = False,
 ):
     """Context manager that opens a Postgres connection, sets session-local
@@ -434,7 +431,7 @@ def CoolingLedgerSession(
     if not dsn:
         raise CoolingLedgerError(f"{_POSTGRES_URL_ENV} is not set and no dsn= was provided.")
 
-    conn: Optional[psycopg2.extensions.connection] = None
+    conn: psycopg2.extensions.connection | None = None
     try:
         conn = psycopg2.connect(dsn)
         if autocommit:

@@ -17,7 +17,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-from arifosmcp.constitutional_map import DeltaIrreversibilityClass as RiskClass, RiskDecision  # noqa: F401
+from arifosmcp.constitutional_map import DeltaIrreversibilityClass as RiskClass  # noqa: F401
+from arifosmcp.constitutional_map import RiskDecision
 from arifosmcp.core.authority_gate import AuthorityGate, AuthorityProof, WitnessType
 from arifosmcp.core.law_evaluator import FloorEvaluator, LawResult
 from arifosmcp.core.threat_engine import (

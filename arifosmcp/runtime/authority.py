@@ -39,10 +39,10 @@ from typing import Any
 from arifosmcp.runtime.model import (
     AuthorityActor,
     AuthorityForgeGate,
+    AuthorityLevel,
     AuthorityPublicPosture,
     AuthoritySeals,
     AuthorityState,
-    AuthorityLevel,
     CanonicalAuthority,
     ClaimStatus,
 )

@@ -8,7 +8,7 @@ The observation enters the J-state computation pipeline only after validation.
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 PROHIBITED_PATTERNS = {
@@ -32,14 +32,25 @@ PROHIBITED_PATTERNS = {
 }
 
 VALID_SIGNAL_CLASSES = [
-    "INFORMATION_LOSS", "POSSIBILITY_COLLAPSE", "FEEDBACK_CORRUPTION",
-    "DEFENSIVE_OVERHEAD", "CASCADE_PROPAGATION", "CORRECTION_FAILURE", "BRITTLE_ORDER",
+    "INFORMATION_LOSS",
+    "POSSIBILITY_COLLAPSE",
+    "FEEDBACK_CORRUPTION",
+    "DEFENSIVE_OVERHEAD",
+    "CASCADE_PROPAGATION",
+    "CORRECTION_FAILURE",
+    "BRITTLE_ORDER",
 ]
 
 VALID_DARK_MODES = [
-    "JUDGMENT_COLLAPSE", "PAIN_ONTOLOGY", "POWER_WITHOUT_CONSEQUENCE",
-    "SELF_CERTIFIED_NIAT", "METRIC_PURPOSE_SUBSTITUTION", "FEAR_IDENTITY",
-    "RESPONSIBILITY_LAUNDERING", "EMPATHY_SCALE_COLLAPSE", "SABAR_LOSS",
+    "JUDGMENT_COLLAPSE",
+    "PAIN_ONTOLOGY",
+    "POWER_WITHOUT_CONSEQUENCE",
+    "SELF_CERTIFIED_NIAT",
+    "METRIC_PURPOSE_SUBSTITUTION",
+    "FEAR_IDENTITY",
+    "RESPONSIBILITY_LAUNDERING",
+    "EMPATHY_SCALE_COLLAPSE",
+    "SABAR_LOSS",
     "CERTAINTY_IMMUNITY",
 ]
 
@@ -50,6 +61,7 @@ VALID_SUBJECT_TYPES = ["HUMAN", "AGENT", "INSTITUTION", "DECISION", "EARTH_SYSTE
 def _check_prohibited(text: str) -> list[str]:
     """Check text against prohibited inference patterns."""
     import re
+
     violations = []
     for violation_type, patterns in PROHIBITED_PATTERNS.items():
         for pattern in patterns:
@@ -64,7 +76,15 @@ def _validate_observation(obs: dict) -> tuple[bool, list[str]]:
     errors = []
 
     # Required fields
-    required = ["observation_id", "organ", "subject_type", "subject_ref", "signal_class", "evidence", "epistemic"]
+    required = [
+        "observation_id",
+        "organ",
+        "subject_type",
+        "subject_ref",
+        "signal_class",
+        "evidence",
+        "epistemic",
+    ]
     for field in required:
         if field not in obs:
             errors.append(f"Missing required field: {field}")
@@ -93,7 +113,9 @@ def _validate_observation(obs: dict) -> tuple[bool, list[str]]:
     if not evidence.get("direct_observations"):
         errors.append("evidence.direct_observations must have at least one entry")
     if not evidence.get("alternative_explanations"):
-        errors.append("evidence.alternative_explanations must have at least one entry (benign alternative mandatory)")
+        errors.append(
+            "evidence.alternative_explanations must have at least one entry (benign alternative mandatory)"
+        )
 
     # Epistemic validation
     epistemic = obs.get("epistemic", {})
@@ -111,7 +133,9 @@ def _validate_observation(obs: dict) -> tuple[bool, list[str]]:
     violations = _check_prohibited(all_text)
     if violations:
         for v in violations:
-            errors.append(f"PROHIBITED INFERENCE ({v}): observation text contains forbidden patterns")
+            errors.append(
+                f"PROHIBITED INFERENCE ({v}): observation text contains forbidden patterns"
+            )
 
     return len(errors) == 0, errors
 
@@ -139,7 +163,7 @@ def arif_entropy_observe(observation: dict, store_path: str | None = None) -> di
     # Auto-timestamp
     if "metadata" not in observation:
         observation["metadata"] = {}
-    observation["metadata"]["observed_at"] = datetime.now(timezone.utc).isoformat()
+    observation["metadata"]["observed_at"] = datetime.now(UTC).isoformat()
     observation["metadata"]["schema_version"] = "v1"
 
     # Validate

@@ -22,10 +22,9 @@ DITEMPA BUKAN DIBERI — The profile is forged, not given.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ACTION CLASSIFICATION ENUMS
@@ -214,9 +213,7 @@ class ActionProfile:
                 "requires_human_ack": self.requires_human_ack,
                 "classified_by": self.classified_by,
             }
-            h = hashlib.sha256(
-                json.dumps(canonical, sort_keys=True).encode()
-            ).hexdigest()
+            h = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
             object.__setattr__(self, "profile_hash", h[:16])
 
 
@@ -496,8 +493,6 @@ def classify_action(
     Returns:
         Immutable ActionProfile
     """
-    import hashlib
-    import json
 
     # Look up tool
     tool_map = TOOL_CLASSIFICATION_MAP.get(tool, {})

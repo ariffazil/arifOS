@@ -44,12 +44,9 @@ def _build_tables(idx: dict[str, Any]) -> tuple[dict, dict, dict]:
         name_to_kid:         arif_fetch -> "K012"
     """
     name_to_harmonic = dict(idx.get("by_name", {}) or {})
-    harmonic_to_kid = {
-        h: meta["k_id"] for h, meta in (idx.get("by_harmonic", {}) or {}).items()
-    }
+    harmonic_to_kid = {h: meta["k_id"] for h, meta in (idx.get("by_harmonic", {}) or {}).items()}
     name_to_kid = {
-        meta["name"]: meta["k_id"]
-        for meta in (idx.get("by_harmonic", {}) or {}).values()
+        meta["name"]: meta["k_id"] for meta in (idx.get("by_harmonic", {}) or {}).values()
     }
     return name_to_harmonic, harmonic_to_kid, name_to_kid
 
@@ -75,10 +72,7 @@ def _reload() -> None:
     ) = _build_tables(idx)
 
     # K-id → harmonic_id (Stage 1 patch — fixes K012 → 111.2 lookup)
-    _KID_TO_HARMONIC = {
-        meta["k_id"]: h
-        for h, meta in (idx.get("by_harmonic", {}) or {}).items()
-    }
+    _KID_TO_HARMONIC = {meta["k_id"]: h for h, meta in (idx.get("by_harmonic", {}) or {}).items()}
 
     # Build kid → meta by walking the canonical section of the YAML too,
     # so resolve_kid() can return stage + action_class. We don't deep-link

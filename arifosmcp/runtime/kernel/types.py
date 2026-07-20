@@ -16,12 +16,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 from __future__ import annotations
+
+import time
+import uuid
 from dataclasses import dataclass, field
 from typing import Literal
-from enum import Enum
-import uuid
-import time
-
 
 # ── 1. Uncertainty Tags ────────────────────────
 
@@ -89,7 +88,7 @@ class EvidenceItem:
         payload: dict | None = None,
         uncertainty: UncertaintyTag = "UNKNOWN",
         lineage_id: str | None = None,
-    ) -> "EvidenceItem":
+    ) -> EvidenceItem:
         return cls(
             id=uuid.uuid4().hex[:16],
             source=source.upper(),
@@ -205,7 +204,7 @@ class GovernanceState:
     actor_id: str | None = None
     collapse: CollapseResult | None = None
 
-    def clone(self, **overrides) -> "GovernanceState":
+    def clone(self, **overrides) -> GovernanceState:
         """Immutable-style update: returns new state with overridden fields."""
         data = {
             "phase": self.phase,

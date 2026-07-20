@@ -39,8 +39,8 @@ from .models import (
     InterceptorInput,
     MutationClass,
     SinkRisk,
-    TruthClass,
     TrustState,
+    TruthClass,
     Witness,
     WitnessType,
 )
@@ -49,6 +49,8 @@ from .models import (
 try:
     from arifosmcp.core.latency_budget import (
         LATENCY_BUDGETS,
+    )
+    from arifosmcp.core.latency_budget import (
         DecisionClass as LatencyDecisionClass,
     )
 
@@ -976,9 +978,11 @@ def intercept(raw_request: dict[str, Any]) -> InterceptorDecision:
 
     # Dynamic capability adjustment for multi-mode tools (e.g. read-only modes of arif_seal)
     if capability and canonical_tool in ("arif_seal", "arif_vault_seal", "arifos_seal"):
-        _mode = str(
-            req.raw_arguments.get("mode") or req.raw_arguments.get("action") or ""
-        ).lower().strip()
+        _mode = (
+            str(req.raw_arguments.get("mode") or req.raw_arguments.get("action") or "")
+            .lower()
+            .strip()
+        )
         if _mode in (
             "verify",
             "ledger",

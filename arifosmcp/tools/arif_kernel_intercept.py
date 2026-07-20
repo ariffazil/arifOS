@@ -25,7 +25,7 @@ from arifosmcp.schemas import KernelInput, KernelOutput, ReversibilityClass, Tru
 
 # Constitutional affordance plumbing (metacognitive wiring)
 try:
-    from arifosmcp.runtime.tools import get_full_affordance, build_standard_mcp_result
+    from arifosmcp.runtime.tools import build_standard_mcp_result, get_full_affordance
 except Exception:
 
     def get_full_affordance(n):

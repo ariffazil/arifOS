@@ -31,14 +31,14 @@ from .actor_verified import (
     ActorVerifiedState,
 )
 from .bridging_seal import (
-    BridgingSealRequest,
     BridgingSealReceipt,
+    BridgingSealRequest,
     request_bridging_seal,
     verify_bridging_seal,
 )
 from .jwt_dpop import (
-    encode_jwt,
     decode_jwt,
+    encode_jwt,
     make_dpop_proof,
     verify_dpop_proof,
 )
@@ -70,6 +70,7 @@ from typing import Any
 
 try:
     import blake3 as _b3
+
     _HAS_B3 = True
 except ImportError:
     _HAS_B3 = False
@@ -81,6 +82,7 @@ except ImportError:
 
 IDENTITY_TOML_PATH = Path("/opt/arifos/app/identity.toml")
 _cached_identity: dict[str, Any] | None = None
+
 
 def _load_identity_toml() -> dict[str, Any]:
     global _cached_identity
@@ -104,6 +106,7 @@ def _load_identity_toml() -> dict[str, Any]:
             "a2a": {"enabled": True},
         }
 
+
 def get_identity(running_commit: str = "unknown") -> dict[str, Any]:
     identity = _load_identity_toml()
     return {
@@ -122,6 +125,7 @@ def get_identity(running_commit: str = "unknown") -> dict[str, Any]:
         "status": "healthy",
     }
 
+
 def get_identity_hash() -> str:
     identity = _load_identity_toml()
     payload = (
@@ -131,6 +135,7 @@ def get_identity_hash() -> str:
     )
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
+
 def get_identity_b3_hash() -> dict[str, Any]:
     try:
         with open(IDENTITY_TOML_PATH, "rb") as f:
@@ -139,7 +144,14 @@ def get_identity_b3_hash() -> dict[str, Any]:
             b3_hash = _b3.blake3(content).hexdigest()
         else:
             b3_hash = hashlib.blake2b(content, digest_size=32).hexdigest()
-        return {"algorithm": "blake3" if _HAS_B3 else "blake2b", "source": str(IDENTITY_TOML_PATH), "hash": b3_hash}
+        return {
+            "algorithm": "blake3" if _HAS_B3 else "blake2b",
+            "source": str(IDENTITY_TOML_PATH),
+            "hash": b3_hash,
+        }
     except Exception:
-        return {"algorithm": "blake2b", "source": "fallback", "hash": hashlib.blake2b(b"arifos-stub", digest_size=32).hexdigest()}
-
+        return {
+            "algorithm": "blake2b",
+            "source": "fallback",
+            "hash": hashlib.blake2b(b"arifos-stub", digest_size=32).hexdigest(),
+        }

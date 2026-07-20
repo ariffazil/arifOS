@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import sys
 import time
 import uuid
-import sys
 from pathlib import Path
 
 import jwt as pyjwt
@@ -40,14 +40,18 @@ def _make_access_token(jkt: str) -> str:
     )
 
 
-def _make_proof(private_key, public_jwk: dict[str, str], url: str, token: str, *, jti: str | None = None) -> str:
+def _make_proof(
+    private_key, public_jwk: dict[str, str], url: str, token: str, *, jti: str | None = None
+) -> str:
     now = int(time.time())
     claims = {
         "htu": url,
         "htm": "POST",
         "iat": now,
         "jti": jti or str(uuid.uuid4()),
-        "ath": pyjwt.utils.base64url_encode(__import__("hashlib").sha256(token.encode("utf-8")).digest()).decode("ascii"),
+        "ath": pyjwt.utils.base64url_encode(
+            __import__("hashlib").sha256(token.encode("utf-8")).digest()
+        ).decode("ascii"),
     }
     return pyjwt.encode(
         claims,

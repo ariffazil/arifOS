@@ -25,8 +25,8 @@ DITEMPA BUKAN DIBERI — the doctrine is the reason, the reflex is the disciplin
 """
 
 from __future__ import annotations
-from enum import Enum
 
+from enum import Enum
 
 # ═══════════════════════════════════════════════════════════════════════
 # §PUSAKA — Constitutional Heritage

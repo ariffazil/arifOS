@@ -303,7 +303,7 @@ def get_tool_discovery_resource_text() -> dict[str, Any]:
 
 # ── New: full affordance contracts resource for metacognitive agents ─────────
 try:
-    from arifosmcp.runtime.tools import get_full_affordance, AGENCY_LEVELS, DECISION_THRESHOLDS
+    from arifosmcp.runtime.tools import AGENCY_LEVELS, DECISION_THRESHOLDS, get_full_affordance
 except Exception:
 
     def get_full_affordance(n):

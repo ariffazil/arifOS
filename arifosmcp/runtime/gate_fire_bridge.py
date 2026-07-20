@@ -18,9 +18,9 @@ Usage:
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any
 
 GATE_FIRE_PATH = Path(os.environ.get("GATE_FIRE_PATH", "/root/.local/share/arifos/gate_fire.jsonl"))
 BRIDGE_STATE_PATH = Path(
@@ -32,7 +32,7 @@ MIN_TIER = 3
 # Skip entries older than 7 days (too stale)
 MAX_AGE_DAYS = 7
 
-CATEGORY_TO_DIMENSION: Dict[str, str] = {
+CATEGORY_TO_DIMENSION: dict[str, str] = {
     "pattern": "memory_staleness",
     "healthy": "tool_behavior",
     "done": "runtime_commit",
@@ -47,7 +47,7 @@ CATEGORY_TO_DIMENSION: Dict[str, str] = {
 }
 
 
-def _load_entries() -> List[Dict[str, Any]]:
+def _load_entries() -> list[dict[str, Any]]:
     if not GATE_FIRE_PATH.exists():
         return []
     entries = []
@@ -63,7 +63,7 @@ def _load_entries() -> List[Dict[str, Any]]:
     return entries
 
 
-def _load_bridge_state() -> Dict[str, Any]:
+def _load_bridge_state() -> dict[str, Any]:
     if BRIDGE_STATE_PATH.exists():
         try:
             return json.loads(BRIDGE_STATE_PATH.read_text())
@@ -72,17 +72,17 @@ def _load_bridge_state() -> Dict[str, Any]:
     return {"last_processed": "1970-01-01T00:00:00Z", "cooled_receipts": []}
 
 
-def _save_bridge_state(state: Dict[str, Any]) -> None:
+def _save_bridge_state(state: dict[str, Any]) -> None:
     BRIDGE_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     BRIDGE_STATE_PATH.write_text(json.dumps(state, indent=2))
 
 
-def find_cooling_candidates() -> List[Dict[str, Any]]:
+def find_cooling_candidates() -> list[dict[str, Any]]:
     """Find gate_fire entries that qualify for auto-cooling."""
     entries = _load_entries()
     state = _load_bridge_state()
-    cooled: Set[str] = set(state.get("cooled_receipts", []))
-    now = datetime.now(timezone.utc)
+    cooled: set[str] = set(state.get("cooled_receipts", []))
+    now = datetime.now(UTC)
     candidates = []
 
     for entry in entries:
@@ -130,9 +130,9 @@ def find_cooling_candidates() -> List[Dict[str, Any]]:
     return candidates
 
 
-def find_recurring_patterns(candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def find_recurring_patterns(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Group candidates by dimension to detect recurring patterns."""
-    groups: Dict[str, List[Dict]] = {}
+    groups: dict[str, list[dict]] = {}
     for c in candidates:
         key = c["drift_dimension"]
         groups.setdefault(key, []).append(c)
@@ -157,13 +157,13 @@ def find_recurring_patterns(candidates: List[Dict[str, Any]]) -> List[Dict[str, 
     return patterns
 
 
-def mark_cooled(receipt_ids: List[str]) -> Dict[str, Any]:
+def mark_cooled(receipt_ids: list[str]) -> dict[str, Any]:
     """Mark receipts as cooled in bridge state."""
     state = _load_bridge_state()
     cooled = set(state.get("cooled_receipts", []))
     cooled.update(receipt_ids)
     state["cooled_receipts"] = sorted(cooled)
-    state["last_processed"] = datetime.now(timezone.utc).isoformat()
+    state["last_processed"] = datetime.now(UTC).isoformat()
     _save_bridge_state(state)
     return {"marked": len(receipt_ids), "total_cooled": len(cooled)}
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     if mode == "status":
         candidates = find_cooling_candidates()
         patterns = find_recurring_patterns(candidates)
-        print(f"🔥 GateFireBridge — T2.2 Auto-Cooling Status")
+        print("🔥 GateFireBridge — T2.2 Auto-Cooling Status")
         print(f"   gate_fire entries: {len(_load_entries())}")
         print(f"   cooling candidates: {len(candidates)} (tier≥{MIN_TIER}, ≤{MAX_AGE_DAYS}d old)")
         print(f"   recurring patterns: {len(patterns)}")
@@ -212,4 +212,4 @@ if __name__ == "__main__":
         print(json.dumps(result, indent=2))
 
     else:
-        print(f"Usage: python gate_fire_bridge.py [status|analyze|mark ID...]")
+        print("Usage: python gate_fire_bridge.py [status|analyze|mark ID...]")

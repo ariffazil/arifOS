@@ -30,7 +30,6 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-
 # ── Result types (four states) ─────────────────────────────────────────────
 
 PASS = "PASS"
@@ -119,7 +118,12 @@ def _kernel_reachable(timeout: float = 2.0) -> tuple[bool, str]:
         return (False, f"error: {exc}")
 
 
-def _mcp_post(method: str, params: dict[str, Any] | None = None, session_id: str | None = None, timeout: float = 5.0) -> dict[str, Any]:
+def _mcp_post(
+    method: str,
+    params: dict[str, Any] | None = None,
+    session_id: str | None = None,
+    timeout: float = 5.0,
+) -> dict[str, Any]:
     """Minimal MCP JSON-RPC POST against the kernel."""
     payload = {
         "jsonrpc": "2.0",
@@ -134,9 +138,7 @@ def _mcp_post(method: str, params: dict[str, Any] | None = None, session_id: str
     }
     if session_id:
         headers["Mcp-Session-Id"] = session_id
-    req = urllib.request.Request(
-        _kernel_url() + "/mcp", data=body, headers=headers, method="POST"
-    )
+    req = urllib.request.Request(_kernel_url() + "/mcp", data=body, headers=headers, method="POST")
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         raw = resp.read().decode("utf-8")
     # Strip SSE framing if present.
@@ -148,34 +150,52 @@ def _mcp_post(method: str, params: dict[str, Any] | None = None, session_id: str
 # ── Check helpers ──────────────────────────────────────────────────────────
 
 
-def _ok(name: str, priority: str, expected: str, actual: str, evidence: dict[str, Any] | None = None) -> CheckResult:
+def _ok(
+    name: str, priority: str, expected: str, actual: str, evidence: dict[str, Any] | None = None
+) -> CheckResult:
     return CheckResult(
-        name=name, priority=priority, state=PASS,
-        expected=expected, actual=actual,
+        name=name,
+        priority=priority,
+        state=PASS,
+        expected=expected,
+        actual=actual,
         evidence=evidence or {},
     )
 
 
-def _fail(name: str, priority: str, expected: str, actual: str, evidence: dict[str, Any] | None = None) -> CheckResult:
+def _fail(
+    name: str, priority: str, expected: str, actual: str, evidence: dict[str, Any] | None = None
+) -> CheckResult:
     return CheckResult(
-        name=name, priority=priority, state=FAIL,
-        expected=expected, actual=actual,
+        name=name,
+        priority=priority,
+        state=FAIL,
+        expected=expected,
+        actual=actual,
         evidence=evidence or {},
     )
 
 
-def _unknown(name: str, priority: str, expected: str, reason: str, evidence: dict[str, Any] | None = None) -> CheckResult:
+def _unknown(
+    name: str, priority: str, expected: str, reason: str, evidence: dict[str, Any] | None = None
+) -> CheckResult:
     return CheckResult(
-        name=name, priority=priority, state=UNKNOWN,
-        expected=expected, actual=f"could_not_run: {reason}",
+        name=name,
+        priority=priority,
+        state=UNKNOWN,
+        expected=expected,
+        actual=f"could_not_run: {reason}",
         evidence=evidence or {"reason": reason},
     )
 
 
 def _na(name: str, priority: str, expected: str, reason: str) -> CheckResult:
     return CheckResult(
-        name=name, priority=priority, state=NOT_APPLICABLE,
-        expected=expected, actual=f"not_applicable: {reason}",
+        name=name,
+        priority=priority,
+        state=NOT_APPLICABLE,
+        expected=expected,
+        actual=f"not_applicable: {reason}",
         evidence={"reason": reason},
     )
 
@@ -199,8 +219,7 @@ def _check_initialize() -> CheckResult:
         proto = result.get("result", {}).get("protocolVersion")
         info = result.get("result", {}).get("serverInfo")
         if proto and info:
-            return _ok(name, priority, expected, f"protocolVersion={proto}",
-                       {"serverInfo": info})
+            return _ok(name, priority, expected, f"protocolVersion={proto}", {"serverInfo": info})
         return _fail(name, priority, expected, f"missing fields: {result}")
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
@@ -228,19 +247,28 @@ def _check_tools_list() -> CheckResult:
         tools = result.get("result", {}).get("tools", [])
         names = [t.get("name") for t in tools if isinstance(t, dict)]
         canonical_8 = {
-            "arif_init", "arif_observe", "arif_think", "arif_route",
-            "arif_memory", "arif_judge", "arif_forge", "arif_seal",
+            "arif_init",
+            "arif_observe",
+            "arif_think",
+            "arif_route",
+            "arif_memory",
+            "arif_judge",
+            "arif_forge",
+            "arif_seal",
         }
         missing = canonical_8 - set(names)
         if missing:
             return _fail(
-                name, priority, expected,
+                name,
+                priority,
+                expected,
                 f"missing canonical tools: {sorted(missing)}",
                 {"present": sorted(names)},
             )
         if len(names) != len(set(names)):
-            return _fail(name, priority, expected, "duplicate tool names",
-                         {"present": sorted(names)})
+            return _fail(
+                name, priority, expected, "duplicate tool names", {"present": sorted(names)}
+            )
         return _ok(name, priority, expected, f"{len(names)} tools", {"names": names})
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
@@ -253,14 +281,13 @@ def _check_resources_list() -> CheckResult:
     try:
         result = _mcp_post("resources/list", {})
         uris = [
-            r.get("uri") for r in result.get("result", {}).get("resources", [])
+            r.get("uri")
+            for r in result.get("result", {}).get("resources", [])
             if isinstance(r, dict)
         ]
         if not uris:
-            return _fail(name, priority, expected, "no resources exposed",
-                         {"raw": result})
-        return _ok(name, priority, expected, f"{len(uris)} resources",
-                   {"uris": uris[:20]})
+            return _fail(name, priority, expected, "no resources exposed", {"raw": result})
+        return _ok(name, priority, expected, f"{len(uris)} resources", {"uris": uris[:20]})
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
 
@@ -274,8 +301,13 @@ def _check_resources_templates_list() -> CheckResult:
         templates = result.get("result", {}).get("resourceTemplates", [])
         if not templates:
             return _na(name, priority, expected, "kernel exposes no templates")
-        return _ok(name, priority, expected, f"{len(templates)} templates",
-                   {"uris": [t.get("uriTemplate") for t in templates]})
+        return _ok(
+            name,
+            priority,
+            expected,
+            f"{len(templates)} templates",
+            {"uris": [t.get("uriTemplate") for t in templates]},
+        )
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
 
@@ -289,13 +321,20 @@ def _check_prompts_list() -> CheckResult:
         prompts = result.get("result", {}).get("prompts", [])
         if not prompts:
             return _na(name, priority, expected, "kernel exposes no prompts")
-        return _ok(name, priority, expected, f"{len(prompts)} prompts",
-                   {"names": [p.get("name") for p in prompts]})
+        return _ok(
+            name,
+            priority,
+            expected,
+            f"{len(prompts)} prompts",
+            {"names": [p.get("name") for p in prompts]},
+        )
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
 
 
-def _check_tool_invoke(name: str, *, priority: str, args: dict[str, Any] | None = None) -> CheckResult:
+def _check_tool_invoke(
+    name: str, *, priority: str, args: dict[str, Any] | None = None
+) -> CheckResult:
     expected = f"{name} returns canonical envelope only"
     try:
         result = _mcp_post(
@@ -312,30 +351,57 @@ def _check_tool_invoke(name: str, *, priority: str, args: dict[str, Any] | None 
         # The canonical envelope must have only the audit-specified top-level
         # fields. Any legacy field is a FAIL.
         if not isinstance(parsed, dict):
-            return _fail(name, priority, expected, "response is not a dict",
-                         {"raw": str(parsed)[:200]})
+            return _fail(
+                name, priority, expected, "response is not a dict", {"raw": str(parsed)[:200]}
+            )
         legacy_keys = {
-            "actor_verified", "authority_level", "authority",
-            "human_authority", "runtime_authority", "verdict",
-            "verdict_code", "canonical_verdict", "reasoning_verdict",
-            "nine_signal_aggregate", "_identity_consistency_applied",
-            "_identity_drift_count", "_identity_drift_first",
+            "actor_verified",
+            "authority_level",
+            "authority",
+            "human_authority",
+            "runtime_authority",
+            "verdict",
+            "verdict_code",
+            "canonical_verdict",
+            "reasoning_verdict",
+            "nine_signal_aggregate",
+            "_identity_consistency_applied",
+            "_identity_drift_count",
+            "_identity_drift_first",
         }
         leaked = legacy_keys & set(parsed.keys())
         if leaked:
-            return _fail(name, priority, expected,
-                         f"legacy fields leaked: {sorted(leaked)}",
-                         {"leaked": sorted(leaked)})
+            return _fail(
+                name,
+                priority,
+                expected,
+                f"legacy fields leaked: {sorted(leaked)}",
+                {"leaked": sorted(leaked)},
+            )
         # Must contain the canonical blocks.
         if "standing" not in parsed:
-            return _fail(name, priority, expected, "no canonical standing block",
-                         {"top_level_keys": sorted(parsed.keys())})
+            return _fail(
+                name,
+                priority,
+                expected,
+                "no canonical standing block",
+                {"top_level_keys": sorted(parsed.keys())},
+            )
         if "effective_verdict" not in parsed:
-            return _fail(name, priority, expected,
-                         "no canonical effective_verdict field",
-                         {"top_level_keys": sorted(parsed.keys())})
-        return _ok(name, priority, expected, "canonical envelope",
-                   {"top_level_keys": sorted(parsed.keys())})
+            return _fail(
+                name,
+                priority,
+                expected,
+                "no canonical effective_verdict field",
+                {"top_level_keys": sorted(parsed.keys())},
+            )
+        return _ok(
+            name,
+            priority,
+            expected,
+            "canonical envelope",
+            {"top_level_keys": sorted(parsed.keys())},
+        )
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
 
@@ -347,11 +413,8 @@ def _check_unknown_tool_rejection() -> CheckResult:
     try:
         result = _mcp_post("tools/call", {"name": "arif_nonexistent_tool", "arguments": {}})
         if "error" in result:
-            return _ok(name, priority, expected, "rejected",
-                       {"error": result.get("error")})
-        return _fail(name, priority, expected,
-                     "kernel accepted unknown tool name",
-                     {"raw": result})
+            return _ok(name, priority, expected, "rejected", {"error": result.get("error")})
+        return _fail(name, priority, expected, "kernel accepted unknown tool name", {"raw": result})
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
 
@@ -376,11 +439,14 @@ def _check_session_expiry_rejection() -> CheckResult:
         parsed = json.loads(text) if text else {}
         verdict = parsed.get("effective_verdict")
         if verdict in {"HOLD", "OBSERVE_ONLY", "VOID", "888_HOLD"}:
-            return _ok(name, priority, expected, f"verdict={verdict}",
-                       {"verdict": verdict})
-        return _fail(name, priority, expected,
-                     f"expired session was not rejected (effective_verdict={verdict})",
-                     {"raw": parsed})
+            return _ok(name, priority, expected, f"verdict={verdict}", {"verdict": verdict})
+        return _fail(
+            name,
+            priority,
+            expected,
+            f"expired session was not rejected (effective_verdict={verdict})",
+            {"raw": parsed},
+        )
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
 
@@ -402,11 +468,14 @@ def _check_unverified_irreversible_action_rejection() -> CheckResult:
         parsed = json.loads(text) if text else {}
         verdict = parsed.get("effective_verdict")
         if verdict in {"HOLD", "888_HOLD", "VOID", "OBSERVE_ONLY"}:
-            return _ok(name, priority, expected, f"verdict={verdict}",
-                       {"verdict": verdict})
-        return _fail(name, priority, expected,
-                     f"irreversible action proceeded (effective_verdict={verdict})",
-                     {"raw": parsed})
+            return _ok(name, priority, expected, f"verdict={verdict}", {"verdict": verdict})
+        return _fail(
+            name,
+            priority,
+            expected,
+            f"irreversible action proceeded (effective_verdict={verdict})",
+            {"raw": parsed},
+        )
     except Exception as exc:  # noqa: BLE001
         return _unknown(name, priority, expected, str(exc))
 
@@ -439,8 +508,7 @@ ALL_CHECKS = [
     lambda: _check_tool_invoke("arif_memory", priority="P0"),
     lambda: _check_tool_invoke("arif_judge", priority="P0"),
     lambda: _check_tool_invoke("arif_seal", priority="P0"),
-    lambda: _check_tool_invoke("arif_forge", priority="P1",
-                               args={"intent": "reversible dry-run"}),
+    lambda: _check_tool_invoke("arif_forge", priority="P1", args={"intent": "reversible dry-run"}),
     _check_receipt_readback,
     _check_unknown_tool_rejection,
     _check_session_expiry_rejection,
@@ -487,23 +555,27 @@ def run_conformance() -> ConformanceReport:
                 name = "tool_invocation_check"
             else:
                 name = raw_name
-            checks.append(_unknown(
-                name=name,
-                priority="P0",
-                expected="",
-                reason=f"kernel unreachable: {reason}",
-            ))
+            checks.append(
+                _unknown(
+                    name=name,
+                    priority="P0",
+                    expected="",
+                    reason=f"kernel unreachable: {reason}",
+                )
+            )
     else:
         for fn in ALL_CHECKS:
             try:
                 checks.append(fn())
             except Exception as exc:  # noqa: BLE001
-                checks.append(_unknown(
-                    name=getattr(fn, "__name__", "unknown"),
-                    priority="P0",
-                    expected="",
-                    reason=f"runner exception: {exc}",
-                ))
+                checks.append(
+                    _unknown(
+                        name=getattr(fn, "__name__", "unknown"),
+                        priority="P0",
+                        expected="",
+                        reason=f"runner exception: {exc}",
+                    )
+                )
 
     finished = datetime.now(UTC).isoformat()
     return ConformanceReport(

@@ -38,9 +38,11 @@ DITEMPA BUKAN DIBERI — Prediction is forged, not guessed.
 """
 
 from __future__ import annotations
-import math
+
 import logging
+import math
 from dataclasses import dataclass
+from datetime import UTC
 from enum import Enum
 
 logger = logging.getLogger("arifosmcp.art_predict")
@@ -334,7 +336,7 @@ class ToolQTable:
             reward = 1.0 for success, 0.0 for failure
             human_override = -0.2 if human rejected a successful call
         """
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         key = (tool_name, task_class)
         entry = self._entries.get(key)
@@ -346,7 +348,7 @@ class ToolQTable:
                 task_class=task_class,
                 expected_success_rate=1.0 if success else 0.0,
                 sample_count=1,
-                last_updated=datetime.now(timezone.utc).isoformat(),
+                last_updated=datetime.now(UTC).isoformat(),
             )
             return
 
@@ -363,7 +365,7 @@ class ToolQTable:
             reward - entry.expected_success_rate
         )
         entry.sample_count += 1
-        entry.last_updated = datetime.now(timezone.utc).isoformat()
+        entry.last_updated = datetime.now(UTC).isoformat()
 
     def top_k(self, task_class: str, k: int = 3) -> list[tuple[str, float]]:
         """Get top-K tools for a task class by Q-value."""

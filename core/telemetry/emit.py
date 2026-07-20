@@ -8,7 +8,7 @@ Usage:
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
             "event": event_type,
             "payload": payload,
             "confidence": confidence,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "schema": "cross-agent-event/v1",
         }
     )

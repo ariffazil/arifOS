@@ -37,16 +37,17 @@ No store bypasses the ladder. LLM only compresses inside organs. Drift = HOLD.
 from __future__ import annotations
 
 import asyncio
-import asyncpg  # noqa: E402, PLC0415
 import hashlib
 import json
 import logging
 import os
 import re
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+import asyncpg  # noqa: E402, PLC0415
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +127,12 @@ def _load_memory_policies() -> None:
     global is_tri_witness_complete, f4_write_path_hook, integrate_with_search_results
     if _policies_loaded:
         return
+    from arifosmcp.runtime.f4_contradiction_handler import (  # noqa: PLC0415
+        f4_write_path_hook,
+    )
+    from arifosmcp.runtime.f4_retrieval_policy import (  # noqa: PLC0415
+        integrate_with_search_results,
+    )
     from arifosmcp.runtime.phoenix_72 import (  # noqa: PLC0415
         is_tri_witness_complete,
         phoenix_summary,
@@ -133,13 +140,9 @@ def _load_memory_policies() -> None:
     from arifosmcp.runtime.phoenix_72 import (  # noqa: PLC0415
         phoenix_entry as _phoenix_entry,
     )
-    from arifosmcp.runtime.f4_contradiction_handler import (  # noqa: PLC0415
-        f4_write_path_hook,
-    )
-    from arifosmcp.runtime.f4_retrieval_policy import (  # noqa: PLC0415
-        integrate_with_search_results,
-    )
+
     _policies_loaded = True
+
 
 # ADR-010 + Agentic Filesystem: canonical memory path is /agent/memory/
 _MEMORY_DIR = Path(os.getenv("ARIFOS_MEMORY_DIR", "/agent/memory"))
@@ -472,6 +475,7 @@ def _get_sparse_model():
     """Lazy-load Qdrant/bm25 sparse embedding model (fastembed)."""
     if not hasattr(_get_sparse_model, "_model"):
         from fastembed import SparseTextEmbedding  # noqa: PLC0415
+
         _get_sparse_model._model = SparseTextEmbedding("Qdrant/bm25")
     return _get_sparse_model._model
 
@@ -484,13 +488,14 @@ def _generate_sparse_embedding(text: str) -> dict | None:
         model = _get_sparse_model()
         vec = next(iter(model.embed([text])))
         return {
-            "indices": vec.indices.tolist() if hasattr(vec.indices, "tolist") else list(vec.indices),
+            "indices": vec.indices.tolist()
+            if hasattr(vec.indices, "tolist")
+            else list(vec.indices),
             "values": vec.values.tolist() if hasattr(vec.values, "tolist") else list(vec.values),
         }
     except Exception as exc:
         logger.warning("Sparse embedding unavailable (fastembed may not be installed): %s", exc)
         return {"indices": [0], "values": [1.0]}  # passthrough fallback
-
 
 
 def _summarize(content: Any) -> str:
@@ -1487,7 +1492,13 @@ def search(
 
     if query and query.strip():
         try:
-            from qdrant_client.models import Condition, FieldCondition, Filter, MatchValue, MatchAny  # noqa: PLC0415
+            from qdrant_client.models import (  # noqa: PLC0415
+                Condition,
+                FieldCondition,
+                Filter,
+                MatchAny,
+                MatchValue,
+            )
 
             client = _get_qdrant_client()
 
@@ -1527,9 +1538,12 @@ def search(
             )
 
             # Sparse BM25 query (skip if fallback passthrough)
-            has_sparse = len(sparse_vec_or_none.get("indices", [])) > 1 or sparse_vec_or_none.get("indices", []) != [0]
+            has_sparse = len(sparse_vec_or_none.get("indices", [])) > 1 or sparse_vec_or_none.get(
+                "indices", []
+            ) != [0]
             if has_sparse:
                 from qdrant_client.models import SparseVector  # noqa: PLC0415
+
                 sparse_vec = SparseVector(
                     indices=sparse_vec_or_none["indices"],
                     values=sparse_vec_or_none["values"],

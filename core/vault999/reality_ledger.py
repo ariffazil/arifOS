@@ -1,8 +1,8 @@
-import json
-import uuid
-import os
 import argparse
-from datetime import datetime, timezone
+import json
+import os
+import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 
 # The canonical vault location
@@ -17,7 +17,7 @@ def append_to_ledger(entry_data: dict) -> str:
     os.makedirs(LEDGER_DIR, exist_ok=True)
 
     entry_data.setdefault("entry_id", str(uuid.uuid4()))
-    entry_data.setdefault("timestamp", datetime.now(timezone.utc).isoformat())
+    entry_data.setdefault("timestamp", datetime.now(UTC).isoformat())
 
     # Very basic validation to ensure it has the main keys required by schema
     required_keys = [
@@ -53,7 +53,7 @@ def query_ledger(limit: int = 10, trace_id: str = None) -> list[dict]:
         return []
 
     results = []
-    with open(LEDGER_FILE, "r", encoding="utf-8") as f:
+    with open(LEDGER_FILE, encoding="utf-8") as f:
         for line in f:
             if not line.strip():
                 continue

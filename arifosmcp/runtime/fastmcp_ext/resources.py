@@ -12,7 +12,6 @@ import logging
 import os
 from typing import Any
 
-
 logger = logging.getLogger(__name__)
 
 # ── INIT prompt files — canonical paths ──────────────────────────────────
@@ -35,7 +34,7 @@ _INIT_PROMPT_FILES: dict[str, str] = {
 def _read_file_safe(path: str) -> str:
     """Read file with F1-safe fallback."""
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
         logger.warning("INIT resource file not found: %s", path)

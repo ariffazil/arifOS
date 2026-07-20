@@ -39,8 +39,8 @@ Usage:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import re as _re
+from dataclasses import dataclass, field
 
 # ── Mapping table: overreach → grounded replacement ────────────────────
 GRANDIOSITY_MAP: dict[str, str] = {

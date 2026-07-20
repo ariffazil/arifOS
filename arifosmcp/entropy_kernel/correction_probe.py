@@ -6,8 +6,7 @@ This tool generates challenges, records responses, and classifies them.
 """
 
 import uuid
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 
 CHALLENGE_TEMPLATES = {
     "INFORMATION_LOSS": [
@@ -43,13 +42,28 @@ CHALLENGE_TEMPLATES = {
 }
 
 RESPONSE_CLASSIFICATION = {
-    "REFLECTED": {"score": 0.95, "description": "Genuinely considered the challenge, integrated feedback"},
-    "CONTEXT_ADDED": {"score": 0.85, "description": "Added relevant context that addresses the challenge"},
+    "REFLECTED": {
+        "score": 0.95,
+        "description": "Genuinely considered the challenge, integrated feedback",
+    },
+    "CONTEXT_ADDED": {
+        "score": 0.85,
+        "description": "Added relevant context that addresses the challenge",
+    },
     "ACCEPTED": {"score": 0.90, "description": "Accepted the challenge and committed to change"},
     "PARTIALLY_ACCEPTED": {"score": 0.65, "description": "Acknowledged part of the challenge"},
-    "DISMISSED": {"score": 0.25, "description": "Rejected the challenge without substantive engagement"},
-    "WITNESS_ATTACKED": {"score": 0.05, "description": "Attacked the credibility of the challenger"},
-    "AUTHORITY_EXPANDED": {"score": 0.10, "description": "Used authority to override the challenge"},
+    "DISMISSED": {
+        "score": 0.25,
+        "description": "Rejected the challenge without substantive engagement",
+    },
+    "WITNESS_ATTACKED": {
+        "score": 0.05,
+        "description": "Attacked the credibility of the challenger",
+    },
+    "AUTHORITY_EXPANDED": {
+        "score": 0.10,
+        "description": "Used authority to override the challenge",
+    },
     "NOT_TESTED": {"score": 0.50, "description": "Challenge not yet presented"},
 }
 
@@ -85,10 +99,7 @@ def arif_correction_probe(
             "probe_id": probe_id,
             "observation_ref": observation_ref,
             "mode": "draft_probe",
-            "challenges": [
-                {"template": t, "signal_class": signal}
-                for t in templates
-            ],
+            "challenges": [{"template": t, "signal_class": signal} for t in templates],
             "instructions": "Present these challenges neutrally. Do not frame them as accusations.",
             "prohibited": [
                 "Do not imply hidden motive",
@@ -106,7 +117,7 @@ def arif_correction_probe(
             "observation_ref": observation_ref,
             "mode": "record_response",
             "response_text": response_text,
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "recorded_at": datetime.now(UTC).isoformat(),
             "status": "RECORDED",
             "next": "Use mode=classify_response to classify this response",
         }
@@ -119,29 +130,63 @@ def arif_correction_probe(
         text_lower = response_text.lower()
 
         # Detect witness attack
-        attack_words = ["who are you", "what gives you the right", "you don't understand",
-                        "you're wrong", "that's ridiculous", "you have no authority"]
+        attack_words = [
+            "who are you",
+            "what gives you the right",
+            "you don't understand",
+            "you're wrong",
+            "that's ridiculous",
+            "you have no authority",
+        ]
         if any(w in text_lower for w in attack_words):
             auto_class = "WITNESS_ATTACKED"
         # Detect authority expansion
-        elif any(w in text_lower for w in ["i decide", "my authority", "i don't need to explain",
-                                             "final decision", "not up for debate"]):
+        elif any(
+            w in text_lower
+            for w in [
+                "i decide",
+                "my authority",
+                "i don't need to explain",
+                "final decision",
+                "not up for debate",
+            ]
+        ):
             auto_class = "AUTHORITY_EXPANDED"
         # Detect dismissal
-        elif any(w in text_lower for w in ["not relevant", "already addressed", "moving on",
-                                             "not a concern", "irrelevant"]):
+        elif any(
+            w in text_lower
+            for w in [
+                "not relevant",
+                "already addressed",
+                "moving on",
+                "not a concern",
+                "irrelevant",
+            ]
+        ):
             auto_class = "DISMISSED"
         # Detect acceptance
-        elif any(w in text_lower for w in ["good point", "i accept", "you're right",
-                                             "let me reconsider", "i'll revise"]):
+        elif any(
+            w in text_lower
+            for w in ["good point", "i accept", "you're right", "let me reconsider", "i'll revise"]
+        ):
             auto_class = "ACCEPTED"
         # Detect context addition
-        elif any(w in text_lower for w in ["however", "context", "additionally", "also worth noting",
-                                             "there's more to"]):
+        elif any(
+            w in text_lower
+            for w in ["however", "context", "additionally", "also worth noting", "there's more to"]
+        ):
             auto_class = "CONTEXT_ADDED"
         # Detect reflection
-        elif any(w in text_lower for w in ["i see", "that's fair", "let me think about",
-                                             "interesting perspective", "i hadn't considered"]):
+        elif any(
+            w in text_lower
+            for w in [
+                "i see",
+                "that's fair",
+                "let me think about",
+                "interesting perspective",
+                "i hadn't considered",
+            ]
+        ):
             auto_class = "REFLECTED"
         else:
             auto_class = "PARTIALLY_ACCEPTED"  # default to charitable interpretation
@@ -167,9 +212,11 @@ def arif_correction_probe(
             "observation_ref": observation_ref,
             "mode": "close_probe",
             "status": "CLOSED",
-            "closed_at": datetime.now(timezone.utc).isoformat(),
+            "closed_at": datetime.now(UTC).isoformat(),
             "note": "Correction probe complete. Response class attached to observation.",
         }
 
     else:
-        return {"error": f"Unknown mode: {mode}. Valid: draft_probe, record_response, classify_response, close_probe"}
+        return {
+            "error": f"Unknown mode: {mode}. Valid: draft_probe, record_response, classify_response, close_probe"
+        }

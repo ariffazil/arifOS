@@ -24,7 +24,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-
 FloorType = Literal["HARD", "SOFT", "DERIVED"]
 
 
@@ -34,10 +33,12 @@ class ConstitutionalFloor(BaseModel):
     id: str = Field(..., pattern=r"^F(1[0-3]|[1-9])$", description="F1, F2, ..., F13")
     name: str = Field(..., description="Canonical short name, e.g. AMANAH, TRUTH")
     rule: str = Field(..., description="One-line rule from GENESIS/000_KERNEL_CANON.md")
-    type: FloorType = Field(..., description="HARD | SOFT | DERIVED (from CLAUDE.md classification)")
+    type: FloorType = Field(
+        ..., description="HARD | SOFT | DERIVED (from CLAUDE.md classification)"
+    )
 
     @model_validator(mode="after")
-    def _check_consistency(self) -> "ConstitutionalFloor":
+    def _check_consistency(self) -> ConstitutionalFloor:
         # Keep the model self-describing and hard to misuse
         if not self.name or not self.rule:
             raise ValueError("name and rule are required")
@@ -179,6 +180,7 @@ FIQH_TIERS: list[str] = ["WAJIB", "SUNAT", "HARUS", "MAKRUH", "HARAM"]
 # ──────────────────────────────────────────────────────────────────────────────
 # Convenience for JSON / other languages / deliberation
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def as_dict_list() -> list[dict]:
     """Pure data form (safe for serialization and cross-language use)."""

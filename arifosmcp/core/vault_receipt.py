@@ -33,9 +33,16 @@ logger = logging.getLogger(__name__)
 # signals that identity was dropped. A governance system with anonymous
 # receipts is a mosque without qibla.
 
-_RELAY_PLACEHOLDERS = frozenset({
-    "anonymous", "openclaw-anon", "unknown", "null", "", "None",
-})
+_RELAY_PLACEHOLDERS = frozenset(
+    {
+        "anonymous",
+        "openclaw-anon",
+        "unknown",
+        "null",
+        "",
+        "None",
+    }
+)
 
 
 def _is_placeholder(value: str | None) -> bool:
@@ -87,10 +94,7 @@ def resolve_receipt_identity(
 
     # If session_id is a placeholder, try to get real one from session context
     if _is_placeholder(session_id) and session_context:
-        real_sid = (
-            session_context.get("session_id")
-            or session_context.get("canonical_session_id")
-        )
+        real_sid = session_context.get("session_id") or session_context.get("canonical_session_id")
         if real_sid and not _is_placeholder(real_sid):
             resolved_session = real_sid
 
@@ -99,7 +103,10 @@ def resolve_receipt_identity(
         logger.warning(
             "VAULT999 receipt identity unresolved: actor=%s session=%s "
             "(candidate was actor=%s session=%s) — receipt will be F2-flagged",
-            resolved_actor, resolved_session, actor_id, session_id,
+            resolved_actor,
+            resolved_session,
+            actor_id,
+            session_id,
         )
 
     return resolved_session, resolved_actor

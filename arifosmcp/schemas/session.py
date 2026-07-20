@@ -556,6 +556,6 @@ class SessionManifest(BaseModel):
     atlas333: dict[str, Any] | None = Field(
         default=None,
         description="ATLAS333 cognitive geometry — 33 paradoxes, demand tensor, "
-                    "TEARFRAME thresholds, activation rules, MCP resources. "
-                    "Governance substrate inherited by every federation agent.",
+        "TEARFRAME thresholds, activation rules, MCP resources. "
+        "Governance substrate inherited by every federation agent.",
     )

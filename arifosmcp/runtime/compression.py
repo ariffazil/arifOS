@@ -29,11 +29,10 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import json
+import os as _os
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
-
-import os as _os
 
 try:
     from core.shared.constitutional_ontology import RuntimeState

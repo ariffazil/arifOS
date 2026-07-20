@@ -32,9 +32,9 @@ if TYPE_CHECKING:
 
 
 def compute_mcp_annotations(
-    action_class: "ActionClass",
-    reversibility: "ReversibilityLevel" = None,
-    external_effect: "ExternalEffect" = None,
+    action_class: ActionClass,
+    reversibility: ReversibilityLevel = None,
+    external_effect: ExternalEffect = None,
 ) -> dict[str, bool]:
     """
     Compute MCP tool annotations from deterministic governance enums.
@@ -118,7 +118,7 @@ def compute_mcp_annotations(
     }
 
 
-def annotations_from_risk_passport(risk: "RiskPassport") -> dict[str, bool]:
+def annotations_from_risk_passport(risk: RiskPassport) -> dict[str, bool]:
     """
     Convenience wrapper — compute annotations from a RiskPassport.
 

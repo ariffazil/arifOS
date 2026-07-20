@@ -9,8 +9,9 @@ F7 HUMILITY: confidence capped at 0.99 (no fake certainty).
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -63,7 +64,7 @@ class BeliefEngine:
         self,
         prior: BeliefState,
         observations: dict[str, Any],
-        provenance: Optional[dict[str, str]] = None,
+        provenance: dict[str, str] | None = None,
     ) -> BeliefState:
         """Fold new observations into the prior belief, return posterior."""
         facts = dict(prior.facts)

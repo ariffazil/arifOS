@@ -8,19 +8,18 @@ Purpose: Bridges threat_score.py to the live NATS governance stream.
 """
 
 import json
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 # Import the core scoring engine
 from .threat_score import (
     ThreatAssessment,
-    detect_frequency_spike,
-    detect_novel_path,
-    detect_hold_cluster,
     compute_risk_score,
-    risk_level,
+    detect_frequency_spike,
+    detect_hold_cluster,
+    detect_novel_path,
     recommended_action,
+    risk_level,
 )
 
 # ─── NATS CONFIG ───────────────────────────────────────────────────
@@ -43,18 +42,18 @@ class GovernanceEvent:
     verdict: str
     organ: str = ""
     agent: str = ""
-    floor_triggered: Optional[str] = None
+    floor_triggered: str | None = None
     raw: dict = field(default_factory=dict)
 
 
-def parse_nats_message(msg_data: bytes) -> Optional[GovernanceEvent]:
+def parse_nats_message(msg_data: bytes) -> GovernanceEvent | None:
     """Parse a raw NATS message into a GovernanceEvent."""
     try:
         data = json.loads(msg_data)
         return GovernanceEvent(
             event_id=data.get("event_id", data.get("id", "")),
             timestamp=datetime.fromisoformat(
-                data.get("timestamp", datetime.now(timezone.utc).isoformat())
+                data.get("timestamp", datetime.now(UTC).isoformat())
             ),
             tool=data.get("tool", data.get("event", "unknown")),
             action_class=data.get("action_class", "OBSERVE"),
@@ -84,7 +83,7 @@ async def fetch_recent_events(
     Falls back to empty list if NATS unavailable.
     """
     events = []
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+    cutoff = datetime.now(UTC) - timedelta(minutes=window_minutes)
 
     try:
         # Attempt JetStream pull consumer
@@ -175,7 +174,7 @@ async def assess_live(
     score = compute_risk_score(anomalies, organ_status)
     level = risk_level(score)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return ThreatAssessment(
         timestamp=now,
         risk_level=level,

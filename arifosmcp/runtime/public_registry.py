@@ -10,10 +10,10 @@ from typing import Any, get_args, get_origin
 from fastmcp.tools import FunctionTool
 from pydantic import TypeAdapter
 
-from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
-
-from arifosmcp.registry import get_prompt_specs_for_charter as _get_prompt_specs_for_charter
 from arifosmcp.abi.kernel_abi import capability_ids, normalize_profile, validate_abi
+from arifosmcp.constitutional_map import _TOOL_OUTPUT_SCHEMAS
+from arifosmcp.registry import get_prompt_specs_for_charter as _get_prompt_specs_for_charter
+
 from .public_surface import (
     KERNEL_ABI_8,
     PUBLIC_AGENT_6,

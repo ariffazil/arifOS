@@ -16,8 +16,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from core.shared.laws import get_law_threshold
 from arifosmcp.models.verdicts import Verdict  # Canonical governance verdict — SEAL/HOLD/SABAR/VOID
+from core.shared.laws import get_law_threshold
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANTS

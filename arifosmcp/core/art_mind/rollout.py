@@ -6,6 +6,7 @@ uncertainty penalty. Future: full Bayesian Monte Carlo with sampling.
 """
 
 from __future__ import annotations
+
 from .generator import Plan
 
 

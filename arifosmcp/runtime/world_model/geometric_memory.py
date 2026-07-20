@@ -28,6 +28,7 @@ from enum import StrEnum
 from typing import Any
 
 import numpy as np
+
 from arifosmcp.geometry.manifold import HARD_FLOORS, Floor, load_floor_weights
 
 # ─────────────────────────────────────────────────────────────────────────────

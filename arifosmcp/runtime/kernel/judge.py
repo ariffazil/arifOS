@@ -21,23 +21,20 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 import time
+
+from .compute import compute_omega, compute_source_consensus
 from .types import (
-    GovernanceState,
-    GovernanceScalars,
+    DELTA_CRITICAL,
+    OMEGA_HARD_LIMIT,
+    OMEGA_MAX,
+    OMEGA_WARN,
+    PSI_MIN,
     CollapseResult,
     EvidenceFusion,
+    GovernanceState,
     TripwireResult,
-    TripwireId,
     Verdict,
-    SourceConsensus,
-    OMEGA_MAX,
-    PSI_MIN,
-    DELTA_CRITICAL,
-    OMEGA_WARN,
-    OMEGA_HARD_LIMIT,
 )
-from .compute import compute_omega, compute_source_consensus
-
 
 # ── 888 Constitutional Collapse ──────────────
 

@@ -34,7 +34,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import math
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
@@ -42,13 +41,11 @@ from enum import Enum
 from typing import Any
 
 from arifosmcp.runtime.qdf import (
+    DEFAULT_QDF_THRESHOLD,
+    VOID_QDF_THRESHOLD,
     BlastRadius,
     ConfidenceBand,
-    DEFAULT_QDF_THRESHOLD,
     EpistemicLabel,
-    HOLD_QDF_THRESHOLD,
-    QDFResult,
-    VOID_QDF_THRESHOLD,
     WitnessPosition,
     compute_qdf,
 )
@@ -71,6 +68,7 @@ ATP_ZEN6_ENABLED = os.getenv("ATP_ZEN6_ENABLED", "true").lower() in ("true", "1"
 # ATP VERDICT
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class ATPVerdictType(str, Enum):
     PROCEED = "PROCEED"
     HOLD = "HOLD"
@@ -84,15 +82,16 @@ class ATPVerdict:
 
     Fields are flat (no nested untyped dicts) for deterministic hashing.
     """
-    verdict: str                          # PROCEED / HOLD / VOID
-    qdf: float                            # QDF score [0, 1]
-    well_state: str                       # WELL signal at gate time
-    witness_position: str                 # SELF / INTERNAL / EXTERNAL / HUMAN
-    narrator_debt: int                    # accumulated self-attestation debt
-    tool_name: str                        # tool being gated
-    session_id: str                       # session context
-    timestamp: str                        # ISO timestamp
-    reason: str                           # human-readable reason
+
+    verdict: str  # PROCEED / HOLD / VOID
+    qdf: float  # QDF score [0, 1]
+    well_state: str  # WELL signal at gate time
+    witness_position: str  # SELF / INTERNAL / EXTERNAL / HUMAN
+    narrator_debt: int  # accumulated self-attestation debt
+    tool_name: str  # tool being gated
+    session_id: str  # session context
+    timestamp: str  # ISO timestamp
+    reason: str  # human-readable reason
 
     # ZEN-3: Scar Law stabilizer syndrome
     stabilizer_syndrome: list[int] = field(default_factory=list)
@@ -100,7 +99,7 @@ class ATPVerdict:
 
     # ZEN-6: CHSH test for tri-witness
     chsh_score: float = 0.0
-    chsh_nonlocal: bool = False           # S > 2
+    chsh_nonlocal: bool = False  # S > 2
 
     # ZEN-4: Born-rule confidence
     born_confidence: float = 0.0
@@ -130,18 +129,20 @@ class ATPVerdict:
 # L5 TOOLS (irreversible, require witness != SELF)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-L5_TOOLS = frozenset({
-    "arif_seal",           # 999 — VAULT999 seal (irreversible)
-    "forge_seal",          # A-FORGE seal
-    "forge_execute",       # A-FORGE execution
-    "forge_filesystem",    # A-FORGE filesystem mutation
-    "forge_filesystem_move",
-    "forge_filesystem_delete",
-    "forge_github_create_pull_request",
-    "forge_github_create_issue",
-    "forge_github_create_or_update_file",
-    "forge_execute_sealed",
-})
+L5_TOOLS = frozenset(
+    {
+        "arif_seal",  # 999 — VAULT999 seal (irreversible)
+        "forge_seal",  # A-FORGE seal
+        "forge_execute",  # A-FORGE execution
+        "forge_filesystem",  # A-FORGE filesystem mutation
+        "forge_filesystem_move",
+        "forge_filesystem_delete",
+        "forge_github_create_pull_request",
+        "forge_github_create_issue",
+        "forge_github_create_or_update_file",
+        "forge_execute_sealed",
+    }
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -165,6 +166,7 @@ def _get_well_state() -> dict[str, Any]:
     # Try to query WELL organ
     try:
         import httpx
+
         resp = httpx.get("http://127.0.0.1:18083/health", timeout=2.0)
         if resp.status_code == 200:
             data = resp.json()
@@ -195,6 +197,7 @@ def _get_well_state() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════════════════════
 # WELL GATE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def well_gate(well_state: dict[str, Any]) -> tuple[bool, str]:
     """
@@ -281,9 +284,17 @@ _session_stabilizers: dict[str, list[int]] = {}
 
 # Stabilizer definitions (each checks a constitutional invariant)
 STABILIZER_DEFINITIONS = [
-    {"id": 0, "name": "F1_reversibility", "check": "blast_radius != irreversible or witness != SELF"},
+    {
+        "id": 0,
+        "name": "F1_reversibility",
+        "check": "blast_radius != irreversible or witness != SELF",
+    },
     {"id": 1, "name": "F2_truth_label", "check": "epistemic_label != UNKNOWN"},
-    {"id": 2, "name": "F3_witness_present", "check": "witness_position in (HUMAN, EXTERNAL, INTERNAL)"},
+    {
+        "id": 2,
+        "name": "F3_witness_present",
+        "check": "witness_position in (HUMAN, EXTERNAL, INTERNAL)",
+    },
     {"id": 3, "name": "F4_entropy_reduce", "check": "qdf >= 0.5"},
     {"id": 4, "name": "F7_humility", "check": "qdf <= 0.95 (no fake certainty)"},
     {"id": 5, "name": "F8_genius", "check": "qdf >= 0.80"},
@@ -349,6 +360,7 @@ def compute_stabilizer_syndrome(
 # ZEN-6: CHSH TEST FOR TRI-WITNESS NON-LOCALITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def chsh_witness_test(
     human_outcome: bool,
     ai_outcome: bool,
@@ -393,6 +405,7 @@ def chsh_witness_test(
 # BLAST RADIUS INFERENCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def infer_blast_radius(tool_name: str) -> BlastRadius:
     """Infer blast radius from tool name."""
     if tool_name in L5_TOOLS:
@@ -407,6 +420,7 @@ def infer_blast_radius(tool_name: str) -> BlastRadius:
 # ═══════════════════════════════════════════════════════════════════════════════
 # ATP GATE — THE SINGLE GATE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def atp_gate(
     tool_name: str,
@@ -495,8 +509,12 @@ def atp_gate(
             tool_name=tool_name,
             session_id=session_id,
             qdf=qdf_result.qdf,
-            epistemic_label=epistemic_label if isinstance(epistemic_label, str) else epistemic_label.value,
-            witness_position=witness_position if isinstance(witness_position, str) else witness_position.value,
+            epistemic_label=epistemic_label
+            if isinstance(epistemic_label, str)
+            else epistemic_label.value,
+            witness_position=witness_position
+            if isinstance(witness_position, str)
+            else witness_position.value,
             blast_radius=blast_radius if isinstance(blast_radius, str) else blast_radius.value,
         )
         syndrome_nonzero = any(s != 0 for s in syndrome)
@@ -538,7 +556,7 @@ def atp_gate(
     # ZEN-3 syndrome check
     if syndrome_nonzero and verdict == ATPVerdictType.PROCEED:
         verdict = ATPVerdictType.HOLD
-        reasons.append(f"SYNDROME_NONZERO (bits={[i for i,s in enumerate(syndrome) if s]})")
+        reasons.append(f"SYNDROME_NONZERO (bits={[i for i, s in enumerate(syndrome) if s]})")
 
     # Build reason string
     if not reasons:
@@ -548,9 +566,12 @@ def atp_gate(
 
     # ZEN-4 born confidence
     from arifosmcp.runtime.qdf import build_amplitude_vector
+
     amp_vec = build_amplitude_vector(epistemic_label, confidence_band)
     born_conf = amp_vec.probability(
-        epistemic_label if isinstance(epistemic_label, EpistemicLabel) else EpistemicLabel(epistemic_label)
+        epistemic_label
+        if isinstance(epistemic_label, EpistemicLabel)
+        else EpistemicLabel(epistemic_label)
     )
 
     latency_ms = (time.time() - start_ts) * 1000
@@ -559,7 +580,9 @@ def atp_gate(
         verdict=verdict.value,
         qdf=qdf_result.qdf,
         well_state=well_state.get("well_signal", "UNKNOWN"),
-        witness_position=witness_position.value if isinstance(witness_position, WitnessPosition) else witness_position,
+        witness_position=witness_position.value
+        if isinstance(witness_position, WitnessPosition)
+        else witness_position,
         narrator_debt=debt,
         tool_name=tool_name,
         session_id=session_id,
@@ -581,6 +604,7 @@ def atp_gate(
 # ═══════════════════════════════════════════════════════════════════════════════
 # RESET (for testing)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def reset_atp_state() -> None:
     """Reset ATP internal state (for testing)."""

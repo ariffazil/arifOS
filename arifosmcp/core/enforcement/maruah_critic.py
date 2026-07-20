@@ -44,8 +44,8 @@ Usage pattern (future, not wired):
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import re as _re
+from dataclasses import dataclass, field
 
 # --- Policy line (the only "code" that matters) -------------------------
 # F6 EMPATHY enforcement extension. v0.1 wording:

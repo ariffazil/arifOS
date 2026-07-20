@@ -13,9 +13,8 @@ Single import point. All skills wire through here.
 
 import json
 import time
-from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, field
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # ─── ORGAN STATE CACHE ────────────────────────────────────────────
@@ -27,7 +26,7 @@ class OrganState:
     health: str  # HEALTHY | DEGRADED | OFFLINE
     tools_available: int
     tools_total: int
-    last_attest: Optional[datetime] = None
+    last_attest: datetime | None = None
     risk_score: float = 0.0
     extra: dict = field(default_factory=dict)
 
@@ -38,7 +37,7 @@ _cache_ttl: float = 60.0  # seconds
 _last_attest: float = 0.0
 
 
-def get_organ_state(organ_id: str) -> Optional[OrganState]:
+def get_organ_state(organ_id: str) -> OrganState | None:
     """Get cached organ state. Returns None if stale or missing."""
     if time.time() - _last_attest > _cache_ttl:
         return None  # cache expired
@@ -61,7 +60,7 @@ def refresh_organ_cache(attest_result: dict):
                     health=org.get("health", org.get("status", "UNKNOWN")),
                     tools_available=org.get("tools_available", org.get("healthy_tools", 0)),
                     tools_total=org.get("tools_total", org.get("total_tools", 0)),
-                    last_attest=datetime.now(timezone.utc),
+                    last_attest=datetime.now(UTC),
                     risk_score=org.get("risk_score", 0.0),
                     extra=org.get("extra", {}),
                 )
@@ -106,7 +105,7 @@ def load_governance_log(
     Falls back to empty list if file doesn't exist.
     """
     events = []
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
+    cutoff = datetime.now(UTC) - timedelta(hours=lookback_hours)
     log_path = Path(events_file)
 
     if not log_path.exists():
@@ -169,7 +168,7 @@ def query_vault_seals(lookback_hours: int = 720) -> list[dict]:
         return []
 
     seals = []
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=lookback_hours)
+    cutoff = datetime.now(UTC) - timedelta(hours=lookback_hours)
 
     try:
         with open(vault_file) as f:
@@ -206,7 +205,7 @@ def get_full_wiring_snapshot() -> dict:
     tool_metrics = compute_all_tool_metrics(events)
 
     return {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "organs": {oid: {"health": h} for oid, h in organ_states.items()},
         "events_last_24h": len(events),
         "seals_last_30d": len(seals),

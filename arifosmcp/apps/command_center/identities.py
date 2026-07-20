@@ -82,11 +82,11 @@ def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> b
 def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
     """Verify Ed25519 signature proof. Returns True only on cryptographic success."""
     try:
+        from arifosmcp.runtime.sovereign_signer import get_constitution_hash
         from arifosmcp.runtime.sovereign_verify import (
             is_challenge_fresh,
             verify_sovereign_signature,
         )
-        from arifosmcp.runtime.sovereign_signer import get_constitution_hash
     except ImportError:
         logger.error(
             "sovereign_verify/sovereign_signer not importable — Ed25519 verification unavailable"

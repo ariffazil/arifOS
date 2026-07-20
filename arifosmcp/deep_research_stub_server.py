@@ -27,7 +27,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 logger = logging.getLogger("arifos.deep_research_stub")
@@ -58,7 +58,7 @@ def _stub_response(
     Replace body with real implementation in future forge sessions.
     """
     call_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     # Gödel Lock LK-4: cap confidence at 0.90
     confidence = min(0.90, max(0.0, confidence))

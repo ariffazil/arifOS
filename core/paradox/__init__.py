@@ -16,17 +16,17 @@ from __future__ import annotations
 from core.paradox.circuit_breakers import (
     CircuitBreaker,
     CircuitBreakerState,
-    check_godellock,
-    check_single_witness,
     check_cheap_truth,
-    check_recursive_stack,
     check_confidence_cascade,
+    check_godellock,
+    check_recursive_stack,
+    check_single_witness,
     evaluate_all_breakers,
 )
 from core.paradox.conflict_resolver import (
-    resolve_verdict_conflict,
-    conservative_wins,
     ConflictResolution,
+    conservative_wins,
+    resolve_verdict_conflict,
 )
 
 __all__ = [

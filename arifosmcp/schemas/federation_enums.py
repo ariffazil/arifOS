@@ -33,7 +33,6 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. VERDICT — Constitutional outcomes
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -454,13 +453,13 @@ class IntentClass(StrEnum):
     This is the gate that prevents QQQ from becoming noise on every message.
     """
 
-    OBSERVATION = "OBSERVATION"          # no QQQ — pure observation
-    STATUS_REPORT = "STATUS_REPORT"      # no QQQ — state update
-    QUESTION = "QUESTION"                # no QQQ — inquiry, not recommendation
-    RECOMMENDATION = "RECOMMENDATION"    # QQQ mandatory
-    DECISION = "DECISION"                # QQQ mandatory
-    VERDICT = "VERDICT"                  # QQQ mandatory
-    UNKNOWN = "UNKNOWN"                  # fail-closed: unknown = no QQQ (but flagged)
+    OBSERVATION = "OBSERVATION"  # no QQQ — pure observation
+    STATUS_REPORT = "STATUS_REPORT"  # no QQQ — state update
+    QUESTION = "QUESTION"  # no QQQ — inquiry, not recommendation
+    RECOMMENDATION = "RECOMMENDATION"  # QQQ mandatory
+    DECISION = "DECISION"  # QQQ mandatory
+    VERDICT = "VERDICT"  # QQQ mandatory
+    UNKNOWN = "UNKNOWN"  # fail-closed: unknown = no QQQ (but flagged)
 
 
 # QQQ-required intents

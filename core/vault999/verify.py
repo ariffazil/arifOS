@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 
 def verify_vault_chain(vault_file_path):
@@ -10,7 +10,7 @@ def verify_vault_chain(vault_file_path):
     valid_count = 0
     broken_count = 0
 
-    with open(vault_file_path, "r") as f:
+    with open(vault_file_path) as f:
         for i, line in enumerate(f):
             line = line.strip()
             if not line:

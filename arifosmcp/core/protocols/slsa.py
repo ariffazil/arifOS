@@ -10,20 +10,19 @@ Integrates with Sigstore for signing (future).
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import os
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
 
 
 def generate_provenance(
     builder_id: str,
     build_type: str,
     materials: list[dict],
-    invocation: Optional[dict] = None,
-    build_config: Optional[dict] = None,
-    metadata: Optional[dict] = None,
+    invocation: dict | None = None,
+    build_config: dict | None = None,
+    metadata: dict | None = None,
 ) -> dict:
     """
     Generate SLSA v1.0 provenance predicate.
@@ -72,7 +71,7 @@ def ci_provenance(
     workflow: str,
     ref: str,
     sha: str,
-    materials: Optional[list[dict]] = None,
+    materials: list[dict] | None = None,
 ) -> dict:
     """
     Generate SLSA provenance for a CI build.
@@ -98,9 +97,13 @@ def ci_provenance(
         },
         metadata={
             "buildInvocationId": f"{repo}-{sha[:7]}",
-            "buildStartedOn": datetime.now(timezone.utc).isoformat(),
-            "buildFinishedOn": datetime.now(timezone.utc).isoformat(),
-            "completeness": {"parameters": True, "environment": False, "materials": bool(materials)},
+            "buildStartedOn": datetime.now(UTC).isoformat(),
+            "buildFinishedOn": datetime.now(UTC).isoformat(),
+            "completeness": {
+                "parameters": True,
+                "environment": False,
+                "materials": bool(materials),
+            },
             "reproducible": os.environ.get("CI", "false") == "true",
         },
     )

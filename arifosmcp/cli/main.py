@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import argparse
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 from arifosmcp.cli.check import run_check
 from arifosmcp.cli.judge import run_judge
 from arifosmcp.cli.seal import run_seal
-
 
 COMMANDS: dict[str, Callable[[list[str]], int]] = {
     "check": run_check,

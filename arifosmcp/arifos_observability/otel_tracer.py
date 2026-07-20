@@ -56,14 +56,14 @@ def init_tracer(
     if otlp_endpoint:
         try:
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
             exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
         except ImportError:
             from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
             exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
 
-        provider.add_span_processor(
-            BatchSpanProcessor(exporter)
-        )
+        provider.add_span_processor(BatchSpanProcessor(exporter))
 
     if console_export:
         provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))

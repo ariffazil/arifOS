@@ -15,7 +15,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # Canonical verdict conservatism ranking (higher = more restrictive)
 _VERDICT_RANK: dict[str, int] = {
     "VOID": 5,

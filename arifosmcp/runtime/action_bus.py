@@ -8,7 +8,7 @@ The real difference: breadth, depth, speed, autonomy, consequence.
 Not magic, not sentience — governability risk.
 
 This bus is the bridge:
-  intent (cognition) 
+  intent (cognition)
     → GovernancePipeline (restraint, floors, ASI cognitive tier)
     → Tier-aware lease (tighter for ASI)
     → ACT (execution patterns)
@@ -37,6 +37,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+from arifosmcp.runtime.act import ActRequest, ActResult
+from arifosmcp.runtime.act import act as _act_runtime
 from arifosmcp.runtime.governance_pipeline import (
     GovernancePipeline,
     PipelineResult,
@@ -48,7 +50,6 @@ from arifosmcp.runtime.lease_registry import (
     issue_lease,
     validate_lease_for_tool,
 )
-from arifosmcp.runtime.act import act as _act_runtime, ActRequest, ActResult
 
 logger = logging.getLogger("arifosmcp.action_bus")
 
@@ -56,9 +57,11 @@ logger = logging.getLogger("arifosmcp.action_bus")
 # Substrate types (minimal, composes existing)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class Intent:
     """Cognition output petitioning for action."""
+
     actor_id: str
     session_id: str
     tool_name: str
@@ -77,6 +80,7 @@ class Intent:
 @dataclass
 class BusResult:
     """Result after full bus traversal."""
+
     verdict: PipelineVerdict
     pipeline: PipelineResult | None = None
     lease_id: str | None = None
@@ -88,7 +92,9 @@ class BusResult:
     # From new synthesis: explicit tier and governability
     tier: str = "AGI"
     risk_level: str = "operational"  # operational | civilizational
-    verification_bottleneck: bool = False  # true when machine capability exceeds human verification speed
+    verification_bottleneck: bool = (
+        False  # true when machine capability exceeds human verification speed
+    )
     civilizational_blast: bool = False
 
 
@@ -130,7 +136,9 @@ class ActionBus:
             blast_radius=intent.blast_radius or "LOCAL",
             reversibility=0.0 if not intent.is_reversible else 1.0,
             caller_has_lease=bool(lease_id),
-            action_class="MUTATE" if intent.blast_radius in ("high", "civilizational") else "OBSERVE",
+            action_class="MUTATE"
+            if intent.blast_radius in ("high", "civilizational")
+            else "OBSERVE",
         )
 
         # 1+2. Verdict (the core tool)
@@ -140,7 +148,8 @@ class ActionBus:
             return BusResult(
                 verdict=pipeline_result.verdict,
                 pipeline=pipeline_result,
-                next_safe_action=pipeline_result.next_safe_action or "Re-petition with stronger evidence or authority.",
+                next_safe_action=pipeline_result.next_safe_action
+                or "Re-petition with stronger evidence or authority.",
                 reasons=pipeline_result.reasons or ["Governance pipeline HOLD"],
                 tier=intent.cognitive_tier,
                 risk_level=intent.consequence_scale,
@@ -148,7 +157,9 @@ class ActionBus:
 
         # ASI vs AGI contrast (per synthesis): AGI = operator-level (human-range generalist).
         # ASI = institution/civilization-level (beyond-human dominance, verification bottleneck risk).
-        is_asi = intent.cognitive_tier.upper() == "ASI" or intent.consequence_scale == "civilizational"
+        is_asi = (
+            intent.cognitive_tier.upper() == "ASI" or intent.consequence_scale == "civilizational"
+        )
         verification_bottleneck = is_asi and intent.blast_radius in ("high", "unknown")
         civilizational_blast = is_asi and not intent.is_reversible
 
@@ -159,8 +170,11 @@ class ActionBus:
             return BusResult(
                 verdict=PipelineVerdict.HOLD,
                 pipeline=pipeline_result,
-                next_safe_action="ASI mode: obtain F13 sovereign + organ world-model sign-off before any civilizational blast action. " + world_consequence,
-                reasons=["ASI civilizational blast detected. Human verification is the bottleneck."],
+                next_safe_action="ASI mode: obtain F13 sovereign + organ world-model sign-off before any civilizational blast action. "
+                + world_consequence,
+                reasons=[
+                    "ASI civilizational blast detected. Human verification is the bottleneck."
+                ],
                 tier="ASI",
                 risk_level="civilizational",
                 verification_bottleneck=True,
@@ -201,28 +215,33 @@ class ActionBus:
             is_reversible=intent.is_reversible,
             has_dry_run=False,
             has_compensation=False,
-            human_acknowledged= not (is_asi and intent.blast_radius == "high"),  # ASI high blast requires explicit human in act
+            human_acknowledged=not (
+                is_asi and intent.blast_radius == "high"
+            ),  # ASI high blast requires explicit human in act
         )
         act_res: ActResult = _act_runtime(act_req)  # may itself call more gates / human
 
         # 5. Precedent Memory update (the learning + M3)
         precedent_id = None
         try:
-            from arifosmcp.memory.lessons import Lesson, ingest_lesson  # M3 precedent path
             from arifosmcp.memory.contradictions import record_contradiction
+            from arifosmcp.memory.lessons import Lesson, ingest_lesson  # M3 precedent path
+
             lesson_text = self._extract_restraint_lesson(pipeline_result, act_res)
             les = Lesson(
                 text=lesson_text,
                 source_action=intent.tool_name,
-                outcome_summary=str(getattr(act_res, 'verdict', act_res))[:200],
+                outcome_summary=str(getattr(act_res, "verdict", act_res))[:200],
             )
             precedent_id = ingest_lesson(les) or f"les_{int(time.time())}"
             if "failure" in str(act_res).lower() or pipeline_result.verdict != PipelineVerdict.PASS:
-                record_contradiction({
-                    "expected": "lawful execution under restraint",
-                    "actual": str(act_res)[:300],
-                    "restraint_lesson": lesson_text,
-                })
+                record_contradiction(
+                    {
+                        "expected": "lawful execution under restraint",
+                        "actual": str(act_res)[:300],
+                        "restraint_lesson": lesson_text,
+                    }
+                )
         except Exception as e:  # never let memory failure kill the bus
             logger.warning("Precedent memory update failed (non-fatal): %s", e)
             precedent_id = f"les_fallback_{int(time.time())}"
@@ -234,7 +253,13 @@ class ActionBus:
             pipeline=pipeline_result,
             lease_id=effective_lease_id,
             act_result=act_res,
-            execution_outcome={"act": act_res, "latency_ms": total_ms, "world_model_note": "ASI would reconcile GEOX/WEALTH/WELL before civilizational acts." if is_asi else ""},
+            execution_outcome={
+                "act": act_res,
+                "latency_ms": total_ms,
+                "world_model_note": "ASI would reconcile GEOX/WEALTH/WELL before civilizational acts."
+                if is_asi
+                else "",
+            },
             precedent_id=precedent_id,
             next_safe_action="Action executed under governance. Precedent recorded.",
             tier="ASI" if is_asi else "AGI",
@@ -249,7 +274,11 @@ class ActionBus:
         """
         blocked = pr.blocked_at.value if pr.blocked_at else "none"
         tool = getattr(pr, "tool_name", "unknown")
-        tier_note = "ASI: machine exceeds human verification speed — restraint must be constitutional." if "ASI" in str(getattr(pr, 'tier', '')) else "AGI: human-range general competence."
+        tier_note = (
+            "ASI: machine exceeds human verification speed — restraint must be constitutional."
+            if "ASI" in str(getattr(pr, "tier", ""))
+            else "AGI: human-range general competence."
+        )
         return (
             f"Under {pr.verdict.value} at gate {blocked}. "
             f"Tool={tool}. "

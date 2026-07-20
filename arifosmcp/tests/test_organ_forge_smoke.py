@@ -9,7 +9,10 @@ or:   python tests/test_organ_forge_smoke.py
 from __future__ import annotations
 
 import pytest
-pytestmark = pytest.mark.skip(reason="import rot (memory/schemas moved); skipped during 7-tool surface freeze stabilization 2026-06-24. Fix imports separately.")
+
+pytestmark = pytest.mark.skip(
+    reason="import rot (memory/schemas moved); skipped during 7-tool surface freeze stabilization 2026-06-24. Fix imports separately."
+)
 
 import sys
 from pathlib import Path
@@ -25,28 +28,28 @@ _pkg = types.ModuleType("arifosmcp")
 _pkg.__path__ = [str(Path(__file__).resolve().parents[1])]
 sys.modules.setdefault("arifosmcp", _pkg)
 
-from arifosmcp.evidence import (  # noqa: E402
-    emit_geox,
-    emit_wealth,
-    emit_well,
-    run_pipeline,
-    EpistemicTag,
-    Reversibility,
-    JudgeVerdict,
-)
-from arifosmcp.evidence.law_evidence import (
-    WellState,
-)
 from arifosmcp.core.transitions import (
     ActionState,
     StateMachine,
     TransitionError,
 )
+from arifosmcp.evidence import (  # noqa: E402
+    EpistemicTag,
+    JudgeVerdict,
+    Reversibility,
+    emit_geox,
+    emit_wealth,
+    emit_well,
+    run_pipeline,
+)
+from arifosmcp.evidence.law_evidence import (
+    WellState,
+)
 from arifosmcp.experiments.loop import (
     Hypothesis,
+    LoopContext,
     ProbeSpec,
     run_simple_experiment,
-    LoopContext,
 )
 from arifosmcp.memory import (  # noqa: E402
     WriteRequest,
@@ -56,7 +59,6 @@ from arifosmcp.memory import (  # noqa: E402
 )
 from arifosmcp.schemas.envelope import ContradictionEntry  # noqa: E402
 from arifosmcp.schemas.governance_locks import MemoryLayer  # noqa: E402
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SCENARIO 1: Clean GEOX claim — should SEAL

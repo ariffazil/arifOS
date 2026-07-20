@@ -31,6 +31,7 @@ import re
 from typing import Any
 
 import requests
+
 from core.shared.laws import get_law_threshold
 
 from .sensing_protocol import (

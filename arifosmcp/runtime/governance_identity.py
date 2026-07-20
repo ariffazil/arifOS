@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
+from datetime import UTC
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -331,9 +332,9 @@ def _verify_forge_session_proof(actor_id: str, proof: dict) -> bool:
     """
     try:
         from arifosmcp.runtime.forge_session_runtime import (
-            verify_forge_session_token,
-            EXPECTED_TOKEN_VERSION,
             AUDIENCE_FORGE_SESSION,
+            EXPECTED_TOKEN_VERSION,
+            verify_forge_session_token,
         )
     except ImportError:
         logger.warning(
@@ -347,9 +348,9 @@ def _verify_forge_session_proof(actor_id: str, proof: dict) -> bool:
     # Build canonical token dict from wire proof. Wire shape:
     #   session_id, session_signature, nonce, timestamp
     # Canonical token adds: actor_id, audience, issued_at, expires_at, capability, token_version
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     issued_at = proof.get("timestamp") or now.isoformat()
     expires_at = proof.get("expires_at") or (now + timedelta(minutes=5)).isoformat()
 
@@ -407,13 +408,14 @@ def _verify_sovereign_signal_proof(actor_id: str, proof: dict) -> bool:
         return False
 
     try:
-        from arifosmcp.runtime.forge_session_runtime import (
-            verify_session_bound_assertion,
-            EXPECTED_TOKEN_VERSION,
-        )
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta, timezone
 
-        now = datetime.now(timezone.utc)
+        from arifosmcp.runtime.forge_session_runtime import (
+            EXPECTED_TOKEN_VERSION,
+            verify_session_bound_assertion,
+        )
+
+        now = datetime.now(UTC)
         assertion = {
             "session_id": session_id,
             "actor_id": actor_id,
@@ -448,11 +450,11 @@ def _verify_sovereign_signal_proof(actor_id: str, proof: dict) -> bool:
 def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
     """Verify Ed25519 signature proof. Returns True only on cryptographic success."""
     try:
+        from arifosmcp.runtime.sovereign_signer import get_constitution_hash
         from arifosmcp.runtime.sovereign_verify import (
             is_challenge_fresh,
             verify_sovereign_signature,
         )
-        from arifosmcp.runtime.sovereign_signer import get_constitution_hash
     except ImportError:
         logger.error(
             "sovereign_verify/sovereign_signer not importable — Ed25519 verification unavailable"

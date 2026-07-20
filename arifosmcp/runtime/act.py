@@ -26,6 +26,7 @@ DITEMPA BUKAN DIBERI — Execution craft is forged, not configured.
 """
 
 from __future__ import annotations
+
 import os
 
 from arifosmcp.runtime.act_playbooks import (
@@ -41,7 +42,9 @@ from arifosmcp.runtime.act_playbooks import (
 # Verdict-Gated Action Bus (the substrate bridge)
 # Cognition should prefer petition_for_action / action_bus over direct act when operating as AGI substrate.
 try:
-    from arifosmcp.runtime.action_bus import ActionBus, petition_for_action, action_bus as substrate_action_bus
+    from arifosmcp.runtime.action_bus import action_bus as substrate_action_bus
+    from arifosmcp.runtime.action_bus import petition_for_action
+
     SUBSTRATE_ACTION_BUS_AVAILABLE = True
 except Exception:
     SUBSTRATE_ACTION_BUS_AVAILABLE = False

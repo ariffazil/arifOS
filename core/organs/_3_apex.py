@@ -245,7 +245,6 @@ async def forge(
         landauer_limit,
         shannon_entropy,
     )
-
     from core.physics.thermodynamics_hardened import (
         ThermodynamicError,
         consume_tool_energy,
@@ -628,8 +627,8 @@ async def judge(
         try:
             from arifosmcp.runtime.kernel_state import KernelState
             from arifosmcp.schemas.transition_receipt import (
-                TransitionEventType,
                 AuthoritySource,
+                TransitionEventType,
             )
 
             # Build a lightweight KSR state from the judgment context.

@@ -656,12 +656,14 @@ class MetabolicOutput(BaseModel):
     #   public disclosure, employment action, financial allocation,
     #   health decision, legal escalation, irreversible deployment
     recommendation_only: bool = Field(
-        default=True, description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required. "
-                                  "AI proposes only — has not been ratified by human"
+        default=True,
+        description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required. "
+        "AI proposes only — has not been ratified by human",
     )
     execution_authorized: bool = Field(
-        default=False, description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required. "
-                                   "Has a human authorized execution? False until L13 ratification."
+        default=False,
+        description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required. "
+        "Has a human authorized execution? False until L13 ratification.",
     )
     human_final_authority: str = Field(
         default="Arif", description="Who has final say on this output?"

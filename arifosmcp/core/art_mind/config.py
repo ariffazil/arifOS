@@ -12,6 +12,7 @@ action triggers 888_HOLD (F1 AMANAH + F13 SOVEREIGN).
 """
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 

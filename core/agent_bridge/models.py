@@ -6,7 +6,7 @@ for ingestion into L3 (Qdrant) and L5 (Graphiti).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
@@ -31,7 +31,7 @@ class AgentTelemetry(BaseModel):
     duration_ms: int = Field(default=0, description="Wall-clock time spent")
     token_estimate: int = Field(default=0, description="Approximate tokens consumed")
     timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc), description="UTC timestamp"
+        default_factory=lambda: datetime.now(UTC), description="UTC timestamp"
     )
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Extra context (repo, branch, files touched)"

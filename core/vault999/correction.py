@@ -16,7 +16,7 @@ When new evidence proves a past SEAL was incorrect:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -96,7 +96,7 @@ def issue_correction_seal(
     )
 
     return CorrectionSeal(
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         references_seal=original_seal_hash,
         correction_reason="New evidence contradicts original grounds.",
         original_grounds=original_grounds,

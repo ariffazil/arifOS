@@ -6,7 +6,7 @@ Implements Gap 5: Self-Modification Guard.
 Detects if an agent or tool is targeting its own source code, policy,
 thresholds, or authority boundaries.
 
-EUREKA (this session, consolidated): 
+EUREKA (this session, consolidated):
 - AGI (human-grade generalist): one skill = instrumental reasoning under uncertainty;
   one tool = general tool-use substrate (code + APIs + env control via A-FORGE leases).
 - ASI (beyond-human + recursive): one skill = recursive self-improvement (treat own
@@ -123,15 +123,34 @@ def is_self_modification_attempt(
 
     is_self = any(p.lower().replace("\\", "/") in norm for p in _PROTECTED_CORE_PATHS)
     # Also treat any core/kernel/arifosmcp mutation intent as self
-    if any(k in norm for k in ["arifosmcp/", "arifos/kernel", "core/laws", "self_mod", "metabolic_loop", "mind_reason"]):
+    if any(
+        k in norm
+        for k in [
+            "arifosmcp/",
+            "arifos/kernel",
+            "core/laws",
+            "self_mod",
+            "metabolic_loop",
+            "mind_reason",
+        ]
+    ):
         is_self = True
 
     # Check for authority mutation keywords
-    mutation_keywords = ["modify_code", "alter_policy", "lower_threshold", "approve_self", "mutate", "self_mod"]
+    mutation_keywords = [
+        "modify_code",
+        "alter_policy",
+        "lower_threshold",
+        "approve_self",
+        "mutate",
+        "self_mod",
+    ]
     is_mutation = any(kw in (action_type or "").lower() for kw in mutation_keywords)
 
     # Classify with full signals (phrase + path + action)
-    tier = classify_cognitive_tier({"intent": action_type or "", "target": target_path or ""}, target_path)
+    tier = classify_cognitive_tier(
+        {"intent": action_type or "", "target": target_path or ""}, target_path
+    )
 
     if (is_self and is_mutation) or tier.get("tier") == "ASI":
         return {

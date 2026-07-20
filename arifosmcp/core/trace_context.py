@@ -17,8 +17,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
-
+from typing import Any
 
 # ── Trace Context ──────────────────────────────────────────────────────
 
@@ -34,7 +33,7 @@ class TraceContext:
 
     trace_id: str = field(default_factory=lambda: uuid.uuid4().hex[:32])
     span_id: str = field(default_factory=lambda: uuid.uuid4().hex[:16])
-    parent_span_id: Optional[str] = None
+    parent_span_id: str | None = None
     actor_id: str = ""
     session_id: str = ""
     tool_name: str = ""
@@ -42,7 +41,7 @@ class TraceContext:
     verdict: str = ""  # PROCEED / HOLD / SABAR / VOID
     organ: str = ""  # arifOS / GEOX / WEALTH / WELL / A-FORGE
     start_time: float = field(default_factory=time.time)
-    end_time: Optional[float] = None
+    end_time: float | None = None
     status: str = "ok"  # ok / error / hold / void
     attributes: dict[str, Any] = field(default_factory=dict)
 
@@ -109,8 +108,8 @@ class TraceCollector:
         session_id: str = "",
         action_class: str = "",
         organ: str = "",
-        parent_span_id: Optional[str] = None,
-        attributes: Optional[dict[str, Any]] = None,
+        parent_span_id: str | None = None,
+        attributes: dict[str, Any] | None = None,
     ) -> TraceContext:
         """Start a new trace span."""
         ctx = TraceContext(
@@ -169,7 +168,7 @@ class TraceCollector:
 
 # ── Singleton Collector ────────────────────────────────────────────────
 
-_collector: Optional[TraceCollector] = None
+_collector: TraceCollector | None = None
 
 
 def get_trace_collector() -> TraceCollector:

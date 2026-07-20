@@ -18,7 +18,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import Any
 
@@ -274,7 +273,7 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
         """🌱 BOOT — arifOS constitutional bootstrap prompt."""
         if depth == "full":
             try:
-                with open(_AGENT_INIT_V3_CANON, "r", encoding="utf-8") as fh:
+                with open(_AGENT_INIT_V3_CANON, encoding="utf-8") as fh:
                     return fh.read()
             except OSError as exc:
                 return (

@@ -10,9 +10,8 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-from typing import Any, Optional
+from dataclasses import asdict, dataclass, field
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Constitutional floors (F1-L13) — local mirror of arifOS canon
@@ -67,7 +66,7 @@ class VerdictPacket:
     tool: str
     verdict: Verdict
     checks: list[ConstitutionalCheck] = field(default_factory=list)
-    evidence_hash: Optional[str] = None
+    evidence_hash: str | None = None
     irreversibility: str = "reversible"  # reversible | soft | hard
     actor: str = "arif-fazil"
     timestamp: float = field(default_factory=time.time)
@@ -95,7 +94,7 @@ def govern(
     *,
     actor: str = "arif-fazil",
     f13_severity_acknowledged: bool = False,
-    input_data_hash: Optional[str] = None,
+    input_data_hash: str | None = None,
     is_destructive: bool = False,
     is_exfiltrative: bool = False,
     writes_to_disk: bool = False,

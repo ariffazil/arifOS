@@ -38,6 +38,7 @@ from arifosmcp.schemas.explore import (
     ExploreRequest,
     ExploreResponse,
     ExploreStatus,
+    ExploreVerdict,
     Finding,
     GraphEdge,
     GraphNode,
@@ -48,7 +49,6 @@ from arifosmcp.schemas.explore import (
     SeedAPI,
     SeedPath,
     SeedURL,
-    ExploreVerdict,
 )
 
 logger = logging.getLogger("arifos.explore")
@@ -2480,7 +2480,7 @@ async def _default_read(path: str) -> str:
 
     def _read():
         try:
-            with open(path, "r", errors="replace") as f:
+            with open(path, errors="replace") as f:
                 return f.read(65536)
         except (FileNotFoundError, IsADirectoryError, PermissionError):
             return ""

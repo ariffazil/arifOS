@@ -46,10 +46,11 @@ import hashlib
 import json
 import logging
 import uuid
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 logger = logging.getLogger("arifOS.runtime.marhin_discovery")
 

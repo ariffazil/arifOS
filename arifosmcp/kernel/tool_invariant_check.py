@@ -86,9 +86,7 @@ def check_registry_against_invariants(
     invariants = _load_invariants()
     if invariants is None:
         if raise_on_drift:
-            raise ToolInvariantDrift(
-                {"status": "ERROR", "reason": "Cannot load invariants file"}
-            )
+            raise ToolInvariantDrift({"status": "ERROR", "reason": "Cannot load invariants file"})
         return {"status": "ERROR", "reason": "Cannot load invariants file"}
 
     yaml_names = _extract_canonical_names(invariants)
@@ -125,4 +123,3 @@ def check_registry_against_invariants(
     if raise_on_drift and status == "DRIFT":
         raise ToolInvariantDrift(payload)
     return payload
-

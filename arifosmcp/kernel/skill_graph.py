@@ -19,6 +19,7 @@ v0.1 scope:
 
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -61,19 +62,21 @@ class SkillUpdateClass(str, Enum):
 
 # ── SkillNode ────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class SkillNode:
     """A skill compiled from SKILL.md frontmatter."""
-    skill_id: str                           # e.g. "arifos-kernel"
-    name: str                               # e.g. "arifos-constitutional-kernel"
+
+    skill_id: str  # e.g. "arifos-kernel"
+    name: str  # e.g. "arifos-constitutional-kernel"
     description: str
     version: str
     risk_tier: SkillRiskTier
     floor_scope: list[str]
     autonomy_tier: SkillAutonomyTier
     trigger_phrases: list[str]
-    mcp_servers: list[str]                  # e.g. ["arifos", "aforge"]
-    skill_dependencies: list[str]           # e.g. ["arifos-federation-router"]
+    mcp_servers: list[str]  # e.g. ["arifos", "aforge"]
+    skill_dependencies: list[str]  # e.g. ["arifos-federation-router"]
     inputs: list[str]
     outputs: list[str]
     path: Path
@@ -82,8 +85,8 @@ class SkillNode:
     update_class: SkillUpdateClass = SkillUpdateClass.NORMAL
 
     # Derived fields
-    out_edges: list[str] = field(default_factory=list)   # skills this skill depends on
-    in_edges: list[str] = field(default_factory=list)    # skills that depend on this
+    out_edges: list[str] = field(default_factory=list)  # skills this skill depends on
+    in_edges: list[str] = field(default_factory=list)  # skills that depend on this
 
     @property
     def is_kernel(self) -> bool:
@@ -92,8 +95,7 @@ class SkillNode:
     @property
     def is_domain(self) -> bool:
         return any(
-            self.skill_id.startswith(p)
-            for p in ("geox-", "wealth-", "well-", "federation-")
+            self.skill_id.startswith(p) for p in ("geox-", "wealth-", "well-", "federation-")
         )
 
     @property
@@ -103,9 +105,13 @@ class SkillNode:
     @property
     def is_meta(self) -> bool:
         return self.skill_id in (
-            "skill-creator", "agentic-builder", "agentic-session-init",
-            "agentic-toolcheck", "auditor-validator-kutip-sampah",
-            "vault999-audit-sealer", "godel-humility-lock",
+            "skill-creator",
+            "agentic-builder",
+            "agentic-session-init",
+            "agentic-toolcheck",
+            "auditor-validator-kutip-sampah",
+            "vault999-audit-sealer",
+            "godel-humility-lock",
             "quantum-superposition-planner",
         )
 
@@ -119,6 +125,7 @@ class SkillNode:
 
 
 # ── SkillGraph ───────────────────────────────────────────────────────────────
+
 
 class SkillGraph:
     """
@@ -281,9 +288,7 @@ class SkillGraph:
         for node in self.nodes.values():
             for dep_id in node.out_edges:
                 if dep_id not in self.nodes:
-                    orphans.append(
-                        f"{node.skill_id} → {dep_id} (MISSING — skill not in graph)"
-                    )
+                    orphans.append(f"{node.skill_id} → {dep_id} (MISSING — skill not in graph)")
         return orphans
 
     def compute_entropy(self) -> float:
@@ -294,13 +299,11 @@ class SkillGraph:
         """
         total_edges = sum(len(n.out_edges) for n in self.nodes.values())
         broken_edges = sum(
-            1 for n in self.nodes.values()
-            for dep in n.out_edges if dep not in self.nodes
+            1 for n in self.nodes.values() for dep in n.out_edges if dep not in self.nodes
         )
         # Also penalize stale skills
         stale_count = sum(
-            1 for n in self.nodes.values()
-            if n.update_class == SkillUpdateClass.STALE
+            1 for n in self.nodes.values() if n.update_class == SkillUpdateClass.STALE
         )
         total_skills = max(len(self.nodes), 1)
         edge_entropy = broken_edges / max(total_edges, 1)
@@ -414,15 +417,14 @@ def get_graph() -> SkillGraph:
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] [%(message)s]")
 
     graph = SkillGraph()
     summary = graph.summary()
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  SkillGraph Summary — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  Total skills:    {summary['total_skills']}")
     print(f"  Kernel skills:   {summary['kernel_skills']}")
     print(f"  Domain skills:   {summary['domain_skills']}")

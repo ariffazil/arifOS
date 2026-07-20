@@ -15,7 +15,6 @@ import hashlib
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
 
 
 class AuthorityBand(str, Enum):
@@ -45,6 +44,7 @@ class DelegationVerdict(str, Enum):
 @dataclass
 class DelegationEnvelope:
     """Signed delegation envelope per WAJIB 4 / asi_presence_open SKILL.md."""
+
     parent_session_id: str
     parent_authority: AuthorityBand
     allowed_tools: list[str]
@@ -62,9 +62,7 @@ class DelegationEnvelope:
             f"{self.parent_session_id}|{self.parent_authority.value}|"
             f"{self.authority_band.value}|{self.delegation_depth}|{self.issued_at}"
         )
-        self.kernel_signature = hashlib.sha256(
-            f"{payload}|{secret}".encode()
-        ).hexdigest()
+        self.kernel_signature = hashlib.sha256(f"{payload}|{secret}".encode()).hexdigest()
         return self.kernel_signature
 
     def is_expired(self) -> bool:

@@ -42,14 +42,14 @@ from arifosmcp.paradox import (
     inject_paradox_anchor,
     register_organ,
 )
+
+# P0 (2026-07-19): single canonical normalizer at every ingress path.
+from arifosmcp.runtime.governance_identity import normalize_actor_id
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.llm_client import LLMUnavailableError
 from arifosmcp.runtime.mind_router import build_routing_envelope
 from arifosmcp.runtime.tools import _hold, _ok
 from arifosmcp.schemas.synthesis import Synthesis
-
-# P0 (2026-07-19): single canonical normalizer at every ingress path.
-from arifosmcp.runtime.governance_identity import normalize_actor_id
 
 
 def _reduce_verdict(*verdicts: str) -> str:

@@ -19,7 +19,7 @@ Errors are returned via the audit-4 structured envelope (errors.schema.json).
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any
 
 from .exceptions import (
     AuthError,

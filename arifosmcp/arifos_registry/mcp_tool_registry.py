@@ -82,7 +82,7 @@ class ToolManifest:
 
 class MCPToolRegistry:
     """THE CANONICAL write path for federation MCP tool manifests.
-    
+
     Single master. All organs MUST register here (via kernel or arif_register_organ_surface).
     This is the only place that may mutate the live capability surface.
     Updates propagate to Qdrant mcp_capabilities + Postgres aaa.mcp_surface.
@@ -95,6 +95,7 @@ class MCPToolRegistry:
     def register(self, manifest: ToolManifest) -> None:
         """Register — the ONLY allowed write. Enforces namespace, no dup, full manifest."""
         from .namespace_guard import get_namespace_guard  # lazy to avoid cycle
+
         guard = get_namespace_guard()
         result = guard.validate(manifest.tool_name)
         if not result.valid:
@@ -117,7 +118,10 @@ class MCPToolRegistry:
         """Single source view for reads (use via arifos:// or kernel tool)."""
         return {
             "canonical_count": len(self._tools),
-            "by_organ": {o: len(self.list_by_organ(o)) for o in ["arifOS", "GEOX", "WEALTH", "WELL", "A-FORGE", "AAA"]},
+            "by_organ": {
+                o: len(self.list_by_organ(o))
+                for o in ["arifOS", "GEOX", "WEALTH", "WELL", "A-FORGE", "AAA"]
+            },
             "tools": [m.to_dict() for m in self.list_all()],
         }
 

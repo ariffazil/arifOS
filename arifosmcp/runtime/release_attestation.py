@@ -12,9 +12,7 @@ DITEMPA BUKAN DIBERI — Truth is forged, not assumed.
 
 from __future__ import annotations
 
-import hashlib
 import json
-import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -45,9 +43,7 @@ class AttestationFailure(Exception):
 
     def __init__(self, errors: list[str]):
         self.errors = errors
-        super().__init__(
-            "Runtime attestation FAILED (fail-closed): " + "; ".join(errors)
-        )
+        super().__init__("Runtime attestation FAILED (fail-closed): " + "; ".join(errors))
 
 
 @dataclass(frozen=True)

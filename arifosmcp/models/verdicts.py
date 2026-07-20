@@ -219,23 +219,20 @@ class PathOption(BaseModel):
 
     # Q2 metrics — all required
     blast_radius: int = Field(
-        ge=0, le=5,
-        description="BR-0..5. How many systems/organs are affected? 0=none, 5=federation-wide"
+        ge=0,
+        le=5,
+        description="BR-0..5. How many systems/organs are affected? 0=none, 5=federation-wide",
     )
     reversibility: int = Field(
-        ge=0, le=5,
-        description="REV-0..5. How reversible is this path? 0=irreversible, 5=fully reversible"
+        ge=0,
+        le=5,
+        description="REV-0..5. How reversible is this path? 0=irreversible, 5=fully reversible",
     )
-    time_cost: str = Field(
-        description="Estimated time with units (e.g., '~15min', '~2hr', '0min')"
-    )
+    time_cost: str = Field(description="Estimated time with units (e.g., '~15min', '~2hr', '0min')")
     confidence: float = Field(
-        ge=0.0, le=1.0,
-        description="Confidence in outcome (0.0-1.0). Must have evidence basis."
+        ge=0.0, le=1.0, description="Confidence in outcome (0.0-1.0). Must have evidence basis."
     )
-    prior_art: str = Field(
-        description="Prior-art availability: STRONG | WEAK | NONE"
-    )
+    prior_art: str = Field(description="Prior-art availability: STRONG | WEAK | NONE")
 
 
 class QuantumAnalysis(BaseModel):
@@ -274,14 +271,12 @@ class RecommendationEnvelope(BaseModel):
 
     # Q1 — Qualitative: option space
     paths: list[PathOption] = Field(
-        min_length=5,
-        description="Minimum 5 paths. Must include NULL and INVERSE categories."
+        min_length=5, description="Minimum 5 paths. Must include NULL and INVERSE categories."
     )
 
     # Q2 — Quantitative: dominance analysis
     dominance_analysis: list[str] = Field(
-        default_factory=list,
-        description="Which paths dominate on which metrics"
+        default_factory=list, description="Which paths dominate on which metrics"
     )
 
     # Q3 — Quantum: second-order effects
@@ -294,28 +289,24 @@ class RecommendationEnvelope(BaseModel):
         description="Which path is recommended (must match a path_id in paths)"
     )
     reasoning_trace: list[str] = Field(
-        default_factory=list,
-        description="Q1 → Q2 → Q3 → verdict reasoning chain"
+        default_factory=list, description="Q1 → Q2 → Q3 → verdict reasoning chain"
     )
     refusal_surface: list[str] = Field(
-        default_factory=list,
-        description="What this recommendation refuses to do"
+        default_factory=list, description="What this recommendation refuses to do"
     )
     sovereign_gate_required: bool = Field(
-        default=False,
-        description="Does this recommendation require F13 approval?"
+        default=False, description="Does this recommendation require F13 approval?"
     )
 
     # Compliance
     qqq_compliance: str = Field(
         default="COMPLETE",
-        description="COMPLETE | INADMISSIBLE-Q1 | INADMISSIBLE-Q2 | INADMISSIBLE-Q3"
+        description="COMPLETE | INADMISSIBLE-Q1 | INADMISSIBLE-Q2 | INADMISSIBLE-Q3",
     )
 
     # Identity
     human_final_authority: str = Field(
-        default="Arif",
-        description="Who has final say. Always 'Arif' — F13 veto is absolute."
+        default="Arif", description="Who has final say. Always 'Arif' — F13 veto is absolute."
     )
 
     @field_validator("paths")
@@ -347,7 +338,7 @@ class RecommendationEnvelope(BaseModel):
         This is the historical value of QQQ: past recommendations become
         the prior-art corpus for future Q2 confidence scoring.
         """
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
 
         recommended_path = next(
             (p for p in self.paths if p.path_id == self.recommended_path_id),
@@ -374,8 +365,7 @@ class RecommendationEnvelope(BaseModel):
             "recommended_path_id": self.recommended_path_id,
             "recommended_path_name": recommended_path.name if recommended_path else None,
             "decision_reason": (
-                f"Recommended {self.recommended_path_id}: "
-                + "; ".join(self.reasoning_trace)
+                f"Recommended {self.recommended_path_id}: " + "; ".join(self.reasoning_trace)
                 if self.reasoning_trace
                 else "No reasoning trace provided"
             ),

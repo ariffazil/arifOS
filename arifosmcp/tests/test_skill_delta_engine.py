@@ -32,11 +32,10 @@ import pytest  # noqa: F401 — used implicitly via monkeypatch fixture typing
 from arifosmcp.runtime.skill_delta_engine import (
     ENGINE_VERSION,
     RiskClass,
+    _self_check,
     attach_to_event_bus,
     propose_skill_delta,
-    _self_check,
 )
-
 
 COOLING_OK = {
     "cooling_complete": True,

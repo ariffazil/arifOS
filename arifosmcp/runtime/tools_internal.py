@@ -18,11 +18,6 @@ import os
 from datetime import UTC, datetime
 from typing import Any
 
-from core.shared.mottos import (
-    MOTTO_000_INIT_HEADER,
-    MOTTO_999_SEAL_HEADER,
-    get_motto_for_stage,
-)
 from fastmcp.server.context import Context
 
 from arifosmcp.runtime.model import (
@@ -50,6 +45,11 @@ from arifosmcp.tools.hexagon import (
 )
 from arifosmcp.tools.hexagon import (
     hexagon_psi_armor as _hex_psi_armor,
+)
+from core.shared.mottos import (
+    MOTTO_000_INIT_HEADER,
+    MOTTO_999_SEAL_HEADER,
+    get_motto_for_stage,
 )
 
 from .bridge import call_kernel

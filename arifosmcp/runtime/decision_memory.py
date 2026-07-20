@@ -12,7 +12,6 @@ from typing import Any
 
 from arifosmcp.schemas.memory_object import FutureValueBlock, MemoryAuthorityBlock
 
-
 PROMOTION_THRESHOLD = 0.55
 TEMPORARY_THRESHOLD = 0.30
 _LOCK = threading.RLock()
@@ -34,12 +33,7 @@ def predicted_value(value: FutureValueBlock | dict[str, Any]) -> float:
 
 def retrieval_value(value: FutureValueBlock | dict[str, Any]) -> float:
     v = value if isinstance(value, FutureValueBlock) else FutureValueBlock.model_validate(value)
-    score = (
-        predicted_value(v)
-        - v.staleness_risk
-        - v.anchoring_risk
-        - v.token_cost_normalized
-    )
+    score = predicted_value(v) - v.staleness_risk - v.anchoring_risk - v.token_cost_normalized
     return round(max(-1.0, min(1.0, score)), 6)
 
 
@@ -60,7 +54,11 @@ def lifecycle_recommendation(
 
 
 def activation_changes(authority: MemoryAuthorityBlock | dict[str, Any]) -> dict[str, Any]:
-    a = authority if isinstance(authority, MemoryAuthorityBlock) else MemoryAuthorityBlock.model_validate(authority)
+    a = (
+        authority
+        if isinstance(authority, MemoryAuthorityBlock)
+        else MemoryAuthorityBlock.model_validate(authority)
+    )
     changes: dict[str, Any] = {"may_inform_reasoning": a.may_inform_reasoning}
     if a.may_change_routing:
         changes["routing_constraint"] = "memory_advisory"

@@ -33,6 +33,7 @@ BASE_FORBIDDEN = [
     r"Think in receipts",
 ]
 
+
 def _load_forbidden() -> list[str]:
     terms = list(BASE_FORBIDDEN)
     if os.path.exists(RULE_PATH):
@@ -42,7 +43,9 @@ def _load_forbidden() -> list[str]:
             terms.append(r"\bfloor\b")
     return terms
 
+
 FORBIDDEN_MACHINE_TERMS = _load_forbidden()
+
 
 def _contains_machine_leak(text: str) -> bool:
     text_lower = text.lower()
@@ -50,6 +53,7 @@ def _contains_machine_leak(text: str) -> bool:
         if re.search(pattern, text_lower, re.IGNORECASE):
             return True
     return False
+
 
 def enforce_human_speech(
     raw_output: str,

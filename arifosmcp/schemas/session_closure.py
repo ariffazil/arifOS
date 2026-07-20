@@ -63,18 +63,14 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import StrEnum
 from typing import Any
-from uuid import uuid4
 
 from .vault_outbox import (
-    OutboxStatus,
     ReceiptClass,
-    SessionClosureState,
     SessionClosure,
+    SessionClosureState,
     VaultOutbox,
     VaultOutboxEntry,
-    VaultOutboxConsumer,
 )
 
 logger = logging.getLogger(__name__)
@@ -141,9 +137,7 @@ class SessionManifest:
             "context_hash": self.context_hash,
             "outcome_hash": self.outcome_hash,
         }
-        h = hashlib.sha256(
-            json.dumps(canonical, sort_keys=True).encode()
-        ).hexdigest()
+        h = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
         self.manifest_hash = h[:32]
 
     def to_dict(self) -> dict[str, Any]:
@@ -227,9 +221,7 @@ class ServiceSigner:
     bound_session_signer: str = "session_bound:v1"
     f13_sovereign_signer: str = ""
 
-    def sign(
-        self, receipt_class: ReceiptClass, manifest_hash: str
-    ) -> str:
+    def sign(self, receipt_class: ReceiptClass, manifest_hash: str) -> str:
         """
         Return the signer identity for this receipt class.
 
@@ -239,8 +231,7 @@ class ServiceSigner:
         if receipt_class == ReceiptClass.SESSION_SOVEREIGN_SEALED:
             if not self.f13_sovereign_signer:
                 logger.warning(
-                    "F13 sovereign signer not configured — "
-                    "falling back to bound_session_signer"
+                    "F13 sovereign signer not configured — falling back to bound_session_signer"
                 )
                 return f"{self.bound_session_signer}:{manifest_hash[:12]}"
             return f"{self.f13_sovereign_signer}:{manifest_hash[:12]}"
@@ -316,10 +307,7 @@ class SessionClosureManager:
             session_started_at=datetime.now(UTC).isoformat(),
         )
 
-        logger.info(
-            f"SessionClosure: initiated for {session_id} "
-            f"[{receipt_class.value}]"
-        )
+        logger.info(f"SessionClosure: initiated for {session_id} [{receipt_class.value}]")
         return self._closure
 
     def freeze_manifest(
@@ -340,10 +328,7 @@ class SessionClosureManager:
             self._closure.rsi_entropy = manifest.rsi_entropy
             self._closure.cooling_analysis = manifest.cooling_analysis
 
-        logger.info(
-            f"SessionClosure: manifest frozen "
-            f"(hash={manifest.manifest_hash[:16]}...)"
-        )
+        logger.info(f"SessionClosure: manifest frozen (hash={manifest.manifest_hash[:16]}...)")
         return manifest.manifest_hash
 
     def write_supabase(self) -> bool:

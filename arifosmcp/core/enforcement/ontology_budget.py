@@ -31,8 +31,8 @@ Gate logic:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import re as _re
+from dataclasses import dataclass, field
 
 # ── Existing architecture reference (canonical surface) ─────────────────
 _EXISTING_ORGANS: frozenset[str] = frozenset(

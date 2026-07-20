@@ -42,8 +42,9 @@ import logging
 import os
 import platform
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -631,7 +632,6 @@ def _runtime_identity_block() -> dict[str, dict[str, Any]]:
     # Source commit (mounted code)
     try:
         from arifosmcp.runtime.rest_routes.rest_routes import (  # type: ignore
-            BUILD_INFO,
             _collect_git_snapshot,
             _compute_runtime_drift,
         )
@@ -1329,7 +1329,8 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
 
 def _deep_probe_organ(host: str, port: int, label: str) -> dict[str, Any]:
     """HTTP /health probe — extract identity + contract + capability from organ."""
-    import urllib.request, json as _json
+    import json as _json
+    import urllib.request
 
     result = {
         "identity": None,
@@ -1416,7 +1417,7 @@ def _probe_transport(host: str, port: int) -> dict[str, Any]:
             observation_method=_OBS_METHOD_TCP_PROBE,
             independent=True,
         )
-    except socket.timeout:
+    except TimeoutError:
         return _pf(
             "down: timeout",
             source=source,
@@ -1915,9 +1916,8 @@ def _edges_block() -> dict[str, Any]:
     """
     try:
         from arifosmcp.runtime.federation_edges import (
-            probe_all_edges,
             edge_aggregate_state,
-            EDGE_DECLARATIONS,
+            probe_all_edges,
         )
 
         edges = probe_all_edges()
@@ -1973,8 +1973,8 @@ async def _edges_block_async() -> dict[str, Any]:
     """
     try:
         from arifosmcp.runtime.federation_edges import (
-            probe_all_edges_async,
             edge_aggregate_state,
+            probe_all_edges_async,
         )
 
         # Build minimal self-health to short-circuit source=8088 fetches
@@ -2812,12 +2812,12 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
     from starlette.responses import JSONResponse  # type: ignore
 
     async def _snapshot(request):
+        from arifosmcp.runtime.capability_drift import _registered_tools_async
         from arifosmcp.runtime.rest_routes.rest_routes import (
-            _dashboard_cors_headers,
             _cache_headers,
+            _dashboard_cors_headers,
             _merge_headers,
         )  # type: ignore
-        from arifosmcp.runtime.capability_drift import _registered_tools_async
 
         # Defensive: build_snapshot is a composition of many blocks (substrate,
         # governance, organs, conformance, edges). A single failing block should
@@ -2853,20 +2853,22 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         )
 
     async def _capabilities(request):
+        from arifosmcp.runtime.capability_drift import (
+            _registered_tools_async,
+            compute_capability_matrix,
+        )
         from arifosmcp.runtime.rest_routes.rest_routes import (
-            _dashboard_cors_headers,
             _cache_headers,
+            _dashboard_cors_headers,
             _merge_headers,
         )  # type: ignore
-        from arifosmcp.runtime.capability_drift import (
-            compute_capability_matrix,
-            _registered_tools_async,
-        )
 
         try:
             server_json = None
             try:
-                from arifosmcp.runtime.rest_routes.rest_routes import build_server_json  # type: ignore
+                from arifosmcp.runtime.rest_routes.rest_routes import (
+                    build_server_json,  # type: ignore
+                )
 
                 server_json = build_server_json(
                     os.getenv("ARIFOS_PUBLIC_BASE_URL", "http://arifos.arif-fazil.com")
@@ -2918,8 +2920,8 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
 
     async def _health(request):
         from arifosmcp.runtime.rest_routes.rest_routes import (
-            _dashboard_cors_headers,
             _cache_headers,
+            _dashboard_cors_headers,
             _merge_headers,
         )  # type: ignore
 
@@ -2955,8 +2957,8 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         Full operator surface is gated behind token validation (pending).
         """
         from arifosmcp.runtime.rest_routes.rest_routes import (
-            _dashboard_cors_headers,
             _cache_headers,
+            _dashboard_cors_headers,
             _merge_headers,
         )
 
@@ -2976,8 +2978,8 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         Never returns an independent freestyle head as authority.
         """
         from arifosmcp.runtime.rest_routes.rest_routes import (
-            _dashboard_cors_headers,
             _cache_headers,
+            _dashboard_cors_headers,
             _merge_headers,
         )
 
@@ -3005,8 +3007,8 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         never rewrites ledger, never reports green when gaps exist.
         """
         from arifosmcp.runtime.rest_routes.rest_routes import (
-            _dashboard_cors_headers,
             _cache_headers,
+            _dashboard_cors_headers,
             _merge_headers,
         )
 
@@ -3050,8 +3052,8 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         Corrupt lines counted, never silent. Gaps → status=partial.
         """
         from arifosmcp.runtime.rest_routes.rest_routes import (
-            _dashboard_cors_headers,
             _cache_headers,
+            _dashboard_cors_headers,
             _merge_headers,
         )
 

@@ -28,7 +28,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ except ImportError:
 
 
 def _utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -96,6 +96,7 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     of L3 vector indexing per ADR-010 §12). Embeddings backfilled later.
     """
     import uuid as _uuid
+
     from arifosmcp.runtime.memory_store import _content_hash, _pg_write, _summarize
     from arifosmcp.schemas import TruthClass, tier_allowed
 
@@ -296,6 +297,7 @@ async def _check_idempotency(idempotency_key: str) -> str | None:
     """
     try:
         import asyncpg
+
         from arifosmcp.runtime.memory_store import _PG_URL
 
         conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
@@ -360,7 +362,7 @@ async def _check_idempotency(idempotency_key: str) -> str | None:
 
 async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Promote a memory from lower tier to higher tier (L3 → L4 default)."""
-    from arifosmcp.runtime.memory_store import _pg_ping, _content_hash
+    from arifosmcp.runtime.memory_store import _content_hash, _pg_ping
 
     memory_id = payload.get("memory_id")
     from_tier = payload.get("from_tier", "L3")
@@ -548,7 +550,7 @@ async def _handle_promote(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
 
 async def _handle_forget(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """Tombstone an L4 record + emit vault tombstone seal."""
-    from arifosmcp.runtime.memory_store import _pg_soft_delete, _content_hash
+    from arifosmcp.runtime.memory_store import _content_hash, _pg_soft_delete
 
     memory_id = payload.get("memory_id")
     policy_basis = payload.get("policy_basis", "ttl_expired")
@@ -922,8 +924,10 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """
     import re
     import uuid as _uuid
+
     import asyncpg
-    from arifosmcp.runtime.memory_store import _PG_URL, _summarize, _content_hash
+
+    from arifosmcp.runtime.memory_store import _PG_URL, _content_hash, _summarize
 
     query = payload.get("query") or payload.get("memory_id") or ""
 
@@ -963,9 +967,15 @@ async def _handle_inspect(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
                 # Extract constitutional fields (Δ Axis 3)
                 # Priority: dedicated columns > metadata fallback
                 constitutional = None
-                _va = pg_row.get("value_anchor") or meta.get("constitutional", {}).get("value_anchor", [])
-                _fc = pg_row.get("floor_constraint") or meta.get("constitutional", {}).get("floor_constraint", [])
-                _cp = pg_row.get("care_provenance") or meta.get("constitutional", {}).get("care_provenance")
+                _va = pg_row.get("value_anchor") or meta.get("constitutional", {}).get(
+                    "value_anchor", []
+                )
+                _fc = pg_row.get("floor_constraint") or meta.get("constitutional", {}).get(
+                    "floor_constraint", []
+                )
+                _cp = pg_row.get("care_provenance") or meta.get("constitutional", {}).get(
+                    "care_provenance"
+                )
                 if _va or _fc or _cp:
                     constitutional = {
                         "value_anchor": _va,
@@ -1112,8 +1122,7 @@ async def _handle_audit(payload: dict, ctx: Any) -> dict:
     HOLD + jitu_fired=True for significant contradictions.
     """
     import hashlib
-    import json
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     action = payload.get("action", {})
     memory_scope = payload.get("memory_scope", {})
@@ -1341,7 +1350,7 @@ async def _handle_audit(payload: dict, ctx: Any) -> dict:
 
     # ── Step 6: Build receipt ──
     audit_id = hashlib.sha256(
-        f"{actor_id}:{action_desc}:{datetime.now(timezone.utc).isoformat()}".encode()
+        f"{actor_id}:{action_desc}:{datetime.now(UTC).isoformat()}".encode()
     ).hexdigest()[:16]
 
     result = {
@@ -1367,7 +1376,7 @@ async def _handle_audit(payload: dict, ctx: Any) -> dict:
             "receipt": {
                 "audit_id": audit_id,
                 "actor_id": actor_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "not_sealed": True,
             },
             "route_to": "888_HOLD" if jitu_fired else None,

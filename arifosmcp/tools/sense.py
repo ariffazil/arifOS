@@ -52,7 +52,7 @@ from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.reality_handlers import handler as reality_handler
 from arifosmcp.runtime.reality_models import BundleInput
 from arifosmcp.runtime.session_auth import validate_session
-from arifosmcp.runtime.tools import _hold, _ok, _sabar
+from arifosmcp.runtime.tools import _hold, _sabar
 
 logger = logging.getLogger(__name__)
 
@@ -623,9 +623,7 @@ def arif_observe(
             and mode in ("hybrid_discovery", "vitals", "compass", "search", "rasa_dunia")
             and actor_id
         ):
-            logger.debug(
-                "L11 AUTH: no standing for %s, using ephemeral context.", mode
-            )
+            logger.debug("L11 AUTH: no standing for %s, using ephemeral context.", mode)
             auth = {
                 "valid": True,
                 "session": {"actor_id": actor_id, "stage": "111", "ephemeral": True},
@@ -636,9 +634,7 @@ def arif_observe(
             if auth.get("expired"):
                 out = _sabar("arif_observe", auth["reason"], session_id=session_id)
             else:
-                out = _hold(
-                    "arif_observe", auth["reason"], ["L11"], session_id=session_id
-                )
+                out = _hold("arif_observe", auth["reason"], ["L11"], session_id=session_id)
             if isinstance(out, dict) and session_id:
                 out.setdefault("session_id", session_id)
             return out
@@ -1242,6 +1238,7 @@ def arif_observe(
     if mode == "rasa_dunia":
         try:
             from arifosmcp.rasa.rasa_dunia import get_rasa_dunia_snapshot
+
             snapshot = get_rasa_dunia_snapshot()
             return _ok("arif_observe", snapshot)
         except Exception as e:

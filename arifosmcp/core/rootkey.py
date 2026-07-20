@@ -58,11 +58,7 @@ def get_rootkey(default: str = "") -> str:
     Older code + Telegram paths still say **ARIF_ROOTKEY**.
     Prefer ARIFOS_*, fall back to ARIF_* (and file mounts via _get_secret).
     """
-    return (
-        _get_secret("ARIFOS_ROOTKEY", "")
-        or _get_secret("ARIF_ROOTKEY", "")
-        or default
-    )
+    return _get_secret("ARIFOS_ROOTKEY", "") or _get_secret("ARIF_ROOTKEY", "") or default
 
 
 def _is_rootkey_configured() -> bool:

@@ -131,6 +131,7 @@ TOOL_ACTION_CLASS: dict[str, ActionClass] = {
     # default OBSERVE for read/observe
 }
 
+
 def get_canonical_action_class(tool_name: str, organ: str = "") -> ActionClass:
     """Return the canonical action class for a tool. ZEN: no per-organ duplication."""
     name = tool_name.lower()

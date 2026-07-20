@@ -9,8 +9,8 @@ DITEMPA BUKAN DIBERI — Lifecycle is forged, not configured.
 """
 
 from __future__ import annotations
-from enum import StrEnum
 
+from enum import StrEnum
 
 # ═══════════════════════════════════════════════════════════════════════
 # v3.1 — DISCOVERY SURFACE HARDENING
@@ -57,7 +57,7 @@ def suggest_transition(
     degraded: bool,
     drift_count: int,
     days_since_use: int,
-) -> tuple[ToolState, "ArtReason | None"]:  # type: ignore[name-defined]  # noqa: F821
+) -> tuple[ToolState, ArtReason | None]:  # type: ignore[name-defined]  # noqa: F821
     """Suggest next tool state based on usage signals.
 
     Implicitly encodes the 8-phase agentic loop:

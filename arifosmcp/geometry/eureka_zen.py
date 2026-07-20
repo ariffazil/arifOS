@@ -471,15 +471,12 @@ def should_force_zen(
 # ═══════════════════════════════════════════════════════════════════════════
 
 from arifosmcp.runtime.candidate_store import (
+    CandidateNotFoundError,
     EurekaCandidateRecord,
     EurekaCandidateState,
-    CandidateStore,
-    CandidateNotFoundError,
-    InvalidTransitionError,
     get_candidate_store,
     verify_candidate_for_authority,
 )
-
 
 # Re-export for backward compatibility
 EurekaCandidate = EurekaCandidateRecord
@@ -650,7 +647,6 @@ def require_jauhari_before_judge(
     return bool(verdict.get("pass", False))
 
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # Zen Debt — corrected minimal model (2026-07-18)
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -676,7 +672,6 @@ def require_jauhari_before_judge(
 # ═══════════════════════════════════════════════════════════════════════════════
 
 from dataclasses import dataclass, field
-from typing import Any
 
 # Default cleanup obligation ratios per QQQQ layer.
 # Q1 identity debt matters most; Q4 harness debt matters least.
@@ -769,10 +764,18 @@ def compute_zen_debt(
     w = {**DEFAULT_WEIGHTS, **(weights or {})}
 
     layers = {
-        "Q1": LayerZenDebt(layer="Q1", eureka_units=q1_eureka, zen_units=q1_zen, alpha=a["Q1"], weight=w["Q1"]),
-        "Q2": LayerZenDebt(layer="Q2", eureka_units=q2_eureka, zen_units=q2_zen, alpha=a["Q2"], weight=w["Q2"]),
-        "Q3": LayerZenDebt(layer="Q3", eureka_units=q3_eureka, zen_units=q3_zen, alpha=a["Q3"], weight=w["Q3"]),
-        "Q4": LayerZenDebt(layer="Q4", eureka_units=q4_eureka, zen_units=q4_zen, alpha=a["Q4"], weight=w["Q4"]),
+        "Q1": LayerZenDebt(
+            layer="Q1", eureka_units=q1_eureka, zen_units=q1_zen, alpha=a["Q1"], weight=w["Q1"]
+        ),
+        "Q2": LayerZenDebt(
+            layer="Q2", eureka_units=q2_eureka, zen_units=q2_zen, alpha=a["Q2"], weight=w["Q2"]
+        ),
+        "Q3": LayerZenDebt(
+            layer="Q3", eureka_units=q3_eureka, zen_units=q3_zen, alpha=a["Q3"], weight=w["Q3"]
+        ),
+        "Q4": LayerZenDebt(
+            layer="Q4", eureka_units=q4_eureka, zen_units=q4_zen, alpha=a["Q4"], weight=w["Q4"]
+        ),
     }
 
     state = ZenDebtState(layers=layers, debt_limit=debt_limit, q1_limit=q1_limit)
@@ -804,7 +807,10 @@ def metabolic_mode(state: ZenDebtState) -> dict[str, Any]:
             "debt_limit": state.debt_limit,
             "q1_debt": state.layers.get("Q1", LayerZenDebt(layer="Q1")).debt,
             "q1_limit": state.q1_limit,
-            "layers": {k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt} for k, v in state.layers.items()},
+            "layers": {
+                k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt}
+                for k, v in state.layers.items()
+            },
         }
 
     q1_debt = state.layers.get("Q1", LayerZenDebt(layer="Q1")).debt
@@ -818,7 +824,10 @@ def metabolic_mode(state: ZenDebtState) -> dict[str, Any]:
             "debt_limit": state.debt_limit,
             "q1_debt": q1_debt,
             "q1_limit": state.q1_limit,
-            "layers": {k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt} for k, v in state.layers.items()},
+            "layers": {
+                k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt}
+                for k, v in state.layers.items()
+            },
         }
 
     # Rule 3: Total Zen debt
@@ -830,7 +839,10 @@ def metabolic_mode(state: ZenDebtState) -> dict[str, Any]:
             "debt_limit": state.debt_limit,
             "q1_debt": q1_debt,
             "q1_limit": state.q1_limit,
-            "layers": {k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt} for k, v in state.layers.items()},
+            "layers": {
+                k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt}
+                for k, v in state.layers.items()
+            },
         }
 
     # Rule 4: Default
@@ -841,7 +853,10 @@ def metabolic_mode(state: ZenDebtState) -> dict[str, Any]:
         "debt_limit": state.debt_limit,
         "q1_debt": q1_debt,
         "q1_limit": state.q1_limit,
-        "layers": {k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt} for k, v in state.layers.items()},
+        "layers": {
+            k: {"eureka": v.eureka_units, "zen": v.zen_units, "debt": v.debt}
+            for k, v in state.layers.items()
+        },
     }
 
 
@@ -867,7 +882,11 @@ def verify_zen_evidence(
         evidence.append(f"{receipts_produced} receipts produced")
 
     if evidence:
-        return {"verified": True, "reason": "Zen verified: " + "; ".join(evidence), "evidence": evidence}
+        return {
+            "verified": True,
+            "reason": "Zen verified: " + "; ".join(evidence),
+            "evidence": evidence,
+        }
     return {
         "verified": False,
         "reason": "No measurable Zen detected — delta_Q >= 0, delta_D >= 0, R = 0. Self-reported Zen without evidence is not verified.",

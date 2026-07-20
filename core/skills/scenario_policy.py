@@ -11,7 +11,6 @@ Spec reference: /root/arifOS/core/skills/SCENARIO_POLICY_SPEC.md
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
 
 
 class PolicyVerdict(str, Enum):
@@ -24,8 +23,8 @@ class PolicyVerdict(str, Enum):
 class PolicyCondition:
     """A single condition in a policy rule."""
 
-    organ: Optional[str] = None
-    metric: Optional[str] = None
+    organ: str | None = None
+    metric: str | None = None
     operator: str = ">="  # >=, <=, ==, !=, in, <, >
     value: object = None
 
@@ -67,7 +66,7 @@ class ScenarioPolicy:
     message_template: str = ""
     override: str = "888_HOLD"  # ARIF_APPROVAL | 888_HOLD
 
-    def evaluate(self, event: dict, organ_state: dict) -> Optional[dict]:
+    def evaluate(self, event: dict, organ_state: dict) -> dict | None:
         """Evaluate this policy against an event. Returns verdict dict or None if not triggered."""
         # Check trigger
         if event.get("tool") != self.trigger_event:

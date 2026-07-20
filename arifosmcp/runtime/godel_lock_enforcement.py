@@ -8,10 +8,6 @@ Import this in kernel pre-SEAL checks.
 
 import hashlib
 import hmac
-import json
-import time
-from typing import Optional
-
 
 # ── Provider Registry ───────────────────────────────────────────────────────
 
@@ -58,6 +54,7 @@ def verify_provider_separation(auditor_provider: str) -> dict:
 
 
 # ── Anti-Calhoun Gate ───────────────────────────────────────────────────────
+
 
 def anti_calhoun_score(audit_result: dict) -> dict:
     """
@@ -116,7 +113,8 @@ def anti_calhoun_score(audit_result: dict) -> dict:
 
 # ── Tiered Φ External ──────────────────────────────────────────────────────
 
-def compute_phi_external(claim_severity: str, auditor_validated: Optional[bool] = None) -> dict:
+
+def compute_phi_external(claim_severity: str, auditor_validated: bool | None = None) -> dict:
     """
     P0-2 FIX: Tiered Φ_external by claim severity.
     Not all claims need the same scrutiny.
@@ -205,9 +203,7 @@ def verify_auditor_attestation(auditor_id: str, attestation: str, signature: str
             "evidence_band": "L2_VERIFIED",
         }
 
-    expected = hmac.new(
-        secret.encode(), attestation.encode(), hashlib.sha256
-    ).hexdigest()
+    expected = hmac.new(secret.encode(), attestation.encode(), hashlib.sha256).hexdigest()
 
     if hmac.compare_digest(signature, expected):
         return {
@@ -224,6 +220,7 @@ def verify_auditor_attestation(auditor_id: str, attestation: str, signature: str
 
 
 # ── Unified Truth Source ────────────────────────────────────────────────────
+
 
 def validate_audit_result(result: dict) -> dict:
     """
@@ -242,7 +239,9 @@ def validate_audit_result(result: dict) -> dict:
 
     # 2. Evidence declaration
     if not result.get("evidence_bands"):
-        checks.append(("evidence_declaration", {"verified": False, "reason": "No evidence bands declared"}))
+        checks.append(
+            ("evidence_declaration", {"verified": False, "reason": "No evidence bands declared"})
+        )
         return {"accepted": False, "reason": "No evidence declaration", "checks": checks}
     checks.append(("evidence_declaration", {"verified": True}))
 

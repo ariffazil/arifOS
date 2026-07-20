@@ -40,16 +40,17 @@ applying a change.
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 from arifosmcp.rsi.contracts import (
+    TWELVE_SKILLS,
     GateDecision,
     RiskClass,
     SkillContract,
     SkillDelta,
     SkillDiff,
-    TWELVE_SKILLS,
     seed_12_contracts,
 )
 
@@ -90,7 +91,7 @@ def _detect_weakened_gate(delta: SkillDelta) -> list[str]:
 
 def _detect_expanded_autonomy(
     delta: SkillDelta,
-    org_inventory: Mapping[str, "Iterable[str]"],
+    org_inventory: Mapping[str, Iterable[str]],
 ) -> list[str]:
     """A-FORGE / cooling / organ bounds weakened = expanded autonomy (C5)."""
     signals: list[str] = []
@@ -153,7 +154,8 @@ def _detect_missing_test_for_new_anchor(
     new_anchors = set(delta.added_must_preserve)
     added_test_names = set(delta.added_tests)
     unproven = [
-        a for a in new_anchors
+        a
+        for a in new_anchors
         if not any(t.endswith(a) or a in t or t.replace("_", " ") in a for t in added_test_names)
     ]
     if unproven:
@@ -167,7 +169,7 @@ def _detect_missing_test_for_new_anchor(
 def diff(
     old: SkillContract,
     new_delta: SkillDelta,
-    organ_inventory: Mapping[str, "Iterable[str]"],
+    organ_inventory: Mapping[str, Iterable[str]],
 ) -> SkillDiff:
     """Compute the SkillDiff between an old contract and a proposed delta.
 
@@ -186,10 +188,7 @@ def diff(
     risk = RiskClass.C1_DOCS  # baseline (grammar/formatting/diff)
 
     # C5 — execution/authority/cooling or weakened gates
-    if any(
-        s in drift
-        for s in ("weakened_gate", "expanded_autonomy")
-    ):
+    if any(s in drift for s in ("weakened_gate", "expanded_autonomy")):
         risk = RiskClass.C5_EXECUTION_AUTHORITY
     elif "authority_drift" in drift:
         risk = RiskClass.C5_EXECUTION_AUTHORITY

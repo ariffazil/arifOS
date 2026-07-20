@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
+from arifosmcp.runtime.explore import arif_explore
+from arifosmcp.runtime.megaTools.tool_13_arif_memory import arif_memory
 from arifosmcp.tools.evidence import arif_fetch
 from arifosmcp.tools.forge import arif_forge
 from arifosmcp.tools.heart import arif_critique
 from arifosmcp.tools.judge import arif_judge
 from arifosmcp.tools.kernel_canonical import (
+    arif_bridge_connect,
     arif_route,  # new canonical routing (RULE 14)
     arif_triage,  # session status, preflight, priority
-    arif_bridge_connect,
 )
-from arifosmcp.runtime.explore import arif_explore
-from arifosmcp.runtime.megaTools.tool_13_arif_memory import arif_memory
 from arifosmcp.tools.ops import arif_measure
 from arifosmcp.tools.reason import arif_think
 from arifosmcp.tools.reply import arif_compose
+from arifosmcp.tools.retrieve_tools import arif_retrieve_tools
 from arifosmcp.tools.sense import arif_observe
 from arifosmcp.tools.session import arif_init
 from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
-from arifosmcp.tools.retrieve_tools import arif_retrieve_tools
 from arifosmcp.tools.vault import arif_seal, arif_vault_verify
 
 __all__ = [

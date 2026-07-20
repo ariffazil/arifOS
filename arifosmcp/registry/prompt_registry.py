@@ -26,7 +26,6 @@ from typing import Any
 
 import yaml
 
-
 # ═══ SINGLE SOURCE OF TRUTH PATH ═══════════════════════════════════════════════
 REGISTRY_PATH = Path(__file__).parent / "prompt_registry.yaml"
 

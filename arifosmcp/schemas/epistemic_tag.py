@@ -30,7 +30,6 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # OUTPUT CLASS — What kind of processing produced this output
 # ═══════════════════════════════════════════════════════════════════════════════

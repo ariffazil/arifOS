@@ -32,13 +32,12 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ─── Enums ──────────────────────────────────────────────────────────────────
 
@@ -126,61 +125,61 @@ class Floor(str, Enum):
 
 
 class GEOXPayload(BaseModel):
-    claim_id: Optional[str] = None
-    evidence_summary: Optional[str] = None
-    confidence: Optional[float] = Field(default=None, ge=0, le=0.9)
-    physics_invariants: Optional[list[str]] = None
+    claim_id: str | None = None
+    evidence_summary: str | None = None
+    confidence: float | None = Field(default=None, ge=0, le=0.9)
+    physics_invariants: list[str] | None = None
 
 
 class WEALTHPayload(BaseModel):
-    npv: Optional[float] = None
-    risk_score: Optional[float] = Field(default=None, ge=0, le=1)
-    capital_class: Optional[str] = None
-    wisdom_dimensions: Optional[dict[str, Any]] = None
+    npv: float | None = None
+    risk_score: float | None = Field(default=None, ge=0, le=1)
+    capital_class: str | None = None
+    wisdom_dimensions: dict[str, Any] | None = None
 
 
 class WELLPayload(BaseModel):
-    readiness_color: Optional[str] = None
-    fatigue_level: Optional[float] = Field(default=None, ge=0, le=1)
-    dignity_preservation: Optional[float] = Field(default=None, ge=0, le=1)
-    recommendation: Optional[str] = None
+    readiness_color: str | None = None
+    fatigue_level: float | None = Field(default=None, ge=0, le=1)
+    dignity_preservation: float | None = Field(default=None, ge=0, le=1)
+    recommendation: str | None = None
 
 
 class AAAPayload(BaseModel):
-    route: Optional[list[str]] = None
-    display_state: Optional[str] = None
-    warga_boundary_check: Optional[bool] = None
+    route: list[str] | None = None
+    display_state: str | None = None
+    warga_boundary_check: bool | None = None
 
 
 class ArifOSPayload(BaseModel):
-    verdict: Optional[str] = None
-    g_score: Optional[float] = Field(default=None, ge=0, le=1)
-    violated_floors: Optional[list[str]] = None
-    judge_reasoning: Optional[str] = None
+    verdict: str | None = None
+    g_score: float | None = Field(default=None, ge=0, le=1)
+    violated_floors: list[str] | None = None
+    judge_reasoning: str | None = None
 
 
 class AForgePayload(BaseModel):
-    execution_id: Optional[str] = None
-    dry_run_result: Optional[str] = None
-    execution_result: Optional[str] = None
-    rollback_available: Optional[bool] = None
+    execution_id: str | None = None
+    dry_run_result: str | None = None
+    execution_result: str | None = None
+    rollback_available: bool | None = None
 
 
 class VAULT999Payload(BaseModel):
-    seal_id: Optional[str] = None
-    seal_hash: Optional[str] = None
-    sealed_at: Optional[datetime] = None
-    witness_count: Optional[int] = None
+    seal_id: str | None = None
+    seal_hash: str | None = None
+    sealed_at: datetime | None = None
+    witness_count: int | None = None
 
 
 class OrganPayloads(BaseModel):
-    GEOX: Optional[GEOXPayload] = None
-    WEALTH: Optional[WEALTHPayload] = None
-    WELL: Optional[WELLPayload] = None
-    AAA: Optional[AAAPayload] = None
-    arifOS: Optional[ArifOSPayload] = None
-    A_FORGE: Optional[AForgePayload] = Field(default=None, alias="A-FORGE")
-    VAULT999: Optional[VAULT999Payload] = None
+    GEOX: GEOXPayload | None = None
+    WEALTH: WEALTHPayload | None = None
+    WELL: WELLPayload | None = None
+    AAA: AAAPayload | None = None
+    arifOS: ArifOSPayload | None = None
+    A_FORGE: AForgePayload | None = Field(default=None, alias="A-FORGE")
+    VAULT999: VAULT999Payload | None = None
 
 
 # ─── Route Entry ────────────────────────────────────────────────────────────
@@ -188,10 +187,10 @@ class OrganPayloads(BaseModel):
 
 class OrganRouteEntry(BaseModel):
     organ: str
-    received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    processed_at: Optional[datetime] = None
-    verdict: Optional[str] = None
-    notes: Optional[str] = None
+    received_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    processed_at: datetime | None = None
+    verdict: str | None = None
+    notes: str | None = None
 
 
 # ─── Main Envelope ──────────────────────────────────────────────────────────
@@ -213,10 +212,10 @@ class FederationEnvelope(BaseModel):
     required_floor_checks: list[Floor] = Field(default_factory=list)
     proposed_action: dict[str, Any]
     execution_status: ExecutionStatus = ExecutionStatus.PENDING
-    measurement_result: Optional[dict[str, Any]] = None
-    vault_receipt_reference: Optional[str] = None
+    measurement_result: dict[str, Any] | None = None
+    vault_receipt_reference: str | None = None
     f13_required_boolean: bool = False
-    f13_verdict: Optional[F13Verdict] = None
+    f13_verdict: F13Verdict | None = None
     organ_payloads: OrganPayloads = Field(default_factory=OrganPayloads)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -231,12 +230,12 @@ class FederationEnvelope(BaseModel):
 
     def stamp_route(
         self, organ: str, verdict: str | None = None, notes: str | None = None
-    ) -> "FederationEnvelope":
+    ) -> FederationEnvelope:
         """Append a route entry for the current organ. Call this when an organ processes the envelope."""
         entry = OrganRouteEntry(
             organ=organ,
-            received_at=datetime.now(timezone.utc),
-            processed_at=datetime.now(timezone.utc),
+            received_at=datetime.now(UTC),
+            processed_at=datetime.now(UTC),
             verdict=verdict or "PROCESSED",
             notes=notes,
         )
@@ -360,7 +359,7 @@ def sabah_basin_envelope() -> FederationEnvelope:
         execution_status=ExecutionStatus.PENDING,
         f13_required_boolean=True,
         metadata={
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "priority": "HIGH",
             "tags": ["sabah_basin", "metabolic_loop", "end_to_end_test"],
             "correlation_id": "SABAH-BASIN-001",

@@ -29,17 +29,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # CANONICAL VERDICT — single source of truth across ALL federation organs
 # ═══════════════════════════════════════════════════════════════════════════════
-
-
 from arifosmcp.models.verdicts import Verdict as CanonicalVerdict
 
 # CanonicalVerdict is now imported from models/verdicts.

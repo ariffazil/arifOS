@@ -11,22 +11,17 @@ Or:  python arifosmcp/registry/test_prompt_registry.py
 
 from __future__ import annotations
 
-import json
 import sys
-import hashlib
 from pathlib import Path
 
 # Make sure we can import the package under test
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from arifosmcp.registry import (
+    get_prompt_specs_for_charter,
     get_registry,
     reload_registry,
-    get_prompt_specs_for_charter,
-    PromptSpec,
-    PromptRegistry,
 )
-
 
 # ═══ Expected values — anchored to arifosmcp/prompts/__init__.py:180 ═════
 
@@ -62,11 +57,11 @@ def test_canonical_sequence_correct() -> bool:
     actual = registry.canonical_sequence
 
     if actual != EXPECTED_CANONICAL_SEQUENCE:
-        print(f"  ❌ FAIL")
+        print("  ❌ FAIL")
         print(f"  Expected: {EXPECTED_CANONICAL_SEQUENCE}")
         print(f"  Got:      {actual}")
         if actual[4] == "555_judge" and actual[5] == "666_critique":
-            print(f"  ⚠️  555/666 SWAP DETECTED — the bug class is back!")
+            print("  ⚠️  555/666 SWAP DETECTED — the bug class is back!")
         return False
 
     # Verify zen sigil prompts are present and correctly ordered
@@ -80,7 +75,7 @@ def test_canonical_sequence_correct() -> bool:
         print(f"  ❌ FAIL — 🔒 JUDGE missing or wrong id: {spec_judge.id}")
         return False
 
-    print(f"  ✅ PASS — sequence correct (zen sigil)")
+    print("  ✅ PASS — sequence correct (zen sigil)")
     print(f"     ⚖ MARUAH={spec_maruah.id} ({spec_maruah.semantic_name})")
     print(f"     🔒 JUDGE={spec_judge.id} ({spec_judge.semantic_name})")
     return True
@@ -103,14 +98,14 @@ def test_sha256_stability() -> bool:
     spec_sha_judge_2 = reg2.get("🔒 JUDGE").sha256
 
     if sha1 != sha2:
-        print(f"  ❌ FAIL — registry SHA changed across reloads")
+        print("  ❌ FAIL — registry SHA changed across reloads")
         print(f"     {sha1} vs {sha2}")
         return False
     if spec_sha_maruah_1 != spec_sha_maruah_2 or spec_sha_judge_1 != spec_sha_judge_2:
-        print(f"  ❌ FAIL — spec SHA changed across reloads")
+        print("  ❌ FAIL — spec SHA changed across reloads")
         return False
 
-    print(f"  ✅ PASS — SHA stable across reloads")
+    print("  ✅ PASS — SHA stable across reloads")
     print(f"     registry_sha: {sha1[:16]}...")
     print(f"     ⚖ MARUAH: {spec_sha_maruah_1[:16]}...")
     print(f"     🔒 JUDGE:    {spec_sha_judge_1[:16]}...")
@@ -163,12 +158,12 @@ def test_charter_adapter_compat() -> bool:
     # Verify the names match the canonical sequence
     names = [s["name"] for s in specs]
     if names != list(EXPECTED_CANONICAL_SEQUENCE):
-        print(f"  ❌ FAIL — adapter order != canonical_sequence")
+        print("  ❌ FAIL — adapter order != canonical_sequence")
         print(f"     adapter: {names}")
         print(f"     canonical: {list(EXPECTED_CANONICAL_SEQUENCE)}")
         return False
 
-    print(f"  ✅ PASS — adapter shape compatible")
+    print("  ✅ PASS — adapter shape compatible")
     print(f"     {len(specs)} specs in canonical order")
     return True
 
@@ -190,7 +185,7 @@ def test_floor_binding_present() -> bool:
         print(f"  ❌ FAIL — prompts missing floor_binding: {missing}")
         return False
 
-    print(f"  ✅ PASS — all prompts declare floor_binding")
+    print("  ✅ PASS — all prompts declare floor_binding")
     for pid in registry.canonical_sequence:
         spec = registry.get(pid)
         print(f"     {pid:30s} → floors: {','.join(spec.floor_binding)}")
@@ -219,12 +214,12 @@ def test_input_schema_valid_json_schema_shape() -> bool:
             continue
 
     if invalid:
-        print(f"  ❌ FAIL — invalid schemas:")
+        print("  ❌ FAIL — invalid schemas:")
         for pid, reason in invalid:
             print(f"     {pid}: {reason}")
         return False
 
-    print(f"  ✅ PASS — all 8 input schemas are valid JSON Schema object types")
+    print("  ✅ PASS — all 8 input schemas are valid JSON Schema object types")
     return True
 
 
@@ -236,7 +231,7 @@ def test_lineage_records_supersession() -> bool:
     registry = get_registry()
 
     if not registry.lineage:
-        print(f"  ❌ FAIL — lineage is empty")
+        print("  ❌ FAIL — lineage is empty")
         return False
 
     supersedes = registry.lineage.get("supersedes", [])

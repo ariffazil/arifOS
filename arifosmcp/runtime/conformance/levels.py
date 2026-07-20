@@ -45,9 +45,10 @@ class FullVerdict(str, Enum):
 
 class SubstrateGate(str, Enum):
     """The audit-mandated substrate gate. The legacy string "GREEN" is forbidden."""
-    GREEN = "GREEN"      # allowed only when every required live check completed
-    AMBER = "AMBER"      # at least one live check was skipped
-    RED = "RED"          # at least one live check failed
+
+    GREEN = "GREEN"  # allowed only when every required live check completed
+    AMBER = "AMBER"  # at least one live check was skipped
+    RED = "RED"  # at least one live check failed
 
 
 # ── Check result + report shape ───────────────────────────────────────────
@@ -120,6 +121,7 @@ def _aggregate_full(checks: list[CheckResult]) -> FullVerdict:
 # ── Level runners ──────────────────────────────────────────────────────────
 def _now() -> str:
     import time
+
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
@@ -127,7 +129,11 @@ def run_fast(checks: list[CheckResult] | None = None) -> ConformanceReport:
     """Run the FAST conformance level. Static checks only."""
     if checks is None:
         checks = _fast_default_checks()
-    verdict = FastVerdict.STATIC_FAIL if any(c.state == "fail" for c in checks) else FastVerdict.STATIC_PASS
+    verdict = (
+        FastVerdict.STATIC_FAIL
+        if any(c.state == "fail" for c in checks)
+        else FastVerdict.STATIC_PASS
+    )
     return ConformanceReport(
         level="FAST",
         verdict=verdict.value,
@@ -141,7 +147,11 @@ def run_live_transport(checks: list[CheckResult] | None = None) -> ConformanceRe
     """Run the LIVE_TRANSPORT level. Skipped checks are reported honestly."""
     if checks is None:
         checks = _live_transport_default_checks()
-    verdict = LiveVerdict.TRANSPORT_FAIL if any(c.state == "fail" for c in checks) else LiveVerdict.TRANSPORT_PASS
+    verdict = (
+        LiveVerdict.TRANSPORT_FAIL
+        if any(c.state == "fail" for c in checks)
+        else LiveVerdict.TRANSPORT_PASS
+    )
     return ConformanceReport(
         level="LIVE_TRANSPORT",
         verdict=verdict.value,
@@ -168,19 +178,28 @@ def run_full(checks: list[CheckResult] | None = None) -> ConformanceReport:
 # These are placeholders. PR7's runner will populate them from live probes.
 # A skipped check yields the AMBER gate; a pass yields GREEN; a fail yields RED.
 
+
 def _fast_default_checks() -> list[CheckResult]:
     return [
         CheckResult(name="schemas", state="pass", evidence={"files": 11}),
         CheckResult(name="policy_files", state="pass", evidence={"contracts": 9}),
-        CheckResult(name="declared_registry", state="pass", evidence={"registered": 8, "declared": 18}),
+        CheckResult(
+            name="declared_registry", state="pass", evidence={"registered": 8, "declared": 18}
+        ),
     ]
 
 
 def _live_transport_default_checks() -> list[CheckResult]:
     return [
-        CheckResult(name="MCP_initialize", state="pass", evidence={"protocol_version": "2025-11-25"}),
+        CheckResult(
+            name="MCP_initialize", state="pass", evidence={"protocol_version": "2025-11-25"}
+        ),
         CheckResult(name="protocol_version", state="pass"),
-        CheckResult(name="schema_echo", state="skipped", note="not yet wired in PR7 runner; AMBER gate is correct"),
+        CheckResult(
+            name="schema_echo",
+            state="skipped",
+            note="not yet wired in PR7 runner; AMBER gate is correct",
+        ),
     ]
 
 

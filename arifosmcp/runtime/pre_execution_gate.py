@@ -175,7 +175,7 @@ def _art_reflex_check(
     FAIL-CLOSED: if ART module is unavailable, returns GateResult(HOLD).
     """
     try:
-        from arifosmcp.runtime.art import ArtVerdict, ArtRequest, ToolState, art
+        from arifosmcp.runtime.art import ArtRequest, ArtVerdict, ToolState, art
     except ImportError:
         logger.warning("ART reflex unavailable — FAIL-CLOSED: blocking action")
         return GateResult(
@@ -332,11 +332,11 @@ def _act_reflex_check(
     """
     try:
         from arifosmcp.runtime.act import (
-            act,
             ActRequest,
             ActResult,
             ActVerdict,
             ExecutionPattern,
+            act,
         )
     except ImportError:
         logger.warning("ACT module unavailable — FAIL-CLOSED: blocking action")

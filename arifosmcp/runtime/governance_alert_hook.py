@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -35,7 +35,7 @@ def _write_alert(event: str, data: dict[str, Any]) -> None:
     """Append a governance alert to the log."""
     ALERTS_LOG.parent.mkdir(parents=True, exist_ok=True)
     entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "event": event,
         **data,
     }
@@ -184,7 +184,7 @@ def get_alert_summary(days: int = 7) -> dict[str, Any]:
     if not ALERTS_LOG.exists():
         return {"total": 0, "by_event": {}, "by_agent": {}}
 
-    cutoff = datetime.now(timezone.utc).timestamp() - (days * 86400)
+    cutoff = datetime.now(UTC).timestamp() - (days * 86400)
     by_event: dict[str, int] = {}
     by_agent: dict[str, int] = {}
     total = 0

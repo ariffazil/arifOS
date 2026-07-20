@@ -21,7 +21,7 @@ import hashlib
 import json
 import logging
 import secrets
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -35,6 +35,7 @@ RECEIPT_SCHEMA_VERSION = "v1"
 @dataclass
 class SignedReceipt:
     """A VAULT999 receipt with Ed25519 signature."""
+
     receipt_id: str
     event_type: str
     payload_hash: str
@@ -75,6 +76,7 @@ class SignedReceipt:
 @dataclass
 class VerificationResult:
     """Result of verifying a signed receipt."""
+
     valid: bool
     reason: str = ""
     receipt_id: str = ""
@@ -207,9 +209,12 @@ def _sign_with_key(message: str, *, use_sovereign: bool = False) -> str | None:
     try:
         if use_sovereign:
             from arifosmcp.runtime.sovereign_signer import load_private_key
+
             key_bytes = load_private_key()
         else:
-            key_bytes = bytes.fromhex(Path("/root/AAA/auth/keys/arifos_private.key").read_text().strip())
+            key_bytes = bytes.fromhex(
+                Path("/root/AAA/auth/keys/arifos_private.key").read_text().strip()
+            )
         if not key_bytes:
             return None
 
@@ -223,6 +228,7 @@ def _sign_with_key(message: str, *, use_sovereign: bool = False) -> str | None:
             private_key = load_der_private_key(key_bytes, password=None)
 
         import base64
+
         signature = private_key.sign(message.encode())
         return base64.b64encode(signature).decode()
 
@@ -238,6 +244,7 @@ def _verify_signature(message: str, signature_b64: str, *, key_id: str = "servic
     """Verify an Ed25519 signature. Returns True if valid."""
     try:
         import base64
+
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
         # Load the public key based on key_id
@@ -262,11 +269,15 @@ def _get_public_key(key_id: str) -> bytes | None:
     try:
         from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
         from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+
         if key_id == "sovereign":
             from arifosmcp.runtime.sovereign_signer import load_private_key
+
             key_bytes = load_private_key()
         else:
-            key_bytes = bytes.fromhex(Path("/root/AAA/auth/keys/arifos_private.key").read_text().strip())
+            key_bytes = bytes.fromhex(
+                Path("/root/AAA/auth/keys/arifos_private.key").read_text().strip()
+            )
         private_key = Ed25519PrivateKey.from_private_bytes(key_bytes)
         return private_key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
 

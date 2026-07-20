@@ -10,8 +10,7 @@ Rules:
   Never issue VAULT999 SEAL autonomously.
 """
 
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 
 J_GATE_RULES = {
     "J0": {
@@ -95,13 +94,13 @@ def arif_j_gate(
             "blocked_actions": ["execute", "seal", "deploy", "commit_irreversible"],
             "conditions": [
                 f"Irreversible action blocked at {state} — requires J3+ or F13 override",
-                "Additional evidence needed from missing organs: " +
-                ", ".join(j_state.get("missing_evidence", [])),
+                "Additional evidence needed from missing organs: "
+                + ", ".join(j_state.get("missing_evidence", [])),
             ],
             "requires_f13": True,
             "cannot_seal_autonomously": True,
             "metadata": {
-                "gated_at": datetime.now(timezone.utc).isoformat(),
+                "gated_at": datetime.now(UTC).isoformat(),
                 "gating_agent": "arif_j_gate",
                 "override_reason": "irreversibility_floor",
             },
@@ -147,7 +146,7 @@ def arif_j_gate(
         "requires_f13": state in ("J0", "J1") or action_reversibility == "IRREVERSIBLE",
         "cannot_seal_autonomously": True,  # ALWAYS TRUE
         "metadata": {
-            "gated_at": datetime.now(timezone.utc).isoformat(),
+            "gated_at": datetime.now(UTC).isoformat(),
             "gating_agent": "arif_j_gate",
         },
     }

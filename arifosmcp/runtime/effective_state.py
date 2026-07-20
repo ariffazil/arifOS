@@ -15,7 +15,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class AuthorityBand(str, Enum):
@@ -44,6 +44,7 @@ class EffectiveState:
     clarity_contract.authority_band, actor.authority_state, etc.)
     MUST derive from this single source or be removed.
     """
+
     actor_verified: bool = False
     authority_band: AuthorityBand = AuthorityBand.OBSERVE_ONLY
     mutation_allowed: bool = False
@@ -150,7 +151,5 @@ def to_dict(state: EffectiveState) -> dict[str, Any]:
         "verdict": state.verdict.value,
         "reason": state.reason,
         "derived_from": state.derived_from,
-        "computed_at": time.strftime(
-            "%Y-%m-%dT%H:%M:%SZ", time.gmtime(state.computed_at)
-        ),
+        "computed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(state.computed_at)),
     }

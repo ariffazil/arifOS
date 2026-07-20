@@ -38,11 +38,13 @@ ReviewOutcome = Literal["approved", "rejected", "amended"]
 def _utc_today() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%d")
 
+
 def _time_bucket(hour: int) -> str:
     for name, s, e in TIME_BUCKETS:
         if s <= hour < e:
             return name
     return "evening"
+
 
 def _normal_cdf(x: float) -> float:
     """Abramowitz & Stegun 7.1.26 standard normal CDF approximation."""
@@ -52,6 +54,7 @@ def _normal_cdf(x: float) -> float:
     t = 1 / (1 + 0.2316419 * x)
     poly = t * (b[0] + t * (b[1] + t * (b[2] + t * (b[3] + t * b[4]))))
     return 1 - 0.3989422804014327 * math.exp(-0.5 * x * x) * poly  # 0.3989... = 1/√(2π)
+
 
 def _two_proportion_z(n1: int, p1: float, n2: int, p2: float) -> float | None:
     """Two-proportion z-test two-tailed p-value. None if insufficient data."""
@@ -97,13 +100,22 @@ class T3DailyCounter:
             state = {"date": today, "count": 0}
         if state["count"] >= self.cap:
             logger.warning("T3DailyCounter: cap %d hit for %s", self.cap, today)
-            return {"proceed": False, "count": state["count"], "cap": self.cap,
-                    "verdict": "DEFER_TO_TOMORROW", "date": today}
+            return {
+                "proceed": False,
+                "count": state["count"],
+                "cap": self.cap,
+                "verdict": "DEFER_TO_TOMORROW",
+                "date": today,
+            }
         state["count"] += 1
         self._write(state)
         logger.info("T3DailyCounter: %d/%d for %s", state["count"], self.cap, today)
-        return {"proceed": True, "count": state["count"],
-                "remaining": self.cap - state["count"], "date": today}
+        return {
+            "proceed": True,
+            "count": state["count"],
+            "remaining": self.cap - state["count"],
+            "date": today,
+        }
 
     def remaining(self) -> int:
         state = self._read()
@@ -128,8 +140,9 @@ class ReceiptRecord(BaseModel):
 class ReceiptRandomizer:
     """Assigns T3 receipts a deep_read_probability, tracks in append-only JSONL."""
 
-    def __init__(self, probability: float = DEFAULT_DEEP_READ_PROB,
-                 path: Path = DEEP_READ_LOG_PATH):
+    def __init__(
+        self, probability: float = DEFAULT_DEEP_READ_PROB, path: Path = DEEP_READ_LOG_PATH
+    ):
         self.probability = probability
         self.path = path
 
@@ -148,7 +161,8 @@ class ReceiptRandomizer:
         for i, r in enumerate(records):
             if r.receipt_id == receipt_id and not r.deep_read_completed:
                 records[i] = r.model_copy(
-                    update={"deep_read_completed": True, "deep_read_timestamp": datetime.now(UTC)})
+                    update={"deep_read_completed": True, "deep_read_timestamp": datetime.now(UTC)}
+                )
                 self._write_all(records)
                 return True
         return False
@@ -158,10 +172,13 @@ class ReceiptRandomizer:
         total = len(records)
         selected = sum(1 for r in records if r.selected_for_deep_read)
         completed = sum(1 for r in records if r.deep_read_completed)
-        return {"total_receipts": total, "selected_for_deep_read": selected,
-                "deep_read_completed": completed,
-                "actual_deep_read_rate": round(completed / total, 4) if total else 0.0,
-                "target_deep_read_rate": self.probability}
+        return {
+            "total_receipts": total,
+            "selected_for_deep_read": selected,
+            "deep_read_completed": completed,
+            "actual_deep_read_rate": round(completed / total, 4) if total else 0.0,
+            "target_deep_read_rate": self.probability,
+        }
 
     def _load_all(self) -> list[ReceiptRecord]:
         if not self.path.exists():
@@ -210,8 +227,12 @@ class ReviewConsistencyScorer:
 
         dt_total, nt_total = sum(daytime.values()), sum(night.values())
         if dt_total < 10 or nt_total < 5:
-            return {"flagged": False, "reason": "insufficient_data",
-                    "daytime_total": dt_total, "night_total": nt_total}
+            return {
+                "flagged": False,
+                "reason": "insufficient_data",
+                "daytime_total": dt_total,
+                "night_total": nt_total,
+            }
 
         flags = []
         for outcome in ("approved", "rejected", "amended"):
@@ -219,11 +240,21 @@ class ReviewConsistencyScorer:
             nt_rate = night.get(outcome, 0) / nt_total if nt_total else 0.0
             p_val = _two_proportion_z(dt_total, dt_rate, nt_total, nt_rate)
             if p_val is not None and p_val < SIGNIFICANCE_THRESHOLD:
-                flags.append({"outcome": outcome, "daytime_rate": round(dt_rate, 4),
-                              "night_rate": round(nt_rate, 4), "p_value": round(p_val, 4)})
-        return {"flagged": len(flags) > 0, "flags": flags,
-                "daytime_total": dt_total, "night_total": nt_total,
-                "significance_threshold": SIGNIFICANCE_THRESHOLD}
+                flags.append(
+                    {
+                        "outcome": outcome,
+                        "daytime_rate": round(dt_rate, 4),
+                        "night_rate": round(nt_rate, 4),
+                        "p_value": round(p_val, 4),
+                    }
+                )
+        return {
+            "flagged": len(flags) > 0,
+            "flags": flags,
+            "daytime_total": dt_total,
+            "night_total": nt_total,
+            "significance_threshold": SIGNIFICANCE_THRESHOLD,
+        }
 
 
 # ═══════════════════════════════════════════════════════════════════════════

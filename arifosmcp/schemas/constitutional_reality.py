@@ -17,7 +17,11 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 # Canonical floors are the single source of truth
-from arifosmcp.schemas.floors import FLOOR_IDS, FLOOR_BY_ID, FLOORS  # noqa: F401 (use for validation/generation)
+from arifosmcp.schemas.floors import (  # noqa: F401 (use for validation/generation)
+    FLOOR_BY_ID,
+    FLOOR_IDS,
+    FLOORS,
+)
 
 
 class EvidenceRef(BaseModel):

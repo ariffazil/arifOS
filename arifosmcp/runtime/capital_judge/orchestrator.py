@@ -25,12 +25,15 @@ Use:
 
 from __future__ import annotations
 
-import hashlib
-import json
 import time
-import uuid
 from typing import Any
 
+from .receipt import (
+    ComputationReceipt,
+    ExecutionReceipt,
+    HumanRatificationReceipt,
+    JudgmentReceipt,
+)
 from .state_machine import (
     CapitalCase,
     Receipt,
@@ -38,12 +41,6 @@ from .state_machine import (
     StateMachine,
     TransitionError,
     _hash,
-)
-from .receipt import (
-    ComputationReceipt,
-    ExecutionReceipt,
-    HumanRatificationReceipt,
-    JudgmentReceipt,
 )
 
 
@@ -66,9 +63,11 @@ class CapitalJudgeOrchestrator:
         self._last_ratification: HumanRatificationReceipt | None = None
 
     # ── transitions ──────────────────────────────────────────────────────────
-    def authenticate(self, *, authorization_header: str | None, audience: str, required_capability: str) -> None:
+    def authenticate(
+        self, *, authorization_header: str | None, audience: str, required_capability: str
+    ) -> None:
         """Verify the bearer token via the federation auth middleware."""
-        from arifosmcp.runtime.wealth_auth import authorize, AuthError
+        from arifosmcp.runtime.wealth_auth import AuthError, authorize
 
         try:
             claims = authorize(
@@ -93,7 +92,9 @@ class CapitalJudgeOrchestrator:
         for k in ("case_id", "actor", "purpose", "valuation", "inputs", "governance"):
             v = getattr(self.case, k, None)
             if v is None or v == {} or v == []:
-                raise TransitionError(self.sm.state, State.VALIDATED, reason=f"missing required field: {k}")
+                raise TransitionError(
+                    self.sm.state, State.VALIDATED, reason=f"missing required field: {k}"
+                )
         self.sm.transition(State.VALIDATED)
 
     def compute(
@@ -119,7 +120,9 @@ class CapitalJudgeOrchestrator:
             tool_versions=tool_versions,
             input_payload=input_payload,
         )
-        self.sm.transition(State.COMPUTED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data))
+        self.sm.transition(
+            State.COMPUTED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data)
+        )
         return receipt
 
     def judge(self, *, verdict: str, active_holds: list[str] | None = None) -> JudgmentReceipt:
@@ -132,7 +135,9 @@ class CapitalJudgeOrchestrator:
         if self.sm.state == State.JUDGED:
             return self._make_judgment(verdict, active_holds)
         receipt = self._make_judgment(verdict, active_holds)
-        self.sm.transition(State.JUDGED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data))
+        self.sm.transition(
+            State.JUDGED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data)
+        )
         if verdict == "DENY":
             self.sm.transition(State.TERMINATED)
         return receipt
@@ -153,18 +158,26 @@ class CapitalJudgeOrchestrator:
         if self.sm.state != State.JUDGED:
             raise TransitionError(self.sm.state, State.RATIFIED, reason="must judge first")
         if not self.requires_ratification():
-            raise TransitionError(self.sm.state, State.RATIFIED, reason="ratification not required by governance")
+            raise TransitionError(
+                self.sm.state, State.RATIFIED, reason="ratification not required by governance"
+            )
         receipt = HumanRatificationReceipt(case=self.case, actor=actor, decision=decision)
         self._last_ratification = receipt
-        self.sm.transition(State.RATIFIED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data))
+        self.sm.transition(
+            State.RATIFIED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data)
+        )
         return receipt
 
     def seal(self) -> None:
         if self.sm.state not in (State.JUDGED, State.RATIFIED):
-            raise TransitionError(self.sm.state, State.SEALED, reason="must be JUDGED or RATIFIED first")
+            raise TransitionError(
+                self.sm.state, State.SEALED, reason="must be JUDGED or RATIFIED first"
+            )
         # If ratification is required, we MUST be in RATIFIED state.
         if self.requires_ratification() and self.sm.state != State.RATIFIED:
-            raise TransitionError(self.sm.state, State.SEALED, reason="ratification required before SEALED")
+            raise TransitionError(
+                self.sm.state, State.SEALED, reason="ratification required before SEALED"
+            )
         # Append-only chain: produce a SEAL_RECEIPT entry that the vault consumes.
         # For test purposes we don't actually write to VAULT; we record in-memory.
         seal = {
@@ -176,7 +189,9 @@ class CapitalJudgeOrchestrator:
         }
         self.sm.transition(State.SEALED, receipt=Receipt(receipt_type="SEAL", data=seal))
 
-    def execute(self, *, approved_action_hash: str, execution_result_hash: str, rollback_reference: str) -> ExecutionReceipt:
+    def execute(
+        self, *, approved_action_hash: str, execution_result_hash: str, rollback_reference: str
+    ) -> ExecutionReceipt:
         if self.sm.state != State.SEALED:
             raise TransitionError(
                 self.sm.state,
@@ -189,7 +204,9 @@ class CapitalJudgeOrchestrator:
             execution_result_hash=execution_result_hash,
             rollback_reference=rollback_reference,
         )
-        self.sm.transition(State.EXECUTED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data))
+        self.sm.transition(
+            State.EXECUTED, receipt=Receipt(receipt_type=receipt.receipt_type, data=receipt.data)
+        )
         return receipt
 
     def _terminate(self) -> None:

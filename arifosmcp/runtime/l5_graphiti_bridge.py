@@ -279,9 +279,7 @@ def bridge_forge_episode(
                 parsed = json.loads(body_text) if body_text else None
             except Exception:
                 parsed = None
-            is_failure, fail_reason = _is_hardened_failure(
-                r.status_code, body_text, parsed
-            )
+            is_failure, fail_reason = _is_hardened_failure(r.status_code, body_text, parsed)
             if is_failure:
                 logger.warning(
                     "L5 Graphiti forge hardened-failure: http=%s reason=%s",
@@ -398,9 +396,7 @@ def bridge_search(
                 parsed = json.loads(body_text) if body_text else None
             except Exception:
                 parsed = None
-            is_failure, fail_reason = _is_hardened_failure(
-                r.status_code, body_text, parsed
-            )
+            is_failure, fail_reason = _is_hardened_failure(r.status_code, body_text, parsed)
             if is_failure:
                 logger.warning(
                     "L5 Graphiti search hardened-failure: http=%s reason=%s",

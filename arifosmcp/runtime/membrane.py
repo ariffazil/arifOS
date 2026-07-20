@@ -49,9 +49,8 @@ DITEMPA BUKAN DIBERI
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
-
 
 # ═══════════════════════════════════════════════════════════════════════
 # MeasurementPacket — A-FORGE → Kernel
@@ -95,7 +94,7 @@ class MeasurementPacket:
     calculator: str = "forge_evaluate"
     version: str = "apex-v1"
     inputs_hash: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -163,7 +162,7 @@ class VerdictPacket:
 
     # ── Provenance ──
     judge_id: str = "arif_judge"
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {

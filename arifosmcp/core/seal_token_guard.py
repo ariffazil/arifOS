@@ -37,10 +37,10 @@ import json
 import os
 import re
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Iterable
-
+from typing import Any
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # §1.1 Domain vocabulary (canonical, required)
@@ -186,8 +186,7 @@ def _classify(
         end = min(len(text), m.end() + _QUALIFIER_WINDOW)
         window = text[start:end]
         window_has_qualifier = bool(
-            _QUALIFIER_PHRASE_RE.search(window)
-            or _QUALIFIER_ADJ_RE.search(window)
+            _QUALIFIER_PHRASE_RE.search(window) or _QUALIFIER_ADJ_RE.search(window)
         )
         if window_has_qualifier:
             continue
@@ -288,8 +287,7 @@ def scan_many(
     session_id: str | None = None,
 ) -> list[SealGuardVerdict]:
     return [
-        scan(t, surface=s, mode=mode, actor_id=actor_id, session_id=session_id)
-        for s, t in texts
+        scan(t, surface=s, mode=mode, actor_id=actor_id, session_id=session_id) for s, t in texts
     ]
 
 
@@ -322,8 +320,18 @@ def log_to_sink(verdict: SealGuardVerdict, sink_path: str | None = None) -> None
 def _selftest() -> int:
     cases = [
         ("Seal this contract.", "user_message", False, []),
-        ("Please apply the geological_seal to the trap.", "user_message", True, ["geological_seal"]),
-        ("Constitutional SEAL granted by arif_judge.", "vault_entry", True, ["constitutional_SEAL"]),
+        (
+            "Please apply the geological_seal to the trap.",
+            "user_message",
+            True,
+            ["geological_seal"],
+        ),
+        (
+            "Constitutional SEAL granted by arif_judge.",
+            "vault_entry",
+            True,
+            ["constitutional_SEAL"],
+        ),
         ("Vault seal recorded at 2026-06-28.", "log_line", True, ["vault_seal"]),
         ("The trap_seal_lithology is fractured.", "geox_text", True, ["trap_seal_lithology"]),
         ("seal_disambiguation_required", "log_line", True, ["seal_disambiguation_required"]),
@@ -358,4 +366,5 @@ def _selftest() -> int:
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(_selftest())

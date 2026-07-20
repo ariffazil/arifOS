@@ -30,7 +30,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-
 # Schema version. Bump when the record shape changes.
 EVIDENCE_STATE_VERSION = 1
 
@@ -46,8 +45,8 @@ REF_ID_LENGTH = 16
 class EvidenceRef:
     """Canonical reference to a stored evidence record."""
 
-    ref: str            # arifos://evidence/{id}
-    content_hash: str   # sha256:... of the canonical JSON
+    ref: str  # arifos://evidence/{id}
+    content_hash: str  # sha256:... of the canonical JSON
     appended_at: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -109,9 +108,7 @@ class EvidenceStore:
         ranking" requirement made durable.
         """
         if not isinstance(evidence, dict):
-            raise TypeError(
-                f"evidence must be a dict, got {type(evidence).__name__}"
-            )
+            raise TypeError(f"evidence must be a dict, got {type(evidence).__name__}")
         content_hash = _canonical_hash(evidence)
         ref = _make_ref(content_hash)
         # If the record already exists, return the original timestamp.
@@ -153,7 +150,7 @@ class EvidenceStore:
         if not self.path.exists():
             return ()
         refs: list[str] = []
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -171,7 +168,7 @@ class EvidenceStore:
         """Linear scan for a ref. Returns the full record (with metadata)."""
         if not self.path.exists():
             return None
-        with open(self.path, "r", encoding="utf-8") as f:
+        with open(self.path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:

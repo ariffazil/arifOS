@@ -202,9 +202,7 @@ def verify_chain(
         breaks.append(f"Skipped {len(skipped_lines)} non-JSON lines: {skipped_lines[:5]}")
 
     # Find first chain-linked entry (legacy entries lack payload_hash)
-    first_chain_idx = next(
-        (i for i, e in enumerate(lines) if "payload_hash" in e), len(lines)
-    )
+    first_chain_idx = next((i for i, e in enumerate(lines) if "payload_hash" in e), len(lines))
 
     for i, entry in enumerate(lines):
         # Skip legacy entries without chain fields

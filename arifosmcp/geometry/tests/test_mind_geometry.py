@@ -19,6 +19,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import pytest
+
 from arifosmcp.geometry.mind_axioms import Axiom, AxiomVerdict
 from arifosmcp.geometry.mind_geometry import (
     ACCEPTANCE_TESTS,
@@ -470,12 +471,13 @@ def test_envelope_rejects_hole_territory_with_in_hole_territory_false():
     works as a runtime guard.
     """
     import pytest
+    from pydantic import ValidationError
+
     from arifosmcp.geometry.mind_schema import (
         GeometryBlock,
         ManifoldType,
         OrthogonalAxes,
     )
-    from pydantic import ValidationError
 
     # Build a valid GeometryBlock with HOLE_RISK verdict
     valid_axes = OrthogonalAxes(T=0.5, U=0.5, R=0.0, B=0.5, A=0.0, E=0.5, H=0.5, C=0.5)

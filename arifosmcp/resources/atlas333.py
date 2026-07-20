@@ -582,12 +582,7 @@ def attach_to_mcp_resource(mcp: FastMCP) -> list[str]:
                     indent=2,
                 )
             return json.dumps(
-                {
-                    "error": (
-                        f"Quote {id} not found. Valid: M1-M12, R1-R11, "
-                        "J1-J11, C1-C2."
-                    )
-                }
+                {"error": (f"Quote {id} not found. Valid: M1-M12, R1-R11, J1-J11, C1-C2.")}
             )
         except Exception as exc:
             return json.dumps({"error": f"Cannot read quote: {exc}"})

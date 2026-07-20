@@ -67,10 +67,11 @@ import hashlib
 import json
 import logging
 import uuid
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Iterable, Mapping
+from typing import Any
 
 logger = logging.getLogger("arifOS.runtime.skill_delta_engine")
 
@@ -260,7 +261,12 @@ def _affected_organs(
 
 
 def _worst_risk(deltas: tuple[SkillDelta, ...]) -> ActionRiskTier:
-    order = {ActionRiskTier.LOW: 0, ActionRiskTier.MEDIUM: 1, ActionRiskTier.HIGH: 2, ActionRiskTier.CRITICAL: 3}
+    order = {
+        ActionRiskTier.LOW: 0,
+        ActionRiskTier.MEDIUM: 1,
+        ActionRiskTier.HIGH: 2,
+        ActionRiskTier.CRITICAL: 3,
+    }
     worst = ActionRiskTier.LOW
     for d in deltas:
         r = d.risk_class()

@@ -55,7 +55,9 @@ class _CanonTemplate(StrEnum):
 
 def _replay_receipt(tool: str, params: dict[str, Any]) -> dict[str, Any]:
     """Minimal replay receipt for traceability."""
-    payload = json.dumps({"tool": tool, "params": params, "ts": time.time()}, sort_keys=True, default=str)
+    payload = json.dumps(
+        {"tool": tool, "params": params, "ts": time.time()}, sort_keys=True, default=str
+    )
     return {
         "receipt_id": f"receipt://eureka/{uuid.uuid4().hex[:16]}",
         "tool": tool,
@@ -96,7 +98,7 @@ async def arif_discover_margins(
     # Read-only federation introspection
     try:
         from arifosmcp.constitutional_map import CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
-        from arifosmcp.runtime.public_surface import CANONICAL_7, EXPANDED_45
+        from arifosmcp.runtime.public_surface import EXPANDED_45
 
         canonical_names = set(CANONICAL_TOOLS.keys())
         diagnostic_names = set(DIAGNOSTIC_TOOLS.keys())
@@ -112,7 +114,10 @@ async def arif_discover_margins(
                             "signal": "gaps",
                             "scope": "tools",
                             "summary": f"'{name}' is on the expanded surface but has no declared spec.",
-                            "evidence": ["public_surface.EXPANDED_45", "constitutional_map.DIAGNOSTIC_TOOLS"],
+                            "evidence": [
+                                "public_surface.EXPANDED_45",
+                                "constitutional_map.DIAGNOSTIC_TOOLS",
+                            ],
                             "confidence": 0.75,
                             "epistemic_tag": "DER",
                             "suggested_next_tool": "arif_bridge_mcp_server",
@@ -134,7 +139,9 @@ async def arif_discover_margins(
                 }
             )
 
-        if ("all" in signals or "contradictions" in signals) and ("all" in scope or "docs" in scope):
+        if ("all" in signals or "contradictions" in signals) and (
+            "all" in scope or "docs" in scope
+        ):
             findings.append(
                 {
                     "id": "contradiction-mcp-gateway",
@@ -178,7 +185,9 @@ async def arif_discover_margins(
             "evidence_count": len(findings),
             "dominant_epistemic": _epistemic_tag(0.70, len(findings)),
         },
-        "replay_receipt": _replay_receipt("arif_discover_margins", {"query": query, "scope": scope, "signals": signals}),
+        "replay_receipt": _replay_receipt(
+            "arif_discover_margins", {"query": query, "scope": scope, "signals": signals}
+        ),
         "session_id": session_id,
         "actor_id": actor_id,
     }
@@ -254,7 +263,10 @@ async def arif_bridge_mcp_server(
         "registry_entry_id": registry_entry_id,
         "rollback_token": rollback_token,
         "warnings": warnings,
-        "replay_receipt": _replay_receipt("arif_bridge_mcp_server", {"endpoint": endpoint, "transport": transport, "namespace": namespace, "mode": mode}),
+        "replay_receipt": _replay_receipt(
+            "arif_bridge_mcp_server",
+            {"endpoint": endpoint, "transport": transport, "namespace": namespace, "mode": mode},
+        ),
         "session_id": session_id,
         "actor_id": actor_id,
     }
@@ -297,7 +309,7 @@ async def arif_synthesize_canon(
 
     body = f"""# {template_title}
 
-**Artifact ID:** {discovery_artifact_id or 'eureka-' + uuid.uuid4().hex[:12]}
+**Artifact ID:** {discovery_artifact_id or "eureka-" + uuid.uuid4().hex[:12]}
 **Template:** {template}
 **Synthesized:** {time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
 
@@ -327,7 +339,8 @@ Draft-only. Route through `arif_judge` → `arif_seal` to promote to permanent c
             "interpreted": sum(1 for b in evidence_blocks if b["tag"] == "INT"),
             "speculated": sum(1 for b in evidence_blocks if b["tag"] == "SPEC"),
         },
-        "seal_ready": all(b["tag"] in ("OBS", "DER") for b in evidence_blocks) and len(evidence_blocks) > 0,
+        "seal_ready": all(b["tag"] in ("OBS", "DER") for b in evidence_blocks)
+        and len(evidence_blocks) > 0,
         "next_safe_action": "Review evidence blocks; run arif_judge if seal_ready is true.",
     }
 
@@ -337,8 +350,14 @@ Draft-only. Route through `arif_judge` → `arif_seal` to promote to permanent c
         "status": "SEAL",
         "artifact": artifact,
         "confidence": confidence,
-        "warnings": [] if len(raw_findings) > 0 else ["No raw findings provided; artifact is a template."],
-        "replay_receipt": _replay_receipt("arif_synthesize_canon", {"template": template, "artifact_id": artifact["artifact_id"]}) if include_replay_receipt else None,
+        "warnings": []
+        if len(raw_findings) > 0
+        else ["No raw findings provided; artifact is a template."],
+        "replay_receipt": _replay_receipt(
+            "arif_synthesize_canon", {"template": template, "artifact_id": artifact["artifact_id"]}
+        )
+        if include_replay_receipt
+        else None,
         "session_id": session_id,
         "actor_id": actor_id,
     }

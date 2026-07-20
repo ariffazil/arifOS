@@ -42,7 +42,13 @@ def _stamp_authority_headers(
         else:
             result["authority_headers"] = base
         # Echo SCT continuity at top level for Spine P0 round-trip assertions
-        for key in ("session_token", "standing_source", "authority", "actor_verified", "apex_scalars"):
+        for key in (
+            "session_token",
+            "standing_source",
+            "authority",
+            "actor_verified",
+            "apex_scalars",
+        ):
             if key in base:
                 result.setdefault(key, base[key])
         if session_id:
@@ -296,40 +302,54 @@ def arif_compose(
 
     # VOID or Ω₂: block delivery entirely
     if heart_verdict == "VOID" or omega_state.get("omega") == "Ω₂":
-        return _stamp_authority_headers(_hold(
-            "arif_compose",
-            f"666_HEART VOID: {heart_result.get('risks_found', [])}",
-            {
-                "omega_state": omega_state,
-                "heart_verdict": heart_verdict,
-                "caveats": heart_result.get("caveats", []),
-            },
-        ), session_id, _authority_headers)
+        return _stamp_authority_headers(
+            _hold(
+                "arif_compose",
+                f"666_HEART VOID: {heart_result.get('risks_found', [])}",
+                {
+                    "omega_state": omega_state,
+                    "heart_verdict": heart_verdict,
+                    "caveats": heart_result.get("caveats", []),
+                },
+            ),
+            session_id,
+            _authority_headers,
+        )
 
     # HOLD or Ω₁: deliver with constitutional caveats
     if heart_verdict == "HOLD" or omega_state.get("omega") == "Ω₁":
-        return _stamp_authority_headers(_ok(
-            "arif_compose",
-            {
-                "message": message,
-                "formatted": message,
-                "tone": "neutral",
-                "heart_gate": "HOLD",
-                "heart_caveats": heart_result.get("risks_found", []),
-                "omega_state": omega_state,
-            },
-        ), session_id, _authority_headers)
+        return _stamp_authority_headers(
+            _ok(
+                "arif_compose",
+                {
+                    "message": message,
+                    "formatted": message,
+                    "tone": "neutral",
+                    "heart_gate": "HOLD",
+                    "heart_caveats": heart_result.get("risks_found", []),
+                    "omega_state": omega_state,
+                },
+            ),
+            session_id,
+            _authority_headers,
+        )
 
     floor_check = check_laws("arif_compose", {"message": message or ""}, actor_id)
     if floor_check["verdict"] != "SEAL":
-        return _stamp_authority_headers(_hold("arif_compose", floor_check["reason"], floor_check["violated_laws"]), session_id, _authority_headers)
+        return _stamp_authority_headers(
+            _hold("arif_compose", floor_check["reason"], floor_check["violated_laws"]),
+            session_id,
+            _authority_headers,
+        )
 
     if mode == "compose":
         result = _ok(
             "arif_compose",
             {"message": message, "formatted": message, "tone": "neutral"},
         )
-        return _stamp_authority_headers(_stamp_f14_reply(result, ai_involvement, language), session_id, _authority_headers)
+        return _stamp_authority_headers(
+            _stamp_f14_reply(result, ai_involvement, language), session_id, _authority_headers
+        )
     if mode == "format":
         result = _ok("arif_compose", {"message": message, "style": style or "markdown"})
         return _stamp_f14_reply(result, ai_involvement, language)
@@ -359,7 +379,9 @@ def arif_compose(
             "message": f"{mode} activated based on GEOX quantum scale classifier.",
         }
 
-    return _stamp_authority_headers(_hold("arif_compose", f"Unknown mode: {mode}"), session_id, _authority_headers)
+    return _stamp_authority_headers(
+        _hold("arif_compose", f"Unknown mode: {mode}"), session_id, _authority_headers
+    )
 
 
 # Backward compatibility alias

@@ -13,7 +13,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-
 DEFAULT_BUDGETS = {
     "reasoning": {"max_cycles": 8, "max_model_calls": 6, "max_elapsed_seconds": 180},
     "tools": {"max_calls_total": 20, "max_calls_per_tool": 6, "max_failed_calls": 3},
@@ -38,7 +37,9 @@ def _now() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def _append_event(state: dict[str, Any], stage: str, event_type: str, payload: dict[str, Any]) -> dict[str, Any]:
+def _append_event(
+    state: dict[str, Any], stage: str, event_type: str, payload: dict[str, Any]
+) -> dict[str, Any]:
     prior_hash = state.get("event_hash", "GENESIS")
     event = {
         "event_id": f"evt-{uuid.uuid4().hex}",
@@ -118,13 +119,20 @@ def _state_for(session_id: str | None = None, task_id: str | None = None) -> dic
         return _TASKS.get(resolved or "")
 
 
-def consume(session_id: str, resource: str, amount: float = 1, name: str | None = None) -> dict[str, Any]:
+def consume(
+    session_id: str, resource: str, amount: float = 1, name: str | None = None
+) -> dict[str, Any]:
     with _LOCK:
         state = _state_for(session_id=session_id)
         if state is None:
             return {"allowed": True, "tracked": False}
         if state["held"]:
-            return {"allowed": False, "tracked": True, "reason": state["termination_reason"], "snapshot": snapshot(session_id)}
+            return {
+                "allowed": False,
+                "tracked": True,
+                "reason": state["termination_reason"],
+                "snapshot": snapshot(session_id),
+            }
 
         usage = state["usage"]
         budgets = state["contract"]["budgets"]
@@ -156,37 +164,76 @@ def consume(session_id: str, resource: str, amount: float = 1, name: str | None 
         if reason:
             state["held"] = True
             state["termination_reason"] = reason
-            _append_event(state, "CLOSE", "task_budget_hold", {"resource": resource, "reason": reason})
-            return {"allowed": False, "tracked": True, "reason": reason, "snapshot": snapshot(session_id)}
+            _append_event(
+                state, "CLOSE", "task_budget_hold", {"resource": resource, "reason": reason}
+            )
+            return {
+                "allowed": False,
+                "tracked": True,
+                "reason": reason,
+                "snapshot": snapshot(session_id),
+            }
 
         usage[field] += amount
         if resource == "tool_call" and name:
             usage["tool_calls_by_name"][name] = usage["tool_calls_by_name"].get(name, 0) + amount
-        _append_event(state, "THINK" if resource in {"reasoning_cycle", "model_call"} else "ACT", "budget_consumed", {"resource": resource, "amount": amount, "name": name})
+        _append_event(
+            state,
+            "THINK" if resource in {"reasoning_cycle", "model_call"} else "ACT",
+            "budget_consumed",
+            {"resource": resource, "amount": amount, "name": name},
+        )
         return {"allowed": True, "tracked": True, "snapshot": snapshot(session_id)}
 
 
-def register_proposal(session_id: str, proposal_type: str, expected_outcome: str, verification_plan: list[str]) -> dict[str, Any]:
+def register_proposal(
+    session_id: str, proposal_type: str, expected_outcome: str, verification_plan: list[str]
+) -> dict[str, Any]:
     with _LOCK:
         state = _state_for(session_id=session_id)
         if state is None:
             raise ValueError("No work contract for session")
         proposal_id = f"prop-{uuid.uuid4().hex}"
-        proposal = {"proposal_id": proposal_id, "type": proposal_type, "expected_outcome": expected_outcome, "verification_plan": list(verification_plan), "status": "DRAFT_ONLY" if not verification_plan else "UNVERIFIED"}
+        proposal = {
+            "proposal_id": proposal_id,
+            "type": proposal_type,
+            "expected_outcome": expected_outcome,
+            "verification_plan": list(verification_plan),
+            "status": "DRAFT_ONLY" if not verification_plan else "UNVERIFIED",
+        }
         state["proposals"][proposal_id] = proposal
         _append_event(state, "THINK", "proposal_generated", proposal)
         return deepcopy(proposal)
 
 
-def record_verification(session_id: str, proposal_id: str, passed: bool, verifier: str, evidence_refs: list[str]) -> dict[str, Any]:
+def record_verification(
+    session_id: str, proposal_id: str, passed: bool, verifier: str, evidence_refs: list[str]
+) -> dict[str, Any]:
     with _LOCK:
         state = _state_for(session_id=session_id)
         if state is None or proposal_id not in state["proposals"]:
             raise ValueError("Unknown proposal")
         proposal = state["proposals"][proposal_id]
-        proposal["status"] = "VERIFIED" if passed and evidence_refs else "FALSIFIED" if evidence_refs else "UNVERIFIED"
-        verification = {"proposal_id": proposal_id, "status": proposal["status"], "verifier": verifier, "evidence_refs": list(evidence_refs)}
-        event_type = "proposal_verified" if proposal["status"] == "VERIFIED" else "proposal_falsified" if proposal["status"] == "FALSIFIED" else "proposal_tested"
+        proposal["status"] = (
+            "VERIFIED"
+            if passed and evidence_refs
+            else "FALSIFIED"
+            if evidence_refs
+            else "UNVERIFIED"
+        )
+        verification = {
+            "proposal_id": proposal_id,
+            "status": proposal["status"],
+            "verifier": verifier,
+            "evidence_refs": list(evidence_refs),
+        }
+        event_type = (
+            "proposal_verified"
+            if proposal["status"] == "VERIFIED"
+            else "proposal_falsified"
+            if proposal["status"] == "FALSIFIED"
+            else "proposal_tested"
+        )
         _append_event(state, "VERIFY", event_type, verification)
         return verification
 
@@ -204,10 +251,28 @@ def snapshot(session_id: str) -> dict[str, Any] | None:
             "budgets": deepcopy(state["contract"]["budgets"]),
             "usage": usage,
             "remaining": {
-                "reasoning_cycles": max(0, state["contract"]["budgets"]["reasoning"]["max_cycles"] - usage["reasoning_cycles"]),
-                "tool_calls": max(0, state["contract"]["budgets"]["tools"]["max_calls_total"] - usage["tool_calls"]),
-                "delegations": max(0, state["contract"]["budgets"]["coordination"]["max_delegations"] - usage["delegations"]),
-                "cost_usd": round(max(0.0, state["contract"]["budgets"]["cost"]["max_usd"] - usage["estimated_cost_usd"]), 6),
+                "reasoning_cycles": max(
+                    0,
+                    state["contract"]["budgets"]["reasoning"]["max_cycles"]
+                    - usage["reasoning_cycles"],
+                ),
+                "tool_calls": max(
+                    0,
+                    state["contract"]["budgets"]["tools"]["max_calls_total"] - usage["tool_calls"],
+                ),
+                "delegations": max(
+                    0,
+                    state["contract"]["budgets"]["coordination"]["max_delegations"]
+                    - usage["delegations"],
+                ),
+                "cost_usd": round(
+                    max(
+                        0.0,
+                        state["contract"]["budgets"]["cost"]["max_usd"]
+                        - usage["estimated_cost_usd"],
+                    ),
+                    6,
+                ),
             },
             "verification": {
                 "proposals": len(proposals),

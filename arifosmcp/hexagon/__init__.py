@@ -19,7 +19,7 @@ Stubs deferred: A-AUDIT (→ arif_measure), A-ARCHIVE (→ arif_seal)
 __version__ = "2026.06.06-HEXAGON"
 __author__ = "Muhammad Arif bin Fazil [ΔΩΨ | ARIF]"
 
-from .agents.base import ConstitutionalAgent, TrinityRole, AgentVerdict
+from .agents.base import AgentVerdict, ConstitutionalAgent, TrinityRole
 from .agents.engineer import AGIAgent
 from .agents.validator import APEXAgent
 from .escalation.hold_state import HoldStateManager

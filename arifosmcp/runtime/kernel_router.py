@@ -260,9 +260,9 @@ class HardenedKernelRouter:
         # This closes the legacy bypass where kernel_router called handlers
         # directly without KernelEnvelope or pre_execution_gate.
         try:
-            from arifosmcp.schemas.kernel_envelope import ActionClass
             from arifosmcp.runtime.pre_execution_gate import quick_gate
             from arifosmcp.runtime.tools import _is_actor_verified
+            from arifosmcp.schemas.kernel_envelope import ActionClass
 
             canonical_name = self.LEGACY_TO_CANONICAL.get(tool_name, tool_name)
             # Determine action class: init/session = observe; forge/vault = mutate

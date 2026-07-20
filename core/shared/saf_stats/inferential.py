@@ -22,21 +22,18 @@ from __future__ import annotations
 import json
 import math
 import warnings
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 import pingouin as pg
 from scipy import stats
+from statsmodels.formula.api import ols
 from statsmodels.stats import power as sm_power
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.outliers_influence import variance_inflation_factor
-from statsmodels.formula.api import ols
 
-from . import governance
+from . import governance, sandbox, seal
 from . import spss_read as saf_read
-from . import sandbox
-from . import seal
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 warnings.filterwarnings("ignore", category=stats.ConstantInputWarning) if hasattr(
@@ -72,12 +69,12 @@ def _seal_tool(
     df: pd.DataFrame,
     result: dict,
     *,
-    effect_size: Optional[float] = None,
-    p_value: Optional[float] = None,
-    ci: Optional[list] = None,
-    assumptions: Optional[dict] = None,
-    spss_syntax: Optional[str] = None,
-    vp: Optional[governance.VerdictPacket] = None,
+    effect_size: float | None = None,
+    p_value: float | None = None,
+    ci: list | None = None,
+    assumptions: dict | None = None,
+    spss_syntax: str | None = None,
+    vp: governance.VerdictPacket | None = None,
 ) -> governance.VerdictPacket:
     """Run F1-L13 + seal the outcome to VAULT999."""
     vp = vp or governance.govern(
@@ -167,7 +164,7 @@ def stat_descriptives(file_path: str, columns: list[str]) -> dict:
 # ---------------------------------------------------------------------------
 
 
-def stat_assumptions(file_path: str, columns: list[str], group_col: Optional[str] = None) -> dict:
+def stat_assumptions(file_path: str, columns: list[str], group_col: str | None = None) -> dict:
     df = _df(file_path)
     cols = [c for c in columns if c in df.columns]
     out = []
@@ -554,7 +551,7 @@ def stat_chi_square(
     var_b: str,
     *,
     test: str = "independence",  # independence | gof
-    expected: Optional[list] = None,
+    expected: list | None = None,
 ) -> dict:
     df = _df(file_path)
     if var_a not in df.columns or var_b not in df.columns:
@@ -614,7 +611,7 @@ def stat_chi_square(
 def stat_nonparametric(
     file_path: str,
     value_col: str,
-    group_col: Optional[str] = None,
+    group_col: str | None = None,
     *,
     test: str = "wilcoxon",  # wilcoxon | sign | friedman
     mu: float = 0.0,
@@ -680,11 +677,11 @@ def stat_nonparametric(
 def stat_effect_size(
     *,
     kind: str,  # cohens_d | eta_squared | cramers_v | odds_ratio
-    file_path: Optional[str] = None,
-    x: Optional[list] = None,
-    y: Optional[list] = None,
-    var_a: Optional[str] = None,
-    var_b: Optional[str] = None,
+    file_path: str | None = None,
+    x: list | None = None,
+    y: list | None = None,
+    var_a: str | None = None,
+    var_b: str | None = None,
 ) -> dict:
     """Pure effect-size calculator. If file_path+columns given, read from there."""
     out: dict = {"kind": kind}
@@ -760,7 +757,7 @@ def _interpret_eta(e: float) -> str:
     return "large"
 
 
-def _interpret_v(v: Optional[float]) -> str:
+def _interpret_v(v: float | None) -> str:
     if v is None:
         return "n/a"
     if v < 0.1:
@@ -782,8 +779,8 @@ def stat_power(
     test: str,  # t | f | chi2 | z
     effect_size: float,
     alpha: float = 0.05,
-    power: Optional[float] = None,
-    nobs: Optional[int] = None,
+    power: float | None = None,
+    nobs: int | None = None,
     alternative: str = "two-sided",
 ) -> dict:
     """Solve for whichever quantity is missing. Returns the solved value plus

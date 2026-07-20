@@ -178,6 +178,7 @@ def hashes_equal(a: Any, b: Any) -> bool:
         return False
     if na == nb:
         return True
+
     # strip sha256: for bare compare
     def bare(x: str) -> str:
         return x[7:] if x.startswith("sha256:") else x
@@ -472,9 +473,15 @@ def verify_chain(
         rid = entry.get("receipt_id") or entry.get("id")
 
         # First canonical entry after historical: prev may be genesis (epoch open) — allowed
-        if scope_canonical and prev_hash is None and prev_h and str(prev_h).lower() in (
-            "genesis",
-            GENESIS_PREV_HASH,
+        if (
+            scope_canonical
+            and prev_hash is None
+            and prev_h
+            and str(prev_h).lower()
+            in (
+                "genesis",
+                GENESIS_PREV_HASH,
+            )
         ):
             # epoch open — not a gap
             pass
@@ -516,7 +523,11 @@ def verify_chain(
             seen_seqs.add(seq)
 
         # Epoch reset: prev_hash claims genesis mid-chain
-        if prev_hash is not None and prev_h and str(prev_h).lower() in ("genesis", GENESIS_PREV_HASH):
+        if (
+            prev_hash is not None
+            and prev_h
+            and str(prev_h).lower() in ("genesis", GENESIS_PREV_HASH)
+        ):
             # First entry of canonical scope after historical may open with genesis — OK
             if scope_canonical and not prev_was_canonical:
                 pass
@@ -576,8 +587,10 @@ def verify_chain(
                 )
 
         # Canonical: recompute receipt_hash when body fields present
-        if canon and entry.get("receipt_hash") and all(
-            k in entry for k in ("sequence", "previous_hash", "timestamp", "actor_id")
+        if (
+            canon
+            and entry.get("receipt_hash")
+            and all(k in entry for k in ("sequence", "previous_hash", "timestamp", "actor_id"))
         ):
             expected = compute_receipt_hash(entry)
             if not hashes_equal(expected, entry.get("receipt_hash")):
@@ -606,7 +619,9 @@ def verify_chain(
     if entries == 0 and (corrupt == 0 or scope_canonical):
         return VerifyResult(
             verified=True,
-            status=VerifyStatus.NO_CHAIN if entries == 0 and corrupt == 0 else VerifyStatus.VERIFIED,
+            status=VerifyStatus.NO_CHAIN
+            if entries == 0 and corrupt == 0
+            else VerifyStatus.VERIFIED,
             entries=0,
             corrupt_lines=0 if scope_canonical else corrupt,
             ledger_path=str(p.chain),
@@ -896,7 +911,11 @@ def append_receipt(
                 collision = False
                 if p.chain.exists():
                     for pl in parse_chain_lines(p.chain):
-                        if pl.entry and entry_sequence(pl.entry) == seq and is_canonical_entry(pl.entry):
+                        if (
+                            pl.entry
+                            and entry_sequence(pl.entry) == seq
+                            and is_canonical_entry(pl.entry)
+                        ):
                             collision = True
                             break
                 if not collision:

@@ -27,9 +27,8 @@ from pathlib import Path
 from threading import RLock
 from typing import Any
 
-from core.enforcement.auth_continuity import verify_auth_context_with_revocation
-
 from arifosmcp.runtime.integrity import REQUIRED_POLICY_VERSION
+from core.enforcement.auth_continuity import verify_auth_context_with_revocation
 
 logger = logging.getLogger(__name__)
 

@@ -66,7 +66,9 @@ def _schema_hash(data: Any) -> str | None:
     return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
 
 
-async def _call_tool_safe(mcp: Any, tool_name: str, arguments: dict | None = None) -> tuple[bool, str | None, Any]:
+async def _call_tool_safe(
+    mcp: Any, tool_name: str, arguments: dict | None = None
+) -> tuple[bool, str | None, Any]:
     """Call a tool and return (passed, error_message, raw_result).
 
     Returns (True, None, result) on success.
@@ -107,10 +109,12 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
     if passed and raw:
         # Extract session_id from result
         try:
-            for c in (raw.content if hasattr(raw, "content") else []):
+            for c in raw.content if hasattr(raw, "content") else []:
                 if hasattr(c, "text"):
                     data = json.loads(c.text)
-                    session_id = data.get("session_id") or data.get("envelope", {}).get("session_id")
+                    session_id = data.get("session_id") or data.get("envelope", {}).get(
+                        "session_id"
+                    )
                     if session_id:
                         break
         except Exception:
@@ -118,20 +122,35 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
 
     input_hash = _schema_hash({"mode": "preflight"})
     output_hash = _schema_hash({"status": "OK"}) if passed else None
-    record_test_result("arif_init", passed=passed, error=error,
-                       input_schema_hash=input_hash, output_schema_hash=output_hash)
+    record_test_result(
+        "arif_init",
+        passed=passed,
+        error=error,
+        input_schema_hash=input_hash,
+        output_schema_hash=output_hash,
+    )
     results["arif_init"] = {
-        "passed": passed, "error": error, "latency_ms": latency_ms,
-        "session_id": session_id, "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "passed": passed,
+        "error": error,
+        "latency_ms": latency_ms,
+        "session_id": session_id,
+        "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
-    logger.info("Smoke test: arif_init %s (session=%s, %dms)", "PASS" if passed else "FAIL", session_id, latency_ms)
+    logger.info(
+        "Smoke test: arif_init %s (session=%s, %dms)",
+        "PASS" if passed else "FAIL",
+        session_id,
+        latency_ms,
+    )
 
     # ── Step 2: Test safe OBSERVE/ANALYZE tools ─────────────────────────────
     # Each tool gets a safe test fixture — read-only, no mutation, no side effects.
     _SAFE_FIXTURES: dict[str, dict] = {
         "arif_observe": {},  # no params needed
         "arif_think": {},  # no params needed
-        "arif_route": {"intent": "smoke test: which organ handles health checks?"},  # requires intent
+        "arif_route": {
+            "intent": "smoke test: which organ handles health checks?"
+        },  # requires intent
     }
 
     for tool_name, meta in SAFE_TOOLS.items():
@@ -148,36 +167,54 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
 
         record_test_result(tool_name, passed=actually_passed, error=error)
         results[tool_name] = {
-            "passed": actually_passed, "error": error, "latency_ms": latency_ms,
+            "passed": actually_passed,
+            "error": error,
+            "latency_ms": latency_ms,
             "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
-        logger.info("Smoke test: %s %s (%dms)", tool_name, "PASS" if actually_passed else "FAIL", latency_ms)
+        logger.info(
+            "Smoke test: %s %s (%dms)", tool_name, "PASS" if actually_passed else "FAIL", latency_ms
+        )
 
     # ── Step 3: Test arif_memory in recall mode only ─────────────────────────
     logger.info("Smoke test: calling arif_memory (recall mode)")
     t0 = time.time()
-    passed, error, raw = await _call_tool_safe(mcp, "arif_memory", {"mode": "recall", "query": "smoke test"})
+    passed, error, raw = await _call_tool_safe(
+        mcp, "arif_memory", {"mode": "recall", "query": "smoke test"}
+    )
     latency_ms = int((time.time() - t0) * 1000)
 
     actually_passed = passed and error is None
     record_test_result("arif_memory", passed=actually_passed, error=error)
     results["arif_memory"] = {
-        "passed": actually_passed, "error": error, "latency_ms": latency_ms,
-        "mode": "recall", "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "passed": actually_passed,
+        "error": error,
+        "latency_ms": latency_ms,
+        "mode": "recall",
+        "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
-    logger.info("Smoke test: arif_memory %s (%dms)", "PASS" if actually_passed else "FAIL", latency_ms)
+    logger.info(
+        "Smoke test: arif_memory %s (%dms)", "PASS" if actually_passed else "FAIL", latency_ms
+    )
 
     # ── Step 4: Record NEVER tools as intentionally skipped ──────────────────
     for tool_name in NEVER_TOOLS:
-        record_test_result(tool_name, passed=False, error="intentionally_skipped: mutation/irreversible tool")
+        record_test_result(
+            tool_name, passed=False, error="intentionally_skipped: mutation/irreversible tool"
+        )
         results[tool_name] = {
-            "passed": False, "error": "intentionally_skipped: mutation/irreversible tool",
+            "passed": False,
+            "error": "intentionally_skipped: mutation/irreversible tool",
             "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
 
     # ── Summary ──────────────────────────────────────────────────────────────
     tested = [k for k, v in results.items() if v.get("passed")]
-    failed = [k for k, v in results.items() if not v.get("passed") and "skipped" not in (v.get("error") or "")]
+    failed = [
+        k
+        for k, v in results.items()
+        if not v.get("passed") and "skipped" not in (v.get("error") or "")
+    ]
     skipped = [k for k, v in results.items() if "skipped" in (v.get("error") or "")]
 
     summary = {
@@ -189,7 +226,12 @@ async def run_smoke_tests_async(mcp: Any) -> dict[str, Any]:
         "results": results,
         "tested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
-    logger.info("Smoke test complete: %d passed, %d failed, %d skipped", len(tested), len(failed), len(skipped))
+    logger.info(
+        "Smoke test complete: %d passed, %d failed, %d skipped",
+        len(tested),
+        len(failed),
+        len(skipped),
+    )
     return summary
 
 

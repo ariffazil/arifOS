@@ -6,9 +6,9 @@ This module provides runtime traceability back to that canonical repo.
 
 from __future__ import annotations
 
-import os
 import hashlib
 import json
+import os
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path

@@ -30,9 +30,8 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from typing import Any, Final
-
 
 # Schema version. Bump when the canonical shape changes.
 RUN_STATE_VERSION = 1
@@ -128,7 +127,7 @@ class RunEnvelope:
 
     run_id: str
     session_ref: str  # arifos://session/{id}
-    actor_ref: str    # arifos://identity/{id}
+    actor_ref: str  # arifos://identity/{id}
     intent_hash: str  # sha256:... of the original intent string
     trace_id: str
     evidence_refs: tuple[str, ...] = ()
@@ -225,10 +224,7 @@ def record_stage(
     rewrite earlier history. record_stage satisfies all six.
     """
     if tool not in TOOL_TO_STAGES:
-        raise ValueError(
-            f"unknown tool: {tool!r}. "
-            f"canonical 8: {sorted(TOOL_TO_STAGES.keys())}"
-        )
+        raise ValueError(f"unknown tool: {tool!r}. canonical 8: {sorted(TOOL_TO_STAGES.keys())}")
     stages = TOOL_TO_STAGES[tool]
     # The "current" stage becomes the last stage this tool covers.
     new_current = stages[-1]
@@ -290,8 +286,7 @@ def finalise_receipt(
     """
     if envelope.effective_verdict is None:
         raise ValueError(
-            "cannot finalise receipt: effective_verdict is None. "
-            "Call set_verdict first."
+            "cannot finalise receipt: effective_verdict is None. Call set_verdict first."
         )
     return replace(
         envelope,
@@ -324,7 +319,7 @@ def stages_remaining(envelope: RunEnvelope) -> tuple[str, ...]:
     if envelope.current_stage not in CANONICAL_STAGES:
         return ()
     idx = CANONICAL_STAGES.index(envelope.current_stage)
-    return CANONICAL_STAGES[idx + 1:]
+    return CANONICAL_STAGES[idx + 1 :]
 
 
 def is_sealed(envelope: RunEnvelope) -> bool:

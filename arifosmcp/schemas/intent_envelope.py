@@ -92,7 +92,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 class IntentRiskClass(str, Enum):
     """Constitutional irreversibility tier for intent envelopes.
-    
+
     C0-C5 aligns with DeltaIrreversibilityClass from constitutional_map.
     Renamed from RiskClass (2026-07-17) to disambiguate from ActionRiskTier.
     """

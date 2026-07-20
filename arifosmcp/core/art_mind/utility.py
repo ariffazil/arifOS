@@ -6,8 +6,8 @@ Future: Pareto frontier, lexicographic ordering, learned weights.
 """
 
 from __future__ import annotations
-from .config import MindConfig
 
+from .config import MindConfig
 
 # F6 EMPATHY: hard floor on maruah. Below this, utility is -inf.
 # This is a CONSTRAINT, not a soft penalty. A plan that violates F6 is

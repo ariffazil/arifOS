@@ -154,9 +154,7 @@ class ModelShadowLoader:
             self._load_federation_routing()
             self._load_compiled_registry()
             self._loaded = True
-            logger.info(
-                f"ModelShadowLoader (compiled): {len(self._shadows)} profiles loaded"
-            )
+            logger.info(f"ModelShadowLoader (compiled): {len(self._shadows)} profiles loaded")
             return
 
         # Fallback: load federation routing constraints
@@ -242,16 +240,18 @@ class ModelShadowLoader:
                 # Convert compiled hazards to ShadowEntry objects
                 shadows = []
                 for hazard_id in model.get("hazards", []):
-                    shadows.append(ShadowEntry(
-                        id=hazard_id,
-                        name=hazard_id.replace("_", " ").title(),
-                        severity=model.get("max_hazard_severity", "medium").upper(),
-                        class_="compiled",
-                        pattern="",
-                        triggers=[],
-                        floor_posture_delta=model.get("floor_deltas", {}),
-                        mitigation=model.get("requires_human_ack_for", []),
-                    ))
+                    shadows.append(
+                        ShadowEntry(
+                            id=hazard_id,
+                            name=hazard_id.replace("_", " ").title(),
+                            severity=model.get("max_hazard_severity", "medium").upper(),
+                            class_="compiled",
+                            pattern="",
+                            triggers=[],
+                            floor_posture_delta=model.get("floor_deltas", {}),
+                            mitigation=model.get("requires_human_ack_for", []),
+                        )
+                    )
                 profile = ShadowProfile(
                     model_id=model_key,
                     model_family=model.get("family", ""),
@@ -263,10 +263,7 @@ class ModelShadowLoader:
                     lifecycle={},
                 )
                 self._shadows[model_key] = profile
-                logger.info(
-                    f"Loaded compiled shadow: {model_key} "
-                    f"({len(shadows)} hazards)"
-                )
+                logger.info(f"Loaded compiled shadow: {model_key} ({len(shadows)} hazards)")
         except Exception as e:
             logger.warning(f"Failed to load compiled registry: {e}")
 

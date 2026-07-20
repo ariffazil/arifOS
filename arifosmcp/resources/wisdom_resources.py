@@ -19,21 +19,20 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ..runtime.quote_registry import (
-    load_registry,
-    get_quotes_by_floor,
-    get_quotes_by_tradition,
+    C_DARK_CEILING,  # Layer A
+    CANON_STATUS_TIERS,  # Layer C
+    G_DEPLOY_THRESHOLD,  # Layer A
+    compute_apex_fingerprint,  # Layer A
+    compute_canon_status,  # Layer C
     get_disputed_quotes,
     get_doctrine,
     get_prohibited_uses,
-    compute_apex_fingerprint,   # Layer A
-    compute_canon_status,        # Layer C
-    APEX_ORGANS,                 # Layer A
-    G_DEPLOY_THRESHOLD,          # Layer A
-    C_DARK_CEILING,              # Layer A
-    CANON_STATUS_TIERS,          # Layer C
+    get_quotes_by_floor,
+    get_quotes_by_tradition,
+    load_registry,
 )
 
 logger = logging.getLogger(__name__)
@@ -246,7 +245,14 @@ def register_wisdom_resources(mcp) -> list[str]:
                 },
                 "canon_status_tiers": list(CANON_STATUS_TIERS),
                 "stage_binding": ["555_HEART", "999_RECEIPT"],
-                "stage_forbidden": ["000_INIT", "111_OBSERVE", "333_THINK", "444_ROUTE", "777_FORGE", "888_AUDIT"],
+                "stage_forbidden": [
+                    "000_INIT",
+                    "111_OBSERVE",
+                    "333_THINK",
+                    "444_ROUTE",
+                    "777_FORGE",
+                    "888_AUDIT",
+                ],
                 "prohibited_uses": ["factual_evidence", "verdict_authority"],
                 "sealed_council_ids": [],
                 "draft_council_ids_count": 17,
@@ -300,10 +306,16 @@ def _summarize_quote(q: dict) -> dict[str, Any]:
         "source_class": attr.get("source_class", ""),
         "attribution_confidence": attr.get("attribution_confidence", 0.0),
         "display_label": display_label,
-        "tradition": classification.get("tradition", []) if isinstance(classification, dict) else [],
+        "tradition": classification.get("tradition", [])
+        if isinstance(classification, dict)
+        else [],
         "tags": classification.get("tags", []) if isinstance(classification, dict) else [],
-        "arifos_floors": classification.get("arifos_floors", []) if isinstance(classification, dict) else [],
-        "dark_modes": classification.get("dark_modes", []) if isinstance(classification, dict) else [],
+        "arifos_floors": classification.get("arifos_floors", [])
+        if isinstance(classification, dict)
+        else [],
+        "dark_modes": classification.get("dark_modes", [])
+        if isinstance(classification, dict)
+        else [],
         "permitted_uses": (q.get("usage") or {}).get("permitted", []),
         "prohibited_uses": (q.get("usage") or {}).get("prohibited", []),
     }

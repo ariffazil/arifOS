@@ -3,16 +3,23 @@ DRAFT_CONTROL_DOCTRINE carry-forward + contradiction minimal.
 Every serious action emits carry_forward.json + memory entry + receipt.
 L5 memory clarity.
 """
+
 from __future__ import annotations
+
 import json
 import os
 import time
-from typing import Any, Dict
+from typing import Any
 
 CARRY_PATH = os.getenv("ARIFOS_CARRY_FORWARD", "/root/.local/share/arifos/carry_forward.json")
-CONTRA_LEDGER = os.getenv("ARIFOS_CONTRADICTION_LEDGER", "/root/arifOS/arifosmcp/runtime/contradiction_ledger.jsonl")
+CONTRA_LEDGER = os.getenv(
+    "ARIFOS_CONTRADICTION_LEDGER", "/root/arifOS/arifosmcp/runtime/contradiction_ledger.jsonl"
+)
 
-def emit_carry_forward(action: str, session_id: str, actor_id: str, evidence_layer: str, receipt: Dict[str, Any]) -> str:
+
+def emit_carry_forward(
+    action: str, session_id: str, actor_id: str, evidence_layer: str, receipt: dict[str, Any]
+) -> str:
     """Stage 555/999: ensure memory survives. Returns path written."""
     entry = {
         "ts": time.time(),
@@ -36,7 +43,10 @@ def emit_carry_forward(action: str, session_id: str, actor_id: str, evidence_lay
     except Exception:
         return "carry_forward_failed"
 
-def open_contradiction(claim_a: str, claim_b: str, source_a: str, source_b: str, severity: str = "HIGH") -> str:
+
+def open_contradiction(
+    claim_a: str, claim_b: str, source_a: str, source_b: str, severity: str = "HIGH"
+) -> str:
     """Stage 333: log to ledger. Returns entry id."""
     entry = {
         "id": f"contra-{int(time.time())}",
@@ -55,5 +65,6 @@ def open_contradiction(claim_a: str, claim_b: str, source_a: str, source_b: str,
         return entry["id"]
     except Exception:
         return "contra_write_failed"
+
 
 # Hook example: call from law on CLARITY or from seal success.

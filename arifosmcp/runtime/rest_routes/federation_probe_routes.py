@@ -15,11 +15,10 @@ Forged 2026-07-15.
 
 from __future__ import annotations
 
-import json
 import logging
 import time
-from typing import Any, Callable
-from pathlib import Path
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +66,9 @@ def _compose_federation_snapshot() -> dict[str, Any]:
     per organ across all probes.
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
-    from arifosmcp.runtime.organs_standards import ORGAN_PROBES, overall_aggregate_state, ORGAN_MAP
-    from arifosmcp.runtime.federation_edges import probe_all_edges, edge_aggregate_state
+
+    from arifosmcp.runtime.federation_edges import edge_aggregate_state, probe_all_edges
+    from arifosmcp.runtime.organs_standards import ORGAN_MAP, ORGAN_PROBES, overall_aggregate_state
 
     organs: list[dict[str, Any]] = []
 
@@ -346,9 +346,13 @@ def register_federation_probe_routes(app: Any) -> None:
 
     async def _new_probe(request):
         try:
-            from arifosmcp.runtime.rest_routes.rest_routes import _dashboard_cors_headers, _cache_headers, _merge_headers  # type: ignore
-
             import asyncio
+
+            from arifosmcp.runtime.rest_routes.rest_routes import (  # type: ignore
+                _cache_headers,
+                _dashboard_cors_headers,
+                _merge_headers,
+            )
 
             # Run probe composition in a thread, hard-capped at 20 seconds.
             # Probes do sync socket/HTTP I/O — if any single probe deadlocks
@@ -358,7 +362,7 @@ def register_federation_probe_routes(app: Any) -> None:
                     asyncio.to_thread(_compose_federation_snapshot),
                     timeout=20.0,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("federation-probe composition exceeded 20s; returning UNKNOWN skeleton")
                 snap = _skeleton_on_timeout()
             return JSONResponse(snap, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)))
@@ -384,7 +388,11 @@ def register_federation_probe_routes(app: Any) -> None:
 
     async def _federation_manifest(request):
         try:
-            from arifosmcp.runtime.rest_routes.rest_routes import _dashboard_cors_headers, _cache_headers, _merge_headers  # type: ignore
+            from arifosmcp.runtime.rest_routes.rest_routes import (  # type: ignore
+                _cache_headers,
+                _dashboard_cors_headers,
+                _merge_headers,
+            )
 
             manifest = compose_federation_manifest()
             return JSONResponse(manifest, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)))

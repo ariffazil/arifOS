@@ -23,10 +23,11 @@ authority band instead of being degraded to OBSERVE_ONLY.
 
 DITEMPA BUKAN DIBERI.
 """
+
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -67,13 +68,15 @@ class ActorSpec:
 # actor. Lookup returns None for these; the existing OBSERVE-only fallback
 # rejects mutate-class tools. Kept as a named set so audit logs can distinguish
 # "unknown" from "explicitly denied".
-DENIED_IDENTITIES: frozenset[str] = frozenset({
-    "openclaw-anon",
-    "anonymous",
-    "unknown",
-    "null",
-    "",
-})
+DENIED_IDENTITIES: frozenset[str] = frozenset(
+    {
+        "openclaw-anon",
+        "anonymous",
+        "unknown",
+        "null",
+        "",
+    }
+)
 
 ACTOR_REGISTRY: dict[str, ActorSpec] = {
     # ── External instruments (degrade to OBSERVE_ONLY by design) ─────────
@@ -269,7 +272,9 @@ def actor_allows(actor_id: str | None, tool_name: str) -> bool:
     spec = lookup_actor(actor_id)
     if spec is None:
         # Unknown actor → OBSERVE_ONLY default; reject any mutate-class tool
-        if tool_name.startswith(("arif_seal", "arif_judge", "arif_forge", "arif_act", "forge_execute", "forge_abort")):
+        if tool_name.startswith(
+            ("arif_seal", "arif_judge", "arif_forge", "arif_act", "forge_execute", "forge_abort")
+        ):
             return False
         return True
     return spec.permits(tool_name)

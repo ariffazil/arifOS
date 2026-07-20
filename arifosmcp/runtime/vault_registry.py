@@ -49,6 +49,7 @@ VAULT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Atomic Vault Write ──────────────────────────────────────────────────────
 
+
 def _vault_append(entry: dict[str, Any]) -> None:
     """
     Atomically append a JSONL entry to VAULT999 using exclusive file lock.
@@ -75,6 +76,7 @@ def _compute_sha256_hex(data: str) -> str:
 
 
 # ── SEAL Issuance ───────────────────────────────────────────────────────────
+
 
 def issue_seal(
     shell_command: str,
@@ -143,6 +145,7 @@ def issue_seal(
 
 
 # ── SEAL Verification ──────────────────────────────────────────────────────
+
 
 def verify_seal(
     token: str,
@@ -268,6 +271,7 @@ def verify_seal(
 
 
 # ── Registry Introspection ──────────────────────────────────────────────────
+
 
 def get_seal(token: str) -> dict[str, Any] | None:
     """Return the registry entry for a token, or None if not found."""

@@ -13,8 +13,8 @@ from __future__ import annotations
 import json
 import logging
 import time
-from pathlib import Path
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def _now_iso() -> str:
 
 def _tool_drift_diff() -> dict[str, Any]:
     """Walk every organ's /.well-known/mcp/server.json and TOOLREGISTRY.json
-       to find advertised_but_unregistered and registered_but_unadvertised.
+    to find advertised_but_unregistered and registered_but_unadvertised.
     """
     advertised_but_unregistered: list[str] = []
     registered_but_unadvertised: list[str] = []
@@ -57,21 +57,24 @@ def _tool_drift_diff() -> dict[str, Any]:
 def _organ_topology() -> list[dict[str, Any]]:
     """Return the organ topology summary — one entry per organ with internal/host/public ports and exposure."""
     from arifosmcp.runtime.organs_standards import ORGAN_MAP, probe_all_organs
+
     probes = {p["organ"]: p for p in probe_all_organs()}
     out = []
     for name, cfg in ORGAN_MAP.items():
         p = probes.get(name, {})
-        out.append({
-            "id": name,
-            "ontology": cfg["ontological_layer"],
-            "internal_port": cfg["internal_port"],
-            "host_port": cfg["host_port"],
-            "public_origin": cfg["public_origin"],
-            "exposure": cfg["exposure"],
-            "overall_state": p.get("overall_state", "UNKNOWN"),
-            "transport_state": p.get("transport_state", "unknown"),
-            "forge_mode": p.get("governance_forge_mode"),
-        })
+        out.append(
+            {
+                "id": name,
+                "ontology": cfg["ontological_layer"],
+                "internal_port": cfg["internal_port"],
+                "host_port": cfg["host_port"],
+                "public_origin": cfg["public_origin"],
+                "exposure": cfg["exposure"],
+                "overall_state": p.get("overall_state", "UNKNOWN"),
+                "transport_state": p.get("transport_state", "unknown"),
+                "forge_mode": p.get("governance_forge_mode"),
+            }
+        )
     return out
 
 
@@ -89,16 +92,27 @@ def register_topology_routes(app: Any) -> None:
 
     async def _topology(request):
         try:
-            from arifosmcp.runtime.rest_routes.rest_routes import _dashboard_cors_headers, _cache_headers, _merge_headers  # type: ignore
+            from arifosmcp.runtime.rest_routes.rest_routes import (
+                _cache_headers,
+                _dashboard_cors_headers,
+                _merge_headers,
+            )  # type: ignore
 
-            return JSONResponse(compose_topology(), headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)))
+            return JSONResponse(
+                compose_topology(),
+                headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)),
+            )
         except Exception as exc:
             logger.exception("topology failed")
             return JSONResponse({"error": f"{type(exc).__name__}: {exc}"}, status_code=500)
 
     def route(path: str):
         def _decorator(handler: Callable):
-            if hasattr(app, "add_route") or "Starlette" in str(type(app)) or "FastAPI" in str(type(app)):
+            if (
+                hasattr(app, "add_route")
+                or "Starlette" in str(type(app))
+                or "FastAPI" in str(type(app))
+            ):
                 from starlette.routing import Route
 
                 full_clean = path.rstrip("/")

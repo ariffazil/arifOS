@@ -94,7 +94,9 @@ class ArifOSClaimReceipt(BaseModel):
         """Stable hash of core fields for signature/replay (excludes volatile envelope + sig)."""
         core = self.model_dump(exclude={"envelope"})
         if isinstance(core.get("verification"), dict):
-            core["verification"] = {k: v for k, v in core["verification"].items() if k != "signature"}
+            core["verification"] = {
+                k: v for k, v in core["verification"].items() if k != "signature"
+            }
         canonical = json.dumps(core, sort_keys=True, separators=(",", ":"))
         return "sha256:" + hashlib.sha256(canonical.encode()).hexdigest()
 
@@ -132,7 +134,7 @@ class ArifOSClaimReceipt(BaseModel):
             f"Why this is asserted: {self.claim_type} at {self.evidence_layer}.",
             f"Authority: {self.authority.issuer} ({self.authority.authority_level}) scope={self.authority.scope}.",
             f"Evidence: source={self.source.uri} hash={self.source.content_hash_sha256[:16]}... at {self.source.timestamp_utc}.",
-            f"Consequence: Agents execute only within verified layer + scope. Irreversible actions require sufficient layer.",
+            "Consequence: Agents execute only within verified layer + scope. Irreversible actions require sufficient layer.",
             f"How to challenge: {self.falsification.challenge_method}. Correction policy: {self.falsification.correction_policy}.",
             f"Verdict: {self.verdict}. Receipt: {self.claim_id} v{self.receipt_version}.",
             "Replay: " + (self.verification.replay_command or "verify_claim_receipt(claim_id)"),
@@ -157,7 +159,8 @@ class ArifOSClaimReceipt(BaseModel):
                 f"layer>={self.evidence_layer} for irreversible" if allowed_exec else "layer_check",
             ],
             "on_fail": "HOLD",
-            "replay_command": self.verification.replay_command or f"verify_claim_receipt({self.claim_id})",
+            "replay_command": self.verification.replay_command
+            or f"verify_claim_receipt({self.claim_id})",
             "falsification": self.falsification.model_dump(),
             "verdict": self.verdict,
             "execution_gate": {
@@ -197,7 +200,9 @@ def create_claim_receipt(
         claim_type=claim_type,
         evidence_layer=evidence_layer,
         authority=Authority(issuer=issuer, authority_level=authority_level, scope=scope),
-        source=Source(uri=source_uri, content_hash_sha256=content_hash, timestamp_utc=timestamp_utc),
+        source=Source(
+            uri=source_uri, content_hash_sha256=content_hash, timestamp_utc=timestamp_utc
+        ),
         validity=Validity(valid_from=valid_from, supersedes=supersedes or []),
         verification=Verification(
             verifier=verifier,

@@ -72,15 +72,17 @@ def arif_model_registry(
     if mode == "list":
         models = []
         for m in compiled.get("models", []):
-            models.append({
-                "model_key": m.get("model_key"),
-                "provider": m.get("provider"),
-                "status": m.get("status"),
-                "hazard_count": len(m.get("hazards", [])),
-                "max_severity": m.get("max_hazard_severity"),
-                "confidence": m.get("capability_confidence"),
-                "review_after": m.get("freshness", {}).get("review_after"),
-            })
+            models.append(
+                {
+                    "model_key": m.get("model_key"),
+                    "provider": m.get("provider"),
+                    "status": m.get("status"),
+                    "hazard_count": len(m.get("hazards", [])),
+                    "max_severity": m.get("max_hazard_severity"),
+                    "confidence": m.get("capability_confidence"),
+                    "review_after": m.get("freshness", {}).get("review_after"),
+                }
+            )
         return {
             "mode": "list",
             "count": len(models),

@@ -5,12 +5,11 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import re
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import httpx
 
@@ -93,10 +92,6 @@ def _extract_keywords(query: str) -> set[str]:
         "so",
         "if",
         "as",
-        "at",
-        "but",
-        "by",
-        "for",
     }
     return {w.strip(".,!?;:()[]{}'\"") for w in words if len(w) > 2 and w not in stopwords}
 

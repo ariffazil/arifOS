@@ -21,7 +21,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, Literal
+
+# QQQ Recommendation Envelope (v1.0 — 2026-07-14)
+# Forward reference to avoid circular import with models/verdicts.py
+# Actual import happens at runtime when qqq_envelope field is accessed.
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -29,13 +33,8 @@ from arifosmcp.schemas.cognition import UncertaintyGeometry
 from arifosmcp.schemas.forge import ConstitutionalCompliance, IrreversibilityBond
 from arifosmcp.schemas.lineage import JudgeSealContract
 
-# QQQ Recommendation Envelope (v1.0 — 2026-07-14)
-# Forward reference to avoid circular import with models/verdicts.py
-# Actual import happens at runtime when qqq_envelope field is accessed.
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
-    from arifosmcp.models.verdicts import RecommendationEnvelope
+    pass
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # VERDICT CODES — CANONICAL SOURCE
@@ -46,14 +45,6 @@ if TYPE_CHECKING:
 
 
 from arifosmcp.models.verdicts import Verdict as VerdictCode
-from arifosmcp.models.verdicts import (
-    RuntimeStatus,
-    SealType,
-    VerdictState,
-    enforce_verdict_monotonicity,
-    merge_verdicts,
-    is_verdict_allowed,
-)
 
 # PARADOX_HOLD — two truths conflict, both preserved.
 # This is a reason code attached to a Verdict.HOLD, NOT a verdict itself.
@@ -795,12 +786,12 @@ class VerdictOutput(BaseModel):
     recommendation_only: bool = Field(
         default=True,
         description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required instead. "
-                    "AI proposes only. Has not been ratified by human. True until L13 sign-off.",
+        "AI proposes only. Has not been ratified by human. True until L13 sign-off.",
     )
     execution_authorized: bool = Field(
         default=False,
         description="[DEPRECATED] Use RecommendationEnvelope.sovereign_gate_required instead. "
-                    "Has a human authorized execution? False until L13 SOVEREIGN sign-off.",
+        "Has a human authorized execution? False until L13 SOVEREIGN sign-off.",
     )
     human_final_authority: str = Field(
         default="Arif",
@@ -819,8 +810,8 @@ class VerdictOutput(BaseModel):
     qqq_envelope: Any | None = Field(
         default=None,
         description="QQQ RecommendationEnvelope. Canonical recommendation state. "
-                    "Replaces deprecated recommendation_only + execution_authorized. "
-                    "COMPLETE = admissible. INADMISSIBLE-Q* = labeled, not suppressed.",
+        "Replaces deprecated recommendation_only + execution_authorized. "
+        "COMPLETE = admissible. INADMISSIBLE-Q* = labeled, not suppressed.",
     )
 
     # ── v3.1 Degrade Modes (ChatGPT Deep Research integration) ──────────────
@@ -981,17 +972,17 @@ class AttributionChain(BaseModel):
 
 class BlastRadius(StrEnum):
     """PRL Consequence Classification — structural, NOT semantic.
-    
+
     Tagged at seal time by the sovereign.  Payload-filtered by prl_gate.py
     to prevent autoimmune misfire (L1 precedent never matches L3 query).
-    
+
     These are NOT derived from embeddings.  They are sovereign-classified
     consequence tiers that the PRL uses for compartmentalisation.
     """
-    
-    L1_LOCAL = "L1_LOCAL"         # Reversible, single file/session scope
-    L2_SYSTEM = "L2_SYSTEM"       # Modifies config, multi-agent state
-    L3_CRITICAL = "L3_CRITICAL"   # Irreversible, data destruction, external-facing
+
+    L1_LOCAL = "L1_LOCAL"  # Reversible, single file/session scope
+    L2_SYSTEM = "L2_SYSTEM"  # Modifies config, multi-agent state
+    L3_CRITICAL = "L3_CRITICAL"  # Irreversible, data destruction, external-facing
 
 
 class SealOutput(BaseModel):
@@ -1119,9 +1110,9 @@ class SealOutput(BaseModel):
     qqq_receipt: dict[str, Any] | None = Field(
         default=None,
         description="QQQ recommendation receipt for VAULT999. "
-                    "Structured data (not JSON blob). Queryable by path_id, category, decision_reason. "
-                    "Contains: paths[], recommended_path_id, quantum_analysis, qqq_compliance, "
-                    "refusal_surface, decision_reason.",
+        "Structured data (not JSON blob). Queryable by path_id, category, decision_reason. "
+        "Contains: paths[], recommended_path_id, quantum_analysis, qqq_compliance, "
+        "refusal_surface, decision_reason.",
     )
 
     # ── Constitutional Doctrine (F9 Anti-Hallucination: witness, not authority) ──

@@ -17,8 +17,7 @@ import json
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, Optional
-
+from typing import Any
 
 # Algorithm registry. Adding a new alg here is a single-line, F1-revertible change.
 _SIGNING_ALGOS: dict[str, str] = {
@@ -131,7 +130,9 @@ def _verify_signature(token: str) -> dict[str, Any]:
     if alg == "HS256-dev":
         key = os.getenv("ARIFOS_OPS_SIGNING_KEY", "")
         if not key:
-            raise TokenInvalid("Server has no signing key configured (ARIFOS_OPS_SIGNING_KEY unset).")
+            raise TokenInvalid(
+                "Server has no signing key configured (ARIFOS_OPS_SIGNING_KEY unset)."
+            )
         expected = hmac.new(key.encode("utf-8"), payload_raw, hashlib.sha256).digest()
         if not hmac.compare_digest(expected, sig):
             raise TokenInvalid("Token signature did not match.")
@@ -148,8 +149,6 @@ def validate_token(authorization_header: str | None) -> TokenClaims:
     """
     from .exceptions import (
         ActorNotBound,
-        CapabilityNotGranted,
-        TokenExpired,
         TokenInvalid,
     )
 
@@ -196,7 +195,9 @@ def validate_token(authorization_header: str | None) -> TokenClaims:
     if not claims.actor_id:
         raise ActorNotBound("Token payload has no actor_id bound.")
     if not claims.jti:
-        raise TokenInvalid("Token payload has no jti; replay protection requires a unique token id.")
+        raise TokenInvalid(
+            "Token payload has no jti; replay protection requires a unique token id."
+        )
     # Replay protection (jti dedup) — only for non-public-simulation tokens.
     if claims.issued_at > 0:
         _record_jti(claims.jti)

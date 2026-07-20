@@ -15,9 +15,6 @@ import pytest
 
 from arifosmcp.schemas.retrieve_tools import (
     RetrieveToolsInput,
-    RetrieveToolsOutput,
-    RetrievedTool,
-    ToolCatalog,
     ToolCatalogEntry,
     ToolDocument,
 )
@@ -28,12 +25,8 @@ from arifosmcp.tools.retrieve_tools import (
     _strip_json_noise,
     get_bm25_engine,
     load_tool_catalog,
-    retrieve_tools,
     retrieve_tools_sync,
-    K1,
-    B,
 )
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 1. BM25 ENGINE UNIT TESTS
@@ -131,12 +124,13 @@ class TestBM25Engine:
         engine = BM25Engine()
         docs = [
             ToolDocument(
-                name="t1", organ="GEOX", description="d1",
-                searchable_text="one two three"
+                name="t1", organ="GEOX", description="d1", searchable_text="one two three"
             ),
             ToolDocument(
-                name="t2", organ="GEOX", description="d2",
-                searchable_text="one two three four five six seven"
+                name="t2",
+                organ="GEOX",
+                description="d2",
+                searchable_text="one two three four five six seven",
             ),
         ]
         engine.index(docs)
@@ -168,8 +162,10 @@ class TestBM25Engine:
         engine = BM25Engine()
         docs = [
             ToolDocument(
-                name=f"tool_{i}", organ="GEOX", description=f"desc{i}",
-                searchable_text=f"tool_{i} description text about seismic well logs"
+                name=f"tool_{i}",
+                organ="GEOX",
+                description=f"desc{i}",
+                searchable_text=f"tool_{i} description text about seismic well logs",
             )
             for i in range(5)
         ]
@@ -328,19 +324,25 @@ class TestRetrievalIntegration:
         assert len(output.results) > 0
         # Top result should be geox_well_ingest for a well log query
         top_names = [r.tool_name for r in output.results[:5]]
-        assert any("well" in name for name in top_names), f"Expected well tools in top results, got {top_names}"
+        assert any("well" in name for name in top_names), (
+            f"Expected well tools in top results, got {top_names}"
+        )
 
     def test_retrieve_seismic_query(self):
         """Query about seismic returns GEOX seismic tools."""
         output = retrieve_tools_sync("compute seismic attributes and interpret horizons", top_k=10)
         top_names = [r.tool_name for r in output.results[:5]]
-        assert any("seismic" in name for name in top_names), f"Expected seismic tools, got {top_names}"
+        assert any("seismic" in name for name in top_names), (
+            f"Expected seismic tools, got {top_names}"
+        )
 
     def test_retrieve_finance_query_returns_wealth(self):
         """Query about NPV returns WEALTH tools."""
         output = retrieve_tools_sync("compute net present value for project", top_k=10)
         top_names = [r.tool_name for r in output.results[:5]]
-        assert any("wealth" in name for name in top_names), f"Expected WEALTH tools, got {top_names}"
+        assert any("wealth" in name for name in top_names), (
+            f"Expected WEALTH tools, got {top_names}"
+        )
 
     def test_retrieve_within_organ_filter(self):
         """Organ filter restricts results to that organ."""
@@ -452,6 +454,7 @@ class TestConstitutionalCompliance:
         """F1 AMANAH: arif_retrieve_tools is read-only, reversible by definition."""
         # No mutation methods exist on the tool — it's a pure function
         import inspect
+
         sig = inspect.signature(retrieve_tools_sync)
         # Only takes query, organ, top_k — no write/mutate params
         params = list(sig.parameters.keys())

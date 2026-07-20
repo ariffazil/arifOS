@@ -33,11 +33,11 @@ from typing import Any
 
 from arifosmcp.core.federation_contracts import validate_organ_output
 from arifosmcp.federation.federation_envelope import (
+    attach_degraded_claim,
+    build_degraded_claim,
     build_federation_envelope,
     finalize_response_envelope,
     inject_envelope_into_call_args,
-    build_degraded_claim,
-    attach_degraded_claim,
 )
 from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _hold, _ok
@@ -1752,7 +1752,11 @@ def _bridge_ok(
 
 
 def _bridge_geox(
-    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None, session_token: str | None = None
+    tool_name: str,
+    arguments: dict,
+    session_id: str | None,
+    actor_id: str | None,
+    session_token: str | None = None,
 ) -> dict[str, Any]:
     """Bridge a call to GEOX organ. Populates and expects echo of _envelope."""
     hold = _assert_organ_attested("geox")
@@ -1881,7 +1885,11 @@ def _bridge_geox(
 
 
 def _bridge_wealth(
-    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None, session_token: str | None = None
+    tool_name: str,
+    arguments: dict,
+    session_id: str | None,
+    actor_id: str | None,
+    session_token: str | None = None,
 ) -> dict[str, Any]:
     """Bridge a call to WEALTH organ. Echo _envelope for identity integrity."""
     hold = _assert_organ_attested("wealth")
@@ -2113,7 +2121,11 @@ def _bridge_wealth(
 
 
 def _bridge_well(
-    tool_name: str, arguments: dict, session_id: str | None, actor_id: str | None, session_token: str | None = None
+    tool_name: str,
+    arguments: dict,
+    session_id: str | None,
+    actor_id: str | None,
+    session_token: str | None = None,
 ) -> dict[str, Any]:
     """Bridge a call to WELL organ. Echo _envelope unchanged."""
     hold = _assert_organ_attested("well")

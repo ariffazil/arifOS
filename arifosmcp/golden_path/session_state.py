@@ -12,15 +12,12 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
-
 # ── Enums ────────────────────────────────────────────────────────────────────
-
 from arifosmcp.models.verdicts import Verdict
 
 # Verdict is now canonical — imported from models/verdicts.
@@ -107,12 +104,10 @@ class StageRecord(BaseModel):
     revision: int = Field(default=1, description="Which revision cycle this execution was in")
     output_summary: str = Field(default="", description="Brief summary of organ output")
     output_hash: str = Field(default="", description="SHA-256 of full output")
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    verdict: Optional[str] = Field(
-        default=None, description="Verdict if this was a judge/forge organ"
-    )
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    verdict: str | None = Field(default=None, description="Verdict if this was a judge/forge organ")
     floor_violations: list[str] = Field(default_factory=list, description="Floor IDs that failed")
-    readiness: Optional[str] = Field(default=None, description="Readiness if critique organ")
+    readiness: str | None = Field(default=None, description="Readiness if critique organ")
 
 
 class FloorScore(BaseModel):
@@ -120,7 +115,7 @@ class FloorScore(BaseModel):
 
     floor_id: str = Field(description="F1..F13")
     status: FloorStatus = Field(default=FloorStatus.UNCERTAIN)
-    score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    score: float | None = Field(default=None, ge=0.0, le=1.0)
     evidence: str = Field(default="", description="What supports this score")
     computed: bool = Field(default=False, description="True if algorithmically measured")
 
@@ -134,7 +129,7 @@ class Assumption(BaseModel):
     session_id: str = Field(default="", description="Session that made this assumption")
     stage: str = Field(default="", description="Stage that made this assumption")
     invalidated: bool = Field(default=False)
-    invalidated_in_session: Optional[str] = Field(default=None)
+    invalidated_in_session: str | None = Field(default=None)
 
 
 # ── Session State ────────────────────────────────────────────────────────────
@@ -157,7 +152,7 @@ class SessionState(BaseModel):
 
     # Loop mechanics
     revision_cycle: int = Field(default=1, description="Increments on SABAR return")
-    returned_from: Optional[str] = Field(default=None, description="Which organ sent us back")
+    returned_from: str | None = Field(default=None, description="Which organ sent us back")
     loop_count: int = Field(default=0, description="Total iterations across all organs")
     max_loops: int = Field(default=5, description="Metabolic termination ceiling")
 
@@ -173,12 +168,12 @@ class SessionState(BaseModel):
 
     # Cross-session memory
     assumption_ledger: list[Assumption] = Field(default_factory=list)
-    prior_session_id: Optional[str] = Field(default=None)
-    prior_seal_hash: Optional[str] = Field(default=None)
+    prior_session_id: str | None = Field(default=None)
+    prior_seal_hash: str | None = Field(default=None)
 
     # Metadata
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    sealed_at: Optional[str] = Field(default=None)
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    sealed_at: str | None = Field(default=None)
 
     # ── Methods ──────────────────────────────────────────────────────────
 
@@ -191,7 +186,7 @@ class SessionState(BaseModel):
         """Check if a stage has been completed in this session."""
         return any(r.stage == stage_id for r in self.stage_history)
 
-    def get_stage_record(self, stage_id: str) -> Optional[StageRecord]:
+    def get_stage_record(self, stage_id: str) -> StageRecord | None:
         """Get the most recent record for a given stage."""
         for r in reversed(self.stage_history):
             if r.stage == stage_id:
@@ -207,7 +202,7 @@ class SessionState(BaseModel):
                 "stage": self.current_stage,
                 "revision": self.revision_cycle,
                 "reasons": reasons or [],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
 
@@ -241,7 +236,7 @@ class SessionState(BaseModel):
     def to_context_string(self) -> str:
         """Render session state as context string for prompt injection."""
         lines = [
-            f"SESSION STATE (v2026.06.26)",
+            "SESSION STATE (v2026.06.26)",
             f"  session_id: {self.session_id}",
             f"  actor_id: {self.actor_id}",
             f"  revision_cycle: {self.revision_cycle}",

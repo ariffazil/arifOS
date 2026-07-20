@@ -23,9 +23,10 @@ Aligned 2026-07-10:
 
 from __future__ import annotations
 
+from fastmcp.prompts.base import Message
+
 # MCP primitive imports — resource embedding for prompts (Binding #23-26, 2026-07-10)
 from mcp.types import EmbeddedResource, TextResourceContents
-from fastmcp.prompts.base import Message
 from pydantic import AnyUrl
 
 # ==============================================================================
@@ -1620,7 +1621,7 @@ Never invent tool names. Never self-SEAL. Never claim Hermes is SOVEREIGN.
         """
         if depth == "full":
             try:
-                with open(_AGENT_INIT_V3_CANON_PATH, "r", encoding="utf-8") as fh:
+                with open(_AGENT_INIT_V3_CANON_PATH, encoding="utf-8") as fh:
                     body = fh.read()
             except OSError as exc:
                 body = (

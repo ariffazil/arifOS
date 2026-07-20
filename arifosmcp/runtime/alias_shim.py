@@ -30,7 +30,8 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,7 @@ def _make_canonical_wrapper(
                         _build_paradoxes_from_canonical,
                         _runtime_activation_rules,
                     )
+
                     paradoxes = _build_paradoxes_from_canonical()
                     activation = _runtime_activation_rules() or {}
                     result["atlas333"] = {
@@ -96,8 +98,16 @@ def _make_canonical_wrapper(
                         },
                         "tearframe": {
                             "TRM": {"formula": "f2_truth", "threshold": 0.94, "floor": "F2"},
-                            "ECHO": {"formula": "cbrt(f3*f2*f13)", "threshold": 0.87, "floor": "F2,F3,F13"},
-                            "RASA": {"formula": "cbrt(f6*f5*f13)", "threshold": 0.85, "floor": "F5,F6,F13"},
+                            "ECHO": {
+                                "formula": "cbrt(f3*f2*f13)",
+                                "threshold": 0.87,
+                                "floor": "F2,F3,F13",
+                            },
+                            "RASA": {
+                                "formula": "cbrt(f6*f5*f13)",
+                                "threshold": 0.85,
+                                "floor": "F5,F6,F13",
+                            },
                         },
                         "lanes": ["CRISIS", "FACTUAL", "SOCIAL", "CARE", "UNKNOWN"],
                         "activation_rules": activation,
@@ -129,6 +139,7 @@ def _make_canonical_wrapper(
                     }
                 except Exception as _atlas_err:
                     import logging as _logging
+
                     _logging.getLogger("arifosmcp.alias_shim").warning(
                         f"ATLAS333 injection failed: {_atlas_err}"
                     )

@@ -76,7 +76,8 @@ def _make_schema(
 COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
     # ─── CRITICAL ──────────────────────────────────────────────────────────
     (
-        "arif_triage", "arifos",
+        "arif_triage",
+        "arifos",
         {
             "symbolic_triage": {
                 "type": "object",
@@ -84,17 +85,43 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                 "properties": {
                     "action_symbol": {
                         "type": "string",
-                        "enum": ["draft", "send", "seal", "judge", "delete", "publish", "approve", "advise"],
+                        "enum": [
+                            "draft",
+                            "send",
+                            "seal",
+                            "judge",
+                            "delete",
+                            "publish",
+                            "approve",
+                            "advise",
+                        ],
                     },
                     "authority_type": {
                         "type": "string",
-                        "enum": ["none", "personal", "institutional", "financial", "legal", "sovereign", "sacred"],
+                        "enum": [
+                            "none",
+                            "personal",
+                            "institutional",
+                            "financial",
+                            "legal",
+                            "sovereign",
+                            "sacred",
+                        ],
                     },
                     "symbolic_harm_risk": {"type": "string", "enum": ["low", "medium", "high"]},
                     "ambiguity": {"type": "string", "enum": ["monosemic", "polysemic"]},
                     "cultural_sensitivity": {
                         "type": "string",
-                        "enum": ["none", "maruah", "adab", "grief", "family", "nation", "religion", "institutional_rank"],
+                        "enum": [
+                            "none",
+                            "maruah",
+                            "adab",
+                            "grief",
+                            "family",
+                            "nation",
+                            "religion",
+                            "institutional_rank",
+                        ],
                     },
                 },
             }
@@ -103,7 +130,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Best place for symbolic intelligence injection. Must classify *before* lane routing.",
     ),
     (
-        "arif_think", "arifos",
+        "arif_think",
+        "arifos",
         {
             "symbolic_reasoning_pass": {
                 "type": "object",
@@ -123,7 +151,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Mandatory for non-trivial tasks. arif_think cannot be trusted without this pass.",
     ),
     (
-        "arif_judge", "arifos",
+        "arif_judge",
+        "arifos",
         {
             "evidence_receipt": {
                 "type": "object",
@@ -134,7 +163,15 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                         "properties": {
                             "symbol_invoked": {
                                 "type": "string",
-                                "enum": ["SEAL", "HOLD", "VOID", "approve", "publish", "delete", "send"],
+                                "enum": [
+                                    "SEAL",
+                                    "HOLD",
+                                    "VOID",
+                                    "approve",
+                                    "publish",
+                                    "delete",
+                                    "send",
+                                ],
                             },
                             "symbol_owner": {
                                 "type": "string",
@@ -152,7 +189,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Hard rule: No judgment if symbol_owner == unknown.",
     ),
     (
-        "arif_forge", "arifos",
+        "arif_forge",
+        "arifos",
         {
             "forge_precheck": {
                 "type": "object",
@@ -165,7 +203,14 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "enum": ["private", "team", "public", "institutional", "legal", "financial"],
+                            "enum": [
+                                "private",
+                                "team",
+                                "public",
+                                "institutional",
+                                "legal",
+                                "financial",
+                            ],
                         },
                     },
                     "false_symbol_risk": {"type": "string", "enum": ["low", "medium", "high"]},
@@ -176,7 +221,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Hard rule: If symbolic authority uncertain, FORGE must dry_run only.",
     ),
     (
-        "arif_seal", "arifos",
+        "arif_seal",
+        "arifos",
         {
             "seal_disambiguation": {
                 "type": "object",
@@ -193,7 +239,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "arif_seal MUST verify domain even when the tool itself is constitutional — protects against cross-surface contamination.",
     ),
     (
-        "well_guard_dignity", "well",
+        "well_guard_dignity",
+        "well",
         {
             "dignity_symbol_check": {
                 "type": "object",
@@ -211,7 +258,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Calling someone 'irrational' may be technically descriptive but symbolically humiliating — WELL must catch it.",
     ),
     (
-        "well_detect_boundary", "well",
+        "well_detect_boundary",
+        "well",
         {
             "boundary_type": {
                 "type": "array",
@@ -219,8 +267,16 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                 "items": {
                     "type": "string",
                     "enum": [
-                        "personal", "family", "professional", "institutional",
-                        "sacred", "legal", "sexual", "grief", "national", "sovereign",
+                        "personal",
+                        "family",
+                        "professional",
+                        "institutional",
+                        "sacred",
+                        "legal",
+                        "sexual",
+                        "grief",
+                        "national",
+                        "sovereign",
                     ],
                 },
             }
@@ -229,7 +285,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Boundary context is required for downstream dignity / sovereignty decisions.",
     ),
     (
-        "well_trace_lineage", "well",
+        "well_trace_lineage",
+        "well",
         {
             "memory_symbol_status": {
                 "type": "object",
@@ -247,10 +304,10 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         ["memory_symbol_status"],
         "Memory poisoning prevention. Supersession chain must be preserved.",
     ),
-
     # ─── HIGH ─────────────────────────────────────────────────────────────
     (
-        "arif_init", "arifos",
+        "arif_init",
+        "arifos",
         {
             "symbolic_context": {
                 "type": "object",
@@ -260,15 +317,24 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                     "role_claims": {"type": "array", "items": {"type": "string"}},
                     "cultural_frame": {
                         "type": "array",
-                        "items": {"type": "string", "enum": ["maruah", "amanah", "adab", "budi", "daulat"]},
+                        "items": {
+                            "type": "string",
+                            "enum": ["maruah", "amanah", "adab", "budi", "daulat"],
+                        },
                     },
                     "session_mode": {"type": "string"},
                     "symbolic_risk_profile": {
                         "type": "object",
                         "properties": {
                             "false_seal": {"type": "string", "enum": ["low", "medium", "high"]},
-                            "authority_confusion": {"type": "string", "enum": ["low", "medium", "high"]},
-                            "ritual_language": {"type": "string", "enum": ["low", "medium", "high"]},
+                            "authority_confusion": {
+                                "type": "string",
+                                "enum": ["low", "medium", "high"],
+                            },
+                            "ritual_language": {
+                                "type": "string",
+                                "enum": ["low", "medium", "high"],
+                            },
                         },
                     },
                 },
@@ -278,7 +344,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "init must know who is speaking AND what symbolic world the session operates inside.",
     ),
     (
-        "arif_observe", "arifos",
+        "arif_observe",
+        "arifos",
         {
             "source_symbol_class": {
                 "type": "array",
@@ -286,9 +353,16 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                 "items": {
                     "type": "string",
                     "enum": [
-                        "legal_document", "corporate_statement", "ritual_text", "personal_memory",
-                        "financial_signal", "geological_interpretation", "governance_receipt",
-                        "propaganda", "mythic_frame", "social_media_symbol",
+                        "legal_document",
+                        "corporate_statement",
+                        "ritual_text",
+                        "personal_memory",
+                        "financial_signal",
+                        "geological_interpretation",
+                        "governance_receipt",
+                        "propaganda",
+                        "mythic_frame",
+                        "social_media_symbol",
                     ],
                 },
             },
@@ -305,7 +379,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "A PETRONAS annual report is not just information — it is institutional self-symbolisation.",
     ),
     (
-        "arif_explore", "arifos",
+        "arif_explore",
+        "arifos",
         {
             "source_symbol_class": {
                 "type": "array",
@@ -313,9 +388,16 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                 "items": {
                     "type": "string",
                     "enum": [
-                        "legal_document", "corporate_statement", "ritual_text", "personal_memory",
-                        "financial_signal", "geological_interpretation", "governance_receipt",
-                        "propaganda", "mythic_frame", "social_media_symbol",
+                        "legal_document",
+                        "corporate_statement",
+                        "ritual_text",
+                        "personal_memory",
+                        "financial_signal",
+                        "geological_interpretation",
+                        "governance_receipt",
+                        "propaganda",
+                        "mythic_frame",
+                        "social_media_symbol",
                     ],
                 },
             },
@@ -332,7 +414,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "explore shares observe's classification needs but with broader search.",
     ),
     (
-        "geox_claim_create", "geox",
+        "geox_claim_create",
+        "geox",
         {
             "symbolic_consequence": {
                 "type": "object",
@@ -353,7 +436,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "'This structure is drill-ready' is not just geology — it can become a budget, partner signal, or career liability.",
     ),
     (
-        "geox_claim_challenge", "geox",
+        "geox_claim_challenge",
+        "geox",
         {
             "challenge_symbolic_target": {
                 "type": "object",
@@ -371,7 +455,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Challenge the symbol without attacking the person's maruah — critical for PETRONAS-style subsurface work.",
     ),
     (
-        "geox_claim_seal", "geox",
+        "geox_claim_seal",
+        "geox",
         {
             "seal_disambiguation": {
                 "type": "object",
@@ -388,7 +473,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Geological sealing, trap seal, and constitutional SEAL must not be confused.",
     ),
     (
-        "geox_prospect_evaluate", "geox",
+        "geox_prospect_evaluate",
+        "geox",
         {
             "seal_disambiguation": {
                 "type": "object",
@@ -414,7 +500,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "A prospect verdict is one of the heaviest symbols in subsurface work.",
     ),
     (
-        "wealth_stock_analysis", "wealth",
+        "wealth_stock_analysis",
+        "wealth",
         {
             "market_symbolic_layer": {
                 "type": "object",
@@ -424,13 +511,24 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "enum": ["price", "narrative", "status", "fear", "greed", "authority_claim", "herd_symbol"],
+                            "enum": [
+                                "price",
+                                "narrative",
+                                "status",
+                                "fear",
+                                "greed",
+                                "authority_claim",
+                                "herd_symbol",
+                            ],
                         },
                     },
                     "manipulation_risk": {"type": "string", "enum": ["low", "medium", "high"]},
                     "social_proof_detected": {"type": "boolean"},
                     "tamak_trigger": {"type": "boolean"},
-                    "capital_irreversibility": {"type": "string", "enum": ["low", "medium", "high"]},
+                    "capital_irreversibility": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high"],
+                    },
                 },
             }
         },
@@ -438,7 +536,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Price, rating, dividend, PE, 'buy call' are not neutral facts — they move behavior.",
     ),
     (
-        "wealth_governance_verdict", "wealth",
+        "wealth_governance_verdict",
+        "wealth",
         {
             "symbolic_capital_assessment": {
                 "type": "object",
@@ -456,7 +555,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Already has maruah_score / trust_index / peace2 — this makes symbolic inputs explicit.",
     ),
     (
-        "well_assess_livelihood", "well",
+        "well_assess_livelihood",
+        "well",
         {
             "role_symbolics": {
                 "type": "object",
@@ -474,7 +574,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Livelihood is role, maruah, social position, meaning — not just income.",
     ),
     (
-        "well_assess_sovereign_entropy", "well",
+        "well_assess_sovereign_entropy",
+        "well",
         {
             "sovereignty_guard": {
                 "type": "object",
@@ -491,10 +592,10 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         ["sovereignty_guard"],
         "Agent must not convert Arif into a fixed symbol. That would violate sovereignty.",
     ),
-
     # ─── MEDIUM ────────────────────────────────────────────────────────────
     (
-        "wealth_survival_engine", "wealth",
+        "wealth_survival_engine",
+        "wealth",
         {
             "symbolic_finance_pressure": {
                 "type": "object",
@@ -502,7 +603,10 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
                 "properties": {
                     "family_obligation": {"type": "string", "enum": ["low", "medium", "high"]},
                     "status_consumption": {"type": "string", "enum": ["low", "medium", "high"]},
-                    "institutional_dependency": {"type": "string", "enum": ["low", "medium", "high"]},
+                    "institutional_dependency": {
+                        "type": "string",
+                        "enum": ["low", "medium", "high"],
+                    },
                     "shame_risk": {"type": "string", "enum": ["low", "medium", "high"]},
                     "hidden_commitment": {"type": "string", "enum": ["low", "medium", "high"]},
                 },
@@ -512,7 +616,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Prevents agent from treating money as only spreadsheet flow.",
     ),
     (
-        "well_assess_homeostasis", "well",
+        "well_assess_homeostasis",
+        "well",
         {
             "homeostasis_symbolic_layer": {
                 "type": "object",
@@ -528,7 +633,8 @@ COMPONENTS: list[tuple[str, str, dict[str, Any], list[str] | None, str]] = [
         "Homeostasis numbers are read as social signals, not just internal telemetry.",
     ),
     (
-        "well_validate_vitality", "well",
+        "well_validate_vitality",
+        "well",
         {
             "vitality_symbolic_load": {
                 "type": "object",
@@ -554,6 +660,7 @@ def main() -> int:
         path = os.path.join(OUT_DIR, f"{component}.schema.json")
         with open(path, "w", encoding="utf-8") as f:
             import json
+
             json.dump(schema, f, indent=2, ensure_ascii=False)
             f.write("\n")
         written.append(path)

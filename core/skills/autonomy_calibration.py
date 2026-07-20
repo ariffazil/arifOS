@@ -12,7 +12,6 @@ Spec reference: /root/arifOS/core/skills/AUTONOMY_CALIBRATION_SPEC.md
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 
 class BandDirection(str, Enum):
@@ -35,7 +34,7 @@ class ToolRiskMetrics:
     override_rate: float = 0.0
     fp_rate: float = 0.0
     fn_rate: float = 0.0
-    last_evaluated: Optional[datetime] = None
+    last_evaluated: datetime | None = None
 
 
 @dataclass

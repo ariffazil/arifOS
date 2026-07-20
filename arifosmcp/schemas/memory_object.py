@@ -24,7 +24,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Literal
 
@@ -36,13 +36,12 @@ from .memory_truth import (
     TruthClassName,
 )
 
-
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 
 def _utc_now() -> datetime:
     """Timezone-aware UTC now. Centralised so all timestamps align."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_id(prefix: str) -> str:
@@ -202,9 +201,7 @@ class MemoryAuthorityBlock(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     epistemic_status: Literal["OBS", "DER", "INT", "SPEC"] = "OBS"
-    authority_status: Literal["descriptive", "advisory", "approved", "prohibited"] = (
-        "descriptive"
-    )
+    authority_status: Literal["descriptive", "advisory", "approved", "prohibited"] = "descriptive"
     may_inform_reasoning: bool = True
     may_change_routing: bool = False
     may_restrict_tools: bool = False
@@ -228,8 +225,6 @@ class DecisionValueLifecycle(BaseModel):
     harmful_outcomes: int = 0
 
 
-
-
 # ── Constitutional Memory Enums (Δ Axis 3) ────────────────────────────────
 # The human values from Δ (SOUL) that shape the floors.
 # A memory can serve multiple values.
@@ -244,16 +239,16 @@ class ValueAnchor(str, Enum):
     the feeling, only the intention's geometry.
     """
 
-    DIGNITY = "dignity"      # → F6 MARUAH
+    DIGNITY = "dignity"  # → F6 MARUAH
     PROTECTION = "protection"  # → F5 PEACE²
     SOVEREIGNTY = "sovereignty"  # → F13 SOVEREIGN
-    TRUTH = "truth"          # → F2 TRUTH
-    WITNESS = "witness"      # → F3 TRI-WITNESS
-    PATIENCE = "patience"    # → F7 HUMILITY
+    TRUTH = "truth"  # → F2 TRUTH
+    WITNESS = "witness"  # → F3 TRI-WITNESS
+    PATIENCE = "patience"  # → F7 HUMILITY
     REVERSIBILITY = "reversibility"  # → F1 AMANAH
-    CLARITY = "clarity"      # → F4 CLARITY
-    EMPATHY = "empathy"      # → F6 EMPATHY
-    GENIUS = "genius"        # → F8 GENIUS
+    CLARITY = "clarity"  # → F4 CLARITY
+    EMPATHY = "empathy"  # → F6 EMPATHY
+    GENIUS = "genius"  # → F8 GENIUS
 
 
 class FloorCode(str, Enum):
@@ -264,15 +259,15 @@ class FloorCode(str, Enum):
     you may recall the fact but not override the value."
     """
 
-    F1 = "F1"    # AMANAH — Reversible-first
-    F2 = "F2"    # TRUTH — ≥ 0.99 fidelity
-    F3 = "F3"    # TRI-WITNESS — Byzantine consensus
-    F4 = "F4"    # CLARITY — ΔS ≤ 0
-    F5 = "F5"    # PEACE² — Non-destructive power
-    F6 = "F6"    # EMPATHY — Protect weakest stakeholder
-    F7 = "F7"    # HUMILITY — Ω₀ ∈ [0.03, 0.05]
-    F8 = "F8"    # GENIUS — G ≥ 0.80
-    F9 = "F9"    # ANTIHANTU — No deception
+    F1 = "F1"  # AMANAH — Reversible-first
+    F2 = "F2"  # TRUTH — ≥ 0.99 fidelity
+    F3 = "F3"  # TRI-WITNESS — Byzantine consensus
+    F4 = "F4"  # CLARITY — ΔS ≤ 0
+    F5 = "F5"  # PEACE² — Non-destructive power
+    F6 = "F6"  # EMPATHY — Protect weakest stakeholder
+    F7 = "F7"  # HUMILITY — Ω₀ ∈ [0.03, 0.05]
+    F8 = "F8"  # GENIUS — G ≥ 0.80
+    F9 = "F9"  # ANTIHANTU — No deception
     F10 = "F10"  # ONTOLOGY — AI-only ontology
     F11 = "F11"  # AUDITABILITY — Every decision logged
     F12 = "F12"  # RESILIENCE — Injection defense
@@ -385,7 +380,6 @@ class MemoryObject(BaseModel):
     vault_ref: str | None = None  # vlt_<uuid>
     vault_seal_id: str | None = None  # explicit seal linkage
     vault_version: Literal["v1", "v2"] | None = None  # §12.6 — never write new seals to v1
-
 
     # ── Constitutional Memory (Δ Axis 3) ──
     # The missing depth axis: Memory → Moral Anchor → Constitutional Recall.

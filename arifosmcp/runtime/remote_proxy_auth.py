@@ -162,7 +162,11 @@ def require_remote_proxy_session(
 
     if not auth.get("valid"):
         reason = auth.get("reason") or "L11 AUTH failed"
-        code = "SESSION_REQUIRED" if not sid and "missing" in str(reason).lower() else "SESSION_INVALID"
+        code = (
+            "SESSION_REQUIRED"
+            if not sid and "missing" in str(reason).lower()
+            else "SESSION_INVALID"
+        )
         if not sid:
             code = "SESSION_REQUIRED"
             reason = (

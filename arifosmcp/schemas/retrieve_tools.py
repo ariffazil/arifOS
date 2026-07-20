@@ -12,8 +12,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 
@@ -26,13 +24,19 @@ class ToolDocument(BaseModel):
 
     name: str = Field(description="Canonical tool name (e.g. geox_well_ingest)")
     organ: str = Field(description="Federation organ (arifOS, GEOX, WEALTH, WELL, A-FORGE)")
-    domain: str = Field(default="", description="Domain within organ (well, seismic, model, basin, govern)")
+    domain: str = Field(
+        default="", description="Domain within organ (well, seismic, model, basin, govern)"
+    )
     description: str = Field(description="One-line tool description")
     searchable_text: str = Field(
         description="Flattened searchable text: name + description + param names + enum values, JSON syntax stripped"
     )
-    capability_tags: list[str] = Field(default_factory=list, description="Capability tags for hybrid re-rank")
-    modes: list[str] | None = Field(default=None, description="Available operation modes (if mode-based tool)")
+    capability_tags: list[str] = Field(
+        default_factory=list, description="Capability tags for hybrid re-rank"
+    )
+    modes: list[str] | None = Field(
+        default=None, description="Available operation modes (if mode-based tool)"
+    )
     parameters: list[dict[str, str]] = Field(
         default_factory=list,
         description="Parameter names and descriptions (no types, no JSON syntax)",
@@ -100,7 +104,9 @@ class RetrieveToolsOutput(BaseModel):
     query: str = Field(description="Original query")
     organ_filter: str | None = Field(default=None, description="Organ filter applied (or none)")
     total_tools_indexed: int = Field(description="Total tools in the BM25 index")
-    results: list[RetrievedTool] = Field(default_factory=list, description="Top-K retrieval results")
+    results: list[RetrievedTool] = Field(
+        default_factory=list, description="Top-K retrieval results"
+    )
     epistemic_note: str = Field(
         default=(
             "BM25 lexical match. Scores measure TERM FREQUENCY overlap, not semantic relevance. "
@@ -131,7 +137,9 @@ class ToolCatalog(BaseModel):
     """The full federation tool catalog loaded from registry + live servers."""
 
     tools: list[ToolCatalogEntry] = Field(default_factory=list)
-    source: str = Field(default="TOOLREGISTRY.json", description="Where the catalog was loaded from")
+    source: str = Field(
+        default="TOOLREGISTRY.json", description="Where the catalog was loaded from"
+    )
     loaded_at: str = Field(default="", description="ISO timestamp of catalog load")
 
     def __len__(self) -> int:

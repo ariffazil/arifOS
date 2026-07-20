@@ -10,6 +10,12 @@ Also re-exports schema types from arifosmcp.schemas.act for convenience:
 DITEMPA BUKAN DIBERI — Package is forged, not configured.
 """
 
+from arifosmcp.runtime.act.compensation import (
+    DANGEROUS_MIGRATION_COMPENSATION,
+    DEFAULT_DEPLOY_COMPENSATION,
+    HUMAN_IN_LOOP_COMPENSATION,
+    CompensationPath,
+)
 from arifosmcp.runtime.act.gates import (
     ActReason,
     ActVerdict,
@@ -25,12 +31,6 @@ from arifosmcp.runtime.act.patterns import (
     suggest_pattern,
 )
 from arifosmcp.runtime.act.runtime import ActRequest, ActResult, act
-from arifosmcp.runtime.act.compensation import (
-    CompensationPath,
-    DANGEROUS_MIGRATION_COMPENSATION,
-    DEFAULT_DEPLOY_COMPENSATION,
-    HUMAN_IN_LOOP_COMPENSATION,
-)
 
 # Re-export schema types for convenience
 from arifosmcp.schemas.act import (

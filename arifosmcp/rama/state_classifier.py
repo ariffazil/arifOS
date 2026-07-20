@@ -30,7 +30,6 @@ Constitutional floors:
 from __future__ import annotations
 
 import logging
-import re
 from dataclasses import dataclass
 
 from arifosmcp.rama.state_classifier_schemas import (
@@ -87,7 +86,9 @@ def extract_features(message: str, recent_messages: list[str] | None = None) -> 
 
     # Caps analysis
     alpha_chars = [c for c in msg if c.isalpha()]
-    caps_ratio = (sum(1 for c in alpha_chars if c.isupper()) / len(alpha_chars)) if alpha_chars else 0.0
+    caps_ratio = (
+        (sum(1 for c in alpha_chars if c.isupper()) / len(alpha_chars)) if alpha_chars else 0.0
+    )
     has_caps_shouting = caps_ratio > 0.5 and len(alpha_chars) > 5
 
     # Punctuation analysis
@@ -102,7 +103,9 @@ def extract_features(message: str, recent_messages: list[str] | None = None) -> 
     repetition_detected = False
     if recent_messages:
         msg_normalized = msg_lower.strip()
-        repetition_detected = sum(1 for m in recent_messages if m.strip().lower() == msg_normalized) >= 2
+        repetition_detected = (
+            sum(1 for m in recent_messages if m.strip().lower() == msg_normalized) >= 2
+        )
 
     return LinguisticFeatures(
         message=msg,
@@ -125,54 +128,135 @@ def extract_features(message: str, recent_messages: list[str] | None = None) -> 
 # ── Ventral vagal markers (safe & social) ─────────────────────────────────────
 _VENTRAL_MARKERS: list[str] = [
     # Exploring, curious, playful
-    "explore", "what if", "interesting", "curious", "let's think",
-    "let me try", "wondering", "imagine", "suppose",
+    "explore",
+    "what if",
+    "interesting",
+    "curious",
+    "let's think",
+    "let me try",
+    "wondering",
+    "imagine",
+    "suppose",
     # BM-English Penang
-    "jom", "cuba", "tengok", "macam mana kalau",
+    "jom",
+    "cuba",
+    "tengok",
+    "macam mana kalau",
     # Engaged, long-form
-    "elaborate", "expand", "dig deeper", "go on",
+    "elaborate",
+    "expand",
+    "dig deeper",
+    "go on",
     # Co-creating
-    "together", "build", "create", "design", "forge",
+    "together",
+    "build",
+    "create",
+    "design",
+    "forge",
     # Humor, play
-    "haha", "lol", "lmao", "😂", "🤣", "nice",
+    "haha",
+    "lol",
+    "lmao",
+    "😂",
+    "🤣",
+    "nice",
     # Open exploration
-    "interesting", "fascinating", "cool", "wow",
+    "interesting",
+    "fascinating",
+    "cool",
+    "wow",
 ]
 
 # ── Sympathetic markers (fight/flight) ────────────────────────────────────────
 _SYMPATHETIC_MARKERS: list[str] = [
     # Frustration, anger
-    "bangang", "bodoh", "stupid", "damn", "shit", "wtf",
-    "geram", "marah", "angry", "furious", "pissed",
+    "bangang",
+    "bodoh",
+    "stupid",
+    "damn",
+    "shit",
+    "wtf",
+    "geram",
+    "marah",
+    "angry",
+    "furious",
+    "pissed",
     # Urgency
-    "now", "sekarang", "cepat", "quick", "asap", "hurry",
-    "fix this", "fix it", "terus", "right now",
+    "now",
+    "sekarang",
+    "cepat",
+    "quick",
+    "asap",
+    "hurry",
+    "fix this",
+    "fix it",
+    "terus",
+    "right now",
     # Defensive
-    "don't tell me", "jangan", "stop", "enough", "sudah",
+    "don't tell me",
+    "jangan",
+    "stop",
+    "enough",
+    "sudah",
     # Exasperation
-    "again?!?", "lagi?!?", "seriously?", "really?",
-    "for fucks sake", "aiyo", "adoi",
+    "again?!?",
+    "lagi?!?",
+    "seriously?",
+    "really?",
+    "for fucks sake",
+    "aiyo",
+    "adoi",
     # ALL CAPS commands (handled via features, but marker too)
-    "HELP", "FIX", "STOP", "NOW",
+    "HELP",
+    "FIX",
+    "STOP",
+    "NOW",
 ]
 
 # ── Dorsal vagal markers (shutdown/freeze) ────────────────────────────────────
 _DORSAL_MARKERS: list[str] = [
     # Withdrawal
-    "entah", "tak tahu", "don't know", "whatever", "tak kisah",
-    "doesn't matter", "tak penting", "skip",
+    "entah",
+    "tak tahu",
+    "don't know",
+    "whatever",
+    "tak kisah",
+    "doesn't matter",
+    "tak penting",
+    "skip",
     # Collapse
-    "give up", "putus asa", "tak larat", "exhausted", "drained",
-    "penat", "tak boleh", "can't anymore",
+    "give up",
+    "putus asa",
+    "tak larat",
+    "exhausted",
+    "drained",
+    "penat",
+    "tak boleh",
+    "can't anymore",
     # Numbness
-    "kosong", "empty", "numb", "nothing", "tak rasa",
-    "feel nothing", "blank",
+    "kosong",
+    "empty",
+    "numb",
+    "nothing",
+    "tak rasa",
+    "feel nothing",
+    "blank",
     # Minimal engagement
-    "ok", "k", "hmm", "mhm", "yeah", "ya",
-    "fine", "baik", "noted",
+    "ok",
+    "k",
+    "hmm",
+    "mhm",
+    "yeah",
+    "ya",
+    "fine",
+    "baik",
+    "noted",
     # Surrender without peace
-    "buat je", "ikut kau", "whatever you want",
-    "terserah", "up to you",
+    "buat je",
+    "ikut kau",
+    "whatever you want",
+    "terserah",
+    "up to you",
 ]
 
 
@@ -281,58 +365,107 @@ def classify_polyvagal(features: LinguisticFeatures) -> tuple[PolyvagalState, li
 # ── Autonomy markers ──────────────────────────────────────────────────────────
 _AUTONOMY_DEFICIT_MARKERS: list[str] = [
     # Being told what to do
-    "you should", "you must", "you need to", "kau kena",
-    "do this", "buat ni", "just do it",
+    "you should",
+    "you must",
+    "you need to",
+    "kau kena",
+    "do this",
+    "buat ni",
+    "just do it",
     # Resisting prescription
-    "don't tell me", "jangan ajar", "i know",
-    "let me decide", "biar aku", "my choice",
+    "don't tell me",
+    "jangan ajar",
+    "i know",
+    "let me decide",
+    "biar aku",
+    "my choice",
 ]
 
 _AUTONOMY_GRANTED_MARKERS: list[str] = [
     # Sovereignty language
-    "decide yourself", "your call", "kau decide",
-    "ikut kau", "up to you", "terserah",
-    "whatever you think", "you choose",
+    "decide yourself",
+    "your call",
+    "kau decide",
+    "ikut kau",
+    "up to you",
+    "terserah",
+    "whatever you think",
+    "you choose",
     # Exploration without prescription
-    "explore", "try", "experiment", "cuba",
+    "explore",
+    "try",
+    "experiment",
+    "cuba",
 ]
 
 # ── Competence markers ────────────────────────────────────────────────────────
 _COMPETENCE_DEFICIT_MARKERS: list[str] = [
     # Self-doubt
-    "i can't", "tak boleh", "too hard", "susah",
-    "i don't know how", "macam mana", "confused",
-    "tak faham", "blur", "lost",
+    "i can't",
+    "tak boleh",
+    "too hard",
+    "susah",
+    "i don't know how",
+    "macam mana",
+    "confused",
+    "tak faham",
+    "blur",
+    "lost",
     # Failure language
-    "failed", "gagal", "screwed up", "rosak",
-    "messed up", "broken",
+    "failed",
+    "gagal",
+    "screwed up",
+    "rosak",
+    "messed up",
+    "broken",
 ]
 
 _COMPETENCE_SCAFFOLD_MARKERS: list[str] = [
     # Asking for help (not collapse — seeking scaffold)
-    "how do i", "camne nak", "macam mana nak",
-    "teach me", "show me", "ajar",
-    "guide", "tunjuk",
+    "how do i",
+    "camne nak",
+    "macam mana nak",
+    "teach me",
+    "show me",
+    "ajar",
+    "guide",
+    "tunjuk",
 ]
 
 # ── Relatedness markers ───────────────────────────────────────────────────────
 _RELATEDNESS_DEFICIT_MARKERS: list[str] = [
     # Isolation
-    "alone", "seorang", "sorang",
-    "nobody understands", "siapa faham",
-    "no one cares", "tak ada siapa kisah",
+    "alone",
+    "seorang",
+    "sorang",
+    "nobody understands",
+    "siapa faham",
+    "no one cares",
+    "tak ada siapa kisah",
     # Disconnection
-    "disconnected", "terasing", "forgotten",
+    "disconnected",
+    "terasing",
+    "forgotten",
     "dilupakan",
 ]
 
 _RELATEDNESS_SEEKING_MARKERS: list[str] = [
     # Connection seeking
-    "we", "kita", "together", "sama-sama",
-    "flock", "bro", "sis", "friend",
+    "we",
+    "kita",
+    "together",
+    "sama-sama",
+    "flock",
+    "bro",
+    "sis",
+    "friend",
     # Acknowledgment seeking
-    "right?", "betul tak?", "agree?", "setuju?",
-    "you know?", "kan?",
+    "right?",
+    "betul tak?",
+    "agree?",
+    "setuju?",
+    "you know?",
+    "kan?",
 ]
 
 

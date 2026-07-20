@@ -29,7 +29,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-
 REQUIRED_FIELDS: tuple[str, ...] = (
     "literal_request",
     "symbolic_meaning",
@@ -161,8 +160,7 @@ def _coherence_checks(env: dict[str, Any]) -> list[EnvelopeError]:
                 errs.append(
                     EnvelopeError(
                         "hold_required",
-                        "ritual language without constitutional domain "
-                        "must hold for human review",
+                        "ritual language without constitutional domain must hold for human review",
                         "INCOHERENT",
                     )
                 )
@@ -284,9 +282,7 @@ def validate(envelope: dict[str, Any] | None) -> EnvelopeVerdict:
     if isinstance(route_to, str):
         route_to = route_to.strip() or None
 
-    env_sha = hashlib.sha256(
-        repr(sorted(envelope.items())).encode("utf-8")
-    ).hexdigest()
+    env_sha = hashlib.sha256(repr(sorted(envelope.items())).encode("utf-8")).hexdigest()
 
     return EnvelopeVerdict(
         accepted=accepted,
@@ -551,4 +547,5 @@ def _selftest() -> int:
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(_selftest())

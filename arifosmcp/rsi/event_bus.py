@@ -42,9 +42,9 @@ from __future__ import annotations
 import logging
 import os
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable
-from uuid import uuid4
+from typing import Any
 
 logger = logging.getLogger("arifOS.rsi.event_bus")
 
@@ -55,15 +55,15 @@ logger = logging.getLogger("arifOS.rsi.event_bus")
 # sovereign 999_HOLD: "the missing stage is Diff. Without Diff, the system
 # cannot know whether it regenerated or mutated."
 RSI_STAGES: tuple[str, ...] = (
-    "seal",                # physics: irreversibility lock (review-only)
-    "init_regeneration",   # biology: stem-cell reset (loads invariants; no mutation)
-    "scaffold_rebuild",    # chemistry: reaction pathway rebuild (PROPOSES delta only)
-    "skill_rebuild",       # RSI core: 12 skills re-derive contracts (PROPOSES only)
-    "skill_diff",          # diff: compare old vs proposed; classify risk; emit GateDecision
-    "organ_rebind",        # AAA + 6 organs rebind (routing-only; gated by GateDecision)
-    "receipt_replay",      # restore scars, lineage, cooling ledger (read-only)
-    "cooling",             # entropy sink (rate-limits mutation attempts)
-    "resume_execution",    # A-FORGE gated resumption (blocked unless resume_allowed=True)
+    "seal",  # physics: irreversibility lock (review-only)
+    "init_regeneration",  # biology: stem-cell reset (loads invariants; no mutation)
+    "scaffold_rebuild",  # chemistry: reaction pathway rebuild (PROPOSES delta only)
+    "skill_rebuild",  # RSI core: 12 skills re-derive contracts (PROPOSES only)
+    "skill_diff",  # diff: compare old vs proposed; classify risk; emit GateDecision
+    "organ_rebind",  # AAA + 6 organs rebind (routing-only; gated by GateDecision)
+    "receipt_replay",  # restore scars, lineage, cooling ledger (read-only)
+    "cooling",  # entropy sink (rate-limits mutation attempts)
+    "resume_execution",  # A-FORGE gated resumption (blocked unless resume_allowed=True)
 )
 
 
@@ -139,7 +139,7 @@ class SealEventBus:
             stage: [] for stage in RSI_STAGES
         }
         self._history_max = 64
-        self._history: list["RSIReceipt"] = []
+        self._history: list[RSIReceipt] = []
 
     # ── registration ────────────────────────────────────────────────────
 
@@ -150,9 +150,7 @@ class SealEventBus:
         `hook` is a callable: SealEvent → StageResult.
         """
         if stage not in RSI_STAGES:
-            raise ValueError(
-                f"unknown stage {stage!r}; must be one of {RSI_STAGES}"
-            )
+            raise ValueError(f"unknown stage {stage!r}; must be one of {RSI_STAGES}")
         if not callable(hook):
             raise TypeError(f"hook for {stage}/{name} must be callable")
         with self._lock:
@@ -174,8 +172,7 @@ class SealEventBus:
         with self._lock:
             self._enabled = True
             logger.info(
-                "RSI bus ENABLED — every SEAL event will trigger the "
-                "8-stage regeneration chain"
+                "RSI bus ENABLED — every SEAL event will trigger the 8-stage regeneration chain"
             )
 
     def disable_post_seal_rebuild(self) -> None:
@@ -189,7 +186,7 @@ class SealEventBus:
 
     # ── the trigger ─────────────────────────────────────────────────────
 
-    def fire(self, event: SealEvent) -> "RSIReceipt":
+    def fire(self, event: SealEvent) -> RSIReceipt:
         """Fan a SealEvent out through the 8-stage chain.
 
         Returns an RSIReceipt capturing per-stage results. Never raises — every
@@ -213,8 +210,9 @@ class SealEventBus:
                 return receipt
             return self._fire_locked(event)
 
-    def _fire_locked(self, event: SealEvent) -> "RSIReceipt":
+    def _fire_locked(self, event: SealEvent) -> RSIReceipt:
         import time as _t
+
         results: list[StageResult] = []
         scars: list[str] = []
         t0 = _t.monotonic()
@@ -245,10 +243,7 @@ class SealEventBus:
                     r = hook(event)
                     # ensure caller returned a StageResult we expect
                     if not isinstance(r, StageResult):
-                        detail_msg = (
-                            f"hook returned {type(r).__name__}, "
-                            f"expected StageResult"
-                        )
+                        detail_msg = f"hook returned {type(r).__name__}, expected StageResult"
                         r = StageResult(
                             ok=False,
                             stage=stage,
@@ -256,8 +251,7 @@ class SealEventBus:
                             elapsed_ms=(_t.monotonic() - ts) * 1000,
                             detail=detail_msg,
                             scar=(
-                                f"{stage}/{name} returned "
-                                f"{type(r).__name__}; expected StageResult"
+                                f"{stage}/{name} returned {type(r).__name__}; expected StageResult"
                             ),
                         )
                 except Exception as e:  # never raise from a hook
@@ -289,10 +283,7 @@ class SealEventBus:
         #   5. no hooks → NOOP.
         all_ok = all(r.ok for r in results) if results else True
         gate_blocked_scar = any(s == "resume_blocked_by_gate" for s in scars)
-        diff_fired_not_opened = (
-            any(r.stage == "skill_diff" for r in results)
-            and not gate_open
-        )
+        diff_fired_not_opened = any(r.stage == "skill_diff" for r in results) and not gate_open
         if gate_blocked_scar or diff_fired_not_opened:
             verdict = "SEAL_HOLD_GATE_NOT_OPENED"
         elif all_ok and results:
@@ -317,18 +308,23 @@ class SealEventBus:
         if verdict == "SEAL_REBUILT":
             logger.info(
                 "RSI cycle for seal=%s OK in %.1fms across %d hooks",
-                event.seal_id, elapsed_ms, len(results),
+                event.seal_id,
+                elapsed_ms,
+                len(results),
             )
         else:
             logger.warning(
                 "RSI cycle for seal=%s verdict=%s scars=%d elapsed=%.1fms",
-                event.seal_id, verdict, len(scars), elapsed_ms,
+                event.seal_id,
+                verdict,
+                len(scars),
+                elapsed_ms,
             )
         return receipt
 
     # ── introspection ───────────────────────────────────────────────────
 
-    def recent_receipts(self, limit: int = 8) -> list["RSIReceipt"]:
+    def recent_receipts(self, limit: int = 8) -> list[RSIReceipt]:
         with self._lock:
             return list(self._history[-limit:])
 
@@ -370,13 +366,9 @@ def get_bus() -> SealEventBus:
         with threading.Lock():
             if _BUS is None:
                 _BUS = SealEventBus()
-                if os.getenv("ARIFOS_RSI_AUTOREBUILD", "").lower() in (
-                    "1", "true", "yes", "on"
-                ):
+                if os.getenv("ARIFOS_RSI_AUTOREBUILD", "").lower() in ("1", "true", "yes", "on"):
                     _BUS.enable_post_seal_rebuild()
-                    logger.info(
-                        "RSI bus auto-enabled from ARIFOS_RSI_AUTOREBUILD=1"
-                    )
+                    logger.info("RSI bus auto-enabled from ARIFOS_RSI_AUTOREBUILD=1")
     return _BUS
 
 

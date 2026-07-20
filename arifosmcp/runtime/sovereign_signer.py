@@ -26,8 +26,8 @@ from pathlib import Path
 
 def get_constitution_hash() -> str:
     """Get the canonical constitution_hash from KERNEL_CANON file (or fallback to FLOOR_SPEC)."""
-    import os
     import hashlib
+    import os
 
     # Try loading from the file first (same as live_kernel.py)
     candidates = [

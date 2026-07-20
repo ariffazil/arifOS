@@ -58,11 +58,9 @@ class AuthorityLevel(StrEnum):
     ARIF = "arif"
 
 
-from arifosmcp.models.verdicts import RuntimeStatus
-
 # RuntimeStatus is now canonical — imported from models/verdicts.
 # Backward-compat alias for files importing Verdict from model (DEPRECATED — use models/verdicts directly)
-from arifosmcp.models.verdicts import Verdict
+from arifosmcp.models.verdicts import RuntimeStatus, Verdict
 
 # Legacy local extensions (not in canonical RuntimeStatus):
 LEGACY_RS_DRY_RUN = "DRY_RUN"  # Model-only: simulation/dry-run mode

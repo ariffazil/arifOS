@@ -20,7 +20,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class CanaryStage(str, Enum):
@@ -56,6 +56,7 @@ class CanaryStageResult:
 @dataclass
 class CanaryReceipt:
     """Sealed canary receipt with full lineage."""
+
     canary_id: str
     verdict: CanaryVerdict
     stages: list[CanaryStageResult]
@@ -64,24 +65,24 @@ class CanaryReceipt:
     registry_hashes: dict[str, str] = field(default_factory=dict)
     commits: dict[str, str] = field(default_factory=dict)
     constitution_hash: str = ""
-    independent_verification: Optional[dict[str, Any]] = None
+    independent_verification: dict[str, Any] | None = None
     sealed_at: float = field(default_factory=time.time)
     receipt_hash: str = ""
 
 
 def compute_canary_hash(receipt: CanaryReceipt) -> str:
     """Compute the canary receipt hash."""
-    payload = json.dumps({
-        "canary_id": receipt.canary_id,
-        "verdict": receipt.verdict.value,
-        "stages": [
-            {"stage": s.stage.value, "passed": s.passed}
-            for s in receipt.stages
-        ],
-        "commits": receipt.commits,
-        "constitution_hash": receipt.constitution_hash,
-        "sealed_at": receipt.sealed_at,
-    }, sort_keys=True)
+    payload = json.dumps(
+        {
+            "canary_id": receipt.canary_id,
+            "verdict": receipt.verdict.value,
+            "stages": [{"stage": s.stage.value, "passed": s.passed} for s in receipt.stages],
+            "commits": receipt.commits,
+            "constitution_hash": receipt.constitution_hash,
+            "sealed_at": receipt.sealed_at,
+        },
+        sort_keys=True,
+    )
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
@@ -100,8 +101,16 @@ class E2ECanary:
 
     def check_readiness(self, wajib_status: dict[str, bool]) -> bool:
         """Check if all WAJIB 2-9 gates are ready."""
-        required = ["WAJIB_2", "WAJIB_3", "WAJIB_4", "WAJIB_5",
-                     "WAJIB_6", "WAJIB_7", "WAJIB_8", "WAJIB_9"]
+        required = [
+            "WAJIB_2",
+            "WAJIB_3",
+            "WAJIB_4",
+            "WAJIB_5",
+            "WAJIB_6",
+            "WAJIB_7",
+            "WAJIB_8",
+            "WAJIB_9",
+        ]
         self._ready = all(wajib_status.get(w, False) for w in required)
         return self._ready
 
@@ -143,10 +152,17 @@ class E2ECanary:
             )
 
         stage_order = [
-            CanaryStage.INIT, CanaryStage.SESSION, CanaryStage.ROUTE,
-            CanaryStage.OBSERVE, CanaryStage.JUDGE, CanaryStage.LEASE,
-            CanaryStage.EXECUTE, CanaryStage.VERIFY, CanaryStage.RSI,
-            CanaryStage.VAULT999, CanaryStage.ROLLBACK,
+            CanaryStage.INIT,
+            CanaryStage.SESSION,
+            CanaryStage.ROUTE,
+            CanaryStage.OBSERVE,
+            CanaryStage.JUDGE,
+            CanaryStage.LEASE,
+            CanaryStage.EXECUTE,
+            CanaryStage.VERIFY,
+            CanaryStage.RSI,
+            CanaryStage.VAULT999,
+            CanaryStage.ROLLBACK,
         ]
 
         for stage in stage_order:

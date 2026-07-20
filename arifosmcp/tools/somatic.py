@@ -23,7 +23,9 @@ from typing import Any
 
 # Add A-FORGE paradox-engine to path (graceful degradation if unavailable)
 try:
-    _paradox_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "A-FORGE", "paradox-engine")
+    _paradox_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "..", "A-FORGE", "paradox-engine"
+    )
     _paradox_path = os.path.normpath(_paradox_path)
     if os.path.isdir(_paradox_path):
         sys.path.insert(0, _paradox_path)

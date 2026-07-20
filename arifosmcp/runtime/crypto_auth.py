@@ -467,8 +467,8 @@ def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
         return None
     message = f"{actor_id}:{nonce}".encode()
     try:
-        from cryptography.hazmat.primitives.asymmetric import ed25519
         from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import ed25519
 
         # Try raw 32-byte seed first
         if len(key_bytes) == 32:

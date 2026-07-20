@@ -18,13 +18,11 @@ This resource is DYNAMIC — computed on each read from the live filesystem.
 
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
 from typing import Any
 
 from fastmcp import FastMCP
-from fastmcp.resources.types import TextResource
 
 SKILLS_ROOT = Path("/root/.agents/skills")
 
@@ -90,7 +88,9 @@ def _scan_skill_file(skill_path: Path) -> dict[str, Any]:
     )
     trigger_phrases = []
     if trigger_match:
-        trigger_phrases = [t.strip() for t in re.split(r"[,;•\n]", trigger_match.group(1)) if t.strip()]
+        trigger_phrases = [
+            t.strip() for t in re.split(r"[,;•\n]", trigger_match.group(1)) if t.strip()
+        ]
 
     # Count lines (proxy for completeness)
     line_count = len(content.splitlines())

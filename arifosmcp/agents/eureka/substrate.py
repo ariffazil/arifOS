@@ -156,7 +156,7 @@ class SubstrateIndex:
                 filepath = os.path.join(a_forge_mcp_dir, filename)
                 if os.path.exists(filepath):
                     try:
-                        with open(filepath, "r", encoding="utf-8") as f:
+                        with open(filepath, encoding="utf-8") as f:
                             content = f.read()
                         # Extract tools registered via server.tool("..." or server.registerTool("..."
                         tool_names = re.findall(

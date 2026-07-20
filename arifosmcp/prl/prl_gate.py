@@ -25,11 +25,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from .vault_vectorizer import (
-    COLLECTION_NAME,
     BLAST_RADIUS_VALUES,
     DEFAULT_BLAST_RADIUS,
     PRL_TAU_THRESHOLD,
@@ -41,10 +40,10 @@ logger = logging.getLogger(__name__)
 # ── Gate Result Types ──────────────────────────────────────────────────────
 
 GateVerdict = Literal[
-    "PRL_MATCH",       # Precedent found and constraint injected
-    "PRL_NONE",        # No matching precedent — proceed normally
-    "PRL_OMEGA0_HOLD", # Ω₀ exception — geometric match but contextual ambiguity
-    "PRL_ERROR",       # Infrastructure failure — Qdrant unreachable, etc.
+    "PRL_MATCH",  # Precedent found and constraint injected
+    "PRL_NONE",  # No matching precedent — proceed normally
+    "PRL_OMEGA0_HOLD",  # Ω₀ exception — geometric match but contextual ambiguity
+    "PRL_ERROR",  # Infrastructure failure — Qdrant unreachable, etc.
 ]
 
 
@@ -103,15 +102,37 @@ class PrlGateResult:
 
 _BLAST_RADIUS_HEURISTICS: dict[str, list[str]] = {
     "L3_CRITICAL": [
-        "drop", "delete", "destroy", "rm -rf", "purge", "truncate",
-        "DROP TABLE", "force push", "irreversible",
-        "secret rotation", "vault cleanup", "chain cleanup",
-        "production database", "production db",  # DESTRUCTIVE + production = L3
+        "drop",
+        "delete",
+        "destroy",
+        "rm -rf",
+        "purge",
+        "truncate",
+        "DROP TABLE",
+        "force push",
+        "irreversible",
+        "secret rotation",
+        "vault cleanup",
+        "chain cleanup",
+        "production database",
+        "production db",  # DESTRUCTIVE + production = L3
     ],
     "L2_SYSTEM": [
-        "config", "deploy", "restart", "migrate", "refactor",
-        "multi-agent", "systemd", "Caddy", "nginx", "database",
-        "schema", "alter", "mcp server", "provider", "gateway",
+        "config",
+        "deploy",
+        "restart",
+        "migrate",
+        "refactor",
+        "multi-agent",
+        "systemd",
+        "Caddy",
+        "nginx",
+        "database",
+        "schema",
+        "alter",
+        "mcp server",
+        "provider",
+        "gateway",
     ],
 }
 
@@ -143,9 +164,20 @@ def classify_blast_radius(query_text: str) -> str:
 # ── Ω₀ Ambiguity Detector ─────────────────────────────────────────────────
 
 _OMEGA0_AMBIGUITY_SIGNALS = [
-    "but also", "however", "unless", "except", "depending on",
-    "maybe", "perhaps", "could be", "might be", "not sure",
-    "ambiguous", "unclear", "it depends", "conditional",
+    "but also",
+    "however",
+    "unless",
+    "except",
+    "depending on",
+    "maybe",
+    "perhaps",
+    "could be",
+    "might be",
+    "not sure",
+    "ambiguous",
+    "unclear",
+    "it depends",
+    "conditional",
 ]
 
 
@@ -181,6 +213,7 @@ def _detect_omega0_ambiguity(query_text: str, constraint_text: str) -> tuple[boo
 
 
 # ── PRL Gate — Public API ──────────────────────────────────────────────────
+
 
 class PrlGate:
     """Dual-Gate precedent enforcement for arifOS reasoning pipeline.
@@ -220,7 +253,7 @@ class PrlGate:
 
         Returns PrlGateResult with verdict and any binding constraints.
         """
-        t0 = datetime.now(timezone.utc)
+        t0 = datetime.now(UTC)
         result = PrlGateResult()
 
         # Step 1: Classify blast radius for this query
@@ -241,14 +274,14 @@ class PrlGate:
             logger.error("PRL search failed: %s", exc)
             result.verdict = "PRL_ERROR"
             result.error = str(exc)[:200]
-            result.search_ms = (datetime.now(timezone.utc) - t0).total_seconds() * 1000
+            result.search_ms = (datetime.now(UTC) - t0).total_seconds() * 1000
             return result
 
         result.match_count = len(matches)
 
         if not matches:
             result.verdict = "PRL_NONE"
-            result.search_ms = (datetime.now(timezone.utc) - t0).total_seconds() * 1000
+            result.search_ms = (datetime.now(UTC) - t0).total_seconds() * 1000
             return result
 
         # Step 3: Convert matches to constraints
@@ -265,9 +298,7 @@ class PrlGate:
 
             # Step 4: Ω₀ ambiguity check (per-constraint)
             if enable_omega0:
-                triggered, reason = _detect_omega0_ambiguity(
-                    query_text, constraint.constraint_text
-                )
+                triggered, reason = _detect_omega0_ambiguity(query_text, constraint.constraint_text)
                 if triggered:
                     result.omega0_triggered = True
                     result.omega0_reason = reason
@@ -284,7 +315,7 @@ class PrlGate:
         else:
             result.verdict = "PRL_NONE"
 
-        result.search_ms = (datetime.now(timezone.utc) - t0).total_seconds() * 1000
+        result.search_ms = (datetime.now(UTC) - t0).total_seconds() * 1000
         return result
 
     def interrogate_sync(

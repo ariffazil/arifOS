@@ -21,7 +21,6 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import os
 import re
@@ -30,7 +29,6 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +139,7 @@ def load_sovereign_ssh_keys() -> list[dict]:
     return keys
 
 
-def find_sovereign_key_by_fingerprint(target_fp: str) -> Optional[dict]:
+def find_sovereign_key_by_fingerprint(target_fp: str) -> dict | None:
     """Find a sovereign key by its SHA256 fingerprint."""
     for key in load_sovereign_ssh_keys():
         if key["fingerprint"] == target_fp:
@@ -182,7 +180,7 @@ def _check_agent_keys() -> list[str]:
         return []
 
 
-def prove_via_ssh_agent() -> tuple[bool, str, Optional[str]]:
+def prove_via_ssh_agent() -> tuple[bool, str, str | None]:
     """
     SSH agent challenge-response.
 
@@ -257,7 +255,7 @@ def prove_via_ssh_agent() -> tuple[bool, str, Optional[str]]:
 # ── Mode 2: Direct SSH (Auth Log) ────────────────────────────────────────
 
 
-def prove_via_ssh_session() -> tuple[bool, str, Optional[str]]:
+def prove_via_ssh_session() -> tuple[bool, str, str | None]:
     """
     Direct SSH: verify via auth log.
 
@@ -317,7 +315,7 @@ def prove_via_ssh_session() -> tuple[bool, str, Optional[str]]:
 # ── Mode 3: Local Key Signing ────────────────────────────────────────────
 
 
-def prove_via_local_key() -> tuple[bool, str, Optional[str]]:
+def prove_via_local_key() -> tuple[bool, str, str | None]:
     """
     Local key: sign directly with /root/.ssh/id_ed25519.
 

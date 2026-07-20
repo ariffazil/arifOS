@@ -20,6 +20,8 @@ from __future__ import annotations
 import json
 
 import pytest
+from pydantic import ValidationError
+
 from arifosmcp.geometry.geometry_receipt import (
     AxiomBundle,
     GeometryReceipt,
@@ -35,7 +37,6 @@ from arifosmcp.geometry.mind_geometry import (
     compute_geometry,
 )
 from arifosmcp.geometry.mind_schema import GeometryVerdict, ManifoldType
-from pydantic import ValidationError
 
 # ── Test 1: ProximityTrace roundtrip ───────────────────────────────────────
 

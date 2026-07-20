@@ -41,66 +41,64 @@ F6 PRIVACY: all file I/O resolves under SAF_DATA_ROOT (sandbox)
 L13 SOVEREIGN: destructive ops (impute, overwrite) require ack_irreversible
 """
 
-from . import governance
-from . import sandbox
-from . import seal
-from . import spss_read
-from . import report
+from . import governance, report, sandbox, seal, spss_read
+
+# Public API — governance primitives
+from .governance import (
+    ALL_FLOORS,
+    ConstitutionalCheck,
+    Verdict,
+    VerdictPacket,
+    govern,
+    hash_payload,
+)
 
 # Public API — 12 stat_* tools (file-based interface)
 from .inferential import (
-    stat_descriptives,
-    stat_assumptions,
-    stat_compare_groups,
     stat_anova,
-    stat_correlate,
-    stat_regress,
+    stat_assumptions,
     stat_chi_square,
-    stat_nonparametric,
+    stat_compare_groups,
+    stat_correlate,
+    stat_descriptives,
     stat_effect_size,
-    stat_power,
-    stat_outliers,
     stat_missing,
-)
-
-# Public API — 7 SPSS read tools
-from .spss_read import (
-    list_data_files,
-    inspect_spss_metadata,
-    preview_spss_data,
-    profile_spss_data,
-    convert_spss_to_csv,
-    convert_csv_to_sav,
-    generate_basic_spss_syntax,
+    stat_nonparametric,
+    stat_outliers,
+    stat_power,
+    stat_regress,
 )
 
 # Public API — 1 report composer
 from .report import compose_report as stat_report
 
-# Public API — governance primitives
-from .governance import (
-    Verdict,
-    VerdictPacket,
-    ConstitutionalCheck,
-    ALL_FLOORS,
-    govern,
-    hash_payload,
-)
-
 # Public API — sandbox primitives
 from .sandbox import (
-    safe_resolve,
-    get_data_root,
-    relative_to_root,
     ALLOWED_READ_EXTS,
     ALLOWED_WRITE_EXTS,
+    get_data_root,
+    relative_to_root,
+    safe_resolve,
+)
+from .seal import (
+    SealRecord,
+    verify_chain,
 )
 
 # Public API — seal primitives
 from .seal import (
     seal as vault_seal,
-    verify_chain,
-    SealRecord,
+)
+
+# Public API — 7 SPSS read tools
+from .spss_read import (
+    convert_csv_to_sav,
+    convert_spss_to_csv,
+    generate_basic_spss_syntax,
+    inspect_spss_metadata,
+    list_data_files,
+    preview_spss_data,
+    profile_spss_data,
 )
 
 __all__ = [

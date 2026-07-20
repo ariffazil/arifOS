@@ -12,10 +12,7 @@ from __future__ import annotations
 
 # Shared ArifOSResponse for schema consistency (action_class etc single source)
 from arifosmcp.schemas.arifos_response import (
-    ArifOSResponse,
-    ActionClass,
     ensure_arifos_response,
-    get_canonical_action_class,
 )
 
 # ── APEX Runtime Governance Envelope (APEX-MCP-001) ──────────────────────────
@@ -29,13 +26,27 @@ except ImportError:
 
 # ── Nine-Signal functions (extracted to tools/nine_signal.py, Phase 5 — 2026-07-11) ──
 from arifosmcp.tools.nine_signal import (
-    nine_signal_from_status as _nine_signal_from_status,
-    nine_signal_from_apex as _nine_signal_from_apex,
-    inject_nine_signal as _inject_nine_signal,
-    domain_for_tool as _domain_for_tool,
     DOMAIN_MEANINGS as _DOMAIN_MEANINGS,
+)
+from arifosmcp.tools.nine_signal import (
     annotate_nine_signal as _annotate_nine_signal,
+)
+from arifosmcp.tools.nine_signal import (
+    domain_for_tool as _domain_for_tool,
+)
+from arifosmcp.tools.nine_signal import (
+    inject_nine_signal as _inject_nine_signal,
+)
+from arifosmcp.tools.nine_signal import (
+    nine_signal_from_apex as _nine_signal_from_apex,
+)
+from arifosmcp.tools.nine_signal import (
+    nine_signal_from_status as _nine_signal_from_status,
+)
+from arifosmcp.tools.nine_signal import (
     output_policy_for_verdict as _output_policy_for_verdict,
+)
+from arifosmcp.tools.nine_signal import (
     truth_band_from_confidence as _truth_band_from_confidence,
 )
 
@@ -2536,11 +2547,9 @@ from fastmcp import Context, FastMCP
 
 # REMOVED 2026-07-08: elicitation import — kernel-encode governance
 # from fastmcp.server.elicitation import (AcceptedElicitation, CancelledElicitation, DeclinedElicitation)
-from mcp import McpError
 from pydantic import BaseModel, Field
 
 from arifosmcp.constitutional_map import (
-    CANONICAL_OUTPUT_SCHEMA,
     CANONICAL_TOOLS,
     STAGE_PROGRESSION,
     validate_tool_response_schema,
@@ -3206,9 +3215,11 @@ def _attach_sct_continuity(
         return
     try:
         from arifosmcp.runtime.sct import (
-            attach_continuity as _sct_attach,
-            compute_authority_delta,
             _claims_to_standing,
+            compute_authority_delta,
+        )
+        from arifosmcp.runtime.sct import (
+            attach_continuity as _sct_attach,
         )
 
         required_auth = "OBSERVE_ONLY"
@@ -4053,9 +4064,8 @@ def _enforce_nine_signal(
             # TRUE failure — mint sesat event for the failure ledger
             try:
                 from arifosmcp.runtime.sesat_event import (
-                    emit_sesat,
                     FailureCode,
-                    Severity as SesatSeverity,
+                    emit_sesat,
                 )
 
                 fc = FailureCode.JALAN_KUASA if verdict == "VOID" else FailureCode.JALAN_BENAR
@@ -5406,7 +5416,6 @@ def _context_restore_summary(
     belief_delta = None
     try:
         from arifosmcp.runtime.state_store import get_dual_store
-        from arifosmcp.runtime.kernel_state import KernelState as _KS
 
         _store = get_dual_store()
         if session_id:
@@ -5564,6 +5573,7 @@ def get_constitution_identity() -> dict[str, Any]:
     unsealed ping. Use the full hash, both for fallback and as the SoT.
     """
     import hashlib
+
     from arifosmcp.runtime.live_kernel import _load_constitution_hash
 
     c_hash = _load_constitution_hash()
@@ -5771,7 +5781,8 @@ class _FileSessionStore:
             exp_iso = record.get("expires_at")
             if isinstance(exp_iso, str) and exp_iso:
                 try:
-                    from datetime import UTC as _UTC, datetime as _dt
+                    from datetime import UTC as _UTC
+                    from datetime import datetime as _dt
 
                     exp_dt = _dt.fromisoformat(exp_iso)
                     if exp_dt.tzinfo is None:
@@ -6232,7 +6243,6 @@ def _new_session(
 
     import time
 
-    from arifosmcp.prompts.measurement import compute_tool_surface_hash
     from arifosmcp.runtime.session_auth import SESSION_TTL_SECONDS
 
     # /000: Derive principal from sovereign_id or fallback to actor_id
@@ -7101,7 +7111,7 @@ def maybe_hantar_wrap(
             result = maybe_hantar_wrap("my_tool", result, state="LURUS")
     """
     try:
-        from arifosmcp.runtime.hantar import hantar_wrap, HantarState
+        from arifosmcp.runtime.hantar import HantarState, hantar_wrap
 
         st = HantarState(state) if isinstance(state, str) else state
         envelope = hantar_wrap(
@@ -7514,7 +7524,7 @@ def _hold(
     _add_floor_compat(meta)
     # SESAT integration: attach structured failure event to HOLD responses
     try:
-        from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
+        from arifosmcp.runtime.sesat_event import FailureCode, emit_sesat
 
         fc = FailureCode.JALAN_KUASA if floors else FailureCode.JALAN_BENAR
         sesat = emit_sesat(
@@ -7633,7 +7643,7 @@ def _sabar(
     meta.setdefault("actor_id", actor_id)
     # SESAT integration: attach structured failure event to SABAR responses
     try:
-        from arifosmcp.runtime.sesat_event import emit_sesat, FailureCode
+        from arifosmcp.runtime.sesat_event import FailureCode, emit_sesat
 
         sesat = emit_sesat(
             source_node=tool,
@@ -9336,7 +9346,6 @@ def _arif_session_init(
         if normalized_mode in {"init", "resume"} or mode in {"swarm_ignite", "agentic_bootstrap"}:
             try:
                 from arifosmcp.boot.swarm_ignition import run_swarm_ignition
-
                 from arifosmcp.core.federation_contracts import SealAuthority
 
                 _swarm_manifest = run_swarm_ignition(
@@ -9390,13 +9399,14 @@ def _arif_session_init(
         try:
             import yaml as _yaml  # type: ignore
 
-            with open(_genesis_path, "r") as _gf:
+            with open(_genesis_path) as _gf:
                 _genesis_card = _yaml.safe_load(_gf)
             _genesis_hash = _genesis_card.get("content_hash_sha256", "")
             # Optional: verify live page hash (non-blocking)
             if _genesis_card.get("binding", {}).get("verify_on_load", False):
                 try:
-                    import hashlib, urllib.request
+                    import hashlib
+                    import urllib.request
 
                     _live_url = _genesis_card.get("url", "")
                     if _live_url:
@@ -10397,15 +10407,14 @@ def _arif_sense_observe(
         # Replaces empty stub with live cognitive geometry resolution.
         # F2 TRUTH: deterministic from canonical data. F4 CLARITY: structured payload.
         try:
-            from core.shared.atlas import Φ
             from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
             from arifosmcp.resources.atlas333 import (
-                _PARADOXES,
-                _ZONES,
                 _ACTIVATION_RULES,
-                _TEARFRAME,
                 _PARADOX_BY_ID,
+                _TEARFRAME,
+                _ZONES,
             )
+            from core.shared.atlas import Φ
 
             _q = query or ""
             _gpv = Φ(_q)
@@ -17934,7 +17943,7 @@ def _arif_vault_seal(
                 pass
             if _sct_auth_level == "FULL":
                 _sov_bypass = True
-                _sov_bypass_reason = f"F13_SOVEREIGN+FULL_SCT — seal_allowed via sovereign bypass"
+                _sov_bypass_reason = "F13_SOVEREIGN+FULL_SCT — seal_allowed via sovereign bypass"
 
     if mode == "seal":
         if not _sov_bypass:
@@ -18147,9 +18156,9 @@ def _arif_vault_seal(
         # F-004: canonical vault chain — single path, envelope, derived head.
         # Does NOT write to arifOS/VAULT999 dual-ledger; only share path.
         try:
-            from arifosmcp.runtime.canonical_vault_chain import append_receipt as _cvc_append
-            from arifosmcp.core.vault_receipt import resolve_receipt_identity as _rrid
             from arifosmcp.core.federation_contracts import ActorSource
+            from arifosmcp.core.vault_receipt import resolve_receipt_identity as _rrid
+            from arifosmcp.runtime.canonical_vault_chain import append_receipt as _cvc_append
 
             _chain_sess_ctx = None
             try:
@@ -20766,7 +20775,8 @@ def _build_abc_surface_summary() -> dict[str, Any]:
 
     # 1. Live tool surface — from arifOS MCP :8088 tools/list
     try:
-        import urllib.request, json as _json
+        import json as _json
+        import urllib.request
 
         req = urllib.request.Request(
             "http://127.0.0.1:8088/mcp",
@@ -21649,12 +21659,10 @@ async def _arif_memory_v5_router(
     )
 
 
-from arifosmcp.tools.arif_kernel_intercept import _arif_kernel_intercept
 from arifosmcp.runtime.vault_registry import (
     verify_seal as _verify_seal_from_registry,
-    get_seal as _get_seal_from_registry,
 )
-
+from arifosmcp.tools.arif_kernel_intercept import _arif_kernel_intercept
 
 # ── E1 FORGE: arif_verify ────────────────────────────────────────────────────
 
@@ -21773,10 +21781,10 @@ async def _arif_challenge_tool(
         )
 
         # ISO-8601 UTC timestamp with millisecond precision
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         issued_at_iso = (
-            datetime.fromtimestamp(issued_at_epoch, tz=timezone.utc)
+            datetime.fromtimestamp(issued_at_epoch, tz=UTC)
             .isoformat(timespec="milliseconds")
             .replace("+00:00", "Z")
         )
@@ -21931,7 +21939,7 @@ async def _arif_ed25519_verify_tool(
     )
 
     # Verify Ed25519 signature over payload bytes
-    payload = f"{effective_actor_id}:{challenge}".encode("utf-8")
+    payload = f"{effective_actor_id}:{challenge}".encode()
     try:
         pubkey.verify(sig_raw, payload)
     except Exception as e:  # noqa: BLE001 — InvalidSignature is expected for bad sigs
@@ -22067,7 +22075,7 @@ async def _arif_identity_verify_tool(
         dict with actor_verified, authority_band, actor_id
     """
     try:
-        from arifosmcp.runtime.crypto_auth import verify_actor_signature, classify_actor_band
+        from arifosmcp.runtime.crypto_auth import classify_actor_band, verify_actor_signature
 
         verified = verify_actor_signature(actor_id, nonce, signature_b64)
 
@@ -22541,6 +22549,7 @@ def _wrap_with_canonical_normalization(handler, tool_name):
     """
     import asyncio
     from functools import wraps
+
     from arifosmcp.runtime.session_standing import attach_canonical
 
     def _resolve_standing_ids(response: dict, kwargs: dict) -> tuple:
@@ -22728,16 +22737,16 @@ except ImportError as _e:
 # Entropy Integrity Mesh (v2026.07.12) — public wire tools must bind handlers
 # so CANONICAL_TOOLS SOT and _CANONICAL_HANDLERS stay set-complete.
 try:
-    from arifosmcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe_h
-    from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess_h
-    from arifosmcp.entropy_kernel.correction_probe import (
-        arif_correction_probe as _correction_probe_h,
-    )
     from arifosmcp.entropy_kernel.consequence_trace import (
         arif_consequence_trace as _consequence_trace_h,
     )
+    from arifosmcp.entropy_kernel.correction_probe import (
+        arif_correction_probe as _correction_probe_h,
+    )
+    from arifosmcp.entropy_kernel.entropy_observe import arif_entropy_observe as _entropy_observe_h
     from arifosmcp.entropy_kernel.entropy_route import arif_entropy_route as _entropy_route_h
     from arifosmcp.entropy_kernel.j_gate import arif_j_gate as _j_gate_h
+    from arifosmcp.entropy_kernel.j_state_assess import arif_j_state_assess as _j_state_assess_h
 
     _CANONICAL_HANDLERS["arif_entropy_observe"] = _entropy_observe_h
     _CANONICAL_HANDLERS["arif_j_state_assess"] = _j_state_assess_h
@@ -23277,7 +23286,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
             # ────────────────────────────────────────────────────────────────
             response = handler(*args, **_filtered)
             # ── Session A: Emit operation SUCCESS + receipt ────────────────
-            from arifosmcp.runtime.event_bus import emit_operation as _eo, emit_receipt as _er
+            from arifosmcp.runtime.event_bus import emit_operation as _eo
+            from arifosmcp.runtime.event_bus import emit_receipt as _er
 
             _eo(
                 capability=tool_name,
@@ -23394,7 +23404,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         # ImportError swallowed by try/except. Fixed: write directly to
         # VAULT999/outcomes.jsonl as append-only JSONL.
         try:
-            from datetime import datetime as _dt, UTC as _UTC
+            from datetime import UTC as _UTC
+            from datetime import datetime as _dt
 
             _outcomes_path = os.path.join(
                 os.environ.get("ARIFOS_HOME", "/root"), "VAULT999", "outcomes.jsonl"
@@ -23549,7 +23560,8 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _attach_v2_envelope_guarantee(final_resp, tool_name)
         # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
         try:
-            from datetime import datetime as _dt, UTC as _UTC
+            from datetime import UTC as _UTC
+            from datetime import datetime as _dt
 
             _outcomes_path = os.path.join(
                 os.environ.get("ARIFOS_HOME", "/root"), "VAULT999", "outcomes.jsonl"
@@ -23986,7 +23998,6 @@ def register_tools(
     ingress_middleware: Any | None = None,
 ) -> list[str]:
     """Register the active canonical public surface with the MCP server."""
-    import sys as _dbg_sys2
 
     from arifosmcp.constitutional_map import _TOOL_ANNOTATIONS, CANONICAL_TOOLS, DIAGNOSTIC_TOOLS
     from arifosmcp.core.enforcement.risk_classifier import classify_tool
@@ -24018,7 +24029,6 @@ def register_tools(
                     canonical
                 )
         if handler is None:
-            import sys
 
             continue
         try:
@@ -24123,7 +24133,6 @@ def register_tools(
             logger.debug(f"Registered canonical tool: {name} (risk={tool_risk.tier.value})")
         except Exception as e:
             logger.warning(f"Failed to register canonical tool {name}: {e}")
-            import sys
 
     logger.info(f"Registered {len(registered)} canonical tools")
 
@@ -24134,7 +24143,6 @@ def register_tools(
     # trigger context.
     # ═══════════════════════════════════════════════════════════════════════════════
     try:
-        import sys as _dbg_sys
 
         _components = getattr(getattr(mcp, "_local_provider", None), "_components", {})
         _enriched = 0
@@ -24358,7 +24366,6 @@ def _ws1_authority_envelope(
         runtime_band = _runtime_auth_hint or "OBSERVE_ONLY"
         actor_key = (actor_id or "").strip().lower()
         # SECURITY P0 2026-07-12: SOVEREIGN by verified_key_id, never by string.
-        from arifosmcp.runtime.governance_identity import SOVEREIGN_KEY_IDS
 
         h_authority = "OPERATOR" if actor_verified_flag else "OBSERVER"
         return {

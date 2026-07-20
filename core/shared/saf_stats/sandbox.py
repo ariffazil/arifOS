@@ -8,8 +8,8 @@ absolute path is always returned. The data root defaults to
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 ALLOWED_READ_EXTS = {".sav", ".zsav", ".por", ".csv", ".tsv"}
 ALLOWED_WRITE_EXTS = {".sav", ".csv", ".tsv", ".json", ".md", ".txt", ".log"}

@@ -18,7 +18,7 @@ import json
 import logging
 import os
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -35,6 +35,7 @@ APPROVED_PYTHON_REALPATHS = ("/opt/arifos/venv/", "/opt/arifos/python-3.12-gnu/"
 SERVICE_NAME = "arifos.service"
 
 # ── Convergence states ────────────────────────────────────────────────────
+
 
 class ConvergenceState(str, Enum):
     CONVERGED = "CONVERGED"
@@ -62,7 +63,7 @@ class ConvergenceLayer:
     expected_value: Any
     evidence_ref: str
     failure_code: str | None = None
-    checked_at: str = dataclasses.field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    checked_at: str = dataclasses.field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclasses.dataclass
@@ -113,7 +114,7 @@ class ConvergenceReport:
     overall_state: ConvergenceState
     release_id: str
     source_commit: str | None
-    checked_at: str = dataclasses.field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    checked_at: str = dataclasses.field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @property
     def state(self) -> ConvergenceState:
@@ -148,18 +149,27 @@ class ConvergenceReport:
             "service_started_at": self.service_identity.started_at,
             "module_paths": [l.observed_value for l in self.layers if l.name == "import"],
             "tool_registry_hash": next(
-                (l.observed_value.get("registry_hash") for l in self.layers
-                 if l.name == "tool_registry" and isinstance(l.observed_value, dict)),
+                (
+                    l.observed_value.get("registry_hash")
+                    for l in self.layers
+                    if l.name == "tool_registry" and isinstance(l.observed_value, dict)
+                ),
                 None,
             ),
             "database_schema_version": next(
-                (l.observed_value.get("schema_version") for l in self.layers
-                 if l.name == "database_schema" and isinstance(l.observed_value, dict)),
+                (
+                    l.observed_value.get("schema_version")
+                    for l in self.layers
+                    if l.name == "database_schema" and isinstance(l.observed_value, dict)
+                ),
                 None,
             ),
             "vault_writer_hash": next(
-                (l.observed_value.get("total_seals") for l in self.layers
-                 if l.name == "vault_writer" and isinstance(l.observed_value, dict)),
+                (
+                    l.observed_value.get("total_seals")
+                    for l in self.layers
+                    if l.name == "vault_writer" and isinstance(l.observed_value, dict)
+                ),
                 None,
             ),
             "convergence": self.overall_state.value,
@@ -174,7 +184,9 @@ def _git(*args: str) -> str | None:
     try:
         r = subprocess.run(
             ["git", "-C", APPROVED_SOURCE_ROOT, *args],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if r.returncode == 0:
             return r.stdout.strip()
@@ -197,21 +209,27 @@ def probe_source_layer() -> ConvergenceLayer:
     expected = "clean commit on main"
     if commit is None:
         return ConvergenceLayer(
-            name="source", state=ConvergenceState.UNREACHABLE,
-            observed_value=observed, expected_value=expected,
+            name="source",
+            state=ConvergenceState.UNREACHABLE,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref=f"file:{APPROVED_SOURCE_ROOT}/.git",
             failure_code="SOURCE_UNREACHABLE",
         )
     if dirty:
         return ConvergenceLayer(
-            name="source", state=ConvergenceState.SOURCE_AHEAD,
-            observed_value=observed, expected_value=expected,
+            name="source",
+            state=ConvergenceState.SOURCE_AHEAD,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref=f"file:{APPROVED_SOURCE_ROOT}/.git",
             failure_code="SOURCE_DIRTY",
         )
     return ConvergenceLayer(
-        name="source", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="source",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref=f"file:{APPROVED_SOURCE_ROOT}/.git",
     )
 
@@ -255,14 +273,18 @@ def probe_artifact_layer() -> ConvergenceLayer:
     expected = "installed wheel matching release manifest"
     if version is None or pkg_sha is None:
         return ConvergenceLayer(
-            name="artifact", state=ConvergenceState.UNKNOWN_ARTIFACT,
-            observed_value=observed, expected_value=expected,
+            name="artifact",
+            state=ConvergenceState.UNKNOWN_ARTIFACT,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref=f"dir:{APPROVED_VENV_SITE_PACKAGES}",
             failure_code="ARTIFACT_UNKNOWN",
         )
     return ConvergenceLayer(
-        name="artifact", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="artifact",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref=f"dir:{APPROVED_VENV_SITE_PACKAGES}",
     )
 
@@ -290,8 +312,10 @@ def probe_installation_layer() -> ConvergenceLayer:
     }
     expected = "one installed distribution at approved venv site-packages only"
     return ConvergenceLayer(
-        name="installation", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="installation",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref="fs:scan",
     )
 
@@ -320,22 +344,28 @@ def probe_import_layer() -> ConvergenceLayer:
     expected = f"all modules under {APPROVED_VENV_SITE_PACKAGES}/arifosmcp/"
     if out_of_approved:
         return ConvergenceLayer(
-            name="import", state=ConvergenceState.MODULE_PATH_MISMATCH,
-            observed_value=observed, expected_value=expected,
+            name="import",
+            state=ConvergenceState.MODULE_PATH_MISMATCH,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref="python:import_probe",
             failure_code=f"MODULES_OUTSIDE_APPROVED:{','.join(out_of_approved)}",
         )
     if any(v is None for v in import_paths.values()):
         missing = [m for m, v in import_paths.items() if v is None]
         return ConvergenceLayer(
-            name="import", state=ConvergenceState.MODULE_PATH_MISMATCH,
-            observed_value=observed, expected_value=expected,
+            name="import",
+            state=ConvergenceState.MODULE_PATH_MISMATCH,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref="python:import_probe",
             failure_code=f"MODULE_NOT_FOUND:{','.join(missing)}",
         )
     return ConvergenceLayer(
-        name="import", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="import",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref="python:import_probe",
     )
 
@@ -343,6 +373,7 @@ def probe_import_layer() -> ConvergenceLayer:
 def probe_process_layer() -> ConvergenceLayer:
     """Check the current Python process identity."""
     import sys
+
     observed = {
         "executable": sys.executable,
         "version": sys.version.split()[0],
@@ -352,18 +383,22 @@ def probe_process_layer() -> ConvergenceLayer:
     real = None
     try:
         real = os.path.realpath(sys.executable)
-    except (OSError, IOError):
+    except OSError:
         pass
     if real and not any(real.startswith(r) for r in APPROVED_PYTHON_REALPATHS):
         return ConvergenceLayer(
-            name="process", state=ConvergenceState.MODULE_PATH_MISMATCH,
-            observed_value={**observed, "realpath": real}, expected_value=expected,
+            name="process",
+            state=ConvergenceState.MODULE_PATH_MISMATCH,
+            observed_value={**observed, "realpath": real},
+            expected_value=expected,
             evidence_ref="proc:self",
             failure_code="PROCESS_EXECUTABLE_OUTSIDE_APPROVED",
         )
     return ConvergenceLayer(
-        name="process", state=ConvergenceState.CONVERGED,
-        observed_value={**observed, "realpath": real}, expected_value=expected,
+        name="process",
+        state=ConvergenceState.CONVERGED,
+        observed_value={**observed, "realpath": real},
+        expected_value=expected,
         evidence_ref="proc:self",
     )
 
@@ -374,12 +409,16 @@ def probe_service_layer() -> ConvergenceLayer:
     try:
         active = subprocess.run(
             ["systemctl", "is-active", SERVICE_NAME],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         observed["active"] = active.stdout.strip()
         pid = subprocess.run(
             ["systemctl", "show", SERVICE_NAME, "-p", "MainPID", "--value"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         pid_val = pid.stdout.strip()
         if pid_val.isdigit() and int(pid_val) > 0:
@@ -394,14 +433,18 @@ def probe_service_layer() -> ConvergenceLayer:
     expected = "service active, executable at /opt/arifos/venv/"
     if observed.get("active") != "active":
         return ConvergenceLayer(
-            name="service", state=ConvergenceState.UNREACHABLE,
-            observed_value=observed, expected_value=expected,
+            name="service",
+            state=ConvergenceState.UNREACHABLE,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref=f"systemctl:{SERVICE_NAME}",
             failure_code="SERVICE_INACTIVE",
         )
     return ConvergenceLayer(
-        name="service", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="service",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref=f"systemctl:{SERVICE_NAME}",
     )
 
@@ -416,6 +459,7 @@ def probe_tool_registry_layer() -> ConvergenceLayer:
     for url in health_urls:
         try:
             import urllib.request
+
             req = urllib.request.Request(url, headers={"User-Agent": "convergence_tracker/1.0"})
             resp = urllib.request.urlopen(req, timeout=5)
             data = json.loads(resp.read().decode())
@@ -430,22 +474,28 @@ def probe_tool_registry_layer() -> ConvergenceLayer:
             continue
     else:
         return ConvergenceLayer(
-            name="tool_registry", state=ConvergenceState.UNREACHABLE,
-            observed_value=observed, expected_value="8 tools, registry hash",
+            name="tool_registry",
+            state=ConvergenceState.UNREACHABLE,
+            observed_value=observed,
+            expected_value="8 tools, registry hash",
             evidence_ref="http:health",
             failure_code="HEALTH_UNREACHABLE",
         )
     expected = "8 tools loaded, stable registry hash"
     if observed.get("tools_loaded") != 8:
         return ConvergenceLayer(
-            name="tool_registry", state=ConvergenceState.TOOL_REGISTRY_DRIFT,
-            observed_value=observed, expected_value=expected,
+            name="tool_registry",
+            state=ConvergenceState.TOOL_REGISTRY_DRIFT,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref="http:health",
             failure_code="TOOL_COUNT_DRIFT",
         )
     return ConvergenceLayer(
-        name="tool_registry", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="tool_registry",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref="http:health",
     )
 
@@ -465,14 +515,18 @@ def probe_database_schema_layer() -> ConvergenceLayer:
     if observed["schema_version"] is None:
         observed["note"] = "schema version not resolvable from repo"
         return ConvergenceLayer(
-            name="database_schema", state=ConvergenceState.UNREACHABLE,
-            observed_value=observed, expected_value=expected,
+            name="database_schema",
+            state=ConvergenceState.UNREACHABLE,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref=f"dir:{alembic_dir}",
             failure_code="SCHEMA_UNKNOWN_NO_BREAK",
         )
     return ConvergenceLayer(
-        name="database_schema", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="database_schema",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref=f"dir:{alembic_dir}",
     )
 
@@ -483,7 +537,9 @@ def probe_vault_writer_layer() -> ConvergenceLayer:
     try:
         r = subprocess.run(
             ["node", "/root/AAA/a2a-server/seal_chain.js", "summary"],
-            capture_output=True, text=True, timeout=10,
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if r.returncode == 0:
             data = json.loads(r.stdout)
@@ -492,22 +548,28 @@ def probe_vault_writer_layer() -> ConvergenceLayer:
             observed["v2_entries"] = data.get("v2_entries")
     except Exception as e:
         return ConvergenceLayer(
-            name="vault_writer", state=ConvergenceState.UNREACHABLE,
-            observed_value={"error": str(e)}, expected_value="VAULT chain operational",
+            name="vault_writer",
+            state=ConvergenceState.UNREACHABLE,
+            observed_value={"error": str(e)},
+            expected_value="VAULT chain operational",
             evidence_ref="node:seal_chain.js",
             failure_code="VAULT_WRITER_UNREACHABLE",
         )
     expected = "VAULT chain operational, v2 enriched entries present"
     if observed.get("total_seals", 0) == 0:
         return ConvergenceLayer(
-            name="vault_writer", state=ConvergenceState.VAULT_WRITER_DRIFT,
-            observed_value=observed, expected_value=expected,
+            name="vault_writer",
+            state=ConvergenceState.VAULT_WRITER_DRIFT,
+            observed_value=observed,
+            expected_value=expected,
             evidence_ref="node:seal_chain.js",
             failure_code="VAULT_EMPTY",
         )
     return ConvergenceLayer(
-        name="vault_writer", state=ConvergenceState.CONVERGED,
-        observed_value=observed, expected_value=expected,
+        name="vault_writer",
+        state=ConvergenceState.CONVERGED,
+        observed_value=observed,
+        expected_value=expected,
         evidence_ref="node:seal_chain.js",
     )
 
@@ -545,14 +607,16 @@ def track_convergence(
     failures: list[ConvergenceFailure] = []
     for layer in layers:
         if layer.state != ConvergenceState.CONVERGED:
-            failures.append(ConvergenceFailure(
-                layer=layer.name,
-                state=layer.state,
-                failure_code=layer.failure_code or "UNKNOWN",
-                detail=f"{layer.name}: {layer.state.value}",
-                observed=layer.observed_value,
-                expected=layer.expected_value,
-            ))
+            failures.append(
+                ConvergenceFailure(
+                    layer=layer.name,
+                    state=layer.state,
+                    failure_code=layer.failure_code or "UNKNOWN",
+                    detail=f"{layer.name}: {layer.state.value}",
+                    observed=layer.observed_value,
+                    expected=layer.expected_value,
+                )
+            )
 
     mandatory_failed = any(
         l.state != ConvergenceState.CONVERGED for l in layers if l.name in MANDATORY_LAYERS
@@ -574,7 +638,8 @@ def track_convergence(
     # (not UNREACHABLE for conditional layers).
     hard_required_failed = any(
         l.state not in (ConvergenceState.CONVERGED, ConvergenceState.UNREACHABLE)
-        for l in layers if l.name in required_layers and l.name not in MANDATORY_LAYERS
+        for l in layers
+        if l.name in required_layers and l.name not in MANDATORY_LAYERS
     )
 
     # If all mandatory layers are CONVERGED, overall is CONVERGED
@@ -603,6 +668,7 @@ def track_convergence(
                 break
 
     import sys
+
     runtime_identity = RuntimeIdentity(
         python_executable=sys.executable,
         python_version=sys.version.split()[0],
@@ -621,8 +687,11 @@ def track_convergence(
         )
     else:
         artifact_identity = ArtifactIdentity(
-            name="arifosmcp", version=None, sha256=None,
-            dist_info_path=None, wheel_hash=None,
+            name="arifosmcp",
+            version=None,
+            sha256=None,
+            dist_info_path=None,
+            wheel_hash=None,
         )
 
     service_layer = next((l for l in layers if l.name == "service"), None)
@@ -637,8 +706,11 @@ def track_convergence(
         )
     else:
         service_identity = ServiceIdentity(
-            service_name=SERVICE_NAME, active=False,
-            main_pid=None, service_executable=None, started_at=None,
+            service_name=SERVICE_NAME,
+            active=False,
+            main_pid=None,
+            service_executable=None,
+            started_at=None,
         )
 
     source_layer = next((l for l in layers if l.name == "source"), None)
@@ -672,6 +744,7 @@ def check_convergence(**kwargs: Any) -> ConvergenceReport:
 
 class Telemetry:
     """In-process telemetry counters for convergence tracker."""
+
     runtime_convergence_state: str = "UNKNOWN"
     runtime_convergence_failures_total: int = 0
     runtime_duplicate_installations: int = 0

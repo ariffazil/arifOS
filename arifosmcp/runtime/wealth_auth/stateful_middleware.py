@@ -22,11 +22,10 @@ from __future__ import annotations
 
 import functools
 import logging
-import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from .exceptions import AuthError
-from .token_validation import TokenClaims
 
 logger = logging.getLogger(__name__)
 

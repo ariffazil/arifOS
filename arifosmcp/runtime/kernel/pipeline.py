@@ -12,19 +12,17 @@ Constraints:
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
-import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
+from .compute import compute_scalars
 from .types import (
+    PHASE_ORDER,
     EvidenceItem,
     GovernanceScalars,
     GovernanceState,
     Phase,
-    PHASE_ORDER,
-    PHASE_LABELS,
 )
-from .compute import compute_scalars
 
 
 class PhaseTransitionError(Exception):

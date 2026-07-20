@@ -128,7 +128,9 @@ def verify_dpop_proof(
 
     alg = str(header.get("alg") or "")
     if alg not in ALLOWED_ALGORITHMS:
-        return DPoPVerificationResult(valid=False, error=f"unsupported_dpop_alg: {alg or 'missing'}")
+        return DPoPVerificationResult(
+            valid=False, error=f"unsupported_dpop_alg: {alg or 'missing'}"
+        )
 
     jwk = header.get("jwk")
     if not isinstance(jwk, dict):
@@ -149,7 +151,9 @@ def verify_dpop_proof(
             leeway=DPoP_CLOCK_SKEW_MAX,
         )
     except pyjwt.PyJWTError as exc:
-        return DPoPVerificationResult(valid=False, error=f"dpop_signature_verification_failed: {exc}")
+        return DPoPVerificationResult(
+            valid=False, error=f"dpop_signature_verification_failed: {exc}"
+        )
 
     htm = str(claims.get("htm") or "").upper()
     if htm != method.upper():

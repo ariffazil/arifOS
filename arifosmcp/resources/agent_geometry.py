@@ -13,12 +13,13 @@ Exposes geometry for routing, leases, telemetry, and constitutional alignment.
 """
 
 from __future__ import annotations
-from typing import Any, Dict
+
+from typing import Any
 
 from fastmcp import FastMCP
 
 # Example geometries for different harnesses (extend as agents declare)
-EXAMPLE_GEOMETRIES: Dict[str, Dict[str, Any]] = {
+EXAMPLE_GEOMETRIES: dict[str, dict[str, Any]] = {
     "grok-build-orchestrator": {
         "harness": "grok-build",
         "parallelism": 8,
@@ -56,7 +57,7 @@ def register_agent_geometry(mcp: FastMCP) -> list[str]:
     """Register arifos://agent_geometry (scar & soul geometry for model agents in AAA)."""
 
     @mcp.resource("arifos://agent_geometry")
-    def agent_geometry() -> Dict[str, Any]:
+    def agent_geometry() -> dict[str, Any]:
         """Scar & Soul Geometry for the model agent.
 
         This is the living geometry of the agent: its scar (accumulated interaction history,

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class OrganVerdict(str, Enum):
@@ -48,7 +48,7 @@ class DisagreementResult:
     conflicting_organs: list[str]
     reason: str
     pareto_options: list[str] = field(default_factory=list)
-    escalation_payload: Optional[dict[str, Any]] = None
+    escalation_payload: dict[str, Any] | None = None
 
 
 # ── Hard Veto Conditions ──────────────────────────────────────────────────
@@ -75,7 +75,9 @@ def resolve_disagreement(opinions: list[OrganOpinion]) -> DisagreementResult:
     # Scenario A: Hard veto exists → HOLD
     if vetoes:
         veto_organs = [o.organ for o in vetoes]
-        veto_reasons = [f"{o.organ}: {o.verdict.value} (confidence={o.confidence:.2f})" for o in vetoes]
+        veto_reasons = [
+            f"{o.organ}: {o.verdict.value} (confidence={o.confidence:.2f})" for o in vetoes
+        ]
 
         # If any veto is from a high-blast organ, escalate
         if any(o.blast_radius > 0.7 for o in vetoes):
@@ -106,7 +108,7 @@ def resolve_disagreement(opinions: list[OrganOpinion]) -> DisagreementResult:
             resolution=DisagreementResolution.REQUEST_EVIDENCE,
             conflicting_organs=hold_organs,
             reason=f"Split opinions — {len(viables)} viable, {len(holds)} hold. "
-                   f"Holding organs: {', '.join(hold_organs)}. Request more evidence.",
+            f"Holding organs: {', '.join(hold_organs)}. Request more evidence.",
         )
 
     # Scenario C: All agree VIABLE → surface for normal processing
@@ -124,8 +126,8 @@ def resolve_disagreement(opinions: list[OrganOpinion]) -> DisagreementResult:
             resolution=DisagreementResolution.REQUEST_EVIDENCE,
             conflicting_organs=[o.organ for o in low_confidence],
             reason=f"Low confidence VIABLE from: "
-                   f"{', '.join(f'{o.organ}({o.confidence:.2f})' for o in low_confidence)}. "
-                   f"Request more evidence.",
+            f"{', '.join(f'{o.organ}({o.confidence:.2f})' for o in low_confidence)}. "
+            f"Request more evidence.",
         )
 
     return DisagreementResult(

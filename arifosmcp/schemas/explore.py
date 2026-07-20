@@ -14,10 +14,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
-
 
 # ── Mode Enum ─────────────────────────────────────────────────
 
@@ -53,15 +51,15 @@ class SeedPath(BaseModel):
 class SeedAPI(BaseModel):
     base_url: str
     auth: dict = Field(default_factory=dict)
-    openapi_url: Optional[str] = None
+    openapi_url: str | None = None
 
 
 class Seed(BaseModel):
-    url: Optional[SeedURL] = None
-    path: Optional[SeedPath] = None
-    api: Optional[SeedAPI] = None
-    entity: Optional[str] = None
-    question: Optional[str] = None
+    url: SeedURL | None = None
+    path: SeedPath | None = None
+    api: SeedAPI | None = None
+    entity: str | None = None
+    question: str | None = None
 
 
 # ── Limits ────────────────────────────────────────────────────

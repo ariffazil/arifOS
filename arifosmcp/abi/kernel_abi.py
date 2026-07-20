@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -22,7 +22,7 @@ _SEMANTIC_FIELDS = (
 )
 
 
-@lru_cache(maxsize=None)
+@cache
 def _load_registry(filename: str) -> dict[str, Any]:
     return json.loads((ABI_ROOT / filename).read_text(encoding="utf-8"))
 
@@ -62,7 +62,9 @@ def profile_names() -> tuple[str, ...]:
 def normalize_profile(profile: str | None) -> str:
     policy = policy_registry()
     raw = (profile or policy["default_profile"]).strip().lower()
-    return policy["profile_aliases"].get(raw, raw if raw in policy["profiles"] else policy["default_profile"])
+    return policy["profile_aliases"].get(
+        raw, raw if raw in policy["profiles"] else policy["default_profile"]
+    )
 
 
 def profile_contract(profile: str | None) -> dict[str, Any]:
@@ -71,7 +73,9 @@ def profile_contract(profile: str | None) -> dict[str, Any]:
 
 def tool_names_for_profile(profile: str | None) -> tuple[str, ...]:
     by_id = {item["capability_id"]: item for item in _capabilities()}
-    return tuple(by_id[item]["provider"]["tool"] for item in profile_contract(profile)["capabilities"])
+    return tuple(
+        by_id[item]["provider"]["tool"] for item in profile_contract(profile)["capabilities"]
+    )
 
 
 def semantic_hash(capability: dict[str, Any]) -> str:
@@ -109,4 +113,9 @@ def validate_abi() -> dict[str, Any]:
         if unknown:
             errors.append(f"profile {name} contains unknown capabilities: {sorted(unknown)}")
 
-    return {"ok": not errors, "abi_version": KERNEL_ABI_VERSION, "capability_count": len(ids), "errors": errors}
+    return {
+        "ok": not errors,
+        "abi_version": KERNEL_ABI_VERSION,
+        "capability_count": len(ids),
+        "errors": errors,
+    }
