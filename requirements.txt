@@ -68,7 +68,7 @@ certifi==2026.6.17
     #   httpx
     #   requests
     #   trafilatura
-cffi==2.0.0
+cffi==2.1.0
     # via
     #   cryptography
     #   pynacl
@@ -106,9 +106,9 @@ cuda-bindings==13.3.1
     # via torch
 cuda-pathfinder==1.5.6
     # via cuda-bindings
-cuda-toolkit==13.0.2
+cuda-toolkit==13.3.1
     # via torch
-cyclopts==4.21.0
+cyclopts==4.22.0
     # via fastmcp-slim
 dateparser==1.4.1
     # via htmldate
