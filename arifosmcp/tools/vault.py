@@ -53,9 +53,6 @@ async def arif_seal(
     policy_digest: str | None = None,
     cooldown_entry_id: str | None = None,
     genesis_card_hash: str | None = None,
-    # ── DAG Cognition Model: Layer 1 → Layer 2 Bridge (FORGED 2026-07-20) ──
-    evidence_sha: str | None = None,
-    reversion_event: dict[str, Any] | None = None,
 ) -> SealOutput:
     """
     999_VAULT: Immutable ledger anchoring.
@@ -527,15 +524,6 @@ async def arif_seal(
             # Non-fatal — seal already succeeded; update is additive
             result["meta"] = result.get("meta", {})
             result["meta"]["atlas333_update_error"] = str(exc)
-
-    # ── DAG Cognition Model: Layer 1 → Layer 2 Bridge (FORGED 2026-07-20) ──
-    # Inject evidence_sha and reversion_event into the seal result before
-    # constructing SealOutput.  These fields bridge the execution DAG (Layer 1)
-    # to the constitutional ledger (Layer 2).  F1 AMANAH + F2 TRUTH + F11 AUDIT.
-    if evidence_sha:
-        result["evidence_sha"] = evidence_sha
-    if reversion_event:
-        result["reversion_event"] = reversion_event
 
     return _echo_standing(SealOutput(**result))
 
