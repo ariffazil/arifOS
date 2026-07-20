@@ -1,8 +1,8 @@
 mcp-name: io.github.ariffazil/arifos
 <!-- SOT-MANIFEST
 federation_release: v2026.07.20-ZEN-CONVERGENCE
-last_verified: 2026-07-20T16:10Z
-live_commit: ad969a288
+last_verified: 2026-07-20T16:22Z
+live_commit: ce02d2d
 live_version: kanon-2832558
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
@@ -282,7 +282,7 @@ STDIO: `npx -y arifos-mcp`
 | Read this | For | Link |
 |-----------|-----|------|
 | **arifOS** (this repo) | Constitutional kernel. 8 verbs. 13 floors. The judge. | ← you are here |
-| **A-FORGE** | Executor. 52 MCP tools. Governed gates. | [ariffazil/A-FORGE](https://github.com/ariffazil/A-FORGE) |
+| **A-FORGE** | Executor. 111 MCP tools. Governed gates. | [ariffazil/A-FORGE](https://github.com/ariffazil/A-FORGE) |
 | **AAA** | Cockpit. A2A mesh. Agent registry. | [ariffazil/AAA](https://github.com/ariffazil/AAA) |
 
 ---
