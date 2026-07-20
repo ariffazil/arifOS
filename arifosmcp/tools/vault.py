@@ -25,7 +25,7 @@ from arifosmcp.models.verdicts import Verdict
 async def arif_seal(
     mode: Literal[
         "seal",
-        "verify",        # A-FORGE token verify (Ed25519)
+        "verify",  # A-FORGE token verify (Ed25519)
         "chain",
         "list",
         "dry_run",
@@ -33,7 +33,7 @@ async def arif_seal(
         "render",
         "verify_chain",  # Public chain verification — delegates to arif_vault_verify (sovereign 2026-07-18)
         "chain_status",  # Public chain head + last N entries
-        "audit",         # Full audit report with receipts
+        "audit",  # Full audit report with receipts
     ] = "seal",
     payload: str = "",
     session_id: str | None = None,
@@ -53,11 +53,19 @@ async def arif_seal(
     policy_digest: str | None = None,
     cooldown_entry_id: str | None = None,
     genesis_card_hash: str | None = None,
+    evidence_sha: str | None = None,
+    reversion_event: dict[str, Any] | None = None,
+    blast_radius: str = "L2_SYSTEM",
 ) -> SealOutput:
     """
     999_VAULT: Immutable ledger anchoring.
 
     Args:
+        blast_radius: PRL consequence classification (L1_LOCAL | L2_SYSTEM | L3_CRITICAL).
+            L1_LOCAL = reversible, single file/session scope.
+            L2_SYSTEM = modifies config, multi-agent state.
+            L3_CRITICAL = irreversible, data destruction, external-facing.
+            Defaults to L2_SYSTEM for safety.
         cooldown_entry_id: If provided, the seal is gated on SABAR cooldown completion.
             Without it, cooldown is logged as bypassed (legacy compat path).
             Internal hardening — no new tool surface.
@@ -244,6 +252,7 @@ async def arif_seal(
     # kernel ABI at 8 tools — vault.verify is a MODE of arif_seal, not a new tool.
     if mode == "verify_chain":
         from arifosmcp.tools.vault import arif_vault_verify as _vault_verify_fn
+
         # Anonymous callers allowed (this is the PUBLIC verify tier)
         _chain_verdict = await _vault_verify_fn(
             mode="verify_chain",
@@ -253,13 +262,17 @@ async def arif_seal(
         return _echo_standing(
             SealOutput(
                 mode=mode,
-                verdict=Verdict.SEAL if _chain_verdict.get("chain_physically_valid") else Verdict.HOLD,
+                verdict=Verdict.SEAL
+                if _chain_verdict.get("chain_physically_valid")
+                else Verdict.HOLD,
                 status=_chain_verdict.get("status", "OK"),
                 entry_id="",
                 actor_id=actor_id,
                 meta={
                     "gate": "PUBLIC_VERIFY_CHAIN",
-                    "verifier_authority_class": _chain_verdict.get("verifier_authority_class", "AUDIT_READ_ONLY"),
+                    "verifier_authority_class": _chain_verdict.get(
+                        "verifier_authority_class", "AUDIT_READ_ONLY"
+                    ),
                     "chain_verified": _chain_verdict.get("chain_physically_valid"),
                     "entries_checked": _chain_verdict.get("entries_checked"),
                     "historical_anomaly": _chain_verdict.get("historical_anomaly"),
@@ -460,6 +473,7 @@ async def arif_seal(
                 create_and_seal_receipt,
                 resolve_receipt_identity,
             )
+
             _payload_for_hash = payload if payload else json.dumps(result, sort_keys=True)
             _intent_hash = hashlib.sha256(
                 json.dumps(_payload_for_hash, sort_keys=True).encode()
@@ -524,6 +538,109 @@ async def arif_seal(
             # Non-fatal — seal already succeeded; update is additive
             result["meta"] = result.get("meta", {})
             result["meta"]["atlas333_update_error"] = str(exc)
+
+    # ── Route 3: L2 → L3 post-seal memory sync (Tri-Layer Protocol) ──────
+    # After every successful seal, synchronise the semantic index (L3)
+    # with the immutable ledger (L2).  Non-fatal — seal already succeeded.
+    # If the index corrupts, delete and rebuild from VAULT999 entries.
+    # F2: index is derived, not authoritative.  F4: ΔS < 0.
+    if result.get("verdict") == "SEAL" and session_id:
+        try:
+            from arifosmcp.runtime.megaTools.tool_13_arif_memory import arif_memory as _mem
+
+            _mem_result = await _mem(
+                mode="remember",
+                payload={
+                    "content": payload[:800] if payload else "seal",
+                    "tier": "L2",
+                    "memory_authority": {
+                        "provenance": "arif_seal",
+                        "source_receipts": [result.get("entry_id", "")],
+                        "truth_class": "DERIVED",
+                    },
+                },
+                session_id=session_id,
+                actor_id=actor_id,
+            )
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l3_sync"] = {
+                "synced": True,
+                "tier": "L2",
+            }
+        except Exception as _l3e:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l3_sync"] = {"synced": False, "error": str(_l3e)[:200]}
+
+    # ── PRL Phase 1: Post-seal vectorization into precedent index ─────────
+    # After every successful seal, vectorize the payload into the PRL
+    # Qdrant collection for future precedent retrieval.
+    # Non-fatal — seal already succeeded; index failure is logged.
+    if result.get("verdict") == "SEAL" and session_id:
+        try:
+            from arifosmcp.tools.vault_vectorizer import prl_post_seal_hook as _prl_hook
+
+            _prl_hook(
+                entry_id=str(result.get("entry_id", "")),
+                payload=payload,
+                blast_radius=blast_radius,
+                session_id=session_id,
+            )
+            result["meta"] = result.get("meta", {})
+            result["meta"]["prl_vectorized"] = True
+        except Exception as _prl_e:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["prl_vectorized"] = False
+            result["meta"]["prl_vectorize_error"] = str(_prl_e)[:200]
+
+    # ── DAG Bridge: inject evidence_sha + reversion_event into seal ──────
+    if evidence_sha:
+        result["evidence_sha"] = evidence_sha
+    if reversion_event:
+        result["reversion_event"] = reversion_event
+
+    # ── PRL: inject blast_radius into seal for payload filtering ─────────
+    result["blast_radius"] = blast_radius
+
+    # ── DAG Bridge L2→L3: post-seal auto-index into semantic layer ──────
+    # After successful seal, index the sealed entry into arif_memory sacred tier.
+    # Best-effort — seal already succeeded; index failure is non-fatal (Layer 3 is
+    # disposable and rebuildable from the seal chain at any time).
+    if result.get("verdict", "SEAL") == "SEAL":
+        try:
+            from arifosmcp.runtime.memory_store import store_v2 as _store
+
+            _index_entry = {
+                "content": payload[:4096] if payload else "",
+                "tier": "sacred",
+                "provenance": "sealed",
+                "phoenix_state": "sealed",
+                "tags": ["sealed", "L4", "dag-bridge", "auto-index"],
+                "metadata": {
+                    "seal_timestamp": result.get("timestamp"),
+                    "receipt_id": result.get("receipt_id"),
+                    "evidence_sha": evidence_sha,
+                    "reversion_from": (
+                        reversion_event.get("previous_sha") if reversion_event else None
+                    ),
+                },
+            }
+            _store(_index_entry)
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l2_l3_bridge"] = {
+                "indexed": True,
+                "tier": "sacred",
+                "note": (
+                    "Auto-indexed to arif_memory sacred tier — "
+                    "disposable, rebuildable from seal chain."
+                ),
+            }
+        except Exception as exc:
+            result["meta"] = result.get("meta", {})
+            result["meta"]["l2_l3_bridge"] = {
+                "indexed": False,
+                "error": str(exc),
+                "note": "Index failure is non-fatal — Layer 3 is rebuildable from DAG.",
+            }
 
     return _echo_standing(SealOutput(**result))
 

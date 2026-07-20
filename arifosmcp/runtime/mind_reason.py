@@ -345,6 +345,46 @@ Provide structured reasoning as a witness.
 Cite L02 (Truth), L07 (Humility), L08 (Genius).
 Distinguish CLAIM from FACT."""
 
+    # ── PRL Phase 1: Precedent Retrieval Layer — Institutional Memory Fetch ──
+    # Inject cold geometric precedent constraints BEFORE LLM reasoning.
+    # Non-fatal — PRL unavailability degrades gracefully to standard reasoning.
+    # F9-compliant: constraints are structural, not "memories."
+    prl_constraint_block: str | None = None
+    try:
+        from arifosmcp.prl.prl_emd_hook import prl_pre_reason_check
+
+        _prl_result = await prl_pre_reason_check(
+            query=query,
+            session_id=session_id,
+            actor_id=actor_id,
+        )
+        if _prl_result.get("omega0_triggered"):
+            # Ω₀ TRIGGER: geometric match but contextual ambiguity → F1 HOLD
+            return {
+                "status": "HOLD",
+                "mode": mode,
+                "verdict": "OMEGA0_HOLD",
+                "synthesis": (
+                    "[Ω₀ TRIGGER]: Precedent matched geometrically, "
+                    "but consequence context is ambiguous. "
+                    "W_scar override required from 888 SOVEREIGN."
+                ),
+                "prl_verdict": "PRL_OMEGA0_HOLD",
+                "prl_query_blast_radius": _prl_result.get("query_blast_radius", ""),
+                "prl_match_count": len(_prl_result.get("constraints", [])),
+                "timestamp": timestamp,
+                "session_id": session_id,
+                "actor_id": actor_id or "anonymous",
+            }
+        elif _prl_result.get("constraint_block"):
+            prl_constraint_block = _prl_result["constraint_block"]
+    except Exception:
+        pass  # PRL unavailable → standard reasoning
+
+    # ── Inject PRL precedent at end of user_prompt (recency-bias hardening) ─
+    if prl_constraint_block:
+        user_prompt += f"\n\n{prl_constraint_block}"
+
     # ── LLM Inference with 777_WITNESS Envelope ───────────────────────────────────
     # DDD-20260611: bumped max_tokens 200→2000. M3 with thinking enabled
     # spends ~900+ tokens on reasoning_tokens alone at temperature=0.3,
