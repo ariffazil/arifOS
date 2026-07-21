@@ -740,7 +740,7 @@ async def _handle_score_prediction(payload: dict, ctx: Any) -> dict:
                 }
 
     # ── Compute aggregate score and flags ──────────────────────────────
-    LARGE_DELTA_THRESHOLD = 3.0  # For numeric fields, abs_delta > threshold = LARGE_DELTA
+    _large_delta_threshold = 3.0  # For numeric fields, abs_delta > threshold = LARGE_DELTA
     flags: list[str] = []
     total_fields = 0
     total_error = 0.0
@@ -751,8 +751,8 @@ async def _handle_score_prediction(payload: dict, ctx: Any) -> dict:
         if _abs is not None and isinstance(_abs, (int, float)):
             total_fields += 1
             total_error += _abs
-            max_possible_error += _abs + LARGE_DELTA_THRESHOLD  # Normalise with headroom
-            if _abs > LARGE_DELTA_THRESHOLD:
+            max_possible_error += _abs + _large_delta_threshold  # Normalise with headroom
+            if _abs > _large_delta_threshold:
                 flags.append("LARGE_DELTA")
 
     if total_fields > 0:
@@ -761,7 +761,7 @@ async def _handle_score_prediction(payload: dict, ctx: Any) -> dict:
         _avg = total_error / total_fields
         import math
 
-        aggregate_score = round(math.exp(-_avg / LARGE_DELTA_THRESHOLD), 4)
+        aggregate_score = round(math.exp(-_avg / _large_delta_threshold), 4)
         aggregate_score = max(0.0, min(1.0, aggregate_score))
     else:
         aggregate_score = 1.0  # No fields to compare = no prediction error
@@ -781,9 +781,9 @@ async def _handle_score_prediction(payload: dict, ctx: Any) -> dict:
     #
     # Besar sangat lari, kena stop. Critical hallucination requires
     # sovereign override, not silent gradient storage.
-    DELTA_MAX_THRESHOLD = 0.30  # 30% deviation = critical divergence
+    _delta_max_threshold = 0.30  # 30% deviation = critical divergence
 
-    if aggregate_score < (1.0 - DELTA_MAX_THRESHOLD):  # score below 0.70
+    if aggregate_score < (1.0 - _delta_max_threshold):  # score below 0.70
         return {
             "mode": "score_prediction",
             "verdict": "HOLD",
@@ -791,14 +791,14 @@ async def _handle_score_prediction(payload: dict, ctx: Any) -> dict:
                 "hold_type": "F1_F2_DELTA_BREACH",
                 "reason": (
                     f"F1/F2_DELTA_BREACH: prediction delta {aggregate_score:.2f} "
-                    f"exceeds threshold (>{DELTA_MAX_THRESHOLD:.0%}). "
+                    f"exceeds threshold (>{_delta_max_threshold:.0%}). "
                     f"The judge's predicted state is dangerously disconnected "
                     f"from the observed substrate."
                 ),
                 "prediction_id": seal_entry_id,
                 "observed_at": observed_at,
                 "aggregate_score": aggregate_score,
-                "threshold": 1.0 - DELTA_MAX_THRESHOLD,
+                "threshold": 1.0 - _delta_max_threshold,
                 "delta_fields": delta_fields,
                 "flags": flags + ["F1_AMANAH_RISK", "F2_TRUTH_EPISTEMIC_FAILURE"],
                 "floors_breached": ["F1", "F2"],

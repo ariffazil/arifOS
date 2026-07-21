@@ -1644,7 +1644,8 @@ def arif_memory_recall(
 
         # ── Schema audit: reject unknown prediction keys ──────────────────
         try:
-            from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA, DELTA_MAX as _delta_max
+            from arifosmcp.tools.judge import DELTA_MAX as _delta_max
+            from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA
         except ImportError:
             _delta_max = 0.30
             from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA
