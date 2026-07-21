@@ -1644,9 +1644,9 @@ def arif_memory_recall(
 
         # ── Schema audit: reject unknown prediction keys ──────────────────
         try:
-            from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA, DELTA_MAX as _DELTA_MAX
+            from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA, DELTA_MAX as _delta_max
         except ImportError:
-            _DELTA_MAX = 0.30
+            _delta_max = 0.30
             from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA
 
         _unknown_keys = set(predicted_state.keys()) - set(JUDGE_PREDICTION_SCHEMA.keys())
@@ -1696,12 +1696,12 @@ def arif_memory_recall(
                 _max_delta_key = key
 
         # ── Circuit breaker: DELTA_MAX exceeded → HOLD_888 ────────────────
-        if _max_delta > _DELTA_MAX:
+        if _max_delta > _delta_max:
             return _hold(
                 "arif_memory_recall",
                 f"F1/F2 HOLD_888: Prediction delta exceeded threshold. "
                 f"max_delta={_max_delta:.4f} on key '{_max_delta_key}' "
-                f"(threshold={_DELTA_MAX}). "
+                f"(threshold={_delta_max}). "
                 f"The judge's world model is dangerously disconnected from "
                 f"substrate reality. This is an epistemic failure (F2) and "
                 f"structural risk (F1). Silent logging of critical hallucination "
@@ -1712,7 +1712,7 @@ def arif_memory_recall(
                     "circuit_breaker": "DELTA_THRESHOLD",
                     "max_delta": _max_delta,
                     "max_delta_key": _max_delta_key,
-                    "threshold": _DELTA_MAX,
+                    "threshold": _delta_max,
                     "all_deltas": _deltas,
                     "operation": operation or "unknown",
                     "timestamp": _time_module.time(),
@@ -1758,7 +1758,7 @@ def arif_memory_recall(
                 "verdict": "SEAL",
                 "max_delta": _max_delta,
                 "max_delta_key": _max_delta_key,
-                "threshold": _DELTA_MAX,
+                "threshold": _delta_max,
                 "all_deltas": _deltas,
                 "matching_keys_count": len(_matching_keys),
                 "l3_stored": stored,
