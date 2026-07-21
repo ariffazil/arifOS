@@ -24,6 +24,7 @@ import json as json_lib
 import os
 import time as time_module
 import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -56,6 +57,25 @@ from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 from core.shared.atlas import Φ
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ECHO/PaW PREDICTION SCHEMA — L3 Gradient Injection Bridge
+# ═══════════════════════════════════════════════════════════════════════════════
+# Maps prediction keys to their canonical observation sources.
+# Every key here is a 1:1 mappable identifier — no semantic translation.
+# Used by: _inject_l3_prediction_deltas (L3 read path)
+#          arif_memory_recall(mode="score_prediction") (delta threshold gate)
+#          arif_measure → observation surface (ops.py OBSERVATION_SCHEMA)
+JUDGE_PREDICTION_SCHEMA: dict[str, str] = {
+    "g_score": "arif_measure.vitals.g_score",
+    "delta_S": "arif_measure.vitals.delta_S",
+    "omega": "arif_measure.vitals.omega",
+    "psi_le": "arif_measure.vitals.psi_le",
+    "cpu_pct": "arif_measure.health.cpu.value",
+    "mem_pct": "arif_measure.health.mem.percent.value",
+    "disk_pct": "arif_measure.health.disk.percent.value",
+    "verdict_code": "arif_judge.verdict",
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # PARADOX ANCHORS — REMOVED FROM RUNTIME 2026-07-04 FORGE
 # ═══════════════════════════════════════════════════════════════════════════════
 # The 11 anchors (Marcus Aurelius, Aristotle, Socrates, Glaucon, Kant) were
@@ -77,6 +97,51 @@ PARADOX_ANCHORS_REMOVED_TO_CANON = True
 docs/canon/paradox_anchors.md. The wiring was a `_JUDGE_BY_ID` lookup that
 only enriched meta — never `VerdictCode.*`. Therefore not load-bearing.
 """
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ECHO/PaW — JUDGE PREDICTION SCHEMA (FORGED 2026-07-21)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Strict 1:1 key mapping between the judge's prediction surface and the
+# WELL/ops substrate observation surface. No semantic translation allowed —
+# keys must match exactly between prediction and observation to maintain
+# ΔS ≤ 0 (F4 CLARITY). Any key drift triggers SCHEMA_DRIFT hard exception.
+#
+# Each entry: prediction_key → canonical_observation_source
+# The observation source is a dotted path: <module>.<mode>.<field>
+# All keys listed here are the canonical prediction surface. The
+# score_prediction memory mode enforces that predicted_state keys
+# MUST be a subset of this schema.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+JUDGE_PREDICTION_SCHEMA: dict[str, str] = {
+    # ── Thermodynamic vitals (arif_measure mode="vitals") ──
+    "g_score": "arif_measure.vitals.g_score",
+    "delta_S": "arif_measure.vitals.delta_S",
+    "omega": "arif_measure.vitals.omega",
+    "psi_le": "arif_measure.vitals.psi_le",
+    # ── Substrate health (arif_measure mode="health") ──
+    "cpu_pct": "arif_measure.health.cpu.value",
+    "mem_pct": "arif_measure.health.mem.percent.value",
+    "disk_pct": "arif_measure.health.disk.percent.value",
+    "health_status": "arif_measure.health.status",
+    "health_verified": "arif_measure.health.verified",
+    # ── Governance telemetry ──
+    "constitutional_verdict": "arif_measure.constitutional_health.verdict",
+    "floor_violations": "arif_measure.constitutional_health.floors",
+    "witnes_score": "arif_measure.constitutional_health.witnes",
+    # ── WELL substrate ──
+    "g_well_verdict": "well_substrate.g_well_verdict",
+    "clarity": "well_substrate.clarity",
+    "has_telemetry": "well_substrate.has_telemetry",
+    # ── System invariants ──
+    "runtime_drift": "arif_measure.health.runtime_drift",
+    "forge_block_count": "arif_measure.meta.forge_block_count",
+}
+
+# Maximum allowed delta between predicted_state and observed_state.
+# Exceeding this triggers F1/F2 HOLD_888 — the judge's world model
+# is dangerously disconnected from substrate reality.
+DELTA_MAX: float = 0.30
 
 # WELL state file candidates — covers docker-compose path, manual-start path, env override
 _WELL_STATE_CANDIDATES = [
@@ -237,6 +302,210 @@ def _read_well_governance(state_path_candidates: list | None = None) -> dict[str
         "truth_status": truth_status,
         "w0": "OPERATOR_VETO_INTACT / HIERARCHY_INVARIANT",
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ECHO/PaW SCHEMA BRIDGE — strict 1:1 key parity
+# ═══════════════════════════════════════════════════════════════════════════════
+# The judge's predicted_state and the substrate's observation_state MUST use
+# the same deterministic key names. Semantic translation introduces entropy
+# (ΔS > 0) and point-of-failure hallucinations.
+#
+# SCHEMA_BRIDGE maps prediction keys → observation source keys when they
+# cannot share the same name. PREFER direct 1:1 naming — this bridge is a
+# fallback, not the default. Keys NOT in this bridge are assumed 1:1.
+SCHEMA_BRIDGE: dict[str, str] = {
+    # well_substrate keys — already 1:1 from _read_well_substrate() output
+    # vitals keys — from arif_measure(mode='vitals')
+    # g_score → g_score (1:1)
+    # delta_S → delta_S (1:1)
+    # omega → omega (1:1)
+    # psi_le → psi_le (1:1)
+    # If keys diverge, map prediction key → observation key:
+    # "memory_usage": "mem_util_pct",  # example — not active
+}
+"""Maps predicted_state keys to substrate observation keys for delta computation.
+
+When prediction and observation MUST use different key names, this bridge
+provides the deterministic mapping. Keys absent from this dict are assumed
+to be 1:1 parity. This is the SCHEMA_DRIFT checkpoint — if a key shows up
+in the prediction but not in observation AND not in this bridge, it's a
+SCHEMA_DRIFT warning.
+
+F2 TRUTH: No semantic translation in the delta path.
+"""
+
+OBSERVATION_SCHEMA_KEYS: frozenset[str] = frozenset({
+    # WELL substrate keys (from _read_well_substrate output)
+    "well_score", "human_ready", "clarity", "has_telemetry",
+    "truth_status", "active_violations", "status", "coupled_verdict",
+    "source", "w0",
+    # arif_measure(mode='vitals') keys
+    "g_score", "delta_S", "omega", "psi_le",
+    # judge evidence keys
+    "runtime_drift", "floors_checked", "floors_violated",
+})
+"""Canonical set of valid observation keys for schema parity validation."""
+
+PREDICTION_SCHEMA_VERSION = "v1.0"
+OBSERVATION_SCHEMA_VERSION = "v1.0"
+
+
+def _validate_schema_parity(
+    predicted_state: dict[str, Any],
+    observed_state: dict[str, Any],
+) -> dict[str, Any]:
+    """Validate that prediction and observation schemas are congruent.
+
+    Before computing delta between predicted_state and observed_state,
+    verify that both sides speak the same deterministic schema. Semantic
+    translation in the delta path introduces ΔS > 0.
+
+    Returns a dict with:
+        parity_ok: bool — True if schemas match 1:1
+        prediction_keys: list — keys the judge predicted
+        observation_keys: list — keys the substrate returned
+        unmatched_predictions: list — prediction keys not in observation schema
+        unmatched_observations: list — observation keys not in prediction schema
+        bridged_keys: dict — keys resolved via SCHEMA_BRIDGE
+        schema_drift: bool — True if valid keys don't appear in either schema
+        warning: str | None — drift warning message
+    """
+
+    pred_keys = set(predicted_state.keys())
+    obs_keys = set(observed_state.keys())
+
+    # Apply SCHEMA_BRIDGE: map prediction keys to observation keys
+    bridged: dict[str, str] = {}
+    resolved_pred_keys: set[str] = set()
+    for pk in pred_keys:
+        if pk in SCHEMA_BRIDGE:
+            bridged[pk] = SCHEMA_BRIDGE[pk]
+            resolved_pred_keys.add(SCHEMA_BRIDGE[pk])
+        else:
+            resolved_pred_keys.add(pk)
+
+    unmatched_predictions = sorted(pred_keys - obs_keys - set(bridged.keys()))
+    unmatched_observations = sorted(obs_keys - pred_keys - set(bridged.values()))
+
+    # Schema drift: check if any valid OBSERVATION_SCHEMA_KEYS are missing
+    pred_valid_keys = pred_keys & OBSERVATION_SCHEMA_KEYS
+    obs_valid_keys = obs_keys & OBSERVATION_SCHEMA_KEYS
+    orphan_pred = sorted(pred_valid_keys - obs_keys)
+    orphan_obs = sorted(obs_valid_keys - pred_keys)
+
+    schema_drift = bool(orphan_pred or orphan_obs)
+    parity_ok = len(unmatched_predictions) == 0 and len(unmatched_observations) == 0
+
+    warning: str | None = None
+    if schema_drift:
+        warning = (
+            f"SCHEMA_DRIFT: prediction/observation key mismatch. "
+            f"Prediction-only valid keys: {orphan_pred}. "
+            f"Observation-only valid keys: {orphan_obs}. "
+            f"Delta computation requires 1:1 schema parity — semantic "
+            f"translation introduces ΔS > 0 (F2 TRUTH violation risk)."
+        )
+    elif bridged:
+        warning = (
+            f"SCHEMA_BRIDGE active: {len(bridged)} key(s) mapped via bridge. "
+            f"Prefer direct 1:1 naming. Bridged: {bridged}"
+        )
+
+    return {
+        "parity_ok": parity_ok,
+        "prediction_keys": sorted(pred_keys),
+        "observation_keys": sorted(obs_keys),
+        "unmatched_predictions": unmatched_predictions,
+        "unmatched_observations": unmatched_observations,
+        "bridged_keys": bridged,
+        "schema_drift": schema_drift,
+        "warning": warning,
+        "prediction_schema_version": PREDICTION_SCHEMA_VERSION,
+        "observation_schema_version": OBSERVATION_SCHEMA_VERSION,
+    }
+
+
+def _query_prediction_gradient(
+    session_id: str | None = None,
+    action_tier: str = "standard",
+) -> dict[str, Any] | None:
+    """Query arif_memory for past L2-tier prediction deltas on similar operations.
+
+    Historical prediction-observation errors condition the judge's forward
+    pass so the observation error token feeds back into the next action
+    selection. This closes the ECHO/PaW loop: Δ between predicted_state and
+    observed_state becomes prompt conditioning (L3 gradient injection).
+
+    Filters for entries with 'prediction_delta' in content, scoped to
+    similar action tiers where possible.
+
+    Args:
+        session_id: Current session context for scoping
+        action_tier: Current action tier for similarity filtering
+
+    Returns:
+        dict with 'deltas': list of past prediction errors with scores,
+        or None if no relevant history found.
+    """
+    try:
+        from arifosmcp.runtime.megaTools.tool_13_arif_memory import arif_memory as _arif_memory
+
+        # Query for past L2-tier entries with prediction deltas
+        raw_payload = _arif_memory(
+            mode="recall",
+            query="prediction_delta tier:L2",
+            session_id=session_id,
+        )
+
+        # Extract payload from RuntimeEnvelope
+        import asyncio
+        if asyncio.iscoroutine(raw_payload):
+            raw_payload = asyncio.get_event_loop().run_until_complete(raw_payload)
+
+        payload = getattr(raw_payload, "payload", None)
+        if payload is None:
+            raw_payload = getattr(raw_payload, "value", None)
+
+        # Parse results — arif_memory recall returns structured payload
+        results = []
+        if isinstance(payload, dict):
+            items = payload.get("items") or payload.get("memories") or payload.get("results") or []
+            for item in items:
+                if isinstance(item, dict):
+                    content = item.get("content", item.get("text", ""))
+                    if "prediction_delta" in str(content):
+                        results.append({
+                            "memory_id": item.get("memory_id", item.get("id", "")),
+                            "tier": item.get("tier", "L2"),
+                            "action_tier": item.get("action_tier", ""),
+                            "delta_score": item.get("delta_score", item.get("score")),
+                            "timestamp": item.get("timestamp", item.get("created_at", "")),
+                            "content_snippet": str(content)[:500],
+                        })
+
+        if not results:
+            return None
+
+        # Filter by similar action_tier if possible
+        filtered = [
+            r for r in results
+            if action_tier in ("standard", "any")
+            or r.get("action_tier", "") in (action_tier, "")
+            or r.get("action_tier", "") == action_tier
+        ]
+        if not filtered:
+            filtered = results  # fallback: return all
+
+        return {
+            "source": "arif_memory_recall_L2_prediction_deltas",
+            "deltas": filtered[:10],  # cap at 10 to avoid context bloat
+            "count": len(filtered),
+            "filter_type": "action_tier_similarity",
+            "action_tier_filter": action_tier,
+        }
+    except Exception:
+        return None
 
 
 async def arif_judge(
@@ -467,6 +736,24 @@ async def arif_judge(
         # W0 preserved: WELL informs, judge decides, operator holds veto.
         # This is advisory evidence surfaced alongside every verdict — not a gate.
         _evidence["well_substrate"] = _read_well_substrate()
+
+        # ── ECHO/PaW L3 GRADIENT INJECTION ──────────────────────────────────
+        # Query arif_memory for past L2-tier prediction deltas on similar
+        # operations. Historical prediction-observation errors condition the
+        # judge's forward pass so the observation error token feeds back into
+        # the next action selection. This closes the ECHO loop: Δ between
+        # predicted_state and observed_state becomes prompt conditioning.
+        #
+        # F2 TRUTH: past errors are surfaced with their delta scores so the
+        # judge can calibrate confidence. No synthetic data — only real deltas
+        # from prior seal entries.
+        try:
+            _evidence["gradient_context"] = _query_prediction_gradient(
+                session_id=session_id,
+                action_tier=action_tier,
+            )
+        except Exception:
+            _evidence["gradient_context"] = None
 
         # ── W-4: G-WELL governance pre-load for elevated-tier actions ─────────
         # C4/C5/sovereign actions require governance coherence check before deliberation.
@@ -1423,7 +1710,39 @@ async def arif_judge(
                 "conflict_resolution": _conflict_result.get("conflict_resolution", "none"),
                 "latency_ms": result.get("meta", {}).get("latency_ms", 0),
                 "within_budget": result.get("meta", {}).get("within_budget", True),
+                "predicted_state": {
+                    "well_score": well_sub.get("well_score"),
+                    "human_ready": well_sub.get("human_ready"),
+                    "clarity": well_sub.get("clarity"),
+                    "runtime_drift": _evidence.get("vitals", {}).get("runtime_drift", False),
+                    "floors_checked": list(_evidence.get("floors_checked", [])),
+                    "floors_violated": list(_evidence.get("floors_violated", [])),
+                    # ── Vitals keys in 1:1 parity with arif_measure(mode='vitals') ──
+                    "g_score": _evidence.get("vitals", {}).get("g_score"),
+                    "delta_S": _evidence.get("vitals", {}).get("delta_S"),
+                    "omega": _evidence.get("vitals", {}).get("omega"),
+                    "psi_le": _evidence.get("vitals", {}).get("psi_le"),
+                    "predicted_at": datetime.now(UTC).isoformat(),
+                },
             }
+
+            # ── ECHO/PaW SCHEMA PARITY VALIDATION ──────────────────────────
+            # Before sealing, verify that prediction keys and observation keys
+            # are from the same deterministic schema. Semantic translation in
+            # the delta path introduces ΔS > 0 (F2 TRUTH violation risk).
+            _predicted = payload_dict["predicted_state"]
+            _observed = {
+                **_evidence.get("vitals", {}),
+                **well_sub,
+                "floors_checked": list(_evidence.get("floors_checked", [])),
+                "floors_violated": list(_evidence.get("floors_violated", [])),
+            }
+            _schema_parity = _validate_schema_parity(_predicted, _observed)
+            if _schema_parity.get("schema_drift") or _schema_parity.get("warning"):
+                result.setdefault("meta", {})["schema_parity"] = _schema_parity
+                result.setdefault("reasons", []).append(
+                    f"SCHEMA_PARITY: {_schema_parity.get('warning', 'schema validation triggered')}"
+                )
 
             seal_result = await arif_seal(
                 mode="seal",

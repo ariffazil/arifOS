@@ -16,6 +16,38 @@ from arifosmcp.runtime.session_auth import validate_session
 from arifosmcp.runtime.tools import _hold, _ok, _sabar
 from arifosmcp.schemas.telemetry import TelemetryBlock
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# ECHO/PaW — OBSERVATION SCHEMA (FORGED 2026-07-21)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Canonical observation surface — the keys that arif_measure exposes to
+# consumers (judge, memory, forge). This mirrors JUDGE_PREDICTION_SCHEMA
+# 1:1 — no semantic translation between prediction and observation.
+# ΔS ≤ 0 is enforced by strict key parity.
+#
+# Each entry: canonical_key → {mode, field_path, description}
+# ═══════════════════════════════════════════════════════════════════════════════
+
+OBSERVATION_SCHEMA: dict[str, dict[str, str]] = {
+    # ── Thermodynamic vitals (mode="vitals") ──
+    "g_score": {"mode": "vitals", "field_path": "g_score", "description": "Governance intelligence score (G ≥ 0.80 for SEAL)"},
+    "delta_S": {"mode": "vitals", "field_path": "delta_S", "description": "Entropy delta (ΔS ≤ 0 per F4 CLARITY)"},
+    "omega": {"mode": "vitals", "field_path": "omega", "description": "Omega stability ratio (target ≥ 0.90)"},
+    "psi_le": {"mode": "vitals", "field_path": "psi_le", "description": "Psi Lawful Execution ratio (threshold < 1.05)"},
+    # ── Substrate health (mode="health") ──
+    "cpu_pct": {"mode": "health", "field_path": "cpu.value", "description": "CPU utilization percentage"},
+    "mem_pct": {"mode": "health", "field_path": "mem.percent.value", "description": "Memory utilization percentage"},
+    "disk_pct": {"mode": "health", "field_path": "disk.percent.value", "description": "Disk utilization percentage"},
+    "health_status": {"mode": "health", "field_path": "status", "description": "Overall health status string"},
+    "health_verified": {"mode": "health", "field_path": "verified", "description": "Whether health data is verified (bool)"},
+    # ── Governance telemetry (mode="constitutional_health") ──
+    "constitutional_verdict": {"mode": "constitutional_health", "field_path": "verdict", "description": "Current constitutional verdict"},
+    "floor_violations": {"mode": "constitutional_health", "field_path": "floors", "description": "Active floor violations"},
+    "witnes_score": {"mode": "constitutional_health", "field_path": "witnes", "description": "Tri-witness score"},
+    # ── System invariants ──
+    "runtime_drift": {"mode": "health", "field_path": "runtime_drift", "description": "Runtime drift flag (build ≠ live)"},
+    "forge_block_count": {"mode": "health", "field_path": "meta.forge_block_count", "description": "Forge self-authorization block count"},
+}
+
 
 def arif_measure(
     mode: str = "health",

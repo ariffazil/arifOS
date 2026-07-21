@@ -38,6 +38,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import time as _time_module
 from typing import Any
 
 from arifosmcp.paradox import build_organ_anchors, register_organ
@@ -762,6 +763,10 @@ def arif_memory_recall(
     outcome: str | None = None,  # SEAL|HOLD|VOID for cognitive_learn
     lessons: str | None = None,  # lessons text for cognitive_learn
     resolution: str | None = None,  # OVERRIDE|MERGE|VOID_A|VOID_B|ACKNOWLEDGE
+    # ── ECHO/PaW: score_prediction mode (FORGED 2026-07-21) ──
+    predicted_state: dict[str, Any] | None = None,
+    observed_state: dict[str, Any] | None = None,
+    operation: str | None = None,
 ) -> dict[str, Any]:
     """
     555_MEMORY v2: Governed persistent memory — ONE GATE, MANY MODES.
@@ -790,6 +795,8 @@ def arif_memory_recall(
         "cognitive_recall": "recall",
         "cognitive_cross_session": "recall",
         "cognitive_learn": "learn",
+        # ECHO/PaW: score_prediction (FORGED 2026-07-21)
+        "score_prediction": "score_prediction",
     }
     _original_mode = mode
     if mode in _mode_aliases:
@@ -1611,6 +1618,155 @@ def arif_memory_recall(
         if result.get("ok"):
             return _ok("arif_memory_recall", result)
         return _hold("arif_memory_recall", result.get("error", "cognitive_learn failed"))
+
+    # ── score_prediction (ECHO/PaW — FORGED 2026-07-21) ───────────────────────
+    # Delta threshold interrupt: compares the judge's predicted_state against
+    # observed reality. If the divergence exceeds DELTA_MAX, triggers an
+    # immediate F1/F2 HOLD_888 — the judge's world model is dangerously
+    # disconnected from the substrate. This is a hard circuit breaker, not
+    # a soft warning.
+    #
+    # Within bounds: stores the delta as an L3 memory entry for future
+    # gradient injection so the error token feeds back into the next
+    # forward pass.
+    #
+    # F1 AMANAH: massive delta = structural risk. Stop, don't metabolize.
+    # F2 TRUTH: delta > threshold = epistemic failure. Reality disagrees.
+    # F4 CLARITY: schema parity enforced via JUDGE_PREDICTION_SCHEMA subset check.
+    # ═══════════════════════════════════════════════════════════════════════════
+    if mode == "score_prediction":
+        if not predicted_state or not observed_state:
+            return _hold(
+                "arif_memory_recall",
+                "score_prediction requires both predicted_state and observed_state",
+                ["F2"],
+            )
+
+        # ── Schema audit: reject unknown prediction keys ──────────────────
+        try:
+            from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA, DELTA_MAX as _DELTA_MAX
+        except ImportError:
+            _DELTA_MAX = 0.30
+            from arifosmcp.tools.judge import JUDGE_PREDICTION_SCHEMA
+
+        _unknown_keys = set(predicted_state.keys()) - set(JUDGE_PREDICTION_SCHEMA.keys())
+        if _unknown_keys:
+            return _hold(
+                "arif_memory_recall",
+                f"SCHEMA_DRIFT: predicted_state contains keys not in "
+                f"JUDGE_PREDICTION_SCHEMA: {sorted(_unknown_keys)}. "
+                f"Semantic translation introduces ΔS > 0 (F4 CLARITY). "
+                f"Align prediction keys with canonical schema before scoring.",
+                ["F2", "F4"],
+            )
+
+        # ── Compute delta vector — only matching keys ─────────────────────
+        _matching_keys = [
+            k for k in predicted_state
+            if k in observed_state and k in JUDGE_PREDICTION_SCHEMA
+        ]
+        if not _matching_keys:
+            return _hold(
+                "arif_memory_recall",
+                "score_prediction: no matching keys between predicted_state "
+                "and observed_state. Cannot compute delta — schema misalignment.",
+                ["F2", "F4"],
+            )
+
+        _deltas: dict[str, float] = {}
+        _max_delta: float = 0.0
+        _max_delta_key: str = ""
+
+        for key in _matching_keys:
+            pred_val = predicted_state[key]
+            obs_val = observed_state[key]
+            try:
+                pred_f = float(pred_val)
+                obs_f = float(obs_val)
+                # Normalized absolute delta — range [0, 1]
+                denom = max(abs(pred_f), abs(obs_f), 0.001)
+                delta_val = abs(pred_f - obs_f) / denom
+            except (ValueError, TypeError):
+                # Non-numeric — binary match (0.0 = same, 1.0 = different)
+                delta_val = 0.0 if str(pred_val) == str(obs_val) else 1.0
+
+            _deltas[key] = round(delta_val, 4)
+            if delta_val > _max_delta:
+                _max_delta = delta_val
+                _max_delta_key = key
+
+        # ── Circuit breaker: DELTA_MAX exceeded → HOLD_888 ────────────────
+        if _max_delta > _DELTA_MAX:
+            return _hold(
+                "arif_memory_recall",
+                f"F1/F2 HOLD_888: Prediction delta exceeded threshold. "
+                f"max_delta={_max_delta:.4f} on key '{_max_delta_key}' "
+                f"(threshold={_DELTA_MAX}). "
+                f"The judge's world model is dangerously disconnected from "
+                f"substrate reality. This is an epistemic failure (F2) and "
+                f"structural risk (F1). Silent logging of critical hallucination "
+                f"as 'learning gradient' is FORBIDDEN. "
+                f"Sovereign override required.",
+                ["F1", "F2"],
+                {
+                    "circuit_breaker": "DELTA_THRESHOLD",
+                    "max_delta": _max_delta,
+                    "max_delta_key": _max_delta_key,
+                    "threshold": _DELTA_MAX,
+                    "all_deltas": _deltas,
+                    "operation": operation or "unknown",
+                    "timestamp": _time_module.time(),
+                },
+            )
+
+        # ── Within bounds: store delta as L3 gradient ─────────────────────
+        _delta_entry = {
+            "delta_values": _deltas,
+            "max_delta": _max_delta,
+            "max_delta_key": _max_delta_key,
+            "operation": operation or "unknown",
+            "predicted_keys": sorted(predicted_state.keys()),
+            "observed_keys": sorted(observed_state.keys()),
+            "verdict": "SEAL",
+        }
+
+        # Store to L3 for future gradient injection
+        try:
+            result = store_v2(
+                content={
+                    "type": "prediction_delta",
+                    "tier": "L2",
+                    "mode": "score_prediction",
+                    "payload": _delta_entry,
+                },
+                tags=["prediction_delta", "echo_paw", f"op:{operation or 'unknown'}", "tier:L2"],
+                actor_id=actor_id,
+                session_id=session_id,
+                tier="L2",
+                source_type="score_prediction",
+                can_authorize_action=False,
+            )
+            stored = bool(result.get("ok"))
+            store_id = result.get("memory_id") if stored else None
+        except Exception:
+            stored = False
+            store_id = None
+
+        return _ok(
+            "arif_memory_recall",
+            {
+                "verdict": "SEAL",
+                "max_delta": _max_delta,
+                "max_delta_key": _max_delta_key,
+                "threshold": _DELTA_MAX,
+                "all_deltas": _deltas,
+                "matching_keys_count": len(_matching_keys),
+                "l3_stored": stored,
+                "l3_store_id": store_id,
+                "circuit_breaker_armed": True,
+            },
+            delta_S=float(_max_delta),
+        )
 
     # ── stats ────────────────────────────────────────────────────────────────
     if mode == "stats":
