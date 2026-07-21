@@ -39,6 +39,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 from arifosmcp.runtime.model import RuntimeEnvelope
@@ -57,6 +58,7 @@ ARIF_MEMORY_MODES = (
     "revise",
     "forget",
     "audit",
+    "score_prediction",
 )
 
 # Mode → action class
@@ -65,6 +67,7 @@ MODE_ACTION_CLASS = {
     "inspect": "OBSERVE",
     "attest": "OBSERVE",
     "audit": "OBSERVE",
+    "score_prediction": "OBSERVE",
     "remember": "EXECUTE_REVERSIBLE",
     "promote": "EXECUTE_HIGH_IMPACT",
     "revise": "EXECUTE_HIGH_IMPACT",
@@ -77,6 +80,7 @@ MODE_PRE_FLOORS = {
     "inspect": ("L02", "L12"),
     "attest": ("L02", "L11", "L12"),
     "audit": ("L02", "L09", "L11", "L12"),
+    "score_prediction": ("L01", "L02", "L12"),
     "remember": ("L01", "L02", "L08", "L11", "L12"),
     "promote": ("L01", "L02", "L04", "L07", "L11", "L12"),
     "revise": ("L01", "L02", "L04", "L09", "L11", "L12"),
@@ -89,6 +93,7 @@ MODE_REQUIRES_LEASE = {
     "inspect": False,
     "attest": False,
     "audit": False,
+    "score_prediction": False,
     "remember": True,
     "promote": True,
     "revise": True,
@@ -101,6 +106,7 @@ MODE_REQUIRES_HUMAN_ACK = {
     "inspect": False,
     "attest": False,
     "audit": False,
+    "score_prediction": False,
     "remember": False,
     "promote": False,
     "revise": False,
@@ -439,7 +445,8 @@ async def arif_memory(
     # Day 3.5 added: remember (handles L4 write without embedding dependency)
     # Day 4 polish: inspect (direct Postgres lookup for UUID queries)
     # Day 5 (2026-07-07): audit — JITU contradiction engine
-    if mode in ("remember", "promote", "forget", "attest", "inspect", "audit"):
+    # Day 6 (2026-07-21): score_prediction — ECHO/PaW prediction-observation feedback
+    if mode in ("remember", "promote", "forget", "attest", "inspect", "audit", "score_prediction"):
         from arifosmcp.runtime.memory_handlers_v5 import (
             _handle_attest,
             _handle_audit,
@@ -456,6 +463,7 @@ async def arif_memory(
             "attest": _handle_attest,
             "inspect": _handle_inspect,
             "audit": _handle_audit,
+            "score_prediction": _handle_score_prediction,
         }[mode]
         try:
             res_dict = await handler(payload, ctx=ctx)
@@ -591,6 +599,241 @@ async def _handle_forget(payload: dict, ctx: Any) -> dict:
     }
 
 
+async def _handle_score_prediction(payload: dict, ctx: Any) -> dict:
+    """ECHO/PaW pattern: score a predicted state against observed reality.
+
+    Takes a seal_entry_id pointing to an L2 seal entry containing a predicted_state
+    snapshot, computes the delta against current observed state, and stores the
+    result in L2 memory tier with provenance anchored to the seal chain.
+
+    Args:
+        payload: Must contain 'seal_entry_id'. May contain 'observed_state' dict
+                 with vitals, well_score, clarity, etc. If omitted, auto-fetches
+                 current vitals via arif_measure.
+
+    Returns:
+        dict with delta_fields, aggregate_score (0.0-1.0), flags, and verdict.
+    """
+    import json
+
+    from arifosmcp.tools.ops import arif_measure
+
+    seal_entry_id = payload.get("seal_entry_id")
+    if not seal_entry_id:
+        return {
+            "mode": "score_prediction",
+            "verdict": "VOID",
+            "payload": {"note": "score_prediction requires seal_entry_id"},
+        }
+
+    # ── Resolve predicted state from seal entry ────────────────────────
+    predicted_state: dict = {}
+    try:
+        from arifosmcp.runtime.tools import _VAULT_LEDGER
+
+        # Search for the seal entry by entry_id
+        found = None
+        for entry in _VAULT_LEDGER:
+            if entry.get("id") == seal_entry_id:
+                found = entry
+                break
+
+        if found:
+            raw_payload = found.get("payload", "{}")
+            if isinstance(raw_payload, str):
+                try:
+                    parsed = json.loads(raw_payload)
+                except json.JSONDecodeError:
+                    parsed = {}
+            else:
+                parsed = raw_payload if isinstance(raw_payload, dict) else {}
+            predicted_state = parsed.get("predicted_state", {})
+    except Exception:
+        pass  # Fail-soft: observed state still useful without predicted baseline
+
+    # ── Resolve observed state ─────────────────────────────────────────
+    observed_state: dict = payload.get("observed_state", {})
+    if not observed_state:
+        # Auto-fetch current vitals
+        try:
+            vitals_result = arif_measure(mode="vitals")
+            if hasattr(vitals_result, "__dict__"):
+                vitals_data = vars(vitals_result)
+            elif isinstance(vitals_result, dict):
+                vitals_data = vitals_result
+            else:
+                vitals_data = {}
+
+            observed_state = {
+                "runtime_drift": vitals_data.get("runtime_drift", False),
+                "status": vitals_data.get("status", "unknown"),
+            }
+            # Try to read WELL substrate for observed well_score/clarity
+            try:
+                from arifosmcp.tools.judge import _read_well_substrate
+
+                _well = _read_well_substrate()
+                observed_state["well_score"] = _well.get("well_score")
+                observed_state["human_ready"] = _well.get("human_ready")
+                observed_state["clarity"] = _well.get("clarity")
+            except Exception:
+                pass
+        except Exception:
+            observed_state = {"status": "unavailable"}
+
+    # ── Compute structured delta ───────────────────────────────────────
+    observed_at = datetime.now(UTC).isoformat()
+    delta_fields: dict[str, dict] = {}
+    _pred_fields = {
+        "well_score",
+        "human_ready",
+        "clarity",
+        "runtime_drift",
+        "floors_checked",
+        "floors_violated",
+    }
+
+    for field in _pred_fields:
+        _pred_val = predicted_state.get(field)
+        _obs_val = observed_state.get(field)
+        if _pred_val is not None and _obs_val is not None:
+            try:
+                if isinstance(_pred_val, (int, float)) and isinstance(_obs_val, (int, float)):
+                    _delta = _obs_val - _pred_val
+                    delta_fields[field] = {
+                        "predicted": _pred_val,
+                        "observed": _obs_val,
+                        "delta": _delta,
+                        "abs_delta": abs(_delta),
+                    }
+                elif isinstance(_pred_val, bool) and isinstance(_obs_val, bool):
+                    _delta_val = 1.0 if _pred_val != _obs_val else 0.0
+                    delta_fields[field] = {
+                        "predicted": _pred_val,
+                        "observed": _obs_val,
+                        "delta": _delta_val,
+                        "abs_delta": _delta_val,
+                    }
+                elif isinstance(_pred_val, list) and isinstance(_obs_val, list):
+                    _delta_val = len(set(_pred_val) ^ set(_obs_val))
+                    delta_fields[field] = {
+                        "predicted": _pred_val,
+                        "observed": _obs_val,
+                        "delta": _delta_val,
+                        "abs_delta": _delta_val,
+                    }
+                else:
+                    _match = 0.0 if str(_pred_val) != str(_obs_val) else 1.0
+                    delta_fields[field] = {
+                        "predicted": str(_pred_val),
+                        "observed": str(_obs_val),
+                        "delta": 1.0 - _match,
+                        "abs_delta": 1.0 - _match,
+                    }
+            except Exception:
+                delta_fields[field] = {
+                    "predicted": str(_pred_val),
+                    "observed": str(_obs_val),
+                    "delta": None,
+                    "abs_delta": None,
+                    "error": "computation failed",
+                }
+
+    # ── Compute aggregate score and flags ──────────────────────────────
+    LARGE_DELTA_THRESHOLD = 3.0  # For numeric fields, abs_delta > threshold = LARGE_DELTA
+    flags: list[str] = []
+    total_fields = 0
+    total_error = 0.0
+    max_possible_error = 0.0
+
+    for _field_name, _d in delta_fields.items():
+        _abs = _d.get("abs_delta")
+        if _abs is not None and isinstance(_abs, (int, float)):
+            total_fields += 1
+            total_error += _abs
+            max_possible_error += _abs + LARGE_DELTA_THRESHOLD  # Normalise with headroom
+            if _abs > LARGE_DELTA_THRESHOLD:
+                flags.append("LARGE_DELTA")
+
+    if total_fields > 0:
+        # Aggregate score: 1.0 = perfect prediction, 0.0 = completely wrong
+        # Use exponential decay: score = exp(-avg_error / threshold)
+        _avg = total_error / total_fields
+        import math
+
+        aggregate_score = round(math.exp(-_avg / LARGE_DELTA_THRESHOLD), 4)
+        aggregate_score = max(0.0, min(1.0, aggregate_score))
+    else:
+        aggregate_score = 1.0  # No fields to compare = no prediction error
+
+    if not predicted_state:
+        flags.append("NO_PREDICTED_STATE")
+        aggregate_score = 0.0
+
+    if not observed_state or observed_state == {"status": "unavailable"}:
+        flags.append("NO_OBSERVED_STATE")
+
+    # F1/F2 DELTA THRESHOLD INTERRUPT (ECHO/PaW Circuit Breaker)
+    # If the prediction delta exceeds Delta_max, DO NOT silently log the delta
+    # as a learning gradient. A massive delta means the judge's mental model
+    # is dangerously disconnected from the substrate - this is an epistemic
+    # failure (F2 TRUTH) and a structural risk (F1 AMANAH).
+    #
+    # Besar sangat lari, kena stop. Critical hallucination requires
+    # sovereign override, not silent gradient storage.
+    DELTA_MAX_THRESHOLD = 0.30  # 30% deviation = critical divergence
+
+    if aggregate_score < (1.0 - DELTA_MAX_THRESHOLD):  # score below 0.70
+        return {
+            "mode": "score_prediction",
+            "verdict": "HOLD",
+            "payload": {
+                "hold_type": "F1_F2_DELTA_BREACH",
+                "reason": (
+                    f"F1/F2_DELTA_BREACH: prediction delta {aggregate_score:.2f} "
+                    f"exceeds threshold (>{DELTA_MAX_THRESHOLD:.0%}). "
+                    f"The judge's predicted state is dangerously disconnected "
+                    f"from the observed substrate."
+                ),
+                "prediction_id": seal_entry_id,
+                "observed_at": observed_at,
+                "aggregate_score": aggregate_score,
+                "threshold": 1.0 - DELTA_MAX_THRESHOLD,
+                "delta_fields": delta_fields,
+                "flags": flags + ["F1_AMANAH_RISK", "F2_TRUTH_EPISTEMIC_FAILURE"],
+                "floors_breached": ["F1", "F2"],
+                "next_action": (
+                    "SOVEREIGN_OVERRIDE_REQUIRED - arif_judge(mode='escalate'). "
+                    "Critical hallucination detected; cannot log as learning gradient. "
+                    "Human sovereign (Arif) must acknowledge and override."
+                ),
+                "provenance": {
+                    "source": "arif_memory.score_prediction",
+                    "seal_entry_id": seal_entry_id,
+                    "circuit": "F1_F2_DELTA_BREACH",
+                },
+            },
+        }
+
+    result = {
+        "mode": "score_prediction",
+        "verdict": "SEAL",
+        "payload": {
+            "prediction_id": seal_entry_id,
+            "observed_at": observed_at,
+            "delta_fields": delta_fields,
+            "aggregate_score": aggregate_score,
+            "flags": flags,
+            "provenance": {
+                "source": "arif_memory.score_prediction",
+                "seal_entry_id": seal_entry_id,
+            },
+            "note": "Prediction-observation delta stored in L2 memory tier.",
+        },
+    }
+    return result
+
+
 async def _handle_attest(payload: dict, ctx: Any) -> dict:
     """NEW — verify a memory_id against VAULT999 v2 chain.
 
@@ -615,4 +858,5 @@ __all__ = [
     "_handle_promote",
     "_handle_forget",
     "_handle_attest",
+    "_handle_score_prediction",
 ]
