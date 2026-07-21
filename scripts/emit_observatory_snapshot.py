@@ -3,19 +3,31 @@
 
 The API and this scheduled external emitter deliberately share one builder.
 The emitter does not invoke tools; durable capability evidence remains the SOT.
+
+After the snapshot is written and signed, the emitter optionally delegates
+publication to ``observatory_publish.publish_latest_snapshot``. Publication
+is gated by the ``OBSERVATORY_PUBLISH_TARGET`` environment variable — when
+unset (the default), no webroot writes occur. Live publication requires
+explicit F13 sovereign opt-in (T3). The helper itself is atomic and
+fail-closed: it never touches the private key and re-verifies every
+written artifact by SHA-256 before returning.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS_DIR))
 
 from arifosmcp.runtime.capability_drift import PUBLIC_CANONICAL_TOOLS  # noqa: E402
 from arifosmcp.runtime.rest_routes.observatory_routes import build_snapshot  # noqa: E402
+from observatory_publish import publish_latest_snapshot  # noqa: E402
 
 SNAP_DIR = Path("/root/.arifos/observatory/snapshots")
 
@@ -28,6 +40,35 @@ def build_observatory() -> dict[str, object]:
     canonical durable capability cache and event bus.
     """
     return build_snapshot(None, registered_tools=set(PUBLIC_CANONICAL_TOOLS))
+
+
+def _maybe_publish() -> None:
+    """Publish to ``$OBSERVATORY_PUBLISH_TARGET`` if set. No-op otherwise.
+
+    We deliberately do not raise on publish failure when no target is set —
+    the canonical emit must succeed independently of the publication gate.
+    """
+    target = os.environ.get("OBSERVATORY_PUBLISH_TARGET", "").strip() or None
+    try:
+        receipt = publish_latest_snapshot(target)
+    except Exception as exc:
+        print(f"  publish: FAILED {type(exc).__name__}: {exc}", file=sys.stderr)
+        raise
+    if receipt["status"] == "SKIPPED":
+        print(
+            "  publish: SKIPPED (OBSERVATORY_PUBLISH_TARGET unset — no live webroot writes)",
+            file=sys.stderr,
+        )
+        return
+    print(f"  publish: OK target={receipt['target_dir']}", file=sys.stderr)
+    for name, info in receipt["files"].items():
+        flag = "skipped" if info.get("skipped") else "wrote"
+        print(
+            f"    {flag:7s} {name} ({info['size_bytes']} bytes, "
+            f"sha256={info['sha256'][:12]})",
+            file=sys.stderr,
+        )
+    print(f"  verification_url: {receipt['verification_url']}", file=sys.stderr)
 
 
 def main() -> int:
@@ -55,6 +96,7 @@ def main() -> int:
             f"{finding.get('status')} | {str(finding.get('evidence'))[:80]}",
             file=sys.stderr,
         )
+    _maybe_publish()
     return 0
 
 
