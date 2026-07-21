@@ -15,6 +15,7 @@ try:
 except ImportError:
     pass  # Windows / dev fallback
 
+import asyncio
 import logging
 import os
 import sys
@@ -150,6 +151,51 @@ _CHATGPT_COMPAT = os.getenv("ARIFOS_CHATGPT_COMPAT", "true").lower() in (
     "1",
     "yes",
 )
+
+
+class ToolTimeoutMiddleware(BaseHTTPMiddleware):
+    """Prevent Caddy 502 by returning structured HOLD before proxy timeout.
+
+    Heavy tools (arif_judge, arif_think) can exceed the upstream proxy timeout
+    when the LLM cascade is degraded. This middleware fires first — at 45s —
+    returning a constitutional DEGRADED/HOLD response instead of an opaque 502.
+
+    ChatGPT audit 2026-07-20: 'Convert upstream failures into structured
+    constitutional responses.' This is that fix.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.rstrip("/") == "/mcp" and request.method == "POST":
+            try:
+                return await asyncio.wait_for(call_next(request), timeout=45.0)
+            except asyncio.TimeoutError:
+                return JSONResponse(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": None,
+                        "result": {
+                            "status": "DEGRADED",
+                            "verdict": "HOLD",
+                            "reason_code": "JUDGE_UNAVAILABLE",
+                            "reasons": [
+                                "TOOL_TIMEOUT: arifOS tool exceeded 45s budget. "
+                                "The upstream LLM cascade (TokenRouter → MiniMax → SEA-LION → Ollama) "
+                                "is likely degraded. This is a constitutional HOLD — "
+                                "execution is blocked until the reasoning backend recovers."
+                            ],
+                            "failed_dependency": "llm_cascade",
+                            "execution_allowed": False,
+                            "retryable": True,
+                            "next_safe_action": (
+                                "Wait 60s and retry. If the error persists, check "
+                                "arifOS logs: journalctl -u arifos --since '2 min ago'. "
+                                "The model may be rate-limited or the SEA-LION API may be degraded."
+                            ),
+                        },
+                    },
+                    status_code=200,
+                )
+        return await call_next(request)
 
 
 class GlobalPanicMiddleware(BaseHTTPMiddleware):
@@ -2234,6 +2280,9 @@ if app:
     # Starlette executes later-added middleware first. Airlock must run before
     # governance so enforce mode sees scope["airlock_envelope"].
     app.add_middleware(AirlockASGIMiddleware)
+    app.add_middleware(
+        ToolTimeoutMiddleware
+    )  # ChatGPT priority #2: structured HOLD before Caddy 502
     app.add_middleware(GlobalPanicMiddleware)
     # /health is registered by register_rest_routes() below with full thermodynamic schema
     app.add_route("/ready", horizon_ready, methods=["GET"])

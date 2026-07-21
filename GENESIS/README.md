@@ -143,5 +143,9 @@ GENESIS/  ← you are here
 
 ---
 
+| 052 | [12 INVARIANTS OF AI AUTHORITY](052_INVARIANTS_OF_AI_AUTHORITY.md) | F13 SOVEREIGN | 2026-07-20 | BINDING — What AI must never do to humans |
+
+---
+
 *Forged: 2026-07-20 by FORGE (000Ω) — Documentation Audit & Graph-Connect*
 *DITEMPA BUKAN DIBERI ⚒️*

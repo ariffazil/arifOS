@@ -1348,6 +1348,7 @@ def arif_init(
             if _is_sovereign:
                 try:
                     from arifosmcp.runtime.crypto_auth import (
+                        _auto_sign_nonce,
                         classify_actor_band,
                         issue_actor_challenge,
                         verify_init_identity,
