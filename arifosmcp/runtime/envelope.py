@@ -148,6 +148,144 @@ class OutputEnvelope(BaseModel):
     peace2: float = 1.0  # Ω-Stability: stability index
     g_star: float = 0.0  # Δ-Intelligence: epistemic quality (G*T*C)^1/3
     omega_0: float = 0.05  # Δ-Intelligence: Humility band (Gödel uncertainty)
+    boundary: "EpistemicBoundary | None" = None  # GENESIS 053 — mandatory per-organ null-space
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LAYER B+ — EPISTEMIC BOUNDARY (GENESIS 053 — mandatory on every organ output)
+
+
+class EpistemicBoundary(BaseModel):
+    """
+    GENESIS 053 — Mandatory null-space declaration.
+
+    Every organ output MUST declare what its grammar can see (authorized_evidence),
+    what it CANNOT see (out_of_bounds), and where its certainty breaks
+    (uncertainty_vectors). Omission of this block invalidates the output (ΔS > 0).
+
+    This is not an admission of failure. It is a mathematical requirement for
+    multi-organ synthesis. Without boundary declarations, the Metabolizer
+    cannot cross-wire organs — it would be passively aggregating.
+    """
+
+    authorized_evidence: list[str] = Field(
+        default_factory=list,
+        description="Exact data streams, tools, or models this organ successfully invoked.",
+        min_length=1,
+    )
+    out_of_bounds: list[str] = Field(
+        default_factory=list,
+        description="Critical variables adjacent to this analysis that exist outside "
+        "this organ's tool grammar. What this organ CANNOT see.",
+        min_length=1,
+    )
+    uncertainty_vectors: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Domain-specific variables where confidence P < 0.99, "
+        "with reason. Format: {'variable': str, 'confidence': float, 'reason': str}.",
+    )
+    declared_by: str = Field(
+        default="unknown",
+        description="Organ name: GEOX | WEALTH | WELL | arifOS | A-FORGE | AAA",
+    )
+    cross_wire_hooks: list[str] = Field(
+        default_factory=list,
+        description="Specific organs this boundary is inviting to challenge. "
+        "The Metabolizer uses these hooks for Forced Domain Interrogation.",
+    )
+
+    def is_valid_boundary(self) -> bool:
+        """F4 CLARITY: boundary must declare at least one blind spot and one hook."""
+        return bool(self.out_of_bounds) and bool(self.authorized_evidence)
+
+    def as_metabolizer_prompt(self) -> str:
+        """Generate the cross-wire prompt the Metabolizer feeds to the next organ."""
+        if not self.out_of_bounds or not self.cross_wire_hooks:
+            return ""
+        lines = [
+            "### [CROSS-WIRE CONSTRAINT — from EpistemicBoundary]",
+            f"Source organ: {self.declared_by}",
+            "This organ has declared the following blind spots:",
+        ]
+        for blind in self.out_of_bounds:
+            lines.append(f"  - {blind}")
+        lines.append("Challenge target: validate, refute, or refine these specific gaps.")
+        return "\n".join(lines)
+
+
+class BoundaryValidationResult(BaseModel):
+    """Result of enforcing the epistemic boundary gate."""
+
+    passed: bool
+    verdict: Literal["PASS", "HOLD", "REJECT"]
+    boundary: EpistemicBoundary | None = None
+    missing_fields: list[str] = Field(default_factory=list)
+    advice: str = ""
+
+
+def enforce_epistemic_boundary(
+    envelope: "OutputEnvelope",
+) -> BoundaryValidationResult:
+    """
+    GENESIS 053 Gate — validates that every organ output carries an epistemic boundary.
+
+    REJECT conditions:
+      - No EpistemicBoundary present
+      - out_of_bounds is empty (organ claims to see everything)
+      - authorized_evidence is empty (organ cannot name its own tools)
+      - uncertainty_vectors missing when confidence < 0.99
+
+    HOLD condition:
+      - cross_wire_hooks is empty (organ is not inviting challenge)
+
+    PASS condition:
+      - All fields populated, at least one blind spot declared, hooks present
+    """
+    boundary = envelope.boundary
+
+    if boundary is None:
+        return BoundaryValidationResult(
+            passed=False,
+            verdict="REJECT",
+            missing_fields=["boundary"],
+            advice="GENESIS 053: Output without EpistemicBoundary is invalid (ΔS > 0). "
+            "Declare your null-space before resubmitting.",
+        )
+
+    if not boundary.authorized_evidence:
+        return BoundaryValidationResult(
+            passed=False,
+            verdict="REJECT",
+            boundary=boundary,
+            missing_fields=["authorized_evidence"],
+            advice="Name the tools you used. If you cannot name them, you do not know "
+            "what you know.",
+        )
+
+    if not boundary.out_of_bounds:
+        return BoundaryValidationResult(
+            passed=False,
+            verdict="REJECT",
+            boundary=boundary,
+            missing_fields=["out_of_bounds"],
+            advice="You MUST declare what you cannot see. An organ that claims "
+            "omniscience is grammar-captured. Name at least one blind spot.",
+        )
+
+    if not boundary.cross_wire_hooks:
+        return BoundaryValidationResult(
+            passed=True,
+            verdict="HOLD",
+            boundary=boundary,
+            advice="Boundary declared but no cross-wire hooks. Invite at least one "
+            "organ to challenge your output for F2 TRUTH.",
+        )
+
+    return BoundaryValidationResult(
+        passed=True,
+        verdict="PASS",
+        boundary=boundary,
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
