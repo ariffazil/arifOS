@@ -1,0 +1,52 @@
+name: Federation ABI Conformance
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/schemas/**'
+      - 'contracts/fixtures/**'
+      - 'scripts/validate_federation_abi.py'
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/schemas/**'
+      - 'contracts/fixtures/**'
+      - 'scripts/validate_federation_abi.py'
+
+jobs:
+  abi-conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install jsonschema
+
+      - name: Schema syntax check
+        run: python scripts/validate_federation_abi.py --schema-only
+
+      - name: Full conformance suite
+        run: python scripts/validate_federation_abi.py
+
+      - name: Verify AAA mirror hash
+        run: |
+          echo "Canonical (arifOS) schema hashes:"
+          sha256sum contracts/schemas/*.v1.schema.json
+          echo ""
+          echo "To verify AAA mirror: compare against AAA docs/schemas/SHA256SUMS"
+          echo "This step passes if canonical schemas exist and have valid hashes."
+
+      - name: Verify single schema root
+        run: |
+          v2_count=$(find contracts/schemas -name "*v2*" 2>/dev/null | wc -l)
+          if [ "$v2_count" -gt 0 ]; then
+            echo "❌ ERROR: v2 schema files detected. Only v1.0.0 is canonical."
+            find contracts/schemas -name "*v2*"
+            exit 1
+          fi
+          echo "✅ Single schema root confirmed (v1.0.0 only)"

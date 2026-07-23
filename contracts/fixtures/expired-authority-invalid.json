@@ -1,8 +1,9 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "1.0.0",
   "invocation_id": "inv-20260723-003",
   "trace_id": "trace-20260723-expired",
-  "session_id": "SEAL-expired123",
+  "hop_index": 0,
+  "session_id": "SEAL-expired00000001",
   "actor_id": "arif",
   "source_organ": "A-FORGE",
   "destination_organ": "WEALTH",
@@ -11,7 +12,7 @@
   "evidence_refs": [],
   "payload_hash": "sha256:abc123",
   "source_release": "aforge-5a00756",
-  "source_manifest_hash": "sha256:ghi789",
+  "source_manifest_hash": "sha256:ghi789012",
   "authority": {
     "action_class": "COMPUTE",
     "mutation": false,
