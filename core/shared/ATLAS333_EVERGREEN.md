@@ -5,7 +5,7 @@
 > **Analogy:** Like geological mapping — the earth is never "done," neither is this
 > **Owner:** ARIF (F13 SOVEREIGN)
 > **Steward:** OpenCode (auto-updates on every session)
-> **Last Updated:** 2026-07-19
+> **Last Updated:** 2026-07-23
 
 ---
 
@@ -724,7 +724,7 @@ You cannot audit what you refuse to read. But reading credentials creates a atta
 - **Skill mesh:** 194 ok, 1 extra (Codex atlas333), 0 broken
 - **Grok harness:** 9 new substrate links created
 - **Codex harness:** All 9 substrate links exist
-- **ATLAS333 MCP resources:** 13 live, all accessible
+- **ATLAS333 MCP resources:** 10 live, all accessible (index, paradox/list, quote/list, zones, organs, thresholds, activation/rules, flow, geometry, seal/head)
 - **ATLAS333 tests:** 11/11 passed
 - **Domains:** substrate, knowledge, warga, meta, general, .system, constitutional
 
