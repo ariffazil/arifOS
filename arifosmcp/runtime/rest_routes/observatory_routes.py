@@ -3044,6 +3044,96 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
                 headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
             )
 
+    @route("/findings")
+    async def _h_findings(req):  # type: ignore
+        """Lightweight findings aggregator — capability drift + seal age + organ status.
+
+        Returns an array of finding objects. Never times out (reads cached state only).
+        Fixes the JS error: (d.findings || []).filter is not a function.
+        """
+        from arifosmcp.runtime.rest_routes.rest_routes import (
+            _cache_headers,
+            _dashboard_cors_headers,
+            _merge_headers,
+        )
+
+        items: list[dict[str, Any]] = []
+
+        # 1. Capability drift from live capabilities endpoint (cached)
+        try:
+            from arifosmcp.runtime.capability_drift import (
+                _registered_tools_async,
+                compute_capability_matrix,
+            )
+
+            reg_tools = await _registered_tools_async(mcp)
+            matrix = compute_capability_matrix(mcp=mcp, registered_tools=reg_tools)
+            tools = matrix.get("tools", [])
+            drift_tools = [t for t in tools if t.get("status") == "declared_only"]
+            if drift_tools:
+                items.append(
+                    {
+                        "severity": "medium",
+                        "type": "capability_drift",
+                        "message": f"{len(drift_tools)} tools declared but not registered or callable",
+                        "detail": [t["name"] for t in drift_tools],
+                        "recommendation": "Register tools or update capability_registry.json",
+                    }
+                )
+        except Exception:
+            pass  # findings are best-effort; never block the endpoint
+
+        # 2. Seal chain age
+        try:
+            seal_head_path = (
+                Path(os.getenv("ARIFOS_VAULT_DIR", "/root/.local/share/arifos/vault999"))
+                / "seal_chain_head.json"
+            )
+            if seal_head_path.exists():
+                import json as _json
+
+                head = _json.loads(seal_head_path.read_text())
+                ts = head.get("timestamp", "")
+                if ts:
+                    from datetime import datetime, timezone
+
+                    dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                    age_s = (datetime.now(timezone.utc) - dt).total_seconds()
+                    if age_s > 7200:  # 2 hours
+                        items.append(
+                            {
+                                "severity": "medium" if age_s < 86400 else "high",
+                                "type": "seal_chain_stale",
+                                "message": f"Last seal {age_s / 3600:.0f}h ago — chain may be stale",
+                                "age_seconds": int(age_s),
+                                "recommendation": "Run arif_seal to close the current epoch",
+                            }
+                        )
+        except Exception:
+            pass
+
+        # 3. Vault age (secrets rotation check)
+        try:
+            vault_path = Path(os.path.expanduser("~/.secrets/vault.env"))
+            if vault_path.exists():
+                age_s = time.time() - vault_path.stat().st_mtime
+                if age_s > 86400:
+                    items.append(
+                        {
+                            "severity": "medium",
+                            "type": "vault_rotation_due",
+                            "message": f"Secrets vault not rotated in {age_s / 3600:.0f}h",
+                            "recommendation": "Rotate secrets per lifecycle policy",
+                        }
+                    )
+        except Exception:
+            pass
+
+        return JSONResponse(
+            {"findings": items, "count": len(items)},
+            headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(req)),
+        )
+
     @route("/seal/replay")
     async def _h_seal_replay(req):  # type: ignore
         """VAULT999 chain replay — deterministic reconstruction (F-004).
