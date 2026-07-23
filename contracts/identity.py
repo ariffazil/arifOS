@@ -305,6 +305,11 @@ CANONICAL_ACTORS: dict[str, dict[str, str | list[str]]] = {
         "default_tier": "AGENT",
         "aliases": ["hermes", "hermes-asi"],
     },
+    "codex": {
+        "sovereign_id": "ARIF_FAZIL",
+        "default_tier": "AGENT",
+        "aliases": ["codex", "codex-cli", "FI-005", "FI-005-codex-cli"],
+    },
 }
 
 
