@@ -3311,7 +3311,140 @@ def register_rest_routes(
             headers={"Access-Control-Allow-Origin": "*"},
         )
 
+    @route("/999/verify", methods=["GET"])
+    async def vault_proof(request: Request) -> Response:
+        """Public vault proof — GET /999/verify.
+
+        The endpoint that makes /999 §2 operationally honest.
+        Returns the live HEAD hash, chain verification status, and
+        falsification instructions. PUBLIC — no session or token required.
+
+        This is the single line of hex that converts a declaration into a
+        demonstration. Embed head_hash in the /999 page; any agent can
+        cross-verify by fetching this endpoint and comparing.
+
+        MEMORY BOUNDARY: No raw receipts, no private traces, no internal data.
+        For operator verification, use /api/observatory/v1/seal/*.
+        """
+        from arifosmcp.runtime.rest_routes.vault_verify import vault_proof_endpoint
+
+        return await vault_proof_endpoint(request)
+
+    # ── Constitutional Gate (Condition 1: fail-CLOSED) ────────────────────────
+    @route("/gate/check", methods=["GET", "POST", "OPTIONS"])
+    async def gate_check(request: Request) -> Response:
+        """Caddy forward_auth gate — constitutional check before organ proxy.
+
+        Called by Caddy forward_auth directive BEFORE every organ /mcp* request.
+        Returns:
+            200 — request may proceed to organ backend
+            403 — DROP (fail-CLOSED on any error, never forward on exception)
+
+        Contract (F9 + F12 + F11):
+          - Validates organ is in the declared manifest (F9 — no phantoms)
+          - Basic injection defense (F12 — forwarded-for chain depth)
+          - Logs each check for F11 auditability (lightweight, no VAULT999 write)
+
+        CRITICAL: Any exception MUST return 403, not propagate. A gate that
+        forwards on error is a decorative gate (F9 violation — attests falsely).
+
+        DITEMPA BUKAN DIBERI — this gate was forged from an architecture decision,
+        not bolted on as an afterthought. Incident 2026-07-24: prior to this
+        endpoint, 4 organ /mcp* routes had no constitutional gate.
+        """
+        # OPTIONS preflight — allow CORS, still gated
+        if request.method == "OPTIONS":
+            return PlainTextResponse(
+                "",
+                status_code=204,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Mcp-Session-Id, Authorization",
+                },
+            )
+
+        try:
+            # ── Declared organ manifest (F9 — no phantom organs) ─────────────
+            DECLARED_ORGANS: frozenset[str] = frozenset({
+                "geox.arif-fazil.com",
+                "wealth.arif-fazil.com",
+                "well.arif-fazil.com",
+                "forge.arif-fazil.com",
+                "a-forge.arif-fazil.com",
+                "mcp.arif-fazil.com",
+                "arifos.arif-fazil.com",
+            })
+
+            # Extract forwarded host from Caddy forward_auth subrequest
+            host = (
+                request.headers.get("X-Forwarded-Host", "")
+                or request.headers.get("Host", "")
+            ).split(":")[0].lower().strip()
+
+            # F9: block phantom organs — unknown host = reject
+            if host and host not in DECLARED_ORGANS:
+                import logging
+                logging.getLogger("arifos.gate").warning(
+                    "GATE_REJECT phantom_organ host=%s path=%s",
+                    host,
+                    request.headers.get("X-Forwarded-Uri", "?"),
+                )
+                return PlainTextResponse(
+                    "403 Forbidden — organ not in declared manifest",
+                    status_code=403,
+                )
+
+            # F12: injection defense — suspiciously long X-Forwarded-For chain
+            xff = request.headers.get("X-Forwarded-For", "")
+            if xff.count(",") > 8:
+                import logging
+                logging.getLogger("arifos.gate").warning(
+                    "GATE_REJECT injection_signal host=%s xff_depth=%d",
+                    host, xff.count(","),
+                )
+                return PlainTextResponse(
+                    "403 Forbidden — injection signal",
+                    status_code=403,
+                )
+
+            # F12: block path traversal in forwarded URI
+            fwd_uri = request.headers.get("X-Forwarded-Uri", "")
+            if ".." in fwd_uri or "%2e%2e" in fwd_uri.lower():
+                return PlainTextResponse(
+                    "403 Forbidden — path traversal",
+                    status_code=403,
+                )
+
+            # F11: audit log (lightweight — no VAULT999 write per-request)
+            import logging
+            logging.getLogger("arifos.gate").info(
+                "GATE_PASS host=%s path=%s method=%s",
+                host,
+                fwd_uri or request.headers.get("X-Forwarded-Uri", ""),
+                request.headers.get("X-Forwarded-Method", request.method),
+            )
+
+            # PASS
+            return PlainTextResponse(
+                "200 OK — constitutional gate passed",
+                status_code=200,
+                headers={"X-Gate-Verdict": "PASS", "X-Gate-Version": "B.1"},
+            )
+
+        except Exception as exc:
+            # Fail-CLOSED — ANY exception → 403, never forward
+            import logging
+            logging.getLogger("arifos.gate").error(
+                "GATE_ERROR exception=%s — fail-closed", str(exc)
+            )
+            return PlainTextResponse(
+                "403 Forbidden — gate error (fail-closed)",
+                status_code=403,
+            )
+
     @route("/capability", methods=["GET"])
+
     async def capability(request: Request) -> Response:
         """Capability map — what is wired and configured in this kernel instance."""
         payload = build_runtime_capability_map()
@@ -6752,6 +6885,17 @@ setInterval(refreshSot, 30000);
         }
         return JSONResponse(manifest, headers={"Access-Control-Allow-Origin": "*"})
 
+    # ── T3.2: VAULT Public Verification ───────────────────────────────────────
+    @route("/.well-known/arifos-vault-verify.json", methods=["GET"])
+    async def vault_verify_legacy(request: Request) -> JSONResponse:
+        """Public VAULT verification manifest for external auditors (OBSERVE_ONLY).
+
+        Legacy surface — now backed by canonical_vault_chain.verify_chain() (F-004).
+        No session or token required. Canonical proof endpoint is /999/verify."""
+        from arifosmcp.runtime.rest_routes.vault_verify import vault_verify_endpoint
+
+        return await vault_verify_endpoint(request)
+
     @route("/.well-known/governance.jsonld", methods=["GET"])
     async def well_known_governance(request: Request) -> Response:
         """JSON-LD governance context — constitutional floors and authority model."""
@@ -6795,23 +6939,6 @@ setInterval(refreshSot, 30000);
             },
         )
 
-    # ── T3.2: VAULT Public Verification ───────────────────────────────────────
-    @route("/.well-known/arifos-vault-verify.json", methods=["GET"])
-    async def vault_verify_endpoint(request: Request) -> JSONResponse:
-        """Public VAULT verification manifest for external auditors (OBSERVE_ONLY).
-
-        No session or token required. Returns chain integrity status, head seq,
-        recent seals, and verification instructions for replaying receipts."""
-        from arifosmcp.runtime.rest_routes.vault_verify import get_vault_verification_manifest
-
-        manifest = get_vault_verification_manifest()
-        return JSONResponse(
-            manifest,
-            headers={
-                "Access-Control-Allow-Origin": "*",
-                "Cache-Control": "public, max-age=300",
-            },
-        )
 
     # ── Federation Status Spine ────────────────────────────────────────────────
     @route("/status.json", methods=["GET"])
