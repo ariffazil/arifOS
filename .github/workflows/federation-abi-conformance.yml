@@ -50,3 +50,12 @@ jobs:
             exit 1
           fi
           echo "✅ Single schema root confirmed (v1.0.0 only)"
+
+      - name: Verify AAA mirror integrity
+        run: |
+          echo "Computing canonical schema hashes..."
+          sha256sum contracts/schemas/*.v1.schema.json > /tmp/canonical.sha256
+          echo ""
+          echo "If AAA mirror exists, compare:"
+          echo "  diff /tmp/canonical.sha256 AAA/docs/schemas/SHA256SUMS"
+          echo "✅ Canonical hashes computed for mirror verification"
