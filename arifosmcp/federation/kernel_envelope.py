@@ -147,6 +147,76 @@ def get_lane_for_tool(organ_id: str, tool_name: str) -> str:
     return "reasoning"  # default for unknown organs
 
 
+def _resolve_actor_verified(session_id: str | None, actor_id: str | None = None) -> bool:
+    """Single projection of actor_verified for organ kernel envelopes.
+
+    FORGE-0A (2026-07-23): Never invent True from (actor_id and session_id)
+    presence — that is the identity schism (wrapper True / standing False).
+
+    Order:
+      1. Session store / AuthorityState (canonical)
+      2. Else False (unverified / anonymous / store miss)
+
+    SCT claim ``av`` is authoritative only when already projected into the
+    session store at arif_init / bind_identity. This reader does not parse
+    tokens independently (would re-open multi-writer drift).
+    """
+    if not session_id or str(session_id).startswith("SES-IMPLICIT-"):
+        return False
+    # Prefer session identity map (set only at bind / arif_init)
+    try:
+        from arifosmcp.runtime.session import get_session_identity
+
+        ident = get_session_identity(session_id)
+        if isinstance(ident, dict):
+            return bool(ident.get("actor_verified") or ident.get("verified"))
+    except Exception:
+        pass
+    # AuthorityState / full session dict via tools.get_session
+    try:
+        from arifosmcp.runtime.tools import get_session
+
+        sess = get_session(session_id)
+        if isinstance(sess, dict):
+            try:
+                from arifosmcp.runtime.authority import read_authority_state
+
+                state = read_authority_state(sess)
+                return bool(state.actor.verified)
+            except Exception:
+                return bool(
+                    sess.get("actor_verified")
+                    or sess.get("signature_verified")
+                    or sess.get("identity_verified")
+                )
+    except Exception:
+        pass
+    # File-store fallback (same paths as live_kernel)
+    try:
+        store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
+        for p in (
+            store_path,
+            "/tmp/arifos/sessions.json",
+            "/tmp/arifos/runtime_sessions.json",
+            "/root/.local/share/arifos/sessions.json",
+        ):
+            if not os.path.exists(p):
+                continue
+            with open(p, encoding="utf-8") as f:
+                data = json.load(f)
+            sessions = data.get("sessions", data) if isinstance(data, dict) else {}
+            sess = sessions.get(session_id) if isinstance(sessions, dict) else None
+            if isinstance(sess, dict):
+                return bool(
+                    sess.get("actor_verified")
+                    or sess.get("signature_verified")
+                    or sess.get("identity_verified")
+                )
+    except Exception:
+        pass
+    return False
+
+
 def build_kernel_envelope(
     *,
     payload: dict[str, Any],
@@ -190,14 +260,16 @@ def build_kernel_envelope(
     requires_lease = LANE_REQUIRES_LEASE.get(lane, False)
     requires_session = LANE_REQUIRES_SESSION.get(lane, False)
 
-    # Authority enforcement
+    # FORGE-0A: never mint SES-IMPLICIT / LEASE-IMPLICIT identity fiction.
+    # Missing session on a session-required lane stays None — caller sees
+    # unbound envelope, not a fabricated verified-looking identity.
     if requires_lease and not lease_id:
-        lease_id = f"LEASE-IMPLICIT-{organ_id}-{int(time.time())}"
-    if requires_session and not session_id:
-        session_id = f"SES-IMPLICIT-{organ_id}-{int(time.time())}"
+        lease_id = None
+    # do NOT invent session_id
 
     contract_version = ORGAN_CONTRACT_VERSIONS.get(organ_id, "unknown")
     organ_role = ORGAN_ROLES.get(organ_id, "unknown")
+    actor_verified = _resolve_actor_verified(session_id, actor_id)
 
     envelope = {
         "kernel": {
@@ -206,14 +278,9 @@ def build_kernel_envelope(
             "constitution_hash": CONSTITUTION_HASH,
             "session_id": session_id,
             "actor_id": actor_id,
-            # P0 fix 2026-07-04: do NOT recompute actor_verified from presence
-            # of actor_id/session_id. That produced True when session was bound
-            # but NOT verified — creating the envelope=False, wrapper=True
-            # contradiction. Now reads from session store when available.
-            # Set once at 000_init, read-only downstream. Never recomputed.
-            "actor_verified": bool(
-                actor_id and session_id
-            ),  # kept as fallback — TODO: read from session store
+            # FORGE-0A: single projection from session store / AuthorityState.
+            # Never bool(actor_id and session_id).
+            "actor_verified": actor_verified,
             "sovereign": "ARIF_FAZIL",
             "epoch_id": "EPOCH-LIVE-1",
         },
