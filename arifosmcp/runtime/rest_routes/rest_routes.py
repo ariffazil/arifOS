@@ -50,7 +50,7 @@ from arifosmcp.runtime.public_registry import (
 )
 from arifosmcp.runtime.resource import apex_tools_markdown_table
 from starlette.requests import Request
-from starlette.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
+from starlette.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from starlette.staticfiles import StaticFiles
 
 from core.shared.law_audit import get_ml_floor_runtime
