@@ -2227,6 +2227,12 @@ if app:
         MCPSessionBridgeMiddleware,
     )
     from arifosmcp.transport import AirlockASGIMiddleware
+    from arifosmcp.transport.organ_proxy import OrganProxyMiddleware
+
+    # OrganProxy runs FIRST — intercepts X-Arifos-Organ-Target header before
+    # any other middleware touches the request. FAIL-CLOSED: 502 if organ down.
+    # Must be added FIRST so it runs OUTERMOST (Starlette LIFO middleware order).
+    app.add_middleware(OrganProxyMiddleware)
 
     app.add_middleware(OriginValidationMiddleware)
     app.add_middleware(DPoPAuthMiddleware)
