@@ -1,0 +1,35 @@
+{
+  "schema_version": "2.0.0",
+  "invocation_id": "inv-20260723-001",
+  "trace_id": "trace-20260723-abc123",
+  "hop_index": 0,
+  "session_id": "SEAL-8bacc609539b43b7",
+  "actor_id": "arif",
+  "source_organ": "arifOS",
+  "destination_organ": "WEALTH",
+  "capability_id": "capital_health",
+  "epistemic_tag": "OBSERVED",
+  "evidence_refs": [],
+  "payload_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "source_release": "arifos-f56f946c7",
+  "source_manifest_hash": "sha256:abc123def456",
+  "authority": {
+    "action_class": "OBSERVE",
+    "mutation": false,
+    "reversible": true,
+    "authority_band": "OBSERVE_ONLY",
+    "authority_scope": "Read WEALTH capital health metrics",
+    "judge_receipt_ref": null,
+    "human_ack_ref": null
+  },
+  "idempotency_key": "idem-20260723-001",
+  "attempt": 1,
+  "max_attempts": 3,
+  "issued_at": "2026-07-23T22:41:00Z",
+  "deadline_at": "2026-07-23T22:46:00Z",
+  "payload": {
+    "mode": "conservation",
+    "assets": [],
+    "liabilities": []
+  }
+}
