@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-error/v2.0.0",
+  "title": "Federation Error Envelope — v2.0.0",
+  "description": "Structured error envelope. All failure responses MUST use this format.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "trace_id",
+    "session_id",
+    "source_organ",
+    "error_code",
+    "error_class",
+    "message",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "2.0.0" },
+    "invocation_id": { "type": "string" },
+    "trace_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "actor_id": { "type": "string" },
+    "source_organ": { "type": "string" },
+    "error_code": { "type": "string", "description": "Machine-readable error code." },
+    "error_class": { "type": "string", "enum": ["SESSION_MISSING", "SESSION_EXPIRED", "AUTHORITY_INSUFFICIENT", "SCHEMA_INVALID", "CAPABILITY_UNKNOWN", "ORGAN_UNREACHABLE", "TIMEOUT", "INTERNAL", "REJECTED"], "description": "Error classification." },
+    "message": { "type": "string", "description": "Human-readable error message." },
+    "details": { "type": "object", "description": "Additional error context." },
+    "retry_allowed": { "type": "boolean", "description": "Whether the client may retry." },
+    "retry_after_ms": { "type": "integer", "description": "Suggested retry delay." },
+    "issued_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

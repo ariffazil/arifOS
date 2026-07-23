@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-request/v2.0.0",
+  "title": "Federation Request Envelope — v2.0.0",
+  "description": "Transport-neutral cross-organ invocation envelope. Every capability call across the arifOS Federation MUST carry this envelope. Transport profile: MCP (current), REST, A2A (future).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "trace_id",
+    "session_id",
+    "actor_id",
+    "source_organ",
+    "destination_organ",
+    "capability_id",
+    "epistemic_tag",
+    "authority",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0",
+      "description": "Schema version for compatibility negotiation"
+    },
+    "schema_ref": {
+      "type": "string",
+      "description": "URI to the exact schema used, for consumer validation"
+    },
+    "schema_hash": {
+      "type": "string",
+      "description": "SHA-256 of the schema document, pinned at ratification"
+    },
+    "invocation_id": {
+      "type": "string",
+      "description": "Unique ID for this single invocation. Survives retries (idempotency key)."
+    },
+    "parent_invocation_id": {
+      "type": ["string", "null"],
+      "description": "Parent invocation for nested or chained calls"
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "Trace ID across all hops in a single workflow. Same trace_id for all related invocations."
+    },
+    "hop_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonically increasing hop counter. source_organ starts at 0."
+    },
+    "session_id": {
+      "type": "string",
+      "description": "arifOS session ID. Required for all governed calls."
+    },
+    "actor_id": {
+      "type": "string",
+      "description": "Authenticated actor identity (human or relay agent)."
+    },
+    "source_organ": {
+      "type": "string",
+      "enum": ["arifOS", "AAA", "A-FORGE", "GEOX", "WEALTH", "WELL", "VAULT999", "HERMES"],
+      "description": "Organ originating this invocation."
+    },
+    "destination_organ": {
+      "type": "string",
+      "enum": ["arifOS", "AAA", "A-FORGE", "GEOX", "WEALTH", "WELL", "VAULT999", "HERMES"],
+      "description": "Organ receiving this invocation."
+    },
+    "capability_id": {
+      "type": "string",
+      "description": "Which capability is being invoked (tool name, endpoint, etc.). Transport-agnostic."
+    },
+    "epistemic_tag": {
+      "type": "string",
+      "enum": ["OBSERVED", "COMPUTED", "ESTIMATE", "INFERRED", "UNKNOWN"],
+      "description": "Epistemic class of the payload. GEOX → OBSERVED. WEALTH → COMPUTED."
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Prior receipt hashes this invocation depends on."
+    },
+    "payload_hash": {
+      "type": "string",
+      "description": "SHA-256 of the payload. Enables integrity verification independent of transport."
+    },
+    "source_release": {
+      "type": "string",
+      "description": "Source release identifier (git commit SHA) of the calling organ."
+    },
+    "source_manifest_hash": {
+      "type": "string",
+      "description": "SHA-256 of the calling organ's capability manifest at invocation time."
+    },
+    "authority": {
+      "type": "object",
+      "required": ["action_class", "mutation", "reversible", "authority_band"],
+      "properties": {
+        "action_class": {
+          "type": "string",
+          "enum": ["OBSERVE", "COMPUTE", "JUDGE", "EXECUTE"],
+          "description": "What class of action this invocation requests."
+        },
+        "mutation": {
+          "type": "boolean",
+          "description": "Does this invocation mutate state? True for writes, deployments, seals."
+        },
+        "reversible": {
+          "type": "boolean",
+          "description": "Can this invocation be rolled back? False for seals, deletes."
+        },
+        "authority_band": {
+          "type": "string",
+          "description": "Authority band: OBSERVE_ONLY | LIMITED_MUTATE | FULL_MUTATE | SOVEREIGN."
+        },
+        "authority_scope": {
+          "type": "string",
+          "description": "Human-readable scope description."
+        },
+        "judge_receipt_ref": {
+          "type": ["string", "null"],
+          "description": "arifOS judge receipt hash. Required for EXECUTE class."
+        },
+        "human_ack_ref": {
+          "type": ["string", "null"],
+          "description": "888_HOLD acknowledgment hash. Required for IRREVERSIBLE."
+        }
+      },
+      "additionalProperties": false
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Client-generated key for duplicate detection. Same key = same logical invocation."
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Retry attempt number. 1 = first attempt."
+    },
+    "max_attempts": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 3,
+      "description": "Maximum allowed attempts before the client should abandon."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 timestamp when this invocation was created."
+    },
+    "deadline_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 deadline. Invocation is invalid after this time."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Organ-specific capability payload. Schema defined per capability."
+    }
+  },
+  "additionalProperties": false
+}
