@@ -30,3 +30,12 @@ algorithm = "BLAKE3"
 source = "identity.toml"
 embedded_in_health = true
 # chain_upstream absent — arifOS is federation root
+
+[attestation]
+# Human-facing pages that declare and anchor this identity
+sovereign_page = "https://arif-fazil.com/000/"
+vault_page = "https://arif-fazil.com/999/"
+# Audit path: two windows, outside the governed system
+vault_verify_endpoint = "https://arif-fazil.com/999/verify"    # fast path
+vault_repo_mirror = "https://github.com/ariffazil/arifOS"       # ground truth
+# Amendment note: F3 judgment-time (TRI) vs audit-time (Verifier) sealed 2026-07-24

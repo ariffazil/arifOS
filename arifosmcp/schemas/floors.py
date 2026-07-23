@@ -66,7 +66,13 @@ FLOORS: list[ConstitutionalFloor] = [
     ConstitutionalFloor(
         id="F3",
         name="TRI-WITNESS",
-        rule="Human + AI + Earth witness ≥ 0.75",
+        rule=(
+            "Human + AI + Earth witness ≥ 0.75 (judgment-time, inside the governed system). "
+            "A fourth Verifier channel exists at audit-time, outside the system — "
+            "accessed via the public GitHub mirror and /999/verify endpoint. "
+            "The name TRI-WITNESS refers to the three in-system channels only. "
+            "Amendment sealed 2026-07-24 (F11)."
+        ),
         type="DERIVED",
     ),
     ConstitutionalFloor(
