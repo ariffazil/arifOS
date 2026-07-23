@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-receipt/v1.0.0",
+  "title": "Federation Receipt Envelope — v1.0.0",
+  "type": "object",
+  "required": ["schema_version", "receipt_id", "invocation_id", "trace_id", "session_id", "actor_id", "source_organ", "verdict", "payload_hash", "chain_hash", "sealed_at"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "receipt_id": { "type": "string", "minLength": 1 },
+    "invocation_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": "string", "minLength": 1 },
+    "session_id": { "type": "string", "minLength": 1 },
+    "actor_id": { "type": "string", "minLength": 1 },
+    "source_organ": { "type": "string", "enum": ["arifOS","AAA","A-FORGE","GEOX","WEALTH","WELL","VAULT999","HERMES"] },
+    "destination_organ": { "type": "string" },
+    "capability_id": { "type": "string" },
+    "verdict": { "type": "string", "enum": ["SEAL","HOLD","VOID","SABAR"] },
+    "epistemic_tag": { "type": "string", "enum": ["OBSERVED","COMPUTED"] },
+    "evidence_refs": { "type": "array", "items": { "type": "string" } },
+    "payload_hash": { "type": "string", "minLength": 1 },
+    "chain_hash": { "type": "string", "minLength": 1 },
+    "prev_chain_hash": { "type": "string" },
+    "sealed_at": { "type": "string", "format": "date-time" },
+    "replay_verification": { "type": "string" },
+    "source_release": { "type": "string" },
+    "source_manifest_hash": { "type": "string" }
+  },
+  "additionalProperties": false
+}

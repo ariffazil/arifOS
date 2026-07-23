@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-error/v1.0.0",
+  "title": "Federation Error Envelope — v1.0.0",
+  "type": "object",
+  "required": ["schema_version", "invocation_id", "trace_id", "session_id", "source_organ", "error_code", "error_class", "message", "issued_at"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "invocation_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": "string", "minLength": 1 },
+    "session_id": { "type": "string" },
+    "source_organ": { "type": "string", "enum": ["arifOS","AAA","A-FORGE","GEOX","WEALTH","WELL","VAULT999","HERMES"] },
+    "error_code": { "type": "string", "minLength": 1 },
+    "error_class": { "type": "string", "enum": ["SESSION_MISSING","SESSION_EXPIRED","AUTHORITY_INSUFFICIENT","SCHEMA_INVALID","CAPABILITY_UNKNOWN","ORGAN_UNREACHABLE","TIMEOUT","INTERNAL","REJECTED","IDEMPOTENCY_CONFLICT","DEADLINE_EXCEEDED","JUDGE_RECEIPT_MISSING","HUMAN_ACK_MISSING"] },
+    "message": { "type": "string", "minLength": 1 },
+    "details": { "type": "object" },
+    "retry_allowed": { "type": "boolean" },
+    "retry_after_ms": { "type": "integer" },
+    "issued_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

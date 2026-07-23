@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-response/v1.0.0",
+  "title": "Federation Response Envelope — v1.0.0",
+  "description": "Cross-organ response envelope. Every capability result MUST carry this envelope.",
+  "type": "object",
+  "required": ["schema_version", "invocation_id", "trace_id", "session_id", "source_organ", "status", "epistemic_tag", "payload_hash", "issued_at"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "invocation_id": { "type": "string", "minLength": 1 },
+    "trace_id": { "type": "string", "minLength": 1 },
+    "hop_index": { "type": "integer", "minimum": 0 },
+    "session_id": { "type": "string", "minLength": 1 },
+    "actor_id": { "type": "string" },
+    "source_organ": { "type": "string", "enum": ["arifOS","AAA","A-FORGE","GEOX","WEALTH","WELL","VAULT999","HERMES"] },
+    "destination_organ": { "type": "string", "enum": ["arifOS","AAA","A-FORGE","GEOX","WEALTH","WELL","VAULT999","HERMES"] },
+    "status": { "type": "string", "enum": ["SUCCESS","PARTIAL","DEGRADED","FAILED"] },
+    "epistemic_tag": { "type": "string", "enum": ["OBSERVED","COMPUTED","ESTIMATE","INFERRED","UNKNOWN"] },
+    "evidence_refs": { "type": "array", "items": { "type": "string" } },
+    "payload_hash": { "type": "string", "minLength": 1 },
+    "payload": { "type": "object" },
+    "receipt_ref": { "type": "string" },
+    "chain_hash": { "type": "string" },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "degraded_notes": { "type": "array", "items": { "type": "string" } },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "elapsed_ms": { "type": "integer" }
+  },
+  "additionalProperties": false
+}

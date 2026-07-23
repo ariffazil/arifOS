@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0.0",
+  "schema_version": "1.0.0",
   "invocation_id": "inv-20260723-001",
   "trace_id": "trace-20260723-abc123",
   "hop_index": 0,
@@ -12,7 +12,7 @@
   "evidence_refs": [],
   "payload_hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "source_release": "arifos-f56f946c7",
-  "source_manifest_hash": "sha256:abc123def456",
+  "source_manifest_hash": "sha256:abc123def456789",
   "authority": {
     "action_class": "OBSERVE",
     "mutation": false,
@@ -27,9 +27,5 @@
   "max_attempts": 3,
   "issued_at": "2026-07-23T22:41:00Z",
   "deadline_at": "2026-07-23T22:46:00Z",
-  "payload": {
-    "mode": "conservation",
-    "assets": [],
-    "liabilities": []
-  }
+  "payload": { "mode": "conservation", "assets": [], "liabilities": [] }
 }

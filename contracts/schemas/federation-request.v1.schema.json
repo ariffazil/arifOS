@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-request/v1.0.0",
+  "title": "Federation Request Envelope — v1.0.0",
+  "description": "CANONICAL transport-neutral cross-organ invocation envelope. Every capability call across the arifOS Federation MUST carry this envelope. Transport profile: MCP (current), REST, A2A (future). This is the single ratified ABI. All v2 drafts are superseded and must not be used.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "trace_id",
+    "session_id",
+    "actor_id",
+    "source_organ",
+    "destination_organ",
+    "capability_id",
+    "epistemic_tag",
+    "authority",
+    "idempotency_key",
+    "attempt",
+    "max_attempts",
+    "issued_at",
+    "deadline_at",
+    "payload_hash",
+    "source_release",
+    "source_manifest_hash",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "schema_ref": {
+      "type": "string",
+      "description": "URI to the exact schema used"
+    },
+    "schema_hash": {
+      "type": "string",
+      "description": "SHA-256 of the schema document, pinned at ratification"
+    },
+    "invocation_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique ID for this single invocation. Survives retries."
+    },
+    "parent_invocation_id": {
+      "type": ["string", "null"],
+      "description": "Parent invocation for nested or chained calls"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Trace ID across all hops. Same trace_id for all related invocations."
+    },
+    "hop_index": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonically increasing hop counter. source_organ starts at 0."
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^SEAL-[a-f0-9]{16}$",
+      "description": "arifOS session ID. Must match SEAL-<16-hex> pattern."
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Authenticated actor identity."
+    },
+    "source_organ": {
+      "type": "string",
+      "enum": ["arifOS", "AAA", "A-FORGE", "GEOX", "WEALTH", "WELL", "VAULT999", "HERMES"]
+    },
+    "destination_organ": {
+      "type": "string",
+      "enum": ["arifOS", "AAA", "A-FORGE", "GEOX", "WEALTH", "WELL", "VAULT999", "HERMES"]
+    },
+    "capability_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Which capability is being invoked."
+    },
+    "epistemic_tag": {
+      "type": "string",
+      "enum": ["OBSERVED", "COMPUTED", "ESTIMATE", "INFERRED", "UNKNOWN"]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "payload_hash": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SHA-256 of the payload. Required for integrity verification."
+    },
+    "source_release": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Git commit SHA of the calling organ."
+    },
+    "source_manifest_hash": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SHA-256 of the calling organ's capability manifest."
+    },
+    "authority": {
+      "type": "object",
+      "required": ["action_class", "mutation", "reversible", "authority_band"],
+      "properties": {
+        "action_class": {
+          "type": "string",
+          "enum": ["OBSERVE", "COMPUTE", "JUDGE", "EXECUTE"]
+        },
+        "mutation": {
+          "type": "boolean"
+        },
+        "reversible": {
+          "type": "boolean"
+        },
+        "authority_band": {
+          "type": "string",
+          "enum": ["OBSERVE_ONLY", "LIMITED_MUTATE", "FULL_MUTATE", "SOVEREIGN"]
+        },
+        "authority_scope": {
+          "type": "string"
+        },
+        "judge_receipt_ref": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "arifOS judge receipt hash. Required when action_class=EXECUTE."
+        },
+        "human_ack_ref": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "description": "888_HOLD acknowledgment hash. Required when mutation=true AND reversible=false."
+        }
+      },
+      "additionalProperties": false
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Client-generated key for duplicate detection."
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "max_attempts": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deadline_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "action_class": { "const": "EXECUTE" }
+            },
+            "required": ["action_class"]
+          }
+        },
+        "required": ["authority"]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "judge_receipt_ref": { "type": "string", "minLength": 1 }
+            },
+            "required": ["judge_receipt_ref"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "mutation": { "const": true },
+              "reversible": { "const": false }
+            },
+            "required": ["mutation", "reversible"]
+          }
+        },
+        "required": ["authority"]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "human_ack_ref": { "type": "string", "minLength": 1 }
+            },
+            "required": ["human_ack_ref"]
+          }
+        }
+      }
+    },
+    {
+      "description": "Semantic: attempt <= max_attempts is enforced by runtime validator, not JSON Schema. Structural check only ensures both are positive integers."
+    }
+  ],
+  "additionalProperties": false
+}
