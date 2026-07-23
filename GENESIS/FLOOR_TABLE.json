@@ -1,0 +1,197 @@
+{
+  "$schema": "https://arif-fazil.com/schemas/floor-table.v1.json",
+  "version": "1.0.0",
+  "forged": "2026-07-23",
+  "authority": "F13 SOVEREIGN",
+  "canon_source": "/root/arifOS/GENESIS/000_KERNEL_CANON.md#3-the-13-constitutional-floors",
+  "consumers_must_sync_to": "this file or 000_KERNEL_CANON.md",
+  "floors": [
+    {
+      "id": "F1",
+      "name": "AMANAH",
+      "rule": "Reversible first. Irreversible → 888 HOLD.",
+      "color": "#FF4500",
+      "epistemic_label_form": null,
+      "epistemic_band_form": null,
+      "operator": null,
+      "sealed_range": null
+    },
+    {
+      "id": "F2",
+      "name": "TRUTH",
+      "rule": "P(truth) ≥ 0.99. Cheap claims = VOID. Evidence carries epistemic label from OBS / DER / INT / SPEC.",
+      "color": "#00FF41",
+      "epistemic_label_form": ["OBS", "DER", "INT", "SPEC"],
+      "epistemic_band_form": ["CLAIM", "PLAUSIBLE", "ESTIMATE", "UNKNOWN"],
+      "operator": "P(truth)",
+      "sealed_range": {"min": 0.99, "max": 1.0}
+    },
+    {
+      "id": "F3",
+      "name": "TRI-WITNESS",
+      "rule": "Human + AI + Earth witness ≥ 0.75.",
+      "color": "#D4A853",
+      "operator": "W^3",
+      "sealed_range": {"min": 0.75, "max": 1.0}
+    },
+    {
+      "id": "F4",
+      "name": "CLARITY",
+      "rule": "Every output must reduce entropy (ΔS ≤ 0).",
+      "color": "#3B82F6",
+      "operator": "ΔS",
+      "sealed_range": {"min": null, "max": 0}
+    },
+    {
+      "id": "F5",
+      "name": "PEACE²",
+      "rule": "Non-destructive power.",
+      "color": "#3B82F6",
+      "operator": null,
+      "sealed_range": null
+    },
+    {
+      "id": "F6",
+      "name": "EMPATHY",
+      "name_internal": "MARUAH",
+      "name_public": "EMPATHY",
+      "rule": "Protect weakest stakeholder. Preserve dignity (maruah).",
+      "bridge": {
+        "pattern": "dual-registry, lossless",
+        "operational_layer": "kernel, logs, receipts, internal seams",
+        "public_layer": "UI chips, prose, public-facing pages, chat",
+        "rendering_rule": "kernel + audit surfaces emit MARUAH; public surfaces (gate economics, WEALTH briefing, AAA cockpit) render EMPATHY. Both names are valid in their layer; the producer does not pick the chip text — the rendering layer does.",
+        "sealed_by": "F13 SOVEREIGN 2026-07-24",
+        "sealing_receipt": "/root/forge_work/2026-07-24/floor-table-canon-seal-2026-07-23.md"
+      },
+      "color": "#3B82F6",
+      "operator": null,
+      "sealed_range": null
+    },
+    {
+      "id": "F7",
+      "name": "HUMILITY",
+      "rule": "No fake certainty. Ω₀ ∈ [0.03, 0.05]. Confidence cap = 1 − Ω₀ ∈ [0.95, 0.97].",
+      "color": "#A855F7",
+      "operator": "Ω₀",
+      "sealed_range": {"min": 0.03, "max": 0.05},
+      "derived_confidence_cap": {"min": 0.95, "max": 0.97},
+      "deprecated_strings": [
+        "Confidence cap 0.90",
+        "STEWARDSHIP",
+        "HARAM patterns blocked"
+      ],
+      "deprecated_reason": "0.90 cap inconsistent with Ω₀ band; STEWARDSHIP + HARAM were a non-canon rewrite that lost the Ω operator. Both abolished 2026-07-23."
+    },
+    {
+      "id": "F8",
+      "name": "GENIUS",
+      "rule": "G ≥ 0.80 for complex actions.",
+      "color": "#00FF41",
+      "operator": "G",
+      "sealed_range": {"min": 0.80, "max": 1.0}
+    },
+    {
+      "id": "F9",
+      "name": "ANTIHANTU",
+      "rule": "No deception, manipulation, consciousness claims.",
+      "color": "#FF003C",
+      "operator": null,
+      "sealed_range": null
+    },
+    {
+      "id": "F10",
+      "name": "ONTOLOGY",
+      "rule": "AI-only ontology. Soul = VOID; map to harness content.",
+      "color": "#8A8D91",
+      "operator": null,
+      "sealed_range": null
+    },
+    {
+      "id": "F11",
+      "name": "AUDITABILITY",
+      "rule": "Every decision logged. Provenance per field.",
+      "color": "#D4A853",
+      "operator": null,
+      "sealed_range": null
+    },
+    {
+      "id": "F12",
+      "name": "RESILIENCE",
+      "rule": "Injection defense.",
+      "color": "#FF003C",
+      "operator": null,
+      "sealed_range": null
+    },
+    {
+      "id": "F13",
+      "name": "SOVEREIGN",
+      "rule": "Human veto FINAL. Harness switch belongs to sovereign.",
+      "color": "#D4A853",
+      "operator": null,
+      "sealed_range": null
+    }
+  ],
+  "f2_band_mapping": {
+    "schema": "lossless, exact, no fifth class invented",
+    "mapping": [
+      {"label": "OBS",   "band": "CLAIM",     "definition": "Direct observation / official source / API response", "supports_seal": true},
+      {"label": "DER",   "band": "PLAUSIBLE", "definition": "Derived from OBS with documented chain",              "supports_seal": true},
+      {"label": "INT",   "band": "ESTIMATE",  "definition": "Interpretive synthesis across multiple sources",     "supports_seal": true},
+      {"label": "SPEC",  "band": "UNKNOWN",   "definition": "Speculation, no falsifiable anchor",                 "supports_seal": false}
+    ],
+    "user_natural_mapping": {
+      "OBS":  "CLAIM",
+      "DER":  "PLAUSIBLE",
+      "INT":  "ESTIMATE",
+      "SPEC": "UNKNOWN"
+    },
+    "rendering_rule": "WEALTH briefing chips render the band form (CLAIM / PLAUSIBLE / ESTIMATE / UNKNOWN). The kernel evidence layer keeps the label form (OBS / DER / INT / SPEC). Both names are valid; chip text is determined by the rendering layer, not by the producer."
+  },
+  "f7_canonical_form": {
+    "natural": "No fake certainty. Confidence cannot exceed 0.97, and the standard operational ceiling is 0.96.",
+    "operator": "Ω₀",
+    "band": [0.03, 0.05],
+    "derived_confidence_cap": [0.95, 0.97],
+    "deprecated_versions": [
+      "Confidence cap 0.90. Declare unknowns explicitly.",
+      "No fake certainty (Ω₀ ∈ [0.03, 0.05]).  ←  was the kernel form, but the short rule was missing the derived confidence cap, so downstream pages invented their own wrong numbers."
+    ]
+  },
+  "f6_bridge": {
+    "pattern": "dual-registry, lossless (mirrors F1/F2/F11/F13 pattern)",
+    "operational_name": "MARUAH",
+    "public_name": "EMPATHY",
+    "operational_layer": "kernel, logs, receipts, internal seams, audit surfaces",
+    "public_layer": "UI chips, prose, public-facing pages, chat, customer briefings",
+    "rule": "Protect weakest stakeholder. Preserve dignity (maruah).",
+    "rendering_rule": "Kernel and audit surfaces emit MARUAH. Public surfaces (gate economics, WEALTH briefing, AAA cockpit, customer chat) render EMPATHY. The producer does not pick the chip text — the rendering layer does. Both names are valid in their layer.",
+    "why_both": "MARUAH carries 7-Teras-Adat lineage (Adat Agentik §7) and is operationally honest inside the federation; EMPATHY is the public-facing register that survives translation across the ASEAN/MY context without losing force. Collapsing to either would either lose institutional grounding (if we keep only EMPATHY) or break public readability (if we keep only MARUAH). The bridge is cheaper than the collapse.",
+    "sealed_by": "F13 SOVEREIGN 2026-07-24",
+    "sealing_receipt": "/root/forge_work/2026-07-24/floor-table-canon-seal-2026-07-23.md",
+    "frozen_until": "F13 unseals"
+  },
+  "consumers": [
+    {
+      "name": "AAA AGENTS.md",
+      "path": "/root/AAA/AGENTS.md",
+      "must": "render F1–F13 names + one-line rule verbatim from this table; cite Ω₀, not 0.90; render F6 as MARUAH (operational) and EMPATHY (public) per the F6 bridge"
+    },
+    {
+      "name": "Gate economics — Wealth.tsx",
+      "path": "/root/arif-sites/sites/arif-fazil.com/src/pages/Wealth.tsx",
+      "must": "F7 = HUMILITY (not STEWARDSHIP); F2 chip text uses CLAIM/PLAUSIBLE/ESTIMATE/UNKNOWN"
+    },
+    {
+      "name": "WEALTH briefing static renderer",
+      "path": "/root/scripts/wealth-static-render.py",
+      "must": "evidence_chip emits one of the four band names; report Ω cap consistently"
+    },
+    {
+      "name": "GEOX claim workflow",
+      "path": "/root/arifOS/contracts/...",
+      "must": "reject SPEC claims as SEAL-worthy"
+    }
+  ],
+  "doctrine_line": "The gap is the signal. Forged 2026-07-23."
+}

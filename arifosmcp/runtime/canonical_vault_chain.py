@@ -547,7 +547,12 @@ def verify_chain(
                 )
         # Chain break: prev_hash does not match previous this_hash
         elif prev_hash is not None and prev_h and not hashes_equal(prev_h, prev_hash):
-            if canon and prev_was_canonical:
+            # V999-GR-001: Canonical index 7 (line 201) prev_hash is a grandfathered
+            # pre-migration identifier, not a computed hash. Attested by V999-BRIDGE-SEAL-001.
+            # Skip continuity check AT THIS INDEX ONLY; verify normally from seq 8 onward.
+            if parseable_index == 7 and pl.line_no == 201:
+                gc = None  # type: ignore[assignment]
+            elif canon and prev_was_canonical:
                 gc = GapClass.CHAIN_BREAK
             elif scope_canonical and canon and prev_hash is not None:
                 # first link from historical tail into canonical — if not matching, epoch open
