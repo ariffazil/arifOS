@@ -1,17 +1,14 @@
 mcp-name: io.github.ariffazil/arifos
 <!-- SOT-MANIFEST
-federation_release: v2026.07.20-ZEN-CONVERGENCE
-last_verified: 2026-07-20T16:22Z
-live_commit: ce02d2d
-live_version: kanon-2832558
+federation_release: v2026.07.23
+last_verified: 2026-07-23T22:00Z
+live_commit: 8a2bab59a
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 total_declared_tools: 48 (includes diagnostics, aliases, canary)
 floors_active: 13
 federation_schema: 2.0.0
 organs: 6 live (arifOS:8088, A-FORGE:7071, AAA:3001, GEOX:8081, WEALTH:18082, WELL:18083)
-runtime_path: /opt/arifos/app
-runtime_drift: false
 owner_summary: GREEN
 truth_rule: /health + MCP tools/list beat any static count in prose
 -->
