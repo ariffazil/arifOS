@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
-  "invocation_id": "inv-missing-session",
+  "invocation_id": "inv-sess-format",
   "parent_invocation_id": null,
   "trace_id": "trace-20260723-abc123",
   "hop_index": 0,
-  "session_id": "",
+  "session_id": "sess-xyz",
   "actor_id": "arif",
   "source_organ": "arifOS",
   "destination_organ": "WEALTH",
@@ -23,7 +23,7 @@
     "judge_receipt_ref": null,
     "human_ack_ref": null
   },
-  "idempotency_key": "idem-missing-001",
+  "idempotency_key": "idem-sess-format",
   "attempt": 1,
   "max_attempts": 3,
   "issued_at": "2026-07-23T22:41:00Z",

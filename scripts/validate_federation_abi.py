@@ -1,39 +1,43 @@
 #!/usr/bin/env python3
-"""
-Federation ABI Validator — v1.0.0
+"""Federation ABI Validator — v1.0.0 (Forge 0A.2)
 
-Structural validation (JSON Schema) + Semantic validation (runtime checks).
+Structural validation (JSON Schema) + honest semantic checks.
+
+Semantic honesty:
+  - session_identifier_present: non-empty session_id only (NOT liveness)
+  - session_id format enforced by schema (SEAL-<16hex>)
+  - session_token is optional sct_v1.* (schema)
+  - retry_bound: attempt <= max_attempts (NOT full idempotency)
+  - idempotency: stateful check via IdempotencyStore interface + Memory test double
+  - payload_hash: FCJ-v1 (see contracts/schemas/CANONICAL_JSON.md) — not full RFC 8785
+
 Usage:
-    python scripts/validate_federation_abi.py                          # validate all fixtures
-    python scripts/validate_federation_abi.py --schema-only            # schema syntax only
-    python scripts/validate_federation_abi.py --fixture <path>         # single fixture
+    python scripts/validate_federation_abi.py
+    python scripts/validate_federation_abi.py --schema-only
+    python scripts/validate_federation_abi.py --fixture <path>
+    python scripts/validate_federation_abi.py --check-sums
 """
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
-import jsonschema
+try:
+    import jsonschema
+except ImportError:  # pragma: no cover
+    jsonschema = None  # type: ignore
 
 ROOT = Path(__file__).resolve().parent.parent
 SCHEMAS_DIR = ROOT / "contracts" / "schemas"
 FIXTURES_DIR = ROOT / "contracts" / "fixtures"
-
-# Canonical JSON hashing: RFC 8785 (JCS) — sort_keys, no trailing newline, UTF-8.
-# All payload_hash values MUST use this algorithm for cross-implementation compatibility.
-CANONICAL_JSON_HASH = lambda obj: (
-    __import__("hashlib")
-    .sha256(
-        __import__("json")
-        .dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-        .encode("utf-8")
-    )
-    .hexdigest()
-)
+SHA256SUMS = SCHEMAS_DIR / "SHA256SUMS"
 
 SCHEMA_FILES = {
     "request": SCHEMAS_DIR / "federation-request.v1.schema.json",
@@ -42,15 +46,70 @@ SCHEMA_FILES = {
     "receipt": SCHEMAS_DIR / "federation-receipt.v1.schema.json",
 }
 
-# Fixtures expected to FAIL structural validation
-NEGATIVE_FIXTURES = {
-    "missing-session-invalid.json": "SESSION_MISSING",
-    "expired-authority-invalid.json": "DEADLINE_EXCEEDED",
-    "duplicate-execution-invalid.json": "IDEMPOTENCY_CONFLICT",
-}
-
 EXIT_OK = 0
 EXIT_FAIL = 1
+
+
+def fcj_dumps(obj: Any) -> str:
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def payload_hash(payload: Any) -> str:
+    return "sha256:" + hashlib.sha256(fcj_dumps(payload).encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class IdempotencyRecord:
+    request_hash: str
+    result_ref: str | None = None
+
+
+class IdempotencyStore(Protocol):
+    def lookup(self, key: str) -> IdempotencyRecord | None: ...
+
+    def reserve(self, key: str, request_hash: str, result_ref: str | None = None) -> None: ...
+
+
+class MemoryIdempotencyStore:
+    def __init__(self) -> None:
+        self._store: dict[str, IdempotencyRecord] = {}
+
+    def lookup(self, key: str) -> IdempotencyRecord | None:
+        return self._store.get(key)
+
+    def reserve(self, key: str, request_hash: str, result_ref: str | None = None) -> None:
+        self._store[key] = IdempotencyRecord(request_hash=request_hash, result_ref=result_ref)
+
+
+def request_content_hash(instance: dict[str, Any]) -> str:
+    return payload_hash(instance.get("payload", {}))
+
+
+def check_idempotency_stateful(instance: dict[str, Any], store: IdempotencyStore) -> str | None:
+    key = instance.get("idempotency_key")
+    if not key:
+        return "IDEMPOTENCY_KEY_MISSING: idempotency_key required"
+    req_hash = request_content_hash(instance)
+    prior = store.lookup(str(key))
+    if prior is None:
+        return None
+    if prior.request_hash == req_hash:
+        return None
+    return (
+        "IDEMPOTENCY_CONFLICT: key already consumed with different request hash "
+        f"(prior={prior.request_hash[:19]}... new={req_hash[:19]}...)"
+    )
+
+
+def check_retry_bound(instance: dict[str, Any]) -> str | None:
+    attempt = instance.get("attempt", 1)
+    max_attempts = instance.get("max_attempts", 3)
+    try:
+        if int(attempt) > int(max_attempts):
+            return f"RETRY_BOUND_EXCEEDED: attempt ({attempt}) > max_attempts ({max_attempts})"
+    except (TypeError, ValueError):
+        return "RETRY_BOUND_INVALID: attempt/max_attempts not integers"
+    return None
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -59,8 +118,10 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def validate_schema_syntax() -> list[str]:
-    """Validate all schemas are valid JSON Schema documents."""
     errors: list[str] = []
+    if jsonschema is None:
+        errors.append("jsonschema package not installed")
+        return errors
     for name, path in SCHEMA_FILES.items():
         if not path.exists():
             errors.append(f"MISSING: {name} schema at {path}")
@@ -69,207 +130,273 @@ def validate_schema_syntax() -> list[str]:
             schema = load_json(path)
             jsonschema.Draft202012Validator.check_schema(schema)
             print(f"  ✅ {name}: valid JSON Schema 2020-12")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             errors.append(f"  ❌ {name}: {e}")
     return errors
 
 
 def validate_schema_ids() -> list[str]:
-    """Validate $id fields are consistent with filenames and version."""
     errors: list[str] = []
-    version = None
     for name, path in SCHEMA_FILES.items():
+        if not path.exists():
+            errors.append(f"MISSING: {name}")
+            continue
         schema = load_json(path)
         sid = schema.get("$id", "")
-        sv = schema.get("properties", {}).get("schema_version", {}).get("const")
-        if not sv:
-            errors.append(f"  ❌ {name}: missing schema_version const")
+        title = schema.get("title", "")
+        if "v1.0.0" not in sid and "v1.0.0" not in title:
+            errors.append(f"  ❌ {name}: does not advertise v1.0.0 ({sid})")
             continue
-        if version is None:
-            version = sv
-        elif sv != version:
-            errors.append(f"  ❌ {name}: version mismatch — {sv} != {version}")
-        print(f"  ✅ {name}: $id={sid} version={sv}")
+        print(f"  ✅ {name}: $id={sid}")
     return errors
 
 
-def validate_fixture(fixture_path: Path, schema: dict[str, Any] | Path) -> tuple[bool, str]:
-    """Structural (JSON Schema) validation of a single fixture."""
-    if isinstance(schema, Path):
-        schema = load_json(schema)
-    instance = load_json(fixture_path)
+def validate_structural(instance: dict[str, Any], schema: dict[str, Any]) -> list[str]:
+    if jsonschema is None:
+        return ["jsonschema not installed"]
     validator = jsonschema.Draft202012Validator(schema)
-    errors = list(validator.iter_errors(instance))
-    if errors:
-        return False, "; ".join(str(e.message) for e in errors)
-    return True, "PASS"
+    return [f"{list(err.absolute_path)}: {err.message}" for err in validator.iter_errors(instance)]
 
 
-def semantic_check_deadline(instance: dict) -> str | None:
-    """Semantic: deadline_at must be in the future."""
+def session_identifier_present(instance: dict[str, Any]) -> str | None:
+    """Non-empty session_id only. NOT liveness / expiry / binding / signature."""
+    session_id = instance.get("session_id", None)
+    if session_id is None or session_id == "":
+        return "SESSION_MISSING: session_id empty or absent"
+    return None
+
+
+def check_deadline(instance: dict[str, Any]) -> str | None:
     deadline = instance.get("deadline_at")
-    if deadline:
-        try:
-            dt = datetime.fromisoformat(deadline.replace("Z", "+00:00"))
-            if dt < datetime.now(timezone.utc):
-                return "DEADLINE_EXCEEDED: deadline_at is in the past"
-        except ValueError:
-            return "DEADLINE_EXCEEDED: invalid deadline_at format"
+    if not deadline:
+        return None
+    try:
+        dt = datetime.fromisoformat(str(deadline).replace("Z", "+00:00"))
+        if dt < datetime.now(timezone.utc):
+            return "DEADLINE_EXCEEDED: deadline_at is in the past"
+    except (ValueError, TypeError):
+        return "DEADLINE_INVALID: unparseable deadline_at"
     return None
 
 
-def semantic_check_session_identifier(instance: dict) -> str | None:
-    """Check session_id is present and non-empty. Liveness verification requires runtime attestation."""
-    sid = instance.get("session_id", "")
-    if not sid:
-        return "SESSION_IDENTIFIER_MISSING: session_id must be non-empty"
+def check_payload_hash(instance: dict[str, Any]) -> str | None:
+    declared = instance.get("payload_hash")
+    if not declared:
+        return None
+    if "payload" not in instance:
+        return "PAYLOAD_MISSING: payload_hash present without payload"
+    computed = payload_hash(instance["payload"])
+    if declared != computed:
+        return (
+            f"PAYLOAD_INTEGRITY_FAILED: declared={declared[:24]}... "
+            f"computed={computed[:24]}... (FCJ-v1)"
+        )
     return None
 
 
-def semantic_check_idempotency(instance: dict) -> str | None:
-    """Semantic: attempt must not exceed max_attempts."""
-    attempt = instance.get("attempt", 1)
-    max_attempts = instance.get("max_attempts", 3)
-    if attempt > max_attempts:
-        return f"IDEMPOTENCY_CONFLICT: attempt={attempt} exceeds max_attempts={max_attempts}"
+def check_authority(instance: dict[str, Any]) -> str | None:
+    auth = instance.get("authority") or {}
+    if auth.get("action_class") == "EXECUTE":
+        if not auth.get("judge_receipt_ref"):
+            return "JUDGE_RECEIPT_MISSING: action_class=EXECUTE requires judge_receipt_ref"
+    if auth.get("mutation") is True and auth.get("reversible") is False:
+        if not auth.get("human_ack_ref"):
+            return "HUMAN_ACK_MISSING: mutation=true + reversible=false requires human_ack_ref"
     return None
 
 
-def semantic_check_authority(instance: dict) -> str | None:
-    """Semantic: EXECUTE requires judge_receipt_ref, IRREVERSIBLE requires human_ack_ref."""
-    authority = instance.get("authority", {})
-    action_class = authority.get("action_class", "")
-    mutation = authority.get("mutation", False)
-    reversible = authority.get("reversible", True)
-    judge_ref = authority.get("judge_receipt_ref")
-    human_ack = authority.get("human_ack_ref")
+def validate_fixture_semantic(
+    instance: dict[str, Any], store: IdempotencyStore | None = None
+) -> list[str]:
+    errors: list[str] = []
+    for fn in (
+        session_identifier_present,
+        check_deadline,
+        check_payload_hash,
+        check_retry_bound,
+        check_authority,
+    ):
+        err = fn(instance)
+        if err:
+            errors.append(err)
+    if store is not None:
+        err = check_idempotency_stateful(instance, store)
+        if err:
+            errors.append(err)
+    return errors
 
-    if action_class == "EXECUTE" and (not judge_ref or judge_ref == ""):
-        return "JUDGE_RECEIPT_MISSING: action_class=EXECUTE requires judge_receipt_ref"
-    if mutation and not reversible and (not human_ack or human_ack == ""):
-        return "HUMAN_ACK_MISSING: mutation=true + reversible=false requires human_ack_ref"
-    return None
+
+def check_sums() -> list[str]:
+    errors: list[str] = []
+    if not SHA256SUMS.exists():
+        return [f"MISSING: {SHA256SUMS}"]
+    for line in SHA256SUMS.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        expected, _, rel = line.partition("  ")
+        path = ROOT / rel.strip()
+        if not path.exists():
+            errors.append(f"MISSING file for sum: {rel}")
+            continue
+        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        if actual != expected.strip():
+            errors.append(f"HASH MISMATCH: {rel}")
+        else:
+            print(f"  ✅ {rel}")
+    return errors
 
 
 def run_all_tests() -> int:
-    """Run the full ABI conformance test suite."""
+    print("=" * 60)
+    print("Federation ABI Conformance — v1.0.0 (Forge 0A.2)")
+    print("=" * 60)
     errors: list[str] = []
-    print("=" * 60)
-    print("Federation ABI Conformance — v1.0.0")
-    print("=" * 60)
 
-    # 1. Schema syntax
     print("\n1. Schema Syntax Validation")
     errors.extend(validate_schema_syntax())
 
-    # 2. Schema ID consistency
     print("\n2. Schema ID & Version Consistency")
     errors.extend(validate_schema_ids())
 
-    # 3. Positive fixtures
-    print("\n3. Positive Fixtures (must PASS)")
+    print("\n3. SHA256SUMS integrity")
+    errors.extend(check_sums())
+
     request_schema = load_json(SCHEMA_FILES["request"])
     response_schema = load_json(SCHEMA_FILES["response"])
 
-    for fixture_name in ["valid-request.json", "valid-response.json"]:
-        path = FIXTURES_DIR / fixture_name
-        if not path.exists():
-            errors.append(f"  ❌ MISSING: {fixture_name}")
-            continue
-        ok, msg = validate_fixture(
-            path, request_schema if "request" in fixture_name else response_schema
+    store = MemoryIdempotencyStore()
+    valid_path = FIXTURES_DIR / "valid-request.json"
+    if valid_path.exists():
+        valid_inst = load_json(valid_path)
+        store.reserve(
+            str(valid_inst["idempotency_key"]),
+            request_content_hash(valid_inst),
+            result_ref="fixture:valid-request",
         )
-        if ok:
-            print(f"  ✅ {fixture_name}: {msg}")
-        else:
-            errors.append(f"  ❌ {fixture_name}: {msg}")
 
-    # 4. Negative fixtures (must FAIL structural validation)
-    print("\n4. Negative Fixtures (must FAIL)")
-    for fixture_name, expected_error in NEGATIVE_FIXTURES.items():
+    print("\n4. Positive Fixtures (must PASS)")
+    for fixture_name, schema in (
+        ("valid-request.json", request_schema),
+        ("valid-response.json", response_schema),
+    ):
         path = FIXTURES_DIR / fixture_name
         if not path.exists():
             errors.append(f"  ❌ MISSING: {fixture_name}")
             continue
-        ok, _ = validate_fixture(path, request_schema)
         instance = load_json(path)
-
-        # Run semantic checks
-        semantic_error = (
-            semantic_check_session_identifier(instance)
-            or semantic_check_deadline(instance)
-            or semantic_check_idempotency(instance)
+        structural = validate_structural(instance, schema)
+        semantic = (
+            validate_fixture_semantic(instance, store=store)
+            if "request" in fixture_name
+            else []
         )
-
-        if not ok or semantic_error:
-            reason = "structural" if not ok else "semantic"
-            detail = semantic_error or "structural schema violation"
-            print(f"  ✅ {fixture_name}: correctly FAILED ({reason}): {detail}")
+        if structural or semantic:
+            errors.append(f"  ❌ {fixture_name}: {structural + semantic}")
+            for e in structural + semantic:
+                print(f"     {e}")
         else:
-            errors.append(
-                f"  ❌ {fixture_name}: should have FAILED but passed both structural and semantic checks"
-            )
+            print(f"  ✅ {fixture_name}: PASS")
 
-    # 5. Semantic authority checks
-    print("\n5. Semantic Authority Enforcement")
-    authority_fixture = load_json(FIXTURES_DIR / "valid-request.json")
+    print("\n5. Negative Fixtures (must FAIL)")
+    for path in sorted(p for p in FIXTURES_DIR.glob("*.json") if "invalid" in p.name):
+        instance = load_json(path)
+        structural = validate_structural(instance, request_schema)
+        semantic = validate_fixture_semantic(instance, store=store)
+        all_errs = structural + semantic
+        if all_errs:
+            print(f"  ✅ {path.name}: correctly FAILED ({len(all_errs)})")
+            for e in all_errs[:3]:
+                print(f"     (expected) {e}")
+        else:
+            errors.append(f"  ❌ {path.name}: SHOULD fail but passed")
 
-    # Test EXECUTE without judge_receipt_ref
-    exec_fixture = dict(authority_fixture)
-    exec_fixture["invocation_id"] = "inv-exec-test"
-    exec_fixture["idempotency_key"] = "idem-exec-test"
-    exec_fixture["authority"] = dict(exec_fixture["authority"])
-    exec_fixture["authority"]["action_class"] = "EXECUTE"
-    exec_fixture["authority"]["judge_receipt_ref"] = None
-    auth_error = semantic_check_authority(exec_fixture)
-    if auth_error:
-        print(f"  ✅ EXECUTE without judge_receipt_ref: correctly FAILED — {auth_error}")
+    print("\n6. Semantic Authority Enforcement (synthetic)")
+    base = load_json(FIXTURES_DIR / "valid-request.json")
+    exec_fix = json.loads(json.dumps(base))
+    exec_fix["invocation_id"] = "inv-exec-test"
+    exec_fix["idempotency_key"] = "idem-exec-test"
+    exec_fix["authority"] = dict(exec_fix["authority"])
+    exec_fix["authority"]["action_class"] = "EXECUTE"
+    exec_fix["authority"]["judge_receipt_ref"] = None
+    auth_err = check_authority(exec_fix)
+    if auth_err:
+        print(f"  ✅ EXECUTE without judge_receipt_ref: {auth_err}")
     else:
-        errors.append("  ❌ EXECUTE without judge_receipt_ref: should have FAILED")
+        errors.append("  ❌ EXECUTE without judge_receipt_ref should fail")
 
-    # Test IRREVERSIBLE without human_ack_ref
-    irrev_fixture = dict(authority_fixture)
-    irrev_fixture["invocation_id"] = "inv-irrev-test"
-    irrev_fixture["idempotency_key"] = "idem-irrev-test"
-    irrev_fixture["authority"] = dict(irrev_fixture["authority"])
-    irrev_fixture["authority"]["mutation"] = True
-    irrev_fixture["authority"]["reversible"] = False
-    irrev_fixture["authority"]["human_ack_ref"] = None
-    auth_error = semantic_check_authority(irrev_fixture)
-    if auth_error:
-        print(f"  ✅ IRREVERSIBLE without human_ack_ref: correctly FAILED — {auth_error}")
+    irrev = json.loads(json.dumps(base))
+    irrev["invocation_id"] = "inv-irrev-test"
+    irrev["idempotency_key"] = "idem-irrev-test"
+    irrev["authority"] = dict(irrev["authority"])
+    irrev["authority"]["mutation"] = True
+    irrev["authority"]["reversible"] = False
+    irrev["authority"]["human_ack_ref"] = None
+    irrev["authority"]["action_class"] = "EXECUTE"
+    irrev["authority"]["judge_receipt_ref"] = "judge-ok"
+    auth_err = check_authority(irrev)
+    if auth_err:
+        print(f"  ✅ IRREVERSIBLE without human_ack_ref: {auth_err}")
     else:
-        errors.append("  ❌ IRREVERSIBLE without human_ack_ref: should have FAILED")
+        errors.append("  ❌ IRREVERSIBLE without human_ack_ref should fail")
 
-    # 6. Summary
+    print("\n7. Idempotency store behavior (test double)")
+    replay_err = check_idempotency_stateful(base, store)
+    if replay_err is None:
+        print("  ✅ same key + same hash: REPLAY_OK")
+    else:
+        errors.append(f"  ❌ replay should pass: {replay_err}")
+    conflict = json.loads(json.dumps(base))
+    conflict["payload"] = {"mode": "other"}
+    conflict["payload_hash"] = payload_hash(conflict["payload"])
+    c_err = check_idempotency_stateful(conflict, store)
+    if c_err and "IDEMPOTENCY_CONFLICT" in c_err:
+        print(f"  ✅ same key + different hash: {c_err[:60]}…")
+    else:
+        errors.append(f"  ❌ conflict expected, got: {c_err}")
+
     print("\n" + "=" * 60)
     if errors:
         print(f"❌ CONFORMANCE FAILED — {len(errors)} error(s):")
         for e in errors:
             print(f"  {e}")
         return EXIT_FAIL
-    else:
-        print("✅ CONFORMANCE PASSED — all checks green")
-        return EXIT_OK
+    print("✅ CONFORMANCE PASSED — all checks green")
+    print("NOTE: session_identifier_present ≠ live session attestation.")
+    print("NOTE: HARDENED DRAFT — no F13 seal / no ratification claim.")
+    return EXIT_OK
 
 
-if __name__ == "__main__":
-    import argparse
-
+def main() -> int:
     parser = argparse.ArgumentParser(description="Federation ABI Conformance Validator")
-    parser.add_argument("--schema-only", action="store_true", help="Validate schema syntax only")
-    parser.add_argument("--fixture", type=str, help="Validate a single fixture file")
+    parser.add_argument("--schema-only", action="store_true")
+    parser.add_argument("--check-sums", action="store_true")
+    parser.add_argument("--fixture", type=str)
     args = parser.parse_args()
 
     if args.schema_only:
-        errs = validate_schema_syntax()
-        sys.exit(EXIT_FAIL if errs else EXIT_OK)
-
+        return EXIT_FAIL if validate_schema_syntax() else EXIT_OK
+    if args.check_sums:
+        return EXIT_FAIL if check_sums() else EXIT_OK
     if args.fixture:
         path = Path(args.fixture)
-        schema = SCHEMA_FILES["request"] if "request" in args.fixture else SCHEMA_FILES["response"]
-        ok, msg = validate_fixture(path, schema)
-        print(f"{'PASS' if ok else 'FAIL'}: {msg}")
-        sys.exit(EXIT_OK if ok else EXIT_FAIL)
+        schema = (
+            load_json(SCHEMA_FILES["request"])
+            if "response" not in path.name
+            else load_json(SCHEMA_FILES["response"])
+        )
+        instance = load_json(path)
+        structural = validate_structural(instance, schema)
+        semantic = validate_fixture_semantic(instance)
+        if structural or semantic:
+            print("FAIL")
+            for e in structural + semantic:
+                print(" ", e)
+            return EXIT_FAIL
+        print("PASS")
+        return EXIT_OK
+    return run_all_tests()
 
-    sys.exit(run_all_tests())
+
+if __name__ == "__main__":
+    raise SystemExit(main())

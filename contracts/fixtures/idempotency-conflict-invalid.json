@@ -1,36 +1,38 @@
 {
   "schema_version": "1.0.0",
-  "invocation_id": "inv-missing-session",
+  "invocation_id": "inv-idem-conflict",
   "parent_invocation_id": null,
   "trace_id": "trace-20260723-abc123",
   "hop_index": 0,
-  "session_id": "",
+  "session_id": "SEAL-bee1b3fd3ebd4ae4",
+  "session_token": "sct_v1.example.not-a-real-jwt",
   "actor_id": "arif",
   "source_organ": "arifOS",
   "destination_organ": "WEALTH",
-  "capability_id": "capital_health",
-  "epistemic_tag": "OBSERVED",
+  "capability_id": "capital_primitive",
+  "epistemic_tag": "COMPUTED",
   "evidence_refs": [],
-  "payload_hash": "sha256:8b3d4e912e3c116b5a9bdf10495ca99bd0c64a48ad232adc247c452effe064aa",
+  "payload_hash": "sha256:7941916b67da1ef5cb1885c3be7c89bf65e446880ceeeb2bc7ba7d54f1ddb97a",
   "source_release": "arifos-f56f946c7",
   "source_manifest_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "authority": {
-    "action_class": "OBSERVE",
+    "action_class": "COMPUTE",
     "mutation": false,
     "reversible": true,
     "authority_band": "OBSERVE_ONLY",
-    "authority_scope": "Read WEALTH capital health metrics",
+    "authority_scope": "Capital computation",
     "judge_receipt_ref": null,
     "human_ack_ref": null
   },
-  "idempotency_key": "idem-missing-001",
+  "idempotency_key": "idem-20260723-001",
   "attempt": 1,
   "max_attempts": 3,
   "issued_at": "2026-07-23T22:41:00Z",
   "deadline_at": "2099-12-31T23:59:59Z",
   "payload": {
-    "assets": [],
-    "liabilities": [],
-    "mode": "conservation"
+    "cash_flows": [
+      1000
+    ],
+    "mode": "npv"
   }
 }
