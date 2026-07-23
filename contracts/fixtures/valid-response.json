@@ -1,0 +1,19 @@
+{
+  "schema_version": "2.0.0",
+  "invocation_id": "inv-20260723-001",
+  "trace_id": "trace-20260723-abc123",
+  "hop_index": 1,
+  "session_id": "SEAL-8bacc609539b43b7",
+  "actor_id": "arif",
+  "source_organ": "WEALTH",
+  "destination_organ": "arifOS",
+  "status": "SUCCESS",
+  "epistemic_tag": "COMPUTED",
+  "evidence_refs": ["sha256:abc123"],
+  "payload_hash": "sha256:def456",
+  "payload": { "net_worth": 1000000, "currency": "MYR" },
+  "receipt_ref": null,
+  "chain_hash": null,
+  "issued_at": "2026-07-23T22:41:01Z",
+  "elapsed_ms": 45
+}
