@@ -3,6 +3,11 @@
 > Total MCP: 65 Tools | 25 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
 
+## Public Audit & Identity Windows
+- [GET /999/verify](https://arif-fazil.com/999/verify): Live public vault proof — HEAD hash, verified status (`verified: true`), gap count (unauthenticated, 60s cache)
+- [GET /health](https://arifos.arif-fazil.com/health): Live node identity + BLAKE3 identity hash (`632a3b46...9631`)
+- [GET /gate/check](https://arifos.arif-fazil.com/gate/check): Caddy `forward_auth` constitutional gate endpoint (fail-CLOSED)
+
 ## Docs
 - [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)
 - [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context
