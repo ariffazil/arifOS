@@ -21,7 +21,8 @@ depends_on:
 
 mcp:
   port: 8088
-  endpoint: https://arifos.arif-fazil.com/mcp
+  canonical_public_ingress: https://mcp.arif-fazil.com/mcp
+  observatory_endpoint: https://arifos.arif-fazil.com/mcp
   tools_count: 8 public (48 internal)
   public_tools:
     - arif_init (000)
