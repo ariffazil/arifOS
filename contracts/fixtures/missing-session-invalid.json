@@ -1,0 +1,15 @@
+{
+  "schema_version": "2.0.0",
+  "invocation_id": "inv-20260723-002",
+  "trace_id": "trace-20260723-missing",
+  "session_id": "",
+  "actor_id": "anonymous",
+  "source_organ": "WEALTH",
+  "error_code": "SESSION_MISSING",
+  "error_class": "SESSION_MISSING",
+  "message": "Mcp-Session-Id header required. All governed WEALTH tools require an active arifOS session.",
+  "details": { "required_header": "Mcp-Session-Id", "help": "Call arif_init first" },
+  "retry_allowed": true,
+  "retry_after_ms": 0,
+  "issued_at": "2026-07-23T22:41:00Z"
+}

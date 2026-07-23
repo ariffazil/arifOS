@@ -1,0 +1,31 @@
+{
+  "schema_version": "2.0.0",
+  "invocation_id": "inv-20260723-004",
+  "trace_id": "trace-20260723-dup",
+  "hop_index": 0,
+  "session_id": "SEAL-8bacc609539b43b7",
+  "actor_id": "arif",
+  "source_organ": "A-FORGE",
+  "destination_organ": "WEALTH",
+  "capability_id": "capital_primitive",
+  "epistemic_tag": "COMPUTED",
+  "evidence_refs": [],
+  "payload_hash": "sha256:abc123",
+  "source_release": "aforge-5a00756",
+  "source_manifest_hash": "sha256:ghi789",
+  "authority": {
+    "action_class": "COMPUTE",
+    "mutation": false,
+    "reversible": true,
+    "authority_band": "OBSERVE_ONLY",
+    "authority_scope": "Capital computation",
+    "judge_receipt_ref": null,
+    "human_ack_ref": null
+  },
+  "idempotency_key": "idem-dup-001",
+  "attempt": 2,
+  "max_attempts": 3,
+  "issued_at": "2026-07-23T22:41:00Z",
+  "deadline_at": "2026-07-23T22:46:00Z",
+  "payload": { "mode": "npv", "cash_flows": [1000] }
+}
