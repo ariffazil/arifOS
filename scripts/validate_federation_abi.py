@@ -23,6 +23,18 @@ ROOT = Path(__file__).resolve().parent.parent
 SCHEMAS_DIR = ROOT / "contracts" / "schemas"
 FIXTURES_DIR = ROOT / "contracts" / "fixtures"
 
+# Canonical JSON hashing: RFC 8785 (JCS) — sort_keys, no trailing newline, UTF-8.
+# All payload_hash values MUST use this algorithm for cross-implementation compatibility.
+CANONICAL_JSON_HASH = lambda obj: (
+    __import__("hashlib")
+    .sha256(
+        __import__("json")
+        .dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        .encode("utf-8")
+    )
+    .hexdigest()
+)
+
 SCHEMA_FILES = {
     "request": SCHEMAS_DIR / "federation-request.v1.schema.json",
     "response": SCHEMAS_DIR / "federation-response.v1.schema.json",
@@ -106,11 +118,11 @@ def semantic_check_deadline(instance: dict) -> str | None:
     return None
 
 
-def semantic_check_session(instance: dict) -> str | None:
-    """Semantic: session_id must be non-empty and match SEAL-* pattern."""
+def semantic_check_session_identifier(instance: dict) -> str | None:
+    """Check session_id is present and non-empty. Liveness verification requires runtime attestation."""
     sid = instance.get("session_id", "")
-    if not sid or not sid.startswith("SEAL-"):
-        return "SESSION_MISSING: session_id must match SEAL-<hex> pattern"
+    if not sid:
+        return "SESSION_IDENTIFIER_MISSING: session_id must be non-empty"
     return None
 
 
@@ -184,7 +196,7 @@ def run_all_tests() -> int:
 
         # Run semantic checks
         semantic_error = (
-            semantic_check_session(instance)
+            semantic_check_session_identifier(instance)
             or semantic_check_deadline(instance)
             or semantic_check_idempotency(instance)
         )

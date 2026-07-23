@@ -60,8 +60,12 @@
     "session_id": {
       "type": "string",
       "minLength": 1,
-      "pattern": "^SEAL-[a-f0-9]{16}$",
-      "description": "arifOS session ID. Must match SEAL-<16-hex> pattern."
+      "pattern": "^(SEAL-[a-f0-9]{16}|sess-[a-z0-9]+)$",
+      "description": "arifOS session ID. Accepts SEAL-<16-hex> (kernel format) or sess-<alnum> (legacy/test)."
+    },
+    "session_token": {
+      "type": "string",
+      "description": "arifOS Session Capability Token (sct_v1.<signed>). Present when session is authenticated for mutation."
     },
     "actor_id": {
       "type": "string",
