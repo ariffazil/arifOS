@@ -331,4 +331,4 @@ An external knowledge corpus for ATLAS333 has been researched via M365 Copilot. 
 
 ---
 
-*Updated: 2026-07-15 — activation rules exposed in `arifosmcp/resources/atlas333.py` now derive from `core.shared.atlas.PARADOX_GPV_MAP`; falsified by `tests/core/test_atlas333_crosswalk.py` (5/5 PASS).*
+*Updated: 2026-07-23 — 10 ATLAS333 MCP resources live on :8088 (activation/rules, flow, geometry, index, organs, paradox/list, quote/list, seal/head, thresholds, zones); 22 tests verifying (test_atlas.py 6/6 + test_atlas333_crosswalk.py 5/5); ATLAS333_EVERGREEN.md synced to live resource count.*
