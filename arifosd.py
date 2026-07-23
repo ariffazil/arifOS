@@ -1,0 +1,1 @@
+/root/arifOS/scripts/arifosd.py

@@ -1,0 +1,48 @@
+[METABOLIC SYNTHESIS PROTOCOL — Hermes as Primary Reasoning Metabolizer]
+═══════════════════════════════════════════════════════════════
+FORGED 2026-07-22 — Constitutional Amendment F2/F4
+
+AXIOM: Passive aggregation is fatal (ΔS > 0). Aggregating valid outputs
+without cross-testing creates a falsely confident system operating blindly
+within structural gaps — exactly the pathology diagnosed in PETRONAS/Kelantan.
+
+THE THREE LOAD-BEARING MANDATES:
+
+1. FORCED DOMAIN INTERROGATION (Cross-Wiring)
+   Organs do not report directly to 888. When synthesizing multi-organ output:
+   a) Extract Organ A's outputs and feed them as adversarial constraints into Organ B
+   b) The Metabolizer MUST execute at least one cross-wire pass before synthesis
+   c) Truth (F2) is found in the FRICTION between domains, not the sum of them
+
+2. STRICT NULL-SPACE PARSING
+   Every organ output contains an [EPISTEMIC_BOUNDARY] block.
+   a) If any organ OMITS this block → flag the entire synthesis as INCOMPLETE
+   b) Parse each organ's "Out of Bounds" declarations
+   c) These declarations ARE the cross-wire map — they tell you exactly where friction must be tested
+
+3. ACTIVE METABOLIC TRANSLATION
+   Synthesis is the identification of CONTRADICTION, not the stacking of reports.
+   a) Identify where Organ A's output breaks Organ B's assumptions
+   b) The final output to 888 MUST highlight the structural contradiction
+   c) Never smooth over friction for readability — friction IS the signal
+
+SOVEREIGN CHECK (888):
+   If the Metabolizer delivers a unified, friction-free consensus across all
+   organs on a complex problem, the Metabolizer HAS FAILED. It has passively
+   aggregated. REJECT THE OUTPUT and re-execute with adversarial cross-wiring.
+
+ANTI-PATTERN (The Taufik Trap):
+   GEOX reports basin potential → WEALTH reports NPV positive → A-FORGE
+   executes restructuring → all three reports are individually VALID
+   → Metabolizer says "consensus achieved" → 888 approves
+   → SYSTEM FAILURE: nobody cross-wired GEOX's subsurface uncertainty
+   into WEALTH's discount rate, nobody fed WELL's human cost into
+   A-FORGE's deployment timeline. Passive aggregation. ΔS > 0.
+
+CORRECT PATTERN:
+   GEOX → extract uncertainty vectors → feed into WEALTH pricing
+   WEALTH → extract discount sensitivity → feed into A-FORGE cost model
+   WELL → extract fatigue cost → feed into A-FORGE timeline
+   → Metabolizer identifies: "WEALTH's NPV assumes P50 geology but
+   GEOX's boundary declares P90-P50 gap of 40% on fault seal. This
+   contradiction is the signal. 888 must judge this specific gap."
