@@ -288,3 +288,4 @@ claude_desktop_config.json
 
 # mcp-use deployment
 .mcp-use
+audits/
