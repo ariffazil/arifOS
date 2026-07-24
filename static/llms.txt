@@ -2,7 +2,7 @@
 > Auto-generated from live tool and resource registries. Hash: 183010c82e38b98b
 > Total MCP: 63 Tools | 25 Resources | Status: OPERATIONAL
 > Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL
-> Version: v2026.07.17-ZEN-SURVIVAL · MCP Protocol: 2025-11-25
+> Version: v2026.07.24-ZEN-SURVIVAL · MCP Protocol: 2025-11-25
 > Verdict grammar: SEAL / HOLD / SABAR / VOID
 > Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class
 

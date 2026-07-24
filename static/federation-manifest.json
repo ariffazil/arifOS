@@ -9,7 +9,7 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=healthy, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.17-ZEN-SURVIVAL (889b985). 80 tools live across 5/6 organs.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=healthy, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.24-ZEN-SURVIVAL (889b985). 80 tools live across 5/6 organs.",
   "note": "All numbers from live /health probe at 2026-07-19T08:55:14Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
   "stack": {
     "topology": {
@@ -61,8 +61,8 @@
         "health_endpoint": "/health",
         "status": "healthy",
         "tools": 48,
-        "release": "v2026.07.17-ZEN-SURVIVAL",
-        "version": "v2026.07.17-ZEN-SURVIVAL",
+        "release": "v2026.07.24-ZEN-SURVIVAL",
+        "version": "v2026.07.24-ZEN-SURVIVAL",
         "commit": "889b985",
         "canonical_tools": 8,
         "diagnostic_tools": 40,
