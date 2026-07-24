@@ -171,7 +171,18 @@ def _read_session_record(session_id: str | None) -> dict[str, Any] | None:
     try:
         from arifosmcp.runtime.session import get_session_identity
 
-        return get_session_identity(session_id)
+        record = get_session_identity(session_id)
+        if record:
+            return record
+        # FIX 2026-07-24: get_session_identity only matches arifos.v1.* IDs.
+        # SEAL-* sessions invisible → standing always OBSERVE_ONLY.
+        # Fall back to global _SESSIONS store.
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        sess = _SESSIONS.get(session_id)
+        if sess:
+            return dict(sess)
+        return None
     except Exception:
         return None
 

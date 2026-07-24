@@ -1428,6 +1428,8 @@ def arif_init(
                         except Exception:
                             pass
                         sess["signature_verified"] = True
+                        sess["verified"] = True
+                        sess["actor_verified"] = True
                         sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                         sess["authority"] = "FULL"
                         logger.info(
@@ -1492,6 +1494,8 @@ def arif_init(
                             _light_agent_class = "SOVEREIGN_PRINCIPAL"
                             _light_authority_level = "SOVEREIGN"
                             sess["signature_verified"] = True
+                            sess["verified"] = True
+                            sess["actor_verified"] = True
                             sess["agent_class"] = "SOVEREIGN_PRINCIPAL"
                             sess["authority"] = "FULL"
                             try:
