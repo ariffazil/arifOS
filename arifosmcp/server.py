@@ -2586,9 +2586,9 @@ if app:
 
         # 10. Active sessions
         try:
-            from arifosmcp.runtime.session_enforcer import _SESSIONS
+            from arifosmcp.runtime.session_enforcer import _HOLD_TRACKER
 
-            checks["active_sessions"] = len(_SESSIONS)
+            checks["active_sessions"] = len(_HOLD_TRACKER)
         except Exception:
             checks["active_sessions"] = 0
 

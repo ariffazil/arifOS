@@ -46,7 +46,7 @@ def fresh_session_store(monkeypatch):
     tests; no canonical state is touched.
     """
     fresh = _SessionTokens()
-    monkeypatch.setattr("arifosmcp.runtime.token_pressure._SESSIONS", fresh)
+    monkeypatch.setattr("arifosmcp.runtime.token_pressure._TOKEN_BUDGETS", fresh)
     return fresh
 
 

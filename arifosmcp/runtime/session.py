@@ -28,9 +28,69 @@ from pathlib import Path
 from threading import RLock
 from typing import Any
 
+try:
+    import fcntl  # type: ignore
+except ImportError:  # pragma: no cover
+    fcntl = None  # type: ignore
+
 from core.shared.types import ActorIdentity
 
 logger = logging.getLogger(__name__)
+
+# Execution-domain fields formerly only in tools.py _FileSessionStore.
+# Zen collapse 2026-07-24: one schema in _SESSION_IDENTITY.
+_EXECUTION_FIELD_KEYS: tuple[str, ...] = (
+    "trace_packet",
+    "invocation_count",
+    "invocation_tools",
+    "agent_policy",
+    "epoch_id",
+    "decision_class",
+    "prior_verdicts",
+    "_prior_verdicts",
+    "lane",
+    "sealed",
+    "entropy_delta",
+    "model_governance_card",
+    "model_shadow",
+    "model_soul",
+    "session_token",
+    "sct_source",
+    "allowed_next_verbs",
+    "session_warnings",
+    "created_at_unix",
+    "expires_at_unix",
+    "sovereign_id",
+    "caller_actor_id",
+    "executor_actor_id",
+    "delegation_mode",
+    "apex",
+    "authority",
+    "authority_state",
+    "verdict",
+    "agent_class",
+    "actor_band",
+    "counterparty_receipt",
+    "context_receipt",
+    "evidence_receipt",
+    "tooling_receipt",
+    "memory_receipt",
+    "session_verdict",
+    "init_memory_recall",
+    "identity_verified",
+    "identity_verify_reason",
+    "ed25519_governance_verified",
+    "signature_verified",
+    "genesis_card_hash",
+    "context_completeness",
+    "registry_error",
+)
+_LEGACY_EXEC_STORE_CANDIDATES: tuple[Path, ...] = (
+    Path(os.getenv("ARIFOS_LEGACY_SESSION_STORE", "") or "/app/data/sessions.json"),
+    Path("/app/data/sessions.json"),
+)
+_LEGACY_MIGRATED = False
+_LEGACY_MIGRATING = False
 # ── Replay / Nonce Detection ────────────────────────────────────────────
 # LRU cache of recently seen request IDs (trace_id / jti).
 # Rejects duplicate usage within the TTL window — simple replay defense.
@@ -243,23 +303,69 @@ def _parse_iso8601(value: str | None) -> datetime | None:
 
 def _session_store_payload() -> dict[str, Any]:
     return {
-        "version": 1,
+        "version": 2,  # zen collapse: identity ∪ execution single schema
         "active_session_id": _ACTIVE_SESSION_ID,
         "sessions": _SESSION_IDENTITY,
         "continuity": _SESSION_CONTINUITY_STATE,
     }
 
 
+def _store_lock_path() -> Path:
+    return _SESSION_STORE_PATH.with_suffix(_SESSION_STORE_PATH.suffix + ".lock")
+
+
+def _flock_exclusive(handle: Any) -> None:
+    if fcntl is None:
+        return
+    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+
+
+def _flock_shared(handle: Any) -> None:
+    if fcntl is None:
+        return
+    fcntl.flock(handle.fileno(), fcntl.LOCK_SH)
+
+
+def _flock_unlock(handle: Any) -> None:
+    if fcntl is None:
+        return
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    except OSError:
+        pass
+
+
+def _json_default(obj: Any) -> Any:
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump()
+    if hasattr(obj, "dict"):
+        return obj.dict()
+    return str(obj)
+
+
 def _persist_store() -> None:
+    """Atomic write under fcntl flock (cross-process)."""
     global _SESSION_STORE_PATH
     try:
         _SESSION_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path = _SESSION_STORE_PATH.with_suffix(".tmp")
-        tmp_path.write_text(
-            json.dumps(_session_store_payload(), indent=2, sort_keys=True),
-            encoding="utf-8",
-        )
-        tmp_path.replace(_SESSION_STORE_PATH)
+        lock_path = _store_lock_path()
+        lock_path.touch(exist_ok=True)
+        with open(lock_path, "a+", encoding="utf-8") as lock_handle:
+            _flock_exclusive(lock_handle)
+            try:
+                tmp_path = _SESSION_STORE_PATH.with_suffix(".tmp")
+                tmp_path.write_text(
+                    json.dumps(
+                        _session_store_payload(),
+                        indent=2,
+                        sort_keys=True,
+                        default=_json_default,
+                    ),
+                    encoding="utf-8",
+                )
+                tmp_path.replace(_SESSION_STORE_PATH)
+            finally:
+                _flock_unlock(lock_handle)
     except OSError as exc:
         fallback_path = Path("/tmp") / "arifos" / "runtime_sessions.json"  # nosec B108
         if _SESSION_STORE_PATH != fallback_path and _is_store_parent_writable(fallback_path.parent):
@@ -275,6 +381,162 @@ def _persist_store() -> None:
         logger.warning("Session store persistence failed at %s: %s", _SESSION_STORE_PATH, exc)
 
 
+def _extract_sessions_map(payload: Any) -> dict[str, Any]:
+    """Accept wrapped {sessions:{…}} and flat {sid: record} legacy shapes."""
+    if not isinstance(payload, dict):
+        return {}
+    sessions = payload.get("sessions")
+    if isinstance(sessions, dict):
+        return {str(k): v for k, v in sessions.items() if isinstance(v, dict)}
+    out: dict[str, Any] = {}
+    for k, v in payload.items():
+        if k in {"version", "active_session_id", "continuity", "sessions"}:
+            continue
+        if isinstance(v, dict) and (
+            "session_id" in v or "actor_id" in v or "stage" in v or "trace_packet" in v
+        ):
+            out[str(k)] = v
+    return out
+
+
+def _normalize_legacy_record(sid: str, rec: dict[str, Any]) -> dict[str, Any]:
+    now = _utcnow()
+    out = dict(rec)
+    out.setdefault("session_id", sid)
+    out.setdefault("actor_id", rec.get("actor_id") or "anonymous")
+    verified = bool(
+        rec.get("verified") if rec.get("verified") is not None else rec.get("actor_verified", False)
+    )
+    out["verified"] = verified
+    out["actor_verified"] = bool(rec.get("actor_verified", verified))
+    if not out.get("expires_at") and rec.get("expires_at_unix"):
+        try:
+            out["expires_at"] = datetime.fromtimestamp(
+                float(rec["expires_at_unix"]), tz=UTC
+            ).isoformat()
+        except (TypeError, ValueError, OSError):
+            out["expires_at"] = (now + timedelta(seconds=_SESSION_TTL_SECONDS)).isoformat()
+    elif not out.get("expires_at"):
+        out["expires_at"] = (now + timedelta(seconds=_SESSION_TTL_SECONDS)).isoformat()
+    if not out.get("expires_at_unix"):
+        exp = _parse_iso8601(out.get("expires_at"))
+        if exp is not None:
+            out["expires_at_unix"] = exp.timestamp()
+    out.setdefault("created_at", rec.get("created_at") or now.isoformat())
+    out.setdefault("updated_at", now.isoformat())
+    out.setdefault("stage", rec.get("stage") or "000")
+    out.setdefault("lane", rec.get("lane") or "AGI")
+    if out.get("decision_class") is None:
+        tp = rec.get("trace_packet") or {}
+        if isinstance(tp, dict) and tp.get("decision_class"):
+            out["decision_class"] = tp["decision_class"]
+    out.setdefault("prior_verdicts", rec.get("_prior_verdicts") or rec.get("prior_verdicts") or [])
+    out.setdefault("invocation_count", int(rec.get("invocation_count") or 0))
+    return out
+
+
+def migrate_legacy_exec_store(*, force: bool = False) -> dict[str, Any]:
+    """One-shot: fold /app/data/sessions.json into the unified identity store."""
+    global _LEGACY_MIGRATED, _LEGACY_MIGRATING
+    if _LEGACY_MIGRATING:
+        return {"migrated": 0, "status": "in_progress"}
+    if _LEGACY_MIGRATED and not force:
+        return {"migrated": 0, "status": "already_done"}
+
+    _LEGACY_MIGRATING = True
+    try:
+        _load_store()
+        migrated = 0
+        sources: list[str] = []
+        seen_paths: set[str] = set()
+        for candidate in _LEGACY_EXEC_STORE_CANDIDATES:
+            if not candidate or str(candidate) in seen_paths:
+                continue
+            seen_paths.add(str(candidate))
+            if not candidate.exists():
+                continue
+            try:
+                if candidate.resolve() == _SESSION_STORE_PATH.resolve():
+                    continue
+            except OSError:
+                if str(candidate) == str(_SESSION_STORE_PATH):
+                    continue
+            try:
+                payload = json.loads(candidate.read_text(encoding="utf-8"))
+            except Exception as exc:
+                logger.warning("Legacy session store unreadable at %s: %s", candidate, exc)
+                continue
+            sessions = _extract_sessions_map(payload)
+            if not sessions:
+                ts = datetime.now(UTC).strftime("%Y%m%dT%H%MZ")
+                bak = candidate.with_name(candidate.name + f".migrated-empty-{ts}")
+                try:
+                    candidate.replace(bak)
+                    sources.append(str(bak))
+                except OSError as exc:
+                    logger.warning("Could not retire empty legacy store %s: %s", candidate, exc)
+                continue
+            with _STORE_LOCK:
+                for sid, rec in sessions.items():
+                    if not isinstance(rec, dict):
+                        continue
+                    normalized = _normalize_legacy_record(sid, rec)
+                    existing = _SESSION_IDENTITY.get(sid)
+                    if existing is None:
+                        _SESSION_IDENTITY[sid] = normalized
+                        actor = normalized.get("actor_id")
+                        if actor:
+                            _ACTOR_SESSION_MAP[sid] = str(actor)
+                        migrated += 1
+                    else:
+                        merged = dict(normalized)
+                        merged.update(existing)
+                        for key in _EXECUTION_FIELD_KEYS:
+                            if merged.get(key) in (None, "", [], {}) and normalized.get(key) not in (
+                                None,
+                                "",
+                                [],
+                                {},
+                            ):
+                                merged[key] = normalized[key]
+                        try:
+                            if int(normalized.get("invocation_count") or 0) > int(
+                                merged.get("invocation_count") or 0
+                            ):
+                                merged["invocation_count"] = normalized["invocation_count"]
+                                merged["invocation_tools"] = normalized.get(
+                                    "invocation_tools", merged.get("invocation_tools")
+                                )
+                        except (TypeError, ValueError):
+                            pass
+                        if normalized.get("trace_packet") and not existing.get("trace_packet"):
+                            merged["trace_packet"] = normalized["trace_packet"]
+                        _SESSION_IDENTITY[sid] = merged
+                        migrated += 1
+                _persist_store()
+            ts = datetime.now(UTC).strftime("%Y%m%dT%H%MZ")
+            bak = candidate.with_name(candidate.name + f".migrated-{ts}")
+            try:
+                candidate.replace(bak)
+                sources.append(str(bak))
+                logger.info(
+                    "Legacy session store migrated: %s → %s (%d records)",
+                    candidate,
+                    bak,
+                    len(sessions),
+                )
+            except OSError as exc:
+                logger.warning(
+                    "Migrated in-memory but could not rename legacy store %s: %s",
+                    candidate,
+                    exc,
+                )
+        _LEGACY_MIGRATED = True
+        return {"migrated": migrated, "status": "ok", "sources": sources}
+    finally:
+        _LEGACY_MIGRATING = False
+
+
 def _load_store() -> None:
     global _STORE_LOADED, _ACTIVE_SESSION_ID
     with _STORE_LOCK:
@@ -282,7 +544,14 @@ def _load_store() -> None:
             return
         if _SESSION_STORE_PATH.exists():
             try:
-                payload = json.loads(_SESSION_STORE_PATH.read_text(encoding="utf-8"))
+                lock_path = _store_lock_path()
+                lock_path.touch(exist_ok=True)
+                with open(lock_path, "a+", encoding="utf-8") as lock_handle:
+                    _flock_shared(lock_handle)
+                    try:
+                        payload = json.loads(_SESSION_STORE_PATH.read_text(encoding="utf-8"))
+                    finally:
+                        _flock_unlock(lock_handle)
                 sessions = payload.get("sessions")
                 continuity = payload.get("continuity")
                 if isinstance(sessions, dict):
@@ -296,9 +565,13 @@ def _load_store() -> None:
                 if payload.get("active_session_id"):
                     _ACTIVE_SESSION_ID = str(payload["active_session_id"])
             except Exception:
-                # Fail open to in-memory state; writers will repair the file.
                 pass
         _STORE_LOADED = True
+    if not _LEGACY_MIGRATING and not _LEGACY_MIGRATED:
+        try:
+            migrate_legacy_exec_store()
+        except Exception as exc:
+            logger.warning("Legacy session migration skipped: %s", exc)
 
 
 def _normalize_risk_tier(risk_tier: str | None, *, verified: bool = False) -> str:
@@ -364,34 +637,8 @@ def _ensure_active_record(session_id: str) -> dict[str, Any] | None:
         except Exception:
             pass
 
-    # H2b: SEAL-* format fallback — try the _FileSessionStore as well
-    if record is None and session_id.startswith("SEAL-"):
-        try:
-            from arifosmcp.runtime.tools import _SESSIONS
-
-            sess = _SESSIONS.get(session_id)
-            if sess:
-                record = {
-                    "session_id": session_id,
-                    "actor_id": sess.get("actor_id", "anonymous"),
-                    "authority_level": "operator"
-                    if sess.get("actor_id") == "arif"
-                    else "anonymous",
-                    "verified": bool(sess.get("actor_verified", False)),
-                    "recovered_from_file_store": True,
-                    "expires_at": datetime.fromtimestamp(
-                        sess.get("expires_at_unix", 0.0),
-                        tz=UTC,
-                    ).isoformat()
-                    if sess.get("expires_at_unix")
-                    else ((datetime.now(UTC) + timedelta(hours=1)).isoformat()),
-                    "stage": sess.get("stage", "000"),
-                    "lane": sess.get("lane", "AGI"),
-                }
-                with _STORE_LOCK:
-                    _SESSION_IDENTITY[session_id] = record
-        except Exception:
-            pass
+    # H2b SEAL-* → tools._SESSIONS bridge RETIRED (zen collapse 2026-07-24).
+    # Legacy /app/data/sessions.json migrates into _SESSION_IDENTITY on load.
 
     if _is_session_expired(record):
         clear_session_identity(session_id)
@@ -538,25 +785,30 @@ def bind_session_identity(
     stage: str | None = None,
     governance: dict[str, Any] | None = None,
     sign: bool = False,
+    # Zen collapse 2026-07-24: execution fields live on identity store
+    trace_packet: dict[str, Any] | None = None,
+    invocation_count: int | None = None,
+    agent_policy: dict[str, Any] | None = None,
+    epoch_id: str | None = None,
+    decision_class: str | None = None,
+    prior_verdicts: list[Any] | None = None,
+    lane: str | None = None,
+    execution_fields: dict[str, Any] | None = None,
 ) -> str:
     """
     Bind a verified identity to a session. Called after successful init_anchor.
 
-    This is the canonical write: after this call, get_session_identity(session_id)
-    will return the stored identity instead of anonymous defaults.
+    Execution-domain fields (trace_packet, invocation_count, agent_policy,
+    epoch_id, decision_class, prior_verdicts, lane, …) are stored on the same
+    record — one schema, not two.
 
     If sign=True, returns a new signed session ID encoding the identity payload.
     """
     _load_store()
     now = _utcnow()
     canonical_actor_id = _resolve_canonical_actor(actor_id, None)
-    # F2 TRUTH repair 2026-07-17: authority_level describes what an actor
-    # is ALLOWED to do, NOT whether their identity is cryptographically
-    # verified. "sovereign"/"operator" labels do not imply verified=True.
-    # Only explicit `verified` param or auth_context["verified"] can set this.
     verified_flag = bool(verified if verified is not None else auth_context.get("verified", False))
 
-    # H2: Distributed continuity signing
     actual_session_id = session_id
     if sign:
         token_payload = {
@@ -566,7 +818,6 @@ def bind_session_identity(
             "exp": int((now + timedelta(hours=24)).timestamp()),
         }
         signed_token = _sign_session_payload(token_payload)
-        # Preserve original UUID prefix if possible
         prefix = session_id.split("--")[0] if "--" in session_id else session_id
         if not prefix.startswith("sid_"):
             prefix = f"sid_{prefix}"
@@ -586,6 +837,13 @@ def bind_session_identity(
             "platform": platform or existing.get("platform") or "mcp",
         },
     )
+    _tp = trace_packet if trace_packet is not None else existing.get("trace_packet")
+    _decision = decision_class
+    if _decision is None and isinstance(_tp, dict):
+        _decision = _tp.get("decision_class")
+    if _decision is None:
+        _decision = existing.get("decision_class")
+
     record = {
         "session_id": actual_session_id,
         "actor_id": actor_id,
@@ -620,6 +878,7 @@ def bind_session_identity(
         "updated_at": now.isoformat(),
         "last_seen_at": now.isoformat(),
         "expires_at": (now + timedelta(seconds=_SESSION_TTL_SECONDS)).isoformat(),
+        "expires_at_unix": (now + timedelta(seconds=_SESSION_TTL_SECONDS)).timestamp(),
         "activity": existing.get("activity")
         or {
             "tool_call_count": 0,
@@ -630,7 +889,35 @@ def bind_session_identity(
             "last_ops_vitals": None,
             "history": [],
         },
+        "trace_packet": _tp if _tp is not None else existing.get("trace_packet"),
+        "invocation_count": (
+            int(invocation_count)
+            if invocation_count is not None
+            else int(existing.get("invocation_count") or 0)
+        ),
+        "agent_policy": agent_policy if agent_policy is not None else existing.get("agent_policy"),
+        "epoch_id": epoch_id if epoch_id is not None else existing.get("epoch_id"),
+        "decision_class": _decision,
+        "prior_verdicts": (
+            list(prior_verdicts)
+            if prior_verdicts is not None
+            else list(existing.get("prior_verdicts") or existing.get("_prior_verdicts") or [])
+        ),
+        "lane": lane if lane is not None else (existing.get("lane") or "AGI"),
     }
+    for key in _EXECUTION_FIELD_KEYS:
+        if key not in record and key in existing:
+            record[key] = existing[key]
+    if execution_fields:
+        for key, value in execution_fields.items():
+            if value is None and key in record:
+                continue
+            if key in {"session_id", "auth_context", "activity"}:
+                continue
+            if key in record and record[key] is not None and value in (None, "", [], {}):
+                continue
+            record[key] = value
+
     _SESSION_IDENTITY[actual_session_id] = record
     _ACTOR_SESSION_MAP[actual_session_id] = actor_id
     set_active_session(actual_session_id)
@@ -638,6 +925,61 @@ def bind_session_identity(
         _persist_store()
 
     return actual_session_id
+
+
+def upsert_session_record(session_id: str, data: dict[str, Any]) -> dict[str, Any]:
+    """Merge data into the unified session record and persist."""
+    if not session_id:
+        raise ValueError("session_id required")
+    _load_store()
+    now = _utcnow()
+    with _STORE_LOCK:
+        existing = dict(_SESSION_IDENTITY.get(session_id) or {})
+        merged = dict(existing)
+        for key, value in (data or {}).items():
+            if value is None and key in existing:
+                continue
+            merged[key] = value
+        merged["session_id"] = session_id
+        merged["updated_at"] = now.isoformat()
+        merged["last_seen_at"] = now.isoformat()
+        if not merged.get("expires_at"):
+            merged["expires_at"] = (now + timedelta(seconds=_SESSION_TTL_SECONDS)).isoformat()
+        if not merged.get("expires_at_unix"):
+            exp = _parse_iso8601(merged.get("expires_at"))
+            if exp is not None:
+                merged["expires_at_unix"] = exp.timestamp()
+        if "verified" in merged and "actor_verified" not in (data or {}):
+            merged.setdefault("actor_verified", bool(merged.get("verified")))
+        if "actor_verified" in merged and "verified" not in (data or {}):
+            merged.setdefault("verified", bool(merged.get("actor_verified")))
+        _SESSION_IDENTITY[session_id] = merged
+        actor = merged.get("actor_id")
+        if actor:
+            _ACTOR_SESSION_MAP[session_id] = str(actor)
+        _persist_store()
+        return merged
+
+
+def delete_session_record(session_id: str) -> bool:
+    """Remove a session from the unified store."""
+    _load_store()
+    with _STORE_LOCK:
+        existed = session_id in _SESSION_IDENTITY
+        _SESSION_IDENTITY.pop(session_id, None)
+        _ACTOR_SESSION_MAP.pop(session_id, None)
+        _SESSION_CONTINUITY_STATE.pop(session_id, None)
+        if existed:
+            _persist_store()
+        return existed
+
+
+def persist_session_store() -> None:
+    """Flush in-memory unified store to disk (flock-safe)."""
+    _load_store()
+    with _STORE_LOCK:
+        _persist_store()
+
 
 
 def get_session_identity(session_id: str) -> dict[str, Any] | None:
@@ -817,12 +1159,10 @@ def set_session_continuity_state(session_id: str, state: dict[str, Any]) -> None
             _persist_store()
 
 
-def get_session_execution_state(session_id: str | None) -> str | None:
-    """Return the formal execution state (OBSERVE…SEAL) for a session, if set."""
+def get_session_pipeline_state(session_id: str | None) -> str | None:
+    """Formal pipeline state (OBSERVE…SEAL) from continuity blob."""
     if not session_id:
         return None
-    # Read directly from continuity store without identity expiry gate;
-    # execution state is a runtime continuity signal, not an identity token.
     _load_store()
     continuity = _SESSION_CONTINUITY_STATE.get(session_id)
     if continuity:
@@ -830,11 +1170,29 @@ def get_session_execution_state(session_id: str | None) -> str | None:
     return None
 
 
-def set_session_execution_state(session_id: str, state: str) -> None:
-    """Persist the formal execution state for a session inside its continuity blob."""
+def set_session_pipeline_state(session_id: str, state: str) -> None:
+    """Persist formal pipeline state inside continuity blob."""
     continuity = get_session_continuity_state(session_id) or {}
     continuity["execution_state"] = state
     set_session_continuity_state(session_id, continuity)
+
+
+def get_session_execution_state(session_id: str | None) -> dict[str, Any] | None:
+    """Thin reader: full session record (identity ∪ execution) from unified store.
+
+    Zen collapse 2026-07-24 — replaces tools.py ``_SESSIONS.get(session_id)``.
+    Returns a live dict reference (in-place mutations affect memory; writers flush).
+    """
+    if not session_id:
+        return None
+    _load_store()
+    record = _SESSION_IDENTITY.get(session_id)
+    if record is None:
+        return _ensure_active_record(session_id)
+    if _is_session_expired(record):
+        clear_session_identity(session_id)
+        return None
+    return record
 
 
 def record_session_tool_event(
@@ -1031,6 +1389,7 @@ def get_session_runtime_state(session_id: str | None) -> dict[str, Any] | None:
         "activity": record.get("activity") or {},
         "governance": record.get("governance") or {},
     }
+
 
 
 # ── Session Truth Resolution ──────────────────────────────────────────────

@@ -347,12 +347,14 @@ def _now_iso() -> str:
 
 
 # ─── Module Singleton ─────────────────────────────────────────────────────
-_SESSIONS = _SessionTokens()
+# Renamed from _SESSIONS 2026-07-24 (#15 collapse) — name was colliding with
+# tools.py _SESSIONS (= _FileSessionStore) and session_enforcer._SESSIONS.
+_TOKEN_BUDGETS = _SessionTokens()
 
 
 def get_session_singleton() -> _SessionTokens:
     """Return the module-level singleton. Used by /health and __main__.py."""
-    return _SESSIONS
+    return _TOKEN_BUDGETS
 
 
 # ─── Self-Check (deterministic, no I/O) ───────────────────────────────────

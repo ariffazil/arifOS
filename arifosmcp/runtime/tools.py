@@ -5602,7 +5602,7 @@ def get_public_surface_state() -> dict[str, Any]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# SESSION STORE — File-backed with fcntl locking (survives process restarts)
+# SESSION STORE — proxy onto session.py unified store (zen collapse 2026-07-24)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -5630,107 +5630,77 @@ def _json_default_pydantic(obj: Any) -> Any:
 
 
 class _FileSessionStore:
-    """Persistent session store backed by JSON on disk.
+    """Identity-backed session proxy (zen collapse 2026-07-24).
 
-    Replaces the in-memory _SESSIONS dict so stdio transport and server
-    restarts do not wipe governed sessions. Uses fcntl flock for
-    cross-process concurrency safety.
+    Former dual-file store at ``/app/data/sessions.json`` is RETIRED.
+    All reads/writes proxy to ``arifosmcp.runtime.session`` unified store
+    (``.arifos/runtime_sessions.json`` + fcntl flock).
+
+    Keeps dict-like API so existing ``_SESSIONS[sid]`` call sites stay valid.
     """
 
     def __init__(self, path: str | None = None) -> None:
+        # Explicit path (tests / override) rebinds the unified store path once.
         self._using_explicit_path = bool(path or os.getenv("ARIFOS_SESSION_STORE_PATH"))
-        self._path = path or os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
+        self._path = path or os.getenv("ARIFOS_SESSION_STORE_PATH") or ""
+        if path:
+            from arifosmcp.runtime import session as _sess
+            from pathlib import Path as _P
 
-        # Prevent split-brain: verify writability on init
-        is_writable = False
+            _sess._SESSION_STORE_PATH = _P(path)
+            # Reload only this path into a clean in-memory map for isolation.
+            with _sess._STORE_LOCK:
+                _sess._STORE_LOADED = False
+                _sess._SESSION_IDENTITY.clear()
+                _sess._ACTOR_SESSION_MAP.clear()
+                _sess._SESSION_CONTINUITY_STATE.clear()
+        self._ensure_loaded()
+
+    def _ensure_loaded(self) -> None:
+        from arifosmcp.runtime import session as _sess
+
+        _sess._load_store()
         try:
-            dir_path = os.path.dirname(self._path)
-            os.makedirs(dir_path, exist_ok=True)
-            if os.path.exists(self._path):
-                with open(self._path, "a"):
-                    pass
-                is_writable = True
-            else:
-                temp_file = os.path.join(dir_path, f".tmp_write_test_{os.getpid()}")
-                with open(temp_file, "w"):
-                    pass
-                os.remove(temp_file)
-                is_writable = True
-        except OSError:
-            pass
-
-        if not is_writable and not self._using_explicit_path:
-            self._fallback_to_tmp()
-
-    def _fallback_to_tmp(self) -> None:
-        import tempfile
-
-        self._path = os.path.join(tempfile.gettempdir(), "arifos", "sessions.json")
-        os.makedirs(os.path.dirname(self._path), exist_ok=True)
-
-    def _load(self) -> dict[str, Any]:
-        try:
-            with open(self._path, encoding="utf-8") as f:
-                _lock_shared(f)
-                try:
-                    data = json.load(f)
-                    if isinstance(data, dict):
-                        return data
-                finally:
-                    _unlock(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
-        return {}
+            _sess.migrate_legacy_exec_store()
+        except Exception as exc:
+            logger.warning("Session legacy migration on proxy init: %s", exc)
 
     def _get_session(self, key: str) -> dict[str, Any] | None:
-        data = self._load()
-        sessions = data.get("sessions", {})
-        if key in sessions:
-            return sessions[key]
-        return data.get(key)
+        from arifosmcp.runtime.session import get_session_execution_state
+
+        return get_session_execution_state(key)
 
     def _set_session(self, key: str, value: dict[str, Any]) -> None:
-        data = self._load()
-        if key in data.get("sessions", {}) or "sessions" in data:
-            data.setdefault("sessions", {})[key] = value
-        else:
-            data[key] = value
-        self._save(data)
+        from arifosmcp.runtime.session import upsert_session_record
+
+        upsert_session_record(key, value)
+
+    def _load(self) -> dict[str, Any]:
+        """Compat for rare direct _SESSION_STORE._load() callers."""
+        from arifosmcp.runtime import session as _sess
+
+        _sess._load_store()
+        return {
+            "version": 2,
+            "sessions": dict(_sess._SESSION_IDENTITY),
+            "active_session_id": _sess._ACTIVE_SESSION_ID,
+            "continuity": dict(_sess._SESSION_CONTINUITY_STATE),
+        }
 
     def _save(self, data: dict[str, Any]) -> None:
-        try:
-            with open(self._path, "w", encoding="utf-8") as f:
-                _lock_exclusive(f)
-                try:
-                    json.dump(
-                        data,
-                        f,
-                        ensure_ascii=True,
-                        separators=(",", ":"),
-                        default=_json_default_pydantic,
-                    )
-                    f.flush()
-                    os.fsync(f.fileno())
-                finally:
-                    _unlock(f)
-        except OSError:
-            if self._using_explicit_path:
-                raise
-            self._fallback_to_tmp()
-            with open(self._path, "w", encoding="utf-8") as f:
-                _lock_exclusive(f)
-                try:
-                    json.dump(
-                        data,
-                        f,
-                        ensure_ascii=True,
-                        separators=(",", ":"),
-                        default=_json_default_pydantic,
-                    )
-                    f.flush()
-                    os.fsync(f.fileno())
-                finally:
-                    _unlock(f)
+        """Compat: bulk-replace sessions map then persist."""
+        from arifosmcp.runtime import session as _sess
+
+        sessions = data.get("sessions") if isinstance(data, dict) else None
+        if isinstance(sessions, dict):
+            with _sess._STORE_LOCK:
+                _sess._SESSION_IDENTITY.clear()
+                _sess._SESSION_IDENTITY.update(
+                    {str(k): v for k, v in sessions.items() if isinstance(v, dict)}
+                )
+                _sess._persist_store()
+        else:
+            _sess.persist_session_store()
 
     def get(self, key: str, default: Any = None) -> dict[str, Any] | None | Any:
         val = self._get_session(key)
@@ -5742,101 +5712,72 @@ class _FileSessionStore:
         self._set_session(key, value)
 
     def delete(self, key: str) -> None:
-        data = self._load()
-        if key in data.get("sessions", {}):
-            del data["sessions"][key]
-        elif key in data:
-            del data[key]
-        self._save(data)
+        from arifosmcp.runtime.session import delete_session_record
+
+        delete_session_record(key)
 
     def reap_expired(self) -> int:
-        """Remove expired sessions. Returns count of reaped sessions.
+        """Reap expired sessions via identity-store TTL."""
+        from arifosmcp.runtime import session as _sess
 
-        F5 FIX (2026-07-07): Sessions accumulated because _FileSessionStore
-        had no periodic cleanup. Expired sessions were only cleaned when
-        individually accessed via session.py's _is_session_expired. This
-        method proactively removes all expired entries on store access.
-
-        Checks both expires_at_unix (float) and expires_at (ISO 8601 string).
-        Sessions without expiry fields are kept (legacy compat).
-        """
-        import time as _time
-
-        now = _time.time()
-        data = self._load()
-        sessions = data.get("sessions", {})
-        if not sessions:
-            return 0
-
-        expired_keys: list[str] = []
-        for sid, record in sessions.items():
-            if not isinstance(record, dict):
-                continue
-            # Check unix timestamp first (most common in tools.py sessions)
-            exp_unix = record.get("expires_at_unix")
-            if isinstance(exp_unix, (int, float)) and exp_unix > 0 and exp_unix < now:
-                expired_keys.append(sid)
-                continue
-            # Check ISO 8601 string
-            exp_iso = record.get("expires_at")
-            if isinstance(exp_iso, str) and exp_iso:
-                try:
-                    from datetime import UTC as _UTC
-                    from datetime import datetime as _dt
-
-                    exp_dt = _dt.fromisoformat(exp_iso)
-                    if exp_dt.tzinfo is None:
-                        exp_dt = exp_dt.replace(tzinfo=_UTC)
-                    if exp_dt.timestamp() < now:
-                        expired_keys.append(sid)
-                except (ValueError, TypeError):
-                    pass
-
-        if expired_keys:
-            for sid in expired_keys:
-                sessions.pop(sid, None)
-            self._save(data)
-            import logging as _logging
-
-            _logging.getLogger("arifosmcp.session_store").info(
-                f"[SESSION_REAP] Reaped {len(expired_keys)} expired sessions "
-                f"(remaining: {len(sessions)})"
+        _sess._load_store()
+        expired: list[str] = []
+        with _sess._STORE_LOCK:
+            for sid, record in list(_sess._SESSION_IDENTITY.items()):
+                if _sess._is_session_expired(record):
+                    expired.append(sid)
+            for sid in expired:
+                _sess._SESSION_IDENTITY.pop(sid, None)
+                _sess._ACTOR_SESSION_MAP.pop(sid, None)
+                _sess._SESSION_CONTINUITY_STATE.pop(sid, None)
+            if expired:
+                _sess._persist_store()
+        if expired:
+            logger.info(
+                "[SESSION_REAP] Reaped %d expired sessions (remaining: %d)",
+                len(expired),
+                len(_sess._SESSION_IDENTITY),
             )
-        return len(expired_keys)
+        return len(expired)
 
     def keys(self) -> set[str]:
-        self.reap_expired()  # F5: auto-reap on access
-        data = self._load()
-        return set(data.get("sessions", {}).keys()) or set(data.keys())
+        self.reap_expired()
+        from arifosmcp.runtime.session import get_all_session_ids
+
+        return get_all_session_ids()
 
     def values(self) -> list[dict[str, Any]]:
-        self.reap_expired()  # F5: auto-reap on access
-        data = self._load()
-        sessions = data.get("sessions", {})
-        return list(sessions.values()) if sessions else list(data.values())
+        self.reap_expired()
+        from arifosmcp.runtime import session as _sess
+
+        _sess._load_store()
+        return list(_sess._SESSION_IDENTITY.values())
 
     def items(self) -> list[tuple[str, dict[str, Any]]]:
-        """F5 FIX: Provide items() for iteration compatibility."""
         self.reap_expired()
-        data = self._load()
-        sessions = data.get("sessions", {})
-        return list(sessions.items()) if sessions else list(data.items())
+        from arifosmcp.runtime import session as _sess
+
+        _sess._load_store()
+        return list(_sess._SESSION_IDENTITY.items())
 
     def pop(self, key: str, default: Any = None) -> Any:
-        data = self._load()
-        sessions = data.get("sessions", {})
-        if key in sessions:
-            value = sessions.pop(key)
-            self._save(data)
-            return value
-        if key in data:
-            value = data.pop(key)
-            self._save(data)
-            return value
-        return default
+        from arifosmcp.runtime.session import delete_session_record, get_session_execution_state
+
+        val = get_session_execution_state(key)
+        if val is None:
+            return default
+        out = dict(val)
+        delete_session_record(key)
+        return out
 
     def clear(self) -> None:
-        self._save({})
+        from arifosmcp.runtime import session as _sess
+
+        with _sess._STORE_LOCK:
+            _sess._SESSION_IDENTITY.clear()
+            _sess._ACTOR_SESSION_MAP.clear()
+            _sess._SESSION_CONTINUITY_STATE.clear()
+            _sess._persist_store()
 
     def __contains__(self, key: str) -> bool:
         return self._get_session(key) is not None
@@ -5851,14 +5792,12 @@ class _FileSessionStore:
         self.set(key, value)
 
     def __len__(self) -> int:
-        self.reap_expired()  # F5: auto-reap on count
-        data = self._load()
-        sessions = data.get("sessions", {})
-        return len(sessions) if sessions else len(data)
+        return len(self.keys())
 
 
-# In-memory registries (session store is now persistent)
+# Unified session store (proxy → session.py). Name retained for call-site compat.
 _SESSION_STORE = _FileSessionStore()
+# _SESSIONS is a dict-like proxy onto the unified identity store — NOT a second file.
 _SESSIONS = _SESSION_STORE  # backward-compat alias for code that does _SESSIONS.get()
 # _memory_engine deprecated — all memory paths migrated to arifosmcp.runtime.memory_store (2026-05-15)
 _memory_engine = None
@@ -6346,11 +6285,13 @@ def _new_session(
             "model_governance_card_unbound — F3_TRI_WITNESS degraded. Bind a model identity for full governance."
         )
 
+    # Zen collapse 2026-07-24: single write path — bind carries execution fields;
+    # _SESSIONS proxy upserts the full sess dict onto the same identity store.
     _SESSIONS[sid] = sess
-    # H2: Persist to identity store for cross-process/cross-call continuity
     try:
         from arifosmcp.runtime.session import bind_session_identity
 
+        _tp = sess.get("trace_packet") if isinstance(sess.get("trace_packet"), dict) else {}
         bind_session_identity(
             session_id=sid,
             actor_id=actor_id or "anonymous",
@@ -6360,9 +6301,20 @@ def _new_session(
             auth_context={"source": "arif_session_init", "mode": "init"},
             stage="000",
             governance={"verdict": "SEAL", "trace_packet": sess.get("trace_packet")},
+            trace_packet=sess.get("trace_packet"),
+            invocation_count=int(sess.get("invocation_count") or 0),
+            agent_policy=sess.get("agent_policy"),
+            epoch_id=sess.get("epoch_id"),
+            decision_class=_tp.get("decision_class") or sess.get("decision_class"),
+            prior_verdicts=sess.get("prior_verdicts") or sess.get("_prior_verdicts") or [],
+            lane=sess.get("lane") or "AGI",
+            execution_fields=sess,
         )
     except Exception as exc:
-        logger.warning("Failed to persist session to identity store: %s", exc)
+        # Still warning (not raise): proxy setitem already wrote the record.
+        # Identity-enrichment failure must not void session creation.
+        logger.warning("Failed to enrich session identity fields: %s", exc)
+
     if epoch_id:
         _EPOCH_REGISTRY[epoch_id] = {
             "epoch_id": epoch_id,
@@ -7445,7 +7397,9 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
 
         from arifosmcp.runtime.authority import read_authority_state
 
-        store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
+        from arifosmcp.runtime.session import _SESSION_STORE_PATH as _canon_sess_path
+
+        store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", str(_canon_sess_path))
         for p in (store_path, "/tmp/arifos/sessions.json"):
             if os.path.exists(p):
                 with open(p, encoding="utf-8") as f:

@@ -216,9 +216,9 @@ class ConstitutionalKernel:
         )
         from arifosmcp.runtime.output_formatter import format_output
         from arifosmcp.runtime.session import (
-            get_session_execution_state,
+            get_session_pipeline_state,
             record_session_tool_event,
-            set_session_execution_state,
+            set_session_pipeline_state,
         )
         from arifosmcp.runtime.telemetry import trace_tool_call
         from arifosmcp.runtime.tools import (
@@ -238,7 +238,7 @@ class ConstitutionalKernel:
             actor_id = arguments.get("actor_id") or "system"
 
         # ── Formal Execution State Machine Gate ───────────────────────────────────────
-        current_state_str = get_session_execution_state(session_id)
+        current_state_str = get_session_pipeline_state(session_id)
         try:
             current_state = ExecutionState(current_state_str) if current_state_str else None
         except ValueError:
@@ -483,7 +483,7 @@ class ConstitutionalKernel:
         # ── State progression ───────────────────────────────────────────────────────────
         next_state = ExecutionStateMachine.get_next_state(canonical_name, current_state)
         if session_id and next_state != current_state:
-            set_session_execution_state(session_id, next_state.value)
+            set_session_pipeline_state(session_id, next_state.value)
 
         # Record event with execution state
         record_session_tool_event(
