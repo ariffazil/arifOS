@@ -66,7 +66,7 @@ deploy-local:
 	@cd $(DIR) && git fetch origin main
 	@cd $(DIR) && test "$$(git rev-parse HEAD)" = "$$(git rev-parse origin/main)" || \
 		(echo "888_HOLD: local HEAD is not origin/main; push or rebase before deploy-local" && exit 1)
-	@cd $(DIR) && GIT_SHA=$$(git rev-parse --short=7 HEAD); \
+	@cd $(DIR) && GIT_SHA=$$(git rev-parse HEAD); \
 	echo "Syncing canonical code to /opt/arifos/app..."; \
 	rsync -av --exclude='.git' --exclude='.venv' --exclude='.claude' \
 		--exclude='.worktrees' --exclude='**/__pycache__' --exclude='.pytest_cache' \
