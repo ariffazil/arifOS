@@ -176,11 +176,16 @@ prove:
 	  echo "## Security Audit"; echo "(See security-audit output above)"; \
 	  echo ""; \
 	  echo "## VAULT999 Chain"; python scripts/vault999_status.py 2>&1 | head -20; \
-	} > "$$PROOF_FILE"; \
-	echo "Proof pack: $$PROOF_FILE"
+			} > "$$PROOF_FILE"; \
+			echo "Proof pack: $$PROOF_FILE"
 
-# ============================================================
-# SOVEREIGN PUBLISH PIPELINE — arifOS Federation
+		# Federation tool scope sweep — BloodHound-style attack surface
+		federation-sweep:
+			@echo "=== Federation Tool Scope Sweep === (--scope --write-md --write-json)"
+			cd /root/arifOS && python scripts/federation_reality_probe.py --scope --write-md --write-json
+
+		# ============================================================
+		# SOVEREIGN PUBLISH PIPELINE — arifOS Federation
 # Usage: make publish-check | make publish-pypi | make publish-all
 # ============================================================
 
