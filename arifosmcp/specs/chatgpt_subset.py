@@ -46,10 +46,10 @@ CHATGPT_RESOURCE_URIS: tuple[str, ...] = (
 
 # Prompts exposed to ChatGPT
 CHATGPT_PROMPT_NAMES: tuple[str, ...] = (
-    "prompt_init_anchor",
-    "prompt_sense_reality",
-    "prompt_reason_synthesis",
-    "prompt_human_explainer",
+    "🌱 BOOT",
+    "🌊 WITNESS",
+    "🧠 REASON",
+    "📜 REPLY",
 )
 
 

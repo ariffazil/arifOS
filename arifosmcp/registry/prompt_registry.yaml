@@ -7,7 +7,7 @@
 # This file is the canonical metadata source for all prompts transported
 # through arifOS MCP. The actual prompt CONTENT (templates) lives in
 # arifosmcp/runtime/fastmcp_ext/prompts.py (zen sigil, canonical) with
-# legacy aliases in arifosmcp/prompts/__init__.py (numeric, deprecated).
+# compatibility aliases registered by the two runtime prompt modules.
 # register_prompts() delegates to zen module as of 2026-07-20.
 
 schema_version: "2026.07.20"
@@ -26,6 +26,21 @@ lineage:
     - path: "arifosmcp/server.py dual registration"
       removed: true
       reason: "server.py no longer calls register_arifos_prompts() separately; register_prompts() is the sole entry point as of 2026-07-20"
+
+# The only permitted non-canonical names on prompts/list. Runtime decorators
+# repeat this transport metadata, and the singularity gate enforces parity.
+aliases:
+  - { id: "arif_init_prompt", canonical_id: "🌱 BOOT", removal_epoch: "2026-08-16" }
+  - { id: "constitutional_pre_flight", canonical_id: "🔍 PREFLIGHT", removal_epoch: "2026-08-16" }
+  - { id: "agi_reply_protocol_v3", canonical_id: "📜 REPLY", removal_epoch: "2026-08-16" }
+  - { id: "111_sense", canonical_id: "🌊 WITNESS", removal_epoch: "2026-09-16" }
+  - { id: "333_reason", canonical_id: "🧠 REASON", removal_epoch: "2026-09-16" }
+  - { id: "555_critique", canonical_id: "⚖ MARUAH", removal_epoch: "2026-09-16" }
+  - { id: "888_judge", canonical_id: "🔒 JUDGE", removal_epoch: "2026-09-16" }
+  - { id: "777_forge", canonical_id: "🔥 FORGE", removal_epoch: "2026-09-16" }
+  - { id: "999_seal", canonical_id: "💎 SEAL", removal_epoch: "2026-09-16" }
+  - { id: "recursive_governed_loop", canonical_id: "🌀 SABAR", removal_epoch: "2026-09-16" }
+  - { id: "arif_init_prompt_v3", canonical_id: "🌱 BOOT", removal_epoch: "2026-09-16" }
 
 # Constitutional binding — values come from arifosmcp.constitutional_map.CANONICAL_FLOORS
 floors_ref: "arifosmcp.constitutional_map.CANONICAL_FLOORS"
@@ -50,7 +65,7 @@ prompts:
   - id: "🌀 SABAR"
     semantic_name: "orchestrator"
     title: "🌀 SABAR — Recursive Governed Loop"
-    description: "Intent classification + 6-stage reality loop orchestrator. Drives 🌊 WITNESS → 🧠 REASON → ⚖ MARUAH → 🔒 JUDGE → 🔥 FORGE → 💎 SEAL autonomously. Supersedes arifosmcp_loop_engineer + recursive_governed_loop."
+    description: "Governed 6-stage reality-loop template. Each linked tool retains its own authority gate; this prompt grants no judgment, execution, or seal authority. Supersedes arifosmcp_loop_engineer + recursive_governed_loop."
     floor_binding: ["L01", "L11"]
     inputs_schema:
       type: "object"
@@ -120,7 +135,7 @@ prompts:
   - id: "⚖ MARUAH"
     semantic_name: "mirror"
     title: "⚖ MARUAH — Dignity Check"
-    description: "Consequence scan, blast radius, dignity check. Calls arif_heart_critique + well_guard_dignity. κᵣ ≥ 0.70 required. Supersedes 555_critique."
+    description: "Consequence scan, blast radius, and dignity check. Uses arif_think(mode=critique) plus WELL evidence. κᵣ ≥ 0.70 required. Supersedes 555_critique."
     floor_binding: ["L05", "L06", "L12"]
     inputs_schema:
       type: "object"

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# REFERENCE-ONLY — NOT RUNTIME AUTHORITY.
+# Historical demo retained for provenance. It must never be imported by runtime code.
 """
 arifOS Execution Controller — Governed Agent Control Plane
 Hardened enforcement of agent identity, policy, and execution receipts.

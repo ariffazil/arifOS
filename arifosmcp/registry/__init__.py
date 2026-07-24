@@ -9,6 +9,7 @@ DITEMPA BUKAN DIBERI — Registry is forged, not given.
 
 from .prompt_registry import (
     REGISTRY_PATH,
+    PromptAliasSpec,
     PromptRegistry,
     PromptSpec,
     get_prompt_specs_for_charter,
@@ -19,6 +20,7 @@ from .prompt_registry import (
 
 __all__ = [
     "PromptSpec",
+    "PromptAliasSpec",
     "PromptRegistry",
     "load_registry",
     "get_registry",

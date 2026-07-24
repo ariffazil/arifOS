@@ -1,3 +1,8 @@
+# REFERENCE-ONLY — NOT RUNTIME AUTHORITY
+
+> Historical March 2026 role. This document grants no independent deployment,
+> deletion, git, JUDGE, SEAL, or vault authority.
+
 # A-VALIDATOR — Constitutional Verification & Testing Authority
 
 **Agent ID:** `a-validator`

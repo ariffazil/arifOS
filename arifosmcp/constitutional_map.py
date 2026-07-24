@@ -573,15 +573,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_init": {
         "name": "arif_init",
-        "description": (
-            "KERNEL 000 · Session ignition. Binds actor, floors, and audit before any other "
-            "arif_* verb can govern. Without session_id the kernel treats the caller as "
-            "anonymous (OBSERVE_ONLY). Modes: ping | light | init | resume | validate | "
-            "epoch_open | epoch_seal | canary | preflight | triage. "
-            "Returns session_id, authority band, allowed_next_verbs. Not a helper plugin. "
-            "Use when: starting a new session, resuming a session, checking kernel liveness, "
-            "or running a preflight check before any governed action."
-        ),
+        "description": "KERNEL 000 · Session ignition — binds actor, floors, and audit for governed operations.",
         "access": "public",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
@@ -614,15 +606,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_observe": {
         "name": "arif_observe",
-        "description": (
-            "KERNEL 111 · Sense reality into evidence (not reasoning, not judgment). "
-            "Modes: search | fetch | ingest | vitals | compass | atlas | entropy_dS | "
-            "repo_map | hybrid_discovery. Returns evidence with sources + uncertainty tags. "
-            "Domain compute → arif_route to GEOX/WEALTH/WELL. "
-            "Use when: the user needs factual evidence, web search, URL fetch, system vitals, "
-            "or entropy measurement. For domain-specific computation (geology, capital, health), "
-            "use arif_route instead."
-        ),
+        "description": "KERNEL 111 · Sense reality into evidence with epistemic tags and uncertainty bounds.",
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
@@ -645,13 +629,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_fetch": {
         "name": "arif_fetch",
-        "description": (
-            "Fetch and preserve external evidence with source citations and provenance tags. "
-            "Use for targeted URL/source retrieval. Modes: fetch (default), search, eureka. "
-            "For broad sensing use arif_observe; for specific evidence use arif_fetch. "
-            "Use when: you need to fetch a specific URL, search for particular evidence, "
-            "or preserve external content with provenance tracking."
-        ),
+        "description": "KERNEL evidence fetch — targeted URL/source retrieval with provenance tracking.",
         "access": "public",
         "stage": ToolStage.OBSERVE,
         "lane": TrinityLane.AGI,
@@ -670,18 +648,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_think": {
         "name": "arif_think",
-        "description": (
-            "KERNEL 333 · Mind — structured reasoning under F2/F7 (not chat, not verdict). "
-            "Modes: reason | reflect | verify | plan | plan_review | plan_approve | "
-            "refactor_plan | metabolize | axioms | atlas. "
-            "Mode 'atlas' returns ATLAS333 cognitive geometry: GPV, activated paradoxes, "
-            "triggered quotes, zone map, TEARFRAME thresholds, and calibration guidance. "
-            "Returns OBS/DER/INT/SPEC labels. "
-            "Maruah/ethics → arif_critique. Binding decision → arif_judge. "
-            "Use when: the user needs structured reasoning, plan generation, plan review, "
-            "reflection on past actions, verification of claims, axiom exploration, "
-            "or ATLAS333 paradox-aware cognitive geometry mapping."
-        ),
+        "description": "KERNEL 333 · Mind — structured reasoning under F2/F7 with OBS/DER/INT/SPEC labels.",
         "access": "public",
         "stage": ToolStage.REASON,
         "lane": TrinityLane.AGI,
@@ -721,14 +688,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_critique": {
         "name": "arif_critique",
-        "description": (
-            "KERNEL 555 · Heart — ethical/dignity/risk stress before judgment (not SEAL). "
-            "Requires non-empty target. Modes: critique | redteam | maruah | deescalate | "
-            "empathize | simulate | shadow. Returns risk, floors, human impact. "
-            "Binding verdict is arif_judge only. "
-            "Use when: a proposal has human/dignity impact, ethical risk, blast_radius MEDIUM+, "
-            "or needs red-team stress-testing before judgment."
-        ),
+        "description": "KERNEL 555 · Heart — ethical/dignity/risk stress test before judgment.",
         "access": "internal_only",
         "stage": ToolStage.CRITIQUE,
         "lane": TrinityLane.ASI,
@@ -747,14 +707,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     # ── CANONICAL TOOLS (RULE 14 MODE-FIRST NAMING, 2026-06-20) ──
     "arif_route": {
         "name": "arif_route",
-        "description": (
-            "KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE). "
-            "Select when goal is known but organ/verb is not. Optional organ_tool = "
-            "governed bridge (prefer over arif_bridge_connect). Not session preflight "
-            "(use arif_init mode=preflight|triage). Returns organ, port, tool_prefix, suggested_tools. "
-            "Use when: the user's request involves domain-specific computation (geology, capital, health, "
-            "execution) and you need to route to the correct federation organ."
-        ),
+        "description": "KERNEL 444 · Intent→organ router — dispatches to GEOX/WEALTH/WELL/A-FORGE.",
         "access": "public",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -786,12 +739,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_bridge_connect": {
         "name": "arif_bridge_connect",
-        "description": (
-            "KERNEL 444-direct · Low-level organ call (organ + tool_name required). "
-            "Authority HIGH/lease. Agents prefer arif_route. Not a free MCP proxy. "
-            "Use when: you already know the exact organ and tool name and need a direct "
-            "bridge call (bypasses intent routing). Requires session + lease."
-        ),
+        "description": "KERNEL 444-direct — low-level organ bridge call requiring session and lease.",
         "access": "internal_only",
         "stage": ToolStage.ROUTE,
         "lane": TrinityLane.AGI,
@@ -805,13 +753,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_compose": {
         "name": "arif_compose",
-        "description": (
-            "KERNEL reply · Final human-facing composition (citations, tone, ΔS≤0). "
-            "Call LAST after observe/think/judge. Modes: compose | summarize | cite | "
-            "tone_shift | style | format. Not a substitute for judge or seal. "
-            "Use when: the pipeline is complete and you need to format the final response "
-            "for the human — adding citations, adjusting tone, or restructuring output."
-        ),
+        "description": "KERNEL reply — final human-facing composition with citations and tone control.",
         "access": "internal_only",
         "stage": ToolStage.REPLY,
         "lane": TrinityLane.AGI,
@@ -830,13 +772,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_memory": {
         "name": "arif_memory",
-        "description": (
-            "KERNEL memory governor · L1–L6 under F1/F2/F4/F11 (not a free notepad). "
-            "Modes: recall | inspect | attest | remember | promote | revise | forget. "
-            "Writes are J-space mutations; arifOS judges, storage organs hold data. "
-            "Use when: the agent needs to recall past context, store new knowledge, "
-            "promote memories to higher tiers, or audit memory integrity."
-        ),
+        "description": "KERNEL memory governor — L1–L6 governed semantic recall, storage, and persistence.",
         "access": "authenticated",
         "stage": ToolStage.INIT,
         "lane": TrinityLane.AGI,
@@ -874,14 +810,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_judge": {
         "name": "arif_judge",
-        "description": (
-            "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
-            "Not advice; binding floor + authority arbitration. Requires actor, intent, "
-            "domain, reversibility_level, blast_radius. Authority: SOVEREIGN session for "
-            "real adjudicate. Returns verdict + receipts + next_safe_action. "
-            "Use when: a decision needs constitutional clearance — irreversible actions, "
-            "high-blast-radius operations, or when the agent must know if an action is lawful."
-        ),
+        "description": "KERNEL 888 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.",
         "access": "authenticated",
         "stage": ToolStage.JUDGE,
         "lane": TrinityLane.ASI,
@@ -923,13 +852,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     },
     "arif_seal": {
         "name": "arif_seal",
-        "description": (
-            "KERNEL 999 · VAULT999 immutable append — irreversible civilizational memory. "
-            "Modes: seal | verify | chain | list | dry_run. seal requires ack_irreversible. "
-            "Kernel judges; vault seals; Arif owns F13 veto. Not for HOLD/SABAR/VOID paths. "
-            "Use when: a verdict has been reached and needs to be permanently recorded in "
-            "VAULT999, or when verifying the integrity of the seal chain."
-        ),
+        "description": "KERNEL 999 · VAULT999 immutable append — irreversible civilizational memory sealing.",
         "access": "authenticated",
         "stage": ToolStage.SEAL,
         "lane": TrinityLane.SOVEREIGN,
@@ -1009,14 +932,7 @@ CANONICAL_TOOLS: dict[str, dict[str, Any]] = {
     # longer in _CANONICAL_HANDLERS (so the runtime check passes).
     "arif_forge": {
         "name": "arif_forge",
-        "description": (
-            "KERNEL 777 · Execution gate via A-FORGE (hands, not law). Mutates only after "
-            "arif_judge SEAL + lease/chain IDs — no self-authorize. Modes: dry_run | "
-            "engineer | query | write | generate | commit | recall. Public execution "
-            "verb (arif_act is internal alias only). "
-            "Use when: a constitutional verdict (SEAL) has been obtained and the agent "
-            "needs to execute a mutation — code changes, deployments, file writes, git operations."
-        ),
+        "description": "KERNEL 777 · Execution gate via A-FORGE — mutates only after SEAL verdict.",
         "access": "authenticated",
         "stage": ToolStage.FORGE_EXECUTE,
         "lane": TrinityLane.AGI,

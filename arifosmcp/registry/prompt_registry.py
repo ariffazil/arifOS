@@ -66,6 +66,15 @@ class PromptSpec:
 
 
 @dataclass(frozen=True)
+class PromptAliasSpec:
+    """A time-bounded compatibility name for one canonical prompt."""
+
+    id: str
+    canonical_id: str
+    removal_epoch: str
+
+
+@dataclass(frozen=True)
 class PromptRegistry:
     """Immutable snapshot of the prompt registry at load time."""
 
@@ -74,6 +83,7 @@ class PromptRegistry:
     registry_sha256: str
     canonical_sequence: tuple[str, ...]
     specs: dict[str, PromptSpec]  # id → PromptSpec
+    aliases: dict[str, PromptAliasSpec]  # compatibility id → alias contract
     lineage: dict[str, Any]  # supersession history
 
     # ── Lookups ──────────────────────────────────────────────────────
@@ -119,7 +129,7 @@ class PromptRegistry:
 
 def _validate_yaml_shape(raw: dict) -> None:
     """Basic shape validation. jsonschema would be heavier; this catches the common drift."""
-    required = {"schema_version", "registry_id", "canonical_sequence", "prompts"}
+    required = {"schema_version", "registry_id", "canonical_sequence", "prompts", "aliases"}
     missing = required - set(raw.keys())
     if missing:
         raise ValueError(
@@ -140,6 +150,17 @@ def _validate_yaml_shape(raw: dict) -> None:
             f"Only in prompts: {prompt_ids - seq_ids}. "
             f"This is the 555/666 swap bug class — fail loud."
         )
+
+    alias_ids = [alias["id"] for alias in raw["aliases"]]
+    if len(alias_ids) != len(set(alias_ids)):
+        raise ValueError("Prompt aliases must have unique ids")
+    for alias in raw["aliases"]:
+        if alias["canonical_id"] not in prompt_ids:
+            raise ValueError(
+                f"Alias '{alias['id']}' targets unknown prompt '{alias['canonical_id']}'"
+            )
+        if not alias.get("removal_epoch"):
+            raise ValueError(f"Alias '{alias['id']}' is missing removal_epoch")
 
     # Check prompt id format
     for p in raw["prompts"]:
@@ -182,6 +203,15 @@ def load_registry(path: Path = REGISTRY_PATH) -> PromptRegistry:
         )
         specs[spec.id] = spec
 
+    aliases = {
+        entry["id"]: PromptAliasSpec(
+            id=entry["id"],
+            canonical_id=entry["canonical_id"],
+            removal_epoch=entry["removal_epoch"],
+        )
+        for entry in raw["aliases"]
+    }
+
     # Pin the registry itself
     registry_payload = json.dumps(
         {
@@ -189,6 +219,13 @@ def load_registry(path: Path = REGISTRY_PATH) -> PromptRegistry:
             "schema_version": raw["schema_version"],
             "sequence": raw["canonical_sequence"],
             "spec_hashes": {sid: specs[sid].sha256 for sid in raw["canonical_sequence"]},
+            "aliases": {
+                alias_id: {
+                    "canonical_id": alias.canonical_id,
+                    "removal_epoch": alias.removal_epoch,
+                }
+                for alias_id, alias in sorted(aliases.items())
+            },
         },
         sort_keys=True,
     )
@@ -200,6 +237,7 @@ def load_registry(path: Path = REGISTRY_PATH) -> PromptRegistry:
         registry_sha256=registry_sha,
         canonical_sequence=tuple(raw["canonical_sequence"]),
         specs=specs,
+        aliases=aliases,
         lineage=raw.get("lineage", {}),
     )
 
@@ -237,6 +275,7 @@ def get_prompt_specs_for_charter() -> tuple[dict[str, Any], ...]:
 
 __all__ = [
     "PromptSpec",
+    "PromptAliasSpec",
     "PromptRegistry",
     "load_registry",
     "get_registry",

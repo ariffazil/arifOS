@@ -6,9 +6,9 @@ single-lexical naming per zen-md rule. Backwards-compat: old names
 (constitutional_pre_flight, arif_init_prompt_v3, agi_reply_protocol_v3)
 remain as aliases for one epoch.
 
-10 zen prompts form a self-sustaining reality-loop where the human
-only needs to init + seal. The autonomous loop (WITNESS → REASON →
-MARUAH → JUDGE → FORGE → SEAL) is orchestrated by SABAR.
+10 zen prompts describe a governed reality loop. Prompts frame work; they do
+not execute tools, judge, forge, or seal. The kernel and A-FORGE retain those
+capabilities behind their normal session, authority, and lease gates.
 
 Linked tools/resources live in the `meta` field on each `@mcp.prompt(...)`.
 FastMCP passes this through to MCP clients as `_meta` (per FastMCP 2.11+).
@@ -37,7 +37,7 @@ _AGENT_INIT_V3_CANON = "/root/AAA/prompts/INIT.md"  # was AGENT_INIT_v3.0.md →
 
 PIPELINE_STAGES = ("111_SENSE", "333_REASON", "555_CRITIQUE", "888_JUDGE", "777_FORGE", "999_SEAL")
 PIPELINE_SIGILS = ("🌊", "🧠", "⚖", "🔒", "🔥", "💎")
-STAGE_TO_SIGIL = dict(zip(PIPELINE_STAGES, PIPELINE_SIGILS))
+STAGE_TO_SIGIL = dict(zip(PIPELINE_STAGES, PIPELINE_SIGILS, strict=True))
 
 
 def _linked_prompt(
@@ -65,8 +65,8 @@ def _linked_prompt(
         "name": name,
         "description": (
             f"{role} — {stage} of the arifOS reality loop. "
-            f"Auto-calls tools: {', '.join(linked_tools)}. "
-            f"Auto-loads resources: {', '.join(linked_resources)}. "
+            f"Suggested tools: {', '.join(linked_tools)}. "
+            f"Suggested resources: {', '.join(linked_resources)}. "
             f"Floors: {floors}."
         ),
         "meta": {
@@ -94,21 +94,18 @@ def sabar_run_loop(
 ) -> PromptResult:
     """🌀 SABAR orchestrator — drives the 6-stage reality loop.
 
-    For an autonomous run:
+    For a governed run:
       1. 🌊 WITNESS  — observe (arif_observe, geox_evidence, well_validate_vitality)
       2. 🧠 REASON   — propose hypothesis (arif_think)
-      3. ⚖ MARUAH  — check dignity (arif_heart_critique, well_guard_dignity)
+      3. ⚖ MARUAH  — check dignity (arif_think mode=critique, well_guard_dignity)
       4. 🔒 JUDGE    — constitutional gate (arif_judge)
-      5. 🔥 FORGE    — execute (arif_act)
+      5. 🔥 FORGE    — execute after kernel approval (arif_forge)
       6. 💎 SEAL     — persist (arif_seal)
 
     depth='stage'  → returns a multi-message instruction for the LLM caller
                      to drive the loop manually (recommended for human-in-loop).
-    depth='auto'   → returns a sealed receipt describing the canonical loop
-                     contract; agents may execute tools based on this template.
-
-    The human role is reduced to: call arif_init (🌱 BOOT) → invoke SABAR
-    once → call arif_seal (💎 SEAL) at end. SABAR emits the full receipt.
+    depth='auto'   → returns an orchestration template. It grants no authority;
+                     every tool keeps its own kernel and sovereign gates.
     """
     depth = (depth or "stage").lower()
     if depth == "auto":
@@ -116,20 +113,23 @@ def sabar_run_loop(
         return PromptResult(
             messages=[
                 Message(
-                    f"AUTONOMOUS GOVERNED LOOP — 🌀 SABAR\n"
+                    f"GOVERNED LOOP TEMPLATE — 🌀 SABAR\n"
                     f"intent: {intent}\n"
                     f"session_id: {session_id or 'pending'}\n"
                     f"actor_id: {actor_id or 'anonymous'}\n\n"
-                    f"You will execute the 6-stage reality loop. At each stage:\n"
-                    f"  1. Call the linked tools (see meta.linked_tools)\n"
+                    "Sequence the 6-stage reality loop without bypassing any gate. "
+                    "At each stage:\n"
+                    f"  1. Request the linked tools only when their authority contract permits\n"
                     f"  2. Load the linked resources (see meta.linked_resources)\n"
                     f"  3. Record the stage receipt in your continuity chain\n"
                     f"  4. Pass forward to the next stage\n\n"
-                    f"Then seal (💎) at the end with arif_seal.",
+                    "At the end, prepare evidence for arif_seal; only an authorized "
+                    "actor may seal.",
                     role="user",
                 ),
                 Message(
-                    "Understood. Starting 🌊 WITNESS — calling arif_observe with this intent and observing geox_evidence for ground-truth signals. will-report-after-observation.",
+                    "Understood. Starting 🌊 WITNESS by requesting arif_observe and "
+                    "geox_evidence for ground-truth signals. Will report after observation.",
                     role="assistant",
                 ),
             ],
@@ -145,14 +145,11 @@ def sabar_run_loop(
                     "geox_evidence",
                     "well_validate_vitality",
                     "arif_think",
-                    "arif_heart_critique",
                     "well_guard_dignity",
                     "arif_judge",
                     "geox_contradiction_scan",
-                    "arif_act",
                     "arif_forge",
                     "arif_seal",
-                    "forge_vault",
                 ],
                 "linked_resources": [
                     "arifos://verdict/{session_id}",
@@ -172,17 +169,19 @@ def sabar_run_loop(
                 f"🌀 SABAR — Realize the intent through the 6-stage reality loop.\n\n"
                 f"intent: {intent}\n"
                 f"session_id: {session_id or 'pending'}\n\n"
-                f"You will sequence these 6 stages. At each stage:\n"
+                f"Sequence these 6 stages. At each stage:\n"
                 f"  - Read the linked arifOS tools (meta.linked_tools)\n"
                 f"  - Load the linked resources (meta.linked_resources)\n"
                 f"  - Record a stage receipt\n"
                 f"  - Pass to next stage\n\n"
-                f"After all 6 stages, the human will call 🌱 BOOT (arif_init) and 💎 SEAL (arif_seal).\n"
-                f"You are the autonomous middle.",
+                "After all 6 stages, return the evidence to the authorized actor for "
+                "any final seal.\n"
+                f"This prompt grants no judgment, execution, or seal authority.",
                 role="user",
             ),
             Message(
-                "Initiating 🌊 WITNESS — calling arif_observe and geox_evidence to gather reality signals. Will return at stage 1/6.",
+                "Initiating 🌊 WITNESS by requesting arif_observe and geox_evidence. "
+                "Will return at stage 1/6.",
                 role="assistant",
             ),
         ],
@@ -198,14 +197,11 @@ def sabar_run_loop(
                 "geox_evidence",
                 "well_validate_vitality",
                 "arif_think",
-                "arif_heart_critique",
                 "well_guard_dignity",
                 "arif_judge",
                 "geox_contradiction_scan",
-                "arif_act",
                 "arif_forge",
                 "arif_seal",
-                "forge_vault",
             ],
             "linked_resources": [
                 "arifos://verdict/{session_id}",
@@ -251,10 +247,8 @@ def register_arifos_prompts(mcp: Any) -> list[str]:
     @mcp.prompt(
         name="🌱 BOOT",
         description=(
-            "🌱 BOOT — arifOS constitutional bootstrap. Boot-phase contract from "
-            "/root/AAA/prompts/INIT.md (TRINITY-33 + RSI + 5-phase "
-            "friction). Pass depth='full' for entire 488-line canon, default "
-            "'boot' returns sections 0+1 only. Use to start any new session."
+            "🌱 BOOT — Constitutional bootstrap per INIT.md. depth='full' for full "
+            "canon; default 'boot' for essentials."
         ),
         meta={
             "stage": "PRE_LOOP",
@@ -330,12 +324,7 @@ For deep read, call depth='full' or read /root/AAA/prompts/INIT.md directly.
     # ─── 🌊 WITNESS — 111 SENSE observation stage ───────────────────────
     @mcp.prompt(
         name="🌊 WITNESS",
-        description=(
-            "🌊 WITNESS — 111 SENSE observation stage. Acquire ground-truth signals "
-            "before reasoning. Auto-calls arif_observe (kernel), geox_evidence (earth), "
-            "well_validate_vitality (human substrate). Returns the observed reality "
-            "block for downstream stages. Use at the START of any reality-loop run."
-        ),
+        description="🌊 WITNESS — Observe ground-truth signals before reasoning.",
         meta={
             "stage": "111_SENSE",
             "sigil": "🌊",
@@ -383,11 +372,7 @@ Then hand off to 🧠 REASON.
     # ─── 🧠 REASON — 333 REASON propose ─────────────────────────────────
     @mcp.prompt(
         name="🧠 REASON",
-        description=(
-            "🧠 REASON — 333 REASON propose-hypothesis stage. Auto-calls arif_think "
-            "(kernel reasoning). Generates hypotheses from WITNESS observations. "
-            "Returns ranked candidates with confidence bands. Use after 🌊 WITNESS."
-        ),
+        description="🧠 REASON — Propose hypotheses from WITNESS observations.",
         meta={
             "stage": "333_REASON",
             "sigil": "🧠",
@@ -436,19 +421,14 @@ Hand off to ⚖ MARUAH.
     # ─── ⚖ MARUAH — 555 CRITIQUE dignity check ─────────────────────────
     @mcp.prompt(
         name="⚖ MARUAH",
-        description=(
-            "⚖ MARUAH — 555 CRITIQUE dignity-floor check (heart/maruah). "
-            "Auto-calls arif_heart_critique (kernel heart) + well_guard_dignity "
-            "(human substrate dignity guard). F6 EMPATHY: weakest stakeholder's "
-            "dignity preserved κᵣ ≥ 0.70. Use after 🧠 REASON."
-        ),
+        description="⚖ MARUAH — Dignity-floor check (heart/maruah) before judgment.",
         meta={
             "stage": "555_CRITIQUE",
             "sigil": "⚖",
             "lexical": "MARUAH",
             "role": "Heart maruah — dignity check",
             "linked_tools": [
-                "arif_heart_critique",
+                "arif_think",
                 "well_assess_homeostasis",
                 "well_guard_dignity",
             ],
@@ -465,7 +445,7 @@ Hand off to ⚖ MARUAH.
 reason_block: {reason_block}
 
 ## What to do
-1. Call arif_heart_critique → constitutional heart critique.
+1. Call arif_think(mode=critique) → constitutional critique.
 2. Call well_guard_dignity → human substrate dignity guard.
 3. Compute dignity score: κᵣ ∈ [0, 1], target ≥ 0.70.
 4. Identify weakest stakeholder; verify their dignity preserved.
@@ -492,9 +472,7 @@ Hand off to 🔒 JUDGE.
     @mcp.prompt(
         name="🔍 PREFLIGHT",
         description=(
-            "🔍 PREFLIGHT — Pre-operation constitutional check against all F1-F13 floors. "
-            "Use BEFORE any irreversible action. Returns VOID/HOLD/SEAL per floor with "
-            "remediation. Catches 888_HOLD triggers before they fire."
+            "🔍 PREFLIGHT — Pre-operation F1-F13 check. Catches 888_HOLD triggers before they fire."
         ),
         meta={
             "stage": "PRE_OPERATION",
@@ -560,11 +538,8 @@ If any floor fails → return VOID or HOLD with specific remediation.
     @mcp.prompt(
         name="🔒 JUDGE",
         description=(
-            "🔒 JUDGE — 888 JUDGE constitutional gate. Auto-calls arif_judge "
-            "(kernel verdict engine) + geox_contradiction_scan (earth consistency). "
-            "Returns verdict SEAL/HOLD/SABAR/VOID. SABAR verdict → re-stage. "
-            "VOID → halt immediately. F13 SOVEREIGN ratification required for "
-            "destructive actions. Use after ⚖ MARUAH."
+            "🔒 JUDGE — Constitutional gate. Runs arif_judge plus contradiction "
+            "evidence. Returns SEAL/HOLD/SABAR/VOID."
         ),
         meta={
             "stage": "888_JUDGE",
@@ -616,17 +591,15 @@ Verdict SEAL → proceed to 🔥 FORGE.
     @mcp.prompt(
         name="🔥 FORGE",
         description=(
-            "🔥 FORGE — 777 FORGE-ACT execute stage. Auto-calls arif_act (kernel "
-            "act) + arif_forge (compose). Requires prior 🔒 JUDGE verdict=SEAL|SABAR. "
-            "F1 AMANAH: every action reversible or backed up. Returns action "
-            "receipt with audit trail. Use after 🔒 JUDGE."
+            "🔥 FORGE — Execute after an admissible JUDGE verdict. Returns an action "
+            "receipt with audit trail."
         ),
         meta={
             "stage": "777_FORGE",
             "sigil": "🔥",
             "lexical": "FORGE",
             "role": "Execute / forge action",
-            "linked_tools": ["arif_act", "arif_forge", "forge_execute"],
+            "linked_tools": ["arif_forge"],
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1,F4,F11",
             "federation_layer": "arifOS.kernel.prompts",
@@ -644,8 +617,8 @@ judge_block: {judge_block}
 - If HOLD or VOID → return error, do not forge.
 
 ## What to do
-1. Call arif_act → kernel act with audit trail.
-2. Call arif_forge → compose intent into executable form.
+1. Call arif_forge only with the prior constitutional chain and required authority.
+2. Let A-FORGE perform any host mutation under its lease and execution gates.
 3. F1 AMANAH: verify reversible (F11 if irreversible).
 4. Record continuity chain (call resource arifos://continuity/{{session_id}}).
 5. Return action receipt with call_hash + trace_id.
@@ -672,17 +645,15 @@ Hand off to 💎 SEAL.
     @mcp.prompt(
         name="💎 SEAL",
         description=(
-            "💎 SEAL — 999 SEAL persist to VAULT999. Auto-calls arif_seal "
-            "(kernel seal) + forge_vault (immutable ledger write). Returns the "
-            "seal receipt with hash chain. F11 AUDIT: every consequential action "
-            "leaves a trace. Use AFTER 🔥 FORGE to close the loop."
+            "💎 SEAL — Prepare an authorized VAULT999 append. Returns a hash-chain "
+            "receipt. Terminal loop stage."
         ),
         meta={
             "stage": "999_SEAL",
             "sigil": "💎",
             "lexical": "SEAL",
             "role": "Persist to VAULT999",
-            "linked_tools": ["arif_seal", "forge_vault"],
+            "linked_tools": ["arif_seal"],
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1,F11",
             "federation_layer": "arifOS.kernel.prompts",
@@ -699,8 +670,8 @@ forge_block: {forge_block}
 - forge_block.reversibility == true OR F13 ratified irreversible.
 
 ## What to do
-1. Call arif_seal → kernel seal with hash chain.
-2. Call forge_vault → append to VAULT999 immutable ledger.
+1. An authorized actor calls arif_seal → kernel-controlled VAULT999 append.
+2. The prompt prepares evidence only; it cannot append or self-seal.
 3. F11 AUDIT: actor_signature + call_hash + trace_id on every receipt.
 4. Return seal_id + chain_hash.
 
@@ -725,11 +696,8 @@ Loop complete. The human may now start a new loop with 🌱 BOOT + 🌀 SABAR.
     @mcp.prompt(
         name="🌀 SABAR",
         description=(
-            "🌀 SABAR — Recursive Governed Loop orchestrator. Drives the 6-stage "
-            "reality loop autonomously: 🌊 WITNESS → 🧠 REASON → ⚖ MARUAH → 🔒 JUDGE "
-            "→ 🔥 FORGE → 💎 SEAL. Human role reduced to: call arif_init (🌱 BOOT) + "
-            "🌀 SABAR once + arif_seal (💎 SEAL) at end. depth='auto' returns the "
-            "auto-execution contract; depth='stage' returns stage-by-stage guidance."
+            "🌀 SABAR — Governed 6-stage reality-loop template. depth='auto' or "
+            "'stage'; grants no authority."
         ),
         meta={
             "stage": "000_LOOP",
@@ -741,14 +709,11 @@ Loop complete. The human may now start a new loop with 🌱 BOOT + 🌀 SABAR.
                 "geox_evidence",
                 "well_validate_vitality",
                 "arif_think",
-                "arif_heart_critique",
                 "well_guard_dignity",
                 "arif_judge",
                 "geox_contradiction_scan",
-                "arif_act",
                 "arif_forge",
                 "arif_seal",
-                "forge_vault",
             ],
             "linked_resources": [
                 "arifos://verdict/{session_id}",
@@ -771,17 +736,15 @@ Loop complete. The human may now start a new loop with 🌱 BOOT + 🌀 SABAR.
     @mcp.prompt(
         name="📜 REPLY",
         description=(
-            "📜 REPLY — Governed AGI reply envelope. TO/CC/TITLE/RACI/τ/floors/SEAL. "
-            "v3 forged 2026-07-11 (F-06 metadata); recipient_id parameterised (F-07); "
-            "F1+F13 require SOVEREIGN ratification; F11 AUTH is non-negotiable for "
-            "destructive recommendations."
+            "📜 REPLY — Governed AGI reply envelope with RACI, truth, floor, and "
+            "seal-status fields."
         ),
         meta={
             "stage": "POST_LOOP",
             "sigil": "📜",
             "lexical": "REPLY",
             "role": "Governed reply envelope",
-            "linked_tools": ["arif_compose"],
+            "linked_tools": ["arif_forge"],
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1,F2,F4,F6,F7,F9,F10,F11,F12,F13",
             "federation_layer": "arifOS.kernel.prompts",
@@ -824,7 +787,7 @@ Constraints:
             "lexical": "REPLY",
             "deprecated_alias_of": "📜 REPLY",
             "removal_epoch": "2026-08-16",
-            "linked_tools": ["arif_compose"],
+            "linked_tools": ["arif_forge"],
             "linked_resources": ["arifos://continuity/{session_id}"],
             "floors_referenced": "F1-F13",
             "federation_layer": "arifOS.kernel.prompts.legacy_alias",

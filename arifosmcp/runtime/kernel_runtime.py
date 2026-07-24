@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -760,6 +761,40 @@ class MetabolicRouter:
             "terminals": [k for k, v in cls.METABOLIC_DAG.items() if not v],
             "genesis": ["arifos_init"],
         }
+
+    @classmethod
+    def validate_input_schema(
+        cls,
+        schema: dict[str, Any],
+        arguments: dict[str, Any],
+    ) -> tuple[bool, dict[str, Any], list[str]]:
+        """Validate input arguments against tool inputSchema.
+        Returns (valid, cleaned_args, violations).
+
+        Controlled by ARIFOS_STRICT_SCHEMA env var (default: false for backward compat).
+        """
+        violations: list[str] = []
+        strict = os.environ.get("ARIFOS_STRICT_SCHEMA", "").lower() in ("true", "1", "yes")
+
+        if not isinstance(arguments, dict):
+            return True, arguments, []
+
+        if schema.get("additionalProperties", True) is False:
+            allowed = set(schema.get("properties", {}).keys())
+            extra = set(arguments.keys()) - allowed
+            if extra and strict:
+                violations.append(f"Unknown fields: {', '.join(sorted(extra))}")
+
+        for prop_name, prop_def in schema.get("properties", {}).items():
+            if "enum" in prop_def and prop_name in arguments:
+                actual = arguments[prop_name]
+                allowed_vals = prop_def["enum"]
+                if actual not in allowed_vals:
+                    violations.append(
+                        f"Invalid value '{actual}' for '{prop_name}'. Valid: {allowed_vals}"
+                    )
+
+        return len(violations) == 0, arguments, violations
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

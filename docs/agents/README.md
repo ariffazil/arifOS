@@ -1,3 +1,10 @@
+# REFERENCE-ONLY — Historical arifOS Agent Dossier
+
+> **NOT RUNTIME AUTHORITY.** This March 2026 dossier is retained for provenance.
+> Current authority comes from the live arifOS kernel, its capability registry,
+> AAA agent cards, and F13. Nothing in this directory grants an agent independent
+> JUDGE, SEAL, deployment, deletion, or vault authority.
+
 # arifOS Agent Skills — Full Dossier & AGI Readiness Report
 **DITEMPA BUKAN DIBERI** 🔐
 **Sovereign:** Muhammad Arif bin Fazil
