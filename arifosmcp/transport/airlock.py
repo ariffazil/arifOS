@@ -7,6 +7,7 @@ or governance pipeline sees them.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -25,7 +26,7 @@ from arifosmcp.transport.canonical_envelope import (
 from arifosmcp.transport.dialects.raw_jsonrpc import raw_jsonrpc_adapter
 from arifosmcp.transport.dialects.stdio import stdio_adapter
 from arifosmcp.transport.dialects.streamable_http import streamable_http_adapter
-from arifosmcp.transport.errors import arif_error
+from arifosmcp.transport.errors import arif_error, protocol_mismatch
 
 log = logging.getLogger("arifos.airlock")
 
@@ -327,8 +328,19 @@ def detect_dialect(request: dict[str, Any], transport_type: str = "http") -> str
     return "raw_jsonrpc"
 
 
+SUPPORTED_PROTOCOL_VERSIONS = frozenset({"2025-11-25", "2025-03-26", "2024-11-05"})
+
+
 def process_request(request: dict[str, Any], transport_type: str = "http") -> AirlockResult:
     """Main Airlock entry point for transport middleware."""
+    pv = request.get("protocol_version") or request.get("params", {}).get("protocolVersion")
+    if isinstance(pv, str) and pv not in SUPPORTED_PROTOCOL_VERSIONS:
+        return AirlockResult(
+            transport_error=protocol_mismatch(pv),
+            envelope=None,
+            dialect_used="unknown",
+            trace_id=uuid.uuid4().hex[:16],
+        )
     dialect = detect_dialect(request, transport_type)
     handler = DIALECT_REGISTRY.get(dialect)
 
@@ -567,11 +579,34 @@ class AirlockASGIMiddleware:
 
         body_chunks = []
         more_body = True
+        receive_timeout = float(_os.getenv("ARIF_AIRLOCK_RECEIVE_TIMEOUT", "10.0"))
+
         while more_body:
-            message = await receive()
-            if message["type"] == "http.request":
+            try:
+                message = await asyncio.wait_for(receive(), timeout=receive_timeout)
+            except asyncio.TimeoutError:
+                log.warning(
+                    "Airlock timeout (%.1fs) waiting for client body on path=%s",
+                    receive_timeout,
+                    path,
+                )
+                await self._send_error(
+                    send,
+                    arif_error("ARIF_TIMEOUT", message="Request body receive timeout"),
+                    b"timeout",
+                    status=408,
+                )
+                return
+
+            msg_type = message.get("type")
+            if msg_type == "http.request":
                 body_chunks.append(message.get("body", b""))
                 more_body = message.get("more_body", False)
+            elif msg_type == "http.disconnect":
+                log.info("Airlock client disconnected while receiving body on path=%s", path)
+                return
+            else:
+                more_body = False
 
         body = b"".join(body_chunks)
         body_sent = False
@@ -581,7 +616,10 @@ class AirlockASGIMiddleware:
             if not body_sent:
                 body_sent = True
                 return {"type": "http.request", "body": body, "more_body": False}
-            return {"type": "http.request", "body": b"", "more_body": False}
+            try:
+                return await asyncio.wait_for(receive(), timeout=receive_timeout)
+            except (asyncio.TimeoutError, Exception):
+                return {"type": "http.disconnect"}
 
         try:
             rpc_data = json.loads(body) if body else {}
@@ -660,12 +698,14 @@ class AirlockASGIMiddleware:
 
         await self.app(scope, _receive, send)
 
-    async def _send_error(self, send, error: dict[str, Any] | None, marker: bytes) -> None:
+    async def _send_error(
+        self, send, error: dict[str, Any] | None, marker: bytes, status: int = 200
+    ) -> None:
         error_body = json.dumps(error or arif_error("ARIF_ENVELOPE_MISSING")).encode("utf-8")
         await send(
             {
                 "type": "http.response.start",
-                "status": 200,
+                "status": status,
                 "headers": [
                     (b"content-type", b"application/json"),
                     (b"x-arifos-airlock", marker),
