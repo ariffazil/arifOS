@@ -43,7 +43,7 @@
 ## Required Compliance
 - L1 Protocol: MCP (mandatory) + FastMCP (mandatory for Python organs) + A2A (agent card mandatory) + XMCP (apps mandatory)
 - Federation schema version: 2.0.0
-- Release: v2026.07.17-ZEN-SURVIVAL
+- Release: v2026.07.24-ZEN-SURVIVAL
 - Next milestone: Zero gaps in MCP and FastMCP — already compliant
 
 ---

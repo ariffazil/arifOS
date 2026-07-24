@@ -145,7 +145,7 @@ def generate_llms_txt() -> str:
         f"> Total MCP: {total_tools} Tools | {len(resources)} Resources | Status: OPERATIONAL"
     )
     lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
-    lines.append("> Version: v2026.07.17-ZEN-SURVIVAL · MCP Protocol: 2025-11-25")
+    lines.append("> Version: v2026.07.24-ZEN-SURVIVAL · MCP Protocol: 2025-11-25")
     lines.append("> Verdict grammar: SEAL / HOLD / SABAR / VOID")
     lines.append(
         "> Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class"
