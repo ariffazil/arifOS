@@ -512,7 +512,8 @@ def _verify_hmac_proof(actor_id: str, proof: dict) -> bool:
 from typing import Literal  # noqa: E402
 
 try:
-    from pydantic import BaseModel, ConfigDict, Field  # noqa: E402
+    from pydantic import BaseModel, ConfigDict  # noqa: E402
+
     _HAVE_PYDANTIC = True
 except Exception:  # noqa: BLE001
     _HAVE_PYDANTIC = False
@@ -552,9 +553,9 @@ if _HAVE_PYDANTIC:
 
         error: Literal["SESSION_EXPIRED"] = "SESSION_EXPIRED"
         can_retry: Literal[True] = True
-        next_safe_action: Literal[
+        next_safe_action: Literal["Call arif_init and replay the same normalized payload"] = (
             "Call arif_init and replay the same normalized payload"
-        ] = "Call arif_init and replay the same normalized payload"
+        )
 
 else:
 

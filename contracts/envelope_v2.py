@@ -25,7 +25,7 @@ from __future__ import annotations
 import json
 import re
 from enum import Enum
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -167,18 +167,18 @@ class RoutingBlock(BaseModel):
     to: str = Field(min_length=1, description="Recipient agent_id or 888_Sovereign")
     cc: list[str] = Field(default_factory=list)
     channel: Channel = Channel.A2A
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
     message_kind: MessageKind
     intent: Intent
     priority: Priority = Priority.P2
-    session_id: Optional[str] = None
-    timestamp: Optional[str] = None
+    session_id: str | None = None
+    timestamp: str | None = None
 
 
 class IntentBlock(BaseModel):
     model_config = ConfigDict(extra="forbid")
     action: str = Field(min_length=1, description="Verb-object task name")
-    adat_tier_hint: Optional[AdatTier] = None
+    adat_tier_hint: AdatTier | None = None
     constraints: list[str] = Field(default_factory=list)
 
 
@@ -196,7 +196,7 @@ class RelatedResource(BaseModel):
 
 class Environment(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    tenant: Optional[str] = None
+    tenant: str | None = None
     mcp_tools: list[str] = Field(default_factory=list)
     capabilities: list[str] = Field(default_factory=list)
 
@@ -204,7 +204,7 @@ class Environment(BaseModel):
 class ContextBlock(BaseModel):
     model_config = ConfigDict(extra="forbid")
     summary: str = Field(max_length=200)
-    goal: Optional[str] = None
+    goal: str | None = None
     inputs: dict[str, Any] = Field(default_factory=dict)
     assumptions: list[str] = Field(default_factory=list)
     related_resources: list[RelatedResource] = Field(default_factory=list)
@@ -233,7 +233,7 @@ class Uncertainty(BaseModel):
     model_config = ConfigDict(extra="forbid")
     issue: str
     impact: ImpactLevel
-    mitigation: Optional[str] = None
+    mitigation: str | None = None
 
 
 class ReasoningBlock(BaseModel):
@@ -258,24 +258,24 @@ class Artifact(BaseModel):
     model_config = ConfigDict(extra="forbid")
     type: Literal["file", "chart", "image", "log", "patch", "uri"]
     ref: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class PayloadBlock(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    context_p_truth: Optional[float] = Field(default=None, ge=0.0, le=1.0)
-    action_intent: Optional[str] = None
-    way_forward: Optional[str] = None
-    recommendation_tier: Optional[AdatTier] = None
-    reversibility_hint: Optional[ReversibilityHint] = None
-    context_summary: Optional[str] = Field(default=None, max_length=200)
-    f_floor_trigger: Optional[str] = None
+    context_p_truth: float | None = Field(default=None, ge=0.0, le=1.0)
+    action_intent: str | None = None
+    way_forward: str | None = None
+    recommendation_tier: AdatTier | None = None
+    reversibility_hint: ReversibilityHint | None = None
+    context_summary: str | None = Field(default=None, max_length=200)
+    f_floor_trigger: str | None = None
     data: dict[str, Any] = Field(default_factory=dict)
     artifacts: list[Artifact] = Field(default_factory=list)
 
     @field_validator("f_floor_trigger")
     @classmethod
-    def _validate_floor(cls, v: Optional[str]) -> Optional[str]:
+    def _validate_floor(cls, v: str | None) -> str | None:
         if v is None:
             return v
         if not _FLOOR_RE.match(v):
@@ -291,9 +291,9 @@ class PayloadBlock(BaseModel):
 class SenderZone(BaseModel):
     model_config = ConfigDict(extra="forbid")
     protocol_features: list[str] = Field(default_factory=lambda: ["two-zone", "dual-sig"])
-    sender_sig: Optional[str] = Field(default=None, pattern=r"^ed25519:[0-9a-fA-F]{128}$")
-    sender_signed_at: Optional[str] = None
-    sender_key_ref: Optional[str] = None
+    sender_sig: str | None = Field(default=None, pattern=r"^ed25519:[0-9a-fA-F]{128}$")
+    sender_signed_at: str | None = None
+    sender_key_ref: str | None = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -327,11 +327,11 @@ class SafetyBlock(BaseModel):
 
 class EvaluationBlock(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    entropy_delta: Optional[float] = None
-    peace2: Optional[float] = Field(default=None, ge=0.0, le=1.0)
-    maruah_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
-    omega_0: Optional[float] = Field(default=None, ge=0.0, le=1.0)
-    safety: Optional[SafetyBlock] = None
+    entropy_delta: float | None = None
+    peace2: float | None = Field(default=None, ge=0.0, le=1.0)
+    maruah_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    omega_0: float | None = Field(default=None, ge=0.0, le=1.0)
+    safety: SafetyBlock | None = None
 
 
 class KernelZone(BaseModel):
@@ -341,16 +341,16 @@ class KernelZone(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
-    verdict: Optional[VerdictCode] = None
-    reversibility: Optional[ReversibilityVerdict] = None
-    reversibility_rationale: Optional[str] = None
-    recommendation_tier: Optional[AdatTier] = None
-    evaluation: Optional[EvaluationBlock] = None
+    verdict: VerdictCode | None = None
+    reversibility: ReversibilityVerdict | None = None
+    reversibility_rationale: str | None = None
+    recommendation_tier: AdatTier | None = None
+    evaluation: EvaluationBlock | None = None
     nine_signal: dict[str, Any] = Field(default_factory=dict)
-    floor_scores: Optional[FloorScores] = None
-    kernel_signed_at: Optional[str] = None
-    kernel_sig: Optional[str] = Field(default=None, pattern=r"^ed25519:[0-9a-fA-F]{128}$")
-    kernel_key_ref: Optional[str] = None
+    floor_scores: FloorScores | None = None
+    kernel_signed_at: str | None = None
+    kernel_sig: str | None = Field(default=None, pattern=r"^ed25519:[0-9a-fA-F]{128}$")
+    kernel_key_ref: str | None = None
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -368,16 +368,16 @@ class EnvelopeV2(BaseModel):
     protocol_version: Literal["AAA-A2A-1.0"] = "AAA-A2A-1.0"
     routing: RoutingBlock
     intent: IntentBlock
-    context: Optional[ContextBlock] = None
-    reasoning: Optional[ReasoningBlock] = None
-    payload: Optional[PayloadBlock] = None
+    context: ContextBlock | None = None
+    reasoning: ReasoningBlock | None = None
+    payload: PayloadBlock | None = None
     sender_zone: SenderZone = Field(default_factory=SenderZone)
-    kernel_zone: Optional[KernelZone] = None
-    profile: Optional[MessageKind] = None
+    kernel_zone: KernelZone | None = None
+    profile: MessageKind | None = None
     schema_version: str = Field(default="1.0.0", pattern=r"^[0-9]+\.[0-9]+\.[0-9]+$")
 
     @model_validator(mode="after")
-    def _profile_must_match_message_kind(self) -> "EnvelopeV2":
+    def _profile_must_match_message_kind(self) -> EnvelopeV2:
         """If profile is set, it must match routing.message_kind."""
         if self.profile is not None and self.profile != self.routing.message_kind:
             raise ValueError(

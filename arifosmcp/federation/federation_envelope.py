@@ -259,7 +259,7 @@ def build_federation_envelope(
         organ=target_organ,
         tool=target_tool,
         arguments=None,  # raw args are not known at envelope-build time;
-                          # the bridge layer stamps this after args are bound.
+        # the bridge layer stamps this after args are bound.
     )
 
     # ── Build envelope ──────────────────────────────────────────────

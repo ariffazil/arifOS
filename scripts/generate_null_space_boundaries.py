@@ -15,18 +15,18 @@ Usage:
 """
 
 import sys
+
 from arifosmcp.runtime.null_space_boundary import (
-    generate_null_space_injection,
     ORGAN_REGISTRY,
-    NULL_SPACE_HEADER,
+    generate_null_space_injection,
 )
 
 if __name__ == "__main__":
     if "--all" in sys.argv or len(sys.argv) == 1:
         for name in sorted(ORGAN_REGISTRY):
-            print(f"\n{'='*70}")
+            print(f"\n{'=' * 70}")
             print(f"  {name} — NULL-SPACE BOUNDARY INJECTION")
-            print(f"{'='*70}")
+            print(f"{'=' * 70}")
             print(generate_null_space_injection(name))
     else:
         name = sys.argv[1].upper()

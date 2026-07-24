@@ -30,15 +30,15 @@ if not any(str(_ARIFOS_ROOT / "core") == p for p in sys.path):
     sys.path.insert(0, str(_ARIFOS_ROOT / "core"))
 
 try:
-    from arifosmcp.runtime.a_rif.models import ClaimState, EvidenceLevel
+    from arifosmcp.runtime.a_rif.contradiction import (
+        ContradictionReport,
+        audit_for_contradictions,
+    )
     from arifosmcp.runtime.a_rif.engine import (
         calculate_search_worthiness,
         evaluate_entropy_delta,
     )
-    from arifosmcp.runtime.a_rif.contradiction import (
-        audit_for_contradictions,
-        ContradictionReport,
-    )
+    from arifosmcp.runtime.a_rif.models import ClaimState, EvidenceLevel
     from core.shared.physics import W_4, Omega_0, humility_band
 
     _PHYSICS_AVAILABLE = True

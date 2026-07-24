@@ -6,8 +6,8 @@ runs the test suite programmatically, audits local configurations, and logs
 results directly to the Antigravity session brain.
 """
 
-import os
 import json
+import os
 import subprocess
 from datetime import datetime
 
@@ -75,7 +75,7 @@ def evaluate() -> dict:
     settings_path = os.path.expanduser(r"~\.gemini\settings.json")
     if os.path.exists(settings_path):
         try:
-            with open(settings_path, "r", encoding="utf-8") as f:
+            with open(settings_path, encoding="utf-8") as f:
                 data = json.load(f)
             # Check if arifos mcp server is configured
             mcp_servers = data.get("mcpServers", {})

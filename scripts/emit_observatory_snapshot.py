@@ -25,9 +25,10 @@ sys.path.insert(0, str(PROJECT_ROOT))
 SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
+from observatory_publish import publish_latest_snapshot  # noqa: E402
+
 from arifosmcp.runtime.capability_drift import PUBLIC_CANONICAL_TOOLS  # noqa: E402
 from arifosmcp.runtime.rest_routes.observatory_routes import build_snapshot  # noqa: E402
-from observatory_publish import publish_latest_snapshot  # noqa: E402
 
 SNAP_DIR = Path("/root/.arifos/observatory/snapshots")
 
@@ -64,8 +65,7 @@ def _maybe_publish() -> None:
     for name, info in receipt["files"].items():
         flag = "skipped" if info.get("skipped") else "wrote"
         print(
-            f"    {flag:7s} {name} ({info['size_bytes']} bytes, "
-            f"sha256={info['sha256'][:12]})",
+            f"    {flag:7s} {name} ({info['size_bytes']} bytes, sha256={info['sha256'][:12]})",
             file=sys.stderr,
         )
     print(f"  verification_url: {receipt['verification_url']}", file=sys.stderr)

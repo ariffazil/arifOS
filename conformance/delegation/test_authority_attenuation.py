@@ -10,11 +10,11 @@ DITEMPA BUKAN DIBERI.
 """
 
 import json
-import pytest
-from conformance import _call_tool, _init_session, ARIFOS_URL, MCP_URL
 
+from conformance import _call_tool, _init_session
 
 # ── TEST 9: Child authority cannot exceed parent ─────────────────────────────
+
 
 def test_child_authority_cannot_exceed_parent():
     """
@@ -22,17 +22,20 @@ def test_child_authority_cannot_exceed_parent():
     must have authority ≤ parent authority. Full test requires
     delegation envelope implementation — this is a structural gate.
     """
-    # For now: verify the session model has the concept of 
+    # For now: verify the session model has the concept of
     # parent_session_id and authority band that supports attenuation
     parent = _init_session("conformance-t9-parent")
     parent_sid = parent.get("session_birth", {}).get("session_id", "")
 
     # Resume with parent session and check that authority
     # is never elevated above what parent had
-    response = _call_tool("arif_init", {
-        "mode": "resume",
-        "session_id": parent_sid,
-    })
+    response = _call_tool(
+        "arif_init",
+        {
+            "mode": "resume",
+            "session_id": parent_sid,
+        },
+    )
 
     result_text = json.dumps(response)
     # The resume should not grant MORE authority than init
@@ -42,6 +45,7 @@ def test_child_authority_cannot_exceed_parent():
 
 
 # ── TEST 10: Expired delegation is denied ────────────────────────────────────
+
 
 def test_expired_delegation_denied():
     """
@@ -61,12 +65,12 @@ def test_expired_delegation_denied():
     # mutation should reflect actual capability, not aspirational
     if authority == "OBSERVE_ONLY":
         assert mutation_allowed is False, (
-            f"OBSERVE_ONLY session must not allow mutation. "
-            f"mutation_allowed={mutation_allowed}"
+            f"OBSERVE_ONLY session must not allow mutation. mutation_allowed={mutation_allowed}"
         )
 
 
 # ── TEST 11: Missing delegation lineage is denied ────────────────────────────
+
 
 def test_missing_lineage_denied():
     """
@@ -74,10 +78,13 @@ def test_missing_lineage_denied():
     proving parent lineage must be downgraded or rejected.
     """
     # Light mode — no actor verification — must be OBSERVE_ONLY
-    response = _call_tool("arif_init", {
-        "mode": "light",
-        "intent": "conformance-t11",
-    })
+    response = _call_tool(
+        "arif_init",
+        {
+            "mode": "light",
+            "intent": "conformance-t11",
+        },
+    )
     content = response.get("result", {}).get("content", [])
     result_text = ""
     for item in content:

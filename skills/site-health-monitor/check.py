@@ -4,11 +4,10 @@ arifOS Sites Health Check
 Checks key arifOS infrastructure sites and logs/report failures.
 """
 
-import urllib.request
-import urllib.error
-import socket
 import json
 import sys
+import urllib.error
+import urllib.request
 from datetime import datetime
 
 # Sites to monitor (from arifosmcp/sites/ai.json trinity_network + endpoints)
@@ -95,7 +94,7 @@ def check_site(site):
             "code": None,
             "error": str(e.reason),
         }
-    except socket.timeout:
+    except TimeoutError:
         return {
             "name": name,
             "url": url,

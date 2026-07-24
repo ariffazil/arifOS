@@ -104,7 +104,7 @@ class ForgeClient:
     def close(self) -> None:
         self._http.close()
 
-    def __enter__(self) -> "ForgeClient":
+    def __enter__(self) -> ForgeClient:
         self.connect()
         return self
 

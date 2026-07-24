@@ -1,16 +1,16 @@
-import sys
 import json
 import os
+import sys
 
 # add arifOS root to path
 sys.path.insert(0, "/root/arifOS")
 
-from VAULT999.seal_law import build_entry, GENESIS_CHAIN_HASH, GENESIS_ENTRY_HASH
+from VAULT999.seal_law import GENESIS_CHAIN_HASH, GENESIS_ENTRY_HASH, build_entry
 
 
 def repair(jsonl_path):
     print(f"Repairing {jsonl_path}...")
-    with open(jsonl_path, "r") as f:
+    with open(jsonl_path) as f:
         entries = [json.loads(line) for line in f if line.strip()]
 
     print(f"Loaded {len(entries)} entries.")

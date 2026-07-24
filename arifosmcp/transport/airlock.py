@@ -584,7 +584,7 @@ class AirlockASGIMiddleware:
         while more_body:
             try:
                 message = await asyncio.wait_for(receive(), timeout=receive_timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 log.warning(
                     "Airlock timeout (%.1fs) waiting for client body on path=%s",
                     receive_timeout,
@@ -618,7 +618,7 @@ class AirlockASGIMiddleware:
                 return {"type": "http.request", "body": body, "more_body": False}
             try:
                 return await asyncio.wait_for(receive(), timeout=receive_timeout)
-            except (asyncio.TimeoutError, Exception):
+            except (TimeoutError, Exception):
                 return {"type": "http.disconnect"}
 
         try:

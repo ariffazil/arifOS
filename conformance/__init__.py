@@ -12,6 +12,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
 import os
+
 import pytest
 
 ARIFOS_URL = os.environ.get("ARIFOS_URL", "http://localhost:8088")
@@ -19,6 +20,7 @@ MCP_URL = f"{ARIFOS_URL}/mcp"
 
 
 # ── HELPERS ──────────────────────────────────────────────────────────────────
+
 
 def _call_tool(tool_name: str, arguments: dict, session_id: str | None = None) -> dict:
     """Call an MCP tool on the kernel. Returns parsed result dict."""

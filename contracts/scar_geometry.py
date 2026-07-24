@@ -11,12 +11,11 @@ Adoption recipe: ~/.hermes/skills/arifos/arifos-scar-geometry-patch/SKILL.md
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ─────────────────────────────────────────────────────────────────────
 # Constitutional constants — set at seal-time, HARAM to loosen
@@ -158,7 +157,7 @@ class SovereignGeometryFingerprint(BaseModel):
     scar: ScarSignature
     geometry: GeometrySignature
     paradox: ParadoxSignature
-    inferred_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    inferred_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     source_channel: Annotated[
         str,
         Field(

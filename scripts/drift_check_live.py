@@ -6,20 +6,24 @@ Writes structured JSON to drift_log.jsonl. Never mutates.
 
 DITEMPA BUKAN DIBERI — Forged 2026-07-19
 """
-import json, os, sys, hashlib, subprocess
-from datetime import datetime, timezone
+
+import hashlib
+import json
+import subprocess
+from datetime import UTC, datetime
 from pathlib import Path
 
 DRIFT_LOG = Path("/root/.local/share/arifos/vault999/drift_log.jsonl")
 
+
 def git_commit(path: str) -> str:
     try:
         return subprocess.check_output(
-            ["git", "-C", path, "rev-parse", "HEAD"],
-            text=True, timeout=5
+            ["git", "-C", path, "rev-parse", "HEAD"], text=True, timeout=5
         ).strip()
     except Exception:
         return "UNKNOWN"
+
 
 def file_hash(path: str) -> str:
     try:
@@ -31,17 +35,20 @@ def file_hash(path: str) -> str:
     except Exception:
         return "UNREADABLE"
 
+
 def probe_health(port: int) -> dict:
     import urllib.request
+
     try:
         r = urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=5)
         return json.loads(r.read())
     except Exception as e:
         return {"error": str(e)}
 
+
 def main():
-    now = datetime.now(timezone.utc).isoformat()
-    
+    now = datetime.now(UTC).isoformat()
+
     # Probe all organs
     organs = {
         "arifos": {"port": 8088, "path": "/root/arifOS"},
@@ -51,26 +58,26 @@ def main():
         "wealth": {"port": 18082, "path": "/root/WEALTH"},
         "well": {"port": 18083, "path": "/root/WELL"},
     }
-    
+
     results = {"checked_at": now, "organs": {}, "overall_drift": False}
-    
+
     for name, cfg in organs.items():
         source_commit = git_commit(cfg["path"])
         health = probe_health(cfg["port"])
-        
+
         deployed_version = health.get("version", health.get("git_version", "UNKNOWN"))
         identity_raw = health.get("identity_hash", health.get("identity", {}))
         if isinstance(identity_raw, dict):
             runtime_identity = identity_raw.get("value", identity_raw.get("hash", "UNKNOWN"))
         else:
             runtime_identity = str(identity_raw) if identity_raw else "UNKNOWN"
-        
-        drift = (
-            "error" in health
-            or (source_commit != "UNKNOWN" and deployed_version != "UNKNOWN" 
-                and source_commit[:8] not in str(deployed_version))
+
+        drift = "error" in health or (
+            source_commit != "UNKNOWN"
+            and deployed_version != "UNKNOWN"
+            and source_commit[:8] not in str(deployed_version)
         )
-        
+
         results["organs"][name] = {
             "source_commit": source_commit,
             "deployed_version": str(deployed_version)[:40],
@@ -80,7 +87,7 @@ def main():
         }
         if drift:
             results["overall_drift"] = True
-    
+
     # Write to drift log
     entry = {
         "event_type": "drift_check_automated",
@@ -89,17 +96,20 @@ def main():
         "payload": results,
         "status": "DRIFT" if results["overall_drift"] else "CLEAN",
     }
-    
+
     DRIFT_LOG.parent.mkdir(parents=True, exist_ok=True)
     with open(DRIFT_LOG, "a") as f:
         f.write(json.dumps(entry) + "\n")
-    
+
     # Output for journal
     status = "❌ DRIFT DETECTED" if results["overall_drift"] else "✅ CLEAN"
     print(f"arifos-drift: {status} at {now}")
     for name, org in results["organs"].items():
         flag = "⚠️ DRIFT" if org["drift"] else "  OK"
-        print(f"  {flag} {name}: src={org['source_commit'][:8]} deployed={org['deployed_version'][:30]}")
+        print(
+            f"  {flag} {name}: src={org['source_commit'][:8]} deployed={org['deployed_version'][:30]}"
+        )
+
 
 if __name__ == "__main__":
     main()

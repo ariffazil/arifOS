@@ -106,11 +106,7 @@ def extract_proxy_auth(
             or lower.get("x-arifos-session-id")
         )
         actor_id = actor_id or lower.get("x-arifos-actor-id") or lower.get("x-actor-id")
-        session_token = (
-            session_token
-            or lower.get("x-arifos-session-token")
-            or lower.get("x-sct")
-        )
+        session_token = session_token or lower.get("x-arifos-session-token") or lower.get("x-sct")
 
     if session_id is not None:
         session_id = str(session_id).strip() or None
@@ -290,9 +286,7 @@ def require_remote_proxy_session(
 
     # Valid: build kernel-authored envelope from validated fields only.
     sess_obj = auth.get("session") or {}
-    validated_session_id = (
-        sid or auth.get("session_id") or sess_obj.get("session_id")
-    )
+    validated_session_id = sid or auth.get("session_id") or sess_obj.get("session_id")
     validated_actor_id = auth.get("actor_id") or aid
     validated_session_token = auth.get("session_token") or stoken
     actor_verified = bool(auth.get("actor_verified"))

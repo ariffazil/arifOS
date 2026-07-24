@@ -13,10 +13,10 @@ Exit codes:
     3  = schema not found
 """
 
-import json
-import sys
-import re
 import datetime
+import json
+import re
+import sys
 from pathlib import Path
 
 SCHEMA_PATH = Path(__file__).parent.parent / "schema" / "carry_forward.schema.json"
@@ -69,9 +69,7 @@ def validate_object(val, schema_prop, path, errors, depth=0):
         for prop_name, prop_schema in schema_prop.get("properties", {}).items():
             schema_keys.add(prop_name)
             if prop_schema.get("type") == "object":
-                schema_keys.update(
-                    k for k in prop_schema.get("properties", {}).keys()
-                )
+                schema_keys.update(k for k in prop_schema.get("properties", {}).keys())
         extra = set(val.keys()) - schema_keys
         if extra:
             errors.append(f"{path}: additional properties not allowed: {extra}")
@@ -107,10 +105,10 @@ def validate_value(val, schema_prop, path, errors, depth=0):
                 return  # Matched — no errors, done
             branch_errors.append((i, be))
         # None matched — surface first branch errors for debugging
-        detail = "; ".join(f"branch[{i}]={be[0][:80] if be else 'ok'}" for i, be in branch_errors[:2])
-        errors.append(
-            f"{path}: no oneOf variant matched. {detail}"
+        detail = "; ".join(
+            f"branch[{i}]={be[0][:80] if be else 'ok'}" for i, be in branch_errors[:2]
         )
+        errors.append(f"{path}: no oneOf variant matched. {detail}")
         return
 
     # Type check
@@ -149,13 +147,20 @@ def validate_value(val, schema_prop, path, errors, depth=0):
 
 
 def typeof(val) -> str:
-    if val is None: return "null"
-    if isinstance(val, bool): return "boolean"
-    if isinstance(val, int): return "integer"
-    if isinstance(val, float): return "number"
-    if isinstance(val, str): return "string"
-    if isinstance(val, list): return "array"
-    if isinstance(val, dict): return "object"
+    if val is None:
+        return "null"
+    if isinstance(val, bool):
+        return "boolean"
+    if isinstance(val, int):
+        return "integer"
+    if isinstance(val, float):
+        return "number"
+    if isinstance(val, str):
+        return "string"
+    if isinstance(val, list):
+        return "array"
+    if isinstance(val, dict):
+        return "object"
     return "unknown"
 
 

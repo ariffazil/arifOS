@@ -8,9 +8,10 @@ Usage:
     python optimize_agents.py [--problem set_cover|knapsack|assignment]
 """
 
-from pulp import *
-import json
 import argparse
+import json
+
+from pulp import *
 
 # === AGENT REGISTRY ===
 # arifOS federation nodes — edit as capabilities evolve

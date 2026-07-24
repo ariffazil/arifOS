@@ -32,15 +32,26 @@ def _now_iso() -> str:
 
 def _manifest_drift() -> dict[str, list[str]]:
     """Diff DECLARED manifest vs OBSERVED runtime. Reports tools:
-       - advertised_but_unregistered: visible in /.well-known/mcp/server.json but not callable
-       - registered_but_unadvertised: registered internally but not exposed
-       - deprecated_aliases: legacy aliases still resolvable
+    - advertised_but_unregistered: visible in /.well-known/mcp/server.json but not callable
+    - registered_but_unadvertised: registered internally but not exposed
+    - deprecated_aliases: legacy aliases still resolvable
     """
     # SOT declared tools (canonical 18 from arifOS constitutional_map).
     declared = [
-        "arif_init","arif_observe","arif_think","arif_critique","arif_route",
-        "arif_triage","arif_bridge_connect","arif_compose","arif_memory",
-        "arif_measure","arif_judge","arif_seal","arif_forge","arif_kernel_intercept",
+        "arif_init",
+        "arif_observe",
+        "arif_think",
+        "arif_critique",
+        "arif_route",
+        "arif_triage",
+        "arif_bridge_connect",
+        "arif_compose",
+        "arif_memory",
+        "arif_measure",
+        "arif_judge",
+        "arif_seal",
+        "arif_forge",
+        "arif_kernel_intercept",
     ]
     # The audit caught: arif_measure was advertised with mode=topology but
     # the runtime cannot resolve that mode (we don't have a topology tool wired
@@ -49,7 +60,10 @@ def _manifest_drift() -> dict[str, list[str]]:
         "arif_measure(mode=topology) — declared in capability brochure, but kernel reports 'Unknown tool'",
     ]
     registered_but_unadvertised: list[str] = []
-    deprecated_aliases = ["arif_init_legacy (arifos_init → arif_init)", "arif_sense_legacy (arifos_sense → arif_observe)"]
+    deprecated_aliases = [
+        "arif_init_legacy (arifos_init → arif_init)",
+        "arif_sense_legacy (arifos_sense → arif_observe)",
+    ]
     return {
         "advertised_but_unregistered": advertised_but_unregistered,
         "registered_but_unadvertised": registered_but_unadvertised,
@@ -74,10 +88,7 @@ def _compose_federation_snapshot() -> dict[str, Any]:
 
     with ThreadPoolExecutor(max_workers=24) as ex:
         # One future PER organ, each calling that organ's specific probe.
-        organ_futures = {
-            ex.submit(_safe_organ_probe, name): name
-            for name in ORGAN_PROBES
-        }
+        organ_futures = {ex.submit(_safe_organ_probe, name): name for name in ORGAN_PROBES}
 
         for fut in as_completed(list(organ_futures.keys()), timeout=18.0):
             try:
@@ -107,69 +118,72 @@ def _compose_federation_snapshot() -> dict[str, Any]:
         internal_port = o.get("internal_port") or cfg.get("internal_port")
         host_port = o.get("host_port") or cfg.get("host_port")
         public_origin = o.get("public_origin") or cfg.get("public_origin")
-        nodes_envelope.append({
-            "id": oname,
-            "ontology": cfg.get("ontological_layer", "?"),
-            "internal_port": internal_port,
-            "host_port": host_port,
-            "public_origin": public_origin,
-            "public_path": "/",
-            "transport": "http",
-            "exposure": cfg.get("exposure", "unknown"),
-            "endpoints": {
-                "health":       "/health",
-                "ready":        "/ready",
-                "version":      "/version",
-                "capabilities": "/.well-known/mcp/server.json",
-            },
-            "transport": {
-                "state": (o.get("transport_state") or "unknown").lower(),
-                "latency_ms": o.get("transport_latency_ms"),
-                "status_code": o.get("transport_status_code"),
-                "probe_type": o.get("transport_probe_type", "independent"),
-            },
-            "identity": {
-                "expected": oname,
-                "observed": o.get("identity_observed"),
-                "match":    o.get("identity_match"),
-                "probe_type": o.get("identity_probe_type", "self"),
-            },
-            "readiness": {
-                "state": (o.get("readiness_state") or "unknown").lower(),
-                "dependencies": o.get("readiness_dependencies") or {},
-            },
-            "capability": {
-                "declared":     o.get("capability_declared"),
-                "registered":   o.get("capability_registered"),
-                "smoke_tested": o.get("capability_smoke_tested"),
-                "failed":       o.get("capability_registered") is not None and o.get("capability_declared") is not None and (o.get("capability_registered") or 0) < (o.get("capability_declared") or 0),
-                "drift":        o.get("capability_drift"),
-                "probe_type":   o.get("capability_probe_type", "self"),
-            },
-            "governance": {
-                "session_required": o.get("governance_session_required"),
-                "mutation_allowed": o.get("governance_mutation_allowed"),
-                "forge_mode": o.get("governance_forge_mode") or "unknown",
-                "probe_type": o.get("governance_probe_type", "self"),
-            },
-            "evidence": {
-                "class": o.get("evidence_class") or "unknown",
-                "source": o.get("evidence_source") or "unknown",
-                "age_seconds": o.get("evidence_age_seconds", 0),
-                "probe_type": o.get("transport_probe_type", "independent"),
-            },
-            "overall": {
-                "state": (o.get("overall_state") or "UNKNOWN").upper(),
-                "reasons": o.get("overall_reasons") or [],
-            },
-        })
+        nodes_envelope.append(
+            {
+                "id": oname,
+                "ontology": cfg.get("ontological_layer", "?"),
+                "internal_port": internal_port,
+                "host_port": host_port,
+                "public_origin": public_origin,
+                "public_path": "/",
+                "transport": "http",
+                "exposure": cfg.get("exposure", "unknown"),
+                "endpoints": {
+                    "health": "/health",
+                    "ready": "/ready",
+                    "version": "/version",
+                    "capabilities": "/.well-known/mcp/server.json",
+                },
+                "transport": {
+                    "state": (o.get("transport_state") or "unknown").lower(),
+                    "latency_ms": o.get("transport_latency_ms"),
+                    "status_code": o.get("transport_status_code"),
+                    "probe_type": o.get("transport_probe_type", "independent"),
+                },
+                "identity": {
+                    "expected": oname,
+                    "observed": o.get("identity_observed"),
+                    "match": o.get("identity_match"),
+                    "probe_type": o.get("identity_probe_type", "self"),
+                },
+                "readiness": {
+                    "state": (o.get("readiness_state") or "unknown").lower(),
+                    "dependencies": o.get("readiness_dependencies") or {},
+                },
+                "capability": {
+                    "declared": o.get("capability_declared"),
+                    "registered": o.get("capability_registered"),
+                    "smoke_tested": o.get("capability_smoke_tested"),
+                    "failed": o.get("capability_registered") is not None
+                    and o.get("capability_declared") is not None
+                    and (o.get("capability_registered") or 0) < (o.get("capability_declared") or 0),
+                    "drift": o.get("capability_drift"),
+                    "probe_type": o.get("capability_probe_type", "self"),
+                },
+                "governance": {
+                    "session_required": o.get("governance_session_required"),
+                    "mutation_allowed": o.get("governance_mutation_allowed"),
+                    "forge_mode": o.get("governance_forge_mode") or "unknown",
+                    "probe_type": o.get("governance_probe_type", "self"),
+                },
+                "evidence": {
+                    "class": o.get("evidence_class") or "unknown",
+                    "source": o.get("evidence_source") or "unknown",
+                    "age_seconds": o.get("evidence_age_seconds", 0),
+                    "probe_type": o.get("transport_probe_type", "independent"),
+                },
+                "overall": {
+                    "state": (o.get("overall_state") or "UNKNOWN").upper(),
+                    "reasons": o.get("overall_reasons") or [],
+                },
+            }
+        )
 
     return {
         "snapshot_id": "federation-" + time.strftime("%Y%m%d_%H%M%S", time.gmtime()),
         "observed_at": _now_iso(),
         "probe_version": SCHEMA_VERSION,
         "sovereign": "ARIF",
-
         "layers": {
             "soul": "arif-fazil.com",
             "mind": "arifOS",
@@ -178,15 +192,22 @@ def _compose_federation_snapshot() -> dict[str, Any]:
             "nerves": "mcp",
             "memory": "VAULT999",
         },
-        "ontology": ["SOUL", "MIND", "BODY", "GEOX", "WEALTH", "WELL", "A-FORGE", "MCP", "VAULT999"],
-
+        "ontology": [
+            "SOUL",
+            "MIND",
+            "BODY",
+            "GEOX",
+            "WEALTH",
+            "WELL",
+            "A-FORGE",
+            "MCP",
+            "VAULT999",
+        ],
         "nodes": nodes_envelope,
         "edges": edges,
-
         "aggregate_state": overall_state,
         "edges_state": edge_state,
         "aggregate_states": ["OPERATIONAL", "DEGRADED", "UNREACHABLE", "UNKNOWN"],
-
         "manifest_drift": drift,
         "autonomy_band": _autonomy_band(overall_state, organs),
         "verdict": _verdict(overall_state, edge_state, drift),
@@ -196,8 +217,8 @@ def _compose_federation_snapshot() -> dict[str, Any]:
 
 def _autonomy_band(overall_state: str, organs: list[dict[str, Any]]) -> str:
     """YELLOW if forge_mode is dry_run_only OR any organ is non-OPERATIONAL.
-       GREEN if all organs OPERATIONAL and forge_mode is live.
-       RED if any organ UNREACHABLE.
+    GREEN if all organs OPERATIONAL and forge_mode is live.
+    RED if any organ UNREACHABLE.
     """
     if any(o.get("overall_state") == "UNREACHABLE" for o in organs):
         return "RED"
@@ -210,7 +231,11 @@ def _autonomy_band(overall_state: str, organs: list[dict[str, Any]]) -> str:
 
 def _verdict(overall_state: str, edge_state: str, drift: dict[str, list[str]]) -> str:
     """Honest composite verdict."""
-    if overall_state == "OPERATIONAL" and edge_state == "OPERATIONAL" and not drift.get("advertised_but_unregistered"):
+    if (
+        overall_state == "OPERATIONAL"
+        and edge_state == "OPERATIONAL"
+        and not drift.get("advertised_but_unregistered")
+    ):
         return "OPERATIONAL"
     if overall_state == "UNREACHABLE":
         return "DEGRADED_BUT_UNREACHABLE"
@@ -228,14 +253,35 @@ def _skeleton_on_timeout() -> dict[str, Any]:
         "observed_at": _now_iso(),
         "probe_version": SCHEMA_VERSION,
         "sovereign": "ARIF",
-        "layers": {"soul":"arif-fazil.com","mind":"arifOS","body":"AAA","muscle":"A-FORGE","nerves":"mcp","memory":"VAULT999"},
-        "ontology": ["SOUL","MIND","BODY","GEOX","WEALTH","WELL","A-FORGE","MCP","VAULT999"],
+        "layers": {
+            "soul": "arif-fazil.com",
+            "mind": "arifOS",
+            "body": "AAA",
+            "muscle": "A-FORGE",
+            "nerves": "mcp",
+            "memory": "VAULT999",
+        },
+        "ontology": [
+            "SOUL",
+            "MIND",
+            "BODY",
+            "GEOX",
+            "WEALTH",
+            "WELL",
+            "A-FORGE",
+            "MCP",
+            "VAULT999",
+        ],
         "nodes": [],
         "edges": [],
         "aggregate_state": "UNKNOWN",
         "edges_state": "UNKNOWN",
-        "aggregate_states": ["OPERATIONAL","DEGRADED","UNREACHABLE","UNKNOWN"],
-        "manifest_drift": {"advertised_but_unregistered": [], "registered_but_unadvertised": [], "deprecated_aliases": []},
+        "aggregate_states": ["OPERATIONAL", "DEGRADED", "UNREACHABLE", "UNKNOWN"],
+        "manifest_drift": {
+            "advertised_but_unregistered": [],
+            "registered_but_unadvertised": [],
+            "deprecated_aliases": [],
+        },
         "autonomy_band": "RED",
         "verdict": "DEGRADED_BUT_UNREACHABLE",
         "tier": {"required": "public", "active": "public"},
@@ -248,25 +294,45 @@ def _skeleton_on_timeout() -> dict[str, Any]:
 def _safe_organ_probe(organ_name: str) -> dict[str, Any]:
     """Run a single organ probe and return tagged tuple (kind, dict)."""
     from arifosmcp.runtime.organs_standards import ORGAN_PROBES
+
     fn = ORGAN_PROBES.get(organ_name)
     if fn is None:
         return ("organ", {"organ": organ_name, "overall_state": "UNKNOWN", "error": "no probe fn"})
     try:
         return ("organ", fn().to_dict())
     except Exception as exc:
-        return ("organ", {"organ": organ_name, "overall_state": "UNKNOWN", "error": f"{type(exc).__name__}: {exc}"})
+        return (
+            "organ",
+            {
+                "organ": organ_name,
+                "overall_state": "UNKNOWN",
+                "error": f"{type(exc).__name__}: {exc}",
+            },
+        )
 
 
 def _safe_edge_probe(idx: int) -> tuple[str, dict[str, Any]]:
     """Run a single edge probe (by index into EDGE_DECLARATIONS) — no aggregate fan-out."""
     from arifosmcp.runtime.federation_edges import EDGE_DECLARATIONS
+
     if idx >= len(EDGE_DECLARATIONS):
         return ("edge", {"id": f"unknown-{idx}", "state": "unknown"})
     try:
         decl = EDGE_DECLARATIONS[idx]
-        return ("edge", {"id": decl["id"], "source": decl["source"], "target": decl["target"], "state": "declared"})
+        return (
+            "edge",
+            {
+                "id": decl["id"],
+                "source": decl["source"],
+                "target": decl["target"],
+                "state": "declared",
+            },
+        )
     except Exception as exc:
-        return ("edge", {"id": f"edge-{idx}", "state": "unknown", "error": f"{type(exc).__name__}: {exc}"})
+        return (
+            "edge",
+            {"id": f"edge-{idx}", "state": "unknown", "error": f"{type(exc).__name__}: {exc}"},
+        )
 
 
 # ── Live endpoint — generates the manifest (for /api/observatory/v1/federation-manifest) ─
@@ -274,6 +340,7 @@ def compose_federation_manifest() -> dict[str, Any]:
     """The single-source-of-truth manifest. Mirror of /.well-known/arifos-federation.json."""
     snap = _compose_federation_snapshot()
     from arifosmcp.runtime.organs_standards import ORGAN_MAP, probe_all_organs
+
     organs = probe_all_organs()
     return {
         "federation_id": "arifos",
@@ -292,9 +359,17 @@ def compose_federation_manifest() -> dict[str, Any]:
         "ontology": snap["ontology"],
         "organs_declared": ["geox", "wealth", "well"],
         "edges_declared": [
-            "SOUL->MIND", "AAA->arifOS", "arifOS->geox", "arifOS->wealth",
-            "arifOS->well", "arifOS->aforge", "arifOS->vault999", "mcp->arifOS",
-            "geox->arifOS->wealth", "well->arifOS", "aforge->vault999",
+            "SOUL->MIND",
+            "AAA->arifOS",
+            "arifOS->geox",
+            "arifOS->wealth",
+            "arifOS->well",
+            "arifOS->aforge",
+            "arifOS->vault999",
+            "mcp->arifOS",
+            "geox->arifOS->wealth",
+            "well->arifOS",
+            "aforge->vault999",
         ],
         "nodes": [
             {
@@ -321,8 +396,12 @@ def compose_federation_manifest() -> dict[str, Any]:
             "SOVEREIGN tier: separate vhost arifos-control.arif-fazil.com (DNS pending)",
         ],
         "public_surfaces": [
-            "arif-fazil.com", "arifos.arif-fazil.com", "aaa.arif-fazil.com",
-            "geox.arif-fazil.com", "wealth.arif-fazil.com", "well.arif-fazil.com",
+            "arif-fazil.com",
+            "arifos.arif-fazil.com",
+            "aaa.arif-fazil.com",
+            "geox.arif-fazil.com",
+            "wealth.arif-fazil.com",
+            "well.arif-fazil.com",
             "mcp.arif-fazil.com",
         ],
         "aggregate_state": snap["aggregate_state"],
@@ -363,9 +442,13 @@ def register_federation_probe_routes(app: Any) -> None:
                     timeout=20.0,
                 )
             except TimeoutError:
-                logger.warning("federation-probe composition exceeded 20s; returning UNKNOWN skeleton")
+                logger.warning(
+                    "federation-probe composition exceeded 20s; returning UNKNOWN skeleton"
+                )
                 snap = _skeleton_on_timeout()
-            return JSONResponse(snap, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)))
+            return JSONResponse(
+                snap, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request))
+            )
         except Exception as exc:
             logger.exception("federation-probe failed")
             return JSONResponse({"error": f"{type(exc).__name__}: {exc}"}, status_code=500)
@@ -380,7 +463,10 @@ def register_federation_probe_routes(app: Any) -> None:
             for p in probe_all_organs():
                 probed[p["organ"]] = {
                     "health": (p.get("overall_state") or "unknown").lower(),
-                    "build_info": {"version": "unknown", "probe_type": p.get("transport_probe_type", "independent")},
+                    "build_info": {
+                        "version": "unknown",
+                        "probe_type": p.get("transport_probe_type", "independent"),
+                    },
                 }
             return JSONResponse({"timestamp": _now_iso(), "probed": probed})
         except Exception as exc:
@@ -395,7 +481,9 @@ def register_federation_probe_routes(app: Any) -> None:
             )
 
             manifest = compose_federation_manifest()
-            return JSONResponse(manifest, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request)))
+            return JSONResponse(
+                manifest, headers=_merge_headers(_cache_headers(), _dashboard_cors_headers(request))
+            )
         except Exception as exc:
             logger.exception("federation-manifest failed")
             return JSONResponse({"error": f"{type(exc).__name__}: {exc}"}, status_code=500)
@@ -404,7 +492,11 @@ def register_federation_probe_routes(app: Any) -> None:
         full = path
 
         def _decorator(handler: Callable):
-            if hasattr(app, "add_route") or "Starlette" in str(type(app)) or "FastAPI" in str(type(app)):
+            if (
+                hasattr(app, "add_route")
+                or "Starlette" in str(type(app))
+                or "FastAPI" in str(type(app))
+            ):
                 from starlette.routing import Route
 
                 # F13 fix: Starlette matches routes in insertion order. The legacy
@@ -423,13 +515,19 @@ def register_federation_probe_routes(app: Any) -> None:
                     app.router.routes.remove(r)
                 # Insert at the front so it wins over fallthrough `/api/*`.
                 app.router.routes.insert(0, Route(full, endpoint=handler, methods=["GET"]))
-                logger.info("federation_probe_routes: replaced %d prior route(s) for %s; new layered contract in effect", len(matches), full)
+                logger.info(
+                    "federation_probe_routes: replaced %d prior route(s) for %s; new layered contract in effect",
+                    len(matches),
+                    full,
+                )
             elif hasattr(app, "custom_route"):
                 app.custom_route(full, methods=["GET"])(handler)
             elif hasattr(app, "route"):
                 app.route(full, methods=["GET"])(handler)
             else:
-                logger.warning("Failed to register federation probe route %s: app has no route method", full)
+                logger.warning(
+                    "Failed to register federation probe route %s: app has no route method", full
+                )
             return handler
 
         return _decorator

@@ -29,9 +29,9 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import UTC
 from typing import Any
-
 
 SCHEMA_VERSION = "2.0.0"
 HARD_K_CAP = 7
@@ -158,7 +158,7 @@ def bounded_explain(
     refinements: int = 0,
     prior_best: str | None = None,
 ) -> BoundedExplanation:
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     if entropy_budget_tokens <= 0:
         return BoundedExplanation(
@@ -172,7 +172,7 @@ def bounded_explain(
             budget_remaining=entropy_budget_tokens,
             refinements=refinements,
             bounded=True,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
     top_k = min(top_k, HARD_K_CAP)
@@ -227,7 +227,7 @@ def bounded_explain(
                 budget_remaining=entropy_budget_tokens,
                 refinements=refinements,
                 bounded=True,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
             )
 
     best = kept[0].id if kept else None
@@ -242,7 +242,7 @@ def bounded_explain(
         budget_remaining=entropy_budget_tokens - entropy_spent,
         refinements=refinements,
         bounded=True,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
     )
 
 

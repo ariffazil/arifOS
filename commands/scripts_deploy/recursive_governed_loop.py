@@ -42,14 +42,13 @@ from __future__ import annotations
 
 import argparse
 import base64
-import hashlib
 import json
 import sys
 import time
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -88,6 +87,7 @@ ALIAS_FIX = {
 
 
 # ── HTTP tool client ───────────────────────────────────────────────────────
+
 
 def call_tool(name: str, arguments: dict[str, Any], timeout: float = 45.0) -> dict[str, Any]:
     """POST /tools/{name} on local arifOS REST surface."""
@@ -138,6 +138,7 @@ def find_key(obj: Any, key: str, depth: int = 0) -> Any:
 
 # ── Entropy / G estimates (honest labels) ──────────────────────────────────
 
+
 def estimate_g(evidence_n: int, actor_verified: bool, judge_verdict: str | None) -> dict[str, Any]:
     """Bounded ESTIMATE — not a fake physics seal."""
     A = 0.85 if actor_verified else 0.55
@@ -160,6 +161,7 @@ def estimate_g(evidence_n: int, actor_verified: bool, judge_verdict: str | None)
 
 
 # ── Crypto bind ────────────────────────────────────────────────────────────
+
 
 def sovereign_sign_bind(intent: str) -> dict[str, Any]:
     """000 INIT with Ed25519 challenge-response for actor=arif."""
@@ -217,6 +219,7 @@ def sovereign_sign_bind(intent: str) -> dict[str, Any]:
 
 # ── Loop state ─────────────────────────────────────────────────────────────
 
+
 @dataclass
 class StageReceipt:
     stage: str
@@ -263,7 +266,7 @@ def run_metabolic_once(
     """One pass of 5-stage metabolic loop mapped to live tools."""
     receipt = LoopReceipt(
         intent=intent,
-        started_at=datetime.now(timezone.utc).isoformat(),
+        started_at=datetime.now(UTC).isoformat(),
         depth=depth,
         max_depth=max_depth,
         session_id=session_id,
@@ -439,7 +442,7 @@ def run_metabolic_once(
             "depth": depth,
             "g_estimate": receipt.g_estimate,
             "stages": [s.stage for s in receipt.stages],
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
         }
         seal_body = stage(
             "999",
@@ -516,7 +519,7 @@ def run_recursive(
         if rec.judge_verdict in ("HOLD", "SABAR", "OBSERVE_ONLY") and depth + 1 < max_depth:
             # recurse with refined intent (entropy reduction target)
             current_intent = (
-                f"[recursion d={depth+1} prior={rec.judge_verdict}] "
+                f"[recursion d={depth + 1} prior={rec.judge_verdict}] "
                 f"Refine and re-evaluate: {intent}"
             )
             continue
@@ -545,7 +548,7 @@ def run_recursive(
 
     out = {
         "audit": "RecursiveGovernedLoop_v1",
-        "executed_at": datetime.now(timezone.utc).isoformat(),
+        "executed_at": datetime.now(UTC).isoformat(),
         "intent": intent,
         "sovereign_bind": bind,
         "passes": chain,
@@ -555,7 +558,9 @@ def run_recursive(
         "alignment": alignment,
         "invariants": {
             "judge_before_seal": True,
-            "no_seal_without_ack": not (ack_irreversible is False and any(p.get("seal_written") for p in chain)),
+            "no_seal_without_ack": not (
+                ack_irreversible is False and any(p.get("seal_written") for p in chain)
+            ),
             "hermes_not_sovereign": True,
             "delta_S_target": "non-increasing across recursion",
             "G_threshold": 0.80,
@@ -563,7 +568,7 @@ def run_recursive(
         },
     }
 
-    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    day = datetime.now(UTC).strftime("%Y-%m-%d")
     out_path = RECEIPT_DIR / day / "RECURSIVE_GOVERNED_LOOP_RECEIPT.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(out, indent=2, default=str))
@@ -606,7 +611,9 @@ def main() -> int:
     else:
         print("RECURSIVE GOVERNED LOOP")
         print(f"  intent:     {result['intent'][:100]}")
-        print(f"  bind:       {result['sovereign_bind'].get('ok')} verified={result['sovereign_bind'].get('actor_verified')}")
+        print(
+            f"  bind:       {result['sovereign_bind'].get('ok')} verified={result['sovereign_bind'].get('actor_verified')}"
+        )
         print(f"  passes:     {len(result['passes'])}")
         print(f"  verdict:    {result['final_verdict']}")
         print(f"  next:       {result['final_next_action']}")

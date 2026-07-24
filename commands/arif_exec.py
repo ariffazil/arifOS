@@ -12,10 +12,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys
-import re
-import json
 import argparse
+import json
+import re
+import sys
 from pathlib import Path
 
 

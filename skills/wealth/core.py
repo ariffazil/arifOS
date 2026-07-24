@@ -22,8 +22,8 @@ from __future__ import annotations
 
 import logging
 import math
-from datetime import datetime, timezone
-from typing import Any, Literal, Optional
+from datetime import UTC, datetime
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -126,11 +126,11 @@ class EconomicEnvelope(BaseModel):
     epistemic: str
     epoch_id: str = Field(default=None, description="Constitutional epoch timestamp")
     # ── Verification-first governance (optional — backward compatible) ────
-    verification_surface: Optional[dict[str, Any]] = None
-    audit_entropy: Optional[dict[str, Any]] = None
-    wealth_score: Optional[dict[str, Any]] = None
-    truth_band: Optional[TruthBand] = None
-    confidence_note: Optional[str] = None  # F2: human-readable band declaration
+    verification_surface: dict[str, Any] | None = None
+    audit_entropy: dict[str, Any] | None = None
+    wealth_score: dict[str, Any] | None = None
+    truth_band: TruthBand | None = None
+    confidence_note: str | None = None  # F2: human-readable band declaration
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -209,7 +209,7 @@ def create_envelope(
         integrity_flags=flags,
         confidence="HIGH" if verdict == "SEAL" else "LOW",
         epistemic=epistemic,
-        epoch_id=datetime.now(timezone.utc).isoformat(),
+        epoch_id=datetime.now(UTC).isoformat(),
     )
 
 
@@ -427,7 +427,7 @@ def create_governed_envelope(
         integrity_flags=flags,
         confidence="HIGH" if verdict == "SEAL" else "LOW",
         epistemic=epistemic,
-        epoch_id=datetime.now(timezone.utc).isoformat(),
+        epoch_id=datetime.now(UTC).isoformat(),
         verification_surface=verification_surface,
         audit_entropy=audit_entropy,
         wealth_score=wealth_score,
@@ -473,7 +473,7 @@ def wrap_with_verification(
         integrity_flags=envelope.integrity_flags,
         confidence=envelope.confidence,
         epistemic=envelope.epistemic,
-        epoch_id=datetime.now(timezone.utc).isoformat(),
+        epoch_id=datetime.now(UTC).isoformat(),
         verification_surface=verification_surface or envelope.verification_surface,
         audit_entropy=audit_entropy or envelope.audit_entropy,
         wealth_score=wealth_score or envelope.wealth_score,

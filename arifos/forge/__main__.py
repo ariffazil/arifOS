@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sys
 
-from . import ForgeClient, DEFAULT_URL
+from . import DEFAULT_URL, ForgeClient
 
 
 def main(argv: list[str]) -> int:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Independent locked-denominator acceptance runner; emits facts, never self-seals."""
+
 from __future__ import annotations
 
 import hashlib
@@ -21,13 +22,20 @@ def main() -> int:
     for gate in gates:
         proc = subprocess.run(
             [sys.executable, "-m", "pytest", "-q", gate["test"]],
-            cwd=ROOT, capture_output=True, text=True, timeout=180,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=180,
         )
-        results.append({
-            "id": gate["id"], "test": gate["test"],
-            "passed": proc.returncode == 0, "exit_code": proc.returncode,
-            "summary": (proc.stdout + proc.stderr)[-1200:],
-        })
+        results.append(
+            {
+                "id": gate["id"],
+                "test": gate["test"],
+                "passed": proc.returncode == 0,
+                "exit_code": proc.returncode,
+                "summary": (proc.stdout + proc.stderr)[-1200:],
+            }
+        )
     passed = sum(r["passed"] for r in results)
     receipt = {
         "event_type": "proof_epoch.independent_acceptance",
@@ -43,9 +51,19 @@ def main() -> int:
     }
     out = ROOT / "proof" / "proof-epoch-result.json"
     out.write_text(json.dumps(receipt, indent=2) + "\n")
-    print(json.dumps({k: receipt[k] for k in (
-        "manifest_sha256", "denominator_locked", "mandatory_gates_passed", "verdict"
-    )}))
+    print(
+        json.dumps(
+            {
+                k: receipt[k]
+                for k in (
+                    "manifest_sha256",
+                    "denominator_locked",
+                    "mandatory_gates_passed",
+                    "verdict",
+                )
+            }
+        )
+    )
     return 0 if passed == len(gates) else 1
 
 

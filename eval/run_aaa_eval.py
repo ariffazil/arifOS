@@ -23,7 +23,7 @@ import os
 import random
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Ensure repo root is on path when running as a script
@@ -34,7 +34,6 @@ os.environ.setdefault("AAA_AGENT_MODE", "llm")
 
 from eval.agent_adapter import run_agent_case  # noqa: E402
 from eval.scoring import aggregate, score_case  # noqa: E402
-
 
 # ──────────────────────────────────────────────────────────
 # Data loading
@@ -137,7 +136,7 @@ def write_outputs(
     mode: str,
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
 
     case_by_id = {c["id"]: c for c in cases}
 
@@ -341,6 +340,7 @@ def main() -> None:
         os.environ["AAA_AGENT_MODE"] = args.mode
         # Re-import to pick up mode change
         import importlib
+
         import eval.agent_adapter as _ada
 
         importlib.reload(_ada)

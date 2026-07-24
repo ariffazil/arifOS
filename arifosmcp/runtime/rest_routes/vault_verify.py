@@ -143,9 +143,7 @@ def get_vault_verification_manifest() -> dict[str, Any]:
             "historical_entries": v.get("historical_entries", 0),
             "corrupt_lines": v.get("corrupt_lines", 0),
             "chain_integrity": (
-                "VERIFIED"
-                if v.get("verified")
-                else f"DEGRADED — {v.get('status', 'unknown')}"
+                "VERIFIED" if v.get("verified") else f"DEGRADED — {v.get('status', 'unknown')}"
             ),
             "gap_count": v.get("gap_count", 0),
             "head_hash": v.get("head_hash"),

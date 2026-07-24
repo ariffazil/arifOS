@@ -94,7 +94,6 @@ def load_surface_yaml() -> dict:
 
 def detect_drift(live_tools: list[dict], health: dict) -> list[dict]:
     """Compare live tools against surface-map declarations. Returns drift entries."""
-    import yaml
 
     drift = []
 

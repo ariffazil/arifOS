@@ -27,7 +27,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Optional
 
 
 class DiscoveryMode(StrEnum):
@@ -72,7 +71,7 @@ class OrganDescriptor:
     role: str
     health_endpoint: str
     agent_card_endpoint: str
-    mcp_endpoint: Optional[str] = None
+    mcp_endpoint: str | None = None
     status: str = "unknown"
 
 

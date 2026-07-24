@@ -197,7 +197,11 @@ def probe_organ(organ_id: str) -> dict[str, Any]:
     if not port:
         # No port known for this organ — pure UNVERIFIED (we literally don't
         # know how to probe it).
-        health_verdict = {"state": "UNVERIFIED", "reason": "no_port_configured", "status_code": None}
+        health_verdict = {
+            "state": "UNVERIFIED",
+            "reason": "no_port_configured",
+            "status_code": None,
+        }
         tools_verdict = {"state": "UNVERIFIED", "reason": "no_port_configured", "status_code": None}
     else:
         health_verdict = probe_url(f"http://127.0.0.1:{port}/health")

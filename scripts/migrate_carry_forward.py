@@ -13,10 +13,10 @@ Exit codes:
     3  = not run as root (safety check)
 """
 
+import datetime
 import json
 import shutil
 import sys
-import datetime
 from pathlib import Path
 
 SOURCE = Path("/root/.local/share/arifos/carry_forward.json")
@@ -26,7 +26,7 @@ SCHEMA_PATH = Path(__file__).parent.parent / "schema" / "carry_forward.schema.js
 
 
 def now_iso() -> str:
-    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+    return datetime.datetime.now(datetime.UTC).isoformat()
 
 
 def migrate_entry(source: dict, session: str = "unknown") -> dict:
@@ -50,53 +50,67 @@ def migrate_entry(source: dict, session: str = "unknown") -> dict:
     # prior_session.intent → unresolved thread
     prior = source.get("prior_session", {})
     if prior:
-        threads.append({
-            "topic": f"Prior session intent: {prior.get('intent', 'unknown').strip()}",
-            "summary": f"Session file: {prior.get('file', 'unknown')}, date: {prior.get('date', 'unknown')}",
-            "written_by": "migration-script",
-            "written_at": now,
-            "expires_at": (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=7)).isoformat(),
-            "verified": False,
-            "verified_at": None,
-        })
+        threads.append(
+            {
+                "topic": f"Prior session intent: {prior.get('intent', 'unknown').strip()}",
+                "summary": f"Session file: {prior.get('file', 'unknown')}, date: {prior.get('date', 'unknown')}",
+                "written_by": "migration-script",
+                "written_at": now,
+                "expires_at": (
+                    datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=7)
+                ).isoformat(),
+                "verified": False,
+                "verified_at": None,
+            }
+        )
 
     # next_safe_action if it looks like an unresolved thread
     nsa = source.get("next_safe_action", "")
     if nsa and "ADDRESS" in nsa.upper():
-        threads.append({
-            "topic": f"Next safe action: {nsa}",
-            "summary": "Carried from prior session wake_protocol",
-            "written_by": "migration-script",
-            "written_at": now,
-            "expires_at": (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=3)).isoformat(),
-            "verified": False,
-            "verified_at": None,
-        })
+        threads.append(
+            {
+                "topic": f"Next safe action: {nsa}",
+                "summary": "Carried from prior session wake_protocol",
+                "written_by": "migration-script",
+                "written_at": now,
+                "expires_at": (
+                    datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=3)
+                ).isoformat(),
+                "verified": False,
+                "verified_at": None,
+            }
+        )
 
     # never_patterns → humans.never_patterns
     never_patterns = []
     for np in source.get("never_patterns", []):
-        never_patterns.append({
-            "pattern": np.get("pattern", ""),
-            "severity": np.get("severity", "HARD"),
-            "reason": np.get("reason", ""),
-            "sealed_at": np.get("sealed_at", now),
-            "written_by": np.get("written_by", "unknown"),
-            "written_at": now,
-        })
+        never_patterns.append(
+            {
+                "pattern": np.get("pattern", ""),
+                "severity": np.get("severity", "HARD"),
+                "reason": np.get("reason", ""),
+                "sealed_at": np.get("sealed_at", now),
+                "written_by": np.get("written_by", "unknown"),
+                "written_at": now,
+            }
+        )
 
     # active_scars.surface → unresolved threads (carry scars as known issues)
     scars = source.get("active_scars", {})
     for scar in scars.get("surface", []):
-        threads.append({
-            "topic": f"Active scar: {scar.get('lesson_first_line', 'unknown')[:80]}",
-            "summary": f"Floors cited: {', '.join(scar.get('floors_cited', []))}",
-            "written_by": "migration-script",
-            "written_at": now,
-            "expires_at": (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=14)).isoformat(),
-            "verified": False,
-            "verified_at": None,
-        })
+        threads.append(
+            {
+                "topic": f"Active scar: {scar.get('lesson_first_line', 'unknown')[:80]}",
+                "summary": f"Floors cited: {', '.join(scar.get('floors_cited', []))}",
+                "written_by": "migration-script",
+                "written_at": now,
+                "expires_at": (
+                    datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=14)
+                ).isoformat(),
+                "verified": False,
+                "verified_at": None,
+            }
+        )
 
     # identity_drift: may be string ("DRIFT") or resolved dict
     # {status, resolved_at, note, resolved_by} — someone already resolved it
@@ -142,8 +156,11 @@ def main():
 
     # Safety check: only run as root (this file touches critical state)
     import os
+
     if os.geteuid() != 0 and not force:
-        print("[MIGRATE] Safety check: not running as root. Use --force to override.", file=sys.stderr)
+        print(
+            "[MIGRATE] Safety check: not running as root. Use --force to override.", file=sys.stderr
+        )
         sys.exit(1)
 
     # Check if already v1
@@ -174,8 +191,8 @@ def main():
     print(f"[MIGRATE] Backed up v0 → {BACKUP}")
 
     # Validate in-memory migrated data BEFORE writing
-    import importlib
     from validate_carry_forward import validate as vc_validate
+
     errors = vc_validate(migrated, json.loads(SCHEMA_PATH.read_text()))
     if errors:
         print(f"[MIGRATE] In-memory validation FAILED ({len(errors)} violations):")
@@ -195,7 +212,7 @@ def main():
             print(f"  ✗ {e}")
         # Restore backup
         shutil.copy2(BACKUP, TARGET)
-        print(f"[MIGRATE] RESTORED backup. Fix violations before retry.")
+        print("[MIGRATE] RESTORED backup. Fix violations before retry.")
         sys.exit(2)
     else:
         print("[MIGRATE] Schema validation PASSED. Migration complete.")

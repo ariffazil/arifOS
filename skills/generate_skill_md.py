@@ -16,7 +16,6 @@ Skill catalog derived from canonical 24 kernel skills (14 structural no-RSI,
 DITEMPA BUKAN DIBERI — Ditempa (forged), Bukan Diberi (not given).
 """
 
-import os
 from pathlib import Path
 
 SKILLS_DIR = Path("/root/arifOS/skills")

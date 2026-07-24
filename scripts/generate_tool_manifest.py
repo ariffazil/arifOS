@@ -5,11 +5,11 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 import os
 import sys
-import datetime
 from typing import Any
 
 
@@ -66,16 +66,27 @@ def _canonical_resources_list() -> list[dict[str, Any]]:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     try:
         from arifosmcp.resources.resources_index import _build_resource_catalog
+
         catalog = _build_resource_catalog()
         return catalog.get("resources", [])
-    except Exception as e:
+    except Exception:
         # Fallback list if import fails
         fallback_uris = [
-            "arifos://doctrine", "arifos://trinity", "arifos://schema",
-            "arifos://civilization", "arifos://seal-readiness", "arifos://jurisdiction",
-            "arifos://identity", "arifos://memory", "arifos://vitals",
-            "arifos://bootstrap", "arifos://human/metabolized", "arifos://loop-engineering",
-            "arifos://quickstart", "arifos://mcp-alignment", "arifos://mcp/surface-map"
+            "arifos://doctrine",
+            "arifos://trinity",
+            "arifos://schema",
+            "arifos://civilization",
+            "arifos://seal-readiness",
+            "arifos://jurisdiction",
+            "arifos://identity",
+            "arifos://memory",
+            "arifos://vitals",
+            "arifos://bootstrap",
+            "arifos://human/metabolized",
+            "arifos://loop-engineering",
+            "arifos://quickstart",
+            "arifos://mcp-alignment",
+            "arifos://mcp/surface-map",
         ]
         fallback_desc = {
             "arifos://doctrine": "Immutable 13-floor constitution (F1–F13). All tools and agents operate within these floors.",
@@ -92,7 +103,7 @@ def _canonical_resources_list() -> list[dict[str, Any]]:
             "arifos://loop-engineering": "7-stage reality engineering loop (K1 dual naming).",
             "arifos://quickstart": "LLM client onboarding and fast-start guide.",
             "arifos://mcp-alignment": "MCP specification conformance and client compatibility matrix.",
-            "arifos://mcp/surface-map": "Map of owned tools and resources across organs."
+            "arifos://mcp/surface-map": "Map of owned tools and resources across organs.",
         }
         return [
             {
@@ -101,8 +112,9 @@ def _canonical_resources_list() -> list[dict[str, Any]]:
                 "mime_type": "text/plain",
                 "dynamic": False,
                 "description": fallback_desc.get(uri, "arifOS core resource"),
-                "floors": ["F2", "F4"]
-            } for uri in fallback_uris
+                "floors": ["F2", "F4"],
+            }
+            for uri in fallback_uris
         ]
 
 
@@ -135,21 +147,23 @@ def generate_llms_txt() -> str:
     lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
     lines.append("> Version: v2026.07.17-ZEN-SURVIVAL · MCP Protocol: 2025-11-25")
     lines.append("> Verdict grammar: SEAL / HOLD / SABAR / VOID")
-    lines.append("> Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class")
+    lines.append(
+        "> Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class"
+    )
     lines.append("")
     lines.append("## Canonical Kernel Tools (8 exposed via /tools/list)")
     lines.append(
         "The live MCP gateway exposes 8 canonical kernel verbs. The internal constitutional_map has more entries (legacy, internal-only, or filtered by server). The 8 below are the only ones visible to agents at https://mcp.arif-fazil.com/mcp:"
     )
     kernel_exposed = [
-        ("arif_init",    "000", "Session ignition — binds actor, floors, and audit"),
+        ("arif_init", "000", "Session ignition — binds actor, floors, and audit"),
         ("arif_observe", "111", "Sense reality with epistemic tags OBS/DER/INT/SPEC"),
-        ("arif_think",   "333", "Structured reasoning under F2/F7"),
-        ("arif_route",   "444", "Intent-to-organ dispatch across GEOX/WEALTH/WELL/A-FORGE"),
-        ("arif_memory",  "mem", "Governed L1–L6 semantic recall"),
-        ("arif_judge",   "888", "Constitutional verdict — SEAL/HOLD/SABAR/VOID"),
-        ("arif_forge",   "777", "Execution gate via A-FORGE — mutates ONLY after SEAL"),
-        ("arif_seal",    "999", "VAULT999 immutable append"),
+        ("arif_think", "333", "Structured reasoning under F2/F7"),
+        ("arif_route", "444", "Intent-to-organ dispatch across GEOX/WEALTH/WELL/A-FORGE"),
+        ("arif_memory", "mem", "Governed L1–L6 semantic recall"),
+        ("arif_judge", "888", "Constitutional verdict — SEAL/HOLD/SABAR/VOID"),
+        ("arif_forge", "777", "Execution gate via A-FORGE — mutates ONLY after SEAL"),
+        ("arif_seal", "999", "VAULT999 immutable append"),
     ]
     lines.append("")
     lines.append("| Verb | KERNEL | What it does |")
@@ -157,14 +171,26 @@ def generate_llms_txt() -> str:
     for name, kern, desc in kernel_exposed:
         lines.append(f"| `{name}` | {kern} | {desc} |")
     lines.append("")
-    lines.append("> Source of truth: `POST https://mcp.arif-fazil.com/mcp {method:\"tools/list\"}` (live count, no caching).")
-    lines.append("> The `tools_loaded` field on `GET https://mcp.arif-fazil.com/health` is the single-witness attestation; re-run before any external publish.")
+    lines.append(
+        '> Source of truth: `POST https://mcp.arif-fazil.com/mcp {method:"tools/list"}` (live count, no caching).'
+    )
+    lines.append(
+        "> The `tools_loaded` field on `GET https://mcp.arif-fazil.com/health` is the single-witness attestation; re-run before any external publish."
+    )
     lines.append("")
     lines.append("## Docs")
-    lines.append("- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)")
-    lines.append("- [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context")
-    lines.append("- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping")
-    lines.append("- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles")
+    lines.append(
+        "- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)"
+    )
+    lines.append(
+        "- [CONTEXT.md](file:///root/CONTEXT.md): Tiered session-bound operational context"
+    )
+    lines.append(
+        "- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping"
+    )
+    lines.append(
+        "- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles"
+    )
     lines.append("")
     lines.append("## MCP Tools — Complete Surface (federation aggregate)")
     lines.append(
@@ -185,7 +211,9 @@ def generate_llms_txt() -> str:
 
     # Canonical tools (full constitutional_map)
     lines.append(f"### Constitutional Map (full internal table — {len(canonical)} entries)")
-    lines.append("These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed via /tools/list — see 'Canonical Kernel Tools (8 exposed via /tools/list)' above for the live MCP surface.")
+    lines.append(
+        "These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed via /tools/list — see 'Canonical Kernel Tools (8 exposed via /tools/list)' above for the live MCP surface."
+    )
     lines.append("| Tool | Stage | Access | Reversible | Modes |")
     lines.append("|------|-------|--------|------------|-------|")
     for t in canonical:
@@ -197,7 +225,7 @@ def generate_llms_txt() -> str:
     lines.append("")
 
     # Operational tools
-    lines.append("### Operational Support Tools ({})".format(len(operational)))
+    lines.append(f"### Operational Support Tools ({len(operational)})")
     lines.append("| Tool | Category | Risk | Mutates | Modes |")
     lines.append("|------|----------|------|---------|-------|")
     for t in operational:
@@ -210,7 +238,9 @@ def generate_llms_txt() -> str:
 
     # MCP Resources section
     lines.append("## MCP Resources — Canonical & Embodied")
-    lines.append("Unlike Tools (which represent mutable side-effects), Resources represent addressable, read-only state and facts.")
+    lines.append(
+        "Unlike Tools (which represent mutable side-effects), Resources represent addressable, read-only state and facts."
+    )
     lines.append("All resources carry an explicit `truth_level` under the arifOS truth hierarchy:")
     lines.append("1. **SOVEREIGN_CANON** (immutable constitution/directs)")
     lines.append("2. **SEALED_VAULT** (append-only logs, signed judgments)")
@@ -223,7 +253,7 @@ def generate_llms_txt() -> str:
     lines.append("### Registered arifOS MCP Resources")
     lines.append("| URI | Family | Linked Floors | Description |")
     lines.append("|-----|--------|---------------|-------------|")
-    
+
     # Sort resources by family then URI
     sorted_resources = sorted(resources, key=lambda x: (x.get("family", ""), x.get("uri", "")))
     for r in sorted_resources:
@@ -232,7 +262,9 @@ def generate_llms_txt() -> str:
     lines.append("")
 
     lines.append("## Federation Resources Map (Cross-Organ)")
-    lines.append("To prevent chaos and duplicate context (F4 CLARITY), do not duplicate these namespaces. Route or read accordingly:")
+    lines.append(
+        "To prevent chaos and duplicate context (F4 CLARITY), do not duplicate these namespaces. Route or read accordingly:"
+    )
     lines.append("")
     lines.append("### Control Plane & A2A State (AAA — L3)")
     lines.append("- `aaa://state/agent-registry` — Live registry of active agent cards")
@@ -243,48 +275,70 @@ def generate_llms_txt() -> str:
     lines.append("### Governed Actuator (A-FORGE — L2)")
     lines.append("- `aforge://execution/leases/status` — Agent concurrency lease status")
     lines.append("- `aforge://execution/reality/loop` — Reality loop transaction snapshots")
-    lines.append("- `aforge://execution/receipts/{id}` — Signed mutation receipts of executed commands")
+    lines.append(
+        "- `aforge://execution/receipts/{id}` — Signed mutation receipts of executed commands"
+    )
     lines.append("")
     lines.append("### Earth Intelligence Substrate (GEOX — L1)")
-    lines.append("- `geox://evidence/{well,seismic,prospect,claim}` — Underground geologic evidence assets")
+    lines.append(
+        "- `geox://evidence/{well,seismic,prospect,claim}` — Underground geologic evidence assets"
+    )
     lines.append("- `geox://basins/index` — Structural/basin index files")
-    lines.append("- `geox://claims/graph` — Geological claim networks and structural uncertainty data")
+    lines.append(
+        "- `geox://claims/graph` — Geological claim networks and structural uncertainty data"
+    )
     lines.append("")
     lines.append("### Capital Intelligence Substrate (WEALTH — L1)")
-    lines.append("- `wealth://capital/npv|emv|irr|risk|thresholds` — NPV, IRR, and EMV calculation variables")
+    lines.append(
+        "- `wealth://capital/npv|emv|irr|risk|thresholds` — NPV, IRR, and EMV calculation variables"
+    )
     lines.append("- `wealth://collapse/signatures` — Failure forensics for entities or portfolios")
     lines.append("- `wealth://flows` — Personal, market, and macro capital flows")
     lines.append("")
     lines.append("### Vitality Substrate (WELL — L1)")
-    lines.append("- `well://identity` — Five-well frame (Homeostasis, Metabolism, Governance, Coupling, Utility)")
+    lines.append(
+        "- `well://identity` — Five-well frame (Homeostasis, Metabolism, Governance, Coupling, Utility)"
+    )
     lines.append("- `well://metabolic/flux` — Human metabolic rate indicators (reflect-only)")
     lines.append("- `well://decision/classes` — Human vs machine decision metrics")
     lines.append("")
 
     # A2A Protocol section
     lines.append("## A2A Protocol — Peer-to-Peer Collaboration")
-    lines.append("In addition to MCP (which handles direct client-server data and tool access), the arifOS federation utilizes the **Agent-to-Agent (A2A)** protocol for peer-to-peer collaboration, agreement, and task delegation.")
+    lines.append(
+        "In addition to MCP (which handles direct client-server data and tool access), the arifOS federation utilizes the **Agent-to-Agent (A2A)** protocol for peer-to-peer collaboration, agreement, and task delegation."
+    )
     lines.append("")
     lines.append("### 1. A2A Communication Fabric (The Protocol)")
-    lines.append("- `message/send` — Submit a message/task to another agent. Enforces mandatory `session_id` to prevent Ghost Tasks.")
-    lines.append("- `message/stream` — Stream real-time agent output using Server-Sent Events (SSE).")
+    lines.append(
+        "- `message/send` — Submit a message/task to another agent. Enforces mandatory `session_id` to prevent Ghost Tasks."
+    )
+    lines.append(
+        "- `message/stream` — Stream real-time agent output using Server-Sent Events (SSE)."
+    )
     lines.append("- `tasks/get` — Retrieve status and history of a routed task.")
     lines.append("- `tasks/list` — List tasks, filterable by multi-tenancy `tenant`.")
     lines.append("- `tasks/cancel` — Abort a running task execution.")
     lines.append("- `tasks/subscribe` — Real-time event subscription for task state changes.")
     lines.append("")
     lines.append("### 2. A2A Transactional Layer (The Meaning-Exchange)")
-    lines.append("- **Agent Cards** (`https://aaa.arif-fazil.com/.well-known/agent-card.json`) — Canonical A2A card owned by AAA (FEDERATION_CONTRACT §5.4.5). Declares agent capabilities, static/JWT auth schemes, and autonomy boundaries (`canDo`/`cannotDo`).")
+    lines.append(
+        "- **Agent Cards** (`https://aaa.arif-fazil.com/.well-known/agent-card.json`) — Canonical A2A card owned by AAA (FEDERATION_CONTRACT §5.4.5). Declares agent capabilities, static/JWT auth schemes, and autonomy boundaries (`canDo`/`cannotDo`)."
+    )
     lines.append("- **Autonomy Tiers** — Strict boundary constraints defined per agent card:")
     lines.append("  - **T1 (Execution)** — Routine, local operations (no HOLD).")
     lines.append("  - **T2 (Negotiation)** — Refactoring/deployment tasks (announce, medium risk).")
-    lines.append("  - **T3 (Architectural)** — Irreversible/constitutional adjustments (888_HOLD mandatory).")
+    lines.append(
+        "  - **T3 (Architectural)** — Irreversible/constitutional adjustments (888_HOLD mandatory)."
+    )
     lines.append("- **Task States** — Wire state machine mapping:")
     lines.append("  - `TASK_STATE_INPUT_REQUIRED` — Maps internally to arifOS `HOLD_888` verdict.")
     lines.append("  - `TASK_STATE_REJECTED` — Maps internally to arifOS `VOID` verdict.")
     lines.append("")
     lines.append("### 3. Orchestration & Coordination")
-    lines.append("- **Context Lineage** (`contextId` / `contextLineage`) — Tracks the parent arifOS `session_id` throughout the lifecycle of delegated messages/tasks to ensure end-to-end auditability and eliminate Ghost Tasks.")
+    lines.append(
+        "- **Context Lineage** (`contextId` / `contextLineage`) — Tracks the parent arifOS `session_id` throughout the lifecycle of delegated messages/tasks to ensure end-to-end auditability and eliminate Ghost Tasks."
+    )
     lines.append("")
 
     lines.append("## Constitutional Floors (F1-F13)")
@@ -315,7 +369,9 @@ def generate_llms_txt() -> str:
         "| **AAA** | `127.0.0.1:3001` | `aaa.arif-fazil.com` | A2A/control-plane cockpit | Live A2A card and health |"
     )
     lines.append("")
-    lines.append("Tool counts outside arifOS are dynamic observations, not constants. Probe them at T1 before publishing a count.")
+    lines.append(
+        "Tool counts outside arifOS are dynamic observations, not constants. Probe them at T1 before publishing a count."
+    )
     lines.append("")
     lines.append("## Agent Rules (mandatory)")
     lines.append("1. Never skip the 000-999 pipeline")
@@ -325,9 +381,7 @@ def generate_llms_txt() -> str:
     lines.append("5. Reversible-first: create a rollback point before big changes (F1 AMANAH)")
     lines.append("")
     lines.append("### Tool Location Rules")
-    lines.append(
-        "- arifOS (8088) = governance only (judge, seal, reason, critique, lease, attest)"
-    )
+    lines.append("- arifOS (8088) = governance only (judge, seal, reason, critique, lease, attest)")
     lines.append(
         "- A-FORGE MCP (7072) = engineering only (forge_*, filesystem, git, docker, postgres, shell, job)"
     )
@@ -340,7 +394,7 @@ def generate_llms_txt() -> str:
     lines.append(f"- Manifest hash: {mhash}")
     lines.append("- Manifest URL: https://arifos.arif-fazil.com/tools.json")
     lines.append("")
-    lines.append(f"--- Auto-generated {datetime.datetime.now(datetime.timezone.utc).isoformat()} ---")
+    lines.append(f"--- Auto-generated {datetime.datetime.now(datetime.UTC).isoformat()} ---")
 
     return "\n".join(lines)
 

@@ -91,7 +91,6 @@ class ContextRiskTier(StrEnum):
 RiskClass = ContextRiskTier
 
 
-
 # ─── Mode Assignment (per policy table) ───────────────────────────────────
 # Deterministic mapping. F2 TRUTH: same input → same mode.
 MODE_MAP: dict[EventType, AuditMode] = {

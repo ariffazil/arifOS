@@ -50,13 +50,12 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
 import blake3
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-
 
 # ============================================================================
 # RISK CLASS — Right-sized governance per arifOS C0-C5 tier
@@ -253,7 +252,7 @@ class IntentEnvelopeV1(BaseModel):
     risk_blast_radius: str = Field(..., min_length=1, max_length=500)
 
     # L4 Freshness
-    issued_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    issued_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     expires_at: datetime
     nonce: str = Field(..., min_length=8, max_length=128)
     previous_seal_hash: str | None = None
@@ -283,7 +282,7 @@ class IntentEnvelopeV1(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _verify_display_hash_binding(self) -> "IntentEnvelopeV1":
+    def _verify_display_hash_binding(self) -> IntentEnvelopeV1:
         computed = self.display_card.display_hash()
         if computed != self.display_hash:
             raise ValueError(
@@ -293,8 +292,8 @@ class IntentEnvelopeV1(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def _verify_freshness(self) -> "IntentEnvelopeV1":
-        now = datetime.now(timezone.utc)
+    def _verify_freshness(self) -> IntentEnvelopeV1:
+        now = datetime.now(UTC)
         if self.expires_at.tzinfo is None:
             raise ValueError("expires_at must be timezone-aware (use UTC)")
         if self.expires_at <= now and self.risk_class != RiskClass.C0:
@@ -305,7 +304,7 @@ class IntentEnvelopeV1(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def _verify_scar_for_consequential_actions(self) -> "IntentEnvelopeV1":
+    def _verify_scar_for_consequential_actions(self) -> IntentEnvelopeV1:
         """
         L13 SOVEREIGN physics: only humans bleed, only humans decide.
         For C3+ actions of human-attributable provenance, the sovereign
@@ -332,7 +331,7 @@ class IntentEnvelopeV1(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def _verify_kernel_rule(self) -> "IntentEnvelopeV1":
+    def _verify_kernel_rule(self) -> IntentEnvelopeV1:
         """
         arifOS KERNEL RULE (2026-06-06, ratified by Arif):
 
@@ -443,7 +442,7 @@ if __name__ == "__main__":
         object="kelantan-block-a-summary.pdf",
         agent="GEOX-Agent-07",
         blast_radius="public_reputation",
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=15),
+        expires_at=datetime.now(UTC) + timedelta(minutes=15),
         scope={"spend_limit": "RM0", "network": "publish-only"},
     )
     env = IntentEnvelopeV1(
@@ -457,7 +456,7 @@ if __name__ == "__main__":
         risk_external=True,
         risk_reversibility=Reversibility.PARTIAL,
         risk_blast_radius="public_reputation",
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=15),
+        expires_at=datetime.now(UTC) + timedelta(minutes=15),
         nonce="abc123def456",
         display_card=card,
         display_hash=card.display_hash(),

@@ -967,4 +967,3 @@ def _make_probe(decl: dict[str, Any]):
 
 
 EDGE_PROBES = [_make_probe(d) for d in EDGE_DECLARATIONS]
-

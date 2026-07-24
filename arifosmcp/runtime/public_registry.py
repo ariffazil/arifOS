@@ -104,9 +104,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     "arif_mind_reason": ("[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."),
     # ── 444 ROUTE ───────────────────────────────────────────────────────────
-    "arif_route": (
-        "KERNEL 444 · Intent→organ router — dispatches to GEOX/WEALTH/WELL/A-FORGE."
-    ),
+    "arif_route": ("KERNEL 444 · Intent→organ router — dispatches to GEOX/WEALTH/WELL/A-FORGE."),
     "arif_kernel_route": ("[DEPRECATED → arif_route] Legacy KERNEL 444 entry."),
     # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
     "arif_bridge_connect": (
@@ -114,9 +112,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     "arif_bridge": ("[DEPRECATED → arif_bridge_connect] Direct organ bridge."),
     # ── 555 CRITIQUE ────────────────────────────────────────────────────────
-    "arif_critique": (
-        "KERNEL 555 · Heart — ethical/dignity/risk stress test before judgment."
-    ),
+    "arif_critique": ("KERNEL 555 · Heart — ethical/dignity/risk stress test before judgment."),
     "arif_heart_critique": ("[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."),
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
@@ -129,9 +125,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     "arif_judge_deliberate": ("[alias/internal → arif_judge] Prefer public arif_judge."),
     # ── 777 FORGE ───────────────────────────────────────────────────────────
-    "arif_forge": (
-        "KERNEL 777 · Execution gate via A-FORGE — mutates only after SEAL verdict."
-    ),
+    "arif_forge": ("KERNEL 777 · Execution gate via A-FORGE — mutates only after SEAL verdict."),
     "arif_forge_execute": ("[alias → arif_forge] Prefer arif_forge."),
     "arif_act": (
         "[INTERNAL alias → arif_forge] Not on public kernel facade. Call arif_forge after SEAL."

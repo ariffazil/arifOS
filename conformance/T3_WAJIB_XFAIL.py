@@ -14,10 +14,13 @@ DITEMPA BUKAN DIBERI.
 
 import pytest
 
-
 # ── WAJIB 2: Independent Verification Lane ──────────────────────────────────
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-2: verifier identity ≠ executor identity — requires new forge_verify role + kernel contract change (T3 F13)")
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-2: verifier identity ≠ executor identity — requires new forge_verify role + kernel contract change (T3 F13)",
+)
 def test_verifier_not_executor():
     """Verifier must be a separate identity from the executor."""
     raise NotImplementedError(
@@ -29,7 +32,11 @@ def test_verifier_not_executor():
 
 # ── WAJIB 4: Delegation Attenuation ─────────────────────────────────────────
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-4: child_authority ⊆ parent_authority — requires signed delegation envelope (T3 F13)")
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-4: child_authority ⊆ parent_authority — requires signed delegation envelope (T3 F13)",
+)
 def test_child_authority_attenuated():
     """Child authority must never exceed parent authority."""
     raise NotImplementedError(
@@ -47,7 +54,11 @@ def test_observe_parent_cannot_spawn_mutate_child():
 
 # ── WAJIB 5: Fire-Time Reauthorization ──────────────────────────────────────
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-5: deferred execution requires reauthorize_at_fire() kernel verb (T3 F13)")
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-5: deferred execution requires reauthorize_at_fire() kernel verb (T3 F13)",
+)
 def test_deferred_action_rejudged_at_fire_time():
     """Every deferred mutation must be judged twice: write-time + fire-time."""
     raise NotImplementedError(
@@ -65,7 +76,11 @@ def test_no_grandfathered_authority():
 
 # ── WAJIB 7: Organ Disagreement Doctrine ────────────────────────────────────
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-7: organ conflict resolution requires hard-veto + blast-radius precedence + Pareto search + F13 escalation (T3 F13)")
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-7: organ conflict resolution requires hard-veto + blast-radius precedence + Pareto search + F13 escalation (T3 F13)",
+)
 def test_organ_disagreement_not_silently_resolved():
     """Organ conflict must surface, not silently pick a winner."""
     raise NotImplementedError(
@@ -75,19 +90,27 @@ def test_organ_disagreement_not_silently_resolved():
     )
 
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-7: Scenario A — viable geology + negative economics → HOLD (T3 F13)")
+@pytest.mark.xfail(
+    strict=True, reason="WAJIB-7: Scenario A — viable geology + negative economics → HOLD (T3 F13)"
+)
 def test_scenario_a_geology_viable_economics_negative():
     """GEOX: viable, WEALTH: negative EV, WELL: ready → HOLD/reject."""
     raise NotImplementedError("WAJIB-7: Requires organ conflict resolution pipeline.")
 
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-7: Scenario B — excellent economics + unsafe readiness → HOLD (T3 F13)")
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-7: Scenario B — excellent economics + unsafe readiness → HOLD (T3 F13)",
+)
 def test_scenario_b_economics_excellent_readiness_unsafe():
     """GEOX: high-value, WEALTH: excellent, WELL: unsafe → HOLD."""
     raise NotImplementedError("WAJIB-7: Requires organ conflict resolution pipeline.")
 
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-7: Scenario C — split opinions + value sensitivity → request evidence (T3 F13)")
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-7: Scenario C — split opinions + value sensitivity → request evidence (T3 F13)",
+)
 def test_scenario_c_split_opinions_value_sensitive():
     """Split interpretations + value sensitivity → request more evidence."""
     raise NotImplementedError("WAJIB-7: Requires organ conflict resolution pipeline.")
@@ -95,7 +118,11 @@ def test_scenario_c_split_opinions_value_sensitive():
 
 # ── WAJIB 8: Context-Capture Governance ─────────────────────────────────────
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-8: agents cannot write their own law — requires context_manifest with class + authority + supersession (T3 F13)")
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-8: agents cannot write their own law — requires context_manifest with class + authority + supersession (T3 F13)",
+)
 def test_agent_cannot_self_canonize():
     """Agent-authored boot context must not become binding policy."""
     raise NotImplementedError(
@@ -107,10 +134,13 @@ def test_agent_cannot_self_canonize():
 
 # WAJIB 8 enforcement: context_manifest validator exists at arifosmcp/runtime/context_manifest.py
 # The validator enforces 6 boot-context checks. This xfail remains until the loader
-# integration is wired into the INIT/boot path. T2 — no F13 needed for loader enforcement. 
+# integration is wired into the INIT/boot path. T2 — no F13 needed for loader enforcement.
 
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-8: context_manifest loader integration — wired into boot sequence (T2)")
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-8: context_manifest loader integration — wired into boot sequence (T2)",
+)
 def test_context_manifest_loader_integration():
     """Boot path must scan agent-authored artifacts with context_manifest validator."""
     raise NotImplementedError(
@@ -122,7 +152,11 @@ def test_context_manifest_loader_integration():
 
 # ── WAJIB 10: End-to-End Signed Canary ─────────────────────────────────────
 
-@pytest.mark.xfail(strict=True, reason="WAJIB-10: full federation canary requires all prior WAJIBs (T3, gated by WAJIB 2-9)")
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="WAJIB-10: full federation canary requires all prior WAJIBs (T3, gated by WAJIB 2-9)",
+)
 def test_end_to_end_federation_canary():
     """Full pipeline: MCP init → session → route → observe → judge → lease → execute → verify → RSI → VAULT999 → rollback."""
     raise NotImplementedError(

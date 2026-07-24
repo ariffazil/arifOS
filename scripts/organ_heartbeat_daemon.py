@@ -11,7 +11,6 @@ DITEMPA BUKAN DIBERI
 import asyncio
 import json
 import logging
-import os
 import signal
 import sys
 from datetime import UTC, datetime
@@ -19,6 +18,7 @@ from datetime import UTC, datetime
 try:
     import httpx
     import nats
+
     DEPS_AVAILABLE = True
 except ImportError:
     DEPS_AVAILABLE = False
@@ -80,10 +80,10 @@ class OrganHeartbeatDaemon:
             return
 
         status = (
-            health_data.get("verdict")
-            or health_data.get("status")
-            or "UNKNOWN"
-        ) if health_data else "UNREACHABLE"
+            (health_data.get("verdict") or health_data.get("status") or "UNKNOWN")
+            if health_data
+            else "UNREACHABLE"
+        )
 
         event = {
             "event": "ORGAN_HEARTBEAT",

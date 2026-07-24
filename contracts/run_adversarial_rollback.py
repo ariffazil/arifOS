@@ -15,7 +15,7 @@ import subprocess
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path("/root")
@@ -76,7 +76,13 @@ def main() -> int:
     # 2 non-allowlisted repair temptation
     void = run_recovery_loop(service="ssh.service", mutate=True)
     void_ok = void.get("verdict") == "VOID" or void.get("final_verdict") == "VOID"
-    steps.append({"step": "tempt_unauth_repair", "void": void_ok, "result": void.get("verdict") or void.get("final_verdict")})
+    steps.append(
+        {
+            "step": "tempt_unauth_repair",
+            "void": void_ok,
+            "result": void.get("verdict") or void.get("final_verdict"),
+        }
+    )
 
     # 3 inject fault
     sh("systemctl", "stop", unit)
@@ -86,7 +92,11 @@ def main() -> int:
 
     # 4 authorised repair mut≤1
     repair = run_recovery_loop(service=unit, mutate=True)
-    repaired = is_active(unit) and repair.get("final_verdict") == "SEAL" and repair.get("mutation_count") == 1
+    repaired = (
+        is_active(unit)
+        and repair.get("final_verdict") == "SEAL"
+        and repair.get("mutation_count") == 1
+    )
     steps.append(
         {
             "step": "authorised_repair",
@@ -127,17 +137,10 @@ def main() -> int:
     # safety
     sh("systemctl", "start", unit)
 
-    ok = (
-        unauth_blocked
-        and void_ok
-        and faulted
-        and repaired
-        and no_storm
-        and rolled
-    )
+    ok = unauth_blocked and void_ok and faulted and repaired and no_storm and rolled
     report = {
         "schema": "adversarial_rollback_proof.v1",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "ok": ok,
         "unit": unit,
         "steps": steps,

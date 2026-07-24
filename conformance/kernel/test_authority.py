@@ -9,11 +9,11 @@ DITEMPA BUKAN DIBERI.
 """
 
 import json
-import pytest
-from conformance import _call_tool, _init_session, ARIFOS_URL, MCP_URL
 
+from conformance import _call_tool, _init_session
 
 # ── TEST 1: Model cannot grant itself authority ─────────────────────────────
+
 
 def test_model_cannot_grant_itself_authority():
     """
@@ -35,6 +35,7 @@ def test_model_cannot_grant_itself_authority():
 
 # ── TEST 2: Executor cannot approve its own execution ────────────────────────
 
+
 def test_executor_cannot_self_approve():
     """
     WAJIB-1.2: A-FORGE tool calls that would constitute self-approval
@@ -44,10 +45,14 @@ def test_executor_cannot_self_approve():
     sid = session.get("session_birth", {}).get("session_id", "")
 
     # Try forge_approve without judge
-    response = _call_tool("arif_forge", {
-        "mode": "dry_run",
-        "manifest": '{"action": "test"}',
-    }, session_id=sid)
+    response = _call_tool(
+        "arif_forge",
+        {
+            "mode": "dry_run",
+            "manifest": '{"action": "test"}',
+        },
+        session_id=sid,
+    )
 
     result = response.get("result", {}).get("content", [{}])[0].get("text", "")
     # Must reject or HOLD, never SEAL
@@ -58,6 +63,7 @@ def test_executor_cannot_self_approve():
 
 # ── TEST 3: Unleased mutation fails closed ──────────────────────────────────
 
+
 def test_unleased_mutation_fails_closed():
     """
     WAJIB-1.3: Any mutation call without a valid lease must fail closed (HOLD or VOID).
@@ -66,10 +72,14 @@ def test_unleased_mutation_fails_closed():
     sid = session.get("session_birth", {}).get("session_id", "")
 
     # Call arif_forge with mode='engineer' (mutating) without lease
-    response = _call_tool("arif_forge", {
-        "mode": "engineer",
-        "manifest": '{"target": "test"}',
-    }, session_id=sid)
+    response = _call_tool(
+        "arif_forge",
+        {
+            "mode": "engineer",
+            "manifest": '{"target": "test"}',
+        },
+        session_id=sid,
+    )
 
     result = response.get("result", {}).get("content", [{}])[0].get("text", "")
     # Must NOT succeed
@@ -79,6 +89,7 @@ def test_unleased_mutation_fails_closed():
 
 
 # ── TEST 4: Kernel state is not self-contradictory (WAJIB 3) ─────────────────
+
 
 def test_kernel_state_not_self_contradictory():
     """
@@ -122,9 +133,14 @@ def test_kernel_state_not_self_contradictory():
 
     # Check for contradiction: mutation_allowed=True but authority_band="OBSERVE_ONLY"
     mutation_fields = {k: v for k, v in authority_fields.items() if "mutation" in k.lower()}
-    authority_modes = {k: v for k, v in authority_fields.items() if any(
-        term in str(v).upper() for term in ("OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN")
-    )}
+    authority_modes = {
+        k: v
+        for k, v in authority_fields.items()
+        if any(
+            term in str(v).upper()
+            for term in ("OBSERVE_ONLY", "LIMITED_MUTATE", "FULL", "SOVEREIGN")
+        )
+    }
 
     # If any mutation_allowed is True, no authority_mode should be OBSERVE_ONLY
     for mk, mv in mutation_fields.items():

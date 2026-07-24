@@ -255,7 +255,13 @@ class ForgetPayload(BaseModel):
 # Pydantic v2 native discriminator. The kernel dispatcher matches on `mode`.
 
 MemoryPayload = Annotated[
-    RecallPayload | InspectPayload | AttestPayload | RememberPayload | PromotePayload | RevisePayload | ForgetPayload,
+    RecallPayload
+    | InspectPayload
+    | AttestPayload
+    | RememberPayload
+    | PromotePayload
+    | RevisePayload
+    | ForgetPayload,
     Field(discriminator="mode"),
 ]
 

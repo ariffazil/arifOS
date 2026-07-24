@@ -27,6 +27,7 @@ Defaults:
   --input  /root/ARIF-SITES/sites/arif-fazil.com/public/999/seal.json
   --output <input>.signed  (overwrites with --force)
 """
+
 from __future__ import annotations
 
 import argparse

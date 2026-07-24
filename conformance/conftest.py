@@ -5,10 +5,11 @@ conformance/conftest.py — Pytest configuration for negative conformance suite
 DITEMPA BUKAN DIBERI.
 """
 
-import pytest
 import json
-import urllib.request
 import os
+import urllib.request
+
+import pytest
 
 ARIFOS_URL = os.environ.get("ARIFOS_URL", "http://localhost:8088")
 
@@ -16,7 +17,9 @@ ARIFOS_URL = os.environ.get("ARIFOS_URL", "http://localhost:8088")
 def pytest_configure(config):
     """Register custom markers."""
     config.addinivalue_line("markers", "wajib: WAJIB conformance test (must never happen)")
-    config.addinivalue_line("markers", "xfail_strict: expected to fail until implementation complete")
+    config.addinivalue_line(
+        "markers", "xfail_strict: expected to fail until implementation complete"
+    )
 
 
 def pytest_collection_modifyitems(config, items):

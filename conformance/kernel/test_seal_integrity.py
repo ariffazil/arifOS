@@ -9,8 +9,10 @@ DITEMPA BUKAN DIBERI.
 """
 
 import json
+
 import pytest
-from conformance import _call_tool, _init_session, ARIFOS_URL, MCP_URL
+
+from conformance import ARIFOS_URL, _call_tool, _init_session
 
 
 def test_aaa_cannot_display_nonexistent_seal():
@@ -22,9 +24,13 @@ def test_aaa_cannot_display_nonexistent_seal():
     sid = session.get("session_birth", {}).get("session_id", "")
 
     # Read vault — must return integrity info
-    response = _call_tool("arif_seal", {
-        "mode": "verify",
-    }, session_id=sid)
+    response = _call_tool(
+        "arif_seal",
+        {
+            "mode": "verify",
+        },
+        session_id=sid,
+    )
 
     content = response.get("result", {}).get("content", [])
     result_text = ""
@@ -44,6 +50,7 @@ def test_tool_count_not_agi_claim():
     capability. The number of tools is a registry fact, not intelligence.
     """
     import urllib.request
+
     try:
         with urllib.request.urlopen(f"{ARIFOS_URL}/health", timeout=5) as resp:
             health = json.loads(resp.read())
@@ -75,11 +82,15 @@ def test_human_approval_not_simulatable():
     sid = session.get("session_birth", {}).get("session_id", "")
 
     # Try to execute with a fake human_seal_token
-    response = _call_tool("arif_forge", {
-        "mode": "engineer",
-        "manifest": '{"action": "deploy"}',
-        "ack_irreversible": True,
-    }, session_id=sid)
+    response = _call_tool(
+        "arif_forge",
+        {
+            "mode": "engineer",
+            "manifest": '{"action": "deploy"}',
+            "ack_irreversible": True,
+        },
+        session_id=sid,
+    )
 
     result = response.get("result", {}).get("content", [{}])[0].get("text", "")
     parsed = {}
@@ -106,10 +117,14 @@ def test_unsigned_seal_rejected():
     missing constitutional_chain_id must fail closed.
     """
     # Test 1: Seal with empty payload, no session
-    response = _call_tool("arif_seal", {
-        "mode": "seal",
-        "payload": "",
-    }, session_id=None)
+    response = _call_tool(
+        "arif_seal",
+        {
+            "mode": "seal",
+            "payload": "",
+        },
+        session_id=None,
+    )
 
     result_text = json.dumps(response)
     assert "error" in response or "SESSION" in result_text.upper(), (

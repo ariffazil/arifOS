@@ -39,7 +39,13 @@ CORE_SKILLS = [
 DEFAULT_URL = "http://127.0.0.1:8088/mcp"
 
 
-def _rpc(url: str, method: str, params: dict[str, Any] | None = None, session_id: str | None = None, req_id: int = 1) -> dict[str, Any]:
+def _rpc(
+    url: str,
+    method: str,
+    params: dict[str, Any] | None = None,
+    session_id: str | None = None,
+    req_id: int = 1,
+) -> dict[str, Any]:
     body: dict[str, Any] = {"jsonrpc": "2.0", "id": req_id, "method": method}
     if params:
         body["params"] = params
@@ -56,7 +62,12 @@ def _rpc(url: str, method: str, params: dict[str, Any] | None = None, session_id
         with urllib.request.urlopen(req, timeout=30) as resp:
             txt = resp.read().decode()
             new_sid = resp.headers.get("Mcp-Session-Id") or resp.headers.get("mcp-session-id")
-            return {"ok": True, "status": resp.status, "text": txt, "session_id": new_sid or session_id}
+            return {
+                "ok": True,
+                "status": resp.status,
+                "text": txt,
+                "session_id": new_sid or session_id,
+            }
     except urllib.error.HTTPError as e:
         err_txt = e.read().decode()[:800]
         return {"ok": False, "status": e.code, "text": err_txt, "session_id": session_id}
@@ -75,11 +86,15 @@ async def verify(url: str, expect_skill_mds: int | None = None) -> int:
     print(f"Verifying federation skills at: {url}")
 
     # 1. initialize
-    r1 = _rpc(url, "initialize", {
-        "protocolVersion": "2025-11-25",
-        "clientInfo": {"name": "verify_federation_skills", "version": "1"},
-        "capabilities": {"resources": {}, "tools": {}},
-    })
+    r1 = _rpc(
+        url,
+        "initialize",
+        {
+            "protocolVersion": "2025-11-25",
+            "clientInfo": {"name": "verify_federation_skills", "version": "1"},
+            "capabilities": {"resources": {}, "tools": {}},
+        },
+    )
     if not r1.get("ok"):
         print("FAIL: initialize failed:", r1)
         return 2
@@ -103,7 +118,9 @@ async def verify(url: str, expect_skill_mds: int | None = None) -> int:
     skill_resources = [r for r in resources if str(r.get("uri", "")).startswith("skill://")]
     skill_mds = [r for r in skill_resources if "SKILL.md" in str(r.get("uri", ""))]
 
-    print(f"  resources/list: total={len(resources)}, skill:// total={len(skill_resources)}, SKILL.md={len(skill_mds)}")
+    print(
+        f"  resources/list: total={len(resources)}, skill:// total={len(skill_resources)}, SKILL.md={len(skill_mds)}"
+    )
 
     if expect_skill_mds is not None and len(skill_mds) < expect_skill_mds:
         print(f"  WARN: expected at least {expect_skill_mds} SKILL.md, got {len(skill_mds)}")
@@ -129,7 +146,9 @@ async def verify(url: str, expect_skill_mds: int | None = None) -> int:
         contents = read_body.get("result", {}).get("contents", [])
         text = ""
         if contents:
-            text = contents[0].get("text", "") if isinstance(contents[0], dict) else str(contents[0])
+            text = (
+                contents[0].get("text", "") if isinstance(contents[0], dict) else str(contents[0])
+            )
         if not text or len(text) < 200:
             print(f"  READ EMPTY/SHORT {uri}")
             missing.append(name)

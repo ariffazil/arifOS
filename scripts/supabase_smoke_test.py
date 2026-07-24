@@ -34,7 +34,7 @@ import os
 import subprocess
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import asyncpg
 
@@ -92,7 +92,7 @@ async def run_fk_batch(session_ref: str):
     tc_id = str(uuid.uuid4())
     approval_id = f"appr:{uuid.uuid4().hex[:12]}"
     verdict_id = f"verdict:{uuid.uuid4().hex[:12]}"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     pool = await asyncpg.create_pool(_pool_url(), min_size=1, max_size=2)
     try:

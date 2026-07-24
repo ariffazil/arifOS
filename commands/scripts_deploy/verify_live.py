@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 import subprocess  # nosec B404
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 

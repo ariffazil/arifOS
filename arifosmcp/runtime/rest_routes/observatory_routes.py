@@ -43,6 +43,7 @@ import os
 import platform
 import time
 from collections.abc import Callable
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
@@ -3095,10 +3096,10 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
                 head = _json.loads(seal_head_path.read_text())
                 ts = head.get("timestamp", "")
                 if ts:
-                    from datetime import datetime, timezone
+                    from datetime import datetime
 
                     dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                    age_s = (datetime.now(timezone.utc) - dt).total_seconds()
+                    age_s = (datetime.now(UTC) - dt).total_seconds()
                     if age_s > 7200:  # 2 hours
                         items.append(
                             {

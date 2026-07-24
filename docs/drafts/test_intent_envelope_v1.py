@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import sys
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -35,14 +35,13 @@ from intent_envelope_v1 import (  # noqa: E402
     SovereignProvenance,
 )
 
-
 # ============================================================================
 # HELPERS
 # ============================================================================
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _make_card(

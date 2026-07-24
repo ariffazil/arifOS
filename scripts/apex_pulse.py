@@ -6,9 +6,9 @@ Runs once a week to summarize federation drift and send 3 sentences to Arif via 
 
 import json
 import os
-import urllib.request
 import urllib.error
-from datetime import datetime, timedelta, timezone
+import urllib.request
+from datetime import UTC, datetime, timedelta
 
 VAULT_PATH = "/root/arifOS/VAULT999/outcomes.jsonl"
 OLLAMA_URL = "http://localhost:11434/api/generate"
@@ -25,10 +25,10 @@ HERMES_HEADERS = {
 
 
 def get_recent_vault_entries(days=7):
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(UTC) - timedelta(days=days)
     entries = []
     try:
-        with open(VAULT_PATH, "r") as f:
+        with open(VAULT_PATH) as f:
             for line in f:
                 if not line.strip():
                     continue

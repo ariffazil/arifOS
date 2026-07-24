@@ -23,9 +23,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -172,7 +171,7 @@ def check_deadline(instance: dict[str, Any]) -> str | None:
         return None
     try:
         dt = datetime.fromisoformat(str(deadline).replace("Z", "+00:00"))
-        if dt < datetime.now(timezone.utc):
+        if dt < datetime.now(UTC):
             return "DEADLINE_EXCEEDED: deadline_at is in the past"
     except (ValueError, TypeError):
         return "DEADLINE_INVALID: unparseable deadline_at"
@@ -287,9 +286,7 @@ def run_all_tests() -> int:
         instance = load_json(path)
         structural = validate_structural(instance, schema)
         semantic = (
-            validate_fixture_semantic(instance, store=store)
-            if "request" in fixture_name
-            else []
+            validate_fixture_semantic(instance, store=store) if "request" in fixture_name else []
         )
         if structural or semantic:
             errors.append(f"  ❌ {fixture_name}: {structural + semantic}")

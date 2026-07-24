@@ -21,7 +21,7 @@ import argparse
 import asyncio
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import asyncpg
 
@@ -207,7 +207,7 @@ async def run_full():
     async with pool.acquire() as conn:
         print("\n╔══════════════════════════════════════════════════════════════╗")
         print("║          AAA COCKPIT — arifOS Federation L4              ║")
-        print(f"║          {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'):<43}║")
+        print(f"║          {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC'):<43}║")
         print("╚══════════════════════════════════════════════════════════════╝")
 
         # Namespace summary

@@ -67,7 +67,9 @@ CROSS_BOUNDARY_INVARIANTS: list[str] = [
 ]
 
 
-def _compute_request_hash(*, actor_id: str, session_id: str, organ: str, tool: str, body: bytes) -> str:
+def _compute_request_hash(
+    *, actor_id: str, session_id: str, organ: str, tool: str, body: bytes
+) -> str:
     """P0d — raw_request_hash covers actor + session + organ + tool + raw body.
 
     Used to prove the wire request was bound to a specific identity and
@@ -80,9 +82,12 @@ def _compute_request_hash(*, actor_id: str, session_id: str, organ: str, tool: s
         "tool": tool or "",
         "body_sha256": hashlib.sha256(body or b"").hexdigest(),
     }
-    return "sha256:" + hashlib.sha256(
-        json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()[:24]
+    return (
+        "sha256:"
+        + hashlib.sha256(
+            json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()[:24]
+    )
 
 
 async def _get_client() -> httpx.AsyncClient:
@@ -183,7 +188,9 @@ class OrganProxyMiddleware:
         # Build forward headers from scope
         forward_headers: dict[str, str] = {}
         hop_by_hop = {
-            "host", "connection", "transfer-encoding",
+            "host",
+            "connection",
+            "transfer-encoding",
             "x-arifos-organ-target",
         }
         for key_bytes, value_bytes in scope.get("headers", []):
@@ -214,14 +221,10 @@ class OrganProxyMiddleware:
         # Pull actor_id / session_id from forward headers so the hash binds
         # the wire request to the upstream identity context.
         actor_id = (
-            forward_headers.get("x-arifos-actor")
-            or forward_headers.get("x-arif-actor")
-            or ""
+            forward_headers.get("x-arifos-actor") or forward_headers.get("x-arif-actor") or ""
         )
         session_id = (
-            forward_headers.get("x-arifos-session")
-            or forward_headers.get("mcp-session-id")
-            or ""
+            forward_headers.get("x-arifos-session") or forward_headers.get("mcp-session-id") or ""
         )
         # Tool name is harder to extract from raw bytes (it's inside the
         # JSON body for jsonrpc). Use a coarse-grained identity: organ +
@@ -288,56 +291,75 @@ class OrganProxyMiddleware:
         # waiting for the body to complete.
         response_headers.append((b"x-arifos-boundary-enforced", b"true"))
         response_headers.append(
-            (b"x-arifos-cross-boundary-invariants", json.dumps(list(CROSS_BOUNDARY_INVARIANTS)).encode())
+            (
+                b"x-arifos-cross-boundary-invariants",
+                json.dumps(list(CROSS_BOUNDARY_INVARIANTS)).encode(),
+            )
         )
         response_headers.append((b"x-arifos-raw-request-hash", raw_request_hash.encode()))
         response_headers.append(
-            (b"x-arifos-boundary-envelope", json.dumps(boundary_envelope, separators=(",", ":")).encode())
+            (
+                b"x-arifos-boundary-envelope",
+                json.dumps(boundary_envelope, separators=(",", ":")).encode(),
+            )
         )
 
         # Send response start
-        await send({
-            "type": "http.response.start",
-            "status": backend_resp.status_code,
-            "headers": response_headers,
-        })
+        await send(
+            {
+                "type": "http.response.start",
+                "status": backend_resp.status_code,
+                "headers": response_headers,
+            }
+        )
 
         # Stream body
         try:
             async for chunk in backend_resp.aiter_raw():
                 if chunk:
-                    await send({
-                        "type": "http.response.body",
-                        "body": chunk,
-                        "more_body": True,
-                    })
+                    await send(
+                        {
+                            "type": "http.response.body",
+                            "body": chunk,
+                            "more_body": True,
+                        }
+                    )
         except Exception as exc:
             logger.warning("organ_proxy: stream interrupted for %s: %s", organ_name, exc)
         finally:
             await backend_resp.aclose()
-            await send({
-                "type": "http.response.body",
-                "body": b"",
-                "more_body": False,
-            })
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": b"",
+                    "more_body": False,
+                }
+            )
 
     async def _send_error(self, send: Send, status_code: int, detail: str) -> None:
         import json
-        body = json.dumps({
-            "error": "organ_proxy_error",
-            "detail": detail,
-            "principle": "FAIL_CLOSED — governance gate must not forward ungoverned traffic",
-        }).encode()
-        await send({
-            "type": "http.response.start",
-            "status": status_code,
-            "headers": [
-                (b"content-type", b"application/json"),
-                (b"x-arifos-organ-proxy", b"error"),
-            ],
-        })
-        await send({
-            "type": "http.response.body",
-            "body": body,
-            "more_body": False,
-        })
+
+        body = json.dumps(
+            {
+                "error": "organ_proxy_error",
+                "detail": detail,
+                "principle": "FAIL_CLOSED — governance gate must not forward ungoverned traffic",
+            }
+        ).encode()
+        await send(
+            {
+                "type": "http.response.start",
+                "status": status_code,
+                "headers": [
+                    (b"content-type", b"application/json"),
+                    (b"x-arifos-organ-proxy", b"error"),
+                ],
+            }
+        )
+        await send(
+            {
+                "type": "http.response.body",
+                "body": body,
+                "more_body": False,
+            }
+        )

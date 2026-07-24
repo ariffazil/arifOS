@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 RECEIPT_DIR = Path("/root/WELL/loop/receipts")
@@ -45,7 +45,7 @@ def main() -> None:
         "success_rate_seal": success_rate,
         "calibration_status": "SEED_ONLY" if (n or 0) < 20 else "MVP_THRESHOLD_MET",
         "min_n_for_mvp": 20,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "note": "Not domain posterior calibration. Execution class only.",
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)

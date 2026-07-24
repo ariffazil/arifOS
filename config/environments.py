@@ -1,7 +1,6 @@
+import os
 from dataclasses import dataclass
 from enum import Enum
-
-import os
 
 from arifosmcp.schemas.floors import FLOOR_IDS, is_canonical_floor
 
@@ -70,8 +69,8 @@ HORIZON_CONFIG = EnvironmentConfig(
         "F2",  # TRUTH
         "F4",  # CLARITY
         "F9",  # ANTIHANTU
-        "F11", # AUDITABILITY
-        "F13", # SOVEREIGN
+        "F11",  # AUDITABILITY
+        "F13",  # SOVEREIGN
     ],
 )
 
@@ -129,7 +128,9 @@ def get_environment() -> EnvironmentConfig:
 for _cfg_name, _cfg in [("VPS", VPS_CONFIG), ("HORIZON", HORIZON_CONFIG), ("LOCAL", LOCAL_CONFIG)]:
     _invalid = [f for f in _cfg.constitutional_floors if not is_canonical_floor(f)]
     if _invalid:
-        raise ValueError(f"{_cfg_name} config has non-canonical floors (must come from schemas/floors.py): {_invalid}")
+        raise ValueError(
+            f"{_cfg_name} config has non-canonical floors (must come from schemas/floors.py): {_invalid}"
+        )
 
 
 def is_sovereign() -> bool:
