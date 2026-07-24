@@ -23,6 +23,7 @@ import hmac
 import json
 import logging
 import os
+import secrets
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -85,15 +86,23 @@ AUTHORITY_VERBS: dict[str, list[str]] = {
 
 _AUTH_ORDER = {"OBSERVE_ONLY": 0, "LIMITED_MUTATE": 1, "FULL": 2, "SOVEREIGN": 3}
 
-_FALLBACK_SECRET = "fallback-ephemeral-secret"  # nosec B105 — detected + warned
+_FALLBACK_SECRET = secrets.token_bytes(32)
 _PROD_SIGNING_KEY_PATHS = (
     "/opt/arifos/app/.signing_key",
     os.path.expanduser("~/.arifos/signing_key"),
 )
+_STRICT_TRUE_VALUES = frozenset({"1", "true", "yes", "y", "on", "strict"})
+
+
+def _strict_mode_enabled() -> bool:
+    """Use the existing production/strict environment conventions."""
+    environment = os.getenv("ARIFOS_ENV", "").strip().lower()
+    strict_flag = os.getenv("ARIFOS_STRICT_MODE", "").strip().lower()
+    return environment in {"production", "prod"} or strict_flag in _STRICT_TRUE_VALUES
 
 
 def _get_signing_secret() -> bytes:
-    """HMAC key. Prefer ARIFOS_SESSION_SECRET; then 32-byte prod key file; warn if fallback."""
+    """Resolve the SCT HMAC key, failing closed in strict production."""
     secret = os.getenv("ARIFOS_SESSION_SECRET")
     if not secret:
         secret_file = os.getenv("ARIFOS_SESSION_SECRET_FILE")
@@ -120,8 +129,12 @@ def _get_signing_secret() -> bytes:
         except OSError:
             continue
 
-    logger.warning("SCT: using fallback session secret — set ARIFOS_SESSION_SECRET in prod")
-    return _FALLBACK_SECRET.encode()
+    if _strict_mode_enabled():
+        logger.error("SCT: signing secret unavailable in strict production mode")
+        raise RuntimeError("SCT signing secret unavailable in strict production mode")
+
+    logger.warning("SCT: using process-local random fallback session secret")
+    return _FALLBACK_SECRET
 
 
 def derive_verbs(authority: str) -> list[str]:
@@ -554,7 +567,10 @@ def verify_sct(
     if prefix != SCT_PREFIX:
         return None
 
-    expected = _sign(payload_b64)
+    try:
+        expected = _sign(payload_b64)
+    except RuntimeError:
+        return None
     if not hmac.compare_digest(expected, sig):
         return None
 

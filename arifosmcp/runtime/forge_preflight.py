@@ -855,8 +855,7 @@ def g4_validate_sealed_forge_plan(
 
     except (ImportError, AttributeError) as e:
         reasons.append(f"E_PREFLIGHT_G4_DISPATCH_UNAVAILABLE:{e}")
-        # Not a hard block — forge_dispatch may not be wired
-        return True, reasons
+        return False, reasons
     except PermissionError as e:
         reasons.append(f"E_PREFLIGHT_G4_DISPATCH_REJECTED:{e}")
         return False, reasons

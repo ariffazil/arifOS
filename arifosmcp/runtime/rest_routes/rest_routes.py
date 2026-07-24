@@ -4266,9 +4266,21 @@ def register_rest_routes(
                         status_code=403,
                     )
             except ImportError:
-                logger.warning(
-                    "pre_execution_gate unavailable in rest_routes — "
-                    "proceeding without gate (fail-open for federated path)"
+                logger.exception(
+                    "pre_execution_gate unavailable in rest_routes — failing closed"
+                )
+                return JSONResponse(
+                    {
+                        "status": "error",
+                        "error": "GATE_UNAVAILABLE",
+                        "reason": "Constitutional pre-execution gate unavailable",
+                        "gate_reasons": ["pre_execution_gate import failed"],
+                        "tool": incoming_name,
+                        "canonical": canonical_name,
+                        "request_id": request_id,
+                        "verdict": "HOLD",
+                    },
+                    status_code=503,
                 )
             # ── end HOLD-1b gate ────────────────────────────────────────────
 
@@ -6332,6 +6344,26 @@ def register_rest_routes(
             return _rest_error("Failed to retrieve prompt", status_code=500)
 
     # ── A2A ─────────────────────────────────────────────────────────────────
+    def _a2a_rest_identity(request: Request) -> tuple[str, str | None, str]:
+        """Authenticate the legacy REST A2A surface with the canonical SCT gate."""
+        from arifosmcp.runtime.a2a.server import _resolve_actor_from_request
+
+        return _resolve_actor_from_request(
+            authorization=request.headers.get("authorization"),
+            x_session_token=request.headers.get("x-session-token"),
+        )
+
+    def _a2a_rest_auth_error(exc: Exception) -> JSONResponse:
+        """Translate FastAPI auth errors for Starlette-managed legacy routes."""
+        return JSONResponse(
+            {
+                "error": "A2A_AUTH_REQUIRED",
+                "detail": getattr(exc, "detail", "L11 AUTH failed"),
+                "verdict": "HOLD",
+            },
+            status_code=int(getattr(exc, "status_code", 401)),
+        )
+
     @route("/a2a/health", methods=["GET"])
     async def a2a_health(request: Request) -> Response:
         """A2A health check."""
@@ -6339,7 +6371,12 @@ def register_rest_routes(
 
     @route("/a2a/task", methods=["POST"])
     async def a2a_task(request: Request) -> Response:
-        """Submit A2A task for agent-to-agent coordination."""
+        """Submit an SCT-authenticated A2A task for agent coordination."""
+        try:
+            actor_id, session_id, session_token = _a2a_rest_identity(request)
+        except Exception as exc:
+            return _a2a_rest_auth_error(exc)
+
         try:
             from arifosmcp.runtime.a2a.models import SubmitTaskRequest, TaskMessage
             from arifosmcp.runtime.a2a.server import create_a2a_server
@@ -6358,13 +6395,19 @@ def register_rest_routes(
                 parameters=body.get("parameters", {}),
                 status_callback_url=body.get("status_callback_url"),
             )
-            task = await a2a.task_manager.create_task(req)
+            task = await a2a.task_manager.create_task(
+                req,
+                verified_actor=actor_id,
+                verified_session_id=session_id,
+                verified_session_token=session_token,
+            )
             return JSONResponse(
                 {
                     "task_id": task.id,
                     "status": (
                         task.state.value if hasattr(task.state, "value") else str(task.state)
                     ),
+                    "creator_actor_id": task.creator_actor_id,
                 }
             )
         except Exception:
@@ -6372,7 +6415,12 @@ def register_rest_routes(
 
     @route("/a2a/status/{task_id}", methods=["GET"])
     async def a2a_status(request: Request) -> Response:
-        """Get A2A task status."""
+        """Get an SCT-authenticated owner's A2A task status."""
+        try:
+            actor_id, _session_id, _session_token = _a2a_rest_identity(request)
+        except Exception as exc:
+            return _a2a_rest_auth_error(exc)
+
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
 
@@ -6381,6 +6429,10 @@ def register_rest_routes(
             task = await a2a.task_manager.get_task(task_id)
             if not task:
                 return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
+            if not task.creator_actor_id or task.creator_actor_id != actor_id:
+                return JSONResponse(
+                    {"error": "A2A_TASK_FORBIDDEN", "verdict": "HOLD"}, status_code=403
+                )
             return JSONResponse(
                 {
                     "task_id": task.id,
@@ -6400,17 +6452,27 @@ def register_rest_routes(
 
     @route("/a2a/subscribe/{task_id}", methods=["GET"])
     async def a2a_subscribe(request: Request) -> Response:
-        """SSE subscribe to A2A task updates."""
+        """SSE subscribe to an SCT-authenticated owner's task updates."""
+        try:
+            actor_id, _session_id, _session_token = _a2a_rest_identity(request)
+        except Exception as exc:
+            return _a2a_rest_auth_error(exc)
+
         try:
             from arifosmcp.runtime.a2a.server import create_a2a_server
 
             a2a = create_a2a_server(mcp)
             task_id = request.path_params.get("task_id", "")
+            task = await a2a.task_manager.get_task(task_id)
+            if not task:
+                return JSONResponse({"error": f"Task not found: {task_id}"}, status_code=404)
+            if not task.creator_actor_id or task.creator_actor_id != actor_id:
+                return JSONResponse(
+                    {"error": "A2A_TASK_FORBIDDEN", "verdict": "HOLD"}, status_code=403
+                )
 
             async def event_generator():
-                task = await a2a.task_manager.get_task(task_id)
-                if task:
-                    yield f"data: {task.state.value if hasattr(task.state, 'value') else 'running'}\n\n"
+                yield f"data: {task.state.value if hasattr(task.state, 'value') else 'running'}\n\n"
                 yield 'data: {"status":"subscribed"}\n\n'
 
             from starlette.responses import StreamingResponse

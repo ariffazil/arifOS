@@ -1739,7 +1739,10 @@ try:
 
                 def _make_proxy(organ: str, tool_name: str):
                     async def proxy(**kwargs: object) -> ToolResult:
-                        # Path-B gate: valid session_id before organ forward
+                        # Path-B gate: valid session_id before organ forward.
+                        # B4 hardening: caller-supplied auth/envelope fields are
+                        # extraction hints only; L11 validates, then the kernel
+                        # constructs the sanitized envelope forwarded to the organ.
                         gate = require_remote_proxy_session(
                             tool_name=tool_name,
                             organ=organ,
@@ -1757,7 +1760,16 @@ try:
                                 structured_content=hold,
                             )
 
-                        forward = gate["forward_args"]
+                        # forward_args has all caller-supplied auth/envelope keys
+                        # stripped. The kernel envelope is the only auth artifact
+                        # we forward to the organ; we attach it as _envelope so
+                        # downstream bridges (e.g. GEOX IDENTITY_INJECT) pick it up.
+                        forward = dict(gate["forward_args"])
+                        envelope = gate.get("envelope") or {}
+                        if envelope:
+                            # Replace any caller-supplied _envelope that survived
+                            # strip_auth_args (defence in depth): kernel envelope wins.
+                            forward["_envelope"] = envelope
                         if organ == "WEALTH":
                             raw = await call_wealth_tool(tool_name, forward)
                         elif organ == "WELL":

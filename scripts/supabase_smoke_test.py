@@ -6,6 +6,13 @@ Verifies all 7 adapter functions work end-to-end.
 
 Usage: python3 scripts/supabase_smoke_test.py
 
+Connection:
+    Required env vars (no defaults — fail closed):
+      VAULT999_DB          — full postgresql:// pooler DSN
+      SUPABASE_HOST        — direct host (for psql append-only test)
+      SUPABASE_PASSWORD    — postgres password (for psql PGPASSWORD)
+    This script does NOT embed any credential in source.
+
 Tests:
   1. record_tool_call     → s000.tool_calls
   2. record_approval     → s000.approvals  (FK: tool_call_id)
@@ -31,19 +38,49 @@ from datetime import datetime, timezone
 
 import asyncpg
 
+
+def _require_env(name: str) -> str:
+    """Return the env var value, or fail closed if missing/empty."""
+    value = os.environ.get(name, "").strip()
+    if not value:
+        sys.stderr.write(
+            f"FATAL: {name} env var is required (env-only DSN/component).\n"
+            "Set it at runtime via .env or direnv. Refusing to embed.\n"
+        )
+        raise SystemExit(2)
+    return value
+
+
+def _get_pool_url() -> str:
+    """Return the Supabase pool DSN from VAULT999_DB. Fail closed if missing."""
+    return _require_env("VAULT999_DB")
+
+
+def _pool_url() -> str:
+    """Module-level accessor used by main() — resolves at call time."""
+    return _get_pool_url()
+
+
+def _supabase_host() -> str:
+    """Return the direct Supabase host from SUPABASE_HOST. Fail closed if missing."""
+    return _require_env("SUPABASE_HOST")
+
+
+def _supabase_password() -> str:
+    """Return the postgres password from SUPABASE_PASSWORD. Fail closed if missing."""
+    return _require_env("SUPABASE_PASSWORD")
+
+
+# NOTE: keep the adapter import BELOW the env helpers so that the helpers
+# can be extracted and tested in isolation without triggering the import.
 sys.path.insert(0, os.environ.get("ARIFOS_HOME", "/root") + "/arifOS")
 
-from arifOS.supabase_adapter import (
-    record_evidence,
-    record_artifact,
-    seal_vault999,
-    record_mcp_manifest_snapshot,
+from arifOS.supabase_adapter import (  # noqa: E402
     close_pool,
-)
-
-POOL_URL = (
-    "postgresql://postgres.utbmmjmbolmuahwixjqc:cWZ228S72IaC9UzRD5i7UHh8s8NUbaXT"
-    "@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+    record_artifact,
+    record_evidence,
+    record_mcp_manifest_snapshot,
+    seal_vault999,
 )
 
 
@@ -57,7 +94,7 @@ async def run_fk_batch(session_ref: str):
     verdict_id = f"verdict:{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc)
 
-    pool = await asyncpg.create_pool(POOL_URL, min_size=1, max_size=2)
+    pool = await asyncpg.create_pool(_pool_url(), min_size=1, max_size=2)
     try:
         async with pool.acquire() as conn:
             async with conn.transaction():
@@ -207,7 +244,7 @@ async def main():
     print("DATABASE VERIFICATION")
     print("=" * 60)
 
-    pool = await asyncpg.create_pool(POOL_URL, min_size=1, max_size=2)
+    pool = await asyncpg.create_pool(_pool_url(), min_size=1, max_size=2)
     async with pool.acquire() as conn:
         # Recent seals view (last 3)
         rows = await conn.fetch(
@@ -251,8 +288,8 @@ async def main():
     print("APPEND-ONLY TRIGGER TEST")
     print("=" * 60)
 
-    env = {**os.environ, "PGPASSWORD": "cWZ228S72IaC9UzRD5i7UHh8s8NUbaXT"}
-    db_host = "db.utbmmjmbolmuahwixjqc.supabase.co"  # direct — pooler doesn't support psql CLI
+    env = {**os.environ, "PGPASSWORD": _supabase_password()}
+    db_host = _supabase_host()  # direct — pooler doesn't support psql CLI
     for op in ("UPDATE", "DELETE"):
         if op == "UPDATE":
             sql = (

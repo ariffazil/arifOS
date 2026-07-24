@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arifos.arif-fazil.com/schemas/federation-request/v1.0.0",
+  "title": "Federation Request Envelope — v1.0.0",
+  "description": "CANONICAL transport-neutral cross-organ invocation envelope. STATUS: HARDENED DRAFT — not F13-ratified, not sealed. Owner: arifOS (this tree). AAA holds byte-identical mirrors only. session_id = live kernel session SEAL-<16hex>. session_token = optional sct_v1.* capability token (never interchange with session_id). payload_hash uses FCJ-v1 (Federation Canonical JSON) — see CANONICAL_JSON.md. Not full RFC 8785.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "trace_id",
+    "session_id",
+    "actor_id",
+    "source_organ",
+    "destination_organ",
+    "capability_id",
+    "epistemic_tag",
+    "authority",
+    "idempotency_key",
+    "attempt",
+    "max_attempts",
+    "issued_at",
+    "deadline_at",
+    "payload_hash",
+    "source_release",
+    "source_manifest_hash",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "schema_ref": {
+      "type": "string"
+    },
+    "schema_hash": {
+      "type": "string"
+    },
+    "invocation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "parent_invocation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hop_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^SEAL-[a-f0-9]{16}$",
+      "description": "Live arifOS session id: SEAL-<16 lowercase hex>. Not a token."
+    },
+    "session_token": {
+      "type": "string",
+      "pattern": "^sct_v1\\..+",
+      "description": "Optional Session Capability Token (sct_v1.*). Distinct from session_id."
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_organ": {
+      "type": "string",
+      "enum": [
+        "arifOS",
+        "AAA",
+        "A-FORGE",
+        "GEOX",
+        "WEALTH",
+        "WELL",
+        "VAULT999",
+        "HERMES"
+      ]
+    },
+    "destination_organ": {
+      "type": "string",
+      "enum": [
+        "arifOS",
+        "AAA",
+        "A-FORGE",
+        "GEOX",
+        "WEALTH",
+        "WELL",
+        "VAULT999",
+        "HERMES"
+      ]
+    },
+    "capability_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "epistemic_tag": {
+      "type": "string",
+      "enum": [
+        "OBSERVED",
+        "COMPUTED",
+        "ESTIMATE",
+        "INFERRED",
+        "UNKNOWN"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "payload_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "sha256:hex of FCJ-v1 serialization of payload (CANONICAL_JSON.md)."
+    },
+    "source_release": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_manifest_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority": {
+      "type": "object",
+      "required": [
+        "action_class",
+        "mutation",
+        "reversible",
+        "authority_band"
+      ],
+      "properties": {
+        "action_class": {
+          "type": "string",
+          "enum": [
+            "OBSERVE",
+            "COMPUTE",
+            "JUDGE",
+            "EXECUTE"
+          ]
+        },
+        "mutation": {
+          "type": "boolean"
+        },
+        "reversible": {
+          "type": "boolean"
+        },
+        "authority_band": {
+          "type": "string",
+          "enum": [
+            "OBSERVE_ONLY",
+            "LIMITED_MUTATE",
+            "FULL_MUTATE",
+            "SOVEREIGN"
+          ]
+        },
+        "authority_scope": {
+          "type": "string"
+        },
+        "judge_receipt_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "human_ack_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "max_attempts": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deadline_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "action_class": {
+                "const": "EXECUTE"
+              }
+            },
+            "required": [
+              "action_class"
+            ]
+          }
+        },
+        "required": [
+          "authority"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "judge_receipt_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "judge_receipt_ref"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "mutation": {
+                "const": true
+              },
+              "reversible": {
+                "const": false
+              }
+            },
+            "required": [
+              "mutation",
+              "reversible"
+            ]
+          }
+        },
+        "required": [
+          "authority"
+        ]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "properties": {
+              "human_ack_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "human_ack_ref"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

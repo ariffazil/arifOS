@@ -35,7 +35,7 @@ jobs:
           enable-cache: true
 
       - name: Install all dependencies (uv sync)
-        run: uv sync --all-extras
+        run: uv sync --frozen --all-extras
         env:
           UV_CACHE_DIR: /tmp/uv-cache
 

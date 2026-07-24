@@ -15,6 +15,7 @@ A2A consolidation (FEDERATION_CONTRACT §5.4.5):
 from pathlib import Path
 
 import pytest
+
 from arifosmcp.runtime.server import app
 from tests.conftest import SyncASGIClient
 
@@ -176,21 +177,43 @@ def test_webmcp_init_returns_session(client):
 
 
 def test_a2a_routes_reachable(client):
-    """Test that mounted A2A routes are exposed on the public app."""
+    """A2A discovery stays public while task routes require a valid SCT."""
+    from arifosmcp.runtime.sct import mint_sct
+
     health = client.get("/a2a/health")
     assert health.status_code == 200
     assert health.json()["protocol"] == "A2A"
 
-    submit = client.post(
+    unauthenticated = client.post(
         "/a2a/task",
         json={
-            "client_agent_id": "pytest",
+            "client_agent_id": "pytest-display",
             "messages": [{"role": "user", "content": "protocol regression"}],
         },
     )
+    assert unauthenticated.status_code == 401
+    assert unauthenticated.json()["verdict"] == "HOLD"
+
+    token, _claims = mint_sct(
+        sid="SEAL-a2a-rest-test",
+        actor="arif",
+        auth="OBSERVE_ONLY",
+        av=True,
+        allowed=["arif_init", "arif_observe", "arif_judge", "arif_route"],
+    )
+    headers = {"Authorization": f"Bearer {token}"}
+    submit = client.post(
+        "/a2a/task",
+        json={
+            "client_agent_id": "pytest-display",
+            "messages": [{"role": "user", "content": "protocol regression"}],
+        },
+        headers=headers,
+    )
     assert submit.status_code == 200
     task_id = submit.json()["task_id"]
+    assert submit.json()["creator_actor_id"] == "arif"
 
-    status = client.get(f"/a2a/status/{task_id}")
+    status = client.get(f"/a2a/status/{task_id}", headers=headers)
     assert status.status_code == 200
     assert status.json()["task"]["id"] == task_id

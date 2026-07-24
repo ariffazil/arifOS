@@ -1,0 +1,4 @@
+4d5e758326f08f3b36233b22b42e4c5965156d9ebc92c243f747b57ec2898f0c  contracts/schemas/federation-error.v1.schema.json
+509271be082b513ea76d2fce395de813d0cc5ac6a3bd89a55c77f80ba20cf2dc  contracts/schemas/federation-receipt.v1.schema.json
+fc617cecc805360a84fcc52491c87a475c7f0a1be7d45e53db08472ed493c2bd  contracts/schemas/federation-request.v1.schema.json
+15079bf055a4d9de6b94eab6167357ead231f335597b3a9fcbae7ccff08a8efe  contracts/schemas/federation-response.v1.schema.json

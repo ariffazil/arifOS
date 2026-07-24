@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import hmac
 import json
 import logging
 import os
@@ -641,15 +642,40 @@ def _try_promote_local_service(
     """
     Promote legacy_wrap envelopes to trusted service identity.
 
-    arifOS MCP only listens on 127.0.0.1 — all MCP traffic is local
-    (Hermes, opencode-bot, and other federation services run on the same host).
-    Local services automatically receive trusted identity for ATOMIC operations.
+    arifOS MCP only listens on 127.0.0.1, but locality alone is not
+    sufficient. Hermes promotion requires a valid shared service token before
+    trusted identity or mutation-capable risk/checkpoint state is applied.
 
     Returns True if promotion was applied.
     """
     # Only promote legacy_wrap envelopes
     if not envelope.legacy_wrap:
         return False
+
+    # Promotion is reserved for a local Hermes relay with a valid service token.
+    # SOFT MIGRATION (2026-07-24): if the token file exists but Hermes does
+    # not yet send service_token, log a warning and still promote — the gate
+    # hardens when Hermes is updated. Once hardened, incorrect tokens block
+    # promotion (fail-closed).
+    if not _is_localhost_caller():
+        return False
+    presented_token = arguments.get("service_token")
+    expected_token = _load_service_token()
+    if expected_token is not None:
+        if not isinstance(presented_token, str):
+            logger.warning(
+                "%s: Hermes promotion — service token expected but "
+                "not provided (soft migration: still promoting). "
+                "Update Hermes to send service_token.",
+                tool_name,
+            )
+        elif not _constant_time_compare(presented_token, expected_token):
+            # Token mismatch in hardened mode — block promotion
+            logger.error(
+                "%s: Hermes promotion BLOCKED — service token mismatch.",
+                tool_name,
+            )
+            return False
 
     # ── Promote ──────────────────────────────────────────────────────
     # Preserve delegation chain: caller_actor is the original human (e.g. arifbfazil),
@@ -743,12 +769,7 @@ def _is_localhost_caller() -> bool:
 
 def _constant_time_compare(a: str, b: str) -> bool:
     """Constant-time string comparison to prevent timing attacks."""
-    if len(a) != len(b):
-        return False
-    result = 0
-    for x, y in zip(a, b):
-        result |= ord(x) ^ ord(y)
-    return result == 0
+    return hmac.compare_digest(a, b)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1055,16 +1076,9 @@ if IS_FASTMCP_3:
                     # before classify_tool call on line ~1006 — was UnboundLocalError)
                     _tool_mode = (msg.arguments or {}).get("mode")
 
-                    # ── UPGRADE ACTION CLASS BEFORE PROMOTION (2026-06-12) ─────────
-                    _tool_risk = classify_tool(tool_name, mode=_tool_mode)
-                    if (
-                        envelope.risk.action_class == ActionClass.OBSERVE
-                        and _tool_risk.action_class != ActionClass.OBSERVE
-                    ):
-                        envelope.risk.action_class = _tool_risk.action_class
-                        envelope.risk.tier = _tool_risk.tier
-
                     # ── LOCAL SERVICE TRUST (Hermes bridge) ────────────────────────
+                    # Promotion authenticates locality and the service token before
+                    # touching identity, risk, or checkpoint state.
                     _trusted = _try_promote_local_service(
                         envelope, dict(msg.arguments or {}), tool_name
                     )
@@ -1073,6 +1087,16 @@ if IS_FASTMCP_3:
                             f"Ingress: local service trust promoted for {tool_name} "
                             f"→ actor={envelope.actor_id}"
                         )
+
+                    # ── ACTION CLASSIFICATION ──────────────────────────────────────
+                    _tool_risk = classify_tool(tool_name, mode=_tool_mode)
+                    if (
+                        envelope.risk.action_class == ActionClass.OBSERVE
+                        and _tool_risk.action_class != ActionClass.OBSERVE
+                    ):
+                        envelope.risk.action_class = _tool_risk.action_class
+                        envelope.risk.tier = _tool_risk.tier
+
                     envelope_ok, envelope_reason = _validate_envelope_for_tool(
                         envelope, tool_name, mode=_tool_mode
                     )
