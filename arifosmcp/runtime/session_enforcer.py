@@ -82,15 +82,17 @@ class SessionRecord:
 
 
 # In-process session registry (L1 ephemeral)
-_SESSIONS: dict[str, SessionRecord] = {}
+# Renamed from _SESSIONS 2026-07-24 (#15 collapse) — name was colliding with
+# tools.py _SESSIONS (= _FileSessionStore) and token_pressure._SESSIONS.
+_HOLD_TRACKER: dict[str, SessionRecord] = {}
 
 
 def register_session(
     session_id: str, actor_id: str = "anonymous", identity_verified: bool = False
 ) -> SessionRecord:
     """Register or update a session."""
-    if session_id in _SESSIONS:
-        rec = _SESSIONS[session_id]
+    if session_id in _HOLD_TRACKER:
+        rec = _HOLD_TRACKER[session_id]
         rec.last_active = time.time()
         if actor_id and actor_id != "anonymous":
             rec.actor_id = actor_id
@@ -103,16 +105,16 @@ def register_session(
         actor_id=actor_id,
         identity_verified=identity_verified,
     )
-    _SESSIONS[session_id] = rec
+    _HOLD_TRACKER[session_id] = rec
     logger.info(f"[session_enforcer] Registered session {session_id} actor={actor_id}")
     return rec
 
 
 def revoke_session(session_id: str, reason: str = "sovereign_revoke") -> bool:
     """Revoke a session."""
-    if session_id in _SESSIONS:
-        _SESSIONS[session_id].hold_active = True
-        _SESSIONS[session_id].hold_reason = reason
+    if session_id in _HOLD_TRACKER:
+        _HOLD_TRACKER[session_id].hold_active = True
+        _HOLD_TRACKER[session_id].hold_reason = reason
         logger.info(f"[session_enforcer] Revoked session {session_id}: {reason}")
         return True
     return False
@@ -120,7 +122,7 @@ def revoke_session(session_id: str, reason: str = "sovereign_revoke") -> bool:
 
 def get_session(session_id: str) -> SessionRecord | None:
     """Get a session record."""
-    return _SESSIONS.get(session_id)
+    return _HOLD_TRACKER.get(session_id)
 
 
 def _tool_tier(tool_name: str) -> str:
@@ -170,7 +172,7 @@ def enforce_session(
             "tier": tier,
         }
 
-    rec = _SESSIONS.get(session_id)
+    rec = _HOLD_TRACKER.get(session_id)
     if not rec:
         return {
             "verdict": SessionVerdict.MISSING,

@@ -308,7 +308,11 @@ class TestFileSessionStoreGetDefault:
             assert result is None
 
     def test_get_returns_stored_value_when_key_exists(self):
-        """Round-trip: set() then get() returns the stored dict."""
+        """Round-trip: set() then get() returns the stored dict.
+
+        Zen collapse 2026-07-24: proxy upserts into the unified identity store
+        and may enrich TTL/metadata fields — assert payload fields preserved.
+        """
         import tempfile
         from arifosmcp.runtime.tools import _FileSessionStore
 
@@ -317,7 +321,9 @@ class TestFileSessionStoreGetDefault:
             payload = {"actor_id": "arif", "stage": "888"}
             store.set("SEAL-test123", payload)
             result = store.get("SEAL-test123", {})
-            assert result == payload
+            assert isinstance(result, dict)
+            assert result.get("actor_id") == "arif"
+            assert result.get("stage") == "888"
 
     def test_get_existing_key_with_default_ignores_default(self):
         """When key exists, .get() returns the value, not the default."""
@@ -328,4 +334,6 @@ class TestFileSessionStoreGetDefault:
             store = _FileSessionStore(path=f"{tmp}/sessions.json")
             store.set("k1", {"real": "value"})
             result = store.get("k1", {"fallback": "ignored"})
-            assert result == {"real": "value"}
+            assert isinstance(result, dict)
+            assert result.get("real") == "value"
+            assert "fallback" not in result

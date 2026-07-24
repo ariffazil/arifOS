@@ -18,8 +18,8 @@ from arifosmcp.runtime.executor import (
     ExecutionStateMachine,
 )
 from arifosmcp.runtime.session import (
-    get_session_execution_state,
-    set_session_execution_state,
+    get_session_pipeline_state,
+    set_session_pipeline_state,
 )
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -215,15 +215,15 @@ def test_pipeline_progress_format():
 
 
 def test_session_execution_state_round_trip(fresh_session_id: str):
-    assert get_session_execution_state(fresh_session_id) is None
-    set_session_execution_state(fresh_session_id, ExecutionState.SIMULATE.value)
-    assert get_session_execution_state(fresh_session_id) == "SIMULATE"
+    assert get_session_pipeline_state(fresh_session_id) is None
+    set_session_pipeline_state(fresh_session_id, ExecutionState.SIMULATE.value)
+    assert get_session_pipeline_state(fresh_session_id) == "SIMULATE"
 
 
 def test_session_state_overwrite(fresh_session_id: str):
-    set_session_execution_state(fresh_session_id, ExecutionState.OBSERVE.value)
-    set_session_execution_state(fresh_session_id, ExecutionState.SEAL.value)
-    assert get_session_execution_state(fresh_session_id) == "SEAL"
+    set_session_pipeline_state(fresh_session_id, ExecutionState.OBSERVE.value)
+    set_session_pipeline_state(fresh_session_id, ExecutionState.SEAL.value)
+    assert get_session_pipeline_state(fresh_session_id) == "SEAL"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
