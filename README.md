@@ -25,7 +25,9 @@ truth_rule: /health + MCP tools/list beat any static count in prose
 
   Constitutional AI Governance Kernel
   ─────────────────────────────────────────
-  Not a chatbot. Not a model wrapper. The LAW.
+  Not a chatbot. Not a model wrapper.
+  The constitutional governance layer
+  between agents and irreversible action.
 ```
 <hr/>
 <p align="center">
@@ -82,8 +84,24 @@ arifOS is a **constitutional governance kernel** that sits between AI agents and
 | A federation hub — 6 live organs + VAULT999 ledger | A replacement for human judgment |
 | An immutable ledger — every decision sealed forever | Self-authorizing — requires F13 for SEAL |
 | Built for one sovereign — Muhammad Arif bin Fazil | A general-purpose agent framework |
+| **This deployment** is sovereign-bound to Arif | The **architecture** may be studied, forked, or adapted |
 
 **Trinity role:** arifOS = LAW/JUDGMENT. The judge. AAA = STATE/ROUTING. A-FORGE = EXECUTION/MUTATION.
+
+### Federation Separation of Powers
+
+The arifOS Federation separates authority from capability:
+
+| Layer | Role | Can | Cannot |
+|-------|------|-----|--------|
+| **ARIF** | Sovereign | Veto, approve, decide | Be overridden |
+| **AAA** | State / Cockpit | Display, route, queue, register | Judge, execute, seal |
+| **arifOS** | Judge | Issue SEAL/HOLD/VOID/SABAR | Execute mutations |
+| **Domain Organs** | Witnesses | Compute and reflect evidence | Decide alone |
+| **A-FORGE** | Executor | Build, deploy, mutate | Self-authorize |
+| **VAULT999** | Ledger | Record immutable seals | Edit or delete history |
+
+> AAA routes and displays. arifOS judges. Domain organs witness. A-FORGE executes. VAULT999 records. ARIF decides.
 
 ---
 
