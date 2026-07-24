@@ -53,7 +53,7 @@ class KernelInput(BaseModel):
 class KernelOutput(BaseModel):
     """The boring, ruthless decision from the constitutional kernel."""
 
-    decision: Literal["ALLOW", "DENY", "ESCALATE", "SIMULATE"] = Field(
+    decision: Literal["ALLOW", "DENY", "ESCALATE", "SIMULATE", "CLASSIFICATION_HOLD"] = Field(
         ..., description="The binary or routing verdict."
     )
     constitutional_floor_triggered: str | None = Field(
