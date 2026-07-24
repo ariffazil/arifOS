@@ -138,7 +138,7 @@ def get_runtime_attestation() -> dict[str, Any]:
 
     drift = False
     if source_commit != "unknown" and built_commit != "unknown":
-        drift = source_commit != built_commit
+        drift = source_commit[:7] != built_commit[:7]
 
     surface_hash = _compute_tool_surface_hash()
 
