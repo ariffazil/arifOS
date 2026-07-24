@@ -22535,7 +22535,28 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
         @wraps(handler)
         async def _async_wrapped(*args, **kwargs):
+            import time as _time
+
+            _start_t = _time.time()
             response = await handler(*args, **kwargs)
+            _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────
+            try:
+                from arifosmcp.runtime.telemetry import trace_tool_call
+
+                trace_tool_call(
+                    tool_name=tool_name,
+                    arguments={k: v for k, v in kwargs.items() if k != "session_token"},
+                    result=response
+                    if isinstance(response, dict)
+                    else {"result": str(response)[:500]},
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id") or "unknown",
+                    latency_ms=_latency_ms,
+                )
+            except Exception:
+                pass
+            # ────────────────────────────────────────────────────────────────
             try:
                 body = response if isinstance(response, dict) else {"result": response}
                 sid, aid = _resolve_standing_ids(body, kwargs)
@@ -22548,7 +22569,26 @@ def _wrap_with_canonical_normalization(handler, tool_name):
 
     @wraps(handler)
     def _sync_wrapped(*args, **kwargs):
+        import time as _time
+
+        _start_t = _time.time()
         response = handler(*args, **kwargs)
+        _latency_ms = (_time.time() - _start_t) * 1000.0
+        # ── Kabarkan telemetry (ATLAS333 canonical hook) ──────────────────
+        try:
+            from arifosmcp.runtime.telemetry import trace_tool_call
+
+            trace_tool_call(
+                tool_name=tool_name,
+                arguments={k: v for k, v in kwargs.items() if k != "session_token"},
+                result=response if isinstance(response, dict) else {"result": str(response)[:500]},
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id") or "unknown",
+                latency_ms=_latency_ms,
+            )
+        except Exception:
+            pass
+        # ────────────────────────────────────────────────────────────────────
         try:
             body = response if isinstance(response, dict) else {"result": response}
             sid, aid = _resolve_standing_ids(body, kwargs)
@@ -23147,10 +23187,11 @@ def verify_and_inject_token(
 
 
 def _wrap_handler(handler: Any, tool_name: str) -> Any:
-    """
-    Wrap a handler so:
-    1. Pydantic validation errors expose the public tool name
-    2. Every response passes through Nine-Signal enforcement (F2 addendum)
+    """ "
+        Wrap a handler so:
+        1. Pydantic validation errors expose the public tool name
+        2. Every response passes through Nine-Signal enforcement (F2 addendum)
+        3. Kabarkan telemetry is fired for every tool call (ATLAS333 hook)
     3. Unknown / aliased parameters are filtered, not crashed on
     4. FederationEnvelope is forwarded to envelope-aware handlers (Chapter 6)
     """
@@ -23212,6 +23253,20 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
         _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
+            # Kabarkan telemetry (ATLAS333 hook) - sync path
+            try:
+                from arifosmcp.runtime.telemetry import trace_tool_call as _kt
+
+                _kt(
+                    tool_name=tool_name,
+                    arguments=kwargs,
+                    result={},
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id") or "system",
+                    latency_ms=0.0,
+                )
+            except Exception:
+                pass
             # ── Session A: Emit operation STARTED ──────────────────────────
             from arifosmcp.runtime.event_bus import emit_operation
 
@@ -23229,7 +23284,25 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 status="STARTED",
             )["op_id"]
             # ────────────────────────────────────────────────────────────────
+            import time as _time
+
+            _start_t = _time.time()
             response = handler(*args, **_filtered)
+            _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
+            try:
+                from arifosmcp.runtime.telemetry import trace_tool_call
+
+                trace_tool_call(
+                    tool_name=tool_name,
+                    arguments={k: v for k, v in kwargs.items() if k != "session_token"},
+                    result=_dict_from_response(response),
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id") or "unknown",
+                    latency_ms=_latency_ms,
+                )
+            except Exception:
+                pass
             # ── Session A: Emit operation SUCCESS + receipt ────────────────
             from arifosmcp.runtime.event_bus import emit_operation as _eo
             from arifosmcp.runtime.event_bus import emit_receipt as _er
@@ -23255,6 +23328,24 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
                 from arifosmcp.runtime.capability_drift import record_test_result
 
                 record_test_result(tool_name, passed=True)
+            except Exception:
+                pass
+            # ── Kabarkan telemetry (ATLAS333 valve) ────────────────────────
+            try:
+                from arifosmcp.runtime.telemetry import trace_tool_call as _kabarkan_trace
+                import time as _time
+
+                _latency = (_time.time() - _start_t) * 1000 if "_start_t" in dir() else 0.0
+                _kabarkan_trace(
+                    tool_name=tool_name,
+                    arguments=kwargs,
+                    result=_dict_from_response(response)
+                    if not isinstance(response, dict)
+                    else response,
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id") or "system",
+                    latency_ms=_latency,
+                )
             except Exception:
                 pass
             # ────────────────────────────────────────────────────────────────
@@ -23429,7 +23520,25 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
         _filtered = _filter_kwargs_for_handler(handler, kwargs, tool_name)
         try:
+            import time as _time
+
+            _start_t = _time.time()
             response = await handler(*args, **_filtered)
+            _latency_ms = (_time.time() - _start_t) * 1000.0
+            # ── Kabarkan telemetry (ATLAS333 hook) ────────────────────────
+            try:
+                from arifosmcp.runtime.telemetry import trace_tool_call
+
+                trace_tool_call(
+                    tool_name=tool_name,
+                    arguments={k: v for k, v in kwargs.items() if k != "session_token"},
+                    result=_dict_from_response(response),
+                    session_id=kwargs.get("session_id"),
+                    actor_id=kwargs.get("actor_id") or "unknown",
+                    latency_ms=_latency_ms,
+                )
+            except Exception:
+                pass
         except Exception as exc:
             msg = str(exc)
             if handler.__name__ in msg:
@@ -23503,6 +23612,22 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         _schedule_seal(final_resp, tool_name, kwargs)
         # P3 FIX: V2 envelope on async-success path (post-attach_canonical).
         _attach_v2_envelope_guarantee(final_resp, tool_name)
+        # ── Kabarkan telemetry (ATLAS333 valve, async) ────────────────────
+        try:
+            from arifosmcp.runtime.telemetry import trace_tool_call as _kabarkan_trace
+            import time as _time
+
+            _latency = (_time.time() - _start_t) * 1000
+            _kabarkan_trace(
+                tool_name=tool_name,
+                arguments=kwargs,
+                result=final_resp,
+                session_id=kwargs.get("session_id"),
+                actor_id=kwargs.get("actor_id") or "system",
+                latency_ms=_latency,
+            )
+        except Exception:
+            pass
         # ── outcomes.jsonl operational ledger (async path, re-activated 2026-07-08) ──
         try:
             from datetime import UTC as _UTC

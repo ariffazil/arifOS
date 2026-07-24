@@ -1,6 +1,6 @@
 {
   "$schema": "arifos://schema/kernel-capability-registry/v1",
-  "abi_version": "1.0.0",
+  "abi_version": "2026.07.24",
   "description": "Transport- and model-neutral semantic contract. Provider bindings are replaceable implementations, not constitutional meaning.",
   "capabilities": [
     {

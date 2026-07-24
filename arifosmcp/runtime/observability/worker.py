@@ -31,12 +31,23 @@ BATCH_SIZE = int(os.getenv("KABARKAN_BATCH_SIZE", "10"))
 POLL_INTERVAL_S = float(os.getenv("KABARKAN_POLL_INTERVAL", "1.0"))
 MAX_CONCURRENT = int(os.getenv("KABARKAN_MAX_CONCURRENT", "5"))
 
-# Postgres
-PG_HOST = os.getenv("POSTGRES_HOST", "localhost")
-PG_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
-PG_DB = os.getenv("POSTGRES_DB", "arifos")
-PG_USER = os.getenv("POSTGRES_USER", "arifos_admin")
-PG_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
+# Postgres — prefer POSTGRES_URL, fall back to individual vars
+import urllib.parse as _up
+
+_PG_URL = os.getenv("POSTGRES_URL", "")
+if _PG_URL:
+    _parsed = _up.urlparse(_PG_URL)
+    PG_HOST = _parsed.hostname or "localhost"
+    PG_PORT = _parsed.port or 5432
+    PG_DB = _parsed.path.lstrip("/") or "vault999"
+    PG_USER = _up.unquote(_parsed.username or "") or "arifos_admin"
+    PG_PASSWORD = _up.unquote(_parsed.password or "") or ""
+else:
+    PG_HOST = os.getenv("POSTGRES_HOST", "localhost")
+    PG_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
+    PG_DB = os.getenv("POSTGRES_DB", "vault999")
+    PG_USER = os.getenv("POSTGRES_USER", "arifos_admin")
+    PG_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
 
 # MinIO (optional archiving)
 S3_ENDPOINT = os.getenv("S3_ENDPOINT", "")
@@ -88,6 +99,16 @@ async def _store_observation(pg: Any, record: dict[str, Any]) -> bool:
     try:
         import uuid as _uuid
 
+        def _parse_dt(val: Any) -> datetime | None:
+            if val is None:
+                return None
+            if isinstance(val, datetime):
+                return val
+            try:
+                return datetime.fromisoformat(str(val))
+            except (ValueError, TypeError):
+                return None
+
         obs_id = _uuid.UUID(str(record.get("observation_id") or _uuid.uuid4()))
         trace_id = _uuid.UUID(str(record.get("trace_id") or _uuid.uuid4()))
         span_id = _uuid.UUID(str(record.get("span_id") or _uuid.uuid4()))
@@ -121,7 +142,13 @@ async def _store_observation(pg: Any, record: dict[str, Any]) -> bool:
             record.get("verdict_class", "OK"),
             record.get("delta_s", 0.0),
             json.dumps(record.get("reasons", [])),
-            record.get("next_safe_action"),
+            record.get("next_safe_action")
+            if isinstance(record.get("next_safe_action"), str)
+            else (
+                record.get("next_safe_action", {}).get("action")
+                if isinstance(record.get("next_safe_action"), dict)
+                else str(record.get("next_safe_action", "")) or None
+            ),
             record.get("uncertainty_tag"),
             record.get("input_hash"),
             record.get("output_hash"),
@@ -129,10 +156,10 @@ async def _store_observation(pg: Any, record: dict[str, Any]) -> bool:
             record.get("cost_usd"),
             record.get("model_name"),
             record.get("latency_ms"),
-            record.get("start_time") or datetime.now(timezone.utc).isoformat(),
-            record.get("end_time"),
+            _parse_dt(record.get("start_time")) or datetime.now(timezone.utc),
+            _parse_dt(record.get("end_time")),
             json.dumps(record.get("metadata", {})),
-            datetime.now(timezone.utc).isoformat(),
+            datetime.now(timezone.utc),
         )
         return True
     except Exception as e:
@@ -183,22 +210,34 @@ async def consumer_loop() -> None:
                 continue
 
             sem = asyncio.Semaphore(MAX_CONCURRENT)
+            pg_lock = asyncio.Lock()
+
+            def _msg_seq(msg) -> str:
+                try:
+                    return str(msg.metadata.sequence.stream)
+                except Exception:
+                    try:
+                        return str(msg.metadata.sequence.consumer)
+                    except Exception:
+                        return "?"
 
             async def handle_one(msg) -> None:
                 async with sem:
+                    seq = _msg_seq(msg)
                     try:
                         data = json.loads(msg.data.decode())
-                        ok = await process_observation(pg, data)
+                        async with pg_lock:
+                            ok = await process_observation(pg, data)
                         if ok:
                             await msg.ack()
                         else:
-                            logger.warning(f"Nak msg {msg.seq}: store failed")
+                            logger.warning(f"Nak msg {seq}: store failed")
                             await msg.nak()
                     except json.JSONDecodeError:
-                        logger.warning(f"Nak msg {msg.seq}: invalid JSON")
+                        logger.warning(f"Nak msg {seq}: invalid JSON")
                         await msg.nak()
                     except Exception as e:
-                        logger.error(f"Nak msg {msg.seq}: {e}")
+                        logger.error(f"Nak msg {seq}: {e}")
                         await msg.nak()
 
             await asyncio.gather(*[handle_one(m) for m in msgs])
@@ -211,7 +250,11 @@ async def consumer_loop() -> None:
         if pg:
             await pg.close()
         if nc:
-            await nc.drain()
+            try:
+                await asyncio.wait_for(nc.drain(), timeout=3.0)
+            except (asyncio.TimeoutError, Exception):
+                pass
+            await nc.close()
 
 
 def main() -> None:

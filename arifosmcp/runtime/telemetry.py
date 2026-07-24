@@ -161,56 +161,53 @@ _NATS_CONNECTION: Any = None
 def _publish_nats(record: Any) -> None:
     """Fire-and-forget publish an observation to NATS JetStream.
 
-    Falls back silently if NATS is unavailable — never blocks the kernel.
+    Uses subprocess (nats CLI) — simple, synchronous, always works.
+    Falls back silently — never blocks the kernel.
     """
-    global _NATS_CONNECTION
     import json
-    import threading
+    import subprocess
 
-    # Lazy-init NATS in a background thread (first call only)
     if _NATS_CONNECTION is None:
-        _NATS_CONNECTION = object()  # marker that we tried
+        import threading
 
-        def _init_nats():
+        def _init():
             global _NATS_CONNECTION
             try:
-                import asyncio
-                from nats import NATS as NatsClient
-
-                nc = NatsClient()
-                asyncio.run(nc.connect("nats://127.0.0.1:4222"))
-                js = nc.jetstream()
-                asyncio.run(
-                    js.publish(
+                payload = json.dumps(record.model_dump(mode="json"), default=str).encode()
+                subprocess.run(
+                    [
+                        "nats",
+                        "publish",
                         f"kabarkan.ingest.span.{record.trace_id}",
-                        json.dumps(record.model_dump(mode="json"), default=str).encode(),
-                    )
+                        payload.decode(),
+                    ],
+                    capture_output=True,
+                    timeout=5,
+                    env={**__import__("os").environ, "NATS_CONTEXT": "kabarkan"},
                 )
-                asyncio.run(nc.close())
+                _NATS_CONNECTION = True
             except Exception:
-                pass
+                _NATS_CONNECTION = False
 
-        threading.Thread(target=_init_nats, daemon=True).start()
+        threading.Thread(target=_init, daemon=True).start()
         return
 
-    try:
-        import asyncio
-        from nats import NATS as NatsClient
-
-        nc = NatsClient()
-
-        async def _pub():
-            await nc.connect("nats://127.0.0.1:4222")
-            js = nc.jetstream()
-            await js.publish(
-                f"kabarkan.ingest.span.{record.trace_id}",
-                json.dumps(record.model_dump(mode="json"), default=str).encode(),
+    if _NATS_CONNECTION is True:
+        try:
+            payload = json.dumps(record.model_dump(mode="json"), default=str).encode()
+            subprocess.run(
+                [
+                    "nats",
+                    "publish",
+                    f"kabarkan.ingest.span.{record.trace_id}",
+                    payload.decode(),
+                ],
+                capture_output=True,
+                timeout=5,
+                env={**__import__("os").environ, "NATS_CONTEXT": "kabarkan"},
             )
-            await nc.close()
-
-        asyncio.run(_pub())
-    except Exception:
-        pass
+        except Exception:
+            pass
 
 
 def _hash_payload(data: Any) -> str:
@@ -376,26 +373,29 @@ class Telemetry:
                 logger.debug(f"[Telemetry] trace emit failed: {e}")
 
         # ── Kabarkan NATS (fire-and-forget stream) ─────────────────────
+        # Uses ObservationRecord model so the worker always receives
+        # a consistent schema with observation_id, trace_id, span_id etc.
         _nats = _get_nats()
         if _nats:
             try:
-                i_h = _hash_payload(_redact(input_data)) if input_data else None
-                o_h = _hash_payload(output_data) if output_data else None
-                payload = {
-                    "tool_name": tool,
-                    "verdict_class": verdict.upper(),
-                    "actor_id": actor_id or "unknown",
-                    "session_id": session_id or None,
-                    "latency_ms": latency,
-                    "delta_s": delta_s,
-                    "input_hash": i_h,
-                    "output_hash": o_h,
-                    "vault_receipt": vault_receipt,
-                    "reasons": reasons or [],
-                    "next_safe_action": next_safe_action,
-                    "organ": "arifOS",
-                }
-                _nats(f"kabarkan.ingest.span.{tool}", payload)
+                input_hash = _hash_payload(_redact(input_data)) if input_data else None
+                output_hash = _hash_payload(output_data) if output_data else None
+                record = ObservationRecord(
+                    session_id=session_id,
+                    actor_id=actor_id or "unknown",
+                    tool_name=tool,
+                    organ_id="arifOS",
+                    verdict_class=verdict.upper(),
+                    delta_s=delta_s,
+                    reasons=reasons or [],
+                    next_safe_action=next_safe_action,
+                    input_hash=input_hash,
+                    output_hash=output_hash,
+                    vault_receipt=vault_receipt,
+                    latency_ms=latency if latency else None,
+                    metadata=metadata,
+                )
+                _publish_nats(record)
             except Exception:
                 pass
 
@@ -408,6 +408,7 @@ class Telemetry:
                     session_id=session_id,
                     actor_id=actor_id or "unknown",
                     tool_name=tool,
+                    organ_id="arifOS",
                     verdict_class=verdict.upper(),
                     delta_s=delta_s,
                     reasons=reasons or [],

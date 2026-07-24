@@ -1415,6 +1415,30 @@ if IS_FASTMCP_3:
                     raise exc
                 finally:
                     elapsed_ms = int((time.monotonic() - t0) * 1000)
+
+                    # ── ATLAS333 Kabarkan telemetry (every tool dispatch) ──────────
+                    if "result" in locals() and result and tool_name:
+                        try:
+                            from arifosmcp.runtime.telemetry import trace_tool_call
+
+                            _resp_dict: dict[str, Any] = {"verdict": verdict, "status": verdict}
+                            if hasattr(result, "structured_content") and isinstance(
+                                result.structured_content, dict
+                            ):
+                                _resp_dict = {**result.structured_content, **_resp_dict}
+                            trace_tool_call(
+                                tool_name=tool_name,
+                                arguments=dict(msg.arguments or {}),
+                                result=_resp_dict,
+                                session_id=envelope_session_id
+                                if envelope_session_id != "unknown"
+                                else None,
+                                actor_id=envelope_agent_id,
+                                latency_ms=float(elapsed_ms),
+                            )
+                        except Exception:
+                            pass
+
                     try:
                         loop = asyncio.get_running_loop()
                         if "result" in locals() and result:

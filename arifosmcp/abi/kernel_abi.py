@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 ABI_ROOT = Path(__file__).resolve().parent
-KERNEL_ABI_VERSION = "1.0.0"
+KERNEL_ABI_VERSION = "2026.07.24"
 _SEMANTIC_FIELDS = (
     "capability_id",
     "version",
