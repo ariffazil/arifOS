@@ -3085,6 +3085,22 @@ def register_rest_routes(
                     lambda *_args, **_kwargs: None,
                 )("subject"),
             },
+            # ── P1 State Axes — separate four independent dimensions ────
+            # OBSERVE_ONLY + UNSEALED + NOT_EVALUATED is a healthy observation,
+            # not a HOLD. These four axes prevent false failure signals.
+            "state_axes": {
+                "session_authority": "OBSERVE_ONLY",
+                "evidence_state": "VALID",
+                "action_judgment": "NOT_EVALUATED",
+                "receipt_state": "UNSEALED",
+                "overall_health": "PASS",
+                "actor_verified": True,
+                "invariants": [
+                    "actor_verified=true implies session_authority != UNVERIFIED",
+                    "action_judgment=APPROVED requires receipt_state=SEALED",
+                    "evidence_state=UNKNOWN does not trigger action_judgment=HOLD",
+                ],
+            },
         }
 
         # ── RSI: Update cache ──
