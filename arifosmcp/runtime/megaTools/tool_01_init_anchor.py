@@ -32,7 +32,7 @@ from arifosmcp.runtime.model import (
     Verdict,
 )
 from arifosmcp.runtime.registry_client import get_model_registry_client
-from arifosmcp.schemas.change_authority import ChangeAuthorityClass
+from arifosmcp.schemas.change_authority import ChangeAuthorityClass, OperationalRiskTier
 
 logger = logging.getLogger(__name__)
 
@@ -295,7 +295,7 @@ def _status_envelope(session_id: str, identity: dict[str, Any] | None) -> Runtim
         ],
         anchor_state="reused",
         anchor_scope="session",
-        risk_class=ChangeAuthorityClass(risk_tier),
+        risk_class=OperationalRiskTier(risk_tier.upper()),
         authority=_authority_for_actor(actor_id, verified),
         payload={
             "result": _bootstrap_result(session_id, actor_id, verified, risk_tier, platform, stage),
@@ -736,7 +736,7 @@ async def init_anchor(
         mode=mode or "init",
         anchor_state="created",
         anchor_scope="session",
-        risk_class=ChangeAuthorityClass(risk_tier),
+        risk_class=OperationalRiskTier(risk_tier.upper()),
         policy={
             "floors_checked": ["L11", "L12", "L13"],
             "floors_failed": [],
