@@ -10,20 +10,43 @@ Usage:
     python3 scripts/aaa_cockpit.py --seals     # seals only
     python3 scripts/aaa_cockpit.py --tool-calls # tool calls only
     python3 scripts/aaa_cockpit.py --summary    # namespace row counts only
+
+Connection:
+    The Supabase pool DSN is read from the VAULT999_DB env var only.
+    This script does NOT embed any credential in source. It fails closed
+    when VAULT999_DB is missing or empty.
 """
 
 import argparse
 import asyncio
 import os
+import sys
 from datetime import datetime, timezone
 
 import asyncpg
 
-POOL_URL = os.getenv(
-    "VAULT999_DB",
-    "postgresql://postgres.utbmmjmbolmuahwixjqc:cWZ228S72IaC9UzRD5i7UHh8s8NUbaXT"
-    "@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres",
-)
+
+def _get_pool_url() -> str:
+    """Return the Supabase pool DSN from VAULT999_DB. Fail closed if missing.
+
+    No default DSN is supplied. The script refuses to embed credentials in
+    source and requires the operator to provide the DSN at runtime.
+    """
+    url = os.environ.get("VAULT999_DB", "").strip()
+    if not url:
+        sys.stderr.write(
+            "FATAL: VAULT999_DB env var is required (env-only DSN).\n"
+            "Set it to a postgresql:// DSN at runtime, e.g. via .env or direnv.\n"
+            "Refusing to embed credentials in source.\n"
+        )
+        raise SystemExit(2)
+    return url
+
+
+def _pool_url() -> str:
+    """Module-level accessor used by main(). Defined as a function so the DSN
+    is resolved at call time, after env has been loaded by the test harness."""
+    return _get_pool_url()
 
 
 async def fetch_rows(conn, query, params=None):
@@ -180,7 +203,7 @@ async def floor_rules(conn):
 
 
 async def run_full():
-    pool = await asyncpg.create_pool(POOL_URL, min_size=1, max_size=3)
+    pool = await asyncpg.create_pool(_pool_url(), min_size=1, max_size=3)
     async with pool.acquire() as conn:
         print("\n╔══════════════════════════════════════════════════════════════╗")
         print("║          AAA COCKPIT — arifOS Federation L4              ║")
@@ -252,7 +275,7 @@ async def run_full():
 
 
 async def run_seals():
-    pool = await asyncpg.create_pool(POOL_URL, min_size=1, max_size=3)
+    pool = await asyncpg.create_pool(_pool_url(), min_size=1, max_size=3)
     async with pool.acquire() as conn:
         seals = await recent_seals(conn, 30)
         print(
@@ -271,7 +294,7 @@ async def run_seals():
 
 
 async def run_tool_calls():
-    pool = await asyncpg.create_pool(POOL_URL, min_size=1, max_size=3)
+    pool = await asyncpg.create_pool(_pool_url(), min_size=1, max_size=3)
     async with pool.acquire() as conn:
         calls = await tool_calls(conn, 50)
         print(f"\n{'SRC':<10} {'DATE':<12} {'ORGAN':<12} {'TOOL':<35} {'LATENCY'}")
@@ -287,7 +310,7 @@ async def run_tool_calls():
 
 
 async def run_summary():
-    pool = await asyncpg.create_pool(POOL_URL, min_size=1, max_size=3)
+    pool = await asyncpg.create_pool(_pool_url(), min_size=1, max_size=3)
     async with pool.acquire() as conn:
         rows = await namespace_summary(conn)
         print(f"\n{'NAMESPACE':<12} {'TABLE':<40} {'ROWS':>8}  {'NOTE'}")

@@ -437,6 +437,14 @@ jobs:
           LOG_LEVEL: warning
         continue-on-error: true
 
+      - name: Pinned Python dependency audit
+        run: |
+          cd "$WORKDIR"
+          uvx --from pip-audit==2.9.0 pip-audit \
+            --requirement requirements.txt \
+            --format columns
+        continue-on-error: true
+
   # ─────────────────────────────────────────────────────────────
   # JOB 6: MCP Conformance (Fast test)
   # ─────────────────────────────────────────────────────────────
@@ -462,7 +470,7 @@ jobs:
       - name: Install
         run: |
           cd "$WORKDIR"
-          uv sync --all-extras
+          uv sync --frozen --all-extras
 
       - name: MCP health endpoint
         run: |
@@ -503,7 +511,7 @@ jobs:
       - name: Install
         run: |
           cd "$WORKDIR"
-          uv sync --all-extras
+          uv sync --frozen --all-extras
 
       - name: Run core tests (exclude MCP server subprocess tests)
         run: |

@@ -5,6 +5,13 @@ A2A Server Implementation
 Real A2A protocol server with constitutional governance integration.
 Includes 888_HOLD cross-protocol broadcast via Redis + WebMCP WebSocket.
 
+B3 hardening (2026-07-23):
+  - L11 SCT machinery gates all task-owning endpoints.
+  - Body actor IDs are display hints; SCT is the only authority.
+  - Discovery routes stay public.
+  - Synchronous /execute routes only on arif_judge SEAL.
+  - status_callback_url is validated with a_rif/ssrf_guard before use.
+
 ΔΩΨ | ARIF — Ditempa Bukan Diberi
 """
 
@@ -20,13 +27,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
+from arifosmcp.runtime.a_rif.ssrf_guard import validate_url_safety
 from arifosmcp.runtime.build import get_build_info
 from arifosmcp.runtime.mcp_util import call_mcp_tool
 from arifosmcp.runtime.optional_deps import aiofiles
-from arifosmcp.server import mcp as _FAST_MCP_
+from arifosmcp.runtime.sct import resolve_standing
+from arifosmcp.server import mcp as _fast_mcp
 
 from .agent_card_v2 import get_arifOS_agent_card, get_axos_summary
 from .models import (
@@ -49,8 +58,115 @@ from .seal_verifier import (
 logger = logging.getLogger(__name__)
 
 
+# ── B3 HARDENING CONSTANTS ─────────────────────────────────────────────
+# A2A endpoints that gate task ownership. Discovery / health / seal-verify
+# routes stay public and are NOT in this set.
+A2A_TASK_ENDPOINTS = frozenset({"/task", "/execute", "/status", "/cancel", "/subscribe"})
+
+# Verdict string returned by arif_judge that authorises routing to execution.
+# Anything else (HOLD, VOID, SABAR, missing) is a hard fail — no truthy defaults.
+ARIF_JUDGE_SEAL = "SEAL"
+
+# Headers we accept for the SCT (priority: Authorization, then X-Session-Token).
+_AUTH_HEADER = "authorization"
+_SCT_HEADER = "x-session-token"
+_BEARER_PREFIX = "bearer "
+
+
 def _utcnow() -> datetime:
     return datetime.now(UTC)
+
+
+# ── B3 HARDENING HELPERS ───────────────────────────────────────────────
+def _extract_sct_token(authorization: str | None, x_session_token: str | None) -> str | None:
+    """Pull SCT from either Authorization: Bearer … or X-Session-Token."""
+    if authorization:
+        scheme, _, value = authorization.partition(" ")
+        if scheme.lower() == _BEARER_PREFIX.rstrip() and value.strip():
+            return value.strip()
+        # Tolerate raw token in Authorization (no scheme).
+        if not scheme and value.strip():
+            return authorization.strip()
+    if x_session_token:
+        return x_session_token.strip() or None
+    return None
+
+
+def _resolve_actor_from_request(
+    *,
+    authorization: str | None = None,
+    x_session_token: str | None = None,
+) -> tuple[str, str | None, str]:
+    """
+    L11 SCT authentication for A2A endpoints.
+
+    Returns (actor_id, session_id, session_token). Raises HTTPException(401)
+    on any failure. Body actor IDs are NOT consulted — the SCT is the only
+    authority.
+    """
+    token = _extract_sct_token(authorization, x_session_token)
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail=(
+                "L11 AUTH: missing session token "
+                "(Authorization: Bearer <sct> or X-Session-Token required)"
+            ),
+        )
+
+    standing = resolve_standing(session_token=token, allow_store=False)
+    if not standing.valid:
+        raise HTTPException(
+            status_code=401,
+            detail=f"L11 AUTH: {standing.reason}",
+        )
+    actor_id = standing.actor_id or "anonymous"
+    return actor_id, standing.session_id, standing.session_token or token
+
+
+def _validate_callback_url(url: str | None) -> str | None:
+    """
+    SSRF-safe callback URL gate. Returns the URL if safe, None if absent,
+    raises HTTPException(400) if unsafe.
+    """
+    if not url:
+        return None
+    verdict = validate_url_safety(url)
+    if not verdict.get("safe"):
+        flags = verdict.get("risk_flags") or ["unsafe"]
+        reason = verdict.get("reason") or "callback URL failed SSRF safety check"
+        raise HTTPException(
+            status_code=400,
+            detail=f"L1 AMANAH: unsafe status_callback_url ({','.join(flags)}): {reason}",
+        )
+    return url
+
+
+def _parse_judge_verdict(judge_result: dict[str, Any]) -> str:
+    """
+    Extract the verdict string from a wrapped FastMCP arif_judge result.
+    Returns 'VOID' on any parse failure (no truthy default).
+    """
+    import json as _json
+
+    content = judge_result.get("content")
+    if isinstance(content, list) and content:
+        first = content[0] or {}
+        if isinstance(first, dict):
+            text = first.get("text", "")
+            if isinstance(text, str) and text:
+                try:
+                    payload = _json.loads(text)
+                    if isinstance(payload, dict):
+                        v = payload.get("verdict")
+                        if isinstance(v, str) and v:
+                            return v
+                except (ValueError, _json.JSONDecodeError):
+                    pass
+    # Also accept already-normalised dicts.
+    if isinstance(judge_result.get("verdict"), str):
+        return judge_result["verdict"]
+    return "VOID"
 
 
 class A2ATaskManager:
@@ -58,13 +174,24 @@ class A2ATaskManager:
 
     def __init__(self, mcp_server: Any):
         # Use the global FastMCP from server.py, not the Starlette app
-        self.mcp = _FAST_MCP_
+        self.mcp = _fast_mcp
         self.tasks: dict[str, Task] = {}
         self._lock = asyncio.Lock()
         self._hold_bridge = None
 
-    async def create_task(self, request: SubmitTaskRequest) -> Task:
-        """Create new task with constitutional initialization."""
+    async def create_task(
+        self,
+        request: SubmitTaskRequest,
+        *,
+        verified_actor: str,
+        verified_session_id: str | None = None,
+        verified_session_token: str | None = None,
+    ) -> Task:
+        """Create a task owned by the SCT-verified actor.
+
+        ``request.client_agent_id`` is a display hint only. Every caller must
+        pass the actor resolved from L11/SCT authentication.
+        """
         task_id = f"a2a-{uuid.uuid4().hex[:12]}"
 
         # Extract query from messages
@@ -72,28 +199,38 @@ class A2ATaskManager:
             if msg.role == "user":
                 break
 
-        # Initialize constitutional session via MCP
-        session_id = None
+        # Callback URL must pass the SSRF guard before we accept the task.
+        callback_url = _validate_callback_url(request.status_callback_url)
+        authoritative_actor = verified_actor
+
+        # Initialize constitutional session via MCP, using the authoritative actor.
+        session_id = verified_session_id
         try:
-            # Call arifos_init to establish governed session
-            init_result = await self._call_mcp_tool(
-                "arif_init",
-                {"mode": "init", "actor_id": request.client_agent_id},
-            )
+            init_params: dict[str, Any] = {
+                "mode": "init",
+                "actor_id": authoritative_actor,
+            }
+            if verified_session_token:
+                init_params["session_token"] = verified_session_token
+            if session_id:
+                init_params["session_id"] = session_id
+
+            init_result = await self._call_mcp_tool("arif_init", init_params)
 
             if init_result.get("verdict") == "SEAL":
-                session_id = init_result.get("session_id")
+                session_id = init_result.get("session_id") or session_id
         except Exception as e:
             print(f"[A2A] Session init warning: {e}", file=sys.stderr)
 
         task = Task(
             id=task_id,
             client_agent_id=request.client_agent_id,
+            creator_actor_id=verified_actor,
             session_id=session_id,
             messages=request.messages,
             skill_id=request.skill_id,
             parameters=request.parameters,
-            status_callback_url=request.status_callback_url,
+            status_callback_url=callback_url,
         )
 
         async with self._lock:
@@ -137,6 +274,10 @@ class A2ATaskManager:
         if not task:
             return
 
+        # B3: author of the execution is the verified creator, not the
+        # body-supplied client_agent_id. Owner of authority is the SCT actor.
+        execution_actor = task.creator_actor_id or task.client_agent_id
+
         try:
             # Update to working state
             await self._update_task_state(
@@ -161,7 +302,7 @@ class A2ATaskManager:
                     "mode": "critique",
                     "target": f"A2A task [{task.id}]: {query[:200]}",
                     "session_id": task.session_id,
-                    "actor_id": task.client_agent_id,
+                    "actor_id": execution_actor,
                 },
             )
 
@@ -174,7 +315,7 @@ class A2ATaskManager:
                     "mode": "judge",
                     "candidate": f"A2A task execution: {query[:200]}",
                     "session_id": task.session_id,
-                    "actor_id": task.client_agent_id,
+                    "actor_id": execution_actor,
                 },
             )
 
@@ -418,6 +559,7 @@ class A2AServer:
         """Setup A2A protocol routes."""
 
         # Agent Card Discovery (/.well-known/agent.json)
+        # PUBLIC per B3 — discovery stays open.
         @self.app.get("/.well-known/agent.json")
         async def agent_card():
             """
@@ -428,47 +570,111 @@ class A2AServer:
             card = AgentCard()
             return card.model_dump()
 
-        # Submit Task
+        # Submit Task — requires SCT (B3: body actor_id is NOT authority).
         @self.app.post("/task")
-        async def submit_task(request: SubmitTaskRequest):
+        async def submit_task(
+            request: SubmitTaskRequest,
+            authorization: str | None = Header(default=None),
+            x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+        ):
             """
             Submit a new task to arifOS.
 
             Task will be processed through constitutional governance (F1-L13).
+            Authentication requires a valid SCT (Authorization: Bearer <sct>
+            or X-Session-Token header). The body actor IDs are display hints;
+            the verified SCT actor owns the task.
             """
-            task = await self.task_manager.create_task(request)
+            actor_id, session_id, session_token = _resolve_actor_from_request(
+                authorization=authorization,
+                x_session_token=x_session_token,
+            )
+
+            task = await self.task_manager.create_task(
+                request,
+                verified_actor=actor_id,
+                verified_session_id=session_id,
+                verified_session_token=session_token,
+            )
             return {
                 "task_id": task.id,
                 "state": task.state,
                 "session_id": task.session_id,
+                "creator_actor_id": task.creator_actor_id,
                 "message": "Task submitted for constitutional review",
             }
 
-        # Trinity Probe: Execute Task Synchronously
+        # Trinity Probe: Execute Task Synchronously — SCT-gated, SEAL-only routing.
         @self.app.post("/execute")
-        async def execute_task(request: Request):
+        async def execute_task(
+            request: Request,
+            authorization: str | None = Header(default=None),
+            x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+        ):
             """
             Synchronously execute a governed task (Phase 3: The Trinity Probe).
             Supports 'governed_execution' mode for immediate AGI/ASI loop validation.
+
+            B3 hardening:
+              - SCT is required; the body's ``auth_context.actor_id`` is ignored.
+              - arif_judge must return SEAL for routing to arif_kernel_route to fire.
+                HOLD / VOID / SABAR / parse-failure => no execution, no truthy default.
             """
+            actor_id, session_id, session_token = _resolve_actor_from_request(
+                authorization=authorization,
+                x_session_token=x_session_token,
+            )
+
             data = await request.json()
             query = data.get("query", "No query provided")
             mode = data.get("mode", "governed_execution")
-            auth_context = data.get("auth_context", {})
-            actor_id = auth_context.get("actor_id", "anonymous")
+            # NOTE: data.get("auth_context", {}).get("actor_id") is deliberately
+            # NOT consulted. The verified SCT actor is the only authority.
 
-            # Step 1: Initialize constitutional anchor
-            init_result = await self.task_manager._call_mcp_tool(
-                "arif_init",
-                {
-                    "intent": query,
-                    "actor_id": actor_id,
-                },
-            )
+            # Step 1: Initialize constitutional anchor (use verified actor).
+            init_params: dict[str, Any] = {
+                "mode": "init",
+                "intent": query,
+                "actor_id": actor_id,
+            }
+            if session_token:
+                init_params["session_token"] = session_token
+            if session_id:
+                init_params["session_id"] = session_id
 
-            session_id = init_result.get("session_id", "global")
+            init_result = await self.task_manager._call_mcp_tool("arif_init", init_params)
+            session_id = init_result.get("session_id") or session_id or "global"
 
-            # Step 2: Execute full metabolic loop via arifos_kernel
+            # Step 2: Call arif_judge. Route ONLY on SEAL — no truthy defaults.
+            judge_params: dict[str, Any] = {
+                "mode": "judge",
+                "candidate": f"A2A execute (mode={mode}): {query[:200]}",
+                "session_id": session_id,
+                "actor_id": actor_id,
+            }
+            if session_token:
+                judge_params["session_token"] = session_token
+
+            judge_result = await self.task_manager._call_mcp_tool("arif_judge", judge_params)
+            verdict = _parse_judge_verdict(judge_result)
+
+            if verdict != ARIF_JUDGE_SEAL:
+                # No execution on HOLD/VOID/SABAR/parse-failure. 409: verdict
+                # did not authorise routing. Body includes the actual verdict
+                # for observability.
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "code": "JUDGE_NO_SEAL",
+                        "verdict": verdict,
+                        "message": (
+                            "arif_judge did not return SEAL; execution not routed "
+                            "(no truthy defaults)."
+                        ),
+                    },
+                )
+
+            # Step 3: SEAL received — route to arif_kernel_route.
             execution_result = await self.task_manager._call_mcp_tool(
                 "arif_kernel_route",
                 {
@@ -480,10 +686,11 @@ class A2AServer:
             )
 
             return {
-                "ok": execution_result.get("ok", True),
-                "verdict": execution_result.get("verdict", "SEAL"),
+                "ok": bool(execution_result.get("ok", False)),
+                "verdict": ARIF_JUDGE_SEAL,
                 "status": execution_result.get("status", "SUCCESS"),
                 "session_id": session_id,
+                "creator_actor_id": actor_id,
                 "payload": execution_result.get("payload", {}),
                 "meta": {
                     "release": f"v{self.build_info['version']}",
@@ -492,30 +699,77 @@ class A2AServer:
                 },
             }
 
-        # Get Task Status
+        # Get Task Status — requires SCT + task ownership (B3).
         @self.app.get("/status/{task_id}")
-        async def get_task(task_id: str):
-            """Get current status of a task."""
+        async def get_task(
+            task_id: str,
+            authorization: str | None = Header(default=None),
+            x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+        ):
+            """Get current status of a task owned by the authenticated actor."""
+            actor_id, _session_id, _session_token = _resolve_actor_from_request(
+                authorization=authorization,
+                x_session_token=x_session_token,
+            )
             task = await self.task_manager.get_task(task_id)
             if not task:
                 raise HTTPException(status_code=404, detail="Task not found")
+            if task.creator_actor_id and task.creator_actor_id != actor_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail="L11 AUTH: actor does not own this task",
+                )
             return GetTaskResponse(task=task).model_dump()
 
-        # Cancel Task
+        # Cancel Task — requires SCT + task ownership (B3).
         @self.app.post("/cancel/{task_id}")
-        async def cancel_task(task_id: str):
-            """Cancel a running or pending task."""
+        async def cancel_task(
+            task_id: str,
+            authorization: str | None = Header(default=None),
+            x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+        ):
+            """Cancel a running or pending task owned by the authenticated actor."""
+            actor_id, _session_id, _session_token = _resolve_actor_from_request(
+                authorization=authorization,
+                x_session_token=x_session_token,
+            )
+            task = await self.task_manager.get_task(task_id)
+            if not task:
+                raise HTTPException(status_code=404, detail="Task not found")
+            if task.creator_actor_id and task.creator_actor_id != actor_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail="L11 AUTH: actor does not own this task",
+                )
             result = await self.task_manager.cancel_task(task_id)
             return result.model_dump()
 
-        # Subscribe to Task Updates (SSE)
+        # Subscribe to Task Updates (SSE) — requires SCT + task ownership (B3).
         @self.app.get("/subscribe/{task_id}")
-        async def subscribe_task(task_id: str, request: Request):
+        async def subscribe_task(
+            task_id: str,
+            request: Request,
+            authorization: str | None = Header(default=None),
+            x_session_token: str | None = Header(default=None, alias="X-Session-Token"),
+        ):
             """
             Subscribe to real-time task updates via Server-Sent Events.
 
             Stream updates as task progresses through constitutional review.
+            Only the verified owner of the task may subscribe.
             """
+            actor_id, _session_id, _session_token = _resolve_actor_from_request(
+                authorization=authorization,
+                x_session_token=x_session_token,
+            )
+            task = await self.task_manager.get_task(task_id)
+            if not task:
+                raise HTTPException(status_code=404, detail="Task not found")
+            if task.creator_actor_id and task.creator_actor_id != actor_id:
+                raise HTTPException(
+                    status_code=403,
+                    detail="L11 AUTH: actor does not own this task",
+                )
 
             async def event_generator():
                 last_state = None
