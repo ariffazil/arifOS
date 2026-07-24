@@ -86,11 +86,11 @@ async def _nats_connect() -> tuple[Any, Any]:
 async def _store_observation(pg: Any, record: dict[str, Any]) -> bool:
     """Write a single observation to Postgres."""
     try:
-        import uuid
+        import uuid as _uuid
 
-        obs_id = record.get("observation_id") or str(uuid.uuid4())
-        trace_id = record.get("trace_id") or str(uuid.uuid4())
-        span_id = record.get("span_id") or str(uuid.uuid4())
+        obs_id = _uuid.UUID(str(record.get("observation_id") or _uuid.uuid4()))
+        trace_id = _uuid.UUID(str(record.get("trace_id") or _uuid.uuid4()))
+        span_id = _uuid.UUID(str(record.get("span_id") or _uuid.uuid4()))
 
         await pg.execute(
             """
