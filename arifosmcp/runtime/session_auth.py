@@ -306,10 +306,15 @@ def validate_session(
     expires_at = sess.get("expires_at_unix", float("inf"))
     now = time.time()
     if now > expires_at + SESSION_GRACE_SECONDS:
+        # MASTER FORGE W9: structured SESSION_EXPIRED — not a geometry/schema error
         return {
             "valid": False,
+            "error": "SESSION_EXPIRED",
+            "can_retry": True,
+            "next_safe_action": "Call arif_init and replay the same normalized payload",
             "reason": "L11 AUTH: session expired (24h limit + grace exceeded)",
             "expired": True,
+            "previous_session_id": session_id,
             "created_at": sess.get("created_at"),
             "expires_at_unix": expires_at,
             "ttl_seconds": SESSION_TTL_SECONDS,
