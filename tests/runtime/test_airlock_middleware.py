@@ -241,3 +241,63 @@ async def test_airlock_middleware_partial_blocks_read_like_errors(monkeypatch):
     metrics = get_airlock_metrics()
     assert metrics["blocked"] == 1
     assert metrics["partial_enforced"] == 1
+
+
+@pytest.mark.anyio
+async def test_airlock_middleware_receive_timeout(monkeypatch):
+    import asyncio
+
+    monkeypatch.setenv("ARIF_AIRLOCK_MODE", "shadow")
+    monkeypatch.setenv("ARIF_AIRLOCK_RECEIVE_TIMEOUT", "0.05")
+
+    app = MockASGIApp()
+    middleware = AirlockASGIMiddleware(app)
+
+    scope = {
+        "type": "http",
+        "path": "/mcp",
+        "method": "POST",
+        "headers": [(b"content-type", b"application/json")],
+    }
+
+    async def mock_receive_stalled():
+        await asyncio.sleep(0.5)
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    responses = []
+
+    async def mock_send(message):
+        responses.append(message)
+
+    await middleware(scope, mock_receive_stalled, mock_send)
+    assert app.scope is None
+    assert len(responses) == 2
+    assert responses[0]["status"] == 408
+    assert (b"x-arifos-airlock", b"timeout") in responses[0]["headers"]
+
+
+@pytest.mark.anyio
+async def test_airlock_middleware_client_disconnect(monkeypatch):
+    monkeypatch.setenv("ARIF_AIRLOCK_MODE", "shadow")
+    app = MockASGIApp()
+    middleware = AirlockASGIMiddleware(app)
+
+    scope = {
+        "type": "http",
+        "path": "/mcp",
+        "method": "POST",
+        "headers": [(b"content-type", b"application/json")],
+    }
+
+    async def mock_receive_disconnect():
+        return {"type": "http.disconnect"}
+
+    responses = []
+
+    async def mock_send(message):
+        responses.append(message)
+
+    await middleware(scope, mock_receive_disconnect, mock_send)
+    assert app.scope is None
+    assert len(responses) == 0
+
