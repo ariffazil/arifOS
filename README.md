@@ -86,6 +86,26 @@ arifOS is a **constitutional governance kernel** that sits between AI agents and
 | Built for one sovereign — Muhammad Arif bin Fazil | A general-purpose agent framework |
 | **This deployment** is sovereign-bound to Arif | The **architecture** may be studied, forked, or adapted |
 
+```mermaid
+graph LR
+    A[👤 ARIF<br/>F13 Sovereign] -->|intent| B[AAA<br/>Cockpit :3001]
+    B -->|routes to| C[arifOS<br/>Judge :8088]
+    C -->|000| D[arif_init<br/>Session]
+    D -->|111| E[arif_observe<br/>Evidence]
+    E -->|333| F[arif_think<br/>Reason]
+    F -->|444| G[arif_route<br/>Dispatch]
+    G --> H{Organ?}
+    H -->|earth| I[🌍 GEOX]
+    H -->|capital| J[💰 WEALTH]
+    H -->|readiness| K[🫀 WELL]
+    I & J & K -->|evidence| L[555 arif_memory<br/>Governed Recall]
+    L -->|888| M{arif_judge<br/>Verdict}
+    M -->|SEAL| N[777 arif_forge<br/>A-FORGE :7071]
+    M -->|HOLD| O[SABAR<br/>Human Review]
+    M -->|VOID| P[🚫 Blocked]
+    N -->|999| Q[(VAULT999<br/>Immutable Seal)]
+```
+
 **Trinity role:** arifOS = LAW/JUDGMENT. The judge. AAA = STATE/ROUTING. A-FORGE = EXECUTION/MUTATION.
 
 ### Federation Separation of Powers
