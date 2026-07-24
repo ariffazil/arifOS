@@ -82,6 +82,38 @@ def _installation_manifest_hash() -> str | None:
     return _sha256_file(candidates[-1]) if candidates else None
 
 
+def _read_git_head(git_dir: str) -> str:
+    """Read the current HEAD commit from a git repository."""
+    try:
+        head_path = Path(git_dir) / "HEAD"
+        if not head_path.exists():
+            return "unknown"
+        content = head_path.read_text().strip()
+        if content.startswith("ref: "):
+            ref_path = Path(git_dir) / content[5:]
+            if ref_path.exists():
+                return ref_path.read_text().strip()
+        if len(content) >= 7:
+            return content
+    except OSError:
+        pass
+    return "unknown"
+
+
+def _compute_tool_surface_hash() -> str:
+    """Hash the canonical public tool schemas for surface integrity verification."""
+    try:
+        from arifosmcp.runtime.public_registry import public_tool_names
+
+        schemas: dict[str, Any] = {}
+        for name in sorted(public_tool_names()):
+            schemas[name] = {"name": name}
+        raw = json.dumps(schemas, sort_keys=True, separators=(",", ":"))
+        return "sha256:" + hashlib.sha256(raw.encode()).hexdigest()
+    except Exception:
+        return "unavailable"
+
+
 def get_runtime_attestation() -> dict[str, Any]:
     """Public, machine-readable binding from release to this live process."""
     source_commit = _full_source_commit()
@@ -100,17 +132,39 @@ def get_runtime_attestation() -> dict[str, Any]:
             json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
     )
+
+    built_commit = _read_git_head("/root/arifOS/.git")
+    deployed_commit = source_commit
+
+    drift = False
+    if source_commit != "unknown" and built_commit != "unknown":
+        drift = source_commit != built_commit
+
+    surface_hash = _compute_tool_surface_hash()
+
     release_id = os.getenv("ARIFOS_RELEASE_ID", "").strip() or (
         f"arifos-{source_commit[:12]}" if source_commit != "unknown" else "unknown"
     )
     return {
         "release_id": release_id,
         "source_commit": source_commit,
+        "built_commit": built_commit,
+        "deployed_commit": deployed_commit,
+        "drift": drift,
         "wheel_hash": wheel_hash,
         "runtime_manifest_hash": runtime_manifest_hash,
+        "surface_hash": surface_hash,
         "service_pid": os.getpid(),
         "service_started_at": PROCESS_STARTED_AT,
         "critical_module_hashes": critical_module_hashes,
+        "deployment_invariant": {
+            "rule": "source_commit == built_commit == deployed_commit == health_commit",
+            "source_commit": source_commit,
+            "built_commit": built_commit,
+            "deployed_commit": deployed_commit,
+            "drift": drift,
+            "note": "Deployment must refuse to report healthy when drift is true.",
+        },
         "attestation_semantics": {
             "kernel_epoch": "constitutional/protocol epoch; not a software build date",
             "wheel_hash": "ARIFOS_WHEEL_SHA256 when injected, otherwise installed RECORD hash",
