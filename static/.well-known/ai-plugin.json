@@ -1,9 +1,9 @@
 {
   "schema_version": "v1",
-  "name_for_human": "arifOS MCP Gateway",
+  "name_for_human": "arifOS Constitutional Kernel",
   "name_for_model": "arifos_mcp",
-  "description_for_human": "arifOS constitutional AI governance tools — mind, sense, judge, vault, memory.",
-  "description_for_model": "Call arifOS constitutional tools: arifos_init, arifos_sense, arifos_mind, arifos_heart, arifos_judge, arifos_vault, arifos_memory, arifos_ops, arifos_kernel, arifos_forge, arifos_gateway.",
+  "description_for_human": "Canonical 8-tool constitutional governance kernel — session init, observe, think, route, memory, judge, forge, seal.",
+  "description_for_model": "8 canonical tools: arif_init (000 session), arif_observe (111 evidence), arif_think (333 reason), arif_route (444 dispatch), arif_memory (555 recall), arif_judge (888 constitutional verdict), arif_forge (777 execution gate), arif_seal (999 VAULT999 immutable append).",
   "auth": {
     "type": "none"
   },
@@ -13,5 +13,18 @@
   },
   "logo_url": "https://mcp.arif-fazil.com/logo.png",
   "contact_email": "arif@arif-fazil.com",
-  "legal_info_url": "https://mcp.arif-fazil.com"
+  "legal_info_url": "https://mcp.arif-fazil.com",
+  "tools": [
+    "arif_init",
+    "arif_observe",
+    "arif_think",
+    "arif_route",
+    "arif_memory",
+    "arif_judge",
+    "arif_forge",
+    "arif_seal"
+  ],
+  "_regenerated": "2026-07-24T11:35:00Z",
+  "_source": "live runtime tools/list at :8088",
+  "_drift_check": "CI must fail when advertised_tools != runtime_callable_tools"
 }
