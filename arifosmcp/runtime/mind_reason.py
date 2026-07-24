@@ -398,6 +398,11 @@ Distinguish CLAIM from FACT."""
     # (line 327-337) still prevents reasoning_content from leaking to
     # the audit surface — only the final content field is used.
     try:
+        # F13 — Constitutional role gate (sovereign directive 2026-07-24).
+        # The 333 MIND envelope synthesizes the evidence that 666_JUDGE
+        # consumes. Per AGENT_MODEL_MAP, only deepseek/deepseek-v4-pro may
+        # serve judge/seal; the runtime gate in llm_client.select_model_for_role
+        # fail-closes if a different model is passed. Option B: explicit override.
         envelope = await call_llm(
             system=SYSTEM_PROMPT,
             user=user_prompt,
@@ -406,6 +411,8 @@ Distinguish CLAIM from FACT."""
             max_tokens=2000,
             tool_origin="333_REASON",
             mode=mode,
+            constitutional_role="666_JUDGE",
+            preferred_model="deepseek-v4-pro",
         )
         llm_available = True
         llm_tier = envelope.provider

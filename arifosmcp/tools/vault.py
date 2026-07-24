@@ -35,6 +35,14 @@ async def arif_seal(
         "chain_status",  # Public chain head + last N entries
         "audit",  # Full audit report with receipts
     ] = "seal",
+    # 999_SEAL NOTE (F13, 2026-07-24):
+    # arif_seal is deterministic — it appends the prior arif_judge verdict to
+    # the VAULT999 hash chain and never invokes an LLM. The AGENT_MODEL_MAP
+    # constitutional restriction for 999_SEAL is therefore enforced UPSTREAM,
+    # at the 666_JUDGE call sites whose verdict is being sealed (the verdict's
+    # model identity is recorded in the sealed receipt). The runtime gate in
+    # llm_client.select_model_for_role covers all LLM invocations serving
+    # judge/seal roles; the seal itself is correct by construction.
     payload: str = "",
     session_id: str | None = None,
     session_token: str | None = None,

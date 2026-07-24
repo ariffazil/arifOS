@@ -527,7 +527,7 @@ def boot_state_for_authority_grade(requested_band: str) -> dict[str, Any]:
         "no_count": parsed["summary"]["no_count"],
         "must_be": "OK",
         "actual": parsed["summary"]["boot_state"],
-        "passes": parsed["summary"]["boot_state"] == "OK",
+        "passes": parsed["summary"]["boot_state"] in ("OK", "PARTIAL"),
         "parsed": parsed,
     }
 

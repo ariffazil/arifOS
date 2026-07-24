@@ -58,7 +58,11 @@ class AgentCard(BaseModel):
     """
 
     name: str = "arifOS Constitutional Kernel"
-    description: str = "AI governance system with 13 constitutional floors (F1-L13). Provides constitutional review, task execution, and multi-agent coordination with thermodynamic governance."
+    description: str = (
+        "AI governance system with 13 constitutional floors (F1-L13). "
+        "Provides constitutional review, task execution, and multi-agent coordination "
+        "with thermodynamic governance."
+    )
     url: str = "https://arifosmcp.arif-fazil.com"
     version: str = "2026.03.14-VALIDATED"
 
@@ -144,13 +148,23 @@ class Task(BaseModel):
     A2A Task - Central to A2A protocol.
 
     Tasks have lifecycle: submitted → working → [completed|failed|cancelled]
+
+    Identity model (B3 hardening, 2026-07-23):
+    - ``creator_actor_id`` is the SCT-verified actor (L11 authoritative).
+    - ``client_agent_id`` is a body-supplied display hint from the A2A
+      request; it is NEVER authority. Owner checks compare the verified
+      SCT actor against ``creator_actor_id``, not against the body field.
     """
 
     id: str
     state: TaskState = TaskState.SUBMITTED
 
     # Agent info
-    client_agent_id: str = Field(..., description="Agent that submitted task")
+    client_agent_id: str = Field(..., description="Body-supplied agent identifier (NOT authority)")
+    creator_actor_id: str | None = Field(
+        default=None,
+        description="SCT-verified actor that owns the task (L11 authority). Set at submission.",
+    )
     remote_agent_id: str = "arifos-kernel"
 
     # Task content
