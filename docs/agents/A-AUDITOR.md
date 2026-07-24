@@ -1,3 +1,8 @@
+# REFERENCE-ONLY — NOT RUNTIME AUTHORITY
+
+> Historical March 2026 role. Only the live kernel can render a constitutional
+> verdict; this document grants no independent VOID, JUDGE, or SEAL power.
+
 # A-AUDITOR — Constitutional Quality & Compliance Auditor
 
 **Agent ID:** `a-auditor`

@@ -304,7 +304,7 @@ exclude = [
 
 [tool.setuptools.package-data]
 "*" = ["spec/*.yaml", "spec/*.json"]
-"arifosmcp" = ["sites/apex-dashboard/*.html"]
+"arifosmcp" = ["sites/apex-dashboard/*.html", "registry/*.yaml"]
 
 [tool.setuptools.data-files]
 "spec" = ["spec/**/*.json", "spec/**/*.yaml", "spec/**/*.md"]

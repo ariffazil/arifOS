@@ -50,7 +50,14 @@ from arifosmcp.runtime.public_registry import (
 )
 from arifosmcp.runtime.resource import apex_tools_markdown_table
 from starlette.requests import Request
-from starlette.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
+from starlette.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+)
 from starlette.staticfiles import StaticFiles
 
 from core.shared.law_audit import get_ml_floor_runtime
@@ -2712,7 +2719,7 @@ def register_rest_routes(
         _now = time.monotonic()
         _nocache = request.query_params.get("nocache") == "1"
         if not _nocache and _health_cache["payload"] is not None:
-            if _now - _health_cache["ts"] < 30.0:
+            if _now - _health_cache["ts"] < 300.0:  # 5min TTL (was 30s; cold build ~10s)
                 return JSONResponse(_health_cache["payload"])
 
         try:
@@ -2923,7 +2930,11 @@ def register_rest_routes(
                 runtime_drift=runtime_drift_val,
                 contract_status=contracts,
             ),
-            "capability_map": build_runtime_capability_map(),
+            "capability_map": await _cached_offloaded_probe(
+                "runtime_capability_map",
+                build_runtime_capability_map,
+                fallback={"note": "capability probe offloaded; no cache yet"},
+            ),
             "provider_status": await _cached_offloaded_probe(
                 "provider_status",
                 _probe_provider_status,
@@ -3366,25 +3377,30 @@ def register_rest_routes(
 
         try:
             # ── Declared organ manifest (F9 — no phantom organs) ─────────────
-            DECLARED_ORGANS: frozenset[str] = frozenset({
-                "geox.arif-fazil.com",
-                "wealth.arif-fazil.com",
-                "well.arif-fazil.com",
-                "forge.arif-fazil.com",
-                "a-forge.arif-fazil.com",
-                "mcp.arif-fazil.com",
-                "arifos.arif-fazil.com",
-            })
+            DECLARED_ORGANS: frozenset[str] = frozenset(
+                {
+                    "geox.arif-fazil.com",
+                    "wealth.arif-fazil.com",
+                    "well.arif-fazil.com",
+                    "forge.arif-fazil.com",
+                    "a-forge.arif-fazil.com",
+                    "mcp.arif-fazil.com",
+                    "arifos.arif-fazil.com",
+                }
+            )
 
             # Extract forwarded host from Caddy forward_auth subrequest
             host = (
-                request.headers.get("X-Forwarded-Host", "")
-                or request.headers.get("Host", "")
-            ).split(":")[0].lower().strip()
+                (request.headers.get("X-Forwarded-Host", "") or request.headers.get("Host", ""))
+                .split(":")[0]
+                .lower()
+                .strip()
+            )
 
             # F9: block phantom organs — unknown host = reject
             if host and host not in DECLARED_ORGANS:
                 import logging
+
                 logging.getLogger("arifos.gate").warning(
                     "GATE_REJECT phantom_organ host=%s path=%s",
                     host,
@@ -3399,9 +3415,11 @@ def register_rest_routes(
             xff = request.headers.get("X-Forwarded-For", "")
             if xff.count(",") > 8:
                 import logging
+
                 logging.getLogger("arifos.gate").warning(
                     "GATE_REJECT injection_signal host=%s xff_depth=%d",
-                    host, xff.count(","),
+                    host,
+                    xff.count(","),
                 )
                 return PlainTextResponse(
                     "403 Forbidden — injection signal",
@@ -3418,6 +3436,7 @@ def register_rest_routes(
 
             # F11: audit log (lightweight — no VAULT999 write per-request)
             import logging
+
             logging.getLogger("arifos.gate").info(
                 "GATE_PASS host=%s path=%s method=%s",
                 host,
@@ -3435,6 +3454,7 @@ def register_rest_routes(
         except Exception as exc:
             # Fail-CLOSED — ANY exception → 403, never forward
             import logging
+
             logging.getLogger("arifos.gate").error(
                 "GATE_ERROR exception=%s — fail-closed", str(exc)
             )
@@ -3444,7 +3464,6 @@ def register_rest_routes(
             )
 
     @route("/capability", methods=["GET"])
-
     async def capability(request: Request) -> Response:
         """Capability map — what is wired and configured in this kernel instance."""
         payload = build_runtime_capability_map()
@@ -4266,9 +4285,7 @@ def register_rest_routes(
                         status_code=403,
                     )
             except ImportError:
-                logger.exception(
-                    "pre_execution_gate unavailable in rest_routes — failing closed"
-                )
+                logger.exception("pre_execution_gate unavailable in rest_routes — failing closed")
                 return JSONResponse(
                     {
                         "status": "error",
@@ -7000,7 +7017,6 @@ setInterval(refreshSot, 30000);
                 "Content-Type": "application/ld+json",
             },
         )
-
 
     # ── Federation Status Spine ────────────────────────────────────────────────
     @route("/status.json", methods=["GET"])

@@ -1,3 +1,8 @@
+# REFERENCE-ONLY — NOT RUNTIME AUTHORITY
+
+> Historical March 2026 role. Current execution authority is enforced by
+> arifOS and A-FORGE; this document grants no operational power.
+
 # A-ENGINEER — Constitutional Implementation Engineer
 
 **Agent ID:** `a-engineer`

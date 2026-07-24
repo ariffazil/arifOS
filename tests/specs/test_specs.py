@@ -150,16 +150,17 @@ class TestPromptSpecs:
         """All prompt names must be unique."""
         assert len(PROMPT_NAMES) == len(set(PROMPT_NAMES))
 
-    def test_prompt_names_follow_pattern(self):
-        """Prompt names should start with 'prompt_'."""
-        for name in PROMPT_NAMES:
-            assert name.startswith("prompt_"), f"Invalid prompt name: {name}"
+    def test_prompt_names_match_registry(self):
+        """Compatibility specs must use the canonical registry identifiers."""
+        from arifosmcp.registry import get_registry
+
+        assert PROMPT_NAMES == get_registry().canonical_sequence
 
     def test_prompt_lookup(self):
         """Should be able to lookup prompts by name."""
-        spec = get_prompt_spec("prompt_judge_verdict")
+        spec = get_prompt_spec("🔒 JUDGE")
         assert spec is not None
-        assert spec.title == "Render Verdict"
+        assert spec.title == "🔒 JUDGE — Constitutional Gate"
 
     def test_prompts_have_arguments(self):
         """All prompts should define their arguments."""

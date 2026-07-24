@@ -133,6 +133,32 @@ def generate_llms_txt() -> str:
         f"> Total MCP: {total_tools} Tools | {len(resources)} Resources | Status: OPERATIONAL"
     )
     lines.append("> Port: 8088 | License: AGPL-3.0 | Status: OPERATIONAL")
+    lines.append("> Version: v2026.07.17-ZEN-SURVIVAL · MCP Protocol: 2025-11-25")
+    lines.append("> Verdict grammar: SEAL / HOLD / SABAR / VOID")
+    lines.append("> Auth model: open discovery (POST tools/list) · session_token required for tools/call · F13 SOVEREIGN signature required for IRREVERSIBLE class")
+    lines.append("")
+    lines.append("## Canonical Kernel Tools (8 exposed via /tools/list)")
+    lines.append(
+        "The live MCP gateway exposes 8 canonical kernel verbs. The internal constitutional_map has more entries (legacy, internal-only, or filtered by server). The 8 below are the only ones visible to agents at https://mcp.arif-fazil.com/mcp:"
+    )
+    kernel_exposed = [
+        ("arif_init",    "000", "Session ignition — binds actor, floors, and audit"),
+        ("arif_observe", "111", "Sense reality with epistemic tags OBS/DER/INT/SPEC"),
+        ("arif_think",   "333", "Structured reasoning under F2/F7"),
+        ("arif_route",   "444", "Intent-to-organ dispatch across GEOX/WEALTH/WELL/A-FORGE"),
+        ("arif_memory",  "mem", "Governed L1–L6 semantic recall"),
+        ("arif_judge",   "888", "Constitutional verdict — SEAL/HOLD/SABAR/VOID"),
+        ("arif_forge",   "777", "Execution gate via A-FORGE — mutates ONLY after SEAL"),
+        ("arif_seal",    "999", "VAULT999 immutable append"),
+    ]
+    lines.append("")
+    lines.append("| Verb | KERNEL | What it does |")
+    lines.append("|------|--------|--------------|")
+    for name, kern, desc in kernel_exposed:
+        lines.append(f"| `{name}` | {kern} | {desc} |")
+    lines.append("")
+    lines.append("> Source of truth: `POST https://mcp.arif-fazil.com/mcp {method:\"tools/list\"}` (live count, no caching).")
+    lines.append("> The `tools_loaded` field on `GET https://mcp.arif-fazil.com/health` is the single-witness attestation; re-run before any external publish.")
     lines.append("")
     lines.append("## Docs")
     lines.append("- [AGENTS.md](file:///root/AGENTS.md): Main agent landing protocol and Output Contract (F13 absolute)")
@@ -140,11 +166,10 @@ def generate_llms_txt() -> str:
     lines.append("- [MCP-RESOURCES-MAP.md](file:///root/AAA/docs/MCP-RESOURCES-MAP.md): Full federation cross-organ resource mapping")
     lines.append("- [INVARIANTS.md](file:///root/arifOS/GENESIS/INVARIANTS.md): 11 Physics + 7 Zen principles")
     lines.append("")
-    lines.append("## MCP Tools — Complete Surface")
+    lines.append("## MCP Tools — Complete Surface (federation aggregate)")
     lines.append(
-        f"arifOS exposes {total_tools} MCP tools: {len(canonical)} canonical constitutional tools"
+        f"Across the federation (arifOS kernel + GEOX + WEALTH + WELL + A-FORGE + AAA + ChatGPT-shim + diagnostic): {total_tools} MCP tools total. {len(canonical)} constitutional_map entries (23 unique arif_* keys) of which the live gateway at https://mcp.arif-fazil.com/mcp exposes 8 via tools/list. {len(operational)} operational support tools across the federation."
     )
-    lines.append(f"and {len(operational)} operational support tools.")
     lines.append("")
 
     # Category breakdown
@@ -158,8 +183,9 @@ def generate_llms_txt() -> str:
         lines.append(f"- {tier}: {count} tools")
     lines.append("")
 
-    # Canonical tools
-    lines.append(f"### Canonical Constitutional Tools ({len(canonical)})")
+    # Canonical tools (full constitutional_map)
+    lines.append(f"### Constitutional Map (full internal table — {len(canonical)} entries)")
+    lines.append("These are all constitutional_map.CANONICAL_TOOLS entries. Not all are exposed via /tools/list — see 'Canonical Kernel Tools (8 exposed via /tools/list)' above for the live MCP surface.")
     lines.append("| Tool | Stage | Access | Reversible | Modes |")
     lines.append("|------|-------|--------|------------|-------|")
     for t in canonical:

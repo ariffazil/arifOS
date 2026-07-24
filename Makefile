@@ -6,7 +6,7 @@ DIR := /root/arifOS
 
 include /root/arifOS/scripts/security_audit.mk
 
-.PHONY: status forge seal health conformance sync sot-check prove deploy-release deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public verify-live reality-replay constitutional-benchmark reality install-all update-all test-all health-all status-all system-deps
+.PHONY: status forge seal health conformance sync sot-check prompt-singularity-gate prove deploy-release deploy-local publish-check publish-pypi publish-ghcr publish-law publish-all verify-public verify-live reality-replay constitutional-benchmark reality install-all update-all test-all health-all status-all system-deps
 
 # ══════════════════════════════════════════════════════════════════════════
 # Federation targets — unified dependency management for all 4 Python organs
@@ -91,6 +91,11 @@ deploy-local:
 sot-check: security-audit
 	@echo "Auditing arifOS source-of-truth alignment..."
 	@python scripts/audit_sot.py
+	@$(MAKE) prompt-singularity-gate
+
+prompt-singularity-gate:
+	@echo "Checking canonical prompts, compatibility expiry, and authority boundaries..."
+	@$(PYTHON) -m pytest tests/test_prompt_singularity_gate.py -q --tb=short
 
 canon-drift:
 	@echo "Checking constitutional canon drift across federation organs..."
@@ -264,4 +269,3 @@ drift-check:
 substrate-loop-test:
 	@echo "Running End-to-End AGI Substrate Loop Test..."
 	pytest benchmarks/loops/test_restrain_authorize_act_observe_learn.py -v
-

@@ -1,3 +1,8 @@
+# REFERENCE-ONLY — NOT RUNTIME AUTHORITY
+
+> Historical March 2026 role. Current routing belongs to AAA and arifOS; this
+> document grants no judgment, execution, deployment, or seal authority.
+
 # A-ORCHESTRATOR — Constitutional Workflow Coordinator
 
 **Agent ID:** `a-orchestrator`

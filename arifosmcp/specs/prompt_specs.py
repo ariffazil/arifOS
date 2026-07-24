@@ -73,10 +73,14 @@ def _arg(
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 10 CANONICAL PROMPTS
+# HISTORICAL PROMPT BODIES — REFERENCE-ONLY
+#
+# These old prompt_* records are retained only to preserve template provenance.
+# The executable compatibility API at the bottom is rebuilt from the canonical
+# registry and does not expose this tuple as current truth.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
+_HISTORICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
     # ═══ SESSION LIFECYCLE ═══
     PromptSpec(
         name="prompt_init_anchor",
@@ -313,6 +317,41 @@ CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = (
 # LOOKUP UTILITIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
+def _registry_prompt_specs() -> tuple[PromptSpec, ...]:
+    """Translate canonical registry records into the legacy Python object shape."""
+    from arifosmcp.registry import get_registry
+
+    registry = get_registry()
+    specs: list[PromptSpec] = []
+    for prompt_id in registry.canonical_sequence:
+        source = registry.get(prompt_id)
+        properties = source.inputs_schema.get("properties", {})
+        required = set(source.inputs_schema.get("required", []))
+        arguments = tuple(
+            _arg(
+                name,
+                name in required,
+                schema.get("description", name),
+                schema.get("type", "string"),
+                schema.get("default"),
+            )
+            for name, schema in properties.items()
+        )
+        specs.append(
+            PromptSpec(
+                name=source.id,
+                title=source.title,
+                description=source.description,
+                arguments=arguments,
+                template_text=None,
+                expected_contracts=source.expected_contracts,
+            )
+        )
+    return tuple(specs)
+
+
+CANONICAL_PROMPT_SPECS: tuple[PromptSpec, ...] = _registry_prompt_specs()
 PROMPT_NAMES: tuple[str, ...] = tuple(spec.name for spec in CANONICAL_PROMPT_SPECS)
 
 

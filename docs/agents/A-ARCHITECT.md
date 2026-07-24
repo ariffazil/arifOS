@@ -1,3 +1,8 @@
+# REFERENCE-ONLY — NOT RUNTIME AUTHORITY
+
+> Historical March 2026 role. Current authority comes from the live arifOS
+> kernel and AAA agent registry; this document grants no operational power.
+
 # A-ARCHITECT — Constitutional System Architect
 
 **Agent ID:** `a-architect`

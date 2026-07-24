@@ -77,31 +77,15 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 000 INIT ────────────────────────────────────────────────────────────
     "arif_init": (
-        "KERNEL 000 · Session ignition — not a helper app. Binds actor, floors, and audit "
-        "before any other arif_* verb can govern. Without session_id, kernel treats you as "
-        "anonymous (OBSERVE_ONLY / SYUBHAH). "
-        "Authority: pre-session open; light/init mint session_id + authority band. "
-        "Modes: ping | light | init | resume | validate | epoch_open | epoch_seal | canary | "
-        "preflight | triage. "
-        "Returns: session_id, actor_verified, authority, allowed_next_verbs, next_tool. "
-        "Skip when live session already bound → arif_triage; pure facts only → arif_observe."
+        "KERNEL 000 · Session ignition — binds actor, floors, and audit before any other arif_* verb."
     ),
     # ── 000 TRIAGE (session immune, not intent router) ─────────────────────
     "arif_triage": (
-        "KERNEL 000 · Session preflight / immune status — not intent routing. "
-        "Select to read active session stage, holds, priority, next safe kernel verb. "
-        "Authority: L0 with session. Modes: status | preflight | triage. "
-        "Do NOT use for organ choice — that is arif_route. "
-        "Returns: active_sessions, stage, next_safe_action."
+        "KERNEL 000 · Session preflight — reads active stage, holds, and next safe kernel verb."
     ),
     # ── 111 OBSERVE ─────────────────────────────────────────────────────────
     "arif_observe": (
-        "KERNEL 111 · Sense reality into evidence (not reasoning, not judgment). "
-        "Web/URL/vitals/repo/entropy with epistemic tags. "
-        "Authority: L0 OBSERVE. Modes: search | fetch | ingest | compass | atlas | "
-        "entropy_dS | vitals | repo_map | hybrid_discovery. "
-        "Returns: evidence + sources + uncertainty. "
-        "Skip when pure reasoning → arif_think; domain compute → arif_route to GEOX/WEALTH/WELL."
+        "KERNEL 111 · Sense reality into evidence with epistemic tags and uncertainty bounds."
     ),
     "arif_sense_observe": (
         "[alias → arif_observe] KERNEL 111 sense. Prefer canonical name arif_observe."
@@ -116,67 +100,37 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 333 THINK ───────────────────────────────────────────────────────────
     "arif_think": (
-        "KERNEL 333 · Mind — structure reasoning under F2/F7 (not a chat model, not a verdict). "
-        "Plan, reflect, verify, synthesize with OBS/DER/INT/SPEC labels. "
-        "Authority: L0–L1. Modes: reason | reflect | verify | plan | plan_review | "
-        "plan_approve | refactor_plan | metabolize | axioms. "
-        "Returns: structured reasoning + confidence + next_safe_action. "
-        "Ethical/maruah risk → arif_critique. Binding decision → arif_judge. Facts → arif_observe."
+        "KERNEL 333 · Mind — structured reasoning under F2/F7 with OBS/DER/INT/SPEC labels."
     ),
     "arif_mind_reason": ("[alias → arif_think] KERNEL 333 mind. Prefer canonical name arif_think."),
     # ── 444 ROUTE ───────────────────────────────────────────────────────────
     "arif_route": (
-        "KERNEL 444 · Intent→organ router (default path to GEOX/WEALTH/WELL/A-FORGE). "
-        "Select when you know the goal but not which organ/verb. "
-        "Optional organ_tool+arguments = governed bridge call (prefer this over "
-        "arif_bridge_connect). Authority: L0. Returns: organ, port, tool_prefix, suggested_tools. "
-        "Not session preflight (use arif_triage). Not a free shell."
+        "KERNEL 444 · Intent→organ router — dispatches to GEOX/WEALTH/WELL/A-FORGE."
     ),
     "arif_kernel_route": ("[DEPRECATED → arif_route] Legacy KERNEL 444 entry."),
     # ── 444 BRIDGE (internal-ish; agents prefer route) ──────────────────────
     "arif_bridge_connect": (
-        "KERNEL 444-direct · Calls a pre-authorized organ tool directly after "
-        "server-side authorization and policy validation. Requires organ + tool_name. "
-        "Agents should prefer arif_route (same reach, safer default). "
-        "Only federation organs under kernel envelope; not a generic proxy."
+        "KERNEL 444-direct — low-level organ bridge call requiring session and lease."
     ),
     "arif_bridge": ("[DEPRECATED → arif_bridge_connect] Direct organ bridge."),
     # ── 555 CRITIQUE ────────────────────────────────────────────────────────
     "arif_critique": (
-        "KERNEL 555 · Heart — ethical/dignity/risk stress before judgment (not SEAL). "
-        "Select when blast_radius MEDIUM+, human/dignity impact, or irreversible risk. "
-        "Requires non-empty target (proposal/plan text). "
-        "Authority: L1. Modes: critique | redteam | maruah | deescalate | empathize | "
-        "simulate | instruction_scan. Returns: risk, floors, human impact. "
-        "Skip pure technical with zero human stake. Binding verdict → arif_judge."
+        "KERNEL 555 · Heart — ethical/dignity/risk stress test before judgment."
     ),
     "arif_heart_critique": ("[alias → arif_critique] KERNEL 555 heart. Prefer arif_critique."),
     # ── MEMORY (cross-cutting governor) ─────────────────────────────────────
     "arif_memory": (
-        "KERNEL memory governor · L1–L6 stack under F1/F2/F4/F11 (not a free notepad). "
-        "Recall/inspect free-ish; remember/promote/revise/forget are J-space mutations. "
-        "Authority: recall L0; writes gated. Modes: recall | inspect | attest | remember | "
-        "promote | revise | forget. Skip ephemeral one-off facts."
+        "KERNEL memory governor — L1–L6 governed semantic recall, storage, and persistence."
     ),
     "arif_memory_recall": ("[alias → arif_memory] Prefer canonical arif_memory."),
     # ── 666 JUDGE ───────────────────────────────────────────────────────────
     "arif_judge": (
-        "KERNEL 888 · Constitutional verdict — only organ that SEAL/HOLD/SABAR/VOIDs. "
-        "Not advice; binding arbitration of floors + authority. "
-        "Authority: 888_HOLD / SOVEREIGN session required for real adjudicate. "
-        "REQUIRES: actor, intent, domain, reversibility_level, blast_radius (+ evidence). "
-        "Modes: judge | compare | history | explain | floor_status | witness_consensus. "
-        "Skip if evidence incomplete → arif_observe; plan incomplete → arif_think; "
-        "reversible low-risk advisory only."
+        "KERNEL 888 · Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration."
     ),
     "arif_judge_deliberate": ("[alias/internal → arif_judge] Prefer public arif_judge."),
     # ── 777 FORGE ───────────────────────────────────────────────────────────
     "arif_forge": (
-        "KERNEL 777 · Execution gate via A-FORGE (hands, not law). "
-        "Mutates only after arif_judge SEAL + lease/chain IDs — no self-authorize. "
-        "Authority: 888_HOLD without SEAL. Modes include dry_run | engineer | query | write. "
-        "Public execution verb (arif_act is internal alias only). "
-        "Skip while still planning (arif_think) or without judge SEAL."
+        "KERNEL 777 · Execution gate via A-FORGE — mutates only after SEAL verdict."
     ),
     "arif_forge_execute": ("[alias → arif_forge] Prefer arif_forge."),
     "arif_act": (
@@ -184,19 +138,12 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     ),
     # ── 888 COMPOSE ─────────────────────────────────────────────────────────
     "arif_compose": (
-        "KERNEL reply · Final human-facing composition (citations, tone, ΔS≤0). "
-        "Call LAST after observe/think/judge — not mid-pipeline. "
-        "Authority: L0–L1. Modes: compose | summarize | cite | tone_shift | style | format. "
-        "Not a substitute for arif_judge or arif_seal."
+        "KERNEL reply — final human-facing composition with citations and tone control."
     ),
     "arif_reply_compose": ("[alias → arif_compose] Prefer arif_compose."),
     # ── 999 SEAL ────────────────────────────────────────────────────────────
     "arif_seal": (
-        "KERNEL 999 · VAULT999 immutable append — civilizational memory, irreversible. "
-        "Authority: 888_HOLD / SOVEREIGN + ack_irreversible for seal mode. "
-        "Modes: seal | verify | chain | list | dry_run | seal_card | render. "
-        "Seal only after SEAL verdict path; HOLD/SABAR/VOID do not seal. "
-        "Testing → dry_run. Kernel judges; vault seals; Arif owns F13 veto."
+        "KERNEL 999 · VAULT999 immutable append — irreversible civilizational memory sealing."
     ),
     "arif_vault_seal": ("[alias → arif_seal] Prefer arif_seal."),
     # ── Gateway / measure (non-public helpers) ──────────────────────────────

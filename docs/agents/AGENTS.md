@@ -1,3 +1,8 @@
+# REFERENCE-ONLY — Historical Agent Model
+
+> **NOT RUNTIME AUTHORITY.** Current authority is enforced by the live arifOS
+> kernel and A-FORGE. The roles below cannot independently JUDGE, SEAL, or deploy.
+
 # 🏛️ ARCHITECT
 
 **Symbol:** 🏛️ | **Trinity:** Δ | **Identity:** `agent://arifos/architect`
