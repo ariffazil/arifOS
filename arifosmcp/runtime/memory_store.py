@@ -703,6 +703,88 @@ def _l5_async_enabled() -> bool:
     return os.getenv("L5_SOVEREIGN_ASYNC", "true").lower() != "false"
 
 
+# BRAINAPI2 EUREKA FIXES (2026-07-24):
+# E-2: flow_key — groups related memory writes under a shared event flow UUID
+# E-3: cosine dedup — pre-write similarity check against Qdrant, skip on ≥0.90 match
+# E-5: quality modes — governed/quick/transient path selection
+
+_DEDUP_SIMILARITY_THRESHOLD = float(os.getenv("MEMORY_DEDUP_THRESHOLD", "0.90"))
+_DEDUP_ENABLED = os.getenv("MEMORY_DEDUP_ENABLED", "true").lower() in ("true", "1", "yes")
+
+
+def _dedup_check(
+    text: str,
+    threshold: float | None = None,
+    exclude_memory_id: str | None = None,
+) -> str | None:
+    """Cosine similarity dedup gate (EUREKA-3: brainapi2 pattern).
+
+    Queries Qdrant for semantically similar content. If the top result
+    exceeds threshold, returns the existing memory_id to skip re-store.
+
+    Args:
+        text: Content to deduplicate against.
+        threshold: Cosine similarity threshold [0,1]. Default from env or 0.90.
+        exclude_memory_id: If set, skip results matching this memory_id.
+
+    Returns:
+        str | None: Existing memory_id if duplicate found, None otherwise.
+    """
+    if not _DEDUP_ENABLED:
+        return None
+
+    if not text or not text.strip():
+        return None
+
+    _threshold = threshold if threshold is not None else _DEDUP_SIMILARITY_THRESHOLD
+
+    try:
+        vector = _generate_embedding(text)
+        if not vector:
+            return None
+
+        client = _get_qdrant_client()
+        results = client.search(
+            collection_name=_QDRANT_COLLECTION,
+            query_vector=vector,
+            limit=3,
+            with_payload=False,
+            score_threshold=_threshold,
+        )
+
+        for hit in results:
+            if hit.score >= _threshold:
+                existing_id = hit.id
+                # Skip self-match if exclude_memory_id provided
+                if exclude_memory_id and str(existing_id) == exclude_memory_id:
+                    continue
+                logger.info(
+                    "DEDUP: cosine=%.4f threshold=%.2f existing=%s — skipping store",
+                    hit.score,
+                    _threshold,
+                    existing_id,
+                )
+                return str(existing_id)
+    except Exception as exc:
+        logger.warning("DEDUP check failed (non-blocking): %s", exc)
+        return None  # Fail-open: dedup failure should not block store
+
+    return None
+
+
+QUALITY_GOVERNED = "governed"
+QUALITY_QUICK = "quick"
+QUALITY_TRANSIENT = "transient"
+_VALID_QUALITIES = {QUALITY_GOVERNED, QUALITY_QUICK, QUALITY_TRANSIENT}
+
+
+def _normalise_quality(quality: str | None) -> str:
+    """Normalise quality label to canonical value. Unknown → governed (safe default)."""
+    if quality and quality.lower() in _VALID_QUALITIES:
+        return quality.lower()
+    return QUALITY_GOVERNED
+
+
 def store(
     content: Any,
     mode: str = "unknown",
@@ -712,6 +794,9 @@ def store(
     summary: str | None = None,
     tier: str | None = None,
     constitutional: dict | None = None,
+    flow_key: str | None = None,  # E-2: groups related writes under one event flow
+    quality: str | None = None,  # E-5: governed (full) | quick (Qdrant only) | transient (skip)
+    dedup_threshold: float | None = None,  # E-3: override default 0.90
 ) -> dict[str, Any]:
     """Dual-write to Qdrant (search) + Postgres (durable record).
 
@@ -722,6 +807,10 @@ def store(
 
     Args:
         constitutional: Optional Δ triplet — {"value_anchor": [...], "floor_constraint": [...], "care_provenance": "..."}
+        flow_key: Optional UUID grouping related memory writes under one event flow (E-2).
+        quality: 'governed' (default, full L3+L4+L5 write), 'quick' (L3 only, cheap),
+                 'transient' (L1/L2, skip L3/L4/L5 — future).
+        dedup_threshold: Override cosine similarity threshold for dedup (E-3).
     """
     # Lazy: Phoenix-72 + F4 policies (5s saved on cold path; deferred to first call).
     _load_memory_policies()
@@ -757,7 +846,48 @@ def store(
     pg_memory_id = str(uuid.uuid4())  # separate proper UUID for Postgres
     text = _summarize(content)
     normalised_tier = _normalise_tier(tier)
+    normalised_quality = _normalise_quality(quality)
     now = datetime.now(UTC)
+
+    # --- E-5 QUALITY SHORT-CIRCUIT: transient → skip entirely ---
+    if normalised_quality == QUALITY_TRANSIENT:
+        logger.info("QUALITY=transient: skipping L3/L4/L5 store for %s", memory_id)
+        return {
+            "stored": False,
+            "memory_id": memory_id,
+            "note": "quality=transient: skipped L3/L4/L5 (L1/L2 only)",
+            "quality": normalised_quality,
+            "qdrant_ok": False,
+            "pg_ok": False,
+            "indexed": False,
+        }
+
+    # --- E-3 COSINE DEDUP GATE (brainapi2 pattern) ---
+    # Skip store if semantically identical content already exists in Qdrant.
+    if normalised_quality == QUALITY_GOVERNED:
+        existing_memory_id = _dedup_check(
+            text=text,
+            threshold=dedup_threshold,
+        )
+        if existing_memory_id:
+            logger.info(
+                "DEDUP HIT: memory_id=%s existing=%s quality=%s — returning existing",
+                memory_id,
+                existing_memory_id,
+                normalised_quality,
+            )
+            return {
+                "stored": False,
+                "memory_id": memory_id,
+                "existing_memory_id": existing_memory_id,
+                "reason": "dedup_hit",
+                "detail": f"cosine similarity ≥ {dedup_threshold or _DEDUP_SIMILARITY_THRESHOLD}",
+                "pg_ok": False,
+                "qdrant_ok": False,
+                "indexed": False,
+                "dedup": True,
+                "quality": normalised_quality,
+            }
 
     # --- F4 ENTITY EXTRACTION + CONTRADICTION HANDLING (Phase 1b) ---
     # Called after HARAM scan passes, before dual-write.
@@ -785,6 +915,7 @@ def store(
         "content_hash": _content_hash(content),
         "created_at": now.isoformat(),
         "tier": normalised_tier,
+        "quality": normalised_quality,
         "version": "v3",
         # Constitutional Memory (Δ Axis 3) — moral provenance
         "constitutional": constitutional,
@@ -795,6 +926,8 @@ def store(
         "entity_tags": f4_result.entity_tags,
         "temporal_marker": "active",  # Default; updated if superseded
         "extraction_metadata": f4_result.extraction_metadata,
+        # E-2: flow_key groups related writes under one event flow
+        "flow_key": flow_key or "",
     }
 
     # If resolution was SUPERSEDE or ESCALATE, update Phoenix state accordingly
@@ -802,32 +935,48 @@ def store(
     if f4_result.resolution == "escalate":
         phoenix_override_state = "contradiction_hold"
 
-    # --- Phoenix-72 Band: create entry ---
-    phoenix = _phoenix_entry(
-        memory_id=memory_id,
-        content=content,
-        mode=mode,
-        tags=tags,
-        actor_id=actor_id,
-        session_id=session_id,
-        summary=summary,
-        tier=normalised_tier,
-        provenance={"tool": "arif_memory_recall", "mode": mode},
-    )
-    # Merge Phoenix fields into payload
-    if phoenix_override_state:
-        phoenix["state"] = phoenix_override_state
-    payload.update(
-        {
-            "phoenix_id": phoenix["phoenix_id"],
-            "phoenix_state": phoenix["state"],
-            "phoenix_created_at": phoenix["created_at"],
-            "phoenix_cooldown_expiry": phoenix["cooldown_expiry"],
-            "phoenix_psi_utility": phoenix["psi_utility"],
-            "phoenix_tri_witness": phoenix["tri_witness"],
-            "phoenix_anti_hantu_flag": phoenix["anti_hantu_flag"],
-        }
-    )
+    # --- Phoenix-72 Band: create entry (governed only) ---
+    # E-5: quick quality skips Phoenix-72 (cooling/consensus overhead)
+    phoenix = None
+    if normalised_quality == QUALITY_GOVERNED:
+        phoenix = _phoenix_entry(
+            memory_id=memory_id,
+            content=content,
+            mode=mode,
+            tags=tags,
+            actor_id=actor_id,
+            session_id=session_id,
+            summary=summary,
+            tier=normalised_tier,
+            provenance={"tool": "arif_memory_recall", "mode": mode},
+        )
+        # Merge Phoenix fields into payload
+        if phoenix_override_state:
+            phoenix["state"] = phoenix_override_state
+        payload.update(
+            {
+                "phoenix_id": phoenix["phoenix_id"],
+                "phoenix_state": phoenix["state"],
+                "phoenix_created_at": phoenix["created_at"],
+                "phoenix_cooldown_expiry": phoenix["cooldown_expiry"],
+                "phoenix_psi_utility": phoenix["psi_utility"],
+                "phoenix_tri_witness": phoenix["tri_witness"],
+                "phoenix_anti_hantu_flag": phoenix["anti_hantu_flag"],
+            }
+        )
+    else:
+        # Quick/transient: minimal Phoenix stub for backward compat
+        payload.update(
+            {
+                "phoenix_id": f"quick-{memory_id}",
+                "phoenix_state": "bypassed",
+                "phoenix_created_at": now.isoformat(),
+                "phoenix_cooldown_expiry": now.isoformat(),
+                "phoenix_psi_utility": 0.0,
+                "phoenix_tri_witness": {"human": 0.0, "ai": 0.0, "earth": 0.0},
+                "phoenix_anti_hantu_flag": False,
+            }
+        )
 
     # --- Qdrant write ---
     point_id = str(uuid.uuid4())
@@ -844,36 +993,37 @@ def store(
     except Exception as exc:
         logger.error("Qdrant store failed: %s", exc)
 
-    # --- Postgres dual-write (non-blocking failure) ---
+    # --- Postgres dual-write (governed quality only) ---
+    # E-5: quick quality skips L4 Postgres — Qdrant-only for cost efficiency.
     pg_ok = False
-    try:
-        pg_ok = _pg_run(
-            _pg_write(
-                memory_id=pg_memory_id,
-                tier=normalised_tier,
-                text=text,
-                metadata=payload,
-                qdrant_id=point_id,
-                session_id=session_id,
-                entity_tags=f4_result.entity_tags,
-                distillation_status=phoenix_override_state or "pending",
-                distillation_metadata=(
-                    f4_result.new_entry_meta if f4_result.resolution != "none" else None
-                ),
-                valid_at=None,
-                recorded_at=now,
+    if normalised_quality == QUALITY_GOVERNED:
+        try:
+            pg_ok = _pg_run(
+                _pg_write(
+                    memory_id=pg_memory_id,
+                    tier=normalised_tier,
+                    text=text,
+                    metadata=payload,
+                    qdrant_id=point_id,
+                    session_id=session_id,
+                    entity_tags=f4_result.entity_tags,
+                    distillation_status=phoenix_override_state or "pending",
+                    distillation_metadata=(
+                        f4_result.new_entry_meta if f4_result.resolution != "none" else None
+                    ),
+                    valid_at=None,
+                    recorded_at=now,
+                )
             )
-        )
-    except Exception as exc:
-        logger.warning("Postgres dual-write skipped: %s", exc)
+        except Exception as exc:
+            logger.warning("Postgres dual-write skipped: %s", exc)
+    else:
+        logger.info("QUALITY=%s: skipping L4 Postgres write", normalised_quality)
 
-    # --- L5 Sovereign Forge (FEDERATION — fire-and-forget) -----------------
-    # Only fire if at least one durable leg succeeded. L5 enriches but
-    # is NOT a source of truth; failure here must not block the store result.
-    # Uses forge_l5_async() so the store() caller does NOT wait for
-    # qwen2.5:3b cold start (~30-120s on CPU depending on load).
+    # --- L5 Sovereign Forge (governed quality only) ---
+    # E-5: quick quality skips L5 — no graph enrichment for cheap writes.
     l5_status = "skipped"
-    if qdrant_ok or pg_ok:
+    if normalised_quality == QUALITY_GOVERNED and (qdrant_ok or pg_ok):
         try:
             from arifosmcp.runtime.l5_sovereign_forge import (
                 bridge_forge_episode,
@@ -943,8 +1093,11 @@ def store(
         "pg_ok": pg_ok,
         "l5_status": l5_status,  # FEDERATION: Graphiti episode forge outcome
         "tier": normalised_tier,
+        "quality": normalised_quality,
         "backends": {"qdrant": qdrant_ok, "postgres": pg_ok, "graphiti": l5_status},
-        "phoenix": phoenix_summary(phoenix),
+        "phoenix": phoenix_summary(phoenix)
+        if phoenix
+        else {"state": "bypassed", "phi_utility": 0.0},
         # Phase 1b: F4 result
         "f4": {
             "entity_tags": f4_result.entity_tags,

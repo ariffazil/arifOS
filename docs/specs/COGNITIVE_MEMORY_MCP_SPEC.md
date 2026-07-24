@@ -89,7 +89,76 @@ v2:  query → Qdrant (fast) + FalkorDB (structured) → fused context → MIND
 
 ## 3. GRAPH SCHEMA
 
-### 3.1 Node Types
+### 3.1A Event Hub Model (BRAINAPI2 EUREKA — Forged 2026-07-24)
+
+BrainAPI2's Triangle of Attribution models every action as a first-class EVENT node,
+enabling traceable multi-hop answers. Every memory write, verdict, or claim is centered
+on an Event with Actor, Target, and Context linked through typed edges:
+
+```
+                    ┌─────────────────┐
+                    │   EVENT HUB     │
+                    │  (Action Node)  │
+                    └────────┬────────┘
+                             │
+           ┌─────────────────┼─────────────────┐
+           ▼                 ▼                 ▼
+    ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+    │    ACTOR     │  │    TARGET    │  │   CONTEXT    │
+    │   (Source)   │  │ (Recipient)  │  │  (Anchor)    │
+    └──────────────┘  └──────────────┘  └──────────────┘
+         :MADE            :TARGETED       :WITHIN
+```
+
+**flow_key** — All edges belonging to one event share a `flow_key: UUID` field,
+grouping them as a single event hub. This is stored as a property on every edge
+in FalkorDB and in the Qdrant payload. See `memory_store.py` E-2 implementation.
+
+#### Extended Node Types
+
+```cypher
+(:Event {
+    event_id: string,           // UUID
+    event_type: string,         // claim | verdict | memory_write | plan | action
+    timestamp: datetime,
+    flow_key: string,           // shared with all edges in this event
+    session_id: string,
+    summary: string,            // brief description of the event
+    verdict: string | null,     // SEAL | HOLD | SABAR | VOID if applicable
+    sealed: boolean
+})
+
+(:Actor {
+    actor_id: string,
+    actor_type: string,         // human | agent | organ | system
+    name: string
+})
+
+(:Target {
+    target_id: string,
+    target_type: string,        // memory | claim | plan | resource | entity
+    name: string
+})
+
+(:Context {
+    context_id: string,
+    context_type: string,       // session | epoch | domain | location
+    name: string
+})
+```
+
+#### Extended Edge Types
+
+```cypher
+(:Actor)-[:MADE {flow_key, timestamp}]->(:Event)
+(:Event)-[:TARGETED {flow_key, timestamp}]->(:Target)
+(:Event)-[:WITHIN {flow_key, timestamp}]->(:Context)
+```
+
+This supplements the existing Plan→Step→Claim→Evidence schema below.
+Existing nodes remain unchanged.
+
+### 3.1 Original Node Types
 
 ```cypher
 (:Plan {
@@ -311,6 +380,14 @@ MEMORY_AUTO_PERSIST_PLANS=true   # auto-store mind_plan() outputs
 4. Feature flag `MEMORY_V2_ENABLED=false` → graceful degradation to v1 recall-only
 5. 0 broken existing tests
 
+### 8.1 Event Hub Success Criteria (EUREKA, forged 2026-07-24)
+
+1. `arif_memory(mode="remember", content="...", flow_key="evt-xxx")` → all edges in FalkorDB share `flow_key`
+2. `arif_memory(mode="store", content="...", quality="quick")` → Qdrant-only write, no Postgres/L5, <50% cost
+3. `arif_memory(mode="store", content="...")` with identical existing content → returns `dedup=True` with existing_memory_id
+4. Dedup threshold configurable via `MEMORY_DEDUP_THRESHOLD` env var (default 0.90)
+5. Quality modes: governed (full L3+L4+L5), quick (L3 only), transient (skip) — all dispatch correctly
+
 ---
 
 ## 9. ARCHITECTURAL INVARIANTS
@@ -356,7 +433,14 @@ explicit consent or shared epoch membership. Memory privacy is a constitutional 
 
 ## 11. IMPLEMENTATION PHASES (Updated)
 
-### Phase 5: Scar Tissue + Expiry + Consent (post-Phase 4)
+### Phase 5: Event Hub Model + Flow Key (EUREKA — brainapi2 pattern)
+- Event node type (`:Event`) in FalkorDB schema (spec complete in §3.1A)
+- `flow_key` in Qdrant payload + memory_store payload (implemented in `memory_store.py`)
+- `MADE`/`TARGETED`/`WITHIN` edge types for Actor→Event→Target→Context attribution
+- Write path: `arif_memory(mode="remember")` with `flow_key` creates Event hub in L5
+- **Estimated:** 2 hours implementation + 1 hour test
+
+### Phase 6: Scar Tissue + Expiry + Consent (post-Phase 5)
 - `Scar` node type + behavioral trigger system
 - TTL + confidence decay on unsealed plans
 - Session ownership + epoch-based recall consent
