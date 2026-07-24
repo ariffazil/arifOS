@@ -35,7 +35,7 @@ MAX_CONCURRENT = int(os.getenv("KABARKAN_MAX_CONCURRENT", "5"))
 PG_HOST = os.getenv("POSTGRES_HOST", "localhost")
 PG_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 PG_DB = os.getenv("POSTGRES_DB", "arifos")
-PG_USER = os.getenv("POSTGRES_USER", "postgres")
+PG_USER = os.getenv("POSTGRES_USER", "arifos_admin")
 PG_PASSWORD = os.getenv("POSTGRES_PASSWORD", "")
 
 # MinIO (optional archiving)
@@ -60,24 +60,25 @@ async def _pg_connect() -> Any:
 async def _nats_connect() -> tuple[Any, Any]:
     """Connect to NATS and bind to JetStream consumer."""
     import nats
+    from nats.js.api import ConsumerConfig, AckPolicy, DeliverPolicy
 
     nc = await nats.connect(NATS_URL)
     js = nc.jetstream()
 
-    # Create or bind consumer
     try:
         await js.add_consumer(
             STREAM_NAME,
-            config=nats.js.api.ConsumerConfig(
+            config=ConsumerConfig(
                 name=CONSUMER_NAME,
-                deliver_subject=f"kabarkan.deliver.{CONSUMER_NAME}",
-                ack_policy=nats.js.api.AckPolicy.EXPLICIT,
+                deliver_policy=DeliverPolicy.ALL,
+                ack_policy=AckPolicy.EXPLICIT,
                 max_deliver=3,
                 ack_wait=30,
             ),
         )
-    except Exception:
-        logger.info(f"Consumer {CONSUMER_NAME} already exists, binding")
+        logger.info(f"Consumer {CONSUMER_NAME} created on {STREAM_NAME}")
+    except Exception as e:
+        logger.info(f"Consumer {CONSUMER_NAME} already exists on {STREAM_NAME}: {e}")
 
     return nc, js
 
@@ -170,11 +171,9 @@ async def consumer_loop() -> None:
     try:
         nc, js = await _nats_connect()
         pg = await _pg_connect()
-        logger.info(
-            f"Kabarkan Worker v1 connected — NATS={NATS_URL} PG={PG_HOST}/{PG_DB}"
-        )
+        logger.info(f"Kabarkan Worker v1 connected — NATS={NATS_URL} PG={PG_HOST}/{PG_DB}")
 
-        sub = await js.pull_subscribe(SUBJECTS, CONSUMER_NAME)
+        sub = await js.pull_subscribe(SUBJECTS, CONSUMER_NAME, stream=STREAM_NAME)
 
         while True:
             try:
