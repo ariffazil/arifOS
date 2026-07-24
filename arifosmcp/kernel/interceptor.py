@@ -154,10 +154,12 @@ def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
     # ── Path 2: JSON-arg fallback (self-report) — ADVISORY ONLY ──────────
     envelope = args.get("_envelope", {})
     if isinstance(envelope, dict):
-        arg_actor_id = envelope.get("actor_id") or envelope.get("actor", args.get("actor_id"))
+        arg_actor_id = envelope.get("actor_id") or envelope.get(
+            "actor", args.get("actor_id") or args.get("actor")
+        )
         server_id = envelope.get("server_id") or envelope.get("organ", "local")
     else:
-        arg_actor_id = args.get("actor_id")
+        arg_actor_id = args.get("actor_id") or args.get("actor")
         server_id = "local"
 
     # ── Identity resolution: JWT wins; self-report is downgrade ──────────
@@ -187,6 +189,7 @@ def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
                 break
 
     session_id = args.get("session_id")
+    session_token = args.get("session_token") or args.get("sct")
 
     return InterceptorInput(
         raw_tool_name=name,
@@ -196,6 +199,7 @@ def _normalise_request(raw: dict[str, Any]) -> InterceptorInput:
         actor_source=actor_source,
         auth_method=auth_method,
         session_id=str(session_id) if session_id else None,
+        session_token=str(session_token) if session_token else None,
         authority_tier=AuthorityTier.LOW,
     )
 
@@ -355,10 +359,40 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
         # OBSERVE_ONLY/absent → LOW, FULL/SOVEREIGN → SOVEREIGN.
         # Default is LOW (was MEDIUM) — never overclaim authority.
         #
-        # Without this fix, _resolve_authority() returned MEDIUM for ANY session
-        # that existed, even if initialized as OBSERVE_ONLY. The interceptor and
-        # session now agree because only one computation runs.
-        if req.session_id:
+        # BANGANG P0.2 FIX (2026-07-24): SCT-first authority resolution.
+        # The interceptor runs BEFORE verify_and_inject_token populates _SESSIONS.
+        # On first call with a fresh SCT, _SESSIONS is empty → actor resolves to
+        # LOW → arif_judge/arif_forge blocked as "anonymous" despite valid SCT.
+        # Fix: decode SCT claims inline (base64 payload, no HMAC verify — the
+        # real verify happens later in verify_and_inject_token). The interceptor
+        # needs only enough signal to not gate-keep a valid SCT bearer.
+        auth = AuthorityTier.LOW
+        sct_used = False
+        # ── SCT-first path: decode claims from session_token ─────────
+        if req.session_token and not sct_used:
+            try:
+                import base64, json as _json
+
+                parts = req.session_token.split(".")
+                if len(parts) >= 2:
+                    claims_raw = parts[1]
+                    # pad base64url
+                    claims_raw += "=" * (4 - len(claims_raw) % 4) if len(claims_raw) % 4 else ""
+                    claims_bytes = base64.urlsafe_b64decode(claims_raw)
+                    claims = _json.loads(claims_bytes)
+                    sct_actor = (claims.get("actor") or "").lower()
+                    sct_auth = (claims.get("auth") or "").upper()
+                    if sct_actor and sct_auth in ("FULL", "SOVEREIGN"):
+                        auth = AuthorityTier.SOVEREIGN
+                        sct_used = True
+                    elif sct_actor and sct_auth == "HIGH":
+                        auth = AuthorityTier.HIGH
+                        sct_used = True
+            except Exception:
+                pass  # SCT decode failed — fall through to _SESSIONS
+
+        # ── Fallback: _SESSIONS store (already populated from prior call) ──
+        if not sct_used and req.session_id:
             try:
                 from arifosmcp.runtime.tools import _SESSIONS
 
@@ -373,8 +407,6 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
                     auth = AuthorityTier.LOW  # was MEDIUM — no session, no authority
             except Exception:
                 auth = AuthorityTier.LOW  # was MEDIUM — degrade gracefully
-        else:
-            auth = AuthorityTier.LOW
 
     print(
         f"[KERNEL_AUTHORITY] actor={req.actor_id} actor_source={req.actor_source} "
