@@ -326,7 +326,28 @@ def _resolve_authority(req: InterceptorInput) -> AuthorityTier:
 
     v0.2.1 (2026-06-22): broaden to substring match under JWT verification.
     v0.2: semantic labels. v0.3 future: cryptographic nonce + session binding.
+    v0.5 (2026-07-24): SCT-first identity — decode session_token claims before
+    falling to LOW when actor_id is absent. Fixes arif_seal/arif_memory blocking
+    on tools where caller omits actor_id (relying solely on SCT).
     """
+    # ── SCT-first identity recovery (v0.5) ──────────────────────────
+    if not req.actor_id and req.session_token:
+        try:
+            import base64, json as _json_sct
+
+            parts = req.session_token.split(".")
+            if len(parts) >= 2:
+                claims_raw = parts[1]
+                claims_raw += "=" * (4 - len(claims_raw) % 4) if len(claims_raw) % 4 else ""
+                claims_bytes = base64.urlsafe_b64decode(claims_raw)
+                claims = _json_sct.loads(claims_bytes)
+                sct_actor = (claims.get("actor") or "").strip()
+                if sct_actor:
+                    req.actor_id = sct_actor
+                    req.actor_source = "sct_claims"
+        except Exception:
+            pass
+
     if not req.actor_id:
         auth = AuthorityTier.LOW
         print(
