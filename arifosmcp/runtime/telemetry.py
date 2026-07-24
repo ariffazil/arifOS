@@ -25,6 +25,8 @@ _OBSERVABILITY_BACKEND = os.getenv("OBSERVABILITY_BACKEND", "langfuse").lower()
 
 _lf_client: Any = None
 _local_backend: Any = None
+_nats_conn: Any = None
+_nats_ready: bool = False
 
 
 def _get_langfuse():
@@ -117,6 +119,38 @@ def _get_local_backend():
         logger.debug(f"[Telemetry] Local backend not available: {e}")
     except Exception as e:
         logger.warning(f"[Telemetry] Local backend init failed: {e}")
+    return None
+
+
+def _get_nats():
+    """Return a sync NATS publish function for Kabarkan streaming.
+
+    Publishes JSON ObservationRecord payloads to kabarkan.ingest.<type>.
+    Fire-and-forget — never blocks the kernel tool path.
+    """
+    global _nats_conn, _nats_ready
+    if _nats_ready:
+        return _nats_conn
+    try:
+        import json as _json
+        from nats import connect as _nconnect
+
+        nats_url = os.getenv("NATS_URL", "nats://localhost:4222")
+        _nats_conn = _nconnect(nats_url)
+        _nats_ready = True
+        logger.info(f"[Telemetry] NATS connected — {nats_url}")
+
+        def _publish(subject: str, payload: dict[str, Any]) -> None:
+            try:
+                _nats_conn.publish(subject, _json.dumps(payload, default=str).encode())
+            except Exception:
+                pass  # fire-and-forget
+
+        return _publish
+    except ImportError:
+        logger.debug("[Telemetry] nats-py not installed")
+    except Exception as e:
+        logger.debug(f"[Telemetry] NATS init deferred: {e}")
     return None
 
 
@@ -340,7 +374,31 @@ class Telemetry:
             except Exception as e:
                 logger.debug(f"[Telemetry] trace emit failed: {e}")
 
-        # ── Local backend (Kabarkan) ────────────────────────────────────
+        # ── Kabarkan NATS (fire-and-forget stream) ─────────────────────
+        _nats = _get_nats()
+        if _nats:
+            try:
+                i_h = _hash_payload(_redact(input_data)) if input_data else None
+                o_h = _hash_payload(output_data) if output_data else None
+                payload = {
+                    "tool_name": tool,
+                    "verdict_class": verdict.upper(),
+                    "actor_id": actor_id or "unknown",
+                    "session_id": session_id or None,
+                    "latency_ms": latency,
+                    "delta_s": delta_s,
+                    "input_hash": i_h,
+                    "output_hash": o_h,
+                    "vault_receipt": vault_receipt,
+                    "reasons": reasons or [],
+                    "next_safe_action": next_safe_action,
+                    "organ": "arifOS",
+                }
+                _nats(f"kabarkan.ingest.span.{tool}", payload)
+            except Exception:
+                pass
+
+        # ── Local backend (Kabarkan Postgres) ──────────────────────────
         if self._local:
             try:
                 input_hash = _hash_payload(_redact(input_data)) if input_data else None
