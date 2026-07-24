@@ -201,6 +201,17 @@ class LLMUnavailableError(Exception):
     pass
 
 
+class ConstitutionalSeatUnavailable(LLMUnavailableError):
+    """Raised when the constitutional seat model for 666/999 is unavailable.
+
+    Unlike the generic cascade, gated roles MUST fail-closed — no fallback
+    to MiniMax, MiMo, Groq, or any other model. Deputy activation requires
+    explicit F13 directive per AMEND-20260724-001.
+    """
+
+    pass
+
+
 # ── Internal Helpers ───────────────────────────────────────────────────────────
 
 
@@ -1550,6 +1561,42 @@ def select_model_for_role(
     return effective
 
 
+def _emit_seat_unavailable(
+    role: str,
+    seat_model: str,
+    tool_origin: str,
+    attempted_model: str | None,
+) -> None:
+    """Emit JUDGE_SEAT_UNAVAILABLE or SEAL_SEAT_UNAVAILABLE to VAULT999.
+
+    AMEND-20260724-001: when the constitutional seat model fails, the system
+    MUST NOT enter the generic provider cascade. The event is best-effort
+    (failures are swallowed) — it is an operational log, not a seal.
+    """
+    event_kind = (
+        "JUDGE_SEAT_UNAVAILABLE"
+        if role == "666_JUDGE"
+        else "SEAL_SEAT_UNAVAILABLE"
+        if role == "999_SEAL"
+        else "CONSTITUTIONAL_SEAT_UNAVAILABLE"
+    )
+    event = {
+        "event": event_kind,
+        "role": role,
+        "seat_model": seat_model,
+        "attempted_model": attempted_model or seat_model,
+        "tool_origin": tool_origin,
+        "decision": "HOLD",
+        "reason": (
+            f"Constitutional seat model {seat_model!r} is unavailable "
+            f"for role {role}. No cascade — deputy requires F13 directive."
+        ),
+        "registry_path": _agent_model_map_path(),
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+    _emit_vault999_outcome(event)
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
@@ -1612,13 +1659,53 @@ async def call_llm(
             trace_recursion_depth,
         )
 
-    # F13 — Constitutional model-role gate (AGENT_MODEL_MAP, 2026-07-24)
-    # For roles 666_JUDGE / 999_SEAL, preferred_model MUST be in the map's
-    # allowed set (deepseek/deepseek-v4-pro). Option B: explicit override.
-    # Fails closed: emits FORBIDDEN_MODEL_FOR_ROLE to VAULT999/outcomes.jsonl
-    # and raises LLMUnavailableError — the cascade never runs on forbidden.
-    # Smoke/test/diagnostic modes (resolved above) bypass this gate.
-    if constitutional_role:
+    # F13 — Constitutional model-role gate (AMEND-20260724-001, 2026-07-24)
+    # For roles 666_JUDGE / 999_SEAL, the effective model is determined by
+    # select_model_for_role() which enforces the seat policy. The returned
+    # model MUST be used — the generic cascade below is NEVER entered for
+    # gated roles. If the exact seat model fails → ConstitutionalSeatUnavailable
+    # → HOLD (fail-closed). No fallback, no silent substitution.
+    # Non-constitutional roles pass through to the generic cascade unchanged.
+    if constitutional_role and constitutional_role in CONSTITUTIONAL_ROLES_GATED:
+        gated_model = select_model_for_role(
+            constitutional_role, preferred_model, agent_id=tool_origin
+        )
+        t0 = time.monotonic()
+        try:
+            raw_output, parsed = await _call_tokenrouter(
+                system,
+                user,
+                response_schema,
+                temperature,
+                max_tokens,
+                model=gated_model,
+            )
+            return _make_envelope(
+                raw_output,
+                parsed,
+                "tokenrouter",
+                gated_model,
+                tool_origin,
+                mode,
+                combined_prompt,
+                (time.monotonic() - t0) * 1000,
+                response_schema,
+                trace_recursion_depth,
+            )
+        except LLMUnavailableError:
+            _emit_seat_unavailable(
+                constitutional_role,
+                gated_model,
+                tool_origin,
+                preferred_model,
+            )
+            raise ConstitutionalSeatUnavailable(
+                f"Constitutional seat unavailable: role={constitutional_role} "
+                f"model={gated_model} — HOLD. No cascade for gated roles. "
+                f"Deputy must be activated by F13 directive."
+            ) from None
+    elif constitutional_role:
+        # Non-gated constitutional role — validate but don't short-circuit cascade
         select_model_for_role(constitutional_role, preferred_model, agent_id=tool_origin)
 
     # Tier 0 — TokenRouter (OpenAI-compatible proxy, embedded key) — PRIMARY
