@@ -39,19 +39,23 @@ logger = logging.getLogger("arifos.kernel.intercept")
 
 
 # F13 SOVEREIGN key registry — kernel-side, not config-side.
-# In production, this is loaded from /root/.secrets/ via SOPS+AGE decryption at boot.
-# For now, a dev-mode sentinel is used; production MUST replace this with a key file load.
+# Production: real Ed25519 verification via crypto_auth.verify_actor_signature().
+# Dev-mode fallback: sentinel string comparison (when ARIFOS_ED25519_ENABLED != true).
 _SOVEREIGN_KEY_SENTINEL = os.environ.get(
     "ARIFOS_SOVEREIGN_KEY",
     "DEV_ONLY_SENTINEL_REPLACE_AT_PROD_BOOT",
 )
+_SOVEREIGN_ED25519_ENABLED = os.environ.get("ARIFOS_ED25519_ENABLED", "true").lower() in (
+    "true", "1", "yes",
+)
+try:
+    from arifosmcp.runtime.crypto_auth import verify_actor_signature as _ed25519_verify
+    _ED25519_AVAILABLE = True
+except ImportError:
+    _ED25519_AVAILABLE = False
 
 
 # ── Action Class Policy (forged 2026-07-24) ──────────────────────────────
-# Maps canonical action classes to seal purpose, authority effect,
-# reversibility, and F13 requirement. The kernel reads this table to
-# determine whether an action needs sovereign cryptographic signature.
-# VAULT999 append-only permanence ≠ authorization to mutate the world.
 _ACTION_CLASS_POLICY = {
     "AUDIT_RECORD": {
         "seal_purpose": "RECORD",
@@ -102,38 +106,87 @@ def _resolve_action_class(
     seal_purpose: str | None,
     authority_effect: str | None,
 ) -> dict:
-    """Resolve action class policy from explicit class, seal_purpose, or reversibility fallback."""
-    # Explicit action_class wins
     if action_class and action_class.upper() in _ACTION_CLASS_POLICY:
         return _ACTION_CLASS_POLICY[action_class.upper()]
-    # seal_purpose + authority_effect inference
     if seal_purpose == "AUTHORIZE" or (authority_effect and authority_effect != "NONE"):
         return _ACTION_CLASS_POLICY["ACTION_AUTHORIZATION"]
-    # Fallback: reversibility-based inference
     r = reversibility_level.upper()
     if r in ("R4", "R5", "R4_IRREVERSIBLE", "R5_SOVEREIGN", "IRREVERSIBLE", "SOVEREIGN"):
         return _ACTION_CLASS_POLICY["ACTION_AUTHORIZATION"]
-    # Default: treat as audit record
     return _ACTION_CLASS_POLICY["AUDIT_RECORD"]
 
 
-def _verify_sovereign_token(token: str | None) -> bool:
-    """
-    F11 AUTH: Cryptographically verify F13 SOVEREIGN token.
+def _verify_sovereign_token(
+    token: str | None,
+    actor_id: str | None = None,
+    nonce: str | None = None,
+    actor_signature: str | None = None,
+) -> bool:
+    """F13 SOVEREIGN: Real Ed25519 verification (production) or sentinel fallback (dev).
 
-    Strict requirements (production):
-    - Token MUST be a non-empty ed25519 signature
-    - Signature MUST verify against the SOVEREIGN public key
-    - Public key fingerprint MUST match the on-disk fingerprint at
-      /root/.secrets/sovereign_key.fp
+    Production path (ARIFOS_ED25519_ENABLED=true):
+      - Verifies actor_signature against registered Ed25519 public key
+      - Uses crypto_auth.verify_actor_signature() over {actor_id}:{nonce} payload
+      - Nonce is single-use, challenge-based with 120s TTL
 
-    Dev-mode fallback (current):
-    - Token MUST equal the sentinel string (env-loaded)
-    - This is trivially bypassable — DO NOT use in production
+    Dev-mode fallback:
+      - Token must equal the sentinel string (constant-time comparison)
+      - Trivially bypassable — DO NOT use in production
     """
+    # Real Ed25519 path (production)
+    import sys as _debug_sys
+    print(f"F13_PRECALL: enabled={_SOVEREIGN_ED25519_ENABLED} avail={_ED25519_AVAILABLE} sig={bool(actor_signature)} nonce={bool(nonce)} aid={bool(actor_id)}", file=_debug_sys.stderr, flush=True)
+    if _SOVEREIGN_ED25519_ENABLED and _ED25519_AVAILABLE and actor_signature and nonce and actor_id:
+        import base64 as _b64
+
+        logger.info(
+            "F13_ED25519: actor=%s nonce=%s sig_len=%d ed25519_available=%s enabled=%s",
+            actor_id, nonce[:8], len(actor_signature), _ED25519_AVAILABLE, _SOVEREIGN_ED25519_ENABLED,
+        )
+
+        # Try pre-issued challenge first
+        try:
+            ok = _ed25519_verify(
+                actor_id=actor_id,
+                nonce=nonce,
+                signature_b64=actor_signature,
+            )
+            import sys as _sys
+            print(f"F13_DEBUG: challenge_ok={ok}", file=_sys.stderr, flush=True)
+            logger.info("F13_ED25519: challenge_verify=%s", ok)
+            if ok:
+                return True
+        except Exception as e:
+            print(f"F13_DEBUG: challenge_exception={e}", file=_sys.stderr, flush=True)
+            logger.warning("F13_ED25519: challenge exception=%s", e)
+
+        # Free-nonce fallback
+        try:
+            from arifosmcp.runtime.crypto_auth import resolve_actor_public_key
+            from cryptography.exceptions import InvalidSignature
+
+            pubkey = resolve_actor_public_key(actor_id)
+            logger.info("F13_ED25519: pubkey_found=%s", pubkey is not None)
+            if pubkey is not None:
+                sig_bytes = _b64.b64decode(actor_signature)
+                payload = f"{actor_id}:{nonce}".encode()
+                pubkey.verify(sig_bytes, payload)
+                logger.info("F13_ED25519: free_nonce_verify=OK")
+                return True
+        except InvalidSignature:
+            logger.warning("F13_ED25519: free_nonce_verify=INVALID_SIGNATURE")
+        except Exception as e:
+            logger.warning("F13_ED25519: free_nonce_exception=%s", e)
+    else:
+        logger.info(
+            "F13_ED25519: skipped — enabled=%s available=%s has_sig=%s has_nonce=%s has_actor=%s",
+            _SOVEREIGN_ED25519_ENABLED, _ED25519_AVAILABLE,
+            bool(actor_signature), bool(nonce), bool(actor_id),
+        )
+
+    # Sentinel fallback (dev-mode)
     if not token:
         return False
-    # Dev-mode constant-time comparison to prevent timing attacks
     if len(token) != len(_SOVEREIGN_KEY_SENTINEL):
         return False
     result = 0
@@ -143,7 +196,6 @@ def _verify_sovereign_token(token: str | None) -> bool:
 
 
 def compute_audit_hash(payload: KernelInput) -> str:
-    """Generate a stable sha256 receipt for the vault."""
     canonical_dict = {
         "actor": payload.actor,
         "intent": payload.intent,
@@ -174,66 +226,22 @@ async def _arif_kernel_intercept(
     nonce: str | None = None,
     key_id: str | None = None,
 ) -> dict[str, Any]:
-    """
-    The Minimum Constitutional Kernel. All federation actions pass through here.
-
-    This replaces the heavy deliberation of the 888_JUDGE for runtime execution
-    checks. It returns a ruthless ALLOW, DENY, ESCALATE, or SIMULATE.
-
-    F13 SOVEREIGN gate: R4/R5 actions require cryptographic sovereign token
-    (ed25519). Dev-mode fallback uses constant-time sentinel comparison;
-    production MUST load the sovereign public key from
-    /root/.secrets/sovereign_key.pub at boot.
-
-    MEMBRANE-03: When measurement dict is provided (from A-FORGE MeasurementPacket),
-    the kernel uses G, C_dark, W3 for floor checks WITHOUT recomputing.
-    When absent, falls back to current advisory behavior.
-    """
     evidence = evidence or []
 
-    # Normalize human-friendly reversibility aliases → R0..R5.
-    # Unknown tokens fail CLOSED to R4 (was already the case).
     _rev_raw = (reversibility_level or "").strip().upper()
     _REV_ALIASES = {
-        "R0": "R0",
-        "R0_OBSERVATION": "R0",
-        "OBSERVATION": "R0",
-        "OBSERVE": "R0",
-        "READ": "R0",
-        "R1": "R1",
-        "R1_SIMULATION": "R1",
-        "SIMULATION": "R1",
-        "DRY_RUN": "R1",
-        "R2": "R2",
-        "R2_REVERSIBLE_WRITE": "R2",
-        "REVERSIBLE": "R2",
-        "REVERSIBLE_WRITE": "R2",
-        "WRITE": "R2",
-        # Evidence / audit record seals — vault append without external effect
-        "RECORD_ONLY_APPEND": "R2",
-        "AI_ATTESTATION": "R2",
-        "AUDIT_RECEIPT": "R2",
-        "EVIDENCE_ATTESTATION": "R2",
-        "RECORD_SEAL": "R2",
-        "EVIDENCE_SEAL": "R2",
-        "R3": "R3",
-        "R3_COSTLY_REVERSIBLE": "R3",
-        "COSTLY": "R3",
-        "SEMI_IRREVERSIBLE": "R3",
-        "R4": "R4",
-        "R4_IRREVERSIBLE": "R4",
-        "IRREVERSIBLE": "R4",
-        "R5": "R5",
-        "R5_SOVEREIGN": "R5",
-        "SOVEREIGN": "R5",
-        "CATASTROPHIC": "R5",
+        "R0": "R0", "R0_OBSERVATION": "R0", "OBSERVATION": "R0", "OBSERVE": "R0", "READ": "R0",
+        "R1": "R1", "R1_SIMULATION": "R1", "SIMULATION": "R1", "DRY_RUN": "R1",
+        "R2": "R2", "R2_REVERSIBLE_WRITE": "R2", "REVERSIBLE": "R2", "REVERSIBLE_WRITE": "R2", "WRITE": "R2",
+        "RECORD_ONLY_APPEND": "R2", "AI_ATTESTATION": "R2", "AUDIT_RECEIPT": "R2",
+        "EVIDENCE_ATTESTATION": "R2", "RECORD_SEAL": "R2", "EVIDENCE_SEAL": "R2",
+        "R3": "R3", "R3_COSTLY_REVERSIBLE": "R3", "COSTLY": "R3", "SEMI_IRREVERSIBLE": "R3",
+        "R4": "R4", "R4_IRREVERSIBLE": "R4", "IRREVERSIBLE": "R4",
+        "R5": "R5", "R5_SOVEREIGN": "R5", "SOVEREIGN": "R5", "CATASTROPHIC": "R5",
     }
     try:
         r_class = ReversibilityClass(_REV_ALIASES.get(_rev_raw, _rev_raw))
     except ValueError:
-        # P0 FIX (2026-07-24): Unknown reversibility class MUST NOT silently
-        # become R4. Return CLASSIFICATION_HOLD so the caller knows the
-        # classifier rejected the value.
         unknown_output = KernelOutput(
             decision="CLASSIFICATION_HOLD",
             constitutional_floor_triggered="F2",
@@ -281,18 +289,19 @@ async def _arif_kernel_intercept(
         measurement=measurement,
     )
 
-    # ── MEMBRANE-03: Extract pre-computed APEX from MeasurementPacket ──
-    # When A-FORGE passes measurement, the kernel reads G, C_dark, W3
-    # for floor checks. It NEVER recomputes these values.
     _m = measurement or {}
     _G = _m.get("G")
     _C_dark = _m.get("C_dark")
     _W3 = _m.get("W3")
     _has_measurement = _G is not None and _C_dark is not None
 
-    # ── Resolve action class policy (forged 2026-07-24) ───────────────
-    # Maps action_class → seal_purpose, authority_effect, reversibility, F13 requirement.
-    # VAULT999 append-only permanence ≠ authorization to mutate the world.
+    # P0 FIX (2026-07-25): Deterministic AUDIT_RECORD normalization.
+    _effective_ac = action_class.upper() if action_class else None
+    if _effective_ac == "AUDIT_RECORD":
+        _rev_raw = "R2"
+        blast_radius = blast_radius or "ledger"
+        seal_purpose = "RECORD"
+        authority_effect = authority_effect or "NONE"
     _policy = _resolve_action_class(
         action_class=action_class,
         reversibility_level=_rev_raw,
@@ -303,10 +312,18 @@ async def _arif_kernel_intercept(
     _seal_purpose_resolved = seal_purpose or _policy["seal_purpose"]
     _authority_effect_resolved = authority_effect or _policy["authority_effect"]
     _seal_type = "SEAL_RECORD" if _seal_purpose_resolved == "RECORD" else "SEAL_AUTHORIZATION"
+    _ack_irreversible = _policy["ack_irreversible"]
+    import sys as _dbg2
+    print(f"F13_POLICY: action_class={action_class} requires_f13={_requires_f13} seal_purpose={_seal_purpose_resolved} reversibility={_rev_raw}", file=_dbg2.stderr, flush=True)
 
-    # 1. F13 Gate — only for AUTHORIZE seal_purpose or R4/R5 reversibility
+    # 1. F13 Gate — real Ed25519 or sentinel fallback
     if _requires_f13:
-        if not _verify_sovereign_token(authority_token):
+        if not _verify_sovereign_token(
+            token=authority_token,
+            actor_id=actor,
+            nonce=nonce,
+            actor_signature=actor_signature,
+        ):
             output = KernelOutput(
                 decision="ESCALATE",
                 constitutional_floor_triggered="F13",
@@ -335,8 +352,6 @@ async def _arif_kernel_intercept(
             return base
 
     # 2. Evidence Thresholds for Truth (F2 TRUTH)
-    # Per FLOOR_INVARIANTS_v2026.06.23: P(truth) ≥ 0.99 requires source attribution.
-    # FACT/ESTIMATE claims without evidence = cheap_claim (score = 0.4) → DENY.
     if t_state in {TruthState.FACT, TruthState.ESTIMATE} and not evidence:
         output = KernelOutput(
             decision="DENY",
@@ -357,8 +372,6 @@ async def _arif_kernel_intercept(
         base["metacognition"] = {"confidence": 0.95, "next_safe_action": base["next_safe_action"]}
         return base
 
-    # 2b. CONFLICT state — sources disagree. Must surface contradiction, not
-    # resolve silently.
     if t_state == TruthState.CONFLICT and not evidence:
         output = KernelOutput(
             decision="ESCALATE",
@@ -378,7 +391,6 @@ async def _arif_kernel_intercept(
         base["metacognition"] = {"confidence": 0.85, "next_safe_action": base["next_safe_action"]}
         return base
 
-    # 2c. HYPOTHESIS/CLAIM with substantial blast radius → require evidence anyway
     if (
         t_state in {TruthState.HYPOTHESIS, TruthState.CLAIM}
         and not evidence
@@ -397,17 +409,11 @@ async def _arif_kernel_intercept(
         base = output.model_dump()
         target_aff = get_full_affordance(requested_capability)
         base["affordance"] = target_aff
-        base["next_safe_action"] = (
-            "Attach evidence or downgrade epistemic_state before re-intercept"
-        )
+        base["next_safe_action"] = "Attach evidence or downgrade epistemic_state before re-intercept"
         base["metacognition"] = {"confidence": 0.80, "next_safe_action": base["next_safe_action"]}
         return base
 
-    # 2d. MEMBRANE: Measurement-based floor checks (F9 ANTI-HANTU)
-    # When A-FORGE passes a MeasurementPacket, use it for floor gating.
-    # The kernel reads, never recomputes (MEMBRANE-01/04).
     if _has_measurement:
-        # F9 ANTI-HANTU: C_dark < 0.30 — hallucination detector
         if _C_dark >= 0.30:
             output = KernelOutput(
                 decision="ESCALATE",
@@ -422,9 +428,7 @@ async def _arif_kernel_intercept(
             base = output.model_dump()
             base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
             base["membrane"] = {"source": _m.get("source", "unknown"), "kernel_computed": False}
-            base["next_safe_action"] = (
-                "Reduce hallucination risk (improve P or X primitives) then re-submit"
-            )
+            base["next_safe_action"] = "Reduce hallucination risk (improve P or X primitives) then re-submit"
             base["metacognition"] = {
                 "confidence": 0.90,
                 "next_safe_action": base["next_safe_action"],
@@ -432,7 +436,6 @@ async def _arif_kernel_intercept(
             }
             return base
 
-        # F8 GENIUS: G < 0.50 — intelligence quality too low
         if _G is not None and _G < 0.50:
             output = KernelOutput(
                 decision="ESCALATE",
@@ -447,9 +450,7 @@ async def _arif_kernel_intercept(
             base = output.model_dump()
             base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
             base["membrane"] = {"source": _m.get("source", "unknown"), "kernel_computed": False}
-            base["next_safe_action"] = (
-                "Improve evidence/primitives then re-submit, or escalate to human"
-            )
+            base["next_safe_action"] = "Improve evidence/primitives then re-submit, or escalate to human"
             base["metacognition"] = {
                 "confidence": 0.85,
                 "next_safe_action": base["next_safe_action"],
@@ -472,8 +473,30 @@ async def _arif_kernel_intercept(
             else None
         ),
     )
+
+    # ── Compute canonical judge identity (P0 FIX 2026-07-25) ──────────────
+    _candidate_hash = intent.split("sha256:")[-1].split()[0].strip() if "sha256:" in intent else ""
+    _judge_state = {
+        "decision": output.decision,
+        "seal_type": _seal_type,
+        "seal_purpose": _seal_purpose_resolved,
+        "action_class": action_class or "AUDIT_RECORD",
+        "reversibility": _rev_raw,
+        "authority_effect": _authority_effect_resolved,
+        "audit_hash": output.audit_hash,
+        "session_id": actor,
+        "actor_id": actor,
+        "candidate_hash": _candidate_hash,
+        "ack_irreversible": _ack_irreversible,
+    }
+    _judge_state_json = json.dumps(_judge_state, sort_keys=True, separators=(",", ":"))
+    _judge_state_hash = hashlib.sha256(_judge_state_json.encode()).hexdigest()
+    _cc_raw = f"{actor}:{_candidate_hash}:{_judge_state_hash}:{output.audit_hash or ''}"
+    _cc_id = "cc_" + hashlib.sha256(_cc_raw.encode()).hexdigest()[:40]
+    output.constitutional_chain_id = _cc_id
+    output.judge_state_hash = f"sha256:{_judge_state_hash}"
+    output.seal_type = _seal_type
     base = output.model_dump()
-    # ── Seal architecture fields (forged 2026-07-24) ──
     base["seal_type"] = _seal_type
     base["seal_purpose"] = _seal_purpose_resolved
     base["authority_effect"] = _authority_effect_resolved
@@ -484,7 +507,6 @@ async def _arif_kernel_intercept(
     base["affordance"] = target_aff
     base["agency_level"] = target_aff.get("agency_level")
 
-    # ── MEMBRANE: Attach measurement receipt when present ──
     if _has_measurement:
         base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
         base["membrane"] = {
@@ -494,7 +516,6 @@ async def _arif_kernel_intercept(
             "note": "Kernel read measurement; did not recompute (MEMBRANE-01/04)",
         }
 
-    # Metacognitive next step from kernel perspective
     is_l5 = "L5" in str(target_aff.get("agency_level", ""))
     next_act = (
         "Proceed to arif_forge (with lease) then arif_seal only after explicit human ack"

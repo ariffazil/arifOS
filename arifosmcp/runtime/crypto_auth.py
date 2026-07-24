@@ -33,18 +33,39 @@ from cryptography.hazmat.primitives.asymmetric import ed25519
 logger = logging.getLogger(__name__)
 
 _CHALLENGE_TTL_SECONDS = int(os.getenv("ARIFOS_AUTH_NONCE_TTL_SECONDS", "120"))
-_PUBLIC_KEY_PATH = os.getenv(
-    "ARIFOS_ARIF_PUBLIC_KEY_PATH",
-    "/root/AAA/IDENTITY/keys/arif_public.pem",
+_RUNTIME_BASE = Path(os.getenv("ARIFOS_RUNTIME_BASE", "/opt/arifos"))
+
+_PUBLIC_KEY_PATH = Path(
+    os.getenv(
+        "ARIFOS_ARIF_PUBLIC_KEY_PATH",
+        str(_RUNTIME_BASE / "identity/arif_public.pem"),
+    )
 )
 _AAA_KEYS = Path("/root/AAA/IDENTITY/keys")
 _AFORGE_KEYS = Path("/root/A-FORGE/IDENTITY/keys")
-_AGENT_REGISTRY = Path("/root/A-FORGE/data/agent_identities.json")
-_DID_REGISTRY_CANDIDATES = (
-    Path("/root/secrets/did/registry.json"),
-    Path("/root/AAA/secrets/did/registry.json"),
-    Path("/root/AAA/auth/did_registry.yaml"),
+_AGENT_REGISTRY = Path(
+    os.getenv(
+        "ARIFOS_AGENT_IDENTITY_REGISTRY",
+        str(_RUNTIME_BASE / "identity/agent_identities.json"),
+    )
 )
+_DID_REGISTRY_CANDIDATES = [
+    Path(
+        os.getenv(
+            "ARIFOS_DID_REGISTRY_PATH",
+            str(_RUNTIME_BASE / ".secrets/did/registry.json"),
+        )
+    )
+]
+
+if os.getenv("ARIFOS_DEV_DID_REGISTRY_FALLBACK") == "1":
+    _DID_REGISTRY_CANDIDATES.extend(
+        [
+            Path("/root/secrets/did/registry.json"),
+            Path("/root/AAA/secrets/did/registry.json"),
+            Path("/root/AAA/auth/did_registry.yaml"),
+        ]
+    )
 
 # Actors that may always receive challenges (in addition to registered agents)
 _ALWAYS_CHALLENGEABLE = frozenset({"arif", "888", "ariffazil"})
@@ -155,10 +176,20 @@ def resolve_actor_public_key(actor_id: str) -> ed25519.Ed25519PublicKey | None:
 
     # DID registry (json dict or yaml list)
     for reg_path in _DID_REGISTRY_CANDIDATES:
-        if not reg_path.is_file():
+        try:
+            if not reg_path.is_file():
+                continue
+        except (PermissionError, OSError):
             continue
         try:
             text = reg_path.read_text(encoding="utf-8")
+        except (PermissionError, OSError) as exc:
+            logger.debug("DID registry path inaccessible: %s — %s", reg_path, exc)
+            continue
+        except Exception as exc:
+            logger.warning("DID registry load failed: %s", exc)
+            continue
+        try:
             if reg_path.suffix in (".yaml", ".yml"):
                 import yaml
 

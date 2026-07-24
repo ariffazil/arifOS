@@ -61,6 +61,21 @@ class KernelOutput(BaseModel):
     )
     reason: str = Field(..., description="A one-sentence explanation of the decision.")
     audit_hash: str | None = Field(default=None, description="The VAULT999 ledger receipt hash.")
+    constitutional_chain_id: str | None = Field(
+        default=None,
+        description="Canonical chain ID binding judge session + candidate + audit_hash. "
+        "Format: cc_<sha256>. Required by arif_seal for vault binding.",
+    )
+    judge_state_hash: str | None = Field(
+        default=None,
+        description="SHA-256 of the canonical judge_state dict. Proves the receipt "
+        "originates from a specific judge decision, not an arbitrary record.",
+    )
+    seal_type: str | None = Field(
+        default=None,
+        description="SEAL_RECORD (audit evidence, no execution grant) "
+        "or SEAL_AUTHORIZATION (execution grant, requires F13).",
+    )
     rollback_instruction: str | None = Field(
         default=None, description="Instruction or payload to reverse the action if needed."
     )

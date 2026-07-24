@@ -155,6 +155,12 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     confidence = float(truth_class_dict.get("confidence", 0.5))
     uncertainty_band = float(truth_class_dict.get("uncertainty_band", 0.05))
 
+    # ── E-2: flow_key from payload ──
+    flow_key = payload.get("flow_key")
+
+    # ── E-5: quality from payload ──
+    quality = payload.get("quality", "governed")
+
     # ── Build metadata (stored in memory_store.metadata jsonb) ──
     metadata = {
         "memory_class": memory_class,
@@ -168,7 +174,9 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         "content_hash": content_hash,
         "summary": summary,
         "tier_hint": tier_hint,
-        "schema_version": 6,
+        "flow_key": flow_key or "",
+        "quality": quality,
+        "schema_version": 7,  # bumped for flow_key + quality
         "constitutional": constitutional,  # Δ Axis 3: moral provenance
         "applicability": applicability,
         "future_value": future_value,
