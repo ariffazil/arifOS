@@ -132,6 +132,13 @@ async def _arif_kernel_intercept(
         "REVERSIBLE": "R2",
         "REVERSIBLE_WRITE": "R2",
         "WRITE": "R2",
+        # Evidence / audit record seals — vault append without external effect
+        "RECORD_ONLY_APPEND": "R2",
+        "AI_ATTESTATION": "R2",
+        "AUDIT_RECEIPT": "R2",
+        "EVIDENCE_ATTESTATION": "R2",
+        "RECORD_SEAL": "R2",
+        "EVIDENCE_SEAL": "R2",
         "R3": "R3",
         "R3_COSTLY_REVERSIBLE": "R3",
         "COSTLY": "R3",
@@ -147,7 +154,35 @@ async def _arif_kernel_intercept(
     try:
         r_class = ReversibilityClass(_REV_ALIASES.get(_rev_raw, _rev_raw))
     except ValueError:
-        r_class = ReversibilityClass.R4_IRREVERSIBLE  # Fail closed
+        # P0 FIX (2026-07-24): Unknown reversibility class MUST NOT silently
+        # become R4. Return CLASSIFICATION_HOLD so the caller knows the
+        # classifier rejected the value, rather than falsely claiming
+        # irreversibility and demanding F13 Ed25519.
+        unknown_output = KernelOutput(
+            decision="CLASSIFICATION_HOLD",
+            constitutional_floor_triggered="F2",
+            reason=(
+                f"Unknown reversibility class: '{_rev_raw}'. "
+                "The kernel cannot classify this action. "
+                "Valid classes: R0-R5, RECORD_ONLY_APPEND, AI_ATTESTATION, "
+                "AUDIT_RECEIPT, EVIDENCE_ATTESTATION, RECORD_SEAL, EVIDENCE_SEAL."
+            ),
+            audit_hash=None,
+            rollback_instruction=None,
+        )
+        base = unknown_output.model_dump()
+        base["next_safe_action"] = (
+            "Re-submit with a recognized reversibility_class. "
+            "For evidence/audit recording use RECORD_ONLY_APPEND (R2). "
+            "For irreversible actions use R4_IRREVERSIBLE."
+        )
+        base["metacognition"] = {
+            "confidence": 0.99,
+            "why_this_tool": "Kernel cannot classify unknown reversibility",
+            "next_safe_action": base["next_safe_action"],
+            "uncertainty_reason": f"Unrecognized class: {_rev_raw}",
+        }
+        return base
 
     try:
         t_state = TruthState(epistemic_state.upper())
