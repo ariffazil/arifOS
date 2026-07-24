@@ -125,30 +125,31 @@ def _get_local_backend():
 def _get_nats():
     """Return a sync NATS publish function for Kabarkan streaming.
 
-    Publishes JSON ObservationRecord payloads to kabarkan.ingest.<type>.
+    Publishes JSON payloads to kabarkan.ingest.<type> via subprocess nats CLI.
     Fire-and-forget — never blocks the kernel tool path.
+    nats-py v2 is async-only, so we use the CLI for sync publishing.
     """
     global _nats_conn, _nats_ready
     if _nats_ready:
         return _nats_conn
     try:
         import json as _json
-        from nats import connect as _nconnect
-
-        nats_url = os.getenv("NATS_URL", "nats://localhost:4222")
-        _nats_conn = _nconnect(nats_url)
-        _nats_ready = True
-        logger.info(f"[Telemetry] NATS connected — {nats_url}")
+        import subprocess as _sp
 
         def _publish(subject: str, payload: dict[str, Any]) -> None:
             try:
-                _nats_conn.publish(subject, _json.dumps(payload, default=str).encode())
+                _sp.run(
+                    ["nats", "publish", subject, _json.dumps(payload, default=str)],
+                    capture_output=True,
+                    timeout=3,
+                )
             except Exception:
                 pass  # fire-and-forget
 
+        _nats_conn = _publish
+        _nats_ready = True
+        logger.info("[Telemetry] NATS producer ready (nats CLI)")
         return _publish
-    except ImportError:
-        logger.debug("[Telemetry] nats-py not installed")
     except Exception as e:
         logger.debug(f"[Telemetry] NATS init deferred: {e}")
     return None
