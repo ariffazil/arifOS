@@ -512,6 +512,10 @@ class InterceptorInput(BaseModel):
         default=None,
         description="Transport auth method: jwt | dpop",
     )
+    session_token: str | None = Field(
+        default=None,
+        description="SCT v1 session capability token — carries actor+auth claims",
+    )
 
     @property
     def arguments(self) -> dict:
