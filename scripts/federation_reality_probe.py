@@ -513,6 +513,118 @@ def _probe_organ_f13_health(organ: dict[str, Any], health: dict[str, Any]) -> di
     }
 
 
+# ── tool scope classification (BloodHound-style) ───────────────────────
+
+_CRITICAL_KW = {
+    "seal", "forge", "judge", "sovereign", "sovereignty",
+    "constitutional", "floor", "vault", "admin",
+    "elevate", "privilege", "writeacl", "dacl",
+    "genericall", "alldelegation",
+}
+_HIGH_KW = {
+    "create", "update", "modify", "deploy", "execute",
+    "route", "bridge", "connect", "install", "remove",
+    "restart", "stop", "start", "write", "delete",
+    "mutate", "configure", "set", "add", "link",
+    "run", "spawn", "lease", "commit", "push",
+}
+_MEDIUM_KW = {
+    "read", "query", "search", "fetch", "list", "get",
+    "observe", "inspect", "export", "import", "monitor",
+    "watch", "track", "follow", "collect", "gather",
+    "recall", "remember", "review", "audit",
+}
+
+
+def _classify_tool(tool_name, tool_description="", organ_key="unknown"):
+    """Classify tool by mutation scope and estimate hops to F13."""
+    name_lower = tool_name.lower()
+    desc_lower = tool_description.lower()
+    combined = f"{name_lower} {desc_lower}"
+
+    organ_distance = {
+        "arifOS": 1, "A-FORGE": 2,
+        "GEOX": 3, "WEALTH": 3,
+        "WELL": 4, "AAA": 3,
+    }
+    base_hops = organ_distance.get(organ_key, 3)
+
+    for kw in _CRITICAL_KW:
+        if kw in combined:
+            return {"mutation_class": "CRITICAL",
+                    "reason": f"keyword '{kw}' suggests constitutional/admin authority",
+                    "estimated_hops_to_f13": max(1, base_hops)}
+    for kw in _HIGH_KW:
+        if kw in combined:
+            return {"mutation_class": "HIGH",
+                    "reason": f"keyword '{kw}' suggests mutation capability",
+                    "estimated_hops_to_f13": max(1, base_hops + 1)}
+    for kw in _MEDIUM_KW:
+        if kw in combined:
+            return {"mutation_class": "MEDIUM",
+                    "reason": f"keyword '{kw}' suggests read/observe capability",
+                    "estimated_hops_to_f13": base_hops + 2}
+    return {"mutation_class": "LOW",
+            "reason": "no authority/mutation keywords detected",
+            "estimated_hops_to_f13": base_hops + 3}
+
+
+def _generate_attack_surface(tool_scope):
+    """Generate BloodHound-style attack surface from tool scope sweep."""
+    critical_tools = []
+    organ_summary = {}
+    total_all = 0
+    total_critical = 0
+    total_high = 0
+
+    for organ_key, sdata in sorted(tool_scope.get("organs", {}).items()):
+        tools_info = sdata.get("tools", {})
+        if not isinstance(tools_info, dict):
+            continue
+        names = tools_info.get("names", [])
+        if not names:
+            continue
+
+        organ_classes = {"CRITICAL": [], "HIGH": [], "MEDIUM": [], "LOW": [], "UNKNOWN": []}
+
+        for name in names:
+            desc = ""
+            classified = _classify_tool(name, desc, organ_key)
+            cls = classified["mutation_class"]
+            entry = {"tool": name, "organ": organ_key,
+                     "mutation_class": cls,
+                     "estimated_hops_to_f13": classified["estimated_hops_to_f13"],
+                     "reason": classified["reason"]}
+            organ_classes.setdefault(cls, []).append(entry)
+            if cls == "CRITICAL":
+                critical_tools.append(entry)
+                total_critical += 1
+            elif cls == "HIGH":
+                total_high += 1
+            total_all += 1
+
+        n_crit = len(organ_classes.get("CRITICAL", []))
+        n_high = len(organ_classes.get("HIGH", []))
+        n_med = len(organ_classes.get("MEDIUM", []))
+        n_low = len(organ_classes.get("LOW", []))
+        n_total = n_crit + n_high + n_med + n_low
+        risk_score = round((n_crit * 3 + n_high * 1) / max(n_total, 1), 3)
+
+        organ_summary[organ_key] = {"total_tools": n_total,
+                                     "CRITICAL": n_crit, "HIGH": n_high,
+                                     "MEDIUM": n_med, "LOW": n_low,
+                                     "risk_score": risk_score}
+
+    federation_risk_score = round((total_critical * 3 + total_high * 1) / max(total_all, 1), 3)
+
+    return {"critical_tools": critical_tools,
+            "organ_summary": organ_summary,
+            "federation_risk_score": federation_risk_score,
+            "total_tools_swept": total_all,
+            "total_critical": total_critical,
+            "total_high": total_high}
+
+
 # ── verdict engine ─────────────────────────────────────────────────────
 def _organ_verdict(
     organ: dict[str, Any], health: dict[str, Any], tools: dict[str, Any], public: dict[str, Any]
@@ -584,6 +696,7 @@ def _write_md(snapshot: dict[str, Any]) -> Path:
     gaps = snapshot["known_gaps"]
     f13 = snapshot.get("f13", {})
     scope = snapshot.get("tool_scope_sweep", {})
+    attack = snapshot.get("attack_surface", {})
 
     lines = [
         "# Federation Reality Snapshot",
@@ -759,6 +872,34 @@ def _write_md(snapshot: dict[str, Any]) -> Path:
                     lines.append(f"  - `{name}`")
                 lines.append("")
 
+    # ── Attack Surface (BloodHound-style) ───────────────────────────
+    if attack.get("organ_summary"):
+        summary = attack["organ_summary"]
+        lines.extend(["",
+            "## Attack Surface — Tool Scope Risk (BloodHound-style)",
+            "",
+            "| Organ | Total Tools | CRITICAL | HIGH | MEDIUM | LOW | Risk Score |",
+            "|-------|-------------|----------|------|--------|-----|------------|"])
+        for okey in sorted(summary.keys()):
+            s = summary[okey]
+            lines.append(
+                f"| {okey} | {s['total_tools']} | {s['CRITICAL']} | {s['HIGH']} | {s['MEDIUM']} | {s['LOW']} | {s['risk_score']} |")
+        lines.append(
+            f"| **Federation** | {attack['total_tools_swept']} | "
+            f"{attack['total_critical']} | {attack['total_high']} | — | — | "
+            f"{attack['federation_risk_score']} |")
+
+        crit = attack.get("critical_tools", [])
+        if crit:
+            lines.extend(["",
+                "### CRITICAL Tools — Direct F13 Reachability Risk",
+                "",
+                "| Tool | Organ | Estimated Hops to F13 | Reason |",
+                "|------|-------|----------------------|--------|"])
+            for c in crit:
+                lines.append(
+                    f"| `{c['tool']}` | {c['organ']} | {c['estimated_hops_to_f13']} | {c['reason']} |")
+
     lines.extend(
         [
             "",
@@ -888,6 +1029,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.scope:
         snapshot["tool_scope_sweep"] = tool_scope
+        # Generate BloodHound-style attack surface
+        snapshot["attack_surface"] = _generate_attack_surface(tool_scope)
 
     written: list[str] = []
     if args.write_json:
