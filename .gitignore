@@ -285,3 +285,5 @@ tools_sot.yaml
 # Test keys
 forge_work/meta-mesa-harness/keys/
 claude_desktop_config.json
+.mcp-use/
+audits/
