@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 
+from arifosmcp.runtime import ingress_middleware as ingress
 from arifosmcp.runtime import mind_mcp, mind_reason
 from arifosmcp.runtime.ingress_middleware import _try_promote_local_service
 from arifosmcp.schemas.federation_envelope import (
@@ -113,8 +114,11 @@ def test_kernel_route_preflight_no_session():
     assert "arif_session_init" in result["result"]["next_safe_action"]
 
 
-def test_ingress_middleware_actor_recovery():
+def test_ingress_middleware_actor_recovery(monkeypatch: pytest.MonkeyPatch):
     """When Hermes sends itself as actor_id, middleware must recover the human caller."""
+    token = "h" * 32
+    monkeypatch.setattr(ingress, "_is_localhost_caller", lambda: True)
+    monkeypatch.setattr(ingress, "_load_service_token", lambda: token)
     envelope = FederationEnvelope(
         trace_id="trace-test-001",
         actor_id="Hermes@af-forge",
@@ -127,7 +131,9 @@ def test_ingress_middleware_actor_recovery():
         legacy_wrap=True,
     )
 
-    promoted = _try_promote_local_service(envelope, {}, "arif_session_init")
+    promoted = _try_promote_local_service(
+        envelope, {"service_token": token}, "arif_session_init"
+    )
 
     assert promoted is True
     assert envelope.actor_id == "arifbfazil"
@@ -137,8 +143,11 @@ def test_ingress_middleware_actor_recovery():
     assert envelope.actor_verification == "delegated"
 
 
-def test_ingress_middleware_human_actor_preserved():
+def test_ingress_middleware_human_actor_preserved(monkeypatch: pytest.MonkeyPatch):
     """When the original actor_id is already human, it must be preserved."""
+    token = "h" * 32
+    monkeypatch.setattr(ingress, "_is_localhost_caller", lambda: True)
+    monkeypatch.setattr(ingress, "_load_service_token", lambda: token)
     envelope = FederationEnvelope(
         trace_id="trace-test-002",
         actor_id="arifbfazil",
@@ -149,7 +158,9 @@ def test_ingress_middleware_human_actor_preserved():
         legacy_wrap=True,
     )
 
-    promoted = _try_promote_local_service(envelope, {}, "arif_kernel_route")
+    promoted = _try_promote_local_service(
+        envelope, {"service_token": token}, "arif_kernel_route"
+    )
 
     assert promoted is True
     assert envelope.actor_id == "arifbfazil"

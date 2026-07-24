@@ -252,6 +252,7 @@ class TestRuntimeExecutionRoutesLive:
                 "messages": [{"role": "user", "content": "smoke"}],
             },
         )
-        # 200 means A2A execution is live (good); 404 means not mounted (acceptable).
-        # 410/500 would be a regression of the consolidation.
-        assert r.status_code in (200, 404)
+        # 401 means the authenticated execution surface is live; 404 means the
+        # optional A2A runtime is not mounted. Anonymous 200 would be an auth
+        # regression, while 410/500 would break the consolidation contract.
+        assert r.status_code in (401, 404)

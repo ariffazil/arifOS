@@ -26,6 +26,7 @@ import json
 import logging
 import os
 import time
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -1366,6 +1367,189 @@ async def _call_ilmu(
     return raw_output, parsed
 
 
+# ── Constitutional Model Role Enforcement (arifOS, F13-ratified 2026-07-24) ──
+# The canonical model law lives in:
+#   /root/AAA/registries/models/AGENT_MODEL_MAP.json
+# For constitutional roles 666_JUDGE and 999_SEAL, ONLY the model(s) that
+# the law declares as allowed for the role may serve the call. Any other
+# model must fail-closed with a FORBIDDEN_MODEL_FOR_ROLE event into the
+# VAULT999 operational ledger (outcomes.jsonl) and raise — the call never
+# reaches the cascade. Non-constitutional roles pass through unchanged
+# (TOKENROUTER_MODEL = deepseek-v4-flash remains the operational default).
+#
+# This makes the AGENT_MODEL_MAP law executable, not declarative.
+# Option B (sovereign directive 2026-07-24): general calls keep the flash
+# default; judge/seal invocations must explicitly set deepseek/deepseek-v4-pro.
+# Per-call roles are passed via the constitutional_role argument to call_llm().
+CONSTITUTIONAL_ROLES_GATED: frozenset[str] = frozenset({"666_JUDGE", "999_SEAL"})
+
+_DEFAULT_AGENT_MODEL_MAP_PATH = "/root/AAA/registries/models/AGENT_MODEL_MAP.json"
+
+# VAULT999 operational ledger path (mirrors arifosmcp/runtime/tools.py:23411).
+# Resolved relative to the arifOS package root (parents[2] of this file).
+_ARIFOS_ROOT = Path(__file__).resolve().parents[2]
+_VAULT_OUTCOMES_PATH = _ARIFOS_ROOT / "VAULT999" / "outcomes.jsonl"
+
+
+def _agent_model_map_path() -> str:
+    """Resolve AGENT_MODEL_MAP path (env override ARIFOS_AGENT_MODEL_MAP_PATH)."""
+    return os.getenv("ARIFOS_AGENT_MODEL_MAP_PATH", _DEFAULT_AGENT_MODEL_MAP_PATH)
+
+
+_agent_model_map_cache: dict[str, Any] = {"mtime": None, "data": None}
+
+
+def _load_agent_model_map() -> dict[str, Any]:
+    """Load AGENT_MODEL_MAP.json with mtime-based cache invalidation.
+
+    Returns {} on missing/unparseable. Callers MUST treat empty dict as
+    fail-closed for constitutional roles (see select_model_for_role).
+    """
+    path = _agent_model_map_path()
+    try:
+        p = Path(path)
+        if not p.exists():
+            return {}
+        mtime = p.stat().st_mtime
+        cached = _agent_model_map_cache
+        if cached["mtime"] == mtime and cached["data"] is not None:
+            return cached["data"]
+        data = json.loads(p.read_text(encoding="utf-8"))
+        cached["mtime"] = mtime
+        cached["data"] = data
+        return data
+    except Exception as exc:  # noqa: BLE001 — best-effort; gate fail-closes on empty
+        logger.debug("AGENT_MODEL_MAP load failed for %s: %s", path, exc)
+        return {}
+
+
+def _allowed_models_for_role(model_map: dict[str, Any], role: str) -> set[str]:
+    """Return the set of model_keys allowed to serve a constitutional role.
+
+    A model is allowed iff `role in model['constitutional_roles']` AND
+    `role NOT in model['constitutional_roles_forbidden']`.
+    """
+    if not model_map or not role:
+        return set()
+    allowed: set[str] = set()
+    for m in model_map.get("models", []) or []:
+        mk = (m.get("model_key") or "").strip()
+        if not mk:
+            continue
+        roles = set(m.get("constitutional_roles") or [])
+        forbidden = set(m.get("constitutional_roles_forbidden") or [])
+        if role in roles and role not in forbidden:
+            allowed.add(mk)
+    return allowed
+
+
+def _emit_vault999_outcome(event: dict[str, Any]) -> None:
+    """Append a JSONL event to VAULT999/outcomes.jsonl (operational ledger).
+
+    Mirrors the kernel's existing operational-ledger write pattern
+    (arifosmcp/runtime/tools.py:23411). Best-effort: failures are logged
+    and swallowed — the gate's fail-closed behavior must not depend on
+    the write path succeeding.
+    """
+    try:
+        _VAULT_OUTCOMES_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with _VAULT_OUTCOMES_PATH.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("VAULT999 outcomes.jsonl append failed: %s", exc)
+
+
+def select_model_for_role(
+    role: str | None,
+    requested_model: str | None = None,
+    *,
+    agent_id: str | None = None,
+) -> str:
+    """Enforce AGENT_MODEL_MAP law for constitutional roles.
+
+    For role in {666_JUDGE, 999_SEAL}: the requested_model (or the
+    operational default TOKENROUTER_MODEL when requested_model is None)
+    MUST appear in the map's allowed set for that role. If not, raise
+    LLMUnavailableError with a FORBIDDEN_MODEL_FOR_ROLE message and emit
+    a governance event to VAULT999/outcomes.jsonl. Missing or unparseable
+    map also fail-closes for constitutional roles.
+
+    For all other roles (None or non-constitutional): passthrough,
+    returning requested_model unchanged. Zero behavior change for the
+    overwhelming majority of calls that are not judge/seal.
+
+    The function is pure with respect to call_llm's cascade: it only
+    validates and returns the model string. The actual provider call
+    happens in the cascade below. Model-key normalization handles the
+    "deepseek-v4-pro" (cascade short form) vs "deepseek/deepseek-v4-pro"
+    (map full form) mismatch by matching against both.
+    """
+    if not role or role not in CONSTITUTIONAL_ROLES_GATED:
+        return (requested_model or "").strip()
+
+    model_map = _load_agent_model_map()
+    allowed = _allowed_models_for_role(model_map, role)
+    # Normalize: accept both full ("provider/model") and short ("model") forms.
+    allowed_normalized = set(allowed)
+    for a in list(allowed):
+        short = a.split("/", 1)[-1] if "/" in a else a
+        allowed_normalized.add(short)
+
+    requested = (requested_model or "").strip()
+    effective = requested or os.getenv("TOKENROUTER_MODEL", "").strip()
+    eff_normalized = effective.split("/", 1)[-1] if "/" in effective else effective
+
+    timestamp = datetime.now(UTC).isoformat()
+
+    if not model_map or not allowed:
+        event = {
+            "event": "FORBIDDEN_MODEL_FOR_ROLE",
+            "role": role,
+            "requested_model": requested_model,
+            "effective_model": effective,
+            "allowed_models": sorted(allowed),
+            "agent_id": agent_id,
+            "decision": "888_HOLD",
+            "reason": (
+                "AGENT_MODEL_MAP unavailable or no models allowed for role"
+                if not model_map
+                else f"AGENT_MODEL_MAP declares no allowed model for role {role}"
+            ),
+            "registry_path": _agent_model_map_path(),
+            "timestamp": timestamp,
+        }
+        _emit_vault999_outcome(event)
+        raise LLMUnavailableError(
+            f"FORBIDDEN_MODEL_FOR_ROLE: role={role} effective_model={effective!r}; "
+            f"registry path={_agent_model_map_path()}; "
+            f"reason={event['reason']}"
+        )
+
+    if effective not in allowed_normalized:
+        event = {
+            "event": "FORBIDDEN_MODEL_FOR_ROLE",
+            "role": role,
+            "requested_model": requested_model,
+            "effective_model": effective,
+            "allowed_models": sorted(allowed),
+            "agent_id": agent_id,
+            "decision": "888_HOLD",
+            "reason": (
+                f"Model {effective!r} is not in the AGENT_MODEL_MAP allowed "
+                f"set for role {role}. Allowed: {sorted(allowed)}"
+            ),
+            "registry_path": _agent_model_map_path(),
+            "timestamp": timestamp,
+        }
+        _emit_vault999_outcome(event)
+        raise LLMUnavailableError(
+            f"FORBIDDEN_MODEL_FOR_ROLE: role={role} model={effective!r} "
+            f"not in allowed set {sorted(allowed)}; see VAULT999 outcomes.jsonl"
+        )
+
+    return effective
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 
@@ -1381,6 +1565,7 @@ async def call_llm(
     preferred_model: str | None = None,
     organ: str = "",
     task_type: str = "",
+    constitutional_role: str | None = None,
 ) -> LLMOutputEnvelope:
     """
     Call TokenRouter (Tier 0 primary) → remote providers → SEA-LION → Ollama → rules.
@@ -1426,6 +1611,15 @@ async def call_llm(
             None,  # skip strict schema validation
             trace_recursion_depth,
         )
+
+    # F13 — Constitutional model-role gate (AGENT_MODEL_MAP, 2026-07-24)
+    # For roles 666_JUDGE / 999_SEAL, preferred_model MUST be in the map's
+    # allowed set (deepseek/deepseek-v4-pro). Option B: explicit override.
+    # Fails closed: emits FORBIDDEN_MODEL_FOR_ROLE to VAULT999/outcomes.jsonl
+    # and raises LLMUnavailableError — the cascade never runs on forbidden.
+    # Smoke/test/diagnostic modes (resolved above) bypass this gate.
+    if constitutional_role:
+        select_model_for_role(constitutional_role, preferred_model, agent_id=tool_origin)
 
     # Tier 0 — TokenRouter (OpenAI-compatible proxy, embedded key) — PRIMARY
     # APEX Theory: resolve per organ/task for quality/cost/latency + redundancy.
