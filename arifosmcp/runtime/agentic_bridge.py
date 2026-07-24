@@ -55,14 +55,23 @@ logger = logging.getLogger("arifosmcp.agentic_bridge")
 class BridgeResult:
     """The outcome of one pass through the ART-ACT governed bridge.
 
-    SEAL  → A-FORGE may execute. Receipt is ready for VAULT999.
-    SABAR → Proceed with caution. Dry-run/canary recommended.
-    HOLD  → Paused. Human review required. Reasons provided.
-    VOID  → Blocked. Cannot proceed. Violations listed.
+    verdict (bridge-level):
+      EVIDENCE_PRODUCED → gate passed; observation/reasoning flow-through
+      SEAL              → A-FORGE may execute. Receipt is ready for VAULT999.
+                          Only earned when an actual cryptographic receipt
+                          was built for a MUTATE/EXTERNAL/IRREVERSIBLE action.
+      SABAR             → Proceed with caution. Dry-run/canary recommended.
+      HOLD              → Paused. Human review required. Reasons provided.
+      VOID              → Blocked. Cannot proceed. Violations listed.
+
+    gate_verdict: the underlying pre_execution_gate verdict (SEAL/SABAR/HOLD/VOID)
+                  — distinct from the bridge verdict so callers can tell
+                  "gate said proceed" from "VAULT sealed".
     """
 
-    verdict: str  # SEAL | SABAR | HOLD | VOID
-    gate_result: GateResult
+    verdict: str  # EVIDENCE_PRODUCED | SEAL | SABAR | HOLD | VOID
+    gate_verdict: str = ""  # SEAL | SABAR | HOLD | VOID (raw gate output)
+    gate_result: GateResult = None  # type: ignore[assignment]
     reasons: list[str] = field(default_factory=list)
     violations: list[str] = field(default_factory=list)
 
@@ -141,16 +150,29 @@ def run_agentic_bridge(
     )
 
     # ── Map GateVerdict → BridgeResult ─────────────────────────────────
+    # P0f (2026-07-23): Gate SEAL means "no violation detected, you may
+    # proceed" — it is NOT a VAULT seal. Observation flow-through produces
+    # EVIDENCE_PRODUCED; an actual VAULT seal (with receipt built and
+    # recorded) is the only path that earns verdict="SEAL".
     verdict_map = {
-        GateVerdict.SEAL: "SEAL",
+        GateVerdict.SEAL: "EVIDENCE_PRODUCED",  # gate pass — observation/proceed
         GateVerdict.SABAR: "SABAR",
         GateVerdict.HOLD: "HOLD",
         GateVerdict.VOID: "VOID",
     }
     bridge_verdict = verdict_map.get(gate_result.verdict, "HOLD")
+    # Track the underlying gate verdict so consumers can still see whether
+    # the gate itself said SEAL/SABAR/HOLD/VOID — distinct from the
+    # bridge verdict that reports observation vs. seal semantics.
+    gate_verdict_str = (
+        gate_result.verdict.value
+        if hasattr(gate_result.verdict, "value")
+        else str(gate_result.verdict)
+    )
 
     result = BridgeResult(
         verdict=bridge_verdict,
+        gate_verdict=gate_verdict_str,
         gate_result=gate_result,
         reasons=list(gate_result.reasons),
         violations=list(gate_result.violations),
@@ -168,8 +190,19 @@ def run_agentic_bridge(
             if not result.recommended_pattern:
                 result.recommended_pattern = reason
 
-    # ── Build receipt on SEAL ─────────────────────────────────────────
-    if bridge_verdict == "SEAL" and store_receipt:
+    # ── Build VAULT999 receipt only on actual SEAL-grade actions ───────
+    # A real SEAL means: this is an IRREVERSIBLE / SEALED-AUDIT action that
+    # requires a cryptographic receipt in VAULT999. Observation-only or
+    # reasoning flow-through never earns this — they stay EVIDENCE_PRODUCED.
+    is_seal_grade = gate_result.verdict == GateVerdict.SEAL and requested_action in (
+        "MUTATE",
+        "EXTERNAL_SIDE_EFFECT",
+        "IRREVERSIBLE",
+    )
+    if is_seal_grade and store_receipt:
+        # Promote verdict to SEAL only after a real receipt is built.
+        bridge_verdict = "SEAL"
+        result.verdict = "SEAL"
         try:
             from arifosmcp.runtime.act.receipts import build_execution_receipt
             from arifosmcp.schemas.art import (

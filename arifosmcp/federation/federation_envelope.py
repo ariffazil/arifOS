@@ -62,9 +62,66 @@ def _sha256(data: Any) -> str:
 
 
 def compute_request_hash(tool_name: str, arguments: dict[str, Any] | None) -> str:
-    """Deterministic hash of the request (tool_name + sorted arguments)."""
+    """LEGACY single-hash request hash.
+
+    DEPRECATED for federation envelope use. Kept only for backward-compat
+    callers that already depend on the old single-hash shape. New code MUST
+    use ``compute_raw_request_hash`` + ``compute_normalized_payload_hash``
+    so canonical and alias payloads produce distinct raw hashes but a
+    shared canonical semantic hash.
+
+    Args:
+        tool_name: The target tool name.
+        arguments: The raw call arguments.
+
+    Returns:
+        24-char SHA-256 hex digest.
+    """
     payload = {"tool_name": tool_name, "arguments": arguments or {}}
     return _sha256(payload)
+
+
+def compute_raw_request_hash(
+    *,
+    actor_id: str | None,
+    session_id: str | None,
+    organ: str | None,
+    tool: str,
+    arguments: dict[str, Any] | None,
+) -> str:
+    """P0f — Raw request hash covering actor + session + organ + tool + raw args.
+
+    This is the binding that proves the request was issued by a specific
+    actor in a specific session against a specific tool with a specific
+    argument payload. Two distinct payloads must produce two distinct
+    raw_request_hash values (proving replay integrity at the wire level).
+
+    Used in addition to ``compute_normalized_payload_hash``: a canonical
+    payload and its exact alias equivalent will produce the same physics
+    verdict and the same ``normalized_payload_hash``, but distinct
+    ``raw_request_hash`` values (because the on-wire argument shape differs).
+    """
+    payload = {
+        "actor_id": actor_id or "",
+        "session_id": session_id or "",
+        "organ": organ or "",
+        "tool": tool or "",
+        "arguments": arguments or {},
+    }
+    return _sha256(payload)
+
+
+def compute_normalized_payload_hash(payload: dict[str, Any] | None) -> str:
+    """P0f — Canonical (semantic) payload hash for parity comparison.
+
+    After alias normalisation, the canonical and alias payloads produce
+    identical canonical dicts. Their ``normalized_payload_hash`` MUST match,
+    proving that the physics-layer verdict is genuinely equivalent across
+    on-wire shapes.
+
+    Pass the canonicalised (post-normalise) dict from the harness layer.
+    """
+    return _sha256(payload or {})
 
 
 def compute_response_hash(response: dict[str, Any]) -> str:
@@ -190,8 +247,20 @@ def build_federation_envelope(
             },
         }
 
-    # ── Request hash for parity comparison ──────────────────────────
-    request_hash = compute_request_hash(target_tool, {})
+    # ── Request hashes (P0f) — split into raw vs canonical semantic ──
+    # raw_request_hash covers actor+session+organ+tool+raw arguments; canonical
+    # and alias payloads produce distinct raw hashes because their on-wire
+    # shape differs. normalized_payload_hash covers the geological payload
+    # only (canonicalised); canonical and alias produce identical normalized
+    # hashes, proving physics-layer equivalence.
+    raw_request_hash = compute_raw_request_hash(
+        actor_id=effective_actor,
+        session_id=session_id,
+        organ=target_organ,
+        tool=target_tool,
+        arguments=None,  # raw args are not known at envelope-build time;
+                          # the bridge layer stamps this after args are bound.
+    )
 
     # ── Build envelope ──────────────────────────────────────────────
     envelope: dict[str, Any] = {
@@ -212,7 +281,12 @@ def build_federation_envelope(
             "source_tool": source_tool,
             "target_organ": target_organ,
             "target_tool": target_tool,
-            "request_hash": request_hash,
+            "raw_request_hash": raw_request_hash,
+            "normalized_payload_hash": None,  # stamped by bridge after payload normalisation
+            # Legacy single hash kept for backward compat with consumers that
+            # haven't migrated to raw/normalized split. Equals raw_request_hash
+            # when no arguments are bound (envelope build-time).
+            "request_hash": raw_request_hash,
         },
         "governance": {
             "evidence_layer": evidence_layer,
@@ -412,6 +486,13 @@ def finalize_response_envelope(
             fed_env = envelope["__federation_envelope"]
         if isinstance(fed_env, dict):
             req = fed_env.get("request", {})
+            # P0f: echo BOTH raw and normalized hashes so consumers can prove
+            # replay integrity (raw) AND physics-layer equivalence (normalized).
+            resp_section["response"]["raw_request_hash"] = req.get("raw_request_hash", "")
+            resp_section["response"]["normalized_payload_hash"] = req.get(
+                "normalized_payload_hash", ""
+            )
+            # Legacy single hash (kept for backward compat)
             resp_section["response"]["request_hash"] = req.get("request_hash", "")
             resp_section["response"]["target_organ"] = req.get("target_organ", "")
             resp_section["response"]["target_tool"] = req.get("target_tool", "")
