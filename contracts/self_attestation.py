@@ -19,9 +19,10 @@ from __future__ import annotations
 import hashlib
 import json
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Callable, Optional
+from typing import Any
 
 
 class AttestationVerdict(StrEnum):
@@ -39,10 +40,10 @@ class AttestationClaim:
     claim_id: str
     claim: str  # What the runtime declares
     test_fn: Callable[[], bool]  # Function that returns True if proven
-    evidence: Optional[str] = None  # Observable evidence from the test
+    evidence: str | None = None  # Observable evidence from the test
     verdict: AttestationVerdict = AttestationVerdict.UNPROVEN
     checked_at: float = field(default_factory=time.time)
-    error: Optional[str] = None
+    error: str | None = None
 
     def verify(self) -> AttestationVerdict:
         """Run the independent test and return the verdict."""

@@ -1663,8 +1663,7 @@ def arif_memory_recall(
 
         # ── Compute delta vector — only matching keys ─────────────────────
         _matching_keys = [
-            k for k in predicted_state
-            if k in observed_state and k in JUDGE_PREDICTION_SCHEMA
+            k for k in predicted_state if k in observed_state and k in JUDGE_PREDICTION_SCHEMA
         ]
         if not _matching_keys:
             return _hold(

@@ -88,9 +88,7 @@ def main() -> int:
 
     # On or after deadline
     if has_alias:
-        print(
-            f"FAIL: {ALIAS} still live on/after {DEADLINE.isoformat()} — remove alias now"
-        )
+        print(f"FAIL: {ALIAS} still live on/after {DEADLINE.isoformat()} — remove alias now")
         return 1
     print(f"OK: {ALIAS} gone; {CANON} sole judge prompt")
     return 0

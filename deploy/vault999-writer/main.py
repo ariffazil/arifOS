@@ -11,12 +11,11 @@ Author: arifOS_bot
 Date: 2026-04-18
 """
 
-import os
-import sys
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Optional
+import os
+import sys
+from datetime import UTC, datetime
 
 try:
     import blake3
@@ -27,15 +26,15 @@ except ImportError:
     import hashlib
 
 import asyncpg
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Phase 1: Ed25519 signature verification for sovereign ratification
 # ═══════════════════════════════════════════════════════════════════════════════
 try:
-    from nacl.signing import VerifyKey
     from nacl.exceptions import BadSignatureError
+    from nacl.signing import VerifyKey
 
     _HAS_ED25519 = True
 except ImportError:
@@ -157,20 +156,20 @@ log = logging.getLogger("vault999_writer")
 class SovereignSealRequest(BaseModel):
     """Canonical request to write a SOVEREIGN SEAL into vault_seals. Binding."""
 
-    cooling_id: Optional[str] = None
-    cli_proposal_hash: Optional[str] = None
-    session_id: Optional[str] = None
+    cooling_id: str | None = None
+    cli_proposal_hash: str | None = None
+    session_id: str | None = None
     agent_id: str
     action: str
     payload: dict
     epoch: str
     verdict: str = Field(pattern="^(SEAL|VOID)$")
     human_ratifier: str = Field(pattern="^arif$")
-    human_signature: Optional[str] = None  # Witness string for presence-based seals
-    ed25519_signature: Optional[str] = None  # Base64 Ed25519 signature over canonical payload
+    human_signature: str | None = None  # Witness string for presence-based seals
+    ed25519_signature: str | None = None  # Base64 Ed25519 signature over canonical payload
     ratified_at: str
     irreversibility_ack: bool = True
-    irreversibility_class: Optional[str] = None
+    irreversibility_class: str | None = None
     tags: list[str] = []
     metadata: dict = {}
 
@@ -181,23 +180,23 @@ class AuditReceiptRequest(BaseModel):
     agent_id: str
     action: str
     payload: dict
-    payload_hash: Optional[str] = None
-    payload_summary: Optional[str] = None
+    payload_hash: str | None = None
+    payload_summary: str | None = None
 
-    session_id: Optional[str] = None
-    trace_id: Optional[str] = None
+    session_id: str | None = None
+    trace_id: str | None = None
 
     claim_state: str = Field(pattern="^(OBSERVED|DRAFT|HYPOTHESIS|PENDING_RATIFICATION)$")
     binding: bool = False
     irreversible: bool = False
 
-    human_ratifier: Optional[str] = None
-    human_signature: Optional[str] = None
-    ed25519_signature: Optional[str] = None
+    human_ratifier: str | None = None
+    human_signature: str | None = None
+    ed25519_signature: str | None = None
 
     tags: list[str] = []
     metadata: dict = {}
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
 
 # Backward-compat alias
@@ -219,16 +218,16 @@ class VoidRequest(BaseModel):
 class RatifyRequest(BaseModel):
     """Unified ratification request from OpenClaw. Requires Arif's Ed25519 signature."""
 
-    cooling_id: Optional[str] = None
+    cooling_id: str | None = None
     decision: str = Field(pattern="^(SEAL|VOID)$")
     review_reason: str
-    human_signature: Optional[str] = None  # Legacy
+    human_signature: str | None = None  # Legacy
     ed25519_signature: str  # Base64 Ed25519 sig over canonical payload
     human_ratifier: str = "arif"
     irreversibility_ack: bool = False
-    irreversibility_class: Optional[str] = None
+    irreversibility_class: str | None = None
     action_type: str = "GENERAL_SEAL"
-    session_id: Optional[str] = None
+    session_id: str | None = None
     metadata: dict = {}
 
 
@@ -259,7 +258,7 @@ def compute_chain_hash(prev_seal_hash: str, seal_hash: str) -> str:
 class VaultDB:
     def __init__(self, dsn: str):
         self.dsn = dsn
-        self.pool: Optional[asyncpg.Pool] = None
+        self.pool: asyncpg.Pool | None = None
 
     async def connect(self):
         self.pool = await asyncpg.create_pool(self.dsn, min_size=1, max_size=3)
@@ -358,9 +357,7 @@ class VaultDB:
             prev_seal_hash = prev_row["seal_hash"] if prev_row else None
 
             created_at = (
-                datetime.fromisoformat(req.created_at)
-                if req.created_at
-                else datetime.now(timezone.utc)
+                datetime.fromisoformat(req.created_at) if req.created_at else datetime.now(UTC)
             )
             prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
 
@@ -429,9 +426,7 @@ class VaultDB:
             prev_seal_hash: str | None = prev_row["seal_hash"] if prev_row else None
 
             created_at = (
-                datetime.fromisoformat(req.created_at)
-                if req.created_at
-                else datetime.now(timezone.utc)
+                datetime.fromisoformat(req.created_at) if req.created_at else datetime.now(UTC)
             )
             prev_chain_hash = prev_row["chain_hash"] if prev_row else GENESIS_CHAIN_HASH
 
@@ -557,7 +552,7 @@ class VaultDB:
                 reviewer_id=req.human_ratifier,
                 reason=req.review_reason,
                 human_signature=req.human_signature or req.ed25519_signature,
-                reviewed_at=datetime.now(timezone.utc).isoformat(),
+                reviewed_at=datetime.now(UTC).isoformat(),
             )
             return await self.write_void(void_req)
 
@@ -575,7 +570,7 @@ class VaultDB:
             if cq["status"] in ("sealed", "voided"):
                 raise HTTPException(status_code=409, detail=f"Already {cq['status']}")
 
-            ratified_at = datetime.now(timezone.utc).isoformat()
+            ratified_at = datetime.now(UTC).isoformat()
 
             seal_req = SovereignSealRequest(
                 cooling_id=req.cooling_id,
@@ -657,7 +652,7 @@ class VaultDB:
                 "status": "healthy",
                 "vault_seals_count": total,
                 "pending_holds": pending,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 
@@ -665,7 +660,7 @@ class VaultDB:
 # FASTAPI APP
 # ============================================================
 app = FastAPI(title="vault999_writer", version="1.0.0")
-db: Optional[VaultDB] = None
+db: VaultDB | None = None
 
 
 @app.on_event("startup")

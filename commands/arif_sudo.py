@@ -11,10 +11,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys
-import re
-import json
 import argparse
+import json
+import re
+import sys
 from pathlib import Path
 
 CRITICAL_SERVICES = [
@@ -134,7 +134,7 @@ def main():
 
             entry = json.dumps(
                 {
-                    "epoch": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                    "epoch": datetime.datetime.now(datetime.UTC).isoformat(),
                     "actor": "arif_sudo",
                     "verdict": "CAUTION",
                     "tier": "MEDIUM",

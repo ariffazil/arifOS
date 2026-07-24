@@ -23,9 +23,8 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
 
 NOISE_DIRS = {
     ".git",
@@ -84,7 +83,7 @@ def main() -> int:
         print(f"ERROR: not a git repo: {root}", file=sys.stderr)
         return 2
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     day = now.strftime("%Y-%m-%d")
 

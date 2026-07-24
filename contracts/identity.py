@@ -19,7 +19,6 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # IDENTITY STATUS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -70,7 +69,7 @@ class AuthorityTier(IntEnum):
     SOVEREIGN = 4  # Full authority: forge, deploy, vault write (ARIF ONLY)
 
     @classmethod
-    def from_string(cls, s: str) -> "AuthorityTier":
+    def from_string(cls, s: str) -> AuthorityTier:
         mapping = {
             "observer": cls.OBSERVER,
             "operator": cls.OPERATOR,

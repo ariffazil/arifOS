@@ -16,7 +16,7 @@ import asyncio
 import json
 import sys
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -50,10 +50,10 @@ class OrganProbe:
 
 async def probe_one(client: httpx.AsyncClient, organ: dict[str, Any]) -> OrganProbe:
     url = f"http://127.0.0.1:{organ['port']}{organ['path']}"
-    started = datetime.now(timezone.utc)
+    started = datetime.now(UTC)
     try:
         response = await client.get(url, timeout=TIMEOUT)
-        latency = (datetime.now(timezone.utc) - started).total_seconds() * 1000
+        latency = (datetime.now(UTC) - started).total_seconds() * 1000
         try:
             payload = response.json()
         except Exception:
@@ -68,7 +68,7 @@ async def probe_one(client: httpx.AsyncClient, organ: dict[str, Any]) -> OrganPr
             error=None,
         )
     except Exception as exc:
-        latency = (datetime.now(timezone.utc) - started).total_seconds() * 1000
+        latency = (datetime.now(UTC) - started).total_seconds() * 1000
         return OrganProbe(
             name=organ["name"],
             url=url,
@@ -86,8 +86,8 @@ async def run_snapshot() -> dict[str, Any]:
 
     healthy = sum(1 for p in probes if p.ok)
     snapshot = {
-        "snapshot_id": f"health-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "snapshot_id": f"health-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}",
+        "timestamp": datetime.now(UTC).isoformat(),
         "host": "af-forge",
         "organs_total": len(ORGANS),
         "organs_healthy": healthy,

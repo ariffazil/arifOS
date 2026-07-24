@@ -2125,7 +2125,12 @@ def _find_degradation_in_payload(result_payload: dict[str, Any]) -> list[str]:
         found.append(f"degraded provenance={_provenance}")
     if "reasoning_empty" in _unknowns_str:
         found.append("REASONING_EMPTY detected in unknowns")
-    if not _supported and not _unsupported and inner_confidence is not None and inner_confidence > 0.20:
+    if (
+        not _supported
+        and not _unsupported
+        and inner_confidence is not None
+        and inner_confidence > 0.20
+    ):
         found.append(
             f"REASONING_EMPTY: no supported/unsupported claims but confidence={inner_confidence:.2f}"
         )
@@ -5644,8 +5649,9 @@ class _FileSessionStore:
         self._using_explicit_path = bool(path or os.getenv("ARIFOS_SESSION_STORE_PATH"))
         self._path = path or os.getenv("ARIFOS_SESSION_STORE_PATH") or ""
         if path:
-            from arifosmcp.runtime import session as _sess
             from pathlib import Path as _P
+
+            from arifosmcp.runtime import session as _sess
 
             _sess._SESSION_STORE_PATH = _P(path)
             # Reload only this path into a clean in-memory map for isolation.
@@ -6802,19 +6808,20 @@ def build_standard_mcp_result(
         # agents don't need to inspect internal provenance fields.
         # Falls back: raw_result → nested result.reasoning_state → provenance → "UNKNOWN".
         "reasoning_state": (
-            raw_result.get("reasoning_state", "")
-            if isinstance(raw_result, dict)
-            else ""
-        ) or (
+            raw_result.get("reasoning_state", "") if isinstance(raw_result, dict) else ""
+        )
+        or (
             raw_result.get("result", {}).get("reasoning_state", "")
             if isinstance(raw_result, dict) and isinstance(raw_result.get("result"), dict)
             else ""
-        ) or (
+        )
+        or (
             "REASONING_EMPTY"
             if isinstance(raw_result, dict)
             and raw_result.get("confidence_provenance", "") == "REASONING_EMPTY_FORCED_CAP"
             else ""
-        ) or "UNKNOWN",
+        )
+        or "UNKNOWN",
         "next_safe_action": next_safe_action
         if next_safe_action
         else "Call get_full_affordance or tool discovery resource then decide",
@@ -6973,17 +6980,14 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     _inner_result = payload.get("result", {}) if isinstance(payload, dict) else {}
     _inner_facts = payload.get("facts", []) or _inner_result.get("facts", [])
     _inner_inferences = payload.get("inferences", []) or _inner_result.get("inferences", [])
-    _inner_provenance = (
-        payload.get("confidence_provenance", "")
-        or _inner_result.get("confidence_provenance", "")
+    _inner_provenance = payload.get("confidence_provenance", "") or _inner_result.get(
+        "confidence_provenance", ""
     )
-    _inner_state = (
-        payload.get("reasoning_state", "")
-        or _inner_result.get("reasoning_state", "")
-    )
+    _inner_state = payload.get("reasoning_state", "") or _inner_result.get("reasoning_state", "")
     _evidence_empty = (not _inner_facts) and (not _inner_inferences)
     _provenance_degraded = _inner_provenance in (
-        "COMPUTED_NOT_OBSERVED", "REASONING_EMPTY_FORCED_CAP"
+        "COMPUTED_NOT_OBSERVED",
+        "REASONING_EMPTY_FORCED_CAP",
     )
     _state_degraded = _inner_state in ("REASONING_EMPTY", "DEGRADED")
     if _evidence_empty and (_provenance_degraded or _state_degraded) and conf > 0.20:
@@ -6996,29 +7000,13 @@ def ensure_standard_mcp_output(tool: str, payload: dict[str, Any]) -> dict[str, 
     # consulting the inner state. Fix: derive confidence from inner result,
     # and when the inner reasoning_state is REASONING_EMPTY, reflect that in
     # the outer metacognition — not just the inner engine.
-    _inner_reasoning_state = (
-        res.get("reasoning_state", "")
-        if isinstance(res, dict)
-        else ""
-    )
-    _inner_verdict = (
-        res.get("verdict", "")
-        if isinstance(res, dict)
-        else payload.get("verdict", "")
-    )
+    _inner_reasoning_state = res.get("reasoning_state", "") if isinstance(res, dict) else ""
+    _inner_verdict = res.get("verdict", "") if isinstance(res, dict) else payload.get("verdict", "")
     if _inner_reasoning_state == "REASONING_EMPTY" or _inner_verdict == "DEGRADED":
         conf = min(conf, 0.20)
     # Also check: empty facts with non-trivial confidence is always wrong
-    _inner_supported = (
-        res.get("what_is_supported", [])
-        if isinstance(res, dict)
-        else []
-    )
-    _inner_unsupported = (
-        res.get("what_is_not_supported", [])
-        if isinstance(res, dict)
-        else []
-    )
+    _inner_supported = res.get("what_is_supported", []) if isinstance(res, dict) else []
+    _inner_unsupported = res.get("what_is_not_supported", []) if isinstance(res, dict) else []
     if not _inner_supported and not _inner_unsupported and conf > 0.20:
         conf = 0.20
 
@@ -7396,7 +7384,6 @@ def _is_actor_verified(session_id: str | None, actor_id: str | None) -> bool:
         import os
 
         from arifosmcp.runtime.authority import read_authority_state
-
         from arifosmcp.runtime.session import _SESSION_STORE_PATH as _canon_sess_path
 
         store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", str(_canon_sess_path))
@@ -7547,10 +7534,16 @@ def _hold(
     try:
         from arifosmcp.runtime.rsi_audit import record_rsi_decision
 
-        _rsi_reason_class = "AUTHORITY" if _is_identity_hold else (
-            "SAFETY" if floors and any(f in ("L01", "L02", "F1", "F2") for f in floors)
-            else "EVIDENCE" if floors and "L03" in floors
-            else "UNCERTAINTY"
+        _rsi_reason_class = (
+            "AUTHORITY"
+            if _is_identity_hold
+            else (
+                "SAFETY"
+                if floors and any(f in ("L01", "L02", "F1", "F2") for f in floors)
+                else "EVIDENCE"
+                if floors and "L03" in floors
+                else "UNCERTAINTY"
+            )
         )
         record_rsi_decision(
             tool=tool,
@@ -12211,9 +12204,7 @@ def _arif_mind_reason(
         )
         _verdict = "DEGRADED" if _any_degraded else "CLAIM"
         synthesis_dict["reasoning_state"] = (
-            "REASONING_EMPTY" if _reasoning_empty
-            else "DEGRADED" if _any_degraded
-            else "COMPLETE"
+            "REASONING_EMPTY" if _reasoning_empty else "DEGRADED" if _any_degraded else "COMPLETE"
         )
 
         scars_list = _detect_scars(query, synthesis_text)
@@ -23983,7 +23974,6 @@ def register_tools(
                     canonical
                 )
         if handler is None:
-
             continue
         try:
             manifest = TOOL_CHARTER.get(name, {})
@@ -24097,7 +24087,6 @@ def register_tools(
     # trigger context.
     # ═══════════════════════════════════════════════════════════════════════════════
     try:
-
         _components = getattr(getattr(mcp, "_local_provider", None), "_components", {})
         _enriched = 0
         for tool_name in registered:

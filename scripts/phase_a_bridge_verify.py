@@ -28,10 +28,9 @@ from __future__ import annotations
 
 import json
 import sys
-import urllib.request
 import urllib.error
-from datetime import datetime, timezone
-
+import urllib.request
+from datetime import UTC, datetime
 
 ARIFOS_URL = "http://127.0.0.1:8088/mcp"
 ACCEPT_HEADER = "application/json, text/event-stream"
@@ -131,7 +130,7 @@ def step3_dry_seal(session_id: str) -> dict:
                     "purpose": "verify additive MCP session helper",
                     "reversible": True,
                     "no_commit": True,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "actor": "openclaw-phase1",
                 },
                 "tool": "phase_a_bridge_verify",
@@ -162,7 +161,7 @@ def main() -> int:
     print("PHASE A BRIDGE VERIFY — additive fix for claims.py:570")
     print("=" * 70)
     print(f"Target: {ARIFOS_URL}")
-    print(f"Time: {datetime.now(timezone.utc).isoformat()}")
+    print(f"Time: {datetime.now(UTC).isoformat()}")
 
     # Step 4 first — reproduce the bug so we know we're comparing apples to apples
     old_status, _ = step4_old_bug_repro()

@@ -22,7 +22,7 @@ import hashlib
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -45,7 +45,7 @@ from scripts.federation_reality_probe import (
 
 # ── helpers ─────────────────────────────────────────────────────────────
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _file_hash(path: Path) -> str:
@@ -659,7 +659,7 @@ def main(argv: list[str] | None = None) -> int:
     verdict = _overall_verdict(floors, cross_checks, gaps)
 
     report = {
-        "report_id": f"CR-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}",
+        "report_id": f"CR-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}",
         "generated_at": _now(),
         "generator": "scripts/generate_constitutional_reality.py",
         "constitution_source": evidence,

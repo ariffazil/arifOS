@@ -11,7 +11,10 @@ Run:   python3 /root/arifOS/scripts/auto_remediate.py
 Cron:  0 */6 * * *  (every 6h — detect, remediate, seal, silent-on-green)
 """
 
-import json, time, subprocess, sys
+import json
+import subprocess
+import sys
+import time
 from pathlib import Path
 
 SNAP = Path("/root/.arifos/observatory/snapshots/snapshot_latest.json")

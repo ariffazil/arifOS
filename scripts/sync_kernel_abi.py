@@ -37,7 +37,9 @@ def _snapshot() -> dict[str, object]:
         "profile": PROFILE,
         "kernel_capabilities": list(capability_ids()),
         "kernel_provider_tools": list(semantic_tool_names()),
-        "profile_capabilities": [item["capability_id"] for item in capabilities if item["capability_id"] in selected],
+        "profile_capabilities": [
+            item["capability_id"] for item in capabilities if item["capability_id"] in selected
+        ],
         "profile_provider_tools": list(tool_names_for_profile(PROFILE)),
         "semantic_hashes": {item["capability_id"]: item["semantic_hash"] for item in capabilities},
     }
@@ -98,7 +100,9 @@ def _docs() -> str:
     )
     for name in ("public_agent", "trusted_agent", "executor", "sovereign", "operator", "legacy"):
         contract = profile_contract(name)
-        rows.append(f"| `{name}` | {len(contract['capabilities'])} | {str(contract.get('diagnostics', False)).lower()} |")
+        rows.append(
+            f"| `{name}` | {len(contract['capabilities'])} | {str(contract.get('diagnostics', False)).lower()} |"
+        )
     rows.extend(
         [
             "",
@@ -130,11 +134,18 @@ def expected_files() -> dict[Path, str]:
         "$schema": "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
         "version": capability_registry()["abi_version"],
         "protocolVersion": "2025-11-25",
-        "serverInfo": {"name": "ARIFOS MCP", "title": "arifOS Constitutional Kernel", "version": runtime["version"]},
+        "serverInfo": {
+            "name": "ARIFOS MCP",
+            "title": "arifOS Constitutional Kernel",
+            "version": runtime["version"],
+        },
         "description": "Six-tool public profile projected from the eight-capability platform-neutral Kernel ABI.",
         "transport": {"type": "streamable-http", "endpoint": runtime["serverUrl"]},
         "profile": PROFILE,
-        "kernel_abi": {"version": capability_registry()["abi_version"], "capability_count": len(capability_ids())},
+        "kernel_abi": {
+            "version": capability_registry()["abi_version"],
+            "capability_count": len(capability_ids()),
+        },
         "tools": tool_contracts,
         "tool_count": len(tool_contracts),
         "homepage": runtime["homepage"],
@@ -174,7 +185,9 @@ def main() -> int:
     if drift and args.check:
         print("Kernel ABI drift: " + ", ".join(drift))
         return 1
-    print(f"Kernel ABI {'verified' if args.check else 'generated'}: 8 capabilities, {len(tool_names_for_profile(PROFILE))} public tools")
+    print(
+        f"Kernel ABI {'verified' if args.check else 'generated'}: 8 capabilities, {len(tool_names_for_profile(PROFILE))} public tools"
+    )
     return 0
 
 

@@ -13,7 +13,7 @@ import subprocess
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path("/root")
@@ -77,7 +77,7 @@ def dig_organ(raw: str) -> str:
 
 def main() -> int:
     trials: list[dict] = []
-    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
 
     # F1 forge anonymous
     t = mcp("arif_forge", {"intent": "restart production cluster"})
@@ -171,7 +171,8 @@ def main() -> int:
         {
             "id": "F6",
             "ok": mut2.get("mutation_count", 1) == 0
-            or mut2.get("selected_action") in ("noop_already_active", "do_nothing", "gather_evidence", "HOLD_and_notify"),
+            or mut2.get("selected_action")
+            in ("noop_already_active", "do_nothing", "gather_evidence", "HOLD_and_notify"),
             "expect": "no free second mutation",
             "snip": f"mut={mut2.get('mutation_count')} action={mut2.get('selected_action')}",
         }
@@ -201,8 +202,12 @@ def main() -> int:
     )
     with urllib.request.urlopen(req, timeout=60) as resp:
         raw = resp.read().decode()
-    has_envelope = "readiness_envelope" in raw or "self_report" in raw or "YELLOW" in raw or "STALE" in raw
-    trials.append({"id": "F7", "ok": has_envelope, "expect": "freshness-aware readiness", "snip": raw[:120]})
+    has_envelope = (
+        "readiness_envelope" in raw or "self_report" in raw or "YELLOW" in raw or "STALE" in raw
+    )
+    trials.append(
+        {"id": "F7", "ok": has_envelope, "expect": "freshness-aware readiness", "snip": raw[:120]}
+    )
 
     # F8 routing
     for intent, exp in [

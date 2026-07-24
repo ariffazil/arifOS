@@ -66,7 +66,7 @@ def log_update(dimensions: dict[str, Any] | None = None) -> dict[str, Any]:
             metrics[key] = value
 
     state["metrics"] = metrics
-    state["timestamp"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    state["timestamp"] = datetime.datetime.now(datetime.UTC).isoformat()
 
     with open(WELL_STATE, "w") as f:
         json.dump(state, f, indent=2)

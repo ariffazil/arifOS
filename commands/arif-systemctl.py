@@ -13,10 +13,10 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys
-import json
 import argparse
+import json
 import subprocess
+import sys
 from pathlib import Path
 
 # Services whose control always requires elevated scrutiny
@@ -193,7 +193,7 @@ def main():
 
         entry = json.dumps(
             {
-                "epoch": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "epoch": datetime.datetime.now(datetime.UTC).isoformat(),
                 "actor": "arif-systemctl",
                 "verdict": verdict,
                 "tier": tier,

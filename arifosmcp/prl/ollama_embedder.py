@@ -50,7 +50,7 @@ import logging
 import os
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import httpx
@@ -203,9 +203,7 @@ class PrlEmbedderConfig:
             base_url=_env_str(
                 env, "ARIFOS_PRL_OLLAMA_URL", "PRL_OLLAMA_URL", DEFAULT_OLLAMA_URL
             ).rstrip("/"),
-            model=_env_str(
-                env, "ARIFOS_PRL_OLLAMA_MODEL", "PRL_OLLAMA_MODEL", DEFAULT_MODEL
-            ),
+            model=_env_str(env, "ARIFOS_PRL_OLLAMA_MODEL", "PRL_OLLAMA_MODEL", DEFAULT_MODEL),
             dim=_env_int(env, "ARIFOS_PRL_EMBED_DIM", "PRL_EMBED_DIM", DEFAULT_DIM),
             connect_timeout_s=_env_float(
                 env,
@@ -319,10 +317,7 @@ def _breaker_record_failure(config: PrlEmbedderConfig) -> None:
     global _fail_open_logged_at
     with _breaker_lock:
         _STATE.consecutive_failures += 1
-        if (
-            _STATE.consecutive_failures >= config.cb_fail_threshold
-            and _STATE.opened_at <= 0.0
-        ):
+        if _STATE.consecutive_failures >= config.cb_fail_threshold and _STATE.opened_at <= 0.0:
             _STATE.opened_at = time.monotonic()
             _STATE.tripped_total += 1
             logger.warning(
@@ -372,17 +367,13 @@ def _extract_embedding(raw: Any) -> list[float]:
         if isinstance(raw.get("embeddings"), list) and raw["embeddings"]:
             first = raw["embeddings"][0]
             if not isinstance(first, list):
-                raise PrlEmbedderError(
-                    "Ollama response 'embeddings[0]' is not a list of floats"
-                )
+                raise PrlEmbedderError("Ollama response 'embeddings[0]' is not a list of floats")
             vec = first
         elif isinstance(raw.get("embedding"), list):
             # Legacy /api/embeddings single-vector shape.
             vec = raw["embedding"]
         else:
-            raise PrlEmbedderError(
-                "Ollama response missing 'embeddings' / 'embedding' field"
-            )
+            raise PrlEmbedderError("Ollama response missing 'embeddings' / 'embedding' field")
     else:
         raise PrlEmbedderError("Ollama response is neither list nor object")
     return vec
@@ -401,14 +392,11 @@ def _validate_embedding(raw: Any, *, expected_dim: int) -> list[float]:
     for i, value in enumerate(vec):
         if not isinstance(value, (int, float)):
             raise PrlEmbedderError(
-                f"Ollama embedding value at index {i} is non-numeric: "
-                f"{type(value).__name__}"
+                f"Ollama embedding value at index {i} is non-numeric: {type(value).__name__}"
             )
         f = float(value)
         if f != f or f in (float("inf"), float("-inf")):  # NaN / inf guard
-            raise PrlEmbedderError(
-                f"Ollama embedding value at index {i} is non-finite: {f!r}"
-            )
+            raise PrlEmbedderError(f"Ollama embedding value at index {i} is non-finite: {f!r}")
         out.append(f)
     return out
 
@@ -423,32 +411,24 @@ def _validate_batch_response(raw: Any, *, expected_dim: int) -> list[list[float]
         raise PrlEmbedderError("Ollama batch response is not an object")
     embeddings = raw.get("embeddings")
     if not isinstance(embeddings, list) or not embeddings:
-        raise PrlEmbedderError(
-            "Ollama batch response missing or empty 'embeddings' field"
-        )
+        raise PrlEmbedderError("Ollama batch response missing or empty 'embeddings' field")
     out: list[list[float]] = []
     for idx, vec in enumerate(embeddings):
         if not isinstance(vec, list):
-            raise PrlEmbedderError(
-                f"Ollama batch response entry {idx} is not a list"
-            )
+            raise PrlEmbedderError(f"Ollama batch response entry {idx} is not a list")
         if len(vec) != expected_dim:
             raise PrlEmbedderError(
-                f"Ollama batch entry {idx} wrong dimension: "
-                f"got {len(vec)}, expected {expected_dim}"
+                f"Ollama batch entry {idx} wrong dimension: got {len(vec)}, expected {expected_dim}"
             )
         clean: list[float] = []
         for i, value in enumerate(vec):
             if not isinstance(value, (int, float)):
                 raise PrlEmbedderError(
-                    f"Ollama batch entry {idx} value {i} non-numeric: "
-                    f"{type(value).__name__}"
+                    f"Ollama batch entry {idx} value {i} non-numeric: {type(value).__name__}"
                 )
             f = float(value)
             if f != f or f in (float("inf"), float("-inf")):
-                raise PrlEmbedderError(
-                    f"Ollama batch entry {idx} value {i} non-finite: {f!r}"
-                )
+                raise PrlEmbedderError(f"Ollama batch entry {idx} value {i} non-finite: {f!r}")
             clean.append(f)
         out.append(clean)
     return out
@@ -546,9 +526,7 @@ def embed_text(
         if fail_open:
             _log_fail_open(f"status_{resp.status_code}", config=cfg)
             return None
-        raise PrlEmbedderError(
-            f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}"
-        )
+        raise PrlEmbedderError(f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}")
 
     if resp.status_code >= 400:
         # Client-side — do NOT trip breaker (won't fix itself), but still
@@ -653,9 +631,7 @@ def embed_texts_batch(
         if fail_open:
             _log_fail_open(f"status_{resp.status_code}", config=cfg)
             return [None] * len(texts)
-        raise PrlEmbedderError(
-            f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}"
-        )
+        raise PrlEmbedderError(f"Ollama returned HTTP {resp.status_code}: {resp.text[:200]}")
 
     if resp.status_code >= 400:
         if fail_open:
@@ -688,10 +664,7 @@ def embed_texts_batch(
     # must not silently truncate.
     if len(vectors) != len(texts):
         _breaker_record_failure(cfg)
-        err = (
-            f"Ollama batch response length {len(vectors)} != input length "
-            f"{len(texts)}"
-        )
+        err = f"Ollama batch response length {len(vectors)} != input length {len(texts)}"
         if fail_open:
             _log_fail_open(f"validation:{err}", config=cfg)
             return [None] * len(texts)
@@ -713,9 +686,7 @@ def healthcheck(
     outages don't sneak past us.
     """
     cfg = config or PrlEmbedderConfig.from_env()
-    timeout = httpx.Timeout(
-        connect=cfg.connect_timeout_s, read=2.0, write=1.0, pool=1.0
-    )
+    timeout = httpx.Timeout(connect=cfg.connect_timeout_s, read=2.0, write=1.0, pool=1.0)
     try:
         client = _get_client(cfg.base_url, timeout)
         resp = client.get(f"{cfg.base_url}/api/version")

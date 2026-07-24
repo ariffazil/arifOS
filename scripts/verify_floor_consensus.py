@@ -16,7 +16,6 @@ import json
 import sys
 import urllib.request
 
-
 # ──────────────────────────────────────────────────────────────
 # CANONICAL DOCTRINE (from core/shared/laws.py THRESHOLDS, L-prefix display)
 # Per 2026-06-06 ratification (000_LAWS_TRINITY_ANCHOR.md), output is L-prefix.

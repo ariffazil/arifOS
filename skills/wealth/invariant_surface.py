@@ -19,20 +19,19 @@ from __future__ import annotations
 import math
 from typing import Any
 
+# Emergence layer imports
+from core.physics.economic_invariants import (
+    IntelligenceEmergenceError,
+    PowerConsolidationError,
+    PsychologicalDistortionError,
+    check_intelligence_emergence,
+    check_power_consolidation,
+    check_psychological_distortion,
+)
 from skills.wealth.core import (
     calculate_dscr,
     calculate_irr,
     calculate_npv,
-)
-
-# Emergence layer imports
-from core.physics.economic_invariants import (
-    check_psychological_distortion,
-    check_power_consolidation,
-    check_intelligence_emergence,
-    PsychologicalDistortionError,
-    PowerConsolidationError,
-    IntelligenceEmergenceError,
 )
 
 # ═══════════════════════════════════════════════════════

@@ -19,25 +19,24 @@
 
 from __future__ import annotations
 
-import os
-import json
-import time
-import uuid
-import hashlib
-import asyncio
-import socket
 import argparse
+import asyncio
+import hashlib
+import json
+import os
 import re
-import subprocess
-import urllib.request
-import urllib.error
-from pathlib import Path
-from datetime import datetime, timezone
-from typing import Optional, Dict, List, Tuple
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
+import socket
 import socketserver
+import subprocess
 import threading
+import time
+import urllib.error
+import urllib.request
+import uuid
+from datetime import UTC, datetime
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+from urllib.parse import urlparse
 
 # Optional unified thermodynamic substrate (Tier 5 DRAFT — 888 HOLD ACTIVE)
 try:
@@ -213,7 +212,7 @@ class ConstitutionalFloor:
         self.breach_count = 0
         self.pass_count = 0
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         """Returns (passed, score, rationale). Override per floor."""
         return (True, 1.0, "Pass")
 
@@ -241,7 +240,7 @@ class L01_AMANAH(ConstitutionalFloor):
             hard_floor=True,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         uncertainty_declared = ctx.get("uncertainty_acknowledged", False)
         score = 1.0 if uncertainty_declared else 0.0
         passed = score >= self.threshold
@@ -265,7 +264,7 @@ class L02_HALAL(ConstitutionalFloor):
             hard_floor=True,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         veracity = ctx.get("veracity_score", ctx.get("factual_support", 1.0))
         hallucination_risk = ctx.get("hallucination_risk", 0.0)
         score = min(veracity, 1.0 - hallucination_risk)
@@ -286,7 +285,7 @@ class L03_ADIL(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         fairness = ctx.get("fairness_score", 1.0)
         return (fairness >= self.threshold, fairness, f"Fairness score: {fairness:.2f}")
 
@@ -303,7 +302,7 @@ class L04_TAUFIK(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         delta_S = ctx.get("delta_S_local", ctx.get("delta_S", 0.0))
         score = max(0.0, min(1.0, -delta_S / 10.0))
         passed = (delta_S <= 0) and (score >= self.threshold)
@@ -327,7 +326,7 @@ class L05_NUR(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         quality = ctx.get("explanation_quality", ctx.get("nur_score", 1.0))
         return (quality >= self.threshold, quality, f"Explanation quality: {quality:.2f}")
 
@@ -344,7 +343,7 @@ class L06_ILM(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         evidence = ctx.get("evidence_cited", 1.0)
         grounding = ctx.get("claim_grounding", 1.0)
         score = min(evidence, grounding)
@@ -367,7 +366,7 @@ class L07_SABR(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         kappa_r = ctx.get("kappa_r", 0.0)
         collapse_justified = ctx.get("collapse_justified", False)
         score = min(kappa_r, 1.0)
@@ -392,7 +391,7 @@ class L08_SYUKUR(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         attribution = ctx.get("attribution_quality", 1.0)
         return (
             attribution >= self.threshold,
@@ -413,7 +412,7 @@ class L09_HANTU(ConstitutionalFloor):
             hard_floor=True,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         hallucination_risk = ctx.get("hallucination_risk", 0.0)
         factuality = ctx.get("factuality", ctx.get("veracity_score", 1.0))
         score = factuality - hallucination_risk
@@ -434,7 +433,7 @@ class L10_IKLAS(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         transparency = ctx.get("transparency", 1.0)
         agenda_disclosed = ctx.get("agenda_disclosed", True)
         score = transparency if agenda_disclosed else transparency * 0.3
@@ -457,7 +456,7 @@ class L11_AKHLAS(ConstitutionalFloor):
             hard_floor=True,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         ethical = ctx.get("ethical_score", 1.0)
         return (ethical >= self.threshold, ethical, f"Ethical score: {ethical:.2f}")
 
@@ -474,7 +473,7 @@ class L12_MASLAHAT(ConstitutionalFloor):
             hard_floor=False,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         utility = ctx.get("utility_score", 1.0)
         harm_avoided = ctx.get("harm_avoided", True)
         score = utility if harm_avoided else utility * 0.3
@@ -497,7 +496,7 @@ class L13_KHALID(ConstitutionalFloor):
             hard_floor=True,
         )
 
-    def evaluate(self, ctx: dict) -> Tuple[bool, float, str]:
+    def evaluate(self, ctx: dict) -> tuple[bool, float, str]:
         continuity = ctx.get("continuity_score", 1.0)
         sovereignty = ctx.get("sovereignty_maintained", True)
         blast_radius = ctx.get("blast_radius", 0.0)
@@ -507,7 +506,7 @@ class L13_KHALID(ConstitutionalFloor):
         return (passed, score, rationale)
 
 
-def build_floor_registry() -> Dict[str, ConstitutionalFloor]:
+def build_floor_registry() -> dict[str, ConstitutionalFloor]:
     """Build the complete F01–F13 floor registry."""
     return {
         "L01": L01_AMANAH(),
@@ -573,7 +572,7 @@ class DeterministicHoldClassifier:
         (r"docker\s+rm\s+-f", "F9 CAUTION: container destruction"),
     ]
 
-    def classify(self, command: str) -> Tuple[str, str, str]:
+    def classify(self, command: str) -> tuple[str, str, str]:
         """
         Deterministic classification. Returns (risk_tier, verdict, rationale).
         Completely LLM-free.
@@ -635,7 +634,7 @@ class Vault999:
     def _write_manifest(self, data: dict):
         self.manifest.write_text(json.dumps(data, indent=2))
 
-    def _chain_hash(self, content: str, prev_hash: str) -> Tuple[str, str]:
+    def _chain_hash(self, content: str, prev_hash: str) -> tuple[str, str]:
         """Compute merkle_leaf + chain_hash."""
         leaf = hashlib.sha256(content.encode()).hexdigest()
         chain = hashlib.sha256(f"{prev_hash}{leaf}".encode()).hexdigest()
@@ -655,7 +654,7 @@ class Vault999:
             "chain_hash": chain,
             "prev_hash": prev_hash,
             "vault_version": "2.0",
-            "sealed_epoch": datetime.now(timezone.utc).isoformat(),
+            "sealed_epoch": datetime.now(UTC).isoformat(),
         }
 
         with open(self.ledger, "a") as f:
@@ -674,8 +673,8 @@ class Vault999:
         command: str,
         verdict: str,
         risk_tier: str,
-        floors_passed: List[str],
-        floors_failed: List[str],
+        floors_passed: list[str],
+        floors_failed: list[str],
         apex_metric: dict,
         human: str = "Arif Fazil",
     ) -> dict:
@@ -776,7 +775,7 @@ class MetabolicPipeline:
         vault: Vault999,
         classifier: DeterministicHoldClassifier,
         apex: ApexThermodynamicEngine,
-        floors: Dict[str, ConstitutionalFloor],
+        floors: dict[str, ConstitutionalFloor],
     ):
         self.vault = vault
         self.classifier = classifier
@@ -786,8 +785,8 @@ class MetabolicPipeline:
     async def metabolize(
         self,
         intent: str,
-        command: Optional[str] = None,
-        context: Optional[dict] = None,
+        command: str | None = None,
+        context: dict | None = None,
     ) -> dict:
         """
         Run the full 000→999 pipeline.
@@ -795,7 +794,7 @@ class MetabolicPipeline:
         """
         ctx = context or {}
         session_id = f"sess-{uuid.uuid4().hex[:8].upper()}"
-        plan_id = f"plan-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}"
+        plan_id = f"plan-{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}"
         stages_run = []
 
         # 000 INIT
@@ -1007,7 +1006,7 @@ class MetabolicPipeline:
         except Exception as exc:
             return {"institutional_evolution": "error", "error": str(exc)}
 
-    def _judge(self, ctx: dict, apex_result: dict) -> Tuple[str, str]:
+    def _judge(self, ctx: dict, apex_result: dict) -> tuple[str, str]:
         """888 JUDGE — evaluate floors and return verdict."""
         floors_passed = []
         floors_failed = []
@@ -1050,13 +1049,13 @@ class MetabolicPipeline:
         verdict: str,
         risk_tier: str,
         rationale: str,
-        stages_run: List[str],
+        stages_run: list[str],
         ctx: dict,
         seal: dict,
         human: str,
-        apex_result: Optional[dict] = None,
-        unified_thermo: Optional[dict] = None,
-        institutional_evolution: Optional[dict] = None,
+        apex_result: dict | None = None,
+        unified_thermo: dict | None = None,
+        institutional_evolution: dict | None = None,
     ) -> dict:
         """Build the canonical verdict envelope."""
         apex_m = (apex_result or {}).get("apex_metric", {}) if apex_result else {}
@@ -1065,7 +1064,7 @@ class MetabolicPipeline:
         return {
             "verdict": verdict,
             "telemetry": {
-                "epoch": datetime.now(timezone.utc).isoformat(),
+                "epoch": datetime.now(UTC).isoformat(),
                 "plan_id": plan_id,
                 "session_id": session_id,
                 "dS": ctx.get("delta_S_local", -5.0),
@@ -1258,7 +1257,7 @@ class ArifHTTPHandler(BaseHTTPRequestHandler):
             "policy_loaded": True,
             "adapters_loaded": 4,
             "uptime_seconds": int(time.time() - DAEMON_START),
-            "epoch": datetime.now(timezone.utc).isoformat(),
+            "epoch": datetime.now(UTC).isoformat(),
         }
 
     def _ready(self) -> dict:
@@ -1552,8 +1551,8 @@ def arif_systemctl_wrapper(action: str, service: str) -> dict:
 # Auto-generated by Hermes FORGE. DO NOT EDIT MANUALLY.
 # =============================================================================
 
-import urllib.request
 import urllib.error
+import urllib.request
 
 ARIFOS_ORGANS = {
     "mcp": "https://mcp.arif-fazil.com/health",
@@ -1604,7 +1603,7 @@ def arifos_health_check(organ: str | None = None) -> dict:
     result = {
         "tool": "arifos_health_check",
         "canonical": "arifos_health_check[HEARTBEAT]",
-        "epoch": datetime.now(timezone.utc).isoformat(),
+        "epoch": datetime.now(UTC).isoformat(),
     }
     if organ is None:
         try:
@@ -1639,7 +1638,7 @@ def arifos_health_check(organ: str | None = None) -> dict:
             result["organ"] = organ
             result["status_code"] = resp.status
             result["latency_ms"] = round((time.time() - start) * 1000, 1)
-            result["timestamp"] = datetime.now(timezone.utc).isoformat()
+            result["timestamp"] = datetime.now(UTC).isoformat()
             result["status"] = "UP"
     except urllib.error.HTTPError as e:
         result.update(
@@ -1648,7 +1647,7 @@ def arifos_health_check(organ: str | None = None) -> dict:
                 "organ": organ,
                 "status": "DOWN",
                 "error": f"HTTP {e.code}",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
     except Exception as e:
@@ -1658,7 +1657,7 @@ def arifos_health_check(organ: str | None = None) -> dict:
                 "organ": organ,
                 "status": "DOWN",
                 "error": str(e)[:80],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         )
     return result
@@ -1680,7 +1679,7 @@ def arifos_ping_all_organs() -> dict:
         "canonical": "arifos_ping_all_organs[HEARTBEAT]",
         "organs": organs,
         "summary": summary,
-        "epoch": datetime.now(timezone.utc).isoformat(),
+        "epoch": datetime.now(UTC).isoformat(),
     }
 
 
@@ -1815,7 +1814,7 @@ def arifos_vault_append(
 ) -> dict:
     Path("/var/log/arifosd").mkdir(parents=True, exist_ok=True)
     entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "actor": actor,
         "tool_name": tool_name,
         "inputs_hash": inputs_hash or "none",
@@ -1870,7 +1869,7 @@ def arifos_vault_append(
 def arifos_observability_append(tick_data: dict) -> dict:
     Path("/var/log/arifosd").mkdir(parents=True, exist_ok=True)
     entry = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "tick_id": tick_data.get("tick_id", "?"),
         "organs": tick_data.get("organs", {}),
         "summary": tick_data.get("summary", {}),
@@ -2073,7 +2072,7 @@ def arifos_vps_tick(tick_id: str | None = None, tick_interval: int = DEFAULT_TIC
     GATE + DISPATCH enabled for safe recovery execution.
     """
     tick_id = tick_id or f"tick-{int(time.time())}"
-    epoch = datetime.now(timezone.utc).isoformat()
+    epoch = datetime.now(UTC).isoformat()
     result = {
         "tool": "arifos_vps_tick",
         "canonical": "arifos_vps_tick[DAEMON_LOOP]",
@@ -2175,7 +2174,7 @@ HTTP_PORT = int(os.environ.get("ARIFOS_HTTP_PORT", "18081"))
 VAULT_PATH = os.environ.get("ARIFOS_VAULT", "/var/lib/arifos/vault999")
 
 
-def build_daemon() -> Tuple["MetabolicPipeline", Vault999]:
+def build_daemon() -> tuple[MetabolicPipeline, Vault999]:
     """Build the full daemon runtime."""
     vault = Vault999(VAULT_PATH)
     classifier = DeterministicHoldClassifier()
@@ -2203,7 +2202,7 @@ def run_daemon():
     print("=" * 60)
     print("arifOS Constitutional Kernel — arifosd v0.2.0-PHASE1")
     print("SEAL    : 999-SEAL-PHASE1-VPS-DAEMON-20260523")
-    print(f"EPOCH   : {datetime.now(timezone.utc).isoformat()}")
+    print(f"EPOCH   : {datetime.now(UTC).isoformat()}")
     print(f"Socket  : {SOCK_PATH}")
     print(f"HTTP    : localhost:{HTTP_PORT}")
     print(f"Vault   : {VAULT_PATH}")
@@ -2261,7 +2260,7 @@ def run_daemon():
         while True:
             tick_count += 1
             tick_id = f"tick-{int(time.time())}"
-            tick_epoch = datetime.now(timezone.utc).isoformat()
+            tick_epoch = datetime.now(UTC).isoformat()
             print(f"[{tick_epoch}] tick {tick_count:04d} → arifos_vps_tick()")
             try:
                 last_tick_result = arifos_vps_tick(

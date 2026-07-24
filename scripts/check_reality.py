@@ -7,10 +7,10 @@ Respects the 7-tool public facade.
 Run: python scripts/check_reality.py > reality_report.json
 """
 
-import re
 import json
-from pathlib import Path
+import re
 from datetime import datetime
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_7 = [

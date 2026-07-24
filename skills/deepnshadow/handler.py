@@ -29,7 +29,6 @@ from arifosmcp.protocols.deepnshadow import (
     TeamShadowPattern,
 )
 
-
 # ── Arif default scar profile (overridable) ───────────────────────────────────
 DEFAULT_ARIF_SCAR_VECTORS = [
     {"zone": "authority", "trigger": "false certainty", "response": "resistance"},

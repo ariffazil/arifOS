@@ -334,9 +334,7 @@ def _process_batches(
                 continue
             payload["derived_semantic_text"] = derived_text
             payload["provenance"]["reindex_attempted"] = True
-            upserts.append(
-                PointStruct(id=point_id, vector=vec, payload=payload)
-            )
+            upserts.append(PointStruct(id=point_id, vector=vec, payload=payload))
             counters.written += 1
         if upserts:
             client.upsert(collection_name=shadow, points=upserts)

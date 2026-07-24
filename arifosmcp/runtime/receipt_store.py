@@ -155,12 +155,16 @@ def make_receipt(
     (or store the full data elsewhere and reference by hash).
     """
     ts = timestamp or datetime.now(UTC).isoformat()
-    input_hash = _canonical_hash(input_data) if not isinstance(input_data, str) else (
-        f"sha256:{hashlib.sha256(input_data.encode('utf-8')).hexdigest()}"
+    input_hash = (
+        _canonical_hash(input_data)
+        if not isinstance(input_data, str)
+        else (f"sha256:{hashlib.sha256(input_data.encode('utf-8')).hexdigest()}")
     )
     decision_hash = _canonical_hash({"decision": decision, "ts": ts})
-    exec_hash = _canonical_hash(execution_result) if not isinstance(execution_result, str) else (
-        f"sha256:{hashlib.sha256(execution_result.encode('utf-8')).hexdigest()}"
+    exec_hash = (
+        _canonical_hash(execution_result)
+        if not isinstance(execution_result, str)
+        else (f"sha256:{hashlib.sha256(execution_result.encode('utf-8')).hexdigest()}")
     )
     # Build the receipt with placeholder signature, then sign.
     provisional = Receipt(
@@ -307,17 +311,11 @@ class ReceiptStore:
         every action that happened under one trace, from durable records
         alone.
         """
-        return tuple(
-            receipt for receipt in self.all_receipts()
-            if receipt.trace_id == trace_id
-        )
+        return tuple(receipt for receipt in self.all_receipts() if receipt.trace_id == trace_id)
 
     def by_run_id(self, run_id: str) -> tuple[Receipt, ...]:
         """All receipts sharing the same run_id, in append order."""
-        return tuple(
-            receipt for receipt in self.all_receipts()
-            if receipt.run_id == run_id
-        )
+        return tuple(receipt for receipt in self.all_receipts() if receipt.run_id == run_id)
 
     def replay(self, receipt_id: str) -> dict[str, Any] | None:
         """Reconstruct the decision sequence for a run, given a receipt id.
@@ -336,10 +334,7 @@ class ReceiptStore:
         all_in_order = self.all_receipts()
         # Find the index of the target receipt.
         try:
-            target_idx = next(
-                i for i, r in enumerate(all_in_order)
-                if r.receipt_id == receipt_id
-            )
+            target_idx = next(i for i, r in enumerate(all_in_order) if r.receipt_id == receipt_id)
         except StopIteration:
             return None
         # Walk backward to the start of this run.

@@ -8,12 +8,13 @@ Output: JSON to stdout + logs/e2e_<date>.json
 """
 
 from __future__ import annotations
+
 import json
 import os
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 MCP_URL = (
@@ -169,7 +170,7 @@ def score_scenario(scenario: dict, verdict: str, floors: list[str]) -> dict:
 
 
 def run_scenarios() -> dict:
-    ts = datetime.now(timezone.utc).isoformat()
+    ts = datetime.now(UTC).isoformat()
     results = []
     scores = []
 
@@ -241,7 +242,7 @@ def main() -> None:
 
     # Save JSON log
     LOG_DIR.mkdir(exist_ok=True)
-    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    date_str = datetime.now(UTC).strftime("%Y-%m-%d")
     log_path = LOG_DIR / f"e2e_{date_str}.json"
     with open(log_path, "w") as f:
         json.dump(result, f, indent=2, default=str)

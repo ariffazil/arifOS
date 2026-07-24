@@ -52,9 +52,7 @@ def parse_nats_message(msg_data: bytes) -> GovernanceEvent | None:
         data = json.loads(msg_data)
         return GovernanceEvent(
             event_id=data.get("event_id", data.get("id", "")),
-            timestamp=datetime.fromisoformat(
-                data.get("timestamp", datetime.now(UTC).isoformat())
-            ),
+            timestamp=datetime.fromisoformat(data.get("timestamp", datetime.now(UTC).isoformat())),
             tool=data.get("tool", data.get("event", "unknown")),
             action_class=data.get("action_class", "OBSERVE"),
             verdict=data.get("verdict", data.get("status", "UNKNOWN")),

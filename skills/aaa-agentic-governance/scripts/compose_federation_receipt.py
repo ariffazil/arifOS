@@ -18,9 +18,8 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from typing import Any
-
 
 SCHEMA_VERSION = "2.0.0"
 L13_CRITICAL_FLOORS = {"F1", "F2", "F9", "L11", "L12", "L13"}

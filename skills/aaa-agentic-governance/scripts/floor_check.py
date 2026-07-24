@@ -29,9 +29,9 @@ import hashlib
 import json
 import re
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import UTC
 from typing import Any
-
 
 SCHEMA_VERSION = "2.0.0"
 ALL_FLOORS = [f"F{i}" for i in range(1, 14)]
@@ -291,7 +291,7 @@ def check_laws(
         verdict = "SEAL"
         hold_code = None
 
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     return FloorReceipt(
         schema_version=SCHEMA_VERSION,
@@ -310,7 +310,7 @@ def check_laws(
         residual_risk=residual_risk,
         verdict_attestation=verdict,
         hold_code=hold_code,
-        sealed_at=datetime.now(timezone.utc).isoformat(),
+        sealed_at=datetime.now(UTC).isoformat(),
     )
 
 

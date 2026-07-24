@@ -9,9 +9,7 @@ fire-time reauthorization.
 DITEMPA BUKAN DIBERI.
 """
 
-import json
-import pytest
-from conformance import _call_tool, _init_session, ARIFOS_URL, MCP_URL
+from conformance import _init_session
 
 
 def test_deferred_action_cannot_run_without_fire_time_judgment():
@@ -28,14 +26,13 @@ def test_deferred_action_cannot_run_without_fire_time_judgment():
     # Session birth should have some concept of expiry or TTL
     sb = session.get("session_birth", {})
     # Check for any time-bound field
-    time_fields = [k for k in sb.keys() if any(
-        t in k.lower() for t in ("expir", "ttl", "time", "session")
-    )]
-    
+    time_fields = [
+        k for k in sb.keys() if any(t in k.lower() for t in ("expir", "ttl", "time", "session"))
+    ]
+
     # At minimum, session_id must exist (identity binding for future re-auth)
     assert "session_id" in sb, (
-        f"Session must have session_id for identity binding at fire time. "
-        f"Keys: {list(sb.keys())}"
+        f"Session must have session_id for identity binding at fire time. Keys: {list(sb.keys())}"
     )
 
 
@@ -52,7 +49,7 @@ def test_grandfathered_authority_blocked():
     actor = session.get("actor", {})
     as_ = actor.get("authority_state", {})
     rg = as_.get("runtime_grant", {})
-    
+
     # expires_at should exist or at least be conceptually present
     assert "expires_at" in rg or "session" in as_, (
         f"Authority model must support expiry. runtime_grant keys: {list(rg.keys())}"

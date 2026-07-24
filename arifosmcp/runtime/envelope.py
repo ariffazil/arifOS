@@ -148,7 +148,7 @@ class OutputEnvelope(BaseModel):
     peace2: float = 1.0  # Ω-Stability: stability index
     g_star: float = 0.0  # Δ-Intelligence: epistemic quality (G*T*C)^1/3
     omega_0: float = 0.05  # Δ-Intelligence: Humility band (Gödel uncertainty)
-    boundary: "EpistemicBoundary | None" = None  # GENESIS 053 — mandatory per-organ null-space
+    boundary: EpistemicBoundary | None = None  # GENESIS 053 — mandatory per-organ null-space
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -224,7 +224,7 @@ class BoundaryValidationResult(BaseModel):
 
 
 def enforce_epistemic_boundary(
-    envelope: "OutputEnvelope",
+    envelope: OutputEnvelope,
 ) -> BoundaryValidationResult:
     """
     GENESIS 053 Gate — validates that every organ output carries an epistemic boundary.

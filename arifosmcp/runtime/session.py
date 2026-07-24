@@ -492,7 +492,9 @@ def migrate_legacy_exec_store(*, force: bool = False) -> dict[str, Any]:
                         merged = dict(normalized)
                         merged.update(existing)
                         for key in _EXECUTION_FIELD_KEYS:
-                            if merged.get(key) in (None, "", [], {}) and normalized.get(key) not in (
+                            if merged.get(key) in (None, "", [], {}) and normalized.get(
+                                key
+                            ) not in (
                                 None,
                                 "",
                                 [],
@@ -981,7 +983,6 @@ def persist_session_store() -> None:
         _persist_store()
 
 
-
 def get_session_identity(session_id: str) -> dict[str, Any] | None:
     """
     Retrieve the stored identity for a session.
@@ -1389,7 +1390,6 @@ def get_session_runtime_state(session_id: str | None) -> dict[str, Any] | None:
         "activity": record.get("activity") or {},
         "governance": record.get("governance") or {},
     }
-
 
 
 # ── Session Truth Resolution ──────────────────────────────────────────────

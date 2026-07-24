@@ -9,11 +9,11 @@ DITEMPA BUKAN DIBERI.
 """
 
 import json
-import pytest
-from conformance import _call_tool, _init_session, ARIFOS_URL, MCP_URL
 
+from conformance import _call_tool, _init_session
 
 # ── TEST 5: Command success cannot equal outcome verification ─────────────────
+
 
 def test_command_success_not_outcome_verification():
     """
@@ -23,8 +23,8 @@ def test_command_success_not_outcome_verification():
     # This is a structural test — we verify the kernel DOES NOT
     # have a single field that conflates "executed" with "verified"
     session = _init_session("conformance-t5")
-    
-    # The session init response must not claim verification for  
+
+    # The session init response must not claim verification for
     # actions that haven't been independently verified
     sb = session.get("session_birth", {})
     assert "verification_status" not in sb or sb.get("verification_status") != "VERIFIED", (
@@ -34,6 +34,7 @@ def test_command_success_not_outcome_verification():
 
 # ── TEST 6: A-FORGE cannot verify itself ─────────────────────────────────────
 
+
 def test_aforge_cannot_verify_itself():
     """
     WAJIB-1.6: The executor identity must not equal the verifier identity.
@@ -41,12 +42,12 @@ def test_aforge_cannot_verify_itself():
     """
     session = _init_session("conformance-t6")
     actor = session.get("actor", {})
-    
-    # The actor performing init must not also claim verifier role 
+
+    # The actor performing init must not also claim verifier role
     # on the same session without independent verification
     as_ = actor.get("authority_state", {})
     roles = as_.get("constitutional_role", {})
-    
+
     # If the role is SOVEREIGN or FORGE executor, it must not also
     # be the sole verifier of its own actions
     role = roles.get("role", "")
@@ -62,16 +63,21 @@ def test_aforge_cannot_verify_itself():
 
 # ── TEST 7: No mutation without session ──────────────────────────────────────
 
+
 def test_no_mutation_without_session():
     """
     WAJIB-1.7: Any mutation-class tool call without a valid session_id
     must be rejected.
     """
     # Call arif_forge(mode='engineer') WITHOUT session_id
-    response = _call_tool("arif_forge", {
-        "mode": "engineer",
-        "manifest": '{"target": "test"}',
-    }, session_id=None)
+    response = _call_tool(
+        "arif_forge",
+        {
+            "mode": "engineer",
+            "manifest": '{"target": "test"}',
+        },
+        session_id=None,
+    )
 
     result_text = json.dumps(response)
     # Must be rejected
@@ -82,6 +88,7 @@ def test_no_mutation_without_session():
 
 # ── TEST 8: Sealed execution requires valid lease ────────────────────────────
 
+
 def test_sealed_execution_requires_lease():
     """
     WAJIB-1.8: arif_seal must not succeed without a valid constitutional
@@ -91,10 +98,14 @@ def test_sealed_execution_requires_lease():
     sid = session.get("session_birth", {}).get("session_id", "")
 
     # Try to seal without judge verdict
-    response = _call_tool("arif_seal", {
-        "mode": "seal",
-        "payload": '{"test": "unauthorized"}',
-    }, session_id=sid)
+    response = _call_tool(
+        "arif_seal",
+        {
+            "mode": "seal",
+            "payload": '{"test": "unauthorized"}',
+        },
+        session_id=sid,
+    )
 
     result = response.get("result", {}).get("content", [{}])[0].get("text", "")
     parsed = {}

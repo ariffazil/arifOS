@@ -168,7 +168,7 @@ class ToolTimeoutMiddleware(BaseHTTPMiddleware):
         if request.url.path.rstrip("/") == "/mcp" and request.method == "POST":
             try:
                 return await asyncio.wait_for(call_next(request), timeout=45.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return JSONResponse(
                     {
                         "jsonrpc": "2.0",

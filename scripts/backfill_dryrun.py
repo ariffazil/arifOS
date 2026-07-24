@@ -15,14 +15,13 @@ Output:
   - safety assessment
 """
 
-import os
 import hashlib
 import json
+import os
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
 
 SOURCE_FILE = Path(os.environ.get("ARIFOS_HOME", "/root") + "/VAULT999/outcomes.jsonl")
 
@@ -99,7 +98,7 @@ def main():
     print("=" * 70)
     print("VAULT999 JSONL BACKFILL DRY-RUN")
     print(f"Source: {SOURCE_FILE}")
-    print(f"Run at: {datetime.now(timezone.utc).isoformat()}")
+    print(f"Run at: {datetime.now(UTC).isoformat()}")
     print("=" * 70)
 
     if not SOURCE_FILE.exists():

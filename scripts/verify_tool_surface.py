@@ -116,13 +116,21 @@ def verify_all() -> bool:
         )
 
     # C3: Long-name aliases dispatch but are not advertised
-    LONG_ALIASES = {"arif_session_init", "arif_sense_observe", "arif_mind_reason", "arif_judge_deliberate", "arif_vault_seal"}
+    LONG_ALIASES = {
+        "arif_session_init",
+        "arif_sense_observe",
+        "arif_mind_reason",
+        "arif_judge_deliberate",
+        "arif_vault_seal",
+    }
     if tools:
         advertised_aliases = LONG_ALIASES.intersection(set(tool_names))
         check(
             "C3: Long-name aliases NOT in tools/list",
             len(advertised_aliases) == 0,
-            f"Found advertised aliases: {advertised_aliases}" if advertised_aliases else "Clean — no aliases advertised",
+            f"Found advertised aliases: {advertised_aliases}"
+            if advertised_aliases
+            else "Clean — no aliases advertised",
         )
 
     # C4: Guarded execution uses arif_forge on the public surface
@@ -157,7 +165,9 @@ def verify_all() -> bool:
     health = get_health()
     manifest = get_manifest()
     if health and manifest:
-        manifest_public_count = manifest.get("capabilities", {}).get("public_tools", {}).get("count", 0)
+        manifest_public_count = (
+            manifest.get("capabilities", {}).get("public_tools", {}).get("count", 0)
+        )
         health_tools_count = health.get("tools_exposed_via_mcp", 0)
         check(
             "C6: /health sees live MCP exposure and manifest sees canonical public count",
@@ -170,7 +180,9 @@ def verify_all() -> bool:
     # C7: Manifest describes 9 public verbs + 13 organs
     if manifest:
         has_public = manifest.get("capabilities", {}).get("public_tools", {}).get("count") == 9
-        has_organs = manifest.get("capabilities", {}).get("constitutional_organs", {}).get("count") == 13
+        has_organs = (
+            manifest.get("capabilities", {}).get("constitutional_organs", {}).get("count") == 13
+        )
         has_golden = "golden_path" in manifest
         check(
             "C7: Manifest has 9 public + 13 organs + golden_path",

@@ -34,7 +34,7 @@ def readiness_check() -> dict[str, Any]:
         }
 
     try:
-        with open(WELL_STATE_PATH, "r") as f:
+        with open(WELL_STATE_PATH) as f:
             state = json.load(f)
 
         score = state.get("well_score", 50.0)

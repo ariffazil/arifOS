@@ -25,7 +25,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -479,7 +479,7 @@ def main(argv: list[str] | None = None) -> int:
         parser.print_help()
         return 0
 
-    snapshot_ts = datetime.now(timezone.utc).isoformat()
+    snapshot_ts = datetime.now(UTC).isoformat()
     results: list[dict[str, Any]] = []
 
     for organ in ORGANS:

@@ -14,13 +14,10 @@ Usage:
 Returns exit code 0 (PASS), 1 (WARN), or 2 (FAIL).
 """
 
-import hashlib
 import json
-import os
 import sys
-import urllib.request
 import urllib.error
-from pathlib import Path
+import urllib.request
 
 # ── Invariant checks ────────────────────────────────────────────────
 REQUIRED_RELEASE_FIELDS = frozenset(

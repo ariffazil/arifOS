@@ -335,16 +335,30 @@ SCHEMA_DRIFT warning.
 F2 TRUTH: No semantic translation in the delta path.
 """
 
-OBSERVATION_SCHEMA_KEYS: frozenset[str] = frozenset({
-    # WELL substrate keys (from _read_well_substrate output)
-    "well_score", "human_ready", "clarity", "has_telemetry",
-    "truth_status", "active_violations", "status", "coupled_verdict",
-    "source", "w0",
-    # arif_measure(mode='vitals') keys
-    "g_score", "delta_S", "omega", "psi_le",
-    # judge evidence keys
-    "runtime_drift", "floors_checked", "floors_violated",
-})
+OBSERVATION_SCHEMA_KEYS: frozenset[str] = frozenset(
+    {
+        # WELL substrate keys (from _read_well_substrate output)
+        "well_score",
+        "human_ready",
+        "clarity",
+        "has_telemetry",
+        "truth_status",
+        "active_violations",
+        "status",
+        "coupled_verdict",
+        "source",
+        "w0",
+        # arif_measure(mode='vitals') keys
+        "g_score",
+        "delta_S",
+        "omega",
+        "psi_le",
+        # judge evidence keys
+        "runtime_drift",
+        "floors_checked",
+        "floors_violated",
+    }
+)
 """Canonical set of valid observation keys for schema parity validation."""
 
 PREDICTION_SCHEMA_VERSION = "v1.0"
@@ -460,6 +474,7 @@ def _query_prediction_gradient(
 
         # Extract payload from RuntimeEnvelope
         import asyncio
+
         if asyncio.iscoroutine(raw_payload):
             raw_payload = asyncio.get_event_loop().run_until_complete(raw_payload)
 
@@ -475,21 +490,24 @@ def _query_prediction_gradient(
                 if isinstance(item, dict):
                     content = item.get("content", item.get("text", ""))
                     if "prediction_delta" in str(content):
-                        results.append({
-                            "memory_id": item.get("memory_id", item.get("id", "")),
-                            "tier": item.get("tier", "L2"),
-                            "action_tier": item.get("action_tier", ""),
-                            "delta_score": item.get("delta_score", item.get("score")),
-                            "timestamp": item.get("timestamp", item.get("created_at", "")),
-                            "content_snippet": str(content)[:500],
-                        })
+                        results.append(
+                            {
+                                "memory_id": item.get("memory_id", item.get("id", "")),
+                                "tier": item.get("tier", "L2"),
+                                "action_tier": item.get("action_tier", ""),
+                                "delta_score": item.get("delta_score", item.get("score")),
+                                "timestamp": item.get("timestamp", item.get("created_at", "")),
+                                "content_snippet": str(content)[:500],
+                            }
+                        )
 
         if not results:
             return None
 
         # Filter by similar action_tier if possible
         filtered = [
-            r for r in results
+            r
+            for r in results
             if action_tier in ("standard", "any")
             or r.get("action_tier", "") in (action_tier, "")
             or r.get("action_tier", "") == action_tier

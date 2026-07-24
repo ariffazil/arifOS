@@ -22,10 +22,9 @@ Verdict:
 import json
 import sys
 import time
-import urllib.request
 import urllib.error
-from dataclasses import dataclass, asdict
-from typing import Optional
+import urllib.request
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 # ─── Config ────────────────────────────────────────────────────────────────────
@@ -46,8 +45,8 @@ class LayerResult:
     endpoint: str
     http_status: int
     verdict: str  # PASS | FAIL | SKIP | HOLD | VOID
-    payload: Optional[dict] = None
-    error: Optional[str] = None
+    payload: dict | None = None
+    error: str | None = None
     latency_ms: float = 0.0
 
 
@@ -56,8 +55,8 @@ class McpResult:
     initialize: str  # PASS | PARTIAL | SKIP | FAIL
     tools_list: str  # PASS | PARTIAL | SKIP | FAIL
     tools_count: int = -1
-    initialize_error: Optional[str] = None
-    tools_list_error: Optional[str] = None
+    initialize_error: str | None = None
+    tools_list_error: str | None = None
 
 
 @dataclass
@@ -90,8 +89,8 @@ class VerifyReport:
 def fetch(
     url: str,
     method: str = "GET",
-    body: Optional[bytes] = None,
-    headers: Optional[dict] = None,
+    body: bytes | None = None,
+    headers: dict | None = None,
     timeout: float = 8.0,
 ) -> tuple[int, dict | None, float, str]:
     """Returns (http_status, payload_dict, latency_ms, error_str)."""

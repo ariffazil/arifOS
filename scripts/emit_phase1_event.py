@@ -40,9 +40,8 @@ import json
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
 
 VAULT999_PATHS = [
     Path("/opt/arifos/app/VAULT999/outcomes.jsonl"),
@@ -73,7 +72,7 @@ def emit_event(
 ) -> dict:
     """Append a structured event to outcomes.jsonl. Returns the written event."""
     now_epoch = time.time()
-    now_iso = datetime.now(timezone.utc).isoformat()
+    now_iso = datetime.now(UTC).isoformat()
     event = {
         "decision_id": decision_id,
         "session_id": session_id,
@@ -117,7 +116,7 @@ def cmd_drift_resolved(args) -> int:
         "resolving_action": "service_restart_then_nocache_verify",
     }
     result = emit_event(
-        decision_id=f"DRIFT-RESOLVED-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{args.build_commit}",
+        decision_id=f"DRIFT-RESOLVED-{datetime.now(UTC).strftime('%Y%m%d')}-{args.build_commit}",
         session_id=args.session_id,
         verdict="SEAL",
         expected=f"build_commit={args.build_commit} == live_commit={args.build_commit}, runtime_matches_build=true",

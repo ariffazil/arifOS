@@ -116,7 +116,7 @@ def main() -> int:
         only_in_static = set(static_names) - set(live_names)
 
         if not only_in_live and not only_in_static:
-            print(f"  ✅ MATCH — no drift")
+            print("  ✅ MATCH — no drift")
             continue
 
         if only_in_static:

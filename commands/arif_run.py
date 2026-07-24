@@ -15,11 +15,11 @@ DITEMPA BUKAN DIBERI — 999 SEAL ALIVE
 Stage C — A-FORGE adapter wrapper
 """
 
-import sys
-import re
+import argparse
 import json
 import os
-import argparse
+import re
+import sys
 from pathlib import Path
 
 SOCK_PATH = os.environ.get("ARIFOS_SOCK", "/run/arifos.sock")

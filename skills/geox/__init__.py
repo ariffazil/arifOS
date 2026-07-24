@@ -11,10 +11,10 @@ from __future__ import annotations
 import math
 from typing import Any
 
-from .petrophysics import petrophysics_compute
-from .stratigraphy import stratigraphy_correlate
 from .geometry import geometry_build
 from .monte_carlo import monte_carlo
+from .petrophysics import petrophysics_compute
+from .stratigraphy import stratigraphy_correlate
 
 
 def entropy_audit(cashflows: list[float] | None = None) -> dict[str, Any]:

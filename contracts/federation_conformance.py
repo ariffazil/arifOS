@@ -16,7 +16,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -32,13 +32,15 @@ def rec(scenario: str, name: str, ok: bool, detail: str = "", evidence: str = "O
             "ok": ok,
             "detail": detail,
             "evidence": evidence,
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
         }
     )
     print(f"{'PASS' if ok else 'FAIL'}  [{scenario}] {name}" + (f" — {detail}" if detail else ""))
 
 
-def http_json(url: str, method: str = "GET", body: dict | None = None, timeout: float = 15.0) -> tuple[int, Any]:
+def http_json(
+    url: str, method: str = "GET", body: dict | None = None, timeout: float = 15.0
+) -> tuple[int, Any]:
     data = None if body is None else json.dumps(body).encode()
     req = urllib.request.Request(
         url,
@@ -167,7 +169,12 @@ def scenario_b() -> None:
         return
     state = env.get("state") or (r or {}).get("color")
     has_ttl = "ttl_hours" in (r or {}) or "ttl_hours" in env or "expires_at" in env
-    rec("B", "freshness fields present", has_ttl or state in ("STALE", "YELLOW", "GREEN", "RED"), detail=f"state={state}")
+    rec(
+        "B",
+        "freshness fields present",
+        has_ttl or state in ("STALE", "YELLOW", "GREEN", "RED"),
+        detail=f"state={state}",
+    )
     # Stale rule exists in code path
     rec(
         "B",
@@ -180,11 +187,17 @@ def scenario_c() -> None:
     """Semantic mismatch: bare float confidence without kind must be flagged by ontology rules."""
     ont = json.loads((ROOT / "arifOS/contracts/apex-ontology.json").read_text())
     kinds = set(ont.get("confidence_kinds", {}).keys())
-    rec("C", "ontology defines confidence kinds", "bayesian_posterior" in kinds and "model_output" in kinds)
+    rec(
+        "C",
+        "ontology defines confidence kinds",
+        "bayesian_posterior" in kinds and "model_output" in kinds,
+    )
     # Simulate illegal combine
     illegal = {"geox": 0.78, "llm": 0.78}  # same number, different kinds undeclared
     flagged = not all(isinstance(v, dict) and "kind" in v for v in illegal.values())
-    rec("C", "undeclared confidence kind detected as illegal", flagged, detail="floats without kind")
+    rec(
+        "C", "undeclared confidence kind detected as illegal", flagged, detail="floats without kind"
+    )
 
 
 def scenario_d() -> None:
@@ -203,7 +216,7 @@ def scenario_d() -> None:
     )
     text = json.dumps(r)
     blocked = "888_HOLD" in text or "HOLD" in text or "SOVEREIGN" in text
-    sealed = "\"SEAL\"" in text and "888_HOLD" not in text
+    sealed = '"SEAL"' in text and "888_HOLD" not in text
     rec("D", "destructive judge blocked", blocked and not sealed, detail=text[:160])
     # forge without auth
     r2 = mcp_call(8088, "arif_forge", {"intent": "restart production"})
@@ -259,7 +272,12 @@ def scenario_g() -> None:
     ]:
         try:
             d = json.loads(path.read_text())
-            rec("G", f"{path.name} versioned", bool(d.get(key) or d.get("$id")), detail=str(d.get(key) or d.get("$id")))
+            rec(
+                "G",
+                f"{path.name} versioned",
+                bool(d.get(key) or d.get("$id")),
+                detail=str(d.get(key) or d.get("$id")),
+            )
         except Exception as e:
             rec("G", f"{path.name} versioned", False, detail=str(e))
 
@@ -282,7 +300,11 @@ def scenario_h() -> None:
     # Forge health should not claim kernel SEAL
     code2, body2 = http_json("http://127.0.0.1:7071/health", timeout=3)
     text = json.dumps(body2) if not isinstance(body2, str) else body2
-    rec("H", "A-FORGE health does not self-SEAL constitution", "F13" in text or "authority" in text.lower() or code2 == 200)
+    rec(
+        "H",
+        "A-FORGE health does not self-SEAL constitution",
+        "F13" in text or "authority" in text.lower() or code2 == 200,
+    )
 
 
 def scenario_i() -> None:
@@ -363,7 +385,10 @@ def scenario_j() -> None:
         rec(
             "J",
             "adversarial recovery: stop→mutate≤1→verify",
-            ok and mut.get("mutation_count", 0) == 1 and active and mut.get("final_verdict") == "SEAL",
+            ok
+            and mut.get("mutation_count", 0) == 1
+            and active
+            and mut.get("final_verdict") == "SEAL",
             detail=f"verdict={mut.get('final_verdict')} mut={mut.get('mutation_count')} active={active}",
         )
         # safety net
@@ -376,7 +401,7 @@ def scenario_j() -> None:
 def main() -> int:
     print("═" * 60)
     print("FEDERATION CONFORMANCE — Integration Proof A–J")
-    print(datetime.now(timezone.utc).isoformat())
+    print(datetime.now(UTC).isoformat())
     print("═" * 60)
     scenario_a()
     scenario_b()
@@ -400,9 +425,7 @@ def main() -> int:
         verdict = "FEDERATION_COHERENCE_PARTIAL_GREEN"
         # still not "system proven" — epistemic calibration missing
         note = "Structural+authority+routing+bounded recovery pass. Semantic calibration & external witness still open."
-    elif passed >= total * 0.85 and not any(
-        r["scenario"] == "D" and not r["ok"] for r in RESULTS
-    ):
+    elif passed >= total * 0.85 and not any(r["scenario"] == "D" and not r["ok"] for r in RESULTS):
         verdict = "FEDERATION_COHERENCE_YELLOW"
         note = "Integration mostly holds; inspect FAILs."
     else:

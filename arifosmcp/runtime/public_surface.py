@@ -3,6 +3,14 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from arifosmcp.abi.kernel_abi import (
+    normalize_profile,
+    profile_contract,
+    semantic_tool_names,
+)
+from arifosmcp.abi.kernel_abi import (
+    tool_names_for_profile as abi_tool_names_for_profile,
+)
 from arifosmcp.constitutional_map import CANONICAL_TOOLS
 from arifosmcp.prompts import CANONICAL_PROMPTS
 from arifosmcp.resources import (
@@ -12,12 +20,6 @@ from arifosmcp.resources import (
     TREE777_RESOURCES,
 )
 from arifosmcp.runtime.build import get_build_info
-from arifosmcp.abi.kernel_abi import (
-    normalize_profile,
-    profile_contract,
-    semantic_tool_names,
-    tool_names_for_profile as abi_tool_names_for_profile,
-)
 
 # The permanent contract is semantic: eight capability IDs in
 # abi/capability_registry.json.

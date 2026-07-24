@@ -16,7 +16,7 @@ import asyncio
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # ---------------------------------------------------------------------------
 # Config
@@ -184,7 +184,7 @@ async def main():
         print("\n▶ 999 VAULT anchoring...")
         vault_payload = json.loads(args.vault_payload)
         vault_payload["candidate"] = args.candidate
-        vault_payload["approved_at"] = datetime.now(timezone.utc).isoformat()
+        vault_payload["approved_at"] = datetime.now(UTC).isoformat()
         vault_payload["actor_id"] = ACTOR_ID
 
         vault_resp = await vault_anchor(sid, vault_payload)

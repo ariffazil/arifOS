@@ -25,10 +25,9 @@ import argparse
 import json
 import os
 import sys
-import uuid
-
 import urllib.error
 import urllib.request
+import uuid
 
 DEFAULT_GATEWAY = os.environ.get("ARIFOS_COPILOT_GATEWAY_URL", "http://localhost:8090")
 DEFAULT_API_KEY = os.environ.get("ARIFOS_COPILOT_API_KEY", "")
@@ -102,7 +101,7 @@ def main() -> int:
     # Read copilot output
     if args.input_file:
         try:
-            with open(args.input_file, "r", encoding="utf-8") as f:
+            with open(args.input_file, encoding="utf-8") as f:
                 copilot_output = f.read()
         except FileNotFoundError:
             sys.stderr.write(f"ERROR: File not found: {args.input_file}\n")

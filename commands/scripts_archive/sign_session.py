@@ -58,7 +58,7 @@ def sign_session(actor_id: str, constitution_hash: str, nonce: str) -> str:
     if not isinstance(privkey, Ed25519PrivateKey):
         print("ERROR: loaded key is not Ed25519", file=sys.stderr)
         sys.exit(1)
-    payload = f"{actor_id}:{constitution_hash}:{nonce}".encode("utf-8")
+    payload = f"{actor_id}:{constitution_hash}:{nonce}".encode()
     sig_bytes = privkey.sign(payload)
     return base64.b64encode(sig_bytes).decode("ascii")
 

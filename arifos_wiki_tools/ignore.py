@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import fnmatch
 import re
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 DEFAULT_EXCLUDES: set[str] = {
     ".git/",
