@@ -1,13 +1,11 @@
-"""
-Telemetry — Prometheus Metrics + Langfuse Traces (v4 SDK)
-════════════════════════════════════════════════════════
+"""Telemetry — Prometheus Metrics + Selectable Observability Backend.
 
-Updated for Langfuse Python SDK v4:
-- Uses get_client() singleton
-- start_as_current_observation context manager (OTel-native)
-- propagate_attributes for session/actor context
-- automatic child span propagation
-- flush on shutdown for short-lived processes
+Backend selection via OBSERVABILITY_BACKEND env var:
+    langfuse  → Langfuse v4 Cloud (default, existing path)
+    arifos    → Local Postgres (sovereign, no external dependency)
+    dual      → Both (migration safety — write to both)
+
+DITEMPA BUKAN DIBERI — observability is a constitutional function, not a SaaS.
 """
 
 from __future__ import annotations
@@ -15,35 +13,111 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+from datetime import datetime, timezone
 from typing import Any
+
+from arifosmcp.runtime.observability import ObservationRecord
 
 logger = logging.getLogger(__name__)
 
 _METRICS_ENABLED = os.getenv("ARIFOS_METRICS_ENABLED", "true").lower() == "true"
+_OBSERVABILITY_BACKEND = os.getenv("OBSERVABILITY_BACKEND", "langfuse").lower()
 
 _lf_client: Any = None
+_local_backend: Any = None
 
 
 def _get_langfuse():
+    """Return a sync REST emitter function for Langfuse v3 self-hosted.
+
+    Langfuse v4 Python SDK uses OTLP export (/api/public/otel/v1/traces)
+    which self-hosted Langfuse v3 does not expose. The REST ingestion
+    endpoint (/api/public/ingestion) works on both cloud and self-hosted.
+    """
     global _lf_client
     if _lf_client is not None:
         return _lf_client
+    if _OBSERVABILITY_BACKEND == "arifos":
+        return None
     try:
-        from langfuse import get_client as _gc
+        import uuid
+        from datetime import datetime, timezone
+
+        import httpx
 
         public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
         secret_key = os.getenv("LANGFUSE_SECRET_KEY")
-        host = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
-        if public_key and secret_key:
-            _lf_client = _gc()
-            logger.info(f"[Telemetry] Langfuse v4 initialized — host={host}")
-        else:
+        base_url = (os.getenv("LANGFUSE_BASE_URL") or "https://jp.cloud.langfuse.com").rstrip("/")
+
+        if not public_key or not secret_key:
             logger.warning("[Telemetry] LANGFUSE_PUBLIC_KEY or LANGFUSE_SECRET_KEY not set")
+            return None
+
+        def _emit(
+            name: str,
+            session_id: str | None,
+            metadata: dict[str, Any] | None,
+            tags: list[str] | None,
+        ) -> None:
+            try:
+                ts = datetime.now(timezone.utc).isoformat()
+                body: dict[str, Any] = {
+                    "id": str(uuid.uuid4()),
+                    "name": name,
+                    "timestamp": ts,
+                }
+                if metadata:
+                    body["metadata"] = metadata
+                if session_id:
+                    body["sessionId"] = session_id
+                if tags:
+                    body["tags"] = tags
+
+                payload = {
+                    "batch": [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "type": "trace-create",
+                            "body": body,
+                            "timestamp": ts,
+                        }
+                    ]
+                }
+                with httpx.Client(timeout=5.0) as client:
+                    client.post(
+                        f"{base_url}/api/public/ingestion",
+                        json=payload,
+                        auth=(public_key, secret_key),
+                    )
+            except Exception:
+                pass  # never block the tool path
+
+        _lf_client = _emit
+        logger.info(f"[Telemetry] Langfuse REST tracer initialized — host={base_url}")
     except ImportError:
-        logger.debug("[Telemetry] langfuse SDK not installed")
+        logger.debug("[Telemetry] httpx not available for REST tracer")
     except Exception as e:
         logger.warning(f"[Telemetry] Langfuse init failed: {e}")
     return _lf_client
+
+
+def _get_local_backend():
+    """Get or create the local Postgres observability backend."""
+    global _local_backend
+    if _local_backend is not None:
+        return _local_backend
+    if _OBSERVABILITY_BACKEND not in ("arifos", "dual"):
+        return None
+    try:
+        from arifosmcp.runtime.observability import PostgresBackend
+
+        _local_backend = PostgresBackend()
+        return _local_backend
+    except ImportError as e:
+        logger.debug(f"[Telemetry] Local backend not available: {e}")
+    except Exception as e:
+        logger.warning(f"[Telemetry] Local backend init failed: {e}")
+    return None
 
 
 def _hash_payload(data: Any) -> str:
@@ -114,11 +188,13 @@ class Telemetry:
         self._histograms: dict[str, Any] = {}
         self._gauges: dict[str, Any] = {}
         self._lf = None
+        self._local = None
         self._init()
         self._initialized = True
 
     def _init(self) -> None:
         self._lf = _get_langfuse()
+        self._local = _get_local_backend()
 
         if not _METRICS_ENABLED:
             logger.info("[Telemetry] Metrics disabled")
@@ -181,33 +257,53 @@ class Telemetry:
 
         if self._lf:
             try:
-                input_hash = _hash_payload(_redact(input_data)) if input_data else None
-                output_hash = _hash_payload(output_data) if output_data else None
-                span_meta = {
+                i_hash = _hash_payload(_redact(input_data)) if input_data else None
+                o_hash = _hash_payload(output_data) if output_data else None
+                trace_meta = {
                     "verdict": verdict,
                     "latency_ms": latency,
                     "delta_S": delta_s,
                     "actor_id": actor_id or "unknown",
                     "session_id": session_id or None,
-                    "input_hash": input_hash,
-                    "output_hash": output_hash,
+                    "input_hash": i_hash,
+                    "output_hash": o_hash,
                     "vault_receipt": vault_receipt,
                     "reasons": reasons or [],
                     "next_safe_action": next_safe_action,
                 }
                 if metadata:
-                    span_meta.update(metadata)
-                with self._lf.start_as_current_observation(
-                    as_type="span",
+                    trace_meta.update(metadata)
+                self._lf(
                     name=f"arifOS::{tool}",
-                    metadata=_redact(span_meta),
-                ) as span:
-                    span.update(
-                        input={"tool": tool, "actor": actor_id},
-                        output={"verdict": verdict, "output_hash": output_hash},
-                    )
+                    session_id=session_id,
+                    metadata=_redact(trace_meta),
+                    tags=[tool, "arifOS"],
+                )
             except Exception as e:
-                logger.debug(f"[Telemetry] Langfuse span failed: {e}")
+                logger.debug(f"[Telemetry] trace emit failed: {e}")
+
+        # ── Local backend (Kabarkan) ────────────────────────────────────
+        if self._local:
+            try:
+                input_hash = _hash_payload(_redact(input_data)) if input_data else None
+                output_hash = _hash_payload(output_data) if output_data else None
+                record = ObservationRecord(
+                    session_id=session_id,
+                    actor_id=actor_id or "unknown",
+                    tool_name=tool,
+                    verdict_class=verdict.upper(),
+                    delta_s=delta_s,
+                    reasons=reasons or [],
+                    next_safe_action=next_safe_action,
+                    input_hash=input_hash,
+                    output_hash=output_hash,
+                    vault_receipt=vault_receipt,
+                    latency_ms=latency if latency else None,
+                    metadata=metadata,
+                )
+                self._local.store(record)
+            except Exception as e:
+                logger.debug(f"[Telemetry] Local backend write failed: {e}")
 
         logger.debug(f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency}")
 
