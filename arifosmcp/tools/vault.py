@@ -64,6 +64,7 @@ async def arif_seal(
     evidence_sha: str | None = None,
     reversion_event: dict[str, Any] | None = None,
     blast_radius: str = "L2_SYSTEM",
+    seal_purpose: str | None = None,
 ) -> SealOutput:
     """
     999_VAULT: Immutable ledger anchoring.
@@ -411,6 +412,10 @@ async def arif_seal(
         drift_events=drift_events,
         floors=floors,
     )
+
+    if not ack_irreversible:
+        result["seal_type"] = "SEAL_RECORD"
+        result["authorized_execution"] = False
 
     # ── E1 FIX: Mint cryptographic SEAL token for IRREVERSIBLE actions ─────────
     # After arif_seal approves (mode="seal" + ack_irreversible), mint a token

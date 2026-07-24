@@ -18793,6 +18793,7 @@ async def _arif_vault_seal_tool(
     drift_events: list[dict[str, Any]] | None = None,
     constitutional: dict[str, Any] | None = None,
     ctx: Context | None = None,
+    seal_purpose: str | None = None,
 ) -> dict[str, Any]:
     """
     999_VAULT: Immutable ledger anchoring and cryptographic seal.
@@ -18852,6 +18853,7 @@ async def _arif_vault_seal_tool(
                 actor_id=actor_id,
                 session_id=session_id,
                 constitutional_chain_id=constitutional_chain_id,
+                seal_purpose=seal_purpose,
             )
         if hold is not None:
             return hold
