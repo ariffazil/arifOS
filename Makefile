@@ -106,6 +106,12 @@ reality:
 	@python3 scripts/federation_reality_probe.py --write-md --write-json --public
 	@echo "📄 Snapshot: FEDERATION_REALITY_SNAPSHOT.md"
 
+reality-deep:
+	@echo "🔍🔬 Deep federation reality probe (scope sweep + F13 reachability)..."
+	@python3 scripts/federation_reality_probe.py --scope --write-md --write-json --public --verbose
+	@echo "📄 Snapshot: FEDERATION_REALITY_SNAPSHOT.md"
+	@echo "📊 Tool scope sweep included in report"
+
 reality-replay:
 	@echo "Replaying Reality Ledger..."
 	@python -m core.vault999.reality_ledger
