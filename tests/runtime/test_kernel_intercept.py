@@ -241,8 +241,14 @@ class TestStandardAllow:
 class TestFailClosed:
     """Invalid input fails closed (R4, UNKNOWN)."""
 
-    async def test_invalid_r_class_defaults_to_R4(self):
-        """Invalid reversibility string → R4 (fail closed)."""
+    async def test_invalid_r_class_returns_classification_hold(self):
+        """Invalid reversibility → CLASSIFICATION_HOLD (not fake R4).
+
+        P0 FIX (2026-07-24): Unknown reversibility string must NOT silently
+        become R4_IRREVERSIBLE. The kernel must signal CLASSIFICATION_HOLD
+        so the caller knows the classifier rejected the value, rather than
+        falsely claiming irreversibility and demanding F13 Ed25519.
+        """
         r = await _arif_kernel_intercept(
             actor="test-agent",
             intent="unknown action",
@@ -251,8 +257,9 @@ class TestFailClosed:
             reversibility_level="R99_INVALID",
             blast_radius="unknown",
         )
-        # R4 default + no sovereign token → ESCALATE
-        assert r["decision"] == "ESCALATE"
+        assert r["decision"] == "CLASSIFICATION_HOLD"
+        assert r["constitutional_floor_triggered"] == "F2"
+        assert "R99_INVALID" in r["reason"]
 
     async def test_invalid_epistemic_state_defaults_to_unknown(self):
         """Invalid truth state → UNKNOWN (not blocked, just tagged)."""
@@ -267,3 +274,76 @@ class TestFailClosed:
         )
         # R0 + UNKNOWN → ALLOW (read-only)
         assert r["decision"] == "ALLOW"
+
+
+# ── P0 RELEASE GATES (2026-07-24) — Record Seal vs Authorization Seal ─────────
+# Four tests that MUST pass before any release. These gates prevent the kernel
+# from collapsing evidence recording (R2, no external consequence) and sovereign
+# action authorization (R4, irreversible execution) into one overloaded SEAL.
+
+
+@pytest.mark.asyncio
+class TestRecordSealVsAuthorizationSeal:
+    """Release gates: evidence seals vs authorization seals are distinct."""
+
+    async def test_gate_1_audit_receipt_no_signature_seals(self):
+        """audit receipt + no signature → ALLOW (no F13 required)."""
+        r = await _arif_kernel_intercept(
+            actor="opencode",
+            intent="record corrected synthesis audit",
+            requested_capability="arif_seal",
+            domain="federation",
+            reversibility_level="RECORD_ONLY_APPEND",
+            blast_radius="LOW",
+            epistemic_state="DER",
+        )
+        assert r["decision"] == "ALLOW"
+        assert r.get("constitutional_floor_triggered") is None
+
+    async def test_gate_2_r4_execution_no_signature_escalates(self):
+        """R4 execution + no signature → ESCALATE (F13 required)."""
+        r = await _arif_kernel_intercept(
+            actor="opencode",
+            intent="deploy to production",
+            requested_capability="deploy_prod",
+            domain="A-FORGE",
+            reversibility_level="R4",
+            blast_radius="production",
+            epistemic_state="ESTIMATE",
+            evidence=[{"label": "CI all green", "source": "github-actions"}],
+        )
+        assert r["decision"] == "ESCALATE"
+        assert r["constitutional_floor_triggered"] == "F13"
+
+    async def test_gate_3_r4_execution_valid_signature_allows(self):
+        """R4 execution + valid signature → ALLOW (sovereign authorized)."""
+        sentinel = os.environ.get(
+            "ARIFOS_SOVEREIGN_KEY",
+            "DEV_ONLY_SENTINEL_REPLACE_AT_PROD_BOOT",
+        )
+        r = await _arif_kernel_intercept(
+            actor="arif",
+            intent="deploy to production",
+            requested_capability="deploy_prod",
+            domain="A-FORGE",
+            reversibility_level="R4",
+            blast_radius="production",
+            epistemic_state="ESTIMATE",
+            authority_token=sentinel,
+            evidence=[{"label": "CI all green", "source": "github-actions"}],
+        )
+        assert r["decision"] == "ALLOW"
+
+    async def test_gate_4_unknown_classification_returns_classification_hold(self):
+        """unknown action classification → CLASSIFICATION_HOLD, not fake R4."""
+        r = await _arif_kernel_intercept(
+            actor="opencode",
+            intent="test unknown classification",
+            requested_capability="unknown",
+            domain="arifOS",
+            reversibility_level="UNKNOWN_ACTION_CLASS_XYZ",
+            blast_radius="unknown",
+        )
+        assert r["decision"] == "CLASSIFICATION_HOLD"
+        assert r["constitutional_floor_triggered"] == "F2"
+        assert "UNKNOWN_ACTION_CLASS_XYZ" in r["reason"]

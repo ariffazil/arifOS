@@ -257,6 +257,13 @@ class Verdict(str, Enum):
     SABAR = "SABAR"
     VOID = "VOID"
 
+    # P0 FIX (2026-07-24): Explicit verdict classes for evidence seals
+    # and action authorization seals. The kernel previously collapsed
+    # these into one overloaded SEAL — evidence recording and sovereign
+    # authorization must be distinguishable.
+    RECORD_SEAL = "RECORD_SEAL"
+    ACTION_AUTHORIZATION_SEAL = "ACTION_AUTHORIZATION_SEAL"
+
     # Backward-compatible transport/status aliases (Phase 3b migration target)
     PROVISIONAL = "PROVISIONAL"
     PARTIAL = "PARTIAL"
