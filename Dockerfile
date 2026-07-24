@@ -120,12 +120,12 @@ RUN python -m playwright install --with-deps chromium && \
 # Switch to non-root user for runtime (F11 Authority / F1 Law)
 USER arifos
 
-# Expose canonical MCP port
-EXPOSE 8088
+# Expose canonical MCP port (3000 for Manufact cloud compatibility)
+EXPOSE 3000
 
 # Production Healthcheck (F12 Defense)
 HEALTHCHECK --interval=20s --timeout=5s --start-period=30s --retries=3 \
-    CMD curl -fsS --max-time 3 http://localhost:8088/health || exit 1
+    CMD curl -fsS --max-time 3 http://localhost:3000/health || exit 1
 
 # Metadata Labels — OCI image spec for immutable provenance
 # Uses ENV variables (DEPLOY_GIT_COMMIT, DEPLOY_BUILD_TIME) since those
@@ -145,4 +145,4 @@ LABEL io.modelcontextprotocol.server.name="io.github.ariffazil/arifos" \
       arifos.authority="F13_SOVEREIGN"
 
 # Execute consolidated entrypoint
-CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "8088"]
+CMD ["uvicorn", "arifosmcp.runtime.server:app", "--host", "0.0.0.0", "--port", "3000"]
