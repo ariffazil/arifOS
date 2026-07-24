@@ -38,7 +38,7 @@ COPY . .
 RUN python -m pip install --upgrade pip && \
     # requirements.txt removed — pyproject.toml is sole source of truth
     
-    pip install .
+    pip install .[heavy,ml]
 RUN python -c "import numpy, scipy, sklearn, torch, transformers, sentence_transformers"
 
 # Install WebMCP dependencies (F12/F11 constitutional web gateway)
