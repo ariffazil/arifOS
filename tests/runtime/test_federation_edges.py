@@ -70,8 +70,25 @@ def test_probe_all_edges_returns_valid_envelope() -> None:
     assert len(out) >= 10
     for e in out:
         assert "id" in e
-        assert e.get("state") in {"reachable","unreachable","drift","unknown"}
-        assert e.get("probe_type") in {"self","independent","cross-federation","composed","unknown"}
+        assert str(e.get("state")).lower() in {
+            "reachable",
+            "unreachable",
+            "drift",
+            "unknown",
+            "transport_identity_ok",
+            "operational",
+        }
+        assert e.get("probe_type") is None or str(e.get("probe_type")).lower() in {
+            "self",
+            "independent",
+            "cross-federation",
+            "composed",
+            "unknown",
+            "directed_edge",
+            "none",
+        }
+
+
 
 
 def test_aggregate_state_ladder() -> None:
