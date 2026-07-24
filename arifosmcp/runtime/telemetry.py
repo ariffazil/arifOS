@@ -120,6 +120,64 @@ def _get_local_backend():
     return None
 
 
+_NATS_CONNECTION: Any = None
+
+
+def _publish_nats(record: Any) -> None:
+    """Fire-and-forget publish an observation to NATS JetStream.
+
+    Falls back silently if NATS is unavailable — never blocks the kernel.
+    """
+    global _NATS_CONNECTION
+    import json
+    import threading
+
+    # Lazy-init NATS in a background thread (first call only)
+    if _NATS_CONNECTION is None:
+        _NATS_CONNECTION = object()  # marker that we tried
+
+        def _init_nats():
+            global _NATS_CONNECTION
+            try:
+                import asyncio
+                from nats import NATS as NatsClient
+
+                nc = NatsClient()
+                asyncio.run(nc.connect("nats://127.0.0.1:4222"))
+                js = nc.jetstream()
+                asyncio.run(
+                    js.publish(
+                        f"kabarkan.ingest.span.{record.trace_id}",
+                        json.dumps(record.model_dump(mode="json"), default=str).encode(),
+                    )
+                )
+                asyncio.run(nc.close())
+            except Exception:
+                pass
+
+        threading.Thread(target=_init_nats, daemon=True).start()
+        return
+
+    try:
+        import asyncio
+        from nats import NATS as NatsClient
+
+        nc = NatsClient()
+
+        async def _pub():
+            await nc.connect("nats://127.0.0.1:4222")
+            js = nc.jetstream()
+            await js.publish(
+                f"kabarkan.ingest.span.{record.trace_id}",
+                json.dumps(record.model_dump(mode="json"), default=str).encode(),
+            )
+            await nc.close()
+
+        asyncio.run(_pub())
+    except Exception:
+        pass
+
+
 def _hash_payload(data: Any) -> str:
     try:
         import json
@@ -302,6 +360,8 @@ class Telemetry:
                     metadata=metadata,
                 )
                 self._local.store(record)
+                # Fire-and-forget NATS publish for downstream consumers
+                _publish_nats(record)
             except Exception as e:
                 logger.debug(f"[Telemetry] Local backend write failed: {e}")
 
