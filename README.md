@@ -315,6 +315,10 @@ STDIO: `npx -y arifos-mcp`
 | **arifOS** (this repo) | Constitutional kernel. 8 verbs. 13 floors. The judge. | ← you are here |
 | **A-FORGE** | Executor. 111 MCP tools. Governed gates. | [ariffazil/A-FORGE](https://github.com/ariffazil/A-FORGE) |
 | **AAA** | Cockpit. A2A mesh. Agent registry. | [ariffazil/AAA](https://github.com/ariffazil/AAA) |
+| **GEOX** | Earth intelligence — wells, seismic, petrophysics | [ariffazil/GEOX](https://github.com/ariffazil/GEOX) |
+| **WEALTH** | Capital intelligence — NPV, IRR, EMV | [ariffazil/WEALTH](https://github.com/ariffazil/WEALTH) |
+| **WELL** | Vitality guard — REFLECT_ONLY | [ariffazil/WELL](https://github.com/ariffazil/WELL) |
+| **HERMES** | Multi-modal bridge + Telegram relay | [ariffazil/HERMES](https://github.com/ariffazil/HERMES) |
 
 ---
 
