@@ -7880,23 +7880,29 @@ async def _elicit_irreversible_ack(
     actor_id: str | None,
     session_id: str | None,
     constitutional_chain_id: str | None = None,
+    seal_purpose: str | None = None,
 ) -> tuple[bool, dict[str, Any] | None]:
     """
-    Autonomous governance gate (2026-07-08, updated 2026-07-13).
+    Autonomous governance gate (2026-07-08, updated 2026-07-13, 2026-07-24).
     Kernel encodes governance autonomously via the 10-check autonomous gate.
     F13 sovereign thresholds still apply via constitutional_chain_id
-    from prior arif_judge SEAL.
+    from prior arif_judge SEAL — for AUTHORIZE seals only.
 
-    If constitutional_chain_id is present, the prior 888 judge has already
-    SEAL'd — allow autonomous progression. Otherwise HOLD.
+    P0 FIX (2026-07-24): RECORD seals (ack_irreversible=false) do not
+    require prior judge cc_id. The ledger is immutable but the action has
+    no external consequence. Only AUTHORIZE seals (ack_irreversible=true)
+    require cc_id + F13 signature.
     """
     if constitutional_chain_id:
-        # Prior arif_judge SEAL exists — autonomous path is authorized.
         return True, None
+    # RECORD seals: autonomous, no cc_id required, ack_irreversible=false
+    if seal_purpose == "RECORD":
+        return False, None
     return False, _hold(
         tool_name,
         "No constitutional_chain_id from prior arif_judge SEAL. "
-        "Call arif_judge first to obtain a SEAL verdict, then retry.",
+        "Call arif_judge first to obtain a SEAL verdict, then retry. "
+        "For audit evidence/record seals, set seal_purpose='RECORD'.",
         [],
     )
 
@@ -22085,12 +22091,15 @@ async def _arif_kernel_intercept_tool(
     authority_token: str | None = None,
     measurement: dict[str, Any] | None = None,
     session_token: str | None = None,
+    # ── Seal Architecture (forged 2026-07-24) ──────────────────────────
+    action_class: str | None = None,
+    seal_purpose: str | None = None,
+    authority_effect: str | None = None,
+    actor_signature: str | None = None,
+    signature_challenge: dict[str, Any] | None = None,
+    nonce: str | None = None,
+    key_id: str | None = None,
     # ── P1 FIX 2026-07-14: MCP kwarg-name tolerance ──
-    # The MCP client sends natural-language keys (candidate, mode, action_tier,
-    # context_source, actor_id, session_id) while the kernel intercept expects
-    # its internal canonical names. Translate synonyms here so the constitutional
-    # gate never rejects on kwargs. Any unrecognized kwarg is forwarded as
-    # `intent` text so the kernel still sees *some* proposal to judge.
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Wrapper for the minimum constitutional kernel interceptor.
@@ -22146,6 +22155,22 @@ async def _arif_kernel_intercept_tool(
     if not intent:
         intent = "(no proposal text supplied — caller passed only mode/structural kwargs)"
 
+    # Extract seal architecture params from kwargs (MCP-natural names)
+    if action_class is None:
+        action_class = kwargs.pop("action_class", None)
+    if seal_purpose is None:
+        seal_purpose = kwargs.pop("seal_purpose", None)
+    if authority_effect is None:
+        authority_effect = kwargs.pop("authority_effect", None)
+    if actor_signature is None:
+        actor_signature = kwargs.pop("actor_signature", None)
+    if signature_challenge is None:
+        signature_challenge = kwargs.pop("signature_challenge", None)
+    if nonce is None:
+        nonce = kwargs.pop("nonce", None)
+    if key_id is None:
+        key_id = kwargs.pop("key_id", None)
+
     # Drop any remaining unknown kwargs so the inner kernel call is clean
     kwargs.pop("action_tier", None)
     kwargs.pop("peer_contract_id", None)
@@ -22173,6 +22198,13 @@ async def _arif_kernel_intercept_tool(
         evidence=evidence,
         authority_token=authority_token,
         measurement=measurement,
+        action_class=action_class,
+        seal_purpose=seal_purpose,
+        authority_effect=authority_effect,
+        actor_signature=actor_signature,
+        signature_challenge=signature_challenge,
+        nonce=nonce,
+        key_id=key_id,
     )
 
     # Use the standard builder so kernel verdicts carry facts/inferences/metacog/next_safe

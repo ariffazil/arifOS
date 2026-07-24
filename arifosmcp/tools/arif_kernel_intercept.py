@@ -47,6 +47,76 @@ _SOVEREIGN_KEY_SENTINEL = os.environ.get(
 )
 
 
+# ── Action Class Policy (forged 2026-07-24) ──────────────────────────────
+# Maps canonical action classes to seal purpose, authority effect,
+# reversibility, and F13 requirement. The kernel reads this table to
+# determine whether an action needs sovereign cryptographic signature.
+# VAULT999 append-only permanence ≠ authorization to mutate the world.
+_ACTION_CLASS_POLICY = {
+    "AUDIT_RECORD": {
+        "seal_purpose": "RECORD",
+        "authority_effect": "NONE",
+        "reversibility": "R2",
+        "ack_irreversible": False,
+        "requires_f13": False,
+        "can_retry_autonomously": True,
+    },
+    "EVIDENCE_ATTESTATION": {
+        "seal_purpose": "RECORD",
+        "authority_effect": "NONE",
+        "reversibility": "R2",
+        "ack_irreversible": False,
+        "requires_f13": False,
+        "can_retry_autonomously": True,
+    },
+    "VAULT_RECEIPT": {
+        "seal_purpose": "RECORD",
+        "authority_effect": "NONE",
+        "reversibility": "R2",
+        "ack_irreversible": False,
+        "requires_f13": False,
+        "can_retry_autonomously": True,
+    },
+    "ACTION_AUTHORIZATION": {
+        "seal_purpose": "AUTHORIZE",
+        "authority_effect": "EXECUTION_GRANT",
+        "reversibility": "R4",
+        "ack_irreversible": True,
+        "requires_f13": True,
+        "can_retry_autonomously": False,
+    },
+    "CONSTITUTIONAL_AMENDMENT": {
+        "seal_purpose": "AUTHORIZE",
+        "authority_effect": "SOVEREIGN_CHANGE",
+        "reversibility": "R5",
+        "ack_irreversible": True,
+        "requires_f13": True,
+        "can_retry_autonomously": False,
+    },
+}
+
+
+def _resolve_action_class(
+    action_class: str | None,
+    reversibility_level: str,
+    seal_purpose: str | None,
+    authority_effect: str | None,
+) -> dict:
+    """Resolve action class policy from explicit class, seal_purpose, or reversibility fallback."""
+    # Explicit action_class wins
+    if action_class and action_class.upper() in _ACTION_CLASS_POLICY:
+        return _ACTION_CLASS_POLICY[action_class.upper()]
+    # seal_purpose + authority_effect inference
+    if seal_purpose == "AUTHORIZE" or (authority_effect and authority_effect != "NONE"):
+        return _ACTION_CLASS_POLICY["ACTION_AUTHORIZATION"]
+    # Fallback: reversibility-based inference
+    r = reversibility_level.upper()
+    if r in ("R4", "R5", "R4_IRREVERSIBLE", "R5_SOVEREIGN", "IRREVERSIBLE", "SOVEREIGN"):
+        return _ACTION_CLASS_POLICY["ACTION_AUTHORIZATION"]
+    # Default: treat as audit record
+    return _ACTION_CLASS_POLICY["AUDIT_RECORD"]
+
+
 def _verify_sovereign_token(token: str | None) -> bool:
     """
     F11 AUTH: Cryptographically verify F13 SOVEREIGN token.
@@ -96,6 +166,13 @@ async def _arif_kernel_intercept(
     evidence: list[dict[str, Any]] | None = None,
     authority_token: str | None = None,
     measurement: dict[str, Any] | None = None,
+    action_class: str | None = None,
+    seal_purpose: str | None = None,
+    authority_effect: str | None = None,
+    actor_signature: str | None = None,
+    signature_challenge: dict[str, Any] | None = None,
+    nonce: str | None = None,
+    key_id: str | None = None,
 ) -> dict[str, Any]:
     """
     The Minimum Constitutional Kernel. All federation actions pass through here.
@@ -156,31 +233,33 @@ async def _arif_kernel_intercept(
     except ValueError:
         # P0 FIX (2026-07-24): Unknown reversibility class MUST NOT silently
         # become R4. Return CLASSIFICATION_HOLD so the caller knows the
-        # classifier rejected the value, rather than falsely claiming
-        # irreversibility and demanding F13 Ed25519.
+        # classifier rejected the value.
         unknown_output = KernelOutput(
             decision="CLASSIFICATION_HOLD",
             constitutional_floor_triggered="F2",
             reason=(
                 f"Unknown reversibility class: '{_rev_raw}'. "
                 "The kernel cannot classify this action. "
-                "Valid classes: R0-R5, RECORD_ONLY_APPEND, AI_ATTESTATION, "
-                "AUDIT_RECEIPT, EVIDENCE_ATTESTATION, RECORD_SEAL, EVIDENCE_SEAL."
+                "Valid classes: R0-R5, RECORD_ONLY_APPEND, AUDIT_RECEIPT, etc."
             ),
             audit_hash=None,
             rollback_instruction=None,
         )
         base = unknown_output.model_dump()
+        base["seal_type"] = "UNKNOWN"
+        base["seal_purpose"] = "UNKNOWN"
+        base["authority_effect"] = "NONE"
+        base["requires_human_signature"] = False
+        base["authorized_execution"] = False
         base["next_safe_action"] = (
             "Re-submit with a recognized reversibility_class. "
-            "For evidence/audit recording use RECORD_ONLY_APPEND (R2). "
-            "For irreversible actions use R4_IRREVERSIBLE."
+            "For evidence/audit recording use AUDIT_RECORD (R2). "
+            "For irreversible actions use ACTION_AUTHORIZATION (R4)."
         )
         base["metacognition"] = {
             "confidence": 0.99,
             "why_this_tool": "Kernel cannot classify unknown reversibility",
             "next_safe_action": base["next_safe_action"],
-            "uncertainty_reason": f"Unrecognized class: {_rev_raw}",
         }
         return base
 
@@ -211,39 +290,48 @@ async def _arif_kernel_intercept(
     _W3 = _m.get("W3")
     _has_measurement = _G is not None and _C_dark is not None
 
-    # 1. 888 HOLD trigger for Irreversible or Sovereign actions (F13 SOVEREIGN)
-    if r_class in {ReversibilityClass.R4_IRREVERSIBLE, ReversibilityClass.R5_SOVEREIGN}:
+    # ── Resolve action class policy (forged 2026-07-24) ───────────────
+    # Maps action_class → seal_purpose, authority_effect, reversibility, F13 requirement.
+    # VAULT999 append-only permanence ≠ authorization to mutate the world.
+    _policy = _resolve_action_class(
+        action_class=action_class,
+        reversibility_level=_rev_raw,
+        seal_purpose=seal_purpose,
+        authority_effect=authority_effect,
+    )
+    _requires_f13 = _policy["requires_f13"]
+    _seal_purpose_resolved = seal_purpose or _policy["seal_purpose"]
+    _authority_effect_resolved = authority_effect or _policy["authority_effect"]
+    _seal_type = "SEAL_RECORD" if _seal_purpose_resolved == "RECORD" else "SEAL_AUTHORIZATION"
+
+    # 1. F13 Gate — only for AUTHORIZE seal_purpose or R4/R5 reversibility
+    if _requires_f13:
         if not _verify_sovereign_token(authority_token):
             output = KernelOutput(
                 decision="ESCALATE",
-                # 888_HOLD is on F13 SOVEREIGN, not F8 (corrected 2026-06-22)
                 constitutional_floor_triggered="F13",
                 reason=(
-                    f"{r_class.value} action blocked. "
-                    "F13 SOVEREIGN cryptographic signature required (F11 AUTH)."
+                    f"Action class '{action_class or _rev_raw}' requires F13 SOVEREIGN "
+                    "cryptographic signature. seal_purpose=AUTHORIZE, "
+                    f"authority_effect={_authority_effect_resolved}."
                 ),
                 audit_hash=compute_audit_hash(kernel_input),
                 rollback_instruction=None,
             )
             base = output.model_dump()
-            # Wire the new metacognitive plumbing into the kernel
             target_aff = get_full_affordance(requested_capability)
             base["affordance"] = target_aff
-            base["agency_level"] = target_aff.get("agency_level")
+            base["seal_type"] = "SEAL_AUTHORIZATION"
+            base["requires_human_signature"] = True
+            base["authorized_execution"] = False
+            base["seal_purpose"] = _seal_purpose_resolved
+            base["authority_effect"] = _authority_effect_resolved
             base["metacognition"] = {
                 "confidence": 0.99,
-                "why_this_tool": "Kernel intercept on L5 path",
-                "next_safe_action": "Obtain F13 sovereign token or downgrade to reversible action",
-                "uncertainty_reason": "Missing sovereign authority for irreversible action",
+                "next_safe_action": "Obtain F13 Ed25519 signature then re-submit",
             }
-            base["next_safe_action"] = (
-                "Request explicit human 888 confirmation or revise to lower blast_radius"
-            )
-            base["constitutional_check"] = {
-                "hold_required": True,
-                "floor": "F13",
-                "agency": target_aff.get("agency_level"),
-            }
+            base["next_safe_action"] = "Request F13 Ed25519 signature for AUTHORIZE seal"
+            base["constitutional_check"] = {"hold_required": True, "floor": "F13"}
             return base
 
     # 2. Evidence Thresholds for Truth (F2 TRUTH)
@@ -385,6 +473,13 @@ async def _arif_kernel_intercept(
         ),
     )
     base = output.model_dump()
+    # ── Seal architecture fields (forged 2026-07-24) ──
+    base["seal_type"] = _seal_type
+    base["seal_purpose"] = _seal_purpose_resolved
+    base["authority_effect"] = _authority_effect_resolved
+    base["requires_human_signature"] = _requires_f13
+    base["authorized_execution"] = _authority_effect_resolved == "EXECUTION_GRANT"
+    base["action_class"] = action_class or "AUDIT_RECORD"
     target_aff = get_full_affordance(requested_capability)
     base["affordance"] = target_aff
     base["agency_level"] = target_aff.get("agency_level")
