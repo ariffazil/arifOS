@@ -505,3 +505,137 @@ def _verify_hmac_proof(actor_id: str, proof: dict) -> bool:
         logger.warning("HMAC proof FAILED for actor=%s reason=%s", actor_id, reason)
 
     return verified
+
+
+# ═══ W9 hardening 2026-07-24: seven-band identity projection + SESSION_EXPIRED marker ═══
+
+from typing import Literal  # noqa: E402
+
+try:
+    from pydantic import BaseModel, ConfigDict, Field  # noqa: E402
+    _HAVE_PYDANTIC = True
+except Exception:  # noqa: BLE001
+    _HAVE_PYDANTIC = False
+
+
+if _HAVE_PYDANTIC:
+
+    class IdentityBands(BaseModel):
+        """Seven-band identity projection (W9 hardening 2026-07-24).
+
+        The seven fields are DISTINCT — binding never implies cryptographic
+        verification, and mutation / seal are derived from verification plus
+        authority band. F13 still HOLDS unverified authority.
+        """
+
+        model_config = ConfigDict(extra="forbid", frozen=True)
+
+        actor_claimed: str | None = None
+        actor_canonicalized: str | None = None
+        actor_bound: bool = False
+        actor_cryptographically_verified: bool = False
+        authority_band: Literal[
+            "OBSERVE_ONLY",
+            "OBSERVE",
+            "SUGGEST",
+            "EXECUTE_REVERSIBLE",
+            "EXECUTE_HIGH_IMPACT",
+            "SEAL",
+        ] = "OBSERVE_ONLY"
+        mutation_allowed: bool = False
+        seal_allowed: bool = False
+
+    class SessionExpiredMarker(BaseModel):
+        """Structured SESSION_EXPIRED response (no geometry leak)."""
+
+        model_config = ConfigDict(extra="forbid", frozen=True)
+
+        error: Literal["SESSION_EXPIRED"] = "SESSION_EXPIRED"
+        can_retry: Literal[True] = True
+        next_safe_action: Literal[
+            "Call arif_init and replay the same normalized payload"
+        ] = "Call arif_init and replay the same normalized payload"
+
+else:
+
+    class IdentityBands:  # type: ignore[no-redef]
+        actor_claimed: str | None = None
+        actor_canonicalized: str | None = None
+        actor_bound: bool = False
+        actor_cryptographically_verified: bool = False
+        authority_band: str = "OBSERVE_ONLY"
+        mutation_allowed: bool = False
+        seal_allowed: bool = False
+
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    class SessionExpiredMarker:  # type: ignore[no-redef]
+        error: str = "SESSION_EXPIRED"
+        can_retry: bool = True
+        next_safe_action: str = "Call arif_init and replay the same normalized payload"
+
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+
+def coerce_identity_dict(d: dict[str, Any] | None) -> dict[str, Any]:
+    """Expand legacy two-bool {actor_bound, actor_verified} patterns into the
+    seven-band identity projection WITHOUT silently upgrading bound to
+    verified. If a wrapper previously reported `actor_bound=True, actor_verified=False`,
+    the new projection retains the distinction.
+
+    Accepts the legacy 5-field form (`actor_verified`, `authority_band`,
+    `mutation_allowed`, `seal_allowed`) and emits the canonical 7-field form.
+    Never collapses the two booleans.
+    """
+    if not isinstance(d, dict):
+        return {
+            "actor_claimed": None,
+            "actor_canonicalized": None,
+            "actor_bound": False,
+            "actor_cryptographically_verified": False,
+            "authority_band": "OBSERVE_ONLY",
+            "mutation_allowed": False,
+            "seal_allowed": False,
+        }
+    out: dict[str, Any] = {
+        "actor_claimed": d.get("actor_claimed"),
+        "actor_canonicalized": d.get("actor_canonicalized"),
+        "actor_bound": bool(d.get("actor_bound", False)),
+        "actor_cryptographically_verified": bool(
+            d.get("actor_cryptographically_verified", d.get("actor_verified", False))
+        ),
+        "authority_band": d.get("authority_band") or "OBSERVE_ONLY",
+        "mutation_allowed": bool(d.get("mutation_allowed", False)),
+        "seal_allowed": bool(d.get("seal_allowed", False)),
+    }
+    # belt-and-braces: never let bound imply verified in the output
+    if out["actor_bound"] and not out["actor_cryptographically_verified"]:
+        # legitimate state — leave it
+        pass
+    if out["actor_cryptographically_verified"] and not out["actor_bound"]:
+        # cryptographic proof without session binding — also legitimate
+        pass
+    return out
+
+
+def session_expired_marker() -> dict[str, Any]:
+    """Return the canonical SESSION_EXPIRED marker. No geometry, schema, or
+    identity leak. The replay guidance is fixed and exact.
+    """
+    return {
+        "error": "SESSION_EXPIRED",
+        "can_retry": True,
+        "next_safe_action": "Call arif_init and replay the same normalized payload",
+    }
+
+
+__all__ = [
+    "IdentityBands",
+    "SessionExpiredMarker",
+    "coerce_identity_dict",
+    "session_expired_marker",
+]

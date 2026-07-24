@@ -493,16 +493,30 @@ def _project_light(
 
     from arifosmcp.runtime.build import get_runtime_attestation
 
+    # Identity lattice (MASTER FORGE W9) — never conflate bound with verified.
+    # actor_claimed: caller supplied an actor_id string
+    # actor_canonicalized: actor_id mapped to known principal (if applicable)
+    # actor_bound: session has an actor_id attached (binding, not crypto)
+    # actor_cryptographically_verified / actor_verified: Ed25519 (or equivalent) proof
+    _actor_claimed = bool(actor_id)
+    _actor_bound = bool(actor_id)  # session birth always binds claimed actor if present
     out = {
         # GATING
         "session_id": sid,
+        "actor_id": actor_id,
+        "actor_claimed": _actor_claimed,
+        "actor_canonicalized": bool(actor_id),  # refined by identity registry if present
+        "actor_bound": _actor_bound,
         "actor_verified": actor_verified,
+        "actor_cryptographically_verified": actor_verified,
         "authority": _authority,
+        "authority_band": _authority,
+        "mutation_allowed": bool(_is_full_authority or _is_limited),
+        "seal_allowed": bool(actor_verified and _is_full_authority),
         # ── AOB P0: Machine enforcement envelope ──
         "init_mode": "light",
         "session_mode": session_mode,
         "authority_scope": _authority,
-        "actor_bound": actor_verified,
         "kernel_epoch": "2026-07-03",
         "software_release": get_runtime_attestation(),
         "public_surface_version": "7",
@@ -598,7 +612,8 @@ def _project_light(
             "proposed_action": "session_bind",
             "expected_receipt": "arifos://session/" + sid,
             "stop_condition": "missing_actor or missing_evidence_layer or mutation_without_ack",
-            "actor_bound": bool(actor_verified),
+            "actor_bound": _actor_bound,
+            "actor_verified": actor_verified,
             "session_bound": True,
             "authority_declared": True,
             "mutation_allowed": _is_full_authority or _is_limited,
