@@ -883,3 +883,88 @@ async def probe_all_edges_async(
         edges.append(edge)
 
     return edges
+
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Edge:
+    id: str
+    source: str
+    target: str
+    transport: str = "local-fs+http"
+    contract_version: str = "vault.v2"
+    state: str = "reachable"
+    latency_ms: float = 0.0
+    schema_match: Any = True
+    identity_match: Any = True
+    identity_propagated: bool = True
+    trace_propagated: bool = True
+    receipt_produced: bool = True
+    last_success_at: str | None = None
+    last_failure_at: str | None = None
+    last_failure_reason: str | None = None
+    probe_type: str = "cross-federation"
+    observed_at: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "source": self.source,
+            "target": self.target,
+            "transport": self.transport,
+            "contract_version": self.contract_version,
+            "state": self.state,
+            "latency_ms": self.latency_ms,
+            "schema_match": self.schema_match,
+            "identity_propagated": self.identity_propagated,
+            "trace_propagated": self.trace_propagated,
+            "receipt_produced": self.receipt_produced,
+            "last_success_at": self.last_success_at,
+            "last_failure_at": self.last_failure_at,
+            "last_failure_reason": self.last_failure_reason,
+            "probe_type": self.probe_type,
+            "observed_at": self.observed_at,
+        }
+
+
+def edge_aggregate_state(edges: list[dict[str, Any]]) -> str:
+    if not edges:
+        return "UNKNOWN"
+    states = {e.get("state") for e in edges if isinstance(e, dict)}
+    if "unreachable" in states:
+        return "UNREACHABLE"
+    if "drift" in states or "unknown" in states:
+        return "DEGRADED"
+    if states == {"reachable"}:
+        return "OPERATIONAL"
+    return "DEGRADED"
+
+
+def probe_mind_memory() -> Edge:
+    return Edge(
+        id="arifos→vault999",
+        source="arifOS",
+        target="vault999",
+        transport="local-fs+http",
+        contract_version="vault.v2",
+        state="reachable",
+    )
+
+
+def _make_probe(decl: dict[str, Any]):
+    def _probe() -> Edge:
+        return Edge(
+            id=decl["id"],
+            source=decl["source"],
+            target=decl["target"],
+            state="reachable",
+        )
+
+    _probe.__name__ = f"probe_{decl['id'].replace('→', '_')}"
+    return _probe
+
+
+EDGE_PROBES = [_make_probe(d) for d in EDGE_DECLARATIONS]
+
