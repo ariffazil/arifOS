@@ -317,6 +317,75 @@ async def test_call_llm_judge_gate_fails_before_cascade(
 
 
 @pytest.mark.asyncio
+async def test_allowed_judge_model_failure_never_enters_generic_cascade(
+    agent_model_map_path: Path,
+    vault_outcomes_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Allowed model (v4-pro for judge) but TokenRouter unreachable →
+    ConstitutionalSeatUnavailable raised — generic cascade NEVER entered.
+    This proves the fail-closed gate at lines 1695-1706 works."""
+    from arifosmcp.runtime.llm_client import (
+        ConstitutionalSeatUnavailable,
+        LLMUnavailableError,
+        call_llm,
+    )
+
+    # Patch module-level TOKENROUTER constant to dead key
+    # (env var is read at import time, so module attribute must be patched)
+    import arifosmcp.runtime.llm_client as llm_mod
+
+    monkeypatch.setattr(llm_mod, "TOKENROUTER_API_KEY", "dead-key")
+
+    # Mock fallback engines that MUST NOT be called
+    original_minimax = llm_mod._call_minimax
+    original_mimo = llm_mod._call_mimo
+    original_groq = llm_mod._call_groq
+
+    call_tracker: list[str] = []
+
+    async def track_minimax(*a, **kw) -> tuple[str, dict]:
+        call_tracker.append("minimax")
+        return await original_minimax(*a, **kw)
+
+    async def track_mimo(*a, **kw) -> tuple[str, dict]:
+        call_tracker.append("mimo")
+        return await original_mimo(*a, **kw)
+
+    async def track_groq(*a, **kw) -> tuple[str, dict]:
+        call_tracker.append("groq")
+        return await original_groq(*a, **kw)
+
+    monkeypatch.setattr(llm_mod, "_call_minimax", track_minimax)
+    monkeypatch.setattr(llm_mod, "_call_mimo", track_mimo)
+    monkeypatch.setattr(llm_mod, "_call_groq", track_groq)
+
+    with pytest.raises(ConstitutionalSeatUnavailable) as exc_info:
+        await call_llm(
+            system="judge this",
+            user="candidate",
+            constitutional_role="666_JUDGE",
+            preferred_model="deepseek-v4-pro",  # allowed for judge!
+            mode="infer",
+            tool_origin="arif_judge",
+        )
+
+    msg = str(exc_info.value)
+    assert "Constitutional seat unavailable" in msg
+    assert "666_JUDGE" in msg
+    assert "deepseek-v4-pro" in msg
+    # Generic cascade was NEVER entered
+    assert call_tracker == [], (
+        f"Generic cascade WAS entered! Called: {call_tracker}"
+    )
+    # VAULT999 event must exist
+    assert vault_outcomes_path.exists()
+    event = json.loads(vault_outcomes_path.read_text(encoding="utf-8").strip())
+    assert event["event"] == "JUDGE_SEAT_UNAVAILABLE"
+    assert event["decision"] == "HOLD"
+
+
+@pytest.mark.asyncio
 async def test_call_llm_smoke_mode_bypasses_gate(
     agent_model_map_path: Path,
     vault_outcomes_path: Path,
