@@ -91,7 +91,8 @@ class A2ASealVerifier:
     """
 
     def __init__(self):
-        self._vault_path = Path.home() / ".arifos" / "vault.jsonl"
+        self._vault_path = Path("/root/VAULT999/outcomes.jsonl")
+        self._vault_canonical = Path("/root/VAULT999/outcomes.jsonl")
         self._sessions_path = Path.home() / ".arifos" / "runtime_sessions.json"
 
     def verify_seal(self, request: SealVerificationRequest) -> SealVerificationResponse:
