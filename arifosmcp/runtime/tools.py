@@ -2297,9 +2297,21 @@ def _compute_canonical_verdict(
     # If witness diversity is NONE or DEGRADED, verdict is capped below SEAL.
     # This prevents: session with 0 witnesses returning SEAL-tier responses.
     # Diversity levels: NONE (0), DEGRADED (1-2), PARTIAL (3), FULL (4+)
+    #
+    # P0-6 (2026-07-25): Tiered seal classes. session.ledger tier requires only
+    # 1 active witness (AI agent itself) — resolves §18.2 collision where every
+    # session MUST seal but witness ceiling blocks autonomous sessions.
+    # VAULT999 tier retains full Tri-Witness requirement (3+ witnesses).
+    _SEAL_TIER = (
+        (out.get("tier") or out.get("seal_purpose") or out.get("category"))
+        if isinstance(out, dict)
+        else None
+    )
     _WITNESS_VERDICT_CEILING = {
         "NONE": "HOLD",  # 0 witnesses → cannot proceed past HOLD
-        "DEGRADED": "DEGRADED",  # 1-2 witnesses → capped at DEGRADED
+        "DEGRADED": None
+        if _SEAL_TIER in ("session.ledger", "session.seal", "RECORD")
+        else "DEGRADED",
         "PARTIAL": None,  # 3 witnesses → no cap
         "FULL": None,  # 4+ witnesses → no cap
     }
@@ -8086,7 +8098,7 @@ def _arif_session_init(
     #   (F13 ratified 2026-06-13.)
     # DITEMPA 2026-06-22 — Layered init: forward verbose to delegate
     verbose: str | None = None,
-    verbosity: Literal["minimal", "standard", "full"] = "standard",
+    verbosity: Literal["minimal", "standard", "full"] = "minimal",
     idempotency_key: str | None = None,
     #   Client-generated or server-issued. Prevents duplicate session birth
     #   on retry after timeout. If a birth was already issued for this key,
@@ -17102,9 +17114,7 @@ def _arif_judge_deliberate(
                             organ_b="arifos",
                             verdict_b=_prior_verdict,
                             conflict_domain="f13_sovereign",
-                            is_irreversible=(
-                                getattr(forge_irrev_level, "value", 0) >= 2
-                            ),
+                            is_irreversible=(getattr(forge_irrev_level, "value", 0) >= 2),
                         )
                         _resolution = resolve_conflict(_env)
                         if _resolution.requires_888_hold:
@@ -22269,7 +22279,12 @@ async def _arif_kernel_intercept_tool(
 
     # ── DEBUG: Verify F13 params are reaching the wrapper ──
     import sys
-    print(f"KERNEL_WRAPPER: actor_signature={bool(actor_signature)} nonce={nonce[:20] if nonce else 'NONE'} action_class={action_class}", file=sys.stderr, flush=True)
+
+    print(
+        f"KERNEL_WRAPPER: actor_signature={bool(actor_signature)} nonce={nonce[:20] if nonce else 'NONE'} action_class={action_class}",
+        file=sys.stderr,
+        flush=True,
+    )
 
     # Drop any remaining unknown kwargs so the inner kernel call is clean
     kwargs.pop("action_tier", None)
@@ -22696,6 +22711,14 @@ def _wrap_with_canonical_normalization(handler, tool_name):
                 response = attach_canonical(body, session_id=sid, actor_id=aid)
             except Exception:
                 pass
+            # Verbosity diet (P0-5 2026-07-25): trim canonical responses
+            try:
+                from arifosmcp.runtime.verbosity import trim_for_verbosity
+
+                level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
+                response = trim_for_verbosity(response, level)
+            except Exception:
+                pass
             return response
 
         return _async_wrapped
@@ -22726,6 +22749,14 @@ def _wrap_with_canonical_normalization(handler, tool_name):
             body = response if isinstance(response, dict) else {"result": response}
             sid, aid = _resolve_standing_ids(body, kwargs)
             response = attach_canonical(body, session_id=sid, actor_id=aid)
+        except Exception:
+            pass
+        # Verbosity diet (P0-5 2026-07-25): trim canonical responses
+        try:
+            from arifosmcp.runtime.verbosity import trim_for_verbosity
+
+            level = kwargs.get("verbosity") or kwargs.get("verbose") or "minimal"
+            response = trim_for_verbosity(response, level)
         except Exception:
             pass
         return response
@@ -23386,7 +23417,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
         # Unwrap akal/judge middleware to get the inner handler's signature
         _inner_handler = handler
-        while hasattr(_inner_handler, '__wrapped__'):
+        while hasattr(_inner_handler, "__wrapped__"):
             _inner_handler = _inner_handler.__wrapped__
         _filtered = _filter_kwargs_for_handler(_inner_handler, kwargs, tool_name)
         try:
@@ -23657,7 +23688,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
 
         # Unwrap akal/judge middleware to get the inner handler's signature
         _inner_handler = handler
-        while hasattr(_inner_handler, '__wrapped__'):
+        while hasattr(_inner_handler, "__wrapped__"):
             _inner_handler = _inner_handler.__wrapped__
         _filtered = _filter_kwargs_for_handler(_inner_handler, kwargs, tool_name)
         try:
@@ -23838,7 +23869,7 @@ def _wrap_handler(handler: Any, tool_name: str) -> Any:
         try:
             from arifosmcp.runtime.verbosity import trim_for_verbosity
 
-            level = call_kwargs.get("verbosity") or call_kwargs.get("verbose")
+            level = call_kwargs.get("verbosity") or call_kwargs.get("verbose") or "minimal"
             return trim_for_verbosity(response, level)
         except Exception as exc:
             logger.debug("verbosity trim skipped: %s", exc)

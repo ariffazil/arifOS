@@ -1087,6 +1087,26 @@ def arif_observe(
             # F7 humility: result count does NOT earn ceiling.
             # Full mode may approach OMEGA_BAND[1], never exceed it.
             omega_0 = OMEGA_BAND[1]
+
+            # FLAME synthesis — OBSERVE-class, never governs
+            flame_synthesis = None
+            flame_provenance = None
+            if results:
+                try:
+                    from arifosmcp.tools.flame_client import flame_synthesize_search
+
+                    fs = flame_synthesize_search(
+                        query or "",
+                        results,
+                        caller_id="arifos_observe_search",
+                    )
+                    if fs.get("ok"):
+                        flame_synthesis = fs["synthesis"]
+                    flame_provenance = fs.get("provenance", {})
+                    omega_0 = round(OMEGA_BAND[1], 3)
+                except Exception as exc:
+                    logger.debug("FLAME synthesis unavailable: %s", exc)
+
             return _ok(
                 "arif_observe",
                 _inject_rasa(
@@ -1099,6 +1119,8 @@ def arif_observe(
                         "partition": "ONLINE",
                         "latency_ms": round(s_res.latency_ms, 1),
                         "note": None if results else "No results — check query or API keys",
+                        "flame_synthesis": flame_synthesis,
+                        "flame_provenance": flame_provenance,
                     }
                 ),
             )
