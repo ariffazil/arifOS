@@ -2,20 +2,37 @@
 arifosmcp/apps/geox_bridge.py
 GEOX Domain Coprocessor Bridge — delegates geoscience tasks under arifOS governance.
 
+STAGE 2 HARDENING (2026-07-25):
+  - Session propagation: session_id, actor_id, session_token forwarded to GEOX
+  - Consolidated tool names: geox_well_ingest, geox_well_qc (was legacy bundles)
+  - The bridge is now "session-aware" — set_session_context() before calling tools
+
 DITEMPA BUKAN DIBERI — Forged, Not Given
 """
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
 logger = logging.getLogger("arifosmcp.apps.geox_bridge")
 
+# ─── Stage 2: Legacy → Consolidated tool name map ────────────────────────
+# GEOX Stage 1+ exposes consolidated app names. The bridge must use these.
+TOOL_NAME_MAP: dict[str, str] = {
+    "geox_data_ingest_bundle": "geox_well_ingest",
+    "geox_data_qc_bundle": "geox_well_qc",
+    "geox_blockspace_resolution_tool": "geox_map_scene_plan",
+}
+
 
 class GEOXBridge:
     """
     Bridge to GEOX domain coprocessor with arifOS constitutional pre/post checks.
+
+    Stage 2: Propagates arifOS session identity (session_id, actor_id, SCT)
+    to GEOX for governed execution. GEOX Stage 1 requires session for all lanes.
 
     Uses httpx directly — no SSE session management required.
     GEOX responds with JSON when Accept: application/json (stateless) or
@@ -27,12 +44,19 @@ class GEOXBridge:
         self,
         geox_endpoint: str = "https://geox.arif-fazil.com",
         geox_internal: str = "http://geox_eic:8081",
+        session_id: str | None = None,
+        actor_id: str | None = None,
+        session_token: str | None = None,
     ) -> None:
         # Prefer internal Docker host; fall back to public endpoint
         self._internal = geox_internal
         self._public = geox_endpoint
         self._base: str | None = None
         self._client: Any | None = None
+        # Stage 2: Session context for governed GEOX calls
+        self._session_id = session_id
+        self._actor_id = actor_id
+        self._session_token = session_token
 
     def _get_base(self) -> str:
         """Resolve base URL — internal Docker network preferred."""
@@ -56,15 +80,65 @@ class GEOXBridge:
             self._base = self._public
         return self._base
 
+    # ─── Stage 2: Session context management ──────────────────────────
+
+    def set_session_context(
+        self,
+        session_id: str,
+        actor_id: str,
+        session_token: str,
+    ) -> None:
+        """Set the arifOS session context for governed GEOX calls.
+
+        Must be called after arif_init before any GEOX tool that requires
+        session (all lanes in Stage 1+).
+        """
+        self._session_id = session_id
+        self._actor_id = actor_id
+        self._session_token = session_token
+        logger.info(
+            "GEOX bridge session bound: session=%s actor=%s",
+            session_id[:20] if session_id else "none",
+            actor_id,
+        )
+
+    @staticmethod
+    def _resolve_tool_name(name: str) -> str:
+        """Map legacy tool names to consolidated GEOX Stage 1+ app names."""
+        resolved = TOOL_NAME_MAP.get(name, name)
+        if resolved != name:
+            logger.debug("GEOX bridge: resolved legacy '%s' → '%s'", name, resolved)
+        return resolved
+
+    def _inject_session(self, arguments: dict[str, Any]) -> dict[str, Any]:
+        """Inject session identity into tool arguments if session context is set."""
+        if self._session_id:
+            arguments["session_id"] = self._session_id
+        if self._actor_id:
+            arguments["actor_id"] = self._actor_id
+        if self._session_token:
+            arguments["session_token"] = self._session_token
+        return arguments
+
     async def _call_mcp(
         self,
         method: str,
         params: dict[str, Any],
     ) -> dict[str, Any]:
-        """Make a JSON-RPC call to GEOX MCP server. Returns parsed result dict."""
-        import json
+        """Make a JSON-RPC call to GEOX MCP server. Returns parsed result dict.
 
+        Stage 2: Session context (if set) is injected into tool arguments.
+        Legacy tool names are resolved to consolidated app names.
+        """
         import httpx
+
+        # Resolve legacy tool names for tools/call
+        if method == "tools/call" and "name" in params:
+            params["name"] = self._resolve_tool_name(params["name"])
+
+        # Inject session context into tool arguments
+        if "arguments" in params:
+            self._inject_session(params["arguments"])
 
         base = self._get_base()
         payload = {
@@ -179,13 +253,15 @@ class GEOXBridge:
             result = await self._call_mcp(
                 "tools/call",
                 {
-                    "name": "geox_subsurface_generate_candidates",
-                    "arguments": {
-                        "target_class": "petrophysics",
-                        "well_id": well_id,
-                        **({"computation": computation} if computation else {}),
-                        **params,
-                    },
+                    "name": "geox_petrophysics",
+                    "arguments": self._inject_session(
+                        {
+                            "target_class": "petrophysics",
+                            "well_id": well_id,
+                            **({"computation": computation} if computation else {}),
+                            **params,
+                        }
+                    ),
                 },
             )
             await self._audit_post_check(result)
@@ -205,9 +281,7 @@ class GEOXBridge:
         """
         Delegate well section rendering to GEOX with governance gating.
 
-        Note: GEOX does not have a "render_well_section" tool.
-        The closest canonical tool is geox_section_interpret_correlation
-        for correlation rendering, or geox_data_ingest_bundle for log loading.
+        Uses geox_sequence for correlation rendering (Stage 2 consolidated).
         """
         verdict = await self._judge_pre_check(
             operation="render_well_section",
@@ -220,12 +294,14 @@ class GEOXBridge:
             result = await self._call_mcp(
                 "tools/call",
                 {
-                    "name": "geox_section_interpret_correlation",
-                    "arguments": {
-                        "well_refs": [well_id],
-                        "section_ref": section_params.get("section_id", well_id),
-                        "mode": section_params.get("mode", "correlation"),
-                    },
+                    "name": "geox_sequence",
+                    "arguments": self._inject_session(
+                        {
+                            "well_refs": [well_id],
+                            "section_ref": section_params.get("section_id", well_id),
+                            "mode": section_params.get("mode", "correlation"),
+                        }
+                    ),
                 },
             )
             await self._audit_post_check(result)
@@ -252,12 +328,14 @@ class GEOXBridge:
             result = await self._call_mcp(
                 "tools/call",
                 {
-                    "name": "geox_data_ingest_bundle",
-                    "arguments": {
-                        "source_uri": source_uri,
-                        "source_type": "well",
-                        "well_id": well_id,
-                    },
+                    "name": "geox_well_ingest",  # Stage 2: consolidated app name
+                    "arguments": self._inject_session(
+                        {
+                            "source_uri": source_uri,
+                            "source_type": "well",
+                            "well_id": well_id,
+                        }
+                    ),
                 },
             )
             await self._audit_post_check(result)
