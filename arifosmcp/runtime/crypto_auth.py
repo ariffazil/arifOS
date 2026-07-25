@@ -81,13 +81,17 @@ _ALWAYS_CHALLENGEABLE = frozenset({"arif", "888", "ariffazil"})
 
 # ── Production gate defaults ──────────────────────────────────────────────
 _ARIFOS_ED25519_ENABLED = os.getenv("ARIFOS_ED25519_ENABLED", "true").lower() in (
-    "true", "1", "yes",
+    "true",
+    "1",
+    "yes",
 )
 _ARIFOS_FREE_NONCE_ALLOWED = os.getenv("ARIFOS_FREE_NONCE_ALLOWED", "false").lower() in (
-    "true", "1",
+    "true",
+    "1",
 )
 _ARIFOS_SENTINEL_AUTH_ALLOWED = os.getenv("ARIFOS_SENTINEL_AUTH_ALLOWED", "false").lower() in (
-    "true", "1",
+    "true",
+    "1",
 )
 
 # ── Structured failure codes (F13 spec) ──────────────────────────────────
@@ -122,6 +126,9 @@ class _Challenge:
 _challenge_lock = threading.Lock()
 _issued_challenges: dict[str, _Challenge] = {}
 _used_challenges: dict[str, float] = {}
+_used_challenge_actors: dict[str, str] = {}  # actor binding for in-memory fallback
+# In-memory full challenge store (dev fallback — full payload dicts)
+_full_challenge_store: dict[str, dict[str, Any]] = {}
 
 # ============================================================================
 # REDIS-BACKED DURABLE STORE (F13 authorization challenges)
@@ -139,10 +146,13 @@ def _get_redis():
     redis_url = os.getenv("ARIFOS_REDIS_URL", "redis://127.0.0.1:6379/0")
     try:
         import redis as _redis_mod
+
         _redis_client = _redis_mod.from_url(redis_url, decode_responses=True)
         _REDIS_AVAILABLE = True
     except Exception as e:
-        logger.warning("Redis unavailable for durable nonce storage: %s — falling back to in-memory", e)
+        logger.warning(
+            "Redis unavailable for durable nonce storage: %s — falling back to in-memory", e
+        )
         _REDIS_AVAILABLE = False
     return _redis_client
 
@@ -222,7 +232,12 @@ def issue_authorization_challenge(
     issued_at = datetime.fromtimestamp(now_epoch, tz=UTC).isoformat()
     expires_at = datetime.fromtimestamp(now_epoch + ttl, tz=UTC).isoformat()
     nonce = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
-    challenge_id = "chal_" + hashlib.sha256(f"{actor}:{nonce}:{authorization_session_id}:{candidate_hash}".encode()).hexdigest()[:16]
+    challenge_id = (
+        "chal_"
+        + hashlib.sha256(
+            f"{actor}:{nonce}:{authorization_session_id}:{candidate_hash}".encode()
+        ).hexdigest()[:16]
+    )
 
     payload = {
         "challenge_id": challenge_id,
@@ -258,26 +273,36 @@ def issue_authorization_challenge(
             _storage_ok = True
             logger.debug("F13: challenge %s stored in Redis (ttl=%ds)", challenge_id, _redis_ttl)
         except Exception as e:
-            logger.error("F13: Redis STORE FAILED for %s: %s — not issuing challenge", challenge_id, e)
-            return {"error": "AUTHORIZATION_STORAGE_UNAVAILABLE",
-                    "reason": F13_FAILURE_CODES.get("AUTHORIZATION_STORAGE_UNAVAILABLE",
-                                                     "Challenge storage unavailable")}
+            logger.error(
+                "F13: Redis STORE FAILED for %s: %s — not issuing challenge", challenge_id, e
+            )
+            return {
+                "error": "AUTHORIZATION_STORAGE_UNAVAILABLE",
+                "reason": F13_FAILURE_CODES.get(
+                    "AUTHORIZATION_STORAGE_UNAVAILABLE", "Challenge storage unavailable"
+                ),
+            }
 
     # Dev fallback: in-memory (only when ARIFOS_FREE_NONCE_ALLOWED is set)
     if not _storage_ok:
         _free = os.environ.get("ARIFOS_FREE_NONCE_ALLOWED", "false").lower() in ("true", "1")
         if _free:
             _store_in_memory(actor, nonce)
+            _store_full_challenge_in_memory(payload)
         else:
-            logger.error("F13: No durable storage available and free-nonce disabled — challenge NOT issued")
-            return {"error": "AUTHORIZATION_STORAGE_UNAVAILABLE",
-                    "reason": "No durable storage for challenge. Configure Redis or enable ARIFOS_FREE_NONCE_ALLOWED for dev only."}
+            logger.error(
+                "F13: No durable storage available and free-nonce disabled — challenge NOT issued"
+            )
+            return {
+                "error": "AUTHORIZATION_STORAGE_UNAVAILABLE",
+                "reason": "No durable storage for challenge. Configure Redis or enable ARIFOS_FREE_NONCE_ALLOWED for dev only.",
+            }
 
     return _build_authorization_request(payload)
 
 
 def _store_in_memory(actor: str, nonce: str) -> None:
-    """Fallback: store in legacy in-memory dict."""
+    """Fallback: store in legacy in-memory dict (minimal)."""
     with _challenge_lock:
         _purge_challenges(time.time())
         _issued_challenges[nonce] = _Challenge(
@@ -285,6 +310,15 @@ def _store_in_memory(actor: str, nonce: str) -> None:
             expires_at=time.time() + _CHALLENGE_TTL_SECONDS,
             issued_at=time.time(),
         )
+
+
+def _store_full_challenge_in_memory(payload: dict[str, Any]) -> None:
+    """Store the full challenge payload in-memory for verify to load (dev fallback)."""
+    nonce = payload.get("nonce", "")
+    if not nonce:
+        return
+    with _challenge_lock:
+        _full_challenge_store[nonce] = dict(payload)
 
 
 def _load_challenge_by_nonce(nonce: str) -> dict[str, Any] | None:
@@ -304,13 +338,15 @@ def _load_challenge_by_nonce(nonce: str) -> dict[str, Any] | None:
     with _challenge_lock:
         chal = _issued_challenges.get(nonce)
         if chal and chal.expires_at > time.time():
-            issued = datetime.fromtimestamp(chal.issued_at, tz=UTC).isoformat() if chal.issued_at else ""
+            issued = (
+                datetime.fromtimestamp(chal.issued_at, tz=UTC).isoformat() if chal.issued_at else ""
+            )
             expires = datetime.fromtimestamp(chal.expires_at, tz=UTC).isoformat()
             return {
                 "challenge_id": "chal_legacy",
                 "nonce": nonce,
                 "actor": chal.actor_id,
-                "session_id": "",
+                "authorization_session_id": chal.actor_id,  # in-memory: bind actor as stable session
                 "candidate_hash": "",
                 "action_class": "ACTION_AUTHORIZATION",
                 "reversibility": "R4",
@@ -329,8 +365,13 @@ def _load_challenge_by_nonce(nonce: str) -> dict[str, Any] | None:
     return None
 
 
-def _mark_consumed(challenge_id: str, nonce: str) -> bool:
-    """Atomically mark a challenge as consumed (nonce replay-safe)."""
+def _mark_consumed(challenge_id: str, nonce: str, actor_id: str = "") -> bool:
+    """Atomically mark a challenge as consumed (nonce replay-safe).
+
+    When actor_id is provided, it is stored alongside the consumption record
+    so the in-memory fallback can verify actor binding. Without actor_id,
+    the in-memory fallback accepts any nonce (dev-only — Redis is canonical).
+    """
     client = _get_redis()
     if client and _REDIS_AVAILABLE:
         try:
@@ -341,11 +382,17 @@ def _mark_consumed(challenge_id: str, nonce: str) -> bool:
                 return True
             return False
         except Exception as e:
-            logger.warning("F13: Redis mark consumed failed %s: %s", challenge_id, e)
+            logger.error(
+                "F13: Redis mark consumed FAILED for %s: %s — fail-closed, no in-memory fallback",
+                challenge_id,
+                e,
+            )
             return False
-    # In-memory fallback (dev only — no actor_id available from _mark_consumed context)
+    # In-memory fallback (dev only — only when Redis is NOT available at all)
     with _challenge_lock:
+        # Store actor binding when available for F2 audit trace
         _used_challenges[nonce] = time.time() + _CHALLENGE_TTL_SECONDS * 2
+        _used_challenge_actors[nonce] = actor_id
     return True
 
 
@@ -416,7 +463,11 @@ def verify_authorization_challenge(
         try:
             expires_epoch = datetime.fromisoformat(expires_at_str).timestamp()
             if time.time() > expires_epoch:
-                return False, "CHALLENGE_EXPIRED", {"reason": F13_FAILURE_CODES["CHALLENGE_EXPIRED"]}
+                return (
+                    False,
+                    "CHALLENGE_EXPIRED",
+                    {"reason": F13_FAILURE_CODES["CHALLENGE_EXPIRED"]},
+                )
         except (ValueError, TypeError):
             pass
 
@@ -466,9 +517,9 @@ def verify_authorization_challenge(
     if not matched:
         return False, "SIGNATURE_INVALID", {"reason": F13_FAILURE_CODES["SIGNATURE_INVALID"]}
 
-    # 7. Atomic nonce consumption
+    # 7. Atomic nonce consumption (with actor binding for F2 audit)
     challenge_id = stored.get("challenge_id", "chal_unknown")
-    consumed = _mark_consumed(challenge_id, nonce)
+    consumed = _mark_consumed(challenge_id, nonce, actor_id=actor)
     if not consumed:
         return False, "NONCE_REPLAY", {"reason": F13_FAILURE_CODES["NONCE_REPLAY"]}
 
@@ -547,6 +598,7 @@ def _purge_challenges(now: float) -> None:
     expired_used = [n for n, e in _used_challenges.items() if e <= now]
     for nonce in expired_used:
         del _used_challenges[nonce]
+        _used_challenge_actors.pop(nonce, None)
 
 
 def _normalize_actor(actor_id: str) -> str:
@@ -634,8 +686,9 @@ def resolve_actor_public_key(actor_id: str) -> ed25519.Ed25519PublicKey | None:
         try:
             if reg_path.suffix in (".yaml", ".yml"):
                 import yaml
+
                 data = yaml.safe_load(text) or {}
-                for item in (data.get("dids") or []):
+                for item in data.get("dids") or []:
                     did = str(item.get("did", ""))
                     if did.endswith(f":{aid}") or did.endswith(f":{actor_id}"):
                         hx = item.get("public_key_hex")
@@ -691,7 +744,9 @@ def issue_actor_challenge_b64(actor_id: str, ttl_seconds: int | None = None) -> 
     nonce_b64 = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
     with _challenge_lock:
         _purge_challenges(now)
-        _issued_challenges[nonce_b64] = _Challenge(actor_id=actor_id, expires_at=now + ttl, issued_at=now)
+        _issued_challenges[nonce_b64] = _Challenge(
+            actor_id=actor_id, expires_at=now + ttl, issued_at=now
+        )
     return nonce_b64, now
 
 
@@ -715,12 +770,17 @@ def _consume_actor_challenge(actor_id: str, nonce: str) -> tuple[bool, str]:
 
 
 def verify_actor_signature(actor_id: str, nonce: str, signature_b64: str) -> bool:
-    ok, _ = verify_init_identity(actor_id=actor_id, nonce=nonce, signature_b64=signature_b64, constitution_hash=None)
+    ok, _ = verify_init_identity(
+        actor_id=actor_id, nonce=nonce, signature_b64=signature_b64, constitution_hash=None
+    )
     return ok
 
 
 def verify_init_identity(
-    actor_id: str, nonce: str, signature_b64: str, constitution_hash: str | None = None,
+    actor_id: str,
+    nonce: str,
+    signature_b64: str,
+    constitution_hash: str | None = None,
 ) -> tuple[bool, str]:
     if not actor_id:
         return False, "actor_id_missing"
@@ -740,12 +800,24 @@ def verify_init_identity(
     if aid_norm != actor_id:
         payloads.append(("actor_norm_nonce", f"{aid_norm}:{nonce}".encode()))
     if constitution_hash:
-        payloads.append(("actor_constitution_nonce", f"{actor_id}:{constitution_hash}:{nonce}".encode()))
+        payloads.append(
+            ("actor_constitution_nonce", f"{actor_id}:{constitution_hash}:{nonce}".encode())
+        )
         if aid_norm != actor_id:
-            payloads.append(("actor_norm_constitution_nonce", f"{aid_norm}:{constitution_hash}:{nonce}".encode()))
+            payloads.append(
+                (
+                    "actor_norm_constitution_nonce",
+                    f"{aid_norm}:{constitution_hash}:{nonce}".encode(),
+                )
+            )
         for alias in ("arif", "ariffazil", "888"):
             if aid_norm in ("arif", "ariffazil", "888") and alias != aid_norm:
-                payloads.append((f"alias_{alias}_constitution_nonce", f"{alias}:{constitution_hash}:{nonce}".encode()))
+                payloads.append(
+                    (
+                        f"alias_{alias}_constitution_nonce",
+                        f"{alias}:{constitution_hash}:{nonce}".encode(),
+                    )
+                )
     matched_payload = None
     for label, message_bytes in payloads:
         try:
@@ -783,15 +855,33 @@ def classify_actor_band(actor_id: str, signature_verified: bool) -> dict[str, An
     aid = _normalize_actor(actor_id)
     is_sovereign_principal = aid in ("arif", "888", "ariffazil")
     if not signature_verified:
-        return {"actor_verified": False, "signature_verified": False, "actor_band": "OBSERVE_ONLY",
-                "agent_class": "UNVERIFIED", "is_sovereign_principal": is_sovereign_principal, "authority_level": "ANONYMOUS"}
+        return {
+            "actor_verified": False,
+            "signature_verified": False,
+            "actor_band": "OBSERVE_ONLY",
+            "agent_class": "UNVERIFIED",
+            "is_sovereign_principal": is_sovereign_principal,
+            "authority_level": "ANONYMOUS",
+        }
     if is_sovereign_principal:
-        return {"actor_verified": True, "signature_verified": True, "actor_band": "FULL",
-                "agent_class": "SOVEREIGN_PRINCIPAL", "is_sovereign_principal": True, "authority_level": "SOVEREIGN",
-                "note": "Human sovereign. Hermes remains AGENT; does not become F13."}
-    return {"actor_verified": True, "signature_verified": True, "actor_band": "LIMITED_MUTATE",
-            "agent_class": "AGENT", "is_sovereign_principal": False, "authority_level": "OPERATOR",
-            "note": "Verified agent — not SOVEREIGN principal (F13)."}
+        return {
+            "actor_verified": True,
+            "signature_verified": True,
+            "actor_band": "FULL",
+            "agent_class": "SOVEREIGN_PRINCIPAL",
+            "is_sovereign_principal": True,
+            "authority_level": "SOVEREIGN",
+            "note": "Human sovereign. Hermes remains AGENT; does not become F13.",
+        }
+    return {
+        "actor_verified": True,
+        "signature_verified": True,
+        "actor_band": "LIMITED_MUTATE",
+        "agent_class": "AGENT",
+        "is_sovereign_principal": False,
+        "authority_level": "OPERATOR",
+        "note": "Verified agent — not SOVEREIGN principal (F13).",
+    }
 
 
 _ED25519_KEY_CACHE: bytes | None = None
