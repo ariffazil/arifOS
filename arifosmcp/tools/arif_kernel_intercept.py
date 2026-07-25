@@ -147,9 +147,6 @@ def _verify_sovereign_token(
                 actor=actor_id,
                 nonce=nonce,
                 signature_b64=actor_signature,
-                session_id=session_id or "",
-                candidate_hash=_vfy_candidate,
-                audience="arifOS",
             )
             if _auth_ok:
                 logger.info("F13: authorization challenge PASS — nonce consumed, one-time auth")
@@ -348,7 +345,7 @@ async def _arif_kernel_intercept(
                 from arifosmcp.runtime.crypto_auth import build_approval_card as _build_card
                 _challenge_ctx = _iss_chal(
                     actor=actor or "anonymous",
-                    session_id=session_id or actor or "anonymous",
+                    authorization_session_id=actor or "anonymous",
                     candidate_hash=_candidate_hash,
                     action_class=action_class or "ACTION_AUTHORIZATION",
                     reversibility=_rev_raw,
