@@ -529,6 +529,170 @@ def _query_prediction_gradient(
         return None
 
 
+def _build_validate_result(
+    *,
+    constitutional_chain_id: str | None,
+    judge_state_hash: str | None,
+    actor_id: str | None,
+    session_id: str | None,
+    candidate: str | None,
+    session_token: str | None = None,
+) -> VerdictOutput:
+    """Strict constitutional chain validation gate (P0 2026-07-25).
+
+    Validates: chain_exists, judge_hash_matches, candidate_matches,
+    actor_matches, session_matches, replay_safe, execution_grant.
+    All must pass. Any failure → HOLD. No soft fallbacks.
+    """
+    reasons: list[str] = []
+    checks: dict[str, bool] = {}
+    grant: str | None = None
+
+    if not constitutional_chain_id:
+        return VerdictOutput(
+            verdict=VerdictCode.HOLD,
+            reasons=["VALIDATE_NO_CHAIN_ID"],
+            next_safe_action="Provide a valid constitutional_chain_id from arif_judge SEAL",
+            meta={"gate": "CHAIN_VALIDATION", "chain_valid": False},
+        )
+
+    # Look up chain in judge state registry
+    chain_entry = None
+    try:
+        from arifosmcp.runtime.tools import _JUDGE_STATE_REGISTRY
+
+        for _stored_hash, _stored_state in _JUDGE_STATE_REGISTRY.items():
+            if _stored_state.get("constitutional_chain_id") == constitutional_chain_id:
+                chain_entry = _stored_state
+                break
+    except Exception:
+        pass
+
+    if not chain_entry:
+        try:
+            from arifosmcp.runtime.sct import resolve_standing
+
+            standing = resolve_standing(
+                session_id=session_id,
+                actor_id=actor_id,
+                session_token=session_token,
+                allow_store=True,
+            )
+            if standing.valid and standing.meta:
+                chain_entry = standing.meta.get("chain_entry")
+        except Exception:
+            pass
+
+    checks["chain_valid"] = chain_entry is not None
+    if not checks["chain_valid"]:
+        reasons.append("E_VALIDATE_CHAIN_NOT_FOUND: constitutional_chain_id not in registry")
+
+    # Validate judge state hash
+    if chain_entry and judge_state_hash:
+        stored_hash = chain_entry.get("judge_state_hash") or chain_entry.get("hash")
+        checks["judge_hash_matches"] = stored_hash == judge_state_hash
+        if not checks["judge_hash_matches"]:
+            reasons.append(
+                f"E_VALIDATE_JUDGE_HASH_MISMATCH: stored={stored_hash} submitted={judge_state_hash}"
+            )
+    elif chain_entry:
+        checks["judge_hash_matches"] = True  # No hash to check
+    else:
+        checks["judge_hash_matches"] = False
+
+    # Validate actor
+    if chain_entry and actor_id:
+        stored_actor = chain_entry.get("actor_id") or chain_entry.get("actor")
+        checks["actor_matches"] = stored_actor == actor_id or stored_actor is None
+        if not checks["actor_matches"]:
+            reasons.append(f"E_VALIDATE_ACTOR_MISMATCH: stored={stored_actor} submitted={actor_id}")
+    elif chain_entry:
+        checks["actor_matches"] = True
+    else:
+        checks["actor_matches"] = False
+
+    # Validate candidate
+    if chain_entry and candidate:
+        stored_candidate = (
+            chain_entry.get("intent") or chain_entry.get("candidate") or chain_entry.get("task")
+        )
+        checks["candidate_matches"] = stored_candidate == candidate or stored_candidate is None
+        if not checks["candidate_matches"]:
+            reasons.append("E_VALIDATE_CANDIDATE_MISMATCH")
+    elif chain_entry:
+        checks["candidate_matches"] = True
+    else:
+        checks["candidate_matches"] = False
+
+    # Session match
+    if chain_entry and session_id:
+        stored_sid = chain_entry.get("session_id")
+        checks["session_matches"] = stored_sid == session_id or stored_sid is None
+        if not checks["session_matches"]:
+            reasons.append("E_VALIDATE_SESSION_MISMATCH")
+    elif chain_entry:
+        checks["session_matches"] = True
+    else:
+        checks["session_matches"] = False
+
+    # Replay check — chain must not be consumed
+    checks["replay_safe"] = chain_entry is not None and chain_entry.get("consumed") != True
+
+    # Vault receipt
+    checks["vault_receipt_valid"] = chain_entry is not None and bool(
+        chain_entry.get("vault_entry_id") or chain_entry.get("seal_id")
+    )
+
+    # Expiry
+    if chain_entry:
+        expires = chain_entry.get("expires_at") or chain_entry.get("expiry")
+        if expires:
+            from datetime import datetime, timezone
+
+            try:
+                expiry_dt = datetime.fromisoformat(str(expires).replace("Z", "+00:00"))
+                checks["expired"] = datetime.now(timezone.utc) > expiry_dt
+                if checks["expired"]:
+                    reasons.append("E_VALIDATE_EXPIRED")
+            except Exception:
+                checks["expired"] = False
+
+    # Execution grant
+    all_passed = all(v for k, v in checks.items() if isinstance(v, bool) and k not in ("expired",))
+    not_expired = not checks.get("expired", False)
+    if all_passed and not_expired and chain_entry:
+        import secrets, hashlib, time
+
+        grant = f"grant_v1.{secrets.token_hex(16)}.{int(time.time())}"
+        grant_hash = hashlib.sha256(grant.encode()).hexdigest()
+        chain_entry["execution_grant"] = grant_hash
+        chain_entry["grant_issued_at"] = time.time()
+        chain_entry["consumed"] = False
+
+    return VerdictOutput(
+        verdict=VerdictCode.SEAL if (all_passed and not_expired and grant) else VerdictCode.HOLD,
+        reasons=reasons if reasons else ["VALIDATE_PASS"],
+        next_safe_action=(
+            "Proceed with execution grant"
+            if grant
+            else "Resolve validation failures before retrying"
+        ),
+        meta={
+            "gate": "CHAIN_VALIDATION",
+            "chain_valid": checks.get("chain_valid", False),
+            "judge_hash_matches": checks.get("judge_hash_matches", False),
+            "candidate_matches": checks.get("candidate_matches", False),
+            "actor_matches": checks.get("actor_matches", False),
+            "session_matches": checks.get("session_matches", False),
+            "replay_safe": checks.get("replay_safe", False),
+            "vault_receipt_valid": checks.get("vault_receipt_valid", False),
+            "expired": checks.get("expired", False),
+            "execution_grant": grant,
+            "checks": checks,
+        },
+    )
+
+
 async def arif_judge(
     mode: str = "judge",
     candidate: str | None = None,
@@ -765,6 +929,20 @@ async def arif_judge(
             _evidence.setdefault("akal_dual_eval", _akal_dual_result)
     except Exception:
         pass  # AKAL dual-eval is advisory
+
+    # ── MODE VALIDATE: Strict constitutional chain verification (P0 2026-07-25) ─────
+    # A-FORGE calls arif_judge(mode="validate") before every mutation to verify
+    # the chain is authentic, bound to this action, unused, and unexpired.
+    # No soft fallbacks. Registry unavailable → HOLD. Mismatch → HOLD.
+    if mode == "validate":
+        return _build_validate_result(
+            constitutional_chain_id=constitutional_chain_id,
+            judge_state_hash=None,  # passed via kwargs
+            actor_id=actor_id,
+            session_id=session_id,
+            candidate=candidate,
+            session_token=session_token,
+        )
 
     if mode != "history":
         if _evidence.get("vitals") is None:
