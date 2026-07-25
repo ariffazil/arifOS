@@ -3415,9 +3415,12 @@ def register_rest_routes(
         Returns the live HEAD hash, chain verification status, and
         falsification instructions. PUBLIC — no session or token required.
 
-        This is the single line of hex that converts a declaration into a
-        demonstration. Embed head_hash in the /999 page; any agent can
-        cross-verify by fetching this endpoint and comparing.
+        Cross-verification contract (2026-07-25, Phase 4.1 of
+        silk-speed-jericho): clients must compare this endpoint's head_hash
+        with the INDEPENDENT live reading at
+        https://aaa.arif-fazil.com/api/seal-chain/head, NOT against a
+        static HTML element on the /999 page. A static embed becomes stale
+        after the next seal and is not a witness on its own.
 
         MEMORY BOUNDARY: No raw receipts, no private traces, no internal data.
         For operator verification, use /api/observatory/v1/seal/*.
@@ -3425,6 +3428,23 @@ def register_rest_routes(
         from arifosmcp.runtime.rest_routes.vault_verify import vault_proof_endpoint
 
         return await vault_proof_endpoint(request)
+
+    @route("/999/verify/", methods=["GET"])
+    async def vault_proof_slash(request: Request) -> Response:
+        """Slash-routing contract for /999/verify/.
+
+        Source-owned in arifOS (this file). The canonical proof endpoint is
+        /999/verify (no trailing slash). Per the federation IA rule, we
+        respond with 308 Permanent Redirect to the canonical form so that
+        client caches, scrapers, and curl-with-slash users all converge on
+        the same falsifiable witness.
+        """
+        from starlette.responses import RedirectResponse
+
+        # 308 preserves method + body and is the right verb for canonical
+        # normalisation; 307 would also work but 308 is the stricter
+        # permanent-redirect contract that Caddy itself uses upstream.
+        return RedirectResponse(url="/999/verify", status_code=308)
 
     # ── Constitutional Gate (Condition 1: fail-CLOSED) ────────────────────────
     @route("/gate/check", methods=["GET", "POST", "OPTIONS"])

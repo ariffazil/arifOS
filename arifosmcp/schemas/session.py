@@ -536,6 +536,8 @@ class SessionManifest(BaseModel):
     # Legacy compat (deprecated — use WAJIB fields above)
     result: dict[str, Any] = Field(default_factory=dict)
     meta: dict[str, Any] = Field(default_factory=dict)
+    session_id: str | None = None
+    session_token: str | None = None
     doctrine: dict[str, Any] | None = None
     timestamp: str | None = None
     actor_signature: str | None = None

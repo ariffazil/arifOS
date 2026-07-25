@@ -160,10 +160,34 @@ def load_sovereign_anchor() -> SovereignAnchor:
 
 
 def load_verification_state() -> VerificationState:
-    """Load /999 verification surfaces into a VerificationState."""
+    """Load /999 verification surfaces into a VerificationState.
+
+    HISTORICAL ARTIFACT NOTE (Phase 4.1, silk-speed-jericho, 2026-07-25):
+    The legacy artifacts under /var/www/html/arif/999 (did-status.json,
+    seal.json, runtime-snapshot.sha256, key-rotation-2026-05-03.json) are
+    STATIC SNAPSHOTS that become stale after the next seal/rotation. They
+    are no longer the canonical proof surface. The canonical live sources
+    are:
+
+        arifOS  /999/verify                          (this kernel :8088)
+        AAA     /api/seal-chain/head                (cockpit  :3001)
+        arifOS  /api/observatory/v1/snapshot        (this kernel :8088)
+        arifOS  /.well-known/did.json                (this kernel :8088)
+
+    For runtime identity & key fingerprint, prefer:
+        arifosmcp.runtime.did_resolver.resolve_did()
+        arifosmcp.runtime.governance_identity.SOVEREIGN_KEY_IDS
+
+    This loader still reads the legacy files for backward compatibility
+    (older agents, archived snapshots), but each field is annotated as
+    HISTORICAL and the VerificationState is left empty when the file is
+    absent — never fake-populated from the file's previous value.
+    """
     state = VerificationState(source="https://arif-fazil.com/999/", loaded_at=time.time())
 
-    # DID status
+    # ── HISTORICAL: did-status.json ─────────────────────────────────────
+    # Superseded by /999/verify + /aaa/api/seal-chain/head cross-verify,
+    # and by /.well-known/did.json. Do NOT use for new decisions.
     did_path = _VERIFICATION_DIR / "did-status.json"
     if did_path.exists():
         try:
@@ -172,10 +196,15 @@ def load_verification_state() -> VerificationState:
             state.did_status = data.get("id_check", "")
             state.public_key_fingerprint = data.get("public_key_fingerprint", "")
             state.verification_method = data.get("verification_method_id", "")
+            logger.info(
+                "loaded HISTORICAL did-status.json (do not use for new decisions — "
+                "use /999/verify or did_resolver.resolve_did)"
+            )
         except Exception as e:
-            logger.error(f"Failed to load DID status: {e}")
+            logger.error(f"Failed to load HISTORICAL did-status.json: {e}")
 
-    # Seal
+    # ── HISTORICAL: seal.json ───────────────────────────────────────────
+    # Superseded by /999/verify (head_hash) and /aaa/api/seal-chain/head.
     seal_path = _VERIFICATION_DIR / "seal.json"
     if seal_path.exists():
         try:
@@ -183,23 +212,39 @@ def load_verification_state() -> VerificationState:
             state.seal_id = data.get("seal_id", "")
             state.seal_status = data.get("status", "")
             state.seal_scope = data.get("scope", [])
+            logger.info(
+                "loaded HISTORICAL seal.json (do not use for new decisions — "
+                "use /999/verify or /aaa/api/seal-chain/head)"
+            )
         except Exception as e:
-            logger.error(f"Failed to load seal: {e}")
+            logger.error(f"Failed to load HISTORICAL seal.json: {e}")
 
-    # Runtime snapshot hash
+    # ── HISTORICAL: runtime-snapshot.sha256 ─────────────────────────────
+    # Superseded by /api/observatory/v1/snapshot (live, signed).
     snapshot_path = _VERIFICATION_DIR / "runtime-snapshot.sha256"
     if snapshot_path.exists():
         try:
             state.runtime_snapshot_hash = snapshot_path.read_text().strip()
+            logger.info(
+                "loaded HISTORICAL runtime-snapshot.sha256 (do not use for new "
+                "decisions — use /api/observatory/v1/snapshot)"
+            )
         except Exception:
             pass
 
-    # Key rotation
+    # ── HISTORICAL: key-rotation-2026-05-03.json (rootkey.json) ────────
+    # Superseded by arifosmcp.runtime.governance_identity.SOVEREIGN_KEY_IDS.
+    # No key rotation in Phase 4.1 — this is purely a labelling fix.
     key_path = _VERIFICATION_DIR / "key-rotation-2026-05-03.json"
     if key_path.exists():
         try:
             data = json.loads(key_path.read_text())
             state.key_rotation_date = data.get("rotated_at", "")
+            logger.info(
+                "loaded HISTORICAL key-rotation-2026-05-03.json (no rotation in "
+                "Phase 4.1 — canonical key material is in "
+                "arifosmcp.runtime.governance_identity.SOVEREIGN_KEY_IDS)"
+            )
         except Exception:
             pass
 

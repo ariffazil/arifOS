@@ -151,6 +151,25 @@ a:hover{color:var(--gold)}
 .badge-ok{background:oklch(from var(--success) l c h / 0.15);color:var(--success);border:1px solid oklch(from var(--success) l c h / 0.3)}
 .badge-hold{background:oklch(from var(--hold) l c h / 0.15);color:var(--hold);border:1px solid oklch(from var(--hold) l c h / 0.3)}
 .badge-err{background:oklch(from var(--error) l c h / 0.15);color:var(--error);border:1px solid oklch(from var(--error) l c h / 0.3)}
+
+/* DYNAMIC PROOF BLOCK — /999/verify ↔ /aaa/api/seal-chain/head (Phase 4.1) */
+.proof-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);margin-bottom:var(--space-12);font-family:var(--font-mono)}
+.proof-block[data-state="loading"]{opacity:.7}
+.proof-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-3);margin-bottom:var(--space-3)}
+.proof-col{background:var(--surface-offset);border:1px solid var(--divider);border-radius:var(--radius-md);padding:var(--space-3);display:flex;flex-direction:column;gap:2px}
+.proof-col-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)}
+.proof-tag{font-size:0.65rem;font-weight:700;letter-spacing:0.04em;color:var(--primary);text-transform:uppercase}
+.proof-link{font-size:0.7rem;color:var(--text-faint);text-decoration:none}
+.proof-link:hover{color:var(--gold)}
+.proof-row{display:flex;justify-content:space-between;gap:var(--space-2);font-size:var(--text-xs);padding:2px 0}
+.proof-key{color:var(--text-faint);text-transform:uppercase;font-size:0.55rem;letter-spacing:0.06em;flex-shrink:0}
+.proof-val{color:var(--text);text-align:right;word-break:break-all}
+.proof-mono{font-family:var(--font-mono);font-size:0.7rem}
+.proof-verdict{font-size:var(--text-xs);font-weight:700;padding:var(--space-2) var(--space-3);border-radius:var(--radius-sm);background:var(--surface-offset);color:var(--text-muted);text-align:center;margin-bottom:var(--space-2);letter-spacing:0.04em}
+.proof-verdict.match{color:var(--success);background:oklch(from var(--success) l c h / 0.08);border:1px solid oklch(from var(--success) l c h / 0.25)}
+.proof-verdict.mismatch{color:var(--error);background:oklch(from var(--error) l c h / 0.08);border:1px solid oklch(from var(--error) l c h / 0.25)}
+.proof-verdict.partial{color:var(--hold);background:oklch(from var(--hold) l c h / 0.08);border:1px solid oklch(from var(--hold) l c h / 0.25)}
+.proof-foot{font-size:0.6rem;color:var(--text-faint);line-height:1.5;font-family:var(--font-body);text-align:center}
 </style>
 </head>
 <body>
@@ -227,6 +246,50 @@ a:hover{color:var(--gold)}
     <div class="topo-layer"><div class="topo-num">4</div><div class="topo-info"><div class="topo-name">Agents</div><div class="topo-role">OpenCode · Hermes · FORGE · OPS · PLAN · AUDITOR</div></div><span class="badge badge-ok">LIVE</span></div>
     <div class="topo-arrow">↓</div>
     <div class="topo-layer"><div class="topo-num">5</div><div class="topo-info"><div class="topo-name">Infrastructure</div><div class="topo-role">Docker · Caddy · PostgreSQL · Redis · Qdrant · NATS</div></div><span class="badge badge-ok">LIVE</span></div>
+  </div>
+
+  <!-- ═══ DYNAMIC VAULT HEAD PROOF (Phase 4.1, 2026-07-25) ═══ -->
+  <!-- This block fetches the live head from /999/verify (arifOS) and     -->
+  <!-- /aaa/api/seal-chain/head (AAA) and renders BOTH side-by-side.        -->
+  <!-- No static hash is baked in — every value comes from a live JSON      -->
+  <!-- endpoint and is replaced in the DOM on every poll.                   -->
+  <!-- Cross-verification contract: see /999/verify response `falsification` -->
+  <!-- field. Cross-verify the two columns, not the page itself.            -->
+  <div class="section-label">Live Vault Head · /999/verify ↔ /aaa/api/seal-chain/head</div>
+  <div class="proof-block" id="proofBlock" data-state="loading">
+    <div class="proof-cols">
+      <div class="proof-col">
+        <div class="proof-col-head">
+          <span class="proof-tag">A · arifOS /999/verify</span>
+          <a class="proof-link" id="proofLinkA" href="/999/verify" target="_blank" rel="noopener">↗</a>
+        </div>
+        <div class="proof-row"><span class="proof-key">source</span><span class="proof-val" id="proofSourceA">—</span></div>
+        <div class="proof-row"><span class="proof-key">head</span><span class="proof-val proof-mono" id="proofHeadA">—</span></div>
+        <div class="proof-row"><span class="proof-key">seq</span><span class="proof-val" id="proofSeqA">—</span></div>
+        <div class="proof-row"><span class="proof-key">verified</span><span class="proof-val" id="proofVerifiedA">—</span></div>
+        <div class="proof-row"><span class="proof-key">chain</span><span class="proof-val" id="proofChainA">—</span></div>
+        <div class="proof-row"><span class="proof-key">observed_at</span><span class="proof-val" id="proofObservedA">—</span></div>
+      </div>
+      <div class="proof-col">
+        <div class="proof-col-head">
+          <span class="proof-tag">B · AAA /api/seal-chain/head</span>
+          <a class="proof-link" id="proofLinkB" href="https://aaa.arif-fazil.com/api/seal-chain/head" target="_blank" rel="noopener">↗</a>
+        </div>
+        <div class="proof-row"><span class="proof-key">source</span><span class="proof-val" id="proofSourceB">—</span></div>
+        <div class="proof-row"><span class="proof-key">head</span><span class="proof-val proof-mono" id="proofHeadB">—</span></div>
+        <div class="proof-row"><span class="proof-key">seq</span><span class="proof-val" id="proofSeqB">—</span></div>
+        <div class="proof-row"><span class="proof-key">chain_ok</span><span class="proof-val" id="proofChainOkB">—</span></div>
+        <div class="proof-row"><span class="proof-key">length</span><span class="proof-val" id="proofLengthB">—</span></div>
+        <div class="proof-row"><span class="proof-key">observed_at</span><span class="proof-val" id="proofObservedB">—</span></div>
+      </div>
+    </div>
+    <div class="proof-verdict" id="proofVerdict">fetching…</div>
+    <div class="proof-foot">
+      Cross-verify contract: two INDEPENDENT public readings of the same
+      seal chain. They must match within one seal cycle (seconds). A
+      persistent mismatch means one host is stale or the chain has diverged.
+      Do not cross-verify against a static HTML element on this page.
+    </div>
   </div>
 
   <!-- ═══ SUNAT 2: SITE MAP ═══ -->
@@ -365,6 +428,88 @@ async function poll() {
 
 poll();
 setInterval(poll, 8000);
+
+// ── Dynamic Vault Head proof (Phase 4.1) ──────────────────────────────
+// Fetches /999/verify (arifOS) and /aaa/api/seal-chain/head (AAA) in
+// parallel, renders both, and reports MATCH / MISMATCH / PARTIAL based
+// on the two independent head_hash values. NO static hash is baked in
+// anywhere — every value is replaced in the DOM on every poll.
+const PROOF_A_URL = '/999/verify';
+const PROOF_B_URL = 'https://aaa.arif-fazil.com/api/seal-chain/head';
+
+async function pollProof() {
+  const block = document.getElementById('proofBlock');
+  const verdictEl = document.getElementById('proofVerdict');
+  block.setAttribute('data-state', 'loading');
+
+  const [resA, resB] = await Promise.allSettled([
+    fetch(PROOF_A_URL, { cache: 'no-store' }).then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))),
+    fetch(PROOF_B_URL, { cache: 'no-store', mode: 'cors' }).then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))),
+  ]);
+
+  // A · arifOS /999/verify shape: { head, head_seq, verified, chain_status, verified_at }
+  if (resA.status === 'fulfilled') {
+    const a = resA.value || {};
+    document.getElementById('proofSourceA').textContent = 'GET /999/verify';
+    document.getElementById('proofHeadA').textContent   = a.head || 'null';
+    document.getElementById('proofSeqA').textContent    = a.head_seq != null ? String(a.head_seq) : '—';
+    document.getElementById('proofVerifiedA').textContent = a.verified ? 'true' : 'false';
+    document.getElementById('proofChainA').textContent  = a.chain_status || '—';
+    document.getElementById('proofObservedA').textContent = a.verified_at || '—';
+  } else {
+    document.getElementById('proofSourceA').textContent = 'arifOS /999/verify (offline)';
+    document.getElementById('proofHeadA').textContent   = '—';
+    document.getElementById('proofSeqA').textContent    = '—';
+    document.getElementById('proofVerifiedA').textContent = '—';
+    document.getElementById('proofChainA').textContent  = '—';
+    document.getElementById('proofObservedA').textContent = String(resA.reason && resA.reason.message || resA.reason);
+  }
+
+  // B · AAA /api/seal-chain/head shape: { seq, hash, chain_ok, length, ... }
+  if (resB.status === 'fulfilled') {
+    const b = resB.value || {};
+    document.getElementById('proofSourceB').textContent = 'GET /aaa/api/seal-chain/head';
+    document.getElementById('proofHeadB').textContent   = b.hash || 'null';
+    document.getElementById('proofSeqB').textContent    = b.seq != null ? String(b.seq) : '—';
+    document.getElementById('proofChainOkB').textContent = String(b.chain_ok);
+    document.getElementById('proofLengthB').textContent  = b.length != null ? String(b.length) : '—';
+    document.getElementById('proofObservedB').textContent = b.observed_at || b.timestamp || '—';
+  } else {
+    document.getElementById('proofSourceB').textContent = 'AAA /api/seal-chain/head (offline)';
+    document.getElementById('proofHeadB').textContent   = '—';
+    document.getElementById('proofSeqB').textContent    = '—';
+    document.getElementById('proofChainOkB').textContent = '—';
+    document.getElementById('proofLengthB').textContent  = '—';
+    document.getElementById('proofObservedB').textContent = String(resB.reason && resB.reason.message || resB.reason);
+  }
+
+  // Verdict — compare heads, declare MATCH / MISMATCH / PARTIAL.
+  const aOk = resA.status === 'fulfilled';
+  const bOk = resB.status === 'fulfilled';
+  const headA = aOk ? (resA.value.head || '') : '';
+  const headB = bOk ? (resB.value.hash || '') : '';
+  verdictEl.className = 'proof-verdict';
+  if (aOk && bOk && headA && headB) {
+    if (headA === headB) {
+      verdictEl.textContent = `MATCH · head = ${headA.slice(0, 16)}… · seq aligned`;
+      verdictEl.classList.add('match');
+    } else {
+      verdictEl.textContent = `MISMATCH · A=${headA.slice(0, 16)}… B=${headB.slice(0, 16)}…`;
+      verdictEl.classList.add('mismatch');
+    }
+  } else if (aOk || bOk) {
+    verdictEl.textContent = 'PARTIAL · one endpoint offline — verdict deferred';
+    verdictEl.classList.add('partial');
+  } else {
+    verdictEl.textContent = 'OFFLINE · both endpoints unreachable — no live proof available';
+    verdictEl.classList.add('mismatch');
+  }
+
+  block.setAttribute('data-state', aOk || bOk ? 'live' : 'offline');
+}
+
+pollProof();
+setInterval(pollProof, 8000);
 </script>
 </body>
 </html>

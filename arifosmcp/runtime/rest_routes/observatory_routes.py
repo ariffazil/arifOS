@@ -2824,6 +2824,18 @@ def register_observatory_routes(app: Any, mcp: Any, prefix: str = "/api/observat
         # governance, organs, conformance, edges). A single failing block should
         # not yield 500 on the page — return a partial snapshot with an
         # `_error` field instead. F2: never silently drop evidence.
+        #
+        # Phase 4.2 diagnosis (2026-07-25, silk-speed-jericho): the
+        # /api/observatory/v1/snapshot timeout was traced to the snapshot
+        # builder probing its own :8088 /health via a blocking urlopen on
+        # the same asyncio loop that was computing the snapshot. The fix
+        # is already in this source: build_snapshot_async →
+        # _edges_block_async → probe_all_edges_async (asyncio.to_thread +
+        # asyncio.wait_for with 3.0s upper bound) + a per-request
+        # self_endpoint_health short-circuit. No additional workaround is
+        # required; the canonical async/deadlock fix from P1-5 is in place.
+        # We still wrap the call in try/except to fall back to a partial
+        # snapshot rather than 500 if any block throws.
         try:
             # Pre-compute registered tools async (FastMCP 3.x list_tools is async)
             reg_tools = await _registered_tools_async(mcp)

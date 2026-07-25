@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the canonical arifOS Observatory emitter hourly
+
+[Timer]
+OnCalendar=*-*-* *:17:00
+Persistent=true
+AccuracySec=1min
+Unit=arifos-observatory-emitter.service
+
+[Install]
+WantedBy=timers.target

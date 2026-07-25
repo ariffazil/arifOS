@@ -68,8 +68,9 @@ ED25519_MULTICODEC_PREFIX: bytes = b"\xed\x01"
 
 # The artifacts publish copies into the target directory. The set is explicit
 # so a future stray private key file can never sneak in via a glob.
+PUBLIC_SNAPSHOT_NAME: str = "observatory-snapshot-latest.json"
 PUBLIC_ARTIFACT_NAMES: tuple[str, ...] = (
-    "snapshot_latest.json",
+    PUBLIC_SNAPSHOT_NAME,
     "observatory_signing_key.pub.pem",
     "did-arifos-observatory.json",
     "did.json",
@@ -166,6 +167,9 @@ def _atomic_write_bytes(target_dir: Path, name: str, payload: bytes) -> Path:
     finally:
         os.close(fd)
     os.replace(str(tmp_path), str(target_path))
+    # These are explicitly public artifacts. Keep staging private, then make
+    # the atomically promoted file readable by Caddy's unprivileged worker.
+    os.chmod(target_path, 0o644)
     return target_path
 
 
@@ -275,7 +279,7 @@ def publish_latest_snapshot(
 
     # ── Step 4: atomic writes — single explicit allowlist, no glob ────
     artifacts: dict[str, bytes] = {
-        "snapshot_latest.json": snap_bytes,
+        PUBLIC_SNAPSHOT_NAME: snap_bytes,
         "observatory_signing_key.pub.pem": pub_pem_bytes,
         "did-arifos-observatory.json": did_bytes,
         "did.json": did_bytes,

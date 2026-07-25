@@ -207,6 +207,7 @@ def trim_for_verbosity(response: Any, verbosity: str | None) -> Any:
         "call_hash": call_hash,
         "trace_id": trace_id,
         "signature": signature,
+        "session_token": _lookup("session_token"),
         "audit_provenance": {
             "call_hash": call_hash,
             "trace_id": trace_id,

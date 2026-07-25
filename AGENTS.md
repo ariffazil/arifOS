@@ -21,3 +21,4 @@ curl :8088/health
 ```
 
 F1-F13 canon: `/root/arifOS/GENESIS/000_KERNEL_CANON.md` and `/root/arifOS/GENESIS/FLOOR_TABLE.json`
+Canonical DID: `did:web:arifos.arif-fazil.com` — see `/root/arifOS/docs/CANONICAL_DID.md` and `arifosmcp.runtime.did_inventory`.

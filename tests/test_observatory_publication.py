@@ -251,14 +251,16 @@ class TestPublishLatestSnapshot:
         )
         assert receipt["status"] == "PUBLISHED"
         assert set(receipt["files"].keys()) == {
-            "snapshot_latest.json",
+            "observatory-snapshot-latest.json",
             "observatory_signing_key.pub.pem",
             "did-arifos-observatory.json",
             "did.json",
         }
         for name, info in receipt["files"].items():
-            assert (seeded_environment["target_dir"] / name).is_file(), (
-                f"{name} not on disk after publish"
+            artifact = seeded_environment["target_dir"] / name
+            assert artifact.is_file(), f"{name} not on disk after publish"
+            assert artifact.stat().st_mode & 0o777 == 0o644, (
+                f"{name} must be readable by the public web server"
             )
             assert info["size_bytes"] > 0
             assert re.fullmatch(r"[0-9a-f]{64}", info["sha256"])
@@ -432,8 +434,8 @@ class TestPublishLatestSnapshot:
             snap_dir=seeded_environment["snap_dir"],
             keys_dir=seeded_environment["keys_dir"],
         )
-        assert r1["files"]["snapshot_latest.json"]["sha256"] == (
-            r2["files"]["snapshot_latest.json"]["sha256"]
+        assert r1["files"]["observatory-snapshot-latest.json"]["sha256"] == (
+            r2["files"]["observatory-snapshot-latest.json"]["sha256"]
         )
         assert r1["files"]["did.json"]["sha256"] == (
             r2["files"]["did.json"]["sha256"]
@@ -464,7 +466,7 @@ class TestCanonicalEmitterWiring:
         receipt = publish_latest_snapshot(target_dir, snap_dir=snap_dir, keys_dir=keys_dir)
 
         assert receipt["status"] == "PUBLISHED"
-        assert (target_dir / "snapshot_latest.json").is_file()
+        assert (target_dir / "observatory-snapshot-latest.json").is_file()
         assert (target_dir / "did-arifos-observatory.json").is_file()
         assert (target_dir / "did.json").is_file()
 
@@ -538,7 +540,7 @@ class TestCLI:
             f"expected exit 0 on success, got {result.returncode}\nstderr:\n{result.stderr}"
         )
         assert "publish: OK" in result.stderr
-        assert (target_dir / "snapshot_latest.json").is_file()
+        assert (target_dir / "observatory-snapshot-latest.json").is_file()
         assert (target_dir / "did-arifos-observatory.json").is_file()
         assert (target_dir / "did.json").is_file()
 
@@ -586,3 +588,85 @@ class TestPublicTemplate:
         assert encode_multibase_ed25519(raw) == template_multibase, (
             "template multibase must be re-derivable from the on-disk public key"
         )
+
+
+# ─── Test 6: durable systemd scheduling contract ────────────────────────────
+
+
+class TestObservatorySystemdSchedule:
+    """The checked-in units must durably run the canonical public emitter."""
+
+    systemd_dir = Path(__file__).resolve().parent.parent / "ops" / "systemd"
+    service_path = systemd_dir / "arifos-observatory-emitter.service"
+    timer_path = systemd_dir / "arifos-observatory-emitter.timer"
+
+    @staticmethod
+    def _setting(content: str, name: str) -> str:
+        prefix = f"{name}="
+        values = [
+            line.removeprefix(prefix)
+            for line in content.splitlines()
+            if line.startswith(prefix)
+        ]
+        assert len(values) == 1, f"expected exactly one {name}= setting, got {values!r}"
+        return values[0]
+
+    def test_service_runs_canonical_emitter_with_bounded_journal_execution(self):
+        service = self.service_path.read_text(encoding="utf-8")
+
+        assert "[Service]" in service
+        assert self._setting(service, "Type") == "oneshot"
+        assert self._setting(service, "WorkingDirectory") == "/opt/arifos/app"
+        assert self._setting(service, "ExecStart") == (
+            "/opt/arifos/venv/bin/python "
+            "/opt/arifos/app/scripts/emit_observatory_snapshot.py"
+        )
+        assert self._setting(service, "TimeoutStartSec") == "5min"
+        assert self._setting(service, "StandardOutput") == "journal"
+        assert self._setting(service, "StandardError") == "journal"
+
+    def test_service_uses_exact_publication_target(self):
+        service_lines = self.service_path.read_text(encoding="utf-8").splitlines()
+        target_setting = (
+            "Environment="
+            "OBSERVATORY_PUBLISH_TARGET=/var/www/html/arifos/.well-known"
+        )
+
+        assert service_lines.count(target_setting) == 1
+        assert not any(
+            line.startswith("Environment=OBSERVATORY_PUBLISH_TARGET=")
+            and line != target_setting
+            for line in service_lines
+        )
+
+    def test_units_contain_no_private_key_material_or_path(self):
+        content = "\n".join(
+            (
+                self.service_path.read_text(encoding="utf-8"),
+                self.timer_path.read_text(encoding="utf-8"),
+            )
+        ).lower()
+
+        for forbidden in (
+            "-----begin private key-----",
+            "observatory_signing_key.pem",
+            "/root/.arifos/observatory/keys",
+            "private_key",
+            "privatekey",
+        ):
+            assert forbidden not in content, (
+                f"systemd unit exposes private-key data: {forbidden}"
+            )
+
+    def test_timer_is_persistent_hourly_and_avoids_top_of_hour(self):
+        timer = self.timer_path.read_text(encoding="utf-8")
+
+        assert "[Timer]" in timer
+        assert self._setting(timer, "Persistent") == "true"
+        assert self._setting(timer, "Unit") == self.service_path.name
+        schedule = self._setting(timer, "OnCalendar")
+        match = re.fullmatch(r"\*-\*-\* \*:(\d{2}):00", schedule)
+        assert match, f"expected an hourly calendar expression, got {schedule!r}"
+        assert int(match.group(1)) != 0, "timer must avoid the top-of-hour herd"
+        interval_minutes = 60  # Wildcard hour in the validated expression above.
+        assert interval_minutes < 24 * 60
