@@ -21,6 +21,14 @@ from typing import Any
 # Import deferred inside functions to avoid startup failures if vault dir is missing.
 VAULT_DIR = Path("/root/.local/share/arifos/vault999")
 
+# Canonical arifOS DID — surfaced as a module constant so the falsification
+# contract has a single, machine-discoverable anchor. The Phase 4.1 slice
+# does NOT mint a new DID; this is the documented identity at
+# docs/CANONICAL_DID.md (also known as did:web:arifos.arif-fazil.com).
+# Exposed here so future falsification fields (e.g. cross_verify_did) can
+# read the value without an extra import. No key rotation, no new DID.
+CANONICAL_DID_PLACEHOLDER: str = "did:web:arifos.arif-fazil.com"
+
 
 def _run_verify() -> dict[str, Any]:
     """Run canonical chain verify using the F-004 module. Never raises."""
@@ -77,8 +85,10 @@ def get_vault_proof() -> dict[str, Any]:
     An external agent can:
       1. Fetch this JSON → record head_hash + verified_at
       2. Fetch again the next day → compare head_hash (chain grew = activity)
-      3. Compare head_hash across independent observers (cross-verification)
-      4. If verified=False, chain_integrity is broken → 999-CLAIM-001 falsified
+      3. Compare head_hash across two INDEPENDENT live endpoints
+         (this one + /aaa/api/seal-chain/head) — NOT against a static page
+         that may have been cached or hand-edited.
+      4. If verified=False, chain_integrity is broken → 999-CLAIM-001 falsified.
     """
     now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     v = _run_verify()
@@ -100,6 +110,11 @@ def get_vault_proof() -> dict[str, Any]:
         "vault": "VAULT999",
         "constitution": "F1–F13",
         # ── Falsification ─────────────────────────────────────────────────
+        # 2026-07-25 (Phase 4.1 of silk-speed-jericho): cross-verification
+        # is now against an INDEPENDENT live public reading — the AAA cockpit's
+        # /api/seal-chain/head endpoint — not against a static HTML element
+        # that the page itself renders. A static embed becomes stale after
+        # the next seal and so cannot falsify anything by itself.
         "falsification": {
             "how_to_falsify_001": (
                 "Record head_hash now. Alter any sealed record. "
@@ -107,11 +122,21 @@ def get_vault_proof() -> dict[str, Any]:
                 "and verified will be False. This breaks 999-CLAIM-001."
             ),
             "how_to_cross_verify": (
-                "Compare head_hash returned by this endpoint with the value "
-                "embedded in the /999 page HTML (id=vault-head-hash). "
-                "They must match within one seal cycle (~seconds). "
-                "A mismatch means the page is stale or the chain diverged."
+                "Compare the head_hash returned by this endpoint with the "
+                "head_hash returned independently by GET "
+                "https://aaa.arif-fazil.com/api/seal-chain/head. "
+                "Both endpoints read the same underlying seal chain "
+                "(/root/.local/share/arifos/vault999/seal_chain_head.json) "
+                "but are served by independent processes (arifOS :8088 vs "
+                "AAA :3001). They must match within one seal cycle "
+                "(seconds). A persistent mismatch means either endpoint is "
+                "stale, the chain has diverged, or one host is being served "
+                "cached/transitional data. Do NOT cross-verify against a "
+                "static HTML element on this page — that element is a "
+                "display convenience, not a witness."
             ),
+            "cross_verify_endpoint": "https://aaa.arif-fazil.com/api/seal-chain/head",
+            "cross_verify_owner": "AAA cockpit (:3001)",
             "companion": "https://arif-fazil.com/000/",
         },
         # ── Internal (not exposed on page, but available to agents) ───────
@@ -158,9 +183,17 @@ def get_vault_verification_manifest() -> dict[str, Any]:
                 "2. Record head_hash + verified_at",
                 "3. Fetch again tomorrow — compare head_hash (chain grew = activity proof)",
                 "4. verified=False means chain_integrity is broken (CLAIM-001 falsified)",
-                "5. Cross-verify: compare head_hash with value in /999 page HTML #vault-head-hash",
+                "5. Cross-verify: compare head_hash with the independent public "
+                "reading at GET https://aaa.arif-fazil.com/api/seal-chain/head. "
+                "Both endpoints read the same seal chain but are served by "
+                "different processes (arifOS :8088 vs AAA :3001). Do NOT "
+                "cross-verify against a static HTML element on this page — "
+                "a static embed becomes stale after the next seal and is not "
+                "a witness on its own.",
             ],
             "canonical_endpoint": "/999/verify",
+            "cross_verify_endpoint": "https://aaa.arif-fazil.com/api/seal-chain/head",
+            "cross_verify_owner": "AAA cockpit (:3001)",
             "operator_endpoints": {
                 "verify": "/api/observatory/v1/seal/verify",
                 "replay": "/api/observatory/v1/seal/replay",

@@ -1,0 +1,19 @@
+[Unit]
+Description=Publish the canonical arifOS Observatory snapshot
+After=local-fs.target
+ConditionPathExists=/opt/arifos/app/scripts/emit_observatory_snapshot.py
+RequiresMountsFor=/var/www/html/arifos/.well-known
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/arifos/app
+Environment=OBSERVATORY_PUBLISH_TARGET=/var/www/html/arifos/.well-known
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/arifos/venv/bin/python /opt/arifos/app/scripts/emit_observatory_snapshot.py
+TimeoutStartSec=5min
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=arifos-observatory-emitter
+UMask=0022

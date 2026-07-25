@@ -1649,6 +1649,8 @@ def arif_init(
             ),
             actor_verified=bool(sess.get("actor_verified", False)),
             result=header,
+            session_id=sid,
+            session_token=header.get("session_token"),
             doctrine=ARIF_DOCTRINE,
         )
 
@@ -1919,6 +1921,9 @@ def arif_init(
                     _exempt_level = _ED25519_EXEMPT_SYSTEM_ACTORS[actor_lower]
                     if _exempt_level == "sovereign":
                         identity_verified = True
+                        sess["verified"] = True
+                        sess["verification_method"] = "system_exempt"
+                        sess["evidence_ref"] = f"system_exempt://{actor_lower}"
                         try:
                             from arifosmcp.runtime.authority import bind_authority_state
                             from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
@@ -1926,7 +1931,7 @@ def arif_init(
                             )
 
                             _av_state = build_authority_state_for_actor(
-                                actor_id, verified=True, verification_method="session"
+                                actor_id, verified=True, verification_method="system_exempt"
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
@@ -1941,6 +1946,9 @@ def arif_init(
                         )
                     else:
                         identity_verified = True
+                        sess["verified"] = True
+                        sess["verification_method"] = "system_exempt"
+                        sess["evidence_ref"] = f"system_exempt://{actor_lower}"
                         try:
                             from arifosmcp.runtime.authority import bind_authority_state
                             from arifosmcp.runtime.megaTools.tool_01_init_anchor import (
@@ -1948,7 +1956,7 @@ def arif_init(
                             )
 
                             _av_state = build_authority_state_for_actor(
-                                actor_id, verified=True, verification_method="session"
+                                actor_id, verified=True, verification_method="system_exempt"
                             )
                             bind_authority_state(sess, _av_state)
                         except Exception:
@@ -2023,6 +2031,8 @@ def arif_init(
         # Prefer classify_actor_band when crypto path ran
         if sess.get("actor_band") in ("FULL", "LIMITED_MUTATE", "OBSERVE_ONLY"):
             _derived_auth = sess["actor_band"]
+        if requested_authority and requested_authority == "OBSERVE_ONLY":
+            _derived_auth = "OBSERVE_ONLY"
         sess["authority"] = _derived_auth
         if _derived_auth == "FULL":
             sess["verdict"] = "OK"
@@ -2232,12 +2242,18 @@ def arif_init(
                     session_id=sess["session_id"],
                     actor_id=actor_id or "anonymous",
                     authority_level=_auth_lvl,
+                    actor_verified=identity_verified,
+                    verification_method=sess.get("verification_method") or "system_exempt",
+                    evidence_ref=sess.get("evidence_ref") or f"session://{sess['session_id']}",
+                    verified=bool(identity_verified),
+                    stage=str(sess.get("stage") or "000"),
+                    lane=str(sess.get("lane") or "AGI"),
                     auth_context={
                         "verified": bool(identity_verified),
                         "verification_method": sess.get("verification_method")
-                        or ("ed25519" if identity_verified else None),
+                        or ("system_exempt" if identity_verified else None),
                         "auth_method": sess.get("verification_method")
-                        or ("ed25519" if identity_verified else None),
+                        or ("system_exempt" if identity_verified else None),
                         "verified_key_id": (
                             "sha256:c843960f8c85d625bd0e8dc563beba331b4cfe6d0c08f71c2e6da80eb58b8c6a"
                             if identity_verified
@@ -2246,11 +2262,9 @@ def arif_init(
                         "signature_verified": bool(sess.get("signature_verified")),
                         "identity_verify_reason": sess.get("identity_verify_reason"),
                     },
-                    verified=bool(identity_verified),
-                    stage=str(sess.get("stage") or "000"),
                 )
-            except Exception as _bind_exc:
-                logger.warning("bind_session_identity after init failed: %s", _bind_exc)
+            except Exception as _bind_err:
+                logger.warning("bind_session_identity failed (non-fatal): %s", _bind_err)
         except Exception:
             pass
 
@@ -2341,6 +2355,8 @@ def arif_init(
             ),
             actor_verified=identity_verified,  # DEPRECATED
             result=header,
+            session_id=sid,
+            session_token=header.get("session_token"),
             doctrine=ARIF_DOCTRINE,
             # Workstream 1: top-level authority_state for easy access
             authority_state=_auth_state,
@@ -2745,6 +2761,87 @@ def arif_init(
             status="HOLD",
             result={},
             meta={"reason": "session_id required for refresh"},
+            doctrine=ARIF_DOCTRINE,
+        )
+
+    # ── VALIDATE MODE ─────────────────────────────────────────
+    if mode == "validate":
+        from arifosmcp.runtime.tools import _SESSIONS
+
+        _sct_arg = session_token
+        if not _sct_arg and isinstance(payload, dict):
+            _sct_arg = payload.get("session_token") or payload.get("sct")
+        _candidate = session_id
+        for _cand in (_sct_arg, session_id):
+            if _cand and (str(_cand).startswith("sct_v1.") or str(_cand).startswith("arifos.v1.")):
+                _candidate = _cand
+                break
+        target_sid = _candidate
+
+        if not target_sid:
+            return _sm(
+                status="HOLD",
+                result={"valid": False, "session_valid": False, "claims": None, "error": "session_id required for validate"},
+                meta={"reason": "session_id required for validate"},
+                doctrine=ARIF_DOCTRINE,
+            )
+
+        _sid_str = str(target_sid)
+        _token_like = _sid_str.startswith("sct_v1.") or _sid_str.startswith("arifos.v1.")
+        if _token_like:
+            from arifosmcp.runtime.sct import verify_sct
+
+            claims = verify_sct(_sid_str, expected_actor=actor_id)
+            if not claims:
+                return _sm(
+                    status="HOLD",
+                    result={"valid": False, "session_valid": False, "claims": None, "error": "SCT signature/expiry/actor verification failed"},
+                    meta={"reason": "SCT verification failed"},
+                    doctrine=ARIF_DOCTRINE,
+                )
+            return _sm(
+                status="OK",
+                verdict="SEAL",
+                result={
+                    "valid": True,
+                    "session_valid": True,
+                    "claims": claims,
+                    "error": None,
+                    "session_id": claims.get("sid"),
+                    "actor": claims.get("actor"),
+                    "authority": claims.get("auth"),
+                    "validation_path": "verify_sct",
+                },
+                session_id=claims.get("sid"),
+                session_token=_sid_str,
+                doctrine=ARIF_DOCTRINE,
+            )
+
+        # SEAL-* session store path
+        _in_store = target_sid in _SESSIONS
+        sess_data = _SESSIONS.get(target_sid, {})
+        claims_data = {
+            "sct_v": 1,
+            "sid": target_sid,
+            "actor": sess_data.get("actor_id") or "arif",
+            "auth": sess_data.get("authority", "OBSERVE_ONLY"),
+            "av": True,
+            "stage": sess_data.get("stage", "000"),
+            "lane": sess_data.get("lane", "AGI"),
+        } if _in_store else None
+
+        return _sm(
+            status="OK" if _in_store else "HOLD",
+            verdict="SEAL" if _in_store else "HOLD",
+            result={
+                "valid": _in_store,
+                "session_valid": _in_store,
+                "claims": claims_data,
+                "error": None if _in_store else f"session_id not found or expired: {target_sid}",
+                "session_id": target_sid,
+                "validation_path": "session_store",
+            },
+            session_id=target_sid if _in_store else None,
             doctrine=ARIF_DOCTRINE,
         )
 

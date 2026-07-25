@@ -8195,6 +8195,7 @@ def _arif_session_init(
         "full",
         "audit",
         "init",
+        "validate",
         "challenge",  # F13 crypto bind — issue single-use nonce
     }:
         # Pre-session: no session required. Delegate to canonical session.py.
