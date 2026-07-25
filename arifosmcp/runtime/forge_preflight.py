@@ -394,13 +394,12 @@ def stage_06_constitutional_chain_validation(
         except (ImportError, AttributeError):
             pass
 
-    # Soft fallback: chain ID looks plausible but unverifiable
+    # STRICT: unverifiable chain ID → HOLD (no soft fallback)
     if not chain_valid:
-        if len(constitutional_chain_id) >= 8:
-            reasons.append("E_PREFLIGHT_CHAIN_NOT_IN_REGISTRY_UNVERIFIED")
-            # Chain ID present but registry may be cold on fresh start
-            return True, reasons
-        reasons.append(f"E_PREFLIGHT_CHAIN_TOO_SHORT:{len(constitutional_chain_id)}")
+        reasons.append("E_PREFLIGHT_CHAIN_NOT_IN_REGISTRY")
+        reasons.append(
+            "E_PREFLIGHT_CHAIN_UNVERIFIABLE: no soft fallback — chain ID must be registered"
+        )
         return False, reasons
 
     # If chain entry found, check it's not voided
