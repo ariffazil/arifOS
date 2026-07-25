@@ -765,7 +765,6 @@ def verify_init_identity(
     if challenge_reason == "challenge_not_issued":
         if os.getenv("ARIFOS_ALLOW_FREE_NONCE", "0") == "1":
             return True, f"ed25519_free_nonce:{matched_payload}"
-<<<<<<< Updated upstream
         # REJECT free-standing nonces — must be issued by issue_actor_challenge.
         # (Prior federation compat accepted them; this was NEG.3 bypass — fixed 2026-07-17.)
         logger.warning(
@@ -774,9 +773,6 @@ def verify_init_identity(
             actor_id,
             matched_payload,
         )
-=======
-        logger.warning("Crypto Auth: free-nonce REJECTED for actor=%s payload=%s", actor_id, matched_payload)
->>>>>>> Stashed changes
         return False, "challenge_not_issued"
     logger.warning("Crypto Auth: Nonce rejected — %s.", challenge_reason)
     return False, challenge_reason
