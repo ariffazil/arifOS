@@ -1,6 +1,6 @@
 {
   "$schema": "arifos://schema/profile-snapshot/v1",
-  "abi_version": "1.0.0",
+  "abi_version": "2026.07.24",
   "kernel_capabilities": [
     "session.bind",
     "reality.observe",
