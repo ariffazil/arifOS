@@ -105,7 +105,10 @@ def _ready_envelope() -> dict[str, Any]:
     """Internal-network dependency readiness. NO external exposure.
 
     The audit says /ready is "internal network or monitoring credential" — we
-    publish it on /ready but expect Caddy to gate it via `import private_net`.
+    publish it on /ready but expect Caddy to gate it via ``import private_net``.
+
+    P0-5 (2026-07-25): Added deployment invariant check — degraded when
+    source≠built≠deployed (drift detected).
     """
     deps: dict[str, str] = {}
     for label, host, port in (
@@ -116,11 +119,39 @@ def _ready_envelope() -> dict[str, Any]:
     ):
         up, _ = _tcp(host, port)
         deps[label] = "ready" if up else "degraded"
+
+    # P0-5: Deployment invariant — source==built==deployed
+    deploy_ok = True
+    drift_info: dict[str, Any] = {"ok": True}
+    try:
+        from arifosmcp.runtime.rest_routes.rest_routes import _compute_runtime_drift
+
+        drift = _compute_runtime_drift()
+        drift_detected = drift.get("runtime_drift", False)
+        src = drift.get("source_commit", "?") or "?"
+        built = drift.get("built_commit", "?") or "?"
+        deployed = drift.get("deployed_commit", "?") or "?"
+        deploy_ok = not drift_detected and src == built == deployed
+        drift_info = {
+            "ok": deploy_ok,
+            "drift_detected": drift_detected,
+            "source_commit": src,
+            "built_commit": built,
+            "deployed_commit": deployed,
+            "rule": "source_commit == built_commit == deployed_commit",
+        }
+    except Exception:
+        drift_info = {"ok": False, "error": "drift_check_failed"}
+
+    all_ready = all(v == "ready" for v in deps.values()) and deploy_ok
+
     return {
         "endpoint": "/ready",
         "policy": "internal_network_only",
         "session_required": False,
+        "status": "ready" if all_ready else "degraded",
         "dependencies": deps,
+        "deploy_invariant": drift_info,
         "observed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
 
