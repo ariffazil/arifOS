@@ -1,0 +1,30 @@
+{
+  "locomo": [
+    {
+      "case_id": "locomo-001",
+      "episodes": [
+        {
+          "session_id": "locomo-s1",
+          "content": "arifOS default API port for kernel is 8088."
+        },
+        {
+          "session_id": "locomo-s2",
+          "content": "A-FORGE execution organ runs on port 7071 and 7072."
+        }
+      ],
+      "query": "What port does the kernel run on?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-002",
+      "episodes": [
+        {
+          "session_id": "locomo-s3",
+          "content": "VAULT999 immutable seal log path is /root/.local/share/arifos/vault999/outcomes.jsonl."
+        }
+      ],
+      "query": "Where is the immutable seal log stored?",
+      "expected_answer": "/root/.local/share/arifos/vault999/outcomes.jsonl"
+    }
+  ]
+}

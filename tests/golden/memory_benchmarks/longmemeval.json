@@ -1,0 +1,19 @@
+{
+  "longmemeval": [
+    {
+      "case_id": "longmemeval-001",
+      "episodes": [
+        {
+          "session_id": "longmem-s1",
+          "content": "User prefers concise Markdown responses with structural bullet points."
+        },
+        {
+          "session_id": "longmem-s2",
+          "content": "User project stack includes Node 22, React 19, and Vite."
+        }
+      ],
+      "query": "What is the user's preferred response style and tech stack?",
+      "expected_answer": "Concise Markdown responses with structural bullet points; Node 22, React 19, Vite."
+    }
+  ]
+}
