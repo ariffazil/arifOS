@@ -1,0 +1,41 @@
+name: arifOS Drift Monitor — CANON_APEX_V2
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "docs/canon/CANON_APEX_V2/**"
+      - "GENESIS/FLOOR_TABLE.json"
+      - "README.md"
+
+jobs:
+  drift-monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      CANON_SPEC_VERSION: "v2026.07.APEX"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests supabase-py
+
+      - name: Drift monitor (dry-run)
+        run: python .github/scripts/drift_monitor.py --dry-run --alert
+        continue-on-error: true
+
+      - name: Drift monitor (Supabase write)
+        if: env.SUPABASE_URL
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python .github/scripts/drift_monitor.py --supabase-write --alert --json
+        continue-on-error: true
