@@ -1,19 +1,754 @@
 {
   "longmemeval": [
     {
-      "case_id": "longmemeval-001",
+      "case_id": "longmemeval-full-0001",
       "episodes": [
         {
-          "session_id": "longmem-s1",
-          "content": "User prefers concise Markdown responses with structural bullet points."
+          "session_id": "session-longmem-1-s1",
+          "content": "Session 1 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
         },
         {
-          "session_id": "longmem-s2",
-          "content": "User project stack includes Node 22, React 19, and Vite."
+          "session_id": "session-longmem-1-s2",
+          "content": "Session 1 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
         }
       ],
-      "query": "What is the user's preferred response style and tech stack?",
-      "expected_answer": "Concise Markdown responses with structural bullet points; Node 22, React 19, Vite."
+      "query": "Case 1: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0002",
+      "episodes": [
+        {
+          "session_id": "session-longmem-2-s1",
+          "content": "Session 2 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-2-s2",
+          "content": "Session 2 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 2: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0003",
+      "episodes": [
+        {
+          "session_id": "session-longmem-3-s1",
+          "content": "Session 3 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-3-s2",
+          "content": "Session 3 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 3: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0004",
+      "episodes": [
+        {
+          "session_id": "session-longmem-4-s1",
+          "content": "Session 4 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-4-s2",
+          "content": "Session 4 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 4: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0005",
+      "episodes": [
+        {
+          "session_id": "session-longmem-5-s1",
+          "content": "Session 5 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-5-s2",
+          "content": "Session 5 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 5: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0006",
+      "episodes": [
+        {
+          "session_id": "session-longmem-6-s1",
+          "content": "Session 6 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-6-s2",
+          "content": "Session 6 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 6: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0007",
+      "episodes": [
+        {
+          "session_id": "session-longmem-7-s1",
+          "content": "Session 7 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-7-s2",
+          "content": "Session 7 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 7: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0008",
+      "episodes": [
+        {
+          "session_id": "session-longmem-8-s1",
+          "content": "Session 8 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-8-s2",
+          "content": "Session 8 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 8: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0009",
+      "episodes": [
+        {
+          "session_id": "session-longmem-9-s1",
+          "content": "Session 9 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-9-s2",
+          "content": "Session 9 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 9: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0010",
+      "episodes": [
+        {
+          "session_id": "session-longmem-10-s1",
+          "content": "Session 10 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-10-s2",
+          "content": "Session 10 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 10: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0011",
+      "episodes": [
+        {
+          "session_id": "session-longmem-11-s1",
+          "content": "Session 11 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-11-s2",
+          "content": "Session 11 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 11: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0012",
+      "episodes": [
+        {
+          "session_id": "session-longmem-12-s1",
+          "content": "Session 12 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-12-s2",
+          "content": "Session 12 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 12: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0013",
+      "episodes": [
+        {
+          "session_id": "session-longmem-13-s1",
+          "content": "Session 13 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-13-s2",
+          "content": "Session 13 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 13: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0014",
+      "episodes": [
+        {
+          "session_id": "session-longmem-14-s1",
+          "content": "Session 14 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-14-s2",
+          "content": "Session 14 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 14: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0015",
+      "episodes": [
+        {
+          "session_id": "session-longmem-15-s1",
+          "content": "Session 15 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-15-s2",
+          "content": "Session 15 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 15: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0016",
+      "episodes": [
+        {
+          "session_id": "session-longmem-16-s1",
+          "content": "Session 16 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-16-s2",
+          "content": "Session 16 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 16: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0017",
+      "episodes": [
+        {
+          "session_id": "session-longmem-17-s1",
+          "content": "Session 17 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-17-s2",
+          "content": "Session 17 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 17: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0018",
+      "episodes": [
+        {
+          "session_id": "session-longmem-18-s1",
+          "content": "Session 18 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-18-s2",
+          "content": "Session 18 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 18: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0019",
+      "episodes": [
+        {
+          "session_id": "session-longmem-19-s1",
+          "content": "Session 19 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-19-s2",
+          "content": "Session 19 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 19: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0020",
+      "episodes": [
+        {
+          "session_id": "session-longmem-20-s1",
+          "content": "Session 20 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-20-s2",
+          "content": "Session 20 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 20: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0021",
+      "episodes": [
+        {
+          "session_id": "session-longmem-21-s1",
+          "content": "Session 21 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-21-s2",
+          "content": "Session 21 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 21: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0022",
+      "episodes": [
+        {
+          "session_id": "session-longmem-22-s1",
+          "content": "Session 22 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-22-s2",
+          "content": "Session 22 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 22: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0023",
+      "episodes": [
+        {
+          "session_id": "session-longmem-23-s1",
+          "content": "Session 23 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-23-s2",
+          "content": "Session 23 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 23: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0024",
+      "episodes": [
+        {
+          "session_id": "session-longmem-24-s1",
+          "content": "Session 24 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-24-s2",
+          "content": "Session 24 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 24: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0025",
+      "episodes": [
+        {
+          "session_id": "session-longmem-25-s1",
+          "content": "Session 25 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-25-s2",
+          "content": "Session 25 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 25: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0026",
+      "episodes": [
+        {
+          "session_id": "session-longmem-26-s1",
+          "content": "Session 26 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-26-s2",
+          "content": "Session 26 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 26: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0027",
+      "episodes": [
+        {
+          "session_id": "session-longmem-27-s1",
+          "content": "Session 27 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-27-s2",
+          "content": "Session 27 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 27: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0028",
+      "episodes": [
+        {
+          "session_id": "session-longmem-28-s1",
+          "content": "Session 28 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-28-s2",
+          "content": "Session 28 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 28: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0029",
+      "episodes": [
+        {
+          "session_id": "session-longmem-29-s1",
+          "content": "Session 29 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-29-s2",
+          "content": "Session 29 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 29: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0030",
+      "episodes": [
+        {
+          "session_id": "session-longmem-30-s1",
+          "content": "Session 30 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-30-s2",
+          "content": "Session 30 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 30: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0031",
+      "episodes": [
+        {
+          "session_id": "session-longmem-31-s1",
+          "content": "Session 31 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-31-s2",
+          "content": "Session 31 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 31: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0032",
+      "episodes": [
+        {
+          "session_id": "session-longmem-32-s1",
+          "content": "Session 32 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-32-s2",
+          "content": "Session 32 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 32: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0033",
+      "episodes": [
+        {
+          "session_id": "session-longmem-33-s1",
+          "content": "Session 33 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-33-s2",
+          "content": "Session 33 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 33: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0034",
+      "episodes": [
+        {
+          "session_id": "session-longmem-34-s1",
+          "content": "Session 34 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-34-s2",
+          "content": "Session 34 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 34: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0035",
+      "episodes": [
+        {
+          "session_id": "session-longmem-35-s1",
+          "content": "Session 35 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-35-s2",
+          "content": "Session 35 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 35: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0036",
+      "episodes": [
+        {
+          "session_id": "session-longmem-36-s1",
+          "content": "Session 36 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-36-s2",
+          "content": "Session 36 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 36: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0037",
+      "episodes": [
+        {
+          "session_id": "session-longmem-37-s1",
+          "content": "Session 37 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-37-s2",
+          "content": "Session 37 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 37: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0038",
+      "episodes": [
+        {
+          "session_id": "session-longmem-38-s1",
+          "content": "Session 38 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-38-s2",
+          "content": "Session 38 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 38: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0039",
+      "episodes": [
+        {
+          "session_id": "session-longmem-39-s1",
+          "content": "Session 39 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-39-s2",
+          "content": "Session 39 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 39: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0040",
+      "episodes": [
+        {
+          "session_id": "session-longmem-40-s1",
+          "content": "Session 40 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-40-s2",
+          "content": "Session 40 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 40: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0041",
+      "episodes": [
+        {
+          "session_id": "session-longmem-41-s1",
+          "content": "Session 41 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-41-s2",
+          "content": "Session 41 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 41: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0042",
+      "episodes": [
+        {
+          "session_id": "session-longmem-42-s1",
+          "content": "Session 42 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-42-s2",
+          "content": "Session 42 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 42: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0043",
+      "episodes": [
+        {
+          "session_id": "session-longmem-43-s1",
+          "content": "Session 43 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-43-s2",
+          "content": "Session 43 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 43: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0044",
+      "episodes": [
+        {
+          "session_id": "session-longmem-44-s1",
+          "content": "Session 44 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-44-s2",
+          "content": "Session 44 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 44: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0045",
+      "episodes": [
+        {
+          "session_id": "session-longmem-45-s1",
+          "content": "Session 45 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-45-s2",
+          "content": "Session 45 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 45: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
+    },
+    {
+      "case_id": "longmemeval-full-0046",
+      "episodes": [
+        {
+          "session_id": "session-longmem-46-s1",
+          "content": "Session 46 (T0): Initial user setup note: User preference for UI mode and formatting style is initialized."
+        },
+        {
+          "session_id": "session-longmem-46-s2",
+          "content": "Session 46 (T1): Confirmed preference: User prefers dark mode UI and concise Markdown responses with GitHub alerts."
+        }
+      ],
+      "query": "Case 46: What is the user configuration for User preference for UI mode and formatting style?",
+      "expected_answer": "dark mode UI, concise Markdown, GitHub alerts"
+    },
+    {
+      "case_id": "longmemeval-full-0047",
+      "episodes": [
+        {
+          "session_id": "session-longmem-47-s1",
+          "content": "Session 47 (T0): Initial user setup note: User infrastructure choice for vector search is initialized."
+        },
+        {
+          "session_id": "session-longmem-47-s2",
+          "content": "Session 47 (T1): Confirmed preference: Qdrant collection arifos_memory_v2 is the active writer for L3 vector search."
+        }
+      ],
+      "query": "Case 47: What is the user configuration for User infrastructure choice for vector search?",
+      "expected_answer": "Qdrant arifos_memory_v2"
+    },
+    {
+      "case_id": "longmemeval-full-0048",
+      "episodes": [
+        {
+          "session_id": "session-longmem-48-s1",
+          "content": "Session 48 (T0): Initial user setup note: User security policy for API endpoints is initialized."
+        },
+        {
+          "session_id": "session-longmem-48-s2",
+          "content": "Session 48 (T1): Confirmed preference: Organs bind 127.0.0.1 and Cloudflare Tunnel handles external TLS termination."
+        }
+      ],
+      "query": "Case 48: What is the user configuration for User security policy for API endpoints?",
+      "expected_answer": "127.0.0.1, Cloudflare Tunnel"
+    },
+    {
+      "case_id": "longmemeval-full-0049",
+      "episodes": [
+        {
+          "session_id": "session-longmem-49-s1",
+          "content": "Session 49 (T0): Initial user setup note: User memory retention rule is initialized."
+        },
+        {
+          "session_id": "session-longmem-49-s2",
+          "content": "Session 49 (T1): Confirmed preference: F1 AMANAH dictates tombstone and alias, never hard delete or DROP TABLE."
+        }
+      ],
+      "query": "Case 49: What is the user configuration for User memory retention rule?",
+      "expected_answer": "F1 AMANAH tombstone"
+    },
+    {
+      "case_id": "longmemeval-full-0050",
+      "episodes": [
+        {
+          "session_id": "session-longmem-50-s1",
+          "content": "Session 50 (T0): Initial user setup note: User preferred Python environment is initialized."
+        },
+        {
+          "session_id": "session-longmem-50-s2",
+          "content": "Session 50 (T1): Confirmed preference: Python 3.12+ managed via uv sync --frozen."
+        }
+      ],
+      "query": "Case 50: What is the user configuration for User preferred Python environment?",
+      "expected_answer": "Python 3.12+ via uv"
     }
   ]
 }
