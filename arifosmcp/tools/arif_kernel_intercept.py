@@ -216,7 +216,7 @@ def _verify_sovereign_token(
     # Sentinel fallback (dev-mode)
     if not token:
         return False
-    if len(token) != len(_SOVEREIGN_KEY_SENTINEL):
+    if not isinstance(token, str) or len(token) != len(_SOVEREIGN_KEY_SENTINEL):
         return False
     result = 0
     for a, b in zip(token, _SOVEREIGN_KEY_SENTINEL, strict=True):

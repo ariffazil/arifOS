@@ -21,12 +21,15 @@ from __future__ import annotations
 
 import hashlib
 import json as json_lib
+import logging
 import os
 import time as time_module
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger("arifos.judge")
 
 from arifosmcp.constitution.paradox_quotes import get_triggered_quotes_by_gpv
 from arifosmcp.core.conflict_resolver import (
@@ -541,6 +544,17 @@ async def arif_judge(
     context_source: str | None = None,
     sovereign_receipt: str | None = None,
     evidence: dict[str, Any] | None = None,
+    # ── F13 challenge authorization params (public MCP wrapper chain) ──
+    actor_signature: str | None = None,
+    nonce: str | None = None,
+    key_id: str | None = None,
+    reversibility_level: str | None = None,
+    blast_radius: str | None = None,
+    seal_purpose: str | None = None,
+    authority_effect: str | None = None,
+    action_class: str | None = None,
+    requested_capability: str | None = None,
+    domain: str | None = None,
 ) -> VerdictOutput:
     """
         888_JUDGE: Constitutional adjudication and verdict emission.
@@ -629,6 +643,59 @@ async def arif_judge(
                 )
         except Exception:
             pass
+
+    # ── F13 CHALLENGE AUTHORIZATION (public MCP wrapper chain) ─────────────
+    # Every MCP caller now hits the same handler. When actor_signature + nonce
+    # are present, verify the Ed25519-signed canonical challenge BEFORE any
+    # deliberation. This closes the wrapper chain mismatch where the public
+    # arif_judge surface previously had no F13 verification path.
+    if actor_signature and nonce and actor_id:
+        try:
+            from arifosmcp.runtime.crypto_auth import verify_authorization_challenge
+
+            _auth_ok, _auth_code, _auth_result = verify_authorization_challenge(
+                actor=actor_id,
+                nonce=nonce,
+                signature_b64=actor_signature,
+            )
+            if not _auth_ok:
+                return VerdictOutput(
+                    verdict=VerdictCode.HOLD,
+                    reasons=[
+                        f"F13 challenge verification failed: {_auth_code}",
+                        _auth_result.get("reason", "Authorization could not be verified"),
+                    ],
+                    next_safe_action=(
+                        "Re-issue authorization challenge via _arif_kernel_intercept "
+                        "and sign with Ed25519 key before retrying"
+                    ),
+                    meta={
+                        "gate": "F13_CHALLENGE_AUTH",
+                        "failure_code": _auth_code,
+                        "session_id": session_id,
+                        "floor": "F13",
+                        "floor_type": "HARD",
+                    },
+                )
+            logger.info(
+                "F13: arif_judge challenge authorization PASS — actor=%s session=%s",
+                actor_id,
+                session_id or "(none)",
+            )
+        except Exception as _f13_err:
+            logger.error("F13: arif_judge challenge verification error: %s", _f13_err)
+            return VerdictOutput(
+                verdict=VerdictCode.HOLD,
+                reasons=[f"F13 challenge verification error: {_f13_err}"],
+                next_safe_action="Check arifOS kernel health and retry challenge issuance",
+                meta={
+                    "gate": "F13_CHALLENGE_AUTH",
+                    "error": str(_f13_err),
+                    "session_id": session_id,
+                    "floor": "F13",
+                    "floor_type": "HARD",
+                },
+            )
 
     def _echo_standing(out: VerdictOutput) -> VerdictOutput:
         """Echo next-hop SCT continuity onto a direct VerdictOutput."""
