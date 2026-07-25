@@ -2208,7 +2208,7 @@ _CRITICAL_MODULES = [
     "arifosmcp/runtime/tools.py",
     "arifosmcp/runtime/forge_preflight.py",
     "arifosmcp/core/conflict_resolver.py",
-    "arifosmcp/core/crypto_auth.py",
+    "arifosmcp/core/crypto_auth/__init__.py",
 ]
 
 
