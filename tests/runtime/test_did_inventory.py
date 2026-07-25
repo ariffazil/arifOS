@@ -169,12 +169,17 @@ def test_module_exposes_only_read_only_callables() -> None:
     signature.
     """
     import inspect
+    import types
 
     forbidden_names = {"rotate", "rotate_key", "set_key", "write", "save"}
     for name in dir(did_inventory):
         if name.startswith("_"):
             continue
         attr = getattr(did_inventory, name)
+        # Skip re-exports of typing primitives (Any, Dict, etc.) — they
+        # are not module-defined callables.
+        if isinstance(attr, type) and attr.__module__ != did_inventory.__name__:
+            continue
         if not callable(attr):
             continue
         for forbidden in forbidden_names:
@@ -185,7 +190,14 @@ def test_module_exposes_only_read_only_callables() -> None:
         # All public callables must be pure or have explicit
         # no-side-effect docstrings.
         doc = inspect.getdoc(attr) or ""
-        assert "READ-ONLY" in doc or "read-only" in doc or "never" in doc.lower() or "build" in name.lower() or "get" in name.lower() or "safe" in name.lower(), (
+        assert (
+            "READ-ONLY" in doc
+            or "read-only" in doc
+            or "never" in doc.lower()
+            or "build" in name.lower()
+            or "get" in name.lower()
+            or "safe" in name.lower()
+        ), (
             f"public callable {name!r} should be clearly read-only or a "
             f"safe builder; doc={doc[:80]!r}"
         )
