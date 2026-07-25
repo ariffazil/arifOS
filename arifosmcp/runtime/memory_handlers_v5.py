@@ -25,6 +25,7 @@ DITEMPA BUKAN DIBERI — Forged, Not Given.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -303,6 +304,37 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         await _dr.aclose()
     except Exception:
         pass  # Dreamer will still gate-check; best-effort trigger
+
+    # ── FLW3: NATS federation.memory.raw publisher ──
+    # Fire-and-forget publish to NATS for downstream consumers
+    # (Deriver/memory_metabolizer, Kabarkan observability, Dreamer wake).
+    # Non-blocking — NATS failure does not block memory writes.
+    try:
+        import nats  # noqa: PLC0415
+
+        async def _nats_fire():
+            nc = await nats.connect("nats://localhost:4222", connect_timeout=2)
+            payload = json.dumps(
+                {
+                    "ts": _utc_now().isoformat(),
+                    "type": "MEMORY_WRITE",
+                    "memory_id": memory_id,
+                    "tier": tier_hint,
+                    "memory_class": memory_class,
+                    "truth_class": tc_status,
+                    "actor_id": actor_id,
+                    "session_id": session_id,
+                    "content_hash": content_hash,
+                    "summary": summary[:200],
+                }
+            )
+            await nc.publish("federation.memory.raw", payload.encode())
+            await nc.flush()
+            await nc.drain()
+
+        asyncio.ensure_future(_nats_fire())
+    except Exception:
+        pass  # NATS unreachable; consumer handles backfill
 
     # ── Emit receipt ──
     receipt = {
