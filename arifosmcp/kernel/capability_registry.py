@@ -476,14 +476,14 @@ def _build_default_graph() -> CapabilityGraph:
             capability_id="kernel.judge",
             tool_name="arif_judge",
             server_id="local",
-            description="Constitutional judgment",
-            authority_required=AuthorityTier.SOVEREIGN,
+            description="Constitutional judgment — F13 challenge gate handles authorization",
+            authority_required=AuthorityTier.LOW,
             mutation_class=MutationClass.ORG_STATE,
             irreversible=False,
             blast_radius=BlastRadius.ORGAN,
             resource_class=ResourceClass.MEMORY,
             organ_id="arifOS",
-            requires_888_hold=True,
+            requires_888_hold=False,  # F13 challenge gate inside kernel_intercept handles auth
             trust_state=TrustState.TRUSTED_READ,
         ),
         CapabilityNode(
