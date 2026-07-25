@@ -29,6 +29,69 @@ from arifosmcp.runtime.apex_canonical import (
 )
 
 
+class TestArifThinkModeApex(unittest.TestCase):
+    """G-fold lives only in arif_think(mode='apex') + apex_canonical helpers."""
+
+    def test_mode_apex_derives_g_not_stored_primitive(self):
+        from arifosmcp.tools.reason import arif_think
+
+        out = arif_think(
+            mode="apex",
+            query="entropy map probe",
+            context={
+                "apex_inputs": {
+                    "valid_leases": 1,
+                    "total_leases": 1,
+                    "floor_compliance": 13,
+                    "p_well": 0.9,
+                    "p_seis": 0.8,
+                    "p_geo": 0.7,
+                    "clarity": 0.9,
+                    "uncertainty": 0.05,
+                    "successful_steps": 3,
+                    "total_steps": 3,
+                    "h_witness": 0.8,
+                    "ai_witness": 0.85,
+                    "ext_witness": 0.75,
+                    "entropy_rate": -0.01,
+                }
+            },
+        )
+        data = out.model_dump() if hasattr(out, "model_dump") else dict(out)
+        apex = data.get("apex_scalars") or (data.get("result") or {}).get("apex_scalars")
+        self.assertIsNotNone(apex)
+        self.assertTrue(apex.get("derived") is True)
+        self.assertEqual(apex.get("source"), "arif_think.mode=apex")
+        self.assertEqual(apex.get("canonical_module"), "arifosmcp.runtime.apex_canonical")
+        self.assertIsInstance(apex.get("G"), (int, float))
+        self.assertGreaterEqual(apex["G"], 0.0)
+        self.assertLessEqual(apex["G"], 1.0)
+
+    def test_scalar_collector_rejects_confidence_as_g(self):
+        from arifosmcp.core.scalar_collector import ScalarCollector, UNMEASURED_SOURCE
+
+        # Confidence alone must NOT invent G
+        sc = ScalarCollector(evidence={"confidence": 0.95, "reasoning_confidence": 0.88})
+        g = sc.collect_G()
+        self.assertEqual(g.source, UNMEASURED_SOURCE)
+        self.assertIsNone(g.value)
+
+        # apex_scalars from arif_think mode=apex is accepted
+        sc2 = ScalarCollector(
+            evidence={
+                "apex_scalars": {
+                    "G": 0.42,
+                    "derived": True,
+                    "source": "arif_think.mode=apex",
+                }
+            }
+        )
+        g2 = sc2.collect_G()
+        self.assertTrue(g2.is_measured)
+        self.assertAlmostEqual(g2.value, 0.42)
+        self.assertEqual(g2.source, "arif_think.mode=apex")
+
+
 class TestComputeA(unittest.TestCase):
     """Test A — Authority measurement law."""
 

@@ -1,7 +1,12 @@
 """
-⚠️ DEPRECATED (2026-07-11 Phase 6 APEX Refactor) — DEAD CODE, zero importers.
+⚠️ DEPRECATED (2026-07-11 Phase 6 APEX Refactor) — DO NOT USE FOR CANONICAL G.
 APEX C_dark Detector — Bangang Detector + Angel-Demon Duality
 ===============================================================
+
+CANONICAL G-FOLD (AAA scalar physics, 2026-07-25):
+  G is computed ONLY via arif_think(mode='apex') → arifosmcp.runtime.apex_canonical
+  This module is a legacy dual-path retained for test compatibility only.
+  New code MUST import from apex_canonical. Ad-hoc G elsewhere is entropy.
 
 === APEX FORMULA (Multiplicative Intelligence) ===
 
