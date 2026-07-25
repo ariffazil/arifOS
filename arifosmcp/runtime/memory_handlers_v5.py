@@ -97,7 +97,12 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     """
     import uuid as _uuid
 
-    from arifosmcp.runtime.memory_store import _content_hash, _pg_write, _summarize
+    from arifosmcp.runtime.memory_store import (
+        _content_hash,
+        _pg_write,
+        _summarize,
+        _pg_update_qdrant_id,
+    )
     from arifosmcp.schemas import TruthClass, tier_allowed
 
     content = payload.get("content")
@@ -220,6 +225,43 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
     if not ok:
         return _sabar_remember("remember: L4 write returned False")
 
+    # ── L3 Qdrant: attempt real-time vector index (non-blocking) ──
+    # FLT3 fix: Previously L4 writes never propagated to L3 Qdrant.
+    # Now we attempt immediate vector_store(); if it fails (Ollama offline,
+    # Qdrant unreachable), the embedding_status='pending' backfill path
+    # in the pg_write metadata still applies.
+    qdrant_id = None
+    try:
+        from arifosmcp.memory.vector_memory_qdrant import vector_store as _vector_store
+
+        _l3_result = await _vector_store(
+            content=content,
+            metadata={
+                "memory_id": memory_id,
+                "tier": tier_hint,
+                "memory_class": memory_class,
+                "truth_class": tc_status,
+                "source": provenance.get("origin", "tool"),
+                "actor_id": actor_id,
+                "session_id": session_id,
+                "summary": summary,
+            },
+            session_id=session_id,
+            actor_id=actor_id,
+        )
+        if _l3_result.get("ok") and _l3_result.get("qdrant_id"):
+            qdrant_id = _l3_result["qdrant_id"]
+            # Update L4 row with the qdrant_id back-reference
+            try:
+                await _pg_update_qdrant_id(memory_id, qdrant_id)
+            except Exception:
+                pass  # L4 update is best-effort; L3 write already succeeded
+            logger.info(
+                f"FLT3: L3 Qdrant indexed memory_id={memory_id[:8]} qdrant_id={qdrant_id[:16]}..."
+            )
+    except Exception as _l3_err:
+        logger.warning(f"FLT3: L3 Qdrant write deferred (embedding_status=pending): {_l3_err}")
+
     # ── Constitutional seal for sovereign/canon memories ──
     # Tier L4+ or sensitivity=sovereign/canon memories are vault-sealed
     # to make them immutable constitutional state, not ephemeral L3 vectors.
@@ -249,6 +291,18 @@ async def _handle_remember(payload: dict[str, Any], ctx: Any) -> dict[str, Any]:
         except Exception as _seal_err:
             logger.warning(f"memory constitutional seal failed (non-blocking): {_seal_err}")
             _sealed = False
+
+    # ── Dreamer trigger: increment new-facts counter (P2.1) ──
+    # Every successful memory write seeds the Dreamer's G1 gate.
+    # Non-blocking — Redis failure does not block memory writes.
+    try:
+        import redis.asyncio as _aioredis  # noqa: PLC0415
+
+        _dr = _aioredis.from_url("redis://localhost:6379", decode_responses=True)
+        await _dr.incr("arif_new_conclusions")
+        await _dr.aclose()
+    except Exception:
+        pass  # Dreamer will still gate-check; best-effort trigger
 
     # ── Emit receipt ──
     receipt = {

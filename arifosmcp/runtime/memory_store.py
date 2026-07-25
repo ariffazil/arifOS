@@ -317,6 +317,31 @@ async def _pg_soft_delete(memory_id: str) -> bool:
         return False
 
 
+async def _pg_update_qdrant_id(memory_id: str, qdrant_id: str) -> bool:
+    """Update the qdrant_id back-reference on an existing L4 memory_store row.
+
+    FLT3 fix: When L3 Qdrant vector_store succeeds after L4 write,
+    we update the L4 row so retrieval can find the Qdrant point.
+    Non-blocking best-effort — failures are logged but not raised.
+    """
+    try:
+        import asyncpg  # noqa: PLC0415
+
+        conn = await asyncpg.connect(_PG_URL, timeout=5, statement_cache_size=0)
+        try:
+            await conn.execute(
+                "UPDATE memory_store SET qdrant_id = $1::uuid WHERE id = $2::uuid",
+                qdrant_id,
+                memory_id,
+            )
+            return True
+        finally:
+            await conn.close()
+    except Exception as exc:
+        logger.warning("FLT3: L4 qdrant_id back-ref update failed for %s: %s", memory_id, exc)
+        return False
+
+
 async def _pg_load_canonical(actor_id: str, limit: int = 5) -> list[dict]:
     """Load last N canonical memories for an actor from Postgres."""
     try:
