@@ -17077,6 +17077,78 @@ def _arif_judge_deliberate(
         floor_compliance=floor_compliance,
     )
 
+    # ── F13 MULTI-SOVEREIGN COLLISION DETECTION ─────────────────────────
+    # FALSIFICATION AUDIT 2026-07-25: detect and resolve when a different
+    # sovereign already has a verdict for the same constitutional_chain_id.
+    # If prior verdict conflicts (SEAL vs VOID), VOID dominates (safe default).
+    # This wires the existing conflict_resolver into the judge path.
+    _f13_collision = None
+    if constitutional_chain_id:
+        _prior = _JUDGE_CHAIN_REGISTRY.get(constitutional_chain_id)
+        if _prior is not None:
+            _prior_actor = _prior.get("actor_id", "")
+            _prior_verdict = _prior.get("verdict", "")
+            if _prior_actor and _prior_actor != (actor_id or "") and _prior_verdict:
+                if _prior_verdict != contract.verdict:
+                    # Collision detected — resolve via conflict resolver
+                    try:
+                        from arifosmcp.core.conflict_resolver import resolve_conflict
+                        from arifosmcp.core.decision_contract import ConflictEnvelope
+
+                        _env = ConflictEnvelope(
+                            conflict_id=f"f13-collision-{constitutional_chain_id[:16]}",
+                            organ_a="arifos",
+                            verdict_a=contract.verdict,
+                            organ_b="arifos",
+                            verdict_b=_prior_verdict,
+                            conflict_domain="f13_sovereign",
+                            is_irreversible=(
+                                getattr(forge_irrev_level, "value", 0) >= 2
+                            ),
+                        )
+                        _resolution = resolve_conflict(_env)
+                        if _resolution.requires_888_hold:
+                            logger.warning(
+                                f"F13 COLLISION: {actor_id} issued {contract.verdict} "
+                                f"but {_prior_actor} already issued {_prior_verdict} "
+                                f"for chain {constitutional_chain_id[:16]}. "
+                                f"Conflict resolver requires 888_HOLD. "
+                                f"VOID dominating as safe default."
+                            )
+                            # Safe default: VOID dominates
+                            contract.verdict = "VOID"
+                            _f13_collision = {
+                                "actor": actor_id,
+                                "prior_actor": _prior_actor,
+                                "this_verdict": contract.verdict,
+                                "prior_verdict": _prior_verdict,
+                                "resolution": "VOID_DOMINATES",
+                                "requires_888_hold": True,
+                            }
+                        else:
+                            logger.info(
+                                f"F13 RESOLVED: {_resolution.winner_verdict} "
+                                f"wins ({_resolution.resolution_method})"
+                            )
+                            contract.verdict = _resolution.winner_verdict
+                            _f13_collision = {
+                                "actor": actor_id,
+                                "prior_actor": _prior_actor,
+                                "this_verdict": contract.verdict,
+                                "prior_verdict": _prior_verdict,
+                                "resolution": _resolution.resolution_method,
+                                "winner": _resolution.winner_organ,
+                            }
+                    except Exception as _ce:
+                        logger.error(f"F13 collision resolver failed: {_ce}")
+                        contract.verdict = "VOID"
+                        _f13_collision = {
+                            "actor": actor_id,
+                            "prior_actor": _prior_actor,
+                            "error": str(_ce)[:100],
+                            "resolution": "VOID_DOMINATES_FALLBACK",
+                        }
+
     # ── AR-QOCF Rubric Gate (ENG-6.0, 2026-06-21) ────────────────────────────
     # Multi-axis quality check. If enabled (AXIS_FLOOR > 0), ALL axes must pass
     # before SEAL. Failing axes are surfaced in the verdict.
@@ -17137,6 +17209,8 @@ def _arif_judge_deliberate(
     meta_state["constitutional_chain_id"] = contract.constitutional_chain_id
     meta_state["state_hash"] = contract.state_hash
     meta_state["irreversibility_level"] = contract.irreversibility_level
+    if _f13_collision:
+        meta_state["f13_collision"] = _f13_collision
     if _rb:
         meta_state["arqocf_rubric"] = _rb
 
@@ -19146,27 +19220,29 @@ def _arif_forge_execute(
             _CONSUMED_NONCES.add(nonce)
 
     except ImportError as _ie:
-        # forge_preflight module not available — log but proceed
-        # This maintains backward compat during phased rollout
+        # forge_preflight module not available — FAIL-CLOSED
+        # Was hardcoded PASS for backward compat during phased rollout.
+        # FALSIFICATION AUDIT 2026-07-25: fail-closed prevents complete gate bypass.
+        logger.warning("forge_preflight module unavailable — FAILING CLOSED: %s", _ie)
         _forge_preflight_receipt = {
-            "session_valid": True,
-            "actor_bound": True,
-            "authority_recomputed": True,
-            "authority_gap_detected": False,
-            "judge_state_valid": True,
-            "judge_hash_match": True,
-            "constitutional_chain_valid": True,
-            "vault_receipt_valid": True,
-            "plan_manifest_bound": True,
-            "scar_consulted": True,
-            "forge_precheck_schema_valid": True,
-            "sealed_forge_plan_valid": True,
-            "reversibility": "REVERSIBLE",
-            "human_ack_required": False,
-            "human_ack_valid": True,
-            "replay_detected": False,
-            "final_gate": "PASS",
-            "reason_codes": ["I_PREFLIGHT_MODULE_UNAVAILABLE:skipped"],
+            "session_valid": False,
+            "actor_bound": False,
+            "authority_recomputed": False,
+            "authority_gap_detected": True,
+            "judge_state_valid": False,
+            "judge_hash_match": False,
+            "constitutional_chain_valid": False,
+            "vault_receipt_valid": False,
+            "plan_manifest_bound": False,
+            "scar_consulted": False,
+            "forge_precheck_schema_valid": False,
+            "sealed_forge_plan_valid": False,
+            "reversibility": "UNKNOWN",
+            "human_ack_required": True,
+            "human_ack_valid": False,
+            "replay_detected": True,
+            "final_gate": "HOLD",
+            "reason_codes": [f"I_PREFLIGHT_MODULE_UNAVAILABLE_FAIL_CLOSED:{_ie}"],
         }
     except Exception as _pe:
         # Preflight failed unexpectedly — log but don't block

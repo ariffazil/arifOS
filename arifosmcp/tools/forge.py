@@ -9,6 +9,8 @@ DITEMPA BUKAN DIBERI — Forged, Not Given
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 from datetime import UTC, datetime
 
@@ -60,12 +62,11 @@ async def arif_forge(
     permitted_scope: dict | None = None,
     plan_id: str | None = None,
     # ── F1 AMANAH: per-call sovereign signature (optional) ───────────────────
-    # The signature is currently bound at session_init and inherited via
-    # session_id; this field is reserved for a future per-call signature
-    # path. Accepting it now closes the schema gap surfaced by the
-    # 2026-06-12 external harness audit. F13 ratifies whether to
-    # actually enforce it; for now the field is recorded but not
-    # verified. AGI_KERNEL_READINESS_GATE_001 Tier 5.
+    # The signature is bound at session_init and inherited via session_id.
+    # Pre-execution Ed25519 verification gated at line 518+.
+    # FALSIFICATION AUDIT 2026-07-25: F13 ratifies enforcement — pre-execution
+    # gate active. Optional for backward compat; callers without per-call
+    # signature still pass via SCT session-level auth.
     actor_signature: str | None = None,
     nonce: str | None = None,
     dry_run: bool = False,
@@ -193,8 +194,14 @@ async def arif_forge(
             )
         )
 
-    # ── v3.1: Mode classification gate ────────────────────────────────────────
-    if mode not in _FORGE_MUTATE_ATOMIC:
+    # ── P0 EXECUTION BOUNDARY — CLOSED 2026-07-25 ──────────────────────────
+    # FALSIFICATION AUDIT: All MUTATE/ATOMIC modes HALTED until permit-to-execute
+    # protocol is hardened. Only query mode passes for read-only introspection.
+    #   REOPEN CONDITION: Ed25519 signature REQUIRED + verify BEFORE execution
+    #   + action_hash binding + durable atomic permit consumption.
+    #   Audit ref: arif_falsification_audit_2026-07-25
+    _P0_ALLOWED_MODES = {"query"}
+    if mode not in _P0_ALLOWED_MODES:
         return ForgeOutput(
             status="HOLD",
             result={},
@@ -202,11 +209,14 @@ async def arif_forge(
             meta={
                 "error_code": ForgeErrorCode.E_FORGE_MODE_NOT_ALLOWED,
                 "reason": (
-                    f"mode='{mode}' is not a MUTATE/ATOMIC mode. "
-                    f"Allowed: {sorted(_FORGE_MUTATE_ATOMIC)}. "
-                    f"For read-only: use forge_query. For planning: use forge_plan. "
-                    f"For simulation: use forge_dry_run."
+                    f"P0 EXECUTION BOUNDARY CLOSED — mode='{mode}' is HALTED. "
+                    f"Allowed: {sorted(_P0_ALLOWED_MODES)}. "
+                    f"MUTATE/ATOMIC modes (engineer/write/generate/commit/deploy) "
+                    f"blocked pending permit-to-execute protocol hardening. "
+                    f"See: 888 JUDGE → signed permit → 777 FORGE verify+consume → 999 receipt."
                 ),
+                "p0_boundary": "CLOSED",
+                "p0_audit": "arif_falsification_audit_2026-07-25",
                 "tool_manifest": ARIF_FORGE_EXECUTE_MANIFEST.model_dump(),
             },
             timestamp=datetime.now(UTC).isoformat(),
@@ -515,6 +525,79 @@ async def arif_forge(
 
     import asyncio
 
+    # ── P1: Ed25519 per-call signature — ENFORCED for mutation modes ──
+    # FALSIFICATION AUDIT 2026-07-25: Signature REQUIRED for any MUTATE/ATOMIC
+    # mode. Payload MUST cover session_id + action_hash + nonce + mode.
+    # Verification happens BEFORE _run_forge() — invalid signature = HOLD, no
+    # execution occurs.
+    _sig_receipt = None
+    _is_mutate = mode in _MUTATE_MODES | _ATOMIC_MODES
+    if _is_mutate and not (actor_signature and nonce):
+        _meta = {
+            "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+            "reason": (
+                f"F11 AUTH: Ed25519 actor_signature + nonce REQUIRED for "
+                f"mutation mode '{mode}'. P0 execution boundary enforces "
+                f"pre-execution cryptographic authorization. "
+                f"Provide both signature and nonce."
+            ),
+            "violated_laws": ["F11"],
+            "f13_status": "ENFORCED — Ed25519 per-call signature required for mutation",
+            "p0_audit": "arif_falsification_audit_2026-07-25",
+        }
+        _add_floor_compat(_meta)
+        return ForgeOutput(
+            status="HOLD",
+            result={},
+            manifest=ForgeManifest(status=ManifestStatus.HOLD),
+            meta=_meta,
+            timestamp=datetime.now(UTC).isoformat(),
+        )
+    if actor_signature and nonce:
+        try:
+            from pathlib import Path
+
+            from cryptography.hazmat.primitives import serialization
+            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+            _pub_pem = Path("/opt/arifos/secrets/did_arifos_public.key").read_bytes()
+            _pub_key = serialization.load_pem_public_key(_pub_pem)
+            if not isinstance(_pub_key, Ed25519PublicKey):
+                raise TypeError("Expected Ed25519PublicKey")
+            # P1: Full action_hash binding — signature covers:
+            #   session_id + actor_id + tool + mode + manifest_hash + plan_id +
+            #   constitutional_chain_id + permitted_scope + nonce
+            _action_hash = hashlib.sha256(
+                f"{session_id}:{actor_id}:arif_forge:{mode}:"
+                f"{hashlib.sha256(manifest.encode()).hexdigest()[:16]}:"
+                f"{plan_id or ''}:{constitutional_chain_id or ''}:"
+                f"{json.dumps(permitted_scope or {}, sort_keys=True)}:{nonce}".encode()
+            ).hexdigest()
+            _payload = _action_hash.encode()
+            _pub_key.verify(bytes.fromhex(actor_signature), _payload)
+            _sig_receipt = {
+                "actor_signature_verified": True,
+                "nonce_provided": True,
+                "action_hash": _action_hash,
+                "f13_status": "VERIFIED — Ed25519 per-call signature enforced (pre-execution)",
+                "binding": "session+actor+tool+mode+manifest+plan+chain+scope+nonce",
+            }
+        except Exception as e:
+            _meta = {
+                "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
+                "reason": f"F11 AUTH: actor_signature verification FAILED: {e}",
+                "violated_laws": ["F11"],
+                "f13_status": "REJECTED — invalid Ed25519 signature (pre-execution gate)",
+            }
+            _add_floor_compat(_meta)
+            return ForgeOutput(
+                status="HOLD",
+                result={},
+                manifest=ForgeManifest(status=ManifestStatus.HOLD),
+                meta=_meta,
+                timestamp=datetime.now(UTC).isoformat(),
+            )
+
     def _run_forge():
         return _arif_forge(
             mode=mode,
@@ -603,46 +686,12 @@ async def arif_forge(
         result.meta["vault_seal_error"] = str(e)[:200]
 
     _register_forge_cooldown(result, mode, manifest, artifact_id, session_id)
-    # ── v3.1: actor_signature verification (Ed25519) ────────────────────────
-    if actor_signature and nonce:
-        # Verify Ed25519 signature over (nonce + actor_id + mode)
-        try:
-            from pathlib import Path
-
-            from cryptography.hazmat.primitives import serialization
-            from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-
-            _pub_pem = Path("/opt/arifos/secrets/did_arifos_public.key").read_bytes()
-            _pub_key = serialization.load_pem_public_key(_pub_pem)
-            if not isinstance(_pub_key, Ed25519PublicKey):
-                raise TypeError("Expected Ed25519PublicKey")
-            _payload = f"{nonce}:{actor_id}:{mode}".encode()
-            _pub_key.verify(bytes.fromhex(actor_signature), _payload)
-            sig_receipt = {
-                "actor_signature_verified": True,
-                "nonce_provided": True,
-                "f13_status": "VERIFIED — Ed25519 per-call signature enforced",
-            }
-        except Exception as e:
-            _meta = {
-                "error_code": ForgeErrorCode.E_SYNTHESIS_EMPTY,
-                "reason": f"F11 AUTH: actor_signature verification FAILED: {e}",
-                "violated_laws": ["F11"],
-                "f13_status": "REJECTED — invalid Ed25519 signature",
-            }
-            _add_floor_compat(_meta)
-            return ForgeOutput(
-                status="HOLD",
-                result={},
-                manifest=ForgeManifest(status=ManifestStatus.HOLD),
-                meta=_meta,
-                timestamp=datetime.now(UTC).isoformat(),
-            )
-        # Attach to result.meta if present, else to result.result
+    # ── Attach pre-execution Ed25519 receipt to result (verify already gated above) ──
+    if _sig_receipt is not None:
         if hasattr(result, "meta") and result.meta is not None:
-            result.meta["per_call_signature_receipt"] = sig_receipt
+            result.meta["per_call_signature_receipt"] = _sig_receipt
         elif hasattr(result, "result") and isinstance(result.result, dict):
-            result.result["per_call_signature_receipt"] = sig_receipt
+            result.result["per_call_signature_receipt"] = _sig_receipt
     return _echo_standing(result)
 
 

@@ -124,12 +124,13 @@
       "sealed_range": null
     },
     {
-      "id": "F13",
-      "name": "SOVEREIGN",
-      "rule": "Human veto FINAL. Harness switch belongs to sovereign.",
-      "color": "#D4A853",
-      "operator": null,
-      "sealed_range": null
+        "id": "F13",
+        "name": "SOVEREIGN",
+        "rule": "Human veto FINAL. Harness switch belongs to sovereign.",
+        "multi_sovereign_ordering": "FIRST-SEAL-WINS by Merkle timestamp. First valid SEAL on an action chain locks it. Subsequent HOIDs/VOIDs from any sovereign on the same chain are recorded but do not override. Exception: a later VOID from the SAME sovereign overwrites their own SEAL.",
+        "color": "#D4A853",
+        "operator": null,
+        "sealed_range": null
     }
   ],
   "f2_band_mapping": {

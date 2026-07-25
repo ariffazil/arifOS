@@ -17,6 +17,13 @@ Tripwire order (hardening):
   5. REVERSIBILITY F1   — irreversible + uncertain → HOLD
   6. FLOOR         F10  — LLM-only → VOID
 
+Multi-sovereign ordering (P3/ADVERSARIAL):
+  F13 competing verdicts resolved by FIRST-SEAL-WINS per Merkle timestamp.
+  First valid SEAL on an action chain locks it. Subsequent HOIDs/VOIDs
+  from any sovereign on the same chain are recorded but do not override.
+  Exception: a later VOID from the SAME sovereign overwrites their own SEAL.
+  Rule codified in FLOOR_TABLE.json and enforced in cascade.py.
+
 DITEMPA BUKAN DIBERI — Forged, Not Given.
 """
 
@@ -172,7 +179,8 @@ def _check_reversibility(state: GovernanceState) -> TripwireResult:
 def _check_floors(state: GovernanceState) -> TripwireResult:
     if not state.evidence:
         return TripwireResult(
-            id="FLOOR", triggered=False, reason="No evidence to check", severity="WARN"
+            id="FLOOR", triggered=True, reason="F4 CLARITY: No evidence provided. Evidence required for SEAL.",
+            severity="BLOCK",
         )
     llm_only = all(e.source.upper() in ("LLM", "UNKNOWN") for e in state.evidence)
     if llm_only:

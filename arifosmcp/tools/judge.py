@@ -1663,6 +1663,7 @@ async def arif_judge(
         audit_entropy=audit_entropy,
         wealth_score=_evidence.get("wealth_score"),
         verification_surface=_evidence.get("verification_surface"),
+        evidence_receipt=evidence,
     )
 
     try:
