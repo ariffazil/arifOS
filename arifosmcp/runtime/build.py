@@ -42,6 +42,13 @@ _CRITICAL_MODULES = (
     "arifosmcp/runtime/authority.py",
     "arifosmcp/runtime/phoenix_72.py",
     "arifosmcp/runtime/governance_pipeline.py",
+    # P0 ADVERSARIAL FIXES (2026-07-25): Ed25519 forge gate, empty evidence
+    # BLOCK, evidence_receipt passthrough, F13 ordering. Hot-patched by
+    # Fable5's adversarial spec — now source-sealed and runtime-attested.
+    "arifosmcp/runtime/forge_preflight.py",
+    "arifosmcp/runtime/kernel/judge.py",
+    "arifosmcp/tools/forge.py",
+    "arifosmcp/tools/judge.py",
 )
 
 

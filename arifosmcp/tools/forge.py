@@ -90,11 +90,12 @@ async def arif_forge(
         plan_id: Approved plan_id from forge_plan (required for engineer/write/generate).
         action_tier: "standard" | "sovereign" | "c4" | "c5".
         permitted_scope: Bounding scope dict for the execution.
-        actor_signature: RESERVED — Ed25519 signature over
-            (actor_id + constitution_hash + nonce). Currently recorded
-            but not verified. F13 ratifies enforcement.
-        nonce: RESERVED — replay-prevention nonce. Must accompany
-            actor_signature if either is provided. F1 AMANAH.
+        actor_signature: ACTIVE — Ed25519 signature over
+            (session_id + actor_id + mode + manifest_hash + plan_id +
+            constitutional_chain_id + scope + nonce). ENFORCED before
+            any mutation execution. P0 adversarial audit 2026-07-25.
+        nonce: ACTIVE — replay-prevention nonce. REQUIRED with
+            actor_signature. Single-use per session. F1 AMANAH.
         dry_run: Amanah — when True, return structured plan/HOLD without mutation.
         session_token: SCT (sct_v1) preferred standing from arif_init.
     """
