@@ -22108,6 +22108,10 @@ async def _arif_kernel_intercept_tool(
     signature_challenge: dict[str, Any] | None = None,
     nonce: str | None = None,
     key_id: str | None = None,
+    # ── MCP aliases (ingress compat) ──
+    actor_id: str | None = None,
+    session_id: str | None = None,
+    mode: str = "intercept",
     # ── P1 FIX 2026-07-14: MCP kwarg-name tolerance ──
     **kwargs: Any,
 ) -> dict[str, Any]:
@@ -22125,8 +22129,15 @@ async def _arif_kernel_intercept_tool(
     `TypeError: unexpected keyword argument 'candidate'` from MCP clients.
     """
     # ── Kwarg translation (MCP-natural → kernel-canonical) ──────────────
-    if actor is None:
-        actor = kwargs.pop("actor_id", None) or "anonymous"
+    if actor is None or actor == "anonymous":
+        actor = actor_id or kwargs.pop("actor_id", None) or "anonymous"
+    # Force: if actor is still anonymous/default, try session from kwargs
+    if actor == "anonymous" or actor is None:
+        for key in ("actor", "actor_id"):
+            val = kwargs.get(key) or kwargs.get(key.upper())
+            if val:
+                actor = val
+                break
     if intent is None:
         # Common MCP-natural names: candidate, proposal, action, request, message
         intent = (

@@ -2681,7 +2681,18 @@ _TOOL_INPUT_SCHEMAS: dict[str, dict[str, Any]] = {
         "actor_id": str,  # L11: authenticated — required
         "constitutional_chain_id": str | None,
         "domain_payload": dict | None,
-        "peer_contract_id": str | None,  # P2P Federation Contract v1 audit continuity
+        "peer_contract_id": str | None,
+        # ── F13 Challenge Authorization (action specification) ──
+        "reversibility_level": str | None,  # R0-R5
+        "blast_radius": str | None,  # LOW|MEDIUM|HIGH|SOVEREIGN
+        "action_class": str | None,  # ACTION_AUTHORIZATION, AUDIT_RECORD, etc.
+        "seal_purpose": str | None,  # AUTHORIZE, RECORD
+        "authority_effect": str | None,  # EXECUTION_GRANT, NONE
+        # ── F13 Challenge Authorization (signed response) ──
+        "authority_token": str | None,
+        "actor_signature": str | None,  # base64 Ed25519 signature
+        "nonce": str | None,  # challenge nonce
+        "key_id": str | None,
     },
     "arif_seal": {
         "mode": str,

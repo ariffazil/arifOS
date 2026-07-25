@@ -46,10 +46,13 @@ _SOVEREIGN_KEY_SENTINEL = os.environ.get(
     "DEV_ONLY_SENTINEL_REPLACE_AT_PROD_BOOT",
 )
 _SOVEREIGN_ED25519_ENABLED = os.environ.get("ARIFOS_ED25519_ENABLED", "true").lower() in (
-    "true", "1", "yes",
+    "true",
+    "1",
+    "yes",
 )
 try:
     from arifosmcp.runtime.crypto_auth import verify_actor_signature as _ed25519_verify
+
     _ED25519_AVAILABLE = True
 except ImportError:
     _ED25519_AVAILABLE = False
@@ -137,24 +140,33 @@ def _verify_sovereign_token(
     """
     # Real Ed25519 path (production)
     import sys as _dbg3
+
     if _SOVEREIGN_ED25519_ENABLED and _ED25519_AVAILABLE and actor_signature and nonce and actor_id:
         # 1. Try new authorization challenge verification (Redis-backed)
-        _vfy_candidate = intent.split("sha256:")[-1].split()[0].strip() if intent and "sha256:" in intent else ""
-        print(f"F13_VERIFY: attempting auth_verify actor={actor_id} nonce={nonce[:16] if nonce else 'NONE'}... sig={bool(actor_signature)} candidate={_vfy_candidate}", file=_dbg3.stderr, flush=True)
+        _vfy_candidate = (
+            intent.split("sha256:")[-1].split()[0].strip() if intent and "sha256:" in intent else ""
+        )
+        print(
+            f"F13_VERIFY: attempting auth_verify actor={actor_id} nonce={nonce[:16] if nonce else 'NONE'}... sig={bool(actor_signature)} candidate={_vfy_candidate}",
+            file=_dbg3.stderr,
+            flush=True,
+        )
         try:
             from arifosmcp.runtime.crypto_auth import verify_authorization_challenge as _auth_verify
+
             _auth_ok, _auth_code, _auth_result = _auth_verify(
                 actor=actor_id,
                 nonce=nonce,
                 signature_b64=actor_signature,
-                session_id=session_id or "",
-                candidate_hash=_vfy_candidate,
-                audience="arifOS",
             )
             if _auth_ok:
                 logger.info("F13: authorization challenge PASS — nonce consumed, one-time auth")
                 return True
-            print(f"F13_VERIFY: auth_verify result: ok={_auth_ok} code={_auth_code}", file=_dbg3.stderr, flush=True)
+            print(
+                f"F13_VERIFY: auth_verify result: ok={_auth_ok} code={_auth_code}",
+                file=_dbg3.stderr,
+                flush=True,
+            )
             if _auth_code not in ("CHALLENGE_UNKNOWN", "SIGNATURE_MISSING"):
                 logger.warning("F13: authorization challenge FAIL — %s", _auth_code)
                 return False
@@ -194,8 +206,11 @@ def _verify_sovereign_token(
     else:
         logger.info(
             "F13_ED25519: skipped — enabled=%s available=%s has_sig=%s has_nonce=%s has_actor=%s",
-            _SOVEREIGN_ED25519_ENABLED, _ED25519_AVAILABLE,
-            bool(actor_signature), bool(nonce), bool(actor_id),
+            _SOVEREIGN_ED25519_ENABLED,
+            _ED25519_AVAILABLE,
+            bool(actor_signature),
+            bool(nonce),
+            bool(actor_id),
         )
 
     # Sentinel fallback (dev-mode)
@@ -245,14 +260,37 @@ async def _arif_kernel_intercept(
 
     _rev_raw = (reversibility_level or "").strip().upper()
     _REV_ALIASES = {
-        "R0": "R0", "R0_OBSERVATION": "R0", "OBSERVATION": "R0", "OBSERVE": "R0", "READ": "R0",
-        "R1": "R1", "R1_SIMULATION": "R1", "SIMULATION": "R1", "DRY_RUN": "R1",
-        "R2": "R2", "R2_REVERSIBLE_WRITE": "R2", "REVERSIBLE": "R2", "REVERSIBLE_WRITE": "R2", "WRITE": "R2",
-        "RECORD_ONLY_APPEND": "R2", "AI_ATTESTATION": "R2", "AUDIT_RECEIPT": "R2",
-        "EVIDENCE_ATTESTATION": "R2", "RECORD_SEAL": "R2", "EVIDENCE_SEAL": "R2",
-        "R3": "R3", "R3_COSTLY_REVERSIBLE": "R3", "COSTLY": "R3", "SEMI_IRREVERSIBLE": "R3",
-        "R4": "R4", "R4_IRREVERSIBLE": "R4", "IRREVERSIBLE": "R4",
-        "R5": "R5", "R5_SOVEREIGN": "R5", "SOVEREIGN": "R5", "CATASTROPHIC": "R5",
+        "R0": "R0",
+        "R0_OBSERVATION": "R0",
+        "OBSERVATION": "R0",
+        "OBSERVE": "R0",
+        "READ": "R0",
+        "R1": "R1",
+        "R1_SIMULATION": "R1",
+        "SIMULATION": "R1",
+        "DRY_RUN": "R1",
+        "R2": "R2",
+        "R2_REVERSIBLE_WRITE": "R2",
+        "REVERSIBLE": "R2",
+        "REVERSIBLE_WRITE": "R2",
+        "WRITE": "R2",
+        "RECORD_ONLY_APPEND": "R2",
+        "AI_ATTESTATION": "R2",
+        "AUDIT_RECEIPT": "R2",
+        "EVIDENCE_ATTESTATION": "R2",
+        "RECORD_SEAL": "R2",
+        "EVIDENCE_SEAL": "R2",
+        "R3": "R3",
+        "R3_COSTLY_REVERSIBLE": "R3",
+        "COSTLY": "R3",
+        "SEMI_IRREVERSIBLE": "R3",
+        "R4": "R4",
+        "R4_IRREVERSIBLE": "R4",
+        "IRREVERSIBLE": "R4",
+        "R5": "R5",
+        "R5_SOVEREIGN": "R5",
+        "SOVEREIGN": "R5",
+        "CATASTROPHIC": "R5",
     }
     try:
         r_class = ReversibilityClass(_REV_ALIASES.get(_rev_raw, _rev_raw))
@@ -329,7 +367,12 @@ async def _arif_kernel_intercept(
     _seal_type = "SEAL_RECORD" if _seal_purpose_resolved == "RECORD" else "SEAL_AUTHORIZATION"
     _ack_irreversible = _policy["ack_irreversible"]
     import sys as _dbg2
-    print(f"F13_POLICY: action_class={action_class} requires_f13={_requires_f13} seal_purpose={_seal_purpose_resolved} reversibility={_rev_raw}", file=_dbg2.stderr, flush=True)
+
+    print(
+        f"F13_POLICY: action_class={action_class} requires_f13={_requires_f13} seal_purpose={_seal_purpose_resolved} reversibility={_rev_raw}",
+        file=_dbg2.stderr,
+        flush=True,
+    )
 
     # 1. F13 Gate — real Ed25519 or sentinel fallback
     if _requires_f13:
@@ -342,13 +385,18 @@ async def _arif_kernel_intercept(
             intent=intent,
         ):
             # ── Issue structured authorization challenge ──
-            _candidate_hash = intent.split("sha256:")[-1].split()[0].strip() if intent and "sha256:" in intent else ""
+            _candidate_hash = (
+                intent.split("sha256:")[-1].split()[0].strip()
+                if intent and "sha256:" in intent
+                else ""
+            )
             try:
                 from arifosmcp.runtime.crypto_auth import issue_authorization_challenge as _iss_chal
                 from arifosmcp.runtime.crypto_auth import build_approval_card as _build_card
+
                 _challenge_ctx = _iss_chal(
                     actor=actor or "anonymous",
-                    session_id=session_id or actor or "anonymous",
+                    authorization_session_id=session_id or actor or "anonymous",
                     candidate_hash=_candidate_hash,
                     action_class=action_class or "ACTION_AUTHORIZATION",
                     reversibility=_rev_raw,
@@ -459,7 +507,9 @@ async def _arif_kernel_intercept(
         base = output.model_dump()
         target_aff = get_full_affordance(requested_capability)
         base["affordance"] = target_aff
-        base["next_safe_action"] = "Attach evidence or downgrade epistemic_state before re-intercept"
+        base["next_safe_action"] = (
+            "Attach evidence or downgrade epistemic_state before re-intercept"
+        )
         base["metacognition"] = {"confidence": 0.80, "next_safe_action": base["next_safe_action"]}
         return base
 
@@ -478,7 +528,9 @@ async def _arif_kernel_intercept(
             base = output.model_dump()
             base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
             base["membrane"] = {"source": _m.get("source", "unknown"), "kernel_computed": False}
-            base["next_safe_action"] = "Reduce hallucination risk (improve P or X primitives) then re-submit"
+            base["next_safe_action"] = (
+                "Reduce hallucination risk (improve P or X primitives) then re-submit"
+            )
             base["metacognition"] = {
                 "confidence": 0.90,
                 "next_safe_action": base["next_safe_action"],
@@ -500,7 +552,9 @@ async def _arif_kernel_intercept(
             base = output.model_dump()
             base["measurement_received"] = {"G": _G, "C_dark": _C_dark, "W3": _W3}
             base["membrane"] = {"source": _m.get("source", "unknown"), "kernel_computed": False}
-            base["next_safe_action"] = "Improve evidence/primitives then re-submit, or escalate to human"
+            base["next_safe_action"] = (
+                "Improve evidence/primitives then re-submit, or escalate to human"
+            )
             base["metacognition"] = {
                 "confidence": 0.85,
                 "next_safe_action": base["next_safe_action"],
