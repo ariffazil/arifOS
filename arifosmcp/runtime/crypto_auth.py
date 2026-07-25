@@ -16,7 +16,9 @@ Challenge nonces are single-use, TTL default 120s.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
+from datetime import UTC, datetime
 import logging
 import os
 import secrets
@@ -526,3 +528,180 @@ def _auto_sign_nonce(actor_id: str, nonce: str) -> str | None:
         pass
 
     return None
+
+
+# ============================================================================
+# F13 CHALLENGE AUTHORIZATION (forged 2026-07-25)
+# ============================================================================
+
+_REDIS_AVAILABLE = False
+_redis_client = None
+
+def _get_redis():
+    global _redis_client, _REDIS_AVAILABLE
+    if _redis_client is not None:
+        return _redis_client
+    url = os.environ.get("ARIFOS_REDIS_URL", "redis://127.0.0.1:6379/0")
+    try:
+        import redis as _redis_mod
+        _redis_client = _redis_mod.from_url(url, decode_responses=True)
+        _REDIS_AVAILABLE = True
+    except Exception as e:
+        logger.warning("Redis unavailable: %s", e)
+        _REDIS_AVAILABLE = False
+    return _redis_client
+
+def _challenge_redis_key(cid: str) -> str:
+    return f"arifos:challenge:{cid}"
+
+def _nonce_redis_key(nonce: str) -> str:
+    return f"arifos:nonce:{nonce}"
+
+def _used_nonce_redis_key(nonce: str) -> str:
+    return f"arifos:nonce:used:{nonce}"
+
+F13_FAILURE_CODES: dict[str, str] = {
+    "F13_REQUIRED": "F13 sovereign authorization required",
+    "SIGNATURE_MISSING": "No cryptographic signature provided",
+    "SIGNATURE_INVALID": "Ed25519 signature does not match",
+    "CHALLENGE_UNKNOWN": "No challenge issued for this nonce",
+    "CHALLENGE_EXPIRED": "Challenge TTL has elapsed",
+    "NONCE_REPLAY": "Nonce has already been consumed",
+    "ACTOR_MISMATCH": "Signed actor does not match challenge actor",
+    "SESSION_MISMATCH": "Signed session does not match challenge session",
+    "CANDIDATE_HASH_MISMATCH": "Signed candidate hash does not match challenge",
+    "PLAN_HASH_MISMATCH": "Signed plan hash does not match challenge",
+    "AUDIENCE_MISMATCH": "Signed audience does not match challenge audience",
+    "KEY_NOT_REGISTERED": "Actor has no registered Ed25519 public key",
+    "AUTHORIZATION_ALREADY_CONSUMED": "Authorization grant already used once",
+}
+
+def canonical_serialize_challenge(fields: dict) -> str:
+    c = {"actor": fields.get("actor",""), "session_id": fields.get("session_id",""),
+         "nonce": fields.get("nonce",""), "candidate_hash": fields.get("candidate_hash",""),
+         "action_class": fields.get("action_class",""), "reversibility": fields.get("reversibility",""),
+         "blast_radius": fields.get("blast_radius",""), "seal_purpose": fields.get("seal_purpose",""),
+         "authority_effect": fields.get("authority_effect",""), "audience": fields.get("audience","arifOS"),
+         "issued_at": fields.get("issued_at",""), "expires_at": fields.get("expires_at",""),
+         "plan_id": fields.get("plan_id",""), "target_environment": fields.get("target_environment","")}
+    return json.dumps(c, sort_keys=True, separators=(",",":"))
+
+def issue_authorization_challenge(actor, session_id, candidate_hash, action_class="ACTION_AUTHORIZATION",
+        reversibility="R4", blast_radius="MEDIUM", seal_purpose="AUTHORIZE",
+        authority_effect="EXECUTION_GRANT", audience="arifOS", plan_id="", target_environment="",
+        human_summary="", ttl_seconds=None):
+    ttl = ttl_seconds if ttl_seconds is not None else _CHALLENGE_TTL_SECONDS
+    now = time.time()
+    issued_at = datetime.fromtimestamp(now, tz=UTC).isoformat()
+    expires_at = datetime.fromtimestamp(now + ttl, tz=UTC).isoformat()
+    nonce = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
+    cid = "chal_" + hashlib.sha256(f"{actor}:{nonce}:{session_id}:{candidate_hash}".encode()).hexdigest()[:16]
+    payload = {"challenge_id": cid, "nonce": nonce, "actor": actor, "session_id": session_id,
+        "candidate_hash": candidate_hash, "action_class": action_class, "reversibility": reversibility,
+        "blast_radius": blast_radius, "seal_purpose": seal_purpose, "authority_effect": authority_effect,
+        "audience": audience, "issued_at": issued_at, "expires_at": expires_at, "plan_id": plan_id,
+        "target_environment": target_environment, "human_summary": human_summary, "consumed": False}
+    serialized = json.dumps(payload, separators=(",",":"))
+    cl = _get_redis()
+    if cl and _REDIS_AVAILABLE:
+        try: cl.set(_challenge_redis_key(cid), serialized, ex=ttl); cl.set(_nonce_redis_key(nonce), cid, ex=ttl)
+        except Exception as e: logger.warning("Redis store failed: %s", e)
+    return {"challenge_id": cid, "nonce": nonce, "actor": actor, "session_id": session_id,
+        "candidate_hash": candidate_hash, "action_class": action_class, "reversibility": reversibility,
+        "blast_radius": blast_radius, "seal_purpose": seal_purpose, "authority_effect": authority_effect,
+        "audience": audience, "issued_at": issued_at, "expires_at": expires_at, "human_summary": human_summary}
+
+def _load_challenge_by_nonce(nonce):
+    cl = _get_redis()
+    if cl and _REDIS_AVAILABLE:
+        try:
+            raw = cl.get(_nonce_redis_key(nonce))
+            if raw:
+                cid = raw.decode() if isinstance(raw, bytes) else raw
+                raw2 = cl.get(_challenge_redis_key(cid))
+                if raw2: return json.loads(raw2) if isinstance(raw2, str) else json.loads(raw2.decode())
+        except: pass
+    with _challenge_lock:
+        chal = _issued_challenges.get(nonce)
+        if chal and chal.expires_at > time.time():
+            return {"challenge_id":"chal_legacy","nonce":nonce,"actor":chal.actor_id,"session_id":"",
+                "candidate_hash":"","action_class":"ACTION_AUTHORIZATION","reversibility":"R4",
+                "blast_radius":"MEDIUM","seal_purpose":"AUTHORIZE","authority_effect":"EXECUTION_GRANT",
+                "audience":"arifOS",
+                "issued_at": datetime.fromtimestamp(chal.issued_at,tz=UTC).isoformat() if chal.issued_at else "",
+                "expires_at": datetime.fromtimestamp(chal.expires_at,tz=UTC).isoformat(),
+                "plan_id":"","target_environment":"","human_summary":"","consumed":False,
+                "_source":"in_memory_legacy"}
+    return None
+
+def _mark_consumed(challenge_id, nonce):
+    cl = _get_redis()
+    if cl and _REDIS_AVAILABLE:
+        try:
+            ok = cl.set(_used_nonce_redis_key(nonce), "1", nx=True, ex=_CHALLENGE_TTL_SECONDS * 2)
+            if ok: cl.delete(_challenge_redis_key(challenge_id), _nonce_redis_key(nonce)); return True
+            return False
+        except: pass
+    ok,_ = _consume_actor_challenge(nonce, nonce)
+    return ok
+
+def _check_consumed(nonce):
+    cl = _get_redis()
+    if cl and _REDIS_AVAILABLE:
+        try: return cl.get(_used_nonce_redis_key(nonce)) is not None
+        except: pass
+    with _challenge_lock: return nonce in _used_challenges
+
+def verify_authorization_challenge(actor, nonce, signature_b64, session_id="", candidate_hash="",
+        action_class="", reversibility="", blast_radius="", seal_purpose="", authority_effect="",
+        audience="arifOS", plan_id="", target_environment=""):
+    if not actor: return False, "ACTOR_MISMATCH", {}
+    if not nonce: return False, "SIGNATURE_MISSING", {}
+    if not signature_b64: return False, "SIGNATURE_MISSING", {}
+    pub = resolve_actor_public_key(actor)
+    if pub is None: return False, "KEY_NOT_REGISTERED", {}
+    if _check_consumed(nonce): return False, "NONCE_REPLAY", {}
+    stored = _load_challenge_by_nonce(nonce)
+    if stored is None: return False, "CHALLENGE_UNKNOWN", {}
+    is_legacy = stored.get("_source")=="in_memory_legacy" or not stored.get("session_id")
+    if not is_legacy:
+        if _normalize_actor(stored.get("actor","")) != _normalize_actor(actor): return False, "ACTOR_MISMATCH", {}
+        if session_id and stored.get("session_id") and stored["session_id"]!=session_id: return False, "SESSION_MISMATCH", {}
+        if candidate_hash and stored.get("candidate_hash") and stored["candidate_hash"]!=candidate_hash: return False, "CANDIDATE_HASH_MISMATCH", {}
+        if plan_id and stored.get("plan_id") and stored["plan_id"]!=plan_id: return False, "PLAN_HASH_MISMATCH", {}
+        if audience and stored.get("audience","arifOS") and stored.get("audience","arifOS")!=audience: return False, "AUDIENCE_MISMATCH", {}
+    es = stored.get("expires_at","")
+    if es:
+        try:
+            if time.time() > datetime.fromisoformat(es).timestamp(): return False, "CHALLENGE_EXPIRED", {}
+        except: pass
+    try: sig_bytes = base64.b64decode(signature_b64)
+    except: return False, "SIGNATURE_INVALID", {}
+    cf = {"actor":actor,"session_id":session_id or stored.get("session_id",""),"nonce":nonce,
+        "candidate_hash":candidate_hash or stored.get("candidate_hash",""),
+        "action_class":action_class or stored.get("action_class","ACTION_AUTHORIZATION"),
+        "reversibility":reversibility or stored.get("reversibility","R4"),
+        "blast_radius":blast_radius or stored.get("blast_radius","MEDIUM"),
+        "seal_purpose":seal_purpose or stored.get("seal_purpose","AUTHORIZE"),
+        "authority_effect":authority_effect or stored.get("authority_effect","EXECUTION_GRANT"),
+        "audience":audience or stored.get("audience","arifOS"),
+        "issued_at":stored.get("issued_at",""),"expires_at":stored.get("expires_at",""),
+        "plan_id":plan_id or stored.get("plan_id",""),
+        "target_environment":target_environment or stored.get("target_environment","")}
+    cj = canonical_serialize_challenge(cf); cb = cj.encode()
+    ok = False
+    for msg in [cb, f"{actor}:{nonce}".encode()]:
+        try: pub.verify(sig_bytes, msg); ok = True; break
+        except: continue
+    if not ok: return False, "SIGNATURE_INVALID", {}
+    cid2 = stored.get("challenge_id","chal_unknown")
+    if not _mark_consumed(cid2, nonce): return False, "NONCE_REPLAY", {}
+    return True, "", {"authorization_consumed":True, "challenge_id":cid2, "canonical_hash":hashlib.sha256(cb).hexdigest()}
+
+def build_approval_card(action_summary, reason, affected_systems=None, environment="production",
+        reversibility="R4", blast_radius="MEDIUM", rollback_summary="", requested_by="", expires_at=""):
+    return {"approval_card": {"title":"Production authorization required",
+        "action_summary":action_summary, "reason":reason, "affected_systems":affected_systems or [],
+        "environment":environment, "reversibility":reversibility, "blast_radius":blast_radius,
+        "rollback_available":bool(rollback_summary), "rollback_summary":rollback_summary,
+        "requested_by":requested_by, "expires_at":expires_at, "actions":["APPROVE","REJECT","INSPECT"]}}
