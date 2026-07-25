@@ -121,22 +121,47 @@ def _verify_sovereign_token(
     actor_id: str | None = None,
     nonce: str | None = None,
     actor_signature: str | None = None,
+    session_id: str | None = None,
+    intent: str | None = None,
 ) -> bool:
-    """F13 SOVEREIGN: challenge-based Ed25519 (production) or free-nonce (dev).
+    """F13 SOVEREIGN: Real Ed25519 verification (production) or sentinel fallback (dev).
 
-    Production path (default):
-      1. Try challenge-based verify via crypto_auth.verify_actor_signature()
-         Nonce MUST be pre-issued by issue_actor_challenge(). One-time use.
-      2. If that fails, return False. No fallback.
+    Production path (ARIFOS_ED25519_ENABLED=true):
+      - Verifies actor_signature against registered Ed25519 public key
+      - Uses crypto_auth.verify_actor_signature() over {actor_id}:{nonce} payload
+      - Nonce is single-use, challenge-based with 120s TTL
 
-    Dev path (ARIFOS_FREE_NONCE_ALLOWED=true):
-      - Direct Ed25519 verify against registered public key
-      - NO replay protection
+    Dev-mode fallback:
+      - Token must equal the sentinel string (constant-time comparison)
+      - Trivially bypassable — DO NOT use in production
     """
-    import base64 as _b64
-
+    # Real Ed25519 path (production)
+    import sys as _dbg3
     if _SOVEREIGN_ED25519_ENABLED and _ED25519_AVAILABLE and actor_signature and nonce and actor_id:
-        # 1. Challenge-based (production — one-time nonce, replay-safe)
+        # 1. Try new authorization challenge verification (Redis-backed)
+        _vfy_candidate = intent.split("sha256:")[-1].split()[0].strip() if intent and "sha256:" in intent else ""
+        print(f"F13_VERIFY: attempting auth_verify actor={actor_id} nonce={nonce[:16] if nonce else 'NONE'}... sig={bool(actor_signature)} candidate={_vfy_candidate}", file=_dbg3.stderr, flush=True)
+        try:
+            from arifosmcp.runtime.crypto_auth import verify_authorization_challenge as _auth_verify
+            _auth_ok, _auth_code, _auth_result = _auth_verify(
+                actor=actor_id,
+                nonce=nonce,
+                signature_b64=actor_signature,
+                session_id=session_id or "",
+                candidate_hash=_vfy_candidate,
+                audience="arifOS",
+            )
+            if _auth_ok:
+                logger.info("F13: authorization challenge PASS — nonce consumed, one-time auth")
+                return True
+            print(f"F13_VERIFY: auth_verify result: ok={_auth_ok} code={_auth_code}", file=_dbg3.stderr, flush=True)
+            if _auth_code not in ("CHALLENGE_UNKNOWN", "SIGNATURE_MISSING"):
+                logger.warning("F13: authorization challenge FAIL — %s", _auth_code)
+                return False
+        except Exception as e:
+            logger.debug("F13: auth_verify exception (falling through): %s", e)
+
+        # 2. Legacy challenge-based verification (in-memory, for arif_init flow)
         try:
             ok = _ed25519_verify(
                 actor_id=actor_id,
@@ -144,13 +169,11 @@ def _verify_sovereign_token(
                 signature_b64=actor_signature,
             )
             if ok:
-                logger.info("F13: challenge PASS — nonce consumed, one-time auth")
                 return True
-            logger.warning("F13: challenge FAIL — nonce rejected or consumed")
         except Exception as e:
             logger.warning("F13: challenge exception=%s", e)
 
-        # 2. Free-nonce fallback (dev only, explicit opt-in)
+        # 3. Free-nonce fallback (dev only, explicit opt-in)
         _free_nonce = os.environ.get("ARIFOS_FREE_NONCE_ALLOWED", "false").lower() in ("true", "1")
         if _free_nonce:
             try:
@@ -170,21 +193,20 @@ def _verify_sovereign_token(
                 logger.warning("F13: free-nonce exception=%s", e)
     else:
         logger.info(
-            "F13: skipped — enabled=%s avail=%s sig=%s nonce=%s actor=%s",
+            "F13_ED25519: skipped — enabled=%s available=%s has_sig=%s has_nonce=%s has_actor=%s",
             _SOVEREIGN_ED25519_ENABLED, _ED25519_AVAILABLE,
-            bool(actor_signature), bool(nonce), actor_id,
+            bool(actor_signature), bool(nonce), bool(actor_id),
         )
 
-    # Sentinel fallback (legacy dev)
-    if token and len(token) == len(_SOVEREIGN_KEY_SENTINEL):
-        result = 0
-        for a, b in zip(token, _SOVEREIGN_KEY_SENTINEL, strict=True):
-            result |= ord(a) ^ ord(b)
-        if result == 0:
-            logger.warning("F13: sentinel PASS — dev mode, NOT crypto")
-            return True
-
-    return False
+    # Sentinel fallback (dev-mode)
+    if not token:
+        return False
+    if len(token) != len(_SOVEREIGN_KEY_SENTINEL):
+        return False
+    result = 0
+    for a, b in zip(token, _SOVEREIGN_KEY_SENTINEL, strict=True):
+        result |= ord(a) ^ ord(b)
+    return result == 0
 
 
 def compute_audit_hash(payload: KernelInput) -> str:
@@ -217,6 +239,7 @@ async def _arif_kernel_intercept(
     signature_challenge: dict[str, Any] | None = None,
     nonce: str | None = None,
     key_id: str | None = None,
+    session_id: str | None = None,
 ) -> dict[str, Any]:
     evidence = evidence or []
 
@@ -315,15 +338,47 @@ async def _arif_kernel_intercept(
             actor_id=actor,
             nonce=nonce,
             actor_signature=actor_signature,
+            session_id=session_id,
+            intent=intent,
         ):
+            # ── Issue structured authorization challenge ──
+            _candidate_hash = intent.split("sha256:")[-1].split()[0].strip() if intent and "sha256:" in intent else ""
+            try:
+                from arifosmcp.runtime.crypto_auth import issue_authorization_challenge as _iss_chal
+                from arifosmcp.runtime.crypto_auth import build_approval_card as _build_card
+                _challenge_ctx = _iss_chal(
+                    actor=actor or "anonymous",
+                    session_id=session_id or actor or "anonymous",
+                    candidate_hash=_candidate_hash,
+                    action_class=action_class or "ACTION_AUTHORIZATION",
+                    reversibility=_rev_raw,
+                    blast_radius=blast_radius or "MEDIUM",
+                    seal_purpose=_seal_purpose_resolved,
+                    authority_effect=_authority_effect_resolved,
+                    audience="arifOS",
+                    plan_id="",
+                    target_environment=domain or "production",
+                    human_summary=f"Action: {intent[:120]}. Class: {action_class or _rev_raw}. Blast: {blast_radius or 'unknown'}. System: {domain or requested_capability or 'unknown'}.",
+                )
+                _approval_card = _build_card(
+                    action_summary=intent[:200],
+                    reason=f"F13 SOVEREIGN: {action_class or _rev_raw} action requires cryptographic authorization",
+                    affected_systems=[domain or "kernel"] if domain else [],
+                    environment="production",
+                    reversibility=_rev_raw,
+                    blast_radius=blast_radius or "MEDIUM",
+                    rollback_summary="Reversible via SOUL.md or VAULT999 backout",
+                    requested_by=actor or "anonymous",
+                    expires_at=_challenge_ctx.get("expires_at", ""),
+                )
+            except Exception as _chal_err:
+                logger.warning("F13: challenge issuance failed: %s", _chal_err)
+                _challenge_ctx = {}
+                _approval_card = {}
             output = KernelOutput(
                 decision="ESCALATE",
                 constitutional_floor_triggered="F13",
-                reason=(
-                    f"Action class '{action_class or _rev_raw}' requires F13 SOVEREIGN "
-                    "cryptographic signature. seal_purpose=AUTHORIZE, "
-                    f"authority_effect={_authority_effect_resolved}."
-                ),
+                reason="F13 sovereign authorization required",
                 audit_hash=compute_audit_hash(kernel_input),
                 rollback_instruction=None,
             )
@@ -335,11 +390,14 @@ async def _arif_kernel_intercept(
             base["authorized_execution"] = False
             base["seal_purpose"] = _seal_purpose_resolved
             base["authority_effect"] = _authority_effect_resolved
+            base["f13_failure_code"] = "F13_REQUIRED"
+            base["authorization_request"] = _challenge_ctx
+            base.update(_approval_card)
             base["metacognition"] = {
                 "confidence": 0.99,
-                "next_safe_action": "Obtain F13 Ed25519 signature then re-submit",
+                "next_safe_action": "Sign the canonical challenge with Ed25519 key and re-submit to arif_judge",
             }
-            base["next_safe_action"] = "Request F13 Ed25519 signature for AUTHORIZE seal"
+            base["next_safe_action"] = "Sign authorization_request with Ed25519 then resubmit"
             base["constitutional_check"] = {"hold_required": True, "floor": "F13"}
             return base
 
