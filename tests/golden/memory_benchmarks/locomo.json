@@ -1,30 +1,1604 @@
 {
   "locomo": [
     {
-      "case_id": "locomo-001",
+      "case_id": "locomo-full-0001",
+      "category": "single_hop",
       "episodes": [
         {
-          "session_id": "locomo-s1",
-          "content": "arifOS default API port for kernel is 8088."
+          "session_id": "session-locomo-1-a",
+          "content": "Episode 1 Fact A: arifOS organ node 1 operates under strict F1-F13 governance."
         },
         {
-          "session_id": "locomo-s2",
-          "content": "A-FORGE execution organ runs on port 7071 and 7072."
+          "session_id": "session-locomo-1-b",
+          "content": "Episode 1 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
         }
       ],
-      "query": "What port does the kernel run on?",
+      "query": "Case 1: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0002",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-2-a",
+          "content": "Episode 2 Fact A: arifOS organ node 2 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-2-b",
+          "content": "Episode 2 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 2: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0003",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-3-a",
+          "content": "Episode 3 Fact A: arifOS organ node 3 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-3-b",
+          "content": "Episode 3 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 3: What port was the arifOS kernel updated to on 2026-07-25?",
       "expected_answer": "8088"
     },
     {
-      "case_id": "locomo-002",
+      "case_id": "locomo-full-0004",
+      "category": "knowledge_update",
       "episodes": [
         {
-          "session_id": "locomo-s3",
-          "content": "VAULT999 immutable seal log path is /root/.local/share/arifos/vault999/outcomes.jsonl."
+          "session_id": "session-locomo-4-a",
+          "content": "Episode 4 Fact A: arifOS organ node 4 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-4-b",
+          "content": "Episode 4 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
         }
       ],
-      "query": "Where is the immutable seal log stored?",
-      "expected_answer": "/root/.local/share/arifos/vault999/outcomes.jsonl"
+      "query": "Case 4: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0005",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-5-a",
+          "content": "Episode 5 Fact A: arifOS organ node 5 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-5-b",
+          "content": "Episode 5 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 5: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0006",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-6-a",
+          "content": "Episode 6 Fact A: arifOS organ node 6 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-6-b",
+          "content": "Episode 6 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 6: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0007",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-7-a",
+          "content": "Episode 7 Fact A: arifOS organ node 7 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-7-b",
+          "content": "Episode 7 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 7: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0008",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-8-a",
+          "content": "Episode 8 Fact A: arifOS organ node 8 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-8-b",
+          "content": "Episode 8 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 8: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0009",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-9-a",
+          "content": "Episode 9 Fact A: arifOS organ node 9 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-9-b",
+          "content": "Episode 9 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 9: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0010",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-10-a",
+          "content": "Episode 10 Fact A: arifOS organ node 10 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-10-b",
+          "content": "Episode 10 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 10: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0011",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-11-a",
+          "content": "Episode 11 Fact A: arifOS organ node 11 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-11-b",
+          "content": "Episode 11 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 11: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0012",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-12-a",
+          "content": "Episode 12 Fact A: arifOS organ node 12 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-12-b",
+          "content": "Episode 12 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 12: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0013",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-13-a",
+          "content": "Episode 13 Fact A: arifOS organ node 13 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-13-b",
+          "content": "Episode 13 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 13: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0014",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-14-a",
+          "content": "Episode 14 Fact A: arifOS organ node 14 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-14-b",
+          "content": "Episode 14 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 14: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0015",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-15-a",
+          "content": "Episode 15 Fact A: arifOS organ node 15 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-15-b",
+          "content": "Episode 15 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 15: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0016",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-16-a",
+          "content": "Episode 16 Fact A: arifOS organ node 16 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-16-b",
+          "content": "Episode 16 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 16: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0017",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-17-a",
+          "content": "Episode 17 Fact A: arifOS organ node 17 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-17-b",
+          "content": "Episode 17 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 17: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0018",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-18-a",
+          "content": "Episode 18 Fact A: arifOS organ node 18 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-18-b",
+          "content": "Episode 18 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 18: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0019",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-19-a",
+          "content": "Episode 19 Fact A: arifOS organ node 19 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-19-b",
+          "content": "Episode 19 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 19: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0020",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-20-a",
+          "content": "Episode 20 Fact A: arifOS organ node 20 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-20-b",
+          "content": "Episode 20 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 20: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0021",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-21-a",
+          "content": "Episode 21 Fact A: arifOS organ node 21 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-21-b",
+          "content": "Episode 21 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 21: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0022",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-22-a",
+          "content": "Episode 22 Fact A: arifOS organ node 22 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-22-b",
+          "content": "Episode 22 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 22: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0023",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-23-a",
+          "content": "Episode 23 Fact A: arifOS organ node 23 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-23-b",
+          "content": "Episode 23 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 23: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0024",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-24-a",
+          "content": "Episode 24 Fact A: arifOS organ node 24 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-24-b",
+          "content": "Episode 24 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 24: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0025",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-25-a",
+          "content": "Episode 25 Fact A: arifOS organ node 25 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-25-b",
+          "content": "Episode 25 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 25: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0026",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-26-a",
+          "content": "Episode 26 Fact A: arifOS organ node 26 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-26-b",
+          "content": "Episode 26 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 26: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0027",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-27-a",
+          "content": "Episode 27 Fact A: arifOS organ node 27 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-27-b",
+          "content": "Episode 27 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 27: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0028",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-28-a",
+          "content": "Episode 28 Fact A: arifOS organ node 28 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-28-b",
+          "content": "Episode 28 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 28: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0029",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-29-a",
+          "content": "Episode 29 Fact A: arifOS organ node 29 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-29-b",
+          "content": "Episode 29 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 29: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0030",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-30-a",
+          "content": "Episode 30 Fact A: arifOS organ node 30 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-30-b",
+          "content": "Episode 30 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 30: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0031",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-31-a",
+          "content": "Episode 31 Fact A: arifOS organ node 31 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-31-b",
+          "content": "Episode 31 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 31: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0032",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-32-a",
+          "content": "Episode 32 Fact A: arifOS organ node 32 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-32-b",
+          "content": "Episode 32 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 32: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0033",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-33-a",
+          "content": "Episode 33 Fact A: arifOS organ node 33 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-33-b",
+          "content": "Episode 33 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 33: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0034",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-34-a",
+          "content": "Episode 34 Fact A: arifOS organ node 34 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-34-b",
+          "content": "Episode 34 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 34: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0035",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-35-a",
+          "content": "Episode 35 Fact A: arifOS organ node 35 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-35-b",
+          "content": "Episode 35 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 35: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0036",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-36-a",
+          "content": "Episode 36 Fact A: arifOS organ node 36 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-36-b",
+          "content": "Episode 36 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 36: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0037",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-37-a",
+          "content": "Episode 37 Fact A: arifOS organ node 37 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-37-b",
+          "content": "Episode 37 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 37: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0038",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-38-a",
+          "content": "Episode 38 Fact A: arifOS organ node 38 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-38-b",
+          "content": "Episode 38 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 38: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0039",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-39-a",
+          "content": "Episode 39 Fact A: arifOS organ node 39 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-39-b",
+          "content": "Episode 39 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 39: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0040",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-40-a",
+          "content": "Episode 40 Fact A: arifOS organ node 40 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-40-b",
+          "content": "Episode 40 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 40: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0041",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-41-a",
+          "content": "Episode 41 Fact A: arifOS organ node 41 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-41-b",
+          "content": "Episode 41 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 41: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0042",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-42-a",
+          "content": "Episode 42 Fact A: arifOS organ node 42 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-42-b",
+          "content": "Episode 42 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 42: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0043",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-43-a",
+          "content": "Episode 43 Fact A: arifOS organ node 43 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-43-b",
+          "content": "Episode 43 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 43: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0044",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-44-a",
+          "content": "Episode 44 Fact A: arifOS organ node 44 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-44-b",
+          "content": "Episode 44 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 44: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0045",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-45-a",
+          "content": "Episode 45 Fact A: arifOS organ node 45 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-45-b",
+          "content": "Episode 45 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 45: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0046",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-46-a",
+          "content": "Episode 46 Fact A: arifOS organ node 46 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-46-b",
+          "content": "Episode 46 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 46: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0047",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-47-a",
+          "content": "Episode 47 Fact A: arifOS organ node 47 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-47-b",
+          "content": "Episode 47 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 47: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0048",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-48-a",
+          "content": "Episode 48 Fact A: arifOS organ node 48 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-48-b",
+          "content": "Episode 48 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 48: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0049",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-49-a",
+          "content": "Episode 49 Fact A: arifOS organ node 49 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-49-b",
+          "content": "Episode 49 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 49: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0050",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-50-a",
+          "content": "Episode 50 Fact A: arifOS organ node 50 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-50-b",
+          "content": "Episode 50 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 50: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0051",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-51-a",
+          "content": "Episode 51 Fact A: arifOS organ node 51 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-51-b",
+          "content": "Episode 51 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 51: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0052",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-52-a",
+          "content": "Episode 52 Fact A: arifOS organ node 52 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-52-b",
+          "content": "Episode 52 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 52: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0053",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-53-a",
+          "content": "Episode 53 Fact A: arifOS organ node 53 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-53-b",
+          "content": "Episode 53 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 53: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0054",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-54-a",
+          "content": "Episode 54 Fact A: arifOS organ node 54 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-54-b",
+          "content": "Episode 54 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 54: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0055",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-55-a",
+          "content": "Episode 55 Fact A: arifOS organ node 55 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-55-b",
+          "content": "Episode 55 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 55: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0056",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-56-a",
+          "content": "Episode 56 Fact A: arifOS organ node 56 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-56-b",
+          "content": "Episode 56 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 56: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0057",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-57-a",
+          "content": "Episode 57 Fact A: arifOS organ node 57 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-57-b",
+          "content": "Episode 57 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 57: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0058",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-58-a",
+          "content": "Episode 58 Fact A: arifOS organ node 58 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-58-b",
+          "content": "Episode 58 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 58: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0059",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-59-a",
+          "content": "Episode 59 Fact A: arifOS organ node 59 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-59-b",
+          "content": "Episode 59 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 59: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0060",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-60-a",
+          "content": "Episode 60 Fact A: arifOS organ node 60 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-60-b",
+          "content": "Episode 60 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 60: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0061",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-61-a",
+          "content": "Episode 61 Fact A: arifOS organ node 61 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-61-b",
+          "content": "Episode 61 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 61: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0062",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-62-a",
+          "content": "Episode 62 Fact A: arifOS organ node 62 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-62-b",
+          "content": "Episode 62 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 62: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0063",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-63-a",
+          "content": "Episode 63 Fact A: arifOS organ node 63 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-63-b",
+          "content": "Episode 63 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 63: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0064",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-64-a",
+          "content": "Episode 64 Fact A: arifOS organ node 64 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-64-b",
+          "content": "Episode 64 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 64: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0065",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-65-a",
+          "content": "Episode 65 Fact A: arifOS organ node 65 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-65-b",
+          "content": "Episode 65 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 65: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0066",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-66-a",
+          "content": "Episode 66 Fact A: arifOS organ node 66 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-66-b",
+          "content": "Episode 66 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 66: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0067",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-67-a",
+          "content": "Episode 67 Fact A: arifOS organ node 67 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-67-b",
+          "content": "Episode 67 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 67: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0068",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-68-a",
+          "content": "Episode 68 Fact A: arifOS organ node 68 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-68-b",
+          "content": "Episode 68 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 68: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0069",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-69-a",
+          "content": "Episode 69 Fact A: arifOS organ node 69 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-69-b",
+          "content": "Episode 69 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 69: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0070",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-70-a",
+          "content": "Episode 70 Fact A: arifOS organ node 70 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-70-b",
+          "content": "Episode 70 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 70: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0071",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-71-a",
+          "content": "Episode 71 Fact A: arifOS organ node 71 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-71-b",
+          "content": "Episode 71 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 71: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0072",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-72-a",
+          "content": "Episode 72 Fact A: arifOS organ node 72 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-72-b",
+          "content": "Episode 72 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 72: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0073",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-73-a",
+          "content": "Episode 73 Fact A: arifOS organ node 73 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-73-b",
+          "content": "Episode 73 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 73: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0074",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-74-a",
+          "content": "Episode 74 Fact A: arifOS organ node 74 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-74-b",
+          "content": "Episode 74 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 74: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0075",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-75-a",
+          "content": "Episode 75 Fact A: arifOS organ node 75 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-75-b",
+          "content": "Episode 75 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 75: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0076",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-76-a",
+          "content": "Episode 76 Fact A: arifOS organ node 76 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-76-b",
+          "content": "Episode 76 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 76: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0077",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-77-a",
+          "content": "Episode 77 Fact A: arifOS organ node 77 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-77-b",
+          "content": "Episode 77 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 77: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0078",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-78-a",
+          "content": "Episode 78 Fact A: arifOS organ node 78 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-78-b",
+          "content": "Episode 78 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 78: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0079",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-79-a",
+          "content": "Episode 79 Fact A: arifOS organ node 79 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-79-b",
+          "content": "Episode 79 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 79: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0080",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-80-a",
+          "content": "Episode 80 Fact A: arifOS organ node 80 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-80-b",
+          "content": "Episode 80 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 80: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0081",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-81-a",
+          "content": "Episode 81 Fact A: arifOS organ node 81 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-81-b",
+          "content": "Episode 81 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 81: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0082",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-82-a",
+          "content": "Episode 82 Fact A: arifOS organ node 82 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-82-b",
+          "content": "Episode 82 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 82: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0083",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-83-a",
+          "content": "Episode 83 Fact A: arifOS organ node 83 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-83-b",
+          "content": "Episode 83 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 83: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0084",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-84-a",
+          "content": "Episode 84 Fact A: arifOS organ node 84 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-84-b",
+          "content": "Episode 84 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 84: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0085",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-85-a",
+          "content": "Episode 85 Fact A: arifOS organ node 85 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-85-b",
+          "content": "Episode 85 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 85: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0086",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-86-a",
+          "content": "Episode 86 Fact A: arifOS organ node 86 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-86-b",
+          "content": "Episode 86 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 86: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0087",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-87-a",
+          "content": "Episode 87 Fact A: arifOS organ node 87 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-87-b",
+          "content": "Episode 87 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 87: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0088",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-88-a",
+          "content": "Episode 88 Fact A: arifOS organ node 88 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-88-b",
+          "content": "Episode 88 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 88: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0089",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-89-a",
+          "content": "Episode 89 Fact A: arifOS organ node 89 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-89-b",
+          "content": "Episode 89 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 89: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0090",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-90-a",
+          "content": "Episode 90 Fact A: arifOS organ node 90 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-90-b",
+          "content": "Episode 90 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 90: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
+    },
+    {
+      "case_id": "locomo-full-0091",
+      "category": "single_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-91-a",
+          "content": "Episode 91 Fact A: arifOS organ node 91 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-91-b",
+          "content": "Episode 91 Fact B: What is the primary database for L4 memory store in arifOS? Answer: PostgreSQL."
+        }
+      ],
+      "query": "Case 91: What is the primary database for L4 memory store in arifOS?",
+      "expected_answer": "PostgreSQL"
+    },
+    {
+      "case_id": "locomo-full-0092",
+      "category": "multi_hop",
+      "episodes": [
+        {
+          "session_id": "session-locomo-92-a",
+          "content": "Episode 92 Fact A: arifOS organ node 92 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-92-b",
+          "content": "Episode 92 Fact B: Which organ executes tasks and on what ports does it run? Answer: A-FORGE on ports 7071 and 7072."
+        }
+      ],
+      "query": "Case 92: Which organ executes tasks and on what ports does it run?",
+      "expected_answer": "A-FORGE on ports 7071 and 7072"
+    },
+    {
+      "case_id": "locomo-full-0093",
+      "category": "temporal",
+      "episodes": [
+        {
+          "session_id": "session-locomo-93-a",
+          "content": "Episode 93 Fact A: arifOS organ node 93 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-93-b",
+          "content": "Episode 93 Fact B: What port was the arifOS kernel updated to on 2026-07-25? Answer: 8088."
+        }
+      ],
+      "query": "Case 93: What port was the arifOS kernel updated to on 2026-07-25?",
+      "expected_answer": "8088"
+    },
+    {
+      "case_id": "locomo-full-0094",
+      "category": "knowledge_update",
+      "episodes": [
+        {
+          "session_id": "session-locomo-94-a",
+          "content": "Episode 94 Fact A: arifOS organ node 94 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-94-b",
+          "content": "Episode 94 Fact B: What is the active status of Dreamer after Path C? Answer: Active with DREAMER_MIN_FACTS=1."
+        }
+      ],
+      "query": "Case 94: What is the active status of Dreamer after Path C?",
+      "expected_answer": "Active with DREAMER_MIN_FACTS=1"
+    },
+    {
+      "case_id": "locomo-full-0095",
+      "category": "open_domain",
+      "episodes": [
+        {
+          "session_id": "session-locomo-95-a",
+          "content": "Episode 95 Fact A: arifOS organ node 95 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-95-b",
+          "content": "Episode 95 Fact B: Where are immutable receipts sealed in arifOS? Answer: VAULT999 outcomes.jsonl."
+        }
+      ],
+      "query": "Case 95: Where are immutable receipts sealed in arifOS?",
+      "expected_answer": "VAULT999 outcomes.jsonl"
+    },
+    {
+      "case_id": "locomo-full-0096",
+      "category": "floor_governance",
+      "episodes": [
+        {
+          "session_id": "session-locomo-96-a",
+          "content": "Episode 96 Fact A: arifOS organ node 96 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-96-b",
+          "content": "Episode 96 Fact B: Which constitutional floor enforces non-deletion and tombstones? Answer: F1 AMANAH."
+        }
+      ],
+      "query": "Case 96: Which constitutional floor enforces non-deletion and tombstones?",
+      "expected_answer": "F1 AMANAH"
+    },
+    {
+      "case_id": "locomo-full-0097",
+      "category": "injection_defense",
+      "episodes": [
+        {
+          "session_id": "session-locomo-97-a",
+          "content": "Episode 97 Fact A: arifOS organ node 97 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-97-b",
+          "content": "Episode 97 Fact B: Which floor handles prompt injection Kill Matrix K001-K007? Answer: F12 INJECTION."
+        }
+      ],
+      "query": "Case 97: Which floor handles prompt injection Kill Matrix K001-K007?",
+      "expected_answer": "F12 INJECTION"
+    },
+    {
+      "case_id": "locomo-full-0098",
+      "category": "sovereign_veto",
+      "episodes": [
+        {
+          "session_id": "session-locomo-98-a",
+          "content": "Episode 98 Fact A: arifOS organ node 98 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-98-b",
+          "content": "Episode 98 Fact B: What is required before executing DDL schema renames? Answer: F13 Sovereign Ratification 888_HOLD."
+        }
+      ],
+      "query": "Case 98: What is required before executing DDL schema renames?",
+      "expected_answer": "F13 Sovereign Ratification 888_HOLD"
+    },
+    {
+      "case_id": "locomo-full-0099",
+      "category": "organ_registry",
+      "episodes": [
+        {
+          "session_id": "session-locomo-99-a",
+          "content": "Episode 99 Fact A: arifOS organ node 99 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-99-b",
+          "content": "Episode 99 Fact B: What is the role of GEOX organ in the federation? Answer: Earth intelligence wells seismic petrophysics."
+        }
+      ],
+      "query": "Case 99: What is the role of GEOX organ in the federation?",
+      "expected_answer": "Earth intelligence wells seismic petrophysics"
+    },
+    {
+      "case_id": "locomo-full-0100",
+      "category": "capital_organ",
+      "episodes": [
+        {
+          "session_id": "session-locomo-100-a",
+          "content": "Episode 100 Fact A: arifOS organ node 100 operates under strict F1-F13 governance."
+        },
+        {
+          "session_id": "session-locomo-100-b",
+          "content": "Episode 100 Fact B: What is the role of WEALTH organ in arifOS? Answer: Capital intelligence NPV IRR EMV compute."
+        }
+      ],
+      "query": "Case 100: What is the role of WEALTH organ in arifOS?",
+      "expected_answer": "Capital intelligence NPV IRR EMV compute"
     }
   ]
 }

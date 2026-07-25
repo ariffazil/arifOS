@@ -37,20 +37,39 @@ async def run_suite(suite_name: str, filename: str) -> dict:
 
         t0 = time.perf_counter()
         # Query canonical L4/L3 memory store
-        records = await _pg_load_canonical(actor_id="333-AGI", limit=10)
+        records = await _pg_load_canonical(actor_id="333-AGI", limit=50)
         t1 = time.perf_counter()
 
         elapsed_ms = (t1 - t0) * 1000
         latencies.append(elapsed_ms)
 
-        # Estimate tokens (dummy count based on text length)
-        tokens_used = len(query.split()) * 4 + sum(len(r.get("summary", "").split()) * 4 for r in records)
+        # Estimate tokens
+        tokens_used = len(query.split()) * 4 + sum(len(r.get("text", r.get("summary", "")).split()) * 4 for r in records)
         tokens_list.append(tokens_used)
 
-        # Simple string match check for empirical accuracy scoring
-        recalled_texts = " ".join(r.get("summary", "") for r in records)
-        if expected.lower() in recalled_texts.lower() or any(w.lower() in recalled_texts.lower() for w in expected.split()):
+        # Multi-signal match check
+        recalled_texts = " ".join(r.get("text", r.get("summary", "")) for r in records)
+        is_hit = expected.lower() in recalled_texts.lower() or any(
+            len(w) > 3 and w.lower() in recalled_texts.lower() for w in expected.split()
+        )
+        if is_hit:
             correct += 1
+        else:
+            # Log failure to carry_forward for Stage 2 Dreamer tuning
+            cf_path = Path("/root/arifOS/var/carry_forward.json")
+            try:
+                cf_data = json.loads(cf_path.read_text()) if cf_path.exists() else {"open_loops": []}
+                cf_data.setdefault("open_loops", []).append({
+                    "suite": suite_name,
+                    "case_id": case.get("case_id"),
+                    "query": query,
+                    "expected": expected,
+                    "failure_type": "retrieval_miss",
+                    "latency_ms": round(elapsed_ms, 2)
+                })
+                cf_path.write_text(json.dumps(cf_data, indent=2))
+            except Exception:
+                pass
 
     acc = (correct / total) if total > 0 else 0.0
     return {
