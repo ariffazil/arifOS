@@ -118,42 +118,66 @@ def test_measurement_is_hashable():
 
 
 # ─────────────────────────────────────────────────────────────────────────
-# collect_G — reasoning quality
+# collect_G — apex-derived only (AAA scalar physics / G-fold)
 # ─────────────────────────────────────────────────────────────────────────
 
 
-def test_G_measured_when_confidence_in_evidence():
-    """G derives from arif_mind_reason_confidence in evidence."""
-    collector = ScalarCollector(evidence={"arif_mind_reason_confidence": 0.85})
+def test_G_measured_from_apex_scalars():
+    """G derives ONLY from arif_think(mode='apex') apex_scalars."""
+    collector = ScalarCollector(
+        evidence={
+            "apex_scalars": {
+                "G": 0.85,
+                "derived": True,
+                "source": "arif_think.mode=apex",
+            }
+        }
+    )
     g = collector.collect_G()
 
     assert g.value == pytest.approx(0.85)
-    assert g.source == "arif_mind_reason.confidence"
+    assert g.source == "arif_think.mode=apex"
     assert g.confidence > 0
 
 
-def test_G_falls_back_to_alternate_keys():
-    """G also accepts confidence / confidence_score / reasoning_confidence."""
-    for key in ("confidence", "confidence_score", "reasoning_confidence", "mind_reason_confidence"):
+def test_G_rejects_confidence_as_g():
+    """Confidence is NOT G — structural entropy source removed."""
+    for key in (
+        "arif_mind_reason_confidence",
+        "confidence",
+        "confidence_score",
+        "reasoning_confidence",
+        "mind_reason_confidence",
+    ):
         collector = ScalarCollector(evidence={key: 0.7})
         g = collector.collect_G()
-        assert g.value == pytest.approx(0.7), f"key {key!r} should resolve"
-        assert g.is_measured
+        assert g.value is None, f"key {key!r} must not invent G"
+        assert g.source == UNMEASURED_SOURCE
 
 
 def test_G_caps_at_0_90_f7_humility():
-    """F7 HUMILITY: reasoning confidence is capped at 0.90 (never ≥0.95)."""
-    collector = ScalarCollector(evidence={"arif_mind_reason_confidence": 0.99})
+    """F7 HUMILITY: measured G confidence is capped at 0.90 (never ≥0.95)."""
+    collector = ScalarCollector(
+        evidence={
+            "apex_scalars": {
+                "G": 0.99,
+                "derived": True,
+                "source": "arif_think.mode=apex",
+            }
+        }
+    )
     g = collector.collect_G()
 
-    assert g.value == 0.90
-    assert g.confidence == 0.90
+    assert g.value == pytest.approx(0.99)  # value preserved
+    assert g.confidence == 0.90  # confidence capped
 
 
 def test_G_rejects_nan_and_inf():
-    """NaN / Inf in evidence → UNMEASURED (F2 TRUTH)."""
+    """NaN / Inf in apex_scalars → UNMEASURED (F2 TRUTH)."""
     for bad in (float("nan"), float("inf"), float("-inf")):
-        collector = ScalarCollector(evidence={"arif_mind_reason_confidence": bad})
+        collector = ScalarCollector(
+            evidence={"apex_scalars": {"G": bad, "derived": True, "source": "arif_think.mode=apex"}}
+        )
         g = collector.collect_G()
         assert g.value is None
         assert g.source == UNMEASURED_SOURCE
@@ -161,17 +185,30 @@ def test_G_rejects_nan_and_inf():
 
 def test_G_rejects_string_numeric():
     """String number is NOT silently coerced (F2 TRUTH)."""
-    collector = ScalarCollector(evidence={"arif_mind_reason_confidence": "0.85"})
+    collector = ScalarCollector(
+        evidence={
+            "apex_scalars": {"G": "0.85", "derived": True, "source": "arif_think.mode=apex"}
+        }
+    )
     g = collector.collect_G()
     assert g.value is None
     assert g.source == UNMEASURED_SOURCE
 
 
-def test_G_falls_back_to_session_context():
-    """When evidence lacks confidence, look in session_context."""
-    collector = ScalarCollector(session_context={"arif_mind_reason_confidence": 0.65})
+def test_G_from_session_apex_scalars():
+    """When evidence lacks apex_scalars, look in session_context."""
+    collector = ScalarCollector(
+        session_context={
+            "apex_scalars": {
+                "G": 0.65,
+                "derived": True,
+                "source": "arif_think.mode=apex",
+            }
+        }
+    )
     g = collector.collect_G()
     assert g.value == pytest.approx(0.65)
+    assert g.source == "arif_think.mode=apex"
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -450,9 +487,14 @@ def test_snapshot_qdf_computed_when_all_measured(fake_vault_chain):
     """QDF is computed when all 5 scalars have measurable values."""
     collector = ScalarCollector(
         evidence={
-            "arif_mind_reason_confidence": 0.85,  # G capped at 0.85
+            "apex_scalars": {
+                "G": 0.85,
+                "C_dark": 0.1,
+                "derived": True,
+                "source": "arif_think.mode=apex",
+            },
             "shadow_vars": 5,
-            "total_session_vars": 50,  # C_dark = 0.1
+            "total_session_vars": 50,  # C_dark fallback path also present
             "witnesses": [
                 {"channel": "human", "confidence": 0.8},
                 {"channel": "ai", "confidence": 0.9},
@@ -501,13 +543,21 @@ def test_snapshot_returns_serializable_dict():
     """Snapshot must be JSON-serializable for downstream audit / VAULT sealing."""
     import json
 
-    collector = ScalarCollector(evidence={"arif_mind_reason_confidence": 0.7})
+    collector = ScalarCollector(
+        evidence={
+            "apex_scalars": {
+                "G": 0.7,
+                "derived": True,
+                "source": "arif_think.mode=apex",
+            }
+        }
+    )
     snap = collector.collect_snapshot()
     # Round-trip through json.dumps
     encoded = json.dumps(snap, default=str)
     decoded = json.loads(encoded)
     assert decoded["scalars"]["G"]["value"] == 0.7
-    assert decoded["scalars"]["G"]["source"] == "arif_mind_reason.confidence"
+    assert decoded["scalars"]["G"]["source"] == "arif_think.mode=apex"
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -518,7 +568,11 @@ def test_snapshot_returns_serializable_dict():
 def test_collector_does_not_mutate_evidence_input():
     """F1 AMANAH: the collector must NOT mutate its input dict."""
     evidence = {
-        "arif_mind_reason_confidence": 0.85,
+        "apex_scalars": {
+            "G": 0.85,
+            "derived": True,
+            "source": "arif_think.mode=apex",
+        },
         "shadow_vars": 5,
         "total_session_vars": 50,
         "f2_compliant_claims": 7,
@@ -545,9 +599,21 @@ def test_collector_does_not_mutate_evidence_input():
 
 def test_session_context_override_takes_precedence():
     """Constructor-injected session_context is used instead of disk lookup."""
-    override = {"arif_mind_reason_confidence": 0.42}
+    override = {
+        "apex_scalars": {
+            "G": 0.42,
+            "derived": True,
+            "source": "arif_think.mode=apex",
+        }
+    }
     with patch("arifosmcp.runtime.tools.get_session") as mock_get:
-        mock_get.return_value = {"arif_mind_reason_confidence": 0.99}
+        mock_get.return_value = {
+            "apex_scalars": {
+                "G": 0.99,
+                "derived": True,
+                "source": "arif_think.mode=apex",
+            }
+        }
         collector = ScalarCollector(
             session_id="sess_xyz",
             session_context=override,
@@ -558,7 +624,13 @@ def test_session_context_override_takes_precedence():
 
 def test_session_id_triggers_store_lookup():
     """When session_context is not overridden, session_id looks up the store."""
-    fake_session = {"arif_mind_reason_confidence": 0.55}
+    fake_session = {
+        "apex_scalars": {
+            "G": 0.55,
+            "derived": True,
+            "source": "arif_think.mode=apex",
+        }
+    }
     with patch("arifosmcp.runtime.tools.get_session", return_value=fake_session) as mock_get:
         collector = ScalarCollector(session_id="sess_real")
         g = collector.collect_G()

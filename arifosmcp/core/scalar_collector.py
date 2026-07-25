@@ -12,13 +12,17 @@ This module measures them.
 
 Scalar measurement sources
 ---------------------------
-    G           → arif_mind_reason output confidence
-    C_dark      → shadow variable count ÷ total session variables
+    G           → arif_think(mode='apex') / apex_canonical only (NOT confidence)
+    C_dark      → apex_scalars.C_dark preferred; else shadow_vars ratio
     W³          → count of active witnesses × diversity_score (each 0–1)
     κ_r         → ratio of F2-compliant claims in session
     ψ_le        → VAULT chain length × seal rate
     peace²      → external input (WELL organ score), default 0.72 if absent
     QDF         → computed composite (NOT measured independently)
+
+AAA scalar physics (2026-07-25):
+    Canonical G-fold lives in arif_think(mode='apex') → apex_canonical.compute_apex.
+    Confidence is NOT G. Local A-FORGE/AAA estimators are Ω/Ψ evidence, not ontology.
 
 Scalar envelope
 ---------------
@@ -218,41 +222,65 @@ class ScalarCollector:
         # Note: N802 violation is intentional. The TASK-P2-03 spec
         # explicitly mandates the canonical APEX naming — G, C_dark, W3,
         # kappa_r, psi_le — to keep the arithmetic notation readable.
-        """Reasoning quality — derived from arif_mind_reason output confidence.
+        """G-fold — ONLY from arif_think(mode='apex') / apex_canonical.
 
-        Source path:
-            self._evidence["arif_mind_reason_confidence"]   (preferred)
-            self._evidence["confidence"]                    (fallback)
-            self._evidence["confidence_score"]              (fallback)
-            self._session_context["mind_reason_confidence"] (fallback)
+        AAA scalar physics: G is the Nash product A·P·E·X·Φ derived per
+        session. It is NEVER confidence, NEVER a stored primitive.
 
-        Returns UNMEASURED if no confidence value is found or the value
-        is non-finite. F7 HUMILITY cap: 0.90 (never claim ≥0.95).
+        Source path (strict order):
+            evidence/session apex_scalars.G   (from arif_think mode=apex)
+            evidence.g_fold.G
+            evidence.G  (only if source tags apex)
+
+        Confidence-as-G is FORBIDDEN (was a structural entropy source).
+        Returns UNMEASURED if no apex-derived G is present — F9 honest.
         """
-        candidates = (
-            "arif_mind_reason_confidence",
-            "mind_reason_confidence",
-            "confidence",
-            "confidence_score",
-            "reasoning_confidence",
-        )
-        raw = self._extract_scalar(self._evidence, candidates)
-        if raw is None:
-            raw = self._extract_scalar(self._session_context, candidates)
-        if raw is None or not math.isfinite(float(raw)):
-            return ScalarMeasurement.unmeasured()
-        # F7 HUMILITY: cap reasoning confidence at 0.90 — never ≥0.95.
-        capped = min(float(raw), 0.90)
-        return ScalarMeasurement.measured(
-            value=capped,
-            confidence=min(capped, 0.90),
-            source="arif_mind_reason.confidence",
-        )
+        # 1) Nested apex_scalars dict from arif_think mode=apex
+        for src in (self._evidence, self._session_context):
+            if not isinstance(src, dict):
+                continue
+            apex = src.get("apex_scalars")
+            if isinstance(apex, dict) and apex.get("G") is not None:
+                raw_g = apex["G"]
+                # F2: no silent string coercion — only real numbers
+                if not isinstance(raw_g, (int, float)) or isinstance(raw_g, bool):
+                    continue
+                g_val = float(raw_g)
+                if math.isfinite(g_val):
+                    src_tag = str(apex.get("source") or "apex_scalars.G")
+                    # Accept only apex-tagged or explicitly derived sources
+                    if (
+                        "apex" in src_tag.lower()
+                        or apex.get("derived") is True
+                        or apex.get("canonical_module")
+                        or src_tag == "apex_scalars.G"
+                    ):
+                        return ScalarMeasurement.measured(
+                            value=max(0.0, min(1.0, g_val)),
+                            confidence=min(max(0.0, min(1.0, g_val)), 0.90),
+                            source="arif_think.mode=apex",
+                        )
+            g_fold = src.get("g_fold")
+            if isinstance(g_fold, dict) and g_fold.get("G") is not None:
+                raw_g = g_fold["G"]
+                if not isinstance(raw_g, (int, float)) or isinstance(raw_g, bool):
+                    continue
+                g_val = float(raw_g)
+                if math.isfinite(g_val) and g_fold.get("canonical") is True:
+                    return ScalarMeasurement.measured(
+                        value=max(0.0, min(1.0, g_val)),
+                        confidence=min(max(0.0, min(1.0, g_val)), 0.90),
+                        source="arif_think.mode=apex",
+                    )
+
+        # 2) No apex-derived G → UNMEASURED (do NOT fall back to confidence)
+        return ScalarMeasurement.unmeasured()
 
     def collect_C_dark(self) -> ScalarMeasurement:  # noqa: N802
-        """Shadow variable ratio — shadow_vars ÷ total_vars in session.
+        """Shadow term — prefer apex_canonical C_dark, else shadow_vars ratio.
 
         Source path:
+            apex_scalars.C_dark (from arif_think mode=apex) — preferred
             self._evidence["shadow_vars"] / "total_session_vars"
             self._session_context["shadow_vars"] / "session_vars"
             self._evidence["var_dark_ratio"]
@@ -261,6 +289,23 @@ class ScalarCollector:
         Returns UNMEASURED if no denominator OR zero total (div-by-zero
         is a measurement failure, not 0.0 — F9).
         """
+        # Prefer canonical apex shadow term when present
+        for src in (self._evidence, self._session_context):
+            if not isinstance(src, dict):
+                continue
+            apex = src.get("apex_scalars")
+            if isinstance(apex, dict) and apex.get("C_dark") is not None:
+                try:
+                    cd = float(apex["C_dark"])
+                except (TypeError, ValueError):
+                    continue
+                if math.isfinite(cd):
+                    return ScalarMeasurement.measured(
+                        value=max(0.0, min(1.0, cd)),
+                        confidence=0.90,
+                        source="arif_think.mode=apex",
+                    )
+
         # Try ratio shortcut first — saves two lookups if upstream already
         # computed it (e.g. 333_REASON reasoner pre-norms its telemetry).
         for src in (self._evidence, self._session_context):

@@ -1075,6 +1075,107 @@ def arif_think(
         # PRL is non-blocking — silence on error is correct (τ ≥ 0.95 floor)
         pass
 
+    # ── APEX MODE: canonical G-fold (Δ substrate only) ──────────────────────
+    # AAA scalar physics: G is computed ONLY here (and apex_canonical helpers).
+    # G is derived per call — never stored as a primitive authority token.
+    # Consumers (judge, A-FORGE, A2A) treat apex_scalars as evidence, not law.
+    if mode == "apex":
+        from arifosmcp.runtime.apex_canonical import (
+            APEX_EQUATION,
+            APEX_SHADOW,
+            PrimitiveInputs,
+            compute_apex,
+        )
+
+        from dataclasses import fields as _dc_fields
+
+        ctx = dict(context or {})
+        # Accept nested apex_inputs or flat context keys matching PrimitiveInputs.
+        raw_inputs = ctx.get("apex_inputs") if isinstance(ctx.get("apex_inputs"), dict) else ctx
+        pi_fields = {f.name for f in _dc_fields(PrimitiveInputs)}
+        kwargs: dict[str, Any] = {}
+        for name in pi_fields:
+            if name in raw_inputs and raw_inputs[name] is not None:
+                kwargs[name] = raw_inputs[name]
+        # Lightweight query→witness defaults when no explicit primitives given:
+        # observational read (no leases) keeps A from floor_compliance path.
+        if "h_witness" not in kwargs and "ai_witness" not in kwargs:
+            # F7 humility: partial witnesses only — never claim full tri-witness
+            # without explicit evidence. Ext stays 0 → Φ collapses to 0 (honest).
+            kwargs.setdefault("ai_witness", 0.5)
+            kwargs.setdefault("h_witness", 0.0)
+            kwargs.setdefault("ext_witness", 0.0)
+        inputs = PrimitiveInputs(**kwargs)
+        gate_h = float(ctx.get("gate_h", 0.04))  # F7 band mid
+        gate_delta_s = float(ctx.get("gate_delta_s", 0.0))
+        gate_w3 = float(ctx.get("gate_w3", 1.0))
+        result = compute_apex(
+            inputs,
+            gate_h=gate_h,
+            gate_delta_s=gate_delta_s,
+            gate_w3=gate_w3,
+        )
+        apex_dict = result.to_dict()
+        # Session-derived scalars: evidence only. Not authority. Not persisted as truth.
+        apex_scalars = {
+            "G": apex_dict["G"],
+            "C_dark": apex_dict["C_dark"],
+            "dS_dt": apex_dict["dS_dt"],
+            "A": apex_dict["primitives"]["A"],
+            "P": apex_dict["primitives"]["P"],
+            "E": apex_dict["primitives"]["E"],
+            "X": apex_dict["primitives"]["X"],
+            "Phi": apex_dict["primitives"]["Phi"],
+            "G_seal": apex_dict["gate_layer"]["G_seal"],
+            "equation": APEX_EQUATION,
+            "shadow": APEX_SHADOW,
+            "source": "arif_think.mode=apex",
+            "canonical_module": "arifosmcp.runtime.apex_canonical",
+            "derived": True,  # never a stored primitive
+            "query": (query or "")[:200],
+        }
+        bundle = {
+            "actor_authority": {
+                "verified": bool(actor_id and session_id),
+                "scope": "observe_only",
+                "note": "G-fold is advisory evidence. Only arif_judge may SEAL.",
+            },
+            "reasoning_output": {
+                "claim_state": "DERIVED",
+                "synthesis": (
+                    f"G-fold {APEX_EQUATION}: G={apex_scalars['G']}, "
+                    f"C_dark={apex_scalars['C_dark']}, verdict={apex_dict['verdict']}"
+                ),
+                "confidence": {
+                    "overall": min(float(apex_scalars["G"]), 0.90),
+                    "label": "apex_derived",
+                },
+                "apex": apex_dict,
+            },
+            "governance_check": {
+                "floors_checked": ["F7", "F8", "F9"],
+                "floors_violated": [],
+                "verdict": "PASS" if apex_dict["verdict"] in ("SEAL", "SABAR") else "HOLD",
+                "reason": apex_dict.get("verdict_reason", ""),
+            },
+            "truth_verdict": {
+                "sealed": False,
+                "note": "G is derived per session call, not stored as authority. Route to arif_judge for SEAL.",
+            },
+            "g_fold": {
+                "canonical": True,
+                "mode": "apex",
+                "equation": APEX_EQUATION,
+                "G": apex_scalars["G"],
+                "C_dark": apex_scalars["C_dark"],
+            },
+        }
+        env = _ok("arif_think", bundle)
+        env["apex_scalars"] = apex_scalars
+        if isinstance(env.get("result"), dict):
+            env["result"]["apex_scalars"] = apex_scalars
+        return Synthesis(**_echo_standing(env))
+
     # ── CONVERGE MODE: recursive convergence loop with marginal gain collapse ──
     if mode == "converge":
         from arifosmcp.runtime.convergence import ConvergenceController
