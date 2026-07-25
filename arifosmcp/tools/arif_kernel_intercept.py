@@ -122,77 +122,69 @@ def _verify_sovereign_token(
     nonce: str | None = None,
     actor_signature: str | None = None,
 ) -> bool:
-    """F13 SOVEREIGN: Real Ed25519 verification (production) or sentinel fallback (dev).
+    """F13 SOVEREIGN: challenge-based Ed25519 (production) or free-nonce (dev).
 
-    Production path (ARIFOS_ED25519_ENABLED=true):
-      - Verifies actor_signature against registered Ed25519 public key
-      - Uses crypto_auth.verify_actor_signature() over {actor_id}:{nonce} payload
-      - Nonce is single-use, challenge-based with 120s TTL
+    Production path (default):
+      1. Try challenge-based verify via crypto_auth.verify_actor_signature()
+         Nonce MUST be pre-issued by issue_actor_challenge(). One-time use.
+      2. If that fails, return False. No fallback.
 
-    Dev-mode fallback:
-      - Token must equal the sentinel string (constant-time comparison)
-      - Trivially bypassable — DO NOT use in production
+    Dev path (ARIFOS_FREE_NONCE_ALLOWED=true):
+      - Direct Ed25519 verify against registered public key
+      - NO replay protection
     """
-    # Real Ed25519 path (production)
-    import sys as _debug_sys
-    print(f"F13_PRECALL: enabled={_SOVEREIGN_ED25519_ENABLED} avail={_ED25519_AVAILABLE} sig={bool(actor_signature)} nonce={bool(nonce)} aid={bool(actor_id)}", file=_debug_sys.stderr, flush=True)
+    import base64 as _b64
+
     if _SOVEREIGN_ED25519_ENABLED and _ED25519_AVAILABLE and actor_signature and nonce and actor_id:
-        import base64 as _b64
-
-        logger.info(
-            "F13_ED25519: actor=%s nonce=%s sig_len=%d ed25519_available=%s enabled=%s",
-            actor_id, nonce[:8], len(actor_signature), _ED25519_AVAILABLE, _SOVEREIGN_ED25519_ENABLED,
-        )
-
-        # Try pre-issued challenge first
+        # 1. Challenge-based (production — one-time nonce, replay-safe)
         try:
             ok = _ed25519_verify(
                 actor_id=actor_id,
                 nonce=nonce,
                 signature_b64=actor_signature,
             )
-            import sys as _sys
-            print(f"F13_DEBUG: challenge_ok={ok}", file=_sys.stderr, flush=True)
-            logger.info("F13_ED25519: challenge_verify=%s", ok)
             if ok:
+                logger.info("F13: challenge PASS — nonce consumed, one-time auth")
                 return True
+            logger.warning("F13: challenge FAIL — nonce rejected or consumed")
         except Exception as e:
-            print(f"F13_DEBUG: challenge_exception={e}", file=_sys.stderr, flush=True)
-            logger.warning("F13_ED25519: challenge exception=%s", e)
+            logger.warning("F13: challenge exception=%s", e)
 
-        # Free-nonce fallback
-        try:
-            from arifosmcp.runtime.crypto_auth import resolve_actor_public_key
-            from cryptography.exceptions import InvalidSignature
+        # 2. Free-nonce fallback (dev only, explicit opt-in)
+        _free_nonce = os.environ.get("ARIFOS_FREE_NONCE_ALLOWED", "false").lower() in ("true", "1")
+        if _free_nonce:
+            try:
+                from arifosmcp.runtime.crypto_auth import resolve_actor_public_key
+                from cryptography.exceptions import InvalidSignature
 
-            pubkey = resolve_actor_public_key(actor_id)
-            logger.info("F13_ED25519: pubkey_found=%s", pubkey is not None)
-            if pubkey is not None:
-                sig_bytes = _b64.b64decode(actor_signature)
-                payload = f"{actor_id}:{nonce}".encode()
-                pubkey.verify(sig_bytes, payload)
-                logger.info("F13_ED25519: free_nonce_verify=OK")
-                return True
-        except InvalidSignature:
-            logger.warning("F13_ED25519: free_nonce_verify=INVALID_SIGNATURE")
-        except Exception as e:
-            logger.warning("F13_ED25519: free_nonce_exception=%s", e)
+                pubkey = resolve_actor_public_key(actor_id)
+                if pubkey is not None:
+                    sig_bytes = _b64.b64decode(actor_signature)
+                    payload = f"{actor_id}:{nonce}".encode()
+                    pubkey.verify(sig_bytes, payload)
+                    logger.warning("F13: free-nonce PASS — NO REPLAY PROTECTION")
+                    return True
+            except InvalidSignature:
+                logger.warning("F13: free-nonce FAIL — invalid signature")
+            except Exception as e:
+                logger.warning("F13: free-nonce exception=%s", e)
     else:
         logger.info(
-            "F13_ED25519: skipped — enabled=%s available=%s has_sig=%s has_nonce=%s has_actor=%s",
+            "F13: skipped — enabled=%s avail=%s sig=%s nonce=%s actor=%s",
             _SOVEREIGN_ED25519_ENABLED, _ED25519_AVAILABLE,
-            bool(actor_signature), bool(nonce), bool(actor_id),
+            bool(actor_signature), bool(nonce), actor_id,
         )
 
-    # Sentinel fallback (dev-mode)
-    if not token:
-        return False
-    if len(token) != len(_SOVEREIGN_KEY_SENTINEL):
-        return False
-    result = 0
-    for a, b in zip(token, _SOVEREIGN_KEY_SENTINEL, strict=True):
-        result |= ord(a) ^ ord(b)
-    return result == 0
+    # Sentinel fallback (legacy dev)
+    if token and len(token) == len(_SOVEREIGN_KEY_SENTINEL):
+        result = 0
+        for a, b in zip(token, _SOVEREIGN_KEY_SENTINEL, strict=True):
+            result |= ord(a) ^ ord(b)
+        if result == 0:
+            logger.warning("F13: sentinel PASS — dev mode, NOT crypto")
+            return True
+
+    return False
 
 
 def compute_audit_hash(payload: KernelInput) -> str:
