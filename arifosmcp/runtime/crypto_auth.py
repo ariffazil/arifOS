@@ -172,7 +172,7 @@ def canonical_serialize_challenge(fields: dict[str, Any]) -> str:
     """
     _canonical = {
         "actor": fields.get("actor", ""),
-        "session_id": fields.get("session_id", ""),
+        "authorization_session_id": fields.get("authorization_session_id", ""),
         "nonce": fields.get("nonce", ""),
         "candidate_hash": fields.get("candidate_hash", ""),
         "action_class": fields.get("action_class", ""),
@@ -196,7 +196,7 @@ def canonical_serialize_challenge(fields: dict[str, Any]) -> str:
 
 def issue_authorization_challenge(
     actor: str,
-    session_id: str,
+    authorization_session_id: str,
     candidate_hash: str,
     action_class: str = "ACTION_AUTHORIZATION",
     reversibility: str = "R4",
@@ -211,7 +211,8 @@ def issue_authorization_challenge(
 ) -> dict[str, Any]:
     """Issue a F13 authorization challenge and return the authorization_request envelope.
 
-    Stores in Redis (preferred) or in-memory dict.
+    Stores in Redis (required for production). In-memory fallback only for dev.
+    Returns error dict when Redis storage fails.
     """
     ttl = ttl_seconds if ttl_seconds is not None else _CHALLENGE_TTL_SECONDS
     if ttl <= 0:
@@ -221,13 +222,13 @@ def issue_authorization_challenge(
     issued_at = datetime.fromtimestamp(now_epoch, tz=UTC).isoformat()
     expires_at = datetime.fromtimestamp(now_epoch + ttl, tz=UTC).isoformat()
     nonce = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
-    challenge_id = "chal_" + hashlib.sha256(f"{actor}:{nonce}:{session_id}:{candidate_hash}".encode()).hexdigest()[:16]
+    challenge_id = "chal_" + hashlib.sha256(f"{actor}:{nonce}:{authorization_session_id}:{candidate_hash}".encode()).hexdigest()[:16]
 
     payload = {
         "challenge_id": challenge_id,
         "nonce": nonce,
         "actor": actor,
-        "session_id": session_id,
+        "authorization_session_id": authorization_session_id,
         "candidate_hash": candidate_hash,
         "action_class": action_class,
         "reversibility": reversibility,
@@ -244,21 +245,33 @@ def issue_authorization_challenge(
     }
     serialized = json.dumps(payload, separators=(",", ":"))
 
-    # Try Redis first
+    # Redis is the canonical store (production requirement)
     client = _get_redis()
     _redis_ttl = _CHALLENGE_TTL_SECONDS
     _c_key = _challenge_redis_key(challenge_id)
     _n_key = _nonce_redis_key(nonce)
+    _storage_ok = False
     if client and _REDIS_AVAILABLE:
         try:
             client.set(_c_key, serialized, ex=_redis_ttl)
             client.set(_n_key, challenge_id, ex=_redis_ttl)
+            _storage_ok = True
             logger.debug("F13: challenge %s stored in Redis (ttl=%ds)", challenge_id, _redis_ttl)
         except Exception as e:
-            logger.warning("F13: Redis store failed for %s: %s — using in-memory fallback", challenge_id, e)
+            logger.error("F13: Redis STORE FAILED for %s: %s — not issuing challenge", challenge_id, e)
+            return {"error": "AUTHORIZATION_STORAGE_UNAVAILABLE",
+                    "reason": F13_FAILURE_CODES.get("AUTHORIZATION_STORAGE_UNAVAILABLE",
+                                                     "Challenge storage unavailable")}
+
+    # Dev fallback: in-memory (only when ARIFOS_FREE_NONCE_ALLOWED is set)
+    if not _storage_ok:
+        _free = os.environ.get("ARIFOS_FREE_NONCE_ALLOWED", "false").lower() in ("true", "1")
+        if _free:
             _store_in_memory(actor, nonce)
-    else:
-        _store_in_memory(actor, nonce)
+        else:
+            logger.error("F13: No durable storage available and free-nonce disabled — challenge NOT issued")
+            return {"error": "AUTHORIZATION_STORAGE_UNAVAILABLE",
+                    "reason": "No durable storage for challenge. Configure Redis or enable ARIFOS_FREE_NONCE_ALLOWED for dev only."}
 
     return _build_authorization_request(payload)
 
@@ -330,9 +343,10 @@ def _mark_consumed(challenge_id: str, nonce: str) -> bool:
         except Exception as e:
             logger.warning("F13: Redis mark consumed failed %s: %s", challenge_id, e)
             return False
-    # In-memory fallback
-    ok, _ = _consume_actor_challenge(nonce, nonce)
-    return ok
+    # In-memory fallback (dev only — no actor_id available from _mark_consumed context)
+    with _challenge_lock:
+        _used_challenges[nonce] = time.time() + _CHALLENGE_TTL_SECONDS * 2
+    return True
 
 
 def _check_consumed(nonce: str) -> bool:
@@ -356,18 +370,13 @@ def verify_authorization_challenge(
     actor: str,
     nonce: str,
     signature_b64: str,
-    session_id: str = "",
-    candidate_hash: str = "",
-    action_class: str = "",
-    reversibility: str = "",
-    blast_radius: str = "",
-    seal_purpose: str = "",
-    authority_effect: str = "",
-    audience: str = "arifOS",
-    plan_id: str = "",
-    target_environment: str = "",
 ) -> tuple[bool, str, dict[str, Any]]:
-    """Full F13 challenge verification with structured failure codes.
+    """Full F13 challenge verification — loads canonical challenge from Redis.
+
+    The verifier loads the stored canonical challenge by nonce, verifies
+    the Ed25519 signature over the exact stored serialization, and consumes
+    the nonce atomically. No caller-supplied fields are accepted for binding
+    verification — only the stored challenge is authoritative.
 
     Returns:
         (verified, failure_code_or_empty, result_dict)
@@ -388,32 +397,20 @@ def verify_authorization_challenge(
         else:
             return False, "KEY_NOT_REGISTERED", {"reason": F13_FAILURE_CODES["KEY_NOT_REGISTERED"]}
 
-    # 2. Check replay first
+    # 2. Check replay first (before consuming)
     if _check_consumed(nonce):
         return False, "NONCE_REPLAY", {"reason": F13_FAILURE_CODES["NONCE_REPLAY"]}
 
-    # 3. Load the stored challenge
+    # 3. Load the stored canonical challenge by nonce
     stored = _load_challenge_by_nonce(nonce)
     if stored is None:
         return False, "CHALLENGE_UNKNOWN", {"reason": F13_FAILURE_CODES["CHALLENGE_UNKNOWN"]}
 
-    is_legacy = stored.get("_source") == "in_memory_legacy" or not stored.get("session_id")
+    # 4. Verify binding fields against stored challenge (authoritative source)
+    if _normalize_actor(stored.get("actor", "")) != _normalize_actor(actor):
+        return False, "ACTOR_MISMATCH", {"reason": F13_FAILURE_CODES["ACTOR_MISMATCH"]}
 
-    # 4. Verify binding fields (skip for legacy)
-    if not is_legacy:
-        if _normalize_actor(stored.get("actor", "")) != _normalize_actor(actor):
-            return False, "ACTOR_MISMATCH", {"reason": F13_FAILURE_CODES["ACTOR_MISMATCH"]}
-        if session_id and stored.get("session_id") and stored["session_id"] != session_id:
-            return False, "SESSION_MISMATCH", {"reason": F13_FAILURE_CODES["SESSION_MISMATCH"]}
-        if candidate_hash and stored.get("candidate_hash") and stored["candidate_hash"] != candidate_hash:
-            return False, "CANDIDATE_HASH_MISMATCH", {"reason": F13_FAILURE_CODES["CANDIDATE_HASH_MISMATCH"]}
-        if plan_id and stored.get("plan_id") and stored["plan_id"] != plan_id:
-            return False, "PLAN_HASH_MISMATCH", {"reason": F13_FAILURE_CODES["PLAN_HASH_MISMATCH"]}
-        stored_audience = stored.get("audience", "arifOS")
-        if audience and stored_audience and stored_audience != audience:
-            return False, "AUDIENCE_MISMATCH", {"reason": F13_FAILURE_CODES["AUDIENCE_MISMATCH"]}
-
-    # 5. Verify expiry
+    # 5. Verify expiry against stored challenge
     expires_at_str = stored.get("expires_at", "")
     if expires_at_str:
         try:
@@ -423,30 +420,33 @@ def verify_authorization_challenge(
         except (ValueError, TypeError):
             pass
 
-    # 6. Verify Ed25519 signature
+    # 6. Reconstruct canonical payload from stored challenge ONLY
+    canonical_fields = {
+        "actor": stored.get("actor", actor),
+        "authorization_session_id": stored.get("authorization_session_id", ""),
+        "nonce": nonce,
+        "candidate_hash": stored.get("candidate_hash", ""),
+        "action_class": stored.get("action_class", "ACTION_AUTHORIZATION"),
+        "reversibility": stored.get("reversibility", "R4"),
+        "blast_radius": stored.get("blast_radius", "MEDIUM"),
+        "seal_purpose": stored.get("seal_purpose", "AUTHORIZE"),
+        "authority_effect": stored.get("authority_effect", "EXECUTION_GRANT"),
+        "audience": stored.get("audience", "arifOS"),
+        "issued_at": stored.get("issued_at", ""),
+        "expires_at": stored.get("expires_at", ""),
+        "plan_id": stored.get("plan_id", ""),
+        "target_environment": stored.get("target_environment", ""),
+    }
+    canonical_json = canonical_serialize_challenge(canonical_fields)
+    canonical_bytes = canonical_json.encode()
+
+    # 7. Verify Ed25519 signature
     try:
         signature_bytes = base64.b64decode(signature_b64)
     except Exception:
         return False, "SIGNATURE_INVALID", {"reason": "Signature base64 decode failed"}
 
-    canonical_fields = {
-        "actor": actor,
-        "session_id": session_id or stored.get("session_id", ""),
-        "nonce": nonce,
-        "candidate_hash": candidate_hash or stored.get("candidate_hash", ""),
-        "action_class": action_class or stored.get("action_class", "ACTION_AUTHORIZATION"),
-        "reversibility": reversibility or stored.get("reversibility", "R4"),
-        "blast_radius": blast_radius or stored.get("blast_radius", "MEDIUM"),
-        "seal_purpose": seal_purpose or stored.get("seal_purpose", "AUTHORIZE"),
-        "authority_effect": authority_effect or stored.get("authority_effect", "EXECUTION_GRANT"),
-        "audience": audience or stored.get("audience", "arifOS"),
-        "issued_at": stored.get("issued_at", ""),
-        "expires_at": stored.get("expires_at", ""),
-        "plan_id": plan_id or stored.get("plan_id", ""),
-        "target_environment": target_environment or stored.get("target_environment", ""),
-    }
-    canonical_json = canonical_serialize_challenge(canonical_fields)
-    canonical_bytes = canonical_json.encode()
+    from cryptography.exceptions import InvalidSignature
 
     matched = False
     for label, msg_bytes in [
@@ -491,7 +491,7 @@ def _build_authorization_request(payload: dict[str, Any]) -> dict[str, Any]:
         "challenge_id": payload.get("challenge_id", ""),
         "nonce": payload.get("nonce", ""),
         "actor": payload.get("actor", ""),
-        "session_id": payload.get("session_id", ""),
+        "authorization_session_id": payload.get("authorization_session_id", ""),
         "candidate_hash": payload.get("candidate_hash", ""),
         "action_class": payload.get("action_class", ""),
         "reversibility": payload.get("reversibility", ""),
