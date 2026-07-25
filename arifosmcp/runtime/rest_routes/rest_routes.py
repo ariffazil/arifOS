@@ -758,6 +758,23 @@ def _build_governance_status_payload() -> dict[str, Any]:
     except Exception:
         logger.exception("Unexpected error loading governance kernel state")
 
+    # P0-5 (2026-07-25): Deployment drift invariant — refuse HEALTHY when drift detected.
+    # F2 TRUTH: the kernel must not report HEALTHY when source ≠ built.
+    degradation_reasons: list[str] = []
+    try:
+        drift = _compute_runtime_drift()
+        drift_detected = drift.get("runtime_drift", False)
+        src = drift.get("source_commit", "") or ""
+        built = drift.get("built_commit", "") or ""
+        if drift_detected or (src and built and src != built):
+            degradation_reasons.append(
+                f"deployment_drift: built={built[:12]}… ≠ source={src[:12]}…"
+            )
+            if verdict in ("SEAL", "HEALTHY", None):
+                verdict = "HOLD"
+    except Exception:
+        pass  # Non-blocking — drift check failure is not worse than healthy-on-drift
+
     live_capability_map: dict[str, Any] | None = None
     live_containers: list[dict[str, str]] = []
     try:
@@ -2849,8 +2866,15 @@ def register_rest_routes(
         _diagnostic = _get_diagnostic_tool_count(mcp)
         # FEDERATION SCHEMA ALIGNMENT L2 (canonical: arifOS/arifosmcp/schemas/federation_enums.py)
         # See: /root/AAA/governance/FEDERATION_SCHEMA_ALIGNMENT.md
+        # P0-5 (2026-07-25 · FI-008): Deployment invariant MUST downgrade
+        # /health status when source != built != deployed. The audit found
+        # arifOS reporting drift=true while /health said healthy — a direct
+        # F1 AMANAH violation. The rule per build.py:166:
+        #   "Deployment must refuse to report healthy when drift is true."
+        _degraded = runtime_drift_val or contract_drift_val
         payload = {
-            "status": "healthy",
+            "status": "degraded" if _degraded else "healthy",
+            "deployment_drift_status": "drift_detected" if runtime_drift_val else "aligned",
             "identity_hash": identity_hash,
             # ── Federation enum schema version (federation-wide handshake) ──
             # Bump FEDERATION_ENUMS_SCHEMA_VERSION in the canonical file when
