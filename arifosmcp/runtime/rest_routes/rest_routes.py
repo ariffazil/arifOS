@@ -4875,18 +4875,46 @@ def register_rest_routes(
         from arifosmcp.runtime.tools import _runtime_selftest
 
         readiness = _runtime_selftest()
-        verdict = str(
+        selftest_verdict = str(
             readiness.get("verdict", "FAIL")
         )  # "PASS", "PARTIAL", or "FAIL" — machine-level selftest
+
+        # P0-5: Deployment invariant check via _compute_runtime_drift()
+        drift = _compute_runtime_drift()
+        drift_detected = drift.get("runtime_drift", False)
+        src = drift.get("source_commit", "?") or "?"
+        built = drift.get("built_commit", "?") or "?"
+        deployed = drift.get("deployed_commit", "?") or "?"
+        deploy_ok = not drift_detected and src == built == deployed
+
+        # Composite verdict
+        if selftest_verdict == "FAIL":
+            overall, reason = "degraded", "selftest_fail"
+        elif not deploy_ok:
+            overall, reason = "degraded", "deploy_drift" if drift_detected else "commit_mismatch"
+        elif selftest_verdict == "PARTIAL":
+            overall, reason = "degraded", "selftest_partial"
+        else:
+            overall, reason = "ready", None
+
         payload = {
-            "status": verdict.lower(),  # human-readable alias: pass | partial | fail
-            "machine_status": verdict,  # machine health, not constitutional verdict
+            "status": overall,
+            "machine_status": selftest_verdict,
+            "deploy_invariant": {
+                "ok": deploy_ok,
+                "drift_detected": drift_detected,
+                "source_commit": src,
+                "built_commit": built,
+                "deployed_commit": deployed,
+                "rule": "source_commit == built_commit == deployed_commit",
+            },
             "checks": readiness.get("checks", {}),
             "failures": readiness.get("failed_checks", []),
             "warnings": readiness.get("warnings", []),
+            "degraded_reason": reason,
             "timestamp": readiness.get("timestamp"),
         }
-        status_code = 200 if verdict in {"PASS", "PARTIAL"} else 503
+        status_code = 200 if overall == "ready" else 503
         return JSONResponse(payload, status_code=status_code)
 
     @route("/.well-known/mcp/internal-server.json", methods=["GET"])
