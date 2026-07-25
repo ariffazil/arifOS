@@ -220,8 +220,43 @@ def _hash_payload(data: Any) -> str:
         return "unavailable"
 
 
+# ── SCT Token Filter (F12/F11 CRITICAL — 2026-07-25) ──────────────────
+# Session Capability Tokens (sct_v1.*) are cryptographic bearer tokens.
+# They MUST NOT be written to any telemetry sink in plaintext form.
+# This filter hashes any sct_v1.* substring before serialization.
+
+import re
+
+_SCT_PATTERN = re.compile(r"sct_v1\.[A-Za-z0-9+/=._-]+")
+
+
+def _sanitize_session_id(value: str | None) -> str | None:
+    """Hash SCT tokens in session_id before telemetry serialization.
+
+    Preserves opaque SEAL-* session IDs as-is.
+    Hashes sct_v1.* tokens with SHA-256 to maintain audit traceability
+    without exposing the bearer capability token.
+    """
+    if value is None:
+        return None
+    if _SCT_PATTERN.search(value):
+        # Hash the full value — don't retain the raw token
+        return f"SCT-HASH:{hashlib.sha256(value.encode()).hexdigest()[:16]}"
+    return value
+
+
+def _redact_sct_in_string(value: str) -> str:
+    """Replace any sct_v1.* substring with its SHA-256 hash."""
+    if not isinstance(value, str):
+        return str(value)
+    return _SCT_PATTERN.sub(
+        lambda m: f"[SCT-HASH:{hashlib.sha256(m.group(0).encode()).hexdigest()[:12]}]",
+        value,
+    )
+
+
 def _redact(input_data: dict[str, Any]) -> dict[str, Any]:
-    """Remove secrets, keys, and sensitive WELL data."""
+    """Remove secrets, keys, and sensitive WELL data. Also scan values for SCT tokens."""
     if input_data is None:
         return {}
     redact_keys = {
@@ -255,7 +290,10 @@ def _redact(input_data: dict[str, Any]) -> dict[str, Any]:
         elif isinstance(v, list) and len(v) > 100:
             result[k] = f"[list:{len(v)} items]"
         elif isinstance(v, str) and len(v) > 1000:
-            result[k] = v[:500] + "...[truncated]"
+            result[k] = _redact_sct_in_string(v[:500] + "...[truncated]")
+        elif isinstance(v, str):
+            # F12/F11: Scan ALL string values for SCT token leakage
+            result[k] = _redact_sct_in_string(v)
         else:
             result[k] = v
     return result
@@ -340,6 +378,10 @@ class Telemetry:
         reasons: list[str] | None = None,
         next_safe_action: str | None = None,
     ) -> None:
+        # F12/F11 CRITICAL: Sanitize session_id — hash any sct_v1.* tokens
+        # before they reach Langfuse, Kabarkan NATS, or Postgres sinks
+        session_id = _sanitize_session_id(session_id)
+
         if _METRICS_ENABLED and "tool_calls" in self._counters:
             self._counters["tool_calls"].labels(tool=tool, verdict=verdict).inc()
         if latency is not None and "tool_latency" in self._histograms:
