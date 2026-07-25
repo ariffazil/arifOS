@@ -1,7 +1,7 @@
 {
   "schema": "federation-manifest/v3",
   "source": "arifOS MCP /health + /tools + live kernel probe (generate_federation_manifest.py)",
-  "generated": "2026-07-19T08:55:14Z",
+  "generated": "2026-07-25T08:38:25Z",
   "transport": {
     "protocol": "streamable-http + JSON-RPC 2.0",
     "json_response": true,
@@ -9,8 +9,8 @@
     "delta_s": 0,
     "note": "Transport standardized across federation organs. ΔS ≤ 0. No SSE remaining."
   },
-  "federation_verdict": "Mixed: arifOS=healthy, GEOX=healthy, WEALTH=healthy, WELL=degraded, AAA=healthy, A-FORGE=healthy. arifOS v2026.07.24-ZEN-SURVIVAL (889b985). 80 tools live across 5/6 organs.",
-  "note": "All numbers from live /health probe at 2026-07-19T08:55:14Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
+  "federation_verdict": "Mixed: arifOS=healthy, GEOX=degraded, WEALTH=healthy, WELL=degraded, AAA=degraded, A-FORGE=healthy. arifOS v2026.07.25-ZEN-SURVIVAL (9fe17a0). 89 tools live across 3/6 organs.",
+  "note": "All numbers from live /health probe at 2026-07-25T08:38:25Z. arifOS canonical_tools=8, diagnostic_tools=40, mcp_exposed=8, total_declared=48.",
   "stack": {
     "topology": {
       "ordinal": 1,
@@ -61,9 +61,9 @@
         "health_endpoint": "/health",
         "status": "healthy",
         "tools": 48,
-        "release": "v2026.07.24-ZEN-SURVIVAL",
-        "version": "v2026.07.24-ZEN-SURVIVAL",
-        "commit": "889b985",
+        "release": "v2026.07.25-ZEN-SURVIVAL",
+        "version": "v2026.07.25-ZEN-SURVIVAL",
+        "commit": "9fe17a0",
         "canonical_tools": 8,
         "diagnostic_tools": 40,
         "tools_exposed_mcp": 8,
@@ -79,10 +79,10 @@
         "mcp": true,
         "transport": "streamable-http + JSON-RPC",
         "health_endpoint": "/health",
-        "status": "healthy",
-        "tools": 24,
-        "version": "v2026.07.17",
-        "git_version": "geox-e33d0389"
+        "status": "degraded",
+        "tools": 33,
+        "version": "v2026.07.24",
+        "git_version": "geox-66ed0445"
       },
       "wealth": {
         "name": "WEALTH",
@@ -94,7 +94,7 @@
         "health_endpoint": "/health",
         "status": "healthy",
         "tools": 0,
-        "version": "v2026.07.17"
+        "version": "v2026.07.24"
       },
       "well": {
         "name": "WELL",
@@ -106,7 +106,7 @@
         "health_endpoint": "/health",
         "status": "degraded",
         "tools": 8,
-        "version": "v2026.07.17"
+        "version": "v2026.07.24"
       },
       "aaa": {
         "name": "AAA",
@@ -116,9 +116,9 @@
         "mcp": false,
         "transport": "A2A (internal)",
         "health_endpoint": "/health",
-        "status": "healthy",
+        "status": "degraded",
         "tools": 0,
-        "version": "v2026.07.17",
+        "version": "v2026.07.24",
         "agent_cards": 0
       },
       "forge": {
@@ -131,7 +131,7 @@
         "health_endpoint": "/health",
         "status": "healthy",
         "tools": 0,
-        "version": "v2026.07.17"
+        "version": "v2026.07.24"
       }
     }
   }
