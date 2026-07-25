@@ -4,14 +4,14 @@
   "homepage": "https://arifos.arif-fazil.com",
   "kernel_abi": {
     "capability_count": 8,
-    "version": "1.0.0"
+    "version": "2026.07.24"
   },
   "profile": "public_agent",
   "protocolVersion": "2025-11-25",
   "serverInfo": {
     "name": "ARIFOS MCP",
     "title": "arifOS Constitutional Kernel",
-    "version": "1!2026.7.17.post4"
+    "version": "1!2026.7.24"
   },
   "source_of_truth": "arifosmcp/abi/capability_registry.json",
   "tool_count": 6,
@@ -57,5 +57,5 @@
     "endpoint": "https://mcp.arif-fazil.com/mcp",
     "type": "streamable-http"
   },
-  "version": "1.0.0"
+  "version": "2026.07.24"
 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://modelcontextprotocol.io/specification",
-  "abi_version": "1.0.0",
+  "abi_version": "2026.07.24",
   "canonical_discovery": {
     "endpoint": "https://mcp.arif-fazil.com/mcp",
     "transport": "streamable-http"
@@ -8,7 +8,7 @@
   "generated_from": "arifosmcp/abi/capability_registry.json",
   "kernel_abi": {
     "capability_count": 8,
-    "version": "1.0.0"
+    "version": "2026.07.24"
   },
   "profile": "public_agent",
   "server_info": {
