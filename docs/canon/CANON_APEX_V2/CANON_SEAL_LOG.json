@@ -1,0 +1,30 @@
+{
+  "bundle": "CANON_APEX_V2",
+  "bundle_version": "v2026.07.APEX",
+  "apex_theory": "T-000",
+  "floors_version": "2026.07",
+  "epoch": "2026-07-26T00:30+08",
+  "total_files": 13,
+  "archived_files": 1,
+  "status": "FORGED_PENDING_VAULT999_SEAL",
+  "files": [
+    {"canon_id":"01_000_THEORY_UNIFIED_MAP","version":"v2026.07.APEX","hash":"sha256:a0643849b9809a80a0de6c2c52e576cfb43d46aa890342f79f51b7500cd70838","lines":115},
+    {"canon_id":"02_APEX_CANON_GRAND_EQUATION","version":"v2026.07.APEX","hash":"sha256:2860c182a6de7ec788c2e733abfd1e42541ef7141360032c9156a7e4af4e6fda","lines":115},
+    {"canon_id":"03_APEX_MCP_RUNTIME_ENVELOPE","version":"v2026.07.APEX","hash":"sha256:0b224ebb1240edf082bd57ce0124d68566b91131f3204ebc51794eab5fbf3095","lines":122},
+    {"canon_id":"04_ARIFOS_REAL_INTELLIGENCE_KERNEL","version":"v2026.07.APEX","hash":"sha256:f8213c5da84e08004382724ae378de82e688fd9ce2cfce14cfa2403a83396d3b","lines":108},
+    {"canon_id":"05_ARIFOS_13TOOL_MANIFEST","version":"v2026.07.APEX","hash":"sha256:249ee3ca43f3985ce7013bf75a4c91ebad09c9a4c28dd974d2990145cc049d7b","lines":80},
+    {"canon_id":"06_HORIZON_NINE_SIGNAL","version":"v2026.07.APEX","hash":"sha256:a3eda9074d45455062fdbf1a675f7f6a3e6839750a07533abd123c2a584e8633","lines":81},
+    {"canon_id":"07_AUDIT_REFLEXIVE_FRAMEWORK","version":"v2026.07.APEX","hash":"sha256:64b34d1b753fa749932b765ee7dad727d9a4a774ff958a5d32f6f02fed2ad880","lines":104},
+    {"canon_id":"08_ARIFOS_SKILLS","version":"v2026.07.APEX","hash":"sha256:26707696eeb03a022daa5a4c6357116f54ac0831172320dbd8869d804d63d0ae","lines":98},
+    {"canon_id":"09_FEDERATION_LOOP_arifOS","version":"v2026.07.APEX","hash":"sha256:705e1538ce409ff834cf56e8c35270cb15d64088704fd1679a848bc2d59ef18f","lines":99},
+    {"canon_id":"10_FEDERATION_LOOP_GEOX","version":"v2026.07.APEX","hash":"sha256:107c03549afb6fb3b33817159dd8fa375e67f5414105f45ba1ca8778329834af","lines":114},
+    {"canon_id":"11_FEDERATION_LOOP_WEALTH","version":"v2026.07.APEX","hash":"sha256:c2e3f2819a9844c66d98efc650382fdab393b5ac290df5d817565c17de50d41d","lines":107},
+    {"canon_id":"12_FEDERATION_LOOP_WELL","version":"v2026.07.APEX","hash":"sha256:357e7b088577422adb3a6a861a7131332977e1cc44e8777965f4352c54b1f91b","lines":112},
+    {"canon_id":"13_arifOS_SPACE_DESCRIPTION","version":"v2026.07.APEX","hash":"sha256:796ef189a53435a65ae683b9d22f787053521b31011d164a3c3a599bd055e932","lines":138}
+  ],
+  "witness": {
+    "human": 0.0,
+    "ai": 1.0,
+    "earth": 0.0
+  }
+}
