@@ -2202,6 +2202,35 @@ def _compute_tool_registry_hash(tool_registry: dict[str, Any]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
+_CRITICAL_MODULES = [
+    "arifosmcp/tools/judge.py",
+    "arifosmcp/tools/forge.py",
+    "arifosmcp/runtime/tools.py",
+    "arifosmcp/runtime/forge_preflight.py",
+    "arifosmcp/core/conflict_resolver.py",
+    "arifosmcp/core/crypto_auth.py",
+]
+
+
+def _compute_critical_module_hashes() -> dict[str, str]:
+    """SHA-256 of each critical security file at runtime.
+
+    FALSIFICATION AUDIT 2026-07-25: These hashes let an external operator
+    verify that deployed source matches a known-good build.
+    Identity_hash alone covers git metadata, not actual file content.
+    """
+    base = Path("/opt/arifos/app")
+    result: dict[str, str] = {}
+    for rel in _CRITICAL_MODULES:
+        path = base / rel
+        try:
+            content = path.read_bytes()
+            result[rel] = hashlib.sha256(content).hexdigest()[:16]
+        except Exception as e:
+            result[rel] = f"ERROR:{e}"
+    return result
+
+
 def _compute_schema_hash(mcp: Any, tool_registry: dict[str, Callable]) -> str:
     """SHA-256 of tool input schemas."""
     schemas: list[dict[str, Any]] = []
@@ -2881,6 +2910,7 @@ def register_rest_routes(
             "tool_registry_hash": _compute_tool_registry_hash(tool_registry),
             "registry_truth": "VERIFIED",
             "schema_hash": _compute_schema_hash(mcp, tool_registry),
+            "critical_module_hashes": _compute_critical_module_hashes(),
             "contract_status": contracts,
             "contract_drift": contract_drift_val,
             **_drift,
