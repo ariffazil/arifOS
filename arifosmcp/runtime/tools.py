@@ -22218,6 +22218,7 @@ async def _arif_kernel_intercept_tool(
         signature_challenge=signature_challenge,
         nonce=nonce,
         key_id=key_id,
+        session_id=session_id,
     )
 
     # Use the standard builder so kernel verdicts carry facts/inferences/metacog/next_safe
