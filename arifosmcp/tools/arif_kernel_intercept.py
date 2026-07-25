@@ -277,6 +277,7 @@ async def _arif_kernel_intercept(
         "RECORD_ONLY_APPEND": "R2",
         "AI_ATTESTATION": "R2",
         "AUDIT_RECEIPT": "R2",
+        "AUDIT_RECORD": "R2",
         "EVIDENCE_ATTESTATION": "R2",
         "RECORD_SEAL": "R2",
         "EVIDENCE_SEAL": "R2",
