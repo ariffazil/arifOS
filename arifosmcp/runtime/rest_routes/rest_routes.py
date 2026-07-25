@@ -2492,11 +2492,14 @@ def _probe_graphiti_enabled() -> bool:
 
 
 def _probe_langfuse_tracing() -> dict[str, Any]:
-    """Probe Langfuse cloud tracing status and return structured state."""
+    """Probe Langfuse cloud tracing status — PURE READ-ONLY, zero side effects.
+
+    FIX (2026-07-25): Replaced get_client() import with lightweight HTTP auth check.
+    The previous implementation called langfuse.get_client() which installed
+    a global OpenTelemetry processor as a side effect of a read-only /health probe.
+    Health probes MUST be mathematically pure — no state mutation.
+    """
     try:
-        # Env vars are set at container start from the real (decrypted) values.
-        # load_dotenv is NOT called here — the .env file is SOPS-encrypted
-        # and would overwrite real env vars with ENC[...] strings if loaded.
         public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
         secret_key = os.getenv("LANGFUSE_SECRET_KEY")
         host = os.getenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
@@ -2506,30 +2509,42 @@ def _probe_langfuse_tracing() -> dict[str, Any]:
                 "reason": "credentials_missing",
                 "host": host,
             }
-        from langfuse import get_client
+        # Lightweight auth check via HTTP Basic — does NOT import langfuse SDK
+        # which would install global OTEL processor as a side effect
+        import base64
+        import urllib.request
+        import urllib.error
 
-        lf = get_client()
-        if lf is None:
-            return {"status": "NOT_WIRED", "reason": "client_init_failed", "host": host}
-        if hasattr(lf, "auth_check"):
-            try:
-                ok = lf.auth_check()
-            except Exception:
-                ok = False
-            if not ok:
+        auth_str = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
+        req = urllib.request.Request(
+            f"{host.rstrip('/')}/api/public/health",
+            headers={"Authorization": f"Basic {auth_str}"},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                if resp.status == 200:
+                    return {
+                        "status": "ACTIVE",
+                        "host": host,
+                        "public_key_prefix": public_key[:12] + "..." if public_key else None,
+                        "traced_tools_count": 13,
+                    }
+                else:
+                    return {
+                        "status": "DEGRADED_AUTH_FAILED",
+                        "reason": f"HTTP {resp.status}",
+                        "host": host,
+                    }
+        except urllib.error.HTTPError as e:
+            if e.code == 401:
                 return {
                     "status": "DEGRADED_AUTH_FAILED",
                     "reason": "auth_check_failed",
                     "host": host,
                 }
-        return {
-            "status": "ACTIVE",
-            "host": host,
-            "public_key_prefix": public_key[:12] + "..." if public_key else None,
-            "traced_tools_count": 13,  # All 13 canonical tools: 6 async (_LANGFUSE_TRACER.trace) + 7 sync (_sync_trace)
-        }
-    except ImportError:
-        return {"status": "NOT_WIRED", "reason": "sdk_not_installed"}
+            return {"status": "NOT_WIRED", "reason": f"HTTP {e.code}", "host": host}
+        except Exception:
+            return {"status": "NOT_WIRED", "reason": "unreachable", "host": host}
     except Exception as e:
         return {"status": "NOT_WIRED", "reason": str(e)}
 
