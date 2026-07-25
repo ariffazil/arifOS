@@ -149,68 +149,28 @@ def get_lane_for_tool(organ_id: str, tool_name: str) -> str:
 def _resolve_actor_verified(session_id: str | None, actor_id: str | None = None) -> bool:
     """Single projection of actor_verified for organ kernel envelopes.
 
-    FORGE-0A (2026-07-23): Never invent True from (actor_id and session_id)
+    FORGE-0A (2026-07-23): NEVER invent True from (actor_id and session_id)
     presence — that is the identity schism (wrapper True / standing False).
 
-    Order:
-      1. Session store / AuthorityState (canonical)
-      2. Else False (unverified / anonymous / store miss)
-
-    SCT claim ``av`` is authoritative only when already projected into the
-    session store at arif_init / bind_identity. This reader does not parse
-    tokens independently (would re-open multi-writer drift).
+    FORGE-0B (2026-07-25): Use resolve_standing() as the SINGLE canonical source.
+    Multiple fallback paths in prior implementation could disagree with the SCT
+    token's av flag, producing "identity verified" in one response field and
+    "actor_verified=false" in another. One source, one answer.
     """
     if not session_id or str(session_id).startswith("SES-IMPLICIT-"):
         return False
-    # Prefer session identity map (set only at bind / arif_init)
     try:
-        from arifosmcp.runtime.session import get_session_identity
+        from arifosmcp.runtime.sct import resolve_standing
 
-        ident = get_session_identity(session_id)
-        if isinstance(ident, dict):
-            return bool(ident.get("actor_verified") or ident.get("verified"))
-    except Exception:
-        pass
-    # AuthorityState / full session dict via tools.get_session
-    try:
-        from arifosmcp.runtime.tools import get_session
-
-        sess = get_session(session_id)
-        if isinstance(sess, dict):
-            try:
-                from arifosmcp.runtime.authority import read_authority_state
-
-                state = read_authority_state(sess)
-                return bool(state.actor.verified)
-            except Exception:
-                return bool(
-                    sess.get("actor_verified")
-                    or sess.get("signature_verified")
-                    or sess.get("identity_verified")
-                )
-    except Exception:
-        pass
-    # File-store fallback (same paths as live_kernel)
-    try:
-        store_path = os.getenv("ARIFOS_SESSION_STORE_PATH", "/app/data/sessions.json")
-        for p in (
-            store_path,
-            "/tmp/arifos/sessions.json",
-            "/tmp/arifos/runtime_sessions.json",
-            "/root/.local/share/arifos/sessions.json",
-        ):
-            if not os.path.exists(p):
-                continue
-            with open(p, encoding="utf-8") as f:
-                data = json.load(f)
-            sessions = data.get("sessions", data) if isinstance(data, dict) else {}
-            sess = sessions.get(session_id) if isinstance(sessions, dict) else None
-            if isinstance(sess, dict):
-                return bool(
-                    sess.get("actor_verified")
-                    or sess.get("signature_verified")
-                    or sess.get("identity_verified")
-                )
+        standing = resolve_standing(
+            session_id=session_id,
+            actor_id=actor_id,
+            tool="kernel_envelope",
+            mode="resolve_actor_verified",
+            allow_store=True,
+        )
+        if standing.valid:
+            return bool(standing.actor_verified)
     except Exception:
         pass
     return False
