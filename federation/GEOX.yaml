@@ -6,9 +6,10 @@
 # DITEMPA BUKAN DIBERI — Forged, Not Given.
 # ═══════════════════════════════════════════════════════════════════════════════
 
-contract_version: arifos-federation-geox-v1.0.0
+contract_version: arifos-federation-geox-v2.0.0
 ratified: 2026-06-14
 ratified_by: F13 SOVEREIGN
+amended: 2026-07-25  # Stage 2: consolidated tool names + session enforcement
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # §1 — ORGAN IDENTITY
@@ -60,22 +61,29 @@ lanes:
   discovery:
     max_action_class: OBSERVE
     requires_lease: false
-    requires_session: false
+    requires_session: true  # STAGE 2: session required (was false)
     tools:
       - geox_system_registry_status
       - geox_attribute_registry_list_tool
       - geox_basin_resolve
       - geox_query_intake
       - geox_query_macrostrat
+      - geox_surface_status          # STAGE 2: canonical surface probe
+      - geox_well_view               # STAGE 2: well witness view
     description: "List tools, resources, status. Read-only discovery — no evidence, no interpretation."
 
   evidence:
     max_action_class: ANALYZE
     requires_lease: false
-    requires_session: false
+    requires_session: true  # STAGE 2: session required (was false)
     tools:
-      - geox_data_ingest_bundle
-      - geox_data_qc_bundle
+      # ─── STAGE 2 CONSOLIDATED APPS ───────────────────────────────
+      - geox_well_ingest           # consolidated ingest (was geox_data_ingest_bundle)
+      - geox_well_qc               # consolidated QC (was geox_data_qc_bundle)
+      - geox_seismic_ingest        # consolidated seismic I/O
+      # ─── LEGACY (aliased) ────────────────────────────────────────
+      - geox_data_ingest_bundle    # → geox_well_ingest
+      - geox_data_qc_bundle        # → geox_well_qc
       - geox_dst_ingest_test
       - geox_header_inspect
       - geox_las_inspect
@@ -104,13 +112,16 @@ lanes:
       - geox_map_context_scene
       - geox_horizon_contrast_surface
       - geox_coord_transform_tool
-      - geox_blockspace_resolution_tool
+      - geox_blockspace_resolution_tool    # → geox_map_scene_plan (STAGE 2)
       - geox_blend_volume_tool
       - geox_basin_profile
       - geox_vision_minimax_inference
       - geox_vision_audit
       - geox_report_to_workflow
       - geox_abstraction_guard
+      - geox_petrophysics                  # STAGE 2: consolidated petrophysics
+      - geox_sequence                      # STAGE 2: consolidated sequence/correlation
+      - geox_map_scene_plan                # STAGE 2: consolidated map planning
     description: "Derive geological interpretations. Requires lease + session. Produces claims."
 
   judgment:
@@ -128,15 +139,24 @@ lanes:
       - geox_segy_export_tool
     description: "Seal, challenge, evaluate claims. MUST route through arifOS judge."
 
-  # Tool-to-lane mapping for all 40 tools
+  # Tool-to-lane mapping for all tools (STAGE 2: consolidated tools added)
   tool_lane_map:
+    # ─── DISCOVERY ─────────────────────────────────────────────────
     geox_system_registry_status: discovery
     geox_attribute_registry_list_tool: discovery
     geox_basin_resolve: discovery
     geox_query_intake: discovery
     geox_query_macrostrat: discovery
-    geox_data_ingest_bundle: evidence
-    geox_data_qc_bundle: evidence
+    geox_surface_status: discovery           # STAGE 2
+    geox_well_view: discovery                # STAGE 2
+    # ─── EVIDENCE (consolidated) ──────────────────────────────────
+    geox_well_ingest: evidence               # STAGE 2
+    geox_well_qc: evidence                   # STAGE 2
+    geox_seismic_ingest: evidence            # STAGE 2
+    geox_well_desk: evidence                 # STAGE 2
+    # ─── EVIDENCE (legacy aliases) ─────────────────────────────────
+    geox_data_ingest_bundle: evidence        # → geox_well_ingest
+    geox_data_qc_bundle: evidence            # → geox_well_qc
     geox_dst_ingest_test: evidence
     geox_header_inspect: evidence
     geox_las_inspect: evidence
@@ -148,8 +168,12 @@ lanes:
     geox_volume_frame_tool: evidence
     geox_vision_perceptual_inventory: evidence
     geox_vision_calibrate: evidence
+    # ─── REASONING ─────────────────────────────────────────────────
     geox_subsurface_generate_candidates: reasoning
     geox_subsurface_verify_integrity: reasoning
+    geox_petrophysics: reasoning              # STAGE 2
+    geox_sequence: reasoning                  # STAGE 2
+    geox_map_scene_plan: reasoning            # STAGE 2
     geox_seismic_compute: reasoning
     geox_seismic_compute_attribute_tool: reasoning
     geox_sequence_interpret: reasoning
