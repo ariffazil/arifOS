@@ -1,0 +1,10 @@
+{
+  "archived": "2026-04-26",
+  "reason": "Pre-existing bulk-copy noise from pre-consolidation era. ~2100 files. No active references. Per 2026-04-26 session log: 'pre-commit fix, 13 canonical tools, ~101 federation tools.'",
+  "superseded_by": "Current arifOS at /opt/arifos/app",
+  "retention_policy": "COLD_STORAGE — archive and exclude from scans",
+  "eureka_distilled": ["None — bulk copy, individual files insufficient signal"],
+  "last_accessed": "2026-07-26",
+  "read_only": true,
+  "classification": "NOISE — do not scan for EUREKA in future passes"
+}
