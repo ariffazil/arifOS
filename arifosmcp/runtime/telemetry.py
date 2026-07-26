@@ -220,6 +220,54 @@ def _hash_payload(data: Any) -> str:
         return "unavailable"
 
 
+# ── P1-6 arifFlow telemetry forwarding ──────────────────────────────────
+# Fire-and-forget POST to arifFlow :7073/telemetry/log.
+# Never blocks the kernel tool path — silent on failure.
+# arifFlow is the canonical federation telemetry sink.
+
+_ARIFLOW_TELEMETRY_URL = os.getenv(
+    "ARIFLOW_TELEMETRY_URL", "http://127.0.0.1:7073/telemetry/log"
+)
+_ARIFLOW_TELEMETRY_ENABLED = os.getenv("ARIFLOW_TELEMETRY_ENABLED", "true").lower() == "true"
+
+
+def _forward_to_arifflow(
+    tool_name: str,
+    verdict: str,
+    latency_ms: float | None,
+    session_id: str | None,
+    actor_id: str | None,
+    metadata: dict[str, Any] | None,
+) -> None:
+    """Forward telemetry event to arifFlow — fire-and-forget.
+
+    arifFlow is the federation's canonical receipt gravity well.
+    Local sinks (Langfuse, NATS, Postgres) remain primary — this is
+    an additional witness stream, not a replacement.
+    """
+    if not _ARIFLOW_TELEMETRY_ENABLED:
+        return
+    try:
+        import json as _json
+
+        import httpx
+
+        payload: dict[str, Any] = {
+            "band": "GOVERNANCE" if verdict.upper() in ("HOLD", "VOID", "SABAR") else "OPERATIONAL",
+            "organ": "arifOS",
+            "agent_id": f"arifos:{actor_id[:32]}" if actor_id else None,
+            "session_id": session_id,
+            "tool_name": tool_name,
+            "latency_ms": latency_ms,
+            "success": verdict.upper() not in ("VOID", "HOLD"),
+            "metadata": metadata or {},
+        }
+        with httpx.Client(timeout=3.0) as client:
+            client.post(_ARIFLOW_TELEMETRY_URL, json=payload)
+    except Exception:
+        pass  # fire-and-forget — never block the kernel
+
+
 # ── SCT Token Filter (F12/F11 CRITICAL — 2026-07-25) ──────────────────
 # Session Capability Tokens (sct_v1.*) are cryptographic bearer tokens.
 # They MUST NOT be written to any telemetry sink in plaintext form.
@@ -466,6 +514,33 @@ class Telemetry:
                 _publish_nats(record)
             except Exception as e:
                 logger.debug(f"[Telemetry] Local backend write failed: {e}")
+
+        # ── arifFlow telemetry (P1-6: federation receipt gravity well) ─────
+        # Fire-and-forget — arifFlow is the canonical telemetry sink.
+        # Local sinks remain primary; this is an additional witness stream.
+        try:
+            i_hash = _hash_payload(_redact(input_data)) if input_data else None
+            o_hash = _hash_payload(output_data) if output_data else None
+            ariflow_meta: dict[str, Any] = {
+                "delta_S": delta_s,
+                "input_hash": i_hash,
+                "output_hash": o_hash,
+                "vault_receipt": vault_receipt,
+                "reasons": reasons or [],
+                "next_safe_action": next_safe_action,
+            }
+            if metadata:
+                ariflow_meta.update(metadata)
+        except Exception:
+            ariflow_meta = {}
+        _forward_to_arifflow(
+            tool_name=tool,
+            verdict=verdict,
+            latency_ms=latency * 1000.0 if latency else None,
+            session_id=session_id,
+            actor_id=actor_id,
+            metadata=_redact(ariflow_meta),
+        )
 
         logger.debug(f"[Telemetry] tool_call tool={tool} verdict={verdict} latency={latency}")
 
