@@ -1,3 +1,6 @@
+<!-- CANONICAL: /root/AGENTS.md -->
+<!-- Status: DERIVED — organ-specific extension. Authoritative doctrine: /root/AGENTS.md -->
+
 # AGENTS.md — arifOS | arifOS Federation
 
 > **DITEMPA BUKAN DIBERI**
