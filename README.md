@@ -1,8 +1,8 @@
 mcp-name: io.github.ariffazil/arifos
 <!-- SOT-MANIFEST
-federation_release: v2026.07.25
-last_verified: 2026-07-25T06:30Z
-live_commit: a7027cc5d
+federation_release: v2026.07.26
+last_verified: 2026-07-26T12:30Z
+live_commit: 31640cb32
 live_port: 8088 (healthy)
 tools_exposed_via_mcp: 8 (canonical public verbs)
 total_declared_tools: 48 (includes diagnostics, aliases, canary)
@@ -14,7 +14,7 @@ organs: 6 live (arifOS:8088, A-FORGE:7071, AAA:3001, GEOX:8081, WEALTH:18082, WE
 |authorization: F13 Ed25519 challenge-response — canonical binding, Redis replay protection, A-FORGE structural gate, AAA approval card
 |-->
 
-**SOT:** 2026-07-25 | **seal_seq:** `68d5b8a37` | **F13 three-gate close**
+**SOT:** 2026-07-26 | **seal_seq:** `68d5b8a37` | **F13 three-gate close**
 
 <div align="center">
 
@@ -303,7 +303,7 @@ STDIO: `npx -y arifos-mcp`
 ### 📚 Documentation Index
 | Resource | Path |
 |----------|------|
-| **GENESIS Canon** | [`GENESIS/README.md`](GENESIS/README.md) — 37 constitutional documents, ATLAS333-mapped |
+| **GENESIS Canon** | [`GENESIS/README.md`](GENESIS/README.md) — 48 canonical files / 56 ATLAS documents |
 | **Governance** | [`docs/governance/README.md`](docs/governance/README.md) — Ontology, manifesto, floors |
 | **Architecture (ADR)** | [`docs/adr/README.md`](docs/adr/README.md) — Architecture Decision Records |
 | **ATLAS333** | [`docs/ATLAS333_INTELLIGENCE_FLOW.md`](docs/ATLAS333_INTELLIGENCE_FLOW.md) — Cognitive geometry |
@@ -334,12 +334,12 @@ STDIO: `npx -y arifos-mcp`
 | **A-FORGE** | Executor — builds, deploys | [repo](https://github.com/ariffazil/A-FORGE) | [mcp](https://forge.arif-fazil.com/mcp) | [health](https://forge.arif-fazil.com/health) | [llms.txt](https://forge.arif-fazil.com/llms.txt) |
 | **AAA** | Cockpit — displays, routes | [repo](https://github.com/ariffazil/AAA) | — | [health](https://aaa.arif-fazil.com/health) | [llms.txt](https://aaa.arif-fazil.com/llms.txt) |
 | **GEOX** | Earth intelligence | [repo](https://github.com/ariffazil/GEOX) | [mcp](https://geox.arif-fazil.com/mcp) | [health](https://geox.arif-fazil.com/health) | [llms.txt](https://geox.arif-fazil.com/llms.txt) |
-| **WEALTH** | Capital intelligence | [repo](https://github.com/ariffazil/wealth) | [mcp](https://wealth.arif-fazil.com/mcp) | [health](https://wealth.arif-fazil.com/health) | [llms.txt](https://wealth.arif-fazil.com/llms.txt) |
-| **WELL** | Vitality guard | [repo](https://github.com/ariffazil/well) | [mcp](https://well.arif-fazil.com/mcp) | [health](https://well.arif-fazil.com/health) | [llms.txt](https://well.arif-fazil.com/llms.txt) |
+| **WEALTH** | Capital intelligence | [repo](https://github.com/ariffazil/WEALTH) | [mcp](https://wealth.arif-fazil.com/mcp) | [health](https://wealth.arif-fazil.com/health) | [llms.txt](https://wealth.arif-fazil.com/llms.txt) |
+| **WELL** | Vitality guard | [repo](https://github.com/ariffazil/WELL) | [mcp](https://well.arif-fazil.com/mcp) | [health](https://well.arif-fazil.com/health) | [llms.txt](https://well.arif-fazil.com/llms.txt) |
 | **HERMES** | Multi-modal bridge | [repo](https://github.com/ariffazil/HERMES) | — | — | — |
 
 **Public:** [arif-fazil.com](https://arif-fazil.com) · **Federation root:** [arifos.arif-fazil.com](https://arifos.arif-fazil.com)
-**SOT:** 2026-07-24
+**SOT:** 2026-07-26
 
 ## 8. License & Sovereignty
 
