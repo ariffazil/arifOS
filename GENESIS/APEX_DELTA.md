@@ -1,74 +1,221 @@
-# APEX Theory Delta Log & Floor Re-weighting Record (v2026.07 · Step B)
+# APEX DELTA — Per-Floor Re-Weighting, Metric Derivations, Replay Plan
 
-> **Ditempa Bukan Diberi** — *Forged, Not Given*  
-> **Status:** CANONICAL DELTA LOG (Step B) | **Authority:** Sovereign ARIF & 888_JUDGE  
-> **Layer:** CONSTITUTIONAL KERNEL (GENESIS 000)
-
----
-
-## 📊 1. Per-Floor Re-weighting Matrix: Legacy $g(t)$ vs Proposed $G$
-
-The table below details how each Constitutional Floor (F1–F13) maps from the legacy 6-variable formulation ($A, P, H, S, U, E^2$) into the proposed 4-variable formulation ($A, P, E, X$):
-
-| Floor | Name | Legacy Location & Weight | Proposed Location & Formula | Shift Rationale & Governance Impact |
-|---|---|---|---|---|
-| **F1** | Amanah | Top-level $P$ | $P = \text{GM}(F1, F5, F11, F13)$ | Retained in $P$. Weight shifted from 1/6 linear product to 1/4 geometric mean exponent. |
-| **F2** | Truth | Top-level $A$ | $A = \text{GM}(F2, F4, F7, F10)$ | Retained in $A$. Evaluated alongside $F4, F7, F10$. |
-| **F3** | Witness | Top-level $S$ (Witness sub-component) | $E = \text{GM}(F3, F4, F12, \text{energy}^2)$ | Moved from $S$ into $E$. Tri-witness consensus now gates Energy telemetry integrity. |
-| **F4** | Clarity | Top-level $A$ & $U$ | $A = \text{GM}(F2, F4, F7, F10)$ & $E = \dots$ | Dual-mapped into $A$ (intent) and $E$ (logging trace). Direct input to `clarity_score`. |
-| **F5** | Peace² | Top-level $S$ | $P = \text{GM}(F1, F5, F11, F13)$ | Moved from $S$ into $P$. Human dignity & non-escalation directly scale Peace ($P$). |
-| **F6** | Empathy | Top-level $H$ (Human) | $X = \text{GM}(F6, F8, F9, \text{exploration})$ | Demoted from top-level $H$ into $X$. Harm assessment gates exploration capacity. |
-| **F7** | Humility | Top-level $U$ (Uncertainty) | $A = \text{GM}(F2, F4, F7, F10)$ | Moved from $U$ into $A$. Epistemic uncertainty ($\Omega$) bounds Authority directly. |
-| **F8** | Genius | Top-level $S$ | $X = \text{GM}(F6, F8, F9, \text{exploration})$ | Moved from $S$ into $X$. Efficiency threshold ($G \ge 0.80$) bounds exploration efficiency. |
-| **F9** | Anti-Hantu | Top-level $H$ (Human) | $X = \text{GM}(F6, F8, F9, \text{exploration})$ | Demoted from top-level $H$ into $X$. Non-simulation rule gates search novelty. |
-| **F10** | Ontology | Top-level $A$ | $A = \text{GM}(F2, F4, F7, F10)$ | Retained in $A$. Guarantees non-LLM ground-truth evidence in Authority calculation. |
-| **F11** | Auth | Top-level $P$ | $P = \text{GM}(F1, F5, F11, F13)$ | Retained in $P$. SCT token resolution & VAULT999 logging. Input to `auditability_score`. |
-| **F12** | Injection | Top-level $E$ | $E = \text{GM}(F3, F4, F12, \text{energy}^2)$ | Retained in $E$. Prompt-injection barrier integrity gates substrate Energy. |
-| **F13** | Sovereign | Top-level $P$ & $H$ | $P = \text{GM}(F1, F5, F11, F13)$ | Absolute human veto & `888 HOLD` ratifications anchored in $P$. |
+**Document ID:** `arifOS/GENESIS/APEX_DELTA`
+**Type:** DELTA LOG + REPLAY SPEC
+**Status:** DRAFT — pre-seal, executed only after `APEX_T000.md` is SEALED
+**Date:** 2026-07-26
+**Authority:** Muhammad Arif bin Fazil, F13 SOVEREIGN
+**Companion:** `APEX_T000.md` (the four-variable canon)
+**DITEMPA BUKAN DIBERI** — *Forged, Not Given.*
 
 ---
 
-## 🧮 2. Derivation of Internal Metric Levers
+## 1. Purpose
 
-To maintain the 4-variable top-level identity $G = A \cdot P \cdot E \cdot X$, candidate metric levers are derived strictly as **sub-floor measurement aggregators**:
+This document is the **delta log** that protects the arifOS constitution
+from a silently shifted re-weighting. It captures, in matrix form, how each
+of the 13 floors moved between the legacy six-dial form and the new
+four-variable form, and how the two new internal metrics
+(`auditability_score` and `clarity_score`) are derived. It also defines
+the side-by-side replay that must pass before T-000 is SEALED.
 
-### 1. `auditability_score` ($F4 / F11$ Lever)
-$$\text{auditability\_score} = \min(F4_{\text{trace}}, F11_{\text{receipt}}) \in [0.0, 1.0]$$
-- **Function:** Measures whether an action leaves a complete, unambiguous, append-only log in `VAULT999`.
-- **Routing:** Operates as a constituent input inside $A$ ($F4$) and $P$ ($F11$). Does **not** add a 5th top-level variable.
+## 2. Per-floor re-weighting matrix
 
-### 2. `clarity_score` ($F4 / F2$ Lever)
-$$\text{clarity\_score} = 1.0 - \max(0.0, \Delta S) \cdot \Psi \in [0.0, 1.0]$$
-- **Function:** Measures entropy reduction ($\Delta S \le 0$) combined with reality-grounding ($\Psi$).
-- **Routing:** Operates as a constituent input inside $A$ ($F4, F2$) and $E$ ($F4$). Does **not** add a 5th top-level variable.
+The legacy form is the geometric-mean clusters of the six dials
+(`docs/canon/CANON_APEX_V2/02_APEX_CANON_GRAND_EQUATION.md` §"Six Dials").
+The new form is the geometric-mean clusters of the four variables
+(`APEX_T000.md` §2).
+
+| Floor | Legacy dial(s) | New variable(s) | Movement |
+|:------|:---------------|:----------------|:---------|
+| F1 AMANAH (reversibility) | P (Present) | **P (Present Authority)** | Stays. P absorbs F1, F5, F11, F13. |
+| F2 TRUTH (evidence) | A (Akal) | **A (Akal)** | Stays. A absorbs F2, F4, F7, F10. |
+| F3 TRI-WITNESS | U (Exploration) | **E (Entropy/Energy)** | F3 moves from U to E. |
+| F4 CLARITY | A, S | **A, E** | F4 appears in both A and E (intentional). |
+| F5 PEACE² | P | **P** | F5 moves from P to P (no change in variable name, but `P` now means Present Authority, not Present). |
+| F6 EMPATHY | U | **X** | F6 moves from U to X. |
+| F7 HUMILITY | A | **A** | Stays. |
+| F8 GENIUS (governed intelligence) | U | **X** | F8 moves from U to X. |
+| F9 ANTI-HANTU | U | **X** | F9 moves from U to X. |
+| F10 ONTOLOGY | — | **A** | F10 is new in T-000 (was implicit in the legacy kernel A dial under the title "Amanah-Tafakkur"). Now explicit. |
+| F11 AUDITABILITY | — | **P** | F11 is new in T-000 (was implicit in `governance_authority`). Now explicit. |
+| F12 RESILIENCE | E (energy proxy) | **E** | Stays. F12 is the runtime-energy floor; E absorbs it. |
+| F13 SOVEREIGN | H | **P** | F13 moves from H to P. The `H` variable is dropped. |
+
+### 2.1 Variable-delta summary
+
+| Legacy variable | New variable | Floors added | Floors removed | Net change |
+|:----------------|:-------------|:-------------|:---------------|:-----------|
+| A (Akal) | A (Akal) | F10 | — | +1 floor (F10 explicit) |
+| P (Present) | P (Present Authority) | F5, F11, F13 | F1 leaves to elsewhere (it returns) | F1, F5, F11, F13 |
+| H (Authority) | (dropped) | — | F13 moves to P | F13 leaves; `H` no longer a variable |
+| S (Entropy) | (dropped, partly folded into E) | — | F4 moves to A/E | `S` no longer a variable |
+| U (Exploration) | X (Exploration × Amanah) | F6, F8, F9 | F3 leaves to E | F6, F8, F9 plus `exploration_score` |
+| E (Energy) | E (Entropy / Energy) | F3, F4 (also in A), F12 | — | +F3, +F4-mirror, +F12 |
+
+The literal names `H` (Authority) and `S` (Sabar) are dropped. The
+**content** they carried is not dropped; it moves. If F13 demands their
+return, this is an F13 amendment.
+
+### 2.2 Why this is not a harmless rename
+
+1. **Floors appear in multiple new variables.** F4 (Clarity) appears in
+   both A and E. A F4 violation now reduces both A and E, lowering G
+   through two independent channels. The legacy S-only path is gone.
+2. **`H` is gone as a name.** F13 (Sovereign) is now part of `P`. A
+   sovereign failure lowers P. The legacy `H=0 ⇒ G=0` rule still
+   applies (via the hard-floor override), but the geometric mean of P
+   can still be non-zero even if F13 is low, unless the hard-floor
+   override fires.
+3. **`E` double-weights energy.** `E = GM(F3, F4, F12, energy_score, energy_score)`
+   is not the same as `E_old²`. The double occurrence is inside the
+   geometric mean, not a separate multiplier.
+4. **`exploration_score` is new.** It is not present in the legacy six-dial
+   form. The T-000 doc treats it as a derived input, but the replay must
+   show it does not silently change verdicts.
+
+## 3. New internal metrics (not first-class variables)
+
+### 3.1 `auditability_score` (F11 lever, contributes to P)
+
+```
+auditability_score = GM(
+  actor_attribution,    # actor/system identity captured
+  action_traceability,  # linked action / task / context ID
+  receipt_integrity,    # receipt emitted and hash-verifiable
+  replayability,        # action reconstructible from inputs
+  observability,        # visible to AAA / cockpit / logs
+  immutability          # sealed into VAULT999 or equivalent proof chain
+)
+```
+
+Each component is in `[0, 1]`. `auditability_score` thresholds:
+
+| Score | Verdict |
+|:------|:--------|
+| `>= 0.90` | PASS — promotes P |
+| `0.75 – 0.89` | SABAR — neutral on P |
+| `< 0.75` | HOLD — suppresses P |
+| `< 0.50` | VOID for high-stakes actions |
+
+`P = GM(F1, F5, F11, F13)` already weighs F11 directly. `auditability_score`
+is the *sub-score* for F11; it is the value reported to P's geometric
+mean, not a separate variable.
+
+### 3.2 `clarity_score` (F4 lever, contributes to A and E)
+
+Define:
+
+```
+unknowns_before = number of unresolved material questions before judgment
+unknowns_after  = number of unresolved material questions after judgment
+delta_entropy   = unknowns_before - unknowns_after
+clarity_score   = clamp(delta_entropy / max(1, unknowns_before), 0, 1)
+```
+
+`clarity_score > 0` means clarity improved; `= 0` means no change; `< 0`
+is impossible by construction (post-judgment questions are a subset).
+F4 is the floor that *requires* this metric; A and E both include F4 in
+their geometric mean, so a low `clarity_score` reduces A and E in
+parallel.
+
+A weighted extension is allowed for later:
+
+```
+entropy = Σ unknown_weight × unknown_risk
+entropy_after = unresolved weighted sum
+```
+
+The replay script (`replay_apex_comparison.py`) must support both the
+unweighted and the weighted forms and report the difference.
+
+## 4. Side-by-side replay (Step c)
+
+This is the gate. Until this passes, T-000 is **DRAFT**, not SEALED.
+
+### 4.1 Replay set
+
+- **Minimum:** the most recent 50 sealed VAULT999 receipts that have
+  `apex_legacy` and `apex_v2` both computable from their stored evidence.
+- **Source:** `/root/VAULT999/<stage>/*.jsonl` and the per-receipt
+  `evidence` envelope.
+
+### 4.2 Acceptance band
+
+| Metric | Band |
+|:--------|:------|
+| `|G_v2 - G_legacy|` (mean) | `<= 0.05` |
+| `|G_v2 - G_legacy|` (max) | `<= 0.10` |
+| Per-dial/per-variable `|Δ|` (mean) | `<= 0.10` |
+| Verdict flips (SEAL ↔ SABAR ↔ HOLD) | `0` (zero, hard) |
+| Hard-floor override flips | `0` (zero, hard) |
+
+Any verdict flip is a hard rejection regardless of band. The replay
+script must report flips explicitly.
+
+### 4.3 Replay script (read-only)
+
+`arifOS/scripts/replay_apex_comparison.py` (proposed, **not yet written**):
+
+```python
+# Pseudocode only — DO NOT IMPLEMENT UNTIL APEX_T000.md IS SEALED.
+import json
+from pathlib import Path
+
+def compute_legacy(receipt):
+    """Replay the six-dial form from the stored floor scores."""
+    ...
+
+def compute_v2(receipt):
+    """Replay the four-variable form from the stored floor scores."""
+    ...
+
+def main():
+    receipts = load_recent_vault999_receipts(limit=50)
+    for receipt in receipts:
+        legacy = compute_legacy(receipt)
+        v2 = compute_v2(receipt)
+        verdict_legacy = decide_legacy(legacy)
+        verdict_v2 = decide_v2(v2)
+        if verdict_legacy != verdict_v2:
+            record_verdict_flip(receipt, legacy, v2)
+    emit_replay_report(...)
+```
+
+The script is read-only. It MUST NOT touch the seal chain or the kernel
+state. It MUST be re-runnable without side effects.
+
+### 4.4 What happens on each outcome
+
+| Outcome | Action |
+|:--------|:-------|
+| All bands green, zero verdict flips | T-000 moves to **SEALED**, `apex_v2.js` may be drafted. |
+| One or more verdict flips | T-000 returns to **HOLD**. `APEX_DELTA.md` §2 is rewritten. The flip receipt becomes a counter-example. |
+| Bands within tolerance but not zero flips | **Discretionary**: F13 decides. T-000 does not auto-seal. |
+| Bands outside tolerance | T-000 **REJECTED**; the four-variable form is not adopted. The legacy six-dial form remains canonical until a different formulation is proposed. |
+
+## 5. Invariants (binding)
+
+1. **No code mutation** under T-000 until the replay in §4 passes.
+2. **`governance/enforce.js`** does not adopt T-000 unless its output is
+   an exact superset of the legacy `enforce.json` schema.
+3. **VAULT999 receipts** written under T-000 must carry both `apex_legacy`
+   and `apex_v2` fields during the quarantine; the legacy field is the
+   authoritative verdict until T-000 is SEALED.
+4. **The hard-floor list** in `APEX_T000.md` §3.1 is closed during the
+   quarantine. New floors require an F13 amendment, not a T-000 patch.
+5. **The four-variable form does not delete floors.** It only re-weights
+   them. See §2.
+
+## 6. Open questions (F13 decision required)
+
+1. **Replay acceptance band.** Confirm 0.05 / 0.10 / zero-flip.
+2. **`(1-C_dark)` correction.** Apply on top of T-000 G, or omit?
+3. **F4 / F11 internal metrics.** Confirm they are inputs, not variables.
+4. **`S` (Sabar) demotion.** Confirm F5/F8/F3 moves are accepted.
+
+Same four as `APEX_T000.md` §7, by design.
 
 ---
 
-## 🔬 3. Quarantine & Replay Specification (Step C)
-
-Before any code path switches to $G = A \cdot P \cdot E \cdot X$:
-
-1. **Quarantine Flag:** The legacy calculation ($A \cdot P \cdot H \cdot S \cdot U \cdot E^2$) remains accessible via `--legacy-apex`.
-2. **Side-by-Side Replay Script:** `scripts/replay_apex_comparison.py` will read historical receipts from `VAULT999`, compute both `apex_legacy` and `apex_v2`, and output a side-by-side delta matrix.
-3. **Acceptance Threshold:**  
-   - Mean Delta $|G_{v2} - g_t| \le 0.05$  
-   - Max Delta $|G_{v2} - g_t| \le 0.10$  
-   - Verdict Flips $== 0$
-
----
-
-## 🚨 4. Empirical 50-Receipt Audit Result (2026-07-26)
-
-> [!CAUTION]
-> **VERDICT: 888_HOLD — REPLAY ACCEPTANCE BAND BREACH DETECTED**  
-> Execution of `scripts/replay_apex_comparison.py` against 50 recent `VAULT999/SEALED_EVENTS.jsonl` receipts yielded:
-> - **Mean Delta $|G_{v2} - g_t|$:** `0.4027` (Breached $\le 0.05$)
-> - **Max Delta $|G_{v2} - g_t|$:** `0.4027` (Breached $\le 0.10$)
-> - **Verdict Flips:** `50 / 50` (`SABAR` $\rightarrow$ `SEAL`) (Breached $== 0$)
-> 
-> **Root Cause:** Legacy $g(t)$ multiplies 6 raw fractional terms, compounding suppression ($0.5052$), whereas $G = \text{GM}(A, P, E, X)$ computes Nash geometric means ($0.9079$).  
-> **Constitutional Impact:** `APEX_T000.md` remains under **`888 REVISION HOLD`**. The kernel math is **UNCHANGED**.
-
----
-
-*DITEMPA BUKAN DIBERI — 999 SEAL ALIVE*
+*DITEMPA BUKAN DIBERI — The law is forged in the kernel, not in the acronym.*
