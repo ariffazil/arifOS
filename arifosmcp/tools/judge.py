@@ -763,6 +763,28 @@ async def arif_judge(
     _standing_actor_verified = False
     _standing_authority: str | None = None
     _standing_delta: dict[str, Any] | None = None
+
+    def _echo_standing(out: VerdictOutput) -> VerdictOutput:
+        """Echo next-hop SCT continuity onto a direct VerdictOutput."""
+        if not _standing_token:
+            return out
+        data = out.model_dump(mode="json")
+        data["session_token"] = _standing_token
+        data["standing_source"] = _standing_source or "sct"
+        if _standing_apex is not None:
+            data["apex_scalars"] = _standing_apex
+        data["authority"] = _standing_authority or "OBSERVE_ONLY"
+        data["actor_verified"] = _standing_actor_verified
+        if _standing_delta is not None:
+            data["authority_delta"] = _standing_delta
+        res = data.get("result")
+        if isinstance(res, dict):
+            res.setdefault("session_token", _standing_token)
+            res.setdefault("standing_source", _standing_source or "sct")
+            if _standing_apex is not None:
+                res.setdefault("apex_scalars", _standing_apex)
+        return VerdictOutput(**data)
+
     if session_token or session_id:
         try:
             from arifosmcp.runtime.sct import resolve_standing
@@ -861,27 +883,6 @@ async def arif_judge(
                     "floor_type": "HARD",
                 },
             )
-
-    def _echo_standing(out: VerdictOutput) -> VerdictOutput:
-        """Echo next-hop SCT continuity onto a direct VerdictOutput."""
-        if not _standing_token:
-            return out
-        data = out.model_dump(mode="json")
-        data["session_token"] = _standing_token
-        data["standing_source"] = _standing_source or "sct"
-        if _standing_apex is not None:
-            data["apex_scalars"] = _standing_apex
-        data["authority"] = _standing_authority or "OBSERVE_ONLY"
-        data["actor_verified"] = _standing_actor_verified
-        if _standing_delta is not None:
-            data["authority_delta"] = _standing_delta
-        res = data.get("result")
-        if isinstance(res, dict):
-            res.setdefault("session_token", _standing_token)
-            res.setdefault("standing_source", _standing_source or "sct")
-            if _standing_apex is not None:
-                res.setdefault("apex_scalars", _standing_apex)
-        return VerdictOutput(**data)
 
     # ── F11 SESSION GATE — session_id OR valid SCT ────────────────────────
     if not session_id or not str(session_id).strip():

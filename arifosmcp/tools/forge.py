@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 from datetime import UTC, datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,28 @@ async def arif_forge(
     _standing_actor_verified = False
     _standing_authority: str | None = None
     _standing_delta: dict[str, Any] | None = None
+
+    def _echo_standing(out: ForgeOutput) -> ForgeOutput:
+        """Echo next-hop SCT continuity onto a direct ForgeOutput."""
+        if not _standing_token:
+            return out
+        data = out.model_dump(mode="json")
+        data["session_token"] = _standing_token
+        data["standing_source"] = _standing_source or "sct"
+        if _standing_apex is not None:
+            data["apex_scalars"] = _standing_apex
+        data["authority"] = _standing_authority or "OBSERVE_ONLY"
+        data["actor_verified"] = _standing_actor_verified
+        if _standing_delta is not None:
+            data["authority_delta"] = _standing_delta
+        res = data.get("result")
+        if isinstance(res, dict):
+            res.setdefault("session_token", _standing_token)
+            res.setdefault("standing_source", _standing_source or "sct")
+            if _standing_apex is not None:
+                res.setdefault("apex_scalars", _standing_apex)
+        return ForgeOutput(**data)
+
     if session_token or session_id:
         try:
             from arifosmcp.runtime.sct import resolve_standing
@@ -152,27 +175,6 @@ async def arif_forge(
                 )
         except Exception:
             pass
-
-    def _echo_standing(out: ForgeOutput) -> ForgeOutput:
-        """Echo next-hop SCT continuity onto a direct ForgeOutput."""
-        if not _standing_token:
-            return out
-        data = out.model_dump(mode="json")
-        data["session_token"] = _standing_token
-        data["standing_source"] = _standing_source or "sct"
-        if _standing_apex is not None:
-            data["apex_scalars"] = _standing_apex
-        data["authority"] = _standing_authority or "OBSERVE_ONLY"
-        data["actor_verified"] = _standing_actor_verified
-        if _standing_delta is not None:
-            data["authority_delta"] = _standing_delta
-        res = data.get("result")
-        if isinstance(res, dict):
-            res.setdefault("session_token", _standing_token)
-            res.setdefault("standing_source", _standing_source or "sct")
-            if _standing_apex is not None:
-                res.setdefault("apex_scalars", _standing_apex)
-        return ForgeOutput(**data)
 
     # Amanah: dry_run never mutates — structured receipt only
     if dry_run:
@@ -641,8 +643,6 @@ async def arif_forge(
     # The create_and_seal_receipt function exists in core/vault_receipt.py
     # and is proven in judge.py — it was never called from forge.py.
     try:
-        import hashlib
-
         from arifosmcp.core.vault_receipt import (
             create_and_seal_receipt,
             resolve_receipt_identity,
