@@ -20,6 +20,7 @@ from arifosmcp.runtime.law import check_laws
 from arifosmcp.runtime.tools import _add_floor_compat, _arif_forge
 from arifosmcp.schemas.forge import ForgeErrorCode, ForgeManifest, ForgeOutput, ManifestStatus
 from arifosmcp.tools.forge_ladder import ARIF_FORGE_EXECUTE_MANIFEST
+from arifosmcp.core.reality_ledger_writer import write_reality_event
 
 
 def action_has_side_effects(mode: str, manifest: str, query: str | None) -> bool:
@@ -693,6 +694,21 @@ async def arif_forge(
             result.meta["per_call_signature_receipt"] = _sig_receipt
         elif hasattr(result, "result") and isinstance(result.result, dict):
             result.result["per_call_signature_receipt"] = _sig_receipt
+    # Z5b — Reality Ledger auto-witness (non-blocking, fail-safe)
+    try:
+        _v = getattr(result, "verdict", "COMPLETED") if hasattr(result, "verdict") else "COMPLETED"
+        write_reality_event(
+            actor="FORGE",
+            event_type="forge_execute",
+            session_id="unknown",
+            verdict=str(_v),
+            summary=f"forge_execute: mode={mode}",
+            action_class="execute",
+            evidence={"mode": mode},
+        )
+    except Exception:
+        pass
+
     return _echo_standing(result)
 
 

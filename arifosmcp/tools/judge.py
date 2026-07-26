@@ -53,6 +53,7 @@ from arifosmcp.core.latency_budget import DecisionClass as LatencyDecisionClass
 from arifosmcp.core.vault_receipt import create_and_seal_receipt, resolve_receipt_identity
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
+from arifosmcp.core.reality_ledger_writer import write_reality_event
 from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
 from arifosmcp.runtime.tools import _arif_judge
 from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
@@ -2090,6 +2091,23 @@ async def arif_judge(
             result["amanah_proof"] = AmanahProof(**result["amanah_proof"])
         except Exception:
             result["amanah_proof"] = AmanahProof()
+
+    # Z5b — Reality Ledger auto-witness (non-blocking, fail-safe)
+    try:
+        _actor = result.get("actor", "unknown") if isinstance(result, dict) else "unknown"
+        _verdict = result.get("verdict", "HOLD") if isinstance(result, dict) else "HOLD"
+        _session = result.get("session_id", "unknown") if isinstance(result, dict) else "unknown"
+        write_reality_event(
+            actor=str(_actor),
+            event_type="arif_judge",
+            session_id=str(_session),
+            verdict=str(_verdict),
+            summary=f"arif_judge verdict: {_verdict}",
+            action_class="judge",
+            evidence={"call_hash": result.get("call_hash", "") if isinstance(result, dict) else ""},
+        )
+    except Exception:
+        pass  # Ledger write must never block governance verdict
 
     try:
         return _echo_standing(VerdictOutput(**result))
