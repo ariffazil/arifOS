@@ -1,5 +1,10 @@
 # APEX CANON — Grand Equation, Axioms, and Verification
 
+> **⚠ SUPERSEDED 2026-07-26 (F13-ratified).** Canonical form is now
+> [`canon/CANON_APEX_V2/02_APEX_CANON_GRAND_EQUATION.md`](./canon/CANON_APEX_V2/02_APEX_CANON_GRAND_EQUATION.md):
+> **G = (A·P·E²·X)^(1/5)** — 4 APEX letters, exclusive floor ownership, hard-floor veto first.
+> The `√(S·U)` coupling and the 6-dial raw product `A·P·H·S·U·E²` below are deprecated — do not cite.
+
 **Version:** v2026.07.12 (hard scientific humility)  
 **SEAL:** DITEMPA BUKAN DIBERI  
 **Authority:** F13 SOVEREIGN — Muhammad Arif bin Fazil  

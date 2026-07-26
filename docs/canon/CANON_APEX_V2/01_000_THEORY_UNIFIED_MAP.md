@@ -77,7 +77,7 @@ arif_init → arif_observe → arif_think → arif_route
 | # | Canon File | Role |
 |:--|:-----------|:-----|
 | 01 | 000_THEORY_UNIFIED_MAP | Root index — Trinity, Floors, Loop, Verb table (this file) |
-| 02 | APEX_CANON_GRAND_EQUATION | Physics bedrock — 6 dials, Grand Equation, 6 axiom families |
+| 02 | APEX_CANON_GRAND_EQUATION | Physics bedrock — APEX letters (A·P·E·X), Grand Equation G=(A·P·E²·X)^⅕, 6 axiom families |
 | 03 | APEX_MCP_RUNTIME_ENVELOPE | 10-gate runtime governance enforcement |
 | 04 | ARIFOS_REAL_INTELLIGENCE_KERNEL | Kernel organ/invariant spec — what arifOS IS |
 | 05 | ARIFOS_13TOOL_MANIFEST | Canonical 13-tool schema (44→13 consolidation) |

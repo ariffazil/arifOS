@@ -1,6 +1,15 @@
-"""arifOS APEX Calculus Engine (v2026.07.APEX).
+"""arifOS APEX Calculus Engine (v2026.07.APEX.2).
 
-Computes G = A * P * E * X from Constitutional Floor Scores F1-F13.
+Computes G = (A · P · E² · X)^(1/5) from Constitutional Floor Scores F1-F13.
+
+APEX letters (CANON_APEX_V2/02, F13-ratified 2026-07-26):
+  A = AKAL               → F2, F7, F10
+  P = PRESENT×AUTHORITY  → F1, F5, F11, F13
+  E = ENTROPY×ENERGY     → F4, F12, energy  (Landauer conjugate pair: ΔE ≥ kT·ln2·ΔS)
+  X = EXPLORATION×AMANAH → F3, F6, F8, F9, risk
+
+Floor ownership is exclusive (no double-counting). Hard floors veto BEFORE
+scoring — the geometric mean never launders a constitutional violation.
 """
 
 import math
@@ -103,22 +112,22 @@ def compute_apex(
         is_hold = True
         reasons.append("F1 Amanah: Irreversible mutation requires 888_HOLD operator ratification")
 
-    # 3. COMPUTE 4 APEX VARIABLES (Nash Geometric Mean)
-    A = geometric_mean(  # noqa: N806
-        [floors.get("F2", 0), floors.get("F4", 0), floors.get("F7", 0), floors.get("F10", 0)]
+    # 3. COMPUTE 4 APEX LETTERS (Nash Geometric Mean, exclusive floor ownership)
+    A = geometric_mean(  # noqa: N806  AKAL — reasoning lawfulness
+        [floors.get("F2", 0), floors.get("F7", 0), floors.get("F10", 0)]
     )
-    P = geometric_mean(  # noqa: N806
+    P = geometric_mean(  # noqa: N806  PRESENT×AUTHORITY — state truth + legitimacy
         [floors.get("F1", 0), floors.get("F5", 0), floors.get("F11", 0), floors.get("F13", 0)]
     )
-    E = geometric_mean(  # noqa: N806
-        [floors.get("F3", 0), floors.get("F4", 0), floors.get("F12", 0), energy_score, energy_score]
+    E = geometric_mean(  # noqa: N806  ENTROPY×ENERGY — Landauer conjugate pair
+        [floors.get("F4", 0), floors.get("F12", 0), energy_score]
     )
-    X = geometric_mean(  # noqa: N806
-        [floors.get("F6", 0), floors.get("F8", 0), floors.get("F9", 0), risk_score]
+    X = geometric_mean(  # noqa: N806  EXPLORATION×AMANAH — risk under custody
+        [floors.get("F3", 0), floors.get("F6", 0), floors.get("F8", 0), floors.get("F9", 0), risk_score]
     )
 
-    # 4. GRAND EQUATION: G = Geometric Mean(A, P, E, X)
-    G = geometric_mean([A, P, E, X])  # noqa: N806
+    # 4. GRAND EQUATION: G = (A · P · E² · X)^(1/5) — E enters twice (E-dominant)
+    G = geometric_mean([A, P, E, E, X])  # noqa: N806
 
     # 5. DECIDE VERDICT
     if is_hold:
