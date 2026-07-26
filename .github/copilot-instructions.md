@@ -30,6 +30,26 @@ arifOS is the **law layer** of the arifOS Federation. It is a constitutional gov
 
 If a request asks arifOS to do any of the above, route via `arif_route` instead of doing it locally.
 
+### 4. Canonical Execution Grammar & Five-Plane Architecture (EUREKA-ZEN)
+
+The federation operates under a five-plane architecture and seven-verb execution grammar (`EUREKA_ZEN_SESSION_SEAL_2026_07_26.md`):
+
+```text
+HUMAN → LAW → THINK → FLOW → REALITY → MEMORY
+```
+
+1. **ARIF** menentukan. *(Sovereign intent — Plane 0: ARIFFAZIL)*
+2. **arifOS** menghukum. *(Constitutional judgment — Plane 1: arifOS)*
+3. **ATLAS333** berfikir. *(Cognitive geometry — Plane 2: THINK)*
+4. **arifFLOW** mengalirkan. *(Nervous movement — Plane 3: arifFLOW)*
+5. **A-FORGE** melaksanakan. *(Governed execution — Plane 3: A-FORGE)*
+6. **Organs** membaca realiti. *(Reality interfaces — Plane 4: GEOX, WEALTH, WELL, HERMES)*
+7. **VAULT999** menyimpan saksi. *(Immutable witness — Plane 0/1)*
+
+**Tier 1 Survival Spine:** `arifOS → arifFLOW → A-FORGE → AAA`  
+**Flow-Plane Invariant A6:** *Flow Observes, Never Interprets*. `arifFLOW` measures FQ and detects drift; interpretation belongs exclusively to `ATLAS333` / `arifOS`.
+
+
 ### 3. Tool Extension Protocol
 
 To add a new tool, follow the 6-step flow canonized by the federation (see `README.md` §3 and `docs/KERNEL_CAPABILITY_ABI.md`; the legacy 12/13-tool spine is governed by the same chain):
