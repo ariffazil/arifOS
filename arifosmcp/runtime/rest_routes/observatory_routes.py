@@ -1325,6 +1325,78 @@ def _organs_block(mcp: Any) -> dict[str, dict[str, Any]]:
         ),
         "label": "mcp.arif-fazil.com",
     }
+    # arifFLOW — receipt gravity well + flow control plane (Z4 Forensic Trail Epoch)
+    flow_dp = _deep_probe_organ("127.0.0.1", 7073, "arifFLOW :7073")
+    out["arifflow"] = {
+        "transport": _probe_transport("127.0.0.1", 7073),
+        "identity": flow_dp["identity"]
+        or _pf(
+            None,
+            source="arifFLOW /health",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "contract": flow_dp["contract"]
+        or _pf(
+            None,
+            source="arifFLOW receipt_chain",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "capability": _pf(
+            None,
+            source="arifFLOW telemetry",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "evidence": _pf(
+            None,
+            source="arifFLOW receipt gravity well",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "governance": _pf(
+            "FLOW_OBSERVES_NEVER_INTERPRETS",
+            source="EUREKA-ZEN Flow-Plane Invariant A6",
+            state="reported",
+            confidence=0.9,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "last_receipt": _pf(
+            None,
+            source="arifFLOW receipt_chain",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "drift": _pf(
+            None,
+            source="arifFLOW vs VAULT999",
+            state="unknown",
+            confidence=0.0,
+            observation_method=_OBS_METHOD_UNKNOWN,
+            independent=True,
+        ),
+        "dependency": _pf(
+            ["arifos", "aforge"],
+            source="declared dep",
+            state="reported",
+            confidence=0.7,
+            observation_method=_OBS_METHOD_STATIC,
+            independent=True,
+        ),
+        "label": "arifFLOW :7073",
+    }
     return out
 
 
