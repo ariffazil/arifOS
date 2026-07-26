@@ -131,9 +131,10 @@ def get_vault_proof() -> dict[str, Any]:
                 "AAA :3001). They must match within one seal cycle "
                 "(seconds). A persistent mismatch means either endpoint is "
                 "stale, the chain has diverged, or one host is being served "
-                "cached/transitional data. Do NOT cross-verify against a "
-                "static HTML element on this page — that element is a "
-                "display convenience, not a witness."
+                "cached/transitional data. Use ONLY the two live endpoints "
+                "named in cross_verify_endpoint — never any embedded or "
+                "rendered value on a web page, which is a display "
+                "convenience and goes stale after the next seal."
             ),
             "cross_verify_endpoint": "https://aaa.arif-fazil.com/api/seal-chain/head",
             "cross_verify_owner": "AAA cockpit (:3001)",

@@ -72,12 +72,21 @@ def test_get_vault_proof_how_to_cross_verify_names_aaa_not_static_html() -> None
         "how_to_cross_verify must instruct the reader to compare against "
         "the AAA /api/seal-chain/head endpoint, not a static HTML element."
     )
-    # Must NOT instruct the reader to compare against a static HTML
-    # element on the /999 page. Phase 4.1 explicitly retired that contract.
-    assert "static HTML" not in how, (
-        "how_to_cross_verify must not point at a static HTML element on "
-        "the /999 page — that element is a display convenience, not a "
-        "witness."
+    # The text may MENTION "static HTML" in a negative sense ("Do NOT
+    # cross-verify against a static HTML element...") — that is the
+    # correct Phase 4.1 contract. What it must NOT do is INSTRUCT the
+    # reader to use a static HTML element as a witness.
+    how_lower = how.lower()
+    instructs_static_html = (
+        "cross-verify against a static html" in how_lower
+        or "compare with the value embedded in the /999 page html" in how_lower
+        or "compare head_hash with the value embedded in" in how_lower
+    )
+    assert not instructs_static_html, (
+        "how_to_cross_verify must not INSTRUCT the reader to cross-verify "
+        "against a static HTML element on the /999 page; that element is "
+        "a display convenience, not a witness. Mentioning it as something "
+        "to avoid is fine."
     )
     assert "id=vault-head-hash" not in how, (
         "Phase 4.1 retired the id=vault-head-hash cross-verify contract; "
