@@ -258,7 +258,7 @@ async def _arif_kernel_intercept(
 ) -> dict[str, Any]:
     evidence = evidence or []
 
-    _rev_raw = (reversibility_level or "").strip().upper()
+    _rev_raw = (reversibility_level or action_class or "").strip().upper()
     _REV_ALIASES = {
         "R0": "R0",
         "R0_OBSERVATION": "R0",
