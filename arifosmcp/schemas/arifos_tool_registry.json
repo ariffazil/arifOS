@@ -1,0 +1,344 @@
+{
+  "$schema": "arifos://schema/arifos-tool-registry/v1",
+  "registry_version": "1.0.0",
+  "description": "SINGLE-SOURCE CANONICAL TOOL REGISTRY for arifOS MCP kernel.",
+  "generated_by": "arifosmcp.schemas.tool_registry",
+  "doctrine": "THIS file is the source of truth. Every other tool list (capability_registry.json, constitutional_map.CANONICAL_TOOLS, public_surface.py) MUST be derived from or validated against this file. If this file says a tool is public, the runtime MUST expose it. If internal, the runtime MUST NOT expose it. Drift = 888_HOLD.",
+
+  "public_tools": {
+    "arif_init": {
+      "stage": "000",
+      "lane": "AGI",
+      "description": "Session ignition — binds actor, floors, and audit for governed operations.",
+      "modes": ["init", "light", "resume", "validate", "canary", "preflight", "triage", "epoch_open", "epoch_seal", "opt_out", "opt_out_profiling"],
+      "floors": ["L01", "L11", "L12"],
+      "irreversible": false,
+      "risk_tier": "medium",
+      "constitutional_requirement": "F1: irreversible ack required for epoch operations",
+      "conformance_profile": ["public_agent", "trusted_agent", "executor", "sovereign", "operator"]
+    },
+    "arif_observe": {
+      "stage": "111",
+      "lane": "AGI",
+      "description": "Sense reality into evidence with epistemic tags and uncertainty bounds.",
+      "modes": ["search", "fetch", "hybrid_discovery", "ingest", "compass", "atlas", "entropy_dS", "vitals"],
+      "floors": ["L02", "L03", "L07", "L12"],
+      "irreversible": false,
+      "risk_tier": "low",
+      "constitutional_requirement": "F2: accuracy >= 0.99 or declare uncertainty. F7: Omega in [0.03, 0.05]",
+      "conformance_profile": ["public_agent", "trusted_agent", "executor", "sovereign", "operator"]
+    },
+    "arif_think": {
+      "stage": "333",
+      "lane": "AGI",
+      "description": "Structured reasoning under F2/F7 with OBS/DER/INT/SPEC labels.",
+      "modes": ["reason", "reflect", "verify", "axioms", "plan", "plan_review", "plan_approve", "refactor_plan", "metabolize", "simulate", "wonder", "atlas"],
+      "floors": ["L02", "L05", "L06", "L07", "L08", "L09", "L10"],
+      "irreversible": false,
+      "risk_tier": "medium",
+      "constitutional_requirement": "F9: C_dark < 0.30. F2: tau >= 0.99. F10: no soul/feelings claims",
+      "conformance_profile": ["public_agent", "trusted_agent", "executor", "sovereign", "operator"]
+    },
+    "arif_route": {
+      "stage": "444",
+      "lane": "AGI",
+      "description": "Intent→organ router — dispatches to GEOX/WEALTH/WELL/A-FORGE.",
+      "modes": ["route", "bridge"],
+      "floors": ["L01", "L04", "L10", "L11"],
+      "irreversible": false,
+      "risk_tier": "low",
+      "constitutional_requirement": "L04: delta_S <= 0. L10: structural coherence",
+      "conformance_profile": ["public_agent", "trusted_agent", "executor", "sovereign", "operator"]
+    },
+    "arif_memory": {
+      "stage": "555",
+      "lane": "AGI",
+      "description": "Memory governor — L1-L6 governed semantic recall, storage, and persistence.",
+      "modes": ["recall", "inspect", "attest", "remember", "promote", "revise", "forget", "audit"],
+      "floors": ["L01", "L02", "L04", "L11"],
+      "irreversible": false,
+      "risk_tier": "medium",
+      "constitutional_requirement": "L01: reversible-first. L11: verify identity before sensitive ops",
+      "conformance_profile": ["trusted_agent", "executor", "sovereign", "operator"]
+    },
+    "arif_judge": {
+      "stage": "888",
+      "lane": "ASI",
+      "description": "Constitutional verdict — binding SEAL/HOLD/SABAR/VOID arbitration.",
+      "modes": ["intercept", "judge", "validate", "hold", "escalate"],
+      "floors": ["L01", "L02", "L11", "L13"],
+      "irreversible": false,
+      "risk_tier": "high",
+      "constitutional_requirement": "L13: human veto absolute. F1: Amanah reversibility",
+      "conformance_profile": ["trusted_agent", "executor", "sovereign", "operator"]
+    },
+    "arif_forge": {
+      "stage": "777",
+      "lane": "AGI",
+      "description": "Execution gate via A-FORGE — mutates only after SEAL verdict.",
+      "modes": ["engineer", "query", "write", "generate", "commit", "recall", "dry_run"],
+      "floors": ["L01", "L11", "L13"],
+      "irreversible": false,
+      "risk_tier": "high",
+      "constitutional_requirement": "L13: human veto. L01: reversible-first unless ack_irreversible",
+      "conformance_profile": ["executor", "sovereign", "operator"]
+    },
+    "arif_seal": {
+      "stage": "999",
+      "lane": "APEX",
+      "description": "VAULT999 immutable append — irreversible civilizational memory sealing.",
+      "modes": ["seal", "ed25519_verify"],
+      "floors": ["L01", "L11", "L13"],
+      "irreversible": true,
+      "risk_tier": "critical",
+      "constitutional_requirement": "Irreversible. F1: explicit human ack required. L13: sovereign authority",
+      "conformance_profile": ["sovereign", "operator"]
+    }
+  },
+
+  "internal_tools": {
+    "arif_kernel_intercept": {
+      "description": "Minimum constitutional kernel interceptor for agent actions.",
+      "access_reason": "Kernel-internal intercept spine — not a user-facing tool",
+      "redirect_to": "arif_judge",
+      "mode": "intercept"
+    },
+    "arif_critique": {
+      "description": "Ethical/dignity/risk stress test before judgment (absorbed into arif_think mode=critique).",
+      "access_reason": "Absorbed into arif_think(mode=critique) per ZEN-9 2026-07-04",
+      "redirect_to": "arif_think",
+      "mode": "critique"
+    },
+    "arif_compose": {
+      "description": "Final human-facing composition with citations and tone control.",
+      "access_reason": "Composition belongs on ChatGPT/client adapter or private SDK, not top-level sovereign capability. Absorbed into arif_forge(mode=compose).",
+      "redirect_to": "arif_forge",
+      "mode": "compose"
+    },
+    "arif_triage": {
+      "description": "DEPRECATED — use arif_init(mode=preflight|triage|status).",
+      "access_reason": "Absorbed into arif_init modes per ZEN-9 2026-07-09",
+      "redirect_to": "arif_init",
+      "mode": "preflight"
+    },
+    "arif_fetch": {
+      "description": "Targeted URL/source retrieval with provenance tracking.",
+      "access_reason": "Absorbed into arif_observe(mode=fetch) per ZEN-9",
+      "redirect_to": "arif_observe",
+      "mode": "fetch"
+    },
+    "arif_bridge_connect": {
+      "description": "Low-level organ bridge call requiring session and lease.",
+      "access_reason": "Absorbed into arif_route(mode=bridge) per ZEN-9",
+      "redirect_to": "arif_route",
+      "mode": "bridge"
+    },
+    "arif_measure": {
+      "description": "Deterministic math/measurement handler.",
+      "access_reason": "Internal support tool — not a public capability",
+      "redirect_to": null,
+      "mode": null
+    }
+  },
+
+  "sdk_aliases": {
+    "arif_session_init": {
+      "target": "arif_init",
+      "status": "deprecated",
+      "migration": "Call arif_init directly — no wrapper needed",
+      "conformance": "legacy_compat"
+    },
+    "arif_sense_observe": {
+      "target": "arif_observe",
+      "status": "deprecated",
+      "migration": "Call arif_observe directly",
+      "conformance": "legacy_compat"
+    },
+    "arif_fetch": {
+      "target": "arif_observe",
+      "status": "absorbed",
+      "migration": "Use arif_observe(mode='fetch') or arif_observe(mode='hybrid_discovery')",
+      "conformance": "mode_alias"
+    },
+    "arif_evidence_fetch": {
+      "target": "arif_observe",
+      "status": "absorbed",
+      "migration": "Use arif_observe(mode='fetch')",
+      "conformance": "mode_alias"
+    },
+    "arif_critique": {
+      "target": "arif_think",
+      "status": "absorbed",
+      "migration": "Use arif_think(mode='critique')",
+      "conformance": "mode_alias"
+    },
+    "arif_compose": {
+      "target": "arif_forge",
+      "status": "private",
+      "migration": "Composition is private/internal. Use arif_forge(mode='compose') for SDK usage.",
+      "conformance": "private_internal",
+      "doctrine": "Composition (formatting/tone/summarisation) belongs on ChatGPT/client adapter or private SDK, not top-level sovereign capability. See surface-conformance gate."
+    },
+    "arif_bridge_connect": {
+      "target": "arif_route",
+      "status": "absorbed",
+      "migration": "Use arif_route(mode='bridge')",
+      "conformance": "mode_alias"
+    },
+    "arif_memory_recall": {
+      "target": "arif_memory",
+      "status": "deprecated",
+      "migration": "Call arif_memory(mode='recall') directly",
+      "conformance": "legacy_compat"
+    },
+    "arif_judge_deliberate": {
+      "target": "arif_judge",
+      "status": "deprecated",
+      "migration": "Call arif_judge directly",
+      "conformance": "legacy_compat"
+    },
+    "arif_forge_execute": {
+      "target": "arif_forge",
+      "status": "deprecated",
+      "migration": "Call arif_forge directly",
+      "conformance": "legacy_compat"
+    },
+    "arif_reply_compose": {
+      "target": "arif_forge",
+      "status": "absorbed",
+      "migration": "Composition is forge mode. Use arif_forge(mode='compose').",
+      "conformance": "private_internal"
+    },
+    "arif_vault_seal": {
+      "target": "arif_seal",
+      "status": "deprecated",
+      "migration": "Call arif_seal directly",
+      "conformance": "legacy_compat"
+    },
+    "arifos_init": {
+      "target": "arif_init",
+      "status": "legacy",
+      "migration": "Use arif_init — arifos_ prefix is blocked on public surface",
+      "conformance": "legacy_map"
+    },
+    "arifos_sense": {
+      "target": "arif_observe",
+      "status": "legacy",
+      "migration": "Use arif_observe",
+      "conformance": "legacy_map"
+    },
+    "arifos_kernel": {
+      "target": "arif_route",
+      "status": "legacy",
+      "migration": "Use arif_route",
+      "conformance": "legacy_map"
+    },
+    "arifos_memory": {
+      "target": "arif_memory",
+      "status": "legacy",
+      "migration": "Use arif_memory",
+      "conformance": "legacy_map"
+    },
+    "arifos_judge": {
+      "target": "arif_judge",
+      "status": "legacy",
+      "migration": "Use arif_judge",
+      "conformance": "legacy_map"
+    },
+    "arifos_vault": {
+      "target": "arif_seal",
+      "status": "legacy",
+      "migration": "Use arif_seal",
+      "conformance": "legacy_map"
+    },
+    "arifos_forge": {
+      "target": "arif_forge",
+      "status": "legacy",
+      "migration": "Use arif_forge",
+      "conformance": "legacy_map"
+    }
+  },
+
+  "conformance_expectations": {
+    "profiles": {
+      "public_agent": {
+        "exposed_tools": ["arif_init", "arif_observe", "arif_think", "arif_route"],
+        "notes": "Public agents see 4 tools by default. memory/judge/forge/seal require authentication or escalation.",
+        "max_tools_on_wire": 4,
+        "diagnostics": false
+      },
+      "trusted_agent": {
+        "exposed_tools": ["arif_init", "arif_observe", "arif_think", "arif_route", "arif_memory", "arif_judge"],
+        "notes": "Trusted agents get memory + judge. Forge and seal require executor or sovereign profile.",
+        "max_tools_on_wire": 6,
+        "diagnostics": false
+      },
+      "executor": {
+        "exposed_tools": ["arif_init", "arif_observe", "arif_think", "arif_route", "arif_memory", "arif_judge", "arif_forge"],
+        "notes": "Executors can forge (execute) but cannot seal. Sovereign escalates for seal.",
+        "max_tools_on_wire": 7,
+        "diagnostics": false
+      },
+      "sovereign": {
+        "exposed_tools": ["arif_init", "arif_observe", "arif_think", "arif_route", "arif_memory", "arif_judge", "arif_forge", "arif_seal"],
+        "notes": "Full 8-tool public surface. Sovereign can access all canonical tools.",
+        "max_tools_on_wire": 8,
+        "diagnostics": false
+      },
+      "operator": {
+        "exposed_tools": ["arif_init", "arif_observe", "arif_think", "arif_route", "arif_memory", "arif_judge", "arif_forge", "arif_seal"],
+        "notes": "Operator profile = sovereign + diagnostics. Full surface with diagnostic tools.",
+        "max_tools_on_wire": 8,
+        "diagnostics": true
+      }
+    },
+    "semantic_abi": {
+      "expected_capabilities": 8,
+      "expected_tools_on_wire_default": 6,
+      "constitutional_tools_registered": 24,
+      "public_tools_registered_min": 8,
+      "assertion": "semantic_tool_names() must match public_tools keys exactly"
+    }
+  },
+
+  "diagnostic_tools": {
+    "hermes_system_status": {"tier": "hermes", "access": "gated"},
+    "arif_vault_query": {"tier": "hermes", "access": "gated"},
+    "hermes_epistemic_check": {"tier": "hermes", "access": "gated"},
+    "hermes_fact_check": {"tier": "hermes", "access": "gated"},
+    "arifos_ping": {"tier": "canary", "access": "gated"},
+    "arifos_schema_echo": {"tier": "canary", "access": "gated"},
+    "arifos_version_echo": {"tier": "canary", "access": "gated"},
+    "arifos_transport_echo": {"tier": "canary", "access": "gated"},
+    "arifos_initialize_probe": {"tier": "canary", "access": "gated"},
+    "arifos_stack_health_probe": {"tier": "diagnostic", "access": "gated"},
+    "arifos_floor_status": {"tier": "diagnostic", "access": "gated"},
+    "mcp_drift_check": {"tier": "diagnostic", "access": "gated"},
+    "arifos_organ_consensus": {"tier": "attest", "access": "gated"},
+    "arifos_session_budget": {"tier": "diagnostic", "access": "gated"},
+    "arifos_kernel_health": {"tier": "diagnostic", "access": "gated"},
+    "arifos_bridge_connect": {"tier": "federation", "access": "gated"},
+    "arifos_gate_judge": {"tier": "federation", "access": "gated"},
+    "arifos_self_evaluate": {"tier": "federation", "access": "gated"},
+    "arifos_model_compare": {"tier": "federation", "access": "gated"}
+  },
+
+  "surface_doctrine": {
+    "charter": "The arifOS MCP surface is a governed constitutional facade. Every public tool is a constitutional organ. Every internal tool is accounted for. Drift between registry contract and runtime exposure is a deployment-blocking condition (888_HOLD).",
+    "rules": [
+      "public_tools MUST be registered on FastMCP and listed in tools/list",
+      "internal_tools MUST NOT appear on any public tools/list response",
+      "SDK aliases may appear on the wire for legacy compat but MUST redirect with _redirect_to metadata",
+      "diagnostic_tools MUST only appear when ARIFOS_MCP_EXPOSE_DEV_TOOLS=true",
+      "Every tool in tools/list MUST be callable — no phantom registrations",
+      "Every public canonical tool MUST be callable by its registered name with no additional auth for OBSERVE actions",
+      "Internal tools MUST fail-closed with HOLD when called via public wire"
+    ],
+    "888_hold_triggers": [
+      "public_tool in registry but NOT in runtime tools/list",
+      "runtime tool in tools/list but NOT registered as public in registry (unless diagnostic+gated)",
+      "semantic ABI capability count != 8",
+      "SDK alias appears as a standalone tool instead of redirecting"
+    ]
+  }
+}
