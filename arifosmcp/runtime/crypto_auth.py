@@ -781,6 +781,8 @@ def verify_init_identity(
     nonce: str,
     signature_b64: str,
     constitution_hash: str | None = None,
+    *,
+    public_key: ed25519.Ed25519PublicKey | None = None,
 ) -> tuple[bool, str]:
     if not actor_id:
         return False, "actor_id_missing"
@@ -788,7 +790,8 @@ def verify_init_identity(
         return False, "nonce_missing"
     if not signature_b64:
         return False, "signature_missing"
-    public_key = resolve_actor_public_key(actor_id)
+    if public_key is None:
+        public_key = resolve_actor_public_key(actor_id)
     if public_key is None:
         return False, "public_key_unavailable"
     try:
