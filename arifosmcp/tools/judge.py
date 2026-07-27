@@ -718,7 +718,7 @@ async def arif_judge(
     action_class: str | None = None,
     requested_capability: str | None = None,
     domain: str | None = None,
-) -> VerdictOutput:
+) -> dict[str, Any]:
     """
         888_JUDGE: Constitutional adjudication and verdict emission.
 
