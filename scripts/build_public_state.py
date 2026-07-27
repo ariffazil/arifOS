@@ -458,13 +458,16 @@ def project_public_state(
     connect_url = "https://mcp.arif-fazil.com/"
     snap_id = snap.get("snapshot_id") or "unknown"
 
-    # Live organ rows — kill hand-written tool counts on organ sites
+    # Live organ rows — kill hand-written tool counts on organ sites.
+    # Stable organ_id is enforced via stable_organ_id(); renderers and
+    # downstream consumers can rely on exactly six keys: arifos | geox |
+    # wealth | well | aforge | aaa.
     organs: dict[str, Any] = {}
     for organ_id in ("arifos", "geox", "wealth", "well", "aforge", "aaa"):
         try:
-            organs[organ_id] = probe_organ(organ_id)
+            row = probe_organ(organ_id)
         except Exception as exc:
-            organs[organ_id] = {
+            row = {
                 "organ": organ_id.upper(),
                 "id": organ_id,
                 "transport": "UNKNOWN",
@@ -472,25 +475,79 @@ def project_public_state(
                 "error": str(exc),
                 "evidence_url": ORGAN_META.get(organ_id, {}).get("evidence_url"),
             }
-    # Prefer snapshot organ liveness when probe fails
-    snap_organs = snap.get("organs") if isinstance(snap.get("organs"), dict) else {}
-    for organ_id, row in organs.items():
-        if row.get("public_tools") is not None:
-            continue
-        so = snap_organs.get(organ_id)
-        if isinstance(so, dict):
-            # common shapes: {tools: N} or nested health
-            for key in ("tools", "tool_count", "public_tools", "exposed_count"):
-                if isinstance(so.get(key), int):
-                    row["public_tools"] = so[key]
-                    break
+        # Snapshot fallback for transport / tools counts
+        snap_organs = snap.get("organs") if isinstance(snap.get("organs"), dict) else {}
+        if row.get("public_tools") is None:
+            so = snap_organs.get(organ_id)
+            if isinstance(so, dict):
+                for key in ("tools", "tool_count", "public_tools", "exposed_count"):
+                    if isinstance(so.get(key), int):
+                        row["public_tools"] = so[key]
+                        break
+        # Carry snapshot-derived confidence / evidence links through when probe
+        # did not produce them, so each row always has the v1 envelope.
+        if isinstance(snap_organs.get(organ_id), dict):
+            row.setdefault("confidence", snap_organs[organ_id].get("confidence"))
+            if snap_organs[organ_id].get("evidence_url"):
+                row.setdefault("evidence_url", snap_organs[organ_id]["evidence_url"])
+        organs[organ_id] = row
+
+    # Apply the v1 organ-row normalizer; never mutate the original probe
+    # dict in-place so re-probes between calls don't accumulate drift.
+    # The loop key is the source-of-truth canonical id; the row's own fields
+    # are validated through stable_organ_id() but never override the key.
+    organs_normalized: dict[str, Any] = {}
+    for canonical_id, raw_row in organs.items():
+        normalized = normalize_organ_row(raw_row, canonical_id=canonical_id)
+        # Only trust the canonical set to surface top-level dict keys; an
+        # unknown organ_id from the probe is logged but not promoted.
+        if normalized["organ_id"] in ORGAN_META:
+            organs_normalized[normalized["organ_id"]] = normalized
+        else:
+            organs_normalized[canonical_id] = normalized
+
+    # Normalize findings — upstream block can be list OR {findings: [...]} OR
+    # anything else; normalize_findings always returns a list of v1 envelopes
+    # with stable organ_ids.
+    findings_block = snap.get("findings") if isinstance(snap.get("findings"), dict) else {}
+    all_findings = (
+        findings_block.get("findings") if isinstance(findings_block.get("findings"), list) else []
+    )
+    normalized_findings = normalize_findings(all_findings)
+    open_normalized = [
+        f for f in normalized_findings
+        if isinstance(f, dict) and str(f.get("status", "")).upper() == "OPEN"
+    ]
+    # Recompute by_severity from the normalized list so summary fields agree
+    # with the items the renderer will see.
+    by_sev_normalized: dict[str, int] = {}
+    for f in open_normalized:
+        sev = str(f.get("severity") or "LOW")
+        by_sev_normalized[sev] = by_sev_normalized.get(sev, 0) + 1
+    highest_hold = (
+        "HIGH"
+        if by_sev_normalized.get("HIGH")
+        else "MEDIUM"
+        if by_sev_normalized.get("MEDIUM")
+        else "LOW"
+        if by_sev_normalized.get("LOW")
+        else "NONE"
+    )
 
     return {
-        "schema": "arifos.public-state.v1",
+        "schema": PUBLIC_STATE_SCHEMA,
+        "schema_version": PUBLIC_STATE_SCHEMA,
+        "schema_aliases": [PUBLIC_STATE_SCHEMA, PUBLIC_STATE_OBSERVATORY_V1_ALIAS],
+        "evidence_class": PUBLIC_STATE_EVIDENCE_CLASS,
+        "compatibility": {
+            "observatory_v1_still_served": True,
+            "observatory_v1_endpoint": "/api/observatory/v1/snapshot",
+            "public_state_endpoint": "/api/public-state",
+        },
         "generated_at": now_iso(),
         "headline": headline,
         "planes": planes,
-        "organs": organs,
+        "organs": organs_normalized,
         "release": {
             "release_id": release_id,
             "release_name": release_name,
@@ -558,20 +615,29 @@ def project_public_state(
             "verify_url": "https://arif-fazil.com/999/",
         },
         "findings": {
-            "open_count": len(open_findings),
-            "by_severity": by_sev,
+            "schema_version": PUBLIC_STATE_SCHEMA,
+            "open_count": len(open_normalized),
+            "by_severity": by_sev_normalized,
             "highest_hold": highest_hold,
+            "items": normalized_findings,
             "open": [
                 {
                     "id": f.get("id"),
+                    "organ_id": f.get("organ_id"),
                     "category": f.get("category"),
                     "severity": f.get("severity"),
                     "description": f.get("description"),
+                    "state": f.get("state"),
                     "evidence": f.get("evidence"),
+                    "timestamp": f.get("timestamp"),
+                    "confidence": f.get("confidence"),
+                    "trace": f.get("trace"),
+                    "receipt": f.get("receipt"),
+                    "evidence_url": f.get("evidence_url"),
                     "status": f.get("status"),
-                    "url": f"https://arifos.arif-fazil.com/findings/{f.get('id')}",
+                    "links": f.get("links", {}),
                 }
-                for f in open_findings
+                for f in open_normalized
             ],
         },
         "snapshot": {
@@ -586,14 +652,329 @@ def project_public_state(
             "verify_url": f"https://arifos.arif-fazil.com/verify/snapshot/{snap_id}",
         },
         "links": {
+            # Cross-cutting surfaces available from public-state.v1
+            "graph": "https://arifos.arif-fazil.com/graph",
+            "floors": "https://arifos.arif-fazil.com/#sec-governance",
+            "authority": "https://arifos.arif-fazil.com/#sec-authority",
+            "policy": "https://arifos.arif-fazil.com/policy/",
+            "proof": "https://arif-fazil.com/999/",
+            # Legacy
             "mcp_gateway": connect_url,
             "observatory": "https://arifos.arif-fazil.com/",
             "verify_release": release_url,
             "verify_receipt": "https://arif-fazil.com/999/",
             "public_state": "https://arifos.arif-fazil.com/api/public-state",
             "public_state_static": "https://arifos.arif-fazil.com/public-state.json",
+            "public_state_dev": "http://127.0.0.1:8088/api/public-state",
             "canon": "https://arif-fazil.com/canon/",
             "github": "https://github.com/ariffazil/arifOS",
+        },
+    }
+
+
+# ── arifos.public-state.v1 hardening (Prompt: Observatory upgrade) ─────────────
+# Goals:
+#   1. Stable organ_id values (organs dict keys never drift, ids are versioned).
+#   2. Normalized findings items — every entry has a fixed-shape envelope with
+#      state / evidence / timestamp / confidence / trace / receipt and explicit
+#      links to graph / floors / authority / policy / proof.
+#   3. observatory.v1 (the signed snapshot served from
+#      /api/observatory/v1/snapshot) remains the downstream schema for
+#      evidence-signing; this script is additive. Public-state.v1 never
+#      mutates or replaces the signed snapshot contract.
+
+PUBLIC_STATE_SCHEMA = "arifos.public-state.v1"
+PUBLIC_STATE_OBSERVATORY_V1_ALIAS = "observatory.v1"  # backward-compat hint
+PUBLIC_STATE_EVIDENCE_CLASS = "reported"  # default class; renderer treats lower trust than observatory.v1
+ORGAN_ID_ALIASES: dict[str, str] = {
+    "arifos_kernel": "arifos",
+    "arifos-kernel": "arifos",
+    "kernel": "arifos",
+    "geox-organ": "geox",
+    "wealth-organ": "wealth",
+    "well-organ": "well",
+    "a-forge": "aforge",
+    "a_forge": "aforge",
+    "aforge-organ": "aforge",
+    "aaa-organ": "aaa",
+}
+
+
+def stable_organ_id(organ_id: Any) -> str:
+    """Normalize any caller-supplied organ reference to one of the six canonical ids.
+
+    The set of canonical organ ids is the keys of ORGAN_META — never derived
+    from probe / snapshot fields. Returns "unknown" only as a last resort.
+    """
+    if organ_id is None:
+        return "unknown"
+    text = str(organ_id).strip().lower()
+    if text in ORGAN_META:
+        return text
+    if text in ORGAN_ID_ALIASES:
+        return ORGAN_ID_ALIASES[text]
+    # Stable numeric prefix substitutions
+    table = str.maketrans({"-": "", "_": "", " ": ""})
+    compact = text.translate(table)
+    for canonical in ORGAN_META:
+        if compact == canonical.translate(table):
+            return canonical
+    return "unknown"
+
+
+def _normalize_finding(
+    raw: Any,
+    index: int,
+    organ_id: str = "unknown",
+) -> dict[str, Any] | None:
+    """Coerce an arbitrary finding item into the public-state.v1 envelope.
+
+    Returns None for items that cannot be salvaged beyond producing a
+    SCHEMA_MISMATCH-shaped placeholder. Never raises.
+    """
+    if not isinstance(raw, dict):
+        # Strings, numbers, booleans, lists — capture what we can and mark the
+        # mismatch so the renderer knows not to treat this as a real finding.
+        synthesized_id = f"finding-{index:04d}"
+        return {
+            "schema_version": PUBLIC_STATE_SCHEMA,
+            "id": synthesized_id,
+            "organ_id": organ_id,
+            "category": "SCHEMA_MISMATCH",
+            "severity": "LOW",
+            "status": "OPEN",
+            "description": (
+                f"upstream finding entry was not an object (got {type(raw).__name__}); "
+                "re-classified as SCHEMA_MISMATCH"
+            ),
+            "evidence_url": None,
+            "state": "unknown",
+            "evidence": None,
+            "timestamp": None,
+            "confidence": 0.0,
+            "source": "public-state.v1.normalizer",
+            "trace": None,
+            "receipt": None,
+            "links": {
+                "graph": f"https://arifos.arif-fazil.com/findings/graph/{synthesized_id}",
+                "floors": "https://arifos.arif-fazil.com/#sec-governance",
+                "authority": f"https://arifos.arif-fazil.com/findings/authority/{synthesized_id}",
+                "policy": f"https://arifos.arif-fazil.com/findings/policy/{synthesized_id}",
+                "proof": f"https://arifos.arif-fazil.com/verify/finding/{synthesized_id}",
+            },
+        }
+
+    # Pull values either from the {value, source, confidence, observed_at} envelope
+    # pattern used by observatory_emit.py or from a flat shape used elsewhere.
+    pf_value = raw.get("value") if isinstance(raw.get("value"), (str, int, float, bool)) else None
+    confidence = raw.get("confidence")
+    if confidence is None and isinstance(raw.get("envelope"), dict):
+        confidence = raw["envelope"].get("confidence")
+    if confidence is None and isinstance(pf_value, dict):
+        confidence = pf_value.get("confidence")
+    try:
+        confidence_float = float(confidence) if confidence is not None else None
+    except (TypeError, ValueError):
+        confidence_float = None
+
+    timestamp = raw.get("observed_at") or raw.get("timestamp") or raw.get("created_at")
+    if timestamp is None and isinstance(raw.get("envelope"), dict):
+        timestamp = raw["envelope"].get("observed_at")
+
+    source = raw.get("source")
+    if source is None and isinstance(raw.get("envelope"), dict):
+        source = raw["envelope"].get("source")
+    if source is None and isinstance(pf_value, dict):
+        source = pf_value.get("source")
+
+    evidence_block = raw.get("evidence")
+    if isinstance(evidence_block, dict):
+        evidence_links = {
+            key: str(value)
+            for key, value in evidence_block.items()
+            if isinstance(value, (str, int, float))
+        }
+    elif isinstance(evidence_block, (str, int, float)):
+        evidence_links = {"ref": str(evidence_block)}
+    else:
+        evidence_links = {}
+
+    trace = raw.get("trace")
+    if trace is None and isinstance(raw.get("envelope"), dict):
+        trace = raw["envelope"].get("trace")
+
+    receipt = raw.get("receipt") or raw.get("receipt_hash")
+    if receipt is None and isinstance(raw.get("envelope"), dict):
+        receipt = raw["envelope"].get("receipt")
+
+    severity_value = raw.get("severity") or raw.get("severity_level") or "LOW"
+    state_token = raw.get("state") or raw.get("evidence_state") or (
+        "observed" if source else "unknown"
+    )
+    status_token = raw.get("status") or "OPEN"
+    category_token = raw.get("category") or raw.get("class") or "GENERAL"
+    description_token = (
+        raw.get("description")
+        or raw.get("summary")
+        or raw.get("title")
+        or raw.get("message")
+        or ""
+    )
+
+    finding_id = (
+        raw.get("id")
+        or raw.get("finding_id")
+        or raw.get("uid")
+        or raw.get("slug")
+        or f"finding-{index:04d}"
+    )
+    finding_id = str(finding_id)
+
+    upstream_organ = raw.get("organ_id") or raw.get("organ")
+    normalized_organ = stable_organ_id(upstream_organ or organ_id)
+
+    raw_evidence_url = raw.get("evidence_url") or raw.get("url") or (
+        f"https://arifos.arif-fazil.com/findings/{finding_id}" if finding_id else None
+    )
+
+    return {
+        "schema_version": PUBLIC_STATE_SCHEMA,
+        "id": finding_id,
+        "organ_id": normalized_organ,
+        "category": str(category_token),
+        "severity": str(severity_value),
+        "status": str(status_token),
+        "description": str(description_token),
+        "evidence_url": str(raw_evidence_url) if raw_evidence_url else None,
+        "state": str(state_token),
+        "evidence": evidence_links or None,
+        "timestamp": str(timestamp) if timestamp else None,
+        "confidence": (
+            confidence_float if confidence_float is not None and 0.0 <= confidence_float <= 1.0
+            else None
+        ),
+        "source": str(source) if source else None,
+        "trace": str(trace) if trace else None,
+        "receipt": str(receipt) if receipt else None,
+        "links": {
+            "graph": f"https://arifos.arif-fazil.com/findings/graph/{finding_id}",
+            "floors": "https://arifos.arif-fazil.com/#sec-governance",
+            "authority": f"https://arifos.arif-fazil.com/findings/authority/{finding_id}",
+            "policy": f"https://arifos.arif-fazil.com/findings/policy/{finding_id}",
+            "proof": f"https://arifos.arif-fazil.com/verify/finding/{finding_id}",
+        },
+    }
+
+
+def normalize_findings(
+    raw_findings: Any,
+    organ_id: str = "unknown",
+) -> list[dict[str, Any]]:
+    """Normalize a findings block from any upstream shape.
+
+    Always returns a list (possibly empty). Each entry is the public-state.v1
+    envelope. Malformed items become SCHEMA_MISMATCH placeholders instead of
+    throwing, so renderers never crash on bad input.
+    """
+    items: list[Any]
+    if isinstance(raw_findings, list):
+        items = raw_findings
+    elif isinstance(raw_findings, dict):
+        if isinstance(raw_findings.get("items"), list):
+            items = raw_findings["items"]
+        elif isinstance(raw_findings.get("findings"), list):
+            items = raw_findings["findings"]
+        elif isinstance(raw_findings.get("list"), list):
+            items = raw_findings["list"]
+        else:
+            items = [raw_findings]
+    elif raw_findings is None:
+        return []
+    else:
+        # Scalar / unexpected shape — treat as one malformed item so the
+        # placeholder flows through.
+        return [
+            _normalize_finding(
+                raw_findings,
+                index=0,
+                organ_id=organ_id,
+            )
+        ]  # type: ignore[list-item]
+
+    normalized: list[dict[str, Any]] = []
+    for index, item in enumerate(items):
+        try:
+            cleaned = _normalize_finding(item, index=index, organ_id=organ_id)
+        except Exception:
+            cleaned = None
+        if cleaned is not None:
+            normalized.append(cleaned)
+    return normalized
+
+
+def normalize_organ_row(row: Any, canonical_id: str | None = None) -> dict[str, Any]:
+    """Normalize a single organ row to expose a stable organ_id and the v1 envelope.
+
+    When ``canonical_id`` is supplied, it is trusted as the source of truth
+    (the loop iterating the six canonical ids knows the truth). The row's own
+    ``id`` / ``organ_id`` / ``organ`` fields are still validated through
+    ``stable_organ_id`` for downstream logging but never override the
+    canonical key.
+    """
+    if not isinstance(row, dict):
+        row_organ_hint = "unknown"
+    else:
+        row_organ_hint = stable_organ_id(
+            row.get("id") or row.get("organ_id") or row.get("organ") or "unknown"
+        )
+    if canonical_id:
+        organ_id = canonical_id
+    elif row_organ_hint != "unknown":
+        organ_id = row_organ_hint
+    else:
+        organ_id = "unknown"
+    label = row.get("organ") or row.get("label") or (
+        ORGAN_META.get(organ_id, {}).get("label") if organ_id != "unknown" else "UNKNOWN"
+    )
+    transport = row.get("transport") or row.get("state") or "UNKNOWN"
+    confidence = row.get("confidence")
+    try:
+        confidence_float = float(confidence) if confidence is not None else None
+    except (TypeError, ValueError):
+        confidence_float = None
+    public_tools = row.get("public_tools")
+    if not isinstance(public_tools, int):
+        public_tools = None
+    last_observed = row.get("last_observed") or row.get("observed_at") or now_iso()
+    return {
+        "schema_version": PUBLIC_STATE_SCHEMA,
+        "organ_id": organ_id,
+        "label": label,
+        "domain": row.get("domain"),
+        "transport": transport,
+        "state": transport,
+        "public_tools": public_tools,
+        "release": row.get("release"),
+        "identity_state": row.get("identity_state") or transport,
+        "last_observed": last_observed,
+        "timestamp": last_observed,
+        "confidence": (
+            confidence_float if confidence_float is not None and 0.0 <= confidence_float <= 1.0
+            else None
+        ),
+        "source": row.get("source") or "127.0.0.1 tcp probe",
+        "trace": row.get("probe_reason") or row.get("status_code") or None,
+        "receipt": row.get("receipt"),
+        "evidence_url": row.get("evidence_url"),
+        "website": row.get("website"),
+        "mcp": row.get("mcp"),
+        "links": {
+            "graph": f"https://arifos.arif-fazil.com/organs/{organ_id}",
+            "floors": "https://arifos.arif-fazil.com/#sec-governance",
+            "authority": row.get("evidence_url")
+            or f"https://arifos.arif-fazil.com/organs/{organ_id}#authority",
+            "policy": f"https://arifos.arif-fazil.com/organs/{organ_id}#policy",
+            "proof": f"https://arifos.arif-fazil.com/verify/organ/{organ_id}",
         },
     }
 
