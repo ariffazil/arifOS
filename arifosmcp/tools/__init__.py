@@ -21,6 +21,7 @@ from arifosmcp.tools.sense import arif_observe
 from arifosmcp.tools.session import arif_init
 from arifosmcp.tools.shadow_geometry import arif_model_compare, arif_self_evaluate
 from arifosmcp.tools.vault import arif_seal, arif_vault_verify
+from arifosmcp.tools.wiki import ingest_repo, search_index, map_repo, ask_repo
 
 __all__ = [
     "arif_init",
