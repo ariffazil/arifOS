@@ -1228,6 +1228,7 @@ def arif_init(
             },
             result={
                 "kernel": "alive",
+                "called_from_kernel": True,
                 "observe_only": True,
                 "mutation_allowed": False,
                 "external_side_effects_allowed": False,
