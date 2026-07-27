@@ -11,5 +11,57 @@
     "L10": 1,
     "L11": 1,
     "L12": 1,
-    "L13": 1
+    "L13": 1,
+    "ownership": {
+        "version": "1.0.0-draft",
+        "forged": "2026-07-27",
+        "authority": "F13 SOVEREIGN",
+        "source": "/root/AGENTS.OWNERSHIP.md",
+        "reversible": true,
+        "rows": [
+            {"id": "F1",  "name": "AMANAH",          "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f1"},
+            {"id": "F2",  "name": "TRUTH",           "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f2"},
+            {"id": "F3",  "name": "TRI-WITNESS",     "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f3"},
+            {"id": "F4",  "name": "CLARITY",         "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f4"},
+            {"id": "F5",  "name": "PEACE^2",         "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f5"},
+            {"id": "F6",  "name": "EMPATHY/MARUAH",  "judge": "arifOS",  "enforcer": "AAA",     "playbook": "/root/scripts/repair-federation.sh f6"},
+            {"id": "F7",  "name": "HUMILITY",        "judge": "arifOS",  "enforcer": "WEALTH",  "playbook": "/root/scripts/repair-federation.sh f7"},
+            {"id": "F8",  "name": "GENIUS",          "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f8"},
+            {"id": "F9",  "name": "ANTIHANTU",       "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f9"},
+            {"id": "F10", "name": "ONTOLOGY",        "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f10"},
+            {"id": "F11", "name": "AUDITABILITY",    "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f11"},
+            {"id": "F12", "name": "RESILIENCE",      "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f12"},
+            {"id": "F13", "name": "SOVEREIGN",       "judge": "arifOS",  "enforcer": "A-FORGE", "playbook": "/root/scripts/repair-federation.sh f13"}
+        ],
+        "probes": [
+            {"id": "arifos-capability-probe",  "owner_organ": "arifOS",  "owner_agent": "333-AGI", "playbook": "/root/scripts/repair-federation.sh probe capability"},
+            {"id": "auditor-drift-check",      "owner_organ": "A-FORGE", "owner_agent": "555-ASI", "playbook": "/root/scripts/repair-federation.sh probe drift"},
+            {"id": "aaa-drift-check",          "owner_organ": "AAA",     "owner_agent": "333-AGI", "playbook": "/root/scripts/repair-federation.sh probe aaa"},
+            {"id": "arifos-drift-check",       "owner_organ": "arifOS",  "owner_agent": "333-AGI", "playbook": "/root/scripts/repair-federation.sh probe arifos-drift"},
+            {"id": "arifos-observatory-emitter","owner_organ": "arifOS", "owner_agent": "333-AGI", "playbook": "/root/scripts/repair-federation.sh probe observatory"}
+        ],
+        "cron_duties": [
+            {"id": "arifos-bot-sentinel",     "owner_organ": "arifOS",  "owner_agent": "000-LIBRARIAN", "playbook": "/root/scripts/repair-federation.sh cron bot-sentinel"},
+            {"id": "arifos-daily-probe",      "owner_organ": "arifOS",  "owner_agent": "333-AGI",       "playbook": "/root/scripts/repair-federation.sh cron daily-probe"},
+            {"id": "arifos-dreamer",          "owner_organ": "A-FORGE", "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron dreamer"},
+            {"id": "arifos-federation-audit", "owner_organ": "A-FORGE", "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron federation-audit"},
+            {"id": "arifos-maintenance",      "owner_organ": "arifOS",  "owner_agent": "333-AGI",       "playbook": "/root/scripts/repair-federation.sh cron maintenance"},
+            {"id": "arifos-repo-audit",       "owner_organ": "A-FORGE", "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron repo-audit"},
+            {"id": "arifos-sovereignty-drill","owner_organ": "arifOS",  "owner_agent": "333-AGI",       "playbook": "/root/scripts/repair-federation.sh cron sovereignty-drill"},
+            {"id": "certbot",                 "owner_organ": "Caddy",   "owner_agent": "000-LIBRARIAN", "playbook": "/root/scripts/repair-federation.sh cron certbot"},
+            {"id": "clamav-daily",            "owner_organ": "AAA",     "owner_agent": "000-LIBRARIAN", "playbook": "/root/scripts/repair-federation.sh cron clamav"},
+            {"id": "e2scrub_all",             "owner_organ": "AAA",     "owner_agent": "000-LIBRARIAN", "playbook": "/root/scripts/repair-federation.sh cron e2scrub"},
+            {"id": "entropy-governor",        "owner_organ": "A-FORGE", "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron entropy-governor"},
+            {"id": "hermes-skill-extract",    "owner_organ": "AAA",     "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron hermes-skill"},
+            {"id": "openclaw-agentic",        "owner_organ": "A-FORGE", "owner_agent": "333-AGI",       "playbook": "/root/scripts/repair-federation.sh cron openclaw"},
+            {"id": "openclaw-topology",       "owner_organ": "A-FORGE", "owner_agent": "333-AGI",       "playbook": "/root/scripts/repair-federation.sh cron openclaw-topology"},
+            {"id": "opencode-monitor",        "owner_organ": "A-FORGE", "owner_agent": "333-AGI",       "playbook": "/root/scripts/repair-federation.sh cron opencode-monitor"},
+            {"id": "orphan-bot-watchdog",     "owner_organ": "arifOS",  "owner_agent": "000-LIBRARIAN", "playbook": "/root/scripts/repair-federation.sh cron orphan-bot"},
+            {"id": "pati-sweep",              "owner_organ": "A-FORGE", "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron pati-sweep"},
+            {"id": "skill-audit",             "owner_organ": "AAA",     "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron skill-audit"},
+            {"id": "sysstat",                 "owner_organ": "AAA",     "owner_agent": "000-LIBRARIAN", "playbook": "/root/scripts/repair-federation.sh cron sysstat"},
+            {"id": "wealth-briefing",         "owner_organ": "WEALTH",  "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron wealth-briefing"},
+            {"id": "well-dream",              "owner_organ": "WELL",    "owner_agent": "555-ASI",       "playbook": "/root/scripts/repair-federation.sh cron well-dream"}
+        ]
+    }
 }

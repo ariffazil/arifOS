@@ -8195,7 +8195,16 @@ def _arif_session_init(
         "full",
         "audit",
         "init",
-        "validate",
+        # FORGED 2026-07-27 (FI-008): "validate" REMOVED from pre-session set.
+        # Previously, arif_init(mode=validate) was being delegated to
+        # arif_session_init which created a new session and returned
+        # status=pending with actor.authority_level=OBSERVER — even when
+        # the SCT token carried auth: FULL. The validate path at line 9462
+        # (the one that reads claims.get("auth") from the signed payload)
+        # was bypassed entirely. Removing "validate" from this set lets
+        # the request fall through to the proper validate handler, which
+        # returns {valid: True, claims: {...}, authority: claims.get("auth")}.
+        # Reversible: add "validate" back to the set to restore the old behavior.
         "challenge",  # F13 crypto bind — issue single-use nonce
     }:
         # Pre-session: no session required. Delegate to canonical session.py.
