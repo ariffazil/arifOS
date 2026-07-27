@@ -208,6 +208,13 @@ class TestConnectorExportBoundary:
         This is a connector/SDK adapter issue — documented here so the
         A-FORGE connector team has the canonical contract to align against.
         """
+        import os
+
+        # Defensive: clear any state pollution from earlier tests
+        os.environ.pop("ARIFOS_MCP_EXPOSE_DEV_TOOLS", None)
+        os.environ.pop("ARIFOS_PUBLIC_SURFACE_MODE", None)
+        os.environ.pop("ARIFOS_PUBLIC_TOOL_PROFILE", None)
+
         # The kernel's contract: GET /tools returns 8; resources + prompts
         # are advertised SEPARATELY via resources/list and prompts/list.
         # A connector must:
@@ -216,19 +223,15 @@ class TestConnectorExportBoundary:
         #   3. Hide diagnostics (gated by ARIFOS_MCP_EXPOSE_DEV_TOOLS=1)
         #   4. Expose resources + prompts as separate surfaces
         from arifosmcp.abi.kernel_abi import semantic_tool_names
+        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
 
         canonical_count = len(semantic_tool_names())
         assert canonical_count == 8
         # The connector must NOT inflate this count via alias expansion.
-        # This is a kernel contract assertion; the connector implementation
-        # lives in A-FORGE/services/ and must be aligned with this contract.
-        # Test that the alias map doesn't leak into the public surface:
-        from arifosmcp.runtime.public_surface import public_tool_names_for_mode
-
+        # Each profile's surface is bounded by canonical 8.
         for profile in ("canonical", "public_agent", None):
-            os.environ_default = public_tool_names_for_mode(profile)
-            # Each profile's surface is bounded by canonical 8
-            assert set(os.environ_default).issubset(EXPECTED_CANONICAL_8), (
+            surface_names = public_tool_names_for_mode(profile)
+            assert set(surface_names).issubset(EXPECTED_CANONICAL_8), (
                 f"profile {profile} exposed names outside canonical 8: "
-                f"{set(os.environ_default) - EXPECTED_CANONICAL_8}"
+                f"{set(surface_names) - EXPECTED_CANONICAL_8}"
             )
