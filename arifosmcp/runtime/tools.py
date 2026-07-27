@@ -22491,7 +22491,7 @@ async def _arif_act(
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════════
+from arifosmcp.tools.judge import arif_judge as arif_judge_facade
 
 
 _CANONICAL_HANDLERS: dict[str, Any] = {
@@ -22501,7 +22501,7 @@ _CANONICAL_HANDLERS: dict[str, Any] = {
     "arif_init": _arif_session_init,
     "arif_observe": _arif_sense_observe,
     "arif_think": _arif_mind_reason_tool,
-    "arif_judge": _arif_kernel_intercept_tool,  # constitutional verdict / 888 (uses kernel)
+    "arif_judge": arif_judge_facade,  # constitutional verdict / 888 (uses kernel facade in tools/judge.py)
     "arif_act": _arif_act,  # INTERNAL alias for arif_forge (constitutional_map.py:1009); not on public wire
     "arif_seal": _arif_vault_seal_tool,
     # arif_vault_verify NOT exposed as separate tool — lowered to mode=verify_chain
