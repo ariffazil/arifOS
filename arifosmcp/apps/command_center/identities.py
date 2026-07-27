@@ -80,9 +80,18 @@ def validate_sovereign_proof(actor_id: str, proof: dict | str | Any | None) -> b
 
 
 def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
-    """Verify Ed25519 signature proof. Returns True only on cryptographic success."""
+    """Verify Ed25519 signature proof. Returns True only on cryptographic success.
+
+    B1 (2026-07-27): Derives the sovereign public key from the signer's private
+    key and passes it to the verifier. This ensures the verifier uses the exact
+    key that the signer used, rather than independently resolving a public key
+    from the actor registry that may not match.
+    """
     try:
-        from arifosmcp.runtime.sovereign_signer import get_constitution_hash
+        from arifosmcp.runtime.sovereign_signer import (
+            get_constitution_hash,
+            get_sovereign_public_key_pem,
+        )
         from arifosmcp.runtime.sovereign_verify import (
             is_challenge_fresh,
             verify_sovereign_signature,
@@ -101,11 +110,17 @@ def _verify_ed25519_proof(actor_id: str, proof: dict) -> bool:
         return False
 
     constitution_hash = get_constitution_hash()
+
+    # B1: Derive the matching public key from the signer's private key.
+    # Falls back to actor registry resolution if derivation fails (backward compat).
+    signer_public_key_pem = get_sovereign_public_key_pem()
+
     verified, reason = verify_sovereign_signature(
         actor_id=actor_id,
         constitution_hash=constitution_hash,
         nonce=nonce,
         actor_signature=signature,
+        public_key_pem=signer_public_key_pem,
     )
 
     if verified:

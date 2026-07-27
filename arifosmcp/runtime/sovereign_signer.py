@@ -133,6 +133,49 @@ def sign(actor_id: str, constitution_hash: str, nonce: str) -> str:
     return base64.b64encode(signature).decode()
 
 
+def get_sovereign_public_key_pem() -> str | None:
+    """Derive the PEM-encoded Ed25519 public key from the loaded private key.
+
+    Returns the PEM string of the public key that corresponds to whatever
+    private key load_private_key() resolved. This allows the verifier to
+    match the signer's key instead of independently resolving a (potentially
+    different) public key from the actor registry.
+
+    Returns None if the private key cannot be loaded.
+    """
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives.serialization import (
+        Encoding,
+        PublicFormat,
+        NoEncryption,
+        PrivateFormat,
+    )
+
+    try:
+        raw_key = load_private_key()
+        private_key = Ed25519PrivateKey.from_private_bytes(raw_key)
+        public_key = private_key.public_key()
+        return public_key.public_bytes(
+            encoding=Encoding.PEM,
+            format=PublicFormat.SubjectPublicKeyInfo,
+        ).decode()
+    except Exception:
+        return None
+
+
+def get_sovereign_public_key_hash() -> str | None:
+    """Return a short sha256[:16] fingerprint of the sovereign public key.
+
+    Useful as a key_id for matching signer ↔ verifier.
+    """
+    pem = get_sovereign_public_key_pem()
+    if not pem:
+        return None
+    import hashlib
+
+    return hashlib.sha256(pem.encode()).hexdigest()[:16]
+
+
 def main() -> str:
     """CLI entry point: returns base64 signature to stdout."""
     if len(sys.argv) != 4:

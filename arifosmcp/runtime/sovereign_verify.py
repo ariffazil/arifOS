@@ -157,6 +157,8 @@ def verify_sovereign_signature(
     constitution_hash: str,
     nonce: str,
     actor_signature: str,
+    *,
+    public_key_pem: str | None = None,
 ) -> tuple[bool, str]:
     """
     Verify Ed25519 signature — delegates to crypto_auth.verify_init_identity.
@@ -166,16 +168,32 @@ def verify_sovereign_signature(
       2. "{actor_id}:{constitution_hash}:{nonce}"    — kernel compat
     with actor-alias normalization and challenge replay protection.
 
+    If public_key_pem is provided, it is loaded and passed to verify_init_identity
+    as the canonical public key, bypassing actor registry resolution. This ensures
+    the verifier uses the same key that the signer used (B1 key unification).
+
     Returns:
         (verified: bool, reason: str)
     """
     from arifosmcp.runtime.crypto_auth import verify_init_identity
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+    from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+    pubkey: Ed25519PublicKey | None = None
+    if public_key_pem:
+        try:
+            key = load_pem_public_key(public_key_pem.encode())
+            if isinstance(key, Ed25519PublicKey):
+                pubkey = key
+        except Exception as e:
+            logger.warning("Failed to load provided public_key_pem: %s", e)
 
     return verify_init_identity(
         actor_id=actor_id,
         nonce=nonce,
         signature_b64=actor_signature,
         constitution_hash=constitution_hash or None,
+        public_key=pubkey,
     )
 
 
