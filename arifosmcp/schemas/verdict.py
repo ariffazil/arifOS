@@ -1185,3 +1185,7 @@ class SealOutput(BaseModel):
         default=None,
         description="Authority delta between token band and tool requirement",
     )
+
+
+# Rebuild Pydantic core schemas for model forward references
+VerdictOutput.model_rebuild()
