@@ -363,13 +363,13 @@ STATIC_BLOCK_KEYS: frozenset[str] = frozenset(
 CONSTITUTION_HASH: str = "arifos-constitution-v2026.05.05-SSCT"
 
 
-def _assert_no_static_inline(payload: dict, verbose: bool) -> None:
-    """HARD INVARIANT — statics by hash+ref, NEVER inline unless verbose=audit.
+def _assert_no_static_inline(payload: dict, verbose: str) -> None:
+    """HARD INVARIANT — statics by hash+ref, NEVER inline unless verbosity=full.
 
-    Raises ValueError if a static block is found inline in a non-audit payload.
+    Raises ValueError if a static block is found inline in a non-full payload.
     This is the constitutional enforcement of the mandate.
     """
-    if verbose == "audit":
+    if verbose == "full":
         return  # seal path may inline
     violations = []
     for key in STATIC_BLOCK_KEYS:
@@ -378,8 +378,84 @@ def _assert_no_static_inline(payload: dict, verbose: bool) -> None:
     if violations:
         raise ValueError(
             f"STATIC_INLINE_FORBIDDEN: {violations} inlined but mandate requires "
-            f"reference via detail_ref={CONSTITUTION_HASH}. Use verbose='audit' to override."
+            f"reference via detail_ref={CONSTITUTION_HASH}. Use verbosity='full' to override."
         )
+
+
+# ── A5 2026-07-27: Egress budget — verbosity levels ─────────────────────────
+# Each level strips fields to stay within token budgets.
+# minimal:  < 400 tokens (session_id, authority_band, verdict, degraded, next)
+# standard: < 1500 tokens (minimal + clarity_contract, witness, software_release)
+# full:     uncapped (everything — seal path only)
+
+_VERBOSITY_LEGACY_MAP: dict[str | None, str] = {
+    None: "minimal",
+    "": "minimal",
+    "minimal": "minimal",
+    "standard": "standard",
+    "audit": "full",
+    "full": "full",
+}
+
+# Fields retained at each verbosity level (beyond the core gate fields).
+# Core gate fields ALWAYS present: session_id, actor_id, actor_claimed,
+# actor_canonicalized, actor_bound, actor_verified, actor_cryptographically_verified,
+# authority, authority_band, mutation_allowed, seal_allowed, init_mode,
+# session_mode, authority_scope, kernel_epoch, constitution_hash, detail_ref,
+# next_tool, degraded, next_safe_action, verdict, verdict_code, action_class,
+# substrate, allowed_next_verbs, software_release, session_birth.
+
+_STANDARD_FIELDS: frozenset[str] = frozenset(
+    {
+        "clarity_contract",
+        "clarity_metrics",
+        "witness",
+        "trace",
+        "energy_remaining",
+        "context_completeness",
+    }
+)
+
+_FULL_FIELDS: frozenset[str] = frozenset(
+    {
+        "motto",
+        "state_emoji",
+        "mode_emoji",
+        "signature",
+        "call_hash",
+        "trace_id",
+        "called_from_kernel",
+        "invocation_count",
+        "alignment_profile_loaded",
+        "adversarial_profile_loaded",
+        "genesis",
+        "genesis_status",
+        "audit_full",
+        "public_surface_version",
+        "tool_registry_version",
+    }
+)
+
+
+def _normalize_verbosity(verbose: str | None) -> str:
+    """Map legacy verbose values to A5 verbosity levels."""
+    if verbose is None:
+        return "minimal"
+    return _VERBOSITY_LEGACY_MAP.get(verbose, "minimal")
+
+
+def _strip_by_verbosity(out: dict, verbosity: str) -> dict:
+    """Remove fields not allowed at the given verbosity level."""
+    if verbosity == "full":
+        return out
+    if verbosity == "standard":
+        remove = _FULL_FIELDS
+    else:  # minimal
+        remove = _STANDARD_FIELDS | _FULL_FIELDS
+    for key in list(out.keys()):
+        if key in remove:
+            del out[key]
+    return out
 
 
 def _project_light(
@@ -394,6 +470,7 @@ def _project_light(
     intent: str | None = None,
     signature_verified: bool = False,
     is_sovereign_principal: bool = False,
+    verbosity: str = "minimal",
 ) -> dict:
     """Project the full components dict into the frozen light header.
 
@@ -493,13 +570,31 @@ def _project_light(
 
     from arifosmcp.runtime.build import get_runtime_attestation
 
-    # Identity lattice (MASTER FORGE W9) — never conflate bound with verified.
+    # Identity lattice (MASTER FORGE W9 + A1 2026-07-27) — never conflate.
     # actor_claimed: caller supplied an actor_id string
     # actor_canonicalized: actor_id mapped to known principal (if applicable)
     # actor_bound: session has an actor_id attached (binding, not crypto)
-    # actor_cryptographically_verified / actor_verified: Ed25519 (or equivalent) proof
+    # actor_verified: identity claim recognized by registry
+    # actor_cryptographically_verified: Ed25519/MTLS proof validated (A1: separate from actor_verified)
     _actor_claimed = bool(actor_id)
     _actor_bound = bool(actor_id)  # session birth always binds claimed actor if present
+    _actor_crypto = bool(signature_verified and actor_verified)
+
+    # A3 2026-07-27: drift degrades substrate.
+    # Deployment drift (source != built) is honest measurement — but it MUST
+    # degrade the substrate state and block mutation. Per spec: "drift detected
+    # and exposed as honest measurement" but "drift == True → substrate.state =
+    # DEGRADED → canonical_verdict floor = HOLD → mutation_allowed = False".
+    _sw = get_runtime_attestation()
+    _drift = _sw.get("drift", False)
+    if _drift:
+        degraded.append("kernel_drift")
+    _mutation_granted = bool(_is_full_authority or _is_limited)
+    _mutation_allowed = _mutation_granted and not _drift
+    _seal_granted = bool(actor_verified and _is_full_authority)
+    _seal_allowed = _seal_granted and not _drift
+    _substrate_state = "DEGRADED" if _drift else "HEALTHY"
+
     out = {
         # GATING
         "session_id": sid,
@@ -508,17 +603,18 @@ def _project_light(
         "actor_canonicalized": bool(actor_id),  # refined by identity registry if present
         "actor_bound": _actor_bound,
         "actor_verified": actor_verified,
-        "actor_cryptographically_verified": actor_verified,
+        "actor_cryptographically_verified": _actor_crypto,
         "authority": _authority,
         "authority_band": _authority,
-        "mutation_allowed": bool(_is_full_authority or _is_limited),
-        "seal_allowed": bool(actor_verified and _is_full_authority),
+        "mutation_allowed": _mutation_allowed,
+        "seal_allowed": _seal_allowed,
         # ── AOB P0: Machine enforcement envelope ──
         "init_mode": "light",
         "session_mode": session_mode,
         "authority_scope": _authority,
         "kernel_epoch": "2026-07-03",
-        "software_release": get_runtime_attestation(),
+        "software_release": _sw,
+        "substrate": {"state": _substrate_state, "drift": _drift},
         "public_surface_version": "7",
         "tool_registry_version": "1.0.0",
         "allowed_next_verbs": _allowed_next,
@@ -567,11 +663,14 @@ def _project_light(
             "session_id": sid,
             "actor_id": actor_id,
             "actor_verified": actor_verified,
+            "actor_cryptographically_verified": _actor_crypto,
             "authority_mode": _authority,
             "stage": "000",
             "lane": "AGI",
             "verdict": _authority,
-            "mutation_allowed": bool(_is_full_authority or _is_limited),
+            "mutation_allowed": _mutation_allowed,
+            "seal_allowed": _seal_allowed,
+            "substrate_state": _substrate_state,
             "authority_source": "identity_band",
         },
         # RSI 2026-06-22: renamed from model_soul_loaded / model_shadow_loaded
@@ -629,7 +728,23 @@ def _project_light(
     try:
         from arifosmcp.runtime.sct import mint_sct, unmeasured_apex
 
-        _apex = unmeasured_apex()  # birth: honest UNMEASURED unless real measure
+        # W3 FIX 2026-07-29: Use real shadow measurement when intent is provided.
+        # Falls through to unmeasured_apex() if probe fails or intent is blank.
+        _apex = None
+        if intent:
+            try:
+                from arifosmcp.tools.shadow_probe import probe_shadow
+
+                _probe_result = probe_shadow(
+                    model_input=intent,
+                    reference_domain="agentic_boundary",
+                )
+                if _probe_result and _probe_result.get("G") != "UNMEASURED":
+                    _apex = _probe_result
+            except Exception:
+                logger.debug("shadow probe failed — falling through to unmeasured_apex")
+        if _apex is None:
+            _apex = unmeasured_apex()  # birth: honest UNMEASURED unless real measure
         _token, _claims = mint_sct(
             sid=sid,
             actor=actor_id or "anonymous",
@@ -668,6 +783,18 @@ def _project_light(
             "h": "UNMEASURED",
         }
         out["sct_error"] = type(_sct_exc).__name__
+
+    # FIX 2026-07-29: Self-audit — actor_verified MUST agree across all fields
+    _sb_av = out.get("session_birth", {}).get("actor_verified")
+    assert bool(actor_verified) == bool(_sb_av), (
+        "actor_verified mismatch: top_level="
+        + str(bool(actor_verified))
+        + " vs session_birth.actor_verified="
+        + str(_sb_av)
+    )
+
+    # A5 2026-07-27: egress budget — strip fields by verbosity level
+    out = _strip_by_verbosity(out, verbosity)
 
     return out
 
@@ -965,10 +1092,10 @@ def arif_init(
     #   Human-readable purpose. Recorded for audit (F2 TRUTH).
     requested_authority: str = "OBSERVE_ONLY",
     verbose: str | None = None,
-    # DITEMPA 2026-06-22 — Layered init mandate.
-    # verbose=None  → minimal header (default for agents)
-    # verbose="audit" → full union (seal path only)
-    # Anything else → rejected by _assert_no_static_inline
+    # DITEMPA 2026-06-22 — Layered init mandate (A5 2026-07-27 expanded).
+    # verbose=None / "minimal" → minimal header (<400 tok, default for agents)
+    # verbose="standard"      → minimal + clarity_contract, witness, sw_release (<1500 tok)
+    # verbose="full" / "audit" → everything (seal path only, uncapped)
     #   OBSERVE_ONLY | LIMITED_MUTATE | FULL. Aspiration only at birth.
     # ── AOB P0 — 2026-07-03: session mode ──────────────────────────────
     session_mode: str = "persistent_bound",
@@ -1533,6 +1660,7 @@ def arif_init(
                     logger.warning("light-mode challenge issue failed: %s", _exc)
 
         # ── Project to frozen header (15 fields, degraded-first) ────────
+        _verbosity = _normalize_verbosity(verbose)
         header = _project_light(
             components={
                 # RSI 2026-06-22: soul/shadow → alignment_profile/adversarial_profile
@@ -1552,43 +1680,46 @@ def arif_init(
             session_mode=session_mode,  # AOB P0 — 2026-07-03
             intent=intent or sess.get("intent") or "light_bootstrap",
             authority_override=_light_band,
+            verbosity=_verbosity,
         )
 
-        # ── Verbose=audit: only path that inlines statics (seal only) ───
-        if verbose == "audit":
+        # ── A5: verbosity-gated extra blocks ──────────────────────────
+        _verbosity = _normalize_verbosity(verbose)
+        if _verbosity == "full":
             # Full union for ledger seal. Heavy blocks materialize here.
             header["audit_full"] = _build_audit_full(sess, actor_id, model_key, deployment_id)
 
-        # ── HARD INVARIANT — statics never inline outside audit ──────────
-        _assert_no_static_inline(header, verbose=verbose if verbose else "")
+        # ── HARD INVARIANT — statics never inline outside full ──────────
+        _assert_no_static_inline(header, verbose=_verbosity)
 
         # ── v42.0: Genesis Card Binding (AAA warga ignition) ────────────
-        # Load genesis_card.yaml — constitutional anchor for all sessions.
-        _genesis_card_path = "/root/AAA/registries/genesis/genesis_card.yaml"
-        _genesis_status = "not_loaded"
-        try:
-            import yaml as _g_yaml  # type: ignore
+        # A5 2026-07-27: gated behind verbosity=full (heavy block, seal path only)
+        if _verbosity == "full":
+            _genesis_card_path = "/root/AAA/registries/genesis/genesis_card.yaml"
+            _genesis_status = "not_loaded"
+            try:
+                import yaml as _g_yaml  # type: ignore
 
-            with open(_genesis_card_path) as _gf:
-                _gc = _g_yaml.safe_load(_gf)
-            _g_hash = _gc.get("content_hash_sha256", "")
-            header["genesis"] = {
-                "id": _gc.get("id"),
-                "title": _gc.get("title"),
-                "url": _gc.get("url"),
-                "did": _gc.get("did"),
-                "content_hash_sha256": _g_hash,
-                "constitution_reference": _gc.get("constitution_reference"),
-                "motto": _gc.get("motto", "DITEMPA BUKAN DIBERI"),
-                "sections_count": len(_gc.get("sections", [])),
-            }
-            sess["genesis_card_hash"] = _g_hash
-            _genesis_status = "loaded"
-        except FileNotFoundError:
-            header["genesis_status"] = "not_found"
-        except Exception as _g_exc:
-            header["genesis_status"] = f"error: {_g_exc}"
-        header["genesis_status"] = _genesis_status
+                with open(_genesis_card_path) as _gf:
+                    _gc = _g_yaml.safe_load(_gf)
+                _g_hash = _gc.get("content_hash_sha256", "")
+                header["genesis"] = {
+                    "id": _gc.get("id"),
+                    "title": _gc.get("title"),
+                    "url": _gc.get("url"),
+                    "did": _gc.get("did"),
+                    "content_hash_sha256": _g_hash,
+                    "constitution_reference": _gc.get("constitution_reference"),
+                    "motto": _gc.get("motto", "DITEMPA BUKAN DIBERI"),
+                    "sections_count": len(_gc.get("sections", [])),
+                }
+                sess["genesis_card_hash"] = _g_hash
+                _genesis_status = "loaded"
+            except FileNotFoundError:
+                header["genesis_status"] = "not_found"
+            except Exception as _g_exc:
+                header["genesis_status"] = f"error: {_g_exc}"
+            header["genesis_status"] = _genesis_status
 
         _light_sovereign = sess.get("sovereign_id")
         _light_delegation = sess.get("delegation_mode", "direct")
@@ -2174,6 +2305,7 @@ def arif_init(
 
         # ── Project to frozen header (mode=init/full: same shape as light) ─
         sid = sess.get("session_id", "UNKNOWN")
+        _vb_full = _normalize_verbosity(verbose)
         header = _project_light(
             components={
                 # RSI 2026-06-22: soul/shadow → alignment_profile/adversarial_profile
@@ -2201,6 +2333,7 @@ def arif_init(
             # so _project_light doesn't derive "FULL" from actor_verified alone.
             authority_override=sess.get("authority", "OBSERVE_ONLY"),
             intent=sess.get("intent") or intent or "constitutionally_bound_session",
+            verbosity=_vb_full,
         )
         # Authority is now correctly projected by _project_light via authority_override.
         # The old post-hoc override (header["authority"] = "FULL") was a workaround
@@ -2288,8 +2421,9 @@ def arif_init(
                 deployment_id=deployment_id,
             )
 
-        # ── HARD INVARIANT — statics never inline outside audit ──────────
-        _assert_no_static_inline(header, verbose=verbose if verbose else "")
+        # ── HARD INVARIANT — statics never inline outside full ──────────
+        _vb = _normalize_verbosity(verbose)
+        _assert_no_static_inline(header, verbose=_vb)
 
         # ── output_contract=debug: legacy path, preserves raw session ─────
         if output_contract == "debug":
@@ -2781,7 +2915,12 @@ def arif_init(
         if not target_sid:
             return _sm(
                 status="HOLD",
-                result={"valid": False, "session_valid": False, "claims": None, "error": "session_id required for validate"},
+                result={
+                    "valid": False,
+                    "session_valid": False,
+                    "claims": None,
+                    "error": "session_id required for validate",
+                },
                 meta={"reason": "session_id required for validate"},
                 doctrine=ARIF_DOCTRINE,
             )
@@ -2795,7 +2934,12 @@ def arif_init(
             if not claims:
                 return _sm(
                     status="HOLD",
-                    result={"valid": False, "session_valid": False, "claims": None, "error": "SCT signature/expiry/actor verification failed"},
+                    result={
+                        "valid": False,
+                        "session_valid": False,
+                        "claims": None,
+                        "error": "SCT signature/expiry/actor verification failed",
+                    },
                     meta={"reason": "SCT verification failed"},
                     doctrine=ARIF_DOCTRINE,
                 )
@@ -2820,15 +2964,19 @@ def arif_init(
         # SEAL-* session store path
         _in_store = target_sid in _SESSIONS
         sess_data = _SESSIONS.get(target_sid, {})
-        claims_data = {
-            "sct_v": 1,
-            "sid": target_sid,
-            "actor": sess_data.get("actor_id") or "arif",
-            "auth": sess_data.get("authority", "OBSERVE_ONLY"),
-            "av": True,
-            "stage": sess_data.get("stage", "000"),
-            "lane": sess_data.get("lane", "AGI"),
-        } if _in_store else None
+        claims_data = (
+            {
+                "sct_v": 1,
+                "sid": target_sid,
+                "actor": sess_data.get("actor_id") or "arif",
+                "auth": sess_data.get("authority", "OBSERVE_ONLY"),
+                "av": True,
+                "stage": sess_data.get("stage", "000"),
+                "lane": sess_data.get("lane", "AGI"),
+            }
+            if _in_store
+            else None
+        )
 
         return _sm(
             status="OK" if _in_store else "HOLD",

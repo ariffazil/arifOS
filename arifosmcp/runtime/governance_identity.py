@@ -25,11 +25,51 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+# ── A1: VerificationMethod enum (2026-07-27) ──────────────────────────────────
+# Distinguishes identity claims from cryptographic proofs.
+# A claim is NOT verification. "I'm ARIF" is a claim; Ed25519 sig is proof.
+
+from enum import Enum
+
+
+class VerificationMethod(str, Enum):
+    """How the caller's identity was verified (or not)."""
+
+    IDENTITY_CLAIM = "identity_claim"  # recognized, NOT verified
+    SYSTEM_EXEMPT = "system_exempt"  # recognized, NOT verified
+    ED25519_SIG = "ed25519_signature"  # verified iff signature validates
+    MTLS_CLIENT = "mtls_client_cert"  # verified iff chain validates
+    NONE = "none"  # no claim made at all
+
+
+SIGNATURE_METHODS: frozenset[VerificationMethod] = frozenset(
+    {VerificationMethod.ED25519_SIG, VerificationMethod.MTLS_CLIENT}
+)
+
+
+def cryptographically_verified(
+    method: VerificationMethod | str,
+    signature_valid: bool = False,
+) -> bool:
+    """Derive cryptographically_verified from method and signature validity.
+
+    Three distinct states, never collapsed:
+      claimed → recognized → cryptographically_verified
+
+    Only SIGNATURE_METHODS with a valid signature produce True.
+    """
+    if isinstance(method, str):
+        try:
+            method = VerificationMethod(method)
+        except ValueError:
+            return False
+    return method in SIGNATURE_METHODS and signature_valid
+
+
 # P0: Protected Sovereign IDs (L11 Identity Hardening)
 # These IDs cannot be claimed without:
 # 1. Valid cryptographic proof (signed token), OR
-# 2. Explicit human_approval flag with acknowledgment, OR
-# 3. Valid Semantic Key (Naming is the act of creation)
+# 2. Explicit human_approval flag with acknowledgment
 PROTECTED_SOVEREIGN_IDS: set[str] = {
     "arif",
     "ariffazil",
