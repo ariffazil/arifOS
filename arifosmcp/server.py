@@ -944,6 +944,36 @@ try:
     v2_tools_registered = register_tools(mcp, ingress_middleware=_ingress_middleware)
     # Surface assertion deferred — runs after all CANONICAL_12 tools are registered (incl. arif_canary)
 
+    # ── MCP resources + prompts (audit 2026-07-27 fix) ─────────────────
+    # resources.py and prompts.py define @mcp.resource / @mcp.prompt decorators
+    # inside register_*_arifos_*(mcp) functions. They were defined but never
+    # called on the canonical kernel mcp instance, so the live MCP surface
+    # advertised tools but no resources/prompts. Wire them here.
+    from arifosmcp.runtime.fastmcp_ext.resources import register_arifos_resources
+    from arifosmcp.runtime.fastmcp_ext.prompts import register_arifos_prompts
+
+    try:
+        registered_resources = register_arifos_resources(mcp)
+        logger.info(
+            "Registered %d MCP resources: %s",
+            len(registered_resources),
+            registered_resources[:8],
+        )
+    except Exception as _res_err:
+        logger.warning("Resource registration failed (non-fatal): %s", _res_err)
+        registered_resources = []
+
+    try:
+        registered_prompts = register_arifos_prompts(mcp)
+        logger.info(
+            "Registered %d MCP prompts: %s",
+            len(registered_prompts),
+            registered_prompts[:8],
+        )
+    except Exception as _prompt_err:
+        logger.warning("Prompt registration failed (non-fatal): %s", _prompt_err)
+        registered_prompts = []
+
     # ── Phase 3 cutover — alias shim disabled (2026-06-23 freeze) ────────────
     # FROZEN: ARIFOS_MCP_DUAL_MODE defaults to false.
     # Only canonical names on the wire. Legacy callers use kernel interceptor.

@@ -128,16 +128,23 @@ def register_arifos_resources(mcp: Any) -> list[str]:
     registered.append("arifos://vitals")
 
     # ── INIT prompt resources (F4 CLARITY: MCP-discoverable bootstrap) ────
-    for name, filepath in _INIT_PROMPT_FILES.items():
-        uri = f"arifos://init/opencode/{name.lower()}"
-        description = f"OpenCode INIT prompt: {name}.md — agent bootstrap instruction."
-        _content = _read_file_safe(filepath)
+    # FastMCP requires URI templates with at least one `{param}` parameter.
+    # We use a single templated resource `{name}` and look up content by name.
+    @mcp.resource(
+        "arifos://init/opencode/{name}",
+        description=(
+            "OpenCode INIT prompt files (agent bootstrap instruction). "
+            "Available names: " + ", ".join(sorted(_INIT_PROMPT_FILES.keys()))
+        ),
+    )
+    async def get_init_resource(name: str) -> str:
+        """Return the contents of a named INIT prompt file."""
+        filepath = _INIT_PROMPT_FILES.get(name)
+        if not filepath:
+            return f"[Unknown INIT resource: {name}. Available: {sorted(_INIT_PROMPT_FILES.keys())}]"
+        return _read_file_safe(filepath)
 
-        @mcp.resource(uri, description=description)
-        async def _init_resource(_content=_content) -> str:
-            return _content
-
-        registered.append(uri)
+    registered.append("arifos://init/opencode/{name}")
 
     # ── AGENT_INIT_v3.0 resource ──────────────────────────────────────────
     @mcp.resource(
