@@ -550,3 +550,7 @@ class ForgeDryRunResult(BaseModel):
 
 # Backward-compatible aliases
 ForgeManifest2 = ForgeManifest
+
+
+ConstitutionalCompliance.model_rebuild()
+IrreversibilityBond.model_rebuild()

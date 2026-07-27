@@ -26,3 +26,6 @@ class JudgeSealContract(BaseModel):
     epistemic_snapshot: dict[str, Any] = Field(default_factory=dict)
     law_results: dict[str, str] = Field(default_factory=dict)
     timestamp: str | None = Field(default=None)
+
+
+JudgeSealContract.model_rebuild()

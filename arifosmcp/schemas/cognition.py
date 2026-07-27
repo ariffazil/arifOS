@@ -335,3 +335,7 @@ class EvidenceCivilizationContext(BaseModel):
     )
     domain: str = Field(default="unknown", description="Domain context")
     cascade_risk: bool = Field(default=False, description="Could cascade to other domains?")
+
+
+UncertaintyGeometry.model_rebuild()
+EvidenceCivilizationContext.model_rebuild()
