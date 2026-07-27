@@ -523,23 +523,23 @@ def _lazy_public_tool_spec_by_name() -> dict[str, Any]:
     return _LAZY_TOOL_SPEC_BY_NAME
 
 
-# Backward-compat aliases: existing code reads PUBLIC_TOOL_SPECS etc.
-# Now they route through the lazy initializers.
-def _public_tool_specs_proxy() -> tuple[Any, ...]:
-    return _lazy_public_tool_specs()
-
-
-def _public_prompt_specs_proxy() -> tuple[Any, ...]:
-    return _lazy_public_prompt_specs()
-
-
-def _public_tool_spec_by_name_proxy() -> dict[str, Any]:
-    return _lazy_public_tool_spec_by_name()
-
-
-PUBLIC_TOOL_SPECS = _lazy_public_tool_specs()
+# PUBLIC_PROMPT_SPECS is data-only (no type resolution needed) — safe to compute eagerly.
 PUBLIC_PROMPT_SPECS = _lazy_public_prompt_specs()
-PUBLIC_TOOL_SPEC_BY_NAME = _lazy_public_tool_spec_by_name()
+
+# PUBLIC_TOOL_SPECS / PUBLIC_TOOL_SPEC_BY_NAME are deferred via module __getattr__
+# to avoid circular import with schemas.verdict (VerdictOutput.model_rebuild hasn't
+# run yet when this module loads during the schemas/__init__.py import chain).
+_LAZY_ALIASES: dict[str, str] = {
+    "PUBLIC_TOOL_SPECS": "_lazy_public_tool_specs",
+    "PUBLIC_TOOL_SPEC_BY_NAME": "_lazy_public_tool_spec_by_name",
+}
+
+
+def __getattr__(name: str) -> Any:
+    if name in _LAZY_ALIASES:
+        fn = globals()[_LAZY_ALIASES[name]]
+        return fn()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def public_prompt_specs() -> tuple[Any, ...]:
