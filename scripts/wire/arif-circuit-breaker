@@ -1,0 +1,53 @@
+#!/bin/bash
+# arifOS Circuit Breaker — anti-infinite RSI loop
+# F1: Reversible-first. After 2 failed triage attempts, HOLD.
+# ΔS < 0: Escalate to 888 before entropy exceeds threshold.
+BREAKER_FILE="/var/run/arifos_circuit_breaker.json"
+MAX_RETRIES=2
+MAX_ENTROPY_DELTA=0.15
+log() { echo "[$(date +%H:%M:%S)] $*" >> /var/log/arifos_circuit_breaker.log 2>/dev/null; }
+read_state() {
+  if [ -f "$BREAKER_FILE" ]; then cat "$BREAKER_FILE"
+  else echo "{\"target\":\"\",\"attempts\":0,\"locked\":false,\"entropy_delta\":0}"; fi
+}
+write_state() { printf "%s" "$1" > "${BREAKER_FILE}.tmp" && mv "${BREAKER_FILE}.tmp" "$BREAKER_FILE"; }
+triage_start() {
+  local t="$1"
+  local s=$(read_state)
+  local l=$(echo "$s" | jq -r ".locked // false")
+  if [ "$l" = "true" ]; then
+    echo "L CIRCUIT OPEN — blocked. Reset: rm -f $BREAKER_FILE"; exit 1
+  fi
+  local a=$(echo "$s" | jq -r ".attempts // 0")
+  log "START: $t (attempt $((a+1))/$MAX_RETRIES)"
+  s=$(echo "$s" | jq --arg t "$t" --arg ts "$(date +%s)" ".target=\$t | .last_ts=(\$ts|tonumber) | .attempts+=1")
+  write_state "$s"
+  echo "Attempt $((a+1))/$MAX_RETRIES: $t"
+}
+triage_end() {
+  local ok="${1:-false}"
+  local s=$(read_state)
+  local t=$(echo "$s" | jq -r ".target // \"?\"")
+  local a=$(echo "$s" | jq -r ".attempts // 0")
+  if [ "$ok" = "true" ]; then
+    log "SUCCESS: $t — reset"
+    write_state "{\"target\":\"\",\"attempts\":0,\"locked\":false,\"entropy_delta\":0}"
+    echo "Reset — $t resolved"
+  elif [ "$a" -ge "$MAX_RETRIES" ]; then
+    log "FAILED after $a attempts — LOCK"
+    s=$(echo "$s" | jq ".locked=true | .entropy_delta=0.15")
+    write_state "$s"
+    echo "L CIRCUIT TRIPPED — $t unrepaired. 888_HOLD."
+  else
+    log "FAILED: $t — retry avail"
+    echo "Attempt $a/$MAX_RETRIES failed. Retrying..."
+  fi
+}
+case "${1:-status}" in
+  start) triage_start "$2" ;;
+  done|success) triage_end "true" ;;
+  fail) triage_end "false" ;;
+  status)
+    s=$(read_state)
+    echo "Target:$(echo "$s"|jq -r .target) Attempts:$(echo "$s"|jq -r .attempts)/$MAX_RETRIES Locked:$(echo "$s"|jq -r .locked)" ;;
+esac
