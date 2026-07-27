@@ -22254,10 +22254,13 @@ async def _arif_kernel_intercept_tool(
         )
     if domain is None:
         domain = kwargs.pop("domain", None) or kwargs.pop("context_source", None) or "general"
+    if action_class is None:
+        action_class = kwargs.pop("action_class", None)
     if reversibility_level is None:
         reversibility_level = (
             kwargs.pop("reversibility_level", None)
             or kwargs.pop("reversibility", None)
+            or action_class
             or "unknown"
         )
     if blast_radius is None:
