@@ -516,18 +516,22 @@ def _map_status(status: RuntimeStatus | str | None) -> str:
     """Map internal status to clean status."""
     if status is None:
         return "ERROR"
+    # Map RuntimeStatus (transport semantics) to display string.
+    # Canonical RuntimeStatus: SUCCESS / ERROR / TIMEOUT / RETRY / HOLD / SABAR / DRY_RUN / DEGRADED
     status_map = {
         RuntimeStatus.SUCCESS: "OK",
         RuntimeStatus.ERROR: "ERROR",
         RuntimeStatus.TIMEOUT: "TIMEOUT",
         RuntimeStatus.HOLD: "HOLD",
+        RuntimeStatus.SABAR: "PENDING",
         RuntimeStatus.DRY_RUN: "PARTIAL",
         RuntimeStatus.DEGRADED: "PARTIAL",
-        RuntimeStatus.SABAR: "HOLD",
         "SUCCESS": "OK",
         "ERROR": "ERROR",
         "TIMEOUT": "TIMEOUT",
         "HOLD": "HOLD",
+        "RETRY": "PARTIAL",
+        "SABAR": "PENDING",
     }
     if isinstance(status, RuntimeStatus):
         return status_map.get(status, "ERROR")

@@ -165,7 +165,7 @@ def forge_verdict(
     runtime_status = (
         RuntimeStatus.ERROR
         if _is_actual_failure
-        else RuntimeStatus.SABAR
+        else RuntimeStatus.SABAR  # canonical transport: transient wait (SABAR/PARTIAL are governance verdicts)
         if code in (VerdictCode.SABAR, VerdictCode.PARTIAL)
         else RuntimeStatus.SUCCESS
     )
