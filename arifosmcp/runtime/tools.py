@@ -23052,14 +23052,6 @@ _LEGACY_PARAM_ALIASES: dict[str, dict[str, str]] = {
     # to Contract D (handler named params). Without these aliases, public
     # clients hit a TypeError on extra kwargs and the wrapper returns VOID,
     # breaking F13 L13 elicit gate. Patched 2026-06-30 (F13 SOVEREIGN
-    # directive: "fix the judge ingress first").
-    # FIX 2026-07-11 (Spine P0): handler _arif_kernel_intercept_tool uses
-    # actor/intent directly (not actor_id/candidate). Old aliases REVERSED
-    # the direction, causing judge to receive actor_id (filtered out) instead
-    # of actor (accepted). actor_id->actor is the correct direction.
-    "arif_judge": {
-        "actor_id": "actor",
-    },
     "arif_reply_compose": {"topic": "message", "text": "message", "content": "message"},
     "arif_gateway_connect": {
         "endpoint": "target_agent",
