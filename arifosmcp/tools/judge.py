@@ -54,6 +54,7 @@ from arifosmcp.core.vault_receipt import create_and_seal_receipt, resolve_receip
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.core.reality_ledger_writer import write_reality_event
+from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
 from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 from core.shared.atlas import Φ
