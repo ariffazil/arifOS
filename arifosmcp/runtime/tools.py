@@ -16305,14 +16305,21 @@ def _arif_judge_deliberate(
     #
     # The candidate_ref parameter (if provided) is the PRIMARY authority.
     # The model's text is NEVER trusted as state — only the store record is.
-    from arifosmcp.runtime.candidate_store import verify_candidate_for_authority
+    # Fix 2026-07-28: import both verify_candidate_for_authority AND
+    # EurekaCandidateState so the qualified name below resolves. Prior commit
+    # e9f48df15 left a dangling arifosmcp.runtime.candidate_store.EurekaCandidateState
+    # reference that crashed with NameError when arif_judge was called.
+    from arifosmcp.runtime.candidate_store import (
+        EurekaCandidateState,
+        verify_candidate_for_authority,
+    )
 
     _fw_candidate_ref = candidate  # may be candidate_ref string or None
     if _fw_candidate_ref is not None and isinstance(_fw_candidate_ref, str):
         _store_verdict = verify_candidate_for_authority(
             _fw_candidate_ref,
             session_id=session_id,
-            required_state=arifosmcp.runtime.candidate_store.EurekaCandidateState.PROMOTED,
+            required_state=EurekaCandidateState.PROMOTED,
         )
         if not _store_verdict.get("pass", False):
             return {
