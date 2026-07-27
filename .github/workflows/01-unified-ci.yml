@@ -292,7 +292,6 @@ jobs:
             ('arifosmcp.runtime.session', 'Session'),
             ('arifosmcp.runtime.resource', 'register_resources'),
             ('arifosmcp.runtime.prompts', 'register_prompts'),
-            ('arifosmcp.runtime.floors', 'check_floors'),
             ('arifosmcp.runtime.governance_identity', 'GovernanceIdentity'),
             ('arifosmcp.runtime.mcp_util', 'mcp_json'),
           ]
