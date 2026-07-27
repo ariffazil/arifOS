@@ -1696,7 +1696,10 @@ async def arif_judge(
     # ── Preventive timeout (L1 fix) ──────────────────────────────────
     # C4_SOVEREIGN: unbounded — no timeout. Human deliberation has no SLA.
     # All other classes: hard timeout via asyncio.wait_for.
-    # If judge_fn exceeds budget → degrade immediately (preventive, not retroactive).
+    timeout_seconds: float | None = None
+    if budget and budget.max_latency_ms > 0:
+        timeout_seconds = budget.max_latency_ms / 1000.0
+
     from arifosmcp.runtime.tools import _arif_judge_deliberate_tool
 
     judge_coro = _arif_judge_deliberate_tool(
