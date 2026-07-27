@@ -484,8 +484,25 @@ def public_tool_spec_by_name(mode: str | None = None) -> dict[str, Any]:
     return {spec.name: spec for spec in public_tool_specs(mode)}
 
 
-PUBLIC_TOOL_SPECS = public_tool_specs()
-PUBLIC_PROMPT_SPECS = tuple(
+# Eager computation deferred: circular import with schemas.verdict means
+# VerdictOutput.model_rebuild() may not have run yet when this module loads.
+# Computed lazily via _lazy_public_tool_specs() / _lazy_public_prompt_specs().
+_LAZY_TOOL_SPECS: tuple[Any, ...] | None = None
+_LAZY_PROMPT_SPECS: tuple[Any, ...] | None = None
+_LAZY_TOOL_SPEC_BY_NAME: dict[str, Any] | None = None
+
+
+def _lazy_public_tool_specs() -> tuple[Any, ...]:
+    global _LAZY_TOOL_SPECS
+    if _LAZY_TOOL_SPECS is None:
+        _LAZY_TOOL_SPECS = public_tool_specs()
+    return _LAZY_TOOL_SPECS
+
+
+def _lazy_public_prompt_specs() -> tuple[Any, ...]:
+    global _LAZY_PROMPT_SPECS
+    if _LAZY_PROMPT_SPECS is None:
+        _LAZY_PROMPT_SPECS = tuple(
     SimpleNamespace(
         name=spec["name"],
         description=spec["description"],
@@ -495,12 +512,38 @@ PUBLIC_PROMPT_SPECS = tuple(
         tool_choice=spec.get("tool_choice", "auto"),
     )
     for spec in V2_PROMPT_SPECS
-)
-PUBLIC_TOOL_SPEC_BY_NAME = public_tool_spec_by_name()
+    )
+    return _LAZY_PROMPT_SPECS
+
+
+def _lazy_public_tool_spec_by_name() -> dict[str, Any]:
+    global _LAZY_TOOL_SPEC_BY_NAME
+    if _LAZY_TOOL_SPEC_BY_NAME is None:
+        _LAZY_TOOL_SPEC_BY_NAME = public_tool_spec_by_name()
+    return _LAZY_TOOL_SPEC_BY_NAME
+
+
+# Backward-compat aliases: existing code reads PUBLIC_TOOL_SPECS etc.
+# Now they route through the lazy initializers.
+def _public_tool_specs_proxy() -> tuple[Any, ...]:
+    return _lazy_public_tool_specs()
+
+
+def _public_prompt_specs_proxy() -> tuple[Any, ...]:
+    return _lazy_public_prompt_specs()
+
+
+def _public_tool_spec_by_name_proxy() -> dict[str, Any]:
+    return _lazy_public_tool_spec_by_name()
+
+
+PUBLIC_TOOL_SPECS = _lazy_public_tool_specs()
+PUBLIC_PROMPT_SPECS = _lazy_public_prompt_specs()
+PUBLIC_TOOL_SPEC_BY_NAME = _lazy_public_tool_spec_by_name()
 
 
 def public_prompt_specs() -> tuple[Any, ...]:
-    return PUBLIC_PROMPT_SPECS
+    return _lazy_public_prompt_specs()
 
 
 def is_public_profile(profile: str) -> bool:
