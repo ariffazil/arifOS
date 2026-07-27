@@ -54,8 +54,6 @@ from arifosmcp.core.vault_receipt import create_and_seal_receipt, resolve_receip
 from arifosmcp.runtime.metabolic_receipt import get_cumulative_metrics
 from arifosmcp.runtime.niat_gate import check_niat_gate
 from arifosmcp.core.reality_ledger_writer import write_reality_event
-from arifosmcp.runtime.self_mod_lock import is_self_modification_attempt
-from arifosmcp.runtime.tools import _arif_judge
 from arifosmcp.schemas.governance_locks import ParadoxHoldReceipt
 from arifosmcp.schemas.verdict import VerdictCode, VerdictOutput
 from core.shared.atlas import Φ
@@ -1699,8 +1697,7 @@ async def arif_judge(
     # All other classes: hard timeout via asyncio.wait_for.
     # If judge_fn exceeds budget → degrade immediately (preventive, not retroactive).
     timeout_seconds: float | None = None
-    if budget and budget.max_latency_ms > 0:
-        timeout_seconds = budget.max_latency_ms / 1000.0
+    from arifosmcp.runtime.tools import _arif_judge
 
     judge_coro = _arif_judge(
         mode=mode,
