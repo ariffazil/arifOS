@@ -409,16 +409,19 @@ class RuntimeStatus(StrEnum):
 
     This is what a tool returns to indicate execution outcome.
     Governance verdicts (SEAL/HOLD/SABAR/VOID) travel in the payload, NOT as status.
+
+    Audit 2026-07-28: Canonical is 5 values only (SUCCESS, ERROR, TIMEOUT, RETRY,
+    HOLD). SABAR / DRY_RUN / DEGRADED are NOT transport states — they are
+    either governance verdicts or payload-level metadata. Earlier commits
+    incorrectly extended this enum with them, collapsing transport vs.
+    governance semantics. Reverted to the 5-value canonical.
     """
 
-    SUCCESS = "SUCCESS"  # Tool executed normally
+    SUCCESS = "SUCCESS"  # Tool executed normally (including dry-run completion)
     ERROR = "ERROR"  # Tool encountered an error
     TIMEOUT = "TIMEOUT"  # Tool exceeded its time budget
     RETRY = "RETRY"  # Transient failure — caller should retry
     HOLD = "HOLD"  # Tool blocked by constitutional gate (NOT governance verdict — transport block)
-    SABAR = "SABAR"  # Transient wait / pending execution
-    DRY_RUN = "DRY_RUN"  # Dry run execution mode
-    DEGRADED = "DEGRADED"  # Degraded execution mode
 
 
 

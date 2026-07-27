@@ -58,7 +58,11 @@ except ImportError:
     _ED25519_AVAILABLE = False
 
 
-# ── Action Class Policy (forged 2026-07-24) ──────────────────────────────
+# ── Action Class Policy (forged 2026-07-24; granularized 2026-07-28) ─────
+# Audit 2026-07-28 B2: a single AUDIT_RECORD alias conflates read (R0),
+# append (R2), and seal (R4). Split into three granular entries that map
+# to distinct reversibility classes. The upstream ActionClass enum mirrors
+# this split via AUDIT_RECORD_READ / AUDIT_RECORD_APPEND / AUDIT_SEAL aliases.
 _ACTION_CLASS_POLICY = {
     "AUDIT_RECORD": {
         "seal_purpose": "RECORD",
@@ -67,6 +71,34 @@ _ACTION_CLASS_POLICY = {
         "ack_irreversible": False,
         "requires_f13": False,
         "can_retry_autonomously": True,
+    },
+    "AUDIT_RECORD_READ": {
+        # Audit 2026-07-28: read-only audit history query — no state change.
+        "seal_purpose": "RECORD",
+        "authority_effect": "NONE",
+        "reversibility": "R0",
+        "ack_irreversible": False,
+        "requires_f13": False,
+        "can_retry_autonomously": True,
+    },
+    "AUDIT_RECORD_APPEND": {
+        # Audit 2026-07-28: append a new audit record — reversible mutation.
+        "seal_purpose": "RECORD",
+        "authority_effect": "NONE",
+        "reversibility": "R2",
+        "ack_irreversible": False,
+        "requires_f13": False,
+        "can_retry_autonomously": True,
+    },
+    "AUDIT_SEAL": {
+        # Audit 2026-07-28: immutable audit seal — one-way, F13 not required
+        # for the seal itself (already gated by arif_seal tool's authority check).
+        "seal_purpose": "RECORD",
+        "authority_effect": "NONE",
+        "reversibility": "R4",
+        "ack_irreversible": True,
+        "requires_f13": False,
+        "can_retry_autonomously": False,
     },
     "EVIDENCE_ATTESTATION": {
         "seal_purpose": "RECORD",
@@ -265,6 +297,15 @@ async def _arif_kernel_intercept(
         "OBSERVATION": "R0",
         "OBSERVE": "R0",
         "READ": "R0",
+        # Audit 2026-07-28 B2: granular audit aliases — read vs append vs seal
+        # must be distinct because they have different reversibility classes:
+        # read = R0 (no state change), append = R2 (reversible mutation),
+        # seal = R4 (immutable). Without these, callers using the granular
+        # ActionClass.AUDIT_RECORD_READ / _APPEND / _SEAL aliases get rejected
+        # with 'recognized reversibility class'.
+        "AUDIT_RECORD_READ": "R0",
+        "AUDIT_RECORD_APPEND": "R2",
+        "AUDIT_SEAL": "R4",
         "R1": "R1",
         "R1_SIMULATION": "R1",
         "SIMULATION": "R1",
@@ -288,6 +329,7 @@ async def _arif_kernel_intercept(
         "R4": "R4",
         "R4_IRREVERSIBLE": "R4",
         "IRREVERSIBLE": "R4",
+        "ACTION_AUTHORIZATION": "R4",
         "R5": "R5",
         "R5_SOVEREIGN": "R5",
         "SOVEREIGN": "R5",

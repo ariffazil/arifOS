@@ -28,9 +28,6 @@ EXPECTED_RUNTIME_STATUS = {
     "TIMEOUT",
     "RETRY",
     "HOLD",
-    "SABAR",
-    "DRY_RUN",
-    "DEGRADED",
 }
 
 EXPECTED_VERDICT = {
@@ -45,10 +42,12 @@ EXPECTED_VERDICT = {
 
 # These enum values must NEVER appear at call sites because they do not exist
 # on the canonical enums. Aliases map to:
-#   FAILURE -> ERROR
-#   DEGRADED (on Verdict) -> PARTIAL
+#   RuntimeStatus.FAILURE -> RuntimeStatus.ERROR
+#   Verdict.DEGRADED -> Verdict.PARTIAL
+# SABAR / DRY_RUN / DEGRADED are NOT in canonical RuntimeStatus — they are
+# governance verdicts or payload-level metadata (audit 2026-07-28).
 FORBIDDEN_VERDICT_VALUES = {"DEGRADED", "FAILURE"}
-FORBIDDEN_RUNTIME_STATUS_VALUES = {"FAILURE"}
+FORBIDDEN_RUNTIME_STATUS_VALUES = {"FAILURE", "SABAR", "DRY_RUN", "DEGRADED"}
 
 
 class TestCanonicalEnums:

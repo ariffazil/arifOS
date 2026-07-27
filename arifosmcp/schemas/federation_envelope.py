@@ -142,10 +142,18 @@ class ActionClass(StrEnum):
     # Compatibility aliases for legacy code
     PREPARE = "DRAFT"
     ATOMIC = "IRREVERSIBLE"
-    # Audit 2026-07-27: AUDIT_RECORD and READ are observability actions — they
-    # do not modify state. Treating them as OBSERVE preserves audit semantics.
+
+    # Audit 2026-07-28 B2: AUDIT_RECORD is too coarse for a single alias —
+    # audit reads (history query, evidence validation) are OBSERVE, but
+    # appending a new audit record is MUTATE. Use granular aliases:
+    AUDIT_RECORD_READ = "OBSERVE"   # query audit history (no mutation)
+    AUDIT_RECORD_APPEND = "MUTATE"  # append a new audit record (reversible mutation)
+    AUDIT_SEAL = "IRREVERSIBLE"     # immutable audit seal (one-way)
+    READ = "OBSERVE"                # generic read alias (no state change)
+    # Legacy AUDIT_RECORD kept for backward compatibility — resolves to
+    # OBSERVE (read semantics). New callers should use the granular
+    # AUDIT_RECORD_READ / _APPEND / _SEAL aliases instead.
     AUDIT_RECORD = "OBSERVE"
-    READ = "OBSERVE"
 
 
 class ToolClass(StrEnum):

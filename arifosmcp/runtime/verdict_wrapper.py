@@ -162,10 +162,14 @@ def forge_verdict(
         timestamp=time.time(),
     )
 
+    # Audit 2026-07-28 rule: "tool completed with conditional governance verdict
+    # → RuntimeStatus.SUCCESS + Verdict.SABAR". The handler ran, the verdict
+    # gate said SABAR/PARTIAL — transport status is SUCCESS; governance verdict
+    # carries the conditional semantic.
     runtime_status = (
         RuntimeStatus.ERROR
         if _is_actual_failure
-        else RuntimeStatus.SABAR  # canonical transport: transient wait (SABAR/PARTIAL are governance verdicts)
+        else RuntimeStatus.SUCCESS
         if code in (VerdictCode.SABAR, VerdictCode.PARTIAL)
         else RuntimeStatus.SUCCESS
     )
